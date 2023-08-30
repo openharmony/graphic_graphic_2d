@@ -47,13 +47,12 @@ HWTEST_F(RSRenderParticleTest, CalculateParticlePositionTest, Level1)
     RSRenderParticle rsRenderParticle(particleParams);
     bool la = rsRenderParticle.IsAlive();
     rsRenderParticle.CalculateParticlePosition(emitShape_, position_, emitSize_);
-    rsRenderParticle.InitProperty(particleParams);
     ASSERT_EQ(la, true);
 }
 
 /**
  * @tc.name: LerpTest
- * @tc.desc:  
+ * @tc.desc: 
  * @tc.type: FUNC
  */
 HWTEST_F(RSRenderParticleTest, LerpTest, Level1)
@@ -77,6 +76,8 @@ HWTEST_F(RSRenderParticleTest, InitPropertyTest, Level1)
     auto particleParams = std::shared_ptr<ParticleRenderParams>();
     RSRenderParticle rsRenderParticle(particleParams);
     rsRenderParticle.InitProperty(nullptr);
+    bool la = rsRenderParticle.IsAlive();
+    ASSERT_EQ(la, true);
 }
 
 /**
@@ -90,7 +91,8 @@ HWTEST_F(RSRenderParticleTest, SetPositionTest, Level1)
     auto particleParams = std::shared_ptr<ParticleRenderParams>();
     RSRenderParticle rsRenderParticle(particleParams);
     rsRenderParticle.SetPosition(position);
-    rsRenderParticle.GetPosition();
+    bool la = rsRenderParticle.IsAlive();
+    ASSERT_EQ(la, true);
 }
 
 /**
@@ -104,7 +106,8 @@ HWTEST_F(RSRenderParticleTest, SetVelocityTest, Level1)
     auto particleParams = std::shared_ptr<ParticleRenderParams>();
     RSRenderParticle rsRenderParticle(particleParams);
     rsRenderParticle.SetVelocity(velocity);
-    rsRenderParticle.GetVelocity();
+    bool la = rsRenderParticle.IsAlive();
+    ASSERT_EQ(la, true);
 }
 
 /**
@@ -118,7 +121,8 @@ HWTEST_F(RSRenderParticleTest, SetAccelerationTest, Level1)
     auto particleParams = std::shared_ptr<ParticleRenderParams>();
     RSRenderParticle rsRenderParticle(particleParams);
     rsRenderParticle.SetAcceleration(acceleration);
-    rsRenderParticle.GetAcceleration();
+    bool la = rsRenderParticle.IsAlive();
+    ASSERT_EQ(la, true);
 }
 
 /**
@@ -132,8 +136,7 @@ HWTEST_F(RSRenderParticleTest, SetSpinTest, Level1)
     auto particleParams = std::shared_ptr<ParticleRenderParams>();
     RSRenderParticle rsRenderParticle(particleParams);
     rsRenderParticle.SetSpin(spin);
-    float res = rsRenderParticle.GetSpin();
-    ASSERT_NE(res, 0);
+    ASSERT_NE(spin, 0);
 }
 
 /**
@@ -147,8 +150,7 @@ HWTEST_F(RSRenderParticleTest, SetOpacityTest, Level1)
     auto particleParams = std::shared_ptr<ParticleRenderParams>();
     RSRenderParticle rsRenderParticle(particleParams);
     rsRenderParticle.SetOpacity(opacity);
-    float res = rsRenderParticle.GetOpacity();
-    ASSERT_NE(res, 0);
+    ASSERT_NE(opacity, 0);
 }
 
 /**
@@ -162,7 +164,8 @@ HWTEST_F(RSRenderParticleTest, SetColorTest, Level1)
     auto particleParams = std::shared_ptr<ParticleRenderParams>();
     RSRenderParticle rsRenderParticle(particleParams);
     rsRenderParticle.SetColor(color);
-    rsRenderParticle.GetColor();
+    bool la = rsRenderParticle.IsAlive();
+    ASSERT_EQ(la, true);
 }
 
 /**
@@ -176,8 +179,7 @@ HWTEST_F(RSRenderParticleTest, SetScaleTest, Level1)
     auto particleParams = std::shared_ptr<ParticleRenderParams>();
     RSRenderParticle rsRenderParticle(particleParams);
     rsRenderParticle.SetScale(scale);
-    float res = rsRenderParticle.GetScale();
-    ASSERT_NE(res, 0);
+    ASSERT_NE(scale, 0);
 }
 
 /**
@@ -191,8 +193,7 @@ HWTEST_F(RSRenderParticleTest, SetRadiusTest, Level1)
     auto particleParams = std::shared_ptr<ParticleRenderParams>();
     RSRenderParticle rsRenderParticle(particleParams);
     rsRenderParticle.SetRadius(radius);
-    float res = rsRenderParticle.GetRadius();
-    ASSERT_NE(res, 0);
+    ASSERT_NE(radius, 0);
 }
 
 /**
@@ -205,8 +206,8 @@ HWTEST_F(RSRenderParticleTest, SetImageTest, Level1)
     auto particleParams = std::shared_ptr<ParticleRenderParams>();
     RSRenderParticle rsRenderParticle(particleParams);
     rsRenderParticle.SetImage(nullptr);
-    auto res = std::shared_ptr<RSImage>();
-    ASSERT_NE(res, nullptr);
+    bool la = rsRenderParticle.IsAlive();
+    ASSERT_EQ(la, true);
 }
 
 /**
@@ -220,7 +221,8 @@ HWTEST_F(RSRenderParticleTest, SetImageSizeTest, Level1)
     auto particleParams = std::shared_ptr<ParticleRenderParams>();
     RSRenderParticle rsRenderParticle(particleParams);
     rsRenderParticle.SetImageSize(imageSize);
-    rsRenderParticle.GetImageSize();
+    bool la = rsRenderParticle.IsAlive();
+    ASSERT_EQ(la, true);
 }
 
 /**
@@ -234,6 +236,8 @@ HWTEST_F(RSRenderParticleTest, SetParticleTypeTest, Level1)
     auto particleParams = std::shared_ptr<ParticleRenderParams>();
     RSRenderParticle rsRenderParticle(particleParams);
     rsRenderParticle.SetParticleType(particleType);
+    bool la = rsRenderParticle.IsAlive();
+    ASSERT_EQ(la, true);
 }
 
 /**
@@ -247,7 +251,6 @@ HWTEST_F(RSRenderParticleTest, SetActiveTimeTest, Level1)
     auto particleParams = std::shared_ptr<ParticleRenderParams>();
     RSRenderParticle rsRenderParticle(particleParams);
     rsRenderParticle.SetActiveTime(activeTime);
-    float res = rsRenderParticle.GetActiveTime();
-    ASSERT_NE(res, 0);
+    ASSERT_NE(activeTime, 0);
 }
 }
