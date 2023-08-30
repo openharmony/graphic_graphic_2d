@@ -3667,13 +3667,13 @@ napi_value WebGLRenderingContextBase::GetParameter(napi_env env, napi_callback_i
         }
         napi_value outputBuffer = nullptr;
         napi_create_external_arraybuffer(env, res, sizeof(params),
-                                         [](napi_env env, void *finalize_data, void *finalize_hint) {  },
-                                         NULL, &outputBuffer);
+            [](napi_env env, void *finalize_data, void *finalize_hint) {
+                delete []reinterpret_cast<uint32_t *>(finalize_data);
+	    }, NULL, &outputBuffer);
         napi_value outputArray = nullptr;
         napi_create_typedarray(env, napi_uint32_array, sizeof(params) / sizeof(uint32_t),
                                outputBuffer, 0, &outputArray);
         LOGI("WebGL getParameter end");
-        delete []res;
         return outputArray;
     } else if (pname == GL_MAX_VIEWPORT_DIMS) {
         LOGI("WebGL pname : int32Array with 2 elements");

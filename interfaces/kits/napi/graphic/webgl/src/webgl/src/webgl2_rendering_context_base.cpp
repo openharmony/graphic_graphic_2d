@@ -4596,13 +4596,14 @@ napi_value WebGL2RenderingContextBase::GetActiveUniformBlockParameter(napi_env e
         }
         napi_value outputBuffer = nullptr;
         napi_create_external_arraybuffer(env, res, sizeof(params),
-                                         [](napi_env env, void *finalize_data, void *finalize_hint) {  },
-                                         NULL, &outputBuffer);
+            [](napi_env env, void *finalize_data, void *finalize_hint) {
+	        delete []reinterpret_cast<uint32_t *>(finalize_data);
+	    },
+            NULL, &outputBuffer);
         napi_value outputArray = nullptr;
         napi_create_typedarray(env, napi_uint32_array, sizeof(params) / sizeof(uint32_t),
                                outputBuffer, 0, &outputArray);
         LOGI("WebGL2 getActiveUniformBlockParameter end");
-        delete []res;
         return outputArray;
     } else if (pname == GL_UNIFORM_BLOCK_BINDING ||
                pname == GL_UNIFORM_BLOCK_DATA_SIZE ||
