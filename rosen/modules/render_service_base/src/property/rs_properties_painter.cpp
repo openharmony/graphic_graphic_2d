@@ -2270,19 +2270,19 @@ void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFi
             } else {
                 auto imageSize = particles[i]->GetImageSize();
                 auto image = particles[i]->GetImage();
-                canvas.save();
-                canvas.translate(position.x_, position.y_);
-#ifndef USE_ROSEN_DRAWING
-                canvas.rotate(particles[i]->GetSpin());
-#else
-                canvas.Save();
-                canvas.Translate(position.x_, position.y_);
-                canvas.Rotate(particles[i]->GetSpin(), 0, 0);
-#endif
                 float left = position.x_;
                 float top = position.y_;
                 float right = position.x_ + imageSize.x_ * scale;
                 float bottom = position.y_ + imageSize.y_ * scale;
+                canvas.save();
+                canvas.translate(position.x_, position.y_);
+#ifndef USE_ROSEN_DRAWING
+                canvas.rotate(particles[i]->GetSpin(), imageSize.x_ * scale / 2.f, imageSize.y_ * scale / 2.f);
+#else
+                canvas.Save();
+                canvas.Translate(position.x_, position.y_);
+                canvas.Rotate(particles[i]->GetSpin(), imageSize.x_ * scale / 2.f, imageSize.y_ * scale / 2.f);
+#endif
                 RectF destRect(left, top, right, bottom);
                 image->SetDstRect(destRect);
                 image->SetScale(scale);

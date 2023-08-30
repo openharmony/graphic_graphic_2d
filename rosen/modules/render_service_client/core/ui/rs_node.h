@@ -317,6 +317,11 @@ public:
 
     void UpdateUIFrameRateRange(FrameRateRange range);
 
+    bool GetParticleAnimationFinish()
+    {
+        return isParticleAnimationFinish_;
+    }
+
 protected:
     explicit RSNode(bool isRenderServiceNode);
     explicit RSNode(bool isRenderServiceNode, NodeId id);
@@ -385,6 +390,7 @@ private:
     FrameRateRange nodeRange_ = { 0, 0, 0 };
     std::mutex animationMutex_;
     AnimationId particleAnimationId_ = 0;
+    bool isParticleAnimationFinish_ = true;
 
     friend class RSAnimation;
     friend class RSCurveAnimation;
