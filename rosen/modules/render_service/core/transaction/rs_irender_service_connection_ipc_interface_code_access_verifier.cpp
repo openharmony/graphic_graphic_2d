@@ -238,6 +238,14 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             /* to implement access interception */
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK): {
+            /* to implement access interception */
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK): {
+            /* to implement access interception */
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_HGM_CFG_CALLBACK): {
             /* to implement access interception */
             break;

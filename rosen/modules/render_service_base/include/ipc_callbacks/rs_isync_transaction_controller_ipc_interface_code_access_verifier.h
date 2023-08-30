@@ -39,14 +39,7 @@ protected:
     bool IsExclusiveVerificationPassed(CodeUnderlyingType code) override;
 
 private:
-    RSISyncTransactionControllerInterfaceCodeAccessVerifier(
-        const RSISyncTransactionControllerInterfaceCodeAccessVerifier&) = delete;
-    RSISyncTransactionControllerInterfaceCodeAccessVerifier& operator=(
-        const RSISyncTransactionControllerInterfaceCodeAccessVerifier&) = delete;
-    RSISyncTransactionControllerInterfaceCodeAccessVerifier(
-        RSISyncTransactionControllerInterfaceCodeAccessVerifier&&) = delete;
-    RSISyncTransactionControllerInterfaceCodeAccessVerifier& operator=(
-        RSISyncTransactionControllerInterfaceCodeAccessVerifier&&) = delete;
+    DISALLOW_COPY_AND_MOVE(RSISyncTransactionControllerInterfaceCodeAccessVerifier);
 };
 } // namespace Rosen
 } // namespace OHOS

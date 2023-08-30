@@ -39,14 +39,7 @@ protected:
     bool IsExclusiveVerificationPassed(CodeUnderlyingType code) override;
 
 private:
-    RSIScreenChangeCallbackInterfaceCodeAccessVerifier(
-        const RSIScreenChangeCallbackInterfaceCodeAccessVerifier&) = delete;
-    RSIScreenChangeCallbackInterfaceCodeAccessVerifier& operator=(
-        const RSIScreenChangeCallbackInterfaceCodeAccessVerifier&) = delete;
-    RSIScreenChangeCallbackInterfaceCodeAccessVerifier(
-        RSIScreenChangeCallbackInterfaceCodeAccessVerifier&&) = delete;
-    RSIScreenChangeCallbackInterfaceCodeAccessVerifier& operator=(
-        RSIScreenChangeCallbackInterfaceCodeAccessVerifier&&) = delete;
+    DISALLOW_COPY_AND_MOVE(RSIScreenChangeCallbackInterfaceCodeAccessVerifier);
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -81,11 +81,13 @@ private:
     void SetTraceBegin(const TraceId traceId, const JankFrames& jankFrames, int64_t createTime);
     void SetTraceEnd(const TraceId traceId);
     void CheckTraceTimeout(int64_t checkEraseTime);
+    std::string GetTraceDescription(const DataBaseRs& info) const;
     int64_t ConvertTimeToSystime(int64_t time) const;
     int64_t GetCurrentSystimeMs() const;
 
     constexpr static size_t JANK_STATS_SIZE = 8;
     constexpr static uint16_t TRACE_CHECK_FREQ = 20;
+    constexpr static int64_t MISSED_FRAMES_TRACE_THRESHOLD = 6;
     bool isfirstSetStart_ = true;
     bool isNeedReport_ = false;
     bool isFirstFrame_ = false;

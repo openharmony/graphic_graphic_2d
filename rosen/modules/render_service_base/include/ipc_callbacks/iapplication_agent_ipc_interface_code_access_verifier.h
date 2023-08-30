@@ -39,14 +39,7 @@ protected:
     bool IsExclusiveVerificationPassed(CodeUnderlyingType code) override;
 
 private:
-    IApplicationAgentInterfaceCodeAccessVerifier(
-        const IApplicationAgentInterfaceCodeAccessVerifier&) = delete;
-    IApplicationAgentInterfaceCodeAccessVerifier& operator=(
-        const IApplicationAgentInterfaceCodeAccessVerifier&) = delete;
-    IApplicationAgentInterfaceCodeAccessVerifier(
-        IApplicationAgentInterfaceCodeAccessVerifier&&) = delete;
-    IApplicationAgentInterfaceCodeAccessVerifier& operator=(
-        IApplicationAgentInterfaceCodeAccessVerifier&&) = delete;
+    DISALLOW_COPY_AND_MOVE(IApplicationAgentInterfaceCodeAccessVerifier);
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -60,8 +60,7 @@ public:
 
 private:
     RSInterfaceCodeSecurityManager() = default;
-    RSInterfaceCodeSecurityManager(const RSInterfaceCodeSecurityManager&) = delete;
-    RSInterfaceCodeSecurityManager& operator=(const RSInterfaceCodeSecurityManager&) = delete;
+    DISALLOW_COPY(RSInterfaceCodeSecurityManager);
 
     /* specify a customized access verifier for the designated ipc interface code */
     void InitializeAccessVerifier(std::unique_ptr<RSInterfaceCodeAccessVerifierBase> accessVerifier)
