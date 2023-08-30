@@ -35,7 +35,7 @@ void RSRenderParticleEffectorTest::TearDown() {}
 
 /**
  * @tc.name: UpdateColorTest
- * @tc.desc: 
+ * @tc.desc:
  * @tc.type: FUNC
  */
 HWTEST_F(RSRenderParticleEffectorTest, UpdateColorTest, Level1)
@@ -50,7 +50,7 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateColorTest, Level1)
 
 /**
  * @tc.name: UpdateAccelerateTest
- * @tc.desc: 
+ * @tc.desc:
  * @tc.type: FUNC
  */
 HWTEST_F(RSRenderParticleEffectorTest, UpdateAccelerateTest, Level1)
@@ -65,7 +65,7 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateAccelerateTest, Level1)
 
 /**
  * @tc.name: UpdateOpacityTest
- * @tc.desc: 
+ * @tc.desc:
  * @tc.type: FUNC
  */
 HWTEST_F(RSRenderParticleEffectorTest, UpdateOpacityTest, Level1)
@@ -80,7 +80,7 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateOpacityTest, Level1)
 
 /**
  * @tc.name: UpdateScaleTest
- * @tc.desc: 
+ * @tc.desc:
  * @tc.type: FUNC
  */
 HWTEST_F(RSRenderParticleEffectorTest, UpdateScaleTest, Level1)
@@ -95,7 +95,7 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateScaleTest, Level1)
 
 /**
  * @tc.name: UpdateSpinTest
- * @tc.desc: 
+ * @tc.desc:
  * @tc.type: FUNC
  */
 HWTEST_F(RSRenderParticleEffectorTest, UpdateSpinTest, Level1)
