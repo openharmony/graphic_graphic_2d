@@ -13,31 +13,30 @@
  * limitations under the License.
  */
 
-#include "platform/ohos/rs_irender_service_ipc_interface_code_access_verifier.h"
+#include "ipc_callbacks/rs_isurface_occlusion_change_callback_ipc_interface_code_access_verifier.h"
 
 namespace OHOS {
 namespace Rosen {
-RSIRenderServiceInterfaceCodeAccessVerifier::RSIRenderServiceInterfaceCodeAccessVerifier()
+RSISurfaceOcclusionChangeCallbackInterfaceCodeAccessVerifier::
+    RSISurfaceOcclusionChangeCallbackInterfaceCodeAccessVerifier()
 {
-#ifdef ENABLE_IPC_SECURITY
     CheckCodeUnderlyingTypeStandardized<CodeEnumType>(codeEnumTypeName_);
-#endif
 }
 
-void RSIRenderServiceInterfaceCodeAccessVerifier::InitializeAccessMap()
+bool RSISurfaceOcclusionChangeCallbackInterfaceCodeAccessVerifier::IsExclusiveVerificationPassed(
+    CodeUnderlyingType code)
 {
-#ifdef ENABLE_IPC_SECURITY
-    // next: specify the initialization of accessMap_ here
-    accessMap_ = {};
-#endif
-}
-
-bool RSIRenderServiceInterfaceCodeAccessVerifier::IsExtraVerificationPassed(
-    CodeUnderlyingType /* code */, const std::string& /* caller */)
-{
-    // Since no exclusive verification rule is temporarily required by this verifier, directly return true.
-    // If any exclusive rule is required in the future, overwrite this function.
-    return true;
+    bool hasPermission = true;
+    switch (code) {
+        case static_cast<CodeUnderlyingType>(CodeEnumType::ON_SURFACE_OCCLUSION_VISIBLE_CHANGED): {
+            /* to implement access interception */
+            break;
+        }
+        default: {
+            break;
+        }
+    }
+    return hasPermission;
 }
 } // namespace Rosen
 } // namespace OHOS

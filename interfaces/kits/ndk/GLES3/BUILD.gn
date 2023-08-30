@@ -17,6 +17,7 @@ import("//build/ohos/ndk/ndk.gni")
 ohos_ndk_headers("GLES3_header") {
   dest_dir = "$ndk_headers_out_dir/GLES3"
   sources = [
+    "//third_party/openGLES/api/GLES2/gl2ext.h",
     "//third_party/openGLES/api/GLES3/gl3.h",
     "//third_party/openGLES/api/GLES3/gl31.h",
     "//third_party/openGLES/api/GLES3/gl32.h",
@@ -34,5 +35,6 @@ ohos_ndk_library("libGLESv3_ndk") {
     "GLES3/gl31.h",
     "GLES3/gl32.h",
     "GLES3/gl3platform.h",
+    "GLES3/gl2ext.h",
   ]
 }

@@ -44,6 +44,7 @@ ohos_shared_library("libhyper_graphic_manager") {
     "core/frame_rate_manager/hgm_frame_rate_tool.cpp",
     "core/hgm_screen_manager/hgm_core.cpp",
     "core/hgm_screen_manager/hgm_screen.cpp",
+    "core/utils/hgm_one_shot_timer.cpp",
   ]
 
   deps = [
@@ -53,6 +54,7 @@ ohos_shared_library("libhyper_graphic_manager") {
 
   external_deps = [
     "c_utils:utils",
+    "config_policy:configpolicy_util",
     "eventhandler:libeventhandler",
     "hitrace:hitrace_meter",
     "init:libbeget_proxy",

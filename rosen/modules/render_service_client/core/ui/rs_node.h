@@ -315,10 +315,7 @@ public:
 
     void AddFRCSceneInfo(const std::string& scene, float speed);
 
-    FrameRateRange GetFrameRateRange()
-    {
-        return nodeRange_;
-    }
+    void UpdateUIFrameRateRange(FrameRateRange range);
 
 protected:
     explicit RSNode(bool isRenderServiceNode);
@@ -387,6 +384,7 @@ private:
 
     FrameRateRange nodeRange_ = { 0, 0, 0 };
     std::mutex animationMutex_;
+    AnimationId particleAnimationId_ = 0;
 
     friend class RSAnimation;
     friend class RSCurveAnimation;

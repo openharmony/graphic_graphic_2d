@@ -152,9 +152,6 @@ public:
         if (value == stagingValue_) {
             return;
         }
-        if (!IsNeedUpdate(value)) {
-            return;
-        }
         stagingValue_ = value;
         OnChange();
         if (updateUIPropertyFunc_) {
@@ -163,6 +160,11 @@ public:
     }
 
     T Get() const
+    {
+        return stagingValue_;
+    }
+
+    T& GetRef()
     {
         return stagingValue_;
     }
@@ -179,11 +181,6 @@ protected:
     RSRenderPropertyType GetPropertyType() const
     {
         return RSRenderPropertyType::INVALID;
-    }
-
-    bool IsNeedUpdate(const T& value) const
-    {
-        return true;
     }
 
     friend class RSMarshallingHelper;
@@ -300,13 +297,6 @@ extern template class RSRenderAnimatableProperty<float>;
 extern template class RSRenderAnimatableProperty<Vector4f>;
 extern template class RSRenderAnimatableProperty<Quaternion>;
 extern template class RSRenderAnimatableProperty<Vector2f>;
-#endif
-
-template<>
-RSB_EXPORT bool RSRenderProperty<float>::IsNeedUpdate(const float& value) const;
-
-#if defined(_WIN32)
-extern template class RSRenderProperty<float>;
 #endif
 } // namespace Rosen
 } // namespace OHOS

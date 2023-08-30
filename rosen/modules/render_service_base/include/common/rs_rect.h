@@ -153,6 +153,11 @@ public:
         return (top_ >= rect.top_ && left_ >= rect.left_ &&
             GetBottom() <= rect.GetBottom() && GetRight() <= rect.GetRight());
     }
+    bool Intersect(const RectT<T>& other) const
+    {
+        return (left_ <= other.left_ + other.width_) && (other.left_ <= left_ + width_) &&
+               (top_ <= other.top_ + other.height_) && (other.top_ <= top_ + height_);
+    }
     RectT<T> IntersectRect(const RectT<T>& rect) const
     {
         T left = std::max(left_, rect.left_);

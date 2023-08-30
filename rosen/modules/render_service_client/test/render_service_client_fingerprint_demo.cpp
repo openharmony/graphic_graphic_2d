@@ -27,6 +27,7 @@ using namespace std;
 constexpr float X_RATIO = 0.5;
 constexpr float Y_RATIO = 0.68;
 constexpr float RADIUS = 200;
+constexpr float MAX_ZORDER = 100000.0f;
 constexpr int SLEEP_TIME = 5;
 static volatile sig_atomic_t g_flag = 0;
 
@@ -67,11 +68,12 @@ int main()
     rsSurface->FlushFrame(surfaceFrame);
     surfaceNode->SetFingerprint(true);
 
+    DisplayId id = DisplayManager::GetInstance().GetDefaultDisplayId();
+    surfaceNode->SetPositionZ(MAX_ZORDER);
+    surfaceNode->AttachToDisplay(id);
+
     auto transactionProxy = RSTransactionProxy::GetInstance();
     transactionProxy->FlushImplicitTransaction();
-
-    DisplayId id = DisplayManager::GetInstance().GetDefaultDisplayId();
-    DisplayManager::GetInstance().AddSurfaceNodeToDisplay(id, surfaceNode);
 
     while (1) {
         if (g_flag) {
@@ -80,7 +82,8 @@ int main()
         }
     }
 
-    DisplayManager::GetInstance().RemoveSurfaceNodeFromDisplay(id, surfaceNode);
+    surfaceNode->DetachToDisplay(id);
+    transactionProxy->FlushImplicitTransaction();
     sleep(SLEEP_TIME);
     return 0;
 }

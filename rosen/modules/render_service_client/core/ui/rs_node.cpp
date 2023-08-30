@@ -734,16 +734,17 @@ void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams)
     auto animation =
         std::make_shared<RSRenderParticleAnimation>(animationId, particlesRenderParams);
 
-    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateParticle>(GetId(), animation);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateParticle>(GetId(), animation, particleAnimationId_);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
         if (NeedForcedSendToRemote()) {
             std::unique_ptr<RSCommand> cmdForRemote =
-                std::make_unique<RSAnimationCreateParticle>(GetId(), animation);
+                std::make_unique<RSAnimationCreateParticle>(GetId(), animation, particleAnimationId_);
             transactionProxy->AddCommand(cmdForRemote, true, GetFollowType(), GetId());
         }
     }
+    particleAnimationId_ = animationId;
 }
 
 // foreground
@@ -1356,9 +1357,12 @@ void RSNode::AddFRCSceneInfo(const std::string& scene, float speed)
     if (!range.IsValid()) {
         return;
     }
-    nodeRange_ = range;
+    UpdateUIFrameRateRange(range);
+}
 
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSetUIFrameRateRange>(GetId(), range);
+void RSNode::UpdateUIFrameRateRange(FrameRateRange range)
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSUpdateUIFrameRateRange>(GetId(), range);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode());

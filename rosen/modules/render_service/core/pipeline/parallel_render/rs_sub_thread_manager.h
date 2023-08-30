@@ -37,8 +37,12 @@ public:
     void NodeTaskNotify(uint64_t nodeId);
     void SubmitSubThreadTask(const std::shared_ptr<RSDisplayRenderNode>& node,
         const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
-    void ResetSubThreadGrContext() const;
+    void ResetSubThreadGrContext();
+    void CancelReleaseResourceTask();
     void DumpMem(DfxString& log);
+    float GetAppGpuMemoryInMB();
+    void ReleaseSurface(uint32_t threadIndex) const;
+    void AddToReleaseQueue(sk_sp<SkSurface>&& surface, uint32_t threadIndex);
 private:
     RSSubThreadManager() = default;
     ~RSSubThreadManager() = default;
@@ -54,6 +58,7 @@ private:
     std::map<uint64_t, uint8_t> nodeTaskState_;
     std::vector<std::shared_ptr<RSSubThread>> threadList_;
     bool needResetContext_ = false;
+    bool needCancelTask_ = false;
 };
 }
 #endif // RENDER_SERVICE_CORE_PIPELINE_PARALLEL_RENDER_RS_SUB_THREAD_MANAGER_H

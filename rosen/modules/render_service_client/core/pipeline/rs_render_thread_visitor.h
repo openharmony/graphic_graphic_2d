@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_RENDER_THREAD_VISITOR_H
 
 #include <memory>
+#include <map>
 #include <set>
 
 #include "pipeline/rs_dirty_region_manager.h"
@@ -56,6 +57,10 @@ public:
     void ProcessRootRenderNode(RSRootRenderNode& node) override;
     void ProcessSurfaceRenderNode(RSSurfaceRenderNode& node) override;
     void ProcessEffectRenderNode(RSEffectRenderNode& node) override;
+
+    void AddSurfaceChangedCallBack(uint64_t id,
+        const std::function<void(float, float, float, float)>& callback) override;
+    void RemoveSurfaceChangedCallBack(uint64_t id) override;
 
     // Partial render status and renderForce flag should be updated by rt thread
     void SetPartialRenderStatus(PartialRenderType status, bool isRenderForced);
@@ -106,6 +111,8 @@ private:
     Drawing::Matrix parentSurfaceNodeMatrix_;
     std::optional<Drawing::Path> effectRegion_ = std::nullopt;
 #endif // USE_ROSEN_DRAWING
+
+    std::map<NodeId, std::function<void(float, float, float, float)>> surfaceCallbacks_;
 
     static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
     static bool IsValidRootRenderNode(RSRootRenderNode& node);

@@ -729,7 +729,9 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
         if (mainThread == nullptr) {
             return;
         }
-        mainThread->SetDirtyFlag();
+        mainThread->PostTask([mainThread]() {
+            mainThread->SetDirtyFlag();
+        });
         if (screenPowerStatus_.count(id) == 0 || screenPowerStatus_[id] == ScreenPowerStatus::POWER_STATUS_OFF) {
             mainThread->ForceRefreshForUni();
         } else {

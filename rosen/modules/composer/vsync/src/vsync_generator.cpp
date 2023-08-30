@@ -89,7 +89,7 @@ void VSyncGenerator::ThreadLoop()
 
     int64_t occurTimestamp = 0;
     int64_t nextTimeStamp = 0;
-    int64_t occurRefrenceTime = 0;
+    int64_t occurRefrenceTime;
     while (vsyncThreadRunning_ == true) {
         std::vector<Listener> listeners;
         {

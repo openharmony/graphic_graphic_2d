@@ -208,4 +208,30 @@ HWTEST_F(RSUIDirectorTest, SetProperty001, TestSize.Level1)
     director->SetAppFreeze(true);
     director->RunningCustomAnimation(10);
 }
+
+/**
+ * @tc.name: DestroyTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, DestroyTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    NodeId nodeId = 10;
+    director->SetRoot(nodeId);
+    director->Destroy();
+}
+
+/**
+ * @tc.name: SetRootTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, SetRootTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    NodeId nodeId = 10;
+    director->SetRoot(nodeId);
+    director->SetRoot(nodeId);
+}
 } // namespace OHOS::Rosen

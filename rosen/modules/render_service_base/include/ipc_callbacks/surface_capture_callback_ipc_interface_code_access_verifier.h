@@ -35,21 +35,11 @@ public:
     ~RSISurfaceCaptureCallbackInterfaceCodeAccessVerifier() noexcept override = default;
 
 protected:
-    /* specify the initialization of accessMap_ here */
-    void InitializeAccessMap() override;
-
     /* specify exclusive verification rules here */
-    bool IsExtraVerificationPassed(CodeUnderlyingType code, const std::string& caller) override;
+    bool IsExclusiveVerificationPassed(CodeUnderlyingType code) override;
 
 private:
-    RSISurfaceCaptureCallbackInterfaceCodeAccessVerifier(
-        const RSISurfaceCaptureCallbackInterfaceCodeAccessVerifier&) = delete;
-    RSISurfaceCaptureCallbackInterfaceCodeAccessVerifier& operator=(
-        const RSISurfaceCaptureCallbackInterfaceCodeAccessVerifier&) = delete;
-    RSISurfaceCaptureCallbackInterfaceCodeAccessVerifier(
-        RSISurfaceCaptureCallbackInterfaceCodeAccessVerifier&&) = delete;
-    RSISurfaceCaptureCallbackInterfaceCodeAccessVerifier& operator=(
-        RSISurfaceCaptureCallbackInterfaceCodeAccessVerifier&&) = delete;
+    DISALLOW_COPY_AND_MOVE(RSISurfaceCaptureCallbackInterfaceCodeAccessVerifier);
 };
 } // namespace Rosen
 } // namespace OHOS

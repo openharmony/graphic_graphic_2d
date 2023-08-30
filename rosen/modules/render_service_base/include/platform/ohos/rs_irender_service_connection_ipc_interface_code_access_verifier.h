@@ -35,21 +35,11 @@ public:
     ~RSIRenderServiceConnectionInterfaceCodeAccessVerifier() noexcept override = default;
 
 protected:
-    /* specify the initialization of accessMap_ here */
-    void InitializeAccessMap() override;
-
     /* specify exclusive verification rules here */
-    bool IsExtraVerificationPassed(CodeUnderlyingType code, const std::string& caller) override;
+    bool IsExclusiveVerificationPassed(CodeUnderlyingType code) override;
 
 private:
-    RSIRenderServiceConnectionInterfaceCodeAccessVerifier(
-        const RSIRenderServiceConnectionInterfaceCodeAccessVerifier&) = delete;
-    RSIRenderServiceConnectionInterfaceCodeAccessVerifier& operator=(
-        const RSIRenderServiceConnectionInterfaceCodeAccessVerifier&) = delete;
-    RSIRenderServiceConnectionInterfaceCodeAccessVerifier(
-        RSIRenderServiceConnectionInterfaceCodeAccessVerifier&&) = delete;
-    RSIRenderServiceConnectionInterfaceCodeAccessVerifier& operator=(
-        RSIRenderServiceConnectionInterfaceCodeAccessVerifier&&) = delete;
+    DISALLOW_COPY_AND_MOVE(RSIRenderServiceConnectionInterfaceCodeAccessVerifier);
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -135,7 +135,7 @@ uint32_t RSInterfaces::GetScreenCurrentRefreshRate(ScreenId id)
     return renderServiceClient_->GetScreenCurrentRefreshRate(id);
 }
 
-std::vector<uint32_t> RSInterfaces::GetScreenSupportedRefreshRates(ScreenId id)
+std::vector<int32_t> RSInterfaces::GetScreenSupportedRefreshRates(ScreenId id)
 {
     return renderServiceClient_->GetScreenSupportedRefreshRates(id);
 }
@@ -155,7 +155,8 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(
         return false;
     }
     if (RSSystemProperties::GetUniRenderEnabled()) {
-        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY);
+        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY, 
+            SurfaceCaptureType::UICAPTURE);
     } else {
         return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, scaleX, scaleY);
     }
@@ -298,6 +299,16 @@ int32_t RSInterfaces::RegisterOcclusionChangeCallback(const OcclusionChangeCallb
     return renderServiceClient_->RegisterOcclusionChangeCallback(callback);
 }
 
+int32_t RSInterfaces::RegisterSurfaceOcclusionChangeCallback(NodeId id, const SurfaceOcclusionChangeCallback& callback)
+{
+    return renderServiceClient_->RegisterSurfaceOcclusionChangeCallback(id, callback);
+}
+
+int32_t RSInterfaces::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
+{
+    return renderServiceClient_->UnRegisterSurfaceOcclusionChangeCallback(id);
+}
+
 int32_t RSInterfaces::RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback)
 {
     return renderServiceClient_->RegisterHgmConfigChangeCallback(callback);
@@ -323,6 +334,11 @@ std::vector<MemoryGraphic> RSInterfaces::GetMemoryGraphics()
     return renderServiceClient_->GetMemoryGraphics();
 }
 
+bool RSInterfaces::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
+{
+    return renderServiceClient_->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
+}
+
 void RSInterfaces::ReportJankStats()
 {
     renderServiceClient_->ReportJankStats();
@@ -342,6 +358,5 @@ void RSInterfaces::ReportEventJankFrame(DataBaseRs info)
 {
     renderServiceClient_->ReportEventJankFrame(info);
 }
-
 } // namespace Rosen
 } // namespace OHOS

@@ -58,6 +58,7 @@ private:
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
     MemoryGraphic GetMemoryGraphic(int pid) override;
     std::vector<MemoryGraphic> GetMemoryGraphics() override;
+    bool GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize) override;
     bool GetUniRenderEnabled() override;
 
     bool CreateNode(const RSSurfaceRenderNodeConfig& config) override;
@@ -96,13 +97,14 @@ private:
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) override;
 
-    std::vector<uint32_t> GetScreenSupportedRefreshRates(ScreenId id) override;
+    std::vector<int32_t> GetScreenSupportedRefreshRates(ScreenId id) override;
 
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 
-    void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY) override;
+    void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY,
+        SurfaceCaptureType surfaceCaptureType) override;
 
     void TakeSurfaceCaptureForUIWithUni(
         NodeId id, sptr<RSISurfaceCaptureCallback> callback, float scaleX, float scaleY);
@@ -158,6 +160,11 @@ private:
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) override;
 
     int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) override;
+
+    int32_t RegisterSurfaceOcclusionChangeCallback(
+        NodeId id, sptr<RSISurfaceOcclusionChangeCallback> callback) override;
+
+    int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) override;
 
     int32_t RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
@@ -217,7 +224,6 @@ private:
     std::unordered_set<ScreenId> virtualScreenIds_;
     sptr<RSIScreenChangeCallback> screenChangeCallback_;
     sptr<VSyncDistributor> appVSyncDistributor_;
-    std::vector<sptr<VSyncConnection>> vsyncConnections_;
 };
 } // namespace Rosen
 } // namespace OHOS

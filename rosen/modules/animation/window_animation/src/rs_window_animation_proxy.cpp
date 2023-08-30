@@ -104,23 +104,23 @@ void RSWindowAnimationProxy::OnAppTransition(const sptr<RSWindowAnimationTarget>
     }
 
     if (!data.WriteParcelable(fromWindowTarget.GetRefPtr())) {
-        WALOGE("Failed to write from animation target!");
+        WALOGE("OnAppTransition failed to write from animation target!");
         return;
     }
 
     if (!data.WriteParcelable(toWindowTarget.GetRefPtr())) {
-        WALOGE("Failed to write to animation target!");
+        WALOGE("OnAppTransition failed to write to animation target!");
         return;
     }
 
     if (!data.WriteRemoteObject(finishedCallback->AsObject())) {
-        WALOGE("Failed to write finished callback!");
+        WALOGE("OnAppTransition failed to write finished callback!");
         return;
     }
 
     auto remote = Remote();
     if (remote == nullptr) {
-        WALOGE("remote is null!");
+        WALOGE("OnAppTransition remote is null!");
         return;
     }
 
@@ -144,23 +144,23 @@ void RSWindowAnimationProxy::OnAppBackTransition(const sptr<RSWindowAnimationTar
     }
 
     if (!data.WriteParcelable(fromWindowTarget.GetRefPtr())) {
-        WALOGE("Failed to write from animation target!");
+        WALOGE("OnAppBackTransition failed to write from animation target!");
         return;
     }
 
     if (!data.WriteParcelable(toWindowTarget.GetRefPtr())) {
-        WALOGE("Failed to write to animation target!");
+        WALOGE("OnAppBackTransition failed to write to animation target!");
         return;
     }
 
     if (!data.WriteRemoteObject(finishedCallback->AsObject())) {
-        WALOGE("Failed to write finished callback!");
+        WALOGE("OnAppBackTransition failed to write finished callback!");
         return;
     }
 
     auto remote = Remote();
     if (remote == nullptr) {
-        WALOGE("remote is null!");
+        WALOGE("OnAppBackTransition remote is null!");
         return;
     }
 
@@ -184,13 +184,13 @@ void RSWindowAnimationProxy::OnMinimizeWindow(const sptr<RSWindowAnimationTarget
     }
 
     if (!WriteTargetAndCallback(data, minimizingWindowTarget, finishedCallback)) {
-        WALOGE("Failed to write window animation target or callback!");
+        WALOGE("OnMinimizeWindow failed to write window animation target or callback!");
         return;
     }
 
     auto remote = Remote();
     if (remote == nullptr) {
-        WALOGE("remote is null!");
+        WALOGE("OnMinimizeWindow remote is null!");
         return;
     }
 
@@ -221,25 +221,25 @@ void RSWindowAnimationProxy::OnMinimizeAllWindow(std::vector<sptr<RSWindowAnimat
     }
 
     if (!data.WriteUint32(minimizingWindowsTarget.size())) {
-        WALOGE("Failed to write minimizing animation target size!");
+        WALOGE("OnMinimizeAllWindow failed to write minimizing animation target size!");
         return;
     }
 
     for (auto& target : minimizingWindowsTarget) {
         if (!data.WriteParcelable(target.GetRefPtr())) {
-            WALOGE("Failed to write minimizing animation target!");
+            WALOGE("OnMinimizeAllWindow failed to write minimizing animation target!");
             return;
         }
     }
 
     if (!data.WriteRemoteObject(finishedCallback->AsObject())) {
-        WALOGE("Failed to write finished callback!");
+        WALOGE("OnMinimizeAllWindow failed to write finished callback!");
         return;
     }
 
     auto remote = Remote();
     if (remote == nullptr) {
-        WALOGE("remote is null!");
+        WALOGE("OnMinimizeAllWindow remote is null!");
         return;
     }
 
@@ -262,19 +262,19 @@ void RSWindowAnimationProxy::OnCloseWindow(const sptr<RSWindowAnimationTarget>& 
     }
 
     if (!WriteTargetAndCallback(data, closingWindowTarget, finishedCallback)) {
-        WALOGE("Failed to write window animation target or callback!");
+        WALOGE("OnCloseWindow failed to write window animation target or callback!");
         return;
     }
 
     auto remote = Remote();
     if (remote == nullptr) {
-        WALOGE("remote is null!");
+        WALOGE("OnCloseWindow remote is null!");
         return;
     }
 
     auto ret = remote->SendRequest(RSIWindowAnimationController::ON_CLOSE_WINDOW, data, reply, option);
     if (ret != NO_ERROR) {
-        WALOGE("Failed to send close window request, error code:%d", ret);
+        WALOGE("OnCloseWindow failed to send close window request, error code:%d", ret);
     }
 }
 
@@ -290,13 +290,13 @@ void RSWindowAnimationProxy::OnScreenUnlock(const sptr<RSIWindowAnimationFinishe
     }
 
     if (!data.WriteRemoteObject(finishedCallback->AsObject())) {
-        WALOGE("Failed to write finished callback!");
+        WALOGE("OnScreenUnlock failed to write finished callback!");
         return;
     }
 
     auto remote = Remote();
     if (remote == nullptr) {
-        WALOGE("remote is null!");
+        WALOGE("OnScreenUnlock remote is null!");
         return;
     }
 

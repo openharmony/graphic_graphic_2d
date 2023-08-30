@@ -243,6 +243,7 @@ bool BootAnimation::CheckExitAnimation()
 {
     if (!isAnimationEnd_) {
         LOGI("Boot animation is end");
+        system::SetParameter("bootevent.bootanimation.finished", "true");
         isAnimationEnd_ = true;
     }
     std::string bootEventCompleted = system::GetParameter("bootevent.boot.completed", "false");

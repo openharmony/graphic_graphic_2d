@@ -38,13 +38,13 @@ NativeValue* RSWindowAnimationUtils::CreateJsWindowAnimationTarget(NativeEngine&
 
     auto objValue = engine.CreateObject();
     if (objValue == nullptr) {
-        WALOGE("Failed to create object!");
+        WALOGE("CreateJsWindowAnimationTarget failed to create object!");
         return engine.CreateUndefined();
     }
 
     auto object = ConvertNativeValueTo<NativeObject>(objValue);
     if (object == nullptr) {
-        WALOGE("Failed to convert object!");
+        WALOGE("CreateJsWindowAnimationTarget failed to convert object!");
         return engine.CreateUndefined();
     }
 
@@ -92,13 +92,13 @@ NativeValue* RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(
 
     auto objValue = engine.CreateObject();
     if (objValue == nullptr) {
-        WALOGE("Failed to create object!");
+        WALOGE("CreateJsWindowAnimationFinishedCallback failed to create object!");
         return engine.CreateUndefined();
     }
 
     auto object = ConvertNativeValueTo<NativeObject>(objValue);
     if (object == nullptr) {
-        WALOGE("Failed to convert object!");
+        WALOGE("CreateJsWindowAnimationFinishedCallback failed to convert object!");
         return engine.CreateUndefined();
     }
 
@@ -131,13 +131,13 @@ NativeValue* RSWindowAnimationUtils::CreateJsRRect(NativeEngine& engine, const R
     WALOGD("Create!");
     auto objValue = engine.CreateObject();
     if (objValue == nullptr) {
-        WALOGE("Failed to create object!");
+        WALOGE("CreateJsRRect failed to create object!");
         return engine.CreateUndefined();
     }
 
     auto object = ConvertNativeValueTo<NativeObject>(objValue);
     if (object == nullptr) {
-        WALOGE("Failed to convert object!");
+        WALOGE("CreateJsRRect failed to convert object!");
         return engine.CreateUndefined();
     }
 

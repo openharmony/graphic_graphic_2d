@@ -53,6 +53,7 @@ enum HgmErrCode {
 
     HGM_SCREEN_MODE_EXIST,
     HGM_SCREEN_PARAM_ERROR,
+    FINAL_RANGE_NOT_VALID,
 };
 
 enum HgmXmlNode {
@@ -99,6 +100,7 @@ public:
         int32_t max;
         int32_t preferred_fps;
     };
+    std::unordered_map<std::string, std::string> refreshRateForSettings_;
     std::unordered_map<std::string, std::string> customerSettingConfig_;
     std::unordered_map<std::string, detailedStrat> detailedStrategies_;
     std::unordered_map<std::string, std::string> animationDynamicStrats_;

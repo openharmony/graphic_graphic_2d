@@ -62,15 +62,19 @@ void AnimationCommandHelper::CreateAnimation(
 }
 
 void AnimationCommandHelper::CreateParticleAnimation(
-    RSContext& context, NodeId targetId, const std::shared_ptr<RSRenderParticleAnimation>& animation)
+    RSContext& context, NodeId targetId, const std::shared_ptr<RSRenderParticleAnimation>& animation, AnimationId animId)
 {
     auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
     if (node == nullptr) {
         return;
     }
+    if (animId != 0) {
+        node->GetAnimationManager().RemoveAnimation(animId);
+        node->RemoveModifier(0);
+    }
     node->GetAnimationManager().AddAnimation(animation);
 
-    auto property = std::make_shared<RSRenderProperty<std::vector<std::shared_ptr<RSRenderParticle>>>>(
+    auto property = std::make_shared<RSRenderProperty<RSRenderParticleVector>>(
         animation->GetRenderParticle(), 0);
     auto modifier = std::make_shared<RSParticleRenderModifier>(property);
     node->AddModifier(modifier);

@@ -149,6 +149,7 @@ void RSProcessor::SetMirrorScreenSwap(const RSDisplayRenderNode& node)
     auto mirroredNode = node.GetMirrorSource().lock();
     if (mirroredNode == nullptr) {
         RS_LOGE("RSProcessor::Init: Get mirroredNode failed");
+        return;
     }
     if (mirroredNode->GetRotation() == ScreenRotation::ROTATION_90 ||
         mirroredNode->GetRotation() == ScreenRotation::ROTATION_270) {

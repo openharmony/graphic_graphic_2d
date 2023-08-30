@@ -78,3 +78,13 @@ int OH_NativeVSync_RequestFrame(OH_NativeVSync *ohNativeVSync, OH_NativeVSync_Fr
     };
     return nativeVSync->receiver_->RequestNextVSync(frameCallback);
 }
+
+int OH_NativeVSync_GetPeriod(OH_NativeVSync* nativeVsync, long long* period)
+{
+    NativeVSync* nativeVSync = OH_NativeVSync_OHNativeVSyncToNativeVSync(nativeVsync);
+    if (nativeVSync == nullptr || nativeVSync->receiver_ == nullptr || period == nullptr) {
+        VLOGE("parameter is nullptr, please check");
+        return -1;
+    }
+    return nativeVSync->receiver_->GetVSyncPeriod(*reinterpret_cast<int64_t*>(period));
+}

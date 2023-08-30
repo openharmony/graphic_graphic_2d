@@ -35,6 +35,7 @@ struct JankFrames {
     bool isReportEventResponse_ = false;
     bool isReportEventComplete_ = false;
     bool isReportEventJankFrame_ = false;
+    bool isUpdateJankFrame_ = false;
     int64_t setTime_ = 0;
     int32_t seqMissedFrames_ = 0;
     int32_t totalFrames_ = 0;
@@ -73,15 +74,20 @@ private:
 
     void SetRSJankStats(int32_t times);
     void UpdateJankFrame(int64_t duration, JankFrames& jankFrames);
-    void ReportEventResponse(const JankFrames& jankFrames, const TraceId traceId);
-    void ReportEventComplete(const JankFrames& jankFrames, const TraceId traceId);
+    void ReportEventResponse(const JankFrames& jankFrames) const;
+    void ReportEventComplete(const JankFrames& jankFrames) const;
     void ReportEventJankFrame(const JankFrames& jankFrames) const;
     void ReportEventFirstFrame();
+    void SetTraceBegin(const TraceId traceId, const JankFrames& jankFrames, int64_t createTime);
+    void SetTraceEnd(const TraceId traceId);
+    void CheckTraceTimeout(int64_t checkEraseTime);
+    std::string GetTraceDescription(const DataBaseRs& info) const;
     int64_t ConvertTimeToSystime(int64_t time) const;
     int64_t GetCurrentSystimeMs() const;
 
     constexpr static size_t JANK_STATS_SIZE = 8;
     constexpr static uint16_t TRACE_CHECK_FREQ = 20;
+    constexpr static int64_t MISSED_FRAMES_TRACE_THRESHOLD = 6;
     bool isfirstSetStart_ = true;
     bool isNeedReport_ = false;
     bool isFirstFrame_ = false;

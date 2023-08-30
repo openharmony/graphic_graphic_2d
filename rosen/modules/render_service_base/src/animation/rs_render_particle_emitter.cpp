@@ -18,49 +18,53 @@
 #include <vector>
 namespace OHOS {
 namespace Rosen {
-std::vector<std::shared_ptr<RSRenderParticle>> RSRenderParticleEmitter::activeParticles_ = {};
 RSRenderParticleEmitter::RSRenderParticleEmitter(std::shared_ptr<ParticleRenderParams> particleParams)
     : particleParams_(particleParams)
 {}
 
 void RSRenderParticleEmitter::EmitParticle(int64_t deltaTime)
 {
+    auto particleType = particleParams_->GetParticleType();
+    if (particleType == ParticleType::IMAGES) {
+        auto image = particleParams_->GetParticleImage();
+        auto imageSize = particleParams_->GetImageSize();
+        auto updater = particleParams_->GetScaleUpdator();
+        if (image == nullptr || (updater == ParticleUpdator::NONE && (imageSize.x_ <= 0.f || imageSize.y_ <= 0.f))) {
+            return;
+        } else {
+            auto pixelMap = image->GetPixelMap();
+            if (pixelMap == nullptr) {
+                return;
+            }
+        }
+    }
+
     auto emitRate = particleParams_->GetEmitRate();
     auto maxParticle = particleParams_->GetParticleCount();
-    for (int64_t i = 0; i * NS_TO_S < emitRate * deltaTime; i++) {
-        if (particles_.size() < maxParticle) {
-            auto particle = std::make_shared<RSRenderParticle>(particleParams_);
-            particles_.push_back(particle);
-            activeParticles_.push_back(particle);
-        }
+    float last = particleCount_;
+    particleCount_ += static_cast<float>(emitRate * deltaTime) / NS_TO_S;
+    spawnNum_ += particleCount_ - last;
+    particles_.clear();
+    while (spawnNum_ > 0.f && particleCount_ < static_cast<float>(maxParticle)) {
+        auto particle = std::make_shared<RSRenderParticle>(particleParams_);
+        particles_.push_back(particle);
+        spawnNum_ -= 1.f;
     }
 }
 
-void RSRenderParticleEmitter::UpdateParticle(int64_t deltaTime)
+bool RSRenderParticleEmitter::IsEmitterFinish()
 {
-    for (auto particle : activeParticles_) {
-        auto particleRenderParams = particle->GetParticleRenderParams();
-        auto effect = RSRenderParticleEffector(particleRenderParams);
-        effect.ApplyEffectorToParticle(particle, deltaTime);
+    auto maxParticle = particleParams_->GetParticleCount();
+    bool isEmitterFinish = false;
+    if (particleCount_ == static_cast<float>(maxParticle)) {
+        isEmitterFinish = true;
     }
-    for (auto it = activeParticles_.begin(); it != activeParticles_.end();) {
-        std::shared_ptr<RSRenderParticle> particle = *it;
-        if (!particle->IsAlive()) {
-            it = activeParticles_.erase(it);
-        } else {
-            ++it;
-        }
-    }
+    return isEmitterFinish;
 }
 
 std::vector<std::shared_ptr<RSRenderParticle>> RSRenderParticleEmitter::GetParticles()
 {
     return particles_;
-}
-
-std::vector<std::shared_ptr<RSRenderParticle>> RSRenderParticleEmitter::GetActiveParticles()
-{
-    return activeParticles_;
 }
 
 } // namespace Rosen

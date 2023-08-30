@@ -106,4 +106,9 @@ TypographyProperties::Range<size_t> Typography::GetWordBoundary(size_t offset)
 {
     return typography_->GetWordBoundary(offset);
 }
+
+size_t Typography::GetLineCount()
+{
+    return typography_->GetLineCount();
+}
 } // namespace rosen

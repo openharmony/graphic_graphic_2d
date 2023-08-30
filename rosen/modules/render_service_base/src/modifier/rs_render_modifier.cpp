@@ -127,7 +127,7 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
 void RSDrawCmdListRenderModifier::Apply(RSModifierContext& context) const
 {
     if (context.canvas_) {
-        auto cmds = property_->Get();
+        auto& cmds = property_->GetRef();
         RSPropertiesPainter::DrawFrame(context.property_, *context.canvas_, cmds);
     }
 }
@@ -173,15 +173,13 @@ void RSDrawCmdListRenderModifier::ApplyForDrivenContent(RSModifierContext& conte
 
 void RSParticleRenderModifier::Apply(RSModifierContext& context) const
 {
-    auto renderProperty =
-        std::static_pointer_cast<RSRenderProperty<std::vector<std::shared_ptr<RSRenderParticle>>>>(property_);
+    auto renderProperty = std::static_pointer_cast<RSRenderProperty<RSRenderParticleVector>>(property_);
     context.property_.SetParticles(renderProperty->Get());
 }
 
 void RSParticleRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)
 {
-    if (auto property =
-            std::static_pointer_cast<RSRenderProperty<std::vector<std::shared_ptr<RSRenderParticle>>>>(prop)) {
+    if (auto property = std::static_pointer_cast<RSRenderProperty<RSRenderParticleVector>>(prop)) {
         property_->Set(property->Get());
     }
 }

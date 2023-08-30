@@ -35,7 +35,7 @@ using AnimationId = uint64_t;
 using NodeId = uint64_t;
 using PropertyId = uint64_t;
 constexpr uint32_t UNI_MAIN_THREAD_INDEX = UINT32_MAX;
-constexpr uint64_t INVALID_NODEID = UINT64_MAX;
+constexpr uint64_t INVALID_NODEID = 0;
 
 // types in the same layer should be 0/1/2/4/8
 // types for UINode
@@ -56,6 +56,9 @@ enum class FollowType : uint8_t {
     FOLLOW_TO_PARENT,
     FOLLOW_TO_SELF,
 };
+
+#define LIKELY(exp) (__builtin_expect((exp) != 0, true))
+#define UNLIKELY(exp) (__builtin_expect((exp) != 0, false))
 
 static inline const std::unordered_map<RSUINodeType, std::string> RSUINodeTypeStrs = {
     {RSUINodeType::UNKNOW,              "UNKNOW"},
@@ -108,6 +111,12 @@ enum class CacheProcessStatus : uint8_t {
     DONE, // processed
 };
 
+// the type of surfaceCapture
+enum class SurfaceCaptureType : uint8_t {
+    DEFAULT_CAPTURE = 0, // displayNode capture or window capture
+    UICAPTURE,
+};
+
 enum class DeviceType : uint8_t {
     PHONE,
     PC,
@@ -140,7 +149,7 @@ struct RSDisplayNodeConfig {
     NodeId mirrorNodeId = 0;
 };
 
-constexpr int32_t NS_TO_S = 1000000000;
+constexpr int64_t NS_TO_S = 1000000000;
 constexpr int64_t NS_PER_MS = 1000000;
 
 #if defined(M_PI)

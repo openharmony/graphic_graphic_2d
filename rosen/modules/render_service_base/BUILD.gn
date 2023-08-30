@@ -128,11 +128,15 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/iapplication_agent_ipc_interface_code_access_verifier.cpp",
     "src/ipc_callbacks/rs_application_agent_proxy.cpp",
     "src/ipc_callbacks/rs_application_agent_stub.cpp",
+    "src/ipc_callbacks/rs_ihgm_config_change_callback_ipc_interface_code_access_verifier.cpp",
     "src/ipc_callbacks/rs_iocclusion_change_callback_ipc_interface_code_access_verifier.cpp",
+    "src/ipc_callbacks/rs_isurface_occlusion_change_callback_ipc_interface_code_access_verifier.cpp",
     "src/ipc_callbacks/rs_isync_transaction_controller_ipc_interface_code_access_verifier.cpp",
     "src/ipc_callbacks/rs_occlusion_change_callback_proxy.cpp",
     "src/ipc_callbacks/rs_occlusion_change_callback_stub.cpp",
     "src/ipc_callbacks/rs_rt_refresh_callback.cpp",
+    "src/ipc_callbacks/rs_surface_occlusion_change_callback_proxy.cpp",
+    "src/ipc_callbacks/rs_surface_occlusion_change_callback_stub.cpp",
     "src/ipc_callbacks/rs_sync_transaction_controller_proxy.cpp",
     "src/ipc_callbacks/rs_sync_transaction_controller_stub.cpp",
     "src/ipc_callbacks/screen_change_callback_ipc_interface_code_access_verifier.cpp",
@@ -217,6 +221,10 @@ ohos_source_set("render_service_base_src") {
     "-fvisibility=hidden",
   ]
 
+  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
+    cflags += [ "-flto=thin" ]
+  }
+
   cflags_cc = [
     "-std=c++17",
     "-fvisibility-inlines-hidden",
@@ -286,12 +294,8 @@ ohos_source_set("render_service_base_src") {
     ]
   }
 
-  if (enable_ipc_security) {
+  if (rosen_is_ohos && defined(enable_ipc_security) && enable_ipc_security) {
     defines += [ "ENABLE_IPC_SECURITY" ]
-    include_dirs += [
-      "$access_token_root/interfaces/innerkits/accesstoken/include",
-      "$ipc_root/interfaces/innerkits/ipc_core/include",
-    ]
     external_deps += [
       "access_token:libaccesstoken_sdk",
       "access_token:libtokenid_sdk",

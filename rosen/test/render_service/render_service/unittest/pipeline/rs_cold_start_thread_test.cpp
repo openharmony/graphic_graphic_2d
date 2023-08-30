@@ -223,7 +223,7 @@ HWTEST_F(RSColdStartThreadTest, IsIdleTest, TestSize.Level1)
     auto sp = std::make_shared<RSSurfaceRenderNode>(id);
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(sp);
     RSColdStartThread thread { surfaceRenderNode, id };
-    ASSERT_EQ(false, thread.IsIdle());
+    ASSERT_EQ(true, thread.IsIdle());
 }
 
 /**

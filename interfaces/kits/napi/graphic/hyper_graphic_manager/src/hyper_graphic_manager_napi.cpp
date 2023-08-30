@@ -20,7 +20,6 @@
 #include <string>
 
 #include "hgm_command.h"
-#include "hgm_log.h"
 #include "js_native_api.h"
 #include "js_native_api_types.h"
 #include "napi/native_common.h"
@@ -35,7 +34,6 @@ thread_local static RSInterfaces& interfaces = RSInterfaces::GetInstance();
 static napi_value SetRefreshRateMode(napi_env env, napi_callback_info info)
 {
     napi_status status;
-    HGM_LOGE("Napi SetRefreshRateMode starting");
 
     size_t argc = 1;
     napi_value arg[argc];
@@ -45,11 +43,9 @@ static napi_value SetRefreshRateMode(napi_env env, napi_callback_info info)
     napi_valuetype valueType;
     status = napi_typeof(env, arg[0], &valueType);
     if (status != napi_ok) {
-        HGM_LOGE("Napi SetRefreshRateMode failed to get argument");
         napi_throw_error(env, NULL, "Napi SetRefreshRateMode failed to get argument");
     }
     if (valueType != napi_number) {
-        HGM_LOGE("Napi SetRefreshRateMode wrong argument type");
         napi_throw_error(env, NULL, "Napi SetRefreshRateMode wrong argument type");
     }
 
@@ -65,7 +61,6 @@ static napi_value SetRefreshRateMode(napi_env env, napi_callback_info info)
 static napi_value GetScreenCurrentRefreshRate(napi_env env, napi_callback_info info)
 {
     napi_status status;
-    HGM_LOGE("Napi GetScreenCurrentRefreshRate starting");
 
     size_t argc = 1;
     napi_value arg[argc];
@@ -75,11 +70,9 @@ static napi_value GetScreenCurrentRefreshRate(napi_env env, napi_callback_info i
     napi_valuetype valueType;
     status = napi_typeof(env, arg[0], &valueType);
     if (status != napi_ok) {
-        HGM_LOGE("Napi GetScreenCurrentRefreshRate failed to get argument");
         napi_throw_error(env, NULL, "Napi GetScreenCurrentRefreshRate failed to get argument");
     }
     if (valueType != napi_number) {
-        HGM_LOGE("Napi GetScreenCurrentRefreshRate wrong argument type");
         napi_throw_error(env, NULL, "Napi GetScreenCurrentRefreshRate wrong argument type");
     }
 
@@ -87,7 +80,6 @@ static napi_value GetScreenCurrentRefreshRate(napi_env env, napi_callback_info i
     ScreenId id = 0;
     napi_get_value_int32(env, arg[0], &screen);
     if (screen < 0) {
-        HGM_LOGE("Napi GetScreenCurrentRefreshRate illegal screenId input: %d", screen);
         napi_throw_error(env, NULL, "Napi GetScreenCurrentRefreshRate illegal screenId");
     } else {
         id = static_cast<ScreenId>(screen);
@@ -96,7 +88,6 @@ static napi_value GetScreenCurrentRefreshRate(napi_env env, napi_callback_info i
     uint32_t currentRate = interfaces.GetScreenCurrentRefreshRate(id);
     int32_t returnInt = 0;
     if (currentRate > static_cast<uint32_t>(OLED_MAX_HZ)) {
-        HGM_LOGE("Napi GetScreenCurrentRefreshRate got a rate too above maximal value");
         napi_throw_error(env, NULL, "Napi GetScreenCurrentRefreshRate got a rate too above maximal value");
     } else {
         returnInt = static_cast<int32_t>(currentRate);
@@ -110,7 +101,6 @@ static napi_value GetScreenCurrentRefreshRate(napi_env env, napi_callback_info i
 static napi_value GetScreenSupportedRefreshRates(napi_env env, napi_callback_info info)
 {
     napi_status status;
-    HGM_LOGE("Napi GetScreenSupportedRefreshRates starting");
 
     size_t argc = 1;
     napi_value arg[argc];
@@ -120,11 +110,9 @@ static napi_value GetScreenSupportedRefreshRates(napi_env env, napi_callback_inf
     napi_valuetype valueType;
     status = napi_typeof(env, arg[0], &valueType);
     if (status != napi_ok) {
-        HGM_LOGE("Napi GetScreenSupportedRefreshRates failed to get argument");
         napi_throw_error(env, NULL, "Napi GetScreenSupportedRefreshRates failed to get argument");
     }
     if (valueType != napi_number) {
-        HGM_LOGE("Napi GetScreenSupportedRefreshRates wrong argument type");
         napi_throw_error(env, NULL, "Napi GetScreenSupportedRefreshRates wrong argument type");
     }
 
@@ -132,28 +120,25 @@ static napi_value GetScreenSupportedRefreshRates(napi_env env, napi_callback_inf
     ScreenId id = 0;
     napi_get_value_int32(env, arg[0], &screen);
     if (screen < 0) {
-        HGM_LOGE("Napi GetScreenSupportedRefreshRates illegal screenId input: %d", screen);
         napi_throw_error(env, NULL, "Napi GetScreenSupportedRefreshRates illegal screenId input");
     } else {
         id = static_cast<ScreenId>(screen);
     }
-    std::vector<uint32_t> currentRates = interfaces.GetScreenSupportedRefreshRates(id);
+    std::vector<int32_t> currentRates = interfaces.GetScreenSupportedRefreshRates(id);
 
     napi_value returnRates = nullptr;
     NAPI_CALL(env, napi_create_array(env, &returnRates));
     if (currentRates.size() > static_cast<size_t>(OLED_MAX_HZ)) {
-        HGM_LOGE("Napi GetScreenCurrentRefreshRate got a vector too large");
         napi_throw_error(env, NULL, "Napi GetScreenCurrentRefreshRate got a vector too large");
     }
     int numSupportedRates = static_cast<int>(currentRates.size());
     std::vector<napi_value> napiVector(numSupportedRates, nullptr);
     for (int index = 0; index < numSupportedRates; ++index) {
-        if (currentRates[index] > static_cast<uint32_t>(OLED_MAX_HZ)) {
-            HGM_LOGE("Napi GetScreenCurrentRefreshRate got a rate too above maximal value");
+        if (currentRates[index] > OLED_MAX_HZ) {
             napi_throw_error(env, NULL, "Napi GetScreenCurrentRefreshRate got a rate too above maximal value");
         }
         NAPI_CALL(env, napi_create_int32(env, currentRates[index], &napiVector[index]));
-        NAPI_CALL(env, napi_set_element(env, returnRates, currentRates[index], napiVector[index]));
+        NAPI_CALL(env, napi_set_element(env, returnRates, index, napiVector[index]));
     }
 
     return returnRates;
@@ -162,8 +147,6 @@ static napi_value GetScreenSupportedRefreshRates(napi_env env, napi_callback_inf
 EXTERN_C_START
 static napi_value HgmInit(napi_env env, napi_value exports)
 {
-    HGM_LOGD("HgmInit Napi");
-
     napi_property_descriptor desc[] = {
         DECLARE_NAPI_FUNCTION("setRefreshRateMode", SetRefreshRateMode),
         DECLARE_NAPI_FUNCTION("getScreenCurrentRefreshRate", GetScreenCurrentRefreshRate),

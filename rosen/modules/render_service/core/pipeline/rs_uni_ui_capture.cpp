@@ -239,7 +239,6 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
         RS_LOGE("RSUniUICaptureVisitor::ProcessCanvasRenderNode, canvas is nullptr");
         return;
     }
-    node.SetHasUpdateEffectRegion(false);
     if (node.GetId() == nodeId_) {
         // When drawing nodes, canvas will offset the bounds value, so we will move in reverse here first
         const auto& property = node.GetRenderProperties();
@@ -266,15 +265,6 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
     }
     if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         auto canvasDrawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>();
-        if (!node.IsOnTheTree()) {
-            auto clearFunc = [id = UNI_MAIN_THREAD_INDEX](sk_sp<SkSurface> surface) {
-                sk_sp<SkSurface> tmpSurface = nullptr;
-                RSUniRenderUtil::ClearNodeCacheSurface(surface, tmpSurface, id, 0);
-            };
-            canvasDrawingNode->SetSurfaceClearFunc({ UNI_MAIN_THREAD_INDEX, clearFunc });
-            canvasDrawingNode->ProcessRenderBeforeChildren(*canvas_);
-            canvasDrawingNode->ProcessRenderContents(*canvas_);
-        } else {
 #ifndef USE_ROSEN_DRAWING
             SkBitmap bitmap = canvasDrawingNode->GetBitmap();
 #ifndef NEW_SKIA
@@ -289,7 +279,6 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessCanvasRenderNode(RSCanvasRend
             canvas_->DrawBitmap(bitmap, node.GetRenderProperties().GetBoundsPositionX(),
                 node.GetRenderProperties().GetBoundsPositionY());
 #endif
-        }
     } else {
         node.ProcessRenderBeforeChildren(*canvas_);
         node.ProcessRenderContents(*canvas_);
@@ -513,7 +502,6 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithoutUni(RSSurfa
 
 void RSUniUICapture::RSUniUICaptureVisitor::PrepareChildren(RSRenderNode& node)
 {
-    node.ApplyChildrenModifiers();
     for (auto& child : node.GetSortedChildren()) {
         child->Prepare(shared_from_this());
     }

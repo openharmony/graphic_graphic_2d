@@ -38,9 +38,14 @@ public:
     bool Marshalling(Parcel& parcel) const override;
 
     [[nodiscard]] static RSRenderParticleAnimation* Unmarshalling(Parcel& parcel);
-    std::vector<std::shared_ptr<RSRenderParticle>> GetRenderParticle()
+    RSRenderParticleVector GetRenderParticle()
     {
-        return renderParticle_;
+        return renderParticleVector_;
+    }
+
+    void Finish() override
+    {
+        particleSystem_.reset();
     }
 
 protected:
@@ -48,9 +53,9 @@ protected:
 
 private:
     bool ParseParam(Parcel& parcel) override;
-    RSRenderParticleSystem particleSystem_;
+    std::shared_ptr<RSRenderParticleSystem> particleSystem_;
     std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams_;
-    std::vector<std::shared_ptr<RSRenderParticle>> renderParticle_;
+    RSRenderParticleVector renderParticleVector_;
 };
 } // namespace Rosen
 } // namespace OHOS

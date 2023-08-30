@@ -99,6 +99,17 @@ std::array<float, 16> SurfaceImage::MatrixProduct(const std::array<float, 16>& l
                                   lMat[3] * rMat[12] + lMat[7] * rMat[13] + lMat[11] * rMat[14] + lMat[15] * rMat[15]};
 }
 
+void SurfaceImage::UpdateSurfaceInfo(uint32_t seqNum, sptr<SurfaceBuffer> buffer, int32_t fence,
+                                     int64_t timestamp, Rect damage)
+{
+    currentSurfaceImage_ = seqNum;
+    currentSurfaceBuffer_ = buffer;
+    currentSurfaceBufferFence_ = fence;
+    currentTimeStamp_ = timestamp;
+    currentCrop_ = damage;
+    currentTransformType_ = ConsumerSurface::GetTransform();
+}
+
 void SurfaceImage::ComputeTransformMatrix()
 {
     static const std::array<float, 16> rotate90 = {0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1};
@@ -184,14 +195,7 @@ SurfaceError SurfaceImage::UpdateSurfaceImage()
             BLOGE("release currentSurfaceBuffer_ failed %{public}d", ret);
         }
     }
-
-    currentSurfaceImage_ = seqNum;
-    currentSurfaceBuffer_ = buffer;
-    currentSurfaceBufferFence_ = fence;
-    currentTimeStamp_ = timestamp;
-    currentCrop_ = damage;
-    currentTransformType_ = ConsumerSurface::GetTransform();
-
+    UpdateSurfaceInfo(seqNum, buffer, fence, timestamp, damage);
     ComputeTransformMatrix();
 
     ret = WaitOnFence();

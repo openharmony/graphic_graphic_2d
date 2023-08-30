@@ -51,7 +51,7 @@ public:
     virtual VsyncError GetReceiveFd(int32_t &fd) override;
     virtual VsyncError SetVSyncRate(int32_t rate) override;
     virtual VsyncError GetVSyncPeriod(int64_t &period) override;
-    VsyncError OnVSyncRemoteDied();
+    virtual VsyncError Destroy() override;
 
     int32_t PostEvent(int64_t now, int64_t period, int64_t vsyncCount);
 
@@ -59,7 +59,9 @@ public:
     int32_t highPriorityRate_ = -1;
     bool highPriorityState_ = false;
     ConnectionInfo info_;
+    int32_t proxyPid_;
 private:
+    VsyncError CleanAllLocked();
     class VSyncConnectionDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
         explicit VSyncConnectionDeathRecipient(wptr<VSyncConnection> conn);
@@ -75,7 +77,7 @@ private:
     // Circular reference， need check
     wptr<VSyncDistributor> distributor_;
     sptr<LocalSocketPair> socketPair_;
-    bool isRemoteDead_;
+    bool isDead_;
     std::mutex mutex_;
 };
 
@@ -123,6 +125,7 @@ private:
     bool vsyncEnabled_;
     std::string name_;
     bool vsyncThreadRunning_;
+    std::unordered_map<int32_t, int32_t> connectionCounter_;
 };
 } // namespace Rosen
 } // namespace OHOS

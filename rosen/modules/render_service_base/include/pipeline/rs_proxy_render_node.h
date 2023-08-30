@@ -32,8 +32,8 @@ public:
         return Type;
     }
 
-    explicit RSProxyRenderNode(
-        NodeId id, std::weak_ptr<RSSurfaceRenderNode> target, NodeId targetId, std::weak_ptr<RSContext> context = {});
+    explicit RSProxyRenderNode(NodeId id, std::weak_ptr<RSSurfaceRenderNode> target, NodeId targetId,
+        const std::weak_ptr<RSContext>& context = {});
     ~RSProxyRenderNode() override;
 
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;

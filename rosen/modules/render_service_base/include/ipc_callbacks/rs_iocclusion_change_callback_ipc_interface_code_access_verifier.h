@@ -35,21 +35,11 @@ public:
     ~RSIOcclusionChangeCallbackInterfaceCodeAccessVerifier() noexcept override = default;
 
 protected:
-    /* specify the initialization of accessMap_ here */
-    void InitializeAccessMap() override;
-
     /* specify exclusive verification rules here */
-    bool IsExtraVerificationPassed(CodeUnderlyingType code, const std::string& caller) override;
+    bool IsExclusiveVerificationPassed(CodeUnderlyingType code) override;
 
 private:
-    RSIOcclusionChangeCallbackInterfaceCodeAccessVerifier(
-        const RSIOcclusionChangeCallbackInterfaceCodeAccessVerifier&) = delete;
-    RSIOcclusionChangeCallbackInterfaceCodeAccessVerifier& operator=(
-        const RSIOcclusionChangeCallbackInterfaceCodeAccessVerifier&) = delete;
-    RSIOcclusionChangeCallbackInterfaceCodeAccessVerifier(
-        RSIOcclusionChangeCallbackInterfaceCodeAccessVerifier&&) = delete;
-    RSIOcclusionChangeCallbackInterfaceCodeAccessVerifier& operator=(
-        RSIOcclusionChangeCallbackInterfaceCodeAccessVerifier&&) = delete;
+    DISALLOW_COPY_AND_MOVE(RSIOcclusionChangeCallbackInterfaceCodeAccessVerifier);
 };
 } // namespace Rosen
 } // namespace OHOS

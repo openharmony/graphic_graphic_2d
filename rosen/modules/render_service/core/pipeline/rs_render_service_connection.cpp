@@ -15,9 +15,11 @@
 
 #include "rs_render_service_connection.h"
 
+#include "common/rs_background_thread.h"
 #include "hgm_core.h"
 #include "hgm_command.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
+#include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_render_service_listener.h"
@@ -98,20 +100,28 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
     RS_LOGD("RSRenderServiceConnection::CleanAll() start.");
     mainThread_->ScheduleTask(
         [this]() {
+            RS_TRACE_NAME_FMT("CleanVirtualScreens %d", remotePid_);
             CleanVirtualScreens();
-            CleanRenderNodes();
-            HgmConfigCallbackManager::GetInstance()->UnRegisterHgmConfigChangeCallback(remotePid_);
-            mainThread_->ClearTransactionDataPidInfo(remotePid_);
-            mainThread_->UnRegisterOcclusionChangeCallback(remotePid_);
         }).wait();
-
-    for (auto& conn : vsyncConnections_) {
-        appVSyncDistributor_->RemoveConnection(conn);
-    }
-
+    mainThread_->ScheduleTask(
+        [this]() {
+            RS_TRACE_NAME_FMT("CleanRenderNodes %d", remotePid_);
+            CleanRenderNodes();
+        }).wait();
+    mainThread_->ScheduleTask(
+        [this]() {
+            RS_TRACE_NAME_FMT("ClearTransactionDataPidInfo %d", remotePid_);
+            mainThread_->ClearTransactionDataPidInfo(remotePid_);
+        }).wait();
+    mainThread_->ScheduleTask(
+        [this]() {
+            RS_TRACE_NAME_FMT("UnRegisterCallback %d", remotePid_);
+            HgmConfigCallbackManager::GetInstance()->UnRegisterHgmConfigChangeCallback(remotePid_);
+            mainThread_->UnRegisterOcclusionChangeCallback(remotePid_);
+            mainThread_->ClearSurfaceOcclusionChangeCallback(remotePid_);
+        }).wait();
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        vsyncConnections_.clear();
         cleanDone_ = true;
     }
 
@@ -258,10 +268,9 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
                                                                         const sptr<VSyncIConnectionToken>& token)
 {
     sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name, token->AsObject());
-    appVSyncDistributor_->AddConnection(conn);
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        vsyncConnections_.push_back(conn);
+    auto ret = appVSyncDistributor_->AddConnection(conn);
+    if (ret != VSYNC_ERROR_OK) {
+        return nullptr;
     }
     return conn;
 }
@@ -427,19 +436,19 @@ uint32_t RSRenderServiceConnection::GetScreenCurrentRefreshRate(ScreenId id)
     }
 }
 
-std::vector<uint32_t> RSRenderServiceConnection::GetScreenSupportedRefreshRates(ScreenId id)
+std::vector<int32_t> RSRenderServiceConnection::GetScreenSupportedRefreshRates(ScreenId id)
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
         return RSHardwareThread::Instance().ScheduleTask([=]() {
             auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
-            std::vector<uint32_t> rates = hgmCore.GetScreenSupportedRefreshRates(id);
+            std::vector<int32_t> rates = hgmCore.GetScreenComponentRefreshRates(id);
             return rates;
         }).get();
     } else {
         return mainThread_->ScheduleTask([=]() {
             auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
-            std::vector<uint32_t> rates = hgmCore.GetScreenSupportedRefreshRates(id);
+            std::vector<int32_t> rates = hgmCore.GetScreenComponentRefreshRates(id);
             return rates;
         }).get();
     }
@@ -470,23 +479,16 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
 }
 
 void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    float scaleX, float scaleY)
+    float scaleX, float scaleY, SurfaceCaptureType surfaceCaptureType)
 {
-    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
-    if (node == nullptr) {
-        RS_LOGW("RSRenderServiceConnection::TakeSurfaceCapture cannot find nodeId: [%{public}" PRIu64 "]", id);
-        callback->OnSurfaceCapture(id, nullptr);
-        return;
-    }
-    if ((node->GetType() == RSRenderNodeType::DISPLAY_NODE) ||
-        ((node->GetType() == RSRenderNodeType::SURFACE_NODE) &&
-            (node->ReinterpretCastTo<RSSurfaceRenderNode>()->IsMainWindowType()))) {
+    if (surfaceCaptureType == SurfaceCaptureType::DEFAULT_CAPTURE) {
         std::function<void()> captureTask = [scaleY, scaleX, callback, id]() -> void {
             RS_LOGD("RSRenderService::TakeSurfaceCapture callback->OnSurfaceCapture nodeId:[%{public}" PRIu64 "]", id);
             ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
             RSSurfaceCaptureTask task(id, scaleX, scaleY);
-            std::unique_ptr<Media::PixelMap> pixelmap = task.Run();
-            callback->OnSurfaceCapture(id, pixelmap.get());
+            if (!task.Run(callback)) {
+                callback->OnSurfaceCapture(id, nullptr);
+            }
             ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         };
         mainThread_->PostTask(captureTask);
@@ -560,6 +562,13 @@ RSScreenModeInfo RSRenderServiceConnection::GetScreenActiveMode(ScreenId id)
             [=, &screenModeInfo]() { return screenManager_->GetScreenActiveMode(id, screenModeInfo); }).wait();
     }
     return screenModeInfo;
+}
+
+bool RSRenderServiceConnection::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
+{
+    RSMainThread::Instance()->GetAppMemoryInMB(cpuMemSize, gpuMemSize);
+    gpuMemSize += RSSubThreadManager::Instance()->GetAppGpuMemoryInMB();
+    return true;
 }
 
 MemoryGraphic RSRenderServiceConnection::GetMemoryGraphic(int pid)
@@ -779,6 +788,9 @@ bool RSRenderServiceConnection::GetBitmap(NodeId id, SkBitmap& bitmap)
 bool RSRenderServiceConnection::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
 #endif
 {
+    if (!mainThread_->IsIdle()) {
+        return false;
+    }
     auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(id);
     if (node == nullptr) {
         RS_LOGE("RSRenderServiceConnection::GetBitmap cannot find NodeId: [%{public}" PRIu64 "]", id);
@@ -817,6 +829,25 @@ int32_t RSRenderServiceConnection::RegisterOcclusionChangeCallback(sptr<RSIOcclu
         return StatusCode::INVALID_ARGUMENTS;
     }
     mainThread_->RegisterOcclusionChangeCallback(remotePid_, callback);
+    return StatusCode::SUCCESS;
+}
+
+int32_t RSRenderServiceConnection::RegisterSurfaceOcclusionChangeCallback(
+    NodeId id, sptr<RSISurfaceOcclusionChangeCallback> callback)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!callback) {
+        RS_LOGD("RSRenderServiceConnection::RegisterSurfaceOcclusionChangeCallback: callback is nullptr");
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+    mainThread_->RegisterSurfaceOcclusionChangeCallback(id, remotePid_, callback);
+    return StatusCode::SUCCESS;
+}
+
+int32_t RSRenderServiceConnection::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    mainThread_->UnRegisterSurfaceOcclusionChangeCallback(id);
     return StatusCode::SUCCESS;
 }
 

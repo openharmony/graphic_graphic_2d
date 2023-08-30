@@ -76,8 +76,8 @@ public:
     virtual VsyncError RequestNextVSync(FrameCallback callback);
     virtual VsyncError SetVSyncRate(FrameCallback callback, int32_t rate);
     virtual VsyncError GetVSyncPeriod(int64_t &period);
-
 private:
+    VsyncError Destroy();
     sptr<IVSyncConnection> connection_;
     sptr<IRemoteObject> token_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> looper_;

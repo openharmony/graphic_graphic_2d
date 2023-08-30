@@ -567,6 +567,33 @@ HWTEST_F(RSScreenManagerTest, RemoveVirtualScreen_001, TestSize.Level1)
 }
 
 /*
+ * @tc.name: RemoveVirtualScreen_002
+ * @tc.desc: Test RemoveVirtualScreen
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, RemoveVirtualScreen_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    auto id = screenManager->CreateVirtualScreen("virtualScreen001", 480, 320, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    auto id_ = screenManager->CreateVirtualScreen("virtualScreen002", 480, 320, psurface);
+    ASSERT_EQ(INVALID_SCREEN_ID, id_);
+
+    ScreenId screenId = INVALID_SCREEN_ID;
+    screenManager->RemoveVirtualScreen(screenId);
+}
+
+/*
  * @tc.name: SetVirtualScreenResolution_002
  * @tc.desc: Test SetVirtualScreenResolution
  * @tc.type: FUNC

@@ -14,6 +14,7 @@
  */
 #include "animation/rs_render_particle.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <random>
 
@@ -45,7 +46,7 @@ uint32_t ParticleRenderParams::GetParticleCount() const
 }
 int64_t ParticleRenderParams::GetParticleLifeTime() const
 {
-    return emitterConfig_.lifeTime_;
+    return emitterConfig_.lifeTime_ * NS_PER_MS;
 }
 ParticleType ParticleRenderParams::GetParticleType() const
 {
@@ -426,6 +427,12 @@ void RSRenderParticle::InitProperty(std::shared_ptr<ParticleRenderParams> partic
     } else if (particleType_ == ParticleType::IMAGES) {
         image_ = particleParams->GetParticleImage();
         imageSize_ = particleParams->GetImageSize();
+        if (image_ != nullptr) {
+            auto pixelMap = image_->GetPixelMap();
+            if (pixelMap != nullptr) {
+                image_->SetDstRect(RectF(position_.x_, position_.y_, pixelMap->GetWidth(), pixelMap->GetHeight()));
+            }
+        }
     }
     activeTime_ = 0;
     lifeTime_ = particleParams->GetParticleLifeTime();
@@ -458,11 +465,22 @@ Vector2f RSRenderParticle::CalculateParticlePosition(
         positionY = GetRandomValue(minY, maxY);
     }
     if (emitShape == ShapeType::CIRCLE || emitShape == ShapeType::ELLIPSE) {
-        float rx = GetRandomValue(0.f, emitSize.x_);
-        float ry = GetRandomValue(0.f, emitSize.y_);
+        float dx = emitSize.x_;
+        float dy = emitSize.y_;
+        float x = position.x_ + dx / 2;
+        float y = position.y_ + dy / 2;
         float theta = GetRandomValue(0.f, 2 * PI);
-        positionX = position.x_ + rx * cos(theta);
-        positionY = position.y_ + ry * sin(theta);
+        if (emitShape == ShapeType::CIRCLE) {
+            float d = std::min(emitSize.x_, emitSize.y_);
+            float r = GetRandomValue(0.f, d) / 2;
+            positionX = x + r * cos(theta);
+            positionY = y + r * sin(theta);
+        } else {
+            float rx = GetRandomValue(0.f, dx) / 2;
+            float ry = GetRandomValue(0.f, dy) / 2;
+            positionX = x + rx * cos(theta);
+            positionY = y + ry * sin(theta);
+        }
     }
     return Vector2f { positionX, positionY };
 }

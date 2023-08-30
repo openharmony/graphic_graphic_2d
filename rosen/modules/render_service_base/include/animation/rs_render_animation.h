@@ -43,7 +43,7 @@ public:
     ~RSRenderAnimation() override = default;
     AnimationId GetAnimationId() const;
     void Start();
-    void Finish();
+    virtual void Finish();
     void Pause();
     void Resume();
     void SetFraction(float fraction);
@@ -142,7 +142,7 @@ public:
     }
 
     void Attach(RSRenderNode* renderNode);
-    void Detach();
+    void Detach(bool forceDetach = false);
     RSRenderNode* GetTarget() const;
 
     NodeId GetTargetId() const;

@@ -35,21 +35,11 @@ public:
     ~RSISyncTransactionControllerInterfaceCodeAccessVerifier() noexcept override = default;
 
 protected:
-    /* specify the initialization of accessMap_ here */
-    void InitializeAccessMap() override;
-
     /* specify exclusive verification rules here */
-    bool IsExtraVerificationPassed(CodeUnderlyingType code, const std::string& caller) override;
+    bool IsExclusiveVerificationPassed(CodeUnderlyingType code) override;
 
 private:
-    RSISyncTransactionControllerInterfaceCodeAccessVerifier(
-        const RSISyncTransactionControllerInterfaceCodeAccessVerifier&) = delete;
-    RSISyncTransactionControllerInterfaceCodeAccessVerifier& operator=(
-        const RSISyncTransactionControllerInterfaceCodeAccessVerifier&) = delete;
-    RSISyncTransactionControllerInterfaceCodeAccessVerifier(
-        RSISyncTransactionControllerInterfaceCodeAccessVerifier&&) = delete;
-    RSISyncTransactionControllerInterfaceCodeAccessVerifier& operator=(
-        RSISyncTransactionControllerInterfaceCodeAccessVerifier&&) = delete;
+    DISALLOW_COPY_AND_MOVE(RSISyncTransactionControllerInterfaceCodeAccessVerifier);
 };
 } // namespace Rosen
 } // namespace OHOS

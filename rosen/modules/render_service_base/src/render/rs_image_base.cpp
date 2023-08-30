@@ -113,6 +113,16 @@ void RSImageBase::SetImage(const std::shared_ptr<Drawing::Image> image)
     }
 }
 
+#ifndef USE_ROSEN_DRAWING
+void RSImageBase::SetDmaImage(const sk_sp<SkImage> image)
+#else
+void RSImageBase::SetDmaImage(const std::shared_ptr<Drawing::Image> image)
+#endif
+{
+    isDrawn_ = false;
+    image_ = image;
+}
+
 void RSImageBase::SetPixelMap(const std::shared_ptr<Media::PixelMap>& pixelmap)
 {
     pixelMap_ = pixelmap;

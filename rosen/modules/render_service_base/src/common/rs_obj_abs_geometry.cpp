@@ -109,10 +109,6 @@ void RSObjAbsGeometry::UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& par
 #else
     matrix_ = Drawing::Matrix();
 #endif
-    // filter invalid width and height
-    if (IsEmpty()) {
-        return;
-    }
     // If the view has no transformations or only 2D transformations, update the absolute matrix with 2D
     // transformations
     if (!trans_ || (ROSEN_EQ(trans_->translateZ_, 0.f) && ROSEN_EQ(trans_->rotationX_, 0.f) &&

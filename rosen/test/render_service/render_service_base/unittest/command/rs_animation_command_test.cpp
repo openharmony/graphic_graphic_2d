@@ -58,7 +58,8 @@ HWTEST_F(RSAnimationCommandTest, CreateParticleAnimation001, TestSize.Level1)
 {
     RSContext context;
     NodeId targetId = static_cast<NodeId>(-1);
+    AnimationId animId = static_cast<AnimationId>(1);
     std::shared_ptr<RSRenderParticleAnimation> animation = nullptr;
-    AnimationCommandHelper::CreateParticleAnimation(context, targetId, animation);
+    AnimationCommandHelper::CreateParticleAnimation(context, targetId, animation, animId);
 }
 } // namespace OHOS::Rosen

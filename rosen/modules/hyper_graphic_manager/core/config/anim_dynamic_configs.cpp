@@ -31,7 +31,7 @@ AnimDynamicConfigs::~AnimDynamicConfigs()
 {
 }
 
-std::vector<AnimDynamicAttribute> AnimDynamicConfigs::GetAnimDynamicConfigs()
+std::vector<AnimDynamicAttribute> AnimDynamicConfigs::GetAnimDynamicConfigs() const
 {
     return animDynamicCfgs_;
 }
@@ -41,7 +41,7 @@ void AnimDynamicConfigs::AddAnimDynamicAttribute(AnimDynamicAttribute attr)
     animDynamicCfgs_.emplace_back(attr);
 }
 
-int AnimDynamicConfigs::GetAnimDynamicAttributesCount()
+int AnimDynamicConfigs::GetAnimDynamicAttributesCount() const
 {
     return animDynamicCfgs_.size();
 }

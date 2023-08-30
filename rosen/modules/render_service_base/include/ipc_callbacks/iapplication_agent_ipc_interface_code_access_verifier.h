@@ -35,21 +35,11 @@ public:
     ~IApplicationAgentInterfaceCodeAccessVerifier() noexcept override = default;
 
 protected:
-    /* specify the initialization of accessMap_ here */
-    void InitializeAccessMap() override;
-
     /* specify exclusive verification rules here */
-    bool IsExtraVerificationPassed(CodeUnderlyingType code, const std::string& caller) override;
+    bool IsExclusiveVerificationPassed(CodeUnderlyingType code) override;
 
 private:
-    IApplicationAgentInterfaceCodeAccessVerifier(
-        const IApplicationAgentInterfaceCodeAccessVerifier&) = delete;
-    IApplicationAgentInterfaceCodeAccessVerifier& operator=(
-        const IApplicationAgentInterfaceCodeAccessVerifier&) = delete;
-    IApplicationAgentInterfaceCodeAccessVerifier(
-        IApplicationAgentInterfaceCodeAccessVerifier&&) = delete;
-    IApplicationAgentInterfaceCodeAccessVerifier& operator=(
-        IApplicationAgentInterfaceCodeAccessVerifier&&) = delete;
+    DISALLOW_COPY_AND_MOVE(IApplicationAgentInterfaceCodeAccessVerifier);
 };
 } // namespace Rosen
 } // namespace OHOS

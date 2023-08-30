@@ -17,7 +17,9 @@
 #define RENDER_SERVICE_CORE_PIPELINE_RS_UNI_RENDER_UTIL_H
 
 #include <list>
+#include <mutex>
 #include <set>
+#include <unordered_map>
 #include "surface.h"
 #include "sync_fence.h"
 #include "pipeline/rs_base_render_util.h"
@@ -53,6 +55,7 @@ public:
         bool forceCPU, uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
     static BufferDrawParam CreateBufferDrawParam(const RSDisplayRenderNode& node, bool forceCPU);
     static BufferDrawParam CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU);
+    static bool IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo& info);
 #ifndef USE_ROSEN_DRAWING
     static void DrawCachedImage(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas, sk_sp<SkImage> image);
     static Occlusion::Region AlignedDirtyRegion(const Occlusion::Region& dirtyRegion, int32_t alignedBits = 32);
@@ -71,7 +74,7 @@ public:
         std::set<std::shared_ptr<RSBaseRenderNode>>& oldChildren);
     static void ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex);
 #ifndef USE_ROSEN_DRAWING
-    static void ClearNodeCacheSurface(sk_sp<SkSurface>& cacheSurface, sk_sp<SkSurface>& cacheCompletedSurface,
+    static void ClearNodeCacheSurface(sk_sp<SkSurface>&& cacheSurface, sk_sp<SkSurface>&& cacheCompletedSurface,
         uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex);
 #else
     static void ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface>& cacheSurface,
@@ -89,11 +92,10 @@ private:
         const std::shared_ptr<RSSurfaceRenderNode>& node, DeviceType deviceType = DeviceType::PHONE);
     static void SortSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
     static void HandleHardwareNode(const std::shared_ptr<RSSurfaceRenderNode>& node);
-    static void ClearCacheSurface(const std::shared_ptr<RSSurfaceRenderNode>& node, uint32_t threadIndex);
 #ifndef USE_ROSEN_DRAWING
-    static void PostReleaseSurfaceTask(sk_sp<SkSurface>& surface, uint32_t threadIndex);
+    static void PostReleaseSurfaceTask(sk_sp<SkSurface>&& surface, uint32_t threadIndex);
 #else
-    static void PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>& surface, uint32_t threadIndex);
+    static void PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>&& surface, uint32_t threadIndex);
 #endif
 };
 }
