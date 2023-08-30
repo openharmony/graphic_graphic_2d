@@ -141,4 +141,9 @@ TypographyProperties::Range<size_t> TypographyTxt::GetWordBoundary(size_t offset
     txt::Paragraph::Range<size_t> range = paragraphTxt_->GetWordBoundary(offset);
     return TxtConvertRange(range);
 }
+
+size_t TypographyTxt::GetLineCount()
+{
+    return paragraphTxt_->GetLineCount();
+}
 } // namespace rosen

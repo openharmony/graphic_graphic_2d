@@ -53,6 +53,7 @@ public:
     TypographyProperties::PositionAndAffinity GetGlyphPositionAtCoordinateWithCluster(double dx,
         double dy);
     TypographyProperties::Range<size_t> GetWordBoundary(size_t offset);
+    size_t GetLineCount();
 private:
     std::unique_ptr<TypographyBase> typography_;
 };
