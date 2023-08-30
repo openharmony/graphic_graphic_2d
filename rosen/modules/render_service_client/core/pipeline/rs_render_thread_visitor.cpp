@@ -780,6 +780,14 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #endif
         // if clipRect is empty, this node will be removed from parent's children list.
         node.SetContextClipRegion(std::nullopt);
+
+        static int pixel = 1;
+        auto width = std::floor(node.GetRenderProperties().GetBoundsWidth() - (2 * pixel)); // width decrease 2 pixels
+        auto height = std::floor(node.GetRenderProperties().GetBoundsHeight() - (2 * pixel)); // height decrease 2 pixels
+        auto iter = surfaceCallbacks_.find(node.GetId());
+        if (iter != surfaceCallbacks_.end()) {
+            (iter->second)(canvas_->getTotalMatrix().getTranslateX(), canvas_->getTotalMatrix().getTranslateY(), width, height);
+        }
         return;
     }
     node.SetContextClipRegion(clipRect);
@@ -873,6 +881,17 @@ void RSRenderThreadVisitor::ProcessProxyRenderNode(RSProxyRenderNode& node)
 #endif
 }
 
+void RSRenderThreadVisitor::AddSurfaceChangedCallBack(uint64_t id,
+    const std::function<void(float, float, float, float)>& callback)
+{
+    surfaceCallbacks_.emplace(id, callback);
+}
+
+void RSRenderThreadVisitor::RemoveSurfaceChangedCallBack(uint64_t id)
+{
+    surfaceCallbacks_.erase(id);
+}
+
 void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
 {
     // Calculation position in RenderService may appear floating point number, and it will be removed.
@@ -886,6 +905,12 @@ void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
     canvas_->save();
     SkRect originRect = SkRect::MakeXYWH(x, y, width, height);
     canvas_->clipRect(originRect);
+
+    auto iter = surfaceCallbacks_.find(node.GetId());
+    if (iter != surfaceCallbacks_.end()) {
+        (iter->second)(canvas_->getTotalMatrix().getTranslateX(), canvas_->getTotalMatrix().getTranslateY(), width, height);
+    }
+
     if (node.IsNotifyRTBufferAvailable()) {
         ROSEN_LOGD("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %" PRIu64 ", clip [%f, %f, %f, %f]",
             node.GetId(), x, y, width, height);
