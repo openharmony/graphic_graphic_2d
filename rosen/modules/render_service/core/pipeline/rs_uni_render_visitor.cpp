@@ -834,8 +834,10 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.SetDstRect(dstRect);
 
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
-        // record node position for display render node dirtyManager
-        curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetOldDirty());
+        // record visible node position for display render node dirtyManager
+        if (node.ShouldPaint()) {
+            curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetOldDirty());
+        }
 
         if (node.IsAppWindow()) {
             // if update appwindow, its children should not skip
