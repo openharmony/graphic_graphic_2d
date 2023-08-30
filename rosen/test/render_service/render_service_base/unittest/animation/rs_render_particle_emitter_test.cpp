@@ -35,7 +35,7 @@ void RSRenderParticleEmitterTest::TearDown() {}
 
 /**
  * @tc.name: EmitParticleTest
- * @tc.desc: 
+ * @tc.desc:
  * @tc.type: FUNC
  */
 HWTEST_F(RSRenderParticleEmitterTest, EmitParticleTest, Level1)
