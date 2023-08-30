@@ -125,7 +125,7 @@ void RSJankStats::SetRSJankStats(int32_t times)
     } else if (times < 180) {                                     // JANK_FRAME_180_FREQ : [120,180)
         type = JANK_FRAME_180_FREQ;
     } else {
-        ROSEN_LOGW("RSInterfaces::SetJankStatas Jank Frame Skip more than 180");
+        ROSEN_LOGW("RSJankStats::SetJankStats jank frames skip more than 180");
         return;
     }
     if (rsJankStats_[type] != USHRT_MAX) {
@@ -140,7 +140,12 @@ void RSJankStats::UpdateJankFrame(int64_t duration, JankFrames& jankFrames)
     jankFrames.totalFrameTime_ += duration;
     jankFrames.maxFrameTime_ = std::max(jankFrames.maxFrameTime_, duration);
     if (duration >= VSYNC_PERIOD) {
-        int32_t missedFramed = static_cast<int32_t>(duration / VSYNC_PERIOD);
+        int64_t missedCount = static_cast<int64_t>(duration / VSYNC_PERIOD);
+        if (missedCount >= MISSED_FRAMES_TRACE_THRESHOLD) {
+            RS_TRACE_INT("RSJankStats::UpdateJankFrame jank frames skip more than " + std::to_string(
+                MISSED_FRAMES_TRACE_THRESHOLD) + ": " + GetTraceDescription(jankFrames.info_), missedCount);
+        }
+        int32_t missedFramed = static_cast<int32_t>(missedCount);
         jankFrames.totalMissedFrames_ += missedFramed;
         jankFrames.seqMissedFrames_ =
             jankFrames.seqMissedFrames_ ? (jankFrames.seqMissedFrames_ + missedFramed) : missedFramed;
@@ -161,6 +166,7 @@ void RSJankStats::ReportJankStats()
         ROSEN_LOGE("RSJankStats::ReportJankStats lastReportTime is not initialized");
         return;
     }
+    RS_TRACE_NAME("RSJankStats::ReportJankStats receive notification");
     int64_t reportTime = GetCurrentSystimeMs();
     int64_t reportDuration = reportTime - lastReportTime_;
     auto reportName = "JANK_STATS_RS";
@@ -174,6 +180,7 @@ void RSJankStats::ReportJankStats()
 
 void RSJankStats::SetReportEventResponse(DataBaseRs info)
 {
+    RS_TRACE_NAME("RSJankStats::SetReportEventResponse receive notification: " + GetTraceDescription(info));
     int64_t setTime = GetCurrentSystimeMs();
     std::lock_guard<std::mutex> lock(animateJankFramesMutex_);
     EraseIf(animateJankFrames_, [setTime](const auto& pair) -> bool {
@@ -193,6 +200,7 @@ void RSJankStats::SetReportEventResponse(DataBaseRs info)
 
 void RSJankStats::SetReportEventComplete(DataBaseRs info)
 {
+    RS_TRACE_NAME("RSJankStats::SetReportEventComplete receive notification: " + GetTraceDescription(info));
     int64_t setTime = GetCurrentSystimeMs();
     std::lock_guard<std::mutex> lock(animateJankFramesMutex_);
     if (animateJankFrames_.find(info.uniqueId) == animateJankFrames_.end()) {
@@ -210,6 +218,7 @@ void RSJankStats::SetReportEventComplete(DataBaseRs info)
 
 void RSJankStats::SetReportEventJankFrame(DataBaseRs info)
 {
+    RS_TRACE_NAME("RSJankStats::SetReportEventJankFrame receive notification: " + GetTraceDescription(info));
     std::lock_guard<std::mutex> lock(animateJankFramesMutex_);
     if (animateJankFrames_.find(info.uniqueId) == animateJankFrames_.end()) {
         ROSEN_LOGW("RSJankStats::SetReportEventJankFrame Not find exited uniqueId");
@@ -292,9 +301,7 @@ void RSJankStats::SetTraceBegin(const TraceId traceId, const JankFrames& jankFra
     }
     const auto &info = jankFrames.info_;
     int64_t inputTime = ConvertTimeToSystime(info.inputTime);
-    std::stringstream traceNameStream;
-    traceNameStream << info.sceneId << ", " << info.bundleName << ", " << info.pageUrl << ", " << inputTime << ".";
-    const std::string traceName = traceNameStream.str();
+    const std::string traceName = GetTraceDescription(info) + ", " + std::to_string(inputTime);
     TraceStats traceStat = {.traceName_ = traceName, .createTime_ = createTime};
     aSyncTraces_[traceId] = std::move(traceStat);
     RS_ASYNC_TRACE_BEGIN(traceName, traceId);
@@ -322,6 +329,13 @@ void RSJankStats::CheckTraceTimeout(int64_t checkEraseTime)
         return needErase;
     });
     traceCheckCnt_ = 0;
+}
+
+std::string RSJankStats::GetTraceDescription(const DataBaseRs& info) const
+{
+    std::stringstream traceDescription;
+    traceDescription << info.sceneId << ", " << info.bundleName << ", " << info.pageUrl;
+    return traceDescription.str();
 }
 
 int64_t RSJankStats::ConvertTimeToSystime(int64_t time) const

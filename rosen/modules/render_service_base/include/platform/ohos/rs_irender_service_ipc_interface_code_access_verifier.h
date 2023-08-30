@@ -39,14 +39,7 @@ protected:
     bool IsExclusiveVerificationPassed(CodeUnderlyingType code) override;
 
 private:
-    RSIRenderServiceInterfaceCodeAccessVerifier(
-        const RSIRenderServiceInterfaceCodeAccessVerifier&) = delete;
-    RSIRenderServiceInterfaceCodeAccessVerifier& operator=(
-        const RSIRenderServiceInterfaceCodeAccessVerifier&) = delete;
-    RSIRenderServiceInterfaceCodeAccessVerifier(
-        RSIRenderServiceInterfaceCodeAccessVerifier&&) = delete;
-    RSIRenderServiceInterfaceCodeAccessVerifier& operator=(
-        RSIRenderServiceInterfaceCodeAccessVerifier&&) = delete;
+    DISALLOW_COPY_AND_MOVE(RSIRenderServiceInterfaceCodeAccessVerifier);
 };
 } // namespace Rosen
 } // namespace OHOS

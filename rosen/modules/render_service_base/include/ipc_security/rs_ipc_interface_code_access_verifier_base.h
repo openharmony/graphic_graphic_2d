@@ -29,6 +29,7 @@
 
 #include "common/rs_macros.h"
 #include "ipc_security/rs_ipc_interface_code_underlying_type.h"
+#include "nocopyable.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -53,10 +54,7 @@ protected:
     bool IsSystemCalling(const std::string& callingCode) const;
 
 private:
-    RSInterfaceCodeAccessVerifierBase(const RSInterfaceCodeAccessVerifierBase&) = delete;
-    RSInterfaceCodeAccessVerifierBase& operator=(const RSInterfaceCodeAccessVerifierBase&) = delete;
-    RSInterfaceCodeAccessVerifierBase(RSInterfaceCodeAccessVerifierBase&&) = delete;
-    RSInterfaceCodeAccessVerifierBase& operator=(RSInterfaceCodeAccessVerifierBase&&) = delete;
+    DISALLOW_COPY_AND_MOVE(RSInterfaceCodeAccessVerifierBase);
 
     /* specify the communal verification rules in the base class */
     bool IsCommonVerificationPassed(CodeUnderlyingType code);
