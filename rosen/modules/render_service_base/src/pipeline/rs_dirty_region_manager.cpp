@@ -70,8 +70,9 @@ RectI RSDirtyRegionManager::GetIntersectedVisitedDirtyRect(const RectI& absRect)
 
 bool RSDirtyRegionManager::HasIntersectionWithVisitedDirtyRect(const RectI& absRect) const
 {
-    return std::any_of(visitedDirtyRegions_.begin(), visitedDirtyRegions_.end(),
-        [&absRect](const RectI& rect) { return rect.Intersect(absRect); });
+    return currentFrameDirtyRegion_.Intersect(absRect) ||
+           std::any_of(visitedDirtyRegions_.begin(), visitedDirtyRegions_.end(),
+               [&absRect](const RectI& rect) { return rect.Intersect(absRect); });
 }
 
 void RSDirtyRegionManager::UpdateCacheableFilterRect(const RectI& rect)
