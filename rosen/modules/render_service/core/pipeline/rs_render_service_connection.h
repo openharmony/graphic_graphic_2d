@@ -217,9 +217,6 @@ private:
     mutable std::mutex mutex_;
     bool cleanDone_ = false;
 
-    int offscreenRenderNum_ = 0;
-    std::mutex offscreenRenderMutex_;
-
     // save all virtual screenIds created by this connection.
     std::unordered_set<ScreenId> virtualScreenIds_;
     sptr<RSIScreenChangeCallback> screenChangeCallback_;

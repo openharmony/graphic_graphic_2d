@@ -29,6 +29,8 @@ public:
     void Start();
     void PostTask(const std::function<void()>& task);
     void Stop();
+    void DoOffscreenRenderTask(const std::function<void()>& task);
+    void FinishOffscreenRenderTask();
 
 private:
     RSOffscreenRenderThread() = default;
@@ -39,6 +41,7 @@ private:
     RSOffscreenRenderThread& operator=(const RSOffscreenRenderThread&&);
 
     std::mutex mutex_;
+    int offscreenRenderNum_ = 0;
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;

@@ -500,29 +500,17 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
 void RSRenderServiceConnection::TakeSurfaceCaptureForUIWithUni(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
     float scaleX, float scaleY)
 {
-    std::function<void()> offscreenRenderTask = [scaleY, scaleX, callback, id, this]() -> void {
+    std::function<void()> offscreenRenderTask = [scaleY, scaleX, callback, id]() -> void {
         RS_LOGD("RSRenderService::TakeSurfaceCaptureForUIWithUni callback->OnOffscreenRender"
             " nodeId:[%{public}" PRIu64 "]", id);
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCaptureForUIWithUni");
-        std::shared_ptr<RSUniUICapture> rsUniUICapture =
-            std::make_shared<RSUniUICapture>(id, scaleX, scaleY);
+        std::shared_ptr<RSUniUICapture> rsUniUICapture = std::make_shared<RSUniUICapture>(id, scaleX, scaleY);
         std::shared_ptr<Media::PixelMap> pixelmap = rsUniUICapture->TakeLocalCapture();
         callback->OnSurfaceCapture(id, pixelmap.get());
-        std::lock_guard<std::mutex> lock(offscreenRenderMutex_);
-        offscreenRenderNum_--;
-        if (offscreenRenderNum_ == 0) {
-            RSOffscreenRenderThread::Instance().Stop();
-        }
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        RSOffscreenRenderThread::Instance().FinishOffscreenRenderTask();
     };
-    {
-        std::lock_guard<std::mutex> lock(offscreenRenderMutex_);
-        if (offscreenRenderNum_ == 0) {
-            RSOffscreenRenderThread::Instance().Start();
-        }
-        offscreenRenderNum_++;
-    }
-    RSOffscreenRenderThread::Instance().PostTask(offscreenRenderTask);
+    RSOffscreenRenderThread::Instance().DoOffscreenRenderTask(offscreenRenderTask);
 }
 
 void RSRenderServiceConnection::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
