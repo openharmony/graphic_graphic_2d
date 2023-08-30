@@ -27,7 +27,7 @@ ohos_shared_library("librender_service") {
     defines += [ "FRAME_AWARE_TRACE" ]
   }
   defines += gpu_defines
-  if (target_cpu == "arm") {
+  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
     cflags = [ "-flto=thin" ]
   }
 

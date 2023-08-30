@@ -221,7 +221,7 @@ ohos_source_set("render_service_base_src") {
     "-fvisibility=hidden",
   ]
 
-  if (target_cpu == "arm") {
+  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
     cflags += [ "-flto=thin" ]
   }
 
