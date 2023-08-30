@@ -613,6 +613,7 @@ void RSPaintFilterCanvas::CopyConfiguration(const RSPaintFilterCanvas& other)
         // planning: maybe we should copy source cache status
         SetCacheType(other.GetCacheType());
     }
+    isParallelCanvas_ = other.isParallelCanvas_;
 }
 
 RSColorFilterCanvas::RSColorFilterCanvas(RSPaintFilterCanvas* canvas)

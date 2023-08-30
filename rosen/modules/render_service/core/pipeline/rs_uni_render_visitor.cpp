@@ -2792,6 +2792,7 @@ bool RSUniRenderVisitor::UpdateCacheSurface(RSRenderNode& node)
     if (canvas_) {
         cacheCanvas->CopyConfiguration(*canvas_);
     }
+    cacheCanvas->SetIsParallelCanvas(isSubThread_);
 
     // When drawing CacheSurface, all child node should be drawn.
     // So set isOpDropped_ = false here.
