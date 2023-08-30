@@ -243,10 +243,16 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
     node.SetGlobalAlpha(curAlpha_);
     for (auto& child : node.GetSortedChildren()) {
         if (UNLIKELY(child->GetSharedTransitionParam().has_value())) {
+            sharedTransitionNodeCnt_++;
+            markedCachedNodes_ = 0;
             PrepareSharedTransitionNode(*child);
+            curDirty_ = child->IsDirty();
+            child->Prepare(shared_from_this());
+            sharedTransitionNodeCnt_--;
+        } else {
+            curDirty_ = child->IsDirty();
+            child->Prepare(shared_from_this());
         }
-        curDirty_ = child->IsDirty();
-        child->Prepare(shared_from_this());
     }
     curAlpha_ = alpha;
 
@@ -314,6 +320,9 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node, int marked
         ((markedCachedNodeCnt != markedCachedNodes_) || node.HasChildrenOutOfRect() || childHasSurface_)) {
         node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     }
+    if (sharedTransitionNodeCnt_ || markedCachedNodes_ <= 0) {
+        node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+    }
     if (!curCacheFilterRects_.empty()) {
         allCacheFilterRects_.emplace(node.GetId(), curCacheFilterRects_.top());
         curCacheFilterRects_.pop();
@@ -335,7 +344,9 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node, int marked
     } else {
         bool isChildChanged = isDrawingCacheChanged_.top();
         isDrawingCacheChanged_.pop();
-        isDrawingCacheChanged_.top() = isDrawingCacheChanged_.top() || isChildChanged;
+        if (!isDrawingCacheChanged_.empty()) {
+            isDrawingCacheChanged_.top() = isDrawingCacheChanged_.top() || isChildChanged;
+        }
     }
 }
 

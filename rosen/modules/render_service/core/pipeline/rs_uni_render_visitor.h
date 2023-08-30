@@ -433,6 +433,7 @@ private:
     std::unordered_map<NodeId, std::unordered_map<NodeId, RectI>> allCacheFilterRects_ = {};
     std::stack<std::unordered_map<NodeId, RectI>> curCacheFilterRects_ = {};
     bool forceUpdateFlag_ = false;
+    int sharedTransitionNodeCnt_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
