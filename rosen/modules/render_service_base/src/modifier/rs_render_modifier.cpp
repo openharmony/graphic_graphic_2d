@@ -371,34 +371,34 @@ RSRenderModifier* RSRenderModifier::Unmarshalling(Parcel& parcel)
 
 namespace {
 template<typename T>
-T Add(T a, T b)
+T Add(const T& a, const T&& b)
 {
     return a + b;
 }
 template<typename T>
-T Add(const std::optional<T>& a, T b)
+T Add(const std::optional<T>& a, const T&& b)
 {
     return a.has_value() ? *a + b : b;
 }
 
 template<typename T>
-T Multiply(T a, T b)
+T Multiply(const T& a, const T&& b)
 {
     return a * b;
 }
 template<typename T>
-T Multiply(const std::optional<T>& a, T b)
+T Multiply(const std::optional<T>& a, const T&& b)
 {
     return a.has_value() ? *a * b : b;
 }
 
 template<typename T>
-T Replace(T a, T b)
+const T& Replace(const T& a, const T&& b)
 {
     return b;
 }
 template<typename T>
-T Replace(const std::optional<T>& a, T b)
+const T& Replace(const std::optional<T>& a, T&& b)
 {
     return b;
 }
