@@ -17,6 +17,7 @@
 
 #include <hitrace_meter.h>
 #include <hilog/log.h>
+#include "parameters.h"
 
 ScopedBytrace::ScopedBytrace(const std::string &proc) : proc_(proc)
 {
@@ -34,6 +35,22 @@ ScopedBytrace::~ScopedBytrace()
 void ScopedBytrace::End()
 {
     if (isEnd == false) {
+        FinishTrace(HITRACE_TAG_GRAPHIC_AGP);
+    }
+}
+
+bool ScopedDebugTrace::debugTraceEnabled_ = false;
+ScopedDebugTrace::ScopedDebugTrace(const std::string &traceStr)
+{
+    debugTraceEnabled_ =
+        std::atoi((OHOS::system::GetParameter("persist.sys.graphic.openDebugTrace", "0")).c_str()) != 0;
+    if (debugTraceEnabled_) {
+        StartTrace(HITRACE_TAG_GRAPHIC_AGP, traceStr);
+    }
+}
+ScopedDebugTrace::~ScopedDebugTrace()
+{
+    if (debugTraceEnabled_) {
         FinishTrace(HITRACE_TAG_GRAPHIC_AGP);
     }
 }

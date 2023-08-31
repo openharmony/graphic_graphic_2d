@@ -30,4 +30,12 @@ private:
     bool isEnd = false;
 };
 
+class ScopedDebugTrace {
+public:
+    ScopedDebugTrace(const std::string &traceStr);
+    ~ScopedDebugTrace();
+private:
+    static bool debugTraceEnabled_;
+};
+
 #endif // UTILS_TRACE_SCOPED_BYTRACE_H

@@ -38,6 +38,7 @@ ohos_static_library("scoped_bytrace") {
   external_deps = [
     "hilog:libhilog",
     "hitrace:hitrace_meter",
+    "init:libbegetutil",
   ]
 
   subsystem_name = "graphic"

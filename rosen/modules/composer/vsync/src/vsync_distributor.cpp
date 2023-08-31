@@ -140,7 +140,7 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
     }
     int32_t ret = socketPair_->SendData(data, sizeof(data));
     if (ret > -1) {
-        ScopedBytrace successful("successful");
+        ScopedDebugTrace successful("successful");
         info_.postVSyncCount_++;
     } else {
         ScopedBytrace failed("failed");
@@ -307,7 +307,7 @@ void VSyncDistributor::ThreadMain()
                 continue;
             }
         }
-        ScopedBytrace func(name_ + "_SendVsync");
+        ScopedDebugTrace func(name_ + "_SendVsync");
         for (uint32_t i = 0; i < conns.size(); i++) {
             int32_t ret = conns[i]->PostEvent(timestamp, event_.period, event_.vsyncCount);
             VLOGD("Distributor name:%{public}s, connection name:%{public}s, ret:%{public}d",
