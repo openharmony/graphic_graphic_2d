@@ -60,8 +60,9 @@ HWTEST_F(RSTransactionControllerTest, RSTransactionControllerTest001, TestSize.L
      * @tc.steps: step1. init
      */
     std::shared_ptr<RSTransaction> transaction = std::make_shared<RSTransaction>();
-    MessageParcel parcel;
-    transaction->MarshallTransactionSyncController(parcel);
+    Parcel parcel;
+    transaction->Marshalling(parcel);
+    RSTransaction::Unmarshalling(parcel);
     EXPECT_TRUE(transaction != nullptr);
     GTEST_LOG_(INFO) << "RSTransactionControllerTest RSTransactionControllerTest001 end";
 }
@@ -81,8 +82,7 @@ HWTEST_F(RSTransactionControllerTest, RSTransactionControllerTest002, TestSize.L
     controller->OpenSyncTransaction();
     auto transaction = controller->GetRSTransaction();
     EXPECT_TRUE(controller != nullptr);
-    uint64_t count = 0;
-    transaction->CloseSyncTransaction(count);
+    transaction->CloseSyncTransaction();
     GTEST_LOG_(INFO) << "RSTransactionControllerTest RSTransactionControllerTest002 end";
 }
 
@@ -102,12 +102,8 @@ HWTEST_F(RSTransactionControllerTest, RSTransactionControllerTest003, TestSize.L
     Parcel parcel;
     transaction->Marshalling(parcel);
     RSTransaction::Unmarshalling(parcel);
-    MessageParcel messageParcel;
-    transaction->MarshallTransactionSyncController(messageParcel);
-    transaction->UnmarshallTransactionSyncController(messageParcel);
     transaction->OpenSyncTransaction();
-    uint64_t count = 0;
-    transaction->CloseSyncTransaction(count);
+    transaction->CloseSyncTransaction();
     transaction->Begin();
     transaction->Commit();
     GTEST_LOG_(INFO) << "RSTransactionControllerTest RSTransactionControllerTest003 end";
@@ -128,11 +124,6 @@ HWTEST_F(RSTransactionControllerTest, RSTransactionControllerTest004, TestSize.L
     controller->OpenSyncTransaction();
     auto transaction = controller->GetRSTransaction();
     EXPECT_TRUE(controller != nullptr);
-    MessageParcel messageParcel;
-    transaction->MarshallTransactionSyncController(messageParcel);
-    transaction->UnmarshallTransactionSyncController(messageParcel);
-    transaction->MarshallTransactionSyncController(messageParcel);
-    transaction->UnmarshallTransactionSyncController(messageParcel);
     transaction->Commit();
     controller->CloseSyncTransaction();
     GTEST_LOG_(INFO) << "RSTransactionControllerTest RSTransactionControllerTest004 end";

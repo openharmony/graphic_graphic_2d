@@ -45,7 +45,7 @@ void RSTransaction::CloseSyncTransaction()
 {
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        RS_TRACE_NAME_FMT("CloseSyncTransaction syncId: %lu syncCount: %d", syncId_, )
+        RS_TRACE_NAME_FMT("CloseSyncTransaction syncId: %lu syncCount: %d", syncId_, transactionCount_);
         transactionProxy->MarkTransactionNeedCloseSync(transactionCount_);
         transactionProxy->SetSyncId(syncId_);
         transactionProxy->CommitSyncTransaction();
@@ -68,7 +68,7 @@ void RSTransaction::Commit()
 {
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        RS_TRACE_NAME("CommitSyncTransaction syncId: %lu", syncId_);
+        RS_TRACE_NAME_FMT("CommitSyncTransaction syncId: %lu", syncId_);
         transactionProxy->SetSyncId(syncId_);
         transactionProxy->CommitSyncTransaction();
         transactionProxy->CloseSyncTransaction();

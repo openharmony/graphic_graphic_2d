@@ -23,7 +23,6 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
-#include "ipc_callbacks/rs_isync_transaction_controller.h"
 
 namespace OHOS {
 namespace Rosen {

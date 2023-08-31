@@ -60,9 +60,6 @@ HWTEST_F(RSTransactionTest, Marshalling001, TestSize.Level1)
     RSTransaction rsTransaction;
     rsTransaction.Begin();
     rsTransaction.OpenSyncTransaction();
-    MessageParcel messageParcel;
-    rsTransaction.MarshallTransactionSyncController(messageParcel);
-    rsTransaction.UnmarshallTransactionSyncController(messageParcel);
     rsTransaction.Commit();
     Parcel parcel;
     EXPECT_TRUE(rsTransaction.Marshalling(parcel));
