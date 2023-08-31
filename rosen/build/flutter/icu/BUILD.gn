@@ -118,6 +118,8 @@ template("rosen_libicu") {
 
   ohos_source_set(target_name) {
     if (enable_text_gine) {
+      part_name = "graphic_2d"
+      subsystem_name = "graphic"
       defines += [ "USE_GRAPHIC_TEXT_GINE" ]
     }
     public_configs = [ ":icu_config_$platform" ]
@@ -632,9 +634,6 @@ template("rosen_libicu") {
       deps = [
         "$ace_flutter_engine_root/icu:ace_icu_make_data_assembly_$platform",
       ]
-
-      part_name = "graphic_2d"
-      subsystem_name = "graphic"
     }
   }
 }
