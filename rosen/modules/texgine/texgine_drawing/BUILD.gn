@@ -18,12 +18,14 @@ is_ok = true
 
 config("texgine_drawing_public_config") {
   include_dirs = [ "./src" ]
-  cflags = [
-    "-Wall",
-    "-Werror",
-    "-g3",
-    "-std=c++17",
-  ]
+  if (enable_text_gine) {
+    cflags = [
+      "-Wall",
+      "-Werror",
+      "-g3",
+      "-std=c++17",
+    ]
+  }
 }
 
 ohos_shared_library("libtexgine_drawing") {
@@ -67,7 +69,6 @@ ohos_shared_library("libtexgine_drawing") {
 
   deps = []
 
-  innerapi_tags = [ "platformsdk" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
