@@ -59,7 +59,7 @@ FontStyles::FontStyles(FontWeight weight, FontStyle style)
     }
 
     slant_ = ToSlant(style);
-    weight_ = static_cast<Weight>(static_cast<int>(weight) + DIFFERENCE);
+    weight_ = static_cast<Weight>(static_cast<int>(weight));
 }
 
 FontStyles::FontStyles(FontStyles::Weight weight, FontStyles::Width width, FontStyles::Slant slant)
