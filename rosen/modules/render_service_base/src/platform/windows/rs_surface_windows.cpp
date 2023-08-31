@@ -31,10 +31,12 @@ RSSurfaceWindows::RSSurfaceWindows(OnRenderFunc onRender)
 
 RSSurfaceWindows::~RSSurfaceWindows()
 {
+#ifndef USE_ROSEN_DRAWING
 #if defined(NEW_SKIA)
     if (grContext_) {
         grContext_->releaseResourcesAndAbandonContext();
     }
+#endif
 #endif
     grContext_ = nullptr;
 }
@@ -48,6 +50,7 @@ void RSSurfaceWindows::SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& fra
 {
 }
 
+#ifndef USE_ROSEN_DRAWING
 std::unique_ptr<RSSurfaceFrame> RSSurfaceWindows::RequestFrame(
     int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC)
 {
@@ -61,15 +64,12 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceWindows::RequestFrame(
         return frame;
     }
 
-#ifndef USE_ROSEN_DRAWING
     constexpr auto colorType = kRGBA_8888_SkColorType;
-#endif
 #if defined(NEW_SKIA)
     SkSurfaceProps surfaceProps(0, kRGB_H_SkPixelGeometry);
 #else
     SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
 #endif
-#ifndef USE_ROSEN_DRAWING
     constexpr uint32_t format = 0x8058; // GL_RGBA8
     GrBackendRenderTarget backendRenderTarget(
         frame->width_, frame->height_, 0, 8, {.fFBOID = 0, .fFormat = format});
@@ -86,9 +86,44 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceWindows::RequestFrame(
         }
     }
 #endif
+    return frame;
+}
+#else
+std::unique_ptr<RSSurfaceFrame> RSSurfaceWindows::RequestFrame(
+    int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC)
+{
+    if (onRender_ == nullptr) {
+        ROSEN_LOGE("RSSurfaceWindows::RequestFrame, producer is nullptr");
+        return nullptr;
+    }
+
+    auto frame = std::make_unique<RSSurfaceFrameWindows>(width, height);
+    if (SetupGrContext() == false) {
+        return frame;
+    }
+
+    struct Drawing::FrameBuffer bufferInfo;
+    bufferInfo.width = frame->width_;
+    bufferInfo.height = frame->height_;
+    bufferInfo.FBOID = 0;
+    bufferInfo.Format = 0x8058; // GL_RGBA8
+    bufferInfo.gpuContext = grContext_;
+    bufferInfo.colorSpace = drColorSpace_;
+    frame->surface_ = std::make_shared<Drawing::Surface>();
+    if (!frame->surface_->Bind(bufferInfo)) {
+        ROSEN_LOGE("RSSurfaceWindows::RequestFrame, surface bind failed");
+        return frame;
+    }
+#ifdef USE_GLFW_WINDOW
+    const auto canvas = frame->surface_->GetCanvas();
+    if (canvas != nullptr) {
+        canvas->Translate(0, frame->height_);
+        canvas->Scale(1, -1);
+    }
 #endif
     return frame;
 }
+#endif
 
 bool RSSurfaceWindows::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
 {
@@ -118,7 +153,16 @@ bool RSSurfaceWindows::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64
     if (frameWindows->surface_ != nullptr) {
         frameWindows->surface_->readPixels(bitmap, 0, 0);
     }
-
+#else
+    Drawing::BitmapFormat format = { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    Drawing::Bitmap bitmap;
+    bitmap.Build(frameWindows->width_, frameWindows->height_, format);
+    bitmap.SetPixels(addr);
+    if (frameWindows->surface_ != nullptr) {
+        auto image = frameWindows->surface_->GetImageSnapshot();
+        image->ReadPixels(bitmap, 0, 0);
+    }
+#endif
 #ifdef USE_GLFW_WINDOW
     if (frameWindows->surface_ != nullptr) {
         YInvert(addr, frameWindows->width_, frameWindows->height_);
@@ -129,7 +173,6 @@ bool RSSurfaceWindows::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64
     int32_t height = frameWindows->height_;
     int32_t size = width * height * 0x4;
     onRender_(addr, size, width, height);
-#endif
 
 #ifdef USE_GLFW_WINDOW
     GlfwRenderContext::GetGlobal()->SwapBuffers();
@@ -180,6 +223,7 @@ bool RSSurfaceWindows::SetupGrContext()
     }
 
     GlfwRenderContext::GetGlobal()->MakeCurrent();
+#ifndef USE_ROSEN_DRAWING
     sk_sp<const GrGLInterface> glinterface{GrGLCreateNativeInterface()};
     if (glinterface == nullptr) {
         ROSEN_LOGE("glinterface is nullptr");
@@ -199,7 +243,14 @@ bool RSSurfaceWindows::SetupGrContext()
         ROSEN_LOGE("grContext is nullptr");
         return false;
     }
-
+#else
+    auto grContext = std::make_shared<Drawing::GPUContext>();
+    Drawing::GPUContextOptions options;
+    if (!grContext->BuildFromGL(options)) {
+        RS_LOGE("grContext is nullptr");
+        return false;
+    }
+#endif
     grContext_ = grContext;
     return true;
 }
