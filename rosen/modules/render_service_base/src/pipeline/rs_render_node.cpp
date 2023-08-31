@@ -1029,6 +1029,12 @@ void RSRenderNode::UpdateShouldPaint()
     // alpha is not zero
     shouldPaint_ = (renderProperties_.GetAlpha() > 0.0f) &&
         (renderProperties_.GetVisible() || HasDisappearingTransition(false));
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+    if (!shouldPaint_) {
+        // clear filter cache when node is not visible
+        renderProperties_.ClearFilterCache();
+    }
+#endif
 }
 
 void RSRenderNode::SetSharedTransitionParam(const std::optional<SharedTransitionParam>&& sharedTransitionParam)
@@ -1508,12 +1514,7 @@ void RSRenderNode::OnTreeStateChanged()
 #if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_GL)
     if (!isOnTheTree_) {
         // clear filter cache when node is removed from tree
-        if (auto& manager = renderProperties_.GetFilterCacheManager(false)) {
-            manager->InvalidateCache();
-        }
-        if (auto& manager = renderProperties_.GetFilterCacheManager(true)) {
-            manager->InvalidateCache();
-        }
+        renderProperties_.ClearFilterCache();
     }
 #endif
 }

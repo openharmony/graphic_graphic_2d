@@ -199,7 +199,9 @@ public:
     // effect cache data relate
     struct CachedEffectData {
         CachedEffectData() = default;
-        CachedEffectData(const sk_sp<SkImage>& image, const SkIRect& rect) : cachedImage_(image), cachedRect_(rect) {}
+        CachedEffectData(const sk_sp<SkImage>& image, const SkIRect& rect);
+        CachedEffectData(sk_sp<SkImage>&& image, SkIRect&& rect);
+        ~CachedEffectData();
         sk_sp<SkImage> cachedImage_ = nullptr;
         SkIRect cachedRect_ = SkIRect::MakeEmpty();
     };

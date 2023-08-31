@@ -295,6 +295,7 @@ public:
 
 #if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_GL)
     const std::unique_ptr<RSFilterCacheManager>& GetFilterCacheManager(bool isForeground) const;
+    void ClearFilterCache();
 #endif
 
     void OnApplyModifiers();

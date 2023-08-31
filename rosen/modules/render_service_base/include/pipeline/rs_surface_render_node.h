@@ -714,6 +714,7 @@ public:
     }
     void UpdateFilterNodes(const std::shared_ptr<RSRenderNode>& nodePtr);
     // update static node's back&front-ground filter cache status
+    void UpdateFilterCacheStatusWithVisible(bool visible);
     void UpdateFilterCacheStatusIfNodeStatic(const RectI& clipRect);
     void UpdateChangedDrawingCacheNodes(const std::shared_ptr<RSRenderNode>& nodePtr);
     // reset static node's drawing cache status as not changed
@@ -893,6 +894,7 @@ private:
     bool animateState_ = false;
 
     bool needDrawAnimateProperty_ = false;
+    bool prevVisible_ = false;
 
     // UIFirst
     uint32_t submittedSubThreadIndex_ = INT_MAX;

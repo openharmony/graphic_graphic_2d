@@ -2209,6 +2209,16 @@ const std::unique_ptr<RSFilterCacheManager>& RSProperties::GetFilterCacheManager
 {
     return isForeground ? foregroundFilterCacheManager_ : backgroundFilterCacheManager_;
 }
+
+void RSProperties::ClearFilterCache()
+{
+    if (foregroundFilterCacheManager_ != nullptr) {
+        foregroundFilterCacheManager_->InvalidateCache();
+    }
+    if (backgroundFilterCacheManager_ != nullptr) {
+        backgroundFilterCacheManager_->InvalidateCache();
+    }
+}
 #endif
 
 void RSProperties::OnApplyModifiers()

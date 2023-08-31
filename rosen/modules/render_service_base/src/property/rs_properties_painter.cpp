@@ -1201,7 +1201,7 @@ void RSPropertiesPainter::DrawBackgroundEffect(
     if (auto& cacheManager = properties.GetFilterCacheManager(false)) {
         // the input rect is in global coordinate, so we need to save/reset matrix before clip
         auto data = cacheManager->GeneratedCachedEffectData(canvas, filter);
-        canvas.SetEffectData(data);
+        canvas.SetEffectData(std::move(data));
         return;
     }
 #endif
@@ -1230,8 +1230,8 @@ void RSPropertiesPainter::DrawBackgroundEffect(
         ROSEN_LOGE("RSPropertiesPainter::DrawBackgroundEffect imageCache snapshot null");
         return;
     }
-    auto data = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(imageCache, imageRect);
-    canvas.SetEffectData(data);
+    auto data = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(imageCache), std::move(imageRect));
+    canvas.SetEffectData(std::move(data));
 }
 #else
 void RSPropertiesPainter::DrawBackgroundEffect(
