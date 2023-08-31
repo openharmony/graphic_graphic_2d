@@ -915,6 +915,8 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         PrepareChildren(node);
     }
 
+    // Due to the alpha is updated in PrepareChildren, so PrepareChildren
+    // needs to be done before CheckOpaqueRegionBaseInfo
     auto screenRotation = curDisplayNode_->GetRotation();
     auto screenRect = RectI(0, 0, screenInfo_.width, screenInfo_.height);
     if (!node.CheckOpaqueRegionBaseInfo(
