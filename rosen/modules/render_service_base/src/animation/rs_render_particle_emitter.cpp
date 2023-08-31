@@ -41,6 +41,10 @@ void RSRenderParticleEmitter::EmitParticle(int64_t deltaTime)
 
     auto emitRate = particleParams_->GetEmitRate();
     auto maxParticle = particleParams_->GetParticleCount();
+    auto lifeTime = particleParams_->GetParticleLifeTime();
+    if (maxParticle <= 0 || lifeTime == 0) {
+        return;
+    }
     float last = particleCount_;
     particleCount_ += static_cast<float>(emitRate * deltaTime) / NS_TO_S;
     spawnNum_ += particleCount_ - last;

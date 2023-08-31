@@ -440,6 +440,9 @@ void RSRenderParticle::InitProperty(std::shared_ptr<ParticleRenderParams> partic
 
 bool RSRenderParticle::IsAlive() const
 {
+    if (lifeTime_ < 0) {
+        return true;
+    }
     return activeTime_ < lifeTime_;
 }
 
