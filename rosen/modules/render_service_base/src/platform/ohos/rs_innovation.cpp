@@ -49,7 +49,8 @@ bool RSInnovation::GetParallelCompositionEnabled(bool isUniRender)
 
 bool RSInnovation::UpdateQosVsyncEnabled()
 {
-    static bool qosVsyncEnabled = std::atoi((system::GetParameter("persist.rosen.qos_vsync.enabled", "0")).c_str()) != 0;
+    static bool qosVsyncEnabled = std::atoi((system::GetParameter(
+        "persist.rosen.qos_vsync.enabled", "0")).c_str()) != 0;
     return _s_qosVsyncFuncLoaded && qosVsyncEnabled;
 }
 
