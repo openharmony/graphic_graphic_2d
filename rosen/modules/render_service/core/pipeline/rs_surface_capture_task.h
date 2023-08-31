@@ -102,7 +102,7 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
         void ProcessSurfaceRenderNodeWithoutUni(RSSurfaceRenderNode& node);
         void CaptureSingleSurfaceNodeWithoutUni(RSSurfaceRenderNode& node);
         void CaptureSurfaceInDisplayWithoutUni(RSSurfaceRenderNode& node);
-        void DrawWatermarkIfNeed(float screenWidth, float screenHeight);
+        void DrawWatermarkIfNeed(RSDisplayRenderNode& node);
         void FindHardwareEnabledNodes();
         void AdjustZOrderAndDrawSurfaceNode();
         std::unique_ptr<RSPaintFilterCanvas> canvas_ = nullptr;
