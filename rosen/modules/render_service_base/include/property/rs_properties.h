@@ -349,6 +349,7 @@ private:
     std::optional<RSShadow> shadow_;
     std::optional<Matrix3f> sublayerTransform_;
     float spherizeDegree_ = 0.f;
+    bool isSpherizeValid_ = false;
     float lightUpEffectDegree_ = 1.0f;
 
     std::weak_ptr<RSRenderNode> backref_;

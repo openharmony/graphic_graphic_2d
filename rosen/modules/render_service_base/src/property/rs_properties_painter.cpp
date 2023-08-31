@@ -1520,6 +1520,7 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaint
     if (properties.GetClipBounds() != nullptr) {
         canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), antiAlias);
     } else if (properties.GetClipToBounds()) {
+        hasClipToBounds = true;
         // In NEW_SKIA version, L476 code will cause crash if the second parameter is true.
         // so isAntiAlias is false only the method is called in ProcessAnimatePropertyBeforeChildren().
 #ifdef NEW_SKIA
@@ -1528,7 +1529,6 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaint
         } else {
             canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), antiAlias);
         }
-        hasClipToBounds = true;
 #else
         canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), antiAlias);
 #endif

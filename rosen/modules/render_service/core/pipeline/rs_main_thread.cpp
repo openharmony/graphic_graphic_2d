@@ -661,7 +661,8 @@ void RSMainThread::ProcessCommandForUniRender()
 {
     std::shared_ptr<TransactionDataMap> transactionDataEffective = std::make_shared<TransactionDataMap>();
     std::string transactionFlags;
-    if (RSSystemProperties::GetUIFirstEnabled() && RSSystemProperties::GetCacheCmdEnabled()) {
+    bool uifirstAndCacheCmdEnabled = isUiFirstOn_ && RSSystemProperties::GetCacheCmdEnabled();
+    if (uifirstAndCacheCmdEnabled) {
         CheckParallelSubThreadNodesStatus();
     }
     {
@@ -670,12 +671,12 @@ void RSMainThread::ProcessCommandForUniRender()
         for (auto& rsTransactionElem: effectiveTransactionDataIndexMap_) {
             auto pid = rsTransactionElem.first;
             auto& transactionVec = rsTransactionElem.second.second;
-            if (RSSystemProperties::GetUIFirstEnabled() && RSSystemProperties::GetCacheCmdEnabled()) {
+            if (uifirstAndCacheCmdEnabled) {
                 SkipCommandByNodeId(transactionVec, pid);
             }
             std::sort(transactionVec.begin(), transactionVec.end(), Compare);
         }
-        if (RSSystemProperties::GetUIFirstEnabled() && RSSystemProperties::GetCacheCmdEnabled()) {
+        if (uifirstAndCacheCmdEnabled) {
             CacheCommands();
         }
         CheckAndUpdateTransactionIndex(transactionDataEffective, transactionFlags);

@@ -941,6 +941,7 @@ bool RSRenderNode::ApplyModifiers()
     // update state
     dirtyTypes_.clear();
     lastApplyTimestamp_ = lastTimestamp_;
+    UpdateShouldPaint();
 
     // return true if positionZ changed
     return renderProperties_.GetPositionZ() != prevPositionZ;
@@ -1019,10 +1020,15 @@ void RSRenderNode::FilterModifiersByPid(pid_t pid)
 
 bool RSRenderNode::ShouldPaint() const
 {
+    return shouldPaint_;
+}
+
+void RSRenderNode::UpdateShouldPaint()
+{
     // node should be painted if either it is visible or it has disappearing transition animation, but only when its
     // alpha is not zero
-    return (renderProperties_.GetVisible() || HasDisappearingTransition(false)) &&
-           (renderProperties_.GetAlpha() > 0.0f);
+    shouldPaint_ = (renderProperties_.GetAlpha() > 0.0f) &&
+        (renderProperties_.GetVisible() || HasDisappearingTransition(false));
 }
 
 void RSRenderNode::SetSharedTransitionParam(const std::optional<SharedTransitionParam>&& sharedTransitionParam)

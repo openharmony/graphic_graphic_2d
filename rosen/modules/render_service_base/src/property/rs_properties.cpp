@@ -42,6 +42,7 @@ constexpr int32_t INDEX_14 = 14;
 constexpr int32_t INDEX_18 = 18;
 
 const Vector4f Vector4fZero { 0.f, 0.f, 0.f, 0.f };
+constexpr float spherizeValidEpsilon = 0.001f; // used to judge if spherize valid
 
 using ResetPropertyFunc = void (*)(RSProperties* prop);
 constexpr uint8_t BORDER_TYPE_NONE = (uint32_t)BorderStyle::NONE;
@@ -1396,6 +1397,7 @@ std::shared_ptr<RSMask> RSProperties::GetMask() const
 void RSProperties::SetSpherize(float spherizeDegree)
 {
     spherizeDegree_ = spherizeDegree;
+    isSpherizeValid_ = spherizeDegree_ > spherizeValidEpsilon;
     SetDirty();
     contentDirty_ = true;
 }
@@ -1407,8 +1409,7 @@ float RSProperties::GetSpherize() const
 
 bool RSProperties::IsSpherizeValid() const
 {
-    constexpr float epsilon = 0.001f;
-    return GetSpherize() - 0.0 > epsilon;
+    return isSpherizeValid_;
 }
 
 void RSProperties::SetLightUpEffect(float lightUpEffectDegree)
