@@ -49,6 +49,7 @@ OHNativeWindow* CreateNativeWindowFromSurface(void* pSurface)
     nativeWindow->config.transform = GraphicTransformType::GRAPHIC_ROTATE_NONE;
 
     NativeObjectReference(nativeWindow);
+    nativeWindow->surface->SetWptrNativeWindowToPSurface(nativeWindow);
     return nativeWindow;
 }
 
@@ -97,10 +98,18 @@ int32_t NativeWindowRequestBuffer(OHNativeWindow *window,
                 ret, window->surface->GetUniqueId());
         return OHOS::GSERROR_NO_BUFFER;
     }
-    OHNativeWindowBuffer *nwBuffer = new OHNativeWindowBuffer();
-    nwBuffer->sfbuffer = sfbuffer;
-    nwBuffer->uiTimestamp = window->uiTimestamp;
-    *buffer = nwBuffer;
+    uint32_t seqNum = sfbuffer->GetSeqNum();
+    if (window->bufferCache_.find(seqNum) == window->bufferCache_.end()) {
+        OHNativeWindowBuffer *nwBuffer = new OHNativeWindowBuffer();
+        nwBuffer->sfbuffer = sfbuffer;
+        nwBuffer->uiTimestamp = window->uiTimestamp;
+        *buffer = nwBuffer;
+        // Add to cache
+        NativeObjectReference(nwBuffer);
+        window->bufferCache_[seqNum] = nwBuffer;
+    } else {
+        *buffer = window->bufferCache_[seqNum];
+    }
     *fenceFd = releaseFence->Dup();
     return OHOS::GSERROR_OK;
 }
@@ -363,6 +372,9 @@ NativeWindow::NativeWindow() : NativeWindowMagic(NATIVE_OBJECT_MAGIC_WINDOW), su
 
 NativeWindow::~NativeWindow()
 {
+    for (auto &[seqNum, buffer] : bufferCache_) {
+        NativeObjectUnreference(buffer);
+    }
 }
 
 NativeWindowBuffer::~NativeWindowBuffer()

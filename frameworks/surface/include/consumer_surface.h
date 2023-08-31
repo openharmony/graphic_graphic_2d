@@ -117,6 +117,7 @@ public:
     GSError SetDefaultColorGamut(int32_t colorGamut) override;
 
     sptr<NativeSurface> GetNativeSurface() override;
+    GSError SetWptrNativeWindowToPSurface(void* nativeWindow) override;
 
 private:
     std::map<std::string, std::string> userData_;

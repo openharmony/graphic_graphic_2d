@@ -21,6 +21,7 @@
 #include <refbase.h>
 #include <surface.h>
 #include <surface_buffer.h>
+#include <unordered_map>
 
 struct NativeWindowMagic : public OHOS::RefBase
 {
@@ -35,6 +36,7 @@ struct NativeWindow : public NativeWindowMagic {
     OHOS::BufferRequestConfig config = {0};
     OHOS::sptr<OHOS::Surface> surface;
     int64_t uiTimestamp = 0;
+    std::unordered_map<uint32_t, NativeWindowBuffer*> bufferCache_;
 };
 
 struct NativeWindowBuffer : public NativeWindowMagic {

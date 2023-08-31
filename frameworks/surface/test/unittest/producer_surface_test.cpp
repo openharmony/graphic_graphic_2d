@@ -17,6 +17,7 @@
 #include <surface.h>
 #include <consumer_surface.h>
 #include "buffer_consumer_listener.h"
+#include <native_window.h>
 
 using namespace testing;
 using namespace testing::ext;
@@ -742,6 +743,21 @@ HWTEST_F(ProducerSurfaceTest, presentTimestamp004, Function | MediumTest | Level
     ASSERT_EQ(ret, OHOS::GSERROR_NO_ENTRY);
 
     ret = pSurface->CancelBuffer(buffer);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+}
+
+/*
+* Function: SetWptrNativeWindowToPSurface
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. SetWptrNativeWindowToPSurface and check ret
+* @tc.require: issueI7WYIY
+ */
+HWTEST_F(ProducerSurfaceTest, SetWptrNativeWindowToPSurface001, Function | MediumTest | Level1)
+{
+    struct NativeWindow nativeWindow;
+    GSError ret = pSurface->SetWptrNativeWindowToPSurface(&nativeWindow);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 }

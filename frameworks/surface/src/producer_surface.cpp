@@ -22,6 +22,7 @@
 #include "buffer_extra_data_impl.h"
 #include "buffer_producer_listener.h"
 #include "sync_fence.h"
+#include "native_window.h"
 
 namespace OHOS {
 namespace {
@@ -95,7 +96,7 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
     if (ret != GSERROR_OK) {
         if (ret == GSERROR_NO_CONSUMER) {
             std::lock_guard<std::mutex> lockGuard(mutex_);
-            bufferProducerCache_.clear();
+            CleanAllLocked();
         }
         BLOGND("Producer report %{public}s", GSErrorStr(ret).c_str());
         return ret;
@@ -128,10 +129,20 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
     }
 
     for (auto it = retval.deletingBuffers.begin(); it != retval.deletingBuffers.end(); it++) {
-        bufferProducerCache_.erase(*it);
+        uint32_t seqNum = *it;
+        bufferProducerCache_.erase(seqNum);
+        auto spNativeWindow = wpNativeWindow_.promote();
+        if (spNativeWindow != nullptr) {
+            auto &bufferCache = spNativeWindow->bufferCache_;
+            if (bufferCache.find(seqNum) != bufferCache.end()) {
+                bufferCache.erase(seqNum);
+                NativeObjectUnreference(bufferCache[seqNum]);
+            }
+        }
     }
     return GSERROR_OK;
 }
+
 GSError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer,
                                      const sptr<SyncFence>& fence, BufferFlushConfig &config)
 {
@@ -331,12 +342,21 @@ bool ProducerSurface::IsRemote()
     return producer_->AsObject()->IsProxyObject();
 }
 
+void ProducerSurface::CleanAllLocked()
+{
+    bufferProducerCache_.clear();
+    auto spNativeWindow = wpNativeWindow_.promote();
+    if (spNativeWindow != nullptr) {
+        spNativeWindow->bufferCache_.clear();
+    }
+}
+
 GSError ProducerSurface::CleanCache()
 {
     BLOGND("Queue Id:%{public}" PRIu64, queueId_);
     {
         std::lock_guard<std::mutex> lockGuard(mutex_);
-        bufferProducerCache_.clear();
+        CleanAllLocked();
     }
     return producer_->CleanCache();
 }
@@ -346,7 +366,7 @@ GSError ProducerSurface::GoBackground()
     BLOGND("Queue Id:%{public}" PRIu64 "", queueId_);
     {
         std::lock_guard<std::mutex> lockGuard(mutex_);
-        bufferProducerCache_.clear();
+        CleanAllLocked();
     }
     return producer_->GoBackground();
 }
@@ -389,7 +409,7 @@ GSError ProducerSurface::Disconnect()
     BLOGND("Queue Id:%{public}" PRIu64 "", queueId_);
     {
         std::lock_guard<std::mutex> lockGuard(mutex_);
-        bufferProducerCache_.clear();
+        CleanAllLocked();
     }
     GSError ret = producer_->Disconnect();
     {
@@ -503,5 +523,12 @@ sptr<NativeSurface> ProducerSurface::GetNativeSurface()
 {
     BLOGND("ProducerSurface::GetNativeSurface not support.");
     return nullptr;
+}
+
+GSError ProducerSurface::SetWptrNativeWindowToPSurface(void* nativeWindow)
+{
+    NativeWindow *nw = reinterpret_cast<NativeWindow *>(nativeWindow);
+    wpNativeWindow_ = nw;
+    return GSERROR_OK;
 }
 } // namespace OHOS
