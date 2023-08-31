@@ -60,8 +60,7 @@ if (enable_text_gine) {
     public_configs = [ ":rosen_text_public_config" ]
 
     defines += [ "USE_GRAPHIC_TEXT_GINE" ]
-    cflags_cc = [ "-Wno-c++17-extensions" ]
-    cflags = [ "-Wno-c++17-extensions" ]
+    cflags = [ "-std=c++17" ]
 
     include_dirs = [ "$rosen_root/modules/render_service_base/include" ]
 
@@ -90,14 +89,12 @@ if (enable_text_gine) {
       "$rosen_root/modules/render_service_base/include",
     ]
 
-    defines += [ "USE_GRAPHIC_TEXT_GINE" ]
-    cflags_cc = [
-      "-Wno-c++17-extensions",
-      "-std=c++17",
+    defines += [
+      "USE_GRAPHIC_TEXT_GINE",
+      "WINDOWS_PLATFORM",
     ]
-    defines += [ "WINDOWS_PLATFORM" ]
+    cflags = [ "-std=c++17" ]
 
-    cflags = [ "-Wno-c++17-extensions" ]
     if (defined(use_new_skia) && use_new_skia) {
       include_dirs += [ "$flutter_root/txt/src" ]
     } else {

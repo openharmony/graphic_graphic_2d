@@ -137,6 +137,9 @@ template("rosen_libharfbuzz") {
     }
 
     deps = [ "//foundation/graphic/graphic_2d/rosen/build/flutter/icu:rosen_libicu_$platform" ]
+
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
   }
 }
 

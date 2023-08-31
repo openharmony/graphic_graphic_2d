@@ -40,14 +40,10 @@ public:
     void StdFilestystemClose();
 };
 
-#ifndef USE_GRAPHIC_TEXT_GINE
-bool StdFilesystemExists(const std::string &p, std::error_code &ec);
-#else
 #ifdef BUILD_NON_SDK_VER
 bool StdFilesystemExists(const std::string &p, std::error_code &ec);
 #else
 bool StdFilesystemExists(const std::string &p);
-#endif
 #endif
 } // namespace TextEngine
 } // namespace Rosen

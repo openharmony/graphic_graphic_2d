@@ -16,12 +16,8 @@
 #include "text_reverser.h"
 
 #include "texgine/utils/exlog.h"
-#ifndef USE_GRAPHIC_TEXT_GINE
-#include "texgine/utils/trace.h"
-#else
 #ifdef LOGGER_ENABLE_SCOPE
 #include "texgine/utils/trace.h"
-#endif
 #endif
 
 namespace OHOS {
@@ -29,12 +25,8 @@ namespace Rosen {
 namespace TextEngine {
 void TextReverser::ReverseRTLText(std::vector<VariantSpan> &lineSpans)
 {
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ScopedTrace scope("Shaper::ReverseRTLText");
-#else
 #ifdef LOGGER_ENABLE_SCOPE
     ScopedTrace scope("Shaper::ReverseRTLText");
-#endif
 #endif
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "ReverseRTLText");
     const auto &endit = lineSpans.end();
@@ -105,12 +97,8 @@ void TextReverser::ReverseConDirectionText(std::vector<VariantSpan> &lineSpans, 
 
 void TextReverser::ProcessTypoDirection(std::vector<VariantSpan> &lineSpans, const TextDirection dir)
 {
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ScopedTrace scope("ProcessTypoDirection");
-#else
 #ifdef LOGGER_ENABLE_SCOPE
     ScopedTrace scope("ProcessTypoDirection");
-#endif
 #endif
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "ProcessTypoDirection");
     if (dir == TextDirection::LTR) {

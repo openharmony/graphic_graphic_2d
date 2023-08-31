@@ -17,12 +17,8 @@
 
 #include "texgine_exception.h"
 #include "texgine/utils/exlog.h"
-#ifndef USE_GRAPHIC_TEXT_GINE
-#include "texgine/utils/trace.h"
-#else
 #ifdef LOGGER_ENABLE_SCOPE
 #include "texgine/utils/trace.h"
-#endif
 #endif
 #include "text_converter.h"
 
@@ -120,12 +116,8 @@ const std::vector<Boundary> &MeasurerImpl::GetWordBoundary() const
 
 int MeasurerImpl::Measure(CharGroups &cgs)
 {
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ScopedTrace scope("MeasurerImpl::Measure");
-#else
 #ifdef LOGGER_ENABLE_SCOPE
     ScopedTrace scope("MeasurerImpl::Measure");
-#endif
 #endif
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "MeasurerImpl::Measure");
     struct MeasurerCacheKey key = {
@@ -172,12 +164,8 @@ int MeasurerImpl::Measure(CharGroups &cgs)
 
 void MeasurerImpl::SeekTypeface(std::list<struct MeasuringRun> &runs)
 {
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ScopedTrace scope("MeasurerImpl::SeekTypeface");
-#else
 #ifdef LOGGER_ENABLE_SCOPE
     ScopedTrace scope("MeasurerImpl::SeekTypeface");
-#endif
 #endif
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "typeface");
     int index = 0;
@@ -226,12 +214,8 @@ void MeasurerImpl::SeekTypeface(std::list<struct MeasuringRun> &runs)
 
 void MeasurerImpl::SeekScript(std::list<struct MeasuringRun> &runs)
 {
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ScopedTrace scope("MeasurerImpl::SeekScript");
-#else
 #ifdef LOGGER_ENABLE_SCOPE
     ScopedTrace scope("MeasurerImpl::SeekScript");
-#endif
 #endif
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "script");
     auto icuGetUnicodeFuncs = hb_unicode_funcs_create(hb_icu_get_unicode_funcs());
@@ -297,12 +281,8 @@ void MeasurerImpl::DoSeekScript(std::list<struct MeasuringRun> &runs, hb_unicode
 
 int MeasurerImpl::Shape(CharGroups &cgs, std::list<struct MeasuringRun> &runs, std::vector<Boundary> boundaries)
 {
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ScopedTrace scope("MeasurerImpl::Shape");
-#else
 #ifdef LOGGER_ENABLE_SCOPE
     ScopedTrace scope("MeasurerImpl::Shape");
-#endif
 #endif
     cgs = CharGroups::CreateEmpty();
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "shape");

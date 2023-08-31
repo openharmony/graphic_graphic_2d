@@ -213,8 +213,7 @@ template("graphics2d_source_set") {
         include_dirs += [ "$flutter_root/engine/flutter/third_party/txt/src" ]
       }
     } else {
-      cflags = [ "-Wno-c++17-extensions" ]
-
+      cflags = [ "-std=c++17" ]
       deps = [ "$ace_flutter_engine_root/libtxt:thirdparty_lib_txt_$platform" ]
 
       if (!is_cross_platform_build) {

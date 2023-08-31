@@ -116,14 +116,6 @@ int FontParser::ProcessNameTable(const struct NameTable* nameTable, FontParser::
             if (buffer == nullptr) {
                 return FAILED;
             }
-#ifndef USE_GRAPHIC_TEXT_GINE
-            if (memcpy_s(buffer, len, data, len) != EOK) {
-                LOGSO_FUNC_LINE(ERROR) << "memcpy failed";
-                delete[] buffer;
-                return FAILED;
-            }
-            const char16_t* strPtr = reinterpret_cast<const char16_t*>(buffer);
-#else
 #ifdef BUILD_NON_SDK_VER
             if (memcpy_s(buffer, len, data, len) != EOK) {
                 LOGSO_FUNC_LINE(ERROR) << "memcpy failed";
@@ -134,7 +126,6 @@ int FontParser::ProcessNameTable(const struct NameTable* nameTable, FontParser::
             memcpy(buffer, data, len);
 #endif
             const char16_t *strPtr = reinterpret_cast<const char16_t *>(buffer);
-#endif
             const std::u16string u16str(strPtr, strPtr + HALF(len));
             std::wstring_convert<std::codecvt_utf16<char16_t>, char16_t> converter;
             const std::string name = converter.to_bytes(u16str);
