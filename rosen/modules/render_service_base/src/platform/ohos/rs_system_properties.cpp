@@ -136,7 +136,8 @@ bool RSSystemProperties::GetOcclusionEnabled()
 
 bool RSSystemProperties::GetHardwareComposerEnabled()
 {
-    return system::GetParameter("rosen.hardwarecomposer.enabled", "1") != "0";
+    static bool hardwareComposerEnabled = system::GetParameter("persist.rosen.hardwarecomposer.enabled", "1") != "0";
+    return hardwareComposerEnabled;
 }
 
 bool RSSystemProperties::GetAFBCEnabled()
@@ -214,14 +215,16 @@ bool RSSystemProperties::GetDrawTextAsBitmap()
 
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
 {
-    return static_cast<ParallelRenderingType>(
-        std::atoi((system::GetParameter("rosen.prepareparallelrender.enabled", "1")).c_str()));
+    static ParallelRenderingType systemPropertiePrepareType = static_cast<ParallelRenderingType>(
+        std::atoi((system::GetParameter("persist.rosen.prepareparallelrender.enabled", "1")).c_str()));
+    return systemPropertiePrepareType;
 }
 
 ParallelRenderingType RSSystemProperties::GetParallelRenderingEnabled()
 {
-    return static_cast<ParallelRenderingType>(
-        std::atoi((system::GetParameter("rosen.parallelrender.enabled", "0")).c_str()));
+    static ParallelRenderingType systemPropertieType = static_cast<ParallelRenderingType>(
+        std::atoi((system::GetParameter("persist.rosen.parallelrender.enabled", "0")).c_str()));
+    return systemPropertieType;
 }
 
 HgmRefreshRates RSSystemProperties::GetHgmRefreshRatesEnabled()

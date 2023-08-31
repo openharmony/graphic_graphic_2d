@@ -47,7 +47,8 @@ void RSDrivenRenderManager::InitInstance()
 
 bool RSDrivenRenderManager::GetDrivenRenderEnabled() const
 {
-    return drivenRenderEnabled_ && system::GetBoolParameter("rosen.debug.drivenrender.enabled", true);
+    static bool drivenRenderEnabled = system::GetBoolParameter("persist.rosen.debug.drivenrender.enabled", true);
+    return drivenRenderEnabled_ && drivenRenderEnabled;
 }
 
 const DrivenUniRenderMode& RSDrivenRenderManager::GetUniDrivenRenderMode() const

@@ -39,17 +39,18 @@ void RSInnovation::CloseInnovationSo()
 // parallel composition
 bool RSInnovation::GetParallelCompositionEnabled(bool isUniRender)
 {
+    static bool parallelcompositionEnabled =
+        std::atoi((system::GetParameter("persist.rosen.parallelcomposition.enabled", "0")).c_str()) != 0;
     if (isUniRender) {
-        return std::atoi((system::GetParameter("rosen.parallelcomposition.enabled", "0")).c_str()) != 0;
+        return parallelcompositionEnabled;
     }
-    return _s_parallelCompositionLoaded &&
-        std::atoi((system::GetParameter("rosen.parallelcomposition.enabled", "0")).c_str()) != 0;
+    return _s_parallelCompositionLoaded && parallelcompositionEnabled;
 }
 
 bool RSInnovation::UpdateQosVsyncEnabled()
 {
-    return _s_qosVsyncFuncLoaded &&
-        (std::atoi((system::GetParameter("rosen.qos_vsync.enabled", "0")).c_str()) != 0);
+    static bool qosVsyncEnabled = std::atoi((system::GetParameter("persist.rosen.qos_vsync.enabled", "0")).c_str()) != 0;
+    return _s_qosVsyncFuncLoaded && qosVsyncEnabled;
 }
 
 void RSInnovation::GetParallelCompositionFunc()
