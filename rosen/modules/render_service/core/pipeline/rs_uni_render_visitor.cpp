@@ -2794,6 +2794,7 @@ bool RSUniRenderVisitor::UpdateCacheSurface(RSRenderNode& node)
     if (canvas_) {
         cacheCanvas->CopyConfiguration(*canvas_);
     }
+    cacheCanvas->SetIsParallelCanvas(isSubThread_);
 
     // When drawing CacheSurface, all child node should be drawn.
     // So set isOpDropped_ = false here.
@@ -3047,7 +3048,10 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #endif
 #endif
     if (!CheckIfSurfaceRenderNodeNeedProcess(node)) {
+        node.UpdateFilterCacheStatusWithVisible(false);
         return;
+    } else {
+        node.UpdateFilterCacheStatusWithVisible(true);
     }
 #ifdef RS_ENABLE_EGLQUERYSURFACE
     if (node.IsMainWindowType()) {

@@ -79,18 +79,17 @@ private:
     void GenerateFilteredSnapshot(
         RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter, const SkIRect& dstRect);
     void DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canvas, const SkIRect& dstRect) const;
-    inline void ClipVisibleRect(RSPaintFilterCanvas& canvas) const;
     // Attempt to reattach cached image to recording context if needed, if failed, we'll invalidate the cache.
     void ReattachCachedImage(RSPaintFilterCanvas& canvas);
-    bool ReattachCachedImageImpl(
-        RSPaintFilterCanvas& canvas, const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& effectData);
+    inline static void ClipVisibleRect(RSPaintFilterCanvas& canvas);
+    static bool ReattachCachedImageImpl(RSPaintFilterCanvas& canvas, RSPaintFilterCanvas::CachedEffectData& effectData);
     // Validate the input srcRect and dstRect, and return the validated rects.
-    std::tuple<SkIRect, SkIRect> ValidateParams(RSPaintFilterCanvas& canvas, const std::optional<SkIRect>& srcRect,
-        const std::optional<SkIRect>& dstRect) const;
+    static std::tuple<SkIRect, SkIRect> ValidateParams(RSPaintFilterCanvas& canvas,
+        const std::optional<SkIRect>& srcRect, const std::optional<SkIRect>& dstRect);
 
     // We keep both the snapshot and filtered snapshot in the cache, and clear unneeded one in next frame.
     // Note: rect in cachedSnapshot_ and cachedFilteredSnapshot_ is in device coordinate.
-    std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshot_ = nullptr;
+    std::unique_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshot_ = nullptr;
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedFilteredSnapshot_ = nullptr;
 
     // Hash of previous filter, used to determine if we need to invalidate cachedFilteredSnapshot_.

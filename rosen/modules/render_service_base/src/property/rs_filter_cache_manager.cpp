@@ -191,7 +191,8 @@ void RSFilterCacheManager::TakeSnapshot(
 
     // Update the cache state.
     snapshotRegion_ = RectI(srcRect.x(), srcRect.y(), srcRect.width(), srcRect.height());
-    cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(snapshot, snapshotIBounds);
+    cachedSnapshot_ =
+        std::make_unique<RSPaintFilterCanvas::CachedEffectData>(std::move(snapshot), std::move(snapshotIBounds));
 
     // If the cached image is larger than threshold, we will increase the cache update interval, which is configurable
     // by `hdc shell param set persist.sys.graphic.filterCacheUpdateInterval <interval>`, the default value is 1.
@@ -233,7 +234,8 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
             filteredSnapshot->width(), filteredSnapshot->height());
         as_IB(filteredSnapshot)->hintCacheGpuResource();
     }
-    cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(filteredSnapshot, offscreenRect);
+    cachedFilteredSnapshot_ =
+        std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(filteredSnapshot), std::move(offscreenRect));
     cachedFilterHash_ = filter->Hash();
 }
 
@@ -273,7 +275,7 @@ void RSFilterCacheManager::InvalidateCache(CacheType cacheType)
     }
 }
 
-inline void RSFilterCacheManager::ClipVisibleRect(RSPaintFilterCanvas& canvas) const
+inline void RSFilterCacheManager::ClipVisibleRect(RSPaintFilterCanvas& canvas)
 {
     auto visibleIRect = canvas.GetVisibleRect().round();
     auto deviceClipRect = canvas.getDeviceClipBounds();
@@ -290,40 +292,40 @@ const RectI& RSFilterCacheManager::GetCachedImageRegion() const
 
 void RSFilterCacheManager::ReattachCachedImage(RSPaintFilterCanvas& canvas)
 {
-    if (cachedSnapshot_ && !ReattachCachedImageImpl(canvas, cachedSnapshot_)) {
+    if (cachedSnapshot_ != nullptr && !ReattachCachedImageImpl(canvas, *cachedSnapshot_)) {
         InvalidateCache(CacheType::CACHE_TYPE_SNAPSHOT);
     }
-    if (cachedFilteredSnapshot_ && !ReattachCachedImageImpl(canvas, cachedFilteredSnapshot_)) {
+    if (cachedFilteredSnapshot_ != nullptr && !ReattachCachedImageImpl(canvas, *cachedFilteredSnapshot_)) {
         InvalidateCache(CacheType::CACHE_TYPE_FILTERED_SNAPSHOT);
     }
 }
 
 bool RSFilterCacheManager::ReattachCachedImageImpl(
-    RSPaintFilterCanvas& canvas, const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& effectData)
+    RSPaintFilterCanvas& canvas, RSPaintFilterCanvas::CachedEffectData& effectData)
 {
-    if (effectData == nullptr || effectData->cachedImage_->isValid(canvas.recordingContext())) {
+    if (effectData.cachedImage_->isValid(canvas.recordingContext())) {
         return true;
     }
     RS_OPTIONAL_TRACE_FUNC();
 
-    auto sharedBackendTexture = effectData->cachedImage_->getBackendTexture(false);
+    auto sharedBackendTexture = effectData.cachedImage_->getBackendTexture(false);
     if (!sharedBackendTexture.isValid()) {
         ROSEN_LOGE("RSFilterCacheManager::ReattachCachedImage failed to get backend texture.");
         return false;
     }
     auto reattachedCachedImage =
         SkImage::MakeFromTexture(canvas.recordingContext(), sharedBackendTexture, kBottomLeft_GrSurfaceOrigin,
-            effectData->cachedImage_->colorType(), effectData->cachedImage_->alphaType(), nullptr);
+            effectData.cachedImage_->colorType(), effectData.cachedImage_->alphaType(), nullptr);
     if (reattachedCachedImage == nullptr || !reattachedCachedImage->isValid(canvas.recordingContext())) {
         ROSEN_LOGE("RSFilterCacheManager::ReattachCachedImage failed to create SkImage from backend texture.");
         return false;
     }
-    effectData->cachedImage_ = reattachedCachedImage;
+    effectData.cachedImage_ = std::move(reattachedCachedImage);
     return false;
 }
 
 std::tuple<SkIRect, SkIRect> RSFilterCacheManager::ValidateParams(
-    RSPaintFilterCanvas& canvas, const std::optional<SkIRect>& srcRect, const std::optional<SkIRect>& dstRect) const
+    RSPaintFilterCanvas& canvas, const std::optional<SkIRect>& srcRect, const std::optional<SkIRect>& dstRect)
 {
     SkIRect src;
     SkIRect dst;

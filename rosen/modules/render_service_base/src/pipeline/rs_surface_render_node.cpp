@@ -829,6 +829,19 @@ void RSSurfaceRenderNode::ResetChangedDrawingCacheStatusIfNodeStatic()
     });
 }
 
+void RSSurfaceRenderNode::UpdateFilterCacheStatusWithVisible(bool visible)
+{
+    if (visible == prevVisible_) {
+        return;
+    }
+    prevVisible_ = visible;
+    if (!visible && !filterNodes_.empty()) {
+        for (auto& node : filterNodes_) {
+            node.second->GetMutableRenderProperties().ClearFilterCache();
+        }
+    }
+}
+
 void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipRect)
 {
     if (!dirtyManager_) {
@@ -1219,6 +1232,9 @@ void RSSurfaceRenderNode::OnApplyModifiers()
 
     // Apply the context matrix into the bounds geometry
     geoPtr->SetContextMatrix(contextMatrix_);
+    if (!ShouldPaint()) {
+        UpdateFilterCacheStatusWithVisible(false);
+    }
 }
 
 #ifndef USE_ROSEN_DRAWING
