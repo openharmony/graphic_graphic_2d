@@ -79,10 +79,12 @@ private:
     void GenerateFilteredSnapshot(
         RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter, const SkIRect& dstRect);
     void DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canvas, const SkIRect& dstRect) const;
-    // Attempt to reattach cached image to recording context if needed, if failed, we'll invalidate the cache.
-    void ReattachCachedImage(RSPaintFilterCanvas& canvas);
     inline static void ClipVisibleRect(RSPaintFilterCanvas& canvas);
-    static bool ReattachCachedImageImpl(RSPaintFilterCanvas& canvas, RSPaintFilterCanvas::CachedEffectData& effectData);
+    // Check if the cache is valid in current GrContext, since FilterCache will never be used in multi-thread
+    // environment, we don't need to attempt to reattach SkImages.
+    void CheckCachedImages(RSPaintFilterCanvas& canvas);
+    // To reduce memory usage, clear one of the cached images.
+    inline void CompactCache(bool isFilterHashChanged);
     // Validate the input srcRect and dstRect, and return the validated rects.
     static std::tuple<SkIRect, SkIRect> ValidateParams(RSPaintFilterCanvas& canvas,
         const std::optional<SkIRect>& srcRect, const std::optional<SkIRect>& dstRect);

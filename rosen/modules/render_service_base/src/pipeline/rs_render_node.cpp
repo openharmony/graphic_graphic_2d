@@ -718,7 +718,7 @@ void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager
         return;
     }
     auto& cachedImageRect = manager->GetCachedImageRegion();
-    if (IsDirty() || dirtyManager.HasIntersectionWithVisitedDirtyRect(cachedImageRect)) {
+    if (dirtyManager.HasIntersectionWithVisitedDirtyRect(cachedImageRect)) {
         manager->UpdateCacheStateWithDirtyRegion();
     }
     // record node's cache area if it has valid filter cache
@@ -937,6 +937,15 @@ bool RSRenderNode::ApplyModifiers()
     // execute hooks
     renderProperties_.OnApplyModifiers();
     OnApplyModifiers();
+
+    if (auto& manager = renderProperties_.GetFilterCacheManager(false);
+        manager != nullptr &&
+        (dirtyTypes_.count(RSModifierType::BACKGROUND_COLOR) || dirtyTypes_.count(RSModifierType::BG_IMAGE))) {
+        manager->UpdateCacheStateWithDirtyRegion();
+    }
+    if (auto& manager = renderProperties_.GetFilterCacheManager(true)) {
+        manager->UpdateCacheStateWithDirtyRegion();
+    }
 
     // update state
     dirtyTypes_.clear();

@@ -37,22 +37,17 @@ inline static bool IsLargeArea(int width, int height)
 
 void RSFilterCacheManager::UpdateCacheStateWithFilterHash(const std::shared_ptr<RSFilter>& filter)
 {
-    if (cachedFilteredSnapshot_ == nullptr) {
+    auto filterHash = filter->Hash();
+    if (cachedFilteredSnapshot_ == nullptr || cachedFilterHash_ == filterHash) {
         return;
     }
-    auto filterHash = filter == nullptr ? 0u : filter->Hash();
     RS_OPTIONAL_TRACE_FUNC();
 
-    if (filterHash == cachedFilterHash_) {
-        // filter not changed, clear the unfiltered snapshot.
-        InvalidateCache(CacheType::CACHE_TYPE_SNAPSHOT);
-    } else {
-        // filter changed, clear the filtered snapshot.
-        ROSEN_LOGD("RSFilterCacheManager::UpdateCacheStateWithFilterHash Cache expired. Reason: Cached filtered hash "
-                   "%{public}X does not match new hash %{public}X.",
-            cachedFilterHash_, filterHash);
-        InvalidateCache(CacheType::CACHE_TYPE_FILTERED_SNAPSHOT);
-    }
+    // filter changed, clear the filtered snapshot.
+    ROSEN_LOGD("RSFilterCacheManager::UpdateCacheStateWithFilterHash Cache expired. Reason: Cached filtered hash "
+               "%{public}X does not match new hash %{public}X.",
+        cachedFilterHash_, filterHash);
+    cachedFilteredSnapshot_.reset();
 }
 
 void RSFilterCacheManager::UpdateCacheStateWithFilterRegion()
@@ -88,80 +83,60 @@ void RSFilterCacheManager::UpdateCacheStateWithDirtyRegion()
 void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter,
     const std::optional<SkIRect>& srcRect, const std::optional<SkIRect>& dstRect)
 {
+    RS_OPTIONAL_TRACE_FUNC();
     // Filter validation is not needed, since it's already done in RSPropertiesPainter::DrawFilter.
-    auto clipIBounds = canvas.getDeviceClipBounds();
-    if (clipIBounds.isEmpty()) {
-        // clipIBounds is empty, no need to draw filter.
+    // Using filter cache in multi-thread environment may cause GPU memory leak or invalid textures, we just refuse to
+    // work.
+    if (canvas.getDeviceClipBounds().isEmpty() || canvas.GetIsParallelCanvas()) {
         return;
     }
     const auto& [src, dst] = ValidateParams(canvas, srcRect, dstRect);
     if (src.isEmpty() || dst.isEmpty()) {
         return;
     }
-
-    RS_OPTIONAL_TRACE_FUNC();
-
-    // Try to reattach cached image to recording context if needed, if failed, we'll invalidate the cache.
-    // Planning: Cache state should be calculated in prepare phase, this may be too late.
-    ReattachCachedImage(canvas);
-
+    CheckCachedImages(canvas);
     if (!IsCacheValid()) {
         TakeSnapshot(canvas, filter, src);
     } else {
         --cacheUpdateInterval_;
     }
-
+    bool isFilterHashChanged = filter->Hash() != cachedFilterHash_;
     if (cachedFilteredSnapshot_ == nullptr || cachedFilteredSnapshot_->cachedImage_ == nullptr) {
-        // If the cached filtered snapshot is not valid, regenerate it.
         GenerateFilteredSnapshot(canvas, filter, dst);
-    } else {
-        // If the cached filtered snapshot from previous frame is valid, the unfiltered snapshot is unnecessary. clear
-        // it to save memory.
-        InvalidateCache(CacheType::CACHE_TYPE_SNAPSHOT);
     }
-
     DrawCachedFilteredSnapshot(canvas, dst);
+    CompactCache(isFilterHashChanged);
 }
 
 const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManager::GeneratedCachedEffectData(
     RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter, const std::optional<SkIRect>& srcRect,
     const std::optional<SkIRect>& dstRect)
 {
-    // This function is similar to RSFilterCacheManager::DrawFilter, but does not draw anything on the canvas. Instead,
-    // it directly returns the cached image and region. Filter validation is not needed, since it's already done in
-    // RSPropertiesPainter::GenerateCachedEffectData.
-    auto clipIBounds = canvas.getDeviceClipBounds();
-    if (clipIBounds.isEmpty()) {
-        // clipIBounds is empty, no need to draw filter.
+    RS_OPTIONAL_TRACE_FUNC();
+    // Filter validation is not needed, since it's already done in RSPropertiesPainter::GenerateCachedEffectData.
+    // Using filter cache in multi-thread environment may cause GPU memory leak or invalid textures, we just refuse to
+    // work.
+    if (canvas.getDeviceClipBounds().isEmpty() || canvas.GetIsParallelCanvas()) {
         return nullptr;
     }
     const auto& [src, dst] = ValidateParams(canvas, srcRect, dstRect);
     if (src.isEmpty() || dst.isEmpty()) {
         return nullptr;
     }
-
-    RS_OPTIONAL_TRACE_FUNC();
-
-    // Try to reattach cached image to recording context if needed, if failed, we'll invalidate the cache.
-    // Planning: Cache state should be calculated in prepare phase, this may be too late.
-    ReattachCachedImage(canvas);
-
+    CheckCachedImages(canvas);
     if (!IsCacheValid()) {
         TakeSnapshot(canvas, filter, src);
     } else {
         --cacheUpdateInterval_;
     }
-
+    bool isFilterHashChanged = filter->Hash() != cachedFilterHash_;
     if (cachedFilteredSnapshot_ == nullptr || cachedFilteredSnapshot_->cachedImage_ == nullptr) {
-        // If the cached filtered snapshot is not valid, regenerate it.
         GenerateFilteredSnapshot(canvas, filter, dst);
-    } else {
-        // If the cached filtered snapshot from previous frame is valid, the unfiltered snapshot is unnecessary. clear
-        // it to save memory.
-        InvalidateCache(CacheType::CACHE_TYPE_SNAPSHOT);
     }
-
-    return cachedFilteredSnapshot_;
+    // Keep a reference to the cached image, since CompactCache may invalidate it.
+    auto cachedFilteredSnapshot = cachedFilteredSnapshot_;
+    CompactCache(isFilterHashChanged);
+    return cachedFilteredSnapshot;
 }
 
 void RSFilterCacheManager::TakeSnapshot(
@@ -201,6 +176,7 @@ void RSFilterCacheManager::TakeSnapshot(
     bool isLargeArea = IsLargeArea(srcRect.width(), srcRect.height());
     cacheUpdateInterval_ =
         isLargeArea && filter->CanSkipFrame() ? RSSystemProperties::GetFilterCacheUpdateInterval() : 0;
+    cachedFilterHash_ = 0;
 }
 
 void RSFilterCacheManager::GenerateFilteredSnapshot(
@@ -271,7 +247,6 @@ void RSFilterCacheManager::InvalidateCache(CacheType cacheType)
     }
     if (cacheType & CacheType::CACHE_TYPE_FILTERED_SNAPSHOT) {
         cachedFilteredSnapshot_.reset();
-        cachedFilterHash_ = 0;
     }
 }
 
@@ -290,38 +265,19 @@ const RectI& RSFilterCacheManager::GetCachedImageRegion() const
     return IsCacheValid() ? snapshotRegion_ : emptyRect;
 }
 
-void RSFilterCacheManager::ReattachCachedImage(RSPaintFilterCanvas& canvas)
+inline static bool IsCacheInvalid(const RSPaintFilterCanvas::CachedEffectData& cache, RSPaintFilterCanvas& canvas)
 {
-    if (cachedSnapshot_ != nullptr && !ReattachCachedImageImpl(canvas, *cachedSnapshot_)) {
-        InvalidateCache(CacheType::CACHE_TYPE_SNAPSHOT);
-    }
-    if (cachedFilteredSnapshot_ != nullptr && !ReattachCachedImageImpl(canvas, *cachedFilteredSnapshot_)) {
-        InvalidateCache(CacheType::CACHE_TYPE_FILTERED_SNAPSHOT);
-    }
+    return cache.cachedImage_ == nullptr || !cache.cachedImage_->isValid(canvas.recordingContext());
 }
 
-bool RSFilterCacheManager::ReattachCachedImageImpl(
-    RSPaintFilterCanvas& canvas, RSPaintFilterCanvas::CachedEffectData& effectData)
+void RSFilterCacheManager::CheckCachedImages(RSPaintFilterCanvas& canvas)
 {
-    if (effectData.cachedImage_->isValid(canvas.recordingContext())) {
-        return true;
+    if (cachedSnapshot_ != nullptr && IsCacheInvalid(*cachedSnapshot_, canvas)) {
+        cachedSnapshot_.reset();
     }
-    RS_OPTIONAL_TRACE_FUNC();
-
-    auto sharedBackendTexture = effectData.cachedImage_->getBackendTexture(false);
-    if (!sharedBackendTexture.isValid()) {
-        ROSEN_LOGE("RSFilterCacheManager::ReattachCachedImage failed to get backend texture.");
-        return false;
+    if (cachedFilteredSnapshot_ != nullptr && IsCacheInvalid(*cachedFilteredSnapshot_, canvas)) {
+        cachedFilteredSnapshot_.reset();
     }
-    auto reattachedCachedImage =
-        SkImage::MakeFromTexture(canvas.recordingContext(), sharedBackendTexture, kBottomLeft_GrSurfaceOrigin,
-            effectData.cachedImage_->colorType(), effectData.cachedImage_->alphaType(), nullptr);
-    if (reattachedCachedImage == nullptr || !reattachedCachedImage->isValid(canvas.recordingContext())) {
-        ROSEN_LOGE("RSFilterCacheManager::ReattachCachedImage failed to create SkImage from backend texture.");
-        return false;
-    }
-    effectData.cachedImage_ = std::move(reattachedCachedImage);
-    return false;
 }
 
 std::tuple<SkIRect, SkIRect> RSFilterCacheManager::ValidateParams(
@@ -343,6 +299,15 @@ std::tuple<SkIRect, SkIRect> RSFilterCacheManager::ValidateParams(
         dst.intersect(deviceRect);
     }
     return { src, dst };
+}
+
+inline void RSFilterCacheManager::CompactCache(bool isFilterHashChanged)
+{
+    if (isFilterHashChanged) {
+        cachedFilteredSnapshot_.reset();
+    } else {
+        cachedSnapshot_.reset();
+    }
 }
 } // namespace Rosen
 } // namespace OHOS
