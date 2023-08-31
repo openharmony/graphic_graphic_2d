@@ -882,16 +882,6 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         doAnimate_ = doAnimate_ || isSurfaceRotationChanged_;
         node.SetAnimateState();
     }
-    auto screenRotation = curDisplayNode_->GetRotation();
-    auto screenRect = RectI(0, 0, screenInfo_.width, screenInfo_.height);
-    if (!node.CheckOpaqueRegionBaseInfo(
-        screenRect, geoPtr->GetAbsRect(), screenRotation, node.IsFocusedNode(currentFocusedNodeId_))
-        && node.GetSurfaceNodeType() != RSSurfaceNodeType::SELF_DRAWING_NODE) {
-        node.ResetSurfaceOpaqueRegion(screenRect, geoPtr->GetAbsRect(),
-            screenRotation, node.IsFocusedNode(currentFocusedNodeId_));
-    }
-    node.SetOpaqueRegionBaseInfo(
-        screenRect, geoPtr->GetAbsRect(), screenRotation, node.IsFocusedNode(currentFocusedNodeId_));
 
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     bool isLeashWindowNode = false;
@@ -924,6 +914,17 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (node.ShouldPrepareSubnodes()) {
         PrepareChildren(node);
     }
+
+    auto screenRotation = curDisplayNode_->GetRotation();
+    auto screenRect = RectI(0, 0, screenInfo_.width, screenInfo_.height);
+    if (!node.CheckOpaqueRegionBaseInfo(
+        screenRect, geoPtr->GetAbsRect(), screenRotation, node.IsFocusedNode(currentFocusedNodeId_))
+        && node.GetSurfaceNodeType() != RSSurfaceNodeType::SELF_DRAWING_NODE) {
+        node.ResetSurfaceOpaqueRegion(screenRect, geoPtr->GetAbsRect(),
+            screenRotation, node.IsFocusedNode(currentFocusedNodeId_));
+    }
+    node.SetOpaqueRegionBaseInfo(
+        screenRect, geoPtr->GetAbsRect(), screenRotation, node.IsFocusedNode(currentFocusedNodeId_));
 #if defined(RS_ENABLE_PARALLEL_RENDER) && (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK))
     rsParent = (logicParentNode_.lock());
     if (rsParent == curDisplayNode_) {
