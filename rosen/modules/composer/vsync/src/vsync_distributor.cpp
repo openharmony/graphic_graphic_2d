@@ -126,8 +126,7 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
         VLOGE("%{public}s VSync Client Connection is dead, name:%{public}s.", __func__, info_.name_.c_str());
         return ERRNO_OTHER;
     }
-    ScopedBytrace func("SendVsyncTo conn: " + info_.name_ + ", now:" + std::to_string(now)
-        + ", postVSyncCount_:" + std::to_string(vsyncCount));
+    ScopedBytrace func("SendVsyncTo conn: " + info_.name_ + ", now:" + std::to_string(now));
     // 3 is array size.
     int64_t data[3];
     data[0] = now;
