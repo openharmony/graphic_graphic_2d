@@ -223,12 +223,12 @@ IndexAndAffinity TypographyImpl::GetGlyphIndexByCoordinate(double x, double y) c
     }
 
     // process right part
+    auto affinity = Affinity::PREV;
     if (targetIndex == widths.size()) {
-        count--;
+        return {count - 1, affinity};
     }
 
     // calc affinity
-    auto affinity = Affinity::PREV;
     if (targetIndex > 0 && targetIndex < widths.size()) {
         auto mid = offsetX + widths[targetIndex] * HALF;
         affinity = x < mid ? Affinity::NEXT : Affinity::PREV;
