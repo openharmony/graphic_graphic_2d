@@ -296,9 +296,7 @@ MemoryGraphic MemoryManager::CountPidMemory(int pid, const GrContext* grContext)
 
     // Count mem of RS
     totalMemGraphic.SetPid(pid);
-    MemoryGraphic rsMemGraphic = MemoryTrack::Instance().CountRSMemory(pid);
-    totalMemGraphic += rsMemGraphic;
-
+    
 #ifdef RS_ENABLE_GL
     // Count mem of Skia GPU
     if (grContext) {
