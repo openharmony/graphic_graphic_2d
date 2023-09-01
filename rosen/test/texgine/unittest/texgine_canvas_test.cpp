@@ -83,6 +83,24 @@ HWTEST_F(TexgineCanvasTest, DrawLine, TestSize.Level1)
 }
 
 /**
+ * @tc.name:DrawLine
+ * @tc.desc: Verify the DrawLine001
+ * @tc.type:FUNC
+ */
+HWTEST_F(TexgineCanvasTest, DrawLine001, TestSize.Level1)
+{
+    std::shared_ptr<TexgineCanvas> tc = std::make_shared<TexgineCanvas>();
+    EXPECT_NO_THROW({
+        InitTcMockVars({});
+        tc->SetCanvas(g_tcMockvars.skCanvas_.get());
+        tc->DrawLine(0.0, 0.0, 0.0, 0.0, *g_tcMockvars.texginePaint_);
+        g_tcMockvars.skCanvas_ = nullptr;
+        tc->SetCanvas(g_tcMockvars.skCanvas_.get());
+        tc->DrawLine(0.0, 0.0, 0.0, 0.0, *g_tcMockvars.texginePaint_);
+    });
+}
+
+/**
  * @tc.name:DrawRect
  * @tc.desc: Verify the DrawRect
  * @tc.type:FUNC
@@ -93,6 +111,26 @@ HWTEST_F(TexgineCanvasTest, DrawRect, TestSize.Level1)
     EXPECT_NO_THROW({
         InitTcMockVars({});
         tc->DrawRect(*g_tcMockvars.texgineRect_, *g_tcMockvars.texginePaint_);
+        tc->SetCanvas(g_tcMockvars.skCanvas_.get());
+        tc->DrawRect(*g_tcMockvars.texgineRect_, *g_tcMockvars.texginePaint_);
+        g_tcMockvars.texgineRect_->SetRect(SkRect::MakeEmpty());
+        tc->DrawRect(*g_tcMockvars.texgineRect_, *g_tcMockvars.texginePaint_);
+    });
+}
+
+/**
+ * @tc.name:DrawRect
+ * @tc.desc: Verify the DrawRect001
+ * @tc.type:FUNC
+ */
+HWTEST_F(TexgineCanvasTest, DrawRect001, TestSize.Level1)
+{
+    std::shared_ptr<TexgineCanvas> tc = std::make_shared<TexgineCanvas>();
+    EXPECT_NO_THROW({
+        InitTcMockVars({});
+        tc->SetCanvas(g_tcMockvars.skCanvas_.get());
+        tc->DrawRect(*g_tcMockvars.texgineRect_, *g_tcMockvars.texginePaint_);
+        g_tcMockvars.skCanvas_ = nullptr;
         tc->SetCanvas(g_tcMockvars.skCanvas_.get());
         tc->DrawRect(*g_tcMockvars.texgineRect_, *g_tcMockvars.texginePaint_);
         g_tcMockvars.texgineRect_->SetRect(SkRect::MakeEmpty());
@@ -119,6 +157,25 @@ HWTEST_F(TexgineCanvasTest, DrawTextBlob, TestSize.Level1)
 }
 
 /**
+ * @tc.name:DrawTextBlob
+ * @tc.desc: Verify the DrawTextBlob001
+ * @tc.type:FUNC
+ */
+HWTEST_F(TexgineCanvasTest, DrawTextBlob001, TestSize.Level1)
+{
+    std::shared_ptr<TexgineCanvas> tc = std::make_shared<TexgineCanvas>();
+    EXPECT_NO_THROW({
+        InitTcMockVars({});
+        tc->SetCanvas(g_tcMockvars.skCanvas_.get());
+        tc->DrawTextBlob(g_tcMockvars.blob_, 0.0, 0.0, *g_tcMockvars.texginePaint_);
+        g_tcMockvars.skCanvas_ = nullptr;
+        tc->SetCanvas(g_tcMockvars.skCanvas_.get());
+        g_tcMockvars.blob_ = nullptr;
+        tc->DrawTextBlob(g_tcMockvars.blob_, 0.0, 0.0, *g_tcMockvars.texginePaint_);
+    });
+}
+
+/**
  * @tc.name:Clear
  * @tc.desc: Verify the Clear
  * @tc.type:FUNC
@@ -129,6 +186,24 @@ HWTEST_F(TexgineCanvasTest, Clear, TestSize.Level1)
     EXPECT_NO_THROW({
         InitTcMockVars({});
         tc->Clear(0);
+        tc->SetCanvas(g_tcMockvars.skCanvas_.get());
+        tc->Clear(0);
+    });
+}
+
+/**
+ * @tc.name:Clear
+ * @tc.desc: Verify the Clear001
+ * @tc.type:FUNC
+ */
+HWTEST_F(TexgineCanvasTest, Clear001, TestSize.Level1)
+{
+    std::shared_ptr<TexgineCanvas> tc = std::make_shared<TexgineCanvas>();
+    EXPECT_NO_THROW({
+        InitTcMockVars({});
+        tc->SetCanvas(g_tcMockvars.skCanvas_.get());
+        tc->Clear(0);
+        g_tcMockvars.skCanvas_ = nullptr;
         tc->SetCanvas(g_tcMockvars.skCanvas_.get());
         tc->Clear(0);
     });
@@ -151,6 +226,24 @@ HWTEST_F(TexgineCanvasTest, Save, TestSize.Level1)
 }
 
 /**
+ * @tc.name:Save
+ * @tc.desc: Verify the Save001
+ * @tc.type:FUNC
+ */
+HWTEST_F(TexgineCanvasTest, Save001, TestSize.Level1)
+{
+    std::shared_ptr<TexgineCanvas> tc = std::make_shared<TexgineCanvas>();
+    EXPECT_NO_THROW({
+        InitTcMockVars({});
+        tc->SetCanvas(g_tcMockvars.skCanvas_.get());
+        EXPECT_EQ(tc->Save(), 1);
+        g_tcMockvars.skCanvas_ = nullptr;
+        tc->SetCanvas(g_tcMockvars.skCanvas_.get());
+        EXPECT_EQ(tc->Save(), 0);
+    });
+}
+
+/**
  * @tc.name:Translate
  * @tc.desc: Verify the Translate
  * @tc.type:FUNC
@@ -167,6 +260,24 @@ HWTEST_F(TexgineCanvasTest, Translate, TestSize.Level1)
 }
 
 /**
+ * @tc.name:Translate
+ * @tc.desc: Verify the Translate001
+ * @tc.type:FUNC
+ */
+HWTEST_F(TexgineCanvasTest, Translate001, TestSize.Level1)
+{
+    std::shared_ptr<TexgineCanvas> tc = std::make_shared<TexgineCanvas>();
+    EXPECT_NO_THROW({
+        InitTcMockVars({});
+        tc->SetCanvas(g_tcMockvars.skCanvas_.get());
+        tc->Translate(0.0, 0.0);
+        g_tcMockvars.skCanvas_ = nullptr;
+        tc->SetCanvas(g_tcMockvars.skCanvas_.get());
+        tc->Translate(0.0, 0.0);
+    });
+}
+
+/**
  * @tc.name:Restore
  * @tc.desc: Verify the Restore
  * @tc.type:FUNC
@@ -177,6 +288,24 @@ HWTEST_F(TexgineCanvasTest, Restore, TestSize.Level1)
     EXPECT_NO_THROW({
         InitTcMockVars({});
         tc->Restore();
+        tc->SetCanvas(g_tcMockvars.skCanvas_.get());
+        tc->Restore();
+    });
+}
+
+/**
+ * @tc.name:Restore
+ * @tc.desc: Verify the Restore001
+ * @tc.type:FUNC
+ */
+HWTEST_F(TexgineCanvasTest, Restore001, TestSize.Level1)
+{
+    std::shared_ptr<TexgineCanvas> tc = std::make_shared<TexgineCanvas>();
+    EXPECT_NO_THROW({
+        InitTcMockVars({});
+        tc->SetCanvas(g_tcMockvars.skCanvas_.get());
+        tc->Restore();
+        g_tcMockvars.skCanvas_ = nullptr;
         tc->SetCanvas(g_tcMockvars.skCanvas_.get());
         tc->Restore();
     });

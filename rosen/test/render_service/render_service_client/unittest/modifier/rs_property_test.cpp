@@ -71,6 +71,36 @@ HWTEST_F(RSPropertyTest, Property001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: Property002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, Property002, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSProperty<float>>(floatData[0]);
+    ASSERT_TRUE(prop != nullptr);
+    ASSERT_EQ(prop->Get(), floatData[0]);
+
+    prop->Set(floatData[2]);
+    ASSERT_EQ(prop->Get(), floatData[2]);
+}
+
+/**
+ * @tc.name: Property003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, Property003, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSProperty<float>>(UINT32_MAX);
+    ASSERT_TRUE(prop != nullptr);
+    ASSERT_EQ(prop->Get(), UINT32_MAX);
+
+    prop->Set(floatData[2]);
+    ASSERT_EQ(prop->Get(), floatData[2]);
+}
+
+/**
  * @tc.name: PropertyOp001
  * @tc.desc:
  * @tc.type:FUNC
@@ -110,5 +140,221 @@ HWTEST_F(RSPropertyTest, PropertyOp001, TestSize.Level1)
 
     ASSERT_FALSE(prop2 == prop3);
     ASSERT_TRUE(prop2 != prop3);
+}
+
+/**
+ * @tc.name: RSPropertyBase001
+ * @tc.desc: operator+=001
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, operator001, TestSize.Level1)
+{
+    auto prop1 = std::make_shared<RSPropertyBase>();
+    auto prop2 = std::make_shared<RSPropertyBase>();
+    prop1 = nullptr;
+    ASSERT_TRUE(prop1 == nullptr);
+    prop1 += prop2;
+}
+
+/**
+ * @tc.name: RSPropertyBase002
+ * @tc.desc: operator+=002
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, operator002, TestSize.Level1)
+{
+    auto prop1 = std::make_shared<RSPropertyBase>();
+    auto prop2 = std::make_shared<RSPropertyBase>();
+    ASSERT_TRUE(prop1 != nullptr);
+    prop1 += prop2;
+}
+
+/**
+ * @tc.name: RSPropertyBase003
+ * @tc.desc: operator-=001
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, operator003, TestSize.Level1)
+{
+    auto prop1 = std::make_shared<RSPropertyBase>();
+    auto prop2 = std::make_shared<RSPropertyBase>();
+    prop1 = nullptr;
+    ASSERT_TRUE(prop1 == nullptr);
+    prop1 -= prop2;
+}
+
+/**
+ * @tc.name: RSPropertyBase004
+ * @tc.desc: operator-=002
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, operator004, TestSize.Level1)
+{
+    auto prop1 = std::make_shared<RSPropertyBase>();
+    auto prop2 = std::make_shared<RSPropertyBase>();
+    ASSERT_TRUE(prop1 != nullptr);
+    prop1 -= prop2;
+}
+
+/**
+ * @tc.name: RSPropertyBase005
+ * @tc.desc: operator*=001
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, operator005, TestSize.Level1)
+{
+    auto prop1 = std::make_shared<RSPropertyBase>();
+    float scale = 2;
+    prop1 = nullptr;
+    ASSERT_TRUE(prop1 == nullptr);
+    prop1 *= scale;
+}
+
+/**
+ * @tc.name: RSPropertyBase006
+ * @tc.desc: operator*=002
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, operator006, TestSize.Level1)
+{
+    auto prop1 = std::make_shared<RSPropertyBase>();
+    float scale = 2;
+    ASSERT_TRUE(prop1 != nullptr);
+    prop1 *= scale;
+}
+
+/**
+ * @tc.name: RSPropertyBase007
+ * @tc.desc: operator+001
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, operator007, TestSize.Level1)
+{
+    auto prop1 = std::make_shared<RSPropertyBase>();
+    auto prop2 = std::make_shared<RSPropertyBase>();
+    prop1 = nullptr;
+    ASSERT_TRUE(prop1 == nullptr);
+    prop1 = prop1 + prop2;
+}
+
+/**
+ * @tc.name: RSPropertyBase008
+ * @tc.desc: operator+002
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, operator008, TestSize.Level1)
+{
+    auto prop1 = std::make_shared<RSPropertyBase>();
+    auto prop2 = std::make_shared<RSPropertyBase>();
+    ASSERT_TRUE(prop1 != nullptr);
+    prop1 = prop1 + prop2;
+}
+
+/**
+ * @tc.name: RSPropertyBase009
+ * @tc.desc: operator-001
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, operator009, TestSize.Level1)
+{
+    auto prop1 = std::make_shared<RSPropertyBase>();
+    auto prop2 = std::make_shared<RSPropertyBase>();
+    prop1 = nullptr;
+    ASSERT_TRUE(prop1 == nullptr);
+    prop1 = prop1 - prop2;
+}
+
+/**
+ * @tc.name: RSPropertyBase010
+ * @tc.desc: operator-002
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, operator010, TestSize.Level1)
+{
+    auto prop1 = std::make_shared<RSPropertyBase>();
+    auto prop2 = std::make_shared<RSPropertyBase>();
+    ASSERT_TRUE(prop1 != nullptr);
+    prop1 = prop1 - prop2;
+}
+
+/**
+ * @tc.name: RSPropertyBase011
+ * @tc.desc: operator*001
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, operator011, TestSize.Level1)
+{
+    auto prop1 = std::make_shared<RSPropertyBase>();
+    float scale = 2;
+    prop1 = nullptr;
+    ASSERT_TRUE(prop1 == nullptr);
+    prop1 = prop1 * scale;
+}
+
+/**
+ * @tc.name: RSPropertyBase012
+ * @tc.desc: operator*002
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, operator012, TestSize.Level1)
+{
+    auto prop1 = std::make_shared<RSPropertyBase>();
+    float scale = 2;
+    ASSERT_TRUE(prop1 != nullptr);
+    prop1 = prop1 * scale;
+}
+
+/**
+ * @tc.name: RSPropertyBase013
+ * @tc.desc: operator==001
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, operator013, TestSize.Level1)
+{
+    auto prop1 = std::make_shared<RSPropertyBase>();
+    auto prop2 = std::make_shared<RSPropertyBase>();
+    prop1 = nullptr;
+    ASSERT_TRUE(prop1 == nullptr);
+    ASSERT_TRUE(prop1 != prop2);
+}
+
+/**
+ * @tc.name: RSPropertyBase014
+ * @tc.desc: operator==002
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, operator014, TestSize.Level1)
+{
+    auto prop1 = std::make_shared<RSPropertyBase>();
+    auto prop2 = std::make_shared<RSPropertyBase>();
+    ASSERT_TRUE(prop1 != nullptr);
+    ASSERT_TRUE(prop1 != prop2);
+}
+
+/**
+ * @tc.name: RSPropertyBase015
+ * @tc.desc: operator!=001
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, operator015, TestSize.Level1)
+{
+    auto prop1 = std::make_shared<RSPropertyBase>();
+    auto prop2 = std::make_shared<RSPropertyBase>();
+    prop1 = nullptr;
+    ASSERT_TRUE(prop1 == nullptr);
+    ASSERT_TRUE(prop1 != prop2);
+}
+
+/**
+ * @tc.name: RSPropertyBase016
+ * @tc.desc: operator!=002
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, operator016, TestSize.Level1)
+{
+    auto prop1 = std::make_shared<RSPropertyBase>();
+    auto prop2 = std::make_shared<RSPropertyBase>();
+    ASSERT_TRUE(prop1 != nullptr);
+    ASSERT_TRUE(prop1 != prop2);
 }
 } // namespace OHOS::Rosen
