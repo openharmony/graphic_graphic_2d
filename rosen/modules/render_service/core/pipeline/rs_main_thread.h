@@ -264,6 +264,8 @@ private:
     void CheckIfNodeIsBundle(std::shared_ptr<RSSurfaceRenderNode> node);
 
     void SetFocusLeashWindowId();
+    void CollectFrameRateRange(RSRenderNode& node)
+    int32_t GetNodePreferred(std::vector<HgmModifierProfile>& hgmModifierProfileList) const
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
@@ -390,6 +392,7 @@ private:
         std::tuple<pid_t, sptr<RSISurfaceOcclusionChangeCallback>, bool>> surfaceOcclusionListeners_;
     std::unordered_map<NodeId,
         std::pair<std::shared_ptr<RSSurfaceRenderNode>, std::shared_ptr<RSSurfaceRenderNode>>> savedAppWindowNode_;
+    FrameRateRangeData frameRateRangeData_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

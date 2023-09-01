@@ -1190,7 +1190,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         SetFocusLeashWindowId();
         uniVisitor->SetFocusedNodeId(focusNodeId_, focusLeashWindowId_);
         rootNode->Prepare(uniVisitor);
-        ProcessHgmFrameRate(uniVisitor->GetFrameRateRangeData(), timestamp_);
+        ProcessHgmFrameRate(frameRateRangeData_, timestamp_);
         CalcOcclusion();
         bool doParallelComposition = RSInnovation::GetParallelCompositionEnabled(isUniRender_);
         if (doParallelComposition && rootNode->GetChildrenCount() > 1) {
@@ -2232,11 +2232,51 @@ bool RSMainThread::CheckNodeHasToBePreparedByPid(NodeId nodeId, bool isClassifyB
     }
 }
 
+int32_t RSUniRenderVisitor::GetNodePreferred(std::vector<HgmModifierProfile>& hgmModifierProfileList) const
+{
+    if (hgmModifierProfileList.size() == 0) {
+        return 0;
+    }
+    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
+    int32_t nodePreferred = 0;
+    for (auto &hgmModifierProfile : hgmModifierProfileList) {
+        auto modifierPreferred = hgmCore.CalModifierPreferred(hgmModifierProfile);
+        nodePreferred = std::max(nodePreferred, modifierPreferred);
+    }
+    return nodePreferred;
+}
+
+void RSMainThread::CollectFrameRateRange(RSRenderNode& node)
+{
+    //[Planning]: Support multi-display in the future.
+    frameRateRangeData_.screenId = 0;
+    pid_t nodePid = ExtractPid(node.GetId());
+    auto currRange = node.GetUIFrameRateRange();
+    if (currRange.IsValid()) {
+        if (frameRateRangeData_.multiAppRange.count(nodePid)) {
+            frameRateRangeData_.multiAppRange[nodePid].Merge(currRange);
+        } else {
+            frameRateRangeData_.multiAppRange.insert(std::make_pair(nodePid, currRange));
+        }
+    }
+
+    currRange = node.GetRSFrameRateRange();
+    if (currRange.IsValid()) {
+        frameRateRangeData_.rsRange.Merge(currRange);
+    }
+    node.ResetUIFrameRateRange();
+    node.ResetRSFrameRateRange();
+    frameRateRangeData_.forceUpdateFlag = forceUpdateFlag_;
+}
+
 void RSMainThread::ApplyModifiers()
 {
     for (const auto& [root, nodeSet] : context_->activeNodesInRoot_) {
         for (const auto& [id, nodePtr] : nodeSet) {
             bool isZOrderChanged = nodePtr->ApplyModifiers();
+            auto nodePreferred = GetNodePreferred(node.GetHgmModifierProfileList());
+            node.SetRSFrameRateRangeByPreferred(nodePreferred);
+            CollectFrameRateRange(node);
             if (!isZOrderChanged) {
                 continue;
             }

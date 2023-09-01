@@ -381,20 +381,6 @@ void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr
     }
 }
 
-int32_t RSUniRenderVisitor::GetNodePreferred(std::vector<HgmModifierProfile> hgmModifierProfileList) const
-{
-    if (hgmModifierProfileList.size() == 0) {
-        return 0;
-    }
-    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
-    int32_t nodePreferred = 0;
-    for (auto &hgmModifierProfile : hgmModifierProfileList) {
-        auto modifierPreferred = hgmCore.CalModifierPreferred(hgmModifierProfile);
-        nodePreferred = std::max(nodePreferred, modifierPreferred);
-    }
-    return nodePreferred;
-}
-
 void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
 {
     currentVisitDisplay_ = node.GetScreenId();
@@ -403,8 +389,6 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
 
     auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
     hgmCore.SetActiveScreenId(currentVisitDisplay_);
-    auto nodePreferred = GetNodePreferred(node.GetHgmModifierProfileList());
-    node.SetRSFrameRateRangeByPreferred(nodePreferred);
 
     RS_TRACE_NAME("RSUniRender:PrepareDisplay " + std::to_string(currentVisitDisplay_));
     curDisplayDirtyManager_ = node.GetDirtyManager();
@@ -486,7 +470,6 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
         }
     }
 #endif
-    CollectFrameRateRange(node);
 }
 
 void RSUniRenderVisitor::ParallelPrepareDisplayRenderNodeChildrens(RSDisplayRenderNode& node)
@@ -752,8 +735,6 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     RS_OPTIONAL_TRACE_NAME("RSUniRender::Prepare:[" + node.GetName() + "] pid: " +
         std::to_string(ExtractPid(node.GetId())) +
         ", nodeType " + std::to_string(static_cast<uint>(node.GetSurfaceNodeType())));
-    auto nodePreferred = GetNodePreferred(node.GetHgmModifierProfileList());
-    node.SetRSFrameRateRangeByPreferred(nodePreferred);
     if (node.GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos) {
         needCacheImg_ = true;
         captureWindowZorder_ = static_cast<uint32_t>(node.GetRenderProperties().GetPositionZ());
@@ -965,7 +946,6 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         drivenInfo_->isPrepareLeashWinSubTree = false;
     }
 #endif
-
     // Due to the alpha is updated in PrepareChildren, so PrepareChildren
     // needs to be done before CheckOpaqueRegionBaseInfo
     auto screenRotation = curDisplayNode_->GetRotation();
@@ -978,13 +958,10 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
     node.SetOpaqueRegionBaseInfo(
         screenRect, geoPtr->GetAbsRect(), screenRotation, node.IsFocusedNode(currentFocusedNodeId_));
-    CollectFrameRateRange(node);
 }
 
 void RSUniRenderVisitor::PrepareProxyRenderNode(RSProxyRenderNode& node)
 {
-    auto nodePreferred = GetNodePreferred(node.GetHgmModifierProfileList());
-    node.SetRSFrameRateRangeByPreferred(nodePreferred);
     // alpha is not affected by dirty flag, always update
     node.SetContextAlpha(curAlpha_);
     // skip matrix & clipRegion update if not dirty
@@ -1097,14 +1074,10 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
     dirtyFlag_ = dirtyFlag;
     prepareClipRect_ = prepareClipRect;
-
-    CollectFrameRateRange(node);
 }
 
 void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
 {
-    auto nodePreferred = GetNodePreferred(node.GetHgmModifierProfileList());
-    node.SetRSFrameRateRangeByPreferred(nodePreferred);
     preparedCanvasNodeInCurrentSurface_++;
     curContentDirty_ = node.IsContentDirty();
     bool dirtyFlag = dirtyFlag_;
@@ -1230,14 +1203,10 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
         drivenInfo_->drivenUniTreePrepareMode = DrivenUniTreePrepareMode::PREPARE_DRIVEN_NODE_AFTER;
     }
 #endif
-
-    CollectFrameRateRange(node);
 }
 
 void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
 {
-    auto nodePreferred = GetNodePreferred(node.GetHgmModifierProfileList());
-    node.SetRSFrameRateRangeByPreferred(nodePreferred);
     bool dirtyFlag = dirtyFlag_;
     RectI prepareClipRect = prepareClipRect_;
     auto effectRegion = effectRegion_;
@@ -1261,35 +1230,8 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
     effectRegion_ = effectRegion;
     dirtyFlag_ = dirtyFlag;
     prepareClipRect_ = prepareClipRect;
-
-    CollectFrameRateRange(node);
 }
 
-void RSUniRenderVisitor::CollectFrameRateRange(RSRenderNode& node)
-{
-    //[Planning]: Support multi-display in the future.
-    if (currentVisitDisplay_ != 0) {
-        return;
-    }
-    frameRateRangeData_.screenId = currentVisitDisplay_;
-    pid_t nodePid = ExtractPid(node.GetId());
-    auto currRange = node.GetUIFrameRateRange();
-    if (currRange.IsValid()) {
-        if (frameRateRangeData_.multiAppRange.count(nodePid)) {
-            frameRateRangeData_.multiAppRange[nodePid].Merge(currRange);
-        } else {
-            frameRateRangeData_.multiAppRange.insert(std::make_pair(nodePid, currRange));
-        }
-    }
-
-    currRange = node.GetRSFrameRateRange();
-    if (currRange.IsValid()) {
-        frameRateRangeData_.rsRange.Merge(currRange);
-    }
-    node.ResetUIFrameRateRange();
-    node.ResetRSFrameRateRange();
-    frameRateRangeData_.forceUpdateFlag = forceUpdateFlag_;
-}
 
 void RSUniRenderVisitor::CopyForParallelPrepare(std::shared_ptr<RSUniRenderVisitor> visitor)
 {
