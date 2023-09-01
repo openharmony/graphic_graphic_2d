@@ -313,7 +313,10 @@ template<typename T>
 T RSRenderParticleEffector::GenerateValue(
     T startValue, T endValue, int startTime, int endTime, int currentTime, std::shared_ptr<RSInterpolator> interpolator)
 {
-    float t = static_cast<float>(currentTime - startTime) / static_cast<float>(endTime - startTime);
+    float t = 0.f;
+    if (endTime - startTime != 0) {
+        t = static_cast<float>(currentTime - startTime) / static_cast<float>(endTime - startTime);
+    }
     float fraction = interpolator->Interpolate(t);
     auto interpolationValue = startValue * (1.0f - fraction) + endValue * fraction;
     return interpolationValue;
@@ -325,7 +328,10 @@ float RSRenderParticleEffector::GenerateValue(
 #ifdef ENABLE_RUST
     return generate_value(startValue, endValue, startTime, endTime, currentTime);
 #else
-    float t = static_cast<float>(currentTime - startTime) / static_cast<float>(endTime - startTime);
+    float t = 0.f;
+    if (endTime - startTime != 0) {
+        t = static_cast<float>(currentTime - startTime) / static_cast<float>(endTime - startTime);
+    }
     auto interpolationValue = startValue * (1.0f - t) + endValue * t;
     return interpolationValue;
 #endif
