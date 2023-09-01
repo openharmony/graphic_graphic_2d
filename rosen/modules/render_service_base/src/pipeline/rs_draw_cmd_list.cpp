@@ -18,6 +18,9 @@
 
 #include <fstream>
 #include <string>
+#ifdef ROSEN_OHOS
+#include <sys/mman.h>
+#endif
 #include <unordered_map>
 
 #include "rs_trace.h"
@@ -25,8 +28,14 @@
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "platform/common/rs_log.h"
+#include "transaction/rs_ashmem_helper.h"
 #include "transaction/rs_marshalling_helper.h"
 
+#ifdef ROSEN_OHOS
+namespace {
+constexpr size_t ASHMEMALLOCATOR_SIZE = 10 * 1024 * 1024; // 10M
+}
+#endif
 namespace OHOS {
 namespace Rosen {
 using OpUnmarshallingFunc = OpItem* (*)(Parcel& parcel);
@@ -247,13 +256,78 @@ bool DrawCmdList::Marshalling(Parcel& parcel) const
     FindIndexOfImage();
     bool success = RSMarshallingHelper::Marshalling(parcel, width_) &&
                    RSMarshallingHelper::Marshalling(parcel, height_) &&
-                   RSMarshallingHelper::Marshalling(parcel, imageIndexs_) &&
-                   RSMarshallingHelper::Marshalling(parcel, ops_) &&
                    RSMarshallingHelper::Marshalling(parcel, isCached_) &&
                    RSMarshallingHelper::Marshalling(parcel, cachedHighContrast_) &&
-                   RSMarshallingHelper::Marshalling(parcel, opReplacedByCache_);
+                   RSMarshallingHelper::Marshalling(parcel, opReplacedByCache_) &&
+                   RSMarshallingHelper::Marshalling(parcel, imageIndexs_);
     if (!success) {
         ROSEN_LOGE("DrawCmdList::Marshalling failed!");
+        return false;
+    }
+
+    if (ops_.size() > 1000) {  // OPsize > 1000
+        parcel.WriteUint32(1); // 1: use shared mem
+        auto position = parcel.GetWritePosition();
+        parcel.WriteUint32(0); // shmem count
+        parcel.WriteUint32(ops_.size());
+        uint32_t index = 0;
+        std::unique_ptr<AshmemAllocator> ashmemAllocator;
+        std::shared_ptr<MessageParcel> newParcel;
+        uint32_t fdCount = 0;
+        uint32_t lastIndex = 0;
+        while (index < ops_.size()) {
+            if (newParcel == nullptr || newParcel->GetWritableBytes() < ASHMEMALLOCATOR_SIZE / 20) { // less than 5%
+                if (index - lastIndex != 0) {
+                    uint32_t size = index - lastIndex;
+                    parcel.WriteUint32(size);
+                }
+                if (newParcel != nullptr) {
+                    int32_t offsetSize = newParcel->GetOffsetsSize();
+                    parcel.WriteInt32(offsetSize);
+                    if (offsetSize > 0) {
+                        parcel.WriteBuffer(
+                            reinterpret_cast<void*>(newParcel->GetObjectOffsets()), sizeof(binder_size_t) * offsetSize);
+                        RSAshmemHelper::CopyFileDescriptor(static_cast<MessageParcel*>(&parcel), newParcel);
+                    }
+                }
+                ashmemAllocator = AshmemAllocator::CreateAshmemAllocator(ASHMEMALLOCATOR_SIZE, PROT_READ | PROT_WRITE);
+                if (!ashmemAllocator) {
+                    RS_LOGE("RSMarshallingHelper::WriteToParcel CreateAshmemAllocator fail");
+                    return false;
+                }
+
+                int fd = ashmemAllocator->GetFd();
+                if (!(static_cast<MessageParcel*>(&parcel)->WriteFileDescriptor(fd))) {
+                    RS_LOGE("RSMarshallingHelper::WriteToParcel WriteFileDescriptor fail");
+                    return false;
+                }
+                lastIndex = index;
+                newParcel = std::make_shared<MessageParcel>(ashmemAllocator.release());
+                newParcel->SetDataCapacity(ASHMEMALLOCATOR_SIZE);
+                ++fdCount;
+            }
+            if (!RSMarshallingHelper::Marshalling(*newParcel, ops_[index])) {
+                RS_LOGE("RSMarshallingHelper::Marshalling, marshalling ops failed");
+            }
+            ++index;
+        }
+        parcel.WriteUint32(index - lastIndex);
+        if (newParcel != nullptr) {
+            int32_t offsetSize = newParcel->GetOffsetsSize();
+            parcel.WriteInt32(offsetSize);
+            if (offsetSize > 0) {
+                parcel.WriteBuffer(
+                    reinterpret_cast<void*>(newParcel->GetObjectOffsets()), sizeof(binder_size_t) * offsetSize);
+                RSAshmemHelper::CopyFileDescriptor(static_cast<MessageParcel*>(&parcel), newParcel);
+            }
+        }
+        *reinterpret_cast<uint32_t*>(parcel.GetData() + position) = fdCount;
+    } else {
+        parcel.WriteUint32(0); // 0: not use shared mem
+        success = RSMarshallingHelper::Marshalling(parcel, ops_);
+    }
+    if (!success) {
+        RS_LOGE("DrawCmdList::Marshalling failed");
         return false;
     }
     return success;
@@ -267,20 +341,63 @@ DrawCmdList* DrawCmdList::Unmarshalling(Parcel& parcel)
 #ifdef ROSEN_OHOS
     int width;
     int height;
-    if (!(RSMarshallingHelper::Unmarshalling(parcel, width) &&
-            RSMarshallingHelper::Unmarshalling(parcel, height))) {
+    if (!(RSMarshallingHelper::Unmarshalling(parcel, width) && RSMarshallingHelper::Unmarshalling(parcel, height))) {
         ROSEN_LOGE("DrawCmdList::Unmarshalling width&height failed!");
         return nullptr;
     }
     std::unique_ptr<DrawCmdList> drawCmdList = std::make_unique<DrawCmdList>(width, height);
-    if (!(RSMarshallingHelper::Unmarshalling(parcel, drawCmdList->imageIndexs_) &&
-            RSMarshallingHelper::Unmarshalling(parcel, drawCmdList->ops_) &&
-            RSMarshallingHelper::Unmarshalling(parcel, drawCmdList->isCached_) &&
+    if (!(RSMarshallingHelper::Unmarshalling(parcel, drawCmdList->isCached_) &&
             RSMarshallingHelper::Unmarshalling(parcel, drawCmdList->cachedHighContrast_) &&
-            RSMarshallingHelper::Unmarshalling(parcel, drawCmdList->opReplacedByCache_))) {
+            RSMarshallingHelper::Unmarshalling(parcel, drawCmdList->opReplacedByCache_) &&
+            RSMarshallingHelper::Unmarshalling(parcel, drawCmdList->imageIndexs_))) {
         ROSEN_LOGE("DrawCmdList::Unmarshalling contents failed!");
         return nullptr;
     }
+    if (parcel.ReadUint32() == 0) {
+        if (!RSMarshallingHelper::Unmarshalling(parcel, drawCmdList->ops_)) {
+            return nullptr;
+        }
+    } else {
+        auto fdCount = parcel.ReadUint32();
+        auto totalOpSize = parcel.ReadUint32();
+        drawCmdList->ops_.resize(totalOpSize);
+        uint32_t index = 0;
+        for (uint32_t i = 0; i < fdCount; ++i) {
+            int fd = static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+            uint32_t opSize = parcel.ReadUint32();
+
+            auto ashmemAllocator =
+                AshmemAllocator::CreateAshmemAllocatorWithFd(fd, ASHMEMALLOCATOR_SIZE, PROT_READ | PROT_WRITE);
+            if (!ashmemAllocator) {
+                return nullptr;
+            }
+
+            void* data = ashmemAllocator->GetData();
+            auto dataSize = ashmemAllocator->GetSize();
+            auto newParcel = std::make_shared<MessageParcel>(ashmemAllocator.release());
+            newParcel->ParseFrom(reinterpret_cast<uintptr_t>(data), dataSize);
+
+            int32_t offsetSize = parcel.ReadInt32();
+            if (offsetSize > 0) {
+                auto* offsets = parcel.ReadBuffer(sizeof(binder_size_t) * offsetSize);
+                if (offsets == nullptr) {
+                    ROSEN_LOGE("ParseFromAshmemParcel: read object offsets failed");
+                    return nullptr;
+                }
+                newParcel->InjectOffsets(reinterpret_cast<binder_size_t>(offsets), offsetSize);
+                RSAshmemHelper::InjectFileDescriptor(newParcel, static_cast<MessageParcel*>(&parcel));
+            }
+
+            for (uint32_t j = 0; j < opSize; ++j) {
+                RSMarshallingHelper::Unmarshalling(*newParcel, drawCmdList->ops_[index]);
+                ++index;
+            }
+
+            ashmemAllocator = nullptr;
+            newParcel = nullptr;
+        }
+    }
+
     return drawCmdList.release();
 #else
     return nullptr;

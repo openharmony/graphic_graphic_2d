@@ -170,11 +170,11 @@ void* AshmemAllocator::Alloc(size_t size)
 void* AshmemAllocator::Realloc(void* data, size_t newSize)
 {
     ROSEN_LOGW("AshmemAllocator::Realloc");
-    return nullptr;
+    return data_;
 }
 
 void RSAshmemHelper::CopyFileDescriptor(
-    std::shared_ptr<MessageParcel>& ashmemParcel, std::shared_ptr<MessageParcel>& dataParcel)
+    MessageParcel* ashmemParcel, std::shared_ptr<MessageParcel>& dataParcel)
 {
     binder_size_t* object = reinterpret_cast<binder_size_t*>(dataParcel->GetObjectOffsets());
     size_t objectNum = dataParcel->GetOffsetsSize();
@@ -242,7 +242,7 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::CreateAshmemParcel(std::shared_pt
         ashmemParcel->WriteBuffer(
             reinterpret_cast<void*>(dataParcel->GetObjectOffsets()), sizeof(binder_size_t) * offsetSize);
         // save all fds of origin parcel
-        CopyFileDescriptor(ashmemParcel, dataParcel);
+        CopyFileDescriptor(ashmemParcel.get(), dataParcel);
     }
 
     return ashmemParcel;

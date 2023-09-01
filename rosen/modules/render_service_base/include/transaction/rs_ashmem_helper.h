@@ -51,9 +51,8 @@ public:
     static std::shared_ptr<MessageParcel> CreateAshmemParcel(std::shared_ptr<MessageParcel>& dataParcel);
     static std::shared_ptr<MessageParcel> ParseFromAshmemParcel(MessageParcel* ashmemParcel);
 
-private:
     static void CopyFileDescriptor(
-        std::shared_ptr<MessageParcel>& ashmemParcel, std::shared_ptr<MessageParcel>& dataParcel);
+        MessageParcel* ashmemParcel, std::shared_ptr<MessageParcel>& dataParcel);
     static void InjectFileDescriptor(std::shared_ptr<MessageParcel>& dataParcel, MessageParcel* ashmemParcel);
 };
 } // namespace Rosen
