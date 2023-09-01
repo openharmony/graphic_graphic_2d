@@ -23,9 +23,14 @@
 
 namespace OHOS {
 namespace Rosen {
+std::shared_ptr<FontCollection> g_instance;
+
 std::shared_ptr<FontCollection> FontCollection::Create()
 {
-    return std::make_shared<AdapterTextEngine::FontCollection>();
+    if (g_instance == nullptr) {
+        g_instance = std::make_shared<AdapterTextEngine::FontCollection>();
+    }
+    return g_instance;
 }
 
 std::shared_ptr<FontCollection> FontCollection::From(std::shared_ptr<txt::FontCollection> fontCollection)
