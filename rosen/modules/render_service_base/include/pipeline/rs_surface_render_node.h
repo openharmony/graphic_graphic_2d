@@ -715,9 +715,9 @@ public:
     void UpdateFilterNodes(const std::shared_ptr<RSRenderNode>& nodePtr);
     // update static node's back&front-ground filter cache status
     void UpdateFilterCacheStatusIfNodeStatic(const RectI& clipRect);
-    void UpdateChangedDrawingCacheNodes(const std::shared_ptr<RSRenderNode>& nodePtr);
-    // reset static node's drawing cache status as not changed
-    void ResetChangedDrawingCacheStatusIfNodeStatic();
+    void UpdateDrawingCacheNodes(const std::shared_ptr<RSRenderNode>& nodePtr);
+    // reset static node's drawing cache status as not changed and get filter rects
+    void ResetDrawingCacheStatusIfNodeStatic(std::unordered_map<NodeId, std::unordered_map<NodeId, RectI>>& allRects);
 
     void SetNotifyRTBufferAvailable(bool isNotifyRTBufferAvailable);
 
@@ -822,7 +822,7 @@ private:
     bool isFilterCacheStatusChanged_ = false;
     std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>>
         filterNodes_; // valid filter nodes within, including itself
-    std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>> changedDrawingCacheNodes_;
+    std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>> drawingCacheNodes_;
 
     struct OpaqueRegionBaseInfo
     {

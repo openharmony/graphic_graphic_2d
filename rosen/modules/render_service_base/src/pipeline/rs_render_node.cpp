@@ -1435,6 +1435,18 @@ void RSRenderNode::CheckDrawingCacheType()
     }
 }
 
+void RSRenderNode::ResetFilterRectsInCache(const std::unordered_map<NodeId, RectI>& curRects)
+{
+    curCacheFilterRects_ = curRects;
+}
+
+void RSRenderNode::GetFilterRectsInCache(std::unordered_map<NodeId, std::unordered_map<NodeId, RectI>>& allRects) const
+{
+    if (!curCacheFilterRects_.empty()) {
+        allRects.emplace(GetId(), curCacheFilterRects_);
+    }
+}
+
 RectI RSRenderNode::GetFilterRect() const
 {
     auto& properties = GetRenderProperties();

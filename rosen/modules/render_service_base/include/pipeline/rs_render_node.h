@@ -304,7 +304,8 @@ public:
 
     void SetDrawingCacheType(RSDrawingCacheType cacheType);
     RSDrawingCacheType GetDrawingCacheType() const;
-
+    void ResetFilterRectsInCache(const std::unordered_map<NodeId, RectI>& curRects);
+    void GetFilterRectsInCache(std::unordered_map<NodeId, std::unordered_map<NodeId, RectI>>& allRects) const;
     void SetDrawingCacheChanged(bool cacheChanged);
     bool GetDrawingCacheChanged() const;
 
@@ -467,6 +468,7 @@ private:
     bool hasChildrenOutOfRect_ = false;
     RectI childrenRect_;
     bool childHasFilter_ = false;  // only collect children filter status
+    std::unordered_map<NodeId, RectI> curCacheFilterRects_ = {};
 
     void InternalRemoveSelfFromDisappearingChildren();
     void FallbackAnimationsToRoot();

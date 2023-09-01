@@ -325,6 +325,7 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node, int marked
     }
     if (!curCacheFilterRects_.empty()) {
         allCacheFilterRects_.emplace(node.GetId(), curCacheFilterRects_.top());
+        node.ResetFilterRectsInCache(curCacheFilterRects_.top());
         curCacheFilterRects_.pop();
     }
     RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVisitor::SetNodeCacheChangeStatus: node %" PRIu64 " drawingtype %d, "
@@ -334,7 +335,7 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node, int marked
         static_cast<int>(node.HasChildrenOutOfRect()), markedCachedNodeCnt, markedCachedNodes_);
     node.SetDrawingCacheChanged(isDrawingCacheChanged_.top());
     if (curSurfaceNode_) {
-        curSurfaceNode_->UpdateChangedDrawingCacheNodes(node.ReinterpretCastTo<RSRenderNode>());
+        curSurfaceNode_->UpdateDrawingCacheNodes(node.ReinterpretCastTo<RSRenderNode>());
     }
     markedCachedNodes_--;
     // reset counter after executing the very first marked node
@@ -549,7 +550,7 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
         }
         node.UpdateFilterCacheStatusIfNodeStatic(prepareClipRect_);
     }
-    node.ResetChangedDrawingCacheStatusIfNodeStatic();
+    node.ResetDrawingCacheStatusIfNodeStatic(allCacheFilterRects_);
     // static surface keeps same position
     curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), curDisplayNode_->GetLastFrameSurfacePos(node.GetId()));
     return true;
