@@ -28,17 +28,25 @@ public:
 
     int GetSize() const
     {
-        return (back_ - front_ + realcap) % realcap;
+        int retSize = 0;
+        if (realcap != 0) {
+            retSize = (back_ - front_ + realcap) % realcap;
+        }
+        return retSize;
     }
 
     T &Push(const T& t)
     {
-        if (front_ == (back_ + 1) % realcap) {
+        if (realcap != 0 && front_ == (back_ + 1) % realcap) {
             front_ = (front_ + 1) % realcap;
         }
         queue_[back_++] = t;
-        back_ %= realcap;
-        return queue_[(back_ + cap) % realcap];
+        int retPoint = 0;
+        if (realcap != 0) {
+            back_ %= realcap;
+            retPoint = (back_ + cap) % realcap;
+        }
+        return queue_[retPoint];
     }
 
     void Clear()
@@ -56,14 +64,18 @@ public:
 
         Iter &operator++()
         {
-            offset_ = (offset_ + 1) % realcap;
+            if (realcap != 0) {
+                offset_ = (offset_ + 1) % realcap;
+            }
             return *this;
         }
 
         Iter operator++(int)
         {
             auto ret = *this;
-            offset_ = (offset_ + 1) % realcap;
+            if (realcap != 0) {
+                offset_ = (offset_ + 1) % realcap;
+            }
             return ret;
         }
 
@@ -101,14 +113,18 @@ public:
 
         RevertIter &operator++()
         {
-            offset_ = (offset_ + cap) % realcap;
+            if (realcap != 0) {
+                offset_ = (offset_ + cap) % realcap;
+            }
             return *this;
         }
 
         RevertIter operator++(int)
         {
             auto ret = *this;
-            offset_ = (offset_ + cap) % realcap;
+            if (realcap != 0) {
+                offset_ = (offset_ + cap) % realcap;
+            }
             return ret;
         }
 
@@ -149,12 +165,20 @@ public:
 
     RevertIter rbegin()
     {
-        return RevertIter(&queue_, (back_ + cap) % realcap);
+        if (realcap != 0) {
+            return RevertIter(&queue_, (back_ + cap) % realcap);
+        } else {
+            return RevertIter(&queue_, 0);
+        }
     }
 
     RevertIter rend()
     {
-        return RevertIter(&queue_, (front_ + cap) % realcap);
+        if (realcap != 0) {
+            return RevertIter(&queue_, (front_ + cap) % realcap);
+        } else {
+            return RevertIter(&queue_, 0);
+        }
     }
 
 private:

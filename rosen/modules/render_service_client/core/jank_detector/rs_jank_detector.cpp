@@ -106,8 +106,10 @@ void RSJankDetector::CalculateSkippedFrame(uint64_t renderStartTimeStamp, uint64
     // Currently, we do not consider the time consumption of UI thread
     frameMsg.totalTime = frameMsg.renderDrawTime;
     uiDrawFrames_.clear();
-
-    int skippedFrame = static_cast<int>(frameMsg.totalTime / refreshPeriod_);
+    int skippedFrame = 0;
+    if (refreshPeriod_ != 0) {
+        skippedFrame = static_cast<int>(frameMsg.totalTime / refreshPeriod_);
+    }
     if ((skippedFrame >= JANK_SKIPPED_THRESHOLD) || (frameMsg.dropUiFrameNum >= JANK_SKIPPED_THRESHOLD)) {
         DrawEventReport(frameMsg, "JANK_FRAME_SKIP");
     }
