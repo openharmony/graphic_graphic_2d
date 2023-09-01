@@ -139,7 +139,10 @@ std::vector<struct FramePainter::TimeBar> FramePainter::GenerateTimeBars(
     auto frameQueue = collector_.LockGetFrameQueue();
     for (auto rit = frameQueue.rbegin(); rit != frameQueue.rend(); rit++) {
         constexpr auto OneSecondInMs = 1000.0;
-        auto isHeavy = SumTimesInMs(*rit) >= (OneSecondInMs / fps);
+        bool isHeavy = false;
+        if (fps != 0) {
+            isHeavy = SumTimesInMs(*rit) >= (OneSecondInMs / fps);
+        }
         auto offsetY = height;
         constexpr auto loopstart = static_cast<size_t>(FrameEventType::LoopStart);
         constexpr auto loopend = static_cast<size_t>(FrameEventType::LoopEnd);
