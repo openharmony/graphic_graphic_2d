@@ -25,17 +25,41 @@ RSRenderParticleEmitter::RSRenderParticleEmitter(std::shared_ptr<ParticleRenderP
 void RSRenderParticleEmitter::EmitParticle(int64_t deltaTime)
 {
     auto particleType = particleParams_->GetParticleType();
+    auto opacityUpdater = particleParams_->GetOpacityUpdator();
+    auto scaleUpdater = particleParams_->GetScaleUpdator();
+    if (opacityUpdater == ParticleUpdator::NONE && particleParams_->GetOpacityStartValue() <= 0.f &&
+        particleParams_->GetOpacityEndValue() <= 0.f) {
+        return;
+    } else if (opacityUpdater == ParticleUpdator::RANDOM &&
+        particleParams_->GetOpacityStartValue() <= 0.f && particleParams_->GetOpacityEndValue() <= 0.f &&
+        particleParams_->GetOpacityRandomStart() <= 0.f && particleParams_->GetOpacityRandomEnd() <= 0.f) {
+        return;
+    }
+    if (scaleUpdater == ParticleUpdator::NONE &&
+        particleParams_->GetScaleStartValue() <= 0.f && particleParams_->GetScaleEndValue() <= 0.f) {
+        return;
+    } else if (scaleUpdater == ParticleUpdator::RANDOM &&
+        particleParams_->GetScaleStartValue() <= 0.f && particleParams_->GetScaleEndValue() <= 0.f &&
+        particleParams_->GetScaleRandomStart() <= 0.f && particleParams_->GetScaleRandomEnd() <= 0.f) {
+        return;
+    }
+
     if (particleType == ParticleType::IMAGES) {
         auto image = particleParams_->GetParticleImage();
         auto imageSize = particleParams_->GetImageSize();
-        auto updater = particleParams_->GetScaleUpdator();
-        if (image == nullptr || (updater == ParticleUpdator::NONE && (imageSize.x_ <= 0.f || imageSize.y_ <= 0.f))) {
+        if (image == nullptr || ( imageSize.x_ <= 0.f || imageSize.y_ <= 0.f)) {
             return;
         } else {
             auto pixelMap = image->GetPixelMap();
             if (pixelMap == nullptr) {
                 return;
             }
+        }
+    }
+    if (particleType == ParticleType::POINTS) {
+        auto radius = particleParams_->GetParticleRadius();
+        if (radius <= 0.f) {
+            return;
         }
     }
 

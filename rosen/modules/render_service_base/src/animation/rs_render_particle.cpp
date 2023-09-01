@@ -440,14 +440,25 @@ void RSRenderParticle::InitProperty(std::shared_ptr<ParticleRenderParams> partic
 
 bool RSRenderParticle::IsAlive() const
 {
+    if (dead_ == true) {
+        return false;
+    }
     if (lifeTime_ < 0) {
         return true;
     }
     return activeTime_ < lifeTime_;
 }
 
+void RSRenderParticle::SetIsDead()
+{
+    dead_ = true;
+}
+
 float RSRenderParticle::GetRandomValue(float min, float max)
 {
+    if (ROSEN_EQ(min, max)) {
+        return min;
+    }
     std::random_device rd;
     std::mt19937_64 gen(rd());
     std::uniform_real_distribution<float> dis(min, max);

@@ -22,6 +22,7 @@
 
 #include "animation/rs_interpolator.h"
 #include "common/rs_color.h"
+#include "common/rs_color_palette.h"
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "common/rs_vector2.h"
@@ -336,6 +337,7 @@ public:
     // Other methods
     void InitProperty(std::shared_ptr<ParticleRenderParams> particleParams);
     bool IsAlive() const;
+    void SetIsDead();
     static float GetRandomValue(float min, float max);
     Vector2f CalculateParticlePosition(const ShapeType& emitShape, const Vector2f& position, const Vector2f& emitSize);
     Color Lerp(const Color& start, const Color& end, float t);
@@ -351,19 +353,20 @@ public:
     }
 
 private:
-    Vector2f position_;
-    Vector2f velocity_;
-    Vector2f acceleration_;
-    float scale_;
-    float spin_;
-    float opacity_;
-    Color color_;
-    float radius_;
+    Vector2f position_ = {0.f, 0.f};
+    Vector2f velocity_ = {0.f, 0.f};
+    Vector2f acceleration_ = {0.f, 0.f};
+    float scale_ = 1.f;
+    float spin_ = 0.f;
+    float opacity_ = 1.f;
+    Color color_ = RgbPalette::White();
+    float radius_ = 0.f;
     std::shared_ptr<RSImage> image_;
     Vector2f imageSize_;
-    ParticleType particleType_;
-    int64_t activeTime_;
-    int64_t lifeTime_;
+    ParticleType particleType_ = ParticleType::POINTS;
+    int64_t activeTime_ = 0;
+    int64_t lifeTime_ = 0;
+    bool dead_ = false;
 };
 
 class RSB_EXPORT RSRenderParticleVector {

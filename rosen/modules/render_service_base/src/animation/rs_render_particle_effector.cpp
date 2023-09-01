@@ -37,6 +37,11 @@ void RSRenderParticleEffector::UpdateColor(
     auto colorUpdator = particleParams_->GetColorUpdator();
     activeTime /= NS_PER_MS;
     if (colorUpdator == ParticleUpdator::RANDOM) {
+        Color color = particle->GetColor();
+        int16_t red = color.GetRed();
+        int16_t green = color.GetGreen();
+        int16_t blue = color.GetBlue();
+        int16_t alpha = color.GetAlpha();
         float redSpeed =
             RSRenderParticle::GetRandomValue(particleParams_->GetRedRandomStart(), particleParams_->GetRedRandomEnd());
         float greenSpeed = RSRenderParticle::GetRandomValue(
@@ -45,19 +50,27 @@ void RSRenderParticleEffector::UpdateColor(
             particleParams_->GetBlueRandomStart(), particleParams_->GetBlueRandomEnd());
         float alphaSpeed = RSRenderParticle::GetRandomValue(
             particleParams_->GetAlphaRandomStart(), particleParams_->GetAlphaRandomEnd());
-        Color color = particle->GetColor();
-        int16_t red = color.GetRed() + redSpeed * deltaTime;
-        red = std::clamp<int16_t>(red, 0, UINT8_MAX);
-        int16_t green = color.GetGreen() + greenSpeed * deltaTime;
-        green = std::clamp<int16_t>(green, 0, UINT8_MAX);
-        int16_t blue = color.GetBlue() + blueSpeed * deltaTime;
-        blue = std::clamp<int16_t>(blue, 0, UINT8_MAX);
-        int16_t alpha = color.GetAlpha() + alphaSpeed * deltaTime;
-        alpha = std::clamp<int16_t>(alpha, 0, UINT8_MAX);
-        color.SetRed(red);
-        color.SetGreen(green);
-        color.SetBlue(blue);
-        color.SetAlpha(alpha);
+
+        if (!((red <= 0 && redSpeed <= 0.f) || (red >= 255 && redSpeed >= 0.f))) {
+            red += redSpeed * deltaTime;
+            red = std::clamp<int16_t>(red, 0, UINT8_MAX);
+            color.SetRed(red);
+        }
+        if (!((green <= 0 && redSpeed <= 0.f) || (green >= 255 && redSpeed >= 0.f))) {
+            green += greenSpeed * deltaTime;
+            green = std::clamp<int16_t>(green, 0, UINT8_MAX);
+            color.SetGreen(green);
+        }
+        if (!((blue <= 0 && redSpeed <= 0.f) || (blue >= 255 && redSpeed >= 0.f))) {
+            blue += blueSpeed * deltaTime;
+            blue = std::clamp<int16_t>(blue, 0, UINT8_MAX);
+            color.SetBlue(blue);
+        }
+        if (!((alpha <= 0 && redSpeed <= 0.f) || (alpha >= 255 && redSpeed >= 0.f))) {
+            alpha += alphaSpeed * deltaTime;
+            alpha = std::clamp<int16_t>(alpha, 0, UINT8_MAX);
+            color.SetAlpha(alpha);
+        }
         particle->SetColor(color);
     } else if (colorUpdator == ParticleUpdator::CURVE) {
         auto valChangeOverLife = particleParams_->color_.valChangeOverLife_;
@@ -90,9 +103,17 @@ void RSRenderParticleEffector::UpdateOpacity(
     auto opacityUpdator = particleParams_->GetOpacityUpdator();
     activeTime /= NS_PER_MS;
     if (opacityUpdator == ParticleUpdator::RANDOM) {
+        auto opacity = particle->GetOpacity();
+        if (opacity <= 0 && particleParams_->GetOpacityRandomStart() <= 0 &&
+            particleParams_->GetOpacityRandomEnd() <= 0) {
+            particle->SetIsDead();
+            return;
+        }
         float opacitySpeed = RSRenderParticle::GetRandomValue(
             particleParams_->GetOpacityRandomStart(), particleParams_->GetOpacityRandomEnd());
-        auto opacity = particle->GetOpacity();
+        if ((opacity <= 0.f && opacitySpeed <= 0.f) || (opacity >= 1.0 && opacitySpeed >= 0.f)) {
+            return;
+        }
         opacity += opacitySpeed * deltaTime;
         opacity = std::clamp<float>(opacity, 0.f, 1.f);
         particle->SetOpacity(opacity);
@@ -124,9 +145,16 @@ void RSRenderParticleEffector::UpdateScale(
     auto scaleUpdator = particleParams_->GetScaleUpdator();
     activeTime /= NS_PER_MS;
     if (scaleUpdator == ParticleUpdator::RANDOM) {
+        auto scale = particle->GetScale();
+        if (scale <= 0 && particleParams_->GetScaleRandomStart() <= 0 && particleParams_->GetScaleRandomEnd() <= 0) {
+            particle->SetIsDead();
+            return;
+        }
         float scaleSpeed = RSRenderParticle::GetRandomValue(
             particleParams_->GetScaleRandomStart(), particleParams_->GetScaleRandomEnd());
-        auto scale = particle->GetScale();
+        if (scale <= 0.f && scaleSpeed <= 0.f) {
+            return;
+        }
         scale += scaleSpeed * deltaTime;
         particle->SetScale(scale);
     } else if (scaleUpdator == ParticleUpdator::CURVE) {
@@ -258,16 +286,17 @@ void RSRenderParticleEffector::ApplyEffectorToParticle(
 
     auto acceleration = particle->GetAcceleration();
     Vector2f velocity = particle->GetVelocity();
-    velocity.x_ += acceleration.x_ * dt;
-    velocity.y_ += acceleration.y_ * dt;
+    if (!(ROSEN_EQ(acceleration.x_, 0.f) && ROSEN_EQ(acceleration.y_, 0.f))) {
+        velocity.x_ += acceleration.x_ * dt;
+        velocity.y_ += acceleration.y_ * dt;
+        particle->SetVelocity(velocity);
+    }
     Vector2f position = particle->GetPosition();
-    position.x_ += velocity.x_ * dt;
-    position.y_ += velocity.y_ * dt;
-    particle->SetVelocity(velocity);
-    particle->SetPosition(position);
-    float opacity = particle->GetOpacity();
-    Color color = particle->GetColor();
-    color.SetAlpha(color.GetAlpha() * opacity);
+    if (!(ROSEN_EQ(velocity.x_, 0.f) && ROSEN_EQ(velocity.y_, 0.f))) {
+        position.x_ += velocity.x_ * dt;
+        position.y_ += velocity.y_ * dt;
+        particle->SetPosition(position);
+    }
     activeTime += deltaTime;
     particle->SetActiveTime(activeTime);
 }
