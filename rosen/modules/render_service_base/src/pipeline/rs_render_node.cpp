@@ -713,7 +713,10 @@ void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager
     }
     auto& properties = GetRenderProperties();
     auto& manager = properties.GetFilterCacheManager(isForeground);
-    if (manager == nullptr || !manager->IsCacheValid()) {
+    if (manager == nullptr) {
+        return;
+    }
+    if (!manager->IsCacheValid()) {
         dirtyManager.ResetSubNodeFilterCacheValid();
         return;
     }
@@ -722,10 +725,10 @@ void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager
         manager->UpdateCacheStateWithDirtyRegion();
     }
     // record node's cache area if it has valid filter cache
-    if (manager->IsCacheValid() && ROSEN_EQ(GetGlobalAlpha(), 1.0f)) {
-        dirtyManager.UpdateCacheableFilterRect(cachedImageRect);
-    } else {
+    if (!manager->IsCacheValid()) {
         dirtyManager.ResetSubNodeFilterCacheValid();
+    } else if (ROSEN_EQ(GetGlobalAlpha(), 1.0f) && ROSEN_EQ(properties.GetCornerRadius().x_, 0.0f)) {
+        dirtyManager.UpdateCacheableFilterRect(cachedImageRect);
     }
 #endif
 }

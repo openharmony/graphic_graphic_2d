@@ -155,8 +155,9 @@ public:
     }
     bool Intersect(const RectT<T>& other) const
     {
-        return (left_ <= other.left_ + other.width_) && (other.left_ <= left_ + width_) &&
-               (top_ <= other.top_ + other.height_) && (other.top_ <= top_ + height_);
+        return !IsEmpty() && !other.IsEmpty() && (left_ <= other.left_ + other.width_) &&
+               (other.left_ <= left_ + width_) && (top_ <= other.top_ + other.height_) &&
+               (other.top_ <= top_ + height_);
     }
     RectT<T> IntersectRect(const RectT<T>& rect) const
     {
