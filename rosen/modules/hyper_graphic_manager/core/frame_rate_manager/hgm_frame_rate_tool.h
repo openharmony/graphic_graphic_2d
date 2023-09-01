@@ -51,9 +51,15 @@ private:
         {
             auto screenSize = sqrt(pow(width, 2) + pow(height, 2));
             auto phyScreenSize = sqrt(pow(phyWidth, 2) + pow(phyHeight, 2));
-            ppi_ = screenSize / (phyScreenSize / INCH_2_MM);
-            xDpi_ = width / (phyWidth / INCH_2_MM);
-            yDpi_ = height / (phyHeight / INCH_2_MM);
+            if (phyScreenSize != 0) {
+                ppi_ = screenSize / (phyScreenSize / INCH_2_MM);
+            }
+            if (phyWidth != 0) {
+                xDpi_ = width / (phyWidth / INCH_2_MM);
+            }
+            if (phyHeight != 0) {
+                yDpi_ = height / (phyHeight / INCH_2_MM);
+            }
         }
 
         ~ScreenProfile() = default;
@@ -104,9 +110,9 @@ private:
         int32_t height_;
         int32_t phyWidth_;
         int32_t phyHeight_;
-        float ppi_;
-        float xDpi_;
-        float yDpi_;
+        float ppi_ = 0;
+        float xDpi_ = 0;
+        float yDpi_ = 0;
     };
 
     std::vector<std::shared_ptr<ScreenProfile>> screenProfileList_;
