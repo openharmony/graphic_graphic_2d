@@ -246,7 +246,7 @@ void RSJankStats::ReportEventResponse(const JankFrames& jankFrames) const
     int64_t beginVsyncTime = ConvertTimeToSystime(info.beginVsyncTime);
     int64_t responseLatency = endTime_ - inputTime;
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
-        OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "APP_PID", info.appPid, "VERSION_CODE", info.versionCode,
+        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "APP_PID", info.appPid, "VERSION_CODE", info.versionCode,
         "VERSION_NAME", info.versionName, "BUNDLE_NAME", info.bundleName, "ABILITY_NAME", info.abilityName,
         "PROCESS_NAME", info.processName, "PAGE_URL", info.pageUrl, "SCENE_ID", info.sceneId,
         "SOURCE_TYPE", info.sourceType, "NOTE", info.note, "INPUT_TIME", static_cast<uint64_t>(inputTime),
@@ -265,7 +265,7 @@ void RSJankStats::ReportEventComplete(const JankFrames& jankFrames) const
     int64_t animationEndLatency = endVsyncTime - beginVsyncTime;
     int64_t completedLatency = endTime_ - inputTime;
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
-        OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "APP_PID", info.appPid, "VERSION_CODE", info.versionCode,
+        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "APP_PID", info.appPid, "VERSION_CODE", info.versionCode,
         "VERSION_NAME", info.versionName, "BUNDLE_NAME", info.bundleName, "ABILITY_NAME", info.abilityName,
         "PROCESS_NAME", info.processName, "PAGE_URL", info.pageUrl, "SCENE_ID", info.sceneId,
         "SOURCE_TYPE", info.sourceType, "NOTE", info.note, "INPUT_TIME", static_cast<uint64_t>(inputTime),

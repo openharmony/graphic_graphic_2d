@@ -76,7 +76,7 @@ JANK_STATS_RS:
   JANK_STATS_VER: {type: UINT32, desc: jank range version}
 
 INTERACTION_RESPONSE_LATENCY:
-  __BASE: {type: STATISTIC, level: MINOR, tag: performance, desc: interaction response statistics}
+  __BASE: {type: BEHAVIOR, level: MINOR, tag: performance, desc: interaction response statistics}
   APP_PID: {type: INT32, desc: app process id}
   VERSION_CODE: {type: INT32, desc: version code}
   VERSION_NAME: {type: STRING, desc: version name}
@@ -93,7 +93,7 @@ INTERACTION_RESPONSE_LATENCY:
   RESPONSE_LATENCY: {type: UINT64, desc: render time minus input time}
 
 INTERACTION_COMPLETED_LATENCY:
-  __BASE: {type: STATISTIC, level: MINOR, tag: performance, desc: interaction response statistics}
+  __BASE: {type: BEHAVIOR, level: MINOR, tag: performance, desc: interaction response statistics}
   APP_PID: {type: INT32, desc: app process id}
   VERSION_CODE: {type: INT32, desc: version code}
   VERSION_NAME: {type: STRING, desc: version name}
