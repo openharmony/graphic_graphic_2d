@@ -1199,10 +1199,10 @@ void RSPropertiesPainter::DrawBackgroundEffect(
 
 #if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
     // Optional use cacheManager to draw filter
-    if (auto& cacheManager = properties.GetFilterCacheManager(false)) {
-        // the input rect is in global coordinate, so we need to save/reset matrix before clip
-        auto data = cacheManager->GeneratedCachedEffectData(canvas, filter);
-        canvas.SetEffectData(std::move(data));
+    if (auto& cacheManager = properties.GetFilterCacheManager(false);
+        cacheManager != nullptr && !canvas.GetIsParallelCanvas()) {
+        auto&& data = cacheManager->GeneratedCachedEffectData(canvas, filter);
+        canvas.SetEffectData(data);
         return;
     }
 #endif
