@@ -16,6 +16,9 @@
 #include "hgm_frame_rate_tool.h"
 
 namespace OHOS::Rosen {
+namespace {
+    constexpr float MARGIN = 0.00001;
+}
 std::once_flag g_createFlag;
 std::shared_ptr<HgmFrameRateTool> instance_ = nullptr;
 
@@ -91,7 +94,7 @@ std::pair<float, float> HgmFrameRateTool::applyDimension(
 {
     auto xDpi = screenProfile->GetXDpi();
     auto yDpi = screenProfile->GetYDpi();
-    if (xDpi == 0 || yDpi == 0) {
+    if (xDpi < MARGIN || yDpi < MARGIN) {
         return std::pair<float, float>(0, 0);
     }
     switch (speedTransType) {

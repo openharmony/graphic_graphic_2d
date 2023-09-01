@@ -107,7 +107,7 @@ uint32_t HgmFrameRateManager::GetDrawingFrameRate(const uint32_t refreshRate, co
     // 1. The preferred fps is divisible by refreshRate.
     const float currRefreshRate = static_cast<float>(refreshRate);
     const float preferredFps = static_cast<float>(range.preferred_);
-    if (preferredFps == 0 || currRefreshRate == 0) {
+    if (preferredFps < MARGIN || currRefreshRate < MARGIN) {
         return -1;
     }
     if (std::fmodf(currRefreshRate, range.preferred_) < MARGIN) {
@@ -153,9 +153,8 @@ uint32_t HgmFrameRateManager::GetDrawingFrameRate(const uint32_t refreshRate, co
             }
             continue;
         }
-        float remainder = std::min(std::fmodf(preferredFps, dividedFps),
-            std::fmodf(std::abs(dividedFps - preferredFps), dividedFps));
-        currRatio = remainder / dividedFps;
+        currRatio = std::min(std::fmodf(preferredFps, dividedFps),
+            std::fmodf(std::abs(dividedFps - preferredFps), dividedFps)) / dividedFps;
         // When currRatio is almost zero, dividedFps is the perfect result
         if (currRatio < MARGIN) {
             drawingFps = dividedFps;
