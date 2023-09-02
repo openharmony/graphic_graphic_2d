@@ -2750,9 +2750,11 @@ void RSUniRenderVisitor::CheckAndSetNodeCacheType(RSRenderNode& node)
     } else if (isDrawingCacheEnabled_ && GenerateNodeContentCache(node)) {
         UpdateCacheRenderNodeMapWithBlur(node);
     } else {
-        node.SetCacheType(CacheType::NONE);
-        if (node.GetCompletedCacheSurface(threadIndex_, false)) {
-            RSUniRenderUtil::ClearCacheSurface(node, threadIndex_);
+        if (node.GetCacheType != CacheType::NONE) {
+            node.SetCacheType(CacheType::NONE);
+            if (node.GetCompletedCacheSurface(threadIndex_, false)) {
+                RSUniRenderUtil::ClearCacheSurface(node, threadIndex_);
+            }
         }
     }
 }
