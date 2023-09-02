@@ -188,6 +188,16 @@ public:
     bool IsCurrentFrameStatic();
     void UpdateCacheSurfaceDirtyManager(int bufferAge = 2);
 
+    bool GetNeedSubmitSubThread() const
+    {
+        return isNeedSubmitSubThread_;
+    }
+
+    void SetNeedSubmitSubThread(bool needSubmitSubThread)
+    {
+        isNeedSubmitSubThread_ = needSubmitSubThread;
+    }
+
     RSSurfaceNodeType GetSurfaceNodeType() const
     {
         return nodeType_;
@@ -899,6 +909,7 @@ private:
     // UIFirst
     uint32_t submittedSubThreadIndex_ = INT_MAX;
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
+    std::atomic<bool> isNeedSubmitSubThread_ = true;
 
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;

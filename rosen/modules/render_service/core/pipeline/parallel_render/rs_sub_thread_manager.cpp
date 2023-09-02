@@ -102,8 +102,7 @@ void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRend
             RS_OPTIONAL_TRACE_NAME_FMT("SubmitTask skip node: [%s, %llu]", child->GetName().c_str(), child->GetId());
             continue;
         }
-        if (child->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE &&
-            child->IsCurrentFrameStatic() && child->HasCachedTexture()) {
+        if (!child->GetNeedSubmitSubThread()) {
             RS_OPTIONAL_TRACE_NAME_FMT("subThreadNodes : static skip %s", child->GetName().c_str());
             continue;
         }
