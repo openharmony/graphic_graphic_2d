@@ -88,7 +88,7 @@ void RSUniRenderComposerAdapter::CommitLayers(const std::vector<LayerInfoPtr>& l
 
 void RSUniRenderComposerAdapter::SetPreBufferInfo(RSSurfaceHandler& surfaceHandler, ComposeInfo& info) const
 {
-    auto preBuffer = surfaceHandler.GetPreBuffer();
+    auto& preBuffer = surfaceHandler.GetPreBuffer();
     info.preBuffer = preBuffer.buffer;
     preBuffer.Reset();
 }
