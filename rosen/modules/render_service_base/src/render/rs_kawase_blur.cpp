@@ -31,7 +31,6 @@ KawaseBlurFilter::KawaseBlurFilter()
 
         half4 main(float2 xy) {
             half4 c = imageInput.eval(xy);
-            float alpha  = c.a;
             c += imageInput.eval(float2(clamp(in_blurOffset.x + xy.x, 0, in_maxSizeXY.x),
                                         clamp(in_blurOffset.y + xy.y, 0, in_maxSizeXY.y)));
             c += imageInput.eval(float2(clamp(in_blurOffset.x + xy.x, 0, in_maxSizeXY.x),
@@ -40,7 +39,7 @@ KawaseBlurFilter::KawaseBlurFilter()
                                         clamp(in_blurOffset.y + xy.y, 0, in_maxSizeXY.y)));
             c += imageInput.eval(float2(clamp(-in_blurOffset.x + xy.x, 0, in_maxSizeXY.x),
                                         clamp(-in_blurOffset.y + xy.y, 0, in_maxSizeXY.y)));
-            return half4(c.rgb * 0.2, alpha);
+            return half4(c.rgb * 0.2, 1.0);
         }
     )");
 
