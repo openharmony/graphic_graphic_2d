@@ -946,19 +946,20 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
         return;
     }
 
+    const auto& property = node.GetRenderProperties();
+    auto geoPtr = (property.GetBoundsGeometry());
+    if (geoPtr) {
+        canvas_->setMatrix(geoPtr->GetAbsMatrix());
+    }
+
     if (isUIFirst_ && RSUniRenderUtil::HandleSubThreadNode(node, *canvas_)) {
         RS_LOGD("RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni: \
             process RSSurfaceRenderNode [%{public}s, %{public}" PRIu64 "] use cache texture.",
             node.GetName().c_str(), node.GetId());
         return;
     }
-    bool isSelfDrawingSurface = node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
 
-    const auto& property = node.GetRenderProperties();
-    auto geoPtr = (property.GetBoundsGeometry());
-    if (geoPtr) {
-        canvas_->setMatrix(geoPtr->GetAbsMatrix());
-    }
+    bool isSelfDrawingSurface = node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
 
     if (isSelfDrawingSurface) {
         canvas_->save();
@@ -1002,19 +1003,20 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
         return;
     }
 
+    const auto& property = node.GetRenderProperties();
+    auto geoPtr = (property.GetBoundsGeometry());
+    if (geoPtr) {
+        canvas_->SetMatrix(geoPtr->GetAbsMatrix());
+    }
+
     if (isUIFirst_ && RSUniRenderUtil::HandleSubThreadNode(node, *canvas_)) {
         RS_LOGD("RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni: \
             process RSSurfaceRenderNode [%{public}s, %{public}" PRIu64 "] use cache texture.",
             node.GetName().c_str(), node.GetId());
         return;
     }
-    bool isSelfDrawingSurface = node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
 
-    const auto& property = node.GetRenderProperties();
-    auto geoPtr = (property.GetBoundsGeometry());
-    if (geoPtr) {
-        canvas_->SetMatrix(geoPtr->GetAbsMatrix());
-    }
+    bool isSelfDrawingSurface = node.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE;
 
     if (isSelfDrawingSurface) {
         canvas_->Save();
