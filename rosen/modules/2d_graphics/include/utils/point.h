@@ -16,6 +16,7 @@
 #ifndef POINT_H
 #define POINT_H
 
+#include <cfloat>
 #include "utils/scalar.h"
 
 namespace OHOS {
@@ -108,7 +109,7 @@ inline PointF& PointF::operator*=(scalar scale)
 
 inline PointF& PointF::operator/=(scalar divisor)
 {
-    if (divisor == 0) {
+    if (fabs(divisor) < FLT_EPSILON) {
         return *this;
     }
     x_ /= divisor;
@@ -138,6 +139,9 @@ inline const PointF operator*(const PointF& p, scalar scale)
 
 inline const PointF operator/(const PointF& p, scalar divisor)
 {
+    if (fabs(divisor) < FLT_EPSILON) {
+        return PointF(p.x_, p.y_);
+    }
     return PointF(p.x_ / divisor, p.y_ / divisor);
 }
 
