@@ -981,7 +981,7 @@ void RSMainThread::ReleaseAllNodesBuffer()
             if (surfaceNode->IsLastFrameHardwareEnabled()) {
                 if (!surfaceNode->IsCurrentFrameHardwareEnabled()) {
                     auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*surfaceNode);
-                    auto preBuffer = surfaceHandler.GetPreBuffer();
+                    auto& preBuffer = surfaceHandler.GetPreBuffer();
                     if (preBuffer.buffer != nullptr) {
                         auto releaseTask = [buffer = preBuffer.buffer, consumer = surfaceHandler.GetConsumer(),
                             fence = preBuffer.releaseFence]() mutable {
