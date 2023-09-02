@@ -40,9 +40,9 @@ public:
 protected:
     RSRenderPropertyAnimation(AnimationId id, const PropertyId& propertyId,
         const std::shared_ptr<RSRenderPropertyBase>& originValue);
-    RSRenderPropertyAnimation(AnimationId id) : RSRenderAnimation(id)
+    RSRenderPropertyAnimation(AnimationId id, const PropertyId& propertyId) : RSRenderAnimation(id)
     {
-        propertyId_ = 0;
+        propertyId_ = propertyId;
     }
     RSRenderPropertyAnimation() =default;
     bool ParseParam(Parcel& parcel) override;

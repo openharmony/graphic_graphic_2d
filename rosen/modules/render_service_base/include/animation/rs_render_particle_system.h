@@ -28,6 +28,7 @@ public:
     virtual ~RSRenderParticleSystem() = default;
     RSRenderParticleSystem() = default;
     void CreateEmitter();
+    void ClearEmitter();
     std::vector<std::shared_ptr<RSRenderParticle>> Simulation(int64_t deltaTime);
     void Emit(int64_t deltaTime);
     void UpdateParticle(int64_t deltaTime);

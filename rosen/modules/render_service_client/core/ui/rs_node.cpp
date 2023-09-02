@@ -729,22 +729,22 @@ void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams)
     for (size_t i = 0; i < particleParams.size(); i++) {
         particlesRenderParams.push_back(particleParams[i].SetParamsToRenderParticle());
     }
-
+    auto property = std::make_shared<RSPropertyBase>();
+    auto propertyId = property->GetId();
     auto animationId = RSAnimation::GenerateId();
     auto animation =
-        std::make_shared<RSRenderParticleAnimation>(animationId, particlesRenderParams);
+        std::make_shared<RSRenderParticleAnimation>(animationId, propertyId, particlesRenderParams);
 
-    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateParticle>(GetId(), animation, particleAnimationId_);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateParticle>(GetId(), animation);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
         if (NeedForcedSendToRemote()) {
             std::unique_ptr<RSCommand> cmdForRemote =
-                std::make_unique<RSAnimationCreateParticle>(GetId(), animation, particleAnimationId_);
+                std::make_unique<RSAnimationCreateParticle>(GetId(), animation);
             transactionProxy->AddCommand(cmdForRemote, true, GetFollowType(), GetId());
         }
     }
-    particleAnimationId_ = animationId;
 }
 
 // foreground

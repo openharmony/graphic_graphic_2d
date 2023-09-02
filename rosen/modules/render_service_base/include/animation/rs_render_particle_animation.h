@@ -29,8 +29,8 @@ namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSRenderParticleAnimation : public RSRenderPropertyAnimation {
 public:
-    RSRenderParticleAnimation(
-        AnimationId id, const std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams);
+    RSRenderParticleAnimation(AnimationId id, const PropertyId& propertyId,
+        const std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams);
 
     virtual ~RSRenderParticleAnimation() = default;
     RSRenderParticleAnimation() = default;
@@ -45,6 +45,7 @@ public:
 
     void Finish() override
     {
+        particleSystem_->ClearEmitter();
         particleSystem_.reset();
     }
 

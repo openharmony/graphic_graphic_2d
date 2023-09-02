@@ -24,9 +24,9 @@
 
 namespace OHOS {
 namespace Rosen {
-RSRenderParticleAnimation::RSRenderParticleAnimation(
-    AnimationId id, const std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams)
-    : RSRenderPropertyAnimation(id)
+RSRenderParticleAnimation::RSRenderParticleAnimation(AnimationId id, const PropertyId& propertyId,
+    const std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams)
+    : RSRenderPropertyAnimation(id, propertyId)
 {
     particlesRenderParams_ = particlesRenderParams;
     particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams_);
@@ -61,6 +61,10 @@ bool RSRenderParticleAnimation::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("RSRenderParticleAnimation::Marshalling, write id failed");
         return false;
     }
+    if (!parcel.WriteUint64(propertyId_)) {
+        ROSEN_LOGE("RSRenderParticleAnimation::Marshalling, write PropertyId failed");
+        return false;
+    }
     if (!RSMarshallingHelper::Marshalling(parcel, particlesRenderParams_)) {
         ROSEN_LOGE("RSRenderParticleAnimation::Marshalling, write particlesRenderParams failed");
         return false;
@@ -83,11 +87,11 @@ bool RSRenderParticleAnimation::ParseParam(Parcel& parcel)
 {
     AnimationId id = 0;
     if (!parcel.ReadUint64(id)) {
-        ROSEN_LOGE("RSRenderParticleAnimation::ParseParam, Unmarshalling failed");
+        ROSEN_LOGE("RSRenderParticleAnimation::ParseParam, Unmarshalling animationId failed");
         return false;
     }
     SetAnimationId(id);
-    if (!RSMarshallingHelper::Unmarshalling(parcel, particlesRenderParams_)) {
+    if (!(parcel.ReadUint64(propertyId_) && RSMarshallingHelper::Unmarshalling(parcel, particlesRenderParams_))) {
         ROSEN_LOGE("RSRenderParticleAnimation::ParseParam, Unmarshalling failed");
         return false;
     }

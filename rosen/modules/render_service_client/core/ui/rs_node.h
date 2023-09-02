@@ -389,7 +389,6 @@ private:
 
     FrameRateRange nodeRange_ = { 0, 0, 0 };
     std::mutex animationMutex_;
-    AnimationId particleAnimationId_ = 0;
     bool isParticleAnimationFinish_ = true;
 
     friend class RSAnimation;

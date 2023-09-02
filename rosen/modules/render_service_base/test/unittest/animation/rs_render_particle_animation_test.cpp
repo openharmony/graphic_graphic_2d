@@ -35,6 +35,7 @@ public:
     void SetUp() override;
     void TearDown() override;
     static constexpr uint64_t ANIMATION_ID = 12345;
+    static constexpr uint64_t PROPERTY_ID = 54321;
     std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams;
 };
 
@@ -76,7 +77,7 @@ HWTEST_F(RSRenderParticleAnimationTest, Marshalling001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest Marshalling001 start";
 
-    auto renderParticleAnimation = std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, particlesRenderParams);
+    auto renderParticleAnimation = std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
 
     Parcel parcel;
     renderParticleAnimation->Marshalling(parcel);
@@ -93,7 +94,7 @@ HWTEST_F(RSRenderParticleAnimationTest, Unmarshalling001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest Unmarshalling001 start";
 
-    auto renderParticleAnimation = std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, particlesRenderParams);
+    auto renderParticleAnimation = std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
 
     Parcel parcel;
     renderParticleAnimation->Marshalling(parcel);

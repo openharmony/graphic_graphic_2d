@@ -15,6 +15,7 @@
 
 #include "animation/rs_render_particle_emitter.h"
 
+#include <math.h>
 #include <vector>
 namespace OHOS {
 namespace Rosen {
@@ -45,13 +46,14 @@ void RSRenderParticleEmitter::EmitParticle(int64_t deltaTime)
     }
 
     if (particleType == ParticleType::IMAGES) {
-        auto image = particleParams_->GetParticleImage();
+        auto particleImage = particleParams_->GetParticleImage();
         auto imageSize = particleParams_->GetImageSize();
-        if (image == nullptr || ( imageSize.x_ <= 0.f || imageSize.y_ <= 0.f)) {
+        if (particleImage == nullptr || (imageSize.x_ <= 0.f || imageSize.y_ <= 0.f)) {
             return;
         } else {
-            auto pixelMap = image->GetPixelMap();
-            if (pixelMap == nullptr) {
+            auto image = particleImage->GetImage();
+            auto pixelMap = particleImage->GetPixelMap();
+            if (pixelMap == nullptr &&  image == nullptr) {
                 return;
             }
         }
@@ -66,17 +68,25 @@ void RSRenderParticleEmitter::EmitParticle(int64_t deltaTime)
     auto emitRate = particleParams_->GetEmitRate();
     auto maxParticle = particleParams_->GetParticleCount();
     auto lifeTime = particleParams_->GetParticleLifeTime();
-    if (maxParticle <= 0 || lifeTime == 0) {
-        return;
-    }
     float last = particleCount_;
     particleCount_ += static_cast<float>(emitRate * deltaTime) / NS_TO_S;
     spawnNum_ += particleCount_ - last;
     particles_.clear();
-    while (spawnNum_ > 0.f && particleCount_ < static_cast<float>(maxParticle)) {
+    if (maxParticle <= 0 || lifeTime == 0) {
+        return;
+    }
+    if (ROSEN_EQ(last, 0.f)) {
+        for (uint32_t i = 0; i <= std::min(static_cast<uint32_t>(spawnNum_), maxParticle); i++) {
+            auto particle = std::make_shared<RSRenderParticle>(particleParams_);
+            particles_.push_back(particle);
+            spawnNum_ -= 1.f;
+        }
+    }
+    while (spawnNum_ >= 1.f && std::ceil(last) <= static_cast<float>(maxParticle)) {
         auto particle = std::make_shared<RSRenderParticle>(particleParams_);
         particles_.push_back(particle);
         spawnNum_ -= 1.f;
+        last += 1.f;
     }
 }
 

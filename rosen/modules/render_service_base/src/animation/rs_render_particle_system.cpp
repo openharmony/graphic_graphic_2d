@@ -33,6 +33,11 @@ void RSRenderParticleSystem::CreateEmitter()
     }
 }
 
+void RSRenderParticleSystem::ClearEmitter()
+{
+    emitters_.clear();
+}
+
 void RSRenderParticleSystem::Emit(int64_t deltaTime)
 {
     for (size_t iter = 0; iter < emitters_.size(); iter++) {
