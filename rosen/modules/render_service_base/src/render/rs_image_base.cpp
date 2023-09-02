@@ -396,15 +396,4 @@ std::shared_ptr<Media::PixelMap> RSImageBase::GetPixelMap() const
 {
     return pixelMap_;
 }
-#ifndef USE_ROSEN_DRAWING
-sk_sp<SkImage> RSImageBase::GetImage() const
-{
-    return image_;
-}
-#else
-std::shared_ptr<Drawing::Image> RSImageBase::GetImage() const
-{
-    return image_;
-}
-#endif
 }
