@@ -23,6 +23,7 @@
 #include "sandbox_utils.h"
 
 #include "animation/rs_animation.h"
+#include "animation/rs_animation_group.h"
 #include "animation/rs_animation_callback.h"
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_implicit_animator_map.h"
@@ -731,7 +732,12 @@ void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams, cons
     }
     auto property = std::make_shared<RSPropertyBase>();
     auto propertyId = property->GetId();
-    auto animationId = RSAnimation::GenerateId();
+    auto uiAnimation = std::make_shared<RSAnimationGroup>();
+    auto animationId = uiAnimation->GetId();
+    AddAnimation(uiAnimation);
+    if (finishCallback != nullptr) {
+        uiAnimation->SetFinishCallback(std::make_shared<AnimationFinishCallback>(finishCallback));
+    }
     auto animation =
         std::make_shared<RSRenderParticleAnimation>(animationId, propertyId, particlesRenderParams);
 
