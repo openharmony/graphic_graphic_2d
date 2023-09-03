@@ -623,6 +623,7 @@ void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRen
         ROSEN_LOGW("RSUniRenderUtil::AssignSubThreadNode node is nullptr");
         return;
     }
+    node->SetNeedSubmitSubThread(true);
     if (deviceType == DeviceType::PC || deviceType == DeviceType::TABLET) {
         node->SetCacheType(CacheType::ANIMATE_PROPERTY);
     } else {
@@ -633,6 +634,7 @@ void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRen
     // skip complete static window, DO NOT assign it to subthread.
     if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE &&
         node->IsCurrentFrameStatic() && node->HasCachedTexture()) {
+        node->SetNeedSubmitSubThread(false);
         RS_OPTIONAL_TRACE_NAME_FMT("subThreadNodes : static skip %s", node->GetName().c_str());
     } else {
         node->UpdateCacheSurfaceDirtyManager(2); // 2 means buffer age
@@ -642,10 +644,16 @@ void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRen
     if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE &&
         node->GetCacheSurface(UNI_MAIN_THREAD_INDEX, false) && node->GetCacheSurfaceNeedUpdated()) {
         node->UpdateCompletedCacheSurface();
-        for (auto& child : node->GetSortedChildren()) {
-            auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
-            if (surfaceNode && surfaceNode->IsAppWindow()) {
-                surfaceNode->GetDirtyManager()->MergeDirtyRect(surfaceNode->GetOldDirty());
+        if (node->IsAppWindow() &&
+            !RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node->GetParent().lock())) {
+            node->GetDirtyManager()->MergeDirtyRect(node->GetOldDirty());
+        } else {
+            for (auto& child : node->GetSortedChildren()) {
+                auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+                if (surfaceNode && surfaceNode->IsAppWindow()) {
+                    surfaceNode->GetDirtyManager()->MergeDirtyRect(surfaceNode->GetOldDirty());
+                    break;
+                }
             }
         }
         node->SetCacheSurfaceNeedUpdated(false);
