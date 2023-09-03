@@ -77,8 +77,8 @@ public:
     static void ClearNodeCacheSurface(sk_sp<SkSurface>&& cacheSurface, sk_sp<SkSurface>&& cacheCompletedSurface,
         uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex);
 #else
-    static void ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface>& cacheSurface,
-        std::shared_ptr<Drawing::Surface>& cacheCompletedSurface,
+    static void ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface>&& cacheSurface,
+        std::shared_ptr<Drawing::Surface>&& cacheCompletedSurface,
         uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex);
 #endif
     static void CacheSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& oldSubThreadNodes,

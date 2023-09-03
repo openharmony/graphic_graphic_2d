@@ -265,7 +265,7 @@ public:
     sk_sp<SkSurface> GetCacheSurface(uint32_t threadIndex, bool needCheckThread, bool releaseAfterGet = false);
 #else
     std::shared_ptr<Drawing::Surface> GetCacheSurface(uint32_t threadIndex, bool needCheckThread,
-        bool releaseAfterGet) = false);
+        bool releaseAfterGet = false);
 #endif
 
     void UpdateCompletedCacheSurface();

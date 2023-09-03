@@ -86,11 +86,15 @@ bool RSDrivenRenderManager::ClipHoleForDrivenNode(RSPaintFilterCanvas& canvas, c
     RRect absClipRRect = RRect({x, y, width, height}, property.GetCornerRadius());
 
     // clip hole
+#ifndef USE_ROSEN_DRAWING
     canvas.save();
     canvas.clipRRect(RSPropertiesPainter::RRect2SkRRect(absClipRRect), true);
     canvas.clear(SK_ColorTRANSPARENT);
     canvas.restore();
     return true;
+#else
+    return false;
+#endif
 }
 
 static bool IsValidSurfaceName(RSBaseRenderNode::SharedPtr backgroundNode)

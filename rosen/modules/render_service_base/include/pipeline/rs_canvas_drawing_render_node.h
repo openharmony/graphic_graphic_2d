@@ -74,7 +74,11 @@ private:
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
     ThreadInfo curThreadInfo_ = {};
     ThreadInfo preThreadInfo_ = {};
+#ifndef USE_ROSEN_DRAWING
     std::map<RSModifierType, std::list<DrawCmdListPtr>> drawCmdLists_;
+#else
+    std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>> drawCmdLists_;
+#endif
 };
 
 } // namespace Rosen

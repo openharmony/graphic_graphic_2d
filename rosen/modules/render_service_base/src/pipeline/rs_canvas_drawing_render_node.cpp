@@ -196,7 +196,9 @@ void RSCanvasDrawingRenderNode::ApplyDrawCmdModifier(RSModifierContext& context,
     }
     for (const auto& drawCmdList : it->second) {
         drawCmdList->Playback(*context.canvas_);
+#ifndef USE_ROSEN_DRAWING
         drawCmdList->ClearOp();
+#endif
     }
     it->second.clear();
 }
@@ -303,7 +305,11 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType type)
             if (prop == nullptr) {
                 continue;
             }
+#ifndef USE_ROSEN_DRAWING
             if (auto cmd = std::static_pointer_cast<RSRenderProperty<DrawCmdListPtr>>(prop)->Get()) {
+#else
+            if (auto cmd = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(prop)->Get()) {
+#endif
                 drawCmdLists_[drawCmdModifier.first].emplace_back(cmd);
             }
         }

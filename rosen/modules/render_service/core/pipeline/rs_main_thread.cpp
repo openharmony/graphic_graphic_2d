@@ -1030,9 +1030,6 @@ void RSMainThread::ReleaseAllNodesBuffer()
 #else
         auto grContext = GetRenderEngine()->GetRenderContext()->GetGrContext();
 #endif
-#else
-        auto grContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
-#endif
         if (grContext) {
             RS_LOGD("clear gpu cache");
 #ifdef NEW_SKIA
@@ -1042,6 +1039,11 @@ void RSMainThread::ReleaseAllNodesBuffer()
 #endif
             grContext->purgeUnlockAndSafeCacheGpuResources();
         }
+#else
+        auto grContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+        grContext()->Flush();
+        RS_LOGE("Drawing Unsupport purgeUnlockAndSafeCacheGpuResources");
+#endif
     }, CLEAR_GPU_CACHE, CLEAR_GPU_INTERVAL);
 #endif
     RS_OPTIONAL_TRACE_END();
@@ -2389,7 +2391,11 @@ void RSMainThread::ReleaseSurface()
     }
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSMainThread::AddToReleaseQueue(sk_sp<SkSurface>&& surface)
+#else
+void RSMainThread::AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface)
+#endif
 {
     std::lock_guard<std::mutex> lock(mutex_);
     tmpSurfaces_.push(std::move(surface));
@@ -2398,10 +2404,14 @@ void RSMainThread::AddToReleaseQueue(sk_sp<SkSurface>&& surface)
 void RSMainThread::GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize)
 {
     PostSyncTask([&cpuMemSize, &gpuMemSize, this]() {
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_RENDER_CONTEXT
         gpuMemSize = MemoryManager::GetAppGpuMemoryInMB(GetRenderEngine()->GetDrawingContext()->GetDrawingContext());
 #else
         gpuMemSize = MemoryManager::GetAppGpuMemoryInMB(GetRenderEngine()->GetRenderContext()->GetGrContext());
+#endif
+#else
+        RS_LOGE("Drawing Unsupport GetAppGpuMemoryInMB");
 #endif
         cpuMemSize = MemoryTrack::Instance().GetAppMemorySizeInMB();
     });

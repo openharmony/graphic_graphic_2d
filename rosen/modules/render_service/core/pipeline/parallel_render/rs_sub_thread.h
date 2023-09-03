@@ -41,7 +41,11 @@ public:
     void RemoveTask(const std::string& name);
     void RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTask);
     void ReleaseSurface();
+#ifndef USE_ROSEN_DRAWING
     void AddToReleaseQueue(sk_sp<SkSurface>&& surface);
+#else
+    void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
+#endif
     void ResetGrContext();
     void DumpMem(DfxString& log);
     float GetAppGpuMemoryInMB();
@@ -73,7 +77,11 @@ private:
     std::shared_ptr<Drawing::GPUContext> grContext_ = nullptr;
 #endif
     std::mutex mutex_;
+#ifndef USE_ROSEN_DRAWING
     std::queue<sk_sp<SkSurface>> tmpSurfaces_;
+#else
+    std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaces_;
+#endif
 };
 }
 #endif // RENDER_SERVICE_CORE_PIPELINE_PARALLEL_RENDER_RS_SUB_THREAD_H

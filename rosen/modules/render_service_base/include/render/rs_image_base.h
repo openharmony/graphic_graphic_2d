@@ -91,9 +91,11 @@ protected:
 
     RectF srcRect_;
     RectF dstRect_;
+#ifndef USE_ROSEN_DRAWING
     SkRect src_;
     SkRect dst_;
     SkRect lastRect_;
+#endif
     bool isDrawn_ = false;
     uint64_t uniqueId_ = 0;
     bool renderServiceImage_ = false;

@@ -42,7 +42,11 @@ public:
     void DumpMem(DfxString& log);
     float GetAppGpuMemoryInMB();
     void ReleaseSurface(uint32_t threadIndex) const;
+#ifndef USE_ROSEN_DRAWING
     void AddToReleaseQueue(sk_sp<SkSurface>&& surface, uint32_t threadIndex);
+#else
+    void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface, uint32_t threadIndex);
+#endif
 private:
     RSSubThreadManager() = default;
     ~RSSubThreadManager() = default;

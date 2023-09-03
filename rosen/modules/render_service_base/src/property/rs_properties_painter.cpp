@@ -1241,6 +1241,7 @@ void RSPropertiesPainter::DrawBackgroundEffect(
 }
 #endif
 
+#ifndef USE_ROSEN_DRAWING
 void RSPropertiesPainter::ApplyBackgroundEffectFallback(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
     auto parentNode = properties.backref_.lock();
@@ -1259,6 +1260,12 @@ void RSPropertiesPainter::ApplyBackgroundEffectFallback(const RSProperties& prop
     }
     DrawFilter(properties, canvas, FilterType::BACKGROUND_FILTER, std::nullopt, filter);
 }
+#else
+void RSPropertiesPainter::ApplyBackgroundEffectFallback(const RSProperties& properties, RSPaintFilterCanvas& canvas)
+{
+    ROSEN_LOGE("Drawing Upsupport RSPropertiesPainter::ApplyBackgroundEffectFallback");
+}
+#endif
 
 void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
@@ -1905,29 +1912,27 @@ void RSPropertiesPainter::DrawMask(const RSProperties& properties, Drawing::Canv
 
 #ifndef USE_ROSEN_DRAWING
 RectF RSPropertiesPainter::GetCmdsClipRect(DrawCmdListPtr& cmds)
-#else
-RectF RSPropertiesPainter::GetCmdsClipRect(Drawing::DrawCmdListPtr& cmds)
-#endif
 {
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     RectF clipRect;
     if (cmds == nullptr) {
         return clipRect;
     }
-#ifndef USE_ROSEN_DRAWING
     SkRect rect;
     cmds->CheckClipRect(rect);
     clipRect = { rect.left(), rect.top(), rect.width(), rect.height() };
-#else
-    Drawing::Rect rect;
-    cmds->CheckClipRect(rect);
-    clipRect = { rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight() };
-#endif
     return clipRect;
 #else
     return RectF { 0.0f, 0.0f, 0.0f, 0.0f };
 #endif
 }
+#else
+RectF RSPropertiesPainter::GetCmdsClipRect(Drawing::DrawCmdListPtr& cmds)
+{
+    ROSEN_LOGE("Drawing Unsupport RSPropertiesPainter::GetCmdsClipRect");
+}
+#endif
+
 
 #ifndef USE_ROSEN_DRAWING
 void RSPropertiesPainter::DrawFrameForDriven(const RSProperties& properties, RSPaintFilterCanvas& canvas,
@@ -1957,9 +1962,13 @@ void RSPropertiesPainter::DrawFrameForDriven(const RSProperties& properties, RSP
     auto frameRect = Rect2DrawingRect(properties.GetFrameRect());
 #endif
     // temporary solution for driven content clip
+#ifndef USE_ROSEN_DRAWING
     cmds->ReplaceDrivenCmds();
     cmds->Playback(canvas, &frameRect);
     cmds->RestoreOriginCmdsForDriven();
+#else
+    cmds->Playback(canvas, &frameRect);
+#endif
 #endif
 }
 

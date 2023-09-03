@@ -80,18 +80,31 @@ RectI RSEffectRenderNode::GetFilterRect() const
     return {};
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSEffectRenderNode::SetEffectRegion(const std::optional<SkPath>& region)
+#else
+void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::Path>& region)
+#endif
 {
     if (!region.has_value()) {
         effectRegion_.reset();
         return;
     }
     auto matrix = GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
+#ifndef USE_ROSEN_DRAWING
     SkMatrix revertMatrix;
     // Map absolute matrix to local matrix
     if (matrix.invert(&revertMatrix)) {
         effectRegion_ = region.value().makeTransform(revertMatrix);
     }
+#else
+    Drawing::Matrix revertMatrix;
+    // Map absolute matrix to local matrix
+    if (matrix.Invert(revertMatrix)) {
+        effectRegion_ = region;
+        effectRegion_.value().makeTransform(revertMatrix);
+    }
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS
