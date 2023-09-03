@@ -52,6 +52,13 @@ void RSPaintFilterCanvasBase::DrawPoint(const Point& point)
     }
 }
 
+void RSPaintFilterCanvasBase::DrawPoints(PointMode mode, size_t count, const Point pts[])
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawPoints(mode, count, pts);
+    }
+}
+
 void RSPaintFilterCanvasBase::DrawLine(const Point& startPt, const Point& endPt)
 {
     if (canvas_ != nullptr && OnFilter()) {

@@ -68,6 +68,11 @@ void CoreCanvas::DrawPoint(const Point& point)
     impl_->DrawPoint(point);
 }
 
+void CoreCanvas::DrawPoints(PointMode mode, size_t count, const Point pts[])
+{
+    impl_->DrawPoints(mode, count, pts);
+}
+
 void CoreCanvas::DrawLine(const Point& startPt, const Point& endPt)
 {
     impl_->DrawLine(startPt, endPt);

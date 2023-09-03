@@ -79,6 +79,7 @@ public:
     enum Type : uint32_t {
         OPITEM_HEAD,
         POINT_OPITEM,
+        POINTS_OPITEM,
         LINE_OPITEM,
         RECT_OPITEM,
         ROUND_RECT_OPITEM,
@@ -129,6 +130,19 @@ public:
 
 private:
     Point point_;
+};
+
+class DrawPointsOpItem : public DrawOpItem {
+public:
+    explicit DrawPointsOpItem(PointMode mode, const std::pair<uint32_t, size_t> pts);
+    ~DrawPointsOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas, const CmdList& cmdList) const;
+
+private:
+    PointMode mode_;
+    const std::pair<uint32_t, size_t> pts_;
 };
 
 class DrawLineOpItem : public DrawOpItem {

@@ -41,6 +41,7 @@ public:
     }
 
     void DrawPoint(const Point& point) override;
+    void DrawPoints(PointMode mode, size_t count, const Point pts[]) override;
     void DrawLine(const Point& startPt, const Point& endPt) override;
     void DrawRect(const Rect& rect) override;
     void DrawRoundRect(const RoundRect& roundRect) override;

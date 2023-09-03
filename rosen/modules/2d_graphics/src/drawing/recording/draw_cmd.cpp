@@ -42,6 +42,7 @@ namespace Rosen {
 namespace Drawing {
 std::unordered_map<uint32_t, CanvasPlayer::PlaybackFunc> CanvasPlayer::opPlaybackFuncLUT_ = {
     { DrawOpItem::POINT_OPITEM,             DrawPointOpItem::Playback },
+    { DrawOpItem::POINTS_OPITEM,            DrawPointsOpItem::Playback },
     { DrawOpItem::LINE_OPITEM,              DrawLineOpItem::Playback },
     { DrawOpItem::RECT_OPITEM,              DrawRectOpItem::Playback },
     { DrawOpItem::ROUND_RECT_OPITEM,        DrawRoundRectOpItem::Playback },
@@ -115,6 +116,23 @@ void DrawPointOpItem::Playback(CanvasPlayer& player, const void *opItem)
 void DrawPointOpItem::Playback(Canvas& canvas) const
 {
     canvas.DrawPoint(point_);
+}
+
+DrawPointsOpItem::DrawPointsOpItem(PointMode mode, const std::pair<uint32_t, size_t> pts)
+    : DrawOpItem(POINTS_OPITEM), mode_(mode), pts_(pts) {}
+
+void DrawPointsOpItem::Playback(CanvasPlayer& player, const void *opItem)
+{
+    if (opItem != nullptr) {
+        const auto *op = static_cast<const DrawPointsOpItem*>(opItem);
+        op->Playback(player.canvas_, player.cmdList_);
+    }
+}
+
+void DrawPointsOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
+{
+    auto pts = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, pts_);
+    canvas.DrawPoints(mode_, pts.size(), pts.data());
 }
 
 DrawLineOpItem::DrawLineOpItem(const Point& startPt, const Point& endPt) : DrawOpItem(LINE_OPITEM),

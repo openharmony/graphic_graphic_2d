@@ -53,6 +53,7 @@ namespace Rosen {
 namespace Drawing {
 enum class SrcRectConstraint;
 class SaveLayerOps;
+enum class PointMode;
 
 class CoreCanvasImpl : public BaseImpl {
 public:
@@ -77,6 +78,7 @@ public:
 
     // shapes
     virtual void DrawPoint(const Point& point) = 0;
+    virtual void DrawPoints(PointMode mode, size_t count, const Point pts[]) = 0;
     virtual void DrawLine(const Point& startPt, const Point& endPt) = 0;
     virtual void DrawRect(const Rect& rect) = 0;
     virtual void DrawRoundRect(const RoundRect& roundRect) = 0;

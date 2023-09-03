@@ -28,6 +28,17 @@ enum class SrcRectConstraint {
     STRICT_SRC_RECT_CONSTRAINT,
     FAST_SRC_RECT_CONSTRAINT,
 };
+
+/*
+ * @brief PointMode: Selects if an array of points are drawn as discrete points, as lines, or as
+ * an open polygon.
+ */
+enum class PointMode {
+    POINTS_POINTMODE,  // draw each point separately
+    LINES_POINTMODE,   // draw each pair of points as a line segment
+    POLYGON_POINTMODE, // draw the array of points as a open polygon
+};
+
 /*
  * @brief  Contains the option used to create the layer.
  */
@@ -137,6 +148,7 @@ public:
 
     // shapes
     virtual void DrawPoint(const Point& point);
+    virtual void DrawPoints(PointMode mode, size_t count, const Point pts[]);
     virtual void DrawLine(const Point& startPt, const Point& endPt);
     virtual void DrawRect(const Rect& rect);
     virtual void DrawRoundRect(const RoundRect& roundRect);

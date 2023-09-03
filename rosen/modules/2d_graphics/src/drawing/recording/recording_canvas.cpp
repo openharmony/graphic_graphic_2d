@@ -52,6 +52,13 @@ void RecordingCanvas::DrawPoint(const Point& point)
     cmdList_->AddOp<DrawPointOpItem>(point);
 }
 
+void RecordingCanvas::DrawPoints(PointMode mode, size_t count, const Point pts[])
+{
+    std::vector<Point> points(pts, pts + count);
+    auto pointsData = CmdListHelper::AddVectorToCmdList<Point>(*cmdList_, points);
+    cmdList_->AddOp<DrawPointsOpItem>(mode, pointsData);
+}
+
 void RecordingCanvas::DrawLine(const Point& startPt, const Point& endPt)
 {
     cmdList_->AddOp<DrawLineOpItem>(startPt, endPt);
