@@ -15,6 +15,7 @@
 
 #include "hgm_frame_rate_manager.h"
 
+#include "common/rs_optional_trace.h"
 #include "hgm_core.h"
 #include "hgm_log.h"
 #include "parameters.h"
@@ -56,7 +57,7 @@ void HgmFrameRateManager::UniProcessData(const FrameRateRangeData& data)
 
     CalcRefreshRate(screenId, finalRange);
     rsFrameRate_ = GetDrawingFrameRate(currRefreshRate_, finalRange);
-    RS_TRACE_NAME("HgmFrameRateManager:UniProcessData refreshRate:" +
+    RS_OPTIONAL_TRACE_NAME("HgmFrameRateManager:UniProcessData refreshRate:" +
         std::to_string(static_cast<int>(currRefreshRate_)) + ", rsFrameRate:" +
         std::to_string(static_cast<int>(rsFrameRate_)) + ", finalRange=(" +
         std::to_string(static_cast<int>(finalRange.min_)) + ", " +
@@ -65,7 +66,7 @@ void HgmFrameRateManager::UniProcessData(const FrameRateRangeData& data)
 
     for (auto appRange : data.multiAppRange) {
         multiAppFrameRate_[appRange.first] = GetDrawingFrameRate(currRefreshRate_, finalRange);
-        RS_TRACE_NAME("multiAppFrameRate:pid=" +
+        RS_OPTIONAL_TRACE_NAME("multiAppFrameRate:pid=" +
             std::to_string(static_cast<int>(appRange.first)) + ", appRange=(" +
             std::to_string(static_cast<int>(appRange.second.min_)) + ", " +
             std::to_string(static_cast<int>(appRange.second.max_)) + ", " +
