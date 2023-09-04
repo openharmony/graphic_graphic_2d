@@ -47,6 +47,7 @@ public:
 
     std::shared_ptr<RSNode> rootNode;
     std::shared_ptr<RSCanvasNode> canvasNode;
+    static constexpr int SLEEP_TIME_US = 50000;
 };
 
 void RSUniRenderTest::Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
@@ -99,6 +100,7 @@ HWTEST_F(RSUniRenderTest, RSUniRenderTest001, TestSize.Level2)
     auto window = Window::Create("uni_render_demo1", option);
 
     window->Show();
+    usleep(SLEEP_TIME_US);
     auto rect = window->GetRect();
     while (rect.width_ == 0 && rect.height_ == 0) {
         std::cout << "rs uni render demo create window failed: " << rect.width_ << " " << rect.height_ << std::endl;
@@ -106,6 +108,7 @@ HWTEST_F(RSUniRenderTest, RSUniRenderTest001, TestSize.Level2)
         window->Destroy();
         window = Window::Create("uni_render_demo", option);
         window->Show();
+        usleep(SLEEP_TIME_US);
         rect = window->GetRect();
     }
 
