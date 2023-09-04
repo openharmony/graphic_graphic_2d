@@ -14,6 +14,7 @@
  */
 
 #include "rs_sub_thread_manager.h"
+#include <chrono>
 
 #include "common/rs_optional_trace.h"
 #include "pipeline/rs_main_thread.h"
@@ -21,6 +22,7 @@
 
 namespace OHOS::Rosen {
 static constexpr uint32_t SUB_THREAD_NUM = 3;
+static constexpr uint32_t WAIT_NODE_TASK_TIMEOUT = 5 * 1000; // 5s
 constexpr const char* RELEASE_RESOURCE = "releaseResource";
 
 RSSubThreadManager* RSSubThreadManager::Instance()
@@ -176,7 +178,7 @@ void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRend
 void RSSubThreadManager::WaitNodeTask(uint64_t nodeId)
 {
     std::unique_lock<std::mutex> lock(parallelRenderMutex_);
-    cvParallelRender_.wait(lock, [&]() {
+    cvParallelRender_.wait_for(lock, std::chrono::milliseconds(WAIT_NODE_TASK_TIMEOUT), [&]() {
         return !nodeTaskState_[nodeId];
     });
 }
