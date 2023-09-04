@@ -3133,8 +3133,10 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         if (node.GetBuffer() != nullptr) {
             if (node.IsHardwareEnabledType()) {
                 // since node has buffer, hwc disabledState could be reset by filter or surface cached
+                bool backgroundTransparent =
+                    static_cast<uint8_t>(node.GetRenderProperties().GetBackgroundColor().GetAlpha()) < UINT8_MAX;
                 node.SetHardwareForcedDisabledState(
-                    node.IsHardwareForcedDisabledByFilter() || canvas_->GetAlpha() < 1.f);
+                    node.IsHardwareForcedDisabledByFilter() || canvas_->GetAlpha() < 1.f || backgroundTransparent);
                 node.SetHardwareDisabledByCache(isUpdateCachedSurface_);
             }
             // if this window is in freeze state, disable hardware composer for its child surfaceView
