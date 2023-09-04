@@ -36,6 +36,8 @@ namespace Rosen {
 namespace {
 constexpr size_t MAX_DATA_SIZE_FOR_UNMARSHALLING_IN_PLACE = 1024 * 30; // 30kB
 constexpr size_t FILE_DESCRIPTOR_LIMIT = 15;
+constexpr size_t MAX_OBJECTNUM = INT_MAX;
+constexpr size_t MAX_DATA_SIZE = INT_MAX;
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
 {
@@ -43,6 +45,9 @@ void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
     binder_size_t* copiedObject = reinterpret_cast<binder_size_t*>(copied.GetObjectOffsets());
 
     size_t objectNum = old.GetOffsetsSize();
+    if (objectNum > MAX_OBJECTNUM) {
+        return;
+    }
 
     uintptr_t data = old.GetData();
     uintptr_t copiedData = copied.GetData();
@@ -65,6 +70,9 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old)
 {
     auto dataSize = old.GetDataSize();
     if (dataSize <= MAX_DATA_SIZE_FOR_UNMARSHALLING_IN_PLACE && old.GetOffsetsSize() < FILE_DESCRIPTOR_LIMIT) {
+        return nullptr;
+    }
+    if (dataSize > MAX_DATA_SIZE) {
         return nullptr;
     }
     RS_TRACE_NAME("CopyParcelForUnmarsh: size:" + std::to_string(dataSize));
