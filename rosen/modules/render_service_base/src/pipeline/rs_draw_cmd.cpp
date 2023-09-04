@@ -30,6 +30,7 @@
 
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_task_dispatcher.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_pixel_map_util.h"
@@ -704,20 +705,21 @@ ImageWithParmOpItem::~ImageWithParmOpItem()
 {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
 #ifndef USE_ROSEN_DRAWING
-    if (texId_ != 0U) {
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glDeleteTextures(1, &texId_);
-        texId_ = 0U;
-    }
-    if (nativeWindowBuffer_ != nullptr) {
-        DestroyNativeWindowBuffer(nativeWindowBuffer_);
-        nativeWindowBuffer_ = nullptr;
-    }
-    if (eglImage_ != EGL_NO_IMAGE_KHR) {
-        auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-        eglDestroyImageKHR(disp, eglImage_);
-        eglImage_ = EGL_NO_IMAGE_KHR;
-    }
+    RSTaskDispatcher::GetInstance().PostTask(tid_, [texId = texId_,
+                                                    nativeWindowBuffer = nativeWindowBuffer_,
+                                                    eglImage = eglImage_]() {
+        if (texId != 0U) {
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glDeleteTextures(1, &texId);
+        }
+        if (nativeWindowBuffer != nullptr) {
+            DestroyNativeWindowBuffer(nativeWindowBuffer);
+        }
+        if (eglImage != EGL_NO_IMAGE_KHR) {
+            auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+            eglDestroyImageKHR(disp, eglImage);
+        }
+    });
 #endif
 #endif
 }
@@ -775,6 +777,7 @@ sk_sp<SkImage> ImageWithParmOpItem::GetSkImageFromSurfaceBuffer(SkCanvas& canvas
             RS_LOGE("%{public}s create egl image fail %{public}d", __func__, eglGetError());
             return nullptr;
         }
+        tid_ = gettid();
     }
 
     // Create texture object
