@@ -16,6 +16,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_SURFACE_HANDLER_H
 
 #include <atomic>
+#include <mutex>
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
@@ -36,6 +37,13 @@ public:
 
     struct SurfaceBufferEntry {
 #ifndef ROSEN_CROSS_PLATFORM
+        ~SurfaceBufferEntry() noexcept
+        {
+            if (buffer != nullptr && bufferDeleteCb_ != nullptr) {
+                bufferDeleteCb_(buffer->GetSeqNum());
+            }
+        }
+
         void RegisterDeleteBufferListener(OnDeleteBufferFunc bufferDeleteCb)
         {
             if (bufferDeleteCb_ == nullptr) {
@@ -100,6 +108,8 @@ public:
         const Rect& damage,
         const int64_t timestamp)
     {
+        std::lock_guard<std::mutex> lock(bufMutex_);
+        preBuffer_.Reset();
         preBuffer_ = buffer_;
         buffer_.buffer = buffer;
         buffer_.acquireFence = acquireFence;
@@ -109,16 +119,19 @@ public:
 
     const sptr<SurfaceBuffer>& GetBuffer() const
     {
+        std::lock_guard<std::mutex> lock(bufMutex_);
         return buffer_.buffer;
     }
 
     const sptr<SyncFence>& GetAcquireFence() const
     {
+        std::lock_guard<std::mutex> lock(bufMutex_);
         return buffer_.acquireFence;
     }
 
     const Rect& GetDamageRegion() const
     {
+        std::lock_guard<std::mutex> lock(bufMutex_);
         return buffer_.damageRect;
     }
 
@@ -141,11 +154,13 @@ public:
 
     int64_t GetTimestamp() const
     {
+        std::lock_guard<std::mutex> lock(bufMutex_);
         return buffer_.timestamp;
     }
 
     void CleanCache()
     {
+        std::lock_guard<std::mutex> lock(bufMutex_);
         buffer_.Reset();
         preBuffer_.Reset();
     }
@@ -182,8 +197,10 @@ public:
 #ifndef ROSEN_CROSS_PLATFORM
     void RegisterDeleteBufferListener(OnDeleteBufferFunc bufferDeleteCb)
     {
+        std::lock_guard<std::mutex> lock(bufMutex_);
         if (bufferDeleteCb != nullptr) {
             buffer_.RegisterDeleteBufferListener(bufferDeleteCb);
+            preBuffer_.RegisterDeleteBufferListener(bufferDeleteCb);
         }
     }
 #endif
@@ -196,8 +213,9 @@ protected:
 
 private:
     NodeId id_ = 0;
-    SurfaceBufferEntry buffer_;
-    SurfaceBufferEntry preBuffer_;
+    mutable std::mutex bufMutex_;
+    SurfaceBufferEntry buffer_; // GUARDED BY bufMutex_
+    SurfaceBufferEntry preBuffer_; // GUARDED BY bufMutex_
     float globalZOrder_ = 0.0f;
     std::atomic<int> bufferAvailableCount_ = 0;
 };
