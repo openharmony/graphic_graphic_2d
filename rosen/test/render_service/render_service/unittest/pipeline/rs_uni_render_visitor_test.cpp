@@ -1693,11 +1693,12 @@ HWTEST_F(RSUniRenderVisitorTest, CheckIfSurfaceRenderNodeNeedProcess002, TestSiz
  */
 HWTEST_F(RSUniRenderVisitorTest, PrepareSharedTransitionNode001, TestSize.Level2)
 {
-    auto node = RSTestUtil::CreateSurfaceNode();
-    auto transitionNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(node, nullptr);
-    ASSERT_NE(transitionNode, nullptr);
-    node->sharedTransitionParam_ = {node->GetId(), transitionNode};
+    auto transitionInNode = RSTestUtil::CreateSurfaceNode();
+    auto transitionOutNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(transitionInNode, nullptr);
+    ASSERT_NE(transitionOutNode, nullptr);
+    transitionInNode->sharedTransitionParam_ = {transitionInNode->GetId(), transitionOutNode};
+    transitionOutNode->sharedTransitionParam_ = std::nullopt;
     
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     auto skCanvas = std::make_shared<SkCanvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
@@ -1705,12 +1706,8 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareSharedTransitionNode001, TestSize.Level2
     ASSERT_NE(skCanvas, nullptr);
     rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas.get());
 
-    RSUniRenderVisitor::RenderParam val { node, rsUniRenderVisitor->canvas_->GetCanvasStatus() };
-    rsUniRenderVisitor->unpairedTransitionNodes_[node->GetId()] = val;
-    
-    rsUniRenderVisitor->PrepareSharedTransitionNode(*node);
-    ASSERT_FALSE(rsUniRenderVisitor->unpairedTransitionNodes_.count(node->GetId()));
-    ASSERT_NE(node->sharedTransitionParam_, std::nullopt);
+    rsUniRenderVisitor->PrepareSharedTransitionNode(*transitionInNode);
+    ASSERT_EQ(transitionInNode->sharedTransitionParam_, std::nullopt);
 }
 
 /**
@@ -1722,18 +1719,17 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareSharedTransitionNode001, TestSize.Level2
  */
 HWTEST_F(RSUniRenderVisitorTest, PrepareSharedTransitionNode002, TestSize.Level2)
 {
-    auto node = RSTestUtil::CreateSurfaceNode();
-    auto destroyedNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(node, nullptr);
-    ASSERT_NE(destroyedNode, nullptr);
-    node->sharedTransitionParam_ = { node->GetId(), destroyedNode };
-    destroyedNode.reset();
+    auto transitionInNode = RSTestUtil::CreateSurfaceNode();
+    auto transitionOutNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(transitionInNode, nullptr);
+    ASSERT_NE(transitionOutNode, nullptr);
+    transitionInNode->sharedTransitionParam_ = { transitionInNode->GetId(), transitionOutNode };
+    transitionOutNode.reset();
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->PrepareSharedTransitionNode(*node);
-    ASSERT_FALSE(rsUniRenderVisitor->unpairedTransitionNodes_.count(node->GetId()));
-    ASSERT_EQ(node->sharedTransitionParam_, std::nullopt);
+    rsUniRenderVisitor->PrepareSharedTransitionNode(*transitionInNode);
+    ASSERT_EQ(transitionInNode->sharedTransitionParam_, std::nullopt);
 }
 
 /**
@@ -1745,17 +1741,17 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareSharedTransitionNode002, TestSize.Level2
  */
 HWTEST_F(RSUniRenderVisitorTest, PrepareSharedTransitionNode003, TestSize.Level2)
 {
-    auto node = RSTestUtil::CreateSurfaceNode();
-    auto transitionNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(node, nullptr);
-    ASSERT_NE(transitionNode, nullptr);
-    node->sharedTransitionParam_ = {node->GetId(), transitionNode};
-    transitionNode->sharedTransitionParam_ = std::nullopt;
+    auto transitionInNode = RSTestUtil::CreateSurfaceNode();
+    auto transitionOutNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(transitionInNode, nullptr);
+    ASSERT_NE(transitionOutNode, nullptr);
+    transitionInNode->sharedTransitionParam_ = {transitionInNode->GetId(), transitionOutNode};
+    transitionOutNode->sharedTransitionParam_ = std::nullopt;
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->PrepareSharedTransitionNode(*node);
-    ASSERT_EQ(node->sharedTransitionParam_, std::nullopt);
+    rsUniRenderVisitor->PrepareSharedTransitionNode(*transitionInNode);
+    ASSERT_EQ(transitionInNode->sharedTransitionParam_, std::nullopt);
 }
 
 /**
@@ -1766,17 +1762,17 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareSharedTransitionNode003, TestSize.Level2
  */
 HWTEST_F(RSUniRenderVisitorTest, PrepareSharedTransitionNode004, TestSize.Level2)
 {
-    auto node = RSTestUtil::CreateSurfaceNode();
-    auto transitionNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(node, nullptr);
-    ASSERT_NE(transitionNode, nullptr);
-    node->sharedTransitionParam_ = {node->GetId(), transitionNode};
-    transitionNode->sharedTransitionParam_ = {transitionNode->GetId(), transitionNode};
+    auto transitionInNode = RSTestUtil::CreateSurfaceNode();
+    auto transitionOutNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(transitionInNode, nullptr);
+    ASSERT_NE(transitionOutNode, nullptr);
+    transitionInNode->sharedTransitionParam_ = {transitionInNode->GetId(), transitionOutNode};
+    transitionOutNode->sharedTransitionParam_ = {transitionInNode->GetId(), transitionOutNode};
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->PrepareSharedTransitionNode(*node);
-    ASSERT_EQ(node->sharedTransitionParam_, std::nullopt);
+    rsUniRenderVisitor->PrepareSharedTransitionNode(*transitionInNode);
+    ASSERT_EQ(transitionInNode->sharedTransitionParam_, std::nullopt);
 }
 
 /**
@@ -1787,18 +1783,17 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareSharedTransitionNode004, TestSize.Level2
  */
 HWTEST_F(RSUniRenderVisitorTest, PrepareSharedTransitionNode005, TestSize.Level2)
 {
-    auto node = RSTestUtil::CreateSurfaceNode();
-    auto transitionNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(node, nullptr);
-    ASSERT_NE(transitionNode, nullptr);
-    node->sharedTransitionParam_ = {node->GetId(), transitionNode};
-    transitionNode->sharedTransitionParam_ = {node->GetId(), transitionNode};
+    auto transitionInNode  = RSTestUtil::CreateSurfaceNode();
+    auto transitionOutNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(transitionInNode, nullptr);
+    ASSERT_NE(transitionOutNode, nullptr);
+    transitionInNode->sharedTransitionParam_ = {transitionInNode->GetId(), transitionOutNode};
+    transitionOutNode->sharedTransitionParam_ = {transitionInNode->GetId(), transitionInNode};
     
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->PrepareSharedTransitionNode(*node);
-    ASSERT_TRUE(rsUniRenderVisitor->unpairedTransitionNodes_.count(node->GetId()));
-    ASSERT_NE(node->sharedTransitionParam_, std::nullopt);
+    rsUniRenderVisitor->PrepareSharedTransitionNode(*transitionInNode);
+    ASSERT_NE(transitionInNode->sharedTransitionParam_, std::nullopt);
 }
 
 /**
