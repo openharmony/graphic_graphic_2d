@@ -34,6 +34,7 @@ private:
     std::shared_ptr<ParticleRenderParams> particleParams_ = {};
     float particleCount_ = 0.f;
     float spawnNum_ = 0.f;
+    bool emitFinish_ = false;
 };
 
 } // namespace Rosen
