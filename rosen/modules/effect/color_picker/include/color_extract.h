@@ -276,7 +276,7 @@ private:
             }
             if (totalPixelNum == 0) {
                 uint32_t error_color = 0;
-                return make_pair<uint32_t, uint32_t>(error_color, error_color);
+                return std::make_pair<uint32_t, uint32_t>(error_color, error_color);
             }
             uint32_t redMean = round(redSum / (float)totalPixelNum);
             uint32_t greenMean = round(greenSum / (float)totalPixelNum);
