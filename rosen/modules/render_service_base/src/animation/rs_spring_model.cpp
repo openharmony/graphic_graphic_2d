@@ -103,6 +103,7 @@ void RSSpringModel<RSAnimatableType>::CalculateSpringParameters()
         double coeffTmp = sqrt(dampingRatio_ * dampingRatio_ - 1);
         if (ROSEN_EQ(naturalAngularVelocity * coeffTmp, 0.0)) {
             ROSEN_LOGE("RSSpringModel<RSAnimatableType>::CalculateSpringParameters, denominator equal zero.");
+            return;
         }
         coeffDecay_ = (-dampingRatio_ + coeffTmp) * naturalAngularVelocity;
         coeffScale_ = (initialOffset_ * ((dampingRatio_ + coeffTmp) * naturalAngularVelocity) + initialVelocity_) *
@@ -402,7 +403,7 @@ float RSSpringModel<float>::EstimateDurationForOverDampedModel() const
     double tmpCoeffC = initialOffset_ * naturalAngularVelocity + initialVelocity_ * tmpCoeffA;
     double tmpCoeffD = initialOffset_ * naturalAngularVelocity + initialVelocity_ * tmpCoeffB;
     double tmpCoeffE = 2.0 * naturalAngularVelocity * sqrt(pow(dampingRatio_, 2) - 1.0);
-    if (ROSEN_EQ(tmpCoeffD, 0.0) || ROSEN_EQ(tmpCoeffE, 0.0)) {
+    if (ROSEN_EQ(tmpCoeffE, 0.0)) {
         ROSEN_LOGE("RSSpringModel<float>::EstimateDurationForOverDampedModel(), invalid parameters.");
         return 0.0f;
     }
