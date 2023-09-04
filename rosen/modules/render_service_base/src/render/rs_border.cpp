@@ -271,10 +271,11 @@ bool RSBorder::ApplyLineStyle(Drawing::Pen& pen, int borderIdx, float length) co
         return false;
     }
     float borderWidth = GetWidth(borderIdx);
-    float addLen = (GetStyle(borderIdx) != BorderStyle::DOTTED) ? 0.0f : 0.5f;
+    BorderStyle borderStyle = GetStyle(borderIdx);
+    float addLen = (borderStyle != BorderStyle::DOTTED) ? 0.0f : 0.5f;
     auto borderLength = length - borderWidth * addLen * PARAM_DOUBLE;
     int32_t rawNumber = borderLength / (PARAM_DOUBLE * borderWidth);
-    if (rawNumber == 0) {
+    if (borderStyle == BorderStyle::DOTTED && rawNumber == 0) {
         return false;
     }
 
