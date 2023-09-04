@@ -54,6 +54,7 @@
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_hardware_thread.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_unmarshal_thread.h"
 #include "pipeline/rs_uni_render_engine.h"
 #include "pipeline/rs_uni_render_visitor.h"
@@ -246,6 +247,10 @@ void RSMainThread::Init()
 #endif
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
+    auto taskDispatchFunc = [](const RSTaskDispatcher::RSTask& task) {
+        RSMainThread::Instance()->PostTask(task);
+    };
+    RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), taskDispatchFunc);
     RsFrameReport::GetInstance().Init();
     if (isUniRender_) {
         unmarshalBarrierTask_ = [this]() {

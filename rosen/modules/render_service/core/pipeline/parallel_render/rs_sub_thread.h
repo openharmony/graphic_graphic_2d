@@ -35,7 +35,7 @@ public:
     RSSubThread(RenderContext* context, uint32_t threadIndex) : threadIndex_(threadIndex), renderContext_(context) {}
     ~RSSubThread();
 
-    void Start();
+    pid_t Start();
     void PostTask(const std::function<void()>& task, const std::string& name = std::string());
     void PostSyncTask(const std::function<void()>& task);
     void RemoveTask(const std::string& name);

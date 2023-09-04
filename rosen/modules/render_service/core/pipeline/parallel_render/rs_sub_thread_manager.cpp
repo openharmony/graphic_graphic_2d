@@ -17,6 +17,7 @@
 
 #include "common/rs_optional_trace.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_task_dispatcher.h"
 #include "memory/rs_memory_manager.h"
 
 namespace OHOS::Rosen {
@@ -36,10 +37,16 @@ void RSSubThreadManager::Start(RenderContext *context)
     }
     renderContext_ = context;
     if (context) {
+
         for (uint32_t i = 0; i < SUB_THREAD_NUM; ++i) {
             auto curThread = std::make_shared<RSSubThread>(context, i);
-            curThread->Start();
+            auto tid = curThread->Start();
+            threadIndexMap_.emplace(tid, i);
             threadList_.push_back(curThread);
+            auto taskDispatchFunc = [tid, this](const RSTaskDispatcher::RSTask& task) {
+                RSSubThreadManager::Instance()->PostTask(task, threadIndexMap_[tid]);
+            };
+            RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(tid, taskDispatchFunc);
         }
     }
 }

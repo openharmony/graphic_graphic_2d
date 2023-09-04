@@ -47,12 +47,16 @@ RSSubThread::~RSSubThread()
     });
 }
 
-void RSSubThread::Start()
+pid_t RSSubThread::Start()
 {
     RS_LOGI("RSSubThread::Start():%{public}d", threadIndex_);
     std::string name = "RSSubThread" + std::to_string(threadIndex_);
     runner_ = AppExecFwk::EventRunner::Create(name);
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+    pid_t tid;
+    PostSyncTask([&tid]() {
+        tid = gettid();
+    });
     PostTask([this]() {
 #ifdef RES_SCHED_ENABLE
         std::string strBundleName = RS_BUNDLE_NAME;
@@ -69,6 +73,7 @@ void RSSubThread::Start()
 #endif
         grContext_ = CreateShareGrContext();
     });
+    return tid;
 }
 
 void RSSubThread::PostTask(const std::function<void()>& task, const std::string& name)

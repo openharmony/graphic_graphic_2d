@@ -57,6 +57,7 @@ private:
     std::condition_variable cvParallelRender_;
     std::map<uint64_t, uint8_t> nodeTaskState_;
     std::vector<std::shared_ptr<RSSubThread>> threadList_;
+    std::unordered_map<pid_t, uint32_t> threadIndexMap_;
     bool needResetContext_ = false;
     bool needCancelTask_ = false;
 };
