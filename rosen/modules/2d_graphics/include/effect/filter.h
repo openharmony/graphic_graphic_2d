@@ -20,12 +20,17 @@
 #include "effect/image_filter.h"
 #include "effect/mask_filter.h"
 #include "effect/path_effect.h"
+#include "utils/drawing_macros.h"
 #include "utils/scalar.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+#ifndef USE_ROSEN_DRAWING
 class RS_EXPORT Filter {
+#else
+class DRAWING_API Filter {
+#endif
 public:
     enum class FilterQuality {
         NONE,

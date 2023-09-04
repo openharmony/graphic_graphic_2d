@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class RecordingImageFilter : public ImageFilter {
+class DRAWING_API RecordingImageFilter : public ImageFilter {
 public:
     /*
      * @brief         Creates a CreateBlurImageFilterOpItem to add to the ImageFilterCmdList.

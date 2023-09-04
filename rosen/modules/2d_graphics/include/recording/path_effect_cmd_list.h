@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class PathEffectCmdList : public CmdList {
+class DRAWING_API PathEffectCmdList : public CmdList {
 public:
     PathEffectCmdList() = default;
     ~PathEffectCmdList() override = default;

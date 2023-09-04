@@ -21,6 +21,7 @@
 
 #include "common/rs_macros.h"
 #include "drawing/engine_adapter/impl_interface/path_impl.h"
+#include "utils/drawing_macros.h"
 #include "utils/matrix.h"
 #include "utils/point.h"
 #include "utils/rect.h"
@@ -59,7 +60,11 @@ enum class PathOp {
     REVERSE_DIFFERENCE,
 };
 
+#ifndef USE_ROSEN_DRAWING
 class RS_EXPORT Path {
+#else
+class DRAWING_API Path {
+#endif
 public:
     Path() noexcept;
     Path(const Path& p) noexcept;

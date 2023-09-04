@@ -84,11 +84,12 @@ void RSSurfaceFrameWindows::CreateSurface()
     const auto &info = SkImageInfo::Make(width_, height_, kRGBA_8888_SkColorType, kPremul_SkAlphaType);
     surface_ = SkSurface::MakeRasterDirect(info, addr_.get(), width_);
 #else
-    Drawing::Bitmap bitmap;
-    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE};
-    bitmap.Build(width_, height_, format);
+    bitmap_ = std::make_shared<Drawing::Bitmap>();
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    bitmap_->Build(width_, height_, format);
+    bitmap_->SetPixels(addr_.get());
     surface_ = std::make_shared<Drawing::Surface>();
-    surface_->Bind(bitmap);
+    surface_->Bind(*bitmap_);
 #endif
 }
 } // namespace Rosen

@@ -24,7 +24,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class Canvas : public CoreCanvas {
+class DRAWING_API Canvas : public CoreCanvas {
 public:
     Canvas() {}
     Canvas(int32_t width, int32_t height) : CoreCanvas(width, height) {}

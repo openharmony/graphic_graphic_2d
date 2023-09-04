@@ -21,13 +21,14 @@
 #include "draw/blend_mode.h"
 #include "draw/color.h"
 #include "drawing/engine_adapter/impl_interface/color_filter_impl.h"
+#include "utils/drawing_macros.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 class ColorFilterImpl;
 struct ColorFilterData;
-class ColorFilter {
+class DRAWING_API ColorFilter {
 public:
     enum class FilterType {
         NO_TYPE,

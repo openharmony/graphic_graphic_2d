@@ -17,6 +17,7 @@
 #define IMAGE_H
 
 #include "drawing/engine_adapter/impl_interface/image_impl.h"
+#include "utils/drawing_macros.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -36,7 +37,7 @@ enum class TextureOrigin {
     BOTTOM_LEFT,
 };
 
-class TextureInfo {
+class DRAWING_API TextureInfo {
 public:
     /*
      * @brief  Sets the width value of Texture.
@@ -149,7 +150,7 @@ private:
     unsigned int format_ = 0;
 };
 
-class Image {
+class DRAWING_API Image {
 public:
     Image() noexcept;
     // constructor adopt a raw image ptr, using for ArkUI, should remove after enable multi-media image decode.

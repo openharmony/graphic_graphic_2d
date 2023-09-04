@@ -19,6 +19,7 @@
 #include "platform/drawing/rs_surface_frame.h"
 
 #include <include/core/SkSurface.h>
+#include <memory>
 
 namespace OHOS {
 namespace Rosen {
@@ -51,6 +52,7 @@ private:
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> surface_ = nullptr;
 #else
+    std::shared_ptr<Drawing::Bitmap> bitmap_ = nullptr;
     std::shared_ptr<Drawing::Surface> surface_ = nullptr;
 #endif
 };

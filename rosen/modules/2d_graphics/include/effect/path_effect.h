@@ -18,6 +18,7 @@
 
 #include "draw/path.h"
 #include "drawing/engine_adapter/impl_interface/path_effect_impl.h"
+#include "utils/drawing_macros.h"
 #include "utils/scalar.h"
 
 namespace OHOS {
@@ -28,7 +29,7 @@ enum class PathDashStyle {
     ROTATE,
     MORPH,
 };
-class PathEffect {
+class DRAWING_API PathEffect {
 public:
     enum class PathEffectType {
         NO_TYPE,

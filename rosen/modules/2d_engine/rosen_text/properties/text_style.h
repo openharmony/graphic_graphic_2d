@@ -87,7 +87,7 @@ public:
     bool hasShadow() const;
 };
 
-class TextStyle {
+class DRAWING_API TextStyle {
 public:
     OHOS::Rosen::Drawing::Color color_ = OHOS::Rosen::Drawing::Color::COLOR_WHITE;
     TextDecoration decoration_ = TextDecoration::NONE;

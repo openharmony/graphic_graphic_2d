@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class SkiaBitmap : public BitmapImpl {
+class DRAWING_API SkiaBitmap : public BitmapImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaBitmap();

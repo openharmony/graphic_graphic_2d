@@ -18,13 +18,14 @@
 
 #include <vector>
 
+#include "utils/drawing_macros.h"
 #include "utils/point.h"
 #include "utils/rect.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class RoundRect {
+class DRAWING_API RoundRect {
 public:
     enum CornerPos {
         TOP_LEFT_POS,

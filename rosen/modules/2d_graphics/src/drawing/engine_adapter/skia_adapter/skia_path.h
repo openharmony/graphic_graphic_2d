@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class SkiaPath : public PathImpl {
+class DRAWING_API SkiaPath : public PathImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaPath() noexcept;
