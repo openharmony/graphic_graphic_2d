@@ -48,8 +48,6 @@ public:
 
     void Begin();
     void Commit(uint64_t timestamp = 0);
-
-    void CreateSyncTransaction();
     void CommitSyncTransaction(uint64_t timestamp = 0, const std::string& abilityName = "");
     void MarkTransactionNeedSync();
     void MarkTransactionNeedCloseSync(const int32_t transactionCount);

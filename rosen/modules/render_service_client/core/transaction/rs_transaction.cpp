@@ -37,7 +37,7 @@ void RSTransaction::OpenSyncTransaction()
     if (transactionProxy != nullptr) {
         RS_TRACE_NAME("OpenSyncTransaction");
         transactionProxy->StartSyncTransaction();
-        transactionProxy->CreateSyncTransaction();
+        transactionProxy->Begin();
     }
 }
 
@@ -60,7 +60,7 @@ void RSTransaction::Begin()
     if (transactionProxy != nullptr) {
         RS_TRACE_NAME("BeginSyncTransaction");
         transactionProxy->StartSyncTransaction();
-        transactionProxy->CreateSyncTransaction();
+        transactionProxy->Begin();
     }
 }
 

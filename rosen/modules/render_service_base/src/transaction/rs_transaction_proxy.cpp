@@ -185,19 +185,19 @@ void RSTransactionProxy::Commit(uint64_t timestamp)
     }
 }
 
-void RSTransactionProxy::CreateSyncTransaction()
-{
-    std::unique_lock<std::mutex> cmdLock(mutex_);
-    implicitRemoteTransactionDataStack_.emplace(std::make_unique<RSTransactionData>());
-    if (needSync_) {
-        implicitRemoteTransactionDataStack_.top()->MarkNeedSync();
-    }
-}
-
 void RSTransactionProxy::CommitSyncTransaction(uint64_t timestamp, const std::string& abilityName)
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
     timestamp_ = std::max(timestamp, timestamp_);
+    if (!implicitCommonTransactionDataStack_.empty()) {
+        if (renderThreadClient_ != nullptr && !implicitCommonTransactionDataStack_.top()->IsEmpty()) {
+            implicitCommonTransactionDataStack_.top()->timestamp_ = timestamp;
+            implicitCommonTransactionDataStack_.top()->abilityName_ = abilityName;
+            implicitCommonTransactionDataStack_.top()->SetSyncId(syncId_);
+            renderThreadClient_->CommitTransaction(implicitCommonTransactionDataStack_.top());
+        }
+        implicitCommonTransactionDataStack_.pop();
+    }
 
     if (!implicitRemoteTransactionDataStack_.empty()) {
         if (renderServiceClient_ != nullptr && !implicitRemoteTransactionDataStack_.top()->IsEmpty()) {
@@ -212,6 +212,10 @@ void RSTransactionProxy::CommitSyncTransaction(uint64_t timestamp, const std::st
 void RSTransactionProxy::MarkTransactionNeedSync()
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
+    if (!implicitCommonTransactionDataStack_.empty()) {
+        implicitCommonTransactionDataStack_.top()->MarkNeedSync();
+    }
+
     if (!implicitRemoteTransactionDataStack_.empty()) {
         implicitRemoteTransactionDataStack_.top()->MarkNeedSync();
     }
@@ -220,6 +224,12 @@ void RSTransactionProxy::MarkTransactionNeedSync()
 void RSTransactionProxy::MarkTransactionNeedCloseSync(const int32_t transactionCount)
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
+    if (!implicitCommonTransactionDataStack_.empty()) {
+        implicitCommonTransactionDataStack_.top()->MarkNeedSync();
+        implicitCommonTransactionDataStack_.top()->MarkNeedCloseSync();
+        implicitCommonTransactionDataStack_.top()->SetSyncTransactionNum(transactionCount);
+    }
+
     if (!implicitRemoteTransactionDataStack_.empty()) {
         implicitRemoteTransactionDataStack_.top()->MarkNeedSync();
         implicitRemoteTransactionDataStack_.top()->MarkNeedCloseSync();
