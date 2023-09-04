@@ -58,6 +58,10 @@ float RSStepsInterpolator::Interpolate(float fraction) const
     if (position_ == StepsCurvePosition::START) {
         currentStep++;
     }
+    if (steps_ == 0) {
+        ROSEN_LOGE("RSStepsInterpolator::Interpolate, steps number is invalid!");
+        return static_cast<float>(currentStep);
+    }
     return static_cast<float>(currentStep) / steps_;
 }
 } // namespace Rosen

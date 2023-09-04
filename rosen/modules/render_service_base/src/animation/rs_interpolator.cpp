@@ -87,6 +87,10 @@ void RSCustomInterpolator::Convert(int duration)
     const int minSamplePoints = 2;
     numAnim = std::min(std::max(minSamplePoints, numAnim), maxSamplePoints);
     float lastAnimFrame = numAnim - 1;
+    if (lastAnimFrame <= 0.0f) {
+        ROSEN_LOGE("RSCustomInterpolator::Convert, lastAnimFrame is invalid.");
+        return;
+    }
     for (int i = 0; i < numAnim; i++) {
         float time = i / lastAnimFrame;
         float value = interpolateFunc_(time);
@@ -106,8 +110,12 @@ float RSCustomInterpolator::Interpolate(float input) const
     auto firstGreatValue = upper_bound(times_.begin(), times_.end(), input);
     int endLocation = firstGreatValue - times_.begin();
     int startLocation = endLocation - 1;
-
-    float fraction = (input - times_[startLocation]) / (times_[endLocation] - times_[startLocation]);
+    float number = times_[endLocation] - times_[startLocation];
+    if (number <= 0.0f) {
+        ROSEN_LOGE("RSCustomInterpolator::Interpolate, time between startLocation and endLocation is less than zero.");
+        return 0.0f;
+    }
+    float fraction = (input - times_[startLocation]) / number;
     float ret = fraction * (values_[endLocation] - values_[startLocation]) + values_[startLocation];
     return ret;
 }
