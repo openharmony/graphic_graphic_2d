@@ -356,7 +356,7 @@ OH_Drawing_TypographyCreate* OH_Drawing_CreateTypographyHandler(OH_Drawing_Typog
         return nullptr;
     }
     std::unique_ptr<TypographyCreate> handler = TypographyCreate::Create(*typoStyle,
-        FontCollection::Create());
+        std::shared_ptr<FontCollection>(ConvertToOriginalText<FontCollection>(fontCollection)));
 #endif
     return ConvertToNDKText<OH_Drawing_TypographyCreate>(handler.release());
 }

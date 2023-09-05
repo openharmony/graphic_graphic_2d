@@ -21,10 +21,11 @@
 #include <map>
 
 #include "rosen_text/font_collection.h"
-
-namespace {
-std::map<OHOS::Rosen::FontCollection *, std::shared_ptr<OHOS::Rosen::FontCollection>> g_fontCollectionRefMap;
-} // namespace
+#ifndef USE_TEXGINE
+#include "txt/font_collection.h"
+#else
+#include "texgine/font_collection.h"
+#endif
 #endif
 
 OH_Drawing_FontCollection* OH_Drawing_CreateFontCollection(void)
@@ -32,17 +33,14 @@ OH_Drawing_FontCollection* OH_Drawing_CreateFontCollection(void)
 #ifndef USE_GRAPHIC_TEXT_GINE
     return (OH_Drawing_FontCollection*)new rosen::FontCollection;
 #else
-    auto fc = OHOS::Rosen::FontCollection::Create();
-    g_fontCollectionRefMap[fc.get()] = fc;
-    return (OH_Drawing_FontCollection*)fc.get();
+#ifndef USE_TEXGINE
+    return (OH_Drawing_FontCollection*)new OHOS::Rosen::AdapterTxt::FontCollection;
+#else
+    return (OH_Drawing_FontCollection*)new OHOS::Rosen::AdapterTextEngine::FontCollection;
+#endif
 #endif
 }
 
 void OH_Drawing_DestroyFontCollection(OH_Drawing_FontCollection* fontCollection)
 {
-#ifdef USE_GRAPHIC_TEXT_GINE
-    if (fontCollection) {
-        g_fontCollectionRefMap.erase(reinterpret_cast<OHOS::Rosen::FontCollection *>(fontCollection));
-    }
-#endif
 }
