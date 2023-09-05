@@ -422,10 +422,4 @@ sptr<NativeSurface> ConsumerSurface::GetNativeSurface()
     BLOGND("ConsumerSurface::GetNativeSurface not support.");
     return nullptr;
 }
-
-GSError ConsumerSurface::SetWptrNativeWindowToPSurface(void* nativeWindow)
-{
-    BLOGND("ConsumerSurface::SetWptrNativeWindowToPSurface not support.");
-    return GSERROR_NOT_SUPPORT;
-}
 } // namespace OHOS

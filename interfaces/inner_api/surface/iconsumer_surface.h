@@ -120,7 +120,6 @@ public:
                                   int64_t &timestamp, std::vector<Rect> &damages) = 0;
     virtual GSError FlushBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence,
                                 BufferFlushConfigWithDamages &config) = 0;
-    virtual GSError SetWptrNativeWindowToPSurface(void* nativeWindow) = 0;
 protected:
     IConsumerSurface() = default;
 };
