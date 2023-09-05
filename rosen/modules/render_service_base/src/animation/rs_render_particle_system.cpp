@@ -51,6 +51,9 @@ void RSRenderParticleSystem::Emit(int64_t deltaTime)
 
 void RSRenderParticleSystem::UpdateParticle(int64_t deltaTime)
 {
+    if (activeParticles_.empty()) {
+        return;
+    }
     for (auto particle : activeParticles_) {
         if (particle != nullptr) {
             auto particleRenderParams = particle->GetParticleRenderParams();
@@ -73,6 +76,9 @@ void RSRenderParticleSystem::UpdateParticle(int64_t deltaTime)
 bool RSRenderParticleSystem::IsFinish()
 {
     bool finish = true;
+    if (!activeParticles_.empty()) {
+        return false;
+    }
     for (size_t iter = 0; iter < emitters_.size(); iter++) {
         if (emitters_[iter] != nullptr) {
             finish = finish && emitters_[iter]->IsEmitterFinish();
