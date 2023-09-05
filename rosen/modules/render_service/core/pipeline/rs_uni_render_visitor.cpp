@@ -68,6 +68,7 @@ namespace {
 constexpr uint32_t PHONE_MAX_APP_WINDOW_NUM = 1;
 constexpr uint32_t CACHE_MAX_UPDATE_TIME = 2;
 static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
+constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 static std::map<NodeId, uint32_t> cacheRenderNodeMap = {};
 static uint32_t cacheReuseTimes = 0;
 static std::mutex cacheRenderNodeMapMutex;
@@ -2090,6 +2091,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #else
         RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode: Drawing is not support: OpItemTasks");
 #endif
+        RSMainThread::Instance()->RemoveTask(CLEAR_GPU_CACHE);
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
         renderFrame_->Flush();
         RS_TRACE_END();
@@ -2119,6 +2121,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         auto node = nodeMap.GetRenderNode<RSRenderNode>(iter.first);
         return node ? (!node->IsOnTheTree()) : true;
     });
+    RSMainThread::Instance()->ClearGpuCache();
     RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode end");
 }
 

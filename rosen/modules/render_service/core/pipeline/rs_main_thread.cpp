@@ -1028,6 +1028,12 @@ void RSMainThread::ReleaseAllNodesBuffer()
 #endif
         });
     }
+#endif
+    RS_OPTIONAL_TRACE_END();
+}
+
+void RSMainThread::ClearGpuCache()
+{
     PostTask([this]() {
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_RENDER_CONTEXT
@@ -1048,8 +1054,6 @@ void RSMainThread::ReleaseAllNodesBuffer()
             grContext->purgeUnlockAndSafeCacheGpuResources();
         }
     }, CLEAR_GPU_CACHE, CLEAR_GPU_INTERVAL);
-#endif
-    RS_OPTIONAL_TRACE_END();
 }
 
 void RSMainThread::WaitUtilUniRenderFinished()
@@ -1570,7 +1574,6 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
     if (isUniRender_) {
         MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);
         RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
-        RemoveTask(CLEAR_GPU_CACHE);
     }
     mainLoop_();
     auto screenManager_ = CreateOrGetScreenManager();
