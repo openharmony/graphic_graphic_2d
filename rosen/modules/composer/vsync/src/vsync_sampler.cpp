@@ -159,6 +159,10 @@ void VSyncSampler::UpdateModeLocked()
 
         period_ = sum / (int64_t)(numSamples_ - MINES_SAMPLE_NUMS);
 
+        if (period_ <= 0) {
+            return;
+        }
+
         double scale = 2.0 * PI / period_;
         double deltaAvgX = 0;
         double deltaAvgY = 0;
@@ -180,7 +184,7 @@ void VSyncSampler::UpdateModeLocked()
 
 void VSyncSampler::UpdateErrorLocked()
 {
-    if (!modeUpdated_) {
+    if (!modeUpdated_ || (period_ <= 0)) {
         return;
     }
 
