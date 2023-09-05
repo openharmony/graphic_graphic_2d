@@ -69,6 +69,34 @@ HWTEST_F(vsyncReceiverTest, Init001, Function | MediumTest| Level3)
 }
 
 /*
+* Function: Init002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call Init
+ */
+HWTEST_F(vsyncReceiverTest, Init002, Function | MediumTest| Level3)
+{
+    sptr<IVSyncConnection> connection_ = nullptr;
+    ASSERT_NE(vsyncReceiverTest::vsyncReceiver->Init(), VSYNC_ERROR_NULLPTR);
+}
+
+/*
+* Function: Init003
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call Init
+ */
+HWTEST_F(vsyncReceiverTest, Init003, Function | MediumTest| Level3)
+{
+    int fd_;
+    sptr<IVSyncConnection> connection_ = nullptr;
+    VsyncError ret = connection_->GetReceiveFd(fd_);
+    ASSERT_NE(ret, VSYNC_ERROR_OK);
+}
+
+/*
 * Function: RequestNextVSync001
 * Type: Function
 * Rank: Important(2)
