@@ -571,6 +571,11 @@ public:
         return opaqueRegionChanged_;
     }
 
+    void CleanOpaqueRegionChanged()
+    {
+        opaqueRegionChanged_ = false;
+    }
+
     // [planning] Remove this after skia is upgraded, the clipRegion is supported
     void ResetChildrenFilterRects();
     void UpdateChildrenFilterRects(const RectI& rect);

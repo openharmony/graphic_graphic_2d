@@ -1730,6 +1730,10 @@ bool RSRenderNode::IsDirtyRegionUpdated() const
 {
     return isDirtyRegionUpdated_;
 }
+void RSRenderNode::CleanDirtyRegionUpdated()
+{
+    isDirtyRegionUpdated_ = false;
+}
 bool RSRenderNode::IsShadowValidLastFrame() const
 {
     return isShadowValidLastFrame_;

@@ -200,6 +200,7 @@ public:
     RectI GetOldDirty() const;
     RectI GetOldDirtyInSurface() const;
     bool IsDirtyRegionUpdated() const;
+    void CleanDirtyRegionUpdated();
 
     void AddModifier(const std::shared_ptr<RSRenderModifier>& modifier);
     void RemoveModifier(const PropertyId& id);

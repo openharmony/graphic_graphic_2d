@@ -1431,6 +1431,8 @@ void RSMainThread::CalcOcclusion()
             }
             surface->CleanDstRectChanged();
             surface->CleanAlphaChanged();
+            surface->CleanOpaqueRegionChanged();
+            surface->CleanDirtyRegionUpdated();
         }
     }
     if (!winDirty) {
