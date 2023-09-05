@@ -241,6 +241,9 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const
             float scale = std::min(xScale, yScale);
             info.srcRect.x = info.srcRect.x * scale;
             info.srcRect.y = info.srcRect.y * scale;
+            if (ROSEN_EQ(scale, 0.f)) {
+                return;
+            }
             info.srcRect.w = (bufferWidth / scale - (boundsWidth - info.srcRect.w)) * scale;
             info.srcRect.h = (bufferHeight / scale - (boundsHeight - info.srcRect.h)) * scale;
         } else {
@@ -562,9 +565,15 @@ void RSUniRenderComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer, RSSur
 
         if (newWidth * dstHeight > newHeight * dstWidth) {
             // too wide
+            if (dstHeight == 0) {
+                return;
+            }
             newWidth = dstWidth * newHeight / dstHeight;
         } else if (newWidth * dstHeight < newHeight * dstWidth) {
             // too tall
+            if (dstWidth == 0) {
+                return;
+            }
             newHeight = dstHeight * newWidth / dstWidth;
         } else {
             return;

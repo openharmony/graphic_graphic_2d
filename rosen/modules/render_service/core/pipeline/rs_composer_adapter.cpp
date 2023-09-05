@@ -761,9 +761,15 @@ void RSComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer)
 
         if (newWidth * dstRect.h > newHeight * dstRect.w) {
             // too wide
+            if (dstRect.h == 0) {
+                return;
+            }
             newWidth = dstRect.w * newHeight / dstRect.h;
         } else if (newWidth * dstRect.h < newHeight * dstRect.w) {
             // too tall
+            if (dstRect.w == 0) {
+                return;
+            }
             newHeight = dstRect.h * newWidth / dstRect.w;
         } else {
             return;

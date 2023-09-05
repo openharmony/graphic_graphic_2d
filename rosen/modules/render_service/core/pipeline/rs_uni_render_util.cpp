@@ -128,9 +128,15 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const RSSurfaceR
 
         if (newWidth * boundsHeight > newHeight * boundsWidth) {
             // too wide
+            if (boundsHeight == 0) {
+                return;
+            }
             newWidth = boundsWidth * newHeight / boundsHeight;
         } else if (newWidth * boundsHeight < newHeight * boundsWidth) {
             // too tall
+            if (boundsWidth == 0) {
+                return;
+            }
             newHeight = boundsHeight * newWidth / boundsWidth;
         } else {
             return;
@@ -358,6 +364,9 @@ void RSUniRenderUtil::DrawCachedImage(RSSurfaceRenderNode& node, RSPaintFilterCa
     if (image == nullptr) {
         return;
     }
+    if (image->width() == 0 || image->height() == 0) {
+        return;
+    }
     canvas.save();
     canvas.scale(node.GetRenderProperties().GetBoundsWidth() / image->width(),
         node.GetRenderProperties().GetBoundsHeight() / image->height());
@@ -374,6 +383,9 @@ void RSUniRenderUtil::DrawCachedImage(RSSurfaceRenderNode& node, RSPaintFilterCa
     std::shared_ptr<Drawing::Image> image)
 {
     if (image == nullptr) {
+        return;
+    }
+    if (image->GetWidth() == 0 || image->GetHeight() == 0) {
         return;
     }
     canvas.Save();
