@@ -47,8 +47,18 @@ KawaseBlurFilter::KawaseBlurFilter()
         uniform shader blurredInput;
         uniform shader originalInput;
         uniform float mixFactor;
+        uniform float inColorFactor;
+
+        highp float random(float2 xy) {
+            float t = dot(xy, float2(78.233, 12.9898));
+            return fract(sin(t) * 43758.5453);
+        }
         half4 main(float2 xy) {
-            return half4(mix(originalInput.eval(xy), blurredInput.eval(xy), mixFactor));
+            highp float noiseGranularity = inColorFactor / 255.0;
+            half4 finalColor = mix(originalInput.eval(xy), blurredInput.eval(xy), mixFactor);
+            float noise  = mix(-noiseGranularity, noiseGranularity, random(xy));
+            finalColor.rgb += noise;
+            return finalColor;
         }
     )");
 
@@ -76,6 +86,21 @@ SkMatrix KawaseBlurFilter::GetShaderTransform(const SkCanvas* canvas, const SkRe
     return matrix;
 }
 
+void KawaseBlurFilter::CheckInputImage(SkCanvas& canvas, const sk_sp<SkImage>& image, const KawaseParameter& param,
+    sk_sp<SkImage>& checkedImage)
+{
+    auto src = param.src;
+    auto srcRect = SkIRect::MakeLTRB(src.left(), src.top(), src.right(), src.bottom());
+    if (image->bounds() != srcRect) {
+        if (auto resizedImage = image->makeSubset(srcRect, canvas.recordingContext()->asDirectContext())) {
+            checkedImage = resizedImage;
+            ROSEN_LOGD("KawaseBlurFilter:: resize image success");
+        } else {
+            ROSEN_LOGE("KawaseBlurFilter::resize image failed, use original image");
+        }
+    }
+}
+
 void KawaseBlurFilter::OutputOriginalImage(SkCanvas& canvas, const sk_sp<SkImage>& image, const KawaseParameter& param)
 {
     auto src = param.src;
@@ -95,25 +120,19 @@ void KawaseBlurFilter::OutputOriginalImage(SkCanvas& canvas, const sk_sp<SkImage
 bool KawaseBlurFilter::ApplyKawaseBlur(SkCanvas& canvas, const sk_sp<SkImage>& image, const KawaseParameter& param)
 {
     if (!blurEffect_ || !mixEffect_ || !image) {
-        ROSEN_LOGE("KawaseBlurFilter::shader error, use Gauss\n");
+        ROSEN_LOGE("KawaseBlurFilter::shader error, use Gauss instead");
         return false;
     }
-    auto src = param.src;
-    auto dst = param.dst;
     static auto useKawaseOriginal = RSSystemProperties::GetKawaseOriginalEnabled();
     if (param.radius <= 0 || useKawaseOriginal) {
+        ROSEN_LOGD("KawaseBlurFilter::input invalid radius : %{public}d", param.radius);
         OutputOriginalImage(canvas, image, param);
         return true;
     }
+    auto src = param.src;
+    auto dst = param.dst;
     auto input = image;
-    auto srcRect = SkIRect::MakeLTRB(src.left(), src.top(), src.right(), src.bottom());
-    if (image->bounds() != srcRect) {
-        if (auto resizedImage = image->makeSubset(srcRect, canvas.recordingContext()->asDirectContext())) {
-            input = resizedImage;
-        } else {
-            ROSEN_LOGE("KawaseBlurFilter::resize image failed, use original image");
-        }
-    }
+    CheckInputImage(canvas, image, param, input);
     ComputeRadiusAndScale(param.radius);
     RS_OPTIONAL_TRACE_BEGIN("ApplyKawaseBlur " + GetDescription());
     int maxPasses = supportLargeRadius ? kMaxPassesLargeRadius : kMaxPasses;
@@ -124,6 +143,8 @@ bool KawaseBlurFilter::ApplyKawaseBlur(SkCanvas& canvas, const sk_sp<SkImage>& i
     float tmpRadius = static_cast<float>(blurRadius_) / dilatedConvolutionFactor;
     int numberOfPasses = std::min(maxPasses, std::max(static_cast<int>(ceil(tmpRadius)), 1)); // 1 : min pass num
     float radiusByPasses = tmpRadius / numberOfPasses;
+    ROSEN_LOGD("KawaseBlurFilter::kawase radius : %{public}f, scale : %{public}f, pass num : %{public}d",
+        blurRadius_, blurScale_, numberOfPasses);
     auto width = std::max(static_cast<int>(std::ceil(dst.width())), input->width());
     auto height = std::max(static_cast<int>(std::ceil(dst.height())), input->height());
     SkImageInfo scaledInfo = input->imageInfo().makeWH(std::ceil(width * blurScale_), std::ceil(height * blurScale_));
@@ -164,7 +185,8 @@ bool KawaseBlurFilter::ApplyBlur(SkCanvas& canvas, const sk_sp<SkImage>& image, 
     if (param.colorFilter) {
         paint.setColorFilter(param.colorFilter);
     }
-    if (blurRadius_ < kMaxCrossFadeRadius) {
+    static auto addRandomColor = RSSystemProperties::GetRandomColorEnabled();
+    if (addRandomColor) {
         SkMatrix inputMatrix = SkMatrix::Translate(-src.fLeft, -src.fTop);
         inputMatrix.postConcat(SkMatrix::Translate(dst.fLeft, dst.fTop));
         SkRuntimeShaderBuilder mixBuilder(mixEffect_);
@@ -173,6 +195,9 @@ bool KawaseBlurFilter::ApplyBlur(SkCanvas& canvas, const sk_sp<SkImage>& image, 
             SkTileMode::kClamp, SkTileMode::kClamp, linear, inputMatrix);
         float mixFactor = (abs(kMaxCrossFadeRadius) <= 1e-6) ? 1.f : (blurRadius_ / kMaxCrossFadeRadius);
         mixBuilder.uniform("mixFactor") = std::min(1.0f, mixFactor);
+        static auto factor = RSSystemProperties::GetKawaseRandomColorFactor();
+        mixBuilder.uniform("inColorFactor") = factor;
+        ROSEN_LOGD("KawaseBlurFilter::kawase random color factor : %{public}f", factor);
         paint.setShader(mixBuilder.makeShader(nullptr, image->isOpaque()));
     } else {
         paint.setShader(blurShader);
@@ -192,10 +217,10 @@ void KawaseBlurFilter::AdjustRadiusAndScale()
 {
     static constexpr int radiusStep1 = 50; // 50 : radius step1
     static constexpr int radiusStep2 = 150; // 150 : radius step2
-    static constexpr int radiusStep3 = 480; // 480 : radius step3
+    static constexpr int radiusStep3 = 400; // 400 : radius step3
     static constexpr float scaleFactor1 = 0.25f; // 0.25 : downSample scale for step1
     static constexpr float scaleFactor2 = 0.125f; // 0.125 : downSample scale for step2
-    static constexpr float scaleFactor3 = 0.03f; // 0.03 : downSample scale for step3
+    static constexpr float scaleFactor3 = 0.0625f; // 0.0625 : downSample scale for step3
     float scale = baseBlurScale;
     if (blurRadius_ > radiusStep3) {
         scale = scaleFactor3;
