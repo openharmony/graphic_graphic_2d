@@ -1083,9 +1083,6 @@ float RSRenderNode::GetGlobalAlpha() const
 
 bool RSRenderNode::NeedInitCacheSurface() const
 {
-    if (cacheSurface_ == nullptr) {
-        return true;
-    }
     auto cacheType = GetCacheType();
     int width = 0;
     int height = 0;
@@ -1101,6 +1098,10 @@ bool RSRenderNode::NeedInitCacheSurface() const
         Vector2f size = GetOptionalBufferSize();
         width =  size.x_;
         height = size.y_;
+    }
+    std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
+    if (cacheSurface_ == nullptr) {
+        return true;
     }
 #ifndef USE_ROSEN_DRAWING
     return cacheSurface_->width() != width || cacheSurface_->height() !=height;
