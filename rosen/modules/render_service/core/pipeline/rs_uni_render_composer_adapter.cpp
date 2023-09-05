@@ -565,15 +565,9 @@ void RSUniRenderComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer, RSSur
 
         if (newWidth * dstHeight > newHeight * dstWidth) {
             // too wide
-            if (dstHeight == 0) {
-                return;
-            }
             newWidth = dstWidth * newHeight / dstHeight;
         } else if (newWidth * dstHeight < newHeight * dstWidth) {
             // too tall
-            if (dstWidth == 0) {
-                return;
-            }
             newHeight = dstHeight * newWidth / dstWidth;
         } else {
             return;
