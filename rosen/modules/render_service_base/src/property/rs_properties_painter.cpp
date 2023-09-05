@@ -1085,7 +1085,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     }
 #endif
 
-    auto clipIBounds = canvas.getDeviceClipBounds();
+    auto clipIBounds = canvas.getDeviceClipBounds().makeOutset(-1, -1);
     auto imageSnapshot = skSurface->makeImageSnapshot(clipIBounds);
     if (imageSnapshot == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawFilter image null");
@@ -1104,7 +1104,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         canvas.clipIRect(visibleIRect);
     }
     filter->DrawImageRect(
-        canvas, imageSnapshot, SkRect::Make(imageSnapshot->bounds().makeOutset(-1, -1)), SkRect::Make(clipIBounds));
+        canvas, imageSnapshot, SkRect::Make(imageSnapshot->bounds()), SkRect::Make(clipIBounds));
     filter->PostProcess(canvas);
 #endif
 }
