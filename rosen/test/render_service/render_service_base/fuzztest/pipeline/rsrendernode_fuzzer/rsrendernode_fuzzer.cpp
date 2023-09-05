@@ -191,6 +191,7 @@ bool RSDirtyRegionManagerFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     RSDirtyRegionManager manager;
+    manager.Clear();
     int left = GetData<int>();
     int top = GetData<int>();
     int width = GetData<int>();
