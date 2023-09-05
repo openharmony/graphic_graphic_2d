@@ -77,6 +77,7 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK,
     UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK,
     REGISTER_HGM_CFG_CALLBACK,
+    SET_ROTATION_CACHE_ENABLED,
 };
 } // namespace Rosen
 } // namespace OHOS

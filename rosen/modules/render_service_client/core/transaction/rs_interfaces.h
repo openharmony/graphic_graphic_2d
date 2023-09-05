@@ -157,6 +157,10 @@ public:
     void ReportEventComplete(DataBaseRs info);
 
     void ReportEventJankFrame(DataBaseRs info);
+
+    void EnableCacheForRotation();
+
+    void DisableCacheForRotation();
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

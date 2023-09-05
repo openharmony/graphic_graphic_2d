@@ -118,6 +118,15 @@ bool RSSystemProperties::GetDrawTextAsBitmap()
     return {};
 }
 
+void RSSystemProperties::SetCacheEnabledForRotation(bool flag)
+{
+}
+
+bool RSSystemProperties::GetCacheEnabledForRotation()
+{
+    return {};
+}
+
 #ifndef NEW_SKIA
 ReleaseGpuResourceType RSSystemProperties::GetReleaseGpuResourceEnabled()
 {

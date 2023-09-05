@@ -125,6 +125,15 @@ bool RSSystemProperties::GetDrawTextAsBitmap()
     return {};
 }
 
+void RSSystemProperties::SetCacheEnabledForRotation(bool flag)
+{
+}
+
+bool RSSystemProperties::GetCacheEnabledForRotation()
+{
+    return {};
+}
+
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
 {
     return {};

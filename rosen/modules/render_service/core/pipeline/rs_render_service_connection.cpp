@@ -908,5 +908,10 @@ void RSRenderServiceConnection::SetHardwareEnabled(NodeId id, bool isEnabled)
     };
     mainThread_->PostTask(task);
 }
+
+void RSRenderServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
+{
+    RSSystemProperties::SetCacheEnabledForRotation(isEnabled);
+}
 } // namespace Rosen
 } // namespace OHOS

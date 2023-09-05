@@ -407,30 +407,17 @@ DrawCmdList* DrawCmdList::Unmarshalling(Parcel& parcel)
 void DrawCmdList::GenerateCache(const RSPaintFilterCanvas* canvas, const SkRect* rect)
 {
 #ifdef ROSEN_OHOS
-    for (auto& op : ops_) {
-        if (!op) {
+    RS_TRACE_FUNC();
+    for (auto index = 0u; index < ops_.size(); index++) {
+        auto& op = ops_[index];
+        if (op == nullptr) {
             continue;
         }
-        auto bounds = op->GetCacheBounds();
-        if (bounds.has_value() && bounds.value().isEmpty()) {
-            auto task = [&]() {
-                RS_TRACE_FUNC();
-                for (auto index = 0u; index < ops_.size(); index++) {
-                    auto& op = ops_[index];
-                    if (op == nullptr) {
-                        continue;
-                    }
-                    if (auto cached_op = op->GenerateCachedOpItem(nullptr, nullptr)) {
-                        std::lock_guard<std::mutex> lock(mutex_);
-                        // backup the original op and position
-                        opReplacedByCache_.emplace_back(index, op.release());
-                        // replace the original op with the cached op
-                        op.reset(cached_op.release());
-                    }
-                }
-            };
-            OpItemTasks::Instance().AddTask(task);
-            break;
+        if (auto cached_op = op->GenerateCachedOpItem(canvas, rect)) {
+            // backup the original op and position
+            opReplacedByCache_.emplace_back(index, op.release());
+            // replace the original op with the cached op
+            op.reset(cached_op.release());
         }
     }
     isCached_ = true;

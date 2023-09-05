@@ -358,5 +358,15 @@ void RSInterfaces::ReportEventJankFrame(DataBaseRs info)
 {
     renderServiceClient_->ReportEventJankFrame(info);
 }
+
+void RSInterfaces::EnableCacheForRotation()
+{
+    renderServiceClient_->SetCacheEnabledForRotation(true);
+}
+
+void RSInterfaces::DisableCacheForRotation()
+{
+    renderServiceClient_->SetCacheEnabledForRotation(false);
+}
 } // namespace Rosen
 } // namespace OHOS

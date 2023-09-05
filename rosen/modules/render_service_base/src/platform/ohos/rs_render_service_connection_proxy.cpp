@@ -1424,5 +1424,24 @@ void RSRenderServiceConnectionProxy::SetHardwareEnabled(NodeId id, bool isEnable
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetHardwareEnabled: Send Request err.");
     }
 }
+
+void RSRenderServiceConnectionProxy::SetCacheEnabledForRotation(bool isEnabled)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    if (!data.WriteBool(isEnabled)) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROTATION_CACHE_ENABLED);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetCacheEnabledForRotation: Send Request err.");
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
