@@ -151,12 +151,17 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
     GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId, GL_RGBA8 };
     GrBackendTexture backendTexture(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(),
         GrMipMapped::kNo, grExternalTextureInfo);
+#ifndef ROSEN_EMULATOR
+    auto surfaceOrigin = kTopLeft_GrSurfaceOrigin;
+#else
+    auto surfaceOrigin = kBottomLeft_GrSurfaceOrigin;
+#endif
 #ifdef NEW_SKIA
     return SkImage::MakeFromTexture(canvas.recordingContext(), backendTexture,
-        kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
+        surfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
 #else
     return SkImage::MakeFromTexture(canvas.getGrContext(), backendTexture,
-        kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
+        surfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
 #endif
 #else
     Drawing::ColorType colorType = (buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?

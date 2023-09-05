@@ -35,6 +35,10 @@ if (rosen_cross_platform) {
   ]
 }
 
+if (is_emulator) {
+  rs_common_define += [ "ROSEN_EMULATOR" ]
+}
+
 if (rosen_preview) {
   rs_common_define += [ "ROSEN_PREVIEW" ]
 }
