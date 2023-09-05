@@ -39,7 +39,6 @@ void RSSubThreadManager::Start(RenderContext *context)
     }
     renderContext_ = context;
     if (context) {
-
         for (uint32_t i = 0; i < SUB_THREAD_NUM; ++i) {
             auto curThread = std::make_shared<RSSubThread>(context, i);
             auto tid = curThread->Start();
