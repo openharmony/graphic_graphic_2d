@@ -36,7 +36,9 @@ void RSTaskDispatcher::PostTask(pid_t tid, const RSTask& task)
     if (taskDispatchFuncMap_.count(tid)) {
         taskDispatchFuncMap_.at(tid)(task);
     } else {
-        RS_LOGE("RSTaskDispatcher::PostTask invalid tid!");
+        if (task) {
+            task();
+        }
     }
 }
 } // namespace Rosen
