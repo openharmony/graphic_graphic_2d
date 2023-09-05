@@ -54,6 +54,7 @@
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_hardware_thread.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_unmarshal_thread.h"
 #include "pipeline/rs_uni_render_engine.h"
 #include "pipeline/rs_uni_render_visitor.h"
@@ -116,7 +117,7 @@ constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
 constexpr uint64_t PERF_PERIOD_BLUR = 80000000;
 constexpr const char* MEM_GPU_TYPE = "gpu";
 constexpr uint64_t PERF_PERIOD_MULTI_WINDOW = 80000000;
-constexpr uint64_t CLEAR_GPU_INTERVAL = 240000;
+constexpr uint64_t CLEAR_GPU_INTERVAL = 40000;
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
 constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
@@ -246,6 +247,10 @@ void RSMainThread::Init()
 #endif
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
+    auto taskDispatchFunc = [](const RSTaskDispatcher::RSTask& task) {
+        RSMainThread::Instance()->PostTask(task);
+    };
+    RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), taskDispatchFunc);
     RsFrameReport::GetInstance().Init();
     if (isUniRender_) {
         unmarshalBarrierTask_ = [this]() {
@@ -1428,6 +1433,8 @@ void RSMainThread::CalcOcclusion()
             }
             surface->CleanDstRectChanged();
             surface->CleanAlphaChanged();
+            surface->CleanOpaqueRegionChanged();
+            surface->CleanDirtyRegionUpdated();
         }
     }
     if (!winDirty) {
@@ -1611,7 +1618,6 @@ void RSMainThread::Animate(uint64_t timestamp)
         auto [hasRunningAnimation, nodeNeedRequestNextVsync] = node->Animate(timestamp);
         if (!hasRunningAnimation) {
             RS_LOGD("RSMainThread::Animate removing finished animating node %{public}" PRIu64, node->GetId());
-            node->SetSharedTransitionParam(std::nullopt);
         }
         // request vsync if: 1. node has running animation, or 2. transition animation just ended
         needRequestNextVsync = needRequestNextVsync || nodeNeedRequestNextVsync || (node.use_count() == 1);

@@ -88,6 +88,33 @@ void RSCanvasRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     visitor->PrepareCanvasRenderNode(*this);
 }
 
+void RSCanvasRenderNode::OnTreeStateChanged()
+{
+    if (!IsOnTheTree()) {
+        // attempt to clear FullChildrenList, to avoid memory leak
+        isFullChildrenListValid_ = false;
+        ClearFullChildrenListIfNeeded();
+
+        if (UNLIKELY(GetSharedTransitionParam().has_value())) {
+            SetSharedTransitionParam(std::nullopt);
+        }
+
+        // clear node groups cache when node is removed from tree
+        if (GetCacheType() == CacheType::CONTENT) {
+            SetCacheType(CacheType::NONE);
+            ClearCacheSurface();
+        }
+    } else {
+        SetDirty();
+    }
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+    if (!IsOnTheTree()) {
+        // clear filter cache when node is removed from tree
+        renderProperties_.ClearFilterCache();
+    }
+#endif
+}
+
 void RSCanvasRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
     std::unique_lock<std::mutex> lock(canvasNodeProcessMutex_);

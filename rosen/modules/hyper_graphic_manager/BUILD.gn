@@ -31,6 +31,9 @@ config("libhyper_graphic_manager_config") {
   ]
 
   cflags = [ "-g3" ]
+  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
+    cflags += [ "-flto=thin" ]
+  }
 }
 
 ohos_shared_library("libhyper_graphic_manager") {

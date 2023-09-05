@@ -22,6 +22,7 @@ ohos_unittest("RSRenderServiceClientAnimationTest") {
 
   sources = [
     "rs_animation_group_test.cpp",
+    "rs_animation_test.cpp",
     "rs_implicit_animator_test.cpp",
     "rs_keyframe_animation_test.cpp",
     "rs_path_animation_test.cpp",
@@ -33,6 +34,10 @@ ohos_unittest("RSRenderServiceClientAnimationTest") {
     ":ui_test",
     "$ace_root:ace_test_config",
     "../../../../../modules/render_service_client:render_service_client_config",
+  ]
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
 
   deps = [

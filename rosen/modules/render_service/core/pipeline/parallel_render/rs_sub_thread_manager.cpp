@@ -14,13 +14,16 @@
  */
 
 #include "rs_sub_thread_manager.h"
+#include <chrono>
 
 #include "common/rs_optional_trace.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_task_dispatcher.h"
 #include "memory/rs_memory_manager.h"
 
 namespace OHOS::Rosen {
 static constexpr uint32_t SUB_THREAD_NUM = 3;
+static constexpr uint32_t WAIT_NODE_TASK_TIMEOUT = 5 * 1000; // 5s
 constexpr const char* RELEASE_RESOURCE = "releaseResource";
 
 RSSubThreadManager* RSSubThreadManager::Instance()
@@ -36,10 +39,16 @@ void RSSubThreadManager::Start(RenderContext *context)
     }
     renderContext_ = context;
     if (context) {
+
         for (uint32_t i = 0; i < SUB_THREAD_NUM; ++i) {
             auto curThread = std::make_shared<RSSubThread>(context, i);
-            curThread->Start();
+            auto tid = curThread->Start();
+            threadIndexMap_.emplace(tid, i);
             threadList_.push_back(curThread);
+            auto taskDispatchFunc = [tid, this](const RSTaskDispatcher::RSTask& task) {
+                RSSubThreadManager::Instance()->PostTask(task, threadIndexMap_[tid]);
+            };
+            RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(tid, taskDispatchFunc);
         }
     }
 }
@@ -102,8 +111,7 @@ void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRend
             RS_OPTIONAL_TRACE_NAME_FMT("SubmitTask skip node: [%s, %llu]", child->GetName().c_str(), child->GetId());
             continue;
         }
-        if (child->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE &&
-            child->IsCurrentFrameStatic() && child->HasCachedTexture()) {
+        if (!child->GetNeedSubmitSubThread()) {
             RS_OPTIONAL_TRACE_NAME_FMT("subThreadNodes : static skip %s", child->GetName().c_str());
             continue;
         }
@@ -177,7 +185,7 @@ void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRend
 void RSSubThreadManager::WaitNodeTask(uint64_t nodeId)
 {
     std::unique_lock<std::mutex> lock(parallelRenderMutex_);
-    cvParallelRender_.wait(lock, [&]() {
+    cvParallelRender_.wait_for(lock, std::chrono::milliseconds(WAIT_NODE_TASK_TIMEOUT), [&]() {
         return !nodeTaskState_[nodeId];
     });
 }

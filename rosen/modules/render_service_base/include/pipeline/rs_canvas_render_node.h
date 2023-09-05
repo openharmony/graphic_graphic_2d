@@ -72,6 +72,8 @@ public:
     {
         return RSRenderNodeType::CANVAS_NODE;
     }
+
+    void OnTreeStateChanged() override;
 private:
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type) const;
     void InternalDrawContent(RSPaintFilterCanvas& canvas);

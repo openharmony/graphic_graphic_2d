@@ -31,14 +31,14 @@ KawaseBlurFilter::KawaseBlurFilter()
 
         half4 main(float2 xy) {
             half4 c = imageInput.eval(xy);
-            c += imageInput.eval(float2(clamp(in_blurOffset.x + xy.x, 1, in_maxSizeXY.x),
-                                        clamp(in_blurOffset.y + xy.y, 1, in_maxSizeXY.y)));
-            c += imageInput.eval(float2(clamp(in_blurOffset.x + xy.x, 1, in_maxSizeXY.x),
-                                        clamp(-in_blurOffset.y + xy.y, 1, in_maxSizeXY.y)));
-            c += imageInput.eval(float2(clamp(-in_blurOffset.x + xy.x, 1, in_maxSizeXY.x),
-                                        clamp(in_blurOffset.y + xy.y, 1, in_maxSizeXY.y)));
-            c += imageInput.eval(float2(clamp(-in_blurOffset.x + xy.x, 1, in_maxSizeXY.x),
-                                        clamp(-in_blurOffset.y + xy.y, 1, in_maxSizeXY.y)));
+            c += imageInput.eval(float2(clamp(in_blurOffset.x + xy.x, 0, in_maxSizeXY.x),
+                                        clamp(in_blurOffset.y + xy.y, 0, in_maxSizeXY.y)));
+            c += imageInput.eval(float2(clamp(in_blurOffset.x + xy.x, 0, in_maxSizeXY.x),
+                                        clamp(-in_blurOffset.y + xy.y, 0, in_maxSizeXY.y)));
+            c += imageInput.eval(float2(clamp(-in_blurOffset.x + xy.x, 0, in_maxSizeXY.x),
+                                        clamp(in_blurOffset.y + xy.y, 0, in_maxSizeXY.y)));
+            c += imageInput.eval(float2(clamp(-in_blurOffset.x + xy.x, 0, in_maxSizeXY.x),
+                                        clamp(-in_blurOffset.y + xy.y, 0, in_maxSizeXY.y)));
             return half4(c.rgb * 0.2, 1.0);
         }
     )");
@@ -106,10 +106,21 @@ bool KawaseBlurFilter::ApplyKawaseBlur(SkCanvas& canvas, const sk_sp<SkImage>& i
         return true;
     }
     auto input = image;
+    auto srcRect = SkIRect::MakeLTRB(src.left(), src.top(), src.right(), src.bottom());
+    if (image->bounds() != srcRect) {
+        if (auto resizedImage = image->makeSubset(srcRect, canvas.recordingContext()->asDirectContext())) {
+            input = resizedImage;
+        } else {
+            ROSEN_LOGE("KawaseBlurFilter::resize image failed, use original image");
+        }
+    }
     ComputeRadiusAndScale(param.radius);
     RS_OPTIONAL_TRACE_BEGIN("ApplyKawaseBlur " + GetDescription());
     int maxPasses = supportLargeRadius ? kMaxPassesLargeRadius : kMaxPasses;
     float dilatedConvolutionFactor = supportLargeRadius ? kDilatedConvolutionLargeRadius : kDilatedConvolution;
+    if (abs(dilatedConvolutionFactor) <= 1e-6) {
+        return false;
+    }
     float tmpRadius = static_cast<float>(blurRadius_) / dilatedConvolutionFactor;
     int numberOfPasses = std::min(maxPasses, std::max(static_cast<int>(ceil(tmpRadius)), 1)); // 1 : min pass num
     float radiusByPasses = tmpRadius / numberOfPasses;
@@ -122,14 +133,14 @@ bool KawaseBlurFilter::ApplyKawaseBlur(SkCanvas& canvas, const sk_sp<SkImage>& i
     SkRuntimeShaderBuilder blurBuilder(blurEffect_);
     blurBuilder.child("imageInput") = input->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, linear, blurMatrix);
     blurBuilder.uniform("in_blurOffset") = SkV2{radiusByPasses * blurScale_, radiusByPasses * blurScale_};
-    blurBuilder.uniform("in_maxSizeXY") = SkV2{width * blurScale_ - 1.f, height * blurScale_ - 1.f};
+    blurBuilder.uniform("in_maxSizeXY") = SkV2{width * blurScale_, height * blurScale_};
     sk_sp<SkImage> tmpBlur(blurBuilder.makeImage(canvas.recordingContext(), nullptr, scaledInfo, false));
     // And now we'll build our chain of scaled blur stages
     for (auto i = 1; i < numberOfPasses; i++) {
         const float stepScale = static_cast<float>(i) * blurScale_;
         blurBuilder.child("imageInput") = tmpBlur->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, linear);
         blurBuilder.uniform("in_blurOffset") = SkV2{radiusByPasses * stepScale, radiusByPasses * stepScale};
-        blurBuilder.uniform("in_maxSizeXY") = SkV2{width * blurScale_ - 1.f, height * blurScale_ - 1.f};
+        blurBuilder.uniform("in_maxSizeXY") = SkV2{width * blurScale_, height * blurScale_};
         tmpBlur = blurBuilder.makeImage(canvas.recordingContext(), nullptr, scaledInfo, false);
     }
     RS_OPTIONAL_TRACE_END();
@@ -141,6 +152,9 @@ bool KawaseBlurFilter::ApplyBlur(SkCanvas& canvas, const sk_sp<SkImage>& image, 
 {
     auto src = param.src;
     auto dst = param.dst;
+    if (abs(blurScale_) <= 1e-6) {
+        return false;
+    }
     float invBlurScale = 1.0f / blurScale_;
     SkSamplingOptions linear(SkFilterMode::kLinear, SkMipmapMode::kNone);
     const auto blurMatrix = GetShaderTransform(&canvas, dst, invBlurScale);
@@ -157,7 +171,8 @@ bool KawaseBlurFilter::ApplyBlur(SkCanvas& canvas, const sk_sp<SkImage>& image, 
         mixBuilder.child("blurredInput") = blurShader;
         mixBuilder.child("originalInput") = image->makeShader(
             SkTileMode::kClamp, SkTileMode::kClamp, linear, inputMatrix);
-        mixBuilder.uniform("mixFactor") = std::min(1.0f, blurRadius_ * 1.f / kMaxCrossFadeRadius);
+        float mixFactor = (abs(kMaxCrossFadeRadius) <= 1e-6) ? 1.f : (blurRadius_ / kMaxCrossFadeRadius);
+        mixBuilder.uniform("mixFactor") = std::min(1.0f, mixFactor);
         paint.setShader(mixBuilder.makeShader(nullptr, image->isOpaque()));
     } else {
         paint.setShader(blurShader);

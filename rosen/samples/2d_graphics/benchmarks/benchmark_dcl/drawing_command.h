@@ -25,6 +25,8 @@ enum class IterateType {
     ITERATE_FRAME,
     ITERATE_OPITEM,
     ITERATE_OPITEM_MANUALLY,
+    REPLAY_MSKP,
+    REPLAY_SKP,
     OTHER,
 };
 class DCLCommand {

@@ -20,6 +20,7 @@
 #include "animation/rs_spring_interpolator.h"
 #include "animation/rs_steps_interpolator.h"
 #include "common/rs_common_def.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -81,6 +82,12 @@ RSAnimationTimingCurve RSAnimationTimingCurve::CreateCubicCurve(float ctrlX1, fl
 RSAnimationTimingCurve RSAnimationTimingCurve::CreateSpringCurve(
     float velocity, float mass, float stiffness, float damping)
 {
+    if (stiffness <= 0.0f || mass * stiffness <= 0.0f) {
+        constexpr float response = 0.55f;
+        constexpr float dampingRatio = 0.825f;
+        ROSEN_LOGE("RSAnimationTimingCurve::CreateSpringCurve, invalid parameters.");
+        return RSAnimationTimingCurve(std::make_shared<RSSpringInterpolator>(response, dampingRatio, velocity));
+    }
     float response = 2 * PI * sqrt(mass / stiffness);
     float dampingRatio = (damping / (2 * sqrt(mass * stiffness)));
     return RSAnimationTimingCurve(std::make_shared<RSSpringInterpolator>(response, dampingRatio, velocity));
@@ -89,6 +96,12 @@ RSAnimationTimingCurve RSAnimationTimingCurve::CreateSpringCurve(
 RSAnimationTimingCurve RSAnimationTimingCurve::CreateInterpolatingSpring(
     float mass, float stiffness, float damping, float velocity)
 {
+    if (stiffness <= 0.0f || mass * stiffness <= 0.0f) {
+        constexpr float response = 0.55f;
+        constexpr float dampingRatio = 0.825f;
+        ROSEN_LOGE("RSAnimationTimingCurve::CreateInterpolatingSpring, invalid parameters.");
+        return RSAnimationTimingCurve(response, dampingRatio, velocity, CurveType::INTERPOLATING_SPRING);
+    }
     float response = 2 * PI * sqrt(mass / stiffness);
     float dampingRatio = (damping / (2 * sqrt(mass * stiffness)));
     return RSAnimationTimingCurve(response, dampingRatio, velocity, CurveType::INTERPOLATING_SPRING);

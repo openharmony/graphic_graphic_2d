@@ -17,17 +17,63 @@
 #include <fcntl.h>
 #include <unique_fd.h>
 
+#include "include/core/SkStream.h"
+#include "src/utils/SkMultiPictureDocumentPriv.h"
+#include "src/utils/SkOSPath.h"
 namespace OHOS {
 namespace Rosen {
+
+MSKPSrc::MSKPSrc(std::string path) : fPath_(path)
+{
+    std::unique_ptr<SkStreamAsset> stream = SkStream::MakeFromFile(fPath_.c_str());
+
+    int count = SkMultiPictureDocumentReadPageCount(stream.get());
+    if (count > 0) {
+        auto deserialContext = std::make_unique<SkSharingDeserialContext>();
+        SkDeserialProcs procs;
+        procs.fImageProc = SkSharingDeserialContext::deserializeImage;
+        procs.fImageCtx = deserialContext.get();
+
+        fPages_.reset(count);
+        SkMultiPictureDocumentRead(stream.get(), &fPages_[0], count, &procs);
+    }
+}
+
+bool MSKPSrc::NextFrame()
+{
+    if (++curFrameNum_ == fPages_.size()) {
+        curFrameNum_ = 0;
+        sleep(1);
+        return false;
+    }
+    return true;
+}
+
+bool MSKPSrc::Draw(SkCanvas* c) const
+{
+    SkRect cullrect = fPages_[curFrameNum_].fPicture.get()->cullRect();
+    std::cout << "cullrect.width()=" << cullrect.width() << "cullrect.width()=" << cullrect.height() << std::endl;
+    c->drawPicture(fPages_[curFrameNum_].fPicture.get());
+    return true;
+}
+
+
 DrawingDCL::DrawingDCL(int32_t argc, char* argv[])
 {
     DCLCommand dclCommand = DCLCommand(argc, argv);
     UpdateParametersFromDCLCommand(dclCommand);
     skiaRecording.InitConfigsFromParam();
+    if (iterateType_ == IterateType::REPLAY_MSKP) {
+        mskpPtr = std::make_unique<MSKPSrc>("/data/OH.mskp");
+    } else if (iterateType_ == IterateType::REPLAY_SKP) {
+        SkFILEStream input("/data/OH.skp");
+        skpPtr = SkPicture::MakeFromStream(&input);
+    }
 }
 
 DrawingDCL::~DrawingDCL()
 {
+    mskpPtr.reset();
     std::cout << "~DrawingDCL" << std::endl;
     delete dcl_;
 }
@@ -53,6 +99,46 @@ bool DrawingDCL::IterateFrame(int &curLoop, int &frame)
     return true;
 }
 
+bool DrawingDCL::ReplayMSKP(SkCanvas* skiaCanvas)
+{
+    std::string tmp;
+    std::cout << "press any key to draw one skp in OH.(begin)" << std::endl;
+    std::string timePrint = "lkx: draw time of frame " + std::to_string(mskpPtr->GetCurFrameNum()) + " is ";
+    if (loop_ == 0) {
+        std::cin>>tmp;
+    }
+    if (beginFrame_ == 1) {
+        std::cout<<"Frame: " << std::to_string(mskpPtr->GetCurFrameNum()) <<" .sleep 4s..."<< std::endl;
+        sleep(opItemStep_);
+    }
+    auto start = std::chrono::system_clock::now();
+    mskpPtr->Draw(skiaCanvas);
+    PrintDurationTime(timePrint, start);
+    if (beginFrame_ == 1) {
+        std::cout<<"Frame: " << std::to_string(mskpPtr->GetCurFrameNum()) <<" .sleep 4s again..."<< std::endl;
+        sleep(opItemStep_);
+    }
+    std::cout << "press any key to draw one skp in OH.(end)" << std::endl;
+    if (loop_ == 0) {
+        std::cin>>tmp;
+    }
+    return mskpPtr->NextFrame();
+}
+
+void DrawingDCL::ReplaySKP(SkCanvas *skiaCanvas)
+{
+    static int frameNum = 0;
+    std::cout << "repaly skp. the " << frameNum << "times" << std::endl;
+    std::string tmp;
+    std::cout << "press any key to draw one frame.(begin)" << std::endl;
+    std::cin >> tmp;
+    auto start = std::chrono::system_clock::now();
+    skiaCanvas->drawPicture(skpPtr);
+    std::cout << "press any key to draw one frame.(end)" << std::endl;
+    PrintDurationTime("The frame PlayBack time is ", start);
+    std::cin >> tmp;
+}
+
 bool DrawingDCL::PlayBackByFrame(SkCanvas* skiaCanvas, bool isDumpPictures)
 {
     //read DrawCmdList from file
@@ -71,10 +157,14 @@ bool DrawingDCL::PlayBackByFrame(SkCanvas* skiaCanvas, bool isDumpPictures)
         return false;
     }
     PrintDurationTime("Load DrawCmdList file time is ", start);
+    //std::string tmp;
+    //std::cout << "press any key to draw one frame.(begin)" << std::endl;
+    //std::cin>>tmp;
     start = std::chrono::system_clock::now();
     dcl_->Playback(*skiaCanvas);
+    //std::cout << "press any key to draw one frame.(end)" << std::endl;
     PrintDurationTime("The frame PlayBack time is ", start);
-
+    //std::cin>>tmp;
     return IterateFrame(curLoop, frame);
 }
 
@@ -159,7 +249,7 @@ bool DrawingDCL::GetDirectionAndStep(std::string command, bool &isMoreOps)
 
 void DrawingDCL::UpdateParametersFromDCLCommand(const DCLCommand &dclCommand)
 {
-    iterateType = dclCommand.iterateType_;
+    iterateType_ = dclCommand.iterateType_;
     beginFrame_ = dclCommand.beginFrame_;
     endFrame_ = dclCommand.endFrame_;
     loop_ = dclCommand.loop_;
@@ -190,7 +280,7 @@ void DrawingDCL::Test(SkCanvas* canvas, int width, int height)
         canvas = skiaRecording.BeginCapture(canvas, width, height);
     }
     auto start = std::chrono::system_clock::now();
-    switch (iterateType) {
+    switch (iterateType_) {
         case IterateType::ITERATE_FRAME:
             UpdateParameters(PlayBackByFrame(canvas));
             break;
@@ -210,6 +300,13 @@ void DrawingDCL::Test(SkCanvas* canvas, int width, int height)
             UpdateParameters(PlayBackByOpItem(canvas, isMoreOps));
             break;
         }
+        case IterateType::REPLAY_MSKP:
+            std::cout << "replay mskp... " << std::endl;
+            UpdateParameters(ReplayMSKP(canvas) || (beginFrame_ == 1));
+            break;
+        case IterateType::REPLAY_SKP:
+            ReplaySKP(canvas);
+            break;
         case IterateType::OTHER:
             std::cout << "Unknown iteratetype, please reenter parameters!" << std::endl;
             break;

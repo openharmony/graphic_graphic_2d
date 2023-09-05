@@ -200,6 +200,7 @@ public:
     RectI GetOldDirty() const;
     RectI GetOldDirtyInSurface() const;
     bool IsDirtyRegionUpdated() const;
+    void CleanDirtyRegionUpdated();
 
     void AddModifier(const std::shared_ptr<RSRenderModifier>& modifier);
     void RemoveModifier(const PropertyId& id);
@@ -437,6 +438,8 @@ protected:
     bool isOnTheTree_ = false;
 
     std::unordered_set<RSModifierType> dirtyTypes_;
+    bool isFullChildrenListValid_ = false;
+    RSProperties renderProperties_;
 
 private:
     NodeId id_;
@@ -452,7 +455,6 @@ private:
     std::list<std::pair<SharedPtr, uint32_t>> disappearingChildren_;
 
     std::list<SharedPtr> fullChildrenList_;
-    bool isFullChildrenListValid_ = false;
     bool isChildrenSorted_ = false;
     void GenerateFullChildrenList(bool inSubThread);
     void SortChildren(bool inSubThread);
@@ -487,7 +489,6 @@ private:
     uint32_t disappearingTransitionCount_ = 0;
     RectI oldDirty_;
     RectI oldDirtyInSurface_;
-    RSProperties renderProperties_;
     RSAnimationManager animationManager_;
     std::map<PropertyId, std::shared_ptr<RSRenderModifier>> modifiers_;
     // bounds and frame modifiers must be unique

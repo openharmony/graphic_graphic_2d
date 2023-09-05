@@ -119,14 +119,16 @@ void RSDrivenRenderManager::DoPrepareRenderTask(const DrivenPrepareInfo& info)
     RSBaseRenderNode::SharedPtr currContent = nullptr;
     DrivenDirtyType dirtyType = info.dirtyInfo.type;
 
-    RS_OPTIONAL_TRACE_NAME("RSDrivenRender:DoPrepareRenderTask backgroundDirty: " +
-        std::to_string(static_cast<int>(backgroundDirty)) +
-        ", contentDirty: " + std::to_string(static_cast<int>(contentDirty)) +
-        ", nonContentDirty: " + std::to_string(static_cast<int>(nonContentDirty)) +
-        ", dirtyType: " + std::to_string(static_cast<int>(dirtyType)) +
-        ", hasInvalidScene: " + std::to_string(static_cast<int>(info.hasInvalidScene)) +
-        ", hasDrivenNodeOnUniTree: " + std::to_string(static_cast<int>(info.hasDrivenNodeOnUniTree)) +
-        ", isValidSurface: " + std::to_string(static_cast<int>(isValidSurface)));
+    if (OHOS::Rosen::RSSystemProperties::GetDebugTraceEnabled()) {
+        RS_TRACE_NAME("RSDrivenRender:DoPrepareRenderTask backgroundDirty: " +
+            std::to_string(static_cast<int>(backgroundDirty)) +
+            ", contentDirty: " + std::to_string(static_cast<int>(contentDirty)) +
+            ", nonContentDirty: " + std::to_string(static_cast<int>(nonContentDirty)) +
+            ", dirtyType: " + std::to_string(static_cast<int>(dirtyType)) +
+            ", hasInvalidScene: " + std::to_string(static_cast<int>(info.hasInvalidScene)) +
+            ", hasDrivenNodeOnUniTree: " + std::to_string(static_cast<int>(info.hasDrivenNodeOnUniTree)) +
+            ", isValidSurface: " + std::to_string(static_cast<int>(isValidSurface)));
+    }
 
     if (!info.hasInvalidScene && info.hasDrivenNodeOnUniTree &&
         dirtyType != DrivenDirtyType::INVALID && isValidSurface) {

@@ -128,9 +128,15 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const RSSurfaceR
 
         if (newWidth * boundsHeight > newHeight * boundsWidth) {
             // too wide
+            if (boundsHeight == 0) {
+                return;
+            }
             newWidth = boundsWidth * newHeight / boundsHeight;
         } else if (newWidth * boundsHeight < newHeight * boundsWidth) {
             // too tall
+            if (boundsWidth == 0) {
+                return;
+            }
             newHeight = boundsHeight * newWidth / boundsWidth;
         } else {
             return;
@@ -358,6 +364,9 @@ void RSUniRenderUtil::DrawCachedImage(RSSurfaceRenderNode& node, RSPaintFilterCa
     if (image == nullptr) {
         return;
     }
+    if (image->width() == 0 || image->height() == 0) {
+        return;
+    }
     canvas.save();
     canvas.scale(node.GetRenderProperties().GetBoundsWidth() / image->width(),
         node.GetRenderProperties().GetBoundsHeight() / image->height());
@@ -374,6 +383,9 @@ void RSUniRenderUtil::DrawCachedImage(RSSurfaceRenderNode& node, RSPaintFilterCa
     std::shared_ptr<Drawing::Image> image)
 {
     if (image == nullptr) {
+        return;
+    }
+    if (image->GetWidth() == 0 || image->GetHeight() == 0) {
         return;
     }
     canvas.Save();
@@ -534,7 +546,8 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         }
     }
     // trace info for assign window nodes
-    if (Rosen::RSSystemProperties::GetDebugTraceEnabled()) {
+    bool debugTraceEnable = Rosen::RSSystemProperties::GetDebugTraceEnabled();
+    if (debugTraceEnable) {
         logInfo += "{ isScale: " + std::to_string(isScale) + ", " +
             "leashWindowCount: " + std::to_string(leashWindowCount) + ", " +
             "isRotation: " + std::to_string(isRotation) + " }; " +
@@ -547,7 +560,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
             continue;
         }
         // trace info for assign window nodes
-        if (Rosen::RSSystemProperties::GetDebugTraceEnabled()) {
+        if (debugTraceEnable) {
             logInfo += "node:[ " + node->GetName() + ", " + std::to_string(node->GetId()) + " ]" +
                 "( " + std::to_string(static_cast<uint32_t>(node->GetCacheSurfaceProcessedStatus())) + ", " +
                 std::to_string(node->HasFilter()) + ", " + std::to_string(node->HasAbilityComponent()) + " ); ";
@@ -623,6 +636,7 @@ void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRen
         ROSEN_LOGW("RSUniRenderUtil::AssignSubThreadNode node is nullptr");
         return;
     }
+    node->SetNeedSubmitSubThread(true);
     if (deviceType == DeviceType::PC || deviceType == DeviceType::TABLET) {
         node->SetCacheType(CacheType::ANIMATE_PROPERTY);
     } else {
@@ -633,6 +647,7 @@ void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRen
     // skip complete static window, DO NOT assign it to subthread.
     if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE &&
         node->IsCurrentFrameStatic() && node->HasCachedTexture()) {
+        node->SetNeedSubmitSubThread(false);
         RS_OPTIONAL_TRACE_NAME_FMT("subThreadNodes : static skip %s", node->GetName().c_str());
     } else {
         node->UpdateCacheSurfaceDirtyManager(2); // 2 means buffer age
@@ -642,10 +657,16 @@ void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRen
     if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE &&
         node->GetCacheSurface(UNI_MAIN_THREAD_INDEX, false) && node->GetCacheSurfaceNeedUpdated()) {
         node->UpdateCompletedCacheSurface();
-        for (auto& child : node->GetSortedChildren()) {
-            auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
-            if (surfaceNode && surfaceNode->IsAppWindow()) {
-                surfaceNode->GetDirtyManager()->MergeDirtyRect(surfaceNode->GetOldDirty());
+        if (node->IsAppWindow() &&
+            !RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node->GetParent().lock())) {
+            node->GetDirtyManager()->MergeDirtyRect(node->GetOldDirty());
+        } else {
+            for (auto& child : node->GetSortedChildren()) {
+                auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+                if (surfaceNode && surfaceNode->IsAppWindow()) {
+                    surfaceNode->GetDirtyManager()->MergeDirtyRect(surfaceNode->GetOldDirty());
+                    break;
+                }
             }
         }
         node->SetCacheSurfaceNeedUpdated(false);

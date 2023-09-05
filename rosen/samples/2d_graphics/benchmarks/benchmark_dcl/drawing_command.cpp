@@ -82,6 +82,12 @@ void DCLCommand::HandleCommandIterateType(const std::string& inputStr)
         case static_cast<int>(IterateType::ITERATE_OPITEM_MANUALLY):
             iterateType_ = IterateType::ITERATE_OPITEM_MANUALLY;
             break;
+        case static_cast<int>(IterateType::REPLAY_MSKP):
+            iterateType_ = IterateType::REPLAY_MSKP;
+            break;
+        case static_cast<int>(IterateType::REPLAY_SKP):
+            iterateType_ = IterateType::REPLAY_SKP;
+            break;
         default:
             std::cout <<"Wrong Parameter: iterateType" << std::endl;
             return;

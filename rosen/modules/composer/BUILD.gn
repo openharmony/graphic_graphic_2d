@@ -24,6 +24,9 @@ config("composer_config") {
     "-Werror",
     "-g3",
   ]
+  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
+    cflags += [ "-flto=thin" ]
+  }
 }
 
 config("composer_public_config") {
@@ -71,12 +74,18 @@ ohos_shared_library("libcomposer") {
 
   external_deps = [
     "c_utils:utils",
-    "drivers_interface_display:display_buffer_idl_headers",
-    "drivers_interface_display:display_composer_idl_headers",
-    "drivers_interface_display:libdisplay_composer_hdi_impl",
     "hilog:libhilog",
     "ipc:ipc_core",
   ]
+
+  if (graphic_2d_feature_drivers_interface_display_enable) {
+    external_deps += [
+      "drivers_interface_display:display_buffer_idl_headers",
+      "drivers_interface_display:display_composer_idl_headers",
+      "drivers_interface_display:libdisplay_composer_hdi_impl",
+    ]
+    defines += [ "DRIVERS_INTERFACE_DISPLAY_ENABLE" ]
+  }
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

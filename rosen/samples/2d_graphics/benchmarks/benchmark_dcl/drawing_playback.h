@@ -27,9 +27,32 @@
 #include "benchmark.h"
 #include "drawing_command.h"
 #include "skia_recording.h"
+#include "include/core/SkBBHFactory.h"
+#include "include/core/SkBitmap.h"
+#include "include/core/SkCanvas.h"
+#include "include/core/SkData.h"
+#include "include/core/SkPicture.h"
+#include "src/utils/SkMultiPictureDocument.h"
+#include "tools/flags/CommonFlagsConfig.h"
+#include "tools/gpu/MemoryCache.h"
+#include "src/utils/SkOSPath.h"
 
 namespace OHOS {
 namespace Rosen {
+class MSKPSrc {
+public:
+    explicit MSKPSrc(std::string path);
+
+    bool Draw(SkCanvas* c) const;
+    bool NextFrame();
+    SkString Name() const { return SkOSPath::Basename(fPath_.c_str()); }
+    int GetCurFrameNum() const { return curFrameNum_; }
+private:
+    uint16_t curFrameNum_ = 0;
+    std::string fPath_;
+    mutable SkTArray<SkDocumentPage> fPages_;
+};
+
 class DrawingDCL : public BenchMark {
 public:
     DrawingDCL() { std::cout << "DrawingDCL" << std::endl; }
@@ -37,6 +60,8 @@ public:
     ~DrawingDCL();
     bool GetDirectionAndStep(std::string command, bool &isMoreOps);
     bool IterateFrame(int &curLoop, int &frame);
+    bool ReplayMSKP(SkCanvas *skiaCanvas);
+    void ReplaySKP(SkCanvas *skiaCanvas);
     bool PlayBackByFrame(SkCanvas *skiaCanvas, bool isDumpPictures = false);
     bool PlayBackByOpItem(SkCanvas *skiaCanvas, bool isMoreOps = true);
     void UpdateParameters(bool notNeeded);
@@ -55,14 +80,16 @@ private:
     const static size_t recordingParcelMaxCapcity_ = 234 * 1000 * 1024;
     inline const static std::string dclFileDir_ = "/data/";
     DrawCmdList* dcl_ = nullptr;
-    IterateType iterateType = IterateType::ITERATE_FRAME;
+    IterateType iterateType_ = IterateType::ITERATE_FRAME;
     int beginFrame_ = 0;
     int endFrame_ = 100;
     int loop_ = 1;
-    double opItemStep_ = 1;
+    double opItemStep_ = 4;
     std::string inputFilePath_ = "/data/lkx/";
     std::string outputFilePath_ = "/data/lkx/";
     SkiaRecording skiaRecording;
+    std::unique_ptr<MSKPSrc> mskpPtr;
+    sk_sp<SkPicture> skpPtr;
 };
 }
 }

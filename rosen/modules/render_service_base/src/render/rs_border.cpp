@@ -179,9 +179,15 @@ void SetBorderEffect(Drawing::Pen& pen, BorderStyle style, float width, float sp
             float count = borderLength / width;
             float leftLen = fmod((count - DASHED_LINE_LENGTH), (DASHED_LINE_LENGTH + 1));
             if (leftLen > DASHED_LINE_LENGTH - 1) {
+                if (static_cast<int>((count - DASHED_LINE_LENGTH) / (DASHED_LINE_LENGTH + 1) + 2) == 0) {
+                    return;
+                }
                 delLen = (DASHED_LINE_LENGTH + 1 - leftLen) * width /
                          static_cast<int>((count - DASHED_LINE_LENGTH) / (DASHED_LINE_LENGTH + 1) + 2);
             } else {
+                if (static_cast<int>((count - DASHED_LINE_LENGTH) / (DASHED_LINE_LENGTH + 1)) == 0) {
+                    return;
+                }
                 addLen = leftLen * width / static_cast<int>((count - DASHED_LINE_LENGTH) / (DASHED_LINE_LENGTH + 1));
             }
         }
@@ -271,10 +277,14 @@ bool RSBorder::ApplyLineStyle(Drawing::Pen& pen, int borderIdx, float length) co
         return false;
     }
     float borderWidth = GetWidth(borderIdx);
-    float addLen = (GetStyle(borderIdx) != BorderStyle::DOTTED) ? 0.0f : 0.5f;
+    BorderStyle borderStyle = GetStyle(borderIdx);
+    float addLen = (borderStyle != BorderStyle::DOTTED) ? 0.0f : 0.5f;
     auto borderLength = length - borderWidth * addLen * PARAM_DOUBLE;
+    if (ROSEN_EQ(borderWidth, 0.f)) {
+        return false;
+    }
     int32_t rawNumber = borderLength / (PARAM_DOUBLE * borderWidth);
-    if (rawNumber == 0) {
+    if (borderStyle == BorderStyle::DOTTED && rawNumber == 0) {
         return false;
     }
 

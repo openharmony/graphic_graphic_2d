@@ -1552,7 +1552,7 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaint
         if (hasClipToBounds) {
             canvas.drawPaint(paint);
         } else {
-            canvas.drawRRect(RRect2SkRRect(properties.GetRRect()), paint);
+            canvas.drawRRect(RRect2SkRRect(properties.GetInnerRRect()), paint);
         }
     }
     if (const auto& bgShader = properties.GetBackgroundShader()) {
@@ -2085,8 +2085,9 @@ void RSPropertiesPainter::DrawColorFilter(const RSProperties& properties, RSPain
         ROSEN_LOGE("RSPropertiesPainter::DrawColorFilter image is null");
         return;
     }
-    SkSamplingOptions options;
-    canvas.drawImageRect(imageSnapshot, Rect2SkRect(properties.GetBoundsRect()), options, &paint);
+    canvas.resetMatrix();
+    SkSamplingOptions options(SkFilterMode::kNearest, SkMipmapMode::kNone);
+    canvas.drawImageRect(imageSnapshot, SkRect::Make(clipBounds), options, &paint);
 #endif
 }
 

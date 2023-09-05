@@ -27,9 +27,9 @@ bool SkiaRecording::GetCaptureEnabled() const
 
 void SkiaRecording::InitConfigsFromParam()
 {
-    captureEnabled_ = std::stoi(system::GetParameter("debug.graphic.skpcapture.enabled", "0"));
+    captureEnabled_ = std::stoi(system::GetParameter("skpcapture.enabled", "0"));
     if (captureEnabled_) {
-        captureFrameNum_ = std::stoi(system::GetParameter("debug.graphic.skpcapture.frameNum", "0"));
+        captureFrameNum_ = std::stoi(system::GetParameter("skpcapture.frameNum", "0"));
         if (captureFrameNum_ < 1) {
             captureMode_ = SkiaCaptureMode::NONE;
         } else if (captureFrameNum_ == 1) {
@@ -37,7 +37,7 @@ void SkiaRecording::InitConfigsFromParam()
         } else {
             captureMode_ = SkiaCaptureMode::MULTI_FRAME;
         }
-        captureFileName_ = system::GetParameter("debug.graphic.skpcapture.path", "");
+        captureFileName_ = system::GetParameter("skpcapture.path", "");
         std::string fileExtension = ".skp";
         if (captureFileName_.rfind(fileExtension) == (captureFileName_.size() - fileExtension.size())) {
             captureMode_ = SkiaCaptureMode::SINGLE_FRAME;
