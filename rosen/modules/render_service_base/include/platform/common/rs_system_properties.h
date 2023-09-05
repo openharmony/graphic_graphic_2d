@@ -133,6 +133,8 @@ public:
     static int GetFilterCacheUpdateInterval();
     static int GetFilterCacheSizeThreshold();
     static bool GetKawaseEnabled();
+    static float GetKawaseRandomColorFactor();
+    static bool GetRandomColorEnabled();
     static bool GetKawaseOriginalEnabled();
     static bool GetBlurEnabled();
     static bool GetSkipForAlphaZeroEnabled();

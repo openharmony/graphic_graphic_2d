@@ -205,6 +205,16 @@ bool RSSystemProperties::GetKawaseEnabled()
     return false;
 }
 
+float RSSystemProperties::GetKawaseRandomColorFactor()
+{
+    return 0.f;
+}
+
+bool RSSystemProperties::GetRandomColorEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetKawaseOriginalEnabled()
 {
     return false;
