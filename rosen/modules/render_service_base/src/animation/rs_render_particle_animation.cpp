@@ -45,7 +45,7 @@ bool RSRenderParticleAnimation::Animate(int64_t time)
         property->Set(renderParticleVector_);
     }
     auto target = GetTarget();
-    if (renderParticleVector_.GetParticleSize() == 0 && particleSystem_->IsFinish()) {
+    if (particleSystem_ == nullptr || particleSystem_->IsFinish()) {
         if (target) {
             target->RemoveModifier(property_->GetId());
             return true;
