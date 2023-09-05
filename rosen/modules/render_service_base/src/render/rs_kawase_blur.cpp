@@ -94,7 +94,7 @@ void KawaseBlurFilter::CheckInputImage(SkCanvas& canvas, const sk_sp<SkImage>& i
     if (image->bounds() != srcRect) {
         if (auto resizedImage = image->makeSubset(srcRect, canvas.recordingContext()->asDirectContext())) {
             checkedImage = resizedImage;
-            ROSEN_LOGD("KawaseBlurFilter:: resize image success");
+            ROSEN_LOGD("KawaseBlurFilter::resize image success");
         } else {
             ROSEN_LOGE("KawaseBlurFilter::resize image failed, use original image");
         }
