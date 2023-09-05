@@ -304,12 +304,16 @@ bool RSSystemProperties::GetKawaseEnabled()
 
 float RSSystemProperties::GetKawaseRandomColorFactor()
 {
-    return std::atof((system::GetParameter("persist.sys.graphic.kawaseFactor", "1.75")).c_str());
+    static float randomFactor =
+        std::atof((system::GetParameter("persist.sys.graphic.kawaseFactor", "1.75")).c_str());
+    return randomFactor;
 }
 
 bool RSSystemProperties::GetRandomColorEnabled()
 {
-    return std::atoi((system::GetParameter("persist.sys.graphic.randomColorEnable", "1")).c_str()) != 0;
+    static bool randomColorEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.randomColorEnable", "1")).c_str()) != 0;
+    return randomColorEnabled;
 }
 
 bool RSSystemProperties::GetKawaseOriginalEnabled()
