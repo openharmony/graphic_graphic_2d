@@ -27,7 +27,6 @@
 #include "buffer_queue_consumer.h"
 #include "surface_buffer.h"
 
-struct NativeWindow;
 namespace OHOS {
 class ProducerSurface : public Surface {
 public:
@@ -119,10 +118,9 @@ public:
     GSError SetDefaultColorGamut(int32_t colorGamut) override;
 
     sptr<NativeSurface> GetNativeSurface() override;
-    GSError SetWptrNativeWindowToPSurface(void* nativeWindow) override;
+
 private:
     bool IsRemote();
-    void CleanAllLocked();
 
     std::mutex mutex_;
     std::atomic_bool inited_ = false;
@@ -133,7 +131,6 @@ private:
     uint64_t queueId_ = 0;
     bool isDisconnected = true;
     sptr<IProducerListener> listener_;
-    wptr<NativeWindow> wpNativeWindow_ = nullptr;
 };
 } // namespace OHOS
 
