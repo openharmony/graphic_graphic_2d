@@ -169,6 +169,12 @@ void TextBreaker::GenerateSpan(const CharGroups &currentCgs, const TypographySty
     newSpan->postBreak_ = postBreak_;
     newSpan->preBreak_ = preBreak_;
     newSpan->typeface_ = currentCgs.Get(0).typeface;
+    double spanWidth = 0.0;
+    for (const auto &cg : currentCgs) {
+        spanWidth += cg.GetWidth();
+    }
+    newSpan->width_ = spanWidth;
+
 
     for ([[maybe_unused]] const auto &cg : currentCgs) {
         assert(cg.typeface == newSpan->typeface_);

@@ -45,6 +45,11 @@ std::vector<VariantSpan> BidiProcesser::ProcessBidiText(const std::vector<Varian
             ts->rtl_ = nsi.rtl;
             VariantSpan vs(ts->CloneWithCharGroups(nsi.cgs));
             vs.SetTextStyle(span.GetTextStyle());
+            double spanWidth = 0.0;
+            for (const auto &cg : nsi.cgs) {
+                spanWidth += cg.GetWidth();
+            }
+            vs.TryToTextSpan()->width_ = spanWidth;
             newSpans.push_back(vs);
         }
     }
