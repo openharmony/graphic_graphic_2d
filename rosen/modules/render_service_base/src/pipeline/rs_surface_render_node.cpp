@@ -251,11 +251,11 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
     RSRenderNode::OnTreeStateChanged();
 #ifdef RS_ENABLE_GL
     if (grContext_ && !IsOnTheTree() && IsLeashWindow()) {
-#ifndef USE_ROSEN_DRAWING
-        RS_TRACE_NAME_FMT("purgeUnlockedResources this SurfaceNode isn't on the tree Id:%" PRIu64 " Name:%s",
+        RS_TRACE_NAME_FMT("need purgeUnlockedResources this SurfaceNode isn't on the tree Id:%" PRIu64 " Name:%s",
             GetId(), GetName().c_str());
-        grContext_->purgeUnlockedResources(true);
-#endif
+        if (auto context = GetContext().lock()) {
+            context->MarkNeedPurge();
+        }
     }
 #endif
 }

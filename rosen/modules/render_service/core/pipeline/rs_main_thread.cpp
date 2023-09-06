@@ -471,6 +471,17 @@ void RSMainThread::ProcessCommand()
     } else {
         ProcessCommandForDividedRender();
     }
+    if (context_->needPurge_) {
+#ifdef NEW_RENDER_CONTEXT
+        auto grContext = GetRenderEngine()->GetDrawingContext()->GetDrawingContext();
+#else
+        auto grContext = GetRenderEngine()->GetRenderContext()->GetGrContext();
+#endif
+        if (grContext) {
+            grContext->purgeUnlockedResources(true);
+        }
+        context_->needPurge_ = false;
+    }
     if (RsFrameReport::GetInstance().GetEnable()) {
         RsFrameReport::GetInstance().AnimateStart();
     }
