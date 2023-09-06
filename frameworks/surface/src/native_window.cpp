@@ -109,6 +109,7 @@ int32_t NativeWindowRequestBuffer(OHNativeWindow *window,
         window->bufferCache_[seqNum] = nwBuffer;
     } else {
         *buffer = window->bufferCache_[seqNum];
+        (*buffer)->uiTimestamp = window->uiTimestamp;
     }
     *fenceFd = releaseFence->Dup();
     return OHOS::GSERROR_OK;
