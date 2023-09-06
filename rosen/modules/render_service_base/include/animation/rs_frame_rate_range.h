@@ -68,7 +68,7 @@ public:
         this->preferred_ = preferred;
     }
 
-    void Merge(FrameRateRange other)
+    void Merge(const FrameRateRange& other)
     {
         if (this->preferred_ < other.preferred_) {
             this->Set(other.min_, other.max_, other.preferred_);

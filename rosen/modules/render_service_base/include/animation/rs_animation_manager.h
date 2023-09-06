@@ -59,7 +59,7 @@ public:
     void UnregisterPathAnimation(PropertyId propertyId, AnimationId animId);
     std::shared_ptr<RSRenderAnimation> QueryPathAnimation(PropertyId propertyId);
 
-    FrameRateRange GetFrameRateRangeFromRSAnimations();
+    const FrameRateRange& GetFrameRateRangeFromRSAnimations() const;
 
 private:
     void OnAnimationFinished(const std::shared_ptr<RSRenderAnimation>& animation);

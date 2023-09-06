@@ -2263,18 +2263,18 @@ void RSMainThread::CollectFrameRateRange(std::shared_ptr<RSRenderNode> node)
     //[Planning]: Support multi-display in the future.
     frameRateRangeData_->screenId = 0;
     pid_t nodePid = ExtractPid(node->GetId());
-    auto currRange = node->GetUIFrameRateRange();
-    if (currRange.IsValid()) {
+    auto& uiCurrRange = node->GetUIFrameRateRange();
+    if (uiCurrRange.IsValid()) {
         if (frameRateRangeData_->multiAppRange.count(nodePid)) {
-            frameRateRangeData_->multiAppRange[nodePid].Merge(currRange);
+            frameRateRangeData_->multiAppRange[nodePid].Merge(uiCurrRange);
         } else {
-            frameRateRangeData_->multiAppRange.insert(std::make_pair(nodePid, currRange));
+            frameRateRangeData_->multiAppRange.insert(std::make_pair(nodePid, uiCurrRange));
         }
     }
 
-    currRange = node->GetRSFrameRateRange();
-    if (currRange.IsValid()) {
-        frameRateRangeData_->rsRange.Merge(currRange);
+    auto& rsCurrRange = node->GetRSFrameRateRange();
+    if (rsCurrRange.IsValid()) {
+        frameRateRangeData_->rsRange.Merge(rsCurrRange);
     }
     node->ResetUIFrameRateRange();
     node->ResetRSFrameRateRange();

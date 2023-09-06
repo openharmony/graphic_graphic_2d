@@ -41,7 +41,7 @@ public:
     bool Animate(int64_t time);
     void Draw();
 
-    FrameRateRange GetUIFrameRateRange();
+    const FrameRateRange& GetUIFrameRateRange() const;
 
 private:
     void OnAnimationFinished(const std::shared_ptr<RSRenderAnimation>& animation);

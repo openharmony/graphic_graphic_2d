@@ -99,7 +99,7 @@ public:
 
     static void RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId);
     static void UnregisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId);
-    static void UpdateUIFrameRateRange(RSContext& context, NodeId nodeId, FrameRateRange range);
+    static void UpdateUIFrameRateRange(RSContext& context, NodeId nodeId, const FrameRateRange& range);
 };
 
 ADD_COMMAND(RSAddModifier,

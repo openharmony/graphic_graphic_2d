@@ -28,7 +28,6 @@ HgmCore& HgmCore::Instance()
     if (instance.IsInit()) {
         return instance;
     }
-
     if (instance.Init() == false) {
         HGM_LOGI("HgmCore initialization failed");
     }
