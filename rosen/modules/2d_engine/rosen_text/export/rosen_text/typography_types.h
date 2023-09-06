@@ -80,6 +80,12 @@ enum class TextBaseline {
     ALPHABETIC,
     IDEOGRAPHIC,
 };
+
+enum class EllipsisModal {
+    HEAD = 0,
+    MIDDLE = 1,
+    TAIL = 2,
+};
 } // namespace Rosen
 } // namespace OHOS
 

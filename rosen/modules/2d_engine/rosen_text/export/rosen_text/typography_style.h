@@ -79,6 +79,7 @@ struct TypographyStyle {
 
     BreakStrategy breakStrategy = BreakStrategy::GREEDY;
     WordBreakType wordBreakType = WordBreakType::BREAK_WORD;
+    EllipsisModal ellipsisModal = EllipsisModal::TAIL;
 #endif
 
     TextStyle GetTextStyle() const;

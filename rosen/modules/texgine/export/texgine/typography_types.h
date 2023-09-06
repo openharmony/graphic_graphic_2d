@@ -149,6 +149,15 @@ enum class WordBreakType {
     BREAK_ALL,  // break occur after any characters.
     BREAK_WORD, // break only occur after word.
 };
+
+/*
+ * @brief EllipsisModal is the pattern of ellipsis.
+ */
+enum class EllipsisModal {
+    HEAD = 0,
+    MIDDLE = 1,
+    TAIL = 2,
+};
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS

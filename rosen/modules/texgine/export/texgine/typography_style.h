@@ -72,6 +72,8 @@ struct TypographyStyle {
      * @brief Returns the default TextStyle.
      */
     TextStyle ConvertToTextStyle() const;
+
+    EllipsisModal ellipsisModal = EllipsisModal::TAIL;
 };
 } // namespace TextEngine
 } // namespace Rosen

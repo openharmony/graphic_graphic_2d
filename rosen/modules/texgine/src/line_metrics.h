@@ -29,6 +29,15 @@ struct LineMetrics {
     double indent = 0.0;
 
     void AddSpanAndUpdateMetrics(const VariantSpan &span);
+
+    double GetAllSpanWidth() const
+    {
+        double allSpanWidth = 0.0;
+        for (const auto &span : lineSpans) {
+            allSpanWidth += span.GetWidth();
+        }
+        return allSpanWidth;
+    }
 };
 } // namespace TextEngine
 } // namespace Rosen
