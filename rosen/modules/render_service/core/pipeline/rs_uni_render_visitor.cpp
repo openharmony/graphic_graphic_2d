@@ -236,7 +236,6 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
     logicParentNode_ = node.weak_from_this();
     node.ResetChildrenRect();
     UpdateCacheChangeStatus(node);
-    int markedCachedNodeCnt = markedCachedNodes_;
 
     auto& property = node.GetMutableRenderProperties();
     float alpha = curAlpha_;
@@ -245,7 +244,6 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
     for (auto& child : node.GetSortedChildren()) {
         if (UNLIKELY(child->GetSharedTransitionParam().has_value())) {
             sharedTransitionNodeCnt_++;
-            markedCachedNodes_ = 0;
             PrepareSharedTransitionNode(*child);
             curDirty_ = child->IsDirty();
             child->Prepare(shared_from_this());
@@ -257,7 +255,7 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
     }
     curAlpha_ = alpha;
 
-    SetNodeCacheChangeStatus(node, markedCachedNodeCnt);
+    SetNodeCacheChangeStatus(node);
     // restore environment variables
     logicParentNode_ = std::move(parentNode);
 }
@@ -269,11 +267,11 @@ void RSUniRenderVisitor::UpdateCacheChangeStatus(RSRenderNode& node)
         return;
     }
     node.CheckDrawingCacheType();
-    if (!node.ShouldPaint()) {
+    if (!node.ShouldPaint() || sharedTransitionNodeCnt_ > 0) {
         node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     }
     // skip status check if there is no upper cache mark
-    if (node.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE && markedCachedNodes_ == 0) {
+    if (node.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE && firstVisitedCache_ == INVALID_NODEID) {
         return;
     }
     // subroot's dirty and cached filter should be count for parent root
@@ -282,22 +280,42 @@ void RSUniRenderVisitor::UpdateCacheChangeStatus(RSRenderNode& node)
         isDrawingCacheChanged_.top() = isDrawingCacheChanged_.top() || curDirty_;
         if (!curCacheFilterRects_.empty() && !node.IsInstanceOf<RSEffectRenderNode>() &&
             (node.GetRenderProperties().GetBackgroundFilter() || node.GetRenderProperties().GetUseEffect())) {
-            curCacheFilterRects_.top().emplace(node.GetId(), node.GetFilterRect());
+            curCacheFilterRects_.top().emplace(node.GetId());
         }
     }
     // drawing group root node
     if (node.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
-        markedCachedNodes_++;
         // For rootnode, init drawing changes only if there is any content dirty
         isDrawingCacheChanged_.push(curContentDirty_);
-        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVisitor::UpdateCacheChangeStatus: cachable node %" PRIu64 " markedNum: %d, "
-            "contentDirty(cacheChanged): %d", node.GetId(), static_cast<int>(markedCachedNodes_),
-            static_cast<int>(isDrawingCacheChanged_.top()));
+        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVisitor::UpdateCacheChangeStatus: cachable node %" PRIu64 ""
+            "contentDirty(cacheChanged): %d", node.GetId(), static_cast<int>(isDrawingCacheChanged_.top()));
         curCacheFilterRects_.push({});
+        if (firstVisitedCache_ == INVALID_NODEID) {
+            firstVisitedCache_ = node.GetId();
+        }
     }
 }
 
-void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node, int markedCachedNodeCnt)
+void RSUniRenderVisitor::DisableNodeCacheInSetting(RSRenderNode& node)
+{
+    // Attention: filter node should be marked. Only enable lowest suggested cached node
+    if (node.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE) {
+        uint32_t cacheRenderNodeMapCnt;
+        {
+            std::lock_guard<std::mutex> lock(cacheRenderNodeMapMutex);
+            cacheRenderNodeMapCnt = cacheRenderNodeMap.count(node.GetId());
+        }
+        // if cached node is clean, keep enable
+        // otherwise (uncached or dirty node) disable cache if it has outOfParent
+        // [planning] visitedCacheNodeIds_ check lowest cached node may reduce
+        if ((cacheRenderNodeMapCnt == 0 || isDrawingCacheChanged_.top()) &&
+            (!visitedCacheNodeIds_.empty() || node.HasChildrenOutOfRect())) {
+            node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+        }
+    }
+}
+
+void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node)
 {
     auto directParent = node.GetParent().lock();
     if (directParent != nullptr && node.ChildHasFilter()) {
@@ -307,39 +325,30 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node, int marked
         node.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE) {
         return;
     }
-    // Attention: currently not support filter. Only enable lowest marked cached node
-    // [planning] check if outofparent causes edge problem
 
-    uint32_t cacheRenderNodeMapCnt;
-    {
-        std::lock_guard<std::mutex> lock(cacheRenderNodeMapMutex);
-        cacheRenderNodeMapCnt = cacheRenderNodeMap.count(node.GetId());
-    }
-    if ((cacheRenderNodeMapCnt == 0 || isDrawingCacheChanged_.top()) &&
-        ((markedCachedNodeCnt != markedCachedNodes_) || node.HasChildrenOutOfRect())) {
-        node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
-    }
-    if (sharedTransitionNodeCnt_ || markedCachedNodes_ <= 0) {
-        node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
-    }
+    DisableNodeCacheInSetting(node);
     if (!curCacheFilterRects_.empty()) {
         allCacheFilterRects_.emplace(node.GetId(), curCacheFilterRects_.top());
         node.ResetFilterRectsInCache(curCacheFilterRects_.top());
         curCacheFilterRects_.pop();
     }
+    // update visited cache roots including itself
+    visitedCacheNodeIds_.emplace(node.GetId());
+    node.SetVisitedCacheRootIds(visitedCacheNodeIds_);
     RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVisitor::SetNodeCacheChangeStatus: node %" PRIu64 " drawingtype %d, "
-        "cacheChange %d, childHasFilter: %d, outofparent: %d, markedCachedNodeCnt|markedCachedNodes_: (%d, %d)",
+        "cacheChange %d, childHasFilter: %d, outofparent: %d, visitedCacheNodeIds num: %lu",
         node.GetId(), static_cast<int>(node.GetDrawingCacheType()),
         static_cast<int>(isDrawingCacheChanged_.top()), static_cast<int>(node.ChildHasFilter()),
-        static_cast<int>(node.HasChildrenOutOfRect()), markedCachedNodeCnt, markedCachedNodes_);
+        static_cast<int>(node.HasChildrenOutOfRect()), visitedCacheNodeIds_.size());
     node.SetDrawingCacheChanged(isDrawingCacheChanged_.top());
     if (curSurfaceNode_) {
         curSurfaceNode_->UpdateDrawingCacheNodes(node.ReinterpretCastTo<RSRenderNode>());
     }
-    markedCachedNodes_--;
     // reset counter after executing the very first marked node
-    if (markedCachedNodeCnt == 1) {
+    if (firstVisitedCache_ == node.GetId()) {
         isDrawingCacheChanged_.pop();
+        firstVisitedCache_ = INVALID_NODEID;
+        visitedCacheNodeIds_.clear();
     } else {
         bool isChildChanged = isDrawingCacheChanged_.top();
         isDrawingCacheChanged_.pop();
@@ -2803,33 +2812,35 @@ void RSUniRenderVisitor::DrawSpherize(RSRenderNode& node)
     node.ProcessTransitionAfterChildren(*canvas_);
 }
 
-bool RSUniRenderVisitor::DrawBlurInCache(RSRenderNode& node) {
-    if (!curCacheFilterRects_.empty()) {
-        if (curCacheFilterRects_.top().count(node.GetId())) {
-            if (curGroupedNodes_.empty()) {
-                // draw filter before drawing cached surface
-                curCacheFilterRects_.top().erase(node.GetId());
-                if (curCacheFilterRects_.empty() || !node.ChildHasFilter()) {
-                    // no filter to draw, return
-                    return true;
-                }
-            } else if (node.GetRenderProperties().GetBackgroundFilter() || node.GetRenderProperties().GetUseEffect()) {
-                // clear hole while generating cache surface
-#ifndef USE_ROSEN_DRAWING
-                SkAutoCanvasRestore arc(canvas_.get(), true);
-                canvas_->clipRect(RSPropertiesPainter::Rect2SkRect(node.GetRenderProperties().GetBoundsRect()));
-                canvas_->clear(SK_ColorTRANSPARENT);
-#else
-                Drawing::AutoCanvasRestore arc(*canvas_, true);
-                canvas_->ClipRect(RSPropertiesPainter::Rect2DrawingRect(node.GetRenderProperties().GetBoundsRect()),
-                    Drawing::ClipOp::INTERSECT, false);
-                canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
-#endif
+bool RSUniRenderVisitor::DrawBlurInCache(RSRenderNode& node)
+{
+    if (curCacheFilterRects_.empty()) {
+        return false;
+    }
+    if (curCacheFilterRects_.top().count(node.GetId())) {
+        if (curGroupedNodes_.empty()) {
+            // draw filter before drawing cached surface
+            curCacheFilterRects_.top().erase(node.GetId());
+            if (curCacheFilterRects_.empty() || !node.ChildHasFilter()) {
+                // no filter to draw, return
+                return true;
             }
-        } else if (curGroupedNodes_.empty() && !node.ChildHasFilter()) {
-            // no filter to draw, return
-            return true;
+        } else if (node.GetRenderProperties().GetBackgroundFilter() || node.GetRenderProperties().GetUseEffect()) {
+            // clear hole while generating cache surface
+#ifndef USE_ROSEN_DRAWING
+            SkAutoCanvasRestore arc(canvas_.get(), true);
+            canvas_->clipRect(RSPropertiesPainter::Rect2SkRect(node.GetRenderProperties().GetBoundsRect()));
+            canvas_->clear(SK_ColorTRANSPARENT);
+#else
+            Drawing::AutoCanvasRestore arc(*canvas_, true);
+            canvas_->ClipRect(RSPropertiesPainter::Rect2DrawingRect(node.GetRenderProperties().GetBoundsRect()),
+                Drawing::ClipOp::INTERSECT, false);
+            canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+#endif
         }
+    } else if (curGroupedNodes_.empty() && !node.ChildHasFilter()) {
+        // no filter to draw, return
+        return true;
     }
     return false;
 }

@@ -305,10 +305,12 @@ public:
 
     void SetDrawingCacheType(RSDrawingCacheType cacheType);
     RSDrawingCacheType GetDrawingCacheType() const;
-    void ResetFilterRectsInCache(const std::unordered_map<NodeId, RectI>& curRects);
-    void GetFilterRectsInCache(std::unordered_map<NodeId, std::unordered_map<NodeId, RectI>>& allRects) const;
+    void ResetFilterRectsInCache(const std::unordered_set<NodeId>& curRects);
+    void GetFilterRectsInCache(std::unordered_map<NodeId, std::unordered_set<NodeId>>& allRects) const;
     void SetDrawingCacheChanged(bool cacheChanged);
     bool GetDrawingCacheChanged() const;
+    void SetVisitedCacheRootIds(const std::unordered_set<NodeId>& visitedNodes);
+    const std::unordered_set<NodeId>& GetVisitedCacheRootIds() const;
 
     // driven render ///////////////////////////////////
     void SetIsMarkDriven(bool isMarkDriven);
@@ -470,7 +472,6 @@ private:
     bool hasChildrenOutOfRect_ = false;
     RectI childrenRect_;
     bool childHasFilter_ = false;  // only collect children filter status
-    std::unordered_map<NodeId, RectI> curCacheFilterRects_ = {};
 
     void InternalRemoveSelfFromDisappearingChildren();
     void FallbackAnimationsToRoot();
@@ -517,6 +518,8 @@ private:
     // drawing group cache
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
     bool isDrawingCacheChanged_ = false;
+    std::unordered_set<NodeId> curCacheFilterRects_ = {};
+    std::unordered_set<NodeId> visitedCacheRoots_ = {};
 
     mutable std::recursive_mutex surfaceMutex_;
     ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;

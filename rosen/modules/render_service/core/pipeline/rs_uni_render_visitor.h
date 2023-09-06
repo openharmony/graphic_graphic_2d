@@ -247,7 +247,8 @@ private:
     // judge if node's cache changes
     void UpdateCacheChangeStatus(RSRenderNode& node);
     // set node cacheable animation after checking whold child tree
-    void SetNodeCacheChangeStatus(RSRenderNode& node, int markedCachedNodeCnt);
+    void SetNodeCacheChangeStatus(RSRenderNode& node);
+    void DisableNodeCacheInSetting(RSRenderNode& node);
     // update rendernode's cache status and collect valid cache rect
     void UpdateForegroundFilterCacheWithDirty(RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
 
@@ -335,7 +336,6 @@ private:
     // added for judge if drawing cache changes
     bool isDrawingCacheEnabled_ = false;
     std::stack<bool> isDrawingCacheChanged_ = {};
-    int markedCachedNodes_ = 0;
     std::vector<RectI> accumulatedDirtyRegions_ = {};
 
     bool needFilter_ = false;
@@ -418,8 +418,10 @@ private:
     bool curContentDirty_ = false;
     bool isPhone_ = false;
 
-    std::unordered_map<NodeId, std::unordered_map<NodeId, RectI>> allCacheFilterRects_ = {};
-    std::stack<std::unordered_map<NodeId, RectI>> curCacheFilterRects_ = {};
+    NodeId firstVisitedCache_ = INVALID_NODEID;
+    std::unordered_set<NodeId> visitedCacheNodeIds_ = {};
+    std::unordered_map<NodeId, std::unordered_set<NodeId>> allCacheFilterRects_ = {};
+    std::stack<std::unordered_set<NodeId>> curCacheFilterRects_ = {};
     bool forceUpdateFlag_ = false;
     int sharedTransitionNodeCnt_ = 0;
 };

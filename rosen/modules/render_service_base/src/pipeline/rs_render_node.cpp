@@ -1472,12 +1472,12 @@ void RSRenderNode::CheckDrawingCacheType()
     }
 }
 
-void RSRenderNode::ResetFilterRectsInCache(const std::unordered_map<NodeId, RectI>& curRects)
+void RSRenderNode::ResetFilterRectsInCache(const std::unordered_set<NodeId>& curRects)
 {
     curCacheFilterRects_ = curRects;
 }
 
-void RSRenderNode::GetFilterRectsInCache(std::unordered_map<NodeId, std::unordered_map<NodeId, RectI>>& allRects) const
+void RSRenderNode::GetFilterRectsInCache(std::unordered_map<NodeId, std::unordered_set<NodeId>>& allRects) const
 {
     if (!curCacheFilterRects_.empty()) {
         allRects.emplace(GetId(), curCacheFilterRects_);
@@ -1813,6 +1813,14 @@ void RSRenderNode::SetDrawingCacheChanged(bool cacheChanged)
 bool RSRenderNode::GetDrawingCacheChanged() const
 {
     return isDrawingCacheChanged_;
+}
+void RSRenderNode::SetVisitedCacheRootIds(const std::unordered_set<NodeId>& visitedNodes)
+{
+    visitedCacheRoots_ = visitedNodes;
+}
+const std::unordered_set<NodeId>& RSRenderNode::GetVisitedCacheRootIds() const
+{
+    return visitedCacheRoots_;
 }
 void RSRenderNode::SetIsMarkDriven(bool isMarkDriven)
 {

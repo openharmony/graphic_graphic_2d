@@ -817,7 +817,7 @@ void RSSurfaceRenderNode::UpdateDrawingCacheNodes(const std::shared_ptr<RSRender
 }
 
 void RSSurfaceRenderNode::ResetDrawingCacheStatusIfNodeStatic(
-    std::unordered_map<NodeId, std::unordered_map<NodeId, RectI>>& allRects)
+    std::unordered_map<NodeId, std::unordered_set<NodeId>>& allRects)
 {
     // traversal drawing cache nodes including app window
     EraseIf(drawingCacheNodes_, [this, &allRects](const auto& pair) {
