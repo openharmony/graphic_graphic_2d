@@ -96,7 +96,7 @@ bool DoExecuteSynchronousTask(const uint8_t* data, size_t size)
     }
 
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
-    auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(0, nullptr);
+    auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(0, property);
     RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(task, true);
     return true;
 }
