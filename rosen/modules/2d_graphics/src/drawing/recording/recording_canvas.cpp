@@ -143,6 +143,11 @@ void RecordingCanvas::DrawShadow(const Path& path, const Point3& planeParams, co
     cmdList_->AddOp<DrawShadowOpItem>(pathHandle, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag);
 }
 
+void RecordingCanvas::DrawColor(ColorQuad color, BlendMode mode)
+{
+    cmdList_->AddOp<DrawColorOpItem>(color, mode);
+}
+
 void RecordingCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
 {
     auto bitmapHandle = CmdListHelper::AddBitmapToCmdList(*cmdList_, bitmap);

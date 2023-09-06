@@ -71,8 +71,8 @@ public:
         std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes, uint64_t focusNodeId = 0,
         DeviceType deviceType = DeviceType::PHONE);
     static void ClearSurfaceIfNeed(const RSRenderNodeMap& map, const std::shared_ptr<RSDisplayRenderNode>& displayNode,
-        std::set<std::shared_ptr<RSBaseRenderNode>>& oldChildren);
-    static void ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex);
+        std::set<std::shared_ptr<RSBaseRenderNode>>& oldChildren, DeviceType deviceType = DeviceType::PHONE);
+    static void ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex, bool isClearCompletedCacheSurface = true);
 #ifndef USE_ROSEN_DRAWING
     static void ClearNodeCacheSurface(sk_sp<SkSurface>&& cacheSurface, sk_sp<SkSurface>&& cacheCompletedSurface,
         uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex);

@@ -68,6 +68,7 @@ namespace {
 constexpr uint32_t PHONE_MAX_APP_WINDOW_NUM = 1;
 constexpr uint32_t CACHE_MAX_UPDATE_TIME = 2;
 static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
+constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 static std::map<NodeId, uint32_t> cacheRenderNodeMap = {};
 static uint32_t cacheReuseTimes = 0;
 static std::mutex cacheRenderNodeMapMutex;
@@ -279,13 +280,9 @@ void RSUniRenderVisitor::UpdateCacheChangeStatus(RSRenderNode& node)
     if (!isDrawingCacheChanged_.empty()) {
         // Any child node dirty causes cache change
         isDrawingCacheChanged_.top() = isDrawingCacheChanged_.top() || curDirty_;
-        if (!curCacheFilterRects_.empty()) {
-            if (!node.IsInstanceOf<RSEffectRenderNode>() &&
-                (node.GetRenderProperties().GetBackgroundFilter() || node.GetRenderProperties().GetUseEffect())) {
-                curCacheFilterRects_.top().emplace(node.GetId(), node.GetFilterRect());
-            } else if (node.IsInstanceOf<RSSurfaceRenderNode>()) {
-                childHasSurface_ = true;
-            }
+        if (!curCacheFilterRects_.empty() && !node.IsInstanceOf<RSEffectRenderNode>() &&
+            (node.GetRenderProperties().GetBackgroundFilter() || node.GetRenderProperties().GetUseEffect())) {
+            curCacheFilterRects_.top().emplace(node.GetId(), node.GetFilterRect());
         }
     }
     // drawing group root node
@@ -297,7 +294,6 @@ void RSUniRenderVisitor::UpdateCacheChangeStatus(RSRenderNode& node)
             "contentDirty(cacheChanged): %d", node.GetId(), static_cast<int>(markedCachedNodes_),
             static_cast<int>(isDrawingCacheChanged_.top()));
         curCacheFilterRects_.push({});
-        childHasSurface_ = false;
     }
 }
 
@@ -320,7 +316,7 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node, int marked
         cacheRenderNodeMapCnt = cacheRenderNodeMap.count(node.GetId());
     }
     if ((cacheRenderNodeMapCnt == 0 || isDrawingCacheChanged_.top()) &&
-        ((markedCachedNodeCnt != markedCachedNodes_) || node.HasChildrenOutOfRect() || childHasSurface_)) {
+        ((markedCachedNodeCnt != markedCachedNodes_) || node.HasChildrenOutOfRect())) {
         node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     }
     if (sharedTransitionNodeCnt_ || markedCachedNodes_ <= 0) {
@@ -344,7 +340,6 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node, int marked
     // reset counter after executing the very first marked node
     if (markedCachedNodeCnt == 1) {
         isDrawingCacheChanged_.pop();
-        childHasSurface_ = false;
     } else {
         bool isChildChanged = isDrawingCacheChanged_.top();
         isDrawingCacheChanged_.pop();
@@ -1949,12 +1944,12 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             canvas_->SetHighContrast(renderEngine_->IsHighContrastEnabled());
             auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
             if (geoPtr != nullptr) {
-                // enable cache if screen rotation is not times of 90 degree
-                canvas_->SetCacheType(geoPtr->IsNeedClientCompose() ? RSPaintFilterCanvas::CacheType::ENABLED
-                                                                    : RSPaintFilterCanvas::CacheType::DISABLED);
+                // enable cache if screen rotation
+                canvas_->SetCacheType(RSSystemProperties::GetCacheEnabledForRotation() ?
+                    RSPaintFilterCanvas::CacheType::ENABLED : RSPaintFilterCanvas::CacheType::DISABLED);
             }
 
-            bool needOffscreen = clipPath || canvas_->GetCacheType() == RSPaintFilterCanvas::CacheType::ENABLED;
+            bool needOffscreen = clipPath;
             if (needOffscreen) {
                 ClearTransparentBeforeSaveLayer(); // clear transparent before concat display node's matrix
             }
@@ -1978,12 +1973,12 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             canvas_->SetHighContrast(renderEngine_->IsHighContrastEnabled());
             auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
             if (geoPtr != nullptr) {
-                // enable cache if screen rotation is not times of 90 degree
-                canvas_->SetCacheType(geoPtr->IsNeedClientCompose() ? RSPaintFilterCanvas::CacheType::ENABLED
-                    : RSPaintFilterCanvas::CacheType::DISABLED);
+                // enable cache if screen rotation
+                canvas_->SetCacheType(RSSystemProperties::GetCacheEnabledForRotation() ?
+                    RSPaintFilterCanvas::CacheType::ENABLED : RSPaintFilterCanvas::CacheType::DISABLED);
             }
 
-            bool needOffscreen = clipPath || canvas_->GetCacheType() == RSPaintFilterCanvas::CacheType::ENABLED;
+            bool needOffscreen = clipPath;
             if (needOffscreen) {
                 ClearTransparentBeforeSaveLayer(); // clear transparent before concat display node's matrix
             }
@@ -2080,16 +2075,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_TRACE_END();
         }
 #endif
-#ifndef USE_ROSEN_DRAWING
-        if (!OpItemTasks::Instance().IsEmpty()) {
-            RSBackgroundThread::Instance().PostTask([]() {
-                RS_TRACE_NAME("RSUniRender:OpItemTasks ProcessTask");
-                OpItemTasks::Instance().ProcessTask();
-            });
-        }
-#else
-        RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode: Drawing is not support: OpItemTasks");
-#endif
+        RSMainThread::Instance()->RemoveTask(CLEAR_GPU_CACHE);
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
         renderFrame_->Flush();
         RS_TRACE_END();
@@ -2119,6 +2105,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         auto node = nodeMap.GetRenderNode<RSRenderNode>(iter.first);
         return node ? (!node->IsOnTheTree()) : true;
     });
+    RSMainThread::Instance()->ClearGpuCache();
     RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode end");
 }
 

@@ -324,5 +324,9 @@ void RSRenderServiceClient::ReportEventJankFrame(DataBaseRs info)
 void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled)
 {
 }
+
+void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
+{
+}
 } // namespace Rosen
 } // namespace OHOS

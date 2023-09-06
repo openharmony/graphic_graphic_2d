@@ -471,6 +471,17 @@ void RSMainThread::ProcessCommand()
     } else {
         ProcessCommandForDividedRender();
     }
+    if (context_->needPurge_) {
+#ifdef NEW_RENDER_CONTEXT
+        auto grContext = GetRenderEngine()->GetDrawingContext()->GetDrawingContext();
+#else
+        auto grContext = GetRenderEngine()->GetRenderContext()->GetGrContext();
+#endif
+        if (grContext) {
+            grContext->purgeUnlockedResources(true);
+        }
+        context_->needPurge_ = false;
+    }
     if (RsFrameReport::GetInstance().GetEnable()) {
         RsFrameReport::GetInstance().AnimateStart();
     }
@@ -1028,6 +1039,12 @@ void RSMainThread::ReleaseAllNodesBuffer()
 #endif
         });
     }
+#endif
+    RS_OPTIONAL_TRACE_END();
+}
+
+void RSMainThread::ClearGpuCache()
+{
     PostTask([this]() {
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_RENDER_CONTEXT
@@ -1048,8 +1065,6 @@ void RSMainThread::ReleaseAllNodesBuffer()
             grContext->purgeUnlockAndSafeCacheGpuResources();
         }
     }, CLEAR_GPU_CACHE, CLEAR_GPU_INTERVAL);
-#endif
-    RS_OPTIONAL_TRACE_END();
 }
 
 void RSMainThread::WaitUtilUniRenderFinished()
@@ -1220,7 +1235,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes;
             RSUniRenderUtil::AssignWindowNodes(displayNode, mainThreadNodes, subThreadNodes, focusNodeId_, deviceType_);
             const auto& nodeMap = context_->GetNodeMap();
-            RSUniRenderUtil::ClearSurfaceIfNeed(nodeMap, displayNode, oldDisplayChildren_);
+            RSUniRenderUtil::ClearSurfaceIfNeed(nodeMap, displayNode, oldDisplayChildren_, deviceType_);
             uniVisitor->DrawSurfaceLayer(displayNode, subThreadNodes);
             RSUniRenderUtil::CacheSubThreadNodes(subThreadNodes_, subThreadNodes);
         }
@@ -1570,7 +1585,6 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
     if (isUniRender_) {
         MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);
         RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
-        RemoveTask(CLEAR_GPU_CACHE);
     }
     mainLoop_();
     auto screenManager_ = CreateOrGetScreenManager();

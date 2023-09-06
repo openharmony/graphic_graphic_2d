@@ -54,6 +54,8 @@ public:
     void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag) override;
 
+    void DrawColor(ColorQuad color, BlendMode mode = BlendMode::SRC_OVER) override;
+
     void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py) override;
     void DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling) override;
     void DrawImageRect(const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling,

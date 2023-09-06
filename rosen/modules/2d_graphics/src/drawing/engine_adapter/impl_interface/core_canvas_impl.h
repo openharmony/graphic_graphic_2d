@@ -91,6 +91,9 @@ public:
         Color ambientColor, Color spotColor, ShadowFlags flag) = 0;
     virtual void DrawRegion(const Region& region) = 0;
 
+    // color
+    virtual void DrawColor(ColorQuad color, BlendMode mode) = 0;
+
     // image
     virtual void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py) = 0;
     virtual void DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py) = 0;

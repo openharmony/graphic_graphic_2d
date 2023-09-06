@@ -315,6 +315,16 @@ void SkiaCanvas::DrawShadow(const Path& path, const Point3& planeParams, const P
     }
 }
 
+void SkiaCanvas::DrawColor(ColorQuad color, BlendMode mode)
+{
+    if (!skCanvas_) {
+        LOGE("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return;
+    }
+
+    skCanvas_->drawColor(static_cast<SkColor>(color), static_cast<SkBlendMode>(mode));
+}
+
 void SkiaCanvas::DrawRegion(const Region& region)
 {
     if (!skCanvas_) {

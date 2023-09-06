@@ -290,7 +290,6 @@ GLuint RSEglImageManager::MapEglImageFromSurfaceBuffer(const sptr<OHOS::SurfaceB
         return CreateImageCacheFromBuffer(buffer, threadIndex);
     } else {
         auto& imageCache = imageCacheSeqs_[bufferId];
-        imageCache->SetThreadIndex(threadIndex);
         return imageCache->TextureId();
     }
 }

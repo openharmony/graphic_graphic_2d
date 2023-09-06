@@ -203,6 +203,10 @@ bool RSNodeFuzzTest(const uint8_t* data, size_t size)
     RSSurfaceNodeConfig surfaceNodeConfig;
     std::shared_ptr<RSSurfaceNode> surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
 
+    if (!surfaceNode) {
+        return false;
+    }
+
     RSNodeFuzzTestInner01(surfaceNode);
     RSNodeFuzzTestInner02(surfaceNode);
 

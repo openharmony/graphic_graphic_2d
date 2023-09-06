@@ -61,10 +61,16 @@ public:
     // add node info after cmd data process
     void AddActiveNode(const std::shared_ptr<RSRenderNode>& node);
 
+    void MarkNeedPurge()
+    {
+        needPurge_ = true;
+    }
+
 private:
     RSRenderNodeMap nodeMap;
     std::shared_ptr<RSBaseRenderNode> globalRootRenderNode_ = std::make_shared<RSRenderNode>(0, true);
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> animatingNodeList_;
+    bool needPurge_ = false;
 
     uint64_t transactionTimestamp_ = 0;
     uint64_t currentTimestamp_ = 0;

@@ -164,7 +164,6 @@ public:
     static OpItemTasks& Instance();
     void AddTask(std::function<void()> task);
     void ProcessTask();
-    bool IsEmpty();
 private:
     OpItemTasks() = default;
     ~OpItemTasks() = default;
@@ -410,6 +409,10 @@ public:
     OvalOpItem(SkRect rect, const SkPaint& paint);
     ~OvalOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+    std::optional<SkRect> GetCacheBounds() const override
+    {
+        return rect_;
+    }
 
     std::string GetTypeWithDesc() const override
     {
@@ -1121,6 +1124,10 @@ public:
     PathOpItem(const SkPath& path, const SkPaint& paint);
     ~PathOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+    std::optional<SkRect> GetCacheBounds() const override
+    {
+        return path_.getBounds();
+    }
 
     std::string GetTypeWithDesc() const override
     {

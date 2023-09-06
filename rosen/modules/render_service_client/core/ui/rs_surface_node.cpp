@@ -193,8 +193,8 @@ void RSSurfaceNode::OnBoundsSizeChanged() const
         transactionProxy->AddCommand(command, true);
     }
     std::lock_guard<std::mutex> lock(mutex_);
-    if (sizeChangedCallback_) {
-        sizeChangedCallback_(bounds);
+    if (boundsChangedCallback_) {
+        boundsChangedCallback_(bounds);
     }
 }
 
@@ -289,14 +289,20 @@ bool RSSurfaceNode::SetBufferAvailableCallback(BufferAvailableCallback callback)
             std::lock_guard<std::mutex> lock(rsSurfaceNode->mutex_);
             actualCallback = rsSurfaceNode->callback_;
         }
+        rsSurfaceNode->bufferAvailable_ = true;
         actualCallback();
     });
 }
 
-void RSSurfaceNode::SetBoundsSizeChangedCallback(OnBoundsSizeChangedCallback callback)
+bool RSSurfaceNode::IsBufferAvailable() const
+{
+    return bufferAvailable_;
+}
+
+void RSSurfaceNode::SetBoundsChangedCallback(BoundsChangedCallback callback)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    sizeChangedCallback_ = callback;
+    boundsChangedCallback_ = callback;
 }
 
 void RSSurfaceNode::SetAnimationFinished()

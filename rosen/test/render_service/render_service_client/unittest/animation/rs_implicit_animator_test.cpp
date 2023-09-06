@@ -14,7 +14,11 @@
  */
 
 #include "gtest/gtest.h"
+#include "animation/rs_animation_callback.h"
 #include "animation/rs_implicit_animator.h"
+#include "animation/rs_motion_path_option.h"
+#include "animation/rs_transition_effect.h"
+#include "ui/rs_node.h"
 #include <sys/types.h>
 #include <unistd.h>
 #ifdef ROSEN_OHOS
@@ -39,16 +43,43 @@ void RSImplicitAnimatorTest::SetUp() {}
 void RSImplicitAnimatorTest::TearDown() {}
 
 /**
- * @tc.name: BeginImplicitKeyFrameAnimationTest
+ * @tc.name: BeginImplicitKeyFrameAnimationTest001
  * @tc.desc:
  * @tc.type:FUNC
  */
-HWTEST_F(RSImplicitAnimatorTest, BeginImplicitKeyFrameAnimationTest, Level1)
+HWTEST_F(RSImplicitAnimatorTest, BeginImplicitKeyFrameAnimationTest001, Level1)
 {
     RSImplicitAnimator rsImplicitAnimator;
-    int res = 0;
-    rsImplicitAnimator.BeginImplicitKeyFrameAnimation(1.0);
-    ASSERT_EQ(res, 0);
+    float fraction = 0.f;
+    RSAnimationTimingCurve timingCurve;
+    rsImplicitAnimator.BeginImplicitKeyFrameAnimation(fraction, timingCurve);
+    ASSERT_EQ(fraction, 0.f);
+}
+
+/**
+ * @tc.name: BeginImplicitKeyFrameAnimationTest002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, BeginImplicitKeyFrameAnimationTest002, Level1)
+{
+    RSImplicitAnimator rsImplicitAnimator;
+    float fraction = 0.f;
+    rsImplicitAnimator.BeginImplicitKeyFrameAnimation(fraction);
+    ASSERT_EQ(fraction, 0.f);
+}
+
+/**
+ * @tc.name: EndImplicitKeyFrameAnimationTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, EndImplicitKeyFrameAnimationTest, Level1)
+{
+    RSImplicitAnimator rsImplicitAnimator;
+    float fraction = 0.f;
+    rsImplicitAnimator.EndImplicitKeyFrameAnimation();
+    ASSERT_EQ(fraction, 0.f);
 }
 
 /**
@@ -59,9 +90,8 @@ HWTEST_F(RSImplicitAnimatorTest, BeginImplicitKeyFrameAnimationTest, Level1)
 HWTEST_F(RSImplicitAnimatorTest, NeedImplicitAnimationTest, Level1)
 {
     RSImplicitAnimator rsImplicitAnimator;
-    int res = 0;
-    rsImplicitAnimator.NeedImplicitAnimation();
-    ASSERT_EQ(res, 0);
+    bool res = rsImplicitAnimator.NeedImplicitAnimation();
+    ASSERT_EQ(res, false);
 }
 
 /**
@@ -72,9 +102,10 @@ HWTEST_F(RSImplicitAnimatorTest, NeedImplicitAnimationTest, Level1)
 HWTEST_F(RSImplicitAnimatorTest, BeginImplicitTransitionTest, Level1)
 {
     RSImplicitAnimator rsImplicitAnimator;
-    int res = 0;
-    rsImplicitAnimator.BeginImplicitTransition(nullptr, true);
-    ASSERT_EQ(res, 0);
+    bool isTransitionIn = true;
+    auto effect = std::make_shared<RSTransitionEffect>();
+    rsImplicitAnimator.BeginImplicitTransition(effect, isTransitionIn);
+    ASSERT_EQ(isTransitionIn, true);
 }
 
 /**
@@ -99,7 +130,8 @@ HWTEST_F(RSImplicitAnimatorTest, BeginImplicitPathAnimationTest, Level1)
 {
     RSImplicitAnimator rsImplicitAnimator;
     int res = 0;
-    rsImplicitAnimator.BeginImplicitPathAnimation(nullptr);
+    auto motionPathOption = std::make_shared<RSMotionPathOption>("path");
+    rsImplicitAnimator.BeginImplicitPathAnimation(motionPathOption);
     ASSERT_EQ(res, 0);
 }
 
@@ -127,5 +159,85 @@ HWTEST_F(RSImplicitAnimatorTest, CreateImplicitAnimationTest, Level1)
     int res = 0;
     rsImplicitAnimator.CreateImplicitAnimation(nullptr, nullptr, nullptr, nullptr);
     ASSERT_EQ(res, 0);
+}
+
+/**
+ * @tc.name: OpenImplicitAnimationTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, OpenImplicitAnimationTest, Level1)
+{
+    RSImplicitAnimator rsImplicitAnimator;
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    int res = rsImplicitAnimator.OpenImplicitAnimation(timingProtocol, timingCurve);
+    ASSERT_EQ(res, 0);
+}
+
+/**
+ * @tc.name: CreateImplicitTransitionTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, CreateImplicitTransitionTest, Level1)
+{
+    RSImplicitAnimator rsImplicitAnimator;
+    RSNode target(true);
+    int res = 1;
+    rsImplicitAnimator.CreateImplicitTransition(target);
+    ASSERT_NE(res, 0);
+}
+
+/**
+ * @tc.name: PopImplicitParamTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, PopImplicitParamTest, Level1)
+{
+    RSImplicitAnimator rsImplicitAnimator;
+    int res = 1;
+    rsImplicitAnimator.PopImplicitParam();
+    ASSERT_NE(res, 0);
+}
+
+/**
+ * @tc.name: CreateEmptyAnimationTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, CreateEmptyAnimationTest, Level1)
+{
+    RSImplicitAnimator rsImplicitAnimator;
+    int res = 1;
+    rsImplicitAnimator.CreateEmptyAnimation();
+    ASSERT_NE(res, 0);
+}
+
+/**
+ * @tc.name: EndImplicitAnimationTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, EndImplicitAnimationTest, Level1)
+{
+    int res = 1;
+    RSImplicitAnimator rsImplicitAnimator;
+    rsImplicitAnimator.EndImplicitAnimation();
+    ASSERT_NE(res, 0);
+}
+
+/**
+ * @tc.name: ExecuteWithoutAnimationTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, ExecuteWithoutAnimationTest, Level1)
+{
+    int res = 1;
+    RSImplicitAnimator rsImplicitAnimator;
+    rsImplicitAnimator.ExecuteWithoutAnimation(nullptr);
+    ASSERT_NE(res, 0);
 }
 }

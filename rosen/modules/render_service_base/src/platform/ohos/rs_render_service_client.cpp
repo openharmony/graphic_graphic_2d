@@ -840,5 +840,13 @@ void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled)
         renderService->SetHardwareEnabled(id, isEnabled);
     }
 }
+
+void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetCacheEnabledForRotation(isEnabled);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -53,6 +53,7 @@ std::unordered_map<uint32_t, CanvasPlayer::PlaybackFunc> CanvasPlayer::opPlaybac
     { DrawOpItem::PATH_OPITEM,              DrawPathOpItem::Playback },
     { DrawOpItem::BACKGROUND_OPITEM,        DrawBackgroundOpItem::Playback },
     { DrawOpItem::SHADOW_OPITEM,            DrawShadowOpItem::Playback },
+    { DrawOpItem::COLOR_OPITEM,             DrawColorOpItem::Playback },
     { DrawOpItem::BITMAP_OPITEM,            DrawBitmapOpItem::Playback },
     { DrawOpItem::IMAGE_OPITEM,             DrawImageOpItem::Playback },
     { DrawOpItem::IMAGE_RECT_OPITEM,        DrawImageRectOpItem::Playback },
@@ -339,6 +340,22 @@ void DrawShadowOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
     }
 
     canvas.DrawShadow(*path, planeParams_, devLightPos_, lightRadius_, ambientColor_, spotColor_, flag_);
+}
+
+DrawColorOpItem::DrawColorOpItem(ColorQuad color, BlendMode mode) : DrawOpItem(COLOR_OPITEM),
+    color_(color), mode_(mode) {}
+
+void DrawColorOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const DrawColorOpItem*>(opItem);
+        op->Playback(player.canvas_);
+    }
+}
+
+void DrawColorOpItem::Playback(Canvas& canvas) const
+{
+    canvas.DrawColor(color_, mode_);
 }
 
 DrawBitmapOpItem::DrawBitmapOpItem(const ImageHandle& bitmap, scalar px, scalar py)

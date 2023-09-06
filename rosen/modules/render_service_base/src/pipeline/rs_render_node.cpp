@@ -1776,11 +1776,13 @@ void RSRenderNode::SetTextureValidFlag(bool isValid)
     isTextureValid_ = isValid;
 #endif
 }
-void RSRenderNode::ClearCacheSurface()
+void RSRenderNode::ClearCacheSurface(bool isClearCompletedCacheSurface)
 {
     std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
     cacheSurface_ = nullptr;
-    cacheCompletedSurface_ = nullptr;
+    if (isClearCompletedCacheSurface) {
+        cacheCompletedSurface_ = nullptr;
+    }
 }
 void RSRenderNode::SetCacheType(CacheType cacheType)
 {

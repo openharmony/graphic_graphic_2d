@@ -82,6 +82,9 @@ public:
         Color ambientColor, Color spotColor, ShadowFlags flag) override;
     void DrawRegion(const Region& region) override;
 
+    // color
+    void DrawColor(ColorQuad color, BlendMode mode) override;
+
     // image
     void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py) override;
     void DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py) override;

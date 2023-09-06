@@ -120,6 +120,8 @@ public:
 
     static void SetDrawTextAsBitmap(bool flag);
     static bool GetDrawTextAsBitmap();
+    static void SetCacheEnabledForRotation(bool flag);
+    static bool GetCacheEnabledForRotation();
     static ParallelRenderingType GetPrepareParallelRenderingEnabled();
     static ParallelRenderingType GetParallelRenderingEnabled();
     static HgmRefreshRates GetHgmRefreshRatesEnabled();
@@ -157,6 +159,7 @@ private:
 
     static inline bool isUniRenderEnabled_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
+    inline static bool cacheEnabledForRotation_ = false;
 };
 
 } // namespace Rosen

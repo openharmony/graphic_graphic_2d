@@ -87,6 +87,7 @@ public:
         PIE_OPITEM,
         OVAL_OPITEM,
         CIRCLE_OPITEM,
+        COLOR_OPITEM,
         PATH_OPITEM,
         BACKGROUND_OPITEM,
         SHADOW_OPITEM,
@@ -337,6 +338,19 @@ public:
 
 private:
     ImageHandle picture_;
+};
+
+class DrawColorOpItem : public DrawOpItem {
+public:
+    explicit DrawColorOpItem(ColorQuad color, BlendMode mode);
+    ~DrawColorOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas) const;
+
+private:
+    ColorQuad color_;
+    BlendMode mode_;
 };
 
 class ClipRectOpItem : public DrawOpItem {

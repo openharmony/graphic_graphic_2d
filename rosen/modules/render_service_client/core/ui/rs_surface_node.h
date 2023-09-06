@@ -40,9 +40,6 @@ class SkCanvas;
 
 namespace OHOS {
 namespace Rosen {
-
-using BufferAvailableCallback = std::function<void()>;
-using OnBoundsSizeChangedCallback = std::function<void(const Rosen::Vector4f&)>;
 struct RSSurfaceNodeConfig {
     std::string SurfaceNodeName = "SurfaceNode";
     void* additionalData = nullptr;
@@ -84,8 +81,11 @@ public:
     void SetIsNotifyUIBufferAvailable(bool available);
     void MarkUIHidden(bool isHidden);
 
+    using BufferAvailableCallback = std::function<void()>;
     bool SetBufferAvailableCallback(BufferAvailableCallback callback);
-    void SetBoundsSizeChangedCallback(OnBoundsSizeChangedCallback callback);
+    bool IsBufferAvailable() const;
+    using BoundsChangedCallback = std::function<void(const Rosen::Vector4f&)>;
+    void SetBoundsChangedCallback(BoundsChangedCallback callback);
     void SetAnimationFinished();
 
     bool Marshalling(Parcel& parcel) const;
@@ -148,7 +148,8 @@ private:
     std::string bundleName_;
     mutable std::mutex mutex_;
     BufferAvailableCallback callback_;
-    OnBoundsSizeChangedCallback sizeChangedCallback_;
+    bool bufferAvailable_ = false;
+    BoundsChangedCallback boundsChangedCallback_;
 #ifndef ROSEN_CROSS_PLATFORM
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 #endif

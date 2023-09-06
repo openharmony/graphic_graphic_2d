@@ -130,6 +130,13 @@ void RSPaintFilterCanvasBase::DrawShadow(const Path& path, const Point3& planePa
     }
 }
 
+void RSPaintFilterCanvasBase::DrawColor(Drawing::ColorQuad color, Drawing::BlendMode mode)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawColor(color, mode);
+    }
+}
+
 void RSPaintFilterCanvasBase::DrawRegion(const Drawing::Region& region)
 {
     if (canvas_ != nullptr && OnFilter()) {

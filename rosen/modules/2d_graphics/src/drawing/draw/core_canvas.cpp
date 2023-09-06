@@ -124,6 +124,11 @@ void CoreCanvas::DrawShadow(const Path& path, const Point3& planeParams, const P
     impl_->DrawShadow(path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag);
 }
 
+void CoreCanvas::DrawColor(ColorQuad color, BlendMode mode)
+{
+    impl_->DrawColor(color, mode);
+}
+
 void CoreCanvas::DrawRegion(const Region& region)
 {
     impl_->DrawRegion(region);

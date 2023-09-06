@@ -278,7 +278,7 @@ public:
     std::shared_ptr<Drawing::Surface> GetCompletedCacheSurface(uint32_t threadIndex = UNI_MAIN_THREAD_INDEX,
         bool needCheckThread = true, bool releaseAfterGet = false);
 #endif
-    void ClearCacheSurface();
+    void ClearCacheSurface(bool isClearCompletedCacheSurface = true);
 
 #ifdef RS_ENABLE_GL
     void UpdateBackendTexture();

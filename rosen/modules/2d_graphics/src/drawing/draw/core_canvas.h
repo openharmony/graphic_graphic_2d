@@ -159,6 +159,9 @@ public:
     virtual void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag);
 
+    // color
+    virtual void DrawColor(ColorQuad color, BlendMode mode);
+
     /*
      * @brief         Draws Region on the Canvas.
      * @param region  Region to draw.

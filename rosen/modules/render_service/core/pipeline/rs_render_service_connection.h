@@ -182,6 +182,8 @@ private:
 
     void SetHardwareEnabled(NodeId id, bool isEnabled) override;
 
+    void SetCacheEnabledForRotation(bool isEnabled) override;
+
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;

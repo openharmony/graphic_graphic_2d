@@ -741,7 +741,8 @@ void RSUniRenderUtil::HandleHardwareNode(const std::shared_ptr<RSSurfaceRenderNo
 
 void RSUniRenderUtil::ClearSurfaceIfNeed(const RSRenderNodeMap& map,
     const std::shared_ptr<RSDisplayRenderNode>& displayNode,
-    std::set<std::shared_ptr<RSBaseRenderNode>>& oldChildren)
+    std::set<std::shared_ptr<RSBaseRenderNode>>& oldChildren,
+    DeviceType deviceType)
 {
     if (displayNode == nullptr) {
         return;
@@ -761,27 +762,38 @@ void RSUniRenderUtil::ClearSurfaceIfNeed(const RSRenderNodeMap& map,
             if (surface && map.GetRenderNode(surface->GetId()) != nullptr) {
                 RS_LOGD("RSUniRenderUtil::ClearSurfaceIfNeed clear cache surface:[%{public}s, %{public}" PRIu64 "]",
                     surface->GetName().c_str(), surface->GetId());
-                ClearCacheSurface(*surface, UNI_MAIN_THREAD_INDEX);
-                surface->SetIsMainThreadNode(true);
-                surface->SetTextureValidFlag(false);
+                if (deviceType == DeviceType::PHONE) {
+                    ClearCacheSurface(*surface, UNI_MAIN_THREAD_INDEX);
+                    surface->SetIsMainThreadNode(true);
+                    surface->SetTextureValidFlag(false);
+                } else {
+                    ClearCacheSurface(*surface, UNI_MAIN_THREAD_INDEX, false);
+                }
             }
         }
     }
     oldChildren.swap(tmpSet);
 }
 
-void RSUniRenderUtil::ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex)
+void RSUniRenderUtil::ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex, bool isClearCompletedCacheSurface)
 {
     RS_LOGD("ClearCacheSurface node: [%{public}" PRIu64 "]", node.GetId());
     uint32_t cacheSurfaceThreadIndex = node.GetCacheSurfaceThreadIndex();
     uint32_t completedSurfaceThreadIndex = node.GetCompletedSurfaceThreadIndex();
     if (cacheSurfaceThreadIndex == threadIndex && completedSurfaceThreadIndex == threadIndex) {
-        node.ClearCacheSurface();
+        node.ClearCacheSurface(isClearCompletedCacheSurface);
         return;
     }
+#ifndef USE_ROSEN_DRAWING
+    sk_sp<SkSurface> completedCacheSurface = isClearCompletedCacheSurface ?
+        node.GetCompletedCacheSurface(threadIndex, false, true) : nullptr;
+#else
+    std::shared_ptr<Drawing::Surface> completedCacheSurface = isClearCompletedCacheSurface ?
+        node.GetCompletedCacheSurface(threadIndex, false, true) : nullptr;
+#endif
     ClearNodeCacheSurface(node.GetCacheSurface(threadIndex, false, true),
-        node.GetCompletedCacheSurface(threadIndex, false, true), cacheSurfaceThreadIndex, completedSurfaceThreadIndex);
-    node.ClearCacheSurface();
+        std::move(completedCacheSurface), cacheSurfaceThreadIndex, completedSurfaceThreadIndex);
+    node.ClearCacheSurface(isClearCompletedCacheSurface);
 }
 
 #ifndef USE_ROSEN_DRAWING
