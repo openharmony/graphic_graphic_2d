@@ -55,8 +55,9 @@ private:
     // status inherited related
     float prevMappedTime_ = 0.0f;
     // return current <value, velocity> as a tuple
-    std::tuple<std::shared_ptr<RSRenderPropertyBase>, std::shared_ptr<RSRenderPropertyBase>> GetSpringStatus() const;
-    void InheritSpringStatus(const RSRenderSpringAnimation* from);
+    std::tuple<std::shared_ptr<RSRenderPropertyBase>, std::shared_ptr<RSRenderPropertyBase>,
+        std::shared_ptr<RSRenderPropertyBase>> GetSpringStatus() const;
+    bool InheritSpringStatus(const RSRenderSpringAnimation* from);
 
     // blend related
     uint64_t blendDuration_ = 0;

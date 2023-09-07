@@ -150,7 +150,10 @@ void RSRenderSpringAnimation::OnAttach()
     auto prevSpringAnimation = std::static_pointer_cast<RSRenderSpringAnimation>(prevAnimation);
 
     // inherit spring status from previous spring animation
-    InheritSpringStatus(prevSpringAnimation.get());
+    if (!InheritSpringStatus(prevSpringAnimation.get())) {
+        blendDuration_ = 0;
+        return;
+    }
     // inherit spring response
     response_ = prevSpringAnimation->response_;
     if (ROSEN_EQ(response_, finalResponse_, RESPONSE_THRESHOLD)) {
@@ -221,12 +224,13 @@ void RSRenderSpringAnimation::OnInitialize(int64_t time)
     }
 }
 
-std::tuple<std::shared_ptr<RSRenderPropertyBase>, std::shared_ptr<RSRenderPropertyBase>>
+std::tuple<std::shared_ptr<RSRenderPropertyBase>, std::shared_ptr<RSRenderPropertyBase>,
+    std::shared_ptr<RSRenderPropertyBase>>
 RSRenderSpringAnimation::GetSpringStatus() const
 {
     // if animation is never started, return start value and initial velocity
     if (ROSEN_EQ(prevMappedTime_, 0.0f, FRACTION_THRESHOLD)) {
-        return { startValue_, initialVelocity_ };
+        return { startValue_, endValue_, initialVelocity_ };
     }
 
     auto displacement = lastValue_ - endValue_;
@@ -236,15 +240,31 @@ RSRenderSpringAnimation::GetSpringStatus() const
     auto velocity = (CalculateDisplacement(prevMappedTime_ + TIME_INTERVAL) - displacement) * (1 / TIME_INTERVAL);
 
     // return current position and velocity
-    return { lastValue_->Clone(), velocity };
+    return { lastValue_, endValue_, velocity };
 }
 
-void RSRenderSpringAnimation::InheritSpringStatus(const RSRenderSpringAnimation* from)
+bool RSRenderSpringAnimation::InheritSpringStatus(const RSRenderSpringAnimation* from)
 {
-    // inherit spring status from another spring animation
-    std::tie(startValue_, initialVelocity_) = from->GetSpringStatus();
+    if (from == nullptr) {
+        return false;
+    }
+
+    auto [lastValue, endValue, velocity] = from->GetSpringStatus();
+    if (startValue_ == nullptr || lastValue == nullptr || endValue == nullptr || velocity == nullptr) {
+        ROSEN_LOGE("RSRenderSpringAnimation::InheritSpringStatus, unexpected null pointer!");
+        return false;
+    }
+    if (!startValue_->IsEqual(endValue) && !(from == this)) {
+        // means property values may change due to direct setting or other animations
+        return false;
+    }
+
+    // inherit spring status from last spring animation
+    startValue_ = lastValue->Clone();
+    initialVelocity_ = velocity;
     originValue_ = startValue_->Clone();
     lastValue_ = startValue_->Clone();
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS
