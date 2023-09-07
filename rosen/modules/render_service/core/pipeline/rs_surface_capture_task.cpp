@@ -161,7 +161,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
             sptr<SurfaceBuffer> surfaceBuffer = dmaMem.DmaMemAlloc(info, pixelmap);
             auto skSurface = dmaMem.GetSkSurfaceFromSurfaceBuffer(surfaceBuffer);
             if (skSurface == nullptr) {
-                RS_LOGE("RSSurfaceCaptureTask: GetSkSurfaceFromSurfaceBuffer fail,surface is nullptr!");
+                RS_LOGE("GetSkSurfaceFromSurfaceBuffer fail,surface is nullptr!");
                 dmaMem.ReleaseGLMemory();
                 callback->OnSurfaceCapture(id, nullptr);
                 return;
