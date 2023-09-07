@@ -392,25 +392,25 @@ RectI RSUniRenderComposerAdapter::SrcRectRotateTransform(RSSurfaceRenderNode& no
     int boundsWidth = static_cast<int>(node.GetRenderProperties().GetBoundsWidth());
     int boundsHeight = static_cast<int>(node.GetRenderProperties().GetBoundsHeight());
     // Left > 0 means move xComponent to the left outside of the screen
+    // Top > 0 means move xComponent to the top outside of the screen
+    // The left and top should recalculate when transformType is not GRAPHIC_ROTATE_NONE
+    // The width and height should exchange when transformType is GRAPHIC_ROTATE_270 and GRAPHIC_ROTATE_90
     switch (transformType) {
         case GraphicTransformType::GRAPHIC_ROTATE_270: {
-            top = boundsWidth - width - left > 0 ? boundsWidth - width - left : 0;
-            left = 0;
+            left = std::max(top, 0);
+            top = std::max(boundsWidth - width - srcRect.GetLeft(), 0);
             srcRect = RectI {left, top, height, width};
             break;
         }
         case GraphicTransformType::GRAPHIC_ROTATE_180: {
-            left = left > 0 ? 0 :
-                boundsWidth - width > 0 ? boundsWidth - width : 0;
-            top = boundsHeight - height > 0 ? boundsHeight - height : 0;
+            left = std::max(boundsWidth - width - left, 0);
+            top = std::max(boundsHeight - height - top, 0);
             srcRect = RectI {left, top, width, height};
             break;
         }
         case GraphicTransformType::GRAPHIC_ROTATE_90: {
-            if (left > 0) {
-                top = boundsWidth - width > 0 ? boundsWidth - width : 0;
-            }
-            left = boundsHeight - height > 0 ? boundsHeight - height : 0;
+            left = std::max(boundsHeight - height - top, 0);
+            top = std::max(srcRect.GetLeft(), 0);
             srcRect = RectI {left, top, height, width};
             break;
         }
