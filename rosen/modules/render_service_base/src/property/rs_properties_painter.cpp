@@ -1870,11 +1870,18 @@ void RSPropertiesPainter::DrawMask(const RSProperties& properties, Drawing::Canv
         canvas.AttachBrush(mask->GetMaskBrush());
         canvas.DrawRect(rect);
         canvas.DetachBrush();
-    } else if (mask->IsPathMask()) {
+    } else if (mask->IsPathMask() || mask->GetMaskPath()) {
+        auto path = mask->GetMaskPath();
+        std::shared_ptr<Drawing::Path> maskPath;
+        if (path->GetDrawingType() == Drawing::DrawingType::RECORDING) {
+            maskPath = std::static_pointer_cast<Drawing::RecordingPath>(path)->GetCmdList()->Playback();
+        } else {
+            maskPath = path;
+        }
         Drawing::AutoCanvasRestore maskSave(canvas, true);
         canvas.Translate(maskBounds.GetLeft(), maskBounds.GetTop());
         canvas.AttachBrush(mask->GetMaskBrush());
-        canvas.DrawPath(mask->GetMaskPath());
+        canvas.DrawPath(*maskPath);
         canvas.DetachBrush();
     }
 

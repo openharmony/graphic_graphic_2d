@@ -17,6 +17,9 @@
 
 #include "include/core/SkPictureRecorder.h"
 
+#ifdef USE_ROSEN_DRAWING
+#include "recording/recording_path.h"
+#endif
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -75,6 +78,9 @@ std::shared_ptr<RSMask> RSMask::CreateSVGMask(double x, double y, double scaleX,
 
 RSMask::RSMask()
 {
+#ifdef USE_ROSEN_DRAWING
+    maskPath_ = std::make_shared<Drawing::Path>();
+#endif
 }
 
 RSMask::~RSMask()
@@ -123,17 +129,25 @@ double RSMask::GetScaleY() const
 
 #ifndef USE_ROSEN_DRAWING
 void RSMask::SetMaskPath(const SkPath& path)
-#else
-void RSMask::SetMaskPath(const Drawing::Path& path)
-#endif
 {
     maskPath_ = path;
 }
+#else
+void RSMask::SetMaskPath(const Drawing::Path& path)
+{
+    if (path.GetDrawingType() == Drawing::DrawingType::RECORDING) {
+        maskPath_ = std::make_shared<Drawing::RecordingPath>();
+        maskPath_->AddPath(path);
+    } else {
+        maskPath_ = std::make_shared<Drawing::Path>(path);
+    }
+}
+#endif
 
 #ifndef USE_ROSEN_DRAWING
 SkPath RSMask::GetMaskPath() const
 #else
-Drawing::Path RSMask::GetMaskPath() const
+std::shared_ptr<Drawing::Path> RSMask::GetMaskPath() const
 #endif
 {
     return maskPath_;
