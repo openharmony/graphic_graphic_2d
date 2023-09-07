@@ -23,6 +23,7 @@
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
 #include "platform/common/rs_log.h"
+#include "pipeline/rs_task_dispatcher.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_image_cache.h"
 #include "render/rs_pixel_map_util.h"
@@ -113,15 +114,25 @@ void RSImageBase::SetImage(const std::shared_ptr<Drawing::Image> image)
     }
 }
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
 #ifndef USE_ROSEN_DRAWING
 void RSImageBase::SetDmaImage(const sk_sp<SkImage> image)
 #else
 void RSImageBase::SetDmaImage(const std::shared_ptr<Drawing::Image> image)
 #endif
 {
+    std::lock_guard<std::mutex> lock(mutex_);
+    pid_t currentThreadId = gettid();
+    if (tid_ != 0 && tid_ != currentThreadId) {
+        RSTaskDispatcher::GetInstance().PostTask(tid_, [dmaImage = std::move(image_)]() mutable {
+            dmaImage = nullptr;
+        });
+    }
     isDrawn_ = false;
     image_ = image;
+    tid_ = currentThreadId;
 }
+#endif
 
 void RSImageBase::SetPixelMap(const std::shared_ptr<Media::PixelMap>& pixelmap)
 {
