@@ -206,12 +206,13 @@ RsBackendTexture SkiaImage::GetBackendTexture(bool flushPendingGrContextIO, Text
         LOGE("SkiaImage::GetBackendTexture, SkImage is nullptr!");
         return RsBackendTexture(false); // invalid
     }
+    GrBackendTexture skBackendTexture;
     if (origin == nullptr) {
-        GrBackendTexture skBackendTexture =
+        skBackendTexture =
             skiaImage_->getBackendTexture(flushPendingGrContextIO);
     } else {
         GrSurfaceOrigin grOrigin = ConvertToGrSurfaceOrigin(*origin);
-        GrBackendTexture skBackendTexture =
+        skBackendTexture =
             skiaImage_->getBackendTexture(flushPendingGrContextIO, &grOrigin);
     }
     if (!skBackendTexture.isValid()) {

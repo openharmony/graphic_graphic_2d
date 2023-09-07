@@ -168,7 +168,7 @@ private:
     bool isValid_;
     std::shared_ptr<ImageImpl> imageImplPtr;
     TextureInfo textureInfo_;
-}
+};
 
 class DRAWING_API Image {
 public:
