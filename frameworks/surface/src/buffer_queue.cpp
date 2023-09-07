@@ -26,9 +26,10 @@
 #include "buffer_log.h"
 #include "buffer_manager.h"
 #include "hitrace_meter.h"
+#include "sandbox_utils.h"
 #include "surface_buffer_impl.h"
 #include "sync_fence.h"
-#include "sandbox_utils.h"
+#include "sync_fence_tracker.h"
 
 namespace OHOS {
 namespace {
@@ -51,8 +52,13 @@ static uint64_t GetUniqueIdImpl()
     return id | counter++;
 }
 
+static bool IsLocalRender()
+{
+    return GetRealPid() == gettid();
+}
+
 BufferQueue::BufferQueue(const std::string &name, bool isShared)
-    : name_(name), uniqueId_(GetUniqueIdImpl()), isShared_(isShared)
+    : name_(name), uniqueId_(GetUniqueIdImpl()), isShared_(isShared), isLocalRender_(IsLocalRender())
 {
     BLOGNI("ctor, Queue id: %{public}" PRIu64 " isShared: %{public}d", uniqueId_, isShared);
     bufferManager_ = BufferManager::GetInstance();
@@ -316,6 +322,10 @@ GSError BufferQueue::ReuseBuffer(const BufferRequestConfig &config, sptr<BufferE
     }
 
     ScopedBytrace bufferName(name_ + ":" + std::to_string(retval.sequence));
+    if (isLocalRender_) {
+        static SyncFenceTracker releaseFenceThread("Release Fence");
+        releaseFenceThread.TrackFence(retval.fence);
+    }
     return GSERROR_OK;
 }
 
@@ -471,6 +481,10 @@ GSError BufferQueue::DoFlushBuffer(uint32_t sequence, const sptr<BufferExtraData
         bufferQueueCache_[sequence].timestamp = config.timestamp;
     }
 
+    if (isLocalRender_) {
+        static SyncFenceTracker acquireFenceThread("Acquire Fence");
+        acquireFenceThread.TrackFence(fence);
+    }
     // if you need dump SurfaceBuffer to file, you should call DumpToFile(sequence) here
     return GSERROR_OK;
 }

@@ -28,23 +28,20 @@ SyncFenceTracker::SyncFenceTracker(const std::string threadName)
     fencesQueued_(0),
     fencesSignaled_(0)
 {
-    auto runner = OHOS::AppExecFwk::EventRunner::Create(threadName_);
-    handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    runner_ = OHOS::AppExecFwk::EventRunner::Create(threadName_);
+    handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner_);
 }
 
 void SyncFenceTracker::TrackFence(const sptr<SyncFence>& fence)
 {
-    std::string fenceMsg;
     if (fence->SyncFileReadTimestamp() != SyncFence::FENCE_PENDING_TIMESTAMP) {
-        fenceMsg = threadName_ + " " + std::to_string(fencesQueued_.load()) + " has signaled";
-        RS_TRACE_NAME(fenceMsg.c_str());
+        RS_TRACE_NAME_FMT("%s %d has signaled", threadName_.c_str(), fencesQueued_.load());
         fencesQueued_++;
         fencesSignaled_++;
         return;
     }
 
-    fenceMsg = threadName_ + " " + std::to_string(fencesQueued_.load());
-    RS_TRACE_NAME(fenceMsg.c_str());
+    RS_TRACE_NAME_FMT("%s %d", threadName_.c_str(), fencesQueued_.load());
     if (handler_) {
         handler_->PostTask([this, fence]() {
             Loop(fence);
@@ -58,8 +55,7 @@ void SyncFenceTracker::Loop(const sptr<SyncFence>& fence)
     uint32_t fenceIndex = 0;
     fenceIndex = fencesSignaled_.load();
     {
-        std::string fenceMsg = "Waiting for " + threadName_ + " " + std::to_string(fenceIndex);
-        RS_TRACE_NAME(fenceMsg.c_str());
+        RS_TRACE_NAME_FMT("Waiting for %s %d", threadName_.c_str(), fenceIndex);
         int32_t result = fence->Wait(SYNC_TIME_OUT);
         if (result < 0) {
             HiLog::Debug(LABEL, "Error waiting for SyncFence: %s", strerror(result));
