@@ -665,6 +665,19 @@ void SkiaCanvas::ClipPath(const Path& path, ClipOp op, bool doAntiAlias)
     }
 }
 
+void SkiaCanvas::ClipRegion(const Region& region, ClipOp op)
+{
+    if (!skCanvas_) {
+        LOGE("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    auto skRegionImpl = region.GetImpl<SkiaRegion>();
+    if (skRegionImpl != nullptr) {
+        SkClipOp clipOp = static_cast<SkClipOp>(op);
+        skCanvas_->clipRegion(*(skRegionImpl->GetSkRegion()), clipOp);
+    }
+}
+
 void SkiaCanvas::SetMatrix(const Matrix& matrix)
 {
     if (!skCanvas_) {

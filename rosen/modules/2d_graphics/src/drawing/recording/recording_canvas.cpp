@@ -25,6 +25,7 @@
 #include "recording/recording_mask_filter.h"
 #include "recording/recording_path_effect.h"
 #include "recording/recording_shader_effect.h"
+#include "recording/recording_region.h"
 #include "draw/color.h"
 #include "effect/color_filter.h"
 #include "effect/color_space.h"
@@ -201,6 +202,12 @@ void RecordingCanvas::ClipPath(const Path& path, ClipOp op, bool doAntiAlias)
 {
     auto pathHandle = CmdListHelper::AddRecordedToCmdList<RecordingPath>(*cmdList_, path);
     cmdList_->AddOp<ClipPathOpItem>(pathHandle, op, doAntiAlias);
+}
+
+void RecordingCanvas::ClipRegion(const Region& region, ClipOp op)
+{
+    auto regionHandle = CmdListHelper::AddRecordedToCmdList<RecordingRegion>(*cmdList_, region);
+    cmdList_->AddOp<ClipRegionOpItem>(regionHandle, op);
 }
 
 void RecordingCanvas::SetMatrix(const Matrix& matrix)

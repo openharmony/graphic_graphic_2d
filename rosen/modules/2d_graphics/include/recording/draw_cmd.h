@@ -98,6 +98,7 @@ public:
         CLIP_RECT_OPITEM,
         CLIP_ROUND_RECT_OPITEM,
         CLIP_PATH_OPITEM,
+        CLIP_REGION_OPITEM,
         SET_MATRIX_OPITEM,
         RESET_MATRIX_OPITEM,
         CONCAT_MATRIX_OPITEM,
@@ -394,6 +395,19 @@ private:
     CmdListHandle path_;
     ClipOp clipOp_;
     bool doAntiAlias_;
+};
+
+class ClipRegionOpItem : public DrawOpItem {
+public:
+    ClipRegionOpItem(const CmdListHandle& region, ClipOp clipOp = ClipOp::INTERSECT);
+    ~ClipRegionOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas, const CmdList& cmdList) const;
+
+private:
+    CmdListHandle region_;
+    ClipOp clipOp_;
 };
 
 class SetMatrixOpItem : public DrawOpItem {

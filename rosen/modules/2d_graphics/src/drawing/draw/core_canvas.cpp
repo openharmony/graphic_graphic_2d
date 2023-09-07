@@ -185,6 +185,11 @@ void CoreCanvas::ClipPath(const Path& path, ClipOp op, bool doAntiAlias)
     impl_->ClipPath(path, op, doAntiAlias);
 }
 
+void CoreCanvas::ClipRegion(const Region& region, ClipOp op)
+{
+    impl_->ClipRegion(region, op);
+}
+
 void CoreCanvas::SetMatrix(const Matrix& matrix)
 {
     impl_->SetMatrix(matrix);

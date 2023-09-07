@@ -26,6 +26,7 @@
 #include "recording/mask_filter_cmd_list.h"
 #include "recording/path_effect_cmd_list.h"
 #include "recording/shader_effect_cmd_list.h"
+#include "recording/region_cmd_list.h"
 
 #include "draw/path.h"
 #include "draw/brush.h"
@@ -61,6 +62,7 @@ std::unordered_map<uint32_t, CanvasPlayer::PlaybackFunc> CanvasPlayer::opPlaybac
     { DrawOpItem::CLIP_RECT_OPITEM,         ClipRectOpItem::Playback },
     { DrawOpItem::CLIP_ROUND_RECT_OPITEM,   ClipRoundRectOpItem::Playback },
     { DrawOpItem::CLIP_PATH_OPITEM,         ClipPathOpItem::Playback },
+    { DrawOpItem::CLIP_REGION_OPITEM,       ClipRegionOpItem::Playback },
     { DrawOpItem::SET_MATRIX_OPITEM,        SetMatrixOpItem::Playback },
     { DrawOpItem::RESET_MATRIX_OPITEM,      ResetMatrixOpItem::Playback },
     { DrawOpItem::CONCAT_MATRIX_OPITEM,     ConcatMatrixOpItem::Playback },
@@ -499,6 +501,28 @@ void ClipPathOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
     }
 
     canvas.ClipPath(*path, clipOp_, doAntiAlias_);
+}
+
+ClipRegionOpItem::ClipRegionOpItem(const CmdListHandle& region, ClipOp clipOp)
+    : DrawOpItem(CLIP_REGION_OPITEM), region_(region), clipOp_(clipOp) {}
+
+void ClipRegionOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const ClipRegionOpItem*>(opItem);
+        op->Playback(player.canvas_, player.cmdList_);
+    }
+}
+
+void ClipRegionOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
+{
+    auto region = CmdListHelper::GetFromCmdList<RegionCmdList, Region>(cmdList, region_);
+    if (region == nullptr) {
+        LOGE("region is nullptr!");
+        return;
+    }
+
+    canvas.ClipRegion(*region, clipOp_);
 }
 
 SetMatrixOpItem::SetMatrixOpItem(const Matrix& matrix) : DrawOpItem(SET_MATRIX_OPITEM)

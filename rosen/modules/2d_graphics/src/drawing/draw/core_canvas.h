@@ -208,6 +208,14 @@ public:
      */
     virtual void ClipPath(const Path& path, ClipOp op, bool doAntiAlias = false);
 
+    /*
+     * @brief              Replace the clipping area with the intersection or difference of the
+                           current clipping area and Region, and use a clipping edge that is aliased or anti-aliased.
+     * @param region       To combine with clip.
+     * @param op           To apply to clip.The default value is ClipOp::INTERSECT
+     */
+    virtual void ClipRegion(const Region& region, ClipOp op = ClipOp::INTERSECT);
+
     // transform
     virtual void SetMatrix(const Matrix& matrix);
     virtual void ResetMatrix();

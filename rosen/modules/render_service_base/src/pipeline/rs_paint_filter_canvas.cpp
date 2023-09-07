@@ -212,6 +212,14 @@ void RSPaintFilterCanvasBase::ClipPath(const Path& path, ClipOp op, bool doAntiA
     }
 }
 
+void RSPaintFilterCanvasBase::ClipRegion(const Region& region, ClipOp op)
+{
+    Canvas::ClipRegion(region, op);
+    if (canvas_ != nullptr) {
+        canvas_->ClipRegion(region, op);
+    }
+}
+
 void RSPaintFilterCanvasBase::SetMatrix(const Matrix& matrix)
 {
     Canvas::SetMatrix(matrix);
