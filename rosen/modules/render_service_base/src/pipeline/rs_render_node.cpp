@@ -1348,7 +1348,8 @@ void RSRenderNode::UpdateBackendTexture()
     cacheBackendTexture_
         = cacheSurface_->getBackendTexture(SkSurface::BackendHandleAccess::kFlushRead_BackendHandleAccess);
 #else
-    RS_LOGE("[%{public}s:%{public}d] Drawing is not supported", __func__, __LINE__);
+    cacheBackendTexture_
+        = cacheSurface_->GetBackendTexture(false);
 #endif
 }
 #endif

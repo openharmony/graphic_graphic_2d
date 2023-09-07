@@ -34,6 +34,7 @@ class GPUContext;
 class TextureInfo;
 enum class TextureOrigin;
 enum class CompressedType;
+class RsBackendTexture;
 #endif
 enum class BitDepth;
 class ImageImpl : public BaseImpl {
@@ -54,6 +55,7 @@ public:
         CompressedType type) = 0;
     virtual bool BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace) = 0;
+    virtual RsBackendTexture GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin* origin) = 0;
 #endif
     virtual int GetWidth() const = 0;
     virtual int GetHeight() const = 0;

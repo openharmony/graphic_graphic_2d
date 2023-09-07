@@ -57,6 +57,8 @@ public:
         CompressedType type) override;
     bool BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace) override;
+    RsBackendTexture GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin *origin);
+    void SetGrBackendTexture(const GrBackendTexture& grBackendTexture);
 #endif
     int GetWidth() const override;
     int GetHeight() const override;
@@ -96,6 +98,7 @@ private:
 #endif
     sk_sp<SkImage> skiaImage_;
     SkiaPaint skiaPaint_;
+    GrBackendTexture grBackendTexture_;
 };
 } // namespace Drawing
 } // namespace Rosen

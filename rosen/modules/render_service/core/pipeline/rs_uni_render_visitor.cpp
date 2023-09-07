@@ -2739,7 +2739,7 @@ bool RSUniRenderVisitor::UpdateCacheSurface(RSRenderNode& node)
 #ifndef USE_ROSEN_DRAWING
     cacheCanvas->clear(SK_ColorTRANSPARENT);
 #else
-    cacheCanvas->DrawBackground(Drawing::Color::COLOR_TRANSPARENT);
+    cacheCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
 #endif
 
     swap(cacheCanvas, canvas_);

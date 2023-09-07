@@ -179,6 +179,50 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info
 
     return (skiaImage_ != nullptr) ? true : false;
 }
+
+static TextureInfo ConvertToTextureInfo(const GrBackendTexture& grBackendTexture)
+{
+    GrGLTextureInfo *grGLTextureInfo = new GrGLTextureInfo();
+    grBackendTexture.getGLTextureInfo(grGLTextureInfo);
+    TextureInfo textureInfo;
+    textureInfo.SetWidth(grBackendTexture.width());
+    textureInfo.SetHeight(grBackendTexture.height());
+    textureInfo.SetIsMipMapped(static_cast<bool>(grBackendTexture.mipmapped()));
+    textureInfo.SetTarget(grGLTextureInfo->fTarget);
+    textureInfo.SetID(grGLTextureInfo->fID);
+    textureInfo.SetFormat(grGLTextureInfo->fFormat);
+
+    return textureInfo;
+}
+
+void SkiaImage::SetGrBackendTexture(const GrBackendTexture& grBackendTexture)
+{
+    grBackendTexture_ = grBackendTexture;
+}
+
+RsBackendTexture SkiaImage::GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin *origin)
+{
+    if (skiaImage_ == nullptr) {
+        LOGE("SkiaImage::GetBackendTexture, SkImage is nullptr!");
+        return RsBackendTexture(false); // invalid
+    }
+    if (origin == nullptr) {
+        GrBackendTexture skBackendTexture =
+            skiaImage_->getBackendTexture(flushPendingGrContextIO);
+    } else {
+        GrSurfaceOrigin grOrigin = ConvertToGrSurfaceOrigin(*origin);
+        GrBackendTexture skBackendTexture =
+            skiaImage_->getBackendTexture(flushPendingGrContextIO, &grOrigin);
+    }
+    if (!skBackendTexture.isValid()) {
+        LOGE("SkiaImage::GetBackendTexture, skBackendTexture is nullptr!");
+        return RsBackendTexture(false); // invalid
+    }
+    auto rsBackendTexture = RsBackendTexture(true);
+    SetGrBackendTexture(skBackendTexture);
+    rsBackendTexture.SetTextureInfo(ConvertToTextureInfo(skBackendTexture));
+    return rsBackendTexture;
+}
 #endif
 
 int SkiaImage::GetWidth() const

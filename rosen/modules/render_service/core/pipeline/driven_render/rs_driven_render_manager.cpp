@@ -91,10 +91,14 @@ bool RSDrivenRenderManager::ClipHoleForDrivenNode(RSPaintFilterCanvas& canvas, c
     canvas.clipRRect(RSPropertiesPainter::RRect2SkRRect(absClipRRect), true);
     canvas.clear(SK_ColorTRANSPARENT);
     canvas.restore();
-    return true;
 #else
-    return false;
+    canvas.Save();
+    canvas.ClipRoundRect(RSPropertiesPainter::RRect2SkRRect(absClipRRect),
+            Drawing::ClipOp::INTERSECT, true);
+    canvas.Clear(Drawing::Color::COLOR_TRANSPARENT);
+    canvas.Restore();
 #endif
+    return true;
 }
 
 static bool IsValidSurfaceName(RSBaseRenderNode::SharedPtr backgroundNode)
