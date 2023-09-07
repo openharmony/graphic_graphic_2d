@@ -154,6 +154,7 @@ public:
     static bool GetDDGRIntegrateEnable();
 #endif
     static bool GetSnapshotWithDMAEnabled();
+    static bool IsPhoneType();
 private:
     RSSystemProperties() = default;
 

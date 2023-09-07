@@ -446,5 +446,11 @@ bool RSSystemProperties::GetSnapshotWithDMAEnabled()
         system::GetParameter("const.product.devicetype", "pc") == "pc";
     return isSupportDma && system::GetBoolParameter("rosen.snapshotDma.enabled", true);
 }
+
+bool RSSystemProperties::IsPhoneType()
+{
+    static bool isPhone = system::GetParameter("const.product.devicetype", "pc") == "phone";
+    return isPhone;
+}
 } // namespace Rosen
 } // namespace OHOS
