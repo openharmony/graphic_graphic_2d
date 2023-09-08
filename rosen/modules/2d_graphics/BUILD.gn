@@ -55,6 +55,9 @@ template("graphics2d_source_set") {
   ohos_source_set(target_name) {
     defines += invoker.defines
     cflags_cc += invoker.cflags_cc
+    if (use_texgine) {
+      defines += [ "USE_TEXGINE" ]
+    }
     sources = [
       "$drawing_src_dir/c/drawing_bitmap.cpp",
       "$drawing_src_dir/c/drawing_brush.cpp",
@@ -194,6 +197,14 @@ template("graphics2d_source_set") {
         deps +=
             [ "$ace_flutter_engine_root/libtxt:thirdparty_lib_txt_$platform" ]
         defines += [ "USE_GRAPHIC_TEXT_GINE" ]
+        if (use_texgine) {
+          deps -=
+              [ "$ace_flutter_engine_root/libtxt:thirdparty_lib_txt_$platform" ]
+          deps += [
+            "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform",
+            "//third_party/skia:skia_$platform",
+          ]
+        }
       } else {
         deps += [
           "$ace_flutter_engine_root:flutter_engine_fml_$platform",
@@ -206,6 +217,10 @@ template("graphics2d_source_set") {
         "SUPPORT_OHOS_PIXMAP",
         "ROSEN_OHOS",
       ]
+
+      if (enable_text_gine && use_texgine) {
+        include_dirs -= [ "$flutter_root/engine" ]
+      }
 
       if (defined(use_new_skia) && use_new_skia) {
         remove_configs = [ "//build/config/compiler:default_include_dirs" ]
@@ -221,6 +236,11 @@ template("graphics2d_source_set") {
     } else {
       cflags = [ "-std=c++17" ]
       deps = [ "$ace_flutter_engine_root/libtxt:thirdparty_lib_txt_$platform" ]
+
+      if (enable_text_gine && use_texgine) {
+        deps -=
+            [ "$ace_flutter_engine_root/libtxt:thirdparty_lib_txt_$platform" ]
+      }
 
       if (!is_cross_platform_build) {
         deps += [ "$rosen_root/modules/platform:hilog" ]
@@ -238,6 +258,11 @@ template("graphics2d_source_set") {
         deps += [ "//third_party/skia:skia_$platform" ]
         defines += [ "USE_GRAPHIC_TEXT_GINE" ]
         include_dirs += [ "$flutter_root/txt/src" ]
+
+        if (use_texgine) {
+          configs -= [ "$ace_flutter_engine_root/icu:icu_config_$platform" ]
+          include_dirs -= [ "$flutter_root/txt/src" ]
+        }
       } else {
         deps += [ "$ace_flutter_engine_root:flutter_engine_fml_$platform" ]
         include_dirs += [ "$flutter_root/engine" ]

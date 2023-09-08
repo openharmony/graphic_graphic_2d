@@ -51,6 +51,9 @@ ohos_unittest("2d_engine_rosen_text_prop_test") {
 
   if (enable_text_gine) {
     sources -= [ "place_holder_test.cpp" ]
+    if (use_texgine) {
+      sources -= [ "rosen_coverter_txt_test.cpp" ]
+    }
     include_dirs -= [ "$rosen_2d_engine_root/rosen_text/properties" ]
     include_dirs += [
       "$rosen_2d_engine_root/rosen_text/adapter",
