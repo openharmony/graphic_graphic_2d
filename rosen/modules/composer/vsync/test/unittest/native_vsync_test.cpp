@@ -51,7 +51,7 @@ namespace {
  */
 HWTEST_F(NativeVsyncTest, OH_NativeVSync_Create001, Function | MediumTest | Level2)
 {
-    ASSERT_EQ(OH_NativeVSync_Create(nullptr, 0), nullptr);
+    ASSERT_EQ(OH_NativeVSync_Create(nullptr,0), nullptr);
 }
 
 /*
@@ -134,6 +134,33 @@ HWTEST_F(NativeVsyncTest, OH_NativeVSync_Destroy002, Function | MediumTest | Lev
 {
     OH_NativeVSync_Destroy(native_vsync);
 }
+
+/*
+* Function: OH_NativeVSync_GetPeriod
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeVSync_GetPeriod by abnormal input
+*                  2. check ret
+ */
+HWTEST_F(NativeVsyncTest, OH_NativeVSync_GetPeriod001, Function | MediumTest | Level2)
+{
+    ASSERT_NE(OH_NativeVSync_GetPeriod(nullptr,nullptr),0);
+}
+
+/*
+* Function: OH_NativeVSync_GetPeriod
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeVSync_GetPeriod 
+*                  2. check ret
+ */
+HWTEST_F(NativeVsyncTest, OH_NativeVSync_GetPeriod002, Function | MediumTest | Level2)
+{
+    ASSERT_NE(OH_NativeVSync_GetPeriod(native_vsync,nullptr),0);
+}
+
 } // namespace
 } // namespace Rosen
 } // namespace OHOS
