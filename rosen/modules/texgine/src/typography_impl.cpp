@@ -43,27 +43,6 @@ namespace TextEngine {
 #define FAILED 1
 #define MEDIAL 2
 
-namespace {
-std::vector<LineMetrics> CreateEllipsisSpan(const TypographyStyle &ys,
-    const std::shared_ptr<FontProviders> &fontProviders)
-{
-    if (ys.ellipsis.empty()) {
-        return {};
-    }
-
-    TextStyle xs;
-    xs.fontSize = ys.lineStyle.fontSize;
-    xs.fontFamilies = ys.lineStyle.fontFamilies;
-
-    std::vector<VariantSpan> spans = {TextSpan::MakeFromText(ys.ellipsis)};
-    spans[0].SetTextStyle(xs);
-    auto ys2 = ys;
-    ys2.wordBreakType = WordBreakType::BREAK_ALL;
-    ys2.breakStrategy = BreakStrategy::GREEDY;
-    return Shaper::DoShape(spans, ys2, fontProviders, MAXWIDTH);
-}
-} // namespace
-
 void LineMetrics::AddSpanAndUpdateMetrics(const VariantSpan &span)
 {
     lineSpans.push_back(span);
@@ -292,7 +271,8 @@ void TypographyImpl::Layout(double maxWidth)
         LOGEX_FUNC_LINE(INFO) << "Layout maxWidth: " << maxWidth << ", spans.size(): " << spans_.size();
         maxWidth_ = maxWidth;
 
-        lineMetrics_ = Shaper::DoShape(spans_, typographyStyle_, fontProviders_, maxWidth);
+        Shaper shaper;
+        lineMetrics_ = shaper.DoShape(spans_, typographyStyle_, fontProviders_, maxWidth);
         if (lineMetrics_.size() == 0) {
             LOGEX_FUNC_LINE(ERROR) << "Shape failed";
             return;
@@ -300,7 +280,7 @@ void TypographyImpl::Layout(double maxWidth)
 
         ComputeIntrinsicWidth();
 
-        ConsiderEllipsis();
+        didExceedMaxLines_ = shaper.DidExceedMaxLines();
         auto ret = ComputeStrut();
         if (ret) {
             LOGEX_FUNC_LINE(ERROR) << "ComputeStrut failed";
@@ -345,39 +325,6 @@ void TypographyImpl::ComputeIntrinsicWidth()
     } else {
         minIntrinsicWidth_ = maxIntrinsicWidth_;
     }
-}
-
-void TypographyImpl::ConsiderEllipsis()
-{
-    didExceedMaxLines_ = false;
-    auto maxLines = typographyStyle_.maxLines;
-    if (lineMetrics_.size() <= maxLines) {
-        return;
-    }
-
-    std::vector<LineMetrics> ellipsisMertics = CreateEllipsisSpan(typographyStyle_, fontProviders_);
-    double ellipsisWidth = 0.0;
-    std::vector<VariantSpan> ellipsisSpans;
-    for (auto &metric : ellipsisMertics) {
-        for (auto &es : metric.lineSpans) {
-            ellipsisWidth += es.GetWidth();
-            ellipsisSpans.push_back(es);
-        }
-    }
-
-    switch (typographyStyle_.ellipsisModal) {
-        case EllipsisModal::HEAD:
-            ConsiderHeadEllipsis(ellipsisSpans, ellipsisWidth);
-            break;
-        case EllipsisModal::MIDDLE:
-            ConsiderMiddleEllipsis(ellipsisSpans, ellipsisWidth);
-            break;
-        case EllipsisModal::TAIL:
-        default:
-            ConsiderTailEllipsis(ellipsisSpans, ellipsisWidth);
-            break;
-    }
-    didExceedMaxLines_ = true;
 }
 
 int TypographyImpl::UpdateMetrics()

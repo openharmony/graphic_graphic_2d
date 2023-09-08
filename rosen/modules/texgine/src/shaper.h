@@ -32,8 +32,19 @@ public:
      * @param fontProviders The font providers setting by user
      * @param widthLimit The maximum display width set by the user
      */
-    static std::vector<LineMetrics> DoShape(std::vector<VariantSpan> spans, const TypographyStyle &tstyle,
+    std::vector<LineMetrics> DoShape(std::vector<VariantSpan> spans, const TypographyStyle &tstyle,
         const std::shared_ptr<FontProviders> &fontProviders, const double widthLimit);
+    bool DidExceedMaxLines() const;
+
+private:
+    std::vector<LineMetrics> DoShapeBeforeEllipsis(std::vector<VariantSpan> spans, const TypographyStyle &tstyle,
+        const std::shared_ptr<FontProviders> &fontProviders, const double widthLimit);
+    void ConsiderEllipsis(const TypographyStyle &tstyle,
+        const std::shared_ptr<FontProviders> &fontProviders, const double widthLimit);
+    std::vector<LineMetrics> CreateEllipsisSpan(const TypographyStyle &ys,
+        const std::shared_ptr<FontProviders> &fontProviders);
+    std::vector<LineMetrics> lineMetrics_;
+    bool didExceedMaxLines_ = false;
 };
 } // namespace TextEngine
 } // namespace Rosen
