@@ -47,9 +47,9 @@ RSCanvasDrawingRenderNode::~RSCanvasDrawingRenderNode()
 #endif
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canvas)
 {
-#ifndef USE_ROSEN_DRAWING
     int width = 0;
     int height = 0;
     if (!GetSizeFromDrawCmdModifiers(width, height)) {
@@ -116,8 +116,11 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
 #else
     canvas.drawImage(image, 0.f, 0.f, nullptr);
 #endif
+}
 
 #else //USE_ROSEN_DRAWING
+void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canvas)
+{
     int width = 0;
     int height = 0;
     if (!GetSizeFromDrawCmdModifiers(width, height)) {
@@ -163,8 +166,8 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
 
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
     canvas.DrawImage(*image, 0.f, 0.f, samplingOptions);
-#endif
 }
+#endif
 
 #ifndef USE_ROSEN_DRAWING
 bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilterCanvas& canvas)

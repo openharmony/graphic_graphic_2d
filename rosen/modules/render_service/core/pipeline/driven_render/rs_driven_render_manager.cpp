@@ -94,7 +94,7 @@ bool RSDrivenRenderManager::ClipHoleForDrivenNode(RSPaintFilterCanvas& canvas, c
 #else
     canvas.Save();
     canvas.ClipRoundRect(RSPropertiesPainter::RRect2SkRRect(absClipRRect),
-            Drawing::ClipOp::INTERSECT, true);
+        Drawing::ClipOp::INTERSECT, true);
     canvas.Clear(Drawing::Color::COLOR_TRANSPARENT);
     canvas.Restore();
 #endif
