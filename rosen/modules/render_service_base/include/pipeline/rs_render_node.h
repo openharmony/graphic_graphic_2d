@@ -393,15 +393,15 @@ public:
     virtual void OnAlphaChanged() {}
 
     void SetRSFrameRateRange(FrameRateRange range);
-    FrameRateRange GetRSFrameRateRange();
-    void UpdateUIFrameRateRange(FrameRateRange range);
-    FrameRateRange GetUIFrameRateRange() const;
+    const FrameRateRange& GetRSFrameRateRange();
+    void UpdateUIFrameRateRange(const FrameRateRange& range);
+    const FrameRateRange& GetUIFrameRateRange() const;
 
     void ResetRSFrameRateRange();
     void ResetUIFrameRateRange();
 
     void MarkNonGeometryChanged();
-    std::vector<HgmModifierProfile> GetHgmModifierProfileList() const;
+    const std::vector<HgmModifierProfile>& GetHgmModifierProfileList();
     void SetRSFrameRateRangeByPreferred(int32_t preferred);
     bool ApplyModifiers();
 

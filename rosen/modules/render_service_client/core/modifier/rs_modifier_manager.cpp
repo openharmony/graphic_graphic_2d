@@ -95,7 +95,7 @@ bool RSModifierManager::Animate(int64_t time)
     return hasRunningAnimation;
 }
 
-FrameRateRange RSModifierManager::GetUIFrameRateRange()
+const FrameRateRange& RSModifierManager::GetUIFrameRateRange() const
 {
     return uiRange_;
 }

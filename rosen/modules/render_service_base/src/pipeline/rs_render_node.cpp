@@ -508,12 +508,13 @@ std::pair<bool, bool> RSRenderNode::Animate(int64_t timestamp)
     return animationManager_.Animate(timestamp, IsOnTheTree());
 }
 
-FrameRateRange RSRenderNode::GetRSFrameRateRange()
+const FrameRateRange& RSRenderNode::GetRSFrameRateRange()
 {
     if (rsRange_.IsValid()) {
         return rsRange_;
     }
-    rsRange_ = animationManager_.GetFrameRateRangeFromRSAnimations();
+    auto& animationRsRange = animationManager_.GetFrameRateRangeFromRSAnimations();
+    rsRange_.Set(animationRsRange.min_, animationRsRange.max_, animationRsRange.preferred_);
     return rsRange_;
 }
 
@@ -1963,11 +1964,11 @@ void RSRenderNode::SetRSFrameRateRange(FrameRateRange range)
 {
     rsRange_ = range;
 }
-void RSRenderNode::UpdateUIFrameRateRange(FrameRateRange range)
+void RSRenderNode::UpdateUIFrameRateRange(const FrameRateRange& range)
 {
     uiRange_.Merge(range);
 }
-FrameRateRange RSRenderNode::GetUIFrameRateRange() const
+const FrameRateRange& RSRenderNode::GetUIFrameRateRange() const
 {
     return uiRange_;
 }
@@ -1975,7 +1976,7 @@ void RSRenderNode::MarkNonGeometryChanged()
 {
     geometryChangeNotPerceived_ = true;
 }
-std::vector<HgmModifierProfile> RSRenderNode::GetHgmModifierProfileList() const
+const std::vector<HgmModifierProfile>& RSRenderNode::GetHgmModifierProfileList()
 {
     return hgmModifierProfileList_;
 }

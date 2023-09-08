@@ -315,7 +315,7 @@ public:
 
     void AddFRCSceneInfo(const std::string& scene, float speed);
 
-    void UpdateUIFrameRateRange(FrameRateRange range);
+    void UpdateUIFrameRateRange(const FrameRateRange& range);
 
     bool GetParticleAnimationFinish()
     {

@@ -254,7 +254,7 @@ bool RSUIDirector::RunningCustomAnimation(uint64_t timeStamp)
     {
         auto node = surfaceNode_.lock();
         if (node) {
-            auto range = modifierManager->GetUIFrameRateRange();
+            auto& range = modifierManager->GetUIFrameRateRange();
             if (range.IsValid()) {
                 node->UpdateUIFrameRateRange(range);
             }

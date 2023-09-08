@@ -2281,31 +2281,30 @@ void RSMainThread::CollectFrameRateRange(std::shared_ptr<RSRenderNode> node)
 
     auto nodePreferred = GetNodePreferred(node->GetHgmModifierProfileList());
     node->SetRSFrameRateRangeByPreferred(nodePreferred);
-
-    //[Planning]: Support multi-display in the future.
-    frameRateRangeData_->screenId = 0;
     pid_t nodePid = ExtractPid(node->GetId());
-    auto currRange = node->GetUIFrameRateRange();
-    if (currRange.IsValid()) {
+    auto& uiCurrRange = node->GetUIFrameRateRange();
+    if (uiCurrRange.IsValid()) {
         if (frameRateRangeData_->multiAppRange.count(nodePid)) {
-            frameRateRangeData_->multiAppRange[nodePid].Merge(currRange);
+            frameRateRangeData_->multiAppRange[nodePid].Merge(uiCurrRange);
         } else {
-            frameRateRangeData_->multiAppRange.insert(std::make_pair(nodePid, currRange));
+            frameRateRangeData_->multiAppRange.insert(std::make_pair(nodePid, uiCurrRange));
         }
     }
 
-    currRange = node->GetRSFrameRateRange();
-    if (currRange.IsValid()) {
-        frameRateRangeData_->rsRange.Merge(currRange);
+    auto& rsCurrRange = node->GetRSFrameRateRange();
+    if (rsCurrRange.IsValid()) {
+        frameRateRangeData_->rsRange.Merge(rsCurrRange);
     }
     node->ResetUIFrameRateRange();
     node->ResetRSFrameRateRange();
-    frameRateRangeData_->forceUpdateFlag = forceUpdateUniRenderFlag_;
 }
 
 void RSMainThread::ApplyModifiers()
 {
     frameRateRangeData_ = std::make_shared<FrameRateRangeData>();
+    //[Planning]: Support multi-display in the future.
+    frameRateRangeData_->screenId = 0;
+    frameRateRangeData_->forceUpdateFlag = forceUpdateUniRenderFlag_;
     for (const auto& [root, nodeSet] : context_->activeNodesInRoot_) {
         for (const auto& [id, nodePtr] : nodeSet) {
             bool isZOrderChanged = nodePtr->ApplyModifiers();

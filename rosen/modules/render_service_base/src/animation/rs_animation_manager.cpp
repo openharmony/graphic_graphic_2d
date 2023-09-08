@@ -111,7 +111,7 @@ std::pair<bool, bool> RSAnimationManager::Animate(int64_t time, bool nodeIsOnThe
     return { hasRunningAnimation, needRequestNextVsync };
 }
 
-FrameRateRange RSAnimationManager::GetFrameRateRangeFromRSAnimations()
+const FrameRateRange& RSAnimationManager::GetFrameRateRangeFromRSAnimations() const
 {
     return rsRange_;
 }

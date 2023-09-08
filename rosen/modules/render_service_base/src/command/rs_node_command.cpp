@@ -131,7 +131,7 @@ void RSNodeCommandHelper::UnregisterGeometryTransitionPair(RSContext& context, N
     }
 }
 
-void RSNodeCommandHelper::UpdateUIFrameRateRange(RSContext& context, NodeId nodeId, FrameRateRange range)
+void RSNodeCommandHelper::UpdateUIFrameRateRange(RSContext& context, NodeId nodeId, const FrameRateRange& range)
 {
     auto& nodeMap = context.GetNodeMap();
     if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
