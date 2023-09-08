@@ -855,6 +855,27 @@ RSPaintFilterCanvas::CanvasStatus RSPaintFilterCanvas::GetCanvasStatus() const
 RSPaintFilterCanvas::CachedEffectData::CachedEffectData(sk_sp<SkImage>&& image, const SkIRect& rect)
     : cachedImage_(image), cachedRect_(rect)
 {}
+
 RSPaintFilterCanvas::CachedEffectData::~CachedEffectData() = default;
+
+void RSPaintFilterCanvas::SetIsParallelCanvas(bool isParallel)
+{
+    isParallelCanvas_ = isParallel;
+}
+
+bool RSPaintFilterCanvas::GetIsParallelCanvas() const
+{
+    return isParallelCanvas_;
+}
+
+void RSPaintFilterCanvas::SetDisableFilterCache(bool disable)
+{
+    disableFilterCache_ = disable;
+}
+
+bool RSPaintFilterCanvas::GetDisableFilterCache() const
+{
+    return disableFilterCache_;
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -186,6 +186,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::SetCanvas(std::shared_ptr<RSRecordin
     }
     canvas_ = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     canvas_->scale(scaleX_, scaleY_);
+    canvas_->SetDisableFilterCache(true);
 }
 #else
 void RSUniUICapture::RSUniUICaptureVisitor::SetCanvas(std::shared_ptr<Drawing::RecordingCanvas> canvas)

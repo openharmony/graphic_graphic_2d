@@ -30,6 +30,7 @@ class RSSkiaFilter;
 // Note: we don't care about if the filter will be applied to background or foreground, the caller should take care of
 // this. This means if both background and foreground need to apply filter, the caller should create two
 // RSFilterCacheManager, pass the correct dirty region, and call the DrawFilter() in correct order.
+// Warn: Using filter cache in multi-thread environment may cause GPU memory leak or invalid textures.
 class RSFilterCacheManager final {
 public:
     RSFilterCacheManager() = default;

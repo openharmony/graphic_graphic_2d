@@ -2730,7 +2730,9 @@ bool RSUniRenderVisitor::UpdateCacheSurface(RSRenderNode& node)
     if (canvas_) {
         cacheCanvas->CopyConfiguration(*canvas_);
     }
-    cacheCanvas->SetIsParallelCanvas(isSubThread_);
+    // Using filter cache in multi-thread environment may cause GPU memory leak or invalid textures, so we explicitly
+    // disable it in sub-thread.
+    cacheCanvas->SetDisableFilterCache(isSubThread_);
 
     // When drawing CacheSurface, all child node should be drawn.
     // So set isOpDropped_ = false here.
