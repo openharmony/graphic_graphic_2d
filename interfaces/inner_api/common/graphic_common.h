@@ -59,7 +59,13 @@ static const std::map<GSError, std::string> GSErrorStrs = {
 static inline std::string LowErrorStrSpecial(GSError err)
 {
     if (err == LOWERROR_INVALID) {
-        char num[] = {err / 0x64 % 0xa, err / 0xa % 0xa, err % 0xa, 0}; // int to string (in 1000)
+        // int to string (in 1000)
+        char num[] = {
+            static_cast<char>(err / 0x64 % 0xa),
+            static_cast<char>(err / 0xa % 0xa),
+            static_cast<char>(err % 0xa),
+            0
+        };
         return std::string("with low error <") + num + ">";
     } else if (err == LOWERROR_FAILURE) {
         return "with low error <failure>";
