@@ -86,6 +86,7 @@ private:
     int64_t GetCurrentSystimeMs() const;
 
     constexpr static size_t JANK_STATS_SIZE = 8;
+    constexpr static uint32_t JANK_RANGE_VERSION = 1;
     constexpr static uint16_t TRACE_CHECK_FREQ = 20;
     constexpr static int64_t MISSED_FRAMES_TRACE_THRESHOLD = 6;
     bool isfirstSetStart_ = true;
