@@ -118,7 +118,7 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
 #endif
 }
 
-#else //USE_ROSEN_DRAWING
+#else // USE_ROSEN_DRAWING
 void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canvas)
 {
     int width = 0;

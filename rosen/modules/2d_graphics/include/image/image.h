@@ -150,13 +150,13 @@ private:
     unsigned int format_ = 0;
 };
 
-class RsBackendTexture {
+class BackendTexture {
 public:
-    RsBackendTexture(bool isValid) noexcept;
-    virtual ~RsBackendTexture() {};
+    BackendTexture(bool isValid) noexcept;
+    virtual ~BackendTexture() {};
 
-    bool isValid() const;
-    void SetTextureInfo(TextureInfo textureInfo);
+    bool IsValid() const;
+    void SetTextureInfo(const TextureInfo& textureInfo);
     const TextureInfo GetTextureInfo() const;
 
     template<typename T>
@@ -214,7 +214,7 @@ public:
     bool BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace);
 
-    RsBackendTexture GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin* origin) const;
+    BackendTexture GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin* origin) const;
 #endif
 
     /*

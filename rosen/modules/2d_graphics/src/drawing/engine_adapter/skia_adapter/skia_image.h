@@ -58,7 +58,7 @@ public:
         CompressedType type) override;
     bool BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace) override;
-    RsBackendTexture GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin *origin) override;
+    BackendTexture GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin *origin) override;
     void SetGrBackendTexture(const GrBackendTexture& grBackendTexture);
 #endif
     int GetWidth() const override;

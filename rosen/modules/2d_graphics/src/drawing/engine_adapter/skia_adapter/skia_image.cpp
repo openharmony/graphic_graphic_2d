@@ -200,11 +200,11 @@ void SkiaImage::SetGrBackendTexture(const GrBackendTexture& grBackendTexture)
     grBackendTexture_ = grBackendTexture;
 }
 
-RsBackendTexture SkiaImage::GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin *origin)
+BackendTexture SkiaImage::GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin *origin)
 {
     if (skiaImage_ == nullptr) {
         LOGE("SkiaImage::GetBackendTexture, SkImage is nullptr!");
-        return RsBackendTexture(false); // invalid
+        return BackendTexture(false); // invalid
     }
     GrBackendTexture skBackendTexture;
     if (origin == nullptr) {
@@ -217,12 +217,12 @@ RsBackendTexture SkiaImage::GetBackendTexture(bool flushPendingGrContextIO, Text
     }
     if (!skBackendTexture.isValid()) {
         LOGE("SkiaImage::GetBackendTexture, skBackendTexture is nullptr!");
-        return RsBackendTexture(false); // invalid
+        return BackendTexture(false); // invalid
     }
-    auto rsBackendTexture = RsBackendTexture(true);
+    auto backendTexture = BackendTexture(true);
     SetGrBackendTexture(skBackendTexture);
-    rsBackendTexture.SetTextureInfo(ConvertToTextureInfo(skBackendTexture));
-    return rsBackendTexture;
+    backendTexture.SetTextureInfo(ConvertToTextureInfo(skBackendTexture));
+    return backendTexture;
 }
 #endif
 

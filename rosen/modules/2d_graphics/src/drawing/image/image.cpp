@@ -20,21 +20,20 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-RsBackendTexture::RsBackendTexture(bool isValid) noexcept
-    : isValid_(isValid),
-    imageImplPtr(ImplFactory::CreateImageImpl()) {}
+BackendTexture::BackendTexture(bool isValid) noexcept
+    : isValid_(isValid), imageImplPtr(ImplFactory::CreateImageImpl()) {}
 
-bool RsBackendTexture::isValid() const
+bool BackendTexture::IsValid() const
 {
     return isValid_;
 }
 
-void RsBackendTexture::SetTextureInfo(TextureInfo textureInfo)
+void BackendTexture::SetTextureInfo(const TextureInfo& textureInfo)
 {
     textureInfo_ = textureInfo;
 }
 
-const TextureInfo RsBackendTexture::GetTextureInfo() const
+const TextureInfo BackendTexture::GetTextureInfo() const
 {
     return textureInfo_;
 }
@@ -73,7 +72,7 @@ bool Image::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, Te
     return imageImplPtr->BuildFromTexture(gpuContext, info, origin, bitmapFormat, colorSpace);
 }
 
-RsBackendTexture Image::GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin* origin) const
+BackendTexture Image::GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin* origin) const
 {
     return imageImplPtr->GetBackendTexture(flushPendingGrContextIO, origin);
 }
