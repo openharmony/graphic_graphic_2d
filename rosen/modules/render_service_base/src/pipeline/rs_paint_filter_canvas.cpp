@@ -852,11 +852,8 @@ RSPaintFilterCanvas::CanvasStatus RSPaintFilterCanvas::GetCanvasStatus() const
 }
 #endif
 
-RSPaintFilterCanvas::CachedEffectData::CachedEffectData(const sk_sp<SkImage>& image, const SkIRect& rect)
+RSPaintFilterCanvas::CachedEffectData::CachedEffectData(sk_sp<SkImage>&& image, const SkIRect& rect)
     : cachedImage_(image), cachedRect_(rect)
-{}
-RSPaintFilterCanvas::CachedEffectData::CachedEffectData(sk_sp<SkImage>&& image, SkIRect&& rect)
-    : cachedImage_(std::move(image)), cachedRect_(std::move(rect))
 {}
 RSPaintFilterCanvas::CachedEffectData::~CachedEffectData() = default;
 } // namespace Rosen

@@ -84,9 +84,9 @@ private:
     // environment, we don't need to attempt to reattach SkImages.
     void CheckCachedImages(RSPaintFilterCanvas& canvas);
     // To reduce memory usage, clear one of the cached images.
-    inline void CompactCache(bool isFilterHashChanged);
+    inline void CompactCache(bool shouldClearFilteredCache);
     // Validate the input srcRect and dstRect, and return the validated rects.
-    static std::tuple<SkIRect, SkIRect> ValidateParams(RSPaintFilterCanvas& canvas,
+    std::tuple<SkIRect, SkIRect> ValidateParams(RSPaintFilterCanvas& canvas,
         const std::optional<SkIRect>& srcRect, const std::optional<SkIRect>& dstRect);
 
     // We keep both the snapshot and filtered snapshot in the cache, and clear unneeded one in next frame.
