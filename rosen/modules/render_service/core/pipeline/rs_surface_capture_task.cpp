@@ -607,6 +607,7 @@ void RSSurfaceCaptureVisitor::SetSurface(SkSurface* surface)
     }
     canvas_ = std::make_unique<RSPaintFilterCanvas>(surface);
     canvas_->scale(scaleX_, scaleY_);
+    canvas_->SetDisableFilterCache(true);
 }
 #else
 void RSSurfaceCaptureVisitor::SetSurface(Drawing::Surface* surface)

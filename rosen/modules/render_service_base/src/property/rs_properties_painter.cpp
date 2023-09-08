@@ -1079,7 +1079,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
 #if defined(RS_ENABLE_GL)
     // Optional use cacheManager to draw filter
     if (auto& cacheManager = properties.GetFilterCacheManager(filterType == FilterType::FOREGROUND_FILTER);
-        cacheManager != nullptr && !canvas.GetIsParallelCanvas()) {
+        cacheManager != nullptr && !canvas.GetDisableFilterCache()) {
         cacheManager->DrawFilter(canvas, filter);
         return;
     }
@@ -1200,7 +1200,7 @@ void RSPropertiesPainter::DrawBackgroundEffect(
 #if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
     // Optional use cacheManager to draw filter
     if (auto& cacheManager = properties.GetFilterCacheManager(false);
-        cacheManager != nullptr && !canvas.GetIsParallelCanvas()) {
+        cacheManager != nullptr && !canvas.GetDisableFilterCache()) {
         auto&& data = cacheManager->GeneratedCachedEffectData(canvas, filter);
         canvas.SetEffectData(data);
         return;
