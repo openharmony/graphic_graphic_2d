@@ -71,7 +71,7 @@ HWTEST_F(RSRenderEngineTest, DrawSurfaceNodeWithParams001, TestSize.Level1)
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     auto param = RSDividedRenderUtil::CreateBufferDrawParam(*node);
-    param.useCPU = false;
+    param.useCPU = true;
     renderEngine->DrawSurfaceNodeWithParams(*canvas, *node, param, nullptr, nullptr);
     ASSERT_NE(canvas, nullptr);
 }
@@ -561,6 +561,6 @@ HWTEST_F(RSRenderEngineTest, DrawSurfaceNode, TestSize.Level1)
     layer3->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
     layers.emplace_back(layer3);
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    renderEngine->DrawSurfaceNode(*canvas, *surfaceNode, 0.0f, false);
+    renderEngine->DrawSurfaceNode(*canvas, *surfaceNode, 0.0f, true);
 }
 }

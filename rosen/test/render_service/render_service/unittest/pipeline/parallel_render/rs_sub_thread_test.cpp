@@ -49,6 +49,7 @@ HWTEST_F(RsSubThreadTest, PostTaskTest, TestSize.Level1)
     curThread->PostTask([]{});
     delete renderContext;
     renderContext = nullptr;
+    usleep(1000 * 1000); // 1000 * 1000us
 }
 
 /**
