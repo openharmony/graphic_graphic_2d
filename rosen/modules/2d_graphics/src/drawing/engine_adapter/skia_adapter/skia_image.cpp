@@ -182,7 +182,7 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info
 
 static TextureInfo ConvertToTextureInfo(const GrBackendTexture& grBackendTexture)
 {
-    GrGLTextureInfo *grGLTextureInfo = new GrGLTextureInfo();
+    GrGLTextureInfo* grGLTextureInfo = new GrGLTextureInfo();
     grBackendTexture.getGLTextureInfo(grGLTextureInfo);
     TextureInfo textureInfo;
     textureInfo.SetWidth(grBackendTexture.width());
