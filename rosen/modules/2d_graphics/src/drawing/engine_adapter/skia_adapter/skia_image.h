@@ -32,6 +32,7 @@
 #include "skia_matrix.h"
 #include "skia_paint.h"
 #include "skia_picture.h"
+#include "include/gpu/GrBackendSurface.h"
 
 #include "impl_interface/image_impl.h"
 
