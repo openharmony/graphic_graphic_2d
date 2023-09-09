@@ -138,8 +138,12 @@ float RSPath::GetDistance() const
     SkPathMeasure pathMeasure(*skPath_, false);
     return pathMeasure.getLength();
 #else
-    Drawing::Path path;
-    return path.GetLength(false);
+    if (drPath_->GetDrawingType() == Drawing::DrawingType::RECORDING) {
+        auto path = static_cast<Drawing::RecordingPath*>(drPath_)->GetCmdList()->Playback();
+        return path->GetLength(false);
+    } else {
+        return drPath_->GetLength(false);
+    }
 #endif
 }
 
@@ -161,8 +165,13 @@ bool RSPath::GetPosTan(float distance, Vector2f& pos, float& degrees) const
 #else
     Drawing::Point position;
     Drawing::Point tangent;
-    Drawing::Path path;
-    bool ret = path.GetPositionAndTangent(distance, position, tangent, false);
+    bool ret = false;
+    if (drPath_->GetDrawingType() == Drawing::DrawingType::RECORDING) {
+        auto path = static_cast<Drawing::RecordingPath*>(drPath_)->GetCmdList()->Playback();
+        ret = path->GetPositionAndTangent(distance, position, tangent, false);
+    } else {
+        ret = drPath_->GetPositionAndTangent(distance, position, tangent, false);
+    }
     if (!ret) {
         ROSEN_LOGE("PathMeasure get failed");
         return false;

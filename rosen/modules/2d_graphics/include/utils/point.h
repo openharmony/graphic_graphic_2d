@@ -120,7 +120,7 @@ inline PointF& PointF::operator/=(scalar divisor)
 
 inline const PointF operator+(const PointF& p1, const PointF& p2)
 {
-    return PointF(p1.x_ + p1.y_, p2.x_ + p2.y_);
+    return PointF(p1.x_ + p2.x_, p1.y_ + p2.y_);
 }
 
 inline const PointF operator-(const PointF& p1, const PointF& p2)
@@ -259,7 +259,7 @@ inline PointI& PointI::operator/=(scalar divisor)
 
 inline const PointI operator+(const PointI& p1, const PointI& p2)
 {
-    return PointI(p1.x_ + p1.y_, p2.x_ + p2.y_);
+    return PointI(p1.x_ + p2.x_, p1.y_ + p2.y_);
 }
 
 inline const PointI operator-(const PointI& p1, const PointI& p2)
