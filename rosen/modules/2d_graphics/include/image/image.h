@@ -150,6 +150,26 @@ private:
     unsigned int format_ = 0;
 };
 
+class BackendTexture {
+public:
+    BackendTexture(bool isValid) noexcept;
+    virtual ~BackendTexture() {};
+
+    bool IsValid() const;
+    void SetTextureInfo(const TextureInfo& textureInfo);
+    const TextureInfo GetTextureInfo() const;
+
+    template<typename T>
+    const std::shared_ptr<T> GetImpl() const
+    {
+        return imageImplPtr->DowncastingTo<T>();
+    }
+private:
+    bool isValid_;
+    std::shared_ptr<ImageImpl> imageImplPtr;
+    TextureInfo textureInfo_;
+};
+
 class DRAWING_API Image {
 public:
     Image() noexcept;
@@ -193,6 +213,8 @@ public:
      */
     bool BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace);
+
+    BackendTexture GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin* origin) const;
 #endif
 
     /*

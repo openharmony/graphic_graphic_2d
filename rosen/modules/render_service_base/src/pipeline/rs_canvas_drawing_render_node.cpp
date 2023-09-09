@@ -47,9 +47,9 @@ RSCanvasDrawingRenderNode::~RSCanvasDrawingRenderNode()
 #endif
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canvas)
 {
-#ifndef USE_ROSEN_DRAWING
     int width = 0;
     int height = 0;
     if (!GetSizeFromDrawCmdModifiers(width, height)) {
@@ -116,8 +116,58 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
 #else
     canvas.drawImage(image, 0.f, 0.f, nullptr);
 #endif
-#endif
 }
+
+#else // USE_ROSEN_DRAWING
+void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canvas)
+{
+    int width = 0;
+    int height = 0;
+    if (!GetSizeFromDrawCmdModifiers(width, height)) {
+        return;
+    }
+
+    if (IsNeedResetSurface(width, height)) {
+        if (preThreadInfo_.second && surface_) {
+            preThreadInfo_.second(std::move(surface_));
+        }
+        if (!ResetSurface(width, height, canvas)) {
+            return;
+        }
+        preThreadInfo_ = curThreadInfo_;
+    } else if (preThreadInfo_.first != curThreadInfo_.first) {
+        auto preMatrix = canvas_->GetTotalMatrix();
+        auto preSurface = surface_;
+        if (!ResetSurface(width, height, canvas)) {
+            return;
+        }
+
+        if (auto image = preSurface->GetImageSnapshot()) {
+            canvas_->DrawImage(*image, 0.f, 0.f, Drawing::SamplingOptions());
+        }
+
+        if (preThreadInfo_.second && preSurface) {
+            preThreadInfo_.second(std::move(preSurface));
+        }
+        preThreadInfo_ = curThreadInfo_;
+        canvas_->SetMatrix(preMatrix);
+    }
+
+    RSModifierContext context = { GetMutableRenderProperties(), canvas_.get() };
+    ApplyDrawCmdModifier(context, RSModifierType::CONTENT_STYLE);
+    ApplyDrawCmdModifier(context, RSModifierType::OVERLAY_STYLE);
+
+    Rosen::Drawing::Matrix mat;
+    if (RSPropertiesPainter::GetGravityMatrix(
+        GetRenderProperties().GetFrameGravity(), GetRenderProperties().GetFrameRect(), width, height, mat)) {
+        canvas.ConcatMatrix(mat);
+    }
+    auto image = surface_->GetImageSnapshot();
+
+    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
+    canvas.DrawImage(*image, 0.f, 0.f, samplingOptions);
+}
+#endif
 
 #ifndef USE_ROSEN_DRAWING
 bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilterCanvas& canvas)
