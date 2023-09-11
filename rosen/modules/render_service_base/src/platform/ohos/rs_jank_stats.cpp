@@ -71,7 +71,8 @@ void RSJankStats::SetEndTime()
     endTime_ = GetCurrentSystimeMs();
     const int64_t duration = endTime_ - startTime_;
     if (duration >= VSYNC_PERIOD) {
-        SetRSJankStats(static_cast<int32_t>(duration / VSYNC_PERIOD));
+        int64_t missedFrames = static_cast<int64_t>(duration / VSYNC_PERIOD);
+        SetRSJankStats(missedFrames, endTime_);
     }
     {
         std::lock_guard<std::mutex> lock(animateJankFramesMutex_);
@@ -91,7 +92,7 @@ void RSJankStats::SetEndTime()
             }
             const TraceId traceId = static_cast<TraceId>(uniqueId);
             if (jankFrames.isReportEventResponse_) {
-                SetTraceBegin(traceId, jankFrames, endTime_);
+                SetTraceBegin(traceId, endTime_, jankFrames);
             }
             if (jankFrames.isReportEventComplete_ || jankFrames.isReportEventJankFrame_) {
                 SetTraceEnd(traceId);
@@ -105,28 +106,32 @@ void RSJankStats::SetEndTime()
     CheckTraceTimeout(endTime_);
 }
 
-void RSJankStats::SetRSJankStats(int32_t times)
+void RSJankStats::SetRSJankStats(int64_t missedFrames, int64_t jankRecordTime)
 {
     size_t type = JANK_FRAME_INVALID;
-    if (times < 6) {                                              // JANK_FRAME_6_FREQ   : (0,6)
+    if (missedFrames < 6) {                                       // JANK_FRAME_6_FREQ   : (0,6)
         type = JANK_FRAME_6_FREQ;
-    } else if (times < 15) {                                      // JANK_FRAME_15_FREQ  : [6,15)
+    } else if (missedFrames < 15) {                               // JANK_FRAME_15_FREQ  : [6,15)
         type = JANK_FRAME_15_FREQ;
-    } else if (times < 20) {                                      // JANK_FRAME_20_FREQ  : [15,20)
+    } else if (missedFrames < 20) {                               // JANK_FRAME_20_FREQ  : [15,20)
         type = JANK_FRAME_20_FREQ;
-    } else if (times < 36) {                                      // JANK_FRAME_36_FREQ  : [20,36)
+    } else if (missedFrames < 36) {                               // JANK_FRAME_36_FREQ  : [20,36)
         type = JANK_FRAME_36_FREQ;
-    } else if (times < 48) {                                      // JANK_FRAME_48_FREQ  : [36,48)
+    } else if (missedFrames < 48) {                               // JANK_FRAME_48_FREQ  : [36,48)
         type = JANK_FRAME_48_FREQ;
-    } else if (times < 60) {                                      // JANK_FRAME_60_FREQ  : [48,60)
+    } else if (missedFrames < 60) {                               // JANK_FRAME_60_FREQ  : [48,60)
         type = JANK_FRAME_60_FREQ;
-    } else if (times < 120) {                                     // JANK_FRAME_120_FREQ : [60,120)
+    } else if (missedFrames < 120) {                              // JANK_FRAME_120_FREQ : [60,120)
         type = JANK_FRAME_120_FREQ;
-    } else if (times < 180) {                                     // JANK_FRAME_180_FREQ : [120,180)
+    } else if (missedFrames < 180) {                              // JANK_FRAME_180_FREQ : [120,180)
         type = JANK_FRAME_180_FREQ;
     } else {
-        ROSEN_LOGW("RSJankStats::SetJankStats jank frames skip more than 180");
+        ROSEN_LOGW("RSJankStats::SetJankStats jank frames over 180");
         return;
+    }
+    if (type != JANK_FRAME_6_FREQ) {
+        RS_TRACE_INT("RSJankStats::SetJankStats jank frames over 6", missedFrames);
+        lastJankOverThresholdTime_ = jankRecordTime;
     }
     if (rsJankStats_[type] != USHRT_MAX) {
         rsJankStats_[type]++;
@@ -140,15 +145,9 @@ void RSJankStats::UpdateJankFrame(int64_t duration, JankFrames& jankFrames)
     jankFrames.totalFrameTime_ += duration;
     jankFrames.maxFrameTime_ = std::max(jankFrames.maxFrameTime_, duration);
     if (duration >= VSYNC_PERIOD) {
-        int64_t missedCount = static_cast<int64_t>(duration / VSYNC_PERIOD);
-        if (missedCount >= MISSED_FRAMES_TRACE_THRESHOLD) {
-            RS_TRACE_INT("RSJankStats::UpdateJankFrame jank frames skip more than " + std::to_string(
-                MISSED_FRAMES_TRACE_THRESHOLD) + ": " + GetTraceDescription(jankFrames.info_), missedCount);
-        }
-        int32_t missedFramed = static_cast<int32_t>(missedCount);
-        jankFrames.totalMissedFrames_ += missedFramed;
-        jankFrames.seqMissedFrames_ =
-            jankFrames.seqMissedFrames_ ? (jankFrames.seqMissedFrames_ + missedFramed) : missedFramed;
+        int32_t missedFrames = static_cast<int32_t>(duration / VSYNC_PERIOD);
+        jankFrames.totalMissedFrames_ += missedFrames;
+        jankFrames.seqMissedFrames_ += missedFrames;
         jankFrames.maxSeqMissedFrames_ =
             std::max(jankFrames.maxSeqMissedFrames_, jankFrames.seqMissedFrames_);
     } else {
@@ -167,7 +166,8 @@ void RSJankStats::ReportJankStats()
         return;
     }
     int64_t reportTime = GetCurrentSystimeMs();
-    RS_TRACE_NAME("RSJankStats::ReportJankStats receive notification " + std::to_string(reportTime));
+    RS_TRACE_NAME("RSJankStats::ReportJankStats receive notification: reportTime " + std::to_string(reportTime) + \
+                  ", lastJankOverThresholdTime " + std::to_string(lastJankOverThresholdTime_));
     int64_t reportDuration = reportTime - lastReportTime_;
     auto reportName = "JANK_STATS_RS";
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
@@ -176,12 +176,13 @@ void RSJankStats::ReportJankStats()
         "JANK_STATS_VER", JANK_RANGE_VERSION);
     std::fill(rsJankStats_.begin(), rsJankStats_.end(), 0);
     lastReportTime_ = reportTime;
+    lastJankOverThresholdTime_ = 0;
     isNeedReport_ = false;
 }
 
 void RSJankStats::SetReportEventResponse(DataBaseRs info)
 {
-    RS_TRACE_NAME("RSJankStats::SetReportEventResponse receive notification: " + GetTraceDescription(info));
+    RS_TRACE_NAME("RSJankStats::SetReportEventResponse receive notification: " + GetSceneDescription(info));
     int64_t setTime = GetCurrentSystimeMs();
     std::lock_guard<std::mutex> lock(animateJankFramesMutex_);
     EraseIf(animateJankFrames_, [setTime](const auto& pair) -> bool {
@@ -201,7 +202,7 @@ void RSJankStats::SetReportEventResponse(DataBaseRs info)
 
 void RSJankStats::SetReportEventComplete(DataBaseRs info)
 {
-    RS_TRACE_NAME("RSJankStats::SetReportEventComplete receive notification: " + GetTraceDescription(info));
+    RS_TRACE_NAME("RSJankStats::SetReportEventComplete receive notification: " + GetSceneDescription(info));
     int64_t setTime = GetCurrentSystimeMs();
     std::lock_guard<std::mutex> lock(animateJankFramesMutex_);
     if (animateJankFrames_.find(info.uniqueId) == animateJankFrames_.end()) {
@@ -219,7 +220,7 @@ void RSJankStats::SetReportEventComplete(DataBaseRs info)
 
 void RSJankStats::SetReportEventJankFrame(DataBaseRs info)
 {
-    RS_TRACE_NAME("RSJankStats::SetReportEventJankFrame receive notification: " + GetTraceDescription(info));
+    RS_TRACE_NAME("RSJankStats::SetReportEventJankFrame receive notification: " + GetSceneDescription(info));
     std::lock_guard<std::mutex> lock(animateJankFramesMutex_);
     if (animateJankFrames_.find(info.uniqueId) == animateJankFrames_.end()) {
         ROSEN_LOGW("RSJankStats::SetReportEventJankFrame Not find exited uniqueId");
@@ -298,20 +299,20 @@ void RSJankStats::ReportEventFirstFrame()
     isFirstFrame_ = false;
 }
 
-void RSJankStats::SetTraceBegin(const TraceId traceId, const JankFrames& jankFrames, int64_t createTime)
+void RSJankStats::SetTraceBegin(TraceId traceId, int64_t traceCreateTime, const JankFrames& jankFrames)
 {
     if (aSyncTraces_.find(traceId) != aSyncTraces_.end()) {
         return;
     }
     const auto &info = jankFrames.info_;
     int64_t inputTime = ConvertTimeToSystime(info.inputTime);
-    const std::string traceName = GetTraceDescription(info) + ", " + std::to_string(inputTime);
-    TraceStats traceStat = {.traceName_ = traceName, .createTime_ = createTime};
+    const std::string traceName = GetSceneDescription(info) + ", " + std::to_string(inputTime);
+    TraceStats traceStat = {.traceName_ = traceName, .traceCreateTime_ = traceCreateTime};
     aSyncTraces_[traceId] = std::move(traceStat);
     RS_ASYNC_TRACE_BEGIN(traceName, traceId);
 }
 
-void RSJankStats::SetTraceEnd(const TraceId traceId)
+void RSJankStats::SetTraceEnd(TraceId traceId)
 {
     if (aSyncTraces_.find(traceId) == aSyncTraces_.end()) {
         return;
@@ -326,7 +327,7 @@ void RSJankStats::CheckTraceTimeout(int64_t checkEraseTime)
         return;
     }
     EraseIf(aSyncTraces_, [checkEraseTime](const auto& pair) -> bool {
-        bool needErase = checkEraseTime - pair.second.createTime_ > TRACE_TIMEOUT;
+        bool needErase = checkEraseTime - pair.second.traceCreateTime_ > TRACE_TIMEOUT;
         if (needErase) {
             RS_ASYNC_TRACE_END(pair.second.traceName_, pair.first);
         }
@@ -335,7 +336,7 @@ void RSJankStats::CheckTraceTimeout(int64_t checkEraseTime)
     traceCheckCnt_ = 0;
 }
 
-std::string RSJankStats::GetTraceDescription(const DataBaseRs& info) const
+std::string RSJankStats::GetSceneDescription(const DataBaseRs& info) const
 {
     std::stringstream traceDescription;
     traceDescription << info.sceneId << ", " << info.bundleName << ", " << info.pageUrl;
