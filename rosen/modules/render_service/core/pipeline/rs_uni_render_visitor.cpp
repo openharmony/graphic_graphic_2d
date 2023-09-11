@@ -129,7 +129,8 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     isOpDropped_ = isPartialRenderEnabled_ && (partialRenderType_ != PartialRenderType::SET_DAMAGE)
         && (!isDirtyRegionDfxEnabled_ && !isTargetDirtyRegionDfxEnabled_ && !isOpaqueRegionDfxEnabled_);
     isQuickSkipPreparationEnabled_ = (quickSkipPrepareType_ != QuickSkipPrepareType::DISABLED);
-    isDrawingCacheEnabled_ = RSSystemParameters::GetDrawingCacheEnabled();
+    isDrawingCacheEnabled_ =
+        RSSystemParameters::GetDrawingCacheEnabled() && !RSSystemProperties::GetCacheEnabledForRotation();
     RSTagTracker::UpdateReleaseGpuResourceEnable(RSSystemProperties::GetReleaseGpuResourceEnabled());
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     if (RSDrivenRenderManager::GetInstance().GetDrivenRenderEnabled()) {
