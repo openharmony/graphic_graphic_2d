@@ -1720,6 +1720,15 @@ NodeId RSRenderNode::GetInstanceRootNodeId() const
 {
     return instanceRootNodeId_;
 }
+const std::shared_ptr<RSRenderNode>& RSRenderNode::GetInstanceRootNode() const
+{
+    auto context = GetContext().lock();
+    if (!context) {
+        ROSEN_LOGE("Invalid context");
+        return nullptr;
+    }
+    return context->GetNodeMap().GetRenderNode(instanceRootNodeId_);
+}
 NodeId RSRenderNode::GetFirstLevelNodeId() const
 {
     return firstLevelNodeId_;

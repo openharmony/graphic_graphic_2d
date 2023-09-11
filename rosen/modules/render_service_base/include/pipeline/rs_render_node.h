@@ -151,6 +151,7 @@ public:
     void SetChildHasFilter(bool childHasFilter);
 
     NodeId GetInstanceRootNodeId() const;
+    const std::shared_ptr<RSRenderNode>& GetInstanceRootNode() const;
     NodeId GetFirstLevelNodeId() const;
 
     // accumulate all valid children's area

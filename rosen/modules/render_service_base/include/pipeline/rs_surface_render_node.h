@@ -591,9 +591,8 @@ public:
     const std::vector<RectI>& GetChildrenNeedFilterRects() const;
 
     // manage abilities' nodeid info
-    void ResetAbilityNodeIds();
-    void UpdateAbilityNodeIds(NodeId id);
-    const std::vector<NodeId>& GetAbilityNodeIds() const;
+    void UpdateAbilityNodeIds(NodeId id, bool isDelete = false);
+    const std::unordered_set<NodeId>& GetAbilityNodeIds() const;
 
     // manage appWindowNode's child hardware enabled nodes info
     void ResetChildHardwareEnabledNodes();
@@ -837,7 +836,7 @@ private:
     bool opaqueRegionChanged_ = false;
     // [planning] Remove this after skia is upgraded, the clipRegion is supported
     std::vector<RectI> childrenFilterRects_;
-    std::vector<NodeId> abilityNodeIds_;
+    std::unordered_set<NodeId> abilityNodeIds_;
     // transparent region of the surface, floating window's container window is always treated as transparent
     Occlusion::Region transparentRegion_;
 

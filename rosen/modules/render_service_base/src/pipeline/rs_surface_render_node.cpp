@@ -258,6 +258,13 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
         }
     }
 #endif
+    if (IsAbilityComponent()) {
+        if (auto instanceRootNode = GetInstanceRootNode()) {
+            if (auto surfaceNode = instanceRootNode->ReinterpretCastTo<RSSurfaceRenderNode>()) {
+                surfaceNode->UpdateAbilityNodeIds(GetId(), IsOnTheTree());
+            }
+        }
+    }
 }
 
 void RSSurfaceRenderNode::OnResetParent()
@@ -1184,17 +1191,16 @@ const std::vector<RectI>& RSSurfaceRenderNode::GetChildrenNeedFilterRects() cons
 }
 
 // manage abilities' nodeid info
-void RSSurfaceRenderNode::ResetAbilityNodeIds()
+void RSSurfaceRenderNode::UpdateAbilityNodeIds(NodeId id, bool isDelete)
 {
-    abilityNodeIds_.clear();
+    if (isDelete) {
+        abilityNodeIds_.erase(id);
+    } else {
+        abilityNodeIds_.emplace(id);
+    }
 }
 
-void RSSurfaceRenderNode::UpdateAbilityNodeIds(NodeId id)
-{
-    abilityNodeIds_.emplace_back(id);
-}
-
-const std::vector<NodeId>& RSSurfaceRenderNode::GetAbilityNodeIds() const
+const std::unordered_set<NodeId>& RSSurfaceRenderNode::GetAbilityNodeIds() const
 {
     return abilityNodeIds_;
 }
