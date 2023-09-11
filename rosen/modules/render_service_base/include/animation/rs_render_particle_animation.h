@@ -43,14 +43,10 @@ public:
         return renderParticleVector_;
     }
 
-    void Finish() override
-    {
-        particleSystem_->ClearEmitter();
-        particleSystem_.reset();
-    }
-
 protected:
     bool Animate(int64_t time) override;
+    void OnAttach() override;
+    void OnDetach() override;
 
 private:
     bool ParseParam(Parcel& parcel) override;

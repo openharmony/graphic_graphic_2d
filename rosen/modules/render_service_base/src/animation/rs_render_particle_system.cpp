@@ -54,6 +54,14 @@ void RSRenderParticleSystem::UpdateParticle(int64_t deltaTime)
     if (activeParticles_.empty()) {
         return;
     }
+    for (auto it = activeParticles_.begin(); it != activeParticles_.end();) {
+        std::shared_ptr<RSRenderParticle> particle = *it;
+        if (particle == nullptr || !particle->IsAlive()) {
+            it = activeParticles_.erase(it);
+        } else {
+            ++it;
+        }
+    }
     for (auto particle : activeParticles_) {
         if (particle != nullptr) {
             auto particleRenderParams = particle->GetParticleRenderParams();
@@ -61,14 +69,6 @@ void RSRenderParticleSystem::UpdateParticle(int64_t deltaTime)
                 auto effect = RSRenderParticleEffector(particleRenderParams);
                 effect.ApplyEffectorToParticle(particle, deltaTime);
             }
-        }
-    }
-    for (auto it = activeParticles_.begin(); it != activeParticles_.end();) {
-        std::shared_ptr<RSRenderParticle> particle = *it;
-        if (particle == nullptr || !particle->IsAlive()) {
-            it = activeParticles_.erase(it);
-        } else {
-            ++it;
         }
     }
 }

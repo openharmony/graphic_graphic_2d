@@ -58,6 +58,10 @@ public:
     void RegisterPathAnimation(PropertyId propertyId, AnimationId animId);
     void UnregisterPathAnimation(PropertyId propertyId, AnimationId animId);
     std::shared_ptr<RSRenderAnimation> QueryPathAnimation(PropertyId propertyId);
+    // particle animation related
+    void RegisterParticleAnimation(PropertyId propertyId, AnimationId animId);
+    void UnregisterParticleAnimation(PropertyId propertyId, AnimationId animId);
+    std::unordered_map<PropertyId, AnimationId> GetParticleAnimations();
 
     const FrameRateRange& GetFrameRateRangeFromRSAnimations() const;
 
@@ -67,6 +71,7 @@ private:
     std::unordered_map<AnimationId, std::shared_ptr<RSRenderAnimation>> animations_;
     std::unordered_map<PropertyId, AnimationId> springAnimations_;
     std::unordered_map<PropertyId, AnimationId> pathAnimations_;
+    std::unordered_map<PropertyId, AnimationId> particleAnimations_;
     friend class RSRenderNode;
 
     FrameRateRange rsRange_ = {0, 0, 0};

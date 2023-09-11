@@ -15,6 +15,7 @@
 
 #include "animation/rs_render_particle_emitter.h"
 
+#include <cstdint>
 #include <math.h>
 #include <vector>
 namespace OHOS {
@@ -69,13 +70,16 @@ void RSRenderParticleEmitter::EmitParticle(int64_t deltaTime)
     auto maxParticle = particleParams_->GetParticleCount();
     auto lifeTime = particleParams_->GetParticleLifeTime();
     float last = particleCount_;
-    particleCount_ += static_cast<float>(emitRate * deltaTime) / NS_TO_S;
-    spawnNum_ += particleCount_ - last;
     particles_.clear();
-    if (maxParticle <= 0 || lifeTime == 0) {
+    if (maxParticle == -1) {
+        maxParticle = UINT32_MAX;
+    }
+    if (maxParticle <= 0 || lifeTime == 0 || last > static_cast<float>(maxParticle)) {
         emitFinish_ = true;
         return;
     }
+    particleCount_ += static_cast<float>(emitRate * deltaTime) / NS_TO_S;
+    spawnNum_ += particleCount_ - last;
     if (ROSEN_EQ(last, 0.f)) {
         for (uint32_t i = 0; i <= std::min(static_cast<uint32_t>(spawnNum_), maxParticle); i++) {
             auto particle = std::make_shared<RSRenderParticle>(particleParams_);

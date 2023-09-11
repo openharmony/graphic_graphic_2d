@@ -23,6 +23,7 @@
 #include "common/rs_color.h"
 namespace OHOS {
 namespace Rosen {
+constexpr float DEGREE_TO_RADIAN = M_PI / 180;
 
 int ParticleRenderParams::GetEmitRate() const
 {
@@ -406,12 +407,14 @@ void RSRenderParticle::InitProperty(std::shared_ptr<ParticleRenderParams> partic
         GetRandomValue(particleParams->GetVelocityStartValue(), particleParams->GetVelocityEndValue());
     float velocityAngle =
         GetRandomValue(particleParams->GetVelocityStartAngle(), particleParams->GetVelocityEndAngle());
+    velocityAngle *= DEGREE_TO_RADIAN;
     velocity_ = Vector2f { velocityValue * std::cos(velocityAngle), velocityValue * std::sin(velocityAngle) };
 
     float accelerationValue =
         GetRandomValue(particleParams->GetAccelerationStartValue(), particleParams->GetAccelerationEndValue());
     float accelerationAngle =
         GetRandomValue(particleParams->GetAccelerationStartAngle(), particleParams->GetAccelerationEndAngle());
+    accelerationAngle *= DEGREE_TO_RADIAN;
     acceleration_ =
         Vector2f { accelerationValue * std::cos(accelerationAngle), accelerationValue * std::sin(accelerationAngle) };
 
@@ -443,7 +446,7 @@ bool RSRenderParticle::IsAlive() const
     if (dead_ == true) {
         return false;
     }
-    if (lifeTime_ < 0) {
+    if (lifeTime_ == -1) {
         return true;
     }
     return activeTime_ < lifeTime_;

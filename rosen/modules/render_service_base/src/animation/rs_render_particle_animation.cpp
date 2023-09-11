@@ -48,10 +48,44 @@ bool RSRenderParticleAnimation::Animate(int64_t time)
     if (particleSystem_ == nullptr || particleSystem_->IsFinish()) {
         if (target) {
             target->RemoveModifier(property_->GetId());
-            return true;
         }
+        return true;
     }
     return false;
+}
+
+void RSRenderParticleAnimation::OnAttach()
+{
+    auto target = GetTarget();
+    if (target == nullptr) {
+        ROSEN_LOGE("RSRenderParticleAnimation::OnAttach, target is nullptr");
+        return;
+    }
+    auto particleAnimations = target->GetAnimationManager().GetParticleAnimations();
+    if (!particleAnimations.empty()) {
+        for (const auto& pair : particleAnimations) {
+            target->RemoveModifier(pair.first);
+            target->GetAnimationManager().RemoveAnimation(pair.second);
+            target->GetAnimationManager().UnregisterParticleAnimation(pair.first, pair.second);
+        }
+    }
+    target->GetAnimationManager().RegisterParticleAnimation(GetPropertyId(), GetAnimationId());
+}
+
+void RSRenderParticleAnimation::OnDetach()
+{
+    auto target = GetTarget();
+    if (target == nullptr) {
+        ROSEN_LOGE("RSRenderParticleAnimation::OnDetach, target is nullptr");
+        return;
+    }
+    if (particleSystem_ != nullptr) {
+        particleSystem_->ClearEmitter();
+        particleSystem_.reset();
+    }
+    auto propertyId = GetPropertyId();
+    auto id = GetAnimationId();
+    target->GetAnimationManager().UnregisterParticleAnimation(propertyId, id);
 }
 
 bool RSRenderParticleAnimation::Marshalling(Parcel& parcel) const

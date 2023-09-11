@@ -180,5 +180,23 @@ std::shared_ptr<RSRenderAnimation> RSAnimationManager::QueryPathAnimation(Proper
     }
     return GetAnimation(it->second);
 }
+
+void RSAnimationManager::RegisterParticleAnimation(PropertyId propertyId, AnimationId animId)
+{
+    particleAnimations_[propertyId] = animId;
+}
+
+void RSAnimationManager::UnregisterParticleAnimation(PropertyId propertyId, AnimationId animId)
+{
+    auto it = particleAnimations_.find(propertyId);
+    if (it != particleAnimations_.end() && it->second == animId) {
+        particleAnimations_.erase(it);
+    }
+}
+
+std::unordered_map<PropertyId, AnimationId> RSAnimationManager::GetParticleAnimations()
+{
+    return particleAnimations_;
+}
 } // namespace Rosen
 } // namespace OHOS
