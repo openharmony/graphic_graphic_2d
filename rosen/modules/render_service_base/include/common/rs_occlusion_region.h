@@ -90,6 +90,9 @@ public:
     {
         return RectI{left_, top_, right_ - left_, bottom_ - top_};
     }
+
+    int Area() const;
+    int IntersectArea(const Rect& r) const;
 };
 
 std::ostream& operator<<(std::ostream& os, const Rect& r);
@@ -196,12 +199,12 @@ public:
     Region(const Region& reg) : rects_(reg.rects_), bound_(reg.bound_) {}
     ~Region() {}
 
-    std::vector<Rect> GetRegionRects() const
+    std::vector<Rect>& GetRegionRectsRef()
     {
         return rects_;
     }
 
-    std::vector<Rect>& GetRegionRects()
+    const std::vector<Rect>& GetRegionRects() const
     {
         return rects_;
     }
@@ -294,6 +297,11 @@ public:
     Region Xor(Region& r);
     // return region belongs to Region(lhs) but not Region(rhs)
     Region Sub(Region& r);
+
+    // get current region's area, return the sum of the areas of all rectangles (as they are not intersect each other)
+    int Area() const;
+    // return the area of the region where the current region intersects the rectangle
+    int IntersectArea(const Rect& r) const;
 
 private:
     class Rects {
