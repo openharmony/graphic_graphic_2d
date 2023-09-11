@@ -261,7 +261,7 @@ public:
     /*
      * @brief  Returns the number of saved states, each containing Matrix and clipping area.
      */
-    uint32_t GetSaveCount() const;
+    virtual uint32_t GetSaveCount() const;
 
     // paint
     virtual CoreCanvas& AttachPen(const Pen& pen);

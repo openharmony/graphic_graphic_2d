@@ -378,4 +378,9 @@ ohos_source_set("librender_service_base_static") {
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
+
+  #Bisheng control is required in the future
+  if (is_ohos) {
+    ldflags = [ "-Wl,-Bsymbolic" ]
+  }
 }

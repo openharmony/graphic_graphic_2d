@@ -82,6 +82,7 @@ public:
     void Save() override;
     void SaveLayer(const SaveLayerOps& saveLayerOps) override;
     void Restore() override;
+    uint32_t GetSaveCount() const override;
 
     void ClipAdaptiveRoundRect(const std::vector<Point>& radius);
     void DrawImage(const std::shared_ptr<Image>& image, const std::shared_ptr<Data>& data,

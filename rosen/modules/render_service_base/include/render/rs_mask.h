@@ -71,7 +71,7 @@ public:
     SkPaint GetMaskPaint() const;
 #else
     void SetMaskPath(const Drawing::Path& path);
-    Drawing::Path GetMaskPath() const;
+    std::shared_ptr<Drawing::Path> GetMaskPath() const;
     void SetMaskBrush(const Drawing::Brush& brush);
     Drawing::Brush GetMaskBrush() const;
 #endif
@@ -112,7 +112,7 @@ private:
 #else
     std::shared_ptr<Drawing::Picture> svgPicture_;
     Drawing::Brush maskBrush_;
-    Drawing::Path maskPath_;
+    std::shared_ptr<Drawing::Path> maskPath_;
 #endif
 
 };

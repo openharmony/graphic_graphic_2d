@@ -309,6 +309,11 @@ void RecordingCanvas::Restore()
     }
 }
 
+uint32_t RecordingCanvas::GetSaveCount() const
+{
+    return saveCount_;
+}
+
 void RecordingCanvas::ClipAdaptiveRoundRect(const std::vector<Point>& radius)
 {
     auto radiusData = CmdListHelper::AddVectorToCmdList<Point>(*cmdList_, radius);

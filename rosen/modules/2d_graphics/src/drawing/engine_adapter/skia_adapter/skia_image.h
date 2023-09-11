@@ -32,6 +32,7 @@
 #include "skia_matrix.h"
 #include "skia_paint.h"
 #include "skia_picture.h"
+#include "include/gpu/GrBackendSurface.h"
 
 #include "impl_interface/image_impl.h"
 
@@ -57,6 +58,8 @@ public:
         CompressedType type) override;
     bool BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace) override;
+    BackendTexture GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin* origin) override;
+    void SetGrBackendTexture(const GrBackendTexture& grBackendTexture);
 #endif
     int GetWidth() const override;
     int GetHeight() const override;
@@ -96,6 +99,7 @@ private:
 #endif
     sk_sp<SkImage> skiaImage_;
     SkiaPaint skiaPaint_;
+    GrBackendTexture grBackendTexture_;
 };
 } // namespace Drawing
 } // namespace Rosen

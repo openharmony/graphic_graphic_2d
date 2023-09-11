@@ -84,6 +84,7 @@ HWTEST_F(RsNodeCostManagerTest, IsSkipProcessingTest2, TestSize.Level1)
     config.id = 10;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
     rsSurfaceRenderNode->renderProperties_.SetAlpha(0.0f);
+    rsSurfaceRenderNode->shouldPaint_ = false;
     auto result = rsNodeCostManager->IsSkipProcessing(*rsSurfaceRenderNode);
     ASSERT_TRUE(result);
 }

@@ -46,6 +46,14 @@ private:
     std::vector<LineMetrics> CreateEllipsisSpan(const TypographyStyle &ys,
         const std::shared_ptr<FontProviders> &fontProviders);
     void ComputeIntrinsicWidth(const size_t maxLines);
+    void ConsiderHeadEllipsis(const std::vector<VariantSpan> &ellipsisSpans, const double ellipsisWidth,
+        const size_t maxLines, const double widthLimit);
+    void ConsiderOneMidEllipsis(const std::vector<VariantSpan> &ellipsisSpans, const double ellipsisWidth,
+        const double widthLimit);
+    void ConsiderMiddleEllipsis(const std::vector<VariantSpan> &ellipsisSpans, const double ellipsisWidth,
+        const size_t maxLines, const double widthLimit);
+    void ConsiderTailEllipsis(const std::vector<VariantSpan> &ellipsisSpans, const double ellipsisWidth,
+        const size_t maxLines, const double widthLimit);
 
     std::vector<LineMetrics> lineMetrics_;
     bool didExceedMaxLines_ = false;

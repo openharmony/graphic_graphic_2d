@@ -203,8 +203,8 @@ HWTEST_F(RSParallelPackVisitorTest, IsSkipProcessingTest2, TestSize.Level1)
     auto rsParallelPackVisitor = std::make_shared<RSParallelPackVisitor>();
     ASSERT_FALSE(rsParallelPackVisitor->isSecurityDisplay_ && rsSurfaceRenderNode.GetSecurityLayer());
     rsSurfaceRenderNode.renderProperties_.SetAlpha(0.0f);
+    rsSurfaceRenderNode.shouldPaint_ = false;
     auto result = rsParallelPackVisitor->IsSkipProcessing(rsSurfaceRenderNode);
-    ASSERT_TRUE(!rsSurfaceRenderNode.ShouldPaint());
     ASSERT_TRUE(result);
 }
 

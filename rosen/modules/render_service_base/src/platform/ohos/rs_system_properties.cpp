@@ -348,7 +348,11 @@ bool RSSystemProperties::GetProxyNodeDebugEnabled()
 
 bool RSSystemProperties::GetUIFirstEnabled()
 {
+#ifdef ROSEN_EMULATOR
+    return false;
+#else
     return (std::atoi((system::GetParameter("rosen.ui.first.enabled", "1")).c_str()) != 0);
+#endif
 }
 
 bool RSSystemProperties::GetDebugTraceEnabled()
