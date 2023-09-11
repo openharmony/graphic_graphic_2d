@@ -80,10 +80,6 @@ private:
     void ComputeWordBoundary() const;
     void ComputeSpans(int lineIndex, double baseline, const CalcResult &calcResult,
         std::vector<TextRect> &lineBoxes) const;
-    void ConsiderHeadEllipsis(const std::vector<VariantSpan> &ellipsisSpans, const double ellipsisWidth);
-    void ConsiderOneMidEllipsis(const std::vector<VariantSpan> &ellipsisSpans, const double ellipsisWidth);
-    void ConsiderMiddleEllipsis(const std::vector<VariantSpan> &ellipsisSpans, const double ellipsisWidth);
-    void ConsiderTailEllipsis(const std::vector<VariantSpan> &ellipsisSpans, const double ellipsisWidth);
 
     TypographyStyle typographyStyle_;
     std::vector<VariantSpan> spans_;
