@@ -1484,17 +1484,20 @@ void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
     }
     if (isSubThread_) {
         node.SetIsUsedBySubThread(true);
-    }
-    for (auto& child : node.GetSortedChildren(isSubThread_)) {
-        if (UNLIKELY(child->GetSharedTransitionParam().has_value()) && !ProcessSharedTransitionNode(*child)) {
-            continue;
+        for (auto& child : node.GetSortedChildren(true)) {
+            if (ProcessSharedTransitionNode(*child)) {
+                child->Process(shared_from_this());
+            }
         }
-        child->Process(shared_from_this());
-    }
-    if (isSubThread_) {
         node.SetIsUsedBySubThread(false);
         // Main thread may invalidate the FullChildrenList, so we need to clear it if needed.
         node.ClearFullChildrenListIfNeeded(true);
+    } else {
+        for (auto& child : node.GetSortedChildren()) {
+            if (ProcessSharedTransitionNode(*child)) {
+                child->Process(shared_from_this());
+            }
+        }
     }
 }
 
@@ -3893,6 +3896,10 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
 {
     // Sanity check done by caller, transitionParam should always has value.
     auto& transitionParam = node.GetSharedTransitionParam();
+    if (LIKELY(!transitionParam.has_value())) {
+        // non-transition node, prepare directly
+        return true;
+    }
 
     // Note: Sanity checks for shared transition nodes are already done in prepare phase, no need to do it again.
     // use transition key (in node id) as map index.
