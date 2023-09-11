@@ -125,7 +125,8 @@ ohos_shared_library("libtexgine") {
         "hitrace:hitrace_meter",
       ]
 
-      public_deps += [ "//third_party/flutter/build/icu:ace_libicu_$platform" ]
+      public_deps +=
+          [ "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform" ]
     } else {
       sources -= [ "src/utils/trace_ohos.cpp" ]
       if (platform == "mac") {

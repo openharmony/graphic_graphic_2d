@@ -89,6 +89,9 @@ template("rosen_icu_make_data_assembly") {
   forward_variables_from(invoker, "*")
 
   action(target_name) {
+    if (platform == "mingw") {
+      platform = "windows"
+    }
     script =
         "$skia_root/third_party/externals/icu/scripts/make_data_assembly.py"
     if (platform == "windows" || platform == "mac") {
@@ -103,6 +106,11 @@ template("rosen_icu_make_data_assembly") {
     ]
     if (platform == "mac") {
       args += [ "--mac" ]
+    }
+    if (defined(use_new_skia) && use_new_skia) {
+      if (platform == "windows") {
+        args += [ "--win" ]
+      }
     }
   }
 }
@@ -144,7 +152,7 @@ template("rosen_libicu") {
       ]
 
       sources = [
-        "$root_out_dir/ace_icu_$platform/icudtl_dat.S",
+        "$root_out_dir/rosen_icu_$platform/icudtl_dat.S",
         "$skia_root/third_party/externals/icu/source/common/appendable.cpp",
         "$skia_root/third_party/externals/icu/source/common/bmpset.cpp",
         "$skia_root/third_party/externals/icu/source/common/brkeng.cpp",
@@ -629,9 +637,7 @@ template("rosen_libicu") {
         ]
       }
 
-      deps = [
-        "$ace_flutter_engine_root/icu:ace_icu_make_data_assembly_$platform",
-      ]
+      deps = [ ":rosen_icu_make_data_assembly_$platform" ]
     }
 
     part_name = "graphic_2d"

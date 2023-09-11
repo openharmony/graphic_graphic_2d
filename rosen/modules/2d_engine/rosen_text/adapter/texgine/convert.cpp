@@ -64,8 +64,8 @@ TextEngine::TypographyStyle Convert(const TypographyStyle &style)
         .wordBreakType = Convert(style.wordBreakType),
         .align = Convert(style.textAlign),
         .direction = Convert(style.textDirection),
-        .useLineStyle = style.useLineStyle,
         .ellipsisModal = Convert(style.ellipsisModal),
+        .useLineStyle = style.useLineStyle,
         .lineStyle = {
             .only = style.lineStyleOnly,
             .fontWeight = Convert(style.lineStyleFontWeight),

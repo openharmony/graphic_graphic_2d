@@ -50,7 +50,11 @@ if (enable_text_gine) {
   }
 
   ohos_source_set("rosen_text_inner") {
-    public_deps = [ ":rosen_text_txt" ]
+    if (use_texgine) {
+      public_deps = [ ":rosen_text_texgine" ]
+    } else {
+      public_deps = [ ":rosen_text_txt" ]
+    }
 
     part_name = "graphic_2d"
     subsystem_name = "graphic"
