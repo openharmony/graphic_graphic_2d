@@ -52,6 +52,16 @@ void GPUContextOptions::SetPersistentCache(PersistentCache* persistentCache)
     persistentCache_ = persistentCache;
 }
 
+void GPUContext::GetResourceCacheUsage(int& resourceCount, size_t& resourceBytes) const
+{
+    impl_->GetResourceCacheUsage(resourceCount, resourceBytes);
+}
+
+void GPUContext::FreeGpuResources()
+{
+    impl_->FreeGpuResources();
+}
+
 GPUContextOptions::PersistentCache* GPUContextOptions::GetPersistentCache() const
 {
     return persistentCache_;

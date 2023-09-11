@@ -116,6 +116,18 @@ public:
     void SetResourceCacheLimits(int maxResource, size_t maxResourceBytes);
 
     /*
+     * @brief                   Gets the current GPU resource cache usage.
+     * @param resourceCount     If non-null, returns the number of resources that are held in the cache.
+     * @param resourceBytes     If non-null, returns the total number of bytes of video memory held in the cache.
+     */
+    void GetResourceCacheUsage(int& resourceCount, size_t& resourceBytes) const;
+
+    /*
+     * @brief                   Free GPU created by the contetx.
+     */
+    void FreeGpuResources();
+
+    /*
      * @brief   Get the adaptation layer instance, called in the adaptation layer.
      * @return  Adaptation Layer instance.
      */

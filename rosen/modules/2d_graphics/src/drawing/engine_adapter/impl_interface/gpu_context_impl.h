@@ -43,6 +43,10 @@ public:
 
     virtual void GetResourceCacheLimits(int& maxResource, size_t& maxResourceBytes) const = 0;
     virtual void SetResourceCacheLimits(int maxResource, size_t maxResourceBytes) = 0;
+
+    virtual void GetResourceCacheUsage(int& resourceCount, size_t& resourceBytes) const = 0;
+
+    virtual void FreeGpuResources() = 0;
 };
 } // namespace Drawing
 } // namespace Rosen
