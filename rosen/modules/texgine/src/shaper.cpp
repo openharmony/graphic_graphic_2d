@@ -54,6 +54,16 @@ bool Shaper::DidExceedMaxLines() const
     return didExceedMaxLines_;
 }
 
+double Shaper::GetMinIntrinsicWidth() const
+{
+    return minIntrinsicWidth_;
+}
+
+double Shaper::GetMaxIntrinsicWidth() const
+{
+    return maxIntrinsicWidth_;
+}
+
 std::vector<LineMetrics> Shaper::CreateEllipsisSpan(const TypographyStyle &ys,
     const std::shared_ptr<FontProviders> &fontProviders)
 {
@@ -110,6 +120,33 @@ void Shaper::ConsiderEllipsis(const TypographyStyle &tstyle,
     didExceedMaxLines_ = true;
 }
 
+void Shaper::ComputeIntrinsicWidth(const size_t maxLines)
+{
+    maxIntrinsicWidth_ = 0.0;
+    minIntrinsicWidth_ = 0.0;
+    double lastInvisibleWidth = 0;
+    for (const auto &line : lineMetrics_) {
+        for (const auto &span : line.lineSpans) {
+            if (span == nullptr) {
+                continue;
+            }
+
+            auto width = span.GetWidth();
+            auto visibleWidth = span.GetVisibleWidth();
+            maxIntrinsicWidth_ += width;
+            minIntrinsicWidth_ = std::max(visibleWidth, minIntrinsicWidth_);
+            lastInvisibleWidth = width - visibleWidth;
+        }
+    }
+
+    maxIntrinsicWidth_ -= lastInvisibleWidth;
+    if (maxLines > 1) {
+        minIntrinsicWidth_ = std::min(maxIntrinsicWidth_, minIntrinsicWidth_);
+    } else {
+        minIntrinsicWidth_ = maxIntrinsicWidth_;
+    }
+}
+
 std::vector<LineMetrics> Shaper::DoShapeBeforeEllipsis(std::vector<VariantSpan> spans, const TypographyStyle &tstyle,
         const std::shared_ptr<FontProviders> &fontProviders, const double widthLimit)
 {
@@ -139,6 +176,7 @@ std::vector<LineMetrics> Shaper::DoShape(std::vector<VariantSpan> spans, const T
 #endif
 
     lineMetrics_= DoShapeBeforeEllipsis(spans, tstyle, fontProviders, widthLimit);
+    ComputeIntrinsicWidth(tstyle.maxLines);
     ConsiderEllipsis(tstyle, fontProviders, widthLimit);
 
     TextMerger tm;

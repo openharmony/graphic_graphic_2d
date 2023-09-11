@@ -277,9 +277,10 @@ void TypographyImpl::Layout(double maxWidth)
             return;
         }
 
-        ComputeIntrinsicWidth();
-
         didExceedMaxLines_ = shaper.DidExceedMaxLines();
+        maxIntrinsicWidth_ = shaper.GetMaxIntrinsicWidth();
+        minIntrinsicWidth_ = shaper.GetMinIntrinsicWidth();
+
         auto ret = ComputeStrut();
         if (ret) {
             LOGEX_FUNC_LINE(ERROR) << "ComputeStrut failed";
@@ -296,33 +297,6 @@ void TypographyImpl::Layout(double maxWidth)
         ApplyAlignment();
     } catch (struct TexgineException &e) {
         LOGEX_FUNC_LINE(ERROR) << "catch exception: " << e.message;
-    }
-}
-
-void TypographyImpl::ComputeIntrinsicWidth()
-{
-    maxIntrinsicWidth_ = 0.0;
-    minIntrinsicWidth_ = 0.0;
-    double lastInvisibleWidth = 0;
-    for (const auto &line : lineMetrics_) {
-        for (const auto &span : line.lineSpans) {
-            if (span == nullptr) {
-                continue;
-            }
-
-            auto width = span.GetWidth();
-            auto visibleWidth = span.GetVisibleWidth();
-            maxIntrinsicWidth_ += width;
-            minIntrinsicWidth_ = std::max(visibleWidth, minIntrinsicWidth_);
-            lastInvisibleWidth = width - visibleWidth;
-        }
-    }
-
-    maxIntrinsicWidth_ -= lastInvisibleWidth;
-    if (typographyStyle_.maxLines > 1) {
-        minIntrinsicWidth_ = std::min(maxIntrinsicWidth_, minIntrinsicWidth_);
-    } else {
-        minIntrinsicWidth_ = maxIntrinsicWidth_;
     }
 }
 

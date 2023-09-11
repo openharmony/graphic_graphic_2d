@@ -65,7 +65,6 @@ public:
 private:
     void ReportMemoryUsage(const std::string &member, bool needThis) const override;
 
-    void ComputeIntrinsicWidth();
     int ComputeStrut();
     void DoLayout();
     int UpdateMetrics();
