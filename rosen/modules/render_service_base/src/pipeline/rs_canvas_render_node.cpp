@@ -95,6 +95,10 @@ void RSCanvasRenderNode::OnTreeStateChanged()
         isFullChildrenListValid_ = false;
         ClearFullChildrenListIfNeeded();
 
+        if (UNLIKELY(GetSharedTransitionParam().has_value())) {
+            SetSharedTransitionParam(std::nullopt);
+        }
+
         // clear node groups cache when node is removed from tree
         if (GetCacheType() == CacheType::CONTENT) {
             SetCacheType(CacheType::NONE);
