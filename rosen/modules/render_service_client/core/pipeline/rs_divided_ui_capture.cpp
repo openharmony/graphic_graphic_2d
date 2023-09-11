@@ -226,29 +226,25 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessCanvasRenderNode(RSCa
         canvas_->SetMatrix(relativeMatrix);
 #endif
     }
+    node.ProcessRenderBeforeChildren(*canvas_);
     if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         auto canvasDrawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>();
-        if (!node.IsOnTheTree()) {
-            canvasDrawingNode->ProcessRenderBeforeChildren(*canvas_);
+        if (!canvasDrawingNode->IsOnTheTree()) {
             canvasDrawingNode->ProcessRenderContents(*canvas_);
         } else {
 #ifndef USE_ROSEN_DRAWING
             SkBitmap bitmap = canvasDrawingNode->GetBitmap();
 #ifndef NEW_SKIA
-            canvas_->drawBitmap(bitmap, node.GetRenderProperties().GetBoundsPositionX(),
-                node.GetRenderProperties().GetBoundsPositionY());
+            canvas_->drawBitmap(bitmap, 0, 0);
 #else
-            canvas_->drawImage(bitmap.asImage(), node.GetRenderProperties().GetBoundsPositionX(),
-                node.GetRenderProperties().GetBoundsPositionY());
+            canvas_->drawImage(bitmap.asImage(), 0, 0);
 #endif
 #else
             Drawing::Bitmap bitmap = canvasDrawingNode->GetBitmap();
-            canvas_->DrawBitmap(bitmap, node.GetRenderProperties().GetBoundsPositionX(),
-                node.GetRenderProperties().GetBoundsPositionY());
+            canvas_->DrawBitmap(bitmap, 0, 0);
 #endif
         }
     } else {
-        node.ProcessRenderBeforeChildren(*canvas_);
         node.ProcessRenderContents(*canvas_);
     }
     ProcessChildren(node);

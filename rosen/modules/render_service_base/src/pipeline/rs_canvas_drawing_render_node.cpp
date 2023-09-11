@@ -181,12 +181,13 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
     auto grContext = canvas.getGrContext();
 #endif
     if (grContext == nullptr) {
-        RS_LOGE("RSCanvasDrawingRenderNode::ProcessRenderContents: GrContext is nullptr");
-        return false;
-    }
-    skSurface_ = SkSurface::MakeRenderTarget(grContext, SkBudgeted::kNo, info);
-    if (!skSurface_ && width > 0 && height > 0) {
+        RS_LOGD("RSCanvasDrawingRenderNode::ProcessRenderContents: GrContext is nullptr");
         skSurface_ = SkSurface::MakeRaster(info);
+    } else {
+        skSurface_ = SkSurface::MakeRenderTarget(grContext, SkBudgeted::kNo, info);
+        if (!skSurface_) {
+            skSurface_ = SkSurface::MakeRaster(info);
+        }
     }
 #else
     skSurface_ = SkSurface::MakeRaster(info);
