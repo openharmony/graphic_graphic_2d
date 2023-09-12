@@ -129,8 +129,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     isOpDropped_ = isPartialRenderEnabled_ && (partialRenderType_ != PartialRenderType::SET_DAMAGE)
         && (!isDirtyRegionDfxEnabled_ && !isTargetDirtyRegionDfxEnabled_ && !isOpaqueRegionDfxEnabled_);
     isQuickSkipPreparationEnabled_ = (quickSkipPrepareType_ != QuickSkipPrepareType::DISABLED);
-    isDrawingCacheEnabled_ =
-        RSSystemParameters::GetDrawingCacheEnabled() && !RSSystemProperties::GetCacheEnabledForRotation();
+    isDrawingCacheEnabled_ = RSSystemParameters::GetDrawingCacheEnabled();
     RSTagTracker::UpdateReleaseGpuResourceEnable(RSSystemProperties::GetReleaseGpuResourceEnabled());
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     if (RSDrivenRenderManager::GetInstance().GetDrivenRenderEnabled()) {
@@ -272,7 +271,7 @@ void RSUniRenderVisitor::UpdateCacheChangeStatus(RSRenderNode& node)
         return;
     }
     node.CheckDrawingCacheType();
-    if (!node.ShouldPaint() || sharedTransitionNodeCnt_ > 0) {
+    if (!node.ShouldPaint() || sharedTransitionNodeCnt_ > 0 || isSurfaceRotationChanged_) {
         node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     }
     // skip status check if there is no upper cache mark
