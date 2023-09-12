@@ -163,38 +163,22 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
             SkImageInfo info = SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(),
                 kRGBA_8888_SkColorType, kPremul_SkAlphaType);
             sk_sp<SkSurface> skSurface;
-            if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE) {
-                sptr<SurfaceBuffer> surfaceBuffer = dmaMem.DmaMemAlloc(info, pixelmap);
-                auto skSurface = dmaMem.GetSkSurfaceFromSurfaceBuffer(surfaceBuffer);
-                if (skSurface == nullptr) {
-                    RS_LOGE("GetSkSurfaceFromSurfaceBuffer fail,surface is nullptr!");
-                    dmaMem.ReleaseGLMemory();
-                    callback->OnSurfaceCapture(id, nullptr);
-                    return;
-                }
-                auto canvas = std::make_shared<RSPaintFilterCanvas>(skSurface.get());
-                auto tmpImg = SkImage::MakeFromTexture(canvas->recordingContext(), grBackendTexture,
-                    kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
-                canvas->drawImage(tmpImg, 0, 0);
-                skSurface->flushAndSubmit(true);
-            } else {
-                auto grContext = RSBackgroundThread::Instance().GetSharedContext().get();
-                skSurface = SkSurface::MakeRenderTarget(grContext, SkBudgeted::kNo, info);
-                if (skSurface == nullptr) {
-                    RS_LOGE("RSSurfaceCaptureTask::Run MakeRenderTarget fail.");
-                    callback->OnSurfaceCapture(id, nullptr);
-                    return;
-                }
-                auto canvas = std::make_shared<RSPaintFilterCanvas>(skSurface.get());
-                auto tmpImg = SkImage::MakeFromTexture(canvas->recordingContext(), grBackendTexture,
-                    kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
-                canvas->drawImage(tmpImg, 0, 0);
-                skSurface->flushAndSubmit(true);
-                if (!CopyDataToPixelMap(tmpImg, pixelmap)) {
-                    RS_LOGE("RSSurfaceCaptureTask::Run CopyDataToPixelMap failed");
-                    callback->OnSurfaceCapture(id, nullptr);
-                    return;
-                }
+            auto grContext = RSBackgroundThread::Instance().GetSharedContext().get();
+            skSurface = SkSurface::MakeRenderTarget(grContext, SkBudgeted::kNo, info);
+            if (skSurface == nullptr) {
+                RS_LOGE("RSSurfaceCaptureTask::Run MakeRenderTarget fail.");
+                callback->OnSurfaceCapture(id, nullptr);
+                return;
+            }
+            auto canvas = std::make_shared<RSPaintFilterCanvas>(skSurface.get());
+            auto tmpImg = SkImage::MakeFromTexture(canvas->recordingContext(), grBackendTexture,
+                kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
+            canvas->drawImage(tmpImg, 0, 0);
+            skSurface->flushAndSubmit(true);
+            if (!CopyDataToPixelMap(tmpImg, pixelmap)) {
+                RS_LOGE("RSSurfaceCaptureTask::Run CopyDataToPixelMap failed");
+                callback->OnSurfaceCapture(id, nullptr);
+                return;
             }
 
             if (ableRotation) {
