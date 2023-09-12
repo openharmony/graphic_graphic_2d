@@ -95,10 +95,9 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
     GSError ret = producer_->RequestBuffer(config, bedataimpl, retval);
     if (ret != GSERROR_OK) {
         if (ret == GSERROR_NO_CONSUMER) {
-            std::lock_guard<std::mutex> lockGuard(mutex_);
-            CleanAllLocked();
+            CleanCache();
         }
-        BLOGND("Producer report %{public}s", GSErrorStr(ret).c_str());
+        BLOGND("RequestBuffer Producer report %{public}s", GSErrorStr(ret).c_str());
         return ret;
     }
 
@@ -160,7 +159,12 @@ GSError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer, const sptr<Syn
     }
 
     const sptr<BufferExtraData>& bedata = buffer->GetExtraData();
-    return producer_->FlushBuffer(buffer->GetSeqNum(), bedata, fence, config);
+    auto ret = producer_->FlushBuffer(buffer->GetSeqNum(), bedata, fence, config);
+    if (ret == GSERROR_NO_CONSUMER) {
+        CleanCache();
+        BLOGND("FlushBuffer Producer report %{public}s", GSErrorStr(ret).c_str());
+    }
+    return ret;
 }
 
 GSError ProducerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
