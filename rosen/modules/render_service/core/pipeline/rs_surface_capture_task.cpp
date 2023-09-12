@@ -168,6 +168,8 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
             if (skSurface == nullptr) {
                 RS_LOGE("RSSurfaceCaptureTask::Run MakeRenderTarget fail.");
                 callback->OnSurfaceCapture(id, nullptr);
+                RSUniRenderUtil::ClearNodeCacheSurface(
+                    std::move(std::get<0>(*wrapperSf )), nullptr, UNI_MAIN_THREAD_INDEX, 0);
                 return;
             }
             auto canvas = std::make_shared<RSPaintFilterCanvas>(skSurface.get());
@@ -178,6 +180,8 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
             if (!CopyDataToPixelMap(tmpImg, pixelmap)) {
                 RS_LOGE("RSSurfaceCaptureTask::Run CopyDataToPixelMap failed");
                 callback->OnSurfaceCapture(id, nullptr);
+                RSUniRenderUtil::ClearNodeCacheSurface(
+                    std::move(std::get<0>(*wrapperSf )), nullptr, UNI_MAIN_THREAD_INDEX, 0);
                 return;
             }
 
