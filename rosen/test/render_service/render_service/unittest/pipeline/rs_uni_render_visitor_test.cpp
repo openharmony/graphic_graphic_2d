@@ -1789,6 +1789,7 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareSharedTransitionNode005, TestSize.Level2
     ASSERT_NE(transitionOutNode, nullptr);
     transitionInNode->sharedTransitionParam_ = {transitionInNode->GetId(), transitionOutNode};
     transitionOutNode->sharedTransitionParam_ = {transitionInNode->GetId(), transitionInNode};
+    transitionOutNode->SetIsOnTheTree(true);
     
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
@@ -2385,6 +2386,7 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessSharedTransitionNode001, TestSize.Level2
     ASSERT_NE(node, nullptr);
     ASSERT_NE(transitionNode, nullptr);
     node->sharedTransitionParam_ = {transitionNode->GetId(), transitionNode};
+    transitionNode->SetIsOnTheTree(true);
     
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     auto skCanvas = std::make_shared<SkCanvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
@@ -2410,6 +2412,7 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessSharedTransitionNode002, TestSize.Level2
     ASSERT_NE(transitionNode, nullptr);
     node->sharedTransitionParam_ = {transitionNode->GetId(), transitionNode};
     node->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
+    transitionNode->SetIsOnTheTree(true);
     
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     auto skCanvas = std::make_shared<SkCanvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
