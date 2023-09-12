@@ -200,6 +200,11 @@ ohos_shared_library("librender_service") {
     ]
   }
 
+  #Bisheng control is required in the future
+  if (is_ohos) {
+    ldflags = [ "-Wl,-Bsymbolic" ]
+  }
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
