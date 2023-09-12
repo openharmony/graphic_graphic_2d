@@ -1811,11 +1811,16 @@ RSDrawingCacheType RSRenderNode::GetDrawingCacheType() const
 }
 void RSRenderNode::SetDrawingCacheChanged(bool cacheChanged)
 {
-    isDrawingCacheChanged_ = cacheChanged;
+    isDrawingCacheChanged_ = drawingCacheNeedUpdate_ || cacheChanged;
+    drawingCacheNeedUpdate_ = isDrawingCacheChanged_;
 }
 bool RSRenderNode::GetDrawingCacheChanged() const
 {
     return isDrawingCacheChanged_;
+}
+void RSRenderNode::ResetDrawingCacheNeedUpdate()
+{
+    drawingCacheNeedUpdate_ = false;
 }
 void RSRenderNode::SetVisitedCacheRootIds(const std::unordered_set<NodeId>& visitedNodes)
 {

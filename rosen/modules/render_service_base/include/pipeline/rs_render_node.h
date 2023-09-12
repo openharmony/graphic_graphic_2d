@@ -309,6 +309,7 @@ public:
     void GetFilterRectsInCache(std::unordered_map<NodeId, std::unordered_set<NodeId>>& allRects) const;
     void SetDrawingCacheChanged(bool cacheChanged);
     bool GetDrawingCacheChanged() const;
+    void ResetDrawingCacheNeedUpdate();
     void SetVisitedCacheRootIds(const std::unordered_set<NodeId>& visitedNodes);
     const std::unordered_set<NodeId>& GetVisitedCacheRootIds() const;
 
@@ -518,6 +519,7 @@ private:
     // drawing group cache
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
     bool isDrawingCacheChanged_ = false;
+    bool drawingCacheNeedUpdate_ = false;
     std::unordered_set<NodeId> curCacheFilterRects_ = {};
     std::unordered_set<NodeId> visitedCacheRoots_ = {};
 

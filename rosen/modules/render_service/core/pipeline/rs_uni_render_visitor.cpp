@@ -3396,6 +3396,7 @@ bool RSUniRenderVisitor::InitNodeCache(RSRenderNode& node)
                 node.UpdateCompletedCacheSurface();
                 ChangeCacheRenderNodeMap(node);
                 cacheReuseTimes = 0;
+                node.ResetDrawingCacheNeedUpdate();
             }
             curGroupedNodes_.pop();
             return true;
@@ -3456,6 +3457,7 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
                 node.UpdateCompletedCacheSurface();
                 ChangeCacheRenderNodeMap(node, updateTimes);
                 cacheReuseTimes = 0;
+                node.ResetDrawingCacheNeedUpdate();
             }
             curGroupedNodes_.pop();
             return;
@@ -3484,10 +3486,12 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
             curGroupedNodes_.push(val);
             groupedTransitionNodes[node.GetId()] = { val, {} };
             node.SetCacheType(CacheType::CONTENT);
-            UpdateCacheSurface(node);
-            node.UpdateCompletedCacheSurface();
-            ChangeCacheRenderNodeMap(node, updateTimes);
-            cacheReuseTimes = 0;
+            if (UpdateCacheSurface(node)) {
+                node.UpdateCompletedCacheSurface();
+                ChangeCacheRenderNodeMap(node, updateTimes);
+                cacheReuseTimes = 0;
+                node.ResetDrawingCacheNeedUpdate();
+            }
             curGroupedNodes_.pop();
             return;
         }
