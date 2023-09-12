@@ -117,6 +117,13 @@ template("render_service_client_source_set") {
       "-fvisibility=hidden",
     ]
 
+    if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
+      cflags += [
+        "-flto=thin",
+        "-fwhole-program-vtables",
+      ]
+    }
+
     cflags_cc = [
       "-std=c++17",
       "-fvisibility-inlines-hidden",
@@ -209,10 +216,20 @@ ohos_shared_library("librender_service_client") {
   public_deps = [ ":render_service_client_src" ]
   innerapi_tags = [ "platformsdk" ]
 
+  ldflags = []
+
   #Bisheng control is required in the future
   if (is_ohos) {
-    ldflags = [ "-Wl,-Bsymbolic" ]
+    ldflags += [ "-Wl,-Bsymbolic" ]
   }
+
+  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
+    ldflags += [
+      "-Wl,-mllvm",
+      "-Wl,-wholeprogramdevirt-check=fallback",
+    ]
+  }
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

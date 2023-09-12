@@ -223,7 +223,10 @@ ohos_source_set("render_service_base_src") {
   ]
 
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
-    cflags += [ "-flto=thin" ]
+    cflags += [
+      "-flto=thin",
+      "-fwhole-program-vtables",
+    ]
   }
 
   cflags_cc = [
@@ -359,13 +362,22 @@ ohos_shared_library("librender_service_base") {
     public_deps += [ "src/render_backend:librender_backend" ]
   }
 
+  ldflags = []
+
+  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
+    ldflags += [
+      "-Wl,-mllvm",
+      "-Wl,-wholeprogramdevirt-check=fallback",
+    ]
+  }
+
   innerapi_tags = [ "platformsdk_indirect" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 
   #Bisheng control is required in the future
   if (is_ohos) {
-    ldflags = [ "-Wl,-Bsymbolic" ]
+    ldflags += [ "-Wl,-Bsymbolic" ]
   }
 }
 
