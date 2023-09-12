@@ -241,7 +241,8 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
     float alpha = curAlpha_;
     curAlpha_ *= property.GetAlpha();
     node.SetGlobalAlpha(curAlpha_);
-    for (auto& child : node.GetSortedChildren()) {
+    auto children = node.GetSortedChildren();
+    for (auto& child : children) {
         if (UNLIKELY(child->GetSharedTransitionParam().has_value())) {
             sharedTransitionNodeCnt_++;
             markedCachedNodes_ = 0;
