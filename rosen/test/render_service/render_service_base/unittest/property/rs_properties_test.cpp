@@ -397,12 +397,12 @@ HWTEST_F(RSPropertiesTest, IsPixelStretchValid004, TestSize.Level1)
     Vector4f stretchSize(-(1e-6f));
     properties.SetPixelStretch(stretchSize);
     properties.OnApplyModifiers();
-    EXPECT_NE(properties.GetPixelStretch(), std::nullopt);
+    EXPECT_EQ(properties.GetPixelStretch(), std::nullopt);
 
     stretchSize = Vector4f(1e-6f);
     properties.SetPixelStretch(stretchSize);
     properties.OnApplyModifiers();
-    EXPECT_NE(properties.GetPixelStretch(), std::nullopt);
+    EXPECT_EQ(properties.GetPixelStretch(), std::nullopt);
 }
 
 /**
