@@ -163,7 +163,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
             SkImageInfo info = SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(),
                 kRGBA_8888_SkColorType, kPremul_SkAlphaType);
             sk_sp<SkSurface> skSurface;
-            auto grContext = RSBackgroundThread::Instance().GetSharedContext().get();
+            auto grContext = RSBackgroundThread::Instance().GetShareGrContext().get();
             skSurface = SkSurface::MakeRenderTarget(grContext, SkBudgeted::kNo, info);
             if (skSurface == nullptr) {
                 RS_LOGE("RSSurfaceCaptureTask::Run MakeRenderTarget fail.");
