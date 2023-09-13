@@ -317,8 +317,8 @@ HWTEST_F(PointTest, PointPointFAdd002, TestSize.Level1)
     PointF pointf1(2.0f, 3.0f);
     PointF pointf2(4.0f, 5.0f);
     PointF pointf3 = pointf1 + pointf2;
-    EXPECT_EQ(5.0f, pointf3.GetX());
-    EXPECT_EQ(9.0f, pointf3.GetY());
+    EXPECT_EQ(6.0f, pointf3.GetX());
+    EXPECT_EQ(8.0f, pointf3.GetY());
 }
 
 /**
@@ -839,8 +839,8 @@ HWTEST_F(PointTest, PointPointIAdd002, TestSize.Level1)
     PointI pointi1(2.0f, 3.0f);
     PointI pointi2(4.0f, 5.0f);
     PointI pointi3 = pointi1 + pointi2;
-    EXPECT_EQ(5.0f, pointi3.GetX());
-    EXPECT_EQ(9.0f, pointi3.GetY());
+    EXPECT_EQ(6.0f, pointi3.GetX());
+    EXPECT_EQ(8.0f, pointi3.GetY());
 }
 
 /**
