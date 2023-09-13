@@ -1742,7 +1742,8 @@ void RSMainThread::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent
 
 void RSMainThread::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
 {
-    EraseIf(applicationAgentMap_, [&app](const auto& iter) { return iter.second == app; });
+    EraseIf(applicationAgentMap_,
+        [&app](const auto& iter) { return iter.second && app && iter.second->AsObject() == app->AsObject(); });
 }
 
 void RSMainThread::RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback)
