@@ -158,6 +158,9 @@ template("graphics2d_source_set") {
 
     if (enable_text_gine) {
       defines += [ "USE_GRAPHIC_TEXT_GINE" ]
+      if (use_texgine) {
+        defines += [ "USE_TEXGINE" ]
+      }
       include_dirs += [
         "$flutter_root/engine",
         "$rosen_root/modules/2d_engine/rosen_text/adapter",
@@ -440,6 +443,9 @@ ohos_shared_library("2d_graphics_canvaskit0310") {
 ## Build 2d_graphics.so
 if (enable_text_gine) {
   defines += [ "USE_GRAPHIC_TEXT_GINE" ]
+  if (use_texgine) {
+    defines += [ "USE_TEXGINE" ]
+  }
   ohos_shared_library("2d_graphics_drawing") {
     include_dirs = [
       "include",
