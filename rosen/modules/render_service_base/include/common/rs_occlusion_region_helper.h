@@ -38,7 +38,7 @@ public:
 class Assembler {
 public:
     explicit Assembler(Region &r)
-        : storage_(r.GetRegionRects()), bound_(r.GetBoundRef()), lastRectRowBegin_(), end_(), cur_()
+        : storage_(r.GetRegionRectsRef()), bound_(r.GetBoundRef()), lastRectRowBegin_(), end_(), cur_()
     {
         storage_.clear();
         bound_ = Rect{INT_MAX, INT_MAX, INT_MIN, INT_MIN};

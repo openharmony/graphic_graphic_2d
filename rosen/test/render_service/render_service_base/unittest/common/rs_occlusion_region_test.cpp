@@ -279,4 +279,60 @@ HWTEST_F(RSOcclusionRegionTest, XOrSelf001, Function | MediumTest | Level2)
     Region region2(rect);
     region1.XOrSelf(region2);
 }
+
+/**
+ * @tc.name: Area
+ * @tc.desc: test results of Area
+ * @tc.type:FUNC
+ * @tc.require: I80I2D
+ */
+HWTEST_F(RSOcclusionRegionTest, Area, Function | MediumTest | Level2)
+{
+    /**
+     * @tc.steps: step1. Area
+     */
+    Rect rect1{0, 0, 100, 100};
+    Rect rect2{50, 50, 150, 150};
+    Rect rect3{0, 0, 0, 0};
+    Region region1(rect1);
+    Region region2(rect2);
+    Region region3 = region1.Or(region2);
+    Region region4 = region1.And(region2);
+    Region region5(rect3);
+    ASSERT_TRUE(rect1.Area() == 10000);
+    ASSERT_TRUE(rect2.Area() == 10000);
+    ASSERT_TRUE(rect3.Area() == 0);
+    ASSERT_TRUE(region1.Area() == 10000);
+    ASSERT_TRUE(region2.Area() == 10000);
+    ASSERT_TRUE(region3.Area() == 17500);
+    ASSERT_TRUE(region4.Area() == 2500);
+    ASSERT_TRUE(region5.Area() == 0);
+}
+
+/**
+ * @tc.name: IntersectArea
+ * @tc.desc: test results of IntersectArea
+ * @tc.type:FUNC
+ * @tc.require: I80I2D
+ */
+HWTEST_F(RSOcclusionRegionTest, IntersectArea, Function | MediumTest | Level2)
+{
+    /**
+     * @tc.steps: step. IntersectArea
+     */
+    Rect rect1{0, 0, 100, 100};
+    Rect rect2{50, 50, 150, 150};
+    Rect rect3{60, 60, 70, 80};
+    Region region1(rect1);
+    Region region2(rect2);
+    Region region3(rect3);
+
+    Rect testRect{65, 64, 82, 95};
+    Region testRegion(testRect);
+
+    Region region4 = region1.Or(region2);
+    Region region5 = region4.Sub(region3);
+    Region region6 = region5.And(testRegion);
+    ASSERT_TRUE(region5.IntersectArea(testRect) == region6.Area());
+}
 } // namespace OHOS::Rosen

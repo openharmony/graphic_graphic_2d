@@ -27,6 +27,19 @@ namespace Occlusion {
 static Rect _s_empty_rect_ { 0, 0, 0, 0 };
 static Rect _s_invalid_rect_ { 0, 0, -1, -1 };
 
+int Rect::Area() const
+{
+    if (IsEmpty()) {
+        return 0;
+    }
+    return (right_ - left_) * (bottom_ - top_);
+}
+
+int Rect::IntersectArea(const Rect& r) const
+{
+    Rect res = this->Intersect(r);
+    return res.Area();
+}
 
 std::ostream& operator<<(std::ostream& os, const Rect& r)
 {
@@ -181,7 +194,7 @@ void Region::UpdateRects(Rects& r, std::vector<Range>& ranges, std::vector<int>&
             i++;
             j++;
         } else if (r.preRects[i].right_ < indexAt[ranges[j].end_]) {
-            res.GetRegionRects().push_back(r.preRects[i]);
+            res.GetRegionRectsRef().push_back(r.preRects[i]);
             i++;
         } else {
             r.curRects.emplace_back(Rect { indexAt[ranges[j].start_], r.preY, indexAt[ranges[j].end_], r.curY });
@@ -192,7 +205,7 @@ void Region::UpdateRects(Rects& r, std::vector<Range>& ranges, std::vector<int>&
         r.curRects.emplace_back(Rect { indexAt[ranges[j].start_], r.preY, indexAt[ranges[j].end_], r.curY });
     }
     for (; i < r.preRects.size(); i++) {
-        res.GetRegionRects().push_back(r.preRects[i]);
+        res.GetRegionRectsRef().push_back(r.preRects[i]);
     }
     r.preRects.clear();
     r.preRects.swap(r.curRects);
@@ -237,7 +250,7 @@ void Region::RegionOpLocal(Region& r1, Region& r2, Region& res, Region::OP op)
 {
     r1.MakeBound();
     r2.MakeBound();
-    res.GetRegionRects().clear();
+    res.GetRegionRectsRef().clear();
     std::vector<Event> events;
     std::set<int> xs;
 
@@ -279,7 +292,7 @@ void Region::RegionOpLocal(Region& r1, Region& r2, Region& res, Region::OP op)
         rootNode.Update(indexOf[e.left_], indexOf[e.right_], e.type_);
         r.preY = r.curY;
     }
-    copy(r.preRects.begin(), r.preRects.end(), back_inserter(res.GetRegionRects()));
+    copy(r.preRects.begin(), r.preRects.end(), back_inserter(res.GetRegionRectsRef()));
     res.MakeBound();
 }
 
@@ -376,6 +389,28 @@ std::ostream& operator<<(std::ostream& os, const Region& r)
     os << "}" << std::endl;
     return os;
 }
+
+int Region::Area() const
+{
+    int areaSum = 0;
+    for (const auto& rect : GetRegionRects()) {
+        areaSum += rect.Area();
+    }
+    return areaSum;
+}
+
+int Region::IntersectArea(const Rect& r) const
+{
+    if (r.IsEmpty()) {
+        return 0;
+    }
+    int areaSum = 0;
+    for (const auto& rect : GetRegionRects()) {
+        areaSum += rect.IntersectArea(r);
+    }
+    return areaSum;
+}
+
 } // namespace Occlusion
 } // namespace Rosen
 } // namespace OHOS

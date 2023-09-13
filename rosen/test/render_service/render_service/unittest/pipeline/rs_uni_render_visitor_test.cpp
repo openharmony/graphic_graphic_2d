@@ -1640,7 +1640,7 @@ HWTEST_F(RSUniRenderVisitorTest, AddContainerDirtyToGlobalDirty002, TestSize.Lev
     surfaceNode->containerConfig_.hasContainerWindow_ = true;
     Occlusion::Rect rect = Occlusion::Rect(0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     surfaceNode->GetContainerRegion().GetBoundRef() = rect;
-    surfaceNode->GetContainerRegion().GetRegionRects().push_back(rect);
+    surfaceNode->GetContainerRegion().GetRegionRectsRef().push_back(rect);
     surfaceNode->GetDirtyManager()->MergeDirtyRect(RectI(0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT));
     
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
