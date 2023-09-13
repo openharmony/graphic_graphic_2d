@@ -123,6 +123,24 @@ void SkiaGPUContext::SetResourceCacheLimits(int maxResource, size_t maxResourceB
     }
     grContext_->setResourceCacheLimits(maxResource, maxResourceBytes);
 }
+
+void SkiaGPUContext::GetResourceCacheUsage(int& resourceCount, size_t& resourceBytes) const
+{
+    if (!grContext_) {
+        LOGE("SkiaGPUContext::GetResourceCacheUsage, grContext_ is nullptr");
+        return;
+    }
+    grContext_->getResourceCacheUsage(&resourceCount, &resourceBytes);
+}
+
+void SkiaGPUContext::FreeGpuResources()
+{
+    if (!grContext_) {
+        LOGE("SkiaGPUContext::FreeGpuResources, grContext_ is nullptr");
+        return;
+    }
+    grContext_->freeGpuResources();
+}
 #ifdef NEW_SKIA
 sk_sp<GrDirectContext> SkiaGPUContext::GetGrContext() const
 #else

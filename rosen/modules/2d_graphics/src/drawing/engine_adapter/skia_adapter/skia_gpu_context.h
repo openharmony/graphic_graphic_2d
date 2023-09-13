@@ -59,6 +59,10 @@ public:
     void GetResourceCacheLimits(int& maxResource, size_t& maxResourceBytes) const override;
     void SetResourceCacheLimits(int maxResource, size_t maxResourceBytes) override;
 
+    void GetResourceCacheUsage(int& resourceCount, size_t& resourceBytes) const override;
+
+    void FreeGpuResources() override;
+
 #ifdef NEW_SKIA
     sk_sp<GrDirectContext> GetGrContext() const;
     void SetGrContext(const sk_sp<GrDirectContext>& grContext);
