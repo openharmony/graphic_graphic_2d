@@ -173,7 +173,10 @@ ohos_unittest("texgine_unittest_part5") {
 ohos_unittest("texgine_unittest_part6") {
   module_out_path = module_output_path
 
-  sources = [ "font_manager_test.cpp" ]
+  sources = [
+    "font_manager_test.cpp",
+    "font_parser_test.cpp",
+  ]
 
   public_configs = [ ":texgine_test_config" ]
   public_deps = [ ":common_deps" ]
