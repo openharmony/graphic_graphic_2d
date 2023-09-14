@@ -454,6 +454,13 @@ std::vector<int32_t> RSRenderServiceConnection::GetScreenSupportedRefreshRates(S
     }
 }
 
+int32_t RSRenderServiceConnection::GetCurrentRefreshRateMode()
+{
+    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
+    int32_t refreshRateMode = hgmCore.GetCurrentRefreshRateMode();
+    return refreshRateMode;
+}
+
 int32_t RSRenderServiceConnection::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();

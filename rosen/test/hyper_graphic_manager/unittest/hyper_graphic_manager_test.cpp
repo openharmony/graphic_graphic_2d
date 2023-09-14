@@ -76,31 +76,6 @@ HWTEST_F(HyperGraphicManagerTest, IsInit, Function | SmallTest | Level2)
 }
 
 /**
- * @tc.name: SetDefaultRefreshRateMode
- * @tc.desc: Verify the result of SetDefaultRefreshRateMode
- * @tc.type: FUNC
- * @tc.require: I7DMS1
- */
-HWTEST_F(HyperGraphicManagerTest, SetDefaultRefreshRateMode, Function | SmallTest | Level2)
-{
-    auto &instance = HgmCore::Instance();
-
-    PART("EnvConditions") {
-        STEP("get Instance") {
-            bool init = instance.IsInit();
-            STEP_ASSERT_EQ(init, true);
-        }
-    }
-
-    PART("CaseConditions") {
-        STEP("1. test mParsedConfigData_ is true") {
-            auto setMode = instance.SetDefaultRefreshRateMode();
-            STEP_ASSERT_EQ(setMode, -1); 
-        }
-    }
-}
-
-/**
  * @tc.name: AddScreen
  * @tc.desc: Verify the result of AddScreen function
  * @tc.type: FUNC

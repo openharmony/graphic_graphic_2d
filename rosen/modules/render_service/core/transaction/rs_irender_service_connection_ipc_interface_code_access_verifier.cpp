@@ -86,6 +86,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             /* to implement access interception */
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_CURRENT_REFRESH_RATE_MODE): {
+            /* to implement access interception */
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_SUPPORTED_REFRESH_RATES): {
             /* to implement access interception */
             break;

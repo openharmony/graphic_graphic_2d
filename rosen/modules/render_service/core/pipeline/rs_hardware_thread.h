@@ -63,9 +63,7 @@ private:
     UniFallbackCallback redrawCb_;
     std::mutex mutex_;
 
-    bool lockRefreshRateOnce_ = false;
     HgmRefreshRates hgmRefreshRates_;
-    HgmRefreshRateModes hgmRefreshRateModes_;
 };
 }
 #endif // RS_HARDWARE_THREAD_H

@@ -94,6 +94,8 @@ public:
 
     virtual uint32_t GetScreenCurrentRefreshRate(ScreenId id) = 0;
 
+    virtual int32_t GetCurrentRefreshRateMode() = 0;
+
     virtual std::vector<int32_t> GetScreenSupportedRefreshRates(ScreenId id) = 0;
 
     virtual int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;

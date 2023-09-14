@@ -506,6 +506,27 @@ uint32_t RSRenderServiceConnectionProxy::GetScreenCurrentRefreshRate(ScreenId id
     return rate;
 }
 
+int32_t RSRenderServiceConnectionProxy::GetCurrentRefreshRateMode()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceProxy failed to get descriptor");
+        return SUCCESS;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_CURRENT_REFRESH_RATE_MODE);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %{public}d", err);
+        return SUCCESS;
+    }
+    int32_t refreshRateMode = reply.ReadInt32();
+    return refreshRateMode;
+}
+
 std::vector<int32_t> RSRenderServiceConnectionProxy::GetScreenSupportedRefreshRates(ScreenId id)
 {
     MessageParcel data;

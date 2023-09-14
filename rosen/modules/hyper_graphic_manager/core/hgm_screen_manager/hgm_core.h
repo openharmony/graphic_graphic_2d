@@ -64,7 +64,6 @@ public:
     int32_t SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate);
     static int32_t SetRateAndResolution(ScreenId id, int32_t sceneId, int32_t rate, int32_t width, int32_t height);
     int32_t SetRefreshRateMode(RefreshRateMode refreshRateMode);
-    int32_t SetDefaultRefreshRateMode();
 
     // screen interface
     int32_t AddScreen(ScreenId id, int32_t defaultMode);
@@ -72,6 +71,7 @@ public:
     int32_t AddScreenInfo(ScreenId id, int32_t width, int32_t height, uint32_t rate, int32_t mode);
     int32_t RefreshBundleName(const std::string& name);
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) const;
+    int32_t GetCurrentRefreshRateMode() const;
     sptr<HgmScreen> GetScreen(ScreenId id) const;
     std::vector<uint32_t> GetScreenSupportedRefreshRates(ScreenId id);
     std::vector<int32_t> GetScreenComponentRefreshRates(ScreenId id);

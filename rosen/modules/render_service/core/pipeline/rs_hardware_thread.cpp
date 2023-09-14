@@ -151,19 +151,9 @@ void RSHardwareThread::PerformSetActiveMode()
     }
 
     HgmRefreshRates newRate = RSSystemProperties::GetHgmRefreshRatesEnabled();
-    HgmRefreshRateModes newRateMode = RSSystemProperties::GetHgmRefreshRateModesEnabled();
     if (hgmRefreshRates_ != newRate) {
         hgmRefreshRates_ = newRate;
         hgmCore.SetScreenRefreshRate(screenManager->GetDefaultScreenId(), 0, static_cast<int32_t>(hgmRefreshRates_));
-    }
-    if (hgmRefreshRateModes_ != newRateMode) {
-        hgmRefreshRateModes_ = newRateMode;
-        hgmCore.SetRefreshRateMode(static_cast<RefreshRateMode>(hgmRefreshRateModes_));
-    }
-
-    if (lockRefreshRateOnce_ == false) {
-        hgmCore.SetDefaultRefreshRateMode();
-        lockRefreshRateOnce_ = true;
     }
 
     std::unique_ptr<std::unordered_map<ScreenId, int32_t>> modeMap(hgmCore.GetModesToApply());

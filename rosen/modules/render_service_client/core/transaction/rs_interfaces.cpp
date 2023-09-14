@@ -135,6 +135,11 @@ uint32_t RSInterfaces::GetScreenCurrentRefreshRate(ScreenId id)
     return renderServiceClient_->GetScreenCurrentRefreshRate(id);
 }
 
+int32_t RSInterfaces::GetCurrentRefreshRateMode()
+{
+    return renderServiceClient_->GetCurrentRefreshRateMode();
+}
+
 std::vector<int32_t> RSInterfaces::GetScreenSupportedRefreshRates(ScreenId id)
 {
     return renderServiceClient_->GetScreenSupportedRefreshRates(id);

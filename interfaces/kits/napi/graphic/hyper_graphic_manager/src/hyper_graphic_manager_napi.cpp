@@ -98,6 +98,16 @@ static napi_value GetScreenCurrentRefreshRate(napi_env env, napi_callback_info i
     return returnRate;
 }
 
+static napi_value GetCurrentRefreshRateMode(napi_env env, napi_callback_info info)
+{
+    int32_t defaultRateMode = 0;
+    defaultRateMode = interfaces.GetCurrentRefreshRateMode();
+
+    napi_value returnMode = nullptr;
+    napi_create_int32(env, defaultRateMode, &returnMode);
+    return returnMode;
+}
+
 static napi_value GetScreenSupportedRefreshRates(napi_env env, napi_callback_info info)
 {
     napi_status status;
@@ -151,6 +161,7 @@ static napi_value HgmInit(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("setRefreshRateMode", SetRefreshRateMode),
         DECLARE_NAPI_FUNCTION("getScreenCurrentRefreshRate", GetScreenCurrentRefreshRate),
         DECLARE_NAPI_FUNCTION("getScreenSupportedRefreshRates", GetScreenSupportedRefreshRates),
+        DECLARE_NAPI_FUNCTION("getCurrentRefreshRateMode", GetCurrentRefreshRateMode),
     };
     NAPI_CALL(env, napi_define_properties(env, exports, sizeof(desc) / sizeof(napi_property_descriptor), desc));
 

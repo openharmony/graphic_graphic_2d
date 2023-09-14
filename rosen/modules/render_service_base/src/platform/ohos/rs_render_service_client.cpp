@@ -384,6 +384,17 @@ uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
     return renderService->GetScreenCurrentRefreshRate(id);
 }
 
+int32_t RSRenderServiceClient::GetCurrentRefreshRateMode()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+
+    return renderService->GetCurrentRefreshRateMode();
+}
+
 std::vector<int32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(ScreenId id)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
