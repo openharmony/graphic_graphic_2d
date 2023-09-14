@@ -945,6 +945,7 @@ void RSNode::SetShadowMask(bool shadowMask)
 
 void RSNode::SetFrameGravity(Gravity gravity)
 {
+    ROSEN_LOGI("RSNode::SetFrameGravity, gravity = %{public}d", gravity);
     SetProperty<RSFrameGravityModifier, RSProperty<Gravity>>(RSModifierType::FRAME_GRAVITY, gravity);
 }
 
