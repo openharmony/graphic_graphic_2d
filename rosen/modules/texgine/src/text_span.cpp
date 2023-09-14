@@ -176,6 +176,8 @@ void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, cons
     if (xs.foreground.has_value()) {
         paint = xs.foreground.value();
     }
+
+    PaintShadow(canvas, offsetX, offsetY, xs.shadows);
     canvas.DrawTextBlob(textBlob_, offsetX, offsetY, paint);
     PaintDecoration(canvas, offsetX, offsetY, xs);
 }
@@ -259,14 +261,16 @@ void TextSpan::PaintShadow(TexgineCanvas &canvas, double offsetX, double offsetY
     const std::vector<TextShadow> &shadows)
 {
     for (const auto &shadow : shadows) {
+        if (!shadow.HasShadow()) {
+            continue;
+        }
         auto x = offsetX + shadow.offsetX;
         auto y = offsetY + shadow.offsetY;
-        auto blurRadius = std::min(shadow.blurLeave, MAX_BLURRADIUS);
-
         TexginePaint paint;
         paint.SetAntiAlias(true);
         paint.SetColor(shadow.color);
-        paint.SetMaskFilter(TexgineMaskFilter::MakeBlur(TexgineMaskFilter::K_NORMAL_SK_BLUR_STYLE, blurRadius));
+        paint.SetMaskFilter(TexgineMaskFilter::MakeBlur(TexgineMaskFilter::K_NORMAL_SK_BLUR_STYLE,
+            shadow.blurLeave, false));
 
         canvas.DrawTextBlob(textBlob_, x, y, paint);
     }

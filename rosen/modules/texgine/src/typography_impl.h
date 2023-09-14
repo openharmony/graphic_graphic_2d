@@ -95,6 +95,7 @@ private:
     double maxWidth_ = 0.0;
     double maxLineWidth_ = 0.0;
     double height_ = 0.0;
+    std::vector<double> yOffsets_ = {};
     double maxIntrinsicWidth_ = 0.0;
     double minIntrinsicWidth_ = 0.0;
 };
