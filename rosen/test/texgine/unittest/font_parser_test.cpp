@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <fstream>
 #include <gtest/gtest.h>
 
 #include "font_config.h"
@@ -25,7 +26,7 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-static const std::string fileName = "/system/fonts/visibility_list.json";
+static const std::string FILE_NAME = "/system/fonts/visibility_list.json";
 
 class FontParserTest : public testing::Test {
 };
@@ -62,8 +63,15 @@ HWTEST_F(FontParserTest, FontParserTest1, TestSize.Level1)
     auto fontSet1 = GetFontSet(nullptr);
     EXPECT_EQ(fontSet1.size(), 0);
 
-    auto fontSet2 = GetFontSet(fileName.c_str());
-    EXPECT_NE(fontSet2.size(), 0);
+    std::ifstream fileStream(FILE_NAME.c_str());
+    if (fileStream.is_open()) {
+        auto fontSet2 = GetFontSet(FILE_NAME.c_str());
+        EXPECT_NE(fontSet2.size(), 0);
+        fileStream.close();
+    } else {
+        auto fontSet2 = GetFontSet(FILE_NAME.c_str());
+        EXPECT_EQ(fontSet2.size(), 0);
+    }
 }
 
 /**
@@ -75,8 +83,14 @@ HWTEST_F(FontParserTest, FontParserTest2, TestSize.Level1)
 {
     FontParser fontParser;
     auto visibilityFonts = fontParser.GetVisibilityFonts();
-    EXPECT_NE(visibilityFonts.size(), 0);
-    ShowVisibilityFonts(visibilityFonts);
+    std::ifstream fileStream(FILE_NAME.c_str());
+    if (fileStream.is_open()) {
+        EXPECT_NE(visibilityFonts.size(), 0);
+        ShowVisibilityFonts(visibilityFonts);
+        fileStream.close();
+    } else {
+        EXPECT_EQ(visibilityFonts.size(), 0);
+    }
 }
 } // namespace TextEngine
 } // namespace Rosen
