@@ -15,6 +15,8 @@
 
 #include "texgine_font.h"
 
+#include <include/core/SkFontTypes.h>
+
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
@@ -44,6 +46,20 @@ float TexgineFont::GetMetrics(TexgineFontMetrics *metrics) const
     }
 
     return font_->getMetrics(metrics->GetFontMetrics().get());
+}
+void TexgineFont::SetSubpixel(const bool isSubpixel)
+{
+    font_->setSubpixel(isSubpixel);
+}
+
+void TexgineFont::SetEdging(const FontEdging edging)
+{
+    font_->setEdging(static_cast<SkFont::Edging>(edging));
+}
+
+void TexgineFont::SetHinting(const TexgineFontHinting hinting)
+{
+    font_->setHinting(static_cast<SkFontHinting>(hinting));
 }
 } // namespace TextEngine
 } // namespace Rosen

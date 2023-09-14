@@ -28,6 +28,19 @@ namespace Rosen {
 namespace TextEngine {
 class TexgineFont {
 public:
+    enum FontEdging : uint8_t {
+        ALIAS,
+        ANTIALIAS,
+        SUBPIXEL_ANTIALIAS,
+    };
+
+    enum TexgineFontHinting : uint8_t {
+        NONE,
+        SLIGHT,
+        NORMAL,
+        FULL,
+    };
+
     std::shared_ptr<SkFont> GetFont() const;
 
     /*
@@ -44,6 +57,21 @@ public:
      * @brief Get metrics of the font
      */
     float GetMetrics(TexgineFontMetrics *metrics) const;
+
+    /*
+     * @brief Get metrics of the font
+     */
+    void SetSubpixel(const bool isSubpixel);
+
+    /*
+     * @brief Set subpixel positioning
+     */
+    void SetEdging(const FontEdging edging);
+
+    /*
+     * @brief Set font optimization mode
+     */
+    void SetHinting(const TexgineFontHinting hinting);
 
 private:
     std::shared_ptr<SkFont> font_ = std::make_shared<SkFont>();

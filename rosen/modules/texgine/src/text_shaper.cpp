@@ -72,6 +72,9 @@ int TextShaper::Shape(const VariantSpan &span, const TypographyStyle &ys,
     }
 
     TexgineFont font;
+    font.SetEdging(TexgineFont::FontEdging::ANTIALIAS);
+    font.SetSubpixel(true);
+    font.SetHinting(TexgineFont::TexgineFontHinting::SLIGHT);
     font.SetTypeface(ts->cgs_.Get(0).typeface->Get());
     font.SetSize(xs.fontSize);
     font.GetMetrics(&ts->tmetrics_);
