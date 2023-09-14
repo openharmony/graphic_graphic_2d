@@ -591,7 +591,7 @@ public:
     const std::vector<RectI>& GetChildrenNeedFilterRects() const;
 
     // manage abilities' nodeid info
-    void UpdateAbilityNodeIds(NodeId id, bool isDelete = false);
+    void UpdateAbilityNodeIds(NodeId id, bool isAdded);
     const std::unordered_set<NodeId>& GetAbilityNodeIds() const;
 
     // manage appWindowNode's child hardware enabled nodes info
