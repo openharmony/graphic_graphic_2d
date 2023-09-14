@@ -41,5 +41,13 @@ void RSTaskDispatcher::PostTask(pid_t tid, const RSTask& task)
         }
     }
 }
+
+bool RSTaskDispatcher::HasRegisteredTask(pid_t tid) const
+{
+    if (taskDispatchFuncMap_.count(tid)) {
+        return true;
+    }
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

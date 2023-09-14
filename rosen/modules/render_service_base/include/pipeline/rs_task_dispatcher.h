@@ -30,7 +30,7 @@ using RSTask = std::function<void()>;
     static RSTaskDispatcher& GetInstance();
     void RegisterTaskDispatchFunc(pid_t tid, const std::function<void(RSTask)>& taskDispatchFunc);
     void PostTask(pid_t tid, const RSTask& task);
-
+    bool HasRegisteredTask(pid_t tid) const;
 private:
     RSTaskDispatcher() = default;
     ~RSTaskDispatcher() = default;
