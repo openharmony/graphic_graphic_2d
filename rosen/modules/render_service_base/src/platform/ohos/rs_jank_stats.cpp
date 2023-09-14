@@ -30,7 +30,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr float VSYNC_PERIOD = 16.6;                 // 16.6ms
+constexpr float VSYNC_PERIOD = 16.6f;                // 16.6ms
+constexpr float S_TO_MS = 1000.f;                    // s to ms
 constexpr int64_t TRACE_TIMEOUT = 5000;              // 5s
 constexpr int64_t JANK_TIMEOUT = 10000;              // 10s
 constexpr int64_t S_TO_NS = 1000000000;              // s to ns
@@ -72,7 +73,7 @@ void RSJankStats::SetEndTime()
     const int64_t duration = endTime_ - startTime_;
     if (duration >= VSYNC_PERIOD) {
         int64_t missedFrames = static_cast<int64_t>(duration / VSYNC_PERIOD);
-        SetRSJankStats(missedFrames, endTime_);
+        SetRSJankStats(missedFrames);
     }
     {
         std::lock_guard<std::mutex> lock(animateJankFramesMutex_);
@@ -92,10 +93,11 @@ void RSJankStats::SetEndTime()
             }
             const TraceId traceId = static_cast<TraceId>(uniqueId);
             if (jankFrames.isReportEventResponse_) {
-                SetTraceBegin(traceId, endTime_, jankFrames);
+                SetAnimationTraceBegin(traceId, jankFrames);
             }
             if (jankFrames.isReportEventComplete_ || jankFrames.isReportEventJankFrame_) {
-                SetTraceEnd(traceId);
+                RecordAnimationDynamicFrameRate(traceId, jankFrames);
+                SetAnimationTraceEnd(traceId);
                 jankFrames.isUpdateJankFrame_ = false;
             }
         }
@@ -103,10 +105,10 @@ void RSJankStats::SetEndTime()
     if (isFirstFrame_) {
         ReportEventFirstFrame();
     }
-    CheckTraceTimeout(endTime_);
+    CheckAnimationTraceTimeout();
 }
 
-void RSJankStats::SetRSJankStats(int64_t missedFrames, int64_t jankRecordTime)
+void RSJankStats::SetRSJankStats(int64_t missedFrames)
 {
     size_t type = JANK_FRAME_INVALID;
     if (missedFrames < 6) {                                       // JANK_FRAME_6_FREQ   : (0,6)
@@ -131,7 +133,7 @@ void RSJankStats::SetRSJankStats(int64_t missedFrames, int64_t jankRecordTime)
     }
     if (type != JANK_FRAME_6_FREQ) {
         RS_TRACE_INT("RSJankStats::SetJankStats jank frames over 6", missedFrames);
-        lastJankOverThresholdTime_ = jankRecordTime;
+        lastJankOverThresholdTime_ = endTime_;
     }
     if (rsJankStats_[type] != USHRT_MAX) {
         rsJankStats_[type]++;
@@ -141,6 +143,9 @@ void RSJankStats::SetRSJankStats(int64_t missedFrames, int64_t jankRecordTime)
 
 void RSJankStats::UpdateJankFrame(int64_t duration, JankFrames& jankFrames)
 {
+    if (jankFrames.startTime_ == 0) {
+        jankFrames.startTime_ = startTime_;
+    }
     jankFrames.totalFrames_++;
     jankFrames.totalFrameTime_ += duration;
     jankFrames.maxFrameTime_ = std::max(jankFrames.maxFrameTime_, duration);
@@ -277,10 +282,11 @@ void RSJankStats::ReportEventComplete(const JankFrames& jankFrames) const
 
 void RSJankStats::ReportEventJankFrame(const JankFrames& jankFrames) const
 {
-    auto reportName = "INTERACTION_RENDER_JANK";
-    if (ROSEN_EQ(static_cast<float>(jankFrames.totalFrames_), 0.f)) {
+    if (jankFrames.totalFrames_ == 0) {
+        ROSEN_LOGW("RSJankStats::ReportEventJankFrame totalFrames is zero, nothing need to report");
         return;
     }
+    auto reportName = "INTERACTION_RENDER_JANK";
     float aveFrameTime = jankFrames.totalFrameTime_ / static_cast<float>(jankFrames.totalFrames_);
     const auto &info = jankFrames.info_;
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
@@ -288,59 +294,74 @@ void RSJankStats::ReportEventJankFrame(const JankFrames& jankFrames) const
         "PROCESS_NAME", info.processName, "MODULE_NAME", info.bundleName, "ABILITY_NAME", info.abilityName, "PAGE_URL",
         info.pageUrl, "TOTAL_FRAMES", jankFrames.totalFrames_, "TOTAL_MISSED_FRAMES", jankFrames.totalMissedFrames_,
         "MAX_FRAMETIME", static_cast<uint64_t>(jankFrames.maxFrameTime_), "AVERAGE_FRAMETIME", aveFrameTime,
-        "MAX_SEQ_MISSED_FRAMES", jankFrames.maxSeqMissedFrames_, "IS_FOLD_DISP", 0);
+        "MAX_SEQ_MISSED_FRAMES", jankFrames.maxSeqMissedFrames_, "IS_FOLD_DISP", IS_FOLD_DISP);
 }
 
 void RSJankStats::ReportEventFirstFrame()
 {
+    RS_TRACE_NAME_FMT("RSJankStats::ReportEventFirstFrame app pid %{public}d", appPid_);
     auto reportName = "FIRST_FRAME_DRAWN";
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
         OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "APP_PID", appPid_);
     isFirstFrame_ = false;
 }
 
-void RSJankStats::SetTraceBegin(TraceId traceId, int64_t traceCreateTime, const JankFrames& jankFrames)
+void RSJankStats::SetAnimationTraceBegin(TraceId traceId, const JankFrames& jankFrames)
 {
-    if (aSyncTraces_.find(traceId) != aSyncTraces_.end()) {
+    if (animationAsyncTraces_.find(traceId) != animationAsyncTraces_.end()) {
         return;
     }
     const auto &info = jankFrames.info_;
     int64_t inputTime = ConvertTimeToSystime(info.inputTime);
     const std::string traceName = GetSceneDescription(info) + ", " + std::to_string(inputTime);
-    TraceStats traceStat = {.traceName_ = traceName, .traceCreateTime_ = traceCreateTime};
-    aSyncTraces_[traceId] = std::move(traceStat);
+    AnimationTraceStats traceStat = {.traceName_ = traceName, .traceCreateTime_ = endTime_};
+    animationAsyncTraces_[traceId] = std::move(traceStat);
     RS_ASYNC_TRACE_BEGIN(traceName, traceId);
 }
 
-void RSJankStats::SetTraceEnd(TraceId traceId)
+void RSJankStats::RecordAnimationDynamicFrameRate(TraceId traceId, const JankFrames& jankFrames) const
 {
-    if (aSyncTraces_.find(traceId) == aSyncTraces_.end()) {
+    if (animationAsyncTraces_.find(traceId) == animationAsyncTraces_.end() || jankFrames.startTime_ <= 0 ||
+        endTime_ <= jankFrames.startTime_ || jankFrames.totalFrames_ <= 0) {
         return;
     }
-    RS_ASYNC_TRACE_END(aSyncTraces_[traceId].traceName_, traceId);
-    aSyncTraces_.erase(traceId);
+    float animationDuration = static_cast<float>(endTime_ - jankFrames.startTime_) / S_TO_MS;
+    float animationTotalFrames = static_cast<float>(jankFrames.totalFrames_);
+    float animationDynamicFrameRate = animationTotalFrames / animationDuration;
+    RS_TRACE_NAME_FMT("RSJankStats::RecordAnimationDynamicFrameRate frame rate is %{public}.2f: %{public}s",
+                      animationDynamicFrameRate, animationAsyncTraces_.at(traceId).traceName_.c_str());
 }
 
-void RSJankStats::CheckTraceTimeout(int64_t checkEraseTime)
+void RSJankStats::SetAnimationTraceEnd(TraceId traceId)
 {
-    if (++traceCheckCnt_ < TRACE_CHECK_FREQ) {
+    if (animationAsyncTraces_.find(traceId) == animationAsyncTraces_.end()) {
         return;
     }
-    EraseIf(aSyncTraces_, [checkEraseTime](const auto& pair) -> bool {
+    RS_ASYNC_TRACE_END(animationAsyncTraces_[traceId].traceName_, traceId);
+    animationAsyncTraces_.erase(traceId);
+}
+
+void RSJankStats::CheckAnimationTraceTimeout()
+{
+    if (++animationTraceCheckCnt_ < ANIMATION_TRACE_CHECK_FREQ) {
+        return;
+    }
+    int64_t checkEraseTime = endTime_;
+    EraseIf(animationAsyncTraces_, [checkEraseTime](const auto& pair) -> bool {
         bool needErase = checkEraseTime - pair.second.traceCreateTime_ > TRACE_TIMEOUT;
         if (needErase) {
             RS_ASYNC_TRACE_END(pair.second.traceName_, pair.first);
         }
         return needErase;
     });
-    traceCheckCnt_ = 0;
+    animationTraceCheckCnt_ = 0;
 }
 
 std::string RSJankStats::GetSceneDescription(const DataBaseRs& info) const
 {
-    std::stringstream traceDescription;
-    traceDescription << info.sceneId << ", " << info.bundleName << ", " << info.pageUrl;
-    return traceDescription.str();
+    std::stringstream sceneDescription;
+    sceneDescription << info.sceneId << ", " << info.bundleName << ", " << info.pageUrl;
+    return sceneDescription.str();
 }
 
 int64_t RSJankStats::ConvertTimeToSystime(int64_t time) const
