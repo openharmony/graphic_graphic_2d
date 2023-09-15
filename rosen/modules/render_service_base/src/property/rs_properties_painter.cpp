@@ -543,6 +543,7 @@ void RSPropertiesPainter::DrawShadow(const RSProperties& properties,
         skPath = properties.GetShadowPath()->GetSkiaPath();
         canvas.clipPath(skPath, SkClipOp::kDifference, true);
     } else if (properties.GetClipBounds()) {
+        skPath = properties.GetClipBounds()->GetSkiaPath();
         canvas.clipPath(skPath, SkClipOp::kDifference, true);
     } else {
         if (rrect != nullptr) {
@@ -572,25 +573,17 @@ void RSPropertiesPainter::DrawShadow(const RSProperties& properties,
     Drawing::Path path;
     if (properties.GetShadowPath() && !properties.GetShadowPath()->GetDrawingPath().IsValid()) {
         path = properties.GetShadowPath()->GetDrawingPath();
-        if (!isLeashWindow) {
-            canvas.ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
-        }
+        canvas.ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
     } else if (properties.GetClipBounds()) {
         path = properties.GetClipBounds()->GetDrawingPath();
-        if (!isLeashWindow) {
-            canvas.ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
-        }
+        canvas.ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
     } else {
         if (rrect != nullptr) {
             path.AddRoundRect(RRect2DrawingRRect(*rrect));
-            if (!isLeashWindow) {
-                canvas.ClipRoundRect(RRect2DrawingRRect(*rrect), Drawing::ClipOp::DIFFERENCE, true);
-            }
+            canvas.ClipRoundRect(RRect2DrawingRRect(*rrect), Drawing::ClipOp::DIFFERENCE, true);
         } else {
             path.AddRoundRect(RRect2DrawingRRect(properties.GetRRect()));
-            if (!isLeashWindow) {
-                canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::DIFFERENCE, true);
-            }
+            canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::DIFFERENCE, true);
         }
     }
     if (properties.GetShadowMask()) {
