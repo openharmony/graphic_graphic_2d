@@ -213,7 +213,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     params.dstRect = Drawing::Rect(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
 #endif
 
-    const sptr<SurfaceBuffer>& buffer = node.GetBuffer();
+    const sptr<SurfaceBuffer> buffer = node.GetBuffer();
     if (buffer == nullptr) {
         return params;
     }
