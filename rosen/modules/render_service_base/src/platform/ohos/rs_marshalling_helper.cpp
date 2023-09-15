@@ -851,8 +851,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkBitmap& val)
     }
 
     SkImageInfo imageInfo = SkImageInfo::Make(width, height, colorType, alphaType, colorSpace);
-    val.setInfo(imageInfo, rb);
-    val.setPixels(const_cast<void*>(addr));
+    auto releaseProc = [](void* addr, void* context) -> void {
+        free(const_cast<void*>(addr));
+        addr = nullptr;
+    };
+    val.installPixels(imageInfo, const_cast<void*>(addr), rb, releaseProc, nullptr);
     return true;
 }
 
