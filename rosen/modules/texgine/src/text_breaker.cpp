@@ -31,6 +31,10 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
+#define CN_LEFT_QUOTE 0x201C
+#define CN_RIGHT_QUOTE 0x201D
+#define EN_QUOTE 0x22
+
 int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyle &ys,
     const std::shared_ptr<FontProviders> &fontProviders)
 {
@@ -62,6 +66,7 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyl
         }
 
         GenNewBoundryByTypeface(cgs, boundaries);
+        GenNewBoundryByQuote(cgs, boundaries);
 
         LOGSCOPED(sl2, LOGEX_FUNC_LINE_DEBUG(), "TextBreaker::doWordBreak algo");
         preBreak_ = 0;
@@ -147,6 +152,50 @@ void TextBreaker::GenNewBoundryByTypeface(CharGroups cgs, std::vector<Boundary> 
         newBoundary.push_back({newStart, end});
     }
 
+    boundaries = newBoundary;
+}
+
+bool TextBreaker::IsQuote(const uint16_t c)
+{
+    return ((c == EN_QUOTE) || (c == CN_LEFT_QUOTE) || (c == CN_RIGHT_QUOTE));
+}
+
+void TextBreaker::GenNewBoundryByQuote(CharGroups cgs, std::vector<Boundary> &boundaries)
+{
+    std::vector<Boundary> newBoundary = {{0, 0}};
+    auto boundary = boundaries.begin();
+    bool isEndQuote = false;
+    for (; boundary < boundaries.end() - 1; boundary++) {
+        const auto &prevWordCgs = cgs.GetSubFromU16RangeAll(boundary->leftIndex, boundary->rightIndex);
+        bool isQuote = IsQuote(prevWordCgs.GetBack().chars[0]);
+        if (isQuote && newBoundary.back().rightIndex == boundary->rightIndex) {
+            isEndQuote = false;
+        }
+
+        if (isQuote && !isEndQuote) {
+            newBoundary.push_back({boundary->leftIndex, boundary->rightIndex - 1});
+            newBoundary.push_back({boundary->rightIndex -1, (boundary + 1)->rightIndex});
+            isEndQuote = true;
+            boundary++;
+        }
+
+        if (isQuote && isEndQuote) {
+            if (newBoundary.back().rightIndex == boundary->rightIndex) {
+                isEndQuote = false;
+                continue;
+            }
+            newBoundary.back().rightIndex += boundary->rightIndex;
+            isEndQuote = false;
+            continue;
+        } else {
+            newBoundary.push_back({boundary->leftIndex, boundary->rightIndex});
+        }
+    }
+
+    if (boundary != boundaries.end()) {
+        newBoundary.push_back({boundary->leftIndex, boundary->rightIndex});
+    }
+    newBoundary.erase(newBoundary.begin());
     boundaries = newBoundary;
 }
 
