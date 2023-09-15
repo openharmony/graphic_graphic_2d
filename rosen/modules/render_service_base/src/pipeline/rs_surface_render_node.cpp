@@ -1191,12 +1191,12 @@ const std::vector<RectI>& RSSurfaceRenderNode::GetChildrenNeedFilterRects() cons
 }
 
 // manage abilities' nodeid info
-void RSSurfaceRenderNode::UpdateAbilityNodeIds(NodeId id, bool isDelete)
+void RSSurfaceRenderNode::UpdateAbilityNodeIds(NodeId id, bool isAdded)
 {
-    if (isDelete) {
-        abilityNodeIds_.erase(id);
-    } else {
+    if (isAdded) {
         abilityNodeIds_.emplace(id);
+    } else {
+        abilityNodeIds_.erase(id);
     }
 }
 
