@@ -40,6 +40,21 @@ enum class PointMode {
     POLYGON_POINTMODE, // draw the array of points as a open polygon
 };
 
+struct Lattice {
+    enum RectType : uint8_t {
+        kDefault = 0;
+        kTransparent,
+        kFixedColor,
+    };
+    int fXDivs[2];
+    int fYDivs[2];
+    RectType fRectTypes = RectType::kDefault;
+    int fXCount;
+    int fYCount;
+    RectI fBounds;
+    Color fColors;
+};
+
 /*
  * @brief  Contains the option used to create the layer.
  */
@@ -184,6 +199,12 @@ public:
      * @param region  Region to draw.
      */
     virtual void DrawRegion(const Region& region);
+
+    virtual void DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
+        FilterMode filterMode, const Brush* brush = nullptr);
+    virtual void DrawAnnotation(const Rect& rect, const char* key, const Data& data);
+    virtual void DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
+        FilterMode filterMode, const Brush* brush = nullptr);
 
     // image
     virtual void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py);

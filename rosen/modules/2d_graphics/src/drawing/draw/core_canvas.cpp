@@ -149,6 +149,23 @@ void CoreCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar 
     impl_->DrawBitmap(bitmap, px, py);
 }
 
+void CoreCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
+    FilterMode filterMode, const Brush* brush)
+{
+    impl_->DrawImageNine(image, center, dst, filterMode, brush);
+}
+
+void CoreCanvas::DrawAnnotation(const Rect& rect, const char* key, const Data& data)
+{
+    impl_->DrawAnnotation(rect, key, data);
+}
+
+void CoreCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
+    FilterMode filterMode, const Brush* brush)
+{
+    impl_->DrawImageLattice(image, lattice, dst, filterMode, brush);
+}
+
 void CoreCanvas::DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py)
 {
     impl_->DrawBitmap(pixelMap, px, py);

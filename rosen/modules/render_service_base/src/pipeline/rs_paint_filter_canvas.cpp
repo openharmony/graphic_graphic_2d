@@ -158,6 +158,29 @@ void RSPaintFilterCanvasBase::DrawBitmap(const Bitmap& bitmap, const scalar px, 
     }
 }
 
+void DrawImageNine(const Drawing::Image* image, const Drawing::RectI& center, const Drawing::Rect& dst,
+    Drawing::FilterMode filterMode, const Drawing::Brush* brush)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawImageNine(image, center, dst, filterMode, brush);
+    }
+}
+
+void DrawAnnotation(const Drawing::Rect& rect, const char* key, const Drawing::Data& data)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawAnnotation(rect, key, data);
+    }
+}
+
+void DrawImageLattice(const Drawing::Image* image, const Drawing::Lattice& lattice, const Drawing::Rect& dst,
+    Drawing::FilterMode filterMode, const Drawing::Brush* brush)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawImageNine(image, lattice, dst, filterMode, brush);
+    }
+}
+
 void RSPaintFilterCanvasBase::DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py)
 {
     if (canvas_ != nullptr && OnFilter()) {
