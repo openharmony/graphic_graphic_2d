@@ -157,6 +157,10 @@ public:
 
     virtual int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) = 0;
 
+#ifdef TP_FEATURE_ENABLE
+    virtual void SetTpFeatureConfig(int32_t feature, const char* config) = 0;
+#endif
+
     /* only used for mock tests */
     virtual void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) = 0;
 };

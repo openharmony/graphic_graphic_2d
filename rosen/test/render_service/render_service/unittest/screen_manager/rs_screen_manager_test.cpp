@@ -726,4 +726,18 @@ HWTEST_F(RSScreenManagerTest, SetScreenSkipFrameInterval_001, TestSize.Level1)
     auto result = screenManager->SetScreenSkipFrameInterval(screenId, interval);
     ASSERT_EQ(result, StatusCode::SCREEN_NOT_FOUND);
 }
+
+/*
+ * @tc.name: SetTpFeatureConfig_001
+ * @tc.desc: Test SetTpFeatureConfig
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, SetTpFeatureConfig_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    int32_t feature = 12;
+    std::string config = "0"
+    screenManager->SetTpFeatureConfig(feature, config);
+}
 } // namespace OHOS::Rosen
