@@ -223,6 +223,10 @@ public:
     void SetHardwareEnabled(NodeId id, bool isEnabled);
 
     void SetCacheEnabledForRotation(bool isEnabled);
+
+#ifdef TP_FEATURE_ENABLE
+    void SetTpFeatureConfig(int32_t feature, const char* config);
+#endif
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap);
     std::mutex mutex_;

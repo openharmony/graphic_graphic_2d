@@ -859,5 +859,16 @@ void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
         renderService->SetCacheEnabledForRotation(isEnabled);
     }
 }
+
+#ifdef TP_FEATURE_ENABLE
+void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* config)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return;
+    }
+    renderService->SetTpFeatureConfig(feature, config);
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS
