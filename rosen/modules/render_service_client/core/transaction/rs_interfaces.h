@@ -163,6 +163,10 @@ public:
     void EnableCacheForRotation();
 
     void DisableCacheForRotation();
+
+#ifdef TP_FEATURE_ENABLE
+    void SetTpFeatureConfig(int32_t feature, const char* config);
+#endif
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

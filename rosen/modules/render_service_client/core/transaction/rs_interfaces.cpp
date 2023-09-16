@@ -373,5 +373,12 @@ void RSInterfaces::DisableCacheForRotation()
 {
     renderServiceClient_->SetCacheEnabledForRotation(false);
 }
+
+#ifdef TP_FEATURE_ENABLE
+void RSInterfaces::SetTpFeatureConfig(int32_t feature, const char* config)
+{
+    renderServiceClient_->SetTpFeatureConfig(feature, config);
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

@@ -27,6 +27,7 @@ declare_args() {
   use_texgine = true
   player_framework_enable = false
   graphic_2d_feature_drivers_interface_display_enable = true
+  feature_tp_switch_enbale = false
 
   if (defined(build_cross_platform_version) && build_cross_platform_version) {
     use_new_render_context = false
@@ -115,6 +116,14 @@ if (defined(use_new_render_context) && use_new_render_context) {
   rs_enable_parallel_render = false
   gpu_defines -= [ "RS_ENABLE_PARALLEL_RENDER" ]
 }
+
+tp_defines = []
+tp_feature_enable = false
+if (feature_tp_switch_enbale) {
+  tp_feature_enable = true
+  tp_defines = ["TP_FEATURE_ENABLE"]
+}
+
 graphic_2d_ext_configs = {
 }
 check_graphic_ext_file_script = "//build/ohos/file_exists.py"
