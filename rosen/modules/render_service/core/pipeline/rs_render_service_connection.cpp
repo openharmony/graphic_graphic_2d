@@ -860,5 +860,19 @@ void RSRenderServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
 {
     RSSystemProperties::SetCacheEnabledForRotation(isEnabled);
 }
+
+#ifdef TP_FEATURE_ENABLE
+void RSRenderServiceConnection::SetTpFeatureConfig(int32_t feature, const char* config)
+{
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        RSHardwareThread::Instance().ScheduleTask(
+            [=]() { screenManager_->SetTpFeatureConfig(feature, config); }).wait();
+    } else {
+        mainThread_->ScheduleTask(
+            [=]() { screenManager_->SetTpFeatureConfig(feature, config); }).wait();
+    }
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

@@ -186,6 +186,10 @@ private:
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
+#ifdef TP_FEATURE_ENABLE
+    void SetTpFeatureConfig(int32_t feature, const char* config) override;
+#endif
+
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;
