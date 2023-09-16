@@ -101,7 +101,7 @@ ohos_shared_library("librender_service") {
   }
 
   if (tp_feature_enable) {
-    sources += ["core/touch_screen/touch_screen.cpp"]
+    sources += [ "core/touch_screen/touch_screen.cpp" ]
   }
 
   include_dirs = [

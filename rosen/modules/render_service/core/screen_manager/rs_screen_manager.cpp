@@ -22,10 +22,6 @@
 #include "platform/common/rs_log.h"
 #include "vsync_sampler.h"
 
-#ifdef TP_FEATURE_ENABLE
-#include "touch_screen/touch_screen.h"
-#endif
-
 namespace OHOS {
 namespace Rosen {
 using namespace HiviewDFX;
@@ -1112,20 +1108,6 @@ int32_t RSScreenManager::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFr
     std::lock_guard<std::mutex> lock(mutex_);
     return SetScreenSkipFrameIntervalLocked(id, skipFrameInterval);
 }
-
-#ifdef TP_FEATURE_ENABLE
-void RSScreenManager::SetTpFeatureConfig(int32_t feature, const char* config)
-{
-    if (TOUCH_SCREEN->tsSetFeatureConfig_ == nullptr) {
-        RS_LOGW("RSScreenManager %{public}s: touch screen function symbol is nullptr." PRIu64 ".", __func__);
-        return;    
-    }
-    if (TOUCH_SCREEN->tsSetFeatureConfig_(feature, config) < 0) {
-        RS_LOGW("RSScreenManager %{public}s: tsSetFeatureConfig_ failed.", __func__);
-        return;
-    }
-}
-#endif
 } // namespace impl
 
 sptr<RSScreenManager> CreateOrGetScreenManager()

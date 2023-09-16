@@ -121,7 +121,7 @@ tp_defines = []
 tp_feature_enable = false
 if (feature_tp_switch_enbale) {
   tp_feature_enable = true
-  tp_defines = ["TP_FEATURE_ENABLE"]
+  tp_defines = [ "TP_FEATURE_ENABLE" ]
 }
 
 graphic_2d_ext_configs = {

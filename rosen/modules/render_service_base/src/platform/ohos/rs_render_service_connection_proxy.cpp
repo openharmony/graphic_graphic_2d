@@ -1471,12 +1471,20 @@ void RSRenderServiceConnectionProxy::SetTpFeatureConfig(int32_t feature, const c
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         return;
     }
+
+    if (!data.WriteInt32(feature)) {
+        return;
+    }
+
+    if (!data.WriteCString(config)) {
+        return;
+    }
+
     option.SetFlags(MessageOption::TF_SYNC);
-    data.WriteInt32(feature);
-    data.WriteCString(config);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_TP_FEATURE_CONFIG);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
