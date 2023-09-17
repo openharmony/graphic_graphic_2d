@@ -1472,7 +1472,7 @@ void RSUniRenderVisitor::DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderNode& node
 
 void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
 {
-    if (node.GetChildrenCount() == 0) {
+    if (node.GetChildrenCount() == 0 || DrawBlurInCache(node)) {
         return;
     }
     if (isSubThread_) {
@@ -2817,7 +2817,7 @@ void RSUniRenderVisitor::DrawSpherize(RSRenderNode& node)
 
 bool RSUniRenderVisitor::DrawBlurInCache(RSRenderNode& node)
 {
-    if (curCacheFilterRects_.empty()) {
+    if (LIKELY(curCacheFilterRects_.empty())) {
         return false;
     }
     if (curCacheFilterRects_.top().count(node.GetId())) {
@@ -2881,9 +2881,7 @@ void RSUniRenderVisitor::DrawChildRenderNode(RSRenderNode& node)
             }
             node.ProcessAnimatePropertyBeforeChildren(*canvas_);
             node.ProcessRenderContents(*canvas_);
-            if (!DrawBlurInCache(node)) {
-                ProcessChildren(node);
-            }
+            ProcessChildren(node);
             node.ProcessAnimatePropertyAfterChildren(*canvas_);
             if (node.HasCacheableAnim() && isDrawingCacheEnabled_) {
                 canvas_->SetCacheType(preCache);
@@ -2928,7 +2926,7 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeNeedProcess(RSSurfaceRenderNode
         RS_PROCESS_TRACE(isPhone_, false, node.GetName() + " Occlusion Skip");
         return false;
     }
-    if (node.IsAbilityComponent() && node.GetDstRect().IsEmpty()) {
+    if (node.IsAbilityComponent() && node.GetDstRect().IsEmpty() && curGroupedNodes_.empty()) {
         RS_PROCESS_TRACE(isPhone_, false, node.GetName() + " Empty AbilityComponent Skip");
         return false;
     }
@@ -3549,9 +3547,7 @@ void RSUniRenderVisitor::ProcessEffectRenderNode(RSEffectRenderNode& node)
     Drawing::AutoCanvasRestore acr(*canvas_.get(), true);
 #endif
     node.ProcessRenderBeforeChildren(*canvas_);
-    if (!DrawBlurInCache(node)) {
-        ProcessChildren(node);
-    }
+    ProcessChildren(node);
     node.ProcessRenderAfterChildren(*canvas_);
 }
 
