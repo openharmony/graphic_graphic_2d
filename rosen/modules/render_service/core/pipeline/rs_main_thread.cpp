@@ -343,8 +343,11 @@ void RSMainThread::Init()
 
     frameRateMgr_ = std::make_unique<HgmFrameRateManager>();
     frameRateMgr_->SetTimerExpiredCallback([]() {
-        RSMainThread::Instance()->SetForceUpdateUniRenderFlag(true);
-        RSMainThread::Instance()->RequestNextVSync();
+        RSMainThread::Instance()->PostTask([]() {
+            RS_OPTIONAL_TRACE_NAME("RSMainThread::TimerExpiredCallback Run");
+            RSMainThread::Instance()->SetForceUpdateUniRenderFlag(true);
+            RSMainThread::Instance()->RequestNextVSync();
+        });
     });
 }
 
