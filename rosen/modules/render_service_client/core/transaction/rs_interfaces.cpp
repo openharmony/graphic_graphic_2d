@@ -155,7 +155,7 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(
         return false;
     }
     if (RSSystemProperties::GetUniRenderEnabled()) {
-        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY, 
+        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, scaleX, scaleY,
             SurfaceCaptureType::UICAPTURE);
     } else {
         return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, scaleX, scaleY);

@@ -72,6 +72,8 @@ HWTEST_F(RSPathAnimationTest, SetEndFractionTest002, Level1)
     float frac = 3.0f;
     RSPathAnimation rsPathAnimation(prop, animationPath);
     rsPathAnimation.SetEndFraction(frac);
+    rsPathAnimation.SetEndFraction(0.5f);
+    rsPathAnimation.SetEndFraction(-0.5f);
     ASSERT_EQ(res, true);
 }
 
@@ -125,6 +127,8 @@ HWTEST_F(RSPathAnimationTest, SetBeginFractionTest001, Level1)
     auto per = std::make_shared<RSNode>(true);
     rsPathAnimation.StartInner(per);
     rsPathAnimation.SetBeginFraction(frac);
+    rsPathAnimation.SetBeginFraction(0.5f);
+    rsPathAnimation.SetBeginFraction(-0.5f);
     ASSERT_EQ(prop, nullptr);
     ASSERT_EQ(animationPath, nullptr);
 }
