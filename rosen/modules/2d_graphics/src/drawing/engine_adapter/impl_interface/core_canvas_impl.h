@@ -55,6 +55,7 @@ namespace Drawing {
 enum class SrcRectConstraint;
 class SaveLayerOps;
 enum class PointMode;
+enum class QuadAAFlags;
 
 class CoreCanvasImpl : public BaseImpl {
 public:
@@ -94,6 +95,10 @@ public:
     virtual void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag) = 0;
     virtual void DrawRegion(const Region& region) = 0;
+    virtual void DrawPatch(const Point cubics[12], const ColorQuad colors[4],
+        const Point texCoords[4], BlendMode mode) = 0;
+    virtual void ExperimentalDrawEdgeAAQuad(const Rect& rect, const Point clip[4],
+        QuadAAFlags aaFlags, ColorQuad color, BlendMode mode) = 0;
 
     // color
     virtual void DrawColor(ColorQuad color, BlendMode mode) = 0;

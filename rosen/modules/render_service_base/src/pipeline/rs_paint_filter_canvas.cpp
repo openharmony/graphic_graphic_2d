@@ -151,6 +151,22 @@ void RSPaintFilterCanvasBase::DrawRegion(const Drawing::Region& region)
     }
 }
 
+void RSPaintFilterCanvasBase::DrawPatch(const Drawing::Point cubics[12], const Drawing::ColorQuad colors[4],
+    const Drawing::Point texCoords[4], Drawing::BlendMode mode)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawPatch(cubics, colors, texCoords, mode);
+    }
+}
+
+void RSPaintFilterCanvasBase::ExperimentalDrawEdgeAAQuad(const Drawing::Rect& rect, const Drawing::Point clip[4],
+    Drawing::QuadAAFlags aaFlags, Drawing::ColorQuad color, Drawing::BlendMode mode)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->ExperimentalDrawEdgeAAQuad(rect, clip, aaFlags, color, mode);
+    }
+}
+
 void RSPaintFilterCanvasBase::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
 {
     if (canvas_ != nullptr && OnFilter()) {

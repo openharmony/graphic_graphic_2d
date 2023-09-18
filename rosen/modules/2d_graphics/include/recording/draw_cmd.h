@@ -119,6 +119,9 @@ public:
         CLIP_ADAPTIVE_ROUND_RECT_OPITEM,
         ADAPTIVE_IMAGE_OPITEM,
         ADAPTIVE_PIXELMAP_OPITEM,
+        REGION_OPITEM,
+        PATCH_OPITEM,
+        EXPERIMENTAL_EDGEAAQUAD_OPITEM,
     };
 };
 
@@ -295,6 +298,51 @@ private:
     Color ambientColor_;
     Color spotColor_;
     ShadowFlags flag_;
+};
+
+class DrawRegionOpItem : public DrawOpItem {
+public:
+    DrawRegionOpItem(const CmdListHandle& path);
+    ~DrawRegionOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas, const CmdList& cmdList) const;
+
+private:
+    CmdListHandle region_;
+};
+
+class DrawPatchOpItem : public DrawOpItem {
+public:
+    explicit DrawPatchOpItem(const std::pair<uint32_t, size_t> cubics, const std::pair<uint32_t, size_t> colors,
+        const std::pair<uint32_t, size_t> texCoords, BlendMode mode);
+    ~DrawPatchOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas, const CmdList& cmdList) const;
+
+private:
+    std::pair<uint32_t, size_t> cubics_;
+    std::pair<uint32_t, size_t> colors_;
+    std::pair<uint32_t, size_t> texCoords_;
+    BlendMode mode_;
+};
+
+class ExperimentalDrawEdgeAAQuadOpItem : public DrawOpItem {
+public:
+    explicit ExperimentalDrawEdgeAAQuadOpItem(const Rect& rect, const std::pair<uint32_t, size_t> clipQuad,
+        QuadAAFlags aaFlags, ColorQuad color, BlendMode mode);
+    ~ExperimentalDrawEdgeAAQuadOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas, const CmdList& cmdList) const;
+
+private:
+    Rect rect_;
+    std::pair<uint32_t, size_t> clipQuad_;
+    QuadAAFlags aaFlags_;
+    ColorQuad color_;
+    BlendMode mode_;
 };
 
 class DrawBitmapOpItem : public DrawOpItem {
