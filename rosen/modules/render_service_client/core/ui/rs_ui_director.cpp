@@ -27,6 +27,7 @@
 #include "platform/common/rs_log.h"
 #include "transaction/rs_application_agent_impl.h"
 #include "transaction/rs_interfaces.h"
+#include "transaction/rs_transaction.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_frame_rate_policy.h"
 #include "ui/rs_root_node.h"
@@ -306,6 +307,7 @@ void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds)
     PostTask([cmds]() {
         ROSEN_LOGD("RSUIDirector::ProcessMessages success");
         RSUIDirector::ProcessMessages(cmds);
+        RSTransaction::FlushImplicitTransaction();
     });
 }
 
