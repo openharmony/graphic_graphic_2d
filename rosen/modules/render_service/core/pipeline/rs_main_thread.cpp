@@ -472,16 +472,20 @@ void RSMainThread::ProcessCommand()
     } else {
         ProcessCommandForDividedRender();
     }
-    if (context_->needPurge_) {
+    if (context_->purgeType_ != RSContext::PurgeType::NONE) {
+        context_->purgeType_ = RSContext::PurgeType::NONE;
 #ifdef NEW_RENDER_CONTEXT
         auto grContext = GetRenderEngine()->GetDrawingContext()->GetDrawingContext();
 #else
         auto grContext = GetRenderEngine()->GetRenderContext()->GetGrContext();
 #endif
         if (grContext) {
-            grContext->purgeUnlockedResources(true);
+            if (context_->purgeType_ == RSContext::PurgeType::PURGE_UNLOCK) {
+                MemoryManager::ReleaseUnlockGpuResource(grContext);
+            } else {
+                MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
+            }
         }
-        context_->needPurge_ = false;
     }
     if (RsFrameReport::GetInstance().GetEnable()) {
         RsFrameReport::GetInstance().AnimateStart();

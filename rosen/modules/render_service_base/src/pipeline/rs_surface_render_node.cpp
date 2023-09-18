@@ -250,11 +250,16 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
 {
     RSRenderNode::OnTreeStateChanged();
 #ifdef RS_ENABLE_GL
-    if (grContext_ && !IsOnTheTree() && IsLeashWindow()) {
-        RS_TRACE_NAME_FMT("need purgeUnlockedResources this SurfaceNode isn't on the tree Id:%" PRIu64 " Name:%s",
-            GetId(), GetName().c_str());
+    if (grContext_ && !IsOnTheTree()) {
         if (auto context = GetContext().lock()) {
-            context->MarkNeedPurge();
+            RS_TRACE_NAME_FMT("need purgeUnlockedResources this SurfaceNode isn't on the tree Id:%" PRIu64 " Name:%s",
+                GetId(), GetName().c_str());
+            if (IsLeashWindow()) {
+                context->MarkNeedPurge(RSContext::PurgeType::PURGE_UNLOCK);
+            }
+            if (GetName().substr(0, 3) == "SCB") {
+                context->MarkNeedPurge(RSContext::PurgeType::PURGE_UNLOCK_SAFECACHE);
+            }
         }
     }
 #endif
