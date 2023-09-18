@@ -40,14 +40,15 @@ enum class PointMode {
     POLYGON_POINTMODE, // draw the array of points as a open polygon
 };
 
+const int DIVES_SIZE = 2;
 struct Lattice {
     enum RectType : uint8_t {
         kDefault = 0,
         kTransparent,
         kFixedColor,
     };
-    int fXDivs[2];
-    int fYDivs[2];
+    int fXDivs[DIVES_SIZE];
+    int fYDivs[DIVES_SIZE];
     RectType fRectTypes = RectType::kDefault;
     int fXCount;
     int fYCount;
