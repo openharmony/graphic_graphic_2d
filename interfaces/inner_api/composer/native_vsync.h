@@ -32,6 +32,7 @@
  *
  * @brief Defines the functions for obtaining and using a native vsync.
  *
+ * @library libnative_vsync.so
  * @since 9
  * @version 1.0
  */
