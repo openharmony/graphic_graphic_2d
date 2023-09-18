@@ -246,11 +246,9 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
     auto children = node.GetSortedChildren();
     for (auto& child : children) {
         if (UNLIKELY(child->GetSharedTransitionParam().has_value())) {
-            sharedTransitionNodeCnt_++;
             PrepareSharedTransitionNode(*child);
             curDirty_ = child->IsDirty();
             child->Prepare(shared_from_this());
-            sharedTransitionNodeCnt_--;
         } else {
             curDirty_ = child->IsDirty();
             child->Prepare(shared_from_this());
@@ -270,7 +268,7 @@ void RSUniRenderVisitor::UpdateCacheChangeStatus(RSRenderNode& node)
         return;
     }
     node.CheckDrawingCacheType();
-    if (!node.ShouldPaint() || sharedTransitionNodeCnt_ > 0 || isSurfaceRotationChanged_) {
+    if (!node.ShouldPaint() || isSurfaceRotationChanged_) {
         node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     }
     // skip status check if there is no upper cache mark
@@ -3324,7 +3322,7 @@ bool RSUniRenderVisitor::InitNodeCache(RSRenderNode& node)
             std::lock_guard<std::mutex> lock(cacheRenderNodeMapMutex);
             cacheRenderNodeMapCnt = cacheRenderNodeMap.count(node.GetId());
         }
-        if (cacheRenderNodeMapCnt == 0) {
+        if (cacheRenderNodeMapCnt == 0 || node.NeedInitCacheSurface()) {
 #ifndef USE_ROSEN_DRAWING
             RenderParam val { node.shared_from_this(), canvas_->GetCanvasStatus() };
 #else
