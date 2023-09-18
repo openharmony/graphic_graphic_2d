@@ -145,8 +145,16 @@ public:
         int alphaSaveCount = -1;
         int envSaveCount = -1;
     };
+    enum SaveType : uint8_t {
+        kNone   = 0x0,
+        kCanvas = 0x1,
+        kAlpha  = 0x2,
+        kEnv    = 0x4,
+        kALL    = kCanvas | kAlpha | kEnv,
+    };
+
 #ifndef USE_ROSEN_DRAWING
-    SaveStatus Save();
+    SaveStatus Save(SaveType type = kALL);
 #else
     SaveStatus SaveAllStatus();
 #endif
@@ -280,14 +288,6 @@ protected:
 // Helper class similar to SkAutoCanvasRestore, but also restores alpha and/or env
 class RSB_EXPORT RSAutoCanvasRestore {
 public:
-    enum SaveType : uint8_t {
-        kNone   = 0x0,
-        kCanvas = 0x1,
-        kAlpha  = 0x2,
-        kEnv    = 0x4,
-        kALL    = kCanvas | kAlpha | kEnv,
-    };
-
     /** Preserves canvas save count. Optionally call SkCanvas::save() and/or RSPaintFilterCanvas::SaveAlpha() and/or
        RSPaintFilterCanvas::SaveEnv().
         @param canvas     RSPaintFilterCanvas to guard
@@ -295,23 +295,33 @@ public:
         @param saveAlpha  call RSPaintFilterCanvas::SaveAlpha()
         @return           utility to restore RSPaintFilterCanvas state on destructor
     */
-    RSAutoCanvasRestore(RSPaintFilterCanvas* canvas, SaveType type = SaveType::kALL);
+    RSAutoCanvasRestore(
+        RSPaintFilterCanvas* canvas, RSPaintFilterCanvas::SaveType type = RSPaintFilterCanvas::SaveType::kALL)
+        : canvas_(canvas), saveCount_(canvas ? canvas->Save(type) : RSPaintFilterCanvas::SaveStatus())
+    {}
 
     /** Allow RSAutoCanvasRestore to be used with std::unique_ptr and std::shared_ptr */
-    RSAutoCanvasRestore(const std::unique_ptr<RSPaintFilterCanvas>& canvas, SaveType type = SaveType::kALL)
+    RSAutoCanvasRestore(const std::unique_ptr<RSPaintFilterCanvas>& canvas,
+        RSPaintFilterCanvas::SaveType type = RSPaintFilterCanvas::SaveType::kALL)
         : RSAutoCanvasRestore(canvas.get(), type)
     {}
-    RSAutoCanvasRestore(const std::shared_ptr<RSPaintFilterCanvas>& canvas, SaveType type = SaveType::kALL)
+    RSAutoCanvasRestore(const std::shared_ptr<RSPaintFilterCanvas>& canvas,
+        RSPaintFilterCanvas::SaveType type = RSPaintFilterCanvas::SaveType::kALL)
         : RSAutoCanvasRestore(canvas.get(), type)
     {}
+
+    RSAutoCanvasRestore(RSAutoCanvasRestore&&) = delete;
+    RSAutoCanvasRestore(const RSAutoCanvasRestore&) = delete;
+    RSAutoCanvasRestore& operator=(RSAutoCanvasRestore&&) = delete;
+    RSAutoCanvasRestore& operator=(const RSAutoCanvasRestore&) = delete;
 
     /** Restores RSPaintFilterCanvas to saved state. Destructor is called when container goes out of
         scope.
     */
     ~RSAutoCanvasRestore()
     {
-        if (canvas_ && saveCount_.has_value()) {
-            canvas_->RestoreStatus(saveCount_.value());
+        if (canvas_) {
+            canvas_->RestoreStatus(saveCount_);
         }
     }
 
@@ -320,21 +330,15 @@ public:
     */
     void restore()
     {
-        if (canvas_ && saveCount_.has_value()) {
-            canvas_->RestoreStatus(saveCount_.value());
+        if (canvas_) {
+            canvas_->RestoreStatus(saveCount_);
             canvas_ = nullptr;
-            saveCount_.reset();
         }
     }
 
 private:
     RSPaintFilterCanvas* canvas_ = nullptr;
-    std::optional<RSPaintFilterCanvas::SaveStatus> saveCount_;
-
-    RSAutoCanvasRestore(RSAutoCanvasRestore&&) = delete;
-    RSAutoCanvasRestore(const RSAutoCanvasRestore&) = delete;
-    RSAutoCanvasRestore& operator=(RSAutoCanvasRestore&&) = delete;
-    RSAutoCanvasRestore& operator=(const RSAutoCanvasRestore&) = delete;
+    RSPaintFilterCanvas::SaveStatus saveCount_;
 };
 } // namespace Rosen
 } // namespace OHOS

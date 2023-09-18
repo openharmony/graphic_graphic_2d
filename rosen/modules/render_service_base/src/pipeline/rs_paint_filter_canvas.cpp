@@ -583,10 +583,12 @@ RSColor RSPaintFilterCanvas::GetEnvForegroundColor() const
 #endif
 
 #ifndef USE_ROSEN_DRAWING
-RSPaintFilterCanvas::SaveStatus RSPaintFilterCanvas::Save()
+RSPaintFilterCanvas::SaveStatus RSPaintFilterCanvas::Save(SaveType type)
 {
-    // simultaneously save canvas and alpha
-    return { save(), SaveAlpha(), SaveEnv() };
+    // save and return status on demand
+    return { (RSPaintFilterCanvas::kCanvas & type) ? save() : getSaveCount(),
+        (RSPaintFilterCanvas::kAlpha & type) ? SaveAlpha() : GetAlphaSaveCount(),
+        (RSPaintFilterCanvas::kEnv & type) ? SaveEnv() : GetEnvSaveCount() };
 }
 #else
 RSPaintFilterCanvas::SaveStatus RSPaintFilterCanvas::SaveAllStatus()
@@ -704,26 +706,6 @@ CoreCanvas& RSColorFilterCanvas::AttachBrush(const Brush& brush)
     return *this;
 }
 #endif
-
-RSAutoCanvasRestore::RSAutoCanvasRestore(RSPaintFilterCanvas* canvas, SaveType type) : canvas_(canvas)
-{
-    if (canvas_) {
-        saveCount_ = canvas->GetSaveStatus();
-        if (SaveType::kCanvas & type) {
-#ifndef USE_ROSEN_DRAWING
-            canvas->save();
-#else
-            canvas->Save();
-#endif
-        }
-        if (SaveType::kAlpha & type) {
-            canvas->SaveAlpha();
-        }
-        if (SaveType::kEnv & type) {
-            canvas->SaveEnv();
-        }
-    }
-}
 
 void RSPaintFilterCanvas::SetHighContrast(bool enabled)
 {

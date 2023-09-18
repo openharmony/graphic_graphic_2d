@@ -1061,7 +1061,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     // for foreground filter, when do online opacity, rendering result already applied opacity,
     // so drawImage should not apply opacity again
     RSAutoCanvasRestore autoCanvasRestore(&canvas,
-        filterType == FilterType::FOREGROUND_FILTER ? RSAutoCanvasRestore::kAlpha : RSAutoCanvasRestore::kNone);
+        filterType == FilterType::FOREGROUND_FILTER ? RSPaintFilterCanvas::kAlpha : RSPaintFilterCanvas::kNone);
     if (filterType == FilterType::FOREGROUND_FILTER) {
         canvas.SetAlpha(1.0);
     }
