@@ -424,7 +424,7 @@ bool DoRegisterBufferAvailableListener(const uint8_t* data, size_t size)
 
     NodeId id = GetData<NodeId>();
     bool isFromRenderThread = GetData<bool>();
-    BufferAvailableCallback cb = [](){};
+    BufferAvailableCallback cb = []() {};
     rsClient->RegisterBufferAvailableListener(id, cb, isFromRenderThread);
     return true;
 }
