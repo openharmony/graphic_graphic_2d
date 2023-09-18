@@ -154,7 +154,7 @@ void RecordingCanvas::DrawShadow(const Path& path, const Point3& planeParams, co
 void RecordingCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
         FilterMode filterMode, const Brush* brush)
 {
-    auto imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, image);
+    auto imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, *image);
     BrushHandle brushHandle;
     bool hasBrush = false;
     if (brush != nullptr) {
@@ -184,7 +184,7 @@ void RecordingCanvas::DrawAnnotation(const Rect& rect, const char* key, const Da
 void RecordingCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
     FilterMode filterMode, const Brush* brush)
 {
-    auto imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, image);
+    auto imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, *image);
     BrushHandle brushHandle;
     bool hasBrush = false;
     if (brush != nullptr) {

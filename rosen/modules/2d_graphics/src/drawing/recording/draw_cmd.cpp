@@ -382,8 +382,8 @@ void DrawColorOpItem::Playback(Canvas& canvas) const
 }
 
 DrawImageNineOpItem::DrawImageNineOpItem(const ImageHandle& image, const RectI& center, const Rect& dst,
-    FilterMode filterMode, const BrushHandle& brushHandle, bool hasBrush) : DrawOpItem(IMAGE_NINE_OPITEM),
-    image_(std::move(image)), center_(center), dst_(dest), filter_(filter),
+    FilterMode filter, const BrushHandle& brushHandle, bool hasBrush) : DrawOpItem(IMAGE_NINE_OPITEM),
+    image_(std::move(image)), center_(center), dst_(dst), filter_(filter),
     brushHandle_(brushHandle), hasBrush_(hasBrush) {}
 
 void DrawImageNineOpItem::Playback(CanvasPlayer& player, const void* opItem)
@@ -447,12 +447,12 @@ void DrawAnnotationOpItem::Playback(CanvasPlayer& player, const void* opItem)
 
 void DrawAnnotationOpItem::Playback(Canvas& canvas) const
 {
-    canvas.DrawColor(rect_, ke_, data_);
+    canvas.DrawAnnotation(rect_, key_, data_);
 }
 
 DrawImageLatticeOpItem::DrawImageLatticeOpItem(const ImageHandle& image, const Lattice& lattice, const Rect& dst,
-    FilterMode filterMode, const BrushHandle& brushHandle, bool hasBrush) : DrawOpItem(IMAGE_LATTICE_OPITEM),
-    image_(std::move(image)), lattice_(lattice), dst_(dest), filter_(filter),
+    FilterMode filter, const BrushHandle& brushHandle, bool hasBrush) : DrawOpItem(IMAGE_LATTICE_OPITEM),
+    image_(std::move(image)), lattice_(lattice), dst_(dst), filter_(filter),
     brushHandle_(brushHandle), hasBrush_(hasBrush) {}
 
 void DrawImageLatticeOpItem::Playback(CanvasPlayer& player, const void* opItem)
@@ -499,7 +499,7 @@ void DrawImageLatticeOpItem::Playback(Canvas& canvas, const CmdList& cmdList) co
         brush->SetAntiAlias(brushHandle_.isAntiAlias);
         brush->SetFilter(filter);
     }
-    canvas.DrawImageNine(image.get(), lattice_, dst_, filter_, brush.get());
+    canvas.DrawImageLattice(image.get(), lattice_, dst_, filter_, brush.get());
 }
 
 DrawBitmapOpItem::DrawBitmapOpItem(const ImageHandle& bitmap, scalar px, scalar py)

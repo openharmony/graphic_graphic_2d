@@ -158,26 +158,26 @@ void RSPaintFilterCanvasBase::DrawBitmap(const Bitmap& bitmap, const scalar px, 
     }
 }
 
-void DrawImageNine(const Drawing::Image* image, const Drawing::RectI& center, const Drawing::Rect& dst,
-    Drawing::FilterMode filterMode, const Drawing::Brush* brush)
+void RSPaintFilterCanvasBase::DrawImageNine(const Drawing::Image* image, const Drawing::RectI& center,
+    const Drawing::Rect& dst, Drawing::FilterMode filter, const Drawing::Brush* brush)
 {
     if (canvas_ != nullptr && OnFilter()) {
-        canvas_->DrawImageNine(image, center, dst, filterMode, brush);
+        canvas_->DrawImageNine(image, center, dst, filter, brush);
     }
 }
 
-void DrawAnnotation(const Drawing::Rect& rect, const char* key, const Drawing::Data& data)
+void RSPaintFilterCanvasBase::DrawAnnotation(const Drawing::Rect& rect, const char* key, const Drawing::Data& data)
 {
     if (canvas_ != nullptr && OnFilter()) {
         canvas_->DrawAnnotation(rect, key, data);
     }
 }
 
-void DrawImageLattice(const Drawing::Image* image, const Drawing::Lattice& lattice, const Drawing::Rect& dst,
-    Drawing::FilterMode filterMode, const Drawing::Brush* brush)
+void RSPaintFilterCanvasBase::DrawImageLattice(const Drawing::Image* image, const Drawing::Lattice& lattice,
+    const Drawing::Rect& dst, Drawing::FilterMode filter, const Drawing::Brush* brush)
 {
     if (canvas_ != nullptr && OnFilter()) {
-        canvas_->DrawImageNine(image, lattice, dst, filterMode, brush);
+        canvas_->DrawImageLattice(image, lattice, dst, filter, brush);
     }
 }
 

@@ -201,10 +201,10 @@ public:
     virtual void DrawRegion(const Region& region);
 
     virtual void DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
-        FilterMode filterMode, const Brush* brush = nullptr);
+        FilterMode filter, const Brush* brush = nullptr);
     virtual void DrawAnnotation(const Rect& rect, const char* key, const Data& data);
     virtual void DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
-        FilterMode filterMode, const Brush* brush = nullptr);
+        FilterMode filter, const Brush* brush = nullptr);
 
     // image
     virtual void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py);

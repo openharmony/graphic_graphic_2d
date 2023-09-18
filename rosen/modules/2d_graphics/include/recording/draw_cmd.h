@@ -90,8 +90,8 @@ public:
         CIRCLE_OPITEM,
         COLOR_OPITEM,
         IMAGE_NINE_OPITEM,
-        IMAGE_ANNOTATION_OPITEM
-        IMAGE_LATTICE_OPITEM
+        IMAGE_ANNOTATION_OPITEM,
+        IMAGE_LATTICE_OPITEM,
         PATH_OPITEM,
         BACKGROUND_OPITEM,
         SHADOW_OPITEM,
@@ -329,7 +329,7 @@ public:
 private:
     Rect rect_;
     const char* key_;
-    const Data& data_;
+    const Data data_;
 };
 
 class DrawImageLatticeOpItem : public DrawOpItem {

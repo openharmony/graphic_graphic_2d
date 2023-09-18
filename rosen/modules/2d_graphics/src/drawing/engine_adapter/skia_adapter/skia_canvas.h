@@ -85,10 +85,10 @@ public:
     void DrawRegion(const Region& region) override;
 
     void DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
-        FilterMode filterMode, const Brush* brush = nullptr) override;
+        FilterMode filter, const Brush* brush = nullptr) override;
     void DrawAnnotation(const Rect& rect, const char* key, const Data& data) override;
     void DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
-        FilterMode filterMode, const Brush* brush = nullptr) override;
+        FilterMode filter, const Brush* brush = nullptr) override;
 
     // color
     void DrawColor(ColorQuad color, BlendMode mode) override;

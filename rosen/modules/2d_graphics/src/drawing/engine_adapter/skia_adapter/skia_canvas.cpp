@@ -370,7 +370,7 @@ void SkiaCanvas::DrawRegion(const Region& region)
 }
 
 void SkiaCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
-    FilterMode filterMode, const Brush* brush)
+    FilterMode filter, const Brush* brush)
 {
     auto skImageImpl = image->GetImpl<SkiaImage>();
     sk_sp<SkImage> img = nullptr;
@@ -405,7 +405,7 @@ void SkiaCanvas::DrawAnnotation(const Rect& rect, const char* key, const Data& d
 }
 
 void SkiaCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
-    FilterMode filterMode, const Brush* brush)
+    FilterMode filter, const Brush* brush)
 {
     auto skImageImpl = image->GetImpl<SkiaImage>();
     sk_sp<SkImage> img = nullptr;
@@ -418,13 +418,13 @@ void SkiaCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, co
     SkIRect skCenter = SkIRect::MakeLTRB(Lattice.fBounds.GetLeft(), Lattice.fBounds.GetTop(),
         Lattice.fBounds.GetRight(), Lattice.fBounds.GetBottom());
 
-    SkColor color = lattice,fColors.CastToColorQuad();
+    SkColor color = lattice.fColors.CastToColorQuad();
 
-    const int xdivs[] = {lattic.fXDivs[0], lattic.fXDivs[1]};
-    const int ydivs[] = {lattic.fYDivs[0], lattic.fYDivs[1]};
+    const int xdivs[] = {lattice.fXDivs[0], lattice.fXDivs[1]};
+    const int ydivs[] = {lattice.fYDivs[0], lattice.fYDivs[1]};
     skCanvas::Lattice skLattice = {xdivs, ydivs,
         &skRectType,
-        lattic.fXCount, lattic.fYCount,
+        lattice.fXCount, lattice.fYCount,
         &skCenter, &color};
     skRect skDst = SkRect::MakeLTRB(dst.GetLeft(), dst.GetTop(), dst.GetRight(), dst.GetBottom());
 
