@@ -42,7 +42,7 @@ enum class PointMode {
 
 struct Lattice {
     enum RectType : uint8_t {
-        kDefault = 0;
+        kDefault = 0,
         kTransparent,
         kFixedColor,
     };
