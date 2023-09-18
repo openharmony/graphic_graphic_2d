@@ -30,7 +30,7 @@
 #include "skia_image_filter.h"
 #include "skia_path.h"
 #include "skia_image_info.h"
-#include "skia_adapter/skia_data.h"
+#include "skia_data.h"
 
 #include "draw/core_canvas.h"
 #include "image/bitmap.h"
@@ -380,12 +380,12 @@ void SkiaCanvas::DrawImageNine(const Image* image, const RectI& center, const Re
 
     SkIRect skCenter = SkIRect::MakeLTRB(center.GetLeft(), center.GetTop(),
         center.GetRight(), center.GetBottom());
-    skRect skDst = SkRect::MakeLTRB(dst.GetLeft(), dst.GetTop(), dst.GetRight(), dst.GetBottom());
+    SkRect skDst = SkRect::MakeLTRB(dst.GetLeft(), dst.GetTop(), dst.GetRight(), dst.GetBottom());
 
     SkFilterMode skFilterMode = static_cast<SkFilterMode>(filter);
 
     std::unique_ptr<SkPaint> paint = nullptr;
-    if(brush != nullptr) {
+    if (brush != nullptr) {
         paint = std::make_unique<SkPaint>();
         skiaPaint_.BrushToSkPaint(*brush, *paint);
     }
@@ -394,14 +394,14 @@ void SkiaCanvas::DrawImageNine(const Image* image, const RectI& center, const Re
 
 void SkiaCanvas::DrawAnnotation(const Rect& rect, const char* key, const Data& data)
 {
-    skRect skRect = SkRect::MakeLTRB(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
+    SkRect skRect = SkRect::MakeLTRB(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
     auto dataImp = data.GetImpl<SkiaData>();
     if (dataImp == nullptr) {
-        LOGE("DrawAnnotation:dataImp is null");
+        LOGE("drawAnnotation:dataImp is null");
         return;
     }
     auto skData = dataImp->GetSkData();
-    skCanvas_->DrawAnnotation(skRect, key, skData);
+    skCanvas_->drawAnnotation(skRect, key, skData);
 }
 
 void SkiaCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
@@ -415,23 +415,23 @@ void SkiaCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, co
     const SkCanvas::Lattice::RectType skRectType =
         static_cast<const SkCanvas::Lattice::RectType>(lattice.fRectTypes);
 
-    SkIRect skCenter = SkIRect::MakeLTRB(Lattice.fBounds.GetLeft(), Lattice.fBounds.GetTop(),
-        Lattice.fBounds.GetRight(), Lattice.fBounds.GetBottom());
+    SkIRect skCenter = SkIRect::MakeLTRB(lattice.fBounds.GetLeft(), lattice.fBounds.GetTop(),
+        lattice.fBounds.GetRight(), lattice.fBounds.GetBottom());
 
     SkColor color = lattice.fColors.CastToColorQuad();
 
     const int xdivs[] = {lattice.fXDivs[0], lattice.fXDivs[1]};
     const int ydivs[] = {lattice.fYDivs[0], lattice.fYDivs[1]};
-    skCanvas::Lattice skLattice = {xdivs, ydivs,
+    SkCanvas::Lattice skLattice = {xdivs, ydivs,
         &skRectType,
         lattice.fXCount, lattice.fYCount,
         &skCenter, &color};
-    skRect skDst = SkRect::MakeLTRB(dst.GetLeft(), dst.GetTop(), dst.GetRight(), dst.GetBottom());
+    SkRect skDst = SkRect::MakeLTRB(dst.GetLeft(), dst.GetTop(), dst.GetRight(), dst.GetBottom());
 
     SkFilterMode skFilterMode = static_cast<SkFilterMode>(filter);
 
     std::unique_ptr<SkPaint> paint = nullptr;
-    if(brush != nullptr) {
+    if (brush != nullptr) {
         paint = std::make_unique<SkPaint>();
         skiaPaint_.BrushToSkPaint(*brush, *paint);
     }

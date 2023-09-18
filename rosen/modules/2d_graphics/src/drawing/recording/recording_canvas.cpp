@@ -152,7 +152,7 @@ void RecordingCanvas::DrawShadow(const Path& path, const Point3& planeParams, co
 }
 
 void RecordingCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
-        FilterMode filterMode, const Brush* brush)
+    FilterMode filterMode, const Brush* brush)
 {
     auto imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, *image);
     BrushHandle brushHandle;
