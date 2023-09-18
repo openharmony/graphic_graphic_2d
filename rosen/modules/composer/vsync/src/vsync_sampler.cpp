@@ -15,6 +15,7 @@
 
 #include "vsync_sampler.h"
 #include <cmath>
+#include <cstdint>
 #include "vsync_generator.h"
 #include "vsync_log.h"
 
@@ -29,6 +30,7 @@ constexpr double PI = 3.1415926;
 constexpr int64_t g_errorThreshold = 40000000000; // 200 usec squared
 constexpr int32_t INVAILD_TIMESTAMP = -1;
 constexpr uint32_t MINES_SAMPLE_NUMS = 3;
+constexpr uint32_t SAMPLES_INTERVAL_DIFF_NUMS = 2;
 }
 sptr<OHOS::Rosen::VSyncSampler> VSyncSampler::GetInstance() noexcept
 {
@@ -121,6 +123,15 @@ bool VSyncSampler::AddSample(int64_t timeStamp)
     uint32_t index = (firstSampleIndex_ + numSamples_ - 1) % MAX_SAMPLES;
     samples_[index] = timeStamp;
 
+    // when the number of samples is greater than or equal to 2,
+    // we compute the period by the latest two samples.
+    if ((numSamples_ < MIN_SAMPLES_FOR_UPDATE) && (numSamples_ >= 2)) {
+        int64_t sampleLatest = samples_[(firstSampleIndex_ + numSamples_ - 1) % MAX_SAMPLES];
+        int64_t samplePrevious = samples_[(firstSampleIndex_ + numSamples_ - 2) % MAX_SAMPLES]; // last 2 samples
+        int64_t curHardwarePeriod = sampleLatest - samplePrevious;
+        CreateVSyncGenerator()->UpdateMode(curHardwarePeriod, phase_, samplePrevious);
+    }
+
     UpdateModeLocked();
 
     if (numResyncSamplesSincePresent_++ > MAX_SAMPLES_WITHOUT_PRESENT) {
@@ -146,14 +157,32 @@ void VSyncSampler::UpdateModeLocked()
         int64_t sum = 0;
         int64_t min = INT64_MAX;
         int64_t max = 0;
+        int64_t diffPrev = 0;
+        int64_t diff = 0;
+        int64_t variance = 0;
         for (uint32_t i = 1; i < numSamples_; i++) {
             int64_t prevSample = samples_[(firstSampleIndex_ + i - 1 + MAX_SAMPLES) % MAX_SAMPLES];
             int64_t currentSample = samples_[(firstSampleIndex_ + i) % MAX_SAMPLES];
-            int64_t diff = currentSample - prevSample;
+            diffPrev = diff;
+            diff = currentSample - prevSample;
+            if (diffPrev != 0) {
+                int64_t delta = diff - diffPrev;
+                variance += delta * delta;
+            }
             min = min < diff ? min : diff;
             max = max > diff ? max : diff;
             sum += diff;
         }
+
+        variance /= (int64_t)(numSamples_ - SAMPLES_INTERVAL_DIFF_NUMS);
+        if (variance > g_errorThreshold / 2) { // 1/2 is a empirical value
+            // Keep only the latest 5 samples, and sample the next timestamp.
+            firstSampleIndex_ = (firstSampleIndex_ + numSamples_ - MIN_SAMPLES_FOR_UPDATE + 1) % MAX_SAMPLES;
+            numSamples_ = MIN_SAMPLES_FOR_UPDATE - 1;
+            referenceTime_ = samples_[firstSampleIndex_];
+            return;
+        }
+
         sum -= min;
         sum -= max;
 
