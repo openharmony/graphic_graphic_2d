@@ -210,7 +210,7 @@ void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, pid_t pid)
 void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, pid_t pid)
 {
 #ifdef RS_ENABLE_GL
-    GPUResourceTag tag(pid, 0, 0, 0);
+    Drawing::GPUResourceTag tag(pid, 0, 0, 0);
     ReleaseUnlockGpuResource(grContext, tag); // clear gpu resource by pid
 #endif
 }
