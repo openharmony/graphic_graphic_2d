@@ -173,7 +173,7 @@ private:
     bool isCached_ { false };
     int32_t syncTransactionCount_ { 0 };
     uint64_t syncId_ { 0 };
-    std::mutex commandMutex_;
+    mutable std::mutex commandMutex_;
 
     friend class RSTransactionProxy;
     friend class RSMessageProcessor;

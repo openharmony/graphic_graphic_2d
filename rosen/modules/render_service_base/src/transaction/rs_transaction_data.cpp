@@ -49,6 +49,7 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
     parcel.SetMaxCapacity(PARCEL_MAX_CPACITY);
     // to correct actual marshaled command size later, record its position in parcel
     size_t recordPosition = parcel.GetWritePosition();
+    std::unique_lock<std::mutex> lock(commandMutex_);
     success = success && parcel.WriteInt32(static_cast<int32_t>(payload_.size()));
     size_t marshaledSize = 0;
     static bool isUniRender = RSSystemProperties::GetUniRenderEnabled();
@@ -100,6 +101,7 @@ void RSTransactionData::Process(RSContext& context)
 
 void RSTransactionData::Clear()
 {
+    std::unique_lock<std::mutex> lock(commandMutex_);
     payload_.clear();
     timestamp_ = 0;
 }
@@ -143,7 +145,7 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
         ROSEN_LOGE("RSTransactionData::UnmarshallingCommand cannot read isUniRender");
         return false;
     }
-
+    std::unique_lock<std::mutex> payloadLock(commandMutex_, std::defer_lock);
     for (size_t i = 0; i < len; i++) {
         if (!isUniRender) {
             if (!parcel.ReadUint64(nodeId)) {
@@ -169,7 +171,9 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
                 commandSubType);
             return false;
         }
+        payloadLock.lock();
         payload_.emplace_back(nodeId, static_cast<FollowType>(followType), std::move(command));
+        payloadLock.unlock();
     }
     int32_t pid;
     return parcel.ReadBool(needSync_) && parcel.ReadBool(needCloseSync_) && parcel.ReadInt32(syncTransactionCount_) &&
