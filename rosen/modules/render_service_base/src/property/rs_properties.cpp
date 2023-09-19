@@ -1123,6 +1123,11 @@ bool RSProperties::GetShadowMask() const
     return shadow_ ? shadow_->GetMask() : false;
 }
 
+const std::optional<RSShadow>& RSProperties::GetShadow() const
+{
+    return shadow_;
+}
+
 bool RSProperties::IsShadowValid() const
 {
     return shadow_ && shadow_->IsValid();

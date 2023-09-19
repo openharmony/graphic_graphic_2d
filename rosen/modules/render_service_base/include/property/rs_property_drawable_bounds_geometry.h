@@ -100,6 +100,118 @@ private:
     SkRRect innerRrect_;
     SkRRect rrect_;
 };
+
+// ============================================================================
+// Mask
+class RSMaskDrawable : public RSPropertyDrawable {
+public:
+    explicit RSMaskDrawable(std::shared_ptr<RSMask> mask, RectF bounds);
+    ~RSMaskDrawable() override = default;
+    static std::unique_ptr<RSPropertyDrawable> Generate(const RSProperties& properties);
+
+protected:
+    SkRect maskBounds_;
+    std::shared_ptr<RSMask> mask_;
+    SkPaint maskfilter_;
+    SkPaint maskPaint_;
+};
+
+class RSSvgDomMaskDrawable : public RSMaskDrawable {
+public:
+    explicit RSSvgDomMaskDrawable(std::shared_ptr<RSMask> mask, RectF bounds);
+    ~RSSvgDomMaskDrawable() override = default;
+    void Draw(RSModifierContext& context) override;
+};
+
+class RSSvgPictureMaskDrawable : public RSMaskDrawable {
+public:
+    explicit RSSvgPictureMaskDrawable(std::shared_ptr<RSMask> mask, RectF bounds);
+    ~RSSvgPictureMaskDrawable() override = default;
+    void Draw(RSModifierContext& context) override;
+};
+
+class RSGradientMaskDrawable : public RSMaskDrawable {
+public:
+    explicit RSGradientMaskDrawable(std::shared_ptr<RSMask> mask, RectF bounds);
+    ~RSGradientMaskDrawable() override = default;
+    void Draw(RSModifierContext& context) override;
+};
+
+class RSPathMaskDrawable : public RSMaskDrawable {
+public:
+    explicit RSPathMaskDrawable(std::shared_ptr<RSMask> mask, RectF bounds);
+    ~RSPathMaskDrawable() override = default;
+    void Draw(RSModifierContext& context) override;
+};
+
+// ============================================================================
+// Shadow
+class RSShadowBaseDrawable : public RSPropertyDrawable {
+public:
+    explicit RSShadowBaseDrawable(SkPath skPath, const RSProperties& properties);
+    ~RSShadowBaseDrawable() override = default;
+    static std::unique_ptr<RSPropertyDrawable> Generate(const RSProperties& properties);
+
+protected:
+    SkPath skPath_;
+    float offsetX_;
+    float offsetY_;
+    Color color_;
+};
+
+class RSShadowDrawable : public RSShadowBaseDrawable {
+public:
+    explicit RSShadowDrawable(SkPath skPath, const RSProperties& properties);
+    ~RSShadowDrawable() override = default;
+    void Draw(RSModifierContext& context) override;
+protected:
+    float radius_;
+};
+
+class RSColorfulShadowDrawable : public RSShadowBaseDrawable {
+public:
+    explicit RSColorfulShadowDrawable(SkPath skPath, const RSProperties& properties);
+    ~RSColorfulShadowDrawable() override = default;
+    void Draw(RSModifierContext& context) override;
+protected:
+    SkPaint blurPaint_;
+    std::weak_ptr<RSRenderNode> node_;
+};
+
+class RSHardwareAccelerationShadowDrawable : public RSShadowBaseDrawable {
+public:
+    explicit RSHardwareAccelerationShadowDrawable(SkPath skPath, const RSProperties& properties);
+    ~RSHardwareAccelerationShadowDrawable() override = default;
+    void Draw(RSModifierContext& context) override;
+
+protected:
+    float shadowElevation_;
+};
+
+// ============================================================================
+// DynamicLightUp
+class RSDynamicLightUpDrawable : public RSPropertyDrawable {
+public:
+    explicit RSDynamicLightUpDrawable(float rate, float degree);
+    ~RSDynamicLightUpDrawable() override = default;
+    static std::unique_ptr<RSPropertyDrawable> Generate(const RSProperties& properties);
+    void Draw(RSModifierContext& context) override;
+
+protected:
+    float rate_;
+    float degree_;
+};
+
+// ============================================================================
+// BackgroundEffect
+class RSBackgroundEffectDrawable : public RSPropertyDrawable {
+public:
+    explicit RSBackgroundEffectDrawable() = default;
+    ~RSBackgroundEffectDrawable() override = default;
+    static std::unique_ptr<RSPropertyDrawable> Generate(const RSProperties& properties);
+    void Draw(RSModifierContext& context) override;
+};
+
 // ============================================================================
 }; // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_BOUNDS_GEOMETRY_H

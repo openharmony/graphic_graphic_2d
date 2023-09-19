@@ -84,6 +84,7 @@ private:
     RSPaintFilterCanvas::SaveStatus canvasNodeSaveCount_;
     mutable std::mutex canvasNodeProcessMutex_;
 
+    friend class RSColorfulShadowDrawable;
     friend class RSRenderTransition;
     friend class RSPropertiesPainter;
 };

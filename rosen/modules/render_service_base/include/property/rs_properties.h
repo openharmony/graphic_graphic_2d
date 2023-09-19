@@ -211,6 +211,7 @@ public:
     const std::optional<float>& GetDynamicLightUpDegree() const;
     std::shared_ptr<RSPath> GetShadowPath() const;
     bool GetShadowMask() const;
+    const std::optional<RSShadow>& GetShadow() const;
     bool IsShadowValid() const;
 
     void SetFrameGravity(Gravity gravity);
@@ -405,6 +406,7 @@ private:
 
     friend class RSCanvasDrawingRenderNode;
     friend class RSCanvasRenderNode;
+    friend class RSColorfulShadowDrawable;
     friend class RSPropertiesPainter;
     friend class RSRenderNode;
 };
