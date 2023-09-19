@@ -83,6 +83,10 @@ public:
     void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag) override;
     void DrawRegion(const Region& region) override;
+    void DrawPatch(const Point cubics[12], const ColorQuad colors[4],
+        const Point texCoords[4], BlendMode mode) override;
+    void DrawEdgeAAQuad(const Rect& rect, const Point clip[4],
+        QuadAAFlags aaFlags, ColorQuad color, BlendMode mode) override;
 
     void DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
         FilterMode filter, const Brush* brush = nullptr) override;

@@ -40,6 +40,15 @@ enum class PointMode {
     POLYGON_POINTMODE, // draw the array of points as a open polygon
 };
 
+enum class QuadAAFlags {
+    LEFT_QUADAAFLAG = 1,
+    TOP_QUADAAFLAG = 2,
+    RIGHT_QUADAAFLAG = 4,
+    BOTTOM_QUADAAFLAG = 8,
+    NONE_QUADAAFLAGS = 0,
+    ALL_QUADAAFLAGS = 15,
+};
+
 const int DIVES_SIZE = 2;
 struct Lattice {
     enum RectType : uint8_t {
@@ -200,6 +209,11 @@ public:
      * @param region  Region to draw.
      */
     virtual void DrawRegion(const Region& region);
+
+    virtual void DrawPatch(const Point cubics[12], const ColorQuad colors[4],
+        const Point texCoords[4], BlendMode mode);
+    virtual void DrawEdgeAAQuad(const Rect& rect, const Point clip[4],
+        QuadAAFlags aaFlags, ColorQuad color, BlendMode mode);
 
     virtual void DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
         FilterMode filter, const Brush* brush = nullptr);

@@ -64,6 +64,10 @@ public:
         Drawing::Color ambientColor, Drawing::Color spotColor, Drawing::ShadowFlags flag) override;
     void DrawColor(Drawing::ColorQuad color, Drawing::BlendMode mode = Drawing::BlendMode::SRC_OVER) override;
     void DrawRegion(const Drawing::Region& region) override;
+    void DrawPatch(const Drawing::Point cubics[12], const Drawing::ColorQuad colors[4],
+        const Drawing::Point texCoords[4], Drawing::BlendMode mode) override;
+    void DrawEdgeAAQuad(const Drawing::Rect& rect, const Drawing::Point clip[4],
+        Drawing::QuadAAFlags aaFlags, Drawing::ColorQuad color, Drawing::BlendMode mode) override;
 
     void DrawImageNine(const Drawing::Image* image, const Drawing::RectI& center, const Drawing::Rect& dst,
         Drawing::FilterMode filter, const Drawing::Brush* brush = nullptr) override;
