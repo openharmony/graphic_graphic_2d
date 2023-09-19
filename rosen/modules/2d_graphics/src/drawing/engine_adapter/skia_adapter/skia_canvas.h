@@ -103,6 +103,8 @@ public:
     void ClipRoundRect(const RoundRect& roundRect, ClipOp op, bool doAntiAlias) override;
     void ClipPath(const Path& path, ClipOp op, bool doAntiAlias) override;
     void ClipRegion(const Region& region, ClipOp op = ClipOp::INTERSECT) override;
+    bool IsClipEmpty() override;
+    bool QuickReject(const Rect& rect) override;
 
     // transform
     void SetMatrix(const Matrix& matrix) override;

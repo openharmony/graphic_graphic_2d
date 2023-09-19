@@ -200,6 +200,16 @@ void CoreCanvas::ClipRegion(const Region& region, ClipOp op)
     impl_->ClipRegion(region, op);
 }
 
+bool CoreCanvas::IsClipEmpty()
+{
+    return impl_->IsClipEmpty();
+}
+
+bool CoreCanvas::QuickReject(const Rect& rect)
+{
+    return impl_->QuickReject(rect);
+}
+
 void CoreCanvas::SetMatrix(const Matrix& matrix)
 {
     impl_->SetMatrix(matrix);

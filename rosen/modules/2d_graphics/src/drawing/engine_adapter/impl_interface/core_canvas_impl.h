@@ -115,6 +115,8 @@ public:
     virtual void ClipRoundRect(const RoundRect& roundRect, ClipOp op, bool doAntiAlias = false) = 0;
     virtual void ClipPath(const Path& path, ClipOp op, bool doAntiAlias = false) = 0;
     virtual void ClipRegion(const Region& region, ClipOp op = ClipOp::INTERSECT) = 0;
+    virtual bool IsClipEmpty() = 0;
+    virtual bool QuickReject(const Rect& rect) = 0;
 
     // transform
     virtual void SetMatrix(const Matrix& matrix) = 0;
