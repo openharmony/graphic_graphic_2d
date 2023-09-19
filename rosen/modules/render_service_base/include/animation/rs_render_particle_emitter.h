@@ -25,6 +25,7 @@ namespace Rosen {
 class RSRenderParticleEmitter {
 public:
     RSRenderParticleEmitter(std::shared_ptr<ParticleRenderParams> particleParams);
+    void PreEmit();
     void EmitParticle(int64_t deltaTime);
     std::vector<std::shared_ptr<RSRenderParticle>> GetParticles();
     bool IsEmitterFinish();

@@ -103,7 +103,7 @@ public:
     ShapeType emitShape_;
     Vector2f position_;
     Vector2f emitSize_;
-    int particleCount_;
+    int32_t particleCount_;
     int64_t lifeTime_;
     ParticleType type_;
     float radius_;
@@ -115,7 +115,7 @@ public:
           type_(ParticleType::POINTS), radius_(), image_(), imageSize_()
     {}
     EmitterConfig(const int& emitRate, const ShapeType& emitShape, const Vector2f& position, const Vector2f& emitSize,
-        const int& particleCount, const int64_t& lifeTime, const ParticleType& type, const float& radius,
+        const int32_t& particleCount, const int64_t& lifeTime, const ParticleType& type, const float& radius,
         const std::shared_ptr<RSImage>& image, Vector2f imageSize)
     {
         emitRate_ = emitRate;
@@ -131,7 +131,8 @@ public:
         if (image_ != nullptr) {
             auto pixelMap = image_->GetPixelMap();
             if (pixelMap != nullptr) {
-                image_->SetDstRect(RectF(position_.x_, position_.y_, pixelMap->GetWidth(), pixelMap->GetHeight()));
+                image_->SetDstRect(RectF(position_.x_, position_.y_, static_cast<float>(pixelMap->GetWidth()),
+                    static_cast<float>(pixelMap->GetHeight())));
             }
         }
     }
@@ -237,7 +238,7 @@ public:
     ShapeType GetEmitShape() const;
     Vector2f GetEmitPosition() const;
     Vector2f GetEmitSize() const;
-    uint32_t GetParticleCount() const;
+    int32_t GetParticleCount() const;
     int64_t GetParticleLifeTime() const;
     ParticleType GetParticleType() const;
     float GetParticleRadius() const;
@@ -318,6 +319,12 @@ public:
     void SetImageSize(const Vector2f& imageSize);
     void SetParticleType(const ParticleType& particleType);
     void SetActiveTime(const int64_t& activeTime);
+    void SetAccelerationValue(float accelerationValue);
+    void SetAccelerationAngle(float accelerationAngle);
+    void SetRedF(float redF);
+    void SetGreenF(float greenF);
+    void SetBlueF(float blueF);
+    void SetAlphaF(float alphaF);
 
     // Get methods
     Vector2f GetPosition();
@@ -328,6 +335,21 @@ public:
     Color GetColor();
     float GetScale();
     float GetRadius();
+    float GetAccelerationValue();
+    float GetAccelerationAngle();
+    float GetRedSpeed();
+    float GetGreenSpeed();
+    float GetBlueSpeed();
+    float GetAlphaSpeed();
+    float GetOpacitySpeed();
+    float GetScaleSpeed();
+    float GetSpinSpeed();
+    float GetAccelerationValueSpeed();
+    float GetAccelerationAngleSpeed();
+    float GetRedF();
+    float GetGreenF();
+    float GetBlueF();
+    float GetAlphaF();
     std::shared_ptr<RSImage> GetImage();
     Vector2f GetImageSize();
     ParticleType GetParticleType();
@@ -367,6 +389,21 @@ private:
     int64_t activeTime_ = 0;
     int64_t lifeTime_ = 0;
     bool dead_ = false;
+    float accelerationValue_ = 0.f;
+    float accelerationAngle_ = 0.f;
+    float redSpeed_ = 0.f;
+    float greenSpeed_ = 0.f;
+    float blueSpeed_ = 0.f;
+    float alphaSpeed_ = 0.f;
+    float opacitySpeed_ = 0.f;
+    float scaleSpeed_ = 0.f;
+    float spinSpeed_ = 0.f;
+    float accelerationValueSpeed_ = 0.f;
+    float accelerationAngleSpeed_ = 0.f;
+    float redF_ = 0.f;
+    float greenF_ = 0.f;
+    float blueF_ = 0.f;
+    float alphaF_ = 0.f;
 };
 
 class RSB_EXPORT RSRenderParticleVector {

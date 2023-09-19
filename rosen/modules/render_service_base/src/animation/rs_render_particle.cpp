@@ -41,7 +41,7 @@ Vector2f ParticleRenderParams::GetEmitSize() const
 {
     return emitterConfig_.emitSize_;
 }
-uint32_t ParticleRenderParams::GetParticleCount() const
+int32_t ParticleRenderParams::GetParticleCount() const
 {
     return emitterConfig_.particleCount_;
 }
@@ -328,6 +328,36 @@ void RSRenderParticle::SetActiveTime(const int64_t& activeTime)
     activeTime_ = activeTime;
 }
 
+void RSRenderParticle::SetAccelerationValue(float accelerationValue)
+{
+    accelerationValue_ = accelerationValue;
+}
+
+void RSRenderParticle::SetAccelerationAngle(float accelerationAngle)
+{
+    accelerationAngle_ = accelerationAngle;
+}
+
+void RSRenderParticle::SetRedF(float redF)
+{
+    redF_ = redF;
+}
+
+void RSRenderParticle::SetGreenF(float greenF)
+{
+    greenF_ = greenF;
+}
+
+void RSRenderParticle::SetBlueF(float blueF)
+{
+    blueF_ = blueF;
+}
+
+void RSRenderParticle::SetAlphaF(float alphaF)
+{
+    alphaF_ = alphaF;
+}
+
 // Get methods
 Vector2f RSRenderParticle::GetPosition()
 {
@@ -367,6 +397,81 @@ float RSRenderParticle::GetScale()
 float RSRenderParticle::GetRadius()
 {
     return radius_;
+}
+
+float RSRenderParticle::GetAccelerationValue()
+{
+    return accelerationValue_;
+}
+
+float RSRenderParticle::GetAccelerationAngle()
+{
+    return accelerationAngle_;
+}
+
+float RSRenderParticle::GetRedSpeed()
+{
+    return redSpeed_;
+}
+
+float RSRenderParticle::GetGreenSpeed()
+{
+    return greenSpeed_;
+}
+
+float RSRenderParticle::GetBlueSpeed()
+{
+    return blueSpeed_;
+}
+
+float RSRenderParticle::GetAlphaSpeed()
+{
+    return alphaSpeed_;
+}
+
+float RSRenderParticle::GetOpacitySpeed()
+{
+    return opacitySpeed_;
+}
+
+float RSRenderParticle::GetScaleSpeed()
+{
+    return scaleSpeed_;
+}
+
+float RSRenderParticle::GetSpinSpeed()
+{
+    return spinSpeed_;
+}
+
+float RSRenderParticle::GetAccelerationValueSpeed()
+{
+    return accelerationValueSpeed_;
+}
+
+float RSRenderParticle::GetAccelerationAngleSpeed()
+{
+    return accelerationAngleSpeed_;
+}
+
+float RSRenderParticle::GetRedF()
+{
+    return redF_;
+}
+
+float RSRenderParticle::GetGreenF()
+{
+    return greenF_;
+}
+
+float RSRenderParticle::GetBlueF()
+{
+    return blueF_;
+}
+
+float RSRenderParticle::GetAlphaF()
+{
+    return alphaF_;
 }
 
 std::shared_ptr<RSImage> RSRenderParticle::GetImage()
@@ -410,22 +515,32 @@ void RSRenderParticle::InitProperty(std::shared_ptr<ParticleRenderParams> partic
     velocityAngle *= DEGREE_TO_RADIAN;
     velocity_ = Vector2f { velocityValue * std::cos(velocityAngle), velocityValue * std::sin(velocityAngle) };
 
-    float accelerationValue =
+    accelerationValue_ =
         GetRandomValue(particleParams->GetAccelerationStartValue(), particleParams->GetAccelerationEndValue());
-    float accelerationAngle =
+    accelerationAngle_ =
         GetRandomValue(particleParams->GetAccelerationStartAngle(), particleParams->GetAccelerationEndAngle());
-    accelerationAngle *= DEGREE_TO_RADIAN;
-    acceleration_ =
-        Vector2f { accelerationValue * std::cos(accelerationAngle), accelerationValue * std::sin(accelerationAngle) };
+    acceleration_ = Vector2f { accelerationValue_ * std::cos(accelerationAngle_ * DEGREE_TO_RADIAN),
+        accelerationValue_ * std::sin(accelerationAngle_ * DEGREE_TO_RADIAN) };
 
     spin_ = GetRandomValue(particleParams->GetSpinStartValue(), particleParams->GetSpinEndValue());
     opacity_ = GetRandomValue(particleParams->GetOpacityStartValue(), particleParams->GetOpacityEndValue());
     scale_ = GetRandomValue(particleParams->GetScaleStartValue(), particleParams->GetScaleEndValue());
+    opacitySpeed_ = GetRandomValue(particleParams->GetOpacityRandomStart(), particleParams->GetOpacityRandomEnd());
+    scaleSpeed_ = GetRandomValue(particleParams->GetScaleRandomStart(), particleParams->GetScaleRandomEnd());
+    spinSpeed_ = GetRandomValue(particleParams->GetSpinRandomStart(), particleParams->GetSpinRandomEnd());
+    accelerationValueSpeed_ =
+        GetRandomValue(particleParams->GetAccelRandomValueStart(), particleParams->GetAccelRandomValueEnd());
+    accelerationAngleSpeed_ =
+        GetRandomValue(particleParams->GetAccelRandomAngleStart(), particleParams->GetAccelRandomAngleEnd());
 
     particleType_ = particleParams->GetParticleType();
     if (particleType_ == ParticleType::POINTS) {
         float colorRandomValue = GetRandomValue(0.0f, 1.0f);
         color_ = Lerp(particleParams->GetColorStartValue(), particleParams->GetColorEndValue(), colorRandomValue);
+        redSpeed_ = GetRandomValue(particleParams->GetRedRandomStart(), particleParams->GetRedRandomEnd());
+        greenSpeed_ = GetRandomValue(particleParams->GetGreenRandomStart(), particleParams->GetGreenRandomEnd());
+        blueSpeed_ = GetRandomValue(particleParams->GetBlueRandomStart(), particleParams->GetBlueRandomEnd());
+        alphaSpeed_ = GetRandomValue(particleParams->GetAlphaRandomStart(), particleParams->GetAlphaRandomEnd());
         radius_ = particleParams->GetParticleRadius();
     } else if (particleType_ == ParticleType::IMAGES) {
         image_ = particleParams->GetParticleImage();
@@ -461,6 +576,9 @@ float RSRenderParticle::GetRandomValue(float min, float max)
 {
     if (ROSEN_EQ(min, max)) {
         return min;
+    }
+    if (min > max) {
+        std::swap(min, max);
     }
     std::random_device rd;
     std::mt19937_64 gen(rd());

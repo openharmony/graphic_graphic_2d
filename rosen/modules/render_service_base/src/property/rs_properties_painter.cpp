@@ -2236,12 +2236,12 @@ void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFi
         return;
     }
     auto particles = particleVector.GetParticleVector();
-    auto bounds = properties.GetBoundsRect();
+    auto bounds = properties.GetDrawRegion();
     for (size_t i = 0; i < particles.size(); i++) {
         if (particles[i] != nullptr && particles[i]->IsAlive()) {
             // Get particle properties
             auto position = particles[i]->GetPosition();
-            if (!(bounds.Intersect(position.x_, position.y_))) {
+            if (!(bounds->Intersect(position.x_, position.y_))) {
                 continue;
             }
             float opacity = particles[i]->GetOpacity();
@@ -2254,13 +2254,14 @@ void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFi
             SkPaint paint;
             paint.setAntiAlias(true);
             paint.setAlphaf(opacity);
-            auto clipBounds = RSPropertiesPainter::Rect2SkRect(bounds);
+            auto clipBounds = SkRect::MakeXYWH(bounds->left_, bounds->top_, bounds->width_, bounds->height_);
             canvas.clipRect(clipBounds, true);
 #else
             Drawing::Brush brush;
             brush.SetAntiAlias(true);
             brush.SetAlphaF(opacity);
-            auto clipBounds = Rect2DrawingRect(bounds);
+            auto clipBounds = Drawing::Rect(
+                bounds->left_, bounds->top_, bounds->left_ + bounds->width_, bounds->top_ + bounds->height_);
             canvas.ClipRect(clipBounds, Drawing::ClipOp::INTERSECT, true);
 #endif
 

@@ -730,6 +730,7 @@ void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams, cons
     for (size_t i = 0; i < particleParams.size(); i++) {
         particlesRenderParams.push_back(particleParams[i].SetParamsToRenderParticle());
     }
+    SetParticleDrawRegion(particleParams);
     auto property = std::make_shared<RSPropertyBase>();
     auto propertyId = property->GetId();
     auto uiAnimation = std::make_shared<RSAnimationGroup>();
@@ -750,6 +751,46 @@ void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams, cons
                 std::make_unique<RSAnimationCreateParticle>(GetId(), animation);
             transactionProxy->AddCommand(cmdForRemote, true, GetFollowType(), GetId());
         }
+    }
+}
+
+void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
+{
+    Vector4f bounds = GetStagingProperties().GetBounds();
+    float left = bounds.x_;
+    float top = bounds.y_;
+    float right = bounds.z_;
+    float bottom = bounds.w_;
+    for (size_t i = 0; i < particleParams.size(); i++) {
+        auto particleType = particleParams[i].emitterConfig_.type_;
+        auto position = particleParams[i].emitterConfig_.position_;
+        auto emitSize = particleParams[i].emitterConfig_.emitSize_;
+        float scaleMax = particleParams[i].scale_.val_.end_;
+        if (particleType == ParticleType::POINTS) {
+            auto radius = particleParams[i].emitterConfig_.radius_;
+            left = std::min(left, position.x_ - radius * scaleMax);
+            top = std::min(top, position.y_ - radius * scaleMax);
+            right = std::max(right, position.x_ + emitSize.x_ + radius * scaleMax);
+            bottom = std::max(bottom, position.y_ + emitSize.x_ + radius * scaleMax);
+        } else {
+            float imageSizeWidth = 0.f;
+            float imageSizeHeight = 0.f;
+            auto image = particleParams[i].emitterConfig_.image_;
+            auto imageSize = particleParams[i].emitterConfig_.imageSize_;
+            if (image != nullptr) {
+                auto pixelMap = image->GetPixelMap();
+                if (pixelMap != nullptr) {
+                    imageSizeWidth = std::max(imageSize.x_, static_cast<float>(pixelMap->GetWidth()));
+                    imageSizeHeight = std::max(imageSize.y_, static_cast<float>(pixelMap->GetHeight()));
+                }
+            }
+            left = position.x_ - imageSizeWidth * scaleMax;
+            top = position.y_ - imageSizeHeight * scaleMax;
+            right = position.x_ + emitSize.x_ + imageSizeWidth * scaleMax;
+            bottom = position.y_ + emitSize.x_ + imageSizeHeight * scaleMax;
+        }
+        std::shared_ptr<RectF> overlayRect = std::make_shared<RectF>(left, top, right, bottom);
+        SetDrawRegion(overlayRect);
     }
 }
 
