@@ -41,6 +41,7 @@ public:
     static void DumpDrawingGpuMemory(DfxString& log, const GrDirectContext* grContext);
     // Count memory for hidumper
     static MemoryGraphic CountPidMemory(int pid, const GrDirectContext* grContext);
+    static MemoryGraphic CountSubMemory(int pid, const GrDirectContext* grContext);
     static void CountMemory(std::vector<pid_t> pids, const GrDirectContext* grContext,
         std::vector<MemoryGraphic>& mems);
     static void ReleaseUnlockGpuResource(GrDirectContext* grContext, NodeId surfaceNodeId);
@@ -54,6 +55,7 @@ public:
 #else
     static void DumpMemoryUsage(DfxString& log, const GrContext* grContext, std::string& type);
     static void DumpPidMemory(DfxString& log, int pid, const GrContext* grContext);
+    static MemoryGraphic CountSubMemory(int pid, const GrContext* grContext);
     static void DumpDrawingGpuMemory(DfxString& log, const GrContext* grContext);
     // Count memory for hidumper
     static MemoryGraphic CountPidMemory(int pid, const GrContext* grContext);
@@ -70,6 +72,7 @@ public:
 #else
     static void DumpMemoryUsage(DfxString& log, const Drawing::GPUContext* gpuContext, std::string& type);
     static void DumpPidMemory(DfxString& log, int pid, const Drawing::GPUContext* gpuContext);
+    static MemoryGraphic CountSubMemory(int pid, const Drawing::GPUContext* gpuContext);
     static void DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUContext* grContext);
     // Count memory for hidumper
     static MemoryGraphic CountPidMemory(int pid, const Drawing::GPUContext* gpuContext);

@@ -106,6 +106,7 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/modules/composer/vsync/include",
     "$graphic_2d_root/rosen/modules/render_frame_trace/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/utils",
     "//commonlibrary/c_utils/base/include",

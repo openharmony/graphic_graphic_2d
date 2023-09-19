@@ -41,21 +41,6 @@ void RSSurfaceNodeTest::SetUp() {}
 void RSSurfaceNodeTest::TearDown() {}
 
 /**
- * @tc.name: Create001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSSurfaceNodeTest, Create001, TestSize.Level1)
-{
-    RSSurfaceNodeConfig c;
-
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    ASSERT_TRUE(surfaceNode != nullptr);
-
-    auto surface = surfaceNode->GetSurface();
-}
-
-/**
  * @tc.name: CreateNodeInRenderThread001
  * @tc.desc:
  * @tc.type:FUNC

@@ -256,4 +256,22 @@ void RSSubThreadManager::AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& s
     }
     threadList_[threadIndex]->AddToReleaseQueue(std::move(surface));
 }
+
+std::vector<MemoryGraphic> RSSubThreadManager::CountSubMem(int pid)
+{
+    std::vector<MemoryGraphic> memsContainer;
+    if (threadList_.empty()) {
+        return memsContainer;
+    }
+
+    for (auto& subThread : threadList_) {
+        if (!subThread) {
+            MemoryGraphic memoryGraphic;
+            memsContainer.push_back(memoryGraphic);
+            continue;
+        }
+        memsContainer.push_back(subThread->CountSubMem(pid));
+    }
+    return memsContainer;
+}
 }

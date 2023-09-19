@@ -48,6 +48,7 @@ public:
 #endif
     void ResetGrContext();
     void DumpMem(DfxString& log);
+    MemoryGraphic CountSubMem(int pid);
     float GetAppGpuMemoryInMB();
 private:
     void CreateShareEglContext();

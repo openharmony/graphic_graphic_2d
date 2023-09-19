@@ -38,6 +38,7 @@
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
+#include "pipeline/parallel_render/rs_sub_thread_manager.h"
 
 namespace OHOS::Rosen {
 namespace {
@@ -282,6 +283,34 @@ void MemoryManager::DumpPidMemory(DfxString& log, int pid, const Drawing::GPUCon
     log.AppendFormat("GPU Mem(MB):%f\n", mem.GetGpuMemorySize() / (MEMUNIT_RATE * MEMUNIT_RATE));
     log.AppendFormat("CPU Mem(KB):%f\n", mem.GetCpuMemorySize() / MEMUNIT_RATE);
     log.AppendFormat("Total Mem(MB):%f\n", mem.GetTotalMemorySize() / (MEMUNIT_RATE * MEMUNIT_RATE));
+}
+#endif
+
+#ifndef USE_ROSEN_DRAWING
+#ifdef NEW_SKIA
+MemoryGraphic MemoryManager::CountSubMemory(int pid, const GrDirectContext* grContext)
+#else
+MemoryGraphic MemoryManager::CountSubMemory(int pid, const GrContext* grContext)
+#endif
+{
+    MemoryGraphic memoryGraphic;
+    auto subThreadManager = RSSubThreadManager::Instance();
+    std::vector<MemoryGraphic> subMems = subThreadManager->CountSubMem(pid);
+    for (const auto& mem : subMems) {
+        memoryGraphic += mem;
+    }
+    return memoryGraphic;
+}
+#else
+MemoryGraphic MemoryManager::CountSubMemory(int pid, const Drawing::GPUContext* gpuContext)
+{
+    MemoryGraphic memoryGraphic;
+    auto subThreadManager = RSSubThreadManager::Instance();
+    std::vector<MemoryGraphic> subMems = subThreadManager->CountSubMem(pid);
+    for (const auto& mem : subMems) {
+        mem += subMems;
+    }
+    return memoryGraphic;
 }
 #endif
 

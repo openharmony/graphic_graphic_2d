@@ -41,6 +41,7 @@ public:
     void CancelReleaseResourceTask();
     void DumpMem(DfxString& log);
     float GetAppGpuMemoryInMB();
+    std::vector<MemoryGraphic> CountSubMem(int pid);
     void ReleaseSurface(uint32_t threadIndex) const;
 #ifndef USE_ROSEN_DRAWING
     void AddToReleaseQueue(sk_sp<SkSurface>&& surface, uint32_t threadIndex);

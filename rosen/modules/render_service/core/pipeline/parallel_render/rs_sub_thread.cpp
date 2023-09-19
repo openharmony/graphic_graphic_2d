@@ -23,6 +23,7 @@
 #include "rs_trace.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_main_thread.h"
+#include "memory/rs_memory_graphic.h"
 #include "memory/rs_memory_manager.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_uni_render_visitor.h"
@@ -333,5 +334,14 @@ void RSSubThread::AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     tmpSurfaces_.push(std::move(surface));
+}
+
+MemoryGraphic RSSubThread::CountSubMem(int pid)
+{
+    MemoryGraphic memoryGraphic;
+    PostSyncTask([&pid, &memoryGraphic, this]() {
+        memoryGraphic = MemoryManager::CountPidMemory(pid, grContext_.get());
+    });
+    return memoryGraphic;
 }
 }
