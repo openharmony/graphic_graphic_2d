@@ -2219,40 +2219,89 @@ sk_sp<SkShader> RSPropertiesPainter::MakeDynamicLightUpShader(
 
 void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
-    auto particles = properties.GetParticles();
-    auto bounds = properties.GetBoundsRect();
+    auto particleVector = properties.GetParticles();
+    if (particleVector.GetParticleSize() == 0) {
+        return;
+    }
+    auto particles = particleVector.GetParticleVector();
+    auto bounds = properties.GetDrawRegion();
     for (size_t i = 0; i < particles.size(); i++) {
-        if (particles[i]->IsAlive()) {
+        if (particles[i] != nullptr && particles[i]->IsAlive()) {
             // Get particle properties
             auto position = particles[i]->GetPosition();
-            if (!(bounds.Intersect(position.x_, position.y_))) {
+            if (!(bounds->Intersect(position.x_, position.y_))) {
                 continue;
             }
             float opacity = particles[i]->GetOpacity();
+            float scale = particles[i]->GetScale();
+            if (opacity <= 0.f || scale <= 0.f) {
+                continue;
+            }
             auto particleType = particles[i]->GetParticleType();
+#ifndef USE_ROSEN_DRAWING
             SkPaint paint;
             paint.setAntiAlias(true);
             paint.setAlphaf(opacity);
+            auto clipBounds = SkRect::MakeXYWH(bounds->left_, bounds->top_, bounds->width_, bounds->height_);
+            canvas.clipRect(clipBounds, true);
+#else
+            Drawing::Brush brush;
+            brush.SetAntiAlias(true);
+            brush.SetAlphaF(opacity);
+            auto clipBounds = Drawing::Rect(
+                bounds->left_, bounds->top_, bounds->left_ + bounds->width_, bounds->top_ + bounds->height_);
+            canvas.ClipRect(clipBounds, Drawing::ClipOp::INTERSECT, true);
+#endif
 
             if (particleType == ParticleType::POINTS) {
                 auto radius = particles[i]->GetRadius();
                 Color color = particles[i]->GetColor();
                 auto alpha = color.GetAlpha();
                 color.SetAlpha(alpha * opacity);
+#ifndef USE_ROSEN_DRAWING
                 paint.setColor(color.AsArgbInt());
-                canvas.drawCircle(position.x_, position.y_, radius, paint);
+                canvas.drawCircle(position.x_, position.y_, radius * scale, paint);
+#else
+                brush.SetColor(color.AsArgbInt());
+                canvas.AttachBrush(brush);
+                canvas.DrawCircle(Drawing::Point(position.x_, position.y_), radius);
+                canvas.DetachBrush();
+#endif
             } else {
+                auto imageSize = particles[i]->GetImageSize();
                 auto image = particles[i]->GetImage();
-                canvas.rotate(particles[i]->GetSpin());
-                float fLeft = 0.0f;
-                float ftop = 0.0f;
-                float fRight = 1.0f;
-                float fBottom = 1.0f;
-                SkRect rect { fLeft, ftop, fRight, fBottom };
+                float left = position.x_;
+                float top = position.y_;
+                float right = position.x_ + imageSize.x_ * scale;
+                float bottom = position.y_ + imageSize.y_ * scale;
+                canvas.save();
+                canvas.translate(position.x_, position.y_);
+#ifndef USE_ROSEN_DRAWING
+                canvas.rotate(particles[i]->GetSpin(), imageSize.x_ * scale / 2.f, imageSize.y_ * scale / 2.f);
+#else
+                canvas.Save();
+                canvas.Translate(position.x_, position.y_);
+                canvas.Rotate(particles[i]->GetSpin(), imageSize.x_ * scale / 2.f, imageSize.y_ * scale / 2.f);
+#endif
+                RectF destRect(left, top, right, bottom);
+                image->SetDstRect(destRect);
+                image->SetScale(scale);
+                image->SetImageRepeat(0);
+#ifndef USE_ROSEN_DRAWING
+                SkRect rect { left, top, right, bottom };
 #ifdef NEW_SKIA
                 image->CanvasDrawImage(canvas, rect, SkSamplingOptions(), paint, false);
+                canvas.restore();
 #else
                 image->CanvasDrawImage(canvas, rect, paint, false);
+                canvas.restore();
+#endif
+#else
+                Drawing::Rect rect { fLeft, ftop, fRight, fBottom };
+                canvas.AttachBrush(brush);
+                image->CanvasDrawImage(canvas, rect, false);
+                canvas.DetachBrush();
+                canvas.Restore();
 #endif
             }
         }

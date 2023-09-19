@@ -23,8 +23,11 @@ mod ffi{
 }
 
 fn generate_value(start_value: f32, end_value: f32, start_time: i32, end_time: i32, current_time: i32) -> f32 {
-    let t = (current_time - start_time) as f32 / (end_time - start_time) as f32;
+    let t = if end_time - start_time != 0 {
+        (current_time - start_time) as f32 / (end_time - start_time) as f32
+    } else {
+        0.0
+    };
     let interpolation_value = start_value * (1.0 - t) + end_value * t;
     interpolation_value
 }
-

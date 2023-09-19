@@ -28,12 +28,17 @@ public:
     virtual ~RSRenderParticleSystem() = default;
     RSRenderParticleSystem() = default;
     void CreateEmitter();
+    void ClearEmitter();
     std::vector<std::shared_ptr<RSRenderParticle>> Simulation(int64_t deltaTime);
     void Emit(int64_t deltaTime);
+    void UpdateParticle(int64_t deltaTime);
+    std::vector<std::shared_ptr<RSRenderParticle>> GetActiveParticles();
+    bool IsFinish();
 
 private:
-    std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams_;
-    std::vector<std::shared_ptr<RSRenderParticleEmitter>> emitters_;
+    std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams_ = {};
+    std::vector<std::shared_ptr<RSRenderParticleEmitter>> emitters_ = {};
+    std::vector<std::shared_ptr<RSRenderParticle>> activeParticles_ = {};
 };
 } // namespace Rosen
 } // namespace OHOS

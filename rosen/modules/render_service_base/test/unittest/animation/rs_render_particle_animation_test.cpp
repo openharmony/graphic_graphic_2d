@@ -13,8 +13,9 @@
  * limitations under the License.
  */
 
-#include "gtest/gtest.h"
 #include <vector>
+
+#include "gtest/gtest.h"
 
 #include "animation/rs_render_particle.h"
 #include "animation/rs_render_particle_animation.h"
@@ -31,9 +32,17 @@ class RSRenderParticleAnimationTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
-
+    void SetUp() override;
+    void TearDown() override;
     static constexpr uint64_t ANIMATION_ID = 12345;
+    static constexpr uint64_t PROPERTY_ID = 54321;
     std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams;
+};
+
+void RSRenderParticleAnimationTest::SetUpTestCase() {}
+void RSRenderParticleAnimationTest::TearDownTestCase() {}
+void RSRenderParticleAnimationTest::SetUp()
+{
     int emitRate = 20;
     ShapeType emitShape = ShapeType::RECT;
     Vector2f position = Vector2f(0.f, 0.f);
@@ -43,8 +52,9 @@ public:
     ParticleType type = ParticleType::POINTS;
     float radius = 1;
     std::shared_ptr<RSImage> image;
-    EmitterConfig emitterConfig =
-        EmitterConfig(emitRate, emitShape, position, emitSize, particleCount, lifeTime, type, radius, image);
+    Vector2f imageSize = Vector2f(1.f, 1.f);
+    EmitterConfig emitterConfig = EmitterConfig(
+        emitRate, emitShape, position, emitSize, particleCount, lifeTime, type, radius, image, imageSize);
 
     ParticleVelocity velocity;
     RenderParticleAcceleration acceleration;
@@ -54,13 +64,6 @@ public:
     RenderParticleParaType<float> spin;
     std::shared_ptr<ParticleRenderParams> params =
         std::make_shared<ParticleRenderParams>(emitterConfig, velocity, acceleration, color, opacity, scale, spin);
-    void SetUp() override;
-    void TearDown() override;
-};
-
-void RSRenderParticleAnimationTest::SetUpTestCase() {}
-void RSRenderParticleAnimationTest::TearDownTestCase() {}
-void RSRenderParticleAnimationTest::SetUp() {
     particlesRenderParams.push_back(params);
 }
 void RSRenderParticleAnimationTest::TearDown() {}
@@ -74,7 +77,7 @@ HWTEST_F(RSRenderParticleAnimationTest, Marshalling001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest Marshalling001 start";
 
-    auto renderParticleAnimation = std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, particlesRenderParams);
+    auto renderParticleAnimation = std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
 
     Parcel parcel;
     renderParticleAnimation->Marshalling(parcel);
@@ -91,7 +94,7 @@ HWTEST_F(RSRenderParticleAnimationTest, Unmarshalling001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest Unmarshalling001 start";
 
-    auto renderParticleAnimation = std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, particlesRenderParams);
+    auto renderParticleAnimation = std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
 
     Parcel parcel;
     renderParticleAnimation->Marshalling(parcel);
