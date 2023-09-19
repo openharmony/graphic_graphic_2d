@@ -59,6 +59,7 @@
 #include "pipeline/rs_uni_render_visitor.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_occlusion_config.h"
+#include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_innovation.h"
 #include "platform/common/rs_system_properties.h"
@@ -239,6 +240,7 @@ void RSMainThread::Init()
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         SetRSEventDetectorLoopFinishTag();
         rsEventManager_.UpdateParam();
+        SKResourceManager::Instance().ReleaseResource();
     };
 #ifdef RS_ENABLE_RECORDING
     RSRecordingThread::Instance().Start();

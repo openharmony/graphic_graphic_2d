@@ -174,6 +174,7 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_surface_render_node.cpp",
     "src/pipeline/rs_task_dispatcher.cpp",
     "src/pipeline/rs_uni_render_judgement.cpp",
+    "src/pipeline/sk_resource_manager.cpp",
 
     #property
     "src/property/rs_filter_cache_manager.cpp",

@@ -24,6 +24,7 @@
 #include "common/rs_common_def.h"
 #include "platform/common/rs_log.h"
 #include "pipeline/rs_task_dispatcher.h"
+#include "pipeline/sk_resource_manager.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_image_cache.h"
 #include "render/rs_pixel_map_util.h"
@@ -104,6 +105,7 @@ void RSImageBase::SetImage(const std::shared_ptr<Drawing::Image> image)
     isDrawn_ = false;
     image_ = image;
     if (image_) {
+    SKResourceManager::Instance().HoldResource(image);
 #ifndef USE_ROSEN_DRAWING
         srcRect_.SetAll(0.0, 0.0, image_->width(), image_->height());
         GenUniqueId(image_->uniqueID());
@@ -121,16 +123,9 @@ void RSImageBase::SetDmaImage(const sk_sp<SkImage> image)
 void RSImageBase::SetDmaImage(const std::shared_ptr<Drawing::Image> image)
 #endif
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    pid_t currentThreadId = gettid();
-    if (tid_ != 0 && tid_ != currentThreadId) {
-        RSTaskDispatcher::GetInstance().PostTask(tid_, [dmaImage = std::move(image_)]() mutable {
-            dmaImage = nullptr;
-        });
-    }
     isDrawn_ = false;
     image_ = image;
-    tid_ = currentThreadId;
+    SKResourceManager::Instance().HoldResource(image);
 }
 #endif
 
