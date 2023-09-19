@@ -17,7 +17,6 @@
 
 #include <memory>
 
-// #include "animation/rs_render_particle_emitter.h"
 #include "animation/rs_value_estimator.h"
 #include "command/rs_animation_command.h"
 #include "platform/common/rs_log.h"
@@ -25,33 +24,68 @@
 
 namespace OHOS {
 namespace Rosen {
-RSRenderParticleAnimation::RSRenderParticleAnimation(
-    AnimationId id, const std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams)
-    : RSRenderPropertyAnimation(id)
+RSRenderParticleAnimation::RSRenderParticleAnimation(AnimationId id, const PropertyId& propertyId,
+    const std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams)
+    : RSRenderPropertyAnimation(id, propertyId)
 {
     particlesRenderParams_ = particlesRenderParams;
-    particleSystem_ = RSRenderParticleSystem(particlesRenderParams_);
+    particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams_);
 }
 
 bool RSRenderParticleAnimation::Animate(int64_t time)
 {
     int64_t deltaTime = time - animationFraction_.GetLastFrameTime();
     animationFraction_.SetLastFrameTime(time);
-    renderParticle_ = particleSystem_.Simulation(deltaTime);
-
-    auto property =
-        std::static_pointer_cast<RSRenderProperty<std::vector<std::shared_ptr<RSRenderParticle>>>>(property_);
+    if (particleSystem_ != nullptr) {
+        auto renderParticle = particleSystem_->Simulation(deltaTime);
+        renderParticleVector_ = RSRenderParticleVector(renderParticle);
+    }
+    auto property = std::static_pointer_cast<RSRenderProperty<RSRenderParticleVector>>(property_);
     if (property) {
-        property->Set(renderParticle_);
+        property->Set(renderParticleVector_);
     }
     auto target = GetTarget();
-    if (renderParticle_.size() == 0) {
+    if (particleSystem_ == nullptr || particleSystem_->IsFinish()) {
         if (target) {
             target->RemoveModifier(property_->GetId());
-            return true;
         }
+        return true;
     }
     return false;
+}
+
+void RSRenderParticleAnimation::OnAttach()
+{
+    auto target = GetTarget();
+    if (target == nullptr) {
+        ROSEN_LOGE("RSRenderParticleAnimation::OnAttach, target is nullptr");
+        return;
+    }
+    auto particleAnimations = target->GetAnimationManager().GetParticleAnimations();
+    if (!particleAnimations.empty()) {
+        for (const auto& pair : particleAnimations) {
+            target->RemoveModifier(pair.first);
+            target->GetAnimationManager().RemoveAnimation(pair.second);
+            target->GetAnimationManager().UnregisterParticleAnimation(pair.first, pair.second);
+        }
+    }
+    target->GetAnimationManager().RegisterParticleAnimation(GetPropertyId(), GetAnimationId());
+}
+
+void RSRenderParticleAnimation::OnDetach()
+{
+    auto target = GetTarget();
+    if (target == nullptr) {
+        ROSEN_LOGE("RSRenderParticleAnimation::OnDetach, target is nullptr");
+        return;
+    }
+    if (particleSystem_ != nullptr) {
+        particleSystem_->ClearEmitter();
+        particleSystem_.reset();
+    }
+    auto propertyId = GetPropertyId();
+    auto id = GetAnimationId();
+    target->GetAnimationManager().UnregisterParticleAnimation(propertyId, id);
 }
 
 bool RSRenderParticleAnimation::Marshalling(Parcel& parcel) const
@@ -59,6 +93,10 @@ bool RSRenderParticleAnimation::Marshalling(Parcel& parcel) const
     auto id = GetAnimationId();
     if (!(parcel.WriteUint64(id))) {
         ROSEN_LOGE("RSRenderParticleAnimation::Marshalling, write id failed");
+        return false;
+    }
+    if (!parcel.WriteUint64(propertyId_)) {
+        ROSEN_LOGE("RSRenderParticleAnimation::Marshalling, write PropertyId failed");
         return false;
     }
     if (!RSMarshallingHelper::Marshalling(parcel, particlesRenderParams_)) {
@@ -83,14 +121,15 @@ bool RSRenderParticleAnimation::ParseParam(Parcel& parcel)
 {
     AnimationId id = 0;
     if (!parcel.ReadUint64(id)) {
-        ROSEN_LOGE("RSRenderParticleAnimation::ParseParam, Unmarshalling failed");
+        ROSEN_LOGE("RSRenderParticleAnimation::ParseParam, Unmarshalling animationId failed");
         return false;
     }
     SetAnimationId(id);
-    if (!RSMarshallingHelper::Unmarshalling(parcel, particlesRenderParams_)) {
+    if (!(parcel.ReadUint64(propertyId_) && RSMarshallingHelper::Unmarshalling(parcel, particlesRenderParams_))) {
         ROSEN_LOGE("RSRenderParticleAnimation::ParseParam, Unmarshalling failed");
         return false;
     }
+    particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams_);
     return true;
 }
 

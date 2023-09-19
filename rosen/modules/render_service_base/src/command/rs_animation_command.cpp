@@ -68,10 +68,10 @@ void AnimationCommandHelper::CreateParticleAnimation(
     if (node == nullptr) {
         return;
     }
+    auto propertyId = animation->GetPropertyId();
     node->GetAnimationManager().AddAnimation(animation);
-
-    auto property = std::make_shared<RSRenderProperty<std::vector<std::shared_ptr<RSRenderParticle>>>>(
-        animation->GetRenderParticle(), 0);
+    auto property = std::make_shared<RSRenderProperty<RSRenderParticleVector>>(
+        animation->GetRenderParticle(), propertyId);
     auto modifier = std::make_shared<RSParticleRenderModifier>(property);
     node->AddModifier(modifier);
     animation->AttachRenderProperty(property);

@@ -25,16 +25,17 @@ namespace Rosen {
 class RSRenderParticleEmitter {
 public:
     RSRenderParticleEmitter(std::shared_ptr<ParticleRenderParams> particleParams);
-
+    void PreEmit();
     void EmitParticle(int64_t deltaTime);
-    static void UpdateParticle(int64_t deltaTime);
     std::vector<std::shared_ptr<RSRenderParticle>> GetParticles();
-    static std::vector<std::shared_ptr<RSRenderParticle>> GetActiveParticles();
+    bool IsEmitterFinish();
 
 private:
-    std::vector<std::shared_ptr<RSRenderParticle>> particles_;
-    static std::vector<std::shared_ptr<RSRenderParticle>> activeParticles_;
-    std::shared_ptr<ParticleRenderParams> particleParams_;
+    std::vector<std::shared_ptr<RSRenderParticle>> particles_ = {};
+    std::shared_ptr<ParticleRenderParams> particleParams_ = {};
+    float particleCount_ = 0.f;
+    float spawnNum_ = 0.f;
+    bool emitFinish_ = false;
 };
 
 } // namespace Rosen

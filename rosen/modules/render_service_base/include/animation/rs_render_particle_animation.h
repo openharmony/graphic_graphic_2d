@@ -29,8 +29,8 @@ namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSRenderParticleAnimation : public RSRenderPropertyAnimation {
 public:
-    RSRenderParticleAnimation(
-        AnimationId id, const std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams);
+    RSRenderParticleAnimation(AnimationId id, const PropertyId& propertyId,
+        const std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams);
 
     virtual ~RSRenderParticleAnimation() = default;
     RSRenderParticleAnimation() = default;
@@ -38,19 +38,21 @@ public:
     bool Marshalling(Parcel& parcel) const override;
 
     [[nodiscard]] static RSRenderParticleAnimation* Unmarshalling(Parcel& parcel);
-    std::vector<std::shared_ptr<RSRenderParticle>> GetRenderParticle()
+    RSRenderParticleVector GetRenderParticle()
     {
-        return renderParticle_;
+        return renderParticleVector_;
     }
 
 protected:
     bool Animate(int64_t time) override;
+    void OnAttach() override;
+    void OnDetach() override;
 
 private:
     bool ParseParam(Parcel& parcel) override;
-    RSRenderParticleSystem particleSystem_;
+    std::shared_ptr<RSRenderParticleSystem> particleSystem_;
     std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams_;
-    std::vector<std::shared_ptr<RSRenderParticle>> renderParticle_;
+    RSRenderParticleVector renderParticleVector_;
 };
 } // namespace Rosen
 } // namespace OHOS
