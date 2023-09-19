@@ -23,6 +23,8 @@ ohos_unittest("RSRenderServiceClientAnimationTest") {
   sources = [
     "rs_animation_group_test.cpp",
     "rs_animation_test.cpp",
+    "rs_curve_animation_test.cpp",
+    "rs_implicit_animation_param_test.cpp",
     "rs_implicit_animator_test.cpp",
     "rs_keyframe_animation_test.cpp",
     "rs_path_animation_test.cpp",

@@ -50,26 +50,6 @@ HWTEST_F(RSModifierManagerTest, CreateDrawingContextTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: AddAnimationTest
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSModifierManagerTest, AddAnimationTest, TestSize.Level1)
-{
-    uint64_t ANIMATION_ID = 100;
-    uint64_t PROPERTY_ID = 101;
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
-    auto renderCurveAnimation =
-        std::make_shared<RSRenderCurveAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
-
-    RSModifierManager rsModifierManager;
-    rsModifierManager.AddAnimation(renderCurveAnimation);
-    ASSERT_TRUE(renderCurveAnimation->GetAnimationId());
-}
-
-/**
  * @tc.name: RemoveAnimationTest
  * @tc.desc:
  * @tc.type:FUNC
