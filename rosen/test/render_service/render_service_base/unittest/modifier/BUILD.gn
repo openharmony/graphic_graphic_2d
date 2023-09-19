@@ -35,6 +35,11 @@ ohos_unittest("RSRenderServiceBaseModifierTest") {
     "//foundation/graphic/graphic_2d/rosen/test/include",
   ]
 
+  cflags = [
+    "-Dprivate = public",
+    "-Dprotected = public",
+  ]
+
   deps = [
     "../../../../../modules/render_service_base:render_service_base_src",
     "//third_party/googletest:gtest_main",

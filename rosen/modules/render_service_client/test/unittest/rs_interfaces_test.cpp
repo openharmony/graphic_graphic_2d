@@ -170,9 +170,6 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenResolution001, Function | SmallTest |
 */
 HWTEST_F(RSInterfacesTest, GetAllScreenIds, Function | SmallTest | Level2)
 {
-    std::vector<ScreenId> ids = rsInterfaces->GetAllScreenIds();
-    int32_t size = ids.size();
-    EXPECT_GT(ids.size(), 0);
     auto csurface = IConsumerSurface::Create();
     EXPECT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
@@ -184,12 +181,8 @@ HWTEST_F(RSInterfacesTest, GetAllScreenIds, Function | SmallTest | Level2)
     ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
         "virtual6", defaultWidth, defaultHeight, psurface, GenerateVirtualScreenMirrorId(), -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
-    ids = rsInterfaces->GetAllScreenIds();
-    if (find(ids.begin(), ids.end(), virtualScreenId) != ids.end()) {
-        EXPECT_EQ(size, ids.size());
-    } else {
-        EXPECT_EQ(size + 1, ids.size());
-    }
+    std::vector<ScreenId> ids = rsInterfaces->GetAllScreenIds();
+    EXPECT_TRUE(find(ids.begin(), ids.end(), virtualScreenId) != ids.end());
 }
 
 /*

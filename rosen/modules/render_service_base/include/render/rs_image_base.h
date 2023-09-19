@@ -92,7 +92,6 @@ protected:
 #endif
     void* imagePixelAddr_ = nullptr;
     std::shared_ptr<Media::PixelMap> pixelMap_;
-    pid_t tid_ = 0;
 
     RectF srcRect_;
     RectF dstRect_;

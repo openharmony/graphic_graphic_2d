@@ -15,6 +15,8 @@
 
 #include "gtest/gtest.h"
 #include "animation/rs_keyframe_animation.h"
+#include "animation/rs_render_keyframe_animation.h"
+#include "modifier/rs_property.h"
 #include <sys/types.h>
 #include <unistd.h>
 #ifdef ROSEN_OHOS
@@ -45,8 +47,41 @@ void RSKeyframeAnimationTest::TearDown() {}
  */
 HWTEST_F(RSKeyframeAnimationTest, AddKeyFrameTest001, Level1)
 {
-    RSKeyframeAnimation rsKeyframeAnimation(nullptr);
+    auto value = std::make_shared<RSPropertyBase>();
+    RSKeyframeAnimation rsKeyframeAnimation(value);
     RSAnimationTimingCurve timingCurve;
-    rsKeyframeAnimation.AddKeyFrame(1.0, nullptr, timingCurve);
+    rsKeyframeAnimation.AddKeyFrame(3.f, value, timingCurve);
+    ASSERT_NE(value, nullptr);
+}
+
+/**
+ * @tc.name: StartRenderAnimationTest
+ * @tc.desc: RemoveModifier test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSKeyframeAnimationTest, StartRenderAnimationTest, Level1)
+{
+    auto value = std::make_shared<RSPropertyBase>();
+    auto animation = std::make_shared<RSRenderKeyframeAnimation>();
+    RSKeyframeAnimation rsKeyframeAnimation(value);
+    RSAnimationTimingCurve timingCurve;
+    rsKeyframeAnimation.StartInner(nullptr);
+    rsKeyframeAnimation.StartRenderAnimation(animation);
+    ASSERT_NE(value, nullptr);
+}
+
+/**
+ * @tc.name: StartUIAnimationTest
+ * @tc.desc: RemoveModifier test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSKeyframeAnimationTest, StartUIAnimationTest, Level1)
+{
+    auto value = std::make_shared<RSPropertyBase>();
+    auto animation = std::make_shared<RSRenderKeyframeAnimation>();
+    RSKeyframeAnimation rsKeyframeAnimation(value);
+    RSAnimationTimingCurve timingCurve;
+    rsKeyframeAnimation.StartUIAnimation(animation);
+    ASSERT_NE(value, nullptr);
 }
 }

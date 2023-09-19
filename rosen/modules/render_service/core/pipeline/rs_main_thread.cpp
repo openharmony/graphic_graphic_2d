@@ -59,6 +59,7 @@
 #include "pipeline/rs_uni_render_visitor.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_occlusion_config.h"
+#include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_innovation.h"
 #include "platform/common/rs_system_properties.h"
@@ -239,6 +240,7 @@ void RSMainThread::Init()
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         SetRSEventDetectorLoopFinishTag();
         rsEventManager_.UpdateParam();
+        SKResourceManager::Instance().ReleaseResource();
     };
 #ifdef RS_ENABLE_RECORDING
     RSRecordingThread::Instance().Start();
@@ -343,8 +345,11 @@ void RSMainThread::Init()
 
     frameRateMgr_ = std::make_unique<HgmFrameRateManager>();
     frameRateMgr_->SetTimerExpiredCallback([]() {
-        RSMainThread::Instance()->SetForceUpdateUniRenderFlag(true);
-        RSMainThread::Instance()->RequestNextVSync();
+        RSMainThread::Instance()->PostTask([]() {
+            RS_OPTIONAL_TRACE_NAME("RSMainThread::TimerExpiredCallback Run");
+            RSMainThread::Instance()->SetForceUpdateUniRenderFlag(true);
+            RSMainThread::Instance()->RequestNextVSync();
+        });
     });
 }
 
@@ -469,16 +474,20 @@ void RSMainThread::ProcessCommand()
     } else {
         ProcessCommandForDividedRender();
     }
-    if (context_->needPurge_) {
+    if (context_->purgeType_ != RSContext::PurgeType::NONE) {
+        context_->purgeType_ = RSContext::PurgeType::NONE;
 #ifdef NEW_RENDER_CONTEXT
         auto grContext = GetRenderEngine()->GetDrawingContext()->GetDrawingContext();
 #else
         auto grContext = GetRenderEngine()->GetRenderContext()->GetGrContext();
 #endif
         if (grContext) {
-            grContext->purgeUnlockedResources(true);
+            if (context_->purgeType_ == RSContext::PurgeType::PURGE_UNLOCK) {
+                MemoryManager::ReleaseUnlockGpuResource(grContext);
+            } else {
+                MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
+            }
         }
-        context_->needPurge_ = false;
     }
     if (RsFrameReport::GetInstance().GetEnable()) {
         RsFrameReport::GetInstance().AnimateStart();

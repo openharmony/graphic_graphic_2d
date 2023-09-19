@@ -31,6 +31,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
+#include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_properties_painter.h"
 #include "screen_manager/screen_types.h"
@@ -535,7 +536,7 @@ public:
     {
         const uint8_t opacity = 255;
         return !(GetAbilityBgAlpha() == opacity && ROSEN_EQ(GetGlobalAlpha(), 1.0f)) ||
-            (IsAppWindow() && GetChildrenCount() == 0);
+            (IsAppWindow() && GetChildrenCount() == 0 && RSUniRenderJudgement::IsUniRender());
     }
 
     inline bool IsCurrentNodeInTransparentRegion(const Occlusion::Rect& nodeRect) const

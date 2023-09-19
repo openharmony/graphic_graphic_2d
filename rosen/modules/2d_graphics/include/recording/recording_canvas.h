@@ -60,6 +60,12 @@ public:
     void DrawEdgeAAQuad(const Rect& rect, const Point clip[4],
         QuadAAFlags aaFlags, ColorQuad color, BlendMode mode) override;
 
+    void DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
+        FilterMode filterMode, const Brush* brush = nullptr) override;
+    void DrawAnnotation(const Rect& rect, const char* key, const Data& data) override;
+    void DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
+        FilterMode filterMode, const Brush* brush = nullptr) override;
+
     void DrawColor(ColorQuad color, BlendMode mode = BlendMode::SRC_OVER) override;
 
     void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py) override;

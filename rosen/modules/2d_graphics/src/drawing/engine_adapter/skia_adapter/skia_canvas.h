@@ -88,6 +88,12 @@ public:
     void DrawEdgeAAQuad(const Rect& rect, const Point clip[4],
         QuadAAFlags aaFlags, ColorQuad color, BlendMode mode) override;
 
+    void DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
+        FilterMode filter, const Brush* brush = nullptr) override;
+    void DrawAnnotation(const Rect& rect, const char* key, const Data& data) override;
+    void DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
+        FilterMode filter, const Brush* brush = nullptr) override;
+
     // color
     void DrawColor(ColorQuad color, BlendMode mode) override;
 
@@ -107,6 +113,8 @@ public:
     void ClipRoundRect(const RoundRect& roundRect, ClipOp op, bool doAntiAlias) override;
     void ClipPath(const Path& path, ClipOp op, bool doAntiAlias) override;
     void ClipRegion(const Region& region, ClipOp op = ClipOp::INTERSECT) override;
+    bool IsClipEmpty() override;
+    bool QuickReject(const Rect& rect) override;
 
     // transform
     void SetMatrix(const Matrix& matrix) override;
