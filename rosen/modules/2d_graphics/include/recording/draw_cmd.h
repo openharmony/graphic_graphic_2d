@@ -354,6 +354,9 @@ public:
         FilterMode filterMode, const BrushHandle& brushHandle, bool hasBrush);
     ~DrawImageNineOpItem() = default;
 
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas, const CmdList& cmdList) const;
+
 private:
     ImageHandle image_;
     RectI center_;
