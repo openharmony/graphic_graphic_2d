@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <fstream>
 #include <gtest/gtest.h>
 
 #include "font_parser.h"
@@ -27,6 +28,7 @@ namespace Rosen {
 namespace TextEngine {
 namespace {
 static constexpr int WEIGHT_TEST = 900;
+static const std::string FILE_NAME = "/system/fonts/visibility_list.json";
 
 class FontManagerTest : public testing::Test {};
 
@@ -238,17 +240,22 @@ HWTEST_F(FontManagerTest, FontManager, TestSize.Level1)
 {
     FontParser fontParser;
     auto fontSrc = fontParser.GetVisibilityFonts();
-    ASSERT_NE(fontSrc.size(), 0);
-
-    ShowVisibilityFonts(fontSrc);
-    FindFontPsn(fontSrc);
-    FindFontFn(fontSrc);
-    FindFontFsy(fontSrc);
-    FindFontFni(fontSrc);
-    FindFontFnw(fontSrc);
-    FindFontFfw(fontSrc);
-    FindFontFfwc(fontSrc);
-    FindFontFfiw(fontSrc);
+    std::ifstream fileStream(FILE_NAME.c_str());
+    if (fileStream.is_open()) {
+        ASSERT_NE(fontSrc.size(), 0);
+        ShowVisibilityFonts(fontSrc);
+        FindFontPsn(fontSrc);
+        FindFontFn(fontSrc);
+        FindFontFsy(fontSrc);
+        FindFontFni(fontSrc);
+        FindFontFnw(fontSrc);
+        FindFontFfw(fontSrc);
+        FindFontFfwc(fontSrc);
+        FindFontFfiw(fontSrc);
+        fileStream.close();
+    } else {
+        ASSERT_EQ(fontSrc.size(), 0);
+    }
 }
 } // namespace
 } // namespace TextEngine
