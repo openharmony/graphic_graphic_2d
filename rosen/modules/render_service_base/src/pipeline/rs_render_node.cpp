@@ -22,8 +22,6 @@
 #include "animation/rs_render_animation.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "modifier/rs_modifier_type.h"
-#include "pipeline/rs_base_render_node.h"
-#include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_root_render_node.h"
@@ -2012,11 +2010,25 @@ inline void RSRenderNode::AddActiveNode()
 
 void RSRenderNode::ClearFullChildrenListIfNeeded(bool inSubThread)
 {
-    // if fullChildrenList_ is used by sub thread, we can't clear it, it should be cleared by sub thread
-    if (!isFullChildrenListValid_ && !fullChildrenList_.empty() && (inSubThread || !GetIsUsedBySubThread())) {
-        fullChildrenList_.clear();
+    // fullChildrenList is valid
+    if (LIKELY(isFullChildrenListValid_) || fullChildrenList_.empty()) {
+        return;
+    }
+    if (!inSubThread) {
+        // main thread clears the fullChildrenList only if sub thread is not using it
+        if (!GetIsUsedBySubThread()) {
+            fullChildrenList_.clear();
+        }
+    } else if (auto context = context_.lock()) {
+        // sub thread should not clear the fullChildrenList directly, post task to main thread to do that
+        context->PostTask([weakThis = weak_from_this()]() {
+            if (auto node = weakThis.lock()) {
+                node->ClearFullChildrenListIfNeeded();
+            }
+        });
     }
 }
+
 bool RSRenderNode::GetIsUsedBySubThread() const
 {
     return isUsedBySubThread_.load();

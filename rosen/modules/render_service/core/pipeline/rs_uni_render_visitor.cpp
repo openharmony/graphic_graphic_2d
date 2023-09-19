@@ -1480,9 +1480,9 @@ void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
                 child->Process(shared_from_this());
             }
         }
-        node.SetIsUsedBySubThread(false);
-        // Main thread may invalidate the FullChildrenList, so we need to clear it if needed.
+        // Main thread may invalidate the FullChildrenList, check if we need to clear it.
         node.ClearFullChildrenListIfNeeded(true);
+        node.SetIsUsedBySubThread(false);
     } else {
         for (auto& child : node.GetSortedChildren()) {
             if (ProcessSharedTransitionNode(*child)) {

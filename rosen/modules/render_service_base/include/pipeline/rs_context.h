@@ -72,6 +72,17 @@ public:
         purgeType_ = purgeType;
     }
 
+    void SetTaskRunner(const std::function<void(const std::function<void()>&)>& taskRunner)
+    {
+        taskRunner_ = taskRunner;
+    }
+    void PostTask(const std::function<void()>& task) const
+    {
+        if (taskRunner_) {
+            taskRunner_(task);
+        }
+    }
+
 private:
     RSRenderNodeMap nodeMap;
     std::shared_ptr<RSBaseRenderNode> globalRootRenderNode_ = std::make_shared<RSRenderNode>(0, true);
@@ -80,6 +91,7 @@ private:
 
     uint64_t transactionTimestamp_ = 0;
     uint64_t currentTimestamp_ = 0;
+    std::function<void(const std::function<void()>&)> taskRunner_;
     // Collect all active Nodes sorted by root node id in this frame.
     std::unordered_map<NodeId, std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>>> activeNodesInRoot_;
 

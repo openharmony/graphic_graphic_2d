@@ -248,6 +248,7 @@ void RSMainThread::Init()
     auto taskDispatchFunc = [](const RSTaskDispatcher::RSTask& task) {
         RSMainThread::Instance()->PostTask(task);
     };
+    context_->SetTaskRunner(taskDispatchFunc);
     RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), taskDispatchFunc);
     RsFrameReport::GetInstance().Init();
     if (isUniRender_) {
