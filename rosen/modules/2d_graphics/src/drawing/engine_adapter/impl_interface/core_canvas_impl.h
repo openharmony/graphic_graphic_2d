@@ -55,6 +55,7 @@ namespace Drawing {
 enum class SrcRectConstraint;
 class SaveLayerOps;
 enum class PointMode;
+struct Lattice;
 
 class CoreCanvasImpl : public BaseImpl {
 public:
@@ -94,6 +95,12 @@ public:
     virtual void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag) = 0;
     virtual void DrawRegion(const Region& region) = 0;
+
+    virtual void DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
+        FilterMode filter, const Brush* brush = nullptr) = 0;
+    virtual void DrawAnnotation(const Rect& rect, const char* key, const Data& data) = 0;
+    virtual void DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
+        FilterMode filter, const Brush* brush = nullptr) = 0;
 
     // color
     virtual void DrawColor(ColorQuad color, BlendMode mode) = 0;

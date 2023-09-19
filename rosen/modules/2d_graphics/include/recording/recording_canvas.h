@@ -55,6 +55,12 @@ public:
     void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag) override;
 
+    void DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
+        FilterMode filterMode, const Brush* brush = nullptr) override;
+    void DrawAnnotation(const Rect& rect, const char* key, const Data& data) override;
+    void DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
+        FilterMode filterMode, const Brush* brush = nullptr) override;
+
     void DrawColor(ColorQuad color, BlendMode mode = BlendMode::SRC_OVER) override;
 
     void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py) override;

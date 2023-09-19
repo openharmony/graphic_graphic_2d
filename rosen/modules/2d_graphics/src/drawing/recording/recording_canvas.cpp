@@ -151,6 +151,61 @@ void RecordingCanvas::DrawShadow(const Path& path, const Point3& planeParams, co
     cmdList_->AddOp<DrawShadowOpItem>(pathHandle, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag);
 }
 
+void RecordingCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
+    FilterMode filterMode, const Brush* brush)
+{
+    auto imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, *image);
+    BrushHandle brushHandle;
+    bool hasBrush = false;
+    if (brush != nullptr) {
+        hasBrush = true;
+        Filter filter = brush->GetFilter();
+        brushHandle = {
+            brush->GetColor(),
+            brush->GetBlendMode(),
+            brush->IsAntiAlias(),
+            filter.GetFilterQuality(),
+            CmdListHelper::AddRecordedToCmdList<RecordingColorSpace>(*cmdList_, brush->GetColorSpace()),
+            CmdListHelper::AddRecordedToCmdList<RecordingShaderEffect>(*cmdList_, brush->GetShaderEffect()),
+            CmdListHelper::AddRecordedToCmdList<RecordingColorFilter>(*cmdList_, filter.GetColorFilter()),
+            CmdListHelper::AddRecordedToCmdList<RecordingImageFilter>(*cmdList_, filter.GetImageFilter()),
+            CmdListHelper::AddRecordedToCmdList<RecordingMaskFilter>(*cmdList_, filter.GetMaskFilter()),
+        };
+    }
+
+    cmdList_->AddOp<DrawImageNineOpItem>(imageHandle, center, dst, filterMode, brushHandle, hasBrush);
+}
+
+void RecordingCanvas::DrawAnnotation(const Rect& rect, const char* key, const Data& data)
+{
+    cmdList_->AddOp<DrawAnnotationOpItem>(rect, key, data);
+}
+
+void RecordingCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
+    FilterMode filterMode, const Brush* brush)
+{
+    auto imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, *image);
+    BrushHandle brushHandle;
+    bool hasBrush = false;
+    if (brush != nullptr) {
+        hasBrush = true;
+        Filter filter = brush->GetFilter();
+        brushHandle = {
+            brush->GetColor(),
+            brush->GetBlendMode(),
+            brush->IsAntiAlias(),
+            filter.GetFilterQuality(),
+            CmdListHelper::AddRecordedToCmdList<RecordingColorSpace>(*cmdList_, brush->GetColorSpace()),
+            CmdListHelper::AddRecordedToCmdList<RecordingShaderEffect>(*cmdList_, brush->GetShaderEffect()),
+            CmdListHelper::AddRecordedToCmdList<RecordingColorFilter>(*cmdList_, filter.GetColorFilter()),
+            CmdListHelper::AddRecordedToCmdList<RecordingImageFilter>(*cmdList_, filter.GetImageFilter()),
+            CmdListHelper::AddRecordedToCmdList<RecordingMaskFilter>(*cmdList_, filter.GetMaskFilter()),
+        };
+    }
+
+    cmdList_->AddOp<DrawImageLatticeOpItem>(imageHandle, lattice, dst, filterMode, brushHandle, hasBrush);
+}
+
 void RecordingCanvas::DrawColor(ColorQuad color, BlendMode mode)
 {
     cmdList_->AddOp<DrawColorOpItem>(color, mode);

@@ -65,6 +65,12 @@ public:
     void DrawColor(Drawing::ColorQuad color, Drawing::BlendMode mode = Drawing::BlendMode::SRC_OVER) override;
     void DrawRegion(const Drawing::Region& region) override;
 
+    void DrawImageNine(const Drawing::Image* image, const Drawing::RectI& center, const Drawing::Rect& dst,
+        Drawing::FilterMode filter, const Drawing::Brush* brush = nullptr) override;
+    void DrawAnnotation(const Drawing::Rect& rect, const char* key, const Drawing::Data& data) override;
+    void DrawImageLattice(const Drawing::Image* image, const Drawing::Lattice& lattice, const Drawing::Rect& dst,
+        Drawing::FilterMode filter, const Drawing::Brush* brush = nullptr) override;
+
     void DrawBitmap(const Drawing::Bitmap& bitmap, const Drawing::scalar px, const Drawing::scalar py) override;
     void DrawBitmap(Media::PixelMap& pixelMap, const Drawing::scalar px, const Drawing::scalar py) override;
     void DrawImage(const Drawing::Image& image,
