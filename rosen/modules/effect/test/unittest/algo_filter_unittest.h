@@ -14,7 +14,7 @@
  */
 
 #ifndef AlGO_FILTER_UNITTEST_H
-#define AlGO_FILTER_UNITTEST_H
+#define Al_GO_FILTER_UNITTEST_H
 
 #include <gtest/gtest.h>
 
