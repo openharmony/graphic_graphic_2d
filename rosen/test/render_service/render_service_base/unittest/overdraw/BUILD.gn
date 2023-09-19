@@ -25,6 +25,11 @@ ohos_unittest("overdraw_test") {
     "rs_overdraw_controller_test.cpp",
   ]
 
+  cflags = [
+    "-Dprivate = public",
+    "-Dprotected = public",
+  ]
+
   deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/graphic_2d/utils/test_header:test_header",
