@@ -2239,16 +2239,14 @@ void RSProperties::CalculatePixelStretch()
     if (pixelStretchPercent_) {
         auto width = GetBoundsWidth();
         auto height = GetBoundsHeight();
+        if (isinf(width) || isinf(height)) {
+            return;
+        }
         pixelStretch_ = *pixelStretchPercent_ * Vector4f(width, height, width, height);
-    }
-    // parameter check: non-zero
-    if (pixelStretch_->IsZero()) {
-        pixelStretch_ = std::nullopt;
-        return;
     }
     // parameter check: same sign
     const auto sign = SignBit(pixelStretch_->x_);
-    if (SignBit(pixelStretch_->y_) != sign || SignBit(pixelStretch_->z_) != sign ||
+    if (sign == 0 || SignBit(pixelStretch_->y_) != sign || SignBit(pixelStretch_->z_) != sign ||
         SignBit(pixelStretch_->w_) != sign) {
         pixelStretch_ = std::nullopt;
         return;
