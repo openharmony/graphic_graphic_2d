@@ -202,7 +202,7 @@ public:
         Color ambientColor, Color spotColor, ShadowFlags flag);
 
     // color
-    virtual void DrawColor(ColorQuad color, BlendMode mode);
+    virtual void DrawColor(ColorQuad color, BlendMode mode = BlendMode::SRC_OVER);
 
     /*
      * @brief         Draws Region on the Canvas.

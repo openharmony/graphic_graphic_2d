@@ -39,6 +39,10 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 
+#ifdef USE_ROSEN_DRAWING
+#include "image/gpu_context.h"
+#endif
+
 namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t MEMUNIT_RATE = 1024;
@@ -107,6 +111,17 @@ void MemoryManager::ReleaseAllGpuResource(GrContext* grContext, GrGpuResourceTag
 #endif
 }
 #else
+void MemoryManager::ReleaseAllGpuResource(Drawing::GPUContext* gpuContext, Drawing::GPUResourceTag& tag)
+{
+#ifdef RS_ENABLE_GL
+    if (!gpuContext) {
+        RS_LOGE("ReleaseGpuResByTag fail, gpuContext is nullptr");
+    }
+    RS_TRACE_NAME_FMT("ReleaseAllGpuResource [Pid:%d Tid:%d Nid:%d Funcid:%d]",
+        tag.fPid, tag.fTid, tag.fWid, tag.fFid);
+    gpuContext->ReleaseByTag(tag);
+#endif
+}
 #endif
 
 #ifndef USE_ROSEN_DRAWING
@@ -144,6 +159,17 @@ void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, GrGpuResource
 #endif
 }
 #else
+void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, Drawing::GPUResourceTag& tag)
+{
+#ifdef RS_ENABLE_GL
+    if (!gpuContext) {
+        RS_LOGE("ReleaseGpuResByTag fail, gpuContext is nullptr");
+    }
+    RS_TRACE_NAME_FMT("ReleaseUnlockGpuResource [Pid:%d Tid:%d Nid:%d Funcid:%d]",
+        tag.fPid, tag.fTid, tag.fWid, tag.fFid);
+    gpuContext->PurgeUnlockedResourcesByTag(false, tag);
+#endif
+}
 #endif
 
 #ifndef USE_ROSEN_DRAWING
@@ -161,6 +187,10 @@ void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, NodeId surfac
 #else
 void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, NodeId surfaceNodeId)
 {
+#ifdef RS_ENABLE_GL
+    Drawing::GPUResourceTag tag(ExtractPid(surfaceNodeId), 0, 0, 0);
+    ReleaseUnlockGpuResource(grContext, tag);
+#endif
 }
 #endif
 
@@ -179,6 +209,10 @@ void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, pid_t pid)
 #else
 void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, pid_t pid)
 {
+#ifdef RS_ENABLE_GL
+    GPUResourceTag tag(pid, 0, 0, 0);
+    ReleaseUnlockGpuResource(grContext, tag); // clear gpu resource by pid
+#endif
 }
 #endif
 
@@ -205,6 +239,7 @@ void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, bo
         RS_LOGE("ReleaseGpuResByTag fail, gpuContext is nullptr");
     }
     RS_TRACE_NAME_FMT("ReleaseUnlockGpuResource scratchResourcesOnly:%d", scratchResourcesOnly);
+    gpuContext->PurgeUnlockedResources(scratchResourcesOnly);
 #endif
 }
 #endif
@@ -232,6 +267,7 @@ void MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(Drawing::GPUContext* gp
         RS_LOGE("ReleaseUnlockAndSafeCacheGpuResource fail, gpuContext is nullptr");
     }
     RS_TRACE_NAME_FMT("ReleaseUnlockAndSafeCacheGpuResource");
+    gpuContext->PurgeUnlockAndSafeCacheGpuResources();
 #endif
 }
 #endif
