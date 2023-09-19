@@ -316,6 +316,10 @@ int MeasurerImpl::DoShape(CharGroups &cgs, MeasuringRun &run, size_t &index)
         return FAILED;
     }
 
+    if (text_.empty()) {
+        LOGEX_FUNC_LINE(ERROR) << "text is nullptr";
+        return FAILED;
+    }
     hb_buffer_add_utf16(hbuffer, reinterpret_cast<const uint16_t *>(text_.data()),
         INVALID_TEXT_LENGTH, run.start, run.end - run.start);
     hb_buffer_set_direction(hbuffer, rtl_ ? HB_DIRECTION_RTL : HB_DIRECTION_LTR);
