@@ -37,24 +37,29 @@ void HgmFrameRateManager::UniProcessData(const FrameRateRangeData& data)
     if (screenId == INVALID_SCREEN_ID) {
         return;
     }
-
+    auto& hgmCore = HgmCore::Instance();
     FrameRateRange finalRange;
-    finalRange.Merge(data.rsRange);
-    for (auto appRange : data.multiAppRange) {
-        finalRange.Merge(appRange.second);
-    }
-    if (!finalRange.IsValid()) {
-        if (data.forceUpdateFlag) {
-            finalRange.max_ = DEFAULT_PREFERRED;
-            finalRange.preferred_ = DEFAULT_PREFERRED;
-        } else {
-            HgmCore::Instance().InsertAndStartScreenTimer(screenId, IDLE_TIMER_EXPIRED, nullptr, expiredCallback_);
-            return;
-        }
+    if (auto scenePreferred = hgmCore.GetScenePreferred(); scenePreferred != 0) {
+        hgmCore.ResetScreenTimer(screenId);
+        finalRange.max_ = RANGE_MAX_REFRESHRATE;
+        finalRange.preferred_ = scenePreferred;
     } else {
-        HgmCore::Instance().ResetScreenTimer(screenId);
+        finalRange.Merge(data.rsRange);
+        for (auto appRange : data.multiAppRange) {
+            finalRange.Merge(appRange.second);
+        }
+        if (!finalRange.IsValid()) {
+            if (data.forceUpdateFlag) {
+                finalRange.max_ = RANGE_MAX_REFRESHRATE;
+                finalRange.preferred_ = DEFAULT_PREFERRED;
+            } else {
+                hgmCore.InsertAndStartScreenTimer(screenId, IDLE_TIMER_EXPIRED, nullptr, expiredCallback_);
+                return;
+            }
+        } else {
+            hgmCore.ResetScreenTimer(screenId);
+        }
     }
-
     CalcRefreshRate(screenId, finalRange);
     rsFrameRate_ = GetDrawingFrameRate(currRefreshRate_, finalRange);
     RS_OPTIONAL_TRACE_NAME("HgmFrameRateManager:UniProcessData refreshRate:" +

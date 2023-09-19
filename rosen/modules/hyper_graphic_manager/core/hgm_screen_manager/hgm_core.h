@@ -22,6 +22,7 @@
 #include <thread>
 #include <unordered_map>
 #include <vector>
+#include <unordered_set>
 
 #include <event_handler.h>
 
@@ -84,6 +85,10 @@ public:
     void ResetScreenTimer(ScreenId screenId) const;
     void InsertAndStartScreenTimer(ScreenId screenId, int32_t interval,
         std::function<void()> resetCallback, std::function<void()> expiredCallback);
+    void StartScreenScene(SceneType sceceType);
+    void StopScreenScene(SceneType sceceType);
+    int32_t GetScenePreferred() const;
+    int32_t SetModeBySettingConfig();
 private:
     HgmCore();
     ~HgmCore() = default;
@@ -95,7 +100,6 @@ private:
     bool Init();
     int32_t InitXmlConfig();
     int32_t SetCustomRateMode(RefreshRateMode mode);
-    int32_t SetModeBySettingConfig();
     int32_t RequestBundlePermission(int32_t rate);
 
     bool isEnabled_ = true;
@@ -116,6 +120,7 @@ private:
     std::shared_ptr<HgmFrameRateTool> hgmFrameRateTool_ = nullptr;
     ScreenId activeScreenId_ = 0;
     std::unordered_map<ScreenId, std::shared_ptr<HgmOneShotTimer>> screenTimerMap_;
+    std::unordered_set<SceneType> screenSceneSet_;
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CORE_H

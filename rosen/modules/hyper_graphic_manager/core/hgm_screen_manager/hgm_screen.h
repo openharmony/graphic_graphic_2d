@@ -122,7 +122,7 @@ private:
 
     void SetActiveModeId(int32_t modeId);
     std::shared_ptr<ScreenProfile> GetModeViaId(int32_t id) const;
-    bool IfSwitchToRate(int32_t screenId, uint32_t rate) const;
+    bool IfSwitchToRate(int32_t sceneId, uint32_t rate) const;
     int32_t GetModeIdViaRate(uint32_t rate) const;
     int32_t GetModeIdViaResolutionAndRate(int32_t width, int32_t height, uint32_t rate) const;
     static constexpr uint32_t RATE_NOT_SUPPORTED = 0;

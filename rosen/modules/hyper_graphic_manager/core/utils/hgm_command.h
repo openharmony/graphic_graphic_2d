@@ -82,6 +82,10 @@ enum class SpeedTransType {
     TRANS_MM_TO_PIXEL,
 };
 
+enum class SceneType {
+    SCREEN_RECORD,
+};
+
 class ParsedConfigData {
 public:
     ParsedConfigData() = default;

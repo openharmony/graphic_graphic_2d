@@ -76,7 +76,6 @@ private:
     std::atomic<bool> resetFlag_ = false;
     std::atomic<bool> stopFlag_ = false;
 };
-    
 } //namespace OHOS::Rosen
 
 #endif //HGM_ONE_SHOT_TIME_H

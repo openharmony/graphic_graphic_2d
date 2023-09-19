@@ -197,7 +197,7 @@ int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate
         HGM_LOGW("HgmCore refuse an illegal framerate: %{public}d", rate);
         return HGM_ERROR;
     }
-
+    sceneId = screenSceneSet_.size();
     int32_t modeToSwitch = screen->SetActiveRefreshRate(sceneId, static_cast<uint32_t>(rate));
     if (modeToSwitch < 0) {
         return modeToSwitch;
@@ -424,10 +424,29 @@ void HgmCore::InsertAndStartScreenTimer(ScreenId screenId, int32_t interval,
         newTimer->Start();
     }
 }
+
 void HgmCore::ResetScreenTimer(ScreenId screenId) const
 {
     if (auto timer = GetScreenTimer(screenId); timer != nullptr) {
         timer->Reset();
     }
+}
+
+void HgmCore::StartScreenScene(SceneType sceceType)
+{
+    screenSceneSet_.insert(sceceType);
+}
+
+void HgmCore::StopScreenScene(SceneType sceceType)
+{
+    screenSceneSet_.erase(sceceType);
+}
+
+int32_t HgmCore::GetScenePreferred() const
+{
+    if (screenSceneSet_.find(SceneType::SCREEN_RECORD) != screenSceneSet_.end()) {
+        return 60; // 60 means screen record scene preferred
+    }
+    return 0;
 }
 } // namespace OHOS::Rosen
