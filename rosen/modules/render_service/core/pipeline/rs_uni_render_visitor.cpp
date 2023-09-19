@@ -1219,14 +1219,31 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
 #endif
 
     auto parentNode = node.GetParent().lock();
-    auto rsParent = (parentNode);
-    dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, rsParent, dirtyFlag_, prepareClipRect_);
+    dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, parentNode, dirtyFlag_, prepareClipRect_);
 
     node.UpdateChildrenOutOfRectFlag(false);
     PrepareChildren(node);
     node.UpdateParentChildrenRect(logicParentNode_.lock());
     node.SetEffectRegion(effectRegion_);
-    UpdateForegroundFilterCacheWithDirty(node, *curSurfaceDirtyManager_);
+
+    if (node.GetRenderProperties().NeedFilter()) {
+        // filterRects_ is used in RSUniRenderVisitor::CalcDirtyFilterRegion
+        // When oldDirtyRect of node with filter has intersect with any surfaceNode or displayNode dirtyRegion,
+        // the whole oldDirtyRect should be render in this vsync.
+        // Partial rendering of node with filter would cause display problem.
+        if (parentNode) {
+            parentNode->SetChildHasFilter(true);
+        }
+        if (curSurfaceDirtyManager_->IsTargetForDfx()) {
+            curSurfaceDirtyManager_->UpdateDirtyRegionInfoForDfx(node.GetId(), RSRenderNodeType::CANVAS_NODE,
+                DirtyRegionType::FILTER_RECT, node.GetOldDirtyInSurface());
+        }
+        if (curSurfaceNode_) {
+            curSurfaceNode_->UpdateChildrenFilterRects(node.GetOldDirtyInSurface());
+            curSurfaceNode_->UpdateFilterNodes(node.shared_from_this());
+        }
+        UpdateForegroundFilterCacheWithDirty(node, *curSurfaceDirtyManager_);
+    }
 
     effectRegion_ = effectRegion;
     dirtyFlag_ = dirtyFlag;
