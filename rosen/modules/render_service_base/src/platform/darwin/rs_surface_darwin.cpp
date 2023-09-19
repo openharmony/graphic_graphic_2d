@@ -37,6 +37,10 @@ RSSurfaceDarwin::~RSSurfaceDarwin()
         grContext_->releaseResourcesAndAbandonContext();
     }
 #endif
+else
+    if (grContext_) {
+        grContext_->ReleaseResourcesAndAbandonContext();
+    }
 #endif
     grContext_ = nullptr;
 }

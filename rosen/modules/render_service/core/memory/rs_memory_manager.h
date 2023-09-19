@@ -77,7 +77,9 @@ public:
         const Drawing::GPUContext* gpuContext, std::vector<MemoryGraphic>& mems);
     static void ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, NodeId surfaceNodeId);
     static void ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, pid_t pid);
+    static void ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, Drawing::GPUResourceTag& tag);
     static void ReleaseAllGpuResource(Drawing::GPUContext* gpuContext, pid_t pid);
+    static void ReleaseAllGpuResource(Drawing::GPUContext* gpuContext, Drawing::GPUResourceTag& tag);
     static void ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, bool scratchResourcesOnly = true);
     static void ReleaseUnlockAndSafeCacheGpuResource(Drawing::GPUContext* grContext);
 #endif

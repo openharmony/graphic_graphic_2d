@@ -38,6 +38,15 @@ enum class PathRenderers : uint32_t {
     DEFAULT           = ALL & ~COVERAGECOUNTING
 };
 
+struct GPUResourceTag {
+    GPUResourceTag(uint32_t pid, uint32_t tid, uint32_t wid, uint32_t fid)
+        : fPid(pid), fTid(tid), fWid(wid), fFid(fid) {}
+    uint32_t fPid;
+    uint32_t fTid;
+    uint32_t fWid;
+    uint32_t fFid;
+};
+
 /*
  * @brief  Option to create a GPUContext. Currently only supports setting persistent cache,
            other options may be expanded in the future
@@ -94,6 +103,11 @@ public:
     void Flush();
 
     /*
+     * @brief   Call to ensure all drawing to the context has been flushed and submitted to underlying 3D API.
+     */
+    void FlushAndSubmit(bool syncCpu = false);
+
+    /*
      * @brief             Purge GPU resources that haven't been used in the past 'msNotUsed' milliseconds
                           or are otherwise marked for deletion.
      * @param msNotUsed   Only unlocked resources not used in these last milliseconds will be cleaned up.
@@ -126,6 +140,40 @@ public:
      * @brief                   Free GPU created by the contetx.
      */
     void FreeGpuResources();
+
+    /*
+     * @brief                   Dump GPU stats.
+     * @param out               Dump GPU stat string.
+     */
+    void DumpGpuStats(std::string& out) const;
+
+    /*
+     * @brief                   After returning it will assume that the underlying context may no longer be valid.
+     */
+    void ReleaseResourcesAndAbandonContext();
+
+    /*
+     * @brief                   Purge unlocked resources from the cache until
+     *                          the provided byte count has been reached or we have purged all unlocked resources.
+     */
+    void PurgeUnlockedResources(bool scratchResourcesOnly);
+
+    /*
+     * @brief                   Purge unlocked resources by tag from the cache until
+     *                          the provided byte count has been reached or we have purged all unlocked resources.
+     */
+    void PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag tag);
+
+    /*
+     * @brief                   Purge unlocked resources from the safe cache until
+     *                          the provided byte count has been reached or we have purged all unlocked resources.
+     */
+    void PurgeUnlockAndSafeCacheGpuResources();
+
+    /*
+     * @brief                   Releases GPUResource objects and removes them from the cache by tag.
+     */
+    void ReleaseByTag(const GPUResourceTag tag);
 
     /*
      * @brief   Get the adaptation layer instance, called in the adaptation layer.
