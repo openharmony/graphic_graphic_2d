@@ -243,6 +243,12 @@ GSError BufferQueue::RequestBuffer(const BufferRequestConfig &config, sptr<Buffe
     return ret;
 }
 
+GSError BufferQueue::SetProducerCacheCleanFlag(bool flag)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    return SetProducerCacheCleanFlagLocked(flag);
+}
+
 GSError BufferQueue::SetProducerCacheCleanFlagLocked(bool flag)
 {
     producerCacheClean_ = flag;
