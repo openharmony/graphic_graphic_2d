@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#ifndef AlGO_FILTER_UNITTEST_H
+#ifndef Al_GO_FILTER_UNITTEST_H
 #define Al_GO_FILTER_UNITTEST_H
 
 #include <gtest/gtest.h>
@@ -30,4 +30,4 @@ public:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // AlGO_FILTER_UNITTEST_H
+#endif // Al_GO_FILTER_UNITTEST_H
