@@ -3397,7 +3397,8 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMapWithBlur(RSRenderNode& node)
 void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
 {
     if (InitNodeCache(node)) {
-        RS_LOGD("RSUniRenderVisitor::UpdateCacheRenderNodeMap, generate the node cache for the first time.");
+        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVisitor::UpdateCacheRenderNodeMap, generate the node cache for the first"
+            "time, NodeId: %" PRIu64 " ", node.GetId());
         return;
     }
     uint32_t updateTimes = 0;
@@ -3437,7 +3438,8 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
             if (updateTimes >= CACHE_MAX_UPDATE_TIME) {
                 node.SetCacheType(CacheType::NONE);
                 RSUniRenderUtil::ClearCacheSurface(node, threadIndex_);
-                ChangeCacheRenderNodeMap(node, updateTimes);
+                cacheRenderNodeMap.erase(node.GetId());
+                groupedTransitionNodes.erase(node.GetId());
                 cacheReuseTimes = 0;
                 return;
             }
