@@ -158,6 +158,10 @@ public:
     void SetHardwareEnabled(NodeId id, bool isEnabled) override;
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
+
+#ifdef TP_FEATURE_ENABLE
+    void SetTpFeatureConfig(int32_t feature, const char* config) override;
+#endif
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);

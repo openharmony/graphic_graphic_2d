@@ -193,6 +193,10 @@ template("render_service_client_source_set") {
       deps += [ "$rosen_root/modules/platform:eventhandler" ]
     }
 
+    if (tp_feature_enable) {
+      defines += tp_defines
+    }
+
     if (defined(use_new_render_context) && use_new_render_context) {
       public_deps += [ "$graphic_2d_root/rosen/modules/render_service_base/src/render_backend:librender_backend" ]
     }

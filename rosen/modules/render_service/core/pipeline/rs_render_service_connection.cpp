@@ -33,6 +33,10 @@
 #include "rs_main_thread.h"
 #include "rs_trace.h"
 
+#ifdef TP_FEATURE_ENABLE
+#include "touch_screen/touch_screen.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 // we guarantee that when constructing this object,
@@ -865,5 +869,19 @@ void RSRenderServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
 {
     RSSystemProperties::SetCacheEnabledForRotation(isEnabled);
 }
+
+#ifdef TP_FEATURE_ENABLE
+void RSRenderServiceConnection::SetTpFeatureConfig(int32_t feature, const char* config)
+{
+    if (TOUCH_SCREEN->tsSetFeatureConfig_ == nullptr) {
+        RS_LOGW("RSRenderServiceConnection::SetTpFeatureConfig: touch screen function symbol is nullptr.");
+        return;
+    }
+    if (TOUCH_SCREEN->tsSetFeatureConfig_(feature, config) < 0) {
+        RS_LOGW("RSRenderServiceConnection::SetTpFeatureConfig: tsSetFeatureConfig_ failed.");
+        return;
+    }
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

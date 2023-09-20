@@ -100,6 +100,10 @@ ohos_shared_library("librender_service") {
     ]
   }
 
+  if (tp_feature_enable) {
+    sources += [ "core/touch_screen/touch_screen.cpp" ]
+  }
+
   include_dirs = [
     "core",
     "$graphic_2d_root/frameworks/surface/include",
@@ -200,6 +204,10 @@ ohos_shared_library("librender_service") {
       "access_token:libaccesstoken_sdk",
       "access_token:libtokenid_sdk",
     ]
+  }
+
+  if (tp_feature_enable) {
+    defines += tp_defines
   }
 
   ldflags = []

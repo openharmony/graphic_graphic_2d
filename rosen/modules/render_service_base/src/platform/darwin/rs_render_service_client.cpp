@@ -333,5 +333,11 @@ void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled)
 void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 {
 }
+
+#ifdef TP_FEATURE_ENABLE
+void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* config)
+{
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

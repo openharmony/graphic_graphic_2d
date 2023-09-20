@@ -22,6 +22,10 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_hardware_thread.h"
 
+#ifdef TP_FEATURE_ENABLE
+#include "touch_screen/touch_screen.h"
+#endif
+
 #include <string>
 #include <unistd.h>
 
@@ -43,6 +47,9 @@ bool RSRenderService::Init()
 {
     RSMainThread::Instance();
     RSUniRenderJudgement::InitUniRenderConfig();
+#ifdef TP_FEATURE_ENABLE
+    TOUCH_SCREEN->InitTouchScreen();
+#endif
     screenManager_ = CreateOrGetScreenManager();
     if (RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
         // screenManager initializtion executes in RSHHardwareThread under UNI_RENDER mode
