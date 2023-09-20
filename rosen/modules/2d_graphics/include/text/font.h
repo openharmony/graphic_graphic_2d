@@ -38,8 +38,6 @@ enum class FontEdging {
 class Font {
 public:
     Font();
-    Font(const Font& other) noexcept;
-    Font& operator=(const Font& other) noexcept;
     virtual ~Font() = default;
 
     /*
