@@ -524,9 +524,13 @@ MemoryGraphic RSRenderServiceConnection::GetMemoryGraphic(int pid)
 std::vector<MemoryGraphic> RSRenderServiceConnection::GetMemoryGraphics()
 {
     std::vector<MemoryGraphic> memoryGraphics;
-    mainThread_->ScheduleTask(
-        [this, &memoryGraphics]() { return mainThread_->CountMem(memoryGraphics); }).wait();
-    return memoryGraphics;
+    if (GetUniRenderEnabled()) {
+        mainThread_->ScheduleTask(
+            [this, &memoryGraphics]() { return mainThread_->CountMem(memoryGraphics); }).wait();
+        return memoryGraphics;
+    } else {
+        return memoryGraphics;
+    }
 }
 
 std::vector<RSScreenModeInfo> RSRenderServiceConnection::GetScreenSupportedModes(ScreenId id)
