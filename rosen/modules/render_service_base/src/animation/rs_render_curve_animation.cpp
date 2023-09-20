@@ -16,6 +16,7 @@
 #include "animation/rs_render_curve_animation.h"
 
 #include "animation/rs_value_estimator.h"
+#include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_marshalling_helper.h"
 
@@ -95,6 +96,9 @@ void RSRenderCurveAnimation::OnAnimate(float fraction)
 void RSRenderCurveAnimation::OnAnimateInner(float fraction, const std::shared_ptr<RSInterpolator>& interpolator)
 {
     if (GetPropertyId() == 0) {
+        RS_OPTIONAL_TRACE_BEGIN("Animation running on propertyId is 0, animationId : " +
+            std::to_string(GetAnimationId()) + " nodeId : " + std::to_string(GetTargetId()));
+        RS_OPTIONAL_TRACE_END();
         return;
     }
 
