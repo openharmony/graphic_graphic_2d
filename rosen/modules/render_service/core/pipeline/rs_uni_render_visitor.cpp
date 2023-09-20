@@ -2742,12 +2742,12 @@ bool RSUniRenderVisitor::UpdateCacheSurface(RSRenderNode& node)
         node.InitCacheSurface(canvas_ ? canvas_->GetGPUContext().get() : nullptr, func, threadIndex_);
 #endif
     }
-
-    if (node.GetCacheSurface(threadIndex_, true) == nullptr) {
+    auto surface = node.GetCacheSurface(threadIndex_, true);
+    if (!surface) {
         RS_LOGE("Get CacheSurface failed");
         return false;
     }
-    auto cacheCanvas = std::make_shared<RSPaintFilterCanvas>(node.GetCacheSurface(threadIndex_, true).get());
+    auto cacheCanvas = std::make_shared<RSPaintFilterCanvas>(surface.get());
     if (!cacheCanvas) {
         return false;
     }
