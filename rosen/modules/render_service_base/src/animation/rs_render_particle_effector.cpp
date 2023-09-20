@@ -35,7 +35,7 @@ RSRenderParticleEffector::RSRenderParticleEffector(const std::shared_ptr<Particl
 int16_t RSRenderParticleEffector::CalculateRedInt(
     const std::shared_ptr<RSRenderParticle>& particle, int16_t redInt, float redF, float redSpeed, float deltaTime)
 {
-    if (!((redInt <= 0 && redSpeed <= 0.f) || (redInt >= 255 && redSpeed >= 0.f))) {
+    if (!((redInt <= 0 && redSpeed <= 0.f) || (redInt >= UINT8_MAX && redSpeed >= 0.f))) {
         redF += redSpeed * deltaTime;
         if (std::abs(redF) >= 1.f) {
             redInt += static_cast<int16_t>(redF);
@@ -50,7 +50,7 @@ int16_t RSRenderParticleEffector::CalculateRedInt(
 int16_t RSRenderParticleEffector::CalculateGreenInt(const std::shared_ptr<RSRenderParticle>& particle, int16_t greenInt,
     float greenF, float greenSpeed, float deltaTime)
 {
-    if (!((greenInt <= 0 && greenSpeed <= 0.f) || (greenInt >= 255 && greenSpeed >= 0.f))) {
+    if (!((greenInt <= 0 && greenSpeed <= 0.f) || (greenInt >= UINT8_MAX && greenSpeed >= 0.f))) {
         greenF += greenSpeed * deltaTime;
         if (std::abs(greenF) >= 1.f) {
             greenInt += static_cast<int16_t>(greenF);
@@ -65,7 +65,7 @@ int16_t RSRenderParticleEffector::CalculateGreenInt(const std::shared_ptr<RSRend
 int16_t RSRenderParticleEffector::CalculateBlueInt(
     const std::shared_ptr<RSRenderParticle>& particle, int16_t blueInt, float blueF, float blueSpeed, float deltaTime)
 {
-    if (!((blueInt <= 0 && blueSpeed <= 0.f) || (blueInt >= 255 && blueSpeed >= 0.f))) {
+    if (!((blueInt <= 0 && blueSpeed <= 0.f) || (blueInt >= UINT8_MAX && blueSpeed >= 0.f))) {
         blueF += blueSpeed * deltaTime;
         if (std::abs(blueF) >= 1.f) {
             blueInt += static_cast<int16_t>(blueF);
@@ -80,7 +80,7 @@ int16_t RSRenderParticleEffector::CalculateBlueInt(
 int16_t RSRenderParticleEffector::CalculateAlphaInt(const std::shared_ptr<RSRenderParticle>& particle, int16_t alphaInt,
     float alphaF, float alphaSpeed, float deltaTime)
 {
-    if (!((alphaInt <= 0 && alphaSpeed <= 0.f) || (alphaInt >= 255 && alphaSpeed >= 0.f))) {
+    if (!((alphaInt <= 0 && alphaSpeed <= 0.f) || (alphaInt >= UINT8_MAX && alphaSpeed >= 0.f))) {
         alphaF += alphaSpeed * deltaTime;
         if (std::abs(alphaF) >= 1.f) {
             alphaInt += static_cast<int16_t>(alphaF);
@@ -283,12 +283,9 @@ void RSRenderParticleEffector::UpdateAccelerationAngle(
             int endTime = valChangeOverLife[i]->endMillis_;
             auto interpolator = valChangeOverLife[i]->interpolator_;
             if (activeTime >= startTime && activeTime < endTime) {
-                if (!interpolator) {
-                    accelerationAngle = GenerateValue(startValue, endValue, startTime, endTime, activeTime);
-                } else {
-                    accelerationAngle =
-                        GenerateValue(startValue, endValue, startTime, endTime, activeTime, interpolator);
-                }
+                accelerationAngle = (interpolator != nullptr)
+                    ? GenerateValue(startValue, endValue, startTime, endTime, activeTime, interpolator)
+                    : GenerateValue(startValue, endValue, startTime, endTime, activeTime);
             }
         }
     }
@@ -314,12 +311,9 @@ void RSRenderParticleEffector::UpdateAccelerationValue(
             int endTime = valChangeOverLife[i]->endMillis_;
             auto interpolator = valChangeOverLife[i]->interpolator_;
             if (activeTime >= startTime && activeTime < endTime) {
-                if (!interpolator) {
-                    accelerationValue = GenerateValue(startValue, endValue, startTime, endTime, activeTime);
-                } else {
-                    accelerationValue =
-                        GenerateValue(startValue, endValue, startTime, endTime, activeTime, interpolator);
-                }
+                accelerationValue = (interpolator != nullptr)
+                    ? GenerateValue(startValue, endValue, startTime, endTime, activeTime, interpolator)
+                    : GenerateValue(startValue, endValue, startTime, endTime, activeTime);
             }
         }
     }
