@@ -2229,12 +2229,9 @@ void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFi
         if (particles[i] != nullptr && particles[i]->IsAlive()) {
             // Get particle properties
             auto position = particles[i]->GetPosition();
-            if (!(bounds->Intersect(position.x_, position.y_))) {
-                continue;
-            }
             float opacity = particles[i]->GetOpacity();
             float scale = particles[i]->GetScale();
-            if (opacity <= 0.f || scale <= 0.f) {
+            if (!(bounds->Intersect(position.x_, position.y_)) || opacity <= 0.f || scale <= 0.f) {
                 continue;
             }
             auto particleType = particles[i]->GetParticleType();
