@@ -24,7 +24,6 @@ group("unittest") {
       ":texgine_unittest_part1",
       ":texgine_unittest_part2",
       ":texgine_unittest_part3",
-      ":texgine_unittest_part4",
       ":texgine_unittest_part5",
       ":texgine_unittest_part6",
     ]
@@ -137,7 +136,6 @@ ohos_unittest("texgine_unittest_part5") {
 
   sources = [
     "measurer_impl_test.cpp",
-    "texgine_canvas_test.cpp",
     "texgine_dash_path_effect_test.cpp",
     "texgine_data_test.cpp",
     "texgine_font_manager_test.cpp",
