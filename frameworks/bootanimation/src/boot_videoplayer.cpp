@@ -48,6 +48,7 @@ void BootVideoPlayer::SetPlayerSurface(const sptr<Surface>& surface)
 
 bool BootVideoPlayer::PlayVideo()
 {
+#ifdef PLAYER_FRAMEWORK_ENABLE
     LOGI("PlayVideo begin");
     if (mediaPlayer_ == nullptr) {
         mediaPlayer_ = Media::PlayerFactory::CreatePlayer();
@@ -88,14 +89,21 @@ bool BootVideoPlayer::PlayVideo()
     mediaPlayer_->Play();
     LOGI("PlayVideo end");
     return true;
+#else
+    LOGI("player_framework part is not enabled.");
+    return false;
+#endif
 }
 
 void BootVideoPlayer::StopVideo()
 {
+#ifdef PLAYER_FRAMEWORK_ENABLE
     mediaPlayer_->Stop();
+#endif
     vsyncCallbacks_(userData_);
 }
 
+#ifdef PLAYER_FRAMEWORK_ENABLE
 // PlayerCallback override
 void VideoPlayerCallback::OnError(int32_t errorCode, const std::string &errorMsg)
 {
@@ -103,7 +111,9 @@ void VideoPlayerCallback::OnError(int32_t errorCode, const std::string &errorMsg
     LOGE("PlayerCallbackError received, errorCode:%{public}s", err.c_str());
     boot_->StopVideo();
 }
+#endif
 
+#ifdef PLAYER_FRAMEWORK_ENABLE
 void VideoPlayerCallback::OnInfo(Media::PlayerOnInfoType type, int32_t extra, const Media::Format &infoBody)
 {
     switch (type) {
@@ -148,3 +158,4 @@ void VideoPlayerCallback::OnInfo(Media::PlayerOnInfoType type, int32_t extra, co
             break;
     }
 }
+#endif

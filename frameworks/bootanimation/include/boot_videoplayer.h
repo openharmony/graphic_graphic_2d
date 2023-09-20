@@ -16,13 +16,17 @@
 #ifndef FRAMEWORKS_BOOTANIMATION_INCLUDE_BOOT_VIDEOPLAYER_H
 #define FRAMEWORKS_BOOTANIMATION_INCLUDE_BOOT_VIDEOPLAYER_H
 
+#ifdef PLAYER_FRAMEWORK_ENABLE
 #include <media_errors.h>
+#endif
 #include <parameters.h>
 #include <window_scene.h>
 #include <foundation/window/window_manager/interfaces/innerkits/wm/window_manager.h>
 
 #include "event_handler.h"
+#ifdef PLAYER_FRAMEWORK_ENABLE
 #include "player.h"
+#endif
 
 namespace OHOS {
 using VSyncCallback = std::function<void(void*)>;
@@ -44,7 +48,9 @@ public:
     bool PlayVideo();
     void StopVideo();
 private:
+#ifdef PLAYER_FRAMEWORK_ENABLE
     std::shared_ptr<Media::Player> mediaPlayer_;
+#endif
     OHOS::sptr<OHOS::Rosen::Window> window_;
     OHOS::sptr<OHOS::Surface> surface_;
     std::string videopath_;
@@ -52,9 +58,12 @@ private:
     void *userData_;
     std::mutex mtx_;
 
+#ifdef PLAYER_FRAMEWORK_ENABLE
     friend class VideoPlayerCallback;
+#endif
 };
 
+#ifdef PLAYER_FRAMEWORK_ENABLE
 class VideoPlayerCallback : public Media::PlayerCallback, public NoCopyable {
 public:
     VideoPlayerCallback(std::shared_ptr<BootVideoPlayer> boot)
@@ -68,6 +77,7 @@ public:
 private:
     std::shared_ptr<BootVideoPlayer> boot_;
 };
+#endif
 } // namespace OHOS
 
 #endif // FRAMEWORKS_BOOTANIMATION_INCLUDE_BOOT_VIDEOPLAYER_H

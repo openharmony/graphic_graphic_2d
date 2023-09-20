@@ -257,6 +257,7 @@ bool BootAnimation::CheckExitAnimation()
 
 void BootAnimation::PlaySound()
 {
+#ifdef PLAYER_FRAMEWORK_ENABLE
     LOGI("PlaySound start");
     bool bootSoundEnabled = system::GetBoolParameter("persist.graphic.bootsound.enabled", true);
     if (bootSoundEnabled == true) {
@@ -271,6 +272,9 @@ void BootAnimation::PlaySound()
         soundPlayer_->Play();
     }
     LOGI("PlaySound end");
+#else
+    LOGI("player_framework part is not enabled.");
+#endif
 }
 
 void BootAnimation::PlayVideo()

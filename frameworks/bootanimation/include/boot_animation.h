@@ -24,7 +24,9 @@
 #include <display.h>
 #include <display_type.h>
 #include <display_manager.h>
+#ifdef PLAYER_FRAMEWORK_ENABLE
 #include <media_errors.h>
+#endif
 #include <foundation/window/window_manager/interfaces/innerkits/wm/window_manager.h>
 #include <ipc_skeleton.h>
 #include <iremote_broker.h>
@@ -45,7 +47,9 @@
 #include "boot_animationconfig.h"
 #include "boot_videoplayer.h"
 #include "event_handler.h"
+#ifdef PLAYER_FRAMEWORK_ENABLE
 #include "player.h"
+#endif
 #include "vsync_receiver.h"
 #include "util.h"
 
@@ -88,7 +92,9 @@ private:
     int32_t picCurNo_ = -1;
     int32_t imgVecSize_ = 0;
     std::shared_ptr<OHOS::Rosen::VSyncReceiver> receiver_;
+#ifdef PLAYER_FRAMEWORK_ENABLE
     std::shared_ptr<Media::Player> soundPlayer_;
+#endif
     ImageStructVec imageVector_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> mainHandler_;
     std::shared_ptr<AppExecFwk::EventRunner> runner_;
