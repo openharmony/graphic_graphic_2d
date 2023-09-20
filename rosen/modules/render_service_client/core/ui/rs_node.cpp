@@ -777,12 +777,11 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
             float imageSizeHeight = 0.f;
             auto image = particleParams[i].emitterConfig_.image_;
             auto imageSize = particleParams[i].emitterConfig_.imageSize_;
-            if (image != nullptr) {
-                auto pixelMap = image->GetPixelMap();
-                if (pixelMap != nullptr) {
-                    imageSizeWidth = std::max(imageSize.x_, static_cast<float>(pixelMap->GetWidth()));
-                    imageSizeHeight = std::max(imageSize.y_, static_cast<float>(pixelMap->GetHeight()));
-                }
+            if (image == nullptr) continue;
+            auto pixelMap = image->GetPixelMap();
+            if (pixelMap != nullptr) {
+                imageSizeWidth = std::max(imageSize.x_, static_cast<float>(pixelMap->GetWidth()));
+                imageSizeHeight = std::max(imageSize.y_, static_cast<float>(pixelMap->GetHeight()));
             }
             left = position.x_ - imageSizeWidth * scaleMax;
             top = position.y_ - imageSizeHeight * scaleMax;
