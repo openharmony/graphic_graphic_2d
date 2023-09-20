@@ -24,7 +24,7 @@ declare_args() {
   graphic_2d_feature_enable_vulkan = false
   graphic_2d_feature_enable_filter_cache = true
   enable_text_gine = true
-  use_texgine = true
+  use_texgine = false
   player_framework_enable = false
   graphic_2d_feature_drivers_interface_display_enable = true
 
