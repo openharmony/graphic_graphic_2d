@@ -250,6 +250,7 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
     auto children = node.GetSortedChildren();
     for (auto& child : children) {
         if (UNLIKELY(child->GetSharedTransitionParam().has_value())) {
+            firstVisitedCache_ = INVALID_NODEID;
             PrepareSharedTransitionNode(*child);
             curDirty_ = child->IsDirty();
             child->Prepare(shared_from_this());
@@ -318,6 +319,11 @@ void RSUniRenderVisitor::DisableNodeCacheInSetting(RSRenderNode& node)
             node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         }
     }
+    if (firstVisitedCache_ == INVALID_NODEID) {
+        node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+        std::stack<bool>().swap(isDrawingCacheChanged_);
+        visitedCacheNodeIds_.clear();
+    }
 }
 
 void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node)
@@ -351,7 +357,7 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node)
     }
     // reset counter after executing the very first marked node
     if (firstVisitedCache_ == node.GetId()) {
-        isDrawingCacheChanged_.pop();
+        std::stack<bool>().swap(isDrawingCacheChanged_);
         firstVisitedCache_ = INVALID_NODEID;
         visitedCacheNodeIds_.clear();
     } else {
