@@ -137,6 +137,7 @@ void RSTransaction::MarshallTransactionSyncController(MessageParcel& parcel)
     };
     controller->SetTransactionFinishedCallback(callback);
     CallCreateStartCallback();
+    std::unique_lock<std::mutex> lock(mutex_);
     controllers_.emplace_back(controller);
 }
 
@@ -149,6 +150,7 @@ void RSTransaction::UnmarshallTransactionSyncController(MessageParcel& parcel)
     }
 
     sptr<RSISyncTransactionController> controller = iface_cast<RSISyncTransactionController>(controllerObject);
+    std::unique_lock<std::mutex> lock(mutex_);
     controllers_.emplace_back(controller);
 }
 
