@@ -23,17 +23,6 @@ namespace Rosen {
 namespace Drawing {
 Font::Font() : fontImpl_(ImplFactory::CreateFontImpl()) {}
 
-Font::Font(const Font& other) noexcept
-{
-    fontImpl_.reset(other.fontImpl_->Clone());
-}
-
-Font& Font::operator=(const Font& other) noexcept
-{
-    fontImpl_.reset(other.fontImpl_->Clone());
-    return *this;
-}
-
 void Font::SetEdging(FontEdging edging)
 {
     fontImpl_->SetEdging(edging);
