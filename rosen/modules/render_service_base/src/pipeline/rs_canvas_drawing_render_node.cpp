@@ -110,6 +110,10 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
         canvas.concat(mat);
     }
     auto image = skSurface_->makeImageSnapshot();
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        skSurface_->readPixels(rsDrawingNodeBitmap_, 0, 0);
+    }
 #ifdef NEW_SKIA
     auto samplingOptions = SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
     canvas.drawImage(image, 0.f, 0.f, samplingOptions, nullptr);
@@ -257,20 +261,8 @@ void RSCanvasDrawingRenderNode::ApplyDrawCmdModifier(RSModifierContext& context,
 #ifndef USE_ROSEN_DRAWING
 SkBitmap RSCanvasDrawingRenderNode::GetBitmap()
 {
-    SkBitmap bitmap;
-    if (skSurface_ == nullptr) {
-        RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: SkSurface is nullptr");
-        return bitmap;
-    }
-    sk_sp<SkImage> image = skSurface_->makeImageSnapshot();
-    if (image == nullptr) {
-        RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: SkImage is nullptr");
-        return bitmap;
-    }
-    if (!image->asLegacyBitmap(&bitmap)) {
-        RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: asLegacyBitmap failed");
-    }
-    return bitmap;
+    std::lock_guard<std::mutex> lock(mutex_);
+    return rsDrawingNodeBitmap_;
 }
 #else
 Drawing::Bitmap RSCanvasDrawingRenderNode::GetBitmap()

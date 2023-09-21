@@ -71,6 +71,8 @@ private:
     std::shared_ptr<Drawing::Bitmap> bitmap_;
     std::shared_ptr<Drawing::Surface> surface_;
 #endif
+    SkBitmap rsDrawingNodeBitmap_;
+    std::mutex mutex_;
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
     ThreadInfo curThreadInfo_ = {};
     ThreadInfo preThreadInfo_ = {};
