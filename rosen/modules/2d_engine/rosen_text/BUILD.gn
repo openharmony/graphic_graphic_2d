@@ -77,10 +77,7 @@ if (enable_text_gine) {
       "adapter/texgine/typography_create.cpp",
     ]
 
-    deps = [
-      "$graphic_2d_root/rosen/modules/texgine:libtexgine",
-      "$graphic_2d_root/rosen/modules/texgine/texgine_drawing:libtexgine_drawing",
-    ]
+    deps = [ "$graphic_2d_root/rosen/modules/texgine:libtexgine_source" ]
 
     part_name = "graphic_2d"
     subsystem_name = "graphic"

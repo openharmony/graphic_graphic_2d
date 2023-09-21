@@ -20,9 +20,6 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 #ifndef DRAWING_API
-#ifndef USE_ROSEN_DRAWING
-#define DRAWING_API
-#else
 #ifdef _WIN32
 #define DRAWING_EXPORT __attribute__((dllexport))
 #define DRAWING_IMPORT __attribute__((dllimport))
@@ -30,7 +27,9 @@ namespace Drawing {
 #define DRAWING_EXPORT __attribute__((visibility("default")))
 #define DRAWING_IMPORT __attribute__((visibility("default")))
 #endif
-
+#ifndef USE_ROSEN_DRAWING
+#define DRAWING_API DRAWING_EXPORT
+#else
 #ifdef MODULE_DRAWING
 #define DRAWING_API DRAWING_EXPORT
 #else
