@@ -533,6 +533,10 @@ std::vector<TextRect> TypographyImpl::GetTextRectsByBoundary(Boundary boundary, 
     }
     std::vector<TextRect> totalBoxes;
     for (auto i = 0; i < static_cast<int>(lineMetrics_.size()); i++) {
+        if (baselines_.empty() || lineMaxAscent_.empty() || lineMaxCoveredAscent_.empty() ||
+            lineMaxCoveredDescent_.empty()) {
+            return {};
+        }
         std::vector<TextRect> lineBoxes;
         auto baseline = baselines_[i];
         auto as = lineMaxAscent_[i];
