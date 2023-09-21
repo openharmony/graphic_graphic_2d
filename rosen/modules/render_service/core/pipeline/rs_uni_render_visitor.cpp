@@ -41,7 +41,6 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_proxy_render_node.h"
-#include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_listener.h"
@@ -56,9 +55,7 @@
 #include "system/rs_system_parameters.h"
 #include "scene_board_judgement.h"
 #include "hgm_core.h"
-#ifdef RS_ENABLE_RECORDING
 #include "benchmarks/rs_recording_thread.h"
-#endif
 #include "scene_board_judgement.h"
 
 namespace OHOS {
@@ -1877,26 +1874,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             return;
         }
 
-#ifdef RS_ENABLE_RECORDING
-        RSRecordingCanvas canvas(node.GetRenderProperties().GetBoundsWidth(),
-                node.GetRenderProperties().GetBoundsHeight());
-        std::shared_ptr<RSPaintFilterCanvas> recordingCanvas;
-        bool recordingEnabled = false;
-        if (RSSystemProperties::GetRecordingEnabled()) {
-            RS_TRACE_BEGIN("RSUniRender:Recording begin");
-#ifdef RS_ENABLE_GL
-#ifdef NEW_SKIA
-            canvas.SetGrRecordingContext(canvas_->recordingContext());
-#else
-            canvas.SetGrContext(canvas_->getGrContext()); // SkImage::MakeFromCompressed need GrContext
-#endif
-#endif
-            recordingCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
-            recordingEnabled = true;
-            swap(canvas_, recordingCanvas);
-            RSRecordingThread::Instance().CheckAndRecording();
-        }
-#endif
+        tryCapture(node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight());
 
 #ifdef RS_ENABLE_VK
         canvas_->clear(SK_ColorTRANSPARENT);
@@ -2099,20 +2077,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         if (isDrawingCacheEnabled_ && RSSystemParameters::GetDrawingCacheEnabledDfx()) {
             DrawCacheRegionForDFX(cacheRenderNodeMapRects_);
         }
-#ifdef RS_ENABLE_RECORDING
-        if (recordingEnabled) {
-            swap(canvas_, recordingCanvas);
-            auto drawCmdList = canvas.GetDrawCmdList();
-            RS_TRACE_BEGIN("RSUniRender:DrawCmdList Playback");
-            drawCmdList->Playback(*canvas_);
-            RS_TRACE_END();
-            RS_TRACE_BEGIN("RSUniRender:RecordingToFile curFrameNum = " +
-                std::to_string(RSRecordingThread::Instance().GetCurDumpFrame()));
-            RSRecordingThread::Instance().RecordingToFile(drawCmdList);
-            RS_TRACE_END();
-            RS_TRACE_END();
-        }
-#endif
+        endCapture();
         RSMainThread::Instance()->RemoveTask(CLEAR_GPU_CACHE);
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
         renderFrame_->Flush();
@@ -3986,6 +3951,35 @@ void RSUniRenderVisitor::ProcessUnpairedSharedTransitionNode()
         node->SetSharedTransitionParam(std::nullopt);
     }
     unpairedTransitionNodes_.clear();
+}
+
+void RSUniRenderVisitor::tryCapture(float width, float height)
+{
+    if (!RSSystemProperties::GetRecordingEnabled()) {
+        return;
+    }
+    recordingCanvas_ = std::make_unique<RSRecordingCanvas>(width, height);
+    RS_TRACE_NAME("RSUniRender:Recording begin");
+#ifdef RS_ENABLE_GL
+#ifdef NEW_SKIA
+    recordingCanvas_->SetGrRecordingContext(canvas_->recordingContext());
+#else
+    recordingCanvas_->SetGrContext(canvas_->getGrContext()); // SkImage::MakeFromCompressed need GrContext
+#endif
+#endif
+    canvas_->addCanvas(recordingCanvas_.get());
+    RSRecordingThread::Instance().CheckAndRecording();
+}
+ 
+void RSUniRenderVisitor::endCapture()
+{
+    if (!RSRecordingThread::Instance().GetRecordingEnabled()) {
+        return;
+    }
+    auto drawCmdList = recordingCanvas_->GetDrawCmdList();
+    RS_TRACE_NAME("RSUniRender:RecordingToFile curFrameNum = " +
+                   std::to_string(RSRecordingThread::Instance().GetCurDumpFrame()));
+    RSRecordingThread::Instance().RecordingToFile(drawCmdList);
 }
 } // namespace Rosen
 } // namespace OHOS
