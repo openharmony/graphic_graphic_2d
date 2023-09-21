@@ -76,6 +76,7 @@ public:
     void DrawPicture(const Picture& picture) override;
 
     void ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias) override;
+    void ClipIRect(const RectI& rect, ClipOp op = ClipOp::INTERSECT) override;
     void ClipRoundRect(const RoundRect& roundRect, ClipOp op, bool doAntiAlias) override;
     void ClipPath(const Path& path, ClipOp op, bool doAntiAlias) override;
     void ClipRegion(const Region& region, ClipOp op = ClipOp::INTERSECT) override;
@@ -94,6 +95,7 @@ public:
     void SaveLayer(const SaveLayerOps& saveLayerOps) override;
     void Restore() override;
     uint32_t GetSaveCount() const override;
+    void Discard() override;
 
     void ClipAdaptiveRoundRect(const std::vector<Point>& radius);
     void DrawImage(const std::shared_ptr<Image>& image, const std::shared_ptr<Data>& data,

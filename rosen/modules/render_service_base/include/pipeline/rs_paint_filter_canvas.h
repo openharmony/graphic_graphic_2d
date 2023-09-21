@@ -86,6 +86,7 @@ public:
     void DrawPicture(const Drawing::Picture& picture) override;
 
     void ClipRect(const Drawing::Rect& rect, Drawing::ClipOp op, bool doAntiAlias) override;
+    void ClipIRect(const Drawing::RectI& rect, Drawing::ClipOp op = Drawing::ClipOp::INTERSECT) override;
     void ClipRoundRect(const Drawing::RoundRect& roundRect, Drawing::ClipOp op, bool doAntiAlias) override;
     void ClipPath(const Drawing::Path& path, Drawing::ClipOp op, bool doAntiAlias) override;
     void ClipRegion(const Drawing::Region& region, Drawing::ClipOp op = Drawing::ClipOp::INTERSECT) override;
@@ -103,6 +104,7 @@ public:
     void Save() override;
     void SaveLayer(const Drawing::SaveLayerOps& saveLayerOps) override;
     void Restore() override;
+    void Discard() override;
 
     CoreCanvas& AttachPen(const Drawing::Pen& pen) override;
     CoreCanvas& AttachBrush(const Drawing::Brush& brush) override;

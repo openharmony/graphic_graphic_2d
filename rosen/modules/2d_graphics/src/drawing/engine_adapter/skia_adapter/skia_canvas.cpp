@@ -152,6 +152,19 @@ ImageInfo SkiaCanvas::GetImageInfo()
     return ConvertToRSImageInfo(skCanvas_->imageInfo());
 }
 
+bool SkiaCanvas::ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
+    int srcX, int srcY)
+{
+    if (!skCanvas_) {
+        LOGE("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return false;
+    }
+    SkImageInfo info = SkImageInfo::Make(dstInfo.GetWidth(), dstInfo.GetHeight(),
+        ConvertToSkColorType(dstInfo.GetColorType()), ConvertToSkAlphaType(dstInfo.GetAlphaType()),
+        dstInfo.GetColorSpace()->GetImpl<SkiaColorSpace>()->GetColorSpace());
+    return skCanvas_->readPixels(info, dstPixels, dstRowBytes, srcX, srcY);
+}
+
 void SkiaCanvas::DrawPoint(const Point& point)
 {
     if (!skCanvas_) {
@@ -817,6 +830,17 @@ void SkiaCanvas::ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias)
     skCanvas_->clipRect(clipRect, clipOp, doAntiAlias);
 }
 
+void SkiaCanvas::ClipIRect(const RectI& rect, ClipOp op)
+{
+    if (!skCanvas_) {
+        LOGE("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    SkRect clipRect = SkRect::MakeLTRB(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
+    SkClipOp clipOp = static_cast<SkClipOp>(op);
+    skCanvas_->clipRect(clipRect, clipOp, false);
+}
+
 void SkiaCanvas::ClipRoundRect(const RoundRect& roundRect, ClipOp op, bool doAntiAlias)
 {
     if (!skCanvas_) {
@@ -1012,6 +1036,11 @@ void SkiaCanvas::Restore()
 uint32_t SkiaCanvas::GetSaveCount() const
 {
     return (skCanvas_ != nullptr) ? skCanvas_->getSaveCount() : 0;
+}
+
+void SkiaCanvas::Discard()
+{
+    skCanvas_->discard();
 }
 
 void SkiaCanvas::AttachPen(const Pen& pen)

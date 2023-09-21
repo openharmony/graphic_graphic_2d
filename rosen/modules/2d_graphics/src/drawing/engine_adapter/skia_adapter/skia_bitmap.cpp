@@ -57,6 +57,21 @@ int SkiaBitmap::GetHeight() const
     return skiaBitmap_.height();
 }
 
+int SkiaBitmap::GetRowBytes() const
+{
+    return skiaBitmap_.rowBytes();
+}
+
+ColorType SkiaBitmap::GetColorType() const
+{
+    return ConvertToColorType(skiaBitmap_.colorType());
+}
+
+AlphaType SkiaBitmap::GetAlphaType() const
+{
+    return ConvertToAlphaType(skiaBitmap_.alphaType());
+}
+
 void* SkiaBitmap::GetPixels() const
 {
     return skiaBitmap_.getPixels();
@@ -83,6 +98,16 @@ void SkiaBitmap::CopyPixels(Bitmap& dst, int srcLeft, int srcTop, int width, int
     size_t dstRowBytes = static_cast<size_t>(width * height);
 
     skiaBitmap_.readPixels(skImageInfo, dstPixels, dstRowBytes, srcX, srcY);
+}
+
+bool SkiaBitmap::IsImmutable()
+{
+    return skiaBitmap_.isImmutable();
+}
+
+void SkiaBitmap::SetImmutable()
+{
+    skiaBitmap_.setImmutable();
 }
 
 void SkiaBitmap::ClearWithColor(const ColorQuad& color) const

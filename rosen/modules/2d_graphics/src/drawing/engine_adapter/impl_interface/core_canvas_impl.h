@@ -79,6 +79,8 @@ public:
     virtual int32_t GetWidth() const = 0;
     virtual int32_t GetHeight() const = 0;
     virtual ImageInfo GetImageInfo() = 0;
+    virtual bool ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
+        int srcX, int srcY) = 0;
 
     // shapes
     virtual void DrawPoint(const Point& point) = 0;
@@ -124,6 +126,7 @@ public:
 
     // clip
     virtual void ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias = false) = 0;
+    virtual void ClipIRect(const RectI& rect, ClipOp op = ClipOp::INTERSECT) = 0;
     virtual void ClipRoundRect(const RoundRect& roundRect, ClipOp op, bool doAntiAlias = false) = 0;
     virtual void ClipPath(const Path& path, ClipOp op, bool doAntiAlias = false) = 0;
     virtual void ClipRegion(const Region& region, ClipOp op = ClipOp::INTERSECT) = 0;
@@ -146,6 +149,7 @@ public:
     virtual void SaveLayer(const SaveLayerOps& saveLayerOption) = 0;
     virtual void Restore() = 0;
     virtual uint32_t  GetSaveCount() const = 0;
+    virtual void Discard() = 0;
 
     // paint
     virtual void AttachPen(const Pen& pen) = 0;

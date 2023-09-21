@@ -64,6 +64,7 @@ std::unordered_map<uint32_t, CanvasPlayer::PlaybackFunc> CanvasPlayer::opPlaybac
     { DrawOpItem::IMAGE_RECT_OPITEM,        DrawImageRectOpItem::Playback },
     { DrawOpItem::PICTURE_OPITEM,           DrawPictureOpItem::Playback },
     { DrawOpItem::CLIP_RECT_OPITEM,         ClipRectOpItem::Playback },
+    { DrawOpItem::CLIP_IRECT_OPITEM,        ClipIRectOpItem::Playback },
     { DrawOpItem::CLIP_ROUND_RECT_OPITEM,   ClipRoundRectOpItem::Playback },
     { DrawOpItem::CLIP_PATH_OPITEM,         ClipPathOpItem::Playback },
     { DrawOpItem::CLIP_REGION_OPITEM,       ClipRegionOpItem::Playback },
@@ -79,6 +80,7 @@ std::unordered_map<uint32_t, CanvasPlayer::PlaybackFunc> CanvasPlayer::opPlaybac
     { DrawOpItem::SAVE_OPITEM,              SaveOpItem::Playback },
     { DrawOpItem::SAVE_LAYER_OPITEM,        SaveLayerOpItem::Playback },
     { DrawOpItem::RESTORE_OPITEM,           RestoreOpItem::Playback },
+    { DrawOpItem::DISCARD_OPITEM,           DiscardOpItem::Playback },
     { DrawOpItem::ATTACH_PEN_OPITEM,        AttachPenOpItem::Playback },
     { DrawOpItem::ATTACH_BRUSH_OPITEM,      AttachBrushOpItem::Playback },
     { DrawOpItem::DETACH_PEN_OPITEM,        DetachPenOpItem::Playback },
@@ -670,6 +672,22 @@ void ClipRectOpItem::Playback(Canvas& canvas) const
     canvas.ClipRect(rect_, clipOp_, doAntiAlias_);
 }
 
+ClipIRectOpItem::ClipIRectOpItem(const RectI& rect, ClipOp op)
+    : DrawOpItem(CLIP_IRECT_OPITEM), rect_(rect), clipOp_(op) {}
+
+void ClipIRectOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const ClipIRectOpItem*>(opItem);
+        op->Playback(player.canvas_);
+    }
+}
+
+void ClipIRectOpItem::Playback(Canvas& canvas) const
+{
+    canvas.ClipIRect(rect_, clipOp_);
+}
+
 ClipRoundRectOpItem::ClipRoundRectOpItem(std::pair<uint32_t, size_t> radiusXYData, const Rect& rect, ClipOp op,
     bool doAntiAlias) : DrawOpItem(CLIP_ROUND_RECT_OPITEM), radiusXYData_(radiusXYData), rect_(rect), clipOp_(op),
     doAntiAlias_(doAntiAlias) {}
@@ -969,6 +987,21 @@ void RestoreOpItem::Playback(CanvasPlayer& player, const void* opItem)
 void RestoreOpItem::Playback(Canvas& canvas) const
 {
     canvas.Restore();
+}
+
+DiscardOpItem::DiscardOpItem() : DrawOpItem(DISCARD_OPITEM) {}
+
+void DiscardOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const DiscardOpItem*>(opItem);
+        op->Playback(player.canvas_);
+    }
+}
+
+void DiscardOpItem::Playback(Canvas& canvas) const
+{
+    canvas.Discard();
 }
 
 AttachPenOpItem::AttachPenOpItem(const PenHandle& penHandle) : DrawOpItem(ATTACH_PEN_OPITEM), penHandle_(penHandle) {}

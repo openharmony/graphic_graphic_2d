@@ -49,6 +49,21 @@ int Bitmap::GetHeight() const
     return bmpImplPtr->GetHeight();
 }
 
+int Bitmap::GetRowBytes() const
+{
+    return bmpImplPtr->GetRowBytes();
+}
+
+ColorType Bitmap::GetColorType() const
+{
+    return bmpImplPtr->GetColorType();
+}
+
+AlphaType Bitmap::GetAlphaType() const
+{
+    return bmpImplPtr->GetAlphaType();
+}
+
 void Bitmap::SetPixels(void* pixel)
 {
     bmpImplPtr->SetPixels(pixel);
@@ -62,6 +77,16 @@ void* Bitmap::GetPixels() const
 void Bitmap::CopyPixels(Bitmap& dst, int srcLeft, int srcTop, int width, int height) const
 {
     bmpImplPtr->CopyPixels(dst, srcLeft, srcTop, width, height);
+}
+
+bool Bitmap::IsImmutable()
+{
+    return bmpImplPtr->IsImmutable();
+}
+
+void Bitmap::SetImmutable()
+{
+    bmpImplPtr->SetImmutable();
 }
 
 void Bitmap::ClearWithColor(const ColorQuad& color) const

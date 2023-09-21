@@ -66,6 +66,8 @@ public:
     int32_t GetWidth() const override;
     int32_t GetHeight() const override;
     ImageInfo GetImageInfo() override;
+    bool ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
+        int srcX, int srcY) override;
 
     // shapes
     void DrawPoint(const Point& point) override;
@@ -110,6 +112,7 @@ public:
 
     // clip
     void ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias) override;
+    void ClipIRect(const RectI& rect, ClipOp op = ClipOp::INTERSECT) override;
     void ClipRoundRect(const RoundRect& roundRect, ClipOp op, bool doAntiAlias) override;
     void ClipPath(const Path& path, ClipOp op, bool doAntiAlias) override;
     void ClipRegion(const Region& region, ClipOp op = ClipOp::INTERSECT) override;
@@ -132,6 +135,7 @@ public:
     void SaveLayer(const SaveLayerOps& saveLayerOps) override;
     void Restore() override;
     uint32_t GetSaveCount() const override;
+    void Discard() override;
 
     // paint
     void AttachPen(const Pen& pen) override;

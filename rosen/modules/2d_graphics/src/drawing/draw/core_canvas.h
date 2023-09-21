@@ -185,6 +185,9 @@ public:
      */
     ImageInfo GetImageInfo();
 
+    bool ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
+        int srcX, int srcY);
+
     // shapes
     virtual void DrawPoint(const Point& point);
     virtual void DrawPoints(PointMode mode, size_t count, const Point pts[]);
@@ -242,6 +245,15 @@ public:
      * @param doAntiAlias  true if clip is to be anti-aliased. The default value is false.
      */
     virtual void ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias = false);
+
+    /*
+     * @brief              Replace the clipping area with the intersection or difference between the
+                           current clipping area and RectI, and use a clipping edge that is aliased or anti-aliased.
+     * @param rect         To combine with clipping area.
+     * @param op           To apply to clip.
+     * @param doAntiAlias  true if clip is to be anti-aliased. The default value is false.
+     */
+    virtual void ClipIRect(const RectI& rect, ClipOp op = ClipOp::INTERSECT);
 
     /*
      * @brief              Replace the clipping area with the intersection or difference of the
@@ -314,6 +326,11 @@ public:
      * @brief  Returns the number of saved states, each containing Matrix and clipping area.
      */
     virtual uint32_t GetSaveCount() const;
+
+    /*
+     * @brief  Makes Canvas contents undefined.
+     */
+    virtual void Discard();
 
     // paint
     virtual CoreCanvas& AttachPen(const Pen& pen);

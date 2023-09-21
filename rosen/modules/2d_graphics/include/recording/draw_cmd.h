@@ -100,6 +100,7 @@ public:
         IMAGE_RECT_OPITEM,
         PICTURE_OPITEM,
         CLIP_RECT_OPITEM,
+        CLIP_IRECT_OPITEM,
         CLIP_ROUND_RECT_OPITEM,
         CLIP_PATH_OPITEM,
         CLIP_REGION_OPITEM,
@@ -115,6 +116,7 @@ public:
         SAVE_OPITEM,
         SAVE_LAYER_OPITEM,
         RESTORE_OPITEM,
+        DISCARD_OPITEM,
         ATTACH_PEN_OPITEM,
         ATTACH_BRUSH_OPITEM,
         DETACH_PEN_OPITEM,
@@ -483,6 +485,19 @@ private:
     bool doAntiAlias_;
 };
 
+class ClipIRectOpItem : public DrawOpItem {
+public:
+    ClipIRectOpItem(const RectI& rect, ClipOp op = ClipOp::INTERSECT);
+    ~ClipIRectOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas) const;
+
+private:
+    RectI rect_;
+    ClipOp clipOp_;
+};
+
 class ClipRoundRectOpItem : public DrawOpItem {
 public:
     ClipRoundRectOpItem(const std::pair<uint32_t, size_t> radiusXYData, const Rect& rect, ClipOp op, bool doAntiAlias);
@@ -662,6 +677,15 @@ class RestoreOpItem : public DrawOpItem {
 public:
     RestoreOpItem();
     ~RestoreOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas) const;
+};
+
+class DiscardOpItem : public DrawOpItem {
+public:
+    DiscardOpItem();
+    ~DiscardOpItem() = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
     void Playback(Canvas& canvas) const;

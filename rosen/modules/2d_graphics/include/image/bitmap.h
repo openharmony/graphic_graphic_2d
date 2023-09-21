@@ -44,12 +44,18 @@ public:
      */
     int GetHeight() const;
 
+    int GetRowBytes() const;
+    ColorType GetColorType() const;
+    AlphaType GetAlphaType() const;
+
     /*
      * @brief  Gets the pointer to Bitmap buffer.
      */
     void* GetPixels() const;
     void SetPixels(void* pixel);
     void CopyPixels(Bitmap& dst, int srcLeft, int srcTop, int width, int height) const;
+    bool IsImmutable();
+    void SetImmutable();
     void ClearWithColor(const ColorQuad& color) const;
     bool IsValid() const;
     ColorQuad GetColor(int x, int y) const;

@@ -294,6 +294,11 @@ void RecordingCanvas::ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias)
     cmdList_->AddOp<ClipRectOpItem>(rect, op, doAntiAlias);
 }
 
+void RecordingCanvas::ClipIRect(const RectI& rect, ClipOp op)
+{
+    cmdList_->AddOp<ClipIRectOpItem>(rect, op);
+}
+
 void RecordingCanvas::ClipRoundRect(const RoundRect& roundRect, ClipOp op, bool doAntiAlias)
 {
     std::vector<Point> radiusXY;
@@ -413,6 +418,11 @@ void RecordingCanvas::Restore()
 uint32_t RecordingCanvas::GetSaveCount() const
 {
     return saveCount_;
+}
+
+void RecordingCanvas::Discard()
+{
+    cmdList_->AddOp<DiscardOpItem>();
 }
 
 void RecordingCanvas::ClipAdaptiveRoundRect(const std::vector<Point>& radius)
