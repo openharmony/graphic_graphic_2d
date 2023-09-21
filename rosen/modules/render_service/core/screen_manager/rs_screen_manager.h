@@ -317,6 +317,7 @@ private:
     uint32_t maxVirtualScreenNum_ = 0;
     std::vector<sptr<RSIScreenChangeCallback>> screenChangeCallbacks_;
     bool mipiCheckInFirstHotPlugEvent_ = false;
+    bool isHwcDead_ = false;
     std::vector<ScreenId> connectedIds_;
     std::unordered_map<ScreenId, uint32_t> screenPowerStatus_;
 

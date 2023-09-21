@@ -111,6 +111,17 @@ void RSHardwareThread::ReleaseLayers(OutputPtr output, const std::unordered_map<
     }
     const auto layersReleaseFence = output->GetLayersReleaseFence();
     if (layersReleaseFence.size() == 0) {
+        // When release fence's size is 0, the output may invalid, release all buffer
+        // This situation may happen when killing composer_host
+        for (const auto& [id, layer] : layerMap) {
+            if (layer == nullptr || layer->GetLayerInfo()->GetSurface() == nullptr) {
+                RS_LOGW("RSHardwareThread::ReleaseLayers: layer or layer's cSurface is nullptr");
+                continue;
+            }
+            auto preBuffer = layer->GetLayerInfo()->GetPreBuffer();
+            auto consumer = layer->GetLayerInfo()->GetSurface();
+            ReleaseBuffer(preBuffer, SyncFence::INVALID_FENCE, consumer);
+        }
         RS_LOGE("RSHardwareThread::ReleaseLayers: no layer needs to release");
     }
     for (const auto& [layer, fence] : layersReleaseFence) {
