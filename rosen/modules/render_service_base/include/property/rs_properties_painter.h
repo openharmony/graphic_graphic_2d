@@ -104,6 +104,8 @@ private:
         float radius, sk_sp<SkShader> alphaGradientShader, const SkIRect& clipIPadding);
     static uint8_t CalcDirectionBias(const SkMatrix& mat);
 #endif
+    friend class RSLinearGradientBlurFilterDrawable;
+    friend class RSLightUpEffectDrawable;
 #else
     static void Clip(Drawing::Canvas& canvas, RectF rect, bool isAntiAlias = true);
     static void SetBgAntiAlias(bool forceBgAntiAlias);

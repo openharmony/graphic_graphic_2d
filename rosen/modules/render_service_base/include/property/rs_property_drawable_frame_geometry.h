@@ -18,7 +18,6 @@
 
 #include <list>
 #include <utility>
-
 #include "property/rs_property_drawable.h"
 
 namespace OHOS::Rosen {
@@ -35,6 +34,8 @@ private:
     float frameOffsetY_;
 };
 
+// ============================================================================
+// ClipFrame
 class RSClipFrameDrawable : public RSPropertyDrawable {
 public:
     explicit RSClipFrameDrawable(const SkRect& content) : content_(content) {}
@@ -44,5 +45,18 @@ public:
 private:
     SkRect content_;
 };
-}; // namespace OHOS::Rosen
+
+// ============================================================================
+//
+class RSColorFilterDrawable : public RSPropertyDrawable {
+public:
+    explicit RSColorFilterDrawable(SkPaint&& paint) : paint_(std::move(paint)) {}
+    ~RSColorFilterDrawable() override = default;
+    void Draw(RSModifierContext& context) override;
+    static std::unique_ptr<RSPropertyDrawable> Generate(const RSProperties& properties);
+
+private:
+    SkPaint paint_;
+};
+};     // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_FRAME_GEOMETRY_H

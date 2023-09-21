@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_BOUNDS_GEOMETRY_H
 #define RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_BOUNDS_GEOMETRY_H
 
+#include "rs_properties_painter.h"
 #include "property/rs_property_drawable.h"
 
 namespace OHOS::Rosen {
@@ -164,6 +165,7 @@ public:
     explicit RSShadowDrawable(SkPath skPath, const RSProperties& properties);
     ~RSShadowDrawable() override = default;
     void Draw(RSModifierContext& context) override;
+
 protected:
     float radius_;
 };
@@ -173,6 +175,7 @@ public:
     explicit RSColorfulShadowDrawable(SkPath skPath, const RSProperties& properties);
     ~RSColorfulShadowDrawable() override = default;
     void Draw(RSModifierContext& context) override;
+
 protected:
     SkPaint blurPaint_;
     std::weak_ptr<RSRenderNode> node_;
@@ -213,5 +216,132 @@ public:
 };
 
 // ============================================================================
-}; // namespace OHOS::Rosen
+// LightUpEffect
+class RSLightUpEffectDrawable : public RSPropertyDrawable {
+public:
+    explicit RSLightUpEffectDrawable() {}
+    ~RSLightUpEffectDrawable() override = default;
+    void Draw(RSModifierContext& context) override;
+    static std::unique_ptr<RSPropertyDrawable> Generate(const RSProperties& properties);
+};
+
+class RSFilterDrawable : public RSPropertyDrawable {
+public:
+    enum FilterType {
+        BACKGROUND_FILTER,
+        FOREGROUND_FILTER,
+    };
+    RSFilterDrawable() = default;
+    ~RSFilterDrawable() override = default;
+    void DrawFilter(RSModifierContext& context, FilterType filterType, const std::shared_ptr<RSFilter>& rsFilter);
+    static bool GetBlurEnabled();
+};
+
+// ============================================================================
+// BackgroundFilter
+class RSBackgroundFilterDrawable : public RSFilterDrawable {
+public:
+    explicit RSBackgroundFilterDrawable(const std::shared_ptr<RSFilter>& filter) : filter_(filter) {}
+    ~RSBackgroundFilterDrawable() override = default;
+    void Draw(RSModifierContext& context) override;
+    static std::unique_ptr<RSPropertyDrawable> Generate(const RSProperties& properties);
+
+private:
+    const std::shared_ptr<RSFilter>& filter_;
+};
+
+// ============================================================================
+// ForegroundFilter
+class RSForegroundFilterDrawable : public RSFilterDrawable {
+public:
+    explicit RSForegroundFilterDrawable(const std::shared_ptr<RSFilter>& filter) : filter_(filter) {}
+    ~RSForegroundFilterDrawable() override = default;
+    void Draw(RSModifierContext& context) override;
+    static std::unique_ptr<RSPropertyDrawable> Generate(const RSProperties& properties);
+
+private:
+    const std::shared_ptr<RSFilter>& filter_;
+};
+
+// ============================================================================
+// LinearGradientBlurFilter
+class RSLinearGradientBlurFilterDrawable : public RSPropertyDrawable {
+public:
+    explicit RSLinearGradientBlurFilterDrawable(const std::shared_ptr<RSLinearGradientBlurPara>& para) : para_(para) {}
+    ~RSLinearGradientBlurFilterDrawable() override = default;
+    void Draw(RSModifierContext& context) override;
+    static std::unique_ptr<RSPropertyDrawable> Generate(const RSProperties& properties);
+
+private:
+    const std::shared_ptr<RSLinearGradientBlurPara>& para_;
+};
+
+// ============================================================================
+// ForegroundColor
+class RSForegroundColorDrawable : public RSPropertyDrawable {
+public:
+    explicit RSForegroundColorDrawable(SkPaint&& paint) : paint_(std::move(paint)) {}
+    ~RSForegroundColorDrawable() override = default;
+    void Draw(RSModifierContext& context) override;
+    static std::unique_ptr<RSPropertyDrawable> Generate(const RSProperties& properties);
+
+private:
+    SkPaint paint_;
+};
+
+// ============================================================================
+// Particle
+class RSParticleDrawable : public RSPropertyDrawable {
+public:
+    explicit RSParticleDrawable() {}
+    ~RSParticleDrawable() override = default;
+    void AddPropertyDrawable(std::shared_ptr<RSPropertyDrawable> drawale);
+    static std::unique_ptr<RSPropertyDrawable> Generate(const RSProperties& properties);
+    void Draw(RSModifierContext& context) override;
+
+private:
+    std::vector<std::shared_ptr<RSPropertyDrawable>> drawbleVec_ = {};
+};
+
+class RSPointParticleDrawable : public RSPropertyDrawable {
+public:
+    explicit RSPointParticleDrawable(SkPaint&& paint, std::shared_ptr<RSRenderParticle>& particles, RectF bounds)
+        : paint_(std::move(paint)), particles_(particles), bounds_(bounds)
+    {}
+    ~RSPointParticleDrawable() override = default;
+    void Draw(RSModifierContext& context) override;
+
+private:
+    SkPaint paint_;
+    std::shared_ptr<RSRenderParticle> particles_;
+    RectF bounds_;
+};
+
+class RSImageParticleDrawable : public RSPropertyDrawable {
+public:
+    explicit RSImageParticleDrawable(SkPaint&& paint, std::shared_ptr<RSRenderParticle>& particles, RectF bounds)
+        : paint_(std::move(paint)), particles_(particles), bounds_(bounds)
+    {}
+    ~RSImageParticleDrawable() override = default;
+    void Draw(RSModifierContext& context) override;
+
+private:
+    SkPaint paint_;
+    std::shared_ptr<RSRenderParticle> particles_;
+    RectF bounds_;
+};
+
+// ============================================================================
+// PixelStretch
+class RSPixelStretchDrawable : public RSPropertyDrawable {
+public:
+    explicit RSPixelStretchDrawable(const std::optional<Vector4f>& pixelStretch) : pixelStretch_(pixelStretch) {}
+    ~RSPixelStretchDrawable() override = default;
+    void Draw(RSModifierContext& context) override;
+    static std::unique_ptr<RSPropertyDrawable> Generate(const RSProperties& properties);
+
+private:
+    const std::optional<Vector4f>& pixelStretch_;
+};
+};     // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_BOUNDS_GEOMETRY_H
