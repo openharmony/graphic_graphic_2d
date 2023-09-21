@@ -36,8 +36,7 @@ FontCollection::FontCollection(std::vector<std::shared_ptr<VariantFontStyleSet>>
 {
 }
 
-std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch,
-    FontStyles &style, const std::string &script, const std::string &locale) const
+void FontCollection::SortTypeface(FontStyles &style) const
 {
     std::vector<std::shared_ptr<TexgineTypeface>> typefaces;
     for (const auto &fontStyleSet : fontStyleSets_) {
@@ -60,7 +59,7 @@ std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch,
 
     std::vector<int> weights;
     for (auto ty : typefaces) {
-        auto weight = ty->GetFontStyle()->GetFontStyle()->weight() / 100;
+        auto weight = ty->GetFontStyle()->GetFontStyle()->weight() / MULTIPLE;
         weights.push_back(weight);
     }
 
@@ -75,6 +74,12 @@ std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch,
             }
         }
     }
+}
+
+std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch,
+    FontStyles &style, const std::string &script, const std::string &locale) const
+{
+    SortTypeface(style);
     auto fs = std::make_shared<TexgineFontStyle>();
     *fs = style.ToTexgineFontStyle();
     for (const auto &fontStyleSet : fontStyleSets_) {

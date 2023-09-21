@@ -44,6 +44,9 @@ public:
     void DisableFallback();
 
 private:
+    void SortTypeface(FontStyles &style) const;
+
+private:
     bool enableFallback_ = true;
     std::vector<std::shared_ptr<VariantFontStyleSet>> fontStyleSets_;
 
