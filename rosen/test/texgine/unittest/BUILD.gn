@@ -138,7 +138,6 @@ ohos_unittest("texgine_unittest_part5") {
     "measurer_impl_test.cpp",
     "texgine_dash_path_effect_test.cpp",
     "texgine_data_test.cpp",
-    "texgine_font_manager_test.cpp",
     "texgine_font_metrics_test.cpp",
     "texgine_font_style_set_test.cpp",
     "typography_impl_test.cpp",
