@@ -37,8 +37,46 @@ FontCollection::FontCollection(std::vector<std::shared_ptr<VariantFontStyleSet>>
 }
 
 std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch,
-    const FontStyles &style, const std::string &script, const std::string &locale) const
+    FontStyles &style, const std::string &script, const std::string &locale) const
 {
+    std::vector<std::shared_ptr<TexgineTypeface>> typefaces;
+    for (const auto &fontStyleSet : fontStyleSets_) {
+        if (fontStyleSet == nullptr) {
+            continue;
+        }
+        for (int i = 0; i < fontStyleSet->Count(); i++) {
+            typefaces.push_back(fontStyleSet->CreateTypeface(i));
+        }
+    }
+
+    std::sort(typefaces.begin(), typefaces.end(),
+        [](std::shared_ptr<TexgineTypeface> &ty1, const std::shared_ptr<TexgineTypeface> &ty2) {
+            auto fs1 = ty1->GetFontStyle()->GetFontStyle();
+            auto fs2 = ty2->GetFontStyle()->GetFontStyle();
+            return (fs1->weight() != fs2->weight()) ?
+                fs1->weight() < fs2->weight() : fs1->slant() < fs2->slant();
+        }
+    );
+
+    std::vector<int> weights;
+    for (auto ty : typefaces) {
+        auto weight = ty->GetFontStyle()->GetFontStyle()->weight() / 100;
+        weights.push_back(weight);
+    }
+
+    for (int i = 0; i < weights.size(); i++) {
+        if (weights[i] == style.GetWeight()) {
+            break;
+        }
+        if (weights[i] > style.GetWeight()) {
+            if (i > 0) {
+                style.SetWeight(weights[i - 1]);
+                break;
+            }
+        }
+    }
+    auto fs = std::make_shared<TexgineFontStyle>();
+    *fs = style.ToTexgineFontStyle();
     for (const auto &fontStyleSet : fontStyleSets_) {
         std::shared_ptr<Typeface> typeface = nullptr;
         struct TypefaceCacheKey key = {.fss = fontStyleSet, .fs = style};
@@ -48,8 +86,6 @@ std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch,
             if (fontStyleSet == nullptr) {
                 continue;
             }
-            auto fs = std::make_shared<TexgineFontStyle>();
-            *fs = style.ToTexgineFontStyle();
             auto texgineTypeface = fontStyleSet->MatchStyle(fs);
             if (texgineTypeface == nullptr || texgineTypeface->GetTypeface() == nullptr) {
                 continue;

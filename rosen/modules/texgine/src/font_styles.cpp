@@ -90,6 +90,21 @@ TexgineFontStyle FontStyles::ToTexgineFontStyle() const
         static_cast<int>(width_) + DIFFERENCE, ToTexgineSlant(slant_));
 }
 
+int FontStyles::GetWeight() const
+{
+    return static_cast<int>(weight_);
+}
+
+int FontStyles::GetFontStyle() const
+{
+    return static_cast<int>(slant_);
+}
+
+void FontStyles::SetWeight(const int weight)
+{
+    weight_ = static_cast<Weight>(weight);
+}
+
 bool FontStyles::operator==(const FontStyles &rhs) const
 {
     return weight_ == rhs.weight_ && width_ == rhs.width_ && slant_ == rhs.slant_;
