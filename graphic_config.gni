@@ -27,7 +27,7 @@ declare_args() {
   use_texgine = true
   player_framework_enable = true
   graphic_2d_feature_drivers_interface_display_enable = true
-  feature_tp_switch_enbale = false
+  graphic_2d_feature_tp_switch_enbale = false
 
   if (defined(build_cross_platform_version) && build_cross_platform_version) {
     use_new_render_context = false
@@ -119,7 +119,7 @@ if (defined(use_new_render_context) && use_new_render_context) {
 
 tp_defines = []
 tp_feature_enable = false
-if (feature_tp_switch_enbale) {
+if (graphic_2d_feature_tp_switch_enbale) {
   tp_feature_enable = true
   tp_defines = [ "TP_FEATURE_ENABLE" ]
 }
