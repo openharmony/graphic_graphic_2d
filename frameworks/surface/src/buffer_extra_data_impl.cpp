@@ -70,6 +70,7 @@ GSError BufferExtraDataImpl::ReadFromParcel(MessageParcel &parcel)
 
 GSError BufferExtraDataImpl::WriteToParcel(MessageParcel &parcel)
 {
+    std::lock_guard<std::mutex> lockGuard(mtx);
     parcel.WriteInt32(BUFFER_EXTRA_DATA_MAGIC);
     parcel.WriteInt32(datas.size());
     for (const auto &[key, data] : datas) {
@@ -162,6 +163,7 @@ GSError BufferExtraDataImpl::ExtraSet(const std::string &key, const std::string&
 template<class T>
 GSError BufferExtraDataImpl::ExtraGet(const std::string &key, ExtraDataType type, T &value) const
 {
+    std::lock_guard<std::mutex> lockGuard(mtx);
     auto it = datas.find(key);
     if (it == datas.end()) {
         return GSERROR_NO_ENTRY;
@@ -179,6 +181,7 @@ GSError BufferExtraDataImpl::ExtraGet(const std::string &key, ExtraDataType type
 
 GSError BufferExtraDataImpl::ExtraSet(const std::string &key, ExtraDataType type, const std::any& val)
 {
+    std::lock_guard<std::mutex> lockGuard(mtx);
     auto it = datas.find(key);
     if (it == datas.end() && datas.size() > SURFACE_MAX_USER_DATA_COUNT) {
         BLOGW("SurfaceBuffer has too many extra data, cannot save one more!!!");
