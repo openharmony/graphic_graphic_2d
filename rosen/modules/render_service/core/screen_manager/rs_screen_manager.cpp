@@ -132,13 +132,7 @@ void RSScreenManager::OnHwcDeadEvent()
     std::lock_guard<std::mutex> lock(mutex_);
     for (const auto &[id, screen] : screens_) {
         if (screen) {
-            for (auto &cb : screenChangeCallbacks_) {
-                cb->OnScreenChanged(id, ScreenEvent::DISCONNECTED);
-                RS_LOGD("RSScreenManager %{public}s: The screen callback has been invoked.", __func__);
-            }
-            if (screenPowerStatus_.count(id) != 0) {
-                screenPowerStatus_.erase(id);
-            }
+            // In sceneboard, we should not notify the WMS to remove node from RSTree
             if (screen->IsVirtual()) {
                 continue;
             } else {
@@ -146,6 +140,7 @@ void RSScreenManager::OnHwcDeadEvent()
             }
         }
     }
+    isHwcDead_ = true;
     screens_.clear();
     defaultScreenId_ = INVALID_SCREEN_ID;
 }
@@ -199,9 +194,12 @@ void RSScreenManager::ProcessScreenHotPlugEvents()
     }
     for (auto id : connectedIds_) {
         for (auto &cb : screenChangeCallbacks_) {
-            cb->OnScreenChanged(id, ScreenEvent::CONNECTED);
+            if (!isHwcDead_) {
+                cb->OnScreenChanged(id, ScreenEvent::CONNECTED);
+            }
         }
     }
+    isHwcDead_ = false;
     mipiCheckInFirstHotPlugEvent_ = true;
     pendingHotPlugEvents_.clear();
     connectedIds_.clear();
