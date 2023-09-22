@@ -196,7 +196,7 @@ inline bool HasPropertyDrawableInRange(
 }
 
 void RSPropertyDrawable::UpdateDrawableMap(RSPropertyDrawableGenerateContext& context, DrawableMap& drawableMap,
-    const std::unordered_set<RSModifierType>& dirtyTypes)
+    uint8_t& drawableMapStatus, const std::unordered_set<RSModifierType>& dirtyTypes)
 {
     // collect dirty slots
     std::set<RSPropertyDrawableSlot> dirtySlots;
@@ -204,7 +204,6 @@ void RSPropertyDrawable::UpdateDrawableMap(RSPropertyDrawableGenerateContext& co
         dirtySlots.emplace(PropertyToDrawableLut[static_cast<int>(type)]);
     }
 
-    auto sizeBefore = drawableMap.size();
     // count all slots after INVALID
     if (dirtySlots.lower_bound(RSPropertyDrawableSlot::BOUNDS_MATRIX) == dirtySlots.end()) {
         return;
@@ -222,100 +221,138 @@ void RSPropertyDrawable::UpdateDrawableMap(RSPropertyDrawableGenerateContext& co
             drawableMap[slot] = std::move(drawable);
         }
     }
-    auto sizeAfter = drawableMap.size();
-    //
-    OptimizeSaveRestore(context, drawableMap);
-    RS_TRACE_NAME_FMT("UpdateDrawableMap: dirtyTypes %u, dirtySlots %u, sizeBefore %u, sizeAfter %u, final size %u",
-        dirtyTypes.size(), dirtySlots.size(), sizeBefore, sizeAfter, drawableMap.size());
-}
 
-void RSPropertyDrawable::OptimizeSaveRestore(RSPropertyDrawableGenerateContext& context, DrawableMap& drawableMap)
-{
-    auto& properties = context.properties_;
-    // ======================================
-    // Case 1: empty node and no children
-    if (!HasPropertyDrawableInRange(
-            drawableMap, RSPropertyDrawableSlot::BOUNDS_MATRIX, RSPropertyDrawableSlot::PIXEL_STRETCH) &&
-        !context.hasChildren_) {
-        // has nothing to draw, no need to save
+    auto drawableMapStatusNew = CalculateDrawableMapStatus(context, drawableMap);
+    if (drawableMapStatusNew == 0) {
         drawableMap.clear();
+        drawableMapStatusNew = 0;
         return;
     }
 
-    // ======================================
-    // insert global save&restore
-    // PLANNING: skip this if possible
-    std::tie(drawableMap[RSPropertyDrawableSlot::SAVE_ALL], drawableMap[RSPropertyDrawableSlot::RESTORE_ALL]) =
-        GenerateSaveRestore();
+    // initialize
+    if (drawableMapStatus == 0) {
+        std::tie(drawableMap[RSPropertyDrawableSlot::SAVE_ALL], drawableMap[RSPropertyDrawableSlot::RESTORE_ALL]) =
+            GenerateSaveRestore();
+    }
 
-    bool hasBoundsPropertyToDrawBeforeChildren = HasPropertyDrawableInRange(
-        drawableMap, RSPropertyDrawableSlot::BACKGROUND, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY);
-    bool hasBoundsPropertyToDrawAfterChildren = HasPropertyDrawableInRange(
-        drawableMap, RSPropertyDrawableSlot::LIGHT_UP_EFFECT, RSPropertyDrawableSlot::PIXEL_STRETCH);
+    // calculate changed bits
+    auto changedBits = drawableMapStatus ^ drawableMapStatusNew;
+    if (changedBits & BOUNDS_MASK) {
+        // update bounds
+        OptimizeBoundsSaveRestore(context, drawableMap, drawableMapStatusNew);
+    }
+    if (changedBits & FRAME_MASK) {
+        // update frame
+        OptimizeFrameSaveRestore(context, drawableMap, drawableMapStatusNew);
+    }
+    drawableMapStatus = drawableMapStatusNew;
+}
 
+uint8_t RSPropertyDrawable::CalculateDrawableMapStatus(
+    RSPropertyDrawableGenerateContext& context, DrawableMap& drawableMap)
+{
+    uint8_t result = 0;
+
+    if (context.properties_.GetClipToBounds() || context.properties_.GetClipToRRect() ||
+        context.properties_.GetClipBounds() != nullptr) {
+        result |= DrawableMapStatus::CLIP_TO_BOUNDS;
+    }
+    if (context.properties_.GetClipToFrame()) {
+        result |= DrawableMapStatus::CLIP_TO_FRAME;
+    }
+    if (context.hasChildren_) {
+        result |= DrawableMapStatus::HAS_CHILDREN;
+    }
+
+    if (HasPropertyDrawableInRange(
+            drawableMap, RSPropertyDrawableSlot::BACKGROUND, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY)) {
+        result |= DrawableMapStatus::BOUNDS_PROPERTY_BEFORE;
+    }
+    if (HasPropertyDrawableInRange(
+            drawableMap, RSPropertyDrawableSlot::LIGHT_UP_EFFECT, RSPropertyDrawableSlot::PIXEL_STRETCH)) {
+        result |= DrawableMapStatus::BOUNDS_PROPERTY_AFTER;
+    }
+    if (HasPropertyDrawableInRange(
+            drawableMap, RSPropertyDrawableSlot::CONTENT_STYLE, RSPropertyDrawableSlot::COLOR_FILTER)) {
+        result |= DrawableMapStatus::FRAME_PROPERTY;
+    }
+
+    return result;
+}
+
+namespace {
+constexpr std::array<RSPropertyDrawableSlot, 6> boundsSlotsToErase = {
+    RSPropertyDrawableSlot::SAVE_BOUNDS,
+    RSPropertyDrawableSlot::CLIP_TO_BOUNDS,
+    RSPropertyDrawableSlot::EXTRA_RESTORE_BOUNDS,
+    RSPropertyDrawableSlot::EXTRA_SAVE_BOUNDS,
+    RSPropertyDrawableSlot::EXTRA_CLIP_TO_BOUNDS,
+    RSPropertyDrawableSlot::RESTORE_BOUNDS,
+};
+
+constexpr std::array<RSPropertyDrawableSlot, 3> frameSlotsToErase = {
+    RSPropertyDrawableSlot::SAVE_FRAME,
+    RSPropertyDrawableSlot::CLIP_TO_FRAME,
+    RSPropertyDrawableSlot::RESTORE_FRAME,
+};
+} // namespace
+
+void RSPropertyDrawable::OptimizeBoundsSaveRestore(
+    RSPropertyDrawableGenerateContext& context, DrawableMap& drawableMap, uint8_t flags)
+{
     // ======================================
-    // PLANNING: 
+    // PLANNING:
     // 1. erase unused slots - DONE
-    // 2. update in a incremental manner
+    // 2. update in a incremental manner - DONE
     // ======================================
-    constexpr std::array<RSPropertyDrawableSlot, 6> boundsSlotsToErase = {
-        RSPropertyDrawableSlot::SAVE_BOUNDS,
-        RSPropertyDrawableSlot::CLIP_TO_BOUNDS,
-        RSPropertyDrawableSlot::RESTORE_BOUNDS_BEFORE_FRAME,
-        RSPropertyDrawableSlot::SAVE_BOUNDS_AFTER_CHILDREN,
-        RSPropertyDrawableSlot::CLIP_TO_BOUNDS_AFTER_CHILDREN,
-        RSPropertyDrawableSlot::RESTORE_BOUNDS,
-    };
     EraseSlots(drawableMap, boundsSlotsToErase);
 
-    if (properties.GetClipToBounds()) {
+    if (flags & DrawableMapStatus::CLIP_TO_BOUNDS) {
         // case 1: ClipToBounds set.
         // add one clip, and reuse SAVE_ALL and RESTORE_ALL.
         drawableMap[RSPropertyDrawableSlot::CLIP_TO_BOUNDS] = RSClipBoundsDrawable::Generate(context);
-    } else if (hasBoundsPropertyToDrawBeforeChildren && hasBoundsPropertyToDrawAfterChildren) {
+    } else if (flags & DrawableMapStatus::BOUNDS_PROPERTY_BEFORE && flags & DrawableMapStatus::BOUNDS_PROPERTY_AFTER) {
         // case 2: ClipToBounds not set and we only have bounds properties before & after children.
         // add two sets of save/clip/restore before & after children.
 
         // part 1: before children
         std::tie(drawableMap[RSPropertyDrawableSlot::SAVE_BOUNDS],
-            drawableMap[RSPropertyDrawableSlot::RESTORE_BOUNDS_BEFORE_FRAME]) = GenerateSaveRestore(RSPaintFilterCanvas::kCanvas);
+            drawableMap[RSPropertyDrawableSlot::EXTRA_RESTORE_BOUNDS]) =
+            GenerateSaveRestore(RSPaintFilterCanvas::kCanvas);
         drawableMap[RSPropertyDrawableSlot::CLIP_TO_BOUNDS] = RSClipBoundsDrawable::Generate(context);
 
         // part 2: after children, add aliases
-        drawableMap[RSPropertyDrawableSlot::SAVE_BOUNDS_AFTER_CHILDREN] =
-            GenerateAlias(RSPropertyDrawableSlot::SAVE_BOUNDS);
-        drawableMap[RSPropertyDrawableSlot::CLIP_TO_BOUNDS_AFTER_CHILDREN] =
+        drawableMap[RSPropertyDrawableSlot::EXTRA_SAVE_BOUNDS] = GenerateAlias(RSPropertyDrawableSlot::SAVE_BOUNDS);
+        drawableMap[RSPropertyDrawableSlot::EXTRA_CLIP_TO_BOUNDS] =
             GenerateAlias(RSPropertyDrawableSlot::CLIP_TO_BOUNDS);
         drawableMap[RSPropertyDrawableSlot::RESTORE_BOUNDS] =
-            GenerateAlias(RSPropertyDrawableSlot::RESTORE_BOUNDS_BEFORE_FRAME);
-    } else if (hasBoundsPropertyToDrawBeforeChildren) {
+            GenerateAlias(RSPropertyDrawableSlot::EXTRA_RESTORE_BOUNDS);
+    } else if (flags & DrawableMapStatus::BOUNDS_PROPERTY_BEFORE) {
         // case 3: ClipToBounds not set and we have bounds properties before children.
         std::tie(drawableMap[RSPropertyDrawableSlot::SAVE_BOUNDS],
-            drawableMap[RSPropertyDrawableSlot::RESTORE_BOUNDS_BEFORE_FRAME]) =
+            drawableMap[RSPropertyDrawableSlot::EXTRA_RESTORE_BOUNDS]) =
             GenerateSaveRestore(RSPaintFilterCanvas::kCanvas);
 
         drawableMap[RSPropertyDrawableSlot::CLIP_TO_BOUNDS] = RSClipBoundsDrawable::Generate(context);
-    } else if (hasBoundsPropertyToDrawAfterChildren) {
+    } else if (flags & DrawableMapStatus::BOUNDS_PROPERTY_AFTER) {
         // case 4: ClipToBounds not set and we only have bounds properties after children.
-        std::tie(drawableMap[RSPropertyDrawableSlot::SAVE_BOUNDS_AFTER_CHILDREN],
+        std::tie(drawableMap[RSPropertyDrawableSlot::EXTRA_SAVE_BOUNDS],
             drawableMap[RSPropertyDrawableSlot::RESTORE_BOUNDS]) = GenerateSaveRestore(RSPaintFilterCanvas::kCanvas);
 
-        drawableMap[RSPropertyDrawableSlot::CLIP_TO_BOUNDS_AFTER_CHILDREN] = RSClipBoundsDrawable::Generate(context);
+        drawableMap[RSPropertyDrawableSlot::EXTRA_CLIP_TO_BOUNDS] = RSClipBoundsDrawable::Generate(context);
     } else {
         // case 5: ClipToBounds not set and no bounds properties, no need to save/clip/restore.
         // nothing to do
     }
+}
 
-    constexpr std::array<RSPropertyDrawableSlot, 3> frameSlotsToErase = {
-        RSPropertyDrawableSlot::SAVE_FRAME,
-        RSPropertyDrawableSlot::CLIP_TO_FRAME,
-        RSPropertyDrawableSlot::RESTORE_FRAME,
-    };
+void RSPropertyDrawable::OptimizeFrameSaveRestore(
+    RSPropertyDrawableGenerateContext& context, DrawableMap& drawableMap, uint8_t flags)
+{
     EraseSlots(drawableMap, frameSlotsToErase);
 
     // PLANNING: if both clipToFrame and clipToBounds are set, and frame == bounds, we don't need an extra
-    if (drawableMap.count(RSPropertyDrawableSlot::CLIP_TO_FRAME) ||
-        drawableMap.count(RSPropertyDrawableSlot::FRAME_OFFSET)) {
+    if (flags & DrawableMapStatus::FRAME_PROPERTY) {
         // save/restore
         std::tie(drawableMap[RSPropertyDrawableSlot::SAVE_FRAME], drawableMap[RSPropertyDrawableSlot::RESTORE_FRAME]) =
             GenerateSaveRestore(RSPaintFilterCanvas::kCanvas);
@@ -333,6 +370,5 @@ RSPropertyDrawableRenderContext::RSPropertyDrawableRenderContext(RSRenderNode& n
       children_(node.GetSortedChildren()), drawableMap_(node.propertyDrawablesMap_),
       drawCmdModifiers_(node.drawCmdModifiers_)
 {}
-
 
 } // namespace OHOS::Rosen

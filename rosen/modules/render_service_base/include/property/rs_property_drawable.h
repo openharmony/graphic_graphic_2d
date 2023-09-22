@@ -53,7 +53,7 @@ enum class RSPropertyDrawableSlot : unsigned char {
     CUSTOM_BACKGROUND_MODIFIER,
     DYNAMIC_LIGHT_UP,
     ENV_FOREGROUND_COLOR_STRATEGY,
-    RESTORE_BOUNDS_BEFORE_FRAME,
+    EXTRA_RESTORE_BOUNDS,
 
     // Frame Geometry
     SAVE_FRAME,
@@ -66,8 +66,8 @@ enum class RSPropertyDrawableSlot : unsigned char {
     RESTORE_FRAME,
 
     // In Bounds clip (again)
-    SAVE_BOUNDS_AFTER_CHILDREN,
-    CLIP_TO_BOUNDS_AFTER_CHILDREN,
+    EXTRA_SAVE_BOUNDS,
+    EXTRA_CLIP_TO_BOUNDS,
     LIGHT_UP_EFFECT,
     FOREGROUND_FILTER,
     LINEAR_GRADIENT_BLUR_FILTER,
@@ -79,6 +79,17 @@ enum class RSPropertyDrawableSlot : unsigned char {
     RESTORE_BOUNDS,
 
     RESTORE_ALL,
+};
+
+enum DrawableMapStatus : uint8_t {
+    CLIP_TO_BOUNDS         = 1<<0,
+    BOUNDS_PROPERTY_BEFORE = 1<<1,
+    BOUNDS_PROPERTY_AFTER  = 1<<2,
+    CLIP_TO_FRAME          = 1<<3,
+    FRAME_PROPERTY         = 1<<4,
+    HAS_CHILDREN           = 1<<5,
+    BOUNDS_MASK            = CLIP_TO_BOUNDS | BOUNDS_PROPERTY_BEFORE | BOUNDS_PROPERTY_AFTER,
+    FRAME_MASK             = CLIP_TO_FRAME | FRAME_PROPERTY | HAS_CHILDREN,
 };
 
 // Pure virtual base class
@@ -102,7 +113,7 @@ public:
     // Generator
     using DrawableMap = std::map<RSPropertyDrawableSlot, RSPropertyDrawable::DrawablePtr>;
     static void UpdateDrawableMap(RSPropertyDrawableGenerateContext& context, DrawableMap& drawableMap,
-        const std::unordered_set<RSModifierType>& dirtyTypes);
+        uint8_t& drawableMapStatus, const std::unordered_set<RSModifierType>& dirtyTypes);
 
 private:
     // index = RSModifierType value = RSPropertyDrawableType
@@ -111,7 +122,11 @@ private:
     using DrawableGenerator = std::function<RSPropertyDrawable::DrawablePtr(const RSPropertyDrawableGenerateContext&)>;
     static const std::vector<DrawableGenerator> DrawableGeneratorLut;
 
-    static void OptimizeSaveRestore(RSPropertyDrawableGenerateContext& context, DrawableMap& drawableMap);
+    static uint8_t CalculateDrawableMapStatus(RSPropertyDrawableGenerateContext& context, DrawableMap& drawableMap);
+    static void OptimizeBoundsSaveRestore(
+        RSPropertyDrawableGenerateContext& context, DrawableMap& drawableMap, uint8_t flags);
+    static void OptimizeFrameSaveRestore(
+        RSPropertyDrawableGenerateContext& context, DrawableMap& drawableMap, uint8_t flags);
 };
 
 class RSPropertyDrawableGenerateContext {

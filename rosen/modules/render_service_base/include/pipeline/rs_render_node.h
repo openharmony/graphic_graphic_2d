@@ -583,6 +583,7 @@ private:
     std::vector<HgmModifierProfile> hgmModifierProfileList_;
 
     std::map<RSPropertyDrawableSlot, std::unique_ptr<RSPropertyDrawable>> propertyDrawablesMap_;
+    uint8_t drawableMapStatus_ = 0;
     using DrawableIter = decltype(propertyDrawablesMap_)::iterator;
     inline std::pair<DrawableIter, DrawableIter> GetDrawableRange(
         RSPropertyDrawableSlot begin, RSPropertyDrawableSlot end);
