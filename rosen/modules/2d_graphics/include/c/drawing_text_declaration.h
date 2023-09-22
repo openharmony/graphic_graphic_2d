@@ -82,6 +82,14 @@ typedef struct OH_Drawing_TypographyStyle OH_Drawing_TypographyStyle;
  */
 typedef struct OH_Drawing_TypographyCreate OH_Drawing_TypographyCreate;
 
+/**
+ * @brief Defines an <b>OH_Drawing_RegisterFont</b>, which is used to register a customized font in the FontManager.
+ *
+ * @since 11
+ * @version 1.0
+ */
+typedef struct OH_Drawing_RegisterFont OH_Drawing_RegisterFont;
+
 #ifdef __cplusplus
 }
 #endif
