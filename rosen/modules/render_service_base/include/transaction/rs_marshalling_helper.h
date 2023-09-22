@@ -347,11 +347,7 @@ public:
     static bool DserializeInternal(Parcel& parcel, sk_sp<SkTextBlob>& val,
         const SkDeserialProcs& procs, sk_sp<SkData>& data);
 #endif
-    static void BeginNoSharedMem(std::thread::id tid) {
-        useSharedMem_ = false;
-        tid_ = tid;
-    }
-    static void EndNoSharedMem() {
+    static void GetUseSharedMem() {
         useSharedMem_ = true;
         tid_.__reset();
     }
