@@ -83,7 +83,7 @@ void RSRecordingThread::FinishRecordingOneFrame()
         curDumpFrame_++;
     } else {
         RSTaskMessage::RSTask task = [this]() {
-            for (int tmpCurDumpFrame = 0; tmpCurDumpFrame < dumpFrameNum_; tmpCurDumpFrame++){
+            for (int tmpCurDumpFrame = 0; tmpCurDumpFrame < dumpFrameNum_; tmpCurDumpFrame++) {
                 // file name
                 std::string drawCmdListFile = fileDir_ + "/frame" + std::to_string(tmpCurDumpFrame) + ".drawing";
                 std::string opsFile = fileDir_ + "/ops_frame" + std::to_string(tmpCurDumpFrame) + ".txt";
@@ -97,8 +97,9 @@ void RSRecordingThread::FinishRecordingOneFrame()
                 auto buf = reinterpret_cast<uintptr_t>(messageParcelVec[tmpCurDumpFrame]->GetData());
                 std::string opsDescription = "drawing ops no description";
 #endif
-                std::string line = "RSRecordingThread::RecordingToFile curDumpFrame = " + std::to_string(tmpCurDumpFrame) +
-                    ", dumpFrameNum = " + std::to_string(dumpFrameNum_) + ", size = " + std::to_string(sz);
+                std::string line = "RSRecordingThread::FinishRecordingOneFrame curDumpFrame = " + 
+                    std::to_string(tmpCurDumpFrame) + ", dumpFrameNum = " + std::to_string(dumpFrameNum_) +
+                    ", size = " + std::to_string(sz);
                 RS_LOGD("%{public}s", line.c_str());
                 RS_TRACE_NAME(line);
  
