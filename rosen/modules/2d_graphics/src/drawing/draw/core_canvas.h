@@ -287,7 +287,7 @@ public:
     virtual bool IsClipEmpty();
 
     /*
-     * @brief  Returns true if clip is emptySkRect rect, transformed by SkMatrix, 
+     * @brief  Returns true if clip is emptySkRect rect, transformed by SkMatrix,
      *         can be quickly determined to be outside of clip.
      */
     virtual bool QuickReject(const Rect& rect);

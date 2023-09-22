@@ -154,6 +154,7 @@ void SkiaGPUContext::FreeGpuResources()
 
 void SkiaGPUContext::DumpGpuStats(std::string& out)
 {
+#if GR_TEST_UTILS
     if (!grContext_) {
         LOGE("SkiaGPUContext::DumpGpuStats, grContext_ is nullptr");
         return;
@@ -161,6 +162,7 @@ void SkiaGPUContext::DumpGpuStats(std::string& out)
     SkString stat;
     grContext_->priv().dumpGpuStats(&stat);
     out = stat.c_str();
+#endif
 }
 
 void SkiaGPUContext::ReleaseResourcesAndAbandonContext()
