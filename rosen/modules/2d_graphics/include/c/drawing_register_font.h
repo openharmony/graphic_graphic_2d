@@ -49,10 +49,11 @@ extern "C" {
  * @param OH_Drawing_FontCollection Indicates the pointer to an <b>OH_Drawing_FontCollection</b> object.
  * @param fontFamily Indicates the family-name of the font which need to register.
  * @param familySrc Indicates the path of the font file which need to register.
+ * @return error code.
  * @since 11
  * @version 1.0
  */
-void OH_Drawing_RegisterFont(OH_Drawing_FontCollection*, const char* fontFamily[], const char* familySrc[]);
+uint32_t OH_Drawing_RegisterFont(OH_Drawing_FontCollection*, const char* fontFamily[], const char* familySrc[]);
 
 #ifdef __cplusplus
 }
