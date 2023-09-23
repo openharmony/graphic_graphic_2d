@@ -124,7 +124,7 @@ bool VSyncSampler::AddSample(int64_t timeStamp)
     samples_[index] = timeStamp;
 
     // when the number of samples is greater than or equal to 2,
-    // we compute the period by the latest two samples.
+    // we compute the period by the latest 2 samples.
     if ((numSamples_ < MIN_SAMPLES_FOR_UPDATE) && (numSamples_ >= 2)) {
         int64_t sampleLatest = samples_[(firstSampleIndex_ + numSamples_ - 1) % MAX_SAMPLES];
         int64_t samplePrevious = samples_[(firstSampleIndex_ + numSamples_ - 2) % MAX_SAMPLES]; // last 2 samples
