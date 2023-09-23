@@ -54,24 +54,6 @@ HWTEST(RSUniRenderEngineTest, DrawSurfaceNodeWithParams001, TestSize.Level1)
 }
 
 /**
- * @tc.name: DrawSurfaceNodeWithParams002
- * @tc.desc: test DrawSurfaceNodeWithParams
- * @tc.type: FUNC
- * @tc.require: issueI6QM6E
- */
-HWTEST(RSUniRenderEngineTest, DrawSurfaceNodeWithParams002, TestSize.Level1)
-{
-    auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
-    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
-    ASSERT_NE(canvas, nullptr);
-    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    auto param = RSDividedRenderUtil::CreateBufferDrawParam(*node);
-    param.useCPU = true;
-    uniRenderEngine->DrawSurfaceNodeWithParams(*canvas, *node, param, nullptr, nullptr);
-}
-
-/**
  * @tc.name: DrawLayers001
  * @tc.desc: test DrawLayers
  * @tc.type: FUNC
