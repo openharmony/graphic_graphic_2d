@@ -16,6 +16,7 @@
 #include "pipeline/rs_canvas_drawing_render_node.h"
 
 #include "include/core/SkCanvas.h"
+#include "src/image/SkImage_Base.h"
 #ifdef NEW_SKIA
 #include "include/gpu/GrBackendSurface.h"
 #endif
@@ -109,6 +110,10 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
         canvas.concat(mat);
     }
     auto image = skSurface_->makeImageSnapshot();
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        skSurface_->readPixels(skBitmap_, 0, 0);
+    }
 #ifdef NEW_SKIA
     auto samplingOptions = SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
     canvas.drawImage(image, 0.f, 0.f, samplingOptions, nullptr);
@@ -224,6 +229,29 @@ SkBitmap RSCanvasDrawingRenderNode::GetBitmap()
     }
     return bitmap;
 }
+
+bool RSCanvasDrawingRenderNode::GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect)
+{
+    if (!pixelmap) {
+        RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: pixelmap is nullptr");
+        return false;
+    }
+
+    if (skBitmap_.empty()) {
+        RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: skBitmap_ is empty");
+        return false;
+    }
+
+    SkImageInfo info =
+        SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!skBitmap_.readPixels(info, pixelmap->GetWritablePixels(), pixelmap->GetRowBytes(), rect->x(), rect->y())) {
+        RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: readPixels failed");
+        return false;
+    }
+    return true;
+}
+
 #else
 bool RSCanvasDrawingRenderNode::GetBitmap(Drawing::Bitmap& bitmap)
 {

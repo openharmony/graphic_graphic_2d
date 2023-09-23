@@ -16,6 +16,8 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_CANVAS_DRAWING_NODE_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_CANVAS_DRAWING_NODE_H
 
+#include "pixel_map.h"
+
 #include "ui/rs_canvas_node.h"
 
 class SkCanvas;
@@ -39,6 +41,8 @@ public:
     static SharedPtr Create(bool isRenderServiceNode = false);
 #ifndef USE_ROSEN_DRAWING
     bool GetBitmap(SkBitmap& bitmap, std::shared_ptr<DrawCmdList> drawCmdList = nullptr, const SkRect* rect = nullptr);
+    bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap,
+        std::shared_ptr<DrawCmdList> drawCmdList = nullptr, const SkRect* rect = nullptr);
 #else
     bool GetBitmap(Drawing::Bitmap& bitmap,
         std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr, const Drawing::Rect* rect = nullptr);

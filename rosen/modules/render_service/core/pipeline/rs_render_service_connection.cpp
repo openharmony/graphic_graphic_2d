@@ -796,6 +796,24 @@ bool RSRenderServiceConnection::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
 #endif
 }
 
+bool RSRenderServiceConnection::GetPixelmap(
+    NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect)
+{
+    auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(id);
+    if (node == nullptr) {
+        RS_LOGE("RSRenderServiceConnection::GetPixelmap: cannot find NodeId: [%{public}" PRIu64 "]", id);
+        return false;
+    }
+    if (node->GetType() != RSRenderNodeType::CANVAS_DRAWING_NODE) {
+        RS_LOGE("RSRenderServiceConnection::GetPixelmap: RenderNodeType != RSRenderNodeType::CANVAS_DRAWING_NODE");
+        return false;
+    }
+    bool result = false;
+    auto getPixelmapTask = [&node, &pixelmap, rect, &result]() { result = node->GetPixelmap(pixelmap, rect); };
+    mainThread_->PostSyncTask(getPixelmapTask);
+    return result;
+}
+
 int32_t RSRenderServiceConnection::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();

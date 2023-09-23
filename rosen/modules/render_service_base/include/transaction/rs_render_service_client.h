@@ -186,6 +186,7 @@ public:
 
 #ifndef USE_ROSEN_DRAWING
     bool GetBitmap(NodeId id, SkBitmap& bitmap);
+    bool GetPixelmap(NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect);
 #else
     bool GetBitmap(NodeId id, Drawing::Bitmap& bitmap);
 #endif

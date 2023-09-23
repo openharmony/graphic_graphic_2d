@@ -48,6 +48,7 @@ public:
 
 #ifndef USE_ROSEN_DRAWING
     SkBitmap GetBitmap();
+    bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect);
 #else
     bool GetBitmap(Drawing::Bitmap& bitmap);
 #endif
@@ -65,6 +66,7 @@ private:
 
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> skSurface_;
+    SkBitmap skBitmap_;
 #else
     std::shared_ptr<Drawing::Bitmap> bitmap_;
     std::shared_ptr<Drawing::Surface> surface_;
@@ -72,6 +74,7 @@ private:
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
     ThreadInfo curThreadInfo_ = {};
     ThreadInfo preThreadInfo_ = {};
+    std::mutex mutex_;
 };
 
 } // namespace Rosen
