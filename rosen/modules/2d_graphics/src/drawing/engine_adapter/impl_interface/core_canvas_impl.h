@@ -43,6 +43,7 @@
 #include "utils/round_rect.h"
 #include "utils/sampling_options.h"
 #include "utils/scalar.h"
+#include "utils/vertices.h"
 
 class SkSVGDOM;
 
@@ -102,6 +103,7 @@ public:
         const Point texCoords[4], BlendMode mode) = 0;
     virtual void DrawEdgeAAQuad(const Rect& rect, const Point clip[4],
         QuadAAFlags aaFlags, ColorQuad color, BlendMode mode) = 0;
+    virtual void DrawVertices(const Vertices& vertices, BlendMode mode) = 0;
 
     virtual void DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
         FilterMode filter, const Brush* brush = nullptr) = 0;

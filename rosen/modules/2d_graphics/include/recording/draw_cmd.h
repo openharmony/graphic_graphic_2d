@@ -127,6 +127,7 @@ public:
         REGION_OPITEM,
         PATCH_OPITEM,
         EDGEAAQUAD_OPITEM,
+        VERTICES_OPITEM,
     };
 };
 
@@ -398,6 +399,19 @@ private:
     FilterMode filter_;
     BrushHandle brushHandle_;
     bool hasBrush_;
+};
+
+class DrawVerticesOpItem : public DrawOpItem {
+public:
+    DrawVerticesOpItem(const VerticesHandle& vertices, BlendMode mode);
+    ~DrawVerticesOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas, const CmdList& cmdList) const;
+
+private:
+    VerticesHandle vertices_;
+    BlendMode mode_;
 };
 
 class DrawBitmapOpItem : public DrawOpItem {

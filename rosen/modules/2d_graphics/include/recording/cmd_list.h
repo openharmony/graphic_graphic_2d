@@ -39,6 +39,11 @@ struct ImageHandle {
     AlphaType alphaType;
 };
 
+struct VerticesHandle {
+    uint32_t offset;
+    size_t size;
+};
+
 struct CmdListHandle {
     uint32_t type;
     uint32_t offset;

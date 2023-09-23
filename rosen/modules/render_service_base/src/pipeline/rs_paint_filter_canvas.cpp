@@ -167,6 +167,13 @@ void RSPaintFilterCanvasBase::DrawEdgeAAQuad(const Drawing::Rect& rect, const Dr
     }
 }
 
+void RSPaintFilterCanvasBase::DrawVertices(const Drawing::Vertices& vertices, Drawing::BlendMode mode)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawVertices(vertices, mode);
+    }
+}
+
 void RSPaintFilterCanvasBase::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
 {
     if (canvas_ != nullptr && OnFilter()) {

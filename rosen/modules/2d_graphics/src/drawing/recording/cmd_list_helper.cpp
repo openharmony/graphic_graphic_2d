@@ -92,6 +92,38 @@ std::shared_ptr<Image> CmdListHelper::GetImageFromCmdList(const CmdList& cmdList
     return image;
 }
 
+VerticesHandle CmdListHelper::AddVerticesToCmdList(CmdList& cmdList, const Vertices& vertices)
+{
+    auto data = vertices.Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGE("vertices is valid!");
+        return { 0 };
+    }
+
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize() };
+}
+
+std::shared_ptr<Vertices> CmdListHelper::GetVerticesFromCmdList(
+    const CmdList& cmdList, const VerticesHandle& verticesHandle)
+{
+    const void* ptr = cmdList.GetImageData(verticesHandle.offset);
+
+    if (verticesHandle.size == 0 || ptr == nullptr) {
+        LOGE("get vertices data failed!");
+        return nullptr;
+    }
+
+    auto verticesData = std::make_shared<Data>();
+    verticesData->BuildWithoutCopy(ptr, verticesHandle.size);
+    auto vertices = std::make_shared<Vertices>();
+    if (vertices->Deserialize(verticesData) == false) {
+        LOGE("vertices deserialize failed!");
+        return nullptr;
+    }
+    return vertices;
+}
+
 ImageHandle CmdListHelper::AddBitmapToCmdList(CmdList& cmdList, const Bitmap& bitmap)
 {
     auto format = bitmap.GetFormat();

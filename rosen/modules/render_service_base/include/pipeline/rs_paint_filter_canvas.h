@@ -68,6 +68,7 @@ public:
         const Drawing::Point texCoords[4], Drawing::BlendMode mode) override;
     void DrawEdgeAAQuad(const Drawing::Rect& rect, const Drawing::Point clip[4],
         Drawing::QuadAAFlags aaFlags, Drawing::ColorQuad color, Drawing::BlendMode mode) override;
+    void DrawVertices(const Drawing::Vertices& vertices, Drawing::BlendMode mode) override;
 
     void DrawImageNine(const Drawing::Image* image, const Drawing::RectI& center, const Drawing::Rect& dst,
         Drawing::FilterMode filter, const Drawing::Brush* brush = nullptr) override;

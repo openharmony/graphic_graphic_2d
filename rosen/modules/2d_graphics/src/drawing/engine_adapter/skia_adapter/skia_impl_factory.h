@@ -36,6 +36,7 @@
 #include "impl_interface/region_impl.h"
 #include "impl_interface/shader_effect_impl.h"
 #include "impl_interface/surface_impl.h"
+#include "impl_interface/vertices_impl.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -65,6 +66,8 @@ public:
     static std::unique_ptr<Matrix44Impl> CreateMatrix44();
     static std::unique_ptr<CameraImpl> CreateCamera();
     static std::unique_ptr<RegionImpl> CreateRegion();
+    static std::unique_ptr<VerticesImpl> CreateVertices();
+    static std::unique_ptr<VerticesImpl::BuilderImpl> CreateVerticesBuilder();
 };
 } // namespace Drawing
 } // namespace Rosen

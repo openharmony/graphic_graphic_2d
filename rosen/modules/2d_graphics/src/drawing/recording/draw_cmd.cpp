@@ -91,6 +91,7 @@ std::unordered_map<uint32_t, CanvasPlayer::PlaybackFunc> CanvasPlayer::opPlaybac
     { DrawOpItem::REGION_OPITEM,            DrawRegionOpItem::Playback },
     { DrawOpItem::PATCH_OPITEM,             DrawPatchOpItem::Playback },
     { DrawOpItem::EDGEAAQUAD_OPITEM, DrawEdgeAAQuadOpItem::Playback },
+    { DrawOpItem::VERTICES_OPITEM,          DrawVerticesOpItem::Playback },
 };
 
 CanvasPlayer::CanvasPlayer(Canvas& canvas, const CmdList& cmdList, const Rect& rect)
@@ -432,6 +433,27 @@ void DrawEdgeAAQuadOpItem::Playback(Canvas& canvas, const CmdList& cmdList) cons
 {
     auto clip = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, clipQuad_);
     canvas.DrawEdgeAAQuad(rect_, clip.empty() ? nullptr : clip.data(), aaFlags_, color_, mode_);
+}
+
+DrawVerticesOpItem::DrawVerticesOpItem(const VerticesHandle& vertices, BlendMode mode)
+    : DrawOpItem(VERTICES_OPITEM), vertices_(vertices), mode_(mode) {}
+
+void DrawVerticesOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const DrawVerticesOpItem*>(opItem);
+        op->Playback(player.canvas_, player.cmdList_);
+    }
+}
+
+void DrawVerticesOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
+{
+    auto vertices = CmdListHelper::GetVerticesFromCmdList(cmdList, vertices_);
+    if (vertices == nullptr) {
+        return;
+    }
+
+    canvas.DrawVertices(*vertices, mode_);
 }
 
 DrawColorOpItem::DrawColorOpItem(ColorQuad color, BlendMode mode) : DrawOpItem(COLOR_OPITEM),

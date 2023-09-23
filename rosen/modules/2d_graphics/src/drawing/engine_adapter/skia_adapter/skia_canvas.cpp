@@ -459,6 +459,26 @@ void SkiaCanvas::DrawEdgeAAQuad(const Rect& rect, const Point clip[4],
         static_cast<SkBlendMode>(mode));
 }
 
+void SkiaCanvas::DrawVertices(const Vertices& vertices, BlendMode mode)
+{
+    if (!skCanvas_) {
+        LOGE("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return;
+    }
+
+    sk_sp<SkVertices> verts;
+    auto skVerticesImpl = vertices.GetImpl<SkiaVertices>();
+    if (skVerticesImpl != nullptr) {
+        verts = skVerticesImpl->GetVertices();
+    }
+
+    for (auto d : skiaPaint_.GetSortedPaints()) {
+        if (d != nullptr) {
+            skCanvas_->drawVertices(verts, static_cast<SkBlendMode>(mode), d->paint);
+        }
+    }
+}
+
 void SkiaCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
     FilterMode filter, const Brush* brush)
 {

@@ -27,6 +27,7 @@
 #endif
 #include "impl_interface/image_filter_impl.h"
 #include "impl_interface/image_impl.h"
+#include "impl_interface/vertices_impl.h"
 #include "impl_interface/mask_filter_impl.h"
 #include "impl_interface/matrix_impl.h"
 #include "impl_interface/matrix44_impl.h"
@@ -65,6 +66,8 @@ public:
     static std::unique_ptr<Matrix44Impl> CreateMatrix44Impl();
     static std::unique_ptr<CameraImpl> CreateCameraImpl();
     static std::unique_ptr<RegionImpl> CreateRegionImpl();
+    static std::unique_ptr<VerticesImpl> CreateVerticesImpl();
+    static std::unique_ptr<VerticesImpl::BuilderImpl> CreateVerticesBuilderImpl();
 };
 } // namespace Drawing
 } // namespace Rosen

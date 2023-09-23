@@ -197,6 +197,12 @@ void RecordingCanvas::DrawEdgeAAQuad(const Rect& rect, const Point clip[4],
     cmdList_->AddOp<DrawEdgeAAQuadOpItem>(rect, clipDataPtr, aaFlags, color, mode);
 }
 
+void RecordingCanvas::DrawVertices(const Vertices& vertices, BlendMode mode)
+{
+    auto verticesHandle = CmdListHelper::AddVerticesToCmdList(*cmdList_, vertices);
+    cmdList_->AddOp<DrawVerticesOpItem>(verticesHandle, mode);
+}
+
 void RecordingCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
     FilterMode filterMode, const Brush* brush)
 {

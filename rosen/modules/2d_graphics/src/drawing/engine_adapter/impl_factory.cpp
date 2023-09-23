@@ -127,6 +127,17 @@ std::unique_ptr<RegionImpl> ImplFactory::CreateRegionImpl()
 {
     return EngineImplFactory::CreateRegion();
 }
+
+std::unique_ptr<VerticesImpl> ImplFactory::CreateVerticesImpl()
+{
+    return EngineImplFactory::CreateVertices();
+}
+
+std::unique_ptr<VerticesImpl::BuilderImpl> ImplFactory::CreateVerticesBuilderImpl()
+{
+    return EngineImplFactory::CreateVerticesBuilder();
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -217,6 +217,7 @@ public:
         const Point texCoords[4], BlendMode mode);
     virtual void DrawEdgeAAQuad(const Rect& rect, const Point clip[4],
         QuadAAFlags aaFlags, ColorQuad color, BlendMode mode);
+    virtual void DrawVertices(const Vertices& vertices, BlendMode mode);
 
     virtual void DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
         FilterMode filter, const Brush* brush = nullptr);

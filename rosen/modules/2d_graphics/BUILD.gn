@@ -101,6 +101,7 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_region.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_shader_effect.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_surface.cpp",
+      "$drawing_src_dir/engine_adapter/skia_adapter/skia_vertices.cpp",
       "$drawing_src_dir/image/bitmap.cpp",
       "$drawing_src_dir/image/image.cpp",
       "$drawing_src_dir/image/picture.cpp",
@@ -133,6 +134,7 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/utils/matrix.cpp",
       "$drawing_src_dir/utils/matrix44.cpp",
       "$drawing_src_dir/utils/region.cpp",
+      "$drawing_src_dir/utils/vertices.cpp",
     ]
 
     if (ace_enable_gpu) {

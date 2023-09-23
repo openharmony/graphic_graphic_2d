@@ -161,6 +161,11 @@ void CoreCanvas::DrawEdgeAAQuad(const Rect& rect, const Point clip[4],
     impl_->DrawEdgeAAQuad(rect, clip, aaFlags, color, mode);
 }
 
+void CoreCanvas::DrawVertices(const Vertices& vertices, BlendMode mode)
+{
+    impl_->DrawVertices(vertices, mode);
+}
+
 void CoreCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
 {
     impl_->DrawBitmap(bitmap, px, py);
