@@ -33,6 +33,7 @@ public:
 private:
     const uint32_t SYNC_TIME_OUT = 3000;
     const std::string threadName_;
+    std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_ = nullptr;
     std::atomic<uint32_t> fencesQueued_;
     std::atomic<uint32_t> fencesSignaled_;
