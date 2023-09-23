@@ -404,16 +404,8 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
     }
 
     int32_t ret = GRAPHIC_DISPLAY_SUCCESS;
-    bool alreadyStartSample = sampler_->GetHardwareVSyncStatus();
-    if (startSample && !alreadyStartSample) {
-        HLOGD("Enable Screen Vsync");
-        CHECK_DEVICE_NULL(device_);
-        ret = device_->SetScreenVsyncEnabled(screenId_, true);
-        if (ret == GRAPHIC_DISPLAY_SUCCESS) {
-            sampler_->BeginSample();
-        } else {
-            HLOGE("Enable Screen Vsync failed");
-        }
+    if (startSample) {
+        ret = StartVSyncSampler();
     }
     lastPresentFence_ = fbFence;
     return ret;
@@ -468,6 +460,27 @@ std::map<LayerInfoPtr, sptr<SyncFence>> HdiOutput::GetLayersReleaseFence()
         res[layer->GetLayerInfo()] = layer->GetReleaseFence();
     }
     return res;
+}
+
+int32_t HdiOutput::StartVSyncSampler()
+{
+    CHECK_DEVICE_NULL(device_);
+    if (sampler_ == nullptr) {
+        sampler_ = CreateVSyncSampler();
+    }
+    bool alreadyStartSample = sampler_->GetHardwareVSyncStatus();
+    if (alreadyStartSample) {
+        HLOGE("Already Start Sample.");
+        return GRAPHIC_DISPLAY_SUCCESS;
+    }
+    HLOGD("Enable Screen Vsync");
+    int32_t ret = device_->SetScreenVsyncEnabled(screenId_, true);
+    if (ret == GRAPHIC_DISPLAY_SUCCESS) {
+        sampler_->BeginSample();
+    } else {
+        HLOGE("Enable Screen Vsync failed");
+    }
+    return ret;
 }
 
 void HdiOutput::Dump(std::string &result) const

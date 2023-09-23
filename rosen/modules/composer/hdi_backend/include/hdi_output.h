@@ -77,6 +77,7 @@ public:
     int32_t UpdateInfosAfterCommit(sptr<SyncFence> fbFence);
     int32_t ReleaseFramebuffer(const sptr<SyncFence>& releaseFence);
     std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFence();
+    int32_t StartVSyncSampler();
 
 private:
     HdiDevice *device_ = nullptr;

@@ -153,6 +153,15 @@ void HdiBackend::Repaint(const OutputPtr &output)
     HLOGD("%{public}s: end", __func__);
 }
 
+void HdiBackend::StartSample(const OutputPtr &output)
+{
+    if (output == nullptr) {
+        HLOGE("output is nullptr.");
+        return;
+    }
+    output->StartVSyncSampler();
+}
+
 void HdiBackend::ResetDevice()
 {
     if (device_) {

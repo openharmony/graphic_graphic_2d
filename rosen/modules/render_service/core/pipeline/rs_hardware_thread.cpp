@@ -143,7 +143,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     }
     RSTaskMessage::RSTask task = [this, output = output, layers = layers]() {
         RS_TRACE_NAME("RSHardwareThread::CommitAndReleaseLayers");
-        PerformSetActiveMode();
+        PerformSetActiveMode(output);
         output->SetLayerInfo(layers);
         hdiBackend_->Repaint(output);
         auto layerMap = output->GetLayers();
@@ -152,7 +152,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     PostTask(task);
 }
 
-void RSHardwareThread::PerformSetActiveMode()
+void RSHardwareThread::PerformSetActiveMode(OutputPtr output)
 {
     auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
     auto screenManager = CreateOrGetScreenManager();
@@ -187,6 +187,7 @@ void RSHardwareThread::PerformSetActiveMode()
         }
 
         screenManager->SetScreenActiveMode(id, modeId);
+        hdiBackend_->StartSample(output);
     }
 }
 
