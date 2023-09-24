@@ -29,7 +29,7 @@ using AnimateStartFunc = void(*)();
 using RenderStartFunc = void(*)();
 using RenderEndFunc = void(*)();
 using SendCommandsStartFunc = void(*)();
-
+using SetFrameParamFunc = void(*)(int, int, int, int);
 class RSB_EXPORT RsFrameReport final {
 public:
     static RSB_EXPORT RsFrameReport& GetInstance();
@@ -41,6 +41,7 @@ public:
     void RenderStart();
     void RenderEnd();
     void SendCommandsStart();
+    void SetFrameParam(int requestId, int load, int schedFrameNum, int value);
 
 private:
     RsFrameReport();
@@ -58,6 +59,7 @@ private:
     RenderStartFunc renderStartFunc_ = nullptr;
     RenderEndFunc renderEndFunc_ = nullptr;
     SendCommandsStartFunc sendCommandsStartFunc_ = nullptr;
+    SetFrameParamFunc setFrameParamFunc_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

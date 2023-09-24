@@ -59,4 +59,8 @@ void RsFrameReport::RenderEnd()
 void RsFrameReport::SendCommandsStart()
 {
 }
+
+void RsFrameReport::SetFrameParam(int requestId, int load, int schedFrameNum, int value)
+{
+}
 } // namespace OHOS::Rosen

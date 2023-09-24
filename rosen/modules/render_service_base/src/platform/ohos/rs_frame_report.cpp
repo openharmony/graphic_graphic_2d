@@ -174,5 +174,18 @@ void RsFrameReport::SendCommandsStart()
         ROSEN_LOGE("RsFrameReport:[SendCommandsStart]load SendCommandsStart function failed!");
     }
 }
+
+void RsFrameReport::SetFrameParam(int requestId, int load, int schedFrameNum, int value)
+{
+    if (setFrameParamFunc_ == nullptr) {
+        setFrameParamFunc_ = (SetFrameParamFunc)LoadSymbol("SetFrameParam");
+    }
+
+    if (setFrameParamFunc_ != nullptr) {
+        setFrameParamFunc_(requestId, load, schedFrameNum, value);
+    } else {
+        ROSEN_LOGE("RsFrameReport:[SetFrameParam]load SetFrameParam function failed");
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

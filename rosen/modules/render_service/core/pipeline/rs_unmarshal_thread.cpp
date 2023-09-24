@@ -16,11 +16,18 @@
 #include "pipeline/rs_unmarshal_thread.h"
 
 #include "pipeline/rs_base_render_util.h"
+#include "pipeline/rs_frame_report.h"
 #include "pipeline/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_data.h"
 
 namespace OHOS::Rosen {
+namespace {
+    constexpr int REQUEST_FRAME_AWARE_ID = 100001;
+    constexpr int REQUEST_FRAME_AWARE_LOAD = 80;
+    constexpr int REQUEST_FRAME_AWARE_NUM = 2;
+}
+
 RSUnmarshalThread& RSUnmarshalThread::Instance()
 {
     static RSUnmarshalThread instance;
@@ -50,6 +57,10 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel)
         auto transData = RSBaseRenderUtil::ParseTransactionData(*parcel);
         if (!transData) {
             return;
+        }
+        if (RsFrameReport::GetInstance().GetEnable()) {
+            RsFrameReport::GetInstance().SetFrameParam(
+                REQUEST_FRAME_AWARE_ID, REQUEST_FRAME_AWARE_LOAD, REQUEST_FRAME_AWARE_NUM, 0);
         }
         std::lock_guard<std::mutex> lock(transactionDataMutex_);
         cachedTransactionDataMap_[transData->GetSendingPid()].emplace_back(std::move(transData));
