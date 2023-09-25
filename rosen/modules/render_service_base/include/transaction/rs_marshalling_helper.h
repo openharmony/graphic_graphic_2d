@@ -349,10 +349,7 @@ public:
 #endif
     static void BeginNoSharedMem(std::thread::id tid);
     static void EndNoSharedMem();
-    static bool GetUseSharedMem()
-    {
-        return useSharedMem_;
-    }
+    static bool GetUseSharedMem();
 private:
     static bool WriteToParcel(Parcel& parcel, const void* data, size_t size);
     static const void* ReadFromParcel(Parcel& parcel, size_t size);
@@ -364,8 +361,6 @@ private:
 
     static constexpr size_t MAX_DATA_SIZE = 128 * 1024 * 1024; // 128M
     static constexpr size_t MIN_DATA_SIZE = 8 * 1024;          // 8k
-    static std::thread::id tid_;
-    static bool useSharedMem_;
 };
 
 } // namespace Rosen

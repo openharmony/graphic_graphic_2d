@@ -92,8 +92,11 @@
 namespace OHOS {
 namespace Rosen {
 
-    bool RSMarshallingHelper::useSharedMem_ = true;
-    std::thread::id RSMarshallingHelper::tid_ = std::thread::id();
+namespace {
+    bool g_useSharedMem = true;
+    std::thread::id g_tid = std::thread::id();
+}
+
  
 #define MARSHALLING_AND_UNMARSHALLING(TYPE, TYPENAME)                      \
     bool RSMarshallingHelper::Marshalling(Parcel& parcel, const TYPE& val) \
@@ -2088,14 +2091,20 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::unique_ptr<OpItem>&
 }
 #endif
 
-void RSMarshallingHelper::BeginNoSharedMem(std::thread::id tid) {
-    useSharedMem_ = false;
-    tid_ = tid;
+void RSMarshallingHelper::BeginNoSharedMem(std::thread::id tid)
+{
+    g_useSharedMem = false;
+    g_tid = tid;
 }
-void RSMarshallingHelper::EndNoSharedMem() {
-    useSharedMem_ = true;
-    tid_.__reset();
+void RSMarshallingHelper::EndNoSharedMem()
+{
+    g_useSharedMem = true;
+    g_tid.__reset();
 }
 
+bool RSMarshallingHelper::GetUseSharedMem()
+{
+    return g_useSharedMem;
+}
 } // namespace Rosen
 } // namespace OHOS

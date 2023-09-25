@@ -688,7 +688,8 @@ bool RSMarshallingHelper::SkipFromParcel(Parcel& parcel, size_t size)
 {
     return {};
 }
-void RSMarshallingHelper::BeginNoShareMem(std::thread::id tid) {}
-viod RSMarshallingHelper::EndNoShareMem() {}
+void RSMarshallingHelper::BeginNoSharedMem(std::thread::id tid) {}
+void RSMarshallingHelper::EndNoSharedMem() {}
+bool RSMarshallingHelper::GetUseSharedMem() {}
 } // namespace Rosen
 } // namespace OHOS
