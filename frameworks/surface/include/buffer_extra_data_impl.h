@@ -18,6 +18,7 @@
 
 #include <buffer_extra_data.h>
 #include <any>
+#include <mutex>
 
 namespace OHOS {
 class BufferExtraDataImpl : public BufferExtraData {
@@ -49,6 +50,7 @@ private:
         ExtraDataType type;
     };
     std::map<std::string, struct ExtraData> datas;
+    mutable std::mutex mtx;
 };
 } // namespace OHOS
 
