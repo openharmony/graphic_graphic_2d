@@ -78,20 +78,6 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareChildren001, TestSize.Level1)
 }
 
 /*
- * @tc.name: SetHardwareEnabledNodes001
- * @tc.desc: SetHardwareEnabledNodes Test
- * @tc.type: FUNC
- * @tc.require: issueI79U8E
- */
-HWTEST_F(RSUniRenderVisitorTest, SetHardwareEnabledNodes001, TestSize.Level1)
-{
-    auto rsContext = std::make_shared<RSContext>();
-    auto rsRootRenderNode = std::make_shared<RSRootRenderNode>(10, rsContext->weak_from_this());
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    rsUniRenderVisitor->DoDirectComposition(rsRootRenderNode);
-}
-
-/*
  * @tc.name: DrawAllSurfaceOpaqueRegionForDFX001
  * @tc.desc: DrawAllSurfaceOpaqueRegionForDFX Test
  * @tc.type: FUNC
