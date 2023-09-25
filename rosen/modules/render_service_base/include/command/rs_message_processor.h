@@ -34,6 +34,8 @@ public:
 
     bool HasTransaction() const;
     bool HasTransaction(uint32_t pid) const;
+    void RemovePidFromMap(uint32_t pid);
+    void ReInitializeMovedMap();
 
     RSTransactionData&& GetTransaction(uint32_t pid);
     std::unordered_map<uint32_t, RSTransactionData>&& GetAllTransactions();
