@@ -770,7 +770,7 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
             left = std::min(left, position.x_ - radius * scaleMax);
             top = std::min(top, position.y_ - radius * scaleMax);
             right = std::max(right, position.x_ + emitSize.x_ + radius * scaleMax);
-            bottom = std::max(bottom, position.y_ + emitSize.x_ + radius * scaleMax);
+            bottom = std::max(bottom, position.y_ + emitSize.y_ + radius * scaleMax);
         } else {
             float imageSizeWidth = 0.f;
             float imageSizeHeight = 0.f;
@@ -785,7 +785,7 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
             left = position.x_ - imageSizeWidth * scaleMax;
             top = position.y_ - imageSizeHeight * scaleMax;
             right = position.x_ + emitSize.x_ + imageSizeWidth * scaleMax;
-            bottom = position.y_ + emitSize.x_ + imageSizeHeight * scaleMax;
+            bottom = position.y_ + emitSize.y_ + imageSizeHeight * scaleMax;
         }
         std::shared_ptr<RectF> overlayRect = std::make_shared<RectF>(left, top, right, bottom);
         SetDrawRegion(overlayRect);
