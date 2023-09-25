@@ -87,7 +87,7 @@ void RSRenderParticleEmitter::EmitParticle(int64_t deltaTime)
     particleCount_ += static_cast<float>(emitRate * deltaTime) / NS_TO_S;
     spawnNum_ += particleCount_ - last;
     if (ROSEN_EQ(last, 0.f)) {
-        for (uint32_t i = 0; i < std::min(static_cast<int32_t>(spawnNum_), maxParticle); i++) {
+        for (int32_t i = 0; i < std::min(static_cast<int32_t>(spawnNum_), maxParticle); i++) {
             auto particle = std::make_shared<RSRenderParticle>(particleParams_);
             particles_.push_back(particle);
             spawnNum_ -= 1.f;
