@@ -279,6 +279,13 @@ bool RSSystemProperties::GetSkipGeometryNotChangeEnabled()
     return skipGeoNotChangeEnabled;
 }
 
+bool RSSystemProperties::GetPropertyDrawableEnable()
+{
+    static bool propertyDrawableEnable =
+        std::atoi((system::GetParameter("persist.propertyDrawableGenerate.enabled", "0")).c_str()) != 0;
+    return propertyDrawableEnable;
+}
+
 float RSSystemProperties::GetAnimationScale()
 {
     return std::atof((system::GetParameter("persist.sys.graphic.animationscale", "1.0")).c_str());

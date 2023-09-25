@@ -152,6 +152,7 @@ public:
     static bool GetBlurEnabled();
     static bool GetSkipForAlphaZeroEnabled();
     static bool GetSkipGeometryNotChangeEnabled();
+    static bool GetPropertyDrawableEnable();
 
     static bool GetBoolSystemProperty(const char* name, bool defaultValue);
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
