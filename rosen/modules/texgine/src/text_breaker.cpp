@@ -17,6 +17,8 @@
 
 #include <cassert>
 
+#include <unicode/uchar.h>
+
 #include "measurer.h"
 #include "texgine/any_span.h"
 #include "texgine_exception.h"
@@ -75,6 +77,7 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyl
         }
 
         GenNewBoundryByWidth(cgs, boundaries);
+        GenNewBoundryByHardBreak(cgs, boundaries);
         GenNewBoundryByTypeface(cgs, boundaries);
         GenNewBoundryByQuote(cgs, boundaries);
 
@@ -138,6 +141,35 @@ int TextBreaker::Measure(const TextStyle &xs, const std::vector<uint16_t> &u16ve
         return 1;
     }
     return 0;
+}
+
+void TextBreaker::GenNewBoundryByHardBreak(CharGroups cgs, std::vector<Boundary> &boundaries)
+{
+    std::vector<Boundary> newBoundary;
+    for (auto &[start, end] : boundaries) {
+        size_t newStart = start;
+        size_t newEnd = start;
+        const auto &wordCgs = cgs.GetSubFromU16RangeAll(start, end);
+        for (auto cg = wordCgs.begin(); cg != wordCgs.end(); cg++) {
+            ULineBreak lineBreak = static_cast<ULineBreak>(
+                u_getIntPropertyValue(cg->chars[0], UCHAR_LINE_BREAK));
+            if (lineBreak == U_LB_LINE_FEED || lineBreak == U_LB_MANDATORY_BREAK) {
+                newBoundary.push_back({newStart, newEnd});
+                newBoundary.push_back({newEnd, newEnd + 1});
+                newStart = newEnd + 1;
+                newEnd++;
+            } else {
+                newEnd++;
+                continue;
+            }
+        }
+
+        if (newStart == start) {
+            newBoundary.push_back({newStart, newEnd});
+        }
+    }
+
+    boundaries = newBoundary;
 }
 
 void TextBreaker::GenNewBoundryByTypeface(CharGroups cgs, std::vector<Boundary> &boundaries)
@@ -242,9 +274,9 @@ void TextBreaker::BreakWord(const CharGroups &wordcgs, const TypographyStyle &ys
 {
     size_t rangeOffset = 0;
     for (size_t i = 0; i < wordcgs.GetNumberOfCharGroup(); i++) {
-        const auto &cg = wordcgs.Get(i);
+        auto &cg = wordcgs.Get(i);
         postBreak_ += cg.GetWidth();
-        if (u_isWhitespace(cg.chars[0]) == 0) {
+        if (u_isWhitespace(cg.chars[0]) == 0 || cg.IsHardBreak()) {
             // not white space
             preBreak_ = postBreak_;
         }

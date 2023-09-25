@@ -62,7 +62,11 @@ std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch,
             return typeface;
         }
     }
-    return FindFallBackTypeface(ch, style, script, locale);
+    auto typeface = FindFallBackTypeface(ch, style, script, locale);
+    if (typeface == nullptr) {
+        typeface = GetTypefaceForFontStyles(style, script, locale);
+    }
+    return typeface;
 }
 
 std::shared_ptr<Typeface> FontCollection::GetTypefaceForFontStyles(const FontStyles &style,

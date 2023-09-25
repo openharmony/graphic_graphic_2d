@@ -19,8 +19,6 @@
 #include <functional>
 #include <variant>
 
-#include <unicode/ubidi.h>
-
 #include "font_collection.h"
 #include "shaper.h"
 #include "texgine/any_span.h"
@@ -37,7 +35,7 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 #define MAXWIDTH 1e9
-#define HALF 0.5f
+#define HALF(a) ((a) / 2)
 #define MINDEV 1e-3
 #define SUCCESSED 0
 #define FAILED 1
@@ -209,7 +207,7 @@ IndexAndAffinity TypographyImpl::GetGlyphIndexByCoordinate(double x, double y) c
 
     // calc affinity
     if (targetIndex > 0 && targetIndex < widths.size()) {
-        auto mid = offsetX + widths[targetIndex] * HALF;
+        auto mid = offsetX + HALF(widths[targetIndex]);
         affinity = x < mid ? Affinity::NEXT : Affinity::PREV;
     }
     LOGEX_FUNC_LINE_DEBUG() << "affinity: " << (affinity == Affinity::PREV ? "upstream" : "downstream");
@@ -350,6 +348,23 @@ int TypographyImpl::UpdateMetrics()
 void TypographyImpl::DoLayout()
 {
     maxLineWidth_ = 0.0;
+    bool prevOnlyHardBreak = false;
+    for (auto i = 0; i < static_cast<int>(lineMetrics_.size()); i++) {
+        if (lineMetrics_[i].lineSpans.size() == 1 && lineMetrics_[i].lineSpans.back().IsHardBreak()) {
+            prevOnlyHardBreak = true;
+        } else {
+            prevOnlyHardBreak = false;
+        }
+
+        if (lineMetrics_[i].lineSpans.begin()->IsHardBreak() && i > 0 && prevOnlyHardBreak == false) {
+            lineMetrics_[i - 1].lineSpans.push_back(lineMetrics_[i].lineSpans.front());
+            lineMetrics_[i].lineSpans.erase(lineMetrics_[i].lineSpans.begin());
+            if (lineMetrics_[i].lineSpans.empty()) {
+                lineMetrics_.erase(lineMetrics_.begin() + i);
+                i--;
+            }
+        }
+    }
     for (auto i = 0; i < static_cast<int>(lineMetrics_.size()); i++) {
         double offsetX = 0;
         for (auto &vs : lineMetrics_[i].lineSpans) {
@@ -409,7 +424,7 @@ int TypographyImpl::ComputeStrut()
         strut_.descent = *strutMetrics.fDescent_;
         leading = fabs(leading) < DBL_EPSILON ? *strutMetrics.fLeading_ : strutLeading;
     }
-    strut_.halfLeading = leading * HALF;
+    strut_.halfLeading = HALF(leading);
     return SUCCESSED;
 }
 
@@ -474,8 +489,8 @@ int TypographyImpl::DoUpdateSpanMetrics(const VariantSpan &span, const TexgineFo
             coveredAscent = (-*metrics.fAscent_ / metricsHeight) * style.heightScale * style.fontSize;
             coveredDescent = (*metrics.fDescent_ / metricsHeight) * style.heightScale * style.fontSize;
         } else {
-            coveredAscent = (-*metrics.fAscent_ + *metrics.fLeading_ * HALF);
-            coveredDescent = (*metrics.fDescent_ + *metrics.fLeading_ * HALF);
+            coveredAscent = (-*metrics.fAscent_ + HALF(*metrics.fLeading_));
+            coveredDescent = (*metrics.fDescent_ + HALF(*metrics.fLeading_));
         }
         if (auto as = span.TryToAnySpan(); as != nullptr) {
             UpadateAnySpanMetrics(as, coveredAscent, coveredDescent);
@@ -497,7 +512,7 @@ void TypographyImpl::UpadateAnySpanMetrics(std::shared_ptr<AnySpan> &span, doubl
 
     double as = coveredAscent;
     double de = coveredDescent;
-    double aj = span->GetBaseline() == TextBaseline::IDEOGRAPHIC ? -de * HALF : 0;
+    double aj = span->GetBaseline() == TextBaseline::IDEOGRAPHIC ? HALF(-de) : 0;
     double lo = span->GetLineOffset();
     double he = span->GetHeight();
 
@@ -508,7 +523,7 @@ void TypographyImpl::UpadateAnySpanMetrics(std::shared_ptr<AnySpan> &span, doubl
         {AnySpanAlignment::BELOW_BASELINE, [&] { return -aj; }},
         {AnySpanAlignment::TOP_OF_ROW_BOX, [&] { return as; }},
         {AnySpanAlignment::BOTTOM_OF_ROW_BOX, [&] { return he - de; }},
-        {AnySpanAlignment::CENTER_OF_ROW_BOX, [&] { return (as - de + he) * HALF; }},
+        {AnySpanAlignment::CENTER_OF_ROW_BOX, [&] { return HALF(as - de + he); }},
     };
 
     coveredAscent = calcMap[span->GetAlignment()]();
@@ -554,7 +569,7 @@ std::vector<TextRect> TypographyImpl::GetTextRectsByBoundary(Boundary boundary, 
         std::map<TextRectHeightStyle, std::function<struct CalcResult()>> calcMap = {
             {tgh, [&] { return CalcResult{false}; }},
             {ctb, [&] { return CalcResult{true, as, cd}; }},
-            {chf, [&] { return CalcResult{true, as + fl * hl * HALF, cd + ll * hl * HALF}; }},
+            {chf, [&] { return CalcResult{true, as + HALF(fl * hl), cd + HALF(ll * hl)}; }},
             {ctp, [&] { return CalcResult{true, as + fl * hl, cd}; }},
             {cbm, [&] { return CalcResult{true, as, cd + ll * hl}; }},
             {TextRectHeightStyle::FOLLOW_BY_LINE_STYLE, [&] {
@@ -684,7 +699,7 @@ void TypographyImpl::ApplyAlignment()
             TextDirection::RTL == typographyStyle_.direction)) {
             typographyOffsetX = maxWidth_ - line.width;
         } else if (TextAlign::CENTER == align_) {
-            typographyOffsetX = (maxWidth_ - line.width) * HALF;
+            typographyOffsetX = HALF(maxWidth_ - line.width);
         }
 
         for (auto &span : line.lineSpans) {

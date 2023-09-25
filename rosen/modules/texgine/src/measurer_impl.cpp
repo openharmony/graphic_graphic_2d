@@ -432,6 +432,9 @@ void MeasurerImpl::DoCgsByCluster(std::map<uint32_t, TextEngine::CharGroup> &cgs
         }
 
         it->second.chars.insert(it->second.chars.end(), text_.begin() + start, text_.begin() + end);
+        if (it->second.IsHardBreak()) {
+            continue;
+        }
         it->second.visibleWidth = 0;
         for (const auto &glyph : it->second.glyphs) {
             it->second.visibleWidth += glyph.advanceX;

@@ -96,6 +96,10 @@ void LineBreaker::DoBreakLines(std::vector<struct ScoredSpan> &scoredSpans, cons
         is.prev = scoredSpans[i - 1].prev;
         LOGEX_FUNC_LINE_DEBUG() << "[" << i << "]: is.preBreak: " << is.preBreak
             << ", prev.postBreak: " << scoredSpans[is.prev].postBreak;
+        if (scoredSpans[i].span.IsHardBreak()) {
+            is.prev = static_cast<int>(i - 1);
+        }
+
         if (FLOATING_GT(is.preBreak - scoredSpans[is.prev].postBreak, widthLimit)) {
             is.prev = static_cast<int>(i - 1);
             LOGEX_FUNC_LINE_DEBUG() << "  -> [" << is.prev
