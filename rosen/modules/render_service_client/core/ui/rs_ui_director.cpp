@@ -51,7 +51,8 @@
 
 namespace OHOS {
 namespace Rosen {
-static TaskRunner g_uiTaskRunner;
+static std::unordered_map<RSUIDirector*, TaskRunner> g_uiTaskRunners;
+static std::mutex g_uiTaskRunnersVisitorMutex;
 
 std::shared_ptr<RSUIDirector> RSUIDirector::Create()
 {
@@ -136,6 +137,8 @@ void RSUIDirector::Destroy()
         root_ = 0;
     }
     GoBackground();
+    std::unique_lock<std::mutex> lock(g_uiTaskRunnersVisitorMutex);
+    g_uiTaskRunners.erase(this);
 }
 
 void RSUIDirector::SetRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
@@ -223,7 +226,8 @@ bool RSUIDirector::RunningCustomAnimation(uint64_t timeStamp)
 
 void RSUIDirector::SetUITaskRunner(const TaskRunner& uiTaskRunner)
 {
-    g_uiTaskRunner = uiTaskRunner;
+    std::unique_lock<std::mutex> lock(g_uiTaskRunnersVisitorMutex);
+    g_uiTaskRunners[this] = uiTaskRunner;
 }
 
 void RSUIDirector::SendMessages()
@@ -253,15 +257,14 @@ void RSUIDirector::RecvMessages(bool needProcess)
 
 void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds)
 {
-    if (g_uiTaskRunner == nullptr) {
-        ROSEN_LOGE("RSUIDirector::RecvMessages, Notify ui message failed, uiTaskRunner is null");
-        return;
-    }
     if (cmds == nullptr || cmds->IsEmpty()) {
         return;
     }
-
-    g_uiTaskRunner([cmds]() { RSUIDirector::ProcessMessages(cmds); });
+    ROSEN_LOGD("RSUIDirector::RecvMessages success");
+    PostTask([cmds]() {
+        ROSEN_LOGD("RSUIDirector::ProcessMessages success");
+        RSUIDirector::ProcessMessages(cmds);
+    });
 }
 
 void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
@@ -288,6 +291,20 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId)
     } else {
         ROSEN_LOGE("RSUIDirector::AnimationCallbackProcessor, could not find animation %" PRIu64 " on fallback node.",
             animId);
+    }
+}
+
+void RSUIDirector::PostTask(const std::function<void()>& task)
+{
+    std::unique_lock<std::mutex> lock(g_uiTaskRunnersVisitorMutex);
+    for (auto [_, taskRunner] : g_uiTaskRunners) {
+        if (taskRunner == nullptr) {
+            ROSEN_LOGE("RSUIDirector::PostTask, uiTaskRunner is null");
+            continue;
+        }
+        ROSEN_LOGD("RSUIDirector::PostTask success");
+        taskRunner(task);
+        return;
     }
 }
 } // namespace Rosen
