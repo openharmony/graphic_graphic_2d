@@ -169,7 +169,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkData>& val)
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling SkData");
         return false;
     }
-    if (static_cast<uint32_t>(size) < MIN_DATA_SIZE || (!useSharedMem_ && tid_ == std::this_thread::get_id())) {
+    if (static_cast<uint32_t>(size) < MIN_DATA_SIZE || (!g_useSharedMem && g_tid == std::this_thread::get_id())) {
         val = SkData::MakeWithoutCopy(data, size);
     } else {
         val = SkData::MakeFromMalloc(data, size);
@@ -189,7 +189,7 @@ bool RSMarshallingHelper::UnmarshallingWithCopy(Parcel& parcel, sk_sp<SkData>& v
 {
     bool success = Unmarshalling(parcel, val);
     if (success) {
-        if (val && (val->size() < MIN_DATA_SIZE || (!useSharedMem_ && tid_ == std::this_thread::get_id()))) {
+        if (val && (val->size() < MIN_DATA_SIZE || (!g_useSharedMem && g_tid == std::this_thread::get_id()))) {
             val = SkData::MakeWithCopy(val->data(), val->size());
         }
     }
@@ -535,7 +535,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val, voi
             }
             colorSpace = SkColorSpace::Deserialize(data, size);
 
-            if (size >= MIN_DATA_SIZE && useSharedMem_) {
+            if (size >= MIN_DATA_SIZE && g_useSharedMem) {
                 free(const_cast<void*>(data));
             }
         }
@@ -544,12 +544,12 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val, voi
         // use this proc to follow release step
         SkImageInfo imageInfo = SkImageInfo::Make(width, height, colorType, alphaType, colorSpace);
         auto skData =
-            (pixmapSize < MIN_DATA_SIZE || (!useSharedMem_ && tid_ == std::this_thread::get_id()))
+            (pixmapSize < MIN_DATA_SIZE || (!g_useSharedMem && g_tid == std::this_thread::get_id()))
                 ? SkData::MakeWithCopy(addr, pixmapSize)
                 : SkData::MakeWithProc(addr, pixmapSize, sk_free_releaseproc, nullptr);
         val = SkImage::MakeRasterData(imageInfo, skData, rb);
         // add to MemoryTrack for memoryManager
-        if (pixmapSize >= MIN_DATA_SIZE && useSharedMem_) {
+        if (pixmapSize >= MIN_DATA_SIZE && g_useSharedMem) {
             MemoryInfo info = { pixmapSize, 0, 0, MEMORY_TYPE::MEM_SKIMAGE };
             MemoryTrack::Instance().AddPictureRecord(addr, info);
             imagepixelAddr = const_cast<void*>(addr);
@@ -822,7 +822,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkBitmap& val)
         }
         colorSpace = SkColorSpace::Deserialize(data, size);
 
-        if (size >= MIN_DATA_SIZE && useSharedMem_) {
+        if (size >= MIN_DATA_SIZE && g_useSharedMem) {
             free(const_cast<void*>(data));
         }
     }
@@ -2000,7 +2000,7 @@ bool RSMarshallingHelper::WriteToParcel(Parcel& parcel, const void* data, size_t
     if (!parcel.WriteUint32(size)) {
         return false;
     }
-    if (size < MIN_DATA_SIZE || (!useSharedMem_ && tid_ == std::this_thread::get_id())) {
+    if (size < MIN_DATA_SIZE || (!g_useSharedMem && g_tid == std::this_thread::get_id())) {
         return parcel.WriteUnpadBuffer(data, size);
     }
 
@@ -2030,7 +2030,7 @@ const void* RSMarshallingHelper::ReadFromParcel(Parcel& parcel, size_t size)
         return nullptr;
     }
     if (static_cast<unsigned int>(bufferSize) < MIN_DATA_SIZE  ||
-        (!useSharedMem_ && tid_ == std::this_thread::get_id())) {
+        (!g_useSharedMem && g_tid == std::this_thread::get_id())) {
         return parcel.ReadUnpadBuffer(size);
     }
     // read from ashmem
@@ -2051,7 +2051,7 @@ bool RSMarshallingHelper::SkipFromParcel(Parcel& parcel, size_t size)
         return false;
     }
     if (static_cast<unsigned int>(bufferSize) < MIN_DATA_SIZE ||
-        (!useSharedMem_ && tid_ == std::this_thread::get_id())) {
+        (!g_useSharedMem && g_tid == std::this_thread::get_id())) {
         parcel.SkipBytes(size);
         return true;
     }
