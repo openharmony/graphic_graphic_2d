@@ -57,6 +57,11 @@ void* Data::WritableData()
 {
     return impl_->WritableData();
 }
+
+std::shared_ptr<Data> Data::Serialize() const
+{
+    return impl_->Serialize();
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

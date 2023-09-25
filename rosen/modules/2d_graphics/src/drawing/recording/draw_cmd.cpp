@@ -524,7 +524,7 @@ void DrawImageNineOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
     canvas.DrawImageNine(image.get(), center_, dst_, filter_, brush.get());
 }
 
-DrawAnnotationOpItem::DrawAnnotationOpItem(const Rect& rect, const char* key, const Data& data)
+DrawAnnotationOpItem::DrawAnnotationOpItem(const Rect& rect, const char* key, const ImageHandle& data)
     : DrawOpItem(IMAGE_ANNOTATION_OPITEM),
     rect_(rect), key_(key), data_(data) {}
 
@@ -532,13 +532,17 @@ void DrawAnnotationOpItem::Playback(CanvasPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
         const auto* op = static_cast<const DrawAnnotationOpItem*>(opItem);
-        op->Playback(player.canvas_);
+        op->Playback(player.canvas_, player.cmdList_);
     }
 }
 
-void DrawAnnotationOpItem::Playback(Canvas& canvas) const
+void DrawAnnotationOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
 {
-    canvas.DrawAnnotation(rect_, key_, data_);
+    auto data = CmdListHelper::GetDataFromCmdList(cmdList, data_);
+    if (data == nullptr) {
+        return;
+    }
+    canvas.DrawAnnotation(rect_, key_, data.get());
 }
 
 DrawImageLatticeOpItem::DrawImageLatticeOpItem(const ImageHandle& image, const Lattice& lattice, const Rect& dst,

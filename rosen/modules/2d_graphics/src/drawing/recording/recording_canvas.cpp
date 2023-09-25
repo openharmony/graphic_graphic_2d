@@ -228,9 +228,10 @@ void RecordingCanvas::DrawImageNine(const Image* image, const RectI& center, con
     cmdList_->AddOp<DrawImageNineOpItem>(imageHandle, center, dst, filterMode, brushHandle, hasBrush);
 }
 
-void RecordingCanvas::DrawAnnotation(const Rect& rect, const char* key, const Data& data)
+void RecordingCanvas::DrawAnnotation(const Rect& rect, const char* key, const Data* data)
 {
-    cmdList_->AddOp<DrawAnnotationOpItem>(rect, key, data);
+    auto dataHandle = CmdListHelper::AddDataToCmdList(*cmdList_, data);
+    cmdList_->AddOp<DrawAnnotationOpItem>(rect, key, dataHandle);
 }
 
 void RecordingCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,

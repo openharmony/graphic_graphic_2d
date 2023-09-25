@@ -502,10 +502,10 @@ void SkiaCanvas::DrawImageNine(const Image* image, const RectI& center, const Re
     skCanvas_->drawImageNine(img.get(), skCenter, skDst, skFilterMode, paint.get());
 }
 
-void SkiaCanvas::DrawAnnotation(const Rect& rect, const char* key, const Data& data)
+void SkiaCanvas::DrawAnnotation(const Rect& rect, const char* key, const Data* data)
 {
     SkRect skRect = SkRect::MakeLTRB(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
-    auto dataImp = data.GetImpl<SkiaData>();
+    auto dataImp = data->GetImpl<SkiaData>();
     if (dataImp == nullptr) {
         LOGE("drawAnnotation:dataImp is null");
         return;

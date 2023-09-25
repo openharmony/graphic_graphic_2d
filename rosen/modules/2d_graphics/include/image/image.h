@@ -215,6 +215,8 @@ public:
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace);
 
     BackendTexture GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin* origin) const;
+
+    bool IsValid(GPUContext* context) const;
 #endif
 
     /*
@@ -255,6 +257,13 @@ public:
      * @return        True of pixels are copied to Bitmap.
      */
     bool ReadPixels(Bitmap& bitmap, int x, int y);
+
+    bool ScalePixels(const Bitmap& bitmap, const SamplingOptions& sampling,
+        bool allowCachingHint = true) const;
+
+    std::shared_ptr<Data> EncodeToData(EncodedImageFormat& encodedImageFormat, int quality) const;
+
+    bool IsLazyGenerated() const;
 
     /*
      * @brief   Returns true the contents of Image was created on or uploaded to GPU memory,

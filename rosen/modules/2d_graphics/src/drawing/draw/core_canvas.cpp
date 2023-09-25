@@ -177,7 +177,7 @@ void CoreCanvas::DrawImageNine(const Image* image, const RectI& center, const Re
     impl_->DrawImageNine(image, center, dst, filter, brush);
 }
 
-void CoreCanvas::DrawAnnotation(const Rect& rect, const char* key, const Data& data)
+void CoreCanvas::DrawAnnotation(const Rect& rect, const char* key, const Data* data)
 {
     impl_->DrawAnnotation(rect, key, data);
 }

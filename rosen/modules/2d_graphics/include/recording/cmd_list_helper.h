@@ -178,6 +178,9 @@ public:
 
         return childCmdList;
     }
+
+    static ImageHandle AddDataToCmdList(CmdList& cmdList, const Data* data);
+    static std::shared_ptr<Data> GetDataFromCmdList(const CmdList& cmdList, const ImageHandle& imageHandle);
 };
 } // namespace Drawing
 } // namespace Rosen

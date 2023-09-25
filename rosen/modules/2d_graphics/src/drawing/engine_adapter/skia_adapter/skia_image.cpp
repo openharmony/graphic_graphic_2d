@@ -186,6 +186,18 @@ BackendTexture SkiaImage::GetBackendTexture(bool flushPendingGrContextIO, Textur
     backendTexture.SetTextureInfo(ConvertToTextureInfo(skBackendTexture));
     return backendTexture;
 }
+
+bool SkiaImage::IsValid(GPUContext* context) const
+{
+    if (skiaImage_ == nullptr) {
+        LOGE("SkiaImage::IsValid, skiaImage_ is nullptr!");
+        return false;
+    }
+    if (context == nullptr) {
+        return skiaImage_->isValid(nullptr);
+    }
+    return skiaImage_->isValid(context->GetImpl<SkiaGPUContext>()->GetGrContext().get());
+}
 #endif
 
 int SkiaImage::GetWidth() const
@@ -232,6 +244,47 @@ bool SkiaImage::ReadPixels(Bitmap& bitmap, int x, int y)
 bool SkiaImage::IsTextureBacked() const
 {
     return (skiaImage_ == nullptr) ? false : skiaImage_->isTextureBacked();
+}
+
+bool SkiaImage::ScalePixels(const Bitmap& bitmap, const SamplingOptions& sampling, bool allowCachingHint) const
+{
+    const auto& skBitmap = bitmap.GetImpl<SkiaBitmap>()->ExportSkiaBitmap();
+    const auto& skPixmap = skBitmap.pixmap();
+
+    SkSamplingOptions samplingOptions;
+    if (sampling.GetUseCubic()) {
+        samplingOptions = SkSamplingOptions({ sampling.GetCubicCoffB(), sampling.GetCubicCoffC() });
+    } else {
+        samplingOptions = SkSamplingOptions(static_cast<SkFilterMode>(sampling.GetFilterMode()),
+            static_cast<SkMipmapMode>(sampling.GetMipmapMode()));
+    }
+
+    SkImage::CachingHint skCachingHint;
+    if (allowCachingHint) {
+        skCachingHint = SkImage::CachingHint::kAllow_CachingHint;
+    } else {
+        skCachingHint = SkImage::CachingHint::kDisallow_CachingHint;
+    }
+
+    return (skiaImage_ == nullptr) ? false : skiaImage_->scalePixels(skPixmap, samplingOptions, skCachingHint);
+}
+
+std::shared_ptr<Data> SkiaImage::EncodeToData(EncodedImageFormat& encodedImageFormat, int quality) const
+{
+    SkEncodedImageFormat skEncodedImageFormat = ConvertToSkEncodedImageFormat(encodedImageFormat);
+    if (skiaImage_ == nullptr) {
+        LOGE("SkiaImage::EncodeToData, skiaImage_ is null!");
+        return nullptr;
+    }
+    auto skData = skiaImage_->encodeToData(skEncodedImageFormat, quality);
+    std::shared_ptr<Data> data = std::make_shared<Data>();
+    data->GetImpl<SkiaData>()->SetSkData(skData);
+    return data;
+}
+
+bool SkiaImage::IsLazyGenerated() const
+{
+    return (skiaImage_ == nullptr) ? false : skiaImage_->isLazyGenerated();
 }
 
 const sk_sp<SkImage> SkiaImage::GetImage() const

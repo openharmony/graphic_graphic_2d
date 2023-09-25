@@ -76,6 +76,11 @@ BackendTexture Image::GetBackendTexture(bool flushPendingGrContextIO, TextureOri
 {
     return imageImplPtr->GetBackendTexture(flushPendingGrContextIO, origin);
 }
+
+bool Image::IsValid(GPUContext* context) const
+{
+    return imageImplPtr->IsValid(context);
+}
 #endif
 
 int Image::GetWidth() const
@@ -116,6 +121,21 @@ bool Image::ReadPixels(Bitmap& bitmap, int x, int y)
 bool Image::IsTextureBacked() const
 {
     return imageImplPtr->IsTextureBacked();
+}
+
+bool Image::ScalePixels(const Bitmap& bitmap, const SamplingOptions& sampling, bool allowCachingHint) const
+{
+    return imageImplPtr->ScalePixels(bitmap, sampling, allowCachingHint);
+}
+
+std::shared_ptr<Data> Image::EncodeToData(EncodedImageFormat& encodedImageFormat, int quality) const
+{
+    return imageImplPtr->EncodeToData(encodedImageFormat, quality);
+}
+
+bool Image::IsLazyGenerated() const
+{
+    return imageImplPtr->IsLazyGenerated();
 }
 
 std::shared_ptr<Data> Image::Serialize() const

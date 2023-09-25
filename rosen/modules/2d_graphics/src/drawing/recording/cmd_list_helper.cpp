@@ -28,6 +28,7 @@
 #include "recording/region_cmd_list.h"
 #include "recording/shader_effect_cmd_list.h"
 #include "skia_adapter/skia_vertices.h"
+#include "skia_adapter/skia_data.h"
 #include "utils/log.h"
 
 #include "skia_adapter/skia_picture.h"
@@ -270,6 +271,40 @@ CmdListHandle CmdListHelper::AddChildToCmdList(CmdList& cmdList, const std::shar
     }
 
     return childHandle;
+}
+
+ImageHandle CmdListHelper::AddDataToCmdList(CmdList& cmdList, const Data* srcData)
+{
+    if (!srcData) {
+        LOGE("data nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return { 0 };
+    }
+    std::shared_ptr<SkiaData> skiaData = srcData->GetImpl<SkiaData>();
+    if (!skiaData) {
+        LOGE("skiaData nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return { 0 };
+    }
+    auto data = srcData->Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGE("srcData is invalid!");
+        return { 0 };
+    }
+
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize() };
+}
+
+std::shared_ptr<Data> CmdListHelper::GetDataFromCmdList(const CmdList& cmdList, const ImageHandle& imageHandle)
+{
+    const void* ptr = cmdList.GetImageData(imageHandle.offset);
+    if (imageHandle.size == 0 || ptr == nullptr) {
+        LOGE("get data failed!");
+        return nullptr;
+    }
+
+    auto imageData = std::make_shared<Data>();
+    imageData->BuildWithoutCopy(ptr, imageHandle.size);
+    return imageData;
 }
 } // namespace Drawing
 } // namespace Rosen
