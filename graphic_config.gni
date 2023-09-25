@@ -16,6 +16,7 @@ declare_args() {
   graphic_2d_feature_ace_enable_gpu = true
   graphic_2d_feature_color_gamut_enable = false
   graphic_2d_feature_rs_enable_eglimage = false
+  graphic_2d_feature_use_texgine = false
   graphic_2d_feature_rs_enable_uni_render = false
   graphic_2d_feature_wuji_enable = false
   graphic_2d_feature_enable_afbc = false
@@ -24,7 +25,7 @@ declare_args() {
   graphic_2d_feature_enable_vulkan = false
   graphic_2d_feature_enable_filter_cache = true
   enable_text_gine = true
-  use_texgine = true
+  use_texgine = false
   player_framework_enable = true
   graphic_2d_feature_drivers_interface_display_enable = true
   graphic_2d_feature_tp_switch_enbale = false
@@ -93,6 +94,8 @@ if ((graphic_2d_feature_rs_enable_eglimage &&
   gpu_defines += [ "RS_DISABLE_EGLIMAGE" ]
   rs_enable_eglimage = false
 }
+
+use_texgine = graphic_2d_feature_use_texgine
 
 if (graphic_2d_feature_rs_enable_uni_render) {
   rs_enable_driven_render = true
