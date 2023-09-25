@@ -409,6 +409,8 @@ private:
     friend class RSColorfulShadowDrawable;
     friend class RSPropertiesPainter;
     friend class RSRenderNode;
+    friend class RSBackgroundDrawable;
+    friend class RSEffectDataGenerateDrawable;
 };
 } // namespace Rosen
 } // namespace OHOS

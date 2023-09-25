@@ -53,6 +53,7 @@ private:
 #else
     std::optional<Drawing::Path> effectRegion_ = std::nullopt;
 #endif
+    friend class RSEffectDataGenerateDrawable;
 };
 } // namespace Rosen
 } // namespace OHOS
