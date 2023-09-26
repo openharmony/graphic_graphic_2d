@@ -1730,7 +1730,7 @@ NodeId RSRenderNode::GetInstanceRootNodeId() const
 {
     return instanceRootNodeId_;
 }
-const std::shared_ptr<RSRenderNode>& RSRenderNode::GetInstanceRootNode() const
+const std::shared_ptr<RSRenderNode> RSRenderNode::GetInstanceRootNode() const
 {
     auto context = GetContext().lock();
     if (!context) {

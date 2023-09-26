@@ -16,6 +16,9 @@
 #ifndef SKIA_IMPLFACTORY_H
 #define SKIA_IMPLFACTORY_H
 
+#include "src/ports/skia_ohos/FontInfo_ohos.h"
+#include "src/ports/skia_ohos/FontConfig_ohos.h"
+
 #include "impl_interface/bitmap_impl.h"
 #include "impl_interface/camera_impl.h"
 #include "impl_interface/color_filter_impl.h"
@@ -25,6 +28,8 @@
 #ifdef ACE_ENABLE_GPU
 #include "impl_interface/gpu_context_impl.h"
 #endif
+#include "impl_interface/font_impl.h"
+#include "impl_interface/font_mgr_impl.h"
 #include "impl_interface/image_filter_impl.h"
 #include "impl_interface/image_impl.h"
 #include "impl_interface/mask_filter_impl.h"
@@ -36,6 +41,8 @@
 #include "impl_interface/region_impl.h"
 #include "impl_interface/shader_effect_impl.h"
 #include "impl_interface/surface_impl.h"
+#include "impl_interface/text_blob_builder_impl.h"
+#include "impl_interface/typeface_impl.h"
 #include "impl_interface/vertices_impl.h"
 
 namespace OHOS {
@@ -68,6 +75,14 @@ public:
     static std::unique_ptr<RegionImpl> CreateRegion();
     static std::unique_ptr<VerticesImpl> CreateVertices();
     static std::unique_ptr<VerticesImpl::BuilderImpl> CreateVerticesBuilder();
+    static std::unique_ptr<FontImpl> CreateFont();
+    static std::unique_ptr<TextBlobBuilderImpl> CreateTextBlobBuilder();
+    static std::shared_ptr<FontMgrImpl> CreateDefaultFontMgr();
+    static std::unique_ptr<FontMgrImpl> CreateDynamicFontMgr();
+    static std::unique_ptr<TypefaceImpl> CreateTypeface(const std::string& specifiedName, FontInfo& info);
+    static std::unique_ptr<FontStyleSetImpl> CreateTypefaceFontStyleSet();
+    static std::unique_ptr<FontStyleSetImpl> CreateFontStyleSetOhos(
+        const std::shared_ptr<FontConfig_OHOS>& fontConfig, int index, bool isFallback);
 };
 } // namespace Drawing
 } // namespace Rosen

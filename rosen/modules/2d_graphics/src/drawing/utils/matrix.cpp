@@ -17,8 +17,6 @@
 
 #include "impl_factory.h"
 
-#include "utils/log.h"
-
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {

@@ -241,6 +241,14 @@ void RSPaintFilterCanvasBase::DrawPicture(const Picture& picture)
     }
 }
 
+void RSPaintFilterCanvasBase::DrawTextBlob(
+    const Drawing::TextBlob* blob, const Drawing::scalar x, const Drawing::scalar y)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawTextBlob(blob, x, y);
+    }
+}
+
 void RSPaintFilterCanvasBase::ClipRect(const Drawing::Rect& rect, Drawing::ClipOp op, bool doAntiAlias)
 {
     Canvas::ClipRect(rect, op, doAntiAlias);

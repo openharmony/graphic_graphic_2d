@@ -60,6 +60,9 @@ std::shared_ptr<PathEffect> PathEffectCmdList::Playback() const
             case PathEffectOpItem::CREATE_CORNER:
                 pe = static_cast<CreateCornerPathEffectOpItem*>(itemPtr)->Playback();
                 break;
+            case PathEffectOpItem::CREATE_DISCRETE:
+                pe = static_cast<CreateDiscretePathEffectOpItem*>(itemPtr)->Playback();
+                break;
             case PathEffectOpItem::CREATE_SUM:
                 pe = static_cast<CreateSumPathEffectOpItem*>(itemPtr)->Playback(*this);
                 break;
@@ -106,6 +109,14 @@ CreateCornerPathEffectOpItem::CreateCornerPathEffectOpItem(scalar radius)
 std::shared_ptr<PathEffect> CreateCornerPathEffectOpItem::Playback() const
 {
     return PathEffect::CreateCornerPathEffect(radius_);
+}
+
+CreateDiscretePathEffectOpItem::CreateDiscretePathEffectOpItem(scalar segLength, scalar dev, uint32_t seedAssist)
+    : PathEffectOpItem(CREATE_DISCRETE), segLength_(segLength), dev_(dev), seedAssist_(seedAssist) {}
+
+std::shared_ptr<PathEffect> CreateDiscretePathEffectOpItem::Playback() const
+{
+    return PathEffect::CreateDiscretePathEffect(segLength_, dev_, seedAssist_);
 }
 
 CreateSumPathEffectOpItem::CreateSumPathEffectOpItem(const CmdListHandle& effect1, const CmdListHandle& effect2)

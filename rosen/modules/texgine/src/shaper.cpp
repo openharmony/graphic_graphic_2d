@@ -151,6 +151,7 @@ std::vector<LineMetrics> Shaper::DoShapeBeforeEllipsis(std::vector<VariantSpan> 
         const std::shared_ptr<FontProviders> &fontProviders, const double widthLimit)
 {
     TextBreaker tb;
+    tb.SetWidthLimit(widthLimit);
     auto ret = tb.WordBreak(spans, tstyle, fontProviders);
     if (ret) {
         LOGEX_FUNC_LINE(ERROR) << "word break failed";

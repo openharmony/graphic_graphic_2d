@@ -82,12 +82,18 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/effect/path_effect.cpp",
       "$drawing_src_dir/effect/shader_effect.cpp",
       "$drawing_src_dir/engine_adapter/impl_factory.cpp",
+      "$drawing_src_dir/engine_adapter/skia_adapter/platform/skia_font_mgr_ohos.cpp",
+      "$drawing_src_dir/engine_adapter/skia_adapter/platform/skia_font_style_set_ohos.cpp",
+      "$drawing_src_dir/engine_adapter/skia_adapter/platform/skia_typeface_ohos.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_bitmap.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_camera.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_canvas.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_color_filter.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_color_space.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_data.cpp",
+      "$drawing_src_dir/engine_adapter/skia_adapter/skia_font.cpp",
+      "$drawing_src_dir/engine_adapter/skia_adapter/skia_font_mgr.cpp",
+      "$drawing_src_dir/engine_adapter/skia_adapter/skia_font_style_set.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_image.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_image_filter.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_impl_factory.cpp",
@@ -101,6 +107,9 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_region.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_shader_effect.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_surface.cpp",
+      "$drawing_src_dir/engine_adapter/skia_adapter/skia_text_blob.cpp",
+      "$drawing_src_dir/engine_adapter/skia_adapter/skia_text_blob_builder.cpp",
+      "$drawing_src_dir/engine_adapter/skia_adapter/skia_typeface.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_vertices.cpp",
       "$drawing_src_dir/image/bitmap.cpp",
       "$drawing_src_dir/image/image.cpp",
@@ -128,7 +137,13 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/recording/recording_shader_effect.cpp",
       "$drawing_src_dir/recording/region_cmd_list.cpp",
       "$drawing_src_dir/recording/shader_effect_cmd_list.cpp",
+      "$drawing_src_dir/text/font.cpp",
+      "$drawing_src_dir/text/font_mgr.cpp",
+      "$drawing_src_dir/text/font_style_set.cpp",
       "$drawing_src_dir/text/text.cpp",
+      "$drawing_src_dir/text/text_blob.cpp",
+      "$drawing_src_dir/text/text_blob_builder.cpp",
+      "$drawing_src_dir/text/typeface.cpp",
       "$drawing_src_dir/utils/camera3d.cpp",
       "$drawing_src_dir/utils/data.cpp",
       "$drawing_src_dir/utils/matrix.cpp",
@@ -152,8 +167,14 @@ template("graphics2d_source_set") {
       "$drawing_src_dir",
       "$drawing_src_dir/engine_adapter",
       "$ace_root/frameworks",
-      "//third_party/bounds_checking_function/include",
       "$rosen_root/modules/render_service_base/include",
+      "//third_party/bounds_checking_function/include",
+      "//third_party/skia/include/core",
+      "//third_party/skia/include/private",
+      "//third_party/skia/src/core",
+      "//third_party/skia/src/ports",
+      "//third_party/flutter/txt/src",
+      "//third_party/jsoncpp/include",
     ]
 
     defines += [ "USE_ACE_SKIA" ]
@@ -211,17 +232,31 @@ template("graphics2d_source_set") {
           ]
         }
       } else {
-        deps += [
-          "$ace_flutter_engine_root:flutter_engine_fml_$platform",
-          "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform",
-          "$graphic_2d_root/rosen/build/flutter/libtxt:thirdparty_lib_txt_rosen_$platform",
-        ]
+        if (defined(use_rosen_drawing) && use_rosen_drawing) {
+          sources += [
+            "$drawing_src_dir/engine_adapter/skia_adapter/skia_dynamic_font_mgr.cpp",
+            "$drawing_src_dir/engine_adapter/skia_adapter/skia_typeface_font_style_set.cpp",
+          ]
+          deps += [
+            "$ace_flutter_engine_root/libtxt:thirdparty_lib_txt_$platform",
+            "//third_party/skia:skia_$platform",
+          ]
+        } else {
+          deps += [
+            "$ace_flutter_engine_root:flutter_engine_fml_$platform",
+            "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform",
+            "$graphic_2d_root/rosen/build/flutter/libtxt:thirdparty_lib_txt_rosen_$platform",
+          ]
+        }
       }
       include_dirs += [ "$flutter_root/engine" ]
       defines += [
         "SUPPORT_OHOS_PIXMAP",
         "ROSEN_OHOS",
       ]
+      if (defined(use_rosen_drawing) && use_rosen_drawing) {
+        defines += [ "USE_ROSEN_DRAWING" ]
+      }
 
       if (enable_text_gine && use_texgine) {
         include_dirs -= [ "$flutter_root/engine" ]

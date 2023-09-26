@@ -36,6 +36,7 @@ public:
     void InitWithDash(const scalar intervals[], int count, scalar phase) override;
     void InitWithPathDash(const Path& path, scalar advance, scalar phase, PathDashStyle style) override;
     void InitWithCorner(scalar radius) override;
+    void InitWithDiscrete(scalar segLength, scalar dev, uint32_t seedAssist) override;
     void InitWithSum(const PathEffect& e1, const PathEffect& e2) override;
     void InitWithCompose(const PathEffect& e1, const PathEffect& e2) override;
     sk_sp<SkPathEffect> GetPathEffect() const;

@@ -97,6 +97,12 @@ public:
     virtual void QuadTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endPtY);
     virtual void QuadTo(const Point& ctrlPt, const Point endPt);
 
+    virtual void RMoveTo(scalar dx, scalar dy);
+    virtual void RLineTo(scalar dx, scalar dy);
+    virtual void RArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction, scalar dx, scalar dy);
+    virtual void RCubicTo(scalar dx1, scalar dy1, scalar dx2, scalar dy2, scalar dx3, scalar dy3);
+    virtual void RQuadTo(scalar dx1, scalar dy1, scalar dx2, scalar dy2);
+
     virtual void AddRect(const Rect& rect, PathDirection dir = PathDirection::CW_DIRECTION);
     virtual void AddRect(
         scalar left, scalar top, scalar right, scalar bottom, PathDirection dir = PathDirection::CW_DIRECTION);

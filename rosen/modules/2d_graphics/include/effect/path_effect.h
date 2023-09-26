@@ -36,6 +36,7 @@ public:
         DASH,
         PATH_DASH,
         CORNER,
+        DISCRETE,
         SUM,
         COMPOSE,
     };
@@ -44,6 +45,7 @@ public:
     static std::shared_ptr<PathEffect> CreatePathDashEffect(
         const Path& path, scalar advance, scalar phase, PathDashStyle style);
     static std::shared_ptr<PathEffect> CreateCornerPathEffect(scalar radius);
+    static std::shared_ptr<PathEffect> CreateDiscretePathEffect(scalar segLength, scalar dev, uint32_t seedAssist = 0);
     static std::shared_ptr<PathEffect> CreateSumPathEffect(PathEffect& e1, PathEffect& e2);
     static std::shared_ptr<PathEffect> CreateComposePathEffect(PathEffect& e1, PathEffect& e2);
 
@@ -56,6 +58,7 @@ public:
     PathEffect(PathEffectType t, const scalar intervals[], int count, scalar phase) noexcept;
     PathEffect(PathEffectType t, const Path& path, scalar advance, scalar phase, PathDashStyle style) noexcept;
     PathEffect(PathEffectType t, scalar radius) noexcept;
+    PathEffect(PathEffectType t, scalar segLength, scalar dev, uint32_t seedAssist) noexcept;
     PathEffect(PathEffectType t, PathEffect& e1, PathEffect& e2) noexcept;
 
     template<typename T>

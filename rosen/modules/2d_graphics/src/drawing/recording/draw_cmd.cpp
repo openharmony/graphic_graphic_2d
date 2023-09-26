@@ -37,6 +37,7 @@
 #include "effect/path_effect.h"
 #include "effect/shader_effect.h"
 #include "utils/scalar.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -63,6 +64,7 @@ std::unordered_map<uint32_t, CanvasPlayer::PlaybackFunc> CanvasPlayer::opPlaybac
     { DrawOpItem::IMAGE_OPITEM,             DrawImageOpItem::Playback },
     { DrawOpItem::IMAGE_RECT_OPITEM,        DrawImageRectOpItem::Playback },
     { DrawOpItem::PICTURE_OPITEM,           DrawPictureOpItem::Playback },
+    { DrawOpItem::TEXT_BLOB_OPITEM,         DrawTextBlobOpItem::Playback },
     { DrawOpItem::CLIP_RECT_OPITEM,         ClipRectOpItem::Playback },
     { DrawOpItem::CLIP_IRECT_OPITEM,        ClipIRectOpItem::Playback },
     { DrawOpItem::CLIP_ROUND_RECT_OPITEM,   ClipRoundRectOpItem::Playback },
@@ -680,6 +682,27 @@ void DrawPictureOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
     }
 
     canvas.DrawPicture(*picture);
+}
+
+DrawTextBlobOpItem::DrawTextBlobOpItem(const ImageHandle& textBlob, const scalar x, const scalar y)
+    : DrawOpItem(TEXT_BLOB_OPITEM), textBlob_(textBlob), x_(x), y_(y) {}
+
+void DrawTextBlobOpItem::Playback(CanvasPlayer& player, const void* opItem)
+{
+    if (!opItem) {
+        const auto* op = static_cast<const DrawTextBlobOpItem*>(opItem);
+        op->Playback(player.canvas_, player.cmdList_);
+    }
+}
+
+void DrawTextBlobOpItem::Playback(Canvas& canvas, const CmdList& cmdList) const
+{
+    std::shared_ptr<TextBlob> textBlob = CmdListHelper::GetTextBlobFromCmdList(cmdList, textBlob_);
+    if (!textBlob) {
+        LOGE("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return;
+    }
+    canvas.DrawTextBlob(textBlob.get(), x_, y_);
 }
 
 ClipRectOpItem::ClipRectOpItem(const Rect& rect, ClipOp op, bool doAntiAlias)

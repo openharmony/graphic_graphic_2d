@@ -15,6 +15,8 @@
 
 #include "recording/cmd_list_helper.h"
 
+#include "include/core/SkSerialProcs.h"
+
 #ifdef SUPPORT_OHOS_PIXMAP
 #include "pixel_map.h"
 #endif
@@ -32,6 +34,8 @@
 #include "utils/log.h"
 
 #include "skia_adapter/skia_picture.h"
+#include "skia_adapter/skia_text_blob.h"
+#include "skia_adapter/skia_typeface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -271,6 +275,45 @@ CmdListHandle CmdListHelper::AddChildToCmdList(CmdList& cmdList, const std::shar
     }
 
     return childHandle;
+}
+
+ImageHandle CmdListHelper::AddTextBlobToCmdList(CmdList& cmdList, const TextBlob* textBlob)
+{
+    if (!textBlob) {
+        LOGE("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return { 0 };
+    }
+    std::shared_ptr<SkiaTextBlob> skiaTextBlob = textBlob->GetImpl<SkiaTextBlob>();
+    if (!skiaTextBlob) {
+        LOGE("skiaTextBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return { 0 };
+    }
+    SkSerialProcs serialProcs;
+    serialProcs.fTypefaceProc = &SkiaTypeface::SerializeTypeface;
+    auto data = skiaTextBlob->Serialize(serialProcs);
+    if (!data || data->GetSize() == 0) {
+        LOGE("textBlob serialize invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return { 0 };
+    }
+
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize() };
+}
+
+std::shared_ptr<TextBlob> CmdListHelper::GetTextBlobFromCmdList(const CmdList& cmdList,
+    const ImageHandle& textBlobHandle)
+{
+    const void* data = cmdList.GetImageData(textBlobHandle.offset);
+    if (!data) {
+        LOGE("textBlob data nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+
+    auto textBlobData = std::make_shared<Data>();
+    textBlobData->BuildWithoutCopy(data, textBlobHandle.size);
+    SkDeserialProcs deserialProcs;
+    deserialProcs.fTypefaceProc = &SkiaTypeface::DeserializeTypeface;
+    return SkiaTextBlob::Deserialize(textBlobData->GetData(), textBlobData->GetSize(), deserialProcs);
 }
 
 ImageHandle CmdListHelper::AddDataToCmdList(CmdList& cmdList, const Data* srcData)

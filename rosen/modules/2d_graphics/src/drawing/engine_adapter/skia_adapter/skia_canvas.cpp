@@ -31,6 +31,7 @@
 #include "skia_path.h"
 #include "skia_image_info.h"
 #include "skia_data.h"
+#include "skia_text_blob.h"
 
 #include "draw/core_canvas.h"
 #include "image/bitmap.h"
@@ -837,6 +838,33 @@ void SkiaCanvas::DrawSVGDOM(const sk_sp<SkSVGDOM>& svgDom)
     LOGD("+++++++ DrawSVGDOM");
     svgDom->render(skCanvas_);
     LOGD("------- DrawSVGDOM");
+}
+
+void SkiaCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y)
+{
+    if (!skCanvas_) {
+        LOGE("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    if (!blob) {
+        LOGE("blob is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    std::shared_ptr<SkiaTextBlob> skiaTextBlob = blob->GetImpl<SkiaTextBlob>();
+    if (!skiaTextBlob) {
+        LOGE("skiaTextBlob is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    SkTextBlob* skTextBlob = skiaTextBlob->GetTextBlob().get();
+    if (!skTextBlob) {
+        LOGE("skTextBlob is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    for (auto d : skiaPaint_.GetSortedPaints()) {
+        if (d != nullptr) {
+            skCanvas_->drawTextBlob(skTextBlob, x, y, d->paint);
+        }
+    }
 }
 
 void SkiaCanvas::ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias)

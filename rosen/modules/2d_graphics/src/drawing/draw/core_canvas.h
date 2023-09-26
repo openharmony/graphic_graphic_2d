@@ -237,6 +237,9 @@ public:
     // temporary interface. Support drawing of SkSVGDOM
     virtual void DrawSVGDOM(const sk_sp<SkSVGDOM>& svgDom);
 
+    // text
+    virtual void DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y);
+
     // clip
     /*
      * @brief              Replace the clipping area with the intersection or difference between the

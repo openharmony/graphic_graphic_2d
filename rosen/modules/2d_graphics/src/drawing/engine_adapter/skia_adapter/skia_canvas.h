@@ -112,6 +112,9 @@ public:
 
     void DrawSVGDOM(const sk_sp<SkSVGDOM>& svgDom) override;
 
+    // text
+    void DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y) override;
+
     // clip
     void ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias) override;
     void ClipIRect(const RectI& rect, ClipOp op = ClipOp::INTERSECT) override;

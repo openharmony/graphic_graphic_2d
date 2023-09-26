@@ -289,13 +289,14 @@ void RSUIDirector::RecvMessages()
         return;
     }
     static const uint32_t pid = static_cast<uint32_t>(GetRealPid());
-    if (!RSMessageProcessor::Instance().HasTransaction(pid)) {
-        return;
-    }
     static std::mutex recvMessagesMutex;
     std::unique_lock<std::mutex> lock(recvMessagesMutex);
-    auto transactionDataPtr = std::make_shared<RSTransactionData>(RSMessageProcessor::Instance().GetTransaction(pid));
-    RecvMessages(transactionDataPtr);
+    if (RSMessageProcessor::Instance().HasTransaction(pid)) {
+        auto transactionDataPtr = 
+            std::make_shared<RSTransactionData>(RSMessageProcessor::Instance().GetTransaction(pid));
+        RSMessageProcessor::Instance().RemovePidFromMap(pid);
+        RecvMessages(transactionDataPtr);
+    }
 }
 
 void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds)

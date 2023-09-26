@@ -134,8 +134,8 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
         if (spNativeWindow != nullptr) {
             auto &bufferCache = spNativeWindow->bufferCache_;
             if (bufferCache.find(seqNum) != bufferCache.end()) {
-                bufferCache.erase(seqNum);
                 NativeObjectUnreference(bufferCache[seqNum]);
+                bufferCache.erase(seqNum);
             }
         }
     }
@@ -351,7 +351,11 @@ void ProducerSurface::CleanAllLocked()
     bufferProducerCache_.clear();
     auto spNativeWindow = wpNativeWindow_.promote();
     if (spNativeWindow != nullptr) {
-        spNativeWindow->bufferCache_.clear();
+        auto &bufferCache = spNativeWindow->bufferCache_;
+        for (auto &[seqNum, buffer] : bufferCache) {
+            NativeObjectUnreference(buffer);
+        }
+        bufferCache.clear();
     }
 }
 

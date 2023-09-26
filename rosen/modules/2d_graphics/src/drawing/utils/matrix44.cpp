@@ -16,7 +16,6 @@
 #include "utils/matrix44.h"
 
 #include "impl_factory.h"
-#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {

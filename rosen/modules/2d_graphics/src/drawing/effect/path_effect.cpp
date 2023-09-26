@@ -41,6 +41,12 @@ PathEffect::PathEffect(PathEffectType t, scalar radius) noexcept : PathEffect()
     impl_->InitWithCorner(radius);
 }
 
+PathEffect::PathEffect(PathEffectType t, scalar segLength, scalar dev, uint32_t seedAssist) noexcept : PathEffect()
+{
+    type_ = t;
+    impl_->InitWithDiscrete(segLength, dev, seedAssist);
+}
+
 PathEffect::PathEffect(PathEffectType t, PathEffect& e1, PathEffect& e2) noexcept : PathEffect()
 {
     type_ = t;
@@ -74,6 +80,11 @@ std::shared_ptr<PathEffect> PathEffect::CreatePathDashEffect(
 std::shared_ptr<PathEffect> PathEffect::CreateCornerPathEffect(scalar radius)
 {
     return std::make_shared<PathEffect>(PathEffect::PathEffectType::CORNER, radius);
+}
+
+std::shared_ptr<PathEffect> PathEffect::CreateDiscretePathEffect(scalar segLength, scalar dev, uint32_t seedAssist)
+{
+    return std::make_shared<PathEffect>(PathEffect::PathEffectType::DISCRETE, segLength, dev, seedAssist);
 }
 
 std::shared_ptr<PathEffect> PathEffect::CreateSumPathEffect(PathEffect& e1, PathEffect& e2)

@@ -33,7 +33,11 @@ public:
 
     std::shared_ptr<txt::FontCollection> GetFontCollection() const;
 
+#ifndef USE_ROSEN_DRAWING
     sk_sp<txt::DynamicFontManager> GetDynamicFontManager() const;
+#else
+    std::shared_ptr<RSFontMgr> GetDynamicFontManager() const;
+#endif
 
     void RegisterTestFonts() override;
 
@@ -43,7 +47,11 @@ public:
     void LoadSystemFont() override;
 private:
     std::shared_ptr<txt::FontCollection> txtCollection;
+#ifndef USE_ROSEN_DRAWING
     sk_sp<txt::DynamicFontManager> dynamicFontManager;
+#else
+    std::shared_ptr<RSFontMgr> dynamicFontManager;
+#endif
     FontCollectionTxt(const FontCollectionTxt&) = delete;
     FontCollectionTxt& operator=(const FontCollectionTxt&) = delete;
 };

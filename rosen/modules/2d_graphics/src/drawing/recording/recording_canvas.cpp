@@ -34,6 +34,7 @@
 #include "effect/mask_filter.h"
 #include "effect/path_effect.h"
 #include "effect/shader_effect.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -294,6 +295,16 @@ void RecordingCanvas::DrawPicture(const Picture& picture)
 {
     auto pictureHandle = CmdListHelper::AddPictureToCmdList(*cmdList_, picture);
     cmdList_->AddOp<DrawPictureOpItem>(pictureHandle);
+}
+
+void RecordingCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y)
+{
+    if (!blob) {
+        LOGE("blob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return;
+    }
+    auto textBlobHandle = CmdListHelper::AddTextBlobToCmdList(*cmdList_, blob);
+    cmdList_->AddOp<DrawTextBlobOpItem>(textBlobHandle, x, y);
 }
 
 void RecordingCanvas::ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias)

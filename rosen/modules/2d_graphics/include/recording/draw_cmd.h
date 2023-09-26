@@ -99,6 +99,7 @@ public:
         IMAGE_OPITEM,
         IMAGE_RECT_OPITEM,
         PICTURE_OPITEM,
+        TEXT_BLOB_OPITEM,
         CLIP_RECT_OPITEM,
         CLIP_IRECT_OPITEM,
         CLIP_ROUND_RECT_OPITEM,
@@ -483,6 +484,20 @@ public:
 private:
     ColorQuad color_;
     BlendMode mode_;
+};
+
+class DrawTextBlobOpItem : public DrawOpItem {
+public:
+    explicit DrawTextBlobOpItem(const ImageHandle& textBlob, const scalar x, const scalar y);
+    ~DrawTextBlobOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, const void* opItem);
+    void Playback(Canvas& canvas, const CmdList& cmdList) const;
+
+private:
+    ImageHandle textBlob_;
+    scalar x_;
+    scalar y_;
 };
 
 class ClipRectOpItem : public DrawOpItem {

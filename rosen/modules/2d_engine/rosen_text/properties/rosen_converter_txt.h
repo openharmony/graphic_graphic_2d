@@ -44,6 +44,7 @@ txt::TextDecorationStyle RosenConvertTxtTextDecorationStyle(TextDecorationStyle&
 txt::PlaceholderAlignment RosenConvertAlignment(const PlaceholderAlignment& alignment);
 txt::PlaceholderRun RosenConvertPlaceholderRun(const PlaceholderRun& placeholderRun);
 void RosenConvertTxtStyle(const TextStyle& textStyle, txt::TextStyle& txtStyle);
+void RosenConvertTxtPen(const TextStyle& textStyle, txt::TextStyle& txtStyle);
 void RosenConvertTypographyStyle(const TypographyStyle& typographyStyle, txt::ParagraphStyle& txtParagraphStyle);
 txt::Paragraph::RectHeightStyle RosenConvertTxtRectHeightStyle(TypographyProperties::RectHeightStyle heightStyle);
 txt::Paragraph::RectWidthStyle RosenConvertTxtRectWidthStyle(TypographyProperties::RectWidthStyle widthStyle);

@@ -50,6 +50,15 @@ public:
     static std::shared_ptr<RecordingPathEffect> CreateCornerPathEffect(scalar radius);
 
     /*
+     * @brief             Creates a CreateDiscretePathEffectOpItem to add to the PathEffectCmdList.
+     * @param segLength   segLength.
+     * @param dev         dev.
+     * @param seedAssist  seedAssist.
+     */
+    static std::shared_ptr<RecordingPathEffect> CreateDiscretePathEffect(
+        scalar segLength, scalar dev, uint32_t seedAssist = 0);
+
+    /*
      * @brief     Creates a CreateSumPathEffectOpItem to add to the PathEffectCmdList.
      * @param e1  The first PathEffect.
      * @param e2  The second PathEffect.

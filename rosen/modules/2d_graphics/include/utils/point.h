@@ -41,6 +41,8 @@ public:
     inline void SetX(scalar x);
     inline void SetY(scalar y);
 
+    inline bool IsZero() const;
+
     inline PointF& operator+=(const PointF& p);
     inline PointF& operator-=(const PointF& p);
     inline PointF& operator*=(scalar scale);
@@ -85,6 +87,11 @@ inline void PointF::SetX(scalar x)
 inline void PointF::SetY(scalar y)
 {
     y_ = y;
+}
+
+inline bool PointF::IsZero() const
+{
+    return (0 == x_) && (0 == y_);
 }
 
 inline PointF& PointF::operator+=(const PointF& p)

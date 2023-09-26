@@ -94,6 +94,37 @@ void SkiaPath::QuadTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endP
     path_.quadTo(ctrlPtX, ctrlPtY, endPtX, endPtY);
 }
 
+void SkiaPath::RMoveTo(scalar dx, scalar dy)
+{
+    path_.rMoveTo(dx, dy);
+}
+
+void SkiaPath::RLineTo(scalar dx, scalar dy)
+{
+    path_.rLineTo(dx, dy);
+}
+
+void SkiaPath::RArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction, scalar dx, scalar dy)
+{
+#if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
+    SkPathDirection pathDir = static_cast<SkPathDirection>(direction);
+#else
+    SkPath::Direction pathDir = static_cast<SkPath::Direction>(direction);
+#endif
+    SkPath::ArcSize arcLarge = SkPath::ArcSize::kSmall_ArcSize;
+    path_.arcTo(rx, ry, angle, arcLarge, pathDir, dx, dy);
+}
+
+void SkiaPath::RCubicTo(scalar dx1, scalar dy1, scalar dx2, scalar dy2, scalar dx3, scalar dy3)
+{
+    path_.rCubicTo(dx1, dy1, dx2, dy2, dx3, dy3);
+}
+
+void SkiaPath::RQuadTo(scalar dx1, scalar dy1, scalar dx2, scalar dy2)
+{
+    path_.rQuadTo(dx1, dy1, dx2, dy2);
+}
+
 void SkiaPath::AddRect(scalar left, scalar top, scalar right, scalar bottom, PathDirection dir)
 {
 #if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)

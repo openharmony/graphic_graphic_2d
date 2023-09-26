@@ -21,6 +21,7 @@
 #include "include/effects/Sk1DPathEffect.h"
 #include "include/effects/SkCornerPathEffect.h"
 #include "include/effects/SkDashPathEffect.h"
+#include "include/effects/SkDiscretePathEffect.h"
 #include "skia_path.h"
 
 #include "effect/path_effect.h"
@@ -47,6 +48,11 @@ void SkiaPathEffect::InitWithPathDash(const Path& path, scalar advance, scalar p
 void SkiaPathEffect::InitWithCorner(scalar radius)
 {
     pathEffect_ = SkCornerPathEffect::Make(radius);
+}
+
+void SkiaPathEffect::InitWithDiscrete(scalar segLength, scalar dev, uint32_t seedAssist)
+{
+    pathEffect_ = SkDiscretePathEffect::Make(segLength, dev, seedAssist);
 }
 
 void SkiaPathEffect::InitWithSum(const PathEffect& e1, const PathEffect& e2)

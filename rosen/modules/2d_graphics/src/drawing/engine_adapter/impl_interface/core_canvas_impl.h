@@ -35,6 +35,7 @@
 #include "image/image.h"
 #include "image/picture.h"
 #include "text/text.h"
+#include "text/text_blob.h"
 #include "utils/matrix.h"
 #include "utils/point.h"
 #include "utils/point3.h"
@@ -125,6 +126,9 @@ public:
 
     // temporary interface. Support drawing of SkSVGDOM
     virtual void DrawSVGDOM(const sk_sp<SkSVGDOM>& svgDom) = 0;
+
+    // text
+    virtual void DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y) = 0;
 
     // clip
     virtual void ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias = false) = 0;

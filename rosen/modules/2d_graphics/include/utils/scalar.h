@@ -23,6 +23,7 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 typedef float scalar;
+static const scalar SCALAR_ONE = 1.0f;
 static const scalar BLUR_SIGMA_SCALE = 0.57735f;
 static const scalar FLOAT_PI = 3.14159265f;
 

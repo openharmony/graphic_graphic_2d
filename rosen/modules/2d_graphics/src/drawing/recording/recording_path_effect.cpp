@@ -51,6 +51,14 @@ std::shared_ptr<RecordingPathEffect> RecordingPathEffect::CreateCornerPathEffect
     return pathEffect;
 }
 
+std::shared_ptr<RecordingPathEffect> RecordingPathEffect::CreateDiscretePathEffect(
+    scalar segLength, scalar dev, uint32_t seedAssist)
+{
+    auto pathEffect = std::make_shared<RecordingPathEffect>();
+    pathEffect->GetCmdList()->AddOp<CreateDiscretePathEffectOpItem>(segLength, dev, seedAssist);
+    return pathEffect;
+}
+
 std::shared_ptr<RecordingPathEffect> RecordingPathEffect::CreateSumPathEffect(
     const PathEffect& e1, const PathEffect& e2)
 {

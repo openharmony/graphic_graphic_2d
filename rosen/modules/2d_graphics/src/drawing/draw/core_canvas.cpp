@@ -219,6 +219,11 @@ void CoreCanvas::DrawSVGDOM(const sk_sp<SkSVGDOM>& svgDom)
     impl_->DrawSVGDOM(svgDom);
 }
 
+void CoreCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y)
+{
+    impl_->DrawTextBlob(blob, x, y);
+}
+
 void CoreCanvas::ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias)
 {
     impl_->ClipRect(rect, op, doAntiAlias);

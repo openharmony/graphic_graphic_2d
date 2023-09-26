@@ -83,6 +83,11 @@ public:
         ARCTO_OPITEM,
         CUBICTO_OPITEM,
         QUADTO_OPITEM,
+        RMOVETO_OPITEM,
+        RLINETO_OPITEM,
+        RARCTO_OPITEM,
+        RCUBICTO_OPITEM,
+        RQUADTO_OPITEM,
         ADDRECT_OPITEM,
         ADDOVAL_OPITEM,
         ADDARC_OPITEM,
@@ -182,6 +187,73 @@ public:
 private:
     Point ctrlPt_;
     Point endPt_;
+};
+
+class RMoveToOpItem : public PathOpItem {
+public:
+    RMoveToOpItem(const scalar dx, const scalar dy);
+    ~RMoveToOpItem() = default;
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path) const;
+private:
+    scalar dx_;
+    scalar dy_;
+};
+
+class RLineToOpItem : public PathOpItem {
+public:
+    RLineToOpItem(const scalar dx, const scalar dy);
+    ~RLineToOpItem() = default;
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path) const;
+private:
+    scalar dx_;
+    scalar dy_;
+};
+
+class RArcToOpItem : public PathOpItem {
+public:
+    RArcToOpItem(const scalar rx, const scalar ry, const scalar angle,
+        const PathDirection direction, const scalar dx, const scalar dy);
+    ~RArcToOpItem() = default;
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path) const;
+private:
+    scalar rx_;
+    scalar ry_;
+    scalar angle_;
+    PathDirection direction_;
+    scalar dx_;
+    scalar dy_;
+};
+
+class RCubicToOpItem : public PathOpItem {
+public:
+    RCubicToOpItem(const scalar dx1, const scalar dy1,
+        const scalar dx2, const scalar dy2, const scalar dx3, const scalar dy3);
+    ~RCubicToOpItem() = default;
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path) const;
+private:
+    scalar dx1_;
+    scalar dy1_;
+    scalar dx2_;
+    scalar dy2_;
+    scalar dx3_;
+    scalar dy3_;
+};
+
+class RQuadToOpItem : public PathOpItem {
+public:
+    RQuadToOpItem(const scalar dx1, const scalar dy1, const scalar dx2, const scalar dy2);
+    ~RQuadToOpItem() = default;
+    static void Playback(PathPlayer& player, const void* opItem);
+    void Playback(Path& path) const;
+private:
+    scalar dx1_;
+    scalar dy1_;
+    scalar dx2_;
+    scalar dy2_;
 };
 
 class AddRectOpItem : public PathOpItem {

@@ -17,6 +17,7 @@
 #define PATH_EFFECT_IMPL_H
 
 #include <memory>
+#include <cstdint>
 
 #include "base_impl.h"
 
@@ -41,6 +42,7 @@ public:
     virtual void InitWithDash(const scalar intervals[], int count, scalar phase) = 0;
     virtual void InitWithPathDash(const Path& path, scalar advance, scalar phase, PathDashStyle style) = 0;
     virtual void InitWithCorner(scalar radius) = 0;
+    virtual void InitWithDiscrete(scalar segLength, scalar dev, uint32_t seedAssist) = 0;
     virtual void InitWithSum(const PathEffect& e1, const PathEffect& e2) = 0;
     virtual void InitWithCompose(const PathEffect& e1, const PathEffect& e2) = 0;
 };

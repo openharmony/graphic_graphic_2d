@@ -16,7 +16,6 @@
 #include "utils/data.h"
 
 #include "impl_factory.h"
-#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {

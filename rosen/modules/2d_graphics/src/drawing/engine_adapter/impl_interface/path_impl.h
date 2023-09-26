@@ -58,6 +58,12 @@ public:
         scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y, scalar endPtX, scalar endPtY) = 0;
     virtual void QuadTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endPtY) = 0;
 
+    virtual void RMoveTo(scalar dx, scalar dy) = 0;
+    virtual void RLineTo(scalar dx, scalar dy) = 0;
+    virtual void RArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction, scalar dx, scalar dy) = 0;
+    virtual void RCubicTo(scalar dx1, scalar dy1, scalar dx2, scalar dy2, scalar dx3, scalar dy3) = 0;
+    virtual void RQuadTo(scalar dx1, scalar dy1, scalar dx2, scalar dy2) = 0;
+
     virtual void AddRect(scalar left, scalar top, scalar right, scalar bottom, PathDirection dir) = 0;
     virtual void AddOval(scalar left, scalar top, scalar right, scalar bottom, PathDirection dir) = 0;
     virtual void AddArc(scalar left, scalar top, scalar right, scalar bottom, scalar startAngle, scalar sweepAngle) = 0;

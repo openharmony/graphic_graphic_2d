@@ -67,6 +67,11 @@ std::unordered_map<uint32_t, PathPlayer::PathPlaybackFunc> PathPlayer::opPlaybac
     { PathOpItem::ARCTO_OPITEM,                 ArcToOpItem::Playback },
     { PathOpItem::CUBICTO_OPITEM,               CubicToOpItem::Playback },
     { PathOpItem::QUADTO_OPITEM,                QuadToOpItem::Playback },
+    { PathOpItem::RMOVETO_OPITEM,               RMoveToOpItem::Playback },
+    { PathOpItem::RLINETO_OPITEM,               RLineToOpItem::Playback },
+    { PathOpItem::RARCTO_OPITEM,                RArcToOpItem::Playback },
+    { PathOpItem::RCUBICTO_OPITEM,              RCubicToOpItem::Playback },
+    { PathOpItem::RQUADTO_OPITEM,               RQuadToOpItem::Playback },
     { PathOpItem::ADDRECT_OPITEM,               AddRectOpItem::Playback },
     { PathOpItem::ADDOVAL_OPITEM,               AddOvalOpItem::Playback },
     { PathOpItem::ADDARC_OPITEM,                AddArcOpItem::Playback },
@@ -206,6 +211,86 @@ void QuadToOpItem::Playback(PathPlayer& player, const void* opItem)
 void QuadToOpItem::Playback(Path& path) const
 {
     path.QuadTo(ctrlPt_, endPt_);
+}
+
+RMoveToOpItem::RMoveToOpItem(const scalar dx, const scalar dy) : PathOpItem(RMOVETO_OPITEM), dx_(dx), dy_(dy) {}
+
+void RMoveToOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const RMoveToOpItem*>(opItem);
+        op->Playback(player.path_);
+    }
+}
+
+void RMoveToOpItem::Playback(Path& path) const
+{
+    path.RMoveTo(dx_, dy_);
+}
+
+RLineToOpItem::RLineToOpItem(const scalar dx, const scalar dy) : PathOpItem(RLINETO_OPITEM), dx_(dx), dy_(dy) {}
+
+void RLineToOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const RLineToOpItem*>(opItem);
+        op->Playback(player.path_);
+    }
+}
+
+void RLineToOpItem::Playback(Path& path) const
+{
+    path.RLineTo(dx_, dy_);
+}
+
+RArcToOpItem::RArcToOpItem(const scalar rx, const scalar ry, const scalar angle,
+    const PathDirection direction, const scalar dx, const scalar dy)
+    : PathOpItem(RARCTO_OPITEM), rx_(rx), ry_(ry), angle_(angle), direction_(direction), dx_(dx), dy_(dy) {}
+
+void RArcToOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const RArcToOpItem*>(opItem);
+        op->Playback(player.path_);
+    }
+}
+
+void RArcToOpItem::Playback(Path& path) const
+{
+    path.RArcTo(rx_, ry_, angle_, direction_, dx_, dy_);
+}
+
+RCubicToOpItem::RCubicToOpItem(const scalar dx1, const scalar dy1,
+    const scalar dx2, const scalar dy2, const scalar dx3, const scalar dy3)
+    : PathOpItem(RCUBICTO_OPITEM), dx1_(dx1), dy1_(dy1), dx2_(dx2), dy2_(dy2), dx3_(dx3), dy3_(dy3) {}
+
+void RCubicToOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const RCubicToOpItem*>(opItem);
+        op->Playback(player.path_);
+    }
+}
+
+void RCubicToOpItem::Playback(Path& path) const
+{
+    path.RCubicTo(dx1_, dy1_, dx2_, dy2_, dx3_, dy3_);
+}
+
+RQuadToOpItem::RQuadToOpItem(const scalar dx1, const scalar dy1, const scalar dx2, const scalar dy2)
+    : PathOpItem(RQUADTO_OPITEM), dx1_(dx1), dy1_(dy1), dx2_(dx2), dy2_(dy2) {}
+
+void RQuadToOpItem::Playback(PathPlayer& player, const void* opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const RQuadToOpItem*>(opItem);
+        op->Playback(player.path_);
+    }
+}
+
+void RQuadToOpItem::Playback(Path& path) const
+{
+    path.RQuadTo(dx1_, dy1_, dx2_, dy2_);
 }
 
 AddRectOpItem::AddRectOpItem(const Rect& rect, PathDirection dir)

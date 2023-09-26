@@ -18,8 +18,6 @@
 
 #include <string>
 
-#include "txt/font_asset_provider.h"
-
 #include "skia_adapter/skia_font_mgr.h"
 
 namespace OHOS {

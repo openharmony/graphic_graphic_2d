@@ -90,6 +90,31 @@ void Path::QuadTo(const Point& ctrlPt, const Point endPt)
     impl_->QuadTo(ctrlPt.GetX(), ctrlPt.GetY(), endPt.GetX(), endPt.GetY());
 }
 
+void Path::RMoveTo(scalar dx, scalar dy)
+{
+    impl_->RMoveTo(dx, dy);
+}
+
+void Path::RLineTo(scalar dx, scalar dy)
+{
+    impl_->RLineTo(dx, dy);
+}
+
+void Path::RArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction, scalar dx, scalar dy)
+{
+    impl_->RArcTo(rx, ry, angle, direction, dx, dy);
+}
+
+void Path::RCubicTo(scalar dx1, scalar dy1, scalar dx2, scalar dy2, scalar dx3, scalar dy3)
+{
+    impl_->RCubicTo(dx1, dy1, dx2, dy2, dx3, dy3);
+}
+
+void Path::RQuadTo(scalar dx1, scalar dy1, scalar dx2, scalar dy2)
+{
+    impl_->RQuadTo(dx1, dy1, dx2, dy2);
+}
+
 void Path::AddRect(const Rect& rect, PathDirection dir)
 {
     impl_->AddRect(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom(), dir);
