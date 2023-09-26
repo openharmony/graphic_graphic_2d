@@ -767,25 +767,31 @@ void RSNode::SetParticleDrawRegion(std::vector<ParticleParams>& particleParams)
         float scaleMax = particleParams[i].scale_.val_.end_;
         if (particleType == ParticleType::POINTS) {
             auto radius = particleParams[i].emitterConfig_.radius_;
-            left = std::min(left, position.x_ - radius * scaleMax);
-            top = std::min(top, position.y_ - radius * scaleMax);
-            right = std::max(right, position.x_ + emitSize.x_ + radius * scaleMax);
-            bottom = std::max(bottom, position.y_ + emitSize.y_ + radius * scaleMax);
+            auto radiusMax = radius * scaleMax;
+            left = std::min(0.f, position.x_ - radiusMax);
+            top = std::min(0.f, position.y_ - radiusMax);
+            right = std::max(right + radiusMax + radiusMax, position.x_ + emitSize.x_ + radiusMax + radiusMax);
+            bottom = std::max(bottom + radiusMax + radiusMax, position.y_ + emitSize.y_ + radiusMax + radiusMax);
         } else {
             float imageSizeWidth = 0.f;
             float imageSizeHeight = 0.f;
             auto image = particleParams[i].emitterConfig_.image_;
             auto imageSize = particleParams[i].emitterConfig_.imageSize_;
-            if (image == nullptr) continue;
+            if (image == nullptr)
+                continue;
             auto pixelMap = image->GetPixelMap();
             if (pixelMap != nullptr) {
                 imageSizeWidth = std::max(imageSize.x_, static_cast<float>(pixelMap->GetWidth()));
                 imageSizeHeight = std::max(imageSize.y_, static_cast<float>(pixelMap->GetHeight()));
             }
-            left = position.x_ - imageSizeWidth * scaleMax;
-            top = position.y_ - imageSizeHeight * scaleMax;
-            right = position.x_ + emitSize.x_ + imageSizeWidth * scaleMax;
-            bottom = position.y_ + emitSize.y_ + imageSizeHeight * scaleMax;
+            float imageSizeWidthMax = imageSizeWidth * scaleMax;
+            float imageSizeHeightMax = imageSizeHeight * scaleMax;
+            left = std::min(0.f, position.x_ - imageSizeWidthMax);
+            top = std::min(0.f, position.y_ - imageSizeHeightMax);
+            right = std::max(right + imageSizeWidthMax + imageSizeWidthMax,
+                position.x_ + emitSize.x_ + imageSizeWidthMax + imageSizeWidthMax);
+            bottom = std::max(bottom + imageSizeHeightMax + imageSizeHeightMax,
+                position.y_ + emitSize.y_ + imageSizeHeightMax + imageSizeHeightMax);
         }
         std::shared_ptr<RectF> overlayRect = std::make_shared<RectF>(left, top, right, bottom);
         SetDrawRegion(overlayRect);
