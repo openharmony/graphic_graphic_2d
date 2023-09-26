@@ -36,7 +36,6 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 #define MAXWIDTH 1e9
-#define MEDIAL 2
 namespace {
 void DumpLineMetrics(const std::vector<LineMetrics> &lineMetrics)
 {
@@ -252,13 +251,14 @@ void Shaper::ConsiderOneMidEllipsis(const std::vector<VariantSpan> &ellipsisSpan
 void Shaper::ConsiderMiddleEllipsis(const std::vector<VariantSpan> &ellipsisSpans, const double ellipsisWidth,
     const size_t maxLines, const double widthLimit)
 {
-    if (maxLines == 1) {
+    if (maxLines == 1) { // single line
         ConsiderOneMidEllipsis(ellipsisSpans, ellipsisWidth, widthLimit);
-    } else {
+    } else if (maxLines > 1) { // multi line
         bool isErase = false;
         auto lineSize = lineMetrics_.size();
-        int middleLineStart = (maxLines - 1) / MEDIAL;
-        int middleLineEnd = lineMetrics_.size() - (maxLines - (maxLines - 1) / MEDIAL - 1);
+        size_t middleLineStart = (maxLines - 1) / 2; // calculate the middle start row
+        // calculate the middle end row
+        size_t middleLineEnd = lineMetrics_.size() - (maxLines - (maxLines - 1) / 2 - 1);
         auto &middleLine = lineMetrics_.at(middleLineStart);
         double middleLineWidth = middleLine.GetAllSpanWidth();
 
