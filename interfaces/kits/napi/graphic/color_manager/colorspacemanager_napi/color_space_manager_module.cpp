@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,15 +15,14 @@
 #include "js_color_space_manager.h"
 #include "native_engine/native_engine.h"
 
+static napi_module _module = {
+    .nm_version = 0,
+    .nm_modname = "graphics.colorSpaceManager",
+    .nm_filename = "graphics/libgraphics_napi.so/colorSpaceManager.js",
+    .nm_register_func = OHOS::ColorManager::JsColorSpaceManagerInit,
+};
+
 extern "C" __attribute__((constructor)) void NAPI_application_ColorSpaceManager_AotoRegister(void)
 {
-    auto moduleManager = NativeModuleManager::GetInstance();
-    // name and fine name should be formated as api file name
-    NativeModule colorSpaceManagerModule = {
-        .name = "graphics.colorSpaceManager",
-        .fileName = "graphics/libgraphics_napi.so/colorSpaceManager.js",
-        .registerCallback = OHOS::ColorManager::JsColorSpaceManagerInit,
-    };
-
-    moduleManager->Register(&colorSpaceManagerModule);
+    napi_module_register(&_module);
 }

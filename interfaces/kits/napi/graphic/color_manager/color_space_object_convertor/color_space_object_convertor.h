@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,8 +24,8 @@
 
 namespace OHOS {
 namespace ColorManager {
-NativeValue* CreateJsColorSpaceObject(NativeEngine& engine, std::shared_ptr<ColorSpace>& colorSpace);
-std::shared_ptr<ColorSpace> GetColorSpaceByJSObject(NativeObject* object);
+napi_value CreateJsColorSpaceObject(napi_env env, std::shared_ptr<ColorSpace>& colorSpace);
+std::shared_ptr<ColorSpace> GetColorSpaceByJSObject(napi_env env, napi_value object);
 }  // namespace ColorManager
 }  // namespace OHOS
 

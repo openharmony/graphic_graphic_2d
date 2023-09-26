@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,24 +24,24 @@
 
 namespace OHOS {
 namespace ColorManager {
-void BindFunctions(NativeEngine& engine, NativeObject* object);
+void BindFunctions(napi_env env, napi_value object);
 class JsColorSpace final {
 public:
     explicit JsColorSpace(const std::shared_ptr<ColorSpace>& colorSpace) : colorSpaceToken_(colorSpace) {};
     ~JsColorSpace() {};
-    static void Finalizer(NativeEngine* engine, void* data, void* hint);
-    static NativeValue* GetColorSpaceName(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* GetWhitePoint(NativeEngine* engine, NativeCallbackInfo* info);
-    static NativeValue* GetGamma(NativeEngine* engine, NativeCallbackInfo* info);
+    static void Finalizer(napi_env env, void* data, void* hint);
+    static napi_value GetColorSpaceName(napi_env env, napi_callback_info info);
+    static napi_value GetWhitePoint(napi_env env, napi_callback_info info);
+    static napi_value GetGamma(napi_env env, napi_callback_info info);
     inline const std::shared_ptr<ColorSpace>& GetColorSpaceToken() const
     {
         return colorSpaceToken_;
     }
 
 private:
-    NativeValue* OnGetColorSpaceName(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnGetWhitePoint(NativeEngine& engine, NativeCallbackInfo& info);
-    NativeValue* OnGetGamma(NativeEngine& engine, NativeCallbackInfo& info);
+    napi_value OnGetColorSpaceName(napi_env env, napi_callback_info info);
+    napi_value OnGetWhitePoint(napi_env env, napi_callback_info info);
+    napi_value OnGetGamma(napi_env env, napi_callback_info info);
 
     std::shared_ptr<ColorSpace> colorSpaceToken_;
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,45 +19,50 @@
 
 namespace OHOS {
 namespace ColorManager {
-NativeValue* CreateJsColorSpaceObject(NativeEngine& engine, std::shared_ptr<ColorSpace>& colorSpace)
+napi_value CreateJsColorSpaceObject(napi_env env, std::shared_ptr<ColorSpace>& colorSpace)
 {
     if (colorSpace == nullptr) {
         CMLOGE("[NAPI]colorSpace is nullptr");
-        engine.Throw(CreateJsError(engine,
-            static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM))));
+        napi_throw_error(env,
+            std::to_string(static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM))).c_str(),
+            "[NAPI]colorSpace is nullptr");
         return nullptr;
     }
-    NativeValue* objValue = engine.CreateObject();
-    NativeObject* object = ConvertNativeValueTo<NativeObject>(objValue);
+    napi_value object = nullptr;
+    napi_create_object(env, &object);
     if (object == nullptr) {
         CMLOGE("[NAPI]Fail to convert to js object");
-        engine.Throw(CreateJsError(engine, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR))));
-        return engine.CreateUndefined();
+        napi_throw_error(env,
+            std::to_string(static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM))).c_str(),
+            "[NAPI]Fail to convert to js object");
+        napi_get_undefined(env, &object);
+        return object;
     }
 
     std::unique_ptr<JsColorSpace> jsColorSpace = std::make_unique<JsColorSpace>(colorSpace);
-    object->SetNativePointer(jsColorSpace.release(), JsColorSpace::Finalizer, nullptr);
-    BindFunctions(engine, object);
+    napi_wrap(env, object, jsColorSpace.release(), JsColorSpace::Finalizer, nullptr, nullptr);
+    BindFunctions(env, object);
 
-    std::shared_ptr<NativeReference> jsColorSpaceRef;
-    jsColorSpaceRef.reset(engine.CreateReference(objValue, 1));
-    return objValue;
+    std::shared_ptr<NativeReference> jsColorSpaceNativeRef;
+    napi_ref jsColorSpaceRef = nullptr;
+    napi_create_reference(env, object, 1, &jsColorSpaceRef);
+    jsColorSpaceNativeRef.reset(reinterpret_cast<NativeReference*>(jsColorSpaceRef));
+    return object;
 }
 
-std::shared_ptr<ColorSpace> GetColorSpaceByJSObject(NativeObject* object)
+std::shared_ptr<ColorSpace> GetColorSpaceByJSObject(napi_env env, napi_value object)
 {
-    {
     if (object == nullptr) {
         CMLOGE("[NAPI]GetColorSpaceByJSObject::jsObject is nullptr");
         return nullptr;
     }
-    auto jsColorSpace = reinterpret_cast<JsColorSpace*>(object->GetNativePointer());
+    JsColorSpace* jsColorSpace = nullptr;
+    napi_unwrap(env, object, (void **)&jsColorSpace);
     if (jsColorSpace == nullptr) {
         CMLOGE("[NAPI]GetColorSpaceByJSObject::jsColorSpace is nullptr");
         return nullptr;
     }
     return jsColorSpace->GetColorSpaceToken();
-}
 }
 }  // namespace ColorManager
 }  // namespace OHOS

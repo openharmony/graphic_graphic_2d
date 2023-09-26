@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,16 +22,16 @@
 
 namespace OHOS {
 namespace ColorManager {
-NativeValue* JsColorSpaceManagerInit(NativeEngine* engine, NativeValue* exportObj);
+napi_value JsColorSpaceManagerInit(napi_env env, napi_value exportObj);
 class JsColorSpaceManager {
 public:
     JsColorSpaceManager() {};
     ~JsColorSpaceManager() {};
-    static void Finalizer(NativeEngine* engine, void* data, void* hint);
-    static NativeValue* CreateColorSpace(NativeEngine* engine, NativeCallbackInfo* info);
-    static bool ParseColorSpacePrimaries(NativeEngine& engine, NativeObject* jsObject, ColorSpacePrimaries& primaries);
+    static void Finalizer(napi_env env, void* data, void* hint);
+    static napi_value CreateColorSpace(napi_env env, napi_callback_info info);
+    static bool ParseColorSpacePrimaries(napi_env env, napi_value jsObject, ColorSpacePrimaries& primaries);
 private:
-    NativeValue* OnCreateColorSpace(NativeEngine& engine, NativeCallbackInfo& info);
+    napi_value OnCreateColorSpace(napi_env engine, napi_callback_info info);
 };
 } // namespace ColorManager
 } // namespace OHOS

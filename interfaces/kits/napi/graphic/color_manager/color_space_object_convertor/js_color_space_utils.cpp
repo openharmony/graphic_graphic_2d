@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,108 +17,125 @@
 
 namespace OHOS {
 namespace ColorManager {
-NativeValue* CreateJsError(NativeEngine& engine, int32_t errCode, const std::string& message)
+napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& message)
 {
-    return engine.CreateError(CreateJsValue(engine, errCode), CreateJsValue(engine, message));
+    napi_value result = nullptr;
+    napi_create_error(env, CreateJsValue(env, errCode), CreateJsValue(env, message), &result);
+    return result;
 }
 
-void BindNativeFunction(NativeEngine& engine, NativeObject& object, const char* name,
-    const char* moduleName, NativeCallback func)
+void BindNativeFunction(napi_env env, napi_value object, const char* name, const char* moduleName, napi_callback func)
 {
-    std::string fullName(moduleName);
-    fullName += ".";
+    std::string fullName;
+    if (moduleName) {
+        fullName = moduleName;
+        fullName += '.';
+    }
     fullName += name;
-    object.SetProperty(name, engine.CreateFunction(fullName.c_str(), fullName.length(), func, nullptr));
+    napi_value funcValue = nullptr;
+    napi_create_function(env, fullName.c_str(), fullName.size(), func, nullptr, &funcValue);
+    napi_set_named_property(env, object, fullName.c_str(), funcValue);
 }
 
-bool CheckParamMinimumValid(NativeEngine& engine, const size_t paramNum, const size_t minNum)
+bool CheckParamMinimumValid(napi_env env, const size_t paramNum, const size_t minNum)
 {
     if (paramNum <= minNum) {
         CMLOGE("[NAPI]Argc is invalid: %{public}zu", paramNum);
-        engine.Throw(CreateJsError(engine,
-            static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM)),
-            "Parameter check fails. The number of parameter(s) must not be less than " + std::to_string(minNum)));
+        std::string errMsg = "Parameter check fails. The number of parameter(s) must not be less than " +
+            std::to_string(minNum);
+        napi_throw_error(env,
+            std::to_string(static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM))).c_str(),
+            errMsg.c_str());
         return false;
     }
     return true;
 }
 
-NativeValue* ColorSpaceTypeInit(NativeEngine* engine)
+napi_value ColorSpaceTypeInit(napi_env env)
 {
-    if (engine == nullptr) {
+    if (env == nullptr) {
+        CMLOGE("[NAPI]Engine is nullptr");
+        return nullptr;
+    }
+    napi_value object = nullptr;
+    napi_create_object(env, &object);
+    if (object == nullptr) {
+        CMLOGE("[NAPI]Failed to get object");
+        return nullptr;
+    }
+    napi_value valueUnknown = CreateJsValue(env, static_cast<int32_t>(ApiColorSpaceType::UNKNOWN));
+    napi_value valueAdobe_RGB_1998 = CreateJsValue(env, static_cast<int32_t>(ApiColorSpaceType::ADOBE_RGB_1998));
+    napi_value valueDCI_P3 = CreateJsValue(env, static_cast<int32_t>(ApiColorSpaceType::DCI_P3));
+    napi_value valueDisplay_P3 = CreateJsValue(env, static_cast<int32_t>(ApiColorSpaceType::DISPLAY_P3));
+    napi_value valueSrgb = CreateJsValue(env, static_cast<int32_t>(ApiColorSpaceType::SRGB));
+    napi_value valueCustom = CreateJsValue(env, static_cast<int32_t>(ApiColorSpaceType::CUSTOM));
+    napi_set_named_property(env, object, "UNKNOWN", valueUnknown);
+    napi_set_named_property(env, object, "ADOBE_RGB_1998", valueAdobe_RGB_1998);
+    napi_set_named_property(env, object, "DCI_P3", valueDCI_P3);
+    napi_set_named_property(env, object, "DISPLAY_P3", valueDisplay_P3);
+    napi_set_named_property(env, object, "SRGB", valueSrgb);
+    napi_set_named_property(env, object, "CUSTOM", valueCustom);
+    return object;
+}
+
+napi_value CMErrorInit(napi_env env)
+{
+    if (env == nullptr) {
         CMLOGE("[NAPI]Engine is nullptr");
         return nullptr;
     }
 
-    NativeValue *objValue = engine->CreateObject();
-    NativeObject *object = ConvertNativeValueTo<NativeObject>(objValue);
+    napi_value object = nullptr;
+    napi_create_object(env, &object);
     if (object == nullptr) {
         CMLOGE("[NAPI]Failed to get object");
         return nullptr;
     }
 
-    object->SetProperty("UNKNOWN", CreateJsValue(*engine, static_cast<int32_t>(ApiColorSpaceType::UNKNOWN)));
-    object->SetProperty("ADOBE_RGB_1998",
-        CreateJsValue(*engine, static_cast<int32_t>(ApiColorSpaceType::ADOBE_RGB_1998)));
-    object->SetProperty("DCI_P3", CreateJsValue(*engine, static_cast<int32_t>(ApiColorSpaceType::DCI_P3)));
-    object->SetProperty("DISPLAY_P3", CreateJsValue(*engine, static_cast<int32_t>(ApiColorSpaceType::DISPLAY_P3)));
-    object->SetProperty("SRGB", CreateJsValue(*engine, static_cast<int32_t>(ApiColorSpaceType::SRGB)));
-    object->SetProperty("CUSTOM", CreateJsValue(*engine, static_cast<int32_t>(ApiColorSpaceType::CUSTOM)));
-    return objValue;
+    napi_value valueErrorNullptr = CreateJsValue(env, static_cast<int32_t>(CMError::CM_ERROR_NULLPTR));
+    napi_value valueErrorInvalidPara = CreateJsValue(env, static_cast<int32_t>(CMError::CM_ERROR_INVALID_PARAM));
+    napi_value valueErrorInvalidEnum = CreateJsValue(env, static_cast<int32_t>(CMError::CM_ERROR_INVALID_ENUM_USAGE));
+    napi_set_named_property(env, object, "CM_ERROR_NULLPTR", valueErrorNullptr);
+    napi_set_named_property(env, object, "CM_ERROR_INVALID_PARAM", valueErrorInvalidPara);
+    napi_set_named_property(env, object, "CM_ERROR_INVALID_ENUM_USAGE", valueErrorInvalidEnum);
+    return object;
 }
 
-NativeValue* CMErrorInit(NativeEngine* engine)
+napi_value CMErrorCodeInit(napi_env env)
 {
-    if (engine == nullptr) {
+    if (env == nullptr) {
         CMLOGE("[NAPI]Engine is nullptr");
         return nullptr;
     }
 
-    NativeValue *objValue = engine->CreateObject();
-    NativeObject *object = ConvertNativeValueTo<NativeObject>(objValue);
+    napi_value object = nullptr;
+    napi_create_object(env, &object);
     if (object == nullptr) {
         CMLOGE("[NAPI]Failed to get object");
         return nullptr;
     }
 
-    object->SetProperty("CM_ERROR_NULLPTR", CreateJsValue(*engine, static_cast<int32_t>(CMError::CM_ERROR_NULLPTR)));
-    object->SetProperty("CM_ERROR_INVALID_PARAM",
-        CreateJsValue(*engine, static_cast<int32_t>(CMError::CM_ERROR_INVALID_PARAM)));
-    object->SetProperty("CM_ERROR_INVALID_ENUM_USAGE",
-        CreateJsValue(*engine, static_cast<int32_t>(CMError::CM_ERROR_INVALID_ENUM_USAGE)));
-    return objValue;
+    napi_value valueErrorNoPermission = CreateJsValue(env, static_cast<int32_t>(CMErrorCode::CM_ERROR_NO_PERMISSION));
+    napi_value valueErrorInvalidPara = CreateJsValue(env, static_cast<int32_t>(CMErrorCode::CM_ERROR_INVALID_PARAM));
+    napi_value valueErrorDevNotSupport = CreateJsValue(env,
+        static_cast<int32_t>(CMErrorCode::CM_ERROR_DEVICE_NOT_SUPPORT));
+    napi_value valueErrorAbnormalpara = CreateJsValue(env,
+        static_cast<int32_t>(CMErrorCode::CM_ERROR_ABNORMAL_PARAM_VALUE));
+    napi_set_named_property(env, object, "CM_ERROR_NO_PERMISSION", valueErrorNoPermission);
+    napi_set_named_property(env, object, "CM_ERROR_INVALID_PARAM", valueErrorInvalidPara);
+    napi_set_named_property(env, object, "CM_ERROR_DEVICE_NOT_SUPPORT", valueErrorDevNotSupport);
+    napi_set_named_property(env, object, "CM_ERROR_ABNORMAL_PARAM_VALUE", valueErrorAbnormalpara);
+    return object;
 }
 
-NativeValue* CMErrorCodeInit(NativeEngine* engine)
+bool ParseJsDoubleValue(napi_value jsObject, napi_env env, const std::string& name, double& data)
 {
-    if (engine == nullptr) {
-        CMLOGE("[NAPI]Engine is nullptr");
-        return nullptr;
-    }
-
-    NativeValue *objValue = engine->CreateObject();
-    NativeObject *object = ConvertNativeValueTo<NativeObject>(objValue);
-    if (object == nullptr) {
-        CMLOGE("[NAPI]Failed to get object");
-        return nullptr;
-    }
-
-    object->SetProperty("CM_ERROR_NO_PERMISSION",
-        CreateJsValue(*engine, static_cast<int32_t>(CMErrorCode::CM_ERROR_NO_PERMISSION)));
-    object->SetProperty("CM_ERROR_INVALID_PARAM",
-        CreateJsValue(*engine, static_cast<int32_t>(CMErrorCode::CM_ERROR_INVALID_PARAM)));
-    object->SetProperty("CM_ERROR_DEVICE_NOT_SUPPORT",
-        CreateJsValue(*engine, static_cast<int32_t>(CMErrorCode::CM_ERROR_DEVICE_NOT_SUPPORT)));
-    object->SetProperty("CM_ERROR_ABNORMAL_PARAM_VALUE",
-        CreateJsValue(*engine, static_cast<int32_t>(CMErrorCode::CM_ERROR_ABNORMAL_PARAM_VALUE)));
-    return objValue;
-}
-
-bool ParseJsDoubleValue(NativeObject* jsObject, NativeEngine& engine, const std::string& name, double& data)
-{
-    NativeValue* value = jsObject->GetProperty(name.c_str());
-    if (value->TypeOf() != NATIVE_UNDEFINED) {
-        if (!ConvertFromJsValue(engine, value, data)) {
+    napi_value value = nullptr;
+    napi_get_named_property(env, jsObject, name.c_str(), &value);
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, value, &valueType);
+    if (valueType != napi_undefined) {
+        if (napi_get_value_double(env, value, &data) != napi_ok) {
             CMLOGE("[NAPI]Failed to convert parameter to data: %{public}s", name.c_str());
             return false;
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -65,44 +65,118 @@ const std::map<ApiColorSpaceType, ColorSpaceName> JS_TO_NATIVE_COLOR_SPACE_NAME_
 };
 
 template<class T>
-inline T* ConvertNativeValueTo(NativeValue* value)
+T* CheckParamsAndGetThis(const napi_env env, napi_callback_info info, const char* name = nullptr)
 {
-    return (value != nullptr) ? static_cast<T*>(value->GetInterface(T::INTERFACE_ID)) : nullptr;
-}
-
-template<class T>
-inline T* CheckParamsAndGetThis(const NativeEngine* engine, NativeCallbackInfo* info, const char* name = nullptr)
-{
-    if (engine == nullptr || info == nullptr) {
+    if (env == nullptr || info == nullptr) {
         return nullptr;
     }
-    NativeObject* object = ConvertNativeValueTo<NativeObject>(info->thisVar);
+    napi_value object = nullptr;
+    napi_value propertyNameValue = nullptr;
+    napi_value pointerValue = nullptr;
+    napi_get_cb_info(env, info, nullptr, nullptr, &object, nullptr);
     if (object != nullptr && name != nullptr) {
-        object = ConvertNativeValueTo<NativeObject>(object->GetProperty(name));
+        napi_create_string_utf8(env, name, NAPI_AUTO_LENGTH, &propertyNameValue);
     }
-    return (object != nullptr) ? static_cast<T*>(object->GetNativePointer()) : nullptr;
+    napi_value& resObject = propertyNameValue ? propertyNameValue : object;
+    if (resObject) {
+        return napi_unwrap(env, resObject, (void **)(&pointerValue)) == napi_ok ?
+            reinterpret_cast<T*>(pointerValue) : nullptr;
+    }
+    return nullptr;
+}
+
+template<typename T, size_t N>
+inline constexpr size_t ArraySize(T (&)[N]) noexcept
+{
+    return N;
+}
+
+inline napi_value CreateJsUndefined(napi_env env)
+{
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    return result;
+}
+
+inline napi_value CreateJsNull(napi_env env)
+{
+    napi_value result = nullptr;
+    napi_get_null(env, &result);
+    return result;
+}
+
+inline napi_value CreateJsNumber(napi_env env, int32_t value)
+{
+    napi_value result = nullptr;
+    napi_create_int32(env, value, &result);
+    return result;
+}
+
+inline napi_value CreateJsNumber(napi_env env, uint32_t value)
+{
+    napi_value result = nullptr;
+    napi_create_uint32(env, value, &result);
+    return result;
+}
+
+inline napi_value CreateJsNumber(napi_env env, int64_t value)
+{
+    napi_value result = nullptr;
+    napi_create_int64(env, value, &result);
+    return result;
+}
+
+inline napi_value CreateJsNumber(napi_env env, double value)
+{
+    napi_value result = nullptr;
+    napi_create_double(env, value, &result);
+    return result;
 }
 
 template<class T>
-NativeValue* CreateJsValue(NativeEngine& engine, const T& value)
+napi_value CreateJsValue(napi_env env, const T& value)
 {
     using ValueType = std::remove_cv_t<std::remove_reference_t<T>>;
+    napi_value result = nullptr;
     if constexpr (std::is_same_v<ValueType, bool>) {
-        return engine.CreateBoolean(value);
+        napi_get_boolean(env, value, &result);
+        return result;
     } else if constexpr (std::is_arithmetic_v<ValueType>) {
-        return engine.CreateNumber(value);
+        return CreateJsNumber(env, value);
     } else if constexpr (std::is_same_v<ValueType, std::string>) {
-        return engine.CreateString(value.c_str(), value.length());
+        napi_create_string_utf8(env, value.c_str(), value.length(), &result);
+        return result;
     } else if constexpr (std::is_enum_v<ValueType>) {
-        return engine.CreateNumber(static_cast<std::make_signed_t<ValueType>>(value));
+        return CreateJsNumber(env, static_cast<std::make_signed_t<ValueType>>(value));
     } else if constexpr (std::is_same_v<ValueType, const char*>) {
-        return (value != nullptr) ? engine.CreateString(value, strlen(value)) : engine.CreateUndefined();
+        (value != nullptr) ? napi_create_string_utf8(env, value, strlen(value), &result) :
+            napi_get_undefined(env, &result);
+        return result;
     }
-    return engine.CreateUndefined();
+}
+
+inline bool ConvertFromJsNumber(napi_env env, napi_value jsValue, int32_t& value)
+{
+    return napi_get_value_int32(env, jsValue, &value) == napi_ok;
+}
+
+inline bool ConvertFromJsNumber(napi_env env, napi_value jsValue, uint32_t& value)
+{
+    return napi_get_value_uint32(env, jsValue, &value) == napi_ok;
+}
+
+inline bool ConvertFromJsNumber(napi_env env, napi_value jsValue, int64_t& value)
+{
+    return napi_get_value_int64(env, jsValue, &value) == napi_ok;
+}
+
+inline bool ConvertFromJsNumber(napi_env env, napi_value jsValue, double& value)
+{
+    return napi_get_value_double(env, jsValue, &value) == napi_ok;
 }
 
 template<class T>
-bool ConvertFromJsValue(NativeEngine& engine, NativeValue* jsValue, T& value)
+bool ConvertFromJsValue(napi_env env, napi_value jsValue, T& value)
 {
     if (jsValue == nullptr) {
         return false;
@@ -110,51 +184,40 @@ bool ConvertFromJsValue(NativeEngine& engine, NativeValue* jsValue, T& value)
 
     using ValueType = std::remove_cv_t<std::remove_reference_t<T>>;
     if constexpr (std::is_same_v<ValueType, bool>) {
-        auto boolValue = ConvertNativeValueTo<NativeBoolean>(jsValue);
-        if (boolValue == nullptr) {
-            return false;
-        }
-        value = *boolValue;
-        return true;
+        return napi_get_value_bool(env, jsValue, &value) == napi_ok;
     } else if constexpr (std::is_arithmetic_v<ValueType>) {
-        auto numberValue = ConvertNativeValueTo<NativeNumber>(jsValue);
-        if (numberValue == nullptr) {
-            return false;
-        }
-        value = *numberValue;
-        return true;
+        return ConvertFromJsNumber(env, jsValue, value);
     } else if constexpr (std::is_same_v<ValueType, std::string>) {
-        auto stringValue = ConvertNativeValueTo<NativeString>(jsValue);
-        if (stringValue == nullptr) {
+        size_t len = 0;
+        if (napi_get_value_string_utf8(env, jsValue, nullptr, 0, &len) != napi_ok) {
             return false;
         }
-        size_t len = stringValue->GetLength() + 1;
-        auto buffer = std::make_unique<char[]>(len);
+        auto buffer = std::make_unique<char[]>(len + 1);
         size_t strLength = 0;
-        stringValue->GetCString(buffer.get(), len, &strLength);
-        value = buffer.get();
-        return true;
+        if (napi_get_value_string_utf8(env, jsValue, buffer.get(), len + 1, &strLength) == napi_ok) {
+            value = buffer.get();
+            return true;
+        }
+        return false;
     } else if constexpr (std::is_enum_v<ValueType>) {
-        auto numberValue = ConvertNativeValueTo<NativeNumber>(jsValue);
-        if (numberValue == nullptr) {
+        std::make_signed_t<ValueType> numberValue = 0;
+        if (!ConvertFromJsNumber(env, jsValue, numberValue)) {
             return false;
         }
-        value = static_cast<ValueType>(static_cast<std::make_signed_t<ValueType>>(*numberValue));
+        value = static_cast<ValueType>(numberValue);
         return true;
     }
-    CMLOGE("[NAPI]Failed to ConvertFromJsValue");
     return false;
 }
 
-NativeValue* CreateJsError(NativeEngine& engine, int32_t errCode, const std::string& message = std::string());
-void BindNativeFunction(NativeEngine& engine, NativeObject& object, const char* name,
-    const char* moduleName, NativeCallback func);
-bool CheckParamMinimumValid(NativeEngine& engine, const size_t paramNum, const size_t minNum);
+napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& message = std::string());
+void BindNativeFunction(napi_env env, napi_value object, const char* name, const char* moduleName, napi_callback func);
+bool CheckParamMinimumValid(napi_env env, const size_t paramNum, const size_t minNum);
 
-NativeValue* ColorSpaceTypeInit(NativeEngine* engine);
-NativeValue* CMErrorInit(NativeEngine* engine);
-NativeValue* CMErrorCodeInit(NativeEngine* engine);
-bool ParseJsDoubleValue(NativeObject* jsObject, NativeEngine& engine, const std::string& name, double& data);
+napi_value ColorSpaceTypeInit(napi_env env);
+napi_value CMErrorInit(napi_env env);
+napi_value CMErrorCodeInit(napi_env env);
+bool ParseJsDoubleValue(napi_value jsObject, napi_env engine, const std::string& name, double& data);
 }  // namespace ColorManager
 }  // namespace OHOS
 #endif // OHOS_JS_COLOR_SPACE_UTILS_H
