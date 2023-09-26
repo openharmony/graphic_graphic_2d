@@ -165,6 +165,7 @@ template("graphics2d_source_set") {
       }
       include_dirs += [
         "$flutter_root/engine",
+        "$rosen_root/modules/2d_engine/rosen_text",
         "$rosen_root/modules/2d_engine/rosen_text/adapter",
         "$rosen_root/modules/2d_engine/rosen_text/export",
         "//third_party/bounds_checking_function/include",
