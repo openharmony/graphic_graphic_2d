@@ -239,6 +239,11 @@ bool RSModifierExtractor::GetShadowMask() const
     GET_PROPERTY_FROM_MODIFIERS(bool, SHADOW_MASK, false, =);
 }
 
+bool RSModifierExtractor::GetShadowIsFilled() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(bool, SHADOW_IS_FILLED, false, =);
+}
+
 Gravity RSModifierExtractor::GetFrameGravity() const
 {
     GET_PROPERTY_FROM_MODIFIERS(Gravity, FRAME_GRAVITY, Gravity::DEFAULT, =);

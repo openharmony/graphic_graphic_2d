@@ -111,6 +111,7 @@ const std::vector<ResetPropertyFunc> g_propertyResetterLUT = {
     [](RSProperties* prop) { prop->SetHueRotate({}); },                  // HUE_ROTATE,               62
     [](RSProperties* prop) { prop->SetColorBlend({}); },                 // COLOR_BLEND,              63
     [](RSProperties* prop) { prop->SetParticles({}); },                  // PARTICLE,                 64
+    [](RSProperties* prop) { prop->SetShadowIsFilled(false); },          // SHADOW_IS_FILLED,         65
     nullptr,
 };
 } // namespace
@@ -1082,6 +1083,18 @@ void RSProperties::SetShadowMask(bool shadowMask)
     contentDirty_ = true;
 }
 
+void RSProperties::SetShadowIsFilled(bool shadowIsFilled)
+{
+    if (!shadow_.has_value()) {
+        shadow_ = std::make_optional<RSShadow>();
+    }
+    shadow_->SetIsFilled(shadowIsFilled);
+    SetDirty();
+    // [planning] if shadow stores as texture and out of node
+    // node content would not be affected
+    contentDirty_ = true;
+}
+
 Color RSProperties::GetShadowColor() const
 {
     return shadow_ ? shadow_->GetColor() : Color::FromArgbInt(DEFAULT_SPOT_COLOR);
@@ -1120,6 +1133,11 @@ std::shared_ptr<RSPath> RSProperties::GetShadowPath() const
 bool RSProperties::GetShadowMask() const
 {
     return shadow_ ? shadow_->GetMask() : false;
+}
+
+bool RSProperties::GetShadowIsFilled() const
+{
+    return shadow_ ? shadow_->GetIsFilled() : false;
 }
 
 const std::optional<RSShadow>& RSProperties::GetShadow() const
@@ -2074,6 +2092,16 @@ std::string RSProperties::Dump() const
     }
     if (!ROSEN_EQ(GetShadowRadius(), 0.f) &&
         sprintf_s(buffer, UINT8_MAX, ", ShadowRadius[%.1f]", GetShadowRadius()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // ShadowIsFilled
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for ShadowIsFilled, ret=" + std::to_string(ret);
+    }
+    if (!ROSEN_EQ(GetShadowIsFilled(), false) &&
+        sprintf_s(buffer, UINT8_MAX, ", ShadowIsFilled[%d]", GetShadowIsFilled()) != -1) {
         dumpInfo.append(buffer);
     }
 

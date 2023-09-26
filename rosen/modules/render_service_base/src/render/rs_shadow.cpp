@@ -65,6 +65,11 @@ void RSShadow::SetMask(bool mask)
     imageMask_ = mask;
 }
 
+void RSShadow::SetIsFilled(bool isFilled)
+{
+    isFilled_ = isFilled;
+}
+
 Color RSShadow::GetColor() const
 {
     return color_;
@@ -103,6 +108,11 @@ const std::shared_ptr<RSPath>& RSShadow::GetPath() const
 bool RSShadow::GetMask() const
 {
     return imageMask_;
+}
+
+bool RSShadow::GetIsFilled() const
+{
+    return isFilled_;
 }
 
 bool RSShadow::IsValid() const
