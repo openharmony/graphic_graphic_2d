@@ -155,6 +155,18 @@
           },
           {
             "type": "so",
+            "name": "//foundation/graphic/graphic_2d:libgl",
+            "header": {
+              "header_files": [
+              ],
+              "header_base": [
+                  "//third_party/openGLES:libGLES",
+                  "//third_party/EGL:libEGL"
+              ]
+            }
+          },
+          {
+            "type": "so",
             "name": "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
             "header": {
               "header_files": [
