@@ -22,6 +22,35 @@
 namespace OHOS {
 namespace Rosen {
 #ifndef USE_ROSEN_DRAWING
+// Advanced Filter
+#define PROPERTY_HIGPU_VERSION "const.gpu.vendor"
+#define PROPERTY_DEBUG_SUPPORT_AF "persist.sys.graphic.supports_af"
+static constexpr uint32_t BLUR_SAMPLE_COUNT = 5;
+
+// Advanced Filter: we can get normalized uv offset from width and height
+struct OffsetInfo {
+    float offsetX;
+    float offsetY;
+    int width;
+    int height;
+};
+
+// Advanced Filter
+static bool IsAdvancedFilterUsable()
+{
+    std::string gpuVersion = RSSystemProperties::GetRSEventProperty(PROPERTY_HIGPU_VERSION);
+    // The AF Feature is only enabled on higpu v200 platform
+    if (gpuVersion.compare("higpu.v200") != 0) {
+        return false;
+    }
+
+    // If persist.sys.graphic.supports_af=0
+    // we will not use it
+    return RSSystemProperties::GetBoolSystemProperty(PROPERTY_DEBUG_SUPPORT_AF, true);
+}
+
+static const bool IS_ADVANCED_FILTER_USABLE_CHECK_ONCE = IsAdvancedFilterUsable();
+
 KawaseBlurFilter::KawaseBlurFilter()
 {
     SkString blurString(R"(
@@ -69,6 +98,11 @@ KawaseBlurFilter::KawaseBlurFilter()
     }
     blurEffect_ = std::move(blurEffect);
 
+    // Advanced Filter
+    if (IS_ADVANCED_FILTER_USABLE_CHECK_ONCE) {
+        setupBlurEffectAdvancedFilter();
+    }
+
     auto [mixEffect, error2] = SkRuntimeEffect::MakeForShader(mixString);
     if (!mixEffect) {
         ROSEN_LOGE("KawaseBlurFilter::RuntimeShader mixEffect error: %s{public}\n", error2.c_str());
@@ -78,6 +112,54 @@ KawaseBlurFilter::KawaseBlurFilter()
 }
 
 KawaseBlurFilter::~KawaseBlurFilter() = default;
+
+// Advanced Filter
+void KawaseBlurFilter::setupBlurEffectAdvancedFilter()
+{
+    SkString blurStringAF(R"(
+        uniform shader imageInput;
+        uniform float2 in_blurOffset[5];
+
+        half4 main(float2 xy) {
+            half4 c = half4(0, 0, 0, 0);
+            for (int i = 0; i < 5; ++i) {
+                c += imageInput.eval(float2(xy.x + in_blurOffset[i].x, xy.y + in_blurOffset[i].y));
+            }
+            return half4(c.rgb * 0.2, 1.0);
+        }
+    )");
+
+    SkRuntimeEffect::Options ops;
+    ops.useAF = true;
+    auto [blurEffectAF, errorAF] = SkRuntimeEffect::MakeForShader(blurStringAF, ops);
+    if (!blurEffectAF) {
+        ROSEN_LOGE("%s: RuntimeShader error: %s", __func__, errorAF.c_str());
+        return;
+    }
+    blurEffectAF_ = std::move(blurEffectAF);
+}
+
+static void getNormalizedOffset(SkV2* offsets, const uint32_t offsetCount, const OffsetInfo& offsetInfo)
+{
+    if (offsets == nullptr || offsetCount != BLUR_SAMPLE_COUNT) {
+        ROSEN_LOGE("%s: Invalid offsets.", __func__);
+        return;
+    }
+    if (std::fabs(offsetInfo.width) < 1e-6 || std::fabs(offsetInfo.height) < 1e-6) {
+        ROSEN_LOGE("%s: Invalid width or height.", __func__);
+        return;
+    }
+    SkV2 normalizedOffsets[BLUR_SAMPLE_COUNT] = {
+        SkV2{0.0f, 0.0f},
+        SkV2{offsetInfo.offsetX / offsetInfo.width, offsetInfo.offsetY / offsetInfo.height},
+        SkV2{-offsetInfo.offsetX / offsetInfo.width, offsetInfo.offsetY / offsetInfo.height},
+        SkV2{offsetInfo.offsetX / offsetInfo.width, -offsetInfo.offsetY / offsetInfo.height},
+        SkV2{-offsetInfo.offsetX / offsetInfo.width, -offsetInfo.offsetY / offsetInfo.height}
+    };
+    for (uint32_t i = 0; i < BLUR_SAMPLE_COUNT; ++i) {
+        offsets[i] = normalizedOffsets[i];
+    }
+}
 
 SkMatrix KawaseBlurFilter::GetShaderTransform(const SkCanvas* canvas, const SkRect& blurRect, float scale)
 {
@@ -151,17 +233,40 @@ bool KawaseBlurFilter::ApplyKawaseBlur(SkCanvas& canvas, const sk_sp<SkImage>& i
     SkMatrix blurMatrix = SkMatrix::Translate(-src.fLeft, -src.fTop);
     blurMatrix.postScale(blurScale_, blurScale_);
     SkSamplingOptions linear(SkFilterMode::kLinear, SkMipmapMode::kNone);
-    SkRuntimeShaderBuilder blurBuilder(blurEffect_);
+
+    // Advanced Filter: check is AF usable only the first time
+    bool isUsingAF = IS_ADVANCED_FILTER_USABLE_CHECK_ONCE && blurEffectAF_ != nullptr;
+    SkRuntimeShaderBuilder blurBuilder(isUsingAF ? blurEffectAF_ : blurEffect_);
     blurBuilder.child("imageInput") = input->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, linear, blurMatrix);
-    blurBuilder.uniform("in_blurOffset") = SkV2{radiusByPasses * blurScale_, radiusByPasses * blurScale_};
-    blurBuilder.uniform("in_maxSizeXY") = SkV2{width * blurScale_, height * blurScale_};
+
+    if (isUsingAF) {
+        SkV2 firstPassOffsets[BLUR_SAMPLE_COUNT];
+        OffsetInfo firstPassOffsetInfo = {radiusByPasses * blurScale_, radiusByPasses * blurScale_,
+            scaledInfo.width(), scaledInfo.height()};
+        getNormalizedOffset(firstPassOffsets, BLUR_SAMPLE_COUNT, firstPassOffsetInfo);
+        blurBuilder.uniform("in_blurOffset") = firstPassOffsets;
+    } else {
+        blurBuilder.uniform("in_blurOffset") = SkV2{radiusByPasses * blurScale_, radiusByPasses * blurScale_};
+        blurBuilder.uniform("in_maxSizeXY") = SkV2{width * blurScale_, height * blurScale_};
+    }
+
     sk_sp<SkImage> tmpBlur(blurBuilder.makeImage(canvas.recordingContext(), nullptr, scaledInfo, false));
     // And now we'll build our chain of scaled blur stages
     for (auto i = 1; i < numberOfPasses; i++) {
         const float stepScale = static_cast<float>(i) * blurScale_;
         blurBuilder.child("imageInput") = tmpBlur->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, linear);
-        blurBuilder.uniform("in_blurOffset") = SkV2{radiusByPasses * stepScale, radiusByPasses * stepScale};
-        blurBuilder.uniform("in_maxSizeXY") = SkV2{width * blurScale_, height * blurScale_};
+
+        // Advanced Filter
+        if (isUsingAF) {
+            SkV2 offsets[BLUR_SAMPLE_COUNT];
+            OffsetInfo offsetInfo = {radiusByPasses * stepScale, radiusByPasses * stepScale,
+                scaledInfo.width(), scaledInfo.height()};
+            getNormalizedOffset(offsets, BLUR_SAMPLE_COUNT, offsetInfo);
+            blurBuilder.uniform("in_blurOffset") = offsets;
+        } else {
+            blurBuilder.uniform("in_blurOffset") = SkV2{radiusByPasses * stepScale, radiusByPasses * stepScale};
+            blurBuilder.uniform("in_maxSizeXY") = SkV2{width * blurScale_, height * blurScale_};
+        }
         tmpBlur = blurBuilder.makeImage(canvas.recordingContext(), nullptr, scaledInfo, false);
     }
     RS_OPTIONAL_TRACE_END();
