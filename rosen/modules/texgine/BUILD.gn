@@ -111,6 +111,8 @@ ohos_source_set("libtexgine_source") {
     if (enable_text_gine) {
       defines += [ "USE_GRAPHIC_TEXT_GINE" ]
     }
+    deps = [ "//third_party/bounds_checking_function:libsec_static" ]
+    include_dirs = [ "//third_party/bounds_checking_function/include" ]
 
     if (platform == "ohos") {
       defines += [
