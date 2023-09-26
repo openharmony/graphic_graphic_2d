@@ -477,14 +477,7 @@ GSError BufferQueue::DoFlushBuffer(uint32_t sequence, const sptr<BufferExtraData
         }
     }
 
-    if (config.timestamp == 0) {
-        struct timeval tv = {};
-        gettimeofday(&tv, nullptr);
-        constexpr int32_t secToUsec = 1000000;
-        bufferQueueCache_[sequence].timestamp = (int64_t)tv.tv_usec + (int64_t)tv.tv_sec * secToUsec;
-    } else {
-        bufferQueueCache_[sequence].timestamp = config.timestamp;
-    }
+    bufferQueueCache_[sequence].timestamp = config.timestamp;
 
     if (isLocalRender_) {
         static SyncFenceTracker acquireFenceThread("Acquire Fence");
