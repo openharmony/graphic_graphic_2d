@@ -619,6 +619,7 @@ void RSRenderNode::UpdateDirtyRegion(
         RectI drawRegion;
         RectI shadowRect;
         auto dirtyRect = renderProperties_.GetDirtyRect(drawRegion);
+        auto rectFromRenderProperties = dirtyRect;
         if (renderProperties_.IsShadowValid()) {
             SetShadowValidLastFrame(true);
             if (IsInstanceOf<RSSurfaceRenderNode>()) {
@@ -658,6 +659,8 @@ void RSRenderNode::UpdateDirtyRegion(
                     GetId(), GetType(), DirtyRegionType::SHADOW_RECT, shadowRect);
                 dirtyManager.UpdateDirtyRegionInfoForDfx(
                     GetId(), GetType(), DirtyRegionType::PREPARE_CLIP_RECT, clipRect.value_or(RectI()));
+                dirtyManager.UpdateDirtyRegionInfoForDfx(
+                    GetId(), GetType(), DirtyRegionType::RENDER_PROPERTIES_RECT, rectFromRenderProperties);
             }
         }
     }
@@ -1974,6 +1977,14 @@ bool RSRenderNode::IsAncestorDirty() const
 void RSRenderNode::SetIsAncestorDirty(bool isAncestorDirty)
 {
     isAncestorDirty_ = isAncestorDirty;
+}
+bool RSRenderNode::IsParentLeashWindow() const
+{
+    return isParentLeashWindow_;
+}
+void RSRenderNode::SetParentLeashWindow()
+{
+    isParentLeashWindow_ = true;
 }
 bool RSRenderNode::HasCachedTexture() const
 {

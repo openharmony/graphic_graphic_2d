@@ -33,6 +33,7 @@ enum class DirtyRegionDebugType {
     CURRENT_SUB_AND_WHOLE,
     CURRENT_WHOLE_AND_MULTI_HISTORY,
     EGL_DAMAGE,
+    DISPLAY_DIRTY,
     CUR_DIRTY_DETAIL_ONLY_TRACE = 10,
     UPDATE_DIRTY_REGION,
     OVERLAY_RECT,
@@ -40,6 +41,14 @@ enum class DirtyRegionDebugType {
     SHADOW_RECT,
     PREPARE_CLIP_RECT,
     REMOVE_CHILD_RECT,
+    RENDER_PROPERTIES_RECT,
+    CANVAS_NODE_SKIP_RECT,
+};
+
+enum class SurfaceRegionDebugType {
+    DISABLED = 0,
+    OPAQUE_REGION,
+    VISIBLE_REGION,
 };
 
 enum class PartialRenderType {
@@ -113,6 +122,8 @@ public:
     static long long int GetDumpSurfaceId();
     static bool GetTargetDirtyRegionDfxEnabled(std::vector<std::string>& dfxTargetSurfaceNames_);
     static bool GetOpaqueRegionDfxEnabled();
+    static bool GetVisibleRegionDfxEnabled();
+    static SurfaceRegionDebugType GetSurfaceRegionDfxType();
     static bool GetDumpLayersEnabled();
     static bool GetHardwareComposerEnabled();
     static bool GetAFBCEnabled();

@@ -181,6 +181,7 @@ private:
     void DrawTargetSurfaceDirtyRegionForDFX(RSDisplayRenderNode& node);
     void DrawAllSurfaceOpaqueRegionForDFX(RSDisplayRenderNode& node);
     void DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderNode& node);
+    void DrawTargetSurfaceVisibleRegionForDFX(RSDisplayRenderNode& node);
     // check if surface name is in dfx target list
     inline bool CheckIfSurfaceTargetedForDFX(std::string nodeName)
     {
@@ -331,12 +332,17 @@ private:
     bool isDirtyRegionDfxEnabled_ = false; // dirtyRegion DFX visualization
     bool isTargetDirtyRegionDfxEnabled_ = false;
     bool isOpaqueRegionDfxEnabled_ = false;
+    bool isVisibleRegionDfxEnabled_ = false;
+    bool isDisplayDirtyDfxEnabled_ = false;
+    bool isCanvasNodeSkipDfxEnabled_ = false;
     bool isQuickSkipPreparationEnabled_ = false;
     bool isOcclusionEnabled_ = false;
     std::vector<std::string> dfxTargetSurfaceNames_;
     PartialRenderType partialRenderType_;
     QuickSkipPrepareType quickSkipPrepareType_;
     DirtyRegionDebugType dirtyRegionDebugType_;
+    SurfaceRegionDebugType surfaceRegionDebugType_;
+    bool isRegionDebugEnabled_ = false;
     bool isDirty_ = false;
     // added for judge if drawing cache changes
     bool isDrawingCacheEnabled_ = false;

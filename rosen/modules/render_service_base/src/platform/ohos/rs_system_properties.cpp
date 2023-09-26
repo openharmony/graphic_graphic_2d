@@ -182,6 +182,17 @@ bool RSSystemProperties::GetOpaqueRegionDfxEnabled()
     return std::atoi((system::GetParameter("rosen.uni.opaqueregiondebug", "0")).c_str()) != 0;
 }
 
+bool RSSystemProperties::GetVisibleRegionDfxEnabled()
+{
+    return std::atoi((system::GetParameter("rosen.uni.visibleregiondebug", "0")).c_str()) != 0;
+}
+
+SurfaceRegionDebugType RSSystemProperties::GetSurfaceRegionDfxType()
+{
+    return static_cast<SurfaceRegionDebugType>(
+        std::atoi((system::GetParameter("rosen.uni.surfaceregiondebug", "0")).c_str()));
+}
+
 uint32_t RSSystemProperties::GetCorrectionMode()
 {
     // If the value of rosen.directClientComposition.enabled is not 0 then enable the direct CLIENT composition.
