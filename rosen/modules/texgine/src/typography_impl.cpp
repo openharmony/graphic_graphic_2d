@@ -278,6 +278,17 @@ void TypographyImpl::Layout(double maxWidth)
         didExceedMaxLines_ = shaper.DidExceedMaxLines();
         maxIntrinsicWidth_ = shaper.GetMaxIntrinsicWidth();
         minIntrinsicWidth_ = shaper.GetMinIntrinsicWidth();
+        for (auto i = 0; i < static_cast<int>(lineMetrics_.size()); i++) {
+            if (i > 0 && !lineMetrics_[i -1].lineSpans.back().IsHardBreak() &&
+                    lineMetrics_[i].lineSpans.back().IsHardBreak()) {
+                lineMetrics_[i - 1].lineSpans.push_back(lineMetrics_[i].lineSpans.front());
+                lineMetrics_[i].lineSpans.erase(lineMetrics_[i].lineSpans.begin());
+                if (lineMetrics_[i].lineSpans.empty()) {
+                    lineMetrics_.erase(lineMetrics_.begin() + i);
+                    i--;
+                }
+            }
+        }
 
         auto ret = ComputeStrut();
         if (ret) {
@@ -348,23 +359,6 @@ int TypographyImpl::UpdateMetrics()
 void TypographyImpl::DoLayout()
 {
     maxLineWidth_ = 0.0;
-    bool prevOnlyHardBreak = false;
-    for (auto i = 0; i < static_cast<int>(lineMetrics_.size()); i++) {
-        if (lineMetrics_[i].lineSpans.size() == 1 && lineMetrics_[i].lineSpans.back().IsHardBreak()) {
-            prevOnlyHardBreak = true;
-        } else {
-            prevOnlyHardBreak = false;
-        }
-
-        if (lineMetrics_[i].lineSpans.begin()->IsHardBreak() && i > 0 && prevOnlyHardBreak == false) {
-            lineMetrics_[i - 1].lineSpans.push_back(lineMetrics_[i].lineSpans.front());
-            lineMetrics_[i].lineSpans.erase(lineMetrics_[i].lineSpans.begin());
-            if (lineMetrics_[i].lineSpans.empty()) {
-                lineMetrics_.erase(lineMetrics_.begin() + i);
-                i--;
-            }
-        }
-    }
     for (auto i = 0; i < static_cast<int>(lineMetrics_.size()); i++) {
         double offsetX = 0;
         for (auto &vs : lineMetrics_[i].lineSpans) {

@@ -35,7 +35,7 @@ std::vector<LineMetrics> LineBreaker::BreakLines(std::vector<VariantSpan> &spans
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "BreakLines");
     auto ss = GenerateScoreSpans(spans);
     DoBreakLines(ss, widthLimit, tstyle);
-    auto lineBreaks = GenerateBreaks(ss);
+    auto lineBreaks = GenerateBreaks(spans, ss);
     return GenerateLineMetrics(spans, lineBreaks);
 }
 
@@ -140,7 +140,8 @@ void LineBreaker::DoBreakLines(std::vector<struct ScoredSpan> &scoredSpans, cons
     scoredSpans.erase(scoredSpans.begin());
 }
 
-std::vector<int32_t> LineBreaker::GenerateBreaks(const std::vector<struct ScoredSpan> &scoredSpans)
+std::vector<int32_t> LineBreaker::GenerateBreaks(std::vector<VariantSpan> &spans,
+    const std::vector<struct ScoredSpan> &scoredSpans)
 {
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "GenerateBreaks");
 
@@ -154,6 +155,22 @@ std::vector<int32_t> LineBreaker::GenerateBreaks(const std::vector<struct Scored
         lineBreaks.push_back(i);
     }
     std::reverse(lineBreaks.begin(), lineBreaks.end());
+    for (auto i = 0; i < spans.size(); i++) {
+        if (spans[i].IsHardBreak()) {
+            auto it = find(lineBreaks.begin(), lineBreaks.end(), i);
+            if (it == lineBreaks.end()) {
+                lineBreaks.push_back(i);
+            }
+
+            auto next = find(lineBreaks.begin(), lineBreaks.end(), (i + 1));
+            if (next == lineBreaks.end()) {
+                lineBreaks.push_back(i + 1);
+            }
+        }
+    }
+    std::sort(lineBreaks.begin(), lineBreaks.end(), [](int32_t lb1, const int32_t lb2) {
+        return (lb1 < lb2);
+    });
     return lineBreaks;
 }
 
@@ -164,31 +181,27 @@ std::vector<LineMetrics> LineBreaker::GenerateLineMetrics(std::vector<VariantSpa
     LOGEX_FUNC_LINE_DEBUG() << "breaks.size(): " << breaks.size();
 
     std::vector<LineMetrics> lineMetrics;
-    auto prev = 0;
     if (!breaks.empty() && breaks.back() > static_cast<int>(spans.size())) {
         throw TEXGINE_EXCEPTION(OUT_OF_RANGE);
     }
 
-    for (const auto &lb : breaks) {
-        if (lb <= prev) {
-            throw TEXGINE_EXCEPTION(ERROR_STATUS);
-        }
+    if (breaks.front() != 0) {
+        breaks.insert(breaks.begin(), 0);
+    }
 
-        std::stringstream ss;
-        ss << "[" << prev << ", " << lb << ")";
-        LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), ss.str());
-
+    int32_t prev = breaks[0];
+    for (auto i = 1; i < breaks.size(); i++) {
         std::vector<VariantSpan> vss;
-        for (int32_t i = prev; i < lb; i++) {
-            spans[i].Dump();
-            vss.push_back(spans[i]);
+        int32_t next = breaks[i];
+        for ( ; prev < next; prev++) {
+            spans[prev].Dump();
+            vss.push_back(spans[prev]);
         }
-
         lineMetrics.push_back({
             .lineSpans = vss,
         });
-        prev = lb;
-    }
+        prev = next;
+   }
 
     return lineMetrics;
 }

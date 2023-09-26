@@ -75,11 +75,7 @@ struct CharGroup {
     {
         ULineBreak lineBreak = static_cast<ULineBreak>(
                 u_getIntPropertyValue(chars[0], UCHAR_LINE_BREAK));
-        if (lineBreak == U_LB_LINE_FEED || lineBreak == U_LB_MANDATORY_BREAK) {
-            return true;
-        }
-
-        return false;
+        return (lineBreak == U_LB_LINE_FEED || lineBreak == U_LB_MANDATORY_BREAK);
     }
 };
 

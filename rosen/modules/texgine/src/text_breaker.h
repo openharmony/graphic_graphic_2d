@@ -45,7 +45,6 @@ public:
     void GenNewBoundryByQuote(CharGroups cgs, std::vector<Boundary> &boundaries);
     void GenNewBoundryByWidth(CharGroups cgs, std::vector<Boundary> &boundaries);
     void SetWidthLimit(const double widthLimit);
-    void GenNewBoundryByHardBreak(CharGroups cgs, std::vector<Boundary> &boundaries);
 
     double preBreak_ = 0;
     double postBreak_ = 0;

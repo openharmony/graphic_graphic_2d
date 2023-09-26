@@ -39,7 +39,8 @@ public:
     static std::vector<struct ScoredSpan> GenerateScoreSpans(const std::vector<VariantSpan> &spans) noexcept(false);
     static void DoBreakLines(std::vector<struct ScoredSpan> &scoredSpans, const double widthLimit,
         const TypographyStyle &tstyle) noexcept(false);
-    static std::vector<int32_t> GenerateBreaks(const std::vector<struct ScoredSpan> &scoredSpans) noexcept(false);
+    static std::vector<int32_t> GenerateBreaks(std::vector<VariantSpan> &spans,
+        const std::vector<struct ScoredSpan> &scoredSpans) noexcept(false);
     static std::vector<LineMetrics> GenerateLineMetrics(std::vector<VariantSpan> &spans,
         std::vector<int32_t> &breaks) noexcept(false);
 };
