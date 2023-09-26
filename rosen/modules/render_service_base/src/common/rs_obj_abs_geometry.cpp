@@ -502,19 +502,21 @@ RectI RSObjAbsGeometry::MapAbsRect(const RectF& rect) const
     } else {
         // Calculate the absolute rectangle based on the matrix's translation and scaling
 #ifndef USE_ROSEN_DRAWING
-        absRect.left_ = static_cast<int>(rect.left_ + matrix.getTranslateX());
-        absRect.top_ = static_cast<int>(rect.top_ + matrix.getTranslateY());
-        float right = rect.left_ + matrix.getTranslateX() + rect.width_ * matrix.getScaleX();
-        float bottom = rect.top_ + matrix.getTranslateY() + rect.height_ * matrix.getScaleY();
+        absRect.left_ = static_cast<int>(rect.left_ * matrix.getScaleX() + matrix.getTranslateX());
+        absRect.top_ = static_cast<int>(rect.top_ * matrix.getScaleY() + matrix.getTranslateY());
+        float right = (rect.left_ + rect.width_) * matrix.getScaleX() + matrix.getTranslateX();
+        float bottom = (rect.top_ + rect.height_) * matrix.getScaleY() + matrix.getTranslateY();
         absRect.width_ = static_cast<int>(std::ceil(right - absRect.left_));
         absRect.height_ = static_cast<int>(std::ceil(bottom - absRect.top_));
 #else
-        absRect.left_ = static_cast<int>(rect.left_ + matrix.Get(Drawing::Matrix::TRANS_X));
-        absRect.top_ = static_cast<int>(rect.top_ + matrix.Get(Drawing::Matrix::TRANS_Y));
-        float right = rect.left_ + matrix.Get(Drawing::Matrix::TRANS_X) +
-            rect.width_ * matrix.Get(Drawing::Matrix::SCALE_X);
-        float bottom = rect.top_ + matrix.Get(Drawing::Matrix::TRANS_Y) +
-            rect.height_ * matrix.Get(Drawing::Matrix::SCALE_Y);
+        absRect.left_ = static_cast<int>(rect.left_ * matrix.Get(Drawing::Matrix::SCALE_X) +
+            matrix.Get(Drawing::Matrix::TRANS_X));
+        absRect.top_ = static_cast<int>(rect.top_ * matrix.Get(Drawing::Matrix::SCALE_Y) +
+            matrix.Get(Drawing::Matrix::TRANS_Y));
+        float right = (rect.left_ + rect.width_) * matrix.Get(Drawing::Matrix::SCALE_X) +
+            matrix.Get(Drawing::Matrix::TRANS_X);
+        float bottom = (rect.top_ + rect.height_) * matrix.Get(Drawing::Matrix::SCALE_Y) +
+            matrix.Get(Drawing::Matrix::TRANS_Y);
         absRect.width_ = static_cast<int>(std::ceil(right - absRect.left_));
         absRect.height_ = static_cast<int>(std::ceil(bottom - absRect.top_));
 #endif
