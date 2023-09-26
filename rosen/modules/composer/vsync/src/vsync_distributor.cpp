@@ -121,9 +121,16 @@ VsyncError VSyncConnection::GetReceiveFd(int32_t &fd)
 
 int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCount)
 {
-    std::unique_lock<std::mutex> locker(mutex_);
-    if (isDead_) {
-        VLOGE("%{public}s VSync Client Connection is dead, name:%{public}s.", __func__, info_.name_.c_str());
+    sptr<LocalSocketPair> socketPair;
+    {
+        std::unique_lock<std::mutex> locker(mutex_);
+        if (isDead_) {
+            VLOGE("%{public}s VSync Client Connection is dead, name:%{public}s.", __func__, info_.name_.c_str());
+            return ERRNO_OTHER;
+        }
+        socketPair = socketPair_;
+    }
+    if (socketPair == nullptr) {
         return ERRNO_OTHER;
     }
     ScopedBytrace func("SendVsyncTo conn: " + info_.name_ + ", now:" + std::to_string(now));
@@ -137,7 +144,7 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
         // 5000000 is the vsync offset.
         data[1] += period - 5000000;
     }
-    int32_t ret = socketPair_->SendData(data, sizeof(data));
+    int32_t ret = socketPair->SendData(data, sizeof(data));
     if (ret > -1) {
         ScopedDebugTrace successful("successful");
         info_.postVSyncCount_++;
@@ -306,7 +313,10 @@ void VSyncDistributor::ThreadMain()
                 continue;
             }
         }
-        ScopedDebugTrace func(name_ + "_SendVsync");
+        {
+            // IMPORTANT: ScopedDebugTrace here will cause frame loss.
+            ScopedBytrace func(name_ + "_SendVsync");
+        }
         for (uint32_t i = 0; i < conns.size(); i++) {
             int32_t ret = conns[i]->PostEvent(timestamp, event_.period, event_.vsyncCount);
             VLOGD("Distributor name:%{public}s, connection name:%{public}s, ret:%{public}d",
