@@ -28,6 +28,8 @@ RSFilter::RSFilter()
 
 RSFilter::~RSFilter() {}
 
+std::function<void(std::weak_ptr<RSFilter::RSFilterTask>)> RSFilter::postTask = nullptr;
+
 std::string RSFilter::GetDescription()
 {
     return "RSFilter " + std::to_string(type_);

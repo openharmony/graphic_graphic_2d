@@ -26,12 +26,14 @@
 #include "pipeline/parallel_render/rs_render_task.h"
 #include "pipeline/rs_base_render_node.h"
 #include "render_context/render_context.h"
+#include "rs_filter_sub_thread.h"
 
 namespace OHOS::Rosen {
 class RSSubThreadManager {
 public:
     static RSSubThreadManager *Instance();
     void Start(RenderContext *context);
+    void StartFilterThread(RenderContext* context);
     void PostTask(const std::function<void()>& task, uint32_t threadIndex);
     void WaitNodeTask(uint64_t nodeId);
     void NodeTaskNotify(uint64_t nodeId);
@@ -62,6 +64,7 @@ private:
     std::map<uint64_t, uint8_t> nodeTaskState_;
     std::vector<std::shared_ptr<RSSubThread>> threadList_;
     std::unordered_map<pid_t, uint32_t> threadIndexMap_;
+    std::shared_ptr<RSFilterSubThread> filterThread = nullptr;
     bool needResetContext_ = false;
     bool needCancelTask_ = false;
 };
