@@ -422,7 +422,7 @@ private:
     std::stack<std::unordered_set<NodeId>> curCacheFilterRects_ = {};
     bool forceUpdateFlag_ = false;
     void tryCapture(float width, float height);
-    void endCapture();
+    void endCapture() const;
     std::shared_ptr<RSRecordingCanvas> recordingCanvas_;
 };
 } // namespace Rosen
