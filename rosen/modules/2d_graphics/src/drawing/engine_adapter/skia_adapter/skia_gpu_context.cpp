@@ -17,6 +17,7 @@
 
 #include "include/gpu/gl/GrGLInterface.h"
 #include "src/gpu/GrDirectContextPriv.h"
+#include "include/core/SkTypes.h"
 
 #include "skia_data.h"
 #include "utils/data.h"
