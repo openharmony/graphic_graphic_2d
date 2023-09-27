@@ -3971,7 +3971,7 @@ void RSUniRenderVisitor::tryCapture(float width, float height)
     RSRecordingThread::Instance().CheckAndRecording();
 }
  
-void RSUniRenderVisitor::endCapture()
+void RSUniRenderVisitor::endCapture() const
 {
     if (!RSRecordingThread::Instance().GetRecordingEnabled()) {
         return;
