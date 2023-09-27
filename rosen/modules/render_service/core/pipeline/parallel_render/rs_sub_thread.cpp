@@ -213,7 +213,7 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
             RS_LOGE("skCanvas is nullptr, flush failed");
         }
 #else
-        auto cacheSurface = surfaceNodePtr->GetCacheSurface(threadIndex_,true);
+        auto cacheSurface = surfaceNodePtr->GetCacheSurface(threadIndex_, true);
         if (cacheSurface) {
             RS_TRACE_NAME_FMT("Render cache skSurface flush and submit");
             RSTagTracker nodeFlushTracker(grContext_.get(), surfaceNodePtr->GetId(),
