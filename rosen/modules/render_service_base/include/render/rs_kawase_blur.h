@@ -81,6 +81,10 @@ private:
 #endif
     float blurRadius_ = 0.f;
     float blurScale_ = 0.25f;
+
+    // Advanced Filter
+    void setupBlurEffectAdvancedFilter();
+    sk_sp<SkRuntimeEffect> blurEffectAF_;
 };
 #endif
 } // namespace Rosen
