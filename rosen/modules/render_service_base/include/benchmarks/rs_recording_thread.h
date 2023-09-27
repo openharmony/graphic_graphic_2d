@@ -25,6 +25,7 @@
 #include "recording/draw_cmd_list.h"
 #endif
 
+#include "message_parcel.h"
 #include <sys/stat.h>
 
 #include "event_handler.h"
@@ -36,6 +37,7 @@ public:
 
     static RSRecordingThread& Instance();
     void Start();
+    bool IsIdle();
     void PostTask(const std::function<void()> & task);
     bool CheckAndRecording();
     void FinishRecordingOneFrame();
@@ -48,11 +50,17 @@ public:
     {
         return curDumpFrame_;
     }
-
+    bool GetRecordingEnabled() const
+    {
+        return isRecordingEnabled_;
+    }
+ 
 private:
     RSRecordingThread() = default;
     ~RSRecordingThread() = default;
 
+    std::vector<std::shared_ptr<MessageParcel>> messageParcelVec;
+    std::vector<std::string> opsDescriptionVec;
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     std::string fileDir_ = "/data/";

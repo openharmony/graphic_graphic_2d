@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <optional>
+#include <thread>
 #include "common/rs_macros.h"
 #ifdef USE_ROSEN_DRAWING
 #include "image/image.h"
@@ -346,7 +347,9 @@ public:
     static bool DserializeInternal(Parcel& parcel, sk_sp<SkTextBlob>& val,
         const SkDeserialProcs& procs, sk_sp<SkData>& data);
 #endif
-
+    static void BeginNoSharedMem(std::thread::id tid);
+    static void EndNoSharedMem();
+    static bool GetUseSharedMem();
 private:
     static bool WriteToParcel(Parcel& parcel, const void* data, size_t size);
     static const void* ReadFromParcel(Parcel& parcel, size_t size);

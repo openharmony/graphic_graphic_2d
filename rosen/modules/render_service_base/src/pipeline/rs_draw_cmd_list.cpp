@@ -265,7 +265,7 @@ bool DrawCmdList::Marshalling(Parcel& parcel) const
         return false;
     }
 
-    if (ops_.size() > 1000) {  // OPsize > 1000
+    if (ops_.size() > 1000 && RSMarshallingHelper::GetUseSharedMem()) {  // OPsize > 1000
         parcel.WriteUint32(1); // 1: use shared mem
         auto position = parcel.GetWritePosition();
         parcel.WriteUint32(0); // shmem count

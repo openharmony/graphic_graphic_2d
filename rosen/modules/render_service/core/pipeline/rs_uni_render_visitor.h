@@ -34,6 +34,7 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "system/rs_system_parameters.h"
 #include "visitor/rs_node_visitor.h"
+#include "pipeline/rs_recording_canvas.h"
 
 class SkPicture;
 namespace OHOS {
@@ -432,6 +433,9 @@ private:
     std::unordered_map<NodeId, std::unordered_set<NodeId>> allCacheFilterRects_ = {};
     std::stack<std::unordered_set<NodeId>> curCacheFilterRects_ = {};
     bool forceUpdateFlag_ = false;
+    void tryCapture(float width, float height);
+    void endCapture() const;
+    std::shared_ptr<RSRecordingCanvas> recordingCanvas_;
 };
 } // namespace Rosen
 } // namespace OHOS

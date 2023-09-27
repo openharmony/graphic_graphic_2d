@@ -90,10 +90,6 @@
 #include "pipeline/driven_render/rs_driven_render_manager.h"
 #endif
 
-#if defined(RS_ENABLE_RECORDING)
-#include "benchmarks/rs_recording_thread.h"
-#endif
-
 #include "scene_board_judgement.h"
 #include "vsync_iconnection_token.h"
 
@@ -242,9 +238,6 @@ void RSMainThread::Init()
         rsEventManager_.UpdateParam();
         SKResourceManager::Instance().ReleaseResource();
     };
-#ifdef RS_ENABLE_RECORDING
-    RSRecordingThread::Instance().Start();
-#endif
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
     auto taskDispatchFunc = [](const RSTaskDispatcher::RSTask& task) {
