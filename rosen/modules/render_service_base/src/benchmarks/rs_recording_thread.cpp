@@ -97,7 +97,7 @@ void RSRecordingThread::FinishRecordingOneFrame()
                 auto buf = reinterpret_cast<uintptr_t>(messageParcelVec[tmpCurDumpFrame]->GetData());
                 std::string opsDescription = "drawing ops no description";
 #endif
-                std::string line = "RSRecordingThread::FinishRecordingOneFrame curDumpFrame = " + 
+                std::string line = "RSRecordingThread::FinishRecordingOneFrame curDumpFrame = " +
                     std::to_string(tmpCurDumpFrame) + ", dumpFrameNum = " + std::to_string(dumpFrameNum_) +
                     ", size = " + std::to_string(sz);
                 RS_LOGD("%{public}s", line.c_str());
