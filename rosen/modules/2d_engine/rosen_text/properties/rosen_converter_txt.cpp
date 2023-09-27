@@ -207,7 +207,7 @@ txt::EllipsisModal RosenConvertTxtTextEllipsisModal(EllipsisModal ellipsisModal)
         case EllipsisModal::MIDDLE:
             txtEllipsisModal = txt::EllipsisModal::MIDDLE;
             break;
-            case EllipsisModal::TAIL:
+        case EllipsisModal::TAIL:
         default:
             txtEllipsisModal = txt::EllipsisModal::TAIL;
             break;
