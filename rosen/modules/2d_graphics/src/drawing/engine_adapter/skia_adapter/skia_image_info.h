@@ -32,6 +32,7 @@
 #define SKIA_IMAGE_INFO_H
 
 #include "include/core/SkImageInfo.h"
+#include "include/core/SkEncodedImageFormat.h"
 
 #include "skia_color_space.h"
 
@@ -131,6 +132,20 @@ static inline ImageInfo ConvertToRSImageInfo(const SkImageInfo& skImageInfo)
             ConvertToColorType(skImageInfo.colorType()),
             ConvertToAlphaType(skImageInfo.alphaType()),
             ColorSpace::CreateFromImpl(skiaColorSpace)};
+}
+
+static inline SkEncodedImageFormat ConvertToSkEncodedImageFormat(const EncodedImageFormat& encodedImageFormat)
+{
+    switch (encodedImageFormat) {
+        case EncodedImageFormat::JPEG:
+            return SkEncodedImageFormat::kJPEG;
+        case EncodedImageFormat::PNG:
+            return SkEncodedImageFormat::kPNG;
+        case EncodedImageFormat::WEBP:
+            return SkEncodedImageFormat::kWEBP;
+        default:
+            return SkEncodedImageFormat::kJPEG;
+    }
 }
 } // namespace Drawing
 } // namespace Rosen

@@ -57,6 +57,7 @@ public:
     virtual bool BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace) = 0;
     virtual BackendTexture GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin* origin) = 0;
+    virtual bool IsValid(GPUContext* context) const = 0;
 #endif
     virtual int GetWidth() const = 0;
     virtual int GetHeight() const = 0;
@@ -66,6 +67,11 @@ public:
     virtual ImageInfo GetImageInfo() = 0;
     virtual bool ReadPixels(Bitmap& bitmap, int x, int y) = 0;
     virtual bool IsTextureBacked() const = 0;
+    virtual bool ScalePixels(const Bitmap& bitmap, const SamplingOptions& sampling,
+        bool allowCachingHint = true) const = 0;
+    virtual std::shared_ptr<Data> EncodeToData(EncodedImageFormat& encodedImageFormat, int quality) const = 0;
+    virtual bool IsLazyGenerated() const = 0;
+
 
     // using for recording, should to remove after using shared memory
     virtual std::shared_ptr<Data> Serialize() const = 0;

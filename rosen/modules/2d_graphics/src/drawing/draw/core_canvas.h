@@ -221,7 +221,7 @@ public:
 
     virtual void DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
         FilterMode filter, const Brush* brush = nullptr);
-    virtual void DrawAnnotation(const Rect& rect, const char* key, const Data& data);
+    virtual void DrawAnnotation(const Rect& rect, const char* key, const Data* data);
     virtual void DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
         FilterMode filter, const Brush* brush = nullptr);
 

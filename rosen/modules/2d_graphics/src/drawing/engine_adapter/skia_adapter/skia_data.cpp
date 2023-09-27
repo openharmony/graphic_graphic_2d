@@ -16,6 +16,13 @@
 #include "skia_data.h"
 
 #include "include/core/SkImageInfo.h"
+#include "utils/data.h"
+#include "utils/log.h"
+
+#ifdef ROSEN_OHOS
+#include "src/core/SkReadBuffer.h"
+#include "src/core/SkWriteBuffer.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -69,6 +76,27 @@ sk_sp<SkData> SkiaData::GetSkData() const
 void SkiaData::SetSkData(const sk_sp<SkData>& data)
 {
     skData_ = data;
+}
+
+std::shared_ptr<Data> SkiaData::Serialize() const
+{
+#ifdef ROSEN_OHOS
+    if (skData_ == nullptr) {
+        LOGE("SkiaData::Serialize, skData_ is nullptr!");
+        return nullptr;
+    }
+
+    SkBinaryWriteBuffer writer;
+    writer.writeDataAsByteArray(skData_.get());
+
+    size_t length = writer.bytesWritten();
+    std::shared_ptr<Data> data = std::make_shared<Data>();
+    data->BuildUninitialized(length);
+    writer.writeToMemory(data->WritableData());
+    return data;
+#else
+    return nullptr;
+#endif
 }
 } // Drawing
 } // Rosen

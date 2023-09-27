@@ -21,6 +21,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+class Data;
 class DataImpl : public BaseImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
@@ -39,6 +40,8 @@ public:
     virtual void* WritableData() = 0;
     virtual size_t GetSize() const = 0;
     virtual const void* GetData() const = 0;
+
+    virtual std::shared_ptr<Data> Serialize() const = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

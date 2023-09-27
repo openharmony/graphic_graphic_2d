@@ -314,6 +314,36 @@ std::shared_ptr<TextBlob> CmdListHelper::GetTextBlobFromCmdList(const CmdList& c
     deserialProcs.fTypefaceProc = &SkiaTypeface::DeserializeTypeface;
     return SkiaTextBlob::Deserialize(textBlobData->GetData(), textBlobData->GetSize(), deserialProcs);
 }
+
+ImageHandle CmdListHelper::AddDataToCmdList(CmdList& cmdList, const Data* srcData)
+{
+    if (!srcData) {
+        LOGE("data nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return { 0 };
+    }
+
+    auto data = srcData->Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGE("srcData is invalid!");
+        return { 0 };
+    }
+
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize() };
+}
+
+std::shared_ptr<Data> CmdListHelper::GetDataFromCmdList(const CmdList& cmdList, const ImageHandle& imageHandle)
+{
+    const void* ptr = cmdList.GetImageData(imageHandle.offset);
+    if (imageHandle.size == 0 || ptr == nullptr) {
+        LOGE("get data failed!");
+        return nullptr;
+    }
+
+    auto imageData = std::make_shared<Data>();
+    imageData->BuildWithoutCopy(ptr, imageHandle.size);
+    return imageData;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

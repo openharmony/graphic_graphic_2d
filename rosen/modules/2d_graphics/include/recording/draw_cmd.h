@@ -372,16 +372,16 @@ private:
 
 class DrawAnnotationOpItem : public DrawOpItem {
 public:
-    explicit DrawAnnotationOpItem(const Rect& rect, const char* key, const Data& data);
+    explicit DrawAnnotationOpItem(const Rect& rect, const char* key, const ImageHandle& data);
     ~DrawAnnotationOpItem() = default;
 
     static void Playback(CanvasPlayer& player, const void* opItem);
-    void Playback(Canvas& canvas) const;
+    void Playback(Canvas& canvas, const CmdList& cmdList) const;
 
 private:
     Rect rect_;
     const char* key_;
-    const Data data_;
+    const ImageHandle data_;
 };
 
 class DrawImageLatticeOpItem : public DrawOpItem {

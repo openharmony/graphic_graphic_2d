@@ -50,6 +50,8 @@ public:
      * @brief  Update the member variable to filter, adaptation layer calls.
      */
     void SetSkData(const sk_sp<SkData>& data);
+
+    std::shared_ptr<Data> Serialize() const override;
 private:
     sk_sp<SkData> skData_;
 };

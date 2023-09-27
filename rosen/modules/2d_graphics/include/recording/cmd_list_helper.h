@@ -182,6 +182,9 @@ public:
 
     static ImageHandle AddTextBlobToCmdList(CmdList& cmdList, const TextBlob* textBlob);
     static std::shared_ptr<TextBlob> GetTextBlobFromCmdList(const CmdList& cmdList, const ImageHandle& textBlobHandle);
+
+    static ImageHandle AddDataToCmdList(CmdList& cmdList, const Data* data);
+    static std::shared_ptr<Data> GetDataFromCmdList(const CmdList& cmdList, const ImageHandle& imageHandle);
 };
 } // namespace Drawing
 } // namespace Rosen

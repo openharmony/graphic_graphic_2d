@@ -86,6 +86,8 @@ public:
         return impl_->DowncastingTo<T>();
     }
 
+    std::shared_ptr<Data> Serialize() const;
+
 private:
     std::shared_ptr<DataImpl> impl_;
 };

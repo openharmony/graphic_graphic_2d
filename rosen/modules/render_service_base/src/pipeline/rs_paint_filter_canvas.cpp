@@ -189,7 +189,7 @@ void RSPaintFilterCanvasBase::DrawImageNine(const Drawing::Image* image, const D
     }
 }
 
-void RSPaintFilterCanvasBase::DrawAnnotation(const Drawing::Rect& rect, const char* key, const Drawing::Data& data)
+void RSPaintFilterCanvasBase::DrawAnnotation(const Drawing::Rect& rect, const char* key, const Drawing::Data* data)
 {
     if (canvas_ != nullptr && OnFilter()) {
         canvas_->DrawAnnotation(rect, key, data);

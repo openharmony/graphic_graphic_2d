@@ -22,6 +22,13 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
+enum class EncodedImageFormat {
+    JPEG,
+    PNG,
+    WEBP,
+    UNKNOWN,
+};
+
 class ImageInfo {
 public:
     ImageInfo() = default;

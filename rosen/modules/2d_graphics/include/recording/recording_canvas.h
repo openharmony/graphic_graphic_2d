@@ -63,7 +63,7 @@ public:
 
     void DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
         FilterMode filterMode, const Brush* brush = nullptr) override;
-    void DrawAnnotation(const Rect& rect, const char* key, const Data& data) override;
+    void DrawAnnotation(const Rect& rect, const char* key, const Data* data) override;
     void DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
         FilterMode filterMode, const Brush* brush = nullptr) override;
 

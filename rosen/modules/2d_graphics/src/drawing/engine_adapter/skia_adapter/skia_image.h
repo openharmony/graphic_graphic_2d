@@ -60,6 +60,7 @@ public:
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace) override;
     BackendTexture GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin* origin) override;
     void SetGrBackendTexture(const GrBackendTexture& grBackendTexture);
+    bool IsValid(GPUContext* context) const override;
 #endif
     int GetWidth() const override;
     int GetHeight() const override;
@@ -69,6 +70,11 @@ public:
     ImageInfo GetImageInfo() override;
     bool ReadPixels(Bitmap& bitmap, int x, int y) override;
     bool IsTextureBacked() const override;
+
+    bool ScalePixels(const Bitmap& bitmap, const SamplingOptions& sampling,
+        bool allowCachingHint = true) const override;
+    std::shared_ptr<Data> EncodeToData(EncodedImageFormat& encodedImageFormat, int quality) const override;
+    bool IsLazyGenerated() const override;
 
     const sk_sp<SkImage> GetImage() const;
 
