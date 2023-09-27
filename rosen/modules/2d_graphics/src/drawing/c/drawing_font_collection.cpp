@@ -22,7 +22,7 @@
 
 #include "rosen_text/font_collection.h"
 #ifndef USE_TEXGINE
-#include "txt/font_collection.h"
+#include "adapter/txt/font_collection.h"
 #else
 #include "texgine/font_collection.h"
 #endif
