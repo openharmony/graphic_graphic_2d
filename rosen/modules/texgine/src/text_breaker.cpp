@@ -77,6 +77,7 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyl
         }
 
         GenNewBoundryByWidth(cgs, boundaries);
+        GenNewBoundryByHardBreak(cgs, boundaries);
         GenNewBoundryByTypeface(cgs, boundaries);
         GenNewBoundryByQuote(cgs, boundaries);
 
@@ -232,6 +233,33 @@ void TextBreaker::GenNewBoundryByWidth(CharGroups cgs, std::vector<Boundary> &bo
         }
 
         if (newEnd != end) {
+            newBoundary.push_back({newStart, end});
+        }
+    }
+
+    boundaries = newBoundary;
+}
+
+void TextBreaker::GenNewBoundryByHardBreak(CharGroups cgs, std::vector<Boundary> &boundaries)
+{
+    std::vector<Boundary> newBoundary;
+    for (auto &[start, end] : boundaries) {
+        size_t newStart = start;
+        size_t newEnd = start;
+        const auto &wordCgs = cgs.GetSubFromU16RangeAll(start, end);
+        for (auto cg = wordCgs.begin(); cg != wordCgs.end(); cg++) {
+            if (cg->IsHardBreak()) {
+                if (newStart != newEnd) {
+                    newBoundary.push_back({newStart, newEnd});
+                }
+                newBoundary.push_back({newEnd, newEnd + 1});
+                newStart = newEnd + 1;
+            }
+
+            newEnd++;
+        }
+
+        if (newStart == start) {
             newBoundary.push_back({newStart, end});
         }
     }
