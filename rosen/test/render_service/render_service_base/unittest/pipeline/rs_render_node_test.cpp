@@ -188,5 +188,119 @@ HWTEST_F(RSRenderNodeTest, MarkNodeGroupTest, TestSize.Level1)
         ASSERT_EQ(node.GetNodeGroupType(), type);
     }
 }
+
+/**
+ * @tc.name: SetDrawingCacheTypeTest
+ * @tc.desc: test SetDrawingCacheType for all drawing cache types
+ * @tc.type: FUNC
+ * @tc.require: issueI84LBZ
+ */
+HWTEST_F(RSRenderNodeTest, SetDrawingCacheTypeTest, TestSize.Level2)
+{
+    RSRenderNode node(id, context);
+    node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+    ASSERT_EQ(node.GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+    node.SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
+    ASSERT_EQ(node.GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
+    node.SetDrawingCacheType(RSDrawingCacheType::TARGETED_CACHE);
+    ASSERT_EQ(node.GetDrawingCacheType(), RSDrawingCacheType::TARGETED_CACHE);
+}
+
+/**
+ * @tc.name: ResetFilterRectsInCacheTest
+ * @tc.desc: test ResetFilterRectsInCache api
+ * @tc.type: FUNC
+ * @tc.require: issueI84LBZ
+ */
+HWTEST_F(RSRenderNodeTest, ResetFilterRectsInCacheTest, TestSize.Level2)
+{
+    RSRenderNode node(id, context);
+    RSRenderNode cacheNode(id + 1, context);
+    std::unordered_set<NodeId> setRects = {};
+    std::unordered_map<NodeId, std::unordered_set<NodeId>> getRects = {};
+    setRects.insert(cacheNode.GetId());
+
+    node.ResetFilterRectsInCache(setRects);
+    node.GetFilterRectsInCache(getRects);
+    ASSERT_NE(getRects[node.GetId()].size(), 0);
+}
+
+/**
+ * @tc.name: SetDrawingCacheChangedTest
+ * @tc.desc: test SetDrawingCacheChanged while drawing cache changed
+ * @tc.type: FUNC
+ * @tc.require: issueI84LBZ
+ */
+HWTEST_F(RSRenderNodeTest, SetDrawingCacheChangedTest, TestSize.Level2)
+{
+    RSRenderNode node(id, context);
+    bool isDrawingCacheChanged = true;
+
+    node.SetDrawingCacheChanged(isDrawingCacheChanged);
+    ASSERT_EQ(node.GetDrawingCacheChanged(), isDrawingCacheChanged);
+}
+
+/**
+ * @tc.name: ResetDrawingCacheNeedUpdateTest001
+ * @tc.desc: test ResetDrawingCacheNeedUpdateTest api
+ * @tc.type: FUNC
+ * @tc.require: issueI84LBZ
+ */
+HWTEST_F(RSRenderNodeTest, ResetDrawingCacheNeedUpdateTest001, TestSize.Level2)
+{
+    RSRenderNode node(id, context);
+    bool isDrawingCacheChanged = true;
+
+    node.SetDrawingCacheChanged(isDrawingCacheChanged);
+    node.ResetDrawingCacheNeedUpdate();
+    ASSERT_EQ(node.drawingCacheNeedUpdate_, false);
+}
+
+/**
+ * @tc.name: ResetDrawingCacheNeedUpdateTest002
+ * @tc.desc: don't reset DrawingCacheNeedUpdate after set DrawingCacheChanged
+ * @tc.type: FUNC
+ * @tc.require: issueI84LBZ
+ */
+HWTEST_F(RSRenderNodeTest, ResetDrawingCacheNeedUpdateTest002, TestSize.Level2)
+{
+    RSRenderNode node(id, context);
+
+    node.SetDrawingCacheChanged(true);
+    node.SetDrawingCacheChanged(false);
+    ASSERT_EQ(node.GetDrawingCacheChanged(), true);
+}
+
+/**
+ * @tc.name: SetVisitedCacheRootIdsTest
+ * @tc.desc: test SetVisitedCacheRootIds api
+ * @tc.type: FUNC
+ * @tc.require: issueI84LBZ
+ */
+HWTEST_F(RSRenderNodeTest, SetVisitedCacheRootIdsTest, TestSize.Level2)
+{
+    RSRenderNode node(id, context);
+    RSRenderNode cacheNode(id + 1, context);
+    std::unordered_set<NodeId> VisitedIds = {};
+    VisitedIds.insert(cacheNode.GetId());
+
+    node.SetVisitedCacheRootIds(VisitedIds);
+    ASSERT_NE(node.GetVisitedCacheRootIds().size(), 0);
+}
+
+/**
+ * @tc.name: SetDrawingCacheRootIdTest
+ * @tc.desc: test SetDrawingCacheRootId api
+ * @tc.type: FUNC
+ * @tc.require: issueI84LBZ
+ */
+HWTEST_F(RSRenderNodeTest,  SetDrawingCacheRootIdTest, TestSize.Level2)
+{
+    RSRenderNode node(id, context);
+    RSRenderNode drawingCacheRootNode(id + 1, context);
+
+    node.SetDrawingCacheRootId(drawingCacheRootNode.GetId());
+    ASSERT_EQ(node.GetDrawingCacheRootId(), drawingCacheRootNode.GetId());
+}
 } // namespace Rosen
 } // namespace OHOS
