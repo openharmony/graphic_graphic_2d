@@ -842,9 +842,6 @@ std::unique_ptr<RSPropertyDrawable> RSBackgroundDrawable::Generate(const RSPrope
 
 void RSEffectDataGenerateDrawable::Draw(RSModifierContext& context)
 {
-    if (filter_ == nullptr) {
-        return;
-    }
     RS_TRACE_NAME("DrawBackgroundEffect " + filter_->GetDescription());
     auto& canvas = context.canvas_;
     auto& properties = context.property_;
