@@ -141,6 +141,11 @@ public:
         return animationFraction_.GetFrameRateRange();
     }
 
+    bool IsCalculateAniamtionValue() const
+    {
+        return calculateAnimationValue_;
+    }
+
     void Attach(RSRenderNode* renderNode);
     void Detach(bool forceDetach = false);
     RSRenderNode* GetTarget() const;
@@ -177,6 +182,9 @@ protected:
     void FinishOnCurrentPosition();
 
     RSAnimationFraction animationFraction_;
+
+    // calculateAnimationValue_ is embedded modify for stat animate frame drop
+    bool calculateAnimationValue_ { true };
 
 private:
     void ProcessFillModeOnStart(float startFraction);

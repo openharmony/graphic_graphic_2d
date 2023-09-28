@@ -16,7 +16,6 @@
 #include "animation/rs_render_interpolating_spring_animation.h"
 
 #include "animation/rs_value_estimator.h"
-#include "common/rs_optional_trace.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 
@@ -116,9 +115,8 @@ void RSRenderInterpolatingSpringAnimation::OnAnimate(float fraction)
         return;
     }
     if (GetPropertyId() == 0) {
-        RS_OPTIONAL_TRACE_BEGIN("Animation running on propertyId is 0, animationId : " +
-            std::to_string(GetAnimationId()) + " nodeId : " + std::to_string(GetTargetId()));
-        RS_OPTIONAL_TRACE_END();
+        // calculateAnimationValue_ is embedded modify for stat animate frame drop
+        calculateAnimationValue_ = false;
         return;
     } else if (ROSEN_EQ(fraction, 1.0f)) {
         valueEstimator_->UpdateAnimationValue(1.0f, GetAdditive());

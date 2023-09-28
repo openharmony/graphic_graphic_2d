@@ -257,6 +257,9 @@ void RSRenderAnimation::ProcessOnRepeatFinish()
 
 bool RSRenderAnimation::Animate(int64_t time)
 {
+    // calculateAnimationValue_ is embedded modify for stat animate frame drop
+    calculateAnimationValue_ = true;
+
     if (!IsRunning()) {
         return state_ == AnimationState::FINISHED;
     }
@@ -280,6 +283,7 @@ bool RSRenderAnimation::Animate(int64_t time)
     // convert time to fraction
     auto [fraction, isInStartDelay, isFinished, isRepeatFinished] = animationFraction_.GetAnimationFraction(time);
     if (isInStartDelay) {
+        calculateAnimationValue_ = false;
         ProcessFillModeOnStart(fraction);
         ROSEN_LOGD("RSRenderAnimation::Animate, isInStartDelay is true");
         return false;

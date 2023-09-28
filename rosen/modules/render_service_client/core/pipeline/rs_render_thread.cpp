@@ -401,21 +401,27 @@ void RSRenderThread::Animate(uint64_t timestamp)
     }
 
     bool needRequestNextVsync = false;
+    // isCalculateAnimationValue is embedded modify for stat animate frame drop
+    bool isCalculateAnimationValue = false;
     // iterate and animate all animating nodes, remove if animation finished
     EraseIf(context_->animatingNodeList_,
-        [timestamp, &needRequestNextVsync](const auto& iter) -> bool {
+        [timestamp, &needRequestNextVsync, &isCalculateAnimationValue](const auto& iter) -> bool {
         auto node = iter.second.lock();
         if (node == nullptr) {
             ROSEN_LOGD("RSRenderThread::Animate removing expired animating node");
             return true;
         }
-        auto result = node->Animate(timestamp);
-        if (!result.first) {
+        auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] = node->Animate(timestamp);
+        if (!hasRunningAnimation) {
             ROSEN_LOGD("RSRenderThread::Animate removing finished animating node %{public}" PRIu64, node->GetId());
         }
-        needRequestNextVsync = needRequestNextVsync || result.second;
-        return !result.first;
+        needRequestNextVsync = needRequestNextVsync || nodeNeedRequestNextVsync;
+        isCalculateAnimationValue = isCalculateAnimationValue || nodeCalculateAnimationValue;
+        return !hasRunningAnimation;
     });
+    if (!isCalculateAnimationValue && needRequestNextVsync) {
+        RS_TRACE_NAME("Animation running empty");
+    }
 
     if (needRequestNextVsync) {
         RSRenderThread::Instance().RequestNextVSync();

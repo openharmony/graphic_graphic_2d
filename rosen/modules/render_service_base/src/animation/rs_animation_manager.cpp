@@ -78,16 +78,17 @@ void RSAnimationManager::FilterAnimationByPid(pid_t pid)
     });
 }
 
-std::pair<bool, bool> RSAnimationManager::Animate(int64_t time, bool nodeIsOnTheTree)
+std::tuple<bool, bool, bool> RSAnimationManager::Animate(int64_t time, bool nodeIsOnTheTree)
 {
     // process animation
     bool hasRunningAnimation = false;
     bool needRequestNextVsync = false;
-
+    // isCalculateAnimationValue is embedded modify for stat animate frame drop
+    bool isCalculateAnimationValue = false;
     rsRange_.Reset();
     // iterate and execute all animations, remove finished animations
     EraseIf(animations_, [this, &hasRunningAnimation, time,
-        &needRequestNextVsync, nodeIsOnTheTree](auto& iter) -> bool {
+        &needRequestNextVsync, nodeIsOnTheTree, &isCalculateAnimationValue](auto& iter) -> bool {
         auto& animation = iter.second;
         if (!nodeIsOnTheTree && animation->GetRepeatCount() == -1) {
             hasRunningAnimation = animation->IsRunning() || hasRunningAnimation;
@@ -95,10 +96,12 @@ std::pair<bool, bool> RSAnimationManager::Animate(int64_t time, bool nodeIsOnThe
         }
         bool isFinished = animation->Animate(time);
         if (isFinished) {
+            isCalculateAnimationValue = true;
             OnAnimationFinished(animation);
         } else {
             hasRunningAnimation = animation->IsRunning() || hasRunningAnimation;
             needRequestNextVsync = animation->IsRunning() || needRequestNextVsync;
+            isCalculateAnimationValue = animation->IsCalculateAniamtionValue() || isCalculateAnimationValue;
 
             auto range = animation->GetFrameRateRange();
             if (range.IsValid()) {
@@ -107,8 +110,9 @@ std::pair<bool, bool> RSAnimationManager::Animate(int64_t time, bool nodeIsOnThe
         }
         return isFinished;
     });
+    isCalculateAnimationValue = isCalculateAnimationValue && nodeIsOnTheTree;
 
-    return { hasRunningAnimation, needRequestNextVsync };
+    return { hasRunningAnimation, needRequestNextVsync, isCalculateAnimationValue };
 }
 
 const FrameRateRange& RSAnimationManager::GetFrameRateRangeFromRSAnimations() const

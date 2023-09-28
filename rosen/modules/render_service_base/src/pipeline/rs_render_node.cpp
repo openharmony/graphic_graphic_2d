@@ -501,7 +501,7 @@ void RSRenderNode::FallbackAnimationsToRoot()
     animationManager_.animations_.clear();
 }
 
-std::pair<bool, bool> RSRenderNode::Animate(int64_t timestamp)
+std::tuple<bool, bool, bool> RSRenderNode::Animate(int64_t timestamp)
 {
     if (lastTimestamp_ < 0) {
         lastTimestamp_ = timestamp;

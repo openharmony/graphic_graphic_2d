@@ -15,7 +15,6 @@
 
 #include "animation/rs_render_spring_animation.h"
 
-#include "common/rs_optional_trace.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 
@@ -114,9 +113,8 @@ void RSRenderSpringAnimation::OnSetFraction(float fraction)
 void RSRenderSpringAnimation::OnAnimate(float fraction)
 {
     if (GetPropertyId() == 0) {
-        RS_OPTIONAL_TRACE_BEGIN("Animation running on propertyId is 0, animationId : " +
-            std::to_string(GetAnimationId()) + " nodeId : " + std::to_string(GetTargetId()));
-        RS_OPTIONAL_TRACE_END();
+        // calculateAnimationValue_ is embedded modify for stat animate frame drop
+        calculateAnimationValue_ = false;
         return;
     } else if (ROSEN_EQ(fraction, 1.0f, FRACTION_THRESHOLD)) {
         SetAnimationValue(endValue_);
