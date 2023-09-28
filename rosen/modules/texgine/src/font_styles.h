@@ -65,6 +65,9 @@ public:
     FontStyles(Weight weight, Width width, Slant slant);
 
     TexgineFontStyle ToTexgineFontStyle() const;
+    int GetWeight() const;
+    int GetFontStyle() const;
+    void SetWeight(const int weight);
 
     bool operator==(const FontStyles &rhs) const;
     bool operator!=(const FontStyles &rhs) const;
