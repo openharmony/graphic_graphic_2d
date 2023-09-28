@@ -46,15 +46,15 @@ using OHOS::HiviewDFX::HiLog;
 std::shared_ptr<Media::PixelMap> ColorPicker::CreateScaledPixelMap(const std::shared_ptr<Media::PixelMap>& pixmap)
 {
     // Create scaled pixelmap
-    OHOS::Media::InitializationOptions options;
-    options.alphaType = pixmap->GetAlphaType();
-    options.pixelFormat = pixmap->GetPixelFormat();
-    options.scaleMode = OHOS::Media::ScaleMode::FIT_TARGET_SIZE;
-    options.size.width = 100; // 100 represents scaled pixelMap's width
-    options.size.height = 100; // 100 represents scaled pixelMap's height
-    options.editable = true;
-    std::unique_ptr<Media::PixelMap> newPixelMap = Media::PixelMap::Create(*pixmap.get(), options);
-    return std::move(newPixelMap);
+    int desiredWidth = 100;
+    int desiredHeight = 100;
+    float xScale = static_cast<float>(desiredWidth) / pixmap->GetWidth();
+    float yScale = static_cast<float>(desiredHeight) / pixmap->GetHeight();
+    if (!pixmap->resize(xScale, yScale)) {
+        HiLog::Info(LABEL, "[ColorPicker]failed to resize pixmap.");
+        return pixmap;
+    }
+    return pixmap;
 }
 
 std::shared_ptr<ColorPicker> ColorPicker::CreateColorPicker(const std::shared_ptr<Media::PixelMap>& pixmap,
@@ -67,6 +67,11 @@ std::shared_ptr<ColorPicker> ColorPicker::CreateColorPicker(const std::shared_pt
     }
     
     std::shared_ptr<Media::PixelMap> scaledPixelMap = CreateScaledPixelMap(pixmap);
+    if (scaledPixelMap == nullptr) {
+        HiLog::Info(LABEL, "[ColorPicker]failed to scale pixelmap, scaledPixelMap is nullptr.");
+        errorCode = ERR_EFFECT_INVALID_VALUE;
+        return nullptr;
+    }
     ColorPicker *colorPicker = new (std::nothrow) ColorPicker(scaledPixelMap);
     if (colorPicker == nullptr) {
         HiLog::Info(LABEL, "[ColorPicker]failed to create ColorPicker with pixmap.");
