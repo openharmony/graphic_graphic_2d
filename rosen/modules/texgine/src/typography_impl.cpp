@@ -306,16 +306,26 @@ void TypographyImpl::Layout(double maxWidth)
 
 void TypographyImpl::ProcessHardBreak()
 {
+    bool isAllHardBreak = true;
     for (auto i = 0; i < static_cast<int>(lineMetrics_.size()); i++) {
-        if (i > 0 && !lineMetrics_[i -1].lineSpans.back().IsHardBreak() &&
-                lineMetrics_[i].lineSpans.back().IsHardBreak()) {
-            lineMetrics_[i - 1].lineSpans.push_back(lineMetrics_[i].lineSpans.front());
-            lineMetrics_[i].lineSpans.erase(lineMetrics_[i].lineSpans.begin());
+        if (!lineMetrics_[i].lineSpans.back().IsHardBreak()) {
+            isAllHardBreak = false;
+        }
+    }
+
+    if (isAllHardBreak) {
+        lineMetrics_.push_back(lineMetrics_.back());
+    }
+
+    for (auto i = 0; i < static_cast<int>(lineMetrics_.size() - 2); i++) {
+        if (!lineMetrics_[i].lineSpans.back().IsHardBreak() &&
+                lineMetrics_[i + 1].lineSpans.front().IsHardBreak()) {
+            lineMetrics_[i].lineSpans.push_back(lineMetrics_[i + 1].lineSpans.front());
+            lineMetrics_[i + 1].lineSpans.erase(lineMetrics_[i + 1].lineSpans.begin());
         }
 
-        if (lineMetrics_[i].lineSpans.empty()) {
-            lineMetrics_.erase(lineMetrics_.begin() + i);
-            i--;
+        if (lineMetrics_[i + 1].lineSpans.empty()) {
+                lineMetrics_.erase(lineMetrics_.begin() + (i + 1));
         }
     }
 }
@@ -370,6 +380,18 @@ int TypographyImpl::UpdateMetrics()
 void TypographyImpl::DoLayout()
 {
     maxLineWidth_ = 0.0;
+    bool needMerge = false;
+    int size = static_cast<int>(lineMetrics_.size());
+    if (size > 1) {
+        needMerge = !lineMetrics_[size - 2].lineSpans.back().IsHardBreak() &&
+            lineMetrics_[size - 1].lineSpans.front().IsHardBreak();
+    }
+
+    if (needMerge) {
+        lineMetrics_[size - 2].lineSpans.push_back(lineMetrics_[size - 1].lineSpans.front());
+        lineMetrics_[size - 1].lineSpans.erase(lineMetrics_[size - 1].lineSpans.begin());
+    }
+
     for (auto i = 0; i < static_cast<int>(lineMetrics_.size()); i++) {
         double offsetX = 0;
         for (auto &vs : lineMetrics_[i].lineSpans) {
