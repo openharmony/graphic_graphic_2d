@@ -16,14 +16,17 @@
 #ifndef RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_BOUNDS_GEOMETRY_H
 #define RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_BOUNDS_GEOMETRY_H
 
+#include <utility>
+
 #include "include/core/SkMatrix.h"
 #include "include/core/SkPath.h"
 #include "include/core/SkRRect.h"
-#include "rs_properties_painter.h"
 
 #include "property/rs_property_drawable.h"
 
 namespace OHOS::Rosen {
+class RSSkiaFilter;
+
 class RSBoundsGeometryDrawable : public RSPropertyDrawable {
 public:
     explicit RSBoundsGeometryDrawable(const SkMatrix& boundsMatrix);
@@ -114,7 +117,7 @@ public:
 protected:
     SkRect maskBounds_;
     std::shared_ptr<RSMask> mask_;
-    SkPaint maskfilter_;
+    SkPaint maskFilter_;
     SkPaint maskPaint_;
 };
 
@@ -220,7 +223,7 @@ public:
 // LightUpEffect
 class RSLightUpEffectDrawable : public RSPropertyDrawable {
 public:
-    explicit RSLightUpEffectDrawable() {}
+    explicit RSLightUpEffectDrawable() = default;
     ~RSLightUpEffectDrawable() override = default;
     void Draw(RSPropertyDrawableRenderContext& context) override;
     static std::unique_ptr<RSPropertyDrawable> Generate(const RSPropertyDrawableGenerateContext& context);
@@ -294,9 +297,9 @@ private:
 // Particle
 class RSParticleDrawable : public RSPropertyDrawable {
 public:
-    explicit RSParticleDrawable() {}
+    explicit RSParticleDrawable() = default;
     ~RSParticleDrawable() override = default;
-    void AddPropertyDrawable(std::shared_ptr<RSPropertyDrawable> drawale);
+    void AddPropertyDrawable(std::shared_ptr<RSPropertyDrawable> drawable);
     static std::unique_ptr<RSPropertyDrawable> Generate(const RSPropertyDrawableGenerateContext& context);
     void Draw(RSPropertyDrawableRenderContext& context) override;
 
@@ -306,8 +309,8 @@ private:
 
 class RSPointParticleDrawable : public RSPropertyDrawable {
 public:
-    explicit RSPointParticleDrawable(SkPaint&& paint, std::shared_ptr<RSRenderParticle>& particles, SkRect bounds)
-        : paint_(std::move(paint)), particles_(particles), bounds_(bounds)
+    explicit RSPointParticleDrawable(SkPaint&& paint, std::shared_ptr<RSRenderParticle> particles, SkRect bounds)
+        : paint_(std::move(paint)), particles_(std::move(particles)), bounds_(bounds)
     {}
     ~RSPointParticleDrawable() override = default;
     void Draw(RSPropertyDrawableRenderContext& context) override;
@@ -320,8 +323,8 @@ private:
 
 class RSImageParticleDrawable : public RSPropertyDrawable {
 public:
-    explicit RSImageParticleDrawable(SkPaint&& paint, std::shared_ptr<RSRenderParticle>& particles, SkRect bounds)
-        : paint_(std::move(paint)), particles_(particles), bounds_(bounds)
+    explicit RSImageParticleDrawable(SkPaint&& paint, std::shared_ptr<RSRenderParticle> particles, SkRect bounds)
+        : paint_(std::move(paint)), particles_(std::move(particles)), bounds_(bounds)
     {}
     ~RSImageParticleDrawable() override = default;
     void Draw(RSPropertyDrawableRenderContext& context) override;
@@ -336,7 +339,7 @@ private:
 // PixelStretch
 class RSPixelStretchDrawable : public RSPropertyDrawable {
 public:
-    explicit RSPixelStretchDrawable(const std::optional<Vector4f>& pixelStretch, SkRect bounds)
+    explicit RSPixelStretchDrawable(const Vector4f& pixelStretch, SkRect bounds)
         : pixelStretch_(pixelStretch), bounds_(bounds)
     {}
     ~RSPixelStretchDrawable() override = default;
@@ -344,7 +347,7 @@ public:
     static std::unique_ptr<RSPropertyDrawable> Generate(const RSPropertyDrawableGenerateContext& context);
 
 private:
-    const std::optional<Vector4f>& pixelStretch_;
+    const Vector4f& pixelStretch_;
     SkRect bounds_;
 };
 

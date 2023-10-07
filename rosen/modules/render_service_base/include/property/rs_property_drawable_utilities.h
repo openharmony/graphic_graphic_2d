@@ -120,5 +120,5 @@ public:
 private:
     RSModifierType type_;
 };
-}; // namespace OHOS::Rosen
+};     // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_UTILITIES_H

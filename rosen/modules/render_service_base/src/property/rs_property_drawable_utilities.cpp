@@ -63,9 +63,7 @@ void RSCustomRestoreDrawable::Draw(RSPropertyDrawableRenderContext& context)
 
 // ============================================================================
 // Adapter for RSRenderModifier
-RSModifierDrawable::RSModifierDrawable(RSModifierType type) 
-    : type_(type)
-{}
+RSModifierDrawable::RSModifierDrawable(RSModifierType type) : type_(type) {}
 void RSModifierDrawable::Draw(RSPropertyDrawableRenderContext& context)
 {
     auto itr = context.drawCmdModifiers_.find(type_);

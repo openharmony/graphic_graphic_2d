@@ -17,8 +17,6 @@
 
 #include <set>
 
-#include "rs_trace.h"
-
 #include "pipeline/rs_render_node.h"
 #include "property/rs_properties.h"
 #include "property/rs_property_drawable_bounds_geometry.h"
@@ -225,7 +223,7 @@ void RSPropertyDrawable::UpdateDrawableMap(RSPropertyDrawableGenerateContext& co
     auto drawableMapStatusNew = CalculateDrawableMapStatus(context, drawableMap);
     if (drawableMapStatusNew == 0) {
         drawableMap.clear();
-        drawableMapStatusNew = 0;
+        drawableMapStatus = 0;
         return;
     }
 
@@ -252,12 +250,12 @@ uint8_t RSPropertyDrawable::CalculateDrawableMapStatus(
     RSPropertyDrawableGenerateContext& context, DrawableMap& drawableMap)
 {
     uint8_t result = 0;
+    auto& properties = context.properties_;
 
-    if (context.properties_.GetClipToBounds() || context.properties_.GetClipToRRect() ||
-        context.properties_.GetClipBounds() != nullptr) {
+    if (properties.GetClipToBounds() || properties.GetClipToRRect() || properties.GetClipBounds() != nullptr) {
         result |= DrawableMapStatus::CLIP_TO_BOUNDS;
     }
-    if (context.properties_.GetClipToFrame()) {
+    if (properties.GetClipToFrame()) {
         result |= DrawableMapStatus::CLIP_TO_FRAME;
     }
     if (context.hasChildren_) {
@@ -265,15 +263,15 @@ uint8_t RSPropertyDrawable::CalculateDrawableMapStatus(
     }
 
     if (HasPropertyDrawableInRange(
-            drawableMap, RSPropertyDrawableSlot::BACKGROUND, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY)) {
+        drawableMap, RSPropertyDrawableSlot::BACKGROUND, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY)) {
         result |= DrawableMapStatus::BOUNDS_PROPERTY_BEFORE;
     }
     if (HasPropertyDrawableInRange(
-            drawableMap, RSPropertyDrawableSlot::LIGHT_UP_EFFECT, RSPropertyDrawableSlot::PIXEL_STRETCH)) {
+        drawableMap, RSPropertyDrawableSlot::LIGHT_UP_EFFECT, RSPropertyDrawableSlot::PIXEL_STRETCH)) {
         result |= DrawableMapStatus::BOUNDS_PROPERTY_AFTER;
     }
     if (HasPropertyDrawableInRange(
-            drawableMap, RSPropertyDrawableSlot::CONTENT_STYLE, RSPropertyDrawableSlot::COLOR_FILTER)) {
+        drawableMap, RSPropertyDrawableSlot::CONTENT_STYLE, RSPropertyDrawableSlot::COLOR_FILTER)) {
         result |= DrawableMapStatus::FRAME_PROPERTY;
     }
 
@@ -303,7 +301,7 @@ void RSPropertyDrawable::OptimizeBoundsSaveRestore(
     // ======================================
     // PLANNING:
     // 1. erase unused slots - DONE
-    // 2. update in a incremental manner - DONE
+    // 2. update in a incremental manner - PARTIAL DONE
     // ======================================
     EraseSlots(drawableMap, boundsSlotsToErase);
 
@@ -311,8 +309,11 @@ void RSPropertyDrawable::OptimizeBoundsSaveRestore(
         // case 1: ClipToBounds set.
         // add one clip, and reuse SAVE_ALL and RESTORE_ALL.
         drawableMap[RSPropertyDrawableSlot::CLIP_TO_BOUNDS] = RSClipBoundsDrawable::Generate(context);
-    } else if (flags & DrawableMapStatus::BOUNDS_PROPERTY_BEFORE && flags & DrawableMapStatus::BOUNDS_PROPERTY_AFTER) {
-        // case 2: ClipToBounds not set and we only have bounds properties before & after children.
+        return;
+    }
+
+    if ((flags & DrawableMapStatus::BOUNDS_PROPERTY_BEFORE) && (flags & DrawableMapStatus::BOUNDS_PROPERTY_AFTER)) {
+        // case 2: ClipToBounds not set and we have bounds properties both before & after children.
         // add two sets of save/clip/restore before & after children.
 
         // part 1: before children
@@ -327,23 +328,29 @@ void RSPropertyDrawable::OptimizeBoundsSaveRestore(
             GenerateAlias(RSPropertyDrawableSlot::CLIP_TO_BOUNDS);
         drawableMap[RSPropertyDrawableSlot::RESTORE_BOUNDS] =
             GenerateAlias(RSPropertyDrawableSlot::EXTRA_RESTORE_BOUNDS);
-    } else if (flags & DrawableMapStatus::BOUNDS_PROPERTY_BEFORE) {
+        return;
+    }
+
+    if (flags & DrawableMapStatus::BOUNDS_PROPERTY_BEFORE) {
         // case 3: ClipToBounds not set and we have bounds properties before children.
         std::tie(drawableMap[RSPropertyDrawableSlot::SAVE_BOUNDS],
             drawableMap[RSPropertyDrawableSlot::EXTRA_RESTORE_BOUNDS]) =
             GenerateSaveRestore(RSPaintFilterCanvas::kCanvas);
 
         drawableMap[RSPropertyDrawableSlot::CLIP_TO_BOUNDS] = RSClipBoundsDrawable::Generate(context);
-    } else if (flags & DrawableMapStatus::BOUNDS_PROPERTY_AFTER) {
-        // case 4: ClipToBounds not set and we only have bounds properties after children.
+        return;
+    }
+
+    if (flags & DrawableMapStatus::BOUNDS_PROPERTY_AFTER) {
+        // case 4: ClipToBounds not set and we have bounds properties after children.
         std::tie(drawableMap[RSPropertyDrawableSlot::EXTRA_SAVE_BOUNDS],
             drawableMap[RSPropertyDrawableSlot::RESTORE_BOUNDS]) = GenerateSaveRestore(RSPaintFilterCanvas::kCanvas);
 
         drawableMap[RSPropertyDrawableSlot::EXTRA_CLIP_TO_BOUNDS] = RSClipBoundsDrawable::Generate(context);
-    } else {
-        // case 5: ClipToBounds not set and no bounds properties, no need to save/clip/restore.
-        // nothing to do
+        return;
     }
+    // case 5: ClipToBounds not set and no bounds properties, no need to save/clip/restore.
+    // nothing to do
 }
 
 void RSPropertyDrawable::OptimizeFrameSaveRestore(

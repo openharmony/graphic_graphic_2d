@@ -106,7 +106,6 @@ public:
 
     using DrawablePtr = std::unique_ptr<RSPropertyDrawable>;
 
-    //
     virtual void Draw(RSPropertyDrawableRenderContext& context) = 0;
     virtual void OnGeometryChange(const RSProperties& properties) {}
 
