@@ -89,8 +89,9 @@ void Shaper::ConsiderEllipsis(const TypographyStyle &tstyle,
     auto maxLines = tstyle.maxLines;
     if (maxLines < 0) {
         maxLines = 1;
-     }
-    if (lineMetrics_.size() <= maxLines) {
+    }
+
+    if (lineMetrics_.size() < maxLines) {
         return;
     }
 
@@ -287,9 +288,18 @@ void Shaper::ConsiderMiddleEllipsis(const std::vector<VariantSpan> &ellipsisSpan
 void Shaper::ConsiderTailEllipsis(const std::vector<VariantSpan> &ellipsisSpans, const double ellipsisWidth,
     const size_t maxLines, const double widthLimit)
 {
-    lineMetrics_.erase(lineMetrics_.begin() + maxLines, lineMetrics_.end());
+    bool isErase = false;
+    bool isEexceedWidthLimit = false;
+    if (maxLines < lineMetrics_.size()) {
+        lineMetrics_.erase(lineMetrics_.begin() + maxLines, lineMetrics_.end());
+        isErase = true;
+    }
     double width = 0;
     auto &lastline = lineMetrics_[maxLines - 1];
+    if (!isErase && lastline.width <= widthLimit) {
+        return;
+    }
+
     for (const auto &span : lastline.lineSpans) {
         width += span.GetWidth();
     }
@@ -299,10 +309,56 @@ void Shaper::ConsiderTailEllipsis(const std::vector<VariantSpan> &ellipsisSpans,
         static_cast<int>(lastline.lineSpans.size()) > 1) {
         width -= lastline.lineSpans.back().GetWidth();
         lastline.lineSpans.pop_back();
+        isEexceedWidthLimit = true;
     }
 
-    // Add ellipsisSpans
-    lastline.lineSpans.insert(lastline.lineSpans.end(), ellipsisSpans.begin(), ellipsisSpans.end());
+    auto ts = lastline.lineSpans.back().TryToTextSpan();
+    if (ts == nullptr && (isEexceedWidthLimit || isErase)) {
+        lastline.lineSpans.insert(lastline.lineSpans.end(), ellipsisSpans.begin(), ellipsisSpans.end());
+        return;
+    }
+
+    bool hasEllipsis = ts && (static_cast<int>(ts->GetWidth()) > static_cast<int>(widthLimit - ellipsisWidth) ||
+        isErase);
+    if (!hasEllipsis && ts != nullptr) {
+        return;
+    }
+
+    if (hasEllipsis) {
+        ProcessEllipsis(static_cast<int>(widthLimit - ellipsisWidth), ts->cgs_, lastline);
+        // Add ellipsisSpans
+        lastline.lineSpans.insert(lastline.lineSpans.end(), ellipsisSpans.begin(), ellipsisSpans.end());
+    }
+}
+
+void Shaper::ProcessEllipsis(int avalibleWidth, CharGroups &cgs, LineMetrics &lastLine)
+{
+    double cgsWidth = 0.0;
+    CharGroups newCgs = CharGroups::CreateEmpty();
+    for (auto &cg : cgs) {
+        cgsWidth += cg.GetWidth();
+        if (static_cast<int>(cgsWidth) < avalibleWidth) {
+            newCgs.PushBack(cg);
+        } else {
+            break;
+        }
+    }
+
+    // If there is only one span in the last line, protect the first chargroup
+    if (newCgs.GetSize() == 0 && lastLine.lineSpans.size() == 1) {
+        newCgs.PushBack(cgs.Get(0));
+    }
+
+    if (newCgs.GetSize() != 0) {
+        VariantSpan span = TextSpan::MakeFromCharGroups(newCgs);
+        auto style = lastLine.lineSpans.back().GetTextStyle();
+        span.SetTextStyle(style);
+        lastLine.lineSpans.pop_back();
+        lastLine.lineSpans.push_back(span);
+        auto nt = span.TryToTextSpan();
+    } else {
+        lastLine.lineSpans.pop_back();
+    }
 }
 } // namespace TextEngine
 } // namespace Rosen
