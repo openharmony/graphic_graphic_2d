@@ -146,6 +146,16 @@
           },
           {
             "type": "so",
+            "name": "//foundation/graphic/graphic_2d/frameworks/bootanimation/utils:libbootanimation_utils",
+            "header": {
+              "header_files": [
+                "boot_animation_utils.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/bootanimation"
+            }
+          },
+          {
+            "type": "so",
             "name": "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
             "header": {
               "header_files": [

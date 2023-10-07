@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 #include "boot_animation.h"
+
+#include "boot_animation_utils.h"
 #include "event_handler.h"
 #include "rs_trace.h"
 #include "transaction/rs_render_service_client.h"
@@ -259,7 +261,7 @@ void BootAnimation::PlaySound()
 {
 #ifdef PLAYER_FRAMEWORK_ENABLE
     LOGI("PlaySound start");
-    bool bootSoundEnabled = system::GetBoolParameter("persist.graphic.bootsound.enabled", true);
+    bool bootSoundEnabled = BootAnimationUtils::GetBootAnimationSoundEnabled();
     if (bootSoundEnabled == true) {
         LOGI("PlaySound read bootSoundEnabled is true");
         if (soundPlayer_ == nullptr) {
