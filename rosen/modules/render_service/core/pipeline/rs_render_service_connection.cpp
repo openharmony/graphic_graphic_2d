@@ -383,9 +383,8 @@ void RSRenderServiceConnection::SetRefreshRateMode(int32_t refreshRateMode)
     if (setResult != 0) {
         RS_LOGW("SetRefreshRateMode mode %{public}d is not supported", refreshRateMode);
         return;
-    } else {
-        RSSystemProperties::SetHgmRefreshRateModesEnabled(std::to_string(refreshRateMode));
-    }
+    } 
+    RSSystemProperties::SetHgmRefreshRateModesEnabled(std::to_string(refreshRateMode));    
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
