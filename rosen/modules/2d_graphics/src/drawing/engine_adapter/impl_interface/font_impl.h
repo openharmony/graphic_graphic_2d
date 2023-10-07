@@ -33,7 +33,7 @@ enum class FontEdging;
 class FontImpl : public BaseImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
-    virtual ~FontImpl() = default;
+    ~FontImpl() override = default;
 
     AdapterType GetType() const override
     {

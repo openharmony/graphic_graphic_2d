@@ -24,7 +24,7 @@ namespace Drawing {
 class TextBlobImpl : public BaseImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
-    virtual ~TextBlobImpl() = default;
+    ~TextBlobImpl() override = default;
 
     AdapterType GetType() const override
     {

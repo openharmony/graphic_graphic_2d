@@ -27,7 +27,7 @@ namespace Drawing {
 class FontMgrImpl : public BaseImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
-    virtual ~FontMgrImpl() = default;
+    ~FontMgrImpl() override = default;
 
     AdapterType GetType() const override
     {
