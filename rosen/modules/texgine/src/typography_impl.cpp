@@ -523,6 +523,12 @@ int TypographyImpl::DoUpdateSpanMetrics(const VariantSpan &span, const TexgineFo
             UpadateAnySpanMetrics(as, coveredAscent, coveredDescent);
             ascent = coveredAscent;
         }
+        if (style.halfLeading) {
+            double halfLeading = strut_.halfLeading == 0 ? HALF(style.fontSize) : strut_.halfLeading;
+            double lineHeight = style.heightScale * style.fontSize + halfLeading;
+            coveredAscent = HALF(lineHeight);
+            coveredDescent = HALF(lineHeight - style.fontSize);
+        }
         lineMaxCoveredAscent_.back() = std::max(coveredAscent, lineMaxCoveredAscent_.back());
         lineMaxCoveredDescent_.back() = std::max(coveredDescent, lineMaxCoveredDescent_.back());
     }
