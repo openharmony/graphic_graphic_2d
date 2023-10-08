@@ -15,7 +15,7 @@
 
 #include "common/rs_background_thread.h"
 #include "platform/common/rs_log.h"
-#ifndef(NEW_RENDER_CONTEXT) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_UNI_RENDER) && defined(RS_ENABLE_GL)
 #include "render_context/render_context.h"
 #endif
 #include "rs_trace.h"
@@ -39,7 +39,7 @@ void RSBackgroundThread::PostTask(const std::function<void()>& task)
         handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
 }
-#ifndef(NEW_RENDER_CONTEXT) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_UNI_RENDER) && defined(RS_ENABLE_GL)
 #ifndef USE_ROSEN_DRAWING
 void RSBackgroundThread::InitRenderContext(RenderContext* context)
 {
