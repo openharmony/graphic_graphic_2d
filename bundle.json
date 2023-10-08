@@ -15,6 +15,7 @@
       "syscap": [
         "SystemCapability.Graphic.Graphic2D.ColorManager.Core",
         "SystemCapability.Graphic.Graphic2D.EGL",
+        "SystemCapability.Graphic.Graphic2D.GLES2", 
         "SystemCapability.Graphic.Graphic2D.GLES3",
         "SystemCapability.Graphic.Graphic2D.NativeWindow",
         "SystemCapability.Graphic.Graphic2D.NativeDrawing",
