@@ -18,7 +18,7 @@
 
 #include "event_handler.h"
 #include "common/rs_macros.h"
-#if defined(RS_ENABLE_GL)
+#ifndef(NEW_RENDER_CONTEXT) && defined(RS_ENABLE_GL)
 #ifndef USE_ROSEN_DRAWING
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
@@ -35,7 +35,7 @@ class RSB_EXPORT RSBackgroundThread final {
 public:
     static RSBackgroundThread& Instance();
     void PostTask(const std::function<void()>& task);
-#if defined(RS_ENABLE_GL)
+#ifndef(NEW_RENDER_CONTEXT) && defined(RS_ENABLE_GL)
 #ifndef USE_ROSEN_DRAWING
     void InitRenderContext(RenderContext* context);
     sk_sp<GrDirectContext> GetShareGrContext() const;
@@ -52,7 +52,7 @@ private:
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
-#if defined(RS_ENABLE_GL)
+#ifndef(NEW_RENDER_CONTEXT) && defined(RS_ENABLE_GL)
 #ifndef USE_ROSEN_DRAWING
     sk_sp<GrDirectContext> CreateShareGrContext();
     void CreateShareEglContext();

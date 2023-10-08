@@ -121,6 +121,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
     node->Process(visitor_);
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
 #ifndef USE_ROSEN_DRAWING
+#ifndef(NEW_RENDER_CONTEXT)
     if (RSSystemProperties::GetSnapshotWithDMAEnabled()) {
         skSurface->flushAndSubmit(true);
         GrBackendTexture grBackendTexture
@@ -211,6 +212,17 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
             return false;
         }
     }
+#else
+    sk_sp<SkImage> img(skSurface.get()->makeImageSnapshot());
+    if (!img) {
+        RS_LOGE("RSSurfaceCaptureTask::Run: img is nullptr");
+        return false;
+    }
+    if (!CopyDataToPixelMap(img, pixelmap)) {
+        RS_LOGE("RSSurfaceCaptureTask::Run: CopyDataToPixelMap failed");
+        return false;
+    }
+#endif // NEW_RENDER_CONTEXT
 #else
     std::shared_ptr<Drawing::Image> img(surface.get()->GetImageSnapshot());
     if (!img) {
@@ -453,7 +465,16 @@ sk_sp<SkSurface> DmaMem::GetSkSurfaceFromSurfaceBuffer(sptr<SurfaceBuffer> surfa
 
     GrBackendTexture backendTexture(
         surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), GrMipMapped::kNo, textureInfo);
+#ifndef NEW_RENDER_CONTEXT
     auto grContext = RSBackgroundThread::Instance().GetShareGrContext().get();
+#else
+    auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
+    if (renderContext == nullptr) {
+        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
+        return nullptr;
+    }
+    auto grContext = renderContext->GetGrContext();
+#endif
     auto skSurface = SkSurface::MakeFromBackendTexture(grContext, backendTexture,
         kTopLeft_GrSurfaceOrigin, 0, kRGBA_8888_SkColorType, SkColorSpace::MakeSRGB(), nullptr);
     return skSurface;
