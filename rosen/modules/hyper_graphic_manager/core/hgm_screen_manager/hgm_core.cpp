@@ -146,8 +146,11 @@ int32_t HgmCore::SetModeBySettingConfig()
     for (auto &screen : screenList_) {
         int32_t setRange = screen->SetRefreshRateRange(
             static_cast<uint32_t>(rateFloor), static_cast<uint32_t>(rateToSwitch));
+        if (customFrameRateMode_ == HGM_REFRESHRATE_MODE_AUTO) {
+            HGM_LOGI("HgmCore auto mode, set refreshrate 60HZ");
+        }
         int32_t setThisScreen = SetScreenRefreshRate(screen->GetId(), 0, rateToSwitch);
-        if (setThisScreen != EXEC_SUCCESS || setRange != EXEC_SUCCESS) {
+        if (setThisScreen < EXEC_SUCCESS || setRange != EXEC_SUCCESS) {
             HGM_LOGW("HgmCore failed to apply refreshrate mode to screen : " PUBU64 "", screen->GetId());
             return HGM_ERROR;
         }
