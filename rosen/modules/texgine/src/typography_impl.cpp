@@ -672,8 +672,8 @@ void TypographyImpl::ComputeSpans(int lineIndex, double baseline, const CalcResu
 
 std::vector<TextRect> TypographyImpl::MergeRects(const std::vector<TextRect> &boxes, Boundary boundary) const
 {
-    if (boundary.leftIndex > boxes.size()) {
-        return {};
+    if (boundary.leftIndex >= boxes.size()) {
+        boundary.leftIndex = boxes.size() - 1;
     }
 
     if (boundary.rightIndex > boxes.size()) {

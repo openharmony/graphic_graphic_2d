@@ -252,11 +252,12 @@ void TextBreaker::GenNewBoundryByHardBreak(CharGroups cgs, std::vector<Boundary>
                 if (newStart != newEnd) {
                     newBoundary.push_back({newStart, newEnd});
                 }
-                newBoundary.push_back({newEnd, newEnd + 1});
-                newStart = newEnd + 1;
+                newBoundary.push_back({newEnd, newEnd + cg->chars.size()});
+                newStart = newEnd + cg->chars.size();
+
             }
 
-            newEnd++;
+            newEnd += cg->chars.size();
         }
 
         if (newStart == start) {
