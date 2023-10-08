@@ -18,13 +18,20 @@
 
 #include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
-#include "hgm_frame_rate_tool.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+    int32_t width = 720;
+    int32_t height = 1080;
+    int32_t phyWidth = 685;
+    int32_t phyHeight = 1218;
+    ScreenSize screenSize = {width, height, phyWidth, phyHeight};
+}
+
 class HgmFrameRateMgrTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -37,6 +44,7 @@ void HgmFrameRateMgrTest::SetUpTestCase() {}
 void HgmFrameRateMgrTest::TearDownTestCase() {}
 void HgmFrameRateMgrTest::SetUp() {}
 void HgmFrameRateMgrTest::TearDown() {}
+
 
 /**
  * @tc.name: UniProcessData
@@ -58,7 +66,7 @@ HWTEST_F(HgmFrameRateMgrTest, UniProcessData, Function | SmallTest | Level1)
     int32_t mode = 1;
     int32_t mode2 = 2;
     int32_t mode3 = 3;
-    instance.AddScreen(screenId2, 1);
+    instance.AddScreen(screenId2, 1, screenSize);
     instance.AddScreenInfo(screenId2, width, height, rate, mode);
     instance.AddScreenInfo(screenId2, width, height, rate2, mode2);
     instance.AddScreenInfo(screenId2, width, height, rate3, mode3);
@@ -96,66 +104,27 @@ HWTEST_F(HgmFrameRateMgrTest, UniProcessData, Function | SmallTest | Level1)
 }
 
 /**
- * @tc.name: HgmFrameRateTool.RemoveScreenProfile
- * @tc.desc: Verify the result of v function
+ * @tc.name: HgmOneShotTimerTest
+ * @tc.desc: Verify the result of HgmOneShotTimerTest
  * @tc.type: FUNC
  * @tc.require: I7DMS1
  */
-HWTEST_F(HgmFrameRateMgrTest, RemoveScreenProfileTest, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, HgmOneShotTimerTest, Function | SmallTest | Level2)
 {
-    auto hgmFrameRateTool = HgmFrameRateTool::GetInstance();
-    ScreenId screenId = 2;
-    int32_t width = 720;
-    int32_t height = 1080;
-    int32_t phyWidth = 685;
-    int32_t phyHeight = 1218;
-    ASSERT_EQ(0, hgmFrameRateTool->RemoveScreenProfile(screenId));
-    ASSERT_EQ(0, hgmFrameRateTool->AddScreenProfile(screenId, width, height, phyWidth, phyHeight));
-    ASSERT_EQ(0, hgmFrameRateTool->RemoveScreenProfile(screenId));
-}
-
-/**
- * @tc.name: HgmFrameRateTool.CalModifierPreferred
- * @tc.desc: Verify the result of v function
- * @tc.type: FUNC
- * @tc.require: I7DMS1
- */
-HWTEST_F(HgmFrameRateMgrTest, CalModifierPreferredTest, Function | SmallTest | Level1)
-{
-    auto hgmFrameRateTool = HgmFrameRateTool::GetInstance();
-    ScreenId screenId = 2;
-    int32_t width = 720;
-    int32_t height = 1080;
-    int32_t phyWidth = 685;
-    int32_t phyHeight = 1218;
-
-    HgmModifierProfile hgmModifierProfile;
-    hgmModifierProfile.xSpeed = 0.0;
-    hgmModifierProfile.ySpeed = 0.0;
-    hgmModifierProfile.hgmModifierType = HgmModifierType::TRANSLATE;
-
-    auto parsedConfigData = std::make_shared<ParsedConfigData>();
+    std::unique_ptr<HgmFrameRateManager> mgr = std::make_unique<HgmFrameRateManager>();
+    ScreenId id = 1;
+    int32_t interval = 200; // 200ms means waiting time
 
     PART("CaseDescription") {
-        STEP("1. check CalModifierPreferred when ret == -1") {
-            ASSERT_EQ(-1, hgmFrameRateTool->CalModifierPreferred(screenId, hgmModifierProfile, parsedConfigData));
-            ASSERT_EQ(0, hgmFrameRateTool->AddScreenProfile(screenId, width, height, phyWidth, phyHeight));
-            ASSERT_EQ(-1, hgmFrameRateTool->CalModifierPreferred(screenId, hgmModifierProfile, parsedConfigData));
+        STEP("1. insert and start screenTimer") {
+            mgr->StartScreenTimer(id, interval, nullptr, nullptr);
+            auto timer = mgr->GetScreenTimer(id);
+            STEP_ASSERT_NE(timer, nullptr);
         }
-
-        STEP("2. chech CalModifierPreferred when ret != -1") {
-            ParsedConfigData::AnimationDynamicSetting animationDynamicSetting;
-            animationDynamicSetting.min = 60;
-            animationDynamicSetting.max = -1;
-            animationDynamicSetting.preferred_fps = 60;
-            parsedConfigData->dynamicSetting_["translate"]["animationDynamicSetting"] = animationDynamicSetting;
-            ASSERT_EQ(-1, hgmFrameRateTool->CalModifierPreferred(screenId, hgmModifierProfile, parsedConfigData));
-            ParsedConfigData::AnimationDynamicSetting animationDynamicSetting2;
-            animationDynamicSetting2.min = 0;
-            animationDynamicSetting2.max = -1;
-            animationDynamicSetting2.preferred_fps = 60;
-            parsedConfigData->dynamicSetting_["translate"]["animationDynamicSetting2"] = animationDynamicSetting2;
-            ASSERT_EQ(60, hgmFrameRateTool->CalModifierPreferred(screenId, hgmModifierProfile, parsedConfigData));
+        STEP("2. reset screenTimer") {
+            mgr->ResetScreenTimer(id);
+            auto timer = mgr->GetScreenTimer(id);
+            STEP_ASSERT_NE(timer, nullptr);
         }
     }
 }
