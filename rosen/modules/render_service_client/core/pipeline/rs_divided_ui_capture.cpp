@@ -68,6 +68,7 @@ std::shared_ptr<Media::PixelMap> RSDividedUICapture::TakeLocalCapture()
 #ifndef USE_ROSEN_DRAWING
     auto skSurface = CreateSurface(pixelmap);
     if (skSurface == nullptr) {
+        RS_LOGE("RSDividedUICapture::TakeLocalCapture: skSurface == nullptr!");
         return nullptr;
     }
     auto canvas = std::make_shared<RSPaintFilterCanvas>(skSurface.get());
@@ -135,8 +136,11 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::SetCanvas(std::shared_ptr<Dr
         return;
     }
 #ifndef USE_ROSEN_DRAWING
+    auto renderContext = RSRenderThread::Instance().GetRenderContext();
+    canvas->SetGrRecordingContext(renderContext->GetGrContext());
     canvas_ = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     canvas_->scale(scaleX_, scaleY_);
+    canvas_->SetRecordingState(true);
 #else
     canvas_ = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     canvas_->Scale(scaleX_, scaleY_);

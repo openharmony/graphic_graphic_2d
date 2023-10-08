@@ -26,14 +26,9 @@ namespace OHOS::Rosen {
 class RSB_EXPORT RSOffscreenRenderThread {
 public:
     static RSOffscreenRenderThread& Instance();
-    void Start();
     void PostTask(const std::function<void()>& task);
-    void Stop();
-    void DoOffscreenRenderTask(const std::function<void()>& task);
-    void FinishOffscreenRenderTask();
-
 private:
-    RSOffscreenRenderThread() = default;
+    RSOffscreenRenderThread();
     ~RSOffscreenRenderThread() = default;
     RSOffscreenRenderThread(const RSOffscreenRenderThread&);
     RSOffscreenRenderThread(const RSOffscreenRenderThread&&);

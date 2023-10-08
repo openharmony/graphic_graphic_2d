@@ -468,9 +468,8 @@ void RSRenderServiceConnection::TakeSurfaceCaptureForUIWithUni(NodeId id, sptr<R
         std::shared_ptr<Media::PixelMap> pixelmap = rsUniUICapture->TakeLocalCapture();
         callback->OnSurfaceCapture(id, pixelmap.get());
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-        RSOffscreenRenderThread::Instance().FinishOffscreenRenderTask();
     };
-    RSOffscreenRenderThread::Instance().DoOffscreenRenderTask(offscreenRenderTask);
+    RSOffscreenRenderThread::Instance().PostTask(offscreenRenderTask);
 }
 
 void RSRenderServiceConnection::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)

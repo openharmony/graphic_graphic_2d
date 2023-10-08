@@ -467,6 +467,17 @@ void RSPaintFilterCanvas::onDrawPicture(const SkPicture* picture, const SkMatrix
         this->SkCanvas::onDrawPicture(picture, matrix, &filteredPaint);
     }
 }
+
+bool RSPaintFilterCanvas::GetRecordingState() const
+{
+    return recordingState_;
+}
+
+void RSPaintFilterCanvas::SetRecordingState(bool flag)
+{
+    recordingState_ = flag;
+}
+
 #else
 RSPaintFilterCanvas::RSPaintFilterCanvas(Drawing::Canvas* canvas, float alpha)
     : RSPaintFilterCanvasBase(canvas), alphaStack_({ std::clamp(alpha, 0.f, 1.f) }), // construct stack with given alpha
