@@ -117,10 +117,10 @@ template("render_service_client_source_set") {
     ]
 
     if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
-      cflags += [
-        "-flto=thin",
-        "-fwhole-program-vtables",
-      ]
+      cflags += [ "-flto=thin" ]
+      if (enhanced_opt) {
+        cflags += [ "-fwhole-program-vtables" ]
+      }
     }
 
     cflags_cc = [
@@ -221,12 +221,12 @@ ohos_shared_library("librender_service_client") {
 
   ldflags = []
 
-  #Bisheng control is required in the future
-  if (is_ohos) {
+  if (is_ohos && enhanced_opt) {
     ldflags += [ "-Wl,-Bsymbolic" ]
   }
 
-  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
+  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64") &&
+      enhanced_opt) {
     ldflags += [
       "-Wl,-mllvm",
       "-Wl,-wholeprogramdevirt-check=fallback",
