@@ -453,16 +453,7 @@ sk_sp<SkSurface> DmaMem::GetSkSurfaceFromSurfaceBuffer(sptr<SurfaceBuffer> surfa
 
     GrBackendTexture backendTexture(
         surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), GrMipMapped::kNo, textureInfo);
-#ifdef RS_ENABLE_DRIVEN_RENDER
     auto grContext = RSBackgroundThread::Instance().GetShareGrContext().get();
-#else
-    auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
-    if (renderContext == nullptr) {
-        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
-        return nullptr;
-    }
-    auto grContext = renderContext->GetGrContext();
-#endif
     auto skSurface = SkSurface::MakeFromBackendTexture(grContext, backendTexture,
         kTopLeft_GrSurfaceOrigin, 0, kRGBA_8888_SkColorType, SkColorSpace::MakeSRGB(), nullptr);
     return skSurface;
