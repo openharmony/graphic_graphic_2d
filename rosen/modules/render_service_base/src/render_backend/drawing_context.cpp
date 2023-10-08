@@ -46,7 +46,7 @@ sk_sp<SkSurface> DrawingContext::AcquireSurface(const std::shared_ptr<RSRenderSu
         return AcquireSurfaceInVulkan(frame);
     }
 }
-
+#ifndef USE_ROSEN_DRAWING
 bool DrawingContext::SetUpDrawingContext()
 {
 #if defined(RS_ENABLE_GL)
@@ -102,6 +102,44 @@ GrDirectContext* DrawingContext::GetDrawingContext() const
 GrContext* DrawingContext::GetDrawingContext() const
 {
     return grContext_.get();
+}
+#endif
+#else
+bool DrawingContext::SetUpDrawingContext()
+{
+#if defined(RS_ENABLE_GL)
+    if (gpuContext_ != nullptr) {
+        LOGD("gpuContext_ has already initialized");
+        return true;
+    }
+
+    auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    auto size = glesVersion ? strlen(glesVersion) : 0;
+    bool isUni = false;
+    auto &cache = ShaderCache::Instance();
+#if defined(RS_ENABLE_UNI_RENDER)
+    isUni = true;
+    cache.SetFilePath(UNIRENDER_CACHE_DIR);
+#endif
+    cache.InitShaderCache(glesVersion, size, isUni);
+
+    Drawing::GPUContextOptions options;
+    options.SetPersistentCache(&cache);
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    if (!gpuContext->BuildFromGL(options)) {
+        LOGE("Failed to create gpuContext, gpuContext is nullptr");
+        return false;
+    }
+    gpuContext_ = std::move(gpuContext);
+    return true;
+#else
+    return false;
+#endif
+}
+
+GPUContext* DrawingContext::GetDrawingContext() const
+{
+    return gpuContext_.get();
 }
 #endif
 

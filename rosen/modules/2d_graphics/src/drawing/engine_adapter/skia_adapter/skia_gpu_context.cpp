@@ -211,6 +211,16 @@ void SkiaGPUContext::ReleaseByTag(const GPUResourceTag tag)
     grContext_->releaseByTag(grTag);
 }
 
+void SkiaGPUContext::SetCurrentGpuResourceTag(const GPUResourceTag tag)
+{
+    if (!grContext_) {
+        LOGE("SkiaGPUContext::ReleaseByTag, grContext_ is nullptr");
+        return;
+    }
+    GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid);
+    grContext_->setCurrentGrResourceTag(grTag);
+}
+
 #ifdef NEW_SKIA
 sk_sp<GrDirectContext> SkiaGPUContext::GetGrContext() const
 #else

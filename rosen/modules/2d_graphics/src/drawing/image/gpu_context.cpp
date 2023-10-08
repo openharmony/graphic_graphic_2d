@@ -97,6 +97,11 @@ void GPUContext::ReleaseByTag(const GPUResourceTag tag)
     impl_->ReleaseByTag(tag);
 }
 
+void GPUContext::SetCurrentGpuResourceTag(const GPUResourceTag tag)
+{
+    impl_->SetCurrentGpuResourceTag(tag);
+}
+
 GPUContextOptions::PersistentCache* GPUContextOptions::GetPersistentCache() const
 {
     return persistentCache_;

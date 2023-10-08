@@ -177,6 +177,16 @@ std::shared_ptr<Image> SkiaSurface::GetImageSnapshot(const RectI& bounds) const
     return image;
 }
 
+void SkiaSurface::FlushAndSubmit(bool syncCpu)
+{
+    if (skSurface_ == nullptr) {
+        LOGE("skSurface is nullptr");
+        return;
+    }
+
+    skSurface_->flushAndSubmit(syncCpu);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

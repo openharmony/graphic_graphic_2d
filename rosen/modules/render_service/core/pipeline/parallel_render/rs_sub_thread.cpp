@@ -195,14 +195,13 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
                 std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
             surfaceNodePtr->InitCacheSurface(grContext_.get(), func, threadIndex_);
         }
-#ifndef USE_ROSEN_DRAWING
+
         RSTagTracker nodeProcessTracker(grContext_.get(), surfaceNodePtr->GetId(),
             RSTagTracker::TAGTYPE::TAG_SUB_THREAD);
-#endif
         bool needNotify = !surfaceNodePtr->HasCachedTexture();
         node->Process(visitor);
-#ifndef USE_ROSEN_DRAWING
         nodeProcessTracker.SetTagEnd();
+#ifndef USE_ROSEN_DRAWING
 #ifndef NEW_SKIA
         auto skCanvas = surfaceNodePtr->GetCacheSurface(threadIndex_, true) ?
             surfaceNodePtr->GetCacheSurface(threadIndex_, true)->getCanvas() : nullptr;
@@ -223,13 +222,13 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
         }
 #endif
 #else
-        auto canvas = surfaceNodePtr->GetCacheSurface(threadIndex_, true) ?
-            surfaceNodePtr->GetCacheSurface(threadIndex_, true)->GetCanvas() : nullptr;
-        if (canvas) {
-            RS_TRACE_NAME_FMT("render cache flush, %s", surfaceNodePtr->GetName().c_str());
-            canvas->Flush();
-        } else {
-            RS_LOGE("skCanvas is nullptr, flush failed");
+        auto cacheSurface = surfaceNodePtr->GetCacheSurface(threadIndex_, true);
+        if (cacheSurface) {
+            RS_TRACE_NAME_FMT("Render cache skSurface flush and submit");
+            RSTagTracker nodeFlushTracker(grContext_.get(), surfaceNodePtr->GetId(),
+                RSTagTracker::TAGTYPE::TAG_SUB_THREAD);
+            cacheSurface->FlushAndSubmit(true);
+            nodeFlushTracker.SetTagEnd();
         }
 #endif
         surfaceNodePtr->UpdateBackendTexture();

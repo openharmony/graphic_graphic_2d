@@ -61,6 +61,8 @@ public:
     virtual void PurgeUnlockAndSafeCacheGpuResources() = 0;
 
     virtual void ReleaseByTag(const GPUResourceTag tag) = 0;
+
+    virtual void SetCurrentGpuResourceTag(const GPUResourceTag tag) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

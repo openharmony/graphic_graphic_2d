@@ -19,6 +19,7 @@
 
 namespace OHOS::Rosen {
 ReleaseGpuResourceType RSTagTracker::releaseGpuResourceEnable_ = ReleaseGpuResourceType::DISABLED;
+#ifndef USE_ROSEN_DRAWING
 #if defined(NEW_SKIA)
 RSTagTracker::RSTagTracker(GrDirectContext* grContext, RSTagTracker::TAGTYPE tagType)
 #else
@@ -38,6 +39,22 @@ RSTagTracker::RSTagTracker(GrContext* grContext, RSTagTracker::TAGTYPE tagType)
     grContext_->setCurrentGrResourceTag(tag);
 #endif
 }
+#else
+RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, RSTagTracker::TAGTYPE tagType) : gpuContext_(gpuContext)
+{
+    if (!gpuContext_) {
+        RS_LOGE("RSTagTracker tag fail, gpuContext_ is nullptr");
+        return;
+    }
+    if (releaseGpuResourceEnable_ == ReleaseGpuResourceType::DISABLED) {
+        return;
+    }
+#ifdef RS_ENABLE_GL
+    Drawing::GPUResourceTag tag(0, 0, 0, tagType);
+    gpuContext_->SetCurrentGpuResourceTag(tag);
+#endif
+}
+#endif
 
 void RSTagTracker::UpdateReleaseGpuResourceEnable(ReleaseGpuResourceType releaseResEnable)
 {
@@ -82,6 +99,7 @@ std::string RSTagTracker::TagType2String(TAGTYPE type)
     return tagType;
 }
 
+#ifndef USE_ROSEN_DRAWING
 #if defined(NEW_SKIA)
 RSTagTracker::RSTagTracker(GrDirectContext* grContext, NodeId nodeId, RSTagTracker::TAGTYPE tagType)
 #else
@@ -101,7 +119,25 @@ RSTagTracker::RSTagTracker(GrContext* grContext, NodeId nodeId, RSTagTracker::TA
     grContext_->setCurrentGrResourceTag(tag);
 #endif
 }
+#else
+RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, NodeId nodeId, RSTagTracker::TAGTYPE tagType)
+    : gpuContext_(gpuContext)
+{
+    if (!gpuContext_) {
+        RS_LOGE("RSTagTracker tag fail, gpuContext_ is nullptr");
+        return;
+    }
+    if (releaseGpuResourceEnable_ == ReleaseGpuResourceType::DISABLED) {
+        return;
+    }
+#ifdef RS_ENABLE_GL
+    Drawing::GPUResourceTag tag(ExtractPid(nodeId), 0, nodeId, tagType);
+    gpuContext_->SetCurrentGpuResourceTag(tag);
+#endif
+}
+#endif
 
+#ifndef USE_ROSEN_DRAWING
 #if defined(NEW_SKIA)
 RSTagTracker::RSTagTracker(GrDirectContext* grContext, GrGpuResourceTag& tag)
 #else
@@ -120,9 +156,25 @@ RSTagTracker::RSTagTracker(GrContext* grContext, GrGpuResourceTag& tag)
     grContext_->setCurrentGrResourceTag(tag);
 #endif
 }
+#else
+RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, Drawing::GPUResourceTag& tag) : gpuContext_(gpuContext)
+{
+    if (!gpuContext_) {
+        RS_LOGE("RSTagTracker tag fail, gpuContext_ is nullptr");
+        return;
+    }
+    if (releaseGpuResourceEnable_ == ReleaseGpuResourceType::DISABLED) {
+        return;
+    }
+#ifdef RS_ENABLE_GL
+    gpuContext_->SetCurrentGpuResourceTag(tag);
+#endif
+}
+#endif
 
 void RSTagTracker::SetTagEnd()
 {
+#ifndef USE_ROSEN_DRAWING
     if (!grContext_) {
         RS_LOGE("RSTagTracker tag fail, grContext is nullptr");
         return;
@@ -135,6 +187,20 @@ void RSTagTracker::SetTagEnd()
     GrGpuResourceTag tagEnd;
     grContext_->setCurrentGrResourceTag(tagEnd);
 #endif
+#else
+    if (!gpuContext_) {
+        RS_LOGE("RSTagTracker tag fail, gpuContext_ is nullptr");
+        return;
+    }
+    if (releaseGpuResourceEnable_ == ReleaseGpuResourceType::DISABLED) {
+        return;
+    }
+    isSetTagEnd_ = true;
+#ifdef RS_ENABLE_GL
+    Drawing::GPUResourceTag tagEnd(0, 0, 0, 0);
+    gpuContext_->SetCurrentGpuResourceTag(tagEnd);
+#endif
+#endif
 }
 
 RSTagTracker::~RSTagTracker()
@@ -142,11 +208,19 @@ RSTagTracker::~RSTagTracker()
     if (releaseGpuResourceEnable_ == ReleaseGpuResourceType::DISABLED) {
         return;
     }
+#ifndef USE_ROSEN_DRAWING
 #ifdef RS_ENABLE_GL
     // Set empty tag to notify skia that the tag is complete
     if (!isSetTagEnd_ && grContext_) {
         GrGpuResourceTag tagEnd;
         grContext_->setCurrentGrResourceTag(tagEnd);
+    }
+#endif
+#else
+    // Set empty tag to notify skia that the tag is complete
+    if (!isSetTagEnd_ && gpuContext_) {
+        Drawing::GPUResourceTag tagEnd(0, 0, 0, 0);
+        gpuContext_->SetCurrentGpuResourceTag(tagEnd);
     }
 #endif
 }
