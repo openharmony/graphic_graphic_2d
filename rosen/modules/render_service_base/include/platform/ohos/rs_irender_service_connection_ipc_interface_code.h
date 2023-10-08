@@ -68,6 +68,7 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     GET_MEMORY_GRAPHICS,
     REPORT_JANK_STATS,
     GET_BITMAP,
+    GET_PIXELMAP,
     EXECUTE_SYNCHRONOUS_TASK,
     REPORT_EVENT_RESPONSE,
     REPORT_EVENT_COMPLETE,

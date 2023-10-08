@@ -1152,6 +1152,32 @@ bool RSRenderServiceConnectionProxy::GetBitmap(NodeId id, Drawing::Bitmap& bitma
     return true;
 }
 
+bool RSRenderServiceConnectionProxy::GetPixelmap(
+    NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    data.WriteParcelable(pixelmap.get());
+    RSMarshallingHelper::Marshalling(data, *rect);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PIXELMAP);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return false;
+    }
+    bool result = reply.ReadBool();
+    if (!result) {
+        RS_LOGE("RSRenderServiceConnectionProxy::GetPixelmap: GetPixelmap failed");
+        return false;
+    }
+    return true;
+}
+
 int32_t RSRenderServiceConnectionProxy::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)
 {
     MessageParcel data;

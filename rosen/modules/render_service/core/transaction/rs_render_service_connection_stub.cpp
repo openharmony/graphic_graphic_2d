@@ -849,6 +849,21 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PIXELMAP): {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            NodeId id = data.ReadUint64();
+            std::shared_ptr<Media::PixelMap> pixelmap =
+                std::shared_ptr<Media::PixelMap>(data.ReadParcelable<Media::PixelMap>());
+            SkRect skRect;
+            RSMarshallingHelper::Unmarshalling(data, skRect);
+            bool result = GetPixelmap(id, pixelmap, &skRect);
+            reply.WriteBool(result);
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SKIP_FRAME_INTERVAL): {
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {

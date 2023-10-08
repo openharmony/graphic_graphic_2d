@@ -150,6 +150,7 @@ private:
 
 #ifndef USE_ROSEN_DRAWING
     bool GetBitmap(NodeId id, SkBitmap& bitmap) override;
+    bool GetPixelmap(NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect) override;
 #else
     bool GetBitmap(NodeId id, Drawing::Bitmap& bitmap) override;
 #endif
