@@ -20,6 +20,7 @@
 #include "utils/drawing_macros.h"
 #include "utils/data.h"
 
+typedef void* EGLContext;
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -174,6 +175,11 @@ public:
      * @brief                   Releases GPUResource objects and removes them from the cache by tag.
      */
     void ReleaseByTag(const GPUResourceTag tag);
+
+    /*
+     * @brief                   Set current resource tag for gpu cache recycle.
+     */
+    void SetCurrentGpuResourceTag(const GPUResourceTag tag);
 
     /*
      * @brief   Get the adaptation layer instance, called in the adaptation layer.

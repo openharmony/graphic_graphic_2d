@@ -88,6 +88,11 @@ public:
      */
     ImageInfo GetImageInfo();
 
+    /*
+     * @brief   Call to ensure all reads/writes of surface have been issue to the underlying 3D API.
+     */
+    void FlushAndSubmit(bool syncCpu = false);
+
 private:
     std::shared_ptr<SurfaceImpl> impl_;
     std::shared_ptr<Canvas> cachedCanvas_;

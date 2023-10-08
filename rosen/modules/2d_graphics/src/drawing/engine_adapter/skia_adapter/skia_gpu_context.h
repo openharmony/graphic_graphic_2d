@@ -76,6 +76,8 @@ public:
 
     void ReleaseByTag(const GPUResourceTag tag) override;
 
+    void SetCurrentGpuResourceTag(const GPUResourceTag tag) override;
+
 #ifdef NEW_SKIA
     sk_sp<GrDirectContext> GetGrContext() const;
     void SetGrContext(const sk_sp<GrDirectContext>& grContext);

@@ -38,6 +38,7 @@ public:
     std::shared_ptr<Canvas> GetCanvas() const override;
     std::shared_ptr<Image> GetImageSnapshot() const override;
     std::shared_ptr<Image> GetImageSnapshot(const RectI& bounds) const override;
+    void FlushAndSubmit(bool syncCpu) override;
 
 private:
     sk_sp<SkSurface> skSurface_ = nullptr;

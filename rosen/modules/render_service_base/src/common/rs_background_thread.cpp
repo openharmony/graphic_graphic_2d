@@ -40,15 +40,6 @@ void RSBackgroundThread::PostTask(const std::function<void()>& task)
     }
 }
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
-#ifndef USE_ROSEN_DRAWING
-void RSBackgroundThread::InitRenderContext(RenderContext* context)
-{
-    renderContext_ = context;
-    PostTask([this]() {
-	    grContext_ = CreateShareGrContext();
-    });
-}
-
 void RSBackgroundThread::CreateShareEglContext()
 {
     if (renderContext_ == nullptr) {
@@ -64,6 +55,14 @@ void RSBackgroundThread::CreateShareEglContext()
         RS_LOGE("eglMakeCurrent failed.");
         return;
     }
+}
+#ifndef USE_ROSEN_DRAWING
+void RSBackgroundThread::InitRenderContext(RenderContext* context)
+{
+    renderContext_ = context;
+    PostTask([this]() {
+        grContext_ = CreateShareGrContext();
+    });
 }
 
 sk_sp<GrDirectContext> RSBackgroundThread::GetShareGrContext() const
@@ -110,6 +109,53 @@ void RSBackgroundThread::CleanGrResource()
             return;
         }
         grContext_->freeGpuResources();
+        RS_LOGI("RSBackgroundThread::CleanGrResource() finished");
+    });
+}
+#else
+void RSBackgroundThread::InitRenderContext(RenderContext* context)
+{
+    renderContext_ = context;
+    PostTask([this]() {
+        gpuContext_ = CreateShareGPUContext();
+    });
+}
+
+std::shared_ptr<Drawing::GPUContext> RSBackgroundThread::GetShareGPUContext() const
+{
+    return gpuContext_;
+}
+
+std::shared_ptr<Drawing::GPUContext> RSBackgroundThread::CreateShareGPUContext()
+{
+    RS_TRACE_NAME("CreateShareGrContext");
+    CreateShareEglContext();
+
+    Drawing::GPUContextOptions options = {};
+    auto handler = std::make_shared<MemoryHandler>();
+    auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    auto size = glesVersion ? strlen(glesVersion) : 0;
+    /* /data/service/el0/render_service is shader cache dir*/
+    handler->ConfigureContext(&options, glesVersion, size, "/data/service/el0/render_service", true);
+
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    if (!gpuContext->BuildFromGL(options)) {
+        RS_LOGE("BuildFromGL fail");
+        return nullptr;
+    }
+
+    return gpuContext;
+}
+
+void RSBackgroundThread::CleanGrResource()
+{
+    PostTask([this]() {
+        RS_TRACE_NAME("ResetGPUContext release resource");
+        if (gpuContext_ == nullptr) {
+            RS_LOGE("RSBackgroundThread::gpuContext_ is nullptr");
+            return;
+        }
+        gpuContext_->FreeGpuResources();
         RS_LOGI("RSBackgroundThread::CleanGrResource() finished");
     });
 }
