@@ -162,7 +162,7 @@ IndexAndAffinity TypographyImpl::GetGlyphIndexByCoordinate(double x, double y) c
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), ss.str());
 
     // process y < 0
-    if (fabs(height_) < DBL_EPSILON || y < 0) {
+    if (fabs(height_) < DBL_EPSILON) {
         LOGEX_FUNC_LINE_DEBUG() << "special: y < 0";
         return {0, Affinity::NEXT};
     }
@@ -170,6 +170,11 @@ IndexAndAffinity TypographyImpl::GetGlyphIndexByCoordinate(double x, double y) c
     // find targetLine
     int targetLine = static_cast<int>(FindGlyphTargetLine(y));
     LOGEX_FUNC_LINE_DEBUG() << "targetLine: " << targetLine;
+
+    // process y more than typography
+    if (targetLine == static_cast<int>(lineMetrics_.size())) {
+        targetLine = static_cast<int>(lineMetrics_.size() - 1);
+    }
 
     // count glyph before targetLine
     size_t count = 0;
@@ -179,12 +184,6 @@ IndexAndAffinity TypographyImpl::GetGlyphIndexByCoordinate(double x, double y) c
         }
     }
     LOGEX_FUNC_LINE_DEBUG() << "count: " << count;
-
-    // process y more than typography
-    if (targetLine == static_cast<int>(lineMetrics_.size())) {
-        LOGEX_FUNC_LINE_DEBUG() << "special: y >= max";
-        return {count, Affinity::PREV};
-    }
 
     // find targetIndex
     double offsetX = 0;
@@ -202,7 +201,7 @@ IndexAndAffinity TypographyImpl::GetGlyphIndexByCoordinate(double x, double y) c
     // process right part
     auto affinity = Affinity::PREV;
     if (targetIndex == widths.size()) {
-        return {count, affinity};
+        return {count - 1, affinity};
     }
 
     // calc affinity
