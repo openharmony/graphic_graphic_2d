@@ -105,7 +105,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
 
 void RSSurfaceNode::CreateNodeInRenderThread()
 {
-    if (IsUniRenderEnabled()||!IsRenderServiceNode()) {
+    if (!IsRenderServiceNode()) {
         ROSEN_LOGI("RsDebug RSSurfaceNode::CreateNodeInRenderThread id:%{public}" PRIu64 " already has RT Node",
             GetId());
         return;
