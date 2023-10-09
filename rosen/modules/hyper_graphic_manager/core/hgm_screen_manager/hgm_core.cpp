@@ -404,4 +404,13 @@ int32_t HgmCore::GetScenePreferred() const
     }
     return 0;
 }
+
+sptr<HgmScreen> HgmCore::GetActiveScreen() const
+{
+    if (activeScreenId_ == INVALID_SCREEN_ID) {
+        HGM_LOGE("HgmScreen activeScreenId_ noset");
+        return nullptr;
+    }
+    return GetScreen(activeScreenId_);
+}
 } // namespace OHOS::Rosen

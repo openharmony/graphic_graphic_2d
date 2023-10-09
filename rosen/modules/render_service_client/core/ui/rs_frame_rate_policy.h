@@ -37,6 +37,9 @@ private:
     RSFrameRatePolicy &operator = (const RSFrameRatePolicy&&) = delete;
 
     void HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData> configData);
+    float ppi_ = 1.0f;
+    float xDpi_ = 1.0f;
+    float yDpi_ = 1.0f;
 };
 } // namespace Rosen
 } // namespace OHOS

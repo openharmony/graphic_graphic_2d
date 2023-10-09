@@ -28,7 +28,6 @@
 
 #include "hgm_screen.h"
 #include "xml_parser.h"
-#include "hgm_one_shot_timer.h"
 
 namespace OHOS::Rosen {
 class HgmCore final {
@@ -78,6 +77,7 @@ public:
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) const;
     int32_t GetCurrentRefreshRateMode() const;
     sptr<HgmScreen> GetScreen(ScreenId id) const;
+    sptr<HgmScreen> GetActiveScreen() const;
     std::vector<uint32_t> GetScreenSupportedRefreshRates(ScreenId id);
     std::vector<int32_t> GetScreenComponentRefreshRates(ScreenId id);
     std::unique_ptr<std::unordered_map<ScreenId, int32_t>> GetModesToApply();
