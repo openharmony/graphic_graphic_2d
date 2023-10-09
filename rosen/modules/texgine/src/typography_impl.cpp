@@ -676,6 +676,10 @@ std::vector<TextRect> TypographyImpl::GenTextRects(std::shared_ptr<TextSpan> &ts
 
 std::vector<TextRect> TypographyImpl::MergeRects(const std::vector<TextRect> &boxes, Boundary boundary) const
 {
+    if (boxes.size() == 0) {
+        return {};
+    }
+
     if (boundary.leftIndex >= boxes.size()) {
         boundary.leftIndex = boxes.size() - 1;
     }
