@@ -1124,10 +1124,6 @@ public:
     PathOpItem(const SkPath& path, const SkPaint& paint);
     ~PathOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
-    std::optional<SkRect> GetCacheBounds() const override
-    {
-        return path_.getBounds();
-    }
 
     std::string GetTypeWithDesc() const override
     {
