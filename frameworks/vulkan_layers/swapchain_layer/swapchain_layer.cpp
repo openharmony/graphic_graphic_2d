@@ -688,22 +688,6 @@ VKAPI_ATTR VkResult VKAPI_CALL GetSwapchainImagesKHR(
     return result;
 }
 
-VkResult AcquireImage(VkDevice device, VkImage image, int32_t nativeFenceFd, VkSemaphore semaphore, VkFence fence)
-{
-    LayerData* deviceLayerData = GetLayerDataPtr(GetDispatchKey(device));
-    VkResult resultNewApi = deviceLayerData->deviceDispatchTable->AcquireImageOHOS(
-        device, image, nativeFenceFd, semaphore, fence);
-    if (resultNewApi != VK_SUCCESS) {
-        return resultNewApi;
-    }
-    VkResult resultOldApi = deviceLayerData->deviceDispatchTable->SetNativeFenceFdOpenHarmony(
-        device, nativeFenceFd, semaphore, fence);
-    if (resultOldApi != VK_SUCCESS) {
-        return resultOldApi;
-    }
-    return VK_SUCCESS;
-}
-
 VKAPI_ATTR VkResult VKAPI_CALL AcquireNextImageKHR(VkDevice device, VkSwapchainKHR swapchainHandle,
     uint64_t timeout, VkSemaphore semaphore, VkFence vkFence, uint32_t* imageIndex)
 {
@@ -715,9 +699,11 @@ VKAPI_ATTR VkResult VKAPI_CALL AcquireNextImageKHR(VkDevice device, VkSwapchainK
         return VK_ERROR_OUT_OF_DATE_KHR;
     }
 
+    LayerData* deviceLayerData = GetLayerDataPtr(GetDispatchKey(device));
     if (swapchain.shared) {
         *imageIndex = 0;
-        return AcquireImage(device, swapchain.images[*imageIndex].image, -1, semaphore, vkFence);
+        return deviceLayerData->deviceDispatchTable->AcquireImageOHOS(device, swapchain.images[*imageIndex].image, -1,
+                                                                      semaphore, vkFence);
     }
 
     NativeWindowBuffer* nativeWindowBuffer = nullptr;
@@ -747,7 +733,8 @@ VKAPI_ATTR VkResult VKAPI_CALL AcquireNextImageKHR(VkDevice device, VkSwapchainK
         }
         return VK_ERROR_OUT_OF_DATE_KHR;
     }
-    result = AcquireImage(device, swapchain.images[*imageIndex].image, -1, semaphore, vkFence);
+    result = deviceLayerData->deviceDispatchTable->AcquireImageOHOS(device, swapchain.images[index].image, -1,
+                                                                    semaphore, vkFence);
     if (result != VK_SUCCESS) {
         if (NativeWindowCancelBuffer(nativeWindow, nativeWindowBuffer) != OHOS::GSERROR_OK) {
             SWLOGE("NativeWindowCancelBuffer failed: (%{public}d)", ret);
@@ -795,18 +782,9 @@ const VkPresentRegionKHR* GetPresentRegions(const VkPresentInfoKHR* presentInfo)
 VkResult ReleaseImage(VkQueue queue, const VkPresentInfoKHR* presentInfo,
     Swapchain::Image &img, int32_t &fence)
 {
-    VkResult result = VK_SUCCESS;
     LayerData* deviceLayerData = GetLayerDataPtr(GetDispatchKey(queue));
-    VkResult resultNewApi = deviceLayerData->deviceDispatchTable->QueueSignalReleaseImageOHOS(
+    VkResult result = deviceLayerData->deviceDispatchTable->QueueSignalReleaseImageOHOS(
         queue, presentInfo->waitSemaphoreCount, presentInfo->pWaitSemaphores, img.image, &fence);
-    if (resultNewApi != VK_SUCCESS) {
-        result = resultNewApi;
-    }
-    VkResult resultOldApi = deviceLayerData->deviceDispatchTable->GetNativeFenceFdOpenHarmony(
-        queue, presentInfo->waitSemaphoreCount, presentInfo->pWaitSemaphores, img.image, &fence);
-    if (resultOldApi != VK_SUCCESS) {
-        result = resultOldApi;
-    }
     if (img.releaseFence >= 0) {
         close(img.releaseFence);
         img.releaseFence = -1;
