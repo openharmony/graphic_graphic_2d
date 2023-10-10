@@ -90,6 +90,7 @@ txt::ParagraphStyle Convert(const TypographyStyle &style)
         .strut_font_size = style.lineStyleFontSize,
         .strut_height = style.lineStyleHeightScale,
         .strut_has_height_override = style.lineStyleHeightOnly,
+        .strut_half_leading = style.lineStyleHalfLeading,
         .strut_leading = style.lineStyleSpacingScale,
         .force_strut_height = style.lineStyleOnly,
         .text_align = static_cast<txt::TextAlign>(style.textAlign),
@@ -161,6 +162,7 @@ txt::TextStyle Convert(const TextStyle &style)
     textStyle.font_weight = static_cast<txt::FontWeight>(style.fontWeight);
     textStyle.font_style = static_cast<txt::FontStyle>(style.fontStyle);
     textStyle.text_baseline = static_cast<txt::TextBaseline>(style.baseline);
+    textStyle.half_leading = style.halfLeading;
     textStyle.font_families = style.fontFamilies;
     textStyle.font_size = style.fontSize;
     textStyle.letter_spacing = style.letterSpacing;

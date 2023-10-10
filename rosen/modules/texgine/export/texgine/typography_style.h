@@ -39,6 +39,7 @@ struct TypographyStyle {
     std::vector<std::string> fontFamilies = {};
     double fontSize = 16.0;
     double heightScale = 1.0;
+    bool halfLeading = false;
     bool heightOnly = false;
     std::string locale;
 
@@ -58,6 +59,7 @@ struct TypographyStyle {
         FontWeight fontWeight = FontWeight::W400;
         FontStyle fontStyle = FontStyle::NORMAL;
         std::vector<std::string> fontFamilies = {};
+        bool halfLeading = false;
         bool heightOnly = false;
         double fontSize = 16.0;
         double heightScale = 1;
