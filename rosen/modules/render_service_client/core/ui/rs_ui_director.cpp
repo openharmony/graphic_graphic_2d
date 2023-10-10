@@ -278,9 +278,7 @@ void RSUIDirector::RecvMessages()
     static std::mutex recvMessagesMutex;
     std::unique_lock<std::mutex> lock(recvMessagesMutex);
     if (RSMessageProcessor::Instance().HasTransaction(pid)) {
-        auto transactionDataPtr = 
-            std::make_shared<RSTransactionData>(RSMessageProcessor::Instance().GetTransaction(pid));
-        RSMessageProcessor::Instance().RemovePidFromMap(pid);
+        auto transactionDataPtr = RSMessageProcessor::Instance().GetTransaction(pid);
         RecvMessages(transactionDataPtr);
     }
 }

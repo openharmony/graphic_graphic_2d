@@ -34,11 +34,10 @@ public:
 
     bool HasTransaction() const;
     bool HasTransaction(uint32_t pid) const;
-    void RemovePidFromMap(uint32_t pid);
     void ReInitializeMovedMap();
 
-    RSTransactionData&& GetTransaction(uint32_t pid);
-    std::unordered_map<uint32_t, RSTransactionData>&& GetAllTransactions();
+    std::shared_ptr<RSTransactionData> GetTransaction(uint32_t pid);
+    std::unordered_map<uint32_t, std::shared_ptr<RSTransactionData>>&& GetAllTransactions();
 private:
     RSMessageProcessor();
     ~RSMessageProcessor();
@@ -49,7 +48,7 @@ private:
 
 private:
     mutable std::mutex transactionMapMutex_;
-    std::unordered_map<uint32_t, RSTransactionData> transactionMap_;
+    std::unordered_map<uint32_t, std::shared_ptr<RSTransactionData>> transactionMap_;
 };
 } // namespace Rosen
 } // namespace OHOS

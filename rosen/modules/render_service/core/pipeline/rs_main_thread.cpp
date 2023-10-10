@@ -1603,7 +1603,7 @@ void RSMainThread::SendCommands()
     }
 
     // dispatch messages to corresponding application
-    auto transactionMapPtr = std::make_shared<std::unordered_map<uint32_t, RSTransactionData>>(
+    auto transactionMapPtr = std::make_shared<std::unordered_map<uint32_t, std::shared_ptr<RSTransactionData>>>(
         RSMessageProcessor::Instance().GetAllTransactions());
     RSMessageProcessor::Instance().ReInitializeMovedMap();
     PostTask([this, transactionMapPtr]() {
@@ -1617,7 +1617,7 @@ void RSMainThread::SendCommands()
                 continue;
             }
             auto& app = appIter->second;
-            auto transactionPtr = std::make_shared<RSTransactionData>(std::move(transactionIter.second));
+            auto transactionPtr = transactionIter.second;
             app->OnTransaction(transactionPtr);
         }
     });
