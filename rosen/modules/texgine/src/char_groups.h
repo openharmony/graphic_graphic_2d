@@ -16,12 +16,13 @@
 #ifndef ROSEN_MODULES_TEXGINE_SRC_CHAR_GROUPS_H
 #define ROSEN_MODULES_TEXGINE_SRC_CHAR_GROUPS_H
 
+#include "typeface.h"
+
 #include <array>
 #include <cstdint>
 #include <memory>
 #include <ostream>
 #include <vector>
-
 #include <unicode/uchar.h>
 
 namespace OHOS {
@@ -35,7 +36,6 @@ struct Glyph {
     double offsetY;
 };
 
-class Typeface;
 struct CharGroup {
     std::vector<uint16_t> chars;
     std::vector<struct Glyph> glyphs;
@@ -134,6 +134,7 @@ public:
     }
 
     bool CheckCodePoint();
+    std::string GetTypefaceName();
 private:
     friend void ReportMemoryUsage(const std::string &member, const CharGroups &that, bool needThis);
 

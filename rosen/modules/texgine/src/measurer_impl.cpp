@@ -122,7 +122,11 @@ int MeasurerImpl::Measure(CharGroups &cgs)
         if (it != cache_.end()) {
             cgs = it->second.cgs.Clone();
             boundaries_ = it->second.boundaries;
-            return SUCCESSED;
+            if (detectionName_ != cgs.GetTypefaceName()) {
+                cache_.clear();
+            } else {
+                return SUCCESSED;
+            }
         }
     }
 
@@ -141,6 +145,7 @@ int MeasurerImpl::Measure(CharGroups &cgs)
 
     if (fontFeatures_ == nullptr || fontFeatures_->GetFeatures().size() == 0) {
         if (cgs.CheckCodePoint()) {
+            detectionName_ = cgs.GetTypefaceName();
             cache_[key] = {cgs.Clone(), boundaries_};
         }
     }
