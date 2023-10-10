@@ -229,16 +229,18 @@ void TextBreaker::GenNewBoundryByWidth(CharGroups cgs, std::vector<Boundary> &bo
         }
 
         currentWidth_ += wordCgs.begin()->GetWidth();
+        auto prevCg = wordCgs.begin();
         for (auto cg = wordCgs.begin() + 1; cg != wordCgs.end(); cg++) {
             if (currentWidth_ + cg->GetWidth() >= widthLimit_) {
-                newEnd++;
+                newEnd += prevCg->chars.size();
                 newBoundary.push_back({newStart, newEnd});
                 currentWidth_ = cg->GetWidth();
                 newStart = newEnd;
             } else {
-                newEnd++;
+                newEnd += prevCg->chars.size();
                 currentWidth_ += cg->GetWidth();
             }
+            prevCg = cg;
         }
 
         if (newEnd != end) {
