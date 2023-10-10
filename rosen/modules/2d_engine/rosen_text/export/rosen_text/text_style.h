@@ -100,6 +100,7 @@ struct TextStyle {
     double letterSpacing = 0.0;
     double wordSpacing = 0.0;
     double heightScale = 1.0;
+    bool halfLeading = false;
     bool heightOnly = false;
     std::u16string ellipsis;
     std::string locale;
