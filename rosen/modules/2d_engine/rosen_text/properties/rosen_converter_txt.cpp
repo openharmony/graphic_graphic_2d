@@ -158,7 +158,6 @@ minikin::BreakStrategy RosenConverMinkinBreakStrategy(BreakStrategy breakStrateg
     return minkinBreakStrategy;
 }
 
-#if !defined(USE_CANVASKIT0310_SKIA) && !defined(NEW_SKIA)
 minikin::WordBreakType RosenConverMinkinWordBreakType(WordBreakType wordBreakType)
 {
     minikin::WordBreakType minkinWordBreakType;
@@ -178,7 +177,6 @@ minikin::WordBreakType RosenConverMinkinWordBreakType(WordBreakType wordBreakTyp
     }
     return minkinWordBreakType;
 }
-#endif
 
 txt::TextDirection RosenConvertTxtTextDirection(TextDirection textDirection)
 {
@@ -352,9 +350,7 @@ void RosenConvertTypographyStyle(const TypographyStyle& typographyStyle, txt::Pa
     txtParagraphStyle.ellipsis = typographyStyle.ellipsis_;
     txtParagraphStyle.locale = typographyStyle.locale_;
     txtParagraphStyle.break_strategy = RosenConverMinkinBreakStrategy(typographyStyle.breakStrategy_);
-#if !defined(USE_CANVASKIT0310_SKIA) && !defined(NEW_SKIA)
     txtParagraphStyle.word_break_type = RosenConverMinkinWordBreakType(typographyStyle.wordBreakType_);
-#endif
 }
 
 TextDirection TxtConvertRosenTextDirection(const txt::TextDirection& txtTextBox)
