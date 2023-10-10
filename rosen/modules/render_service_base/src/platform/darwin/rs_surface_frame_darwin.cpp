@@ -52,7 +52,7 @@ sk_sp<SkSurface> RSSurfaceFrameDarwin::GetSurface()
     return surface_;
 }
 #else
-Drawing::Canvas* RSSurfaceFrameWindows::GetCanvas()
+Drawing::Canvas* RSSurfaceFrameDarwin::GetCanvas()
 {
     if (surface_ == nullptr) {
         CreateSurface();
@@ -60,7 +60,7 @@ Drawing::Canvas* RSSurfaceFrameWindows::GetCanvas()
     return surface_->GetCanvas().get();
 }
 
-std::shared_ptr<Drawing::Surface> RSSurfaceFrameWindows::GetSurface()
+std::shared_ptr<Drawing::Surface> RSSurfaceFrameDarwin::GetSurface()
 {
     if (surface_ == nullptr) {
         CreateSurface();
