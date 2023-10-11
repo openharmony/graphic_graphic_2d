@@ -51,9 +51,6 @@ void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>& 
         return;
     }
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
-#ifdef ROSEN_CROSS_PLATFORM
-    ROSEN_LOGD("RSMessageProcessor::AddUIMessage %lu %p", transactionMap_[pid]->GetCommandCount(), command.get());
-#endif
     if (!transactionMap_.count(pid)) {
         std::shared_ptr<RSTransactionData> transactionData = std::make_shared<RSTransactionData>();
         transactionMap_[pid] = transactionData;
@@ -67,9 +64,6 @@ void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>&&
         return;
     }
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
-#ifdef ROSEN_CROSS_PLATFORM
-    ROSEN_LOGD("RSMessageProcessor::AddUIMessage %lu %p", transactionMap_[pid]->GetCommandCount(), command.get());
-#endif
     if (!transactionMap_.count(pid)) {
         std::shared_ptr<RSTransactionData> transactionData = std::make_shared<RSTransactionData>();
         transactionMap_[pid] = transactionData;
