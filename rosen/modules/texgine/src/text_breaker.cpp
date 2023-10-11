@@ -48,7 +48,6 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyl
 #ifdef LOGGER_ENABLE_SCOPE
     ScopedTrace scope("TextBreaker::WordBreak");
 #endif
-    LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "WordBreak");
     std::vector<VariantSpan> visitingSpans;
     std::swap(visitingSpans, spans);
     for (const auto &vspan : visitingSpans) {
@@ -83,14 +82,10 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyl
         GenNewBoundryByTypeface(cgs, boundaries);
         GenNewBoundryByQuote(cgs, boundaries);
 
-        LOGSCOPED(sl2, LOGEX_FUNC_LINE_DEBUG(), "TextBreaker::doWordBreak algo");
         preBreak_ = 0;
         postBreak_ = 0;
         for (auto &[start, end] : boundaries) {
             const auto &wordcgs = cgs.GetSubFromU16RangeAll(start, end);
-            std::stringstream ss;
-            ss << "u16range: [" << start << ", " << end << "), range: " << wordcgs.GetRange();
-            LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), ss.str());
             BreakWord(wordcgs, ys, xs, spans);
         }
     }
@@ -292,9 +287,6 @@ void TextBreaker::BreakWord(const CharGroups &wordcgs, const TypographyStyle &ys
             // not white space
             preBreak_ = postBreak_;
         }
-
-        LOGEX_FUNC_LINE_DEBUG() << "Now: [" << i << "] '" << TextConverter::ToStr(cg.chars) << "'"
-            << " preBreak_: " << preBreak_ << ", postBreak_: " << postBreak_;
 
         const auto &breakType = ys.wordBreakType == WordBreakType::NORMAL ?
             WordBreakType::BREAK_WORD : ys.wordBreakType;
