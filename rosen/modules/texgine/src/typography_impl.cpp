@@ -305,11 +305,15 @@ void TypographyImpl::Layout(double maxWidth)
 
 void TypographyImpl::ProcessHardBreak()
 {
-    bool isAllHardBreak = true;
-    for (auto i = 0; i < static_cast<int>(lineMetrics_.size()); i++) {
-        if (!lineMetrics_[i].lineSpans.back().IsHardBreak()) {
-            isAllHardBreak = false;
-        }
+    bool isAllHardBreak =false;
+    int lineCount = static_cast<int>(lineMetrics_.size());
+    // If the number of lines equal 1 and the char is hard break, add a new line.
+    if (lineCount == 1 && lineMetrics_.back().lineSpans.back().IsHardBreak()) {
+        isAllHardBreak = true;
+    } else if (lineCount > 1) {
+        // When the number of lines more than 1, and the text ending with two hard breaks, add a new line.
+        isAllHardBreak = lineMetrics_[lineCount - 1].lineSpans.front().IsHardBreak() &&
+            lineMetrics_[lineCount - 2].lineSpans.back().IsHardBreak();
     }
 
     if (isAllHardBreak) {
