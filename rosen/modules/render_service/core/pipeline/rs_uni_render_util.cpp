@@ -453,8 +453,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         return;
     }
     bool isRotation = displayNode->IsRotationChanged();
-    bool isScale = false;
-    uint32_t leashWindowCount = 0;
+    bool isNeedAssignToSubThread = false;
     bool isFocusNodeFound = false;
     uint64_t realFocusNodeId = 0;
     std::string logInfo = "";
@@ -473,10 +472,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
             continue;
         }
         if (node->IsLeashWindow()) {
-            leashWindowCount++;
-        }
-        if (node->IsLeashWindow() && node->IsScale()) {
-            isScale = true;
+            isNeedAssignToSubThread = node->IsScale() || ROSEN_EQ(node->GetGlobalAlpha(), 0.0f);
         }
         if (deviceType != DeviceType::PHONE) {
             if (node->GetId() == focusNodeId) {
@@ -496,8 +492,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
     // trace info for assign window nodes
     bool debugTraceEnable = Rosen::RSSystemProperties::GetDebugTraceEnabled();
     if (debugTraceEnable) {
-        logInfo += "{ isScale: " + std::to_string(isScale) + ", " +
-            "leashWindowCount: " + std::to_string(leashWindowCount) + ", " +
+        logInfo += "{ isNeedAssignToSubThread: " + std::to_string(isNeedAssignToSubThread) + ", " +
             "isRotation: " + std::to_string(isRotation) + " }; " +
             "realFocusNodeId: " + std::to_string(realFocusNodeId) + " ]";
     }
@@ -517,7 +512,8 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         bool needFilter = surfaceName == ENTRY_VIEW || surfaceName == WALLPAPER_VIEW ||
             surfaceName == SYSUI_STATUS_BAR || surfaceName == SCREENLOCK_WINDOW ||
             surfaceName == SYSUI_DROPDOWN || surfaceName == PRIVACY_INDICATOR;
-        bool needFilterSCB = surfaceName.substr(0, 3) == "SCB";
+        bool needFilterSCB = surfaceName.substr(0, 3) == "SCB" ||
+            surfaceName.substr(0, 13) == "BlurComponent"; // filter BlurComponent, 13 is string len
         if (needFilter || needFilterSCB || node->IsSelfDrawingType()) {
             AssignMainThreadNode(mainThreadNodes, node);
             continue;
@@ -527,8 +523,9 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
             continue;
         }
         if (deviceType == DeviceType::PHONE) {
-            if (isScale) { // app start or close scene
-                if (!node->HasFilter() && !node->HasAbilityComponent() && !isRotation) {
+            if (isNeedAssignToSubThread) { // app start or close scene
+                if ((!node->HasFilter() || ROSEN_EQ(node->GetGlobalAlpha(), 0.0f))
+                    && !node->HasAbilityComponent() && !isRotation) {
                     AssignSubThreadNode(subThreadNodes, node);
                 } else {
                     AssignMainThreadNode(mainThreadNodes, node);
