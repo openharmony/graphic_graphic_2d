@@ -873,7 +873,7 @@ std::unique_ptr<RSPropertyDrawable> RSBackgroundDrawable::Generate(const RSPrope
     if (isTransparent) {
         paint.setColor(bgColor.AsArgbInt());
     }
-    const auto& bgShader = properties.GetBackgroundShader();
+    auto bgShader = properties.GetBackgroundShader();
     if (bgShader) {
         paint.setShader(bgShader->GetSkShader());
     }

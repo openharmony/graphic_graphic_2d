@@ -153,7 +153,7 @@ const std::vector<RSPropertyDrawable::DrawableGenerator> RSPropertyDrawable::Dra
     // In Bounds Clip
     nullptr,                                                              // SAVE_BOUNDS,
     nullptr,                                                              // CLIP_TO_BOUNDS,
-    nullptr,                                                              // BACKGROUND,
+    RSBackgroundDrawable::Generate,                                       // BACKGROUND,
     RSBackgroundFilterDrawable::Generate,                                 // BACKGROUND_FILTER,
     RSEffectDataApplyDrawable::Generate,                                 // USE_EFFECT
     CustomModifierAdapter<RSModifierType::BACKGROUND_STYLE>,              // ENV_FOREGROUND_COLOR

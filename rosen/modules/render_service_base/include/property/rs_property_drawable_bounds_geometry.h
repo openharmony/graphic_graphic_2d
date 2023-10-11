@@ -355,7 +355,7 @@ private:
 // Background
 class RSBackgroundDrawable : public RSPropertyDrawable {
 public:
-    explicit RSBackgroundDrawable(const std::shared_ptr<RSShader>& bgShader, bool isTransparent, SkPaint&& paint)
+    explicit RSBackgroundDrawable(std::shared_ptr<RSShader>& bgShader, bool isTransparent, SkPaint&& paint)
         : bgShader_(bgShader), isTransparent_(isTransparent), paint_(std::move(paint))
     {}
     ~RSBackgroundDrawable() override = default;
@@ -364,7 +364,7 @@ public:
     static std::unique_ptr<RSPropertyDrawable> Generate(const RSPropertyDrawableGenerateContext& context);
 
 private:
-    const std::shared_ptr<RSShader>& bgShader_;
+    std::shared_ptr<RSShader> bgShader_ = nullptr;
     bool isTransparent_ = false;
     SkPaint paint_;
     static bool forceBgAntiAlias_;
