@@ -2274,9 +2274,9 @@ void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFi
                 float top = position.y_;
                 float right = position.x_ + imageSize.x_ * scale;
                 float bottom = position.y_ + imageSize.y_ * scale;
+#ifndef USE_ROSEN_DRAWING
                 canvas.save();
                 canvas.translate(position.x_, position.y_);
-#ifndef USE_ROSEN_DRAWING
                 canvas.rotate(particles[i]->GetSpin(), imageSize.x_ * scale / 2.f, imageSize.y_ * scale / 2.f);
 #else
                 canvas.Save();

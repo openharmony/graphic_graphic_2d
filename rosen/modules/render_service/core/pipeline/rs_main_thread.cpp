@@ -305,7 +305,7 @@ void RSMainThread::Init()
     }
     int32_t maxResources = 0;
     size_t maxResourcesSize = 0;
-    gpuContext->GetResourceCacheLimits(maxResources, maxResourcesSize);
+    gpuContext->GetResourceCacheLimits(&maxResources, &maxResourcesSize);
     if (maxResourcesSize > 0) {
         gpuContext->SetResourceCacheLimits(cacheLimitsTimes * maxResources, cacheLimitsTimes * maxResourcesSize);
     } else {
@@ -1948,12 +1948,14 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
         if (gpuContext == nullptr) {
             return;
         }
-        gpuContext->FlushAndSubmit(true);
+        gpuContext->Flush();
+        SkGraphics::PurgeAllCaches(); // clear cpu cache
         if (!IsResidentProcess(remotePid)) {
             ReleaseExitSurfaceNodeAllGpuResource(gpuContext);
         } else {
             RS_LOGW("this pid:%{public}d is resident process, no need release gpu resource", remotePid);
         }
+        gpuContext->FlushAndSubmit(true);
 #endif // USE_ROSEN_DRAWING
         lastCleanCacheTimestamp_ = timestamp_;
 #endif

@@ -12,7 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#ifndef RS_SKIA_MEMORY_TRACER_H
+#define RS_SKIA_MEMORY_TRACER_H
 #include <unordered_map>
 #include <vector>
 
@@ -87,3 +88,4 @@ private:
 };
 
 } // namespace OHOS::Rosen
+#endif

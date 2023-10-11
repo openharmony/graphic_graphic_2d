@@ -101,6 +101,8 @@ private:
     static void DumpAllGpuInfo(DfxString& log, const GrContext* grContext);
 #endif
 #else
+    static void DumpGpuCache(DfxString& log, const Drawing::GPUContext* gpuContext,
+        Drawing::GPUResourceTag* tag, std::string& name);
     static void DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* grContext);
 #endif
     //jemalloc info

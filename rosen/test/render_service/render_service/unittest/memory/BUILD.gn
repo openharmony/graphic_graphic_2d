@@ -26,9 +26,13 @@ group("unittest") {
 ohos_unittest("RenderServiceMemoryTest") {
   module_out_path = module_output_path
   sources = [ "rs_skia_memory_tracer_test.cpp" ]
-  include_dirs = [ "./../../../../../modules/render_service/core" ]
+  include_dirs = [
+    "./../../../../../modules/2d_graphics",
+    "./../../../../../modules/render_service/core",
+  ]
 
   deps = [
+    "./../../../../../modules/2d_graphics:2d_graphics",
     "./../../../../../modules/render_service:librender_service",
     "//third_party/googletest:gtest_main",
   ]
