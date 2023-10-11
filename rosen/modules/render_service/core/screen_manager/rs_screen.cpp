@@ -18,6 +18,7 @@
 #include <cinttypes>
 
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 #include "string_utils.h"
 #include "hisysevent.h"
 
@@ -242,6 +243,7 @@ void RSScreen::SetPowerStatus(uint32_t powerStatus)
     }
 
     RS_LOGD("RSScreen %{public}s SetPowerStatus, status is %{public}u", __func__, powerStatus);
+    RS_TRACE_NAME_FMT("Screen_%llu SetPowerStatus %u", id_, powerStatus);
     if (hdiScreen_->SetScreenPowerStatus(static_cast<GraphicDispPowerStatus>(powerStatus)) < 0) {
         return;
     }
