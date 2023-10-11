@@ -76,7 +76,9 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyl
             return 1;
         }
 
-        GenNewBoundryByWidth(cgs, boundaries);
+        if (ys.wordBreakType != WordBreakType::NORMAL) {
+            GenNewBoundryByWidth(cgs, boundaries);
+        }
         GenNewBoundryByHardBreak(cgs, boundaries);
         GenNewBoundryByTypeface(cgs, boundaries);
         GenNewBoundryByQuote(cgs, boundaries);
@@ -294,7 +296,8 @@ void TextBreaker::BreakWord(const CharGroups &wordcgs, const TypographyStyle &ys
         LOGEX_FUNC_LINE_DEBUG() << "Now: [" << i << "] '" << TextConverter::ToStr(cg.chars) << "'"
             << " preBreak_: " << preBreak_ << ", postBreak_: " << postBreak_;
 
-        const auto &breakType = ys.wordBreakType;
+        const auto &breakType = ys.wordBreakType == WordBreakType::NORMAL ?
+            WordBreakType::BREAK_WORD : ys.wordBreakType;
         bool isBreakAll = (breakType == WordBreakType::BREAK_ALL);
         bool isBreakWord = (breakType == WordBreakType::BREAK_WORD);
         bool isFinalCharGroup = (i == wordcgs.GetNumberOfCharGroup() - 1);
