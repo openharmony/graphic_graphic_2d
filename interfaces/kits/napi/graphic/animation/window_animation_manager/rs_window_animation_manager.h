@@ -22,6 +22,11 @@
 
 #include "rs_window_animation_controller.h"
 
+#include "napi/native_api.h"
+
+#include "rs_window_animation_target.h"
+
+#include "rs_window_animation_finished_callback.h"
 namespace OHOS {
 namespace Rosen {
 class RSWindowAnimationManager final {
@@ -29,22 +34,22 @@ public:
     RSWindowAnimationManager() = default;
     ~RSWindowAnimationManager() = default;
 
-    static NativeValue* Init(NativeEngine* engine, NativeValue* exportObj);
+    static napi_value Init(napi_env env, napi_value exportObj);
 
-    static void Finalizer(NativeEngine* engine, void* data, void* hint);
+    static void Finalizer(napi_env env, void* data, void* hint);
 
-    static NativeValue* SetController(NativeEngine* engine, NativeCallbackInfo* info);
+    static napi_value SetController(napi_env env, napi_callback_info info);
 
-    static NativeValue* MinimizeWindowWithAnimation(NativeEngine* engine, NativeCallbackInfo* info);
+    static napi_value MinimizeWindowWithAnimation(napi_env env, napi_callback_info info);
 
-    static NativeValue* GetWindowAnimationTargets(NativeEngine* engine, NativeCallbackInfo* info);
+    static napi_value GetWindowAnimationTargets(napi_env env, napi_callback_info info);
 
 private:
-    NativeValue* OnSetController(NativeEngine& engine, NativeCallbackInfo& info);
+    napi_value OnSetController(napi_env env, napi_callback_info info);
 
-    NativeValue* OnMinimizeWindowWithAnimation(NativeEngine& engine, NativeCallbackInfo& info);
+    napi_value OnMinimizeWindowWithAnimation(napi_env env, napi_callback_info info);
 
-    NativeValue* OnGetWindowAnimationTargets(NativeEngine& engine, NativeCallbackInfo& info);
+    napi_value OnGetWindowAnimationTargets(napi_env env, napi_callback_info info);
 };
 } // namespace Rosen
 } // namespace OHOS

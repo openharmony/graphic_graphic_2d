@@ -34,15 +34,17 @@ constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_THREE = 3;
 thread_local std::unique_ptr<NativeReference> jsController_ = nullptr;
 
-RSWindowAnimationController::RSWindowAnimationController(NativeEngine& engine)
-    : engine_(engine),
+RSWindowAnimationController::RSWindowAnimationController(napi_env env)
+    : env_(env),
     handler_(std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner()))
 {}
 
-void RSWindowAnimationController::SetJsController(NativeValue* jsController)
+void RSWindowAnimationController::SetJsController(napi_value jsController)
 {
     WALOGD("SetJsController.");
-    jsController_ = std::unique_ptr<NativeReference>(engine_.CreateReference(jsController, ARGC_ONE));
+    napi_ref ref = nullptr;
+    napi_create_reference(env_, jsController, ARGC_ONE, &ref);
+    jsController_ = std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference*>(ref));
 }
 
 void RSWindowAnimationController::OnStartApp(StartingAppType type,
@@ -274,9 +276,9 @@ void RSWindowAnimationController::HandleOnStartApp(StartingAppType type,
     const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
 {
     WALOGD("Handle on start app.");
-    NativeValue* argv[] = {
-        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, startingWindowTarget),
-        RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(engine_, finishedCallback),
+    napi_value argv[] = {
+        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(env_, startingWindowTarget),
+        RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(env_, finishedCallback),
     };
 
     switch (type) {
@@ -300,10 +302,10 @@ void RSWindowAnimationController::HandleOnAppTransition(const sptr<RSWindowAnima
     const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
 {
     WALOGD("Handle on app transition.");
-    NativeValue* argv[] = {
-        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, fromWindowTarget),
-        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, toWindowTarget),
-        RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(engine_, finishedCallback),
+    napi_value argv[] = {
+        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(env_, fromWindowTarget),
+        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(env_, toWindowTarget),
+        RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(env_, finishedCallback),
     };
     CallJsFunction("onAppTransition", argv, ARGC_THREE);
 }
@@ -313,10 +315,10 @@ void RSWindowAnimationController::HandleOnAppBackTransition(const sptr<RSWindowA
     const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
 {
     WALOGD("Handle on app back transition.");
-    NativeValue* argv[] = {
-        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, fromWindowTarget),
-        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, toWindowTarget),
-        RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(engine_, finishedCallback),
+    napi_value argv[] = {
+        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(env_, fromWindowTarget),
+        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(env_, toWindowTarget),
+        RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(env_, finishedCallback),
     };
     CallJsFunction("onAppBackTransition", argv, ARGC_THREE);
 }
@@ -325,9 +327,9 @@ void RSWindowAnimationController::HandleOnMinimizeWindow(const sptr<RSWindowAnim
     const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
 {
     WALOGD("Handle on minimize window.");
-    NativeValue* argv[] = {
-        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, minimizingWindowTarget),
-        RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(engine_, finishedCallback),
+    napi_value argv[] = {
+        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(env_, minimizingWindowTarget),
+        RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(env_, finishedCallback),
     };
     CallJsFunction("onMinimizeWindow", argv, ARGC_TWO);
 }
@@ -336,9 +338,9 @@ void RSWindowAnimationController::HandleOnCloseWindow(const sptr<RSWindowAnimati
     const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
 {
     WALOGD("Handle on close window.");
-    NativeValue* argv[] = {
-        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, closingWindowTarget),
-        RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(engine_, finishedCallback),
+    napi_value argv[] = {
+        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(env_, closingWindowTarget),
+        RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(env_, finishedCallback),
     };
     CallJsFunction("onCloseWindow", argv, ARGC_TWO);
 }
@@ -346,8 +348,8 @@ void RSWindowAnimationController::HandleOnCloseWindow(const sptr<RSWindowAnimati
 void RSWindowAnimationController::HandleOnScreenUnlock(const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
 {
     WALOGD("Handle on screen unlock.");
-    NativeValue* argv[] = {
-        RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(engine_, finishedCallback),
+    napi_value argv[] = {
+        RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(env_, finishedCallback),
     };
     CallJsFunction("onScreenUnlock", argv, ARGC_ONE);
 }
@@ -358,9 +360,9 @@ void RSWindowAnimationController::HandleOnWindowAnimationTargetsUpdate(
     const std::vector<sptr<RSWindowAnimationTarget>>& floatingWindowTargets)
 {
     WALOGD("Handle on window animation targets update.");
-    NativeValue* argv[] = {
-        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, fullScreenWindowTarget),
-        RSWindowAnimationUtils::CreateJsWindowAnimationTargetArray(engine_, floatingWindowTargets),
+    napi_value argv[] = {
+        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(env_, fullScreenWindowTarget),
+        RSWindowAnimationUtils::CreateJsWindowAnimationTargetArray(env_, floatingWindowTargets),
     };
     CallJsFunction("onWindowAnimationTargetsUpdate", argv, ARGC_TWO);
 }
@@ -368,34 +370,38 @@ void RSWindowAnimationController::HandleOnWindowAnimationTargetsUpdate(
 void RSWindowAnimationController::HandleOnWallpaperUpdate(const sptr<RSWindowAnimationTarget>& wallpaperTarget)
 {
     WALOGD("Handle on wallpaper target update.");
-    NativeValue* argv[] = {
-        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(engine_, wallpaperTarget),
+    napi_value argv[] = {
+        RSWindowAnimationUtils::CreateJsWindowAnimationTarget(env_, wallpaperTarget),
     };
     CallJsFunction("onWallpaperUpdate", argv, ARGC_ONE);
 }
 
-void RSWindowAnimationController::CallJsFunction(const std::string& methodName, NativeValue* const* argv, size_t argc)
+void RSWindowAnimationController::CallJsFunction(const std::string& methodName, napi_value const* argv, size_t argc)
 {
     WALOGD("Call js function:%{public}s.", methodName.c_str());
     if (jsController_ == nullptr) {
         WALOGE("JsController is null!");
         return;
     }
+    
+    auto jsController_get = jsController_->Get();
+    napi_ref ref = reinterpret_cast<napi_ref>(jsController_get);
+    napi_value jsControllerValue = nullptr;
+    napi_get_reference_value(env_, ref, &jsControllerValue);
 
-    auto jsControllerValue = jsController_->Get();
-    auto jsControllerObj = ConvertNativeValueTo<NativeObject>(jsControllerValue);
-    if (jsControllerObj == nullptr) {
-        WALOGE("JsControllerObj is null!");
+    if (jsControllerValue == nullptr) {
+        WALOGE("jsControllerValue is null!");
         return;
     }
 
-    auto method = jsControllerObj->GetProperty(methodName.c_str());
+    napi_value method = nullptr;
+    napi_get_named_property(env_, jsControllerValue, methodName.c_str(), &method);
     if (method == nullptr) {
         WALOGE("Failed to get method from object!");
         return;
     }
 
-    engine_.CallFunction(jsControllerValue, method, argv, argc);
+    napi_call_function(env_, jsControllerValue, method, argc, argv, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

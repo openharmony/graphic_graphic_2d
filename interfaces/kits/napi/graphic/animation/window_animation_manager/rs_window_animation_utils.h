@@ -19,6 +19,7 @@
 #include <functional>
 
 #include <native_engine/native_engine.h>
+#include "napi/native_api.h"
 
 #include "rs_window_animation_finished_callback.h"
 #include "rs_window_animation_target.h"
@@ -27,18 +28,22 @@ namespace OHOS {
 namespace Rosen {
 class RSWindowAnimationUtils {
 public:
-    static NativeValue* CreateJsWindowAnimationTarget(NativeEngine& engine,
+    static napi_value CreateJsWindowAnimationTarget(napi_env env,
         const sptr<RSWindowAnimationTarget>& target);
 
-    static NativeValue* CreateJsWindowAnimationTargetArray(NativeEngine& engine,
+    static napi_value CreateJsWindowAnimationTargetArray(napi_env env,
         const std::vector<sptr<RSWindowAnimationTarget>>& targets);
 
-    static NativeValue* CreateJsWindowAnimationFinishedCallback(
-        NativeEngine& engine, const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
+    static napi_value CreateJsWindowAnimationFinishedCallback(
+        napi_env env, const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback);
 
-    static NativeValue* CreateJsRRect(NativeEngine& engine, const RRect& rrect);
+    static napi_value CreateJsRRect(napi_env env, const RRect& rrect);
 
     static bool IsSystemApp();
+
+    static napi_value CreateNull(napi_env env);
+
+    static napi_value CreateUndefined(napi_env env);
 };
 } // namespace Rosen
 } // namespace OHOS
