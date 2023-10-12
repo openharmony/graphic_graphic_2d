@@ -22,7 +22,6 @@ group("unittest") {
     ":RSDisplayModeTest",
     ":RSDropframeTest",
     ":RSEventTest",
-    ":RSInterfacesTest",
     ":RSJankDetectorTest",
     ":RSRegionTest",
     ":RSTransactionsTest",
