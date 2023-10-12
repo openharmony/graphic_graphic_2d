@@ -25,15 +25,16 @@
 #include <rs_window_animation_stub.h>
 #include <rs_window_animation_target.h>
 #include "rs_window_animation_callback.h"
+#include "napi/native_api.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSWindowAnimationController : public RSWindowAnimationStub {
 public:
-    explicit RSWindowAnimationController(NativeEngine& engine);
+    explicit RSWindowAnimationController(napi_env env);
     virtual ~RSWindowAnimationController() = default;
 
-    void SetJsController(NativeValue* jsController);
+    void SetJsController(napi_value jsController);
 
     void OnStartApp(StartingAppType type, const sptr<RSWindowAnimationTarget>& startingWindowTarget,
         const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override;
@@ -87,9 +88,9 @@ private:
 
     void HandleOnWallpaperUpdate(const sptr<RSWindowAnimationTarget>& wallpaperTarget);
 
-    void CallJsFunction(const std::string& methodName, NativeValue* const* argv, size_t argc);
+    void CallJsFunction(const std::string& methodName, napi_value const* argv, size_t argc);
 
-    NativeEngine& engine_;
+    napi_env env_;
     std::shared_ptr<AppExecFwk::EventHandler> handler_;
 };
 } // namespace Rosen
