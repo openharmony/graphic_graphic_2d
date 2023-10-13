@@ -53,6 +53,7 @@ struct TypographyStyle {
 
     BreakStrategy breakStrategy_ = BreakStrategy::GREEDY;
     WordBreakType wordBreakType_ = WordBreakType::BREAK_WORD;
+    EllipsisModal ellipsisModal_ = EllipsisModal::TAIL;
 #else
     FontWeight fontWeight = FontWeight::W400;
     FontStyle fontStyle = FontStyle::NORMAL;

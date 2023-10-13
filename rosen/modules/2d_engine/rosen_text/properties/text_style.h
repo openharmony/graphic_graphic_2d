@@ -61,6 +61,11 @@ enum class TextBaseline {
     IDEOGRAPHIC,
 };
 
+enum class EllipsisModal {
+    HEAD = 0,
+    MIDDLE = 1,
+    TAIL = 2,
+};
 
 class FontFeatures {
 public:
@@ -104,6 +109,7 @@ public:
     double height_ = 1.0;
     bool hasHeightOverride_ = false;
     std::u16string ellipsis_;
+    EllipsisModal ellipsisModal_ = EllipsisModal::TAIL;
     std::string locale_;
     bool hasBackground_ = false;
     OHOS::Rosen::Drawing::Pen background_;

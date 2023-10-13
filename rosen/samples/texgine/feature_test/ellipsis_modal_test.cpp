@@ -36,7 +36,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 1,
-            .ellipsis = u"...",
+            .ellipsis = u"\u2026",
             .ellipsisModal = EllipsisModal::HEAD,
         },
         .title = "maxL:1,head",
@@ -46,7 +46,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 2,
-            .ellipsis = u"...",
+            .ellipsis = u"\u2026",
             .ellipsisModal = EllipsisModal::HEAD,
         },
         .title = "maxL:2,head",
@@ -56,7 +56,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 3,
-            .ellipsis = u"...",
+            .ellipsis = u"\u2026",
             .ellipsisModal = EllipsisModal::HEAD,
         },
         .title = "maxL:3, head",
@@ -66,7 +66,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 4,
-            .ellipsis = u"...",
+            .ellipsis = u"\u2026",
             .ellipsisModal = EllipsisModal::HEAD,
         },
         .title = "maxL:4, head",
@@ -76,7 +76,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 7,
-            .ellipsis = u"...",
+            .ellipsis = u"\u2026",
             .ellipsisModal = EllipsisModal::HEAD,
         },
         .title = "maxL:7, head",
@@ -86,7 +86,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 10,
-            .ellipsis = u"...",
+            .ellipsis = u"\u2026",
             .ellipsisModal = EllipsisModal::HEAD,
         },
         .title = "maxL:10, head",
@@ -96,7 +96,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 1,
-            .ellipsis = u"...",
+            .ellipsis = u"\u2026",
             .ellipsisModal = EllipsisModal::MIDDLE,
         },
         .title = "maxL:1,mid",
@@ -105,7 +105,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 2,
-            .ellipsis = u"...",
+            .ellipsis = u"\u2026",
             .ellipsisModal = EllipsisModal::MIDDLE,
         },
         .title = "maxL:2,mid",
@@ -115,7 +115,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 3,
-            .ellipsis = u"...",
+            .ellipsis = u"\u2026",
             .ellipsisModal = EllipsisModal::MIDDLE,
         },
         .title = "maxL:3,mid",
@@ -125,7 +125,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 4,
-            .ellipsis = u"...",
+            .ellipsis = u"\u2026",
             .ellipsisModal = EllipsisModal::MIDDLE,
         },
         .title = "maxL:4,mid",
@@ -135,7 +135,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 7,
-            .ellipsis = u"...",
+            .ellipsis = u"\u2026",
             .ellipsisModal = EllipsisModal::MIDDLE,
         },
         .title = "maxL:7,mid",
@@ -145,7 +145,7 @@ struct EllipsisModalInfo {
         .span = TEXT,
         .tpStyle = {
             .maxLines = 10,
-            .ellipsis = u"...",
+            .ellipsis = u"\u2026",
             .ellipsisModal = EllipsisModal::MIDDLE,
         },
         .title = "maxL:10,mid",

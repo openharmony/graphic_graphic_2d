@@ -195,6 +195,24 @@ txt::TextDirection RosenConvertTxtTextDirection(TextDirection textDirection)
     return txtTextDirection;
 }
 
+txt::EllipsisModal RosenConvertTxtTextEllipsisModal(EllipsisModal ellipsisModal)
+{
+    txt::EllipsisModal txtEllipsisModal;
+    switch (ellipsisModal) {
+        case EllipsisModal::HEAD:
+            txtEllipsisModal = txt::EllipsisModal::HEAD;
+            break;
+        case EllipsisModal::MIDDLE:
+            txtEllipsisModal = txt::EllipsisModal::MIDDLE;
+            break;
+        case EllipsisModal::TAIL:
+        default:
+            txtEllipsisModal = txt::EllipsisModal::TAIL;
+            break;
+    }
+    return txtEllipsisModal;
+}
+
 txt::TextAlign RosenConvertTxtTextAlign(TextAlign textAlign)
 {
     txt::TextAlign txtTextAlign;
@@ -348,6 +366,7 @@ void RosenConvertTypographyStyle(const TypographyStyle& typographyStyle, txt::Pa
     txtParagraphStyle.text_direction = RosenConvertTxtTextDirection(typographyStyle.textDirection_);
     txtParagraphStyle.max_lines = typographyStyle.maxLines_;
     txtParagraphStyle.ellipsis = typographyStyle.ellipsis_;
+    txtParagraphStyle.ellipsisModal = RosenConvertTxtTextEllipsisModal(typographyStyle.ellipsisModal_);
     txtParagraphStyle.locale = typographyStyle.locale_;
     txtParagraphStyle.break_strategy = RosenConverMinkinBreakStrategy(typographyStyle.breakStrategy_);
     txtParagraphStyle.word_break_type = RosenConverMinkinWordBreakType(typographyStyle.wordBreakType_);

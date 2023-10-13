@@ -73,6 +73,7 @@ public:
     TextDirection textDirection_ = TextDirection::LTR;
     size_t maxLines_ = std::numeric_limits<size_t>::max();
     std::u16string ellipsis_;
+    EllipsisModal ellipsisModal_ = EllipsisModal::TAIL;
     std::string locale_;
 
     BreakStrategy breakStrategy_ = BreakStrategy::BreakStrategyGreedy;

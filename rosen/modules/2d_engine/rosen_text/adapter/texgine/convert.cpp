@@ -42,6 +42,7 @@ TextEngine::TypographyStyle Convert(const TypographyStyle &style)
         .wordBreakType_ = Convert(style.wordBreakType_),
         .align_ = Convert(style.textAlign_),
         .direction_ = Convert(style.textDirection_),
+        .ellipsisModal_ = Convert(style.ellipsisModal_),
         .useLineStyle_ = style.useLineStyle_,
         .lineStyle_ = {
             .only_ = style.lineStyleOnly_,
