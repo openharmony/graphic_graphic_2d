@@ -32,7 +32,7 @@ void FontProvidersGenerateFontCollectionFuzzTest(const uint8_t* data, size_t siz
     g_size = size;
     g_pos = 0;
 
-    std::unique_ptr<FontProviders> fontProviders = FontProviders::Create();
+    std::make_shared<FontProviders> fontProviders = FontProviders::Create();
     if(fontProviders == nullptr) {
         return;
     }
