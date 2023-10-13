@@ -48,7 +48,6 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyl
 #ifdef LOGGER_ENABLE_SCOPE
     ScopedTrace scope("TextBreaker::WordBreak");
 #endif
-    LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "WordBreak");
     std::vector<VariantSpan> visitingSpans;
     std::swap(visitingSpans, spans);
     for (const auto &vspan : visitingSpans) {
@@ -76,19 +75,17 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyl
             return 1;
         }
 
-        GenNewBoundryByWidth(cgs, boundaries);
+        if (ys.wordBreakType != WordBreakType::NORMAL) {
+            GenNewBoundryByWidth(cgs, boundaries);
+        }
         GenNewBoundryByHardBreak(cgs, boundaries);
         GenNewBoundryByTypeface(cgs, boundaries);
         GenNewBoundryByQuote(cgs, boundaries);
 
-        LOGSCOPED(sl2, LOGEX_FUNC_LINE_DEBUG(), "TextBreaker::doWordBreak algo");
         preBreak_ = 0;
         postBreak_ = 0;
         for (auto &[start, end] : boundaries) {
             const auto &wordcgs = cgs.GetSubFromU16RangeAll(start, end);
-            std::stringstream ss;
-            ss << "u16range: [" << start << ", " << end << "), range: " << wordcgs.GetRange();
-            LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), ss.str());
             BreakWord(wordcgs, ys, xs, spans);
         }
     }
@@ -291,10 +288,8 @@ void TextBreaker::BreakWord(const CharGroups &wordcgs, const TypographyStyle &ys
             preBreak_ = postBreak_;
         }
 
-        LOGEX_FUNC_LINE_DEBUG() << "Now: [" << i << "] '" << TextConverter::ToStr(cg.chars) << "'"
-            << " preBreak_: " << preBreak_ << ", postBreak_: " << postBreak_;
-
-        const auto &breakType = ys.wordBreakType;
+        const auto &breakType = ys.wordBreakType == WordBreakType::NORMAL ?
+            WordBreakType::BREAK_WORD : ys.wordBreakType;
         bool isBreakAll = (breakType == WordBreakType::BREAK_ALL);
         bool isBreakWord = (breakType == WordBreakType::BREAK_WORD);
         bool isFinalCharGroup = (i == wordcgs.GetNumberOfCharGroup() - 1);
