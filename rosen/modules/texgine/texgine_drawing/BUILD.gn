@@ -67,6 +67,10 @@ ohos_shared_library("libtexgine_drawing") {
 
   deps = []
 
+  if (build_cross_platform_version) {
+    public_deps += [ "//foundation/appframework/icu_data:static_icudata" ]
+  }
+
   innerapi_tags = [ "platformsdk" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
