@@ -41,9 +41,9 @@ bool CheckColorSpaceTypeRange(napi_env env, const ApiColorSpaceType csType)
 {
     if (csType >= ApiColorSpaceType::TYPE_END) {
         CMLOGE("[NAPI]ColorSpaceType is invalid: %{public}u", csType);
-        napi_throw_error(env,
-            std::to_string(static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM))).c_str(),
-            "Parameter check fails. ApiColorSpaceType's value is out of range.");
+        napi_throw(env,
+            CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM)),
+            "Parameter check fails. ApiColorSpaceType's value is out of range."));
         return false;
     }
     if (csType == ApiColorSpaceType::UNKNOWN || csType == ApiColorSpaceType::CUSTOM) {
@@ -51,9 +51,9 @@ bool CheckColorSpaceTypeRange(napi_env env, const ApiColorSpaceType csType)
         std::string errMsg = "Parameter value is abnormal. Cannot create color"
             " manager object using ApiColorSpaceType " +
             std::to_string(static_cast<int32_t>(ApiColorSpaceType::CUSTOM));
-        napi_throw_error(env,
-            std::to_string(static_cast<int>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_ENUM_USAGE))).c_str(),
-            errMsg.c_str());
+        napi_throw(env,
+            CreateJsError(env, static_cast<int>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_ENUM_USAGE)),
+            errMsg));
         return false;
     }
     return true;
@@ -79,24 +79,24 @@ napi_value JsColorSpaceManager::OnCreateColorSpace(napi_env env, napi_callback_i
         colorSpace = std::make_shared<ColorSpace>(JS_TO_NATIVE_COLOR_SPACE_NAME_MAP.at(csType));
     } else {
         if (argvSize == ARGC_ONE) {
-            napi_throw_error(env,
-                std::to_string(static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM))).c_str(),
-                "Parameter check fails. When there is only one parameter, its type should be ApiColorSpaceType");
+            napi_throw(env,
+                CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM)),
+                "Parameter check fails. When there is only one parameter, its type should be ApiColorSpaceType"));
             return object;
         }
         ColorSpacePrimaries primaries;
         double gamma = 0.0;
         napi_value nativePrimaries = argvArr[0];
         if (!ParseColorSpacePrimaries(env, nativePrimaries, primaries)) {
-            napi_throw_error(env,
-                std::to_string(static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM))).c_str(),
-                "Parameter check fails. The first parameter cannot be convert to ColorSpacePrimaries");
+            napi_throw(env,
+                CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM)),
+                "Parameter check fails. The first parameter cannot be convert to ColorSpacePrimaries"));
             return object;
         }
         if (!ConvertFromJsValue(env, argvArr[1], gamma)) {
-            napi_throw_error(env,
-                std::to_string(static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM))).c_str(),
-                "Parameter check fails. The second parameter cannot be convert to gamma(float)");
+            napi_throw(env,
+                CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM)),
+                "Parameter check fails. The second parameter cannot be convert to gamma(float)"));
             return object;
         }
         colorSpace = std::make_shared<ColorSpace>(primaries, static_cast<float>(gamma));
@@ -106,9 +106,9 @@ napi_value JsColorSpaceManager::OnCreateColorSpace(napi_env env, napi_callback_i
         CMLOGI("[NAPI]OnCreateColorSpace CreateJsColorSpaceObject is called");
         return CreateJsColorSpaceObject(env, colorSpace);
     }
-    napi_throw_error(env,
-        std::to_string(static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR))).c_str(),
-        "Parameter value is abnormal. Fail to create JsColorSpaceObject with input parameter(s).");
+    napi_throw(env,
+        CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR)),
+        "Parameter value is abnormal. Fail to create JsColorSpaceObject with input parameter(s)."));
     
     return object;
 }
