@@ -17,7 +17,6 @@
 #include <filesystem>
 #endif
 #include <fstream>
-#include <stdint.h>
 #include "c/drawing_register_font.h"
 
 #ifndef USE_GRAPHIC_TEXT_GINE
@@ -83,7 +82,6 @@ uint32_t OH_Drawing_RegisterFont(OH_Drawing_FontCollection* fontCollection, cons
 #else
     auto ret = StdFilesystemExists(path);
 #endif
-
     if (!ret) {
         return ERROR_FILE_NOT_EXISTS;
     }

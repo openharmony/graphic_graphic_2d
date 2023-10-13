@@ -24,10 +24,10 @@ ohos_ndk_headers("native_drawing_header") {
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include/c/drawing_font_collection.h",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include/c/drawing_path.h",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include/c/drawing_pen.h",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include/c/drawing_register_font.h",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include/c/drawing_text_declaration.h",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include/c/drawing_text_typography.h",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include/c/drawing_types.h",
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include/c/drawing_register_font.h",
   ]
 }
 
