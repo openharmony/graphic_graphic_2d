@@ -1387,5 +1387,20 @@ void RSSurfaceRenderNode::SetCacheSurfaceProcessedStatus(CacheProcessStatus cach
 {
     cacheProcessStatus_.store(cacheProcessStatus);
 }
+
+bool RSSurfaceRenderNode::HasOnlyOneRootNode() const
+{
+    if (GetChildrenCount() != 1) {
+        return false;
+    }
+
+    const auto child = GetChildren().front().lock();
+    if (!child || child->GetType() != RSRenderNodeType::ROOT_NODE || child->GetChildrenCount() > 0) {
+        return false;
+    }
+
+    return true;
+}
+
 } // namespace Rosen
 } // namespace OHOS

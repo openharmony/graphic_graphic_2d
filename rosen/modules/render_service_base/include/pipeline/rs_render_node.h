@@ -105,6 +105,11 @@ public:
         return id_;
     }
 
+    inline const std::list<WeakPtr> &GetChildren() const noexcept
+    {
+        return children_;
+    }
+
     // flag: isOnTheTree; instanceRootNodeId: displaynode or leash/appnode attached to
     // firstLevelNodeId: surfacenode for uiFirst to assign task; cacheNodeId: drawing cache rootnode attached to
     virtual void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
