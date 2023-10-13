@@ -11,21 +11,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/ohos.gni")
+import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-## Build libbootanimation_utils.so {{{
-config("libbootanimation_utils_config") {
-  include_dirs = [
-    "$graphic_2d_root/interfaces/inner_api/bootanimation",
-    "$graphic_2d_root/frameworks/bootanimation/include",
-  ]
+module_output_path = "graphic_2d/bootanimation"
+
+group("unittest") {
+  testonly = true
+
+  deps = [ ":bootanimation_test" ]
 }
 
-ohos_shared_library("libbootanimation_utils") {
-  public_configs = [ ":libbootanimation_utils_config" ]
+ohos_unittest("bootanimation_test") {
+  module_out_path = module_output_path
 
-  sources = [ "boot_animation_utils.cpp" ]
+  sources = [ "bootanimation_utils_test.cpp" ]
+
+  configs = [ ":bootanimation_test_config" ]
+
+  deps = [
+    "$graphic_2d_root:libbootanimation_utils",
+    "//third_party/googletest:gtest_main",
+  ]
 
   external_deps = [
     "c_utils:utils",
@@ -33,8 +40,19 @@ ohos_shared_library("libbootanimation_utils") {
     "init:libbegetutil",
   ]
 
-  innerapi_tags = [ "platformsdk" ]
-  part_name = "graphic_2d"
   subsystem_name = "graphic"
+  part_name = "graphic_2d"
 }
-## Build libbootanimation_utils.so }}}
+
+config("bootanimation_test_config") {
+  visibility = [ ":*" ]
+  include_dirs = []
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}

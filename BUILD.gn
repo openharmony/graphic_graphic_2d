@@ -33,6 +33,7 @@ group("graphic_common_test") {
   testonly = true
 
   public_deps = [
+    "frameworks/bootanimation/test:test",
     "frameworks/opengl_wrapper/test:test",
     "frameworks/surface/test:test",
     "frameworks/vulkan_layers/test:test",
