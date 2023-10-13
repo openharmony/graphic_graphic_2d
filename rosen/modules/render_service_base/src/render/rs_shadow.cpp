@@ -70,7 +70,7 @@ void RSShadow::SetIsFilled(bool isFilled)
     isFilled_ = isFilled;
 }
 
-Color RSShadow::GetColor() const
+const Color& RSShadow::GetColor() const
 {
     return color_;
 }

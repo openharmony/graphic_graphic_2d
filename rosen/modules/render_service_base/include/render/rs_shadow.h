@@ -48,7 +48,7 @@ public:
     void SetMask(bool imageMask);
     void SetIsFilled(bool isFilled);
 
-    Color GetColor() const;
+    const Color& GetColor() const;
     float GetOffsetX() const;
     float GetOffsetY() const;
     float GetAlpha() const;

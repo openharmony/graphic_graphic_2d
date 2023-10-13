@@ -355,19 +355,50 @@ private:
 // Background
 class RSBackgroundDrawable : public RSPropertyDrawable {
 public:
-    explicit RSBackgroundDrawable(std::shared_ptr<RSShader>& bgShader, bool isTransparent, SkPaint&& paint)
-        : bgShader_(bgShader), isTransparent_(isTransparent), paint_(std::move(paint))
-    {}
+    explicit RSBackgroundDrawable(bool hasRoundedCorners) {
+        paint_.setAntiAlias(forceBgAntiAlias_ || hasRoundedCorners);
+    }
     ~RSBackgroundDrawable() override = default;
-    void Draw(RSPropertyDrawableRenderContext& context) override;
     static void setForceBgAntiAlias(bool antiAlias);
-    static std::unique_ptr<RSPropertyDrawable> Generate(const RSPropertyDrawableGenerateContext& context);
+    void Draw(RSPropertyDrawableRenderContext& context) override;
 
-private:
-    std::shared_ptr<RSShader> bgShader_ = nullptr;
-    bool isTransparent_ = false;
+protected:
     SkPaint paint_;
     static bool forceBgAntiAlias_;
+};
+
+class RSBackgroundColorDrawable : public RSBackgroundDrawable {
+public:
+    explicit RSBackgroundColorDrawable(bool hasRoundedCorners, SkColor color) : RSBackgroundDrawable(hasRoundedCorners)
+    {
+        paint_.setColor(color);
+    }
+    ~RSBackgroundColorDrawable() override = default;
+    static std::unique_ptr<RSPropertyDrawable> Generate(const RSPropertyDrawableGenerateContext& context);
+};
+
+class RSBackgroundShaderDrawable : public RSBackgroundDrawable {
+public:
+    explicit RSBackgroundShaderDrawable(bool hasRoundedCorners, sk_sp<SkShader> filter)
+        : RSBackgroundDrawable(hasRoundedCorners)
+    {
+        paint_.setShader(std::move(filter));
+    }
+    ~RSBackgroundShaderDrawable() override = default;
+    static std::unique_ptr<RSPropertyDrawable> Generate(const RSPropertyDrawableGenerateContext& context);
+};
+
+class RSBackgroundImageDrawable : public RSBackgroundDrawable {
+public:
+    explicit RSBackgroundImageDrawable(bool hasRoundedCorners, std::shared_ptr<RSImage> image)
+        : RSBackgroundDrawable(hasRoundedCorners), image_(std::move(image))
+    {}
+    ~RSBackgroundImageDrawable() override = default;
+    static std::unique_ptr<RSPropertyDrawable> Generate(const RSPropertyDrawableGenerateContext& context);
+    void Draw(RSPropertyDrawableRenderContext& context) override;
+
+private:
+    std::shared_ptr<RSImage> image_;
 };
 
 // ============================================================================

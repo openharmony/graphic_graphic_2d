@@ -41,6 +41,7 @@ constexpr int32_t INDEX_14 = 14;
 constexpr int32_t INDEX_18 = 18;
 
 const Vector4f Vector4fZero { 0.f, 0.f, 0.f, 0.f };
+const auto EMPTY_RECT = RectF();
 constexpr float SPHERIZE_VALID_EPSILON = 0.001f; // used to judge if spherize valid
 
 using ResetPropertyFunc = void (*)(RSProperties* prop);
@@ -734,7 +735,7 @@ void RSProperties::SetBackgroundColor(Color color)
     contentDirty_ = true;
 }
 
-Color RSProperties::GetBackgroundColor() const
+const Color& RSProperties::GetBackgroundColor() const
 {
     return decoration_ ? decoration_->backgroundColor_ : RgbPalette::Transparent();
 }
@@ -1095,9 +1096,10 @@ void RSProperties::SetShadowIsFilled(bool shadowIsFilled)
     contentDirty_ = true;
 }
 
-Color RSProperties::GetShadowColor() const
+const Color& RSProperties::GetShadowColor() const
 {
-    return shadow_ ? shadow_->GetColor() : Color::FromArgbInt(DEFAULT_SPOT_COLOR);
+    static const auto DEFAULT_SPOT_COLOR_VALUE = Color::FromArgbInt(DEFAULT_SPOT_COLOR);
+    return shadow_ ? shadow_->GetColor() : DEFAULT_SPOT_COLOR_VALUE;
 }
 
 float RSProperties::GetShadowOffsetX() const
@@ -1261,9 +1263,9 @@ RectF RSProperties::GetFrameRect() const
     return {0, 0, GetFrameWidth(), GetFrameHeight()};
 }
 
-RectF RSProperties::GetBgImageRect() const
+const RectF& RSProperties::GetBgImageRect() const
 {
-    return decoration_ ? decoration_->bgImageRect_ : RectF();
+    return decoration_ ? decoration_->bgImageRect_ : EMPTY_RECT;
 }
 
 void RSProperties::SetVisible(bool visible)

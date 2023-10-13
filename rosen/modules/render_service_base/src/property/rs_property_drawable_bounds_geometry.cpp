@@ -806,8 +806,7 @@ void RSPixelStretchDrawable::Draw(RSPropertyDrawableRenderContext& context)
         paint.setShader(image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, &scaleMat));
 #endif
         canvas->drawRect(
-            SkRect::MakeXYWH(-pixelStretch_.x_, -pixelStretch_.y_, scaledBounds.width(), scaledBounds.height()),
-            paint);
+            SkRect::MakeXYWH(-pixelStretch_.x_, -pixelStretch_.y_, scaledBounds.width(), scaledBounds.height()), paint);
     } else {
         scaleMat.setScale(scaledBounds.width() / bounds_.width() * scaleMat.getScaleX(),
             scaledBounds.height() / bounds_.height() * scaleMat.getScaleY());
@@ -834,50 +833,66 @@ std::unique_ptr<RSPropertyDrawable> RSPixelStretchDrawable::Generate(const RSPro
     return std::make_unique<RSPixelStretchDrawable>(pixelStretch.value(), bounds);
 }
 
-void RSBackgroundDrawable::Draw(RSPropertyDrawableRenderContext& context)
-{
-    auto& canvas = context.canvas_;
-    auto& properties = context.properties_;
-    // only disable antialias when background is rect and g_forceBgAntiAlias is false
-    bool antiAlias = forceBgAntiAlias_ || !properties.GetCornerRadius().IsZero();
-    // paint backgroundColor
-    paint_.setAntiAlias(antiAlias);
-    if (isTransparent_) {
-        canvas->drawRRect(RSPropertiesPainter::RRect2SkRRect(properties.GetInnerRRect()), paint_);
-    }
-    if (bgShader_) {
-        canvas->drawPaint(paint_);
-    }
-    if (const auto& bgImage = properties.GetBgImage()) {
-        auto boundsRect = RSPropertiesPainter::Rect2SkRect(properties.GetBoundsRect());
-        bgImage->SetDstRect(properties.GetBgImageRect());
-#ifdef NEW_SKIA
-        bgImage->CanvasDrawImage(*canvas, boundsRect, SkSamplingOptions(), paint_, true);
-#else
-        bgImage->CanvasDrawImage(*canvas, boundsRect, paint_, true);
-#endif
-    }
-}
-
 void RSBackgroundDrawable::setForceBgAntiAlias(bool forceBgAntiAlias)
 {
     forceBgAntiAlias_ = forceBgAntiAlias;
 }
 
-std::unique_ptr<RSPropertyDrawable> RSBackgroundDrawable::Generate(const RSPropertyDrawableGenerateContext& context)
+void RSBackgroundDrawable::Draw(RSPropertyDrawableRenderContext& context)
+{
+    auto& canvas = context.canvas_;
+    canvas->drawPaint(paint_);
+}
+
+std::unique_ptr<RSPropertyDrawable> RSBackgroundColorDrawable::Generate(
+    const RSPropertyDrawableGenerateContext& context)
 {
     auto& properties = context.properties_;
-    SkPaint paint;
-    auto bgColor = properties.GetBackgroundColor();
-    bool isTransparent = (bgColor != RgbPalette::Transparent());
+    auto& bgColor = properties.GetBackgroundColor();
+    bool isTransparent = (bgColor == RgbPalette::Transparent());
     if (isTransparent) {
-        paint.setColor(bgColor.AsArgbInt());
+        return nullptr;
     }
+    bool hasRoundedCorners = !properties.GetCornerRadius().IsZero();
+    return std::make_unique<RSBackgroundColorDrawable>(hasRoundedCorners, bgColor.AsArgbInt());
+}
+
+std::unique_ptr<RSPropertyDrawable> RSBackgroundShaderDrawable::Generate(
+    const RSPropertyDrawableGenerateContext& context)
+{
+    auto& properties = context.properties_;
     auto bgShader = properties.GetBackgroundShader();
-    if (bgShader) {
-        paint.setShader(bgShader->GetSkShader());
+    if (!bgShader) {
+        return nullptr;
     }
-    return std::make_unique<RSBackgroundDrawable>(bgShader, isTransparent, std::move(paint));
+    bool hasRoundedCorners = !properties.GetCornerRadius().IsZero();
+    return std::make_unique<RSBackgroundShaderDrawable>(hasRoundedCorners, bgShader->GetSkShader());
+}
+
+std::unique_ptr<RSPropertyDrawable> RSBackgroundImageDrawable::Generate(
+    const RSPropertyDrawableGenerateContext& context)
+{
+    auto& properties = context.properties_;
+    const auto& bgImage = properties.GetBgImage();
+    if (!bgImage) {
+        return nullptr;
+    }
+    bool hasRoundedCorners = !properties.GetCornerRadius().IsZero();
+    bgImage->SetDstRect(properties.GetBgImageRect());
+    return std::make_unique<RSBackgroundImageDrawable>(hasRoundedCorners, bgImage);
+}
+
+void RSBackgroundImageDrawable::Draw(RSPropertyDrawableRenderContext& context)
+{
+    auto& canvas = context.canvas_;
+    auto& properties = context.properties_;
+
+    auto boundsRect = RSPropertiesPainter::Rect2SkRect(properties.GetBoundsRect());
+#ifdef NEW_SKIA
+    image_->CanvasDrawImage(*canvas, boundsRect, SkSamplingOptions(), paint_, true);
+#else
+    image_->CanvasDrawImage(*canvas, boundsRect, paint_, true);
+#endif
 }
 
 void RSEffectDataGenerateDrawable::Draw(RSPropertyDrawableRenderContext& context)
