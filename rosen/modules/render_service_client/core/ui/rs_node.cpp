@@ -161,6 +161,12 @@ void RSNode::AddKeyFrame(float fraction, const PropertyCallback& propertyCallbac
     implicitAnimator->EndImplicitKeyFrameAnimation();
 }
 
+bool RSNode::IsImplicitAnimationOpen()
+{
+    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+    return implicitAnimator && implicitAnimator->NeedImplicitAnimation();
+}
+
 std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const RSAnimationTimingProtocol& timingProtocol,
     const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback,
     const std::function<void()>& finishCallback, const std::function<void()>& repeatCallback)
