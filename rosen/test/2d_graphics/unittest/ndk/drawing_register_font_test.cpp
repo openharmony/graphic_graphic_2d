@@ -27,15 +27,15 @@ namespace OHOS {
 static const char* FONT_FAMILY = "HarmonyOS_SansSC_VF";
 static const char* FONT_PATH = "/data/HarmonyOS_SansSC_VF.ttf";
 
-class OH_Drawing_RegisterFontTest : public testing::Test {
+class NativeDrawingRegisterFontTest : public testing::Test {
 };
 
 /*
- * @tc.name: OH_Drawing_RegisterFontTest001
+ * @tc.name: NativeDrawingRegisterFontTest001
  * @tc.desc: test for register font
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_RegisterFontTest, OH_Drawing_RegisterFontTest001, TestSize.Level1)
+HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest001, TestSize.Level1)
 {
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
     uint32_t errorCode = OH_Drawing_RegisterFont(fontCollection, FONT_FAMILY, FONT_PATH);

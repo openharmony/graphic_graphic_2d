@@ -56,6 +56,22 @@ extern "C" {
  */
 uint32_t OH_Drawing_RegisterFont(OH_Drawing_FontCollection*, const char* fontFamily, const char* familySrc);
 
+/**
+ * @brief Defines an <b>OH_Drawing_RegisterFontBuffer</b>, which is used to register a customized font in the
+ *        FontManager.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_FontCollection Indicates the pointer to an <b>OH_Drawing_FontCollection</b> object.
+ * @param fontFamily Indicates the family-name of the font which need to register.
+ * @param fontBuffer Indicates the buffer of the font file which need to register.
+ * @param length Indicates the length of the font file which need to register.
+ * @return error code.
+ * @since 11
+ * @version 1.0
+ */
+uint32_t OH_Drawing_RegisterFontBuffer(OH_Drawing_FontCollection*, const char* fontFamily, void* fontBuffer,
+    size_t length);
+
 #ifdef __cplusplus
 }
 #endif

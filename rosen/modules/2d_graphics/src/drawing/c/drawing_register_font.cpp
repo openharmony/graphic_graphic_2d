@@ -37,6 +37,8 @@ using namespace OHOS::Rosen;
 #define ERROR_READ_FILE_FAILED 3
 #define ERROR_SEEK_FAILED 4
 #define ERROR_GET_SIZE_FAILED 5
+#define ERROR_NULL_FONT_BUFFER 6
+#define ERROR_BUFFER_SIZE_ZERO 7
 
 #ifdef BUILD_NON_SDK_VER
 static bool StdFilesystemExists(const std::string &p, std::error_code &ec)
@@ -120,5 +122,22 @@ uint32_t OH_Drawing_RegisterFont(OH_Drawing_FontCollection* fontCollection, cons
     const std::string familyName = fontFamily;
     const uint8_t* data = reinterpret_cast<uint8_t*>(buffer.get());
     LoadFromFontCollection(fontCollection, familyName, data, size);
+    return 0;
+}
+
+uint32_t OH_Drawing_RegisterFontBuffer(OH_Drawing_FontCollection* fontCollection, const char* fontFamily,
+    void* fontBuffer, size_t length)
+{
+    if (fontBuffer == nullptr) {
+        return ERROR_NULL_FONT_BUFFER;
+    }
+
+    if (length == 0) {
+        return ERROR_BUFFER_SIZE_ZERO;
+    }
+
+    const std::string familyName = fontFamily;
+    const uint8_t* data = reinterpret_cast<uint8_t*>(fontBuffer);
+    LoadFromFontCollection(fontCollection, familyName, data, length);
     return 0;
 }
