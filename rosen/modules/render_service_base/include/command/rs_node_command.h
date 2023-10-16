@@ -60,6 +60,7 @@ enum RSNodeCommandType : uint16_t {
     MARK_DRIVEN_RENDER_FRAME_PAINT_STATE,
     MARK_CONTENT_CHANGED,
     SET_DRAW_REGION,
+    SET_OUT_OF_PARENT,
 
     REGISTER_GEOMETRY_TRANSITION,
     UNREGISTER_GEOMETRY_TRANSITION,
@@ -96,6 +97,7 @@ public:
     static void MarkDrivenRenderFramePaintState(RSContext& context, NodeId nodeId, bool flag);
     static void MarkContentChanged(RSContext& context, NodeId nodeId, bool isChanged);
     static void SetDrawRegion(RSContext& context, NodeId nodeId, std::shared_ptr<RectF> rect);
+    static void SetOutOfParent(RSContext& context, NodeId nodeId, OutOfParentType outOfParent);
 
     static void RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId);
     static void UnregisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId);
@@ -196,6 +198,9 @@ ADD_COMMAND(RSMarkContentChanged,
 ADD_COMMAND(RSSetDrawRegion,
     ARG(RS_NODE, SET_DRAW_REGION, RSNodeCommandHelper::SetDrawRegion,
         NodeId, std::shared_ptr<RectF>))
+ADD_COMMAND(RSSetOutOfParent,
+    ARG(RS_NODE, SET_OUT_OF_PARENT, RSNodeCommandHelper::SetOutOfParent,
+        NodeId, OutOfParentType))
 
 ADD_COMMAND(RSRegisterGeometryTransitionNodePair,
     ARG(RS_NODE, REGISTER_GEOMETRY_TRANSITION, RSNodeCommandHelper::RegisterGeometryTransitionPair, NodeId, NodeId))

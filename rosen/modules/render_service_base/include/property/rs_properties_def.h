@@ -58,6 +58,12 @@ enum class ForegroundColorStrategyType {
     INVERT_BACKGROUNDCOLOR,
 };
 
+enum class OutOfParentType {
+    WITHIN = 0,
+    OUTSIDE,
+    UNKNOWN
+};
+
 class Decoration final {
 public:
     Decoration() {}

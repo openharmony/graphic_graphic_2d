@@ -1427,6 +1427,19 @@ void RSNode::UpdateUIFrameRateRange(const FrameRateRange& range)
     }
 }
 
+void RSNode::SetOutOfParent(OutOfParentType outOfParent)
+{
+    if (outOfParent != outOfParent_) {
+        outOfParent_ = outOfParent;
+
+        std::unique_ptr<RSCommand> command = std::make_unique<RSSetOutOfParent>(GetId(), outOfParent);
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, IsRenderServiceNode());
+        }
+    }
+}
+
 NodeId RSNode::GenerateId()
 {
     static pid_t pid_ = GetRealPid();

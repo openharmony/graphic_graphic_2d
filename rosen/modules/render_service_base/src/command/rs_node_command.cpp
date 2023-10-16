@@ -100,6 +100,15 @@ void RSNodeCommandHelper::SetDrawRegion(RSContext& context, NodeId nodeId, std::
     }
 }
 
+void RSNodeCommandHelper::SetOutOfParent(RSContext& context, NodeId nodeId, OutOfParentType outOfParent)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (node) {
+        node->SetOutOfParent(outOfParent);
+    }
+}
+
 void RSNodeCommandHelper::RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId)
 {
     auto& nodeMap = context.GetNodeMap();

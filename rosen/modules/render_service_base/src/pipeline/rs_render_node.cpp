@@ -2016,6 +2016,14 @@ const std::shared_ptr<RectF>& RSRenderNode::GetDrawRegion() const
 {
     return drawRegion_;
 }
+void RSRenderNode::SetOutOfParent(OutOfParentType outOfParent)
+{
+    outOfParent_ = outOfParent;
+}
+OutOfParentType RSRenderNode::GetOutOfParent() const
+{
+    return outOfParent_;
+}
 RSRenderNode::NodeGroupType RSRenderNode::GetNodeGroupType()
 {
     return nodeGroupType_;
