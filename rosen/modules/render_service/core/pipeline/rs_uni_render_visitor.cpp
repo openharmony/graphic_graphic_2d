@@ -149,8 +149,10 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     isCalcCostEnable_ = RSSystemParameters::GetCalcCostEnabled();
 #endif
 #if defined(RS_ENABLE_GL)
-    auto subThreadManager = RSSubThreadManager::Instance();
-    subThreadManager->Start(renderEngine_->GetRenderContext().get());
+    if (renderEngine_ && renderEngine_->GetRenderContext()) {
+        auto subThreadManager = RSSubThreadManager::Instance();
+        subThreadManager->Start(renderEngine_->GetRenderContext().get());
+    }
 #endif
     isUIFirst_ = RSMainThread::Instance()->IsUIFirstOn();
     isPhone_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
