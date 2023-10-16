@@ -140,6 +140,13 @@ int32_t HdiFramebufferSurface::ReleaseFramebuffer(
     return ret;
 }
 
+void HdiFramebufferSurface::ClearFrameBuffer()
+{
+    while (!availableBuffers_.empty()) {
+        availableBuffers_.pop();
+    }
+}
+
 void HdiFramebufferSurface::Dump(std::string &result)
 {
     if (consumerSurface_ != nullptr) {

@@ -65,6 +65,7 @@ public:
     void ClearFpsDump(std::string &result, const std::string &arg);
     void SetDirectClientCompEnableStatus(bool enableStatus);
     bool GetDirectClientCompEnableStatus() const;
+    GSError ClearFrameBuffer();
 
     RosenError InitDevice();
     /* only used for mock tests */
@@ -100,7 +101,6 @@ private:
 
     std::vector<sptr<SurfaceBuffer> > bufferCache_;
     uint32_t bufferCacheCountMax_ = 0;
-    uint32_t bufferCacheIndex_ = 0;
 
     int32_t CreateLayer(uint64_t surfaceId, const LayerInfoPtr &layerInfo);
     void DeletePrevLayers();

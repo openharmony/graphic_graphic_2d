@@ -96,6 +96,7 @@ namespace OHOS {
         sptr<SyncFence> syncFence = SyncFence::INVALID_FENCE;
         hdiOutput->ReleaseFramebuffer(syncFence);
         hdiOutput->SetLayerCompCapacity(layerCompositionCapacity);
+        hdiOutput->ClearFrameBuffer();
         hdiOutput->Dump(result);
         hdiOutput->DumpFps(result, arg);
         

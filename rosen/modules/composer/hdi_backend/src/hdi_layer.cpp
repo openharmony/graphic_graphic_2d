@@ -132,8 +132,8 @@ int32_t HdiLayer::CreateLayer(const LayerInfoPtr &layerInfo)
         HLOGE("Create hwc layer failed, ret is %{public}d", ret);
         return ret;
     }
-
-    bufferCache_.resize(bufferCacheCountMax_);
+    bufferCache_.clear();
+    bufferCache_.reserve(bufferCacheCountMax_);
     layerId_ = layerId;
 
     HLOGD("Create hwc layer succeed, layerId is %{public}u", layerId_);
@@ -242,23 +242,22 @@ int32_t HdiLayer::SetLayerDirtyRegion()
 bool HdiLayer::CheckAndUpdateLayerBufferCahce(sptr<SurfaceBuffer> buffer, uint32_t& index,
                                               std::vector<uint32_t>& deletingList)
 {
-    for (uint32_t i = 0; i < bufferCacheCountMax_; i++) {
+    uint32_t bufferCacheSize = (uint32_t)bufferCache_.size();
+    for (uint32_t i = 0; i < bufferCacheSize; i++) {
         if (bufferCache_[i] == buffer) {
             index = i;
             return true;
         }
     }
 
-    if (bufferCacheIndex_ >= bufferCacheCountMax_) {
-        for (uint32_t i = 0; i < bufferCacheCountMax_; i++) {
-            bufferCache_[i] = nullptr;
+    if (bufferCacheSize >= bufferCacheCountMax_) {
+        for (uint32_t i = 0; i < bufferCacheSize; i++) {
             deletingList.push_back(i);
         }
-        bufferCacheIndex_ = 0;
+        bufferCache_.clear();
     }
-    bufferCache_[bufferCacheIndex_] = buffer;
-    index = bufferCacheIndex_;
-    bufferCacheIndex_++;
+    index = (uint32_t)bufferCache_.size();
+    bufferCache_.push_back(buffer);
     return false;
 }
 
@@ -282,7 +281,6 @@ int32_t HdiLayer::SetLayerBuffer()
     bool bufferCached = false;
     if (bufferCacheCountMax_ == 0) {
         bufferCache_.clear();
-        bufferCacheIndex_ = INVALID_BUFFER_CACHE_INDEX;
         HLOGE("The count of this layer buffer cache is 0.");
     } else {
         bufferCached = CheckAndUpdateLayerBufferCahce(currBuffer, index, deletingList);

@@ -47,7 +47,7 @@ public:
     uint32_t GetBufferQueueSize();
     int32_t ReleaseFramebuffer(
         sptr<SurfaceBuffer> &buffer, const sptr<SyncFence> &releaseFence);
-
+    void ClearFrameBuffer();
     void Dump(std::string &result);
 
 private:

@@ -85,7 +85,6 @@ private:
 
     std::vector<sptr<SurfaceBuffer> > bufferCache_;
     uint32_t bufferCacheCountMax_ = 0;
-    uint32_t bufferCacheIndex_ = 0;
 
     int32_t CreateLayer(const LayerInfoPtr &layerInfo);
     void CloseLayer();
