@@ -135,7 +135,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 {
     return {};
 }
-bool RSMarshallingHelper::SkipSkData(Parcel& parcel)
+bool RSMarshallingHelper::SkipData(Parcel& parcel)
 {
     return {};
 }
@@ -533,7 +533,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
     }
 MARSHALLING_AND_UNMARSHALLING(RSRenderTransition)
 MARSHALLING_AND_UNMARSHALLING(RSRenderTransitionEffect)
+#ifndef USE_ROSEN_DRAWING
 MARSHALLING_AND_UNMARSHALLING(DrawCmdList)
+#endif
 #undef MARSHALLING_AND_UNMARSHALLING
 
 #define MARSHALLING_AND_UNMARSHALLING(TEMPLATE)                                                    \

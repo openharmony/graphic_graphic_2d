@@ -108,12 +108,12 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceDarwin::RequestFrame(
     bufferInfo.width = frame->width_;
     bufferInfo.height = frame->height_;
     bufferInfo.FBOID = 0;
-    bufferInfo.Format = GL_RGBA8;
+    bufferInfo.Format = 0x8058; // GL_RGBA8;
     bufferInfo.gpuContext = grContext_;
     bufferInfo.colorSpace = drColorSpace_;
     frame->surface_ = std::make_shared<Drawing::Surface>();
     if (!frame->surface_->Bind(bufferInfo)) {
-        ROSEN_LOGE("RSSurfaceWindows::RequestFrame, surface bind failed");
+        ROSEN_LOGE("RSSurfaceDarwin::RequestFrame, surface bind failed");
         return frame;
     }
 #ifdef USE_GLFW_WINDOW
@@ -160,8 +160,8 @@ bool RSSurfaceDarwin::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_
     Drawing::Bitmap bitmap;
     bitmap.Build(frameDarwin->width_, frameDarwin->height_, format);
     bitmap.SetPixels(addr);
-    if (frameWindows->surface_ != nullptr) {
-        auto image = frameWindows->surface_->GetImageSnapshot();
+    if (frameDarwin->surface_ != nullptr) {
+        auto image = frameDarwin->surface_->GetImageSnapshot();
         image->ReadPixels(bitmap, 0, 0);
     }
 #endif
