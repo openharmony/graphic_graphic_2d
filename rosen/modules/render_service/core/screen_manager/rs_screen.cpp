@@ -242,7 +242,7 @@ void RSScreen::SetPowerStatus(uint32_t powerStatus)
         return;
     }
 
-    RS_LOGD("RSScreen %{public}s SetPowerStatus, status is %{public}u", __func__, powerStatus);
+    RS_LOGI("RSScreen(id %{public}" PRIu64 ") SetPowerStatus, status is %{public}u", id_, powerStatus);
     RS_TRACE_NAME_FMT("Screen_%llu SetPowerStatus %u", id_, powerStatus);
     if (hdiScreen_->SetScreenPowerStatus(static_cast<GraphicDispPowerStatus>(powerStatus)) < 0) {
         return;
