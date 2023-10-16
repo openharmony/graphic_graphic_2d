@@ -2131,6 +2131,28 @@ std::string RSProperties::Dump() const
         dumpInfo.append(buffer);
     }
 
+    // DynamicLightUpRate
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for DynamicLightUpRate, ret=" + std::to_string(ret);
+    }
+    auto dynamicLightUpRate = GetDynamicLightUpRate();
+    if (dynamicLightUpRate.has_value() && !ROSEN_EQ(*dynamicLightUpRate, 0.f) &&
+        sprintf_s(buffer, UINT8_MAX, ", DynamicLightUpRate[%.1f]", *dynamicLightUpRate) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // DynamicLightUpDegree
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for DynamicLightUpDegree, ret=" + std::to_string(ret);
+    }
+    auto dynamicLightUpDegree = GetDynamicLightUpDegree();
+    if (dynamicLightUpDegree.has_value() && !ROSEN_EQ(*dynamicLightUpDegree, 0.f) &&
+        sprintf_s(buffer, UINT8_MAX, ", DynamicLightUpDegree[%.1f]", *dynamicLightUpDegree) != -1) {
+        dumpInfo.append(buffer);
+    }
+
     // Brightness
     ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
     if (ret != EOK) {
