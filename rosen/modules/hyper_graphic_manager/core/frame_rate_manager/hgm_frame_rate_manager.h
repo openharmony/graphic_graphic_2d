@@ -22,6 +22,10 @@
 #include "animation/rs_frame_rate_range.h"
 #include "common/rs_common_def.h"
 #include "screen_manager/screen_types.h"
+#include "hgm_one_shot_timer.h"
+#include "hgm_command.h"
+#include "hgm_screen.h"
+#include "hgm_core.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -37,6 +41,11 @@ public:
     HgmFrameRateManager() {}
 
     void UniProcessData(const FrameRateRangeData& data);
+    int32_t CalModifierPreferred(const HgmModifierProfile &hgmModifierProfile);
+    std::shared_ptr<HgmOneShotTimer> GetScreenTimer(ScreenId screenId) const;
+    void ResetScreenTimer(ScreenId screenId) const;
+    void StartScreenTimer(ScreenId screenId, int32_t interval,
+        std::function<void()> resetCallback, std::function<void()> expiredCallback);
     void Reset();
     void SetTimerExpiredCallback(std::function<void()> expiredCallback)
     {
@@ -46,11 +55,14 @@ private:
     void CalcRefreshRate(const ScreenId id, const FrameRateRange& range);
     void ExecuteSwitchRefreshRate(const ScreenId id);
     uint32_t GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range);
+    std::pair<float, float> applyDimension(
+        SpeedTransType speedTransType, float xSpeed, float ySpeed, sptr<HgmScreen> hgmScreen);
 
     uint32_t currRefreshRate_ = -1;
     uint32_t rsFrameRate_ = -1;
     std::unordered_map<pid_t, uint32_t> multiAppFrameRate_;
     std::function<void()> expiredCallback_;
+    std::unordered_map<ScreenId, std::shared_ptr<HgmOneShotTimer>> screenTimerMap_;
 };
 } // namespace Rosen
 } // namespace OHOS

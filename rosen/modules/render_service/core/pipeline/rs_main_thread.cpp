@@ -2353,10 +2353,9 @@ int32_t RSMainThread::GetNodePreferred(const std::vector<HgmModifierProfile>& hg
     if (hgmModifierProfileList.size() == 0) {
         return 0;
     }
-    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
     int32_t nodePreferred = 0;
     for (auto &hgmModifierProfile : hgmModifierProfileList) {
-        auto modifierPreferred = hgmCore.CalModifierPreferred(hgmModifierProfile);
+        auto modifierPreferred = frameRateMgr_->CalModifierPreferred(hgmModifierProfile);
         nodePreferred = std::max(nodePreferred, modifierPreferred);
     }
     return nodePreferred;

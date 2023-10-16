@@ -473,9 +473,6 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     displayHasSecSurface_.emplace(currentVisitDisplay_, 0);
     dirtySurfaceNodeMap_.clear();
 
-    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
-    hgmCore.SetActiveScreenId(currentVisitDisplay_);
-
     RS_TRACE_NAME("RSUniRender:PrepareDisplay " + std::to_string(currentVisitDisplay_));
     curDisplayDirtyManager_ = node.GetDirtyManager();
     if (!curDisplayDirtyManager_) {

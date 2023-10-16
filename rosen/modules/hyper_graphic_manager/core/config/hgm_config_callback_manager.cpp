@@ -16,6 +16,7 @@
 #include "hgm_config_callback_manager.h"
 
 #include "anim_dynamic_configs.h"
+#include "hgm_core.h"
 #include "hgm_log.h"
 
 namespace OHOS::Rosen {
@@ -56,6 +57,12 @@ void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
     for (auto config : configs) {
         data->AddAnimDynamicItem({config.GetAnimType(), config.GetAnimName(), config.GetMinSpeed(),
             config.GetMaxSpeed(), config.GetPreferredFps()});
+    }
+    auto screen = HgmCore::Instance().GetActiveScreen();
+    if (screen != nullptr) {
+        data->SetPpi(screen->GetPpi());
+        data->SetXDpi(screen->GetXDpi());
+        data->SetYDpi(screen->GetYDpi());
     }
     callback->OnHgmConfigChanged(data);
 }

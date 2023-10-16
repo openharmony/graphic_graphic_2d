@@ -50,8 +50,41 @@ public:
         return configData_;
     }
 
+    float GetPpi() const
+    {
+        return ppi_;
+    }
+
+    float GetXDpi() const
+    {
+        return xDpi_;
+    }
+
+    float GetYDpi() const
+    {
+        return yDpi_;
+    }
+
+    void SetPpi(float ppi)
+    {
+        ppi_ = ppi;
+    }
+
+    void SetXDpi(float xDpi)
+    {
+        xDpi_ = xDpi;
+    }
+
+    void SetYDpi(float yDpi)
+    {
+        yDpi_ = yDpi;
+    }
+
 private:
     std::vector<AnimDynamicItem> configData_;
+    float ppi_ = 1.0f;
+    float xDpi_ = 1.0f;
+    float yDpi_ = 1.0f;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -226,10 +226,14 @@ void RSScreenManager::AddScreenToHgm(std::shared_ptr<HdiOutput> &output)
     } else {
         initModeId = initMode->id;
     }
-    if (hgmCore.AddScreen(thisId, initModeId)) {
+    const auto &screen = screens_.at(thisId);
+    const auto &capability = screens_.at(thisId)->GetCapability();
+    ScreenSize screenSize = {screen->Width(), screen->Height(), capability.phyWidth, capability.phyHeight};
+    if (hgmCore.AddScreen(thisId, initModeId, screenSize)) {
         RS_LOGW("RSScreenManager failed to add screen : %{public}" PRIu64 "", thisId);
         return;
     }
+    hgmCore.SetActiveScreenId(thisId);
 
     // for each supported mode, use the index as modeId to add the detailed mode to hgm
     int32_t modeId = 0;
@@ -241,9 +245,6 @@ void RSScreenManager::AddScreenToHgm(std::shared_ptr<HdiOutput> &output)
         }
         modeId++;
     }
-    const auto &screen = screens_.at(thisId);
-    const auto &capability = screens_.at(thisId)->GetCapability();
-    hgmCore.AddScreenProfile(thisId, screen->Width(), screen->Height(), capability.phyWidth, capability.phyHeight);
 }
 
 void RSScreenManager::RemoveScreenFromHgm(std::shared_ptr<HdiOutput> &output)
@@ -259,7 +260,6 @@ void RSScreenManager::RemoveScreenFromHgm(std::shared_ptr<HdiOutput> &output)
     if (hgmCore.RemoveScreen(id)) {
         RS_LOGW("RSScreenManager failed to remove screen : %{public}" PRIu64 "", id);
     }
-    hgmCore.RemoveScreenProfile(id);
 }
 
 void RSScreenManager::ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &output)
