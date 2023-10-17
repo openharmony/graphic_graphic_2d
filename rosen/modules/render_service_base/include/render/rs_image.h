@@ -99,11 +99,16 @@ public:
     void SetRadius(const std::vector<Drawing::Point>& radius);
 #endif
     void SetScale(double scale);
+
 #ifndef USE_ROSEN_DRAWING
     void SetCompressData(const sk_sp<SkData> data, uint32_t id, int width, int height);
 #else
     void SetCompressData(const std::shared_ptr<Drawing::Data> data, uint32_t id, int width, int height);
 #endif
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+    void SetCompressData(const sk_sp<SkData> compressData);
+#endif
+
     void SetNodeId(NodeId nodeId);
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override;
@@ -130,6 +135,7 @@ public:
         desc += split + "\tscale_: " + std::to_string(scale_) + "\n";
         desc += split + "}\n";
     }
+
 private:
     bool HasRadius() const;
     void ApplyImageFit();

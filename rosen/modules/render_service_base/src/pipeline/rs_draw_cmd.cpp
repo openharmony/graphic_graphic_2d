@@ -731,6 +731,13 @@ void ImageWithParmOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) 
         sk_sp<SkImage> dmaImage = GetSkImageFromSurfaceBuffer(canvas,
             reinterpret_cast<SurfaceBuffer*> (pixelmap->GetFd()));
         rsImage_->SetDmaImage(dmaImage);
+    } else {
+        if (pixelmap && pixelmap->IsAstc()) {
+            const void* data = pixelmap->GetWritablePixels();
+            auto fileData = SkData::MakeWithoutCopy(data, pixelmap->GetCapacity());
+            auto imageData = SkData::MakeSubset(fileData.get(), 16, fileData->size() - 16);
+            rsImage_->SetCompressData(imageData);
+        }
     }
 #endif
 #endif
