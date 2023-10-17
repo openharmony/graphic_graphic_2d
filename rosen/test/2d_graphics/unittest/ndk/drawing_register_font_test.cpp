@@ -24,8 +24,8 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
-static const char* FONT_FAMILY = "HarmonyOS_SansSC_VF";
-static const char* FONT_PATH = "/data/HarmonyOS_SansSC_VF.ttf";
+static const char* g_fontFamily = "Roboto-Black";
+static const char* g_fontPath = "/data/Roboto-Black.ttf";
 
 class NativeDrawingRegisterFontTest : public testing::Test {
 };
@@ -38,8 +38,8 @@ class NativeDrawingRegisterFontTest : public testing::Test {
 HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest001, TestSize.Level1)
 {
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
-    uint32_t errorCode = OH_Drawing_RegisterFont(fontCollection, FONT_FAMILY, FONT_PATH);
-    std::ifstream fileStream(FONT_PATH);
+    uint32_t errorCode = OH_Drawing_RegisterFont(fontCollection, g_fontFamily, g_fontPath);
+    std::ifstream fileStream(g_fontPath);
     if (fileStream.is_open()) {
         EXPECT_EQ(errorCode, 0);
         fileStream.close();
