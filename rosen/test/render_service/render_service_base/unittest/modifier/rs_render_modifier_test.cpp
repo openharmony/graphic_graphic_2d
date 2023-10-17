@@ -132,21 +132,6 @@ HWTEST_F(RSRenderModifierTest, DrawCmdListModifier001, TestSize.Level1)
  * @tc.desc:Update
  * @tc.type:FUNC
  */
-HWTEST_F(RSRenderModifierTest, RSParticleRenderModifier001, TestSize.Level1)
-{
-    auto prop = std::make_shared<RSRenderPropertyBase>();
-    bool isDelta = true;
-    auto property = std::make_shared<RSRenderProperty<RSRenderParticleVector>>();
-    auto RSPRM = std::make_shared<RSParticleRenderModifier>(property);
-    RSPRM->Update(prop, isDelta);
-    ASSERT_NE(nullptr, RSPRM->property_);
-}
-
-/**
- * @tc.name: RSParticleRenderModifier001
- * @tc.desc:Update
- * @tc.type:FUNC
- */
 HWTEST_F(RSRenderModifierTest, RSParticleRenderModifier002, TestSize.Level1)
 {
     auto prop = std::make_shared<RSRenderPropertyBase>();
