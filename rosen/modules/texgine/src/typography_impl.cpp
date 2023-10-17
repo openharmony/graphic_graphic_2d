@@ -692,7 +692,7 @@ std::vector<TextRect> TypographyImpl::MergeRects(const std::vector<TextRect> &bo
         return {};
     }
 
-    if (boundary.leftIndex >= boxes.size()) {
+    if (boundary.leftIndex > boxes.size()) {
         boundary.leftIndex = boxes.size() - 1;
     }
 
