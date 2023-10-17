@@ -74,9 +74,9 @@ void* Bitmap::GetPixels() const
     return bmpImplPtr->GetPixels();
 }
 
-void Bitmap::CopyPixels(Bitmap& dst, int srcLeft, int srcTop, int width, int height) const
+void Bitmap::CopyPixels(Bitmap& dst, int srcLeft, int srcTop) const
 {
-    bmpImplPtr->CopyPixels(dst, srcLeft, srcTop, width, height);
+    bmpImplPtr->CopyPixels(dst, srcLeft, srcTop);
 }
 
 bool Bitmap::IsImmutable()

@@ -53,7 +53,7 @@ public:
      */
     void* GetPixels() const;
     void SetPixels(void* pixel);
-    void CopyPixels(Bitmap& dst, int srcLeft, int srcTop, int width, int height) const;
+    void CopyPixels(Bitmap& dst, int srcLeft, int srcTop) const;
     bool IsImmutable();
     void SetImmutable();
     void ClearWithColor(const ColorQuad& color) const;

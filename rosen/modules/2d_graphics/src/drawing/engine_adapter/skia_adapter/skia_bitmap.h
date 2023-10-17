@@ -43,7 +43,7 @@ public:
     void* GetPixels() const override;
     void SetPixels(void* pixels) override;
     const SkBitmap& ExportSkiaBitmap() const;
-    void CopyPixels(Bitmap& dst, int srcLeft, int srcTop, int width, int height) const override;
+    void CopyPixels(Bitmap& dst, int srcLeft, int srcTop) const override;
     bool IsImmutable() override;
     void SetImmutable() override;
     void ClearWithColor(const ColorQuad& color) const override;

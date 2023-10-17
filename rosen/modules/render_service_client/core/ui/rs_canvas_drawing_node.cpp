@@ -142,8 +142,96 @@ bool RSCanvasDrawingNode::GetPixelmap(
 bool RSCanvasDrawingNode::GetBitmap(Drawing::Bitmap& bitmap,
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList, const Drawing::Rect* rect)
 {
-    ROSEN_LOGE("[%{public}s:%{public}d] Drawing is not supported", __func__, __LINE__);
-    return false;
+    if (IsUniRenderEnabled()) {
+        auto renderServiceClient =
+            std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
+        if (renderServiceClient == nullptr) {
+            ROSEN_LOGE("RSCanvasDrawingNode::GetBitmap renderServiceClient is nullptr!");
+            return false;
+        }
+        bool ret = renderServiceClient->GetBitmap(GetId(), bitmap);
+        if (!ret) {
+            ROSEN_LOGE("RSCanvasDrawingNode::GetBitmap GetBitmap failed");
+            return ret;
+        }
+    } else {
+        auto node =
+            RSRenderThread::Instance().GetContext().GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(GetId());
+        if (node == nullptr) {
+            RS_LOGE("RSCanvasDrawingNode::GetBitmap cannot find NodeId: [%{public}" PRIu64 "]", GetId());
+            return false;
+        }
+        if (node->GetType() != RSRenderNodeType::CANVAS_DRAWING_NODE) {
+            RS_LOGE("RSCanvasDrawingNode::GetBitmap RenderNodeType != RSRenderNodeType::CANVAS_DRAWING_NODE");
+            return false;
+        }
+        auto getBitmapTask = [&node, &bitmap]() { node->GetBitmap(bitmap); };
+        RSRenderThread::Instance().PostSyncTask(getBitmapTask);
+        if (bitmap.IsValid()) {
+            return false;
+        }
+    }
+    if (drawCmdList == nullptr) {
+        RS_LOGD("RSCanvasDrawingNode::GetBitmap drawCmdList == nullptr");
+    } else {
+        Drawing::Canvas canvas;
+        canvas.Bind(bitmap);
+        drawCmdList->Playback(canvas, rect);
+    }
+    return true;
+}
+
+bool RSCanvasDrawingNode::GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap,
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList, const Drawing::Rect* rect)
+{
+    if (!pixelmap) {
+        RS_LOGE("RSCanvasDrawingNode::GetPixelmap: pixelmap is nullptr");
+        return false;
+    }
+    if (IsUniRenderEnabled()) {
+        auto renderServiceClient =
+            std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
+        if (renderServiceClient == nullptr) {
+            ROSEN_LOGE("RSCanvasDrawingNode::GetPixelmap: renderServiceClient is nullptr!");
+            return false;
+        }
+        bool ret = renderServiceClient->GetPixelmap(GetId(), pixelmap, rect);
+        if (!ret || !pixelmap) {
+            ROSEN_LOGE("RSCanvasDrawingNode::GetPixelmap: GetPixelmap failed");
+            return false;
+        }
+    } else {
+        auto node =
+            RSRenderThread::Instance().GetContext().GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(GetId());
+        if (node == nullptr) {
+            RS_LOGE("RSCanvasDrawingNode::GetPixelmap: cannot find NodeId: [%{public}" PRIu64 "]", GetId());
+            return false;
+        }
+        if (node->GetType() != RSRenderNodeType::CANVAS_DRAWING_NODE) {
+            RS_LOGE("RSCanvasDrawingNode::GetPixelmap: RenderNodeType != RSRenderNodeType::CANVAS_DRAWING_NODE");
+            return false;
+        }
+        bool ret = false;
+        auto getPixelmapTask = [&node, &pixelmap, rect, &ret]() { ret = node->GetPixelmap(pixelmap, rect); };
+        RSRenderThread::Instance().PostSyncTask(getPixelmapTask);
+        if (!ret || !pixelmap) {
+            return false;
+        }
+    }
+    if (drawCmdList == nullptr) {
+        RS_LOGD("RSCanvasDrawingNode::GetPixelmap: drawCmdList is nullptr");
+    } else {
+        Drawing::Bitmap bitmap;
+        Drawing::ImageInfo imageInfo(pixelmap->GetWidth(), pixelmap->GetHeight(), COLORTYPE_RGBA_8888, ALPHATYPE_PREMUL);
+        bitmap.Build(imageInfo);
+        bitmap.SetPixels(static_cast<uint8_t*>(pixelmap->GetWritablePixels()));
+
+        Drawing::Canvas canvas;
+        canvas.Bind(bitmap);
+        canvas.Translate(-rect->GetLeft(), -rect->GetTop());
+        drawCmdList->Playback(canvas, rect);
+    }
+    return true;
 }
 #endif
 } // namespace Rosen

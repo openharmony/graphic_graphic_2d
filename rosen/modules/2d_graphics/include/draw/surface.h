@@ -83,10 +83,18 @@ public:
      */
     std::shared_ptr<Image> GetImageSnapshot(const RectI& bounds) const;
 
+    std::shared_ptr<Surface> MakeSurface(int width, int height) const;
+
     /*
      * @brief   Gets ImageInfo of Surface
      */
     ImageInfo GetImageInfo();
+
+    template<typename T>
+    const std::shared_ptr<T> GetImpl() const
+    {
+        return impl_->DowncastingTo<T>();
+    }
 
 private:
     std::shared_ptr<SurfaceImpl> impl_;

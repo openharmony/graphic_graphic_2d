@@ -57,6 +57,11 @@ std::shared_ptr<Image> Surface::GetImageSnapshot(const RectI& bounds) const
     return impl_->GetImageSnapshot(bounds);
 }
 
+std::shared_ptr<Surface> Surface::MakeSurface(int width, int height) const
+{
+    return impl_->MakeSurface(width, height);
+}
+
 ImageInfo Surface::GetImageInfo()
 {
     return GetCanvas()->GetImageInfo();

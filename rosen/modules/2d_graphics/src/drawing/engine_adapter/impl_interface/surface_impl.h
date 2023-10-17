@@ -25,6 +25,7 @@ namespace Drawing {
 class Bitmap;
 class Canvas;
 class Image;
+class Surface;
 #ifdef ACE_ENABLE_GPU
 struct FrameBuffer;
 #endif
@@ -49,6 +50,7 @@ public:
     virtual std::shared_ptr<Canvas> GetCanvas() const = 0;
     virtual std::shared_ptr<Image> GetImageSnapshot() const = 0;
     virtual std::shared_ptr<Image> GetImageSnapshot(const RectI& bounds) const = 0;
+    virtual std::shared_ptr<Surface> MakeSurface(int width, int height) const = 0;
 };
 } // namespace Drawing
 } // namespace Rosen
