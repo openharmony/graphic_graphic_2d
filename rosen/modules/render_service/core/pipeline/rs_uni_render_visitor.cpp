@@ -149,8 +149,10 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     isCalcCostEnable_ = RSSystemParameters::GetCalcCostEnabled();
 #endif
 #if defined(RS_ENABLE_GL)
-    auto subThreadManager = RSSubThreadManager::Instance();
-    subThreadManager->Start(renderEngine_->GetRenderContext().get());
+    if (renderEngine_ && renderEngine_->GetRenderContext()) {
+        auto subThreadManager = RSSubThreadManager::Instance();
+        subThreadManager->Start(renderEngine_->GetRenderContext().get());
+    }
 #endif
     isUIFirst_ = RSMainThread::Instance()->IsUIFirstOn();
     isPhone_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
@@ -473,9 +475,6 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     displayHasSecSurface_.emplace(currentVisitDisplay_, 0);
     dirtySurfaceNodeMap_.clear();
 
-    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
-    hgmCore.SetActiveScreenId(currentVisitDisplay_);
-
     RS_TRACE_NAME("RSUniRender:PrepareDisplay " + std::to_string(currentVisitDisplay_));
     curDisplayDirtyManager_ = node.GetDirtyManager();
     if (!curDisplayDirtyManager_) {
@@ -771,8 +770,7 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeAfterUpdate(RSSurfaceRen
         }
     }
     if (node.IsMainWindowType()) {
-        bool hasFilter = node.IsTransparent()
-            && (properties.NeedFilter() || !node.GetChildrenNeedFilterRects().empty());
+        bool hasFilter = node.IsTransparent() && properties.NeedFilter();
         bool hasHardwareNode = !node.GetChildHardwareEnabledNodes().empty();
         bool hasAbilityComponent = !node.GetAbilityNodeIds().empty();
         auto rsParent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetParent().lock());

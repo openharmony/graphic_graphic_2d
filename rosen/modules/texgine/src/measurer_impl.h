@@ -142,6 +142,7 @@ private:
 
     static inline std::map<struct MeasurerCacheKey, struct MeasurerCacheVal> cache_;
     std::vector<Boundary> boundaries_ = {};
+    std::string detectionName_;
 };
 
 hb_blob_t *HbFaceReferenceTableTypeface(hb_face_t *face, hb_tag_t tag, void *context);

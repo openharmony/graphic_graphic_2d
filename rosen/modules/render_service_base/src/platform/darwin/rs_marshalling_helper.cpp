@@ -22,6 +22,7 @@
 #ifndef USE_ROSEN_DRAWING
 #include "include/core/SkDrawable.h"
 #include "include/core/SkImage.h"
+#include "include/core/SkMatrix.h"
 #include "include/core/SkPaint.h"
 #include "include/core/SkPicture.h"
 #include "include/core/SkSerialProcs.h"
@@ -31,6 +32,7 @@
 #include "include/core/SkVertices.h"
 #ifdef NEW_SKIA
 #include "include/core/SkSamplingOptions.h"
+#include "src/core/SkVerticesPriv.h"
 #endif
 #endif
 #include "securec.h"
@@ -57,6 +59,7 @@
 #include "common/rs_vector4.h"
 #include "modifier/rs_render_modifier.h"
 #ifndef USE_ROSEN_DRAWING
+#include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #endif
 #include "pixel_map.h"
@@ -65,6 +68,8 @@
 #include "render/rs_filter.h"
 #include "render/rs_gradient_blur_para.h"
 #include "render/rs_image.h"
+#include "render/rs_image_base.h"
+#include "render/rs_light_up_effect_filter.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
@@ -130,7 +135,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 {
     return {};
 }
-bool RSMarshallingHelper::SkipSkData(Parcel& parcel)
+bool RSMarshallingHelper::SkipData(Parcel& parcel)
 {
     return {};
 }
@@ -528,7 +533,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
     }
 MARSHALLING_AND_UNMARSHALLING(RSRenderTransition)
 MARSHALLING_AND_UNMARSHALLING(RSRenderTransitionEffect)
+#ifndef USE_ROSEN_DRAWING
 MARSHALLING_AND_UNMARSHALLING(DrawCmdList)
+#endif
 #undef MARSHALLING_AND_UNMARSHALLING
 
 #define MARSHALLING_AND_UNMARSHALLING(TEMPLATE)                                                    \

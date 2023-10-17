@@ -162,28 +162,23 @@ IndexAndAffinity TypographyImpl::GetGlyphIndexByCoordinate(double x, double y) c
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), ss.str());
 
     // process y < 0
-    if (fabs(height_) < DBL_EPSILON || y < 0) {
-        LOGEX_FUNC_LINE_DEBUG() << "special: y < 0";
+    if (fabs(height_) < DBL_EPSILON) {
         return {0, Affinity::NEXT};
     }
 
     // find targetLine
     int targetLine = static_cast<int>(FindGlyphTargetLine(y));
-    LOGEX_FUNC_LINE_DEBUG() << "targetLine: " << targetLine;
+    if (targetLine == static_cast<int>(lineMetrics_.size())) {
+        // process y more than typography, (lineMetrics_.size() - 1) is the last line
+        targetLine = static_cast<int>(lineMetrics_.size() - 1);
+    }
 
     // count glyph before targetLine
     size_t count = 0;
     for (auto i = 0; i < targetLine; i++) {
         for (const auto &span : lineMetrics_[i].lineSpans) {
-            count += span.GetNumberOfCharGroup();
+            count += span.GetNumberOfChar();
         }
-    }
-    LOGEX_FUNC_LINE_DEBUG() << "count: " << count;
-
-    // process y more than typography
-    if (targetLine == static_cast<int>(lineMetrics_.size())) {
-        LOGEX_FUNC_LINE_DEBUG() << "special: y >= max";
-        return {count, Affinity::PREV};
     }
 
     // find targetIndex
@@ -191,18 +186,16 @@ IndexAndAffinity TypographyImpl::GetGlyphIndexByCoordinate(double x, double y) c
     std::vector<double> widths;
     auto targetIndex = FindGlyphTargetIndex(targetLine, x, offsetX, widths);
     count += targetIndex;
-    LOGEX_FUNC_LINE_DEBUG() << "targetIndex: " << targetIndex;
 
     // process first line left part
     if (targetIndex == 0 && targetLine == 0) {
-        LOGEX_FUNC_LINE_DEBUG() << "special: first line left part";
         return {0, Affinity::NEXT};
     }
 
-    // process right part
     auto affinity = Affinity::PREV;
     if (targetIndex == widths.size()) {
-        return {count, affinity};
+        // process right part, (count - 1) is the index of last chargroup
+        return {count - 1, affinity};
     }
 
     // calc affinity
@@ -215,7 +208,6 @@ IndexAndAffinity TypographyImpl::GetGlyphIndexByCoordinate(double x, double y) c
             affinity = Affinity::PREV;
         }
     }
-    LOGEX_FUNC_LINE_DEBUG() << "affinity: " << (affinity == Affinity::PREV ? "upstream" : "downstream");
 
     return {count, affinity};
 }
@@ -272,6 +264,13 @@ void TypographyImpl::Layout(double maxWidth)
         LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "TypographyImpl::Layout");
         LOGEX_FUNC_LINE(INFO) << "Layout maxWidth: " << maxWidth << ", spans.size(): " << spans_.size();
         maxWidth_ = maxWidth;
+        if (spans_.empty()) {
+            // 0xFFFC is a placeholder, if  the spans is empty when layout, we should add a placeholder to spans.
+            std::vector<uint16_t> text = {0xFFFC};
+            VariantSpan vs = TextSpan::MakeFromText(text);
+            vs.SetTextStyle(typographyStyle_.ConvertToTextStyle());
+            spans_.push_back(vs);
+        }
 
         Shaper shaper;
         lineMetrics_ = shaper.DoShape(spans_, typographyStyle_, fontProviders_, maxWidth);
@@ -306,11 +305,16 @@ void TypographyImpl::Layout(double maxWidth)
 
 void TypographyImpl::ProcessHardBreak()
 {
-    bool isAllHardBreak = true;
-    for (auto i = 0; i < static_cast<int>(lineMetrics_.size()); i++) {
-        if (!lineMetrics_[i].lineSpans.back().IsHardBreak()) {
-            isAllHardBreak = false;
-        }
+    bool isAllHardBreak = false;
+    int lineCount = static_cast<int>(lineMetrics_.size());
+    // If the number of lines equal 1 and the char is hard break, add a new line.
+    if (lineCount == 1 && lineMetrics_.back().lineSpans.back().IsHardBreak()) {
+        isAllHardBreak = true;
+        // When the number of lines more than 1, and the text ending with two hard breaks, add a new line.
+    } else if (lineCount > 1) {
+        // 1 is the last line, 2 is the penultimate line.
+        isAllHardBreak = lineMetrics_[lineCount - 1].lineSpans.front().IsHardBreak() &&
+            lineMetrics_[lineCount - 2].lineSpans.back().IsHardBreak();
     }
 
     if (isAllHardBreak) {
@@ -523,6 +527,12 @@ int TypographyImpl::DoUpdateSpanMetrics(const VariantSpan &span, const TexgineFo
             UpadateAnySpanMetrics(as, coveredAscent, coveredDescent);
             ascent = coveredAscent;
         }
+        if (style.halfLeading) {
+            double halfLeading = strut_.halfLeading == 0 ? HALF(style.fontSize) : strut_.halfLeading;
+            double lineHeight = style.heightScale * style.fontSize + halfLeading;
+            coveredAscent = HALF(lineHeight);
+            coveredDescent = HALF(lineHeight - style.fontSize);
+        }
         lineMaxCoveredAscent_.back() = std::max(coveredAscent, lineMaxCoveredAscent_.back());
         lineMaxCoveredDescent_.back() = std::max(coveredDescent, lineMaxCoveredDescent_.back());
     }
@@ -639,17 +649,7 @@ void TypographyImpl::ComputeSpans(int lineIndex, double baseline, const CalcResu
         }
 
         if (auto ts = span.TryToTextSpan(); ts != nullptr) {
-            double top = *(ts->tmetrics_.fAscent_);
-            double height = *(ts->tmetrics_.fDescent_) - *(ts->tmetrics_.fAscent_);
-
-            std::vector<TextRect> boxes;
-            double width = 0.0;
-            for (const auto &gw : ts->glyphWidths_) {
-                auto rect = TexgineRect::MakeXYWH(offsetX + width, offsetY + top, gw, height);
-                boxes.push_back({.rect = rect, .direction = TextDirection::LTR});
-                width += gw;
-            }
-
+            std::vector<TextRect> boxes = GenTextRects(ts, offsetX, offsetY);
             spanBoxes.insert(spanBoxes.end(), boxes.begin(), boxes.end());
         }
 
@@ -664,10 +664,36 @@ void TypographyImpl::ComputeSpans(int lineIndex, double baseline, const CalcResu
     }
 }
 
+std::vector<TextRect> TypographyImpl::GenTextRects(std::shared_ptr<TextSpan> &ts, double offsetX, double offsetY) const
+{
+    double top = *(ts->tmetrics_.fAscent_);
+    double height = *(ts->tmetrics_.fDescent_) - *(ts->tmetrics_.fAscent_);
+
+    std::vector<TextRect> boxes;
+    double width = 0.0;
+    for (int i = 0; i < static_cast<int>(ts->glyphWidths_.size()); i++) {
+        auto cg = ts->cgs_.Get(i);
+        // If is emoji, don`t need process ligature, so set chars size to 1
+        int charsSize = cg.IsEmoji() ? 1 : static_cast<int>(cg.chars.size());
+        for (int j = 0; j < charsSize; j++) {
+            auto rect = TexgineRect::MakeXYWH(offsetX + width, offsetY + top,
+                ts->glyphWidths_[i] / charsSize, height);
+            boxes.push_back({.rect = rect, .direction = TextDirection::LTR});
+            width += ts->glyphWidths_[i] / charsSize;
+        }
+    }
+
+    return boxes;
+}
+
 std::vector<TextRect> TypographyImpl::MergeRects(const std::vector<TextRect> &boxes, Boundary boundary) const
 {
-    if (boundary.leftIndex > boxes.size()) {
+    if (boxes.size() == 0) {
         return {};
+    }
+
+    if (boundary.leftIndex >= boxes.size()) {
+        boundary.leftIndex = boxes.size() - 1;
     }
 
     if (boundary.rightIndex > boxes.size()) {

@@ -31,7 +31,7 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     TextBlobBuilderImpl(const TextBlobBuilderImpl& other) = delete;
     TextBlobBuilderImpl& operator=(const TextBlobBuilderImpl& other) = delete;
-    virtual ~TextBlobBuilderImpl() = default;
+    ~TextBlobBuilderImpl() override = default;
 
     AdapterType GetType() const override
     {

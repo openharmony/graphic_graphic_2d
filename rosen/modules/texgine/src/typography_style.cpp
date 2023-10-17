@@ -24,6 +24,7 @@ TextStyle TypographyStyle::ConvertToTextStyle() const
     style.fontSize = fontSize;
     style.fontFamilies = fontFamilies;
     style.heightScale = heightScale;
+    style.halfLeading = halfLeading;
     style.heightOnly = heightOnly;
     style.fontWeight = fontWeight;
     style.fontStyle = fontStyle;

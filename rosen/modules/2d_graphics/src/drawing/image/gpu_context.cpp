@@ -27,7 +27,7 @@ bool GPUContext::BuildFromGL(const GPUContextOptions& options)
     return impl_->BuildFromGL(options);
 }
 
-void GPUContext::GetResourceCacheLimits(int& maxResource, size_t& maxResourceBytes) const
+void GPUContext::GetResourceCacheLimits(int* maxResource, size_t* maxResourceBytes) const
 {
     impl_->GetResourceCacheLimits(maxResource, maxResourceBytes);
 }
@@ -57,7 +57,7 @@ void GPUContextOptions::SetPersistentCache(PersistentCache* persistentCache)
     persistentCache_ = persistentCache;
 }
 
-void GPUContext::GetResourceCacheUsage(int& resourceCount, size_t& resourceBytes) const
+void GPUContext::GetResourceCacheUsage(int* resourceCount, size_t* resourceBytes) const
 {
     impl_->GetResourceCacheUsage(resourceCount, resourceBytes);
 }
@@ -95,6 +95,21 @@ void GPUContext::PurgeUnlockAndSafeCacheGpuResources()
 void GPUContext::ReleaseByTag(const GPUResourceTag tag)
 {
     impl_->ReleaseByTag(tag);
+}
+
+void GPUContext::DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag tag) const
+{
+    impl_->DumpMemoryStatisticsByTag(traceMemoryDump, tag);
+}
+
+void GPUContext::DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump) const
+{
+    impl_->DumpMemoryStatistics(traceMemoryDump);
+}
+
+void GPUContext::SetCurrentGpuResourceTag(const GPUResourceTag tag)
+{
+    impl_->SetCurrentGpuResourceTag(tag);
 }
 
 GPUContextOptions::PersistentCache* GPUContextOptions::GetPersistentCache() const

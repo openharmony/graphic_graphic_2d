@@ -522,8 +522,7 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
 #endif
 
 #ifndef USE_ROSEN_DRAWING
-void RSPropertiesPainter::DrawShadow(const RSProperties& properties,
-    RSPaintFilterCanvas& canvas, const RRect* rrect, bool isLeashWindow)
+void RSPropertiesPainter::DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect)
 {
     // skip shadow if not valid or cache is enabled
     if (properties.IsSpherizeValid() || !properties.IsShadowValid() ||
@@ -534,17 +533,25 @@ void RSPropertiesPainter::DrawShadow(const RSProperties& properties,
     SkPath skPath;
     if (properties.GetShadowPath() && !properties.GetShadowPath()->GetSkiaPath().isEmpty()) {
         skPath = properties.GetShadowPath()->GetSkiaPath();
-        canvas.clipPath(skPath, SkClipOp::kDifference, true);
+        if (!properties.GetShadowIsFilled()) {
+            canvas.clipPath(skPath, SkClipOp::kDifference, true);
+        }
     } else if (properties.GetClipBounds()) {
         skPath = properties.GetClipBounds()->GetSkiaPath();
-        canvas.clipPath(skPath, SkClipOp::kDifference, true);
+        if (!properties.GetShadowIsFilled()) {
+            canvas.clipPath(skPath, SkClipOp::kDifference, true);
+        }
     } else {
         if (rrect != nullptr) {
             skPath.addRRect(RRect2SkRRect(*rrect));
-            canvas.clipRRect(RRect2SkRRect(*rrect), SkClipOp::kDifference, true);
+            if (!properties.GetShadowIsFilled()) {
+                canvas.clipRRect(RRect2SkRRect(*rrect), SkClipOp::kDifference, true);
+            }
         } else {
             skPath.addRRect(RRect2SkRRect(properties.GetRRect()));
-            canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), SkClipOp::kDifference, true);
+            if (!properties.GetShadowIsFilled()) {
+                canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), SkClipOp::kDifference, true);
+            }
         }
     }
     if (properties.GetShadowMask()) {
@@ -554,8 +561,7 @@ void RSPropertiesPainter::DrawShadow(const RSProperties& properties,
     }
 }
 #else
-void RSPropertiesPainter::DrawShadow(const RSProperties& properties,
-    RSPaintFilterCanvas& canvas, const RRect* rrect, bool isLeashWindow)
+void RSPropertiesPainter::DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect)
 {
     // skip shadow if not valid or cache is enabled
     //Todo isCacheEnabled
@@ -566,17 +572,25 @@ void RSPropertiesPainter::DrawShadow(const RSProperties& properties,
     Drawing::Path path;
     if (properties.GetShadowPath() && !properties.GetShadowPath()->GetDrawingPath().IsValid()) {
         path = properties.GetShadowPath()->GetDrawingPath();
-        canvas.ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
+        if (!properties.GetShadowIsFilled()) {
+            canvas.ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
+        }
     } else if (properties.GetClipBounds()) {
         path = properties.GetClipBounds()->GetDrawingPath();
-        canvas.ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
+        if (!properties.GetShadowIsFilled()) {
+            canvas.ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
+        }
     } else {
         if (rrect != nullptr) {
             path.AddRoundRect(RRect2DrawingRRect(*rrect));
-            canvas.ClipRoundRect(RRect2DrawingRRect(*rrect), Drawing::ClipOp::DIFFERENCE, true);
+            if (!properties.GetShadowIsFilled()) {
+                canvas.ClipRoundRect(RRect2DrawingRRect(*rrect), Drawing::ClipOp::DIFFERENCE, true);
+            }
         } else {
             path.AddRoundRect(RRect2DrawingRRect(properties.GetRRect()));
-            canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::DIFFERENCE, true);
+            if (!properties.GetShadowIsFilled()) {
+                canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::DIFFERENCE, true);
+            }
         }
     }
     if (properties.GetShadowMask()) {
@@ -685,6 +699,15 @@ void RSPropertiesPainter::DrawShadowInner(
 {
     path.Offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
     Color spotColor = properties.GetShadowColor();
+
+    // The translation of the matrix is rounded to improve the hit ratio of skia blurfilter cache,
+    // the function <compute_key_and_clip_bounds> in <skia/src/gpu/GrBlurUtil.cpp> for more details.
+    RSAutoCanvasRestore rst(&canvas);
+    auto matrix = canvas.GetTotalMatrix();
+    matrix.Set(Drawing::Matrix::SCALE_X, std::ceil(matrix.Get(Drawing::Matrix::SCALE_X)));
+    matrix.Set(Drawing::Matrix::SCALE_Y, std::ceil(matrix.Get(Drawing::Matrix::SCALE_Y)));
+    canvas.SetMatrix(matrix);
+
     if (properties.shadow_->GetHardwareAcceleration()) {
         if (properties.GetShadowElevation() <= 0.f) {
             return;
@@ -2284,9 +2307,9 @@ void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFi
                 float top = position.y_;
                 float right = position.x_ + imageSize.x_ * scale;
                 float bottom = position.y_ + imageSize.y_ * scale;
+#ifndef USE_ROSEN_DRAWING
                 canvas.save();
                 canvas.translate(position.x_, position.y_);
-#ifndef USE_ROSEN_DRAWING
                 canvas.rotate(particles[i]->GetSpin(), imageSize.x_ * scale / 2.f, imageSize.y_ * scale / 2.f);
 #else
                 canvas.Save();

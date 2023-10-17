@@ -499,6 +499,15 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+class RSC_EXPORT RSShadowIsFilledModifier : public RSBackgroundModifier {
+public:
+    explicit RSShadowIsFilledModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSShadowIsFilledModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
 class RSC_EXPORT RSMaskModifier : public RSForegroundModifier {
 public:
     explicit RSMaskModifier(const std::shared_ptr<RSPropertyBase>& property);

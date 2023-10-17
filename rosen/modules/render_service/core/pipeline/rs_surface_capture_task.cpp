@@ -121,7 +121,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
     node->Process(visitor_);
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
 #ifndef USE_ROSEN_DRAWING
-#ifdef RS_ENABLE_DRIVEN_RENDER
+#ifdef RS_ENABLE_UNI_RENDER
     if (RSSystemProperties::GetSnapshotWithDMAEnabled()) {
         skSurface->flushAndSubmit(true);
         GrBackendTexture grBackendTexture
@@ -133,7 +133,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
         auto wrapper = std::make_shared<std::tuple<std::unique_ptr<Media::PixelMap>>>();
         std::get<0>(*wrapper) = std::move(pixelmap);
         auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>();
-        auto rotation = (displayNode != nullptr) ? displayNode->GetRotation()
+        auto rotation = (displayNode != nullptr) ? displayNode->GetScreenRotation()
             : ScreenRotation::INVALID_SCREEN_ROTATION;
         bool ableRotation = ((displayNode != nullptr) && visitor_->IsUniRender());
         auto id = nodeId_;
@@ -187,8 +187,9 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
             if (ableRotation) {
                 if (rotation == ScreenRotation::ROTATION_90) {
                     pixelmap->rotate(static_cast<int32_t>(90)); // 90 degrees
-                }
-                if (rotation == ScreenRotation::ROTATION_270) {
+                } else if (rotation == ScreenRotation::ROTATION_180) {
+                    pixelmap->rotate(static_cast<int32_t>(180)); // 180 degrees
+                } else if (rotation == ScreenRotation::ROTATION_270) {
                     pixelmap->rotate(static_cast<int32_t>(270)); // 270 degrees
                 }
                 RS_LOGD("RSSurfaceCaptureTask: PixelmapRotation: %d", static_cast<int32_t>(rotation));
@@ -222,7 +223,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
         RS_LOGE("RSSurfaceCaptureTask::Run: CopyDataToPixelMap failed");
         return false;
     }
-#endif // RS_ENABLE_DRIVEN_RENDER
+#endif // RS_ENABLE_UNI_RENDER
 #else
     std::shared_ptr<Drawing::Image> img(surface.get()->GetImageSnapshot());
     if (!img) {
@@ -257,11 +258,12 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
 #endif
     if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
         if (visitor_->IsUniRender()) {
-            auto rotation = displayNode->GetRotation();
+            auto rotation = displayNode->GetScreenRotation();
             if (rotation == ScreenRotation::ROTATION_90) {
                 pixelmap->rotate(static_cast<int32_t>(90)); // 90 degrees
-            }
-            if (rotation == ScreenRotation::ROTATION_270) {
+            } else if (rotation == ScreenRotation::ROTATION_180) {
+                pixelmap->rotate(static_cast<int32_t>(180)); // 180 degrees
+            } else if (rotation == ScreenRotation::ROTATION_270) {
                 pixelmap->rotate(static_cast<int32_t>(270)); // 270 degrees
             }
             RS_LOGD("RSSurfaceCaptureTask::Run: PixelmapRotation: %{public}d", static_cast<int32_t>(rotation));
@@ -465,7 +467,7 @@ sk_sp<SkSurface> DmaMem::GetSkSurfaceFromSurfaceBuffer(sptr<SurfaceBuffer> surfa
 
     GrBackendTexture backendTexture(
         surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), GrMipMapped::kNo, textureInfo);
-#ifdef RS_ENABLE_DRIVEN_RENDER
+#ifdef RS_ENABLE_UNI_RENDER
     auto grContext = RSBackgroundThread::Instance().GetShareGrContext().get();
 #else
     auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
@@ -969,7 +971,7 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
 
     const RectF absBounds = {0, 0, property.GetBoundsWidth(), property.GetBoundsHeight()};
     RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
-    RSPropertiesPainter::DrawShadow(property, *canvas_, &absClipRRect, node.IsLeashWindow());
+    RSPropertiesPainter::DrawShadow(property, *canvas_, &absClipRRect);
     if (!property.GetCornerRadius().IsZero()) {
         canvas_->clipRRect(RSPropertiesPainter::RRect2SkRRect(absClipRRect), true);
     } else {
@@ -1025,7 +1027,7 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
 
     const RectF absBounds = {0, 0, property.GetBoundsWidth(), property.GetBoundsHeight()};
     RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
-    RSPropertiesPainter::DrawShadow(property, *canvas_, &absClipRRect, node.IsLeashWindow());
+    RSPropertiesPainter::DrawShadow(property, *canvas_, &absClipRRect);
     if (!property.GetCornerRadius().IsZero()) {
         canvas_->ClipRoundRect(
             RSPropertiesPainter::RRect2DrawingRRect(absClipRRect), Drawing::ClipOp::INTERSECT, true);

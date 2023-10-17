@@ -23,18 +23,18 @@ napi_value CreateJsColorSpaceObject(napi_env env, std::shared_ptr<ColorSpace>& c
 {
     if (colorSpace == nullptr) {
         CMLOGE("[NAPI]colorSpace is nullptr");
-        napi_throw_error(env,
-            std::to_string(static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM))).c_str(),
-            "[NAPI]colorSpace is nullptr");
+        napi_throw(env,
+            CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM)),
+            "[NAPI]colorSpace is nullptr"));
         return nullptr;
     }
     napi_value object = nullptr;
     napi_create_object(env, &object);
     if (object == nullptr) {
         CMLOGE("[NAPI]Fail to convert to js object");
-        napi_throw_error(env,
-            std::to_string(static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM))).c_str(),
-            "[NAPI]Fail to convert to js object");
+        napi_throw(env,
+            CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM)),
+            "[NAPI]Fail to convert to js object"));
         napi_get_undefined(env, &object);
         return object;
     }

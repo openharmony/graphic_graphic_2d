@@ -15,8 +15,6 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_COMMON_RS_MACROS_H
 #define RENDER_SERVICE_CLIENT_CORE_COMMON_RS_MACROS_H
 
-namespace OHOS {
-namespace Rosen {
 /** about export template (most at _WIN32 platform)
  *  Sometimes other module maybe use instantiated template classes or instantiate their own template class.
  *  for example: arkui will use RSRenderAnimatableProperty<float> and instantiate the template
@@ -61,6 +59,5 @@ namespace Rosen {
 #define RSC_EXPORT      RS_IMPORT
 #define RSC_EXPORT_TMP
 #endif
-} // namespace Rosen
-} // namespace OHOS
+
 #endif // RENDER_SERVICE_CLIENT_CORE_COMMON_RS_MACROS_H

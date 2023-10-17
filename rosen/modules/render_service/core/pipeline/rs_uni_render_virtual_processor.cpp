@@ -22,6 +22,7 @@
 #include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
 #endif
 #include "pipeline/rs_uni_render_util.h"
+#include "pipeline/rs_main_thread.h"
 #include "rs_trace.h"
 #include "string_utils.h"
 
@@ -59,14 +60,31 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
         return false;
     }
     auto mirrorNode = node.GetMirrorSource().lock();
+    auto rotation = mirrorNode->GetScreenRotation();
+    isPhone_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
     if (mirrorNode && node.IsFirstTimeToProcessor()) {
-        auto boundsGeoPtr = (
-            mirrorNode->GetRenderProperties().GetBoundsGeometry());
-        if (boundsGeoPtr != nullptr) {
-            boundsGeoPtr->UpdateByMatrixFromSelf();
-            node.SetInitMatrix(boundsGeoPtr->GetMatrix());
+        if (isPhone_) {
+            node.setFirstTimeScreenRotation(rotation);
+        } else {
+            auto boundsGeoPtr = (mirrorNode->GetRenderProperties().GetBoundsGeometry());
+            if (boundsGeoPtr != nullptr) {
+                boundsGeoPtr->UpdateByMatrixFromSelf();
+                node.SetInitMatrix(boundsGeoPtr->GetMatrix());
+            }
         }
+        RS_LOGD("RSUniRenderVirtualProcessor::Init, Screen(id %{public}" PRIu64 "), Rotation: %d", node.GetScreenId(),
+            static_cast<uint32_t>(rotation));
     }
+    if (isPhone_) {
+        if (node.getFirstTimeScreenRotation() == ScreenRotation::ROTATION_90) {
+            canvas_->rotate(90, renderFrameConfig_.height / 2, renderFrameConfig_.height / 2); // 90 degrees
+            canvas_->translate(0, renderFrameConfig_.height - renderFrameConfig_.width);
+        } else if (node.getFirstTimeScreenRotation() == ScreenRotation::ROTATION_180) {
+            canvas_->rotate(180, renderFrameConfig_.width / 2, renderFrameConfig_.height / 2); // 180 degrees
+        } else if (node.getFirstTimeScreenRotation() == ScreenRotation::ROTATION_270) {
+            canvas_->rotate(270, renderFrameConfig_.height / 2, renderFrameConfig_.height / 2); // 270 degrees
+        }
+    } else {
 #ifndef USE_ROSEN_DRAWING
     SkMatrix invertMatrix;
     if (node.GetInitMatrix().invert(&invertMatrix)) {
@@ -80,6 +98,7 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
     }
     canvas_->ConcatMatrix(screenTransformMatrix_);
 #endif
+    }
     return true;
 }
 

@@ -52,6 +52,11 @@ std::unique_ptr<GPUContextImpl> ImplFactory::CreateGPUContextImpl()
 }
 #endif
 
+std::unique_ptr<TraceMemoryDumpImpl> ImplFactory::CreateTraceMemoryDumpImpl(const char* categoryKey, bool itemizeType)
+{
+    return EngineImplFactory::CreateTraceMemoryDump(categoryKey, itemizeType);
+}
+
 std::unique_ptr<BitmapImpl> ImplFactory::CreateBitmapImpl()
 {
     return EngineImplFactory::CreateBitmap();

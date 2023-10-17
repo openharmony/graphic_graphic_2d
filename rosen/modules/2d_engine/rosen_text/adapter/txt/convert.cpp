@@ -73,6 +73,7 @@ txt::ParagraphStyle Convert(const TypographyStyle &style)
         .text_direction = static_cast<txt::TextDirection>(style.textDirection_),
         .max_lines = style.maxLines_,
         .ellipsis = style.ellipsis_,
+        .ellipsisModal = static_cast<txt::EllipsisModal>(style.ellipsisModal_),
         .locale = style.locale_,
         .break_strategy = static_cast<minikin::BreakStrategy>(style.breakStrategy_),
         .word_break_type = static_cast<minikin::WordBreakType>(style.wordBreakType_),
@@ -90,14 +91,17 @@ txt::ParagraphStyle Convert(const TypographyStyle &style)
         .strut_font_size = style.lineStyleFontSize,
         .strut_height = style.lineStyleHeightScale,
         .strut_has_height_override = style.lineStyleHeightOnly,
+        .strut_half_leading = style.lineStyleHalfLeading,
         .strut_leading = style.lineStyleSpacingScale,
         .force_strut_height = style.lineStyleOnly,
         .text_align = static_cast<txt::TextAlign>(style.textAlign),
         .text_direction = static_cast<txt::TextDirection>(style.textDirection),
         .max_lines = style.maxLines,
         .ellipsis = style.ellipsis,
+        .ellipsis_modal = static_cast<txt::EllipsisModal>(style.ellipsisModal),
         .locale = style.locale,
         .break_strategy = static_cast<minikin::BreakStrategy>(style.breakStrategy),
+        .word_break_type = static_cast<minikin::WordBreakType>(style.wordBreakType),
 #endif
     };
 }
@@ -160,6 +164,7 @@ txt::TextStyle Convert(const TextStyle &style)
     textStyle.font_weight = static_cast<txt::FontWeight>(style.fontWeight);
     textStyle.font_style = static_cast<txt::FontStyle>(style.fontStyle);
     textStyle.text_baseline = static_cast<txt::TextBaseline>(style.baseline);
+    textStyle.half_leading = style.halfLeading;
     textStyle.font_families = style.fontFamilies;
     textStyle.font_size = style.fontSize;
     textStyle.letter_spacing = style.letterSpacing;

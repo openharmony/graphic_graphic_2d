@@ -28,7 +28,7 @@ namespace Drawing {
 class FontStyleSetImpl : public BaseImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
-    virtual ~FontStyleSetImpl() = default;
+    ~FontStyleSetImpl() override = default;
 
     AdapterType GetType() const override
     {

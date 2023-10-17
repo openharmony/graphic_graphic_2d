@@ -305,7 +305,7 @@ void RSMainThread::Init()
     }
     int32_t maxResources = 0;
     size_t maxResourcesSize = 0;
-    gpuContext->GetResourceCacheLimits(maxResources, maxResourcesSize);
+    gpuContext->GetResourceCacheLimits(&maxResources, &maxResourcesSize);
     if (maxResourcesSize > 0) {
         gpuContext->SetResourceCacheLimits(cacheLimitsTimes * maxResources, cacheLimitsTimes * maxResourcesSize);
     } else {
@@ -1821,7 +1821,7 @@ void RSMainThread::SendCommands()
     }
 
     // dispatch messages to corresponding application
-    auto transactionMapPtr = std::make_shared<std::unordered_map<uint32_t, RSTransactionData>>(
+    auto transactionMapPtr = std::make_shared<std::unordered_map<uint32_t, std::shared_ptr<RSTransactionData>>>(
         RSMessageProcessor::Instance().GetAllTransactions());
     RSMessageProcessor::Instance().ReInitializeMovedMap();
     PostTask([this, transactionMapPtr]() {
@@ -1834,7 +1834,7 @@ void RSMainThread::SendCommands()
                 continue;
             }
             auto& app = appIter->second;
-            auto transactionPtr = std::make_shared<RSTransactionData>(std::move(transactionIter.second));
+            auto transactionPtr = transactionIter.second;
             app->OnTransaction(transactionPtr);
         }
     });
@@ -1948,12 +1948,14 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
         if (gpuContext == nullptr) {
             return;
         }
-        gpuContext->FlushAndSubmit(true);
+        gpuContext->Flush();
+        SkGraphics::PurgeAllCaches(); // clear cpu cache
         if (!IsResidentProcess(remotePid)) {
             ReleaseExitSurfaceNodeAllGpuResource(gpuContext);
         } else {
             RS_LOGW("this pid:%{public}d is resident process, no need release gpu resource", remotePid);
         }
+        gpuContext->FlushAndSubmit(true);
 #endif // USE_ROSEN_DRAWING
         lastCleanCacheTimestamp_ = timestamp_;
 #endif
@@ -2351,10 +2353,9 @@ int32_t RSMainThread::GetNodePreferred(const std::vector<HgmModifierProfile>& hg
     if (hgmModifierProfileList.size() == 0) {
         return 0;
     }
-    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
     int32_t nodePreferred = 0;
     for (auto &hgmModifierProfile : hgmModifierProfileList) {
-        auto modifierPreferred = hgmCore.CalModifierPreferred(hgmModifierProfile);
+        auto modifierPreferred = frameRateMgr_->CalModifierPreferred(hgmModifierProfile);
         nodePreferred = std::max(nodePreferred, modifierPreferred);
     }
     return nodePreferred;
@@ -2388,6 +2389,10 @@ void RSMainThread::CollectFrameRateRange(std::shared_ptr<RSRenderNode> node)
 
 void RSMainThread::ApplyModifiers()
 {
+    if (context_->activeNodesInRoot_.empty()) {
+        return;
+    }
+    RS_TRACE_FUNC();
     frameRateRangeData_ = std::make_shared<FrameRateRangeData>();
     //[Planning]: Support multi-display in the future.
     frameRateRangeData_->screenId = 0;

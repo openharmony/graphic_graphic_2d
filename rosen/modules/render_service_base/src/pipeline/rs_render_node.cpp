@@ -29,6 +29,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_properties_painter.h"
+#include "property/rs_property_drawable.h"
 #include "property/rs_property_trace.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
@@ -769,7 +770,7 @@ void RSRenderNode::ApplyAlpha(RSPaintFilterCanvas& canvas)
 {
     auto alpha = renderProperties_.GetAlpha();
     if (alpha < 1.f) {
-        if ((GetChildrenCount() == 0) || !(GetRenderProperties().GetAlphaOffscreen() || IsForcedDrawInGroup())) {
+        if (!(GetRenderProperties().GetAlphaOffscreen() || IsForcedDrawInGroup())) {
             canvas.MultiplyAlpha(alpha);
         } else {
 #ifndef USE_ROSEN_DRAWING
@@ -949,7 +950,7 @@ bool RSRenderNode::ApplyModifiers()
     }
 
     for (auto &modifier : animationModifiers) {
-        AddModifierProfile(modifier, context.property_.GetBoundsWidth(), context.property_.GetBoundsHeight());
+        AddModifierProfile(modifier, context.properties_.GetBoundsWidth(), context.properties_.GetBoundsHeight());
     }
     // execute hooks
     renderProperties_.OnApplyModifiers();
@@ -962,6 +963,12 @@ bool RSRenderNode::ApplyModifiers()
     }
     if (auto& manager = renderProperties_.GetFilterCacheManager(true)) {
         manager->UpdateCacheStateWithDirtyRegion();
+    }
+
+    if (RSSystemProperties::GetPropertyDrawableEnable()) {
+        // Generate drawable
+        RSPropertyDrawableGenerateContext drawableContext(*this);
+        RSPropertyDrawable::UpdateDrawableMap(drawableContext, propertyDrawablesMap_, drawableMapStatus_, dirtyTypes_);
     }
 
     // update state
@@ -2070,5 +2077,20 @@ void RSRenderNode::SetIsUsedBySubThread(bool isUsedBySubThread)
 {
     isUsedBySubThread_.store(isUsedBySubThread);
 }
+
+inline std::pair<RSRenderNode::DrawableIter, RSRenderNode::DrawableIter> RSRenderNode::GetDrawableRange(
+    RSPropertyDrawableSlot begin, RSPropertyDrawableSlot end)
+{
+    return { propertyDrawablesMap_.lower_bound(begin), propertyDrawablesMap_.upper_bound(end) };
+}
+
+inline void RSRenderNode::IterateOnDrawableRange(RSPropertyDrawableSlot begin, RSPropertyDrawableSlot end,
+    const std::function<void(RSPropertyDrawable::DrawablePtr&)>& func)
+{
+    auto [beginIter, endIter] = GetDrawableRange(begin, end);
+    for (auto it = beginIter; it != endIter; ++it) {
+        func(it->second);
+    }
+};
 } // namespace Rosen
 } // namespace OHOS

@@ -52,6 +52,13 @@ void DisplayNodeCommandHelper::SetDisplayOffset(RSContext& context, NodeId id, i
     }
 }
 
+void DisplayNodeCommandHelper::SetScreenRotation(RSContext& context, NodeId id, const ScreenRotation& screenRotation)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id)) {
+        node->SetScreenRotation(screenRotation);
+    }
+}
+
 void DisplayNodeCommandHelper::SetSecurityDisplay(RSContext& context, NodeId id, bool isSecurityDisplay)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id)) {

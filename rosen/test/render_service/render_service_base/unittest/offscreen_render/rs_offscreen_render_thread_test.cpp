@@ -46,11 +46,7 @@ void RSOffscreenRenderThreadTest::DisplayTestInfo()
  */
 HWTEST_F(RSOffscreenRenderThreadTest, Stop001, TestSize.Level1)
 {
-    RSOffscreenRenderThread::Instance().Start();
     auto task = RSOffscreenRenderThreadTest::DisplayTestInfo;
     RSOffscreenRenderThread::Instance().PostTask(task);
-    EXPECT_NE(RSOffscreenRenderThread::Instance().handler_, nullptr);
-    RSOffscreenRenderThread::Instance().Stop();
-    EXPECT_EQ(RSOffscreenRenderThread::Instance().handler_, nullptr);
 }
 } // namespace OHOS::Rosen

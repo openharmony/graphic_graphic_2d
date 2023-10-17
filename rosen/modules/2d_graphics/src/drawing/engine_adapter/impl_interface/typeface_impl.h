@@ -28,7 +28,7 @@ namespace Drawing {
 class TypefaceImpl : public BaseImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
-    virtual ~TypefaceImpl() = default;
+    ~TypefaceImpl() override = default;
 
     AdapterType GetType() const override
     {

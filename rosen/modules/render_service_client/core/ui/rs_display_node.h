@@ -16,6 +16,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_DISPLAY_NODE_H
 
 #include "ui/rs_node.h"
+#include "screen_manager/screen_types.h"
 
 #ifndef USE_ROSEN_DRAWING
 class SkCanvas;
@@ -44,6 +45,8 @@ public:
     void SetDisplayOffset(int32_t offsetX, int32_t offsetY);
 
     void SetSecurityDisplay(bool isSecurityDisplay);
+
+    void SetScreenRotation(const uint32_t& rotation);
 
     void SetDisplayNodeMirrorConfig(const RSDisplayNodeConfig& displayNodeConfig);
 

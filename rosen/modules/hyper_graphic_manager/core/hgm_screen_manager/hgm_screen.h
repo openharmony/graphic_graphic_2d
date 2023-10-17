@@ -31,10 +31,19 @@
 #include "hgm_command.h"
 
 namespace OHOS::Rosen {
+constexpr float INCH_2_MM = 25.4f;
+
+struct ScreenSize {
+    int32_t width;
+    int32_t height;
+    int32_t phyWidth;
+    int32_t phyHeight;
+};
+
 class HgmScreen : public virtual RefBase {
 public:
     HgmScreen();
-    HgmScreen(ScreenId id, int32_t mode);
+    HgmScreen(ScreenId id, int32_t mode, ScreenSize& screenSize);
     virtual ~HgmScreen();
 
     ScreenId GetId() const
@@ -60,6 +69,41 @@ public:
     int32_t GetActiveRefreshRateMode() const
     {
         return customFrameRateMode_;
+    }
+
+    int32_t GetWidth() const
+    {
+        return width_;
+    }
+
+    int32_t GetHeight() const
+    {
+        return height_;
+    }
+
+    int32_t GetPhyWidth() const
+    {
+        return phyWidth_;
+    }
+
+    int32_t GetPhyHeight() const
+    {
+        return phyHeight_;
+    }
+
+    float GetPpi() const
+    {
+        return ppi_;
+    }
+
+    float GetXDpi() const
+    {
+        return xDpi_;
+    }
+
+    float GetYDpi() const
+    {
+        return yDpi_;
     }
 
     uint32_t GetActiveRefreshRate() const;
@@ -114,6 +158,13 @@ private:
 
     ScreenId id_ = 0;
     int32_t activeModeId_ = 0;
+    int32_t width_;
+    int32_t height_;
+    int32_t phyWidth_;
+    int32_t phyHeight_;
+    float ppi_ = 0;
+    float xDpi_ = 0;
+    float yDpi_ = 0;
     int32_t customFrameRateMode_ = -1;
     std::unordered_set<uint32_t> supportedRefreshRates_;
     std::unordered_set<int32_t> supportedModeIds_;

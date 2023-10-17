@@ -163,7 +163,7 @@ HWTEST_F(GpuContextTest, BuildFromGLTest001, TestSize.Level1)
     gpuContext->PerformDeferredCleanup(msNotUsed);
     int32_t maxResource = 100;
     size_t maxResourceBytes = 1000;
-    gpuContext->GetResourceCacheLimits(maxResource, maxResourceBytes);
+    gpuContext->GetResourceCacheLimits(&maxResource, &maxResourceBytes);
     gpuContext->SetResourceCacheLimits(maxResource, maxResourceBytes);
 }
 
@@ -222,7 +222,7 @@ HWTEST_F(GpuContextTest, GetResourceCacheLimitsTest001, TestSize.Level1)
     ASSERT_TRUE(gpuContext != nullptr);
     int32_t maxResource = 0;
     size_t maxResourceBytes = 0;
-    gpuContext->GetResourceCacheLimits(maxResource, maxResourceBytes);
+    gpuContext->GetResourceCacheLimits(&maxResource, &maxResourceBytes);
 }
 
 /**
@@ -237,7 +237,7 @@ HWTEST_F(GpuContextTest, GetResourceCacheLimitsTest002, TestSize.Level1)
     ASSERT_TRUE(gpuContext != nullptr);
     int32_t maxResource = 10;
     size_t maxResourceBytes = 1000;
-    gpuContext->GetResourceCacheLimits(maxResource, maxResourceBytes);
+    gpuContext->GetResourceCacheLimits(&maxResource, &maxResourceBytes);
 }
 
 /**

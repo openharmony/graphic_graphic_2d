@@ -44,7 +44,6 @@ ohos_shared_library("libhyper_graphic_manager") {
     "core/config/hgm_config_callback_manager.cpp",
     "core/config/xml_parser.cpp",
     "core/frame_rate_manager/hgm_frame_rate_manager.cpp",
-    "core/frame_rate_manager/hgm_frame_rate_tool.cpp",
     "core/hgm_screen_manager/hgm_core.cpp",
     "core/hgm_screen_manager/hgm_screen.cpp",
     "core/utils/hgm_one_shot_timer.cpp",

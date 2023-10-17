@@ -16,12 +16,13 @@
 #ifndef ROSEN_MODULES_TEXGINE_SRC_CHAR_GROUPS_H
 #define ROSEN_MODULES_TEXGINE_SRC_CHAR_GROUPS_H
 
+#include "typeface.h"
+
 #include <array>
 #include <cstdint>
 #include <memory>
 #include <ostream>
 #include <vector>
-
 #include <unicode/uchar.h>
 
 namespace OHOS {
@@ -35,7 +36,6 @@ struct Glyph {
     double offsetY;
 };
 
-class Typeface;
 struct CharGroup {
     std::vector<uint16_t> chars;
     std::vector<struct Glyph> glyphs;
@@ -76,6 +76,21 @@ struct CharGroup {
         ULineBreak lineBreak = static_cast<ULineBreak>(
             u_getIntPropertyValue(chars[0], UCHAR_LINE_BREAK));
         return (lineBreak == U_LB_LINE_FEED || lineBreak == U_LB_MANDATORY_BREAK);
+    }
+
+    bool IsEmoji() const
+    {
+        bool isEmoji = false;
+        for (auto i = 0; i < chars.size(); i++) {
+            isEmoji = (u_hasBinaryProperty(chars[i], UCHAR_EMOJI) ||
+                u_hasBinaryProperty(chars[i], UCHAR_EMOJI_PRESENTATION) ||
+                u_hasBinaryProperty(chars[i], UCHAR_EMOJI_MODIFIER) ||
+                u_hasBinaryProperty(chars[i], UCHAR_EMOJI_MODIFIER_BASE));
+            if (isEmoji) {
+                return isEmoji;
+            }
+        }
+        return isEmoji;
     }
 };
 
@@ -134,6 +149,7 @@ public:
     }
 
     bool CheckCodePoint();
+    std::string GetTypefaceName();
 private:
     friend void ReportMemoryUsage(const std::string &member, const CharGroups &that, bool needThis);
 

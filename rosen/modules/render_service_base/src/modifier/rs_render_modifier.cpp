@@ -22,17 +22,24 @@
 #include <memory>
 #include <unordered_map>
 
-#include "include/effects/SkColorMatrix.h"
 #include "pixel_map.h"
 
+#include "animation/rs_render_particle.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "common/rs_vector2.h"
+#include "common/rs_vector4.h"
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "platform/common/rs_log.h"
 #include "property/rs_properties.h"
 #include "property/rs_properties_def.h"
 #include "property/rs_properties_painter.h"
-#include "platform/common/rs_log.h"
+#include "render/rs_filter.h"
+#include "render/rs_image.h"
+#include "render/rs_mask.h"
+#include "render/rs_path.h"
+#include "render/rs_shader.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -128,7 +135,7 @@ void RSDrawCmdListRenderModifier::Apply(RSModifierContext& context) const
 {
     if (context.canvas_) {
         auto& cmds = property_->GetRef();
-        RSPropertiesPainter::DrawFrame(context.property_, *context.canvas_, cmds);
+        RSPropertiesPainter::DrawFrame(context.properties_, *context.canvas_, cmds);
     }
 }
 
@@ -166,7 +173,7 @@ void RSDrawCmdListRenderModifier::ApplyForDrivenContent(RSModifierContext& conte
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     if (context.canvas_) {
         auto cmds = property_->Get();
-        RSPropertiesPainter::DrawFrameForDriven(context.property_, *context.canvas_, cmds);
+        RSPropertiesPainter::DrawFrameForDriven(context.properties_, *context.canvas_, cmds);
     }
 #endif
 }
@@ -174,7 +181,7 @@ void RSDrawCmdListRenderModifier::ApplyForDrivenContent(RSModifierContext& conte
 void RSParticleRenderModifier::Apply(RSModifierContext& context) const
 {
     auto renderProperty = std::static_pointer_cast<RSRenderProperty<RSRenderParticleVector>>(property_);
-    context.property_.SetParticles(renderProperty->Get());
+    context.properties_.SetParticles(renderProperty->Get());
 }
 
 void RSParticleRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)
@@ -251,9 +258,9 @@ Color RSEnvForegroundColorStrategyRenderModifier::GetInvertBackgroundColor(RSMod
 #else
     Drawing::AutoCanvasRestore acr(*context.canvas_, true);
 #endif
-    if (!context.property_.GetClipToBounds()) {
+    if (!context.properties_.GetClipToBounds()) {
         RS_LOGI("RSRenderModifier::GetInvertBackgroundColor not GetClipToBounds");
-        Vector4f clipRegion = context.property_.GetBounds();
+        Vector4f clipRegion = context.properties_.GetBounds();
 #ifndef USE_ROSEN_DRAWING
         SkRect rect = SkRect::MakeXYWH(0, 0, clipRegion.z_, clipRegion.w_);
         context.canvas_->clipRect(rect);
@@ -262,7 +269,7 @@ Color RSEnvForegroundColorStrategyRenderModifier::GetInvertBackgroundColor(RSMod
         context.canvas_->ClipRect(rect, Drawing::ClipOp::INTERSECT, false);
 #endif
     }
-    Color backgroundColor = context.property_.GetBackgroundColor();
+    Color backgroundColor = context.properties_.GetBackgroundColor();
     if (backgroundColor.GetAlpha() == 0xff) {
         RS_LOGI("RSRenderModifier::GetInvertBackgroundColor not alpha");
         return CalculateInvertColor(backgroundColor);
@@ -277,8 +284,8 @@ Color RSEnvForegroundColorStrategyRenderModifier::GetInvertBackgroundColor(RSMod
         return Color(0);
     }
     Media::InitializationOptions opts;
-    opts.size.width = context.property_.GetBoundsWidth();
-    opts.size.height = context.property_.GetBoundsHeight();
+    opts.size.width = context.properties_.GetBoundsWidth();
+    opts.size.height = context.properties_.GetBoundsHeight();
     if (opts.size.width == 0 || opts.size.height == 0) {
         RS_LOGI("RSRenderModifier::GetInvertBackgroundColor opts.size.width/height == 0");
         return Color(0);
@@ -333,7 +340,7 @@ void RSEnvForegroundColorStrategyRenderModifier::Update(const std::shared_ptr<RS
 
 void RSGeometryTransRenderModifier::Apply(RSModifierContext& context) const
 {
-    auto geoPtr = (context.property_.GetBoundsGeometry());
+    auto geoPtr = (context.properties_.GetBoundsGeometry());
     auto property = property_->Get();
     geoPtr->ConcatMatrix(property);
 }
@@ -404,24 +411,25 @@ const T& Replace(const std::optional<T>& a, T&& b)
 }
 } // namespace
 
-#define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP, MODIFIER_TIER)                       \
-    bool RS##MODIFIER_NAME##RenderModifier::Marshalling(Parcel& parcel)                                                \
-    {                                                                                                                  \
-        auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<TYPE>>(property_);                   \
-        return parcel.WriteInt16(static_cast<int16_t>(RSModifierType::MODIFIER_TYPE)) &&                               \
-               RSMarshallingHelper::Marshalling(parcel, renderProperty);                                               \
-    }                                                                                                                  \
-    void RS##MODIFIER_NAME##RenderModifier::Apply(RSModifierContext& context) const                                    \
-    {                                                                                                                  \
-        auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<TYPE>>(property_);                   \
-        context.property_.Set##MODIFIER_NAME(DELTA_OP(context.property_.Get##MODIFIER_NAME(), renderProperty->Get())); \
-    }                                                                                                                  \
-    void RS##MODIFIER_NAME##RenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)    \
-    {                                                                                                                  \
-        if (auto property = std::static_pointer_cast<RSRenderAnimatableProperty<TYPE>>(prop)) {                        \
-            auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<TYPE>>(property_);               \
-            renderProperty->Set(isDelta ? (renderProperty->Get() + property->Get()) : property->Get());                \
-        }                                                                                                              \
+#define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP, MODIFIER_TIER)                    \
+    bool RS##MODIFIER_NAME##RenderModifier::Marshalling(Parcel& parcel)                                             \
+    {                                                                                                               \
+        auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<TYPE>>(property_);                \
+        return parcel.WriteInt16(static_cast<int16_t>(RSModifierType::MODIFIER_TYPE)) &&                            \
+               RSMarshallingHelper::Marshalling(parcel, renderProperty);                                            \
+    }                                                                                                               \
+    void RS##MODIFIER_NAME##RenderModifier::Apply(RSModifierContext& context) const                                 \
+    {                                                                                                               \
+        auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<TYPE>>(property_);                \
+        context.properties_.Set##MODIFIER_NAME(                                                                     \
+            DELTA_OP(context.properties_.Get##MODIFIER_NAME(), renderProperty->Get()));                             \
+    }                                                                                                               \
+    void RS##MODIFIER_NAME##RenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) \
+    {                                                                                                               \
+        if (auto property = std::static_pointer_cast<RSRenderAnimatableProperty<TYPE>>(prop)) {                     \
+            auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<TYPE>>(property_);            \
+            renderProperty->Set(isDelta ? (renderProperty->Get() + property->Get()) : property->Get());             \
+        }                                                                                                           \
     }
 
 #define DECLARE_NOANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, MODIFIER_TIER)                            \
@@ -434,7 +442,7 @@ const T& Replace(const std::optional<T>& a, T&& b)
     void RS##MODIFIER_NAME##RenderModifier::Apply(RSModifierContext& context) const                                 \
     {                                                                                                               \
         auto renderProperty = std::static_pointer_cast<RSRenderProperty<TYPE>>(property_);                          \
-        context.property_.Set##MODIFIER_NAME(renderProperty->Get());                                                \
+        context.properties_.Set##MODIFIER_NAME(renderProperty->Get());                                              \
     }                                                                                                               \
     void RS##MODIFIER_NAME##RenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) \
     {                                                                                                               \

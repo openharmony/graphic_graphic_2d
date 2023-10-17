@@ -67,6 +67,11 @@ ImageInfo Surface::GetImageInfo()
     return GetCanvas()->GetImageInfo();
 }
 
+void Surface::FlushAndSubmit(bool syncCpu)
+{
+    impl_->FlushAndSubmit(syncCpu);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

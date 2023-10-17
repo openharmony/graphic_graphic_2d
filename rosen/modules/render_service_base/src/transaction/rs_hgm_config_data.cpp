@@ -30,6 +30,9 @@ RSHgmConfigData::~RSHgmConfigData() noexcept
 RSHgmConfigData* RSHgmConfigData::Unmarshalling(Parcel& parcel)
 {
     auto data = new RSHgmConfigData();
+    data->ppi_ = parcel.ReadFloat();
+    data->xDpi_ = parcel.ReadFloat();
+    data->yDpi_ = parcel.ReadFloat();
     auto size = parcel.ReadUint32();
     size_t readableSize = parcel.GetReadableBytes() / sizeof(uint64_t);
     size_t len = static_cast<size_t>(size);
@@ -52,6 +55,9 @@ RSHgmConfigData* RSHgmConfigData::Unmarshalling(Parcel& parcel)
 bool RSHgmConfigData::Marshalling(Parcel& parcel) const
 {
     parcel.SetMaxCapacity(PARCEL_MAX_CAPACITY);
+    parcel.WriteFloat(ppi_);
+    parcel.WriteFloat(xDpi_);
+    parcel.WriteFloat(yDpi_);
     parcel.WriteUint32(configData_.size());
 
     for (auto& item : configData_) {

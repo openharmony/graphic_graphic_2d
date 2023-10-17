@@ -1052,6 +1052,11 @@ void SurfaceBufferOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
     auto skImage = SkImage::MakeFromTexture(canvas.getGrContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
         kRGBA_8888_SkColorType, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
 #endif
+    if (canvas.GetRecordingState()) {
+        auto cpuImage = skImage->makeRasterImage();
+        canvas.drawImage(cpuImage, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_);
+        return;
+    }
     canvas.drawImage(skImage, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_);
 #endif // RS_ENABLE_GL
 }

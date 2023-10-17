@@ -27,125 +27,127 @@ namespace OHOS {
 namespace Rosen {
 using namespace AbilityRuntime;
 
-NativeValue* RSWindowAnimationUtils::CreateJsWindowAnimationTarget(NativeEngine& engine,
+napi_value RSWindowAnimationUtils::CreateJsWindowAnimationTarget(napi_env env,
     const sptr<RSWindowAnimationTarget>& target)
 {
     WALOGD("Create!");
     if (target == nullptr) {
         WALOGD("Target is null!");
-        return engine.CreateNull();
+        return CreateNull(env);
     }
 
-    auto objValue = engine.CreateObject();
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
     if (objValue == nullptr) {
         WALOGE("CreateJsWindowAnimationTarget failed to create object!");
-        return engine.CreateUndefined();
+        return CreateUndefined(env);
     }
-
-    auto object = ConvertNativeValueTo<NativeObject>(objValue);
-    if (object == nullptr) {
+    if (objValue == nullptr) {
         WALOGE("CreateJsWindowAnimationTarget failed to convert object!");
-        return engine.CreateUndefined();
+        return CreateUndefined(env);
     }
 
-    NativeFinalize finalizeCallback = [](NativeEngine* engine, void* data, void* hint) {
+    napi_finalize finalizeCallback = [](napi_env env, void* data, void* hint) {
         auto target = sptr<RSWindowAnimationTarget>(static_cast<RSWindowAnimationTarget*>(hint));
         target.GetRefPtr()->DecStrongRef(target.GetRefPtr());
     };
     target.GetRefPtr()->IncStrongRef(target.GetRefPtr());
-    object->SetNativePointer(&(target->surfaceNode_), finalizeCallback, target.GetRefPtr());
+    napi_wrap(env, objValue, &(target->surfaceNode_), finalizeCallback, target.GetRefPtr(), nullptr);
     if (auto proxyNode = RSBaseNode::ReinterpretCast<RSProxyNode>(target->surfaceNode_)) {
         // force proxy node to flush correct context alpha on next visit
         proxyNode->ResetContextVariableCache();
     }
 
-    object->SetProperty("bundleName", CreateJsValue(engine, target->bundleName_));
-    object->SetProperty("abilityName", CreateJsValue(engine, target->abilityName_));
-    object->SetProperty("windowBounds", CreateJsRRect(engine, target->windowBounds_));
-    object->SetProperty("missionId", CreateJsValue(engine, target->missionId_));
-    object->SetProperty("windowId", CreateJsValue(engine, target->windowId_));
+    napi_set_named_property(env, objValue, "bundleName", CreateJsValue(env, target->bundleName_));
+    napi_set_named_property(env, objValue, "abilityName", CreateJsValue(env, target->abilityName_));
+    napi_set_named_property(env, objValue, "windowBounds", CreateJsRRect(env, target->windowBounds_));
+    napi_set_named_property(env, objValue, "missionId", CreateJsValue(env, target->missionId_));
+    napi_set_named_property(env, objValue, "windowId", CreateJsValue(env, target->windowId_));
 
     return objValue;
 }
 
-NativeValue* RSWindowAnimationUtils::CreateJsWindowAnimationTargetArray(NativeEngine& engine,
+napi_value RSWindowAnimationUtils::CreateJsWindowAnimationTargetArray(napi_env env,
     const std::vector<sptr<RSWindowAnimationTarget>>& targets)
 {
     WALOGD("Create!");
-    NativeValue* arrayValue = engine.CreateArray(targets.size());
-    NativeArray* array = ConvertNativeValueTo<NativeArray>(arrayValue);
+    napi_value array = nullptr;
+    napi_create_array_with_length(env, targets.size(), &array);
     uint32_t index = 0;
     for (const auto& item : targets) {
-        array->SetElement(index++, CreateJsWindowAnimationTarget(engine, item));
+        napi_set_element(env, array, index++, CreateJsWindowAnimationTarget(env, item));
     }
-    return arrayValue;
+    return array;
 }
 
-NativeValue* RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(
-    NativeEngine& engine, const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
+napi_value RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(
+    napi_env env, const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback)
 {
     WALOGD("Create!");
     if (finishedCallback == nullptr) {
         WALOGE("Finished callback is null!");
-        return engine.CreateUndefined();
+        return CreateUndefined(env);
     }
-
-    auto objValue = engine.CreateObject();
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
     if (objValue == nullptr) {
         WALOGE("CreateJsWindowAnimationFinishedCallback failed to create object!");
-        return engine.CreateUndefined();
+        return CreateUndefined(env);
     }
 
-    auto object = ConvertNativeValueTo<NativeObject>(objValue);
+    napi_value object = nullptr;
+    napi_coerce_to_object(env, objValue, &object);
     if (object == nullptr) {
         WALOGE("CreateJsWindowAnimationFinishedCallback failed to convert object!");
-        return engine.CreateUndefined();
+        return CreateUndefined(env);
     }
 
-    NativeFinalize finalizeCallback = [](NativeEngine* engine, void* data, void* hint) {
+    napi_finalize finalizeCallback = [](napi_env env, void* data, void* hint) {
         auto finishedCallback =
             sptr<RSIWindowAnimationFinishedCallback>(static_cast<RSIWindowAnimationFinishedCallback*>(data));
         finishedCallback.GetRefPtr()->DecStrongRef(finishedCallback.GetRefPtr());
     };
     finishedCallback.GetRefPtr()->IncStrongRef(finishedCallback.GetRefPtr());
-    object->SetNativePointer(finishedCallback.GetRefPtr(), finalizeCallback, nullptr);
+    napi_wrap(env, object, finishedCallback.GetRefPtr(), finalizeCallback, nullptr, nullptr);
 
-    NativeCallback jsFinishedCallback = [](NativeEngine* engine, NativeCallbackInfo* info) -> NativeValue* {
+    napi_callback jsFinishedCallback = [](napi_env env, napi_callback_info info) -> napi_value {
         WALOGD("Native finished callback is called!");
-        auto nativeFinishedCallback = CheckParamsAndGetThis<RSIWindowAnimationFinishedCallback>(engine, info);
+        auto nativeFinishedCallback = CheckParamsAndGetThis<RSIWindowAnimationFinishedCallback>(env, info);
         if (nativeFinishedCallback == nullptr) {
             WALOGE("Finished callback is null!");
-            return engine->CreateUndefined();
+            return CreateUndefined(env);
         }
 
         nativeFinishedCallback->OnAnimationFinished();
-        return engine->CreateUndefined();
+        return CreateUndefined(env);
     };
     const char *moduleName = "RSWindowAnimationUtils";
-    BindNativeFunction(engine, *object, "onAnimationFinish", moduleName, jsFinishedCallback);
+    BindNativeFunction(env, object, "onAnimationFinish", moduleName, jsFinishedCallback);
     return objValue;
 }
 
-NativeValue* RSWindowAnimationUtils::CreateJsRRect(NativeEngine& engine, const RRect& rrect)
+napi_value RSWindowAnimationUtils::CreateJsRRect(napi_env env, const RRect& rrect)
 {
     WALOGD("Create!");
-    auto objValue = engine.CreateObject();
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
     if (objValue == nullptr) {
         WALOGE("CreateJsRRect failed to create object!");
-        return engine.CreateUndefined();
+        return CreateUndefined(env);
     }
 
-    auto object = ConvertNativeValueTo<NativeObject>(objValue);
+    napi_value object = nullptr;
+    napi_coerce_to_object(env, objValue, &object);
     if (object == nullptr) {
         WALOGE("CreateJsRRect failed to convert object!");
-        return engine.CreateUndefined();
+        return CreateUndefined(env);
     }
 
-    object->SetProperty("left", CreateJsValue(engine, rrect.rect_.left_));
-    object->SetProperty("top", CreateJsValue(engine, rrect.rect_.top_));
-    object->SetProperty("width", CreateJsValue(engine, rrect.rect_.width_));
-    object->SetProperty("height", CreateJsValue(engine, rrect.rect_.height_));
-    object->SetProperty("radius", CreateJsValue(engine, rrect.radius_[0].x_));
+    napi_set_named_property(env, object, "left", CreateJsValue(env, rrect.rect_.left_));
+    napi_set_named_property(env, object, "top", CreateJsValue(env, rrect.rect_.top_));
+    napi_set_named_property(env, object, "width", CreateJsValue(env, rrect.rect_.width_));
+    napi_set_named_property(env, object, "height", CreateJsValue(env, rrect.rect_.height_));
+    napi_set_named_property(env, object, "radius", CreateJsValue(env, rrect.radius_[0].x_));
     return objValue;
 }
 
@@ -153,6 +155,20 @@ bool RSWindowAnimationUtils::IsSystemApp()
 {
     uint64_t tokenId = OHOS::IPCSkeleton::GetCallingFullTokenID();
     return Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(tokenId);
+}
+
+napi_value RSWindowAnimationUtils::CreateNull(napi_env env)
+{
+    napi_value result = nullptr;
+    napi_get_null(env, &result);
+    return result;
+}
+
+napi_value RSWindowAnimationUtils::CreateUndefined(napi_env env)
+{
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    return result;
 }
 } // namespace Rosen
 } // namespace OHOS

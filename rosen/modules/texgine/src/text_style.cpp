@@ -55,6 +55,7 @@ bool TextStyle::operator ==(TextStyle const &rhs) const
     return color == rhs.color &&
            fontSize == rhs.fontSize &&
            fontFamilies == rhs.fontFamilies &&
+           halfLeading == rhs.halfLeading &&
            heightOnly == rhs.heightOnly &&
            heightScale == rhs.heightScale &&
            decoration == rhs.decoration &&

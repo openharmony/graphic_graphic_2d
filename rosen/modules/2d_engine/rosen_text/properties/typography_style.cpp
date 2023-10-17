@@ -32,6 +32,7 @@ TextStyle TypographyStyle::GetTextStyle() const
     textstyle.hasHeightOverride_ = hasHeightOverride_;
     if (Ellipsized()) {
         textstyle.ellipsis_ = ellipsis_;
+        textstyle.ellipsisModal_ = ellipsisModal_;
     }
     return textstyle;
 }

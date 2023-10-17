@@ -17,6 +17,7 @@
 #define ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_DISPLAY_NODE_COMMAND_H
 
 #include "command/rs_command_templates.h"
+#include "screen_manager/screen_types.h"
 #include "common/rs_macros.h"
 
 namespace OHOS {
@@ -28,6 +29,7 @@ enum RSDisplayNodeCommandType : uint16_t {
     DISPLAY_NODE_SET_DISPLAY_OFFSET,
     DISPLAY_NODE_SET_SECURITY_DISPLAY,
     DISPLAY_NODE_SET_DISPLAY_MODE,
+    DISPLAY_NODE_SET_SCREEN_ROTATION,
 };
 
 class RSB_EXPORT DisplayNodeCommandHelper {
@@ -37,6 +39,7 @@ public:
     static void SetDisplayOffset(RSContext&, NodeId, int32_t, int32_t);
     static void SetSecurityDisplay(RSContext&, NodeId, bool);
     static void SetDisplayMode(RSContext&, NodeId, const RSDisplayNodeConfig&);
+    static void SetScreenRotation(RSContext&, NodeId, const ScreenRotation&);
 };
 
 ADD_COMMAND(RSDisplayNodeCreate,
@@ -51,6 +54,9 @@ ADD_COMMAND(RSDisplayNodeSetSecurityDisplay,
 ADD_COMMAND(RSDisplayNodeSetDisplayMode,
     ARG(DISPLAY_NODE, DISPLAY_NODE_SET_DISPLAY_MODE, DisplayNodeCommandHelper::SetDisplayMode, NodeId,
     RSDisplayNodeConfig))
+ADD_COMMAND(RSDisplayNodeSetScreenRotation,
+    ARG(DISPLAY_NODE, DISPLAY_NODE_SET_SCREEN_ROTATION, DisplayNodeCommandHelper::SetScreenRotation, NodeId,
+    ScreenRotation))
 } // namespace Rosen
 } // namespace OHOS
 

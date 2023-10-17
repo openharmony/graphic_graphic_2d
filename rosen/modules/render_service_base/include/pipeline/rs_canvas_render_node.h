@@ -32,7 +32,7 @@ namespace Drawing {
 class DrawCmdList;
 }
 #endif
-struct RSModifierContext;
+class RSModifierContext;
 
 class RSCanvasRenderNode : public RSRenderNode {
 public:

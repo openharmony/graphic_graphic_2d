@@ -414,7 +414,6 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
 int32_t HdiOutput::ReleaseFramebuffer(const sptr<SyncFence>& releaseFence)
 {
     if (currFrameBuffer_ == nullptr) {
-        HLOGE("Current frame buffer is nullptr.");
         return GRAPHIC_DISPLAY_NULL_PTR;
     }
 
@@ -470,7 +469,7 @@ int32_t HdiOutput::StartVSyncSampler()
     }
     bool alreadyStartSample = sampler_->GetHardwareVSyncStatus();
     if (alreadyStartSample) {
-        HLOGE("Already Start Sample.");
+        HLOGD("Already Start Sample.");
         return GRAPHIC_DISPLAY_SUCCESS;
     }
     HLOGD("Enable Screen Vsync");

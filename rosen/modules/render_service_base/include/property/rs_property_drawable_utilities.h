@@ -19,16 +19,29 @@
 #include <list>
 #include <utility>
 
+#include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_property_drawable.h"
 
 namespace OHOS::Rosen {
+// ============================================================================
+// alias (reference or soft link) of another drawable
+class RSAliasDrawable : public RSPropertyDrawable {
+public:
+    explicit RSAliasDrawable(RSPropertyDrawableSlot slot);
+    ~RSAliasDrawable() override = default;
+    void Draw(RSPropertyDrawableRenderContext& context) override;
+
+private:
+    RSPropertyDrawableSlot slot_;
+};
+
 // ============================================================================
 // Save and Restore
 class RSSaveDrawable : public RSPropertyDrawable {
 public:
     explicit RSSaveDrawable(std::shared_ptr<int> content);
     ~RSSaveDrawable() override = default;
-    void Draw(RSModifierContext& context) override;
+    void Draw(RSPropertyDrawableRenderContext& context) override;
 
 private:
     std::shared_ptr<int> content_;
@@ -38,7 +51,7 @@ class RSRestoreDrawable : public RSPropertyDrawable {
 public:
     explicit RSRestoreDrawable(std::shared_ptr<int> content);
     ~RSRestoreDrawable() override = default;
-    void Draw(RSModifierContext& context) override;
+    void Draw(RSPropertyDrawableRenderContext& context) override;
 
 private:
     std::shared_ptr<int> content_;
@@ -49,7 +62,7 @@ public:
     explicit RSCustomSaveDrawable(
         std::shared_ptr<RSPaintFilterCanvas::SaveStatus> content, RSPaintFilterCanvas::SaveType type);
     ~RSCustomSaveDrawable() override = default;
-    void Draw(RSModifierContext& context) override;
+    void Draw(RSPropertyDrawableRenderContext& context) override;
 
 private:
     std::shared_ptr<RSPaintFilterCanvas::SaveStatus> content_;
@@ -60,7 +73,7 @@ class RSCustomRestoreDrawable : public RSPropertyDrawable {
 public:
     explicit RSCustomRestoreDrawable(std::shared_ptr<RSPaintFilterCanvas::SaveStatus> content);
     ~RSCustomRestoreDrawable() override = default;
-    void Draw(RSModifierContext& context) override;
+    void Draw(RSPropertyDrawableRenderContext& context) override;
 
 private:
     std::shared_ptr<RSPaintFilterCanvas::SaveStatus> content_;
@@ -72,9 +85,9 @@ class RSAlphaDrawable : public RSPropertyDrawable {
 public:
     explicit RSAlphaDrawable(float alpha);
     ~RSAlphaDrawable() override = default;
-    void Draw(RSModifierContext& context) override;
+    void Draw(RSPropertyDrawableRenderContext& context) override;
 
-    static std::unique_ptr<RSPropertyDrawable> Generate(const RSProperties& properties);
+    static RSPropertyDrawable::DrawablePtr Generate(const RSPropertyDrawableGenerateContext& context);
 
 protected:
     float alpha_;
@@ -84,7 +97,7 @@ class RSAlphaOffscreenDrawable : public RSAlphaDrawable {
 public:
     explicit RSAlphaOffscreenDrawable(float alpha);
 
-    void Draw(RSModifierContext& context) override;
+    void Draw(RSPropertyDrawableRenderContext& context) override;
     void OnGeometryChange(const RSProperties& properties) override;
 
 private:
@@ -96,27 +109,16 @@ private:
 };
 
 // ============================================================================
-// Adapter for DrawCmdList
-class RSDrawCmdListDrawable : public RSPropertyDrawable {
-public:
-    explicit RSDrawCmdListDrawable(std::shared_ptr<DrawCmdList> content);
-    ~RSDrawCmdListDrawable() override = default;
-    void Draw(RSModifierContext& context) override;
-
-private:
-    std::shared_ptr<DrawCmdList> content_;
-};
-
 // Adapter for RSRenderModifier
 class RSModifierDrawable : public RSPropertyDrawable {
 public:
-    explicit RSModifierDrawable(std::list<std::shared_ptr<RSRenderModifier>> content);
+    explicit RSModifierDrawable(RSModifierType type);
     ~RSModifierDrawable() override = default;
 
-    void Draw(RSModifierContext& context) override;
+    void Draw(RSPropertyDrawableRenderContext& context) override;
 
 private:
-    std::list<std::shared_ptr<RSRenderModifier>> content_;
+    RSModifierType type_;
 };
-}; // namespace OHOS::Rosen
+};     // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_UTILITIES_H

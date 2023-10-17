@@ -170,6 +170,45 @@ bool EglWrapperLayer::Init(EglWrapperDispatchTable *table)
     return true;
 }
 
+void EglWrapperLayer::SetupLayerFuncTbl(EglWrapperDispatchTable *table)
+{
+    layerFuncTbl_.resize(layerSetup_.size() + 1);
+    char const * const *entries;
+    EglWrapperFuncPointer *curr;
+
+    entries = gWrapperApiNames;
+    curr = reinterpret_cast<EglWrapperFuncPointer*>(&table->wrapper);
+    SetupFuncMaps(layerFuncTbl_[0], entries, curr);
+
+    entries = gGlApiNames2;
+    curr = reinterpret_cast<EglWrapperFuncPointer*>(&table->gl.table2);
+    SetupFuncMaps(layerFuncTbl_[0], entries, curr);
+
+    entries = gGlApiNames3;
+    curr = reinterpret_cast<EglWrapperFuncPointer*>(&table->gl.table3);
+    SetupFuncMaps(layerFuncTbl_[0], entries, curr);
+
+    for (uint32_t i = 0; i < layerSetup_.size(); i++) {
+        layerInit_[i](reinterpret_cast<void*>(&layerFuncTbl_[i]),
+            reinterpret_cast<GetNextLayerAddr>(GetNextLayerProcAddr));
+
+        entries = gWrapperApiNames;
+        curr = reinterpret_cast<EglWrapperFuncPointer *>(&table->wrapper);
+        UpdateApiEntries(layerSetup_[i], curr, entries);
+        SetupFuncMaps(layerFuncTbl_[i + 1], entries, curr);
+
+        entries = gGlApiNames2;
+        curr = reinterpret_cast<EglWrapperFuncPointer*>(&table->gl.table2);
+        UpdateApiEntries(layerSetup_[i], curr, entries);
+        SetupFuncMaps(layerFuncTbl_[i + 1], entries, curr);
+
+        entries = gGlApiNames3;
+        curr = reinterpret_cast<EglWrapperFuncPointer*>(&table->gl.table3);
+        UpdateApiEntries(layerSetup_[i], curr, entries);
+        SetupFuncMaps(layerFuncTbl_[i + 1], entries, curr);
+    }
+}
+
 bool EglWrapperLayer::LoadLayers()
 {
     WLOGD("");
@@ -209,32 +248,7 @@ void EglWrapperLayer::InitLayers(EglWrapperDispatchTable *table)
         return;
     }
 
-    layerFuncTbl_.resize(layerSetup_.size() + 1);
-    char const * const *entries;
-    EglWrapperFuncPointer *curr;
-
-    entries = gWrapperApiNames;
-    curr = reinterpret_cast<EglWrapperFuncPointer*>(&table->wrapper);
-    SetupFuncMaps(layerFuncTbl_[0], entries, curr);
-
-    entries = gGlApiNames3;
-    curr = reinterpret_cast<EglWrapperFuncPointer*>(&table->gl.table3);
-    SetupFuncMaps(layerFuncTbl_[0], entries, curr);
-
-    for (uint32_t i = 0; i < layerSetup_.size(); i++) {
-        layerInit_[i](reinterpret_cast<void*>(&layerFuncTbl_[i]),
-            reinterpret_cast<GetNextLayerAddr>(GetNextLayerProcAddr));
-
-        entries = gWrapperApiNames;
-        curr = reinterpret_cast<EglWrapperFuncPointer *>(&table->wrapper);
-        UpdateApiEntries(layerSetup_[i], curr, entries);
-        SetupFuncMaps(layerFuncTbl_[i + 1], entries, curr);
-
-        entries = gGlApiNames3;
-        curr = reinterpret_cast<EglWrapperFuncPointer*>(&table->gl.table3);
-        UpdateApiEntries(layerSetup_[i], curr, entries);
-        SetupFuncMaps(layerFuncTbl_[i + 1], entries, curr);
-    }
+    SetupLayerFuncTbl(table);
 #ifdef EGL_WRAPPER_DEBUG_ENABLE
     WLOGD("layer function table info: ");
     int count = 0;

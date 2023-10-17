@@ -29,7 +29,7 @@ public:
 
     void Layout()
     {
-        TypographyStyle ys = { .maxLines = 1, .ellipsis = u"..." };
+        TypographyStyle ys = { .maxLines = 1, .ellipsis = u"\u2026" };
 
         auto builder = TypographyBuilder::Create(ys);
         TextStyle tstyle;

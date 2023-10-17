@@ -19,11 +19,10 @@
 
 extern "C" __attribute__((constructor)) void NAPI_animation_windowAnimationManager_AutoRegister()
 {
-    auto moduleManager = NativeModuleManager::GetInstance();
-    NativeModule newModuleInfo = {
-        .name = "animation.windowAnimationManager",
-        .fileName = "animation/libanimation_napi.so/windowAnimationManager.js",
-        .registerCallback = OHOS::Rosen::RSWindowAnimationManager::Init,
+    static napi_module _module = {
+        .nm_modname  = "animation.windowAnimationManager",
+        .nm_filename  = "animation/libanimation_napi.so/windowAnimationManager.js",
+        .nm_register_func  = OHOS::Rosen::RSWindowAnimationManager::Init,
     };
-    moduleManager->Register(&newModuleInfo);
+    napi_module_register(&_module);
 }

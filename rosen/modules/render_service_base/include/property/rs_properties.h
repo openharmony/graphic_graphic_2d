@@ -20,11 +20,9 @@
 #include <tuple>
 #include <vector>
 
-#include "include/effects/SkColorMatrix.h"
-
+#include "animation/rs_render_particle.h"
 #include "common/rs_macros.h"
 #include "common/rs_matrix3.h"
-#include "animation/rs_render_particle.h"
 #include "common/rs_vector4.h"
 #include "modifier/rs_modifier_type.h"
 #include "property/rs_properties_def.h"
@@ -201,6 +199,7 @@ public:
     void SetShadowRadius(float radius);
     void SetShadowPath(std::shared_ptr<RSPath> shadowPath);
     void SetShadowMask(bool shadowMask);
+    void SetShadowIsFilled(bool shadowIsFilled);
     Color GetShadowColor() const;
     float GetShadowOffsetX() const;
     float GetShadowOffsetY() const;
@@ -211,6 +210,7 @@ public:
     const std::optional<float>& GetDynamicLightUpDegree() const;
     std::shared_ptr<RSPath> GetShadowPath() const;
     bool GetShadowMask() const;
+    bool GetShadowIsFilled() const;
     const std::optional<RSShadow>& GetShadow() const;
     bool IsShadowValid() const;
 
@@ -299,10 +299,11 @@ public:
     void ClearFilterCache();
 #endif
 
-    void OnApplyModifiers();
-
     const RRect& GetRRect() const;
     RRect GetInnerRRect() const;
+    RectF GetFrameRect() const;
+
+    void OnApplyModifiers();
 
 private:
     void ResetProperty(const std::unordered_set<RSModifierType>& dirtyTypes);
@@ -312,7 +313,6 @@ private:
 
     bool NeedClip() const;
 
-    RectF GetFrameRect() const;
     RectF GetBgImageRect() const;
     void GenerateRRect();
     RectI GetDirtyRect() const;
@@ -404,13 +404,13 @@ private:
 
     std::unique_ptr<Sandbox> sandbox_ = nullptr;
 
-    friend class RSCanvasDrawingRenderNode;
     friend class RSCanvasRenderNode;
     friend class RSColorfulShadowDrawable;
     friend class RSPropertiesPainter;
     friend class RSRenderNode;
     friend class RSBackgroundDrawable;
     friend class RSEffectDataGenerateDrawable;
+    friend class RSPropertyDrawableRenderContext;
 };
 } // namespace Rosen
 } // namespace OHOS

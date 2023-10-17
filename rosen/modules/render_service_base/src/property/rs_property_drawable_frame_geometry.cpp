@@ -14,6 +14,7 @@
  */
 
 #include "property/rs_property_drawable_frame_geometry.h"
+
 #include "platform/common/rs_log.h"
 #include "property/rs_properties.h"
 #include "property/rs_properties_painter.h"
@@ -23,21 +24,21 @@ namespace OHOS::Rosen {
 RSFrameGeometryDrawable::RSFrameGeometryDrawable(float frameOffsetX, float frameOffsetY)
     : frameOffsetX_(frameOffsetX), frameOffsetY_(frameOffsetY)
 {}
-void RSFrameGeometryDrawable::Draw(RSModifierContext& context)
+void RSFrameGeometryDrawable::Draw(RSPropertyDrawableRenderContext& context)
 {
     context.canvas_->translate(frameOffsetX_, frameOffsetY_);
 }
-std::unique_ptr<RSPropertyDrawable> RSFrameGeometryDrawable::Generate(const RSProperties& properties)
+RSPropertyDrawable::DrawablePtr RSFrameGeometryDrawable::Generate(const RSPropertyDrawableGenerateContext& context)
 {
-    auto frameOffsetX = properties.GetFrameOffsetX();
-    auto frameOffsetY = properties.GetFrameOffsetY();
+    auto frameOffsetX = context.properties_.GetFrameOffsetX();
+    auto frameOffsetY = context.properties_.GetFrameOffsetY();
     if (frameOffsetX == 0 && frameOffsetY == 0) {
         return nullptr;
     }
     return std::make_unique<RSFrameGeometryDrawable>(frameOffsetX, frameOffsetY);
 }
 
-void RSColorFilterDrawable::Draw(RSModifierContext& context)
+void RSColorFilterDrawable::Draw(RSPropertyDrawableRenderContext& context)
 {
     // if useEffect defined, use color filter from parent EffectView.
     auto& canvas = context.canvas_;
@@ -60,9 +61,9 @@ void RSColorFilterDrawable::Draw(RSModifierContext& context)
 #endif
 }
 
-std::unique_ptr<RSPropertyDrawable> RSColorFilterDrawable::Generate(const RSProperties& properties)
+std::unique_ptr<RSPropertyDrawable> RSColorFilterDrawable::Generate(const RSPropertyDrawableGenerateContext& context)
 {
-    auto& colorFilter = properties.GetColorFilter();
+    auto& colorFilter = context.properties_.GetColorFilter();
     if (colorFilter == nullptr) {
         return nullptr;
     }
@@ -70,5 +71,18 @@ std::unique_ptr<RSPropertyDrawable> RSColorFilterDrawable::Generate(const RSProp
     paint.setAntiAlias(true);
     paint.setColorFilter(colorFilter);
     return std::make_unique<RSColorFilterDrawable>(std::move(paint));
+}
+
+RSPropertyDrawable::DrawablePtr RSClipFrameDrawable::Generate(const RSPropertyDrawableGenerateContext& context)
+{
+    return context.properties_.GetClipToFrame()
+               ? std::make_unique<RSClipFrameDrawable>(
+                     RSPropertiesPainter::Rect2SkRect(context.properties_.GetFrameRect()))
+               : nullptr;
+}
+
+void RSClipFrameDrawable::Draw(RSPropertyDrawableRenderContext& context)
+{
+    context.canvas_->clipRect(content_);
 }
 } // namespace OHOS::Rosen

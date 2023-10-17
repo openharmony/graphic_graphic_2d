@@ -175,8 +175,6 @@ private:
         float scaleX, float scaleY);
 
     std::unique_ptr<RSRenderServiceClient> renderServiceClient_;
-    std::mutex offscreenRenderMutex_;
-    int offscreenRenderNum_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -95,6 +95,8 @@ public:
         auto m = std::make_unique<MeasurerForTest>();
         m->SetMeasurerArgs(ret, cgs);
         measurer = std::move(m);
+        // 1e9: the widthlimit
+        breaker.SetWidthLimit(1e9);
     }
 
     static inline TypographyStyle tpstyle_;

@@ -42,6 +42,7 @@ private:
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
     bool forceCPU_ = false;
     bool isExpand_ = false;
+    bool isPhone_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

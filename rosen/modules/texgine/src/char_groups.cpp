@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <cassert>
 
+#include "texgine/utils/exlog.h"
 #include "texgine_exception.h"
 
 namespace OHOS {
@@ -377,6 +378,16 @@ bool CharGroups::CheckCodePoint()
     }
     return true;
 };
+
+std::string CharGroups::GetTypefaceName()
+{
+    if (!IsValid()) {
+        LOGEX_FUNC_LINE(ERROR) << "pcgs_ is null";
+        return "";
+    }
+
+    return (*pcgs_)[0].typeface->GetName();
+}
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS

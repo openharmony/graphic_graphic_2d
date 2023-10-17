@@ -29,124 +29,133 @@ namespace Rosen {
 using namespace AbilityRuntime;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
+constexpr size_t ARGC_MAX = 10;
 constexpr int32_t ERR_NOT_OK = -1;
 constexpr int32_t ERR_OK = 0;
 constexpr int32_t ERR_NOT_SYSTEM_APP = 222;
 
-NativeValue* RSWindowAnimationManager::Init(NativeEngine* engine, NativeValue* exportObj)
+napi_value RSWindowAnimationManager::Init(napi_env env, napi_value exportObj)
 {
     WALOGD("Init");
-    if (engine == nullptr || exportObj == nullptr) {
-        WALOGE("Engine or exportObj is null!");
+    if (env == nullptr || exportObj == nullptr) {
+        WALOGE("Env or exportObj is null!");
         return nullptr;
     }
-
-    auto object = ConvertNativeValueTo<NativeObject>(exportObj);
-    if (object == nullptr) {
-        WALOGE("Object is null");
+    if (exportObj == nullptr) {
+        WALOGE("exportObj is null");
         return nullptr;
-    }
-
+    }   
     auto windowAnimationManager = std::make_unique<RSWindowAnimationManager>();
-    object->SetNativePointer(windowAnimationManager.release(), RSWindowAnimationManager::Finalizer, nullptr);
-
+    napi_wrap(env, exportObj, windowAnimationManager.release(), RSWindowAnimationManager::Finalizer, nullptr, nullptr);
     const char *moduleName = "RSWindowAnimationManager";
-    BindNativeFunction(*engine, *object, "setController", moduleName, RSWindowAnimationManager::SetController);
-    BindNativeFunction(*engine, *object, "minimizeWindowWithAnimation", moduleName,
+    BindNativeFunction(env, exportObj, "setController", moduleName, RSWindowAnimationManager::SetController);
+    BindNativeFunction(env, exportObj, "minimizeWindowWithAnimation", moduleName,
         RSWindowAnimationManager::MinimizeWindowWithAnimation);
-    BindNativeFunction(*engine, *object, "getWindowAnimationTargets", moduleName,
+    BindNativeFunction(env, exportObj, "getWindowAnimationTargets", moduleName,
         RSWindowAnimationManager::GetWindowAnimationTargets);
     return nullptr;
 }
 
-void RSWindowAnimationManager::Finalizer(NativeEngine* engine, void* data, void* hint)
+void RSWindowAnimationManager::Finalizer(napi_env env, void* data, void* hint)
 {
     std::unique_ptr<RSWindowAnimationManager>(static_cast<RSWindowAnimationManager*>(data));
 }
 
-NativeValue* RSWindowAnimationManager::SetController(NativeEngine* engine, NativeCallbackInfo* info)
+napi_value RSWindowAnimationManager::SetController(napi_env env, napi_callback_info info)
 {
     WALOGD("SetController");
     if (!RSWindowAnimationUtils::IsSystemApp()) {
         WALOGE("SetController failed");
-        engine->Throw(CreateJsError(*engine, ERR_NOT_SYSTEM_APP,
+         napi_throw(env,CreateJsError(env, ERR_NOT_SYSTEM_APP,
             "WindowAnimationManager setController failed, is not system app"));
         return nullptr;
     }
-    auto me = CheckParamsAndGetThis<RSWindowAnimationManager>(engine, info);
-    return (me != nullptr) ? me->OnSetController(*engine, *info) : nullptr;
+    auto me = CheckParamsAndGetThis<RSWindowAnimationManager>(env, info);
+    return (me != nullptr) ? me->OnSetController(env, info) : nullptr;
 }
 
-NativeValue* RSWindowAnimationManager::MinimizeWindowWithAnimation(NativeEngine* engine, NativeCallbackInfo* info)
+napi_value RSWindowAnimationManager::MinimizeWindowWithAnimation(napi_env env, napi_callback_info info)
 {
     WALOGD("MinimizeWindowWithAnimation");
     if (!RSWindowAnimationUtils::IsSystemApp()) {
         WALOGE("MinimizeWindowWithAnimation failed");
-        engine->Throw(CreateJsError(*engine, ERR_NOT_SYSTEM_APP,
+        napi_throw(env,CreateJsError(env, ERR_NOT_SYSTEM_APP,
             "WindowAnimationManager minimizeWindowWithAnimation failed, is not system app"));
         return nullptr;
     }
-    auto me = CheckParamsAndGetThis<RSWindowAnimationManager>(engine, info);
-    return (me != nullptr) ? me->OnMinimizeWindowWithAnimation(*engine, *info) : nullptr;
+
+    auto me = CheckParamsAndGetThis<RSWindowAnimationManager>(env, info);
+    return (me != nullptr) ? me->OnMinimizeWindowWithAnimation(env, info) : nullptr;
 }
 
-NativeValue* RSWindowAnimationManager::GetWindowAnimationTargets(NativeEngine* engine, NativeCallbackInfo* info)
+napi_value RSWindowAnimationManager::GetWindowAnimationTargets(napi_env env, napi_callback_info info)
 {
     WALOGD("GetWindowAnimationTargets");
     if (!RSWindowAnimationUtils::IsSystemApp()) {
         WALOGE("GetWindowAnimationTargets failed");
-        engine->Throw(CreateJsError(*engine, ERR_NOT_SYSTEM_APP,
-            "WindowAnimationManager getWindowAnimationTargets failed, is not system app"));
+        napi_throw(env,CreateJsError(env, ERR_NOT_SYSTEM_APP,
+            "WindowAnimationManager getWindowAnimationTargets failed, is not system app"));            
         return nullptr;
     }
-    auto me = CheckParamsAndGetThis<RSWindowAnimationManager>(engine, info);
-    return (me != nullptr) ? me->OnGetWindowAnimationTargets(*engine, *info) : nullptr;
+    auto me = CheckParamsAndGetThis<RSWindowAnimationManager>(env, info);
+    return (me != nullptr) ? me->OnGetWindowAnimationTargets(env, info) : nullptr;
 }
 
-NativeValue* RSWindowAnimationManager::OnSetController(NativeEngine& engine, NativeCallbackInfo& info)
+napi_value RSWindowAnimationManager::OnSetController(napi_env env, napi_callback_info info)
 {
     WALOGD("OnSetController");
     // only support one param
-    if (info.argc != ARGC_ONE) {
+    size_t argc = ARGC_MAX;
+    napi_value argv[ARGC_MAX] = { 0 };
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+
+    if (argc != ARGC_ONE) {
         WALOGE("No enough params!");
         return nullptr;
     }
-    sptr<RSWindowAnimationController> controller = new RSWindowAnimationController(engine);
-    controller->SetJsController(info.argv[0]);
+    sptr<RSWindowAnimationController> controller = new RSWindowAnimationController(env);
+    controller->SetJsController(argv[0]);
     SingletonContainer::Get<WindowAdapter>().SetWindowAnimationController(controller);
     return nullptr;
 }
 
-NativeValue* RSWindowAnimationManager::OnMinimizeWindowWithAnimation(NativeEngine& engine, NativeCallbackInfo& info)
+napi_value RSWindowAnimationManager::OnMinimizeWindowWithAnimation(napi_env env, napi_callback_info info)
 {
     int32_t errCode = ERR_OK;
-    if (info.argc < ARGC_ONE || info.argc > ARGC_TWO) {
+    size_t argc = ARGC_MAX;
+    napi_value argv[ARGC_MAX] = { 0 };
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+
+    if (argc < ARGC_ONE || argc > ARGC_TWO) {
         WALOGE("No enough params!");
         errCode = ERR_NOT_OK;
     }
 
-    auto targetObj = ConvertNativeValueTo<NativeObject>(info.argv[0]);
-    RSWindowAnimationTarget* target = nullptr;
+    napi_value targetObj = nullptr;
+    napi_coerce_to_object(env, argv[0], &targetObj);
+    void* target = nullptr;
 
     if (targetObj == nullptr) {
         WALOGE("Window animation target object is null!");
         errCode = ERR_NOT_OK;
     } else {
-        target = static_cast<RSWindowAnimationTarget*>(targetObj->GetNativePointer());
+        napi_unwrap(env, targetObj, &target);
     }
     if (target == nullptr) {
         WALOGE("Window animation target is null!");
         errCode = ERR_NOT_OK;
     }
     uint32_t windowId = 0;
-    if (errCode == ERR_OK && !ConvertFromJsValue(engine, targetObj->GetProperty("windowId"), windowId)) {
+    napi_value result = nullptr;
+    napi_get_named_property(env, targetObj,"windowId", &result);
+    if (errCode == ERR_OK && !ConvertFromJsValue(env, result, windowId)) {
         errCode = ERR_NOT_OK;
     }
     WALOGD("Window animation target windowId is:%{public}u!", windowId);
-    AsyncTask::CompleteCallback complete =
-        [windowId, errCode](NativeEngine& engine, AsyncTask& task, int32_t status) {
+    NapiAsyncTask::CompleteCallback complete =
+        [windowId, errCode](napi_env env, NapiAsyncTask& task, int32_t status) {
             if (errCode != ERR_OK) {
-                task.Reject(engine, CreateJsError(engine, errCode, "Invalid params."));
+                task.Reject(env, CreateJsError(env, errCode, "Invalid params."));
                 return;
             }
             std::vector<uint32_t> windowIds = {windowId};
@@ -154,52 +163,68 @@ NativeValue* RSWindowAnimationManager::OnMinimizeWindowWithAnimation(NativeEngin
             SingletonContainer::Get<WindowAdapter>().MinimizeWindowsByLauncher(windowIds, true, finishedCallback);
             if (finishedCallback == nullptr) {
                 WALOGE("Window animation finished callback is null!");
-                task.Reject(engine, CreateJsError(engine, errCode, "Animation finished callback is null!"));
+                task.Reject(env, CreateJsError(env, errCode, "Animation finished callback is null!"));
                 return;
             }
 
             WALOGD("Resolve minimize window with animation!");
-            task.Resolve(engine,
-                RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(engine, finishedCallback));
+            task.Resolve(env,
+                RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(env, finishedCallback));
         };
 
-    NativeValue* lastParam = (info.argc <= 1) ? nullptr :
-        (info.argv[1]->TypeOf() == NATIVE_FUNCTION ? info.argv[1] : nullptr);
-    NativeValue* result = nullptr;
-    AsyncTask::Schedule("RSWindowAnimationManager::OnMinimizeWindowWithAnimation",
-        engine, CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
+    napi_value lastParam =  nullptr;
+    if (argc > 1) {
+        napi_valuetype result1;;
+        napi_typeof(env, argv[1], &result1);
+        if (result1 == napi_function) {
+            lastParam = argv[1];
+        }
+    }
+    NapiAsyncTask::Schedule("RSWindowAnimationManager::OnMinimizeWindowWithAnimation",
+        env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
     return result;
 }
 
-NativeValue* RSWindowAnimationManager::OnGetWindowAnimationTargets(NativeEngine& engine, NativeCallbackInfo& info)
+napi_value RSWindowAnimationManager::OnGetWindowAnimationTargets(napi_env env, napi_callback_info info)
 {
+    WALOGE("tanyuhang RSWindowAnimationManager::OnGetWindowAnimationTargets");
     int32_t errCode = ERR_OK;
-    if (info.argc < ARGC_ONE || info.argc > ARGC_TWO) {
+    size_t argc = ARGC_MAX;
+    napi_value argv[ARGC_MAX] = { 0 };
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+
+    if (argc < ARGC_ONE || argc > ARGC_TWO) {
         WALOGE("No enough params!");
         errCode = ERR_NOT_OK;
     }
 
     std::vector<uint32_t> missionIds;
-    auto arr = ConvertNativeValueTo<NativeArray>(info.argv[0]);
+    napi_value arr = nullptr;
+    napi_coerce_to_object(env, argv[0], &arr);
     if (arr == nullptr) {
         errCode = ERR_NOT_OK;
     } else {
-        uint32_t len = arr->GetLength();
+        uint32_t len;
+        napi_get_array_length(env, arr, &len);
         for (uint32_t index = 0; index < len; index++) {
-            NativeNumber* value = ConvertNativeValueTo<NativeNumber>(arr->GetElement(index));
+            napi_value result;
+            napi_get_element(env,arr,index,&result);
+            napi_value value = nullptr;
+            napi_coerce_to_object(env, result, &value);
             if (value == nullptr) {
                 errCode = ERR_NOT_OK;
                 WALOGE("element is not number!");
                 break;
             }
-            uint32_t missionId = static_cast<uint32_t>(*value);
+            uint32_t missionId = reinterpret_cast<uint32_t>(value);
             missionIds.push_back(missionId);
         }
     }
-    AsyncTask::CompleteCallback complete =
-        [missionIds, errCode](NativeEngine& engine, AsyncTask& task, int32_t status) {
+    NapiAsyncTask::CompleteCallback complete =
+        [missionIds, errCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+            WALOGE("tanyuhang RSWindowAnimationManager::OnGetWindowAnimationTargets");
             if (errCode != ERR_OK) {
-                task.Reject(engine, CreateJsError(engine, errCode, "Invalid params."));
+                task.Reject(env, CreateJsError(env, errCode, "Invalid params."));
                 return;
             }
             std::vector<sptr<RSWindowAnimationTarget>> targets;
@@ -208,15 +233,21 @@ NativeValue* RSWindowAnimationManager::OnGetWindowAnimationTargets(NativeEngine&
             }
 
             WALOGD("Resolve get window animation targets!");
-            task.Resolve(engine,
-                RSWindowAnimationUtils::CreateJsWindowAnimationTargetArray(engine, targets));
+            task.Resolve(env,
+                RSWindowAnimationUtils::CreateJsWindowAnimationTargetArray(env, targets));
         };
 
-    NativeValue* lastParam = (info.argc <= 1) ? nullptr :
-        (info.argv[1]->TypeOf() == NATIVE_FUNCTION ? info.argv[1] : nullptr);
-    NativeValue* result = nullptr;
-    AsyncTask::Schedule("RSWindowAnimationManager::OnGetWindowAnimationTargets",
-        engine, CreateAsyncTaskWithLastParam(engine, lastParam, nullptr, std::move(complete), &result));
+    napi_value lastParam = nullptr; 
+    if(argc>1){
+        napi_valuetype result1;;
+        napi_typeof(env, argv[1], &result1);
+        if(result1 == napi_function){
+            lastParam = argv[1];
+        }
+    }
+    napi_value result = nullptr;
+    NapiAsyncTask::Schedule("RSWindowAnimationManager::OnGetWindowAnimationTargets",
+        env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
     return result;
 }
 } // namespace Rosen

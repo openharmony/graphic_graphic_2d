@@ -21,18 +21,19 @@
 #include "transaction/rs_interfaces.h"
 #include "ui/rs_ui_director.h"
 
-namespace {
-    struct AnimDynamicAttribute {
-        int32_t minSpeed = 0;
-        int32_t maxSpeed = 0;
-        int32_t preferredFps = 0;
-    };
-    static std::unordered_map<std::string, std::unordered_map<std::string,
-        AnimDynamicAttribute>> animAttributes;
-}
-
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr float INCH_2_MM = 25.4f;
+struct AnimDynamicAttribute {
+    int32_t minSpeed = 0;
+    int32_t maxSpeed = 0;
+    int32_t preferredFps = 0;
+};
+static std::unordered_map<std::string, std::unordered_map<std::string,
+    AnimDynamicAttribute>> animAttributes;
+}
+
 RSFrameRatePolicy* RSFrameRatePolicy::GetInstance()
 {
     static RSFrameRatePolicy instance;
@@ -68,7 +69,10 @@ void RSFrameRatePolicy::HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData>
     if (data.empty()) {
         return;
     }
-    RSUIDirector::PostFrameRateTask([data]() {
+    auto ppi = configData->GetPpi();
+    auto xDpi = configData->GetXDpi();
+    auto yDpi = configData->GetYDpi();
+    RSUIDirector::PostFrameRateTask([this, data, ppi, xDpi, yDpi]() {
         for (auto item : data) {
             if (item.animType.empty() || item.animName.empty()) {
                 return;
@@ -78,14 +82,21 @@ void RSFrameRatePolicy::HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData>
                 preferredFps = %d", item.animType.c_str(), item.animName.c_str(), static_cast<int>(item.minSpeed),
                 static_cast<int>(item.maxSpeed), static_cast<int>(item.preferredFps));
         }
+        ppi_ = ppi;
+        xDpi_ = xDpi;
+        yDpi_ = yDpi;
     });
 }
 
 int RSFrameRatePolicy::GetPreferredFps(const std::string& scene, float speed)
 {
+    if (animAttributes.count(scene) == 0 || ppi_ == 0) {
+        return 0;
+    }
+    float speedMM = speed / ppi_ * INCH_2_MM;
     const auto& attributes = animAttributes[scene];
-    auto iter = std::find_if(attributes.begin(), attributes.end(), [&speed](const auto& pair) {
-        return speed >= pair.second.minSpeed && (speed < pair.second.maxSpeed ||
+    auto iter = std::find_if(attributes.begin(), attributes.end(), [&speedMM](const auto& pair) {
+        return speedMM >= pair.second.minSpeed && (speedMM < pair.second.maxSpeed ||
             pair.second.maxSpeed == -1);
     });
     if (iter != attributes.end()) {

@@ -80,6 +80,7 @@ private:
     void ComputeSpans(int lineIndex, double baseline, const CalcResult &calcResult,
         std::vector<TextRect> &lineBoxes) const;
     void ProcessHardBreak();
+    std::vector<TextRect> GenTextRects(std::shared_ptr<TextSpan> &ts, double offsetX, double offsetY) const;
 
     TypographyStyle typographyStyle_;
     std::vector<VariantSpan> spans_;

@@ -19,6 +19,7 @@
 #include <chrono>
 
 #include "base_impl.h"
+#include "image/trace_memory_dump.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -43,10 +44,10 @@ public:
     virtual void FlushAndSubmit(bool syncCpu) = 0;
     virtual void PerformDeferredCleanup(std::chrono::milliseconds msNotUsed) = 0;
 
-    virtual void GetResourceCacheLimits(int& maxResource, size_t& maxResourceBytes) const = 0;
+    virtual void GetResourceCacheLimits(int* maxResource, size_t* maxResourceBytes) const = 0;
     virtual void SetResourceCacheLimits(int maxResource, size_t maxResourceBytes) = 0;
 
-    virtual void GetResourceCacheUsage(int& resourceCount, size_t& resourceBytes) const = 0;
+    virtual void GetResourceCacheUsage(int* resourceCount, size_t* resourceBytes) const = 0;
 
     virtual void FreeGpuResources() = 0;
 
@@ -61,6 +62,12 @@ public:
     virtual void PurgeUnlockAndSafeCacheGpuResources() = 0;
 
     virtual void ReleaseByTag(const GPUResourceTag tag) = 0;
+
+    virtual void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag tag) = 0;
+
+    virtual void DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump) = 0;
+
+    virtual void SetCurrentGpuResourceTag(const GPUResourceTag tag) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

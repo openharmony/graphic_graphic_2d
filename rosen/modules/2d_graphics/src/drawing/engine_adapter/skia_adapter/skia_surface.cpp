@@ -199,7 +199,15 @@ void SkiaSurface::SetSkSurface(const sk_sp<SkSurface>& skSurface)
     skSurface_ = skSurface;
 }
 
+void SkiaSurface::FlushAndSubmit(bool syncCpu)
+{
+    if (skSurface_ == nullptr) {
+        LOGE("skSurface is nullptr");
+        return;
+    }
 
+    skSurface_->flushAndSubmit(syncCpu);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

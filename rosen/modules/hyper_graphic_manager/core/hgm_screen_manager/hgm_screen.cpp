@@ -15,13 +15,28 @@
 
 #include "hgm_screen.h"
 
+#include <cmath>
 #include "hgm_log.h"
 
 namespace OHOS::Rosen {
 HgmScreen::HgmScreen() {}
 
-HgmScreen::HgmScreen(ScreenId id, int32_t mode)
-    : id_(id), activeModeId_(mode) {}
+HgmScreen::HgmScreen(ScreenId id, int32_t mode, ScreenSize& screenSize)
+    : id_(id), activeModeId_(mode), width_(screenSize.width), height_(screenSize.height),
+    phyWidth_(screenSize.phyWidth), phyHeight_(screenSize.phyHeight)
+{
+    auto screenLength = sqrt(pow(screenSize.width, 2) + pow(screenSize.height, 2));
+    auto phyScreenLength = sqrt(pow(screenSize.phyWidth, 2) + pow(screenSize.phyHeight, 2));
+    if (phyScreenLength != 0) {
+        ppi_ = screenLength / (phyScreenLength / INCH_2_MM);
+    }
+    if (screenSize.phyWidth != 0) {
+        xDpi_ = screenSize.width / (screenSize.phyWidth / INCH_2_MM);
+    }
+    if (screenSize.phyHeight != 0) {
+        yDpi_ = screenSize.height / (screenSize.phyHeight / INCH_2_MM);
+    }
+}
 
 HgmScreen::~HgmScreen() {}
 

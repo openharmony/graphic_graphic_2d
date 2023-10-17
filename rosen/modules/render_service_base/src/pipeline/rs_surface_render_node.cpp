@@ -323,7 +323,7 @@ void RSSurfaceRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanv
     const auto& property = GetRenderProperties();
     const RectF absBounds = {0, 0, property.GetBoundsWidth(), property.GetBoundsHeight()};
     RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
-    RSPropertiesPainter::DrawShadow(property, canvas, &absClipRRect, IsLeashWindow());
+    RSPropertiesPainter::DrawShadow(property, canvas, &absClipRRect);
 
 #ifndef USE_ROSEN_DRAWING
     if (!property.GetCornerRadius().IsZero()) {
@@ -1387,5 +1387,20 @@ void RSSurfaceRenderNode::SetCacheSurfaceProcessedStatus(CacheProcessStatus cach
 {
     cacheProcessStatus_.store(cacheProcessStatus);
 }
+
+bool RSSurfaceRenderNode::HasOnlyOneRootNode() const
+{
+    if (GetChildrenCount() != 1) {
+        return false;
+    }
+
+    const auto child = GetChildren().front().lock();
+    if (!child || child->GetType() != RSRenderNodeType::ROOT_NODE || child->GetChildrenCount() > 0) {
+        return false;
+    }
+
+    return true;
+}
+
 } // namespace Rosen
 } // namespace OHOS

@@ -95,6 +95,35 @@ void RSDisplayNode::SetDisplayNodeMirrorConfig(const RSDisplayNodeConfig& displa
         " isMirrored:[%{public}s]", GetId(), displayNodeConfig.isMirrored ? "true" : "false");
 }
 
+void RSDisplayNode::SetScreenRotation(const uint32_t& rotation)
+{
+    ScreenRotation screenRotation = ScreenRotation::ROTATION_0;
+    switch (rotation) {
+        case 0: // Rotation::ROTATION_0
+            screenRotation = ScreenRotation::ROTATION_0;
+            break;
+        case 1: // Rotation::ROTATION_90
+            screenRotation = ScreenRotation::ROTATION_90;
+            break;
+        case 2: // Rotation::ROTATION_180
+            screenRotation = ScreenRotation::ROTATION_180;
+            break;
+        case 3: // Rotation::ROTATION_270
+            screenRotation = ScreenRotation::ROTATION_270;
+            break;
+        default:
+            screenRotation = ScreenRotation::INVALID_SCREEN_ROTATION;
+            break;
+    }
+    std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetScreenRotation>(GetId(), screenRotation);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+    ROSEN_LOGD("RSDisplayNode::SetScreenRotation, displayNodeId:[%{public}" PRIu64 "]"
+               " screenRotation:[%{public}d]", GetId(), rotation);
+}
+
 bool RSDisplayNode::IsMirrorDisplay() const
 {
     return isMirroredDisplay_;

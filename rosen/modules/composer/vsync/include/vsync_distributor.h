@@ -115,6 +115,7 @@ private:
     void CollectConnections(bool &waitForVSync, int64_t timestamp,
                             std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount);
     VsyncError QosGetPidByName(const std::string& name, uint32_t& pid);
+    void PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &conns, int64_t timestamp);
 
     std::thread threadLoop_;
     sptr<VSyncController> controller_;

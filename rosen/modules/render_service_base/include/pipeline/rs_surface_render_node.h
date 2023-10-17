@@ -532,11 +532,16 @@ public:
         return visibleRegion_.IsIntersectWith(nodeRect);
     }
 
+    inline bool IsEmptyAppWindow() const
+    {
+        return IsAppWindow() && (GetChildrenCount() == 0 || HasOnlyOneRootNode());
+    }
+
     inline bool IsTransparent() const
     {
         const uint8_t opacity = 255;
         return !(GetAbilityBgAlpha() == opacity && ROSEN_EQ(GetGlobalAlpha(), 1.0f)) ||
-            (IsAppWindow() && GetChildrenCount() == 0 && RSUniRenderJudgement::IsUniRender());
+            (IsEmptyAppWindow() && RSUniRenderJudgement::IsUniRender());
     }
 
     inline bool IsCurrentNodeInTransparentRegion(const Occlusion::Rect& nodeRect) const
@@ -745,6 +750,9 @@ public:
     void ResetDrawingCacheStatusIfNodeStatic(std::unordered_map<NodeId, std::unordered_set<NodeId>>& allRects);
 
     void SetNotifyRTBufferAvailable(bool isNotifyRTBufferAvailable);
+
+    // whether the subtree has only one root node
+    bool HasOnlyOneRootNode() const;
 
 private:
     void OnResetParent() override;

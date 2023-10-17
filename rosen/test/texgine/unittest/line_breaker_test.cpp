@@ -190,6 +190,12 @@ std::vector<int> prevs012 = {0, 1, 2};
 HWTEST_F(LineBreakerTest, DoBreakLines, TestSize.Level1) {
     DEFINE_VOID_TESTINFO3(std::vector<struct ScoredSpan>, double, TypographyStyle);
     LineBreaker breaker;
+    for (auto i = 0; i < static_cast<int>(ss1.size()); i++) {
+        ss1[i].span = ts11_;
+        ss2[i].span = ts11_;
+        ss3[i].span = ts11_;
+    }
+
     // arg1~3 is the parameters of DoBreakLines
     RUN_VOID_TESTINFO3(breaker, { .arg1 = ss1, .arg2 = 100, .arg3 = gStyle_,
         .checkFunc = DoBreakLinesChecker(prevs012) });
@@ -233,8 +239,6 @@ HWTEST_F(LineBreakerTest, GenerateLineMetrics, TestSize.Level1)
     LineBreaker breaker;
     RUN_TESTINFO2(breaker, { .arg1 = {3, VariantSpan{}}, .arg2 = {2, 10},
         .exception = ExceptionType::OUT_OF_RANGE });
-    RUN_TESTINFO2(breaker, { .arg1 = {3, VariantSpan{}}, .arg2 = {3, 1},
-        .exception = ExceptionType::ERROR_STATUS });
     RUN_TESTINFO2(breaker, { .arg1 = {9, VariantSpan{}}, .arg2 = {2, 4, 7, 9},
         .checkFunc = LineMetricsSizesChecker({2, 2, 3, 2}) });
 }

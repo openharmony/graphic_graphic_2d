@@ -43,9 +43,9 @@ bool CheckParamMinimumValid(napi_env env, const size_t paramNum, const size_t mi
         CMLOGE("[NAPI]Argc is invalid: %{public}zu", paramNum);
         std::string errMsg = "Parameter check fails. The number of parameter(s) must not be less than " +
             std::to_string(minNum);
-        napi_throw_error(env,
-            std::to_string(static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM))).c_str(),
-            errMsg.c_str());
+        napi_throw(env,
+            CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM)),
+            errMsg));
         return false;
     }
     return true;

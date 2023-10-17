@@ -44,6 +44,7 @@
 #include "impl_interface/text_blob_builder_impl.h"
 #include "impl_interface/typeface_impl.h"
 #include "impl_interface/vertices_impl.h"
+#include "impl_interface/trace_memory_dump_impl.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -57,6 +58,7 @@ public:
 #ifdef ACE_ENABLE_GPU
     static std::unique_ptr<GPUContextImpl> CreateGPUContext();
 #endif
+    static std::unique_ptr<TraceMemoryDumpImpl> CreateTraceMemoryDump(const char* categoryKey, bool itemizeType);
     static std::unique_ptr<BitmapImpl> CreateBitmap();
     static std::unique_ptr<ImageImpl> CreateImage();
     static std::unique_ptr<ImageImpl> CreateImage(void* rawImg);

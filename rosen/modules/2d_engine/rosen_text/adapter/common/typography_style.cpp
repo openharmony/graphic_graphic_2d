@@ -26,6 +26,7 @@ TextStyle TypographyStyle::GetTextStyle() const
         .fontFamilies_ = { fontFamily_ },
         .fontSize_ = fontSize_,
         .heightScale_ = heightScale_,
+        .halfLeading_ = halfLeading_,
         .heightOnly_ = heightOnly_,
         .locale_ = locale_,
 #else
@@ -34,6 +35,7 @@ TextStyle TypographyStyle::GetTextStyle() const
         .fontFamilies = { fontFamily },
         .fontSize = fontSize,
         .heightScale = heightScale,
+        .halfLeading = halfLeading,
         .heightOnly = heightOnly,
         .locale = locale,
 #endif

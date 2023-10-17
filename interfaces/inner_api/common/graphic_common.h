@@ -61,10 +61,7 @@ static inline std::string LowErrorStrSpecial(GSError err)
     if (err == LOWERROR_INVALID) {
         // int to string (in 1000)
         char num[] = {
-            static_cast<char>(err / 0x64 % 0xa),
-            static_cast<char>(err / 0xa % 0xa),
-            static_cast<char>(err % 0xa),
-            0
+            static_cast<char>(err / 0x64 % 0xa), static_cast<char>(err / 0xa % 0xa), static_cast<char>(err % 0xa), 0
         };
         return std::string("with low error <") + num + ">";
     } else if (err == LOWERROR_FAILURE) {

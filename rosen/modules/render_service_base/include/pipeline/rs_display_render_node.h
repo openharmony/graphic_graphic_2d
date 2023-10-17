@@ -92,6 +92,16 @@ public:
         hasFingerprint_ = hasFingerprint;
     }
 
+    void SetScreenRotation(const ScreenRotation& screenRotation)
+    {
+        screenRotation_ = screenRotation;
+    }
+
+    ScreenRotation GetScreenRotation()
+    {
+        return screenRotation_;
+    }
+
     void CollectSurface(
         const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender, bool onlyFirstLevel) override;
@@ -221,6 +231,14 @@ public:
         return isFirstTimeToProcessor_;
     }
 
+    void setFirstTimeScreenRotation(const ScreenRotation& rotate) {
+        firstTimeScreenRotation_ = rotate;
+        isFirstTimeToProcessor_ = false;
+    }
+    ScreenRotation getFirstTimeScreenRotation() const {
+        return firstTimeScreenRotation_;
+    }
+
 #ifndef USE_ROSEN_DRAWING
     void SetInitMatrix(const SkMatrix& skMatrix) {
         initMatrix_ = skMatrix;
@@ -240,6 +258,8 @@ public:
     }
 private:
     CompositeType compositeType_ { HARDWARE_COMPOSITE };
+    ScreenRotation screenRotation_;
+    ScreenRotation firstTimeScreenRotation_;
     uint64_t screenId_;
     int32_t offsetX_;
     int32_t offsetY_;

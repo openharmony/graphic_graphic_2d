@@ -23,7 +23,6 @@
 
 namespace OHOS {
 namespace Rosen {
-struct RSModifierContext;
 #ifndef USE_ROSEN_DRAWING
 using ThreadInfo = std::pair<uint64_t, std::function<void(sk_sp<SkSurface>)>>;
 #else

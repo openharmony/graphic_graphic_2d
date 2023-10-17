@@ -237,6 +237,8 @@ public:
     };
     CanvasStatus GetCanvasStatus() const;
     void SetCanvasStatus(const CanvasStatus& status);
+    bool GetRecordingState() const;
+    void SetRecordingState(bool flag);
 #endif
 
 protected:
@@ -278,6 +280,7 @@ private:
 
     bool isParallelCanvas_ = false;
     bool disableFilterCache_ = false;
+    bool recordingState_ = false;
 };
 
 // This class extends RSPaintFilterCanvas to also create a color filter for the paint.

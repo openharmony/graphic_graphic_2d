@@ -17,6 +17,7 @@
 #include <test_header.h>
 
 #include "hgm_core.h"
+#include "hgm_frame_rate_manager.h"
 
 #include "screen_manager/screen_types.h"
 
@@ -25,6 +26,13 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+    int32_t width = 720;
+    int32_t height = 1080;
+    int32_t phyWidth = 685;
+    int32_t phyHeight = 1218;
+    ScreenSize screenSize = {width, height, phyWidth, phyHeight};
+}
 class HyperGraphicManagerTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -102,7 +110,7 @@ HWTEST_F(HyperGraphicManagerTest, AddScreen, Function | MediumTest | Level2)
 
         STEP("2. add new screen") {
             ScreenId screenId = 2;
-            auto addScreen = instance.AddScreen(screenId, 0);
+            auto addScreen = instance.AddScreen(screenId, 0, screenSize);
             STEP_ASSERT_EQ(addScreen, 0);
         }
 
@@ -128,10 +136,11 @@ HWTEST_F(HyperGraphicManagerTest, GetScreen, Function | SmallTest | Level2)
     sptr<HgmScreen> screen = nullptr;
     ScreenId screenId = 3;
     ScreenId screenId2 = 4;
+    
 
     PART("EnvConditions") {
         STEP("get Instance and call Init and add a screen") {
-            auto addScreen = instance5.AddScreen(screenId, 0);
+            auto addScreen = instance5.AddScreen(screenId, 0, screenSize);
             STEP_ASSERT_GE(addScreen, 0);
         }
     }
@@ -166,7 +175,7 @@ HWTEST_F(HyperGraphicManagerTest, AddScreenModeInfo, Function | SmallTest | Leve
 
     PART("EnvConditions") {
         STEP("get Instance and add a screen") {
-            auto addScreen = instance6.AddScreen(screenId, 0);
+            auto addScreen = instance6.AddScreen(screenId, 0, screenSize);
             STEP_ASSERT_GE(addScreen, 0);
         }
     }
@@ -178,7 +187,7 @@ HWTEST_F(HyperGraphicManagerTest, AddScreenModeInfo, Function | SmallTest | Leve
         }
 
         STEP("2. add a supported config to the new screen") {
-            addMode = instance6.AddScreen(screenId, addMode);
+            addMode = instance6.AddScreen(screenId, addMode, screenSize);
         }
 
         STEP("3. verify adding result") {
@@ -204,7 +213,7 @@ HWTEST_F(HyperGraphicManagerTest, RemoveScreen, Function | MediumTest | Level2)
         STEP("get Instance and call Init and add a screen") {
             bool init = instance7.IsInit();
             STEP_ASSERT_EQ(init, true);
-            auto addScreen = instance7.AddScreen(screenId, 0);
+            auto addScreen = instance7.AddScreen(screenId, 0, screenSize);
             STEP_ASSERT_EQ(addScreen, 0);
         }
     }
@@ -261,7 +270,7 @@ HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRate, Function | MediumTest | 
 
     PART("CaseDescription") {
         STEP("1. add a new screen") {
-            auto addScreen = instance8.AddScreen(screenId, 0);
+            auto addScreen = instance8.AddScreen(screenId, 0, screenSize);
             STEP_ASSERT_EQ(addScreen, 0);
         }
 
@@ -332,7 +341,7 @@ HWTEST_F(HyperGraphicManagerTest, SetRefreshRateMode, Function | SmallTest | Lev
 
     PART("CaseDescription") {
         STEP("1. add a new screen") {
-            auto addScreen = instance.AddScreen(screenId, 0);
+            auto addScreen = instance.AddScreen(screenId, 0, screenSize);
             STEP_ASSERT_GE(addScreen, 0);
         }
 
@@ -371,7 +380,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenTests, Function | MediumTest | Level2
     uint32_t rate5 = 80;
     int32_t mode = 1;
     int32_t mode2 = 2;
-    instance.AddScreen(screenId2, 1);
+    instance.AddScreen(screenId2, 1, screenSize);
     instance.AddScreenInfo(screenId2, width, height, rate, mode);
     instance.AddScreenInfo(screenId2, width, height, rate2, mode2);
     sptr<HgmScreen> screen2 = instance.GetScreen(screenId2);
@@ -387,7 +396,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenTests, Function | MediumTest | Level2
 
     PART("HgmScreen") {
         STEP("1. add a new screen") {
-            instance.AddScreen(screenId1, 0);
+            instance.AddScreen(screenId1, 0, screenSize);
             screen = instance.GetScreen(screenId1);
             uint32_t modeGot = screen->GetActiveRefreshRate();
             STEP_ASSERT_NE(modeGot, rate);
@@ -456,7 +465,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level2)
     uint32_t rate3 = -1;
     int32_t mode = 1;
     int32_t mode2 = 2;
-    instance.AddScreen(screenId2, 1);
+    instance.AddScreen(screenId2, 1, screenSize);
     instance.AddScreenInfo(screenId2, width, height, rate, mode);
     instance.AddScreenInfo(screenId2, width, height, rate2, mode2);
 
@@ -481,7 +490,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level2)
         STEP("3. set rate and resolution") {
             int32_t setResult = instance.SetRateAndResolution(screenId2, 0, 0, 0, 0);
             STEP_ASSERT_EQ(setResult, -1);
-            int32_t addResult = instance.AddScreen(screenId2, 1);
+            int32_t addResult = instance.AddScreen(screenId2, 1, screenSize);
             STEP_ASSERT_GE(addResult, -1);
         }
 
@@ -492,58 +501,6 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level2)
             STEP_ASSERT_EQ(getResult, 0);
             std::vector<uint32_t> getVResult = instance.GetScreenSupportedRefreshRates(screenId3);
             STEP_ASSERT_EQ(getVResult.size(), 0);
-        }
-    }
-}
-
-/**
- * @tc.name: HgmFrameRateToolTest
- * @tc.desc: Verify the result of HgmFrameRateToolTest
- * @tc.type: FUNC
- * @tc.require: I7DMS1
- */
-HWTEST_F(HyperGraphicManagerTest, HgmFrameRateToolTest, Function | SmallTest | Level2)
-{
-    auto &hgm_core = HgmCore::Instance();
-    ScreenId id = 1;
-    int32_t phyWidth = 685; // 685 means dayu200 phyWidth
-    int32_t phyHeight = 1218; // 1218 means dayu200 phyHeight
-    int32_t width = 720; // 720 means dayu200 weight
-    int32_t height = 1080; // 1080 means dayu200 height
-
-    PART("CaseDescription") {
-        STEP("1. call GetInstance twice") {
-            auto instance1 = HgmFrameRateTool::GetInstance();
-            auto instance2 = HgmFrameRateTool::GetInstance();
-            STEP_ASSERT_EQ(instance1, instance2);
-        }
-
-        STEP("2. add screenProfile ") {
-            auto res = hgm_core.AddScreenProfile(id, width, height, phyWidth, phyHeight);
-            STEP_ASSERT_EQ(res, 0);
-        }
-
-        STEP("3. set activeScreenProfile") {
-            hgm_core.SetActiveScreenId(id);
-            STEP_ASSERT_EQ(hgm_core.GetActiveScreenId(), id);
-        }
-
-        STEP("4. cal translate modifier preferred") {
-            HgmModifierProfile hgmModifierProfile = {0, 0, HgmModifierType::TRANSLATE};
-            auto preferred = hgm_core.CalModifierPreferred(hgmModifierProfile);
-            STEP_ASSERT_GT(preferred, 0);
-        }
-
-        STEP("5. cal scale modifier preferred") {
-            HgmModifierProfile hgmModifierProfile = {0, 0, HgmModifierType::SCALE};
-            auto preferred = hgm_core.CalModifierPreferred(hgmModifierProfile);
-            STEP_ASSERT_GT(preferred, 0);
-        }
-
-        STEP("6. cal rotation modifier preferred") {
-            HgmModifierProfile hgmModifierProfile = {0, 0, HgmModifierType::TRANSLATE};
-            auto preferred = hgm_core.CalModifierPreferred(hgmModifierProfile);
-            STEP_ASSERT_GT(preferred, 0);
         }
     }
 }
@@ -569,32 +526,6 @@ HWTEST_F(HyperGraphicManagerTest, RefreshBundleName, Function | SmallTest | Leve
         STEP("1. test RefreshBundleName is true") {
             auto setMode = instance.RefreshBundleName("test hgm_core");
             STEP_ASSERT_EQ(setMode, 0); 
-        }
-    }
-}
-
-/**
- * @tc.name: HgmOneShotTimerTest
- * @tc.desc: Verify the result of HgmOneShotTimerTest
- * @tc.type: FUNC
- * @tc.require: I7DMS1
- */
-HWTEST_F(HyperGraphicManagerTest, HgmOneShotTimerTest, Function | SmallTest | Level2)
-{
-    auto &hgm_core = HgmCore::Instance();
-    ScreenId id = 1;
-    int32_t interval = 200; // 200ms means waiting time
-
-    PART("CaseDescription") {
-        STEP("1. insert and start screenTimer") {
-            hgm_core.InsertAndStartScreenTimer(id, interval, nullptr, nullptr);
-            auto timer = hgm_core.GetScreenTimer(id);
-            STEP_ASSERT_NE(timer, nullptr);
-        }
-        STEP("2. reset screenTimer") {
-            hgm_core.ResetScreenTimer(id);
-            auto timer = hgm_core.GetScreenTimer(id);
-            STEP_ASSERT_NE(timer, nullptr);
         }
     }
 }

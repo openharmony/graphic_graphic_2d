@@ -51,7 +51,11 @@ void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>& 
         return;
     }
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
-    transactionMap_[pid].AddCommand(std::move(command), 0, FollowType::NONE);
+    if (!transactionMap_.count(pid)) {
+        std::shared_ptr<RSTransactionData> transactionData = std::make_shared<RSTransactionData>();
+        transactionMap_[pid] = transactionData;
+    }
+    transactionMap_[pid]->AddCommand(std::move(command), 0, FollowType::NONE);
 }
 
 void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>&& command)
@@ -60,7 +64,11 @@ void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>&&
         return;
     }
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
-    transactionMap_[pid].AddCommand(std::move(command), 0, FollowType::NONE);
+    if (!transactionMap_.count(pid)) {
+        std::shared_ptr<RSTransactionData> transactionData = std::make_shared<RSTransactionData>();
+        transactionMap_[pid] = transactionData;
+    }
+    transactionMap_[pid]->AddCommand(std::move(command), 0, FollowType::NONE);
 }
 
 bool RSMessageProcessor::HasTransaction() const
@@ -79,7 +87,7 @@ bool RSMessageProcessor::HasTransaction(uint32_t pid) const
     }
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
     auto iter = transactionMap_.find(pid);
-    return iter != transactionMap_.end() && !iter->second.IsEmpty();
+    return iter != transactionMap_.end() && !iter->second->IsEmpty();
 }
 
 void RSMessageProcessor::ReInitializeMovedMap()
@@ -91,25 +99,23 @@ void RSMessageProcessor::ReInitializeMovedMap()
     transactionMap_ = decltype(transactionMap_)();
 }
 
-void RSMessageProcessor::RemovePidFromMap(uint32_t pid)
+std::shared_ptr<RSTransactionData> RSMessageProcessor::GetTransaction(uint32_t pid)
 {
     if (!g_instanceValid.load()) {
-        return;
+        return nullptr;
     }
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
-    transactionMap_.erase(pid);
-}
-
-RSTransactionData&& RSMessageProcessor::GetTransaction(uint32_t pid)
-{
-    if (!g_instanceValid.load()) {
-        return {};
+    auto iter = transactionMap_.find(pid);
+    if (iter != transactionMap_.end()) {
+        auto transactionData = transactionMap_[pid];
+        transactionMap_.erase(pid);
+        return transactionData;
+    } else {
+        return nullptr;
     }
-    std::unique_lock<std::mutex> lock(transactionMapMutex_);
-    return std::move(transactionMap_[pid]);
 }
 
-std::unordered_map<uint32_t, RSTransactionData>&& RSMessageProcessor::GetAllTransactions()
+std::unordered_map<uint32_t, std::shared_ptr<RSTransactionData>>&& RSMessageProcessor::GetAllTransactions()
 {
     if (!g_instanceValid.load()) {
         return {};

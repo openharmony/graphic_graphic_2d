@@ -83,6 +83,7 @@ struct TextStyle {
     double heightScale_ = 1.0;
     bool heightOnly_ = false;
     std::u16string ellipsis_;
+    EllipsisModal ellipsisModal_ = EllipsisModal::TAIL;
     std::string locale_;
     std::optional<SkPaint> background_; // SKIA
     std::optional<SkPaint> foreground_; // SKIA
@@ -100,8 +101,10 @@ struct TextStyle {
     double letterSpacing = 0.0;
     double wordSpacing = 0.0;
     double heightScale = 1.0;
+    bool halfLeading = false;
     bool heightOnly = false;
     std::u16string ellipsis;
+    EllipsisModal ellipsisModal = EllipsisModal::TAIL;
     std::string locale;
     std::optional<SkPaint> background; // SKIA
     std::optional<SkPaint> foreground; // SKIA

@@ -120,7 +120,13 @@ std::vector<double> VariantSpan::GetGlyphWidths() const noexcept(false)
     std::vector<double> widths;
     if (ts_) {
         for (const auto &cg : ts_->cgs_) {
-            widths.push_back(cg.GetWidth());
+            if (cg.IsEmoji()) {
+                widths.push_back(cg.GetWidth());
+                continue;
+            }
+            for (int i = 0; i < static_cast<int>(cg.chars.size()); i++) {
+                widths.push_back(cg.GetWidth() / static_cast<int>(cg.chars.size()));
+            }
         }
     }
 
@@ -152,6 +158,28 @@ double VariantSpan::GetVisibleWidth() const noexcept(false)
     }
 
     return 0.0;
+}
+
+size_t VariantSpan::GetNumberOfChar() const noexcept(false)
+{
+    CheckPointer();
+    size_t count = 0;
+    if (ts_) {
+        for (const auto &cg : ts_->cgs_) {
+            if (cg.IsEmoji()) {
+                count++;
+                continue;
+            }
+            count += cg.chars.size();
+        }
+    }
+
+    if (as_) {
+        // Set the number of AnySpan`s char to 1
+        return 1;
+    }
+
+    return count;
 }
 
 void VariantSpan::Dump(const DumpType &dtype) const noexcept(false)

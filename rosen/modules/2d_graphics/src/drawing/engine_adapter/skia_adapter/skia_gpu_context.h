@@ -44,7 +44,7 @@ class SkiaGPUContext : public GPUContextImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
     SkiaGPUContext();
-    ~SkiaGPUContext() override = default;;
+    ~SkiaGPUContext() override = default;
 
     AdapterType GetType() const override
     {
@@ -57,10 +57,10 @@ public:
     void FlushAndSubmit(bool syncCpu) override;
     void PerformDeferredCleanup(std::chrono::milliseconds msNotUsed) override;
 
-    void GetResourceCacheLimits(int& maxResource, size_t& maxResourceBytes) const override;
+    void GetResourceCacheLimits(int* maxResource, size_t* maxResourceBytes) const override;
     void SetResourceCacheLimits(int maxResource, size_t maxResourceBytes) override;
 
-    void GetResourceCacheUsage(int& resourceCount, size_t& resourceBytes) const override;
+    void GetResourceCacheUsage(int* resourceCount, size_t* resourceBytes) const override;
 
     void FreeGpuResources() override;
 
@@ -75,6 +75,12 @@ public:
     void PurgeUnlockAndSafeCacheGpuResources() override;
 
     void ReleaseByTag(const GPUResourceTag tag) override;
+
+    void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag tag) override;
+
+    void DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump) override;
+
+    void SetCurrentGpuResourceTag(const GPUResourceTag tag) override;
 
 #ifdef NEW_SKIA
     sk_sp<GrDirectContext> GetGrContext() const;

@@ -317,20 +317,7 @@ void VSyncDistributor::ThreadMain()
             // IMPORTANT: ScopedDebugTrace here will cause frame loss.
             ScopedBytrace func(name_ + "_SendVsync");
         }
-        for (uint32_t i = 0; i < conns.size(); i++) {
-            int32_t ret = conns[i]->PostEvent(timestamp, event_.period, event_.vsyncCount);
-            VLOGD("Distributor name:%{public}s, connection name:%{public}s, ret:%{public}d",
-                name_.c_str(), conns[i]->info_.name_.c_str(), ret);
-            if (ret == 0 || ret == ERRNO_OTHER) {
-                RemoveConnection(conns[i]);
-            } else if (ret == ERRNO_EAGAIN) {
-                std::unique_lock<std::mutex> locker(mutex_);
-                // Exclude SetVSyncRate
-                if (conns[i]->rate_ < 0) {
-                    conns[i]->rate_ = 0;
-                }
-            }
-        }
+        PostVSyncEvent(conns, timestamp);
     }
 }
 
@@ -382,6 +369,24 @@ void VSyncDistributor::CollectConnections(bool &waitForVSync, int64_t timestamp,
                 if (timestamp > 0 && (vsyncCount % rate == 0)) {
                     conns.push_back(connections_[i]);
                 }
+            }
+        }
+    }
+}
+
+void VSyncDistributor::PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &conns, int64_t timestamp)
+{
+    for (uint32_t i = 0; i < conns.size(); i++) {
+        int32_t ret = conns[i]->PostEvent(timestamp, event_.period, event_.vsyncCount);
+        VLOGD("Distributor name:%{public}s, connection name:%{public}s, ret:%{public}d",
+            name_.c_str(), conns[i]->info_.name_.c_str(), ret);
+        if (ret == 0 || ret == ERRNO_OTHER) {
+            RemoveConnection(conns[i]);
+        } else if (ret == ERRNO_EAGAIN) {
+            std::unique_lock<std::mutex> locker(mutex_);
+            // Exclude SetVSyncRate
+            if (conns[i]->rate_ < 0) {
+                conns[i]->rate_ = 0;
             }
         }
     }

@@ -18,6 +18,9 @@
 
 #include <list>
 #include <utility>
+
+#include "include/core/SkRect.h"
+
 #include "property/rs_property_drawable.h"
 
 namespace OHOS::Rosen {
@@ -25,9 +28,9 @@ class RSFrameGeometryDrawable : public RSPropertyDrawable {
 public:
     explicit RSFrameGeometryDrawable(float frameOffsetX, float frameOffsetY);
     ~RSFrameGeometryDrawable() override = default;
-    void Draw(RSModifierContext& context) override;
+    void Draw(RSPropertyDrawableRenderContext& context) override;
 
-    static std::unique_ptr<RSPropertyDrawable> Generate(const RSProperties& properties);
+    static RSPropertyDrawable::DrawablePtr Generate(const RSPropertyDrawableGenerateContext& context);
 
 private:
     float frameOffsetX_;
@@ -40,7 +43,9 @@ class RSClipFrameDrawable : public RSPropertyDrawable {
 public:
     explicit RSClipFrameDrawable(const SkRect& content) : content_(content) {}
     ~RSClipFrameDrawable() override = default;
-    void Draw(RSModifierContext& context) override;
+    void Draw(RSPropertyDrawableRenderContext& context) override;
+
+    static RSPropertyDrawable::DrawablePtr Generate(const RSPropertyDrawableGenerateContext& context);
 
 private:
     SkRect content_;
@@ -52,8 +57,8 @@ class RSColorFilterDrawable : public RSPropertyDrawable {
 public:
     explicit RSColorFilterDrawable(SkPaint&& paint) : paint_(std::move(paint)) {}
     ~RSColorFilterDrawable() override = default;
-    void Draw(RSModifierContext& context) override;
-    static std::unique_ptr<RSPropertyDrawable> Generate(const RSProperties& properties);
+    void Draw(RSPropertyDrawableRenderContext& context) override;
+    static std::unique_ptr<RSPropertyDrawable> Generate(const RSPropertyDrawableGenerateContext& context);
 
 private:
     SkPaint paint_;

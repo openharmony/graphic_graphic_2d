@@ -21,36 +21,8 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-#include "ashmem.h"
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkDrawable.h"
-#include "include/core/SkImage.h"
-#include "include/core/SkMatrix.h"
-#include "include/core/SkPaint.h"
-#include "include/core/SkPicture.h"
-#include "include/core/SkSerialProcs.h"
-#include "include/core/SkStream.h"
-#include "include/core/SkTextBlob.h"
-#include "include/core/SkTypeface.h"
-#include "include/core/SkVertices.h"
-#ifdef NEW_SKIA
-#include "include/core/SkSamplingOptions.h"
-#include "src/core/SkVerticesPriv.h"
-#endif
-#endif
 #include "memory/rs_memory_track.h"
 #include "pixel_map.h"
-#include "securec.h"
-#ifndef USE_ROSEN_DRAWING
-#include "src/core/SkAutoMalloc.h"
-#include "src/core/SkPaintPriv.h"
-#include "src/core/SkReadBuffer.h"
-#include "src/core/SkWriteBuffer.h"
-#include "src/image/SkImage_Base.h"
-#else
-#include "recording/recording_path.h"
-#include "recording/recording_shader_effect.h"
-#endif
 
 #include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_interpolating_spring_animation.h"
@@ -65,10 +37,6 @@
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
 #include "modifier/rs_render_modifier.h"
-#ifndef USE_ROSEN_DRAWING
-#include "pipeline/rs_draw_cmd.h"
-#include "pipeline/rs_draw_cmd_list.h"
-#endif
 #include "platform/common/rs_log.h"
 #include "render/rs_blur_filter.h"
 #include "render/rs_filter.h"
@@ -76,10 +44,41 @@
 #include "render/rs_image.h"
 #include "render/rs_image_base.h"
 #include "render/rs_light_up_effect_filter.h"
+#include "render/rs_mask.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
 #include "transaction/rs_ashmem_helper.h"
+
+#ifndef USE_ROSEN_DRAWING
+#include "include/core/SkDrawable.h"
+#include "include/core/SkImage.h"
+#include "include/core/SkMatrix.h"
+#include "include/core/SkPaint.h"
+#include "include/core/SkPicture.h"
+#include "include/core/SkSerialProcs.h"
+#include "include/core/SkStream.h"
+#include "include/core/SkTextBlob.h"
+#include "include/core/SkTypeface.h"
+#include "include/core/SkVertices.h"
+#include "src/core/SkReadBuffer.h"
+#include "src/core/SkWriteBuffer.h"
+#include "src/image/SkImage_Base.h"
+
+#include "pipeline/rs_draw_cmd.h"
+#include "pipeline/rs_draw_cmd_list.h"
+#ifdef NEW_SKIA
+#include "include/core/SkSamplingOptions.h"
+#include "src/core/SkVerticesPriv.h"
+#endif
+#else
+#include "recording/recording_path.h"
+#include "recording/recording_shader_effect.h"
+#endif
+
+#ifdef RS_ENABLE_RECORDING
+#include "benchmarks/rs_recording_thread.h"
+#endif
 #if defined (ENABLE_DDGR_OPTIMIZE)
 #include <sys/mman.h>
 #include "securec.h"

@@ -15,6 +15,7 @@
       "syscap": [
         "SystemCapability.Graphic.Graphic2D.ColorManager.Core",
         "SystemCapability.Graphic.Graphic2D.EGL",
+        "SystemCapability.Graphic.Graphic2D.GLES2", 
         "SystemCapability.Graphic.Graphic2D.GLES3",
         "SystemCapability.Graphic.Graphic2D.NativeWindow",
         "SystemCapability.Graphic.Graphic2D.NativeDrawing",
@@ -142,6 +143,16 @@
                 "window.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/surface"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/frameworks/bootanimation/utils:libbootanimation_utils",
+            "header": {
+              "header_files": [
+                "boot_animation_utils.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/bootanimation"
             }
           },
           {

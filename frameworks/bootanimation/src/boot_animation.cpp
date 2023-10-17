@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 #include "boot_animation.h"
+
+#include "boot_animation_utils.h"
 #include "event_handler.h"
 #include "rs_trace.h"
 #include "transaction/rs_render_service_client.h"
@@ -49,11 +51,7 @@ void BootAnimation::OnDraw(SkCanvas* canvas, int32_t curNo)
     SkPaint paint;
     SkRect rect;
     rect.setXYWH(pointX_, pointY_, realWidth_, realHeight_);
-#ifdef NEW_SKIA
     canvas->drawImageRect(image.get(), rect, SkSamplingOptions(), &paint);
-#else
-    canvas->drawImageRect(image.get(), rect, &paint);
-#endif
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
@@ -259,7 +257,7 @@ void BootAnimation::PlaySound()
 {
 #ifdef PLAYER_FRAMEWORK_ENABLE
     LOGI("PlaySound start");
-    bool bootSoundEnabled = system::GetBoolParameter("persist.graphic.bootsound.enabled", true);
+    bool bootSoundEnabled = BootAnimationUtils::GetBootAnimationSoundEnabled();
     if (bootSoundEnabled == true) {
         LOGI("PlaySound read bootSoundEnabled is true");
         if (soundPlayer_ == nullptr) {

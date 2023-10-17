@@ -39,11 +39,10 @@ void ScopedBytrace::End()
     }
 }
 
-bool ScopedDebugTrace::debugTraceEnabled_ = false;
+bool ScopedDebugTrace::debugTraceEnabled_ =
+        std::atoi((OHOS::system::GetParameter("persist.sys.graphic.openDebugTrace", "0")).c_str()) != 0;
 ScopedDebugTrace::ScopedDebugTrace(const std::string &traceStr)
 {
-    debugTraceEnabled_ =
-        std::atoi((OHOS::system::GetParameter("persist.sys.graphic.openDebugTrace", "0")).c_str()) != 0;
     if (debugTraceEnabled_) {
         StartTrace(HITRACE_TAG_GRAPHIC_AGP, traceStr);
     }

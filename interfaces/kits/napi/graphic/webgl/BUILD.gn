@@ -72,7 +72,10 @@ ohos_source_set("webgl_src") {
       "src/webgl/src/webgl_vertex_array_object.cpp",
     ]
 
-    deps = [ "$graphic_2d_root:libgl" ]
+    deps = [
+      "$graphic_2d_root:libgl",
+      "//third_party/bounds_checking_function:libsec_shared",
+    ]
   }
 
   cflags = [

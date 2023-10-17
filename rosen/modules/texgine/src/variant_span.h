@@ -55,6 +55,7 @@ public:
     size_t GetNumberOfCharGroup() const noexcept(false);
     std::vector<double> GetGlyphWidths() const noexcept(false);
     double GetVisibleWidth() const noexcept(false);
+    size_t GetNumberOfChar() const noexcept(false);
     void Dump(const DumpType &dtype = DumpType::NORMAL) const noexcept(false);
 
     void SetTextStyle(const TextStyle &xs) noexcept(true);

@@ -39,12 +39,13 @@ struct TypographyStyle {
     std::vector<std::string> fontFamilies = {};
     double fontSize = 16.0;
     double heightScale = 1.0;
+    bool halfLeading = false;
     bool heightOnly = false;
     std::string locale;
 
     // multi-text
     size_t maxLines = 1e9;
-    std::u16string ellipsis = u"...";
+    std::u16string ellipsis = u"\u2026";
     BreakStrategy breakStrategy = BreakStrategy::GREEDY;
     WordBreakType wordBreakType = WordBreakType::BREAK_WORD;
     TextAlign align = TextAlign::START;
@@ -58,6 +59,7 @@ struct TypographyStyle {
         FontWeight fontWeight = FontWeight::W400;
         FontStyle fontStyle = FontStyle::NORMAL;
         std::vector<std::string> fontFamilies = {};
+        bool halfLeading = false;
         bool heightOnly = false;
         double fontSize = 16.0;
         double heightScale = 1;

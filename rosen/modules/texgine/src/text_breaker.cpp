@@ -48,7 +48,6 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyl
 #ifdef LOGGER_ENABLE_SCOPE
     ScopedTrace scope("TextBreaker::WordBreak");
 #endif
-    LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "WordBreak");
     std::vector<VariantSpan> visitingSpans;
     std::swap(visitingSpans, spans);
     for (const auto &vspan : visitingSpans) {
@@ -76,19 +75,17 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyl
             return 1;
         }
 
-        GenNewBoundryByWidth(cgs, boundaries);
+        if (ys.wordBreakType != WordBreakType::NORMAL) {
+            GenNewBoundryByWidth(cgs, boundaries);
+        }
         GenNewBoundryByHardBreak(cgs, boundaries);
         GenNewBoundryByTypeface(cgs, boundaries);
         GenNewBoundryByQuote(cgs, boundaries);
 
-        LOGSCOPED(sl2, LOGEX_FUNC_LINE_DEBUG(), "TextBreaker::doWordBreak algo");
         preBreak_ = 0;
         postBreak_ = 0;
         for (auto &[start, end] : boundaries) {
             const auto &wordcgs = cgs.GetSubFromU16RangeAll(start, end);
-            std::stringstream ss;
-            ss << "u16range: [" << start << ", " << end << "), range: " << wordcgs.GetRange();
-            LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), ss.str());
             BreakWord(wordcgs, ys, xs, spans);
         }
     }
@@ -219,17 +216,28 @@ void TextBreaker::GenNewBoundryByWidth(CharGroups cgs, std::vector<Boundary> &bo
         size_t newStart = start;
         size_t newEnd = start;
         const auto &wordCgs = cgs.GetSubFromU16RangeAll(start, end);
-        currentWidth_ = wordCgs.begin()->GetWidth();
+        double wordWith = 0;
+        for (auto &cg : wordCgs) {
+            wordWith += cg.GetWidth();
+        }
+
+        if (currentWidth_ + wordWith > widthLimit_) {
+            currentWidth_ = 0;
+        }
+
+        currentWidth_ += wordCgs.begin()->GetWidth();
+        auto prevCg = wordCgs.begin();
         for (auto cg = wordCgs.begin() + 1; cg != wordCgs.end(); cg++) {
             if (currentWidth_ + cg->GetWidth() >= widthLimit_) {
-                newEnd++;
+                newEnd += prevCg->chars.size();
                 newBoundary.push_back({newStart, newEnd});
                 currentWidth_ = cg->GetWidth();
                 newStart = newEnd;
             } else {
-                newEnd++;
+                newEnd += prevCg->chars.size();
                 currentWidth_ += cg->GetWidth();
             }
+            prevCg = cg;
         }
 
         if (newEnd != end) {
@@ -248,15 +256,16 @@ void TextBreaker::GenNewBoundryByHardBreak(CharGroups cgs, std::vector<Boundary>
         size_t newEnd = start;
         const auto &wordCgs = cgs.GetSubFromU16RangeAll(start, end);
         for (auto cg = wordCgs.begin(); cg != wordCgs.end(); cg++) {
-            if (cg->IsHardBreak()) {
-                if (newStart != newEnd) {
-                    newBoundary.push_back({newStart, newEnd});
-                }
-                newBoundary.push_back({newEnd, newEnd + 1});
-                newStart = newEnd + 1;
+            if (cg->IsHardBreak() && newStart != newEnd) {
+                newBoundary.push_back({newStart, newEnd});
             }
 
-            newEnd++;
+            if (cg->IsHardBreak()) {
+                newBoundary.push_back({newEnd, newEnd + cg->chars.size()});
+                newStart = newEnd + cg->chars.size();
+            }
+
+            newEnd += cg->chars.size();
         }
 
         if (newStart == start) {
@@ -279,10 +288,8 @@ void TextBreaker::BreakWord(const CharGroups &wordcgs, const TypographyStyle &ys
             preBreak_ = postBreak_;
         }
 
-        LOGEX_FUNC_LINE_DEBUG() << "Now: [" << i << "] '" << TextConverter::ToStr(cg.chars) << "'"
-            << " preBreak_: " << preBreak_ << ", postBreak_: " << postBreak_;
-
-        const auto &breakType = ys.wordBreakType;
+        const auto &breakType = ys.wordBreakType == WordBreakType::NORMAL ?
+            WordBreakType::BREAK_WORD : ys.wordBreakType;
         bool isBreakAll = (breakType == WordBreakType::BREAK_ALL);
         bool isBreakWord = (breakType == WordBreakType::BREAK_WORD);
         bool isFinalCharGroup = (i == wordcgs.GetNumberOfCharGroup() - 1);
