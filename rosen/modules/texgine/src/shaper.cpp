@@ -91,7 +91,7 @@ void Shaper::ConsiderEllipsis(const TypographyStyle &tstyle,
         maxLines = 1;
     }
 
-    if (lineMetrics_.size() < maxLines) {
+    if (lineMetrics_.size() <= maxLines) {
         return;
     }
 
