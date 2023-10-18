@@ -3861,6 +3861,10 @@ void RSUniRenderVisitor::DrawWatermarkIfNeed()
     if (RSMainThread::Instance()->GetWatermarkFlag()) {
 #ifndef USE_ROSEN_DRAWING
         sk_sp<SkImage> skImage = RSMainThread::Instance()->GetWatermarkImg();
+        if (!skImage) {
+            RS_LOGE("RSUniRenderVisitor::DrawWatermarkIfNeed: no image!");
+            return;
+        }
         SkPaint rectPaint;
         auto skSrcRect = SkRect::MakeWH(skImage->width(), skImage->height());
         auto skDstRect = SkRect::MakeWH(screenInfo_.width, screenInfo_.height);
