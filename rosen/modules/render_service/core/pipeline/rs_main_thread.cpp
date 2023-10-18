@@ -2389,15 +2389,15 @@ void RSMainThread::CollectFrameRateRange(std::shared_ptr<RSRenderNode> node)
 
 void RSMainThread::ApplyModifiers()
 {
+    frameRateRangeData_ = std::make_shared<FrameRateRangeData>();
+    //[Planning]: Support multi-display in the future.
+    frameRateRangeData_->screenId = 0;
+    frameRateRangeData_->forceUpdateFlag = forceUpdateUniRenderFlag_;
     if (context_->activeNodesInRoot_.empty()) {
         return;
     }
     RS_TRACE_NAME_FMT("ApplyModifiers (PropertyDrawableEnable %s)",
         RSSystemProperties::GetPropertyDrawableEnable() ? "TRUE" : "FALSE");
-    frameRateRangeData_ = std::make_shared<FrameRateRangeData>();
-    //[Planning]: Support multi-display in the future.
-    frameRateRangeData_->screenId = 0;
-    frameRateRangeData_->forceUpdateFlag = forceUpdateUniRenderFlag_;
     for (const auto& [root, nodeSet] : context_->activeNodesInRoot_) {
         for (const auto& [id, nodePtr] : nodeSet) {
             bool isZOrderChanged = nodePtr->ApplyModifiers();
