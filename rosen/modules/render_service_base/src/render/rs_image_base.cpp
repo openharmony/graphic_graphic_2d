@@ -368,12 +368,21 @@ void RSImageBase::ConvertPixelMapToSkImage()
 {
     if (!image_ && pixelMap_) {
         if (!pixelMap_->IsEditable()) {
+#if defined(ROSEN_OHOS)
+            image_ = RSImageCache::Instance().GetRenderSkiaImageCacheByPixelMapId(uniqueId_, gettid());
+#else
             image_ = RSImageCache::Instance().GetRenderSkiaImageCacheByPixelMapId(uniqueId_);
+#endif
         }
         if (!image_) {
             image_ = RSPixelMapUtil::ExtractSkImage(pixelMap_);
+            SKResourceManager::Instance().HoldResource(image_);
             if (!pixelMap_->IsEditable()) {
+#if defined(ROSEN_OHOS)
+                RSImageCache::Instance().CacheRenderSkiaImageByPixelMapId(uniqueId_, image_, gettid());
+#else
                 RSImageCache::Instance().CacheRenderSkiaImageByPixelMapId(uniqueId_, image_);
+#endif
             }
         }
     }
@@ -383,12 +392,20 @@ void RSImageBase::ConvertPixelMapToDrawingImage()
 {
     if (!image_ && pixelMap_) {
         if (!pixelMap_->IsEditable()) {
+#if defined(ROSEN_OHOS)
+            image_ = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, gettid());
+#else
             image_ = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_);
+#endif
         }
         if (!image_) {
             image_ = RSPixelMapUtil::ExtractDrawingImage(pixelMap_);
             if (!pixelMap_->IsEditable()) {
+#if defined(ROSEN_OHOS)
+                RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_, gettid());
+#else
                 RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_);
+#endif
             }
         }
     }
