@@ -113,6 +113,9 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
     auto image = skSurface_->makeImageSnapshot();
     {
         std::lock_guard<std::mutex> lock(mutex_);
+        SkImageInfo info =
+            SkImageInfo::Make(skSurface_->width(), skSurface_->height(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+        rsDrawingNodeBitmap_.allocPixels(info);
         skSurface_->readPixels(rsDrawingNodeBitmap_, 0, 0);
     }
 #ifdef NEW_SKIA
