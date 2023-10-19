@@ -22,13 +22,13 @@ using namespace OHOS;
 using namespace OHOS::Rosen;
 using namespace std;
 
-constexpr uint32_t SIZE_WIDTH = 3;
-constexpr uint32_t SIZE_HEIGHT = 2;
+constexpr uint32_t SIZE_WIDTH = 1;
+constexpr uint32_t SIZE_HEIGHT = 1;
 
 // Switch of watermark.
 int main()
 {
-    const uint32_t color[8] = { 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80 };
+    const uint32_t color[1] = { 0x6f0000ff };
     uint32_t colorLength = sizeof(color) / sizeof(color[0]);
     const int32_t offset = 0;
     Media::InitializationOptions opts;
