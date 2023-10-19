@@ -15,7 +15,9 @@
 
 #include "skia_font_mgr_ohos.h"
 
+#ifndef CROSS_PLATFORM
 #include "src/ports/skia_ohos/SkFontMgr_ohos.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -25,7 +27,13 @@ std::shared_ptr<FontMgrImpl> SkiaFontMgr::Factory()
     return std::make_shared<SkiaFontMgrOhos>(nullptr);
 }
 
-SkiaFontMgrOhos::SkiaFontMgrOhos(const char* path) : SkiaFontMgr(std::make_shared<SkFontMgr_OHOS>(path)) {}
+SkiaFontMgrOhos::SkiaFontMgrOhos(const char* path)
+#ifndef CROSS_PLATFORM
+    : SkiaFontMgr(std::make_shared<SkFontMgr_OHOS>(path)) {}
+#else
+    : SkiaFontMgr(nullptr) {}
+#endif
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
