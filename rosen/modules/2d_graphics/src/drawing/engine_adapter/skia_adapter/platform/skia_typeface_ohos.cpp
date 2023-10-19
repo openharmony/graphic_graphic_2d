@@ -15,7 +15,9 @@
 
 #include "skia_typeface_ohos.h"
 
+#ifndef CROSS_PLATFORM
 #include "src/ports/skia_ohos/SkTypeface_ohos.h"
+#endif
 
 #include "skia_adapter/skia_convert_utils.h"
 
@@ -26,7 +28,11 @@ SkiaTypefaceOhos::SkiaTypefaceOhos(const std::string& specifiedName, FontInfo& i
 {
     SkString skName;
     SkiaConvertUtils::StdStringCastToSkString(specifiedName, skName);
+#ifndef CROSS_PLATFORM
     skTypeface_ = sk_make_sp<SkTypeface_OHOS>(skName, info);
+#else
+    skTypeface_ = nullptr;
+#endif
 }
 } // namespace Drawing
 } // namespace Rosen
