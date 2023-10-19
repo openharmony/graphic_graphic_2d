@@ -421,18 +421,18 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CreateSurface002, Function | SmallTest | Leve
 }
 
 /*
- * @tc.name: FindSecurityLayer001
+ * @tc.name: FindSecurityOrSkipLayer001
  * @tc.desc: Test RSSurfaceCaptureTaskTest.CreateSurface002
  * @tc.type: FUNC
  * @tc.require: issueI794H6
 */
-HWTEST_F(RSSurfaceCaptureTaskTest, FindSecurityLayer001, Function | SmallTest | Level2)
+HWTEST_F(RSSurfaceCaptureTaskTest, FindSecurityOrSkipLayer001, Function | SmallTest | Level2)
 {
     NodeId id = 0;
     float scaleX = 0.f;
     float scaleY = 0.f;
     RSSurfaceCaptureTask task(id, scaleX, scaleY);
-    EXPECT_EQ(false, task.FindSecurityLayer());
+    EXPECT_EQ(false, task.FindSecurityOrSkipLayer());
 }
 
 /*

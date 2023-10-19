@@ -71,9 +71,9 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
     } else if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
         RS_LOGD("RSSurfaceCaptureTask::Run: Into DISPLAY_NODE DisplayRenderNodeId:[%{public}" PRIu64 "]",
             node->GetId());
-        visitor_->SetHasingSecurityLayer(FindSecurityLayer());
+        visitor_->SetHasingSecurityOrSkipLayer(FindSecurityOrSkipLayer());
         pixelmap = CreatePixelMapByDisplayNode(displayNode, visitor_->IsUniRender(),
-            visitor_->GetHasingSecurityLayer());
+            visitor_->GetHasingSecurityOrSkipLayer());
         visitor_->IsDisplayNode(true);
     } else {
         RS_LOGE("RSSurfaceCaptureTask::Run: Invalid RSRenderNodeType!");
@@ -297,7 +297,7 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapBySurfaceNo
 }
 
 std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapByDisplayNode(
-    std::shared_ptr<RSDisplayRenderNode> node, bool isUniRender, bool hasSecurityLayer)
+    std::shared_ptr<RSDisplayRenderNode> node, bool isUniRender, bool hasSecurityOrSkipLayer)
 {
     if (node == nullptr) {
         RS_LOGE("RSSurfaceCaptureTask::CreatePixelMapByDisplayNode: node is nullptr");
@@ -590,21 +590,21 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTask::CreateSurface(const std:
 }
 #endif
 
-bool RSSurfaceCaptureTask::FindSecurityLayer()
+bool RSSurfaceCaptureTask::FindSecurityOrSkipLayer()
 {
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    bool hasSecurityLayer = false;
-    nodeMap.TraverseSurfaceNodes([this, &hasSecurityLayer](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
+    bool hasSecurityOrSkipLayer = false;
+    nodeMap.TraverseSurfaceNodes([this, &hasSecurityOrSkipLayer](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
         mutable {
         if (surfaceNode == nullptr || !surfaceNode->IsOnTheTree()) {
             return;
         }
-        if (surfaceNode->GetSecurityLayer()) {
-            hasSecurityLayer = true;
+        if (surfaceNode->GetSecurityLayer() || surfaceNode->GetSkipLayer()) {
+            hasSecurityOrSkipLayer = true;
             return;
         }
     });
-    return hasSecurityLayer;
+    return hasSecurityOrSkipLayer;
 }
 
 RSSurfaceCaptureVisitor::RSSurfaceCaptureVisitor(float scaleX, float scaleY, bool isUniRender)
@@ -665,7 +665,7 @@ void RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node
 
     if (IsUniRender()) {
         FindHardwareEnabledNodes();
-        if (hasSecurityLayer_) {
+        if (hasSecurityOrSkipLayer_) {
             RS_LOGD("RSSurfaceCaptureVisitor::ProcessDisplayRenderNode: \
                 process RSDisplayRenderNode(id:[%{public}" PRIu64 "]) Not using UniRender buffer.", node.GetId());
             ProcessChildren(node);
@@ -803,7 +803,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
     } else {
         canvas_->clipRect(SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight()));
     }
-    if (node.GetSecurityLayer()) {
+    if (node.GetSecurityLayer() || node.GetSkipLayer()) {
         RS_LOGD("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni: \
             process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) clear white since it is security layer.",
             node.GetId());
@@ -896,7 +896,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
         canvas_->ClipRect(Drawing::Rect(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight()),
             Drawing::ClipOp::INTERSECT, true);
     }
-    if (node.GetSecurityLayer()) {
+    if (node.GetSecurityLayer() || node.GetSkipLayer()) {
         RS_LOGD("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni: \
             process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) clear white since it is security layer.",
             node.GetId());
@@ -944,7 +944,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
 #ifndef USE_ROSEN_DRAWING
 void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode& node)
 {
-    if (node.GetSecurityLayer()) {
+    if (node.GetSecurityLayer() || node.GetSkipLayer()) {
         RS_LOGD("RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni: \
             process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) paused since it is security layer.",
             node.GetId());
@@ -1000,7 +1000,7 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
 #else
 void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode& node)
 {
-    if (node.GetSecurityLayer()) {
+    if (node.GetSecurityLayer() || node.GetSkipLayer()) {
         RS_LOGD("RSSurfaceCaptureTask::RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni: \
             process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) paused since it is security layer.",
             node.GetId());
@@ -1156,7 +1156,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni(RSSurfaceRender
         translateMatrix.preTranslate(
             thisNodetranslateX - parentNodeTranslateX, thisNodetranslateY - parentNodeTranslateY);
     }
-    if (node.GetSecurityLayer()) {
+    if (node.GetSecurityLayer() || node.GetSkipLayer()) {
         RS_LOGD("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni: \
             process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) clear white since it is security layer.",
             node.GetId());
@@ -1205,7 +1205,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni(RSSurfaceRender
         RS_LOGE("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni: canvas_ is nullptr.");
         return;
     }
-    if (node.GetSecurityLayer()) {
+    if (node.GetSecurityLayer() || node.GetSkipLayer()) {
         RS_LOGD("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni: \
             process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) clear white since it is security layer.",
             node.GetId());
@@ -1241,7 +1241,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni(RSSurfaceRender
 
 void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithoutUni(RSSurfaceRenderNode& node)
 {
-    if (node.GetSecurityLayer()) {
+    if (node.GetSecurityLayer() || node.GetSkipLayer()) {
         RS_LOGD("RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithoutUni: \
             process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) paused since it is security layer.",
             node.GetId());
