@@ -150,7 +150,7 @@ void RSSubThread::DestroyShareEglContext()
 
 void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTask)
 {
-    if (threadTask == nullptr) {
+    if (threadTask == nullptr || threadTask->GetTaskSize() == 0) {
         return;
     }
     if (grContext_ == nullptr) {
@@ -232,17 +232,17 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
         }
 #endif
         surfaceNodePtr->UpdateBackendTexture();
+        RSMainThread::Instance()->PostTask([]() { 
+            RSMainThread::Instance()->SetIsCachedSurfaceUpdated(true);
+        });
         surfaceNodePtr->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DONE);
         surfaceNodePtr->SetCacheSurfaceNeedUpdated(true);
 
         if (needNotify) {
             RSSubThreadManager::Instance()->NodeTaskNotify(node->GetId());
         }
-        if (RSMainThread::Instance()->GetFrameCount() != threadTask->GetFrameCount()) {
-            RSMainThread::Instance()->RequestNextVSync();
-            continue;
-        }
     }
+    RSMainThread::Instance()->RequestNextVSync();
 #endif
 }
 
