@@ -93,7 +93,7 @@ bool SkiaImage::MakeFromEncoded(const std::shared_ptr<Data>& data)
 
     auto skData = data->GetImpl<SkiaData>()->GetSkData();
     skiaImage_ = SkImage::MakeFromEncoded(skData);
-    return (skiaImage_ != nullptr) ? true : false;
+    return (skiaImage_ != nullptr);
 }
 
 bool SkiaImage::BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
