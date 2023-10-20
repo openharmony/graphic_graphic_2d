@@ -27,11 +27,11 @@ namespace OHOS::Rosen {
 class RSPaintFilterCanvas;
 class RSProperties;
 class RSPropertyDrawableGenerateContext;
-class RSPropertyDrawableRenderContext;
 class RSRenderModifier;
 class RSRenderNode;
 
-enum class RSPropertyDrawableSlot : unsigned char {
+namespace Slot {
+enum RSPropertyDrawableSlot : uint8_t {
     INVALID = 0,
 
     SAVE_ALL,
@@ -81,19 +81,20 @@ enum class RSPropertyDrawableSlot : unsigned char {
     RESTORE_BOUNDS,
 
     RESTORE_ALL,
+    MAX,
 };
 
-enum DrawableMapStatus : uint8_t {
-    CLIP_TO_BOUNDS         = 1<<0,
+enum DrawableVecStatus : uint8_t {
+    CLIP_BOUNDS            = 1<<0,
     BOUNDS_PROPERTY_BEFORE = 1<<1,
     BOUNDS_PROPERTY_AFTER  = 1<<2,
-    CLIP_TO_FRAME          = 1<<3,
+    CLIP_FRAME             = 1<<3,
     FRAME_PROPERTY         = 1<<4,
     HAS_CHILDREN           = 1<<5,
-    BOUNDS_MASK            = CLIP_TO_BOUNDS | BOUNDS_PROPERTY_BEFORE | BOUNDS_PROPERTY_AFTER,
-    FRAME_MASK             = CLIP_TO_FRAME | FRAME_PROPERTY | HAS_CHILDREN,
+    BOUNDS_MASK            = CLIP_BOUNDS | BOUNDS_PROPERTY_BEFORE | BOUNDS_PROPERTY_AFTER,
+    FRAME_MASK             = CLIP_FRAME | FRAME_PROPERTY | HAS_CHILDREN,
 };
-
+};
 // Pure virtual base class
 class RSPropertyDrawable {
 public:
@@ -108,28 +109,28 @@ public:
 
     using DrawablePtr = std::unique_ptr<RSPropertyDrawable>;
 
-    virtual void Draw(RSPropertyDrawableRenderContext& context) = 0;
+    virtual void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) = 0;
     virtual void OnBoundsMatrixChange(const RSProperties& properties) {}
     virtual void OnBoundsChange(const RSProperties& properties) {}
 
     // Generator
-    using DrawableMap = std::map<RSPropertyDrawableSlot, RSPropertyDrawable::DrawablePtr>;
-    static void UpdateDrawableMap(RSPropertyDrawableGenerateContext& context, DrawableMap& drawableMap,
-        uint8_t& drawableMapStatus, const std::unordered_set<RSModifierType>& dirtyTypes);
+    using DrawableVec = std::vector<RSPropertyDrawable::DrawablePtr>;
+    static void UpdateDrawableVec(RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec,
+        uint8_t& drawableVecStatus, const std::unordered_set<RSModifierType>& dirtyTypes);
 
 private:
     // index = RSModifierType value = RSPropertyDrawableType
-    static const std::vector<RSPropertyDrawableSlot> PropertyToDrawableLut;
+    static const std::vector<Slot::RSPropertyDrawableSlot> PropertyToDrawableLut;
     // index = RSPropertyDrawableType value = DrawableGenerator
     using DrawableGenerator = std::function<RSPropertyDrawable::DrawablePtr(const RSPropertyDrawableGenerateContext&)>;
     static const std::vector<DrawableGenerator> DrawableGeneratorLut;
 
-    static inline uint8_t CalculateDrawableMapStatus(
-        RSPropertyDrawableGenerateContext& context, DrawableMap& drawableMap);
+    static inline uint8_t CalculateDrawableVecStatus(
+        RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec);
     static void OptimizeBoundsSaveRestore(
-        RSPropertyDrawableGenerateContext& context, DrawableMap& drawableMap, uint8_t flags);
+        RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec, uint8_t flags);
     static void OptimizeFrameSaveRestore(
-        RSPropertyDrawableGenerateContext& context, DrawableMap& drawableMap, uint8_t flags);
+        RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec, uint8_t flags);
 };
 
 class RSPropertyDrawableGenerateContext {
@@ -147,24 +148,6 @@ public:
     const std::shared_ptr<RSRenderNode> node_;
     const RSProperties& properties_;
     bool hasChildren_;
-};
-
-class RSPropertyDrawableRenderContext : public RSModifierContext {
-public:
-    explicit RSPropertyDrawableRenderContext(RSRenderNode& node, RSPaintFilterCanvas* canvas);
-    virtual ~RSPropertyDrawableRenderContext() = default;
-
-    // disable copy and move
-    RSPropertyDrawableRenderContext(const RSPropertyDrawableRenderContext&) = delete;
-    RSPropertyDrawableRenderContext(const RSPropertyDrawableRenderContext&&) = delete;
-    RSPropertyDrawableRenderContext& operator=(const RSPropertyDrawableRenderContext&) = delete;
-    RSPropertyDrawableRenderContext& operator=(const RSPropertyDrawableRenderContext&&) = delete;
-
-    // member variable
-    const std::shared_ptr<RSRenderNode> node_;
-    const std::list<std::shared_ptr<RSRenderNode>>& children_;
-    RSPropertyDrawable::DrawableMap& drawableMap_;
-    std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>>& drawCmdModifiers_;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_H

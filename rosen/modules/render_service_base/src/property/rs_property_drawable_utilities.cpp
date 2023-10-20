@@ -17,59 +17,61 @@
 
 #include "property/rs_properties.h"
 #include "property/rs_properties_painter.h"
+#include "pipeline/rs_render_node.h"
 
 namespace OHOS::Rosen {
 // ============================================================================
 // alias (reference or soft link) of another drawable
-RSAliasDrawable::RSAliasDrawable(RSPropertyDrawableSlot slot) : slot_(slot) {}
-void RSAliasDrawable::Draw(RSPropertyDrawableRenderContext& context)
+RSAliasDrawable::RSAliasDrawable(Slot::RSPropertyDrawableSlot slot) : slot_(slot) {}
+void RSAliasDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
-    auto it = context.drawableMap_.find(slot_);
-    if (it != context.drawableMap_.end() && it->second != nullptr) {
-        it->second->Draw(context);
+    auto& it = node.propertyDrawablesVec_[slot_];
+    if (it) {
+        it->Draw(node, canvas);
     }
 }
 
 // ============================================================================
 // Save and Restore
 RSSaveDrawable::RSSaveDrawable(std::shared_ptr<int> content) : content_(std::move(content)) {}
-void RSSaveDrawable::Draw(RSPropertyDrawableRenderContext& context)
+void RSSaveDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
-    *content_ = context.canvas_->save();
+    *content_ = canvas.save();
 }
 
 RSRestoreDrawable::RSRestoreDrawable(std::shared_ptr<int> content) : content_(std::move(content)) {}
-void RSRestoreDrawable::Draw(RSPropertyDrawableRenderContext& context)
+void RSRestoreDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
-    context.canvas_->restoreToCount(*content_);
+    canvas.restoreToCount(*content_);
 }
 
 RSCustomSaveDrawable::RSCustomSaveDrawable(
     std::shared_ptr<RSPaintFilterCanvas::SaveStatus> content, RSPaintFilterCanvas::SaveType type)
     : content_(std::move(content)), type_(type)
 {}
-void RSCustomSaveDrawable::Draw(RSPropertyDrawableRenderContext& context)
+void RSCustomSaveDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
-    *content_ = context.canvas_->Save(type_);
+    *content_ = canvas.Save(type_);
 }
 
 RSCustomRestoreDrawable::RSCustomRestoreDrawable(std::shared_ptr<RSPaintFilterCanvas::SaveStatus> content)
     : content_(std::move(content))
 {}
-void RSCustomRestoreDrawable::Draw(RSPropertyDrawableRenderContext& context)
+void RSCustomRestoreDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
-    context.canvas_->RestoreStatus(*content_);
+    canvas.RestoreStatus(*content_);
 }
 
 // ============================================================================
 // Adapter for RSRenderModifier
 RSModifierDrawable::RSModifierDrawable(RSModifierType type) : type_(type) {}
-void RSModifierDrawable::Draw(RSPropertyDrawableRenderContext& context)
+void RSModifierDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
-    auto itr = context.drawCmdModifiers_.find(type_);
-    if (itr == context.drawCmdModifiers_.end() || itr->second.empty()) {
+    auto itr = node.drawCmdModifiers_.find(type_);
+    if (itr == node.drawCmdModifiers_.end() || itr->second.empty()) {
         return;
     }
+    RSModifierContext context = { node.GetMutableRenderProperties(), &canvas };
     for (const auto& modifier : itr->second) {
         modifier->Apply(context);
     }
@@ -78,9 +80,9 @@ void RSModifierDrawable::Draw(RSPropertyDrawableRenderContext& context)
 // ============================================================================
 // Alpha
 RSAlphaDrawable::RSAlphaDrawable(float alpha) : RSPropertyDrawable(), alpha_(alpha) {}
-void RSAlphaDrawable::Draw(RSPropertyDrawableRenderContext& context)
+void RSAlphaDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
-    context.canvas_->MultiplyAlpha(alpha_);
+    canvas.MultiplyAlpha(alpha_);
 }
 RSPropertyDrawable::DrawablePtr RSAlphaDrawable::Generate(const RSPropertyDrawableGenerateContext& context)
 {
@@ -101,10 +103,10 @@ void RSAlphaOffscreenDrawable::OnBoundsChange(const RSProperties& properties)
     rect_ = RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect());
 #endif
 }
-void RSAlphaOffscreenDrawable::Draw(RSPropertyDrawableRenderContext& context)
+void RSAlphaOffscreenDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
 #ifndef USE_ROSEN_DRAWING
-    context.canvas_->saveLayerAlpha(&rect_, std::clamp(alpha_, 0.f, 1.f) * UINT8_MAX);
+    canvas.saveLayerAlpha(&rect_, std::clamp(alpha_, 0.f, 1.f) * UINT8_MAX);
 #else
     Drawing::Brush brush;
     brush.SetAlphaF(std::clamp(alpha, 0.f, 1.f) * UINT8_MAX);

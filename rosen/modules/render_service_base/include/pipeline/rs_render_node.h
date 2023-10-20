@@ -35,6 +35,7 @@
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties.h"
+#include "property/rs_property_drawable.h"
 
 #ifndef USE_ROSEN_DRAWING
 #include "include/core/SkRefCnt.h"
@@ -54,10 +55,7 @@ class DrawCmdList;
 class RSContext;
 class RSNodeVisitor;
 class RSCommand;
-enum class RSPropertyDrawableSlot : unsigned char;
 class RSPropertyDrawable;
-class RSPropertyDrawableRenderContext;
-
 class RSB_EXPORT RSRenderNode : public std::enable_shared_from_this<RSRenderNode>  {
 public:
 
@@ -466,8 +464,8 @@ protected:
     std::unordered_set<RSModifierType> dirtyTypes_;
     bool isFullChildrenListValid_ = false;
     RSProperties renderProperties_;
-    void IterateOnDrawableRange(RSPropertyDrawableSlot begin, RSPropertyDrawableSlot end,
-        const std::function<void(std::unique_ptr<RSPropertyDrawable>&)>& func);
+    void IterateOnDrawableRange(Slot::RSPropertyDrawableSlot begin, Slot::RSPropertyDrawableSlot end,
+        RSRenderNode& node, RSPaintFilterCanvas& canvas);
 
 private:
     NodeId id_;
@@ -594,17 +592,17 @@ private:
     std::unordered_map<PropertyId, std::variant<float, Vector2f>> propertyValueMap_;
     std::vector<HgmModifierProfile> hgmModifierProfileList_;
 
-    std::map<RSPropertyDrawableSlot, std::unique_ptr<RSPropertyDrawable>> propertyDrawablesMap_;
-    uint8_t drawableMapStatus_ = 0;
-    using DrawableIter = decltype(propertyDrawablesMap_)::iterator;
-    inline std::pair<DrawableIter, DrawableIter> GetDrawableRange(
-        RSPropertyDrawableSlot begin, RSPropertyDrawableSlot end);
+    std::vector<std::unique_ptr<RSPropertyDrawable>> propertyDrawablesVec_ =
+        std::vector<std::unique_ptr<RSPropertyDrawable>>(Slot::RSPropertyDrawableSlot::MAX);
+    uint8_t drawableVecStatus_ = 0;
+    using DrawableIter = decltype(propertyDrawablesVec_)::iterator;
 
     friend class RSMainThread;
     friend class RSProxyRenderNode;
     friend class RSRenderNodeMap;
     friend class RSRenderTransition;
-    friend class RSPropertyDrawableRenderContext;
+    friend class RSAliasDrawable;
+    friend class RSModifierDrawable;
 };
 // backward compatibility
 using RSBaseRenderNode = RSRenderNode;

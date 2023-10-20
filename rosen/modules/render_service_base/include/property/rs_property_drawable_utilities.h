@@ -27,12 +27,12 @@ namespace OHOS::Rosen {
 // alias (reference or soft link) of another drawable
 class RSAliasDrawable : public RSPropertyDrawable {
 public:
-    explicit RSAliasDrawable(RSPropertyDrawableSlot slot);
+    explicit RSAliasDrawable(Slot::RSPropertyDrawableSlot slot);
     ~RSAliasDrawable() override = default;
-    void Draw(RSPropertyDrawableRenderContext& context) override;
+    void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 
 private:
-    RSPropertyDrawableSlot slot_;
+    Slot::RSPropertyDrawableSlot slot_;
 };
 
 // ============================================================================
@@ -41,7 +41,7 @@ class RSSaveDrawable : public RSPropertyDrawable {
 public:
     explicit RSSaveDrawable(std::shared_ptr<int> content);
     ~RSSaveDrawable() override = default;
-    void Draw(RSPropertyDrawableRenderContext& context) override;
+    void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 
 private:
     std::shared_ptr<int> content_;
@@ -51,7 +51,7 @@ class RSRestoreDrawable : public RSPropertyDrawable {
 public:
     explicit RSRestoreDrawable(std::shared_ptr<int> content);
     ~RSRestoreDrawable() override = default;
-    void Draw(RSPropertyDrawableRenderContext& context) override;
+    void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 
 private:
     std::shared_ptr<int> content_;
@@ -62,7 +62,7 @@ public:
     explicit RSCustomSaveDrawable(
         std::shared_ptr<RSPaintFilterCanvas::SaveStatus> content, RSPaintFilterCanvas::SaveType type);
     ~RSCustomSaveDrawable() override = default;
-    void Draw(RSPropertyDrawableRenderContext& context) override;
+    void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 
 private:
     std::shared_ptr<RSPaintFilterCanvas::SaveStatus> content_;
@@ -73,7 +73,7 @@ class RSCustomRestoreDrawable : public RSPropertyDrawable {
 public:
     explicit RSCustomRestoreDrawable(std::shared_ptr<RSPaintFilterCanvas::SaveStatus> content);
     ~RSCustomRestoreDrawable() override = default;
-    void Draw(RSPropertyDrawableRenderContext& context) override;
+    void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 
 private:
     std::shared_ptr<RSPaintFilterCanvas::SaveStatus> content_;
@@ -85,7 +85,7 @@ class RSAlphaDrawable : public RSPropertyDrawable {
 public:
     explicit RSAlphaDrawable(float alpha);
     ~RSAlphaDrawable() override = default;
-    void Draw(RSPropertyDrawableRenderContext& context) override;
+    void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 
     static RSPropertyDrawable::DrawablePtr Generate(const RSPropertyDrawableGenerateContext& context);
 
@@ -97,7 +97,7 @@ class RSAlphaOffscreenDrawable : public RSAlphaDrawable {
 public:
     explicit RSAlphaOffscreenDrawable(float alpha);
 
-    void Draw(RSPropertyDrawableRenderContext& context) override;
+    void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
     void OnBoundsChange(const RSProperties& properties) override;
 
 private:
@@ -115,7 +115,7 @@ public:
     explicit RSModifierDrawable(RSModifierType type);
     ~RSModifierDrawable() override = default;
 
-    void Draw(RSPropertyDrawableRenderContext& context) override;
+    void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 
 private:
     RSModifierType type_;
