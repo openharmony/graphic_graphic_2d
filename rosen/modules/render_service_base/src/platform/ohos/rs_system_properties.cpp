@@ -130,15 +130,12 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_VK)
     static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.partialrender.enabled", "0");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return static_cast<PartialRenderType>(std::atoi(enable));
 #else
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.partialrender.enabled", "4");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.partialrender.enabled", "4");    
+#endif
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<PartialRenderType>(std::atoi(enable));
-#endif
 }
 
 ReleaseGpuResourceType RSSystemProperties::GetReleaseGpuResourceEnabled()
