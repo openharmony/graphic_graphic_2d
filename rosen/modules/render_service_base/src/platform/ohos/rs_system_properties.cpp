@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <parameter.h>
 #include <parameters.h>
+#include "param/sys_param.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_render_service_client.h"
 #include "scene_board_judgement.h"
@@ -55,13 +56,20 @@ bool RSSystemProperties::IsSceneBoardEnabled()
 // used by clients
 int RSSystemProperties::GetDumpFrameNum()
 {
-    return std::atoi((system::GetParameter("debug.graphic.recording.frameNum", "0")).c_str());
+    static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.recording.frameNum", "0");
+    int changed = 0;
+    const char *num = CachedParameterGetChanged(g_Handle, &changed);
+    return std::atoi(num);
 }
 
 bool RSSystemProperties::GetRecordingEnabled()
 {
-    return (system::GetParameter("debug.graphic.recording.enabled", "0") != "0");
+    static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.recording.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return std::atoi(enable) != 0;
 }
+
 
 void RSSystemProperties::SetRecordingDisenabled()
 {
@@ -71,7 +79,9 @@ void RSSystemProperties::SetRecordingDisenabled()
 
 std::string RSSystemProperties::GetRecordingFile()
 {
-    return system::GetParameter("debug.graphic.dumpfile.path", "");
+    static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.dumpfile.path", "");
+    int changed = 0;
+    return CachedParameterGetChanged(g_Handle, &changed);
 }
 
 bool RSSystemProperties::GetUniRenderEnabled()
@@ -102,36 +112,46 @@ bool RSSystemProperties::GetRenderNodeTraceEnabled()
 
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 {
-    return static_cast<DirtyRegionDebugType>(
-        std::atoi((system::GetParameter("rosen.dirtyregiondebug.enabled", "0")).c_str()));
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.dirtyregiondebug.enabled", "0");
+    int changed = 0;
+    const char *type = CachedParameterGetChanged(g_Handle, &changed);
+    return static_cast<DirtyRegionDebugType>(std::atoi(type));
 }
 
 PartialRenderType RSSystemProperties::GetPartialRenderEnabled()
 {
-    return static_cast<PartialRenderType>(
-        std::atoi((system::GetParameter("rosen.partialrender.enabled", "2")).c_str()));
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.partialrender.enabled", "2");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return static_cast<PartialRenderType>(std::atoi(enable));
 }
 
 PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_VK)
-    return static_cast<PartialRenderType>(
-        std::atoi((system::GetParameter("rosen.uni.partialrender.enabled", "0")).c_str()));
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.partialrender.enabled", "0");
 #else
-    return static_cast<PartialRenderType>(
-        std::atoi((system::GetParameter("rosen.uni.partialrender.enabled", "4")).c_str()));
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.partialrender.enabled", "4");    
 #endif
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return static_cast<PartialRenderType>(std::atoi(enable));
 }
 
 ReleaseGpuResourceType RSSystemProperties::GetReleaseGpuResourceEnabled()
 {
-    return static_cast<ReleaseGpuResourceType>(
-        std::atoi((system::GetParameter("persist.release.gpuresource.enabled", "2")).c_str()));
+    static CachedHandle g_Handle = CachedParameterCreate("persist.release.gpuresource.enabled", "2");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return static_cast<ReleaseGpuResourceType>(std::atoi(enable));
 }
 
 bool RSSystemProperties::GetOcclusionEnabled()
 {
-    return std::atoi((system::GetParameter("rosen.occlusion.enabled", "1")).c_str()) != 0;
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.occlusion.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return std::atoi(enable) != 0;
 }
 
 bool RSSystemProperties::GetHardwareComposerEnabled()
@@ -143,7 +163,10 @@ bool RSSystemProperties::GetHardwareComposerEnabled()
 
 bool RSSystemProperties::GetAFBCEnabled()
 {
-    return system::GetParameter("rosen.afbc.enabled", "1") != "0";
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.afbc.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return std::atoi(enable) != 0;
 }
 
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
@@ -155,20 +178,28 @@ bool RSSystemProperties::GetDirectClientCompEnableStatus()
 {
     // If the value of rosen.directClientComposition.enabled is not 0 then enable the direct CLIENT composition.
     // Direct CLIENT composition will be processed only when the num of layer is larger than 11
-    return std::atoi((system::GetParameter("rosen.directClientComposition.enabled", "1")).c_str()) != 0;
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.directClientComposition.enabled", "1");
+    int changed = 0;
+    const char *status = CachedParameterGetChanged(g_Handle, &changed);
+    return std::atoi(status) != 0;
 }
 
 bool RSSystemProperties::GetHighContrastStatus()
 {
     // If the value of rosen.directClientComposition.enabled is not 0 then enable the direct CLIENT composition.
     // Direct CLIENT composition will be processed only when the num of layer is larger than 11
-    return std::atoi((system::GetParameter("rosen.HighContrast.enabled", "0")).c_str()) != 0;
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.HighContrast.enabled", "0");
+    int changed = 0;
+    const char *status = CachedParameterGetChanged(g_Handle, &changed);
+    return std::atoi(status) != 0;
 }
 
 bool RSSystemProperties::GetTargetDirtyRegionDfxEnabled(std::vector<std::string>& dfxTargetSurfaceNames_)
 {
-    std::string targetSurfacesStr = system::GetParameter("rosen.dirtyregiondebug.surfacenames", "0");
-    if (targetSurfacesStr == "0") {
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.dirtyregiondebug.surfacenames", "0");
+    int changed = 0;
+    const char *targetSurfacesStr = CachedParameterGetChanged(g_Handle, &changed);
+    if (std::atoi(targetSurfacesStr) == 0) {
         dfxTargetSurfaceNames_.clear();
         return false;
     }
@@ -179,41 +210,60 @@ bool RSSystemProperties::GetTargetDirtyRegionDfxEnabled(std::vector<std::string>
 
 bool RSSystemProperties::GetOpaqueRegionDfxEnabled()
 {
-    return std::atoi((system::GetParameter("rosen.uni.opaqueregiondebug", "0")).c_str()) != 0;
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.opaqueregiondebug", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return std::atoi(enable) != 0;
 }
 
 bool RSSystemProperties::GetVisibleRegionDfxEnabled()
 {
-    return std::atoi((system::GetParameter("rosen.uni.visibleregiondebug", "0")).c_str()) != 0;
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.visibleregiondebug", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return std::atoi(enable) != 0;
 }
 
 SurfaceRegionDebugType RSSystemProperties::GetSurfaceRegionDfxType()
 {
-    return static_cast<SurfaceRegionDebugType>(
-        std::atoi((system::GetParameter("rosen.uni.surfaceregiondebug", "0")).c_str()));
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.surfaceregiondebug", "0");
+    int changed = 0;
+    const char *type = CachedParameterGetChanged(g_Handle, &changed);
+    return static_cast<SurfaceRegionDebugType>(std::atoi(type));
 }
 
 uint32_t RSSystemProperties::GetCorrectionMode()
 {
     // If the value of rosen.directClientComposition.enabled is not 0 then enable the direct CLIENT composition.
     // Direct CLIENT composition will be processed only when the num of layer is larger than 11
-    return std::atoi((system::GetParameter("rosen.CorrectionMode", "999")).c_str());
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.CorrectionMode", "999");
+    int changed = 0;
+    const char *mode = CachedParameterGetChanged(g_Handle, &changed);
+    return std::atoi(mode);
 }
 
 DumpSurfaceType RSSystemProperties::GetDumpSurfaceType()
 {
-    return static_cast<DumpSurfaceType>(
-        std::atoi((system::GetParameter("rosen.dumpsurfacetype.enabled", "0")).c_str()));
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.dumpsurfacetype.enabled", "0");
+    int changed = 0;
+    const char *type = CachedParameterGetChanged(g_Handle, &changed);
+    return static_cast<DumpSurfaceType>(std::atoi(type));
 }
 
 long long int RSSystemProperties::GetDumpSurfaceId()
 {
-    return std::atoll((system::GetParameter("rosen.dumpsurfaceid", "0")).c_str());
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.dumpsurfaceid", "0");
+    int changed = 0;
+    const char *surfaceId = CachedParameterGetChanged(g_Handle, &changed);
+    return std::atoll(surfaceId);
 }
 
 bool RSSystemProperties::GetDumpLayersEnabled()
 {
-    return std::atoi((system::GetParameter("rosen.dumplayer.enabled", "0")).c_str()) != 0;
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.dumplayer.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return std::atoi(enable) != 0;
 }
 
 void RSSystemProperties::SetDrawTextAsBitmap(bool flag)
@@ -251,8 +301,10 @@ ParallelRenderingType RSSystemProperties::GetParallelRenderingEnabled()
 
 HgmRefreshRates RSSystemProperties::GetHgmRefreshRatesEnabled()
 {
-    return static_cast<HgmRefreshRates>(
-        std::atoi((system::GetParameter("rosen.sethgmrefreshrate.enabled", "0")).c_str()));
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.sethgmrefreshrate.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return static_cast<HgmRefreshRates>(std::atoi(enable));
 }
 
 void RSSystemProperties::SetHgmRefreshRateModesEnabled(std::string param)
@@ -263,13 +315,18 @@ void RSSystemProperties::SetHgmRefreshRateModesEnabled(std::string param)
 
 HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
 {
-    return static_cast<HgmRefreshRateModes>(
-        std::atoi((system::GetParameter("persist.rosen.sethgmrefreshratemode.enabled", "0")).c_str()));
+    static CachedHandle g_Handle = CachedParameterCreate("persist.rosen.sethgmrefreshratemode.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return static_cast<HgmRefreshRateModes>(std::atoi(enable));
 }
 
 bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
 {
-    return std::atoi((system::GetParameter("persist.skipForAlphaZero.enabled", "1")).c_str()) != 0;
+    static CachedHandle g_Handle = CachedParameterCreate("persist.skipForAlphaZero.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return std::atoi(enable) != 0;
 }
 
 bool RSSystemProperties::GetSkipGeometryNotChangeEnabled()
@@ -288,7 +345,10 @@ bool RSSystemProperties::GetPropertyDrawableEnable()
 
 float RSSystemProperties::GetAnimationScale()
 {
-    return std::atof((system::GetParameter("persist.sys.graphic.animationscale", "1.0")).c_str());
+    static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.animationscale", "1.0");
+    int changed = 0;
+    const char *scale = CachedParameterGetChanged(g_Handle, &changed);
+    return std::atof(scale);
 }
 
 bool RSSystemProperties::GetFilterCacheEnabled()
@@ -373,7 +433,10 @@ bool RSSystemProperties::GetUIFirstEnabled()
 #ifdef ROSEN_EMULATOR
     return false;
 #else
-    return (std::atoi((system::GetParameter("rosen.ui.first.enabled", "1")).c_str()) != 0);
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return std::atoi(enable) != 0;
 #endif
 }
 
@@ -417,7 +480,10 @@ bool RSSystemProperties::FindNodeInTargetList(std::string node)
 
 bool RSSystemProperties::GetCacheCmdEnabled()
 {
-    return std::atoi((system::GetParameter("rosen.cacheCmd.enabled", "1")).c_str()) != 0;
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.cacheCmd.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return std::atoi(enable) != 0;
 }
 
 bool RSSystemProperties::GetASTCEnabled()
@@ -449,7 +515,10 @@ bool RSSystemProperties::GetImageGpuResourceCacheEnable(int width, int height)
 
 bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultValue)
 {
-    return std::atoi((system::GetParameter(name, defaultValue ? "1" : "0")).c_str()) != 0;
+    static CachedHandle g_Handle = CachedParameterCreate(name, defaultValue ? "1" : "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return std::atoi(enable) != 0;
 }
 
 int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context)
