@@ -67,11 +67,11 @@ private:
 
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> skSurface_;
+    sk_sp<SkImage> skImage_;
 #else
     std::shared_ptr<Drawing::Bitmap> bitmap_;
     std::shared_ptr<Drawing::Surface> surface_;
 #endif
-    SkBitmap rsDrawingNodeBitmap_;
     std::mutex mutex_;
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
     ThreadInfo curThreadInfo_ = {};

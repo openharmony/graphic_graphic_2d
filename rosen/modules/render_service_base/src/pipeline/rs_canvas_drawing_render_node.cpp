@@ -25,6 +25,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 #include "visitor/rs_node_visitor.h"
@@ -110,19 +111,18 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
         GetRenderProperties().GetFrameGravity(), GetRenderProperties().GetFrameRect(), width, height, mat)) {
         canvas.concat(mat);
     }
-    auto image = skSurface_->makeImageSnapshot();
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        SkImageInfo info =
-            SkImageInfo::Make(skSurface_->width(), skSurface_->height(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-        rsDrawingNodeBitmap_.allocPixels(info);
-        skSurface_->readPixels(rsDrawingNodeBitmap_, 0, 0);
+        skImage_ = skSurface_->makeImageSnapshot();
+        if (skImage_) {
+            SKResourceManager::Instance().HoldResource(skImage_);
+        }
     }
 #ifdef NEW_SKIA
     auto samplingOptions = SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
-    canvas.drawImage(image, 0.f, 0.f, samplingOptions, nullptr);
+    canvas.drawImage(skImage_, 0.f, 0.f, samplingOptions, nullptr);
 #else
-    canvas.drawImage(image, 0.f, 0.f, nullptr);
+    canvas.drawImage(skImage_, 0.f, 0.f, nullptr);
 #endif
 }
 
@@ -265,8 +265,16 @@ void RSCanvasDrawingRenderNode::ApplyDrawCmdModifier(RSModifierContext& context,
 #ifndef USE_ROSEN_DRAWING
 SkBitmap RSCanvasDrawingRenderNode::GetBitmap()
 {
+    SkBitmap bitmap;
     std::lock_guard<std::mutex> lock(mutex_);
-    return rsDrawingNodeBitmap_;
+    if (!skImage_) {
+        RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: skImage_ is nullptr");
+        return bitmap;
+    }
+    if (!skImage_->asLegacyBitmap(&bitmap)) {
+        RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: asLegacyBitmap failed");
+    }
+    return bitmap;
 }
 
 bool RSCanvasDrawingRenderNode::GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect)
