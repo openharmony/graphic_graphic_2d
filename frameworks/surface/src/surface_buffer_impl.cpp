@@ -444,6 +444,9 @@ const sptr<BufferExtraData>& SurfaceBufferImpl::GetExtraData() const
 void SurfaceBufferImpl::SetBufferHandle(BufferHandle *handle)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    if (handle_ != nullptr) {
+        FreeBufferHandleLocked();
+    }
     handle_ = handle;
 }
 
