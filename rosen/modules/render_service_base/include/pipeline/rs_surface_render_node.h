@@ -775,6 +775,15 @@ public:
     // whether the subtree has only one root node
     bool HasOnlyOneRootNode() const;
 
+    bool GetHasSecurityLayer()
+    {
+        return hasSecurityLayer_;
+    }
+
+    void SetHasSecurityLayer(bool hasSecurityLayer)
+    {
+        hasSecurityLayer_ = hasSecurityLayer;
+    }
 private:
     void OnResetParent() override;
     void ClearChildrenCache();
@@ -949,6 +958,7 @@ private:
 
     bool needDrawAnimateProperty_ = false;
     bool prevVisible_ = false;
+    bool hasSecurityLayer_ = false;
 
     // UIFirst
     uint32_t submittedSubThreadIndex_ = INT_MAX;

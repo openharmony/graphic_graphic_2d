@@ -244,6 +244,11 @@ void RSUniRenderVisitor::UpdateStaticCacheSubTree(const std::shared_ptr<RSRender
                 PrepareSurfaceRenderNode(*surfaceNode);
                 isUpdated = true;
             }
+            if (surfaceNode->GetSecurityLayer() && curSurfaceNode_ &&
+                curSurfaceNode_->GetId() == surfaceNode->GetInstanceRootNodeId()) {
+                curSurfaceNode_->SetHasSecurityLayer(true);
+                displayHasSecSurface_[currentVisitDisplay_] ++;
+            }
         }
         if (child->GetRenderProperties().NeedFilter()) {
             if (!isUpdated) {
@@ -799,6 +804,10 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeAfterUpdate(RSSurfaceRen
             std::to_string(preparedCanvasNodeInCurrentSurface_));
         preparedCanvasNodeInCurrentSurface_ = 0;
     }
+    if (node.GetSecurityLayer() && curSurfaceNode_ && curSurfaceNode_->GetId() == node.GetInstanceRootNodeId()) {
+        curSurfaceNode_->SetHasSecurityLayer(true);
+        displayHasSecSurface_[currentVisitDisplay_] ++;
+    }
     // accumulate all visited dirty rects including leash window's shadow dirty
     if ((node.IsMainWindowType() || node.IsLeashWindow()) && curSurfaceDirtyManager_->IsCurrentFrameDirty()) {
         accumulatedDirtyRegions_.emplace_back(curSurfaceDirtyManager_->GetCurrentFrameDirtyRegion());
@@ -828,9 +837,6 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (node.GetFingerprint() && node.GetBuffer() != nullptr) {
         hasFingerprint_ = true;
     }
-    if (node.GetSecurityLayer()) {
-        displayHasSecSurface_[currentVisitDisplay_]++;
-    }
     if (curDisplayNode_ == nullptr) {
         ROSEN_LOGE("RSUniRenderVisitor::PrepareSurfaceRenderNode, curDisplayNode_ is nullptr.");
         return;
@@ -847,8 +853,14 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 #endif
     // stop traversal if node keeps static
     if (isQuickSkipPreparationEnabled_ && CheckIfSurfaceRenderNodeStatic(node)) {
+        // node type is mainwindow.
+        if (node.GetHasSecurityLayer() && node.GetId() == node.GetInstanceRootNodeId()) {
+            displayHasSecSurface_[currentVisitDisplay_]++;
+        }
         return;
     }
+    // reset HasSecurityLayer
+    node.SetHasSecurityLayer(false);
     node.CleanDstRectChanged();
     if (node.IsHardwareEnabledTopSurface()) {
         node.ResetSubNodeShouldPaint();
@@ -1792,7 +1804,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 return;
             }
 #ifndef USE_ROSEN_DRAWING
-            if (cacheImgForCapture_ && displayHasSecSurface_[mirrorNode->GetScreenId()] == 0) {
+            if (cacheImgForCapture_ && displayHasSecSurface_[mirrorNode->GetScreenId()] == 1) {
                 canvas_->save();
                 // If both canvas and skImage have rotated, we need to reset the canvas
                 if (resetRotate_) {
@@ -1818,7 +1830,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 canvas_->restoreToCount(saveCount);
             }
 #else
-            if (cacheImgForCapture_ && displayHasSecSurface_[mirrorNode->GetScreenId()] == 0) {
+            if (cacheImgForCapture_ && displayHasSecSurface_[mirrorNode->GetScreenId()] == 1) {
                 canvas_->Save();
                 // If both canvas and skImage have rotated, we need to reset the canvas
                 if (resetRotate_) {
