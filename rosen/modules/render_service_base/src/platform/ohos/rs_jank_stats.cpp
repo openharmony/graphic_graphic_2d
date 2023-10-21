@@ -294,7 +294,7 @@ void RSJankStats::ReportEventJankFrame(const JankFrames& jankFrames) const
         "PROCESS_NAME", info.processName, "MODULE_NAME", info.bundleName, "ABILITY_NAME", info.abilityName, "PAGE_URL",
         info.pageUrl, "TOTAL_FRAMES", jankFrames.totalFrames_, "TOTAL_MISSED_FRAMES", jankFrames.totalMissedFrames_,
         "MAX_FRAMETIME", static_cast<uint64_t>(jankFrames.maxFrameTime_), "AVERAGE_FRAMETIME", aveFrameTime,
-        "MAX_SEQ_MISSED_FRAMES", jankFrames.maxSeqMissedFrames_, "IS_FOLD_DISP", IS_FOLD_DISP);
+        "MAX_SEQ_MISSED_FRAMES", jankFrames.maxSeqMissedFrames_, "IS_FOLD_DISP", IS_FOLD_DISP, "BUNDLE_NAME_EX", info.note);
 }
 
 void RSJankStats::ReportEventFirstFrame()
