@@ -60,11 +60,6 @@ bool Image::BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap)
     return imageImplPtr->BuildFromBitmap(gpuContext, bitmap);
 }
 
-bool Image::MakeFromEncoded(const std::shared_ptr<Data>& data)
-{
-    return imageImplPtr->MakeFromEncoded(data);
-}
-
 bool Image::BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
     CompressedType type)
 {

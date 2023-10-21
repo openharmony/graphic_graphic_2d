@@ -54,7 +54,6 @@ public:
         BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace) override;
 #ifdef ACE_ENABLE_GPU
     bool BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap) override;
-    bool MakeFromEncoded(const std::shared_ptr<Data>& data) override;
     bool BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
         CompressedType type) override;
     bool BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
