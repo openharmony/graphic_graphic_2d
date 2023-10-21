@@ -84,6 +84,18 @@ bool SkiaImage::BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap)
     return (skiaImage_ != nullptr) ? true : false;
 }
 
+bool SkiaImage::MakeFromEncoded(const std::shared_ptr<Data>& data)
+{
+    if (data == nullptr) {
+        LOGE("SkiaImage::MakeFromEncoded failed, data is invalid");
+        return false;
+    }
+
+    auto skData = data->GetImpl<SkiaData>()->GetSkData();
+    skiaImage_ = SkImage::MakeFromEncoded(skData);
+    return (skiaImage_ != nullptr);
+}
+
 bool SkiaImage::BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
     CompressedType type)
 {

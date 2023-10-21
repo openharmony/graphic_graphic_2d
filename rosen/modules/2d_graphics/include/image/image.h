@@ -189,6 +189,8 @@ public:
      */
     bool BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap);
 
+    bool MakeFromEncoded(const std::shared_ptr<Data>& data);
+
     /*
      * @brief             Create a GPU-backed Image from compressed data.
      * @param gpuContext  GPU context.
