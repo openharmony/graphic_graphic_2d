@@ -356,7 +356,7 @@ void SkiaCanvas::DrawShadow(const Path& path, const Point3& planeParams, const P
     SkColor color2 = spotColor.CastToColorQuad();
     SkShadowFlags flags = static_cast<SkShadowFlags>(flag);
     if (skPathImpl != nullptr) {
-        SkShadowUtils::DrawShadow(skCanvas_, skPathImpl->GetPath(), point1, point2, color1, color2, flags);
+        SkShadowUtils::DrawShadow(skCanvas_, skPathImpl->GetPath(), point1, point2, lightRadius, color1, color2, flags);
     }
 }
 
