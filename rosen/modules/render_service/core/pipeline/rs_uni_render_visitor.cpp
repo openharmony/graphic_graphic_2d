@@ -1608,7 +1608,7 @@ void RSUniRenderVisitor::DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderNode& node
 
 void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
 {
-    if (node.GetChildrenCount() == 0 || DrawBlurInCache(node)) {
+    if (DrawBlurInCache(node) || node.GetChildrenCount() == 0) {
         return;
     }
     if (isSubThread_) {
