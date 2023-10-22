@@ -49,6 +49,11 @@ bool Surface::MakeRasterN32Premul(int32_t width, int32_t height)
 }
 #endif
 
+bool Surface::MakeRaster(const ImageInfo& imageInfo)
+{
+    return impl_->MakeRaster(imageInfo);
+}
+
 std::shared_ptr<Canvas> Surface::GetCanvas()
 {
     if (cachedCanvas_ == nullptr) {

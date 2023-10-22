@@ -1385,15 +1385,16 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
 #ifdef RS_ENABLE_GL
 void RSRenderNode::UpdateBackendTexture()
 {
-#ifndef USE_ROSEN_DRAWING
     std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
     if (cacheSurface_ == nullptr) {
         return;
     }
+#ifndef USE_ROSEN_DRAWING
     cacheBackendTexture_
         = cacheSurface_->getBackendTexture(SkSurface::BackendHandleAccess::kFlushRead_BackendHandleAccess);
 #else
-    RS_LOGE("[%s:%d] Drawing is not supported", __func__, __LINE__);
+    auto image = cacheSurface_->GetImageSnapshot();
+    cacheBackendTexture_ = image->GetBackendTexture(false, nullptr);
 #endif
 }
 #endif
@@ -1819,14 +1820,14 @@ void RSRenderNode::UpdateCompletedCacheSurface()
     std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
     std::swap(cacheSurface_, cacheCompletedSurface_);
     std::swap(cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
-#if !defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_GL)
+#ifdef RS_ENABLE_GL
     std::swap(cacheBackendTexture_, cacheCompletedBackendTexture_);
     SetTextureValidFlag(true);
 #endif
 }
 void RSRenderNode::SetTextureValidFlag(bool isValid)
 {
-#if !defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_GL)
+#ifdef RS_ENABLE_GL
     std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
     isTextureValid_ = isValid;
 #endif

@@ -160,7 +160,16 @@ bool SkiaSurface::MakeRasterN32Premul(int32_t width, int32_t height)
     return true;
 }
 #endif
-
+bool SkiaSurface::MakeRaster(const ImageInfo& imageInfo)
+{
+    auto skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    skSurface_ = SkSurface::MakeRaster(skImageInfo);
+    if (skSurface_ == nullptr) {
+        LOGE("SkiaSurface make from imageInfo failed: skSurface is nullptr");
+        return false;
+    }
+    return true;
+}
 std::shared_ptr<Canvas> SkiaSurface::GetCanvas() const
 {
     if (skSurface_ == nullptr || skSurface_->getCanvas() == nullptr) {

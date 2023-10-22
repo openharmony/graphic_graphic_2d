@@ -152,6 +152,7 @@ private:
 
 class BackendTexture {
 public:
+    BackendTexture() noexcept;
     BackendTexture(bool isValid) noexcept;
     virtual ~BackendTexture() {};
 

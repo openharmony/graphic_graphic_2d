@@ -79,6 +79,12 @@ public:
 #endif
 
     /*
+     * @brief              Create Surface using imageinfo.
+     * @param imageInfo    image info.
+     */
+    bool MakeRaster(const ImageInfo& imageInfo);
+
+    /*
      * @brief   Gets Canvas that draws into Surface.
      */
     std::shared_ptr<Canvas> GetCanvas();
