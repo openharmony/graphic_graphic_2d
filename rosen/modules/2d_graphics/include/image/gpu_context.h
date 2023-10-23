@@ -41,6 +41,8 @@ enum class PathRenderers : uint32_t {
 };
 
 struct GPUResourceTag {
+    GPUResourceTag()
+        : fPid(0), fTid(0), fWid(0), fFid(0) {}
     GPUResourceTag(uint32_t pid, uint32_t tid, uint32_t wid, uint32_t fid)
         : fPid(pid), fTid(tid), fWid(wid), fFid(fid) {}
     uint32_t fPid;
