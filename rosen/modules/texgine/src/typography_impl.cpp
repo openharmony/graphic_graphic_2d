@@ -370,7 +370,7 @@ int TypographyImpl::UpdateMetrics()
 
         height_ += ceil(lineMaxCoveredAscent_.back() + lineMaxCoveredDescent_.back());
         baselines_.push_back(height_ - lineMaxCoveredDescent_.back());
-        yOffset += round(lineMaxCoveredAscent_.back() + prevMaxDescent);
+        yOffset += ceil(lineMaxCoveredAscent_.back() + prevMaxDescent);
         yOffsets_.push_back(yOffset);
         prevMaxDescent = lineMaxCoveredDescent_.back();
         LOGEX_FUNC_LINE_DEBUG() << "[" << i << "] ascent: " << lineMaxAscent_.back() <<
