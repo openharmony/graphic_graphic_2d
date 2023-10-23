@@ -44,9 +44,13 @@ OHNativeWindow* OH_NativeImage_AcquireNativeWindow(OH_NativeImage* image)
         BLOGE("parameter error, please check input parameter");
         return nullptr;
     }
-    sptr<OHOS::IBufferProducer> producer = image->producer;
-    sptr<OHOS::Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
-    image->nativeWindow = CreateNativeWindowFromSurface(&pSurface);
+
+    if (image->nativeWindow == nullptr) {
+        sptr<OHOS::IBufferProducer> producer = image->producer;
+        sptr<OHOS::Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
+        image->nativeWindow = CreateNativeWindowFromSurface(&pSurface);
+    }
+
     return image->nativeWindow;
 }
 
