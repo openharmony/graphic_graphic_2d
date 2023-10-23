@@ -54,11 +54,11 @@ public:
     void ReleasePixelMapCache(uint64_t uniqueId);
 
 #ifndef USE_ROSEN_DRAWING
-    void CacheRenderSkiaImageByPixelMapId(uint64_t uniqueId, sk_sp<SkImage> img);
-    sk_sp<SkImage> GetRenderSkiaImageCacheByPixelMapId(uint64_t uniqueId) const;
+    void CacheRenderSkiaImageByPixelMapId(uint64_t uniqueId, sk_sp<SkImage> img, pid_t tid = -1);
+    sk_sp<SkImage> GetRenderSkiaImageCacheByPixelMapId(uint64_t uniqueId, pid_t tid = -1) const;
 #else
-    void CacheRenderDrawingImageByPixelMapId(uint64_t uniqueId, std::shared_ptr<Drawing::Image> img);
-    std::shared_ptr<Drawing::Image> GetRenderDrawingImageCacheByPixelMapId(uint64_t uniqueId) const;
+    void CacheRenderDrawingImageByPixelMapId(uint64_t uniqueId, std::shared_ptr<Drawing::Image> img, pid_t tid = -1);
+    std::shared_ptr<Drawing::Image> GetRenderDrawingImageCacheByPixelMapId(uint64_t uniqueId, pid_t tid = -1) const;
 #endif
 
     RSImageCache() = default;
@@ -87,9 +87,10 @@ private:
     std::unordered_map<uint64_t, std::pair<std::shared_ptr<Media::PixelMap>, uint64_t>> pixelMapCache_;
     mutable std::mutex mapMutex_;
 #ifndef USE_ROSEN_DRAWING
-    std::unordered_map<uint64_t, sk_sp<SkImage>> pixelMapIdRelatedSkiaImageCache_;
+    std::unordered_map<uint64_t, std::unordered_map<pid_t, sk_sp<SkImage>>> pixelMapIdRelatedSkiaImageCache_;
 #else
-    std::unordered_map<uint64_t, std::shared_ptr<Drawing::Image>> pixelMapIdRelatedDrawingImageCache_;
+    std::unordered_map<uint64_t, std::unordered_map<pid_t, std::shared_ptr<Drawing::Image>>>
+        pixelMapIdRelatedDrawingImageCache_;
 #endif
 };
 } // namespace Rosen

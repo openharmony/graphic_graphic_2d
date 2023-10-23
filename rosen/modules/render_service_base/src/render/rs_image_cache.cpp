@@ -175,40 +175,47 @@ void RSImageCache::ReleasePixelMapCache(uint64_t uniqueId)
 }
 
 #ifndef USE_ROSEN_DRAWING
-void RSImageCache::CacheRenderSkiaImageByPixelMapId(uint64_t uniqueId, sk_sp<SkImage> img)
+void RSImageCache::CacheRenderSkiaImageByPixelMapId(uint64_t uniqueId, sk_sp<SkImage> img, pid_t tid)
 {
     if (uniqueId > 0 && img) {
         std::lock_guard<std::mutex> lock(mapMutex_);
-        pixelMapIdRelatedSkiaImageCache_.emplace(std::make_pair(uniqueId, img));
+        pixelMapIdRelatedSkiaImageCache_[uniqueId][tid] = img;
     }
 }
 #else
-void RSImageCache::CacheRenderDrawingImageByPixelMapId(uint64_t uniqueId, std::shared_ptr<Drawing::Image> img)
+void RSImageCache::CacheRenderDrawingImageByPixelMapId(uint64_t uniqueId,
+    std::shared_ptr<Drawing::Image> img, pid_t tid)
 {
     if (uniqueId > 0 && img) {
         std::lock_guard<std::mutex> lock(mapMutex_);
-        pixelMapIdRelatedDrawingImageCache_.emplace(std::make_pair(uniqueId, img));
+        pixelMapIdRelatedDrawingImageCache_[uniqueId][tid] = img;
     }
 }
 #endif
 
 #ifndef USE_ROSEN_DRAWING
-sk_sp<SkImage> RSImageCache::GetRenderSkiaImageCacheByPixelMapId(uint64_t uniqueId) const
+sk_sp<SkImage> RSImageCache::GetRenderSkiaImageCacheByPixelMapId(uint64_t uniqueId, pid_t tid) const
 {
     std::lock_guard<std::mutex> lock(mapMutex_);
     auto it = pixelMapIdRelatedSkiaImageCache_.find(uniqueId);
     if (it != pixelMapIdRelatedSkiaImageCache_.end()) {
-        return it->second;
+        auto innerIt = it->second.find(tid);
+        if (innerIt != it->second.end()) {
+            return innerIt->second;
+        }
     }
     return nullptr;
 }
 #else
-std::shared_ptr<Drawing::Image> RSImageCache::GetRenderDrawingImageCacheByPixelMapId(uint64_t uniqueId) const
+std::shared_ptr<Drawing::Image> RSImageCache::GetRenderDrawingImageCacheByPixelMapId(uint64_t uniqueId, pid_t tid) const
 {
     std::lock_guard<std::mutex> lock(mapMutex_);
     auto it = pixelMapIdRelatedDrawingImageCache_.find(uniqueId);
     if (it != pixelMapIdRelatedDrawingImageCache_.end()) {
-        return it->second;
+        auto innerIt = it->second.find(tid);
+        if (innerIt != it->second.end()) {
+            return innerIt->second;
+        }
     }
     return nullptr;
 }
