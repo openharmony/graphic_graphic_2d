@@ -397,7 +397,7 @@ void RSUniRenderVisitor::DisableNodeCacheInSetting(RSRenderNode& node)
         // if cached node is clean, keep enable
         // otherwise (uncached or dirty node) disable cache if it has outOfParent
         // [planning] visitedCacheNodeIds_ check lowest cached node may reduce
-        if ((cacheRenderNodeMapCnt == 0 || isDrawingCacheChanged_.top()) &&
+        if ((cacheRenderNodeMapCnt == 0 || (isDrawingCacheChanged_.empty() ? true : isDrawingCacheChanged_.top())) &&
             (!visitedCacheNodeIds_.empty() || node.HasChildrenOutOfRect())) {
             node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         }

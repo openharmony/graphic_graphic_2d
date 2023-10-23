@@ -299,7 +299,7 @@ public:
     void SetDrawRegion(std::shared_ptr<RectF> rect);
 
     // Mark preferentially draw node and childrens
-    void MarkNodeGroup(bool isNodeGroup);
+    void MarkNodeGroup(bool isNodeGroup, bool isForced = true);
 
     void SetGrayScale(float grayScale);
 
