@@ -116,6 +116,8 @@ constexpr uint64_t CLEAR_GPU_INTERVAL = 40000;
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
 constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
+constexpr uint32_t WAIT_FOR_HARDWARE_THREAD_TASK_TIMEOUT = 3000;
+constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 1;
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 #ifdef RS_ENABLE_GL
@@ -1577,6 +1579,21 @@ void RSMainThread::SurfaceOcclusionCallback()
             std::get<2>(listener.second) = visible; // get 2 in tuple, change the visible status
         }
     }
+}
+
+bool RSMainThread::WaitHardwareThreadTaskExcute()
+{
+    std::unique_lock<std::mutex> lock(hardwareThreadTaskMutex_);
+    return hardwareThreadTaskCond_.wait_until(lock, std::chrono::system_clock::now() +
+        std::chrono::milliseconds(WAIT_FOR_HARDWARE_THREAD_TASK_TIMEOUT),
+        []() { return RSHardwareThread::Instance().GetunExcuteTaskNum() <= HARDWARE_THREAD_TASK_NUM; });
+}
+
+void RSMainThread::NotifyHardwareThreadCanExcuteTask()
+{
+    RS_TRACE_NAME("RSMainThread::NotifyHardwareThreadCanExcuteTask");
+    std::lock_guard<std::mutex> lock(hardwareThreadTaskMutex_);
+    hardwareThreadTaskCond_.notify_one();
 }
 
 void RSMainThread::RequestNextVSync()

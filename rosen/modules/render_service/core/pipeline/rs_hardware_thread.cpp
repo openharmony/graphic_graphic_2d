@@ -31,6 +31,10 @@
 #endif // RS_ENABLE_EGLIMAGE
 
 namespace OHOS::Rosen {
+namespace {
+constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 1;
+}
+
 RSHardwareThread& RSHardwareThread::Instance()
 {
     static RSHardwareThread instance;
@@ -70,6 +74,11 @@ void RSHardwareThread::PostTask(const std::function<void()>& task)
     if (handler_) {
         handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
+}
+
+uint32_t RSHardwareThread::GetunExcuteTaskNum()
+{
+    return unExcuteTaskNum_;
 }
 
 void RSHardwareThread::ReleaseBuffer(sptr<SurfaceBuffer> buffer, sptr<SyncFence> releaseFence,
@@ -148,7 +157,12 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         hdiBackend_->Repaint(output);
         auto layerMap = output->GetLayers();
         ReleaseLayers(output, layerMap);
+        unExcuteTaskNum_--;
+        if (unExcuteTaskNum_ <= HARDWARE_THREAD_TASK_NUM) {
+            RSMainThread::Instance()->NotifyHardwareThreadCanExcuteTask();
+        }
     };
+    unExcuteTaskNum_++;
     PostTask(task);
 }
 
