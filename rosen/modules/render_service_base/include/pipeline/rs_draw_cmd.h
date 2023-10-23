@@ -409,10 +409,6 @@ public:
     OvalOpItem(SkRect rect, const SkPaint& paint);
     ~OvalOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
-    std::optional<SkRect> GetCacheBounds() const override
-    {
-        return rect_;
-    }
 
     std::string GetTypeWithDesc() const override
     {
