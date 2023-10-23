@@ -278,7 +278,7 @@ private:
     void OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool connected);
     static void OnHwcDead(void *data);
     void OnHwcDeadEvent();
-    void Reinit();
+    void CleanAndReinit();
     void ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &output);
     void AddScreenToHgm(std::shared_ptr<HdiOutput> &output);
     void ProcessScreenDisConnectedLocked(std::shared_ptr<HdiOutput> &output);
@@ -320,6 +320,7 @@ private:
     bool isHwcDead_ = false;
     std::vector<ScreenId> connectedIds_;
     std::unordered_map<ScreenId, uint32_t> screenPowerStatus_;
+    std::unordered_map<ScreenId, uint32_t> screenBacklight_;
 
     static std::once_flag createFlag_;
     static sptr<OHOS::Rosen::RSScreenManager> instance_;

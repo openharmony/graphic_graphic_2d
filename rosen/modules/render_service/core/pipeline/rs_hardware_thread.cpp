@@ -145,7 +145,9 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         RS_TRACE_NAME("RSHardwareThread::CommitAndReleaseLayers");
         PerformSetActiveMode(output);
         output->SetLayerInfo(layers);
-        hdiBackend_->Repaint(output);
+        if (output->IsDeviceValid()) {
+            hdiBackend_->Repaint(output);
+        }
         auto layerMap = output->GetLayers();
         ReleaseLayers(output, layerMap);
     };

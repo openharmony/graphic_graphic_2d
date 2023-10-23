@@ -52,6 +52,15 @@ public:
     uint32_t GetScreenId() const;
     void SetLayerCompCapacity(uint32_t layerCompositionCapacity);
     uint32_t GetLayerCompCapacity() const;
+    // only used when composer_host dead
+    void ResetDevice()
+    {
+        device_ = nullptr;
+    }
+    bool IsDeviceValid() const
+    {
+        return device_ != nullptr;
+    }
     /* for RS end */
 
     static std::shared_ptr<HdiOutput> CreateHdiOutput(uint32_t screenId);

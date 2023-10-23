@@ -114,17 +114,15 @@ void RSScreenManager::OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool co
 
 void RSScreenManager::OnHwcDead(void *data)
 {
-    RS_LOGD("RSScreenManager %{public}s: The composer_host is already dead.", __func__);
+    RS_LOGW("RSScreenManager %{public}s: The composer_host is already dead.", __func__);
     RSScreenManager *screenManager = static_cast<RSScreenManager *>(RSScreenManager::GetInstance().GetRefPtr());
     if (screenManager == nullptr) {
         RS_LOGE("RSScreenManager %{public}s: Failed to find RSScreenManager instance.", __func__);
         return;
     }
 
-    screenManager->OnHwcDeadEvent();
-
     // Automatically recover when composer host dies.
-    screenManager->Reinit();
+    screenManager->CleanAndReinit();
 }
 
 void RSScreenManager::OnHwcDeadEvent()
@@ -145,7 +143,7 @@ void RSScreenManager::OnHwcDeadEvent()
     defaultScreenId_ = INVALID_SCREEN_ID;
 }
 
-void RSScreenManager::Reinit()
+void RSScreenManager::CleanAndReinit()
 {
     RSScreenManager *screenManager = static_cast<RSScreenManager *>(RSScreenManager::GetInstance().GetRefPtr());
     if (screenManager == nullptr) {
@@ -161,6 +159,7 @@ void RSScreenManager::Reinit()
             return;
         }
         mainThread->PostTask([screenManager, this]() {
+            screenManager->OnHwcDeadEvent();
             composer_->ResetDevice();
             if (!screenManager->Init()) {
                 RS_LOGE("RSScreenManager %{public}s: Reinit failed, screenManager init failed in mainThread.",
@@ -170,6 +169,8 @@ void RSScreenManager::Reinit()
         });
     } else {
         RSHardwareThread::Instance().PostTask([screenManager, this]() {
+            RS_LOGW("RSScreenManager %{public}s: clean and reinit in hardware thread.", __func__);
+            screenManager->OnHwcDeadEvent();
             composer_->ResetDevice();
             if (!screenManager->Init()) {
                 RS_LOGE("RSScreenManager %{public}s: Reinit failed, screenManager init failed in HardwareThread.",
@@ -196,6 +197,16 @@ void RSScreenManager::ProcessScreenHotPlugEvents()
         for (auto &cb : screenChangeCallbacks_) {
             if (!isHwcDead_) {
                 cb->OnScreenChanged(id, ScreenEvent::CONNECTED);
+                continue;
+            }
+            if (screens_.count(id) != 0 && screenBacklight_.count(id) != 0 &&
+                screenPowerStatus_.count(id) != 0 && screenPowerStatus_[id] == ScreenPowerStatus::POWER_STATUS_ON) {
+                screens_[id]->SetScreenBacklight(screenBacklight_[id]);
+                auto mainThread = RSMainThread::Instance();
+                mainThread->PostTask([mainThread]() {
+                    mainThread->SetDirtyFlag();
+                });
+                mainThread->ForceRefreshForUni();
             }
         }
     }
@@ -347,6 +358,9 @@ void RSScreenManager::ProcessScreenDisConnectedLocked(std::shared_ptr<HdiOutput>
     }
     if (screenPowerStatus_.count(id) != 0) {
         screenPowerStatus_.erase(id);
+    }
+    if (screenBacklight_.count(id) != 0) {
+        screenBacklight_.erase(id);
     }
     if (id == defaultScreenId_) {
         HandleDefaultScreenDisConnectedLocked();
@@ -820,6 +834,7 @@ void RSScreenManager::SetScreenBacklight(ScreenId id, uint32_t level)
         RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
         return;
     }
+    screenBacklight_[id] = level;
     screens_.at(id)->SetScreenBacklight(level);
 }
 

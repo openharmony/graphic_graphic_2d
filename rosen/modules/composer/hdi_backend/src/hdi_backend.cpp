@@ -168,6 +168,9 @@ void HdiBackend::ResetDevice()
         device_->Destroy();
         device_ = nullptr;
     }
+    for (auto [id, output] : outputs_) {
+        output->ResetDevice();
+    }
     outputs_.clear();
 }
 
