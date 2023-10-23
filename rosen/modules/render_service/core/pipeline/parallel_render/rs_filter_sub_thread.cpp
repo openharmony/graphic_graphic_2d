@@ -37,7 +37,7 @@
 namespace OHOS::Rosen {
 namespace {
 #ifdef RES_SCHED_ENABLE
-const uint32_t RS_SUB_QOS_LEVEL = 7;
+const uint32_t RS_SUB_QOS_LEVEL = 8;
 constexpr const char* RS_BUNDLE_NAME = "render_service";
 #endif
 // "/data/service/el0/render_service" is shader cache dir

@@ -81,6 +81,11 @@ public:
         return hash_;
     }
 
+    virtual bool IsPartialValid() const
+    {
+        return true;
+    }
+    
 protected:
     FilterType type_;
     uint32_t hash_ = 0;

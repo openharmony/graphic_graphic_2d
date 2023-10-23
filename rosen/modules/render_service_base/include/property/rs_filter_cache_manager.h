@@ -20,6 +20,7 @@
 #include <condition_variable>
 #include <mutex>
 
+#include "event_handler.h"
 #include "include/core/SkImageInfo.h"
 #include "include/core/SkRect.h"
 #include "include/core/SkRefCnt.h"
@@ -78,6 +79,7 @@ public:
     // Call this function to manually invalidate the cache. The next time DrawFilter() is called, it will regenerate the
     // cache.
     void InvalidateCache(CacheType cacheType = CacheType::CACHE_TYPE_BOTH);
+    void ReleaseCacheOffTree();
 
     inline bool IsCacheValid() const
     {
@@ -116,8 +118,18 @@ private:
 
         void Reset()
         {
-            cachedSnapshot_ = nullptr;
+            cachedSnapshot_.reset();
             filter_ = nullptr;
+        }
+
+        void ResetGrContext()
+        {
+            std::unique_lock<std::mutex> lock(parallelRenderMutex_);
+            if (cacheSurface_ != nullptr) {
+                GrDirectContext* grContext_ = cacheSurface_->recordingContext()->asDirectContext();
+                cacheSurface_ = nullptr;
+                grContext_->freeGpuResources();
+            }
         }
 
         GrBackendTexture GetResultTexture() const
@@ -132,6 +144,11 @@ private:
             cvParallelRender_.notify_one();
         }
 
+        std::shared_ptr<OHOS::AppExecFwk::EventHandler> GetHandler()
+        {
+            return handler_;
+        }
+
     private:
         sk_sp<SkSurface> cacheSurface_ = nullptr;
         std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
@@ -142,6 +159,8 @@ private:
         std::shared_ptr<RSSkiaFilter> filter_ = nullptr;
         std::mutex parallelRenderMutex_;
         std::condition_variable cvParallelRender_;
+        std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_ = nullptr;
+        bool isFirstInit = false;
     };
 
     void TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter, const SkIRect& srcRect);
