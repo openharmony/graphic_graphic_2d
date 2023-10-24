@@ -61,6 +61,7 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
     }
     now = data[0];
     period_ = data[1] - data[0];
+    lastTimeStamp_ = data[1];
     VLOGD("dataCount:%{public}d, cb == nullptr:%{public}d", dataCount, (cb == nullptr));
     // 1, 2: index of array data.
     ScopedBytrace func("ReceiveVsync dataCount:" + std::to_string(dataCount) + "bytes now:" + std::to_string(now) +
@@ -155,6 +156,21 @@ VsyncError VSyncReceiver::GetVSyncPeriod(int64_t &period)
         return VSYNC_ERROR_API_FAILED;
     }
     period = listener_->period_;
+    return VSYNC_ERROR_OK;
+}
+
+VsyncError VSyncReceiver::GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_t &timeStamp)
+{
+    std::lock_guard<std::mutex> locker(initMutex_);
+    if (!init_) {
+        return VSYNC_ERROR_API_FAILED;
+    }
+    if (listener_->period_ == 0 || listener_->lastTimeStamp_) {
+        VLOGE("%{public}s Hardware vsync is not available. please try again later!", __func__);
+        return VSYNC_ERROR_API_FAILED;
+    }
+    period = listener_->period_;
+    timeStamp = listener_->lastTimeStamp_;
     return VSYNC_ERROR_OK;
 }
 
