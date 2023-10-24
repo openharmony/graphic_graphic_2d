@@ -574,6 +574,7 @@ ScreenPowerStatus RSScreenManager::GetScreenPowerStatusLocked(ScreenId id) const
 
 std::vector<ScreenId> RSScreenManager::GetAllScreenIds()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     std::vector<ScreenId> ids;
     for (auto iter = screens_.begin(); iter != screens_.end(); ++iter) {
         ids.emplace_back(iter->first);

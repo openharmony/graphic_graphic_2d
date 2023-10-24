@@ -801,7 +801,7 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
     ResetSurfaceContainerRegion(screeninfo, absRect, screenRotation);
 }
 
-void RSSurfaceRenderNode::SetFilterCacheValid()
+void RSSurfaceRenderNode::CalcFilterCacheValidForOcclusion()
 {
     if (!dirtyManager_) {
         return;
@@ -880,7 +880,7 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
         RS_LOGD("UpdateFilterCacheStatusIfNodeStatic surfacenode %{public}" PRIu64 " [%{public}s] rectsize %{public}s",
             GetId(), GetName().c_str(), GetOldDirtyInSurface().ToString().c_str());
     }
-    SetFilterCacheValid();
+    CalcFilterCacheValidForOcclusion();
 #endif
 }
 

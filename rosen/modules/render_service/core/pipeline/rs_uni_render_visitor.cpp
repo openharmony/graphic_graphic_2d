@@ -793,12 +793,13 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeAfterUpdate(RSSurfaceRen
             node.SetHasAbilityComponent(hasAbilityComponent);
         }
 #ifndef USE_ROSEN_DRAWING
-        if (hasFilter && curSurfaceDirtyManager_->IfCacheableFilterRectFullyCover(node.GetOldDirtyInSurface())) {
+        if (node.IsTransparent() &&
+            curSurfaceDirtyManager_->IfCacheableFilterRectFullyCover(node.GetOldDirtyInSurface())) {
             node.SetFilterCacheFullyCovered(true);
             RS_LOGD("SetFilterCacheFullyCovered surfacenode %{public}" PRIu64 " [%{public}s]",
                 node.GetId(), node.GetName().c_str());
         }
-        node.SetFilterCacheValid();
+        node.CalcFilterCacheValidForOcclusion();
 #endif
         RS_OPTIONAL_TRACE_NAME(node.GetName() + " PreparedNodes: " +
             std::to_string(preparedCanvasNodeInCurrentSurface_));

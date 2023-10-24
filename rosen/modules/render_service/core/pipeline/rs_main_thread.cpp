@@ -159,7 +159,7 @@ public:
     AccessibilityObserver() = default;
     void OnConfigChanged(const CONFIG_ID id, const ConfigValue &value) override
     {
-        RS_LOGD("AccessibilityObserver OnConfigChanged");
+        RS_LOGD("AccessibilityObserver OnConfigChanged configId: %{public}d", id);
         ColorFilterMode mode = ColorFilterMode::COLOR_FILTER_END;
         if (id == CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER) {
             switch (value.daltonizationColorFilter) {
@@ -183,8 +183,10 @@ public:
             mode = value.invertColor ? ColorFilterMode::INVERT_COLOR_ENABLE_MODE :
                                         ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
             RSBaseRenderEngine::SetColorFilterMode(mode);
-        } else {
+        } else if (id == CONFIG_ID::CONFIG_HIGH_CONTRAST_TEXT) {
             RSBaseRenderEngine::SetHighContrast(value.highContrastText);
+        } else {
+            RS_LOGW("AccessibilityObserver configId: %{public}d is not supported yet.", id);
         }
         RSMainThread::Instance()->PostTask([]() {
             RSMainThread::Instance()->SetAccessibilityConfigChanged();

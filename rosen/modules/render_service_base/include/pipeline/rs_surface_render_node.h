@@ -751,7 +751,7 @@ public:
         return isFilterCacheValid_;
     }
 
-    void SetFilterCacheValid();
+    void CalcFilterCacheValidForOcclusion();
 
     bool IsFilterCacheStatusChanged() const
     {
