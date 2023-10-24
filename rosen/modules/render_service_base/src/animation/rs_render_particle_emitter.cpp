@@ -92,6 +92,10 @@ void RSRenderParticleEmitter::EmitParticle(int64_t deltaTime)
             particles_.push_back(particle);
             spawnNum_ -= 1.f;
         }
+        if (particleCount_ > static_cast<float>(maxParticle)) {
+            emitFinish_ = true;
+            return;
+        }
     }
     while (spawnNum_ >= 1.f && std::ceil(last) <= static_cast<float>(maxParticle)) {
         auto particle = std::make_shared<RSRenderParticle>(particleParams_);
