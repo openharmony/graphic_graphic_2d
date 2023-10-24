@@ -88,7 +88,7 @@ const SkBitmap& SkiaBitmap::ExportSkiaBitmap() const
     return skiaBitmap_;
 }
 
-void SkiaBitmap::CopyPixels(Bitmap& dst, int srcLeft, int srcTop, int width, int height) const
+void SkiaBitmap::CopyPixels(Bitmap& dst, int srcLeft, int srcTop) const
 {
     ImageInfo imageInfo = dst.GetImageInfo();
     void* dstPixels = dst.GetPixels();
@@ -96,9 +96,8 @@ void SkiaBitmap::CopyPixels(Bitmap& dst, int srcLeft, int srcTop, int width, int
     SkImageInfo skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
     int srcX = srcLeft;
     int srcY = srcTop;
-    size_t dstRowBytes = static_cast<size_t>(width * height);
 
-    skiaBitmap_.readPixels(skImageInfo, dstPixels, dstRowBytes, srcX, srcY);
+    skiaBitmap_.readPixels(skImageInfo, dstPixels, dst.GetRowBytes(), srcX, srcY);
 }
 
 bool SkiaBitmap::IsImmutable()

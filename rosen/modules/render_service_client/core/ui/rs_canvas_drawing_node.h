@@ -46,6 +46,8 @@ public:
 #else
     bool GetBitmap(Drawing::Bitmap& bitmap,
         std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr, const Drawing::Rect* rect = nullptr);
+    bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap,
+        std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr, const Drawing::Rect* rect = nullptr);
 #endif
 
 protected:

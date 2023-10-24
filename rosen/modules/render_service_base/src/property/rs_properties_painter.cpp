@@ -2068,6 +2068,23 @@ void RSPropertiesPainter::DrawSpherize(const RSProperties& properties, RSPaintFi
 void RSPropertiesPainter::DrawSpherize(const RSProperties& properties, RSPaintFilterCanvas& canvas,
     const std::shared_ptr<Drawing::Surface>& spherizeSurface)
 {
+    if (spherizeSurface == nullptr) {
+        return;
+    }
+    float canvasWidth = properties.GetBoundsRect().GetWidth();
+    float canvasHeight = properties.GetBoundsRect().GetHeight();
+    if (spherizeSurface->GetImageInfo().GetWidth() == 0 ||
+        spherizeSurface->GetImageInfo().GetHeight() == 0) {
+        return;
+    }
+    canvas.Scale(canvasWidth / spherizeSurface->GetImageInfo().GetWidth(),
+        canvasHeight / spherizeSurface->GetImageInfo().GetHeight());
+
+    auto imageSnapshot = spherizeSurface->GetImageSnapshot();
+    if (imageSnapshot == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawCachedSpherizeSurface image  is null");
+        return;
+    }
 }
 #endif
 

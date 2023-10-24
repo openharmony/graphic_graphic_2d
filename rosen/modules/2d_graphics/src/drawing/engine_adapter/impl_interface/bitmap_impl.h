@@ -44,7 +44,7 @@ public:
     virtual AlphaType GetAlphaType() const = 0;
     virtual void* GetPixels() const = 0;
     virtual void SetPixels(void* pixel) = 0;
-    virtual void CopyPixels(Bitmap& dst, int srcLeft, int srcTop, int width, int height) const = 0;
+    virtual void CopyPixels(Bitmap& dst, int srcLeft, int srcTop) const = 0;
     virtual bool IsImmutable() = 0;
     virtual void SetImmutable() = 0;
     virtual void ClearWithColor(const ColorQuad& color) const = 0;
