@@ -102,19 +102,19 @@ const std::vector<ResetPropertyFunc> g_propertyResetterLUT = {
     [](RSProperties* prop) { prop->SetPixelStretch({}); },               // PIXEL_STRETCH,            52
     [](RSProperties* prop) { prop->SetPixelStretchPercent({}); },        // PIXEL_STRETCH_PERCENT,    53
     [](RSProperties* prop) { prop->SetUseEffect(false); },               // USE_EFFECT,               54
-    [](RSProperties* prop) { prop->ResetSandBox(); },                    // SANDBOX,                  55
-    [](RSProperties* prop) { prop->SetGrayScale({}); },                  // GRAY_SCALE,               56
-    [](RSProperties* prop) { prop->SetBrightness({}); },                 // BRIGHTNESS,               57
-    [](RSProperties* prop) { prop->SetContrast({}); },                   // CONTRAST,                 58
-    [](RSProperties* prop) { prop->SetSaturate({}); },                   // SATURATE,                 59
-    [](RSProperties* prop) { prop->SetSepia({}); },                      // SEPIA,                    60
-    [](RSProperties* prop) { prop->SetInvert({}); },                     // INVERT,                   61
-    [](RSProperties* prop) { prop->SetHueRotate({}); },                  // HUE_ROTATE,               62
-    [](RSProperties* prop) { prop->SetColorBlend({}); },                 // COLOR_BLEND,              63
-    [](RSProperties* prop) { prop->SetParticles({}); },                  // PARTICLE,                 64
-    [](RSProperties* prop) { prop->SetShadowIsFilled(false); },          // SHADOW_IS_FILLED,         65
     [](RSProperties* prop) { prop->SetColorBlendMode(
-        static_cast<int>(RSColorBlendModeType::NONE)); },                // COLOR_BLENDMODE,          66
+        static_cast<int>(RSColorBlendModeType::NONE)); },                // COLOR_BLENDMODE,          55
+    [](RSProperties* prop) { prop->ResetSandBox(); },                    // SANDBOX,                  56
+    [](RSProperties* prop) { prop->SetGrayScale({}); },                  // GRAY_SCALE,               57
+    [](RSProperties* prop) { prop->SetBrightness({}); },                 // BRIGHTNESS,               58
+    [](RSProperties* prop) { prop->SetContrast({}); },                   // CONTRAST,                 59
+    [](RSProperties* prop) { prop->SetSaturate({}); },                   // SATURATE,                 60
+    [](RSProperties* prop) { prop->SetSepia({}); },                      // SEPIA,                    61
+    [](RSProperties* prop) { prop->SetInvert({}); },                     // INVERT,                   62
+    [](RSProperties* prop) { prop->SetHueRotate({}); },                  // HUE_ROTATE,               63
+    [](RSProperties* prop) { prop->SetColorBlend({}); },                 // COLOR_BLEND,              64
+    [](RSProperties* prop) { prop->SetParticles({}); },                  // PARTICLE,                 65
+    [](RSProperties* prop) { prop->SetShadowIsFilled(false); },          // SHADOW_IS_FILLED,         66
     nullptr,
 };
 } // namespace
@@ -2366,10 +2366,10 @@ void RSProperties::CalculateFrameOffset()
 }
 
 // blend with background
-void RSProperties::SetColorBlendMode(int blendMode)
+void RSProperties::SetColorBlendMode(int colorBlendMode)
 {
-    blendMode_ = blendMode;
-    if (blendMode != static_cast<int>(RSColorBlendModeType::NONE)) {
+    colorBlendMode_ = colorBlendMode;
+    if (colorBlendMode_ != static_cast<int>(RSColorBlendModeType::NONE)) {
         isDrawn_ = true;
     }
     SetDirty();
@@ -2378,7 +2378,7 @@ void RSProperties::SetColorBlendMode(int blendMode)
 
 int RSProperties::GetColorBlendMode() const
 {
-    return blendMode_;
+    return colorBlendMode_;
 }
 } // namespace Rosen
 } // namespace OHOS
