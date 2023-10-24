@@ -23,6 +23,7 @@ using namespace OHOS;
 struct OH_NativeImage {
     OHOS::sptr<OHOS::SurfaceImage> consumer;
     OHOS::sptr<OHOS::IBufferProducer> producer;
+    struct NativeWindow* nativeWindow = nullptr;
 };
 
 OH_NativeImage* OH_NativeImage_Create(uint32_t textureId, uint32_t textureTarget)
@@ -43,10 +44,14 @@ OHNativeWindow* OH_NativeImage_AcquireNativeWindow(OH_NativeImage* image)
         BLOGE("parameter error, please check input parameter");
         return nullptr;
     }
-    sptr<OHOS::IBufferProducer> producer = image->producer;
-    sptr<OHOS::Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
-    struct NativeWindow* nativeWindow = CreateNativeWindowFromSurface(&pSurface);
-    return nativeWindow;
+
+    if (image->nativeWindow == nullptr) {
+        sptr<OHOS::IBufferProducer> producer = image->producer;
+        sptr<OHOS::Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
+        image->nativeWindow = CreateNativeWindowFromSurface(&pSurface);
+    }
+
+    return image->nativeWindow;
 }
 
 int32_t OH_NativeImage_AttachContext(OH_NativeImage* image, uint32_t textureId)
@@ -96,11 +101,16 @@ int32_t OH_NativeImage_GetTransformMatrix(OH_NativeImage* image, float matrix[16
 
 void OH_NativeImage_Destroy(OH_NativeImage** image)
 {
-    if (image == nullptr) {
+    if (image == nullptr || *image == nullptr) {
         BLOGE("parameter error, please check input parameter");
         return;
     }
+
+    if ((*image)->nativeWindow != nullptr) {
+        DestoryNativeWindow((*image)->nativeWindow);
+        (*image)->nativeWindow = nullptr;
+    }
+
     delete *image;
     *image = nullptr;
 }
-

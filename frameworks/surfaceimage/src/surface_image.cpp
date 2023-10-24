@@ -58,6 +58,12 @@ SurfaceImage::SurfaceImage(uint32_t textureId, uint32_t textureTarget)
 
 SurfaceImage::~SurfaceImage()
 {
+    for (auto it = imageCacheSeqs_.begin(); it != imageCacheSeqs_.end(); it++) {
+        if (it->second.eglImage_ != EGL_NO_IMAGE_KHR) {
+            eglDestroyImageKHR(eglDisplay_, it->second.eglImage_);
+            it->second.eglImage_ = EGL_NO_IMAGE_KHR;
+        }
+    }
 }
 
 void SurfaceImage::InitSurfaceImage()
@@ -360,6 +366,7 @@ EGLImageKHR SurfaceImage::CreateEGLImage(EGLDisplay disp, const sptr<SurfaceBuff
         BLOGE("failed, error %{public}d", error);
         eglTerminate(disp);
     }
+    DestroyNativeWindowBuffer(nBuffer);
     return img;
 }
 
