@@ -109,7 +109,6 @@ public:
     std::unordered_map<std::string, detailedStrat> detailedStrategies_;
     std::unordered_map<std::string, std::string> animationDynamicStrats_;
     std::unordered_map<std::string, std::string> bundle_black_list_;
-    std::unordered_map<std::string, std::string> bundle_white_list_;
     std::unordered_map<std::string, std::unordered_map<std::string, AnimationDynamicSetting>> dynamicSetting_ = {
         {"translate", {}}, {"scale", {}}, {"rotation", {}}};
 

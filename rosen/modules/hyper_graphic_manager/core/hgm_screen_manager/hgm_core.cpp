@@ -166,18 +166,9 @@ int32_t HgmCore::RequestBundlePermission(int32_t rate)
     }
 
     // black_list conatrol at 90hz, return 60 if in the list
-    if (customFrameRateMode_ == HGM_REFRESHRATE_MODE_MEDIUM) {
+    if (customFrameRateMode_ == HGM_REFRESHRATE_MODE_MEDIUM || customFrameRateMode_ == HGM_REFRESHRATE_MODE_HIGH) {
         auto bundle = mParsedConfigData_->bundle_black_list_.find(currentBundleName_);
         if (bundle != mParsedConfigData_->bundle_black_list_.end()) {
-            return OLED_60_HZ;
-        }
-        return rate;
-    }
-
-    // white_list control at 120hz, return 60 if not in the list
-    if (customFrameRateMode_ == HGM_REFRESHRATE_MODE_HIGH) {
-        auto bundle = mParsedConfigData_->bundle_white_list_.find(currentBundleName_);
-        if (bundle == mParsedConfigData_->bundle_white_list_.end()) {
             return OLED_60_HZ;
         }
         return rate;

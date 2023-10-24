@@ -46,12 +46,6 @@
         <Setting name="blackBundle2"/>
     </Params>
 
-    <!-- bundle name white_list to be applied on mode 3 -->
-    <Params name="bundle_name_white_list" value="3">
-        <Setting name="whiteBundle1"/>
-        <Setting name="whiteBundle2"/>
-    </Params>
-
     <!-- stategies for animation, need to review later -->
     <Params name="animation_dynamic_settings">
         <Setting name="animation_zoom" value="21"/>
