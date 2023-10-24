@@ -16,6 +16,7 @@
 #ifndef RS_HARDWARE_THREAD_H
 #define RS_HARDWARE_THREAD_H
 
+#include <atomic>
 #include <mutex>
 
 #include "event_handler.h"
@@ -42,6 +43,7 @@ public:
         PostTask([t(std::move(scheduledTask))]() { t->Run(); });
         return std::move(taskFuture);
     }
+    uint32_t GetunExcuteTaskNum();
 private:
     RSHardwareThread() = default;
     ~RSHardwareThread() = default;
@@ -62,6 +64,7 @@ private:
     std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;
     UniFallbackCallback redrawCb_;
     std::mutex mutex_;
+    std::atomic<uint32_t> unExcuteTaskNum_ = 0;
 
     HgmRefreshRates hgmRefreshRates_;
 };

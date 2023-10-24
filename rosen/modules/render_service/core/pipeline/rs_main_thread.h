@@ -139,6 +139,9 @@ public:
     bool WaitUntilDisplayNodeBufferReleased(RSDisplayRenderNode& node);
     void NotifyDisplayNodeBufferReleased();
 
+    bool WaitHardwareThreadTaskExcute();
+    void NotifyHardwareThreadCanExcuteTask();
+
     // driven render
     void NotifyDrivenRenderFinish();
     void WaitUtilDrivenRenderFinished();
@@ -326,6 +329,10 @@ private:
 
     // Used to refresh the whole display when AccessibilityConfig is changed
     bool isAccessibilityConfigChanged_ = false;
+
+    // used for blocking mainThread when hardwareThread has 2 and more task to excute
+    mutable std::mutex hardwareThreadTaskMutex_;
+    std::condition_variable hardwareThreadTaskCond_;
 
     std::map<uint32_t, bool> lastPidVisMap_;
     VisibleData lastVisVec_;
