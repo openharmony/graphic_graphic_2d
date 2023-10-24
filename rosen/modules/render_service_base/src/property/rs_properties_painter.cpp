@@ -1541,7 +1541,7 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaint
     auto bgColor = properties.GetBackgroundColor();
     if (bgColor != RgbPalette::Transparent()) {
         paint.setColor(bgColor.AsArgbInt());
-        canvas.drawRRect(RRect2SkRRect(properties.GetRRect()), paint);
+        canvas.drawRRect(RRect2SkRRect(properties.GetInnerRRect()), paint);
     }
     if (const auto& bgShader = properties.GetBackgroundShader()) {
         SkAutoCanvasRestore acr(&canvas, true);
