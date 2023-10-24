@@ -16,55 +16,59 @@
 import { AsyncCallback } from './@ohos.base';
 
 /**
- * colorSpaceManager
+ * Color space manager.
+ * 
+ * @namespace colorSpaceManager
  * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+ * @since 9
  */
 declare namespace colorSpaceManager {
   /**
    * Enumerates color space types.
-   * @since 9
+   * @enum { number } ColorSpace
    * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+   * @since 9
    */
   enum ColorSpace {
     /**
      * Indicates an unknown color space.
-     * @since 9
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
      */
     UNKNOWN = 0,
 
     /**
      * Indicates the color space based on Adobe RGB (1998).
-     * @since 9
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
      */
     ADOBE_RGB_1998 = 1,
 
     /**
      * Indicates the color space based on SMPTE RP 431-2-2007 and IEC 61966-2.1:1999.
-     * @since 9
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
      */
     DCI_P3 = 2,
 
     /**
      * Indicates the color space based on SMPTE RP 431-2-2007 and IEC 61966-2.1:1999.
-     * @since 9
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
      */
     DISPLAY_P3 = 3,
 
     /**
      * Indicates the standard red green blue (SRGB) color space based on IEC 61966-2.1:1999.
-     * @since 9
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
      */
     SRGB = 4,
 
     /**
      * Indicates a customized color space.
-     * @since 9
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
      */
     CUSTOM = 5,
   }
@@ -72,111 +76,123 @@ declare namespace colorSpaceManager {
   /**
    * Describes the primary colors red, green, blue and white point coordinated as (x, y)
    * in color space, in terms of real world chromaticities.
-   * @since 9
+   * @typedef ColorSpacePrimaries
    * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+   * @since 9
    */
   interface ColorSpacePrimaries {
     /**
      * Coordinate value x of red color
-     * @since 9
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
      */
     redX: number;
 
     /**
      * Coordinate value y of red color
-     * @since 9
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
      */
     redY: number;
 
     /**
      * Coordinate value x of green color
-     * @since 9
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
      */
     greenX: number;
 
     /**
      * Coordinate value y of green color
-     * @since 9
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
      */
     greenY: number;
 
     /**
      * Coordinate value x of blue color
-     * @since 9
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
      */
     blueX: number;
 
     /**
      * Coordinate value y of blue color
-     * @since 9
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
      */
     blueY: number;
 
     /**
      * Coordinate value x of white point
-     * @since 9
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
      */
     whitePointX: number;
 
     /**
      * Coordinate value y of white point
-     * @since 9
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
      */
     whitePointY: number;
   }
 
   /**
    * Defines a color space object and manages its key information
-   * @since 9
+   * @interface ColorSpaceManager
    * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+   * @since 9
    */
   interface ColorSpaceManager {
     /**
      * Get the name of color space type.
+     * @returns { ColorSpace } Returns the name of color space type.
+     * @throws { BusinessError } 18600001 - Parameter value is abnormal.
+     * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
-     * @throws {BusinessError} 18600001 - If param value is abnormal
      */
     getColorSpaceName(): ColorSpace;
-  
+
     /**
      * Get white point(x, y) of color space.
+     * @returns { Array<number> } Returns the white point value of color space.
+     * @throws { BusinessError } 18600001 - Parameter value is abnormal.
+     * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
-     * @throws {BusinessError} 18600001 - If param value is abnormal
      */
     getWhitePoint(): Array<number>;
-  
+
     /**
      * Get gamma value of color space.
+     * @returns { number } Returns the gamma value of color space.
+     * @throws { BusinessError } 18600001 - Parameter value is abnormal.
+     * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
-     * @throws {BusinessError} 18600001 - If param value is abnormal
      */
     getGamma(): number;
   }
 
   /**
    * Create a color space manager by provided color space type.
-   * @param colorSpaceName Indicates the type of color space
+   * @param { ColorSpace } colorSpaceName - Indicates the type of color space
+   * @returns { ColorSpaceManager } Returns a color space manager object created by provided type.
+   * @throws { BusinessError } 401 - Parameter error.
+   * @throws { BusinessError } 18600001 - Parameter value is abnormal.
+   * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
    * @since 9
-   * @throws {BusinessError} 401 - If param is invalid
-   * @throws {BusinessError} 18600001 - If param value is abnormal
    */
   function create(colorSpaceName: ColorSpace): ColorSpaceManager;
 
   /**
    * Create a customized color space manager by its color primaries and gamma value
-   * @param primaries Indicates the customized color primaries
-   * @param gamma Indicates display gamma value
+   * @param { ColorSpacePrimaries } primaries - Indicates the customized color primaries
+   * @param { number } gamma - Indicates display gamma value
+   * @returns { ColorSpaceManager } Returns a color space manager object created by customized parameters.
+   * @throws { BusinessError } 401 - Parameter error.
+   * @throws { BusinessError } 18600001 - Parameter value is abnormal.
+   * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
    * @since 9
-   * @throws {BusinessError} 401 - If param is invalid
-   * @throws {BusinessError} 18600001 - If param value is abnormal
    */
   function create(primaries: ColorSpacePrimaries, gamma: number): ColorSpaceManager;
 }
