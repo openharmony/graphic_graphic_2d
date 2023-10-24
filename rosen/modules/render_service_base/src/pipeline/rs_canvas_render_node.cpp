@@ -58,6 +58,26 @@ static inline SkBlendMode ConvertToSkBlendMode(int blendMode)
     return skBlendModeLUT.at(blendMode);
 }
 
+static inline void EnableColorBlendModeFilterLayer(RSPaintFilterCanvas& canvas, int& colorBlendMode)
+{
+    if (colorBlendMode != static_cast<int>(RSColorBlendModeType::NONE)) {
+        canvas.saveLayer(nullptr, nullptr);
+        canvas.SaveAlpha();
+        canvas.SetAlpha(1.0f);
+    }
+}
+
+static inline void EnableColorBlendModeMaskLayer(RSPaintFilterCanvas& canvas, int& colorBlendMode)
+{
+    if (colorBlendMode != static_cast<int>(RSColorBlendModeType::NONE)) {
+        SkBlendMode skBlendMode = ConvertToSkBlendMode(colorBlendMode);
+        SkPaint maskPaint;
+        maskPaint.setBlendMode(skBlendMode);
+        SkCanvas::SaveLayerRec maskLayerRec(nullptr, &maskPaint, nullptr, 0);
+        canvas.saveLayer(maskLayerRec);
+    }
+}
+
 RSCanvasRenderNode::RSCanvasRenderNode(NodeId id, const std::weak_ptr<RSContext>& context) : RSRenderNode(id, context)
 {
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
@@ -149,15 +169,8 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
     ApplyDrawCmdModifier(context, RSModifierType::ENV_FOREGROUND_COLOR);
     RSPropertiesPainter::DrawShadow(GetRenderProperties(), canvas);
     // Inter-UI component blur & blending effect -- An empty layer
-    int blendMode = GetRenderProperties().GetColorBlendMode();
-    if (blendMode != static_cast<int>(RSColorBlendModeType::NONE)) {
-#ifndef USE_ROSEN_DRAWING
-        canvas.saveLayer(nullptr, nullptr);
-#else
-        Drawing::SaveLayerOps slr(nullptr, nullptr, Drawing::SaveLayerOps::Flags::INIT_WITH_PREVIOUS);
-        canvas.SaveLayer(slr);
-#endif
-    }
+    int colorBlendMode = GetRenderProperties().GetColorBlendMode();
+    EnableColorBlendModeFilterLayer(canvas, colorBlendMode);
     // In NEW_SKIA version, L96 code will cause dump if the 3rd parameter is true.
 #ifdef NEW_SKIA
     RSPropertiesPainter::DrawBackground(GetRenderProperties(), canvas, false);
@@ -199,13 +212,7 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
 #endif
     }
     // Inter-UI component blur & blending effect -- A Mask layer
-    if (blendMode != static_cast<int>(RSColorBlendModeType::NONE)) {
-        SkBlendMode skBlendMode = ConvertToSkBlendMode(blendMode);
-        SkPaint maskPaint;
-        maskPaint.setBlendMode(skBlendMode);
-        SkCanvas::SaveLayerRec maskLayerRec(nullptr, &maskPaint, nullptr, 0);
-        canvas.saveLayer(maskLayerRec);
-    }
+    EnableColorBlendModeMaskLayer(canvas, colorBlendMode);
 }
 
 void RSCanvasRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canvas)
@@ -240,8 +247,9 @@ void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas
     RSPropertiesPainter::DrawColorFilter(GetRenderProperties(), canvas);
 
     canvas.RestoreStatus(canvasNodeSaveCount_);
-    int blendMode = GetRenderProperties().GetColorBlendMode();
-    if (blendMode != static_cast<int>(RSColorBlendModeType::NONE)) {
+    int colorBlendMode = GetRenderProperties().GetColorBlendMode();
+    if (colorBlendMode != static_cast<int>(RSColorBlendModeType::NONE)) {
+        canvas.RestoreAlpha();
         canvas.restore();
     }
     if (GetRenderProperties().IsLightUpEffectValid()) {
