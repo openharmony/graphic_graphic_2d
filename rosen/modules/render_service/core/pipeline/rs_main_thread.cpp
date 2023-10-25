@@ -331,6 +331,7 @@ void RSMainThread::Init()
     RSDrivenRenderManager::InitInstance();
     RSBackgroundThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext().get());
 #endif
+
 #ifndef USE_ROSEN_DRAWING
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD) && defined(NEW_SKIA)
     uploadTextureBarrierTask_ = [this]() {
