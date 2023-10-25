@@ -333,6 +333,11 @@ bool RSUniRenderVisitor::IsDrawingCacheStatic(RSRenderNode& node)
         RSMainThread::Instance()->IsDrawingGroupChanged(node)) {
         return false;
     }
+    // skip targeted cache node when first visited node is forced cache
+    if (node.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE && firstVisitedCache_ != node.GetId() &&
+        IsFirstVisitedCacheForced()) {
+        return false;
+    }
     // simplify Cache status reset
     node.GetFilterRectsInCache(allCacheFilterRects_);
     node.SetDrawingCacheChanged(false);
@@ -401,12 +406,31 @@ void RSUniRenderVisitor::DisableNodeCacheInSetting(RSRenderNode& node)
             (!visitedCacheNodeIds_.empty() || node.HasChildrenOutOfRect())) {
             node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         }
+        // disable targeted cache node when first visited node is forced cache to avoid problem in case with blur
+        if (firstVisitedCache_ != node.GetId() && IsFirstVisitedCacheForced()) {
+            node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+            allCacheFilterRects_[firstVisitedCache_].insert(allCacheFilterRects_[node.GetId()].begin(),
+                allCacheFilterRects_[node.GetId()].end());
+            allCacheFilterRects_.erase(node.GetId());
+        }
     }
     if (firstVisitedCache_ == INVALID_NODEID) {
         node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         std::stack<bool>().swap(isDrawingCacheChanged_);
         visitedCacheNodeIds_.clear();
     }
+}
+
+bool RSUniRenderVisitor::IsFirstVisitedCacheForced() const
+{
+    if (firstVisitedCache_ != INVALID_NODEID) {
+        auto firstVisitedNode = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(
+            firstVisitedCache_);
+        if (firstVisitedNode && firstVisitedNode->GetDrawingCacheType() == RSDrawingCacheType::FORCED_CACHE) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node)
@@ -420,12 +444,13 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node)
         return;
     }
 
-    DisableNodeCacheInSetting(node);
     if (!curCacheFilterRects_.empty()) {
-        allCacheFilterRects_.emplace(node.GetId(), curCacheFilterRects_.top());
-        node.ResetFilterRectsInCache(curCacheFilterRects_.top());
+        allCacheFilterRects_[node.GetId()].insert(curCacheFilterRects_.top().begin(),
+            curCacheFilterRects_.top().end());
+        node.ResetFilterRectsInCache(allCacheFilterRects_[node.GetId()]);
         curCacheFilterRects_.pop();
     }
+    DisableNodeCacheInSetting(node);
     // update visited cache roots including itself
     visitedCacheNodeIds_.emplace(node.GetId());
     node.SetVisitedCacheRootIds(visitedCacheNodeIds_);
