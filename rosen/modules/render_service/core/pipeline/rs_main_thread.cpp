@@ -262,7 +262,7 @@ void RSMainThread::Init()
             }
 #ifndef USE_ROSEN_DRAWING
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD) && defined(NEW_SKIA)
-            RSuploadTextureThread::Instance().PostTask(uploadTextureBarrierTask_);
+            RSUploadTextureThread::Instance().PostTask(uploadTextureBarrierTask_);
 #endif
 #endif
             unmarshalTaskCond_.notify_all();
@@ -1157,8 +1157,8 @@ void RSMainThread::WaitUntilUploadTextureTaskFinished()
     RS_OPTIONAL_TRACE_BEGIN("RSMainThread::WaitUntilUploadTextureTASKfINISHED");
     {
         std::unique_lock<std::mutex> lock(uploadTextureMutex_);
-        uploadTextureTaskCond_.wait(lock, [this]() { return uploadTextureFinishedCont_ > 0;});
-        --uploadTextureFinishedCont_;
+        uploadTextureTaskCond_.wait(lock, [this]() { return uploadTextureFinishedCount_ > 0;});
+        --uploadTextureFinishedCount_;
     }
     if (uploadTextureFence != EGL_NO_SYNC_KHR) {
         auto diplayID = GetRenderEngine()->GetRenderContext().get()->GetEGLDisplay();
