@@ -2313,18 +2313,6 @@ void RSProperties::OnApplyModifiers()
     GenerateRRect();
 }
 
-inline static int SignBit(float x)
-{
-    constexpr static float eps = 1e-5f;
-    if (x <= -eps) {
-        return -1;
-    } else if (x >= eps) {
-        return 1;
-    } else {
-        return 0;
-    }
-}
-
 void RSProperties::CalculatePixelStretch()
 {
     pixelStretchNeedUpdate_ = false;
@@ -2341,14 +2329,21 @@ void RSProperties::CalculatePixelStretch()
         }
         pixelStretch_ = *pixelStretchPercent_ * Vector4f(width, height, width, height);
     }
-    // parameter check: same sign
-    const auto sign = SignBit(pixelStretch_->x_);
-    if (sign == 0 || SignBit(pixelStretch_->y_) != sign || SignBit(pixelStretch_->z_) != sign ||
-        SignBit(pixelStretch_->w_) != sign) {
+    constexpr static float EPS = 1e-5f;
+    // parameter check: near zero
+    if (abs(pixelStretch_->x_) < EPS && abs(pixelStretch_->y_) < EPS && abs(pixelStretch_->z_) < EPS &&
+        abs(pixelStretch_->w_) < EPS) {
         pixelStretch_ = std::nullopt;
         return;
     }
-    isDrawn_ = true;
+    // parameter check: all >= 0 or all <= 0
+    if ((pixelStretch_->x_ < EPS && pixelStretch_->y_ < EPS && pixelStretch_->z_ < EPS && pixelStretch_->w_ < EPS) ||
+        (pixelStretch_->x_ > -EPS && pixelStretch_->y_ > -EPS && pixelStretch_->z_ > -EPS &&
+            pixelStretch_->w_ > -EPS)) {
+        isDrawn_ = true;
+        return;
+    }
+    pixelStretch_ = std::nullopt;
 }
 
 void RSProperties::CalculateFrameOffset()
