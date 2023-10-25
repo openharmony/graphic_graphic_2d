@@ -192,7 +192,7 @@ void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas
 {
     if (RSSystemProperties::GetPropertyDrawableEnable()) {
         IterateOnDrawableRange(
-            RSPropertyDrawableSlot::FOREGROUND_STYLE, RSPropertyDrawableSlot::RESTORE_BOUNDS, *this, canvas);
+            RSPropertyDrawableSlot::FOREGROUND_STYLE, RSPropertyDrawableSlot::PARTICLE_EFFECT, *this, canvas);
         return;
     }
     RSModifierContext context = { GetMutableRenderProperties(), &canvas };
