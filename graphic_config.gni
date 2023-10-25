@@ -57,7 +57,7 @@ if (graphic_2d_feature_ace_enable_gpu) {
       "ACE_ENABLE_GL",
       "RS_ENABLE_GL",
     ]
-    if (graphic_2d_feature_parallel_upload_enable){
+    if (graphic_2d_feature_parallel_upload_enable) {
       rs_enable_parallel_upload = true
       gpu_defines += ["RS_ENABLE_PARALLEL_UPLOAD"]
     } else {
