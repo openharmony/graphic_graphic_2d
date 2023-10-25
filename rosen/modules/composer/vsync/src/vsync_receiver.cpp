@@ -165,7 +165,7 @@ VsyncError VSyncReceiver::GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_
     if (!init_) {
         return VSYNC_ERROR_API_FAILED;
     }
-    if (listener_->period_ == 0 || listener_->lastTimeStamp_) {
+    if (listener_->period_ == 0 || listener_->lastTimeStamp_ == 0) {
         VLOGE("%{public}s Hardware vsync is not available. please try again later!", __func__);
         return VSYNC_ERROR_API_FAILED;
     }
