@@ -25,6 +25,7 @@
 #include "pipeline/rs_render_service_listener.h"
 #include "pipeline/rs_surface_capture_task.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_uni_ui_capture.h"
 #include "platform/common/rs_log.h"
@@ -772,8 +773,15 @@ bool RSRenderServiceConnection::GetPixelmap(
         return false;
     }
     bool result = false;
+    auto tid = node->GetTid();
     auto getPixelmapTask = [&node, &pixelmap, rect, &result]() { result = node->GetPixelmap(pixelmap, rect); };
-    mainThread_->PostSyncTask(getPixelmapTask);
+    if (tid == UINT32_MAX) {
+        mainThread_->PostSyncTask(getPixelmapTask);
+    } else {
+        RSTaskDispatcher::GetInstance().PostTask(
+            RSSubThreadManager::Instance()->GetReThreadIndexMap()[tid], getPixelmapTask, true);
+    }
+
     return result;
 }
 

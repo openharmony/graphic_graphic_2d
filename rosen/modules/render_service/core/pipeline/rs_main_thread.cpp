@@ -241,7 +241,7 @@ void RSMainThread::Init()
     };
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
-    auto taskDispatchFunc = [](const RSTaskDispatcher::RSTask& task) {
+    auto taskDispatchFunc = [](const RSTaskDispatcher::RSTask& task, bool isSyncTask = false) {
         RSMainThread::Instance()->PostTask(task);
     };
     context_->SetTaskRunner(taskDispatchFunc);

@@ -43,9 +43,10 @@ void RSSubThreadManager::Start(RenderContext *context)
             auto curThread = std::make_shared<RSSubThread>(context, i);
             auto tid = curThread->Start();
             threadIndexMap_.emplace(tid, i);
+            reThreadIndexMap_.emplace(i, tid);
             threadList_.push_back(curThread);
-            auto taskDispatchFunc = [tid, this](const RSTaskDispatcher::RSTask& task) {
-                RSSubThreadManager::Instance()->PostTask(task, threadIndexMap_[tid]);
+            auto taskDispatchFunc = [tid, this](const RSTaskDispatcher::RSTask& task, bool isSyncTask = false) {
+                RSSubThreadManager::Instance()->PostTask(task, threadIndexMap_[tid], isSyncTask);
             };
             RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(tid, taskDispatchFunc);
         }
@@ -69,13 +70,17 @@ void RSSubThreadManager::StartFilterThread(RenderContext* context)
 #endif
 }
 
-void RSSubThreadManager::PostTask(const std::function<void()>& task, uint32_t threadIndex)
+void RSSubThreadManager::PostTask(const std::function<void()>& task, uint32_t threadIndex, bool isSyncTask)
 {
     if (threadIndex >= threadList_.size()) {
         RS_LOGE("taskIndex geq thread num");
         return;
     }
-    threadList_[threadIndex]->PostTask(task);
+    if (isSyncTask) {
+        threadList_[threadIndex]->PostSyncTask(task);
+    } else {
+        threadList_[threadIndex]->PostTask(task);
+    }
 }
 
 void RSSubThreadManager::DumpMem(DfxString& log)
@@ -296,5 +301,10 @@ std::vector<MemoryGraphic> RSSubThreadManager::CountSubMem(int pid)
         memsContainer.push_back(subThread->CountSubMem(pid));
     }
     return memsContainer;
+}
+
+std::unordered_map<uint32_t, pid_t> RSSubThreadManager::GetReThreadIndexMap() const
+{
+    return reThreadIndexMap_;
 }
 }

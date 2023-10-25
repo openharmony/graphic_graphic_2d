@@ -28,8 +28,8 @@ public:
 using RSTask = std::function<void()>;
 
     static RSTaskDispatcher& GetInstance();
-    void RegisterTaskDispatchFunc(pid_t tid, const std::function<void(RSTask)>& taskDispatchFunc);
-    void PostTask(pid_t tid, const RSTask& task);
+    void RegisterTaskDispatchFunc(pid_t tid, const std::function<void(RSTask, bool)>& taskDispatchFunc);
+    void PostTask(pid_t tid, const RSTask& task, bool isSyncTask = false);
     bool HasRegisteredTask(pid_t tid) const;
 private:
     RSTaskDispatcher() = default;
@@ -38,7 +38,7 @@ private:
     RSTaskDispatcher(const RSTaskDispatcher&&);
     RSTaskDispatcher& operator=(const RSTaskDispatcher&);
     RSTaskDispatcher& operator=(const RSTaskDispatcher&&);
-    std::unordered_map<pid_t, std::function<void(RSTask)>> taskDispatchFuncMap_;
+    std::unordered_map<pid_t, std::function<void(RSTask, bool)>> taskDispatchFuncMap_;
 };
 } // namespace Rosen
 } // namespace OHOS

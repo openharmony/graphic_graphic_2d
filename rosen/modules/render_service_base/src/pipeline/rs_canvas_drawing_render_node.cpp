@@ -289,8 +289,8 @@ SkBitmap RSCanvasDrawingRenderNode::GetBitmap()
 
 bool RSCanvasDrawingRenderNode::GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect)
 {
-    if (!pixelmap) {
-        RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: pixelmap is nullptr");
+    if (!pixelmap || !rect) {
+        RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: pixelmap or rect is nullptr");
         return false;
     }
 
