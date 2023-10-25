@@ -60,6 +60,9 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
         return false;
     }
     auto mirrorNode = node.GetMirrorSource().lock();
+    if (mirrorNode == nullptr) {
+        return false;
+    }
     auto rotation = mirrorNode->GetScreenRotation();
     isPhone_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
     if (mirrorNode && node.IsFirstTimeToProcessor()) {
