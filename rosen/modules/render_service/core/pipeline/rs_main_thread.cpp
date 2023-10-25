@@ -903,8 +903,8 @@ void RSMainThread::CollectInfoForHardwareComposer()
             }
 
             // if hwc node is set on the tree this frame, mark its parent app node to be prepared
+            auto appNodeId = surfaceNode->GetInstanceRootNodeId();
             if (surfaceNode->IsNewOnTree()) {
-                auto appNodeId = surfaceNode->GetInstanceRootNodeId();
                 context_->AddActiveNode(nodeMap.GetRenderNode(appNodeId));
                 surfaceNode->ResetIsNewOnTree();
             }
@@ -922,7 +922,9 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 }
             } else { // gpu -> hwc
                 if (!surfaceNode->IsLastFrameHardwareEnabled()) {
-                    surfaceNode->SetContentDirty();
+                    if (!IsLastFrameUIFirstEnabled(appNodeId)) {
+                        surfaceNode->SetContentDirty();
+                    }
                     doDirectComposition_ = false;
                 }
             }
@@ -931,6 +933,25 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 isHardwareEnabledBufferUpdated_ = true;
             }
         });
+}
+
+bool RSMainThread::IsLastFrameUIFirstEnabled(NodeId appNodeId) const
+{
+    for (auto& node : subThreadNodes_) {
+        if (node->IsAppWindow()) {
+            if (node->GetId() == appNodeId) {
+                return true;
+            }
+        } else {
+            for (auto& child : node->GetSortedChildren()) {
+                auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+                if (surfaceNode && surfaceNode->IsAppWindow() && surfaceNode->GetId() == appNodeId) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
 void RSMainThread::CheckIfHardwareForcedDisabled()
