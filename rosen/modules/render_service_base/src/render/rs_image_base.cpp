@@ -394,7 +394,7 @@ void RSImageBase::ConvertPixelMapToSkImage()
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && DEFINED(RS_ENABLE_PARALLEL_UPLOAD) && defined(NEW_SKIA)
         auto image = image_;
         auto pixelMap = pixelMap_;
-        std::function<void()> uploadTexturetask = [image, pixelMap]() -> void{
+        std::function<void()> uploadTexturetask = [image, pixelMap]() -> void {
             auto grContext = RSUploadTextureThread::Instance().GetShareGrContext().get();
             if (grContext && image && pixelMap) {
                 SKImage_pinAsTexture(image.get(), grContext);
