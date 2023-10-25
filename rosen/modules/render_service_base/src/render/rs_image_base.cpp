@@ -23,7 +23,7 @@
 #endif
 #include "common/rs_background_thread.h"
 #ifdef RS_ENABLE_PARALLEL_UPLOAD
-#include "common/rs_upload_texture_thread.h" 
+#include "common/rs_upload_texture_thread.h"
 #endif
 #include "common/rs_common_def.h"
 #include "platform/common/rs_log.h"
