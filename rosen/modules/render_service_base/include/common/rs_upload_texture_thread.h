@@ -52,7 +52,7 @@ private:
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
-#if defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_GL)
+#if !defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_GL)
     sk_sp<GrDirectContext> CreateShareGrContext();
     void CreateShareEglContext();
     RenderContext* renderContext_ = nullptr;
