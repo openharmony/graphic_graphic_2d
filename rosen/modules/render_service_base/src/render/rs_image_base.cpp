@@ -397,7 +397,7 @@ void RSImageBase::ConvertPixelMapToSkImage()
         std::function<void()> uploadTexturetask = [image, pixelMap]() -> void {
             auto grContext = RSUploadTextureThread::Instance().GetShareGrContext().get();
             if (grContext && image && pixelMap) {
-                SKImage_pinAsTexture(image.get(), grContext);
+                SkImage_pinAsTexture(image.get(), grContext);
             }
         };
         RSUploadTextureThread::Instance().PostTask(uploadTexturetask, std::to_string(uniqueId_));
