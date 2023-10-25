@@ -339,7 +339,7 @@ bool RSSystemProperties::GetSkipGeometryNotChangeEnabled()
 bool RSSystemProperties::GetPropertyDrawableEnable()
 {
     static bool propertyDrawableEnable =
-        std::atoi((system::GetParameter("persist.propertyDrawableGenerate.enabled", "0")).c_str()) != 0;
+        std::atoi((system::GetParameter("persist.propertyDrawableGenerate.enabled", "1")).c_str()) != 0;
     return propertyDrawableEnable;
 }
 
