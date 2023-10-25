@@ -67,6 +67,7 @@ class OpItem;
 #else
 namespace Drawing {
 class DrawCmdList;
+class MaskCmdList;
 class Data;
 class Image;
 }
@@ -213,6 +214,7 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<DrawCmdList>)
 #else
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Drawing::DrawCmdList>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Drawing::MaskCmdList>)
 #endif
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Media::PixelMap>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RectT<float>>)

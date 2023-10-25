@@ -18,6 +18,19 @@
 #include "include/core/SkPictureRecorder.h"
 
 #ifdef USE_ROSEN_DRAWING
+#include "recording/mask_cmd_list.h"
+#include "recording/cmd_list_helper.h"
+#include "recording/color_space_cmd_list.h"
+#include "recording/color_filter_cmd_list.h"
+#include "recording/shader_effect_cmd_list.h"
+#include "recording/image_filter_cmd_list.h"
+#include "recording/mask_filter_cmd_list.h"
+#include "recording/recording_color_space.h"
+#include "effect/shader_effect.h"
+#include "recording/recording_color_filter.h"
+#include "recording/recording_image_filter.h"
+#include "recording/recording_mask_filter.h"
+#include "recording/recording_shader_effect.h"
 #include "recording/recording_path.h"
 #endif
 #include "platform/common/rs_log.h"
@@ -221,16 +234,24 @@ bool RSMask::Marshalling(Parcel& parcel) const
             RSMarshallingHelper::Marshalling(parcel, svgX_) &&
             RSMarshallingHelper::Marshalling(parcel, svgY_) &&
             RSMarshallingHelper::Marshalling(parcel, scaleX_) &&
-            RSMarshallingHelper::Marshalling(parcel, scaleY_) &&
 #ifndef USE_ROSEN_DRAWING
+            RSMarshallingHelper::Marshalling(parcel, scaleY_) &&
             RSMarshallingHelper::Marshalling(parcel, maskPaint_) &&
-#else
-            RSMarshallingHelper::Marshalling(parcel, maskBrush_) &&
-#endif
             RSMarshallingHelper::Marshalling(parcel, maskPath_))) {
+#else
+            RSMarshallingHelper::Marshalling(parcel, scaleY_))) {
+#endif
         ROSEN_LOGE("RSMask::Marshalling failed!");
         return false;
     }
+
+#ifdef USE_ROSEN_DRAWING
+    if (!MarshallingPathAndBrush(parcel)) {
+        ROSEN_LOGE("RSMask::Marshalling failed!");
+        return false;
+    }
+#endif
+
     if (IsSvgMask()) {
         ROSEN_LOGD("SVG RSMask::Marshalling");
         SkPictureRecorder recorder;
@@ -245,6 +266,42 @@ bool RSMask::Marshalling(Parcel& parcel) const
     return true;
 }
 
+#ifdef USE_ROSEN_DRAWING
+bool RSMask::MarshallingPathAndBrush(Parcel& parcel) const
+{
+    Drawing::CmdListData listData;
+    auto maskCmdList = Drawing::MaskCmdList::CreateFromData(listData, true);
+    Drawing::Filter filter = maskBrush_.GetFilter();
+    Drawing::BrushHandle brushHandle = {
+        maskBrush_.GetColor(),
+        maskBrush_.GetBlendMode(),
+        maskBrush_.IsAntiAlias(),
+        filter.GetFilterQuality(),
+
+        Drawing::CmdListHelper::AddRecordedToCmdList<Drawing::RecordingColorSpace>(
+            *maskCmdList, maskBrush_.GetColorSpace()),
+        Drawing::CmdListHelper::AddRecordedToCmdList<Drawing::RecordingShaderEffect>(
+            *maskCmdList, maskBrush_.GetShaderEffect()),
+        Drawing::CmdListHelper::AddRecordedToCmdList<Drawing::RecordingColorFilter>(
+            *maskCmdList, filter.GetColorFilter()),
+        Drawing::CmdListHelper::AddRecordedToCmdList<Drawing::RecordingImageFilter>(
+            *maskCmdList, filter.GetImageFilter()),
+        Drawing::CmdListHelper::AddRecordedToCmdList<Drawing::RecordingMaskFilter>(
+            *maskCmdList, filter.GetMaskFilter()),
+    };
+    maskCmdList->AddOp<Drawing::MaskBrushOpItem>(brushHandle);
+
+    auto pathHandle = Drawing::CmdListHelper::AddRecordedToCmdList<Drawing::RecordingPath>(*maskCmdList, *maskPath_);
+    maskCmdList->AddOp<Drawing::MaskPathOpItem>(pathHandle);
+
+    if (!RSMarshallingHelper::Marshalling(parcel, maskCmdList)) {
+        ROSEN_LOGE("RSMask::MarshallingPathAndBrush failed!");
+        return false;
+    }
+    return true;
+}
+#endif
+
 RSMask* RSMask::Unmarshalling(Parcel& parcel)
 {
     auto rsMask = std::make_unique<RSMask>();
@@ -252,16 +309,28 @@ RSMask* RSMask::Unmarshalling(Parcel& parcel)
             RSMarshallingHelper::Unmarshalling(parcel, rsMask->svgX_) &&
             RSMarshallingHelper::Unmarshalling(parcel, rsMask->svgY_) &&
             RSMarshallingHelper::Unmarshalling(parcel, rsMask->scaleX_) &&
-            RSMarshallingHelper::Unmarshalling(parcel, rsMask->scaleY_) &&
 #ifndef USE_ROSEN_DRAWING
+            RSMarshallingHelper::Unmarshalling(parcel, rsMask->scaleY_) &&
             RSMarshallingHelper::Unmarshalling(parcel, rsMask->maskPaint_) &&
-#else
-            RSMarshallingHelper::Unmarshalling(parcel, rsMask->maskBrush_) &&
-#endif
             RSMarshallingHelper::Unmarshalling(parcel, rsMask->maskPath_))) {
+#else
+            RSMarshallingHelper::Unmarshalling(parcel, rsMask->scaleY_))) {
+#endif
         ROSEN_LOGE("RSMask::Unmarshalling failed!");
         return nullptr;
     }
+
+#ifdef USE_ROSEN_DRAWING
+    std::shared_ptr<Drawing::MaskCmdList> maskCmdList = nullptr;
+    if (!RSMarshallingHelper::Unmarshalling(parcel, maskCmdList)) {
+        ROSEN_LOGE("RSMask::Unmarshalling failed!");
+        return nullptr;
+    }
+    if (maskCmdList) {
+        maskCmdList->Playback(*rsMask->maskPath_, rsMask->maskBrush_);
+    }
+#endif
+
     if (rsMask->IsSvgMask()) {
         ROSEN_LOGD("SVG RSMask::Unmarshalling");
         if (!RSMarshallingHelper::Unmarshalling(parcel, rsMask->svgPicture_)) {

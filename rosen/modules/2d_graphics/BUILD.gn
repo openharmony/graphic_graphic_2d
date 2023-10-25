@@ -126,6 +126,7 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/recording/draw_cmd.cpp",
       "$drawing_src_dir/recording/draw_cmd_list.cpp",
       "$drawing_src_dir/recording/image_filter_cmd_list.cpp",
+      "$drawing_src_dir/recording/mask_cmd_list.cpp",
       "$drawing_src_dir/recording/mask_filter_cmd_list.cpp",
       "$drawing_src_dir/recording/mem_allocator.cpp",
       "$drawing_src_dir/recording/path_cmd_list.cpp",

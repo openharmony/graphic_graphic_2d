@@ -67,6 +67,7 @@ public:
         PATH_EFFECT_CMD_LIST,
         REGION_CMD_LIST,
         SHADER_EFFECT_CMD_LIST,
+        MASK_CMD_LIST,
     };
 
     CmdList() = default;
