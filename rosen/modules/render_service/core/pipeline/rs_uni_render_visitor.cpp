@@ -843,12 +843,6 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     RS_OPTIONAL_TRACE_NAME("RSUniRender::Prepare:[" + node.GetName() + "] pid: " +
         std::to_string(ExtractPid(node.GetId())) +
         ", nodeType " + std::to_string(static_cast<uint>(node.GetSurfaceNodeType())));
-    if (node.GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos) {
-        needCacheImg_ = true;
-        captureWindowZorder_ = static_cast<uint32_t>(node.GetRenderProperties().GetPositionZ());
-    } else {
-        needCacheImg_ = captureWindowZorder_ > static_cast<uint32_t>(node.GetRenderProperties().GetPositionZ());
-    }
     if (node.GetFingerprint() && node.GetBuffer() != nullptr) {
         hasFingerprint_ = true;
     }

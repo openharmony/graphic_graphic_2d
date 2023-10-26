@@ -428,7 +428,6 @@ private:
 #endif
     bool resetRotate_ = false;
     bool needCacheImg_ = false;
-    uint32_t captureWindowZorder_ = 0;
 #ifndef USE_ROSEN_DRAWING
     std::optional<SkPath> effectRegion_ = std::nullopt;
 #else
