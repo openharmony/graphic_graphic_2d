@@ -97,7 +97,7 @@ protected:
 #ifndef USE_ROSEN_DRAWING
         bool isEmpty = drawCmdList == nullptr || drawCmdList->GetSize() == 0;
 #else
-        bool isEmpty = drawCmdList == nullptr || drawCmdList->IsEmpty();
+        bool isEmpty = drawCmdList == nullptr || drawCmdList->GetData().second == 0;
 #endif
         if (lastDrawCmdListEmpty_ && isEmpty) {
             return;

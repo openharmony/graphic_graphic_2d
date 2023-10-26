@@ -309,8 +309,7 @@ void RSMainThread::Init()
     size_t maxResourcesSize = 0;
     gpuContext->GetResourceCacheLimits(&maxResources, &maxResourcesSize);
     if (maxResourcesSize > 0) {
-        gpuContext->SetResourceCacheLimits(cacheLimitsTimes * maxResources, cacheLimitsTimes *
-            std::fmin(maxResourcesSize, DEFAULT_SKIA_CACHE_SIZE));
+        gpuContext->SetResourceCacheLimits(cacheLimitsTimes * maxResources, cacheLimitsTimes * maxResourcesSize);
     } else {
         gpuContext->SetResourceCacheLimits(DEFAULT_SKIA_CACHE_COUNT, DEFAULT_SKIA_CACHE_SIZE);
     }
@@ -319,7 +318,9 @@ void RSMainThread::Init()
     RSInnovation::OpenInnovationSo();
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     RSDrivenRenderManager::InitInstance();
+#ifndef USE_ROSEN_DRAWING
     RSBackgroundThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext().get());
+#endif
 #endif
 
 #if defined(ACCESSIBILITY_ENABLE)

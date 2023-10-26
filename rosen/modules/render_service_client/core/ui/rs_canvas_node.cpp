@@ -90,7 +90,7 @@ void RSCanvasNode::FinishRecording()
 #ifndef USE_ROSEN_DRAWING
     if (recording && recording->GetSize() == 0) {
 #else
-    if (recording && recording->IsEmpty()) {
+    if (recording && recording->GetData().second == 0) {
 #endif
         return;
     }
@@ -128,7 +128,7 @@ void RSCanvasNode::DrawOnNode(RSModifierType type, DrawFunc func)
 #ifndef USE_ROSEN_DRAWING
     if (recording && recording->GetSize() == 0) {
 #else
-    if (recording && recording->IsEmpty()) {
+    if (recording && recording->GetData().second == 0) {
 #endif
         return;
     }

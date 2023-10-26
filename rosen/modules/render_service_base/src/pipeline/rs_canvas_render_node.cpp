@@ -67,7 +67,7 @@ void RSCanvasRenderNode::UpdateRecording(std::shared_ptr<DrawCmdList> drawCmds, 
 #else
 void RSCanvasRenderNode::UpdateRecording(std::shared_ptr<Drawing::DrawCmdList> drawCmds, RSModifierType type)
 {
-    if (!drawCmds || drawCmds->IsEmpty()) {
+    if (!drawCmds || drawCmds->GetData().second == 0) {
         return;
     }
     auto renderProperty = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(drawCmds, ANONYMOUS_MODIFIER_ID);

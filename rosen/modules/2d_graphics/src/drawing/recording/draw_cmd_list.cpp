@@ -71,15 +71,6 @@ void DrawCmdList::SetHeight(int32_t height)
     height_ = height;
 }
 
-bool DrawCmdList::IsEmpty() const
-{
-    uint32_t offset = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
-    if (width_ <= 0 || height_ <= 0 || opAllocator_.GetSize() <= offset) {
-        return true;
-    }
-    return false;
-}
-
 void DrawCmdList::Playback(Canvas& canvas, const Rect* rect) const
 {
     uint32_t offset = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
