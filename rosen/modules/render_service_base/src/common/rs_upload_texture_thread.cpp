@@ -15,7 +15,9 @@
 
 #include "common/rs_upload_texture_thread.h"
 #include "platform/common/rs_log.h"
+#if defined(RS_ENABLE_UNI_RENDER) && defined(RS_ENABLE_GL)
 #include "render_context/render_context.h"
+#endif
 #include "rs_trace.h"
 
 namespace OHOS::Rosen {
@@ -52,7 +54,8 @@ void RSUploadTextureThread::RemoveTask(const std::string& name)
     }
 }
 
-#if !defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_UNI_RENDER) && defined(RS_ENABLE_GL)
+#ifndef USE_ROSEN_DRAWING
 void RSUploadTextureThread::InitRenderContext(RenderContext* context)
 {
     renderContext_ = context;
@@ -125,5 +128,6 @@ void RSUploadTextureThread::CleanGrResource()
         RS_LOGI("RSUploadTextureThread::CleanGrResource() finished");
     });
 }
+#endif
 #endif
 }
