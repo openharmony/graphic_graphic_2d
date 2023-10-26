@@ -243,7 +243,7 @@ private:
     void ProcessCommandForDividedRender();
     void ProcessCommandForUniRender();
     void WaitUntilUnmarshallingTaskFinished();
-#if defined(RS_ENABLE_PARALLEL_UPLOAD)
+#if defined(RS_ENABLE_PARALLEL_UPLOAD) && defined(RS_ENABLE_GL)
     void WaitUntilUploadTextureTaskFinished();
 #endif
     void MergeToEffectiveTransactionDataMap(TransactionDataMap& cachedTransactionDataMap);
@@ -313,7 +313,7 @@ private:
     std::mutex unmarshalMutex_;
     int32_t unmarshalFinishedCount_ = 0;
 
-#if defined(RS_ENABLE_PARALLEL_UPLOAD)
+#if defined(RS_ENABLE_PARALLEL_UPLOAD) && defined(RS_ENABLE_GL)
     RSTaskMessage::RSTask uploadTextureBarrierTask_;
     std::condition_variable uploadTextureTaskCond_;
     std::mutex uploadTextureMutex_;
