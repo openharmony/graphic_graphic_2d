@@ -93,7 +93,7 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     rsInterfaces.GetScreenHDRCapability(static_cast<ScreenId>(id), screenHdrCapability);
     RSScreenType screenType = RSScreenType::BUILT_IN_TYPE_SCREEN;
     rsInterfaces.GetScreenType(static_cast<ScreenId>(id), screenType);
-    SurfaceOcclusionChangeCallback surfaceOcclusionCb = [](bool){};
+    SurfaceOcclusionChangeCallback surfaceOcclusionCb = [](bool) {};
     rsInterfaces.RegisterSurfaceOcclusionChangeCallback(static_cast<NodeId>(id), surfaceOcclusionCb);
     rsInterfaces.UnRegisterSurfaceOcclusionChangeCallback(static_cast<NodeId>(id));
 
