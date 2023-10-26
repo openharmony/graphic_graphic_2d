@@ -1154,10 +1154,10 @@ void RSMainThread::WaitUntilUploadTextureTaskFinished()
     if (!isUniRender_) {
         return;
     }
-    RS_OPTIONAL_TRACE_BEGIN("RSMainThread::WaitUntilUploadTextureTASKfINISHED");
+    RS_OPTIONAL_TRACE_BEGIN("RSMainThread::WaitUntilUploadTextureTaskFinished");
     {
         std::unique_lock<std::mutex> lock(uploadTextureMutex_);
-        uploadTextureTaskCond_.wait(lock, [this]() { return uploadTextureFinishedCount_ > 0;});
+        uploadTextureTaskCond_.wait(lock, [this]() { return uploadTextureFinishedCount_ > 0; });
         --uploadTextureFinishedCount_;
     }
     if (uploadTextureFence != EGL_NO_SYNC_KHR) {
