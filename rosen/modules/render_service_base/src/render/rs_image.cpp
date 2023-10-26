@@ -330,7 +330,7 @@ void RSImage::DrawImageRepeatRect(Drawing::Canvas& canvas)
     // draw repeat rect
 #ifndef USE_ROSEN_DRAWING
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
-#ifndef RS_ENABLE_PARALLEL_UPLOAD
+#if !defined(RS_ENABLE_PARALLEL_UPLOAD) || !defined(RS_ENABLE_UNI_RENDER)
     if (pixelMap_ != nullptr && image_ == nullptr) {
         ConvertPixelMapToSkImage();
     }
