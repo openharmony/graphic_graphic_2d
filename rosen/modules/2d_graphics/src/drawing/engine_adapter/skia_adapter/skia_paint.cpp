@@ -36,7 +36,9 @@ SkiaPaint::SkiaPaint() noexcept
 SkiaPaint::~SkiaPaint()
 {
     delete fill_.paintData_.fillCore_;
+    fill_.paintData_.fillCore_ = nullptr;
     delete stroke_.paintData_.strokeCore_;
+    stroke_.paintData_.strokeCore_ = nullptr;
 }
 
 void SkiaPaint::ApplyBrushToFill(const Brush& brush)
@@ -165,32 +167,40 @@ void SkiaPaint::DisableFill()
 SortedPaints& SkiaPaint::GetSortedPaints()
 {
     sortedPaints_.count_ = 0;
-    if (stroke_.isEnabled_ && fill_.isEnabled_) {
-        if (stroke_.paintData_.strokeCore_->extend_ == *fill_.paintData_.fillCore_) {
-            GenerateFillAndStrokePaint();
-            sortedPaints_.count_ = 1;
-            sortedPaints_.paints_[0] = &fillAndStrokePaint_;
-        } else if (IsStrokeFirst()) {
-            GenerateFillPaint();
-            GenerateStrokePaint();
-            sortedPaints_.count_ = MAX_PAINTS_NUMBER;
-            sortedPaints_.paints_[0] = &strokePaint_;
-            sortedPaints_.paints_[1] = &fillPaint_;
-        } else {
-            GenerateFillPaint();
-            GenerateStrokePaint();
-            sortedPaints_.count_ = MAX_PAINTS_NUMBER;
-            sortedPaints_.paints_[0] = &fillPaint_;
-            sortedPaints_.paints_[1] = &strokePaint_;
-        }
-    } else if (fill_.isEnabled_) {
+    if (!fill_.isEnabled_ && !stroke_.isEnabled_) {
+        return sortedPaints_;
+    }
+
+    if (fill_.isEnabled_ && !stroke_.isEnabled_) {
         GenerateFillPaint();
         sortedPaints_.count_ = 1;
         sortedPaints_.paints_[0] = &fillPaint_;
-    } else if (stroke_.isEnabled_) {
+        return sortedPaints_;
+    }
+
+    if (stroke_.isEnabled_ && !fill_.isEnabled_) {
         GenerateStrokePaint();
         sortedPaints_.count_ = 1;
         sortedPaints_.paints_[0] = &strokePaint_;
+        return sortedPaints_;
+    }
+
+    if (stroke_.paintData_.strokeCore_->extend_ == *fill_.paintData_.fillCore_) {
+        GenerateFillAndStrokePaint();
+        sortedPaints_.count_ = 1;
+        sortedPaints_.paints_[0] = &fillAndStrokePaint_;
+    } else if (IsStrokeFirst()) {
+        GenerateFillPaint();
+        GenerateStrokePaint();
+        sortedPaints_.count_ = MAX_PAINTS_NUMBER;
+        sortedPaints_.paints_[0] = &strokePaint_;
+        sortedPaints_.paints_[1] = &fillPaint_;
+    } else {
+        GenerateFillPaint();
+        GenerateStrokePaint();
+        sortedPaints_.count_ = MAX_PAINTS_NUMBER;
+        sortedPaints_.paints_[0] = &fillPaint_;
+        sortedPaints_.paints_[1] = &strokePaint_;
     }
     return sortedPaints_;
 }
