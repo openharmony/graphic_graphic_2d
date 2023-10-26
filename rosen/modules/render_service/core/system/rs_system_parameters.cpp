@@ -23,7 +23,7 @@
 
 namespace OHOS {
 namespace Rosen {
-constexpr int DEFAULT_SKIP_TYPE_VALUE = 3;
+constexpr int DEFAULT_QUICK_SKIP_PREPARE_TYPE_VALUE = 3;
 bool RSSystemParameters::GetCalcCostEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.calcCost.enabled", "0");
@@ -53,7 +53,7 @@ QuickSkipPrepareType RSSystemParameters::GetQuickSkipPrepareType()
     static CachedHandle g_Handle = CachedParameterCreate("rosen.quickskipprepare.enabled", "3");
     int changed = 0;
     const char *type = CachedParameterGetChanged(g_Handle, &changed);
-    return static_cast<QuickSkipPrepareType>(ConvertToInt(type, DEFAULT_SKIP_TYPE_VALUE));
+    return static_cast<QuickSkipPrepareType>(ConvertToInt(type, DEFAULT_QUICK_SKIP_PREPARE_TYPE_VALUE));
 }
 
 bool RSSystemParameters::GetFilterCacheOcculusionEnabled()

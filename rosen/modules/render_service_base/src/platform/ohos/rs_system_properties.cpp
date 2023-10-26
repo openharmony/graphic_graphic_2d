@@ -28,7 +28,8 @@ namespace Rosen {
 
 constexpr int DEFAULT_CACHE_WIDTH = 1344;
 constexpr int DEFAULT_CACHE_HEIGHT = 2772;
-constexpr int DEFAULT_PARTIAL_RENDER_ENABLED_VALUE = 4;
+constexpr int DEFAULT_PARTIAL_RENDER_ENABLED_VALUE = 2;
+constexpr int DEFAULT_UNI_PARTIAL_RENDER_ENABLED_VALUE = 4;
 constexpr int DEFAULT_GPU_RESOURCE_ENABLED_VALUE = 2;
 constexpr int DEFAULT_CORRECTION_MODE_VALUE = 999;
 static void ParseDfxSurfaceNamesString(const std::string& paramsStr,
@@ -129,22 +130,21 @@ PartialRenderType RSSystemProperties::GetPartialRenderEnabled()
     static CachedHandle g_Handle = CachedParameterCreate("rosen.partialrender.enabled", "2");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    int defaultValue = 2;
-    return static_cast<PartialRenderType>(ConvertToInt(enable, defaultValue));
+    return static_cast<PartialRenderType>(ConvertToInt(enable, DEFAULT_PARTIAL_RENDER_ENABLED_VALUE));
 }
 
 PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
 {
-    bool choose_zero;
+    int changed = 0;
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_VK)
     static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.partialrender.enabled", "0");
-    choose_zero = true;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return static_cast<PartialRenderType>(ConvertToInt(enable, 0));
 #else
     static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.partialrender.enabled", "4");
-#endif
-    int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return static_cast<PartialRenderType>(ConvertToInt(enable, choose_zero ? 0 : DEFAULT_PARTIAL_RENDER_ENABLED_VALUE));
+    return static_cast<PartialRenderType>(ConvertToInt(enable, DEFAULT_UNI_PARTIAL_RENDER_ENABLED_VALUE));
+#endif
 }
 
 ReleaseGpuResourceType RSSystemProperties::GetReleaseGpuResourceEnabled()
@@ -152,7 +152,7 @@ ReleaseGpuResourceType RSSystemProperties::GetReleaseGpuResourceEnabled()
     static CachedHandle g_Handle = CachedParameterCreate("persist.release.gpuresource.enabled", "2");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return static_cast<ReleaseGpuResourceType>(ConvertToInt(enable, DEFAULT_GPU_RESOURCE_ENABLED));
+    return static_cast<ReleaseGpuResourceType>(ConvertToInt(enable, DEFAULT_GPU_RESOURCE_ENABLED_VALUE));
 }
 
 bool RSSystemProperties::GetOcclusionEnabled()
