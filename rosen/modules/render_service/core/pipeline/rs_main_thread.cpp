@@ -25,9 +25,11 @@
 #include <string>
 #include <unistd.h>
 #include <malloc.h>
+#ifdef RS_ENABLE_GL
 #include "GLES3/gl3.h"
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
+#endif
 #ifdef NEW_SKIA
 #include "include/gpu/GrDirectContext.h"
 #else
