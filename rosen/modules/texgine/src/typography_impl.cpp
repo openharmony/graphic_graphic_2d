@@ -139,18 +139,23 @@ size_t TypographyImpl::FindGlyphTargetIndex(size_t line,
         }
 
         auto ws = vs.GetGlyphWidths();
+        if (vs.GetJustifyGap() > 0) {
+            widths.insert(widths.end(), -vs.GetJustifyGap());
+        }
         widths.insert(widths.end(), ws.begin(), ws.end());
     }
 
     offsetX = 0;
     size_t targetIndex = 0;
     for (const auto &width : widths) {
-        if (x < offsetX + width) {
+        if (x < offsetX + HALF(fabs(width))) {
             break;
         }
 
-        targetIndex++;
-        offsetX += width;
+        if (width >= 0) {
+            targetIndex++;
+        }
+        offsetX += fabs(width);
     }
     return targetIndex;
 }
@@ -200,7 +205,7 @@ IndexAndAffinity TypographyImpl::GetGlyphIndexByCoordinate(double x, double y) c
 
     // calc affinity
     if (targetIndex > 0 && targetIndex < widths.size()) {
-        auto mid = offsetX + HALF(widths[targetIndex]);
+        auto mid = offsetX + HALF(fabs(widths[targetIndex]));
         if (x < mid) {
             count--;
             affinity = Affinity::NEXT;
@@ -265,7 +270,7 @@ void TypographyImpl::Layout(double maxWidth)
         LOGEX_FUNC_LINE(INFO) << "Layout maxWidth: " << maxWidth << ", spans.size(): " << spans_.size();
         maxWidth_ = maxWidth;
         if (spans_.empty()) {
-            // 0xFFFC is a placeholder, if  the spans is empty when layout, we should add a placeholder to spans.
+            // 0xFFFC is a placeholder, if the spans is empty when layout, we should add a placeholder to spans.
             std::vector<uint16_t> text = {0xFFFC};
             VariantSpan vs = TextSpan::MakeFromText(text);
             vs.SetTextStyle(typographyStyle_.ConvertToTextStyle());
@@ -746,19 +751,34 @@ std::vector<TextRect> TypographyImpl::GetTextRectsOfPlaceholders() const
 void TypographyImpl::ApplyAlignment()
 {
     TextAlign align_ = typographyStyle_.GetEquivalentAlign();
+    size_t lineIndex = 0;
     for (auto &line : lineMetrics_) {
+        bool isJustify = false;
+        double spanGapWidth = 0.0;
         double typographyOffsetX = 0.0;
         if (TextAlign::RIGHT == align_ || (TextAlign::JUSTIFY == align_ &&
             TextDirection::RTL == typographyStyle_.direction)) {
             typographyOffsetX = maxWidth_ - line.width;
         } else if (TextAlign::CENTER == align_) {
             typographyOffsetX = HALF(maxWidth_ - line.width);
+        } else {
+            // lineMetrics_.size() - 1 is last line index
+            isJustify = align_ == TextAlign::JUSTIFY && lineIndex != lineMetrics_.size() - 1 &&
+                !line.lineSpans.back().IsHardBreak() && line.lineSpans.size() > 1;
+            if (isJustify) {
+                // line.lineSpans.size() - 1 is gap count
+                spanGapWidth = (maxWidth_ - line.width) / (line.lineSpans.size() - 1);
+            }
         }
 
+        size_t spanIndex = 0;
         for (auto &span : line.lineSpans) {
-            span.AdjustOffsetX(typographyOffsetX);
+            span.AdjustOffsetX(typographyOffsetX + spanGapWidth * spanIndex);
+            span.SetJustifyGap(spanIndex > 0 && isJustify ? spanGapWidth : 0.0);
+            spanIndex++;
         }
         line.indent = typographyOffsetX;
+        lineIndex++;
     }
 }
 } // namespace TextEngine

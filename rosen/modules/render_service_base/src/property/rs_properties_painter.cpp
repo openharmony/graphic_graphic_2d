@@ -1780,6 +1780,8 @@ void RSPropertiesPainter::DrawForegroundColor(const RSProperties& properties, Dr
         canvas.ClipPath(properties.GetClipBounds()->GetDrawingPath(), Drawing::ClipOp::INTERSECT, true);
     } else if (properties.GetClipToBounds()) {
         canvas.ClipRect(Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, true);
+    } else if (properties.GetClipToRRect()) {
+        canvas.ClipRoundRect(RRect(RRect2DrawingRRect(properties.GetClipRRect()), Drawing::ClipOp::INTERSECT, true);
     }
 
     Drawing::Brush brush;
@@ -2068,6 +2070,23 @@ void RSPropertiesPainter::DrawSpherize(const RSProperties& properties, RSPaintFi
 void RSPropertiesPainter::DrawSpherize(const RSProperties& properties, RSPaintFilterCanvas& canvas,
     const std::shared_ptr<Drawing::Surface>& spherizeSurface)
 {
+    if (spherizeSurface == nullptr) {
+        return;
+    }
+    float canvasWidth = properties.GetBoundsRect().GetWidth();
+    float canvasHeight = properties.GetBoundsRect().GetHeight();
+    if (spherizeSurface->GetImageInfo().GetWidth() == 0 ||
+        spherizeSurface->GetImageInfo().GetHeight() == 0) {
+        return;
+    }
+    canvas.Scale(canvasWidth / spherizeSurface->GetImageInfo().GetWidth(),
+        canvasHeight / spherizeSurface->GetImageInfo().GetHeight());
+
+    auto imageSnapshot = spherizeSurface->GetImageSnapshot();
+    if (imageSnapshot == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawCachedSpherizeSurface image  is null");
+        return;
+    }
 }
 #endif
 

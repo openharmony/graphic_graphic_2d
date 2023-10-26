@@ -176,7 +176,7 @@ int CmapParser::ParseFormat4(const CmapSubtable &subtable, const std::size_t siz
             for (uint32_t j = start; j <= end; j++) {
                 const auto &gid = idRangeOffsets[idRangeOffset / 2 + i + j - start].Get();
                 if (gid) {
-                    ranges_.AddRange({j, j + 1, gid});
+                    ranges_.AddRange({j, j + 1, static_cast<int32_t>(gid)});
                 }
             }
         }

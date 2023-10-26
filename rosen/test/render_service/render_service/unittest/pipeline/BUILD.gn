@@ -52,6 +52,7 @@ group("unittest") {
   }
   if (rs_enable_parallel_render && rs_enable_gpu) {
     deps += [
+      ":RSFilterSubThreadTest",
       ":RSNodeCostManagerTest",
       ":RSParallelHardwareComposerTest",
       ":RSParallelPackVisitorTest",
@@ -457,6 +458,19 @@ ohos_unittest("RSSubThreadManagerTest") {
 ohos_unittest("RSSubThreadTest") {
   module_out_path = module_output_path
   sources = [ "parallel_render/rs_sub_thread_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSFilterSubThreadTest
+ohos_unittest("RSFilterSubThreadTest") {
+  module_out_path = module_output_path
+  sources = [ "parallel_render/rs_filter_sub_thread_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",

@@ -241,7 +241,7 @@ void RSMainThread::Init()
     };
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
-    auto taskDispatchFunc = [](const RSTaskDispatcher::RSTask& task) {
+    auto taskDispatchFunc = [](const RSTaskDispatcher::RSTask& task, bool isSyncTask = false) {
         RSMainThread::Instance()->PostTask(task);
     };
     context_->SetTaskRunner(taskDispatchFunc);
@@ -309,8 +309,7 @@ void RSMainThread::Init()
     size_t maxResourcesSize = 0;
     gpuContext->GetResourceCacheLimits(&maxResources, &maxResourcesSize);
     if (maxResourcesSize > 0) {
-        gpuContext->SetResourceCacheLimits(cacheLimitsTimes * maxResources, cacheLimitsTimes *
-            std::fmin(maxResourcesSize, DEFAULT_SKIA_CACHE_SIZE));
+        gpuContext->SetResourceCacheLimits(cacheLimitsTimes * maxResources, cacheLimitsTimes * maxResourcesSize);
     } else {
         gpuContext->SetResourceCacheLimits(DEFAULT_SKIA_CACHE_COUNT, DEFAULT_SKIA_CACHE_SIZE);
     }
@@ -319,7 +318,9 @@ void RSMainThread::Init()
     RSInnovation::OpenInnovationSo();
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     RSDrivenRenderManager::InitInstance();
+#ifndef USE_ROSEN_DRAWING
     RSBackgroundThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext().get());
+#endif
 #endif
 
 #if defined(ACCESSIBILITY_ENABLE)
@@ -903,8 +904,8 @@ void RSMainThread::CollectInfoForHardwareComposer()
             }
 
             // if hwc node is set on the tree this frame, mark its parent app node to be prepared
+            auto appNodeId = surfaceNode->GetInstanceRootNodeId();
             if (surfaceNode->IsNewOnTree()) {
-                auto appNodeId = surfaceNode->GetInstanceRootNodeId();
                 context_->AddActiveNode(nodeMap.GetRenderNode(appNodeId));
                 surfaceNode->ResetIsNewOnTree();
             }
@@ -922,7 +923,9 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 }
             } else { // gpu -> hwc
                 if (!surfaceNode->IsLastFrameHardwareEnabled()) {
-                    surfaceNode->SetContentDirty();
+                    if (!IsLastFrameUIFirstEnabled(appNodeId)) {
+                        surfaceNode->SetContentDirty();
+                    }
                     doDirectComposition_ = false;
                 }
             }
@@ -931,6 +934,25 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 isHardwareEnabledBufferUpdated_ = true;
             }
         });
+}
+
+bool RSMainThread::IsLastFrameUIFirstEnabled(NodeId appNodeId) const
+{
+    for (auto& node : subThreadNodes_) {
+        if (node->IsAppWindow()) {
+            if (node->GetId() == appNodeId) {
+                return true;
+            }
+        } else {
+            for (auto& child : node->GetSortedChildren()) {
+                auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+                if (surfaceNode && surfaceNode->IsAppWindow() && surfaceNode->GetId() == appNodeId) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
 void RSMainThread::CheckIfHardwareForcedDisabled()

@@ -260,6 +260,11 @@ bool RSMaterialFilter::IsValid() const
     return radius_ > epsilon;
 }
 
+bool RSMaterialFilter::IsPartialValid() const
+{
+    return !useKawase_ || radius_ >= 1.0f;
+}
+
 std::shared_ptr<RSFilter> RSMaterialFilter::Add(const std::shared_ptr<RSFilter>& rhs)
 {
     if ((rhs == nullptr) || (rhs->GetFilterType() != FilterType::MATERIAL)) {

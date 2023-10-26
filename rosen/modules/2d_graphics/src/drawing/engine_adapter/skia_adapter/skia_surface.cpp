@@ -160,16 +160,7 @@ bool SkiaSurface::MakeRasterN32Premul(int32_t width, int32_t height)
     return true;
 }
 #endif
-bool SkiaSurface::MakeRaster(const ImageInfo& imageInfo)
-{
-    auto skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
-    skSurface_ = SkSurface::MakeRaster(skImageInfo);
-    if (skSurface_ == nullptr) {
-        LOGE("SkiaSurface make from imageInfo failed: skSurface is nullptr");
-        return false;
-    }
-    return true;
-}
+
 std::shared_ptr<Canvas> SkiaSurface::GetCanvas() const
 {
     if (skSurface_ == nullptr || skSurface_->getCanvas() == nullptr) {
@@ -219,6 +210,28 @@ std::shared_ptr<Image> SkiaSurface::GetImageSnapshot(const RectI& bounds) const
     return image;
 }
 
+std::shared_ptr<Surface> SkiaSurface::MakeSurface(int width, int height) const
+{
+    if (skSurface_ == nullptr) {
+        LOGE("skSurface is nullptr");
+        return nullptr;
+    }
+    auto surface = skSurface_->makeSurface(width, height);
+    if (surface == nullptr) {
+        LOGE("SkiaSurface::MakeSurface failed");
+        return nullptr;
+    }
+
+    auto drawingSurface = std::make_shared<Surface>();
+    drawingSurface->GetImpl<SkiaSurface>()->SetSkSurface(surface);
+    return drawingSurface;
+}
+
+void SkiaSurface::SetSkSurface(const sk_sp<SkSurface>& skSurface)
+{
+    skSurface_ = skSurface;
+}
+
 void SkiaSurface::FlushAndSubmit(bool syncCpu)
 {
     if (skSurface_ == nullptr) {
@@ -228,7 +241,6 @@ void SkiaSurface::FlushAndSubmit(bool syncCpu)
 
     skSurface_->flushAndSubmit(syncCpu);
 }
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

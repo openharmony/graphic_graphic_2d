@@ -42,6 +42,9 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
         isExpand_ = false;
     }
 
+    boundsWidth_ = node.GetRenderProperties().GetBoundsWidth();
+    boundsHeight_ = node.GetRenderProperties().GetBoundsHeight();
+
     renderFrameConfig_.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA;
 
     auto screenManager = CreateOrGetScreenManager();
@@ -60,6 +63,9 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
         return false;
     }
     auto mirrorNode = node.GetMirrorSource().lock();
+    if (mirrorNode == nullptr) {
+        return false;
+    }
     auto rotation = mirrorNode->GetScreenRotation();
     isPhone_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
     if (mirrorNode && node.IsFirstTimeToProcessor()) {
@@ -130,6 +136,9 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
             RS_LOGE("RSUniRenderVirtualProcessor::ProcessDisplaySurface: Canvas or buffer is null!");
             return;
         }
+
+        canvas_->save();
+        canvas_->clear(SK_ColorBLACK);
 #ifndef USE_ROSEN_DRAWING
         SkMatrix invertMatrix;
         if (screenTransformMatrix_.invert(&invertMatrix)) {
@@ -142,7 +151,27 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
         }
 #endif
         auto params = RSUniRenderUtil::CreateBufferDrawParam(node, forceCPU_);
+        auto screenManager = CreateOrGetScreenManager();
+        auto mainScreenInfo = screenManager->QueryScreenInfo(screenManager->GetDefaultScreenId());
+        float mainWidth = static_cast<float>(mainScreenInfo.width);
+        float mainHeight = static_cast<float>(mainScreenInfo.height);
+        // If the width and height not match the main screen, calculate the dstRect.
+        if (mainWidth != boundsWidth_ || mainHeight != boundsHeight_) {
+            SkRect mirrorDstRect;
+            if ((boundsHeight_ / boundsWidth_) < (mainHeight / mainWidth)) {
+                float mirrorScale = boundsHeight_ / mainHeight;
+                mirrorDstRect = SkRect::MakeXYWH((boundsWidth_ - (mirrorScale * mainWidth)) / 2, 0, // 2 for calc X
+                    mirrorScale * mainWidth, boundsHeight_);
+            } else if ((boundsHeight_ / boundsWidth_) > (mainHeight / mainWidth)) {
+                float mirrorScale = boundsWidth_ / mainWidth;
+                mirrorDstRect = SkRect::MakeXYWH(0, (boundsHeight_ - (mirrorScale * mainHeight)) / 2, // 2 for calc Y
+                    boundsWidth_, mirrorScale * mainHeight);
+            }
+            params.dstRect = mirrorDstRect;
+        }
+
         renderEngine_->DrawDisplayNodeWithParams(*canvas_, node, params);
+        canvas_->restore();
     }
 }
 

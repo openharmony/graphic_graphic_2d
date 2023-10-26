@@ -74,7 +74,7 @@ std::vector<VariantSpan> TextMerger::MergeSpans(const std::vector<VariantSpan> &
         }
 
         if (it == spans.begin()) {
-            throw TEXGINE_EXCEPTION(ERROR_STATUS);
+            return {};
         }
 
         auto &lastSpan = *(it - 1);

@@ -43,6 +43,8 @@ private:
     bool forceCPU_ = false;
     bool isExpand_ = false;
     bool isPhone_ = false;
+    float boundsWidth_ = 0;
+    float boundsHeight_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

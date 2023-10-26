@@ -54,7 +54,7 @@ inline static bool isEqualRect(const SkIRect& src, const RectI& dst)
 void RSFilterCacheManager::UpdateCacheStateWithFilterHash(const std::shared_ptr<RSFilter>& filter)
 {
     auto filterHash = filter->Hash();
-    if (RSFilterCacheTask::FilterPartialRenderEnabled && cachedSnapshot_ != nullptr &&
+    if (RSFilterCacheTask::FilterPartialRenderEnabled && cachedSnapshot_ != nullptr && filter->IsPartialValid() &&
         cachedFilterHash_ != filterHash && cachedSnapshot_->cachedImage_ != nullptr) {
         auto skiaFilter = std::static_pointer_cast<RSSkiaFilter>(filter);
         PostPartialFilterRenderTask(skiaFilter);
@@ -107,18 +107,24 @@ bool RSFilterCacheManager::RSFilterCacheTask::InitSurface(GrRecordingContext* gr
 bool RSFilterCacheManager::RSFilterCacheTask::InitSurface(GrContext* grContext)
 #endif
 {
+    std::unique_lock<std::mutex> lock(parallelRenderMutex_);
     RS_TRACE_NAME("InitSurface");
     if (cacheSurface_ != nullptr) {
         return true;
     }
+    auto runner = AppExecFwk::EventRunner::Current();
+    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
     SkImageInfo info = SkImageInfo::MakeN32Premul(surfaceSize_.width(), surfaceSize_.height());
     cacheSurface_ = SkSurface::MakeRenderTarget(grContext, SkBudgeted::kYes, info);
+    isFirstInit = true;
     return cacheSurface_ != nullptr;
 }
 
 bool RSFilterCacheManager::RSFilterCacheTask::Render()
 {
-    RS_TRACE_NAME("RSFilterCacheManager::RSFilterCacheTask::Render");
+    RS_TRACE_NAME_FMT("RSFilterCacheManager::RSFilterCacheTask::Render:%p", this);
+    ROSEN_LOGD("RSFilterCacheManager::RSFilterCacheTask::Render:%{public}p", this);
+    std::unique_lock<std::mutex> lock(parallelRenderMutex_);
     if (cacheSurface_ == nullptr || filter_ == nullptr) {
         return false;
     }
@@ -135,12 +141,16 @@ bool RSFilterCacheManager::RSFilterCacheTask::Render()
     filter_->DrawImageRect(*cacheCanvas, threadImage, src, dst);
     filter_->PostProcess(*cacheCanvas);
     CHECK_CACHE_PROCESS_STATUS;
-    cacheSurface_->flush();
+    if (isFirstInit) {
+        cacheSurface_->flushAndSubmit(true);
+        isFirstInit = false;
+    } else {
+        cacheSurface_->flush();
+    }
     CHECK_CACHE_PROCESS_STATUS;
     resultBackendTexture_ =
         cacheSurface_->getBackendTexture(SkSurface::BackendHandleAccess::kFlushRead_BackendHandleAccess);
     CHECK_CACHE_PROCESS_STATUS;
-    std::unique_lock<std::mutex> lock(parallelRenderMutex_);
     cacheProcessStatus_.store(CacheProcessStatus::DONE);
     Notify();
     return true;
@@ -192,7 +202,6 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     }
     CheckCachedImages(canvas);
     if (!IsCacheValid()) {
-        task_->SetStatus(CacheProcessStatus::WAITING);
         TakeSnapshot(canvas, filter, src);
     } else {
         --cacheUpdateInterval_;
@@ -365,10 +374,25 @@ void RSFilterCacheManager::InvalidateCache(CacheType cacheType)
 {
     // bitwise test
     if (cacheType & CacheType::CACHE_TYPE_SNAPSHOT) {
-        cachedSnapshot_ = nullptr;
+        cachedSnapshot_.reset();
     }
     if (cacheType & CacheType::CACHE_TYPE_FILTERED_SNAPSHOT) {
         cachedFilteredSnapshot_.reset();
+    }
+    task_->SetStatus(CacheProcessStatus::WAITING);
+}
+
+void RSFilterCacheManager::ReleaseCacheOffTree()
+{
+    RS_TRACE_NAME_FMT("RSFilterCacheManager::ReleaseCacheOffTree:%p", this);
+    cachedSnapshot_.reset();
+    cachedFilteredSnapshot_.reset();
+    task_->SetStatus(CacheProcessStatus::WAITING);
+    task_->Reset();
+    if (task_->GetHandler() != nullptr) {
+        auto task_tmp = task_;
+        task_->GetHandler()->PostTask(
+            [task_tmp]() { task_tmp->ResetGrContext(); }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
 }
 

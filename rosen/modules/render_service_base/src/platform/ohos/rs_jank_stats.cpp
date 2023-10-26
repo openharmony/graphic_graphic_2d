@@ -162,15 +162,18 @@ void RSJankStats::UpdateJankFrame(int64_t duration, JankFrames& jankFrames)
 
 void RSJankStats::ReportJankStats()
 {
-    if (!isNeedReport_) {
-        ROSEN_LOGW("RSJankStats::ReportJankStats Nothing need to report");
-        return;
-    }
     if (lastReportTime_ == 0) {
         ROSEN_LOGE("RSJankStats::ReportJankStats lastReportTime is not initialized");
         return;
     }
     int64_t reportTime = GetCurrentSystimeMs();
+    if (!isNeedReport_) {
+        ROSEN_LOGW("RSJankStats::ReportJankStats Nothing need to report");
+        lastReportTime_ = reportTime;
+        lastJankOverThresholdTime_ = 0;
+        std::fill(rsJankStats_.begin(), rsJankStats_.end(), 0);
+        return;
+    }
     RS_TRACE_NAME("RSJankStats::ReportJankStats receive notification: reportTime " + std::to_string(reportTime) + \
                   ", lastJankOverThresholdTime " + std::to_string(lastJankOverThresholdTime_));
     int64_t reportDuration = reportTime - lastReportTime_;
@@ -179,9 +182,9 @@ void RSJankStats::ReportJankStats()
         OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "STARTTIME", static_cast<uint64_t>(lastReportTime_),
         "DURATION", static_cast<uint64_t>(reportDuration), "JANK_STATS", rsJankStats_,
         "JANK_STATS_VER", JANK_RANGE_VERSION);
-    std::fill(rsJankStats_.begin(), rsJankStats_.end(), 0);
     lastReportTime_ = reportTime;
     lastJankOverThresholdTime_ = 0;
+    std::fill(rsJankStats_.begin(), rsJankStats_.end(), 0);
     isNeedReport_ = false;
 }
 

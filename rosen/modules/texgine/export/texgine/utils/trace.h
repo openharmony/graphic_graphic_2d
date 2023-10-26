@@ -53,7 +53,9 @@ class ScopedTrace {
 public:
     ScopedTrace(const std::string &proc)
     {
+#ifdef LOGGER_ENABLE_SCOPE
         Trace::Start(proc);
+#endif
     }
 
     ~ScopedTrace()
@@ -68,7 +70,9 @@ public:
     {
         if (isFinished == false) {
             isFinished = true;
+#ifdef LOGGER_ENABLE_SCOPE
             Trace::Finish();
+#endif
         }
     }
 

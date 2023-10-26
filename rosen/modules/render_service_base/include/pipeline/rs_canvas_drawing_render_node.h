@@ -57,6 +57,11 @@ public:
         curThreadInfo_ = threadInfo;
     }
 
+    uint64_t GetTid() const
+    {
+        return curThreadInfo_.first;
+    }
+
     void AddDirtyType(RSModifierType type) override;
 
 private:

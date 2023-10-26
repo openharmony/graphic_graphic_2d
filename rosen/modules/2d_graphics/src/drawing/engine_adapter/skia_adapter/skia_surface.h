@@ -37,10 +37,11 @@ public:
     bool MakeRasterN32Premul(int32_t width, int32_t height) override;
 #endif
 
-    bool MakeRaster(const ImageInfo& imageInfo) override;
     std::shared_ptr<Canvas> GetCanvas() const override;
     std::shared_ptr<Image> GetImageSnapshot() const override;
     std::shared_ptr<Image> GetImageSnapshot(const RectI& bounds) const override;
+    std::shared_ptr<Surface> MakeSurface(int width, int height) const override;
+    void SetSkSurface(const sk_sp<SkSurface>& skSurface);
     void FlushAndSubmit(bool syncCpu) override;
 
 private:
