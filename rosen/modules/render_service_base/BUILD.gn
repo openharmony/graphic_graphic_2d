@@ -241,6 +241,7 @@ ohos_source_set("render_service_base_src") {
 
   if (rs_enable_parallel_upload) {
     sources += [ "src/common/rs_upload_texture_thread.cpp" ]
+    public_deps += [ "$rosen_root/modules/2d_graphics/src/render_context:render_context" ]
   }
 
   if (defined(use_new_render_context) && use_new_render_context) {
