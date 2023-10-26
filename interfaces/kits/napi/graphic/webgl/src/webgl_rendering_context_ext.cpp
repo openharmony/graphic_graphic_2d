@@ -92,6 +92,34 @@ const std::vector<GLenum>& WebGLRenderingContextBaseImpl::GetExtentionAstcTexIma
     };
     return extentionAstcSupportInternalFormats;
 }
+
+const std::vector<GLenum>& WebGLRenderingContextBaseImpl::GetTexImageInternalFormat()
+{
+    static std::vector<GLenum> texImageSupportInternalFormats {};
+    static bool initd = false;
+    if (!initd) {
+        GLint count = 0;
+        glGetIntegerv(GL_NUM_COMPRESSED_TEXTURE_FORMATS, &count);
+        std::unique_ptr<uint32_t[]> params = std::make_unique<uint32_t[]>(count);
+        if (params == nullptr) {
+            return texImageSupportInternalFormats;
+        }
+        glGetIntegerv(GL_COMPRESSED_TEXTURE_FORMATS, reinterpret_cast<GLint*>(params.get()));
+        for (GLint i = 0; i < count; i++) {
+            uint32_t data = *(params.get() + i);
+            AddSupportElement(texImageSupportInternalFormats, data);
+        }
+#ifdef SUPPORT_COMPRESSED_RGB_S3TC
+        // When using the WEBGL_compressed_texture_s3tc extension:
+        AddSupportElement(texImageSupportInternalFormats, GL_COMPRESSED_RGB_S3TC_DXT1_EXT);
+        AddSupportElement(texImageSupportInternalFormats, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT);
+        AddSupportElement(texImageSupportInternalFormats, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT);
+        AddSupportElement(texImageSupportInternalFormats, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT);
+#endif
+        initd = true;
+    }
+    return texImageSupportInternalFormats;
+}
 } // namespace Impl
 } // namespace Rosen
 } // namespace OHOS
