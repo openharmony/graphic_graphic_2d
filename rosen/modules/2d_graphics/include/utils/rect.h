@@ -26,6 +26,16 @@ class RectF;
 
 typedef RectF Rect;
 
+#define DRAWING_MAX_S32_FITS_IN_FLOAT    2147483520
+#define DRAWING_MIN_S32_FITS_IN_FLOAT    (-DRAWING_MAX_S32_FITS_IN_FLOAT)
+
+static inline int DrawingFloatSaturate2Int(float x)
+{
+    x = x < DRAWING_MAX_S32_FITS_IN_FLOAT ? x : DRAWING_MAX_S32_FITS_IN_FLOAT;
+    x = x > DRAWING_MIN_S32_FITS_IN_FLOAT ? x : DRAWING_MIN_S32_FITS_IN_FLOAT;
+    return (int)x;
+}
+
 class DRAWING_API RectF {
 public:
     inline RectF() noexcept;
@@ -35,6 +45,7 @@ public:
     ~RectF() {}
 
     inline bool IsValid() const;
+    inline bool IsEmpty() const;
 
     inline scalar GetLeft() const;
     inline scalar GetTop() const;
@@ -50,6 +61,8 @@ public:
     inline void SetBottom(scalar pos);
 
     inline void Offset(scalar dx, scalar dy);
+    inline void MakeOutset(scalar dx, scalar dy);
+    inline void Round();
 
     /*
      * @brief        If RectF intersects other, sets RectF to intersection.
@@ -88,6 +101,11 @@ inline RectF::RectF(const scalar l, const scalar t, const scalar r, const scalar
 inline bool RectF::IsValid() const
 {
     return left_ < right_ && top_ < bottom_;
+}
+
+inline bool RectF::IsEmpty() const
+{
+    return !(left_ < right_ && top_ < bottom_);
 }
 
 inline scalar RectF::GetLeft() const
@@ -148,6 +166,22 @@ inline void RectF::Offset(scalar dx, scalar dy)
     bottom_ += dy;
 }
 
+inline void RectF::MakeOutset(scalar dx, scalar dy)
+{
+    left_ -= dx;
+    right_ += dx;
+    top_ -= dy;
+    bottom_ += dy;
+}
+
+inline void RectF::Round()
+{
+    left_ = DrawingFloatSaturate2Int(left_ + 0.5f);
+    right_ = DrawingFloatSaturate2Int(right_ + 0.5f);
+    top_ = DrawingFloatSaturate2Int(top_ + 0.5f);
+    bottom_ = DrawingFloatSaturate2Int(bottom_ + 0.5f);
+}
+
 inline bool RectF::Intersect(const RectF& other)
 {
     RectF rectF(left_ > other.left_ ? left_ : other.left_, top_ > other.top_ ? top_ : other.top_,
@@ -194,6 +228,7 @@ public:
     ~RectI() {}
 
     inline bool IsValid() const;
+    inline bool IsEmpty() const;
 
     inline int GetLeft() const;
     inline int GetTop() const;
@@ -209,6 +244,7 @@ public:
     inline void SetBottom(int pos);
 
     inline void Offset(int dx, int dy);
+    inline void MakeOutset(int dx, int dy);
 
     /*
      * @brief        If RectI intersects other, sets RectI to intersection.
@@ -228,10 +264,10 @@ public:
     friend inline bool operator!=(const RectI& r1, const RectI& r2);
 
 private:
-    int left_;
-    int right_;
-    int top_;
-    int bottom_;
+    int32_t left_;
+    int32_t right_;
+    int32_t top_;
+    int32_t bottom_;
 };
 
 inline RectI::RectI() noexcept : left_(0), right_(0), top_(0), bottom_(0) {}
@@ -246,7 +282,20 @@ inline RectI::RectI(const int l, const int t, const int r, const int b) noexcept
 
 inline bool RectI::IsValid() const
 {
-    return left_ <= right_ && top_ <= bottom_;
+    return !IsEmpty();
+}
+
+
+inline bool RectI::IsEmpty() const
+{
+    int64_t w = (int64_t)right_ - (int64_t)left_;
+    int64_t h = (int64_t)bottom_ - (int64_t)top_;
+    if (w <= 0 || h <= 0) {
+        return true;
+    }
+    // Return true if either exceeds int32_t
+    int32_t int32test = (w | h) & 0xFFFFFFFF;
+    return int32test < 0;
 }
 
 inline int RectI::GetLeft() const
@@ -304,6 +353,14 @@ inline void RectI::Offset(int dx, int dy)
     left_ += dx;
     right_ += dx;
     top_ += dy;
+    bottom_ += dy;
+}
+
+inline void RectI::MakeOutset(int dx, int dy)
+{
+    left_ -= dx;
+    right_ += dx;
+    top_ -= dy;
     bottom_ += dy;
 }
 

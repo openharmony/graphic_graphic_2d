@@ -50,6 +50,7 @@ public:
     bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect);
 #else
     Drawing::Bitmap GetBitmap();
+    bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect);
 #endif
 
     void SetSurfaceClearFunc(ThreadInfo threadInfo)

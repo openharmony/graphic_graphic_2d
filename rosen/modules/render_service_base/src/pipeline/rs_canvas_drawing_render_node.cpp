@@ -317,18 +317,37 @@ bool RSCanvasDrawingRenderNode::GetPixelmap(const std::shared_ptr<Media::PixelMa
 #else
 Drawing::Bitmap RSCanvasDrawingRenderNode::GetBitmap()
 {
-    Drawing::Bitmap bitmap;
-    if (surface_ == nullptr) {
-        RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: Drawing::Surface is nullptr");
-        return bitmap;
+    std::lock_guard<std::mutex> lock(mutex_);
+    return *bitmap.get();
+}
+
+bool RSCanvasDrawingRenderNode::GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect)
+{
+    if (!pixelmap) {
+        RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: pixelmap is nullptr");
+        return false;
     }
-    std::shared_ptr<Drawing::Image> image = surface_->GetImageSnapshot();
+
+    if (!surface_) {
+        RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: surface is nullptr");
+        return false;
+    }
+
+    auto image = surface_->GetImageSnapshot();
     if (image == nullptr) {
-        RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: Drawing::Image is nullptr");
-        return bitmap;
+        RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: GetImageSnapshot failed");
+        return false;
     }
-    RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: Drawing asLegacyBitmap failed");
-    return bitmap;
+
+    Drawing::BitmapFormat info =
+        Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    auto bitmap = std::make_shared<Drawing::Bitmap>();
+    bitmap->Build(pixelmap->GetWidth(), pixelmap->GetHeight(), info)
+    if (!image->ReadPixels(*bitmap.get(), rect->GetLeft(), rect->GetTop())) {
+        RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: readPixels failed");
+        return false;
+    }
+    return true;
 }
 #endif
 

@@ -443,9 +443,11 @@ private:
     std::unordered_map<NodeId, std::unordered_set<NodeId>> allCacheFilterRects_ = {};
     std::stack<std::unordered_set<NodeId>> curCacheFilterRects_ = {};
     bool forceUpdateFlag_ = false;
+#ifndef USE_ROSEN_DRAWING
     void tryCapture(float width, float height);
     void endCapture() const;
     std::shared_ptr<RSRecordingCanvas> recordingCanvas_;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

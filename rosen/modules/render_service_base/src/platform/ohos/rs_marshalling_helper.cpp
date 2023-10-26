@@ -74,6 +74,7 @@
 #else
 #include "recording/recording_path.h"
 #include "recording/recording_shader_effect.h"
+#include "property/rs_properties_def.h"
 #endif
 
 #ifdef RS_ENABLE_RECORDING

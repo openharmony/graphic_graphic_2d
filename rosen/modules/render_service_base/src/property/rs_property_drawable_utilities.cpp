@@ -109,8 +109,8 @@ void RSAlphaOffscreenDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& can
     canvas.saveLayerAlpha(&rect_, std::clamp(alpha_, 0.f, 1.f) * UINT8_MAX);
 #else
     Drawing::Brush brush;
-    brush.SetAlphaF(std::clamp(alpha, 0.f, 1.f) * UINT8_MAX);
-    Drawing::SaveLayerOps slr(&rect, &brush);
+    brush.SetAlphaF(std::clamp(alpha_, 0.f, 1.f) * UINT8_MAX);
+    Drawing::SaveLayerOps slr(&rect_, &brush);
     canvas.SaveLayer(slr);
 #endif
 }
