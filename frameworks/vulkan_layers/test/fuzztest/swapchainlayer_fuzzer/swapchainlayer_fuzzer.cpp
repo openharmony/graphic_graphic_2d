@@ -63,7 +63,7 @@ namespace OHOS {
     {
         static bool firstComeIn = true;
         if (firstComeIn) {
-#ifdef __aarch64__
+#if (defined(__aarch64__) || defined(__x86_64__))
             const char *path = "/system/lib64/libvulkan.so.1";
 #else
             const char *path = "/system/lib/libvulkan.so.1";

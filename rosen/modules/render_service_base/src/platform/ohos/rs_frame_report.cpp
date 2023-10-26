@@ -25,7 +25,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-#ifdef __aarch64__
+#if (defined(__aarch64__) || defined(__x86_64__))
     const std::string FRAME_AWARE_SO_PATH = "/system/lib64/libframe_ui_intf.z.so";
 #else
     const std::string FRAME_AWARE_SO_PATH = "/system/lib/libframe_ui_intf.z.so";
@@ -154,7 +154,7 @@ void RsFrameReport::RenderEnd()
     if (renderEndFunc_ == nullptr) {
         renderEndFunc_ = (RenderEndFunc)LoadSymbol("RenderEnd");
     }
-    
+
     if (renderEndFunc_ != nullptr) {
         renderEndFunc_();
     } else {
@@ -167,7 +167,7 @@ void RsFrameReport::SendCommandsStart()
     if (sendCommandsStartFunc_ == nullptr) {
         sendCommandsStartFunc_ = (SendCommandsStartFunc)LoadSymbol("SendCommandsStart");
     }
-    
+
     if (sendCommandsStartFunc_ != nullptr) {
         sendCommandsStartFunc_();
     } else {
