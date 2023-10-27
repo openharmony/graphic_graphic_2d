@@ -87,6 +87,8 @@ public:
 
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 
+    bool SetVirtualMirrorScreenBufferRotation(ScreenId id, bool bufferRotation);
+
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
