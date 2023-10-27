@@ -619,7 +619,8 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     rsImage->uniqueId_ = uniqueId;
     rsImage->MarkRenderServiceImage();
     RSImageBase::IncreaseCacheRefCount(uniqueId, useSkImage, pixelMap);
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)  && !defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_UNI_RENDER)
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)  &&
+    !defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_UNI_RENDER)
     if (pixelMap != nullptr && pixelMap->GetAllocatorType() != Media::AllocatorType::DMA_ALLOC) {
         rsImage->ConvertPixelMapToSkImage();
     }
