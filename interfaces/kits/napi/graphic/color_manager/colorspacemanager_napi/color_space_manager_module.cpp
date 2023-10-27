@@ -17,8 +17,8 @@
 
 static napi_module _module = {
     .nm_version = 0,
-    .nm_modname = "graphics.colorSpaceManager",
     .nm_filename = "graphics/libgraphics_napi.so/colorSpaceManager.js",
+    .nm_modname = "graphics.colorSpaceManager",
     .nm_register_func = OHOS::ColorManager::JsColorSpaceManagerInit,
 };
 
