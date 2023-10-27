@@ -262,9 +262,9 @@ void RSMainThread::Init()
                 std::lock_guard<std::mutex> lock(unmarshalMutex_);
                 ++unmarshalFinishedCount_;
             }
-#ifndef USE_ROSEN_DRAWING
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD) &&
-    defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
             RSUploadTextureThread::Instance().PostTask(uploadTextureBarrierTask_);
 #endif
 #endif
@@ -335,9 +335,8 @@ void RSMainThread::Init()
     RSBackgroundThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext().get());
 #endif
 
-#ifndef USE_ROSEN_DRAWING
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD) &&
-    defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
     uploadTextureBarrierTask_ = [this]() {
         auto renderContext = GetRenderEngine()->GetRenderContext().get();
         uploadTextureFence = eglCreateSyncKHR(renderContext->GetEGLDisplay(), EGL_SYNC_FENCE_KHR, nullptr);
@@ -1282,9 +1281,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
                     node->MarkCurrentFrameHardwareEnabled();
                 }
             }
-#ifndef USE_ROSEN_DRAWING
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD) &&
-    defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
             WaitUntilUploadTextureTaskFinished();
 #endif
 #endif
@@ -1309,18 +1307,16 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
                 RS_LOGD("RSMainThread::Render multi-threads parallel composition end.");
                 isDirty_ = false;
                 PerfForBlurIfNeeded();
-#ifndef USE_ROSEN_DRAWING
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD) &&
-    defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
                 WaitUntilUploadTextureTaskFinished();
 #endif
 #endif
                 return;
             }
         }
-#ifndef USE_ROSEN_DRAWING
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD) &&
-    defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
         WaitUntilUploadTextureTaskFinished();
 #endif
 #endif
@@ -1337,9 +1333,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         }
         rootNode->Process(uniVisitor);
     } else {
-#ifndef USE_ROSEN_DRAWING
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD) &&
-    defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
         WaitUntilUploadTextureTaskFinished();
 #endif
 #endif
@@ -1352,9 +1347,8 @@ void RSMainThread::Render()
 {
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (rootNode == nullptr) {
-#ifndef USE_ROSEN_DRAWING
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD) &&
-    defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
         WaitUntilUploadTextureTaskFinished();
 #endif
 #endif
