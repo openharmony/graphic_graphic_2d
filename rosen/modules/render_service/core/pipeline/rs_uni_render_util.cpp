@@ -444,6 +444,12 @@ int RSUniRenderUtil::GetRotationFromMatrix(Drawing::Matrix matrix)
 }
 #endif
 
+bool RSUniRenderUtil::Is3DRotation(SkMatrix matrix)
+{
+    return !ROSEN_EQ(matrix.getSkewX(), 0.f) || matrix.getScaleX() < 0 ||
+        !ROSEN_EQ(matrix.getSkewY(), 0.f) || matrix.getScaleY() < 0;
+}
+
 void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
     std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
     std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes, uint64_t focusNodeId, DeviceType deviceType)
