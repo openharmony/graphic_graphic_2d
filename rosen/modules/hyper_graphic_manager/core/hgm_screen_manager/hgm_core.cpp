@@ -71,7 +71,7 @@ bool HgmCore::Init()
         HGM_LOGI("HgmCore No customer refreshrate mode found: %{public}d", newRateMode);
         customFrameRateMode_ = static_cast<RefreshRateMode>(newRateMode);
     }
-
+    SetModeBySettingConfig();
     isInit_ = true;
     HGM_LOGI("HgmCore initialization success!!!");
     return isInit_;
@@ -191,7 +191,7 @@ int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate
         HGM_LOGW("HgmCore refuse an illegal framerate: %{public}d", rate);
         return HGM_ERROR;
     }
-    sceneId = screenSceneSet_.size();
+    sceneId = static_cast<int32_t>(screenSceneSet_.size());
     int32_t modeToSwitch = screen->SetActiveRefreshRate(sceneId, static_cast<uint32_t>(rate));
     if (modeToSwitch < 0) {
         return modeToSwitch;

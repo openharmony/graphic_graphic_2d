@@ -55,7 +55,8 @@ void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
     auto data = std::make_shared<RSHgmConfigData>();
     for (auto& [animType, dynamicSettingMap] : hgmCore.GetParsedConfigData()->aceSceneDynamicSetting_) {
         for (auto& [animName, dynamicSetting] : dynamicSettingMap) {
-            data->AddAnimDynamicItem({animType, animName, dynamicSetting.min, dynamicSetting.max, dynamicSetting.preferred_fps});
+            data->AddAnimDynamicItem({
+                animType, animName, dynamicSetting.min, dynamicSetting.max, dynamicSetting.preferred_fps});
         }
     }
     auto screen = hgmCore.GetActiveScreen();
