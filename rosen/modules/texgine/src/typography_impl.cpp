@@ -270,11 +270,8 @@ void TypographyImpl::Layout(double maxWidth)
         LOGEX_FUNC_LINE(INFO) << "Layout maxWidth: " << maxWidth << ", spans.size(): " << spans_.size();
         maxWidth_ = maxWidth;
         if (spans_.empty()) {
-            // 0xFFFC is a placeholder, if the spans is empty when layout, we should add a placeholder to spans.
-            std::vector<uint16_t> text = {0xFFFC};
-            VariantSpan vs = TextSpan::MakeFromText(text);
-            vs.SetTextStyle(typographyStyle_.ConvertToTextStyle());
-            spans_.push_back(vs);
+            LOGEX_FUNC_LINE(ERROR) << "Empty spans";
+            return;
         }
 
         Shaper shaper;

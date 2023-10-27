@@ -62,8 +62,7 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyl
         }
 
         if (span->u16vect_.size() == 0) {
-            // 0xFFFC is a placeholder, if the spans is empty when layout, we should add a placeholder to spans.
-            span->u16vect_.push_back(0XFFFC);
+            continue;
         }
 
         auto xs = vspan.GetTextStyle();
