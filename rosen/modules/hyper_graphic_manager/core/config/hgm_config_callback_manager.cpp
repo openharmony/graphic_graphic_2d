@@ -15,7 +15,6 @@
 
 #include "hgm_config_callback_manager.h"
 
-#include "anim_dynamic_configs.h"
 #include "hgm_core.h"
 #include "hgm_log.h"
 
@@ -52,13 +51,14 @@ void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
     animDynamicCfgCallbacks_[pid] = callback;
     HGM_LOGD("HgmConfigCallbackManager %{public}s : add a remote callback succeed.", __func__);
 
+    auto& hgmCore = HgmCore::Instance();
     auto data = std::make_shared<RSHgmConfigData>();
-    auto configs = AnimDynamicConfigs::GetInstance()->GetAnimDynamicConfigs();
-    for (auto config : configs) {
-        data->AddAnimDynamicItem({config.GetAnimType(), config.GetAnimName(), config.GetMinSpeed(),
-            config.GetMaxSpeed(), config.GetPreferredFps()});
+    for (auto& [animType, dynamicSettingMap] : hgmCore.GetParsedConfigData()->aceSceneDynamicSetting_) {
+        for (auto& [animName, dynamicSetting] : dynamicSettingMap) {
+            data->AddAnimDynamicItem({animType, animName, dynamicSetting.min, dynamicSetting.max, dynamicSetting.preferred_fps});
+        }
     }
-    auto screen = HgmCore::Instance().GetActiveScreen();
+    auto screen = hgmCore.GetActiveScreen();
     if (screen != nullptr) {
         data->SetPpi(screen->GetPpi());
         data->SetXDpi(screen->GetXDpi());

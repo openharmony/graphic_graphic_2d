@@ -86,6 +86,14 @@ enum class SceneType {
     SCREEN_RECORD,
 };
 
+struct AnimationDynamicSetting {
+    int32_t min;
+    int32_t max;
+    int32_t preferred_fps;
+};
+
+using DynamicSetting = std::unordered_map<std::string, std::unordered_map<std::string, AnimationDynamicSetting>>;
+
 class ParsedConfigData {
 public:
     ParsedConfigData() = default;
@@ -99,18 +107,13 @@ public:
         std::string min;
         std::string max;
     };
-    struct AnimationDynamicSetting {
-        int32_t min;
-        int32_t max;
-        int32_t preferred_fps;
-    };
     std::unordered_map<std::string, std::string> refreshRateForSettings_;
     std::unordered_map<std::string, std::string> customerSettingConfig_;
     std::unordered_map<std::string, detailedStrat> detailedStrategies_;
     std::unordered_map<std::string, std::string> animationDynamicStrats_;
     std::unordered_map<std::string, std::string> bundle_black_list_;
-    std::unordered_map<std::string, std::unordered_map<std::string, AnimationDynamicSetting>> dynamicSetting_ = {
-        {"translate", {}}, {"scale", {}}, {"rotation", {}}};
+    DynamicSetting dynamicSetting_ = {{"translate", {}}, {"scale", {}}, {"rotation", {}}};
+    DynamicSetting aceSceneDynamicSetting_ = {{"fling", {}}};
 
     std::unordered_map<std::string, AnimationDynamicSetting> GetAnimationDynamicSettingMap(
         HgmModifierType hgmModifierType) const

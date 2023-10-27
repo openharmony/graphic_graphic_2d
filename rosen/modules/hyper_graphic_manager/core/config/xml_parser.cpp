@@ -15,7 +15,6 @@
 #include "xml_parser.h"
 #include <algorithm>
 
-#include "anim_dynamic_configs.h"
 #include "config_policy_utils.h"
 
 namespace OHOS::Rosen {
@@ -181,7 +180,9 @@ int32_t XMLParser::ParseParams(xmlNode &node)
     } else if (paraName == "animation_dynamic_settings") {
         setResult = ParseSetting(node, mParsedData_->animationDynamicStrats_);
     } else if (paraName == "property_animation_dynamic_settings") {
-        setResult = ParserAnimationDynamicSetting(node);
+        setResult = ParserAnimationDynamicSetting(node, mParsedData_->dynamicSetting_);
+    } else if (paraName == "ace_scene_dynamic_settings") {
+        setResult = ParserAnimationDynamicSetting(node, mParsedData_->aceSceneDynamicSetting_);
     } else if (paraName == "refresh_rate_4settings") {
         setResult = ParseSetting(node, mParsedData_->refreshRateForSettings_);
     } else {
@@ -251,7 +252,7 @@ int32_t XMLParser::ParseSetting(xmlNode &node, std::unordered_map<std::string, s
     return EXEC_SUCCESS;
 }
 
-int32_t XMLParser::ParserAnimationDynamicSetting(xmlNode &node)
+int32_t XMLParser::ParserAnimationDynamicSetting(xmlNode &node, DynamicSetting& dynamicSetting)
 {
     xmlNode *currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {
@@ -260,7 +261,7 @@ int32_t XMLParser::ParserAnimationDynamicSetting(xmlNode &node)
     currNode = currNode->xmlChildrenNode;
     for (; currNode; currNode = currNode->next) {
         auto dynamicSettingType = ExtractPropertyValue("name", *currNode);
-        if (mParsedData_->dynamicSetting_.find(dynamicSettingType) == mParsedData_->dynamicSetting_.end()) {
+        if (dynamicSetting.find(dynamicSettingType) == dynamicSetting.end()) {
             continue;
         }
         for (xmlNode *thresholdNode = currNode->xmlChildrenNode; thresholdNode; thresholdNode = thresholdNode->next) {
@@ -272,17 +273,14 @@ int32_t XMLParser::ParserAnimationDynamicSetting(xmlNode &node)
             auto max = ExtractPropertyValue("max", *thresholdNode);
             auto preferred_fps = ExtractPropertyValue("preferred_fps", *thresholdNode);
             if (!IsNumber(min) || !IsNumber(max) || !IsNumber(preferred_fps)) {
-                mParsedData_->dynamicSetting_[dynamicSettingType].clear();
+                dynamicSetting[dynamicSettingType].clear();
                 break;
             }
-            ParsedConfigData::AnimationDynamicSetting animDynamicSetting;
+            AnimationDynamicSetting animDynamicSetting;
             animDynamicSetting.min = std::stoi(ExtractPropertyValue("min", *thresholdNode));
             animDynamicSetting.max = std::stoi(ExtractPropertyValue("max", *thresholdNode));
             animDynamicSetting.preferred_fps = std::stoi(ExtractPropertyValue("preferred_fps", *thresholdNode));
-            mParsedData_->dynamicSetting_[dynamicSettingType][name] = animDynamicSetting;
-
-            AnimDynamicConfigs::GetInstance()->AddAnimDynamicAttribute({dynamicSettingType, name,
-                animDynamicSetting.min, animDynamicSetting.max, animDynamicSetting.preferred_fps});
+            dynamicSetting[dynamicSettingType][name] = animDynamicSetting;
         }
     }
     return EXEC_SUCCESS;
