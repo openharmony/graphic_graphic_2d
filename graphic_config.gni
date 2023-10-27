@@ -59,7 +59,7 @@ if (graphic_2d_feature_ace_enable_gpu) {
     ]
     if (graphic_2d_feature_parallel_upload_enable) {
       rs_enable_parallel_upload = true
-      gpu_defines += ["RS_ENABLE_PARALLEL_UPLOAD"]
+      gpu_defines += [ "RS_ENABLE_PARALLEL_UPLOAD" ]
     } else {
       rs_enable_parallel_upload = false
     }
