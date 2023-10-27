@@ -23,7 +23,7 @@
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
 #include "include/core/SkSurface.h"
-#if defined(NEW_SKIA)
+#ifdef NEW_SKIA
 #include "include/gpu/GrDirectContext.h"
 #endif
 #endif
