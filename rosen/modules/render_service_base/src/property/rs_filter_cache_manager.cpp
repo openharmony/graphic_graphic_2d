@@ -209,8 +209,13 @@ void RSFilterCacheManager::PostPartialFilterRenderTask(const std::shared_ptr<RSD
     }
 }
 
+#ifndef USE_ROSEN_DRAWING
+void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter,
+    const bool needSnapshotOutset, const std::optional<SkIRect>& srcRect, const std::optional<SkIRect>& dstRect)
+#else
 void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter,
     const std::optional<SkIRect>& srcRect, const std::optional<SkIRect>& dstRect)
+#endif
 {
     RS_OPTIONAL_TRACE_FUNC();
     if (canvas.getDeviceClipBounds().isEmpty()) {
@@ -222,7 +227,11 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     }
     CheckCachedImages(canvas);
     if (!IsCacheValid()) {
+#ifndef USE_ROSEN_DRAWING
+        TakeSnapshot(canvas, filter, src, needSnapshotOutset);
+#else
         TakeSnapshot(canvas, filter, src);
+#endif
     } else {
         --cacheUpdateInterval_;
     }
@@ -307,7 +316,8 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
 
 #ifndef USE_ROSEN_DRAWING
 void RSFilterCacheManager::TakeSnapshot(
-    RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter, const SkIRect& srcRect)
+    RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter, const SkIRect& srcRect,
+    const bool needSnapshotOutset)
 {
     auto skSurface = canvas.GetSurface();
     if (skSurface == nullptr) {
@@ -316,7 +326,12 @@ void RSFilterCacheManager::TakeSnapshot(
     RS_OPTIONAL_TRACE_FUNC();
 
     // shrink the srcRect by 1px to avoid edge artifacts.
-    auto snapshotIBounds = srcRect.makeOutset(-1, -1);
+    SkIRect snapshotIBounds;
+    if (needSnapshotOutset) {
+        snapshotIBounds = srcRect.makeOutset(-1, -1);
+    } else {
+        snapshotIBounds = srcRect;
+    }
 
     // Take a screenshot.
     auto snapshot = skSurface->makeImageSnapshot(snapshotIBounds);

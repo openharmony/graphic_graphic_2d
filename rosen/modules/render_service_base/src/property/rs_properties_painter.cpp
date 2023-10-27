@@ -23,6 +23,7 @@
 #include "platform/common/rs_log.h"
 #include "render/rs_blur_filter.h"
 #include "render/rs_skia_filter.h"
+#include "render/rs_material_filter.h"
 
 #ifdef USE_ROSEN_DRAWING
 #include <cstdint>
@@ -67,6 +68,8 @@ constexpr float MAX_SPOT_RATIO = 1.95f;
 constexpr float MAX_AMBIENT_RADIUS = 150.0f;
 const bool BLUR_ENABLED = RSSystemProperties::GetBlurEnabled();
 #ifndef USE_ROSEN_DRAWING
+// when the blur radius > SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD, the snapshot should call outset before blur to shrink by 1px
+constexpr static float SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD = 40.0f; 
 constexpr static float FLOAT_ZERO_THRESHOLD = 0.001f;
 constexpr static uint8_t DIRECTION_NUM = 4;
 #endif
@@ -1042,7 +1045,13 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     if (RSFilter == nullptr) {
         return;
     }
+
 #ifdef NEW_SKIA
+    bool needSnapshotOutset = true;
+    if (RSFilter->GetFilterType() == RSFilter::MATERIAL) {
+        auto material = std::static_pointer_cast<RSMaterialFilter>(RSFilter);
+        needSnapshotOutset = (material->GetRadius() >= SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD);
+    }
     RS_OPTIONAL_TRACE_NAME("DrawFilter " + RSFilter->GetDescription());
     g_blurCnt++;
     SkAutoCanvasRestore acr(&canvas, true);
@@ -1077,13 +1086,14 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     // Optional use cacheManager to draw filter
     if (auto& cacheManager = properties.GetFilterCacheManager(filterType == FilterType::FOREGROUND_FILTER);
         cacheManager != nullptr && !canvas.GetDisableFilterCache()) {
-        cacheManager->DrawFilter(canvas, filter);
+        cacheManager->DrawFilter(canvas, filter, needSnapshotOutset);
         return;
     }
 #endif
 
     auto clipIBounds = canvas.getDeviceClipBounds();
-    auto imageSnapshot = skSurface->makeImageSnapshot(clipIBounds.makeOutset(-1, -1));
+    auto imageSnapshot = skSurface->makeImageSnapshot(
+        needSnapshotOutset ? clipIBounds.makeOutset(-1, -1) : clipIBounds);
     if (imageSnapshot == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawFilter image null");
         return;

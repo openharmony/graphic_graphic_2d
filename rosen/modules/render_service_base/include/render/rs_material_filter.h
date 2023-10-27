@@ -103,6 +103,7 @@ public:
         const Drawing::Rect& src, const Drawing::Rect& dst) const override;
 #endif
 
+    float GetRadius() const;
     bool CanSkipFrame() const override;
 
 private:

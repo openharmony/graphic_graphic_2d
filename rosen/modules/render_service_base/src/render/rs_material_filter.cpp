@@ -342,6 +342,11 @@ void RSMaterialFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_
 #endif
 }
 
+float RSMaterialFilter::GetRadius() const
+{
+    return radius_;
+}
+
 bool RSMaterialFilter::CanSkipFrame() const
 {
     constexpr float HEAVY_BLUR_THRESHOLD = 25.0f;

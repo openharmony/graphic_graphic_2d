@@ -71,7 +71,8 @@ public:
     // regenerate the cache or reuse the existing cache.
     // Note: If srcRect or dstRect is empty, we'll use the DeviceClipRect as the corresponding rect.
     void DrawFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter,
-        const std::optional<SkIRect>& srcRect = std::nullopt, const std::optional<SkIRect>& dstRect = std::nullopt);
+        const bool needSnapshotOutset = true, const std::optional<SkIRect>& srcRect = std::nullopt,
+        const std::optional<SkIRect>& dstRect = std::nullopt);
 
     // This function is similar to DrawFilter(), but instead of drawing anything on the canvas, it simply returns the
     // cache data. This is used with effect component in RSPropertiesPainter::DrawBackgroundEffect.
@@ -217,7 +218,8 @@ private:
     };
 
 #ifndef USE_ROSEN_DRAWING
-    void TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter, const SkIRect& srcRect);
+    void TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter,
+        const SkIRect& srcRect, const bool needSnapshotOutset = true);
     void GenerateFilteredSnapshot(
         RSPaintFilterCanvas& canvas, const std::shared_ptr<RSSkiaFilter>& filter, const SkIRect& dstRect);
     void DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canvas, const SkIRect& dstRect) const;
@@ -226,7 +228,7 @@ private:
         const std::optional<SkIRect>& srcRect, const std::optional<SkIRect>& dstRect);
 #else
     void TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
-        const Drawing::RectI& srcRect);
+        const Drawing::RectI& srcRect, const bool needSnapshotOutset);
     void GenerateFilteredSnapshot(
         RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect);
     void DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect) const;
