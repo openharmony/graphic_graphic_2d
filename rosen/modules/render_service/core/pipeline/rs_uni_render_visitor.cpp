@@ -3139,6 +3139,17 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeNeedProcess(RSSurfaceRenderNode
     return true;
 }
 
+bool RSUniRenderVisitor::IsRosenWebHardwareDisabled(RSSurfaceRenderNode& node, int rotation) const
+{
+    if (node.IsRosenWeb()) {
+        return rotation == ROTATION_90 || rotation == ROTATION_270 ||
+            RSUniRenderUtil::Is3DRotation(node.GetTotalMatrix()) ||
+            node.GetDstRect().width_ > node.GetBuffer()->GetWidth() ||
+            node.GetDstRect().height_ > node.GetBuffer()->GetHeight();
+    }
+    return false;
+}
+
 void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
     if (isUIFirst_ && isSubThread_) {
@@ -3318,15 +3329,9 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                 // since node has buffer, hwc disabledState could be reset by filter or surface cached
                 bool backgroundTransparent =
                     static_cast<uint8_t>(node.GetRenderProperties().GetBackgroundColor().GetAlpha()) < UINT8_MAX;
-                bool rotationDisabled = false;
-                if (node.IsRosenWeb()) {
-                    if (rotation == ROTATION_90 || rotation == ROTATION_270) {
-                        rotationDisabled = true;
-                    }
-                }
                 node.SetHardwareForcedDisabledState(
                     (node.IsHardwareForcedDisabledByFilter() || canvas_->GetAlpha() < 1.f ||
-                    backgroundTransparent || rotationDisabled) &&
+                    backgroundTransparent || IsRosenWebHardwareDisabled(node, rotation)) &&
                     (!node.IsHardwareEnabledTopSurface() || node.HasSubNodeShouldPaint()));
                 node.SetHardwareDisabledByCache(isUpdateCachedSurface_);
             }
