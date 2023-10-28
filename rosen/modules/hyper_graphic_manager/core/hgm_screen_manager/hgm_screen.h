@@ -158,10 +158,10 @@ private:
 
     ScreenId id_ = 0;
     int32_t activeModeId_ = 0;
-    int32_t width_;
-    int32_t height_;
-    int32_t phyWidth_;
-    int32_t phyHeight_;
+    int32_t width_ = 0;
+    int32_t height_ = 0;
+    int32_t phyWidth_ = 0;
+    int32_t phyHeight_ = 0;
     float ppi_ = 0;
     float xDpi_ = 0;
     float yDpi_ = 0;
