@@ -22,6 +22,7 @@
 #include "platform/common/rs_log.h"
 #include "transaction/rs_render_service_client.h"
 #include "scene_board_judgement.h"
+#include "pipeline/rs_uni_render_judgement.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -357,7 +358,8 @@ bool RSSystemProperties::GetAnimationCacheEnabled()
 bool RSSystemProperties::GetPropertyDrawableEnable()
 {
     static bool propertyDrawableEnable =
-        std::atoi((system::GetParameter("persist.propertyDrawableGenerate.enabled", "0")).c_str()) != 0;
+        std::atoi((system::GetParameter("persist.propertyDrawableGenerate.enabled", "1")).c_str()) != 0 &&
+        RSUniRenderJudgement::IsUniRender();
     return propertyDrawableEnable;
 }
 
