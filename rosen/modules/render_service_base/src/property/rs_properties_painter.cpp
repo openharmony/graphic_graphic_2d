@@ -2077,20 +2077,89 @@ void RSPropertiesPainter::DrawSpherize(const RSProperties& properties, RSPaintFi
     if (spherizeSurface == nullptr) {
         return;
     }
+
+    Drawing::AutoCanvasRestore acr(canvas, true);
     float canvasWidth = properties.GetBoundsRect().GetWidth();
     float canvasHeight = properties.GetBoundsRect().GetHeight();
-    if (spherizeSurface->GetImageInfo().GetWidth() == 0 ||
-        spherizeSurface->GetImageInfo().GetHeight() == 0) {
-        return;
-    }
-    canvas.Scale(canvasWidth / spherizeSurface->GetImageInfo().GetWidth(),
-        canvasHeight / spherizeSurface->GetImageInfo().GetHeight());
 
     auto imageSnapshot = spherizeSurface->GetImageSnapshot();
     if (imageSnapshot == nullptr) {
-        ROSEN_LOGE("RSPropertiesPainter::DrawCachedSpherizeSurface image  is null");
+        ROSEN_LOGE("RSPropertiesPainter::DrawCachedSpherizeSurface image is null");
         return;
     }
+    int imageWidth = imageSnapshot->GetWidth();
+    int imageHeight = imageSnapshot->GetHeight();
+    if (imageWidth == 0 || imageHeight == 0) {
+        return;
+    }
+    canvas.Scale(canvasWidth / imageWidth, canvasHeight / imageHeight);
+
+    float width = imageWidth;
+    float height = imageHeight;
+    float degree = properties.GetSpherize();
+    bool isWidthGreater = width > height;
+    ROSEN_LOGI("RSPropertiesPainter::DrawCachedSpherizeSurface spherize degree [%{public}f]", degree);
+
+    Drawing::Brush brush;
+    brush.SetBlendMode(Drawing::BlendMode::SRC_OVER);
+    Drawing::SamplingOptions samplingOptions;
+    Drawing::Matrix scaleMat;
+    brush.SetShaderEffect(Drawing::ShaderEffect::CreateImageShader(
+        *imageSnapshot, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, scaleMat));
+    canvas.AttachBrush(brush);
+
+    const Drawing::Point texCoords[4] = {
+        {0.0f, 0.0f}, {width, 0.0f}, {width, height}, {0.0f, height}
+    };
+    float offsetSquare = 0.f;
+    if (isWidthGreater) {
+        offsetSquare = (width - height) * degree / 2.0; // half of the change distance
+        width = width - (width - height) * degree;
+    } else {
+        offsetSquare = (height - width) * degree / 2.0; // half of the change distance
+        height = height - (height - width) * degree;
+    }
+
+    float segmentWidthOne = width / 3.0;
+    float segmentWidthTwo = width / 3.0 * 2.0;
+    float segmentHeightOne = height / 3.0;
+    float segmentHeightTwo = height / 3.0 * 2.0;
+    float offsetSphereWidth = width / 6 * degree;
+    float offsetSphereHeight = height / 6  * degree;
+
+    const int PointNum = 12;
+    Drawing::Point ctrlPoints[PointNum] = {
+        // top edge control points
+        {0.0f, 0.0f}, {segmentWidthOne, 0.0f}, {segmentWidthTwo, 0.0f}, {width, 0.0f},
+        // right edge control points
+        {width, segmentHeightOne}, {width, segmentHeightTwo},
+        // bottom edge control points
+        {width, height}, {segmentWidthTwo, height}, {segmentWidthOne, height}, {0.0f, height},
+        // left edge control points
+        {0.0f, segmentHeightTwo}, {0.0f, segmentHeightOne}
+    };
+    ctrlPoints[0].Offset(offsetSphereWidth, offsetSphereHeight); // top left control point
+    ctrlPoints[3].Offset(-offsetSphereWidth, offsetSphereHeight); // top right control point
+    ctrlPoints[6].Offset(-offsetSphereWidth, -offsetSphereHeight); // bottom right control point
+    ctrlPoints[9].Offset(offsetSphereWidth, -offsetSphereHeight); // bottom left control point
+    if (isWidthGreater) {
+        for (int i = 0; i < PointNum; ++i) {
+            ctrlPoints[i].Offset(offsetSquare, 0);
+        }
+    } else {
+        for (int i = 0; i < PointNum; ++i) {
+            ctrlPoints[i].Offset(0, offsetSquare);
+        }
+    }
+    Drawing::Path path;
+    path.MoveTo(ctrlPoints[0].GetX(), ctrlPoints[0].GetY());
+    path.CubicTo(ctrlPoints[1], ctrlPoints[2], ctrlPoints[3]); // upper edge
+    path.CubicTo(ctrlPoints[4], ctrlPoints[5], ctrlPoints[6]); // right edge
+    path.CubicTo(ctrlPoints[7], ctrlPoints[8], ctrlPoints[9]); // bottom edge
+    path.CubicTo(ctrlPoints[10], ctrlPoints[11], ctrlPoints[0]); // left edge
+    canvas.ClipPath(path, Drawing::ClipOp::INTERSECT, true);
+    canvas.DrawPatch(ctrlPoints, nullptr, texCoords, Drawing::BlendMode::SRC_OVER);
+    canvas.DetachBrush();
 }
 #endif
 
@@ -2342,7 +2411,7 @@ void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFi
                 canvas.restore();
 #endif
 #else
-                Drawing::Rect rect { fLeft, ftop, fRight, fBottom };
+                Drawing::Rect rect { left, top, right, bottom };
                 canvas.AttachBrush(brush);
                 image->CanvasDrawImage(canvas, rect, false);
                 canvas.DetachBrush();

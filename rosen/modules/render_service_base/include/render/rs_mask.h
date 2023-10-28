@@ -24,6 +24,7 @@
 #else
 #include "draw/brush.h"
 #include "draw/path.h"
+#include "recording/recording_path.h"
 #include "image/picture.h"
 #endif
 #if defined(NEW_SKIA)
@@ -74,6 +75,7 @@ public:
     std::shared_ptr<Drawing::Path> GetMaskPath() const;
     void SetMaskBrush(const Drawing::Brush& brush);
     Drawing::Brush GetMaskBrush() const;
+    bool MarshallingPathAndBrush(Parcel& parcel) const;
 #endif
     void SetSvgDom(const sk_sp<SkSVGDOM>& svgDom);
     sk_sp<SkSVGDOM> GetSvgDom() const;

@@ -72,6 +72,7 @@
 #include "src/core/SkVerticesPriv.h"
 #endif
 #else
+#include "recording/mask_cmd_list.h"
 #include "recording/recording_path.h"
 #include "recording/recording_shader_effect.h"
 #include "property/rs_properties_def.h"
@@ -1786,6 +1787,53 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
     val->SetupPixelMap(pixelMapVec);
     val->UnmarshallingOps();
     return ret;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::MaskCmdList>& val)
+{
+    if (!val) {
+        return parcel.WriteInt32(-1);
+    }
+    auto cmdListData = val->GetData();
+    bool ret = parcel.WriteInt32(cmdListData.second);
+
+    if (cmdListData.second == 0) {
+        ROSEN_LOGW("unirender: RSMarshallingHelper::Marshalling Drawing::MaskCmdList, size is 0");
+        return ret;
+    }
+
+    ret &= RSMarshallingHelper::WriteToParcel(parcel, cmdListData.first, cmdListData.second);
+    if (!ret) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::MaskCmdList");
+        return ret;
+    }
+
+    return ret;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::MaskCmdList>& val)
+{
+    int32_t size = parcel.ReadInt32();
+    if (size == -1) {
+        return true;
+    }
+    if (size == 0) {
+        ROSEN_LOGW("unirender: RSMarshallingHelper::Unmarshalling Drawing::MaskCmdList size is 0");
+        return true;
+    }
+
+    const void* data = RSMarshallingHelper::ReadFromParcel(parcel, size);
+    if (data == nullptr) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Drawing::MaskCmdList");
+        return false;
+    }
+
+    val = Drawing::MaskCmdList::CreateFromData({ data, size }, true);
+    if (val == nullptr) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Drawing::MaskCmdList is nullptr");
+        return false;
+    }
+    return true;
 }
 #endif
 
