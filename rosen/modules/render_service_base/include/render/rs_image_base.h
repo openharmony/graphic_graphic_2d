@@ -67,12 +67,13 @@ public:
     [[nodiscard]] static RSImageBase* Unmarshalling(Parcel& parcel);
 #endif
 
-protected:
 #ifndef USE_ROSEN_DRAWING
     void ConvertPixelMapToSkImage();
 #else
     void ConvertPixelMapToDrawingImage();
 #endif
+
+protected:
     void GenUniqueId(uint32_t id);
 #ifndef USE_ROSEN_DRAWING
     static bool UnmarshallingSkImageAndPixelMap(Parcel& parcel, uint64_t uniqueId, bool& useSkImage,
