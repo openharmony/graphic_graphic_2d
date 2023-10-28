@@ -128,7 +128,7 @@ GSError ProducerSurface::RequestBuffer(sptr<SurfaceBuffer>& buffer,
     }
 
     for (auto it = retval.deletingBuffers.begin(); it != retval.deletingBuffers.end(); it++) {
-        uint32_t seqNum = *it;
+        uint32_t seqNum = static_cast<uint32_t>(*it);
         bufferProducerCache_.erase(seqNum);
         auto spNativeWindow = wpNativeWindow_.promote();
         if (spNativeWindow != nullptr) {

@@ -37,7 +37,7 @@ public:
         void *userData_;
         VSyncCallback callback_;
     };
-    VSyncCallBackListener() : period_(0), vsyncCallbacks_(nullptr), userData_(nullptr)
+    VSyncCallBackListener() : period_(0), lastTimeStamp_(0), vsyncCallbacks_(nullptr), userData_(nullptr)
     {
     }
 
@@ -52,6 +52,7 @@ public:
     }
 
     int64_t period_;
+    int64_t lastTimeStamp_;
 
 private:
     void OnReadable(int32_t fileDescriptor) override;
@@ -79,6 +80,7 @@ public:
     virtual VsyncError RequestNextVSync(FrameCallback callback);
     virtual VsyncError SetVSyncRate(FrameCallback callback, int32_t rate);
     virtual VsyncError GetVSyncPeriod(int64_t &period);
+    virtual VsyncError GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_t &timeStamp);
 private:
     VsyncError Destroy();
     sptr<IVSyncConnection> connection_;
