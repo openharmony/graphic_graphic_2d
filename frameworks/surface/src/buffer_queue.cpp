@@ -600,6 +600,13 @@ GSError BufferQueue::AllocBuffer(sptr<SurfaceBuffer> &buffer,
         .fence = SyncFence::INVALID_FENCE,
     };
 
+    if (config.usage & BUFFER_USAGE_PROTECTED) {
+        BLOGE("handle usage is BUFFER_USAGE_PROTECTED, do not Map/UnMap");
+        bufferQueueCache_[sequence] = ele;
+        buffer = bufferImpl;
+        return ret;
+    }
+
     ret = bufferImpl->Map();
     if (ret == GSERROR_OK) {
         BLOGN_SUCCESS_ID(sequence, "Map");
