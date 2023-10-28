@@ -3531,7 +3531,6 @@ bool RSUniRenderVisitor::GenerateNodeContentCache(RSRenderNode& node)
             std::lock_guard<std::mutex> lock(groupedTransitionNodesMutex);
             groupedTransitionNodes.erase(node.GetId());
         }
-        return false;
     }
     return true;
 }
