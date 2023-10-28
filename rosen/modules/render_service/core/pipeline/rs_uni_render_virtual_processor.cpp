@@ -63,12 +63,9 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
         return false;
     }
     auto mirrorNode = node.GetMirrorSource().lock();
-    if (mirrorNode == nullptr) {
-        return false;
-    }
-    auto rotation = mirrorNode->GetScreenRotation();
     isPhone_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
     if (mirrorNode && node.IsFirstTimeToProcessor()) {
+        auto rotation = mirrorNode->GetScreenRotation();
         if (isPhone_) {
             node.setFirstTimeScreenRotation(rotation);
         } else {
@@ -81,7 +78,7 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
         RS_LOGD("RSUniRenderVirtualProcessor::Init, Screen(id %{public}" PRIu64 "), Rotation: %d", node.GetScreenId(),
             static_cast<uint32_t>(rotation));
     }
-    if (isPhone_) {
+    if (mirrorNode && isPhone_) {
         if (node.getFirstTimeScreenRotation() == ScreenRotation::ROTATION_90) {
             canvas_->rotate(90, renderFrameConfig_.height / 2, renderFrameConfig_.height / 2); // 90 degrees
             canvas_->translate(0, renderFrameConfig_.height - renderFrameConfig_.width);
