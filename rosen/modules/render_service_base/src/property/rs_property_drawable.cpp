@@ -127,17 +127,18 @@ const std::vector<RSPropertyDrawableSlot> RSPropertyDrawable::PropertyToDrawable
     RSPropertyDrawableSlot::COLOR_FILTER,                  // COLOR_BLEND,                   // 63
     RSPropertyDrawableSlot::PARTICLE_EFFECT,               // PARTICLE,                      // 64
     RSPropertyDrawableSlot::INVALID,                       // SHADOW_IS_FILLED               // 65
-    RSPropertyDrawableSlot::INVALID,                       // CUSTOM,                        // 66
-    RSPropertyDrawableSlot::INVALID,                       // EXTENDED,                      // 67
-    RSPropertyDrawableSlot::TRANSITION,                    // TRANSITION,                    // 68
-    RSPropertyDrawableSlot::BACKGROUND_STYLE,              // BACKGROUND_STYLE,              // 69
-    RSPropertyDrawableSlot::CONTENT_STYLE,                 // CONTENT_STYLE,                 // 70
-    RSPropertyDrawableSlot::FOREGROUND_STYLE,              // FOREGROUND_STYLE,              // 71
-    RSPropertyDrawableSlot::OVERLAY,                       // OVERLAY_STYLE,                 // 72
-    RSPropertyDrawableSlot::INVALID,                       // NODE_MODIFIER,                 // 73
-    RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR,          // ENV_FOREGROUND_COLOR,          // 74
-    RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY, // ENV_FOREGROUND_COLOR_STRATEGY, // 75
-    RSPropertyDrawableSlot::INVALID,                       // GEOMETRYTRANS,                 // 76
+    RSPropertyDrawableSlot::BLEND_MODE,                    // BLEND_MODE,                    // 66
+    RSPropertyDrawableSlot::INVALID,                       // CUSTOM,                        // 67
+    RSPropertyDrawableSlot::INVALID,                       // EXTENDED,                      // 68
+    RSPropertyDrawableSlot::TRANSITION,                    // TRANSITION,                    // 69
+    RSPropertyDrawableSlot::BACKGROUND_STYLE,              // BACKGROUND_STYLE,              // 70
+    RSPropertyDrawableSlot::CONTENT_STYLE,                 // CONTENT_STYLE,                 // 71
+    RSPropertyDrawableSlot::FOREGROUND_STYLE,              // FOREGROUND_STYLE,              // 72
+    RSPropertyDrawableSlot::OVERLAY,                       // OVERLAY_STYLE,                 // 73
+    RSPropertyDrawableSlot::INVALID,                       // NODE_MODIFIER,                 // 74
+    RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR,          // ENV_FOREGROUND_COLOR,          // 75
+    RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY, // ENV_FOREGROUND_COLOR_STRATEGY, // 76
+    RSPropertyDrawableSlot::INVALID,                       // GEOMETRYTRANS,                 // 77
 };
 
 const std::vector<RSPropertyDrawable::DrawableGenerator> RSPropertyDrawable::DrawableGeneratorLut = {

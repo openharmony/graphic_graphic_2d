@@ -323,6 +323,7 @@ public:
 
     void SetOutOfParent(OutOfParentType outOfParent);
 
+    void SetColorBlendMode(RSColorBlendModeType blendMode);
 protected:
     explicit RSNode(bool isRenderServiceNode);
     explicit RSNode(bool isRenderServiceNode, NodeId id);

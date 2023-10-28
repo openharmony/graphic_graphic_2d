@@ -56,6 +56,7 @@ enum RSPropertyDrawableSlot : uint8_t {
     DYNAMIC_LIGHT_UP,
     ENV_FOREGROUND_COLOR_STRATEGY,
     EXTRA_RESTORE_BOUNDS,
+    BLEND_MODE,
 
     // Frame Geometry
     SAVE_FRAME,
