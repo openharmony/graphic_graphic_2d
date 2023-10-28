@@ -18,8 +18,8 @@
 static napi_module _module = {
     .nm_version = 0,
     .nm_filename = "graphics/libgraphics_napi.so/colorSpaceManager.js",
-    .nm_modname = "graphics.colorSpaceManager",
     .nm_register_func = OHOS::ColorManager::JsColorSpaceManagerInit,
+    .nm_modname = "graphics.colorSpaceManager",
 };
 
 extern "C" __attribute__((constructor)) void NAPI_application_ColorSpaceManager_AotoRegister(void)
