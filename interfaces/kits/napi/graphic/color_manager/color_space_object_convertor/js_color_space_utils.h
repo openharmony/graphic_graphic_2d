@@ -217,7 +217,7 @@ bool CheckParamMinimumValid(napi_env env, const size_t paramNum, const size_t mi
 napi_value ColorSpaceTypeInit(napi_env env);
 napi_value CMErrorInit(napi_env env);
 napi_value CMErrorCodeInit(napi_env env);
-bool ParseJsDoubleValue(napi_value jsObject, napi_env engine, const std::string& name, double& data);
+bool ParseJsDoubleValue(napi_value jsObject, napi_env env, const std::string& name, double& data);
 }  // namespace ColorManager
 }  // namespace OHOS
 #endif // OHOS_JS_COLOR_SPACE_UTILS_H
