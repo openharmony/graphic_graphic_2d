@@ -31,13 +31,8 @@ public:
     explicit RSFrameGeometryDrawable() = default;
     ~RSFrameGeometryDrawable() override = default;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
-    void OnBoundsChange(const RSProperties& properties) override;
 
     static RSPropertyDrawable::DrawablePtr Generate(const RSPropertyDrawableGenerateContext& context);
-
-private:
-    float frameOffsetX_ { 0.0f };
-    float frameOffsetY_ { 0.0f };
 };
 
 // ============================================================================

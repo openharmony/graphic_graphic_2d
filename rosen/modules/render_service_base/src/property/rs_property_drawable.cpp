@@ -223,11 +223,7 @@ void RSPropertyDrawable::UpdateDrawableVec(RSPropertyDrawableGenerateContext& co
             continue;
         }
         auto drawable = generator(context);
-        if (!drawable) {
-            drawableVec[slot] = nullptr;
-        } else {
-            drawableVec[slot] = std::move(drawable);
-        }
+        drawableVec[slot] = std::move(drawable);
     }
     if (dirtySlots.count(RSPropertyDrawableSlot::BOUNDS_MATRIX)) {
         for (auto& drawable : drawableVec) {

@@ -32,17 +32,9 @@ class RSBoundsGeometryDrawable : public RSPropertyDrawable {
 public:
     explicit RSBoundsGeometryDrawable() = default;
     ~RSBoundsGeometryDrawable() override = default;
-    void OnBoundsMatrixChange(const RSProperties& properties) override;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 
     static RSPropertyDrawable::DrawablePtr Generate(const RSPropertyDrawableGenerateContext& context);
-
-private:
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix boundsMatrix_;
-#else
-    Drawing::Matrix boundsMatrix_;
-#endif
 };
 
 class RSClipBoundsDrawable : public RSPropertyDrawable {

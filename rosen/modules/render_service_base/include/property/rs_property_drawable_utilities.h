@@ -98,14 +98,6 @@ public:
     explicit RSAlphaOffscreenDrawable(float alpha);
 
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
-    void OnBoundsChange(const RSProperties& properties) override;
-
-private:
-#ifndef USE_ROSEN_DRAWING
-    SkRect rect_;
-#else
-    Drawing::Rect rect_;
-#endif
 };
 
 // ============================================================================

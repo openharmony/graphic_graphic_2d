@@ -112,7 +112,6 @@ public:
     using DrawablePtr = std::unique_ptr<RSPropertyDrawable>;
 
     virtual void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) = 0;
-    virtual void OnBoundsMatrixChange(const RSProperties& properties) {}
     virtual void OnBoundsChange(const RSProperties& properties) {}
 
     // Generator

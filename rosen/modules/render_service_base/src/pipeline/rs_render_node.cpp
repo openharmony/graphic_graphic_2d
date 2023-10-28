@@ -586,13 +586,6 @@ bool RSRenderNode::Update(
             modifier->Apply(context);
         }
     }
-    if (dirty) {
-        for (auto& value : propertyDrawablesVec_) {
-            if (value) {
-                value->OnBoundsMatrixChange(renderProperties_);
-            }
-        }
-    }
     isDirtyRegionUpdated_ = false;
     isLastVisible_ = ShouldPaint();
     renderProperties_.ResetDirty();

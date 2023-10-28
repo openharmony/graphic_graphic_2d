@@ -44,18 +44,14 @@ bool RSBackgroundDrawable::forceBgAntiAlias_ = true;
 void RSBoundsGeometryDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
 #ifndef USE_ROSEN_DRAWING
-    canvas.concat(boundsMatrix_);
+    canvas.concat(node.GetRenderProperties().GetBoundsGeometry()->GetMatrix());
 #else
-    canvas.ConcatMatrix(boundsMatrix_);
+    canvas.ConcatMatrix(node.GetRenderProperties().GetBoundsGeometry()->GetMatrix());
 #endif
 }
 RSPropertyDrawable::DrawablePtr RSBoundsGeometryDrawable::Generate(const RSPropertyDrawableGenerateContext& context)
 {
     return std::make_unique<RSBoundsGeometryDrawable>();
-}
-void RSBoundsGeometryDrawable::OnBoundsMatrixChange(const RSProperties& properties)
-{
-    boundsMatrix_ = properties.GetBoundsGeometry()->GetMatrix();
 }
 
 void RSClipBoundsDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)

@@ -25,15 +25,10 @@ namespace OHOS::Rosen {
 void RSFrameGeometryDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
 #ifndef USE_ROSEN_DRAWING
-    canvas.translate(frameOffsetX_, frameOffsetY_);
+    canvas.translate(node.GetRenderProperties().GetFrameOffsetX(), node.GetRenderProperties().GetFrameOffsetY());
 #else
-    canvas.Translate(frameOffsetX_, frameOffsetY_);
+    canvas.Translate(node.GetRenderProperties().GetFrameOffsetX(), node.GetRenderProperties().GetFrameOffsetY());
 #endif
-}
-void RSFrameGeometryDrawable::OnBoundsChange(const RSProperties& properties)
-{
-    frameOffsetX_ = properties.GetFrameOffsetX();
-    frameOffsetY_ = properties.GetFrameOffsetY();
 }
 RSPropertyDrawable::DrawablePtr RSFrameGeometryDrawable::Generate(const RSPropertyDrawableGenerateContext& context)
 {
