@@ -200,5 +200,25 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
+#else
+#include "recording/recording_canvas.h"
+#include "recording/draw_cmd.h"
+
+namespace OHOS {
+namespace Media {
+class PixelMap;
+}
+namespace Rosen {
+class RSB_EXPORT ExtendRecordingCanvas : public Drawing::RecordingCanvas {
+public:
+    ExtendRecordingCanvas(int width, int weight);
+    ~ExtendRecordingCanvas() override = default;
+    void DrawImageWithParm(const std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Data>& data,
+        const Drawing::AdaptiveImageInfo& rsImageInfo, const Drawing::SamplingOptions& sampling);
+    void DrawExtendPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap,
+        const Drawing::AdaptiveImageInfo& rsImageInfo, const Drawing::SamplingOptions& sampling);
+};
+} // namespace Rosen
+} // namespace OHOS
 #endif // USE_ROSEN_DRAWING
 #endif // RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RECORDING_CANVAS_H

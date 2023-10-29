@@ -117,7 +117,7 @@ void RSCanvasNode::DrawOnNode(RSModifierType type, DrawFunc func)
     auto recordingCanvas = std::make_shared<RSRecordingCanvas>(GetPaintWidth(), GetPaintHeight());
     recordingCanvas->SetIsCustomTextType(isCustomTextType_);
 #else
-    auto recordingCanvas = std::make_shared<Drawing::RecordingCanvas>(GetPaintWidth(), GetPaintHeight());
+    auto recordingCanvas = std::make_shared<ExtendRecordingCanvas>(GetPaintWidth(), GetPaintHeight());
 #endif
     func(recordingCanvas);
     auto transactionProxy = RSTransactionProxy::GetInstance();

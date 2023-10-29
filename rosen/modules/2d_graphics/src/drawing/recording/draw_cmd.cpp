@@ -90,6 +90,8 @@ std::unordered_map<uint32_t, CanvasPlayer::PlaybackFunc> CanvasPlayer::opPlaybac
     { DrawOpItem::CLIP_ADAPTIVE_ROUND_RECT_OPITEM, ClipAdaptiveRoundRectOpItem::Playback},
     { DrawOpItem::ADAPTIVE_IMAGE_OPITEM,    DrawAdaptiveImageOpItem::Playback},
     { DrawOpItem::ADAPTIVE_PIXELMAP_OPITEM, DrawAdaptivePixelMapOpItem::Playback},
+    { DrawOpItem::EXTEND_PIXELMAP_OPITEM,   DrawExtendPixelMapOpItem::Playback},
+    { DrawOpItem::IMAGE_WITH_PARM_OPITEM,   DrawImageWithParmOpItem::Playback},
     { DrawOpItem::REGION_OPITEM,            DrawRegionOpItem::Playback },
     { DrawOpItem::PATCH_OPITEM,             DrawPatchOpItem::Playback },
     { DrawOpItem::EDGEAAQUAD_OPITEM, DrawEdgeAAQuadOpItem::Playback },
@@ -1946,6 +1948,101 @@ void DrawAdaptivePixelMapOpItem::Playback(Canvas& canvas, const CmdList& cmdList
     }
 
     AdaptiveImageHelper::DrawPixelMap(canvas, rect, pixelMap, imageInfo_, smapling_);
+}
+
+DrawImageWithParmOpItem::DrawImageWithParmOpItem(const ImageHandle& objectHandle, const SamplingOptions& sampling)
+    : DrawOpItem(IMAGE_WITH_PARM_OPITEM), objectHandle_(objectHandle), sampling_(sampling) {}
+
+void DrawImageWithParmOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    if (opItem != nullptr) {
+        auto* op = static_cast<DrawImageWithParmOpItem*>(opItem);
+        op->Unmarshalling(cmdList);
+    }
+}
+
+void DrawImageWithParmOpItem::Unmarshalling(const CmdList& cmdList)
+{
+    auto extendObject = CmdListHelper::GetImageObjectFromCmdList(cmdList, objectHandle_);
+    if (extendObject == nullptr) {
+        LOGE("extendObject is nullptr!");
+        return;
+    }
+
+    playbackTask_ = [this, extendObject](Canvas& canvas, const Rect& rect) {
+        extendObject->Playback(canvas, rect, sampling_, false);
+    };
+}
+
+void DrawImageWithParmOpItem::Playback(CanvasPlayer& player, void* opItem)
+{
+    if (opItem != nullptr) {
+        auto* op = static_cast<const DrawImageWithParmOpItem*>(opItem);
+        op->Playback(player.canvas_, player.cmdList_, player.rect_);
+    }
+}
+
+void DrawImageWithParmOpItem::Playback(Canvas& canvas, const CmdList& cmdList, const Rect& rect) const
+{
+    if (playbackTask_) {
+        playbackTask_(canvas, rect);
+        return;
+    }
+
+    auto extendObject = CmdListHelper::GetImageObjectFromCmdList(cmdList, objectHandle_);
+    if (extendObject == nullptr) {
+        LOGE("extendObject is nullptr!");
+        return;
+    }
+    extendObject->Playback(canvas, rect, sampling_, false);
+}
+
+DrawExtendPixelMapOpItem::DrawExtendPixelMapOpItem(const ImageHandle& objectHandle, const SamplingOptions& sampling)
+    : DrawOpItem(EXTEND_PIXELMAP_OPITEM), objectHandle_(objectHandle), sampling_(sampling) {}
+
+void DrawExtendPixelMapOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    if (opItem != nullptr) {
+        auto* op = static_cast<DrawExtendPixelMapOpItem*>(opItem);
+        op->Unmarshalling(cmdList);
+    }
+}
+
+void DrawExtendPixelMapOpItem::Unmarshalling(const CmdList& cmdList)
+{
+    auto extendObject = CmdListHelper::GetImageObjectFromCmdList(cmdList, objectHandle_);
+    if (extendObject == nullptr) {
+        LOGE("extendObject is nullptr!");
+        return;
+    }
+
+    playbackTask_ = [this, extendObject](Canvas& canvas, const Rect& rect) {
+        extendObject->Playback(canvas, rect, sampling_, false);
+    };
+}
+
+
+void DrawExtendPixelMapOpItem::Playback(CanvasPlayer& player, void* opItem)
+{
+    if (opItem != nullptr) {
+        auto* op = static_cast<const DrawExtendPixelMapOpItem*>(opItem);
+        op->Playback(player.canvas_, player.cmdList_, player.rect_);
+    }
+}
+
+void DrawExtendPixelMapOpItem::Playback(Canvas& canvas, const CmdList& cmdList, const Rect& rect) const
+{
+    if (playbackTask_) {
+        playbackTask_(canvas, rect);
+        return;
+    }
+
+    auto extendObject = CmdListHelper::GetImageObjectFromCmdList(cmdList, objectHandle_);
+    if (extendObject == nullptr) {
+        LOGE("extendObject is nullptr!");
+        return;
+    }
+    extendObject->Playback(canvas, rect, sampling_, false);
 }
 } // namespace Drawing
 } // namespace Rosen

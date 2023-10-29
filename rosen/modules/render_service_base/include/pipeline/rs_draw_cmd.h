@@ -1564,5 +1564,30 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
+#else
+#include "render/rs_image.h"
+#include "recording/draw_cmd_list.h"
+#include "recording/adaptive_image_helper.h"
+#include "draw/canvas.h"
+#include "parcel.h"
+
+namespace OHOS {
+namespace Rosen {
+class RSB_EXPORT RSExtendImageObject : public Drawing::ExtendImageObject {
+public:
+    RSExtendImageObject() = default;
+    RSExtendImageObject(const std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Data>& data,
+        const Drawing::AdaptiveImageInfo& imageInfo);
+    RSExtendImageObject(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::AdaptiveImageInfo& imageInfo);
+    ~RSExtendImageObject() override = default;
+    void Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect,
+        const Drawing::SamplingOptions& sampling, bool isBackground = false) override;
+    bool Marshalling(Parcel &parcel) const;
+    static RSExtendImageObject *Unmarshalling(Parcel &parcel);
+protected:
+    std::shared_ptr<RSImage> rsImage_;
+};
+} // namespace Rosen
+} // namespace OHOS
 #endif // USE_ROSEN_DRAWING
 #endif // RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_H

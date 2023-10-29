@@ -47,6 +47,9 @@ public:
     static ImageHandle AddPixelMapToCmdList(CmdList& cmdList, const std::shared_ptr<Media::PixelMap>& pixelMap);
     static std::shared_ptr<Media::PixelMap> GetPixelMapFromCmdList(
         const CmdList& cmdList, const ImageHandle& pixelMapHandle);
+    static ImageHandle AddImageObjectToCmdList(CmdList& cmdList, const std::shared_ptr<ExtendImageObject>& object);
+    static std::shared_ptr<ExtendImageObject> GetImageObjectFromCmdList(
+        const CmdList& cmdList, const ImageHandle& objectHandle);
     static ImageHandle AddPictureToCmdList(CmdList& cmdList, const Picture& picture);
     static std::shared_ptr<Picture> GetPictureFromCmdList(const CmdList& cmdList, const ImageHandle& pictureHandle);
     static ImageHandle AddCompressDataToCmdList(CmdList& cmdList, const std::shared_ptr<Data>& data);

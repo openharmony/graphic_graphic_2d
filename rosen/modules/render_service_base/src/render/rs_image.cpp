@@ -67,7 +67,8 @@ void RSImage::CanvasDrawImage(SkCanvas& canvas, const SkRect& rect, const SkPain
         SkAutoCanvasRestore acr(&canvas, HasRadius());
         frameRect_.SetAll(rect.left(), rect.top(), rect.width(), rect.height());
 #else
-void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect, bool isBackground)
+void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect,
+    const Drawing::SamplingOptions& samplingOptions, bool isBackground)
 {
     canvas.Save();
     frameRect_.SetAll(rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight());
@@ -88,7 +89,7 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
     DrawImageRepeatRect(paint, canvas);
 #endif
 #else
-    DrawImageRepeatRect(canvas);
+    DrawImageRepeatRect(samplingOptions, canvas);
     canvas.Restore();
 #endif
 }
@@ -198,6 +199,9 @@ void RSImage::ApplyCanvasClip(SkCanvas& canvas)
 #else
 void RSImage::ApplyCanvasClip(Drawing::Canvas& canvas)
 {
+    if (!HasRadius()) {
+        return;
+    }
     auto rect = (imageRepeat_ == ImageRepeat::NO_REPEAT) ? dstRect_.IntersectRect(frameRect_) : frameRect_;
     Drawing::RoundRect rrect(RSPropertiesPainter::Rect2DrawingRect(rect), radius_);
     canvas.ClipRoundRect(rrect, Drawing::ClipOp::INTERSECT, true);
@@ -297,7 +301,7 @@ void RSImage::DrawImageRepeatRect(const SkSamplingOptions& samplingOptions, cons
 void RSImage::DrawImageRepeatRect(const SkPaint& paint, SkCanvas& canvas)
 #endif
 #else
-void RSImage::DrawImageRepeatRect(Drawing::Canvas& canvas)
+void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas)
 #endif
 {
     int minX = 0;
@@ -364,7 +368,6 @@ void RSImage::DrawImageRepeatRect(Drawing::Canvas& canvas)
 #else
             auto dst = Drawing::Rect(dstRect_.left_ + i * dstRect_.width_, dstRect_.top_ + j * dstRect_.height_,
                 dstRect_.left_ + (i + 1) * dstRect_.width_, dstRect_.top_ + (j + 1) * dstRect_.height_);
-            Drawing::SamplingOptions samplingOptions;
             canvas.DrawImageRect(*image_, src, dst, samplingOptions,
                 Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
 #endif

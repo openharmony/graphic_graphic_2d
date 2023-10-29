@@ -140,6 +140,8 @@ public:
         CLIP_ADAPTIVE_ROUND_RECT_OPITEM,
         ADAPTIVE_IMAGE_OPITEM,
         ADAPTIVE_PIXELMAP_OPITEM,
+        EXTEND_PIXELMAP_OPITEM,
+        IMAGE_WITH_PARM_OPITEM,
         REGION_OPITEM,
         PATCH_OPITEM,
         EDGEAAQUAD_OPITEM,
@@ -925,6 +927,40 @@ private:
     ImageHandle pixelMap_;
     AdaptiveImageInfo imageInfo_;
     SamplingOptions smapling_;
+    std::function<void(Canvas&, const Rect&)> playbackTask_ = nullptr;
+};
+
+class DrawExtendPixelMapOpItem : public DrawOpItem {
+public:
+    DrawExtendPixelMapOpItem(const ImageHandle& objectHandle, const SamplingOptions& sampling);
+    ~DrawExtendPixelMapOpItem() = default;
+
+    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    void Unmarshalling(const CmdList& cmdList);
+
+    static void Playback(CanvasPlayer& player, void* opItem);
+    void Playback(Canvas& canvas, const CmdList& cmdList, const Rect& rect) const;
+
+private:
+    ImageHandle objectHandle_;
+    SamplingOptions sampling_;
+    std::function<void(Canvas&, const Rect&)> playbackTask_ = nullptr;
+};
+
+class DrawImageWithParmOpItem : public DrawOpItem {
+public:
+    DrawImageWithParmOpItem(const ImageHandle& objectHandle, const SamplingOptions& sampling);
+    ~DrawImageWithParmOpItem() = default;
+
+    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    void Unmarshalling(const CmdList& cmdList);
+
+    static void Playback(CanvasPlayer& player, void* opItem);
+    void Playback(Canvas& canvas, const CmdList& cmdList, const Rect& rect) const;
+
+private:
+    ImageHandle objectHandle_;
+    SamplingOptions sampling_;
     std::function<void(Canvas&, const Rect&)> playbackTask_ = nullptr;
 };
 } // namespace Drawing

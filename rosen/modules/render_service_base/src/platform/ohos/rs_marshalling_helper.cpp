@@ -49,6 +49,7 @@
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
 #include "transaction/rs_ashmem_helper.h"
+#include "pipeline/rs_draw_cmd.h"
 
 #ifndef USE_ROSEN_DRAWING
 #include "include/core/SkDrawable.h"
@@ -65,7 +66,6 @@
 #include "src/core/SkWriteBuffer.h"
 #include "src/image/SkImage_Base.h"
 
-#include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #ifdef NEW_SKIA
 #include "include/core/SkSamplingOptions.h"
@@ -1714,16 +1714,17 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
         }
     }
 
-    std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVec;
-    uint32_t pixelMapSize = val->GetAllPixelMap(pixelMapVec);
-    ret &= parcel.WriteUint32(pixelMapSize);
-    if (pixelMapSize == 0) {
+    std::vector<std::shared_ptr<Drawing::ExtendImageObject>> objectVec;
+    uint32_t objectSize = val->GetAllObject(objectVec);
+    ret &= parcel.WriteUint32(objectSize);
+    if (objectSize == 0) {
         return ret;
     }
-    for (const auto& pixelMap : pixelMapVec) {
-        ret &= RSMarshallingHelper::Marshalling(parcel, pixelMap);
+    for (const auto& object : objectVec) {
+        auto rsObject = std::static_pointer_cast<RSExtendImageObject>(object);
+        ret &= RSMarshallingHelper::Marshalling(parcel, rsObject);
         if (!ret) {
-            ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList pixelMap");
+            ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList imageObject");
             return ret;
         }
     }
@@ -1768,25 +1769,53 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         val->SetUpImageData(imageData, imageSize);
     }
 
-    uint32_t pixelMapSize = parcel.ReadUint32();
-    if (pixelMapSize == 0) {
+    uint32_t objectSize = parcel.ReadUint32();
+    if (objectSize == 0) {
         val->UnmarshallingOps();
         return true;
     }
     bool ret = true;
-    std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVec;
-    for (uint32_t i = 0; i < pixelMapSize; i++) {
-        std::shared_ptr<Media::PixelMap> pixelMap = std::make_shared<Media::PixelMap>();
-        ret &= RSMarshallingHelper::Unmarshalling(parcel, pixelMap);
+    std::vector<std::shared_ptr<Drawing::ExtendImageObject>> imageObjectVec;
+    for (uint32_t i = 0; i < objectSize; i++) {
+        std::shared_ptr<RSExtendImageObject> object;
+        ret &= RSMarshallingHelper::Unmarshalling(parcel, object);
         if (!ret) {
-            ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling DrawCmdList pixelMap: %{public}d", i);
+            ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling DrawCmdList imageObject: %{public}d", i);
             return ret;
         }
-        pixelMapVec.emplace_back(pixelMap);
+        imageObjectVec.emplace_back(object);
     }
-    val->SetupPixelMap(pixelMapVec);
+    val->SetupObject(imageObjectVec);
     val->UnmarshallingOps();
     return ret;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSExtendImageObject>& val)
+{
+    if (!val) {
+        return parcel.WriteInt32(-1);
+    }
+    if (!(parcel.WriteInt32(1) && val->Marshalling(parcel))) {
+        ROSEN_LOGE("failed RSMarshallingHelper::Marshalling imageObject");
+        return false;
+    }
+
+    return true;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSExtendImageObject>& val)
+{
+    if (parcel.ReadInt32() == -1) {
+        val = nullptr;
+        return true;
+    }
+    val.reset(RSExtendImageObject::Unmarshalling(parcel));
+    if (val == nullptr) {
+        ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling imageObject");
+        return false;
+    }
+
+    return true;
 }
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::MaskCmdList>& val)

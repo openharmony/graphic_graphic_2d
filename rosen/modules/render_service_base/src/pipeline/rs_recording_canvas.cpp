@@ -602,4 +602,35 @@ bool RSRecordingCanvas::IsCustomTextType() const
 }
 } // namespace Rosen
 } // namespace OHOS
+
+#else
+#include "pipeline/rs_recording_canvas.h"
+#include "pipeline/rs_draw_cmd.h"
+#include "recording/cmd_list_helper.h"
+
+namespace OHOS {
+namespace Rosen {
+
+ExtendRecordingCanvas::ExtendRecordingCanvas(int width, int weight) : Drawing::RecordingCanvas(width, height) {}
+
+void ExtendRecordingCanvas::DrawImageWithParm(
+    const std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Data>& data,
+    const Drawing::AdaptiveImageInfo& rsImageInfo, const Drawing::SamplingOptions& sampling)
+{
+    auto object = std::make_shared<RSExtendImageObject>(image, data, rsImageInfo);
+    auto objectHandle =
+        Drawing::CmdListHelper::AddImageObjectToCmdList(*Drawing::RecordingCanvas::GetCmdList(), object);
+    Drawing::RecordingCanvas::GetDrawCmdList()->AddOp<Drawing::DrawImageWithParmOpItem>(objectHandle, sampling);
+}
+
+void ExtendRecordingCanvas::DrawExtendPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap,
+    const Drawing::AdaptiveImageInfo& rsImageInfo, const Drawing::SamplingOptions& sampling)
+{
+    auto object = std::make_shared<RSExtendImageObject>(pixelMap, rsImageInfo);
+    auto objectHandle =
+        Drawing::CmdListHelper::AddImageObjectToCmdList(*Drawing::RecordingCanvas::GetCmdList(), object);
+    Drawing::RecordingCanvas::GetDrawCmdList()->AddOp<Drawing::DrawExtendPixelMapOpItem>(objectHandle, sampling);
+}
+} // namespace Rosen
+} // namespace OHOS
 #endif // USE_ROSEN_DRAWING

@@ -83,7 +83,7 @@ public:
     Slant GetSlant() const { return (Slant)((fValue >> BIT24) & 0xFF); }
 
 private:
-    int32_t fValue;
+    uint32_t fValue;
 };
 } // namespace Drawing
 } // namespace Rosen

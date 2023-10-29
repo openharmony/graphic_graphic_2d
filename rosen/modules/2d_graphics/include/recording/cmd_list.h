@@ -22,6 +22,7 @@
 #include "draw/color.h"
 #include "recording/op_item.h"
 #include "recording/mem_allocator.h"
+#include "recording/adaptive_image_helper.h"
 #include "utils/drawing_macros.h"
 
 namespace OHOS {
@@ -53,6 +54,13 @@ struct CmdListHandle {
 };
 
 using CmdListData = std::pair<const void*, size_t>;
+
+class DRAWING_API ExtendImageObject {
+public:
+    virtual ~ExtendImageObject() = default;
+    virtual void Playback(Canvas& canvas, const Rect& rect,
+        const SamplingOptions& sampling, bool isBackground = false) = 0;
+};
 
 class DRAWING_API CmdList {
 public:
@@ -143,6 +151,26 @@ public:
      */
     uint32_t SetupPixelMap(const std::vector<std::shared_ptr<Media::PixelMap>>& pixelMapList);
 
+    /*
+     * @brief  return imageObject index, negative is error.
+     */
+    uint32_t AddImageObject(const std::shared_ptr<ExtendImageObject>& object);
+
+    /*
+     * @brief  get imageObject by index.
+     */
+    std::shared_ptr<ExtendImageObject> GetImageObject(uint32_t id);
+
+    /*
+     * @brief  return imageObject size, 0 is no imageObject.
+     */
+    uint32_t GetAllObject(std::vector<std::shared_ptr<ExtendImageObject>>& objectList);
+
+    /*
+     * @brief  return real setup imageObject size.
+     */
+    uint32_t SetupObject(const std::vector<std::shared_ptr<ExtendImageObject>>& objectList);
+
     CmdList(CmdList&&) = delete;
     CmdList(const CmdList&) = delete;
     CmdList& operator=(CmdList&&) = delete;
@@ -156,6 +184,8 @@ protected:
 #ifdef SUPPORT_OHOS_PIXMAP
     std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVec_;
     std::mutex pixelMapMutex_;
+    std::vector<std::shared_ptr<ExtendImageObject>> imageObjectVec_;
+    std::mutex imageObjectMutex_;
 #endif
 };
 } // namespace Drawing
