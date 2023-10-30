@@ -127,18 +127,19 @@ const std::vector<RSPropertyDrawableSlot> RSPropertyDrawable::PropertyToDrawable
     RSPropertyDrawableSlot::COLOR_FILTER,                  // COLOR_BLEND,                   // 63
     RSPropertyDrawableSlot::PARTICLE_EFFECT,               // PARTICLE,                      // 64
     RSPropertyDrawableSlot::INVALID,                       // SHADOW_IS_FILLED               // 65
-    RSPropertyDrawableSlot::INVALID,                       // BLEND_MODE,                    // 66
-    RSPropertyDrawableSlot::INVALID,                       // CUSTOM,                        // 67
-    RSPropertyDrawableSlot::INVALID,                       // EXTENDED,                      // 68
-    RSPropertyDrawableSlot::TRANSITION,                    // TRANSITION,                    // 69
-    RSPropertyDrawableSlot::BACKGROUND_STYLE,              // BACKGROUND_STYLE,              // 70
-    RSPropertyDrawableSlot::CONTENT_STYLE,                 // CONTENT_STYLE,                 // 71
-    RSPropertyDrawableSlot::FOREGROUND_STYLE,              // FOREGROUND_STYLE,              // 72
-    RSPropertyDrawableSlot::OVERLAY,                       // OVERLAY_STYLE,                 // 73
-    RSPropertyDrawableSlot::INVALID,                       // NODE_MODIFIER,                 // 74
-    RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR,          // ENV_FOREGROUND_COLOR,          // 75
-    RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY, // ENV_FOREGROUND_COLOR_STRATEGY, // 76
-    RSPropertyDrawableSlot::INVALID,                       // GEOMETRYTRANS,                 // 77
+    RSPropertyDrawableSlot::SAVE_LAYER_1,                  // BLEND_MODE,                    // 66
+    RSPropertyDrawableSlot::SAVE_LAYER_2,                  // BLEND_MODE,                    // 67
+    RSPropertyDrawableSlot::INVALID,                       // CUSTOM,                        // 68
+    RSPropertyDrawableSlot::INVALID,                       // EXTENDED,                      // 69
+    RSPropertyDrawableSlot::TRANSITION,                    // TRANSITION,                    // 70
+    RSPropertyDrawableSlot::BACKGROUND_STYLE,              // BACKGROUND_STYLE,              // 71
+    RSPropertyDrawableSlot::CONTENT_STYLE,                 // CONTENT_STYLE,                 // 72
+    RSPropertyDrawableSlot::FOREGROUND_STYLE,              // FOREGROUND_STYLE,              // 73
+    RSPropertyDrawableSlot::OVERLAY,                       // OVERLAY_STYLE,                 // 74
+    RSPropertyDrawableSlot::INVALID,                       // NODE_MODIFIER,                 // 75
+    RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR,          // ENV_FOREGROUND_COLOR,          // 76
+    RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY, // ENV_FOREGROUND_COLOR_STRATEGY, // 77
+    RSPropertyDrawableSlot::INVALID,                       // GEOMETRYTRANS,                 // 78
 };
 
 const std::vector<RSPropertyDrawable::DrawableGenerator> RSPropertyDrawable::DrawableGeneratorLut = {
@@ -154,6 +155,7 @@ const std::vector<RSPropertyDrawable::DrawableGenerator> RSPropertyDrawable::Dra
     RSShadowDrawable::Generate,                                  // SHADOW,
 
     // In Bounds Clip
+    RSSavelayer1Drawable::Generate,                                       // COLOR_BLENDMODE,SAVE_LAYER_1
     nullptr,                                                              // SAVE_BOUNDS,
     nullptr,                                                              // CLIP_TO_BOUNDS,
     RSBackgroundColorDrawable::Generate,                                  // BACKGROUND_COLOR,
@@ -165,6 +167,7 @@ const std::vector<RSPropertyDrawable::DrawableGenerator> RSPropertyDrawable::Dra
     RSDynamicLightUpDrawable::Generate,                                   // DYNAMIC_LIGHT_UP,
     CustomModifierAdapter<RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY>, // ENV_FOREGROUND_COLOR_STRATEGY
     nullptr,                                                              // RESTORE_BOUNDS_BEFORE_FRAME,
+    RSSavelayer2Drawable::Generate,                                       // SAVE_LAYER_2
 
     // Frame Geometry
     nullptr,                                                 // SAVE_FRAME,
@@ -231,6 +234,12 @@ void RSPropertyDrawable::UpdateDrawableVec(RSPropertyDrawableGenerateContext& co
                 drawable->OnBoundsChange(context.properties_);
             }
         }
+    }
+
+    if (drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_1] != nullptr) {
+        drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_2] = RSSavelayer2Drawable::Generate(context);
+    } else {
+        drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_2] = nullptr;
     }
 
     auto drawableVecStatusNew = CalculateDrawableVecStatus(context, drawableVec);

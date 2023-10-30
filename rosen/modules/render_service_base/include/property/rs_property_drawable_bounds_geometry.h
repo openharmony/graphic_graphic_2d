@@ -22,6 +22,7 @@
 #include "include/core/SkPath.h"
 #include "include/core/SkRRect.h"
 
+#include "property/rs_properties_def.h"
 #include "property/rs_property_drawable.h"
 #include "render/rs_skia_filter.h"
 
@@ -539,5 +540,26 @@ private:
     std::shared_ptr<RSFilter> filter_ = nullptr;
 };
 
+// ============================================================================
+// SaveLayer1
+class RSSavelayer1Drawable : public RSPropertyDrawable {
+public:
+    explicit RSSavelayer1Drawable() = default;
+    ~RSSavelayer1Drawable() override = default;
+    static std::unique_ptr<RSPropertyDrawable> Generate(const RSPropertyDrawableGenerateContext& context);
+    void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
+};
+
+// SaveLayer2
+class RSSavelayer2Drawable : public RSPropertyDrawable {
+public:
+    explicit RSSavelayer2Drawable(int blendMode) : blendMode_(blendMode) {}
+    ~RSSavelayer2Drawable() override = default;
+    static std::unique_ptr<RSPropertyDrawable> Generate(const RSPropertyDrawableGenerateContext& context);
+    void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
+
+private:
+    int blendMode_ = static_cast<int>(RSColorBlendModeType::NONE);
+};
 };     // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_BOUNDS_GEOMETRY_H
