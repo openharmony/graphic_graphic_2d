@@ -186,7 +186,7 @@ HWTEST_F(SurfaceBufferImplTest, Metadata001, Function | MediumTest | Level2)
 
     CM_ColorSpaceType setMetadata = CM_BT709_LIMIT;
     std::vector<uint8_t> setData;
-    ASSERT_EQ(MetadataManager::ConvertMetadataToVec(setMetadata, setData), 0);
+    ASSERT_EQ(MetadataManager::ConvertMetadataToVec(setMetadata, setData), OHOS::GSERROR_OK);
     sret = sbi->SetMetadata(metadataKey, setData);
     ASSERT_EQ(sret, OHOS::GSERROR_OK);
 
@@ -194,7 +194,7 @@ HWTEST_F(SurfaceBufferImplTest, Metadata001, Function | MediumTest | Level2)
     sret = sbi->GetMetadata(metadataKey, getData);
     ASSERT_EQ(sret, OHOS::GSERROR_OK);
     CM_ColorSpaceType getMetadata;
-    ASSERT_EQ(MetadataManager::ConvertVecToMetadata(getData, getMetadata), 0);
+    ASSERT_EQ(MetadataManager::ConvertVecToMetadata(getData, getMetadata), OHOS::GSERROR_OK);
 
     ASSERT_EQ(setMetadata, getMetadata);
 

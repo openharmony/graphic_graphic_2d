@@ -560,7 +560,7 @@ GSError SurfaceBufferImpl::ListMetadataKeys(std::vector<uint32_t>& keys)
         return GSERROR_API_FAILED;
     }
     keys.clear();
-    auto dret = g_displayBuffer->ListMetadataKeys(*handle_, keys);
+    auto dret = g_displayBuffer->ListMetadataKey(*handle_, keys);
     if (dret == GRAPHIC_DISPLAY_SUCCESS) {
         return GSERROR_OK;
     }

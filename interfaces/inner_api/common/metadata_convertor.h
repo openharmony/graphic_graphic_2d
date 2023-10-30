@@ -20,30 +20,32 @@
 
 #include <securec.h>
 
+#include "graphic_common.h"
+
 namespace OHOS {
 namespace MetadataManager {
 // 0 for success, -1 for fail
 template <typename T>
-static int32_t ConvertMetadataToVec(const T& metadata, std::vector<uint8_t>& data)
+static GSError ConvertMetadataToVec(const T& metadata, std::vector<uint8_t>& data)
 {
     data.resize(sizeof(T));
     if (memcpy_s(data.data(), data.size(), &metadata, sizeof(T)) != EOK) {
-        return -1;
+        return GSERROR_API_FAILED;
     }
-    return 0;
+    return GSERROR_OK;
 }
 
 template <typename T>
 static int32_t ConvertVecToMetadata(const std::vector<uint8_t>& data, T& metadata)
 {
     if (data.size() != sizeof(T)) {
-        return -1;
+        return GSERROR_NOT_SUPPORT;
     }
 
     if (memcpy_s(&metadata, sizeof(T), data.data(), data.size()) != EOK) {
-        return -1;
+        return GSERROR_API_FAILED;
     }
-    return 0;
+    return GSERROR_OK;
 }
 } // namespace MetadataManager
 } // namespace OHOS
