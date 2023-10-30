@@ -57,6 +57,7 @@ public:
     void PrepareEffectRenderNode(RSEffectRenderNode& node) override;
 
     void ProcessChildren(RSRenderNode& node) override;
+    void ProcessChildInner(RSRenderNode& node, const RSRenderNode::SharedPtr& child);
     void ProcessCanvasRenderNode(RSCanvasRenderNode& node) override;
     void ProcessDisplayRenderNode(RSDisplayRenderNode& node) override;
     void ProcessProxyRenderNode(RSProxyRenderNode& node) override;
