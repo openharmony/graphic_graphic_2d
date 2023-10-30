@@ -2591,12 +2591,27 @@ void RSUniRenderVisitor::UpdateHardwareNodeStatusBasedOnFilter(std::shared_ptr<R
     // remove invisible surface since occlusion
     auto visibleRegion = node->GetVisibleRegion();
     for (auto subNode : node->GetChildHardwareEnabledNodes()) {
-        if (auto childNode = subNode.lock()) {
-            // recover disabled state before update
-            childNode->SetHardwareForcedDisabledStateByFilter(false);
-            if (visibleRegion.IsIntersectWith(Occlusion::Rect(childNode->GetOldDirtyInSurface()))) {
-                curHwcEnabledNodes.emplace_back(std::make_pair(subNode, node));
+        auto childNode = subNode.lock();
+        if (!childNode) {
+            continue;
+        }
+        // recover disabled state before update
+        childNode->SetHardwareForcedDisabledStateByFilter(false);
+        if (!visibleRegion.IsIntersectWith(Occlusion::Rect(childNode->GetOldDirtyInSurface()))) {
+            continue;
+        }
+        bool isIntersected = false;
+        if (isPhone_) {
+            for (auto &hwcNode: curHwcEnabledNodes) {
+                if (childNode->GetDstRect().Intersect(hwcNode.first->GetDstRect())) {
+                    childNode->SetHardwareForcedDisabledStateByFilter(true);
+                    isIntersected = true;
+                    break;
+                }
             }
+        }
+        if (!isPhone_ || !isIntersected) {
+            curHwcEnabledNodes.emplace_back(std::make_pair(subNode, node));
         }
     }
     // Within App: disable hwc if intersect with filterRects
