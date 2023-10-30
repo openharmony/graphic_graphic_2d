@@ -127,7 +127,7 @@ const std::vector<RSPropertyDrawableSlot> RSPropertyDrawable::PropertyToDrawable
     RSPropertyDrawableSlot::COLOR_FILTER,                  // COLOR_BLEND,                   // 63
     RSPropertyDrawableSlot::PARTICLE_EFFECT,               // PARTICLE,                      // 64
     RSPropertyDrawableSlot::INVALID,                       // SHADOW_IS_FILLED               // 65
-    RSPropertyDrawableSlot::BLEND_MODE,                    // BLEND_MODE,                    // 66
+    RSPropertyDrawableSlot::INVALID,                       // BLEND_MODE,                    // 66
     RSPropertyDrawableSlot::INVALID,                       // CUSTOM,                        // 67
     RSPropertyDrawableSlot::INVALID,                       // EXTENDED,                      // 68
     RSPropertyDrawableSlot::TRANSITION,                    // TRANSITION,                    // 69
