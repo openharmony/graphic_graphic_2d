@@ -427,6 +427,13 @@ int RSUniRenderUtil::GetRotationFromMatrix(SkMatrix matrix)
     auto iter = supportedDegrees.find(rAngle);
     return iter != supportedDegrees.end() ? iter->second : 0;
 }
+
+int RSUniRenderUtil::GetRotationDegreeFromMatrix(SkMatrix matrix)
+{
+    float value[9];
+    matrix.get9(value);
+    return static_cast<int>(-round(atan2(value[SkMatrix::kMSkewX], value[SkMatrix::kMScaleX]) * (180 / PI)));
+}
 #else
 int RSUniRenderUtil::GetRotationFromMatrix(Drawing::Matrix matrix)
 {
@@ -441,6 +448,14 @@ int RSUniRenderUtil::GetRotationFromMatrix(Drawing::Matrix matrix)
     static const std::map<int, int> supportedDegrees = {{90, 270}, {180, 180}, {-90, 90}, {-180, 180}};
     auto iter = supportedDegrees.find(rAngle);
     return iter != supportedDegrees.end() ? iter->second : 0;
+}
+
+int RSUniRenderUtil::GetRotationDegreeFromMatrix(Drawing::Matrix matrix)
+{
+    Drawing::Matrix::Buffer value;
+    matrix.GetAll(value);
+    return static_cast<int>(-round(atan2(value[Drawing::Matrix::Index::SKEW_X],
+        value[Drawing::Matrix::Index::SCALE_X]) * (180 / PI)));
 }
 #endif
 

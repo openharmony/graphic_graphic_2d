@@ -3325,7 +3325,8 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                     static_cast<uint8_t>(node.GetRenderProperties().GetBackgroundColor().GetAlpha()) < UINT8_MAX;
                 node.SetHardwareForcedDisabledState(
                     (node.IsHardwareForcedDisabledByFilter() || canvas_->GetAlpha() < 1.f || !canvas_->isClipRect() ||
-                    backgroundTransparent || IsRosenWebHardwareDisabled(node, rotation)) &&
+                    backgroundTransparent || IsRosenWebHardwareDisabled(node, rotation) ||
+                    RSUniRenderUtil::GetRotationDegreeFromMatrix(node.GetTotalMatrix()) % ROTATION_90 != 0) &&
                     (!node.IsHardwareEnabledTopSurface() || node.HasSubNodeShouldPaint()));
                 node.SetHardwareDisabledByCache(isUpdateCachedSurface_);
             }
