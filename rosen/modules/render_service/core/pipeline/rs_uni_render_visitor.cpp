@@ -1657,20 +1657,24 @@ void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
     if (isSubThread_) {
         node.SetIsUsedBySubThread(true);
         for (auto& child : node.GetSortedChildren(true)) {
-            if (ProcessSharedTransitionNode(*child)) {
-                child->Process(shared_from_this());
-                child->SetDrawingCacheRootId(node.GetDrawingCacheRootId());
-            }
+            ProcessChildInner(node, child);
         }
         // Main thread may invalidate the FullChildrenList, check if we need to clear it.
         node.ClearFullChildrenListIfNeeded(true);
         node.SetIsUsedBySubThread(false);
     } else {
         for (auto& child : node.GetSortedChildren()) {
-            if (ProcessSharedTransitionNode(*child)) {
-                child->Process(shared_from_this());
-                child->SetDrawingCacheRootId(node.GetDrawingCacheRootId());
-            }
+            ProcessChildInner(node, child);
+        }
+    }
+}
+
+void RSUniRenderVisitor::ProcessChildInner(RSRenderNode& node, const RSRenderNode::SharedPtr& child)
+{
+    if (child && ProcessSharedTransitionNode(*child)) {
+        child->Process(shared_from_this());
+        if (node.GetDrawingCacheRootId() != INVALID_NODEID) {
+            child->SetDrawingCacheRootId(node.GetDrawingCacheRootId());
         }
     }
 }
