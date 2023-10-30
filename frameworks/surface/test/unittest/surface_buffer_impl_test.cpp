@@ -182,23 +182,27 @@ HWTEST_F(SurfaceBufferImplTest, Metadata001, Function | MediumTest | Level2)
     ASSERT_EQ(sret, OHOS::GSERROR_OK);
 
     BufferHandleAttrKey metadataKey = ATTRKEY_COLORSPACE_TYPE;
-    CM_ColorSpaceType metadataValue = CM_BT709_LIMIT;
 
-    std::vector<uint8_t> setValue = Uint32ToVector(metadataValue);
-    sret = sbi->SetMetadata(metadataKey, setValue);
+    CM_ColorSpaceType setMetadata = CM_BT709_LIMIT;
+    std::vector<uint8_t> setData;
+    ASSERT_EQ(MetadataManager::ConvertMetadataToVec(setMetadata, setData), 0);
+    sret = sbi->SetMetadata(metadataKey, setData);
     ASSERT_EQ(sret, OHOS::GSERROR_OK);
 
-    std::vector<uint8_t> getValue;
-    sret = sbi->GetMetadata(metadataKey, getValue);
+    std::vector<uint8_t> getData;
+    sret = sbi->GetMetadata(metadataKey, getData);
     ASSERT_EQ(sret, OHOS::GSERROR_OK);
+    CM_ColorSpaceType getMetadata;
+    ASSERT_EQ(MetadataManager::ConvertVecToMetadata(getData, getMetadata), 0);
 
-    ASSERT_EQ(VectorToUint32(getValue), metadataValue);
+    ASSERT_EQ(setMetadata, getMetadata);
 
     std::vector<uint32_t> keys;
 
     sret = sbi->ListMetadataKeys(keys);
     ASSERT_EQ(sret, OHOS::GSERROR_OK);
     ASSERT_EQ(keys.size(), 1);
+    ASSERT_EQ(keys[0], metadataKey);
 
     sret = sbi->EraseMetadataKey(metadataKey);
     ASSERT_EQ(sret, OHOS::GSERROR_OK);
