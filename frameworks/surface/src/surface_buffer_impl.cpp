@@ -25,6 +25,7 @@
 #include "buffer_extra_data_impl.h"
 #include "native_buffer.h"
 #include "v1_0/include/idisplay_buffer.h"
+#include "v1_1/include/idisplay_buffer.h"
 
 namespace OHOS {
 namespace {
@@ -51,7 +52,7 @@ inline GSError GenerateError(GSError err, int32_t code)
 }
 
 using namespace OHOS::HDI::Display::Buffer::V1_0;
-using IDisplayBufferSptr = std::shared_ptr<IDisplayBuffer>;
+using IDisplayBufferSptr = std::shared_ptr<OHOS::HDI::Display::Buffer::V1_1::IDisplayBuffer>;
 static IDisplayBufferSptr g_displayBuffer;
 static std::mutex g_DisplayBufferMutex;
 class DisplayBufferDiedRecipient : public OHOS::IRemoteObject::DeathRecipient {
@@ -72,7 +73,7 @@ IDisplayBufferSptr GetDisplayBuffer()
         return g_displayBuffer;
     }
 
-    g_displayBuffer.reset(IDisplayBuffer::Get());
+    g_displayBuffer.reset(OHOS::HDI::Display::Buffer::V1_1::IDisplayBuffer::Get());
     if (g_displayBuffer == nullptr) {
         BLOGE("IDisplayBuffer::Get return nullptr.");
         return nullptr;
@@ -526,4 +527,57 @@ BufferWrapper SurfaceBufferImpl::GetBufferWrapper()
 }
 
 void SurfaceBufferImpl::SetBufferWrapper(BufferWrapper wrapper) {}
+
+GSError SurfaceBufferImpl::SetMetadata(uint32_t key, const std::vector<uint8_t>& value)
+{
+    if (handle_ == nullptr) {
+        return GSERROR_API_FAILED;
+    }
+    auto dret = g_displayBuffer->SetMetadata(*handle_, key, value);
+    if (dret == GRAPHIC_DISPLAY_SUCCESS) {
+        return GSERROR_OK;
+    }
+    BLOGW("Failed with ${public}d", dret);
+    return GenerateError(GSERROR_API_FAILED, dret);
+}
+
+GSError SurfaceBufferImpl::GetMetadata(uint32_t key, std::vector<uint8_t>& value)
+{
+    if (handle_ == nullptr) {
+        return GSERROR_API_FAILED;
+    }
+    auto dret = g_displayBuffer->GetMetadata(*handle_, key, value);
+    if (dret == GRAPHIC_DISPLAY_SUCCESS) {
+        return GSERROR_OK;
+    }
+    BLOGW("Failed with ${public}d", dret);
+    return GenerateError(GSERROR_API_FAILED, dret);
+}
+
+GSError SurfaceBufferImpl::ListMetadataKeys(std::vector<uint32_t>& keys)
+{
+    if (handle_ == nullptr) {
+        return GSERROR_API_FAILED;
+    }
+    keys.clear();
+    auto dret = g_displayBuffer->SetMetadata(*handle_, keys);
+    if (dret == GRAPHIC_DISPLAY_SUCCESS) {
+        return GSERROR_OK;
+    }
+    BLOGW("Failed with ${public}d", dret);
+    return GenerateError(GSERROR_API_FAILED, dret);
+}
+
+GSError SurfaceBufferImpl::EraseMetadataKey(uint32_t key)
+{
+    if (handle_ == nullptr) {
+        return GSERROR_API_FAILED;
+    }
+    auto dret = g_displayBuffer->SetMetadata(*handle_, key);
+    if (dret == GRAPHIC_DISPLAY_SUCCESS) {
+        return GSERROR_OK;
+    }
+    BLOGW("Failed with ${public}d", dret);
+    return GenerateError(GSERROR_API_FAILED, dret);
+}
 } // namespace OHOS

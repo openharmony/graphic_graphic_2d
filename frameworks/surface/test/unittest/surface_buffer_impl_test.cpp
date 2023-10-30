@@ -12,11 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <secure.h>
 #include <gtest/gtest.h>
 #include <surface.h>
 #include <surface_buffer_impl.h>
 #include <buffer_manager.h>
 #include <buffer_utils.h>
+#include <v1_0/cm_color_spac.h>
+#include <v1_0/buffer_handle_meta_key_type.h>
 
 using namespace testing;
 using namespace testing::ext;
@@ -152,5 +155,56 @@ HWTEST_F(SurfaceBufferImplTest, Create001, Function | MediumTest | Level2)
 {
     sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
     ASSERT_NE(buffer, nullptr);
+}
+
+/*
+* Function: Set/Get/List/Erase Metadata
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. new SurfaceBufferImpl and Alloc
+                   2. call Set Metadata interface
+                   3. call Get Metadata interface
+                   4. check ret
+                   5. call List Metadata keys interface
+                   6. check ret
+                   7. call Erase Metadata key interface
+                   8. call List Metadata keys interface again
+                   9. check ret
+*/
+HWTEST_F(SurfaceBufferImplTest, Metadata001, Function | MediumTest | Level2)
+{
+    using namespace HDI::Display::Graphic::Common::V1_0;
+
+    sptr<SurfaceBuffer> sbi = new SurfaceBufferImpl(0);
+    const auto &bm = BufferManager::GetInstance();
+    auto sret = bm->Alloc(requestConfig, sbi);
+    ASSERT_EQ(sret, OHOS::GSERROR_OK);
+
+    BufferHandleAttrKey metadataKey = ATTRKEY_COLORSPACE_TYPE;
+    CM_ColorSpaceType metadataValue = CM_BT709_LIMIT;
+
+    std::vector<uint8_t> setValue = Uint32ToVector(metadataValue);
+    sret = sbi->SetMetadata(metadataKey, setValue);
+    ASSERT_EQ(sret, OHOS::GSERROR_OK);
+
+    std::vector<uint8_t> getValue;
+    sret = sbi->GetMetadata(metadataKey, getValue);
+    ASSERT_EQ(sret, OHOS::GSERROR_OK);
+
+    ASSERT_EQ(VectorToUint32(getValue), metadataValue);
+
+    std::vector<uint32_t> keys;
+
+    sret = sbi->ListMetadataKeys(keys);
+    ASSERT_EQ(sret, OHOS::GSERROR_OK);
+    ASSERT_EQ(keys.size(), 1);
+
+    sret = sbi->EraseMetadataKey(metadataKey);
+    ASSERT_EQ(sret, OHOS::GSERROR_OK);
+
+    sret = sbi->ListMetadataKeys(keys);
+    ASSERT_EQ(sret, OHOS::GSERROR_OK);
+    ASSERT_EQ(keys.size(), 0);
 }
 }
