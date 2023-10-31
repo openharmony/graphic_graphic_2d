@@ -237,7 +237,8 @@ void RSPropertyDrawable::UpdateDrawableVec(RSPropertyDrawableGenerateContext& co
 
     if (dirtySlots.count(RSPropertyDrawableSlot::SAVE_LAYER_CONTENT)) {
         if (drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_CONTENT] != nullptr) {
-            drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_BACKGROUND] = RSSavelayerBackgroundDrawable::Generate(context);
+            drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_BACKGROUND] =
+                RSSavelayerBackgroundDrawable::Generate(context);
         } else {
             drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_BACKGROUND] = nullptr;
         }

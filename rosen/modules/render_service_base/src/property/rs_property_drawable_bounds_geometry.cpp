@@ -1301,7 +1301,8 @@ void RSEffectDataGenerateDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas&
 
 // ============================================================================
 // SavelayerBackground
-std::unique_ptr<RSPropertyDrawable> RSSavelayerBackgroundDrawable::Generate(const RSPropertyDrawableGenerateContext& context)
+std::unique_ptr<RSPropertyDrawable> RSSavelayerBackgroundDrawable::Generate(
+    const RSPropertyDrawableGenerateContext& context)
 {
     auto& properties = context.properties_;
     if (properties.GetColorBlendMode() == static_cast<int>(RSColorBlendModeType::NONE)) {
@@ -1317,7 +1318,8 @@ void RSSavelayerBackgroundDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas
 
 // ============================================================================
 // SavelayerContent
-std::unique_ptr<RSPropertyDrawable> RSSavelayerContentDrawable::Generate(const RSPropertyDrawableGenerateContext& context)
+std::unique_ptr<RSPropertyDrawable> RSSavelayerContentDrawable::Generate(
+    const RSPropertyDrawableGenerateContext& context)
 {
     auto& properties = context.properties_;
     int blendMode = properties.GetColorBlendMode();
