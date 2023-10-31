@@ -45,6 +45,7 @@ enum RSPropertyDrawableSlot : uint8_t {
     SHADOW,
 
     // In Bounds Clip
+    SAVE_LAYER_BACKGROUND,
     SAVE_BOUNDS,
     CLIP_TO_BOUNDS,
     BACKGROUND_COLOR,
@@ -56,6 +57,7 @@ enum RSPropertyDrawableSlot : uint8_t {
     DYNAMIC_LIGHT_UP,
     ENV_FOREGROUND_COLOR_STRATEGY,
     EXTRA_RESTORE_BOUNDS,
+    SAVE_LAYER_CONTENT,
 
     // Frame Geometry
     SAVE_FRAME,

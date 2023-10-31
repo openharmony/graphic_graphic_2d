@@ -127,7 +127,7 @@ const std::vector<RSPropertyDrawableSlot> RSPropertyDrawable::PropertyToDrawable
     RSPropertyDrawableSlot::COLOR_FILTER,                  // COLOR_BLEND,                   // 63
     RSPropertyDrawableSlot::PARTICLE_EFFECT,               // PARTICLE,                      // 64
     RSPropertyDrawableSlot::INVALID,                       // SHADOW_IS_FILLED               // 65
-    RSPropertyDrawableSlot::INVALID,                       // BLEND_MODE,                    // 66
+    RSPropertyDrawableSlot::SAVE_LAYER_CONTENT,            // BLEND_MODE,                    // 66
     RSPropertyDrawableSlot::INVALID,                       // CUSTOM,                        // 67
     RSPropertyDrawableSlot::INVALID,                       // EXTENDED,                      // 68
     RSPropertyDrawableSlot::TRANSITION,                    // TRANSITION,                    // 69
@@ -154,6 +154,7 @@ const std::vector<RSPropertyDrawable::DrawableGenerator> RSPropertyDrawable::Dra
     RSShadowDrawable::Generate,                                  // SHADOW,
 
     // In Bounds Clip
+    nullptr,                                                              // SAVE_LAYER_BACKGROUND
     nullptr,                                                              // SAVE_BOUNDS,
     nullptr,                                                              // CLIP_TO_BOUNDS,
     RSBackgroundColorDrawable::Generate,                                  // BACKGROUND_COLOR,
@@ -165,6 +166,7 @@ const std::vector<RSPropertyDrawable::DrawableGenerator> RSPropertyDrawable::Dra
     RSDynamicLightUpDrawable::Generate,                                   // DYNAMIC_LIGHT_UP,
     CustomModifierAdapter<RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY>, // ENV_FOREGROUND_COLOR_STRATEGY
     nullptr,                                                              // RESTORE_BOUNDS_BEFORE_FRAME,
+    RSSavelayerContentDrawable::Generate,                                 // SAVE_LAYER_CONTENT
 
     // Frame Geometry
     nullptr,                                                 // SAVE_FRAME,
@@ -230,6 +232,15 @@ void RSPropertyDrawable::UpdateDrawableVec(RSPropertyDrawableGenerateContext& co
             if (drawable) {
                 drawable->OnBoundsChange(context.properties_);
             }
+        }
+    }
+
+    if (dirtySlots.count(RSPropertyDrawableSlot::SAVE_LAYER_CONTENT)) {
+        if (drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_CONTENT] != nullptr) {
+            drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_BACKGROUND] =
+                RSSavelayerBackgroundDrawable::Generate(context);
+        } else {
+            drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_BACKGROUND] = nullptr;
         }
     }
 

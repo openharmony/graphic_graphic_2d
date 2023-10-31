@@ -539,5 +539,26 @@ private:
     std::shared_ptr<RSFilter> filter_ = nullptr;
 };
 
+// ============================================================================
+// SavelayerBackground
+class RSSavelayerBackgroundDrawable : public RSPropertyDrawable {
+public:
+    explicit RSSavelayerBackgroundDrawable() = default;
+    ~RSSavelayerBackgroundDrawable() override = default;
+    static std::unique_ptr<RSPropertyDrawable> Generate(const RSPropertyDrawableGenerateContext& context);
+    void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
+};
+
+// SavelayerContent
+class RSSavelayerContentDrawable : public RSPropertyDrawable {
+public:
+    explicit RSSavelayerContentDrawable(SkPaint&& blendPaint) : blendPaint_(std::move(blendPaint)) {}
+    ~RSSavelayerContentDrawable() override = default;
+    static std::unique_ptr<RSPropertyDrawable> Generate(const RSPropertyDrawableGenerateContext& context);
+    void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
+
+private:
+    SkPaint blendPaint_;
+};
 };     // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_BOUNDS_GEOMETRY_H
