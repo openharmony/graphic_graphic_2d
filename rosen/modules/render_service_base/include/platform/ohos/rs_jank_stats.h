@@ -46,9 +46,10 @@ struct JankFrames {
     int64_t totalFrameTime_ = 0;
     Rosen::DataBaseRs info_;
 };
-struct AnimationTraceStats {
+struct AsyncTraceStats {
     std::string traceName_;
     int64_t traceCreateTime_ = 0;
+    bool isAnimationTrace = false;
 };
 } // namespace
 
@@ -79,15 +80,15 @@ private:
     void ReportEventComplete(const JankFrames& jankFrames) const;
     void ReportEventJankFrame(const JankFrames& jankFrames) const;
     void ReportEventFirstFrame();
-    void SetAnimationTraceBegin(TraceId traceId, const JankFrames& jankFrames);
+    void SetAsyncTraceBegin(TraceId traceId, const JankFrames& jankFrames);
     void RecordAnimationDynamicFrameRate(TraceId traceId, const JankFrames& jankFrames) const;
-    void SetAnimationTraceEnd(TraceId traceId);
-    void CheckAnimationTraceTimeout();
+    void SetAsyncTraceEnd(TraceId traceId, const JankFrames& jankFrames);
+    void CheckAsyncTraceTimeout();
     std::string GetSceneDescription(const DataBaseRs& info) const;
     int64_t ConvertTimeToSystime(int64_t time) const;
     int64_t GetCurrentSystimeMs() const;
 
-    constexpr static uint16_t ANIMATION_TRACE_CHECK_FREQ = 20;
+    constexpr static uint16_t ASYNC_TRACE_CHECK_FREQ = 20;
     constexpr static uint32_t JANK_RANGE_VERSION = 1;
     constexpr static size_t JANK_STATS_SIZE = 8;
     constexpr static bool IS_FOLD_DISP = false;
@@ -99,9 +100,9 @@ private:
     int64_t lastReportTime_ = 0;
     int64_t lastJankOverThresholdTime_ = 0;
     int32_t appPid_ = 0;
-    uint16_t animationTraceCheckCnt_ = 0;
+    uint16_t asyncTraceCheckCnt_ = 0;
     std::vector<uint16_t> rsJankStats_ = std::vector<uint16_t>(JANK_STATS_SIZE, 0);
-    std::map<TraceId, AnimationTraceStats> animationAsyncTraces_;
+    std::map<TraceId, AsyncTraceStats> asyncTraces_;
     std::map<UniqueId, JankFrames> animateJankFrames_;
     std::mutex animateJankFramesMutex_;
 
