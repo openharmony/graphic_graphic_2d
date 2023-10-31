@@ -190,7 +190,7 @@ GSError SurfaceBufferImpl::Map()
 #endif
 
     if (handle->usage & BUFFER_USAGE_PROTECTED) {
-        BLOGE("handle usage is BUFFER_USAGE_PROTECTED, do not Map");
+        BLOGD("handle usage is BUFFER_USAGE_PROTECTED, do not Map");
         return GSERROR_OK;
     }
 
@@ -220,7 +220,7 @@ GSError SurfaceBufferImpl::Unmap()
     }
 
     if (handle->usage & BUFFER_USAGE_PROTECTED) {
-        BLOGE("handle usage is BUFFER_USAGE_PROTECTED, do not UnMap");
+        BLOGD("handle usage is BUFFER_USAGE_PROTECTED, do not UnMap");
         return GSERROR_OK;
     }
 

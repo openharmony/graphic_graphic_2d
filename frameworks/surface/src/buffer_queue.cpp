@@ -601,7 +601,7 @@ GSError BufferQueue::AllocBuffer(sptr<SurfaceBuffer> &buffer,
     };
 
     if (config.usage & BUFFER_USAGE_PROTECTED) {
-        BLOGE("handle usage is BUFFER_USAGE_PROTECTED, do not Map/UnMap");
+        BLOGD("handle usage is BUFFER_USAGE_PROTECTED, do not Map/UnMap");
         bufferQueueCache_[sequence] = ele;
         buffer = bufferImpl;
         return ret;
