@@ -1320,24 +1320,25 @@ void RSSavelayerBackgroundDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas
 std::unique_ptr<RSPropertyDrawable> RSSavelayerContentDrawable::Generate(const RSPropertyDrawableGenerateContext& context)
 {
     auto& properties = context.properties_;
-    if (properties.GetColorBlendMode() == static_cast<int>(RSColorBlendModeType::NONE)) {
+    int blendMode = properties.GetColorBlendMode();
+    if (blendMode == static_cast<int>(RSColorBlendModeType::NONE)) {
         return nullptr;
     }
     static const std::vector<SkBlendMode> blendModeList = {
         SkBlendMode::kSrcIn, // RSColorBlendModeType::SRC_IN
         SkBlendMode::kDstIn, // RSColorBlendModeType::DST_IN
     };
-    if (static_cast<unsigned long>(blendMode_) >= blendModeList.size()) {
-        ROSEN_LOGE("color blendmode is set %d which is invalid.", blendMode_);
+    if (static_cast<unsigned long>(blendMode) >= blendModeList.size()) {
+        ROSEN_LOGE("color blendmode is set %d which is invalid.", blendMode);
         return nullptr;
     }
     SkPaint blendPaint;
-    blendPaint.setBlendMode(blendModeList[blendMode_]);
+    blendPaint.setBlendMode(blendModeList[blendMode]);
     return std::make_unique<RSSavelayerContentDrawable>(std::move(blendPaint));
 }
 
 void RSSavelayerContentDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
-    canvas.saveLayer(nullptr, &blendPaint);
+    canvas.saveLayer(nullptr, &blendPaint_);
 }
 } // namespace OHOS::Rosen
