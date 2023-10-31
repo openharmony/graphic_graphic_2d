@@ -88,18 +88,17 @@ enum class RSModifierType : int16_t {
     PARTICLE,                      // 64
     SHADOW_IS_FILLED,              // 65
     COLOR_BLENDMODE,               // 66
-    COLOR_BLENDMODE2,              // 67 cause need of two draw slots
-    CUSTOM,                        // 68
-    EXTENDED,                      // 69
-    TRANSITION,                    // 70
-    BACKGROUND_STYLE,              // 71
-    CONTENT_STYLE,                 // 72
-    FOREGROUND_STYLE,              // 73
-    OVERLAY_STYLE,                 // 74
-    NODE_MODIFIER,                 // 75
-    ENV_FOREGROUND_COLOR,          // 76
-    ENV_FOREGROUND_COLOR_STRATEGY, // 77
-    GEOMETRYTRANS,                 // 78
+    CUSTOM,                        // 67
+    EXTENDED,                      // 68
+    TRANSITION,                    // 69
+    BACKGROUND_STYLE,              // 70
+    CONTENT_STYLE,                 // 71
+    FOREGROUND_STYLE,              // 72
+    OVERLAY_STYLE,                 // 73
+    NODE_MODIFIER,                 // 74
+    ENV_FOREGROUND_COLOR,          // 75
+    ENV_FOREGROUND_COLOR_STRATEGY, // 76
+    GEOMETRYTRANS,                 // 77
 };
 
 enum class RSRenderPropertyType : int16_t {
