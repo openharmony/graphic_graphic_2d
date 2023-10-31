@@ -190,7 +190,7 @@ ohos_unittest("surface_buffer_impl_test") {
   deps = [ ":surface_test_common" ]
 
   public_deps = [
-    "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
+    "$graphic_2d_root/utils:libgraphic_utils",
   ]
 
   external_deps = [
