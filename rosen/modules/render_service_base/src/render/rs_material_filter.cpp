@@ -38,7 +38,7 @@ constexpr float BLUR_SIGMA_SCALE = 0.57735f;
 std::unordered_map<MATERIAL_BLUR_STYLE, MaterialParam> materialParams_ {
     // card blur params
     { STYLE_CARD_THIN_LIGHT,         { 23.0f,  1.05, 1.05, RSColor(0xFFFFFF33) } },
-    { STYLE_CARD_LIGHT,              { 50.0f,  1.8,  1.2,  RSColor(0xFAFAFA99) } },
+    { STYLE_CARD_LIGHT,              { 50.0f,  1.8,  1.0,  RSColor(0xFAFAFA99) } },
     { STYLE_CARD_THICK_LIGHT,        { 57.0f,  1.2,  1.1,  RSColor(0xFFFFFF8C) } },
     { STYLE_CARD_THIN_DARK,          { 75.0f,  1.35, 1.0,  RSColor(0x1A1A1A6B) } },
     { STYLE_CARD_DARK,               { 50.0f,  2.15, 1.0,  RSColor(0x1F1F1FD1) } },
@@ -53,7 +53,30 @@ std::unordered_map<MATERIAL_BLUR_STYLE, MaterialParam> materialParams_ {
     { STYLE_BACKGROUND_LARGE_DARK,   { 75.0f,  1.5,  1.0,  RSColor(0x0D0D0D80) } },
     { STYLE_BACKGROUND_XLARGE_DARK,  { 130.0f, 1.3,  1.0,  RSColor(0x0D0D0D80) } },
 };
+
+std::unordered_map<MATERIAL_BLUR_STYLE, MaterialParam> kawaseMaterialParams_ {
+    // card blur params
+    { STYLE_CARD_THIN_LIGHT,         { 23.0f,  1.05, 1.05, RSColor(0xFFFFFF33) } },
+    { STYLE_CARD_LIGHT,              { 50.0f,  1.8,  1.0,  RSColor(0xFAFAFA99) } },
+    { STYLE_CARD_THICK_LIGHT,        { 57.0f,  1.2,  1.1,  RSColor(0xFFFFFF8C) } },
+    { STYLE_CARD_THIN_DARK,          { 75.0f,  1.35, 1.0,  RSColor(0x1A1A1A6B) } },
+    { STYLE_CARD_DARK,               { 50.0f,  2.15, 1.0,  RSColor(0x1F1F1FD1) } },
+    { STYLE_CARD_THICK_DARK,         { 75.0f,  2.15, 1.0,  RSColor(0x1F1F1FD1) } },
+    // background blur params
+    { STYLE_BACKGROUND_SMALL_LIGHT,  { 12.0f,  1.05, 1.0,  RSColor(0x80808033) } },
+    { STYLE_BACKGROUND_MEDIUM_LIGHT, { 44.0f,  1.1,  1.0,  RSColor(0x80808033) } },
+    { STYLE_BACKGROUND_LARGE_LIGHT,  { 52.0f,  1.2,  1.0,  RSColor(0x80808033) } },
+    { STYLE_BACKGROUND_XLARGE_LIGHT, { 120.0f, 1.3,  1.0,  RSColor(0x6666664C) } },
+    { STYLE_BACKGROUND_SMALL_DARK,   { 15.0f,  1.1,  1.0,  RSColor(0x0D0D0D80) } },
+    { STYLE_BACKGROUND_MEDIUM_DARK,  { 55.0f,  1.15, 1.0,  RSColor(0x0D0D0D80) } },
+    { STYLE_BACKGROUND_LARGE_DARK,   { 75.0f,  1.5,  1.0,  RSColor(0x0D0D0D80) } },
+    { STYLE_BACKGROUND_XLARGE_DARK,  { 130.0f, 1.3,  1.0,  RSColor(0x0D0D0D80) } },
+};
 } // namespace
+
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA)
+const bool KAWASE_BLUR_ENABLED = RSSystemProperties::GetKawaseEnabled();
+#endif
 
 RSMaterialFilter::RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode, float ratio)
 #ifndef USE_ROSEN_DRAWING
@@ -153,7 +176,6 @@ sk_sp<SkImageFilter> RSMaterialFilter::CreateMaterialFilter(float radius, float 
 {
     colorFilter_ = GetColorFilter(sat, brightness);
 #if defined(NEW_SKIA)
-    useKawase_ = RSSystemProperties::GetKawaseEnabled();
     sk_sp<SkImageFilter> blurFilter = SkImageFilters::Blur(radius, radius, SkTileMode::kClamp, nullptr); // blur
 #else
     sk_sp<SkImageFilter> blurFilter = SkBlurImageFilter::Make(radius, radius, nullptr, nullptr,
@@ -196,8 +218,9 @@ std::shared_ptr<Drawing::ImageFilter> RSMaterialFilter::CreateMaterialStyle(
     MATERIAL_BLUR_STYLE style, float dipScale, float ratio)
 #endif
 {
-    if (materialParams_.find(style) != materialParams_.end()) {
-        MaterialParam materialParam = materialParams_[style];
+    auto materialParams = KAWASE_BLUR_ENABLED ? kawaseMaterialParams_ : materialParams_;
+    if (materialParams.find(style) != materialParams.end()) {
+        MaterialParam materialParam = materialParams[style];
         maskColor_ = RSColor(materialParam.maskColor.AsRgbaInt());
         maskColor_.MultiplyAlpha(ratio);
         radius_ = RSMaterialFilter::RadiusVp2Sigma(materialParam.radius, dipScale) * ratio;
@@ -262,7 +285,7 @@ bool RSMaterialFilter::IsValid() const
 
 bool RSMaterialFilter::IsPartialValid() const
 {
-    return !useKawase_ || radius_ >= 1.0f;
+    return !KAWASE_BLUR_ENABLED || radius_ >= 1.0f;
 }
 
 std::shared_ptr<RSFilter> RSMaterialFilter::Add(const std::shared_ptr<RSFilter>& rhs)
@@ -327,7 +350,7 @@ void RSMaterialFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_
 #ifdef NEW_SKIA
     // if kawase blur failed, use gauss blur
     KawaseParameter param = KawaseParameter(src, dst, radius_, colorFilter_, paint.getAlphaf());
-    if (useKawase_ && KawaseBlurFilter::GetKawaseBlurFilter()->ApplyKawaseBlur(canvas, image, param)) {
+    if (KAWASE_BLUR_ENABLED && KawaseBlurFilter::GetKawaseBlurFilter()->ApplyKawaseBlur(canvas, image, param)) {
         return;
     }
     canvas.drawImageRect(image.get(), src, dst, SkSamplingOptions(), &paint, SkCanvas::kStrict_SrcRectConstraint);

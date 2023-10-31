@@ -123,9 +123,6 @@ private:
 #endif
     static float RadiusVp2Sigma(float radiusVp, float dipScale);
 
-#ifndef USE_ROSEN_DRAWING
-    bool useKawase_ = false;
-#endif
     sk_sp<SkColorFilter> colorFilter_;
     friend class RSMarshallingHelper;
 };

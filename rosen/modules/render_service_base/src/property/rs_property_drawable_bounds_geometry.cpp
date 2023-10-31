@@ -580,9 +580,9 @@ void RSHardwareAccelerationShadowDrawable::Draw(RSRenderNode& node, RSPaintFilte
     matrix.setTranslateY(std::ceil(matrix.getTranslateY()));
     canvas.setMatrix(matrix);
     SkPoint3 planeParams = { 0.0f, 0.0f, shadowElevation_ };
-    SkPoint pt = { skPath.getBounds().centerX(), skPath.getBounds().centerY() };
+    SkPoint pt = { skPath_.getBounds().centerX(), skPath_.getBounds().centerY() };
     canvas.getTotalMatrix().mapPoints(&pt, 1);
-    SkPoint3 lightPos = { pt.fX, pt.fY, DEFAULT_LIGHT_HEIGHT };
+    SkPoint3 lightPos = {pt.fX, pt.fY, DEFAULT_LIGHT_HEIGHT};
     Color ambientColor = Color::FromArgbInt(DEFAULT_AMBIENT_COLOR);
     ambientColor.MultiplyAlpha(canvas.GetAlpha());
     color_.MultiplyAlpha(canvas.GetAlpha());

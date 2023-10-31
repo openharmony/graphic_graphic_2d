@@ -326,15 +326,16 @@ void KawaseBlurFilter::AdjustRadiusAndScale()
     static constexpr float scaleFactor1 = 0.25f; // 0.25 : downSample scale for step1
     static constexpr float scaleFactor2 = 0.125f; // 0.125 : downSample scale for step2
     static constexpr float scaleFactor3 = 0.0625f; // 0.0625 : downSample scale for step3
-    float scale = baseBlurScale;
-    if (blurRadius_ > radiusStep3) {
-        scale = scaleFactor3;
-    } else if (blurRadius_ > radiusStep2) {
-        scale = scaleFactor2;
-    } else if (blurRadius_ > radiusStep1) {
-        scale = scaleFactor1;
+    auto radius = static_cast<int>(blurRadius_);
+    if (radius > radiusStep3) {
+        blurScale_ = scaleFactor3;
+    } else if (radius > radiusStep2) {
+        blurScale_ = scaleFactor2;
+    } else if (radius > radiusStep1) {
+        blurScale_ = scaleFactor1;
+    } else {
+        blurScale_ = baseBlurScale;
     }
-    blurScale_ = scale;
 }
 
 std::string KawaseBlurFilter::GetDescription() const
