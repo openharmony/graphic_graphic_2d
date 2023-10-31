@@ -81,6 +81,7 @@ public:
     virtual VsyncError SetVSyncRate(FrameCallback callback, int32_t rate);
     virtual VsyncError GetVSyncPeriod(int64_t &period);
     virtual VsyncError GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_t &timeStamp);
+    int32_t GetFd() { return dup(fd_); }
 private:
     VsyncError Destroy();
     sptr<IVSyncConnection> connection_;
