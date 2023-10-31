@@ -237,7 +237,7 @@ bool DrawingDCL::GetDirectionAndStep(std::string command, bool &isMoreOps)
     int dotPostion = -1;
     for (size_t i = 0; i < words[1].size(); ++i) {
         if (words[1][i] == '.' && dotPostion == -1) {
-            dotPostion = i;
+            dotPostion = static_cast<int>(i);
         } else if (words[1][i] >= '0' && words[1][i] <= '9') {
             continue;
         } else {
