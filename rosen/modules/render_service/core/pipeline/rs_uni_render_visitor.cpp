@@ -1682,10 +1682,10 @@ void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
 void RSUniRenderVisitor::ProcessChildInner(RSRenderNode& node, const RSRenderNode::SharedPtr& child)
 {
     if (child && ProcessSharedTransitionNode(*child)) {
-        child->Process(shared_from_this());
         if (node.GetDrawingCacheRootId() != INVALID_NODEID) {
             child->SetDrawingCacheRootId(node.GetDrawingCacheRootId());
         }
+        child->Process(shared_from_this());
     }
 }
 
@@ -2996,7 +2996,9 @@ bool RSUniRenderVisitor::UpdateCacheSurface(RSRenderNode& node)
         }
         node.ProcessAnimatePropertyBeforeChildren(*canvas_);
     }
-    node.SetDrawingCacheRootId(node.GetId());
+    if (node.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
+        node.SetDrawingCacheRootId(node.GetId());
+    }
     node.ProcessRenderContents(*canvas_);
     ProcessChildren(node);
 
