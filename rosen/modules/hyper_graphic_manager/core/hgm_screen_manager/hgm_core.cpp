@@ -71,7 +71,6 @@ bool HgmCore::Init()
         HGM_LOGI("HgmCore No customer refreshrate mode found: %{public}d", newRateMode);
         customFrameRateMode_ = static_cast<RefreshRateMode>(newRateMode);
     }
-    SetModeBySettingConfig();
     isInit_ = true;
     HGM_LOGI("HgmCore initialization success!!!");
     return isInit_;

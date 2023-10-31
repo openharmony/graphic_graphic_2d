@@ -17,7 +17,7 @@
     <Param name="general_config_enable" value="1"/>
 
     <!-- defalut refreshmode given to settings application -->
-    <Param name="default_refreshrate_mode" value="-1"/>
+    <Param name="default_refreshrate_mode" value="3"/>
 
     <!-- stategies to be applied for scenario -->
     <Params name="detailed_strategies">
