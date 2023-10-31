@@ -139,6 +139,14 @@ void RSRecordingCanvas::DrawPixelMapRect(const std::shared_ptr<Media::PixelMap>&
         dst, samplingOptions, paint);
 }
 
+void RSRecordingCanvas::DrawRsImage(const std::shared_ptr<RSImageBase>& rsImage, 
+    const SkSamplingOptions& samplingOptions, const SkPaint& paint, SrcRectConstraint constraint)
+{
+    RS_DRAWOP_TRACE_FUNC();
+    std::unique_ptr<OpItem> op = std::make_unique<PixelMapRectOpItem>(rsImage, samplingOptions, paint, constraint);
+    AddOp(std::move(op));
+}
+
 void RSRecordingCanvas::DrawPixelMap(const std::shared_ptr<Media::PixelMap>& pixelmap, SkScalar x, SkScalar y,
     const SkSamplingOptions& samplingOptions, const SkPaint* paint)
 {

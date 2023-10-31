@@ -93,6 +93,8 @@ public:
         SrcRectConstraint constraint = kStrict_SrcRectConstraint);
     void DrawPixelMapRect(const std::shared_ptr<Media::PixelMap>& pixelmap, const SkRect& dst,
         const SkSamplingOptions& samplingOptions, const SkPaint* paint);
+    void DrawRsImage(const std::shared_ptr<RSImageBase>& rsImage, const SkSamplingOptions& samplingOptions,
+        const SkPaint& paint, SrcRectConstraint constraint = kStrict_SrcRectConstraint);
     void DrawPixelMap(const std::shared_ptr<Media::PixelMap>& pixelmap, SkScalar x, SkScalar y,
         const SkSamplingOptions& samplingOptions, const SkPaint* paint = nullptr);
     void DrawImageWithParm(const sk_sp<SkImage> image, const sk_sp<SkData> data,

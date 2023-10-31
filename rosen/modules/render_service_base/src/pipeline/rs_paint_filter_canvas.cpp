@@ -478,6 +478,11 @@ void RSPaintFilterCanvas::SetRecordingState(bool flag)
     recordingState_ = flag;
 }
 
+SkCanvas* RSPaintFilterCanvas::GetRecordingCanvas() const
+{
+    return recordingState_? fList[0] : nullptr;
+}
+
 #else
 RSPaintFilterCanvas::RSPaintFilterCanvas(Drawing::Canvas* canvas, float alpha)
     : RSPaintFilterCanvasBase(canvas), alphaStack_({ std::clamp(alpha, 0.f, 1.f) }), // construct stack with given alpha
