@@ -93,7 +93,6 @@ void RSRenderParticleEmitter::EmitParticle(int64_t deltaTime)
             spawnNum_ -= 1.f;
         }
         if (particleCount_ > static_cast<float>(maxParticle)) {
-            emitFinish_ = true;
             return;
         }
     }
