@@ -260,6 +260,7 @@ public:
 #endif
     bool GetRecordingState() const;
     void SetRecordingState(bool flag);
+    SkCanvas* GetRecordingCanvas() const;
 
 protected:
     using Env = struct {

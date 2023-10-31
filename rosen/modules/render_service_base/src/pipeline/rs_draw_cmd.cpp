@@ -136,6 +136,10 @@ std::unique_ptr<OpItem> OpItemWithPaint::GenerateCachedOpItem(
 
 void OpItemWithRSImage::Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) const
 {
+    if (auto recordingCanvas = static_cast<RSRecordingCanvas*>(canvas.GetRecordingCanvas())) {
+        recordingCanvas->DrawRsImage(rsImage_, samplingOptions_, paint_);
+        return;
+    }
     if (rsImage_) {
 #ifdef NEW_SKIA
         rsImage_->DrawImage(canvas, samplingOptions_, paint_);
