@@ -125,6 +125,7 @@ INTERACTION_RENDER_JANK:
   IS_FOLD_DISP: {type: BOOL, desc: 'default false, set true if fold screen in expand state'}
   BUNDLE_NAME_EX: {type: STRING, desc: real package name when sceneboard start app}
 
+
 FIRST_FRAME_DRAWN:
   __BASE: {type: BEHAVIOR, level: MINOR, tag: performance, desc: interaction jank statistics}
   APP_PID: {type: INT32, desc: app process id}
