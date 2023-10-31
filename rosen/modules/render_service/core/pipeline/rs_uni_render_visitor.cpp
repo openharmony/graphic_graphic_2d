@@ -176,6 +176,7 @@ RSUniRenderVisitor::RSUniRenderVisitor(const RSUniRenderVisitor& visitor) : RSUn
     screenInfo_ = visitor.screenInfo_;
     displayHasSecSurface_ = visitor.displayHasSecSurface_;
     displayHasSkipSurface_ = visitor.displayHasSkipSurface_;
+    hasCaptureWindow_ = visitor.hasCaptureWindow_;
     parentSurfaceNodeMatrix_ = visitor.parentSurfaceNodeMatrix_;
     curAlpha_ = visitor.curAlpha_;
     dirtyFlag_ = visitor.dirtyFlag_;
@@ -199,6 +200,7 @@ void RSUniRenderVisitor::CopyVisitorInfos(std::shared_ptr<RSUniRenderVisitor> vi
     screenInfo_ = visitor->screenInfo_;
     displayHasSecSurface_ = visitor->displayHasSecSurface_;
     displayHasSkipSurface_ = visitor->displayHasSkipSurface_;
+    hasCaptureWindow_ = visitor->hasCaptureWindow_;
     parentSurfaceNodeMatrix_ = visitor->parentSurfaceNodeMatrix_;
     curAlpha_ = visitor->curAlpha_;
     dirtyFlag_ = visitor->dirtyFlag_;
@@ -513,6 +515,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     currentVisitDisplay_ = node.GetScreenId();
     displayHasSecSurface_.emplace(currentVisitDisplay_, false);
     displayHasSkipSurface_.emplace(currentVisitDisplay_, false);
+    hasCaptureWindow_.emplace(currentVisitDisplay_, false);
     dirtySurfaceNodeMap_.clear();
 
     RS_TRACE_NAME("RSUniRender:PrepareDisplay " + std::to_string(currentVisitDisplay_));
@@ -887,6 +890,9 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         drivenInfo_->prepareInfo.hasInvalidScene = true;
     }
 #endif
+    if (node.GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos) {
+        hasCaptureWindow_[currentVisitDisplay_] = true;
+    }
     // stop traversal if node keeps static
     if (isQuickSkipPreparationEnabled_ && CheckIfSurfaceRenderNodeStatic(node)) {
         // node type is mainwindow.
@@ -1406,6 +1412,10 @@ void RSUniRenderVisitor::CopyForParallelPrepare(std::shared_ptr<RSUniRenderVisit
     for (const auto &u : visitor->dirtySurfaceNodeMap_) {
         dirtySurfaceNodeMap_[u.first] = u.second;
     }
+    for (const auto &u : visitor->hasCaptureWindow_) {
+        hasCaptureWindow_[u.first] = u.second;
+    }
+    
 #endif
 }
 
@@ -1842,7 +1852,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 
     if (mirrorNode) {
         auto processor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor_);
-        if (mirrorNode->GetSecurityDisplay() != isSecurityDisplay_ && processor) {
+        if (mirrorNode->GetSecurityDisplay() != isSecurityDisplay_ && processor &&
+            (hasCaptureWindow_[mirrorNode->GetScreenId()] || displayHasSecSurface_[mirrorNode->GetScreenId()] ||
+            displayHasSkipSurface_[mirrorNode->GetScreenId()])) {
             canvas_ = processor->GetCanvas();
             if (canvas_ == nullptr) {
                 RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode failed to get canvas.");
@@ -1879,6 +1891,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 DrawWatermarkIfNeed();
             } else {
                 int saveCount = canvas_->save();
+                float boundsWidth = node.GetRenderProperties().GetBoundsWidth();
+                float boundsHeight = node.GetRenderProperties().GetBoundsHeight();
+                ScaleMirrorIfNeed(boundsWidth, boundsHeight);
                 ProcessChildren(*mirrorNode);
                 DrawWatermarkIfNeed();
                 canvas_->restoreToCount(saveCount);
@@ -4239,5 +4254,29 @@ void RSUniRenderVisitor::endCapture() const
     RSRecordingThread::Instance().RecordingToFile(drawCmdList);
 }
 #endif
+
+void RSUniRenderVisitor::ScaleMirrorIfNeed(float boundsWidth, float boundsHeight)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    auto mainScreenInfo = screenManager->QueryScreenInfo(screenManager->GetDefaultScreenId());
+    float mainWidth = static_cast<float>(mainScreenInfo.width);
+    float mainHeight = static_cast<float>(mainScreenInfo.height);
+    float startX = 0;
+    float startY = 0;
+    // If the width and height not match the main screen, calculate the dstRect.
+    if (mainWidth != boundsWidth || mainHeight != boundsHeight) {
+        canvas_->clear(SK_ColorBLACK);
+        float mirrorScale = 1; // 1 for init scale
+        if ((boundsHeight / boundsWidth) < (mainHeight / mainWidth)) {
+            mirrorScale = boundsHeight / mainHeight;
+            startX = (boundsWidth - (mirrorScale * mainWidth)) / 2; // 2 for calc X
+        } else if ((boundsHeight / boundsWidth) > (mainHeight / mainWidth)) {
+            mirrorScale = boundsWidth / mainWidth;
+            startY = (boundsHeight - (mirrorScale * mainHeight)) / 2; // 2 for calc Y
+        }
+        canvas_->translate(startX, startY);
+        canvas_->scale(mirrorScale, mirrorScale);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
