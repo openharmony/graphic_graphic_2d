@@ -105,7 +105,7 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
     return true;
 }
 
-void RSUniRenderVirtualProcessor::PostProcess()
+void RSUniRenderVirtualProcessor::PostProcess(RSDisplayRenderNode* node)
 {
     if (producerSurface_ == nullptr) {
         RS_LOGE("RSUniRenderVirtualProcessor::PostProcess surface is null!");

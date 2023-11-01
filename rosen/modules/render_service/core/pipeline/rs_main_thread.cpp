@@ -936,6 +936,9 @@ void RSMainThread::CollectInfoForHardwareComposer()
             if (surfaceNode == nullptr || !surfaceNode->IsOnTheTree()) {
                 return;
             }
+            if (surfaceNode->GetBuffer() != nullptr) {
+                selfDrawingNodes_.emplace_back(surfaceNode);
+            }
             if (!surfaceNode->IsHardwareEnabledType()) {
                 return;
             }
@@ -2544,6 +2547,12 @@ void RSMainThread::ResetHardwareEnabledState()
     doDirectComposition_ = !isHardwareForcedDisabled_;
     isHardwareEnabledBufferUpdated_ = false;
     hardwareEnabledNodes_.clear();
+    selfDrawingNodes_.clear();
+}
+
+const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& RSMainThread::GetSelfDrawingNodes() const
+{
+    return selfDrawingNodes_;
 }
 
 void RSMainThread::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
