@@ -59,15 +59,15 @@ void Builder::AnalyseFilters(cJSON* filters)
 {
     int size = cJSON_GetArraySize(filters);
     for (int i = 0; i < size; i++) {
-        auto item = std::shared_ptr<cJSON>(cJSON_GetArrayItem(filters, i));
-        auto type = std::shared_ptr<cJSON>(cJSON_GetObjectItem(item.get(), "type"));
-        auto name = std::shared_ptr<cJSON>(cJSON_GetObjectItem(item.get(), "name"));
-        auto params = std::shared_ptr<cJSON>(cJSON_GetObjectItem(item.get(), "params"));
+        cJSON* item = cJSON_GetArrayItem(filters, i);
+        cJSON* type = cJSON_GetObjectItem(item, "type");
+        cJSON* name = cJSON_GetObjectItem(item, "name");
+        cJSON* params = cJSON_GetObjectItem(item, "params");
         if (type != nullptr && name != nullptr) {
             nameType_[name->valuestring] = type->valuestring;
             auto tempFilter = filterFactory->GetFilter(type->valuestring);
             if (tempFilter != nullptr) {
-                ParseParams(tempFilter, params.get());
+                ParseParams(tempFilter, params);
                 nameFilter_[name->valuestring] = tempFilter;
             }
         }
@@ -79,21 +79,21 @@ void Builder::ParseParams(std::shared_ptr<Filter> filter, cJSON* params)
     if (params == nullptr) {
         return;
     }
-    auto childParam = std::shared_ptr<cJSON>(params->child);
+    auto childParam = params->child;
     while (childParam != nullptr) {
-        if (cJSON_IsArray(childParam.get())) {
-            ParseArray(filter, childParam.get());
-        } else if (cJSON_IsNumber(childParam.get())) {
+        if (cJSON_IsArray(childParam)) {
+            ParseArray(filter, childParam);
+        } else if (cJSON_IsNumber(childParam)) {
             std::shared_ptr<float> tempValue = std::make_shared<float>(childParam->valuedouble);
             filter->SetValue(childParam->string, tempValue, 1);
-        } else if (cJSON_IsString(childParam.get())) {
+        } else if (cJSON_IsString(childParam)) {
             std::string tempString = childParam->valuestring;
             std::shared_ptr<std::string> tempValue = std::make_shared<std::string>(tempString);
             filter->SetValue(childParam->string, tempValue, 1);
         } else {
             LOGE("Invalid input parameters!");
         }
-        childParam = std::shared_ptr<cJSON>(childParam->next);
+        childParam = childParam->next;
     }
 }
 
@@ -105,8 +105,8 @@ void Builder::ParseArray(std::shared_ptr<Filter> filter, cJSON* childParam)
     int arrayLength = cJSON_GetArraySize(childParam);
     std::shared_ptr<std::vector<float>> tempArray = std::make_shared<std::vector<float>>(arrayLength, 0);
     for (int i = 0; i < arrayLength; i++) {
-        auto arrayItem = std::shared_ptr<cJSON>(cJSON_GetArrayItem(childParam, i));
-        if (cJSON_IsNumber(arrayItem.get())) {
+        cJSON* arrayItem = cJSON_GetArrayItem(childParam, i);
+        if (cJSON_IsNumber(arrayItem)) {
             (*tempArray.get())[i] = arrayItem->valuedouble;
         }
     }
@@ -117,9 +117,9 @@ void Builder::ConnectPipeline(cJSON* connections)
 {
     int size = cJSON_GetArraySize(connections);
     for (int i = 0; i < size; i++) {
-        auto item = std::shared_ptr<cJSON>(cJSON_GetArrayItem(connections, i));
-        auto from = std::shared_ptr<cJSON>(cJSON_GetObjectItem(item.get(), "from"));
-        auto to = std::shared_ptr<cJSON>(cJSON_GetObjectItem(item.get(), "to"));
+        cJSON* item = cJSON_GetArrayItem(connections, i);
+        cJSON* from = cJSON_GetObjectItem(item, "from");
+        cJSON* to = cJSON_GetObjectItem(item, "to");
         std::shared_ptr<Filter> fFilter = nullptr;
         std::shared_ptr<Filter> tFilter = nullptr;
         if (from != nullptr && to != nullptr) {

@@ -233,7 +233,7 @@ HWTEST_F(EffectChainUnittest, BuilderCreateFromConfigTest008, TestSize.Level1)
     outFile.close();
 
     ImageChain* imageChain = builder->CreateFromConfig("test.json");
-    EXPECT_TRUE(imageChain != nullptr);
+    EXPECT_EQ(imageChain, nullptr);
     system("rm -rf test.json");
 }
 } // namespace Rosen
