@@ -28,6 +28,42 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+class RSRenderPathAnimationMock : public RSRenderPathAnimation {
+public:
+    explicit RSRenderPathAnimationMock(AnimationId id, const PropertyId& propertyId,
+    const std::shared_ptr<RSRenderPropertyBase>& originPosition,
+    const std::shared_ptr<RSRenderPropertyBase>& startPosition,
+    const std::shared_ptr<RSRenderPropertyBase>& endPosition, float originRotation,
+    const std::shared_ptr<RSPath>& animationPath) : RSRenderPathAnimation(id,
+        propertyId, originPosition, startPosition, endPosition, originRotation, animationPath) {}
+    ~RSRenderPathAnimationMock() = default;
+
+    void OnAnimate(float fraction) override
+    {
+        RSRenderPathAnimation::OnAnimate(fraction);
+    }
+
+    void OnRemoveOnCompletion() override
+    {
+        RSRenderPathAnimation::OnRemoveOnCompletion();
+    }
+
+    void InitValueEstimator() override
+    {
+        RSRenderPathAnimation::InitValueEstimator();
+    }
+
+    void OnAttach() override
+    {
+        RSRenderPathAnimation::OnAttach();
+    }
+
+    void OnDetach() override
+    {
+        RSRenderPathAnimation::OnDetach();
+    }
+};
+
 class RSRenderPathAnimationTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -227,16 +263,19 @@ HWTEST_F(RSRenderPathAnimationTest, Marshalling001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderPathAnimationTest Marshalling001 start";
 
-    auto property = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_DEFAULT_VALUE);
-    auto property1 = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_START_VALUE);
-    auto property2 = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_END_VALUE);
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_DEFAULT_VALUE,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_VECTOR2F);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_START_VALUE,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_VECTOR2F);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_END_VALUE,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_VECTOR2F);
     auto path = RSPath::CreateRSPath(ANIMATION_PATH);
     auto renderPathAnimation = std::make_shared<RSRenderPathAnimation>(ANIMATION_ID, PROPERTY_ID,
         property, property1, property2, 1.0f, path);
-
-    Parcel parcel;
-    renderPathAnimation->Marshalling(parcel);
     EXPECT_TRUE(renderPathAnimation != nullptr);
+    Parcel parcel;
+    auto result = renderPathAnimation->Marshalling(parcel);
+    EXPECT_TRUE(result == true);
     GTEST_LOG_(INFO) << "RSRenderPathAnimationTest Marshalling001 end";
 }
 
@@ -249,18 +288,132 @@ HWTEST_F(RSRenderPathAnimationTest, Unmarshalling001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderPathAnimationTest Unmarshalling001 start";
 
-    auto property = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_DEFAULT_VALUE);
-    auto property1 = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_START_VALUE);
-    auto property2 = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_END_VALUE);
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_DEFAULT_VALUE,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_VECTOR2F);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_START_VALUE,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_VECTOR2F);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_END_VALUE,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_VECTOR2F);
     auto path = RSPath::CreateRSPath(ANIMATION_PATH);
     auto renderPathAnimation = std::make_shared<RSRenderPathAnimation>(ANIMATION_ID, PROPERTY_ID,
         property, property1, property2, 1.0f, path);
-
-    Parcel parcel;
-    renderPathAnimation->Marshalling(parcel);
-    std::shared_ptr<RSRenderAnimation>(RSRenderPathAnimation::Unmarshalling(parcel));
     EXPECT_TRUE(renderPathAnimation != nullptr);
+    Parcel parcel;
+    auto renderAnimation = RSRenderPathAnimation::Unmarshalling(parcel);
+    EXPECT_TRUE(renderAnimation == nullptr);
+    renderPathAnimation->Marshalling(parcel);
+    renderAnimation = RSRenderPathAnimation::Unmarshalling(parcel);
+    EXPECT_TRUE(renderAnimation != nullptr);
     GTEST_LOG_(INFO) << "RSRenderPathAnimationTest Unmarshalling001 end";
+}
+
+/**
+ * @tc.name: OnAnimate001
+ * @tc.desc: Verify the OnAnimate
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPathAnimationTest, OnAnimate001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimate001 start";
+
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_DEFAULT_VALUE,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_VECTOR2F);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_START_VALUE,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_VECTOR2F);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_END_VALUE,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_VECTOR2F);
+    auto path = RSPath::CreateRSPath(ANIMATION_PATH);
+    auto renderPathAnimation = std::make_shared<RSRenderPathAnimationMock>(ANIMATION_ID, PROPERTY_ID,
+        property, property1, property2, 1.0f, path);
+    EXPECT_TRUE(renderPathAnimation != nullptr);
+    renderPathAnimation->OnAnimate(1.0f);
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimate001 end";
+}
+
+/**
+ * @tc.name: OnAnimate002
+ * @tc.desc: Verify the OnAnimate
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPathAnimationTest, OnAnimate002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimate002 start";
+
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(PATH_ANIMATION_DEFAULT_4F_VALUE,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_VECTOR4F);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(PATH_ANIMATION_START_4F_VALUE,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_VECTOR4F);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(PATH_ANIMATION_END_4F_VALUE,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_VECTOR4F);
+    auto path = RSPath::CreateRSPath(ANIMATION_PATH);
+    auto renderPathAnimation = std::make_shared<RSRenderPathAnimationMock>(ANIMATION_ID, PROPERTY_ID,
+        property, property1, property2, 1.0f, path);
+    EXPECT_TRUE(renderPathAnimation != nullptr);
+    renderPathAnimation->SetIsNeedPath(false);
+    renderPathAnimation->AttachRenderProperty(property);
+    renderPathAnimation->OnAnimate(1.0f);
+    renderPathAnimation->InitValueEstimator();
+    renderPathAnimation->OnAnimate(1.0f);
+    renderPathAnimation->SetIsNeedPath(true);
+    renderPathAnimation->OnAnimate(1.0f);
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimate002 end";
+}
+
+/**
+ * @tc.name: OnAnimate003
+ * @tc.desc: Verify the OnAnimate
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPathAnimationTest, OnAnimate003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimate003 start";
+
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(PATH_ANIMATION_DEFAULT_4F_VALUE,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_VECTOR4F);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(PATH_ANIMATION_START_4F_VALUE,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_VECTOR4F);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(PATH_ANIMATION_END_4F_VALUE,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_VECTOR4F);
+    auto path = RSPath::CreateRSPath(ANIMATION_PATH);
+    auto renderPathAnimation = std::make_shared<RSRenderPathAnimationMock>(ANIMATION_ID, PROPERTY_ID,
+        property, property1, property2, 1.0f, path);
+    EXPECT_TRUE(renderPathAnimation != nullptr);
+    renderPathAnimation->AttachRenderProperty(property);
+    renderPathAnimation->InitValueEstimator();
+    renderPathAnimation->SetIsNeedPath(true);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    renderPathAnimation->Attach(renderNode.get());
+    renderPathAnimation->SetRotationMode(RotationMode::ROTATE_AUTO);
+    renderPathAnimation->OnAnimate(1.0f);
+    renderPathAnimation->SetRotationMode(RotationMode::ROTATE_AUTO_REVERSE);
+    renderPathAnimation->OnAnimate(1.0f);
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimate003 end";
+}
+
+/**
+ * @tc.name: OnDetach001
+ * @tc.desc: Verify the OnDetach
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPathAnimationTest, OnDetach001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnDetach001 start";
+
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_DEFAULT_VALUE,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_VECTOR2F);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_START_VALUE,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_VECTOR2F);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_END_VALUE,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_VECTOR2F);
+    auto path = RSPath::CreateRSPath(ANIMATION_PATH);
+    auto renderPathAnimation = std::make_shared<RSRenderPathAnimationMock>(ANIMATION_ID, PROPERTY_ID,
+        property, property1, property2, 1.0f, path);
+    EXPECT_TRUE(renderPathAnimation != nullptr);
+    renderPathAnimation->OnDetach();
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    renderPathAnimation->Attach(renderNode.get());
+    renderPathAnimation->OnDetach();
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnDetach001 end";
 }
 } // namespace Rosen
 } // namespace OHOS

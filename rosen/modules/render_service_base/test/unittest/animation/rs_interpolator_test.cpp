@@ -29,6 +29,8 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+
+    static constexpr uint64_t CUSTOM_DURATION = 1000;
 };
 
 void RSInterpolatorTest::SetUpTestCase() {}
@@ -111,6 +113,27 @@ HWTEST_F(RSInterpolatorTest, RSSpringInterpolatorTest002, TestSize.Level1)
     EXPECT_EQ(result, 0.0f);
 
     GTEST_LOG_(INFO) << "RSInterpolatorTest RSSpringInterpolatorTest002 end";
+}
+
+/**
+ * @tc.name: RSCustomInterpolatorTest001
+ * @tc.desc: Verify the RSCustomInterpolator
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInterpolatorTest, RSCustomInterpolatorTest001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInterpolatorTest RSCustomInterpolatorTest001 start";
+
+    auto lambda = [](float value) -> bool {
+        return value;
+    };
+    RSCustomInterpolator interpolator2(lambda, CUSTOM_DURATION);
+    auto result = interpolator2.Interpolate(CUSTOM_DURATION);
+    EXPECT_EQ(result, 1.0f);
+    result = interpolator2.Interpolate(1.0f);
+    EXPECT_EQ(result, 1.0f);
+
+    GTEST_LOG_(INFO) << "RSInterpolatorTest RSCustomInterpolatorTest001 end";
 }
 
 } // namespace Rosen
