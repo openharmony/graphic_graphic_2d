@@ -28,6 +28,7 @@
 
 #include "command/rs_surface_node_command.h"
 #include "common/rs_common_def.h"
+#include "common/rs_optional_trace.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_rect.h"
 #include "common/rs_vector2.h"
@@ -766,11 +767,11 @@ void RSSurfaceRenderNode::AccumulateOcclusionRegion(Occlusion::Region& accumulat
     // full surfacenode valid filter cache can be treated as opaque
     if (filterCacheOcclusionEnabled && IsTransparent() && GetFilterCacheValid()) {
         RS_OPTIONAL_TRACE_NAME_FMT("calc occlusion nodename: %s id: %llu curRegion %s",
-            curSurface->GetName().c_str(), curSurface->GetId(), curRegion.GetRegionInfo().c_str());
+            GetName().c_str(), GetId(), curRegion.GetRegionInfo().c_str());
         accumulatedRegion.OrSelf(curRegion);
         hasFilterCacheOcclusion = true;
     } else {
-        accumulatedRegion.OrSelf(curSurface->GetOpaqueRegion());
+        accumulatedRegion.OrSelf(GetOpaqueRegion());
     }
     return;
 }

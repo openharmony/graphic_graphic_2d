@@ -1584,7 +1584,7 @@ bool RSMainThread::CheckQosVisChanged(std::map<uint32_t, bool>& pidVisMap)
     }
 
     lastPidVisMap_.clear();
-    lastPidVisMap_.insert(pidVisMap.begin(), pidVisMap.end());
+    std::swap(lastPidVisMap_, pidVisMap);
     return isVisibleChanged;
 }
 
@@ -1631,7 +1631,7 @@ void RSMainThread::CallbackToWMS(VisibleData& curVisVec)
         }
     }
     lastVisVec_.clear();
-    std::copy(curVisVec.begin(), curVisVec.end(), std::back_inserter(lastVisVec_));
+    std::swap(lastVisVec_, curVisVec);
 }
 
 void RSMainThread::SurfaceOcclusionCallback()
@@ -1659,7 +1659,7 @@ void RSMainThread::SurfaceOcclusionCallback()
             }
             savedAppWindowNode_[listener.first] = std::make_pair(surfaceNode, appWindowNode);
         }
-        bool visible = savedAppWindowNode_[listener.first].second->GetVisibleRegion().IsIntersectWith(
+        bool visible = savedAppWindowNode_[listener.first].second->GetVisibleRegionForCallBack().IsIntersectWith(
             savedAppWindowNode_[listener.first].first->GetDstRect());
         if (std::get<2>(listener.second) != visible) { // get 2 in tuple to check visible is changed
             RS_LOGD("RSMainThread::SurfaceOcclusionCallback surfacenode: %{public}" PRIu64 ".", listener.first);
