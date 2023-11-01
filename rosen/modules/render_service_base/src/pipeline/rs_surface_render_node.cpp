@@ -469,6 +469,17 @@ void RSSurfaceRenderNode::SetContextClipRegion(const std::optional<Drawing::Rect
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetContextClipRegion>(GetId(), clipRegion);
     SendCommandFromRT(command, GetId());
 }
+void RSSurfaceRenderNode::SetBootAnimation(bool isBootAnimation)
+{
+    ROSEN_LOGD("SetBootAnimation:: id:%{public}" PRIu64 ", isBootAnimation:%{public}d",
+        GetId(), isBootAnimation);
+    isBootAnimation_ = isBootAnimation;
+}
+
+bool RSSurfaceRenderNode::GetBootAnimation() const
+{
+    return isBootAnimation_;
+}
 
 void RSSurfaceRenderNode::SetSecurityLayer(bool isSecurityLayer)
 {

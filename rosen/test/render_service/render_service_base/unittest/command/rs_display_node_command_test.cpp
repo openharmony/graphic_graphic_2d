@@ -98,4 +98,19 @@ HWTEST_F(RSDisplayNodeCommandTest, Create001, TestSize.Level1)
     RSDisplayNodeConfig config { 0, true, 0 };
     DisplayNodeCommandHelper::Create(context, id, config);
 }
+
+/**
+ * @tc.name: SetBootAnimation001
+ * @tc.desc: test.
+ * @tc.type: FUNC
+ * @tc.require:SR000HSUII
+ */
+HWTEST_F(RSDisplayNodeCommandTest, SetBootAnimation001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    RSDisplayNodeConfig config { 0, true, 0 };
+    DisplayNodeCommandHelper::Create(context, id, config);
+    DisplayNodeCommandHelper::SetBootAnimation(context, id, true);
+}
 } // namespace OHOS::Rosen

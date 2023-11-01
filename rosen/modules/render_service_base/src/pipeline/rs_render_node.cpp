@@ -94,6 +94,17 @@ void RSRenderNode::AddChild(SharedPtr child, int index)
     isFullChildrenListValid_ = false;
 }
 
+void RSRenderNode::SetContainBootAnimation(bool isContainBootAnimation)
+{
+    isContainBootAnimation_ = isContainBootAnimation;
+    isFullChildrenListValid_ = false;
+}
+
+bool RSRenderNode::GetContainBootAnimation() const
+{
+    return isContainBootAnimation_;
+}
+
 void RSRenderNode::MoveChild(SharedPtr child, int index)
 {
     if (child == nullptr || child->GetParent().lock().get() != this) {
@@ -140,6 +151,9 @@ void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
         child->ResetParent();
     }
     children_.erase(it);
+    if (child->GetBootAnimation()) {
+        SetContainBootAnimation(false);
+    }
     isFullChildrenListValid_ = false;
 }
 
@@ -350,7 +364,10 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
         out += ", skipLayer: " + std::to_string(displayNode->GetSecurityDisplay());
     }
     out += ", Properties: " + GetRenderProperties().Dump();
+    out += ", GetBootAnimation: " + std::to_string(GetBootAnimation());
+    out += ", isContainBootAnimation_: " + std::to_string(isContainBootAnimation_);
     out += "\n";
+
     for (auto& child : children_) {
         if (auto c = child.lock()) {
             c->DumpTree(depth + 1, out);
@@ -1142,6 +1159,18 @@ float RSRenderNode::GetGlobalAlpha() const
     return globalAlpha_;
 }
 
+void RSRenderNode::SetBootAnimation(bool isBootAnimation)
+{
+    ROSEN_LOGD("SetBootAnimation:: id:%{public}" PRIu64 "isBootAnimation %{public}d",
+        GetId(), isBootAnimation);
+    isBootAnimation_ = isBootAnimation;
+}
+
+bool RSRenderNode::GetBootAnimation() const
+{
+    return isBootAnimation_;
+}
+
 bool RSRenderNode::NeedInitCacheSurface() const
 {
     auto cacheType = GetCacheType();
@@ -1671,6 +1700,12 @@ void RSRenderNode::GenerateFullChildrenList(bool inSubThread)
             ROSEN_LOGI("RSRenderNode::GenerateSortedChildren removing expired child, this is rare but possible.");
             return true;
         }
+        if (isContainBootAnimation_ && !existingChild->GetBootAnimation()) {
+            ROSEN_LOGD("RSRenderNode::GenerateSortedChildren %{public}" PRIu64 " skip"
+            " move not bootAnimation displaynode"
+            "child(id %{public}" PRIu64 ")"" into children_", GetId(), existingChild->GetId());
+            return false;
+        }
         fullChildrenList_.emplace_back(std::move(existingChild));
         return false;
     });
@@ -1683,8 +1718,13 @@ void RSRenderNode::GenerateFullChildrenList(bool inSubThread)
     //     children_ to disappearingChildren_. We hold ownership of the shared_ptr of the child after that.
     std::for_each(disappearingChildren_.begin(), disappearingChildren_.end(), [this](const auto& pair) -> void {
         auto& disappearingChild = pair.first;
+        if (isContainBootAnimation_ && !disappearingChild->GetBootAnimation()) {
+            ROSEN_LOGD("RSRenderNode::GenerateSortedChildren %{public}" PRIu64 " skip"
+            " move not bootAnimation displaynode"
+            "child(id %{public}" PRIu64 ")"" into disappearingChild", GetId(), disappearingChild->GetId());
+            return;
+        }
         const auto& origPos = pair.second;
-
         if (origPos < fullChildrenList_.size()) {
             fullChildrenList_.emplace(std::next(fullChildrenList_.begin(), origPos), disappearingChild);
         } else {

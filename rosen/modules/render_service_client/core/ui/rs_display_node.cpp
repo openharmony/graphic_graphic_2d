@@ -137,6 +137,21 @@ RSDisplayNode::RSDisplayNode(const RSDisplayNodeConfig& config)
     (void)offsetY_;
 }
 
+void RSDisplayNode::SetBootAnimation(bool isBootAnimation)
+{
+    isBootAnimation_ = isBootAnimation;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetBootAnimation>(GetId(), isBootAnimation);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+}
+
+bool RSDisplayNode::GetBootAnimation() const
+{
+    return isBootAnimation_;
+}
+
 RSDisplayNode::~RSDisplayNode() = default;
 
 } // namespace Rosen

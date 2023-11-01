@@ -85,7 +85,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
 
         command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(node->GetId());
         transactionProxy->AddCommand(command, isWindow);
-        
+
         RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
         command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(node->GetId(), true);
         transactionProxy->AddCommand(command, isWindow);
@@ -537,6 +537,23 @@ void RSSurfaceNode::SetHardwareEnabled(bool isEnabled)
     if (renderServiceClient != nullptr) {
         renderServiceClient->SetHardwareEnabled(GetId(), isEnabled);
     }
+}
+
+void RSSurfaceNode::SetBootAnimation(bool isBootAnimation)
+{
+    isBootAnimation_ = isBootAnimation;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetBootAnimation>(GetId(), isBootAnimation);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+    ROSEN_LOGD("RSSurfaceNode::SetBootAnimation, surfaceNodeId:[%" PRIu64 "] isBootAnimation:%s",
+        GetId(), isBootAnimation ? "true" : "false");
+}
+bool RSSurfaceNode::GetBootAnimation() const
+{
+    return isBootAnimation_;
 }
 } // namespace Rosen
 } // namespace OHOS

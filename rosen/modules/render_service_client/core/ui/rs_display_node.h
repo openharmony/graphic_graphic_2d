@@ -54,6 +54,8 @@ public:
 
     bool IsMirrorDisplay() const;
 
+    void SetBootAnimation(bool isBootAnimation);
+    bool GetBootAnimation() const;
 protected:
     explicit RSDisplayNode(const RSDisplayNodeConfig& config);
     RSDisplayNode(const RSDisplayNode&) = delete;
@@ -67,6 +69,7 @@ private:
     int32_t offsetY_;
     bool isSecurityDisplay_ = false;
     bool isMirroredDisplay_ = false;
+    bool isBootAnimation_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
