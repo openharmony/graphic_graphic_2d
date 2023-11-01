@@ -696,16 +696,96 @@ bool RSSurfaceRenderNode::UpdateDirtyIfFrameBufferConsumed()
     return false;
 }
 
+bool RSSurfaceRenderNode::IsSurfaceInStartingWindowStage() const
+{
+    auto parentPtr = this->GetParent().lock();
+    if (parentPtr != nullptr && parentPtr->IsInstanceOf<RSSurfaceRenderNode>()) {
+        auto surfaceParentPtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(parentPtr);
+        if (surfaceParentPtr->GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE &&
+            !this->IsNotifyUIBufferAvailable()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool RSSurfaceRenderNode::IsParentLeashWindowInScale() const
+{
+     auto parentPtr = this->GetParent().lock();
+    if (parentPtr != nullptr && parentPtr->IsInstanceOf<RSSurfaceRenderNode>()) {
+        auto surfaceParentPtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(parentPtr);
+        if(surfaceParentPtr->IsLeashWindow() && surfaceParentPtr->IsScale()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+Occlusion::Rect RSSurfaceRenderNode::GetSurfaceOcclusionRect(bool isUniRender)
+{
+    Occlusion::Rect occlusionRect;
+    if(isUniRender) {
+        occlusionRect = Occlusion::Rect {GetOldDirtyInSurface()};
+    } else {
+        occlusionRect = Occlusion::Rect {GetDstRect()};
+    }
+    return occlusionRect;
+}
+
+void RSSurfaceRenderNode::AccumulateOcclusionRegion(Occlusion::Region& accumulatedRegion,
+        Occlusion::Region& curRegion,
+        bool& hasFilterCacheOcclusion,
+        bool isUniRender,
+        bool filterCacheOcclusionEnabled)
+{
+    // when surface is in starting window stage, do not occlude other window surfaces
+    // fix gray block when directly open app (i.e. setting) from notification center
+    if (IsSurfaceInStartingWindowStage()) {
+        return;
+    }
+    if (!isUniRender) {
+        bool diff = (GetDstRect().width_ > GetBuffer()->GetWidth() ||
+                    GetDstRect().height_ > GetBuffer()->GetHeight()) &&
+                    GetRenderProperties().GetFrameGravity() != Gravity::RESIZE &&
+                    ROSEN_EQ(GetGlobalAlpha(), 1.0f);
+        if (!IsTransparent() && !diff) {
+            accumulatedRegion.OrSelf(curRegion);
+        }
+    }
+
+    if (GetName().find("hisearch") != std::string::npos) {
+        return;
+    }
+    // when a surfacenode is in animation (i.e. 3d animation), its dstrect cannot be trusted, we treated it as a full
+    // transparent layer.
+    if (GetAnimateState() || IsParentLeashWindowInScale()) {
+        ResetAnimateState();
+        return;
+    }
+
+    // full surfacenode valid filter cache can be treated as opaque
+    if (filterCacheOcclusionEnabled && IsTransparent() && GetFilterCacheValid()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("calc occlusion nodename: %s id: %llu curRegion %s",
+            curSurface->GetName().c_str(), curSurface->GetId(), curRegion.GetRegionInfo().c_str());
+        accumulatedRegion.OrSelf(curRegion);
+        hasFilterCacheOcclusion = true;
+    } else {
+        accumulatedRegion.OrSelf(curSurface->GetOpaqueRegion());
+    }
+    return;
+}
+
 void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& region,
                                                     VisibleData& visibleVec,
-                                                    std::map<uint32_t, bool>& pidVisMap)
+                                                    std::map<uint32_t, bool>& pidVisMap,
+                                                    bool needSetVisibleRegion)
 {
     if (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE || IsAbilityComponent()) {
         SetOcclusionVisible(true);
         visibleVec.emplace_back(GetId());
         return;
     }
-    visibleRegion_ = region;
+
     bool vis = region.GetSize() > 0;
     if (vis) {
         visibleVec.emplace_back(GetId());
@@ -721,10 +801,15 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
         }
     }
 
-    SetOcclusionVisible(vis);
+    visibleRegionForCallBack_ = region;
+    if (needSetVisibleRegion) {
+        visibleRegion_ = region;
+        SetOcclusionVisible(vis);
+    }
+
     for (auto& child : GetChildren()) {
         if (auto surface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child)) {
-            surface->SetVisibleRegionRecursive(region, visibleVec, pidVisMap);
+            surface->SetVisibleRegionRecursive(region, visibleVec, pidVisMap, needSetVisibleRegion);
         }
     }
 }
