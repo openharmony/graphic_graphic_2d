@@ -1173,6 +1173,26 @@ bool RSRenderNode::NeedInitCacheSurface() const
 #endif
 }
 
+bool RSRenderNode::NeedInitCacheCompletedSurface() const
+{
+    Vector2f size = GetOptionalBufferSize();
+    int width = static_cast<int>(size.x_);
+    int height = static_cast<int>(size.y_);
+    std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
+    if (cacheCompletedSurface_ == nullptr) {
+        return true;
+    }
+#ifndef USE_ROSEN_DRAWING
+    return cacheCompletedSurface_->width() != width || cacheCompletedSurface_->height() !=height;
+#else
+    auto cacheCanvas = cacheCompletedSurface_->GetCanvas();
+    if (cacheCanvas == nullptr) {
+        return true;
+    }
+    return cacheCanvas->GetWidth() != width || cacheCanvas->GetHeight() != height;
+#endif
+}
+
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
 void RSRenderNode::InitCacheSurface(GrRecordingContext* grContext, ClearCacheSurfaceFunc func, uint32_t threadIndex)

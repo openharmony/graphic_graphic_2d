@@ -230,6 +230,7 @@ public:
     bool IsStaticCached() const;
 
     bool NeedInitCacheSurface() const;
+    bool NeedInitCacheCompletedSurface() const;
     inline bool IsPureContainer() const
     {
         return (drawCmdModifiers_.empty() && !renderProperties_.isDrawn_ && !renderProperties_.alphaNeedApply_);
