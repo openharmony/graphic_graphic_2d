@@ -151,17 +151,17 @@ public:
     /*
      * @brief  Gets the total matrix of Canvas to device.
      */
-    Matrix GetTotalMatrix() const;
+    virtual Matrix GetTotalMatrix() const;
 
     /*
      * @brief  Gets bounds of clip in local coordinates.
      */
-    Rect GetLocalClipBounds() const;
+    virtual Rect GetLocalClipBounds() const;
 
     /*
      * @brief  Gets bounds of clip in device corrdinates.
      */
-    RectI GetDeviceClipBounds() const;
+    virtual RectI GetDeviceClipBounds() const;
 
     /*
      * @brief  Gets GPU context of the GPU surface associated with Canvas.
