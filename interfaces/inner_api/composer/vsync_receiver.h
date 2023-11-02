@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 #ifndef VSYNC_VSYNC_RECEIVER_H
 #define VSYNC_VSYNC_RECEIVER_H
 
@@ -37,7 +36,7 @@ public:
         void *userData_;
         VSyncCallback callback_;
     };
-    VSyncCallBackListener() : period_(0), lastTimeStamp_(0), vsyncCallbacks_(nullptr), userData_(nullptr)
+    VSyncCallBackListener() : period_(0), timeStamp_(0), vsyncCallbacks_(nullptr), userData_(nullptr)
     {
     }
 
@@ -50,9 +49,10 @@ public:
         vsyncCallbacks_ = cb.callback_;
         userData_ = cb.userData_;
     }
-
     int64_t period_;
-    int64_t lastTimeStamp_;
+    int64_t timeStamp_;
+    thread_local static inline int64_t periodShared_ = 0;
+    thread_local static inline int64_t timeStampShared_ = 0;
 
 private:
     void OnReadable(int32_t fileDescriptor) override;
@@ -80,7 +80,8 @@ public:
     virtual VsyncError RequestNextVSync(FrameCallback callback);
     virtual VsyncError SetVSyncRate(FrameCallback callback, int32_t rate);
     virtual VsyncError GetVSyncPeriod(int64_t &period);
-    virtual VsyncError GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_t &timeStamp);
+    virtual VsyncError GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_t &timeStamp,
+                                                        bool isThreadShared = false);
     int32_t GetFd() { return dup(fd_); }
 private:
     VsyncError Destroy();
