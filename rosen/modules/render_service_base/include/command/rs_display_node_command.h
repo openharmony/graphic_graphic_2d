@@ -30,6 +30,7 @@ enum RSDisplayNodeCommandType : uint16_t {
     DISPLAY_NODE_SET_SECURITY_DISPLAY,
     DISPLAY_NODE_SET_DISPLAY_MODE,
     DISPLAY_NODE_SET_SCREEN_ROTATION,
+    DISPLAY_NODE_SET_BOOT_ANIMATION,
 };
 
 class RSB_EXPORT DisplayNodeCommandHelper {
@@ -40,6 +41,7 @@ public:
     static void SetSecurityDisplay(RSContext&, NodeId, bool);
     static void SetDisplayMode(RSContext&, NodeId, const RSDisplayNodeConfig&);
     static void SetScreenRotation(RSContext&, NodeId, const ScreenRotation&);
+    static void SetBootAnimation(RSContext& context, NodeId nodeId, bool isBootAnimation);
 };
 
 ADD_COMMAND(RSDisplayNodeCreate,
@@ -57,6 +59,9 @@ ADD_COMMAND(RSDisplayNodeSetDisplayMode,
 ADD_COMMAND(RSDisplayNodeSetScreenRotation,
     ARG(DISPLAY_NODE, DISPLAY_NODE_SET_SCREEN_ROTATION, DisplayNodeCommandHelper::SetScreenRotation, NodeId,
     ScreenRotation))
+ADD_COMMAND(RSDisplayNodeSetBootAnimation,
+    ARG(DISPLAY_NODE, DISPLAY_NODE_SET_BOOT_ANIMATION, DisplayNodeCommandHelper::SetBootAnimation,
+    NodeId, bool))
 } // namespace Rosen
 } // namespace OHOS
 

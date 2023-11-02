@@ -130,6 +130,26 @@ void RSDisplayRenderNode::SetIsMirrorDisplay(bool isMirror)
         GetId(), IsMirrorDisplay() ? "true" : "false");
 }
 
+void RSDisplayRenderNode::SetBootAnimation(bool isBootAnimation)
+{
+    ROSEN_LOGD("SetBootAnimation:: id:[%{public}" PRIu64 ", isBootAnimation:%{public}d",
+        GetId(), isBootAnimation);
+    isBootAnimation_ = isBootAnimation;
+
+    auto parent = GetParent().lock();
+    if (parent == nullptr) {
+        return;
+    }
+    if (isBootAnimation) {
+        parent->SetContainBootAnimation(true);
+    }
+}
+
+bool RSDisplayRenderNode::GetBootAnimation() const
+{
+    return isBootAnimation_;
+}
+
 #ifndef ROSEN_CROSS_PLATFORM
 bool RSDisplayRenderNode::CreateSurface(sptr<IBufferConsumerListener> listener)
 {

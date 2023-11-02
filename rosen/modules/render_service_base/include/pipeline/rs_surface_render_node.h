@@ -332,6 +332,9 @@ public:
     std::optional<Drawing::Rect> GetContextClipRegion() const override;
 #endif
 
+    void SetBootAnimation(bool isBootAnimation) override;
+    bool GetBootAnimation() const override;
+
     void SetSecurityLayer(bool isSecurityLayer);
     bool GetSecurityLayer() const;
 

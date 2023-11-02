@@ -196,4 +196,20 @@ HWTEST_F(RSDisplayNodeTest, IsMirrorDisplayTest, TestSize.Level1)
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
     ASSERT_FALSE(displayNode->IsMirrorDisplay());
 }
+
+/**
+ * @tc.name: SetBootAnimation Test
+ * @tc.desc: SetBootAnimation and GetBootAnimation
+ * @tc.type: FUNC
+ * @tc.require:SR000HSUII
+ */
+HWTEST_F(RSDisplayNodeTest, SetBootAnimationTest, TestSize.Level1)
+{
+    RSDisplayNodeConfig c;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(c);
+    displayNode->SetBootAnimation(true);
+    ASSERT_EQ(true, displayNode->GetBootAnimation());
+    displayNode->SetBootAnimation(false);
+    ASSERT_EQ(false, displayNode->GetBootAnimation());
+}
 } // namespace OHOS::Rosen

@@ -125,7 +125,8 @@ public:
     void SetSecurityDisplay(bool isSecurityDisplay);
     bool GetSecurityDisplay() const;
     bool SkipFrame(uint32_t skipFrameInterval);
-
+    void SetBootAnimation(bool isBootAnimation) override;
+    bool GetBootAnimation() const override;
     WeakPtr GetMirrorSource() const
     {
         return mirrorSource_;
