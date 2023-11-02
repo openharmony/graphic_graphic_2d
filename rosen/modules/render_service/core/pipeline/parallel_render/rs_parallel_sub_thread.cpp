@@ -605,6 +605,8 @@ void RSParallelSubThread::StartComposition()
     if (processorRenderEngine_ == nullptr) {
         processorRenderEngine_ = std::make_shared<RSUniRenderEngine>();
         processorRenderEngine_->Init();
+        auto context = processorRenderEngine_->GetRenderContext();
+        context->SetAndMakeCurrentShareContex(eglShareContext_);
     }
     compositionVisitor_ = std::make_shared<RSUniRenderVisitor>();
     auto parallelRenderManager = RSParallelRenderManager::Instance();

@@ -618,8 +618,7 @@ void RSUniRenderVisitor::ParallelPrepareDisplayRenderNodeChildrens(RSDisplayRend
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK))
     auto parallelRenderManager = RSParallelRenderManager::Instance();
-    doParallelRender_ = (node.GetChildrenCount() >= PARALLEL_RENDER_MINIMUM_RENDER_NODE_NUMBER) &&
-                        (!doParallelComposition_);
+    doParallelRender_ = (node.GetChildrenCount() >= PARALLEL_RENDER_MINIMUM_RENDER_NODE_NUMBER);
     isParallel_ = AdaptiveSubRenderThreadMode(doParallelRender_) && parallelRenderManager->GetParallelMode();
     isDirtyRegionAlignedEnable_ = false;
     // we will open prepare parallel after check all properties.
@@ -1785,6 +1784,24 @@ void RSUniRenderVisitor::ProcessParallelDisplayRenderNode(RSDisplayRenderNode& n
 #endif
 }
 
+sk_sp<SkImage> RSUniRenderVisitor::GetCacheImageFromMirrorNode(std::shared_ptr<RSDisplayRenderNode> mirrorNode)
+{
+    sk_sp<SkImage> image = nullptr;
+    auto cacheImage = mirrorNode->GetCacheImgForCapture();
+    if (cacheImage != nullptr) {
+        auto renderContext = renderEngine_->GetRenderContext();
+        if (renderContext != nullptr) {
+            auto grContext = renderContext->GetGrContext();
+            auto imageBackendTexure = cacheImage->getBackendTexture(false);
+            if (grContext != nullptr && imageBackendTexure.isValid()) {
+                image = SkImage::MakeFromTexture(grContext, imageBackendTexure,
+                    kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
+            }
+        }
+    }
+    return image;
+}
+
 void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 {
     if (mirroredDisplays_.size() == 0) {
@@ -1887,8 +1904,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 return;
             }
 #ifndef USE_ROSEN_DRAWING
-            if (doParallelComposition_ && mirrorNode->GetCacheImgForCapture() &&
-                !displayHasSkipSurface_[mirrorNode->GetScreenId()] &&
+            sk_sp<SkImage> newImage = GetCacheImageFromMirrorNode(mirrorNode);
+            bool parallelComposition = RSMainThread::Instance()->GetParallelCompositionEnabled();
+            if (parallelComposition && newImage && !displayHasSkipSurface_[mirrorNode->GetScreenId()] &&
                 !displayHasSecSurface_[mirrorNode->GetScreenId()]) {
                 canvas_->save();
                 // If both canvas and skImage have rotated, we need to reset the canvas
@@ -1901,14 +1919,14 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 SkPaint paint;
                 paint.setAntiAlias(true);
 #ifdef NEW_SKIA
-                canvas_->drawImage(mirrorNode->GetCacheImgForCapture(), 0, 0, SkSamplingOptions(), &paint);
+                canvas_->drawImage(newImage, 0, 0, SkSamplingOptions(), &paint);
 #else
                 paint.setFilterQuality(SkFilterQuality::kLow_SkFilterQuality);
-                canvas_->drawImage(mirrorNode->GetCacheImgForCapture(), 0, 0, &paint);
+                canvas_->drawImage(newImage, 0, 0, &paint);
 #endif
                 canvas_->restore();
                 DrawWatermarkIfNeed();
-            } else {
+            } else if (!parallelComposition) {
                 mirrorNode->SetCacheImgForCapture(nullptr);
                 int saveCount = canvas_->save();
                 float boundsWidth = node.GetRenderProperties().GetBoundsWidth();
@@ -1919,8 +1937,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 canvas_->restoreToCount(saveCount);
             }
 #else
-            if (doParallelComposition_ && mirrorNode->GetCacheImgForCapture() &&
-                !displayHasSkipSurface_[mirrorNode->GetScreenId()] &&
+            sk_sp<SkImage> newImage = GetCacheImageFromMirrorNode(mirrorNode);
+            bool parallelComposition = RSMainThread::Instance()->GetParallelCompositionEnabled();
+            if (parallelComposition && newImage && !displayHasSkipSurface_[mirrorNode->GetScreenId()] &&
                 !displayHasSecSurface_[mirrorNode->GetScreenId()]) {
                 canvas_->Save();
                 // If both canvas and skImage have rotated, we need to reset the canvas
@@ -1933,11 +1952,11 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 Drawing::Brush brush;
                 brush.SetAntiAlias(true);
                 canvas_->AttachBrush(brush);
-                canvas_->DrawImage(*(mirrorNode->GetCacheImgForCapture()), 0, 0, Drawing::SamplingOptions());
+                canvas_->DrawImage(*newImage, 0, 0, Drawing::SamplingOptions());
                 canvas_->DetachBrush();
                 canvas_->Restore();
                 DrawWatermarkIfNeed();
-            } else {
+            } else if (!parallelComposition) {
                 mirrorNode->SetCacheImgForCapture(nullptr);
                 auto saveCount = canvas_->GetSaveCount();
                 canvas_->Save();
@@ -2304,6 +2323,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         RS_OPTIONAL_TRACE_BEGIN("RSUniRender:WaitUtilUniRenderFinished");
         RSMainThread::Instance()->WaitUtilUniRenderFinished();
         RS_OPTIONAL_TRACE_END();
+        if (cacheImgForCapture_ != nullptr) {
+            node.SetCacheImgForCapture(cacheImgForCapture_);
+        }
         UpdateHardwareEnabledInfoBeforeCreateLayer();
         AssignGlobalZOrderAndCreateLayer(appWindowNodesInZOrder_);
         node.SetGlobalZOrder(globalZOrder_++);
@@ -3190,7 +3212,7 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeNeedProcess(RSSurfaceRenderNode
         return false;
     }
     auto mirrorNode = curDisplayNode_->GetMirrorSource().lock();
-    if (!doParallelComposition_ && isSecurityDisplay_ && mirrorNode &&
+    if (!RSMainThread::Instance()->GetParallelCompositionEnabled() && isSecurityDisplay_ && mirrorNode &&
         mirrorNode->GetCacheImgForCapture() && node.processZOrder_ < curDisplayNode_->GetCaptureWindowZOrder()) {
         RS_PROCESS_TRACE(isPhone_, false, node.GetName() + " skip because of using cacheImgForCapture");
         RS_LOGD("RSUniRenderVisitor::CheckIfSurfaceRenderNodeNeedProcess:\
@@ -3312,16 +3334,16 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #endif
 
     // when surfacenode named "CapsuleWindow", cache the current canvas as SkImage for screen recording
-    if (doParallelComposition_ && !isSecurityDisplay_ && canvas_->GetSurface() != nullptr &&
-        node.GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos) {
+    if (RSMainThread::Instance()->GetParallelCompositionEnabled() && !isSecurityDisplay_ &&
+        canvas_->GetSurface() != nullptr && node.GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos) {
 #ifndef USE_ROSEN_DRAWING
         int angle = RSUniRenderUtil::GetRotationFromMatrix(canvas_->getTotalMatrix());
         resetRotate_ = angle != 0 && angle % 90 == 0;
-        curDisplayNode_->SetCacheImgForCapture(canvas_->GetSurface()->makeImageSnapshot());
+        cacheImgForCapture_ = canvas_->GetSurface()->makeImageSnapshot();
 #else
         int angle = RSUniRenderUtil::GetRotationFromMatrix(canvas_->GetTotalMatrix());
         resetRotate_ = angle != 0 && angle % 90 == 0;
-        curDisplayNode_->SetCacheImgForCapture(canvas_->GetSurface()->GetImageSnapshot());
+        cacheImgForCapture_ = canvas_->GetSurface()->GetImageSnapshot();
 #endif
     }
 
@@ -4096,10 +4118,8 @@ bool RSUniRenderVisitor::ParallelComposition(const std::shared_ptr<RSBaseRenderN
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined (RS_ENABLE_GL)
     auto parallelRenderManager = RSParallelRenderManager::Instance();
-    doParallelComposition_ = true;
-    doParallelComposition_ = AdaptiveSubRenderThreadMode(doParallelComposition_) &&
-                             parallelRenderManager->GetParallelMode();
-    if (doParallelComposition_) {
+    parallelRenderManager->SetParallelMode(true);
+    if (parallelRenderManager->GetParallelMode()) {
         parallelRenderManager->PackParallelCompositionTask(shared_from_this(), rootNode);
         parallelRenderManager->LoadBalanceAndNotify(TaskType::COMPOSITION_TASK);
         parallelRenderManager->WaitCompositionEnd();

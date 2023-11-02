@@ -1287,6 +1287,11 @@ void RSMainThread::ProcessHgmFrameRate(std::shared_ptr<FrameRateRangeData> data,
     // 3.[Planning]: Post app and rs switch software vsync rate task.
 }
 
+bool RSMainThread::GetParallelCompositionEnabled()
+{
+    return doParallelComposition_;
+}
+
 void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
     UpdateUIFirstSwitch();
@@ -1333,11 +1338,11 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         rootNode->Prepare(uniVisitor);
         ProcessHgmFrameRate(frameRateRangeData_, timestamp_);
         CalcOcclusion();
-        bool doParallelComposition = RSInnovation::GetParallelCompositionEnabled(isUniRender_);
-        if (doParallelComposition && rootNode->GetChildrenCount() > 1) {
+        doParallelComposition_ = RSInnovation::GetParallelCompositionEnabled(isUniRender_) &&
+                                 rootNode->GetChildrenCount() > 1;
+        if (doParallelComposition_) {
             RS_LOGD("RSMainThread::Render multi-threads parallel composition begin.");
-            doParallelComposition = uniVisitor->ParallelComposition(rootNode);
-            if (doParallelComposition) {
+            if (uniVisitor->ParallelComposition(rootNode)) {
                 RS_LOGD("RSMainThread::Render multi-threads parallel composition end.");
                 isDirty_ = false;
                 PerfForBlurIfNeeded();
