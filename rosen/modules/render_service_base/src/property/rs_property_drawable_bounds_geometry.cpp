@@ -470,66 +470,87 @@ std::unique_ptr<RSPropertyDrawable> RSShadowBaseDrawable::Generate(const RSPrope
     if (properties.IsSpherizeValid() || !properties.IsShadowValid()) {
         return nullptr;
     }
-#ifndef USE_ROSEN_DRAWING
-    SkPath skPath;
-#else
-    Drawing::Path path;
-#endif
-    // PLANNING: Generate SkPath and deal with LeashWindow
-
     if (properties.GetShadowMask()) {
-#ifndef USE_ROSEN_DRAWING
-        return std::make_unique<RSColorfulShadowDrawable>(skPath, properties);
-#else
-        return std::make_unique<RSColorfulShadowDrawable>(path, properties);
-#endif
+        return std::make_unique<RSColorfulShadowDrawable>(properties);
     } else {
         if (properties.GetShadow()->GetHardwareAcceleration()) {
             if (properties.GetShadowElevation() <= 0.f) {
                 return nullptr;
             }
-#ifndef USE_ROSEN_DRAWING
-            return std::make_unique<RSHardwareAccelerationShadowDrawable>(skPath, properties);
-#else
-            return std::make_unique<RSHardwareAccelerationShadowDrawable>(path, properties);
-#endif
+            return std::make_unique<RSHardwareAccelerationShadowDrawable>(properties);
         } else {
-#ifndef USE_ROSEN_DRAWING
-            return std::make_unique<RSShadowDrawable>(skPath, properties);
-#else
-            return std::make_unique<RSShadowDrawable>(path, properties);
-#endif
+            return std::make_unique<RSShadowDrawable>(properties);
         }
     }
 }
 
-#ifndef USE_ROSEN_DRAWING
-RSShadowBaseDrawable::RSShadowBaseDrawable(SkPath skPath, const RSProperties& properties) : skPath_(skPath)
-#else
-RSShadowBaseDrawable::RSShadowBaseDrawable(Drawing::Path path, const RSProperties& properties) : path_(path)
-#endif
+RSShadowBaseDrawable::RSShadowBaseDrawable(const RSProperties& properties)
 {
     offsetX_ = properties.GetShadowOffsetX();
     offsetY_ = properties.GetShadowOffsetY();
     color_ = properties.GetShadowColor();
 }
 
-#ifndef USE_ROSEN_DRAWING
-RSShadowDrawable::RSShadowDrawable(SkPath skPath, const RSProperties& properties)
-    : RSShadowBaseDrawable(skPath, properties)
-#else
-RSShadowDrawable::RSShadowDrawable(Drawing::Path path, const RSProperties& properties)
-    : RSShadowBaseDrawable(path, properties)
-#endif
+RSShadowDrawable::RSShadowDrawable(const RSProperties& properties)
+    : RSShadowBaseDrawable(properties)
 {
     radius_ = properties.GetShadowRadius();
 }
 
+#ifndef USE_ROSEN_DRAWING
+void RSShadowBaseDrawable::ClipShadowPath(RSRenderNode& node, RSPaintFilterCanvas& canvas, SkPath& skPath)
+{
+    const RSProperties& properties = node.GetRenderProperties();
+    if (properties.GetShadowPath() && !properties.GetShadowPath()->GetSkiaPath().isEmpty()) {
+        skPath = properties.GetShadowPath()->GetSkiaPath();
+        if (!properties.GetShadowIsFilled()) {
+            canvas.clipPath(skPath, SkClipOp::kDifference, true);
+        }
+    } else if (properties.GetClipBounds()) {
+        skPath = properties.GetClipBounds()->GetSkiaPath();
+        if (!properties.GetShadowIsFilled()) {
+            canvas.clipPath(skPath, SkClipOp::kDifference, true);
+        }
+    } else {
+        skPath.addRRect(RSPropertiesPainter::RRect2SkRRect(properties.GetRRect()));
+        if (!properties.GetShadowIsFilled()) {
+            canvas.clipRRect(RSPropertiesPainter::RRect2SkRRect(properties.GetRRect()), SkClipOp::kDifference, true);
+        }
+    }
+}
+#else
+void RSShadowBaseDrawable::ClipShadowPath(RSRenderNode& node, RSPaintFilterCanvas& canvas, Drawing::Path& path)
+{
+    const RSProperties& properties = node.GetRenderProperties();
+    if (properties.GetShadowPath() && !properties.GetShadowPath()->GetDrawingPath().IsValid()) {
+        path = properties.GetShadowPath()->GetDrawingPath();
+        if (!properties.GetShadowIsFilled()) {
+            canvas.ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
+        }
+    } else if (properties.GetClipBounds()) {
+        path = properties.GetClipBounds()->GetDrawingPath();
+        if (!properties.GetShadowIsFilled()) {
+            canvas.ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
+        }
+    } else {
+        path.AddRoundRect(RRect2DrawingRRect(properties.GetRRect()));
+        if (!properties.GetShadowIsFilled()) {
+            canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::DIFFERENCE, true);
+        }
+    }
+}
+#endif
+
 void RSShadowDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
+    if (canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::ENABLED) {
+        return;
+    }
 #ifndef USE_ROSEN_DRAWING
-    skPath_.offset(offsetX_, offsetY_);
-    RSAutoCanvasRestore rst(&canvas);
+    SkAutoCanvasRestore acr(&canvas, true);
+    SkPath skPath;
+    ClipShadowPath(node, canvas, skPath);
+    skPath.offset(offsetX_, offsetY_);
     auto matrix = canvas.getTotalMatrix();
     matrix.setTranslateX(std::ceil(matrix.getTranslateX()));
     matrix.setTranslateY(std::ceil(matrix.getTranslateY()));
@@ -538,10 +559,12 @@ void RSShadowDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
     paint.setColor(color_.AsArgbInt());
     paint.setAntiAlias(true);
     paint.setMaskFilter(SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, radius_));
-    canvas.drawPath(skPath_, paint);
+    canvas.drawPath(skPath, paint);
 #else
-    path_.Offset(offsetX_, offsetY_);
-    RSAutoCanvasRestore rst(&canvas);
+    Drawing::AutoCanvasRestore acr(canvas, true);
+    Drawing::Path path;
+    ClipShadowPath(node, canvas, path);
+    path.Offset(offsetX_, offsetY_);
     auto matrix = canvas.GetTotalMatrix();
     matrix.Set(Drawing::Matrix::SCALE_X, std::ceil(matrix.Get(Drawing::Matrix::SCALE_X)));
     matrix.Set(Drawing::Matrix::SCALE_Y, std::ceil(matrix.Get(Drawing::Matrix::SCALE_Y)));
@@ -553,69 +576,64 @@ void RSShadowDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
     filter.SetMaskFilter(Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, radius_));
     brush.SetFilter(filter);
     canvas.AttachBrush(brush);
-    canvas.DrawPath(path_);
+    canvas.DrawPath(path);
     canvas.DetachBrush();
 #endif
 }
 
-#ifndef USE_ROSEN_DRAWING
-RSHardwareAccelerationShadowDrawable::RSHardwareAccelerationShadowDrawable(
-    SkPath skPath, const RSProperties& properties)
-    : RSShadowBaseDrawable(skPath, properties)
-#else
-RSHardwareAccelerationShadowDrawable::RSHardwareAccelerationShadowDrawable(
-    Drawing::Path path, const RSProperties& properties)
-    : RSShadowBaseDrawable(path, properties)
-#endif
+RSHardwareAccelerationShadowDrawable::RSHardwareAccelerationShadowDrawable(const RSProperties& properties)
+    : RSShadowBaseDrawable(properties)
 {
     shadowElevation_ = properties.GetShadowElevation();
 }
 
 void RSHardwareAccelerationShadowDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
+    if (canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::ENABLED) {
+        return;
+    }
 #ifndef USE_ROSEN_DRAWING
-    skPath_.offset(offsetX_, offsetY_);
+    SkAutoCanvasRestore acr(&canvas, true);
+    SkPath skPath;
+    ClipShadowPath(node, canvas, skPath);
+    skPath.offset(offsetX_, offsetY_);
     RSAutoCanvasRestore rst(&canvas);
     auto matrix = canvas.getTotalMatrix();
     matrix.setTranslateX(std::ceil(matrix.getTranslateX()));
     matrix.setTranslateY(std::ceil(matrix.getTranslateY()));
     canvas.setMatrix(matrix);
     SkPoint3 planeParams = { 0.0f, 0.0f, shadowElevation_ };
-    SkPoint3 lightPos = { canvas.getTotalMatrix().getTranslateX() + skPath_.getBounds().centerX(),
-        canvas.getTotalMatrix().getTranslateY() + skPath_.getBounds().centerY(), DEFAULT_LIGHT_HEIGHT };
+    SkPoint3 lightPos = { canvas.getTotalMatrix().getTranslateX() + skPath.getBounds().centerX(),
+        canvas.getTotalMatrix().getTranslateY() + skPath.getBounds().centerY(), DEFAULT_LIGHT_HEIGHT };
     Color ambientColor = Color::FromArgbInt(DEFAULT_AMBIENT_COLOR);
     ambientColor.MultiplyAlpha(canvas.GetAlpha());
     color_.MultiplyAlpha(canvas.GetAlpha());
-    SkShadowUtils::DrawShadow(&canvas, skPath_, planeParams, lightPos, DEFAULT_LIGHT_RADIUS,
+    SkShadowUtils::DrawShadow(&canvas, skPath, planeParams, lightPos, DEFAULT_LIGHT_RADIUS,
         ambientColor.AsArgbInt(), color_.AsArgbInt(), SkShadowFlags::kTransparentOccluder_ShadowFlag);
 #else
-    path_.Offset(offsetX_, offsetY_);
-    RSAutoCanvasRestore rst(&canvas);
+    Drawing::AutoCanvasRestore acr(canvas, true);
+    Drawing::Path path;
+    ClipShadowPath(node, canvas, path);
+    path.Offset(offsetX_, offsetY_);
     auto matrix = canvas.GetTotalMatrix();
     matrix.Set(Drawing::Matrix::SCALE_X, std::ceil(matrix.Get(Drawing::Matrix::SCALE_X)));
     matrix.Set(Drawing::Matrix::SCALE_Y, std::ceil(matrix.Get(Drawing::Matrix::SCALE_Y)));
     canvas.SetMatrix(matrix);
     Drawing::Point3 planeParams = { 0.0f, 0.0f, shadowElevation_ };
-    Drawing::scalar centerX = path_.GetBounds().GetLeft() + path_.GetBounds().GetWidth() / 2;
-    Drawing::scalar centerY = path_.GetBounds().GetTop() + path_.GetBounds().GetHeight() / 2;
+    Drawing::scalar centerX = path.GetBounds().GetLeft() + path.GetBounds().GetWidth() / 2;
+    Drawing::scalar centerY = path.GetBounds().GetTop() + path.GetBounds().GetHeight() / 2;
     Drawing::Point3 lightPos = { canvas.GetTotalMatrix().Get(Drawing::Matrix::SCALE_X) + centerX,
         canvas.GetTotalMatrix().Get(Drawing::Matrix::SCALE_Y) + centerY, DEFAULT_LIGHT_HEIGHT };
     Color ambientColor = Color::FromArgbInt(DEFAULT_AMBIENT_COLOR);
     ambientColor.MultiplyAlpha(canvas.GetAlpha());
     color_.MultiplyAlpha(canvas.GetAlpha());
-    canvas.DrawShadow(path_, planeParams, lightPos, DEFAULT_LIGHT_RADIUS,
+    canvas.DrawShadow(path, planeParams, lightPos, DEFAULT_LIGHT_RADIUS,
         Drawing::Color(ambientColor.AsArgbInt()), Drawing::Color(color_.AsArgbInt()),
         Drawing::ShadowFlags::TRANSPARENT_OCCLUDER);
 #endif
 }
 
-#ifndef USE_ROSEN_DRAWING
-RSColorfulShadowDrawable::RSColorfulShadowDrawable(SkPath skPath, const RSProperties& properties)
-    : RSShadowBaseDrawable(skPath, properties)
-#else
-RSColorfulShadowDrawable::RSColorfulShadowDrawable(Drawing::Path path, const RSProperties& properties)
-    : RSShadowBaseDrawable(path, properties)
-#endif
+RSColorfulShadowDrawable::RSColorfulShadowDrawable(const RSProperties& properties) : RSShadowBaseDrawable(properties)
 {
 #ifndef USE_ROSEN_DRAWING
     const SkScalar blurRadius =
@@ -629,9 +647,8 @@ RSColorfulShadowDrawable::RSColorfulShadowDrawable(Drawing::Path path, const RSP
             ? 0.25f * properties.GetShadowElevation() * (1 + properties.GetShadowElevation() / 128.0f)
             : properties.GetShadowRadius();
     Drawing::Filter filter;
-    filter.SetImageFilter(Drawing::ImageFilter::CreateBlurImageFilter(
-        blurRadius, blurRadius, Drawing::TileMode::DECAL, nullptr
-    ))
+    filter.SetImageFilter(
+        Drawing::ImageFilter::CreateBlurImageFilter(blurRadius, blurRadius, Drawing::TileMode::DECAL, nullptr));
     blurBrush_.SetFilter(filter);
 #endif
     node_ = properties.backref_;
@@ -639,19 +656,26 @@ RSColorfulShadowDrawable::RSColorfulShadowDrawable(Drawing::Path path, const RSP
 
 void RSColorfulShadowDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
+    if (canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::ENABLED) {
+        return;
+    }
 #ifndef USE_ROSEN_DRAWING
     SkAutoCanvasRestore acr(&canvas, true);
+    SkPath skPath;
+    ClipShadowPath(node, canvas, skPath);
     // save layer, draw image with clipPath, blur and draw back
     canvas.saveLayer(nullptr, &blurPaint_);
     canvas.translate(offsetX_, offsetY_);
-    canvas.clipPath(skPath_);
+    canvas.clipPath(skPath);
 #else
     Drawing::AutoCanvasRestore acr(&canvas, true);
+    Drawing::Path path;
+    ClipShadowPath(node, canvas, path);
     // save layer, draw image with clipPath, blur and draw back
     Drawing::SaveLayerOps slr(nullptr, &blurBrush_);
     canvas.SaveLayer(slr);
     canvas.Translate(offsetX_, offsetY_);
-    canvas.ClipPath(path_, Drawing::ClipOp::INTERSECT, false);
+    canvas.ClipPath(path, Drawing::ClipOp::INTERSECT, false);
 #endif
     // draw node content as shadow
     // [PLANNING]: maybe we should also draw background color / image here, and we should cache the shadow image
