@@ -34,6 +34,10 @@ public:
     static constexpr uint64_t ANIMATION_ID_2 = 123456;
     static constexpr uint64_t PROPERTY_ID = 54321;
     static constexpr uint64_t PROPERTY_ID_2 = 54322;
+    const Vector2f PATH_ANIMATION_DEFAULT_VALUE = Vector2f(0.f, 0.f);
+    const Vector2f PATH_ANIMATION_START_VALUE = Vector2f(0.f, 0.f);
+    const Vector2f PATH_ANIMATION_END_VALUE = Vector2f(500.f, 500.f);
+    const std::string ANIMATION_PATH = "L350 0 L150 100";
 };
 
 void RSAnimationManagerTest::SetUpTestCase() {}
@@ -177,6 +181,78 @@ HWTEST_F(RSAnimationManagerTest, UnRegisterSpringAnimation002, TestSize.Level1)
     auto animation = animationManager.QuerySpringAnimation(PROPERTY_ID);
     EXPECT_TRUE(animation == nullptr);
     GTEST_LOG_(INFO) << "RSAnimationManagerTest UnRegisterSpringAnimation002 end";
+}
+
+/**
+ * @tc.name: Animate001
+ * @tc.desc: Verify the Animate
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationManagerTest, Animate001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest Animate001 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+
+    auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    
+    RSAnimationManager animationManager;
+    animationManager.AddAnimation(renderCurveAnimation);
+
+    renderCurveAnimation->SetRepeatCount(-1);
+    animationManager.Animate(0, false);
+
+    renderCurveAnimation->SetRepeatCount(1);
+    renderCurveAnimation->Start();
+    renderCurveAnimation->Pause();
+    animationManager.Animate(0, true);
+
+    renderCurveAnimation->Resume();
+    renderCurveAnimation->Finish();
+    animationManager.Animate(0, true);
+    EXPECT_TRUE(renderCurveAnimation != nullptr);
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest Animate001 end";
+}
+
+/**
+ * @tc.name: RegisterPathAnimation001
+ * @tc.desc: Verify the RegisterPathAnimation
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationManagerTest, RegisterPathAnimation001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest RegisterPathAnimation001 start";
+    RSAnimationManager animationManager;
+    animationManager.RegisterPathAnimation(PROPERTY_ID, ANIMATION_ID);
+    auto animation = animationManager.QueryPathAnimation(PROPERTY_ID);
+    EXPECT_TRUE(animation == nullptr);
+    animationManager.UnregisterPathAnimation(PROPERTY_ID, ANIMATION_ID);
+    animation = animationManager.QueryPathAnimation(PROPERTY_ID);
+    EXPECT_TRUE(animation == nullptr);
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest RegisterPathAnimation001 end";
+}
+
+/**
+ * @tc.name: RegisterParticleAnimation001
+ * @tc.desc: Verify the RegisterParticleAnimation
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationManagerTest, RegisterParticleAnimation001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest RegisterParticleAnimation001 start";
+    RSAnimationManager animationManager;
+    animationManager.RegisterParticleAnimation(PROPERTY_ID, ANIMATION_ID);
+    auto animations = animationManager.GetParticleAnimations();
+    EXPECT_TRUE(animations.size() != 0);
+    animationManager.UnregisterParticleAnimation(PROPERTY_ID, ANIMATION_ID);
+    animations = animationManager.GetParticleAnimations();
+    EXPECT_TRUE(animations.size() == 0);
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest RegisterParticleAnimation001 end";
 }
 } // namespace Rosen
 } // namespace OHOS

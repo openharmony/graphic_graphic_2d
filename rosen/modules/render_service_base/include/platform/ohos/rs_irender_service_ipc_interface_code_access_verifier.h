@@ -28,11 +28,14 @@ public:
      * note that term **CodeEnumType** should not be changed
      */
     using CodeEnumType = RSIRenderServiceInterfaceCode;
-    static inline const std::string codeEnumTypeName_{"RSIRenderServiceInterfaceCode"};
+    static inline const std::string codeEnumTypeName_ {"RSIRenderServiceInterfaceCode"};
 
     /* specify constructor and destructor here */
     RSIRenderServiceInterfaceCodeAccessVerifier();
     ~RSIRenderServiceInterfaceCodeAccessVerifier() noexcept override = default;
+#ifdef ENABLE_IPC_SECURITY
+    bool IsAccessTimesVerificationPassed(CodeUnderlyingType code, uint32_t times) const override;
+#endif
 
 protected:
     /* specify exclusive verification rules here */
@@ -40,7 +43,14 @@ protected:
 
 private:
     DISALLOW_COPY_AND_MOVE(RSIRenderServiceInterfaceCodeAccessVerifier);
+#ifdef ENABLE_IPC_SECURITY
+    void AddRSIRenderServiceInterfaceCodePermission();
+    static inline const std::vector<std::pair<CodeEnumType, PermissionType>>
+        permissionRSIRenderServiceInterfaceMappings_ {};
+    static inline const std::unordered_map<CodeEnumType, uint32_t> accessRSIRenderServiceInterfaceTimesRestrictions_ {};
+#endif
 };
+
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IRENDER_SERVICE_INTERFACE_CODE_ACCESS_VERIFIER_H

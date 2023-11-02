@@ -32,13 +32,7 @@ enum class FontEdging;
 
 class FontImpl : public BaseImpl {
 public:
-    static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     ~FontImpl() override = default;
-
-    AdapterType GetType() const override
-    {
-        return AdapterType::BASE_INTERFACE;
-    }
 
     virtual void SetEdging(FontEdging edging) = 0;
     virtual void SetSubpixel(bool isSubpixel) = 0;

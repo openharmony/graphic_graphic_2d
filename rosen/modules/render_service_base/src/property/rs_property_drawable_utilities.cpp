@@ -95,21 +95,15 @@ RSPropertyDrawable::DrawablePtr RSAlphaDrawable::Generate(const RSPropertyDrawab
 }
 
 RSAlphaOffscreenDrawable::RSAlphaOffscreenDrawable(float alpha) : RSAlphaDrawable(alpha) {}
-void RSAlphaOffscreenDrawable::OnBoundsChange(const RSProperties& properties)
-{
-#ifndef USE_ROSEN_DRAWING
-    rect_ = RSPropertiesPainter::Rect2SkRect(properties.GetBoundsRect());
-#else
-    rect_ = RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect());
-#endif
-}
 void RSAlphaOffscreenDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
 #ifndef USE_ROSEN_DRAWING
-    canvas.saveLayerAlpha(&rect_, std::clamp(alpha_, 0.f, 1.f) * UINT8_MAX);
+    auto rect = RSPropertiesPainter::Rect2SkRect(node.GetRenderProperties().GetBoundsRect());
+    canvas.saveLayerAlpha(&rect, std::clamp(alpha_, 0.f, 1.f) * UINT8_MAX);
 #else
+    auto rect = RSPropertiesPainter::Rect2DrawingRect(node.GetRenderProperties().GetBoundsRect());
     Drawing::Brush brush;
-    brush.SetAlphaF(std::clamp(alpha, 0.f, 1.f) * UINT8_MAX);
+    brush.SetAlphaF(std::clamp(alpha_, 0.f, 1.f) * UINT8_MAX);
     Drawing::SaveLayerOps slr(&rect, &brush);
     canvas.SaveLayer(slr);
 #endif

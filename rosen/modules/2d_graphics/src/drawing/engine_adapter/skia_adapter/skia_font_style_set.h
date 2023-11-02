@@ -28,6 +28,7 @@ namespace Drawing {
 class SkiaFontStyleSet : public FontStyleSetImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     explicit SkiaFontStyleSet(std::shared_ptr<SkFontStyleSet> skFontStyleSet);
     virtual ~SkiaFontStyleSet() = default;
 
@@ -40,9 +41,7 @@ public:
 
     int Count() override;
 
-    void RegisterTypeface(std::shared_ptr<Typeface> typeface) override;
-
-protected:
+private:
     std::shared_ptr<SkFontStyleSet> skFontStyleSet_;
 };
 } // namespace Drawing

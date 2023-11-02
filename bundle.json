@@ -67,7 +67,9 @@
           "resource_schedule_service",
           "soc_perf",
           "accessibility",
-          "frame_aware_sched"
+          "frame_aware_sched",
+          "memmgr",
+          "memmgr_plugin" 
         ],
         "third_party": [
           "flutter",

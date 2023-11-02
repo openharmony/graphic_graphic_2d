@@ -26,12 +26,15 @@ namespace Drawing {
 class SkiaPicture : public PictureImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     SkiaPicture() noexcept;
     ~SkiaPicture() override {}
+
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;
     }
+
     const sk_sp<SkPicture> GetPicture() const;
 
     std::shared_ptr<Data> Serialize() const override;

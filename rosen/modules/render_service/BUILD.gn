@@ -68,6 +68,7 @@ ohos_shared_library("librender_service") {
     "core/transaction/rs_irender_service_connection_ipc_interface_code_access_verifier.cpp",
     "core/transaction/rs_irender_service_ipc_interface_code_access_verifier.cpp",
     "core/transaction/rs_render_service_connection_stub.cpp",
+    "core/transaction/rs_render_service_security_utils.cpp",
     "core/transaction/rs_render_service_stub.cpp",
   ]
 
@@ -100,6 +101,10 @@ ohos_shared_library("librender_service") {
     ]
   }
 
+  if (use_memmgr_plugin || use_memmgr) {
+    sources += [ "core/memory/rs_app_state_listener.cpp" ]
+  }
+
   if (tp_feature_enable) {
     sources += [ "core/touch_screen/touch_screen.cpp" ]
   }
@@ -118,6 +123,10 @@ ohos_shared_library("librender_service") {
     "//utils/system/safwk/native/include",
     "$graphic_2d_root/utils/log",
     "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
+    "$memmgr_root/interface/innerkits/include",
+    "$memmgr_root/services/memmgrservice/include/memory_level_manager",
+    "$memmgr_plugin_root/interface/innerkits/include",
+    "$memmgr_plugin_root/services/memmgrservice/include/memory_level_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
@@ -199,6 +208,12 @@ ohos_shared_library("librender_service") {
   if (accessibility_enable) {
     external_deps += [ "accessibility:accessibilityconfig" ]
     defines += accessibility_defines
+  }
+
+  if (use_memmgr_plugin) {
+    external_deps += [ "memmgr_plugin:memmgrclient" ]
+  } else if (use_memmgr) {
+    external_deps += [ "memmgr:memmgrclient" ]
   }
 
   if (rosen_is_ohos && defined(enable_ipc_security) && enable_ipc_security) {

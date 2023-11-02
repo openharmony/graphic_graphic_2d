@@ -36,15 +36,10 @@ enum class PathOp;
 enum class ArcSize;
 class PathImpl : public BaseImpl {
 public:
-    static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     PathImpl() noexcept {}
     ~PathImpl() override {}
     PathImpl(const PathImpl& p) = delete;
     PathImpl &operator=(const PathImpl& p) = delete;
-    AdapterType GetType() const override
-    {
-        return AdapterType::BASE_INTERFACE;
-    }
     virtual PathImpl* Clone() = 0;
 
     virtual bool InitWithSVGString(const std::string& str) = 0;

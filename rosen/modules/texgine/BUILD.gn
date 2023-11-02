@@ -115,11 +115,15 @@ ohos_source_set("libtexgine_source") {
     include_dirs = [ "//third_party/bounds_checking_function/include" ]
 
     if (platform == "ohos") {
-      defines += [
-        "BUILD_NON_SDK_VER",
-        "LOGGER_ENABLE_SCOPE",
-        "TEXGINE_ENABLE_DEBUGLOG",
-      ]
+      defines += [ "BUILD_NON_SDK_VER" ]
+
+      if (logger_enable_scope) {
+        defines += [ "LOGGER_ENABLE_SCOPE" ]
+      }
+
+      if (texgine_enable_debug_log) {
+        defines += [ "TEXGINE_ENABLE_DEBUGLOG" ]
+      }
 
       external_deps = [
         "c_utils:utils",

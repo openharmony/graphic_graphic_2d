@@ -27,19 +27,11 @@ namespace Rosen {
 namespace Drawing {
 class FontStyleSetImpl : public BaseImpl {
 public:
-    static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     ~FontStyleSetImpl() override = default;
-
-    AdapterType GetType() const override
-    {
-        return AdapterType::BASE_INTERFACE;
-    }
 
     virtual Typeface* CreateTypeface(int index) = 0;
 
     virtual int Count() = 0;
-
-    virtual void RegisterTypeface(std::shared_ptr<Typeface> typeface) = 0;
 
 protected:
     FontStyleSetImpl() noexcept = default;

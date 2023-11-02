@@ -28,6 +28,7 @@ namespace Drawing {
 class SkiaTypeface : public TypefaceImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     explicit SkiaTypeface(sk_sp<SkTypeface> skTypeface);
     ~SkiaTypeface() override = default;
 
@@ -50,7 +51,7 @@ public:
     static sk_sp<SkData> SerializeTypeface(SkTypeface* typeface, void* ctx);
     static sk_sp<SkTypeface> DeserializeTypeface(const void* data, size_t length, void* ctx);
 
-protected:
+private:
     SkiaTypeface() = default;
 
     sk_sp<SkTypeface> skTypeface_;

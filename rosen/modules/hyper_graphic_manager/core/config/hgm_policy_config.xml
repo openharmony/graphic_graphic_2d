@@ -17,7 +17,7 @@
     <Param name="general_config_enable" value="1"/>
 
     <!-- defalut refreshmode given to settings application -->
-    <Param name="default_refreshrate_mode" value="2"/>
+    <Param name="default_refreshrate_mode" value="3"/>
 
     <!-- stategies to be applied for scenario -->
     <Params name="detailed_strategies">
@@ -46,12 +46,6 @@
         <Setting name="blackBundle2"/>
     </Params>
 
-    <!-- bundle name white_list to be applied on mode 3 -->
-    <Params name="bundle_name_white_list" value="3">
-        <Setting name="whiteBundle1"/>
-        <Setting name="whiteBundle2"/>
-    </Params>
-
     <!-- stategies for animation, need to review later -->
     <Params name="animation_dynamic_settings">
         <Setting name="animation_zoom" value="21"/>
@@ -68,6 +62,18 @@
             <SpeedThresholds name="1" min="0" max="-1" preferred_fps="120"/>
         </DynamicSettings>
         <DynamicSettings name="rotation">
+            <SpeedThresholds name="1" min="0" max="-1" preferred_fps="120"/>
+        </DynamicSettings>
+    </Params>
+
+    <Params name="ace_scene_dynamic_settings">
+        <DynamicSettings name="refresh">
+            <SpeedThresholds name="1" min="0" max="-1" preferred_fps="120"/>
+        </DynamicSettings>
+        <DynamicSettings name="swiper">
+            <SpeedThresholds name="1" min="0" max="-1" preferred_fps="120"/>
+        </DynamicSettings>
+        <DynamicSettings name="tabs">
             <SpeedThresholds name="1" min="0" max="-1" preferred_fps="120"/>
         </DynamicSettings>
     </Params>

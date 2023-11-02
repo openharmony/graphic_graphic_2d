@@ -24,10 +24,10 @@
 
 namespace OHOS {
 namespace {
-#ifndef __aarch64__
-    constexpr const char *DEBUG_LAYERS_LIB_DIR = "/system/lib/";
-#else
+#if (defined(__aarch64__) || defined(__x86_64__))
     constexpr const char *DEBUG_LAYERS_LIB_DIR = "/system/lib64/";
+#else
+    constexpr const char *DEBUG_LAYERS_LIB_DIR = "/system/lib/";
 #endif
 constexpr const char *DEBUG_LAYERS_PREFIX = "lib";
 constexpr const char *DEBUG_LAYERS_SUFFIX = ".so";

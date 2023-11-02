@@ -101,7 +101,7 @@ public:
 
 void VulkanLoaderUnitTest::DLOpenLibVulkan()
 {
-#ifdef __aarch64__
+#if (defined(__aarch64__) || defined(__x86_64__))
     const char *path = "/system/lib64/libvulkan.so";
 #else
     const char *path = "/system/lib/libvulkan.so";

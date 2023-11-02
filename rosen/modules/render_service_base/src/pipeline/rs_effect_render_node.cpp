@@ -102,7 +102,7 @@ void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::Path>& reg
     // Map absolute matrix to local matrix
     if (matrix.Invert(revertMatrix)) {
         effectRegion_ = region;
-        effectRegion_.value().makeTransform(revertMatrix);
+        effectRegion_.value().Transform(revertMatrix);
     }
 #endif
 }

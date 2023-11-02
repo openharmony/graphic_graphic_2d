@@ -88,7 +88,7 @@ private:
 
     void HandleOnWallpaperUpdate(const sptr<RSWindowAnimationTarget>& wallpaperTarget);
 
-    void CallJsFunction(const std::string& methodName, napi_value const* argv, size_t argc);
+    void CallJsFunction(const std::string& methodName, napi_value const *argv, size_t argc);
 
     napi_env env_;
     std::shared_ptr<AppExecFwk::EventHandler> handler_;

@@ -33,10 +33,9 @@ void SKResourceManager::HoldResource(sk_sp<SkImage> img)
         return;
     }
     std::scoped_lock<std::recursive_mutex> lock(mutex_);
-    for (const auto& skImage : skImages_[tid]) {
-        if (skImage.get() == img.get()) {
-            return;
-        }
+    if (std::any_of(skImages_[tid].cbegin(), skImages_[tid].cend(),
+        [&img](const sk_sp<SkImage>& skImage) {return skImage.get() == img.get(); })) {
+        return ;
     }
     skImages_[tid].push_back(img);
 #endif

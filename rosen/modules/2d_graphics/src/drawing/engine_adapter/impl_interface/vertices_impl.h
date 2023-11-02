@@ -31,13 +31,8 @@ enum class BuilderFlags;
 
 class VerticesImpl : public BaseImpl {
 public:
-    static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     VerticesImpl() noexcept {}
     ~VerticesImpl() override {}
-    AdapterType GetType() const override
-    {
-        return AdapterType::BASE_INTERFACE;
-    }
 
     virtual bool MakeCopy(VertexMode mode,
         int vertexCount, const Point positions[], const Point texs[], const ColorQuad colors[],
@@ -51,13 +46,8 @@ public:
 
     class BuilderImpl : public BaseImpl {
     public:
-        static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
         BuilderImpl() noexcept {}
         ~BuilderImpl() override {}
-        AdapterType GetType() const override
-        {
-            return AdapterType::BASE_INTERFACE;
-        }
 
         virtual void Init(VertexMode mode, int vertexCount, int indexCount, uint32_t flags) = 0;
         virtual bool IsValid() = 0;

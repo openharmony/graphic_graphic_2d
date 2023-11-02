@@ -298,6 +298,16 @@ bool VariantSpan::IsHardBreak() const noexcept(false)
     return (ts_ && ts_->cgs_.GetBack().IsHardBreak());
 }
 
+double VariantSpan::GetJustifyGap() const noexcept(true)
+{
+    return justifyGap_;
+}
+
+void VariantSpan::SetJustifyGap(double justifyGap) noexcept(true)
+{
+    justifyGap_ = justifyGap;
+}
+
 void VariantSpan::CheckPointer(bool nullable) const noexcept(false)
 {
     if (!nullable && as_ == nullptr && ts_ == nullptr) {

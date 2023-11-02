@@ -28,6 +28,7 @@ namespace Drawing {
 class SkiaFont : public FontImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     SkiaFont() noexcept = default;
     SkiaFont(std::shared_ptr<Typeface> typeface, scalar size, scalar scaleX, scalar skewX) noexcept;
     ~SkiaFont() override = default;

@@ -41,8 +41,6 @@ int SkiaFontStyleSet::Count()
 {
     return skFontStyleSet_->count();
 }
-
-void SkiaFontStyleSet::RegisterTypeface(std::shared_ptr<Typeface> typeface) {}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

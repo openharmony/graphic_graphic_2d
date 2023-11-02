@@ -24,8 +24,11 @@ declare_args() {
   graphic_2d_feature_parallel_render_enable = true
   graphic_2d_feature_enable_vulkan = false
   graphic_2d_feature_enable_filter_cache = true
+  graphic_2d_feature_parallel_upload_enable = true
   enable_text_gine = true
-  use_texgine = false
+  use_texgine = true
+  logger_enable_scope = false
+  texgine_enable_debug_log = false
   player_framework_enable = true
   graphic_2d_feature_drivers_interface_display_enable = true
   graphic_2d_feature_tp_switch_enbale = false
@@ -46,6 +49,7 @@ if (enable_text_gine) {
 }
 if (graphic_2d_feature_ace_enable_gpu) {
   if (graphic_2d_feature_enable_vulkan) {
+    rs_enable_parallel_upload = false
     gpu_defines += [
       "ACE_ENABLE_VK",
       "RS_ENABLE_VK",
@@ -55,6 +59,12 @@ if (graphic_2d_feature_ace_enable_gpu) {
       "ACE_ENABLE_GL",
       "RS_ENABLE_GL",
     ]
+    if (graphic_2d_feature_parallel_upload_enable) {
+      rs_enable_parallel_upload = true
+      gpu_defines += [ "RS_ENABLE_PARALLEL_UPLOAD" ]
+    } else {
+      rs_enable_parallel_upload = false
+    }
   }
   ace_enable_gpu = true
   rs_enable_gpu = true
@@ -95,7 +105,7 @@ if ((graphic_2d_feature_rs_enable_eglimage &&
   rs_enable_eglimage = false
 }
 
-use_texgine = graphic_2d_feature_use_texgine
+# use_texgine = graphic_2d_feature_use_texgine
 
 if (graphic_2d_feature_rs_enable_uni_render) {
   rs_enable_driven_render = true
@@ -160,6 +170,8 @@ hilog_root = "//base/hiviewdfx/hilog"
 window_base_path = "//foundation/window/window_manager"
 safwk_base = "//foundation/systemabilitymgr/safwk"
 skia_root_new = "//third_party/skia"
+memmgr_root = "//foundation/resourceschedule/memmgr"
+memmgr_plugin_root = "//foundation/resourceschedule/memmgr_plugin"
 
 accessibility_enable = false
 if (defined(global_parts_info) &&
@@ -176,4 +188,13 @@ if (defined(global_parts_info) &&
 if (defined(global_parts_info) &&
     !defined(global_parts_info.hdf_drivers_interface_display)) {
   graphic_2d_feature_drivers_interface_display_enable = false
+}
+
+use_memmgr_plugin = false
+if (defined(global_parts_info.resourceschedule_memmgr_plugin)) {
+  use_memmgr_plugin = true
+}
+use_memmgr = false
+if (defined(global_parts_info.resourceschedule_memmgr)) {
+  use_memmgr = true
 }

@@ -31,13 +31,8 @@ public:
     // Matrix44 is a 4x4 float type matrix.
     constexpr static int MATRIX44_SIZE = 16;
 
-    static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     Matrix44Impl() {}
     ~Matrix44Impl() override {}
-    AdapterType GetType() const override
-    {
-        return AdapterType::BASE_INTERFACE;
-    }
 
     virtual void Translate(scalar dx, scalar dy, scalar dz) = 0;
     virtual void Scale(scalar sx, scalar sy, scalar sz) = 0;

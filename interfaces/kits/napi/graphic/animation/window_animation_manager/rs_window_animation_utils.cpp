@@ -42,10 +42,6 @@ napi_value RSWindowAnimationUtils::CreateJsWindowAnimationTarget(napi_env env,
         WALOGE("CreateJsWindowAnimationTarget failed to create object!");
         return CreateUndefined(env);
     }
-    if (objValue == nullptr) {
-        WALOGE("CreateJsWindowAnimationTarget failed to convert object!");
-        return CreateUndefined(env);
-    }
 
     napi_finalize finalizeCallback = [](napi_env env, void* data, void* hint) {
         auto target = sptr<RSWindowAnimationTarget>(static_cast<RSWindowAnimationTarget*>(hint));

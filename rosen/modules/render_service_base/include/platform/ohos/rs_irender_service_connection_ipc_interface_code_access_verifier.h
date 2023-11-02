@@ -28,11 +28,14 @@ public:
      * note that term **CodeEnumType** should not be changed
      */
     using CodeEnumType = RSIRenderServiceConnectionInterfaceCode;
-    static inline const std::string codeEnumTypeName_{"RSIRenderServiceConnectionInterfaceCode"};
+    static inline const std::string codeEnumTypeName_ {"RSIRenderServiceConnectionInterfaceCode"};
 
     /* specify constructor and destructor here */
     RSIRenderServiceConnectionInterfaceCodeAccessVerifier();
     ~RSIRenderServiceConnectionInterfaceCodeAccessVerifier() noexcept override = default;
+#ifdef ENABLE_IPC_SECURITY
+    bool IsAccessTimesVerificationPassed(CodeUnderlyingType code, uint32_t times) const override;
+#endif
 
 protected:
     /* specify exclusive verification rules here */
@@ -40,6 +43,27 @@ protected:
 
 private:
     DISALLOW_COPY_AND_MOVE(RSIRenderServiceConnectionInterfaceCodeAccessVerifier);
+#ifdef ENABLE_IPC_SECURITY
+    void AddRSIRenderServiceConnectionInterfaceCodePermission();
+    static inline const std::vector<std::pair<CodeEnumType, PermissionType>>
+        permissionRSIRenderServiceConnectionInterfaceMappings_ {
+            { CodeEnumType::REGISTER_APPLICATION_AGENT, PermissionType::RUNNING_STATE_OBSERVER },
+            { CodeEnumType::GET_TOTAL_APP_MEM_SIZE, PermissionType::GET_RUNNING_INFO },
+            { CodeEnumType::REPORT_JANK_STATS, PermissionType::GET_RUNNING_INFO },
+            { CodeEnumType::GET_BITMAP, PermissionType::START_ABILITIES_FROM_BACKGROUND },
+            { CodeEnumType::REPORT_EVENT_RESPONSE, PermissionType::GET_RUNNING_INFO },
+            { CodeEnumType::REPORT_EVENT_COMPLETE, PermissionType::GET_RUNNING_INFO },
+            { CodeEnumType::REPORT_EVENT_JANK_FRAME, PermissionType::GET_RUNNING_INFO },
+            { CodeEnumType::SET_HARDWARE_ENABLED, PermissionType::CHANGE_ABILITY_ENABLED_STATE },
+            { CodeEnumType::SET_BUFFER_CLEAR_LISTENER, PermissionType::RUNNING_STATE_OBSERVER },
+            { CodeEnumType::SET_BUFFER_AVAILABLE_LISTENER, PermissionType::RUNNING_STATE_OBSERVER },
+            { CodeEnumType::TAKE_SURFACE_CAPTURE, PermissionType::CAPTURE_SCREEN },
+        };
+    static inline const std::unordered_map<CodeEnumType, uint32_t>
+        accessRSIRenderServiceConnectionInterfaceTimesRestrictions_ {
+            { CodeEnumType::REGISTER_APPLICATION_AGENT, 15 },
+        };
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

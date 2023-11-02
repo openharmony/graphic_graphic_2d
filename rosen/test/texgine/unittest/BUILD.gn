@@ -60,11 +60,13 @@ ohos_unittest("texgine_unittest_part1") {
     "char_groups_test.cpp",
     "dynamic_file_font_provider_test.cpp",
     "dynamic_font_style_set_test.cpp",
+    "font_features_test.cpp",
     "font_styles_test.cpp",
     "text_converter_test.cpp",
     "text_merger_test.cpp",
     "text_reverser_test.cpp",
     "typography_builder_impl_test.cpp",
+    "typography_style_test.cpp",
     "variant_span_test.cpp",
   ]
 

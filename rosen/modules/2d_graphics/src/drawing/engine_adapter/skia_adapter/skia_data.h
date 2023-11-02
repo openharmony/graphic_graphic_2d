@@ -25,8 +25,10 @@ namespace Drawing {
 class DRAWING_API SkiaData : public DataImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     SkiaData() noexcept;
     ~SkiaData() override {}
+
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;

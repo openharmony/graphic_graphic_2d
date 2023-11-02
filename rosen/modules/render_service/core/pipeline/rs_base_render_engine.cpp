@@ -427,7 +427,8 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
     canvas.drawImageRect(image, params.srcRect, params.dstRect,
-        SkSamplingOptions(), &(params.paint), SkCanvas::kStrict_SrcRectConstraint);
+        SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear), &(params.paint),
+        SkCanvas::kStrict_SrcRectConstraint);
 #else
     canvas.drawImageRect(image, params.srcRect, params.dstRect, &(params.paint));
 #endif

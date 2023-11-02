@@ -253,8 +253,10 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
 #ifdef RS_ENABLE_GL
     if (grContext_ && !IsOnTheTree()) {
         if (auto context = GetContext().lock()) {
+#ifndef USE_ROSEN_DRAWING
             RS_TRACE_NAME_FMT("need purgeUnlockedResources this SurfaceNode isn't on the tree Id:%" PRIu64 " Name:%s",
                 GetId(), GetName().c_str());
+#endif
             if (IsLeashWindow()) {
                 context->MarkNeedPurge(RSContext::PurgeType::PURGE_UNLOCK);
             }
@@ -815,7 +817,7 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
     ResetSurfaceContainerRegion(screeninfo, absRect, screenRotation);
 }
 
-void RSSurfaceRenderNode::SetFilterCacheValid()
+void RSSurfaceRenderNode::CalcFilterCacheValidForOcclusion()
 {
     if (!dirtyManager_) {
         return;
@@ -865,11 +867,13 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusWithVisible(bool visible)
         return;
     }
     prevVisible_ = visible;
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_GL)
     if (!visible && !filterNodes_.empty()) {
         for (auto& node : filterNodes_) {
             node.second->GetMutableRenderProperties().ClearFilterCache();
         }
     }
+#endif
 }
 
 void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipRect)
@@ -894,7 +898,7 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
         RS_LOGD("UpdateFilterCacheStatusIfNodeStatic surfacenode %{public}" PRIu64 " [%{public}s] rectsize %{public}s",
             GetId(), GetName().c_str(), GetOldDirtyInSurface().ToString().c_str());
     }
-    SetFilterCacheValid();
+    CalcFilterCacheValidForOcclusion();
 #endif
 }
 

@@ -52,6 +52,7 @@ group("unittest") {
   }
   if (rs_enable_parallel_render && rs_enable_gpu) {
     deps += [
+      ":RSFilterSubThreadTest",
       ":RSNodeCostManagerTest",
       ":RSParallelHardwareComposerTest",
       ":RSParallelPackVisitorTest",
@@ -466,6 +467,19 @@ ohos_unittest("RSSubThreadTest") {
   defines += gpu_defines
 }
 
+## Build RSFilterSubThreadTest
+ohos_unittest("RSFilterSubThreadTest") {
+  module_out_path = module_output_path
+  sources = [ "parallel_render/rs_filter_sub_thread_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  defines = []
+  defines += gpu_defines
+}
+
 ## Build RSUniRenderVirtualProcessorTest
 ohos_unittest("RSUniRenderVirtualProcessorTest") {
   module_out_path = module_output_path
@@ -620,6 +634,10 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/test/include",
+    "$memmgr_plugin_root/interface/innerkits/include",
+    "$memmgr_plugin_root/services/memmgrservice/include/memory_level_manager",
+    "$memmgr_root/interface/innerkits/include",
+    "$memmgr_root/services/memmgrservice/include/memory_level_manager",
     "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
   ]
 

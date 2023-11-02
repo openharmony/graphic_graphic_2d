@@ -26,8 +26,10 @@ namespace Drawing {
 class SkiaPathEffect : public PathEffectImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     SkiaPathEffect() noexcept;
     ~SkiaPathEffect() override {};
+
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;

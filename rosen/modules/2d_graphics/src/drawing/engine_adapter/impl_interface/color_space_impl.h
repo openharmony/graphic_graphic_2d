@@ -26,13 +26,8 @@ enum class CMSMatrixType;
 class Image;
 class ColorSpaceImpl : public BaseImpl {
 public:
-    static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     ColorSpaceImpl() noexcept {}
     ~ColorSpaceImpl() override {}
-    AdapterType GetType() const override
-    {
-        return AdapterType::BASE_INTERFACE;
-    }
 
     virtual void InitWithSRGB() = 0;
     virtual void InitWithSRGBLinear() = 0;

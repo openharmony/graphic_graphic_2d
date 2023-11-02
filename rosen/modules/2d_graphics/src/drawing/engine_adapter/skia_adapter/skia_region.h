@@ -25,8 +25,10 @@ namespace Drawing {
 class SkiaRegion : public RegionImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     SkiaRegion() noexcept;
     ~SkiaRegion() override {};
+
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;

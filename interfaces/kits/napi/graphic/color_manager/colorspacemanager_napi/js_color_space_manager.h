@@ -31,7 +31,7 @@ public:
     static napi_value CreateColorSpace(napi_env env, napi_callback_info info);
     static bool ParseColorSpacePrimaries(napi_env env, napi_value jsObject, ColorSpacePrimaries& primaries);
 private:
-    napi_value OnCreateColorSpace(napi_env engine, napi_callback_info info);
+    napi_value OnCreateColorSpace(napi_env env, napi_callback_info info);
 };
 } // namespace ColorManager
 } // namespace OHOS

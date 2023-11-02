@@ -47,10 +47,12 @@ class DRAWING_API SkiaCanvas : public CoreCanvasImpl {
 #endif
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     SkiaCanvas();
     explicit SkiaCanvas(const std::shared_ptr<SkCanvas>& skCanvas);
     SkiaCanvas(int32_t width, int32_t height);
     ~SkiaCanvas() override {};
+
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;

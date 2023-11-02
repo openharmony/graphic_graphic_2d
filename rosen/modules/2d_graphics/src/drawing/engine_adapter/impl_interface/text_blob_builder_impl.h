@@ -28,15 +28,9 @@ namespace Rosen {
 namespace Drawing {
 class TextBlobBuilderImpl : public BaseImpl {
 public:
-    static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     TextBlobBuilderImpl(const TextBlobBuilderImpl& other) = delete;
     TextBlobBuilderImpl& operator=(const TextBlobBuilderImpl& other) = delete;
     ~TextBlobBuilderImpl() override = default;
-
-    AdapterType GetType() const override
-    {
-        return AdapterType::BASE_INTERFACE;
-    }
 
     virtual std::shared_ptr<TextBlob> Make() = 0;
 

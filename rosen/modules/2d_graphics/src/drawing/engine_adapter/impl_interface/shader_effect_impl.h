@@ -37,14 +37,8 @@ class ShaderEffect;
 enum class TileMode;
 class ShaderEffectImpl : public BaseImpl {
 public:
-    static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     ShaderEffectImpl() noexcept {}
     ~ShaderEffectImpl() override {}
-    AdapterType GetType() const override
-    {
-        return AdapterType::BASE_INTERFACE;
-    }
-
     virtual void InitWithColor(ColorQuad color) = 0;
     virtual void InitWithBlend(const ShaderEffect& s1, const ShaderEffect& s2, BlendMode mode) = 0;
     virtual void InitWithImage(

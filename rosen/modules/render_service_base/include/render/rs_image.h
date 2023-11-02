@@ -88,8 +88,8 @@ public:
     void CanvasDrawImage(SkCanvas& canvas, const SkRect& rect, const SkPaint& paint, bool isBackground = false);
 #endif
 #else
-    void CanvasDrawImage(
-        Drawing::Canvas& canvas, const Drawing::Rect& rect, bool isBackground = false);
+    void CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect,
+        const Drawing::SamplingOptions& samplingOptions, bool isBackground = false);
 #endif
     void SetImageFit(int fitNum);
     void SetImageRepeat(int repeatNum);
@@ -150,7 +150,7 @@ private:
 #else
     void ApplyCanvasClip(Drawing::Canvas& canvas);
     void UploadGpu(Drawing::Canvas& canvas);
-    void DrawImageRepeatRect(Drawing::Canvas& canvas);
+    void DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas);
 #endif
 
 #ifndef USE_ROSEN_DRAWING

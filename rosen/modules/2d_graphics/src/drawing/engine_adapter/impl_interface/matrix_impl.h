@@ -33,13 +33,8 @@ public:
     // Matrix is a 3x3 float type matrix.
     static constexpr int MATRIX_SIZE = 9;
 
-    static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     MatrixImpl() {}
     ~MatrixImpl() override {}
-    AdapterType GetType() const override
-    {
-        return AdapterType::BASE_INTERFACE;
-    }
 
     virtual void Rotate(scalar degree, scalar px, scalar py) = 0;
     virtual void Translate(scalar dx, scalar dy) = 0;

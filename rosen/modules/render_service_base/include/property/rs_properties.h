@@ -35,9 +35,7 @@
 #include "render/rs_shader.h"
 #include "render/rs_shadow.h"
 
-#ifndef USE_ROSEN_DRAWING
 #include "property/rs_filter_cache_manager.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -169,6 +167,8 @@ public:
     float GetBgImageHeight() const;
     float GetBgImagePositionX() const;
     float GetBgImagePositionY() const;
+    void SetColorBlendMode(int blendmode);
+    int GetColorBlendMode() const;
 
     // border properties
     void SetBorderColor(Vector4<Color> color);
@@ -294,7 +294,7 @@ public:
     void SetUseEffect(bool useEffect);
     bool GetUseEffect() const;
 
-#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
     const std::unique_ptr<RSFilterCacheManager>& GetFilterCacheManager(bool isForeground) const;
     void ClearFilterCache();
 #endif
@@ -395,7 +395,7 @@ private:
     std::shared_ptr<Drawing::ColorFilter> colorFilter_ = nullptr;
 #endif
 
-#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
     void CreateFilterCacheManagerIfNeed();
     std::unique_ptr<RSFilterCacheManager> backgroundFilterCacheManager_;
     std::unique_ptr<RSFilterCacheManager> foregroundFilterCacheManager_;
@@ -403,6 +403,8 @@ private:
 #endif
 
     std::unique_ptr<Sandbox> sandbox_ = nullptr;
+
+    int blendMode_ = static_cast<int>(RSColorBlendModeType::NONE);
 
     friend class RSBackgroundImageDrawable;
     friend class RSCanvasRenderNode;

@@ -31,13 +31,8 @@ class PathEffect;
 enum class PathDashStyle;
 class PathEffectImpl : public BaseImpl {
 public:
-    static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     PathEffectImpl() noexcept {}
     ~PathEffectImpl() override {}
-    AdapterType GetType() const override
-    {
-        return AdapterType::BASE_INTERFACE;
-    }
 
     virtual void InitWithDash(const scalar intervals[], int count, scalar phase) = 0;
     virtual void InitWithPathDash(const Path& path, scalar advance, scalar phase, PathDashStyle style) = 0;

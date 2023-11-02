@@ -16,9 +16,6 @@
 #ifndef SKIA_IMPLFACTORY_H
 #define SKIA_IMPLFACTORY_H
 
-#include "src/ports/skia_ohos/FontInfo_ohos.h"
-#include "src/ports/skia_ohos/FontConfig_ohos.h"
-
 #include "impl_interface/bitmap_impl.h"
 #include "impl_interface/camera_impl.h"
 #include "impl_interface/color_filter_impl.h"
@@ -42,7 +39,6 @@
 #include "impl_interface/shader_effect_impl.h"
 #include "impl_interface/surface_impl.h"
 #include "impl_interface/text_blob_builder_impl.h"
-#include "impl_interface/typeface_impl.h"
 #include "impl_interface/vertices_impl.h"
 #include "impl_interface/trace_memory_dump_impl.h"
 
@@ -82,11 +78,6 @@ public:
         scalar size, scalar scaleX, scalar skewX);
     static std::unique_ptr<TextBlobBuilderImpl> CreateTextBlobBuilder();
     static std::shared_ptr<FontMgrImpl> CreateDefaultFontMgr();
-    static std::unique_ptr<FontMgrImpl> CreateDynamicFontMgr();
-    static std::unique_ptr<TypefaceImpl> CreateTypeface(const std::string& specifiedName, FontInfo& info);
-    static std::unique_ptr<FontStyleSetImpl> CreateTypefaceFontStyleSet();
-    static std::unique_ptr<FontStyleSetImpl> CreateFontStyleSetOhos(
-        const std::shared_ptr<FontConfig_OHOS>& fontConfig, int index, bool isFallback);
 };
 } // namespace Drawing
 } // namespace Rosen

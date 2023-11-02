@@ -26,8 +26,10 @@ namespace Drawing {
 class SkiaColorFilter : public ColorFilterImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     SkiaColorFilter() noexcept;
     ~SkiaColorFilter() override {};
+
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;

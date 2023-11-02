@@ -87,6 +87,7 @@ void NativeDrawingCanvasBitmapTest(const uint8_t* data, size_t size)
     OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
     OH_Drawing_CanvasBind(canvas, bitmap);
     OH_Drawing_CanvasDestroy(canvas);
+    OH_Drawing_BitmapDestroy(bitmap);
 }
 
 void NativeDrawingCanvasPenTest(const uint8_t* data, size_t size)
@@ -104,6 +105,7 @@ void NativeDrawingCanvasPenTest(const uint8_t* data, size_t size)
     OH_Drawing_CanvasAttachPen(canvas, pen);
     OH_Drawing_CanvasDetachPen(canvas);
     OH_Drawing_CanvasDestroy(canvas);
+    OH_Drawing_PenDestroy(pen);
 }
 
 void NativeDrawingCanvasBrushTest(const uint8_t* data, size_t size)
@@ -121,6 +123,7 @@ void NativeDrawingCanvasBrushTest(const uint8_t* data, size_t size)
     OH_Drawing_CanvasAttachBrush(canvas, brush);
     OH_Drawing_CanvasDetachBrush(canvas);
     OH_Drawing_CanvasDestroy(canvas);
+    OH_Drawing_BrushDestroy(brush);
 }
 
 void NativeDrawingCanvasDrawLineTest(const uint8_t* data, size_t size)
@@ -154,6 +157,7 @@ void NativeDrawingCanvasDrawPathTest(const uint8_t* data, size_t size)
     OH_Drawing_CanvasSave(canvas);
     OH_Drawing_CanvasRestore(canvas);
     OH_Drawing_CanvasDestroy(canvas);
+    OH_Drawing_PathDestroy(path);
 }
 
 void NativeDrawingCanvasClearTest(const uint8_t* data, size_t size)
@@ -314,8 +318,6 @@ void OHDrawingTypographyTest(const uint8_t* data, size_t size)
         return;
     }
 
-    double fontSize = static_cast<float>(data[0]);
-    double maxWidth = static_cast<float>(data[0]);
     uint32_t width = static_cast<float>(data[1]);
     uint32_t height = static_cast<float>(data[1]);
     uint32_t red = static_cast<float>(data[1]);
@@ -327,17 +329,16 @@ void OHDrawingTypographyTest(const uint8_t* data, size_t size)
     OH_Drawing_TypographyCreate* handler =
         OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
     OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(alpha, red, gree, blue));
-    OH_Drawing_SetTextStyleFontSize(txtStyle, fontSize);
+    OH_Drawing_SetTextStyleFontSize(txtStyle, static_cast<float>(data[0]));
     OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_400);
     OH_Drawing_SetTextStyleBaseLine(txtStyle, TEXT_BASELINE_ALPHABETIC);
     const char* fontFamilies[] = { "Roboto" };
     OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
     OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
-    const char* text = "OpenHarmony\n";
-    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_TypographyHandlerAddText(handler, "OpenHarmony\n");
     OH_Drawing_TypographyHandlerPopTextStyle(handler);
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
-    OH_Drawing_TypographyLayout(typography, maxWidth);
+    OH_Drawing_TypographyLayout(typography, static_cast<float>(data[0]));
     OH_Drawing_TypographyGetMaxWidth(typography);
     double position[2] = { 10.0, 15.0 }; // 2 mean array number, 10.0 mean first number and 15.0 mean second number
     OH_Drawing_Bitmap* cBitmap = OH_Drawing_BitmapCreate();
@@ -357,6 +358,10 @@ void OHDrawingTypographyTest(const uint8_t* data, size_t size)
     OH_Drawing_TypographyPaint(typography, cCanvas, position[0], position[1]);
     OH_Drawing_DestroyTypography(typography);
     OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_BitmapDestroy(cBitmap);
+    OH_Drawing_CanvasDestroy(cCanvas);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
 }
 
 void NativeDrawingPenTest(const uint8_t* data, size_t size)

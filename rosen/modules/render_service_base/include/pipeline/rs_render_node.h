@@ -230,6 +230,7 @@ public:
     bool IsStaticCached() const;
 
     bool NeedInitCacheSurface() const;
+    bool NeedInitCacheCompletedSurface() const;
     inline bool IsPureContainer() const
     {
         return (drawCmdModifiers_.empty() && !renderProperties_.isDrawn_ && !renderProperties_.alphaNeedApply_);
@@ -595,8 +596,7 @@ private:
     std::unordered_map<PropertyId, std::variant<float, Vector2f>> propertyValueMap_;
     std::vector<HgmModifierProfile> hgmModifierProfileList_;
 
-    std::vector<std::unique_ptr<RSPropertyDrawable>> propertyDrawablesVec_ =
-        std::vector<std::unique_ptr<RSPropertyDrawable>>(Slot::RSPropertyDrawableSlot::MAX);
+    std::vector<std::unique_ptr<RSPropertyDrawable>> propertyDrawablesVec_;
     uint8_t drawableVecStatus_ = 0;
     using DrawableIter = decltype(propertyDrawablesVec_)::iterator;
 

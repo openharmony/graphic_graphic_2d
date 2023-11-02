@@ -226,7 +226,7 @@ HWTEST_F(BitmapTest, BitmapCopyPixelsTest001, TestSize.Level1)
     std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
     ASSERT_TRUE(bitmap != nullptr);
     Bitmap bitmap1;
-    bitmap->CopyPixels(bitmap1, 100, 105, 201, 845);
+    bitmap->CopyPixels(bitmap1, 100, 105);
 }
 
 /**
@@ -241,7 +241,7 @@ HWTEST_F(BitmapTest, BitmapCopyPixelsTest002, TestSize.Level1)
     std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
     ASSERT_TRUE(bitmap != nullptr);
     Bitmap bitmap1;
-    bitmap->CopyPixels(bitmap1, 66, 5, 99, 320);
+    bitmap->CopyPixels(bitmap1, 66, 5);
 }
 
 /**

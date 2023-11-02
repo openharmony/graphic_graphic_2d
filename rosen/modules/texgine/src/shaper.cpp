@@ -295,26 +295,26 @@ void Shaper::ConsiderTailEllipsis(const std::vector<VariantSpan> &ellipsisSpans,
         isErase = true;
     }
     double width = 0;
-    auto &lastline = lineMetrics_[maxLines - 1];
-    if (!isErase && lastline.width <= widthLimit) {
+    auto &lastLine = lineMetrics_[maxLines - 1];
+    if (!isErase && lastLine.width <= widthLimit) {
         return;
     }
 
-    for (const auto &span : lastline.lineSpans) {
+    for (const auto &span : lastLine.lineSpans) {
         width += span.GetWidth();
     }
 
     // protected the first span and ellipsis
     while (static_cast<int>(width) > static_cast<int>(widthLimit - ellipsisWidth) &&
-        static_cast<int>(lastline.lineSpans.size()) > 1) {
-        width -= lastline.lineSpans.back().GetWidth();
-        lastline.lineSpans.pop_back();
+        static_cast<int>(lastLine.lineSpans.size()) > 1) {
+        width -= lastLine.lineSpans.back().GetWidth();
+        lastLine.lineSpans.pop_back();
         isEexceedWidthLimit = true;
     }
 
-    auto ts = lastline.lineSpans.back().TryToTextSpan();
+    auto ts = lastLine.lineSpans.back().TryToTextSpan();
     if (ts == nullptr && (isEexceedWidthLimit || isErase)) {
-        lastline.lineSpans.insert(lastline.lineSpans.end(), ellipsisSpans.begin(), ellipsisSpans.end());
+        lastLine.lineSpans.insert(lastLine.lineSpans.end(), ellipsisSpans.begin(), ellipsisSpans.end());
         return;
     }
 
@@ -325,39 +325,11 @@ void Shaper::ConsiderTailEllipsis(const std::vector<VariantSpan> &ellipsisSpans,
     }
 
     if (hasEllipsis) {
-        ProcessEllipsis(static_cast<int>(widthLimit - ellipsisWidth), ts->cgs_, lastline);
-        // Add ellipsisSpans
-        lastline.lineSpans.insert(lastline.lineSpans.end(), ellipsisSpans.begin(), ellipsisSpans.end());
-    }
-}
-
-void Shaper::ProcessEllipsis(int avalibleWidth, CharGroups &cgs, LineMetrics &lastLine)
-{
-    double cgsWidth = 0.0;
-    CharGroups newCgs = CharGroups::CreateEmpty();
-    for (auto &cg : cgs) {
-        cgsWidth += cg.GetWidth();
-        if (static_cast<int>(cgsWidth) < avalibleWidth) {
-            newCgs.PushBack(cg);
-        } else {
-            break;
-        }
-    }
-
-    // If there is only one span in the last line, protect the first chargroup
-    if (newCgs.GetSize() == 0 && lastLine.lineSpans.size() == 1) {
-        newCgs.PushBack(cgs.Get(0));
-    }
-
-    if (newCgs.GetSize() != 0) {
-        VariantSpan span = TextSpan::MakeFromCharGroups(newCgs);
         auto style = lastLine.lineSpans.back().GetTextStyle();
-        span.SetTextStyle(style);
-        lastLine.lineSpans.pop_back();
-        lastLine.lineSpans.push_back(span);
-        auto nt = span.TryToTextSpan();
-    } else {
-        lastLine.lineSpans.pop_back();
+        for (auto span : ellipsisSpans) {
+            span.SetTextStyle(style);
+            lastLine.lineSpans.push_back(span);
+        }
     }
 }
 } // namespace TextEngine

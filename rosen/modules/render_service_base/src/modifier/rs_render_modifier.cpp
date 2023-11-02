@@ -252,7 +252,6 @@ Color RSEnvForegroundColorStrategyRenderModifier::CalculateInvertColor(Color bac
 
 Color RSEnvForegroundColorStrategyRenderModifier::GetInvertBackgroundColor(RSModifierContext& context) const
 {
-#ifdef ROSEN_OHOS
 #ifndef USE_ROSEN_DRAWING
     SkAutoCanvasRestore acr(context.canvas_, true);
 #else
@@ -283,50 +282,14 @@ Color RSEnvForegroundColorStrategyRenderModifier::GetInvertBackgroundColor(RSMod
         RS_LOGI("RSRenderModifier::GetInvertBackgroundColor imageSnapshot null");
         return Color(0);
     }
-    Media::InitializationOptions opts;
-    opts.size.width = context.properties_.GetBoundsWidth();
-    opts.size.height = context.properties_.GetBoundsHeight();
-    if (opts.size.width == 0 || opts.size.height == 0) {
-        RS_LOGI("RSRenderModifier::GetInvertBackgroundColor opts.size.width/height == 0");
-        return Color(0);
-    }
-    std::unique_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
-    uint8_t* data = static_cast<uint8_t*>(malloc(pixelmap->GetRowBytes() * pixelmap->GetHeight()));
-    if (data == nullptr) {
-        RS_LOGE("RSRenderModifier::GetInvertBackgroundColor: data is nullptr");
-        return Color(0);
-    }
+    auto colorPicker = RSPropertiesPainter::CalcAverageColor(imageSnapshot);
 #ifndef USE_ROSEN_DRAWING
-    SkImageInfo info = SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(),
-        kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-    if (!imageSnapshot->readPixels(info, data, pixelmap->GetRowBytes(), 0, 0)) {
+    return CalculateInvertColor(Color(SkColorGetR(colorPicker), SkColorGetG(colorPicker),
+        SkColorGetB(colorPicker), SkColorGetA(colorPicker)));
 #else
-    Drawing::BitmapFormat format = { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
-    Drawing::Bitmap bitmap;
-    bitmap.Build(pixelmap->GetWidth(), pixelmap->GetHeight(), format);
-    bitmap.SetPixels(data);
-    if (!imageSnapshot->ReadPixels(bitmap, 0, 0)) {
-#endif
-        RS_LOGE("RSRenderModifier::Run: readPixels failed");
-        free(data);
-        data = nullptr;
-        return Color(0);
-    }
-    pixelmap->SetPixelsAddr(data, nullptr, pixelmap->GetRowBytes() * pixelmap->GetHeight(),
-        Media::AllocatorType::HEAP_ALLOC, nullptr);
-    OHOS::Media::InitializationOptions options;
-    options.alphaType = pixelmap->GetAlphaType();
-    options.pixelFormat = pixelmap->GetPixelFormat();
-    options.scaleMode = OHOS::Media::ScaleMode::FIT_TARGET_SIZE;
-    options.size.width = 1;
-    options.size.height = 1;
-    options.editable = true;
-    std::unique_ptr<Media::PixelMap> newPixelMap = Media::PixelMap::Create(*pixelmap.get(), options);
-    uint32_t colorVal = 0;
-    newPixelMap->GetARGB32Color(0, 0, colorVal);
-    return CalculateInvertColor(Color(colorVal));
-#else
-    return Color(0);
+    return CalculateInvertColor(Color(
+        Drawing::Color::ColorQuadGetR(colorPicker), Drawing::Color::ColorQuadGetG(colorPicker),
+        Drawing::Color::ColorQuadGetB(colorPicker), Drawing::Color::ColorQuadGetA(colorPicker)));
 #endif
 }
 

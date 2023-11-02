@@ -40,13 +40,9 @@ class BackendTexture;
 enum class BitDepth;
 class ImageImpl : public BaseImpl {
 public:
-    static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     ImageImpl() noexcept {}
     ~ImageImpl() override {}
-    AdapterType GetType() const override
-    {
-        return AdapterType::BASE_INTERFACE;
-    }
+
     virtual void* BuildFromBitmap(const Bitmap& bitmap) = 0;
     virtual void* BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix,
         const Brush& brush, BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace) = 0;

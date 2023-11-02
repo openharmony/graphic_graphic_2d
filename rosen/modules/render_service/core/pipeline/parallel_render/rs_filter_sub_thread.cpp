@@ -37,7 +37,7 @@
 namespace OHOS::Rosen {
 namespace {
 #ifdef RES_SCHED_ENABLE
-const uint32_t RS_SUB_QOS_LEVEL = 7;
+const uint32_t RS_SUB_QOS_LEVEL = 8;
 constexpr const char* RS_BUNDLE_NAME = "render_service";
 #endif
 // "/data/service/el0/render_service" is shader cache dir
@@ -154,10 +154,12 @@ void RSFilterSubThread::RenderCache(std::weak_ptr<RSFilter::RSFilterTask> filter
         RS_LOGE("grContext is null");
         return;
     }
+#ifndef USE_ROSEN_DRAWING
     if (!task->InitSurface(grContext_.get())) {
         RS_LOGE("InitSurface failed");
         return;
     }
+#endif
     if (!task->Render()) {
         RS_LOGE("Render failed");
     }

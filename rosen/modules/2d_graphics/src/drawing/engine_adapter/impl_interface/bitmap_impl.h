@@ -28,13 +28,9 @@ class Bitmap;
 struct BitmapFormat;
 class BitmapImpl : public BaseImpl {
 public:
-    static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     BitmapImpl() {}
     ~BitmapImpl() override {}
-    AdapterType GetType() const override
-    {
-        return AdapterType::BASE_INTERFACE;
-    }
+
     virtual void Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride = 0) = 0;
     virtual void Build(const ImageInfo& imageInfo, int32_t stride = 0) = 0;
     virtual int GetWidth() const = 0;
@@ -44,7 +40,7 @@ public:
     virtual AlphaType GetAlphaType() const = 0;
     virtual void* GetPixels() const = 0;
     virtual void SetPixels(void* pixel) = 0;
-    virtual void CopyPixels(Bitmap& dst, int srcLeft, int srcTop, int width, int height) const = 0;
+    virtual void CopyPixels(Bitmap& dst, int srcLeft, int srcTop) const = 0;
     virtual bool IsImmutable() = 0;
     virtual void SetImmutable() = 0;
     virtual void ClearWithColor(const ColorQuad& color) const = 0;

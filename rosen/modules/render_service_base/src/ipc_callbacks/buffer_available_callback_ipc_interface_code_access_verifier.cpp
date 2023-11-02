@@ -27,7 +27,6 @@ bool RSIBufferAvailableCallbackInterfaceCodeAccessVerifier::IsExclusiveVerificat
     bool hasPermission = true;
     switch (code) {
         case static_cast<CodeUnderlyingType>(CodeEnumType::ON_BUFFER_AVAILABLE): {
-            /* to implement access interception */
             break;
         }
         default: {

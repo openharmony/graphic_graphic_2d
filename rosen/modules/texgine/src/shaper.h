@@ -54,7 +54,6 @@ private:
         const size_t maxLines, const double widthLimit);
     void ConsiderTailEllipsis(const std::vector<VariantSpan> &ellipsisSpans, const double ellipsisWidth,
         const size_t maxLines, const double widthLimit);
-    void ProcessEllipsis(int avalibleWidth, CharGroups &cgs, LineMetrics &lastLine);
 
     std::vector<LineMetrics> lineMetrics_;
     bool didExceedMaxLines_ = false;

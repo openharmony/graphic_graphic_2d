@@ -26,8 +26,10 @@ namespace Drawing {
 class SkiaShaderEffect : public ShaderEffectImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     SkiaShaderEffect() noexcept;
     ~SkiaShaderEffect() override {};
+
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;

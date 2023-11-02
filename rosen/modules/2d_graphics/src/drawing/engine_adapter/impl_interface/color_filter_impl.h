@@ -28,13 +28,8 @@ namespace Drawing {
 class ColorFilter;
 class ColorFilterImpl : public BaseImpl {
 public:
-    static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     ColorFilterImpl() noexcept {}
     ~ColorFilterImpl() override {}
-    AdapterType GetType() const override
-    {
-        return AdapterType::BASE_INTERFACE;
-    }
 
     virtual void InitWithBlendMode(ColorQuad c, BlendMode mode) = 0;
     virtual void InitWithColorMatrix(const ColorMatrix& m) = 0;

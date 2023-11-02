@@ -269,10 +269,9 @@ void RSRenderParticleEffector::UpdateAccelerationAngle(
 {
     auto accelerationAngle = particle->GetAccelerationAngle();
     auto acceAngleUpdator = particleParams_->GetAccelerationAngleUpdator();
-    float acceAngleChange = 0.f;
     if (acceAngleUpdator == ParticleUpdator::RANDOM) {
         float acceAngleSpeed = particle->GetAccelerationAngleSpeed();
-        acceAngleChange = acceAngleSpeed * deltaTime;
+        float acceAngleChange = acceAngleSpeed * deltaTime;
         accelerationAngle += acceAngleChange;
     } else if (acceAngleUpdator == ParticleUpdator::CURVE) {
         auto valChangeOverLife = particleParams_->acceleration_.accelerationAngle_.valChangeOverLife_;
@@ -297,10 +296,9 @@ void RSRenderParticleEffector::UpdateAccelerationValue(
 {
     auto accelerationValue = particle->GetAccelerationValue();
     auto acceValueUpdator = particleParams_->GetAccelerationValueUpdator();
-    float acceValueChange = 0.f;
     if (acceValueUpdator == ParticleUpdator::RANDOM) {
         float acceValueSpeed = particle->GetAccelerationValueSpeed();
-        acceValueChange = acceValueSpeed * deltaTime;
+        float acceValueChange = acceValueSpeed * deltaTime;
         accelerationValue += acceValueChange;
     } else if (acceValueUpdator == ParticleUpdator::CURVE) {
         auto valChangeOverLife = particleParams_->acceleration_.accelerationValue_.valChangeOverLife_;
@@ -332,8 +330,7 @@ void RSRenderParticleEffector::UpdateAccelerate(
     auto accelerationAngle = particle->GetAccelerationAngle();
     accelerationAngle *= DEGREE_TO_RADIAN;
     if (acceValueUpdator == ParticleUpdator::RANDOM && acceAngleUpdator == ParticleUpdator::RANDOM) {
-        auto acceleration = particle->GetAcceleration();
-        acceleration = Vector2f { accelerationValue * std::cos(accelerationAngle),
+        auto acceleration = Vector2f { accelerationValue * std::cos(accelerationAngle),
             accelerationValue * std::sin(accelerationAngle) };
         particle->SetAcceleration(acceleration);
     } else if (acceValueUpdator == ParticleUpdator::CURVE && acceAngleUpdator == ParticleUpdator::CURVE) {

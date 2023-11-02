@@ -27,36 +27,52 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 SkiaPaint::SkiaPaint() noexcept
-    : stroke_(std::make_shared<PaintData>()), fill_(std::make_shared<PaintData>()), isStrokeFirst_(false)
-{}
+    : isStrokeFirst_(false)
+{
+    fill_.paintData_.fillCore_ = new SkStyleFillCore();
+    stroke_.paintData_.strokeCore_ = new SkStyleStrokeCore();
+}
+
+SkiaPaint::~SkiaPaint()
+{
+    delete fill_.paintData_.fillCore_;
+    fill_.paintData_.fillCore_ = nullptr;
+    delete stroke_.paintData_.strokeCore_;
+    stroke_.paintData_.strokeCore_ = nullptr;
+}
 
 void SkiaPaint::ApplyBrushToFill(const Brush& brush)
 {
-    fill_->paint.reset();
-    fill_->isEnabled = true;
-    BrushToSkPaint(brush, fill_->paint);
+    fill_.isEnabled_ = true;
+    SkStyleFillCore* fillData = fill_.paintData_.fillCore_;
+    fillData->Reset();
+    ApplyBrushOrPenToFillCore(brush, *fillData);
 }
 
 void SkiaPaint::ApplyPenToStroke(const Pen& pen)
 {
-    stroke_->paint.reset();
-    stroke_->isEnabled = true;
-    PenToSkPaint(pen, stroke_->paint);
+    stroke_.isEnabled_ = true;
+    SkStyleStrokeCore* strokeData = stroke_.paintData_.strokeCore_;
+    strokeData->Reset();
+    ApplyPenToStrokeCore(pen, *strokeData);
 }
 
 void SkiaPaint::BrushToSkPaint(const Brush& brush, SkPaint& paint) const
 {
-    paint.setColor(brush.GetColor().CastToColorQuad());
-
     auto cs = brush.GetColorSpace();
     if (cs != nullptr) {
         auto skColorSpaceImpl = cs->GetImpl<SkiaColorSpace>();
         sk_sp<SkColorSpace> colorSpace = (skColorSpaceImpl != nullptr) ? skColorSpaceImpl->GetColorSpace() : nullptr;
-        paint.setColor(paint.getColor4f(), colorSpace.get());
+        paint.setColor(SkColor4f::FromColor(brush.GetColor().CastToColorQuad()), colorSpace.get());
+    } else {
+        paint.setColor(brush.GetColor().CastToColorQuad());
+    }
+
+    if (brush.GetBlendMode() != BlendMode::SRC_OVER) {
+        paint.setBlendMode(static_cast<SkBlendMode>(brush.GetBlendMode()));
     }
 
     paint.setAlpha(brush.GetAlpha());
-    paint.setBlendMode(static_cast<SkBlendMode>(brush.GetBlendMode()));
     paint.setAntiAlias(brush.IsAntiAlias());
 
     auto s = brush.GetShaderEffect();
@@ -64,8 +80,6 @@ void SkiaPaint::BrushToSkPaint(const Brush& brush, SkPaint& paint) const
         auto skShaderImpl = s->GetImpl<SkiaShaderEffect>();
         sk_sp<SkShader> skShader = (skShaderImpl != nullptr) ? skShaderImpl->GetShader() : nullptr;
         paint.setShader(skShader);
-    } else {
-        paint.setShader(nullptr);
     }
 
     auto filter = brush.GetFilter();
@@ -75,20 +89,23 @@ void SkiaPaint::BrushToSkPaint(const Brush& brush, SkPaint& paint) const
 
 void SkiaPaint::PenToSkPaint(const Pen& pen, SkPaint& paint) const
 {
-    paint.setColor(pen.GetColor().CastToColorQuad());
-
     auto cs = pen.GetColorSpace();
     if (cs != nullptr) {
         auto skColorSpaceImpl = cs->GetImpl<SkiaColorSpace>();
         sk_sp<SkColorSpace> colorSpace = (skColorSpaceImpl != nullptr) ? skColorSpaceImpl->GetColorSpace() : nullptr;
-        paint.setColor(paint.getColor4f(), colorSpace.get());
+        paint.setColor(SkColor4f::FromColor(pen.GetColor().CastToColorQuad()), colorSpace.get());
+    } else {
+        paint.setColor(pen.GetColor().CastToColorQuad());
+    }
+
+    if (pen.GetBlendMode() != BlendMode::SRC_OVER) {
+        paint.setBlendMode(static_cast<SkBlendMode>(pen.GetBlendMode()));
     }
 
     paint.setStrokeMiter(pen.GetMiterLimit());
     paint.setStrokeWidth(pen.GetWidth());
     paint.setAntiAlias(pen.IsAntiAlias());
     paint.setAlpha(pen.GetAlpha());
-    paint.setBlendMode(static_cast<SkBlendMode>(pen.GetBlendMode()));
 
     switch (pen.GetCapStyle()) {
         case Pen::CapStyle::FLAT_CAP:
@@ -123,8 +140,6 @@ void SkiaPaint::PenToSkPaint(const Pen& pen, SkPaint& paint) const
         auto skPathEffectImpl = p->GetImpl<SkiaPathEffect>();
         sk_sp<SkPathEffect> skPathEffect = (skPathEffectImpl != nullptr) ? skPathEffectImpl->GetPathEffect() : nullptr;
         paint.setPathEffect(skPathEffect);
-    } else {
-        paint.setPathEffect(nullptr);
     }
 
     auto s = pen.GetShaderEffect();
@@ -132,8 +147,6 @@ void SkiaPaint::PenToSkPaint(const Pen& pen, SkPaint& paint) const
         auto skShaderImpl = s->GetImpl<SkiaShaderEffect>();
         sk_sp<SkShader> skShader = (skShaderImpl != nullptr) ? skShaderImpl->GetShader() : nullptr;
         paint.setShader(skShader);
-    } else {
-        paint.setShader(nullptr);
     }
 
     auto filter = pen.GetFilter();
@@ -143,30 +156,53 @@ void SkiaPaint::PenToSkPaint(const Pen& pen, SkPaint& paint) const
 
 void SkiaPaint::DisableStroke()
 {
-    stroke_->isEnabled = false;
+    stroke_.isEnabled_ = false;
 }
 
 void SkiaPaint::DisableFill()
 {
-    fill_->isEnabled = false;
+    fill_.isEnabled_ = false;
 }
 
-std::vector<std::shared_ptr<PaintData>> SkiaPaint::GetSortedPaints() const
+SortedPaints& SkiaPaint::GetSortedPaints()
 {
-    std::vector<std::shared_ptr<PaintData>> paints;
-    if (IsStrokeFirst() && stroke_->isEnabled && fill_->isEnabled) {
-        paints.push_back(stroke_);
-        paints.push_back(fill_);
-        return paints;
+    sortedPaints_.count_ = 0;
+    if (!fill_.isEnabled_ && !stroke_.isEnabled_) {
+        return sortedPaints_;
     }
 
-    if (fill_->isEnabled) {
-        paints.push_back(fill_);
+    if (fill_.isEnabled_ && !stroke_.isEnabled_) {
+        GenerateFillPaint();
+        sortedPaints_.count_ = 1;
+        sortedPaints_.paints_[0] = &fillPaint_;
+        return sortedPaints_;
     }
-    if (stroke_->isEnabled) {
-        paints.push_back(stroke_);
+
+    if (stroke_.isEnabled_ && !fill_.isEnabled_) {
+        GenerateStrokePaint();
+        sortedPaints_.count_ = 1;
+        sortedPaints_.paints_[0] = &strokePaint_;
+        return sortedPaints_;
     }
-    return paints;
+
+    if (stroke_.paintData_.strokeCore_->extend_ == *fill_.paintData_.fillCore_) {
+        GenerateFillAndStrokePaint();
+        sortedPaints_.count_ = 1;
+        sortedPaints_.paints_[0] = &fillAndStrokePaint_;
+    } else if (IsStrokeFirst()) {
+        GenerateFillPaint();
+        GenerateStrokePaint();
+        sortedPaints_.count_ = MAX_PAINTS_NUMBER;
+        sortedPaints_.paints_[0] = &strokePaint_;
+        sortedPaints_.paints_[1] = &fillPaint_;
+    } else {
+        GenerateFillPaint();
+        GenerateStrokePaint();
+        sortedPaints_.count_ = MAX_PAINTS_NUMBER;
+        sortedPaints_.paints_[0] = &fillPaint_;
+        sortedPaints_.paints_[1] = &strokePaint_;
+    }
+    return sortedPaints_;
 }
 
 void SkiaPaint::SetStrokeFirst(bool isStrokeFirst)
@@ -179,35 +215,175 @@ bool SkiaPaint::IsStrokeFirst() const
     return isStrokeFirst_;
 }
 
-void SkiaPaint::ApplyFilter(SkPaint& paint, const Filter& filter) const
+void SkiaPaint::GenerateFillPaint()
 {
-#if !defined(USE_CANVASKIT0310_SKIA) && !defined(NEW_SKIA)
-    switch (filter.GetFilterQuality()) {
-        case Filter::FilterQuality::LOW:
-            paint.setFilterQuality(SkFilterQuality::kLow_SkFilterQuality);
+    fillPaint_ = defaultPaint_;
+    SkStyleFillCore* fillData = fill_.paintData_.fillCore_;
+    fillPaint_.setStyle(SkPaint::kFill_Style);
+    ApplyFillCoreToSkPaint(*fillData, fillPaint_);
+}
+
+void SkiaPaint::GenerateStrokePaint()
+{
+    strokePaint_ = defaultPaint_;
+    SkStyleStrokeCore* strokeData = stroke_.paintData_.strokeCore_;
+    strokePaint_.setStyle(SkPaint::kStroke_Style);
+    ApplyStrokeCoreToSkPaint(*strokeData, strokePaint_);
+}
+
+void SkiaPaint::GenerateFillAndStrokePaint()
+{
+    fillAndStrokePaint_ = defaultPaint_;
+    SkStyleStrokeCore* strokeData = stroke_.paintData_.strokeCore_;
+    fillAndStrokePaint_.setStyle(SkPaint::kStrokeAndFill_Style);
+    ApplyStrokeCoreToSkPaint(*strokeData, fillAndStrokePaint_);
+}
+
+template <class T>
+void SkiaPaint::ApplyBrushOrPenToFillCore(const T& brushOrPen, SkStyleFillCore& fillData)
+{
+    fillData.antiAlias_ = brushOrPen.IsAntiAlias();
+    fillData.alpha_ = brushOrPen.GetAlpha();
+    fillData.color_ = brushOrPen.GetColor().CastToColorQuad();
+    fillData.blendMode_ = static_cast<SkBlendMode>(brushOrPen.GetBlendMode());
+
+    auto cs = brushOrPen.GetColorSpace();
+    if (cs != nullptr) {
+        auto skColorSpaceImpl = cs->template GetImpl<SkiaColorSpace>();
+        fillData.colorSpace_ = (skColorSpaceImpl != nullptr) ? skColorSpaceImpl->GetColorSpace() : nullptr;
+    }
+
+    auto s = brushOrPen.GetShaderEffect();
+    if (s != nullptr) {
+        auto skShaderImpl = s->template GetImpl<SkiaShaderEffect>();
+        fillData.shader_ = (skShaderImpl != nullptr) ? skShaderImpl->GetShader() : nullptr;
+    }
+
+    auto filter = brushOrPen.GetFilter();
+    auto c = filter.GetColorFilter();
+    if (c != nullptr) {
+        auto skColorFilterImpl = c->template GetImpl<SkiaColorFilter>();
+        fillData.colorFilter_ = (skColorFilterImpl != nullptr) ? skColorFilterImpl->GetColorFilter() : nullptr;
+    }
+
+    auto i = filter.GetImageFilter();
+    if (i != nullptr) {
+        auto skImageFilterImpl = i->template GetImpl<SkiaImageFilter>();
+        fillData.imageFilter_ = (skImageFilterImpl != nullptr) ? skImageFilterImpl->GetImageFilter() : nullptr;
+    }
+
+    auto m = filter.GetMaskFilter();
+    if (m != nullptr) {
+        auto skMaskFilterImpl = m->template GetImpl<SkiaMaskFilter>();
+        fillData.maskFilter_ = (skMaskFilterImpl != nullptr) ? skMaskFilterImpl->GetMaskFilter() : nullptr;
+    }
+}
+
+void SkiaPaint::ApplyPenToStrokeCore(const Pen& pen, SkStyleStrokeCore& strokeData)
+{
+    strokeData.miter_ = pen.GetMiterLimit();
+    strokeData.width_ = pen.GetWidth();
+
+    switch (pen.GetCapStyle()) {
+        case Pen::CapStyle::FLAT_CAP:
+            strokeData.cap_ = SkPaint::kButt_Cap;
             break;
-        case Filter::FilterQuality::MEDIUM:
-            paint.setFilterQuality(SkFilterQuality::kMedium_SkFilterQuality);
+        case Pen::CapStyle::SQUARE_CAP:
+            strokeData.cap_ = SkPaint::kSquare_Cap;
             break;
-        case Filter::FilterQuality::HIGH:
-            paint.setFilterQuality(SkFilterQuality::kHigh_SkFilterQuality);
-            break;
-        case Filter::FilterQuality::NONE:
-            paint.setFilterQuality(SkFilterQuality::kNone_SkFilterQuality);
+        case Pen::CapStyle::ROUND_CAP:
+            strokeData.cap_ = SkPaint::kRound_Cap;
             break;
         default:
             break;
     }
-#endif
 
+    switch (pen.GetJoinStyle()) {
+        case Pen::JoinStyle::MITER_JOIN:
+            strokeData.join_ = SkPaint::kMiter_Join;
+            break;
+        case Pen::JoinStyle::ROUND_JOIN:
+            strokeData.join_ = SkPaint::kRound_Join;
+            break;
+        case Pen::JoinStyle::BEVEL_JOIN:
+            strokeData.join_ = SkPaint::kBevel_Join;
+            break;
+        default:
+            break;
+    }
+
+    auto p = pen.GetPathEffect();
+    if (p != nullptr) {
+        auto skPathEffectImpl = p->GetImpl<SkiaPathEffect>();
+        strokeData.pathEffect_ = (skPathEffectImpl != nullptr) ? skPathEffectImpl->GetPathEffect() : nullptr;
+    }
+
+    ApplyBrushOrPenToFillCore(pen, strokeData.extend_);
+}
+
+void SkiaPaint::ApplyFillCoreToSkPaint(const SkStyleFillCore& fillCore, SkPaint& paint)
+{
+    paint.setAntiAlias(fillCore.antiAlias_);
+    paint.setAlpha(fillCore.alpha_);
+
+    if (fillCore.blendMode_ != SkBlendMode::kSrcOver) {
+        paint.setBlendMode(fillCore.blendMode_);
+    }
+
+    if (fillCore.colorSpace_) {
+        paint.setColor(SkColor4f::FromColor(fillCore.color_), fillCore.colorSpace_.get());
+    } else {
+        paint.setColor(fillCore.color_);
+    }
+
+    if (fillCore.shader_) {
+        paint.setShader(fillCore.shader_);
+    }
+
+    if (fillCore.colorFilter_) {
+        paint.setColorFilter(fillCore.colorFilter_);
+    }
+
+    if (fillCore.imageFilter_) {
+        paint.setImageFilter(fillCore.imageFilter_);
+    }
+
+    if (fillCore.maskFilter_) {
+        paint.setMaskFilter(fillCore.maskFilter_);
+    }
+}
+
+void SkiaPaint::ApplyStrokeCoreToSkPaint(const SkStyleStrokeCore& strokeCore, SkPaint& paint)
+{
+    ApplyFillCoreToSkPaint(strokeCore.extend_, paint);
+
+    if (strokeCore.miter_ != SkPaintDefaults_MiterLimit) {
+        paint.setStrokeMiter(strokeCore.miter_);
+    }
+
+    paint.setStrokeWidth(strokeCore.width_);
+
+    if (strokeCore.cap_ != SkPaint::kDefault_Cap) {
+        paint.setStrokeCap(strokeCore.cap_);
+    }
+
+    if (strokeCore.join_ != SkPaint::kDefault_Join) {
+        paint.setStrokeJoin(strokeCore.join_);
+    }
+
+    if (strokeCore.pathEffect_) {
+        paint.setPathEffect(strokeCore.pathEffect_);
+    }
+}
+
+void SkiaPaint::ApplyFilter(SkPaint& paint, const Filter& filter) const
+{
     auto c = filter.GetColorFilter();
     if (c != nullptr) {
         auto skColorFilterImpl = c->GetImpl<SkiaColorFilter>();
         sk_sp<SkColorFilter> colorFilter =
             (skColorFilterImpl != nullptr) ? skColorFilterImpl->GetColorFilter() : nullptr;
         paint.setColorFilter(colorFilter);
-    } else {
-        paint.setColorFilter(nullptr);
     }
 
     auto i = filter.GetImageFilter();
@@ -216,8 +392,6 @@ void SkiaPaint::ApplyFilter(SkPaint& paint, const Filter& filter) const
         sk_sp<SkImageFilter> imageFilter =
             (skImageFilterImpl != nullptr) ? skImageFilterImpl->GetImageFilter() : nullptr;
         paint.setImageFilter(imageFilter);
-    } else {
-        paint.setImageFilter(nullptr);
     }
 
     auto m = filter.GetMaskFilter();
@@ -225,8 +399,6 @@ void SkiaPaint::ApplyFilter(SkPaint& paint, const Filter& filter) const
         auto skMaskFilterImpl = m->GetImpl<SkiaMaskFilter>();
         sk_sp<SkMaskFilter> maskFilter = (skMaskFilterImpl != nullptr) ? skMaskFilterImpl->GetMaskFilter() : nullptr;
         paint.setMaskFilter(maskFilter);
-    } else {
-        paint.setMaskFilter(nullptr);
     }
 }
 } // namespace Drawing

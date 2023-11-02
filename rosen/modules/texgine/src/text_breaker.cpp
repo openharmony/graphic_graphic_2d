@@ -61,6 +61,10 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyl
             continue;
         }
 
+        if (span->u16vect_.size() == 0) {
+            continue;
+        }
+
         auto xs = vspan.GetTextStyle();
         auto fontCollection = GenerateFontCollection(ys, xs, fontProviders);
         if (fontCollection == nullptr) {

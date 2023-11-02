@@ -42,13 +42,16 @@ namespace Drawing {
 class DRAWING_API SkiaImage : public ImageImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     SkiaImage() noexcept;
     explicit SkiaImage(sk_sp<SkImage> skImg) noexcept;
     ~SkiaImage() override {}
+
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;
     }
+
     void* BuildFromBitmap(const Bitmap& bitmap) override;
     void* BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix, const Brush& brush,
         BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace) override;

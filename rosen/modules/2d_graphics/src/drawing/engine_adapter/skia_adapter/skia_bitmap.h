@@ -26,8 +26,10 @@ namespace Drawing {
 class DRAWING_API SkiaBitmap : public BitmapImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     SkiaBitmap();
     ~SkiaBitmap() override {}
+
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;
@@ -43,7 +45,7 @@ public:
     void* GetPixels() const override;
     void SetPixels(void* pixels) override;
     const SkBitmap& ExportSkiaBitmap() const;
-    void CopyPixels(Bitmap& dst, int srcLeft, int srcTop, int width, int height) const override;
+    void CopyPixels(Bitmap& dst, int srcLeft, int srcTop) const override;
     bool IsImmutable() override;
     void SetImmutable() override;
     void ClearWithColor(const ColorQuad& color) const override;

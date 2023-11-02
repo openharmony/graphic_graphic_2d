@@ -26,13 +26,8 @@ namespace Rosen {
 namespace Drawing {
 class CameraImpl : public BaseImpl {
 public:
-    static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     CameraImpl() {}
     ~CameraImpl() override {}
-    AdapterType GetType() const override
-    {
-        return AdapterType::BASE_INTERFACE;
-    }
 
     virtual void Save() = 0;
     virtual void Restore() = 0;

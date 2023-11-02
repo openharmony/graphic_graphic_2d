@@ -23,12 +23,17 @@
 
 namespace OHOS {
 namespace Rosen {
+constexpr int DEFAULT_QUICK_SKIP_PREPARE_TYPE_VALUE = 3;
+int ConvertToInt(const char *originValue, int defaultValue)
+{
+    return originValue == nullptr ? defaultValue : std::atoi(originValue);
+}
 bool RSSystemParameters::GetCalcCostEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.calcCost.enabled", "0");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return std::atoi(enable) != 0;
+    return ConvertToInt(enable, 0) != 0;
 }
 
 bool RSSystemParameters::GetDrawingCacheEnabled()
@@ -36,7 +41,7 @@ bool RSSystemParameters::GetDrawingCacheEnabled()
     static CachedHandle g_Handle = CachedParameterCreate("rosen.drawingCache.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return std::atoi(enable) != 0;
+    return ConvertToInt(enable, 1) != 0;
 }
 
 bool RSSystemParameters::GetDrawingCacheEnabledDfx()
@@ -44,7 +49,7 @@ bool RSSystemParameters::GetDrawingCacheEnabledDfx()
     static CachedHandle g_Handle = CachedParameterCreate("rosen.drawingCache.enabledDfx", "0");
     int changed = 0;
     const char *enabledDfx = CachedParameterGetChanged(g_Handle, &changed);
-    return std::atoi(enabledDfx) != 0;
+    return ConvertToInt(enabledDfx, 0) != 0;
 }
 
 QuickSkipPrepareType RSSystemParameters::GetQuickSkipPrepareType()
@@ -52,7 +57,7 @@ QuickSkipPrepareType RSSystemParameters::GetQuickSkipPrepareType()
     static CachedHandle g_Handle = CachedParameterCreate("rosen.quickskipprepare.enabled", "3");
     int changed = 0;
     const char *type = CachedParameterGetChanged(g_Handle, &changed);
-    return static_cast<QuickSkipPrepareType>(std::atoi(type));
+    return static_cast<QuickSkipPrepareType>(ConvertToInt(type, DEFAULT_QUICK_SKIP_PREPARE_TYPE_VALUE));
 }
 
 bool RSSystemParameters::GetFilterCacheOcculusionEnabled()

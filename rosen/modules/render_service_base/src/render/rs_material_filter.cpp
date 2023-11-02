@@ -260,6 +260,11 @@ bool RSMaterialFilter::IsValid() const
     return radius_ > epsilon;
 }
 
+bool RSMaterialFilter::IsPartialValid() const
+{
+    return !useKawase_ || radius_ >= 1.0f;
+}
+
 std::shared_ptr<RSFilter> RSMaterialFilter::Add(const std::shared_ptr<RSFilter>& rhs)
 {
     if ((rhs == nullptr) || (rhs->GetFilterType() != FilterType::MATERIAL)) {
@@ -335,6 +340,11 @@ void RSMaterialFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_
     canvas.DrawImageRect(*image, src, dst, Drawing::SamplingOptions());
     canvas.DetachBrush();
 #endif
+}
+
+float RSMaterialFilter::GetRadius() const
+{
+    return radius_;
 }
 
 bool RSMaterialFilter::CanSkipFrame() const

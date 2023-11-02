@@ -52,7 +52,7 @@ private:
     int32_t ParseParam(xmlNode &node);
     int32_t ParseParams(xmlNode &node);
     int32_t ParseSetting(xmlNode &node, std::unordered_map<std::string, std::string> &config);
-    int32_t ParserAnimationDynamicSetting(xmlNode &node);
+    int32_t ParserAnimationDynamicSetting(xmlNode &node, DynamicSetting& dynamicSetting);
     int32_t ParseStrat(xmlNode &node);
     std::string ExtractPropertyValue(const std::string &propName, xmlNode &node);
     static bool IsNumber(const std::string &str);

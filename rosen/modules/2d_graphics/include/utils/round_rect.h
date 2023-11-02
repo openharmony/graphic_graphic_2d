@@ -39,7 +39,7 @@ public:
 
     inline RoundRect(const RoundRect& roundRect) noexcept;
     inline RoundRect(const Rect& r, scalar xRad, scalar yRad) noexcept;
-    inline RoundRect(const Rect& r, std::vector<Point>& radiusXY) noexcept;
+    inline RoundRect(const Rect& r, const std::vector<Point>& radiusXY) noexcept;
 
     inline void SetCornerRadius(CornerPos pos, scalar radiusX, scalar radiusY);
     inline Point GetCornerRadius(CornerPos pos) const;
@@ -74,7 +74,7 @@ inline RoundRect::RoundRect(const Rect& r, scalar xRad, scalar yRad) noexcept : 
     }
 }
 
-inline RoundRect::RoundRect(const Rect& r, std::vector<Point>& radiusXY) noexcept : RoundRect()
+inline RoundRect::RoundRect(const Rect& r, const std::vector<Point>& radiusXY) noexcept : RoundRect()
 {
     rect_ = r;
     for (size_t i = 0; i < radiusXY_.size(); ++i) {

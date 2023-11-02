@@ -29,14 +29,8 @@ class GPUContext;
 class GPUContextOptions;
 class GPUContextImpl : public BaseImpl {
 public:
-    static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     GPUContextImpl() {};
     ~GPUContextImpl() override {};
-
-    AdapterType GetType() const override
-    {
-        return AdapterType::BASE_INTERFACE;
-    }
 
     virtual bool BuildFromGL(const GPUContextOptions& options) = 0;
 

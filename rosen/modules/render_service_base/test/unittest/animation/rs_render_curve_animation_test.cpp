@@ -114,5 +114,32 @@ HWTEST_F(RSRenderCurveAnimationTest, SetInterpolator001, TestSize.Level1)
     EXPECT_TRUE(renderCurveAnimation->IsRunning());
     GTEST_LOG_(INFO) << "RSRenderCurveAnimationTest SetInterpolator001 end";
 }
+
+/**
+ * @tc.name: Unmarshalling002
+ * @tc.desc:Verify the Unmarshalling
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderCurveAnimationTest, Unmarshalling002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderCurveAnimationTest Unmarshalling002 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+
+    auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+
+    Parcel parcel;
+    auto animation = RSRenderCurveAnimation::Unmarshalling(parcel);
+    EXPECT_TRUE(animation == nullptr);
+    renderCurveAnimation->Marshalling(parcel);
+    animation = RSRenderCurveAnimation::Unmarshalling(parcel);
+    EXPECT_TRUE(animation != nullptr);
+    GTEST_LOG_(INFO) << "RSRenderCurveAnimationTest Unmarshalling002 end";
+}
 } // namespace Rosen
 } // namespace OHOS

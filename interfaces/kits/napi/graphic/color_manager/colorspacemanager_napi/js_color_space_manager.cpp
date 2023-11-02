@@ -59,11 +59,11 @@ bool CheckColorSpaceTypeRange(napi_env env, const ApiColorSpaceType csType)
     return true;
 }
 
-napi_value JsColorSpaceManager::OnCreateColorSpace(napi_env env, napi_callback_info cbinfo)
+napi_value JsColorSpaceManager::OnCreateColorSpace(napi_env env, napi_callback_info info)
 {
     size_t argvSize = 2;
     std::vector<napi_value> argvArr(argvSize);
-    napi_get_cb_info(env, cbinfo, &argvSize, argvArr.data(), nullptr, nullptr);
+    napi_get_cb_info(env, info, &argvSize, argvArr.data(), nullptr, nullptr);
     if (!CheckParamMinimumValid(env, argvSize, 0)) {
         return nullptr;
     }

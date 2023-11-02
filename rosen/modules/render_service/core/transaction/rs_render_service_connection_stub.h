@@ -23,6 +23,7 @@
 #include "platform/ohos/rs_irender_service_connection.h"
 #include "platform/ohos/rs_irender_service_connection_ipc_interface_code_access_verifier.h"
 #include "ipc_security/rs_ipc_interface_code_security_manager.h"
+#include "rs_render_service_security_utils.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -32,11 +33,12 @@ public:
     ~RSRenderServiceConnectionStub() noexcept = default;
 
     int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
-
 private:
     static const RSInterfaceCodeSecurityManager securityManager_;
 
     void ReadDataBaseRs(DataBaseRs& info, MessageParcel& data);
+    RSRenderServiceSecurityUtils securityUtils_;
+
 #if defined (ENABLE_DDGR_OPTIMIZE)
     int transDataIndex_ = 0;
 #endif

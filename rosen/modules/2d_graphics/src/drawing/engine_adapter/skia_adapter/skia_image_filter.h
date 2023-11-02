@@ -27,8 +27,10 @@ namespace Drawing {
 class SkiaImageFilter : public ImageFilterImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     SkiaImageFilter() noexcept;
     ~SkiaImageFilter() override {};
+
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;

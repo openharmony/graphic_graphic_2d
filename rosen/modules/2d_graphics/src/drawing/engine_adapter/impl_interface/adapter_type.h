@@ -21,8 +21,6 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 enum class AdapterType {
-    NONE,
-    BASE_INTERFACE,
     SKIA_ADAPTER,
     OTHER_ADAPTER,
 };

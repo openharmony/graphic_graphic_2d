@@ -25,9 +25,11 @@ namespace Drawing {
 class SkiaVertices : public VerticesImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     SkiaVertices() noexcept;
     explicit SkiaVertices(sk_sp<SkVertices> vertices) noexcept;
     ~SkiaVertices() override {}
+
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;
@@ -48,8 +50,10 @@ public:
     class SkiaBuilder : public VerticesImpl::BuilderImpl {
     public:
         static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
         SkiaBuilder() noexcept {}
         ~SkiaBuilder() override {}
+
         AdapterType GetType() const override
         {
             return AdapterType::SKIA_ADAPTER;

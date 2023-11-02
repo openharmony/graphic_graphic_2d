@@ -29,8 +29,10 @@ namespace Drawing {
 class SkiaMatrix44 : public Matrix44Impl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     SkiaMatrix44();
     ~SkiaMatrix44() override {}
+
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;

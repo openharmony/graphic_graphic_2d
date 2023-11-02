@@ -80,6 +80,27 @@ bool DrawCmdList::IsEmpty() const
     return false;
 }
 
+void DrawCmdList::UnmarshallingOps()
+{
+    uint32_t offset = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
+    if (width_ <= 0 || height_ <= 0 || opAllocator_.GetSize() <= offset) {
+        return;
+    }
+
+    UnmarshallingPlayer player = { *this };
+    do {
+        void* itemPtr = opAllocator_.OffsetToAddr(offset);
+        auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
+        if (curOpItemPtr != nullptr) {
+            player.Unmarshalling(curOpItemPtr->GetType(), itemPtr);
+            offset = curOpItemPtr->GetNextOpItemOffset();
+        } else {
+            LOGE("DrawCmdList::UnmarshallingOps failed, opItem is nullptr");
+            break;
+        }
+    } while (offset != 0);
+}
+
 void DrawCmdList::Playback(Canvas& canvas, const Rect* rect) const
 {
     uint32_t offset = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h

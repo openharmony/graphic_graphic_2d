@@ -26,8 +26,14 @@ namespace Drawing {
 class SkiaSurface : public SurfaceImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     SkiaSurface();
     ~SkiaSurface() override = default;
+
+    AdapterType GetType() const override
+    {
+        return AdapterType::SKIA_ADAPTER;
+    }
 
     bool Bind(const Bitmap& bitmap) override;
 #ifdef ACE_ENABLE_GPU
@@ -41,6 +47,8 @@ public:
     std::shared_ptr<Canvas> GetCanvas() const override;
     std::shared_ptr<Image> GetImageSnapshot() const override;
     std::shared_ptr<Image> GetImageSnapshot(const RectI& bounds) const override;
+    std::shared_ptr<Surface> MakeSurface(int width, int height) const override;
+    void SetSkSurface(const sk_sp<SkSurface>& skSurface);
     void FlushAndSubmit(bool syncCpu) override;
 
 private:

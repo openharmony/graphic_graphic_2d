@@ -40,7 +40,6 @@ ohos_shared_library("libhyper_graphic_manager") {
   public_configs = [ ":libhyper_graphic_manager_config" ]
 
   sources = [
-    "core/config/anim_dynamic_configs.cpp",
     "core/config/hgm_config_callback_manager.cpp",
     "core/config/xml_parser.cpp",
     "core/frame_rate_manager/hgm_frame_rate_manager.cpp",

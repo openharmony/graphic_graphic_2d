@@ -19,10 +19,7 @@
 #include <hilog/log.h>
 
 namespace OHOS {
-#ifdef __aarch64__
-#define PUBI64 "%{public}ld"
-#define PUBU64 "%{public}lu"
-#elif __x86_64__
+#if (defined(__aarch64__) || defined(__x86_64__))
 #define PUBI64 "%{public}ld"
 #define PUBU64 "%{public}lu"
 #else

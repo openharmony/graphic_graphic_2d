@@ -40,6 +40,11 @@ public:
     static std::shared_ptr<DrawCmdList> CreateFromData(const CmdListData& data, bool isCopy = false);
 
     /*
+     * @brief         Unmarshalling Draw Ops Param from contiguous buffers
+     */
+    void UnmarshallingOps();
+
+    /*
      * @brief         Draw cmd is empty or not.
      */
     bool IsEmpty() const;

@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#define EGL_EGLEXT_PROTOTYPES
 #include "pipeline/rs_main_thread.h"
 
 #include <list>
@@ -24,6 +25,11 @@
 #include <string>
 #include <unistd.h>
 #include <malloc.h>
+#ifdef RS_ENABLE_GL
+#include "GLES3/gl3.h"
+#include "EGL/egl.h"
+#include "EGL/eglext.h"
+#endif
 #ifdef NEW_SKIA
 #include "include/gpu/GrDirectContext.h"
 #else
@@ -35,6 +41,9 @@
 #include "animation/rs_animation_fraction.h"
 #include "command/rs_message_processor.h"
 #include "common/rs_background_thread.h"
+#ifdef RS_ENABLE_PARALLEL_UPLOAD
+#include "common/rs_upload_texture_thread.h"
+#endif
 #include "delegate/rs_functional_delegate.h"
 #include "memory/rs_memory_manager.h"
 #include "memory/rs_memory_track.h"
@@ -93,6 +102,8 @@
 #include "scene_board_judgement.h"
 #include "vsync_iconnection_token.h"
 
+#include "mem_mgr_client.h"
+
 using namespace FRAME_TRACE;
 static const std::string RS_INTERVAL_NAME = "renderservice";
 
@@ -116,8 +127,12 @@ constexpr uint64_t CLEAR_GPU_INTERVAL = 40000;
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
 constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
+constexpr uint32_t WAIT_FOR_HARDWARE_THREAD_TASK_TIMEOUT = 3000;
+constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 1;
+constexpr uint32_t WAIT_FOR_MEM_MGR_SERVICE = 100;
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
+constexpr const char* MEM_MGR = "MemMgr";
 #ifdef RS_ENABLE_GL
 constexpr size_t DEFAULT_SKIA_CACHE_SIZE        = 96 * (1 << 20);
 constexpr int DEFAULT_SKIA_CACHE_COUNT          = 2 * (1 << 12);
@@ -159,7 +174,7 @@ public:
     AccessibilityObserver() = default;
     void OnConfigChanged(const CONFIG_ID id, const ConfigValue &value) override
     {
-        RS_LOGD("AccessibilityObserver OnConfigChanged");
+        RS_LOGD("AccessibilityObserver OnConfigChanged configId: %{public}d", id);
         ColorFilterMode mode = ColorFilterMode::COLOR_FILTER_END;
         if (id == CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER) {
             switch (value.daltonizationColorFilter) {
@@ -183,8 +198,10 @@ public:
             mode = value.invertColor ? ColorFilterMode::INVERT_COLOR_ENABLE_MODE :
                                         ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
             RSBaseRenderEngine::SetColorFilterMode(mode);
-        } else {
+        } else if (id == CONFIG_ID::CONFIG_HIGH_CONTRAST_TEXT) {
             RSBaseRenderEngine::SetHighContrast(value.highContrastText);
+        } else {
+            RS_LOGW("AccessibilityObserver configId: %{public}d is not supported yet.", id);
         }
         RSMainThread::Instance()->PostTask([]() {
             RSMainThread::Instance()->SetAccessibilityConfigChanged();
@@ -207,6 +224,7 @@ RSMainThread::RSMainThread() : mainThreadId_(std::this_thread::get_id())
 
 RSMainThread::~RSMainThread() noexcept
 {
+    Memory::MemMgrClient::GetInstance().UnsubscribeAppState(*rsAppStateListener_);
     RemoveRSEventDetector();
     RSInnovation::CloseInnovationSo();
 }
@@ -239,7 +257,7 @@ void RSMainThread::Init()
     };
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
-    auto taskDispatchFunc = [](const RSTaskDispatcher::RSTask& task) {
+    auto taskDispatchFunc = [](const RSTaskDispatcher::RSTask& task, bool isSyncTask = false) {
         RSMainThread::Instance()->PostTask(task);
     };
     context_->SetTaskRunner(taskDispatchFunc);
@@ -253,6 +271,12 @@ void RSMainThread::Init()
                 std::lock_guard<std::mutex> lock(unmarshalMutex_);
                 ++unmarshalFinishedCount_;
             }
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
+            RSUploadTextureThread::Instance().PostTask(uploadTextureBarrierTask_);
+#endif
+#endif
             unmarshalTaskCond_.notify_all();
         };
         RSUnmarshalThread::Instance().Start();
@@ -320,6 +344,21 @@ void RSMainThread::Init()
     RSBackgroundThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext().get());
 #endif
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
+    uploadTextureBarrierTask_ = [this]() {
+        auto renderContext = GetRenderEngine()->GetRenderContext().get();
+        uploadTextureFence = eglCreateSyncKHR(renderContext->GetEGLDisplay(), EGL_SYNC_FENCE_KHR, nullptr);
+        {
+            std::lock_guard<std::mutex> lock(uploadTextureMutex_);
+            ++uploadTextureFinishedCount_;
+        }
+        uploadTextureTaskCond_.notify_all();
+    };
+    RSUploadTextureThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext().get());
+#endif
+#endif
+
 #if defined(ACCESSIBILITY_ENABLE)
     accessibilityObserver_ = std::make_shared<AccessibilityObserver>();
     auto &config = OHOS::AccessibilityConfig::AccessibilityConfig::GetInstance();
@@ -343,6 +382,7 @@ void RSMainThread::Init()
             RSMainThread::Instance()->RequestNextVSync();
         });
     });
+    SubscribeAppState();
 }
 
 void RSMainThread::RsEventParamDump(std::string& dumpString)
@@ -896,13 +936,16 @@ void RSMainThread::CollectInfoForHardwareComposer()
             if (surfaceNode == nullptr || !surfaceNode->IsOnTheTree()) {
                 return;
             }
+            if (surfaceNode->GetBuffer() != nullptr) {
+                selfDrawingNodes_.emplace_back(surfaceNode);
+            }
             if (!surfaceNode->IsHardwareEnabledType()) {
                 return;
             }
 
             // if hwc node is set on the tree this frame, mark its parent app node to be prepared
+            auto appNodeId = surfaceNode->GetInstanceRootNodeId();
             if (surfaceNode->IsNewOnTree()) {
-                auto appNodeId = surfaceNode->GetInstanceRootNodeId();
                 context_->AddActiveNode(nodeMap.GetRenderNode(appNodeId));
                 surfaceNode->ResetIsNewOnTree();
             }
@@ -920,7 +963,9 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 }
             } else { // gpu -> hwc
                 if (!surfaceNode->IsLastFrameHardwareEnabled()) {
-                    surfaceNode->SetContentDirty();
+                    if (!IsLastFrameUIFirstEnabled(appNodeId)) {
+                        surfaceNode->SetContentDirty();
+                    }
                     doDirectComposition_ = false;
                 }
             }
@@ -929,6 +974,25 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 isHardwareEnabledBufferUpdated_ = true;
             }
         });
+}
+
+bool RSMainThread::IsLastFrameUIFirstEnabled(NodeId appNodeId) const
+{
+    for (auto& node : subThreadNodes_) {
+        if (node->IsAppWindow()) {
+            if (node->GetId() == appNodeId) {
+                return true;
+            }
+        } else {
+            for (auto& child : node->GetSortedChildren()) {
+                auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+                if (surfaceNode && surfaceNode->IsAppWindow() && surfaceNode->GetId() == appNodeId) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
 void RSMainThread::CheckIfHardwareForcedDisabled()
@@ -1121,6 +1185,32 @@ void RSMainThread::WaitUtilDrivenRenderFinished()
     drivenRenderFinished_ = false;
 #endif
 }
+#if defined(RS_ENABLE_PARALLEL_UPLOAD) && defined(RS_ENABLE_GL)
+void RSMainThread::WaitUntilUploadTextureTaskFinished()
+{
+    if (!isUniRender_) {
+        return;
+    }
+    RS_OPTIONAL_TRACE_BEGIN("RSMainThread::WaitUntilUploadTextureTaskFinished");
+    {
+        std::unique_lock<std::mutex> lock(uploadTextureMutex_);
+        uploadTextureTaskCond_.wait(lock, [this]() { return uploadTextureFinishedCount_ > 0; });
+        --uploadTextureFinishedCount_;
+    }
+    if (uploadTextureFence != EGL_NO_SYNC_KHR) {
+        auto diplayID = GetRenderEngine()->GetRenderContext().get()->GetEGLDisplay();
+        EGLint waitStatus = eglWaitSyncKHR(diplayID, uploadTextureFence, 0);
+        if (waitStatus == EGL_FALSE) {
+            ROSEN_LOGE("eglClientWaitSyncKHR error 0x%{public}x", eglGetError());
+        } else if (waitStatus == EGL_TIMEOUT_EXPIRED_KHR) {
+            ROSEN_LOGE("create eglClientWaitSyncKHR timeout");
+        }
+        eglDestroySyncKHR(diplayID, uploadTextureFence);
+    }
+    uploadTextureFence = EGL_NO_SYNC_KHR;
+    RS_OPTIONAL_TRACE_END();
+}
+#endif
 
 void RSMainThread::WaitUntilUnmarshallingTaskFinished()
 {
@@ -1225,6 +1315,11 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
                     node->MarkCurrentFrameHardwareEnabled();
                 }
             }
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
+            WaitUntilUploadTextureTaskFinished();
+#endif
+#endif
             return;
         }
     }
@@ -1246,9 +1341,19 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
                 RS_LOGD("RSMainThread::Render multi-threads parallel composition end.");
                 isDirty_ = false;
                 PerfForBlurIfNeeded();
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
+                WaitUntilUploadTextureTaskFinished();
+#endif
+#endif
                 return;
             }
         }
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
+        WaitUntilUploadTextureTaskFinished();
+#endif
+#endif
         if (IsUIFirstOn()) {
             auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
                 rootNode->GetSortedChildren().front());
@@ -1261,6 +1366,12 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             RSUniRenderUtil::CacheSubThreadNodes(subThreadNodes_, subThreadNodes);
         }
         rootNode->Process(uniVisitor);
+    } else {
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
+        WaitUntilUploadTextureTaskFinished();
+#endif
+#endif
     }
     isDirty_ = false;
     forceUpdateUniRenderFlag_ = false;
@@ -1270,6 +1381,11 @@ void RSMainThread::Render()
 {
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (rootNode == nullptr) {
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
+        WaitUntilUploadTextureTaskFinished();
+#endif
+#endif
         RS_LOGE("RSMainThread::Render GetGlobalRootRenderNode fail");
         return;
     }
@@ -1284,7 +1400,6 @@ void RSMainThread::Render()
         rsVisitor->SetAnimateState(doWindowAnimate_);
         rootNode->Prepare(rsVisitor);
         CalcOcclusion();
-
         bool doParallelComposition = false;
         if (!rsVisitor->ShouldForceSerial() && RSInnovation::GetParallelCompositionEnabled(isUniRender_)) {
             doParallelComposition = DoParallelComposition(rootNode);
@@ -1576,6 +1691,21 @@ void RSMainThread::SurfaceOcclusionCallback()
             std::get<2>(listener.second) = visible; // get 2 in tuple, change the visible status
         }
     }
+}
+
+bool RSMainThread::WaitHardwareThreadTaskExcute()
+{
+    std::unique_lock<std::mutex> lock(hardwareThreadTaskMutex_);
+    return hardwareThreadTaskCond_.wait_until(lock, std::chrono::system_clock::now() +
+        std::chrono::milliseconds(WAIT_FOR_HARDWARE_THREAD_TASK_TIMEOUT),
+        []() { return RSHardwareThread::Instance().GetunExcuteTaskNum() <= HARDWARE_THREAD_TASK_NUM; });
+}
+
+void RSMainThread::NotifyHardwareThreadCanExcuteTask()
+{
+    RS_TRACE_NAME("RSMainThread::NotifyHardwareThreadCanExcuteTask");
+    std::lock_guard<std::mutex> lock(hardwareThreadTaskMutex_);
+    hardwareThreadTaskCond_.notify_one();
 }
 
 void RSMainThread::RequestNextVSync()
@@ -2330,7 +2460,7 @@ bool RSMainThread::IsDrawingGroupChanged(RSRenderNode& cacheRootNode) const
 {
     auto iter = context_->activeNodesInRoot_.find(cacheRootNode.GetInstanceRootNodeId());
     if (iter != context_->activeNodesInRoot_.end()) {
-        std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>>& activeNodeIds = iter->second;
+        const std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>>& activeNodeIds = iter->second;
         // do not need to check cacheroot node itself
         // in case of tree change, parent node would set content dirty and reject before
         auto cacheRootId = cacheRootNode.GetId();
@@ -2417,6 +2547,12 @@ void RSMainThread::ResetHardwareEnabledState()
     doDirectComposition_ = !isHardwareForcedDisabled_;
     isHardwareEnabledBufferUpdated_ = false;
     hardwareEnabledNodes_.clear();
+    selfDrawingNodes_.clear();
+}
+
+const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& RSMainThread::GetSelfDrawingNodes() const
+{
+    return selfDrawingNodes_;
 }
 
 void RSMainThread::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
@@ -2526,6 +2662,52 @@ void RSMainThread::GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize)
 #endif
         cpuMemSize = MemoryTrack::Instance().GetAppMemorySizeInMB();
     });
+}
+
+void RSMainThread::SubscribeAppState()
+{
+    PostTask([this]() {
+        int32_t subscribeFailCount = 0;
+        rsAppStateListener_ = std::make_shared<RSAppStateListener>();
+        if (Memory::MemMgrClient::GetInstance().SubscribeAppState(*rsAppStateListener_) != -1) {
+            RS_LOGD("Subscribe MemMgr Success");
+            subscribeFailCount = 0;
+            return;
+        } else {
+            RS_LOGE("Subscribe Failed, try again");
+            subscribeFailCount++;
+            if (subscribeFailCount < 10) { // The maximum number of failures is 10
+                SubscribeAppState();
+            } else {
+                RS_LOGE("Subscribe Failed 10 times, exiting");
+            }
+        }
+    }, MEM_MGR, WAIT_FOR_MEM_MGR_SERVICE);
+}
+
+void RSMainThread::HandleOnTrim(Memory::SystemMemoryLevel level)
+{
+    if (handler_) {
+        handler_->PostTask(
+            [level, this]() {
+#ifndef USE_ROSEN_DRAWING
+#ifdef NEW_RENDER_CONTEXT
+                auto grContext = GetRenderEngine()->GetDrawingContext()->GetDrawingContext();
+#else
+                auto grContext = GetRenderEngine()->GetRenderContext()->GetGrContext();
+#endif
+#else
+                auto grContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+#endif
+                switch (level) {
+                    case Memory::SystemMemoryLevel::MEMORY_LEVEL_CRITICAL:
+                        MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
+                        break;
+                    default:
+                        break;
+                }
+            }, AppExecFwk::EventQueue::Priority::IDLE);
+    }
 }
 
 } // namespace Rosen

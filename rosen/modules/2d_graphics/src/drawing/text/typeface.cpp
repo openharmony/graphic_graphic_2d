@@ -15,9 +15,6 @@
 
 #include "text/typeface.h"
 
-#include "src/ports/skia_ohos/FontInfo_ohos.h"
-
-#include "impl_factory.h"
 #include "impl_interface/typeface_impl.h"
 #include "static_factory.h"
 
@@ -25,9 +22,6 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 Typeface::Typeface(std::shared_ptr<TypefaceImpl> typefaceImpl) noexcept : typefaceImpl_(typefaceImpl) {}
-
-Typeface::Typeface(const std::string& specifiedName, FontInfo& info)
-    : typefaceImpl_(ImplFactory::CreateTypefaceImpl(specifiedName, info)) {}
 
 std::shared_ptr<Typeface> Typeface::MakeFromFile(const char path[])
 {

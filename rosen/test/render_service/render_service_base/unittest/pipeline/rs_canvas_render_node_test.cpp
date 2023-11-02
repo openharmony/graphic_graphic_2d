@@ -130,4 +130,16 @@ HWTEST_F(RSCanvasRenderNodeTest, ProcessDrivenBackgroundRenderTest, TestSize.Lev
 #endif
 }
 
+/**
+ * @tc.name: ExecuteBlendModeTest
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasRenderNodeTest, ExecuteBlendModeTest, TestSize.Level1)
+{
+    auto canvasRenderNode = std::make_shared<RSCanvasRenderNode>(id, context);
+    canvasRenderNode->ExecuteBlendMode(*canvas_, true);
+}
+
 } // namespace OHOS::Rosen

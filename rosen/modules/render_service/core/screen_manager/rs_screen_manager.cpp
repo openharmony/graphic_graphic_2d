@@ -250,12 +250,13 @@ void RSScreenManager::AddScreenToHgm(std::shared_ptr<HdiOutput> &output)
     int32_t modeId = 0;
     auto supportedModes = screens_[thisId]->GetSupportedModes();
     for (auto mode = supportedModes.begin(); mode != supportedModes.end(); ++mode) {
-        if (!hgmCore.AddScreenInfo(thisId, (*mode).width, (*mode).height,
+        if (hgmCore.AddScreenInfo(thisId, (*mode).width, (*mode).height,
             (*mode).freshRate, modeId)) {
             RS_LOGW("RSScreenManager failed to add a screen profile to the screen : %{public}" PRIu64 "", thisId);
         }
         modeId++;
     }
+    hgmCore.SetModeBySettingConfig();
 }
 
 void RSScreenManager::RemoveScreenFromHgm(std::shared_ptr<HdiOutput> &output)
@@ -574,6 +575,7 @@ ScreenPowerStatus RSScreenManager::GetScreenPowerStatusLocked(ScreenId id) const
 
 std::vector<ScreenId> RSScreenManager::GetAllScreenIds()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     std::vector<ScreenId> ids;
     for (auto iter = screens_.begin(); iter != screens_.end(); ++iter) {
         ids.emplace_back(iter->first);

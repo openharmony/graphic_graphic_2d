@@ -93,7 +93,7 @@ void RSRecordingThread::FinishRecordingOneFrame()
                 uintptr_t buf = messageParcelVec[tmpCurDumpFrame]->GetData();
                 std::string opsDescription = opsDescriptionVec[tmpCurDumpFrame];
 #else
-                size_t sz = messageParcelVec[tmpCurDumpFrame]->GetSize();
+                size_t sz = messageParcelVec[tmpCurDumpFrame]->GetDataSize();
                 auto buf = reinterpret_cast<uintptr_t>(messageParcelVec[tmpCurDumpFrame]->GetData());
                 std::string opsDescription = "drawing ops no description";
 #endif
@@ -134,13 +134,13 @@ void RSRecordingThread::RecordingToFile(const std::shared_ptr<Drawing::DrawCmdLi
     RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
     drawCmdList->Marshalling(*messageParcel);
     RSMarshallingHelper::EndNoSharedMem();
+    messageParcelVec.push_back(messageParcel);
+    opsDescriptionVec.push_back(drawCmdList->GetOpsWithDesc());
 #else
     auto cmdListData = drawCmdList->GetData();
     auto messageParcel = std::make_shared<Drawing::Data>();
     messageParcel->BuildWithCopy(cmdListData.first, cmdListData.second);
 #endif
-    messageParcelVec.push_back(messageParcel);
-    opsDescriptionVec.push_back(drawCmdList->GetOpsWithDesc());
     FinishRecordingOneFrame();
 }
 }

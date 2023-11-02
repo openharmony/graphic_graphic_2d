@@ -43,6 +43,8 @@ public:
 
     inline bool IsZero() const;
 
+    inline void Offset(scalar x, scalar y);
+
     inline PointF& operator+=(const PointF& p);
     inline PointF& operator-=(const PointF& p);
     inline PointF& operator*=(scalar scale);
@@ -92,6 +94,12 @@ inline void PointF::SetY(scalar y)
 inline bool PointF::IsZero() const
 {
     return (0 == x_) && (0 == y_);
+}
+
+inline void PointF::Offset(scalar x, scalar y)
+{
+    x_ += x;
+    y_ += y;
 }
 
 inline PointF& PointF::operator+=(const PointF& p)

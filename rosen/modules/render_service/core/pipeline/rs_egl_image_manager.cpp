@@ -289,7 +289,7 @@ GLuint RSEglImageManager::MapEglImageFromSurfaceBuffer(const sptr<OHOS::SurfaceB
         // cache not found, create it.
         return CreateImageCacheFromBuffer(buffer, threadIndex);
     } else {
-        auto& imageCache = imageCacheSeqs_[bufferId];
+        const auto& imageCache = imageCacheSeqs_[bufferId];
         return imageCache->TextureId();
     }
 }

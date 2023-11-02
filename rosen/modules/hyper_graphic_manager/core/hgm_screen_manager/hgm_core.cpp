@@ -71,7 +71,6 @@ bool HgmCore::Init()
         HGM_LOGI("HgmCore No customer refreshrate mode found: %{public}d", newRateMode);
         customFrameRateMode_ = static_cast<RefreshRateMode>(newRateMode);
     }
-
     isInit_ = true;
     HGM_LOGI("HgmCore initialization success!!!");
     return isInit_;
@@ -166,18 +165,9 @@ int32_t HgmCore::RequestBundlePermission(int32_t rate)
     }
 
     // black_list conatrol at 90hz, return 60 if in the list
-    if (customFrameRateMode_ == HGM_REFRESHRATE_MODE_MEDIUM) {
+    if (customFrameRateMode_ == HGM_REFRESHRATE_MODE_MEDIUM || customFrameRateMode_ == HGM_REFRESHRATE_MODE_HIGH) {
         auto bundle = mParsedConfigData_->bundle_black_list_.find(currentBundleName_);
         if (bundle != mParsedConfigData_->bundle_black_list_.end()) {
-            return OLED_60_HZ;
-        }
-        return rate;
-    }
-
-    // white_list control at 120hz, return 60 if not in the list
-    if (customFrameRateMode_ == HGM_REFRESHRATE_MODE_HIGH) {
-        auto bundle = mParsedConfigData_->bundle_white_list_.find(currentBundleName_);
-        if (bundle == mParsedConfigData_->bundle_white_list_.end()) {
             return OLED_60_HZ;
         }
         return rate;
@@ -200,7 +190,7 @@ int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate
         HGM_LOGW("HgmCore refuse an illegal framerate: %{public}d", rate);
         return HGM_ERROR;
     }
-    sceneId = screenSceneSet_.size();
+    sceneId = static_cast<int32_t>(screenSceneSet_.size());
     int32_t modeToSwitch = screen->SetActiveRefreshRate(sceneId, static_cast<uint32_t>(rate));
     if (modeToSwitch < 0) {
         return modeToSwitch;

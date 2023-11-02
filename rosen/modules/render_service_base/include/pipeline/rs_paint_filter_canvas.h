@@ -43,6 +43,14 @@ public:
     RSPaintFilterCanvasBase(Drawing::Canvas* canvas);
     ~RSPaintFilterCanvasBase() override = default;
 
+    Drawing::Matrix GetTotalMatrix() const override;
+
+    Drawing::Rect GetLocalClipBounds() const override;
+
+    Drawing::RectI GetDeviceClipBounds() const override;
+
+    uint32_t GetSaveCount() const override;
+
 #ifdef ACE_ENABLE_GPU
     std::shared_ptr<Drawing::GPUContext> GetGPUContext() const override;
 #endif
@@ -225,7 +233,7 @@ public:
     struct CachedEffectData {
         CachedEffectData() = default;
         CachedEffectData(sk_sp<SkImage>&& image, const SkIRect& rect);
-        ~CachedEffectData();
+        ~CachedEffectData() = default;
         sk_sp<SkImage> cachedImage_ = nullptr;
         SkIRect cachedRect_ = SkIRect::MakeEmpty();
     };
@@ -240,19 +248,41 @@ public:
     };
     CanvasStatus GetCanvasStatus() const;
     void SetCanvasStatus(const CanvasStatus& status);
+#else
+    // effect cache data relate
+    struct CachedEffectData {
+        CachedEffectData() = default;
+        CachedEffectData(std::shared_ptr<Drawing::Image>&& image, const Drawing::RectI& rect);
+        ~CachedEffectData() = default;
+        std::shared_ptr<Drawing::Image> cachedImage_ = nullptr;
+        Drawing::RectI cachedRect_ = {};
+    };
+    void SetEffectData(const std::shared_ptr<CachedEffectData>& effectData);
+    const std::shared_ptr<CachedEffectData>& GetEffectData() const;
+
+    // canvas status relate
+    struct CanvasStatus {
+        float alpha_;
+        Drawing::Matrix matrix_;
+        std::shared_ptr<CachedEffectData> effectData_;
+    };
+    CanvasStatus GetCanvasStatus() const;
+    void SetCanvasStatus(const CanvasStatus& status);
+#endif
     bool GetRecordingState() const;
     void SetRecordingState(bool flag);
-#endif
+    SkCanvas* GetRecordingCanvas() const;
 
 protected:
+    using Env = struct {
+        Color envForegroundColor_;
+        std::shared_ptr<CachedEffectData> effectData_;
+    };
 #ifndef USE_ROSEN_DRAWING
     bool onFilter(SkPaint& paint) const override;
     void onDrawPicture(const SkPicture* picture, const SkMatrix* matrix, const SkPaint* paint) override;
     SkCanvas::SaveLayerStrategy getSaveLayerStrategy(const SaveLayerRec& rec) override;
 #else
-    using Env = struct {
-        Color envForegroundColor_;
-    };
     std::stack<float> GetAlphaStack();
     std::stack<Env> GetEnvStack();
     bool OnFilter() const override;
@@ -265,12 +295,6 @@ private:
     Drawing::Surface* surface_ = nullptr;
 #endif
     std::stack<float> alphaStack_;
-#ifndef USE_ROSEN_DRAWING
-    using Env = struct {
-        Color envForegroundColor_;
-        std::shared_ptr<CachedEffectData> effectData_;
-    };
-#endif
     std::stack<Env> envStack_;
 
     std::atomic_bool isHighContrastEnabled_ { false };
@@ -315,10 +339,17 @@ public:
         @param saveAlpha  call RSPaintFilterCanvas::SaveAlpha()
         @return           utility to restore RSPaintFilterCanvas state on destructor
     */
+#ifndef USE_ROSEN_DRAWING
     RSAutoCanvasRestore(
         RSPaintFilterCanvas* canvas, RSPaintFilterCanvas::SaveType type = RSPaintFilterCanvas::SaveType::kALL)
         : canvas_(canvas), saveCount_(canvas ? canvas->Save(type) : RSPaintFilterCanvas::SaveStatus())
     {}
+#else
+    RSAutoCanvasRestore(
+        RSPaintFilterCanvas* canvas, RSPaintFilterCanvas::SaveType type = RSPaintFilterCanvas::SaveType::kALL)
+        : canvas_(canvas), saveCount_(canvas ? canvas->SaveAllStatus() : RSPaintFilterCanvas::SaveStatus())
+    {}
+#endif
 
     /** Allow RSAutoCanvasRestore to be used with std::unique_ptr and std::shared_ptr */
     RSAutoCanvasRestore(const std::unique_ptr<RSPaintFilterCanvas>& canvas,

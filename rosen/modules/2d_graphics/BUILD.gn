@@ -58,6 +58,11 @@ template("graphics2d_source_set") {
     if (use_texgine) {
       defines += [ "USE_TEXGINE" ]
     }
+
+    if (is_cross_platform_build) {
+      defines += [ "CROSS_PLATFORM" ]
+    }
+
     sources = [
       "$drawing_src_dir/c/drawing_bitmap.cpp",
       "$drawing_src_dir/c/drawing_brush.cpp",
@@ -82,9 +87,6 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/effect/path_effect.cpp",
       "$drawing_src_dir/effect/shader_effect.cpp",
       "$drawing_src_dir/engine_adapter/impl_factory.cpp",
-      "$drawing_src_dir/engine_adapter/skia_adapter/platform/skia_font_mgr_ohos.cpp",
-      "$drawing_src_dir/engine_adapter/skia_adapter/platform/skia_font_style_set_ohos.cpp",
-      "$drawing_src_dir/engine_adapter/skia_adapter/platform/skia_typeface_ohos.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/rs_skia_memory_tracer.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_bitmap.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_camera.cpp",
@@ -128,6 +130,7 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/recording/draw_cmd.cpp",
       "$drawing_src_dir/recording/draw_cmd_list.cpp",
       "$drawing_src_dir/recording/image_filter_cmd_list.cpp",
+      "$drawing_src_dir/recording/mask_cmd_list.cpp",
       "$drawing_src_dir/recording/mask_filter_cmd_list.cpp",
       "$drawing_src_dir/recording/mem_allocator.cpp",
       "$drawing_src_dir/recording/path_cmd_list.cpp",
@@ -242,10 +245,6 @@ template("graphics2d_source_set") {
         }
       } else {
         if (defined(use_rosen_drawing) && use_rosen_drawing) {
-          sources += [
-            "$drawing_src_dir/engine_adapter/skia_adapter/skia_dynamic_font_mgr.cpp",
-            "$drawing_src_dir/engine_adapter/skia_adapter/skia_typeface_font_style_set.cpp",
-          ]
           include_dirs += [ "//third_party/flutter/txt/src" ]
           deps += [
             "$ace_flutter_engine_root/libtxt:thirdparty_lib_txt_$platform",

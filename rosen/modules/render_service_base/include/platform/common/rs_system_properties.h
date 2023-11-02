@@ -154,6 +154,8 @@ public:
     static bool GetSkipGeometryNotChangeEnabled();
     static bool GetPropertyDrawableEnable();
 
+    static bool GetAnimationCacheEnabled();
+
     static bool GetBoolSystemProperty(const char* name, bool defaultValue);
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
     static bool GetUIFirstEnabled();
@@ -169,7 +171,6 @@ public:
     static bool IsPhoneType();
     static bool GetSyncTransactionEnabled();
     static int GetSyncTransactionWaitDelay();
-
 private:
     RSSystemProperties() = default;
 

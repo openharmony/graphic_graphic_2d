@@ -57,6 +57,21 @@ public:
 #endif
         return true;
     }
+    
+    bool IsAccessTimesRestricted(CodeUnderlyingType code, uint32_t times) const
+    {
+#ifdef ENABLE_IPC_SECURITY
+        if (accessVerifier_ == nullptr) {
+            RS_LOGE("RSInterfaceCodeSecurityManager::IsAccessTimesRestricted access verifier is nullptr.");
+            return false;
+        }
+        if (!accessVerifier_->IsAccessTimesVerificationPassed(code, times)) {
+            RS_LOGE("RSInterfaceCodeSecurityManager::IsAccessTimesRestricted verification failed.");
+            return false;
+        }
+#endif
+        return true;
+    }
 
 private:
     RSInterfaceCodeSecurityManager() = default;
