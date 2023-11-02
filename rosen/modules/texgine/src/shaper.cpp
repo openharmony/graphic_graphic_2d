@@ -32,8 +32,6 @@
 #include "text_reverser.h"
 #include "text_shaper.h"
 
-#include "lxy.h"
-
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
