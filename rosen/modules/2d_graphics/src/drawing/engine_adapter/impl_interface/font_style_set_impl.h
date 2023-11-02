@@ -33,8 +33,6 @@ public:
 
     virtual int Count() = 0;
 
-    virtual void RegisterTypeface(std::shared_ptr<Typeface> typeface) = 0;
-
 protected:
     FontStyleSetImpl() noexcept = default;
 };

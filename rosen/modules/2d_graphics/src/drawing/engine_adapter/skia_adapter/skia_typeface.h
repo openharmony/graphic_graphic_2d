@@ -48,7 +48,7 @@ public:
     static sk_sp<SkData> SerializeTypeface(SkTypeface* typeface, void* ctx);
     static sk_sp<SkTypeface> DeserializeTypeface(const void* data, size_t length, void* ctx);
 
-protected:
+private:
     SkiaTypeface() = default;
 
     sk_sp<SkTypeface> skTypeface_;

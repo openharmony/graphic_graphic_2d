@@ -20,8 +20,6 @@
 
 #include "text/typeface.h"
 
-class FontConfig_OHOS;
-
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -29,8 +27,6 @@ class FontStyleSetImpl;
 
 class FontStyleSet {
 public:
-    FontStyleSet();
-    FontStyleSet(const std::shared_ptr<FontConfig_OHOS>& fontConfig, int index, bool isFallback = false);
     explicit FontStyleSet(std::shared_ptr<FontStyleSetImpl> fontStyleSetImpl) noexcept;
     virtual ~FontStyleSet() = default;
 
@@ -46,12 +42,6 @@ public:
      * @return  The count of typeface in this font style set.
      */
     int Count();
-
-    /*
-     * @brief           Register typeface to the fontStyleSet.
-     * @param typeface  A shared point to typeface.
-     */
-    void RegisterTypeface(std::shared_ptr<Typeface> typeface);
 
 private:
     std::shared_ptr<FontStyleSetImpl> fontStyleSetImpl_;
