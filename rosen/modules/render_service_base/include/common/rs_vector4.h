@@ -342,7 +342,7 @@ Vector4<T> Vector4<T>::operator*(float scale) const
 template<typename T>
 Vector4<T> Vector4<T>::operator*(const Vector4<T>& other) const
 {
-    Vector4<T> rMult;
+    Vector4<T> rMult(data_);
     return rMult *= other;
 }
 
