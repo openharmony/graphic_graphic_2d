@@ -26,11 +26,11 @@ constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001400, "Vsync" }
 
 #if (defined(__aarch64__) || defined(__x86_64__))
 #define VPUBI64  "%{public}ld"
-#define VPUBSize "%{public}lu"
+#define VPUB_SIZE "%{public}lu"
 #define VPUBU64  "%{public}lu"
 #else
 #define VPUBI64  "%{public}lld"
-#define VPUBSize "%{public}u"
+#define VPUB_SIZE "%{public}u"
 #define VPUBU64  "%{public}llu"
 #endif
 
