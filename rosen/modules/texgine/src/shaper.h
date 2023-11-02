@@ -22,6 +22,12 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
+struct EllipsisParams {
+    std::vector<VariantSpan> ellipsisSpans;
+    double ellipsisWidth;
+    size_t maxLines;
+    double widthLimit;
+};
 class Shaper {
 public:
     /*
@@ -43,17 +49,19 @@ private:
         const std::shared_ptr<FontProviders> &fontProviders, const double widthLimit);
     void ConsiderEllipsis(const TypographyStyle &tstyle,
         const std::shared_ptr<FontProviders> &fontProviders, const double widthLimit);
-    std::vector<LineMetrics> CreateEllipsisSpan(const TypographyStyle &ys,
+    std::vector<LineMetrics> CreateEllipsisSpan(const TypographyStyle &ys, const TextStyle &textStyle,
         const std::shared_ptr<FontProviders> &fontProviders);
     void ComputeIntrinsicWidth(const size_t maxLines);
-    void ConsiderHeadEllipsis(const std::vector<VariantSpan> &ellipsisSpans, const double ellipsisWidth,
-        const size_t maxLines, const double widthLimit);
+    void ConsiderHeadEllipsis(const TypographyStyle &ys, const std::shared_ptr<FontProviders> &fontProviders,
+        EllipsisParams params);
     void ConsiderOneMidEllipsis(const std::vector<VariantSpan> &ellipsisSpans, const double ellipsisWidth,
         const double widthLimit);
     void ConsiderMiddleEllipsis(const std::vector<VariantSpan> &ellipsisSpans, const double ellipsisWidth,
         const size_t maxLines, const double widthLimit);
-    void ConsiderTailEllipsis(const std::vector<VariantSpan> &ellipsisSpans, const double ellipsisWidth,
-        const size_t maxLines, const double widthLimit);
+    void ConsiderTailEllipsis(const TypographyStyle &ys, const std::shared_ptr<FontProviders> &fontProviders,
+        EllipsisParams params);
+    std::vector<LineMetrics> CreatePartlySpan(const bool cutRight, const TypographyStyle &ys,
+        const std::shared_ptr<FontProviders> &fontProviders, const VariantSpan &span, const double exceedWidth);
 
     std::vector<LineMetrics> lineMetrics_;
     bool didExceedMaxLines_ = false;

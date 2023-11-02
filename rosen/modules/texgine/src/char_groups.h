@@ -92,6 +92,16 @@ struct CharGroup {
         }
         return isEmoji;
     }
+
+    bool HasWhitesSpace() const
+    {
+        for (const auto &ch : chars) {
+            if (u_isWhitespace(ch)) {
+                return true;
+            }
+        }
+        return false;
+    }
 };
 
 struct IndexRange {
@@ -150,6 +160,10 @@ public:
 
     bool CheckCodePoint();
     std::string GetTypefaceName();
+    double GetAllCharWidth() const;
+    double GetCharWidth(const size_t index) const;
+    std::vector<uint16_t> GetCharsToU16(size_t start, size_t end, const bool isLeft);
+    bool IsSingleWord() const;
 private:
     friend void ReportMemoryUsage(const std::string &member, const CharGroups &that, bool needThis);
 
