@@ -81,7 +81,7 @@ struct CharGroup {
     bool IsEmoji() const
     {
         bool isEmoji = false;
-        for (auto i = 0; i < chars.size(); i++) {
+        for (size_t i = 0; i < chars.size(); i++) {
             isEmoji = (u_hasBinaryProperty(chars[i], UCHAR_EMOJI) ||
                 u_hasBinaryProperty(chars[i], UCHAR_EMOJI_PRESENTATION) ||
                 u_hasBinaryProperty(chars[i], UCHAR_EMOJI_MODIFIER) ||

@@ -340,7 +340,7 @@ void OH_Drawing_SetTextStyleLocale(OH_Drawing_TextStyle* style, const char* loca
     ConvertToOriginalText<TextStyle>(style)->locale_ = locale;
 #else
     ConvertToOriginalText<TextStyle>(style)->locale = locale;
-#endif  
+#endif
 }
 
 OH_Drawing_TypographyCreate* OH_Drawing_CreateTypographyHandler(OH_Drawing_TypographyStyle* style,

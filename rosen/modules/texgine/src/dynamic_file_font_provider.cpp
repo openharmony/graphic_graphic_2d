@@ -42,7 +42,6 @@ int DynamicFileFontProvider::LoadFont(const std::string &familyName, const std::
 #else
     auto ret = StdFilesystemExists(path);
 #endif
-
     if (!ret) {
         LOGEX_FUNC_LINE(ERROR) << "file is not exists";
         return FAILED;

@@ -40,6 +40,7 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 #define MAXRGB 255
+#define MAXALPHA 255
 #define OFFSETY 3
 #define HALF 0.5f
 #define WIDTH_SCALAR 5.0f
@@ -164,7 +165,7 @@ void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, cons
 #ifndef USE_GRAPHIC_TEXT_GINE
     paint.SetARGB(MAXRGB, MAXRGB, 0, 0);
 #else
-    paint.SetAlpha(255);
+    paint.SetAlpha(MAXALPHA);
 #endif
     paint.SetColor(xs.color);
     if (xs.background.has_value()) {

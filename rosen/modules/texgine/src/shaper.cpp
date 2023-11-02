@@ -148,7 +148,7 @@ void Shaper::ComputeIntrinsicWidth(const size_t maxLines)
 }
 
 std::vector<LineMetrics> Shaper::DoShapeBeforeEllipsis(std::vector<VariantSpan> spans, const TypographyStyle &tstyle,
-        const std::shared_ptr<FontProviders> &fontProviders, const double widthLimit)
+    const std::shared_ptr<FontProviders> &fontProviders, const double widthLimit)
 {
     TextBreaker tb;
     tb.SetWidthLimit(widthLimit);
