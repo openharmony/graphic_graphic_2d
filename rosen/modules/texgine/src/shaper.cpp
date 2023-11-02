@@ -225,6 +225,7 @@ void Shaper::ConsiderHeadEllipsis(const TypographyStyle &ys, const std::shared_p
             while (lastLineWidth + params.ellipsisWidth < params.widthLimit) {
                 // lineMetrics_.size() - 2 is the index of second to last
                 auto lastSpan = lineMetrics_[lineMetrics_.size() - 2].lineSpans.back();
+                // lineMetrics_.size() - 2 is the index of second to last
                 lineMetrics_[lineMetrics_.size() - 2].lineSpans.pop_back();
                 lastLine.lineSpans.insert(lastLine.lineSpans.begin(), lastSpan);
                 lastLineWidth = lastLine.GetAllSpanWidth();
@@ -381,7 +382,8 @@ void Shaper::ConsiderTailEllipsis(const TypographyStyle &ys, const std::shared_p
 }
 
 std::vector<LineMetrics> Shaper::CreatePartlySpan(const bool cutRight, const TypographyStyle &ys,
-    const std::shared_ptr<FontProviders> &fontProviders, const VariantSpan &span, const double exceedWidth) {
+    const std::shared_ptr<FontProviders> &fontProviders, const VariantSpan &span, const double exceedWidth)
+{
     auto textSpan = span.TryToTextSpan();
     int startIndex = textSpan->cgs_.GetRange().start;
     int endIndex = textSpan->cgs_.GetRange().end - 1;  // end - 1 is the index of end
