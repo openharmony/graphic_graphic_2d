@@ -577,6 +577,20 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
 
     node.GetCurAllSurfaces().clear();
     node.CollectSurface(node.shared_from_this(), node.GetCurAllSurfaces(), true, false);
+
+    // create Zorder for surface node and save capture window's Zorder in display node
+    if (!mirrorNode) {
+        uint32_t processZOrder = 0;
+        for (auto it : node.GetCurAllSurfaces()) {
+            auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(it);
+            surfaceNode->processZOrder_ = processZOrder;
+            if (surfaceNode->GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos) {
+                curDisplayNode_->SetCaptureWindowZOrder(surfaceNode->processZOrder_);
+            }
+            processZOrder++;
+        }
+    }
+
     HandleColorGamuts(node, screenManager);
 
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
@@ -1773,6 +1787,9 @@ void RSUniRenderVisitor::ProcessParallelDisplayRenderNode(RSDisplayRenderNode& n
 
 void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 {
+    if (mirroredDisplays_.size() == 0) {
+        node.SetCacheImgForCapture(nullptr);
+    }
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_VK)
     if (node.IsParallelDisplayNode()) {
         ProcessParallelDisplayRenderNode(node);
@@ -1870,7 +1887,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 return;
             }
 #ifndef USE_ROSEN_DRAWING
-            if (cacheImgForCapture_ && !displayHasSkipSurface_[mirrorNode->GetScreenId()]) {
+            if (doParallelComposition_ && mirrorNode->GetCacheImgForCapture() &&
+                !displayHasSkipSurface_[mirrorNode->GetScreenId()] &&
+                !displayHasSecSurface_[mirrorNode->GetScreenId()]) {
                 canvas_->save();
                 // If both canvas and skImage have rotated, we need to reset the canvas
                 if (resetRotate_) {
@@ -1882,14 +1901,15 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 SkPaint paint;
                 paint.setAntiAlias(true);
 #ifdef NEW_SKIA
-                canvas_->drawImage(cacheImgForCapture_, 0, 0, SkSamplingOptions(), &paint);
+                canvas_->drawImage(mirrorNode->GetCacheImgForCapture(), 0, 0, SkSamplingOptions(), &paint);
 #else
                 paint.setFilterQuality(SkFilterQuality::kLow_SkFilterQuality);
-                canvas_->drawImage(cacheImgForCapture_, 0, 0, &paint);
+                canvas_->drawImage(mirrorNode->GetCacheImgForCapture(), 0, 0, &paint);
 #endif
                 canvas_->restore();
                 DrawWatermarkIfNeed();
             } else {
+                mirrorNode->SetCacheImgForCapture(nullptr);
                 int saveCount = canvas_->save();
                 float boundsWidth = node.GetRenderProperties().GetBoundsWidth();
                 float boundsHeight = node.GetRenderProperties().GetBoundsHeight();
@@ -1899,7 +1919,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 canvas_->restoreToCount(saveCount);
             }
 #else
-            if (cacheImgForCapture_ && !displayHasSkipSurface_[mirrorNode->GetScreenId()]) {
+            if (doParallelComposition_ && mirrorNode->GetCacheImgForCapture() &&
+                !displayHasSkipSurface_[mirrorNode->GetScreenId()] &&
+                !displayHasSecSurface_[mirrorNode->GetScreenId()]) {
                 canvas_->Save();
                 // If both canvas and skImage have rotated, we need to reset the canvas
                 if (resetRotate_) {
@@ -1911,11 +1933,12 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 Drawing::Brush brush;
                 brush.SetAntiAlias(true);
                 canvas_->AttachBrush(brush);
-                canvas_->DrawImage(*cacheImgForCapture_, 0, 0, Drawing::SamplingOptions());
+                canvas_->DrawImage(*(mirrorNode->GetCacheImgForCapture()), 0, 0, Drawing::SamplingOptions());
                 canvas_->DetachBrush();
                 canvas_->Restore();
                 DrawWatermarkIfNeed();
             } else {
+                mirrorNode->SetCacheImgForCapture(nullptr);
                 auto saveCount = canvas_->GetSaveCount();
                 canvas_->Save();
                 ProcessChildren(*mirrorNode);
@@ -3166,6 +3189,14 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeNeedProcess(RSSurfaceRenderNode
         RS_PROCESS_TRACE(isPhone_, false, node.GetName() + " App Occluded Leashwindow Skip");
         return false;
     }
+    auto mirrorNode = curDisplayNode_->GetMirrorSource().lock();
+    if (!doParallelComposition_ && isSecurityDisplay_ && mirrorNode &&
+        mirrorNode->GetCacheImgForCapture() && node.processZOrder_ < curDisplayNode_->GetCaptureWindowZOrder()) {
+        RS_PROCESS_TRACE(isPhone_, false, node.GetName() + " skip because of using cacheImgForCapture");
+        RS_LOGD("RSUniRenderVisitor::CheckIfSurfaceRenderNodeNeedProcess:\
+            %{public}s skip because of using cacheImgForCapture", node.GetName().c_str());
+        return false;
+    }
     return true;
 }
 
@@ -3281,16 +3312,16 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #endif
 
     // when surfacenode named "CapsuleWindow", cache the current canvas as SkImage for screen recording
-    if (node.GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos &&
-        canvas_->GetSurface() != nullptr && needCacheImg_) {
+    if (doParallelComposition_ && !isSecurityDisplay_ && canvas_->GetSurface() != nullptr &&
+        node.GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos) {
 #ifndef USE_ROSEN_DRAWING
         int angle = RSUniRenderUtil::GetRotationFromMatrix(canvas_->getTotalMatrix());
         resetRotate_ = angle != 0 && angle % 90 == 0;
-        cacheImgForCapture_ = canvas_->GetSurface()->makeImageSnapshot();
+        curDisplayNode_->SetCacheImgForCapture(canvas_->GetSurface()->makeImageSnapshot());
 #else
         int angle = RSUniRenderUtil::GetRotationFromMatrix(canvas_->GetTotalMatrix());
         resetRotate_ = angle != 0 && angle % 90 == 0;
-        cacheImgForCapture_ = canvas_->GetSurface()->GetImageSnapshot();
+        curDisplayNode_->SetCacheImgForCapture(canvas_->GetSurface()->GetImageSnapshot());
 #endif
     }
 
