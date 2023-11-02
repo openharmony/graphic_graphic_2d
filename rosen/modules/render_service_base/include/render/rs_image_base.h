@@ -26,6 +26,7 @@
 #include <memory>
 #include "draw/canvas.h"
 #endif
+#include "memory/rs_dfx_string.h"
 #include "transaction/rs_marshalling_helper.h"
 
 namespace OHOS {
@@ -62,6 +63,7 @@ public:
     void UpdateNodeIdToPicture(NodeId nodeId);
     void MarkRenderServiceImage();
     std::shared_ptr<Media::PixelMap> GetPixelMap() const;
+    void DumpPicture(DfxString& info) const;
 #ifdef ROSEN_OHOS
     virtual bool Marshalling(Parcel& parcel) const;
     [[nodiscard]] static RSImageBase* Unmarshalling(Parcel& parcel);

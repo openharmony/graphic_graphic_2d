@@ -24,6 +24,7 @@
 #include "animation/rs_render_particle.h"
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
+#include "memory/rs_dfx_string.h"
 #include "modifier/rs_modifier_type.h"
 #include "modifier/rs_render_property.h"
 
@@ -59,6 +60,11 @@ public:
     virtual ~RSRenderModifier() = default;
 
     virtual void Apply(RSModifierContext& context) const = 0;
+
+    virtual void DumpPicture(DfxString& info) const
+    {
+        return;
+    }
 
     virtual PropertyId GetPropertyId() = 0;
     virtual std::shared_ptr<RSRenderPropertyBase> GetProperty() = 0;
@@ -130,6 +136,17 @@ public:
     PropertyId GetPropertyId() override
     {
         return property_->GetId();
+    }
+
+    void DumpPicture(DfxString& info) const override
+    {
+        if (!property_) {
+            return;
+        }
+        if (!(property_->Get())) {
+            return;
+        }
+        property_->Get()->DumpPicture(info);
     }
 
     std::shared_ptr<RSRenderPropertyBase> GetProperty() override

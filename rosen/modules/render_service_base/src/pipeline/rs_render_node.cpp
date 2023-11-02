@@ -909,6 +909,16 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
         });
     }
 }
+
+void RSRenderNode::DumpNodeInfo(DfxString& log)
+{
+    for (auto& [type, modifiers] : drawCmdModifiers_) {
+        for (auto modifier : modifiers) {
+            modifier->DumpPicture(log);
+        }
+    }
+}
+
 void RSRenderNode::AddModifierProfile(const std::shared_ptr<RSRenderModifier>& modifier, float width, float height)
 {
     if (timeDelta_ < 0) {
