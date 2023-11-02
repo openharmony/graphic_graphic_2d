@@ -780,6 +780,9 @@ bool RSRenderServiceConnection::GetPixelmap(
     auto tid = node->GetTid();
     auto getPixelmapTask = [&node, &pixelmap, rect, &result]() { result = node->GetPixelmap(pixelmap, rect); };
     if (tid == UINT32_MAX) {
+        if (!mainThread_->IsIdle()) {
+            return false;
+        }
         mainThread_->PostSyncTask(getPixelmapTask);
     } else {
         RSTaskDispatcher::GetInstance().PostTask(
