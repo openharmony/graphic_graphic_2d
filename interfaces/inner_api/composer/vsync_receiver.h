@@ -82,7 +82,7 @@ public:
     virtual VsyncError GetVSyncPeriod(int64_t &period);
     virtual VsyncError GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_t &timeStamp,
                                                         bool isThreadShared = false);
-    int32_t GetFd() { return dup(fd_); }
+    int32_t GetFd() { return fd_; }
 private:
     VsyncError Destroy();
     sptr<IVSyncConnection> connection_;
