@@ -268,14 +268,14 @@ void TypographyImpl::Layout(double maxWidth)
 #endif
         LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "TypographyImpl::Layout");
         LOGEX_FUNC_LINE(INFO) << "Layout maxWidth: " << maxWidth << ", spans.size(): " << spans_.size();
-        maxWidth_ = maxWidth;
+        maxWidth_ = floor(maxWidth);
         if (spans_.empty()) {
             LOGEX_FUNC_LINE(ERROR) << "Empty spans";
             return;
         }
 
         Shaper shaper;
-        lineMetrics_ = shaper.DoShape(spans_, typographyStyle_, fontProviders_, maxWidth);
+        lineMetrics_ = shaper.DoShape(spans_, typographyStyle_, fontProviders_, maxWidth_);
         if (lineMetrics_.size() == 0) {
             LOGEX_FUNC_LINE(ERROR) << "Shape failed";
             return;
