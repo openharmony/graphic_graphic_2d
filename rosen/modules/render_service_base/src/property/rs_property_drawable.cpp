@@ -60,88 +60,90 @@ inline void EraseSlots(RSPropertyDrawable::DrawableVec& vec, const Container& sl
 }
 } // namespace
 
-const std::vector<RSPropertyDrawableSlot> RSPropertyDrawable::PropertyToDrawableLut = {
-    RSPropertyDrawableSlot::INVALID,                       // INVALID = 0,                   // 0
-    RSPropertyDrawableSlot::BOUNDS_MATRIX,                 // BOUNDS,                        // 1
-    RSPropertyDrawableSlot::FRAME_OFFSET,                  // FRAME,                         // 2
-    RSPropertyDrawableSlot::BOUNDS_MATRIX,                 // POSITION_Z,                    // 3
-    RSPropertyDrawableSlot::BOUNDS_MATRIX,                 // PIVOT,                         // 4
-    RSPropertyDrawableSlot::BOUNDS_MATRIX,                 // PIVOT_Z,                       // 5
-    RSPropertyDrawableSlot::BOUNDS_MATRIX,                 // QUATERNION,                    // 6
-    RSPropertyDrawableSlot::BOUNDS_MATRIX,                 // ROTATION,                      // 7
-    RSPropertyDrawableSlot::BOUNDS_MATRIX,                 // ROTATION_X,                    // 8
-    RSPropertyDrawableSlot::BOUNDS_MATRIX,                 // ROTATION_Y,                    // 9
-    RSPropertyDrawableSlot::BOUNDS_MATRIX,                 // CAMERA_DISTANCE,               // 10
-    RSPropertyDrawableSlot::BOUNDS_MATRIX,                 // SCALE,                         // 11
-    RSPropertyDrawableSlot::BOUNDS_MATRIX,                 // TRANSLATE,                     // 12
-    RSPropertyDrawableSlot::BOUNDS_MATRIX,                 // TRANSLATE_Z,                   // 13
-    RSPropertyDrawableSlot::INVALID,                       // SUBLAYER_TRANSFORM,            // 14
-    RSPropertyDrawableSlot::INVALID,                       // CORNER_RADIUS,                 // 15
-    RSPropertyDrawableSlot::ALPHA,                         // ALPHA,                         // 16
-    RSPropertyDrawableSlot::ALPHA,                         // ALPHA_OFFSCREEN,               // 17
-    RSPropertyDrawableSlot::FOREGROUND_COLOR,              // FOREGROUND_COLOR,              // 18
-    RSPropertyDrawableSlot::BACKGROUND_COLOR,              // BACKGROUND_COLOR,              // 19
-    RSPropertyDrawableSlot::BACKGROUND_SHADER,             // BACKGROUND_SHADER,             // 20
-    RSPropertyDrawableSlot::BACKGROUND_IMAGE,              // BG_IMAGE,                      // 21
-    RSPropertyDrawableSlot::BACKGROUND_IMAGE,              // BG_IMAGE_WIDTH,                // 22
-    RSPropertyDrawableSlot::BACKGROUND_IMAGE,              // BG_IMAGE_HEIGHT,               // 23
-    RSPropertyDrawableSlot::BACKGROUND_IMAGE,              // BG_IMAGE_POSITION_X,           // 24
-    RSPropertyDrawableSlot::BACKGROUND_IMAGE,              // BG_IMAGE_POSITION_Y,           // 25
-    RSPropertyDrawableSlot::INVALID,                       // SURFACE_BG_COLOR,              // 26
-    RSPropertyDrawableSlot::BORDER,                        // BORDER_COLOR,                  // 27
-    RSPropertyDrawableSlot::BORDER,                        // BORDER_WIDTH,                  // 28
-    RSPropertyDrawableSlot::BORDER,                        // BORDER_STYLE,                  // 29
-    RSPropertyDrawableSlot::FOREGROUND_FILTER,             // FILTER,                        // 30
-    RSPropertyDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_FILTER,             // 31
-    RSPropertyDrawableSlot::LINEAR_GRADIENT_BLUR_FILTER,   // LINEAR_GRADIENT_BLUR_PARA,     // 32
-    RSPropertyDrawableSlot::DYNAMIC_LIGHT_UP,              // DYNAMIC_LIGHT_UP_RATE,         // 33
-    RSPropertyDrawableSlot::DYNAMIC_LIGHT_UP,              // DYNAMIC_LIGHT_UP_DEGREE,       // 34
-    RSPropertyDrawableSlot::FRAME_OFFSET,                  // FRAME_GRAVITY,                 // 35
-    RSPropertyDrawableSlot::INVALID,                       // CLIP_RRECT,                    // 36
-    RSPropertyDrawableSlot::INVALID,                       // CLIP_BOUNDS,                   // 37
-    RSPropertyDrawableSlot::INVALID,                       // CLIP_TO_BOUNDS,                // 38
-    RSPropertyDrawableSlot::CLIP_TO_FRAME,                 // CLIP_TO_FRAME,                 // 39
-    RSPropertyDrawableSlot::INVALID,                       // VISIBLE,                       // 40
-    RSPropertyDrawableSlot::SHADOW,                        // SHADOW_COLOR,                  // 41
-    RSPropertyDrawableSlot::SHADOW,                        // SHADOW_OFFSET_X,               // 42
-    RSPropertyDrawableSlot::SHADOW,                        // SHADOW_OFFSET_Y,               // 43
-    RSPropertyDrawableSlot::SHADOW,                        // SHADOW_ALPHA,                  // 44
-    RSPropertyDrawableSlot::SHADOW,                        // SHADOW_ELEVATION,              // 45
-    RSPropertyDrawableSlot::SHADOW,                        // SHADOW_RADIUS,                 // 46
-    RSPropertyDrawableSlot::SHADOW,                        // SHADOW_PATH,                   // 47
-    RSPropertyDrawableSlot::SHADOW,                        // SHADOW_MASK,                   // 48
-    RSPropertyDrawableSlot::MASK,                          // MASK,                          // 49
-    RSPropertyDrawableSlot::INVALID,                       // SPHERIZE,                      // 50
-    RSPropertyDrawableSlot::LIGHT_UP_EFFECT,               // LIGHT_UP_EFFECT,               // 51
-    RSPropertyDrawableSlot::PIXEL_STRETCH,                 // PIXEL_STRETCH,                 // 52
-    RSPropertyDrawableSlot::PIXEL_STRETCH,                 // PIXEL_STRETCH_PERCENT,         // 53
-    RSPropertyDrawableSlot::USE_EFFECT,                    // USE_EFFECT,                    // 54
-    RSPropertyDrawableSlot::BOUNDS_MATRIX,                 // SANDBOX,                       // 55
-    RSPropertyDrawableSlot::COLOR_FILTER,                  // GRAY_SCALE,                    // 56
-    RSPropertyDrawableSlot::COLOR_FILTER,                  // BRIGHTNESS,                    // 57
-    RSPropertyDrawableSlot::COLOR_FILTER,                  // CONTRAST,                      // 58
-    RSPropertyDrawableSlot::COLOR_FILTER,                  // SATURATE,                      // 59
-    RSPropertyDrawableSlot::COLOR_FILTER,                  // SEPIA,                         // 60
-    RSPropertyDrawableSlot::COLOR_FILTER,                  // INVERT,                        // 61
-    RSPropertyDrawableSlot::COLOR_FILTER,                  // HUE_ROTATE,                    // 62
-    RSPropertyDrawableSlot::COLOR_FILTER,                  // COLOR_BLEND,                   // 63
-    RSPropertyDrawableSlot::PARTICLE_EFFECT,               // PARTICLE,                      // 64
-    RSPropertyDrawableSlot::INVALID,                       // SHADOW_IS_FILLED               // 65
-    RSPropertyDrawableSlot::SAVE_LAYER_CONTENT,            // BLEND_MODE,                    // 66
-    RSPropertyDrawableSlot::INVALID,                       // CUSTOM,                        // 67
-    RSPropertyDrawableSlot::INVALID,                       // EXTENDED,                      // 68
-    RSPropertyDrawableSlot::TRANSITION,                    // TRANSITION,                    // 69
-    RSPropertyDrawableSlot::BACKGROUND_STYLE,              // BACKGROUND_STYLE,              // 70
-    RSPropertyDrawableSlot::CONTENT_STYLE,                 // CONTENT_STYLE,                 // 71
-    RSPropertyDrawableSlot::FOREGROUND_STYLE,              // FOREGROUND_STYLE,              // 72
-    RSPropertyDrawableSlot::OVERLAY,                       // OVERLAY_STYLE,                 // 73
-    RSPropertyDrawableSlot::INVALID,                       // NODE_MODIFIER,                 // 74
-    RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR,          // ENV_FOREGROUND_COLOR,          // 75
-    RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY, // ENV_FOREGROUND_COLOR_STRATEGY, // 76
-    RSPropertyDrawableSlot::INVALID,                       // GEOMETRYTRANS,                 // 77
+// index = RSModifierType value = RSPropertyDrawableType
+static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_propertyToDrawableLut = {
+    { RSModifierType::INVALID, RSPropertyDrawableSlot::INVALID },
+    { RSModifierType::BOUNDS, RSPropertyDrawableSlot::BOUNDS_MATRIX },
+    { RSModifierType::FRAME, RSPropertyDrawableSlot::FRAME_OFFSET },
+    { RSModifierType::POSITION_Z, RSPropertyDrawableSlot::BOUNDS_MATRIX },
+    { RSModifierType::PIVOT, RSPropertyDrawableSlot::BOUNDS_MATRIX },
+    { RSModifierType::PIVOT_Z, RSPropertyDrawableSlot::BOUNDS_MATRIX },
+    { RSModifierType::QUATERNION, RSPropertyDrawableSlot::BOUNDS_MATRIX },
+    { RSModifierType::ROTATION, RSPropertyDrawableSlot::BOUNDS_MATRIX },
+    { RSModifierType::ROTATION_X, RSPropertyDrawableSlot::BOUNDS_MATRIX },
+    { RSModifierType::ROTATION_Y, RSPropertyDrawableSlot::BOUNDS_MATRIX },
+    { RSModifierType::CAMERA_DISTANCE, RSPropertyDrawableSlot::BOUNDS_MATRIX },
+    { RSModifierType::SCALE, RSPropertyDrawableSlot::BOUNDS_MATRIX },
+    { RSModifierType::TRANSLATE, RSPropertyDrawableSlot::BOUNDS_MATRIX },
+    { RSModifierType::TRANSLATE_Z, RSPropertyDrawableSlot::BOUNDS_MATRIX },
+    { RSModifierType::SUBLAYER_TRANSFORM, RSPropertyDrawableSlot::INVALID },
+    { RSModifierType::CORNER_RADIUS, RSPropertyDrawableSlot::INVALID },
+    { RSModifierType::ALPHA, RSPropertyDrawableSlot::ALPHA },
+    { RSModifierType::ALPHA_OFFSCREEN, RSPropertyDrawableSlot::ALPHA },
+    { RSModifierType::FOREGROUND_COLOR, RSPropertyDrawableSlot::FOREGROUND_COLOR },
+    { RSModifierType::BACKGROUND_COLOR, RSPropertyDrawableSlot::BACKGROUND_COLOR },
+    { RSModifierType::BACKGROUND_SHADER, RSPropertyDrawableSlot::BACKGROUND_SHADER },
+    { RSModifierType::BG_IMAGE, RSPropertyDrawableSlot::BACKGROUND_IMAGE },
+    { RSModifierType::BG_IMAGE_WIDTH, RSPropertyDrawableSlot::BACKGROUND_IMAGE },
+    { RSModifierType::BG_IMAGE_HEIGHT, RSPropertyDrawableSlot::BACKGROUND_IMAGE },
+    { RSModifierType::BG_IMAGE_POSITION_X, RSPropertyDrawableSlot::BACKGROUND_IMAGE },
+    { RSModifierType::BG_IMAGE_POSITION_Y, RSPropertyDrawableSlot::BACKGROUND_IMAGE },
+    { RSModifierType::SURFACE_BG_COLOR, RSPropertyDrawableSlot::INVALID },
+    { RSModifierType::BORDER_COLOR, RSPropertyDrawableSlot::BORDER },
+    { RSModifierType::BORDER_WIDTH, RSPropertyDrawableSlot::BORDER },
+    { RSModifierType::BORDER_STYLE, RSPropertyDrawableSlot::BORDER },
+    { RSModifierType::FILTER, RSPropertyDrawableSlot::FOREGROUND_FILTER },
+    { RSModifierType::BACKGROUND_FILTER, RSPropertyDrawableSlot::BACKGROUND_FILTER },
+    { RSModifierType::LINEAR_GRADIENT_BLUR_PARA, RSPropertyDrawableSlot::LINEAR_GRADIENT_BLUR_FILTER },
+    { RSModifierType::DYNAMIC_LIGHT_UP_RATE, RSPropertyDrawableSlot::DYNAMIC_LIGHT_UP },
+    { RSModifierType::DYNAMIC_LIGHT_UP_DEGREE, RSPropertyDrawableSlot::DYNAMIC_LIGHT_UP },
+    { RSModifierType::FRAME_GRAVITY, RSPropertyDrawableSlot::FRAME_OFFSET },
+    { RSModifierType::CLIP_RRECT, RSPropertyDrawableSlot::CLIP_TO_BOUNDS },
+    { RSModifierType::CLIP_BOUNDS, RSPropertyDrawableSlot::CLIP_TO_BOUNDS },
+    { RSModifierType::CLIP_TO_BOUNDS, RSPropertyDrawableSlot::CLIP_TO_BOUNDS },
+    { RSModifierType::CLIP_TO_FRAME, RSPropertyDrawableSlot::CLIP_TO_FRAME },
+    { RSModifierType::VISIBLE, RSPropertyDrawableSlot::INVALID },
+    { RSModifierType::SHADOW_COLOR, RSPropertyDrawableSlot::SHADOW },
+    { RSModifierType::SHADOW_OFFSET_X, RSPropertyDrawableSlot::SHADOW },
+    { RSModifierType::SHADOW_OFFSET_Y, RSPropertyDrawableSlot::SHADOW },
+    { RSModifierType::SHADOW_ALPHA, RSPropertyDrawableSlot::SHADOW },
+    { RSModifierType::SHADOW_ELEVATION, RSPropertyDrawableSlot::SHADOW },
+    { RSModifierType::SHADOW_RADIUS, RSPropertyDrawableSlot::SHADOW },
+    { RSModifierType::SHADOW_PATH, RSPropertyDrawableSlot::SHADOW },
+    { RSModifierType::SHADOW_MASK, RSPropertyDrawableSlot::SHADOW },
+    { RSModifierType::MASK, RSPropertyDrawableSlot::MASK },
+    { RSModifierType::SPHERIZE, RSPropertyDrawableSlot::INVALID },
+    { RSModifierType::LIGHT_UP_EFFECT, RSPropertyDrawableSlot::LIGHT_UP_EFFECT },
+    { RSModifierType::PIXEL_STRETCH, RSPropertyDrawableSlot::PIXEL_STRETCH },
+    { RSModifierType::PIXEL_STRETCH_PERCENT, RSPropertyDrawableSlot::PIXEL_STRETCH },
+    { RSModifierType::USE_EFFECT, RSPropertyDrawableSlot::USE_EFFECT },
+    { RSModifierType::SANDBOX, RSPropertyDrawableSlot::BOUNDS_MATRIX },
+    { RSModifierType::GRAY_SCALE, RSPropertyDrawableSlot::COLOR_FILTER },
+    { RSModifierType::BRIGHTNESS, RSPropertyDrawableSlot::COLOR_FILTER },
+    { RSModifierType::CONTRAST, RSPropertyDrawableSlot::COLOR_FILTER },
+    { RSModifierType::SATURATE, RSPropertyDrawableSlot::COLOR_FILTER },
+    { RSModifierType::SEPIA, RSPropertyDrawableSlot::COLOR_FILTER },
+    { RSModifierType::INVERT, RSPropertyDrawableSlot::COLOR_FILTER },
+    { RSModifierType::HUE_ROTATE, RSPropertyDrawableSlot::COLOR_FILTER },
+    { RSModifierType::COLOR_BLEND, RSPropertyDrawableSlot::COLOR_FILTER },
+    { RSModifierType::PARTICLE, RSPropertyDrawableSlot::PARTICLE_EFFECT },
+    { RSModifierType::SHADOW_IS_FILLED, RSPropertyDrawableSlot::INVALID },
+    { RSModifierType::COLOR_BLENDMODE, RSPropertyDrawableSlot::SAVE_LAYER_CONTENT },
+    { RSModifierType::CUSTOM, RSPropertyDrawableSlot::INVALID },
+    { RSModifierType::EXTENDED, RSPropertyDrawableSlot::INVALID },
+    { RSModifierType::TRANSITION, RSPropertyDrawableSlot::TRANSITION },
+    { RSModifierType::BACKGROUND_STYLE, RSPropertyDrawableSlot::BACKGROUND_STYLE },
+    { RSModifierType::CONTENT_STYLE, RSPropertyDrawableSlot::CONTENT_STYLE },
+    { RSModifierType::FOREGROUND_STYLE, RSPropertyDrawableSlot::FOREGROUND_STYLE },
+    { RSModifierType::OVERLAY_STYLE, RSPropertyDrawableSlot::OVERLAY },
+    { RSModifierType::NODE_MODIFIER, RSPropertyDrawableSlot::INVALID },
+    { RSModifierType::ENV_FOREGROUND_COLOR, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR },
+    { RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY },
+    { RSModifierType::GEOMETRYTRANS, RSPropertyDrawableSlot::INVALID },
 };
 
-const std::vector<RSPropertyDrawable::DrawableGenerator> RSPropertyDrawable::DrawableGeneratorLut = {
+// index = RSPropertyDrawableType value = DrawableGenerator
+static const std::vector<RSPropertyDrawable::DrawableGenerator> g_drawableGeneratorLut = {
     nullptr, // INVALID = 0,
     nullptr, // SAVE_ALL,
 
@@ -211,16 +213,22 @@ void RSPropertyDrawable::UpdateDrawableVec(RSPropertyDrawableGenerateContext& co
     // collect dirty slots
     std::set<RSPropertyDrawableSlot> dirtySlots;
     for (const auto& type : dirtyTypes) {
-        dirtySlots.emplace(PropertyToDrawableLut[static_cast<int>(type)]);
+        auto it = g_propertyToDrawableLut.find(type);
+        if (it == g_propertyToDrawableLut.end()) {
+            continue;
+        }
+        auto& slot = it->second;
+        if (slot != RSPropertyDrawableSlot::INVALID && slot < RSPropertyDrawableSlot::MAX) {
+            dirtySlots.emplace(slot);
+        }
     }
 
-    // no dirty slots (except INVALID), just return
-    if (dirtySlots.lower_bound(RSPropertyDrawableSlot::BOUNDS_MATRIX) == dirtySlots.end()) {
+    if (dirtySlots.empty()) {
         return;
     }
     // re-generate drawables for all dirty slots
     for (const auto& slot : dirtySlots) {
-        auto& generator = DrawableGeneratorLut[static_cast<int>(slot)];
+        auto& generator = g_drawableGeneratorLut[static_cast<int>(slot)];
         if (!generator) {
             continue;
         }

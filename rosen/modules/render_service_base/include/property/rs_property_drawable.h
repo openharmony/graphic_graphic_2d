@@ -31,6 +31,7 @@ class RSRenderModifier;
 class RSRenderNode;
 
 namespace Slot {
+// NOTE: MUST update DrawableGeneratorLut in rs_property_drawable.cpp when new slots are added
 enum RSPropertyDrawableSlot : uint8_t {
     INVALID = 0,
 
@@ -120,13 +121,9 @@ public:
     static void UpdateDrawableVec(RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec,
         uint8_t& drawableVecStatus, const std::unordered_set<RSModifierType>& dirtyTypes);
 
-private:
-    // index = RSModifierType value = RSPropertyDrawableType
-    static const std::vector<Slot::RSPropertyDrawableSlot> PropertyToDrawableLut;
-    // index = RSPropertyDrawableType value = DrawableGenerator
     using DrawableGenerator = std::function<RSPropertyDrawable::DrawablePtr(const RSPropertyDrawableGenerateContext&)>;
-    static const std::vector<DrawableGenerator> DrawableGeneratorLut;
 
+private:
     static inline uint8_t CalculateDrawableVecStatus(
         RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec);
     static void OptimizeBoundsSaveRestore(
