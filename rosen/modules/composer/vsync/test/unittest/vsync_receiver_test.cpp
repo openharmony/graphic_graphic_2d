@@ -17,24 +17,33 @@
 #include "vsync_receiver.h"
 #include "vsync_distributor.h"
 #include "vsync_controller.h"
+#include "event_runner.h"
+#include "event_handler.h"
+#include "transaction/rs_interfaces.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-static void OnVSync(int64_t now, void* data) {}
 class vsyncReceiverTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
+    static inline void OnVSync(int64_t now, void* data);
 
     static inline sptr<VSyncController> vsyncController = nullptr;
     static inline sptr<VSyncDistributor> vsyncDistributor = nullptr;
     static inline sptr<VSyncGenerator> vsyncGenerator = nullptr;
     static inline sptr<VSyncConnection> conn = nullptr;
     static inline sptr<VSyncReceiver> vsyncReceiver = nullptr;
+    static inline int32_t onVsyncCount = 0;
 };
+
+void vsyncReceiverTest::OnVSync(int64_t now, void* data)
+{
+    onVsyncCount ++;
+}
 
 void vsyncReceiverTest::SetUpTestCase()
 {
@@ -112,6 +121,39 @@ HWTEST_F(vsyncReceiverTest, RequestNextVSync001, Function | MediumTest| Level3)
     vsyncDistributor->AddConnection(conn);
     ASSERT_EQ(vsyncReceiverTest::vsyncReceiver->RequestNextVSync(fcb), VSYNC_ERROR_OK);
     vsyncDistributor->RemoveConnection(conn);
+}
+
+/*
+* Function: GetVSyncPeriodAndLastTimeStamp001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call CreateVSyncReceiver
+*                  2. call GetVSyncPeriodAndLastTimeStamp and check result
+ */
+HWTEST_F(vsyncReceiverTest, GetVSyncPeriodAndLastTimeStamp001, Function | MediumTest| Level3)
+{
+    onVsyncCount = 0;
+    auto& rsClient = RSInterfaces::GetInstance();
+    auto rsReceiver = rsClient.CreateVSyncReceiver("vsyncReceiverTest");
+
+    ASSERT_EQ(rsReceiver->Init(), VSYNC_ERROR_OK);
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = OnVSync,
+    };
+
+    ASSERT_EQ(rsReceiver->RequestNextVSync(fcb), VSYNC_ERROR_OK);
+    while (onVsyncCount == 0) {
+        sleep(1);
+        std::cout<< "OnVsync called count: " << onVsyncCount << std::endl;
+    }
+
+    int64_t period;
+    int64_t timeStamp;
+    ASSERT_EQ(rsReceiver->GetVSyncPeriodAndLastTimeStamp(period, timeStamp), VSYNC_ERROR_OK);
+    ASSERT_NE(period, 0);
+    ASSERT_NE(timeStamp, 0);
 }
 
 /*
