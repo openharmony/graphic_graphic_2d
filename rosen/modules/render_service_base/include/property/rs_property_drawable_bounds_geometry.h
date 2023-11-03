@@ -149,18 +149,16 @@ private:
 // Mask
 class RSMaskDrawable : public RSPropertyDrawable {
 public:
-    explicit RSMaskDrawable(std::shared_ptr<RSMask> mask, RectF bounds);
+    explicit RSMaskDrawable(std::shared_ptr<RSMask> mask);
     ~RSMaskDrawable() override = default;
     static std::unique_ptr<RSPropertyDrawable> Generate(const RSPropertyDrawableGenerateContext& context);
 
 protected:
     std::shared_ptr<RSMask> mask_;
 #ifndef USE_ROSEN_DRAWING
-    SkRect maskBounds_;
     SkPaint maskFilter_;
     SkPaint maskPaint_;
 #else
-    Drawing::Rect maskBounds_;
     Drawing::Brush maskFilterBrush_;
     Drawing::Brush maskBrush_;
 #endif
@@ -168,28 +166,28 @@ protected:
 
 class RSSvgDomMaskDrawable : public RSMaskDrawable {
 public:
-    explicit RSSvgDomMaskDrawable(std::shared_ptr<RSMask> mask, RectF bounds);
+    explicit RSSvgDomMaskDrawable(std::shared_ptr<RSMask> mask);
     ~RSSvgDomMaskDrawable() override = default;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 };
 
 class RSSvgPictureMaskDrawable : public RSMaskDrawable {
 public:
-    explicit RSSvgPictureMaskDrawable(std::shared_ptr<RSMask> mask, RectF bounds);
+    explicit RSSvgPictureMaskDrawable(std::shared_ptr<RSMask> mask);
     ~RSSvgPictureMaskDrawable() override = default;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 };
 
 class RSGradientMaskDrawable : public RSMaskDrawable {
 public:
-    explicit RSGradientMaskDrawable(std::shared_ptr<RSMask> mask, RectF bounds);
+    explicit RSGradientMaskDrawable(std::shared_ptr<RSMask> mask);
     ~RSGradientMaskDrawable() override = default;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 };
 
 class RSPathMaskDrawable : public RSMaskDrawable {
 public:
-    explicit RSPathMaskDrawable(std::shared_ptr<RSMask> mask, RectF bounds);
+    explicit RSPathMaskDrawable(std::shared_ptr<RSMask> mask);
     ~RSPathMaskDrawable() override = default;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 };
@@ -372,12 +370,12 @@ private:
 class RSPointParticleDrawable : public RSPropertyDrawable {
 public:
 #ifndef USE_ROSEN_DRAWING
-    explicit RSPointParticleDrawable(SkPaint&& paint, std::shared_ptr<RSRenderParticle> particles, SkRect bounds)
-        : paint_(std::move(paint)), bounds_(bounds), particles_(std::move(particles))
+    explicit RSPointParticleDrawable(SkPaint&& paint, std::shared_ptr<RSRenderParticle> particles)
+        : paint_(std::move(paint)), particles_(std::move(particles))
 #else
     explicit RSPointParticleDrawable(Drawing::Brush&& brush,
-        std::shared_ptr<RSRenderParticle> particles, Drawing::Rect bounds)
-        : brush_(std::move(brush)), bounds_(bounds), particles_(std::move(particles))
+        std::shared_ptr<RSRenderParticle> particles)
+        : brush_(std::move(brush)), particles_(std::move(particles))
 #endif
     {}
     ~RSPointParticleDrawable() override = default;
@@ -386,10 +384,8 @@ public:
 private:
 #ifndef USE_ROSEN_DRAWING
     SkPaint paint_;
-    SkRect bounds_;
 #else
     Drawing::Brush brush_;
-    Drawing::Rect bounds_;
 #endif
     std::shared_ptr<RSRenderParticle> particles_;
 };
@@ -397,12 +393,12 @@ private:
 class RSImageParticleDrawable : public RSPropertyDrawable {
 public:
 #ifndef USE_ROSEN_DRAWING
-    explicit RSImageParticleDrawable(SkPaint&& paint, std::shared_ptr<RSRenderParticle> particles, SkRect bounds)
-        : paint_(std::move(paint)), bounds_(bounds), particles_(std::move(particles))
+    explicit RSImageParticleDrawable(SkPaint&& paint, std::shared_ptr<RSRenderParticle> particles)
+        : paint_(std::move(paint)), particles_(std::move(particles))
 #else
     explicit RSImageParticleDrawable(Drawing::Brush&& brush,
-        std::shared_ptr<RSRenderParticle> particles, Drawing::Rect bounds)
-        : brush_(std::move(brush)), bounds_(bounds), particles_(std::move(particles))
+        std::shared_ptr<RSRenderParticle> particles)
+        : brush_(std::move(brush)), particles_(std::move(particles))
 #endif
     {}
     ~RSImageParticleDrawable() override = default;
@@ -411,10 +407,8 @@ public:
 private:
 #ifndef USE_ROSEN_DRAWING
     SkPaint paint_;
-    SkRect bounds_;
 #else
     Drawing::Brush brush_;
-    Drawing::Rect bounds_;
 #endif
     std::shared_ptr<RSRenderParticle> particles_;
 };
@@ -424,11 +418,11 @@ private:
 class RSPixelStretchDrawable : public RSPropertyDrawable {
 public:
 #ifndef USE_ROSEN_DRAWING
-    explicit RSPixelStretchDrawable(const Vector4f& pixelStretch, SkRect bounds)
-        : pixelStretch_(pixelStretch), bounds_(bounds)
+    explicit RSPixelStretchDrawable(const Vector4f& pixelStretch)
+        : pixelStretch_(pixelStretch)
 #else
-    explicit RSPixelStretchDrawable(const Vector4f& pixelStretch, Drawing::Rect bounds)
-        : pixelStretch_(pixelStretch), bounds_(bounds)
+    explicit RSPixelStretchDrawable(const Vector4f& pixelStretch)
+        : pixelStretch_(pixelStretch)
 #endif
     {}
     ~RSPixelStretchDrawable() override = default;
@@ -437,11 +431,6 @@ public:
 
 private:
     const Vector4f& pixelStretch_;
-#ifndef USE_ROSEN_DRAWING
-    SkRect bounds_;
-#else
-    Drawing::Rect bounds_;
-#endif
 };
 
 // ============================================================================
