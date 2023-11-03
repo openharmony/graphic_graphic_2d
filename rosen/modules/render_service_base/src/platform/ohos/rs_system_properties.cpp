@@ -211,7 +211,7 @@ bool RSSystemProperties::GetTargetDirtyRegionDfxEnabled(std::vector<std::string>
     static CachedHandle g_Handle = CachedParameterCreate("rosen.dirtyregiondebug.surfacenames", "0");
     int changed = 0;
     const char *targetSurfacesStr = CachedParameterGetChanged(g_Handle, &changed);
-    if (ConvertToInt(targetSurfacesStr, 0) == 0) {
+    if (strcmp(targetSurfacesStr, "0") == 0) {
         dfxTargetSurfaceNames_.clear();
         return false;
     }
