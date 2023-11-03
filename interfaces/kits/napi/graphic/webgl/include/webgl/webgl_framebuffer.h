@@ -116,6 +116,10 @@ public:
     WebGLAttachment* GetAttachment(GLenum attachment) const;
     void RemoveAttachment(GLenum target, GLuint id, AttachmentType type);
     GLenum CheckStatus(napi_env env, Impl::WebGLRenderingContextBaseImpl* context) const;
+    GLenum CheckStatus(napi_env env, Impl::WebGLRenderingContextBaseImpl* context, WebGLAttachmentInfo info,
+        std::vector<WebGLAttachment*>& attachments, WebGLAttachment* attachedObject) const;
+    GLenum CheckAttachStatus(Impl::WebGLRenderingContextBaseImpl* context,
+        std::vector<WebGLAttachment*>& attachments) const;
     bool GetWebGLAttachmentInfo(napi_env env, Impl::WebGLRenderingContextBaseImpl* context,
         const WebGLAttachment* attachedObject, WebGLAttachmentInfo& info) const;
 private:
