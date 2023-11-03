@@ -377,7 +377,10 @@ bool RSUniRenderVisitor::UpdateCacheChangeStatus(RSRenderNode& node)
     }
     // drawing group root node
     if (node.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
-        if (isPhone_ && (quickSkipPrepareType_ == QuickSkipPrepareType::STATIC_CACHE) && IsDrawingCacheStatic(node)) {
+        // if firstVisitedCache_ valid, upper cache should be updated so sub cache shouldn't skip
+        // [planning] static subcache could be skip and reuse
+        if (isPhone_ && (quickSkipPrepareType_ == QuickSkipPrepareType::STATIC_CACHE) &&
+            (firstVisitedCache_ == INVALID_NODEID) && IsDrawingCacheStatic(node)) {
             return false;
         }
         // For rootnode, init drawing changes only if there is any content dirty
@@ -396,20 +399,11 @@ void RSUniRenderVisitor::DisableNodeCacheInSetting(RSRenderNode& node)
 {
     // Attention: filter node should be marked. Only enable lowest suggested cached node
     if (node.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE) {
-        uint32_t cacheRenderNodeMapCnt;
-        {
-            std::lock_guard<std::mutex> lock(cacheRenderNodeMapMutex);
-            cacheRenderNodeMapCnt = cacheRenderNodeMap.count(node.GetId());
-        }
-        // if cached node is clean, keep enable
-        // otherwise (uncached or dirty node) disable cache if it has outOfParent
-        // [planning] visitedCacheNodeIds_ check lowest cached node may reduce
-        if ((cacheRenderNodeMapCnt == 0 || (isDrawingCacheChanged_.empty() ? true : isDrawingCacheChanged_.top())) &&
-            (!visitedCacheNodeIds_.empty() || node.HasChildrenOutOfRect())) {
-            node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
-        }
+        // if target cached is reused, keep enable -- prepareskip
+        // disable cache if it has outOfParent -- cannot cache right
+        // [planning] if there is dirty subcache, disable upper targetcache
         // disable targeted cache node when first visited node is forced cache to avoid problem in case with blur
-        if (firstVisitedCache_ != node.GetId() && IsFirstVisitedCacheForced()) {
+        if (node.HasChildrenOutOfRect() || (firstVisitedCache_ != node.GetId() && IsFirstVisitedCacheForced())) {
             node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
             allCacheFilterRects_[firstVisitedCache_].insert(allCacheFilterRects_[node.GetId()].begin(),
                 allCacheFilterRects_[node.GetId()].end());
@@ -790,6 +784,8 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeBeforeUpdate(RSSurfaceRe
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
         node.SetFilterCacheFullyCovered(false);
         node.ResetFilterNodes();
+        // [planning] check if it is not reset recursively
+        firstVisitedCache_ = INVALID_NODEID;
         curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
         curSurfaceDirtyManager_ = node.GetDirtyManager();
         if (curSurfaceDirtyManager_ == nullptr) {
