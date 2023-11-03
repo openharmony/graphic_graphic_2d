@@ -1891,9 +1891,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 DrawWatermarkIfNeed();
             } else {
                 int saveCount = canvas_->save();
-                float boundsWidth = node.GetRenderProperties().GetBoundsWidth();
-                float boundsHeight = node.GetRenderProperties().GetBoundsHeight();
-                ScaleMirrorIfNeed(boundsWidth, boundsHeight);
+                ScaleMirrorIfNeed(node);
                 ProcessChildren(*mirrorNode);
                 DrawWatermarkIfNeed();
                 canvas_->restoreToCount(saveCount);
@@ -4257,18 +4255,28 @@ void RSUniRenderVisitor::endCapture() const
 }
 #endif
 
-void RSUniRenderVisitor::ScaleMirrorIfNeed(float boundsWidth, float boundsHeight)
+void RSUniRenderVisitor::ScaleMirrorIfNeed(RSDisplayRenderNode& node)
 {
     auto screenManager = CreateOrGetScreenManager();
     auto mainScreenInfo = screenManager->QueryScreenInfo(screenManager->GetDefaultScreenId());
     float mainWidth = static_cast<float>(mainScreenInfo.width);
     float mainHeight = static_cast<float>(mainScreenInfo.height);
-    float startX = 0;
-    float startY = 0;
+    float boundsWidth = 0.0f;
+    float boundsHeight = 0.0f;
+    if (node.getFirstTimeScreenRotation() == ScreenRotation::ROTATION_90 ||
+        node.getFirstTimeScreenRotation() == ScreenRotation::ROTATION_270) {
+        boundsWidth = node.GetRenderProperties().GetBoundsHeight();
+        boundsHeight = node.GetRenderProperties().GetBoundsWidth();
+    } else {
+        boundsWidth = node.GetRenderProperties().GetBoundsWidth();
+        boundsHeight = node.GetRenderProperties().GetBoundsHeight();
+    }
     // If the width and height not match the main screen, calculate the dstRect.
     if (mainWidth != boundsWidth || mainHeight != boundsHeight) {
         canvas_->clear(SK_ColorBLACK);
-        float mirrorScale = 1; // 1 for init scale
+        float mirrorScale = 1.0f; // 1 for init scale
+        float startX = 0.0f;
+        float startY = 0.0f;
         if ((boundsHeight / boundsWidth) < (mainHeight / mainWidth)) {
             mirrorScale = boundsHeight / mainHeight;
             startX = (boundsWidth - (mirrorScale * mainWidth)) / 2; // 2 for calc X
