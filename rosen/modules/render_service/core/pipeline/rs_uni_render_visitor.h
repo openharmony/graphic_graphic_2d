@@ -290,6 +290,7 @@ private:
     void UpdateCacheRenderNodeMapWithBlur(RSRenderNode& node);
     bool IsFirstVisitedCacheForced() const;
     bool IsRosenWebHardwareDisabled(RSSurfaceRenderNode& node, int rotation) const;
+    sk_sp<SkImage> GetCacheImageFromMirrorNode(std::shared_ptr<RSDisplayRenderNode> mirrorNode);
 
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> offscreenSurface_;                 // temporary holds offscreen surface
@@ -416,7 +417,6 @@ private:
     uint32_t appWindowNum_ = 0;
 
     bool isParallel_ = false;
-    bool doParallelComposition_ = false;
     bool doParallelRender_ = false;
     // displayNodeMatrix only used in offScreen render case to ensure correct composer layer info when with rotation,
     // displayNodeMatrix indicates display node's matrix info
@@ -446,6 +446,7 @@ private:
     void endCapture() const;
     std::shared_ptr<RSRecordingCanvas> recordingCanvas_;
 #endif
+    sk_sp<SkImage> cacheImgForCapture_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

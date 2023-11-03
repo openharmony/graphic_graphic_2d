@@ -196,7 +196,7 @@ public:
     void SubscribeAppState();
     void HandleOnTrim(Memory::SystemMemoryLevel level);
     const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetSelfDrawingNodes() const;
-
+    bool GetParallelCompositionEnabled();
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -393,6 +393,7 @@ private:
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
 #endif
     bool isShow_ = false;
+    bool doParallelComposition_ = false;
 
     // driven render
     bool hasDrivenNodeOnUniTree_ = false;
