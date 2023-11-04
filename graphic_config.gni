@@ -22,7 +22,7 @@ declare_args() {
   graphic_2d_feature_freemem_enable = false
   graphic_2d_feature_parallel_render_enable = true
   graphic_2d_feature_enable_vulkan = false
-  if (defined(build_cross_platform_version) && build_cross_platform_version) {
+  if (defined(is_arkui_x) && is_arkui_x) {
     use_new_render_context = false
     is_cross_platform = true
   } else {
