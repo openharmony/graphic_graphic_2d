@@ -181,7 +181,7 @@ template("flutter_engine_fml") {
         "$flutter_root/engine/flutter/fml/platform/posix/paths_posix.cc",
       ]
 
-      if (is_standard_system && !build_cross_platform_version) {
+      if (is_standard_system && !is_arkui_x) {
         sources += [
           "$flutter_root/engine/flutter/fml/platform/linux/message_loop_linux.cc",
           "$flutter_root/engine/flutter/fml/platform/linux/paths_linux.cc",

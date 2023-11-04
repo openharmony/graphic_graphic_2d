@@ -59,7 +59,7 @@ template("graphics2d_source_set") {
       defines += [ "USE_TEXGINE" ]
     }
 
-    if (is_cross_platform_build) {
+    if (is_arkui_x) {
       defines += [ "CROSS_PLATFORM" ]
     }
 
@@ -297,7 +297,7 @@ template("graphics2d_source_set") {
             [ "$ace_flutter_engine_root/libtxt:thirdparty_lib_txt_$platform" ]
       }
 
-      if (!is_cross_platform_build) {
+      if (!is_arkui_x) {
         deps += [ "$rosen_root/modules/platform:hilog" ]
       }
 
@@ -370,7 +370,7 @@ foreach(item, ace_platforms) {
   }
 }
 
-if (!is_cross_platform_build) {
+if (!is_arkui_x) {
   ## Build 2d_graphics.so
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     ohos_shared_library("2d_graphics") {
@@ -472,7 +472,7 @@ ohos_shared_library("2d_graphics_canvaskit0310") {
     "$drawing_src_dir/engine_adapter",
   ]
 
-  if (!is_cross_platform_build) {
+  if (!is_arkui_x) {
     deps = [
       "$graphic_2d_root:libsurface",
       # "//third_party/skia_canvaskit0310:skia",
