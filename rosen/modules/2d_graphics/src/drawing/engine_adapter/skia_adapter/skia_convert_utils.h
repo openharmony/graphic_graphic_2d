@@ -22,11 +22,13 @@
 #include "include/core/SkFontMetrics.h"
 #include "include/core/SkFontStyle.h"
 #include "include/core/SkRect.h"
+#include "include/core/SkRSXform.h"
 #include "include/core/SkString.h"
 #include "include/core/SkTextBlob.h"
 
 #include "text/font_metrics.h"
 #include "text/font_style.h"
+#include "text/rs_xform.h"
 #include "text/text_blob_builder.h"
 #include "utils/rect.h"
 
@@ -120,6 +122,14 @@ public:
     static inline void SkStringCastToStdString(const SkString& skStr, std::string& str)
     {
         str = skStr.c_str();
+    }
+
+    static inline void DrawingRSXformCastToSkXform(const RSXform& xform, SkRSXform& skXform)
+    {
+        skXform.fSCos = xform.cos_;
+        skXform.fSSin = xform.sin_;
+        skXform.fTx = xform.tx_;
+        skXform.fTy = xform.ty_;
     }
 };
 } // namespace Drawing

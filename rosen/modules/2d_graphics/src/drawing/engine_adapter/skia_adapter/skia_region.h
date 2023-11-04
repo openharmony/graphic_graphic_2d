@@ -36,7 +36,10 @@ public:
 
     bool SetRect(const RectI& rectI) override;
     bool SetPath(const Path& path, const Region& clip) override;
+    bool GetBoundaryPath(Path* path) const override;
     bool IsIntersects(const Region& other) const override;
+    bool IsEmpty() const override;
+    bool IsRect() const override;
     bool Op(const Region& region, RegionOp op) override;
 
     /*

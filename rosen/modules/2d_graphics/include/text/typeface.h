@@ -30,6 +30,8 @@ public:
     explicit Typeface(std::shared_ptr<TypefaceImpl> typefaceImpl) noexcept;
     virtual ~Typeface() = default;
 
+    static std::shared_ptr<Typeface> MakeFromFile(const char path[]);
+
     /*
      * @brief   Get the familyName for this typeface.
      * @return  FamilyName.

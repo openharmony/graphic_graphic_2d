@@ -46,22 +46,48 @@ bool SkiaRegion::SetPath(const Path& path, const Region& clip)
     return skRegion_->setPath(skPath, *skRegion);
 }
 
+bool SkiaRegion::GetBoundaryPath(Path* path) const
+{
+    if (!path) {
+        return skRegion_->getBoundaryPath(nullptr);
+    }
+    std::shared_ptr<SkiaPath> skiaPath = path->GetImpl<SkiaPath>();
+    if (!skiaPath) {
+        LOGE("SkiaRegion::GetBoundaryPath, skiaPath is nullptr");
+        return skRegion_->getBoundaryPath(nullptr);
+    }
+    SkPath skPath = skiaPath->GetPath();
+    bool res = skRegion_->getBoundaryPath(&skPath);
+    skiaPath->SetPath(skPath);
+    return res;
+}
+
 bool SkiaRegion::IsIntersects(const Region& other) const
 {
     auto skRegion = other.GetImpl<SkiaRegion>()->GetSkRegion();
     if (skRegion == nullptr) {
-        LOGE("SkiaRegion::SetPath, skRegion is nullptr");
+        LOGE("SkiaRegion::IsIntersects, skRegion is nullptr");
         return false;
     }
 
     return skRegion_->intersects(*skRegion);
 }
 
+bool SkiaRegion::IsEmpty() const
+{
+    return skRegion_->isEmpty();
+}
+
+bool SkiaRegion::IsRect() const
+{
+    return skRegion_->isRect();
+}
+
 bool SkiaRegion::Op(const Region& region, RegionOp op)
 {
     auto skRegion = region.GetImpl<SkiaRegion>()->GetSkRegion();
     if (skRegion == nullptr) {
-        LOGE("SkiaRegion::SetPath, skRegion is nullptr");
+        LOGE("SkiaRegion::Op, skRegion is nullptr");
         return false;
     }
     return skRegion_->op(*skRegion, static_cast<SkRegion::Op>(op));

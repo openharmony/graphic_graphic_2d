@@ -13,30 +13,28 @@
  * limitations under the License.
  */
 
-#ifndef REGION_IMPL_H
-#define REGION_IMPL_H
+#ifndef RS_XFORM_H
+#define RS_XFORM_H
 
-#include "base_impl.h"
-#include "utils/rect.h"
-#include "draw/path.h"
+#include <cmath>
+#include <stdint.h>
+
+#include "utils/scalar.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class Region;
-enum class RegionOp;
+struct RSXform {
+    static RSXform Make(scalar cos, scalar sin, scalar tx, scalar ty)
+    {
+        RSXform xform = { cos, sin, tx, ty };
+        return xform;
+    }
 
-class RegionImpl : public BaseImpl {
-public:
-    RegionImpl() {}
-    ~RegionImpl() override {}
-    virtual bool SetRect(const RectI& rectI) = 0;
-    virtual bool SetPath(const Path& path, const Region& clip) = 0;
-    virtual bool GetBoundaryPath(Path* path) const = 0;
-    virtual bool IsIntersects(const Region& other) const = 0;
-    virtual bool IsEmpty() const = 0;
-    virtual bool IsRect() const = 0;
-    virtual bool Op(const Region& region, const RegionOp op) = 0;
+    scalar cos_;
+    scalar sin_;
+    scalar tx_;
+    scalar ty_;
 };
 } // namespace Drawing
 } // namespace Rosen

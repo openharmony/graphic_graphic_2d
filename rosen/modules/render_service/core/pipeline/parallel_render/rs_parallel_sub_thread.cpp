@@ -426,6 +426,7 @@ void RSParallelSubThread::Flush()
 #endif
         RS_TRACE_END();
         texture_ = surface_->GetImageSnapshot();
+        drCanvas_->Discard();
     }
 #endif
 #endif

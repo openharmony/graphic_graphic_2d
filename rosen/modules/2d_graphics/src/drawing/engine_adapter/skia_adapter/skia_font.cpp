@@ -25,6 +25,22 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+SkiaFont::SkiaFont(std::shared_ptr<Typeface> typeface, scalar size, scalar scaleX, scalar skewX) noexcept
+{
+    if (!typeface) {
+        skFont_ = SkFont(nullptr, size, scaleX, skewX);
+        LOGE("typeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return;
+    }
+    std::shared_ptr<SkiaTypeface> skiaTypeface = typeface->GetImpl<SkiaTypeface>();
+    if (!skiaTypeface) {
+        skFont_ = SkFont(nullptr, size, scaleX, skewX);
+        LOGE("skiaTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return;
+    }
+    skFont_ = SkFont(skiaTypeface->GetTypeface(), size, scaleX, skewX);
+}
+
 void SkiaFont::SetEdging(FontEdging edging)
 {
     skFont_.setEdging(static_cast<SkFont::Edging>(edging));
@@ -46,7 +62,7 @@ void SkiaFont::SetTypeface(std::shared_ptr<Typeface> typeface)
         LOGE("typeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return;
     }
-    auto skiaTypeface = typeface->GetImpl<SkiaTypeface>();
+    std::shared_ptr<SkiaTypeface> skiaTypeface = typeface->GetImpl<SkiaTypeface>();
     if (!skiaTypeface) {
         LOGE("skiaTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return;
@@ -63,6 +79,11 @@ void SkiaFont::SetSize(scalar textSize)
 void SkiaFont::SetEmbolden(bool isEmbolden)
 {
     skFont_.setEmbolden(isEmbolden);
+}
+
+void SkiaFont::SetScaleX(scalar scaleX)
+{
+    skFont_.setScaleX(scaleX);
 }
 
 void SkiaFont::SetSkewX(scalar skewX)
@@ -106,6 +127,12 @@ void SkiaFont::GetWidths(const uint16_t glyphs[], int count, scalar widths[], Re
     for (int idx = 0; idx < count; ++idx) {
         SkiaConvertUtils::SkRectCastToDrawingRect(skBounds[idx], bounds[idx]);
     }
+}
+
+scalar SkiaFont::MeasureText(const void* text, size_t byteLength, TextEncoding encoding)
+{
+    SkTextEncoding skEncoding = static_cast<SkTextEncoding>(encoding);
+    return skFont_.measureText(text, byteLength, skEncoding);
 }
 
 const SkFont& SkiaFont::GetFont() const

@@ -74,6 +74,8 @@ public:
     static std::unique_ptr<VerticesImpl> CreateVertices();
     static std::unique_ptr<VerticesImpl::BuilderImpl> CreateVerticesBuilder();
     static std::unique_ptr<FontImpl> CreateFont();
+    static std::unique_ptr<FontImpl> CreateFont(std::shared_ptr<Typeface> typeface,
+        scalar size, scalar scaleX, scalar skewX);
     static std::unique_ptr<TextBlobBuilderImpl> CreateTextBlobBuilder();
     static std::shared_ptr<FontMgrImpl> CreateDefaultFontMgr();
 };

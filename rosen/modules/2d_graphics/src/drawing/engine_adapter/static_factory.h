@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,32 +13,26 @@
  * limitations under the License.
  */
 
-#ifndef REGION_IMPL_H
-#define REGION_IMPL_H
+#ifndef STATIC_FACTORY_H
+#define STATIC_FACTORY_H
 
-#include "base_impl.h"
-#include "utils/rect.h"
-#include "draw/path.h"
+#include <cstdint>
+
+#include "text/text_blob.h"
+#include "text/typeface.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class Region;
-enum class RegionOp;
-
-class RegionImpl : public BaseImpl {
+class StaticFactory {
 public:
-    RegionImpl() {}
-    ~RegionImpl() override {}
-    virtual bool SetRect(const RectI& rectI) = 0;
-    virtual bool SetPath(const Path& path, const Region& clip) = 0;
-    virtual bool GetBoundaryPath(Path* path) const = 0;
-    virtual bool IsIntersects(const Region& other) const = 0;
-    virtual bool IsEmpty() const = 0;
-    virtual bool IsRect() const = 0;
-    virtual bool Op(const Region& region, const RegionOp op) = 0;
+    static std::shared_ptr<TextBlob> MakeFromText(const void* text, size_t byteLength,
+        const Font& font, TextEncoding encoding);
+    static std::shared_ptr<TextBlob> MakeFromRSXform(const void* text, size_t byteLength,
+        const RSXform xform[], const Font& font, TextEncoding encoding);
+    static std::shared_ptr<Typeface> MakeFromFile(const char path[]);
 };
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
-#endif
+#endif // STATIC_FACTORY_H

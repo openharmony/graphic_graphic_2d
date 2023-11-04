@@ -15,7 +15,12 @@
 
 #include "skia_text_blob.h"
 
+#include "include/core/SkFontTypes.h"
+#include "include/core/SkRSXform.h"
+
+#include "skia_adapter/skia_convert_utils.h"
 #include "skia_adapter/skia_data.h"
+#include "skia_adapter/skia_font.h"
 #include "utils/log.h"
 
 namespace OHOS {
@@ -26,6 +31,47 @@ SkiaTextBlob::SkiaTextBlob(sk_sp<SkTextBlob> skTextBlob) : skTextBlob_(skTextBlo
 sk_sp<SkTextBlob> SkiaTextBlob::GetTextBlob() const
 {
     return skTextBlob_;
+}
+
+std::shared_ptr<TextBlob> SkiaTextBlob::MakeFromText(const void* text, size_t byteLength,
+    const Font& font, TextEncoding encoding)
+{
+    std::shared_ptr<SkiaFont> skiaFont = font.GetImpl<SkiaFont>();
+    if (!skiaFont) {
+        LOGE("skiaFont nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    SkTextEncoding skEncoding = static_cast<SkTextEncoding>(encoding);
+    sk_sp<SkTextBlob> skTextBlob = SkTextBlob::MakeFromText(text, byteLength, skiaFont->GetFont(), skEncoding);
+    if (!skTextBlob) {
+        LOGE("skTextBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    std::shared_ptr<TextBlobImpl> textBlobImpl = std::make_shared<SkiaTextBlob>(skTextBlob);
+    return std::make_shared<TextBlob>(textBlobImpl);
+}
+
+std::shared_ptr<TextBlob> SkiaTextBlob::MakeFromRSXform(const void* text, size_t byteLength,
+    const RSXform xform[], const Font& font, TextEncoding encoding)
+{
+    std::shared_ptr<SkiaFont> skiaFont = font.GetImpl<SkiaFont>();
+    if (!skiaFont) {
+        LOGE("skiaFont nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    SkTextEncoding skEncoding = static_cast<SkTextEncoding>(encoding);
+    SkRSXform skXform;
+    if (xform) {
+        SkiaConvertUtils::DrawingRSXformCastToSkXform(*xform, skXform);
+    }
+    sk_sp<SkTextBlob> skTextBlob =
+        SkTextBlob::MakeFromRSXform(text, byteLength, xform ? &skXform : nullptr, skiaFont->GetFont(), skEncoding);
+    if (!skTextBlob) {
+        LOGE("skTextBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    std::shared_ptr<TextBlobImpl> textBlobImpl = std::make_shared<SkiaTextBlob>(skTextBlob);
+    return std::make_shared<TextBlob>(textBlobImpl);
 }
 
 std::shared_ptr<Data> SkiaTextBlob::Serialize(const SkSerialProcs& procs) const

@@ -40,6 +40,11 @@ public:
         return AdapterType::SKIA_ADAPTER;
     }
 
+    static std::shared_ptr<TextBlob> MakeFromText(const void* text, size_t byteLength,
+        const Font& font, TextEncoding encoding);
+    static std::shared_ptr<TextBlob> MakeFromRSXform(const void* text, size_t byteLength,
+        const RSXform xform[], const Font& font, TextEncoding encoding);
+
     sk_sp<SkTextBlob> GetTextBlob() const;
 
     std::shared_ptr<Data> Serialize(const SkSerialProcs& procs) const;

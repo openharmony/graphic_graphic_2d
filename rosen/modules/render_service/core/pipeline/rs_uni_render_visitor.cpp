@@ -1469,9 +1469,15 @@ void RSUniRenderVisitor::DrawDirtyRectForDFX(const RectI& dirtyRect, const Drawi
     ROSEN_LOGD("DrawDirtyRectForDFX current dirtyRect = %{public}s", dirtyRect.ToString().c_str());
     auto rect = Drawing::Rect(dirtyRect.left_, dirtyRect.top_,
         dirtyRect.left_ + dirtyRect.width_, dirtyRect.top_ + dirtyRect.height_);
+    std::string position = std::to_string(dirtyRect.left_) + ',' + std::to_string(dirtyRect.top_) + ',' +
+        std::to_string(dirtyRect.width_) + ',' + std::to_string(dirtyRect.height_);
+    const int defaultTextOffsetX = edgeWidth;
+    const int defaultTextOffsetY = 30; // text position has 30 pixelSize under the Rect
     Drawing::Pen rectPen;
     Drawing::Brush rectBrush;
     // font size: 24
+    std::shared_ptr<Drawing::TextBlob> textBlob =
+        Drawing::TextBlob::MakeFromString(position.c_str(), Drawing::Font(nullptr, 24.0f, 1.0f, 0.0f));
     if (fillType == RSPaintStyle::STROKE) {
         rectPen.SetColor(color);
         rectPen.SetAntiAlias(true);
@@ -1487,6 +1493,9 @@ void RSUniRenderVisitor::DrawDirtyRectForDFX(const RectI& dirtyRect, const Drawi
     }
     canvas_->DrawRect(rect);
     canvas_->DetachPen();
+    canvas_->DetachBrush();
+    canvas_->AttachBrush(Drawing::Brush());
+    canvas_->DrawTextBlob(textBlob.get(), dirtyRect.left_ + defaultTextOffsetX, dirtyRect.top_ + defaultTextOffsetY);
     canvas_->DetachBrush();
 }
 #endif
@@ -1753,13 +1762,26 @@ void RSUniRenderVisitor::ProcessParallelDisplayRenderNode(RSDisplayRenderNode& n
         RS_LOGE("RSUniRenderVisitor::ProcessParallelDisplayRenderNode: failed to create canvas");
         return;
     }
+#ifndef USE_ROSEN_DRAWING
     canvas_->clear(SK_ColorTRANSPARENT);
+#else
+    canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+#endif
     RSPropertiesPainter::SetBgAntiAlias(true);
+#ifndef USE_ROSEN_DRAWING
     int saveCount = canvas_->save();
+#else
+    int saveCount = canvas_->GetSaveCount();
+    canvas_->Save();
+#endif
     canvas_->SetHighContrast(renderEngine_->IsHighContrastEnabled());
     auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr != nullptr) {
+#ifndef USE_ROSEN_DRAWING
         canvas_->concat(geoPtr->GetMatrix());
+#else
+        canvas_->ConcatMatrix(geoPtr->GetMatrix());
+#endif
     }
     for (auto& childNode : node.GetChildren()) {
         RSParallelRenderManager::Instance()->StartTiming(parallelRenderVisitorIndex_);
@@ -1767,7 +1789,11 @@ void RSUniRenderVisitor::ProcessParallelDisplayRenderNode(RSDisplayRenderNode& n
         RSParallelRenderManager::Instance()->StopTimingAndSetRenderTaskCost(
             parallelRenderVisitorIndex_, childNode->GetId(), TaskType::PROCESS_TASK);
     }
+#ifndef USE_ROSEN_DRAWING
     canvas_->restoreToCount(saveCount);
+#else
+    canvas_->RestoreToCount(saveCount);
+#endif
 
     if (overdrawListener != nullptr) {
         overdrawListener->Draw();
@@ -2100,7 +2126,11 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
 
 #ifdef RS_ENABLE_VK
+#ifndef USE_ROSEN_DRAWING
         canvas_->clear(SK_ColorTRANSPARENT);
+#else
+        canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+#endif
 #endif
 
         int saveLayerCnt = 0;
@@ -2172,7 +2202,18 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 canvas_->clipPath(dirtyPath, true);
             }
 #else
-            RS_LOGD("[%{public}s:%{public}d] Drawing is not supported, canvas clipRegion", __func__, __LINE__);
+            if (region.IsEmpty()) {
+                // [planning] Remove this after frame buffer can cancel
+                canvas_->ClipRect(Drawing::Rect());
+            } else if (region.IsRect()) {
+                canvas_->ClipRegion(region);
+            } else {
+                RS_TRACE_NAME("RSUniRenderVisitor: clipPath");
+                clipPath = true;
+                Drawing::Path dirtyPath;
+                region.GetBoundaryPath(&dirtyPath);
+                canvas_->ClipPath(dirtyPath, Drawing::ClipOp::INTERSECT, true);
+            }
 #endif
         }
 #endif
@@ -2235,7 +2276,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 // render directly
                 ProcessChildren(node);
             }
-
             canvas_->RestoreToCount(saveCount);
 #endif
         }
@@ -3475,8 +3515,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 
                     if (displayNodeMatrix_.has_value()) {
                         auto& displayNodeMatrix = displayNodeMatrix_.value();
-                        displayNodeMatrix.PreConcat(canvas_->GetTotalMatrix());
-                        canvas_->SetMatrix(displayNodeMatrix);
+                        canvas_->ConcatMatrix(displayNodeMatrix);
                     }
                     node.SetTotalMatrix(canvas_->GetTotalMatrix());
 
@@ -4216,10 +4255,10 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
 #else
             auto& [unused2, alpha1, mat1] = pair.first;
             auto& [child, alpha2, mat2] = existingNodeIter->second;
-            canvas_->SetAlpha(alpha1);
-            canvas_->SetMatrix(mat1.value());
-            canvas_->MultiplyAlpha(alpha2);
-            canvas_->ConcatMatrix(mat2.value());
+            canvas_->SetAlpha(alpha2);
+            canvas_->SetMatrix(mat2.value());
+            canvas_->MultiplyAlpha(alpha1);
+            canvas_->ConcatMatrix(mat1.value());
 #endif
             child->Process(shared_from_this());
             return true;

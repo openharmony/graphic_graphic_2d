@@ -248,7 +248,7 @@ public:
      * @param op           To apply to clip.
      * @param doAntiAlias  true if clip is to be anti-aliased. The default value is false.
      */
-    virtual void ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias = false);
+    virtual void ClipRect(const Rect& rect, ClipOp op = ClipOp::INTERSECT, bool doAntiAlias = false);
 
     /*
      * @brief              Replace the clipping area with the intersection or difference between the
@@ -266,7 +266,7 @@ public:
      * @param op           To apply to clip.
      * @param doAntiAlias  true if clip is to be anti-aliased. The default value is false.
      */
-    virtual void ClipRoundRect(const RoundRect& roundRect, ClipOp op, bool doAntiAlias = false);
+    virtual void ClipRoundRect(const RoundRect& roundRect, ClipOp op = ClipOp::INTERSECT, bool doAntiAlias = false);
 
     /*
      * @brief              Replace the clipping area with the intersection or difference of the
@@ -275,7 +275,7 @@ public:
      * @param op           To apply to clip.
      * @param doAntiAlias  true if clip is to be anti-aliased. The default value is false.
      */
-    virtual void ClipPath(const Path& path, ClipOp op, bool doAntiAlias = false);
+    virtual void ClipPath(const Path& path, ClipOp op = ClipOp::INTERSECT, bool doAntiAlias = false);
 
     /*
      * @brief              Replace the clipping area with the intersection or difference of the

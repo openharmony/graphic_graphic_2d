@@ -148,6 +148,12 @@ std::unique_ptr<FontImpl> ImplFactory::CreateFontImpl()
     return EngineImplFactory::CreateFont();
 }
 
+std::unique_ptr<FontImpl> ImplFactory::CreateFontImpl(std::shared_ptr<Typeface> typeface,
+    scalar size, scalar scaleX, scalar skewX)
+{
+    return EngineImplFactory::CreateFont(typeface, size, scaleX, skewX);
+}
+
 std::unique_ptr<TextBlobBuilderImpl> ImplFactory::CreateTextBlobBuilderImpl()
 {
     return EngineImplFactory::CreateTextBlobBuilder();

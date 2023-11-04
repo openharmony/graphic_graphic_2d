@@ -1048,11 +1048,8 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
     }
 
     if (!node.IsAppWindow() && node.GetBuffer() != nullptr) {
-        canvas_->Save();
-        canvas_->SetMatrix(node.GetTotalMatrix());
         auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
         renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
-        canvas_->Restore();
     }
 
     ProcessChildren(node);
