@@ -68,6 +68,8 @@ constexpr int ROTATION_90 = 90;
 constexpr int ROTATION_270 = 270;
 static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
+static const std::string BIGFLODER_BUNDLE_NAME = "SCBDesktop2";
+static bool canvasNeedsCached = false;
 static std::map<NodeId, uint32_t> cacheRenderNodeMap = {};
 static uint32_t cacheReuseTimes = 0;
 static std::mutex cacheRenderNodeMapMutex;
@@ -3867,7 +3869,14 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         RSUniRenderUtil::FloorTransXYInCanvasMatrix(*canvas_);
     }
+
     if (node.GetSharedTransitionParam().has_value()) {
+        // enable cache for sharingTrans on Desktop
+        auto mainThread = RSMainThread::Instance();
+        std::string bundleNameFocusNow = mainThread->GetFocusAppBundleName();
+        if(bundleNameFocusNow == BIGFLODER_BUNDLE_NAME) {
+            canvasNeedsCached = true;
+        }
         // draw self and children in sandbox which will not be affected by parent's transition
         const auto& sandboxMatrix = node.GetRenderProperties().GetSandBoxMatrix();
         if (sandboxMatrix) {
@@ -3878,9 +3887,16 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 #endif
         }
     }
+    auto preType = canvas_->GetCacheType();
+    if(canvasNeedsCached) {
+        RS_OPTIONAL_TRACE_NAME_FMT("BigFloderCacheEnabled[%s]", BIGFLODER_BUNDLE_NAME.c_str());
+        canvas_->SetCacheType(RSPaintFilterCanvas::CacheType::ENABLED);
+    }
     const auto& property = node.GetRenderProperties();
     if (property.IsSpherizeValid()) {
         DrawSpherize(node);
+        canvasNeedsCached = false;
+        canvas_->SetCacheType(preType);
         return;
     }
     if (auto drawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>()) {
@@ -3899,6 +3915,8 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     }
     CheckAndSetNodeCacheType(node);
     DrawChildCanvasRenderNode(node);
+    canvasNeedsCached = false;
+    canvas_->SetCacheType(preType);
 #ifndef USE_ROSEN_DRAWING
     canvas_->restore();
 #else
