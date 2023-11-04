@@ -143,6 +143,15 @@ void RSImageBase::SetPixelMap(const std::shared_ptr<Media::PixelMap>& pixelmap)
     }
 }
 
+void RSImageBase::DumpPicture(DfxString& info) const
+{
+    if (!pixelMap_) {
+        return;
+    }
+    info.AppendFormat("%d    [%d * %d]  %p\n", pixelMap_->GetByteCount(), pixelMap_->GetWidth(), pixelMap_->GetHeight(),
+        pixelMap_.get());
+}
+
 void RSImageBase::SetSrcRect(const RectF& srcRect)
 {
     srcRect_ = srcRect;

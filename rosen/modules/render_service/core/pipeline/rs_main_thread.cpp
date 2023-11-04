@@ -2252,6 +2252,19 @@ void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::str
 #endif
 }
 
+void RSMainThread::DumpNode(std::string& result, uint64_t nodeId) const
+{
+    const auto& nodeMap = context_->GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (!node) {
+        result.append("have no this node");
+        return;
+    }
+    DfxString log;
+    node->DumpNodeInfo(log);
+    result.append(log.GetString());
+}
+
 void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
     std::string& type, int pid)
 {

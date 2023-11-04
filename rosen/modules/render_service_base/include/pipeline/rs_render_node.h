@@ -31,6 +31,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "common/rs_rect.h"
+#include "memory/rs_dfx_string.h"
 #include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -128,6 +129,7 @@ public:
     void ClearFullChildrenListIfNeeded(bool inSubThread = false);
 
     void DumpTree(int32_t depth, std::string& ou) const;
+    void DumpNodeInfo(DfxString& log);
 
     virtual bool HasDisappearingTransition(bool recursive = true) const;
 

@@ -242,6 +242,24 @@ void DrawCmdList::UpdateNodeIdToPicture(NodeId nodeId)
 #endif
 }
 
+void DrawCmdList::DumpPicture(DfxString& info) const
+{
+    if (imageIndexs_.empty()) {
+        RS_LOGW("DrawCmdList::DumpPicture no need update");
+        return;
+    }
+    info.AppendFormat("Resources:%d\n", imageIndexs_.size());
+    info.AppendFormat("Size  [width * height]    Addr\n");
+    for (size_t i = 0; i < imageIndexs_.size(); i++) {
+        auto index = imageIndexs_[i];
+        if (index > ops_.size()) {
+            RS_LOGW("DrawCmdList::DumpPicture index[%{public}d] error", index);
+            continue;
+        }
+        ops_[index]->DumpPicture(info);
+    }
+}
+
 void DrawCmdList::FindIndexOfImage() const
 {
     for (size_t index = 0; index < ops_.size(); index++) {
