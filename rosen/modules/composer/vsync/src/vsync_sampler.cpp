@@ -17,6 +17,10 @@
 #include <cmath>
 #include "vsync_generator.h"
 #include "vsync_log.h"
+#include <cstdint>
+#include <mutex>
+#include <scoped_bytrace.h>
+#include <string>
 
 namespace OHOS {
 namespace Rosen {
@@ -29,6 +33,7 @@ constexpr double PI = 3.1415926;
 constexpr int64_t g_errorThreshold = 40000000000; // 200 usec squared
 constexpr int32_t INVAILD_TIMESTAMP = -1;
 constexpr uint32_t MINES_SAMPLE_NUMS = 3;
+constexpr uint32_t SAMPLES_INTERVAL_DIFF_NUMS = 2;
 }
 sptr<OHOS::Rosen::VSyncSampler> VSyncSampler::GetInstance() noexcept
 {
@@ -71,6 +76,7 @@ void VSyncSampler::ResetErrorLocked()
 
 void VSyncSampler::BeginSample()
 {
+    ScopedBytrace func("BeginSample");
     std::lock_guard<std::mutex> lock(mutex_);
     numSamples_ = 0;
     modeUpdated_ = false;
@@ -109,7 +115,7 @@ bool VSyncSampler::AddSample(int64_t timeStamp)
     if (numSamples_ == 0) {
         phase_ = 0;
         referenceTime_ = timeStamp;
-        CreateVSyncGenerator()->UpdateMode(period_, phase_, referenceTime_);
+        CreateVSyncGenerator()->UpdateMode(0, phase_, referenceTime_);
     }
 
     if (numSamples_ < MAX_SAMPLES - 1) {
@@ -146,14 +152,32 @@ void VSyncSampler::UpdateModeLocked()
         int64_t sum = 0;
         int64_t min = INT64_MAX;
         int64_t max = 0;
+        int64_t diffPrev = 0;
+        int64_t diff = 0;
+        int64_t variance = 0;
         for (uint32_t i = 1; i < numSamples_; i++) {
             int64_t prevSample = samples_[(firstSampleIndex_ + i - 1 + MAX_SAMPLES) % MAX_SAMPLES];
             int64_t currentSample = samples_[(firstSampleIndex_ + i) % MAX_SAMPLES];
-            int64_t diff = currentSample - prevSample;
+            diffPrev = diff;
+            diff = currentSample - prevSample;
+            if (diffPrev != 0) {
+                int64_t delta = diff - diffPrev;
+                variance += delta * delta;
+            }
             min = min < diff ? min : diff;
             max = max > diff ? max : diff;
             sum += diff;
         }
+        variance /= (int64_t)(numSamples_ - SAMPLES_INTERVAL_DIFF_NUMS);
+        // 1/2 is a empirical value
+        if ((CreateVSyncGenerator()->GetVSyncMode() == VSYNC_MODE_LTPO) && (variance > g_errorThreshold / 2)) {
+            // keep only the latest 5 samples, and sample the next timestamp.
+            firstSampleIndex_ = (firstSampleIndex_ + numSamples_ - MIN_SAMPLES_FOR_UPDATE + 1) % MAX_SAMPLES;
+            numSamples_ = MIN_SAMPLES_FOR_UPDATE - 1;
+            referenceTime_ = samples_[firstSampleIndex_];
+            return;
+        }
+
         sum -= min;
         sum -= max;
 
@@ -179,6 +203,7 @@ void VSyncSampler::UpdateModeLocked()
 
         modeUpdated_ = true;
         CreateVSyncGenerator()->UpdateMode(period_, phase_, referenceTime_);
+        pendingPeriod_ = period_;
     }
 }
 
@@ -246,6 +271,29 @@ int64_t VSyncSampler::GetRefrenceTime() const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return referenceTime_;
+}
+
+int64_t VSyncSampler::GetHardwarePeriod() const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    int64_t period = period_;
+    if (!modeUpdated_ && pendingPeriod_ != 0) {
+        period = pendingPeriod_;
+    }
+    return period;
+}
+
+void VSyncSampler::SetPendingPeriod(int64_t period)
+{
+    ScopedBytrace func("VSyncSampler::SetPendingPeriod pendingPeriod_ = " + std::to_string(period));
+    if (period <= 0) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    pendingPeriod_ = period;
+    if (!modeUpdated_) {
+        numSamples_ = 0;
+    }
 }
 
 VSyncSampler::~VSyncSampler()

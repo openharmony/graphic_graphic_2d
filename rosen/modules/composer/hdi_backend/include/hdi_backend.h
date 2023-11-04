@@ -55,6 +55,7 @@ public:
     /* only used for mock tests */
     RosenError SetHdiBackendDevice(HdiDevice* device);
     void StartSample(const OutputPtr &output);
+    void SetPendingPeriod(const OutputPtr &output, int64_t period);
 private:
     HdiBackend() = default;
     virtual ~HdiBackend() = default;
