@@ -404,6 +404,11 @@ public:
         return visibleRegion_;
     }
 
+    const Occlusion::Region& GetVisibleRegionForCallBack() const
+    {
+        return visibleRegionForCallBack_;
+    }
+
     void SetAbilityBGAlpha(uint8_t alpha)
     {
         alphaChanged_ = (alpha == 255 && abilityBgAlpha_ != 255) ||
@@ -421,8 +426,13 @@ public:
         qosPidCal_ = qosPidCal;
     }
 
+    bool IsSurfaceInStartingWindowStage() const;
+
     void SetVisibleRegionRecursive(
-        const Occlusion::Region& region, VisibleData& visibleVec, std::map<uint32_t, bool>& pidVisMap);
+        const Occlusion::Region& region,
+        VisibleData& visibleVec,
+        std::map<uint32_t, bool>& pidVisMap,
+        bool needSetVisibleRegion = true);
 
     const Occlusion::Region& GetVisibleDirtyRegion() const
     {
@@ -712,6 +722,16 @@ public:
     bool GetAnimateState() const{
         return animateState_;
     }
+    bool IsParentLeashWindowInScale() const;
+
+    Occlusion::Rect GetSurfaceOcclusionRect(bool isUniRender);
+
+    void AccumulateOcclusionRegion(Occlusion::Region& accumulatedRegion,
+        Occlusion::Region& curRegion,
+        bool& hasFilterCacheOcclusion,
+        bool isUniRender,
+        bool filterCacheOcclusionEnabled);
+
     bool LeashWindowRelatedAppWindowOccluded(std::shared_ptr<RSSurfaceRenderNode>& appNode);
 
     void OnTreeStateChanged() override;
@@ -864,7 +884,15 @@ private:
     std::vector<NodeId> childSurfaceNodeIds_;
     friend class RSRenderThreadVisitor;
     RectI clipRegionFromParent_;
+    /*  
+        visibleRegion: appwindow visible region after occlusion, used for rs opdrop and other optimization.
+        visibleRegionForCallBack: appwindow visible region after occlusion (no filtercache occlusion), used in
+    windowmanager, qos, and web surfacenode visibility callback.
+        These two values are the same in most cases. If there are filter cache occlusion, this two values will be
+    different under filter cache surfacenode layer.
+    */
     Occlusion::Region visibleRegion_;
+    Occlusion::Region visibleRegionForCallBack_;
     Occlusion::Region visibleDirtyRegion_;
     bool isDirtyRegionAlignedEnable_ = false;
     Occlusion::Region alignedVisibleDirtyRegion_;
