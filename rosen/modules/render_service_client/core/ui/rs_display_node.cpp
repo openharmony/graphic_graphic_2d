@@ -120,7 +120,7 @@ void RSDisplayNode::SetScreenRotation(const uint32_t& rotation)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
-    ROSEN_LOGD("RSDisplayNode::SetScreenRotation, displayNodeId:[%{public}" PRIu64 "]"
+    ROSEN_LOGI("RSDisplayNode::SetScreenRotation, displayNodeId:[%{public}" PRIu64 "]"
                " screenRotation:[%{public}d]", GetId(), rotation);
 }
 
