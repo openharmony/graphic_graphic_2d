@@ -39,6 +39,25 @@
 #include "utils/scalar.h"
 #include "utils/log.h"
 
+#define CHECK_AND_RETURN_RET_LOG(cond, ret, fmt, ...)  \
+    do {                                               \
+        if (!(cond)) {                                 \
+            LOGE(fmt, ##__VA_ARGS__);                  \
+            return ret;                                \
+        }                                              \
+    } while (0)
+
+constexpr uint32_t ADDRSIZE = sizeof(uint32_t *);
+#define COPY_OPITEN_AND_RETURN_RET_LOG(T, dest, from, ret, fmt, ...)  \
+    do {                                                              \
+        uint32_t size_ = sizeof(T) - ADDRSIZE;                        \
+        if (memcpy_s(static_cast<char*>(static_cast<void*>(dest)) + ADDRSIZE, size_, \
+                     static_cast<char*>(from) + ADDRSIZE, size_) != EOK) { \
+            LOGE(fmt, ##__VA_ARGS__);                                 \
+            return ret;                                               \
+        }                                                             \
+    } while (0)
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -101,7 +120,7 @@ std::unordered_map<uint32_t, CanvasPlayer::PlaybackFunc> CanvasPlayer::opPlaybac
 CanvasPlayer::CanvasPlayer(Canvas& canvas, const CmdList& cmdList, const Rect& rect)
     : canvas_(canvas), cmdList_(cmdList), rect_(rect) {}
 
-bool CanvasPlayer::Playback(uint32_t type, void* opItem)
+bool CanvasPlayer::Playback(uint32_t type, std::shared_ptr<OpItem> opItem)
 {
     if (type == DrawOpItem::OPITEM_HEAD) {
         return true;
@@ -119,12 +138,20 @@ bool CanvasPlayer::Playback(uint32_t type, void* opItem)
 }
 
 std::unordered_map<uint32_t, UnmarshallingPlayer::UnmarshallingFunc> UnmarshallingPlayer::opUnmarshallingFuncLUT_ = {
+    { DrawOpItem::POINT_OPITEM,             DrawPointOpItem::Unmarshalling },
     { DrawOpItem::POINTS_OPITEM,            DrawPointsOpItem::Unmarshalling },
+    { DrawOpItem::LINE_OPITEM,              DrawLineOpItem::Unmarshalling },
+    { DrawOpItem::RECT_OPITEM,              DrawRectOpItem::Unmarshalling },
     { DrawOpItem::ROUND_RECT_OPITEM,        DrawRoundRectOpItem::Unmarshalling },
     { DrawOpItem::NESTED_ROUND_RECT_OPITEM, DrawNestedRoundRectOpItem::Unmarshalling },
+    { DrawOpItem::ARC_OPITEM,               DrawArcOpItem::Unmarshalling },
+    { DrawOpItem::PIE_OPITEM,               DrawPieOpItem::Unmarshalling },
+    { DrawOpItem::OVAL_OPITEM,              DrawOvalOpItem::Unmarshalling },
+    { DrawOpItem::CIRCLE_OPITEM,            DrawCircleOpItem::Unmarshalling },
     { DrawOpItem::PATH_OPITEM,              DrawPathOpItem::Unmarshalling },
     { DrawOpItem::BACKGROUND_OPITEM,        DrawBackgroundOpItem::Unmarshalling },
     { DrawOpItem::SHADOW_OPITEM,            DrawShadowOpItem::Unmarshalling },
+    { DrawOpItem::COLOR_OPITEM,             DrawColorOpItem::Unmarshalling },
     { DrawOpItem::IMAGE_NINE_OPITEM,        DrawImageNineOpItem::Unmarshalling },
     { DrawOpItem::IMAGE_ANNOTATION_OPITEM,  DrawAnnotationOpItem::Unmarshalling },
     { DrawOpItem::IMAGE_LATTICE_OPITEM,     DrawImageLatticeOpItem::Unmarshalling },
@@ -133,15 +160,33 @@ std::unordered_map<uint32_t, UnmarshallingPlayer::UnmarshallingFunc> Unmarshalli
     { DrawOpItem::IMAGE_RECT_OPITEM,        DrawImageRectOpItem::Unmarshalling },
     { DrawOpItem::PICTURE_OPITEM,           DrawPictureOpItem::Unmarshalling },
     { DrawOpItem::TEXT_BLOB_OPITEM,         DrawTextBlobOpItem::Unmarshalling },
+    { DrawOpItem::CLIP_RECT_OPITEM,         ClipRectOpItem::Unmarshalling },
+    { DrawOpItem::CLIP_IRECT_OPITEM,        ClipIRectOpItem::Unmarshalling },
     { DrawOpItem::CLIP_ROUND_RECT_OPITEM,   ClipRoundRectOpItem::Unmarshalling },
     { DrawOpItem::CLIP_PATH_OPITEM,         ClipPathOpItem::Unmarshalling },
     { DrawOpItem::CLIP_REGION_OPITEM,       ClipRegionOpItem::Unmarshalling },
+    { DrawOpItem::SET_MATRIX_OPITEM,        SetMatrixOpItem::Unmarshalling },
+    { DrawOpItem::RESET_MATRIX_OPITEM,      ResetMatrixOpItem::Unmarshalling },
+    { DrawOpItem::CONCAT_MATRIX_OPITEM,     ConcatMatrixOpItem::Unmarshalling },
+    { DrawOpItem::TRANSLATE_OPITEM,         TranslateOpItem::Unmarshalling },
+    { DrawOpItem::SCALE_OPITEM,             ScaleOpItem::Unmarshalling },
+    { DrawOpItem::ROTATE_OPITEM,            RotateOpItem::Unmarshalling },
+    { DrawOpItem::SHEAR_OPITEM,             ShearOpItem::Unmarshalling },
+    { DrawOpItem::FLUSH_OPITEM,             FlushOpItem::Unmarshalling },
+    { DrawOpItem::CLEAR_OPITEM,             ClearOpItem::Unmarshalling },
+    { DrawOpItem::SAVE_OPITEM,              SaveOpItem::Unmarshalling },
     { DrawOpItem::SAVE_LAYER_OPITEM,        SaveLayerOpItem::Unmarshalling },
+    { DrawOpItem::RESTORE_OPITEM,           RestoreOpItem::Unmarshalling },
+    { DrawOpItem::DISCARD_OPITEM,           DiscardOpItem::Unmarshalling },
     { DrawOpItem::ATTACH_PEN_OPITEM,        AttachPenOpItem::Unmarshalling },
     { DrawOpItem::ATTACH_BRUSH_OPITEM,      AttachBrushOpItem::Unmarshalling },
+    { DrawOpItem::DETACH_PEN_OPITEM,        DetachPenOpItem::Unmarshalling },
+    { DrawOpItem::DETACH_BRUSH_OPITEM,      DetachBrushOpItem::Unmarshalling },
     { DrawOpItem::CLIP_ADAPTIVE_ROUND_RECT_OPITEM, ClipAdaptiveRoundRectOpItem::Unmarshalling},
     { DrawOpItem::ADAPTIVE_IMAGE_OPITEM,    DrawAdaptiveImageOpItem::Unmarshalling},
     { DrawOpItem::ADAPTIVE_PIXELMAP_OPITEM, DrawAdaptivePixelMapOpItem::Unmarshalling},
+    { DrawOpItem::EXTEND_PIXELMAP_OPITEM,   DrawExtendPixelMapOpItem::Unmarshalling},
+    { DrawOpItem::IMAGE_WITH_PARM_OPITEM,   DrawImageWithParmOpItem::Unmarshalling},
     { DrawOpItem::REGION_OPITEM,            DrawRegionOpItem::Unmarshalling },
     { DrawOpItem::PATCH_OPITEM,             DrawPatchOpItem::Unmarshalling },
     { DrawOpItem::EDGEAAQUAD_OPITEM, DrawEdgeAAQuadOpItem::Unmarshalling },
@@ -151,30 +196,37 @@ std::unordered_map<uint32_t, UnmarshallingPlayer::UnmarshallingFunc> Unmarshalli
 UnmarshallingPlayer::UnmarshallingPlayer(const CmdList& cmdList)
     : cmdList_(cmdList) {}
 
-bool UnmarshallingPlayer::Unmarshalling(uint32_t type, void* opItem)
+std::shared_ptr<OpItem> UnmarshallingPlayer::Unmarshalling(uint32_t type, void* opItem)
 {
     if (type == DrawOpItem::OPITEM_HEAD) {
-        return true;
+        return nullptr;
     }
 
     auto it = opUnmarshallingFuncLUT_.find(type);
     if (it == opUnmarshallingFuncLUT_.end() || it->second == nullptr) {
-        return false;
+        return nullptr;
     }
 
     auto func = it->second;
-    (*func)(this->cmdList_, opItem);
-
-    return true;
+    return (*func)(this->cmdList_, opItem);
 }
 
 /* OpItem */
+DrawPointOpItem::DrawPointOpItem() : DrawOpItem(POINT_OPITEM) {}
 DrawPointOpItem::DrawPointOpItem(const Point& point) : DrawOpItem(POINT_OPITEM), point_(point) {}
 
-void DrawPointOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<OpItem> DrawPointOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawPointOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawPointOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    return op;
+}
+
+void DrawPointOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawPointOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawPointOpItem>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -184,15 +236,17 @@ void DrawPointOpItem::Playback(Canvas& canvas)
     canvas.DrawPoint(point_);
 }
 
+DrawPointsOpItem::DrawPointsOpItem() : DrawOpItem(POINTS_OPITEM) {}
 DrawPointsOpItem::DrawPointsOpItem(PointMode mode, const std::pair<uint32_t, size_t> pts)
     : DrawOpItem(POINTS_OPITEM), mode_(mode), pts_(pts) {}
 
-void DrawPointsOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> DrawPointsOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawPointsOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawPointsOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawPointsOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void DrawPointsOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
@@ -207,10 +261,10 @@ void DrawPointsOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawPointsOpItem::Playback(CanvasPlayer& player, void* opItem)
+void DrawPointsOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawPointsOpItem*>(opItem);
+        std::shared_ptr<DrawPointsOpItem> op = std::static_pointer_cast<DrawPointsOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -224,13 +278,22 @@ void DrawPointsOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
     }
 }
 
+DrawLineOpItem::DrawLineOpItem() : DrawOpItem(LINE_OPITEM) {}
 DrawLineOpItem::DrawLineOpItem(const Point& startPt, const Point& endPt) : DrawOpItem(LINE_OPITEM),
     startPt_(startPt), endPt_(endPt) {}
 
-void DrawLineOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<OpItem> DrawLineOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawLineOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawLineOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    return op;
+}
+
+void DrawLineOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawLineOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawLineOpItem>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -240,12 +303,21 @@ void DrawLineOpItem::Playback(Canvas& canvas)
     canvas.DrawLine(startPt_, endPt_);
 }
 
+DrawRectOpItem::DrawRectOpItem() : DrawOpItem(RECT_OPITEM) {}
 DrawRectOpItem::DrawRectOpItem(const Rect& rect) : DrawOpItem(RECT_OPITEM), rect_(rect) {}
 
-void DrawRectOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<OpItem> DrawRectOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawRectOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawRectOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    return op;
+}
+
+void DrawRectOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawRectOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawRectOpItem>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -255,15 +327,17 @@ void DrawRectOpItem::Playback(Canvas& canvas)
     canvas.DrawRect(rect_);
 }
 
+DrawRoundRectOpItem::DrawRoundRectOpItem() : DrawOpItem(ROUND_RECT_OPITEM) {}
 DrawRoundRectOpItem::DrawRoundRectOpItem(std::pair<uint32_t, size_t> radiusXYData, const Rect& rect)
     : DrawOpItem(ROUND_RECT_OPITEM), radiusXYData_(radiusXYData), rect_(rect) {}
 
-void DrawRoundRectOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> DrawRoundRectOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawRoundRectOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawRoundRectOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawRoundRectOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void DrawRoundRectOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
@@ -280,10 +354,10 @@ void DrawRoundRectOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawRoundRectOpItem::Playback(CanvasPlayer& player, void* opItem)
+void DrawRoundRectOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawRoundRectOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawRoundRectOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -297,17 +371,19 @@ void DrawRoundRectOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
     }
 }
 
+DrawNestedRoundRectOpItem::DrawNestedRoundRectOpItem() : DrawOpItem(NESTED_ROUND_RECT_OPITEM) {}
 DrawNestedRoundRectOpItem::DrawNestedRoundRectOpItem(const std::pair<uint32_t, size_t> outerRadiusXYData,
     const Rect& outerRect, const std::pair<uint32_t, size_t> innerRadiusXYData, const Rect& innerRect)
     : DrawOpItem(NESTED_ROUND_RECT_OPITEM), outerRadiusXYData_(outerRadiusXYData),
     innerRadiusXYData_(innerRadiusXYData), outerRect_(outerRect), innerRect_(innerRect) {}
 
-void DrawNestedRoundRectOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> DrawNestedRoundRectOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawNestedRoundRectOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawNestedRoundRectOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawNestedRoundRectOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void DrawNestedRoundRectOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
@@ -326,10 +402,10 @@ void DrawNestedRoundRectOpItem::Unmarshalling(const CmdList& cmdList, Canvas* ca
     }
 }
 
-void DrawNestedRoundRectOpItem::Playback(CanvasPlayer& player, void* opItem)
+void DrawNestedRoundRectOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawNestedRoundRectOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawNestedRoundRectOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -343,13 +419,22 @@ void DrawNestedRoundRectOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
     }
 }
 
+DrawArcOpItem::DrawArcOpItem() : DrawOpItem(ARC_OPITEM) {}
 DrawArcOpItem::DrawArcOpItem(const Rect& rect, scalar startAngle, scalar sweepAngle)
     : DrawOpItem(ARC_OPITEM), rect_(rect), startAngle_(startAngle), sweepAngle_(sweepAngle) {}
 
-void DrawArcOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<OpItem> DrawArcOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawArcOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawArcOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    return op;
+}
+
+void DrawArcOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawArcOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawArcOpItem>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -359,13 +444,22 @@ void DrawArcOpItem::Playback(Canvas& canvas)
     canvas.DrawArc(rect_, startAngle_, sweepAngle_);
 }
 
+DrawPieOpItem::DrawPieOpItem() : DrawOpItem(PIE_OPITEM) {}
 DrawPieOpItem::DrawPieOpItem(const Rect& rect, scalar startAngle, scalar sweepAngle)
     : DrawOpItem(PIE_OPITEM), rect_(rect), startAngle_(startAngle), sweepAngle_(sweepAngle) {}
 
-void DrawPieOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<OpItem> DrawPieOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawPieOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawPieOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    return op;
+}
+
+void DrawPieOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawPieOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawPieOpItem>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -375,12 +469,21 @@ void DrawPieOpItem::Playback(Canvas& canvas)
     canvas.DrawPie(rect_, startAngle_, sweepAngle_);
 }
 
+DrawOvalOpItem::DrawOvalOpItem() : DrawOpItem(OVAL_OPITEM) {}
 DrawOvalOpItem::DrawOvalOpItem(const Rect& rect) : DrawOpItem(OVAL_OPITEM), rect_(rect) {}
 
-void DrawOvalOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<OpItem> DrawOvalOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawOvalOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawOvalOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    return op;
+}
+
+void DrawOvalOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawOvalOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawOvalOpItem>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -390,13 +493,22 @@ void DrawOvalOpItem::Playback(Canvas& canvas)
     canvas.DrawOval(rect_);
 }
 
+DrawCircleOpItem::DrawCircleOpItem() : DrawOpItem(CIRCLE_OPITEM) {}
 DrawCircleOpItem::DrawCircleOpItem(const Point& centerPt, scalar radius)
     : DrawOpItem(CIRCLE_OPITEM), centerPt_(centerPt), radius_(radius) {}
 
-void DrawCircleOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<OpItem> DrawCircleOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawCircleOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawCircleOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    return op;
+}
+
+void DrawCircleOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawCircleOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawCircleOpItem>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -406,14 +518,16 @@ void DrawCircleOpItem::Playback(Canvas& canvas)
     canvas.DrawCircle(centerPt_, radius_);
 }
 
+DrawPathOpItem::DrawPathOpItem() : DrawOpItem(PATH_OPITEM) {}
 DrawPathOpItem::DrawPathOpItem(const CmdListHandle& path) : DrawOpItem(PATH_OPITEM), path_(path) {}
 
-void DrawPathOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> DrawPathOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawPathOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawPathOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawPathOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void DrawPathOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
@@ -433,10 +547,10 @@ void DrawPathOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawPathOpItem::Playback(CanvasPlayer& player, void* opItem)
+void DrawPathOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawPathOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawPathOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -450,15 +564,17 @@ void DrawPathOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
     }
 }
 
+DrawBackgroundOpItem::DrawBackgroundOpItem() : DrawOpItem(BACKGROUND_OPITEM) {}
 DrawBackgroundOpItem::DrawBackgroundOpItem(const BrushHandle& brushHandle)
     : DrawOpItem(BACKGROUND_OPITEM), brushHandle_(brushHandle) {}
 
-void DrawBackgroundOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> DrawBackgroundOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawBackgroundOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawBackgroundOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawBackgroundOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void DrawBackgroundOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
@@ -499,10 +615,10 @@ void DrawBackgroundOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawBackgroundOpItem::Playback(CanvasPlayer& player, void* opItem)
+void DrawBackgroundOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawBackgroundOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawBackgroundOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -516,17 +632,19 @@ void DrawBackgroundOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
     }
 }
 
+DrawShadowOpItem::DrawShadowOpItem() : DrawOpItem(SHADOW_OPITEM) {}
 DrawShadowOpItem::DrawShadowOpItem(const CmdListHandle& path, const Point3& planeParams, const Point3& devLightPos,
     scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag)
     : DrawOpItem(SHADOW_OPITEM), path_(path), planeParams_(planeParams), devLightPos_(devLightPos),
     lightRadius_(lightRadius), ambientColor_(ambientColor), spotColor_(spotColor), flag_(flag) {}
 
-void DrawShadowOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> DrawShadowOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawShadowOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawShadowOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawShadowOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void DrawShadowOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
@@ -548,10 +666,10 @@ void DrawShadowOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawShadowOpItem::Playback(CanvasPlayer& player, void* opItem)
+void DrawShadowOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawShadowOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawShadowOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -565,14 +683,16 @@ void DrawShadowOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
     }
 }
 
+DrawRegionOpItem::DrawRegionOpItem() : DrawOpItem(REGION_OPITEM) {}
 DrawRegionOpItem::DrawRegionOpItem(const CmdListHandle& region) : DrawOpItem(REGION_OPITEM), region_(region) {}
 
-void DrawRegionOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> DrawRegionOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawRegionOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawRegionOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawRegionOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void DrawRegionOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
@@ -592,10 +712,10 @@ void DrawRegionOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawRegionOpItem::Playback(CanvasPlayer& player, void* opItem)
+void DrawRegionOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawRegionOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawRegionOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -609,16 +729,18 @@ void DrawRegionOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
     }
 }
 
+DrawPatchOpItem::DrawPatchOpItem() : DrawOpItem(PATCH_OPITEM) {}
 DrawPatchOpItem::DrawPatchOpItem(const std::pair<uint32_t, size_t> cubics, const std::pair<uint32_t, size_t> colors,
     const std::pair<uint32_t, size_t> texCoords, BlendMode mode)
     : DrawOpItem(PATCH_OPITEM), cubics_(cubics), colors_(colors), texCoords_(texCoords), mode_(mode) {}
 
-void DrawPatchOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> DrawPatchOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawPatchOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawPatchOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawPatchOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void DrawPatchOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
@@ -642,10 +764,10 @@ void DrawPatchOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawPatchOpItem::Playback(CanvasPlayer& player, void* opItem)
+void DrawPatchOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawPatchOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawPatchOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -659,17 +781,19 @@ void DrawPatchOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
     }
 }
 
+DrawEdgeAAQuadOpItem::DrawEdgeAAQuadOpItem() : DrawOpItem(EDGEAAQUAD_OPITEM) {}
 DrawEdgeAAQuadOpItem::DrawEdgeAAQuadOpItem(const Rect& rect,
     const std::pair<uint32_t, size_t> clipQuad, QuadAAFlags aaFlags, ColorQuad color, BlendMode mode)
     : DrawOpItem(EDGEAAQUAD_OPITEM), rect_(rect), clipQuad_(clipQuad),
     aaFlags_(aaFlags), color_(color), mode_(mode) {}
 
-void DrawEdgeAAQuadOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> DrawEdgeAAQuadOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawEdgeAAQuadOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawEdgeAAQuadOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawEdgeAAQuadOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void DrawEdgeAAQuadOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
@@ -685,10 +809,10 @@ void DrawEdgeAAQuadOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawEdgeAAQuadOpItem::Playback(CanvasPlayer& player, void* opItem)
+void DrawEdgeAAQuadOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawEdgeAAQuadOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawEdgeAAQuadOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -702,15 +826,17 @@ void DrawEdgeAAQuadOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
     }
 }
 
+DrawVerticesOpItem::DrawVerticesOpItem() : DrawOpItem(VERTICES_OPITEM) {}
 DrawVerticesOpItem::DrawVerticesOpItem(const VerticesHandle& vertices, BlendMode mode)
     : DrawOpItem(VERTICES_OPITEM), vertices_(vertices), mode_(mode) {}
 
-void DrawVerticesOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> DrawVerticesOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawVerticesOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawVerticesOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawVerticesOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void DrawVerticesOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
@@ -729,10 +855,10 @@ void DrawVerticesOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawVerticesOpItem::Playback(CanvasPlayer& player, void* opItem)
+void DrawVerticesOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawVerticesOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawVerticesOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -746,13 +872,22 @@ void DrawVerticesOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
     }
 }
 
+DrawColorOpItem::DrawColorOpItem() : DrawOpItem(COLOR_OPITEM) {}
 DrawColorOpItem::DrawColorOpItem(ColorQuad color, BlendMode mode) : DrawOpItem(COLOR_OPITEM),
     color_(color), mode_(mode) {}
 
-void DrawColorOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<OpItem> DrawColorOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawColorOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawColorOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    return op;
+}
+
+void DrawColorOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawColorOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawColorOpItem>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -762,17 +897,19 @@ void DrawColorOpItem::Playback(Canvas& canvas)
     canvas.DrawColor(color_, mode_);
 }
 
+DrawImageNineOpItem::DrawImageNineOpItem() : DrawOpItem(IMAGE_NINE_OPITEM) {}
 DrawImageNineOpItem::DrawImageNineOpItem(const ImageHandle& image, const RectI& center, const Rect& dst,
     FilterMode filter, const BrushHandle& brushHandle, bool hasBrush) : DrawOpItem(IMAGE_NINE_OPITEM),
     image_(std::move(image)), center_(center), dst_(dst), filter_(filter),
     brushHandle_(brushHandle), hasBrush_(hasBrush) {}
 
-void DrawImageNineOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> DrawImageNineOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawImageNineOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawImageNineOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawImageNineOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void DrawImageNineOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
@@ -821,10 +958,10 @@ void DrawImageNineOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawImageNineOpItem::Playback(CanvasPlayer& player, void* opItem)
+void DrawImageNineOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawImageNineOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawImageNineOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -842,12 +979,15 @@ DrawAnnotationOpItem::DrawAnnotationOpItem(const Rect& rect, const char* key, co
     : DrawOpItem(IMAGE_ANNOTATION_OPITEM),
     rect_(rect), key_(key), data_(data) {}
 
-void DrawAnnotationOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> DrawAnnotationOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawAnnotationOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    
+    auto* opPtr = static_cast<DrawAnnotationOpItem*>(opItem);
+    auto op = std::make_shared<DrawAnnotationOpItem>(opPtr->rect_, opPtr->key_, opPtr->data_);
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawAnnotationOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void DrawAnnotationOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
@@ -866,10 +1006,10 @@ void DrawAnnotationOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawAnnotationOpItem::Playback(CanvasPlayer& player, void* opItem)
+void DrawAnnotationOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawAnnotationOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawAnnotationOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -883,17 +1023,19 @@ void DrawAnnotationOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
     }
 }
 
+DrawImageLatticeOpItem::DrawImageLatticeOpItem() : DrawOpItem(IMAGE_LATTICE_OPITEM) {}
 DrawImageLatticeOpItem::DrawImageLatticeOpItem(const ImageHandle& image, const Lattice& lattice, const Rect& dst,
     FilterMode filter, const BrushHandle& brushHandle, bool hasBrush) : DrawOpItem(IMAGE_LATTICE_OPITEM),
     image_(std::move(image)), lattice_(lattice), dst_(dst), filter_(filter),
     brushHandle_(brushHandle), hasBrush_(hasBrush) {}
 
-void DrawImageLatticeOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> DrawImageLatticeOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawImageLatticeOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawImageLatticeOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawImageLatticeOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void DrawImageLatticeOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
@@ -942,10 +1084,10 @@ void DrawImageLatticeOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canva
     }
 }
 
-void DrawImageLatticeOpItem::Playback(CanvasPlayer& player, void* opItem)
+void DrawImageLatticeOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawImageLatticeOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawImageLatticeOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -959,15 +1101,17 @@ void DrawImageLatticeOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
     }
 }
 
+DrawBitmapOpItem::DrawBitmapOpItem() : DrawOpItem(BITMAP_OPITEM) {}
 DrawBitmapOpItem::DrawBitmapOpItem(const ImageHandle& bitmap, scalar px, scalar py)
     : DrawOpItem(BITMAP_OPITEM), bitmap_(bitmap), px_(px), py_(py) {}
 
-void DrawBitmapOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> DrawBitmapOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawBitmapOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawBitmapOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawBitmapOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void DrawBitmapOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
@@ -986,10 +1130,10 @@ void DrawBitmapOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawBitmapOpItem::Playback(CanvasPlayer& player, void* opItem)
+void DrawBitmapOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawBitmapOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawBitmapOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -1003,16 +1147,18 @@ void DrawBitmapOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
     }
 }
 
+DrawImageOpItem::DrawImageOpItem() : DrawOpItem(IMAGE_OPITEM) {}
 DrawImageOpItem::DrawImageOpItem(const ImageHandle& image, scalar px, scalar py,
     const SamplingOptions& samplingOptions) : DrawOpItem(IMAGE_OPITEM),
     image_(std::move(image)), px_(px), py_(py), samplingOptions_(samplingOptions) {}
 
-void DrawImageOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> DrawImageOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawImageOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawImageOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawImageOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void DrawImageOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
@@ -1031,10 +1177,10 @@ void DrawImageOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawImageOpItem::Playback(CanvasPlayer& player, void* opItem)
+void DrawImageOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawImageOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawImageOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -1048,16 +1194,18 @@ void DrawImageOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
     }
 }
 
+DrawImageRectOpItem::DrawImageRectOpItem() : DrawOpItem(IMAGE_RECT_OPITEM) {}
 DrawImageRectOpItem::DrawImageRectOpItem(const ImageHandle& image, const Rect& src, const Rect& dst,
     const SamplingOptions& sampling, SrcRectConstraint constraint) : DrawOpItem(IMAGE_RECT_OPITEM),
     image_(image), src_(src), dst_(dst), sampling_(sampling), constraint_(constraint) {}
 
-void DrawImageRectOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> DrawImageRectOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawImageRectOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawImageRectOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawImageRectOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void DrawImageRectOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
@@ -1076,10 +1224,10 @@ void DrawImageRectOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawImageRectOpItem::Playback(CanvasPlayer& player, void* opItem)
+void DrawImageRectOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawImageRectOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawImageRectOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -1093,14 +1241,16 @@ void DrawImageRectOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
     }
 }
 
+DrawPictureOpItem::DrawPictureOpItem() : DrawOpItem(PICTURE_OPITEM) {}
 DrawPictureOpItem::DrawPictureOpItem(const ImageHandle& picture) : DrawOpItem(PICTURE_OPITEM), picture_(picture) {}
 
-void DrawPictureOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> DrawPictureOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawPictureOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawPictureOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawPictureOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void DrawPictureOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
@@ -1119,10 +1269,10 @@ void DrawPictureOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawPictureOpItem::Playback(CanvasPlayer& player, void* opItem)
+void DrawPictureOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawPictureOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawPictureOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -1136,15 +1286,17 @@ void DrawPictureOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
     }
 }
 
+DrawTextBlobOpItem::DrawTextBlobOpItem() : DrawOpItem(TEXT_BLOB_OPITEM) {}
 DrawTextBlobOpItem::DrawTextBlobOpItem(const ImageHandle& textBlob, const scalar x, const scalar y)
     : DrawOpItem(TEXT_BLOB_OPITEM), textBlob_(textBlob), x_(x), y_(y) {}
 
-void DrawTextBlobOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> DrawTextBlobOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawTextBlobOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawTextBlobOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawTextBlobOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void DrawTextBlobOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
@@ -1164,10 +1316,10 @@ void DrawTextBlobOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawTextBlobOpItem::Playback(CanvasPlayer& player, void* opItem)
+void DrawTextBlobOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawTextBlobOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawTextBlobOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -1181,13 +1333,22 @@ void DrawTextBlobOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
     }
 }
 
+ClipRectOpItem::ClipRectOpItem() : DrawOpItem(CLIP_RECT_OPITEM) {}
 ClipRectOpItem::ClipRectOpItem(const Rect& rect, ClipOp op, bool doAntiAlias)
     : DrawOpItem(CLIP_RECT_OPITEM), rect_(rect), clipOp_(op), doAntiAlias_(doAntiAlias) {}
 
-void ClipRectOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<OpItem> ClipRectOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<ClipRectOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(ClipRectOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    return op;
+}
+
+void ClipRectOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<ClipRectOpItem*>(opItem);
+        auto op = std::static_pointer_cast<ClipRectOpItem>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1197,13 +1358,22 @@ void ClipRectOpItem::Playback(Canvas& canvas)
     canvas.ClipRect(rect_, clipOp_, doAntiAlias_);
 }
 
+ClipIRectOpItem::ClipIRectOpItem() : DrawOpItem(CLIP_IRECT_OPITEM) {}
 ClipIRectOpItem::ClipIRectOpItem(const RectI& rect, ClipOp op)
     : DrawOpItem(CLIP_IRECT_OPITEM), rect_(rect), clipOp_(op) {}
 
-void ClipIRectOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<OpItem> ClipIRectOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<ClipIRectOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(ClipIRectOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    return op;
+}
+
+void ClipIRectOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<ClipIRectOpItem*>(opItem);
+        auto op = std::static_pointer_cast<ClipIRectOpItem>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1213,16 +1383,18 @@ void ClipIRectOpItem::Playback(Canvas& canvas)
     canvas.ClipIRect(rect_, clipOp_);
 }
 
+ClipRoundRectOpItem::ClipRoundRectOpItem() : DrawOpItem(CLIP_ROUND_RECT_OPITEM) {}
 ClipRoundRectOpItem::ClipRoundRectOpItem(std::pair<uint32_t, size_t> radiusXYData, const Rect& rect, ClipOp op,
     bool doAntiAlias) : DrawOpItem(CLIP_ROUND_RECT_OPITEM), radiusXYData_(radiusXYData), rect_(rect), clipOp_(op),
     doAntiAlias_(doAntiAlias) {}
 
-void ClipRoundRectOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> ClipRoundRectOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<ClipRoundRectOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<ClipRoundRectOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(ClipRoundRectOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void ClipRoundRectOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
@@ -1239,10 +1411,10 @@ void ClipRoundRectOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void ClipRoundRectOpItem::Playback(CanvasPlayer& player, void* opItem)
+void ClipRoundRectOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<ClipRoundRectOpItem*>(opItem);
+        auto op = std::static_pointer_cast<ClipRoundRectOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -1256,15 +1428,17 @@ void ClipRoundRectOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
     }
 }
 
+ClipPathOpItem::ClipPathOpItem() : DrawOpItem(CLIP_PATH_OPITEM) {}
 ClipPathOpItem::ClipPathOpItem(const CmdListHandle& path, ClipOp clipOp, bool doAntiAlias)
     : DrawOpItem(CLIP_PATH_OPITEM), path_(path), clipOp_(clipOp), doAntiAlias_(doAntiAlias) {}
 
-void ClipPathOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> ClipPathOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<ClipPathOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<ClipPathOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(ClipPathOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void ClipPathOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
@@ -1284,10 +1458,10 @@ void ClipPathOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void ClipPathOpItem::Playback(CanvasPlayer& player, void* opItem)
+void ClipPathOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<ClipPathOpItem*>(opItem);
+        auto op = std::static_pointer_cast<ClipPathOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -1301,15 +1475,17 @@ void ClipPathOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
     }
 }
 
+ClipRegionOpItem::ClipRegionOpItem() : DrawOpItem(CLIP_REGION_OPITEM) {}
 ClipRegionOpItem::ClipRegionOpItem(const CmdListHandle& region, ClipOp clipOp)
     : DrawOpItem(CLIP_REGION_OPITEM), region_(region), clipOp_(clipOp) {}
 
-void ClipRegionOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> ClipRegionOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<ClipRegionOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<ClipRegionOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(ClipRegionOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void ClipRegionOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
@@ -1329,10 +1505,10 @@ void ClipRegionOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void ClipRegionOpItem::Playback(CanvasPlayer& player, void* opItem)
+void ClipRegionOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<ClipRegionOpItem*>(opItem);
+        auto op = std::static_pointer_cast<ClipRegionOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -1346,15 +1522,24 @@ void ClipRegionOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
     }
 }
 
+SetMatrixOpItem::SetMatrixOpItem() : DrawOpItem(SET_MATRIX_OPITEM) {}
 SetMatrixOpItem::SetMatrixOpItem(const Matrix& matrix) : DrawOpItem(SET_MATRIX_OPITEM)
 {
     matrix.GetAll(matrixBuffer_);
 }
 
-void SetMatrixOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<OpItem> SetMatrixOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<SetMatrixOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(SetMatrixOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    return op;
+}
+
+void SetMatrixOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<SetMatrixOpItem*>(opItem);
+        auto op = std::static_pointer_cast<SetMatrixOpItem>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1371,10 +1556,18 @@ void SetMatrixOpItem::Playback(Canvas& canvas)
 
 ResetMatrixOpItem::ResetMatrixOpItem() : DrawOpItem(RESET_MATRIX_OPITEM) {}
 
-void ResetMatrixOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<OpItem> ResetMatrixOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<ResetMatrixOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(ResetMatrixOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    return op;
+}
+
+void ResetMatrixOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<ResetMatrixOpItem*>(opItem);
+        auto op = std::static_pointer_cast<ResetMatrixOpItem>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1384,15 +1577,24 @@ void ResetMatrixOpItem::Playback(Canvas& canvas)
     canvas.ResetMatrix();
 }
 
+ConcatMatrixOpItem::ConcatMatrixOpItem() : DrawOpItem(CONCAT_MATRIX_OPITEM) {}
 ConcatMatrixOpItem::ConcatMatrixOpItem(const Matrix& matrix) : DrawOpItem(CONCAT_MATRIX_OPITEM)
 {
     matrix.GetAll(matrixBuffer_);
 }
 
-void ConcatMatrixOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<OpItem> ConcatMatrixOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<ConcatMatrixOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(ConcatMatrixOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    return op;
+}
+
+void ConcatMatrixOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<ConcatMatrixOpItem*>(opItem);
+        auto op = std::static_pointer_cast<ConcatMatrixOpItem>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1407,12 +1609,21 @@ void ConcatMatrixOpItem::Playback(Canvas& canvas)
     canvas.ConcatMatrix(matrix);
 }
 
+TranslateOpItem::TranslateOpItem() : DrawOpItem(TRANSLATE_OPITEM) {}
 TranslateOpItem::TranslateOpItem(scalar dx, scalar dy) : DrawOpItem(TRANSLATE_OPITEM), dx_(dx), dy_(dy) {}
 
-void TranslateOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<OpItem> TranslateOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<TranslateOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(TranslateOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    return op;
+}
+
+void TranslateOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<TranslateOpItem*>(opItem);
+        auto op = std::static_pointer_cast<TranslateOpItem>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1422,12 +1633,21 @@ void TranslateOpItem::Playback(Canvas& canvas)
     canvas.Translate(dx_, dy_);
 }
 
+ScaleOpItem::ScaleOpItem() : DrawOpItem(SCALE_OPITEM) {}
 ScaleOpItem::ScaleOpItem(scalar sx, scalar sy) : DrawOpItem(SCALE_OPITEM), sx_(sx), sy_(sy) {}
 
-void ScaleOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<OpItem> ScaleOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<ScaleOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(ScaleOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    return op;
+}
+
+void ScaleOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<ScaleOpItem*>(opItem);
+        auto op = std::static_pointer_cast<ScaleOpItem>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1437,12 +1657,21 @@ void ScaleOpItem::Playback(Canvas& canvas)
     canvas.Scale(sx_, sy_);
 }
 
+RotateOpItem::RotateOpItem() : DrawOpItem(ROTATE_OPITEM) {}
 RotateOpItem::RotateOpItem(scalar deg, scalar sx, scalar sy) : DrawOpItem(ROTATE_OPITEM), deg_(deg), sx_(sx), sy_(sy) {}
 
-void RotateOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<OpItem> RotateOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<RotateOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(RotateOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    return op;
+}
+
+void RotateOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<RotateOpItem*>(opItem);
+        auto op = std::static_pointer_cast<RotateOpItem>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1452,12 +1681,21 @@ void RotateOpItem::Playback(Canvas& canvas)
     canvas.Rotate(deg_, sx_, sy_);
 }
 
+ShearOpItem::ShearOpItem() : DrawOpItem(SHEAR_OPITEM) {}
 ShearOpItem::ShearOpItem(scalar sx, scalar sy) : DrawOpItem(SHEAR_OPITEM), sx_(sx), sy_(sy) {}
 
-void ShearOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<OpItem> ShearOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<ShearOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(ShearOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    return op;
+}
+
+void ShearOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<ShearOpItem*>(opItem);
+        auto op = std::static_pointer_cast<ShearOpItem>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1469,10 +1707,18 @@ void ShearOpItem::Playback(Canvas& canvas)
 
 FlushOpItem::FlushOpItem() : DrawOpItem(FLUSH_OPITEM) {}
 
-void FlushOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<OpItem> FlushOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<FlushOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(FlushOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    return op;
+}
+
+void FlushOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<FlushOpItem*>(opItem);
+        auto op = std::static_pointer_cast<FlushOpItem>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1482,12 +1728,21 @@ void FlushOpItem::Playback(Canvas& canvas)
     canvas.Flush();
 }
 
+ClearOpItem::ClearOpItem() : DrawOpItem(CLEAR_OPITEM) {}
 ClearOpItem::ClearOpItem(ColorQuad color) : DrawOpItem(CLEAR_OPITEM), color_(color) {}
 
-void ClearOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<OpItem> ClearOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<ClearOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(ClearOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    return op;
+}
+
+void ClearOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<ClearOpItem*>(opItem);
+        auto op = std::static_pointer_cast<ClearOpItem>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1499,10 +1754,18 @@ void ClearOpItem::Playback(Canvas& canvas)
 
 SaveOpItem::SaveOpItem() : DrawOpItem(SAVE_OPITEM) {}
 
-void SaveOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<OpItem> SaveOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<SaveOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(SaveOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    return op;
+}
+
+void SaveOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<SaveOpItem*>(opItem);
+        auto op = std::static_pointer_cast<SaveOpItem>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1512,17 +1775,19 @@ void SaveOpItem::Playback(Canvas& canvas)
     canvas.Save();
 }
 
+SaveLayerOpItem::SaveLayerOpItem() : DrawOpItem(SAVE_LAYER_OPITEM) {}
 SaveLayerOpItem::SaveLayerOpItem(const Rect& rect, bool hasBrush, const BrushHandle& brushHandle,
     const CmdListHandle& imageFilter, uint32_t saveLayerFlags) : DrawOpItem(SAVE_LAYER_OPITEM),
     rect_(rect), hasBrush_(hasBrush), brushHandle_(brushHandle), imageFilter_(imageFilter),
     saveLayerFlags_(saveLayerFlags) {}
 
-void SaveLayerOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> SaveLayerOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<SaveLayerOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<SaveLayerOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(SaveLayerOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void SaveLayerOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
@@ -1578,10 +1843,10 @@ void SaveLayerOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void SaveLayerOpItem::Playback(CanvasPlayer& player, void* opItem)
+void SaveLayerOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<SaveLayerOpItem*>(opItem);
+        auto op = std::static_pointer_cast<SaveLayerOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -1597,10 +1862,18 @@ void SaveLayerOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
 
 RestoreOpItem::RestoreOpItem() : DrawOpItem(RESTORE_OPITEM) {}
 
-void RestoreOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<OpItem> RestoreOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<RestoreOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(RestoreOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    return op;
+}
+
+void RestoreOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<RestoreOpItem*>(opItem);
+        auto op = std::static_pointer_cast<RestoreOpItem>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1612,10 +1885,18 @@ void RestoreOpItem::Playback(Canvas& canvas)
 
 DiscardOpItem::DiscardOpItem() : DrawOpItem(DISCARD_OPITEM) {}
 
-void DiscardOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<OpItem> DiscardOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DiscardOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DiscardOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    return op;
+}
+
+void DiscardOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DiscardOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DiscardOpItem>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1625,14 +1906,16 @@ void DiscardOpItem::Playback(Canvas& canvas)
     canvas.Discard();
 }
 
+AttachPenOpItem::AttachPenOpItem() : DrawOpItem(ATTACH_PEN_OPITEM) {}
 AttachPenOpItem::AttachPenOpItem(const PenHandle& penHandle) : DrawOpItem(ATTACH_PEN_OPITEM), penHandle_(penHandle) {}
 
-void AttachPenOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> AttachPenOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<AttachPenOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<AttachPenOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(AttachPenOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void AttachPenOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
@@ -1680,10 +1963,10 @@ void AttachPenOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void AttachPenOpItem::Playback(CanvasPlayer& player, void* opItem)
+void AttachPenOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<AttachPenOpItem*>(opItem);
+        auto op = std::static_pointer_cast<AttachPenOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -1697,15 +1980,17 @@ void AttachPenOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
     }
 }
 
+AttachBrushOpItem::AttachBrushOpItem() : DrawOpItem(ATTACH_BRUSH_OPITEM) {}
 AttachBrushOpItem::AttachBrushOpItem(const BrushHandle& brushHandle)
     : DrawOpItem(ATTACH_BRUSH_OPITEM), brushHandle_(brushHandle) {}
 
-void AttachBrushOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> AttachBrushOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<AttachBrushOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<AttachBrushOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(AttachBrushOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void AttachBrushOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
@@ -1745,10 +2030,10 @@ void AttachBrushOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void AttachBrushOpItem::Playback(CanvasPlayer& player, void* opItem)
+void AttachBrushOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<AttachBrushOpItem*>(opItem);
+        auto op = std::static_pointer_cast<AttachBrushOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -1764,10 +2049,18 @@ void AttachBrushOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
 
 DetachPenOpItem::DetachPenOpItem() : DrawOpItem(DETACH_PEN_OPITEM) {}
 
-void DetachPenOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<OpItem> DetachPenOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DetachPenOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DetachPenOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    return op;
+}
+
+void DetachPenOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DetachPenOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DetachPenOpItem>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1779,10 +2072,18 @@ void DetachPenOpItem::Playback(Canvas& canvas)
 
 DetachBrushOpItem::DetachBrushOpItem() : DrawOpItem(DETACH_BRUSH_OPITEM) {}
 
-void DetachBrushOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<OpItem> DetachBrushOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DetachBrushOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DetachBrushOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    return op;
+}
+
+void DetachBrushOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DetachBrushOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DetachBrushOpItem>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1792,15 +2093,17 @@ void DetachBrushOpItem::Playback(Canvas& canvas)
     canvas.DetachBrush();
 }
 
+ClipAdaptiveRoundRectOpItem::ClipAdaptiveRoundRectOpItem() : DrawOpItem(CLIP_ADAPTIVE_ROUND_RECT_OPITEM) {}
 ClipAdaptiveRoundRectOpItem::ClipAdaptiveRoundRectOpItem(const std::pair<uint32_t, size_t>& radiusData)
     : DrawOpItem(CLIP_ADAPTIVE_ROUND_RECT_OPITEM), radiusData_(radiusData) {}
 
-void ClipAdaptiveRoundRectOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> ClipAdaptiveRoundRectOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<ClipAdaptiveRoundRectOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<ClipAdaptiveRoundRectOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(ClipAdaptiveRoundRectOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void ClipAdaptiveRoundRectOpItem::Unmarshalling(const CmdList& cmdList)
@@ -1813,10 +2116,10 @@ void ClipAdaptiveRoundRectOpItem::Unmarshalling(const CmdList& cmdList)
     };
 }
 
-void ClipAdaptiveRoundRectOpItem::Playback(CanvasPlayer& player, void* opItem)
+void ClipAdaptiveRoundRectOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<ClipAdaptiveRoundRectOpItem*>(opItem);
+        auto op = std::static_pointer_cast<ClipAdaptiveRoundRectOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_, player.rect_);
     }
 }
@@ -1832,16 +2135,18 @@ void ClipAdaptiveRoundRectOpItem::Playback(Canvas& canvas, const CmdList& cmdLis
     }
 }
 
+DrawAdaptiveImageOpItem::DrawAdaptiveImageOpItem() : DrawOpItem(ADAPTIVE_IMAGE_OPITEM) {}
 DrawAdaptiveImageOpItem::DrawAdaptiveImageOpItem(const ImageHandle& image, const AdaptiveImageInfo& rsImageInfo,
     const SamplingOptions& sampling, const bool isImage) : DrawOpItem(ADAPTIVE_IMAGE_OPITEM),
     image_(image), rsImageInfo_(rsImageInfo), sampling_(sampling), isImage_(isImage) {}
 
-void DrawAdaptiveImageOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> DrawAdaptiveImageOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawAdaptiveImageOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawAdaptiveImageOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawAdaptiveImageOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void DrawAdaptiveImageOpItem::Unmarshalling(const CmdList& cmdList)
@@ -1868,10 +2173,10 @@ void DrawAdaptiveImageOpItem::Unmarshalling(const CmdList& cmdList)
     };
 }
 
-void DrawAdaptiveImageOpItem::Playback(CanvasPlayer& player, void* opItem)
+void DrawAdaptiveImageOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawAdaptiveImageOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawAdaptiveImageOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_, player.rect_);
     }
 }
@@ -1901,16 +2206,18 @@ void DrawAdaptiveImageOpItem::Playback(Canvas& canvas, const CmdList& cmdList, c
     AdaptiveImageHelper::DrawImage(canvas, rect, data, rsImageInfo_, sampling_);
 }
 
+DrawAdaptivePixelMapOpItem::DrawAdaptivePixelMapOpItem() : DrawOpItem(ADAPTIVE_PIXELMAP_OPITEM) {}
 DrawAdaptivePixelMapOpItem::DrawAdaptivePixelMapOpItem(const ImageHandle& pixelMap, const AdaptiveImageInfo& imageInfo,
     const SamplingOptions& smapling) : DrawOpItem(ADAPTIVE_PIXELMAP_OPITEM), pixelMap_(pixelMap),
     imageInfo_(imageInfo), smapling_(smapling) {}
 
-void DrawAdaptivePixelMapOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> DrawAdaptivePixelMapOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawAdaptivePixelMapOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawAdaptivePixelMapOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawAdaptivePixelMapOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void DrawAdaptivePixelMapOpItem::Unmarshalling(const CmdList& cmdList)
@@ -1926,10 +2233,10 @@ void DrawAdaptivePixelMapOpItem::Unmarshalling(const CmdList& cmdList)
     };
 }
 
-void DrawAdaptivePixelMapOpItem::Playback(CanvasPlayer& player, void* opItem)
+void DrawAdaptivePixelMapOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<DrawAdaptivePixelMapOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawImageWithParmOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_, player.rect_);
     }
 }
@@ -1950,15 +2257,17 @@ void DrawAdaptivePixelMapOpItem::Playback(Canvas& canvas, const CmdList& cmdList
     AdaptiveImageHelper::DrawPixelMap(canvas, rect, pixelMap, imageInfo_, smapling_);
 }
 
+DrawImageWithParmOpItem::DrawImageWithParmOpItem() : DrawOpItem(IMAGE_WITH_PARM_OPITEM) {}
 DrawImageWithParmOpItem::DrawImageWithParmOpItem(const ImageHandle& objectHandle, const SamplingOptions& sampling)
     : DrawOpItem(IMAGE_WITH_PARM_OPITEM), objectHandle_(objectHandle), sampling_(sampling) {}
 
-void DrawImageWithParmOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> DrawImageWithParmOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawImageWithParmOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawImageWithParmOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawImageWithParmOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void DrawImageWithParmOpItem::Unmarshalling(const CmdList& cmdList)
@@ -1974,10 +2283,10 @@ void DrawImageWithParmOpItem::Unmarshalling(const CmdList& cmdList)
     };
 }
 
-void DrawImageWithParmOpItem::Playback(CanvasPlayer& player, void* opItem)
+void DrawImageWithParmOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<const DrawImageWithParmOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawImageWithParmOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_, player.rect_);
     }
 }
@@ -1997,15 +2306,17 @@ void DrawImageWithParmOpItem::Playback(Canvas& canvas, const CmdList& cmdList, c
     extendObject->Playback(canvas, rect, sampling_, false);
 }
 
+DrawExtendPixelMapOpItem::DrawExtendPixelMapOpItem() : DrawOpItem(EXTEND_PIXELMAP_OPITEM) {}
 DrawExtendPixelMapOpItem::DrawExtendPixelMapOpItem(const ImageHandle& objectHandle, const SamplingOptions& sampling)
     : DrawOpItem(EXTEND_PIXELMAP_OPITEM), objectHandle_(objectHandle), sampling_(sampling) {}
 
-void DrawExtendPixelMapOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<OpItem> DrawExtendPixelMapOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawExtendPixelMapOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawExtendPixelMapOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawExtendPixelMapOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
 }
 
 void DrawExtendPixelMapOpItem::Unmarshalling(const CmdList& cmdList)
@@ -2022,10 +2333,10 @@ void DrawExtendPixelMapOpItem::Unmarshalling(const CmdList& cmdList)
 }
 
 
-void DrawExtendPixelMapOpItem::Playback(CanvasPlayer& player, void* opItem)
+void DrawExtendPixelMapOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
 {
     if (opItem != nullptr) {
-        auto* op = static_cast<const DrawExtendPixelMapOpItem*>(opItem);
+        auto op = std::static_pointer_cast<DrawExtendPixelMapOpItem>(opItem);
         op->Playback(player.canvas_, player.cmdList_, player.rect_);
     }
 }
