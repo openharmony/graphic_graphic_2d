@@ -1483,9 +1483,6 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, N
     isNewOnTree_ = flag && !isOnTheTree_;
     // if node is marked as cacheRoot, update subtree status when update surface
     // in case prepare stage upper cacheRoot cannot specify dirty subnode
-    if (cacheNodeId != INVALID_NODEID) {
-        SetDrawingCacheRootId(cacheNodeId);
-    }
     RSBaseRenderNode::SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId);
     if (flag == isReportFirstFrame_ || !IsAppWindow()) {
         return;
