@@ -66,11 +66,130 @@ declare namespace colorSpaceManager {
     SRGB = 4,
 
     /**
+     * TODO
+     * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
+     */
+    BT709 = 5,
+
+    /**
+     * TODO
+     * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
+     */
+    BT601_625 = 6,
+
+    /**
+     * TODO
+     * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
+     */
+    BT601_525 = 7,
+
+    /**
+     * TODO
+     * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
+     */
+    BT2020 = 8,
+
+    /**
+     * TODO
+     * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
+     */
+    ADOBE_RGB_1998_LIMIT = 9,
+
+    /**
+     * TODO
+     * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
+     */
+    DCI_P3_LINEAR = 10,
+
+    /**
+     * TODO
+     * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
+     */
+    DCI_P3_LIMIT = 11,
+
+    /**
+     * TODO
+     * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
+     */
+    DISPLAY_P3_LINEAR = 12,
+
+    /**
+     * TODO
+     * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
+     */
+    DISPLAY_P3_LIMIT = 13,
+
+    /**
+     * TODO
+     * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
+     */
+    SRGB_LINEAR = 14,
+
+    /**
+     * TODO
+     * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
+     */
+    SRGB_LIMIT = 15,
+
+    /**
+     * TODO
+     * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
+     */
+    BT709_FULL = 16,
+
+    /**
+     * TODO
+     * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
+     */
+    BT601_625_FULL = 17,
+
+    /**
+     * TODO
+     * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
+     */
+    BT601_525_FULL = 18,
+
+    /**
+     * TODO
+     * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
+     */
+    BT2020_SRGB = 19,
+
+    /**
+     * TODO
+     * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
+     */
+    BT2020_LINEAR = 20,
+
+    /**
+     * TODO
+     * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
+     * @since 9
+     */
+    BT2020_LIMIT = 21,
+
+    /**
      * Indicates a customized color space.
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
      */
-    CUSTOM = 5,
+    CUSTOM = 22,
   }
 
   /**

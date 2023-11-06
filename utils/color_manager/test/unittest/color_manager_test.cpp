@@ -252,6 +252,346 @@ HWTEST_F(ColorManagerTest, DCI_P3ToAdobe, Function | SmallTest | Level2)
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
+* CaseDescription: sRGB convert to sRGB_Linear
+*/
+HWTEST_F(ColorManagerTest, sRGBTosRGB_Linear, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DCI_P3);
+    // TODO
+    Color result = color.Convert(ADOBE_RGB);
+    ASSERT_EQ(FloatEqual(result.r, 0.0880399f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.151082f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.245245f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: sRGB_Linear convert to sRGB
+*/
+HWTEST_F(ColorManagerTest, sRGB_LinearTosRGB, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DCI_P3);
+    // TODO
+    Color result = color.Convert(ADOBE_RGB);
+    ASSERT_EQ(FloatEqual(result.r, 0.0880399f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.151082f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.245245f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: sRGB convert to BT709
+*/
+HWTEST_F(ColorManagerTest, sRGBToBT709, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DCI_P3);
+    // TODO
+    Color result = color.Convert(ADOBE_RGB);
+    ASSERT_EQ(FloatEqual(result.r, 0.0880399f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.151082f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.245245f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: BT709 convert to sRGB
+*/
+HWTEST_F(ColorManagerTest, BT709TosRGB, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DCI_P3);
+    // TODO
+    Color result = color.Convert(ADOBE_RGB);
+    ASSERT_EQ(FloatEqual(result.r, 0.0880399f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.151082f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.245245f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: sRGB convert to BT601_625
+*/
+HWTEST_F(ColorManagerTest, sRGBToBT601_625, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DCI_P3);
+    // TODO
+    Color result = color.Convert(ADOBE_RGB);
+    ASSERT_EQ(FloatEqual(result.r, 0.0880399f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.151082f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.245245f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: BT601_625 convert to sRGB
+*/
+HWTEST_F(ColorManagerTest, BT601_625TosRGB, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DCI_P3);
+    // TODO
+    Color result = color.Convert(ADOBE_RGB);
+    ASSERT_EQ(FloatEqual(result.r, 0.0880399f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.151082f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.245245f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: sRGB convert to BT601_525
+*/
+HWTEST_F(ColorManagerTest, sRGBToBT601_525, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DCI_P3);
+    // TODO
+    Color result = color.Convert(ADOBE_RGB);
+    ASSERT_EQ(FloatEqual(result.r, 0.0880399f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.151082f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.245245f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: BT601_525 convert to sRGB
+*/
+HWTEST_F(ColorManagerTest, BT601_525TosRGB, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DCI_P3);
+    // TODO
+    Color result = color.Convert(ADOBE_RGB);
+    ASSERT_EQ(FloatEqual(result.r, 0.0880399f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.151082f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.245245f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: sRGB convert to BT2020
+*/
+HWTEST_F(ColorManagerTest, sRGBToBT2020, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DCI_P3);
+    // TODO
+    Color result = color.Convert(ADOBE_RGB);
+    ASSERT_EQ(FloatEqual(result.r, 0.0880399f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.151082f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.245245f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: BT2020 convert to sRGB
+*/
+HWTEST_F(ColorManagerTest, BT2020TosRGB, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DCI_P3);
+    // TODO
+    Color result = color.Convert(ADOBE_RGB);
+    ASSERT_EQ(FloatEqual(result.r, 0.0880399f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.151082f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.245245f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: sRGB convert to BT2020_Linear
+*/
+HWTEST_F(ColorManagerTest, sRGBToBT2020_Linear, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DCI_P3);
+    // TODO
+    Color result = color.Convert(ADOBE_RGB);
+    ASSERT_EQ(FloatEqual(result.r, 0.0880399f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.151082f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.245245f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: BT2020_Linear convert to sRGB
+*/
+HWTEST_F(ColorManagerTest, BT2020_LinearTosRGB, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DCI_P3);
+    // TODO
+    Color result = color.Convert(ADOBE_RGB);
+    ASSERT_EQ(FloatEqual(result.r, 0.0880399f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.151082f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.245245f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: sRGB convert to Display_P3_Linear
+*/
+HWTEST_F(ColorManagerTest, sRGBToDisplay_P3_Linear, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DCI_P3);
+    // TODO
+    Color result = color.Convert(ADOBE_RGB);
+    ASSERT_EQ(FloatEqual(result.r, 0.0880399f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.151082f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.245245f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Display_P3_Linear convert to sRGB
+*/
+HWTEST_F(ColorManagerTest, Display_P3_LinearTosRGB, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DCI_P3);
+    // TODO
+    Color result = color.Convert(ADOBE_RGB);
+    ASSERT_EQ(FloatEqual(result.r, 0.0880399f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.151082f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.245245f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: sRGB convert to DCI_P3_Linear
+*/
+HWTEST_F(ColorManagerTest, sRGBToDCI_P3_Linear, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DCI_P3);
+    // TODO
+    Color result = color.Convert(ADOBE_RGB);
+    ASSERT_EQ(FloatEqual(result.r, 0.0880399f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.151082f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.245245f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: DCI_P3_Linear convert to sRGB
+*/
+HWTEST_F(ColorManagerTest, DCI_P3_LinearTosRGB, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DCI_P3);
+    // TODO
+    Color result = color.Convert(ADOBE_RGB);
+    ASSERT_EQ(FloatEqual(result.r, 0.0880399f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.151082f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.245245f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: sRGB convert to NTSC_1963
+*/
+HWTEST_F(ColorManagerTest, sRGBToNTSC_1963, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DCI_P3);
+    // TODO
+    Color result = color.Convert(ADOBE_RGB);
+    ASSERT_EQ(FloatEqual(result.r, 0.0880399f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.151082f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.245245f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: NTSC_1963 convert to sRGB
+*/
+HWTEST_F(ColorManagerTest, NTSC_1963TosRGB, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DCI_P3);
+    // TODO
+    Color result = color.Convert(ADOBE_RGB);
+    ASSERT_EQ(FloatEqual(result.r, 0.0880399f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.151082f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.245245f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: sRGB convert to NTSC_1963
+*/
+HWTEST_F(ColorManagerTest, sRGBToNTSC_1963, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DCI_P3);
+    // TODO
+    Color result = color.Convert(ADOBE_RGB);
+    ASSERT_EQ(FloatEqual(result.r, 0.0880399f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.151082f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.245245f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: NTSC_1963 convert to sRGB
+*/
+HWTEST_F(ColorManagerTest, NTSC_1963TosRGB, Function | SmallTest | Level2)
+{
+    Color color = Color(0.1, 0.2, 0.3, 0.4, DCI_P3);
+    // TODO
+    Color result = color.Convert(ADOBE_RGB);
+    ASSERT_EQ(FloatEqual(result.r, 0.0880399f), true);
+    ASSERT_EQ(FloatEqual(result.g, 0.151082f), true);
+    ASSERT_EQ(FloatEqual(result.b, 0.245245f), true);
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
 * CaseDescription: sRGB convert to DCI_P3
 */
 HWTEST_F(ColorManagerTest, skiaToColorSpace, Function | SmallTest | Level2)
