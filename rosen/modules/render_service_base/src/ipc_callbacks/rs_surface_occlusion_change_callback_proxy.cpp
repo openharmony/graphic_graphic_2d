@@ -27,7 +27,7 @@ RSSurfaceOcclusionChangeCallbackProxy::RSSurfaceOcclusionChangeCallbackProxy(con
 {
 }
 
-void RSSurfaceOcclusionChangeCallbackProxy::OnSurfaceOcclusionVisibleChanged(bool visible)
+void RSSurfaceOcclusionChangeCallbackProxy::OnSurfaceOcclusionVisibleChanged(float visibleAreaRatio)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -38,7 +38,7 @@ void RSSurfaceOcclusionChangeCallbackProxy::OnSurfaceOcclusionVisibleChanged(boo
     }
 
     option.SetFlags(MessageOption::TF_ASYNC);
-    data.WriteBool(visible);
+    data.WriteFloat(visibleAreaRatio);
     uint32_t code = static_cast<uint32_t>(
         RSISurfaceOcclusionChangeCallbackInterfaceCode::ON_SURFACE_OCCLUSION_VISIBLE_CHANGED);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
