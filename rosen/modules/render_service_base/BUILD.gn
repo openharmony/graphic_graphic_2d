@@ -239,10 +239,6 @@ ohos_source_set("render_service_base_src") {
   public_configs = [ ":export_config" ]
   public_deps = [ "src/platform:platform" ]
 
-  if (rs_enable_parallel_upload) {
-    sources += [ "src/common/rs_upload_texture_thread.cpp" ]
-  }
-
   if (defined(use_new_render_context) && use_new_render_context) {
     public_deps += [ "src/render_backend:librender_backend" ]
   }

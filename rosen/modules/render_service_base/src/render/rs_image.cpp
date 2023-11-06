@@ -331,15 +331,12 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
             ++maxY;
         }
     }
-
     // draw repeat rect
 #ifndef USE_ROSEN_DRAWING
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
-#if !defined(RS_ENABLE_PARALLEL_UPLOAD) || !defined(RS_ENABLE_UNI_RENDER)
     if (pixelMap_ != nullptr && image_ == nullptr) {
         ConvertPixelMapToSkImage();
     }
-#endif
 #else
     ConvertPixelMapToSkImage();
 #endif
@@ -630,13 +627,6 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     rsImage->uniqueId_ = uniqueId;
     rsImage->MarkRenderServiceImage();
     RSImageBase::IncreaseCacheRefCount(uniqueId, useSkImage, pixelMap);
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-    if (pixelMap != nullptr && pixelMap->GetAllocatorType() != Media::AllocatorType::DMA_ALLOC) {
-        rsImage->ConvertPixelMapToSkImage();
-    }
-#endif
-#endif
     return rsImage;
 }
 #endif

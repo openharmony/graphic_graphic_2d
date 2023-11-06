@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#define EGL_EGLEXT_PROTOTYPES
 #include "pipeline/rs_main_thread.h"
 
 #include <list>
@@ -25,11 +24,6 @@
 #include <string>
 #include <unistd.h>
 #include <malloc.h>
-#ifdef RS_ENABLE_GL
-#include "GLES3/gl3.h"
-#include "EGL/egl.h"
-#include "EGL/eglext.h"
-#endif
 #ifdef NEW_SKIA
 #include "include/gpu/GrDirectContext.h"
 #else
@@ -41,9 +35,6 @@
 #include "animation/rs_animation_fraction.h"
 #include "command/rs_message_processor.h"
 #include "common/rs_background_thread.h"
-#ifdef RS_ENABLE_PARALLEL_UPLOAD
-#include "common/rs_upload_texture_thread.h"
-#endif
 #include "delegate/rs_functional_delegate.h"
 #include "memory/rs_memory_manager.h"
 #include "memory/rs_memory_track.h"
@@ -271,12 +262,6 @@ void RSMainThread::Init()
                 std::lock_guard<std::mutex> lock(unmarshalMutex_);
                 ++unmarshalFinishedCount_;
             }
-
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-            RSUploadTextureThread::Instance().PostTask(uploadTextureBarrierTask_);
-#endif
-#endif
             unmarshalTaskCond_.notify_all();
         };
         RSUnmarshalThread::Instance().Start();
@@ -342,21 +327,6 @@ void RSMainThread::Init()
 #if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
     RSDrivenRenderManager::InitInstance();
     RSBackgroundThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext().get());
-#endif
-
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-    uploadTextureBarrierTask_ = [this]() {
-        auto renderContext = GetRenderEngine()->GetRenderContext().get();
-        uploadTextureFence = eglCreateSyncKHR(renderContext->GetEGLDisplay(), EGL_SYNC_FENCE_KHR, nullptr);
-        {
-            std::lock_guard<std::mutex> lock(uploadTextureMutex_);
-            ++uploadTextureFinishedCount_;
-        }
-        uploadTextureTaskCond_.notify_all();
-    };
-    RSUploadTextureThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext().get());
-#endif
 #endif
 
 #if defined(ACCESSIBILITY_ENABLE)
@@ -1190,32 +1160,6 @@ void RSMainThread::WaitUtilDrivenRenderFinished()
     drivenRenderFinished_ = false;
 #endif
 }
-#if defined(RS_ENABLE_PARALLEL_UPLOAD) && defined(RS_ENABLE_GL)
-void RSMainThread::WaitUntilUploadTextureTaskFinished()
-{
-    if (!isUniRender_) {
-        return;
-    }
-    RS_OPTIONAL_TRACE_BEGIN("RSMainThread::WaitUntilUploadTextureTaskFinished");
-    {
-        std::unique_lock<std::mutex> lock(uploadTextureMutex_);
-        uploadTextureTaskCond_.wait(lock, [this]() { return uploadTextureFinishedCount_ > 0; });
-        --uploadTextureFinishedCount_;
-    }
-    if (uploadTextureFence != EGL_NO_SYNC_KHR) {
-        auto diplayID = GetRenderEngine()->GetRenderContext().get()->GetEGLDisplay();
-        EGLint waitStatus = eglWaitSyncKHR(diplayID, uploadTextureFence, 0);
-        if (waitStatus == EGL_FALSE) {
-            ROSEN_LOGE("eglClientWaitSyncKHR error 0x%{public}x", eglGetError());
-        } else if (waitStatus == EGL_TIMEOUT_EXPIRED_KHR) {
-            ROSEN_LOGE("create eglClientWaitSyncKHR timeout");
-        }
-        eglDestroySyncKHR(diplayID, uploadTextureFence);
-    }
-    uploadTextureFence = EGL_NO_SYNC_KHR;
-    RS_OPTIONAL_TRACE_END();
-}
-#endif
 
 void RSMainThread::WaitUntilUnmarshallingTaskFinished()
 {
@@ -1325,11 +1269,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
                     node->MarkCurrentFrameHardwareEnabled();
                 }
             }
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-            WaitUntilUploadTextureTaskFinished();
-#endif
-#endif
             return;
         }
     }
@@ -1351,19 +1290,9 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
                 RS_LOGD("RSMainThread::Render multi-threads parallel composition end.");
                 isDirty_ = false;
                 PerfForBlurIfNeeded();
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-                WaitUntilUploadTextureTaskFinished();
-#endif
-#endif
                 return;
             }
         }
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-        WaitUntilUploadTextureTaskFinished();
-#endif
-#endif
         if (IsUIFirstOn()) {
             auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
                 rootNode->GetSortedChildren().front());
@@ -1376,12 +1305,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             RSUniRenderUtil::CacheSubThreadNodes(subThreadNodes_, subThreadNodes);
         }
         rootNode->Process(uniVisitor);
-    } else {
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-        WaitUntilUploadTextureTaskFinished();
-#endif
-#endif
     }
     isDirty_ = false;
     forceUpdateUniRenderFlag_ = false;
@@ -1391,11 +1314,6 @@ void RSMainThread::Render()
 {
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (rootNode == nullptr) {
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-        WaitUntilUploadTextureTaskFinished();
-#endif
-#endif
         RS_LOGE("RSMainThread::Render GetGlobalRootRenderNode fail");
         return;
     }
@@ -1410,6 +1328,7 @@ void RSMainThread::Render()
         rsVisitor->SetAnimateState(doWindowAnimate_);
         rootNode->Prepare(rsVisitor);
         CalcOcclusion();
+
         bool doParallelComposition = false;
         if (!rsVisitor->ShouldForceSerial() && RSInnovation::GetParallelCompositionEnabled(isUniRender_)) {
             doParallelComposition = DoParallelComposition(rootNode);
