@@ -24,7 +24,6 @@
 #include "buffer_manager.h"
 #include "buffer_extra_data_impl.h"
 #include "native_buffer.h"
-#include "v1_0/include/idisplay_buffer.h"
 #include "v1_1/include/idisplay_buffer.h"
 
 namespace OHOS {
@@ -51,8 +50,8 @@ inline GSError GenerateError(GSError err, int32_t code)
     return GenerateError(err, static_cast<GraphicDispErrCode>(code));
 }
 
-using namespace OHOS::HDI::Display::Buffer::V1_0;
-using IDisplayBufferSptr = std::shared_ptr<OHOS::HDI::Display::Buffer::V1_1::IDisplayBuffer>;
+using namespace OHOS::HDI::Display::Buffer::V1_1;
+using IDisplayBufferSptr = std::shared_ptr<IDisplayBuffer>;
 static IDisplayBufferSptr g_displayBuffer;
 static std::mutex g_DisplayBufferMutex;
 class DisplayBufferDiedRecipient : public OHOS::IRemoteObject::DeathRecipient {
@@ -73,7 +72,7 @@ IDisplayBufferSptr GetDisplayBuffer()
         return g_displayBuffer;
     }
 
-    g_displayBuffer.reset(OHOS::HDI::Display::Buffer::V1_1::IDisplayBuffer::Get());
+    g_displayBuffer.reset(IDisplayBuffer::Get());
     if (g_displayBuffer == nullptr) {
         BLOGE("IDisplayBuffer::Get return nullptr.");
         return nullptr;
@@ -151,7 +150,7 @@ GSError SurfaceBufferImpl::Alloc(const BufferRequestConfig &config)
     }
 
     BufferHandle *handle = nullptr;
-    AllocInfo info = {config.width, config.height, config.usage, config.format};
+    OHOS::HDI::Display::Buffer::V1_0::AllocInfo info = {config.width, config.height, config.usage, config.format};
     auto dret = g_displayBuffer->AllocMem(info, handle);
     if (dret == GRAPHIC_DISPLAY_SUCCESS) {
         std::lock_guard<std::mutex> lock(mutex_);
