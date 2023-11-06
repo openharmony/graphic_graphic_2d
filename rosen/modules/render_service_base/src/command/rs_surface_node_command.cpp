@@ -173,6 +173,9 @@ void SurfaceNodeCommandHelper::AttachToDisplay(RSContext& context, NodeId nodeId
 {
     const auto& nodeMap = context.GetNodeMap();
     auto surfaceRenderNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(nodeId);
+    if (surfaceRenderNode == nullptr) {
+        return;
+    }
     nodeMap.TraverseDisplayNodes(
         [&surfaceRenderNode, &screenId](const std::shared_ptr<RSDisplayRenderNode>& displayRenderNode) {
             if (displayRenderNode == nullptr || displayRenderNode->GetScreenId() != screenId ||
@@ -187,6 +190,9 @@ void SurfaceNodeCommandHelper::DetachToDisplay(RSContext& context, NodeId nodeId
 {
     const auto& nodeMap = context.GetNodeMap();
     auto surfaceRenderNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(nodeId);
+    if (surfaceRenderNode == nullptr) {
+        return;
+    }
     nodeMap.TraverseDisplayNodes(
         [&surfaceRenderNode, &screenId](const std::shared_ptr<RSDisplayRenderNode>& displayRenderNode) {
             if (displayRenderNode == nullptr || displayRenderNode->GetScreenId() != screenId ||
