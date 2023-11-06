@@ -61,13 +61,13 @@ public:
     CanvasPlayer(Canvas& canvas, const CmdList& cmdList, const Rect& rect);
     ~CanvasPlayer() = default;
 
-    bool Playback(uint32_t type, std::shared_ptr<OpItem> opItem);
+    bool Playback(uint32_t type, void* opItem);
 
     Canvas& canvas_;
     const CmdList& cmdList_;
     const Rect& rect_;
 
-    using PlaybackFunc = void(*)(CanvasPlayer& palyer, std::shared_ptr<OpItem> opItem);
+    using PlaybackFunc = void(*)(CanvasPlayer& palyer, void* opItem);
 private:
     static std::unordered_map<uint32_t, PlaybackFunc> opPlaybackFuncLUT_;
 };
@@ -156,7 +156,7 @@ public:
     ~DrawPointOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
 private:
@@ -172,7 +172,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
@@ -188,7 +188,7 @@ public:
     ~DrawLineOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
 private:
@@ -203,7 +203,7 @@ public:
     ~DrawRectOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
 private:
@@ -219,7 +219,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
@@ -238,7 +238,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
@@ -256,7 +256,7 @@ public:
     ~DrawArcOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
 private:
@@ -272,7 +272,7 @@ public:
     ~DrawPieOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
 private:
@@ -288,7 +288,7 @@ public:
     ~DrawOvalOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
 private:
@@ -302,7 +302,7 @@ public:
     ~DrawCircleOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
 private:
@@ -319,7 +319,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
@@ -336,7 +336,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
@@ -354,7 +354,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
@@ -377,7 +377,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
@@ -395,7 +395,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
@@ -416,7 +416,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
@@ -438,7 +438,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
@@ -459,7 +459,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
@@ -479,7 +479,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
@@ -501,7 +501,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
@@ -519,7 +519,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
@@ -538,7 +538,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
@@ -559,7 +559,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
@@ -580,7 +580,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
@@ -595,7 +595,7 @@ public:
     ~DrawColorOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
 private:
@@ -612,7 +612,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
@@ -629,7 +629,7 @@ public:
     ~ClipRectOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
 private:
@@ -645,7 +645,7 @@ public:
     ~ClipIRectOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
 private:
@@ -662,7 +662,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
@@ -682,7 +682,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
@@ -701,7 +701,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
@@ -717,7 +717,7 @@ public:
     ~SetMatrixOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
 private:
@@ -730,7 +730,7 @@ public:
     ~ResetMatrixOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 };
 
@@ -741,7 +741,7 @@ public:
     ~ConcatMatrixOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
 private:
@@ -755,7 +755,7 @@ public:
     ~TranslateOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
 private:
@@ -770,7 +770,7 @@ public:
     ~ScaleOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
 private:
@@ -785,7 +785,7 @@ public:
     ~RotateOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
 private:
@@ -801,7 +801,7 @@ public:
     ~ShearOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
 private:
@@ -815,7 +815,7 @@ public:
     ~FlushOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 };
 
@@ -826,7 +826,7 @@ public:
     ~ClearOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
 private:
@@ -839,7 +839,7 @@ public:
     ~SaveOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 };
 
@@ -853,7 +853,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
@@ -871,7 +871,7 @@ public:
     ~RestoreOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 };
 
@@ -881,7 +881,7 @@ public:
     ~DiscardOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 };
 
@@ -894,7 +894,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
@@ -911,7 +911,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
@@ -925,7 +925,7 @@ public:
     ~DetachPenOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 };
 
@@ -935,7 +935,7 @@ public:
     ~DetachBrushOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 };
 
@@ -948,7 +948,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList, const Rect& rect);
 
 private:
@@ -966,7 +966,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList, const Rect& rect);
 
 private:
@@ -987,7 +987,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList, const Rect& rect);
 
 private:
@@ -1006,7 +1006,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList, const Rect& rect) const;
 
 private:
@@ -1024,7 +1024,7 @@ public:
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList);
 
-    static void Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem);
+    static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList, const Rect& rect) const;
 
 private:

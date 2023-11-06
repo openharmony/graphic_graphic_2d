@@ -120,7 +120,7 @@ std::unordered_map<uint32_t, CanvasPlayer::PlaybackFunc> CanvasPlayer::opPlaybac
 CanvasPlayer::CanvasPlayer(Canvas& canvas, const CmdList& cmdList, const Rect& rect)
     : canvas_(canvas), cmdList_(cmdList), rect_(rect) {}
 
-bool CanvasPlayer::Playback(uint32_t type, std::shared_ptr<OpItem> opItem)
+bool CanvasPlayer::Playback(uint32_t type, void* opItem)
 {
     if (type == DrawOpItem::OPITEM_HEAD) {
         return true;
@@ -223,10 +223,10 @@ std::shared_ptr<OpItem> DrawPointOpItem::Unmarshalling(const CmdList& cmdList, v
     return op;
 }
 
-void DrawPointOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawPointOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawPointOpItem>(opItem);
+        auto* op = static_cast<DrawPointOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -261,10 +261,10 @@ void DrawPointsOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawPointsOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawPointsOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        std::shared_ptr<DrawPointsOpItem> op = std::static_pointer_cast<DrawPointsOpItem>(opItem);
+        auto* op = static_cast<DrawPointsOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -290,10 +290,10 @@ std::shared_ptr<OpItem> DrawLineOpItem::Unmarshalling(const CmdList& cmdList, vo
     return op;
 }
 
-void DrawLineOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawLineOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawLineOpItem>(opItem);
+        auto* op = static_cast<DrawLineOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -314,10 +314,10 @@ std::shared_ptr<OpItem> DrawRectOpItem::Unmarshalling(const CmdList& cmdList, vo
     return op;
 }
 
-void DrawRectOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawRectOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawRectOpItem>(opItem);
+        auto* op = static_cast<DrawRectOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -354,10 +354,10 @@ void DrawRoundRectOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawRoundRectOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawRoundRectOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawRoundRectOpItem>(opItem);
+        auto* op = static_cast<DrawRoundRectOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -402,10 +402,10 @@ void DrawNestedRoundRectOpItem::Unmarshalling(const CmdList& cmdList, Canvas* ca
     }
 }
 
-void DrawNestedRoundRectOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawNestedRoundRectOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawNestedRoundRectOpItem>(opItem);
+        auto* op = static_cast<DrawNestedRoundRectOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -431,10 +431,10 @@ std::shared_ptr<OpItem> DrawArcOpItem::Unmarshalling(const CmdList& cmdList, voi
     return op;
 }
 
-void DrawArcOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawArcOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawArcOpItem>(opItem);
+        auto* op = static_cast<DrawArcOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -456,10 +456,10 @@ std::shared_ptr<OpItem> DrawPieOpItem::Unmarshalling(const CmdList& cmdList, voi
     return op;
 }
 
-void DrawPieOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawPieOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawPieOpItem>(opItem);
+        auto* op = static_cast<DrawPieOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -480,10 +480,10 @@ std::shared_ptr<OpItem> DrawOvalOpItem::Unmarshalling(const CmdList& cmdList, vo
     return op;
 }
 
-void DrawOvalOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawOvalOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawOvalOpItem>(opItem);
+        auto* op = static_cast<DrawOvalOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -505,10 +505,10 @@ std::shared_ptr<OpItem> DrawCircleOpItem::Unmarshalling(const CmdList& cmdList, 
     return op;
 }
 
-void DrawCircleOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawCircleOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawCircleOpItem>(opItem);
+        auto* op = static_cast<DrawCircleOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -547,10 +547,10 @@ void DrawPathOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawPathOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawPathOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawPathOpItem>(opItem);
+        auto* op = static_cast<DrawPathOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -615,10 +615,10 @@ void DrawBackgroundOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawBackgroundOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawBackgroundOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawBackgroundOpItem>(opItem);
+        auto* op = static_cast<DrawBackgroundOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -666,10 +666,10 @@ void DrawShadowOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawShadowOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawShadowOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawShadowOpItem>(opItem);
+        auto* op = static_cast<DrawShadowOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -712,10 +712,10 @@ void DrawRegionOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawRegionOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawRegionOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawRegionOpItem>(opItem);
+        auto* op = static_cast<DrawRegionOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -764,10 +764,10 @@ void DrawPatchOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawPatchOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawPatchOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawPatchOpItem>(opItem);
+        auto* op = static_cast<DrawPatchOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -809,10 +809,10 @@ void DrawEdgeAAQuadOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawEdgeAAQuadOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawEdgeAAQuadOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawEdgeAAQuadOpItem>(opItem);
+        auto* op = static_cast<DrawEdgeAAQuadOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -855,10 +855,10 @@ void DrawVerticesOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawVerticesOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawVerticesOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawVerticesOpItem>(opItem);
+        auto* op = static_cast<DrawVerticesOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -884,10 +884,10 @@ std::shared_ptr<OpItem> DrawColorOpItem::Unmarshalling(const CmdList& cmdList, v
     return op;
 }
 
-void DrawColorOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawColorOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawColorOpItem>(opItem);
+        auto* op = static_cast<DrawColorOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -958,10 +958,10 @@ void DrawImageNineOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawImageNineOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawImageNineOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawImageNineOpItem>(opItem);
+        auto* op = static_cast<DrawImageNineOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -1006,10 +1006,10 @@ void DrawAnnotationOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawAnnotationOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawAnnotationOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawAnnotationOpItem>(opItem);
+        auto* op = static_cast<DrawAnnotationOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -1084,10 +1084,10 @@ void DrawImageLatticeOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canva
     }
 }
 
-void DrawImageLatticeOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawImageLatticeOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawImageLatticeOpItem>(opItem);
+        auto* op = static_cast<DrawImageLatticeOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -1130,10 +1130,10 @@ void DrawBitmapOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawBitmapOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawBitmapOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawBitmapOpItem>(opItem);
+        auto* op = static_cast<DrawBitmapOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -1177,10 +1177,10 @@ void DrawImageOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawImageOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawImageOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawImageOpItem>(opItem);
+        auto* op = static_cast<DrawImageOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -1224,10 +1224,10 @@ void DrawImageRectOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawImageRectOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawImageRectOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawImageRectOpItem>(opItem);
+        auto* op = static_cast<DrawImageRectOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -1269,10 +1269,10 @@ void DrawPictureOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawPictureOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawPictureOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawPictureOpItem>(opItem);
+        auto* op = static_cast<DrawPictureOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -1316,10 +1316,10 @@ void DrawTextBlobOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void DrawTextBlobOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawTextBlobOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawTextBlobOpItem>(opItem);
+        auto* op = static_cast<DrawTextBlobOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -1345,10 +1345,10 @@ std::shared_ptr<OpItem> ClipRectOpItem::Unmarshalling(const CmdList& cmdList, vo
     return op;
 }
 
-void ClipRectOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void ClipRectOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<ClipRectOpItem>(opItem);
+        auto* op = static_cast<ClipRectOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1370,10 +1370,10 @@ std::shared_ptr<OpItem> ClipIRectOpItem::Unmarshalling(const CmdList& cmdList, v
     return op;
 }
 
-void ClipIRectOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void ClipIRectOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<ClipIRectOpItem>(opItem);
+        auto* op = static_cast<ClipIRectOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1411,10 +1411,10 @@ void ClipRoundRectOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void ClipRoundRectOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void ClipRoundRectOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<ClipRoundRectOpItem>(opItem);
+        auto* op = static_cast<ClipRoundRectOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -1458,10 +1458,10 @@ void ClipPathOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void ClipPathOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void ClipPathOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<ClipPathOpItem>(opItem);
+        auto* op = static_cast<ClipPathOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -1505,10 +1505,10 @@ void ClipRegionOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void ClipRegionOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void ClipRegionOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<ClipRegionOpItem>(opItem);
+        auto* op = static_cast<ClipRegionOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -1536,10 +1536,10 @@ std::shared_ptr<OpItem> SetMatrixOpItem::Unmarshalling(const CmdList& cmdList, v
     return op;
 }
 
-void SetMatrixOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void SetMatrixOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<SetMatrixOpItem>(opItem);
+        auto* op = static_cast<SetMatrixOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1564,10 +1564,10 @@ std::shared_ptr<OpItem> ResetMatrixOpItem::Unmarshalling(const CmdList& cmdList,
     return op;
 }
 
-void ResetMatrixOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void ResetMatrixOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<ResetMatrixOpItem>(opItem);
+        auto* op = static_cast<ResetMatrixOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1591,10 +1591,10 @@ std::shared_ptr<OpItem> ConcatMatrixOpItem::Unmarshalling(const CmdList& cmdList
     return op;
 }
 
-void ConcatMatrixOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void ConcatMatrixOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<ConcatMatrixOpItem>(opItem);
+        auto* op = static_cast<ConcatMatrixOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1620,10 +1620,10 @@ std::shared_ptr<OpItem> TranslateOpItem::Unmarshalling(const CmdList& cmdList, v
     return op;
 }
 
-void TranslateOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void TranslateOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<TranslateOpItem>(opItem);
+        auto* op = static_cast<TranslateOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1644,10 +1644,10 @@ std::shared_ptr<OpItem> ScaleOpItem::Unmarshalling(const CmdList& cmdList, void*
     return op;
 }
 
-void ScaleOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void ScaleOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<ScaleOpItem>(opItem);
+        auto* op = static_cast<ScaleOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1668,10 +1668,10 @@ std::shared_ptr<OpItem> RotateOpItem::Unmarshalling(const CmdList& cmdList, void
     return op;
 }
 
-void RotateOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void RotateOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<RotateOpItem>(opItem);
+        auto* op = static_cast<RotateOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1692,10 +1692,10 @@ std::shared_ptr<OpItem> ShearOpItem::Unmarshalling(const CmdList& cmdList, void*
     return op;
 }
 
-void ShearOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void ShearOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<ShearOpItem>(opItem);
+        auto* op = static_cast<ShearOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1715,10 +1715,10 @@ std::shared_ptr<OpItem> FlushOpItem::Unmarshalling(const CmdList& cmdList, void*
     return op;
 }
 
-void FlushOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void FlushOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<FlushOpItem>(opItem);
+        auto* op = static_cast<FlushOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1739,10 +1739,10 @@ std::shared_ptr<OpItem> ClearOpItem::Unmarshalling(const CmdList& cmdList, void*
     return op;
 }
 
-void ClearOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void ClearOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<ClearOpItem>(opItem);
+        auto* op = static_cast<ClearOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1762,10 +1762,10 @@ std::shared_ptr<OpItem> SaveOpItem::Unmarshalling(const CmdList& cmdList, void* 
     return op;
 }
 
-void SaveOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void SaveOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<SaveOpItem>(opItem);
+        auto* op = static_cast<SaveOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1843,10 +1843,10 @@ void SaveLayerOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void SaveLayerOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void SaveLayerOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<SaveLayerOpItem>(opItem);
+        auto* op = static_cast<SaveLayerOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -1870,10 +1870,10 @@ std::shared_ptr<OpItem> RestoreOpItem::Unmarshalling(const CmdList& cmdList, voi
     return op;
 }
 
-void RestoreOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void RestoreOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<RestoreOpItem>(opItem);
+        auto* op = static_cast<RestoreOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1893,10 +1893,10 @@ std::shared_ptr<OpItem> DiscardOpItem::Unmarshalling(const CmdList& cmdList, voi
     return op;
 }
 
-void DiscardOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DiscardOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DiscardOpItem>(opItem);
+        auto* op = static_cast<DiscardOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -1963,10 +1963,10 @@ void AttachPenOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void AttachPenOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void AttachPenOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<AttachPenOpItem>(opItem);
+        auto* op = static_cast<AttachPenOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -2030,10 +2030,10 @@ void AttachBrushOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
     }
 }
 
-void AttachBrushOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void AttachBrushOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<AttachBrushOpItem>(opItem);
+        auto* op = static_cast<AttachBrushOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_);
     }
 }
@@ -2057,10 +2057,10 @@ std::shared_ptr<OpItem> DetachPenOpItem::Unmarshalling(const CmdList& cmdList, v
     return op;
 }
 
-void DetachPenOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DetachPenOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DetachPenOpItem>(opItem);
+        auto* op = static_cast<DetachPenOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -2080,10 +2080,10 @@ std::shared_ptr<OpItem> DetachBrushOpItem::Unmarshalling(const CmdList& cmdList,
     return op;
 }
 
-void DetachBrushOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DetachBrushOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DetachBrushOpItem>(opItem);
+        auto* op = static_cast<DetachBrushOpItem*>(opItem);
         op->Playback(player.canvas_);
     }
 }
@@ -2116,10 +2116,10 @@ void ClipAdaptiveRoundRectOpItem::Unmarshalling(const CmdList& cmdList)
     };
 }
 
-void ClipAdaptiveRoundRectOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void ClipAdaptiveRoundRectOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<ClipAdaptiveRoundRectOpItem>(opItem);
+        auto* op = static_cast<ClipAdaptiveRoundRectOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_, player.rect_);
     }
 }
@@ -2173,10 +2173,10 @@ void DrawAdaptiveImageOpItem::Unmarshalling(const CmdList& cmdList)
     };
 }
 
-void DrawAdaptiveImageOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawAdaptiveImageOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawAdaptiveImageOpItem>(opItem);
+        auto* op = static_cast<DrawAdaptiveImageOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_, player.rect_);
     }
 }
@@ -2233,10 +2233,10 @@ void DrawAdaptivePixelMapOpItem::Unmarshalling(const CmdList& cmdList)
     };
 }
 
-void DrawAdaptivePixelMapOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawAdaptivePixelMapOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawImageWithParmOpItem>(opItem);
+        auto* op = static_cast<DrawImageWithParmOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_, player.rect_);
     }
 }
@@ -2283,10 +2283,10 @@ void DrawImageWithParmOpItem::Unmarshalling(const CmdList& cmdList)
     };
 }
 
-void DrawImageWithParmOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawImageWithParmOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawImageWithParmOpItem>(opItem);
+        auto* op = static_cast<DrawImageWithParmOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_, player.rect_);
     }
 }
@@ -2333,10 +2333,10 @@ void DrawExtendPixelMapOpItem::Unmarshalling(const CmdList& cmdList)
 }
 
 
-void DrawExtendPixelMapOpItem::Playback(CanvasPlayer& player, std::shared_ptr<OpItem> opItem)
+void DrawExtendPixelMapOpItem::Playback(CanvasPlayer& player, void* opItem)
 {
     if (opItem != nullptr) {
-        auto op = std::static_pointer_cast<DrawExtendPixelMapOpItem>(opItem);
+        auto* op = static_cast<DrawExtendPixelMapOpItem*>(opItem);
         op->Playback(player.canvas_, player.cmdList_, player.rect_);
     }
 }

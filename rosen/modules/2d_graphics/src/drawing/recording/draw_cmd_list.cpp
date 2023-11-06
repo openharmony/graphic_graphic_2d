@@ -117,15 +117,32 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect) const
     }
     CanvasPlayer player = { canvas, *this, tmpRect};
 
-    for (auto iter = opItems_.begin(); iter != opItems_.end(); ++iter) {
-        if ((*iter) != nullptr) {
-            if (!player.Playback((*iter)->GetType(), (*iter))) {
-                LOGE("DrawCmdList::Playback failed!");
+    if (opItems_.size() == 0) {
+        do {
+            void* itemPtr = opAllocator_.OffsetToAddr(offset);
+            auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
+            if (curOpItemPtr != nullptr) {
+                if (!player.Playback(curOpItemPtr->GetType(), itemPtr)) {
+                    LOGE("DrawCmdList::Playback failed!");
+                    break;
+                }
+                offset = curOpItemPtr->GetNextOpItemOffset();
+            } else {
+                LOGE("DrawCmdList::Playback failed, opItem is nullptr");
                 break;
             }
-        } else {
-            LOGE("DrawCmdList::Playback failed, opItem is nullptr");
-            break;
+        } while (offset != 0);
+    } else {
+        for (auto iter = opItems_.begin(); iter != opItems_.end(); ++iter) {
+            if ((*iter) != nullptr) {
+                if (!player.Playback((*iter)->GetType(), (*iter).get())) {
+                    LOGE("DrawCmdList::Playback failed!");
+                    break;
+                }
+            } else {
+                LOGE("DrawCmdList::Playback failed, opItem is nullptr");
+                break;
+            }
         }
     }
 }
