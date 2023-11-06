@@ -784,7 +784,7 @@ void RSRenderNode::RenderTraceDebug() const
 void RSRenderNode::ApplyBoundsGeometry(RSPaintFilterCanvas& canvas)
 {
     if (RSSystemProperties::GetPropertyDrawableEnable()) {
-        IterateOnDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::BOUNDS_MATRIX, *this, canvas);
+        IterateOnDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::BOUNDS_MATRIX, canvas);
         return;
     }
 #ifndef USE_ROSEN_DRAWING
@@ -805,7 +805,7 @@ void RSRenderNode::ApplyBoundsGeometry(RSPaintFilterCanvas& canvas)
 void RSRenderNode::ApplyAlpha(RSPaintFilterCanvas& canvas)
 {
     if (RSSystemProperties::GetPropertyDrawableEnable()) {
-        IterateOnDrawableRange(RSPropertyDrawableSlot::ALPHA, RSPropertyDrawableSlot::ALPHA, *this, canvas);
+        IterateOnDrawableRange(RSPropertyDrawableSlot::ALPHA, RSPropertyDrawableSlot::ALPHA, canvas);
         return;
     }
     auto alpha = renderProperties_.GetAlpha();
@@ -830,7 +830,7 @@ void RSRenderNode::ApplyAlpha(RSPaintFilterCanvas& canvas)
 void RSRenderNode::ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas)
 {
     if (RSSystemProperties::GetPropertyDrawableEnable()) {
-        IterateOnDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::MASK, *this, canvas);
+        IterateOnDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::MASK, canvas);
         return;
     }
     ApplyBoundsGeometry(canvas);
@@ -846,7 +846,7 @@ void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 void RSRenderNode::ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas)
 {
     if (RSSystemProperties::GetPropertyDrawableEnable()) {
-        IterateOnDrawableRange(RSPropertyDrawableSlot::RESTORE_ALL, RSPropertyDrawableSlot::RESTORE_ALL, *this, canvas);
+        IterateOnDrawableRange(RSPropertyDrawableSlot::RESTORE_ALL, RSPropertyDrawableSlot::RESTORE_ALL, canvas);
         return;
     }
     canvas.RestoreStatus(renderNodeSaveCount_);
@@ -1026,8 +1026,7 @@ bool RSRenderNode::ApplyModifiers()
 
     if (RSSystemProperties::GetPropertyDrawableEnable()) {
         // Generate drawable
-        RSPropertyDrawableGenerateContext drawableContext(*this);
-        RSPropertyDrawable::UpdateDrawableVec(drawableContext, propertyDrawablesVec_, drawableVecStatus_, dirtyTypes_);
+        UpdateDrawableVec();
     }
 #endif
 
@@ -1042,6 +1041,24 @@ bool RSRenderNode::ApplyModifiers()
 
     // return true if positionZ changed
     return renderProperties_.GetPositionZ() != prevPositionZ;
+}
+
+void RSRenderNode::UpdateDrawableVec()
+{
+    // Collect dirty slots
+    auto dirtySlots = RSPropertyDrawable::GenerateDirtySlots(GetRenderProperties(), dirtyTypes_);
+    RSPropertyDrawableGenerateContext drawableContext(*this);
+    // initialize necessary save/clip/restore
+    if (drawableVecStatus_ == 0) {
+        RSPropertyDrawable::InitializeSaveRestore(drawableContext, propertyDrawablesVec_);
+    }
+    // Update or regenerate drawable
+    bool drawableChanged = RSPropertyDrawable::UpdateDrawableVec(drawableContext, propertyDrawablesVec_, dirtySlots);
+    // if any drawables changed, update save/clip/restore
+    // temporary fix, if CLIP_TO_BOUNDS or similar property changed, we should re-arrange the save/clip/restore
+    if (drawableChanged || dirtySlots.count(RSPropertyDrawableSlot::INVALID)) {
+        RSPropertyDrawable::UpdateSaveRestore(drawableContext, propertyDrawablesVec_, drawableVecStatus_);
+    }
 }
 
 #ifndef USE_ROSEN_DRAWING
@@ -2188,12 +2205,12 @@ void RSRenderNode::SetIsUsedBySubThread(bool isUsedBySubThread)
 }
 
 void RSRenderNode::IterateOnDrawableRange(
-    RSPropertyDrawableSlot begin, RSPropertyDrawableSlot end, RSRenderNode& node, RSPaintFilterCanvas& canvas)
+    RSPropertyDrawableSlot begin, RSPropertyDrawableSlot end, RSPaintFilterCanvas& canvas)
 {
     for (uint16_t index = begin; index <= end; index++) {
         auto& drawablePtr = propertyDrawablesVec_[index];
         if (drawablePtr) {
-            drawablePtr->Draw(node, canvas);
+            drawablePtr->Draw(*this, canvas);
         }
     }
 }

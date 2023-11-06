@@ -472,8 +472,8 @@ protected:
     bool isFullChildrenListValid_ = false;
     bool isBootAnimation_ = false;
     RSProperties renderProperties_;
-    void IterateOnDrawableRange(Slot::RSPropertyDrawableSlot begin, Slot::RSPropertyDrawableSlot end,
-        RSRenderNode& node, RSPaintFilterCanvas& canvas);
+    void IterateOnDrawableRange(
+        Slot::RSPropertyDrawableSlot begin, Slot::RSPropertyDrawableSlot end, RSPaintFilterCanvas& canvas);
 
 private:
     NodeId id_;
@@ -607,14 +607,14 @@ private:
 
     std::vector<std::unique_ptr<RSPropertyDrawable>> propertyDrawablesVec_;
     uint8_t drawableVecStatus_ = 0;
-    using DrawableIter = decltype(propertyDrawablesVec_)::iterator;
+    void UpdateDrawableVec();
 
+    friend class RSAliasDrawable;
     friend class RSMainThread;
+    friend class RSModifierDrawable;
     friend class RSProxyRenderNode;
     friend class RSRenderNodeMap;
     friend class RSRenderTransition;
-    friend class RSAliasDrawable;
-    friend class RSModifierDrawable;
 };
 // backward compatibility
 using RSBaseRenderNode = RSRenderNode;

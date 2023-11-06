@@ -1177,7 +1177,9 @@ void RSPixelStretchDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canva
 
     canvas.save();
     canvas.translate(bounds.x(), bounds.y());
-    if (pixelStretch_.x_ > 0) {
+    // NOTE: Ensure that EPS is consistent with rs_properties.cpp
+    constexpr static float EPS = 1e-5f;
+    if (pixelStretch_.x_ > EPS || pixelStretch_.y_ > EPS || pixelStretch_.z_ > EPS || pixelStretch_.w_ > EPS) {
 #ifdef NEW_SKIA
         paint.setShader(image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, SkSamplingOptions(), &scaleMat));
 #else
