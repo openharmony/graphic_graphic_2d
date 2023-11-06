@@ -570,7 +570,7 @@ private:
     template<class dstT>
     napi_value GenExternalArray();
     template<class srcT, class dstT>
-    napi_value genNormalArray(napi_status (*getNApiValue)(napi_env env, dstT value, napi_value* element));
+    napi_value GenNormalArray(napi_status (*getNApiValue)(napi_env env, dstT value, napi_value* element));
 
     WebGLWriteBufferArg(const WebGLWriteBufferArg&) = delete;
     WebGLWriteBufferArg& operator=(const WebGLWriteBufferArg&) = delete;

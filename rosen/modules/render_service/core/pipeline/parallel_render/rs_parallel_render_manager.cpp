@@ -550,11 +550,9 @@ void RSParallelRenderManager::TryEnableParallelRendering()
     }
     if (parallelMode_) {
 #ifdef NEW_RENDER_CONTEXT
-        StartSubRenderThread(PARALLEL_THREAD_NUM,
-            renderEngine->GetRenderContext(), renderEngine->GetDrawingContext());
+        StartSubRenderThread(PARALLEL_THREAD_NUM, renderEngine->GetRenderContext(), renderEngine->GetDrawingContext());
 #else
-        StartSubRenderThread(PARALLEL_THREAD_NUM,
-            renderEngine->GetRenderContext().get());
+        StartSubRenderThread(PARALLEL_THREAD_NUM, renderEngine->GetRenderContext().get());
 #endif
     } else {
         EndSubRenderThread();

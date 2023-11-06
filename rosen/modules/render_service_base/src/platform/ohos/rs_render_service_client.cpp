@@ -558,6 +558,7 @@ bool RSRenderServiceClient::RegisterBufferAvailableListener(
     if (!isFromRenderThread && iter != bufferAvailableCbUIMap_.end()) {
         ROSEN_LOGW("RSRenderServiceClient::RegisterBufferAvailableListener "
                    "Node %{public}" PRIu64 " already, bufferAvailableCbUIMap_", iter->first);
+        bufferAvailableCbUIMap_.erase(iter);
     }
 
     sptr<RSIBufferAvailableCallback> bufferAvailableCb = new CustomBufferAvailableCallback(callback);

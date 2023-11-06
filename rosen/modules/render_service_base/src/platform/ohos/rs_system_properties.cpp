@@ -130,7 +130,7 @@ DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 
 PartialRenderType RSSystemProperties::GetPartialRenderEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.partialrender.enabled", "2");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.partialrender.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<PartialRenderType>(ConvertToInt(enable, DEFAULT_PARTIAL_RENDER_ENABLED_VALUE));
@@ -211,7 +211,7 @@ bool RSSystemProperties::GetTargetDirtyRegionDfxEnabled(std::vector<std::string>
     static CachedHandle g_Handle = CachedParameterCreate("rosen.dirtyregiondebug.surfacenames", "0");
     int changed = 0;
     const char *targetSurfacesStr = CachedParameterGetChanged(g_Handle, &changed);
-    if (ConvertToInt(targetSurfacesStr, 0) == 0) {
+    if (strcmp(targetSurfacesStr, "0") == 0) {
         dfxTargetSurfaceNames_.clear();
         return false;
     }

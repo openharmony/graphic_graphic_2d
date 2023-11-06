@@ -81,5 +81,7 @@
     { "name": "OH_Drawing_TypographyGetMinIntrinsicWidth" },
     { "name": "OH_Drawing_TypographyGetMaxIntrinsicWidth" },
     { "name": "OH_Drawing_TypographyGetAlphabeticBaseline" },
-    { "name": "OH_Drawing_TypographyGetIdeographicBaseline" }
+    { "name": "OH_Drawing_TypographyGetIdeographicBaseline" },
+    { "name": "OH_Drawing_RegisterFont" },
+    { "name": "OH_Drawing_RegisterFontBuffer" }
 ]

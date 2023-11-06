@@ -18,7 +18,7 @@
 
 #include <surface.h>
 
-#include "include/gpu/GrContext.h"
+#include "include/gpu/GrDirectContext.h"
 
 #include "platform/ohos/rs_surface_frame_ohos.h"
 
@@ -27,12 +27,14 @@ namespace Rosen {
 
 class RSSurfaceFrameOhosVulkan : public RSSurfaceFrameOhos {
 public:
+    RSSurfaceFrameOhosVulkan(sk_sp<SkSurface> surface, int32_t width, int32_t height, int32_t bufferAge);
     RSSurfaceFrameOhosVulkan(sk_sp<SkSurface> surface, int32_t width, int32_t height);
     ~RSSurfaceFrameOhosVulkan() override = default;
 
     SkCanvas* GetCanvas() override;
     sk_sp<SkSurface> GetSurface() override;
     void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height) override;
+    void SetDamageRegion(const std::vector<RectI>& rects) override;
     int32_t GetReleaseFence() const;
     void SetReleaseFence(const int32_t& fence);
     int32_t GetBufferAge() const override;
@@ -42,6 +44,7 @@ private:
     sk_sp<SkSurface> surface_;
     int width_ = 0;
     int height_ = 0;
+    int32_t bufferAge_ = -1;
     void CreateCanvas();
 };
 } // namespace Rosen

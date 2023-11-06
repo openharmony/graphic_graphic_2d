@@ -63,7 +63,7 @@ void FontCollection::SortTypeface(FontStyles &style) const
         weights.push_back(weight);
     }
 
-    for (int i = 0; i < weights.size(); i++) {
+    for (size_t i = 0; i < weights.size(); i++) {
         if (weights[i] == style.GetWeight()) {
             break;
         }

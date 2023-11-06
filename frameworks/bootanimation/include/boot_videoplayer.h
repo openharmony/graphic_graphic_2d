@@ -20,8 +20,6 @@
 #include <media_errors.h>
 #endif
 #include <parameters.h>
-#include <window_scene.h>
-#include <foundation/window/window_manager/interfaces/innerkits/wm/window_manager.h>
 
 #include "event_handler.h"
 #ifdef PLAYER_FRAMEWORK_ENABLE
@@ -37,7 +35,6 @@ struct FrameCallback {
 class BootVideoPlayer : public std::enable_shared_from_this<BootVideoPlayer> {
 public:
     void SetVideoPath(const std::string& path);
-    void SetPlayerWindow(const OHOS::sptr<OHOS::Rosen::Window>& window);
     void SetPlayerSurface(const OHOS::sptr<OHOS::Surface>& surface);
     void SetCallback(const FrameCallback* cb)
     {
@@ -51,7 +48,6 @@ private:
 #ifdef PLAYER_FRAMEWORK_ENABLE
     std::shared_ptr<Media::Player> mediaPlayer_;
 #endif
-    OHOS::sptr<OHOS::Rosen::Window> window_;
     OHOS::sptr<OHOS::Surface> surface_;
     std::string videopath_;
     VSyncCallback vsyncCallbacks_;

@@ -107,6 +107,7 @@ public:
     void CreatePbufferSurface();
     void ShareMakeCurrent(EGLContext shareContext);
     void ShareMakeCurrentNoSurface(EGLContext shareContext);
+    void SetAndMakeCurrentShareContex(EGLContext shareContext);
     void MakeSelfCurrent();
     EGLSurface GetEGLSurface() const
     {

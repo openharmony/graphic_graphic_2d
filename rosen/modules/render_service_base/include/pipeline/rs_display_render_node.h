@@ -125,7 +125,8 @@ public:
     void SetSecurityDisplay(bool isSecurityDisplay);
     bool GetSecurityDisplay() const;
     bool SkipFrame(uint32_t skipFrameInterval);
-
+    void SetBootAnimation(bool isBootAnimation) override;
+    bool GetBootAnimation() const override;
     WeakPtr GetMirrorSource() const
     {
         return mirrorSource_;
@@ -256,6 +257,31 @@ public:
 #endif
         return initMatrix_;
     }
+
+#ifndef USE_ROSEN_DRAWING
+    sk_sp<SkImage> GetCacheImgForCapture() {
+        std::unique_lock<std::mutex> lock(mtx_);
+        return cacheImgForCapture_;
+    }
+    void SetCacheImgForCapture(sk_sp<SkImage> cacheImgForCapture) {
+        std::unique_lock<std::mutex> lock(mtx_);
+        cacheImgForCapture_ = cacheImgForCapture;
+    }
+#else
+    std::shared_ptr<Drawing::Image> GetCacheImgForCapture() {
+        return cacheImgForCapture_;
+    }
+    void SetCacheImgForCapture(std::shared_ptr<Drawing::Image> cacheImgForCapture) {
+        cacheImgForCapture_ = cacheImgForCapture;
+    }
+#endif
+    uint32_t GetCaptureWindowZOrder() {
+        return captureWindowZOrder_;
+    }
+    void SetCaptureWindowZOrder(uint32_t captureWindowZOrder) {
+        captureWindowZOrder_ = captureWindowZOrder;
+    }
+
 private:
     CompositeType compositeType_ { HARDWARE_COMPOSITE };
     ScreenRotation screenRotation_;
@@ -292,6 +318,14 @@ private:
 
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces_;
     std::mutex mtx_;
+
+    // Use in screen recording optimization
+#ifndef USE_ROSEN_DRAWING
+    sk_sp<SkImage> cacheImgForCapture_ = nullptr;
+#else
+    std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
+#endif
+    uint32_t captureWindowZOrder_ = -1;
 
     // Use in vulkan parallel rendering
     bool isParallelDisplayNode_ = false;

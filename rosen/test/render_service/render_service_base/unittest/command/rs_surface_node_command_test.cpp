@@ -300,4 +300,55 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetSkipLayerTest001, TestSize.Level1)
     SurfaceNodeCommandHelper::Create(*context2, id2);
     SurfaceNodeCommandHelper::SetSkipLayer(*context2, id2, isSkipLayer);
 }
+
+/**
+ * @tc.name: SetBootAnimation001
+ * @tc.desc: SetBootAnimation test.
+ * @tc.type: FUNC
+ * @tc.require:SR000HSUII
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetBootAnimation001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(-1);
+    SurfaceNodeCommandHelper::SetBootAnimation(context, id, false);
+    NodeId id2 = 10;
+    auto context2 = std::make_shared<RSContext>();
+    SurfaceNodeCommandHelper::Create(*context2, id2);
+    SurfaceNodeCommandHelper::SetBootAnimation(*context2, id2, true);
+}
+
+/**
+ * @tc.name: AttachToDisplay001
+ * @tc.desc: AttachToDisplay test.
+ * @tc.type: FUNC
+ * @tc.require:SR000HSUII
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, AttachToDisplay001, TestSize.Level1)
+{
+    NodeId id = 10;
+    auto context = std::make_shared<RSContext>();
+    SurfaceNodeCommandHelper::Create(*context, id);
+    SurfaceNodeCommandHelper::SetBootAnimation(*context, id, true);
+    SurfaceNodeCommandHelper::AttachToDisplay(*context, id, 0);
+    SurfaceNodeCommandHelper::SetBootAnimation(*context, id, false);
+    SurfaceNodeCommandHelper::AttachToDisplay(*context, id, 0);
+}
+
+/**
+ * @tc.name: DetachToDisplay001
+ * @tc.desc: DetachToDisplay test.
+ * @tc.type: FUNC
+ * @tc.require:SR000HSUII
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, DetachToDisplay001, TestSize.Level1)
+{
+    NodeId id = 10;
+    auto context = std::make_shared<RSContext>();
+    SurfaceNodeCommandHelper::Create(*context, id);
+    SurfaceNodeCommandHelper::SetBootAnimation(*context, id, true);
+    SurfaceNodeCommandHelper::DetachToDisplay(*context, id, 0);
+    SurfaceNodeCommandHelper::SetBootAnimation(*context, id, false);
+    SurfaceNodeCommandHelper::DetachToDisplay(*context, id, 0);
+}
 } // namespace OHOS::Rosen

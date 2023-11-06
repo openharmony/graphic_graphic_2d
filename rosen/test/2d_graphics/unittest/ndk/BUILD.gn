@@ -27,6 +27,7 @@ ohos_unittest("2d_graphics_ndk_test") {
     "drawing_font_collection_test.cpp",
     "drawing_path_test.cpp",
     "drawing_pen_test.cpp",
+    "drawing_register_font_test.cpp",
     "drawing_text_typography_test.cpp",
   ]
 

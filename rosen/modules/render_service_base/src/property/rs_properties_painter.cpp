@@ -68,8 +68,9 @@ constexpr float MAX_SPOT_RATIO = 1.95f;
 constexpr float MAX_AMBIENT_RADIUS = 150.0f;
 const bool BLUR_ENABLED = RSSystemProperties::GetBlurEnabled();
 #ifndef USE_ROSEN_DRAWING
-// when the blur radius > SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD, the snapshot should call outset before blur to shrink by 1px
-constexpr static float SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD = 40.0f; 
+// when the blur radius > SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD, 
+// the snapshot should call outset before blur to shrink by 1px.
+constexpr static float SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD = 40.0f;
 constexpr static float FLOAT_ZERO_THRESHOLD = 0.001f;
 constexpr static uint8_t DIRECTION_NUM = 4;
 #endif
@@ -708,8 +709,8 @@ void RSPropertiesPainter::DrawShadowInner(
     // the function <compute_key_and_clip_bounds> in <skia/src/gpu/GrBlurUtil.cpp> for more details.
     RSAutoCanvasRestore rst(&canvas);
     auto matrix = canvas.GetTotalMatrix();
-    matrix.Set(Drawing::Matrix::SCALE_X, std::ceil(matrix.Get(Drawing::Matrix::SCALE_X)));
-    matrix.Set(Drawing::Matrix::SCALE_Y, std::ceil(matrix.Get(Drawing::Matrix::SCALE_Y)));
+    matrix.Set(Drawing::Matrix::TRANS_X, std::ceil(matrix.Get(Drawing::Matrix::TRANS_X)));
+    matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
     canvas.SetMatrix(matrix);
 
     if (properties.shadow_->GetHardwareAcceleration()) {
@@ -721,7 +722,7 @@ void RSPropertiesPainter::DrawShadowInner(
         Drawing::scalar centerY = path.GetBounds().GetTop() + path.GetBounds().GetHeight() / 2;
         Drawing::Point3 lightPos = {
             canvas.GetTotalMatrix().Get(Drawing::Matrix::TRANS_X) + centerX,
-            canvas.GetTotalMatrix().Get(Drawing::Matrix::TRANS_X) + centerY, DEFAULT_LIGHT_HEIGHT };
+            canvas.GetTotalMatrix().Get(Drawing::Matrix::TRANS_Y) + centerY, DEFAULT_LIGHT_HEIGHT };
         Color ambientColor = Color::FromArgbInt(DEFAULT_AMBIENT_COLOR);
         ambientColor.MultiplyAlpha(canvas.GetAlpha());
         spotColor.MultiplyAlpha(canvas.GetAlpha());

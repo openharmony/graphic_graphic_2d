@@ -1986,29 +1986,11 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareTypesOfSurfaceRenderNodeBeforeUpdate002,
 
 /*
  * @tc.name: PrepareSurfaceRenderNode001
- * @tc.desc: Test RSUniRenderVisitorTest.PrepareSurfaceRenderNode while node's name countain CAPTURE_WINDOW_NAME
- * @tc.type: FUNC
- * @tc.require: issuesI7SAJC
- */
-HWTEST_F(RSUniRenderVisitorTest, PrepareSurfaceRenderNode001, TestSize.Level2)
-{
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(surfaceNode, nullptr);
-    surfaceNode->name_ = "CapsuleWindow";
-
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->PrepareSurfaceRenderNode(*surfaceNode);
-    ASSERT_TRUE(rsUniRenderVisitor->needCacheImg_);
-}
-
-/*
- * @tc.name: PrepareSurfaceRenderNode002
  * @tc.desc: Test RSUniRenderVisitorTest.PrepareSurfaceRenderNode while surface node has finger print
  * @tc.type: FUNC
  * @tc.require: issuesI7SAJC
  */
-HWTEST_F(RSUniRenderVisitorTest, PrepareSurfaceRenderNode002, TestSize.Level2)
+HWTEST_F(RSUniRenderVisitorTest, PrepareSurfaceRenderNode001, TestSize.Level2)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
@@ -2021,12 +2003,12 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareSurfaceRenderNode002, TestSize.Level2)
 }
 
 /*
- * @tc.name: PrepareSurfaceRenderNode003
+ * @tc.name: PrepareSurfaceRenderNode002
  * @tc.desc: Test RSUniRenderVisitorTest.PrepareSurfaceRenderNode while surface node has security layer
  * @tc.type: FUNC
  * @tc.require: issuesI7SAJC
  */
-HWTEST_F(RSUniRenderVisitorTest, PrepareSurfaceRenderNode003, TestSize.Level2)
+HWTEST_F(RSUniRenderVisitorTest, PrepareSurfaceRenderNode002, TestSize.Level2)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);

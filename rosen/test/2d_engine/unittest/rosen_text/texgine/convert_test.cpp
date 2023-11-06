@@ -22,17 +22,17 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-class OH_Texgine_RosenConverterTest : public testing::Test {};
+class OHTexgineRosenConverterTest : public testing::Test {};
 namespace {
 constexpr int32_t INVALID_VALUE = -1;
 }
 
 /*
- * @tc.name: OH_Texgine_RosenConverterTest001
+ * @tc.name: OHTexgineRosenConverterTest001
  * @tc.desc: test for font weight
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest001, TestSize.Level1)
+HWTEST_F(OHTexgineRosenConverterTest, OHTexgineRosenConverterTest001, TestSize.Level1)
 {
     TextStyle style;
     TextEngine::TextStyle textStyle;
@@ -66,11 +66,11 @@ HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest001, TestSi
 }
 
 /*
- * @tc.name: OH_Texgine_RosenConverterTest002
+ * @tc.name: OHTexgineRosenConverterTest002
  * @tc.desc: test for font style
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest002, TestSize.Level1)
+HWTEST_F(OHTexgineRosenConverterTest, OHTexgineRosenConverterTest002, TestSize.Level1)
 {
     TextStyle style;
     TextEngine::TextStyle textStyle;
@@ -86,11 +86,11 @@ HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest002, TestSi
 }
 
 /*
- * @tc.name: OH_Texgine_RosenConverterTest003
+ * @tc.name: OHTexgineRosenConverterTest003
  * @tc.desc: test for baseline
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest003, TestSize.Level1)
+HWTEST_F(OHTexgineRosenConverterTest, OHTexgineRosenConverterTest003, TestSize.Level1)
 {
     TextStyle style;
     style.baseline = TextBaseline::ALPHABETIC;
@@ -107,11 +107,11 @@ HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest003, TestSi
 }
 
 /*
- * @tc.name: OH_Texgine_RosenConverterTest004
+ * @tc.name: OHTexgineRosenConverterTest004
  * @tc.desc: test for decoration
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest004, TestSize.Level1)
+HWTEST_F(OHTexgineRosenConverterTest, OHTexgineRosenConverterTest004, TestSize.Level1)
 {
     TextStyle style;
     style.decoration = TextDecoration::NONE;
@@ -133,11 +133,11 @@ HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest004, TestSi
 }
 
 /*
- * @tc.name: OH_Texgine_RosenConverterTest005
+ * @tc.name: OHTexgineRosenConverterTest005
  * @tc.desc: test for decoration style
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest005, TestSize.Level1)
+HWTEST_F(OHTexgineRosenConverterTest, OHTexgineRosenConverterTest005, TestSize.Level1)
 {
     TextStyle style;
     style.decorationStyle = TextDecorationStyle::SOLID;
@@ -167,11 +167,11 @@ HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest005, TestSi
 }
 
 /*
- * @tc.name: OH_Texgine_RosenConverterTest006
+ * @tc.name: OHTexgineRosenConverterTest006
  * @tc.desc: test for break strategy
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest006, TestSize.Level1)
+HWTEST_F(OHTexgineRosenConverterTest, OHTexgineRosenConverterTest006, TestSize.Level1)
 {
     TypographyStyle style;
     style.breakStrategy = BreakStrategy::GREEDY;
@@ -193,11 +193,11 @@ HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest006, TestSi
 }
 
 /*
- * @tc.name: OH_Texgine_RosenConverterTest007
+ * @tc.name: OHTexgineRosenConverterTest007
  * @tc.desc: test for word break type
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest007, TestSize.Level1)
+HWTEST_F(OHTexgineRosenConverterTest, OHTexgineRosenConverterTest007, TestSize.Level1)
 {
     WordBreakType style;
     style = WordBreakType::NORMAL;
@@ -219,11 +219,11 @@ HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest007, TestSi
 }
 
 /*
- * @tc.name: OH_Texgine_RosenConverterTest008
+ * @tc.name: OHTexgineRosenConverterTest008
  * @tc.desc: test for text direction
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest008, TestSize.Level1)
+HWTEST_F(OHTexgineRosenConverterTest, OHTexgineRosenConverterTest008, TestSize.Level1)
 {
     TypographyStyle style;
     style.textDirection = TextDirection::RTL;
@@ -241,11 +241,11 @@ HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest008, TestSi
 }
 
 /*
- * @tc.name: OH_Texgine_RosenConverterTest009
+ * @tc.name: OHTexgineRosenConverterTest009
  * @tc.desc: test for text align
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest009, TestSize.Level1)
+HWTEST_F(OHTexgineRosenConverterTest, OHTexgineRosenConverterTest009, TestSize.Level1)
 {
     TypographyStyle style;
     style.textAlign = TextAlign::LEFT;
@@ -279,11 +279,11 @@ HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest009, TestSi
 }
 
 /*
- * @tc.name: OH_Texgine_RosenConverterTest010
+ * @tc.name: OHTexgineRosenConverterTest010
  * @tc.desc: test for text rect width style
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest010, TestSize.Level1)
+HWTEST_F(OHTexgineRosenConverterTest, OHTexgineRosenConverterTest010, TestSize.Level1)
 {
     TextRectWidthStyle style = TextRectWidthStyle::TIGHT;
     TextEngine::TextRectWidthStyle textStyle;
@@ -300,11 +300,11 @@ HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest010, TestSi
 }
 
 /*
- * @tc.name: OH_Texgine_RosenConverterTest011
+ * @tc.name: OHTexgineRosenConverterTest011
  * @tc.desc: test for text rect height style
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest011, TestSize.Level1)
+HWTEST_F(OHTexgineRosenConverterTest, OHTexgineRosenConverterTest011, TestSize.Level1)
 {
     TextRectHeightStyle style;
     TextEngine::TextRectHeightStyle textStyle;
@@ -339,11 +339,11 @@ HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest011, TestSi
 }
 
 /*
- * @tc.name: OH_Texgine_RosenConverterTest012
+ * @tc.name: OHTexgineRosenConverterTest012
  * @tc.desc: test for text boundary
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest012, TestSize.Level1)
+HWTEST_F(OHTexgineRosenConverterTest, OHTexgineRosenConverterTest012, TestSize.Level1)
 {
     int32_t leftIndex = 1;
     int32_t rightIndex = 2;
@@ -354,11 +354,11 @@ HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest012, TestSi
 }
 
 /*
- * @tc.name: OH_Texgine_RosenConverterTest013
+ * @tc.name: OHTexgineRosenConverterTest013
  * @tc.desc: test for text rect
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest013, TestSize.Level1)
+HWTEST_F(OHTexgineRosenConverterTest, OHTexgineRosenConverterTest013, TestSize.Level1)
 {
     TextEngine::TextRect style;
     *style.rect.fLeft_ = 1.0;
@@ -381,11 +381,11 @@ HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest013, TestSi
 }
 
 /*
- * @tc.name: OH_Texgine_RosenConverterTest014
+ * @tc.name: OHTexgineRosenConverterTest014
  * @tc.desc: test for text alignment
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest014, TestSize.Level1)
+HWTEST_F(OHTexgineRosenConverterTest, OHTexgineRosenConverterTest014, TestSize.Level1)
 {
     PlaceholderVerticalAlignment style;
     TextEngine::AnySpanAlignment textStyle;
@@ -420,11 +420,11 @@ HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest014, TestSi
 }
 
 /*
- * @tc.name: OH_Texgine_RosenConverterTest015
+ * @tc.name: OHTexgineRosenConverterTest015
  * @tc.desc: test for text affinity
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest015, TestSize.Level1)
+HWTEST_F(OHTexgineRosenConverterTest, OHTexgineRosenConverterTest015, TestSize.Level1)
 {
     TextEngine::Affinity style;
     Affinity textStyle;
@@ -443,11 +443,11 @@ HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest015, TestSi
 }
 
 /*
- * @tc.name: OH_Texgine_RosenConverterTest016
+ * @tc.name: OHTexgineRosenConverterTest016
  * @tc.desc: test for text index and affinity
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Texgine_RosenConverterTest, OH_Texgine_RosenConverterTest016, TestSize.Level1)
+HWTEST_F(OHTexgineRosenConverterTest, OHTexgineRosenConverterTest016, TestSize.Level1)
 {
     size_t index = 1;
     TextEngine::Affinity affinity = TextEngine::Affinity::PREV;

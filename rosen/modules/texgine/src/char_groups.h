@@ -81,7 +81,7 @@ struct CharGroup {
     bool IsEmoji() const
     {
         bool isEmoji = false;
-        for (auto i = 0; i < chars.size(); i++) {
+        for (size_t i = 0; i < chars.size(); i++) {
             isEmoji = (u_hasBinaryProperty(chars[i], UCHAR_EMOJI) ||
                 u_hasBinaryProperty(chars[i], UCHAR_EMOJI_PRESENTATION) ||
                 u_hasBinaryProperty(chars[i], UCHAR_EMOJI_MODIFIER) ||
@@ -91,6 +91,16 @@ struct CharGroup {
             }
         }
         return isEmoji;
+    }
+
+    bool HasWhitesSpace() const
+    {
+        for (const auto &ch : chars) {
+            if (u_isWhitespace(ch)) {
+                return true;
+            }
+        }
+        return false;
     }
 };
 
@@ -150,6 +160,10 @@ public:
 
     bool CheckCodePoint();
     std::string GetTypefaceName();
+    double GetAllCharWidth() const;
+    double GetCharWidth(const size_t index) const;
+    std::vector<uint16_t> GetCharsToU16(size_t start, size_t end, const bool isLeft);
+    bool IsSingleWord() const;
 private:
     friend void ReportMemoryUsage(const std::string &member, const CharGroups &that, bool needThis);
 

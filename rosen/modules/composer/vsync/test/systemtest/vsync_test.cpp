@@ -133,6 +133,10 @@ pid_t VSyncTest::ChildProcessMain()
         std::cout << "ChildProcessMain appVSyncFlag is " << appVSyncFlag << std::endl;
     }
     EXPECT_EQ(appVSyncFlag, 1);
+    int64_t period;
+    int64_t timeStamp;
+    EXPECT_EQ(receiver->GetVSyncPeriodAndLastTimeStamp(period, timeStamp), VSYNC_ERROR_OK);
+    std::cout << "period =  " << period << ",timeStamp = " << timeStamp << std::endl;
     write(pipeFd[1], &appVSyncFlag, sizeof(appVSyncFlag));
     close(pipeFd[0]);
     close(pipeFd[1]);

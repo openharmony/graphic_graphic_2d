@@ -288,8 +288,8 @@ inline bool RectI::IsValid() const
 
 inline bool RectI::IsEmpty() const
 {
-    int64_t w = (int64_t)right_ - (int64_t)left_;
-    int64_t h = (int64_t)bottom_ - (int64_t)top_;
+    uint64_t w = (uint64_t)right_ - (uint64_t)left_;
+    uint64_t h = (uint64_t)bottom_ - (uint64_t)top_;
     if (w <= 0 || h <= 0) {
         return true;
     }

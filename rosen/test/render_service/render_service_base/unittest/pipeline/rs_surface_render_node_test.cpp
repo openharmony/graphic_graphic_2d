@@ -413,5 +413,19 @@ HWTEST_F(RSSurfaceRenderNodeTest, RegisterBufferAvailableListenerTest, TestSize.
     node->RegisterBufferAvailableListener(callback, isFromRenderThread);
 }
 
+/**
+ * @tc.name: SetBootAnimationTest
+ * @tc.desc: SetBootAnimation and GetBootAnimation
+ * @tc.type:FUNC
+ * @tc.require:SR000HSUII
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->SetBootAnimation(true);
+    ASSERT_EQ(node->GetBootAnimation(), true);
+    node->SetBootAnimation(false);
+    ASSERT_FALSE(node->GetBootAnimation());
+}
 } // namespace Rosen
 } // namespace OHOS

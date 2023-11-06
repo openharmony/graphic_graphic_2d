@@ -120,7 +120,7 @@ void RSDisplayNode::SetScreenRotation(const uint32_t& rotation)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
-    ROSEN_LOGD("RSDisplayNode::SetScreenRotation, displayNodeId:[%{public}" PRIu64 "]"
+    ROSEN_LOGI("RSDisplayNode::SetScreenRotation, displayNodeId:[%{public}" PRIu64 "]"
                " screenRotation:[%{public}d]", GetId(), rotation);
 }
 
@@ -135,6 +135,21 @@ RSDisplayNode::RSDisplayNode(const RSDisplayNodeConfig& config)
     (void)screenId_;
     (void)offsetX_;
     (void)offsetY_;
+}
+
+void RSDisplayNode::SetBootAnimation(bool isBootAnimation)
+{
+    isBootAnimation_ = isBootAnimation;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeSetBootAnimation>(GetId(), isBootAnimation);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+}
+
+bool RSDisplayNode::GetBootAnimation() const
+{
+    return isBootAnimation_;
 }
 
 RSDisplayNode::~RSDisplayNode() = default;

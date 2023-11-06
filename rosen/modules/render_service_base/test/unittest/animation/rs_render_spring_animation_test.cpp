@@ -74,18 +74,24 @@ HWTEST_F(RSRenderSpringAnimationTest, Marshalling001, TestSize.Level1)
 HWTEST_F(RSRenderSpringAnimationTest, Unmarshalling001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest Unmarshalling001 start";
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
 
     auto renderSpringAnimation = std::make_shared<RSRenderSpringAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
-    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    EXPECT_TRUE(renderSpringAnimation != nullptr);
 
     Parcel parcel;
-    renderSpringAnimation->Marshalling(parcel);
-    std::shared_ptr<RSRenderAnimation>(RSRenderSpringAnimation::Unmarshalling(parcel));
-    EXPECT_TRUE(renderSpringAnimation != nullptr);
+    auto animation = RSRenderSpringAnimation::Unmarshalling(parcel);
+    EXPECT_TRUE(animation == nullptr);
+    auto result = renderSpringAnimation->Marshalling(parcel);
+    EXPECT_TRUE(result == true);
+    animation = RSRenderSpringAnimation::Unmarshalling(parcel);
+    EXPECT_TRUE(animation != nullptr);
     GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest Unmarshalling001 end";
 }
 
@@ -166,6 +172,39 @@ HWTEST_F(RSRenderSpringAnimationTest, Attach002, TestSize.Level1)
     renderSpringAnimation2->Start();
     EXPECT_TRUE(renderSpringAnimation2->IsRunning());
     GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest Attach002 end";
+}
+
+/**
+ * @tc.name: Attach003
+ * @tc.desc: Verify the Attach
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, Attach003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest Attach003 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+
+    auto renderSpringAnimation1 = std::make_shared<RSRenderSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    EXPECT_TRUE(renderSpringAnimation1 != nullptr);
+    renderSpringAnimation1->SetSpringParameters(1.0f, 1.0f, 1000);
+    renderSpringAnimation1->Attach(renderNode.get());
+    renderSpringAnimation1->Start();
+    renderSpringAnimation1->Pause();
+    
+    auto renderSpringAnimation2 = std::make_shared<RSRenderSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    EXPECT_TRUE(renderSpringAnimation2 != nullptr);
+    renderSpringAnimation2->Attach(renderNode.get());
+    renderSpringAnimation2->Start();
+    EXPECT_TRUE(renderSpringAnimation2->IsRunning());
+    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest Attach003 end";
 }
 } // namespace Rosen
 } // namespace OHOS

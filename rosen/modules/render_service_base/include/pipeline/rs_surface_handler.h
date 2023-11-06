@@ -135,6 +135,11 @@ public:
         return buffer_.damageRect;
     }
 
+    void SetCurrentReleaseFence(sptr<SyncFence> fence)
+    {
+        buffer_.releaseFence = fence;
+    }
+
     void SetReleaseFence(sptr<SyncFence> fence)
     {
         // The fence which get from hdi is preBuffer's releaseFence now.

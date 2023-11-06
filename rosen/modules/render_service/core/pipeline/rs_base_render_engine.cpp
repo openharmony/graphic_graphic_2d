@@ -15,6 +15,11 @@
 
 #include "rs_base_render_engine.h"
 #include <memory>
+
+#ifdef RS_ENABLE_EGLIMAGE
+#include "src/gpu/gl/GrGLDefines.h"
+#endif
+
 #include "rs_divided_render_util.h"
 #include "common/rs_optional_trace.h"
 #include "pipeline/rs_uni_render_judgement.h"
@@ -148,7 +153,8 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
 #ifndef USE_ROSEN_DRAWING
     SkColorType colorType = (buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
         kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
-    GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId, GL_RGBA8 };
+    GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId,
+        static_cast<GrGLenum>((buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ? GR_GL_BGRA8 : GR_GL_RGBA8) };
     GrBackendTexture backendTexture(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(),
         GrMipMapped::kNo, grExternalTextureInfo);
 #ifndef ROSEN_EMULATOR

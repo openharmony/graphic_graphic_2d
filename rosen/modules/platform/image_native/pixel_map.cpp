@@ -38,6 +38,11 @@ int32_t PixelMap::GetHeight()
     return 0;
 }
 
+int32_t PixelMap::GetByteCount()
+{
+    return 0;
+}
+
 const uint32_t *PixelMap::GetPixel32(int32_t x, int32_t y)
 {
     return nullptr;

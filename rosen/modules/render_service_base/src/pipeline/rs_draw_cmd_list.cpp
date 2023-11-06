@@ -34,6 +34,8 @@
 #ifdef ROSEN_OHOS
 namespace {
 constexpr size_t ASHMEMALLOCATOR_SIZE = 10 * 1024 * 1024; // 10M
+constexpr size_t FDCOUNT_LIMIT = 100;
+constexpr size_t OPSIZE_LIMIT = 100000;
 }
 #endif
 namespace OHOS {
@@ -240,6 +242,24 @@ void DrawCmdList::UpdateNodeIdToPicture(NodeId nodeId)
 #endif
 }
 
+void DrawCmdList::DumpPicture(DfxString& info) const
+{
+    if (imageIndexs_.empty()) {
+        RS_LOGW("DrawCmdList::DumpPicture no need update");
+        return;
+    }
+    info.AppendFormat("Resources:%d\n", imageIndexs_.size());
+    info.AppendFormat("Size  [width * height]    Addr\n");
+    for (size_t i = 0; i < imageIndexs_.size(); i++) {
+        auto index = imageIndexs_[i];
+        if (index > ops_.size()) {
+            RS_LOGW("DrawCmdList::DumpPicture index[%{public}d] error", index);
+            continue;
+        }
+        ops_[index]->DumpPicture(info);
+    }
+}
+
 void DrawCmdList::FindIndexOfImage() const
 {
     for (size_t index = 0; index < ops_.size(); index++) {
@@ -282,7 +302,7 @@ bool DrawCmdList::Marshalling(Parcel& parcel) const
                     parcel.WriteUint32(size);
                 }
                 if (newParcel != nullptr) {
-                    int32_t offsetSize = newParcel->GetOffsetsSize();
+                    uint32_t offsetSize = newParcel->GetOffsetsSize();
                     parcel.WriteInt32(offsetSize);
                     if (offsetSize > 0) {
                         parcel.WriteBuffer(
@@ -313,7 +333,7 @@ bool DrawCmdList::Marshalling(Parcel& parcel) const
         }
         parcel.WriteUint32(index - lastIndex);
         if (newParcel != nullptr) {
-            int32_t offsetSize = newParcel->GetOffsetsSize();
+            uint32_t offsetSize = newParcel->GetOffsetsSize();
             parcel.WriteInt32(offsetSize);
             if (offsetSize > 0) {
                 parcel.WriteBuffer(
@@ -360,12 +380,19 @@ DrawCmdList* DrawCmdList::Unmarshalling(Parcel& parcel)
     } else {
         auto fdCount = parcel.ReadUint32();
         auto totalOpSize = parcel.ReadUint32();
+        if (fdCount > FDCOUNT_LIMIT || totalOpSize > OPSIZE_LIMIT) {
+            ROSEN_LOGE("DrawCmdList::Unmarshalling FdCount or TotalOpSize is too large");
+            return nullptr;
+        }
         drawCmdList->ops_.resize(totalOpSize);
         uint32_t index = 0;
         for (uint32_t i = 0; i < fdCount; ++i) {
             int fd = static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
             uint32_t opSize = parcel.ReadUint32();
-
+            if (opSize > OPSIZE_LIMIT) {
+                ROSEN_LOGE("DrawCmdList::Unmarshalling OpSize is too large");
+                return nullptr;
+            }
             auto ashmemAllocator =
                 AshmemAllocator::CreateAshmemAllocatorWithFd(fd, ASHMEMALLOCATOR_SIZE, PROT_READ | PROT_WRITE);
             if (!ashmemAllocator) {

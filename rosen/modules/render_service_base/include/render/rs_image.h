@@ -82,10 +82,10 @@ public:
     bool IsEqual(const RSImage& other) const;
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
-    void CanvasDrawImage(SkCanvas& canvas, const SkRect& rect, const SkSamplingOptions& samplingOptions,
+    void CanvasDrawImage(RSPaintFilterCanvas& canvas, const SkRect& rect, const SkSamplingOptions& samplingOptions,
         const SkPaint& paint, bool isBackground = false);
 #else
-    void CanvasDrawImage(SkCanvas& canvas, const SkRect& rect, const SkPaint& paint, bool isBackground = false);
+    void CanvasDrawImage(RSPaintFilterCanvas& canvas, const SkRect& rect, const SkPaint& paint, bool isBackground = false);
 #endif
 #else
     void CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect,
@@ -140,12 +140,12 @@ private:
     bool HasRadius() const;
     void ApplyImageFit();
 #ifndef USE_ROSEN_DRAWING
-    void ApplyCanvasClip(SkCanvas& canvas);
-    void UploadGpu(SkCanvas& canvas);
+    void ApplyCanvasClip(RSPaintFilterCanvas& canvas);
+    void UploadGpu(RSPaintFilterCanvas& canvas);
 #ifdef NEW_SKIA
-    void DrawImageRepeatRect(const SkSamplingOptions& samplingOptions, const SkPaint& paint, SkCanvas& canvas);
+    void DrawImageRepeatRect(const SkSamplingOptions& samplingOptions, const SkPaint& paint, RSPaintFilterCanvas& canvas);
 #else
-    void DrawImageRepeatRect(const SkPaint& paint, SkCanvas& canvas);
+    void DrawImageRepeatRect(const SkPaint& paint, RSPaintFilterCanvas& canvas);
 #endif
 #else
     void ApplyCanvasClip(Drawing::Canvas& canvas);

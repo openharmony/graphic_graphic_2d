@@ -71,6 +71,7 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/c/drawing_font_collection.cpp",
       "$drawing_src_dir/c/drawing_path.cpp",
       "$drawing_src_dir/c/drawing_pen.cpp",
+      "$drawing_src_dir/c/drawing_register_font.cpp",
       "$drawing_src_dir/c/drawing_text_typography.cpp",
       "$drawing_src_dir/draw/brush.cpp",
       "$drawing_src_dir/draw/color.cpp",
@@ -87,9 +88,6 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/effect/path_effect.cpp",
       "$drawing_src_dir/effect/shader_effect.cpp",
       "$drawing_src_dir/engine_adapter/impl_factory.cpp",
-      "$drawing_src_dir/engine_adapter/skia_adapter/platform/skia_font_mgr_ohos.cpp",
-      "$drawing_src_dir/engine_adapter/skia_adapter/platform/skia_font_style_set_ohos.cpp",
-      "$drawing_src_dir/engine_adapter/skia_adapter/platform/skia_typeface_ohos.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/rs_skia_memory_tracer.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_bitmap.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_camera.cpp",
@@ -113,12 +111,14 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_picture.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_region.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_shader_effect.cpp",
+      "$drawing_src_dir/engine_adapter/skia_adapter/skia_static_factory.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_surface.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_text_blob.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_text_blob_builder.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_trace_memory_dump.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_typeface.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_vertices.cpp",
+      "$drawing_src_dir/engine_adapter/static_factory.cpp",
       "$drawing_src_dir/image/bitmap.cpp",
       "$drawing_src_dir/image/image.cpp",
       "$drawing_src_dir/image/picture.cpp",
@@ -246,10 +246,6 @@ template("graphics2d_source_set") {
         }
       } else {
         if (defined(use_rosen_drawing) && use_rosen_drawing) {
-          sources += [
-            "$drawing_src_dir/engine_adapter/skia_adapter/skia_dynamic_font_mgr.cpp",
-            "$drawing_src_dir/engine_adapter/skia_adapter/skia_typeface_font_style_set.cpp",
-          ]
           include_dirs += [ "//third_party/flutter/txt/src" ]
           deps += [
             "$ace_flutter_engine_root/libtxt:thirdparty_lib_txt_$platform",
@@ -519,6 +515,7 @@ if (enable_text_gine) {
       "$drawing_src_dir/c/drawing_font_collection.cpp",
       "$drawing_src_dir/c/drawing_path.cpp",
       "$drawing_src_dir/c/drawing_pen.cpp",
+      "$drawing_src_dir/c/drawing_register_font.cpp",
       "$drawing_src_dir/c/drawing_text_typography.cpp",
     ]
 

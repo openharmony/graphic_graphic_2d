@@ -2291,6 +2291,8 @@ void RSProperties::OnApplyModifiers()
         if (clipToFrame_ && clipToBounds_ && frameOffsetX_ == 0 && frameOffsetY_ == 0) {
             clipToFrame_ = false;
         }
+        frameGeo_->Round();
+        boundsGeo_->Round();
     }
     if (colorFilterNeedUpdate_) {
         GenerateColorFilter();

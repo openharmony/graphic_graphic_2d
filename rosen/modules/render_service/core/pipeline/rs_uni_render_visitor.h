@@ -125,6 +125,7 @@ public:
     void UpdateHardwareEnabledInfoBeforeCreateLayer();
     void SetHardwareEnabledNodes(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes);
     void AssignGlobalZOrderAndCreateLayer(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodesInZOrder);
+    void ScaleMirrorIfNeed(RSDisplayRenderNode& node);
 
     void CopyForParallelPrepare(std::shared_ptr<RSUniRenderVisitor> visitor);
     // Some properties defined before ProcessSurfaceRenderNode() may be used in
@@ -289,6 +290,9 @@ private:
     void UpdateCacheRenderNodeMapWithBlur(RSRenderNode& node);
     bool IsFirstVisitedCacheForced() const;
     bool IsRosenWebHardwareDisabled(RSSurfaceRenderNode& node, int rotation) const;
+    sk_sp<SkImage> GetCacheImageFromMirrorNode(std::shared_ptr<RSDisplayRenderNode> mirrorNode);
+
+    void SwitchColorFilterDrawing(int currentSaveCount);
 
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> offscreenSurface_;                 // temporary holds offscreen surface
@@ -328,6 +332,7 @@ private:
     ScreenId currentVisitDisplay_ = INVALID_SCREEN_ID;
     std::map<ScreenId, bool> displayHasSecSurface_;
     std::map<ScreenId, bool> displayHasSkipSurface_;
+    std::map<ScreenId, bool> hasCaptureWindow_;
     std::set<ScreenId> mirroredDisplays_;
     bool isSecurityDisplay_ = false;
 
@@ -414,7 +419,6 @@ private:
     uint32_t appWindowNum_ = 0;
 
     bool isParallel_ = false;
-    bool doParallelComposition_ = false;
     bool doParallelRender_ = false;
     // displayNodeMatrix only used in offScreen render case to ensure correct composer layer info when with rotation,
     // displayNodeMatrix indicates display node's matrix info
@@ -424,13 +428,7 @@ private:
     std::optional<Drawing::Matrix> displayNodeMatrix_;
 #endif
     mutable std::mutex copyVisitorInfosMutex_;
-#ifndef USE_ROSEN_DRAWING
-    sk_sp<SkImage> cacheImgForCapture_ = nullptr;
-#else
-    std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
-#endif
     bool resetRotate_ = false;
-    bool needCacheImg_ = false;
 #ifndef USE_ROSEN_DRAWING
     std::optional<SkPath> effectRegion_ = std::nullopt;
 #else
@@ -450,6 +448,7 @@ private:
     void endCapture() const;
     std::shared_ptr<RSRecordingCanvas> recordingCanvas_;
 #endif
+    sk_sp<SkImage> cacheImgForCapture_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

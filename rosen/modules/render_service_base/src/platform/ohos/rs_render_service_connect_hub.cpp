@@ -123,11 +123,13 @@ bool RSRenderServiceConnectHub::Connect()
         ROSEN_LOGE("RSRenderServiceConnectHub::Connect, failed to get render service proxy.");
         return false;
     }
-
-    wptr<RSRenderServiceConnectHub> rsConnhub = this;
-    deathRecipient_ = new RenderServiceDeathRecipient(rsConnhub);
-    if (!renderService->AsObject()->AddDeathRecipient(deathRecipient_)) {
-        ROSEN_LOGW("RSRenderServiceConnectHub::Connect, failed to AddDeathRecipient of render service.");
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        wptr<RSRenderServiceConnectHub> rsConnhub = this;
+        deathRecipient_ = new RenderServiceDeathRecipient(rsConnhub);
+        if (!renderService->AsObject()->AddDeathRecipient(deathRecipient_)) {
+            ROSEN_LOGW("RSRenderServiceConnectHub::Connect, failed to AddDeathRecipient of render service.");
+        }
     }
 
     if (token_ == nullptr) {

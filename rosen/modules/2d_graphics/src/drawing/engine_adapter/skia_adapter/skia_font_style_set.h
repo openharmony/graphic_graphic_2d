@@ -41,9 +41,7 @@ public:
 
     int Count() override;
 
-    void RegisterTypeface(std::shared_ptr<Typeface> typeface) override;
-
-protected:
+private:
     std::shared_ptr<SkFontStyleSet> skFontStyleSet_;
 };
 } // namespace Drawing

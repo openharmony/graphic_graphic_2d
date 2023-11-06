@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,29 +13,26 @@
  * limitations under the License.
  */
 
-#ifndef SKIA_DYNAMIC_FONT_MGR_H
-#define SKIA_DYNAMIC_FONT_MGR_H
+#ifndef SKIA_STATIC_FACTORY_H
+#define SKIA_STATIC_FACTORY_H
 
-#include <string>
+#include <cstdint>
 
-#include "skia_adapter/skia_font_mgr.h"
+#include "text/text_blob.h"
+#include "text/typeface.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class SkiaDynamicFontMgr : public SkiaFontMgr {
+class SkiaStaticFactory {
 public:
-    static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
-
-    explicit SkiaDynamicFontMgr();
-    ~SkiaDynamicFontMgr() override = default;
-
-    AdapterType GetType() const override
-    {
-        return AdapterType::SKIA_ADAPTER;
-    }
+    static std::shared_ptr<TextBlob> MakeFromText(const void* text, size_t byteLength,
+        const Font& font, TextEncoding encoding);
+    static std::shared_ptr<TextBlob> MakeFromRSXform(const void* text, size_t byteLength,
+        const RSXform xform[], const Font& font, TextEncoding encoding);
+    static std::shared_ptr<Typeface> MakeFromFile(const char path[]);
 };
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
-#endif
+#endif // SKIA_STATIC_FACTORY_H

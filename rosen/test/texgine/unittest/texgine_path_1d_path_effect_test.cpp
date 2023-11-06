@@ -23,12 +23,16 @@ using namespace testing::ext;
 
 struct MockVars {
     sk_sp<SkPathEffect> skPathEffect_ = nullptr;
-} g_tp1peMockvars;
+};
+
+namespace {
+struct MockVars g_tp1peMockvars;
 
 void InitTp1peMockVars(struct MockVars &&vars)
 {
     g_tp1peMockvars = std::move(vars);
 }
+} // namespace
 
 sk_sp<SkPathEffect> SkPath1DPathEffect::Make(const SkPath& path, SkScalar advance, SkScalar phase, Style style)
 {

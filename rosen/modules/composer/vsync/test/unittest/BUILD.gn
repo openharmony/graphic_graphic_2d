@@ -91,6 +91,8 @@ ohos_unittest("vsync_receiver_test") {
 
   deps = [
     ":vsync_test_common",
+    "../../../../../modules/platform:eventhandler",
+    "../../../../../modules/render_service_client:librender_service_client",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/graphic_2d/utils:socketpair",
   ]

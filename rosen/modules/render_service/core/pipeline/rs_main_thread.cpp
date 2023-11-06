@@ -128,7 +128,7 @@ constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
 constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 constexpr uint32_t WAIT_FOR_HARDWARE_THREAD_TASK_TIMEOUT = 3000;
-constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 1;
+constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
 constexpr uint32_t WAIT_FOR_MEM_MGR_SERVICE = 100;
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
@@ -482,6 +482,11 @@ void RSMainThread::SetFocusAppInfo(
     focusAppBundleName_ = bundleName;
     focusAppAbilityName_ = abilityName;
     focusNodeId_ = focusNodeId;
+}
+
+std::string RSMainThread::GetFocusAppBundleName() const
+{
+    return focusAppBundleName_;
 }
 
 void RSMainThread::Start()
@@ -936,6 +941,9 @@ void RSMainThread::CollectInfoForHardwareComposer()
             if (surfaceNode == nullptr || !surfaceNode->IsOnTheTree()) {
                 return;
             }
+            if (surfaceNode->GetBuffer() != nullptr) {
+                selfDrawingNodes_.emplace_back(surfaceNode);
+            }
             if (!surfaceNode->IsHardwareEnabledType()) {
                 return;
             }
@@ -1284,6 +1292,11 @@ void RSMainThread::ProcessHgmFrameRate(std::shared_ptr<FrameRateRangeData> data,
     // 3.[Planning]: Post app and rs switch software vsync rate task.
 }
 
+bool RSMainThread::GetParallelCompositionEnabled()
+{
+    return doParallelComposition_;
+}
+
 void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
     UpdateUIFirstSwitch();
@@ -1330,11 +1343,11 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         rootNode->Prepare(uniVisitor);
         ProcessHgmFrameRate(frameRateRangeData_, timestamp_);
         CalcOcclusion();
-        bool doParallelComposition = RSInnovation::GetParallelCompositionEnabled(isUniRender_);
-        if (doParallelComposition && rootNode->GetChildrenCount() > 1) {
+        doParallelComposition_ = RSInnovation::GetParallelCompositionEnabled(isUniRender_) &&
+                                 rootNode->GetChildrenCount() > 1;
+        if (doParallelComposition_) {
             RS_LOGD("RSMainThread::Render multi-threads parallel composition begin.");
-            doParallelComposition = uniVisitor->ParallelComposition(rootNode);
-            if (doParallelComposition) {
+            if (uniVisitor->ParallelComposition(rootNode)) {
                 RS_LOGD("RSMainThread::Render multi-threads parallel composition end.");
                 isDirty_ = false;
                 PerfForBlurIfNeeded();
@@ -1450,72 +1463,51 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
     VisibleData curVisVec;
     OcclusionRectISet occlusionSurfaces;
     std::map<uint32_t, bool> pidVisMap;
+    bool hasFilterCacheOcclusion = false;
+    bool filterCacheOcclusionEnabled = RSSystemParameters::GetFilterCacheOcculusionEnabled();
     for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
         auto curSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
         if (curSurface == nullptr || curSurface->GetDstRect().IsEmpty() || curSurface->IsLeashWindow()) {
             continue;
         }
-        Occlusion::Rect occlusionRect;
-        if (isUniRender_) {
-            // In UniRender, CalcOcclusion should consider the shadow area of window
-            occlusionRect = Occlusion::Rect {curSurface->GetOldDirtyInSurface()};
-        } else {
-            occlusionRect = Occlusion::Rect {curSurface->GetDstRect()};
-        }
-        RS_LOGD("RSMainThread::CalcOcclusionImplementation name: %{public}s id: %{public}" PRIu64 " rect: %{public}s",
-            curSurface->GetName().c_str(), curSurface->GetId(), occlusionRect.GetRectInfo().c_str());
+        Occlusion::Rect occlusionRect = curSurface->GetSurfaceOcclusionRect(isUniRender_);
         curSurface->setQosCal(qosPidCal_);
         if (CheckSurfaceNeedProcess(occlusionSurfaces, curSurface)) {
             Occlusion::Region curRegion { occlusionRect };
             Occlusion::Region subResult = curRegion.Sub(accumulatedRegion);
             curSurface->SetVisibleRegionRecursive(subResult, curVisVec, pidVisMap);
-            // when surface is in starting window stage, do not occlude other window surfaces
-            // fix grey block when directly open app (i.e. setting) from notification center
-            auto parentPtr = curSurface->GetParent().lock();
-            if (parentPtr != nullptr && parentPtr->IsInstanceOf<RSSurfaceRenderNode>()) {
-                auto surfaceParentPtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(parentPtr);
-                if (surfaceParentPtr->GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE &&
-                    !curSurface->IsNotifyUIBufferAvailable()) {
-                    continue;
-                }
-            }
-            if (isUniRender_) {
-                if (curSurface->GetName().find("hisearch") == std::string::npos) {
-                    // When a surfacenode is in animation (i.e. 3d animation), its dstrect cannot be trusted, we treated
-                    // it as a full transparent layer.
-                    if (parentPtr != nullptr && parentPtr->IsInstanceOf<RSSurfaceRenderNode>()) {
-                        auto surfaceParentPtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(parentPtr);
-                        // leashwindow scaling is also means animation
-                        if (surfaceParentPtr->IsLeashWindow() && surfaceParentPtr->IsScale()) {
-                            curSurface->SetAnimateState();
-                        }
-                    }
-                    if (!(curSurface->GetAnimateState())) {
-                        if (RSSystemParameters::GetFilterCacheOcculusionEnabled() &&
-                            curSurface->IsTransparent() && curSurface->GetFilterCacheValid()) {
-                            RS_OPTIONAL_TRACE_NAME_FMT("calc occlusion nodename: %s id: %llu curRegion %s",
-                                curSurface->GetName().c_str(), curSurface->GetId(), curRegion.GetRegionInfo().c_str());
-                            accumulatedRegion.OrSelf(curRegion);
-                        } else {
-                            accumulatedRegion.OrSelf(curSurface->GetOpaqueRegion());
-                        }
-                    } else {
-                        curSurface->ResetAnimateState();
-                    }
-                }
-            } else {
-                bool diff = (curSurface->GetDstRect().width_ > curSurface->GetBuffer()->GetWidth() ||
-                            curSurface->GetDstRect().height_ > curSurface->GetBuffer()->GetHeight()) &&
-                            curSurface->GetRenderProperties().GetFrameGravity() != Gravity::RESIZE &&
-                            ROSEN_EQ(curSurface->GetGlobalAlpha(), 1.0f);
-                if (!curSurface->IsTransparent() && !diff) {
-                    accumulatedRegion.OrSelf(curRegion);
-                }
-            }
+            curSurface->AccumulateOcclusionRegion(accumulatedRegion, curRegion, hasFilterCacheOcclusion, isUniRender_,
+                filterCacheOcclusionEnabled);
         } else {
             curSurface->SetVisibleRegionRecursive({}, curVisVec, pidVisMap);
         }
     }
+
+    // if there are valid filter cache occlusion, recalculate surfacenode visibleregionforcallback for WMS/QOS callback
+    if (hasFilterCacheOcclusion && isUniRender_) {
+        curVisVec.clear();
+        pidVisMap.clear();
+        occlusionSurfaces.clear();
+        accumulatedRegion = {};
+        for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
+            auto curSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
+            if (curSurface == nullptr || curSurface->GetDstRect().IsEmpty() || curSurface->IsLeashWindow()) {
+                continue;
+            }
+            Occlusion::Rect occlusionRect = curSurface->GetSurfaceOcclusionRect(isUniRender_);
+            curSurface->setQosCal(qosPidCal_);
+            if (CheckSurfaceNeedProcess(occlusionSurfaces, curSurface)) {
+                Occlusion::Region curRegion { occlusionRect };
+                Occlusion::Region subResult = curRegion.Sub(accumulatedRegion);
+                curSurface->SetVisibleRegionRecursive(subResult, curVisVec, pidVisMap, false);
+                curSurface->AccumulateOcclusionRegion(accumulatedRegion, curRegion, hasFilterCacheOcclusion, isUniRender_,
+                    false);
+            } else {
+                curSurface->SetVisibleRegionRecursive({}, curVisVec, pidVisMap, false);
+            }
+        }
+    }
+
     // Callback to WMS and QOS
     CallbackToWMS(curVisVec);
     CallbackToQOS(pidVisMap);
@@ -1605,7 +1597,7 @@ bool RSMainThread::CheckQosVisChanged(std::map<uint32_t, bool>& pidVisMap)
     }
 
     lastPidVisMap_.clear();
-    lastPidVisMap_.insert(pidVisMap.begin(), pidVisMap.end());
+    std::swap(lastPidVisMap_, pidVisMap);
     return isVisibleChanged;
 }
 
@@ -1652,7 +1644,7 @@ void RSMainThread::CallbackToWMS(VisibleData& curVisVec)
         }
     }
     lastVisVec_.clear();
-    std::copy(curVisVec.begin(), curVisVec.end(), std::back_inserter(lastVisVec_));
+    std::swap(lastVisVec_, curVisVec);
 }
 
 void RSMainThread::SurfaceOcclusionCallback()
@@ -1680,7 +1672,7 @@ void RSMainThread::SurfaceOcclusionCallback()
             }
             savedAppWindowNode_[listener.first] = std::make_pair(surfaceNode, appWindowNode);
         }
-        bool visible = savedAppWindowNode_[listener.first].second->GetVisibleRegion().IsIntersectWith(
+        bool visible = savedAppWindowNode_[listener.first].second->GetVisibleRegionForCallBack().IsIntersectWith(
             savedAppWindowNode_[listener.first].first->GetDstRect());
         if (std::get<2>(listener.second) != visible) { // get 2 in tuple to check visible is changed
             RS_LOGD("RSMainThread::SurfaceOcclusionCallback surfacenode: %{public}" PRIu64 ".", listener.first);
@@ -2239,6 +2231,19 @@ void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::str
 #endif
 }
 
+void RSMainThread::DumpNode(std::string& result, uint64_t nodeId) const
+{
+    const auto& nodeMap = context_->GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (!node) {
+        result.append("have no this node");
+        return;
+    }
+    DfxString log;
+    node->DumpNodeInfo(log);
+    result.append(log.GetString());
+}
+
 void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
     std::string& type, int pid)
 {
@@ -2544,6 +2549,12 @@ void RSMainThread::ResetHardwareEnabledState()
     doDirectComposition_ = !isHardwareForcedDisabled_;
     isHardwareEnabledBufferUpdated_ = false;
     hardwareEnabledNodes_.clear();
+    selfDrawingNodes_.clear();
+}
+
+const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& RSMainThread::GetSelfDrawingNodes() const
+{
+    return selfDrawingNodes_;
 }
 
 void RSMainThread::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)

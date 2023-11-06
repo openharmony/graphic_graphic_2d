@@ -44,7 +44,7 @@ public:
     virtual void ProcessSurface(RSSurfaceRenderNode& node) = 0;
     virtual void ProcessDisplaySurface(RSDisplayRenderNode& node) = 0;
     virtual void ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node) = 0;
-    virtual void PostProcess() = 0;
+    virtual void PostProcess(RSDisplayRenderNode* node = nullptr) = 0;
     void SetSecurityDisplay(bool isSecurityDisplay);
     void SetDisplayHasSecSurface(bool displayHasSecSurface);
 

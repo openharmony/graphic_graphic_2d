@@ -39,7 +39,7 @@ void HgmFrameRateManager::UniProcessData(const FrameRateRangeData& data)
     auto& hgmCore = HgmCore::Instance();
     FrameRateRange finalRange;
     if (auto scenePreferred = hgmCore.GetScenePreferred(); scenePreferred != 0) {
-        ResetScreenTimer(screenId);
+        StopScreenTimer(screenId);
         finalRange.max_ = RANGE_MAX_REFRESHRATE;
         finalRange.preferred_ = scenePreferred;
     } else {
@@ -267,6 +267,13 @@ void HgmFrameRateManager::ResetScreenTimer(ScreenId screenId) const
 {
     if (auto timer = GetScreenTimer(screenId); timer != nullptr) {
         timer->Reset();
+    }
+}
+
+void HgmFrameRateManager::StopScreenTimer(ScreenId screenId)
+{
+    if (auto timer = screenTimerMap_.find(screenId); timer != screenTimerMap_.end()) {
+        screenTimerMap_.erase(timer);
     }
 }
 } // namespace Rosen

@@ -172,6 +172,7 @@ safwk_base = "//foundation/systemabilitymgr/safwk"
 skia_root_new = "//third_party/skia"
 memmgr_root = "//foundation/resourceschedule/memmgr"
 memmgr_plugin_root = "//foundation/resourceschedule/memmgr_plugin"
+fuzz_test_output_path = "graphic_2d/graphic_2d"
 
 accessibility_enable = false
 if (defined(global_parts_info) &&

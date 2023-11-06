@@ -15,19 +15,11 @@
 
 #include "text/font_style_set.h"
 
-#include "src/ports/skia_ohos/FontConfig_ohos.h"
-
-#include "impl_factory.h"
 #include "impl_interface/font_style_set_impl.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-FontStyleSet::FontStyleSet() : fontStyleSetImpl_(ImplFactory::CreateTypefaceFontStyleSetImpl()) {}
-
-FontStyleSet::FontStyleSet(const std::shared_ptr<FontConfig_OHOS>& fontConfig, int index, bool isFallback)
-    : fontStyleSetImpl_(ImplFactory::CreateFontStyleSetOhosImpl(fontConfig, index, isFallback)) {}
-
 FontStyleSet::FontStyleSet(std::shared_ptr<FontStyleSetImpl> fontStyleSetImpl) noexcept
     : fontStyleSetImpl_(fontStyleSetImpl) {}
 
@@ -45,13 +37,6 @@ int FontStyleSet::Count()
         return fontStyleSetImpl_->Count();
     }
     return 0;
-}
-
-void FontStyleSet::RegisterTypeface(std::shared_ptr<Typeface> typeface)
-{
-    if (fontStyleSetImpl_) {
-        fontStyleSetImpl_->RegisterTypeface(typeface);
-    }
 }
 } // namespace Drawing
 } // namespace Rosen

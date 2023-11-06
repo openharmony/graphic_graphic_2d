@@ -100,6 +100,8 @@ public:
     void AttachToDisplay(uint64_t screenId);
     void DetachToDisplay(uint64_t screenId);
     void SetHardwareEnabled(bool isEnabled);
+    void SetBootAnimation(bool isBootAnimation);
+    bool GetBootAnimation() const;
 
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<OHOS::Surface> GetSurface() const;
@@ -159,6 +161,7 @@ private:
     bool isSkipLayer_ = false;
     bool hasFingerprint_ = false;
     bool isChildOperationDisallowed_ { false };
+    bool isBootAnimation_ = false;
 
     uint32_t windowId_ = 0;
 #ifndef ROSEN_CROSS_PLATFORM

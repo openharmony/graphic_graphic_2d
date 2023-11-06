@@ -46,6 +46,7 @@ public:
     void ResetScreenTimer(ScreenId screenId) const;
     void StartScreenTimer(ScreenId screenId, int32_t interval,
         std::function<void()> resetCallback, std::function<void()> expiredCallback);
+    void StopScreenTimer(ScreenId screenId);
     void Reset();
     void SetTimerExpiredCallback(std::function<void()> expiredCallback)
     {

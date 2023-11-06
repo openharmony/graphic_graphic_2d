@@ -191,7 +191,8 @@ bool RSImageFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     RSImage other;
-    SkCanvas canvas;
+    SkCanvas skCanvas;
+    RSPaintFilterCanvas canvas(&skCanvas);
     float fLeft = GetData<float>();
     float fTop = GetData<float>();
     float fRight = GetData<float>();

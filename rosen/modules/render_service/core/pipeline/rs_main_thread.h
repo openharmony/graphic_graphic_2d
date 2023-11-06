@@ -153,6 +153,7 @@ public:
     void SetFocusAppInfo(
         int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName, uint64_t focusNodeId);
     std::unordered_map<NodeId, bool> GetCacheCmdSkippedNodes() const;
+    std::string GetFocusAppBundleName() const;
 
     sptr<VSyncDistributor> rsVSyncDistributor_;
 
@@ -168,6 +169,7 @@ public:
     void ForceRefreshForUni();
     void TrimMem(std::unordered_set<std::u16string>& argSets, std::string& result);
     void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type, int pid = 0);
+    void DumpNode(std::string& result, uint64_t nodeId) const;
     void CountMem(int pid, MemoryGraphic& mem);
     void CountMem(std::vector<MemoryGraphic>& mems);
     void SetAppWindowNum(uint32_t num);
@@ -195,6 +197,8 @@ public:
 
     void SubscribeAppState();
     void HandleOnTrim(Memory::SystemMemoryLevel level);
+    const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetSelfDrawingNodes() const;
+    bool GetParallelCompositionEnabled();
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -380,6 +384,7 @@ private:
     bool doDirectComposition_ = true;
     bool isHardwareEnabledBufferUpdated_ = false;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
     bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
 
     // used for watermark
@@ -390,6 +395,7 @@ private:
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
 #endif
     bool isShow_ = false;
+    bool doParallelComposition_ = false;
 
     // driven render
     bool hasDrivenNodeOnUniTree_ = false;

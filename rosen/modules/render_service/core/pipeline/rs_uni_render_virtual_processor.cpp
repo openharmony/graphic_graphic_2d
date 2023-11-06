@@ -80,12 +80,12 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
     }
     if (mirrorNode && isPhone_) {
         if (node.getFirstTimeScreenRotation() == ScreenRotation::ROTATION_90) {
-            canvas_->rotate(90, renderFrameConfig_.height / 2, renderFrameConfig_.height / 2); // 90 degrees
+            canvas_->rotate(90, renderFrameConfig_.height / 2.0f, renderFrameConfig_.height / 2.0f); // 90 degrees
             canvas_->translate(0, renderFrameConfig_.height - renderFrameConfig_.width);
         } else if (node.getFirstTimeScreenRotation() == ScreenRotation::ROTATION_180) {
-            canvas_->rotate(180, renderFrameConfig_.width / 2, renderFrameConfig_.height / 2); // 180 degrees
+            canvas_->rotate(180, renderFrameConfig_.width / 2.0f, renderFrameConfig_.height / 2.0f); // 180 degrees
         } else if (node.getFirstTimeScreenRotation() == ScreenRotation::ROTATION_270) {
-            canvas_->rotate(270, renderFrameConfig_.height / 2, renderFrameConfig_.height / 2); // 270 degrees
+            canvas_->rotate(270, renderFrameConfig_.height / 2.0f, renderFrameConfig_.height / 2.0f); // 270 degrees
         }
     } else {
 #ifndef USE_ROSEN_DRAWING
@@ -105,7 +105,7 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
     return true;
 }
 
-void RSUniRenderVirtualProcessor::PostProcess()
+void RSUniRenderVirtualProcessor::PostProcess(RSDisplayRenderNode* node)
 {
     if (producerSurface_ == nullptr) {
         RS_LOGE("RSUniRenderVirtualProcessor::PostProcess surface is null!");

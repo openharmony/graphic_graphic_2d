@@ -198,19 +198,15 @@ public:
 // Shadow
 class RSShadowBaseDrawable : public RSPropertyDrawable {
 public:
-#ifndef USE_ROSEN_DRAWING
-    explicit RSShadowBaseDrawable(SkPath skPath, const RSProperties& properties);
-#else
-    explicit RSShadowBaseDrawable(Drawing::Path skPath, const RSProperties& properties);
-#endif
+    explicit RSShadowBaseDrawable(const RSProperties& properties);
     ~RSShadowBaseDrawable() override = default;
     static std::unique_ptr<RSPropertyDrawable> Generate(const RSPropertyDrawableGenerateContext& context);
 
 protected:
 #ifndef USE_ROSEN_DRAWING
-    SkPath skPath_;
+    void ClipShadowPath(RSRenderNode& node, RSPaintFilterCanvas& canvas, SkPath& skPath);
 #else
-    Drawing::Path path_;
+    void ClipShadowPath(RSRenderNode& node, RSPaintFilterCanvas& canvas, Drawing::Path& path);
 #endif
     float offsetX_;
     float offsetY_;
@@ -219,11 +215,7 @@ protected:
 
 class RSShadowDrawable : public RSShadowBaseDrawable {
 public:
-#ifndef USE_ROSEN_DRAWING
-    explicit RSShadowDrawable(SkPath skPath, const RSProperties& properties);
-#else
-    explicit RSShadowDrawable(Drawing::Path path, const RSProperties& properties);
-#endif
+    explicit RSShadowDrawable(const RSProperties& properties);
     ~RSShadowDrawable() override = default;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 
@@ -233,11 +225,7 @@ protected:
 
 class RSColorfulShadowDrawable : public RSShadowBaseDrawable {
 public:
-#ifndef USE_ROSEN_DRAWING
-    explicit RSColorfulShadowDrawable(SkPath skPath, const RSProperties& properties);
-#else
-    explicit RSColorfulShadowDrawable(Drawing::Path path, const RSProperties& properties);
-#endif
+    explicit RSColorfulShadowDrawable(const RSProperties& properties);
     ~RSColorfulShadowDrawable() override = default;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 
@@ -252,11 +240,7 @@ protected:
 
 class RSHardwareAccelerationShadowDrawable : public RSShadowBaseDrawable {
 public:
-#ifndef USE_ROSEN_DRAWING
-    explicit RSHardwareAccelerationShadowDrawable(SkPath skPath, const RSProperties& properties);
-#else
-    explicit RSHardwareAccelerationShadowDrawable(Drawing::Path path, const RSProperties& properties);
-#endif
+    explicit RSHardwareAccelerationShadowDrawable(const RSProperties& properties);
     ~RSHardwareAccelerationShadowDrawable() override = default;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 
@@ -539,5 +523,26 @@ private:
     std::shared_ptr<RSFilter> filter_ = nullptr;
 };
 
+// ============================================================================
+// SavelayerBackground
+class RSSavelayerBackgroundDrawable : public RSPropertyDrawable {
+public:
+    explicit RSSavelayerBackgroundDrawable() = default;
+    ~RSSavelayerBackgroundDrawable() override = default;
+    static std::unique_ptr<RSPropertyDrawable> Generate(const RSPropertyDrawableGenerateContext& context);
+    void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
+};
+
+// SavelayerContent
+class RSSavelayerContentDrawable : public RSPropertyDrawable {
+public:
+    explicit RSSavelayerContentDrawable(SkPaint&& blendPaint) : blendPaint_(std::move(blendPaint)) {}
+    ~RSSavelayerContentDrawable() override = default;
+    static std::unique_ptr<RSPropertyDrawable> Generate(const RSPropertyDrawableGenerateContext& context);
+    void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
+
+private:
+    SkPaint blendPaint_;
+};
 };     // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_BOUNDS_GEOMETRY_H

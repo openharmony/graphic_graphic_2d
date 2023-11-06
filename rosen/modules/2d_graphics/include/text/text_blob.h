@@ -18,6 +18,9 @@
 
 #include <memory>
 
+#include "text/font.h"
+#include "text/font_types.h"
+#include "text/rs_xform.h"
 #include "impl_interface/text_blob_impl.h"
 
 namespace OHOS {
@@ -27,6 +30,13 @@ class TextBlob {
 public:
     explicit TextBlob(std::shared_ptr<TextBlobImpl> textBlobImpl) noexcept;
     virtual ~TextBlob() = default;
+
+    static std::shared_ptr<TextBlob> MakeFromText(const void* text, size_t byteLength,
+        const Font& font, TextEncoding encoding = TextEncoding::UTF8);
+    static std::shared_ptr<TextBlob> MakeFromString(const char* str,
+        const Font& font, TextEncoding encoding = TextEncoding::UTF8);
+    static std::shared_ptr<TextBlob> MakeFromRSXform(const void* text, size_t byteLength,
+        const RSXform xform[], const Font& font, TextEncoding encoding = TextEncoding::UTF8);
 
     template<typename T>
     const std::shared_ptr<T> GetImpl() const

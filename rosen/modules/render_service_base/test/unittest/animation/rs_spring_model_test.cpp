@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "animation/rs_spring_model.h"
+#include "common/rs_rect.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
 #include "modifier/rs_render_property.h"
@@ -340,6 +341,43 @@ HWTEST_F(RSSpringModelTest, RSSpringModelRSRSRenderPropertyBaseTest001, TestSize
     EXPECT_TRUE(duration != 0.0f);
 
     GTEST_LOG_(INFO) << "RSSpringModelTest RSSpringModelRSRSRenderPropertyBaseTest001 end";
+}
+
+/**
+ * @tc.name: RSSpringModelRRectTest001
+ * @tc.desc: Verify the RSSpringModelRRect
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringModelTest, RSSpringModelRRectTest001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringModelTest RSSpringModelRRectTest001 start";
+
+    RectF rect1;
+    rect1.SetAll(0.f, 0.f, 0.f, 0.f);
+    RectF rect2;
+    rect2.SetAll(1.f, 1.f, 1.f, 1.f);
+    RRect initialOffset(rect1, 0.f, 0.f);
+    RRect initialVelocity(rect2, 1.f, 1.f);
+
+    auto model1 = std::make_shared<RSSpringModel<RRect>>(0.0f, 0.0f, initialOffset, initialVelocity, 0.0f);
+    auto result = model1->CalculateDisplacement(1.0f);
+    EXPECT_TRUE(result == initialOffset);
+    auto duration = model1->EstimateDuration();
+    EXPECT_TRUE(duration != 0.0f);
+
+    auto model2 = std::make_shared<RSSpringModel<RRect>>(1.0f, 1.0f, initialOffset, initialVelocity, 1.0f);
+    result = model2->CalculateDisplacement(1.0f);
+    EXPECT_TRUE(result != initialOffset);
+    duration = model2->EstimateDuration();
+    EXPECT_TRUE(duration != 0.0f);
+
+    auto model3 = std::make_shared<RSSpringModel<RRect>>(1.0f, 2.0f, initialOffset, initialVelocity, 1.0f);
+    result = model3->CalculateDisplacement(1.0f);
+    EXPECT_TRUE(result != initialOffset);
+    duration = model3->EstimateDuration();
+    EXPECT_TRUE(duration != 0.0f);
+
+    GTEST_LOG_(INFO) << "RSSpringModelTest RSSpringModelRRectTest001 end";
 }
 } // namespace Rosen
 } // namespace OHOS

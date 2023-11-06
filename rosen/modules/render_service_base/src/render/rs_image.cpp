@@ -24,6 +24,7 @@
 #include "include/core/SkPaint.h"
 #include "include/core/SkRRect.h"
 #endif
+#include "pipeline/rs_recording_canvas.h"
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -54,10 +55,10 @@ bool RSImage::IsEqual(const RSImage& other) const
 }
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
-void RSImage::CanvasDrawImage(SkCanvas& canvas, const SkRect& rect, const SkSamplingOptions& samplingOptions,
+void RSImage::CanvasDrawImage(RSPaintFilterCanvas& canvas, const SkRect& rect, const SkSamplingOptions& samplingOptions,
     const SkPaint& paint, bool isBackground)
 #else
-void RSImage::CanvasDrawImage(SkCanvas& canvas, const SkRect& rect, const SkPaint& paint, bool isBackground)
+void RSImage::CanvasDrawImage(RSPaintFilterCanvas& canvas, const SkRect& rect, const SkPaint& paint, bool isBackground)
 #endif
 {
 #ifdef NEW_SKIA
@@ -186,7 +187,7 @@ bool RSImage::HasRadius() const
 }
 
 #ifndef USE_ROSEN_DRAWING
-void RSImage::ApplyCanvasClip(SkCanvas& canvas)
+void RSImage::ApplyCanvasClip(RSPaintFilterCanvas& canvas)
 {
     if (!HasRadius()) {
         return;
@@ -221,7 +222,7 @@ static SkImage::CompressionType PixelFormatToCompressionType(Media::PixelFormat 
 #endif
 
 #ifndef USE_ROSEN_DRAWING
-void RSImage::UploadGpu(SkCanvas& canvas)
+void RSImage::UploadGpu(RSPaintFilterCanvas& canvas)
 {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
     if (compressData_) {
@@ -296,9 +297,9 @@ void RSImage::UploadGpu(Drawing::Canvas& canvas)
 
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
-void RSImage::DrawImageRepeatRect(const SkSamplingOptions& samplingOptions, const SkPaint& paint, SkCanvas& canvas)
+void RSImage::DrawImageRepeatRect(const SkSamplingOptions& samplingOptions, const SkPaint& paint, RSPaintFilterCanvas& canvas)
 #else
-void RSImage::DrawImageRepeatRect(const SkPaint& paint, SkCanvas& canvas)
+void RSImage::DrawImageRepeatRect(const SkPaint& paint, RSPaintFilterCanvas& canvas)
 #endif
 #else
 void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas)
@@ -360,6 +361,13 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
 #ifndef USE_ROSEN_DRAWING
             dst_ = SkRect::MakeXYWH(dstRect_.left_ + i * dstRect_.width_, dstRect_.top_ + j * dstRect_.height_,
                 dstRect_.width_, dstRect_.height_);
+            if (canvas.GetRecordingState() && image_->isTextureBacked()) {
+                auto recordingCanvas = static_cast<RSRecordingCanvas*>(canvas.GetRecordingCanvas());
+                auto cpuImage = image_->makeRasterImage();
+                recordingCanvas->drawImageRect(image_, src_, dst_, samplingOptions,
+                    &paint, SkCanvas::kFast_SrcRectConstraint);
+                return;
+            }
 #ifdef NEW_SKIA
             canvas.drawImageRect(image_, src_, dst_, samplingOptions, &paint, SkCanvas::kFast_SrcRectConstraint);
 #else

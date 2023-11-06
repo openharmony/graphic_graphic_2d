@@ -175,7 +175,8 @@ void SurfaceNodeCommandHelper::AttachToDisplay(RSContext& context, NodeId nodeId
     auto surfaceRenderNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(nodeId);
     nodeMap.TraverseDisplayNodes(
         [&surfaceRenderNode, &screenId](const std::shared_ptr<RSDisplayRenderNode>& displayRenderNode) {
-            if (displayRenderNode == nullptr || displayRenderNode->GetScreenId() != screenId) {
+            if (displayRenderNode == nullptr || displayRenderNode->GetScreenId() != screenId ||
+                displayRenderNode->GetBootAnimation() != surfaceRenderNode->GetBootAnimation()) {
                 return;
             }
             displayRenderNode->AddChild(surfaceRenderNode);
@@ -188,11 +189,19 @@ void SurfaceNodeCommandHelper::DetachToDisplay(RSContext& context, NodeId nodeId
     auto surfaceRenderNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(nodeId);
     nodeMap.TraverseDisplayNodes(
         [&surfaceRenderNode, &screenId](const std::shared_ptr<RSDisplayRenderNode>& displayRenderNode) {
-            if (displayRenderNode == nullptr || displayRenderNode->GetScreenId() != screenId) {
+            if (displayRenderNode == nullptr || displayRenderNode->GetScreenId() != screenId ||
+                displayRenderNode->GetBootAnimation() != surfaceRenderNode->GetBootAnimation()) {
                 return;
             }
             displayRenderNode->RemoveChild(surfaceRenderNode);
         });
+}
+
+void SurfaceNodeCommandHelper::SetBootAnimation(RSContext& context, NodeId nodeId, bool isBootAnimation)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetBootAnimation(isBootAnimation);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

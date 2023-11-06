@@ -15,8 +15,6 @@
 
 #include "skia_font_mgr.h"
 
-#include <mutex>
-
 #include "include/core/SkTypeface.h"
 
 #include "skia_adapter/skia_convert_utils.h"
@@ -26,17 +24,11 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-SkiaFontMgr::SkiaFontMgr(std::shared_ptr<SkFontMgr> skFontMgr) : skFontMgr_(skFontMgr) {}
+SkiaFontMgr::SkiaFontMgr(sk_sp<SkFontMgr> skFontMgr) : skFontMgr_(skFontMgr) {}
 
 std::shared_ptr<FontMgrImpl> SkiaFontMgr::CreateDefaultFontMgr()
 {
-    static std::once_flag flag;
-    static std::shared_ptr<FontMgrImpl> singleton;
-
-    std::call_once(flag, []() {
-        singleton = Factory();
-    });
-    return singleton;
+    return std::make_shared<SkiaFontMgr>(SkFontMgr::RefDefault());
 }
 
 Typeface* SkiaFontMgr::MatchFamilyStyleCharacter(const char familyName[], const FontStyle& fontStyle,

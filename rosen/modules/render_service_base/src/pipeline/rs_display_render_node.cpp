@@ -66,9 +66,8 @@ void RSDisplayRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 void RSDisplayRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
     NodeId cacheNodeId)
 {
-    if (IsSuggestedDrawInGroup()) {
-        cacheNodeId = GetId();
-    }
+    // if node is marked as cacheRoot, update subtree status when update surface
+    // in case prepare stage upper cacheRoot cannot specify dirty subnode
     if (cacheNodeId != INVALID_NODEID) {
         SetDrawingCacheRootId(cacheNodeId);
     }
@@ -128,6 +127,26 @@ void RSDisplayRenderNode::SetIsMirrorDisplay(bool isMirror)
     isMirroredDisplay_ = isMirror;
     RS_LOGD("RSDisplayRenderNode::SetIsMirrorDisplay, node id:[%{public}" PRIu64 "], isMirrorDisplay: [%{public}s]",
         GetId(), IsMirrorDisplay() ? "true" : "false");
+}
+
+void RSDisplayRenderNode::SetBootAnimation(bool isBootAnimation)
+{
+    ROSEN_LOGD("SetBootAnimation:: id:[%{public}" PRIu64 ", isBootAnimation:%{public}d",
+        GetId(), isBootAnimation);
+    isBootAnimation_ = isBootAnimation;
+
+    auto parent = GetParent().lock();
+    if (parent == nullptr) {
+        return;
+    }
+    if (isBootAnimation) {
+        parent->SetContainBootAnimation(true);
+    }
+}
+
+bool RSDisplayRenderNode::GetBootAnimation() const
+{
+    return isBootAnimation_;
 }
 
 #ifndef ROSEN_CROSS_PLATFORM

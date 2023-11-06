@@ -43,6 +43,14 @@ public:
     RSPaintFilterCanvasBase(Drawing::Canvas* canvas);
     ~RSPaintFilterCanvasBase() override = default;
 
+    Drawing::Matrix GetTotalMatrix() const override;
+
+    Drawing::Rect GetLocalClipBounds() const override;
+
+    Drawing::RectI GetDeviceClipBounds() const override;
+
+    uint32_t GetSaveCount() const override;
+
 #ifdef ACE_ENABLE_GPU
     std::shared_ptr<Drawing::GPUContext> GetGPUContext() const override;
 #endif
@@ -87,10 +95,13 @@ public:
     void DrawPicture(const Drawing::Picture& picture) override;
     void DrawTextBlob(const Drawing::TextBlob* blob, const Drawing::scalar x, const Drawing::scalar y) override;
 
-    void ClipRect(const Drawing::Rect& rect, Drawing::ClipOp op, bool doAntiAlias) override;
+    void ClipRect(const Drawing::Rect& rect, Drawing::ClipOp op = Drawing::ClipOp::INTERSECT,
+        bool doAntiAlias = false) override;
     void ClipIRect(const Drawing::RectI& rect, Drawing::ClipOp op = Drawing::ClipOp::INTERSECT) override;
-    void ClipRoundRect(const Drawing::RoundRect& roundRect, Drawing::ClipOp op, bool doAntiAlias) override;
-    void ClipPath(const Drawing::Path& path, Drawing::ClipOp op, bool doAntiAlias) override;
+    void ClipRoundRect(const Drawing::RoundRect& roundRect, Drawing::ClipOp op = Drawing::ClipOp::INTERSECT,
+        bool doAntiAlias = false) override;
+    void ClipPath(const Drawing::Path& path, Drawing::ClipOp op = Drawing::ClipOp::INTERSECT,
+        bool doAntiAlias = false) override;
     void ClipRegion(const Drawing::Region& region, Drawing::ClipOp op = Drawing::ClipOp::INTERSECT) override;
 
     void SetMatrix(const Drawing::Matrix& matrix) override;
@@ -260,6 +271,7 @@ public:
 #endif
     bool GetRecordingState() const;
     void SetRecordingState(bool flag);
+    SkCanvas* GetRecordingCanvas() const;
 
 protected:
     using Env = struct {

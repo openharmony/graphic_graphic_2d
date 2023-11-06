@@ -70,9 +70,9 @@ RSImageBase::~RSImageBase()
 
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
-void RSImageBase::DrawImage(SkCanvas& canvas, const SkSamplingOptions& samplingOptions, const SkPaint& paint)
+void RSImageBase::DrawImage(RSPaintFilterCanvas& canvas, const SkSamplingOptions& samplingOptions, const SkPaint& paint)
 #else
-void RSImageBase::DrawImage(SkCanvas& canvas, const SkPaint& paint)
+void RSImageBase::DrawImage(RSPaintFilterCanvas& canvas, const SkPaint& paint)
 #endif
 {
     ConvertPixelMapToSkImage();
@@ -141,6 +141,15 @@ void RSImageBase::SetPixelMap(const std::shared_ptr<Media::PixelMap>& pixelmap)
         image_ = nullptr;
         GenUniqueId(pixelMap_->GetUniqueId());
     }
+}
+
+void RSImageBase::DumpPicture(DfxString& info) const
+{
+    if (!pixelMap_) {
+        return;
+    }
+    info.AppendFormat("%d    [%d * %d]  %p\n", pixelMap_->GetByteCount(), pixelMap_->GetWidth(), pixelMap_->GetHeight(),
+        pixelMap_.get());
 }
 
 void RSImageBase::SetSrcRect(const RectF& srcRect)

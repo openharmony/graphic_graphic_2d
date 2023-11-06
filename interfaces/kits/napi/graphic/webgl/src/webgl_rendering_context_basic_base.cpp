@@ -99,7 +99,7 @@ void WebGLRenderingContextBasicBase::Update()
         LOGD("mUpdateCallback");
         updateCallback_();
     } else {
-        LOGE("mUpdateCallback null");
+        LOGE("mUpdateCallback is null");
     }
 }
 

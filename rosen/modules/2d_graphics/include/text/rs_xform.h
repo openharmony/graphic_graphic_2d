@@ -13,14 +13,30 @@
  * limitations under the License.
  */
 
-#include "skia_dynamic_font_mgr.h"
+#ifndef RS_XFORM_H
+#define RS_XFORM_H
 
-#include "txt/asset_font_manager.h"
+#include <cmath>
+#include <stdint.h>
+
+#include "utils/scalar.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-SkiaDynamicFontMgr::SkiaDynamicFontMgr() : SkiaFontMgr(std::make_shared<txt::DynamicFontManager>()) {}
+struct RSXform {
+    static RSXform Make(scalar cos, scalar sin, scalar tx, scalar ty)
+    {
+        RSXform xform = { cos, sin, tx, ty };
+        return xform;
+    }
+
+    scalar cos_;
+    scalar sin_;
+    scalar tx_;
+    scalar ty_;
+};
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
+#endif

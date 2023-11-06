@@ -47,6 +47,7 @@
 #endif
 
 #include "common/rs_common_def.h"
+#include "memory/rs_dfx_string.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "property/rs_properties_def.h"
@@ -194,6 +195,11 @@ public:
     {
         // not cacheable by default
         return std::nullopt;
+    }
+
+    virtual void DumpPicture(DfxString& info) const
+    {
+        return;
     }
 
     bool Marshalling(Parcel& parcel) const override
@@ -349,6 +355,15 @@ public:
     {
         return true;
     }
+
+    void DumpPicture(DfxString& info) const override
+    {
+        if (!rsImage_) {
+            return;
+        }
+        rsImage_->DumpPicture(info);
+    }
+
     void SetNodeId(NodeId id) override;
 
     bool Marshalling(Parcel& parcel) const override;

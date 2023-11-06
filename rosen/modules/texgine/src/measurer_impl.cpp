@@ -28,6 +28,9 @@ namespace TextEngine {
 #define INVALID_TEXT_LENGTH (-1)
 #define SUCCESSED 0
 #define FAILED 1
+constexpr static uint8_t FIRST_BYTE = 24;
+constexpr static uint8_t SECOND_BYTE = 16;
+constexpr static uint8_t THIRD_BYTE = 8;
 
 namespace {
 void DumpCharGroup(int32_t index, const CharGroup &cg, double glyphEm,
@@ -189,12 +192,9 @@ void MeasurerImpl::SeekTypeface(std::list<struct MeasuringRun> &runs)
                 break;
             }
 
-            const int firstByte = 24;
-            const int secondByte = 16;
-            const int thirdByte = 8;
-            char runScript[5] = {(char)(((runsit->script) >> firstByte) & 0xFF),
-                                 (char)(((runsit->script) >> secondByte) & 0xFF),
-                                 (char)(((runsit->script) >> thirdByte) & 0xFF),
+            char runScript[5] = {(char)(((runsit->script) >> FIRST_BYTE) & 0xFF),
+                                 (char)(((runsit->script) >> SECOND_BYTE) & 0xFF),
+                                 (char)(((runsit->script) >> THIRD_BYTE) & 0xFF),
                                  (char)((runsit->script) & 0xFF), '\0'};
             lastTypeface = fontCollection_.GetTypefaceForChar(cp, style_, runScript, locale_);
             if (lastTypeface == nullptr) {
