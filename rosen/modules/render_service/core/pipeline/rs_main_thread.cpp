@@ -1503,8 +1503,8 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
                 Occlusion::Region curRegion { occlusionRect };
                 Occlusion::Region subResult = curRegion.Sub(accumulatedRegion);
                 curSurface->SetVisibleRegionRecursive(subResult, curVisVec, pidVisMap, false);
-                curSurface->AccumulateOcclusionRegion(accumulatedRegion, curRegion, hasFilterCacheOcclusion, isUniRender_,
-                    false);
+                curSurface->AccumulateOcclusionRegion(accumulatedRegion, curRegion, hasFilterCacheOcclusion,
+                    isUniRender_, false);
             } else {
                 curSurface->SetVisibleRegionRecursive({}, curVisVec, pidVisMap, false);
             }
