@@ -35,11 +35,7 @@ bool FontFeatures::operator ==(const FontFeatures &rhs) const
 
 bool TextShadow::HasShadow() const
 {
-    if ((offsetX == 0 && offsetY == 0) || blurLeave <= 0.5) {
-        return false;
-    }
-
-    return true;
+    return blurLeave > 0 || offsetX != 0 || offsetY != 0;
 }
 
 bool TextShadow::operator ==(TextShadow const &rhs) const
