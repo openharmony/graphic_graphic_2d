@@ -347,6 +347,8 @@ void RSRenderThreadVisitor::UpdateDirtyAndSetEGLDamageRegion(std::unique_ptr<RSS
 #else
         int32_t bufferAge = surfaceFrame->GetBufferAge();
 #endif
+        // we'll fix this in Split Render Mode.
+        bufferAge = 0;
         if (!curDirtyManager_->SetBufferAge(bufferAge)) {
             ROSEN_LOGD("ProcessRootRenderNode SetBufferAge with invalid buffer age %{public}d", bufferAge);
             curDirtyManager_->ResetDirtyAsSurfaceSize();
