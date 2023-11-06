@@ -28,6 +28,10 @@ struct EllipsisParams {
     size_t maxLines;
     double widthLimit;
 };
+struct SpansWidth {
+    double leftWidth = 0.0;
+    double rightWidth = 0.0;
+};
 class Shaper {
 public:
     /*
@@ -54,14 +58,22 @@ private:
     void ComputeIntrinsicWidth(const size_t maxLines);
     void ConsiderHeadEllipsis(const TypographyStyle &ys, const std::shared_ptr<FontProviders> &fontProviders,
         EllipsisParams params);
-    void ConsiderOneMidEllipsis(const std::vector<VariantSpan> &ellipsisSpans, const double ellipsisWidth,
-        const double widthLimit);
-    void ConsiderMiddleEllipsis(const std::vector<VariantSpan> &ellipsisSpans, const double ellipsisWidth,
-        const size_t maxLines, const double widthLimit);
     void ConsiderTailEllipsis(const TypographyStyle &ys, const std::shared_ptr<FontProviders> &fontProviders,
         EllipsisParams params);
     std::vector<LineMetrics> CreatePartlySpan(const bool cutRight, const TypographyStyle &ys,
         const std::shared_ptr<FontProviders> &fontProviders, const VariantSpan &span, const double exceedWidth);
+    bool CalcCharsIndex(const std::shared_ptr<TextSpan> textSpan, size_t &leftIndex,
+        size_t &rightIndex, size_t &maxIndex, const int avalibleWidth) const;
+    void SplitJointLeftSpans(const EllipsisParams &params, const size_t leftIndex,
+        const TypographyStyle &style, const std::shared_ptr<FontProviders> &fontProviders, const VariantSpan &span);
+    void SplitJointRightSpans(const EllipsisParams &params, const size_t rightIndex,
+        const TypographyStyle &style, const std::shared_ptr<FontProviders> &fontProviders, const VariantSpan &span);
+    bool CalcMidSpanIndex(const std::vector<VariantSpan> &spans, size_t &leftIndex, size_t &rightIndex,
+        struct SpansWidth &spansWidth, const int avalibleWidth);
+    void ConsideMidSpanEllipsis(const TypographyStyle &style, const std::shared_ptr<FontProviders> &fontProviders,
+        const EllipsisParams &params, const std::vector<VariantSpan> &spans);
+    void ConsiderMiddleEllipsis(const TypographyStyle &style, const std::shared_ptr<FontProviders> &fontProviders,
+        EllipsisParams params);
 
     std::vector<LineMetrics> lineMetrics_;
     bool didExceedMaxLines_ = false;
