@@ -80,20 +80,21 @@ enum RSPropertyDrawableSlot : uint8_t {
     OVERLAY,
     FOREGROUND_COLOR,
     PARTICLE_EFFECT,
-    PIXEL_STRETCH,
     RESTORE_BOUNDS,
 
+    // Without clip
+    PIXEL_STRETCH,
     RESTORE_ALL,
     MAX,
 };
 
 enum DrawableVecStatus : uint8_t {
-    CLIP_BOUNDS            = 1<<0,
-    BOUNDS_PROPERTY_BEFORE = 1<<1,
-    BOUNDS_PROPERTY_AFTER  = 1<<2,
-    CLIP_FRAME             = 1<<3,
-    FRAME_PROPERTY         = 1<<4,
-    HAS_CHILDREN           = 1<<5,
+    CLIP_BOUNDS            = 1 << 0,
+    BOUNDS_PROPERTY_BEFORE = 1 << 1,
+    BOUNDS_PROPERTY_AFTER  = 1 << 2,
+    CLIP_FRAME             = 1 << 3,
+    FRAME_PROPERTY         = 1 << 4,
+    HAS_CHILDREN           = 1 << 5,
     BOUNDS_MASK            = CLIP_BOUNDS | BOUNDS_PROPERTY_BEFORE | BOUNDS_PROPERTY_AFTER,
     FRAME_MASK             = CLIP_FRAME | FRAME_PROPERTY | HAS_CHILDREN,
 };
@@ -111,17 +112,23 @@ public:
     RSPropertyDrawable& operator=(const RSPropertyDrawable&) = delete;
     RSPropertyDrawable& operator=(const RSPropertyDrawable&&) = delete;
 
-    using DrawablePtr = std::unique_ptr<RSPropertyDrawable>;
-
     virtual void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) = 0;
-    virtual void OnBoundsChange(const RSProperties& properties) {}
+    // return true if this drawable can be updated, default is false
+    virtual bool Update(const RSPropertyDrawableGenerateContext& context) { return false; };
 
-    // Generator
-    using DrawableVec = std::vector<RSPropertyDrawable::DrawablePtr>;
-    static void UpdateDrawableVec(RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec,
-        uint8_t& drawableVecStatus, const std::unordered_set<RSModifierType>& dirtyTypes);
+    // Aliases
+    using DrawablePtr = std::unique_ptr<RSPropertyDrawable>;
+    using DrawableVec = std::vector<DrawablePtr>;
+    using DrawableGenerator = std::function<DrawablePtr(const RSPropertyDrawableGenerateContext&)>;
 
-    using DrawableGenerator = std::function<RSPropertyDrawable::DrawablePtr(const RSPropertyDrawableGenerateContext&)>;
+    // Generator Utilities
+    static void InitializeSaveRestore(const RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec);
+    static std::set<Slot::RSPropertyDrawableSlot> GenerateDirtySlots(
+        const RSProperties& properties, const std::unordered_set<RSModifierType>& dirtyTypes);
+    static bool UpdateDrawableVec(const RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec,
+        std::set<Slot::RSPropertyDrawableSlot>& dirtySlots);
+    static void UpdateSaveRestore(
+        RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec, uint8_t& drawableVecStatus);
 
 private:
     static inline uint8_t CalculateDrawableVecStatus(
