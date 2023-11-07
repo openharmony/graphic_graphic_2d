@@ -2369,6 +2369,9 @@ void RSProperties::CalculateFrameOffset()
 void RSProperties::SetColorBlendMode(int blendMode)
 {
     blendMode_ = blendMode;
+    if (blendMode != static_cast<int>(RSColorBlendModeType::NONE)) {
+        isDrawn_ = true;
+    }
     SetDirty();
     contentDirty_ = true;
 }
