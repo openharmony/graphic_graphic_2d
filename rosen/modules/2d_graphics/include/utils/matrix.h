@@ -123,6 +123,13 @@ public:
         return matrixImplPtr->DowncastingTo<T>();
     }
 
+    /*
+     * Returns true if matrix is Identity. Identity matrix is:
+     *    | 1 0 0 |
+     *    | 0 1 0 |
+     *    | 0 0 1 |
+     */
+    bool IsIdentity() const;
 private:
     std::shared_ptr<MatrixImpl> matrixImplPtr;
 };

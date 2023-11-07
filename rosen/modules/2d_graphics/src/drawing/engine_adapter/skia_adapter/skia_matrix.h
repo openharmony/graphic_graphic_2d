@@ -57,6 +57,7 @@ public:
     void Set(int index, scalar value) override;
     scalar Get(int index) const override;
     void GetAll(std::array<scalar, MatrixImpl::MATRIX_SIZE>& buffer) const override;
+    bool IsIdentity() const override;
 
     void ImportMatrix(const SkMatrix& skMatrix);
 
