@@ -112,6 +112,11 @@ public:
 private:
     static void ApplyBackgroundEffectFallback(const RSProperties& properties, RSPaintFilterCanvas& canvas);
     static void TransformGradientBlurDirection(uint8_t& direction, const uint8_t directionBias);
+    static RRect GetRRectForDrawingBorder(const RRect& rr, const std::shared_ptr<RSBorder>& border,
+                                          const Vector4f& outset, const bool& isFirstLayerBorder);
+    static RRect GetInnerRRectForDrawingBorder(const RSProperties& properties,
+                                               const std::shared_ptr<RSBorder>& border,
+                                               const Vector4f& innerOutset, const bool& isFirstLayerBorder);
 #ifndef USE_ROSEN_DRAWING
     static void DrawColorfulShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
     static void DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
@@ -129,6 +134,9 @@ private:
     static void DrawVerticalLinearGradientBlur(SkSurface* skSurface, RSPaintFilterCanvas& canvas,
         float radius, sk_sp<SkShader> alphaGradientShader, const SkIRect& clipIPadding);
     static uint8_t CalcDirectionBias(const SkMatrix& mat);
+    static void DrawBorderBase(const RSProperties& properties, SkCanvas& canvas,
+                               const std::shared_ptr<RSBorder>& border, Vector4f& outset,
+                               Vector4f& innerOutset, const bool isFirstLayerBorder);
 #else // USE_ROSEN_DRAWING
     static void DrawColorfulShadowInner(
         const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::Path& path);
