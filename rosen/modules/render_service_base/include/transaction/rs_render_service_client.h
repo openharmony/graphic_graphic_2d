@@ -65,8 +65,6 @@ struct DataBaseRs {
     int64_t inputTime = 0;
     int64_t beginVsyncTime = 0;
     int64_t endVsyncTime = 0;
-    bool isAnimationTrace = false;
-    bool isReportInteractionEvent = true;
     std::string sceneId;
     std::string versionName;
     std::string bundleName;
