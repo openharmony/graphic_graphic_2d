@@ -51,6 +51,7 @@ inline std::pair<RSPropertyDrawable::DrawablePtr, RSPropertyDrawable::DrawablePt
             std::make_unique<RSCustomRestoreDrawable>(status) };
     }
 }
+
 template<typename Container>
 inline void EraseSlots(RSPropertyDrawable::DrawableVec& vec, const Container& slotsToErase)
 {
@@ -59,7 +60,7 @@ inline void EraseSlots(RSPropertyDrawable::DrawableVec& vec, const Container& sl
     }
 }
 
-// index = RSModifierType value = RSPropertyDrawableType
+// key = RSModifierType, value = RSPropertyDrawableType
 static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_propertyToDrawableLut = {
     { RSModifierType::INVALID, RSPropertyDrawableSlot::INVALID },
     { RSModifierType::BOUNDS, RSPropertyDrawableSlot::BOUNDS_MATRIX },
@@ -141,7 +142,7 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::GEOMETRYTRANS, RSPropertyDrawableSlot::INVALID },
 };
 
-// index = RSPropertyDrawableType value = DrawableGenerator
+// index = RSPropertyDrawableType, value = DrawableGenerator
 static const std::vector<RSPropertyDrawable::DrawableGenerator> g_drawableGeneratorLut = {
     nullptr, // INVALID = 0,
     nullptr, // SAVE_ALL,
@@ -198,12 +199,8 @@ static const std::vector<RSPropertyDrawable::DrawableGenerator> g_drawableGenera
 inline bool HasPropertyDrawableInRange(
     const RSPropertyDrawable::DrawableVec& drawableVec, RSPropertyDrawableSlot begin, RSPropertyDrawableSlot end)
 {
-    for (uint8_t index = begin; index <= end; index++) {
-        if (drawableVec[index]) {
-            return true;
-        }
-    }
-    return false;
+    return std::any_of(drawableVec.begin() + begin, drawableVec.begin() + end + 1,
+        [](const auto& drawablePtr) { return drawablePtr != nullptr; });
 }
 } // namespace
 
@@ -340,7 +337,6 @@ constexpr std::array<RSPropertyDrawableSlot, 6> boundsSlotsToErase = {
 
 constexpr std::array<RSPropertyDrawableSlot, 3> frameSlotsToErase = {
     RSPropertyDrawableSlot::SAVE_FRAME,
-    RSPropertyDrawableSlot::CLIP_TO_FRAME,
     RSPropertyDrawableSlot::RESTORE_FRAME,
 };
 } // namespace
