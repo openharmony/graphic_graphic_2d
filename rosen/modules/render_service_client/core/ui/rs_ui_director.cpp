@@ -304,13 +304,9 @@ void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds)
     }
     ROSEN_LOGD("RSUIDirector::RecvMessages success");
     PostTask([cmds]() {
-        auto transactionProxy = RSTransactionProxy::GetInstance();
-        if (transactionProxy != nullptr) {
-            ROSEN_LOGD("RSUIDirector::ProcessMessages success");
-            transactionProxy->Begin();
-            RSUIDirector::ProcessMessages(cmds);
-            transactionProxy->Commit();
-        }
+        ROSEN_LOGD("RSUIDirector::ProcessMessages success");
+        RSUIDirector::ProcessMessages(cmds);
+        RSTransaction::FlushImplicitTransaction();
     });
 }
 
