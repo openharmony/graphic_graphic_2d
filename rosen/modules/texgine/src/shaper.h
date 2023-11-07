@@ -58,7 +58,9 @@ private:
     void ComputeIntrinsicWidth(const size_t maxLines);
     void ConsiderHeadEllipsis(const TypographyStyle &ys, const std::shared_ptr<FontProviders> &fontProviders,
         EllipsisParams params);
-    void ConsiderTailEllipsis(const TypographyStyle &ys, const std::shared_ptr<FontProviders> &fontProviders,
+    void ConsiderLastLine(const TypographyStyle &style, const std::shared_ptr<FontProviders> &fontProviders,
+        EllipsisParams params, const bool isErase);
+    void ConsiderTailEllipsis(const TypographyStyle &style, const std::shared_ptr<FontProviders> &fontProviders,
         EllipsisParams params);
     std::vector<LineMetrics> CreatePartlySpan(const bool cutRight, const TypographyStyle &ys,
         const std::shared_ptr<FontProviders> &fontProviders, const VariantSpan &span, const double exceedWidth);
