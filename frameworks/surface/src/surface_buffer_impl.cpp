@@ -24,6 +24,7 @@
 #include "buffer_manager.h"
 #include "buffer_extra_data_impl.h"
 #include "native_buffer.h"
+#include <v1_0/buffer_handle_meta_key_type.h>
 #include "v1_1/include/idisplay_buffer.h"
 
 namespace OHOS {
@@ -532,6 +533,10 @@ GSError SurfaceBufferImpl::SetMetadata(uint32_t key, const std::vector<uint8_t>&
     if (handle_ == nullptr) {
         return GSERROR_API_FAILED;
     }
+    if (key >= HDI::Display::Graphic::Common::V1_0::ATTRKEY_END) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
     auto dret = g_displayBuffer->SetMetadata(*handle_, key, value);
     if (dret == GRAPHIC_DISPLAY_SUCCESS) {
         return GSERROR_OK;
@@ -545,6 +550,10 @@ GSError SurfaceBufferImpl::GetMetadata(uint32_t key, std::vector<uint8_t>& value
     if (handle_ == nullptr) {
         return GSERROR_API_FAILED;
     }
+    if (key >= HDI::Display::Graphic::Common::V1_0::ATTRKEY_END) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
     auto dret = g_displayBuffer->GetMetadata(*handle_, key, value);
     if (dret == GRAPHIC_DISPLAY_SUCCESS) {
         return GSERROR_OK;
@@ -558,6 +567,10 @@ GSError SurfaceBufferImpl::ListMetadataKeys(std::vector<uint32_t>& keys)
     if (handle_ == nullptr) {
         return GSERROR_API_FAILED;
     }
+    if (key >= HDI::Display::Graphic::Common::V1_0::ATTRKEY_END) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
     keys.clear();
     auto dret = g_displayBuffer->ListMetadataKeys(*handle_, keys);
     if (dret == GRAPHIC_DISPLAY_SUCCESS) {
@@ -572,6 +585,10 @@ GSError SurfaceBufferImpl::EraseMetadataKey(uint32_t key)
     if (handle_ == nullptr) {
         return GSERROR_API_FAILED;
     }
+    if (key >= HDI::Display::Graphic::Common::V1_0::ATTRKEY_END) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
     auto dret = g_displayBuffer->EraseMetadataKey(*handle_, key);
     if (dret == GRAPHIC_DISPLAY_SUCCESS) {
         return GSERROR_OK;
