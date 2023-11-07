@@ -296,7 +296,7 @@ int32_t RSRenderServiceClient::RegisterOcclusionChangeCallback(const OcclusionCh
 }
 
 int32_t RSRenderServiceClient::RegisterSurfaceOcclusionChangeCallback(
-    NodeId id, const SurfaceOcclusionChangeCallback& callback)
+    NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints)
 {
     return {};
 }

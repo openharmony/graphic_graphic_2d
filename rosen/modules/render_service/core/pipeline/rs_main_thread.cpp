@@ -1579,6 +1579,9 @@ void RSMainThread::CalcOcclusion()
         }
     }
     if (!winDirty) {
+        if (SurfaceOcclusionCallBackIfOnTreeStateChanged()) {
+            SurfaceOcclusionCallback();
+        }
         return;
     }
     CalcOcclusionImplementation(curAllSurfaces);
@@ -1652,9 +1655,9 @@ void RSMainThread::CallbackToWMS(VisibleData& curVisVec)
 
 void RSMainThread::SurfaceOcclusionCallback()
 {
+    const auto& nodeMap = context_->GetNodeMap();
     for (auto &listener : surfaceOcclusionListeners_) {
         if (savedAppWindowNode_.find(listener.first) == savedAppWindowNode_.end()) {
-            const auto& nodeMap = context_->GetNodeMap();
             auto node = nodeMap.GetRenderNode(listener.first);
             if (!node || !node->IsOnTheTree()) {
                 RS_LOGW("RSMainThread::SurfaceOcclusionCallback cannot find surfacenode %{public}"
@@ -1675,12 +1678,41 @@ void RSMainThread::SurfaceOcclusionCallback()
             }
             savedAppWindowNode_[listener.first] = std::make_pair(surfaceNode, appWindowNode);
         }
-        bool visible = savedAppWindowNode_[listener.first].second->GetVisibleRegionForCallBack().IsIntersectWith(
-            savedAppWindowNode_[listener.first].first->GetDstRect());
-        if (std::get<2>(listener.second) != visible) { // get 2 in tuple to check visible is changed
+        uint8_t level = 0;
+        float visibleAreaRatio = 0.0f;
+        bool isOnTheTree = savedAppWindowNode_[listener.first].first->IsOnTheTree();
+        if (isOnTheTree) {
+            const auto& property = savedAppWindowNode_[listener.first].first->GetRenderProperties();
+            auto dstRect = property.GetBoundsGeometry()->GetAbsRect();
+            if (dstRect.IsEmpty()) {
+                continue;
+            }
+            visibleAreaRatio = static_cast<float>(savedAppWindowNode_[listener.first].second->
+                GetVisibleRegionForCallBack().IntersectArea(dstRect)) /
+                static_cast<float>(dstRect.GetWidth() * dstRect.GetHeight());
+            auto& partitionVector = std::get<2>(listener.second); // get tuple 2 partition points vector
+            bool vectorEmpty = partitionVector.empty();
+            if (vectorEmpty && (visibleAreaRatio > 0.0f)) {
+                level = 1;
+            } else if (!vectorEmpty && ROSEN_EQ(visibleAreaRatio, 1.0f)) {
+                level = partitionVector.size();
+            } else if (!vectorEmpty && (visibleAreaRatio > 0.0f)) {
+                for (auto &point : partitionVector) {
+                    if (visibleAreaRatio > point) {
+                        level += 1;
+                        continue;
+                    }
+                    break;
+                }
+            }
+        }
+        auto& savedLevel = std::get<3>(listener.second); // tuple 3, check visible is changed
+        if (savedLevel != level) {
             RS_LOGD("RSMainThread::SurfaceOcclusionCallback surfacenode: %{public}" PRIu64 ".", listener.first);
-            std::get<1>(listener.second)->OnSurfaceOcclusionVisibleChanged(visible);
-            std::get<2>(listener.second) = visible; // get 2 in tuple, change the visible status
+            savedLevel = level;
+            if (isOnTheTree) {
+                std::get<1>(listener.second)->OnSurfaceOcclusionVisibleChanged(visibleAreaRatio);
+            }
         }
     }
 }
@@ -1901,10 +1933,14 @@ void RSMainThread::UnRegisterOcclusionChangeCallback(pid_t pid)
 }
 
 void RSMainThread::RegisterSurfaceOcclusionChangeCallback(
-    NodeId id, pid_t pid, sptr<RSISurfaceOcclusionChangeCallback> callback)
+    NodeId id, pid_t pid, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints)
 {
     std::lock_guard<std::mutex> lock(surfaceOcclusionMutex_);
-    surfaceOcclusionListeners_[id] = std::make_tuple(pid, callback, true);
+    uint8_t level = 1;
+    if (!partitionPoints.empty()) {
+        level = partitionPoints.size();
+    }
+    surfaceOcclusionListeners_[id] = std::make_tuple(pid, callback, partitionPoints, level);
 }
 
 void RSMainThread::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
@@ -1927,6 +1963,21 @@ void RSMainThread::ClearSurfaceOcclusionChangeCallback(pid_t pid)
             it++;
         }
     }
+}
+
+bool RSMainThread::SurfaceOcclusionCallBackIfOnTreeStateChanged()
+{
+    std::vector<NodeId> registeredSurfaceOnTree;
+    for (auto it = savedAppWindowNode_.begin(); it != savedAppWindowNode_.end(); ++it) {
+        if (it->second.first->IsOnTheTree()) {
+            registeredSurfaceOnTree.push_back(it->first);
+        }
+    }
+    if (lastRegisteredSurfaceOnTree_ != registeredSurfaceOnTree) {
+        lastRegisteredSurfaceOnTree_ = registeredSurfaceOnTree;
+        return true;
+    }
+    return false;
 }
 
 void RSMainThread::SendCommands()
