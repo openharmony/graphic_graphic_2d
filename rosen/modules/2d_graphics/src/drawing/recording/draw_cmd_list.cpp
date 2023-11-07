@@ -75,7 +75,7 @@ bool DrawCmdList::IsEmpty() const
 {
     uint32_t offset = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
     if (width_ <= 0 || height_ <= 0 ||
-        (opAllocator_.GetSize() <= offset && opItems_.size() == 0)) {
+        (opAllocator_.GetSize() <= offset && unmarshalledOpItems_.size() == 0)) {
         return true;
     }
     return false;
@@ -94,7 +94,7 @@ void DrawCmdList::UnmarshallingOps()
         auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
         if (curOpItemPtr != nullptr) {
             uint32_t type = curOpItemPtr->GetType();
-            opItems_.emplace_back(player.Unmarshalling(type, itemPtr));
+            unmarshalledOpItems_.emplace_back(player.Unmarshalling(type, itemPtr));
             offset = curOpItemPtr->GetNextOpItemOffset();
         } else {
             LOGE("DrawCmdList::UnmarshallingOps failed, opItem is nullptr");
@@ -107,7 +107,7 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect) const
 {
     uint32_t offset = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
     if (width_ <= 0 || height_ <= 0 ||
-        (opAllocator_.GetSize() <= offset && opItems_.size() == 0)) {
+        (opAllocator_.GetSize() <= offset && unmarshalledOpItems_.size() == 0)) {
         return;
     }
 
@@ -117,7 +117,7 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect) const
     }
     CanvasPlayer player = { canvas, *this, tmpRect};
 
-    if (opItems_.size() == 0) {
+    if (unmarshalledOpItems_.size() == 0) {
         do {
             void* itemPtr = opAllocator_.OffsetToAddr(offset);
             auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
@@ -133,7 +133,7 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect) const
             }
         } while (offset != 0);
     } else {
-        for (auto iter = opItems_.begin(); iter != opItems_.end(); ++iter) {
+        for (auto iter = unmarshalledOpItems_.begin(); iter != unmarshalledOpItems_.end(); ++iter) {
             if ((*iter) != nullptr) {
                 if (!player.Playback((*iter)->GetType(), (*iter).get())) {
                     LOGE("DrawCmdList::Playback failed!");

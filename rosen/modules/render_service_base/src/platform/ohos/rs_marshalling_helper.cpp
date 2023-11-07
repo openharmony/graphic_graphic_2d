@@ -485,6 +485,7 @@ static void sk_free_releaseproc(const void* ptr, void*)
 {
     MemoryTrack::Instance().RemovePictureRecord(ptr);
     free(const_cast<void*>(ptr));
+    ptr = nullptr;
 }
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val)
@@ -541,6 +542,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val, voi
 
             if (isMal) {
                 free(const_cast<void*>(data));
+                data = nullptr;
             }
         }
 
@@ -830,6 +832,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkBitmap& val)
 
         if (isMal) {
             free(const_cast<void*>(data));
+            data = nullptr;
         }
     }
 
@@ -1000,7 +1003,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSShader
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling RSShader");
         return false;
     }
-    auto shaderEffectCmdList = Drawing::ShaderEffectCmdList::CreateFromData({ data, size }, !isMalloc);
+    auto shaderEffectCmdList = Drawing::ShaderEffectCmdList::CreateFromData({ data, size }, true);
+    if (isMalloc) {
+        free(const_cast<void*>(data));
+        data = nullptr;
+    }
     if (shaderEffectCmdList == nullptr) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling RSShader shader effect cmdlist is nullptr");
         return false;
@@ -1428,7 +1435,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSPath>&
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling RSPath");
         return false;
     }
-    auto pathCmdList = Drawing::PathCmdList::CreateFromData({ data, size }, !isMalloc);
+    auto pathCmdList = Drawing::PathCmdList::CreateFromData({ data, size }, true);
+    if (isMalloc) {
+        free(const_cast<void*>(data));
+        data = nullptr;
+    }
     if (pathCmdList == nullptr) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling RSPath path cmdlist is nullptr");
         return false;
@@ -1761,7 +1772,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         return false;
     }
 
-    val = Drawing::DrawCmdList::CreateFromData({ data, size }, !isMalloc);
+    val = Drawing::DrawCmdList::CreateFromData({ data, size }, true);
+    if (isMalloc) {
+        free(const_cast<void*>(data));
+        data = nullptr;
+    }
     if (val == nullptr) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Drawing::DrawCmdList is nullptr");
         return false;
@@ -1779,6 +1794,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         val->SetUpImageData(imageData, imageSize);
         if (isMal) {
             free(const_cast<void*>(imageData));
+            imageData = nullptr;
         }
     }
 
@@ -1871,7 +1887,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         return false;
     }
 
-    val = Drawing::MaskCmdList::CreateFromData({ data, size }, !isMalloc);
+    val = Drawing::MaskCmdList::CreateFromData({ data, size }, true);
+    if (isMalloc) {
+        free(const_cast<void*>(data));
+        data = nullptr;
+    }
     if (val == nullptr) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Drawing::MaskCmdList is nullptr");
         return false;
