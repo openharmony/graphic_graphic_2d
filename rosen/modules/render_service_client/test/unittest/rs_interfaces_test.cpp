@@ -1080,9 +1080,8 @@ HWTEST_F(RSInterfacesTest, RegisterSurfaceOcclusionChangeCallback001, Function |
 {
     ASSERT_NE(rsInterfaces, nullptr);
     NodeId id = 0;
-    SurfaceOcclusionChangeCallback cb = [](float) {};
-    std::vector<float> partitionPoints;
-    int32_t ret = rsInterfaces->RegisterSurfaceOcclusionChangeCallback(id, cb, partitionPoints);
+    SurfaceOcclusionChangeCallback cb = [](bool){};
+    int32_t ret = rsInterfaces->RegisterSurfaceOcclusionChangeCallback(id, cb);
     ASSERT_EQ(ret, 0);
 }
 

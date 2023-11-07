@@ -28,7 +28,7 @@ public:
     explicit RSSurfaceOcclusionChangeCallbackProxy(const sptr<IRemoteObject>& impl);
     virtual ~RSSurfaceOcclusionChangeCallbackProxy() noexcept = default;
 
-    void OnSurfaceOcclusionVisibleChanged(float visibleAreaRatio) override;
+    void OnSurfaceOcclusionVisibleChanged(bool visible) override;
 
 private:
     static inline BrokerDelegator<RSSurfaceOcclusionChangeCallbackProxy> delegator_;

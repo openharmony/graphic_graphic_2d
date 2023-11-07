@@ -25,7 +25,7 @@ public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.surfaceocclusionchangecallback");
     RSISurfaceOcclusionChangeCallback() = default;
     virtual ~RSISurfaceOcclusionChangeCallback() noexcept = default;
-    virtual void OnSurfaceOcclusionVisibleChanged(float visibleAreaRatio) = 0;
+    virtual void OnSurfaceOcclusionVisibleChanged(bool visible) = 0;
 };
 }
 }

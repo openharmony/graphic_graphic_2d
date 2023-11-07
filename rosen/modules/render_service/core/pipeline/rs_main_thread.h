@@ -130,11 +130,9 @@ public:
     void RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback);
     void UnRegisterOcclusionChangeCallback(pid_t pid);
 
-    void RegisterSurfaceOcclusionChangeCallback(
-        NodeId id, pid_t pid, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints);
+    void RegisterSurfaceOcclusionChangeCallback(NodeId id, pid_t pid, sptr<RSISurfaceOcclusionChangeCallback> callback);
     void UnRegisterSurfaceOcclusionChangeCallback(NodeId id);
     void ClearSurfaceOcclusionChangeCallback(pid_t pid);
-    bool SurfaceOcclusionCallBackIfOnTreeStateChanged();
 
     void WaitUtilUniRenderFinished();
     void NotifyUniRenderFinish();
@@ -430,11 +428,9 @@ private:
 
     // for surface occlusion change callback
     std::mutex surfaceOcclusionMutex_;
-    std::vector<NodeId> lastRegisteredSurfaceOnTree_;
-    std::unordered_map<NodeId, // map<node ID, <pid, callback, partition points vector, level>>
-        std::tuple<pid_t, sptr<RSISurfaceOcclusionChangeCallback>,
-        std::vector<float>, uint8_t>> surfaceOcclusionListeners_;
-    std::unordered_map<NodeId, // map<node ID, <surface node, app window node>>
+    std::unordered_map<NodeId,
+        std::tuple<pid_t, sptr<RSISurfaceOcclusionChangeCallback>, bool>> surfaceOcclusionListeners_;
+    std::unordered_map<NodeId,
         std::pair<std::shared_ptr<RSSurfaceRenderNode>, std::shared_ptr<RSSurfaceRenderNode>>> savedAppWindowNode_;
 
     std::shared_ptr<RSAppStateListener> rsAppStateListener_;

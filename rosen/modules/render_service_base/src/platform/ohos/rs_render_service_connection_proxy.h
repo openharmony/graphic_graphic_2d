@@ -139,7 +139,7 @@ public:
     int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) override;
 
     int32_t RegisterSurfaceOcclusionChangeCallback(
-        NodeId id, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints) override;
+        NodeId id, sptr<RSISurfaceOcclusionChangeCallback> callback) override;
 
     int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) override;
 

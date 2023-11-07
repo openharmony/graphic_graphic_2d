@@ -844,12 +844,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_NULL_OBJECT;
                 break;
             }
-            std::vector<float> partitionPoints;
-            if (!data.ReadFloatVector(&partitionPoints)) {
-                ret = ERR_TRANSACTION_FAILED;
-                break;
-            }
-            int32_t status = RegisterSurfaceOcclusionChangeCallback(id, callback, partitionPoints);
+            int32_t status = RegisterSurfaceOcclusionChangeCallback(id, callback);
             reply.WriteInt32(status);
             break;
         }
