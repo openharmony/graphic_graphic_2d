@@ -42,9 +42,9 @@ public:
     {
         return renderParticleVector_;
     }
+    bool Animate(int64_t time) override;
 
 protected:
-    bool Animate(int64_t time) override;
     void OnAttach() override;
     void OnDetach() override;
 
