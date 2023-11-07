@@ -118,7 +118,8 @@ void RSNode::OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtoc
 
     std::shared_ptr<AnimationFinishCallback> animationFinishCallback;
     if (finishCallback != nullptr) {
-        animationFinishCallback = std::make_shared<AnimationFinishCallback>(finishCallback);
+        animationFinishCallback =
+            std::make_shared<AnimationFinishCallback>(finishCallback, timingProtocol.GetFinishCallbackType());
     }
     implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve, std::move(animationFinishCallback));
 }
@@ -183,14 +184,15 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const RSAnimationTimin
     }
     std::shared_ptr<AnimationFinishCallback> animationFinishCallback;
     if (finishCallback != nullptr) {
-        animationFinishCallback = std::make_shared<AnimationFinishCallback>(finishCallback);
+        animationFinishCallback =
+            std::make_shared<AnimationFinishCallback>(finishCallback, timingProtocol.GetFinishCallbackType());
     }
     std::shared_ptr<AnimationRepeatCallback> animationRepeatCallback;
     if (repeatCallback != nullptr) {
         animationRepeatCallback = std::make_shared<AnimationRepeatCallback>(repeatCallback);
     }
-    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve, std::move(animationFinishCallback),
-        std::move(animationRepeatCallback));
+    implicitAnimator->OpenImplicitAnimation(
+        timingProtocol, timingCurve, std::move(animationFinishCallback), std::move(animationRepeatCallback));
     propertyCallback();
     return implicitAnimator->CloseImplicitAnimation();
 }
@@ -213,8 +215,9 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::AnimateWithCurrentOptions(
         ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
         return {};
     }
+    auto finishCallbackType = timingSensitive ? FinishCallbackType::TIME_SENSITIVE : FinishCallbackType::TIME_SENSITIVE;
     // re-use the current options and replace the finish callback
-    auto animationFinishCallback = std::make_shared<AnimationFinishCallback>(finishCallback, timingSensitive);
+    auto animationFinishCallback = std::make_shared<AnimationFinishCallback>(finishCallback, finishCallbackType);
     implicitAnimator->OpenImplicitAnimation(std::move(animationFinishCallback));
     propertyCallback();
     return implicitAnimator->CloseImplicitAnimation();
@@ -1150,6 +1153,9 @@ bool RSNode::AnimationCallback(AnimationId animationId, AnimationCallbackEvent e
         return true;
     } else if (event == REPEAT_FINISHED) {
         animation->CallRepeatCallback();
+        return true;
+    } else if (event == LOGICALLY_FINISHED) {
+        animation->CallLogicallyFinishCallback();
         return true;
     }
     ROSEN_LOGE("Failed to callback animation event[%{public}d], event is null!", event);

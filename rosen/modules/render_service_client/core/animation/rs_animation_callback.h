@@ -18,6 +18,8 @@
 
 #include <functional>
 
+#include "animation/rs_animation_timing_protocol.h"
+
 namespace OHOS {
 namespace Rosen {
 class AnimationCallback {
@@ -31,12 +33,13 @@ protected:
 
 class AnimationFinishCallback : public AnimationCallback {
 public:
-    AnimationFinishCallback(const std::function<void()>& callback, bool isTimingSensitive = true);
+    AnimationFinishCallback(const std::function<void()>& callback,
+        FinishCallbackType finishCallbackType = FinishCallbackType::TIME_SENSITIVE);
     ~AnimationFinishCallback() override = default;
     // Execute the callback function immediately.
     void Execute();
 
-    const bool isTimingSensitive_;
+    const FinishCallbackType finishCallbackType_;
 };
 
 class AnimationRepeatCallback {
@@ -45,6 +48,7 @@ public:
     ~AnimationRepeatCallback() {};
     // Execute the callback function repeatitive.
     void Execute();
+
 protected:
     std::function<void()> callback_;
 };

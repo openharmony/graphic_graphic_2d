@@ -112,6 +112,8 @@ private:
     void UpdateStagingValue(bool isFirstStart);
     void CallFinishCallback();
     void CallRepeatCallback();
+    void CallLogicallyFinishCallback();
+    virtual void SetZeroThreshold(const float zeroThreshold) {};
 
     bool isReversed_ { false };
     AnimationState state_ { AnimationState::INITIALIZED };

@@ -30,6 +30,7 @@ public:
 
     void SetSpringParameters(
         float response, float dampingRatio, float normalizedInitialVelocity, float minimumAmplitudeRatio = 0.00025f);
+    void SetZeroThreshold(float zeroThreshold);
 
     ~RSRenderInterpolatingSpringAnimation() override = default;
 
@@ -48,10 +49,19 @@ private:
     bool ParseParam(Parcel& parcel) override;
 #endif
     RSRenderInterpolatingSpringAnimation() = default;
+    std::shared_ptr<RSRenderPropertyBase> CalculateVelocity(float time) const;
+    bool GetNeedLogicallyFinishCallback() const;
+    void CallLogicallyFinishCallback() const;
 
     std::shared_ptr<RSRenderPropertyBase> startValue_;
     std::shared_ptr<RSRenderPropertyBase> endValue_;
     float normalizedInitialVelocity_ = 0.0;
+    bool needLogicallyFinishCallback_ = false;
+
+    // used to determine whether the animation is near finish
+    float zeroThreshold_ = 0.0f;
+
+    friend class RSInterpolatingSpringAnimation;
 };
 
 } // namespace Rosen

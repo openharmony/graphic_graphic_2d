@@ -59,7 +59,7 @@ enum RSAnimationCommandType : uint16_t {
     ANIMATION_CALLBACK,
 };
 
-enum AnimationCallbackEvent : uint16_t { REPEAT_FINISHED, FINISHED };
+enum AnimationCallbackEvent : uint16_t { REPEAT_FINISHED, FINISHED, LOGICALLY_FINISHED };
 
 class RSB_EXPORT AnimationCommandHelper {
 public:
