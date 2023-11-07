@@ -17,7 +17,7 @@ import { AsyncCallback } from './@ohos.base';
 
 /**
  * Color space manager.
- * 
+ *
  * @namespace colorSpaceManager
  * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
  * @since 9
@@ -39,6 +39,7 @@ declare namespace colorSpaceManager {
 
     /**
      * Indicates the color space based on Adobe RGB (1998).
+     * PRIMARIES_ADOBE_RGB | TRANSFUNC_GAMMA_2_2 | RANGE_FULL
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
      */
@@ -46,6 +47,7 @@ declare namespace colorSpaceManager {
 
     /**
      * Indicates the color space based on SMPTE RP 431-2-2007 and IEC 61966-2.1:1999.
+     * PRIMARIES_DCI_P3 | TRANSFUNC_GAMMA_2_6 | RANGE_FULL
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
      */
@@ -53,6 +55,7 @@ declare namespace colorSpaceManager {
 
     /**
      * Indicates the color space based on SMPTE RP 431-2-2007 and IEC 61966-2.1:1999.
+     * PRIMARIES_DISPLAY_P3 | TRANSFUNC_SRGB | RANGE_FULL
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
      */
@@ -60,125 +63,130 @@ declare namespace colorSpaceManager {
 
     /**
      * Indicates the standard red green blue (SRGB) color space based on IEC 61966-2.1:1999.
+     * PRIMARIES_BT709 | TRANSFUNC_SRGB | RANGE_FULL
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
      */
     SRGB = 4,
 
     /**
-     * TODO
+     * Indicates the color space based on ITU-R BT.709.
+     * PRIMARIES_BT709 | TRANSFUNC_BT709 | RANGE_LIMIT
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
      */
     BT709 = 5,
 
     /**
-     * TODO
+     * Indicates the color space based on ITU-R BT.601.
+     * PRIMARIES_BT601_625 | TRANSFUNC_BT709 | RANGE_LIMIT
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
      */
     BT601_625 = 6,
 
     /**
-     * TODO
+     * Indicates the color space based on ITU-R BT.601.
+     * PRIMARIES_BT601_525 | TRANSFUNC_BT709 | RANGE_LIMIT
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
      */
     BT601_525 = 7,
 
     /**
-     * TODO
+     * Indicates the color space based on ITU-R BT.2020.
+     * PRIMARIES_BT2020 | TRANSFUNC_BT709 | RANGE_FULL
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
      */
     BT2020 = 8,
 
     /**
-     * TODO
+     * PRIMARIES_ADOBE_RGB | TRANSFUNC_GAMMA_2_2 | RANGE_LIMIT
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
      */
     ADOBE_RGB_1998_LIMIT = 9,
 
     /**
-     * TODO
+     * PRIMARIES_DCI_P3 | TRANSFUNC_LINEAR | RANGE_FULL
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
      */
     DCI_P3_LINEAR = 10,
 
     /**
-     * TODO
+     * PRIMARIES_DCI_P3 | TRANSFUNC_GAMMA_2_6 | RANGE_LIMIT
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
      */
     DCI_P3_LIMIT = 11,
 
     /**
-     * TODO
+     * PRIMARIES_DISPLAY_P3 | TRANSFUNC_LINEAR | RANGE_FULL
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
      */
     DISPLAY_P3_LINEAR = 12,
 
     /**
-     * TODO
+     * PRIMARIES_DISPLAY_P3 | TRANSFUNC_SRGB | RANGE_LIMIT
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
      */
     DISPLAY_P3_LIMIT = 13,
 
     /**
-     * TODO
+     * PRIMARIES_BT709 | TRANSFUNC_LINEAR | RANGE_FULL
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
      */
     SRGB_LINEAR = 14,
 
     /**
-     * TODO
+     * PRIMARIES_BT709 | TRANSFUNC_SRGB | RANGE_LIMIT
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
      */
     SRGB_LIMIT = 15,
 
     /**
-     * TODO
+     * PRIMARIES_BT709 | TRANSFUNC_BT709 | RANGE_FULL
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
      */
     BT709_FULL = 16,
 
     /**
-     * TODO
+     * PRIMARIES_BT601_625 | TRANSFUNC_BT709 | RANGE_FULL
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
      */
     BT601_625_FULL = 17,
 
     /**
-     * TODO
+     * PRIMARIES_BT601_525 | TRANSFUNC_BT709 | RANGE_FULL
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
      */
     BT601_525_FULL = 18,
 
     /**
-     * TODO
+     * PRIMARIES_BT2020 | TRANSFUNC_SRGB | RANGE_FULL
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
      */
     BT2020_SRGB = 19,
 
     /**
-     * TODO
+     * PRIMARIES_BT2020 | TRANSFUNC_LINEAR | RANGE_FULL
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
      */
     BT2020_LINEAR = 20,
 
     /**
-     * TODO
+     * PRIMARIES_BT2020 | TRANSFUNC_BT709 | RANGE_LIMIT
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
      */
