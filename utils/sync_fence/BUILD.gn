@@ -56,7 +56,7 @@ ohos_shared_library("sync_fence") {
   ]
 
   innerapi_tags = [
-    "chipsetsdk_indirect",
+    "chipsetsdk",
     "platformsdk_indirect",
   ]
   part_name = "graphic_2d"
