@@ -138,6 +138,11 @@ ohos_source_set("libtexgine_source") {
       if (platform == "mac") {
         defines += [ "BUILD_SDK_MAC" ]
         public_deps += [ "$graphic_2d_root/rosen/build/flutter/harfbuzz:rosen_libharfbuzz_$platform" ]
+      } else if (platform == "android") {
+        defines += [ "BUILD_SDK_ANDROID" ]
+        public_deps += [
+          "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform",
+        ]
       } else {
         public_deps += [
           "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform",
