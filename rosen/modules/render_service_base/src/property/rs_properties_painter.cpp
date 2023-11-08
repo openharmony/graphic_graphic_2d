@@ -1378,6 +1378,10 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
             ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch get inverse matrix failed.");
         }
         scaleMat.setScale(inverseMat.getScaleX(), inverseMat.getScaleY());
+        scaleMat.setSkewX(inverseMat.getSkewX());
+        scaleMat.setSkewY(inverseMat.getSkewY());
+        scaleMat.preTranslate(-bounds.width() / 2.0, -bounds.height() / 2.0);
+        scaleMat.postTranslate(bounds.width() / 2.0, bounds.height() / 2.0);
     }
 
     canvas.save();
@@ -1394,8 +1398,7 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
         canvas.drawRect(
             SkRect::MakeXYWH(-pixelStretch->x_, -pixelStretch->y_, scaledBounds.width(), scaledBounds.height()), paint);
     } else {
-        scaleMat.setScale(scaledBounds.width() / bounds.width() * scaleMat.getScaleX(),
-            scaledBounds.height() / bounds.height() * scaleMat.getScaleY());
+        scaleMat.postScale(scaledBounds.width() / bounds.width(), scaledBounds.height() / bounds.height());
 #ifdef NEW_SKIA
         paint.setShader(image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, SkSamplingOptions(), &scaleMat));
 #else
