@@ -36,6 +36,7 @@ declare_args() {
   if (defined(is_arkui_x) && is_arkui_x) {
     use_new_render_context = false
     is_cross_platform = true
+    use_texgine = false
   } else {
     is_cross_platform = false
     use_new_render_context = false
