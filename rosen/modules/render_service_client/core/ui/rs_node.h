@@ -283,6 +283,8 @@ public:
 
     void SetUseEffect(bool useEffect);
 
+    void SetColorBlendMode(RSColorBlendModeType blendMode);
+
     // driven render
     void MarkDrivenRender(bool flag);
     void MarkDrivenRenderItemIndex(int index);
@@ -322,8 +324,6 @@ public:
     void UpdateUIFrameRateRange(const FrameRateRange& range);
 
     void SetOutOfParent(OutOfParentType outOfParent);
-
-    void SetColorBlendMode(RSColorBlendModeType blendMode);
 protected:
     explicit RSNode(bool isRenderServiceNode);
     explicit RSNode(bool isRenderServiceNode, NodeId id);

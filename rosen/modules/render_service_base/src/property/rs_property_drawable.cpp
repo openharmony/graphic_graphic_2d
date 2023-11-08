@@ -128,7 +128,7 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::COLOR_BLEND, RSPropertyDrawableSlot::COLOR_FILTER },
     { RSModifierType::PARTICLE, RSPropertyDrawableSlot::PARTICLE_EFFECT },
     { RSModifierType::SHADOW_IS_FILLED, RSPropertyDrawableSlot::INVALID },
-    { RSModifierType::COLOR_BLENDMODE, RSPropertyDrawableSlot::SAVE_LAYER_CONTENT },
+    { RSModifierType::COLOR_BLEND_MODE, RSPropertyDrawableSlot::SAVE_LAYER_CONTENT },
     { RSModifierType::CUSTOM, RSPropertyDrawableSlot::INVALID },
     { RSModifierType::EXTENDED, RSPropertyDrawableSlot::INVALID },
     { RSModifierType::TRANSITION, RSPropertyDrawableSlot::TRANSITION },
