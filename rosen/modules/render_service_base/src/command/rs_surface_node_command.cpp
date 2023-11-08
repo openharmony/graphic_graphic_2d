@@ -28,10 +28,10 @@ void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id)
     nodeMap.RegisterRenderNode(node);
 }
 
-void SurfaceNodeCommandHelper::SetContextMatrix(RSContext& context, NodeId id, SkMatrix matrix)
+void SurfaceNodeCommandHelper::SetContextMatrix(RSContext& context, NodeId id, SkMatrix matrix, int sendTime)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
-        node->SetContextMatrix(matrix, false);
+        node->SetContextMatrix(matrix, false, sendTime);
     }
 }
 

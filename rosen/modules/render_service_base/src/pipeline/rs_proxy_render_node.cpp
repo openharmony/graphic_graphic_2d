@@ -75,7 +75,7 @@ void RSProxyRenderNode::SetContextMatrix(const SkMatrix& matrix)
         return;
     }
     // send a Command
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetContextMatrix>(targetId_, matrix);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetContextMatrix>(targetId_, matrix, 0);
     SendCommandFromRT(command, GetId());
 }
 
