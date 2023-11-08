@@ -47,6 +47,7 @@ public:
     bool DidExceedMaxLines() const;
     double GetMinIntrinsicWidth() const;
     double GetMaxIntrinsicWidth() const;
+    void SetIndents(const std::vector<float> &indents);
 
 private:
     std::vector<LineMetrics> DoShapeBeforeEllipsis(std::vector<VariantSpan> spans, const TypographyStyle &tstyle,
@@ -79,6 +80,7 @@ private:
     bool didExceedMaxLines_ = false;
     double maxIntrinsicWidth_ = 0.0;
     double minIntrinsicWidth_ = 0.0;
+    std::vector<float> indents_;
 };
 } // namespace TextEngine
 } // namespace Rosen

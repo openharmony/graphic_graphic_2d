@@ -63,6 +63,11 @@ double Shaper::GetMaxIntrinsicWidth() const
     return maxIntrinsicWidth_;
 }
 
+void Shaper::SetIndents(const std::vector<float> &indents)
+{
+    indents_ = indents;
+}
+
 std::vector<LineMetrics> Shaper::CreateEllipsisSpan(const TypographyStyle &ys, const TextStyle &textStyle,
     const std::shared_ptr<FontProviders> &fontProviders)
 {
@@ -112,9 +117,11 @@ void Shaper::ConsiderEllipsis(const TypographyStyle &tstyle,
     if (maxLines == 1) { // single line
         switch (tstyle.ellipsisModal) {
             case EllipsisModal::HEAD:
+                params.widthLimit -= lineMetrics_.front().indent;
                 ConsiderHeadEllipsis(tstyle, fontProviders, params);
                 break;
             case EllipsisModal::MIDDLE:
+                params.widthLimit -= lineMetrics_.front().indent;
                 ConsiderMiddleEllipsis(tstyle, fontProviders, params);
                 break;
             case EllipsisModal::TAIL:
@@ -164,6 +171,7 @@ std::vector<LineMetrics> Shaper::DoShapeBeforeEllipsis(std::vector<VariantSpan> 
 {
     TextBreaker tb;
     tb.SetWidthLimit(widthLimit);
+    tb.SetIndents(indents_);
     auto ret = tb.WordBreak(spans, tstyle, fontProviders);
     if (ret) {
         LOGEX_FUNC_LINE(ERROR) << "word break failed";
@@ -178,7 +186,7 @@ std::vector<LineMetrics> Shaper::DoShapeBeforeEllipsis(std::vector<VariantSpan> 
     }
 
     LineBreaker lb;
-    return lb.BreakLines(newSpans, tstyle, widthLimit);
+    return lb.BreakLines(newSpans, tstyle, widthLimit, indents_);
 }
 
 std::vector<LineMetrics> Shaper::DoShape(std::vector<VariantSpan> spans, const TypographyStyle &tstyle,
@@ -274,6 +282,7 @@ void Shaper::ConsiderTailEllipsis(const TypographyStyle &ys, const std::shared_p
     // maxLines - 1 is the index of last LineMetrics
     auto &lastLine = params.maxLines < lineMetrics_.size() ? lineMetrics_[params.maxLines - 1] : lineMetrics_.back();
     double lastLineWidth = lastLine.GetAllSpanWidth();
+    params.widthLimit -= lastLine.indent;
     if (params.maxLines < lineMetrics_.size()) {
         if (params.ellipsisWidth > 0 && lastLineWidth + params.ellipsisWidth < params.widthLimit) {
             lastLine.lineSpans.push_back(lineMetrics_[params.maxLines].lineSpans.front());

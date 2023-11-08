@@ -42,6 +42,23 @@ void TextBreaker::SetWidthLimit(const double widthLimit)
     widthLimit_ = widthLimit;
 }
 
+void TextBreaker::SetIndents(const std::vector<float> &indents)
+{
+    indents_ = indents;
+}
+
+static double GetIndent(const double widthLimit, const int index, const std::vector<float> &indents)
+{
+    double indent = 0.0;
+    if (indents.size() > 0 && index < indents.size()) {
+        indent = indents[index];
+    } else {
+        indent = indents.size() > 0 ? indents.back() : 0.0;
+    }
+
+    return indent;
+}
+
 int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyle &ys,
     const std::shared_ptr<FontProviders> &fontProviders)
 {
@@ -50,14 +67,16 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyl
 #endif
     std::vector<VariantSpan> visitingSpans;
     std::swap(visitingSpans, spans);
+    int index = 0;
+    double widthLimit = widthLimit_;
     for (const auto &vspan : visitingSpans) {
         auto span = vspan.TryToTextSpan();
         if (span == nullptr) {
+            widthLimit_ -= GetIndent(widthLimit_, index, indents_);
             spans.push_back(vspan);
             currentWidth_ += vspan.GetWidth();
-            if (currentWidth_ >= widthLimit_) {
-                currentWidth_ = 0;
-            }
+            currentWidth_ = currentWidth_ >= widthLimit_ ? 0 : currentWidth_;
+            widthLimit_ = widthLimit;
             continue;
         }
 
@@ -65,6 +84,7 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyl
             continue;
         }
 
+        widthLimit_ -= GetIndent(widthLimit_, index, indents_);
         auto xs = vspan.GetTextStyle();
         auto fontCollection = GenerateFontCollection(ys, xs, fontProviders);
         if (fontCollection == nullptr) {
@@ -92,6 +112,8 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyl
             const auto &wordcgs = cgs.GetSubFromU16RangeAll(start, end);
             BreakWord(wordcgs, ys, xs, spans);
         }
+        widthLimit_ = widthLimit;
+        index++;
     }
     // WordBreak successed
     return 0;

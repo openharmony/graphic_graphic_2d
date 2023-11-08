@@ -100,6 +100,7 @@ private:
     std::vector<double> yOffsets_ = {};
     double maxIntrinsicWidth_ = 0.0;
     double minIntrinsicWidth_ = 0.0;
+    std::vector<float> indents_;
 };
 } // namespace TextEngine
 } // namespace Rosen
