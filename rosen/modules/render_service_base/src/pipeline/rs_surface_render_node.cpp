@@ -229,18 +229,24 @@ std::shared_ptr<RSDirtyRegionManager> RSSurfaceRenderNode::GetDirtyManager() con
     return dirtyManager_;
 }
 
-void RSSurfaceRenderNode::SetContextMatrix(const SkMatrix& matrix, bool sendMsg)
+void RSSurfaceRenderNode::SetContextMatrix(const SkMatrix& matrix, bool sendMsg, int sendTime)
 {
+    if (!sendMsg && (sendTime_ > sendTime)) {
+        return;
+    }
     if (contextMatrix_ == matrix) {
         return;
     }
     contextMatrix_ = matrix;
+    sendTime_ = sendTime;
     SetDirty();
     if (!sendMsg) {
         return;
     }
     // send a Command
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetContextMatrix>(GetId(), matrix);
+    static int sendTimeCounter = 0;
+    sendTimeCounter++;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetContextMatrix>(GetId(), matrix, sendTimeCounter);
     SendCommandFromRT(command, GetId());
 }
 

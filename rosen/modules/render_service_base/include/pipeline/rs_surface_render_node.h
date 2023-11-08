@@ -124,7 +124,7 @@ public:
     }
 
     // pass render context (matrix/alpha/clip) from RT to RS
-    void SetContextMatrix(const SkMatrix& transform, bool sendMsg = true);
+    void SetContextMatrix(const SkMatrix& transform, bool sendMsg = true, int sendTime = 0);
     const SkMatrix& GetContextMatrix() const;
 
     void SetContextAlpha(float alpha, bool sendMsg = true);
@@ -587,6 +587,7 @@ private:
     uint8_t abilityBgAlpha_ = 0;
     bool alphaChanged_ = false;
     Occlusion::Region globalDirtyRegion_;
+    int sendTime_ = 0;
 
     std::atomic<bool> isAppFreeze_ = false;
     sk_sp<SkSurface> cacheSurface_ = nullptr;
