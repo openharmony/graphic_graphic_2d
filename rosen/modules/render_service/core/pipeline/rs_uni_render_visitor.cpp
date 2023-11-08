@@ -842,7 +842,6 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeAfterUpdate(RSSurfaceRen
             node.SetHasHardwareNode(hasHardwareNode);
             node.SetHasAbilityComponent(hasAbilityComponent);
         }
-#ifndef USE_ROSEN_DRAWING
         if (node.IsTransparent() &&
             curSurfaceDirtyManager_->IfCacheableFilterRectFullyCover(node.GetOldDirtyInSurface())) {
             node.SetFilterCacheFullyCovered(true);
@@ -850,7 +849,6 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeAfterUpdate(RSSurfaceRen
                 node.GetId(), node.GetName().c_str());
         }
         node.CalcFilterCacheValidForOcclusion();
-#endif
         RS_OPTIONAL_TRACE_NAME(node.GetName() + " PreparedNodes: " +
             std::to_string(preparedCanvasNodeInCurrentSurface_));
         preparedCanvasNodeInCurrentSurface_ = 0;
@@ -873,10 +871,8 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeAfterUpdate(RSSurfaceRen
 void RSUniRenderVisitor::UpdateForegroundFilterCacheWithDirty(RSRenderNode& node,
     RSDirtyRegionManager& dirtyManager)
 {
-#ifndef USE_ROSEN_DRAWING
     node.UpdateFilterCacheManagerWithCacheRegion(prepareClipRect_);
     node.UpdateFilterCacheWithDirty(dirtyManager, true);
-#endif
 }
 
 void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
@@ -4334,18 +4330,22 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
 
 void RSUniRenderVisitor::ProcessUnpairedSharedTransitionNode()
 {
-#ifndef USE_ROSEN_DRAWING
     // Do cleanup for unpaired transition nodes.
     for (auto& [key, params] : unpairedTransitionNodes_) {
         RSAutoCanvasRestore acr(canvas_);
+#ifndef USE_ROSEN_DRAWING
         auto& [node, canvasStatus] = params;
         // restore render context and process the unpaired node.
         canvas_->SetCanvasStatus(canvasStatus);
+#else
+        auto& [node, alpha, matrix] = params;
+        canvas_->SetAlpha(alpha);
+        canvas_->SetMatrix(matrix.value());
+#endif
         node->Process(shared_from_this());
         // clear transition param
         node->SetSharedTransitionParam(std::nullopt);
     }
-#endif
     unpairedTransitionNodes_.clear();
 }
 

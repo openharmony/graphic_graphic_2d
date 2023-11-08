@@ -17,6 +17,7 @@
 #define IMAGE_INFO_H
 #include "draw/color.h"
 #include "effect/color_space.h"
+#include "utils/rect.h"
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -117,6 +118,14 @@ public:
     void SetColorSpace(std::shared_ptr<ColorSpace> colorSpace)
     {
         colorSpace_ = colorSpace;
+    }
+
+    /*
+     * @brief  Gets the bounds of ImageInfo.
+     */
+    RectI GetBounds() const
+    {
+        return RectI(0, 0, width_, height_);
     }
 
 private:

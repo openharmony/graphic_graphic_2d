@@ -37,6 +37,11 @@ void Matrix::Scale(scalar sx, scalar sy, scalar px, scalar py)
     matrixImplPtr->Scale(sx, sy, px, py);
 }
 
+void Matrix::SetScale(scalar sx, scalar sy)
+{
+    matrixImplPtr->SetScale(sx, sy);
+}
+
 void Matrix::PreRotate(scalar degree)
 {
     matrixImplPtr->PreRotate(degree);
@@ -52,9 +57,19 @@ void Matrix::PreScale(scalar sx, scalar sy)
     matrixImplPtr->PreScale(sx, sy);
 }
 
+void Matrix::PostScale(scalar sx, scalar sy)
+{
+    matrixImplPtr->PostScale(sx, sy);
+}
+
 void Matrix::PreConcat(const Matrix& other)
 {
     matrixImplPtr->PreConcat(other);
+}
+
+void Matrix::PostConcat(const Matrix& other)
+{
+    matrixImplPtr->PostConcat(other);
 }
 
 bool Matrix::Invert(Matrix& inverse) const

@@ -217,6 +217,8 @@ public:
     bool BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace);
 
+    bool BuildSubset(const std::shared_ptr<Image>& image, const RectI& rect, GPUContext& gpuContext);
+
     BackendTexture GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin* origin) const;
 
     bool IsValid(GPUContext* context) const;
@@ -274,6 +276,8 @@ public:
      * @return  True if Image is a GPU texture.
      */
     bool IsTextureBacked() const;
+
+    bool IsOpaque() const;
 
     template<typename T>
     const std::shared_ptr<T> GetImpl() const

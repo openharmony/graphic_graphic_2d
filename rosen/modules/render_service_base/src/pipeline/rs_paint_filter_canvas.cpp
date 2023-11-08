@@ -674,12 +674,16 @@ RSPaintFilterCanvas::SaveStatus RSPaintFilterCanvas::Save(SaveType type)
         (RSPaintFilterCanvas::kEnv & type) ? SaveEnv() : GetEnvSaveCount() };
 }
 #else
-RSPaintFilterCanvas::SaveStatus RSPaintFilterCanvas::SaveAllStatus()
+RSPaintFilterCanvas::SaveStatus RSPaintFilterCanvas::SaveAllStatus(SaveType type)
 {
     // simultaneously save canvas and alpha
     int canvasSaveCount = GetSaveCount();
-    Save();
-    return { canvasSaveCount, SaveAlpha(), SaveEnv() };
+    if (RSPaintFilterCanvas::kCanvas & type) {
+        Save();
+    }
+    return { canvasSaveCount,
+        (RSPaintFilterCanvas::kAlpha & type) ? SaveAlpha() : GetAlphaSaveCount(),
+        (RSPaintFilterCanvas::kEnv & type) ? SaveEnv() : GetEnvSaveCount() };
 }
 #endif
 

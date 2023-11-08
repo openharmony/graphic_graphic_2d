@@ -49,6 +49,7 @@ public:
 #ifdef ACE_ENABLE_GPU
     virtual bool BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap) = 0;
     virtual bool MakeFromEncoded(const std::shared_ptr<Data>& data) = 0;
+    virtual bool BuildSubset(const std::shared_ptr<Image> image, const RectI& rect, GPUContext& gpuContext);
     virtual bool BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
         CompressedType type) = 0;
     virtual bool BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
@@ -68,6 +69,7 @@ public:
         bool allowCachingHint = true) const = 0;
     virtual std::shared_ptr<Data> EncodeToData(EncodedImageFormat& encodedImageFormat, int quality) const = 0;
     virtual bool IsLazyGenerated() const = 0;
+    virtual bool IsOpaque() const = 0;
 
 
     // using for recording, should to remove after using shared memory

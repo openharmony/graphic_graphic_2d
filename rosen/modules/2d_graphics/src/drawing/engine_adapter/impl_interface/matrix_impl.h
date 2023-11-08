@@ -39,11 +39,14 @@ public:
     virtual void Rotate(scalar degree, scalar px, scalar py) = 0;
     virtual void Translate(scalar dx, scalar dy) = 0;
     virtual void Scale(scalar sx, scalar sy, scalar px, scalar py) = 0;
+    virtual void SetScale(scalar sx, scalar sy) = 0;
 
     virtual void PreRotate(scalar degree) = 0;
     virtual void PreTranslate(scalar dx, scalar dy) = 0;
     virtual void PreScale(scalar sx, scalar sy) = 0;
+    virtual void PostScale(scalar sx, scalar sy) = 0;
     virtual void PreConcat(const Matrix& other) = 0;
+    virtual void PostConcat(const Matrix& other) = 0;
 
     virtual bool Invert(Matrix& inverse) const = 0;
     virtual void Multiply(const Matrix& a, const Matrix& b) = 0;

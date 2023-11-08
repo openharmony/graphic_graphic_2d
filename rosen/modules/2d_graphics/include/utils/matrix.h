@@ -49,6 +49,7 @@ public:
     void Rotate(scalar degree, scalar px, scalar py);
     void Translate(scalar dx, scalar dy);
     void Scale(scalar sx, scalar sy, scalar px, scalar py);
+    void SetScale(scalar sx, scalar sy);
 
     /*
      * @brief         Sets Matrix to Matrix multiplied by Matrix constructed
@@ -72,11 +73,15 @@ public:
      */
     void PreScale(scalar sx, scalar sy);
 
+    void PostScale(scalar sx, scalar sy);
+
     /*
      * @brief         Sets Matrix to Matrix other multiplied by Matrix.
      * @param other   Matrix on left side of multiply expression.
      */
     void PreConcat(const Matrix& other);
+
+    void PostConcat(const Matrix& other);
 
     /*
      * @brief           Sets inverse to the inverse of Matrix.

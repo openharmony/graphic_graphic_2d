@@ -968,7 +968,7 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusWithVisible(bool visible)
         return;
     }
     prevVisible_ = visible;
-#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
     if (!visible && !filterNodes_.empty()) {
         for (auto& node : filterNodes_) {
             node.second->GetMutableRenderProperties().ClearFilterCache();
@@ -982,7 +982,6 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
     if (!dirtyManager_) {
         return;
     }
-#ifndef USE_ROSEN_DRAWING
     // traversal filter nodes including app window
     EraseIf(filterNodes_, [this](const auto& pair) {
         auto& node = pair.second;
@@ -1000,7 +999,6 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
             GetId(), GetName().c_str(), GetOldDirtyInSurface().ToString().c_str());
     }
     CalcFilterCacheValidForOcclusion();
-#endif
 }
 
 Vector4f RSSurfaceRenderNode::GetWindowCornerRadius()

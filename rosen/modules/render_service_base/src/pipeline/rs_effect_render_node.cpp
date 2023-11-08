@@ -55,28 +55,38 @@ void RSEffectRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
     RSRenderNode::ProcessTransitionBeforeChildren(canvas);
-#ifndef USE_ROSEN_DRAWING
     auto& properties = GetRenderProperties();
     // Disable effect region if either of the following conditions is met:
     // 1. Effect region is null or empty
     // 2. Background filter is null
     // 3. Canvas is offscreen
+#ifndef USE_ROSEN_DRAWING
     if (effectRegion_.has_value() && !effectRegion_->isEmpty() && properties.GetBackgroundFilter() != nullptr &&
         canvas.GetCacheType() != RSPaintFilterCanvas::CacheType::OFFSCREEN) {
         RSPropertiesPainter::DrawBackgroundEffect(properties, canvas, effectRegion_->getBounds());
+    }
+#else
+    if (effectRegion_.has_value() && effectRegion_->isValid() && properties.GetBackgroundFilter() != nullptr &&
+        canvas.GetCacheType() != RSPaintFilterCanvas::CacheType::OFFSCREEN) {
+        RSPropertiesPainter::DrawBackgroundEffect(properties, canvas, effectRegion_->GetBounds());
     }
 #endif
 }
 
 RectI RSEffectRenderNode::GetFilterRect() const
 {
-#ifndef USE_ROSEN_DRAWING
     if (effectRegion_.has_value()) {
         auto& matrix = GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
+#ifndef USE_ROSEN_DRAWING
         auto bounds = effectRegion_->makeTransform(matrix).getBounds();
         return {bounds.x(), bounds.y(), bounds.width(), bounds.height()};
-    }
+#else
+        auto region = effectRegion_;
+        region->Transform(matrix);
+        auto bounds = region->GetBounds();
+        return {bounds.GetLeft(), bounds.GetRight(), bounds.GetWidth(), bounds.GetHeight()};
 #endif
+    }
     return {};
 }
 
