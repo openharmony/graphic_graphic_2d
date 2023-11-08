@@ -268,6 +268,11 @@ bool RSPropertyDrawable::UpdateDrawableVec(const RSPropertyDrawableGenerateConte
         }
     }
 
+    // Temporary fix, change of clipToBounds should trigger UpdateSaveRestore
+    if (!drawableSlotChanged && dirtySlots.count(RSPropertyDrawableSlot::CLIP_TO_BOUNDS)) {
+        drawableSlotChanged = true;
+    }
+
     return drawableSlotChanged;
 }
 
