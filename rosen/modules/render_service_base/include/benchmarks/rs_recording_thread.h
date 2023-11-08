@@ -31,15 +31,12 @@
 #else
 #include "include/gpu/GrContext.h"
 #endif
-#include "pipeline/parallel_render/rs_render_task.h"
 #ifndef USE_ROSEN_DRAWING
 #include "pipeline/rs_draw_cmd_list.h"
 #else
 #include "recording/draw_cmd_list.h"
 #endif
 #include "render_context/render_context.h"
-
-
 
 namespace OHOS::Rosen {
 class RSB_EXPORT RSRecordingThread {
@@ -49,7 +46,7 @@ public:
         LOW_SPEED_RECORDING,
         HIGH_SPPED_RECORDING,
     };
-    RSRecordingThread(RenderContext* context) : renderContext_(context);
+    RSRecordingThread(RenderContext* context) : renderContext_(context){};
     ~RSRecordingThread();
     
     static RSRecordingThread& Instance(RenderContext* context);

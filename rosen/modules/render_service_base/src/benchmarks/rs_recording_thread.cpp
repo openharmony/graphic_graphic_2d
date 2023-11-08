@@ -183,24 +183,24 @@ void RSRecordingThread::FinishRecordingOneFrame()
     auto modeSubThread = mode_;
     mode_ = RecordingMode::STOP_RECORDING;
     RSTaskMessage::RSTask task = [this, modeSubThread]() {
-        for (int tmpCurDumpFrame = 0; tmpCurDumpFrame < dumpFrameNum_; tmpCurDumpFrame++) {
+        for (int curFrameIndex = 0; curFrameIndex < dumpFrameNum_; curFrameIndex++) {
             std::shared_ptr<MessageParcel> messageParcel = std::make_shared<MessageParcel>();
             std::string opsDescription = "drawing ops no description";
             if (modeSubThread == RecordingMode::HIGH_SPPED_RECORDING) {
                 RS_LOGI("RSRecordingThread::High speed!");
                 RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
-                drawCmdListVec_[tmpCurDumpFrame]->Marshalling(*messageParcel);
+                drawCmdListVec_[curFrameIndex]->Marshalling(*messageParcel);
                 RSMarshallingHelper::EndNoSharedMem();
 #ifndef USE_ROSEN_DRAWING
-                opsDescription = drawCmdListVec_[tmpCurDumpFrame]-> GetOpsWithDesc();
+                opsDescription = drawCmdListVec_[curFrameIndex]-> GetOpsWithDesc();
 #endif
-            } else if (modeSubThread == RecordingMode::LOW_SPEED_RECORDING){
-                messageParcel = messageParcelVec_[tmpCurDumpFrame];
+            } else if (modeSubThread == RecordingMode::LOW_SPEED_RECORDING) {
+                messageParcel = messageParcelVec_[curFrameIndex];
 #ifndef USE_ROSEN_DRAWING
-                opsDescription = opsDescriptionVec_[tmpCurDumpFrame];
+                opsDescription = opsDescriptionVec_[curFrameIndex];
 #endif
             }
-            OHOS::Rosen::Benchmarks::WriteMessageParcelToFile(messageParcel, opsDescription, tmpCurDumpFrame);
+            OHOS::Rosen::Benchmarks::WriteMessageParcelToFile(messageParcel, opsDescription, curFrameIndex, fileDir_);
         }
         drawCmdListVec_.clear();
         messageParcelVec_.clear();
@@ -225,7 +225,7 @@ void RSRecordingThread::RecordingToFile(const std::shared_ptr<Drawing::DrawCmdLi
     }
     if (modeSubThread == RecordingMode::HIGH_SPPED_RECORDING) {
         drawCmdListVec_.push_back(drawCmdList);
-    } else if (modeSubThread == RecordingMode::LOW_SPEED_RECORDING){
+    } else if (modeSubThread == RecordingMode::LOW_SPEED_RECORDING) {
 #ifndef USE_ROSEN_DRAWING
         std::shared_ptr<MessageParcel> messageParcel = std::make_shared<MessageParcel>();
         RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());

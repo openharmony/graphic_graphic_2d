@@ -28,7 +28,8 @@ bool CreateFile(const std::string& filePath);
 bool WriteToFile(uintptr_t data, size_t size, const std::string& filePath);
 bool WriteStringToFile(int fd, const std::string& str);
 bool WriteStringToFile(const std::string& str, const std::string& filePath);
-bool WriteMessageParcelToFile(std::shared_ptr<MessageParcel> messageParcel, std::string opsDescription, int frameNum);
+bool WriteMessageParcelToFile(std::shared_ptr<MessageParcel> messageParcel, 
+    std::string opsDescription, int frameNum, std::string fileDir);
 } // namespace Benchmarks
 } // namespace Rosen
 } // namespace OHOS

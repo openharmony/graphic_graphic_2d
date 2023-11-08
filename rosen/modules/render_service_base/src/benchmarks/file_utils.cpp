@@ -112,11 +112,12 @@ bool WriteStringToFile(const std::string& str, const std::string& filePath)
     return result;
 }
 
-bool WriteMessageParcelToFile(std::shared_ptr<MessageParcel> messageParcel, std::string opsDescription, int frameNum)
+bool WriteMessageParcelToFile(std::shared_ptr<MessageParcel> messageParcel, std::string opsDescription
+    , int frameNum, std::string fileDir)
 {
     // file name
-    std::string drawCmdListFile = fileDir_ + "/frame" + std::to_string(frameNum) + ".drawing";
-    std::string opsFile = fileDir_ + "/ops_frame" + std::to_string(frameNum) + ".txt";
+    std::string drawCmdListFile = fileDir + "/frame" + std::to_string(frameNum) + ".drawing";
+    std::string opsFile = fileDir + "/ops_frame" + std::to_string(frameNum) + ".txt";
     // get data
     size_t sz = messageParcel->GetDataSize();
 #ifndef USE_ROSEN_DRAWING
@@ -125,8 +126,7 @@ bool WriteMessageParcelToFile(std::shared_ptr<MessageParcel> messageParcel, std:
     auto buf = reinterpret_cast<uintptr_t>(messageParcel->GetData());
 #endif
     std::string line = "RSRecordingThread::FinishRecordingOneFrame curDumpFrame = " +
-        std::to_string(frameNum) + ", dumpFrameNum = " + std::to_string(dumpFrameNum_) +
-        ", size = " + std::to_string(sz);
+        std::to_string(frameNum) + ", size = " + std::to_string(sz);
     RS_LOGD("%{public}s", line.c_str());
     RS_TRACE_NAME(line);
 

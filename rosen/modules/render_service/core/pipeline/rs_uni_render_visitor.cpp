@@ -4375,7 +4375,7 @@ void RSUniRenderVisitor::endCapture() const
     }
     auto drawCmdList = recordingCanvas_->GetDrawCmdList();
     RS_TRACE_NAME("RSUniRender:RecordingToFile curFrameNum = " +
-                   std::to_string(RSRecordingThread::Instance(renderEngine_->GetRenderContext().get()).GetCurDumpFrame()));
+        std::to_string(RSRecordingThread::Instance(renderEngine_->GetRenderContext().get()).GetCurDumpFrame()));
     RSRecordingThread::Instance(renderEngine_->GetRenderContext().get()).RecordingToFile(drawCmdList);
 }
 #endif
