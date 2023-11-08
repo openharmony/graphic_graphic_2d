@@ -67,6 +67,7 @@ enum RSNodeCommandType : uint16_t {
 
     MARK_NODE_GROUP,
     UPDATE_UI_FRAME_RATE_RANGE,
+    MARK_NODE_SINGLE_FRAME_COMPOSER,
 };
 
 class RSB_EXPORT RSNodeCommandHelper {
@@ -91,6 +92,7 @@ public:
 
     static void SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze);
     static void MarkNodeGroup(RSContext& context, NodeId nodeId, bool isNodeGroup, bool isForced);
+    static void MarkNodeSingleFrameComposer(RSContext& context, NodeId nodeId, bool isNodeFasterDraw);
 
     static void MarkDrivenRender(RSContext& context, NodeId nodeId, bool flag);
     static void MarkDrivenRenderItemIndex(RSContext& context, NodeId nodeId, int32_t index);
@@ -184,6 +186,8 @@ ADD_COMMAND(RSSetFreeze,
     ARG(RS_NODE, SET_FREEZE, RSNodeCommandHelper::SetFreeze, NodeId, bool))
 ADD_COMMAND(RSMarkNodeGroup,
     ARG(RS_NODE, MARK_NODE_GROUP, RSNodeCommandHelper::MarkNodeGroup, NodeId, bool, bool))
+ADD_COMMAND(RSMarkNodeSingleFrameComposer,
+    ARG(RS_NODE, MARK_NODE_SINGLE_FRAME_COMPOSER, RSNodeCommandHelper::MarkNodeSingleFrameComposer, NodeId, bool))
 
 ADD_COMMAND(RSMarkDrivenRender,
     ARG(RS_NODE, MARK_DRIVEN_RENDER, RSNodeCommandHelper::MarkDrivenRender, NodeId, bool))

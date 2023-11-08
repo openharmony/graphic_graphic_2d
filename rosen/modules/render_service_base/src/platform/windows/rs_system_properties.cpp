@@ -278,5 +278,10 @@ int RSSystemProperties::GetSyncTransactionWaitDelay()
 {
     return 0;
 }
+
+bool RSSystemProperties::GetSingleFrameComposerEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS
