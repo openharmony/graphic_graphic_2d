@@ -24,7 +24,7 @@
 
 namespace OHOS {
 namespace MetadataManager {
-// 0 for success, -1 for fail
+// GSERROR_OK for success, GSERROR_API_FAILED for fail
 template <typename T>
 static GSError ConvertMetadataToVec(const T& metadata, std::vector<uint8_t>& data)
 {
