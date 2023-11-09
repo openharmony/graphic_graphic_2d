@@ -530,13 +530,19 @@ void SurfaceBufferImpl::SetBufferWrapper(BufferWrapper wrapper) {}
 
 GSError SurfaceBufferImpl::SetMetadata(uint32_t key, const std::vector<uint8_t>& value)
 {
-    if (handle_ == nullptr) {
-        return GSERROR_API_FAILED;
-    }
-    if (key >= HDI::Display::Graphic::Common::V1_0::ATTRKEY_END) {
+    if (key == 0 || key >= HDI::Display::Graphic::Common::V1_0::ATTRKEY_END) {
         return GSERROR_INVALID_ARGUMENTS;
     }
+    if (GetDisplayBuffer() == nullptr) {
+        BLOGE("GetDisplayBuffer failed!");
+        return GSERROR_INTERNAL;
+    }
 
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (handle_ == nullptr) {
+        BLOGE("Failure, Reason: handle_ is nullptr");
+        return GSERROR_NOT_INIT;
+    }
     auto dret = g_displayBuffer->SetMetadata(*handle_, key, value);
     if (dret == GRAPHIC_DISPLAY_SUCCESS) {
         return GSERROR_OK;
@@ -547,13 +553,19 @@ GSError SurfaceBufferImpl::SetMetadata(uint32_t key, const std::vector<uint8_t>&
 
 GSError SurfaceBufferImpl::GetMetadata(uint32_t key, std::vector<uint8_t>& value)
 {
-    if (handle_ == nullptr) {
-        return GSERROR_API_FAILED;
-    }
-    if (key >= HDI::Display::Graphic::Common::V1_0::ATTRKEY_END) {
+    if (key == 0 || key >= HDI::Display::Graphic::Common::V1_0::ATTRKEY_END) {
         return GSERROR_INVALID_ARGUMENTS;
     }
+    if (GetDisplayBuffer() == nullptr) {
+        BLOGE("GetDisplayBuffer failed!");
+        return GSERROR_INTERNAL;
+    }
 
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (handle_ == nullptr) {
+        BLOGE("Failure, Reason: handle_ is nullptr");
+        return GSERROR_NOT_INIT;
+    }
     auto dret = g_displayBuffer->GetMetadata(*handle_, key, value);
     if (dret == GRAPHIC_DISPLAY_SUCCESS) {
         return GSERROR_OK;
@@ -564,11 +576,17 @@ GSError SurfaceBufferImpl::GetMetadata(uint32_t key, std::vector<uint8_t>& value
 
 GSError SurfaceBufferImpl::ListMetadataKeys(std::vector<uint32_t>& keys)
 {
-    if (handle_ == nullptr) {
-        return GSERROR_API_FAILED;
+    if (GetDisplayBuffer() == nullptr) {
+        BLOGE("GetDisplayBuffer failed!");
+        return GSERROR_INTERNAL;
     }
 
     keys.clear();
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (handle_ == nullptr) {
+        BLOGE("Failure, Reason: handle_ is nullptr");
+        return GSERROR_NOT_INIT;
+    }
     auto dret = g_displayBuffer->ListMetadataKeys(*handle_, keys);
     if (dret == GRAPHIC_DISPLAY_SUCCESS) {
         return GSERROR_OK;
@@ -579,13 +597,19 @@ GSError SurfaceBufferImpl::ListMetadataKeys(std::vector<uint32_t>& keys)
 
 GSError SurfaceBufferImpl::EraseMetadataKey(uint32_t key)
 {
-    if (handle_ == nullptr) {
-        return GSERROR_API_FAILED;
-    }
-    if (key >= HDI::Display::Graphic::Common::V1_0::ATTRKEY_END) {
+    if (key == 0 || key >= HDI::Display::Graphic::Common::V1_0::ATTRKEY_END) {
         return GSERROR_INVALID_ARGUMENTS;
     }
+    if (GetDisplayBuffer() == nullptr) {
+        BLOGE("GetDisplayBuffer failed!");
+        return GSERROR_INTERNAL;
+    }
 
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (handle_ == nullptr) {
+        BLOGE("Failure, Reason: handle_ is nullptr");
+        return GSERROR_NOT_INIT;
+    }
     auto dret = g_displayBuffer->EraseMetadataKey(*handle_, key);
     if (dret == GRAPHIC_DISPLAY_SUCCESS) {
         return GSERROR_OK;
