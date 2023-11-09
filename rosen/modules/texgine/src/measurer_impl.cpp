@@ -370,7 +370,8 @@ int MeasurerImpl::DoShape(CharGroups &cgs, MeasuringRun &run, size_t &index)
     return SUCCESSED;
 }
 
-void MeasurerImpl::HbDestroy(hb_buffer_t* hbuffer, hb_font_t* hfont, hb_face_t* hface, hb_unicode_funcs_t* icuGetUnicodeFuncs)
+void MeasurerImpl::HbDestroy(hb_buffer_t* hbuffer, hb_font_t* hfont, hb_face_t* hface,
+    hb_unicode_funcs_t* icuGetUnicodeFuncs)
 {
     if (hbuffer) {
         hb_buffer_destroy(hbuffer);
