@@ -19,11 +19,9 @@
 #include <memory>
 
 #include "include/core/SkTextBlob.h"
-#include "include/core/SkSerialProcs.h"
 
 #include "impl_interface/text_blob_impl.h"
 #include "text/text_blob.h"
-#include "utils/data.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -47,9 +45,9 @@ public:
 
     sk_sp<SkTextBlob> GetTextBlob() const;
 
-    std::shared_ptr<Data> Serialize(const SkSerialProcs& procs) const;
+    std::shared_ptr<Data> Serialize() const override;
 
-    static std::shared_ptr<TextBlob> Deserialize(const void* data, size_t size, const SkDeserialProcs& procs);
+    static std::shared_ptr<TextBlob> Deserialize(const void* data, size_t size);
 
 private:
     sk_sp<SkTextBlob> skTextBlob_;

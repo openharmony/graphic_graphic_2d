@@ -140,7 +140,7 @@ private:
 
     // EffectView and useEffect
     static void DrawBackgroundEffect(
-        const RSProperties& properties, RSPaintFilterCanvas& canvas, const Drawing::RectI& rect);
+        const RSProperties& properties, RSPaintFilterCanvas& canvas, const Drawing::Rect& rect);
     static void DrawForegroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
     static void ApplyBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 

@@ -585,17 +585,11 @@ void RSParallelSubThread::AcquireSubDrawingSurface(int width, int height)
         return;
     }
 
-    Drawing::BitmapFormat format = { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-    Drawing::Bitmap bitmap;
-    bitmap.Build(width, height, format);
-
-    Drawing::Image image;
-    image.BuildFromBitmap(*drContext_, bitmap);
-
-    surface_ = std::make_shared<Drawing::Surface>();
-    if (!surface_->Bind(image)) {
+    Drawing::ImageInfo surfaceInfo =
+        Drawing::ImageInfo{width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL};
+    surface_ = Drawing::Surface::MakeRenderTarget(drContext_.get(), true, surfaceInfo);
+    if (surface_ == nullptr) {
         RS_LOGE("surface is not ready!!!");
-        surface_ = nullptr;
         return;
     }
 }
