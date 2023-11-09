@@ -481,7 +481,8 @@ int TypographyImpl::UpdateSpanMetrics(VariantSpan &span, double &coveredAscent)
         }
 
         FontStyles fs(style.fontWeight, style.fontStyle);
-        auto typeface = fontCollection->GetTypefaceForChar(0xFFFC, fs, "Latn", style.locale);
+        bool fallbackTypeface = false;
+        auto typeface = fontCollection->GetTypefaceForChar(0xFFFC, fs, "Latn", style.locale, fallbackTypeface);
         if (typeface == nullptr) {
             typeface = fontCollection->GetTypefaceForFontStyles(fs, "Latn", style.locale);
         }

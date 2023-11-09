@@ -196,7 +196,8 @@ void MeasurerImpl::SeekTypeface(std::list<struct MeasuringRun> &runs)
                                  (char)(((runsit->script) >> SECOND_BYTE) & 0xFF),
                                  (char)(((runsit->script) >> THIRD_BYTE) & 0xFF),
                                  (char)((runsit->script) & 0xFF), '\0'};
-            lastTypeface = fontCollection_.GetTypefaceForChar(cp, style_, runScript, locale_);
+            bool fallbackTypeface = false;
+            lastTypeface = fontCollection_.GetTypefaceForChar(cp, style_, runScript, locale_, fallbackTypeface);
             if (lastTypeface == nullptr) {
                 LOGCEX_DEBUG() << " no typeface";
                 continue;
@@ -204,6 +205,9 @@ void MeasurerImpl::SeekTypeface(std::list<struct MeasuringRun> &runs)
 
             LOGCEX_DEBUG() << " found at " << lastTypeface->GetName();
             runsit->typeface = lastTypeface;
+            if (fallbackTypeface) {
+                lastTypeface = nullptr;
+            }
         }
     }
 }
