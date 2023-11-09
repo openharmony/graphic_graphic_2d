@@ -53,7 +53,7 @@ void DumpCharGroup(int32_t index, const CharGroup &cg, double glyphEm,
 }
 } // namespace
 
-hb_blob_t *HbFaceReferenceTableTypeface(hb_face_t *face, hb_tag_t tag, void *context)
+hb_blob_t* HbFaceReferenceTableTypeface(hb_face_t* face, hb_tag_t tag, void* context)
 {
     if (context == nullptr) {
         return nullptr;
@@ -71,7 +71,7 @@ hb_blob_t *HbFaceReferenceTableTypeface(hb_face_t *face, hb_tag_t tag, void *con
         return nullptr;
     }
 
-    void *buffer = malloc(tableSize);
+    void* buffer = malloc(tableSize);
     if (buffer == nullptr) {
         return nullptr;
     }
@@ -83,7 +83,7 @@ hb_blob_t *HbFaceReferenceTableTypeface(hb_face_t *face, hb_tag_t tag, void *con
         return nullptr;
     }
 
-    return hb_blob_create(reinterpret_cast<char *>(buffer),
+    return hb_blob_create(reinterpret_cast<char*>(buffer),
                           tableSize, HB_MEMORY_MODE_WRITABLE, buffer, free);
 }
 
@@ -224,7 +224,7 @@ void MeasurerImpl::SeekScript(std::list<struct MeasuringRun> &runs)
     hb_unicode_funcs_destroy(icuGetUnicodeFuncs);
 }
 
-void MeasurerImpl::DoSeekScript(std::list<struct MeasuringRun> &runs, hb_unicode_funcs_t *icuGetUnicodeFuncs)
+void MeasurerImpl::DoSeekScript(std::list<struct MeasuringRun> &runs, hb_unicode_funcs_t* icuGetUnicodeFuncs)
 {
     int index = 0;
     for (auto it = runs.begin(); it != runs.end(); it++) {
@@ -332,22 +332,28 @@ int MeasurerImpl::DoShape(CharGroups &cgs, MeasuringRun &run, size_t &index)
     }
     hb_buffer_add_utf16(hbuffer, text_.data(), INVALID_TEXT_LENGTH, run.start, run.end - run.start);
     hb_buffer_set_direction(hbuffer, rtl_ ? HB_DIRECTION_RTL : HB_DIRECTION_LTR);
-    hb_buffer_set_unicode_funcs(hbuffer, hb_unicode_funcs_create(hb_icu_get_unicode_funcs()));
+    auto icuGetUnicodeFuncs = hb_unicode_funcs_create(hb_icu_get_unicode_funcs());
+    if (!icuGetUnicodeFuncs) {
+        LOGEX_FUNC_LINE(ERROR) << "icuGetUnicodeFuncs is nullptr";
+        HbDestroy(hbuffer, nullptr, nullptr, nullptr);
+        return FAILED;
+    }
+
+    hb_buffer_set_unicode_funcs(hbuffer, icuGetUnicodeFuncs);
     hb_buffer_set_script(hbuffer, run.script);
     hb_buffer_set_language(hbuffer, hb_language_from_string(locale_.c_str(), INVALID_TEXT_LENGTH));
 
     auto hface = hb_face_create_for_tables(HbFaceReferenceTableTypeface, typeface->Get()->GetTypeface().get(), 0);
     if (!hface) {
         LOGEX_FUNC_LINE(ERROR) << "hface is nullptr";
-        hb_buffer_destroy(hbuffer);
+        HbDestroy(hbuffer, nullptr, nullptr, icuGetUnicodeFuncs);
         return FAILED;
     }
 
     auto hfont = hb_font_create(hface);
     if (!hfont) {
         LOGEX_FUNC_LINE(ERROR) << "hfont is nullptr";
-        hb_buffer_destroy(hbuffer);
-        hb_face_destroy(hface);
+        HbDestroy(hbuffer, nullptr, hface, icuGetUnicodeFuncs);
         return FAILED;
     }
 
@@ -356,19 +362,34 @@ int MeasurerImpl::DoShape(CharGroups &cgs, MeasuringRun &run, size_t &index)
     hb_shape(hfont, hbuffer, ff.data(), ff.size());
 
     if (GetGlyphs(cgs, run, index, hbuffer, typeface)) {
-        hb_buffer_destroy(hbuffer);
-        hb_font_destroy(hfont);
-        hb_face_destroy(hface);
+        HbDestroy(hbuffer, hfont, hface, icuGetUnicodeFuncs);
         return FAILED;
     }
 
-    hb_buffer_destroy(hbuffer);
-    hb_font_destroy(hfont);
-    hb_face_destroy(hface);
+    HbDestroy(hbuffer, hfont, hface, icuGetUnicodeFuncs);
     return SUCCESSED;
 }
 
-int MeasurerImpl::GetGlyphs(CharGroups &cgs, MeasuringRun &run, size_t &index, hb_buffer_t *hbuffer,
+void MeasurerImpl::HbDestroy(hb_buffer_t* hbuffer, hb_font_t* hfont, hb_face_t* hface, hb_unicode_funcs_t* icuGetUnicodeFuncs)
+{
+    if (hbuffer) {
+        hb_buffer_destroy(hbuffer);
+    }
+
+    if (hfont) {
+        hb_font_destroy(hfont);
+    }
+
+    if (hface) {
+        hb_face_destroy(hface);
+    }
+
+    if (icuGetUnicodeFuncs) {
+        hb_unicode_funcs_destroy(icuGetUnicodeFuncs);
+    }
+}
+
+int MeasurerImpl::GetGlyphs(CharGroups &cgs, MeasuringRun &run, size_t &index, hb_buffer_t* hbuffer,
     std::shared_ptr<TextEngine::Typeface> typeface)
 {
     uint32_t ng = 0u;
@@ -453,7 +474,7 @@ void MeasurerImpl::DoCgsByCluster(std::map<uint32_t, TextEngine::CharGroup> &cgs
     }
 }
 
-void MeasurerImpl::GenerateHBFeatures(std::vector<hb_feature_t> &fontFeatures, const FontFeatures *ff)
+void MeasurerImpl::GenerateHBFeatures(std::vector<hb_feature_t> &fontFeatures, const FontFeatures* ff)
 {
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "GenerateHBFeatures");
     if (ff == nullptr) {
