@@ -180,7 +180,7 @@ void MeasurerImpl::SeekTypeface(std::list<struct MeasuringRun> &runs)
                 LOGCEX_DEBUG() << " new";
                 auto next = runsit;
                 struct MeasuringRun run = {.start = utf16Index - U16_LENGTH(cp), .end = runsit->end,
-                    .script = runsit->script}
+                    .script = runsit->script};
                 runs.insert(++next, run);
                 runsit->end = utf16Index - U16_LENGTH(cp);
                 break;
@@ -401,8 +401,8 @@ int MeasurerImpl::GetGlyphs(CharGroups &cgs, MeasuringRun &run, size_t &index, h
             .advanceX = glyphEm * hgpositions[i].x_advance,
             .advanceY = glyphEm * hgpositions[i].y_advance,
             .offsetX = glyphEm * hgpositions[i].x_offset,
-            .offsetY = glyphEm * hgpositions[i].y_offset,
-        }
+            .offsetY = glyphEm * hgpositions[i].y_offset
+        };
         cg.glyphs.push_back(glyph);
         cg.typeface = typeface;
     }
