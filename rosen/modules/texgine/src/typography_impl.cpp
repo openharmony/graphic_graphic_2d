@@ -482,6 +482,7 @@ int TypographyImpl::UpdateSpanMetrics(VariantSpan &span, double &coveredAscent)
 
         FontStyles fs(style.fontWeight, style.fontStyle);
         bool fallbackTypeface = false;
+        // 0xFFFC is a placeholder, use it to get typeface when text is empty.
         auto typeface = fontCollection->GetTypefaceForChar(0xFFFC, fs, "Latn", style.locale, fallbackTypeface);
         if (typeface == nullptr) {
             typeface = fontCollection->GetTypefaceForFontStyles(fs, "Latn", style.locale);
