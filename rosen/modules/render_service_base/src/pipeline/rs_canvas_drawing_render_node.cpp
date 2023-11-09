@@ -241,7 +241,7 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
     } else {
         surface_ = Drawing::Surface::MakeRenderTarget(gpuContext.get(), false, info);
         if (!surface_ && width > 0 && height > 0) {
-            surface_ = Drawing::Surface::MakeRenderTarget(info);
+            surface_ = Drawing::Surface::MakeRaster(info);
         }
     }
 #else
