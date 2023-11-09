@@ -170,7 +170,7 @@ void VSyncSampler::UpdateModeLocked()
         }
         variance /= (int64_t)(numSamples_ - SAMPLES_INTERVAL_DIFF_NUMS);
         // 1/2 is a empirical value
-        if ((CreateVSyncGenerator()->GetVSyncMode() == VSYNC_MODE_LTPO) && (variance > g_errorThreshold / 2)) {
+        if (variance > g_errorThreshold / 2) {
             // keep only the latest 5 samples, and sample the next timestamp.
             firstSampleIndex_ = (firstSampleIndex_ + numSamples_ - MIN_SAMPLES_FOR_UPDATE + 1) % MAX_SAMPLES;
             numSamples_ = MIN_SAMPLES_FOR_UPDATE - 1;
