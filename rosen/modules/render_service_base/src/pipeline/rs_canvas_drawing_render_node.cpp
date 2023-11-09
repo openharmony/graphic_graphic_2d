@@ -230,28 +230,27 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
 #else
 bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilterCanvas& canvas)
 {
-    Drawing::BitmapFormat info = Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-    auto newSurface = std::make_shared<Drawing::Surface>();
+    Drawing::BitmapFormat info =
+        Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
 
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
     auto gpuContext = canvas.GetGPUContext();
     if (gpuContext == nullptr) {
         RS_LOGE("RSCanvasDrawingRenderNode::ResetSurface: gpuContext is nullptr");
-        return false;
-    }
-    if (!newSurface->MakeRenderTarget(*gpuContext, false, info)) {
-        if (!newSurface->MakeRaster(info)) {
-            RS_LOGE("RSCanvasDrawingRenderNode::ResetSurface: MakeRaster failed");
-            return false;
+        surface_ = Drawing::Surface::MakeRenderTarget(gpuContext.get(), info);
+    } else {
+        surface_ = Drawing::Surface::MakeRenderTarget(gpuContext.get(), false, info);
+        if (!surface_ && width > 0 && height > 0) {
+            surface_ = Drawing::Surface::MakeRaster(info);
         }
     }
 #else
-    if (!newSurface->MakeRaster(info)) {
-        RS_LOGE("RSCanvasDrawingRenderNode::ResetSurface: MakeRaster failed");
+    surface_ = Drawing::Surface::MakeRaster(info);
+#endif
+    if (!surface_) {
+        RS_LOGE("RSCanvasDrawingRenderNode::ResetSurface surface is nullptr");
         return false;
     }
-#endif
-    surface_ = newSurface;
     canvas_ = std::make_unique<RSPaintFilterCanvas>(surface_.get());
     return true;
 }
