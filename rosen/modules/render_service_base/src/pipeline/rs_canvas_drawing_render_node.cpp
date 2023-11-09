@@ -57,7 +57,7 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
     if (!GetSizeFromDrawCmdModifiers(width, height)) {
         return;
     }
-
+    std::lock_guard<std::mutex> lock(mutex_);
     if (IsNeedResetSurface(width, height)) {
         if (preThreadInfo_.second && skSurface_) {
             preThreadInfo_.second(std::move(skSurface_));
@@ -111,12 +111,9 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
         GetRenderProperties().GetFrameGravity(), GetRenderProperties().GetFrameRect(), width, height, mat)) {
         canvas.concat(mat);
     }
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        skImage_ = skSurface_->makeImageSnapshot();
-        if (skImage_) {
-            SKResourceManager::Instance().HoldResource(skImage_);
-        }
+    skImage_ = skSurface_->makeImageSnapshot();
+    if (skImage_) {
+        SKResourceManager::Instance().HoldResource(skImage_);
     }
 #ifdef NEW_SKIA
     auto samplingOptions = SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
@@ -289,6 +286,7 @@ SkBitmap RSCanvasDrawingRenderNode::GetBitmap()
 
 bool RSCanvasDrawingRenderNode::GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (!pixelmap || !rect) {
         RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: pixelmap or rect is nullptr");
         return false;
