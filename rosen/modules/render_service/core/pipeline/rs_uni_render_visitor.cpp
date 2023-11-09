@@ -4306,7 +4306,7 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
         auto& [child, alpha, matrix] = curGroupedNodes_.top();
         auto temAlpha = canvas_->GetAlpha();
         if (!ROSEN_EQ(alpha, 0.f)) {
-            temAlpha /= alphal;
+            temAlpha /= alpha;
         } else {
             RS_LOGE("RSUniRenderVisitor::ProcessSharedTransitionNode: alpha_ is zero");
         }
