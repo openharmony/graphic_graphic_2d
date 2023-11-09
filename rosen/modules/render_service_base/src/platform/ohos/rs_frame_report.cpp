@@ -136,14 +136,14 @@ void RsFrameReport::AnimateStart()
     }
 }
 
-void RsFrameReport::RenderStart()
+void RsFrameReport::RenderStart(uint64_t timestamp)
 {
     if (renderStartFunc_ == nullptr) {
         renderStartFunc_ = (RenderStartFunc)LoadSymbol("RenderStart");
     }
 
     if (renderStartFunc_ != nullptr) {
-        renderStartFunc_();
+        renderStartFunc_(timestamp);
     } else {
         ROSEN_LOGE("RsFrameReport:[RenderStart]load RenderStart function failed!");
     }

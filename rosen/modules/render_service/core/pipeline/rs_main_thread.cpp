@@ -232,7 +232,7 @@ RSMainThread::~RSMainThread() noexcept
 void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
-        RenderFrameStart();
+        RenderFrameStart(timestamp_);
         PerfMultiWindow();
         SetRSEventDetectorLoopStartTag();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition");
@@ -2438,10 +2438,10 @@ void RSMainThread::PerfMultiWindow()
     }
 }
 
-void RSMainThread::RenderFrameStart()
+void RSMainThread::RenderFrameStart(uint64_t timestamp)
 {
     if (RsFrameReport::GetInstance().GetEnable()) {
-        RsFrameReport::GetInstance().RenderStart();
+        RsFrameReport::GetInstance().RenderStart(timestamp);
     }
     RenderFrameTrace::GetInstance().RenderStartFrameTrace(RS_INTERVAL_NAME);
 }
