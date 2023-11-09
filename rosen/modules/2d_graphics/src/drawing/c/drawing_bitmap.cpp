@@ -49,9 +49,6 @@ static ColorType CColorFormatCastToColorType(OH_Drawing_ColorFormat cColorFormat
         case COLOR_FORMAT_BGRA_8888:
             colorType = COLORTYPE_BGRA_8888;
             break;
-        case COLOR_FORMAT_RGBA_F16:
-            colorType = COLORTYPE_RGBA_F16;
-            break;
         default:
             break;
     }

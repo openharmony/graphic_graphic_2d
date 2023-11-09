@@ -114,12 +114,7 @@ typedef enum {
      * Each pixel is represented by 32 bits. From the most significant bit to the least significant bit,
      * every 8 bits indicate blue, green, red, and alpha, respectively.
      */
-    COLOR_FORMAT_BGRA_8888,
-    /**
-     * Each pixel is represented by 64bits. From the most significant bit to the least significant bit,
-     * every 8 bits indicate red, green, blue, alpha, respectively.
-     */
-    COLOR_FORMAT_RGBA_F16
+    COLOR_FORMAT_BGRA_8888
 } OH_Drawing_ColorFormat;
 
 /**
