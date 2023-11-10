@@ -100,11 +100,7 @@ float RSFilterSubThread::GetAppGpuMemoryInMB()
 {
     float total = 0.f;
     PostSyncTask([&total, this]() {
-#ifndef USE_ROSEN_DRAWING
         total = MemoryManager::GetAppGpuMemoryInMB(grContext_.get());
-#else
-        RS_LOGE("Drawing Unsupport GetAppGpuMemoryInMB");
-#endif
     });
     return total;
 }
@@ -154,12 +150,10 @@ void RSFilterSubThread::RenderCache(std::weak_ptr<RSFilter::RSFilterTask> filter
         RS_LOGE("grContext is null");
         return;
     }
-#ifndef USE_ROSEN_DRAWING
     if (!task->InitSurface(grContext_.get())) {
         RS_LOGE("InitSurface failed");
         return;
     }
-#endif
     if (!task->Render()) {
         RS_LOGE("Render failed");
     }
@@ -230,6 +224,8 @@ void RSFilterSubThread::ResetGrContext()
     }
 #ifndef USE_ROSEN_DRAWING
     grContext_->freeGpuResources();
+#else
+    grContext_->FreeGpuResources();
 #endif
 }
 } // namespace OHOS::Rosen

@@ -140,7 +140,7 @@ void RSObjAbsGeometry::UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& par
 #ifndef USE_ROSEN_DRAWING
     if (clipRect.has_value() && !clipRect.value().isEmpty()) {
 #else
-    if (clipRect.has_value() && !clipRect.value().IsValid()) {
+    if (clipRect.has_value() && !clipRect.value().IsEmpty()) {
 #endif
         auto mappedClipRect = clipRect.value();
 #ifndef USE_ROSEN_DRAWING
@@ -167,8 +167,7 @@ void RSObjAbsGeometry::UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& par
         width_ = mappedClipRect.width();
         height_ = mappedClipRect.height();
 #else
-        if (matrix_.Get(Drawing::Matrix::Index::SCALE_X) == 1 && matrix_.Get(Drawing::Matrix::Index::SCALE_Y) == 1 &&
-            matrix_.Get(Drawing::Matrix::Index::PERSP_2) == 1) {
+        if (!matrix_.IsIdentity()) {
             Drawing::Matrix invertMatrix;
             if (matrix_.Invert(invertMatrix)) {
                 invertMatrix.MapRect(mappedClipRect, mappedClipRect);

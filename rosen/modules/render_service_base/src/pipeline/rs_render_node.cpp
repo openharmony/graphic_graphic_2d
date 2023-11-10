@@ -1014,7 +1014,7 @@ bool RSRenderNode::ApplyModifiers()
     renderProperties_.OnApplyModifiers();
     OnApplyModifiers();
 
-#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
     if (auto& manager = renderProperties_.GetFilterCacheManager(false);
         manager != nullptr &&
         (dirtyTypes_.count(RSModifierType::BACKGROUND_COLOR) || dirtyTypes_.count(RSModifierType::BG_IMAGE))) {
@@ -1142,7 +1142,7 @@ void RSRenderNode::UpdateShouldPaint()
     // alpha is not zero
     shouldPaint_ = (renderProperties_.GetAlpha() > 0.0f) &&
         (renderProperties_.GetVisible() || HasDisappearingTransition(false));
-#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
     if (!shouldPaint_) {
         // clear filter cache when node is not visible
         renderProperties_.ClearFilterCache();
@@ -1627,7 +1627,7 @@ RectI RSRenderNode::GetFilterRect() const
 
 void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(const std::optional<RectI>& clipRect) const
 {
-#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
     if (!RSProperties::FilterCacheEnabled) {
         return;
     }
@@ -1670,7 +1670,7 @@ void RSRenderNode::OnTreeStateChanged()
     } else {
         SetDirty();
     }
-#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
     if (!isOnTheTree_) {
         // clear filter cache when node is removed from tree
         renderProperties_.ClearFilterCache();

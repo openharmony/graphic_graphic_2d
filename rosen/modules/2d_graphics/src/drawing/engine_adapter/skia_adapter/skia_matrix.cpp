@@ -160,6 +160,12 @@ void SkiaMatrix::GetAll(std::array<scalar, MatrixImpl::MATRIX_SIZE>& buffer) con
 {
     skMatrix_.get9(buffer.data());
 }
+
+bool SkiaMatrix::IsIdentity() const
+{
+    return skMatrix_.isIdentity();
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

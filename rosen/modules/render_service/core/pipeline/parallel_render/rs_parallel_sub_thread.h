@@ -107,6 +107,7 @@ private:
 #else
     std::shared_ptr<Drawing::GPUContext> CreateShareGPUContext();
     void AcquireSubDrawingSurface(int width, int height);
+    bool FlushForRosenDrawing();
 #endif
 
     uint32_t threadIndex_;

@@ -58,6 +58,7 @@ public:
     virtual void Set(int index, scalar value);
     virtual scalar Get(int index) const = 0;
     virtual void GetAll(std::array<scalar, MATRIX_SIZE>& buffer) const = 0;
+    virtual bool IsIdentity() const = 0;
 };
 } // namespace Drawing
 } // namespace Rosen
