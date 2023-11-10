@@ -121,6 +121,7 @@ constexpr uint64_t PERF_PERIOD = 250000000;
 constexpr uint64_t CLEAN_CACHE_FREQ = 60;
 constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
 constexpr uint64_t PERF_PERIOD_BLUR = 80000000;
+constexpr uint64_t SK_RELEASE_RESOURCE_PERIOD = 5000000000;
 constexpr const char* MEM_GPU_TYPE = "gpu";
 constexpr uint64_t PERF_PERIOD_MULTI_WINDOW = 80000000;
 constexpr uint64_t CLEAR_GPU_INTERVAL = 40000;
@@ -253,7 +254,10 @@ void RSMainThread::Init()
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         SetRSEventDetectorLoopFinishTag();
         rsEventManager_.UpdateParam();
-        SKResourceManager::Instance().ReleaseResource();
+        if (timestamp_ - preSKReleaseResourceTimestamp_ > SK_RELEASE_RESOURCE_PERIOD) {
+            SKResourceManager::Instance().ReleaseResource();
+            preSKReleaseResourceTimestamp_ = timestamp_;
+        }
     };
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
