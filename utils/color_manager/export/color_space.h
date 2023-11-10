@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,7 +46,7 @@ static const Matrix3x3 BRADFORD_INV = {{
 }};
 
 enum ColorSpaceName : uint32_t {
-    NONE,
+    NONE = 0,
     ADOBE_RGB,
     DCI_P3,
     DISPLAY_P3,
@@ -110,7 +110,14 @@ struct ColorSpacePrimaries {
     float wY;
 };
 
+enum TransFuncType : uint32_t {
+    GAMMA_LIKE = 0,
+    HLG,
+    PQ,
+};
+
 struct TransferFunc {
+    TransFuncType type;
     float g;
     float a;
     float b;
@@ -206,7 +213,7 @@ public:
 
     Vector3 ToLinear(Vector3 color) const;
     Vector3 ToNonLinear(Vector3 color) const;
-    
+
     // convert OHOS ColorSpce to SKColorSpace
     sk_sp<SkColorSpace> ToSkColorSpace() const;
 
