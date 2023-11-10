@@ -18,6 +18,7 @@
 
 #include <cstdint>
 
+#include "draw/surface.h"
 #include "text/text_blob.h"
 #include "text/typeface.h"
 
@@ -31,6 +32,14 @@ public:
     static std::shared_ptr<TextBlob> MakeFromRSXform(const void* text, size_t byteLength,
         const RSXform xform[], const Font& font, TextEncoding encoding);
     static std::shared_ptr<Typeface> MakeFromFile(const char path[]);
+#ifdef ACE_ENABLE_GPU
+    static std::shared_ptr<Surface> MakeRenderTarget(GPUContext* gpuContext, bool budgeted, const ImageInfo& imageInfo);
+#endif
+    static std::shared_ptr<Surface> MakeRaster(const ImageInfo& imageInfo);
+    static std::shared_ptr<Surface> MakeRasterDirect(const ImageInfo& imageInfo, void* pixels, size_t rowBytes);
+    static std::shared_ptr<Surface> MakeRasterN32Premul(int32_t width, int32_t height);
+
+    static std::shared_ptr<TextBlob> DeserializeTextBlob(const void* data, size_t size);
 };
 } // namespace Drawing
 } // namespace Rosen

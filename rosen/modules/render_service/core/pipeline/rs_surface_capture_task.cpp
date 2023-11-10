@@ -87,18 +87,10 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
 #if defined(RS_ENABLE_GL)
 #if defined(NEW_RENDER_CONTEXT)
     auto drawingContext = RSMainThread::Instance()->GetRenderEngine()->GetDrawingContext();
-#ifdef NEW_SKIA
     GrDirectContext* grContext = drawingContext != nullptr ? drawingContext->GetDrawingContext() : nullptr;
 #else
-    GrContext* grContext = drawingContext != nullptr ? drawingContext->GetDrawingContext() : nullptr;
-#endif
-#else
     auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
-#ifdef NEW_SKIA
     GrDirectContext* grContext = renderContext != nullptr ? renderContext->GetGrContext() : nullptr;
-#else
-    GrContext* grContext = renderContext != nullptr ? renderContext->GetGrContext() : nullptr;
-#endif
 #endif
     RSTagTracker tagTracker(grContext, node->GetId(), RSTagTracker::TAGTYPE::TAG_CAPTURE);
 #endif
@@ -390,7 +382,6 @@ sk_sp<SkSurface> RSSurfaceCaptureTask::CreateSurface(const std::unique_ptr<Media
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
-#ifndef USE_ROSEN_DRAWING
 void DmaMem::ReleaseGLMemory()
 {
     if (texId_ != 0U) {
@@ -409,10 +400,8 @@ void DmaMem::ReleaseGLMemory()
     }
 }
 #endif
-#endif
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
-#ifndef USE_ROSEN_DRAWING
 sptr<SurfaceBuffer> DmaMem::DmaMemAlloc(SkImageInfo &dstInfo, const std::unique_ptr<Media::PixelMap>& pixelmap)
 {
 #if defined(_WIN32) || defined(_APPLE) || defined(A_PLATFORM) || defined(IOS_PLATFORM)
@@ -444,10 +433,8 @@ sptr<SurfaceBuffer> DmaMem::DmaMemAlloc(SkImageInfo &dstInfo, const std::unique_
 #endif
 }
 #endif
-#endif
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
-#ifndef USE_ROSEN_DRAWING
 sk_sp<SkSurface> DmaMem::GetSkSurfaceFromSurfaceBuffer(sptr<SurfaceBuffer> surfaceBuffer)
 {
     if (surfaceBuffer == nullptr) {
@@ -505,7 +492,6 @@ sk_sp<SkSurface> DmaMem::GetSkSurfaceFromSurfaceBuffer(sptr<SurfaceBuffer> surfa
         kTopLeft_GrSurfaceOrigin, 0, kRGBA_8888_SkColorType, SkColorSpace::MakeSRGB(), nullptr);
     return skSurface;
 }
-#endif
 #endif
 
 bool CopyDataToPixelMap(sk_sp<SkImage> img, const std::unique_ptr<Media::PixelMap>& pixelmap)
@@ -569,48 +555,28 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTask::CreateSurface(const std:
         RS_LOGE("RSSurfaceCaptureTask::CreateSurface: address == nullptr");
         return nullptr;
     }
-    Drawing::BitmapFormat format { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
-    auto bitmap = std::make_shared<Drawing::Bitmap>();
-    bitmap->Build(pixelmap->GetWidth(), pixelmap->GetHeight(), format);
-    bitmap->SetPixels(address);
+    Drawing::ImageInfo info = Drawing::ImageInfo{pixelmap->GetWidth(), pixelmap->GetHeight(),
+        Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL};
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
-    auto renderEngine = RSMainThread::Instance()->GetRenderEngine();
-    if (renderEngine == nullptr) {
-        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderEngine is nullptr");
+#if defined(NEW_RENDER_CONTEXT)
+    auto drawingContext = RSMainThread::Instance()->GetRenderEngine()->GetDrawingContext();
+    if (drawingContext == nullptr) {
+        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
         return nullptr;
     }
-    auto renderContext = renderEngine->GetRenderContext();
+    drawingContext->SetUpDrawingContext();
+    return Drawing::Surface::MakeRenderTarget(drawingContext->GetDrawingContext, fasle, info);
+#else
+    auto renderContext = RSMainThread::Instance()->GetRenderContext();
     if (renderContext == nullptr) {
         RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
         return nullptr;
     }
     renderContext->SetUpGpuContext();
-    auto gpuContext = renderContext->GetDrGPUContext();
-    if (gpuContext == nullptr) {
-        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: Drawing::GPUContext is nullptr");
-        return nullptr;
-    }
-    auto image = std::make_shared<Drawing::Image>();
-    if (!image->BuildFromBitmap(*gpuContext, *bitmap)) {
-        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: Drawing::Image is nullptr");
-        return nullptr;
-    }
-    auto surface = std::make_shared<Drawing::Surface>();
-    if (!surface->Bind(*image)) {
-        if (!surface->Bind(*bitmap)) {
-            RS_LOGE("RSSurfaceCaptureTask::CreateSurface: Drawing::Surface is nullptr");
-            return nullptr;
-        }
-    }
-    return surface;
-#else
-    auto surface = std::make_shared<Drawing::Surface>();
-    if (!surface->Bind(*bitmap)) {
-        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: Drawing::Surface is nullptr");
-        return nullptr;
-    }
-    return surface;
+    return Drawing::Surface::MakeRenderTarget(renderContext->GetDrContext, fasle, info);
 #endif
+#endif
+    return Drawing::Surface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
 }
 #endif
 

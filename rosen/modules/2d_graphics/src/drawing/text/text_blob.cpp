@@ -46,6 +46,20 @@ std::shared_ptr<TextBlob> TextBlob::MakeFromRSXform(const void* text, size_t byt
 {
     return StaticFactory::MakeFromRSXform(text, byteLength, xform, font, encoding);
 }
+
+std::shared_ptr<Data> TextBlob::Serialize() const
+{
+    if (!textBlobImpl_) {
+        LOGE("textBlobImpl nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    return textBlobImpl_->Serialize();
+}
+
+std::shared_ptr<TextBlob> TextBlob::Deserialize(const void* data, size_t size)
+{
+    return StaticFactory::DeserializeTextBlob(data, size);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -349,8 +349,25 @@ config("render_service_base_all_deps_config") {
   include_dirs = [ "include" ]
 }
 
+config("render_service_base_link_config") {
+  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
+    ldflags = [
+      "-Wl,--lto-O2",
+      "-Wl,-mllvm",
+      "-Wl,-import-instr-limit=5",
+      "-Wl,-mllvm",
+      "-Wl,-wholeprogramdevirt-check=fallback",
+      "-Wl,-Bsymbolic",
+    ]
+  }
+}
+
 ohos_shared_library("librender_service_base") {
   all_dependent_configs = [ ":render_service_base_all_deps_config" ]
+
+  if (enhanced_opt) {
+    configs = [ ":render_service_base_link_config" ]
+  }
 
   deps = [ "$rosen_root/modules/platform:eventhandler" ]
   public_deps = [
@@ -362,23 +379,9 @@ ohos_shared_library("librender_service_base") {
     public_deps += [ "src/render_backend:librender_backend" ]
   }
 
-  ldflags = []
-
-  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64") &&
-      enhanced_opt) {
-    ldflags += [
-      "-Wl,-mllvm",
-      "-Wl,-wholeprogramdevirt-check=fallback",
-    ]
-  }
-
   innerapi_tags = [ "platformsdk_indirect" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
-
-  if (is_ohos && enhanced_opt) {
-    ldflags += [ "-Wl,-Bsymbolic" ]
-  }
 }
 
 ohos_source_set("librender_service_base_static") {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,7 +24,8 @@
 #include "buffer_manager.h"
 #include "buffer_extra_data_impl.h"
 #include "native_buffer.h"
-#include "v1_0/include/idisplay_buffer.h"
+#include <v1_0/buffer_handle_meta_key_type.h>
+#include "v1_1/include/idisplay_buffer.h"
 
 namespace OHOS {
 namespace {
@@ -50,7 +51,7 @@ inline GSError GenerateError(GSError err, int32_t code)
     return GenerateError(err, static_cast<GraphicDispErrCode>(code));
 }
 
-using namespace OHOS::HDI::Display::Buffer::V1_0;
+using namespace OHOS::HDI::Display::Buffer::V1_1;
 using IDisplayBufferSptr = std::shared_ptr<IDisplayBuffer>;
 static IDisplayBufferSptr g_displayBuffer;
 static std::mutex g_DisplayBufferMutex;
@@ -150,7 +151,7 @@ GSError SurfaceBufferImpl::Alloc(const BufferRequestConfig &config)
     }
 
     BufferHandle *handle = nullptr;
-    AllocInfo info = {config.width, config.height, config.usage, config.format};
+    OHOS::HDI::Display::Buffer::V1_0::AllocInfo info = {config.width, config.height, config.usage, config.format};
     auto dret = g_displayBuffer->AllocMem(info, handle);
     if (dret == GRAPHIC_DISPLAY_SUCCESS) {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -532,4 +533,94 @@ BufferWrapper SurfaceBufferImpl::GetBufferWrapper()
 }
 
 void SurfaceBufferImpl::SetBufferWrapper(BufferWrapper wrapper) {}
+
+GSError SurfaceBufferImpl::SetMetadata(uint32_t key, const std::vector<uint8_t>& value)
+{
+    if (key == 0 || key >= HDI::Display::Graphic::Common::V1_0::ATTRKEY_END) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    if (GetDisplayBuffer() == nullptr) {
+        BLOGE("GetDisplayBuffer failed!");
+        return GSERROR_INTERNAL;
+    }
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (handle_ == nullptr) {
+        BLOGE("Failure, Reason: handle_ is nullptr");
+        return GSERROR_NOT_INIT;
+    }
+    auto dret = g_displayBuffer->SetMetadata(*handle_, key, value);
+    if (dret == GRAPHIC_DISPLAY_SUCCESS) {
+        return GSERROR_OK;
+    }
+    BLOGW("Failed with %{public}d", dret);
+    return GenerateError(GSERROR_API_FAILED, dret);
+}
+
+GSError SurfaceBufferImpl::GetMetadata(uint32_t key, std::vector<uint8_t>& value)
+{
+    if (key == 0 || key >= HDI::Display::Graphic::Common::V1_0::ATTRKEY_END) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    if (GetDisplayBuffer() == nullptr) {
+        BLOGE("GetDisplayBuffer failed!");
+        return GSERROR_INTERNAL;
+    }
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (handle_ == nullptr) {
+        BLOGE("Failure, Reason: handle_ is nullptr");
+        return GSERROR_NOT_INIT;
+    }
+    auto dret = g_displayBuffer->GetMetadata(*handle_, key, value);
+    if (dret == GRAPHIC_DISPLAY_SUCCESS) {
+        return GSERROR_OK;
+    }
+    BLOGW("Failed with %{public}d", dret);
+    return GenerateError(GSERROR_API_FAILED, dret);
+}
+
+GSError SurfaceBufferImpl::ListMetadataKeys(std::vector<uint32_t>& keys)
+{
+    if (GetDisplayBuffer() == nullptr) {
+        BLOGE("GetDisplayBuffer failed!");
+        return GSERROR_INTERNAL;
+    }
+
+    keys.clear();
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (handle_ == nullptr) {
+        BLOGE("Failure, Reason: handle_ is nullptr");
+        return GSERROR_NOT_INIT;
+    }
+    auto dret = g_displayBuffer->ListMetadataKeys(*handle_, keys);
+    if (dret == GRAPHIC_DISPLAY_SUCCESS) {
+        return GSERROR_OK;
+    }
+    BLOGW("Failed with %{public}d", dret);
+    return GenerateError(GSERROR_API_FAILED, dret);
+}
+
+GSError SurfaceBufferImpl::EraseMetadataKey(uint32_t key)
+{
+    if (key == 0 || key >= HDI::Display::Graphic::Common::V1_0::ATTRKEY_END) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    if (GetDisplayBuffer() == nullptr) {
+        BLOGE("GetDisplayBuffer failed!");
+        return GSERROR_INTERNAL;
+    }
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (handle_ == nullptr) {
+        BLOGE("Failure, Reason: handle_ is nullptr");
+        return GSERROR_NOT_INIT;
+    }
+    auto dret = g_displayBuffer->EraseMetadataKey(*handle_, key);
+    if (dret == GRAPHIC_DISPLAY_SUCCESS) {
+        return GSERROR_OK;
+    }
+    BLOGW("Failed with %{public}d", dret);
+    return GenerateError(GSERROR_API_FAILED, dret);
+}
 } // namespace OHOS

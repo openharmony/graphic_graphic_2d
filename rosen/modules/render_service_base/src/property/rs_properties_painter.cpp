@@ -1272,7 +1272,7 @@ void RSPropertiesPainter::DrawBackgroundEffect(
 }
 #else
 void RSPropertiesPainter::DrawBackgroundEffect(
-    const RSProperties& properties, RSPaintFilterCanvas& canvas, const Drawing::RectI& rect)
+    const RSProperties& properties, RSPaintFilterCanvas& canvas, const Drawing::Rect& rect)
 {
 }
 #endif

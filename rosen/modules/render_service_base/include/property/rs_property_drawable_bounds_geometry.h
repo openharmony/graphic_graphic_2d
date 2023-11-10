@@ -76,7 +76,6 @@ public:
 #endif
     ~RSBorderDRRectDrawable() override = default;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
-    bool Update(const RSPropertyDrawableGenerateContext& context) override;
     void OnBoundsChange(const RSProperties& properties);
 
 private:
@@ -98,7 +97,6 @@ public:
 #endif
     ~RSBorderFourLineDrawable() override = default;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
-    bool Update(const RSPropertyDrawableGenerateContext& context) override;
     void OnBoundsChange(const RSProperties& properties);
 
 private:
@@ -114,7 +112,6 @@ public:
 #endif
     ~RSBorderPathDrawable() override = default;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
-    bool Update(const RSPropertyDrawableGenerateContext& context) override;
     void OnBoundsChange(const RSProperties& properties);
 
 private:
@@ -135,7 +132,6 @@ public:
 #endif
     ~RSBorderFourLineRoundCornerDrawable() override = default;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
-    bool Update(const RSPropertyDrawableGenerateContext& context) override;
     void OnBoundsChange(const RSProperties& properties);
 
 private:

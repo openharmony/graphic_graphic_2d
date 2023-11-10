@@ -17,10 +17,12 @@
 
 #include "include/core/SkFontTypes.h"
 #include "include/core/SkRSXform.h"
+#include "include/core/SkSerialProcs.h"
 
 #include "skia_adapter/skia_convert_utils.h"
 #include "skia_adapter/skia_data.h"
 #include "skia_adapter/skia_font.h"
+#include "skia_adapter/skia_typeface.h"
 #include "utils/log.h"
 
 namespace OHOS {
@@ -74,12 +76,14 @@ std::shared_ptr<TextBlob> SkiaTextBlob::MakeFromRSXform(const void* text, size_t
     return std::make_shared<TextBlob>(textBlobImpl);
 }
 
-std::shared_ptr<Data> SkiaTextBlob::Serialize(const SkSerialProcs& procs) const
+std::shared_ptr<Data> SkiaTextBlob::Serialize() const
 {
     if (!skTextBlob_) {
         LOGE("skTextBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
+    SkSerialProcs procs;
+    procs.fTypefaceProc = &SkiaTypeface::SerializeTypeface;
     auto skData = skTextBlob_->serialize(procs);
     auto data = std::make_shared<Data>();
     auto skiaData = data->GetImpl<SkiaData>();
@@ -91,8 +95,10 @@ std::shared_ptr<Data> SkiaTextBlob::Serialize(const SkSerialProcs& procs) const
     return data;
 }
 
-std::shared_ptr<TextBlob> SkiaTextBlob::Deserialize(const void* data, size_t size, const SkDeserialProcs& procs)
+std::shared_ptr<TextBlob> SkiaTextBlob::Deserialize(const void* data, size_t size)
 {
+    SkDeserialProcs procs;
+    procs.fTypefaceProc = &SkiaTypeface::DeserializeTypeface;
     sk_sp<SkTextBlob> skTextBlob = SkTextBlob::Deserialize(data, size, procs);
     if (!skTextBlob) {
         LOGE("skTextBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);

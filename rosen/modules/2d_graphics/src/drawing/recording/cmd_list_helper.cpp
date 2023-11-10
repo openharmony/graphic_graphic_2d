@@ -15,8 +15,6 @@
 
 #include "recording/cmd_list_helper.h"
 
-#include "include/core/SkSerialProcs.h"
-
 #ifdef SUPPORT_OHOS_PIXMAP
 #include "pixel_map.h"
 #endif
@@ -33,8 +31,6 @@
 #include "utils/log.h"
 
 #include "skia_adapter/skia_picture.h"
-#include "skia_adapter/skia_text_blob.h"
-#include "skia_adapter/skia_typeface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -304,14 +300,7 @@ ImageHandle CmdListHelper::AddTextBlobToCmdList(CmdList& cmdList, const TextBlob
         LOGE("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return { 0 };
     }
-    std::shared_ptr<SkiaTextBlob> skiaTextBlob = textBlob->GetImpl<SkiaTextBlob>();
-    if (!skiaTextBlob) {
-        LOGE("skiaTextBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
-        return { 0 };
-    }
-    SkSerialProcs serialProcs;
-    serialProcs.fTypefaceProc = &SkiaTypeface::SerializeTypeface;
-    auto data = skiaTextBlob->Serialize(serialProcs);
+    auto data = textBlob->Serialize();
     if (!data || data->GetSize() == 0) {
         LOGE("textBlob serialize invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return { 0 };
@@ -332,9 +321,7 @@ std::shared_ptr<TextBlob> CmdListHelper::GetTextBlobFromCmdList(const CmdList& c
 
     auto textBlobData = std::make_shared<Data>();
     textBlobData->BuildWithoutCopy(data, textBlobHandle.size);
-    SkDeserialProcs deserialProcs;
-    deserialProcs.fTypefaceProc = &SkiaTypeface::DeserializeTypeface;
-    return SkiaTextBlob::Deserialize(textBlobData->GetData(), textBlobData->GetSize(), deserialProcs);
+    return TextBlob::Deserialize(textBlobData->GetData(), textBlobData->GetSize());
 }
 
 ImageHandle CmdListHelper::AddDataToCmdList(CmdList& cmdList, const Data* srcData)

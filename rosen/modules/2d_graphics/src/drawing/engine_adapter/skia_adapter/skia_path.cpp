@@ -269,7 +269,7 @@ void SkiaPath::AddPathWithMatrix(const Path& src, const Matrix& matrix)
 Rect SkiaPath::GetBounds() const
 {
     SkRect rect = path_.getBounds();
-    return Rect(rect.left(), rect.top(), rect.width(), rect.height());
+    return Rect(rect.left(), rect.top(), rect.right(), rect.bottom());
 }
 
 void SkiaPath::SetFillStyle(PathFillType fillstyle)
