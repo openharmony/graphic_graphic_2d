@@ -240,6 +240,11 @@ ohos_shared_library("librender_service") {
     ]
   }
 
+  if (rosen_is_ohos && defined(enable_ipc_security_access_counter) &&
+      enable_ipc_security_access_counter) {
+    defines += [ "ENABLE_IPC_SECURITY_ACCESS_COUNTER" ]
+  }
+
   if (tp_feature_enable) {
     defines += tp_defines
   }

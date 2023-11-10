@@ -307,6 +307,11 @@ ohos_source_set("render_service_base_src") {
     ]
   }
 
+  if (rosen_is_ohos && defined(enable_ipc_security_access_counter) &&
+      enable_ipc_security_access_counter) {
+    defines += [ "ENABLE_IPC_SECURITY_ACCESS_COUNTER" ]
+  }
+
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
     if (ace_enable_gpu) {

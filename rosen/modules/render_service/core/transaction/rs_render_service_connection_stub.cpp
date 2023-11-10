@@ -110,17 +110,21 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old)
 int RSRenderServiceConnectionStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
+#ifdef ENABLE_IPC_SECURITY_ACCESS_COUNTER
     if (!securityManager_.IsAccessTimesRestricted(code, securityUtils_.GetCodeAccessCounter(code))) {
         RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access codeID=%{public}u by "
                 "pid=%{public}d with accessTimes = %{public}d.",
             code, GetCallingPid(), securityUtils_.GetCodeAccessCounter(code));
         return ERR_INVALID_STATE;
     }
+#endif
     if (!securityManager_.IsInterfaceCodeAccessible(code)) {
         RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access codeID=%{public}u.", code);
         return ERR_INVALID_STATE;
     }
+#ifdef ENABLE_IPC_SECURITY_ACCESS_COUNTER
     securityUtils_.IncreaseAccessCounter(code);
+#endif
     int ret = ERR_NONE;
     switch (code) {
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::COMMIT_TRANSACTION): {

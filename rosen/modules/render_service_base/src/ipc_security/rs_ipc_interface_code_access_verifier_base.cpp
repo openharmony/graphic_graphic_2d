@@ -79,6 +79,7 @@ bool RSInterfaceCodeAccessVerifierBase::CheckHapPermission(
 
 bool RSInterfaceCodeAccessVerifierBase::CheckPermission(CodeUnderlyingType code) const
 {
+#ifdef ENABLE_IPC_SECURITY_ACCESS_COUNTER
     std::vector<std::string> permissions = GetPermissions(code);
     bool hasPermission = true;
     auto tokenType = GetTokenType();
@@ -99,10 +100,11 @@ bool RSInterfaceCodeAccessVerifierBase::CheckPermission(CodeUnderlyingType code)
         }
         if (!hasPermission) {
             RS_LOGE("%{public}d ipc interface code access denied: HAS NO PERMISSION", code);
-            return true; // will return hasPermission after defining Permissions for APIs
+            return false;
         }
     }
-    return hasPermission;
+#endif
+    return true;
 }
 
 std::string RSInterfaceCodeAccessVerifierBase::PermissionEnumToString(PermissionType permission) const
