@@ -1414,6 +1414,9 @@ sk_sp<SkImage> RSRenderNode::GetCompletedImage(RSPaintFilterCanvas& canvas, uint
     }
     auto cacheImage = SkImage::MakeFromTexture(canvas.recordingContext(), backendTexture, origin,
         completeImage->colorType(), completeImage->alphaType(), nullptr);
+    if (RSSystemProperties::GetRecordingEnabled()) {
+        cacheImage = cacheImage->makeRasterImage();
+    }
     return cacheImage;
 #else
     return completeImage;

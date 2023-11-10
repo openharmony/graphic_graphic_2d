@@ -150,6 +150,9 @@ bool RSFilterCacheManager::RSFilterCacheTask::Render()
         kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
     auto src = SkRect::MakeSize(SkSize::Make(surfaceSize_));
     auto dst = SkRect::MakeSize(SkSize::Make(surfaceSize_));
+    if (RSSystemProperties::GetRecordingEnabled()) {
+        threadImage = threadImage->makeRasterImage();
+    }
     filter_->DrawImageRect(*cacheCanvas, threadImage, src, dst);
     filter_->PostProcess(*cacheCanvas);
     CHECK_CACHE_PROCESS_STATUS;
