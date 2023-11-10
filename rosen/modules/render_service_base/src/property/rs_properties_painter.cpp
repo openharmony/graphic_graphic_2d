@@ -1184,10 +1184,9 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         return;
     }
     if (RSSystemProperties::GetImageGpuResourceCacheEnable(imageSnapshot->GetWidth(), imageSnapshot->GetHeight())) {
+        // drawing should support
         ROSEN_LOGD("DrawFilter cache image resource(width:%{public}d, height:%{public}d).",
             imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
-        // drawing should support
-        //as_IB(imageSnapshot->ExportSkImage().get())->hintCacheGpuResource();
     }
 
     filter->PreProcess(imageSnapshot);

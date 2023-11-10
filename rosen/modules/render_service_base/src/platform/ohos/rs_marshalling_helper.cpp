@@ -599,7 +599,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::Bitmap& val)
     return true;
 }
 
-
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::Image>& val)
 {
     if (!val) {

@@ -157,10 +157,10 @@ bool RSFilterCacheManager::RSFilterCacheTask::Render()
     auto src = SkRect::MakeSize(SkSize::Make(surfaceSize_));
     auto dst = SkRect::MakeSize(SkSize::Make(surfaceSize_));
 #else
-    Drawing::BitmapFormat bitmapFormat =
-        { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    Drawing::BitmapFormat bitmapFormat = { Drawing::ColorType::COLORTYPE_RGBA_8888,
+        Drawing::AlphaType::ALPHATYPE_PREMUL };
     auto threadImage = std::make_shared<Drawing::Image>();
-    if (!threadImage->BuildFromTexture(*cacheCanvas->GetGPUContext(), cacheBackendTexture_.GetTextureInfo(), 
+    if (!threadImage->BuildFromTexture(*cacheCanvas->GetGPUContext(), cacheBackendTexture_.GetTextureInfo(),
         Drawing::TextureOrigin::BOTTOM_LEFT, bitmapFormat, nullptr)) {
             ROSEN_LOGD("RSFilterCacheManager::Render BuildFromTexture failed");
         }
@@ -247,7 +247,8 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     const bool needSnapshotOutset, const std::optional<SkIRect>& srcRect, const std::optional<SkIRect>& dstRect)
 #else
 void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
-    const bool needSnapshotOutset, const std::optional<Drawing::RectI>& srcRect, const std::optional<Drawing::RectI>& dstRect)
+    const bool needSnapshotOutset, const std::optional<Drawing::RectI>& srcRect,
+    const std::optional<Drawing::RectI>& dstRect)
 #endif
 {
     RS_OPTIONAL_TRACE_FUNC();
@@ -282,8 +283,8 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
                 kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
 #else
             auto filteredSnapshot = std::make_shared<Drawing::Image>();
-            Drawing::BitmapFormat bitmapFormat =
-                { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL};
+            Drawing::BitmapFormat bitmapFormat = { Drawing::ColorType::COLORTYPE_RGBA_8888,
+                Drawing::AlphaType::ALPHATYPE_PREMUL };
             filteredSnapshot->BuildFromTexture(*canvas.GetGPUContext(),
                 task_->GetResultTexture().GetTextureInfo(),
                 Drawing::TextureOrigin::BOTTOM_LEFT, bitmapFormat, nullptr);

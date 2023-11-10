@@ -94,6 +94,7 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
             screenTransformMatrix_.postConcat(invertMatrix);
         }
         canvas_->concat(screenTransformMatrix_);
+    }
 #else
     if (mirrorNode && isPhone_) {
         if (node.getFirstTimeScreenRotation() == ScreenRotation::ROTATION_90) {

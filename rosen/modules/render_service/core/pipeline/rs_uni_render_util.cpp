@@ -467,8 +467,10 @@ int RSUniRenderUtil::GetRotationDegreeFromMatrix(Drawing::Matrix matrix)
 
 bool RSUniRenderUtil::Is3DRotation(Drawing::Matrix matrix)
 {
-    return !ROSEN_EQ(matrix.Get(Drawing::Matrix::Index::SKEW_X), 0.f) || matrix.Get(Drawing::Matrix::Index::SCALE_X) < 0 ||
-        !ROSEN_EQ(matrix.Get(Drawing::Matrix::Index::SKEW_Y), 0.f) || matrix.Get(Drawing::Matrix::Index::SCALE_Y) < 0;
+    return !ROSEN_EQ(matrix.Get(Drawing::Matrix::Index::SKEW_X), 0.f)
+        || matrix.Get(Drawing::Matrix::Index::SCALE_X) < 0
+        || !ROSEN_EQ(matrix.Get(Drawing::Matrix::Index::SKEW_Y), 0.f)
+        || matrix.Get(Drawing::Matrix::Index::SCALE_Y) < 0;
 }
 
 #endif

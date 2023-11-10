@@ -158,7 +158,8 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
             return;
         }
         auto newImage = std::make_shared<Drawing::Image>();
-        Drawing::BitmapFormat info = Drawing::BitmapFormat { Drawing::COLORTYPE::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
+        Drawing::BitmapFormat info = Drawing::BitmapFormat { Drawing::COLORTYPE::COLORTYPE_RGBA_8888,
+            Drawing::AlphaType::ALPHATYPE_PREMUL };
         bool ret = newImage->BuildFromTexture(*canvas.GetGPUContext(), sharedBackendTexture.GetTextureInfo(),
             origin, info, nullptr);
         if (!ret) {

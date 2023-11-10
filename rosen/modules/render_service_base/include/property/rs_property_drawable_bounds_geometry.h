@@ -455,7 +455,8 @@ public:
         paint_.setColor(color);
     }
 #else
-    explicit RSBackgroundColorDrawable(bool hasRoundedCorners, Drawing::Color color) : RSBackgroundDrawable(hasRoundedCorners)
+    explicit RSBackgroundColorDrawable(bool hasRoundedCorners, Drawing::Color color)
+        : RSBackgroundDrawable(hasRoundedCorners)
     {
         brush_.SetColor(color);
     }
