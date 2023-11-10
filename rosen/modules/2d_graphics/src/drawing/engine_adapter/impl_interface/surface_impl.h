@@ -51,6 +51,7 @@ public:
     virtual std::shared_ptr<Image> GetImageSnapshot(const RectI& bounds) const = 0;
     virtual std::shared_ptr<Surface> MakeSurface(int width, int height) const = 0;
     virtual void FlushAndSubmit(bool syncCpu) = 0;
+    virtual void Flush() = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

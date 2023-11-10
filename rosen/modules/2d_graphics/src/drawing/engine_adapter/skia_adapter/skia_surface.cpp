@@ -250,6 +250,17 @@ void SkiaSurface::FlushAndSubmit(bool syncCpu)
 
     skSurface_->flushAndSubmit(syncCpu);
 }
+
+void SkiaSurface::Flush()
+{
+    if (skSurface_ == nullptr) {
+        LOGE("skSurface is nullptr");
+        return;
+    }
+
+    skSurface_->flush();
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

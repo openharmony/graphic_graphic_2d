@@ -21,6 +21,12 @@
 
 #include "image/bitmap.h"
 
+#ifdef ROSEN_OHOS
+#include "src/core/SkReadBuffer.h"
+#include "src/core/SkWriteBuffer.h"
+#include "src/core/SkAutoMalloc.h"
+#endif
+#include "utils/data.h"
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -132,6 +138,91 @@ bool SkiaBitmap::IsValid() const
 {
     return skiaBitmap_.drawsNothing();
 }
+
+std::shared_ptr<Data> SkiaBitmap::Serialize() const
+{
+#ifdef ROSEN_OHOS
+    SkBinaryWriteBuffer writer;
+    size_t rb = skiaBitmap_.rowBytes();
+    int width = skiaBitmap_.width();
+    int height = skiaBitmap_.height();
+    const void *addr = skiaBitmap_.pixmap().addr();
+    size_t pixmapSize = rb * static_cast<size_t>(height);
+
+    writer.writeUInt(pixmapSize);
+
+    writer.writeByteArray(addr, pixmapSize);
+
+    writer.writeUInt(rb);
+    writer.writeInt(width);
+    writer.writeInt(height);
+
+    writer.writeUInt(skiaBitmap_.colorType());
+    writer.writeUInt(skiaBitmap_.alphaType());
+
+    if (skiaBitmap_.colorSpace() == nullptr) {
+        writer.writeUInt(0);
+    } else {
+        auto data = skiaBitmap_.colorSpace()->serialize();
+        writer.writeUInt(data->size());
+        writer.writeByteArray(data->data(), data->size());
+    }
+    size_t length = writer.bytesWritten();
+    std::shared_ptr<Data> data = std::make_shared<Data>();
+    data->BuildUninitialized(length);
+    writer.writeToMemory(data->WritableData());
+    return data;
+#else
+    return nullptr;
+#endif
+}
+
+bool SkiaBitmap::Deserialize(std::shared_ptr<Data> data)
+{
+#ifdef ROSEN_OHOS
+    if (data == nullptr) {
+        return false;
+    }
+    SkReadBuffer reader(data->GetData(), data->GetSize());
+
+    size_t pixmapSize = reader.readUInt();
+    if (pixmapSize == 0) {
+        return false;
+    }
+    SkAutoMalloc pixBuffer(pixmapSize);
+    if (!reader.readByteArray(pixBuffer.get(), pixmapSize)) {
+        return false;
+    }
+
+    size_t rb = reader.readUInt();
+    int width = reader.readInt();
+    int height = reader.readInt();
+
+    SkColorType colorType = static_cast<SkColorType>(reader.readUInt());
+    SkAlphaType alphaType = static_cast<SkAlphaType>(reader.readUInt());
+    sk_sp<SkColorSpace> colorSpace;
+
+    size_t size = reader.readUInt();
+    if (size == 0) {
+        colorSpace = nullptr;
+    } else {
+        SkAutoMalloc colorBuffer(size);
+        if (!reader.readByteArray(colorBuffer.get(), size)) {
+            return false;
+        }
+        colorSpace = SkColorSpace::Deserialize(colorBuffer.get(), size);
+    }
+
+    SkImageInfo imageInfo = SkImageInfo::Make(width, height, colorType, alphaType, colorSpace);
+    skiaBitmap_.setInfo(imageInfo, rb);
+    skiaBitmap_.allocPixels();
+    skiaBitmap_.setPixels(const_cast<void*>(pixBuffer.get()));
+    return true;
+#else
+    return false;
+#endif
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

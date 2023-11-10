@@ -434,6 +434,13 @@ int RSUniRenderUtil::GetRotationDegreeFromMatrix(SkMatrix matrix)
     matrix.get9(value);
     return static_cast<int>(-round(atan2(value[SkMatrix::kMSkewX], value[SkMatrix::kMScaleX]) * (180 / PI)));
 }
+
+bool RSUniRenderUtil::Is3DRotation(SkMatrix matrix)
+{
+    return !ROSEN_EQ(matrix.getSkewX(), 0.f) || matrix.getScaleX() < 0 ||
+        !ROSEN_EQ(matrix.getSkewY(), 0.f) || matrix.getScaleY() < 0;
+}
+
 #else
 int RSUniRenderUtil::GetRotationFromMatrix(Drawing::Matrix matrix)
 {
@@ -457,13 +464,14 @@ int RSUniRenderUtil::GetRotationDegreeFromMatrix(Drawing::Matrix matrix)
     return static_cast<int>(-round(atan2(value[Drawing::Matrix::Index::SKEW_X],
         value[Drawing::Matrix::Index::SCALE_X]) * (180 / PI)));
 }
-#endif
 
-bool RSUniRenderUtil::Is3DRotation(SkMatrix matrix)
+bool RSUniRenderUtil::Is3DRotation(Drawing::Matrix matrix)
 {
-    return !ROSEN_EQ(matrix.getSkewX(), 0.f) || matrix.getScaleX() < 0 ||
-        !ROSEN_EQ(matrix.getSkewY(), 0.f) || matrix.getScaleY() < 0;
+    return !ROSEN_EQ(matrix.Get(Drawing::Matrix::Index::SKEW_X), 0.f) || matrix.Get(Drawing::Matrix::Index::SCALE_X) < 0 ||
+        !ROSEN_EQ(matrix.Get(Drawing::Matrix::Index::SKEW_Y), 0.f) || matrix.Get(Drawing::Matrix::Index::SCALE_Y) < 0;
 }
+
+#endif
 
 void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
     std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,

@@ -927,13 +927,13 @@ RSPaintFilterCanvas::CachedEffectData::CachedEffectData(sk_sp<SkImage>&& image, 
 void RSPaintFilterCanvas::SetCanvasStatus(const CanvasStatus& status)
 {
     SetAlpha(status.alpha_);
-    setMatrix(status.matrix_);
+    SetMatrix(status.matrix_);
     SetEffectData(status.effectData_);
 }
 
 RSPaintFilterCanvas::CanvasStatus RSPaintFilterCanvas::GetCanvasStatus() const
 {
-    return { GetAlpha(), getTotalMatrix(), GetEffectData() };
+    return { GetAlpha(), GetTotalMatrix(), GetEffectData() };
 }
 
 RSPaintFilterCanvas::CachedEffectData::CachedEffectData(std::shared_ptr<Drawing::Image>&& image,

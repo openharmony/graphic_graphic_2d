@@ -50,6 +50,7 @@ public:
     std::shared_ptr<Surface> MakeSurface(int width, int height) const override;
     void SetSkSurface(const sk_sp<SkSurface>& skSurface);
     void FlushAndSubmit(bool syncCpu) override;
+    void Flush() override;
 
 private:
     sk_sp<SkSurface> skSurface_ = nullptr;

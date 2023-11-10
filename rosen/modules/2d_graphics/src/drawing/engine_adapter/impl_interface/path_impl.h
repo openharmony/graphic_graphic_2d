@@ -49,6 +49,7 @@ public:
     virtual void LineTo(scalar x, scalar y) = 0;
     virtual void ArcTo(scalar pt1X, scalar pt1Y, scalar pt2X, scalar pt2Y, scalar startAngle, scalar sweepAngle) = 0;
     virtual void ArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction, scalar endX, scalar endY) = 0;
+    virtual void ArcTo(scalar x1, scalar y1, scalar x2, scalar y2, scalar radius) = 0;
     virtual void CubicTo(
         scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y, scalar endPtX, scalar endPtY) = 0;
     virtual void QuadTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endPtY) = 0;

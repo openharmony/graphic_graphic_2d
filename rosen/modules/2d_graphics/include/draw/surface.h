@@ -119,6 +119,11 @@ public:
      */
     void FlushAndSubmit(bool syncCpu = false);
 
+    /*
+     * @brief   Call to ensure all reads/writes of surface have been issue to the underlying 3D API.
+     */
+    void Flush();
+
     template<typename T>
     const std::shared_ptr<T> GetImpl() const
     {

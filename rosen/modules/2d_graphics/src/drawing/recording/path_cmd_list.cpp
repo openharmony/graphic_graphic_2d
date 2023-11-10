@@ -23,6 +23,7 @@ namespace Rosen {
 namespace Drawing {
 static constexpr int32_t FUNCTION_OVERLOADING_1 = 1;
 static constexpr int32_t FUNCTION_OVERLOADING_2 = 2;
+static constexpr int32_t FUNCTION_OVERLOADING_3 = 3;
 
 std::shared_ptr<PathCmdList> PathCmdList::CreateFromData(const CmdListData& data, bool isCopy)
 {
@@ -164,6 +165,9 @@ ArcToOpItem::ArcToOpItem(const scalar rx, const scalar ry, const scalar angle, c
     const scalar endX, const scalar endY) : PathOpItem(ARCTO_OPITEM), pt1_(rx, ry), pt2_(endX, endY),
     startAngle_(angle), sweepAngle_(0), direction_(direction), methodIndex_(FUNCTION_OVERLOADING_2) {}
 
+ArcToOpItem::ArcToOpItem(const scalar x1, const scalar y1, const scalar x2, const scalar y2, const scalar radius)
+    : PathOpItem(ARCTO_OPITEM), pt1_(x1, y1), pt2_(x2, y2), startAngle_(radius), methodIndex_(FUNCTION_OVERLOADING_3) {}
+
 void ArcToOpItem::Playback(PathPlayer& player, const void* opItem)
 {
     if (opItem != nullptr) {
@@ -178,6 +182,8 @@ void ArcToOpItem::Playback(Path& path) const
         path.ArcTo(pt1_, pt2_, startAngle_, sweepAngle_);
     } else if (methodIndex_ == FUNCTION_OVERLOADING_2) {
         path.ArcTo(pt1_.GetX(), pt1_.GetY(), startAngle_, direction_, pt2_.GetX(), pt2_.GetY());
+    } else if (methodIndex_ == FUNCTION_OVERLOADING_3) {
+        path.ArcTo(pt1_.GetX(), pt1_.GetY(), pt2_.GetX(), pt2_.GetY(), startAngle_);
     }
 }
 

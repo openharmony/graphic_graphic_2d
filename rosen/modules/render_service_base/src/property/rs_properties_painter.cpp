@@ -67,10 +67,10 @@ constexpr float MIN_SPOT_RATIO = 1.0f;
 constexpr float MAX_SPOT_RATIO = 1.95f;
 constexpr float MAX_AMBIENT_RADIUS = 150.0f;
 const bool BLUR_ENABLED = RSSystemProperties::GetBlurEnabled();
-#ifndef USE_ROSEN_DRAWING
 // when the blur radius > SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD, 
 // the snapshot should call outset before blur to shrink by 1px.
 constexpr static float SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD = 40.0f;
+#ifndef USE_ROSEN_DRAWING
 constexpr static float FLOAT_ZERO_THRESHOLD = 0.001f;
 constexpr static uint8_t DIRECTION_NUM = 4;
 #endif
@@ -1121,11 +1121,22 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
 void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas,
     FilterType filterType, const std::optional<Drawing::Rect>& rect)
 {
+    if (!BLUR_ENABLED) {
+        ROSEN_LOGD("RSPropertiesPainter::DrawFilter close blur.");
+        return;
+    }
     auto& RSFilter =
         (filterType == FilterType::BACKGROUND_FILTER) ? properties.GetBackgroundFilter() : properties.GetFilter();
     if (RSFilter == nullptr) {
         return;
     }
+
+    bool needSnapshotOutset = true;
+    if (RSFilter->GetFilterType() == RSFilter::MATERIAL) {
+        auto material = std::static_pointer_cast<RSMaterialFilter>(RSFilter);
+        needSnapshotOutset = (material->GetRadius() >= SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD);
+    }
+
     RS_TRACE_NAME("DrawFilter " + RSFilter->GetDescription());
     g_blurCnt++;
     Drawing::AutoCanvasRestore acr(canvas, true);
@@ -1155,14 +1166,30 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         canvas.SetAlpha(1.0);
     }
 
+#if defined(RS_ENABLE_GL)
+    // Optional use cacheManager to draw filter
+    if (auto& cacheManager = properties.GetFilterCacheManager(filterType == FilterType::FOREGROUND_FILTER);
+        cacheManager != nullptr && !canvas.GetDisableFilterCache()) {
+        cacheManager->DrawFilter(canvas, filter, needSnapshotOutset);
+        return;
+    }
+#endif
+
     auto clipIBounds = canvas.GetDeviceClipBounds();
-    auto clipIPadding = Drawing::RectI(clipIBounds.GetLeft() + 1, clipIBounds.GetTop() + 1,
-        clipIBounds.GetRight() - 1, clipIBounds.GetBottom() - 1);
+    auto clipIPadding = needSnapshotOutset ? Drawing::RectI(clipIBounds.GetLeft() + 1, clipIBounds.GetTop() + 1,
+        clipIBounds.GetRight() - 1, clipIBounds.GetBottom() - 1) : clipIBounds;
     auto imageSnapshot = surface->GetImageSnapshot(clipIPadding);
     if (imageSnapshot == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawFilter image null");
         return;
     }
+    if (RSSystemProperties::GetImageGpuResourceCacheEnable(imageSnapshot->GetWidth(), imageSnapshot->GetHeight())) {
+        ROSEN_LOGD("DrawFilter cache image resource(width:%{public}d, height:%{public}d).",
+            imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
+        // drawing should support
+        //as_IB(imageSnapshot->ExportSkImage().get())->hintCacheGpuResource();
+    }
+
     filter->PreProcess(imageSnapshot);
     canvas.ResetMatrix();
     auto visibleRect = canvas.GetVisibleRect();
@@ -1793,7 +1820,7 @@ void RSPropertiesPainter::DrawForegroundColor(const RSProperties& properties, Dr
     } else if (properties.GetClipToBounds()) {
         canvas.ClipRect(Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, true);
     } else if (properties.GetClipToRRect()) {
-        canvas.ClipRoundRect(RRect(RRect2DrawingRRect(properties.GetClipRRect()), Drawing::ClipOp::INTERSECT, true);
+        canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetClipRRect()), Drawing::ClipOp::INTERSECT, true);
     }
 
     Drawing::Brush brush;

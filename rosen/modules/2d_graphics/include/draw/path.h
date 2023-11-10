@@ -91,6 +91,7 @@ public:
     virtual void ArcTo(scalar pt1X, scalar pt1Y, scalar pt2X, scalar pt2Y, scalar startAngle, scalar sweepAngle);
     virtual void ArcTo(const Point& pt1, const Point& pt2, scalar startAngle, scalar sweepAngle);
     virtual void ArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction, scalar endX, scalar endY);
+    virtual void ArcTo(scalar x1, scalar y1, scalar x2, scalar y2, scalar radius);
     virtual void CubicTo(
         scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y, scalar endPtX, scalar endPtY);
     virtual void CubicTo(const Point& ctrlPt1, const Point& ctrlPt2, const Point& endPt);

@@ -86,7 +86,7 @@ public:
     // regenerate the cache or reuse the existing cache.
     // Note: If srcRect or dstRect is empty, we'll use the DeviceClipRect as the corresponding rect.
     void DrawFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
-        const std::optional<Drawing::RectI>& srcRect = std::nullopt,
+        const bool needSnapshotOutset = true, const std::optional<Drawing::RectI>& srcRect = std::nullopt,
         const std::optional<Drawing::RectI>& dstRect = std::nullopt);
 
     // This function is similar to DrawFilter(), but instead of drawing anything on the canvas, it simply returns the
@@ -157,7 +157,7 @@ private:
         {
             filter_ = filter;
             cachedSnapshot_ = cachedSnapshot;
-            cacheBackendTexture_ = cachedSnapshot_->cachedImage_->getBackendTexture(false);
+            cacheBackendTexture_ = cachedSnapshot_->cachedImage_->GetBackendTexture(false, nullptr);
             surfaceSize_ = size;
         }
 
@@ -175,12 +175,16 @@ private:
 
         void ResetGrContext()
         {
+#ifndef USE_ROSEN_DRAWING
             std::unique_lock<std::mutex> lock(parallelRenderMutex_);
             if (cacheSurface_ != nullptr) {
                 GrDirectContext* grContext_ = cacheSurface_->recordingContext()->asDirectContext();
                 cacheSurface_ = nullptr;
                 grContext_->freeGpuResources();
             }
+#else
+// Drawing is not supported
+#endif
         }
 
         bool WaitTaskFinished();
@@ -228,7 +232,7 @@ private:
         const std::optional<SkIRect>& srcRect, const std::optional<SkIRect>& dstRect);
 #else
     void TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
-        const Drawing::RectI& srcRect, const bool needSnapshotOutset);
+        const Drawing::RectI& srcRect, const bool needSnapshotOutset = true);
     void GenerateFilteredSnapshot(
         RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect);
     void DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect) const;
