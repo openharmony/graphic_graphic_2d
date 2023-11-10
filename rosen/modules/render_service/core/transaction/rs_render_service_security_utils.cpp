@@ -20,11 +20,13 @@ namespace Rosen {
 
 uint32_t RSRenderServiceSecurityUtils::GetCodeAccessCounter(uint32_t code) const
 {
+    std::lock_guard<std::mutex> lock(accessCounterMutex_);
     return accessCounter_.count(code) == 0 ? 0 : accessCounter_.at(code);
 }
 
 void RSRenderServiceSecurityUtils::IncreaseAccessCounter(uint32_t code)
 {
+    std::lock_guard<std::mutex> lock(accessCounterMutex_);
     accessCounter_[code] = accessCounter_.count(code) == 0 ? 1 : accessCounter_[code] + 1;
 }
 
