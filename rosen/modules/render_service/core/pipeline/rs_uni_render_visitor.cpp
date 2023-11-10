@@ -2301,19 +2301,24 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
 #endif
         if (saveLayerCnt > 0) {
-#ifndef USE_ROSEN_DRAWING
 #ifdef RS_ENABLE_GL
 #ifdef NEW_RENDER_CONTEXT
             RSTagTracker tagTracker(
                 renderEngine_->GetDrawingContext()->GetDrawingContext(),
                 RSTagTracker::TAGTYPE::TAG_RESTORELAYER_DRAW_NODE);
 #else
+#ifndef USE_ROSEN_DRAWING
             RSTagTracker tagTracker(
                 renderEngine_->GetRenderContext()->GetGrContext(), RSTagTracker::TAGTYPE::TAG_RESTORELAYER_DRAW_NODE);
-#endif
-#endif
             RS_TRACE_NAME("RSUniRender:RestoreLayer");
             canvas_->restoreToCount(saveLayerCnt);
+#else
+            RSTagTracker tagTracker(renderEngine_->GetRenderContext()->GetDrGPUContext(),
+                RSTagTracker::TAGTYPE::TAG_RESTORELAYER_DRAW_NODE);
+            RS_TRACE_NAME("RSUniRender:RestoreLayer");
+            canvas_->RestoreToCount(saveLayerCnt);
+#endif
+#endif
 #endif
         }
         if (UNLIKELY(!unpairedTransitionNodes_.empty())) {
