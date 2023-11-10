@@ -205,6 +205,12 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     } else {
         ProcessChildren(node);
     }
+    for (auto& [_, funcs] : foregroundSurfaces_) {
+        for (auto& func : funcs) {
+            func();
+        }
+    }
+    foregroundSurfaces_.clear();
     processor_->PostProcess();
 }
 
@@ -270,9 +276,24 @@ void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         node.ParallelVisitLock();
     }
     ProcessChildren(node);
-    node.SetGlobalZOrder(globalZOrder_);
-    globalZOrder_ = globalZOrder_ + 1;
-    processor_->ProcessSurface(node);
+    auto func = [nodePtr = node.ReinterpretCastTo<RSSurfaceRenderNode>(), this]() {
+        nodePtr->SetGlobalZOrder(globalZOrder_);
+        globalZOrder_ = globalZOrder_ + 1;
+        processor_->ProcessSurface(*nodePtr);
+    };
+    if (node.GetIsForeground()) {
+        auto parent = node.GetParent().lock();
+        foregroundSurfaces_[parent ? parent->GetId() : 0].push_back(func);
+    } else {
+        func();
+    }
+    auto it = foregroundSurfaces_.find(node.GetId());
+    if (it != foregroundSurfaces_.end()) {
+        for (auto f : foregroundSurfaces_[node.GetId()]) {
+            f();
+        }
+        foregroundSurfaces_.erase(it);
+    }
     RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(node);
     if (mParallelEnable) {
         node.ParallelVisitUnlock();

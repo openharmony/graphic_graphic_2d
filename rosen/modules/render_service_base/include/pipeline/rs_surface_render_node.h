@@ -819,6 +819,16 @@ public:
     {
         hasSkipLayer_ = hasSkipLayer;
     }
+    
+    void SetForeground(bool isForeground)
+    {
+        isForeground_ = isForeground;
+    }
+
+    bool GetIsForeground() const
+    {
+        return isForeground_;
+    }
 private:
     void OnResetParent() override;
     void ClearChildrenCache();
@@ -1011,6 +1021,7 @@ private:
     uint32_t submittedSubThreadIndex_ = INT_MAX;
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
     std::atomic<bool> isNeedSubmitSubThread_ = true;
+    bool isForeground_ = false;
 
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;

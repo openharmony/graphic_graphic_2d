@@ -80,6 +80,7 @@ private:
     std::shared_ptr<RSProcessor> processor_ = nullptr;
     std::shared_ptr<RSBaseRenderEngine> processorRenderEngine_ = nullptr;
     bool doAnimate_ = false;
+    std::unordered_map<NodeId, std::vector<std::function<void()>>> foregroundSurfaces_ = {};
 };
 } // namespace Rosen
 } // namespace OHOS

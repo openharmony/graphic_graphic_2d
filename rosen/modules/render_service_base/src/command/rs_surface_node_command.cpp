@@ -203,5 +203,12 @@ void SurfaceNodeCommandHelper::SetBootAnimation(RSContext& context, NodeId nodeI
         node->SetBootAnimation(isBootAnimation);
     }
 }
+
+void SurfaceNodeCommandHelper::SetForeground(RSContext& context, NodeId nodeId, bool isForeground)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetForeground(isForeground);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
