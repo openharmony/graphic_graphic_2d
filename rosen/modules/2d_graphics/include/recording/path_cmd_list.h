@@ -73,7 +73,7 @@ private:
 class PathOpItem : public OpItem {
 public:
     PathOpItem(uint32_t type) : OpItem(type) {}
-    ~PathOpItem() = default;
+    ~PathOpItem() override = default;
 
     enum Type : uint32_t {
         OPITEM_HEAD,
@@ -420,7 +420,7 @@ private:
 class ResetOpItem : public PathOpItem {
 public:
     ResetOpItem();
-    ~ResetOpItem();
+    ~ResetOpItem() override = default;
     static void Playback(PathPlayer& player, const void* opItem);
     void Playback(Path& path) const;
 };
@@ -428,7 +428,7 @@ public:
 class CloseOpItem : public PathOpItem {
 public:
     CloseOpItem();
-    ~CloseOpItem();
+    ~CloseOpItem() override = default;
     static void Playback(PathPlayer& player, const void* opItem);
     void Playback(Path& path) const;
 };

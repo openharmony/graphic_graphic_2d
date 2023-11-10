@@ -356,7 +356,7 @@ public:
     static bool GetUseSharedMem();
 private:
     static bool WriteToParcel(Parcel& parcel, const void* data, size_t size);
-    static const void* ReadFromParcel(Parcel& parcel, size_t size);
+    static const void* ReadFromParcel(Parcel& parcel, size_t size, bool& isMalloc);
     static bool SkipFromParcel(Parcel& parcel, size_t size);
 #ifndef USE_ROSEN_DRAWING
     static sk_sp<SkData> SerializeTypeface(SkTypeface* tf, void* ctx);
