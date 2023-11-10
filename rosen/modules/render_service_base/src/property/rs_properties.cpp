@@ -413,12 +413,25 @@ void RSProperties::UpdateSandBoxMatrix(const std::optional<SkMatrix>& rootMatrix
 void RSProperties::UpdateSandBoxMatrix(const std::optional<Drawing::Matrix>& rootMatrix)
 #endif
 {
-    if (!sandbox_ || !rootMatrix || !sandbox_->position_) {
+    if (!sandbox_) {
+        return;
+    }
+    if (!rootMatrix || !sandbox_->position_) {
+        sandbox_->matrix_ = std::nullopt;
+        return;
+    }
+    auto rootMat = rootMatrix.value();
+#ifndef USE_ROSEN_DRAWING
+    bool hasScale = rootMat.getScaleX() != 1.0f || rootMat.getScaleY() != 1.0f;
+#else
+    bool hasScale = rootMat.Get(Drawing::Matrix::SCALE_X) != 1.0f || rootMat.Get(Drawing::Matrix::SCALE_Y) != 1.0f;
+#endif
+    if (hasScale) {
+        sandbox_->matrix_ = std::nullopt;
         return;
     }
 #ifndef USE_ROSEN_DRAWING
-    auto matrix = rootMatrix.value();
-    sandbox_->matrix_ = matrix.preTranslate(sandbox_->position_->x_, sandbox_->position_->y_);
+    sandbox_->matrix_ = rootMat.preTranslate(sandbox_->position_->x_, sandbox_->position_->y_);
 #else
     auto matrix = Drawing::Matrix();
     for (int i = 0; i < Drawing::Matrix::MATRIX_SIZE; i++) {
