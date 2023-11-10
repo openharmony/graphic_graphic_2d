@@ -430,7 +430,8 @@ public:
         const Occlusion::Region& region,
         VisibleData& visibleVec,
         std::map<uint32_t, bool>& pidVisMap,
-        bool needSetVisibleRegion = true);
+        bool needSetVisibleRegion = true,
+        RS_REGION_VISIBLE_LEVEL visibleLevel = UNKNOW_VISIBLE_LEVEL);
 
     const Occlusion::Region& GetVisibleDirtyRegion() const
     {

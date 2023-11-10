@@ -800,17 +800,18 @@ void RSSurfaceRenderNode::AccumulateOcclusionRegion(Occlusion::Region& accumulat
 void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& region,
                                                     VisibleData& visibleVec,
                                                     std::map<uint32_t, bool>& pidVisMap,
-                                                    bool needSetVisibleRegion)
+                                                    bool needSetVisibleRegion,
+                                                    RS_REGION_VISIBLE_LEVEL visibleLevel)
 {
     if (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE || IsAbilityComponent()) {
         SetOcclusionVisible(true);
-        visibleVec.emplace_back(GetId());
+        visibleVec.emplace_back(std::make_pair(GetId(), ALL_VISIBLE));
         return;
     }
 
     bool vis = region.GetSize() > 0;
     if (vis) {
-        visibleVec.emplace_back(GetId());
+        visibleVec.emplace_back(std::make_pair(GetId(), visibleLevel));
     }
 
     // collect visible changed pid
@@ -831,7 +832,7 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
 
     for (auto& child : GetChildren()) {
         if (auto surfaceChild = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child)) {
-            surfaceChild->SetVisibleRegionRecursive(region, visibleVec, pidVisMap, needSetVisibleRegion);
+            surfaceChild->SetVisibleRegionRecursive(region, visibleVec, pidVisMap, needSetVisibleRegion, visibleLevel);
         }
     }
 }

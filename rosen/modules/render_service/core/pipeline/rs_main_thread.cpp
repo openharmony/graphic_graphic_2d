@@ -1465,6 +1465,17 @@ bool RSMainThread::CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces,
     return needProcess;
 }
 
+RS_REGION_VISIBLE_LEVEL RSMainThread::GetRegionVisibleLevel(const Occlusion::Region& curRegion,
+    const Occlusion::Region& visibleRegion)
+{
+    if (visibleRegion.GetSize() == 0) {
+        return RS_REGION_VISIBLE_LEVEL::INVISIBLE;
+    } else if (visibleRegion.Area() == curRegion.Area()) {
+        return RS_REGION_VISIBLE_LEVEL::ALL_VISIBLE;
+    }
+    return RS_REGION_VISIBLE_LEVEL::SEMI_VISIBLE;
+}
+
 void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces)
 {
     Occlusion::Region accumulatedRegion;
@@ -1483,7 +1494,10 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
         if (CheckSurfaceNeedProcess(occlusionSurfaces, curSurface)) {
             Occlusion::Region curRegion { occlusionRect };
             Occlusion::Region subResult = curRegion.Sub(accumulatedRegion);
-            curSurface->SetVisibleRegionRecursive(subResult, curVisVec, pidVisMap);
+            RS_REGION_VISIBLE_LEVEL visibleLevel = GetRegionVisibleLevel(curRegion, subResult);
+            RS_LOGD("%{public}s nodeId[%{public}" PRIu64 "] visibleLevel[%{public}d]",
+                __func__, curSurface->GetId(), visibleLevel);
+            curSurface->SetVisibleRegionRecursive(subResult, curVisVec, pidVisMap, true, visibleLevel);
             curSurface->AccumulateOcclusionRegion(accumulatedRegion, curRegion, hasFilterCacheOcclusion, isUniRender_,
                 filterCacheOcclusionEnabled);
         } else {
@@ -1507,7 +1521,8 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
             if (CheckSurfaceNeedProcess(occlusionSurfaces, curSurface)) {
                 Occlusion::Region curRegion { occlusionRect };
                 Occlusion::Region subResult = curRegion.Sub(accumulatedRegion);
-                curSurface->SetVisibleRegionRecursive(subResult, curVisVec, pidVisMap, false);
+                RS_REGION_VISIBLE_LEVEL visibleLevel = GetRegionVisibleLevel(curRegion, subResult);
+                curSurface->SetVisibleRegionRecursive(subResult, curVisVec, pidVisMap, false, visibleLevel);
                 curSurface->AccumulateOcclusionRegion(accumulatedRegion, curRegion, hasFilterCacheOcclusion,
                     isUniRender_, false);
             } else {
@@ -1640,7 +1655,7 @@ void RSMainThread::CallbackToWMS(VisibleData& curVisVec)
     std::sort(curVisVec.begin(), curVisVec.end());
     if (!visibleChanged) {
         for (uint32_t i = 0; i < curVisVec.size(); i++) {
-            if (curVisVec[i] != lastVisVec_[i]) {
+            if ((curVisVec[i].first != lastVisVec_[i].first) || (curVisVec[i].second != lastVisVec_[i].second)) {
                 visibleChanged = true;
                 break;
             }
