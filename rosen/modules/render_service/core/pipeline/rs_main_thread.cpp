@@ -2724,7 +2724,7 @@ void RSMainThread::GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize)
         gpuMemSize = MemoryManager::GetAppGpuMemoryInMB(GetRenderEngine()->GetRenderContext()->GetGrContext());
 #endif
 #else
-        RS_LOGE("Drawing Unsupport GetAppGpuMemoryInMB");
+        gpuMemSize = MemoryManager::GetAppGpuMemoryInMB(GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
 #endif
         cpuMemSize = MemoryTrack::Instance().GetAppMemorySizeInMB();
     });
