@@ -40,6 +40,7 @@ public:
 
     inline void SetX(scalar x);
     inline void SetY(scalar y);
+    inline void Set(scalar x, scalar y);
 
     inline bool IsZero() const;
 
@@ -88,6 +89,12 @@ inline void PointF::SetX(scalar x)
 
 inline void PointF::SetY(scalar y)
 {
+    y_ = y;
+}
+
+inline void PointF::Set(scalar x, scalar y)
+{
+    x_ = x;
     y_ = y;
 }
 

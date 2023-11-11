@@ -37,6 +37,7 @@
 #include "impl_interface/path_impl.h"
 #include "impl_interface/picture_impl.h"
 #include "impl_interface/region_impl.h"
+#include "impl_interface/runtime_effect_impl.h"
 #include "impl_interface/shader_effect_impl.h"
 #include "impl_interface/surface_impl.h"
 #include "impl_interface/text_blob_builder_impl.h"
@@ -63,6 +64,7 @@ public:
     static std::unique_ptr<ImageFilterImpl> CreateImageFilterImpl();
     static std::unique_ptr<PictureImpl> CreatePictureImpl();
     static std::unique_ptr<ShaderEffectImpl> CreateShaderEffectImpl();
+    static std::unique_ptr<RuntimeEffectImpl> CreateRuntimeEffectImpl();
     static std::unique_ptr<SurfaceImpl> CreateSurfaceImpl();
     static std::unique_ptr<PathEffectImpl> CreatePathEffectImpl();
     static std::unique_ptr<ColorSpaceImpl> CreateColorSpaceImpl();
