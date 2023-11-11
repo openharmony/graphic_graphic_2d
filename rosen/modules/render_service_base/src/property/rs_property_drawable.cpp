@@ -168,7 +168,7 @@ static const std::vector<RSPropertyDrawable::DrawableGenerator> g_drawableGenera
     RSDynamicLightUpDrawable::Generate,                                   // DYNAMIC_LIGHT_UP,
     CustomModifierAdapter<RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY>, // ENV_FOREGROUND_COLOR_STRATEGY
     nullptr,                                                              // RESTORE_BOUNDS_BEFORE_FRAME,
-    RSSaveLayerContentDrawable::Generate,                                 // SAVE_LAYER_CONTENT
+    nullptr,                                                              // SAVE_LAYER_CONTENT
 
     // Frame Geometry
     nullptr,                                                 // SAVE_FRAME,
@@ -179,6 +179,8 @@ static const std::vector<RSPropertyDrawable::DrawableGenerator> g_drawableGenera
     CustomModifierAdapter<RSModifierType::FOREGROUND_STYLE>, // FOREGROUND_STYLE
     RSColorFilterDrawable::Generate,                         // COLOR_FILTER,
     nullptr,                                                 // RESTORE_FRAME,
+
+    nullptr,                                                               // RESTORE_CONTENT
 
     // In Bounds clip (again)
     nullptr,                                              // SAVE_BOUNDS_AFTER_CHILDREN,
@@ -191,6 +193,8 @@ static const std::vector<RSPropertyDrawable::DrawableGenerator> g_drawableGenera
     RSForegroundColorDrawable::Generate,                  // FOREGROUND_COLOR,
     RSParticleDrawable::Generate,                         // PARTICLE_EFFECT,
     nullptr,                                              // RESTORE_BOUNDS,
+
+    nullptr,                                                                // RESTORE_BACKGROUND
 
     RSPixelStretchDrawable::Generate,                     // PIXEL_STRETCH,
     nullptr, // RESTORE_ALL,
@@ -260,12 +264,7 @@ bool RSPropertyDrawable::UpdateDrawableVec(const RSPropertyDrawableGenerateConte
 
     // Step 2.2: post-generate hooks (PLANNING: refactor this into a separate function)
     if (drawableSlotChanged && dirtySlots.count(RSPropertyDrawableSlot::SAVE_LAYER_CONTENT)) {
-        if (drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_CONTENT] != nullptr) {
-            drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_BACKGROUND] =
-                RSSaveLayerBackgroundDrawable::Generate(context);
-        } else {
-            drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_BACKGROUND] = nullptr;
-        }
+        UpdateSaveLayerSlots(context, drawableVec);
     }
 
     // Temporary fix, change of clipToBounds should trigger UpdateSaveRestore
@@ -428,5 +427,28 @@ void RSPropertyDrawable::OptimizeFrameSaveRestore(
 RSPropertyDrawableGenerateContext::RSPropertyDrawableGenerateContext(RSRenderNode& node)
     : node_(node.shared_from_this()), properties_(node.GetRenderProperties()), hasChildren_(!node.GetChildren().empty())
 {}
+
+void RSPropertyDrawable::UpdateSaveLayerSlots(
+    const RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec)
+{
+    auto contentCount = std::make_shared<int>(-1);
+    drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_CONTENT] =
+        RSSaveLayerContentDrawable::Generate(context, contentCount);
+
+    // dirty slots COLOR_BLEND changed from none to valid value
+    if (drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_CONTENT] != nullptr) {
+        drawableVec[RSPropertyDrawableSlot::RESTORE_CONTENT] =
+            std::make_unique<RSRestoreDrawable>(contentCount);
+        auto backgroundCount = std::make_shared<int>(-1);
+        drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_BACKGROUND] =
+            std::make_unique<RSSaveLayerBackgroundDrawable>(backgroundCount);
+        drawableVec[RSPropertyDrawableSlot::RESTORE_LAYER_BACKGROUND] =
+            std::make_unique<RSRestoreDrawable>(backgroundCount);
+    } else {
+        drawableVec[RSPropertyDrawableSlot::RESTORE_CONTENT] = nullptr;
+        drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_BACKGROUND] = nullptr;
+        drawableVec[RSPropertyDrawableSlot::RESTORE_BACKGROUND] = nullptr;
+    }
+}
 
 } // namespace OHOS::Rosen

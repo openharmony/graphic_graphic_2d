@@ -1279,25 +1279,15 @@ void RSEffectDataGenerateDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas&
 
 // ============================================================================
 // SavelayerBackground
-std::unique_ptr<RSPropertyDrawable> RSSaveLayerBackgroundDrawable::Generate(
-    const RSPropertyDrawableGenerateContext& context)
-{
-    auto& properties = context.properties_;
-    if (properties.GetColorBlendMode() == static_cast<int>(RSColorBlendModeType::NONE)) {
-        return nullptr;
-    }
-    return std::make_unique<RSSaveLayerBackgroundDrawable>();
-}
-
 void RSSaveLayerBackgroundDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
-    canvas.saveLayer(nullptr, nullptr);
+    *content_ = canvas.saveLayer(nullptr, nullptr);
 }
 
 // ============================================================================
 // SavelayerContent
 std::unique_ptr<RSPropertyDrawable> RSSaveLayerContentDrawable::Generate(
-    const RSPropertyDrawableGenerateContext& context)
+    const RSPropertyDrawableGenerateContext& context, std::shared_ptr<int> content)
 {
     auto& properties = context.properties_;
     int blendMode = properties.GetColorBlendMode();
@@ -1314,11 +1304,11 @@ std::unique_ptr<RSPropertyDrawable> RSSaveLayerContentDrawable::Generate(
     }
     SkPaint blendPaint;
     blendPaint.setBlendMode(blendModeList[blendMode]);
-    return std::make_unique<RSSaveLayerContentDrawable>(std::move(blendPaint));
+    return std::make_unique<RSSaveLayerContentDrawable>(content, std::move(blendPaint));
 }
 
 void RSSaveLayerContentDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
-    canvas.saveLayer(nullptr, &blendPaint_);
+    *content_ = canvas.saveLayer(nullptr, &blendPaint_);
 }
 } // namespace OHOS::Rosen
