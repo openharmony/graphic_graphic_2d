@@ -114,6 +114,7 @@ public:
         uint64_t focusNodeId);
 
     ScreenId GetDefaultScreenId();
+    ScreenId GetActiveScreenId();
 
     std::vector<ScreenId> GetAllScreenIds();
 

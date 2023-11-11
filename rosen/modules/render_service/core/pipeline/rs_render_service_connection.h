@@ -75,6 +75,8 @@ private:
 
     ScreenId GetDefaultScreenId() override;
 
+    ScreenId GetActiveScreenId() override;
+
     std::vector<ScreenId> GetAllScreenIds() override;
 
     ScreenId CreateVirtualScreen(

@@ -46,6 +46,9 @@ public:
 
     ScreenId GetDefaultScreenId();
 
+    // for bootAnimation only
+    ScreenId GetActiveScreenId();
+
     std::vector<ScreenId> GetAllScreenIds();
 
     // mirrorId: decide which screen id to mirror, INVALID_SCREEN_ID means do not mirror any screen.
