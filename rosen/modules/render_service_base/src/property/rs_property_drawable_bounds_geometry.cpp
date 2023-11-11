@@ -502,16 +502,13 @@ std::unique_ptr<RSPropertyDrawable> RSShadowBaseDrawable::Generate(const RSPrope
 }
 
 RSShadowBaseDrawable::RSShadowBaseDrawable(const RSProperties& properties)
-{
-    offsetX_ = properties.GetShadowOffsetX();
-    offsetY_ = properties.GetShadowOffsetY();
-    color_ = properties.GetShadowColor();
-}
+    : offsetX_(properties.GetShadowOffsetX()), offsetY_(properties.GetShadowOffsetY()),
+      color_(properties.GetShadowColor())
+{}
 
-RSShadowDrawable::RSShadowDrawable(const RSProperties& properties) : RSShadowBaseDrawable(properties)
-{
-    radius_ = properties.GetShadowRadius();
-}
+RSShadowDrawable::RSShadowDrawable(const RSProperties& properties)
+    : RSShadowBaseDrawable(properties), radius_(properties.GetShadowRadius())
+{}
 
 #ifndef USE_ROSEN_DRAWING
 void RSShadowBaseDrawable::ClipShadowPath(RSRenderNode& node, RSPaintFilterCanvas& canvas, SkPath& skPath)
@@ -598,10 +595,8 @@ void RSShadowDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 }
 
 RSHardwareAccelerationShadowDrawable::RSHardwareAccelerationShadowDrawable(const RSProperties& properties)
-    : RSShadowBaseDrawable(properties)
-{
-    shadowElevation_ = properties.GetShadowElevation();
-}
+    : RSShadowBaseDrawable(properties), shadowElevation_(properties.GetShadowElevation())
+{}
 
 void RSHardwareAccelerationShadowDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
@@ -623,9 +618,10 @@ void RSHardwareAccelerationShadowDrawable::Draw(RSRenderNode& node, RSPaintFilte
         canvas.getTotalMatrix().getTranslateY() + skPath.getBounds().centerY(), DEFAULT_LIGHT_HEIGHT };
     Color ambientColor = Color::FromArgbInt(DEFAULT_AMBIENT_COLOR);
     ambientColor.MultiplyAlpha(canvas.GetAlpha());
-    color_.MultiplyAlpha(canvas.GetAlpha());
+    Color spotColor = color_;
+    spotColor.MultiplyAlpha(canvas.GetAlpha());
     SkShadowUtils::DrawShadow(&canvas, skPath, planeParams, lightPos, DEFAULT_LIGHT_RADIUS, ambientColor.AsArgbInt(),
-        color_.AsArgbInt(), SkShadowFlags::kTransparentOccluder_ShadowFlag);
+        spotColor.AsArgbInt(), SkShadowFlags::kTransparentOccluder_ShadowFlag);
 #else
     Drawing::AutoCanvasRestore acr(canvas, true);
     Drawing::Path path;
@@ -642,9 +638,10 @@ void RSHardwareAccelerationShadowDrawable::Draw(RSRenderNode& node, RSPaintFilte
         canvas.GetTotalMatrix().Get(Drawing::Matrix::SCALE_Y) + centerY, DEFAULT_LIGHT_HEIGHT };
     Color ambientColor = Color::FromArgbInt(DEFAULT_AMBIENT_COLOR);
     ambientColor.MultiplyAlpha(canvas.GetAlpha());
-    color_.MultiplyAlpha(canvas.GetAlpha());
+    Color spotColor = color_;
+    spotColor.MultiplyAlpha(canvas.GetAlpha());
     canvas.DrawShadow(path, planeParams, lightPos, DEFAULT_LIGHT_RADIUS, Drawing::Color(ambientColor.AsArgbInt()),
-        Drawing::Color(color_.AsArgbInt()), Drawing::ShadowFlags::TRANSPARENT_OCCLUDER);
+        Drawing::Color(spotColor.AsArgbInt()), Drawing::ShadowFlags::TRANSPARENT_OCCLUDER);
 #endif
 }
 

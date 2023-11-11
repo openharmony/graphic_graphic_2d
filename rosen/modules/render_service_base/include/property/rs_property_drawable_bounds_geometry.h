@@ -207,7 +207,7 @@ protected:
 #endif
     float offsetX_;
     float offsetY_;
-    Color color_;
+    const Color color_;
 };
 
 class RSShadowDrawable : public RSShadowBaseDrawable {
@@ -217,7 +217,7 @@ public:
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 
 protected:
-    float radius_;
+    const float radius_;
 };
 
 class RSColorfulShadowDrawable : public RSShadowBaseDrawable {
@@ -242,7 +242,7 @@ public:
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 
 protected:
-    float shadowElevation_;
+    const float shadowElevation_;
 };
 
 // ============================================================================
