@@ -45,15 +45,15 @@ RSImageBase::~RSImageBase()
             if (renderServiceImage_) {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
 #if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-                if (isPinImage) {
+                if (isPinImage_) {
                     RSUploadTextureThread::Instance().RemoveTask(std::to_string(uniqueId_));
-                    auto unpinTask = [this]() {
+                    auto unpinTask = [image = image_]() {
                         auto grContext = RSUploadTextureThread::Instance().GetShareGrContext().get();
-                        if (grContext && image_) {
-                            SkImage_unpinAsTexture(image_.get(), grContext);
+                        if (grContext && image) {
+                            SkImage_unpinAsTexture(image.get(), grContext);
                         }
                     };
-                    RSUploadTextureThread::Instance().PostTask(unpinTask);
+                    RSUploadTextureThread::Instance().PostSyncTask(unpinTask);
                 }
 #endif
 #endif                
@@ -416,16 +416,18 @@ void RSImageBase::ConvertPixelMapToSkImage()
             }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
 #if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-            auto image = image_;
-            auto pixelMap = pixelMap_;
-            std::function<void()> uploadTexturetask = [image, pixelMap]() -> void {
-                auto grContext = RSUploadTextureThread::Instance().GetShareGrContext().get();
-                if (grContext && image && pixelMap) {
-                    SkImage_pinAsTexture(image.get(), grContext);
-                }
-            };
-            RSUploadTextureThread::Instance().PostTask(uploadTexturetask, std::to_string(uniqueId_));
-            isPinImage = true;
+            if (renderServiceImage_) {
+                auto image = image_;
+                auto pixelMap = pixelMap_;
+                std::function<void()> uploadTexturetask = [image, pixelMap]() -> void {
+                    auto grContext = RSUploadTextureThread::Instance().GetShareGrContext().get();
+                    if (grContext && image && pixelMap) {
+                        SkImage_pinAsTexture(image.get(), grContext);
+                    }
+                };
+                RSUploadTextureThread::Instance().PostTask(uploadTexturetask, std::to_string(uniqueId_));
+                isPinImage_ = true;
+            }
 #endif
 #endif
         }
