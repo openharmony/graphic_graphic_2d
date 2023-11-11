@@ -1190,6 +1190,7 @@ void RSMainThread::WaitUtilDrivenRenderFinished()
     drivenRenderFinished_ = false;
 #endif
 }
+
 #if defined(RS_ENABLE_PARALLEL_UPLOAD) && defined(RS_ENABLE_GL)
 void RSMainThread::WaitUntilUploadTextureTaskFinished()
 {
