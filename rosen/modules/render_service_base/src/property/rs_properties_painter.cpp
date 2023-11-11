@@ -68,7 +68,6 @@ const bool BLUR_ENABLED = RSSystemProperties::GetBlurEnabled();
 // when the blur radius > SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD,
 // the snapshot should call outset before blur to shrink by 1px.
 constexpr static float SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD = 40.0f;
-#ifndef USE_ROSEN_DRAWING
 constexpr static float FLOAT_ZERO_THRESHOLD = 0.001f;
 constexpr static uint8_t DIRECTION_NUM = 4;
 } // namespace
