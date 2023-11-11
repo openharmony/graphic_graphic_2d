@@ -513,7 +513,7 @@ public:
     ~RSSaveLayerBackgroundDrawable() override = default;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 private:
-    std::share_ptr<int> content_;
+    std::shared_ptr<int> content_;
 };
 
 // SaveLayerContent
@@ -527,7 +527,7 @@ public:
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 
 private:
-    std::share_ptr<int> content_;
+    std::shared_ptr<int> content_;
     SkPaint blendPaint_;
 };
 } // namespace OHOS::Rosen
