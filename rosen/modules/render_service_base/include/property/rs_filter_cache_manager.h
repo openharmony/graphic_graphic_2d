@@ -159,7 +159,7 @@ private:
         {
             filter_ = filter;
             cachedSnapshot_ = cachedSnapshot;
-            cacheBackendTexture_ = cachedSnapshot_->cachedImage_->getBackendTexture(false);
+            cacheBackendTexture_ = cachedSnapshot_->cachedImage_->GetBackendTexture(false, nullptr);
             surfaceSize_ = size;
         }
 
@@ -177,11 +177,15 @@ private:
 
         void ResetGrContext()
         {
+#ifndef USE_ROSEN_DRAWING
             if (cacheSurface_ != nullptr) {
                 GrDirectContext* grContext_ = cacheSurface_->recordingContext()->asDirectContext();
                 cacheSurface_ = nullptr;
                 grContext_->freeGpuResources();
             }
+#else
+// Drawing is not supported
+#endif
         }
 
         bool WaitTaskFinished();
@@ -246,7 +250,7 @@ private:
         const std::optional<SkIRect>& srcRect, const std::optional<SkIRect>& dstRect);
 #else
     void TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
-        const Drawing::RectI& srcRect, const bool needSnapshotOutset);
+        const Drawing::RectI& srcRect, const bool needSnapshotOutset = true);
     void GenerateFilteredSnapshot(
         RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect);
     void DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect) const;

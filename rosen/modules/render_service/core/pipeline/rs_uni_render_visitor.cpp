@@ -4309,10 +4309,10 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
         RenderParam value { node.shared_from_this(), canvasStatus };
 #else
         auto& [child, alpha, matrix] = curGroupedNodes_.top();
-        if (!matrix->Invert(&matrix)) {
+        RenderParam value { node.shared_from_this(), canvas_->GetAlpha() / alpha, matrix };
+        if (!matrix->Invert(std::get<2>(value).value())) {
             RS_LOGE("RSUniRenderVisitor::ProcessSharedTransitionNode invert failed");
         }
-        RenderParam value { node.shared_from_this(), canvas_->GetAlpha() / alpha, matrix };
 #endif
         {
             std::lock_guard<std::mutex> lock(groupedTransitionNodesMutex);

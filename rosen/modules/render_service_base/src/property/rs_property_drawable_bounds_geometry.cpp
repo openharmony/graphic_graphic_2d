@@ -221,7 +221,7 @@ void RSBorderPathDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 #else
     canvas.AttachPen(pen_);
     canvas.AttachBrush(brush_);
-    canvas.DrawPath(borderPath_, paint_);
+    canvas.DrawPath(borderPath_);
     canvas.DetachPen();
     canvas.DetachBrush();
 #endif
@@ -264,9 +264,9 @@ void RSBorderFourLineRoundCornerDrawable::Draw(RSRenderNode& node, RSPaintFilter
     properties.GetBorder()->PaintBottomPath(canvas, paint_, rrect_);
     properties.GetBorder()->PaintLeftPath(canvas, paint_, rrect_);
 #else
-    Drawing::AutoCanvasRestore acr(&canvas, true);
+    Drawing::AutoCanvasRestore acr(canvas, true);
     auto& properties = node.GetMutableRenderProperties();
-    canvas.ClipRRect(innerRrect_, Drawing::ClipOp::DIFFERENCE, true);
+    canvas.ClipRoundRect(innerRrect_, Drawing::ClipOp::DIFFERENCE, true);
     properties.GetBorder()->PaintTopPath(canvas, pen_, rrect_);
     properties.GetBorder()->PaintRightPath(canvas, pen_, rrect_);
     properties.GetBorder()->PaintBottomPath(canvas, pen_, rrect_);
@@ -309,9 +309,9 @@ RSMaskDrawable::RSMaskDrawable(std::shared_ptr<RSMask> mask) : mask_(std::move(m
 #else
     maskBrush_.SetBlendMode(Drawing::BlendMode::SRC_IN);
     Drawing::Filter filter;
-    filter
-        .SetColorFilter(Drawing::ColorFilter::CreateComposeColorFilter(*(Drawing::ColorFilter::CreateLumaColorFilter()),
-            *(Drawing::ColorFilter::CreateSrgbGammaToLinear()))) maskFilterBrush_.setColorFilter(filter);
+    filter.SetColorFilter(Drawing::ColorFilter::CreateComposeColorFilter(
+        *(Drawing::ColorFilter::CreateLumaColorFilter()), *(Drawing::ColorFilter::CreateSrgbGammaToLinear())));
+    maskFilterBrush_.SetFilter(filter);
 #endif
 }
 
@@ -344,13 +344,13 @@ void RSSvgDomMaskDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
     Drawing::SaveLayerOps slrMask(&bounds, &maskFilterBrush_);
     canvas.SaveLayer(slrMask);
     {
-        Drawing::AutoCanvasRestore acr(&canvas, true);
+        Drawing::AutoCanvasRestore acr(canvas, true);
         canvas.Translate(bounds.GetLeft() + mask_->GetSvgX(), bounds.GetTop() + mask_->GetSvgY());
         canvas.Scale(mask_->GetScaleX(), mask_->GetScaleY());
         canvas.DrawSVGDOM(mask_->GetSvgDom());
     }
     canvas.RestoreToCount(tmpLayer);
-    Drawing::SaveLayerOps slrContent(&bounds, &maskPaint_);
+    Drawing::SaveLayerOps slrContent(&bounds, &maskBrush_);
     canvas.SaveLayer(slrContent);
     canvas.ClipRect(bounds, Drawing::ClipOp::INTERSECT, true);
 #endif
@@ -384,13 +384,13 @@ void RSSvgPictureMaskDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& can
     Drawing::SaveLayerOps slrMask(&bounds, &maskFilterBrush_);
     canvas.SaveLayer(slrMask);
     {
-        Drawing::AutoCanvasRestore acr(&canvas, true);
+        Drawing::AutoCanvasRestore acr(canvas, true);
         canvas.Translate(bounds.GetLeft() + mask_->GetSvgX(), bounds.GetTop() + mask_->GetSvgY());
         canvas.Scale(mask_->GetScaleX(), mask_->GetScaleY());
-        canvas.DrawPicture(mask_->GetSvgPicture());
+        canvas.DrawPicture(*mask_->GetSvgPicture());
     }
     canvas.RestoreToCount(tmpLayer);
-    Drawing::SaveLayerOps slrContent(&bounds, &maskPaint_);
+    Drawing::SaveLayerOps slrContent(&bounds, &maskBrush_);
     canvas.SaveLayer(slrContent);
     canvas.ClipRect(bounds, Drawing::ClipOp::INTERSECT, true);
 #endif
@@ -424,16 +424,16 @@ void RSGradientMaskDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canva
     Drawing::SaveLayerOps slrMask(&bounds, &maskFilterBrush_);
     canvas.SaveLayer(slrMask);
     {
-        Drawing::AutoCanvasRestore acr(&canvas, true);
-        canvas.translate(bounds.GetLeft(), bounds.GetTop());
+        Drawing::AutoCanvasRestore acr(canvas, true);
+        canvas.Translate(bounds.GetLeft(), bounds.GetTop());
         Drawing::Rect rect =
             Drawing::Rect(0, 0, bounds.GetRight() - bounds.GetLeft(), bounds.GetBottom() - bounds.GetTop());
-        canvas.AttachBrush(mask_->GetMaskPaint());
+        canvas.AttachBrush(mask_->GetMaskBrush());
         canvas.DrawRect(rect);
         canvas.DetachBrush();
     }
     canvas.RestoreToCount(tmpLayer);
-    Drawing::SaveLayerOps slrContent(&bounds, &maskPaint_);
+    Drawing::SaveLayerOps slrContent(&bounds, &maskBrush_);
     canvas.SaveLayer(slrContent);
     canvas.ClipRect(bounds, Drawing::ClipOp::INTERSECT, true);
 #endif
@@ -466,14 +466,14 @@ void RSPathMaskDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
     Drawing::SaveLayerOps slrMask(&bounds, &maskFilterBrush_);
     canvas.SaveLayer(slrMask);
     {
-        Drawing::AutoCanvasRestore acr(&canvas, true);
-        canvas.translate(bounds.GetLeft(), bounds.GetTop());
-        canvas.AttachBrush(mask_->GetMaskPaint());
+        Drawing::AutoCanvasRestore acr(canvas, true);
+        canvas.Translate(bounds.GetLeft(), bounds.GetTop());
+        canvas.AttachBrush(mask_->GetMaskBrush());
         canvas.DrawPath(*mask_->GetMaskPath());
         canvas.DetachBrush();
     }
     canvas.RestoreToCount(tmpLayer);
-    Drawing::SaveLayerOps slrContent(&bounds, &maskPaint_);
+    Drawing::SaveLayerOps slrContent(&bounds, &maskBrush_);
     canvas.SaveLayer(slrContent);
     canvas.ClipRect(bounds, Drawing::ClipOp::INTERSECT, true);
 #endif
@@ -680,7 +680,7 @@ void RSColorfulShadowDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& can
     canvas.translate(offsetX_, offsetY_);
     canvas.clipPath(skPath);
 #else
-    Drawing::AutoCanvasRestore acr(&canvas, true);
+    Drawing::AutoCanvasRestore acr(canvas, true);
     Drawing::Path path;
     ClipShadowPath(node, canvas, path);
     // save layer, draw image with clipPath, blur and draw back
@@ -712,6 +712,7 @@ RSDynamicLightUpDrawable::RSDynamicLightUpDrawable(float rate, float degree) : r
 
 void RSDynamicLightUpDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
+#ifndef USE_ROSEN_DRAWING
     SkSurface* skSurface = canvas.GetSurface();
     if (skSurface == nullptr) {
         return;
@@ -728,6 +729,9 @@ void RSDynamicLightUpDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& can
     SkAutoCanvasRestore acr(&canvas, true);
     canvas.translate(clipBounds.left(), clipBounds.top());
     canvas.drawPaint(paint);
+#else
+
+#endif
 }
 
 // ============================================================================
@@ -743,6 +747,7 @@ std::unique_ptr<RSPropertyDrawable> RSEffectDataApplyDrawable::Generate(
 
 void RSEffectDataApplyDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
+#ifndef USE_ROSEN_DRAWING
     const auto& effectData = canvas.GetEffectData();
     if (effectData == nullptr || effectData->cachedImage_ == nullptr) {
         return;
@@ -761,6 +766,9 @@ void RSEffectDataApplyDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& ca
     SkPaint defaultPaint;
     canvas.drawImageRect(effectData->cachedImage_, srcRect, dstRect, SkSamplingOptions(), &defaultPaint,
         SkCanvas::kFast_SrcRectConstraint);
+#else
+// Drawing is not supported
+#endif
 }
 
 // ============================================================================
@@ -836,6 +844,7 @@ bool RSFilterDrawable::GetBlurEnabled()
 void RSFilterDrawable::DrawFilter(
     RSRenderNode& node, RSPaintFilterCanvas& canvas, FilterType filterType, const std::shared_ptr<RSFilter>& rsFilter)
 {
+#ifndef USE_ROSEN_DRAWING
     auto& properties = node.GetMutableRenderProperties();
     RS_OPTIONAL_TRACE_NAME("DrawFilter " + rsFilter->GetDescription());
 
@@ -887,6 +896,9 @@ void RSFilterDrawable::DrawFilter(
     }
     filter->DrawImageRect(canvas, imageSnapshot, SkRect::Make(imageSnapshot->bounds()), SkRect::Make(clipIBounds));
     filter->PostProcess(canvas);
+#else
+
+#endif
 }
 
 void RSForegroundFilterDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
@@ -910,6 +922,7 @@ std::unique_ptr<RSPropertyDrawable> RSForegroundFilterDrawable::Generate(
 
 void RSLinearGradientBlurFilterDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
     SkSurface* skSurface = canvas.GetSurface();
     if (skSurface == nullptr) {
@@ -935,6 +948,8 @@ void RSLinearGradientBlurFilterDrawable::Draw(RSRenderNode& node, RSPaintFilterC
     RSPropertiesPainter::DrawVerticalLinearGradientBlur(skSurface, canvas, radius, alphaGradientShader, clipIPadding);
     RSPropertiesPainter::DrawHorizontalLinearGradientBlur(skSurface, canvas, radius, alphaGradientShader, clipIPadding);
     RSPropertiesPainter::DrawVerticalLinearGradientBlur(skSurface, canvas, radius, alphaGradientShader, clipIPadding);
+#endif
+#else
 #endif
 }
 
@@ -975,7 +990,7 @@ std::unique_ptr<RSPropertyDrawable> RSForegroundColorDrawable::Generate(
 #else
     Drawing::Brush brush;
     brush.SetColor(bgColor.AsArgbInt());
-    brush.setAntiAlias(true);
+    brush.SetAntiAlias(true);
     return std::make_unique<RSForegroundColorDrawable>(std::move(brush));
 #endif
 }
@@ -1009,7 +1024,7 @@ std::unique_ptr<RSPropertyDrawable> RSParticleDrawable::Generate(const RSPropert
 #else
             Drawing::Brush brush;
             brush.SetAntiAlias(true);
-            brush.SetAlphaf(opacity);
+            brush.SetAlphaF(opacity);
 #endif
             if (particleType == ParticleType::POINTS) {
                 Color color = particle->GetColor();
@@ -1112,7 +1127,7 @@ void RSImageParticleDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canv
 #else
     Drawing::Rect rect { left, top, right, bottom };
     canvas.AttachBrush(brush_);
-    image->CanvasDrawImage(canvas, rect, false);
+    image->CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), false);
     canvas.DetachBrush();
     canvas.Restore();
 #endif
@@ -1142,7 +1157,7 @@ void RSBackgroundDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 #ifndef USE_ROSEN_DRAWING
     canvas.drawRRect(RSPropertiesPainter::RRect2SkRRect(node.GetMutableRenderProperties().GetInnerRRect()), paint_);
 #else
-    canvas.DrawBackGround(brush_);
+    canvas.DrawBackground(brush_);
 #endif
 }
 
@@ -1168,7 +1183,11 @@ std::unique_ptr<RSPropertyDrawable> RSBackgroundShaderDrawable::Generate(
         return nullptr;
     }
     bool hasRoundedCorners = !properties.GetCornerRadius().IsZero();
+#ifndef USE_ROSEN_DRAWING
     return std::make_unique<RSBackgroundShaderDrawable>(hasRoundedCorners, bgShader->GetSkShader());
+#else
+    return std::make_unique<RSBackgroundShaderDrawable>(hasRoundedCorners, bgShader->GetDrawingShader());
+#endif
 }
 
 std::unique_ptr<RSPropertyDrawable> RSBackgroundImageDrawable::Generate(
@@ -1198,11 +1217,12 @@ void RSBackgroundImageDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& ca
 #else
     auto boundsRect = RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect());
     canvas.AttachBrush(brush_);
-    image_->CanvasDrawImage(canvas, boundsRect, true);
-    canvas->DetachBrush();
+    image_->CanvasDrawImage(canvas, boundsRect, Drawing::SamplingOptions(), true);
+    canvas.DetachBrush();
 #endif
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSEffectDataGenerateDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
     RS_TRACE_NAME("DrawBackgroundEffect " + filter_->GetDescription());
@@ -1257,6 +1277,32 @@ void RSEffectDataGenerateDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas&
     auto data = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(imageCache), std::move(imageRect));
     canvas.SetEffectData(std::move(data));
 }
+#else
+void RSEffectDataGenerateDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
+{
+    // Drawing:: need to be adapted furture
+    RS_TRACE_NAME("DrawBackgroundEffect " + filter_->GetDescription());
+    auto& properties = node.GetMutableRenderProperties();
+    auto drawingSurface = canvas.GetSurface();
+    if (drawingSurface == nullptr) {
+        ROSEN_LOGE("RSEffectDataGenerateDrawable::Draw surface null");
+        return;
+    }
+
+    RSAutoCanvasRestore acr(&canvas);
+    if (auto node = RSBaseRenderNode::ReinterpretCast<RSEffectRenderNode>(properties.backref_.lock())) {
+        auto rect = node->effectRegion_->GetBounds();
+        canvas.ClipRect(rect, Drawing::ClipOp::INTERSECT, false);
+    }
+
+    auto imageRect = canvas.GetDeviceClipBounds();
+    auto imageSnapshot = drawingSurface->GetImageSnapshot(imageRect);
+    if (imageSnapshot == nullptr) {
+        ROSEN_LOGE("RSEffectDataGenerateDrawable::Draw image snapshot null");
+        return;
+    }
+}
+#endif
 
 // ============================================================================
 // SavelayerBackground

@@ -114,10 +114,27 @@ BitmapFormat Bitmap::GetFormat() const
     return format_;
 }
 
+void Bitmap::SetFormat(const BitmapFormat& format)
+{
+    format_.alphaType = format.alphaType;
+    format_.colorType = format.colorType;
+}
+
 ImageInfo Bitmap::GetImageInfo() const
 {
     return imageInfo_;
 }
+
+std::shared_ptr<Data> Bitmap::Serialize() const
+{
+    return bmpImplPtr->Serialize();
+}
+
+bool Bitmap::Deserialize(std::shared_ptr<Data> data)
+{
+    return bmpImplPtr->Deserialize(data);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

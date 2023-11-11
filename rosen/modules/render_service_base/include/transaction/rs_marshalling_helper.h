@@ -71,6 +71,7 @@ class DrawCmdList;
 class MaskCmdList;
 class Data;
 class Image;
+class Bitmap;
 }
 #endif
 class RSFilter;
@@ -194,6 +195,7 @@ public:
     static bool SkipSkImage(Parcel& parcel);
 #else
     DECLARE_FUNCTION_OVERLOAD(Drawing::Matrix)
+    DECLARE_FUNCTION_OVERLOAD(Drawing::Bitmap)
     static bool SkipData(Parcel& parcel);
     static bool SkipImage(Parcel& parcel);
 #endif

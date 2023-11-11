@@ -39,7 +39,7 @@ std::shared_ptr<MaskCmdList> MaskCmdList::CreateFromData(const CmdListData& data
     return cmdList;
 }
 
-bool MaskCmdList::Playback(Path& path, Brush& brush) const
+bool MaskCmdList::Playback(std::shared_ptr<Path>& path, Brush& brush) const
 {
     uint32_t offset = 0;
     MaskPlayer player(path, brush, *this);
@@ -68,7 +68,7 @@ std::unordered_map<uint32_t, MaskPlayer::MaskPlaybackFunc> MaskPlayer::opPlaybac
     { MaskOpItem::MASK_PATH_OPITEM,           MaskPathOpItem::Playback },
 };
 
-MaskPlayer::MaskPlayer(Path& path, Brush& brush, const CmdList& cmdList)
+MaskPlayer::MaskPlayer(std::shared_ptr<Path>& path, Brush& brush, const CmdList& cmdList)
     : path_(path), brush_(brush), cmdList_(cmdList) {}
 
 bool MaskPlayer::Playback(uint32_t type, const void* opItem)
@@ -139,11 +139,11 @@ void MaskPathOpItem::Playback(MaskPlayer& player, const void* opItem)
     }
 }
 
-void MaskPathOpItem::Playback(Path& path, const CmdList& cmdList) const
+void MaskPathOpItem::Playback(std::shared_ptr<Path>& path, const CmdList& cmdList) const
 {
     auto readPath = CmdListHelper::GetFromCmdList<PathCmdList, Path>(
         cmdList, pathHandle_);
-    path = *readPath;
+    path = readPath;
 }
 } // namespace Drawing
 } // namespace Rosen

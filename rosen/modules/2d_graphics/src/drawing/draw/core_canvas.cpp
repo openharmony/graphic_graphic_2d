@@ -254,6 +254,11 @@ bool CoreCanvas::IsClipEmpty()
     return impl_->IsClipEmpty();
 }
 
+bool CoreCanvas::IsClipRect()
+{
+    return impl_->IsClipRect();
+}
+
 bool CoreCanvas::QuickReject(const Rect& rect)
 {
     return impl_->QuickReject(rect);

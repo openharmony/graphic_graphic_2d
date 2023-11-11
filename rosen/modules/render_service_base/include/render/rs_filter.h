@@ -42,7 +42,7 @@ public:
 #ifndef USE_ROSEN_DRAWING
         virtual bool InitSurface(GrRecordingContext* grContext);
 #else
-        virtual bool InitSurface(GrContext* grContext);
+        virtual bool InitSurface(Drawing::GPUContext* grContext);
 #endif
         virtual bool Render();
     };

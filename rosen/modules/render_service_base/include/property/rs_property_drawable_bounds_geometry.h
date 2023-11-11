@@ -52,7 +52,7 @@ public:
     explicit RSBorderDrawable(SkPaint&& paint) : RSPropertyDrawable(), paint_(std::move(paint)) {}
 #else
     explicit RSBorderDrawable(Drawing::Brush&& brush, Drawing::Pen&& pen)
-        : RSPropertyDrawable(), brush_(std::move(brush), pen(std::move(pen)))
+        : RSPropertyDrawable(), brush_(std::move(brush)), pen_(std::move(pen))
     {}
 #endif
     ~RSBorderDrawable() override = default;
@@ -449,10 +449,18 @@ protected:
 
 class RSBackgroundColorDrawable : public RSBackgroundDrawable {
 public:
+#ifndef USE_ROSEN_DRAWING
     explicit RSBackgroundColorDrawable(bool hasRoundedCorners, SkColor color) : RSBackgroundDrawable(hasRoundedCorners)
     {
         paint_.setColor(color);
     }
+#else
+    explicit RSBackgroundColorDrawable(bool hasRoundedCorners, Drawing::Color color)
+        : RSBackgroundDrawable(hasRoundedCorners)
+    {
+        brush_.SetColor(color);
+    }
+#endif
     ~RSBackgroundColorDrawable() override = default;
     static std::unique_ptr<RSPropertyDrawable> Generate(const RSPropertyDrawableGenerateContext& context);
 };
@@ -466,10 +474,10 @@ public:
         paint_.setShader(std::move(filter));
     }
 #else
-    explicit RSBackgroundShaderDrawable(bool hasRoundedCorners, std::shared_ptr<Drawing::Shader> filter)
+    explicit RSBackgroundShaderDrawable(bool hasRoundedCorners, std::shared_ptr<Drawing::ShaderEffect> filter)
         : RSBackgroundDrawable(hasRoundedCorners)
     {
-        brush_.SetShader(std::move(filter));
+        brush_.SetShaderEffect(std::move(filter));
     }
 #endif
     ~RSBackgroundShaderDrawable() override = default;

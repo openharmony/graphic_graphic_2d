@@ -105,8 +105,12 @@ public:
 #else
     void SetCompressData(const std::shared_ptr<Drawing::Data> data, uint32_t id, int width, int height);
 #endif
+#ifndef USE_ROSEN_DRAWING
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
     void SetCompressData(const sk_sp<SkData> compressData);
+#endif
+#else
+    void SetCompressData(const std::shared_ptr<Drawing::Data> compressData);
 #endif
 
     void SetNodeId(NodeId nodeId);

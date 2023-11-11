@@ -53,7 +53,7 @@ inline static bool isEqualRect(const SkIRect& src, const RectI& dst)
            src.height() == dst.GetHeight();
 }
 #else
-inline static bool isEqualRect(const Drawing::Rect& src, const RectI& dst)
+inline static bool isEqualRect(const Drawing::RectI& src, const RectI& dst)
 {
     return src.GetLeft() == dst.GetLeft() && src.GetTop() == dst.GetTop() && src.GetWidth() == dst.GetWidth() &&
            src.GetHeight() == dst.GetHeight();
@@ -118,11 +118,7 @@ void RSFilterCacheManager::UpdateCacheStateWithDirtyRegion()
 }
 
 #ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
 bool RSFilterCacheManager::RSFilterCacheTask::InitSurface(GrRecordingContext* grContext)
-#else
-bool RSFilterCacheManager::RSFilterCacheTask::InitSurface(GrContext* grContext)
-#endif
 #else
 bool RSFilterCacheManager::RSFilterCacheTask::InitSurface(Drawing::GPUContext* grContext)
 #endif
@@ -137,7 +133,7 @@ bool RSFilterCacheManager::RSFilterCacheTask::InitSurface(Drawing::GPUContext* g
     SkImageInfo info = SkImageInfo::MakeN32Premul(surfaceSize_.width(), surfaceSize_.height());
     cacheSurface_ = SkSurface::MakeRenderTarget(grContext, SkBudgeted::kYes, info);
 #else
-    Drawing::ImageInfo info = Drawing::ImageInfo::MakeN32Premul(urfaceSize_.GetWidth(), surfaceSize_.GetHeight());
+    Drawing::ImageInfo info = Drawing::ImageInfo::MakeN32Premul(surfaceSize_.GetWidth(), surfaceSize_.GetHeight());
     cacheSurface_ = Drawing::Surface::MakeRenderTarget(grContext, true, info);
 #endif
     return cacheSurface_ != nullptr;
@@ -178,12 +174,21 @@ bool RSFilterCacheManager::RSFilterCacheTask::Render()
     filter_->DrawImageRect(*cacheCanvas, threadImage, src, dst);
     filter_->PostProcess(*cacheCanvas);
     CHECK_CACHE_PROCESS_STATUS;
+#ifndef USE_ROSEN_DRAWING
     cacheSurface_->flushAndSubmit(true);
+#else
+    cacheSurface_->FlushAndSubmit(true);
+#endif
     CHECK_CACHE_PROCESS_STATUS;
     {
         std::unique_lock<std::mutex> lock(grBackendTextureMutex_);
+#ifndef USE_ROSEN_DRAWING
         resultBackendTexture_ =
             cacheSurface_->getBackendTexture(SkSurface::BackendHandleAccess::kFlushRead_BackendHandleAccess);
+#else
+        auto snapShot = cacheSurface_->GetImageSnapshot();
+        resultBackendTexture_ = snapShot->GetBackendTexture(false, nullptr);
+#endif
     }
     CHECK_CACHE_PROCESS_STATUS;
     cacheProcessStatus_.store(CacheProcessStatus::DONE);
@@ -238,7 +243,8 @@ void RSFilterCacheManager::PostPartialFilterRenderTask(const std::shared_ptr<RSD
         auto dstCopy = cachedSnapshot_->cachedRect_.makeOutset(1, 1);
         task_->InitTask(filter, cachedSnapshot_, dstCopy.size());
 #else
-        auto dstCopy = cachedSnapshot_->cachedRect_.MakeOutset(1, 1);
+        auto dstCopy = cachedSnapshot_->cachedRect_;
+        dstCopy.MakeOutset(1, 1);
         task_->InitTask(filter, cachedSnapshot_, dstCopy);
 #endif
         task_->SetStatus(CacheProcessStatus::DOING);
@@ -275,11 +281,7 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     }
     CheckCachedImages(canvas);
     if (!IsCacheValid()) {
-#ifndef USE_ROSEN_DRAWING
         TakeSnapshot(canvas, filter, src, needSnapshotOutset);
-#else
-        TakeSnapshot(canvas, filter, src, needSnapshotOutset);
-#endif
     } else {
         --cacheUpdateInterval_;
     }
@@ -296,7 +298,7 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
             Drawing::BitmapFormat bitmapFormat = { Drawing::ColorType::COLORTYPE_RGBA_8888,
                 Drawing::AlphaType::ALPHATYPE_PREMUL };
             filteredSnapshot->BuildFromTexture(*canvas.GetGPUContext(),
-                task->GetResultTexture().GetTextureInfo(),
+                task_->GetResultTexture().GetTextureInfo(),
                 Drawing::TextureOrigin::BOTTOM_LEFT, bitmapFormat, nullptr);
 #endif
             auto filteredRect = dst;
@@ -436,13 +438,15 @@ void RSFilterCacheManager::TakeSnapshot(
     RS_OPTIONAL_TRACE_FUNC();
 
     // shrink the srcRect by 1px to avoid edge artifacts.
-    auto snapshotIBounds = srcRect;
+    Drawing::RectI snapshotIBounds;
     if (needSnapshotOutset) {
         snapshotIBounds.MakeOutset(-1, -1);
+    } else {
+        snapshotIBounds = srcRect;
     }
 
     // Take a screenshot.
-    auto snapshot = drawingSurface->MakeImageSnapshot(snapshotIBounds);
+    auto snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds);
     if (snapshot == nullptr) {
         ROSEN_LOGE("RSFilterCacheManager::TakeSnapshot failed to make an image snapshot.");
         return;
@@ -516,7 +520,7 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
         as_IB(filteredSnapshot)->hintCacheGpuResource();
     }
 #else
-    auto filteredSnapshot = offscreenSurface->MakeImageSnapshot();
+    auto filteredSnapshot = offscreenSurface->GetImageSnapshot();
     if (RSSystemProperties::GetImageGpuResourceCacheEnable(filteredSnapshot->GetWidth(),
         filteredSnapshot->GetHeight())) {
         ROSEN_LOGD("GenerateFilteredSnapshot cache image resource(width:%{public}d, height:%{public}d).",
@@ -624,7 +628,7 @@ inline void RSFilterCacheManager::ClipVisibleRect(RSPaintFilterCanvas& canvas)
     auto visibleRectF = canvas.GetVisibleRect();
     visibleRectF.Round();
     Drawing::RectI visibleIRect = {(int)visibleRectF.GetLeft(), (int)visibleRectF.GetTop(),
-                                   (int)visibleRectF.GetRight(), (int)visibleRectF.GetBottom()}
+                                   (int)visibleRectF.GetRight(), (int)visibleRectF.GetBottom()};
     auto deviceClipRect = canvas.GetDeviceClipBounds();
     if (!visibleIRect.IsEmpty() && deviceClipRect.Intersect(visibleIRect)) {
         canvas.ClipIRect(visibleIRect, Drawing::ClipOp::INTERSECT);
@@ -692,7 +696,7 @@ std::tuple<Drawing::RectI, Drawing::RectI> RSFilterCacheManager::ValidateParams(
 {
     Drawing::RectI src;
     Drawing::RectI dst;
-    auto deviceRect = Drawing::RectI(0, 0, canvas.GetImageInfo().GetWidth(), canvas.GetImageInfo().GetHight());
+    auto deviceRect = Drawing::RectI(0, 0, canvas.GetImageInfo().GetWidth(), canvas.GetImageInfo().GetHeight());
     if (!srcRect.has_value()) {
         src = canvas.GetDeviceClipBounds();
     } else {

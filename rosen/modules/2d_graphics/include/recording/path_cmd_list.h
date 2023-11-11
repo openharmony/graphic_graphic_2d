@@ -154,6 +154,7 @@ public:
     ArcToOpItem(const Point& pt1, const Point& pt2, const scalar startAngle, const scalar sweepAngle);
     ArcToOpItem(const scalar rx, const scalar ry, const scalar angle, const PathDirection direction, const scalar endX,
                 const scalar endY);
+    ArcToOpItem(const scalar x1, const scalar y1, const scalar x2, const scalar y2, const scalar radius);
     ~ArcToOpItem() = default;
     static void Playback(PathPlayer& player, const void* opItem);
     void Playback(Path& path) const;

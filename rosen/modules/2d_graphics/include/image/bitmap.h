@@ -61,6 +61,7 @@ public:
     ColorQuad GetColor(int x, int y) const;
     void Free();
     BitmapFormat GetFormat() const;
+    void SetFormat(const BitmapFormat& format);
     ImageInfo GetImageInfo() const;
     template<typename T>
     const std::shared_ptr<T> GetImpl() const
@@ -68,6 +69,9 @@ public:
         return bmpImplPtr->DowncastingTo<T>();
     }
 
+    std::shared_ptr<Data> Serialize() const;
+    bool Deserialize(std::shared_ptr<Data> data);
+    
 private:
     std::shared_ptr<BitmapImpl> bmpImplPtr;
     BitmapFormat format_;
