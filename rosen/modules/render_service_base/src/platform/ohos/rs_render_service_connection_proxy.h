@@ -50,6 +50,7 @@ public:
         uint64_t focusNodeId) override;
 
     ScreenId GetDefaultScreenId() override;
+    ScreenId GetActiveScreenId() override;
 
     std::vector<ScreenId> GetAllScreenIds() override;
 

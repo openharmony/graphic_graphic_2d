@@ -69,7 +69,8 @@
           "accessibility",
           "frame_aware_sched",
           "memmgr",
-          "memmgr_plugin" 
+          "memmgr_plugin",
+          "sensor"
         ],
         "third_party": [
           "flutter",

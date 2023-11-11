@@ -268,6 +268,16 @@ ScreenId RSRenderServiceClient::GetDefaultScreenId()
     return renderService->GetDefaultScreenId();
 }
 
+ScreenId RSRenderServiceClient::GetActiveScreenId()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return INVALID_SCREEN_ID;
+    }
+
+    return renderService->GetActiveScreenId();
+}
+
 std::vector<ScreenId> RSRenderServiceClient::GetAllScreenIds()
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

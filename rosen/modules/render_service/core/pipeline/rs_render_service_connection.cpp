@@ -311,6 +311,12 @@ ScreenId RSRenderServiceConnection::GetDefaultScreenId()
     return screenManager_->GetDefaultScreenId();
 }
 
+ScreenId RSRenderServiceConnection::GetActiveScreenId()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return screenManager_->GetActiveScreenId();
+}
+
 std::vector<ScreenId> RSRenderServiceConnection::GetAllScreenIds()
 {
     std::lock_guard<std::mutex> lock(mutex_);

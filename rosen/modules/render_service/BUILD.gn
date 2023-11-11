@@ -195,6 +195,7 @@ ohos_shared_library("librender_service") {
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "sensor:sensor_interface_native",
     "window_manager:libwsutils",
   ]
 
@@ -273,6 +274,7 @@ ohos_executable("render_service") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "sensor:sensor_interface_native",
   ]
 
   part_name = "graphic_2d"

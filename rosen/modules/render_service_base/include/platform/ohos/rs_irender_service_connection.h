@@ -70,6 +70,8 @@ public:
 
     virtual ScreenId GetDefaultScreenId() = 0;
 
+    virtual ScreenId GetActiveScreenId() = 0;
+
     virtual std::vector<ScreenId> GetAllScreenIds() = 0;
 
     // mirrorId: decide which screen id to mirror, INVALID_SCREEN_ID means do not mirror any screen.

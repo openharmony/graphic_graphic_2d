@@ -56,6 +56,11 @@ ScreenId RSInterfaces::GetDefaultScreenId()
     return renderServiceClient_->GetDefaultScreenId();
 }
 
+ScreenId RSInterfaces::GetActiveScreenId()
+{
+    return renderServiceClient_->GetActiveScreenId();
+}
+
 std::vector<ScreenId> RSInterfaces::GetAllScreenIds()
 {
     return renderServiceClient_->GetAllScreenIds();
