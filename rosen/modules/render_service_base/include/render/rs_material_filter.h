@@ -76,7 +76,6 @@ public:
     ~RSMaterialFilter() override;
     std::shared_ptr<RSFilter> TransformFilter(float fraction) const;
     bool IsValid() const override;
-    bool IsPartialValid() const override;
 #ifndef USE_ROSEN_DRAWING
     void PreProcess(sk_sp<SkImage> image) override;
 #else

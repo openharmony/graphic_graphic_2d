@@ -99,7 +99,8 @@ void RSImageBase::DrawImage(RSPaintFilterCanvas& canvas, const SkPaint& paint)
 #endif
 }
 #else
-void RSImageBase::DrawImage(Drawing::Canvas& canvas, const Drawing::Brush& brush)
+void RSImageBase::DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions,
+    const Drawing::Brush& brush)
 {
     ConvertPixelMapToDrawingImage();
     auto src = RSPropertiesPainter::Rect2DrawingRect(srcRect_);
@@ -109,7 +110,7 @@ void RSImageBase::DrawImage(Drawing::Canvas& canvas, const Drawing::Brush& brush
         return;
     }
     canvas.AttachBrush(brush);
-    canvas.DrawImageRect(*image_, src, dst, Drawing::SamplingOptions());
+    canvas.DrawImageRect(*image_, src, dst, samplingOptions);
     canvas.DetachBrush();
 }
 #endif

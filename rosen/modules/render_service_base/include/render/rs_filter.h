@@ -81,11 +81,6 @@ public:
         return hash_;
     }
 
-    virtual bool IsPartialValid() const
-    {
-        return true;
-    }
-    
     virtual bool IsNearEqual(
         const std::shared_ptr<RSFilter>& other, float threshold = std::numeric_limits<float>::epsilon()) const
     {

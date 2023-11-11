@@ -65,7 +65,7 @@ private:
     sk_sp<GrDirectContext> CreateShareGrContext();
     sk_sp<GrDirectContext> grContext_ = nullptr;
 #else
-    EGLContext eglShareContext_ = 0;
+    EGLContext eglShareContext_ = static_cast<EGLContext>(0);
     std::shared_ptr<Drawing::GPUContext> CreateShareGPUContext();
     std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;
 #endif

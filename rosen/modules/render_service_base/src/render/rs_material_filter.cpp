@@ -257,15 +257,6 @@ bool RSMaterialFilter::IsValid() const
     return radius_ > epsilon;
 }
 
-bool RSMaterialFilter::IsPartialValid() const
-{
-#ifndef USE_ROSEN_DRAWING
-    return !useKawase_ || radius_ >= 1.0f;
-#else
-    return radius_ >= 1.0f;
-#endif
-}
-
 std::shared_ptr<RSFilter> RSMaterialFilter::Add(const std::shared_ptr<RSFilter>& rhs)
 {
     if ((rhs == nullptr) || (rhs->GetFilterType() != FilterType::MATERIAL)) {

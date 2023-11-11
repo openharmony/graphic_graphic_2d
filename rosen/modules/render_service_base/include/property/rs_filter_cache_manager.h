@@ -52,6 +52,7 @@ class RSDrawingFilter;
 // Warn: Using filter cache in multi-thread environment may cause GPU memory leak or invalid textures.
 class RSFilterCacheManager final {
 public:
+    static bool SoloTaskPrepare;
     RSFilterCacheManager() = default;
     ~RSFilterCacheManager() = default;
     RSFilterCacheManager(const RSFilterCacheManager&) = delete;
@@ -118,6 +119,7 @@ private:
     class RSFilterCacheTask : public RSFilter::RSFilterTask {
     public:
         static const bool FilterPartialRenderEnabled;
+        bool isTaskTooLong = false;
         RSFilterCacheTask() = default;
         virtual ~RSFilterCacheTask() = default;
 #ifndef USE_ROSEN_DRAWING
@@ -149,7 +151,7 @@ private:
 
         GrBackendTexture GetResultTexture() const
         {
-            return resultBackendTexture_;
+            return cacheCompletedBackendTexture_;
         }
 #else
         void InitTask(std::shared_ptr<RSDrawingFilter> filter,
@@ -163,7 +165,7 @@ private:
 
         Drawing::BackendTexture GetResultTexture() const
         {
-            return resultBackendTexture_;
+            return cacheCompletedBackendTexture_;
         }
 #endif
 
@@ -176,7 +178,6 @@ private:
         void ResetGrContext()
         {
 #ifndef USE_ROSEN_DRAWING
-            std::unique_lock<std::mutex> lock(parallelRenderMutex_);
             if (cacheSurface_ != nullptr) {
                 GrDirectContext* grContext_ = cacheSurface_->recordingContext()->asDirectContext();
                 cacheSurface_ = nullptr;
@@ -199,6 +200,22 @@ private:
             return handler_;
         }
 
+        bool IsCompleted()
+        {
+            return isCompleted_;
+        }
+
+        void SetCompleted(bool val)
+        {
+            isCompleted_ = val;
+        }
+
+        void SawpTexture()
+        {
+            std::unique_lock<std::mutex> lock(grBackendTextureMutex_);
+            std::swap(resultBackendTexture_, cacheCompletedBackendTexture_);
+        }
+
     private:
 #ifndef USE_ROSEN_DRAWING
         sk_sp<SkSurface> cacheSurface_ = nullptr;
@@ -213,12 +230,13 @@ private:
         Drawing::RectI surfaceSize_;
         std::shared_ptr<RSDrawingFilter> filter_ = nullptr;
 #endif
+        GrBackendTexture cacheCompletedBackendTexture_;
         std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
         std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshot_ = nullptr;
-        std::mutex parallelRenderMutex_;
+        std::mutex grBackendTextureMutex_;
         std::condition_variable cvParallelRender_;
         std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_ = nullptr;
-        bool isFirstInit = false;
+        bool isCompleted_ = false;
     };
 
 #ifndef USE_ROSEN_DRAWING

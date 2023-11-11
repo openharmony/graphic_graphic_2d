@@ -2250,6 +2250,9 @@ void RSProperties::CreateFilterCacheManagerIfNeed()
         }
         cacheManager->UpdateCacheStateWithFilterHash(filter);
     } else {
+        if (backgroundFilterCacheManager_ != nullptr) {
+            backgroundFilterCacheManager_->ReleaseCacheOffTree();
+        }
         backgroundFilterCacheManager_.reset();
     }
     if (auto& filter = GetFilter()) {
@@ -2259,6 +2262,9 @@ void RSProperties::CreateFilterCacheManagerIfNeed()
         }
         cacheManager->UpdateCacheStateWithFilterHash(filter);
     } else {
+        if (foregroundFilterCacheManager_ != nullptr) {
+            foregroundFilterCacheManager_->ReleaseCacheOffTree();
+        }
         foregroundFilterCacheManager_.reset();
     }
 }
