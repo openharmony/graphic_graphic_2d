@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
+#include "parameters.h"
 
 #include "touch_screen/touch_screen.h"
 
@@ -61,7 +62,12 @@ HWTEST_F(TouchScreenTest, SetFeatureConfig_001, TestSize.Level1)
 
     int32_t feature = 12;
     const char* config = "0";
-    ASSERT_EQ(TOUCH_SCREEN->tsSetFeatureConfig_(feature, config), 0);
+    bool isFlodScreen = system::GetParameter("const.window.foldscreen.type", "") != "";
+    if (isFlodScreen) {
+        ASSERT_EQ(TOUCH_SCREEN->tsSetFeatureConfig_(feature, config), 0);
+    } else {
+        ASSERT_LT(TOUCH_SCREEN->tsSetFeatureConfig_(feature, config), 0);
+    }
 }
 
 /*
@@ -77,7 +83,12 @@ HWTEST_F(TouchScreenTest, SetFeatureConfig_002, TestSize.Level1)
 
     int32_t feature = 12;
     const char* config = "1";
-    ASSERT_EQ(TOUCH_SCREEN->tsSetFeatureConfig_(feature, config), 0);
+    bool isFlodScreen = system::GetParameter("const.window.foldscreen.type", "") != "";
+    if (isFlodScreen) {
+        ASSERT_EQ(TOUCH_SCREEN->tsSetFeatureConfig_(feature, config), 0);
+    } else {
+        ASSERT_LT(TOUCH_SCREEN->tsSetFeatureConfig_(feature, config), 0);
+    }
 }
 
 /*
