@@ -46,15 +46,10 @@ std::shared_ptr<ThemeFontProvider> ThemeFontProvider::GetInstance() noexcept(tru
 
 int ThemeFontProvider::LoadFont(const std::string &familyName, const void *data, size_t datalen) noexcept(true)
 {
-    if (familyName.empty()) {
+    if (familyName.empty() || data == nullptr) {
         familyName_ = "";
         themeFontStyleSet_ = nullptr;
         return SUCCESS;
-    }
-
-    if (data == nullptr) {
-        LOGEX_FUNC_LINE(ERROR) << "data is nullptr!";
-        return PARAMETERERROR;
     }
 
     if (datalen == 0) {

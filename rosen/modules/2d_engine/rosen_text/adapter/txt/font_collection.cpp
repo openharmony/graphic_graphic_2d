@@ -80,11 +80,7 @@ void FontCollection::LoadFont(const std::string &familyName, const uint8_t *data
 
 void FontCollection::LoadThemeFont(const std::string &familyName, const uint8_t *data, size_t datalen)
 {
-    if (familyName.empty()) {
-        return;
-    }
-
-    if (data == nullptr) {
+    if (familyName.empty() || data == nullptr) {
         dfmanager_->font_provider().RegisterTypeface(nullptr, OHOS_THEME_FONT);
     } else {
         auto stream = std::make_unique<SkMemoryStream>(data, datalen, true);
