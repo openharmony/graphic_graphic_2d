@@ -21,6 +21,8 @@
 
 namespace OHOS {
 namespace Rosen {
+#define OHOS_THEME_FONT "OhosThemeFont"
+
 std::shared_ptr<FontCollection> g_instance;
 
 std::shared_ptr<FontCollection> FontCollection::Create()
@@ -72,6 +74,22 @@ void FontCollection::LoadFont(const std::string &familyName, const uint8_t *data
         dfmanager_->font_provider().RegisterTypeface(typeface);
     } else {
         dfmanager_->font_provider().RegisterTypeface(typeface, familyName);
+    }
+    fontCollection_->ClearFontFamilyCache();
+}
+
+void FontCollection::LoadThemeFont(const std::string &familyName, const uint8_t *data, size_t datalen)
+{
+    if (familyName.empty()) {
+        return;
+    }
+
+    if (data == nullptr) {
+        dfmanager_->font_provider().RegisterTypeface(nullptr, OHOS_THEME_FONT);
+    } else {
+        auto stream = std::make_unique<SkMemoryStream>(data, datalen, true);
+        auto typeface = SkTypeface::MakeFromStream(std::move(stream));
+        dfmanager_->font_provider().RegisterTypeface(typeface, OHOS_THEME_FONT);
     }
     fontCollection_->ClearFontFamilyCache();
 }

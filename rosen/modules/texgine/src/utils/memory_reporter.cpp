@@ -24,6 +24,7 @@
 #include "line_metrics.h"
 #include "texgine/any_span.h"
 #include "texgine/dynamic_font_provider.h"
+#include "texgine/theme_font_provider.h"
 #include "texgine/system_font_provider.h"
 #include "typeface.h"
 #include "typography_impl.h"
@@ -231,6 +232,12 @@ DECLARE_CLASS_RMU(DynamicFontProvider)
 {
     MEMORY_USAGE_SCOPE("DynamicFontProvider", *this);
     MEMORY_USAGE_REPORT(fontStyleSetMap_);
+}
+
+DECLARE_CLASS_RMU(ThemeFontProvider)
+{
+    MEMORY_USAGE_SCOPE("ThemeFontProvider", *this);
+    MEMORY_USAGE_REPORT(themeFontStyleSet_);
 }
 
 DECLARE_CLASS_RMU(SystemFontProvider)

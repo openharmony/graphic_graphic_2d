@@ -17,6 +17,7 @@
 
 #include "texgine/dynamic_font_provider.h"
 #include "texgine/system_font_provider.h"
+#include "texgine/theme_font_provider.h"
 #include "texgine/typography_types.h"
 #include "texgine/utils/exlog.h"
 #include "texgine_string.h"
@@ -103,11 +104,28 @@ std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch,
             return typeface;
         }
     }
-    auto typeface = FindFallBackTypeface(ch, style, script, locale);
+    auto typeface = FindThemeTypeface(style);
+    if (typeface == nullptr) {
+        typeface = FindFallBackTypeface(ch, style, script, locale);
+    }
     if (typeface == nullptr) {
         typeface = GetTypefaceForFontStyles(style, script, locale);
     }
     return typeface;
+}
+
+std::shared_ptr<Typeface> FontCollection::FindThemeTypeface(const FontStyles &style) const
+{
+    std::shared_ptr<VariantFontStyleSet> styleSet = ThemeFontProvider::GetInstance()->MatchFamily("");
+    if (styleSet != nullptr) {
+        auto fs = std::make_shared<TexgineFontStyle>();
+        *fs = style.ToTexgineFontStyle();
+        auto texgineTypeface = styleSet->MatchStyle(fs);
+        if (texgineTypeface != nullptr && texgineTypeface->GetTypeface() != nullptr) {
+            return std::make_shared<Typeface>(texgineTypeface);
+        }
+    }
+    return nullptr;
 }
 
 std::shared_ptr<Typeface> FontCollection::GetTypefaceForFontStyles(const FontStyles &style,
