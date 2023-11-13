@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include "effect/runtime_effect.h"
+
 #include "impl_factory.h"
 
 #include "skia_adapter/skia_impl_factory.h"
@@ -101,6 +103,12 @@ std::unique_ptr<ShaderEffectImpl> ImplFactory::CreateShaderEffectImpl()
 std::unique_ptr<RuntimeEffectImpl> ImplFactory::CreateRuntimeEffectImpl()
 {
     return EngineImplFactory::CreateRuntimeEffect();
+}
+
+std::unique_ptr<RuntimeShaderBuilderImpl> ImplFactory::CreateRuntimeShaderBuilderImpl(
+    std::shared_ptr<RuntimeEffect> runtimeEffect)
+{
+    return EngineImplFactory::CreateRuntimeShaderBuilder(runtimeEffect);
 }
 
 std::unique_ptr<SurfaceImpl> ImplFactory::CreateSurfaceImpl()

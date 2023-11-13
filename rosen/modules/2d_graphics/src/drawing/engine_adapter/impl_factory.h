@@ -38,6 +38,7 @@
 #include "impl_interface/picture_impl.h"
 #include "impl_interface/region_impl.h"
 #include "impl_interface/runtime_effect_impl.h"
+#include "impl_interface/runtime_shader_builder_impl.h"
 #include "impl_interface/shader_effect_impl.h"
 #include "impl_interface/surface_impl.h"
 #include "impl_interface/text_blob_builder_impl.h"
@@ -45,6 +46,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+class RuntimeEffect;
 class ImplFactory {
 public:
     static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvasImpl();
@@ -65,6 +67,7 @@ public:
     static std::unique_ptr<PictureImpl> CreatePictureImpl();
     static std::unique_ptr<ShaderEffectImpl> CreateShaderEffectImpl();
     static std::unique_ptr<RuntimeEffectImpl> CreateRuntimeEffectImpl();
+    static std::unique_ptr<RuntimeShaderBuilderImpl> CreateRuntimeShaderBuilderImpl(std::shared_ptr<RuntimeEffect>);
     static std::unique_ptr<SurfaceImpl> CreateSurfaceImpl();
     static std::unique_ptr<PathEffectImpl> CreatePathEffectImpl();
     static std::unique_ptr<ColorSpaceImpl> CreateColorSpaceImpl();
