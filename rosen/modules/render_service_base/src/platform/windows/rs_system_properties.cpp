@@ -204,6 +204,11 @@ bool RSSystemProperties::GetFilterPartialRenderEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetMaskLinearBlurEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetDebugTraceEnabled()
 {
     return false;

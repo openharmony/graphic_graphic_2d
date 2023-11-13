@@ -1089,8 +1089,10 @@ void RSPropertiesPainter::DrawLinearGradientBlurFilter(
 {
     const auto& para = properties.GetLinearGradientBlurPara();
     if (para == nullptr || para->blurRadius_ <= 0) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawLinearGradientBlurFilter para invalid");
         return;
     }
+    RS_TRACE_NAME("DrawLinearGradientBlurFilter");
 #ifndef USE_ROSEN_DRAWING
     SkSurface* surface = canvas.GetSurface();
     if (surface == nullptr) {
@@ -1138,8 +1140,8 @@ void RSPropertiesPainter::DrawLinearGradientBlurFilter(
         ROSEN_LOGE("RSPropertiesPainter::DrawLinearGradientBlurFilter alphaGradientShader null");
         return;
     }
-    float radius = para->blurRadius_ / 2;
 
+    RS_TRACE_NAME("DrawLinearBlur");
 #ifndef USE_ROSEN_DRAWING
     canvas.resetMatrix();
     canvas.translate(clipIPadding.left(), clipIPadding.top());
@@ -1148,10 +1150,139 @@ void RSPropertiesPainter::DrawLinearGradientBlurFilter(
     canvas.Translate(clipIPadding.GetLeft(), clipIPadding.GetTop());
 #endif
 
-    DrawHorizontalLinearGradientBlur(surface, canvas, radius, alphaGradientShader, clipIPadding);
-    DrawVerticalLinearGradientBlur(surface, canvas, radius, alphaGradientShader, clipIPadding);
-    DrawHorizontalLinearGradientBlur(surface, canvas, radius, alphaGradientShader, clipIPadding);
-    DrawVerticalLinearGradientBlur(surface, canvas, radius, alphaGradientShader, clipIPadding);
+    DrawLinearGradientBlur(surface, canvas, para, alphaGradientShader, clipIPadding);
+}
+
+#ifndef USE_ROSEN_DRAWING
+void RSPropertiesPainter::DrawLinearGradientBlur(SkSurface* surface, RSPaintFilterCanvas& canvas,
+    const std::shared_ptr<RSLinearGradientBlurPara>& para, sk_sp<SkShader> alphaGradientShader,
+    const SkIRect& clipIPadding)
+#else
+void RSPropertiesPainter::DrawLinearGradientBlur(Drawing::Surface* surface, RSPaintFilterCanvas& canvas,
+    const std::shared_ptr<RSLinearGradientBlurPara>& para, std::shared_ptr<Drawing::ShaderEffect> alphaGradientShader,
+    const Drawing::RectI& clipIPadding)
+#endif
+{
+    if (para == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawLinearGradientBlur para null");
+        return;
+    }
+
+    if (RSSystemProperties::GetMaskLinearBlurEnabled()) {
+        // use faster LinearGradientBlur if valid
+        if (para->LinearGradientBlurFilter_ == nullptr) {
+            ROSEN_LOGE("RSPropertiesPainter::DrawLinearGradientBlur blurFilter null");
+            return;
+        }
+        auto& RSFilter = para->LinearGradientBlurFilter_;
+        auto filter = std::static_pointer_cast<RSSkiaFilter>(RSFilter);
+        DrawMaskLinearGradientBlur(surface, canvas, filter, alphaGradientShader, clipIPadding);
+    } else {
+        // use original LinearGradientBlur
+        float radius = para->blurRadius_ / 2;
+        DrawHorizontalLinearGradientBlur(surface, canvas, radius, alphaGradientShader, clipIPadding);
+        DrawVerticalLinearGradientBlur(surface, canvas, radius, alphaGradientShader, clipIPadding);
+        DrawHorizontalLinearGradientBlur(surface, canvas, radius, alphaGradientShader, clipIPadding);
+        DrawVerticalLinearGradientBlur(surface, canvas, radius, alphaGradientShader, clipIPadding);
+    }
+}
+
+#ifndef USE_ROSEN_DRAWING
+void RSPropertiesPainter::DrawMaskLinearGradientBlur(SkSurface* skSurface, RSPaintFilterCanvas& canvas,
+    std::shared_ptr<RSSkiaFilter>& blurFilter, sk_sp<SkShader> alphaGradientShader, const SkIRect& clipIPadding)
+{
+    auto image = skSurface->makeImageSnapshot(clipIPadding);
+    if (image == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawMaskLinearGradientBlur image is null");
+        return;
+    }
+
+    auto offscreenRect = clipIPadding;
+    auto offscreenSurface = skSurface->makeSurface(offscreenRect.width(), offscreenRect.height());
+    RSPaintFilterCanvas offscreenCanvas(offscreenSurface.get());
+
+    blurFilter->DrawImageRect(offscreenCanvas, image, SkRect::Make(image->bounds().makeOutset(-1, -1)),
+        SkRect::Make(image->bounds()));
+    auto filteredSnapshot = offscreenSurface->makeImageSnapshot();
+    auto srcImageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
+    auto blurImageShader = filteredSnapshot->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
+    auto shader = MakeMeanBlurShader(srcImageShader, blurImageShader, alphaGradientShader);
+
+    SkPaint paint;
+    paint.setShader(shader);
+    canvas.drawRect(SkRect::Make(clipIPadding.makeOffset(-clipIPadding.left(), -clipIPadding.top())), paint);
+}
+#else
+void RSPropertiesPainter::DrawMaskLinearGradientBlur(Drawing::Surface* surface, RSPaintFilterCanvas& canvas,
+    std::shared_ptr<RSDrawingFilter>& blurFilter, std::shared_ptr<Drawing::ShaderEffect> alphaGradientShader,
+    const Drawing::RectI& clipIPadding)
+{
+}
+#endif
+
+#ifndef USE_ROSEN_DRAWING
+sk_sp<SkShader> RSPropertiesPainter::MakeMeanBlurShader(sk_sp<SkShader> srcImageShader,
+        sk_sp<SkShader> blurImageShader, sk_sp<SkShader> gradientShader)
+#else
+std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeMeanBlurShader(
+    std::shared_ptr<Drawing::ShaderEffect> srcImageShader, std::shared_ptr<Drawing::ShaderEffect> blurImageShader,
+    std::shared_ptr<Drawing::ShaderEffect> gradientShader)
+#endif
+{
+    const char* prog = R"(
+        uniform shader srcImageShader;
+        uniform shader blurImageShader;
+        uniform shader gradientShader;
+        half4 meanFilter(float2 coord)
+        {
+            vec3 srcColor = vec3(srcImageShader.eval(coord).r,
+                srcImageShader.eval(coord).g, srcImageShader.eval(coord).b);
+            vec3 blurColor = vec3(blurImageShader.eval(coord).r,
+                blurImageShader.eval(coord).g, blurImageShader.eval(coord).b);
+            float gradient = gradientShader.eval(coord).a;
+
+            vec3 color = blurColor * gradient + srcColor * (1 - gradient);
+            return vec4(color, 1.0);
+        }
+        half4 main(float2 coord)
+        {
+            if (abs(gradientShader.eval(coord).a) < 0.001) {
+                return srcImageShader.eval(coord);
+            }
+            
+            if (abs(gradientShader.eval(coord).a) > 0.999) {
+                return blurImageShader.eval(coord);
+            }
+
+            return meanFilter(coord);
+        }
+    )";
+
+#ifndef USE_ROSEN_DRAWING
+    auto [effect, err] = SkRuntimeEffect::MakeForShader(SkString(prog));
+    if (!effect) {
+        ROSEN_LOGE("MakeMeanBlurShader::RuntimeShader effect error: %{public}s\n", err.c_str());
+        return nullptr;
+    }
+
+    SkRuntimeShaderBuilder builder(effect);
+    builder.child("srcImageShader") = srcImageShader;
+    builder.child("blurImageShader") = blurImageShader;
+    builder.child("gradientShader") = gradientShader;
+    return builder.makeShader(nullptr, false);
+#else
+    std::shared_ptr<Drawing::RuntimeEffect> effect = Drawing::RuntimeEffect::CreateForShader(prog);
+    if (!effect) {
+        ROSEN_LOGE("MakeMeanBlurShader::RuntimeShader effect error\n");
+        return nullptr;
+    }
+
+    std::shared_ptr<Drawing::RuntimeShaderBuilder> builder = std::make_shared<Drawing::RuntimeShaderBuilder>(effect);
+    builder->SetChild("srcImageShader", srcImageShader);
+    builder->SetChild("blurImageShader", blurImageShader);
+    builder->SetChild("gradientShader", gradientShader);
+    return builder->MakeShader(nullptr, false);
+#endif
 }
 
 #ifndef USE_ROSEN_DRAWING
