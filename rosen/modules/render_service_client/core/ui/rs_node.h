@@ -256,6 +256,7 @@ public:
     void SetShadowRadius(float radius);
     void SetShadowPath(const std::shared_ptr<RSPath>& shadowPath);
     void SetShadowMask(bool shadowMask);
+    void SetShadowIsFilled(bool shadowIsFilled);
 
     void SetFrameGravity(Gravity gravity);
 

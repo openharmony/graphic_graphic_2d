@@ -110,6 +110,8 @@ DECLARE_NOANIMATABLE_MODIFIER(ShadowPath, std::shared_ptr<RSPath>, SHADOW_PATH, 
 
 DECLARE_NOANIMATABLE_MODIFIER(ShadowMask, bool, SHADOW_MASK, Background)
 
+DECLARE_NOANIMATABLE_MODIFIER(ShadowIsFilled, bool, SHADOW_IS_FILLED, Background)
+
 DECLARE_NOANIMATABLE_MODIFIER(Mask, std::shared_ptr<RSMask>, MASK, Foreground)
 
 DECLARE_ANIMATABLE_MODIFIER(Spherize, float, SPHERIZE, Replace, Appearance)

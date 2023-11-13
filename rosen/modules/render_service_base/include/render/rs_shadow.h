@@ -46,6 +46,7 @@ public:
     void SetRadius(float radius);
     void SetPath(const std::shared_ptr<RSPath>& path);
     void SetMask(bool imageMask);
+    void SetIsFilled(bool isFilled);
 
     Color GetColor() const;
     float GetOffsetX() const;
@@ -55,6 +56,7 @@ public:
     float GetRadius() const;
     const std::shared_ptr<RSPath>& GetPath() const;
     bool GetMask() const;
+    bool GetIsFilled() const;
 
     bool GetHardwareAcceleration() const
     {
@@ -72,6 +74,7 @@ private:
     float elevation_ = 0.f;
     std::shared_ptr<RSPath> path_ = nullptr;
     bool imageMask_ = false;
+    bool isFilled_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
