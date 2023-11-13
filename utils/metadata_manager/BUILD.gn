@@ -35,7 +35,7 @@ config("metadata_manager_public_config") {
 }
 
 ohos_shared_library("metadata_manager") {
-  sources = [ "src/metadata_manager.cpp" ]
+  sources = [ "src/metadata_helper.cpp" ]
 
   configs = [ ":metadata_manager_config" ]
 

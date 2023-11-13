@@ -18,7 +18,7 @@
 #include <surface_buffer_impl.h>
 #include <buffer_manager.h>
 #include <buffer_utils.h>
-#include <metadata_manager.h>
+#include <metadata_helper.h>
 
 using namespace testing;
 using namespace testing::ext;

@@ -325,7 +325,7 @@
             "name": "//foundation/graphic/graphic_2d/utils/metadata_manager:metadata_manager",
             "header": {
               "header_files": [
-                "export/metadata_manager.h",
+                "export/metadata_helper.h",
                 "export/hdr_vivid_metadata.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/utils/metadata_manager"

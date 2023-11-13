@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "metadata_manager.h"
+#include "metadata_helper.h"
 
 #include "v1_0/buffer_handle_meta_key_type.h"
 
