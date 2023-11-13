@@ -76,6 +76,7 @@ ohos_source_set("libtexgine_source") {
       "src/text_shaper.cpp",
       "src/text_span.cpp",
       "src/text_style.cpp",
+      "src/theme_font_provider.cpp",
       "src/typeface.cpp",
       "src/typography_builder_impl.cpp",
       "src/typography_impl.cpp",

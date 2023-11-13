@@ -25,6 +25,7 @@ namespace Rosen {
 namespace TextEngine {
 class FontProviders;
 class DynamicFontProvider;
+class ThemeFontProvider;
 } // namespace TextEngine
 #ifdef USE_GRAPHIC_TEXT_GINE
 } // namespace Rosen
@@ -42,10 +43,12 @@ public:
     void DisableFallback() override;
     void DisableSystemFont() override;
     void LoadFont(const std::string &familyName, const uint8_t *data, size_t datalen) override;
+    void LoadThemeFont(const std::string &familyName, const uint8_t *data, size_t datalen) override;
 
 private:
     std::shared_ptr<TextEngine::FontProviders> fontProviders_ = nullptr;
     std::shared_ptr<TextEngine::DynamicFontProvider> dfprovider_ = nullptr;
+    std::shared_ptr<TextEngine::ThemeFontProvider> tfprovider_ = nullptr;
     bool disableSystemFont_ = false;
 };
 } // namespace AdapterTextEngine

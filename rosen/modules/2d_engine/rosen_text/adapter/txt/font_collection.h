@@ -35,6 +35,7 @@ public:
     void DisableFallback() override;
     void DisableSystemFont() override;
     void LoadFont(const std::string &familyName, const uint8_t *data, size_t datalen) override;
+    void LoadThemeFont(const std::string &familyName, const uint8_t *data, size_t datalen) override;
 
 private:
     std::shared_ptr<txt::FontCollection> fontCollection_ = nullptr;
