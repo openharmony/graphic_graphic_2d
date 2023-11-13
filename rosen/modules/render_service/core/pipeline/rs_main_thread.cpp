@@ -95,7 +95,7 @@
 #include "socperf_client.h"
 #endif
 
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
 #include "pipeline/driven_render/rs_driven_render_manager.h"
 #endif
 
@@ -243,7 +243,7 @@ void RSMainThread::Init()
         ApplyModifiers();
         ProcessHgmFrameRate(timestamp_);
         CollectInfoForHardwareComposer();
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
         CollectInfoForDrivenRender();
 #endif
         Render();
@@ -342,7 +342,7 @@ void RSMainThread::Init()
 #endif
 #endif
     RSInnovation::OpenInnovationSo();
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
     RSDrivenRenderManager::InitInstance();
     RSBackgroundThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext().get());
 #endif
@@ -1019,7 +1019,7 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
 
 void RSMainThread::CollectInfoForDrivenRender()
 {
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
     hasDrivenNodeOnUniTree_ = false;
     hasDrivenNodeMarkRender_ = false;
     if (!isUniRender_ || !RSSystemProperties::GetHardwareComposerEnabled() ||
@@ -1185,7 +1185,7 @@ bool RSMainThread::WaitUntilDisplayNodeBufferReleased(RSDisplayRenderNode& node)
 
 void RSMainThread::WaitUtilDrivenRenderFinished()
 {
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
     std::unique_lock<std::mutex> lock(drivenRenderMutex_);
     if (drivenRenderFinished_) {
         return;
@@ -1274,7 +1274,7 @@ void RSMainThread::NotifyDisplayNodeBufferReleased()
 
 void RSMainThread::NotifyDrivenRenderFinish()
 {
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
     if (std::this_thread::get_id() != Id()) {
         std::lock_guard<std::mutex> lock(drivenRenderMutex_);
         drivenRenderFinished_ = true;
@@ -1310,7 +1310,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
     UpdateUIFirstSwitch();
     auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
     uniVisitor->SetDrivenRenderFlag(hasDrivenNodeOnUniTree_, hasDrivenNodeMarkRender_);
 #endif
     uniVisitor->SetHardwareEnabledNodes(hardwareEnabledNodes_);

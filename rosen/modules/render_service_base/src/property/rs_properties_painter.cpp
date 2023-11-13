@@ -2045,7 +2045,7 @@ void RSPropertiesPainter::DrawMask(const RSProperties& properties, Drawing::Canv
 #ifndef USE_ROSEN_DRAWING
 RectF RSPropertiesPainter::GetCmdsClipRect(DrawCmdListPtr& cmds)
 {
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
     RectF clipRect;
     if (cmds == nullptr) {
         return clipRect;
@@ -2074,7 +2074,7 @@ void RSPropertiesPainter::DrawFrameForDriven(const RSProperties& properties, RSP
                                              Drawing::DrawCmdListPtr& cmds)
 #endif
 {
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
     if (cmds == nullptr) {
         return;
     }
