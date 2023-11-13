@@ -64,7 +64,7 @@ group("unittest") {
       ":RSSubThreadTest",
     ]
   }
-  if (rs_enable_driven_render && rs_enable_gpu) {
+  if (rs_enable_driven_render) {
     deps += [
       ":RSDrivenRenderExtTest",
       ":RSDrivenRenderManagerTest",

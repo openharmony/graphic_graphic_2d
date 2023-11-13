@@ -125,7 +125,7 @@ HWTEST_F(RSCanvasRenderNodeTest, ProcessDrivenBackgroundRenderTest, TestSize.Lev
     std::weak_ptr<RSContext> context;
     RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
     rsCanvasRenderNode.ProcessDrivenBackgroundRender(*canvas_);
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
     EXPECT_EQ(rsCanvasRenderNode.GetChildrenCount(), 0);
 #endif
 }
