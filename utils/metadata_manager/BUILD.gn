@@ -57,5 +57,4 @@ group("test") {
   testonly = true
   deps = [ "test:test" ]
 }
-
 ## Build metadata_manager.so }}}
