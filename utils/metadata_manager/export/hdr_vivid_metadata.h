@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#ifndef UTILS_METADATA_MANAGER_EXPORT_HDR_VIVID_METADATA_H
+#define UTILS_METADATA_MANAGER_EXPORT_HDR_VIVID_METADATA_H
+
 struct HdrVividMetadataV1 {
     unsigned int systemStartCode;
     unsigned int minimumMaxRgbPq;
@@ -43,3 +46,5 @@ struct HdrVividMetadataV1 {
     unsigned int colorSaturationNum;
     unsigned int colorSaturationGain[16];
 };
+
+#endif // UTILS_METADATA_MANAGER_EXPORT_HDR_VIVID_METADATA_H
