@@ -3356,6 +3356,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         node.SetGrContext(grContext);
 #else
     Drawing::GPUContext* gpuContext = renderEngine_->GetRenderContext()->GetDrGPUContext();
+    RSTagTracker tagTracker(gpuContext, node.GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE);
     node.SetDrawingGPUContext(gpuContext);
 #endif
 #endif
@@ -3629,6 +3630,8 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 
         Drawing::Brush brush;
         RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, brush);
+        RSTagTracker tagTracker(renderEngine_->GetRenderContext()->GetDrGPUContext(),
+                                RSTagTracker::TAG_SAVELAYER_COLOR_FILTER);
         Drawing::SaveLayerOps saveLayerOps(nullptr, &brush);
         saveCount = canvas_->GetSaveCount();
         canvas_->SaveLayer(saveLayerOps);
