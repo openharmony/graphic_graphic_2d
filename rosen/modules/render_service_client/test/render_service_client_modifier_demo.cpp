@@ -439,7 +439,8 @@ int main()
     int64_t startNum = 80825861106;
     bool hasRunningAnimation = true;
     while (hasRunningAnimation) {
-        hasRunningAnimation = rsUiDirector->RunningCustomAnimation(startNum);
+        hasRunningAnimation = rsUiDirector->FlushAnimation(startNum);
+        rsUiDirector->FlushModifier();
         rsUiDirector->SendMessages();
         startNum += 100000000;
         usleep(100000);
@@ -451,7 +452,8 @@ int main()
     nodeModifier->SetAlpha(1);
     nodeModifier->SetScale(Vector2f(1.f, 1.f));
     nodeModifier->SetColor(Color(0, 255, 0));
-    rsUiDirector->RunningCustomAnimation(0);
+    rsUiDirector->FlushAnimation(0);
+    rsUiDirector->FlushModifier();
     rsUiDirector->SendMessages();
     sleep(3);
 
@@ -466,7 +468,8 @@ int main()
 
     hasRunningAnimation = true;
     while (hasRunningAnimation) {
-        hasRunningAnimation = rsUiDirector->RunningCustomAnimation(startNum);
+        hasRunningAnimation = rsUiDirector->FlushAnimation(startNum);
+        rsUiDirector->FlushModifier();
         rsUiDirector->SendMessages();
         startNum += 100000000;
         usleep(100000);

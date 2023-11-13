@@ -206,7 +206,8 @@ HWTEST_F(RSUIDirectorTest, SetProperty001, TestSize.Level1)
     director->SetAbilityBGAlpha(0);
     director->SetContainerWindow(true, 1.f);
     director->SetAppFreeze(true);
-    director->RunningCustomAnimation(10);
+    director->FlushAnimation(10);
+    director->FlushModifier();
 }
 
 /**

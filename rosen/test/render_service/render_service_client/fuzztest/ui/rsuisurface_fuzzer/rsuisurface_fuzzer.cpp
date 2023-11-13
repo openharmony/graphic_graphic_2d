@@ -105,7 +105,8 @@ bool RSUIDirectorFuzzTest(const uint8_t* data, size_t size)
     uiDirector->SetRoot(root);
     uiDirector->SetTimeStamp(timeStamp, abilityName);
     uiDirector->SetCacheDir(cacheFilePath);
-    uiDirector->RunningCustomAnimation(timeStamp);
+    uiDirector->FlushAnimation(timeStamp);
+    uiDirector->FlushModifier();
     uiDirector->SetAppFreeze(isAppFreeze);
 
     return true;
