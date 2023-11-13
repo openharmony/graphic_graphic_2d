@@ -121,7 +121,7 @@ const std::vector<ResetPropertyFunc> g_propertyResetterLUT = {
 
 // Only enable filter cache when uni-render is enabled and filter cache is enabled
 
-#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 const bool RSProperties::FilterCacheEnabled =
     RSSystemProperties::GetFilterCacheEnabled() && RSUniRenderJudgement::IsUniRender();
 #endif
@@ -2237,7 +2237,7 @@ std::string RSProperties::Dump() const
     return dumpInfo;
 }
 
-#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 void RSProperties::CreateFilterCacheManagerIfNeed()
 {
     if (!FilterCacheEnabled) {
@@ -2316,7 +2316,7 @@ void RSProperties::OnApplyModifiers()
         }
         needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
                       IsDynamicLightUpValid();
-#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
         CreateFilterCacheManagerIfNeed();
 #endif
     }

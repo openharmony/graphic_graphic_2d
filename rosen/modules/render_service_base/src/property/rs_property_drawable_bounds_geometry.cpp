@@ -867,7 +867,7 @@ void RSFilterDrawable::DrawFilter(
         canvas.SetAlpha(1.0);
     }
 
-#if defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
     if (auto& cacheManager = properties.GetFilterCacheManager(filterType == FilterType::FOREGROUND_FILTER);
         cacheManager != nullptr && !canvas.GetDisableFilterCache()) {
@@ -1240,7 +1240,7 @@ void RSEffectDataGenerateDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas&
     }
 
     auto filter = std::static_pointer_cast<RSSkiaFilter>(filter_);
-#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     // Optional use cacheManager to draw filter
     if (auto& cacheManager = properties.GetFilterCacheManager(false);
         cacheManager != nullptr && !canvas.GetDisableFilterCache()) {

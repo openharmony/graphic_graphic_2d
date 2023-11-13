@@ -15,7 +15,7 @@
 
 #include "property/rs_filter_cache_manager.h"
 
-#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include "include/gpu/GrBackendSurface.h"
 #include "src/image/SkImage_Base.h"
 
@@ -155,8 +155,13 @@ bool RSFilterCacheManager::RSFilterCacheTask::Render()
         return false;
     }
 #ifndef USE_ROSEN_DRAWING
+#ifdef RS_ENABLE_VK
+    auto surfaceOrigin = kTopLeft_GrSurfaceOrigin;
+#else
+    auto surfaceOrigin = kBottomLeft_GrSurfaceOrigin;
+#endif
     auto threadImage = SkImage::MakeFromTexture(cacheCanvas->recordingContext(), cacheBackendTexture_,
-        kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
+        surfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
     auto src = SkRect::MakeSize(SkSize::Make(surfaceSize_));
     auto dst = SkRect::MakeSize(SkSize::Make(surfaceSize_));
 #else
