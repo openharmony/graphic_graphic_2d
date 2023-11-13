@@ -36,6 +36,7 @@
 #include "skia_adapter/skia_picture.h"
 #include "skia_adapter/skia_region.h"
 #include "skia_adapter/skia_shader_effect.h"
+#include "skia_adapter/skia_runtime_effect.h"
 #include "skia_adapter/skia_surface.h"
 #include "skia_adapter/skia_text_blob_builder.h"
 #include "skia_adapter/skia_trace_memory_dump.h"
@@ -120,6 +121,11 @@ std::unique_ptr<ImageFilterImpl> SkiaImplFactory::CreateImageFilter()
 std::unique_ptr<ShaderEffectImpl> SkiaImplFactory::CreateShaderEffect()
 {
     return std::make_unique<SkiaShaderEffect>();
+}
+
+std::unique_ptr<RuntimeEffectImpl> SkiaImplFactory::CreateRuntimeEffect()
+{
+    return std::make_unique<SkiaRuntimeEffect>();
 }
 
 std::unique_ptr<SurfaceImpl> SkiaImplFactory::CreateSurface()

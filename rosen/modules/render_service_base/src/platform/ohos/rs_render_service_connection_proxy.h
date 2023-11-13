@@ -42,13 +42,15 @@ public:
     sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) override;
 
     virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,
-                                                         const sptr<VSyncIConnectionToken>& token) override;
+                                                         const sptr<VSyncIConnectionToken>& token,
+                                                         uint64_t id = 0) override;
 
     int32_t SetFocusAppInfo(
         int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
         uint64_t focusNodeId) override;
 
     ScreenId GetDefaultScreenId() override;
+    ScreenId GetActiveScreenId() override;
 
     std::vector<ScreenId> GetAllScreenIds() override;
 
@@ -72,6 +74,8 @@ public:
     void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate) override;
 
     void SetRefreshRateMode(int32_t refreshRateMode) override;
+
+    void SyncFrameRateRange(const FrameRateRange& range) override;
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) override;
 

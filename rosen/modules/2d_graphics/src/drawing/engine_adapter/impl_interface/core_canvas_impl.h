@@ -132,6 +132,7 @@ public:
     virtual void ClipPath(const Path& path, ClipOp op, bool doAntiAlias = false) = 0;
     virtual void ClipRegion(const Region& region, ClipOp op = ClipOp::INTERSECT) = 0;
     virtual bool IsClipEmpty() = 0;
+    virtual bool IsClipRect() = 0;
     virtual bool QuickReject(const Rect& rect) = 0;
 
     // transform

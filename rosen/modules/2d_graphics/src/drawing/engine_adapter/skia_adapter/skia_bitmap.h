@@ -53,6 +53,9 @@ public:
     void Free() override;
     bool IsValid() const override;
 
+    std::shared_ptr<Data> Serialize() const override;
+    bool Deserialize(std::shared_ptr<Data> data) override;
+    
 private:
     SkBitmap skiaBitmap_;
 };

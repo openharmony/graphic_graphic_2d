@@ -33,6 +33,8 @@
 #include <screen_manager/screen_types.h>
 #include <screen_manager/rs_virtual_screen_resolution.h>
 #include <surface.h>
+#include "sensor_agent.h"
+#include "sensor_agent_type.h"
 
 #include "rs_screen.h"
 
@@ -161,6 +163,9 @@ public:
 
     virtual int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) = 0;
 
+    virtual void HandlePostureData(const SensorEvent * const event) = 0;
+
+    virtual ScreenId GetActiveScreenId() const = 0;
     /* only used for mock tests */
     virtual void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) = 0;
 };
@@ -171,6 +176,12 @@ namespace impl {
 struct ScreenHotPlugEvent {
     std::shared_ptr<HdiOutput> output;
     bool connected = false;
+};
+
+enum class FoldState : uint32_t {
+    UNKNOW,
+    FOLDED,
+    EXPAND
 };
 
 class RSScreenManager : public OHOS::Rosen::RSScreenManager {
@@ -269,6 +280,10 @@ public:
     int32_t GetScreenType(ScreenId id, RSScreenType& type) const override;
 
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) override;
+
+    void HandlePostureData(const SensorEvent * const event) override;
+
+    ScreenId GetActiveScreenId() const override;
     
     /* only used for mock tests */
     void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) override
@@ -319,6 +334,11 @@ private:
     int32_t GetScreenTypeLocked(ScreenId id, RSScreenType& type) const;
     int32_t SetScreenSkipFrameIntervalLocked(ScreenId id, uint32_t skipFrameInterval);
 
+    void RegisterSensorCallback();
+    void UnRegisterSensorCallback();
+    void HandleSensorData(float angle);
+    FoldState TransferAngleToScreenState(float angle);
+
     mutable std::mutex mutex_;
     HdiBackend *composer_ = nullptr;
     ScreenId defaultScreenId_ = INVALID_SCREEN_ID;
@@ -334,6 +354,12 @@ private:
 
     static std::once_flag createFlag_;
     static sptr<OHOS::Rosen::RSScreenManager> instance_;
+
+    SensorUser user;
+    bool isFoldScreenFlag_ = false;
+    ScreenId innerScreenId_ = 0;
+    ScreenId externalScreenId_ = INVALID_SCREEN_ID;
+    ScreenId activeScreenId_ = 0;
 };
 } // namespace impl
 } // namespace Rosen

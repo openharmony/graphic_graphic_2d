@@ -164,13 +164,13 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkData>& val)
         val = SkData::MakeEmpty();
         return true;
     }
-
-    const void* data = RSMarshallingHelper::ReadFromParcel(parcel, size);
+    bool isMalloc = false;
+    const void* data = RSMarshallingHelper::ReadFromParcel(parcel, size, isMalloc);
     if (data == nullptr) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling SkData");
         return false;
     }
-    if (static_cast<uint32_t>(size) < MIN_DATA_SIZE || (!g_useSharedMem && g_tid == std::this_thread::get_id())) {
+    if (!isMalloc) {
         val = SkData::MakeWithoutCopy(data, size);
     } else {
         val = SkData::MakeFromMalloc(data, size);
@@ -231,13 +231,14 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         return true;
     }
 
-    const void* data = RSMarshallingHelper::ReadFromParcel(parcel, size);
+    bool isMalloc = false;
+    const void* data = RSMarshallingHelper::ReadFromParcel(parcel, size, isMalloc);
     if (data == nullptr) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Data");
         return false;
     }
 
-    if (static_cast<uint32_t>(size) < MIN_DATA_SIZE) {
+    if (!isMalloc) {
         val->BuildWithoutCopy(data, size);
     } else {
         val->BuildFromMalloc(data, size);
@@ -484,6 +485,7 @@ static void sk_free_releaseproc(const void* ptr, void*)
 {
     MemoryTrack::Instance().RemovePictureRecord(ptr);
     free(const_cast<void*>(ptr));
+    ptr = nullptr;
 }
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val)
@@ -511,7 +513,8 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val, voi
         return val != nullptr;
     } else {
         size_t pixmapSize = parcel.ReadUint32();
-        const void* addr = RSMarshallingHelper::ReadFromParcel(parcel, pixmapSize);
+        bool isMalloc = false;
+        const void* addr = RSMarshallingHelper::ReadFromParcel(parcel, pixmapSize, isMalloc);
         if (addr == nullptr) {
             ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling SkData addr");
             return false;
@@ -529,15 +532,17 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val, voi
         if (size == 0) {
             colorSpace = nullptr;
         } else {
-            const void* data = RSMarshallingHelper::ReadFromParcel(parcel, size);
+            bool isMal = false;
+            const void* data = RSMarshallingHelper::ReadFromParcel(parcel, size, isMal);
             if (data == nullptr) {
                 ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling SkData data");
                 return false;
             }
             colorSpace = SkColorSpace::Deserialize(data, size);
 
-            if (size >= MIN_DATA_SIZE && (g_useSharedMem || g_tid != std::this_thread::get_id())) {
+            if (isMal) {
                 free(const_cast<void*>(data));
+                data = nullptr;
             }
         }
 
@@ -550,7 +555,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val, voi
                 : SkData::MakeWithProc(addr, pixmapSize, sk_free_releaseproc, nullptr);
         val = SkImage::MakeRasterData(imageInfo, skData, rb);
         // add to MemoryTrack for memoryManager
-        if (pixmapSize >= MIN_DATA_SIZE && (g_useSharedMem || g_tid != std::this_thread::get_id())) {
+        if (isMalloc) {
             MemoryInfo info = { pixmapSize, 0, 0, MEMORY_TYPE::MEM_SKIMAGE };
             MemoryTrack::Instance().AddPictureRecord(addr, info);
             imagepixelAddr = const_cast<void*>(addr);
@@ -559,6 +564,46 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val, voi
     }
 }
 #else
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const Drawing::Bitmap& val)
+{
+    Drawing::BitmapFormat bitmapFormat = val.GetFormat();
+    Marshalling(parcel, bitmapFormat);
+
+    std::shared_ptr<Drawing::Data> data = val.Serialize();
+
+    if (!data) {
+        ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling Bitmap is nullptr");
+        return false;
+    }
+    Marshalling(parcel, data);
+
+    return true;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::Bitmap& val)
+{
+    Drawing::BitmapFormat bitmapFormat;
+    if (!Unmarshalling(parcel, bitmapFormat)) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling read BitmapFormat in Bitmap failed");
+        return false;
+    }
+
+    val.SetFormat(bitmapFormat);
+
+    std::shared_ptr<Drawing::Data> data;
+    if (!Unmarshalling(parcel, data) || !data) {
+        ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling Drawing::Bitmap");
+        return false;
+    }
+    
+    if (!val.Deserialize(data)) {
+        ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling Drawing::Bitmap Deserialize");
+        return false;
+    }
+
+    return true;
+}
+
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::Image>& val)
 {
     if (!val) {
@@ -798,7 +843,8 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SkBitmap& val)
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkBitmap& val)
 {
     size_t pixmapSize = parcel.ReadUint32();
-    const void* addr = RSMarshallingHelper::ReadFromParcel(parcel, pixmapSize);
+    bool isMalloc = false;
+    const void* addr = RSMarshallingHelper::ReadFromParcel(parcel, pixmapSize, isMalloc);
     if (addr == nullptr) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling read SkBitmap addr failed");
         return false;
@@ -816,15 +862,17 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SkBitmap& val)
     if (size == 0) {
         colorSpace = nullptr;
     } else {
-        const void* data = RSMarshallingHelper::ReadFromParcel(parcel, size);
+        bool isMal = false;
+        const void* data = RSMarshallingHelper::ReadFromParcel(parcel, size, isMal);
         if (data == nullptr) {
             ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling read SkBitmap data failed");
             return false;
         }
         colorSpace = SkColorSpace::Deserialize(data, size);
 
-        if (size >= MIN_DATA_SIZE && (g_useSharedMem || g_tid != std::this_thread::get_id())) {
+        if (isMal) {
             free(const_cast<void*>(data));
+            data = nullptr;
         }
     }
 
@@ -989,12 +1037,17 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSShader
         return true;
     }
 
-    const void* data = RSMarshallingHelper::ReadFromParcel(parcel, size);
+    bool isMalloc = false;
+    const void* data = RSMarshallingHelper::ReadFromParcel(parcel, size, isMalloc);
     if (data == nullptr) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling RSShader");
         return false;
     }
     auto shaderEffectCmdList = Drawing::ShaderEffectCmdList::CreateFromData({ data, size }, true);
+    if (isMalloc) {
+        free(const_cast<void*>(data));
+        data = nullptr;
+    }
     if (shaderEffectCmdList == nullptr) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling RSShader shader effect cmdlist is nullptr");
         return false;
@@ -1021,7 +1074,8 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const Drawing::Matrix& val
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::Matrix& val)
 {
     int32_t size = parcel.ReadInt32();
-    auto data = static_cast<const Drawing::scalar*>(RSMarshallingHelper::ReadFromParcel(parcel, size));
+    bool isMalloc = false;
+    auto data = static_cast<const Drawing::scalar*>(RSMarshallingHelper::ReadFromParcel(parcel, size, isMalloc));
     if (data == nullptr) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Drawing::Matrix");
         return false;
@@ -1415,12 +1469,17 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSPath>&
         val = RSPath::CreateRSPath();
         return true;
     }
-    const void* data = RSMarshallingHelper::ReadFromParcel(parcel, size);
+    bool isMalloc = false;
+    const void* data = RSMarshallingHelper::ReadFromParcel(parcel, size, isMalloc);
     if (data == nullptr) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling RSPath");
         return false;
     }
     auto pathCmdList = Drawing::PathCmdList::CreateFromData({ data, size }, true);
+    if (isMalloc) {
+        free(const_cast<void*>(data));
+        data = nullptr;
+    }
     if (pathCmdList == nullptr) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling RSPath path cmdlist is nullptr");
         return false;
@@ -1746,13 +1805,18 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         return true;
     }
 
-    const void* data = RSMarshallingHelper::ReadFromParcel(parcel, size);
+    bool isMalloc = false;
+    const void* data = RSMarshallingHelper::ReadFromParcel(parcel, size, isMalloc);
     if (data == nullptr) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Drawing::DrawCmdList");
         return false;
     }
 
     val = Drawing::DrawCmdList::CreateFromData({ data, size }, true);
+    if (isMalloc) {
+        free(const_cast<void*>(data));
+        data = nullptr;
+    }
     if (val == nullptr) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Drawing::DrawCmdList is nullptr");
         return false;
@@ -1761,12 +1825,17 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
     val->SetHeight(height);
     int32_t imageSize = parcel.ReadInt32();
     if (imageSize > 0) {
-        const void* imageData = RSMarshallingHelper::ReadFromParcel(parcel, imageSize);
+        bool isMal = false;
+        const void* imageData = RSMarshallingHelper::ReadFromParcel(parcel, imageSize, isMal);
         if (imageData == nullptr) {
             ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Drawing::DrawCmdList image is nullptr");
             return false;
         }
         val->SetUpImageData(imageData, imageSize);
+        if (isMal) {
+            free(const_cast<void*>(imageData));
+            imageData = nullptr;
+        }
     }
 
     uint32_t objectSize = parcel.ReadUint32();
@@ -1837,6 +1906,20 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
         return ret;
     }
 
+    auto imageData = val->GetAllImageData();
+    ret &= parcel.WriteInt32(imageData.second);
+    if (!ret) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::MaskCmdList image size");
+        return ret;
+    }
+    if (imageData.second > 0) {
+        ret &= RSMarshallingHelper::WriteToParcel(parcel, imageData.first, imageData.second);
+        if (!ret) {
+            ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::MaskCmdList image");
+            return ret;
+        }
+    }
+
     return ret;
 }
 
@@ -1851,17 +1934,33 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         return true;
     }
 
-    const void* data = RSMarshallingHelper::ReadFromParcel(parcel, size);
+    bool isMalloc = false;
+    const void* data = RSMarshallingHelper::ReadFromParcel(parcel, size, isMalloc);
     if (data == nullptr) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Drawing::MaskCmdList");
         return false;
     }
 
     val = Drawing::MaskCmdList::CreateFromData({ data, size }, true);
+    if (isMalloc) {
+        free(const_cast<void*>(data));
+        data = nullptr;
+    }
     if (val == nullptr) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Drawing::MaskCmdList is nullptr");
         return false;
     }
+
+    int32_t imageSize = parcel.ReadInt32();
+    if (imageSize > 0) {
+        const void* imageData = RSMarshallingHelper::ReadFromParcel(parcel, imageSize);
+        if (imageData == nullptr) {
+            ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Drawing::MaskCmdList image is nullptr");
+            return false;
+        }
+        val->SetUpImageData(imageData, imageSize);
+    }
+
     return true;
 }
 #endif
@@ -2101,7 +2200,7 @@ bool RSMarshallingHelper::WriteToParcel(Parcel& parcel, const void* data, size_t
     return true;
 }
 
-const void* RSMarshallingHelper::ReadFromParcel(Parcel& parcel, size_t size)
+const void* RSMarshallingHelper::ReadFromParcel(Parcel& parcel, size_t size, bool& isMalloc)
 {
     uint32_t bufferSize = parcel.ReadUint32();
     if (static_cast<unsigned int>(bufferSize) != size) {
@@ -2110,6 +2209,7 @@ const void* RSMarshallingHelper::ReadFromParcel(Parcel& parcel, size_t size)
     }
     if (static_cast<unsigned int>(bufferSize) < MIN_DATA_SIZE  ||
         (!g_useSharedMem && g_tid == std::this_thread::get_id())) {
+        isMalloc = false;
         return parcel.ReadUnpadBuffer(size);
     }
     // read from ashmem
@@ -2119,6 +2219,7 @@ const void* RSMarshallingHelper::ReadFromParcel(Parcel& parcel, size_t size)
         ROSEN_LOGE("RSMarshallingHelper::ReadFromParcel CreateAshmemAllocator fail");
         return nullptr;
     }
+    isMalloc = true;
     return ashmemAllocator->CopyFromAshmem(size);
 }
 

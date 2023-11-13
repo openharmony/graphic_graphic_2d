@@ -118,6 +118,12 @@ void Matrix::GetAll(Buffer& buffer) const
 {
     matrixImplPtr->GetAll(buffer);
 }
+
+bool Matrix::IsIdentity() const
+{
+    return matrixImplPtr->IsIdentity();
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

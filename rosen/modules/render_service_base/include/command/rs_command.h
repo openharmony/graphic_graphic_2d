@@ -40,6 +40,7 @@ enum RSCommandType : uint16_t {
     ANIMATION,
     // read showing properties (deprecated, will be removed later)
     RS_NODE_SYNCHRONOUS_READ_PROPERTY,
+    FRAME_RATE_LINKER,
 };
 
 // [attention]

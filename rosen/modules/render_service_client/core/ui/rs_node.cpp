@@ -1436,6 +1436,12 @@ void RSNode::AddFRCSceneInfo(const std::string& scene, float speed)
     UpdateUIFrameRateRange(range);
 }
 
+int32_t RSNode::CalcExpectedFrameRate(const std::string& scene, float speed)
+{
+    auto preferredFps = RSFrameRatePolicy::GetInstance()->GetPreferredFps(scene, speed);
+    return preferredFps;
+}
+
 void RSNode::UpdateUIFrameRateRange(const FrameRateRange& range)
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSUpdateUIFrameRateRange>(GetId(), range);

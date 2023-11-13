@@ -29,6 +29,7 @@ public:
     static void DumpMemoryStatistics(SkTraceMemoryDump* dump);
     static size_t GetResourceCacheTotalByteLimit();
     static size_t GetFontCacheLimit();
+    static void PurgeResourceCache();
 };
 }
 }

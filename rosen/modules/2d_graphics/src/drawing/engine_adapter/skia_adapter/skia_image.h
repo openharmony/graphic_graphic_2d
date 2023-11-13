@@ -80,6 +80,9 @@ public:
         bool allowCachingHint = true) const override;
     std::shared_ptr<Data> EncodeToData(EncodedImageFormat& encodedImageFormat, int quality) const override;
     bool IsLazyGenerated() const override;
+    std::shared_ptr<Image> MakeRasterImage() const override;
+    bool CanPeekPixels() const override;
+
     bool IsOpaque() const override;
 
     const sk_sp<SkImage> GetImage() const;

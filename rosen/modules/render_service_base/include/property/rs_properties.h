@@ -407,8 +407,6 @@ private:
 
     std::unique_ptr<Sandbox> sandbox_ = nullptr;
 
-    int blendMode_ = static_cast<int>(RSColorBlendModeType::NONE);
-
     friend class RSBackgroundImageDrawable;
     friend class RSCanvasRenderNode;
     friend class RSColorfulShadowDrawable;

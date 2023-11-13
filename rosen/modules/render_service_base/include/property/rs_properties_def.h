@@ -64,6 +64,12 @@ enum class OutOfParentType {
     UNKNOWN
 };
 
+enum class RSColorBlendModeType : int16_t {
+    NONE = 0,
+    DST_IN,
+    SRC_IN,
+};
+
 class Decoration final {
 public:
     Decoration() {}

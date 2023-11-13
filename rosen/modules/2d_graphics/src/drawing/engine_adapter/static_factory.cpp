@@ -38,6 +38,34 @@ std::shared_ptr<Typeface> StaticFactory::MakeFromFile(const char path[])
 {
     return EngineStaticFactory::MakeFromFile(path);
 }
+
+#ifdef ACE_ENABLE_GPU
+std::shared_ptr<Surface> StaticFactory::MakeRenderTarget(GPUContext* gpuContext,
+    bool budgeted, const ImageInfo& imageInfo)
+{
+    return EngineStaticFactory::MakeRenderTarget(gpuContext, budgeted, imageInfo);
+}
+#endif
+
+std::shared_ptr<Surface> StaticFactory::MakeRaster(const ImageInfo& imageInfo)
+{
+    return EngineStaticFactory::MakeRaster(imageInfo);
+}
+
+std::shared_ptr<Surface> StaticFactory::MakeRasterDirect(const ImageInfo& imageInfo, void* pixels, size_t rowBytes)
+{
+    return EngineStaticFactory::MakeRasterDirect(imageInfo, pixels, rowBytes);
+}
+
+std::shared_ptr<Surface> StaticFactory::MakeRasterN32Premul(int32_t width, int32_t height)
+{
+    return EngineStaticFactory::MakeRasterN32Premul(width, height);
+}
+
+std::shared_ptr<TextBlob> StaticFactory::DeserializeTextBlob(const void* data, size_t size)
+{
+    return EngineStaticFactory::DeserializeTextBlob(data, size);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

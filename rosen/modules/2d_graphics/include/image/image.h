@@ -176,6 +176,7 @@ public:
     Image() noexcept;
     // constructor adopt a raw image ptr, using for ArkUI, should remove after enable multi-media image decode.
     explicit Image(void* rawImg) noexcept;
+    explicit Image(std::shared_ptr<ImageImpl> imageImpl);
     virtual ~Image() {};
     Image* BuildFromBitmap(const Bitmap& bitmap);
     Image* BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix, const Brush& brush,
@@ -269,6 +270,10 @@ public:
     std::shared_ptr<Data> EncodeToData(EncodedImageFormat& encodedImageFormat, int quality) const;
 
     bool IsLazyGenerated() const;
+
+    std::shared_ptr<Image> MakeRasterImage() const;
+
+    bool CanPeekPixels() const;
 
     /*
      * @brief   Returns true the contents of Image was created on or uploaded to GPU memory,

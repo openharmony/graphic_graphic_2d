@@ -17,9 +17,10 @@
 #define BITMAPIMPL_H
 
 #include "base_impl.h"
-
 #include "draw/color.h"
 #include "image/image_info.h"
+#include "utils/data.h"
+#include "utils/rect.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -47,6 +48,8 @@ public:
     virtual ColorQuad GetColor(int x, int y) const = 0;
     virtual void Free() = 0;
     virtual bool IsValid() const = 0;
+    virtual std::shared_ptr<Data> Serialize() const = 0;
+    virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

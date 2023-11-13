@@ -69,6 +69,8 @@ public:
         bool allowCachingHint = true) const = 0;
     virtual std::shared_ptr<Data> EncodeToData(EncodedImageFormat& encodedImageFormat, int quality) const = 0;
     virtual bool IsLazyGenerated() const = 0;
+    virtual std::shared_ptr<Image> MakeRasterImage() const = 0;
+    virtual bool CanPeekPixels() const = 0;
     virtual bool IsOpaque() const = 0;
 
 

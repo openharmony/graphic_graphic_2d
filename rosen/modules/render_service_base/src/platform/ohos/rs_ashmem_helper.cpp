@@ -242,6 +242,7 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::CreateAshmemParcel(std::shared_pt
         ashmemParcel->WriteBuffer(
             reinterpret_cast<void*>(dataParcel->GetObjectOffsets()), sizeof(binder_size_t) * offsetSize);
         // save all fds of origin parcel
+        ROSEN_LOGD("CreateAshmemParcel invoke CopyFileDescriptor, offsetSize:%{public}zu", offsetSize);
         CopyFileDescriptor(ashmemParcel.get(), dataParcel);
     }
 

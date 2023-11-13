@@ -44,10 +44,9 @@ constexpr PropertyId ANONYMOUS_MODIFIER_ID = 0;
 
 static inline SkBlendMode ConvertToSkBlendMode(int blendMode)
 {
-    static const std::unordered_map<int, SkBlendMode> skBlendModeLUT = 
-    {
-        { static_cast<int>(RSColorBlendModeType::DST_IN), SkBlendMode::kDstIn },
-        { static_cast<int>(RSColorBlendModeType::SRC_IN), SkBlendMode::kSrcIn }
+    static const std::unordered_map<int, SkBlendMode> skBlendModeLUT = {
+        {static_cast<int>(RSColorBlendModeType::DST_IN), SkBlendMode::kDstIn},
+        {static_cast<int>(RSColorBlendModeType::SRC_IN), SkBlendMode::kSrcIn}
     };
 
     auto iter = skBlendModeLUT.find(blendMode);
@@ -145,13 +144,16 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
     ApplyDrawCmdModifier(context, RSModifierType::TRANSITION);
     ApplyDrawCmdModifier(context, RSModifierType::ENV_FOREGROUND_COLOR);
     RSPropertiesPainter::DrawShadow(GetRenderProperties(), canvas);
-
     // Inter-UI component blur & blending effect -- An empty layer
     int blendMode = GetRenderProperties().GetColorBlendMode();
     if (blendMode != static_cast<int>(RSColorBlendModeType::NONE)) {
+#ifndef USE_ROSEN_DRAWING
         canvas.saveLayer(nullptr, nullptr);
+#else
+        Drawing::SaveLayerOps slr(nullptr, nullptr, Drawing::SaveLayerOps::Flags::INIT_WITH_PREVIOUS);
+        canvas.SaveLayer(slr);
+#endif
     }
-
     // In NEW_SKIA version, L96 code will cause dump if the 3rd parameter is true.
 #ifdef NEW_SKIA
     RSPropertiesPainter::DrawBackground(GetRenderProperties(), canvas, false);
@@ -192,7 +194,6 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
         RSPropertiesPainter::Clip(canvas, GetRenderProperties().GetFrameRect());
 #endif
     }
-
     // Inter-UI component blur & blending effect -- A Mask layer
     if (blendMode != static_cast<int>(RSColorBlendModeType::NONE)) {
         SkBlendMode skBlendMode = ConvertToSkBlendMode(blendMode);

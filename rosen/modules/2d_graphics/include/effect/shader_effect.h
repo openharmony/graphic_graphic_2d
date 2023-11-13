@@ -88,7 +88,6 @@ public:
     ShaderEffect(ShaderEffectType t, const Point& centerPt, const std::vector<ColorQuad>& colors,
         const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle) noexcept;
 
-protected:
     ShaderEffect() noexcept;
 
 private:

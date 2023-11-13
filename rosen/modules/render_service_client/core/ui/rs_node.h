@@ -19,6 +19,7 @@
 
 #include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_animation_timing_protocol.h"
+#include "animation/rs_frame_rate_range.h"
 #include "animation/rs_motion_path_option.h"
 #include "animation/rs_particle_params.h"
 #include "animation/rs_transition_effect.h"
@@ -322,6 +323,8 @@ public:
     void AddFRCSceneInfo(const std::string& scene, float speed);
 
     void UpdateUIFrameRateRange(const FrameRateRange& range);
+
+    int32_t CalcExpectedFrameRate(const std::string& scene, float speed);
 
     void SetOutOfParent(OutOfParentType outOfParent);
 protected:

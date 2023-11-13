@@ -74,7 +74,8 @@ void DrawCmdList::SetHeight(int32_t height)
 bool DrawCmdList::IsEmpty() const
 {
     uint32_t offset = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
-    if (width_ <= 0 || height_ <= 0 || opAllocator_.GetSize() <= offset) {
+    if (width_ <= 0 || height_ <= 0 ||
+        (opAllocator_.GetSize() <= offset && unmarshalledOpItems_.size() == 0)) {
         return true;
     }
     return false;
@@ -92,7 +93,8 @@ void DrawCmdList::UnmarshallingOps()
         void* itemPtr = opAllocator_.OffsetToAddr(offset);
         auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
         if (curOpItemPtr != nullptr) {
-            player.Unmarshalling(curOpItemPtr->GetType(), itemPtr);
+            uint32_t type = curOpItemPtr->GetType();
+            unmarshalledOpItems_.emplace_back(player.Unmarshalling(type, itemPtr));
             offset = curOpItemPtr->GetNextOpItemOffset();
         } else {
             LOGE("DrawCmdList::UnmarshallingOps failed, opItem is nullptr");
@@ -104,7 +106,8 @@ void DrawCmdList::UnmarshallingOps()
 void DrawCmdList::Playback(Canvas& canvas, const Rect* rect) const
 {
     uint32_t offset = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
-    if (width_ <= 0 || height_ <= 0 || opAllocator_.GetSize() <= offset) {
+    if (width_ <= 0 || height_ <= 0 ||
+        (opAllocator_.GetSize() <= offset && unmarshalledOpItems_.size() == 0)) {
         return;
     }
 
@@ -113,21 +116,35 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect) const
         tmpRect = *rect;
     }
     CanvasPlayer player = { canvas, *this, tmpRect};
-    do {
-        void* itemPtr = opAllocator_.OffsetToAddr(offset);
-        auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
-        if (curOpItemPtr != nullptr) {
-            if (!player.Playback(curOpItemPtr->GetType(), itemPtr)) {
-                LOGE("DrawCmdList::Playback failed!");
+
+    if (unmarshalledOpItems_.size() == 0) {
+        do {
+            void* itemPtr = opAllocator_.OffsetToAddr(offset);
+            auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
+            if (curOpItemPtr != nullptr) {
+                if (!player.Playback(curOpItemPtr->GetType(), itemPtr)) {
+                    LOGE("DrawCmdList::Playback failed!");
+                    break;
+                }
+                offset = curOpItemPtr->GetNextOpItemOffset();
+            } else {
+                LOGE("DrawCmdList::Playback failed, opItem is nullptr");
                 break;
             }
-
-            offset = curOpItemPtr->GetNextOpItemOffset();
-        } else {
-            LOGE("DrawCmdList::Playback failed, opItem is nullptr");
-            break;
+        } while (offset != 0);
+    } else {
+        for (auto iter = unmarshalledOpItems_.begin(); iter != unmarshalledOpItems_.end(); ++iter) {
+            if ((*iter) != nullptr) {
+                if (!player.Playback((*iter)->GetType(), (*iter).get())) {
+                    LOGE("DrawCmdList::Playback failed!");
+                    break;
+                }
+            } else {
+                LOGE("DrawCmdList::Playback failed, opItem is nullptr");
+                break;
+            }
         }
-    } while (offset != 0);
+    }
 }
 
 } // namespace Drawing

@@ -185,6 +185,8 @@ int32_t XMLParser::ParseParams(xmlNode &node)
         setResult = ParserAnimationDynamicSetting(node, mParsedData_->aceSceneDynamicSetting_);
     } else if (paraName == "refresh_rate_4settings") {
         setResult = ParseSetting(node, mParsedData_->refreshRateForSettings_);
+    } else if (paraName == "LTPO_config") {
+        setResult = ParseSetting(node, mParsedData_->ltpoConfig_);
     } else {
         HGM_LOGE("XMLParser unknown node name encountered");
     }

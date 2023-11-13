@@ -189,8 +189,11 @@ ohos_unittest("surface_buffer_impl_test") {
 
   deps = [ ":surface_test_common" ]
 
+  public_deps = [ "$graphic_2d_root/utils:libgraphic_utils" ]
+
   external_deps = [
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
     "hilog:libhilog",
   ]
 }

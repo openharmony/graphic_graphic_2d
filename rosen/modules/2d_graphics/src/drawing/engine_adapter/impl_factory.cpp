@@ -98,6 +98,11 @@ std::unique_ptr<ShaderEffectImpl> ImplFactory::CreateShaderEffectImpl()
     return EngineImplFactory::CreateShaderEffect();
 }
 
+std::unique_ptr<RuntimeEffectImpl> ImplFactory::CreateRuntimeEffectImpl()
+{
+    return EngineImplFactory::CreateRuntimeEffect();
+}
+
 std::unique_ptr<SurfaceImpl> ImplFactory::CreateSurfaceImpl()
 {
     return EngineImplFactory::CreateSurface();

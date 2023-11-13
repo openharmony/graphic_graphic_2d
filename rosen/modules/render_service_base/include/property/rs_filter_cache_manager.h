@@ -52,6 +52,7 @@ class RSDrawingFilter;
 // Warn: Using filter cache in multi-thread environment may cause GPU memory leak or invalid textures.
 class RSFilterCacheManager final {
 public:
+    static bool SoloTaskPrepare;
     RSFilterCacheManager() = default;
     ~RSFilterCacheManager() = default;
     RSFilterCacheManager(const RSFilterCacheManager&) = delete;
@@ -86,7 +87,7 @@ public:
     // regenerate the cache or reuse the existing cache.
     // Note: If srcRect or dstRect is empty, we'll use the DeviceClipRect as the corresponding rect.
     void DrawFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
-        const std::optional<Drawing::RectI>& srcRect = std::nullopt,
+        const bool needSnapshotOutset = true, const std::optional<Drawing::RectI>& srcRect = std::nullopt,
         const std::optional<Drawing::RectI>& dstRect = std::nullopt);
 
     // This function is similar to DrawFilter(), but instead of drawing anything on the canvas, it simply returns the
@@ -118,6 +119,7 @@ private:
     class RSFilterCacheTask : public RSFilter::RSFilterTask {
     public:
         static const bool FilterPartialRenderEnabled;
+        bool isTaskTooLong = false;
         RSFilterCacheTask() = default;
         virtual ~RSFilterCacheTask() = default;
 #ifndef USE_ROSEN_DRAWING
@@ -149,7 +151,7 @@ private:
 
         GrBackendTexture GetResultTexture() const
         {
-            return resultBackendTexture_;
+            return cacheCompletedBackendTexture_;
         }
 #else
         void InitTask(std::shared_ptr<RSDrawingFilter> filter,
@@ -157,13 +159,13 @@ private:
         {
             filter_ = filter;
             cachedSnapshot_ = cachedSnapshot;
-            cacheBackendTexture_ = cachedSnapshot_->cachedImage_->getBackendTexture(false);
+            cacheBackendTexture_ = cachedSnapshot_->cachedImage_->GetBackendTexture(false, nullptr);
             surfaceSize_ = size;
         }
 
         Drawing::BackendTexture GetResultTexture() const
         {
-            return resultBackendTexture_;
+            return cacheCompletedBackendTexture_;
         }
 #endif
 
@@ -175,12 +177,15 @@ private:
 
         void ResetGrContext()
         {
-            std::unique_lock<std::mutex> lock(parallelRenderMutex_);
+#ifndef USE_ROSEN_DRAWING
             if (cacheSurface_ != nullptr) {
                 GrDirectContext* grContext_ = cacheSurface_->recordingContext()->asDirectContext();
                 cacheSurface_ = nullptr;
                 grContext_->freeGpuResources();
             }
+#else
+// Drawing is not supported
+#endif
         }
 
         bool WaitTaskFinished();
@@ -193,6 +198,22 @@ private:
         std::shared_ptr<OHOS::AppExecFwk::EventHandler> GetHandler()
         {
             return handler_;
+        }
+
+        bool IsCompleted()
+        {
+            return isCompleted_;
+        }
+
+        void SetCompleted(bool val)
+        {
+            isCompleted_ = val;
+        }
+
+        void SawpTexture()
+        {
+            std::unique_lock<std::mutex> lock(grBackendTextureMutex_);
+            std::swap(resultBackendTexture_, cacheCompletedBackendTexture_);
         }
 
     private:
@@ -209,12 +230,13 @@ private:
         Drawing::RectI surfaceSize_;
         std::shared_ptr<RSDrawingFilter> filter_ = nullptr;
 #endif
+        GrBackendTexture cacheCompletedBackendTexture_;
         std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
         std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshot_ = nullptr;
-        std::mutex parallelRenderMutex_;
+        std::mutex grBackendTextureMutex_;
         std::condition_variable cvParallelRender_;
         std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_ = nullptr;
-        bool isFirstInit = false;
+        bool isCompleted_ = false;
     };
 
 #ifndef USE_ROSEN_DRAWING
@@ -228,7 +250,7 @@ private:
         const std::optional<SkIRect>& srcRect, const std::optional<SkIRect>& dstRect);
 #else
     void TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
-        const Drawing::RectI& srcRect, const bool needSnapshotOutset);
+        const Drawing::RectI& srcRect, const bool needSnapshotOutset = true);
     void GenerateFilteredSnapshot(
         RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect);
     void DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect) const;

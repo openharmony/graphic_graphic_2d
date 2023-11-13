@@ -117,12 +117,6 @@ enum class RSRenderPropertyType : int16_t {
     PROPERTY_SKMATRIX,
     PROPERTY_RRECT,
 };
-
-enum class RSColorBlendModeType : int16_t {
-    NONE = 0,
-    DST_IN,
-    SRC_IN,
-};
 } // namespace Rosen
 } // namespace OHOS
 

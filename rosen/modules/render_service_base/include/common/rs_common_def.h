@@ -34,6 +34,7 @@ namespace Rosen {
 using AnimationId = uint64_t;
 using NodeId = uint64_t;
 using PropertyId = uint64_t;
+using FrameRateLinkerId = uint64_t;
 constexpr uint32_t UNI_MAIN_THREAD_INDEX = UINT32_MAX;
 constexpr uint64_t INVALID_NODEID = 0;
 

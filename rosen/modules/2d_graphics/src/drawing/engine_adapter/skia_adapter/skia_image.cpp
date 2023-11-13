@@ -314,6 +314,29 @@ bool SkiaImage::IsLazyGenerated() const
     return (skiaImage_ == nullptr) ? false : skiaImage_->isLazyGenerated();
 }
 
+std::shared_ptr<Image> SkiaImage::MakeRasterImage() const
+{
+    if (skiaImage_ == nullptr) {
+        return nullptr;
+    }
+    sk_sp<SkImage> skImage = skiaImage_->makeRasterImage();
+    if (skImage == nullptr) {
+        LOGE("skImage nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    std::shared_ptr<ImageImpl> imageImpl = std::make_shared<SkiaImage>(skImage);
+    return std::make_shared<Image>(imageImpl);
+}
+
+bool SkiaImage::CanPeekPixels() const
+{
+    SkPixmap pixmap;
+    if (skiaImage_ == nullptr || !skiaImage_->peekPixels(&pixmap)) {
+        return false;
+    }
+    return true;
+}
+
 bool SkiaImage::IsOpaque() const
 {
     return (skiaImage_ == nullptr) ? false : skiaImage_->isOpaque();

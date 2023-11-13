@@ -36,7 +36,7 @@ public:
         : width_(width), height_(height), colorType_(colorType), alphaType_(alphaType), colorSpace_(colorSpace) {}
     ~ImageInfo() = default;
     
-    static ImageInfo Make(int32_t width, int32_t height)
+    static ImageInfo MakeN32Premul(int32_t width, int32_t height)
     {
         return ImageInfo(width, height, COLORTYPE_N32, ALPHATYPE_PREMUL, nullptr);
     }

@@ -43,6 +43,8 @@ const TextureInfo BackendTexture::GetTextureInfo() const
 
 Image::Image() noexcept : imageImplPtr(ImplFactory::CreateImageImpl()) {}
 
+Image::Image(std::shared_ptr<ImageImpl> imageImpl) : imageImplPtr(imageImpl) {}
+
 Image::Image(void* rawImg) noexcept : imageImplPtr(ImplFactory::CreateImageImpl(rawImg)) {}
 
 Image* Image::BuildFromBitmap(const Bitmap& bitmap)
@@ -149,6 +151,16 @@ std::shared_ptr<Data> Image::EncodeToData(EncodedImageFormat& encodedImageFormat
 bool Image::IsLazyGenerated() const
 {
     return imageImplPtr->IsLazyGenerated();
+}
+
+std::shared_ptr<Image> Image::MakeRasterImage() const
+{
+    return imageImplPtr->MakeRasterImage();
+}
+
+bool Image::CanPeekPixels() const
+{
+    return imageImplPtr->CanPeekPixels();
 }
 
 bool Image::IsOpaque() const

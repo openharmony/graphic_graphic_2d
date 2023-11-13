@@ -93,6 +93,7 @@ ohos_source_set("render_service_base_src") {
     "src/command/rs_command_factory.cpp",
     "src/command/rs_display_node_command.cpp",
     "src/command/rs_effect_node_command.cpp",
+    "src/command/rs_frame_rate_linker_command.cpp",
     "src/command/rs_node_command.cpp",
     "src/command/rs_node_showing_command.cpp",
     "src/command/rs_proxy_node_command.cpp",
@@ -164,6 +165,8 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_paint_filter_canvas.cpp",
     "src/pipeline/rs_proxy_render_node.cpp",
     "src/pipeline/rs_recording_canvas.cpp",
+    "src/pipeline/rs_render_frame_rate_linker.cpp",
+    "src/pipeline/rs_render_frame_rate_linker_map.cpp",
     "src/pipeline/rs_render_node.cpp",
     "src/pipeline/rs_render_node_map.cpp",
     "src/pipeline/rs_root_render_node.cpp",
@@ -307,6 +310,11 @@ ohos_source_set("render_service_base_src") {
     ]
   }
 
+  if (rosen_is_ohos && defined(enable_ipc_security_access_counter) &&
+      enable_ipc_security_access_counter) {
+    defines += [ "ENABLE_IPC_SECURITY_ACCESS_COUNTER" ]
+  }
+
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
     if (ace_enable_gpu) {
@@ -349,8 +357,25 @@ config("render_service_base_all_deps_config") {
   include_dirs = [ "include" ]
 }
 
+config("render_service_base_link_config") {
+  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
+    ldflags = [
+      "-Wl,--lto-O2",
+      "-Wl,-mllvm",
+      "-Wl,-import-instr-limit=5",
+      "-Wl,-mllvm",
+      "-Wl,-wholeprogramdevirt-check=fallback",
+      "-Wl,-Bsymbolic",
+    ]
+  }
+}
+
 ohos_shared_library("librender_service_base") {
   all_dependent_configs = [ ":render_service_base_all_deps_config" ]
+
+  if (enhanced_opt) {
+    configs = [ ":render_service_base_link_config" ]
+  }
 
   deps = [ "$rosen_root/modules/platform:eventhandler" ]
   public_deps = [
@@ -362,23 +387,9 @@ ohos_shared_library("librender_service_base") {
     public_deps += [ "src/render_backend:librender_backend" ]
   }
 
-  ldflags = []
-
-  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64") &&
-      enhanced_opt) {
-    ldflags += [
-      "-Wl,-mllvm",
-      "-Wl,-wholeprogramdevirt-check=fallback",
-    ]
-  }
-
   innerapi_tags = [ "platformsdk_indirect" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
-
-  if (is_ohos && enhanced_opt) {
-    ldflags += [ "-Wl,-Bsymbolic" ]
-  }
 }
 
 ohos_source_set("librender_service_base_static") {

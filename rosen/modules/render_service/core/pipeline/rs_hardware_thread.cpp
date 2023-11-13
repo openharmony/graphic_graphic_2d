@@ -25,6 +25,8 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "rs_trace.h"
 #include "hdi_backend.h"
+#include <vsync_sampler.h>
+#include "parameters.h"
 
 #ifdef RS_ENABLE_EGLIMAGE
 #include "rs_egl_image_manager.h"
@@ -73,6 +75,13 @@ void RSHardwareThread::PostTask(const std::function<void()>& task)
 {
     if (handler_) {
         handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
+}
+
+void RSHardwareThread::PostDelayTask(const std::function<void()>& task, int64_t delayTime)
+{
+    if (handler_) {
+        handler_->PostTask(task, delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
 }
 
@@ -150,8 +159,12 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         RS_LOGE("RSHardwareThread::CommitAndReleaseLayers handler is nullptr");
         return;
     }
-    RSTaskMessage::RSTask task = [this, output = output, layers = layers]() {
-        RS_TRACE_NAME("RSHardwareThread::CommitAndReleaseLayers");
+    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+    uint32_t rate = hgmCore.GetPendingScreenRefreshRate();
+    uint64_t currTimestamp = hgmCore.GetCurrentTimestamp();
+    RSTaskMessage::RSTask task = [this, output = output, layers = layers, rate = rate, timestamp = currTimestamp]() {
+        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %d, now: %lu", rate, timestamp);
+        ExecuteSwitchRefreshRate(rate);
         PerformSetActiveMode(output);
         output->SetLayerInfo(layers);
         if (output->IsDeviceValid()) {
@@ -165,7 +178,46 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         }
     };
     unExcuteTaskNum_++;
-    PostTask(task);
+
+    if (!hgmCore.GetLtpoEnabled()) {
+        PostTask(task);
+    } else {
+        auto period  = CreateVSyncSampler()->GetHardwarePeriod();
+        uint64_t pipelineOffset = hgmCore.GetPipelineOffset();
+        uint64_t expectCommitTime = currTimestamp + pipelineOffset - period;
+        uint64_t currTime = static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count());
+        int64_t delayTime = std::round((static_cast<int64_t>(expectCommitTime - currTime)) / 1000000);
+        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers expectCommitTime: %lu, period: %lu, currTime: %lu" \
+            ", delayTime: %lu", expectCommitTime, period, currTime, delayTime);
+        if (period == 0 || delayTime <= 0) {
+            PostTask(task);
+        } else {
+            PostDelayTask(task, delayTime);
+        }
+    }
+}
+
+void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
+{
+    static bool refreshRateSwitch = system::GetBoolParameter("persist.hgm.refreshrate.enabled", true);
+    if (!refreshRateSwitch) {
+        RS_LOGD("RSHardwareThread: refreshRateSwitch is off, currRefreshRate is %{public}d", refreshRate);
+        return;
+    }
+
+    auto screenManager = CreateOrGetScreenManager();
+    ScreenId id = screenManager->GetDefaultScreenId();
+    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+    if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id)) {
+        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers SetScreenRefreshRate: %d", refreshRate);
+        RS_LOGD("RSHardwareThread::CommitAndReleaseLayers SetScreenRefreshRate = %{public}d", refreshRate);
+        int32_t status = hgmCore.SetScreenRefreshRate(id, 0, refreshRate);
+        if (status < EXEC_SUCCESS) {
+            RS_LOGE("RSHardwareThread: failed to set refreshRate %{public}d, screenId %{public}llu", refreshRate, id);
+        }
+    }
 }
 
 void RSHardwareThread::PerformSetActiveMode(OutputPtr output)
@@ -203,7 +255,12 @@ void RSHardwareThread::PerformSetActiveMode(OutputPtr output)
         }
 
         screenManager->SetScreenActiveMode(id, modeId);
-        hdiBackend_->StartSample(output);
+        if (!hgmCore.GetLtpoEnabled()) {
+            hdiBackend_->StartSample(output);
+        } else {
+            auto pendingPeriod = hgmCore.GetIdealPeriod(hgmCore.GetScreenCurrentRefreshRate(id));
+            hdiBackend_->SetPendingPeriod(output, pendingPeriod);
+        }
     }
 }
 

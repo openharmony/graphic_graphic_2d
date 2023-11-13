@@ -142,11 +142,10 @@ HWTEST_F(RSCanvasRenderNodeTest, ColorBlendModeTest, TestSize.Level1)
     canvas_->saveLayer(nullptr, nullptr);
 
     int blendMode = 0;
-    auto ConvertToSkBlendMode = [&](int blendMode) {
-        static const std::unordered_map<int, SkBlendMode> skBlendModeLUT = 
-        {
-            { static_cast<int>(RSColorBlendModeType::DST_IN), SkBlendMode::kDstIn },
-            { static_cast<int>(RSColorBlendModeType::SRC_IN), SkBlendMode::kSrcIn }
+    auto convertToSkBlendMode = [&blendMode]() {
+        static const std::unordered_map<int, SkBlendMode> skBlendModeLUT = {
+            {static_cast<int>(RSColorBlendModeType::DST_IN), SkBlendMode::kDstIn},
+            {static_cast<int>(RSColorBlendModeType::SRC_IN), SkBlendMode::kSrcIn}
         };
 
         auto iter = skBlendModeLUT.find(blendMode);
@@ -157,7 +156,7 @@ HWTEST_F(RSCanvasRenderNodeTest, ColorBlendModeTest, TestSize.Level1)
 
         return skBlendModeLUT.at(blendMode);
     };
-    SkBlendMode skBlendMode = ConvertToSkBlendMode(blendMode);
+    SkBlendMode skBlendMode = convertToSkBlendMode();
     SkPaint maskPaint;
     maskPaint.setBlendMode(skBlendMode);
     SkCanvas::SaveLayerRec maskLayerRec(nullptr, &maskPaint, nullptr, 0);
