@@ -346,19 +346,12 @@ void RSImageBase::IncreaseCacheRefCount(uint64_t uniqueId, bool useSkImage, std:
 
 bool RSImageBase::Marshalling(Parcel& parcel) const
 {
-    auto image = image_;
-#ifndef USE_ROSEN_DRAWING
-    if (image && image->isTextureBacked() && RSMarshallingHelper::GetUseSharedMem(std::this_thread::get_id())) {
-        image = image->makeRasterImage();
-        ROSEN_LOGI("RSImage::Marshalling make raster image");
-    }
-#endif
     std::lock_guard<std::mutex> lock(mutex_);
     bool success = RSMarshallingHelper::Marshalling(parcel, uniqueId_) &&
                    RSMarshallingHelper::Marshalling(parcel, srcRect_) &&
                    RSMarshallingHelper::Marshalling(parcel, dstRect_) &&
                    parcel.WriteBool(pixelMap_ == nullptr) &&
-                   RSMarshallingHelper::Marshalling(parcel, image) &&
+                   RSMarshallingHelper::Marshalling(parcel, image_) &&
                    RSMarshallingHelper::Marshalling(parcel, pixelMap_);
     return success;
 }
