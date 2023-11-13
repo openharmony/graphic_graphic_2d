@@ -556,6 +556,33 @@ void BitmapNineOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 }
 #endif
 
+PixelmapNineOpItem::PixelmapNineOpItem(const std::shared_ptr<Media::PixelMap>& pixelmap, const SkIRect& center,
+    const SkRect& rectDst, SkFilterMode filter, const SkPaint* paint)
+    : OpItemWithPaint(sizeof(PixelmapNineOpItem)), center_(center), rectDst_(rectDst), filter_(filter)
+{   
+    if (pixelmap) {
+        pixelmapInfo_ = RSPixelMapUtil::ExtractSkImage(pixelmap);
+    }   
+    if (paint) {
+        paint_ = *paint;
+    }
+}
+
+PixelmapNineOpItem::PixelmapNineOpItem(const SkIRect& center, const SkRect& rectDst,
+    SkFilterMode filter, const sk_sp<SkImage> pixelmapInfo, const SkPaint* paint)
+    : OpItemWithPaint(sizeof(PixelmapNineOpItem)), center_(center), rectDst_(rectDst), filter_(filter),
+    pixelmapInfo_(pixelmapInfo)
+{     
+    if (paint) {
+        paint_ = *paint;
+    }
+}
+
+void PixelmapNineOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
+{
+    canvas.drawImageNine(pixelmapInfo_.get(), center_, rectDst_, filter_, &paint_);
+}
+
 AdaptiveRRectOpItem::AdaptiveRRectOpItem(float radius, const SkPaint& paint)
     : OpItemWithPaint(sizeof(AdaptiveRRectOpItem)), radius_(radius), paint_(paint)
 {}
@@ -1685,6 +1712,41 @@ OpItem* BitmapNineOpItem::Unmarshalling(Parcel& parcel)
 #else
     return new BitmapNineOpItem(bitmapInfo, center, rectDst, &paint);
 #endif
+}
+
+bool PixelmapNineOpItem::Marshalling(Parcel& parcel) const
+{
+    bool success = RSMarshallingHelper::Marshalling(parcel, center_) &&
+                   RSMarshallingHelper::Marshalling(parcel, rectDst_) &&
+                   RSMarshallingHelper::Marshalling(parcel, filter_) &&
+                   RSMarshallingHelper::Marshalling(parcel, pixelmapInfo_) &&
+                   RSMarshallingHelper::Marshalling(parcel, paint_) ;
+    if (!success) {
+        ROSEN_LOGE("PixelmapNineOpItem::Marshalling failed!");
+        return false;
+    }
+    return success;
+}
+
+OpItem* PixelmapNineOpItem::Unmarshalling(Parcel& parcel)
+{
+    RS_TRACE_NAME("PixelmapNineOpItem::Unmarshalling");
+    SkIRect center;
+    SkRect rectDst;
+    SkFilterMode filter;
+    sk_sp<SkImage> pixelmapInfo;
+    SkPaint paint;
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, center) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, rectDst) &&                   
+                   RSMarshallingHelper::Unmarshalling(parcel, filter) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, pixelmapInfo) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, paint);
+
+    if (!success) {
+        ROSEN_LOGE("PixelmapNineOpItem::Unmarshalling failed!");
+        return nullptr;
+    }
+    return new PixelmapNineOpItem(center, rectDst, filter, pixelmapInfo, &paint);
 }
 
 // AdaptiveRRectOpItem

@@ -82,6 +82,7 @@ enum RSOpType : uint16_t {
     COLOR_FILTER_BITMAP_OPITEM,
     BITMAP_RECT_OPITEM,
     BITMAP_NINE_OPITEM,
+    PIXELMAP_NINE_OPITEM,
     PIXELMAP_OPITEM,
     PIXELMAP_RECT_OPITEM,
     ADAPTIVE_RRECT_OPITEM,
@@ -131,6 +132,7 @@ namespace {
             GETOPTYPESTRING(COLOR_FILTER_BITMAP_OPITEM);
             GETOPTYPESTRING(BITMAP_RECT_OPITEM);
             GETOPTYPESTRING(BITMAP_NINE_OPITEM);
+            GETOPTYPESTRING(PIXELMAP_NINE_OPITEM);
             GETOPTYPESTRING(PIXELMAP_OPITEM);
             GETOPTYPESTRING(PIXELMAP_RECT_OPITEM);
             GETOPTYPESTRING(ADAPTIVE_RRECT_OPITEM);
@@ -1013,6 +1015,37 @@ private:
 #ifdef NEW_SKIA
     SkFilterMode filter_;
 #endif
+};
+
+class PixelmapNineOpItem : public OpItemWithPaint {
+public:
+    PixelmapNineOpItem(const std::shared_ptr<Media::PixelMap>& pixelmap, const SkIRect& center,
+        const SkRect& rectDst, SkFilterMode filter, const SkPaint* paint);
+    PixelmapNineOpItem(const SkIRect& center, const SkRect& rectDst, SkFilterMode filter,
+        const sk_sp<SkImage> pixelmapInfo_, const SkPaint* paint);
+    ~PixelmapNineOpItem() override {}
+    void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+    
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        desc += "}, \n";
+        return desc;
+    }
+
+    RSOpType GetType() const override
+    {
+        return RSOpType::PIXELMAP_NINE_OPITEM;
+    }
+
+    bool Marshalling(Parcel& parcel) const override;
+    [[nodiscard]] static OpItem* Unmarshalling(Parcel& parcel);
+
+private:   
+    SkIRect center_;
+    SkRect rectDst_;
+    SkFilterMode filter_;
+    sk_sp<SkImage> pixelmapInfo_;
 };
 
 class AdaptiveRRectOpItem : public OpItemWithPaint {
