@@ -54,6 +54,14 @@ public:
         return GSERROR_OK;
     }
 
+    static GSError ParseColorSpaceType(const HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceType& colorSpaceType,
+        HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo);
+
+    static GSError SetColorSpaceInfo(sptr<SurfaceBuffer>& buffer,
+        const HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo);
+    static GSError GetColorSpaceInfo(const sptr<SurfaceBuffer>& buffer,
+        HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo);
+
     static GSError SetColorSpaceType(sptr<SurfaceBuffer>& buffer,
         const HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceType& colorSpaceType);
     static GSError GetColorSpaceType(const sptr<SurfaceBuffer>& buffer,

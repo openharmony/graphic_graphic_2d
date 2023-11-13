@@ -52,6 +52,55 @@ void MetadataManagerTest::SetUpTestCase()
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
+* CaseDescription: test ParseColorSpaceType
+*/
+HWTEST_F(MetadataManagerTest, ParseColorSpaceTypeTest, Function | SmallTest | Level2)
+{
+    CM_ColorSpaceInfo colorSpaceInfo;
+    ASSERT_EQ(MetadataHelper::ParseColorSpaceType(CM_SRGB_FULL, colorSpaceInfo), GSERROR_OK);
+
+    ASSERT_EQ(colorSpaceInfo.primaries, COLORPRIMARIES_SRGB);
+    ASSERT_EQ(colorSpaceInfo.transfunc, TRANSFUNC_SRGB);
+    ASSERT_EQ(colorSpaceInfo.matrix, MATRIX_BT601_N);
+    ASSERT_EQ(colorSpaceInfo.range, RANGE_FULL);
+}
+
+/*
+* Function: MetadataManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: test SetColorSpaceInfo and GetColorSpaceInfo
+*/
+HWTEST_F(MetadataManagerTest, ColorSpaceInfoTest, Function | SmallTest | Level2)
+{
+    CM_ColorSpaceInfo infoSet = {
+        .primaries = COLORPRIMARIES_SRGB,
+        .transfunc = TRANSFUNC_SRGB,
+        .matrix = MATRIX_BT709,
+        .range = RANGE_FULL,
+    };
+
+    auto retSet = MetadataHelper::SetColorSpaceInfo(buffer_, infoSet);
+    ASSERT_TRUE(retSet == GSERROR_OK || GSErrorStr(retSet) == "<500 api call failed>with low error <Not supported>");
+
+    CM_ColorSpaceInfo infoGet;
+    auto retGet = MetadataHelper::GetColorSpaceInfo(buffer_, infoGet);
+    ASSERT_TRUE(retGet == GSERROR_OK || GSErrorStr(retGet) == "<500 api call failed>with low error <Not supported>");
+
+    if (retSet == GSERROR_OK && retGet == GSERROR_OK) {
+        ASSERT_EQ(infoSet.primaries, infoGet.primaries);
+        ASSERT_EQ(infoSet.transfunc, infoGet.transfunc);
+        ASSERT_EQ(infoSet.matrix, infoGet.matrix);
+        ASSERT_EQ(infoSet.range, infoGet.range);
+    }
+}
+
+/*
+* Function: MetadataManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
 * CaseDescription: test SetColorSpaceType and GetColorSpaceType
 */
 HWTEST_F(MetadataManagerTest, ColorSpaceTypeTest, Function | SmallTest | Level2)
@@ -141,7 +190,7 @@ HWTEST_F(MetadataManagerTest, HDRStaticMetadataTest, Function | SmallTest | Leve
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: test SetHDRVividMetadata and GetHDRVividMetadata
+* CaseDescription: test SetHDRVividDynMetadataV1 and GetHDRVividDynMetadataV1
 */
 HWTEST_F(MetadataManagerTest, HDRVividMetadataTest, Function | SmallTest | Level2)
 {

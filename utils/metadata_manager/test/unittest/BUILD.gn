@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_out_path = "graphic_2d/utils/metadata_manager"
 
@@ -24,10 +25,25 @@ group("unittest") {
 ohos_unittest("MetadataManagerTest") {
   module_out_path = module_out_path
   sources = [ "metadata_manager_test.cpp" ]
-  deps = [ ":metadata_manager_test_common" ]
-}
 
-config("metadata_manager_test_config") {
+  visibility = [ ":*" ]
+  testonly = true
+
+  include_dirs = [ "//foundation/graphic/graphic_2d/frameworks/surface/include" ]
+
+  public_deps = [
+    "//foundation/graphic/graphic_2d/utils/metadata_manager:metadata_manager",
+    "$graphic_2d_root/frameworks/surface:surface",
+    "//third_party/googletest:gtest_main",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "hilog:libhilog",
+  ]
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
+
   cflags = [
     "-Wall",
     "-Werror",
@@ -35,21 +51,4 @@ config("metadata_manager_test_config") {
     "-Dprivate=public",
     "-Dprotected=public",
   ]
-}
-
-ohos_static_library("metadata_manager_test_common") {
-  visibility = [ ":*" ]
-  testonly = true
-  public_configs = [ ":metadata_manager_test_config" ]
-
-  public_deps = [
-    "//foundation/graphic/graphic_2d/utils/metadata_manager:metadata_manager",
-    "//third_party/googletest:gtest_main",
-  ]
-  external_deps = [
-    "drivers_interface_display:display_commontype_idl_headers",
-    "hilog:libhilog",
-  ]
-  subsystem_name = "graphic"
-  part_name = "graphic_2d"
 }

@@ -21,6 +21,35 @@ using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
 
 namespace OHOS {
 namespace MetadataManager {
+GSError MetadataHelper::ParseColorSpaceType(const CM_ColorSpaceType& colorSpaceType, CM_ColorSpaceInfo& colorSpaceInfo)
+{
+    colorSpaceInfo.primaries = static_cast<CM_ColorPrimaries>(colorSpaceType & CM_PRIMARIES_MASK);
+    colorSpaceInfo.transfunc = static_cast<CM_TransFunc>((colorSpaceType & CM_TRANSFUNC_MASK) >> 8);
+    colorSpaceInfo.matrix = static_cast<CM_Matrix>((colorSpaceType & CM_MATRIX_MASK) >> 16);
+    colorSpaceInfo.range = static_cast<CM_Range>((colorSpaceType & CM_RANGE_MASK) >> 21);
+    return GSERROR_OK;
+}
+
+GSError MetadataHelper::SetColorSpaceInfo(sptr<SurfaceBuffer>& buffer, const CM_ColorSpaceInfo& colorSpaceInfo)
+{
+    std::vector<uint8_t> colorSpaceInfoVec;
+    auto ret = ConvertMetadataToVec(colorSpaceInfo, colorSpaceInfoVec);
+    if (ret != GSERROR_OK) {
+        return ret;
+    }
+    return buffer->SetMetadata(ATTRKEY_COLORSPACE_INFO, colorSpaceInfoVec);
+}
+
+GSError MetadataHelper::GetColorSpaceInfo(const sptr<SurfaceBuffer>& buffer, CM_ColorSpaceInfo& colorSpaceInfo)
+{
+    std::vector<uint8_t> colorSpaceInfoVec;
+    auto ret = buffer->GetMetadata(ATTRKEY_COLORSPACE_INFO, colorSpaceInfoVec);
+    if (ret != GSERROR_OK) {
+        return ret;
+    }
+    return ConvertVecToMetadata(colorSpaceInfoVec, colorSpaceInfo);
+}
+
 GSError MetadataHelper::SetColorSpaceType(sptr<SurfaceBuffer>& buffer, const CM_ColorSpaceType& colorSpaceType)
 {
     std::vector<uint8_t> colorSpaceTypeVec;
