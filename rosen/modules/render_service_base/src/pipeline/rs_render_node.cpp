@@ -1442,11 +1442,12 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
     }
     Drawing::Brush brush;
     canvas.AttachBrush(brush);
+    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     if (cacheType == CacheType::ANIMATE_PROPERTY && renderProperties_.IsShadowValid()) {
         canvas.DrawImage(*image, -shadowRectOffsetX_ * scaleX,
-            -shadowRectOffsetY_ * scaleY, Drawing::SamplingOptions());
+            -shadowRectOffsetY_ * scaleY, samplingOptions);
     } else {
-        canvas.DrawImage(*image, 0.0, 0.0, Drawing::SamplingOptions());
+        canvas.DrawImage(*image, 0.0, 0.0, samplingOptions);
     }
     canvas.DetachBrush();
     canvas.Restore();

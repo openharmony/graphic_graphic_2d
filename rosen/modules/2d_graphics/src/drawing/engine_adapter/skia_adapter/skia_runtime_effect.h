@@ -28,6 +28,8 @@ namespace Rosen {
 namespace Drawing {
 class SkiaRuntimeEffect : public RuntimeEffectImpl {
 public:
+    static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     SkiaRuntimeEffect() noexcept;
     ~SkiaRuntimeEffect() override {};
 
