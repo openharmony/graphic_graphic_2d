@@ -131,15 +131,38 @@ HWTEST_F(RSCanvasRenderNodeTest, ProcessDrivenBackgroundRenderTest, TestSize.Lev
 }
 
 /**
- * @tc.name: ExecuteBlendModeTest
+ * @tc.name: ColorBlendModeTest
  * @tc.desc: test
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSCanvasRenderNodeTest, ExecuteBlendModeTest, TestSize.Level1)
+HWTEST_F(RSCanvasRenderNodeTest, ColorBlendModeTest, TestSize.Level1)
 {
     auto canvasRenderNode = std::make_shared<RSCanvasRenderNode>(id, context);
-    canvasRenderNode->ExecuteBlendMode(*canvas_, true);
-}
+    canvas_->saveLayer(nullptr, nullptr);
 
+    int blendMode = 0;
+    auto convertToSkBlendMode = [&blendMode]() {
+        static const std::unordered_map<int, SkBlendMode> skBlendModeLUT = {
+            {static_cast<int>(RSColorBlendModeType::DST_IN), SkBlendMode::kDstIn},
+            {static_cast<int>(RSColorBlendModeType::SRC_IN), SkBlendMode::kSrcIn}
+        };
+
+        auto iter = skBlendModeLUT.find(blendMode);
+        if (iter == skBlendModeLUT.end()) {
+            ROSEN_LOGE("The desired color_blend_mode is undefined, and the SkBlendMode::kSrc is used.");
+            return SkBlendMode::kSrc;
+        }
+
+        return skBlendModeLUT.at(blendMode);
+    };
+    SkBlendMode skBlendMode = convertToSkBlendMode();
+    SkPaint maskPaint;
+    maskPaint.setBlendMode(skBlendMode);
+    SkCanvas::SaveLayerRec maskLayerRec(nullptr, &maskPaint, nullptr, 0);
+    canvas_->saveLayer(maskLayerRec);
+
+    canvas_->restore();
+    canvas_->restore();
+}
 } // namespace OHOS::Rosen

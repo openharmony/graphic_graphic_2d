@@ -47,6 +47,7 @@ public:
     bool DidExceedMaxLines() const;
     double GetMinIntrinsicWidth() const;
     double GetMaxIntrinsicWidth() const;
+    void SetIndents(const std::vector<float> &indents);
 
 private:
     std::vector<LineMetrics> DoShapeBeforeEllipsis(std::vector<VariantSpan> spans, const TypographyStyle &tstyle,
@@ -58,7 +59,9 @@ private:
     void ComputeIntrinsicWidth(const size_t maxLines);
     void ConsiderHeadEllipsis(const TypographyStyle &ys, const std::shared_ptr<FontProviders> &fontProviders,
         EllipsisParams params);
-    void ConsiderTailEllipsis(const TypographyStyle &ys, const std::shared_ptr<FontProviders> &fontProviders,
+    void ConsiderLastLine(const TypographyStyle &style, const std::shared_ptr<FontProviders> &fontProviders,
+        EllipsisParams params, const bool isErase);
+    void ConsiderTailEllipsis(const TypographyStyle &style, const std::shared_ptr<FontProviders> &fontProviders,
         EllipsisParams params);
     std::vector<LineMetrics> CreatePartlySpan(const bool cutRight, const TypographyStyle &ys,
         const std::shared_ptr<FontProviders> &fontProviders, const VariantSpan &span, const double exceedWidth);
@@ -79,6 +82,7 @@ private:
     bool didExceedMaxLines_ = false;
     double maxIntrinsicWidth_ = 0.0;
     double minIntrinsicWidth_ = 0.0;
+    std::vector<float> indents_;
 };
 } // namespace TextEngine
 } // namespace Rosen

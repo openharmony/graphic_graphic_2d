@@ -43,6 +43,8 @@ const TextureInfo BackendTexture::GetTextureInfo() const
 
 Image::Image() noexcept : imageImplPtr(ImplFactory::CreateImageImpl()) {}
 
+Image::Image(std::shared_ptr<ImageImpl> imageImpl) : imageImplPtr(imageImpl) {}
+
 Image::Image(void* rawImg) noexcept : imageImplPtr(ImplFactory::CreateImageImpl(rawImg)) {}
 
 Image* Image::BuildFromBitmap(const Bitmap& bitmap)
@@ -78,6 +80,11 @@ bool Image::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, Te
     BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace)
 {
     return imageImplPtr->BuildFromTexture(gpuContext, info, origin, bitmapFormat, colorSpace);
+}
+
+bool Image::BuildSubset(const std::shared_ptr<Image>& image, const RectI& rect, GPUContext& gpuContext)
+{
+    return imageImplPtr->BuildSubset(image, rect, gpuContext);
 }
 
 BackendTexture Image::GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin* origin) const
@@ -144,6 +151,21 @@ std::shared_ptr<Data> Image::EncodeToData(EncodedImageFormat& encodedImageFormat
 bool Image::IsLazyGenerated() const
 {
     return imageImplPtr->IsLazyGenerated();
+}
+
+std::shared_ptr<Image> Image::MakeRasterImage() const
+{
+    return imageImplPtr->MakeRasterImage();
+}
+
+bool Image::CanPeekPixels() const
+{
+    return imageImplPtr->CanPeekPixels();
+}
+
+bool Image::IsOpaque() const
+{
+    return imageImplPtr->IsOpaque();
 }
 
 std::shared_ptr<Data> Image::Serialize() const

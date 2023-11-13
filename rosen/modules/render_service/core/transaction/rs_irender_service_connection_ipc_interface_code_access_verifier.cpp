@@ -53,6 +53,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_DEFAULT_SCREEN_ID");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_ACTIVE_SCREEN_ID): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_ACTIVE_SCREEN_ID");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_ALL_SCREEN_IDS): {
             /* low risk, skip this case */
             break;

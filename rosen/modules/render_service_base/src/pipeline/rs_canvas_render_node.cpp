@@ -42,6 +42,22 @@ namespace {
 constexpr PropertyId ANONYMOUS_MODIFIER_ID = 0;
 }
 
+static inline SkBlendMode ConvertToSkBlendMode(int blendMode)
+{
+    static const std::unordered_map<int, SkBlendMode> skBlendModeLUT = {
+        {static_cast<int>(RSColorBlendModeType::DST_IN), SkBlendMode::kDstIn},
+        {static_cast<int>(RSColorBlendModeType::SRC_IN), SkBlendMode::kSrcIn}
+    };
+
+    auto iter = skBlendModeLUT.find(blendMode);
+    if (iter == skBlendModeLUT.end()) {
+        ROSEN_LOGE("The desired color_blend_mode is undefined, and the SkBlendMode::kSrc is used.");
+        return SkBlendMode::kSrc;
+    }
+
+    return skBlendModeLUT.at(blendMode);
+}
+
 RSCanvasRenderNode::RSCanvasRenderNode(NodeId id, const std::weak_ptr<RSContext>& context) : RSRenderNode(id, context)
 {
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
@@ -118,24 +134,6 @@ void RSCanvasRenderNode::ProcessTransitionBeforeChildren(RSPaintFilterCanvas& ca
     RSRenderNode::ProcessTransitionBeforeChildren(canvas);
 }
 
-void RSCanvasRenderNode::ExecuteBlendMode(RSPaintFilterCanvas& canvas, bool isBlendMode)
-{
-    if (isBlendMode) {
-        SkPaint blendPaint;
-        static const std::vector<SkBlendMode> blendModeList = {
-            SkBlendMode::kSrcIn, // RSColorBlendModeType::SRC_IN
-            SkBlendMode::kDstIn, // RSColorBlendModeType::DST_IN
-        };
-        int blendMode = GetRenderProperties().GetColorBlendMode();
-        if (blendMode >= blendModeList.size()) {
-            ROSEN_LOGE("color blendmode is set %d which is invalid.", blendMode);
-            return;
-        }
-        blendPaint.setBlendMode(blendModeList[blendMode]);
-        canvas.saveLayer(nullptr, &blendPaint);
-    }
-}
-
 void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas)
 {
     if (RSSystemProperties::GetPropertyDrawableEnable()) {
@@ -146,12 +144,16 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
     ApplyDrawCmdModifier(context, RSModifierType::TRANSITION);
     ApplyDrawCmdModifier(context, RSModifierType::ENV_FOREGROUND_COLOR);
     RSPropertiesPainter::DrawShadow(GetRenderProperties(), canvas);
-    bool isBlendMode = false;
-    if (GetRenderProperties().GetColorBlendMode() != static_cast<int>(RSColorBlendModeType::NONE)) {
+    // Inter-UI component blur & blending effect -- An empty layer
+    int blendMode = GetRenderProperties().GetColorBlendMode();
+    if (blendMode != static_cast<int>(RSColorBlendModeType::NONE)) {
+#ifndef USE_ROSEN_DRAWING
         canvas.saveLayer(nullptr, nullptr);
-        isBlendMode = true;
+#else
+        Drawing::SaveLayerOps slr(nullptr, nullptr, Drawing::SaveLayerOps::Flags::INIT_WITH_PREVIOUS);
+        canvas.SaveLayer(slr);
+#endif
     }
-
     // In NEW_SKIA version, L96 code will cause dump if the 3rd parameter is true.
 #ifdef NEW_SKIA
     RSPropertiesPainter::DrawBackground(GetRenderProperties(), canvas, false);
@@ -192,7 +194,14 @@ void RSCanvasRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanva
         RSPropertiesPainter::Clip(canvas, GetRenderProperties().GetFrameRect());
 #endif
     }
-    ExecuteBlendMode(canvas, isBlendMode);
+    // Inter-UI component blur & blending effect -- A Mask layer
+    if (blendMode != static_cast<int>(RSColorBlendModeType::NONE)) {
+        SkBlendMode skBlendMode = ConvertToSkBlendMode(blendMode);
+        SkPaint maskPaint;
+        maskPaint.setBlendMode(skBlendMode);
+        SkCanvas::SaveLayerRec maskLayerRec(nullptr, &maskPaint, nullptr, 0);
+        canvas.saveLayer(maskLayerRec);
+    }
 }
 
 void RSCanvasRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canvas)
@@ -223,6 +232,10 @@ void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas
     RSPropertiesPainter::DrawColorFilter(GetRenderProperties(), canvas);
 
     canvas.RestoreStatus(canvasNodeSaveCount_);
+    int blendMode = GetRenderProperties().GetColorBlendMode();
+    if (blendMode != static_cast<int>(RSColorBlendModeType::NONE)) {
+        canvas.restore();
+    }
     if (GetRenderProperties().IsLightUpEffectValid()) {
         RSPropertiesPainter::DrawLightUpEffect(GetRenderProperties(), canvas);
     }

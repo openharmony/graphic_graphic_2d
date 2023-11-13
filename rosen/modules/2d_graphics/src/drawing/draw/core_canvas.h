@@ -291,6 +291,11 @@ public:
     virtual bool IsClipEmpty();
 
     /*
+     * @brief  Returns true if clip is SkRect and not empty.
+     */
+    virtual bool IsClipRect();
+
+    /*
      * @brief  Returns true if clip is emptySkRect rect, transformed by SkMatrix,
      *         can be quickly determined to be outside of clip.
      */

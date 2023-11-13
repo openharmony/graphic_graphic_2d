@@ -77,6 +77,7 @@ public:
 
 private:
     MemAllocator largeObjectAllocator_;
+    std::vector<std::shared_ptr<OpItem>> unmarshalledOpItems_;
     int32_t width_;
     int32_t height_;
 };

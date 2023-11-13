@@ -87,18 +87,10 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
 #if defined(RS_ENABLE_GL)
 #if defined(NEW_RENDER_CONTEXT)
     auto drawingContext = RSMainThread::Instance()->GetRenderEngine()->GetDrawingContext();
-#ifdef NEW_SKIA
     GrDirectContext* grContext = drawingContext != nullptr ? drawingContext->GetDrawingContext() : nullptr;
 #else
-    GrContext* grContext = drawingContext != nullptr ? drawingContext->GetDrawingContext() : nullptr;
-#endif
-#else
     auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
-#ifdef NEW_SKIA
     GrDirectContext* grContext = renderContext != nullptr ? renderContext->GetGrContext() : nullptr;
-#else
-    GrContext* grContext = renderContext != nullptr ? renderContext->GetGrContext() : nullptr;
-#endif
 #endif
     RSTagTracker tagTracker(grContext, node->GetId(), RSTagTracker::TAGTYPE::TAG_CAPTURE);
 #endif
@@ -159,7 +151,6 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
                 return;
             }
 
-            DmaMem dmaMem;
             SkImageInfo info = SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(),
                 kRGBA_8888_SkColorType, kPremul_SkAlphaType);
             sk_sp<SkSurface> skSurface;
@@ -200,7 +191,6 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
                 RS_LOGD("RSSurfaceCaptureTask::Run: PixelmapRotation: %{public}d", static_cast<int32_t>(rotation));
             }
             callback->OnSurfaceCapture(id, pixelmap.get());
-            dmaMem.ReleaseGLMemory();
             RSBackgroundThread::Instance().CleanGrResource();
             RSUniRenderUtil::ClearNodeCacheSurface(
                 std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
@@ -389,125 +379,6 @@ sk_sp<SkSurface> RSSurfaceCaptureTask::CreateSurface(const std::unique_ptr<Media
     return SkSurface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
 }
 
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
-#ifndef USE_ROSEN_DRAWING
-void DmaMem::ReleaseGLMemory()
-{
-    if (texId_ != 0U) {
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glDeleteTextures(1, &texId_);
-        texId_ = 0U;
-    }
-    if (nativeWindowBuffer_ != nullptr) {
-        DestroyNativeWindowBuffer(nativeWindowBuffer_);
-        nativeWindowBuffer_ = nullptr;
-    }
-    if (eglImage_ != EGL_NO_IMAGE_KHR) {
-        auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-        eglDestroyImageKHR(disp, eglImage_);
-        eglImage_ = EGL_NO_IMAGE_KHR;
-    }
-}
-#endif
-#endif
-
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
-#ifndef USE_ROSEN_DRAWING
-sptr<SurfaceBuffer> DmaMem::DmaMemAlloc(SkImageInfo &dstInfo, const std::unique_ptr<Media::PixelMap>& pixelmap)
-{
-#if defined(_WIN32) || defined(_APPLE) || defined(A_PLATFORM) || defined(IOS_PLATFORM)
-    RS_LOGE("Unsupport dma mem alloc");
-    return nullptr;
-#else
-    sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create();
-    BufferRequestConfig requestConfig = {
-        .width = dstInfo.width(),
-        .height = dstInfo.height(),
-        .strideAlignment = 0x8, // set 0x8 as default value to alloc SurfaceBufferImpl
-        .format = GRAPHIC_PIXEL_FMT_RGBA_8888, // PixelFormat
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_MEM_DMA,
-        .timeout = 0,
-        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
-        .transform = GraphicTransformType::GRAPHIC_ROTATE_NONE,
-    };
-    GSError ret = surfaceBuffer->Alloc(requestConfig);
-    if (ret != GSERROR_OK) {
-        RS_LOGE("SurfaceBuffer Alloc failed, %{public}s", GSErrorStr(ret).c_str());
-        return nullptr;
-    }
-    void* nativeBuffer = surfaceBuffer.GetRefPtr();
-    OHOS::RefBase *ref = reinterpret_cast<OHOS::RefBase *>(nativeBuffer);
-    ref->IncStrongRef(ref);
-    int32_t bufferSize = pixelmap->GetByteCount();
-    pixelmap->SetPixelsAddr(surfaceBuffer->GetVirAddr(), nativeBuffer, bufferSize, Media::AllocatorType::DMA_ALLOC, nullptr);
-    return surfaceBuffer;
-#endif
-}
-#endif
-#endif
-
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
-#ifndef USE_ROSEN_DRAWING
-sk_sp<SkSurface> DmaMem::GetSkSurfaceFromSurfaceBuffer(sptr<SurfaceBuffer> surfaceBuffer)
-{
-    if (surfaceBuffer == nullptr) {
-        RS_LOGE("GetSkImageFromSurfaceBuffer surfaceBuffer is nullptr");
-        return nullptr;
-    }
-    if (nativeWindowBuffer_ == nullptr) {
-        nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&surfaceBuffer);
-        if (!nativeWindowBuffer_) {
-            RS_LOGE("GetSkImageFromSurfaceBuffer create native window buffer fail");
-            return nullptr;
-        }
-    }
-    EGLint attrs[] = {
-        EGL_IMAGE_PRESERVED,
-        EGL_TRUE,
-        EGL_NONE,
-    };
-
-    auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    if (eglImage_ == EGL_NO_IMAGE_KHR) {
-        eglImage_ = eglCreateImageKHR(disp, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_OHOS, nativeWindowBuffer_, attrs);
-        if (eglImage_ == EGL_NO_IMAGE_KHR) {
-            RS_LOGE("%s create egl image fail %d", __func__, eglGetError());
-            return nullptr;
-        }
-    }
-
-    // Create texture object
-    if (texId_ == 0U) {
-        glGenTextures(1, &texId_);
-        glBindTexture(GL_TEXTURE_2D, texId_);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, static_cast<GLeglImageOES>(eglImage_));
-    }
-
-    GrGLTextureInfo textureInfo = { GL_TEXTURE_2D, texId_, GL_RGBA8_OES };
-
-    GrBackendTexture backendTexture(
-        surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), GrMipMapped::kNo, textureInfo);
-#ifdef RS_ENABLE_UNI_RENDER
-    auto grContext = RSBackgroundThread::Instance().GetShareGrContext().get();
-#else
-    auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
-    if (renderContext == nullptr) {
-        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
-        return nullptr;
-    }
-    auto grContext = renderContext->GetGrContext();
-#endif
-    auto skSurface = SkSurface::MakeFromBackendTexture(grContext, backendTexture,
-        kTopLeft_GrSurfaceOrigin, 0, kRGBA_8888_SkColorType, SkColorSpace::MakeSRGB(), nullptr);
-    return skSurface;
-}
-#endif
-#endif
-
 bool CopyDataToPixelMap(sk_sp<SkImage> img, const std::unique_ptr<Media::PixelMap>& pixelmap)
 {
     auto size = pixelmap->GetRowBytes() * pixelmap->GetHeight();
@@ -569,48 +440,28 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTask::CreateSurface(const std:
         RS_LOGE("RSSurfaceCaptureTask::CreateSurface: address == nullptr");
         return nullptr;
     }
-    Drawing::BitmapFormat format { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
-    auto bitmap = std::make_shared<Drawing::Bitmap>();
-    bitmap->Build(pixelmap->GetWidth(), pixelmap->GetHeight(), format);
-    bitmap->SetPixels(address);
+    Drawing::ImageInfo info = Drawing::ImageInfo{pixelmap->GetWidth(), pixelmap->GetHeight(),
+        Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL};
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
-    auto renderEngine = RSMainThread::Instance()->GetRenderEngine();
-    if (renderEngine == nullptr) {
-        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderEngine is nullptr");
+#if defined(NEW_RENDER_CONTEXT)
+    auto drawingContext = RSMainThread::Instance()->GetRenderEngine()->GetDrawingContext();
+    if (drawingContext == nullptr) {
+        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
         return nullptr;
     }
-    auto renderContext = renderEngine->GetRenderContext();
+    drawingContext->SetUpDrawingContext();
+    return Drawing::Surface::MakeRenderTarget(drawingContext->GetDrawingContext, fasle, info);
+#else
+    auto renderContext = RSMainThread::Instance()->GetRenderContext();
     if (renderContext == nullptr) {
         RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
         return nullptr;
     }
     renderContext->SetUpGpuContext();
-    auto gpuContext = renderContext->GetDrGPUContext();
-    if (gpuContext == nullptr) {
-        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: Drawing::GPUContext is nullptr");
-        return nullptr;
-    }
-    auto image = std::make_shared<Drawing::Image>();
-    if (!image->BuildFromBitmap(*gpuContext, *bitmap)) {
-        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: Drawing::Image is nullptr");
-        return nullptr;
-    }
-    auto surface = std::make_shared<Drawing::Surface>();
-    if (!surface->Bind(*image)) {
-        if (!surface->Bind(*bitmap)) {
-            RS_LOGE("RSSurfaceCaptureTask::CreateSurface: Drawing::Surface is nullptr");
-            return nullptr;
-        }
-    }
-    return surface;
-#else
-    auto surface = std::make_shared<Drawing::Surface>();
-    if (!surface->Bind(*bitmap)) {
-        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: Drawing::Surface is nullptr");
-        return nullptr;
-    }
-    return surface;
+    return Drawing::Surface::MakeRenderTarget(renderContext->GetDrContext, fasle, info);
 #endif
+#endif
+    return Drawing::Surface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
 }
 #endif
 

@@ -150,14 +150,15 @@ std::shared_ptr<RSSurface> RSRenderServiceClient::CreateRSSurface(const sptr<Sur
 
 std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     const std::string& name,
-    const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper)
+    const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper,
+    uint64_t id)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return nullptr;
     }
     sptr<VSyncIConnectionToken> token = new IRemoteStub<VSyncIConnectionToken>();
-    sptr<IVSyncConnection> conn = renderService->CreateVSyncConnection(name, token);
+    sptr<IVSyncConnection> conn = renderService->CreateVSyncConnection(name, token, id);
     if (conn == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::CreateVSyncReceiver Failed");
         return nullptr;
@@ -267,6 +268,16 @@ ScreenId RSRenderServiceClient::GetDefaultScreenId()
     return renderService->GetDefaultScreenId();
 }
 
+ScreenId RSRenderServiceClient::GetActiveScreenId()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return INVALID_SCREEN_ID;
+    }
+
+    return renderService->GetActiveScreenId();
+}
+
 std::vector<ScreenId> RSRenderServiceClient::GetAllScreenIds()
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -371,6 +382,17 @@ void RSRenderServiceClient::SetRefreshRateMode(int32_t refreshRateMode)
     }
 
     renderService->SetRefreshRateMode(refreshRateMode);
+}
+
+void RSRenderServiceClient::SyncFrameRateRange(const FrameRateRange& range)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
+        return;
+    }
+
+    return renderService->SyncFrameRateRange(range);
 }
 
 uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)

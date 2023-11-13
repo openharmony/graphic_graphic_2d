@@ -868,12 +868,6 @@ void RSNode::SetBgImagePositionY(float positionY)
         RSModifierType::BG_IMAGE_POSITION_Y, positionY);
 }
 
-void RSNode::SetColorBlendMode(const RSColorBlendModeType blendMode)
-{
-    SetProperty<RSColorBlendModeModifier, RSProperty<int>>(
-        RSModifierType::COLOR_BLENDMODE, static_cast<int>(blendMode));
-}
-
 // border
 void RSNode::SetBorderColor(uint32_t colorValue)
 {
@@ -1054,6 +1048,12 @@ void RSNode::SetMask(const std::shared_ptr<RSMask>& mask)
 void RSNode::SetUseEffect(bool useEffect)
 {
     SetProperty<RSUseEffectModifier, RSProperty<bool>>(RSModifierType::USE_EFFECT, useEffect);
+}
+
+void RSNode::SetColorBlendMode(RSColorBlendModeType blendMode)
+{
+    SetProperty<RSColorBlendModeModifier, RSProperty<int>>(
+        RSModifierType::COLOR_BLEND_MODE, static_cast<int>(blendMode));
 }
 
 void RSNode::SetPixelStretch(const Vector4f& stretchSize)
@@ -1434,6 +1434,12 @@ void RSNode::AddFRCSceneInfo(const std::string& scene, float speed)
         return;
     }
     UpdateUIFrameRateRange(range);
+}
+
+int32_t RSNode::CalcExpectedFrameRate(const std::string& scene, float speed)
+{
+    auto preferredFps = RSFrameRatePolicy::GetInstance()->GetPreferredFps(scene, speed);
+    return preferredFps;
 }
 
 void RSNode::UpdateUIFrameRateRange(const FrameRateRange& range)

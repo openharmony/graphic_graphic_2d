@@ -113,7 +113,7 @@ int TypographyImpl::GetLineCount() const
 
 void TypographyImpl::SetIndents(const std::vector<float> &indents)
 {
-    // to be done: set indents
+    indents_ = indents;
 }
 
 size_t TypographyImpl::FindGlyphTargetLine(double y) const
@@ -275,6 +275,7 @@ void TypographyImpl::Layout(double maxWidth)
         }
 
         Shaper shaper;
+        shaper.SetIndents(indents_);
         lineMetrics_ = shaper.DoShape(spans_, typographyStyle_, fontProviders_, maxWidth_);
         if (lineMetrics_.size() == 0) {
             LOGEX_FUNC_LINE(ERROR) << "Shape failed";
@@ -480,7 +481,9 @@ int TypographyImpl::UpdateSpanMetrics(VariantSpan &span, double &coveredAscent)
         }
 
         FontStyles fs(style.fontWeight, style.fontStyle);
-        auto typeface = fontCollection->GetTypefaceForChar(0xFFFC, fs, "Latn", style.locale);
+        bool fallbackTypeface = false;
+        // 0xFFFC is a placeholder, use it to get typeface when text is empty.
+        auto typeface = fontCollection->GetTypefaceForChar(0xFFFC, fs, "Latn", style.locale, fallbackTypeface);
         if (typeface == nullptr) {
             typeface = fontCollection->GetTypefaceForFontStyles(fs, "Latn", style.locale);
         }
@@ -752,12 +755,16 @@ void TypographyImpl::ApplyAlignment()
     for (auto &line : lineMetrics_) {
         bool isJustify = false;
         double spanGapWidth = 0.0;
-        double typographyOffsetX = 0.0;
+        double typographyOffsetX = line.indent;
         if (TextAlign::RIGHT == align_ || (TextAlign::JUSTIFY == align_ &&
             TextDirection::RTL == typographyStyle_.direction)) {
-            typographyOffsetX = maxWidth_ - line.width;
+            typographyOffsetX = maxWidth_ - line.width - line.indent;
         } else if (TextAlign::CENTER == align_) {
-            typographyOffsetX = HALF(maxWidth_ - line.width);
+            if (typographyStyle_.direction == TextDirection::LTR) {
+                typographyOffsetX = HALF(maxWidth_ - line.width) + line.indent;
+            } else if (typographyStyle_.direction == TextDirection::RTL) {
+                typographyOffsetX = HALF(maxWidth_ - line.width) - line.indent;
+            }
         } else {
             // lineMetrics_.size() - 1 is last line index
             isJustify = align_ == TextAlign::JUSTIFY && lineIndex != lineMetrics_.size() - 1 &&

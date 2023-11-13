@@ -79,18 +79,18 @@ enum class RSModifierType : int16_t {
     PIXEL_STRETCH,                 // 52
     PIXEL_STRETCH_PERCENT,         // 53
     USE_EFFECT,                    // 54
-    SANDBOX,                       // 55
-    GRAY_SCALE,                    // 56
-    BRIGHTNESS,                    // 57
-    CONTRAST,                      // 58
-    SATURATE,                      // 59
-    SEPIA,                         // 60
-    INVERT,                        // 61
-    HUE_ROTATE,                    // 62
-    COLOR_BLEND,                   // 63
-    PARTICLE,                      // 64
-    SHADOW_IS_FILLED,              // 65
-    COLOR_BLENDMODE,               // 66
+    COLOR_BLEND_MODE,              // 55
+    SANDBOX,                       // 56
+    GRAY_SCALE,                    // 57
+    BRIGHTNESS,                    // 58
+    CONTRAST,                      // 59
+    SATURATE,                      // 60
+    SEPIA,                         // 61
+    INVERT,                        // 62
+    HUE_ROTATE,                    // 63
+    COLOR_BLEND,                   // 64
+    PARTICLE,                      // 65
+    SHADOW_IS_FILLED,              // 66
     CUSTOM,                        // 67
     EXTENDED,                      // 68
     TRANSITION,                    // 69

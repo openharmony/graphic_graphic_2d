@@ -167,8 +167,6 @@ public:
     float GetBgImageHeight() const;
     float GetBgImagePositionX() const;
     float GetBgImagePositionY() const;
-    void SetColorBlendMode(int blendmode);
-    int GetColorBlendMode() const;
 
     // border properties
     void SetBorderColor(Vector4<Color> color);
@@ -294,6 +292,9 @@ public:
     void SetUseEffect(bool useEffect);
     bool GetUseEffect() const;
 
+    void SetColorBlendMode(int colorBlendMode);
+    int GetColorBlendMode() const;
+
 #if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
     const std::unique_ptr<RSFilterCacheManager>& GetFilterCacheManager(bool isForeground) const;
     void ClearFilterCache();
@@ -330,6 +331,8 @@ private:
 
     bool hasBounds_ = false;
     bool useEffect_ = false;
+
+    int colorBlendMode_ = 0;
 
     Gravity frameGravity_ = Gravity::DEFAULT;
 
@@ -403,8 +406,6 @@ private:
 #endif
 
     std::unique_ptr<Sandbox> sandbox_ = nullptr;
-
-    int blendMode_ = static_cast<int>(RSColorBlendModeType::NONE);
 
     friend class RSBackgroundImageDrawable;
     friend class RSCanvasRenderNode;

@@ -96,6 +96,19 @@ bool SkiaImage::MakeFromEncoded(const std::shared_ptr<Data>& data)
     return (skiaImage_ != nullptr);
 }
 
+bool SkiaImage::BuildSubset(const std::shared_ptr<Image> image, const RectI& rect, GPUContext& gpuContext)
+{
+    if (image == nullptr) {
+        LOGE("SkiaImage::BuildSubset failed, origin Image is invaild");
+        return false;
+    }
+    auto skiaImage = image->GetImpl<SkiaImage>()->GetImage();
+    auto skiaRect = SkIRect::MakeLTRB(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
+    grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
+    skiaImage_ = skiaImage->makeSubset(skiaRect, grContext_.get());
+    return (skiaImage_ != nullptr) ? true : false;
+}
+
 bool SkiaImage::BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
     CompressedType type)
 {
@@ -299,6 +312,34 @@ std::shared_ptr<Data> SkiaImage::EncodeToData(EncodedImageFormat& encodedImageFo
 bool SkiaImage::IsLazyGenerated() const
 {
     return (skiaImage_ == nullptr) ? false : skiaImage_->isLazyGenerated();
+}
+
+std::shared_ptr<Image> SkiaImage::MakeRasterImage() const
+{
+    if (skiaImage_ == nullptr) {
+        return nullptr;
+    }
+    sk_sp<SkImage> skImage = skiaImage_->makeRasterImage();
+    if (skImage == nullptr) {
+        LOGE("skImage nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    std::shared_ptr<ImageImpl> imageImpl = std::make_shared<SkiaImage>(skImage);
+    return std::make_shared<Image>(imageImpl);
+}
+
+bool SkiaImage::CanPeekPixels() const
+{
+    SkPixmap pixmap;
+    if (skiaImage_ == nullptr || !skiaImage_->peekPixels(&pixmap)) {
+        return false;
+    }
+    return true;
+}
+
+bool SkiaImage::IsOpaque() const
+{
+    return (skiaImage_ == nullptr) ? false : skiaImage_->isOpaque();
 }
 
 const sk_sp<SkImage> SkiaImage::GetImage() const

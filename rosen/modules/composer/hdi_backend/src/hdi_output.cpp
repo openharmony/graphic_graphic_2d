@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <cstdint>
 #include <scoped_bytrace.h>
 #include "hdi_output.h"
 
@@ -491,13 +492,18 @@ int32_t HdiOutput::StartVSyncSampler()
         return GRAPHIC_DISPLAY_SUCCESS;
     }
     HLOGD("Enable Screen Vsync");
-    int32_t ret = device_->SetScreenVsyncEnabled(screenId_, true);
-    if (ret == GRAPHIC_DISPLAY_SUCCESS) {
-        sampler_->BeginSample();
-    } else {
-        HLOGE("Enable Screen Vsync failed");
+    sampler_->SetScreenVsyncEnabledInRSMainThread(true);
+    sampler_->BeginSample();
+    return GRAPHIC_DISPLAY_SUCCESS;
+}
+
+void HdiOutput::SetPendingPeriod(int64_t period)
+{
+    if (sampler_ == nullptr) {
+        sampler_ = CreateVSyncSampler();
     }
-    return ret;
+    sampler_->SetPendingPeriod(period);
+    StartVSyncSampler();
 }
 
 void HdiOutput::Dump(std::string &result) const

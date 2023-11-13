@@ -69,7 +69,8 @@
           "accessibility",
           "frame_aware_sched",
           "memmgr",
-          "memmgr_plugin" 
+          "memmgr_plugin",
+          "sensor"
         ],
         "third_party": [
           "flutter",
@@ -185,7 +186,8 @@
             "header": {
               "header_files": [
                 "graphic_common.h",
-                "graphic_common_c.h"
+                "graphic_common_c.h",
+                "metadata_convertor.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/common"
             }

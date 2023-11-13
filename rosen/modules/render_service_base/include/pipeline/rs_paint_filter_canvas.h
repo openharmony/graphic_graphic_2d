@@ -181,7 +181,7 @@ public:
 #ifndef USE_ROSEN_DRAWING
     SaveStatus Save(SaveType type = kALL);
 #else
-    SaveStatus SaveAllStatus();
+    SaveStatus SaveAllStatus(SaveType type = kALL);
 #endif
     SaveStatus GetSaveStatus() const;
     void RestoreStatus(const SaveStatus& status);

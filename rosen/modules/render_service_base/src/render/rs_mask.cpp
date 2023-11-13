@@ -327,7 +327,7 @@ RSMask* RSMask::Unmarshalling(Parcel& parcel)
         return nullptr;
     }
     if (maskCmdList) {
-        maskCmdList->Playback(*rsMask->maskPath_, rsMask->maskBrush_);
+        maskCmdList->Playback(rsMask->maskPath_, rsMask->maskBrush_);
     }
 #endif
 

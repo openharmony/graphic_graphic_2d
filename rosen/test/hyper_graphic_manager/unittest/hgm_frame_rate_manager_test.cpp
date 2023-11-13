@@ -24,14 +24,6 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-    int32_t width = 720;
-    int32_t height = 1080;
-    int32_t phyWidth = 685;
-    int32_t phyHeight = 1218;
-    ScreenSize screenSize = {width, height, phyWidth, phyHeight};
-}
-
 class HgmFrameRateMgrTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -45,7 +37,6 @@ void HgmFrameRateMgrTest::TearDownTestCase() {}
 void HgmFrameRateMgrTest::SetUp() {}
 void HgmFrameRateMgrTest::TearDown() {}
 
-
 /**
  * @tc.name: UniProcessData
  * @tc.desc: Verify the result of UniProcessData function
@@ -55,50 +46,17 @@ void HgmFrameRateMgrTest::TearDown() {}
 HWTEST_F(HgmFrameRateMgrTest, UniProcessData, Function | SmallTest | Level1)
 {
     std::unique_ptr<HgmFrameRateManager> mgr = std::make_unique<HgmFrameRateManager>();
-    auto &instance = HgmCore::Instance();
-    ScreenId screenId2 = 8;
-    sptr<HgmScreen> screen = nullptr;
-    int32_t width = 1344;
-    int32_t height = 2772;
-    uint32_t rate = 120;
-    uint32_t rate2 = 60;
-    uint32_t rate3 = 90;
-    int32_t mode = 1;
-    int32_t mode2 = 2;
-    int32_t mode3 = 3;
-    instance.AddScreen(screenId2, 1, screenSize);
-    instance.AddScreenInfo(screenId2, width, height, rate, mode);
-    instance.AddScreenInfo(screenId2, width, height, rate2, mode2);
-    instance.AddScreenInfo(screenId2, width, height, rate3, mode3);
+    ScreenId id = 8;
+    std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker;
+    FrameRateLinkerMap appFrameLinkers;
+    uint64_t timestamp = 10000000;
+    bool flag = false;
     PART("CaseDescription") {
         STEP("1. get a HgmFrameRateManager") {
             STEP_ASSERT_NE(mgr, nullptr);
         }
         STEP("2. check the result of UniProcessData") {
-            FrameRateRangeData data;
-            mgr->UniProcessData(data);
-        }
-        STEP("3. check the result of UniProcessData CalcRefreshRate with special value") {
-            FrameRateRangeData data;
-            data.screenId = screenId2;
-
-            data.rsRange.Set(150, 150, 150);
-            mgr->UniProcessData(data);
-
-            data.rsRange.Set(0, 120, 90);
-            mgr->UniProcessData(data);
-
-            data.rsRange.Set(0, 60, 60);
-            mgr->UniProcessData(data);
-
-            data.rsRange.Set(0, 80, 80);
-            mgr->UniProcessData(data);
-
-            data.rsRange.Set(0, 70, 80);
-            mgr->UniProcessData(data);
-
-            data.rsRange.Set(0, 50, 50);
-            mgr->UniProcessData(data);
+            mgr->UniProcessData(id, timestamp, rsFrameRateLinker, appFrameLinkers, flag);
         }
     }
 }

@@ -674,12 +674,16 @@ RSPaintFilterCanvas::SaveStatus RSPaintFilterCanvas::Save(SaveType type)
         (RSPaintFilterCanvas::kEnv & type) ? SaveEnv() : GetEnvSaveCount() };
 }
 #else
-RSPaintFilterCanvas::SaveStatus RSPaintFilterCanvas::SaveAllStatus()
+RSPaintFilterCanvas::SaveStatus RSPaintFilterCanvas::SaveAllStatus(SaveType type)
 {
     // simultaneously save canvas and alpha
     int canvasSaveCount = GetSaveCount();
-    Save();
-    return { canvasSaveCount, SaveAlpha(), SaveEnv() };
+    if (RSPaintFilterCanvas::kCanvas & type) {
+        Save();
+    }
+    return { canvasSaveCount,
+        (RSPaintFilterCanvas::kAlpha & type) ? SaveAlpha() : GetAlphaSaveCount(),
+        (RSPaintFilterCanvas::kEnv & type) ? SaveEnv() : GetEnvSaveCount() };
 }
 #endif
 
@@ -923,13 +927,13 @@ RSPaintFilterCanvas::CachedEffectData::CachedEffectData(sk_sp<SkImage>&& image, 
 void RSPaintFilterCanvas::SetCanvasStatus(const CanvasStatus& status)
 {
     SetAlpha(status.alpha_);
-    setMatrix(status.matrix_);
+    SetMatrix(status.matrix_);
     SetEffectData(status.effectData_);
 }
 
 RSPaintFilterCanvas::CanvasStatus RSPaintFilterCanvas::GetCanvasStatus() const
 {
-    return { GetAlpha(), getTotalMatrix(), GetEffectData() };
+    return { GetAlpha(), GetTotalMatrix(), GetEffectData() };
 }
 
 RSPaintFilterCanvas::CachedEffectData::CachedEffectData(std::shared_ptr<Drawing::Image>&& image,

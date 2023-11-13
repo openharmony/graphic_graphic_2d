@@ -176,6 +176,7 @@ public:
     Image() noexcept;
     // constructor adopt a raw image ptr, using for ArkUI, should remove after enable multi-media image decode.
     explicit Image(void* rawImg) noexcept;
+    explicit Image(std::shared_ptr<ImageImpl> imageImpl);
     virtual ~Image() {};
     Image* BuildFromBitmap(const Bitmap& bitmap);
     Image* BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix, const Brush& brush,
@@ -216,6 +217,8 @@ public:
      */
     bool BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace);
+
+    bool BuildSubset(const std::shared_ptr<Image>& image, const RectI& rect, GPUContext& gpuContext);
 
     BackendTexture GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin* origin) const;
 
@@ -268,12 +271,18 @@ public:
 
     bool IsLazyGenerated() const;
 
+    std::shared_ptr<Image> MakeRasterImage() const;
+
+    bool CanPeekPixels() const;
+
     /*
      * @brief   Returns true the contents of Image was created on or uploaded to GPU memory,
                 and is available as a GPU texture.
      * @return  True if Image is a GPU texture.
      */
     bool IsTextureBacked() const;
+
+    bool IsOpaque() const;
 
     template<typename T>
     const std::shared_ptr<T> GetImpl() const

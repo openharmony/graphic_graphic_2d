@@ -703,7 +703,7 @@ bool RSMarshallingHelper::WriteToParcel(Parcel& parcel, const void* data, size_t
     return {};
 }
 
-const void* RSMarshallingHelper::ReadFromParcel(Parcel& parcel, size_t size)
+const void* RSMarshallingHelper::ReadFromParcel(Parcel& parcel, size_t size, bool& isMalloc)
 {
     return {};
 }
