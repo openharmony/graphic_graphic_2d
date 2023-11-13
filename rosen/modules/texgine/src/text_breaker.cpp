@@ -80,7 +80,8 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyl
             continue;
         }
 
-        if (span->u16vect_.size() == 0) {
+        std::vector<uint16_t> &u16vect = span->u16vect_;
+        if (u16vect.size() == 0) {
             continue;
         }
 
@@ -94,8 +95,7 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyl
 
         CharGroups cgs;
         std::vector<Boundary> boundaries;
-        auto ret = Measure(xs, span->u16vect_, *fontCollection, cgs, boundaries);
-        if (ret) {
+        if (Measure(xs, u16vect, *fontCollection, cgs, boundaries)) {
             return 1;
         }
 
