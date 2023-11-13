@@ -24,9 +24,9 @@ namespace MetadataManager {
 GSError MetadataHelper::ParseColorSpaceType(const CM_ColorSpaceType& colorSpaceType, CM_ColorSpaceInfo& colorSpaceInfo)
 {
     colorSpaceInfo.primaries = static_cast<CM_ColorPrimaries>(colorSpaceType & CM_PRIMARIES_MASK);
-    colorSpaceInfo.transfunc = static_cast<CM_TransFunc>((colorSpaceType & CM_TRANSFUNC_MASK) >> 8);
-    colorSpaceInfo.matrix = static_cast<CM_Matrix>((colorSpaceType & CM_MATRIX_MASK) >> 16);
-    colorSpaceInfo.range = static_cast<CM_Range>((colorSpaceType & CM_RANGE_MASK) >> 21);
+    colorSpaceInfo.transfunc = static_cast<CM_TransFunc>((colorSpaceType & CM_TRANSFUNC_MASK) >> TRANSFUNC_OFFSET);
+    colorSpaceInfo.matrix = static_cast<CM_Matrix>((colorSpaceType & CM_MATRIX_MASK) >> MATRIX_OFFSET);
+    colorSpaceInfo.range = static_cast<CM_Range>((colorSpaceType & CM_RANGE_MASK) >> RANGE_OFFSET);
     return GSERROR_OK;
 }
 

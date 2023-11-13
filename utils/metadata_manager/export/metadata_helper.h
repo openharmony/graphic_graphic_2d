@@ -79,6 +79,11 @@ public:
 
     static GSError SetHDRVividDynMetadataV1(sptr<SurfaceBuffer>& buffer, const HdrVividMetadataV1& hdrVividMetadata);
     static GSError GetHDRVividDynMetadataV1(const sptr<SurfaceBuffer>& buffer, HdrVividMetadataV1& hdrVividMetadata);
+
+private:
+    static constexpr uint32_t TRANSFUNC_OFFSET = 8;
+    static constexpr uint32_t MATRIX_OFFSET = 16;
+    static constexpr uint32_t RANGE_OFFSET = 21;
 };
 } // namespace MetadataManager
 } // namespace OHOS

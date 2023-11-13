@@ -29,11 +29,11 @@ ohos_unittest("MetadataManagerTest") {
   visibility = [ ":*" ]
   testonly = true
 
-  include_dirs = [ "//foundation/graphic/graphic_2d/frameworks/surface/include" ]
+  include_dirs = [ "$graphic_2d_root/frameworks/surface/include" ]
 
   public_deps = [
-    "//foundation/graphic/graphic_2d/utils/metadata_manager:metadata_manager",
     "$graphic_2d_root/frameworks/surface:surface",
+    "$graphic_2d_root/utils/metadata_manager:metadata_manager",
     "//third_party/googletest:gtest_main",
   ]
   external_deps = [

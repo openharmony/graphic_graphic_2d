@@ -85,8 +85,8 @@ public:
 
     // metadata
     GSError SetMetadata(uint32_t key, const std::vector<uint8_t>& value) override;
-    GSError GetMetadata(uint32_t key, std::vector<uint8_t>& value) const override;
-    GSError ListMetadataKeys(std::vector<uint32_t>& keys) const override;
+    GSError GetMetadata(uint32_t key, std::vector<uint8_t>& value) override;
+    GSError ListMetadataKeys(std::vector<uint32_t>& keys) override;
     GSError EraseMetadataKey(uint32_t key) override;
 
 private:

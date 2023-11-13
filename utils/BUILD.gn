@@ -96,11 +96,11 @@ ohos_shared_library("libgraphic_utils") {
   public_deps = [
     "buffer_handle:buffer_handle",
     "color_manager:color_manager",
-    "metadata_manager:metadata_manager",
     "cpudraw:cpudraw",
     "gl_utils:gl_utils",
     "gslogger:libgslogger",
     "matrix:matrix",
+    "metadata_manager:metadata_manager",
     "option_parser:option_parser",
     "promise:promise",
     "raw_maker:raw_maker",

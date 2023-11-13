@@ -24,8 +24,8 @@
 #include "buffer_manager.h"
 #include "buffer_extra_data_impl.h"
 #include "native_buffer.h"
+#include <v1_0/buffer_handle_meta_key_type.h>
 #include "v1_1/include/idisplay_buffer.h"
-#include "v1_0/buffer_handle_meta_key_type.h"
 
 namespace OHOS {
 namespace {
@@ -557,7 +557,7 @@ GSError SurfaceBufferImpl::SetMetadata(uint32_t key, const std::vector<uint8_t>&
     return GenerateError(GSERROR_API_FAILED, dret);
 }
 
-GSError SurfaceBufferImpl::GetMetadata(uint32_t key, std::vector<uint8_t>& value) const
+GSError SurfaceBufferImpl::GetMetadata(uint32_t key, std::vector<uint8_t>& value)
 {
     if (key == 0 || key >= HDI::Display::Graphic::Common::V1_0::ATTRKEY_END) {
         return GSERROR_INVALID_ARGUMENTS;
@@ -580,7 +580,7 @@ GSError SurfaceBufferImpl::GetMetadata(uint32_t key, std::vector<uint8_t>& value
     return GenerateError(GSERROR_API_FAILED, dret);
 }
 
-GSError SurfaceBufferImpl::ListMetadataKeys(std::vector<uint32_t>& keys) const
+GSError SurfaceBufferImpl::ListMetadataKeys(std::vector<uint32_t>& keys)
 {
     if (GetDisplayBuffer() == nullptr) {
         BLOGE("GetDisplayBuffer failed!");
