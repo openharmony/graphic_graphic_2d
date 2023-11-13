@@ -107,6 +107,15 @@ std::shared_ptr<TextBlob> SkiaTextBlob::Deserialize(const void* data, size_t siz
     std::shared_ptr<TextBlobImpl> textBlobImpl = std::make_shared<SkiaTextBlob>(skTextBlob);
     return std::make_shared<TextBlob>(textBlobImpl);
 }
+
+std::shared_ptr<Rect> SkiaTextBlob::Bounds() const
+{
+    if (skTextBlob_) {
+        auto bounds = skTextBlob_->bounds();
+        return std::make_shared<Rect>(bounds.left(), bounds.top(), bounds.right(), bounds.bottom());
+    }
+    return nullptr;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -807,7 +807,11 @@ void RSPaintFilterCanvas::SetCacheType(CacheType type)
 {
     cacheType_ = type;
 }
+#ifndef USE_ROSEN_DRAWING
 RSPaintFilterCanvas::CacheType RSPaintFilterCanvas::GetCacheType() const
+#else
+Drawing::CacheType RSPaintFilterCanvas::GetCacheType() const
+#endif
 {
     return cacheType_;
 }

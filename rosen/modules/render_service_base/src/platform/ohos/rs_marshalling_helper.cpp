@@ -1749,6 +1749,16 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
     bool ret = parcel.WriteInt32(cmdListData.second);
     parcel.WriteInt32(val->GetWidth());
     parcel.WriteInt32(val->GetHeight());
+
+    parcel.WriteBool(val->GetIsCache());
+    parcel.WriteBool(val->GetCachedHighContrast());
+    auto replacedOpList = val->GetReplacedOpList();
+    parcel.WriteUint32(replacedOpList.size());
+    for (size_t i = 0; i < replacedOpList.size(); ++i) {
+        parcel.WriteUint32(replacedOpList[i].first);
+        parcel.WriteUint32(replacedOpList[i].second);
+    }
+
     if (cmdListData.second == 0) {
         ROSEN_LOGW("unirender: RSMarshallingHelper::Marshalling Drawing::DrawCmdList, size is 0");
         return ret;
@@ -1805,6 +1815,17 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         return true;
     }
 
+    bool isCache = parcel.ReadBool();
+    bool cachedHighContrast = parcel.ReadBool();
+
+    uint32_t replacedOpListSize = parcel.ReadUint32();
+    std::vector<std::pair<uint32_t, uint32_t>> replacedOpList;
+    for (auto i = 0; i < replacedOpListSize; ++i) {
+        auto regionPos = parcel.ReadUint32();
+        auto replacePos = parcel.ReadUint32();
+        replacedOpList.emplace_back(regionPos, replacePos);
+    }
+
     bool isMalloc = false;
     const void* data = RSMarshallingHelper::ReadFromParcel(parcel, size, isMalloc);
     if (data == nullptr) {
@@ -1823,6 +1844,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
     }
     val->SetWidth(width);
     val->SetHeight(height);
+
+    val->SetIsCache(isCache);
+    val->SetCachedHighContrast(cachedHighContrast);
+    val->SetReplacedOpList(replacedOpList);
+
     int32_t imageSize = parcel.ReadInt32();
     if (imageSize > 0) {
         bool isMal = false;
