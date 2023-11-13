@@ -16,6 +16,7 @@
 #include "rs_sub_thread_manager.h"
 #include <chrono>
 
+#include "common/rs_singleton.h"
 #include "common/rs_optional_trace.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_task_dispatcher.h"
@@ -68,6 +69,32 @@ void RSSubThreadManager::StartFilterThread(RenderContext* context)
         filterThread->Start();
     }
 #endif
+}
+
+void RSSubThreadManager::StartRCDThread(RenderContext* context)
+{
+    renderContext_ = context;
+    if (context) {
+        RS_LOGI("RSSubThreadManager::StartRCDThread");
+        auto threadRcd = &(RSSingleton<RSSubThreadRCD>::GetInstance());
+        threadRcd->Start(context);
+        if (!isRcdServiceRegister_) {
+            auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
+            auto& msgBus = RSSingleton<RsMessageBus>::GetInstance();
+            msgBus.RegisterTopic<uint32_t, uint32_t>(
+                TOPIC_RCD_DISPLAY_SIZE, &rcdInstance,
+                &RoundCornerDisplay::UpdateDisplayParameter);
+            msgBus.RegisterTopic<ScreenRotation>(
+                TOPIC_RCD_DISPLAY_ROTATION, &rcdInstance,
+                &RoundCornerDisplay::UpdateOrientationStatus);
+            msgBus.RegisterTopic<int>(
+                TOPIC_RCD_DISPLAY_NOTCH, &rcdInstance,
+                &RoundCornerDisplay::UpdateNotchStatus);
+            isRcdServiceRegister_ = true;
+            RS_LOGI("RSSubThreadManager::StartRCDThread Registed rcd renderservice end");
+        }
+        RS_LOGI("RSSubThreadManager::StartRCDThread Registed rcd renderservice already.");
+    }
 }
 
 void RSSubThreadManager::PostTask(const std::function<void()>& task, uint32_t threadIndex, bool isSyncTask)

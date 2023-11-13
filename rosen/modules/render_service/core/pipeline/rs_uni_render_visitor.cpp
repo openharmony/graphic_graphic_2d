@@ -31,6 +31,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
+#include "common/rs_singleton.h"
 #include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_base_render_util.h"
@@ -533,6 +534,12 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     }
     screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
     prepareClipRect_.SetAll(0, 0, screenInfo_.width, screenInfo_.height);
+    // rcd message send
+    using rcd_msg = RSSingleton<RsMessageBus>;
+    rcd_msg::GetInstance().SendMsg<uint32_t, uint32_t>(TOPIC_RCD_DISPLAY_SIZE,
+        screenInfo_.width, screenInfo_.height);
+    rcd_msg::GetInstance().SendMsg<ScreenRotation>(TOPIC_RCD_DISPLAY_ROTATION,
+        node.GetScreenRotation());
 #ifndef USE_ROSEN_DRAWING
     parentSurfaceNodeMatrix_ = SkMatrix::I();
 #else
@@ -2350,6 +2357,11 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #ifndef USE_ROSEN_DRAWING
         endCapture();
 #endif
+        if (node.IsMirrorDisplay()) {
+            RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode, mirror without roundcornerdisplay");
+        } else {
+            RSSingleton<RoundCornerDisplay>::GetInstance().DrawRoundCorner(canvas_);
+        }
         RSMainThread::Instance()->RemoveTask(CLEAR_GPU_CACHE);
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
         renderFrame_->Flush();
@@ -2398,8 +2410,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 void RSUniRenderVisitor::DrawSurfaceLayer(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
     const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes) const
 {
-#if defined(RS_ENABLE_GL)
     auto subThreadManager = RSSubThreadManager::Instance();
+    subThreadManager->StartRCDThread(renderEngine_->GetRenderContext().get());
+#if defined(RS_ENABLE_GL)
     subThreadManager->StartFilterThread(renderEngine_->GetRenderContext().get());
     subThreadManager->SubmitSubThreadTask(displayNode, subThreadNodes);
 #endif

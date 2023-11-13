@@ -25,15 +25,22 @@
 #include "EGL/egl.h"
 #include "pipeline/parallel_render/rs_render_task.h"
 #include "pipeline/rs_base_render_node.h"
+#include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "pipeline/round_corner_display/rs_sub_thread_rcd.h"
+#include "pipeline/round_corner_display/rs_message_bus.h"
 #include "render_context/render_context.h"
 #include "rs_filter_sub_thread.h"
 
 namespace OHOS::Rosen {
+    constexpr char TOPIC_RCD_DISPLAY_SIZE[]     = "RCD_UPDATE_DISPLAY_SIZE";
+    constexpr char TOPIC_RCD_DISPLAY_ROTATION[] = "RCD_UPDATE_DISPLAY_ROTATION";
+    constexpr char TOPIC_RCD_DISPLAY_NOTCH[]    = "RCD_UPDATE_DISPLAY_NOTCH";
 class RSSubThreadManager {
 public:
     static RSSubThreadManager *Instance();
     void Start(RenderContext *context);
     void StartFilterThread(RenderContext* context);
+    void StartRCDThread(RenderContext* context);
     void PostTask(const std::function<void()>& task, uint32_t threadIndex, bool isSyncTask = false);
     void WaitNodeTask(uint64_t nodeId);
     void NodeTaskNotify(uint64_t nodeId);
@@ -70,6 +77,8 @@ private:
     std::shared_ptr<RSFilterSubThread> filterThread = nullptr;
     bool needResetContext_ = false;
     bool needCancelTask_ = false;
+
+    bool isRcdServiceRegister_ = false;
 };
 }
 #endif // RENDER_SERVICE_CORE_PIPELINE_PARALLEL_RENDER_RS_SUB_THREAD_MANAGER_H
