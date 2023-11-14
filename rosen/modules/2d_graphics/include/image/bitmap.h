@@ -50,6 +50,7 @@ public:
     bool ExtractSubset(Bitmap& dst, const Rect& subset) const;
     bool ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
                     int srcX, int srcY) const;
+    bool PeekPixels(Pixmap& pixmap) const;
 
     /*
      * @brief  Gets the pointer to Bitmap buffer.

@@ -36,6 +36,13 @@ public:
         return AdapterType::SKIA_ADAPTER;
     }
     const SkPixmap& ExportSkiaPixmap() const;
+    std::shared_ptr<ColorSpace> GetColorSpace() override;
+    ColorType GetColorType() override;
+    AlphaType GetAlphaType() override;
+    size_t GetRowBytes() override;
+    const void* GetAddr() override;
+    int GetWidth() override;
+    int GetHeight() override;
 private:
     SkPixmap skiaPixmap_;
 };

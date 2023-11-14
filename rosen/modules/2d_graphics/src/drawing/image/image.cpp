@@ -66,6 +66,12 @@ std::shared_ptr<Image> MakeFromRaster(const Pixmap& pixmap,
     return StaticFactory::MakeFromRaster(pixmap, rasterReleaseProc, releaseContext);
 }
 
+std::shared_ptr<Image> MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
+    size_t rowBytes)
+{
+    return StaticFactory::MakeRasterData(info, pixels, rowBytes);
+}
+
 #ifdef ACE_ENABLE_GPU
 bool Image::BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap)
 {
@@ -169,6 +175,11 @@ std::shared_ptr<Data> Image::EncodeToData(EncodedImageFormat& encodedImageFormat
 bool Image::IsLazyGenerated() const
 {
     return imageImplPtr->IsLazyGenerated();
+}
+
+bool Image::GetROPixels(Bitmap& bitmap)
+{
+    return imageImplPtr->GetROPixels(bitmap);
 }
 
 std::shared_ptr<Image> Image::MakeRasterImage() const

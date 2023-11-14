@@ -19,6 +19,7 @@
 #include "base_impl.h"
 #include "draw/color.h"
 #include "image/image_info.h"
+#include "image/pixmap.h"
 #include "utils/data.h"
 #include "utils/rect.h"
 
@@ -27,8 +28,7 @@ namespace Rosen {
 namespace Drawing {
 class Bitmap;
 struct BitmapFormat;
-typedef void (*ReleaseProc)(void* addr, void* context);
-
+typedef void (*ReleaseProc)(void* ptr, void* context);
 class BitmapImpl : public BaseImpl {
 public:
     BitmapImpl() {}
@@ -49,6 +49,7 @@ public:
     virtual void CopyPixels(Bitmap& dst, int srcLeft, int srcTop) const = 0;
     virtual bool InstallPixels(const ImageInfo& info, void* pixels, size_t rowBytes,
                                ReleaseProc releaseProc, void* context) = 0;
+    virtual bool PeekPixels(Pixmap& pixmap) const = 0;
     virtual bool IsImmutable() = 0;
     virtual void SetImmutable() = 0;
     virtual void ClearWithColor(const ColorQuad& color) const = 0;

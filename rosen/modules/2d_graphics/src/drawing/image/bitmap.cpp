@@ -64,6 +64,11 @@ AlphaType Bitmap::GetAlphaType() const
     return bmpImplPtr->GetAlphaType();
 }
 
+bool Bitmap::PeekPixels(Pixmap& pixmap) const
+{
+    return bmpImplPtr->PeekPixels(pixmap);
+}
+
 void Bitmap::SetPixels(void* pixel)
 {
     bmpImplPtr->SetPixels(pixel);

@@ -44,6 +44,17 @@ public:
     bool BuildWithCopy(const void* data, size_t length);
 
     /*
+     * @brief         Create a new dataref, taking the ptr as is,
+                      and using the releaseproc to free it. The proc may be NULL.
+     * @param ptr     A pointer to data. It must not be nullptr.
+     * @param length  Length of data.
+     * @param proc    release callback func.
+     * @param ctx     context, usually nullptr.
+     * @return        If create Data successed, return true.
+     */
+    bool BuildWithProc(const void* ptr, size_t length, DataReleaseProc proc, void* ctx);
+
+    /*
      * @brief         Create a new Data. When Data is destroyed, data isn't released.
      * @param data    A pointer to data.
      * @param length  Length of data.

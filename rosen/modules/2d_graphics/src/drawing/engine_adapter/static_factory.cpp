@@ -68,6 +68,12 @@ std::shared_ptr<Image> StaticFactory::MakeFromRaster(const Pixmap& pixmap,
     return EngineStaticFactory::MakeFromRaster(pixmap, rasterReleaseProc, releaseContext);
 }
 
+std::shared_ptr<Image> StaticFactory::MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
+    size_t rowBytes)
+{
+    return EngineStaticFactory::MakeRasterData(info, pixels, rowBytes);
+}
+
 std::shared_ptr<TextBlob> StaticFactory::DeserializeTextBlob(const void* data, size_t size)
 {
     return EngineStaticFactory::DeserializeTextBlob(data, size);

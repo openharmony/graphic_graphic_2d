@@ -54,6 +54,8 @@ public:
 
     static std::shared_ptr<Image> MakeFromRaster(const Pixmap& pixmap,
         RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext);
+    static std::shared_ptr<Image> MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
+        size_t rowBytes);
     void* BuildFromBitmap(const Bitmap& bitmap) override;
     void* BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix, const Brush& brush,
         BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace) override;
@@ -85,6 +87,7 @@ public:
         bool allowCachingHint = true) const override;
     std::shared_ptr<Data> EncodeToData(EncodedImageFormat& encodedImageFormat, int quality) const override;
     bool IsLazyGenerated() const override;
+    bool GetROPixels(Bitmap& bitmap) override;
     std::shared_ptr<Image> MakeRasterImage() const override;
     bool CanPeekPixels() const override;
 

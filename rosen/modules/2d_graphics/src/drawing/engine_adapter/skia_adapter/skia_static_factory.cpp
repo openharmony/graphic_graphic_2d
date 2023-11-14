@@ -69,6 +69,12 @@ std::shared_ptr<Image> SkiaStaticFactory::MakeFromRaster(const Pixmap& pixmap,
     return SkiaImage::MakeFromRaster(pixmap, rasterReleaseProc, releaseContext);
 }
 
+std::shared_ptr<Image> SkiaStaticFactory::MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
+    size_t rowBytes)
+{
+    return SkiaImage::MakeRasterData(info, pixels, rowBytes);
+}
+
 std::shared_ptr<TextBlob> SkiaStaticFactory::DeserializeTextBlob(const void* data, size_t size)
 {
     return SkiaTextBlob::Deserialize(data, size);

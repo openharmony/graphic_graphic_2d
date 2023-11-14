@@ -40,6 +40,8 @@ public:
     static std::shared_ptr<Surface> MakeRasterN32Premul(int32_t width, int32_t height);
     static std::shared_ptr<Image> MakeFromRaster(const Pixmap& pixmap,
         RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext);
+    static std::shared_ptr<Image> MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
+        size_t rowBytes);
     static std::shared_ptr<TextBlob> DeserializeTextBlob(const void* data, size_t size);
 };
 } // namespace Drawing

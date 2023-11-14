@@ -49,6 +49,7 @@ public:
     void SetPixels(void* pixels) override;
     bool InstallPixels(const ImageInfo& info, void* pixels, size_t rowBytes,
                        ReleaseProc releaseProc, void* context) override;
+    bool PeekPixels(Pixmap& pixmap) const override;
     const SkBitmap& ExportSkiaBitmap() const;
     void CopyPixels(Bitmap& dst, int srcLeft, int srcTop) const override;
     bool IsImmutable() override;

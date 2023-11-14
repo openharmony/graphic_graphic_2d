@@ -28,6 +28,41 @@ Pixmap::Pixmap(const ImageInfo& imageInfo, const void* addr, size_t rowBytes)
     : pixmapImplPtr(ImplFactory::CreatePixmapImpl(imageInfo, addr, rowBytes))
 {}
 
+std::shared_ptr<ColorSpace> Pixmap::GetColorSpace()
+{
+    return pixmapImplPtr->GetColorSpace();
+}
+
+ColorType Pixmap::GetColorType()
+{
+    return pixmapImplPtr->GetColorType();
+}
+
+AlphaType Pixmap::GetAlphaType()
+{
+    return pixmapImplPtr->GetAlphaType();
+}
+
+size_t Pixmap::GetRowBytes()
+{
+    return pixmapImplPtr->GetRowBytes();
+}
+
+const void* Pixmap::GetAddr()
+{
+    return pixmapImplPtr->GetAddr();
+}
+
+int Pixmap::GetWidth()
+{
+    return pixmapImplPtr->GetWidth();
+}
+
+int Pixmap::GetHeight()
+{
+    return pixmapImplPtr->GetHeight();
+}
+
 Pixmap::~Pixmap() {}
 } // namespace Drawing
 } // namespace Rosen

@@ -36,6 +36,43 @@ const SkPixmap& SkiaPixmap::ExportSkiaPixmap() const
 
 SkiaPixmap::~SkiaPixmap() {}
 
+std::shared_ptr<ColorSpace> SkiaPixmap::GetColorSpace()
+{
+    std::shared_ptr<SkiaColorSpace> skiaColorSpace = std::make_shared<SkiaColorSpace>();
+    skiaColorSpace->SetColorSpace(skiaPixmap_.refColorSpace());
+    return ColorSpace::CreateFromImpl(skiaColorSpace);
+}
+
+ColorType SkiaPixmap::GetColorType()
+{
+    return SkiaImageInfo::ConvertToColorType(skiaPixmap_.colorType());
+}
+
+AlphaType SkiaPixmap::GetAlphaType()
+{
+    return SkiaImageInfo::ConvertToAlphaType(skiaPixmap_.alphaType());
+}
+
+size_t SkiaPixmap::GetRowBytes()
+{
+    return skiaPixmap_.rowBytes();
+}
+
+const void* SkiaPixmap::GetAddr()
+{
+    return skiaPixmap_.addr();
+}
+
+int SkiaPixmap::GetWidth()
+{
+    return skiaPixmap_.width();
+}
+
+int SkiaPixmap::GetHeight()
+{
+    return skiaPixmap_.height();
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

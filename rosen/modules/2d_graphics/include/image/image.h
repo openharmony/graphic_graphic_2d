@@ -192,6 +192,11 @@ public:
     static std::shared_ptr<Image> MakeFromRaster(const Pixmap& pixmap,
         RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext);
 
+    /*
+     * @brief  Create Image from ImageInfo, sharing pixels.
+     */
+    static std::shared_ptr<Image> MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
+                                                 size_t rowBytes);
 #ifdef ACE_ENABLE_GPU
     /*
      * @brief             Create Image from Bitmap. Image is uploaded to GPU back-end using context.
@@ -288,6 +293,11 @@ public:
     std::shared_ptr<Data> EncodeToData(EncodedImageFormat& encodedImageFormat, int quality) const;
 
     bool IsLazyGenerated() const;
+
+    /*
+     * @brief  Get Bitmap by image's directContext, can call it if IsLazyGenerated return false.
+     */
+    bool GetROPixels(Bitmap& bitmap);
 
     std::shared_ptr<Image> MakeRasterImage() const;
 

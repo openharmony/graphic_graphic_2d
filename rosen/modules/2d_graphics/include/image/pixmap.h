@@ -27,7 +27,13 @@ public:
     Pixmap();
     Pixmap(const ImageInfo& imageInfo, const void* addr, size_t rowBytes);
     virtual ~Pixmap();
-
+    std::shared_ptr<ColorSpace> GetColorSpace();
+    ColorType GetColorType();
+    AlphaType GetAlphaType();
+    size_t GetRowBytes();
+    const void* GetAddr();
+    int GetWidth();
+    int GetHeight();
     template<typename T>
     const std::shared_ptr<T> GetImpl() const
     {

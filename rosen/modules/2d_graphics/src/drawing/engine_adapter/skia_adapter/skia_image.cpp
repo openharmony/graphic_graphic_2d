@@ -18,7 +18,7 @@
 #ifdef ACE_ENABLE_GPU
 #include "include/gpu/GrBackendSurface.h"
 #endif
-
+#include "src/image/SkImage_Base.h"
 #include "skia_bitmap.h"
 #include "skia_pixmap.h"
 #include "skia_data.h"
@@ -52,6 +52,21 @@ std::shared_ptr<Image> SkiaImage::MakeFromRaster(const Pixmap& pixmap,
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skPixmap, rasterReleaseProc, releaseContext);
     if (skImage == nullptr) {
         LOGE("SkiaImage::MakeFromRaster failed");
+        return nullptr;
+    }
+    std::shared_ptr<ImageImpl> imageImpl = std::make_shared<SkiaImage>(skImage);
+    return std::make_shared<Image>(imageImpl);
+}
+
+std::shared_ptr<Image> SkiaImage::MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
+    size_t rowBytes)
+{
+    SkImageInfo skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(info);
+    auto skData = pixels->GetImpl<SkiaData>()->GetSkData();
+
+    sk_sp<SkImage> skImage = SkImage::MakeRasterData(skImageInfo, skData, rowBytes);
+    if (skImage == nullptr) {
+        LOGE("skImage nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
     std::shared_ptr<ImageImpl> imageImpl = std::make_shared<SkiaImage>(skImage);
@@ -349,6 +364,18 @@ std::shared_ptr<Data> SkiaImage::EncodeToData(EncodedImageFormat& encodedImageFo
 bool SkiaImage::IsLazyGenerated() const
 {
     return (skiaImage_ == nullptr) ? false : skiaImage_->isLazyGenerated();
+}
+
+bool SkiaImage::GetROPixels(Bitmap& bitmap)
+{
+    auto context = as_IB(skiaImage_.get())->directContext();
+    SkBitmap skiaBitmap;
+    if (!as_IB(skiaImage_.get())->getROPixels(context, &skiaBitmap)) {
+        LOGE("skiaImge getROPixels failed");
+        return false;
+    }
+    bitmap.GetImpl<SkiaBitmap>()->SetSkBitmap(skiaBitmap);
+    return false;
 }
 
 std::shared_ptr<Image> SkiaImage::MakeRasterImage() const

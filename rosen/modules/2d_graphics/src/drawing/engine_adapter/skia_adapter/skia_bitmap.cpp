@@ -14,6 +14,7 @@
  */
 
 #include "skia_bitmap.h"
+#include "skia_pixmap.h"
 
 #include "include/core/SkImageInfo.h"
 
@@ -104,6 +105,12 @@ bool SkiaBitmap::InstallPixels(const ImageInfo& info, void* pixels, size_t rowBy
 {
     SkImageInfo skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(info);
     return skiaBitmap_.installPixels(skImageInfo, pixels, rowBytes, releaseProc, context);
+}
+
+bool SkiaBitmap::PeekPixels(Pixmap& pixmap) const
+{
+    const SkPixmap& skiaPixmap = pixmap.GetImpl<SkiaPixmap>()->ExportSkiaPixmap();
+    return skiaBitmap_.peekPixels(const_cast<SkPixmap*>(&skiaPixmap));
 }
 
 const SkBitmap& SkiaBitmap::ExportSkiaBitmap() const

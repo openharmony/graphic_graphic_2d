@@ -101,7 +101,10 @@ public:
     ImageFilter(FilterType t, const std::vector<scalar>& coefficients, bool enforcePMColor,
         std::shared_ptr<ImageFilter> background, std::shared_ptr<ImageFilter> foreground) noexcept;
     ImageFilter(FilterType t, std::shared_ptr<ImageFilter> f1, std::shared_ptr<ImageFilter> f2) noexcept;
+    ImageFilter(FilterType t) noexcept;
 
+    std::shared_ptr<Data> Serialize() const;
+    bool Deserialize(std::shared_ptr<Data> data);
 protected:
     ImageFilter() noexcept;
 
