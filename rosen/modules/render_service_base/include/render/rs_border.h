@@ -68,9 +68,11 @@ public:
     void SetColorFour(const Vector4<Color>& color);
     void SetWidthFour(const Vector4f& width);
     void SetStyleFour(const Vector4<uint32_t>& style);
+    void SetRadiusFour(const Vector4f& radius);
     Vector4<Color> GetColorFour() const;
     Vector4f GetWidthFour() const;
     Vector4<uint32_t> GetStyleFour() const;
+    Vector4f GetRadiusFour() const;
 
     bool HasBorder() const;
 
@@ -105,6 +107,9 @@ private:
     std::vector<Color> colors_;
     std::vector<float> widths_;
     std::vector<BorderStyle> styles_;
+
+    // only be used by outerBorder, innerBorder(border_) uses corner radius.
+    Vector4f radius_;
 };
 } // namespace Rosen
 } // namespace OHOS

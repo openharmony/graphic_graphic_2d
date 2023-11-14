@@ -1791,38 +1791,91 @@ void RSPropertiesPainter::DrawFrame(
 }
 #endif
 
-#ifndef USE_ROSEN_DRAWING
-void RSPropertiesPainter::DrawBorder(const RSProperties& properties, SkCanvas& canvas)
+RRect RSPropertiesPainter::GetRRectForDrawingBorder(const RRect& rr, const std::shared_ptr<RSBorder>& border,
+                                                    const Vector4f& outset, const bool& isFirstLayerBorder)
 {
-    auto border = properties.GetBorder();
+    if (!border) {
+        return RRect();
+    }
+
+    return isFirstLayerBorder ? rr : RRect(rr.rect_.MakeOutset(outset), border->GetRadiusFour());
+}
+
+RRect RSPropertiesPainter::GetInnerRRectForDrawingBorder(const RSProperties& properties,
+                                                         const std::shared_ptr<RSBorder>& border,
+                                                         const Vector4f& innerOutset, const bool& isFirstLayerBorder)
+{
+    if (!border) {
+        return RRect();
+    }
+    auto innerRRect = properties.GetInnerRRect();
+    return isFirstLayerBorder ? innerRRect :
+        RRect(innerRRect.rect_.MakeOutset(innerOutset), border->GetRadiusFour() - border->GetWidthFour());
+}
+
+#ifndef USE_ROSEN_DRAWING
+void RSPropertiesPainter::DrawBorderBase(const RSProperties& properties, SkCanvas& canvas,
+                                         const std::shared_ptr<RSBorder>& border, Vector4f& outset,
+                                         Vector4f& innerOutset, const bool isFirstLayerBorder)
+{
     if (!border || !border->HasBorder()) {
         return;
+    }
+
+    if (!isFirstLayerBorder) {
+        outset = outset + border->GetWidthFour();
     }
     SkPaint paint;
     paint.setAntiAlias(true);
     if (border->ApplyFillStyle(paint)) {
-        canvas.drawDRRect(RRect2SkRRect(properties.GetRRect()), RRect2SkRRect(properties.GetInnerRRect()), paint);
-    } else if (properties.GetCornerRadius().IsZero() && border->ApplyFourLine(paint)) {
-        RectF rect = properties.GetBoundsRect();
-        border->PaintFourLine(canvas, paint, rect);
-    } else if (border->ApplyPathStyle(paint)) {
-        auto borderWidth = border->GetWidth();
-        RRect rrect = properties.GetRRect();
-        rrect.rect_.width_ -= borderWidth;
-        rrect.rect_.height_ -= borderWidth;
-        rrect.rect_.Move(borderWidth / PARAM_DOUBLE, borderWidth / PARAM_DOUBLE);
-        SkPath borderPath;
-        borderPath.addRRect(RRect2SkRRect(rrect));
-        canvas.drawPath(borderPath, paint);
+        auto skRRect = RRect2SkRRect(GetRRectForDrawingBorder(
+            properties.GetRRect(), border, outset, isFirstLayerBorder));
+        auto innerSkRRect = RRect2SkRRect(GetInnerRRectForDrawingBorder(
+            properties, border, innerOutset, isFirstLayerBorder));
+        canvas.drawDRRect(skRRect, innerSkRRect, paint);
     } else {
-        SkAutoCanvasRestore acr(&canvas, true);
-        canvas.clipRRect(RRect2SkRRect(properties.GetInnerRRect()), SkClipOp::kDifference, true);
-        SkRRect rrect = RRect2SkRRect(properties.GetRRect());
-        paint.setStyle(SkPaint::Style::kStroke_Style);
-        border->PaintTopPath(canvas, paint, rrect);
-        border->PaintRightPath(canvas, paint, rrect);
-        border->PaintBottomPath(canvas, paint, rrect);
-        border->PaintLeftPath(canvas, paint, rrect);
+        bool isZero = isFirstLayerBorder ? properties.GetCornerRadius().IsZero() : border->GetRadiusFour().IsZero();
+        if (isZero && border->ApplyFourLine(paint)) {
+            RectF rectf = properties.GetBoundsRect();
+            border->PaintFourLine(canvas, paint, rectf.MakeOutset(outset));
+        } else if (border->ApplyPathStyle(paint)) {
+            auto borderWidth = border->GetWidth();
+            RRect rrect = GetRRectForDrawingBorder(properties.GetRRect(), border, outset, isFirstLayerBorder);
+            rrect.rect_.width_ -= borderWidth;
+            rrect.rect_.height_ -= borderWidth;
+            rrect.rect_.Move(borderWidth / PARAM_DOUBLE, borderWidth / PARAM_DOUBLE);
+            SkPath borderPath;
+            borderPath.addRRect(RRect2SkRRect(rrect));
+            canvas.drawPath(borderPath, paint);
+        } else {
+            SkAutoCanvasRestore acr(&canvas, true);
+            auto innerSkRRect = RRect2SkRRect(GetInnerRRectForDrawingBorder(
+                properties, border, innerOutset, isFirstLayerBorder));
+            canvas.clipRRect(innerSkRRect, SkClipOp::kDifference, true);
+            auto rrect = RRect2SkRRect(GetRRectForDrawingBorder(
+                properties.GetRRect(), border, outset, isFirstLayerBorder));
+            paint.setStyle(SkPaint::Style::kStroke_Style);
+            border->PaintTopPath(canvas, paint, rrect);
+            border->PaintRightPath(canvas, paint, rrect);
+            border->PaintBottomPath(canvas, paint, rrect);
+            border->PaintLeftPath(canvas, paint, rrect);
+        }
+    }
+
+    innerOutset = innerOutset + border->GetWidthFour();
+}
+
+void RSPropertiesPainter::DrawBorder(const RSProperties& properties, SkCanvas& canvas)
+{
+    Vector4f outset, innerOutset;
+    auto innerBorder = properties.GetBorder();
+    if (innerBorder && innerBorder->HasBorder()) {
+        DrawBorderBase(properties, canvas, innerBorder, outset, innerOutset, true);
+    }
+
+    auto outerBorder = properties.GetOuterBorder();
+    if (outerBorder && outerBorder->HasBorder()) {
+        DrawBorderBase(properties, canvas, outerBorder, outset, innerOutset, false);
     }
 }
 #else
