@@ -13,7 +13,11 @@
  * limitations under the License.
  */
 
+#include <chrono>
 #include "rs_round_corner_config.h"
+
+using std::chrono::high_resolution_clock;
+using std::chrono::microseconds;
 
 namespace OHOS {
 namespace Rosen {
@@ -377,14 +381,14 @@ void RCDConfig::PrintParseRog(rs_rcd::ROGSetting* rog)
     }
     for (auto kv : rog->portraitMap) {
         auto port = kv.second;
-        RS_LOGI("rog: %{public}d, %{public}d, %{public}s: \n", rog->width, rog->height, kv.first.c_str());
+        RS_LOGD("rog: %{public}d, %{public}d, %{public}s: \n", rog->width, rog->height, kv.first.c_str());
         PrintLayer("layerUp  ", port.layerUp);
         PrintLayer("layerDown", port.layerDown);
         PrintLayer("layerHide", port.layerHide);
     }
     for (auto kv : rog->landscapeMap) {
         auto port = kv.second;
-        RS_LOGI("rog: %{public}d, %{public}d, %{public}s: \n", rog->width, rog->height, kv.first.c_str());
+        RS_LOGD("rog: %{public}d, %{public}d, %{public}s: \n", rog->width, rog->height, kv.first.c_str());
         PrintLayer("layerUp  ", port.layerUp);
     }
 }
@@ -395,33 +399,34 @@ void RCDConfig::PrintParseLcdModel(rs_rcd::LCDModel* model)
         RS_LOGE("no model input \n");
         return;
     }
-    RS_LOGI("lcdModel: %{public}s \n", model->name.c_str());
+    RS_LOGD("lcdModel: %{public}s \n", model->name.c_str());
     auto surfaceConfig = model->GetSurfaceConfig();
-    RS_LOGI("surfaceConfig: \n");
-    RS_LOGI("topSurface: %{public}d, %{public}d \n", surfaceConfig.topSurface.support,
+    RS_LOGD("surfaceConfig: \n");
+    RS_LOGD("topSurface: %{public}d, %{public}d \n", surfaceConfig.topSurface.support,
         surfaceConfig.topSurface.mode);
-    RS_LOGI("bottomSurface: %{public}d, %{public}d \n", surfaceConfig.bottomSurface.support,
+    RS_LOGD("bottomSurface: %{public}d, %{public}d \n", surfaceConfig.bottomSurface.support,
         surfaceConfig.bottomSurface.mode);
 
     auto sideRegionConfig = model->GetSideRegionConfig();
-    RS_LOGI("sideRegionConfig: \n");
-    RS_LOGI("sideRegion: %{public}d, %{public}d \n", sideRegionConfig.sideRegion.support,
+    RS_LOGD("sideRegionConfig: \n");
+    RS_LOGD("sideRegion: %{public}d, %{public}d \n", sideRegionConfig.sideRegion.support,
         sideRegionConfig.sideRegion.mode);
 
     auto hardwareConfig = model->GetHardwareComposerConfig();
-    RS_LOGI("hardwareConfig: \n");
-    RS_LOGI("hardwareComposer: %{public}d \n", hardwareConfig.hardwareComposer.support);
+    RS_LOGD("hardwareConfig: \n");
+    RS_LOGD("hardwareComposer: %{public}d \n", hardwareConfig.hardwareComposer.support);
 }
 
 bool RCDConfig::Load(std::string configFile)
 {
+    auto begin = high_resolution_clock::now();
     xmlKeepBlanksDefault(0);
     pDoc = xmlReadFile(configFile.c_str(), "", XML_PARSE_RECOVER);
     if (pDoc == nullptr) {
         RS_LOGE("RoundCornerDisplay read xml failed \n");
         return false;
     }
-    RS_LOGI("RoundCornerDisplay read xml ok \n");
+    RS_LOGD("RoundCornerDisplay read xml ok \n");
     pRoot = xmlDocGetRootElement(pDoc);
     if (pRoot == nullptr) {
         RS_LOGE("RoundCornerDisplay get xml root failed \n");
@@ -441,6 +446,10 @@ bool RCDConfig::Load(std::string configFile)
         }
         startPtr = startPtr->next;
     }
+    auto interval = std::chrono::duration_cast<microseconds>(
+        high_resolution_clock::now() - begin;
+    );
+    RS_LOGD("RoundCornerDisplay read xml time cost %{public}lld us \n", interval.count());
     return true;
 }
 

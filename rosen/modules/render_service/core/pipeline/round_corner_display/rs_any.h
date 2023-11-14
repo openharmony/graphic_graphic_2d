@@ -15,7 +15,9 @@
 
 #ifndef RS_CORE_PIPELINE_RCD_ANY_H
 #define RS_CORE_PIPELINE_RCD_ANY_H
-
+#include <functional>
+#include <mutex>
+#include <thread>
 #include <memory>
 #include <iostream>
 
@@ -37,6 +39,14 @@ struct RsAny {
         return derived->m_value;
     }
 
+    template<typename... Args>
+    void Send(Args... args)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        auto f = anyCast<std::function<void(Args...)>>();
+        f(args...);
+    }
+
     RsAny& operator=(const RsAny& a)
     {
         if (m_ptr == a.m_ptr) {
@@ -47,6 +57,7 @@ struct RsAny {
     }
 
 private:
+    std::mutex m_mutex;
     struct Base;
     using BaseUPtr = std::unique_ptr<Base>;
     struct Base {
