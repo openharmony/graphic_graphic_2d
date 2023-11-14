@@ -34,7 +34,6 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "system/rs_system_parameters.h"
 #include "visitor/rs_node_visitor.h"
-#include "pipeline/round_corner_display/rs_round_corner_display.h"
 #include "pipeline/rs_recording_canvas.h"
 
 class SkPicture;

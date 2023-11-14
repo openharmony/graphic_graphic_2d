@@ -25,9 +25,6 @@
 #include "EGL/egl.h"
 #include "pipeline/parallel_render/rs_render_task.h"
 #include "pipeline/rs_base_render_node.h"
-#include "pipeline/round_corner_display/rs_round_corner_display.h"
-#include "pipeline/round_corner_display/rs_sub_thread_rcd.h"
-#include "pipeline/round_corner_display/rs_message_bus.h"
 #include "render_context/render_context.h"
 #include "rs_filter_sub_thread.h"
 
