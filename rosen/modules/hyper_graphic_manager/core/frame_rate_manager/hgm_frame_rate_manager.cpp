@@ -164,6 +164,9 @@ void HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRateRang
     // 2. FrameRateRange[min, max, preferred] is [150, 150, 150], supported refreshRates
     // of current screen are {30, 60, 90}, the result will be 90.
     auto supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(id);
+    if (supportRefreshRateVec.empty()) {
+        return;
+    }
     std::sort(supportRefreshRateVec.begin(), supportRefreshRateVec.end());
     auto iter = std::lower_bound(supportRefreshRateVec.begin(), supportRefreshRateVec.end(), range.preferred_);
     if (iter != supportRefreshRateVec.end()) {
