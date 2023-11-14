@@ -56,14 +56,6 @@ struct RsAny {
         return *this;
     }
 
-    BaseUPtr Clone() const
-    {
-        if (m_ptr != nullptr) {
-            return m_ptr->Clone();
-        }
-        return nullptr;
-    }
-
 private:
     std::mutex m_mutex;
     struct Base;
@@ -87,5 +79,13 @@ private:
     };
 
     BaseUPtr m_ptr;
+
+    BaseUPtr Clone() const
+    {
+        if (m_ptr != nullptr) {
+            return m_ptr->Clone();
+        }
+        return nullptr;
+    }
 };
 #endif

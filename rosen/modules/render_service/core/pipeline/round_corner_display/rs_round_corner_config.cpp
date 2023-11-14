@@ -447,7 +447,7 @@ bool RCDConfig::Load(std::string configFile)
         startPtr = startPtr->next;
     }
     auto interval = std::chrono::duration_cast<microseconds>(
-        high_resolution_clock::now() - begin;
+        high_resolution_clock::now() - begin
     );
     RS_LOGD("RoundCornerDisplay read xml time cost %{public}lld us \n", interval.count());
     return true;
