@@ -420,10 +420,8 @@ void RSProperties::UpdateSandBoxMatrix(const std::optional<Drawing::Matrix>& roo
     auto matrix = rootMatrix.value();
     sandbox_->matrix_ = matrix.preTranslate(sandbox_->position_->x_, sandbox_->position_->y_);
 #else
-    auto matrix = Drawing::Matrix();
-    for (int i = 0; i < Drawing::Matrix::MATRIX_SIZE; i++) {
-        matrix.Set(static_cast<Drawing::Matrix::Index>(i), rootMatrix.value().Get(i));
-    }
+    Drawing::Matrix matrix;
+    matrix.DeepCopy(rootMatrix.value());
     matrix.PreTranslate(sandbox_->position_->x_, sandbox_->position_->y_);
     sandbox_->matrix_ = matrix;
 #endif
