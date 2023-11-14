@@ -61,7 +61,7 @@
 #include "scene_board_judgement.h"
 
 #include "pipeline/round_corner_display/rs_round_corner_display.h"
-
+#include "pipeline/round_corner_display/rs_message_bus.h"
 namespace OHOS {
 namespace Rosen {
 namespace {

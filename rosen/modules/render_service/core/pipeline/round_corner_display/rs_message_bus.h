@@ -20,6 +20,8 @@
 #include <iostream>
 #include <map>
 #include <functional>
+#include <mutex>
+#include <thread>
 #include "rs_any.h"
 #include "rs_notCopyable.h"
 
@@ -73,10 +75,10 @@ class RsMessageBus : RsNotCopyable {
         template<typename... Args, typename TObject, typename TMember>
         void RegisterTopic(std::string strTopic, TObject *Object, TMember Member)
         {
+            std::lock_guard<std::mutex> lock(m_send_mutex);
             std::function<void(Args...)> f = std::function<void(Args...)>([=](Args... arg) {
                 (Object->*Member)(arg...);
             });
-
             m_map.emplace(GetKey<Args...>(strTopic), f);
         }
 
@@ -88,6 +90,7 @@ class RsMessageBus : RsNotCopyable {
         template<typename... Args>
         void SendMsg(std::string strTopic, Args... args)
         {
+            std::lock_guard<std::mutex> lock(m_map_mutex);
             auto range = m_map.equal_range(GetKey<Args...>(strTopic));
             std::multimap<std::string, RsAny>::iterator it;
             for (it = range.first; it != range.second; it++) {
@@ -102,6 +105,7 @@ class RsMessageBus : RsNotCopyable {
         template<typename... Args>
         void RemoveTopic(std::string strTopic)
         {
+            std::lock_guard<std::mutex> lock(m_map_mutex);
             auto it = m_map.find(GetKey<Args...>(strTopic));
             while (it != m_map.end()) {
                 m_map.erase(it++);
@@ -117,5 +121,9 @@ class RsMessageBus : RsNotCopyable {
         }
 
         std::multimap<std::string, RsAny> m_map;
+
+        std::mutex m_send_mutex;
+        std::mutex m_map_mutex;
+
 };
 #endif

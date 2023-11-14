@@ -23,16 +23,16 @@ namespace OHOS {
 namespace Rosen {
     RSSubThreadRCD::~RSSubThreadRCD()
     {
-        RS_LOGI("~RSSubThreadRCD");
+        RS_LOGD("~RSSubThreadRCD");
     }
 
     void RSSubThreadRCD::Start(RenderContext *context)
     {
         if (renderContext_ != nullptr) {
-            RS_LOGI("RSSubThreadRCD already start!");
+            RS_LOGD("RSSubThreadRCD already start!");
             return;
         }
-        RS_LOGI("RSSubThreadRCD Started");
+        RS_LOGD("RSSubThreadRCD Started");
         std::string name = "RoundCornerDisplaySubThread";
         runner_ = AppExecFwk::EventRunner::Create(name);
         handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);

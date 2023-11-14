@@ -78,7 +78,7 @@ void RSSubThreadManager::StartRCDThread(RenderContext* context)
 {
     renderContext_ = context;
     if (context) {
-        RS_LOGI("RSSubThreadManager::StartRCDThread");
+        RS_LOGD("RSSubThreadManager::StartRCDThread");
         auto threadRcd = &(RSSingleton<RSSubThreadRCD>::GetInstance());
         threadRcd->Start(context);
         if (!isRcdServiceRegister_) {
@@ -94,9 +94,9 @@ void RSSubThreadManager::StartRCDThread(RenderContext* context)
                 TOPIC_RCD_DISPLAY_NOTCH, &rcdInstance,
                 &RoundCornerDisplay::UpdateNotchStatus);
             isRcdServiceRegister_ = true;
-            RS_LOGI("RSSubThreadManager::StartRCDThread Registed rcd renderservice end");
+            RS_LOGD("RSSubThreadManager::StartRCDThread Registed rcd renderservice end");
         }
-        RS_LOGI("RSSubThreadManager::StartRCDThread Registed rcd renderservice already.");
+        RS_LOGD("RSSubThreadManager::StartRCDThread Registed rcd renderservice already.");
     }
 }
 
