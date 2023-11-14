@@ -43,9 +43,11 @@ constexpr int32_t INDEX_18 = 18;
 const Vector4f Vector4fZero { 0.f, 0.f, 0.f, 0.f };
 const auto EMPTY_RECT = RectF();
 constexpr float SPHERIZE_VALID_EPSILON = 0.001f; // used to judge if spherize valid
+constexpr uint8_t BORDER_TYPE_NONE = (uint32_t)BorderStyle::NONE;
 
 using ResetPropertyFunc = void (*)(RSProperties* prop);
-constexpr uint8_t BORDER_TYPE_NONE = (uint32_t)BorderStyle::NONE;
+// Every modifier before RSModifierType::CUSTOM is property modifier, and it should have a ResetPropertyFunc
+// NOTE: alway add new resetter when adding new property modifier
 const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_propertyResetterLUT = {
     nullptr,                                                             // INVALID,                  0
     nullptr,                                                             // BOUNDS,                   1
@@ -125,7 +127,6 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
 } // namespace
 
 // Only enable filter cache when uni-render is enabled and filter cache is enabled
-
 #if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
 const bool RSProperties::FilterCacheEnabled =
     RSSystemProperties::GetFilterCacheEnabled() && RSUniRenderJudgement::IsUniRender();

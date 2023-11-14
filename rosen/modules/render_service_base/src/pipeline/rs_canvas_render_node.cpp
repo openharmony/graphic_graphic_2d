@@ -131,6 +131,10 @@ void RSCanvasRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 
 void RSCanvasRenderNode::ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas)
 {
+    if (RSSystemProperties::GetPropertyDrawableEnable()) {
+        IterateOnDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::MASK, canvas);
+        return;
+    }
     RSRenderNode::ProcessTransitionBeforeChildren(canvas);
 }
 
@@ -216,6 +220,10 @@ void RSCanvasRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canvas)
 
 void RSCanvasRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
+    if (RSSystemProperties::GetPropertyDrawableEnable()) {
+        IterateOnDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
+        return;
+    }
     ProcessTransitionBeforeChildren(canvas);
     ProcessAnimatePropertyBeforeChildren(canvas);
 }

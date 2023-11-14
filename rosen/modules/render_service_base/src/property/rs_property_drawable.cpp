@@ -142,7 +142,7 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::GEOMETRYTRANS, RSPropertyDrawableSlot::INVALID },
 };
 
-// NOTE: This LUT should always the same same as RSPropertyDrawableSlot
+// NOTE: This LUT should always the same size as RSPropertyDrawableSlot
 // index = RSPropertyDrawableType, value = DrawableGenerator
 static const std::array<RSPropertyDrawable::DrawableGenerator, RSPropertyDrawableSlot::MAX> g_drawableGeneratorLut = {
     nullptr, // INVALID = 0,

@@ -34,7 +34,6 @@ namespace Slot {
 // NOTE: MUST update DrawableGeneratorLut in rs_property_drawable.cpp when new slots are added
 enum RSPropertyDrawableSlot : uint8_t {
     INVALID = 0,
-
     SAVE_ALL,
 
     // Bounds Geometry
