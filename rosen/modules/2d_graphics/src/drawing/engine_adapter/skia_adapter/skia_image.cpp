@@ -192,6 +192,7 @@ static TextureInfo ConvertToTextureInfo(const GrBackendTexture& grBackendTexture
     textureInfo.SetTarget(grGLTextureInfo->fTarget);
     textureInfo.SetID(grGLTextureInfo->fID);
     textureInfo.SetFormat(grGLTextureInfo->fFormat);
+    delete grGLTextureInfo;
 
     return textureInfo;
 }

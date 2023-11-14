@@ -320,7 +320,7 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
         RS_OPTIONAL_TRACE_NAME_FMT("UpdateCacheChangeStatus quick skip node %llu", node.GetId());
         UpdateStaticCacheSubTree(node.ReinterpretCastTo<RSRenderNode>(), children);
     }
-    
+
     curAlpha_ = alpha;
     // restore environment variables
     logicParentNode_ = std::move(parentNode);
@@ -1411,7 +1411,7 @@ void RSUniRenderVisitor::CopyForParallelPrepare(std::shared_ptr<RSUniRenderVisit
     for (const auto &u : visitor->hasCaptureWindow_) {
         hasCaptureWindow_[u.first] = u.second;
     }
-    
+
 #endif
 }
 
@@ -3317,7 +3317,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #else
             canvas_->ConcatMatrix(node.contextMatrix_.value_or(Drawing::Matrix()));
             Drawing::Brush brush;
-            brush.SetARGB(0xFF, 0, 0, 0x80); // transparent red
+            brush.SetARGB(0x80, 0xFF, 0, 0); // transparent red
             canvas_->AttachBrush(brush);
             canvas_->DrawRect(node.contextClipRect_.value());
             canvas_->DetachBrush();
@@ -3582,7 +3582,7 @@ void RSUniRenderVisitor::ProcessProxyRenderNode(RSProxyRenderNode& node)
         canvas_->drawRect(node.contextClipRect_.value(), paint);
 #else
         Drawing::Brush brush;
-        brush.SetARGB(0, 0xFF, 0, 0x80); // transparent green
+        brush.SetARGB(0x80, 0, 0xFF, 0); // transparent green
         canvas_->AttachBrush(brush);
         canvas_->DrawRect(node.contextClipRect_.value());
         canvas_->DetachBrush();
@@ -3684,11 +3684,7 @@ bool RSUniRenderVisitor::InitNodeCache(RSRenderNode& node)
             cacheRenderNodeMapCnt = cacheRenderNodeMap.count(node.GetId());
         }
         if (cacheRenderNodeMapCnt == 0 || node.NeedInitCacheCompletedSurface()) {
-#ifndef USE_ROSEN_DRAWING
             RenderParam val { node.shared_from_this(), canvas_->GetCanvasStatus() };
-#else
-            RenderParam val { node.shared_from_this(), canvas_->GetAlpha(), canvas_->GetTotalMatrix() };
-#endif
             curGroupedNodes_.push(val);
             {
                 std::lock_guard<std::mutex> lock(groupedTransitionNodesMutex);
@@ -3749,11 +3745,7 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
     if (node.GetDrawingCacheType() == RSDrawingCacheType::FORCED_CACHE) {
         // Regardless of the number of consecutive refreshes, the current cache is forced to be updated.
         if (node.GetDrawingCacheChanged()) {
-#ifndef USE_ROSEN_DRAWING
             RenderParam val { node.shared_from_this(), canvas_->GetCanvasStatus() };
-#else
-            RenderParam val { node.shared_from_this(), canvas_->GetAlpha(), canvas_->GetTotalMatrix() };
-#endif
             curGroupedNodes_.push(val);
             {
                 std::lock_guard<std::mutex> lock(groupedTransitionNodesMutex);
@@ -3790,11 +3782,7 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
                 cacheReuseTimes = 0;
                 return;
             }
-#ifndef USE_ROSEN_DRAWING
             RenderParam val { node.shared_from_this(), canvas_->GetCanvasStatus() };
-#else
-            RenderParam val { node.shared_from_this(), canvas_->GetAlpha(), canvas_->GetTotalMatrix() };
-#endif
             curGroupedNodes_.push(val);
             {
                 std::lock_guard<std::mutex> lock(groupedTransitionNodesMutex);
@@ -4238,14 +4226,8 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
         existingNodeIter != unpairedTransitionNodes_.end()) {
         RSAutoCanvasRestore acr(canvas_);
         // restore render context and process the paired node.
-#ifndef USE_ROSEN_DRAWING
         auto& [node, canvasStatus] = existingNodeIter->second;
         canvas_->SetCanvasStatus(canvasStatus);
-#else
-        auto& [node, alpha, mat] = existingNodeIter->second;
-        canvas_->SetAlpha(alpha);
-        canvas_->SetMatrix(mat.value());
-#endif
         node->Process(shared_from_this());
         unpairedTransitionNodes_.erase(existingNodeIter);
         return true;
@@ -4259,19 +4241,14 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
         if (auto existingNodeIter = pair.second.find(key); existingNodeIter != pair.second.end()) {
             RSAutoCanvasRestore acr(canvas_);
             // restore render context and process the paired node.
-#ifndef USE_ROSEN_DRAWING
             auto& [unused2, PreCanvasStatus] = pair.first;
             auto& [child, canvasStatus] = existingNodeIter->second;
             canvas_->SetCanvasStatus(canvasStatus);
             canvas_->MultiplyAlpha(PreCanvasStatus.alpha_);
+#ifndef USE_ROSEN_DRAWING
             canvas_->concat(PreCanvasStatus.matrix_);
 #else
-            auto& [unused2, alpha1, mat1] = pair.first;
-            auto& [child, alpha2, mat2] = existingNodeIter->second;
-            canvas_->SetAlpha(alpha2);
-            canvas_->SetMatrix(mat2.value());
-            canvas_->MultiplyAlpha(alpha1);
-            canvas_->ConcatMatrix(mat1.value());
+            canvas_->ConcatMatrix(PreCanvasStatus.matrix_);
 #endif
             child->Process(shared_from_this());
             return true;
@@ -4286,7 +4263,6 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
 
     if (!curGroupedNodes_.empty()) {
         // if in node group cache, add this node and render params (alpha and matrix) into groupedTransitionNodes.
-#ifndef USE_ROSEN_DRAWING
         auto& [child, currentStatus] = curGroupedNodes_.top();
         auto canvasStatus = canvas_->GetCanvasStatus();
         if (!ROSEN_EQ(currentStatus.alpha_, 0.f)) {
@@ -4294,17 +4270,16 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
         } else {
             RS_LOGE("RSUniRenderVisitor::ProcessSharedTransitionNode: alpha_ is zero");
         }
+#ifndef USE_ROSEN_DRAWING
         if (!currentStatus.matrix_.invert(&canvasStatus.matrix_)) {
             RS_LOGE("RSUniRenderVisitor::ProcessSharedTransitionNode invert failed");
         }
-        RenderParam value { node.shared_from_this(), canvasStatus };
 #else
-        auto& [child, alpha, matrix] = curGroupedNodes_.top();
-        RenderParam value { node.shared_from_this(), canvas_->GetAlpha() / alpha, matrix };
-        if (!matrix->Invert(std::get<2>(value).value())) {
+        if (!currentStatus.matrix_.Invert(canvasStatus.matrix_)) {
             RS_LOGE("RSUniRenderVisitor::ProcessSharedTransitionNode invert failed");
         }
 #endif
+        RenderParam value { node.shared_from_this(), canvasStatus };
         {
             std::lock_guard<std::mutex> lock(groupedTransitionNodesMutex);
             groupedTransitionNodes[child->GetId()].second.emplace(key, std::move(value));
@@ -4313,11 +4288,7 @@ bool RSUniRenderVisitor::ProcessSharedTransitionNode(RSBaseRenderNode& node)
     }
 
     // all sanity checks passed, add this node and render params (alpha and matrix) into unpairedTransitionNodes_.
-#ifndef USE_ROSEN_DRAWING
     RenderParam value { node.shared_from_this(), canvas_->GetCanvasStatus() };
-#else
-    RenderParam value { node.shared_from_this(), canvas_->GetAlpha(), canvas_->GetTotalMatrix() };
-#endif
     unpairedTransitionNodes_.emplace(key, std::move(value));
 
     // skip processing the current node and all its children.
@@ -4329,15 +4300,9 @@ void RSUniRenderVisitor::ProcessUnpairedSharedTransitionNode()
     // Do cleanup for unpaired transition nodes.
     for (auto& [key, params] : unpairedTransitionNodes_) {
         RSAutoCanvasRestore acr(canvas_);
-#ifndef USE_ROSEN_DRAWING
-        auto& [node, canvasStatus] = params;
         // restore render context and process the unpaired node.
+        auto& [node, canvasStatus] = params;
         canvas_->SetCanvasStatus(canvasStatus);
-#else
-        auto& [node, alpha, matrix] = params;
-        canvas_->SetAlpha(alpha);
-        canvas_->SetMatrix(matrix.value());
-#endif
         node->Process(shared_from_this());
         // clear transition param
         node->SetSharedTransitionParam(std::nullopt);
@@ -4363,7 +4328,7 @@ void RSUniRenderVisitor::tryCapture(float width, float height)
     canvas_->addCanvas(recordingCanvas_.get());
     RSRecordingThread::Instance().CheckAndRecording();
 }
- 
+
 void RSUniRenderVisitor::endCapture() const
 {
     if (!RSRecordingThread::Instance().GetRecordingEnabled()) {

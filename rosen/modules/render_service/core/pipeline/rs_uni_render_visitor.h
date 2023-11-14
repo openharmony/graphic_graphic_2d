@@ -161,11 +161,7 @@ public:
         forceUpdateFlag_ = flag;
     }
 
-#ifndef USE_ROSEN_DRAWING
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
-#else
-    using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, float, std::optional<Drawing::Matrix>>;
-#endif
 private:
     void DrawWatermarkIfNeed();
 #ifndef USE_ROSEN_DRAWING

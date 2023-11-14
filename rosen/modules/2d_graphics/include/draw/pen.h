@@ -48,7 +48,7 @@ public:
     Color GetColor() const;
     void SetColor(const Color& c);
     void SetColor(int c);
-    void SetARGB(int r, int g, int b, int a);
+    void SetARGB(int a, int r, int g, int b);
 
     Color4f GetColor4f();
     std::shared_ptr<ColorSpace> GetColorSpace() const;
