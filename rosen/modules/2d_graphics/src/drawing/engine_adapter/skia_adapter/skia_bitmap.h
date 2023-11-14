@@ -44,7 +44,7 @@ public:
     AlphaType GetAlphaType() const override;
     bool ExtractSubset(Bitmap& dst, const Rect& subset) const override;
     bool ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
-                    int srcX, int srcY) const override;
+                    int32_t srcX, int32_t srcY) const override;
     void* GetPixels() const override;
     void SetPixels(void* pixels) override;
     bool InstallPixels(const ImageInfo& info, void* pixels, size_t rowBytes,

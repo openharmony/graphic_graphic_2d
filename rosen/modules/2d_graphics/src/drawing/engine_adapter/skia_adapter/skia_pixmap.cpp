@@ -63,12 +63,12 @@ const void* SkiaPixmap::GetAddr()
     return skiaPixmap_.addr();
 }
 
-int SkiaPixmap::GetWidth()
+int32_t SkiaPixmap::GetWidth()
 {
     return skiaPixmap_.width();
 }
 
-int SkiaPixmap::GetHeight()
+int32_t SkiaPixmap::GetHeight()
 {
     return skiaPixmap_.height();
 }

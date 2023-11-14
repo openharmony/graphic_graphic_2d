@@ -33,11 +33,11 @@ struct BrushHandle {
     BlendMode mode;
     bool isAntiAlias;
     Filter::FilterQuality filterQuality;
-    CmdListHandle colorSpaceHandle;
-    CmdListHandle shaderEffectHandle;
-    CmdListHandle colorFilterHandle;
-    CmdListHandle imageFilterHandle;
-    CmdListHandle maskFilterHandle;
+    ImageHandle colorSpaceHandle;
+    FlattenableHandle shaderEffectHandle;
+    FlattenableHandle colorFilterHandle;
+    FlattenableHandle imageFilterHandle;
+    FlattenableHandle maskFilterHandle;
 };
 
 struct PenHandle {
@@ -49,12 +49,12 @@ struct PenHandle {
     BlendMode mode;
     bool isAntiAlias;
     Filter::FilterQuality filterQuality;
-    CmdListHandle pathEffectHandle;
-    CmdListHandle colorSpaceHandle;
-    CmdListHandle shaderEffectHandle;
-    CmdListHandle colorFilterHandle;
-    CmdListHandle imageFilterHandle;
-    CmdListHandle maskFilterHandle;
+    FlattenableHandle pathEffectHandle;
+    ImageHandle colorSpaceHandle;
+    FlattenableHandle shaderEffectHandle;
+    FlattenableHandle colorFilterHandle;
+    FlattenableHandle imageFilterHandle;
+    FlattenableHandle maskFilterHandle;
 };
 
 class CanvasPlayer {

@@ -77,13 +77,13 @@ public:
     virtual ImageInfo GetImageInfo() = 0;
     virtual bool ReadPixels(Bitmap& bitmap, int x, int y) = 0;
     virtual bool ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
-                            int srcX, int srcY) const = 0;
+                            int32_t srcX, int32_t srcY) const = 0;
     virtual bool IsTextureBacked() const = 0;
     virtual bool ScalePixels(const Bitmap& bitmap, const SamplingOptions& sampling,
         bool allowCachingHint = true) const = 0;
     virtual std::shared_ptr<Data> EncodeToData(EncodedImageFormat& encodedImageFormat, int quality) const = 0;
     virtual bool IsLazyGenerated() const = 0;
-    virtual bool GetROPixels(Bitmap& bitmap) = 0;
+    virtual bool GetROPixels(Bitmap& bitmap) const = 0;
     virtual std::shared_ptr<Image> MakeRasterImage() const = 0;
     virtual bool CanPeekPixels() const = 0;
     virtual bool IsOpaque() const = 0;

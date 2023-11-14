@@ -383,7 +383,8 @@ std::shared_ptr<ColorSpace> CmdListHelper::GetColorSpaceFromCmdList(const CmdLis
     return colorSpace;
 }
 
-FlattenableHandle AddShaderEffectToCmdList(CmdList& cmdList, std::shared_ptr<ShaderEffect> shaderEffect)
+FlattenableHandle CmdListHelper::AddShaderEffectToCmdList(CmdList& cmdList,
+    std::shared_ptr<ShaderEffect> shaderEffect)
 {
     if (shaderEffect == nullptr) {
         return { 0 };
@@ -398,7 +399,7 @@ FlattenableHandle AddShaderEffectToCmdList(CmdList& cmdList, std::shared_ptr<Sha
     return { offset, data->GetSize(), static_cast<uint32_t>(type) };
 }
 
-std::shared_ptr<ShaderEffect> GetShaderEffectFromCmdList(const CmdList& cmdList,
+std::shared_ptr<ShaderEffect> CmdListHelper::GetShaderEffectFromCmdList(const CmdList& cmdList,
     const FlattenableHandle& shaderEffectHandle)
 {
     const void* ptr = cmdList.GetImageData(shaderEffectHandle.offset);
@@ -418,7 +419,8 @@ std::shared_ptr<ShaderEffect> GetShaderEffectFromCmdList(const CmdList& cmdList,
     return shaderEffect;
 }
 
-FlattenableHandle AddPathEffectToCmdList(CmdList& cmdList, std::shared_ptr<PathEffect> pathEffect)
+FlattenableHandle CmdListHelper::AddPathEffectToCmdList(CmdList& cmdList,
+    std::shared_ptr<PathEffect> pathEffect)
 {
     if (pathEffect == nullptr) {
         return { 0 };
@@ -433,7 +435,7 @@ FlattenableHandle AddPathEffectToCmdList(CmdList& cmdList, std::shared_ptr<PathE
     return { offset, data->GetSize(), static_cast<uint32_t>(type) };
 }
 
-std::shared_ptr<PathEffect> GetPathEffectFromCmdList(const CmdList& cmdList,
+std::shared_ptr<PathEffect> CmdListHelper::GetPathEffectFromCmdList(const CmdList& cmdList,
     const FlattenableHandle& pathEffectHandle)
 {
     const void* ptr = cmdList.GetImageData(pathEffectHandle.offset);
@@ -453,7 +455,8 @@ std::shared_ptr<PathEffect> GetPathEffectFromCmdList(const CmdList& cmdList,
     return pathEffect;
 }
 
-FlattenableHandle AddMaskFilterToCmdList(CmdList& cmdList, std::shared_ptr<MaskFilter> maskFilter)
+FlattenableHandle CmdListHelper::AddMaskFilterToCmdList(CmdList& cmdList,
+    std::shared_ptr<MaskFilter> maskFilter)
 {
     if (maskFilter == nullptr) {
         return { 0 };
@@ -468,7 +471,7 @@ FlattenableHandle AddMaskFilterToCmdList(CmdList& cmdList, std::shared_ptr<MaskF
     return { offset, data->GetSize(), static_cast<uint32_t>(type) };
 }
 
-std::shared_ptr<MaskFilter> GetMaskFilterFromCmdList(const CmdList& cmdList,
+std::shared_ptr<MaskFilter> CmdListHelper::GetMaskFilterFromCmdList(const CmdList& cmdList,
     const FlattenableHandle& maskFilterHandle)
 {
     const void* ptr = cmdList.GetImageData(maskFilterHandle.offset);
@@ -488,7 +491,8 @@ std::shared_ptr<MaskFilter> GetMaskFilterFromCmdList(const CmdList& cmdList,
     return maskFilter;
 }
 
-FlattenableHandle AddColorFilterToCmdList(CmdList& cmdList, std::shared_ptr<ColorFilter> colorFilter)
+FlattenableHandle CmdListHelper::AddColorFilterToCmdList(CmdList& cmdList,
+    std::shared_ptr<ColorFilter> colorFilter)
 {
     if (colorFilter == nullptr) {
         return { 0 };
@@ -503,7 +507,7 @@ FlattenableHandle AddColorFilterToCmdList(CmdList& cmdList, std::shared_ptr<Colo
     return { offset, data->GetSize(), static_cast<uint32_t>(type) };
 }
 
-std::shared_ptr<ColorFilter> GetColorFilterFromCmdList(const CmdList& cmdList,
+std::shared_ptr<ColorFilter> CmdListHelper::GetColorFilterFromCmdList(const CmdList& cmdList,
     const FlattenableHandle& colorFilterHandle)
 {
     const void* ptr = cmdList.GetImageData(colorFilterHandle.offset);
@@ -523,7 +527,8 @@ std::shared_ptr<ColorFilter> GetColorFilterFromCmdList(const CmdList& cmdList,
     return colorFilter;
 }
 
-FlattenableHandle AddImageFilterToCmdList(CmdList& cmdList, std::shared_ptr<ImageFilter> imageFilter)
+FlattenableHandle CmdListHelper::AddImageFilterToCmdList(CmdList& cmdList,
+    std::shared_ptr<ImageFilter> imageFilter)
 {
     if (imageFilter == nullptr) {
         return { 0 };
@@ -538,7 +543,7 @@ FlattenableHandle AddImageFilterToCmdList(CmdList& cmdList, std::shared_ptr<Imag
     return { offset, data->GetSize(), static_cast<uint32_t>(type) };
 }
 
-std::shared_ptr<ImageFilter> GetImageFilterFromCmdList(const CmdList& cmdList,
+std::shared_ptr<ImageFilter> CmdListHelper::GetImageFilterFromCmdList(const CmdList& cmdList,
     const FlattenableHandle& imageFilterHandle)
 {
     const void* ptr = cmdList.GetImageData(imageFilterHandle.offset);

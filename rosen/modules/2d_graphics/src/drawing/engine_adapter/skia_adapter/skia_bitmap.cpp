@@ -84,12 +84,14 @@ bool SkiaBitmap::ExtractSubset(Bitmap& dst, const Rect& subset) const
     SkIRect subRect = SkIRect::MakeLTRB(subset.GetLeft(), subset.GetTop(), subset.GetRight(), subset.GetBottom());
     return skiaBitmap_.extractSubset(const_cast<SkBitmap*>(&subBitmap), subRect);
 }
+
 bool SkiaBitmap::ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
-                            int srcX, int srcY) const
+                            int32_t srcX, int32_t srcY) const
 {
     SkImageInfo skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(dstInfo);
     return skiaBitmap_.readPixels(skImageInfo, dstPixels, dstRowBytes, srcX, srcY);
 }
+
 void* SkiaBitmap::GetPixels() const
 {
     return skiaBitmap_.getPixels();

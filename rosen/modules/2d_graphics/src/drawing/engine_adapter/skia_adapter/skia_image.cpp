@@ -61,6 +61,10 @@ std::shared_ptr<Image> SkiaImage::MakeFromRaster(const Pixmap& pixmap,
 std::shared_ptr<Image> SkiaImage::MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
     size_t rowBytes)
 {
+    if (pixels == nullptr) {
+        LOGE("SkiaImage::MakeRasterData pixels is nullptr");
+        return nullptr;
+    }
     SkImageInfo skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(info);
     auto skData = pixels->GetImpl<SkiaData>()->GetSkData();
 
@@ -314,7 +318,7 @@ bool SkiaImage::ReadPixels(Bitmap& bitmap, int x, int y)
 }
 
 bool SkiaImage::ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
-    int srcX, int srcY) const
+    int32_t srcX, int32_t srcY) const
 {
     SkImageInfo skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(dstInfo);
     return skiaImage_->readPixels(skImageInfo, dstPixels, dstRowBytes, srcX, srcY);
@@ -366,7 +370,7 @@ bool SkiaImage::IsLazyGenerated() const
     return (skiaImage_ == nullptr) ? false : skiaImage_->isLazyGenerated();
 }
 
-bool SkiaImage::GetROPixels(Bitmap& bitmap)
+bool SkiaImage::GetROPixels(Bitmap& bitmap) const
 {
     auto context = as_IB(skiaImage_.get())->directContext();
     SkBitmap skiaBitmap;

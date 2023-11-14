@@ -610,15 +610,15 @@ std::shared_ptr<OpItem> DrawBackgroundOpItem::Unmarshalling(const CmdList& cmdLi
 
 void DrawBackgroundOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
 {
-    auto colorSpace = CmdListHelper::GetFromCmdList<ColorSpaceCmdList, ColorSpace>(
+    auto colorSpace = CmdListHelper::GetColorSpaceFromCmdList(
         cmdList, brushHandle_.colorSpaceHandle);
-    auto shaderEffect = CmdListHelper::GetFromCmdList<ShaderEffectCmdList, ShaderEffect>(
+    auto shaderEffect = CmdListHelper::GetShaderEffectFromCmdList(
         cmdList, brushHandle_.shaderEffectHandle);
-    auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
+    auto colorFilter = CmdListHelper::GetColorFilterFromCmdList(
         cmdList, brushHandle_.colorFilterHandle);
-    auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
+    auto imageFilter = CmdListHelper::GetImageFilterFromCmdList(
         cmdList, brushHandle_.imageFilterHandle);
-    auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
+    auto maskFilter = CmdListHelper::GetMaskFilterFromCmdList(
         cmdList, brushHandle_.maskFilterHandle);
 
     Filter filter;
@@ -952,15 +952,15 @@ void DrawImageNineOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
 
     std::shared_ptr<Brush> brush = nullptr;
     if (hasBrush_) {
-        auto colorSpace = CmdListHelper::GetFromCmdList<ColorSpaceCmdList, ColorSpace>(
+        auto colorSpace = CmdListHelper::GetColorSpaceFromCmdList(
             cmdList, brushHandle_.colorSpaceHandle);
-        auto shaderEffect = CmdListHelper::GetFromCmdList<ShaderEffectCmdList, ShaderEffect>(
+        auto shaderEffect = CmdListHelper::GetShaderEffectFromCmdList(
             cmdList, brushHandle_.shaderEffectHandle);
-        auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
+        auto colorFilter = CmdListHelper::GetColorFilterFromCmdList(
             cmdList, brushHandle_.colorFilterHandle);
-        auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
+        auto imageFilter = CmdListHelper::GetImageFilterFromCmdList(
             cmdList, brushHandle_.imageFilterHandle);
-        auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
+        auto maskFilter = CmdListHelper::GetMaskFilterFromCmdList(
             cmdList, brushHandle_.maskFilterHandle);
 
         Filter filter;
@@ -1078,15 +1078,15 @@ void DrawImageLatticeOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canva
 
     std::shared_ptr<Brush> brush = nullptr;
     if (hasBrush_) {
-        auto colorSpace = CmdListHelper::GetFromCmdList<ColorSpaceCmdList, ColorSpace>(
+        auto colorSpace = CmdListHelper::GetColorSpaceFromCmdList(
             cmdList, brushHandle_.colorSpaceHandle);
-        auto shaderEffect = CmdListHelper::GetFromCmdList<ShaderEffectCmdList, ShaderEffect>(
+        auto shaderEffect = CmdListHelper::GetShaderEffectFromCmdList(
             cmdList, brushHandle_.shaderEffectHandle);
-        auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
+        auto colorFilter = CmdListHelper::GetColorFilterFromCmdList(
             cmdList, brushHandle_.colorFilterHandle);
-        auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
+        auto imageFilter = CmdListHelper::GetImageFilterFromCmdList(
             cmdList, brushHandle_.imageFilterHandle);
-        auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
+        auto maskFilter = CmdListHelper::GetMaskFilterFromCmdList(
             cmdList, brushHandle_.maskFilterHandle);
 
         Filter filter;
@@ -1941,15 +1941,15 @@ void SaveLayerOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
 {
     std::shared_ptr<Brush> brush = nullptr;
     if (hasBrush_) {
-        auto colorSpace = CmdListHelper::GetFromCmdList<ColorSpaceCmdList, ColorSpace>(
+        auto colorSpace = CmdListHelper::GetColorSpaceFromCmdList(
             cmdList, brushHandle_.colorSpaceHandle);
-        auto shaderEffect = CmdListHelper::GetFromCmdList<ShaderEffectCmdList, ShaderEffect>(
+        auto shaderEffect = CmdListHelper::GetShaderEffectFromCmdList(
             cmdList, brushHandle_.shaderEffectHandle);
-        auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
+        auto colorFilter = CmdListHelper::GetColorFilterFromCmdList(
             cmdList, brushHandle_.colorFilterHandle);
-        auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
+        auto imageFilter = CmdListHelper::GetImageFilterFromCmdList(
             cmdList, brushHandle_.imageFilterHandle);
-        auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
+        auto maskFilter = CmdListHelper::GetMaskFilterFromCmdList(
             cmdList, brushHandle_.maskFilterHandle);
 
         Filter filter;
@@ -2067,17 +2067,17 @@ std::shared_ptr<OpItem> AttachPenOpItem::Unmarshalling(const CmdList& cmdList, v
 
 void AttachPenOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
 {
-    auto pathEffect = CmdListHelper::GetFromCmdList<PathEffectCmdList, PathEffect>(
+    auto pathEffect = CmdListHelper::GetPathEffectFromCmdList(
         cmdList, penHandle_.pathEffectHandle);
-    auto colorSpace = CmdListHelper::GetFromCmdList<ColorSpaceCmdList, ColorSpace>(
+    auto colorSpace = CmdListHelper::GetColorSpaceFromCmdList(
         cmdList, penHandle_.colorSpaceHandle);
-    auto shaderEffect = CmdListHelper::GetFromCmdList<ShaderEffectCmdList, ShaderEffect>(
+    auto shaderEffect = CmdListHelper::GetShaderEffectFromCmdList(
         cmdList, penHandle_.shaderEffectHandle);
-    auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
+    auto colorFilter = CmdListHelper::GetColorFilterFromCmdList(
         cmdList, penHandle_.colorFilterHandle);
-    auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
+    auto imageFilter = CmdListHelper::GetImageFilterFromCmdList(
         cmdList, penHandle_.imageFilterHandle);
-    auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
+    auto maskFilter = CmdListHelper::GetMaskFilterFromCmdList(
         cmdList, penHandle_.maskFilterHandle);
 
     Filter filter;
@@ -2142,15 +2142,15 @@ std::shared_ptr<OpItem> AttachBrushOpItem::Unmarshalling(const CmdList& cmdList,
 
 void AttachBrushOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
 {
-    auto colorSpace = CmdListHelper::GetFromCmdList<ColorSpaceCmdList, ColorSpace>(
+    auto colorSpace = CmdListHelper::GetColorSpaceFromCmdList(
         cmdList, brushHandle_.colorSpaceHandle);
-    auto shaderEffect = CmdListHelper::GetFromCmdList<ShaderEffectCmdList, ShaderEffect>(
+    auto shaderEffect = CmdListHelper::GetShaderEffectFromCmdList(
         cmdList, brushHandle_.shaderEffectHandle);
-    auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
+    auto colorFilter = CmdListHelper::GetColorFilterFromCmdList(
         cmdList, brushHandle_.colorFilterHandle);
-    auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
+    auto imageFilter = CmdListHelper::GetImageFilterFromCmdList(
         cmdList, brushHandle_.imageFilterHandle);
-    auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
+    auto maskFilter = CmdListHelper::GetMaskFilterFromCmdList(
         cmdList, brushHandle_.maskFilterHandle);
 
     Filter filter;

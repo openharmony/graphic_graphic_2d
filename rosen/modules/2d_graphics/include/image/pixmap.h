@@ -32,16 +32,16 @@ public:
     AlphaType GetAlphaType();
     size_t GetRowBytes();
     const void* GetAddr();
-    int GetWidth();
-    int GetHeight();
+    int32_t GetWidth();
+    int32_t GetHeight();
     template<typename T>
     const std::shared_ptr<T> GetImpl() const
     {
-        return pixmapImplPtr->DowncastingTo<T>();
+        return pixmapImplPtr_->DowncastingTo<T>();
     }
 
 private:
-    std::shared_ptr<PixmapImpl> pixmapImplPtr;
+    std::shared_ptr<PixmapImpl> pixmapImplPtr_;
 };
 } // namespace Drawing
 } // namespace Rosen

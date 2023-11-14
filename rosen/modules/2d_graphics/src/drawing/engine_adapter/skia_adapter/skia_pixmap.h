@@ -41,8 +41,8 @@ public:
     AlphaType GetAlphaType() override;
     size_t GetRowBytes() override;
     const void* GetAddr() override;
-    int GetWidth() override;
-    int GetHeight() override;
+    int32_t GetWidth() override;
+    int32_t GetHeight() override;
 private:
     SkPixmap skiaPixmap_;
 };

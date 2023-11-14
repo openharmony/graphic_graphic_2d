@@ -21,46 +21,46 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 Pixmap::Pixmap()
-    : pixmapImplPtr(ImplFactory::CreatePixmapImpl())
+    : pixmapImplPtr_(ImplFactory::CreatePixmapImpl())
 {}
 
 Pixmap::Pixmap(const ImageInfo& imageInfo, const void* addr, size_t rowBytes)
-    : pixmapImplPtr(ImplFactory::CreatePixmapImpl(imageInfo, addr, rowBytes))
+    : pixmapImplPtr_(ImplFactory::CreatePixmapImpl(imageInfo, addr, rowBytes))
 {}
 
 std::shared_ptr<ColorSpace> Pixmap::GetColorSpace()
 {
-    return pixmapImplPtr->GetColorSpace();
+    return pixmapImplPtr_->GetColorSpace();
 }
 
 ColorType Pixmap::GetColorType()
 {
-    return pixmapImplPtr->GetColorType();
+    return pixmapImplPtr_->GetColorType();
 }
 
 AlphaType Pixmap::GetAlphaType()
 {
-    return pixmapImplPtr->GetAlphaType();
+    return pixmapImplPtr_->GetAlphaType();
 }
 
 size_t Pixmap::GetRowBytes()
 {
-    return pixmapImplPtr->GetRowBytes();
+    return pixmapImplPtr_->GetRowBytes();
 }
 
 const void* Pixmap::GetAddr()
 {
-    return pixmapImplPtr->GetAddr();
+    return pixmapImplPtr_->GetAddr();
 }
 
-int Pixmap::GetWidth()
+int32_t Pixmap::GetWidth()
 {
-    return pixmapImplPtr->GetWidth();
+    return pixmapImplPtr_->GetWidth();
 }
 
-int Pixmap::GetHeight()
+int32_t Pixmap::GetHeight()
 {
-    return pixmapImplPtr->GetHeight();
+    return pixmapImplPtr_->GetHeight();
 }
 
 Pixmap::~Pixmap() {}

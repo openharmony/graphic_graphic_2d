@@ -49,7 +49,7 @@ public:
     AlphaType GetAlphaType() const;
     bool ExtractSubset(Bitmap& dst, const Rect& subset) const;
     bool ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
-                    int srcX, int srcY) const;
+                    int32_t srcX, int32_t srcY) const;
     bool PeekPixels(Pixmap& pixmap) const;
 
     /*

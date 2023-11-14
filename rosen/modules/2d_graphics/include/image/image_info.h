@@ -83,7 +83,7 @@ public:
     /*
      * @brief  Returns number of bytes per pixel.
      */
-    int GetBytesPerPixel() const
+    int32_t GetBytesPerPixel() const
     {
         // returns the number of bytes per pixel: 1byte, 2bytes, 4bytes
         switch (colorType_) {
