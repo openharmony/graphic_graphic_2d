@@ -1020,9 +1020,9 @@ private:
 class PixelmapNineOpItem : public OpItemWithPaint {
 public:
     PixelmapNineOpItem(const std::shared_ptr<Media::PixelMap>& pixelmap, const SkIRect& center,
-        const SkRect& rectDst, SkFilterMode filter, const SkPaint* paint);
-    PixelmapNineOpItem(const SkIRect& center, const SkRect& rectDst, SkFilterMode filter,
-        const sk_sp<SkImage> pixelmapInfo_, const SkPaint* paint);
+        const SkRect& rectDst, const SkFilterMode filter, const SkPaint* paint);
+    PixelmapNineOpItem(const SkIRect& center, const SkRect& rectDst, const SkFilterMode filter,
+        const std::shared_ptr<RSImageBase> rsImage, const SkPaint* paint);
     ~PixelmapNineOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
     
@@ -1045,7 +1045,7 @@ private:
     SkIRect center_;
     SkRect rectDst_;
     SkFilterMode filter_;
-    sk_sp<SkImage> pixelmapInfo_;
+    std::shared_ptr<RSImageBase> rsImage_;
 };
 
 class AdaptiveRRectOpItem : public OpItemWithPaint {
