@@ -1051,10 +1051,6 @@ bool RSRenderNode::ApplyModifiers()
     dirtyTypes_.clear();
     lastApplyTimestamp_ = lastTimestamp_;
     UpdateShouldPaint();
-    if (renderProperties_.backref_.expired()) {
-        // If the weak_ptr renderProperties_.backref_ is not assigned, assign it.
-        renderProperties_.backref_ = weak_from_this();
-    }
 
     // return true if positionZ changed
     return renderProperties_.GetPositionZ() != prevPositionZ;

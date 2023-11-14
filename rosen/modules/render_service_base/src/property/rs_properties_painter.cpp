@@ -21,6 +21,8 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
+#include "property/rs_point_light_manager.h"
+#include "property/rs_properties_def.h"
 #include "render/rs_blur_filter.h"
 #include "render/rs_skia_filter.h"
 #include "render/rs_material_filter.h"
@@ -2117,6 +2119,129 @@ RRect RSPropertiesPainter::GetInnerRRectForDrawingBorder(const RSProperties& pro
     return isFirstLayerBorder ? innerRRect :
         RRect(innerRRect.rect_.MakeOutset(innerOutset), border->GetRadiusFour() - border->GetWidthFour());
 }
+
+#ifndef USE_ROSEN_DRAWING
+static std::shared_ptr<SkRuntimeShaderBuilder> phongShaderBuilder;
+
+const std::shared_ptr<SkRuntimeShaderBuilder>& RSPropertiesPainter::GetPhongShaderBuilder()
+{
+    if (phongShaderBuilder) {
+        return phongShaderBuilder;
+    }
+    sk_sp<SkRuntimeEffect> lightEffect_;
+    SkString lightString(R"(
+        uniform vec3 lightPos;
+        uniform vec3 viewPos;
+        uniform vec3 specularStrength;
+
+        half4 main(float2 fragCoord) {
+            vec3 lightColor = vec3(1.0, 1.0, 1.0);
+            float ambientStrength = 0.0;
+            vec3 diffuseColor = vec3(1.0, 1.0, 1.0);
+            float diffuseStrength = 0.0;
+            vec3 specularColor = vec3(1.0, 1.0, 1.0);
+            float shininess = 8.0;
+            half4 fragColor;
+            vec4 NormalMap = vec4(0.0, 0.0, 1.0, 0.0);
+            // ambient
+            vec4 ambient = lightColor.rgb1 * ambientStrength;
+            vec3 norm = normalize(NormalMap.rgb);
+            vec3 lightDir = normalize(vec3(lightPos.xy - fragCoord, lightPos.z));
+            // diffuse
+            float diff = max(dot(norm, lightDir), 0.0);
+            vec4 diffuse = diff * lightColor.rgb1;
+            vec3 viewDir = normalize(vec3(viewPos.xy - fragCoord, viewPos.z)); //视角向量
+            vec3 halfwayDir = normalize(lightDir + viewDir); //半向量
+            float spec = pow(max(dot(norm, halfwayDir), 0.0), shininess); //夹角的指数关系
+            vec4 specular = lightColor.rgb1 * spec; //乘入射光颜色
+            vec4 o = ambient + diffuse * diffuseStrength * diffuseColor.rgb1; //混合环境光 漫反射
+            fragColor = o + specular * specularStrength.r * specularColor.rgb1; //高光反射
+            return half4(fragColor);
+        }
+    )");
+    auto [lightEffect, error] = SkRuntimeEffect::MakeForShader(lightString);
+    if (!lightEffect) {
+        ROSEN_LOGE("light effect errro: %{public}s", error.c_str());
+        return phongShaderBuilder;
+    }
+    lightEffect_ = std::move(lightEffect);
+    phongShaderBuilder = std::make_shared<SkRuntimeShaderBuilder>(lightEffect_);
+    return phongShaderBuilder;
+}
+void RSPropertiesPainter::DrawLight(const RSProperties& properties, SkCanvas& canvas)
+{
+    auto lightBuilder = GetPhongShaderBuilder();
+    if (!lightBuilder) {
+        return;
+    }
+    auto& lightSourceMap = RSPointLightManager::Instance()->GetLightSourceMap();
+    std::vector<std::shared_ptr<RSLightSource>> lightSourceList;
+    EraseIf(lightSourceMap, [&lightSourceList](const auto& pair) -> bool {
+        auto lightSourceNodePtr = pair.second.lock();
+        if (!lightSourceNodePtr) {
+            return true;
+        }
+        auto& lightSource = lightSourceNodePtr->GetRenderProperties().GetLightSource();
+        lightSourceList.push_back(lightSource);
+        return false;
+    });
+    if (lightSourceList.empty()) {
+        ROSEN_LOGD("RSPropertiesPainter::DrawLight lightSourceList is empty!");
+        return;
+    }
+    auto& geoPtr = (properties.GetBoundsGeometry());
+    auto& contentAbsRect = geoPtr->GetAbsRect();
+    auto& lightPosition = lightSourceList[0]->GetAbsLightPosition();
+    auto lightIntensity = lightSourceList[0]->GetLightIntensity();
+    auto lightX = lightPosition[0] - contentAbsRect.left_;
+    auto lightY = lightPosition[1] - contentAbsRect.top_;
+    auto lightZ = lightPosition[2];
+    lightBuilder->uniform("lightPos") = SkV3 { lightX, lightY, lightZ };
+    lightBuilder->uniform("viewPos") = SkV3 { lightX, lightY, 300 };
+    SkPaint paint;
+    paint.setAntiAlias(true);
+    auto illuminatedType = properties.GetIlluminated()->GetIlluminatedType();
+    ROSEN_LOGD("RSPropertiesPainter::DrawLight illuminatedType:%{public}d", illuminatedType);
+    if (illuminatedType == IlluminatedType::CONTENT) {
+        DrawContentLight(properties, canvas, lightBuilder, paint, lightIntensity);
+    } else if (illuminatedType == IlluminatedType::BORDER) {
+        DrawBorderLight(properties, canvas, lightBuilder, paint, lightIntensity);
+    } else if (illuminatedType == IlluminatedType::BORDER_CONTENT) {
+        DrawContentLight(properties, canvas, lightBuilder, paint, lightIntensity);
+        DrawBorderLight(properties, canvas, lightBuilder, paint, lightIntensity);
+    }
+}
+
+void RSPropertiesPainter::DrawContentLight(const RSProperties& properties, SkCanvas& canvas,
+    std::shared_ptr<SkRuntimeShaderBuilder> lightBuilder, SkPaint& paint, float lightIntensity)
+{
+    // content light
+    sk_sp<SkShader> shader;
+    auto contentStrength = lightIntensity * 0.3;
+    lightBuilder->uniform("specularStrength") = SkV3 { contentStrength, 0, 0 };
+    shader = lightBuilder->makeShader(nullptr, false);
+    paint.setShader(shader);
+    canvas.drawRRect(RRect2SkRRect(properties.GetRRect()), paint);
+}
+void RSPropertiesPainter::DrawBorderLight(const RSProperties& properties, SkCanvas& canvas,
+    std::shared_ptr<SkRuntimeShaderBuilder> lightBuilder, SkPaint& paint, float lightIntensity)
+{
+    // border light
+    sk_sp<SkShader> shader;
+    auto strength = lightIntensity;
+    lightBuilder->uniform("specularStrength") = SkV3 { strength, 0, 0 };
+    shader = lightBuilder->makeShader(nullptr, false);
+    paint.setShader(shader);
+    paint.setStrokeWidth(6);
+    paint.setStyle(SkPaint::Style::kStroke_Style);
+    auto borderRect = properties.GetRRect().rect_;
+    float borderRadius = properties.GetRRect().radius_[0].x_;
+    auto borderRRect =
+        RRect(RectF(borderRect.left_ + 3, borderRect.top_ + 3, borderRect.width_ - 6, borderRect.height_ - 6),
+            borderRadius - 3, borderRadius - 3);
+    canvas.drawRRect(RRect2SkRRect(borderRRect), paint);
+}
+#endif
 
 #ifndef USE_ROSEN_DRAWING
 void RSPropertiesPainter::DrawBorderBase(const RSProperties& properties, SkCanvas& canvas,

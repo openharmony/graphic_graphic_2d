@@ -75,6 +75,7 @@
 #include "platform/drawing/rs_vsync_client.h"
 #include "property/rs_property_trace.h"
 #include "property/rs_properties_painter.h"
+#include "property/rs_point_light_manager.h"
 #ifdef NEW_RENDER_CONTEXT
 #include "render_context/memory_handler.h"
 #endif
@@ -1381,6 +1382,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         SetFocusLeashWindowId();
         uniVisitor->SetFocusedNodeId(focusNodeId_, focusLeashWindowId_);
         rootNode->Prepare(uniVisitor);
+        RSPointLightManager::Instance()->PrepareLight();
         CalcOcclusion();
         doParallelComposition_ = RSInnovation::GetParallelCompositionEnabled(isUniRender_) &&
                                  rootNode->GetChildrenCount() > 1;

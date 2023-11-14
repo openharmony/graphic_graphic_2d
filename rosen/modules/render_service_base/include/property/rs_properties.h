@@ -311,6 +311,18 @@ public:
     const std::shared_ptr<Drawing::ColorFilter>& GetColorFilter() const;
 #endif
 
+    void SetLightIntensity(float lightIntensity);
+    void SetLightPosition(const Vector4f& lightPosition);
+    void SetIlluminatedType(int illuminatedType);
+    void SetBloom(float bloomIntensity);
+    float GetLightIntensity() const;
+    Vector4f GetLightPosition() const;
+    int GetIlluminatedType() const;
+    float GetBloom() const;
+    void CalculateAbsLightPosition();
+    const std::shared_ptr<RSLightSource>& GetLightSource() const;
+    const std::shared_ptr<RSIlluminated>& GetIlluminated() const;
+
     void SetUseEffect(bool useEffect);
     bool GetUseEffect() const;
 
@@ -367,6 +379,9 @@ private:
 
     std::shared_ptr<RSObjAbsGeometry> boundsGeo_;
     std::shared_ptr<RSObjGeometry> frameGeo_;
+
+    std::shared_ptr<RSLightSource> lightSourcePtr_ = nullptr;
+    std::shared_ptr<RSIlluminated> illuminatedPtr_ = nullptr;
 
     std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
@@ -443,6 +458,7 @@ private:
     friend class RSEffectDataGenerateDrawable;
     friend class RSPropertiesPainter;
     friend class RSRenderNode;
+    friend class RSRenderNodeMap;
 };
 } // namespace Rosen
 } // namespace OHOS

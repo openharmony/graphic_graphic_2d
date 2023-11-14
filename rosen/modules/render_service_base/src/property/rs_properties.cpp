@@ -23,6 +23,8 @@
 #include "common/rs_vector4.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_system_properties.h"
+#include "property/rs_point_light_manager.h"
+#include "property/rs_properties_def.h"
 #include "render/rs_filter.h"
 
 namespace OHOS {
@@ -128,6 +130,10 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetUseShadowBatching(false); },       // USE_SHADOW_BATCHING,      73
     [](RSProperties* prop) { prop->SetGreyCoef1({0.f}); },               // GREY_COEF1,               74
     [](RSProperties* prop) { prop->SetGreyCoef2({0.f}); },               // GREY_COEF2,               75
+    [](RSProperties* prop) { prop->SetLightIntensity(-1.f); },            // LIGHT_INTENSITY           76
+    [](RSProperties* prop) { prop->SetLightPosition({}); },               // LIGHT_POSITION            77
+    [](RSProperties* prop) { prop->SetIlluminatedType(-1); },             // ILLUMINATED_TYPE          78
+    [](RSProperties* prop) { prop->SetBloom({}); },                       // BLOOM                     79
 };
 } // namespace
 
@@ -385,6 +391,13 @@ bool RSProperties::UpdateGeometry(const RSProperties* parent, bool dirtyFlag,
     }
     CheckEmptyBounds();
     boundsGeoPtr->UpdateMatrix(parentGeo, offset, clipRect);
+    if (lightSourcePtr_ && lightSourcePtr_->IsLightSourceValid()) {
+        CalculateAbsLightPosition();
+        RSPointLightManager::Instance()->AddDirtyLightSource(backref_);
+    }
+    if (illuminatedPtr_ && illuminatedPtr_->IsIlluminatedValid()) {
+        RSPointLightManager::Instance()->AddDirtyIlluminated(backref_);
+    }
     if (RSSystemProperties::GetSkipGeometryNotChangeEnabled()) {
         auto rect = boundsGeoPtr->GetAbsRect();
         if (!lastRect_.has_value()) {
@@ -1687,6 +1700,117 @@ void RSProperties::SetGrayScale(const std::optional<float>& grayScale)
 const std::optional<float>& RSProperties::GetGrayScale() const
 {
     return grayScale_;
+}
+
+void RSProperties::SetLightIntensity(float lightIntensity)
+{
+    if (!lightSourcePtr_) {
+        lightSourcePtr_ = std::make_shared<RSLightSource>();
+    }
+    lightSourcePtr_->SetLightIntensity(lightIntensity);
+    colorFilterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+
+    if (ROSEN_EQ(lightIntensity, INVALID_INTENSITY)) { // skip when resetFunc call
+        return;
+    }
+    auto preIntensity = lightSourcePtr_->GetPreLigthIntensity();
+    auto renderNode = backref_.lock();
+    bool preIntensityIsZero = ROSEN_EQ(preIntensity, 0.f);
+    bool curIntensityIsZero = ROSEN_EQ(lightIntensity, 0.f);
+    if (preIntensityIsZero && !curIntensityIsZero) { // 0 --> non-zero
+        RSPointLightManager::Instance()->RegisterLightSource(renderNode);
+    } else if (!preIntensityIsZero && curIntensityIsZero) { // non-zero --> 0
+        RSPointLightManager::Instance()->UnRegisterLightSource(renderNode);
+    }
+}
+
+void RSProperties::SetLightPosition(const Vector4f& lightPosition)
+{
+    if (!lightSourcePtr_) {
+        lightSourcePtr_ = std::make_shared<RSLightSource>();
+    }
+    lightSourcePtr_->SetLightPosition(lightPosition);
+    colorFilterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+void RSProperties::SetIlluminatedType(int illuminatedType)
+{
+    if (!illuminatedPtr_) {
+        illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    }
+    auto curIlluminateType = IlluminatedType(illuminatedType);
+    illuminatedPtr_->SetIlluminatedType(curIlluminateType);
+    colorFilterNeedUpdate_ = true;
+    isDrawn_ = true;
+    SetDirty();
+    contentDirty_ = true;
+
+    if (curIlluminateType == IlluminatedType::INVALID) { // skip when resetFunc call
+        return;
+    }
+    auto renderNode = backref_.lock();
+    auto preIlluminatedType = illuminatedPtr_->GetPreIlluminatedType();
+    bool preTypeIsNone = preIlluminatedType == IlluminatedType::NONE;
+    bool curTypeIsNone = curIlluminateType == IlluminatedType::NONE;
+    if (preTypeIsNone && !curTypeIsNone) {
+        RSPointLightManager::Instance()->RegisterIlluminated(renderNode);
+    } else if (!preTypeIsNone && curTypeIsNone) {
+        RSPointLightManager::Instance()->UnRegisterIlluminated(renderNode);
+    }
+}
+
+void RSProperties::SetBloom(float bloomIntensity)
+{
+    if (!illuminatedPtr_) {
+        illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    }
+    illuminatedPtr_->SetBloomIntensity(bloomIntensity);
+    colorFilterNeedUpdate_ = true;
+    isDrawn_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+float RSProperties::GetLightIntensity() const
+{
+    return lightSourcePtr_ ? lightSourcePtr_->GetLightIntensity() : 0.f;
+}
+
+Vector4f RSProperties::GetLightPosition() const
+{
+    return lightSourcePtr_ ? lightSourcePtr_->GetLightPosition() : Vector4f(0.f);
+}
+
+int RSProperties::GetIlluminatedType() const
+{
+    return illuminatedPtr_ ? static_cast<int>(illuminatedPtr_->GetIlluminatedType()) : 0;
+}
+
+float RSProperties::GetBloom() const
+{
+    return illuminatedPtr_ ? illuminatedPtr_->GetBloomIntensity() : 0.f;
+}
+
+void RSProperties::CalculateAbsLightPosition()
+{
+    auto absRect = boundsGeo_->GetAbsRect();
+    auto lightPosition = lightSourcePtr_->GetLightPosition();
+    lightSourcePtr_->SetAbsLightPosition(Vector4f(
+        lightPosition.x_ + absRect.left_, lightPosition.y_ + absRect.top_, lightPosition.z_, lightPosition.w_));
+}
+
+const std::shared_ptr<RSLightSource>& RSProperties::GetLightSource() const
+{
+    return lightSourcePtr_;
+}
+
+const std::shared_ptr<RSIlluminated>& RSProperties::GetIlluminated() const
+{
+    return illuminatedPtr_;
 }
 
 void RSProperties::SetBrightness(const std::optional<float>& brightness)

@@ -317,6 +317,16 @@ public:
 
     void SetGrayScale(float grayScale);
 
+    void SetLightIntensity(float lightIntensity);
+
+    void SetLightPosition(const Vector4f& lightPosition);
+
+    void SetLightPosition(float positionX, float positionY, float positionZ);
+
+    void SetIlluminatedType(uint32_t illuminatedType);
+
+    void SetBloom(float bloomIntensity);
+
     void SetBrightness(float brightness);
 
     void SetContrast(float contrast);

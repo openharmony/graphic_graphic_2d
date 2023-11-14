@@ -301,6 +301,10 @@ void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas
     auto para = GetRenderProperties().GetLinearGradientBlurPara();
     RSPropertiesPainter::DrawLinearGradientBlurFilter(GetRenderProperties(), canvas);
 
+    auto illuminatedPtr_ = GetRenderProperties().GetIlluminated();
+    if (illuminatedPtr_ && illuminatedPtr_->IsIlluminated() && ROSEN_EQ(GetRenderProperties().GetBloom(), 0.f)) {
+        RSPropertiesPainter::DrawLight(GetRenderProperties(), canvas);
+    }
     RSPropertiesPainter::DrawBorder(GetRenderProperties(), canvas);
     ApplyDrawCmdModifier(context, RSModifierType::OVERLAY_STYLE);
     RSPropertiesPainter::DrawForegroundColor(GetRenderProperties(), canvas);

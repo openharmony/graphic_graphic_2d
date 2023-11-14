@@ -20,6 +20,7 @@
 #include "modifier/rs_property_modifier.h"
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_node_map.h"
+#include "property/rs_properties_def.h"
 #include "ui/rs_node.h"
 #include "platform/common/rs_log.h"
 
@@ -310,6 +311,26 @@ float RSModifierExtractor::GetSpherizeDegree() const
 float RSModifierExtractor::GetLightUpEffectDegree() const
 {
     GET_PROPERTY_FROM_MODIFIERS(float, LIGHT_UP_EFFECT, 0.f, =);
+}
+
+float RSModifierExtractor::GetLightIntensity() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, LIGHT_INTENSITY, 0.f, =);
+}
+
+Vector4f RSModifierExtractor::GetLightPosition() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(Vector4f, LIGHT_POSITION, Vector4f(0.f), =);
+}
+
+int RSModifierExtractor::GetIlluminatedType() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(int, ILLUMINATED_TYPE, 0, =);
+}
+
+float RSModifierExtractor::GetBloom() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, BLOOM, 0.f, =);
 }
 
 std::string RSModifierExtractor::Dump() const
