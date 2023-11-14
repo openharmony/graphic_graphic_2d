@@ -67,7 +67,7 @@ ohos_shared_library("libtexgine_drawing") {
 
   deps = []
 
-  if (build_cross_platform_version) {
+  if (defined(is_arkui_x) && is_arkui_x) {
     public_deps += [ "//foundation/appframework/icu_data:static_icudata" ]
   }
 
