@@ -1069,24 +1069,12 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         dirtySurfaceNodeMap_.emplace(node.GetId(), node.ReinterpretCastTo<RSSurfaceRenderNode>());
     }
     if (node.IsLeashWindow()) {
-        auto matrix = geoPtr->GetAbsMatrix();
-        // 1.0f means node does not have scale
-#ifndef USE_ROSEN_DRAWING
-        bool isScale = (matrix.getScaleX() > 0 && matrix.getScaleX() != 1.0f)
-            || (matrix.getScaleY() > 0 && matrix.getScaleY() != 1.0f);
-#else
-        bool isScale = (matrix.Get(Drawing::Matrix::SCALE_X) > 0 && matrix.Get(Drawing::Matrix::SCALE_X) != 1.0f)
-            || (matrix.Get(Drawing::Matrix::SCALE_Y) > 0 && matrix.Get(Drawing::Matrix::SCALE_Y) != 1.0f);
-#endif
-        if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-#ifndef USE_ROSEN_DRAWING
-            isScale = isScale && matrix.getSkewX() < std::numeric_limits<float>::epsilon() &&
-                matrix.getSkewX() < std::numeric_limits<float>::epsilon();
-#else
-            isScale = isScale && matrix.Get(Drawing::Matrix::SKEW_X) < std::numeric_limits<float>::epsilon() &&
-                matrix.Get(Drawing::Matrix::SKEW_X) < std::numeric_limits<float>::epsilon();
-#endif
-        }
+        // scale
+        auto absRect = geoPtr->GetAbsRect();
+        int boundsWidth = ceil(property.GetBoundsWidth());
+        int boundsHeight = ceil(property.GetBoundsHeight());
+        bool isScale = (std::min(absRect.GetWidth(), absRect.GetHeight()) != std::min(boundsWidth, boundsHeight))
+            || (std::max(absRect.GetWidth(), absRect.GetHeight()) != std::max(boundsWidth, boundsHeight));
         node.SetIsScale(isScale);
     }
 #if defined(RS_ENABLE_DRIVEN_RENDER)
