@@ -56,6 +56,7 @@ using BufferClearCallback = std::function<void()>;
 using OcclusionChangeCallback = std::function<void(std::shared_ptr<RSOcclusionData>)>;
 using SurfaceOcclusionChangeCallback = std::function<void(float)>;
 using HgmConfigChangeCallback = std::function<void(std::shared_ptr<RSHgmConfigData>)>;
+using OnRemoteDiedCallback = std::function<void()>;
 
 struct DataBaseRs {
     int32_t appPid = -1;
@@ -174,7 +175,7 @@ public:
 
     bool RegisterBufferAvailableListener(
         NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread = false);
-    
+
     bool RegisterBufferClearListener(
         NodeId id, const BufferClearCallback &callback);
 
@@ -232,6 +233,8 @@ public:
     void SetHardwareEnabled(NodeId id, bool isEnabled);
 
     void SetCacheEnabledForRotation(bool isEnabled);
+
+    void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
 
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config);

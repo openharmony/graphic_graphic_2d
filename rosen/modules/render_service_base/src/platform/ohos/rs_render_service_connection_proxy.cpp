@@ -1572,6 +1572,18 @@ void RSRenderServiceConnectionProxy::SetCacheEnabledForRotation(bool isEnabled)
     }
 }
 
+void RSRenderServiceConnectionProxy::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
+{
+    OnRemoteDiedCallback_ = callback;
+}
+
+void RSRenderServiceConnectionProxy::RunOnRemoteDiedCallback()
+{
+    if (OnRemoteDiedCallback_) {
+        OnRemoteDiedCallback_();
+    }
+}
+
 #ifdef TP_FEATURE_ENABLE
 void RSRenderServiceConnectionProxy::SetTpFeatureConfig(int32_t feature, const char* config)
 {

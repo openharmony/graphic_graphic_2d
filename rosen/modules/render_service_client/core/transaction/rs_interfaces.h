@@ -179,6 +179,8 @@ public:
 
     void DisableCacheForRotation();
 
+    void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
+
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config);
 #endif
