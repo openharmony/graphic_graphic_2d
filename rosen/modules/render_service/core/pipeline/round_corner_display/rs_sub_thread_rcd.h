@@ -12,8 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef RENDER_SERVICE_CORE_PIPELINE_RCD_RENDER_RS_SUB_THREAD_H
 #define RENDER_SERVICE_CORE_PIPELINE_RCD_RENDER_RS_SUB_THREAD_H
+
 #pragma once
 #include <string>
 #include <vector>
@@ -29,7 +31,7 @@ class RSSubThreadRCD {
 public:
     RSSubThreadRCD(){};
     virtual ~RSSubThreadRCD();
-    void Start(RenderContext *context);
+    void Start(RenderContext* context);
     void PostTask(const std::function<void()>& task);
 private:
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;

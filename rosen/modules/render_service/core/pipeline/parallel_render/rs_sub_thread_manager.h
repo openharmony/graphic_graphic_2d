@@ -29,9 +29,9 @@
 #include "rs_filter_sub_thread.h"
 
 namespace OHOS::Rosen {
-    constexpr char TOPIC_RCD_DISPLAY_SIZE[]     = "RCD_UPDATE_DISPLAY_SIZE";
-    constexpr char TOPIC_RCD_DISPLAY_ROTATION[] = "RCD_UPDATE_DISPLAY_ROTATION";
-    constexpr char TOPIC_RCD_DISPLAY_NOTCH[]    = "RCD_UPDATE_DISPLAY_NOTCH";
+constexpr char TOPIC_RCD_DISPLAY_SIZE[] = "RCD_UPDATE_DISPLAY_SIZE";
+constexpr char TOPIC_RCD_DISPLAY_ROTATION[] = "RCD_UPDATE_DISPLAY_ROTATION";
+constexpr char TOPIC_RCD_DISPLAY_NOTCH[] = "RCD_UPDATE_DISPLAY_NOTCH";
 class RSSubThreadManager {
 public:
     static RSSubThreadManager *Instance();

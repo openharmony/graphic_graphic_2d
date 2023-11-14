@@ -17,11 +17,10 @@
 #define RS_CORE_PIPELINE_RCD_NOT_COPYABLE_H
 
 class RsNotCopyable {
-    protected:
-        RsNotCopyable() = default;
-        ~RsNotCopyable() = default;
-
-        RsNotCopyable(const RsNotCopyable&) = delete;
-        RsNotCopyable& operator=(const RsNotCopyable&) = delete;
+protected:
+    RsNotCopyable() = default;
+    ~RsNotCopyable() = default;
+    RsNotCopyable(const RsNotCopyable&) = delete;
+    RsNotCopyable& operator=(const RsNotCopyable&) = delete;
 };
 #endif

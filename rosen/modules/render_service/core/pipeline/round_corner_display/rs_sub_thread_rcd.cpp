@@ -21,29 +21,29 @@
 
 namespace OHOS {
 namespace Rosen {
-    RSSubThreadRCD::~RSSubThreadRCD()
-    {
-        RS_LOGD("~RSSubThreadRCD");
-    }
+RSSubThreadRCD::~RSSubThreadRCD()
+{
+    RS_LOGD("~RSSubThreadRCD");
+}
 
-    void RSSubThreadRCD::Start(RenderContext *context)
-    {
-        if (renderContext_ != nullptr) {
-            RS_LOGD("RSSubThreadRCD already start!");
-            return;
-        }
-        RS_LOGD("RSSubThreadRCD Started");
-        std::string name = "RoundCornerDisplaySubThread";
-        runner_ = AppExecFwk::EventRunner::Create(name);
-        handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
-        renderContext_ = context;
+void RSSubThreadRCD::Start(RenderContext* context)
+{
+    if (renderContext_ != nullptr) {
+        RS_LOGD("RSSubThreadRCD already start!");
+        return;
     }
+    RS_LOGD("RSSubThreadRCD Started");
+    std::string name = "RoundCornerDisplaySubThread";
+    runner_ = AppExecFwk::EventRunner::Create(name);
+    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+    renderContext_ = context;
+}
 
-    void RSSubThreadRCD::PostTask(const std::function<void()>& task)
-    {
-        if (handler_) {
-            handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
-        }
+void RSSubThreadRCD::PostTask(const std::function<void()>& task)
+{
+    if (handler_) {
+        handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
+}
 } // namespace Rosen
 } // namespace OHOS

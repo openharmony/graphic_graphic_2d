@@ -27,10 +27,10 @@ struct RsAny {
     RsAny(RsAny &&that) : m_ptr(std::move(that.m_ptr)) {}
 
     template<typename U, class = typename std::enable_if<
-    !std::is_same<typename std::decay<U>::type, RsAny>::value, U>::type> RsAny(U &&value) : m_ptr(
-    new Derived<typename std::decay<U>::type>(std::forward<U>(value))) {}
+        !std::is_same<typename std::decay<U>::type, RsAny>::value, U>::type> RsAny(U &&value) : m_ptr(
+        new Derived<typename std::decay<U>::type>(std::forward<U>(value))) {}
 
-    bool IsNULL() const {return !bool(m_ptr);}
+    bool IsNULL() const { return !bool(m_ptr); }
 
     template<class U>
     U& anyCast()
@@ -47,7 +47,7 @@ struct RsAny {
         f(args...);
     }
 
-    RsAny& operator=(const RsAny& a)
+    RsAny& operator=(const RsAny &a)
     {
         if (m_ptr == a.m_ptr) {
             return *this;
@@ -80,6 +80,7 @@ private:
 
     BaseUPtr m_ptr;
 
+public:
     BaseUPtr Clone() const
     {
         if (m_ptr != nullptr) {

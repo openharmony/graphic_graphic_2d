@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "rs_round_corner_display.h"
 #include <SkImage.h>
 #include <SkData.h>
@@ -94,13 +95,13 @@ bool RoundCornerDisplay::GetTopSurfaceSource()
         return false;
     }
     LoadImg(rog_->portraitMap[rs_rcd::NODE_PORTRAIT].layerUp.fileName.c_str(), imgTopPortrait_);
-    
+
     if (rog_->landscapeMap.count(rs_rcd::NODE_LANDSCAPE) < 1) {
         RS_LOGE("[%{public}s] LANDSACPE layerUp do not configured \n", __func__);
         return false;
     }
     LoadImg(rog_->landscapeMap[rs_rcd::NODE_LANDSCAPE].layerUp.fileName.c_str(), imgTopLadsOrit_);
-    
+
     if (rog_->portraitMap.count(rs_rcd::NODE_PORTRAIT) < 1) {
         RS_LOGE("[%{public}s] PORTRAIT layerHide do not configured \n", __func__);
         return false;
@@ -155,6 +156,7 @@ bool RoundCornerDisplay::LoadImgsbyResolution(uint32_t width, uint32_t height)
 
 void RoundCornerDisplay::UpdateDisplayParameter(uint32_t width, uint32_t height)
 {
+    std::lock_guard<std::mutex> lock(resourceMut_);
     if (width == displayWidth_ && height == displayHeight_) {
         RS_LOGD("[%{public}s] DisplayParameter do not change \n", __func__);
         return;
@@ -162,7 +164,7 @@ void RoundCornerDisplay::UpdateDisplayParameter(uint32_t width, uint32_t height)
     RS_LOGD("[%{public}s] displayWidth_ updated from %{public}u -> %{public}u,"
         "displayHeight_ updated from %{public}u -> %{public}u \n", __func__,
         displayWidth_, width, displayHeight_, height);
-    
+
     displayWidth_ = width;
     displayHeight_ = height;
 
@@ -174,6 +176,7 @@ void RoundCornerDisplay::UpdateDisplayParameter(uint32_t width, uint32_t height)
 
 void RoundCornerDisplay::UpdateNotchStatus(int status)
 {
+    std::lock_guard<std::mutex> lock(resourceMut_);
     // Update surface when surface status changed
     if (status < 0 || status > 1) {
         RS_LOGE("[%{public}s] notchStatus won't be over 1 or below 0 \n", __func__);
@@ -190,6 +193,7 @@ void RoundCornerDisplay::UpdateNotchStatus(int status)
 
 void RoundCornerDisplay::UpdateOrientationStatus(ScreenRotation orientation)
 {
+    std::lock_guard<std::mutex> lock(resourceMut_);
     if (orientation == curOrientation_) {
         RS_LOGD("[%{public}s] OrientationStatus do not change \n", __func__);
         return;

@@ -29,13 +29,12 @@
 #include "securec.h"
 #include "platform/common/rs_log.h"
 
-
 namespace OHOS {
 namespace Rosen {
 namespace rs_rcd {
 
-const char PATH_CONFIG_FILE[] = "/data/display/RoundCornerDisplay/config.xml";
-const char PATH_CONFIG_DIR[] = "/data/display/RoundCornerDisplay";
+const char PATH_CONFIG_FILE[] = "/sys_prod/etc/display/RoundCornerDisplay/config.xml";
+const char PATH_CONFIG_DIR[] = "/sys_prod/etc/display/RoundCornerDisplay";
 
 const char NODE_ROUNDCORNERDISPLAY[] = "RoundCornerDisplay";
 const char NODE_LCDMODEL[] = "LCDModel";
