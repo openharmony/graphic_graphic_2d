@@ -49,15 +49,23 @@ FontCollection::FontCollection()
 
 std::shared_ptr<TextEngine::FontProviders> FontCollection::Get()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (fontProviders_ == nullptr) {
         fontProviders_ = TextEngine::FontProviders::Create();
+    }
+    if (dfprovider_ == nullptr) {
         dfprovider_ = TextEngine::DynamicFontProvider::Create();
+    }
+    if (tfprovider_ == nullptr) {
         tfprovider_ = TextEngine::ThemeFontProvider::GetInstance();
     }
     fontProviders_->AppendFontProvider(dfprovider_);
     fontProviders_->AppendFontProvider(tfprovider_);
     if (!disableSystemFont_) {
-        fontProviders_->AppendFontProvider(TextEngine::SystemFontProvider::GetInstance());
+        if (sysprovider_ == nullptr) {
+            sysprovider_ = TextEngine::SystemFontProvider::GetInstance();
+        }
+        fontProviders_->AppendFontProvider(sysprovider_);
     }
     return fontProviders_;
 }
