@@ -519,6 +519,12 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
             filteredSnapshot->width(), filteredSnapshot->height());
         as_IB(filteredSnapshot)->hintCacheGpuResource();
     }
+    if (RSSystemProperties::GetRecordingEnabled()) {
+        if (cachedFilteredSnapshot_->cachedImage_->isTextureBacked()) {
+            RS_LOGI("RSFilterCacheManager::DrawCachedFilteredSnapshot cachedImage from texture to raster image");
+            cachedFilteredSnapshot_->cachedImage_ = cachedFilteredSnapshot_->cachedImage_->makeRasterImage();
+        }
+    }
 #else
     auto filteredSnapshot = offscreenSurface->GetImageSnapshot();
     if (RSSystemProperties::GetImageGpuResourceCacheEnable(filteredSnapshot->GetWidth(),
@@ -554,12 +560,6 @@ void RSFilterCacheManager::DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canva
 
     SkPaint paint;
     paint.setAntiAlias(true);
-    if (RSSystemProperties::GetRecordingEnabled()) {
-        if (cachedFilteredSnapshot_->cachedImage_->isTextureBacked()) {
-            RS_LOGI("RSFilterCacheManager::DrawCachedFilteredSnapshot cachedImage from texture to raster image");
-            cachedFilteredSnapshot_->cachedImage_ = cachedFilteredSnapshot_->cachedImage_->makeRasterImage();
-        }
-    }
     canvas.drawImageRect(cachedFilteredSnapshot_->cachedImage_, src, dst, SkSamplingOptions(), &paint,
         SkCanvas::kFast_SrcRectConstraint);
 }
