@@ -63,7 +63,7 @@ enum OH_NativeBuffer_Usage {
  * @brief Indicates the format of a native buffer.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeBuffer
- * @since 11
+ * @since 10
  * @version 1.0
  */
 enum OH_NativeBuffer_Format {
