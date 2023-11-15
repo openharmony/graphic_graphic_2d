@@ -411,7 +411,8 @@ double CharGroups::GetCharWidth(const size_t index) const
     }
     // size - 1 means last index of the array
     if (index > (pcgs_->size() - 1)) {
-        LOGEX_FUNC_LINE_DEBUG(ERROR) << "the index  is out of range, index = " << index << " pcgs_ size = " << pcgs_->size();
+        LOGEX_FUNC_LINE_DEBUG(ERROR) << "the index is out of range, index = " << index <<
+            " pcgs_ size = " << pcgs_->size();
         return 0.0;
     }
     return pcgs_->at(index).GetWidth();
