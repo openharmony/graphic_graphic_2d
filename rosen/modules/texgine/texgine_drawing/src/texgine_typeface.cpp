@@ -108,6 +108,21 @@ std::shared_ptr<TexgineFontStyle> TexgineTypeface::GetFontStyle() const
     texgineFontStyle->SetStyle(style);
     return texgineFontStyle;
 }
+
+size_t TexgineTypeface::FontStyleDetection()
+{
+    return static_cast<size_t>(typeface_->fontStyle().slant());
+}
+
+void TexgineTypeface::InputOriginalStyle(bool primitivism)
+{
+    rawInformation_ = primitivism;
+}
+
+bool TexgineTypeface::DetectRawInformation()
+{
+    return rawInformation_;
+}
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS

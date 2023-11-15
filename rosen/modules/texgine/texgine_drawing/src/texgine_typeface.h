@@ -19,10 +19,12 @@
 #include <memory>
 
 #include <include/core/SkTypeface.h>
+#include <include/core/SkFontMgr.h>
 
 #include "texgine_font_style.h"
 #include "texgine_stream.h"
 #include "texgine_string.h"
+
 
 namespace OHOS {
 namespace Rosen {
@@ -65,6 +67,7 @@ public:
      */
     std::shared_ptr<TexgineFontStyle> GetFontStyle() const;
 
+    size_t FontStyleDetection();
     /*
      * @brief Create a typeface accroding to the stream
      */
@@ -77,7 +80,12 @@ public:
      */
     static std::shared_ptr<TexgineTypeface> MakeFromFile(const std::string &path, int index = 0);
 
+    bool DetectRawInformation();
+
+    void InputOriginalStyle(bool primitivism);
+
 private:
+    bool rawInformation_ = false;
     sk_sp<SkTypeface> typeface_ = nullptr;
 };
 } // namespace TextEngine

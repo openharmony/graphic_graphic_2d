@@ -73,6 +73,10 @@ public:
      */
     void SetHinting(const TexgineFontHinting hinting);
 
+    /*
+     * @brief Set font default non-bold italics mode
+     */
+    void SetSkewX();
 private:
     std::shared_ptr<SkFont> font_ = std::make_shared<SkFont>();
 };

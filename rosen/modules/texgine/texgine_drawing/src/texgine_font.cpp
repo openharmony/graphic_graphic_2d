@@ -20,6 +20,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
+#define DEFAULT_ITALIC 1.0f
 std::shared_ptr<SkFont> TexgineFont::GetFont() const
 {
     return font_;
@@ -60,6 +61,12 @@ void TexgineFont::SetEdging(const FontEdging edging)
 void TexgineFont::SetHinting(const TexgineFontHinting hinting)
 {
     font_->setHinting(static_cast<SkFontHinting>(hinting));
+}
+
+void TexgineFont::SetSkewX()
+{
+    font_->setEmbolden(false); // false means bold is turned off by default
+    font_->setSkewX(-DEFAULT_ITALIC / 4); // standard italic offset is 1/4
 }
 } // namespace TextEngine
 } // namespace Rosen

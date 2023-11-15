@@ -21,6 +21,7 @@
 #include "texgine/typography_types.h"
 #include "texgine/utils/exlog.h"
 #include "texgine_string.h"
+#include "texgine_font.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -81,6 +82,14 @@ std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch,
     const std::string &script, const std::string &locale, bool &fallbackTypeface) const
 {
     SortTypeface(style);
+    if (style.GetFontStyle()) {
+        auto typeface = FindFallBackTypeface(ch, style, script, locale);
+        if (!typeface) {
+            return nullptr;
+        }
+        return typeface;
+    }
+
     auto fs = std::make_shared<TexgineFontStyle>();
     *fs = style.ToTexgineFontStyle();
     for (const auto &fontStyleSet : fontStyleSets_) {
@@ -194,12 +203,25 @@ std::shared_ptr<Typeface> FontCollection::FindFallBackTypeface(const uint32_t &c
         return nullptr;
     }
 
-    auto tfs = style.ToTexgineFontStyle();
-    auto fallbackTypeface = fm->MatchFamilyStyleCharacter("", tfs, bcp47.data(), bcp47.size(), ch);
+    if (style.GetFontStyle()) {
+        typefaceCache_.clear();
+        TexgineFontStyle tfs = style.ToTexgineFontStyle();
+        std::shared_ptr<TexgineTypeface> fallbackTypeface = fm->MatchFamilyStyleCharacter("", tfs,
+            bcp47.data(), bcp47.size(), ch);
+        if (fallbackTypeface == nullptr || fallbackTypeface->GetTypeface() == nullptr) {
+            return nullptr;
+        }
+        fallbackTypeface->InputOriginalStyle(true); // true means record italic style
+        auto typeface = std::make_shared<Typeface>(fallbackTypeface);
+        return typeface;
+    }
+
+    TexgineFontStyle tfs = style.ToTexgineFontStyle();
+    std::shared_ptr<TexgineTypeface> fallbackTypeface = fm->MatchFamilyStyleCharacter("", tfs,
+        bcp47.data(), bcp47.size(), ch);
     if (fallbackTypeface == nullptr || fallbackTypeface->GetTypeface() == nullptr) {
         return nullptr;
     }
-
     auto typeface = std::make_shared<Typeface>(fallbackTypeface);
     fallbackCache_[key] = typeface;
     return typeface;
