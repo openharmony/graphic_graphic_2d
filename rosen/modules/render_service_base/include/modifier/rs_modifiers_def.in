@@ -76,6 +76,14 @@ DECLARE_ANIMATABLE_MODIFIER(BorderWidth, Vector4f, BORDER_WIDTH, Replace, Foregr
 
 DECLARE_NOANIMATABLE_MODIFIER(BorderStyle, Vector4<uint32_t>, BORDER_STYLE, Foreground)
 
+DECLARE_ANIMATABLE_MODIFIER(OuterBorderColor, Vector4<Color>, OUTER_BORDER_COLOR, Replace, Foreground, COLOR)
+
+DECLARE_ANIMATABLE_MODIFIER(OuterBorderWidth, Vector4f, OUTER_BORDER_WIDTH, Replace, Foreground, LAYOUT)
+
+DECLARE_NOANIMATABLE_MODIFIER(OuterBorderStyle, Vector4<uint32_t>, OUTER_BORDER_STYLE, Foreground)
+
+DECLARE_ANIMATABLE_MODIFIER(OuterBorderRadius, Vector4f, OUTER_BORDER_RADIUS, Add, Foreground, MEDIUM)
+
 DECLARE_ANIMATABLE_MODIFIER(Filter, std::shared_ptr<RSFilter>, FILTER, Add, Foreground, COARSE)
 
 DECLARE_ANIMATABLE_MODIFIER(BackgroundFilter, std::shared_ptr<RSFilter>, BACKGROUND_FILTER, Add, Background, COARSE)

@@ -118,6 +118,11 @@ void RSBorder::SetStyleFour(const Vector4<uint32_t>& style)
                 static_cast<BorderStyle>(style.z_), static_cast<BorderStyle>(style.w_) };
 }
 
+void RSBorder::SetRadiusFour(const Vector4f& radius)
+{
+    radius_ = { radius.x_, radius.y_, radius.z_, radius.w_ };
+}
+
 Vector4<Color> RSBorder::GetColorFour() const
 {
     if (colors_.size() == 4) {
@@ -144,6 +149,11 @@ Vector4<uint32_t> RSBorder::GetStyleFour() const
     } else {
         return Vector4<uint32_t>(static_cast<uint32_t>(GetStyle()));
     }
+}
+
+Vector4f RSBorder::GetRadiusFour() const
+{
+    return radius_;
 }
 
 #ifndef USE_ROSEN_DRAWING

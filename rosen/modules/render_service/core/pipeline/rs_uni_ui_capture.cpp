@@ -120,13 +120,11 @@ std::shared_ptr<Drawing::Surface> RSUniUICapture::CreateSurface(
         return nullptr;
     }
 
-    Drawing::Bitmap bitmap;
-    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-    bitmap.Build(pixelmap->GetWidth(), pixelmap->GetHeight(), format);
-    bitmap.SetPixels(address);
+    Drawing::ImageInfo info = Drawing::ImageInfo{pixelmap->GetWidth(), pixelmap->GetHeight(),
+        Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL};
+    std::shared_ptr<Drawing::Surface> surface =
+        std::make_shared<Drawing::Surface>(info, address, pixelmap->GetRowBytes());
 
-    std::shared_ptr<Drawing::Surface> surface = std::make_shared<Drawing::Surface>();
-    surface->Bind(bitmap);
     return surface;
 }
 #endif
@@ -201,6 +199,8 @@ void RSUniUICapture::RSUniUICaptureVisitor::SetCanvas(std::shared_ptr<Drawing::R
     }
     canvas_ = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     canvas_->Scale(scaleX_, scaleY_);
+    canvas_->SetDisableFilterCache(true);
+    canvas_->SetRecordingState(true);
 }
 #endif
 

@@ -48,7 +48,7 @@ static bool IsAdvancedFilterUsable()
 
     // If persist.sys.graphic.supports_af=0
     // we will not use it
-    return RSSystemProperties::GetBoolSystemProperty(PROPERTY_DEBUG_SUPPORT_AF, true);
+    return RSSystemProperties::GetBoolSystemProperty(PROPERTY_DEBUG_SUPPORT_AF, false);
 }
 
 static const bool IS_ADVANCED_FILTER_USABLE_CHECK_ONCE = IsAdvancedFilterUsable();

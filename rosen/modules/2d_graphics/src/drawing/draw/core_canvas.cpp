@@ -362,6 +362,21 @@ std::shared_ptr<CoreCanvasImpl> CoreCanvas::GetCanvasData() const
 {
     return impl_;
 }
+
+bool CoreCanvas::isHighContrastEnabled() const
+{
+    return false;
+}
+
+Drawing::CacheType CoreCanvas::GetCacheType() const
+{
+    return Drawing::CacheType::UNDEFINED;
+}
+
+Drawing::Surface* CoreCanvas::GetSurface() const
+{
+    return nullptr;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

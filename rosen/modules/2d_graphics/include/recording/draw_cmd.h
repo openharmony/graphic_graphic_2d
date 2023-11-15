@@ -18,6 +18,7 @@
 
 #include <unordered_map>
 #include <functional>
+#include <stack>
 
 #include "draw/canvas.h"
 #include "draw/pen.h"
@@ -86,6 +87,23 @@ private:
     static std::unordered_map<uint32_t, UnmarshallingFunc> opUnmarshallingFuncLUT_;
 };
 
+class NoIPCImageOpItem;
+
+class GenerateCachedOpItemPlayer {
+public:
+    GenerateCachedOpItemPlayer(CmdList &cmdList, Canvas* canvas = nullptr, const Rect* rect = nullptr);
+    ~GenerateCachedOpItemPlayer() = default;
+
+    std::shared_ptr<NoIPCImageOpItem> GenerateCachedOpItem(uint32_t type, void* opItem, bool addCmdList,
+        bool& replaceSuccess);
+    
+    Canvas* canvas_;
+    const Rect* rect_;
+    CmdList& cmdList_;
+    std::stack<void*> brushOpItemStack;
+    std::stack<void*> penOpItemStack;
+};
+
 class DrawOpItem : public OpItem {
 public:
     explicit DrawOpItem(uint32_t type) : OpItem(type) {}
@@ -146,6 +164,7 @@ public:
         PATCH_OPITEM,
         EDGEAAQUAD_OPITEM,
         VERTICES_OPITEM,
+        NO_IPC_IMAGE_DRAW_OPITEM,
     };
 };
 
@@ -603,6 +622,8 @@ private:
     BlendMode mode_;
 };
 
+class AttachPenOpItem;
+class AttachBrushOpItem;
 class DrawTextBlobOpItem : public DrawOpItem {
 public:
     DrawTextBlobOpItem();
@@ -614,6 +635,11 @@ public:
 
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
+
+    std::shared_ptr<NoIPCImageOpItem> GenerateCachedOpItem(CmdList& cmdList, Canvas* canvas,
+        AttachPenOpItem* penOpItem, AttachBrushOpItem* brushOpItem, bool addCmdList, bool& replaceSuccess);
+    
+    bool GenerateCachedOpItem(std::shared_ptr<CmdList> cacheCmdList, const TextBlob* textBlob);
 
 private:
     ImageHandle textBlob_;
@@ -1032,6 +1058,24 @@ private:
     SamplingOptions sampling_;
     std::function<void(Canvas&, const Rect&)> playbackTask_ = nullptr;
 };
+
+class NoIPCImageOpItem : public DrawOpItem {
+public:
+    NoIPCImageOpItem(std::shared_ptr<Image> image, const Rect& src, const Rect& dst,
+        const SamplingOptions& sampling, SrcRectConstraint constraint);
+    ~NoIPCImageOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, void* opItem);
+    void Playback(Canvas& canvas, const CmdList& cmdList);
+
+private:
+    std::shared_ptr<Image> image_;
+    Rect src_;
+    Rect dst_;
+    SamplingOptions sampling_;
+    SrcRectConstraint constraint_;
+};
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

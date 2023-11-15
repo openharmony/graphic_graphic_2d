@@ -339,6 +339,29 @@ HWTEST_F(RSPropertiesPainterTest, DrawFilter002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawLinearGradientBlurFilter001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawLinearGradientBlurFilter001, TestSize.Level1)
+{
+    SkCanvas skCanvas;
+    RSPaintFilterCanvas canvas(&skCanvas);
+
+    std::vector<std::pair<float, float>> fractionStops;
+    fractionStops.push_back(std::make_pair(0.f, 0.f));
+    fractionStops.push_back(std::make_pair(1.f, 1.f));
+    std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara = std::make_shared<RSLinearGradientBlurPara>(
+        16, fractionStops, GradientDirection::BOTTOM);
+    RSProperties properties;
+    properties.SetLinearGradientBlurPara(linearGradientBlurPara);
+
+    RSPropertiesPainter::DrawLinearGradientBlurFilter(
+        properties, canvas, SkRect::MakeXYWH(0.f, 0.f, 1.f, 1.f));
+}
+
+/**
  * @tc.name: DrawBackground001
  * @tc.desc: test
  * @tc.type:FUNC

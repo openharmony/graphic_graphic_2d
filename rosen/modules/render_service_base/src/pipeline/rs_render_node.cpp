@@ -854,7 +854,11 @@ void RSRenderNode::ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas)
 
 void RSRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
 {
-    RSRenderNode::ProcessTransitionAfterChildren(canvas);
+    if (RSSystemProperties::GetPropertyDrawableEnable()) {
+        IterateOnDrawableRange(RSPropertyDrawableSlot::RESTORE_ALL, RSPropertyDrawableSlot::RESTORE_ALL, canvas);
+        return;
+    }
+    canvas.RestoreStatus(renderNodeSaveCount_);
 }
 
 void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier)
@@ -1372,7 +1376,7 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
 sk_sp<SkImage> RSRenderNode::GetCompletedImage(RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst)
 {
     if (isUIFirst) {
-#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
         std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
         if (!cacheCompletedBackendTexture_.isValid()) {
             RS_LOGE("invalid grBackendTexture_");
@@ -1422,7 +1426,7 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
     float scaleX = size.x_ / boundsWidth_;
     float scaleY = size.y_ / boundsHeight_;
     canvas.Scale(scaleX, scaleY);
-#if defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (isUIFirst) {
         RS_LOGE("[%{public}s:%{public}d] Drawing is not supported", __func__, __LINE__);
         return;
@@ -1442,18 +1446,19 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
     }
     Drawing::Brush brush;
     canvas.AttachBrush(brush);
+    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     if (cacheType == CacheType::ANIMATE_PROPERTY && renderProperties_.IsShadowValid()) {
         canvas.DrawImage(*image, -shadowRectOffsetX_ * scaleX,
-            -shadowRectOffsetY_ * scaleY, Drawing::SamplingOptions());
+            -shadowRectOffsetY_ * scaleY, samplingOptions);
     } else {
-        canvas.DrawImage(*image, 0.0, 0.0, Drawing::SamplingOptions());
+        canvas.DrawImage(*image, 0.0, 0.0, samplingOptions);
     }
     canvas.DetachBrush();
     canvas.Restore();
 }
 #endif
 
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
 void RSRenderNode::UpdateBackendTexture()
 {
     std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
@@ -1904,7 +1909,7 @@ void RSRenderNode::UpdateCompletedCacheSurface()
     std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
     std::swap(cacheSurface_, cacheCompletedSurface_);
     std::swap(cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
-#ifdef RS_ENABLE_GL
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     std::swap(cacheBackendTexture_, cacheCompletedBackendTexture_);
     SetTextureValidFlag(true);
 #endif
@@ -2107,7 +2112,7 @@ void RSRenderNode::SetParentLeashWindow()
 }
 bool RSRenderNode::HasCachedTexture() const
 {
-#ifdef RS_ENABLE_GL
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
     return isTextureValid_;
 #else

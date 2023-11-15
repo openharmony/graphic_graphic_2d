@@ -133,6 +133,11 @@ public:
         return 0;
     }
 
+    NATIVEEXPORT int32_t GetRowStride() const
+    {
+        return rowStride_;
+    }
+
     NATIVEEXPORT bool Marshalling(Parcel &data) const override;
     NATIVEEXPORT static PixelMap *Unmarshalling(Parcel &data);
     NATIVEEXPORT bool EncodeTlv(std::vector<uint8_t> &buff) const;
@@ -227,6 +232,7 @@ private:
     // this info SHOULD be the final info for decoded pixelmap, not the original image info
     ImageInfo imageInfo_;
     int32_t rowDataSize_ = 0;
+    int32_t rowStride_ = 0;
     int32_t pixelBytes_ = 0;
     TransColorProc colorProc_ = nullptr;
     void *context_ = nullptr;

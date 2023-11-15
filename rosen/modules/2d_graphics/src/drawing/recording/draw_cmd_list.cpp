@@ -89,12 +89,24 @@ void DrawCmdList::UnmarshallingOps()
     }
 
     UnmarshallingPlayer player = { *this };
+
+    uint32_t opReplaceIndex = 0;
     do {
         void* itemPtr = opAllocator_.OffsetToAddr(offset);
         auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
         if (curOpItemPtr != nullptr) {
             uint32_t type = curOpItemPtr->GetType();
-            unmarshalledOpItems_.emplace_back(player.Unmarshalling(type, itemPtr));
+            if (opReplaceIndex < replacedOpList_.size() &&
+                replacedOpList_[opReplaceIndex].first == offset) {
+                auto* replacePtr = opAllocator_.OffsetToAddr(replacedOpList_[opReplaceIndex].second);
+                auto* replaceOpItemPtr = static_cast<OpItem*>(replacePtr);
+                unmarshalledOpItems_.emplace_back(player.Unmarshalling(replaceOpItemPtr->GetType(), replacePtr));
+                opReplacedByDrivenRender_.emplace_back((unmarshalledOpItems_.size() - 1),
+                    player.Unmarshalling(type, itemPtr));
+                opReplaceIndex++;
+            } else {
+                unmarshalledOpItems_.emplace_back(player.Unmarshalling(type, itemPtr));
+            }
             offset = curOpItemPtr->GetNextOpItemOffset();
         } else {
             LOGE("DrawCmdList::UnmarshallingOps failed, opItem is nullptr");
@@ -103,7 +115,7 @@ void DrawCmdList::UnmarshallingOps()
     } while (offset != 0);
 }
 
-void DrawCmdList::Playback(Canvas& canvas, const Rect* rect) const
+void DrawCmdList::Playback(Canvas& canvas, const Rect* rect)
 {
     uint32_t offset = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
     if (width_ <= 0 || height_ <= 0 ||
@@ -111,12 +123,24 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect) const
         return;
     }
 
+#ifdef ROSEN_OHOS
+    // invalidate cache if high contrast flag changed
+    if (isCached_ && canvas.isHighContrastEnabled() != cachedHighContrast_) {
+        ClearCache();
+    }
+    // Generate or clear cache if cache state changed
+    if (canvas.GetCacheType() == Drawing::CacheType::ENABLED && !isCached_) {
+        GenerateCacheInRenderService(&canvas, rect);
+    } else if (canvas.GetCacheType() == Drawing::CacheType::DISABLED && isCached_) {
+        ClearCache();
+    }
+#endif
+
     Rect tmpRect;
     if (rect != nullptr) {
         tmpRect = *rect;
     }
     CanvasPlayer player = { canvas, *this, tmpRect};
-
     if (unmarshalledOpItems_.size() == 0) {
         do {
             void* itemPtr = opAllocator_.OffsetToAddr(offset);
@@ -145,6 +169,104 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect) const
             }
         }
     }
+}
+
+void DrawCmdList::GenerateCache(Canvas* canvas, const Rect* rect)
+{
+#ifdef ROSEN_OHOS
+    uint32_t offset = 2 * sizeof(int32_t);
+    if (width_ <= 0 || height_ <= 0 || opAllocator_.GetSize() <= offset) {
+        return;
+    }
+
+    GenerateCachedOpItemPlayer player = {*this, canvas, rect};
+
+    uint32_t maxOffset = opAllocator_.GetSize();
+    do {
+        void* itemPtr = opAllocator_.OffsetToAddr(offset);
+        auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
+        if (curOpItemPtr != nullptr) {
+            bool replaceSuccess = false;
+            player.GenerateCachedOpItem(curOpItemPtr->GetType(), itemPtr, true, replaceSuccess);
+            if (replaceSuccess) {
+                replacedOpList_.push_back({offset, lastOpItemOffset_.value()});
+            }
+            offset = curOpItemPtr->GetNextOpItemOffset();
+        } else {
+            LOGE("DrawCmdList::GenerateCache failed, opItem is nullptr");
+            break;
+        }
+    } while (offset != 0 && offset < maxOffset);
+
+    isCached_ = true;
+    cachedHighContrast_ = canvas && canvas->isHighContrastEnabled();
+#endif
+}
+
+void DrawCmdList::GenerateCacheInRenderService(Canvas* canvas, const Rect* rect)
+{
+#ifdef ROSEN_OHOS
+    if (width_ <= 0 || height_ <= 0 || unmarshalledOpItems_.size() == 0) {
+        return;
+    }
+
+    GenerateCachedOpItemPlayer player = {*this, canvas, rect};
+    for (int i = 0; i < unmarshalledOpItems_.size(); ++i) {
+        auto opItem = unmarshalledOpItems_[i];
+        if (opItem != nullptr) {
+            bool replaceSuccess = false;
+            auto replaceCache = player.GenerateCachedOpItem(opItem->GetType(), opItem.get(), false, replaceSuccess);
+            if (replaceCache) {
+                opReplacedByDrivenRender_.emplace_back(i, unmarshalledOpItems_[i]);
+                unmarshalledOpItems_[i] = replaceCache;
+            }
+        }
+    }
+
+    isCached_ = true;
+    cachedHighContrast_ = canvas && canvas->isHighContrastEnabled();
+#endif
+}
+
+void DrawCmdList::ClearCache()
+{
+    // restore the original op
+    for (auto& [index, op] : opReplacedByDrivenRender_) {
+        unmarshalledOpItems_[index] = op;
+    }
+    opReplacedByDrivenRender_.clear();
+    replacedOpList_.clear();
+    isCached_ = false;
+}
+
+bool DrawCmdList::GetIsCache()
+{
+    return isCached_;
+}
+
+void DrawCmdList::SetIsCache(bool isCached)
+{
+    isCached_ = isCached;
+}
+
+bool DrawCmdList::GetCachedHighContrast()
+{
+    return cachedHighContrast_;
+}
+
+void DrawCmdList::SetCachedHighContrast(bool cachedHighContrast)
+{
+    cachedHighContrast_ = cachedHighContrast;
+}
+
+std::vector<std::pair<uint32_t, uint32_t>> DrawCmdList::GetReplacedOpList()
+{
+    return replacedOpList_;
+}
+
+void DrawCmdList::SetReplacedOpList(std::vector<std::pair<uint32_t, uint32_t>> replacedOpList)
+{
+    replacedOpList_ = replacedOpList;
 }
 
 } // namespace Drawing

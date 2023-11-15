@@ -358,6 +358,10 @@ void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 {
 }
 
+void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
+{
+}
+
 #ifdef TP_FEATURE_ENABLE
 void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* config)
 {

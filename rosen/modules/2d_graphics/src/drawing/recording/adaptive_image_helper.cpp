@@ -281,6 +281,8 @@ static ColorType PixelFormatToColorType(Media::PixelFormat pixelFormat)
             return ColorType::COLORTYPE_BGRA_8888;
         case Media::PixelFormat::ALPHA_8:
             return ColorType::COLORTYPE_ALPHA_8;
+        case Media::PixelFormat::RGBA_F16:
+            return ColorType::COLORTYPE_RGBA_F16;
         default:
             return ColorType::COLORTYPE_UNKNOWN;
     }

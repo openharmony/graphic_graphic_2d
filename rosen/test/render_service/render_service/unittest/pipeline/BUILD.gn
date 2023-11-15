@@ -35,6 +35,7 @@ group("unittest") {
     ":RSRenderServiceListenerTest",
     ":RSRenderServiceUnitTest",
     ":RSRenderServiceVisitorTest",
+    ":RSRoundCornerDisplayTest",
     ":RSSurfaceCaptureTaskTest",
     ":RSUniRenderComposerAdapterTest",
     ":RSUniRenderEngineTest",
@@ -64,7 +65,7 @@ group("unittest") {
       ":RSSubThreadTest",
     ]
   }
-  if (rs_enable_driven_render && rs_enable_gpu) {
+  if (rs_enable_driven_render) {
     deps += [
       ":RSDrivenRenderExtTest",
       ":RSDrivenRenderManagerTest",
@@ -522,6 +523,41 @@ ohos_unittest("RSBaseRenderEngineUnitTest") {
   module_out_path = module_output_path
   sources = [ "rs_base_render_engine_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "sensor:sensor_interface_native",
+  ]
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSRoundCornerDisplayTest
+ohos_unittest("RSRoundCornerDisplayTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_round_corner_display_test.cpp" ]
+  if (defined(use_new_skia) && use_new_skia) {
+    include_dirs = [
+      "//third_party/skia/src",
+      "//third_party/skia/include/core",
+    ]
+  } else {
+    include_dirs = [
+      "//third_party/flutter/skia/src",
+      "//third_party/flutter/skia/include/core",
+    ]
+  }
+
+  deps = [
+    ":rs_test_common",
+    "../../../../../modules/render_service_base:render_service_base_src",
+  ]
+  if (defined(use_new_skia) && use_new_skia) {
+    deps += [ "//third_party/skia:skia_ohos" ]
+  } else {
+    deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  }
+
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",

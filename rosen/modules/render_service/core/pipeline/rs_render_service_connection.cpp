@@ -797,7 +797,7 @@ bool RSRenderServiceConnection::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
 #ifndef USE_ROSEN_DRAWING
     return !bitmap.empty();
 #else
-    return bitmap.IsValid();
+    return !bitmap.IsEmpty();
 #endif
 }
 

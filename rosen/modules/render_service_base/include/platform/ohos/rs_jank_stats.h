@@ -73,7 +73,8 @@ private:
     void operator=(const RSJankStats&) = delete;
     void operator=(const RSJankStats&&) = delete;
 
-    void SetRSJankStats(int64_t missedFrames);
+    void UpdateEndTime();
+    void SetRSJankStats(int64_t missedVsync);
     void UpdateJankFrame(int64_t duration, JankFrames& jankFrames);
     void ReportEventResponse(const JankFrames& jankFrames) const;
     void ReportEventComplete(const JankFrames& jankFrames) const;
@@ -92,10 +93,12 @@ private:
     constexpr static size_t JANK_STATS_SIZE = 8;
     constexpr static bool IS_FOLD_DISP = false;
     bool isfirstSetStart_ = true;
+    bool isfirstSetEnd_ = true;
     bool isNeedReport_ = false;
     bool isFirstFrame_ = false;
     int64_t startTime_ = 0;
     int64_t endTime_ = 0;
+    int64_t lastEndTime_ = 0;
     int64_t lastReportTime_ = 0;
     int64_t lastJankOverThresholdTime_ = 0;
     int32_t appPid_ = 0;

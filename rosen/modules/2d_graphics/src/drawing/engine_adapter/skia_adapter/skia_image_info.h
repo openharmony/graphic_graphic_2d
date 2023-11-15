@@ -58,6 +58,8 @@ public:
                 return kRGBA_8888_SkColorType;
             case COLORTYPE_BGRA_8888:
                 return kBGRA_8888_SkColorType;
+            case COLORTYPE_RGBA_F16:
+                return kRGBA_F16_SkColorType;
             case COLORTYPE_N32:
                 return kN32_SkColorType;
             default:
@@ -105,6 +107,8 @@ public:
                 return COLORTYPE_RGBA_8888;
             case kBGRA_8888_SkColorType:
                 return COLORTYPE_BGRA_8888;
+            case kRGBA_F16_SkColorType:
+                return COLORTYPE_RGBA_F16;
             default:
                 return COLORTYPE_UNKNOWN;
         }

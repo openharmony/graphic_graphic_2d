@@ -48,6 +48,8 @@ public:
      */
     void SetSkImageFilter(const sk_sp<SkImageFilter>& filter);
 
+    std::shared_ptr<Data> Serialize() const override;
+    bool Deserialize(std::shared_ptr<Data> data) override;
 private:
     sk_sp<SkImageFilter> filter_;
 };

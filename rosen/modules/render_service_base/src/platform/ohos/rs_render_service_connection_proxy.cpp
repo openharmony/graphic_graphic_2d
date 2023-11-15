@@ -212,6 +212,10 @@ sptr<IVSyncConnection> RSRenderServiceConnectionProxy::CreateVSyncConnection(con
                                                                              const sptr<VSyncIConnectionToken>& token,
                                                                              uint64_t id)
 {
+    if (token == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateVSyncConnection: token is nullptr.");
+        return nullptr;
+    }
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -407,7 +411,6 @@ void RSRenderServiceConnectionProxy::RemoveVirtualScreen(ScreenId id)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         return;
     }
@@ -1313,6 +1316,10 @@ int32_t RSRenderServiceConnectionProxy::SetScreenSkipFrameInterval(ScreenId id, 
 
 int32_t RSRenderServiceConnectionProxy::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
 {
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterOcclusionChangeCallback: callback is nullptr.");
+        return INVALID_ARGUMENTS;
+    }
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1419,6 +1426,10 @@ void RSRenderServiceConnectionProxy::SetAppWindowNum(uint32_t num)
 
 void RSRenderServiceConnectionProxy::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
 {
+    if (watermarkImg == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ShowWatermark: watermarkImg is nullptr.");
+        return;
+    }
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -1558,6 +1569,18 @@ void RSRenderServiceConnectionProxy::SetCacheEnabledForRotation(bool isEnabled)
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetCacheEnabledForRotation: Send Request err.");
+    }
+}
+
+void RSRenderServiceConnectionProxy::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
+{
+    OnRemoteDiedCallback_ = callback;
+}
+
+void RSRenderServiceConnectionProxy::RunOnRemoteDiedCallback()
+{
+    if (OnRemoteDiedCallback_) {
+        OnRemoteDiedCallback_();
     }
 }
 

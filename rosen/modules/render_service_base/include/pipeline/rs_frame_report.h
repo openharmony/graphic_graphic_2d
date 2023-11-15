@@ -26,7 +26,7 @@ using FrameGetEnableFunc = int (*)();
 using InitFunc = void (*)();
 using ProcessCommandsStartFunc = void(*)();
 using AnimateStartFunc = void(*)();
-using RenderStartFunc = void(*)();
+using RenderStartFunc = void(*)(uint64_t);
 using RenderEndFunc = void(*)();
 using SendCommandsStartFunc = void(*)();
 using SetFrameParamFunc = void(*)(int, int, int, int);
@@ -38,7 +38,7 @@ public:
 
     void ProcessCommandsStart();
     void AnimateStart();
-    void RenderStart();
+    void RenderStart(uint64_t timestamp);
     void RenderEnd();
     void SendCommandsStart();
     void SetFrameParam(int requestId, int load, int schedFrameNum, int value);

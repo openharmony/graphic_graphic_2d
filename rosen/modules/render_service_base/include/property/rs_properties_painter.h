@@ -112,6 +112,11 @@ public:
 private:
     static void ApplyBackgroundEffectFallback(const RSProperties& properties, RSPaintFilterCanvas& canvas);
     static void TransformGradientBlurDirection(uint8_t& direction, const uint8_t directionBias);
+    static RRect GetRRectForDrawingBorder(const RRect& rr, const std::shared_ptr<RSBorder>& border,
+                                          const Vector4f& outset, const bool& isFirstLayerBorder);
+    static RRect GetInnerRRectForDrawingBorder(const RSProperties& properties,
+                                               const std::shared_ptr<RSBorder>& border,
+                                               const Vector4f& innerOutset, const bool& isFirstLayerBorder);
 #ifndef USE_ROSEN_DRAWING
     static void DrawColorfulShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
     static void DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
@@ -129,6 +134,17 @@ private:
     static void DrawVerticalLinearGradientBlur(SkSurface* skSurface, RSPaintFilterCanvas& canvas,
         float radius, sk_sp<SkShader> alphaGradientShader, const SkIRect& clipIPadding);
     static uint8_t CalcDirectionBias(const SkMatrix& mat);
+    static void DrawLinearGradientBlur(SkSurface* surface, RSPaintFilterCanvas& canvas,
+        const std::shared_ptr<RSLinearGradientBlurPara>& para, sk_sp<SkShader> alphaGradientShader,
+        const SkIRect& clipIPadding);
+    static void DrawMaskLinearGradientBlur(SkSurface* skSurface, RSPaintFilterCanvas& canvas,
+        std::shared_ptr<RSSkiaFilter>& blurFilter, sk_sp<SkShader> alphaGradientShader, const SkIRect& clipIPadding);
+    static sk_sp<SkShader> MakeMeanBlurShader(sk_sp<SkShader> srcImageShader,
+        sk_sp<SkShader> blurImageShader, sk_sp<SkShader> gradientShader);
+
+    static void DrawBorderBase(const RSProperties& properties, SkCanvas& canvas,
+                               const std::shared_ptr<RSBorder>& border, Vector4f& outset,
+                               Vector4f& innerOutset, const bool isFirstLayerBorder);
 #else // USE_ROSEN_DRAWING
     static void DrawColorfulShadowInner(
         const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::Path& path);
@@ -148,6 +164,15 @@ private:
     static void DrawVerticalLinearGradientBlur(Drawing::Surface* surface, RSPaintFilterCanvas& canvas,
         float radius, std::shared_ptr<Drawing::ShaderEffect> alphaGradientShader, const Drawing::RectI& clipIPadding);
     static uint8_t CalcDirectionBias(const Drawing::Matrix& mat);
+    static void DrawLinearGradientBlur(Drawing::Surface* surface, RSPaintFilterCanvas& canvas,
+        const std::shared_ptr<RSLinearGradientBlurPara>& para,
+        std::shared_ptr<Drawing::ShaderEffect> alphaGradientShader, const Drawing::RectI& clipIPadding);
+    static void DrawMaskLinearGradientBlur(Drawing::Surface* surface, RSPaintFilterCanvas& canvas,
+        std::shared_ptr<RSDrawingFilter>& blurFilter, std::shared_ptr<Drawing::ShaderEffect> alphaGradientShader,
+        const Drawing::RectI& clipIPadding);
+    static std::shared_ptr<Drawing::ShaderEffect> MakeMeanBlurShader(
+        std::shared_ptr<Drawing::ShaderEffect> srcImageShader, std::shared_ptr<Drawing::ShaderEffect> blurImageShader,
+        std::shared_ptr<Drawing::ShaderEffect> gradientShader);
 #endif // USE_ROSEN_DRAWING
     inline static int g_blurCnt = 0;
     friend class RSLinearGradientBlurFilterDrawable;

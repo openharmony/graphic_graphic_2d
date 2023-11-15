@@ -31,6 +31,9 @@ MaskFilter::MaskFilter(FilterType t, BlurType blurType, scalar sigma) noexcept :
 MaskFilter::MaskFilter() noexcept : type_(MaskFilter::FilterType::NO_TYPE), impl_(ImplFactory::CreateMaskFilterImpl())
 {}
 
+MaskFilter::MaskFilter(FilterType t) noexcept : type_(t), impl_(ImplFactory::CreateMaskFilterImpl())
+{}
+
 MaskFilter::FilterType MaskFilter::GetType() const
 {
     return type_;
@@ -40,6 +43,17 @@ std::shared_ptr<MaskFilter> MaskFilter::CreateBlurMaskFilter(BlurType blurType, 
 {
     return std::make_shared<MaskFilter>(MaskFilter::FilterType::BLUR, blurType, sigma);
 }
+
+std::shared_ptr<Data> MaskFilter::Serialize() const
+{
+    return impl_->Serialize();
+}
+
+bool MaskFilter::Deserialize(std::shared_ptr<Data> data)
+{
+    return impl_->Deserialize(data);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

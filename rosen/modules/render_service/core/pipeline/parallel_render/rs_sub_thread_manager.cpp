@@ -16,10 +16,14 @@
 #include "rs_sub_thread_manager.h"
 #include <chrono>
 
+#include "common/rs_singleton.h"
 #include "common/rs_optional_trace.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "memory/rs_memory_manager.h"
+#include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "pipeline/round_corner_display/rs_sub_thread_rcd.h"
+#include "pipeline/round_corner_display/rs_message_bus.h"
 
 namespace OHOS::Rosen {
 static constexpr uint32_t SUB_THREAD_NUM = 3;
@@ -68,6 +72,32 @@ void RSSubThreadManager::StartFilterThread(RenderContext* context)
         filterThread->Start();
     }
 #endif
+}
+
+void RSSubThreadManager::StartRCDThread(RenderContext* context)
+{
+    renderContext_ = context;
+    if (context) {
+        RS_LOGD("RSSubThreadManager::StartRCDThread");
+        auto threadRcd = &(RSSingleton<RSSubThreadRCD>::GetInstance());
+        threadRcd->Start(context);
+        if (!isRcdServiceRegister_) {
+            auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
+            auto& msgBus = RSSingleton<RsMessageBus>::GetInstance();
+            msgBus.RegisterTopic<uint32_t, uint32_t>(
+                TOPIC_RCD_DISPLAY_SIZE, &rcdInstance,
+                &RoundCornerDisplay::UpdateDisplayParameter);
+            msgBus.RegisterTopic<ScreenRotation>(
+                TOPIC_RCD_DISPLAY_ROTATION, &rcdInstance,
+                &RoundCornerDisplay::UpdateOrientationStatus);
+            msgBus.RegisterTopic<int>(
+                TOPIC_RCD_DISPLAY_NOTCH, &rcdInstance,
+                &RoundCornerDisplay::UpdateNotchStatus);
+            isRcdServiceRegister_ = true;
+            RS_LOGD("RSSubThreadManager::StartRCDThread Registed rcd renderservice end");
+        }
+        RS_LOGD("RSSubThreadManager::StartRCDThread Registed rcd renderservice already.");
+    }
 }
 
 void RSSubThreadManager::PostTask(const std::function<void()>& task, uint32_t threadIndex, bool isSyncTask)

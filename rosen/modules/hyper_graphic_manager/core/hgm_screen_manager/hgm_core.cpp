@@ -25,6 +25,8 @@
 #include "vsync_generator.h"
 #include "platform/common/rs_system_properties.h"
 #include "parameters.h"
+#include "frame_rate_report.h"
+#include "sandbox_utils.h"
 
 namespace OHOS::Rosen {
 static std::map<uint32_t, int64_t> IDEAL_PERIOD = {
@@ -202,7 +204,9 @@ int32_t HgmCore::SetModeBySettingConfig()
             return HGM_ERROR;
         }
     }
-
+    std::unordered_map<pid_t, uint32_t> rates;
+    rates[GetRealPid()] = rateToSwitch;
+    FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRates(rates);
     return EXEC_SUCCESS;
 }
 

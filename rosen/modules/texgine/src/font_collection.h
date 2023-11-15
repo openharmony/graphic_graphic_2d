@@ -38,6 +38,8 @@ public:
     std::shared_ptr<Typeface> GetTypefaceForFontStyles(const FontStyles &style, const std::string &script,
         const std::string &locale) const;
 
+    std::shared_ptr<Typeface> FindThemeTypeface(const FontStyles &style) const;
+
     std::shared_ptr<Typeface> FindFallBackTypeface(const uint32_t &ch, const FontStyles &style,
         const std::string &script, const std::string &locale) const;
 

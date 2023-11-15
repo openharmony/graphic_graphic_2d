@@ -543,6 +543,17 @@ bool RSPaintFilterCanvas::OnFilter() const
 {
     return alphaStack_.top() > 0.f;
 }
+
+bool RSPaintFilterCanvas::GetRecordingState() const
+{
+    return recordingState_;
+}
+
+void RSPaintFilterCanvas::SetDisableFilterCache(bool flag) const
+{
+    recordingState_ = flag;
+}
+
 #endif // USE_ROSEN_DRAWING
 
 void RSPaintFilterCanvas::MultiplyAlpha(float alpha)
@@ -807,7 +818,11 @@ void RSPaintFilterCanvas::SetCacheType(CacheType type)
 {
     cacheType_ = type;
 }
+#ifndef USE_ROSEN_DRAWING
 RSPaintFilterCanvas::CacheType RSPaintFilterCanvas::GetCacheType() const
+#else
+Drawing::CacheType RSPaintFilterCanvas::GetCacheType() const
+#endif
 {
     return cacheType_;
 }

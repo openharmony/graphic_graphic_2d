@@ -37,6 +37,7 @@ public:
     virtual void DisableFallback() = 0;
     virtual void DisableSystemFont() = 0;
     virtual void LoadFont(const std::string &familyName, const uint8_t *data, size_t datalen) = 0;
+    virtual void LoadThemeFont(const std::string &familyName, const uint8_t *data, size_t datalen) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

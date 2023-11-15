@@ -18,6 +18,7 @@
 #include "texgine/dynamic_font_provider.h"
 #include "texgine/font_providers.h"
 #include "texgine/system_font_provider.h"
+#include "texgine/theme_font_provider.h"
 
 #include "convert.h"
 
@@ -43,17 +44,28 @@ FontCollection::FontCollection()
 {
     fontProviders_ = TextEngine::FontProviders::Create();
     dfprovider_ = TextEngine::DynamicFontProvider::Create();
+    tfprovider_ = TextEngine::ThemeFontProvider::GetInstance();
 }
 
 std::shared_ptr<TextEngine::FontProviders> FontCollection::Get()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (fontProviders_ == nullptr) {
         fontProviders_ = TextEngine::FontProviders::Create();
+    }
+    if (dfprovider_ == nullptr) {
         dfprovider_ = TextEngine::DynamicFontProvider::Create();
     }
+    if (tfprovider_ == nullptr) {
+        tfprovider_ = TextEngine::ThemeFontProvider::GetInstance();
+    }
     fontProviders_->AppendFontProvider(dfprovider_);
+    fontProviders_->AppendFontProvider(tfprovider_);
     if (!disableSystemFont_) {
-        fontProviders_->AppendFontProvider(TextEngine::SystemFontProvider::GetInstance());
+        if (sysprovider_ == nullptr) {
+            sysprovider_ = TextEngine::SystemFontProvider::GetInstance();
+        }
+        fontProviders_->AppendFontProvider(sysprovider_);
     }
     return fontProviders_;
 }
@@ -71,6 +83,12 @@ void FontCollection::DisableSystemFont()
 void FontCollection::LoadFont(const std::string &familyName, const uint8_t *data, size_t datalen)
 {
     dfprovider_->LoadFont(familyName, data, datalen);
+    fontProviders_->Clear();
+}
+
+void FontCollection::LoadThemeFont(const std::string &familyName, const uint8_t *data, size_t datalen)
+{
+    tfprovider_->LoadFont(familyName, data, datalen);
     fontProviders_->Clear();
 }
 } // namespace AdapterTextEngine

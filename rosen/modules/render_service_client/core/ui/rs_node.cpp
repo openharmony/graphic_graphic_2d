@@ -403,6 +403,7 @@ void RSNode::SetProperty(RSModifierType modifierType, T value)
     }
     auto property = std::make_shared<PropertyName>(value);
     auto propertyModifier = std::make_shared<ModifierName>(property);
+    ROSEN_LOGI("RSNode::SetProperty modifier");
     propertyModifiers_.emplace(modifierType, propertyModifier);
     AddModifier(propertyModifier);
 }
@@ -868,12 +869,13 @@ void RSNode::SetBgImagePositionY(float positionY)
         RSModifierType::BG_IMAGE_POSITION_Y, positionY);
 }
 
-// border
+// set inner border color
 void RSNode::SetBorderColor(uint32_t colorValue)
 {
     SetBorderColor(colorValue, colorValue, colorValue, colorValue);
 }
 
+// set inner border color
 void RSNode::SetBorderColor(uint32_t left, uint32_t top, uint32_t right, uint32_t bottom)
 {
     Vector4<Color> color(Color::FromArgbInt(left), Color::FromArgbInt(top),
@@ -881,32 +883,38 @@ void RSNode::SetBorderColor(uint32_t left, uint32_t top, uint32_t right, uint32_
     SetBorderColor(color);
 }
 
+// set inner border color
 void RSNode::SetBorderColor(const Vector4<Color>& color)
 {
     SetProperty<RSBorderColorModifier, RSAnimatableProperty<Vector4<Color>>>(RSModifierType::BORDER_COLOR, color);
 }
 
+// set inner border width
 void RSNode::SetBorderWidth(float width)
 {
     SetBorderWidth(width, width, width, width);
 }
 
+// set inner border width
 void RSNode::SetBorderWidth(float left, float top, float right, float bottom)
 {
     Vector4f width(left, top, right, bottom);
     SetBorderWidth(width);
 }
 
+// set inner border width
 void RSNode::SetBorderWidth(const Vector4f& width)
 {
     SetProperty<RSBorderWidthModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::BORDER_WIDTH, width);
 }
 
+// set inner border style
 void RSNode::SetBorderStyle(uint32_t styleValue)
 {
     SetBorderStyle(styleValue, styleValue, styleValue, styleValue);
 }
 
+// set inner border style
 void RSNode::SetBorderStyle(uint32_t left, uint32_t top, uint32_t right, uint32_t bottom)
 {
     Vector4<BorderStyle> style(static_cast<BorderStyle>(left), static_cast<BorderStyle>(top),
@@ -914,11 +922,38 @@ void RSNode::SetBorderStyle(uint32_t left, uint32_t top, uint32_t right, uint32_
     SetBorderStyle(style);
 }
 
+// set inner border style
 void RSNode::SetBorderStyle(const Vector4<BorderStyle>& style)
 {
     Vector4<uint32_t> styles(static_cast<uint32_t>(style.x_), static_cast<uint32_t>(style.y_),
                              static_cast<uint32_t>(style.z_), static_cast<uint32_t>(style.w_));
     SetProperty<RSBorderStyleModifier, RSProperty<Vector4<uint32_t>>>(RSModifierType::BORDER_STYLE, styles);
+}
+
+void RSNode::SetOuterBorderColor(const Vector4<Color>& color)
+{
+    SetProperty<RSOuterBorderColorModifier, RSAnimatableProperty<Vector4<Color>>>(
+        RSModifierType::OUTER_BORDER_COLOR, color);
+}
+
+void RSNode::SetOuterBorderWidth(const Vector4f& width)
+{
+    SetProperty<RSOuterBorderWidthModifier, RSAnimatableProperty<Vector4f>>(
+        RSModifierType::OUTER_BORDER_WIDTH, width);
+}
+
+void RSNode::SetOuterBorderStyle(const Vector4<BorderStyle>& style)
+{
+    Vector4<uint32_t> styles(static_cast<uint32_t>(style.x_), static_cast<uint32_t>(style.y_),
+                             static_cast<uint32_t>(style.z_), static_cast<uint32_t>(style.w_));
+    SetProperty<RSOuterBorderStyleModifier, RSProperty<Vector4<uint32_t>>>(
+        RSModifierType::OUTER_BORDER_STYLE, styles);
+}
+
+void RSNode::SetOuterBorderRadius(const Vector4f& radius)
+{
+    SetProperty<RSOuterBorderRadiusModifier, RSAnimatableProperty<Vector4f>>(
+        RSModifierType::OUTER_BORDER_RADIUS, radius);
 }
 
 void RSNode::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter)

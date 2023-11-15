@@ -303,8 +303,16 @@ void RecordingCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const s
         LOGE("blob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return;
     }
-    auto textBlobHandle = CmdListHelper::AddTextBlobToCmdList(*cmdList_, blob);
-    cmdList_->AddOp<DrawTextBlobOpItem>(textBlobHandle, x, y);
+    
+    if (IsCustomTextType()) {
+        LOGD("RecordingCanvas::DrawTextBlob replace drawOpItem with cached one");
+        ImageHandle imageHandle;
+        DrawTextBlobOpItem textOp(imageHandle, x, y);
+        textOp.GenerateCachedOpItem(cmdList_, blob);
+    } else {
+        auto textBlobHandle = CmdListHelper::AddTextBlobToCmdList(*cmdList_, blob);
+        cmdList_->AddOp<DrawTextBlobOpItem>(textBlobHandle, x, y);
+    }
 }
 
 void RecordingCanvas::ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias)
@@ -527,6 +535,16 @@ CoreCanvas& RecordingCanvas::DetachBrush()
 
     return *this;
 }
+void RecordingCanvas::SetIsCustomTextType(bool isCustomTextType)
+{
+    isCustomTextType_ = isCustomTextType;
+}
+
+bool RecordingCanvas::IsCustomTextType() const
+{
+    return isCustomTextType_;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
