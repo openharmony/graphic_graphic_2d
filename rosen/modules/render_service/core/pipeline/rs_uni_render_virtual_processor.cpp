@@ -162,9 +162,12 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
 #endif
         auto params = RSUniRenderUtil::CreateBufferDrawParam(node, forceCPU_);
         auto screenManager = CreateOrGetScreenManager();
-        auto mainScreenInfo = screenManager->QueryScreenInfo(screenManager->GetDefaultScreenId());
+        auto mainScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
         float mainWidth = static_cast<float>(mainScreenInfo.width);
         float mainHeight = static_cast<float>(mainScreenInfo.height);
+        if (RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0) {
+            std::swap(mainWidth, mainHeight);
+        }
         // If the width and height not match the main screen, calculate the dstRect.
         if (mainWidth != boundsWidth_ || mainHeight != boundsHeight_) {
 #ifndef USE_ROSEN_DRAWING

@@ -28,6 +28,12 @@
 #include "recording/region_cmd_list.h"
 #include "recording/shader_effect_cmd_list.h"
 #include "skia_adapter/skia_vertices.h"
+#include "skia_adapter/skia_image_filter.h"
+#include "skia_adapter/skia_mask_filter.h"
+#include "skia_adapter/skia_color_filter.h"
+#include "skia_adapter/skia_shader_effect.h"
+#include "skia_adapter/skia_path_effect.h"
+
 #include "utils/log.h"
 
 #include "skia_adapter/skia_picture.h"
@@ -48,6 +54,8 @@ static int ColorTypeToBytesPerPixel(ColorType colorType)
         case ColorType::COLORTYPE_BGRA_8888:
         case ColorType::COLORTYPE_N32:
             return 4;
+        case ColorType::COLORTYPE_RGBA_F16:
+            return 8;
         case ColorType::COLORTYPE_UNKNOWN:
         default:
             return 0;
@@ -95,13 +103,7 @@ std::shared_ptr<Image> CmdListHelper::GetImageFromCmdList(const CmdList& cmdList
 
 VerticesHandle CmdListHelper::AddVerticesToCmdList(CmdList& cmdList, const Vertices& vertices)
 {
-    std::shared_ptr<SkiaVertices> skiaVertices = vertices.GetImpl<SkiaVertices>();
-    if (skiaVertices == nullptr) {
-        LOGE("skiaVertices nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
-        return { 0 };
-    }
-
-    auto data = skiaVertices->Serialize();
+    auto data = vertices.Serialize();
     if (data == nullptr || data->GetSize() == 0) {
         LOGE("vertices is valid!");
         return { 0 };
@@ -124,14 +126,7 @@ std::shared_ptr<Vertices> CmdListHelper::GetVerticesFromCmdList(
     auto verticesData = std::make_shared<Data>();
     verticesData->BuildWithoutCopy(ptr, verticesHandle.size);
     auto vertices = std::make_shared<Vertices>();
-
-    std::shared_ptr<SkiaVertices> skiaVertices = vertices->GetImpl<SkiaVertices>();
-    if (skiaVertices == nullptr) {
-        LOGE("skiaVertices nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
-        return nullptr;
-    }
-
-    if (skiaVertices->Deserialize(verticesData) == false) {
+    if (vertices->Deserialize(verticesData) == false) {
         LOGE("vertices deserialize failed!");
         return nullptr;
     }
@@ -214,7 +209,7 @@ std::shared_ptr<ExtendImageObject> CmdListHelper::GetImageObjectFromCmdList(
 
 ImageHandle CmdListHelper::AddPictureToCmdList(CmdList& cmdList, const Picture& picture)
 {
-    auto data = picture.GetImpl<SkiaPicture>()->Serialize();
+    auto data = picture.Serialize();
     if (data == nullptr || data->GetSize() == 0) {
         LOGE("picture is valid!");
         return { 0 };
@@ -235,7 +230,7 @@ std::shared_ptr<Picture> CmdListHelper::GetPictureFromCmdList(const CmdList& cmd
     auto pictureData = std::make_shared<Data>();
     pictureData->BuildWithoutCopy(ptr, pictureHandle.size);
     auto picture = std::make_shared<Picture>();
-    if (picture->GetImpl<SkiaPicture>()->Deserialize(pictureData) == false) {
+    if (picture->Deserialize(pictureData) == false) {
         LOGE("picture deserialize failed!");
         return nullptr;
     }
@@ -353,6 +348,216 @@ std::shared_ptr<Data> CmdListHelper::GetDataFromCmdList(const CmdList& cmdList, 
     imageData->BuildWithoutCopy(ptr, imageHandle.size);
     return imageData;
 }
+
+ImageHandle CmdListHelper::AddColorSpaceToCmdList(CmdList& cmdList, const std::shared_ptr<ColorSpace> colorSpace)
+{
+    if (colorSpace == nullptr) {
+        return { 0 };
+    }
+
+    auto data = colorSpace->Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGE("colorSpace is invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return { 0 };
+    }
+
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize() };
+}
+
+std::shared_ptr<ColorSpace> CmdListHelper::GetColorSpaceFromCmdList(const CmdList& cmdList,
+    const ImageHandle& imageHandle)
+{
+    const void* ptr = cmdList.GetImageData(imageHandle.offset);
+    if (imageHandle.size == 0 || ptr == nullptr) {
+        return nullptr;
+    }
+    auto colorSpaceData = std::make_shared<Data>();
+    colorSpaceData->BuildWithoutCopy(ptr, imageHandle.size);
+    auto colorSpace = std::make_shared<ColorSpace>(ColorSpace::ColorSpaceType::REF_IMAGE);
+    if (colorSpace->Deserialize(colorSpaceData) == false) {
+        LOGE("colorSpace deserialize failed!");
+        return nullptr;
+    }
+
+    return colorSpace;
+}
+
+FlattenableHandle AddShaderEffectToCmdList(CmdList& cmdList, std::shared_ptr<ShaderEffect> shaderEffect)
+{
+    if (shaderEffect == nullptr) {
+        return { 0 };
+    }
+    ShaderEffect::ShaderEffectType type = shaderEffect->GetType();
+    auto data = shaderEffect->Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGE("shaderEffect is invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return { 0 };
+    }
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize(), static_cast<uint32_t>(type) };
+}
+
+std::shared_ptr<ShaderEffect> GetShaderEffectFromCmdList(const CmdList& cmdList,
+    const FlattenableHandle& shaderEffectHandle)
+{
+    const void* ptr = cmdList.GetImageData(shaderEffectHandle.offset);
+    if (ptr == nullptr) {
+        return nullptr;
+    }
+
+    auto shaderEffectData = std::make_shared<Data>();
+    shaderEffectData->BuildWithoutCopy(ptr, shaderEffectHandle.size);
+    auto shaderEffect = std::make_shared<ShaderEffect>
+        (static_cast<ShaderEffect::ShaderEffectType>(shaderEffectHandle.type));
+    if (shaderEffect->Deserialize(shaderEffectData) == false) {
+        LOGE("shaderEffect deserialize failed!");
+        return nullptr;
+    }
+
+    return shaderEffect;
+}
+
+FlattenableHandle AddPathEffectToCmdList(CmdList& cmdList, std::shared_ptr<PathEffect> pathEffect)
+{
+    if (pathEffect == nullptr) {
+        return { 0 };
+    }
+    PathEffect::PathEffectType type = pathEffect->GetType();
+    auto data = pathEffect->Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGE("pathEffect is invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return { 0 };
+    }
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize(), static_cast<uint32_t>(type) };
+}
+
+std::shared_ptr<PathEffect> GetPathEffectFromCmdList(const CmdList& cmdList,
+    const FlattenableHandle& pathEffectHandle)
+{
+    const void* ptr = cmdList.GetImageData(pathEffectHandle.offset);
+    if (ptr == nullptr) {
+        return nullptr;
+    }
+
+    auto pathEffectData = std::make_shared<Data>();
+    pathEffectData->BuildWithoutCopy(ptr, pathEffectHandle.size);
+    auto pathEffect = std::make_shared<PathEffect>
+        (static_cast<PathEffect::PathEffectType>(pathEffectHandle.type));
+    if (pathEffect->Deserialize(pathEffectData) == false) {
+        LOGE("pathEffect deserialize failed!");
+        return nullptr;
+    }
+
+    return pathEffect;
+}
+
+FlattenableHandle AddMaskFilterToCmdList(CmdList& cmdList, std::shared_ptr<MaskFilter> maskFilter)
+{
+    if (maskFilter == nullptr) {
+        return { 0 };
+    }
+    MaskFilter::FilterType type = maskFilter->GetType();
+    auto data = maskFilter->Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGE("maskFilter is invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return { 0 };
+    }
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize(), static_cast<uint32_t>(type) };
+}
+
+std::shared_ptr<MaskFilter> GetMaskFilterFromCmdList(const CmdList& cmdList,
+    const FlattenableHandle& maskFilterHandle)
+{
+    const void* ptr = cmdList.GetImageData(maskFilterHandle.offset);
+    if (ptr == nullptr) {
+        return nullptr;
+    }
+
+    auto maskFilterData = std::make_shared<Data>();
+    maskFilterData->BuildWithoutCopy(ptr, maskFilterHandle.size);
+    auto maskFilter = std::make_shared<MaskFilter>
+        (static_cast<MaskFilter::FilterType>(maskFilterHandle.type));
+    if (maskFilter->Deserialize(maskFilterData) == false) {
+        LOGE("maskFilter deserialize failed!");
+        return nullptr;
+    }
+
+    return maskFilter;
+}
+
+FlattenableHandle AddColorFilterToCmdList(CmdList& cmdList, std::shared_ptr<ColorFilter> colorFilter)
+{
+    if (colorFilter == nullptr) {
+        return { 0 };
+    }
+    ColorFilter::FilterType type = colorFilter->GetType();
+    auto data = colorFilter->Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGE("colorFilter is invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return { 0 };
+    }
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize(), static_cast<uint32_t>(type) };
+}
+
+std::shared_ptr<ColorFilter> GetColorFilterFromCmdList(const CmdList& cmdList,
+    const FlattenableHandle& colorFilterHandle)
+{
+    const void* ptr = cmdList.GetImageData(colorFilterHandle.offset);
+    if (ptr == nullptr) {
+        return nullptr;
+    }
+
+    auto colorFilterData = std::make_shared<Data>();
+    colorFilterData->BuildWithoutCopy(ptr, colorFilterHandle.size);
+    auto colorFilter = std::make_shared<ColorFilter>
+        (static_cast<ColorFilter::FilterType>(colorFilterHandle.type));
+    if (colorFilter->Deserialize(colorFilterData) == false) {
+        LOGE("colorFilter deserialize failed!");
+        return nullptr;
+    }
+
+    return colorFilter;
+}
+
+FlattenableHandle AddImageFilterToCmdList(CmdList& cmdList, std::shared_ptr<ImageFilter> imageFilter)
+{
+    if (imageFilter == nullptr) {
+        return { 0 };
+    }
+    ImageFilter::FilterType type = imageFilter->GetType();
+    auto data = imageFilter->Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGE("imageFilter is invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return { 0 };
+    }
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize(), static_cast<uint32_t>(type) };
+}
+
+std::shared_ptr<ImageFilter> GetImageFilterFromCmdList(const CmdList& cmdList,
+    const FlattenableHandle& imageFilterHandle)
+{
+    const void* ptr = cmdList.GetImageData(imageFilterHandle.offset);
+    if (ptr == nullptr) {
+        return nullptr;
+    }
+
+    auto imageFilterData = std::make_shared<Data>();
+    imageFilterData->BuildWithoutCopy(ptr, imageFilterHandle.size);
+    auto imageFilter = std::make_shared<ImageFilter>
+        (static_cast<ImageFilter::FilterType>(imageFilterHandle.type));
+    if (imageFilter->Deserialize(imageFilterData) == false) {
+        LOGE("imageFilter deserialize failed!");
+        return nullptr;
+    }
+
+    return imageFilter;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

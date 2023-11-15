@@ -22,6 +22,9 @@
 #include "hgm_log.h"
 #include "parameters.h"
 #include "rs_trace.h"
+#include "sandbox_utils.h"
+#include "frame_rate_report.h"
+
 
 namespace OHOS {
 namespace Rosen {
@@ -92,7 +95,6 @@ void HgmFrameRateManager::UniProcessData(ScreenId screenId, uint64_t timestamp,
             ResetScreenTimer(screenId);
         }
     }
-
     Reset();
     CalcRefreshRate(screenId, finalRange);
 
@@ -100,7 +102,13 @@ void HgmFrameRateManager::UniProcessData(ScreenId screenId, uint64_t timestamp,
     if (!hgmCore.GetLtpoEnabled()) {
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
     } else if (frameRateChanged) {
+        auto oldRefreshRate = hgmCore.GetScreenCurrentRefreshRate(screenId);
         HandleFrameRateChangeForLTPO(timestamp);
+        if (currRefreshRate_ != oldRefreshRate) {
+            std::unordered_map<pid_t, uint32_t> rates;
+            rates[GetRealPid()] = currRefreshRate_;
+            FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRates(rates);
+        }
     }
 }
 
@@ -164,6 +172,9 @@ void HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRateRang
     // 2. FrameRateRange[min, max, preferred] is [150, 150, 150], supported refreshRates
     // of current screen are {30, 60, 90}, the result will be 90.
     auto supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(id);
+    if (supportRefreshRateVec.empty()) {
+        return;
+    }
     std::sort(supportRefreshRateVec.begin(), supportRefreshRateVec.end());
     auto iter = std::lower_bound(supportRefreshRateVec.begin(), supportRefreshRateVec.end(), range.preferred_);
     if (iter != supportRefreshRateVec.end()) {

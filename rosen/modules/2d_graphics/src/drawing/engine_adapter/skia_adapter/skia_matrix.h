@@ -64,6 +64,11 @@ public:
 
     void ImportMatrix(const SkMatrix& skMatrix);
 
+    MatrixImpl* Clone() override;
+    void PreRotate(scalar degree, scalar px, scalar py) override;
+    void PreScale(scalar sx, scalar sy, scalar px, scalar py) override;
+    void Reset() override;
+
 private:
     SkMatrix skMatrix_;
 };

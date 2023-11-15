@@ -392,6 +392,11 @@ void RSInterfaces::DisableCacheForRotation()
     renderServiceClient_->SetCacheEnabledForRotation(false);
 }
 
+void RSInterfaces::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
+{
+    renderServiceClient_->SetOnRemoteDiedCallback(callback);
+}
+
 #ifdef TP_FEATURE_ENABLE
 void RSInterfaces::SetTpFeatureConfig(int32_t feature, const char* config)
 {

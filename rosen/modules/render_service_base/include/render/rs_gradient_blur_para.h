@@ -17,6 +17,7 @@
 
 #include <array>
 #include "common/rs_macros.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -41,12 +42,16 @@ public:
     // Each pair in fractionStops_ represents <blur degree, position scale>
     std::vector<std::pair<float, float>> fractionStops_;
     GradientDirection direction_;
+    std::shared_ptr<RSFilter> LinearGradientBlurFilter_;
     explicit RSLinearGradientBlurPara(const float blurRadius,
                     const std::vector<std::pair<float, float>>fractionStops, const GradientDirection direction)
     {
         blurRadius_ = blurRadius;
         fractionStops_ = fractionStops;
         direction_ = direction;
+        if (RSSystemProperties::GetMaskLinearBlurEnabled()) {
+            LinearGradientBlurFilter_ = RSFilter::CreateBlurFilter(blurRadius_ / 2, blurRadius_ / 2);
+        }
     }
     ~RSLinearGradientBlurPara() = default;
 };

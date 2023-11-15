@@ -20,6 +20,8 @@
 #include "include/core/SkMatrix.h"
 #include "include/core/SkTileMode.h"
 #include "include/effects/SkGradientShader.h"
+#include "src/core/SkReadBuffer.h"
+#include "src/core/SkWriteBuffer.h"
 #if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
 #include "include/core/SkSamplingOptions.h"
 #endif
@@ -32,6 +34,8 @@
 #include "image/image.h"
 #include "image/picture.h"
 #include "utils/matrix.h"
+#include "utils/data.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -194,6 +198,43 @@ void SkiaShaderEffect::SetSkShader(const sk_sp<SkShader>& skShader)
 {
     shader_ = skShader;
 }
+
+std::shared_ptr<Data> SkiaShaderEffect::Serialize() const
+{
+#ifdef ROSEN_OHOS
+    if (shader_ == nullptr) {
+        LOGE("SkiaShaderEffect::Serialize, shader_ is nullptr!");
+        return nullptr;
+    }
+
+    SkBinaryWriteBuffer writer;
+    writer.writeFlattenable(shader_.get());
+    size_t length = writer.bytesWritten();
+    std::shared_ptr<Data> data = std::make_shared<Data>();
+    data->BuildUninitialized(length);
+    writer.writeToMemory(data->WritableData());
+    return data;
+#else
+    return nullptr;
+#endif
+}
+
+bool SkiaShaderEffect::Deserialize(std::shared_ptr<Data> data)
+{
+#ifdef ROSEN_OHOS
+    if (data == nullptr) {
+        LOGE("SkiaShaderEffect::Deserialize, data is invalid!");
+        return false;
+    }
+
+    SkReadBuffer reader(data->GetData(), data->GetSize());
+    shader_ = reader.readShader();
+    return shader_ != nullptr;
+#else
+    return false;
+#endif
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

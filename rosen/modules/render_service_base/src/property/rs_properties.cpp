@@ -115,6 +115,12 @@ const std::vector<ResetPropertyFunc> g_propertyResetterLUT = {
     [](RSProperties* prop) { prop->SetColorBlend({}); },                 // COLOR_BLEND,              64
     [](RSProperties* prop) { prop->SetParticles({}); },                  // PARTICLE,                 65
     [](RSProperties* prop) { prop->SetShadowIsFilled(false); },          // SHADOW_IS_FILLED,         66
+    [](RSProperties* prop) { prop->SetOuterBorderColor(RSColor()); },    // OUTER_BORDER_COLOR,       67
+    [](RSProperties* prop) { prop->SetOuterBorderWidth(0.f); },          // OUTER_BORDER_WIDTH,       68
+    [](RSProperties* prop) {
+        prop->SetOuterBorderStyle(BORDER_TYPE_NONE);
+    },                                                                   // OUTER_BORDER_STYLE,       69
+    [](RSProperties* prop) { prop->SetOuterBorderRadius(0.f); },         // OUTER_BORDER_RADIUS,      70
     nullptr,
 };
 } // namespace
@@ -413,17 +419,28 @@ void RSProperties::UpdateSandBoxMatrix(const std::optional<SkMatrix>& rootMatrix
 void RSProperties::UpdateSandBoxMatrix(const std::optional<Drawing::Matrix>& rootMatrix)
 #endif
 {
-    if (!sandbox_ || !rootMatrix || !sandbox_->position_) {
+    if (!sandbox_) {
+        return;
+    }
+    if (!rootMatrix || !sandbox_->position_) {
+        sandbox_->matrix_ = std::nullopt;
+        return;
+    }
+    auto rootMat = rootMatrix.value();
+#ifndef USE_ROSEN_DRAWING
+    bool hasScale = rootMat.getScaleX() != 1.0f || rootMat.getScaleY() != 1.0f;
+#else
+    bool hasScale = rootMat.Get(Drawing::Matrix::SCALE_X) != 1.0f || rootMat.Get(Drawing::Matrix::SCALE_Y) != 1.0f;
+#endif
+    if (hasScale) {
+        sandbox_->matrix_ = std::nullopt;
         return;
     }
 #ifndef USE_ROSEN_DRAWING
-    auto matrix = rootMatrix.value();
-    sandbox_->matrix_ = matrix.preTranslate(sandbox_->position_->x_, sandbox_->position_->y_);
+    sandbox_->matrix_ = rootMat.preTranslate(sandbox_->position_->x_, sandbox_->position_->y_);
 #else
-    auto matrix = Drawing::Matrix();
-    for (int i = 0; i < Drawing::Matrix::MATRIX_SIZE; i++) {
-        matrix.Set(static_cast<Drawing::Matrix::Index>(i), rootMatrix.value().Get(i));
-    }
+    Drawing::Matrix matrix;
+    matrix.DeepCopy(rootMatrix.value());
     matrix.PreTranslate(sandbox_->position_->x_, sandbox_->position_->y_);
     sandbox_->matrix_ = matrix;
 #endif
@@ -892,6 +909,77 @@ Vector4<uint32_t> RSProperties::GetBorderStyle() const
 const std::shared_ptr<RSBorder>& RSProperties::GetBorder() const
 {
     return border_;
+}
+
+void RSProperties::SetOuterBorderColor(Vector4<Color> color)
+{
+    if (!outerBorder_) {
+        outerBorder_ = std::make_shared<RSBorder>();
+    }
+    outerBorder_->SetColorFour(color);
+    if (outerBorder_->GetColor().GetAlpha() > 0) {
+        isDrawn_ = true;
+    }
+    SetDirty();
+    contentDirty_ = true;
+}
+
+void RSProperties::SetOuterBorderWidth(Vector4f width)
+{
+    if (!outerBorder_) {
+        outerBorder_ = std::make_shared<RSBorder>();
+    }
+    outerBorder_->SetWidthFour(width);
+    isDrawn_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+void RSProperties::SetOuterBorderStyle(Vector4<uint32_t> style)
+{
+    if (!outerBorder_) {
+        outerBorder_ = std::make_shared<RSBorder>();
+    }
+    outerBorder_->SetStyleFour(style);
+    isDrawn_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+void RSProperties::SetOuterBorderRadius(Vector4f radius)
+{
+    if (!outerBorder_) {
+        outerBorder_ = std::make_shared<RSBorder>();
+    }
+    outerBorder_->SetRadiusFour(radius);
+    isDrawn_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+Vector4<Color> RSProperties::GetOuterBorderColor() const
+{
+    return outerBorder_ ? outerBorder_->GetColorFour() : Vector4<Color>(RgbPalette::Transparent());
+}
+
+Vector4f RSProperties::GetOuterBorderWidth() const
+{
+    return outerBorder_ ? outerBorder_->GetWidthFour() : Vector4f(0.f);
+}
+
+Vector4<uint32_t> RSProperties::GetOuterBorderStyle() const
+{
+    return outerBorder_ ? outerBorder_->GetStyleFour() : Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::NONE));
+}
+
+Vector4f RSProperties::GetOuterBorderRadius() const
+{
+    return outerBorder_ ? outerBorder_->GetRadiusFour() : Vector4fZero;
+}
+
+const std::shared_ptr<RSBorder>& RSProperties::GetOuterBorder() const
+{
+    return outerBorder_;
 }
 
 void RSProperties::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter)
@@ -2089,6 +2177,16 @@ std::string RSProperties::Dump() const
     auto backgroundFilter_ = GetBackgroundFilter();
     if (backgroundFilter_ && backgroundFilter_->IsValid() &&
         sprintf_s(buffer, UINT8_MAX, ", BackgroundFilter[%s]", backgroundFilter_->GetDescription().c_str()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // OuterBorder
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for OuterBorder, ret=" + std::to_string(ret);
+    }
+    if (outerBorder_ && outerBorder_->HasBorder() &&
+        sprintf_s(buffer, UINT8_MAX, ", OuterBorder[%s]", outerBorder_->ToString().c_str()) != -1) {
         dumpInfo.append(buffer);
     }
 

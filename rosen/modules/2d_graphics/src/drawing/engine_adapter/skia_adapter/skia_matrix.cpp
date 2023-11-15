@@ -166,6 +166,25 @@ bool SkiaMatrix::IsIdentity() const
     return skMatrix_.isIdentity();
 }
 
+MatrixImpl* SkiaMatrix::Clone()
+{
+    return new SkiaMatrix(*this);
+}
+
+void SkiaMatrix::PreRotate(scalar degree, scalar px, scalar py)
+{
+    skMatrix_.preRotate(degree, px, py);
+}
+
+void SkiaMatrix::PreScale(scalar sx, scalar sy, scalar px, scalar py)
+{
+    skMatrix_.preScale(sx, sy, px, py);
+}
+
+void SkiaMatrix::Reset()
+{
+    skMatrix_.reset();
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

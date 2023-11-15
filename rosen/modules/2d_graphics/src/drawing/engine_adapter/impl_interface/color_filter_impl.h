@@ -25,6 +25,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+class Data;
 class ColorFilter;
 class ColorFilterImpl : public BaseImpl {
 public:
@@ -38,6 +39,8 @@ public:
     virtual void InitWithCompose(const ColorFilter& f1, const ColorFilter& f2) = 0;
     virtual void Compose(const ColorFilter& f) = 0;
     virtual void InitWithLuma() = 0;
+    virtual std::shared_ptr<Data> Serialize() const = 0;
+    virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

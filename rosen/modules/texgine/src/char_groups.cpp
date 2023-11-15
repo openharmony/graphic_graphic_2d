@@ -417,7 +417,7 @@ double CharGroups::GetCharWidth(const size_t index) const
     return pcgs_->at(index).GetWidth();
 }
 
-std::vector<uint16_t> CharGroups::GetCharsToU16(size_t start, size_t end, const bool isLeft)
+std::vector<uint16_t> CharGroups::GetCharsToU16(size_t start, size_t end, const SpacesModel &spacesModel)
 {
     if (pcgs_ == nullptr) {
         LOGEX_FUNC_LINE(ERROR) << "pcgs_ is null";
@@ -430,20 +430,30 @@ std::vector<uint16_t> CharGroups::GetCharsToU16(size_t start, size_t end, const 
             " end = " << end << " size = " << pcgs_->size();
         return {};
     }
-    if (isLeft) {
-        if (!pcgs_->at(end).chars.empty() && u_isspace(pcgs_->at(end).chars.back())) {
-            pcgs_->at(end).chars.pop_back();
+
+    switch (spacesModel) {
+        case SpacesModel::NORMAL:
+            break;
+        case SpacesModel::LEFT: {
+            if (!pcgs_->at(end).chars.empty() && u_isspace(pcgs_->at(end).chars.back())) {
+                pcgs_->at(end).chars.pop_back();
+            }
+            if (pcgs_->at(end).chars.empty()) {
+                end--;
+            }
+            break;
         }
-        if (pcgs_->at(end).chars.empty()) {
-            end--;
+        case SpacesModel::RIGHT: {
+            if (!pcgs_->at(start).chars.empty() && u_isspace(pcgs_->at(start).chars.front())) {
+                pcgs_->at(start).chars.erase(pcgs_->at(start).chars.begin());
+            }
+            if (pcgs_->at(start).chars.empty()) {
+                start++;
+            }
+            break;
         }
-    } else {
-        if (!pcgs_->at(start).chars.empty() && u_isspace(pcgs_->at(start).chars.front())) {
-            pcgs_->at(start).chars.erase(pcgs_->at(start).chars.begin());
-        }
-        if (pcgs_->at(start).chars.empty()) {
-            start++;
-        }
+        default:
+            break;
     }
 
     std::vector<uint16_t> charData;

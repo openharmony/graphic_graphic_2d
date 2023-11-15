@@ -47,6 +47,8 @@ public:
      */
     void SetSkPathEffect(const sk_sp<SkPathEffect>& pathEffect);
 
+    std::shared_ptr<Data> Serialize() const override;
+    bool Deserialize(std::shared_ptr<Data> data) override;
 private:
     sk_sp<SkPathEffect> pathEffect_;
 };

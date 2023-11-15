@@ -73,7 +73,7 @@ public:
     void GenerateCache(const RSPaintFilterCanvas* canvas = nullptr, const SkRect* rect = nullptr);
     void ClearCache();
 
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
     // functions that are dedicated to driven render [start]
     void CheckClipRect(SkRect& rect);
     void ReplaceDrivenCmds();
@@ -88,7 +88,7 @@ private:
     int width_;
     int height_;
 
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
     // variables that are dedicated to driven render [start]
     std::vector<std::pair<int, std::unique_ptr<OpItem>>> opReplacedByDrivenRender_;
     // variables that are dedicated to driven render [end]

@@ -22,6 +22,10 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#ifdef RS_ENABLE_VK
+#include "rs_vk_image_manager.h"
+#endif
+#include "include/gpu/GrDirectContext.h"
 #include "rs_base_render_util.h"
 
 #ifdef NEW_RENDER_CONTEXT
@@ -216,6 +220,16 @@ public:
         return eglImageManager_;
     }
 #endif // RS_ENABLE_EGLIMAGE
+#ifdef RS_ENABLE_VK
+    const std::shared_ptr<RSVkImageManager>& GetVkImageManager()
+    {
+        return vkImageManager_;
+    }
+    const sk_sp<GrDirectContext> GetSkContext()
+    {
+        return skContext_;
+    }
+#endif
 protected:
     void RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw = false);
     void RegisterDeleteBufferListener(RSSurfaceHandler& handler);
@@ -246,6 +260,10 @@ private:
 #ifdef RS_ENABLE_EGLIMAGE
     std::shared_ptr<RSEglImageManager> eglImageManager_ = nullptr;
 #endif // RS_ENABLE_EGLIMAGE
+#ifdef RS_ENABLE_VK
+    sk_sp<GrDirectContext> skContext_ = nullptr;
+    std::shared_ptr<RSVkImageManager> vkImageManager_ = nullptr;
+#endif
     using SurfaceId = uint64_t;
 };
 } // namespace Rosen

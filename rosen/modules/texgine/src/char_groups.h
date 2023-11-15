@@ -36,6 +36,12 @@ struct Glyph {
     double offsetY;
 };
 
+enum SpacesModel : uint8_t {
+    NORMAL = 0, // no handle of spaces
+    LEFT = 1, // handle the whitespace at the end of the string on the left
+    RIGHT = 2, // handle whitespace at the begin of the string on the right
+};
+
 struct CharGroup {
     std::vector<uint16_t> chars;
     std::vector<struct Glyph> glyphs;
@@ -162,7 +168,7 @@ public:
     std::string GetTypefaceName();
     double GetAllCharWidth() const;
     double GetCharWidth(const size_t index) const;
-    std::vector<uint16_t> GetCharsToU16(size_t start, size_t end, const bool isLeft);
+    std::vector<uint16_t> GetCharsToU16(size_t start, size_t end, const SpacesModel &spacesModel);
     bool IsSingleWord() const;
 private:
     friend void ReportMemoryUsage(const std::string &member, const CharGroups &that, bool needThis);
