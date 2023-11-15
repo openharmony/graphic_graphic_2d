@@ -2122,14 +2122,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         tryCapture(node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight());
 #endif
 
-#ifdef RS_ENABLE_VK
-#ifndef USE_ROSEN_DRAWING
-        canvas_->clear(SK_ColorTRANSPARENT);
-#else
-        canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
-#endif
-#endif
-
         int saveLayerCnt = 0;
 #ifndef USE_ROSEN_DRAWING
         SkRegion region;
@@ -2139,6 +2131,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         Occlusion::Region dirtyRegionTest;
         std::vector<RectI> rects;
         bool clipPath = false;
+        int saveCount_t = canvas_->save();
 #ifdef RS_ENABLE_EGLQUERYSURFACE
         // Get displayNode buffer age in order to merge visible dirty region for displayNode.
         // And then set egl damage region to improve uni_render efficiency.
@@ -2166,18 +2159,25 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 rects.emplace_back(rect);
             }
             if (!isDirtyRegionAlignedEnable_) {
+#ifndef USE_ROSEN_DRAWING
+#ifdef RS_ENABLE_VK
+                for (auto& r : rects) {
+                    region.op(SkIRect::MakeXYWH(r.left_, r.top_, r.width_, r.height_), SkRegion::kUnion_Op);
+#else
                 auto disH = screenInfo_.GetRotatedHeight();
                 for (auto& r : rects) {
-#ifndef USE_ROSEN_DRAWING
                     region.op(SkIRect::MakeXYWH(r.left_, disH - r.GetBottom(), r.width_, r.height_),
                         SkRegion::kUnion_Op);
+#endif
 #else
                     Drawing::Region tmpRegion;
                     tmpRegion.SetRect(Drawing::RectI(r.left_, disH - r.GetBottom(),
                         r.left_ + r.width_, disH - r.GetBottom() + r.height_));
                     region.Op(tmpRegion, Drawing::RegionOp::UNION);
 #endif
+#ifndef USE_ROSEN_DRAWING
                 }
+#endif
             }
             // SetDamageRegion and opDrop will be disabled for dirty region DFX visualization
             if (!isRegionDebugEnabled_) {
@@ -2214,6 +2214,15 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
         }
 #endif
+
+#ifdef RS_ENABLE_VK
+#ifndef USE_ROSEN_DRAWING
+        canvas_->clear(SK_ColorTRANSPARENT);
+#else
+        canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+#endif
+#endif
+
         RSPropertiesPainter::SetBgAntiAlias(true);
         if (!isParallel_ || isUIFirst_) {
 #ifndef USE_ROSEN_DRAWING
@@ -2359,6 +2368,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RSSingleton<RoundCornerDisplay>::GetInstance().DrawRoundCorner(canvas_);
         }
         RSMainThread::Instance()->RemoveTask(CLEAR_GPU_CACHE);
+        canvas_->restoreToCount(saveCount_t);
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
         renderFrame_->Flush();
         RS_TRACE_END();
@@ -3018,7 +3028,11 @@ std::vector<RectI> RSUniRenderVisitor::GetDirtyRects(const Occlusion::Region &re
     std::vector<RectI> retRects;
     for (const Occlusion::Rect& rect : rects) {
         // origin transformation
+#ifdef RS_ENABLE_VK
+        retRects.emplace_back(RectI(rect.left_, rect.top_,
+#else
         retRects.emplace_back(RectI(rect.left_, screenInfo_.GetRotatedHeight() - rect.bottom_,
+#endif
             rect.right_ - rect.left_, rect.bottom_ - rect.top_));
     }
     RS_LOGD("GetDirtyRects size %{public}d %{public}s", region.GetSize(), region.GetRegionInfo().c_str());
