@@ -58,7 +58,7 @@ void RSSubThreadManager::Start(RenderContext *context)
 }
 void RSSubThreadManager::StartFilterThread(RenderContext* context)
 {
-#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (!RSSystemProperties::GetFilterPartialRenderEnabled() || !RSUniRenderJudgement::IsUniRender()) {
         RS_LOGD("Filter thread not run");
         return;
