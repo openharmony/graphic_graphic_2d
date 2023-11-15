@@ -63,6 +63,7 @@ static std::unordered_map<RSOpType, OpUnmarshallingFunc> opUnmarshallingFuncLUT 
     { COLOR_FILTER_BITMAP_OPITEM,  ColorFilterBitmapOpItem::Unmarshalling },
     { BITMAP_RECT_OPITEM,          BitmapRectOpItem::Unmarshalling },
     { BITMAP_NINE_OPITEM,          BitmapNineOpItem::Unmarshalling },
+    { PIXELMAP_NINE_OPITEM,        PixelmapNineOpItem::Unmarshalling },
     { PIXELMAP_OPITEM,             PixelMapOpItem::Unmarshalling },
     { PIXELMAP_RECT_OPITEM,        PixelMapRectOpItem::Unmarshalling },
     { ADAPTIVE_RRECT_OPITEM,       AdaptiveRRectOpItem::Unmarshalling },

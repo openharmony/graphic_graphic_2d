@@ -1733,7 +1733,6 @@ bool PixelmapNineOpItem::Marshalling(Parcel& parcel) const
 
 OpItem* PixelmapNineOpItem::Unmarshalling(Parcel& parcel)
 {
-    RS_TRACE_NAME("PixelmapNineOpItem::Unmarshalling");
     SkIRect center;
     SkRect rectDst;
     int32_t filter;
