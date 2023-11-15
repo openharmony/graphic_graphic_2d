@@ -374,7 +374,7 @@ bool RSUniRenderUtil::HandleSubThreadNode(RSRenderNode& node, RSPaintFilterCanva
     }
     if (!node.HasCachedTexture()) {
         RS_TRACE_NAME_FMT("HandleSubThreadNode wait %" PRIu64 "", node.GetId());
-#if defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
         RSSubThreadManager::Instance()->WaitNodeTask(node.GetId());
         node.UpdateCompletedCacheSurface();
 #endif
@@ -402,7 +402,7 @@ bool RSUniRenderUtil::HandleCaptureNode(RSRenderNode& node, RSPaintFilterCanvas&
         if (curNode->IsOnTheTree()) {
             return HandleSubThreadNode(*curNode, canvas);
         } else {
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
             if (curNode->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) {
                 RSSubThreadManager::Instance()->WaitNodeTask(curNode->GetId());
             }
@@ -617,7 +617,7 @@ void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRen
         node->UpdateCacheSurfaceDirtyManager(2); // 2 means buffer age
     }
     subThreadNodes.emplace_back(node);
-#if defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE &&
         node->GetCacheSurface(UNI_MAIN_THREAD_INDEX, false) && node->GetCacheSurfaceNeedUpdated()) {
         node->UpdateCompletedCacheSurface();
@@ -798,7 +798,7 @@ void RSUniRenderUtil::PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>&&
             instance->ReleaseSurface();
         });
     } else {
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
         auto instance = RSSubThreadManager::Instance();
         instance->AddToReleaseQueue(std::move(surface), threadIndex);
         instance->ReleaseSurface(threadIndex);

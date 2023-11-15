@@ -153,7 +153,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
 #if defined(RS_ENABLE_PARALLEL_RENDER)
     isCalcCostEnable_ = RSSystemParameters::GetCalcCostEnabled();
 #endif
-#if defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (renderEngine_ && renderEngine_->GetRenderContext()) {
         auto subThreadManager = RSSubThreadManager::Instance();
         subThreadManager->Start(renderEngine_->GetRenderContext().get());
@@ -2299,7 +2299,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
 #endif
         if (saveLayerCnt > 0) {
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
 #ifdef NEW_RENDER_CONTEXT
             RSTagTracker tagTracker(
                 renderEngine_->GetDrawingContext()->GetDrawingContext(),
@@ -2408,7 +2408,7 @@ void RSUniRenderVisitor::DrawSurfaceLayer(const std::shared_ptr<RSDisplayRenderN
 {
     auto subThreadManager = RSSubThreadManager::Instance();
     subThreadManager->StartRCDThread(renderEngine_->GetRenderContext().get());
-#if defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     subThreadManager->StartFilterThread(renderEngine_->GetRenderContext().get());
     subThreadManager->SubmitSubThreadTask(displayNode, subThreadNodes);
 #endif
@@ -3349,7 +3349,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node:%{public}" PRIu64 ",child size:%{public}u,"
         "name:%{public}s,OcclusionVisible:%{public}d",
         node.GetId(), node.GetChildrenCount(), node.GetName().c_str(), node.GetOcclusionVisible());
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_RENDER_CONTEXT
         auto grContext = renderEngine_->GetDrawingContext()->GetDrawingContext();
@@ -3363,6 +3363,9 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     RSTagTracker tagTracker(gpuContext, node.GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE);
     node.SetDrawingGPUContext(gpuContext);
 #endif
+#endif
+#ifdef RS_ENABLE_VK
+   node.SetGrContext(renderEngine_->GetSkContext().get());
 #endif
     if (!CheckIfSurfaceRenderNodeNeedProcess(node)) {
         node.UpdateFilterCacheStatusWithVisible(false);
@@ -4334,7 +4337,7 @@ void RSUniRenderVisitor::tryCapture(float width, float height)
     }
     recordingCanvas_ = std::make_unique<RSRecordingCanvas>(width, height);
     RS_TRACE_NAME("RSUniRender:Recording begin");
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
 #ifdef NEW_SKIA
     recordingCanvas_->SetGrRecordingContext(canvas_->recordingContext());
 #else
