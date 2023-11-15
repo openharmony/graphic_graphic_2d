@@ -85,8 +85,8 @@ Matrix SkiaCanvas::GetTotalMatrix() const
     auto skMatrix = skCanvas_->getTotalMatrix();
     Matrix matrix;
     matrix.SetMatrix(skMatrix.getScaleX(), skMatrix.getSkewX(), skMatrix.getTranslateX(),
-        skMatrix.getSkewX(), skMatrix.getScaleY(), skMatrix.getTranslateY(),
-        skMatrix.getPerspX(), skMatrix.getPerspY(), 1);
+        skMatrix.getSkewY(), skMatrix.getScaleY(), skMatrix.getTranslateY(),
+        skMatrix.getPerspX(), skMatrix.getPerspY(), skMatrix.get(SkMatrix::kMPersp2));
     return matrix;
 }
 
