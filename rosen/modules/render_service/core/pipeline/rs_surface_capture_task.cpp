@@ -84,7 +84,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
         return false;
     }
 #ifndef USE_ROSEN_DRAWING
-#if defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
 #if defined(NEW_RENDER_CONTEXT)
     auto drawingContext = RSMainThread::Instance()->GetRenderEngine()->GetDrawingContext();
     GrDirectContext* grContext = drawingContext != nullptr ? drawingContext->GetDrawingContext() : nullptr;
@@ -115,7 +115,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
     visitor_->SetSurface(surface.get());
 #endif
     node->Process(visitor_);
-#if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
+#if ((defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)) || (defined RS_ENABLE_VK)
 #ifndef USE_ROSEN_DRAWING
 #ifdef RS_ENABLE_UNI_RENDER
     if (RSSystemProperties::GetSnapshotWithDMAEnabled()) {
@@ -468,6 +468,10 @@ sk_sp<SkSurface> RSSurfaceCaptureTask::CreateSurface(const std::unique_ptr<Media
     renderContext->SetUpGrContext();
     return SkSurface::MakeRenderTarget(renderContext->GetGrContext(), SkBudgeted::kNo, info);
 #endif
+#endif
+#ifdef RS_ENABLE_VK
+    return SkSurface::MakeRenderTarget(
+        RSMainThread::Instance->GetRenderEngine()->GetSkContext().get(), SkBudgeted::kNo, info);
 #endif
     return SkSurface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
 }

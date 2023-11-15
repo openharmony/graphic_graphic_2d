@@ -18,10 +18,14 @@
 #include <sstream>
 #include <string>
 
-#include "EGL/egl.h"
 #include "rs_trace.h"
 #include "window.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#elif defined(RS_ENABLE_GL)
+#include "EGL/egl.h"
+#endif
 
 #include "memory/rs_tag_tracker.h"
 
@@ -297,6 +301,7 @@ bool RenderContext::SetUpGrContext()
         return true;
     }
 
+#ifdef RS_ENABLE_GL
     sk_sp<const GrGLInterface> glInterface(GrGLCreateNativeInterface());
     if (glInterface.get() == nullptr) {
         LOGE("SetUpGrContext failed to make native interface");
@@ -323,6 +328,10 @@ bool RenderContext::SetUpGrContext()
     sk_sp<GrDirectContext> grContext(GrDirectContext::MakeGL(std::move(glInterface), options));
 #else
     sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface), options));
+#endif
+#endif
+#ifdef RS_ENABLE_VK
+    sk_sp<GrDirectContext> grContext = RsVulkanContext::GetSingleton().CreateSkContext();
 #endif
     if (grContext == nullptr) {
         LOGE("SetUpGrContext grContext is null");

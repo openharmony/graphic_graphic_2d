@@ -72,7 +72,7 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
         if (!ResetSurface(width, height, canvas)) {
             return;
         }
-#if (defined NEW_SKIA) && (defined RS_ENABLE_GL)
+#if (defined NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
         auto image = preSurface->makeImageSnapshot();
         if (!image) {
             return;
@@ -200,7 +200,7 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
 {
     SkImageInfo info = SkImageInfo::Make(width, height, kRGBA_8888_SkColorType, kPremul_SkAlphaType);
 
-#if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
+#if ((defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)) || (defined RS_ENABLE_VK)
 #ifdef NEW_SKIA
     auto grContext = canvas.recordingContext();
 #else

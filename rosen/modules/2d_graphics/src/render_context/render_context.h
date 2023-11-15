@@ -146,7 +146,7 @@ public:
     {
         isUniRenderMode_ = isUni;
     }
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     std::string GetShaderCacheSize() const
     {
         return mHandler_->QuerryShader();

@@ -33,6 +33,7 @@
 #include "platform/ohos/backend/rs_surface_ohos_gl.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #endif
 #endif
@@ -86,6 +87,10 @@ void RSBaseRenderEngine::Init()
     eglImageManager_ = std::make_shared<RSEglImageManager>(renderContext_->GetEGLDisplay());
 #endif
 #endif // RS_ENABLE_EGLIMAGE
+#ifdef RS_ENABLE_VK
+    skContext_ = RsVulkanContext::GetSingleton().CreateSkContext();
+    vkImageManager_ = std::make_shared<RSVkImageManager>();
+#endif
 }
 
 bool RSBaseRenderEngine::NeedForceCPU(const std::vector<LayerInfoPtr>& layers)
@@ -135,7 +140,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
     }
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
-    if (canvas.recordingContext() == nullptr) {
+    if (renderContext_->GetGrContext() == nullptr) {
 #else
     if (canvas.getGrContext() == nullptr) {
 #endif
@@ -163,7 +168,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
     auto surfaceOrigin = kBottomLeft_GrSurfaceOrigin;
 #endif
 #ifdef NEW_SKIA
-    return SkImage::MakeFromTexture(canvas.recordingContext(), backendTexture,
+    return SkImage::MakeFromTexture(renderContext_->GetGrContext(), backendTexture,
         surfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
 #else
     return SkImage::MakeFromTexture(canvas.getGrContext(), backendTexture,
@@ -212,13 +217,13 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::share
     rsSurface->SetSurfacePixelFormat(config.format);
 
     auto bufferUsage = config.usage;
-#if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
     if (forceCPU) {
         bufferUsage |= BUFFER_USAGE_CPU_WRITE;
     }
-#else // (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
+#else // (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
     bufferUsage |= BUFFER_USAGE_CPU_WRITE;
-#endif // (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
+#endif // (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
     rsSurface->SetSurfaceBufferUsage(bufferUsage);
 
     // check if we can use GPU context
@@ -245,6 +250,11 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::share
 #ifdef RS_ENABLE_GL
     if (renderContext_ != nullptr) {
         rsSurface->SetRenderContext(renderContext_.get());
+    }
+#endif
+#ifdef RS_ENABLE_VK
+    if (skContext_ != nullptr) {
+        std::static_pointer_cast<RSSurfaceOhosVulkan>(rsSurface)->SetSkContext(skContext_);
     }
 #endif
 #endif
@@ -424,6 +434,31 @@ void RSBaseRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam
 void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
     RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::DrawImage(GPU)");
+#ifdef RS_ENABLE_VK
+    auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(params.buffer,
+        params.acquireFence, params.threadIndex);
+    auto& backendTexture = imageCache->GetBackendTexture();
+    if (!backendTexture.isValid()) {
+        ROSEN_LOGE("RSBaseRenderEngine::DrawImage: backendTexture is not valid!!!");
+        RS_OPTIONAL_TRACE_END();
+        return;
+    }
+
+    SkColorType colorType = (params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
+        kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
+#ifndef ROSEN_EMULATOR
+    auto surfaceOrigin = kTopLeft_GrSurfaceOrigin;
+#else
+    auto surfaceOrigin = kBottomLeft_GrSurfaceOrigin;
+#endif
+    auto image = SkImage::MakeFromTexture(
+        canvas.recordingContext(), backendTexture, surfaceOrigin, colorType, kPremul_SkAlphaType,
+        SkColorSpace::MakeSRGB(), NativeBufferUtils::delete_vk_image, imageCache->RefCleanupHelper());
+    
+    canvas.drawImageRect(image, params.srcRect, params.dstRecr,
+        SkSamplingOptions(), &(params.paint), SkCanvas::kStrict_SrcRectConstraint);
+    RS_OPTIONAL_TRACE_END();
+#else // RS_ENABLE_VK
     auto image = CreateEglImageFromBuffer(canvas, params.buffer, params.acquireFence, params.threadIndex);
     if (image == nullptr) {
         RS_LOGE("RSBaseRenderEngine::DrawImage: image is nullptr!");
@@ -445,10 +480,25 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     canvas.DetachBrush();
 #endif
     RS_OPTIONAL_TRACE_END();
+#endif // RS_ENABLE_VK
 }
 
 void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw)
 {
+#ifdef RS_ENABLE_VK
+    auto regUnMapEglImageFunc = [this, isForUniRedraw](int32_t bufferId) {
+        if (isForUniRedraw) {
+            vkmageManager_->UnMapVkImageFromSurfaceBufferForUniRedraw(bufferId);
+        } else {
+            vkImageManager_->UnMapVkImageFromSurfaceBuffer(bufferId);
+        }
+    };
+    if (consumer == nullptr ||
+        (consumer->RegisterDeleteBufferListener(regUnMapVkImageFunc, isForUniRedraw) != GSERROR_OK)) {
+        RS_LOGE("RSBaseRenderEngine::RegisterDeleteBufferListener: failed to register UnMapVkImage callback.");
+    }
+#endif
+
 #ifdef RS_ENABLE_EGLIMAGE
     auto regUnMapEglImageFunc = [this, isForUniRedraw](int32_t bufferId) {
         if (isForUniRedraw) {
@@ -476,6 +526,12 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(RSSurfaceHandler& handler)
 
 void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
 {
+#ifdef RS_ENABLE_VK
+    if (vkImageManager_ != nullptr) {
+        vkImageManager_->ShrinkCachesIfNeeded(isForUniRedraw);
+    }
+#endif // RS_ENABLE_VK
+
 #ifdef RS_ENABLE_EGLIMAGE
     if (eglImageManager_ != nullptr) {
         eglImageManager_->ShrinkCachesIfNeeded(isForUniRedraw);

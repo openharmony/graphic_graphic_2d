@@ -14,6 +14,7 @@
  */
 
 #include "pipeline/rs_hardware_thread.h"
+#include <memory>
 
 #include "hgm_core.h"
 #include "pipeline/rs_base_render_util.h"
@@ -27,6 +28,9 @@
 #include "hdi_backend.h"
 #include <vsync_sampler.h>
 #include "parameters.h"
+#ifdef RS_ENABLE_VK
+#include "rs_vk_image_manager.h"
+#endif
 
 #ifdef RS_ENABLE_EGLIMAGE
 #include "rs_egl_image_manager.h"
@@ -302,7 +306,9 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         RS_LOGE("RsDebug RSHardwareThread::Redraw：canvas is nullptr.");
         return;
     }
-#ifdef RS_ENABLE_EGLIMAGE
+#ifdef RS_ENABLE_VK
+    std::unordered_map<int32_t, std::shared_ptr<NativeVkImageRes>> imageCacheSeqs;
+#elif defined(RS_ENABLE_EGLIMAGE)
     std::unordered_map<int32_t, std::unique_ptr<ImageCacheSeq>> imageCacheSeqs;
 #endif
     for (const auto& layer : layers) {
@@ -359,6 +365,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                 RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer GrContext is null!");
                 continue;
             }
+#if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
             auto eglImageCache = uniRenderEngine_->GetEglImageManager()->CreateImageCacheFromBuffer(params.buffer,
                 params.acquireFence);
             if (eglImageCache == nullptr) {
@@ -371,21 +378,51 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             }
             auto bufferId = params.buffer->GetSeqNum();
             imageCacheSeqs[bufferId] = std::move(eglImageCache);
+#endif
 #ifndef USE_ROSEN_DRAWING
+#if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
             SkColorType colorType = (params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
                 kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
             GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId, GL_RGBA8 };
             GrBackendTexture backendTexture(params.buffer->GetSurfaceBufferWidth(),
                 params.buffer->GetSurfaceBufferHeight(), GrMipMapped::kNo, grExternalTextureInfo);
+#endif
 #ifdef NEW_SKIA
+#if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
             auto image = SkImage::MakeFromTexture(canvas->recordingContext(), backendTexture,
                 kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
+#elif defined(RS_ENABLE_VK)
+            auto imageCache = uniRenderEngine_->GetVkImageManager()->CreateImageCacheFromBuffer(
+                params.buffer, params.acquireFence);
+            if (!imageCache) {
+                continue;
+            }
+            auto bufferId = params.buffer->GetSeqNum();
+            imageCacheSeqs[bufferId] = imageCache;
+            auto& backendTexture = imageCache->GetBackendTexture();
+            if (!backendTexture.isValid()) {
+                ROSEN_LOGE("RSHardwareThread: backendTexture is not valid!!!");
+                return;
+            }
+
+            SkColorType colorType = (params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
+                kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
+            auto image = SkImage::MakeFromTexture(
+                canvas->recordingContext(),
+                backendTexture,
+                kTopLeft_GrSurfaceOrigin,
+                colorType,
+                kPremul_SkAlphaType,
+                SkColorSpace::MakeSRGB(),
+                NativeBufferUtils::delete_vk_image,
+                imageCache->RefCleanupHelper());
+#endif
 #else
             auto image = SkImage::MakeFromTexture(canvas->getGrContext(), backendTexture,
                 kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
 #endif
             if (image == nullptr) {
-                RS_LOGE("RSDividedRenderUtil::DrawImage: image is nullptr!");
+                RS_LOGE("RSHardwareThread::DrawImage: image is nullptr!");
                 return;
             }
 #ifdef NEW_SKIA
@@ -434,7 +471,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #endif
     }
     renderFrame->Flush();
-#ifdef RS_ENABLE_EGLIMAGE
+#if defined(RS_ENABLE_EGLIMAGE) || defined(RS_ENABLE_VK)
     imageCacheSeqs.clear();
 #endif
     RS_LOGD("RsDebug RSHardwareThread::Redraw flush frame buffer end");
