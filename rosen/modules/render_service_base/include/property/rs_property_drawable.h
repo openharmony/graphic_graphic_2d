@@ -16,18 +16,15 @@
 #ifndef RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_H
 #define RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_H
 
-#include <list>
-#include <map>
+#include <memory>
 #include <unordered_set>
-#include <utility>
-
+#include <vector>
 #include "modifier/rs_render_modifier.h"
 
 namespace OHOS::Rosen {
 class RSPaintFilterCanvas;
 class RSProperties;
 class RSPropertyDrawableGenerateContext;
-class RSRenderModifier;
 class RSRenderNode;
 
 namespace Slot {
@@ -125,10 +122,10 @@ public:
 
     // Generator Utilities
     static void InitializeSaveRestore(const RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec);
-    static std::set<Slot::RSPropertyDrawableSlot> GenerateDirtySlots(
+    static std::unordered_set<Slot::RSPropertyDrawableSlot> GenerateDirtySlots(
         const RSProperties& properties, const std::unordered_set<RSModifierType>& dirtyTypes);
     static bool UpdateDrawableVec(const RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec,
-        std::set<Slot::RSPropertyDrawableSlot>& dirtySlots);
+        std::unordered_set<Slot::RSPropertyDrawableSlot>& dirtySlots);
     static void UpdateSaveRestore(
         RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec, uint8_t& drawableVecStatus);
 

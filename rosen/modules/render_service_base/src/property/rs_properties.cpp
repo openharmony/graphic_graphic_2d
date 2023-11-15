@@ -701,7 +701,7 @@ void RSProperties::SetParticles(const RSRenderParticleVector& particles)
     contentDirty_ = true;
 }
 
-RSRenderParticleVector RSProperties::GetParticles() const
+const RSRenderParticleVector& RSProperties::GetParticles() const
 {
     return particles_;
 }

@@ -189,8 +189,6 @@ private:
         std::shared_ptr<Drawing::ShaderEffect> gradientShader);
 #endif // USE_ROSEN_DRAWING
     inline static int g_blurCnt = 0;
-    friend class RSLinearGradientBlurFilterDrawable;
-    friend class RSLightUpEffectDrawable;
 };
 } // namespace Rosen
 } // namespace OHOS

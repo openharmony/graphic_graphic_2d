@@ -3101,22 +3101,22 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeDynamicLightUpSh
 
 void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
-    auto particleVector = properties.GetParticles();
+    const auto& particleVector = properties.GetParticles();
     if (particleVector.GetParticleSize() == 0) {
         return;
     }
-    auto particles = particleVector.GetParticleVector();
+    const auto& particles = particleVector.GetParticleVector();
     auto bounds = properties.GetDrawRegion();
-    for (size_t i = 0; i < particles.size(); i++) {
-        if (particles[i] != nullptr && particles[i]->IsAlive()) {
+    for (const auto & particle : particles) {
+        if (particle != nullptr && particle->IsAlive()) {
             // Get particle properties
-            auto position = particles[i]->GetPosition();
-            float opacity = particles[i]->GetOpacity();
-            float scale = particles[i]->GetScale();
+            auto position = particle->GetPosition();
+            float opacity = particle->GetOpacity();
+            float scale = particle->GetScale();
             if (!(bounds->Intersect(position.x_, position.y_)) || opacity <= 0.f || scale <= 0.f) {
                 continue;
             }
-            auto particleType = particles[i]->GetParticleType();
+            auto particleType = particle->GetParticleType();
 #ifndef USE_ROSEN_DRAWING
             SkPaint paint;
             paint.setAntiAlias(true);
@@ -3133,8 +3133,8 @@ void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFi
 #endif
 
             if (particleType == ParticleType::POINTS) {
-                auto radius = particles[i]->GetRadius();
-                Color color = particles[i]->GetColor();
+                auto radius = particle->GetRadius();
+                Color color = particle->GetColor();
                 auto alpha = color.GetAlpha();
                 color.SetAlpha(alpha * opacity);
 #ifndef USE_ROSEN_DRAWING
@@ -3147,8 +3147,8 @@ void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFi
                 canvas.DetachBrush();
 #endif
             } else {
-                auto imageSize = particles[i]->GetImageSize();
-                auto image = particles[i]->GetImage();
+                auto imageSize = particle->GetImageSize();
+                auto image = particle->GetImage();
                 float left = position.x_;
                 float top = position.y_;
                 float right = position.x_ + imageSize.x_ * scale;
@@ -3156,7 +3156,7 @@ void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFi
 #ifndef USE_ROSEN_DRAWING
                 canvas.save();
                 canvas.translate(position.x_, position.y_);
-                canvas.rotate(particles[i]->GetSpin(), imageSize.x_ * scale / 2.f, imageSize.y_ * scale / 2.f);
+                canvas.rotate(particle->GetSpin(), imageSize.x_ * scale / 2.f, imageSize.y_ * scale / 2.f);
 #else
                 canvas.Save();
                 canvas.Translate(position.x_, position.y_);

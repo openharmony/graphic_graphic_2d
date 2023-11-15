@@ -75,6 +75,16 @@ std::unique_ptr<RSPropertyDrawable> RSColorFilterDrawable::Generate(const RSProp
 #endif
 }
 
+bool RSColorFilterDrawable::Update(const RSPropertyDrawableGenerateContext& context)
+{
+    auto& colorFilter = context.properties_.GetColorFilter();
+    if (colorFilter == nullptr) {
+        return false;
+    }
+    paint_.setColorFilter(colorFilter);
+    return true;
+}
+
 RSPropertyDrawable::DrawablePtr RSClipFrameDrawable::Generate(const RSPropertyDrawableGenerateContext& context)
 {
     // PLANNING: cache frame rect, and update when frame rect changed

@@ -150,7 +150,7 @@ public:
 
     // particle properties
     void SetParticles(const RSRenderParticleVector& particles);
-    RSRenderParticleVector GetParticles() const;
+    const RSRenderParticleVector& GetParticles() const;
 
     // foreground properties
     void SetForegroundColor(Color color);
