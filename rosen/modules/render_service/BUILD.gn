@@ -105,6 +105,10 @@ ohos_shared_library("librender_service") {
     sources += [ "core/pipeline/rs_egl_image_manager.cpp" ]
   }
 
+  if (graphic_2d_feature_enable_vulkan) {
+    sources += [ "core/pipeline/rs_vk_image_manager.cpp" ]
+  }
+
   if (rs_enable_parallel_render && rs_enable_gpu) {
     sources += [
       "core/pipeline/parallel_render/rs_filter_sub_thread.cpp",

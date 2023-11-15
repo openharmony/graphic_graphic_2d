@@ -80,8 +80,7 @@ public:
     {
         return skSurface_;
     }
-
-    bool SetUpGrContext();
+    bool SetUpGrContext(sk_sp<GrDirectContext> skContext = nullptr);
 #else
     Drawing::GPUContext* GetDrGPUContext() const
     {
@@ -92,7 +91,7 @@ public:
     {
         return surface_;
     }
-    bool SetUpGpuContext();
+    bool SetUpGpuContext(sk_sp<GrDirectContext> skContext);
 #endif
 
     EGLSurface CreateEGLSurface(EGLNativeWindowType eglNativeWindow);

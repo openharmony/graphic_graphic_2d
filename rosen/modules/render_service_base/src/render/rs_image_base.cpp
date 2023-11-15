@@ -136,7 +136,7 @@ void RSImageBase::SetImage(const std::shared_ptr<Drawing::Image> image)
     }
 }
 
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifndef USE_ROSEN_DRAWING
 void RSImageBase::SetDmaImage(const sk_sp<SkImage> image)
 #else

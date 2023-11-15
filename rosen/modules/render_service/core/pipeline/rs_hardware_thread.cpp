@@ -39,6 +39,8 @@
 #ifdef RS_ENABLE_EGLIMAGE
 #include "rs_egl_image_manager.h"
 #endif // RS_ENABLE_EGLIMAGE
+#include <parameter.h>
+#include <parameters.h>
 
 namespace OHOS::Rosen {
 namespace {
@@ -68,7 +70,8 @@ void RSHardwareThread::Start()
                     return;
                 }
                 uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
-                uniRenderEngine_->Init();
+                bool enable = (system::GetParameter("zach.debug.enable", "1") == "1");
+                uniRenderEngine_->Init(enable);
             }).wait();
     }
     auto onPrepareCompleteFunc = [this](auto& surface, const auto& param, void* data) {

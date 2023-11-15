@@ -149,7 +149,7 @@ class RSBaseRenderEngine {
 public:
     RSBaseRenderEngine();
     virtual ~RSBaseRenderEngine() noexcept;
-    void Init();
+    void Init(bool indenpent = false);
     RSBaseRenderEngine(const RSBaseRenderEngine&) = delete;
     void operator=(const RSBaseRenderEngine&) = delete;
 

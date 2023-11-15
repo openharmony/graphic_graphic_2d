@@ -27,13 +27,16 @@ void DeleteVkImage(void* context)
 }
 
 bool GetNativeBufferFormatProperties(const RsVulkanContext& vkContext, VkDevice device, OH_NativeBuffer* nativeBuffer,
-                                     VkNativeBufferFormatPropertiesOHOS& nbFormatProps,
-                                     VkNativeBufferPropertiesOHOS& nbProps)
+                                     VkNativeBufferFormatPropertiesOHOS* nbFormatProps,
+                                     VkNativeBufferPropertiesOHOS* nbProps)
 {
-    nbFormatProps.sType = VK_STRUCTURE_TYPE_NATIVE_BUFFER_FORMAT_PROPERTIES_OHOS;
-    nbFormatProps.pNext = nullptr;
+    nbFormatProps->sType = VK_STRUCTURE_TYPE_NATIVE_BUFFER_FORMAT_PROPERTIES_OHOS;
+    nbFormatProps->pNext = nullptr;
 
-    VkResult err = vkContext.vkGetNativeBufferPropertiesOHOS(device, nativeBuffer, &nbFormatProps);
+    nbProps->sType = VK_STRUCTURE_TYPE_NATIVE_BUFFER_PROPERTIES_OHOS;
+    nbProps->pNext = nbFormatProps;
+
+    VkResult err = vkContext.vkGetNativeBufferPropertiesOHOS(device, nativeBuffer, nbProps);
     if (VK_SUCCESS != err) {
         ROSEN_LOGE("RSSurfaceOhosVulkan GetNativeBufferPropertiesOHOS Failed ! %d", err);
         return false;
@@ -41,9 +44,8 @@ bool GetNativeBufferFormatProperties(const RsVulkanContext& vkContext, VkDevice 
     return true;
 }
 
-bool CreateVkImage(const RsVulkanContext& vkContext, VkImage& image,
-    const VkNativeBufferFormatPropertiesOHOS& nbFormatProps, int width, int height
-    VkImageUsageFlags usageFlags)
+bool CreateVkImage(const RsVulkanContext& vkContext, VkImage* image,
+    const VkNativeBufferFormatPropertiesOHOS* nbFormatProps, int width, int height)
 {
     VkExternalFormatOHOS externalFormat;
     externalFormat.sType = VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_OHOS;
@@ -69,7 +71,7 @@ bool CreateVkImage(const RsVulkanContext& vkContext, VkImage& image,
         &externalMemoryImageInfo,
         flags,
         VK_IMAGE_TYPE_2D,
-        nbFormatProps.format,
+        nbFormatProps->format,
         {width, height, 1},
         1,
         1,
@@ -82,14 +84,16 @@ bool CreateVkImage(const RsVulkanContext& vkContext, VkImage& image,
         VK_IMAGE_LAYOUT_UNDEFINED,
     };
 
-    VkResult err = vkContext.vkCreateImage(device, &imageCreateInfo, nullptr, &image);
+    VkResult err = vkContext.vkCreateImage(vkContext.GetDevice(), &imageCreateInfo, nullptr, image);
     if (err != VK_SUCCESS) {
         ROSEN_LOGE("RSSurfaceOhosVulkan: CreateImage failed");
         return false;
     }
+    return true;
 }
 
-bool AllocateDeviceMemory(const RsVulkanContext& vkContext, VkPhysicalDevice physicalDevice, VkImage& image)
+bool AllocateDeviceMemory(const RsVulkanContext& vkContext, VkDeviceMemory* memory, VkImage& image,
+    OH_NativeBuffer* nativeBuffer, VkNativeBufferPropertiesOHOS& nbProps)
 {
     VkPhysicalDeviceMemoryProperties2 physicalDeviceMemProps;
     physicalDeviceMemProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2;
@@ -97,6 +101,8 @@ bool AllocateDeviceMemory(const RsVulkanContext& vkContext, VkPhysicalDevice phy
 
     uint32_t foundTypeIndex = 0;
     uint32_t foundHeapIndex = 0;
+    VkDevice device = vkContext.GetDevice();
+    VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
     vkContext.vkGetPhysicalDeviceMemoryProperties2(physicalDevice, &physicalDeviceMemProps);
     uint32_t memTypeCnt = physicalDeviceMemProps.memoryProperties.memoryTypeCount;
     bool found = false;
@@ -106,7 +112,7 @@ bool AllocateDeviceMemory(const RsVulkanContext& vkContext, VkPhysicalDevice phy
             uint32_t supportedFlags = pdmp.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
             if (supportedFlags == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
                 foundTypeIndex = i;
-                foundHeapIndex = pdmp.memoryTypes[i].foundHeapIndex;
+                foundHeapIndex = pdmp.memoryTypes[i].heapIndex;
                 found = true;
                 break;
             }
@@ -133,7 +139,7 @@ bool AllocateDeviceMemory(const RsVulkanContext& vkContext, VkPhysicalDevice phy
         VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO, &dedicatedAllocInfo, nbProps.allocationSize, foundTypeIndex,
     };
 
-    VkResult err = vkContext.vkAllocateMemory(device, &allocInfo, nullptr, &memory);
+    VkResult err = vkContext.vkAllocateMemory(device, &allocInfo, nullptr, memory);
     if (err != VK_SUCCESS) {
         vkContext.vkDestroyImage(device, image, nullptr);
         ROSEN_LOGE("RSSurfaceOhosVulkan AllocateMemory Fail");
@@ -143,7 +149,7 @@ bool AllocateDeviceMemory(const RsVulkanContext& vkContext, VkPhysicalDevice phy
 }
 
 
-bool BindImageMemory(VkPhysicalDevice device, const RsVulkanContext& vkContext, VkImage& image, VkDeviceMemory memory)
+bool BindImageMemory(VkDevice device, const RsVulkanContext& vkContext, VkImage& image, VkDeviceMemory& memory)
 {
     VkBindImageMemoryInfo bindImageInfo;
     bindImageInfo.sType = VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_INFO;
@@ -153,7 +159,7 @@ bool BindImageMemory(VkPhysicalDevice device, const RsVulkanContext& vkContext, 
     bindImageInfo.memoryOffset = 0;
 
     VkResult err = vkContext.vkBindImageMemory2(device, 1, &bindImageInfo);
-    if (VK_SUCCESS != err) {
+    if (err != VK_SUCCESS) {
         ROSEN_LOGE("RSSurfaceOhosVulkan BindImageMemory2 failed");
         vkContext.vkDestroyImage(device, image, nullptr);
         vkContext.vkFreeMemory(device, memory, nullptr);
@@ -173,7 +179,6 @@ bool MakeFromNativeWindowBuffer(sk_sp<GrDirectContext> skContext, NativeWindowBu
 
     auto& vkContext = RsVulkanContext::GetSingleton();
 
-    VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
     VkDevice device = vkContext.GetDevice();
 
     VkNativeBufferFormatPropertiesOHOS nbFormatProps;
@@ -182,19 +187,13 @@ bool MakeFromNativeWindowBuffer(sk_sp<GrDirectContext> skContext, NativeWindowBu
         return false;
     }
 
-    VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_SAMPLED_BIT;
-    if (nbFormatProps.format != VK_FORMAT_UNDEFINED) {
-        usageFlags = usageFlags | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    }
-
     VkImage image;
-    if (!CreateVkImage(vkContext, image, nbFormatProps, width, height, usageFlags)) {
+    if (!CreateVkImage(vkContext, &image, &nbFormatProps, width, height)) {
         return false;
     }
 
     VkDeviceMemory memory;
-    if (!AllocateDeviceMemory(physicalDevice, &memory)) {
+    if (!AllocateDeviceMemory(vkContext, &memory, image, nativeBuffer, nbProps)) {
         return false;
     }
 
@@ -203,7 +202,7 @@ bool MakeFromNativeWindowBuffer(sk_sp<GrDirectContext> skContext, NativeWindowBu
     }
 
     GrVkImageInfo image_info;
-    image_info.fImage_ = image;
+    image_info.fImage = image;
     image_info.fImageTiling = VK_IMAGE_TILING_OPTIMAL;
     image_info.fImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     image_info.fFormat = nbFormatProps.format;
@@ -216,7 +215,7 @@ bool MakeFromNativeWindowBuffer(sk_sp<GrDirectContext> skContext, NativeWindowBu
 
     nativeSurface.skSurface = SkSurface::MakeFromBackendRenderTarget(
         skContext.get(), backend_render_target, kTopLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType,
-        SkColorSpace::MakeSRGB(), &props, delete_vk_image, new VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+        SkColorSpace::MakeSRGB(), &props, DeleteVkImage, new VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
         image, memory));
 
     nativeSurface.image = image;
@@ -274,7 +273,7 @@ GrBackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* nativeWi
     }
 
     VkDeviceMemory memory;
-    if (!AllocateDeviceMemory(physicalDevice, &memory)) {
+    if (!AllocateDeviceMemory(vkContext, &memory)) {
         return {};
     }
 
