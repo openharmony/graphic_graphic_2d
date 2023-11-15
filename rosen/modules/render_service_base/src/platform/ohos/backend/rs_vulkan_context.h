@@ -65,7 +65,7 @@ public:
     bool CreateInstance();
     bool SelectPhysicalDevice();
     bool CreateDevice();
-    bool CreateSkiaBackendContext(GrVkBackendContext* context);
+    bool CreateSkiaBackendContext(GrVkBackendContext* context, bool createNew = false);
 
     bool IsValid() const;
     GrVkGetProc CreateSkiaGetProc() const;
@@ -88,8 +88,8 @@ public:
     DEFINE_FUNC(CreateInstance);
     DEFINE_FUNC(CreateSemaphore);
     DEFINE_FUNC(CreateSwapchainKHR);
-    DEFINE_FUNC(DestoryCommandPool);
-    DEFINE_FUNC(DestoryDebugReportCallbackEXT);
+    DEFINE_PROC(DestroyCommandPool);
+    DEFINE_PROC(DestroyDebugReportCallbackEXT);
     DEFINE_FUNC(DestroyDevice);
     DEFINE_FUNC(DestroyFence);
     DEFINE_FUNC(DestroyImage);
@@ -137,12 +137,12 @@ public:
         return physicalDevice_;
     }
 
-    vkDevice GetDevice() const
+    VkDevice GetDevice() const
     {
         return device_;
     }
 
-    vkQueue GetQueue() const
+    VkQueue GetQueue() const
     {
         return queue_;
     }
@@ -152,8 +152,7 @@ public:
         return backendContext_;
     }
 
-    sk_sp<GrDirectContext> CreateSkContext();
-    static thread_local sk_sp<GrDirectContext> skContext_;
+    sk_sp<GrDirectContext> CreateSkContext(bool indenpent = false);
     sk_sp<GrDirectContext> GetSkContext();
 
     static VKAPI_ATTR VkResult HookedVkQueueSubmit(VkQueue queue, uint32_t submitCount,
@@ -161,7 +160,13 @@ public:
 
     static VKAPI_ATTR VkResult HookedVkQueueSignalReleaseImageOHOS(VkQueue queue, uint32_t waitSemaphoreCount,
         const VkSemaphore* pWaitSemaphores, VkImage image, int32_t* pNativeFenceFd);
+    sk_sp<GrDirectContext> GetHardWareGrContext() {
+        return hcontext_;
+    }
 
+    VkQueue GetHardwareQueue() {
+        return hbackendContext_.fQueue;
+    }
 private:
     std::mutex vkMutex_;
     std::mutex graphicsQueueMutex_;
@@ -171,11 +176,16 @@ private:
     VkPhysicalDevice physicalDevice_ = VK_NULL_HANDLE;
     uint32_t graphicsQueueFamilyIndex_ = UINT32_MAX;
     VkDevice device_ = VK_NULL_HANDLE;
+    VkQueue hardwareQueue_ = VK_NULL_HANDLE;
     VkQueue queue_ = VK_NULL_HANDLE;
     VkPhysicalDeviceFeatures2 physicalDeviceFeatures2_;
     VkPhysicalDeviceSamplerYcbcrConversionFeatures ycbcrFeature_;
     GrVkExtensions skVkExtensions_;
+    static thread_local sk_sp<GrDirectContext> skContext_;
+    sk_sp<GrDirectContext> hcontext_ = nullptr;
+    // static thread_local GrVkBackendContext backendContext_;
     GrVkBackendContext backendContext_;
+    GrVkBackendContext hbackendContext_;
 
     RsVulkanContext(const RsVulkanContext &) = delete;
     RsVulkanContext &operator=(const RsVulkanContext &) = delete;
@@ -186,13 +196,12 @@ private:
     bool OpenLibraryHandle();
     bool SetupLoaderProcAddresses();
     bool CloseLibraryHandle();
-    bool SetupDeviceProcAddresses();
-    bool GetGraphicsQueueFamilyIndex();
-
+    bool SetupDeviceProcAddresses(VkDevice device);
     PFN_vkVoidFunction AcquireProc(
         const char* proc_name,
         const VkInstance& instance) const;
     PFN_vkVoidFunction AcquireProc(const char* proc_name, const VkDevice& device) const;
+    sk_sp<GrDirectContext> CreateNewSkContext();
 };
 
 } // namespace Rosen

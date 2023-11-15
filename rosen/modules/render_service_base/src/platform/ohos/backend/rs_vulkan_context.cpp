@@ -25,7 +25,7 @@
 
 #define ACQUIRE_PROC(name, context)                         \
     if (!(vk##name = AcquireProc("vk" #name, context))) {   \
-        ROSEN_LOG("Could not acquire proc: vk" #name);      \
+        ROSEN_LOGE("Could not acquire proc: vk" #name);     \
     }
 
 namespace OHOS {
@@ -84,6 +84,9 @@ VKAPI_ATTR VkResult RsVulkanContext::HookedVkQueueSubmit(VkQueue queue,
     const VkSubmitInfo* pSubmits,  VkFence fence)
 {
     RsVulkanContext& vkContext = RsVulkanContext::GetSingleton();
+    if (queue == vkContext.GetHardwareQueue()) {
+        return vkContext.vkQueueSubmit(queue, submitCount, pSubmits, fence);
+    }
     std::lock_guard<std::mutex> lock(vkContext.graphicsQueueMutex_);
     return vkContext.vkQueueSubmit(queue, submitCount, pSubmits, fence);
 }
@@ -93,6 +96,10 @@ VKAPI_ATTR VkResult RsVulkanContext::HookedVkQueueSignalReleaseImageOHOS(
     const VkSemaphore* pWaitSemaphores, VkImage image, int32_t* pNativeFenceFd)
 {
     RsVulkanContext& vkContext = RsVulkanContext::GetSingleton();
+    if (queue == vkContext.GetHardwareQueue()) {
+        return vkContext.vkQueueSignalReleaseImageOHOS(queue, waitSemaphoreCount, pWaitSemaphores,
+            image, pNativeFenceFd);
+    }
     std::lock_guard<std::mutex> lock(vkContext.graphicsQueueMutex_);
     return vkContext.vkQueueSignalReleaseImageOHOS(queue, waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd);
 }
@@ -104,8 +111,8 @@ bool RsVulkanContext::SetupLoaderProcAddresses()
     }
     vkGetInstanceProcAddr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(dlsym(handle_, "vkGetInstanceProcAddr"));
     vkGetDeviceProcAddr = reinterpret_cast<PFN_vkGetDeviceProcAddr>(dlsym(handle_, "vkGetDeviceProcAddr"));
-    vkEnumerateInstanceExternsionProperties = reinterpret_cast<PFN_vkEnumerateInstanceExternsionProperties>(
-        dlsym(handle_, "vkEnumerateInstanceExternsionProperties"));
+    vkEnumerateInstanceExtensionProperties = reinterpret_cast<PFN_vkEnumerateInstanceExtensionProperties>(
+          dlsym(handle_, "vkEnumerateInstanceExtensionProperties"));
     vkCreateInstance = reinterpret_cast<PFN_vkCreateInstance>(dlsym(handle_, "vkCreateInstance"));
 
     if (!vkGetInstanceProcAddr) {
@@ -114,7 +121,7 @@ bool RsVulkanContext::SetupLoaderProcAddresses()
     }
 
     VkInstance null_instance = VK_NULL_HANDLE;
-    ACQUIRE_PROC(vkEnumerateInstanceLayerProperties, null_instance);
+    ACQUIRE_PROC(EnumerateInstanceLayerProperties, null_instance);
     return true;
 }
 
@@ -169,9 +176,9 @@ bool RsVulkanContext::CreateInstance()
     return true;
 }
 
-bool RsVulkanContext::SelectPhysicalDevice()
+bool RsVulkanContext::CreateDevice()
 {
-    if (!instance_) {
+    if (!physicalDevice_) {
         return false;
     }
     uint32_t deviceCount = 0;
@@ -206,35 +213,22 @@ bool RsVulkanContext::GetGraphicsQueueFamilyIndex()
     }
 
     if (graphicsQueueFamilyIndex_ == UINT32_MAX) {
-        ROSEN_LOGE("graphicsQueueFamilyIndex_ is not vaild");
+        ROSEN_LOGE("graphicsQueueFamilyIndex_ is not valid");
         return false;
     }
-    retuurn true;
-}
-
-bool RsVulkanContext::CreateDevice()
-{
-    if (!physicalDevice_) {
-        return false;
-    }
-
-    if (!GetGraphicsQueueFamilyIndex()) {
-        return false;
-    }
-
-    const float priorties[1] = {1.0f};
+    const float priorities[1] = {1.0f};
     std::vector<VkDeviceQueueCreateInfo> queueCreate { {
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
         .queueFamilyIndex = graphicsQueueFamilyIndex_,
-        .queueCount = 1,
+        .queueCount = 2,
         .pQueuePriorities = priorities,
     } };
     ycbcrFeature_.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_YCBCR_CONVERSION_FEATURES,
     ycbcrFeature_.pNext = nullptr;
     physicalDeviceFeatures2_.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-    physicalDeviceFeature2_.pNext = &ycbcrFeature_;
+    physicalDeviceFeatures2_.pNext = &ycbcrFeature_;
     vkGetPhysicalDeviceFeatures2(physicalDevice_, &physicalDeviceFeatures2_);
 
     const VkDeviceCreateInfo createInfo = {
@@ -254,14 +248,14 @@ bool RsVulkanContext::CreateDevice()
         return false;
     }
 
-    if (!SetupDeviceProcAddresses()) {
+    if (!SetupDeviceProcAddresses(device_)) {
         return false;
     }
-    vkGetDeviceQueue(device_, graphicsQueueFamilyIndex_, 0, &queue_);
+    vkGetDeviceQueue(device_, graphicsQueueFamilyIndex_, 1, &hardwareQueue_);
     return true;
 }
 
-bool RsVulkanContext::CreateSkiaBackendContext(GrVkBackendContext* context)
+bool RsVulkanContext::CreateSkiaBackendContext(GrVkBackendContext* context, bool createNew)
 {
     auto getProc = CreateSkiaGetProc();
     if (getProc == nullptr) {
@@ -286,8 +280,12 @@ bool RsVulkanContext::CreateSkiaBackendContext(GrVkBackendContext* context)
     context->fInstance = instance_;
     context->fPhysicalDevice = physicalDevice_;
     context->fDevice = device_;
-    context->fQueue = queue_;
-    context->fGraphicsQueueIndex = graphicsQueueFamilyIndex;
+    if (createNew) {
+        context->fQueue = hardwareQueue_;
+    } else {
+        context->fQueue = queue_;
+    }
+    context->fGraphicsQueueIndex = graphicsQueueFamilyIndex_;
     context->fMinAPIVersion = VK_API_VERSION_1_2;
 
     uint32_t extensionFlags = kKHR_surface_GrVkExtensionFlag;
@@ -308,7 +306,7 @@ bool RsVulkanContext::CreateSkiaBackendContext(GrVkBackendContext* context)
     return true;
 }
 
-bool RsVulkanContext::SetupDevcieProcAddresses()
+bool RsVulkanContext::SetupDevcieProcAddresses(VkDevice device)
 {
     ACQUIRE_PROC(AllocateCommandBuffers, device_);
     ACQUIRE_PROC(AllocateMemory, device_);
@@ -415,9 +413,12 @@ GrVkGetProc RsVulkanContext::CreateSkiaGetProc() const
     };
 }
 
-sk_sp<GrDirectContext> RsVulkanContext::CreateSkContext()
+sk_sp<GrDirectContext> RsVulkanContext::(bool independentContext)
 {
     std::unique_lock<std::mutex> lock(vkMutex_);
+    if (independentContext) {
+        return CreateNewSkContext();
+    }
     if (skContext_ != nullptr) {
         return skContext_;
     }
@@ -433,6 +434,27 @@ sk_sp<GrDirectContext> RsVulkanContext::CreateSkContext()
     } else {
         skContext->setResourceCacheLimits(GR_CACHE_MAX_COUNT, GR_CACHE_MAX_BYTE_SIZE);
     }
+    RS_LOGE("skContext_:%{public}p %{public}p", skContext_.get(), backendContext_.fQueue);
+    return skContext_;
+}
+
+sk_sp<GrDirectContext> RsVulkanContext::CreateNewSkContext()
+{
+    //GrVkBackendContext bc;
+    CreateSkiaBackendContext(&hbackendContext_, true);
+    skContext_ = GrDirectContext::MakeVulkan(hbackendContext_);
+    int maxResources = 0;
+    size_t maxResourcesSize = 0;
+    int cacheLimitsTimes = 3;
+    skContext_->getResourceCacheLimits(&maxResources, &maxResourcesSize);
+    if (maxResourcesSize > 0) {
+        skContext_->setResourceCacheLimits(cacheLimitsTimes * maxResources, cacheLimitsTimes *
+            std::fmin(maxResourcesSize, GR_CACHE_MAX_BYTE_SIZE));
+    } else {
+        skContext_->setResourceCacheLimits(GR_CACHE_MAX_COUNT, GR_CACHE_MAX_BYTE_SIZE);
+    }
+    hcontext_ = skContext_;
+    RS_LOGE("new skContext_:%{public}p %{public}p", skContext_.get(), hbackendContext_.fQueue);
     return skContext_;
 }
 
