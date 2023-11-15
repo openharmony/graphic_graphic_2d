@@ -322,7 +322,7 @@ HgmRefreshRates RSSystemProperties::GetHgmRefreshRatesEnabled()
 void RSSystemProperties::SetHgmRefreshRateModesEnabled(std::string param)
 {
     system::SetParameter("persist.rosen.sethgmrefreshratemode.enabled", param);
-    RS_LOGD("RSSystemProperties::SetHgmRefreshRateModesEnabled set to %{public}s", param.c_str());
+    RS_LOGI("RSSystemProperties::SetHgmRefreshRateModesEnabled set to %{public}s", param.c_str());
 }
 
 HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()

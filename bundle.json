@@ -70,7 +70,8 @@
           "frame_aware_sched",
           "memmgr",
           "memmgr_plugin",
-          "sensor"
+          "sensor",
+          "qos_manager"
         ],
         "third_party": [
           "flutter",
