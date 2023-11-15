@@ -62,22 +62,22 @@ GSError MetadataHelper::GetColorSpaceInfo(const sptr<SurfaceBuffer>& buffer, CM_
 
 GSError MetadataHelper::SetColorSpaceType(sptr<SurfaceBuffer>& buffer, const CM_ColorSpaceType& colorSpaceType)
 {
-    std::vector<uint8_t> colorSpaceTypeVec;
-    auto ret = ConvertMetadataToVec(colorSpaceType, colorSpaceTypeVec);
+    CM_ColorSpaceInfo colorSpaceInfo;
+    auto ret = ConvertColorSpaceTypeToInfo(colorSpaceType, colorSpaceInfo);
     if (ret != GSERROR_OK) {
         return ret;
     }
-    return buffer->SetMetadata(ATTRKEY_COLORSPACE_TYPE, colorSpaceTypeVec);
+    return SetColorSpaceInfo(buffer, colorSpaceInfo);
 }
 
 GSError MetadataHelper::GetColorSpaceType(const sptr<SurfaceBuffer>& buffer, CM_ColorSpaceType& colorSpaceType)
 {
-    std::vector<uint8_t> colorSpaceTypeVec;
-    auto ret = buffer->GetMetadata(ATTRKEY_COLORSPACE_TYPE, colorSpaceTypeVec);
+    CM_ColorSpaceInfo colorSpaceInfo;
+    auto ret = GetColorSpaceInfo(buffer, colorSpaceInfo);
     if (ret != GSERROR_OK) {
         return ret;
     }
-    return ConvertVecToMetadata(colorSpaceTypeVec, colorSpaceType);
+    return ConvertColorSpaceInfoToType(colorSpaceInfo, colorSpaceType);
 }
 
 GSError MetadataHelper::SetHDRMetadataType(sptr<SurfaceBuffer>& buffer, const CM_HDR_Metadata_Type& hdrMetadataType)
