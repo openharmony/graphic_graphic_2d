@@ -80,6 +80,11 @@ public:
     static GSError GetHDRStaticMetadata(const sptr<SurfaceBuffer>& buffer,
         HDI::Display::Graphic::Common::V1_0::HdrStaticMetadata& hdrStaticMetadata);
 
+    static GSError ConvertVecToHDRVividDynMetadataV1(const std::vector<uint8_t>& data,
+        HdrVividMetadataV1& hdrVividMetadata);
+    static GSError ConvertHDRVividDynMetadataV1ToVec(const HdrVividMetadataV1& hdrVividMetadata,
+        std::vector<uint8_t>& data);
+
     static GSError SetHDRVividDynMetadataV1(sptr<SurfaceBuffer>& buffer, const HdrVividMetadataV1& hdrVividMetadata);
     static GSError GetHDRVividDynMetadataV1(const sptr<SurfaceBuffer>& buffer, HdrVividMetadataV1& hdrVividMetadata);
 
@@ -87,6 +92,50 @@ private:
     static constexpr uint32_t TRANSFUNC_OFFSET = 8;
     static constexpr uint32_t MATRIX_OFFSET = 16;
     static constexpr uint32_t RANGE_OFFSET = 21;
+
+    // The following constants define the number of bits of each metadata according to CUVA standard 7.4
+    static constexpr uint32_t SYSTEM_START_CODE_BITS = 8;
+    static constexpr uint32_t SYSTEM_START_CODE = 0x01;
+    static constexpr uint32_t MINIMUM_MAXRGB_BITS = 12;
+    static constexpr uint32_t AVERAGE_MAXRGB_BITS = 12;
+    static constexpr uint32_t VARIANCE_MAXRGB_BITS = 12;
+    static constexpr uint32_t MAXIMUM_MAXRGB_BITS = 12;
+    static constexpr uint32_t TONE_MAPPING_MODE_BITS = 1;
+    static constexpr uint32_t TONE_MAPPING_PARAM_NUM_BITS = 1;
+    static constexpr uint32_t TONE_MAPPING_PARAM_NUM_MAX = 1 << TONE_MAPPING_PARAM_NUM_BITS;
+    static constexpr uint32_t TARGETED_SYSTEM_DISPLAY_MAXIMUM_LUMINANCE_BITS = 12;
+    static constexpr uint32_t BASE_FLAG_BITS = 1;
+    static constexpr uint32_t BASE_PARAM_MP_BITS = 14;
+    static constexpr uint32_t BASE_PARAM_MM_BITS = 6;
+    static constexpr uint32_t BASE_PARAM_MA_BITS = 10;
+    static constexpr uint32_t BASE_PARAM_MB_BITS = 10;
+    static constexpr uint32_t BASE_PARAM_MN_BITS = 6;
+    static constexpr uint32_t BASE_PARAM_K1_BITS = 2;
+    static constexpr uint32_t BASE_PARAM_K2_BITS = 2;
+    static constexpr uint32_t BASE_PARAM_K3_BITS = 4;
+    static constexpr uint32_t BASE_PARAM_DELTA_MODE_BITS = 3;
+    static constexpr uint32_t BASE_PARAM_DELTA_BITS = 7;
+    static constexpr uint32_t THREE_SPLINE_FLAG_BITS = 1;
+    static constexpr uint32_t THREE_SPLINE_NUM_BITS = 1;
+    static constexpr uint32_t THREE_SPLINE_NUM_MAX = 1 << THREE_SPLINE_NUM_BITS;
+    static constexpr uint32_t THREE_SPLINE_TH_MODE_BITS = 2;
+    static constexpr uint32_t THREE_SPLINE_TH_MB_BITS = 8;
+    static constexpr uint32_t THREE_SPLINE_TH_BITS[3] = {12, 10, 10};
+    static constexpr uint32_t THREE_SPLINE_STRENGTH_BITS = 8;
+    static constexpr uint32_t COLOR_SATURATION_MAPPING_FLAG_BITS = 1;
+    static constexpr uint32_t COLOR_SATURATION_NUM_BITS = 3;
+    static constexpr uint32_t COLOR_SATURATION_NUM_MAX = (1 << COLOR_SATURATION_NUM_BITS) - 1;
+    static constexpr uint32_t COLOR_SATURATION_GAIN_BITS = 8;
+
+    static constexpr uint32_t UINT8_BITS = 8;
+
+    struct Pos {
+        uint32_t index;
+        uint32_t bit;
+    };
+
+    static bool ExtractBits(const std::vector<uint8_t>& data, uint32_t numBits, uint32_t& value, Pos& pos);
+    static bool InsertBits(uint32_t value, uint32_t numBits, std::vector<uint8_t>& data, Pos& pos);
 };
 } // namespace OHOS
 
