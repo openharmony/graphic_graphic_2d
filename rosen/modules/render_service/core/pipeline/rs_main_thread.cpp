@@ -2770,15 +2770,19 @@ void RSMainThread::HandleOnTrim(Memory::SystemMemoryLevel level)
 #else
                 auto grContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
 #endif
+                RS_LOGD("Enter level:%{public}d, OnTrim Success", level);
                 switch (level) {
                     case Memory::SystemMemoryLevel::MEMORY_LEVEL_CRITICAL:
-                        RS_LOGD("Enter level:%{public}d, OnTrim Success", level);
+                    case Memory::SystemMemoryLevel::MEMORY_LEVEL_LOW:
+                    case Memory::SystemMemoryLevel::MEMORY_LEVEL_MODERATE:
+                    case Memory::SystemMemoryLevel::MEMORY_LEVEL_PURGEABLE:
                         MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
                         break;
                     default:
                         break;
                 }
-            }, AppExecFwk::EventQueue::Priority::IDLE);
+            },
+            AppExecFwk::EventQueue::Priority::IDLE);
     }
 }
 
