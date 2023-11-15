@@ -230,6 +230,23 @@ ohos_unittest("native_window_test") {
   ]
 }
 
+## UnitTest metadata_helper_test {{{
+ohos_unittest("metadata_helper_test") {
+  module_out_path = module_out_path
+
+  sources = [ "metadata_helper_test.cpp" ]
+
+  deps = [ ":surface_test_common" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "hilog:libhilog",
+  ]
+}
+
+## UnitTest producer_surface_test }}}
+
 ## UnitTest native_window_test }}}
 
 ## UnitTest native_buffer_test {{{

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef UTILS_METADATA_MANAGER_EXPORT_METADATA_MANAGER_H
-#define UTILS_METADATA_MANAGER_EXPORT_METADATA_MANAGER_H
+#ifndef FRAMEWORKS_SURFACE_INCLUDE_METADATA_MANAGER_H
+#define FRAMEWORKS_SURFACE_INCLUDE_METADATA_MANAGER_H
 
 #include <vector>
 
@@ -27,7 +27,6 @@
 #include "hdr_vivid_metadata.h"
 
 namespace OHOS {
-namespace MetadataManager {
 class MetadataHelper {
 public:
     // GSERROR_OK for success, GSERROR_API_FAILED for fail
@@ -54,8 +53,12 @@ public:
         return GSERROR_OK;
     }
 
-    static GSError ParseColorSpaceType(const HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceType& colorSpaceType,
+    static GSError ConvertColorSpaceTypeToInfo(
+        const HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceType& colorSpaceType,
         HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo);
+    static GSError ConvertColorSpaceInfoToType(
+        const HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo,
+        HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceType& colorSpaceType);
 
     static GSError SetColorSpaceInfo(sptr<SurfaceBuffer>& buffer,
         const HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo);
@@ -85,7 +88,6 @@ private:
     static constexpr uint32_t MATRIX_OFFSET = 16;
     static constexpr uint32_t RANGE_OFFSET = 21;
 };
-} // namespace MetadataManager
 } // namespace OHOS
 
-#endif // UTILS_METADATA_MANAGER_EXPORT_METADATA_MANAGER_H
+#endif // FRAMEWORKS_SURFACE_INCLUDE_METADATA_MANAGER_H

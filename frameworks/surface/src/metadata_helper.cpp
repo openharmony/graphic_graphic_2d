@@ -20,13 +20,23 @@
 using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
 
 namespace OHOS {
-namespace MetadataManager {
-GSError MetadataHelper::ParseColorSpaceType(const CM_ColorSpaceType& colorSpaceType, CM_ColorSpaceInfo& colorSpaceInfo)
+GSError MetadataHelper::ConvertColorSpaceTypeToInfo(const CM_ColorSpaceType& colorSpaceType,
+    CM_ColorSpaceInfo& colorSpaceInfo)
 {
     colorSpaceInfo.primaries = static_cast<CM_ColorPrimaries>(colorSpaceType & CM_PRIMARIES_MASK);
     colorSpaceInfo.transfunc = static_cast<CM_TransFunc>((colorSpaceType & CM_TRANSFUNC_MASK) >> TRANSFUNC_OFFSET);
     colorSpaceInfo.matrix = static_cast<CM_Matrix>((colorSpaceType & CM_MATRIX_MASK) >> MATRIX_OFFSET);
     colorSpaceInfo.range = static_cast<CM_Range>((colorSpaceType & CM_RANGE_MASK) >> RANGE_OFFSET);
+    return GSERROR_OK;
+}
+
+GSError MetadataHelper::ConvertColorSpaceInfoToType(const CM_ColorSpaceInfo& colorSpaceInfo,
+    CM_ColorSpaceType& colorSpaceType)
+{
+    colorSpaceType = static_cast<CM_ColorSpaceType>(colorSpaceInfo.primaries |
+        (colorSpaceInfo.transfunc << TRANSFUNC_OFFSET) | (colorSpaceInfo.matrix << MATRIX_OFFSET) |
+        (colorSpaceInfo.range << RANGE_OFFSET));
+
     return GSERROR_OK;
 }
 
@@ -133,5 +143,4 @@ GSError MetadataHelper::GetHDRVividDynMetadataV1(const sptr<SurfaceBuffer>& buff
     }
     return ConvertVecToMetadata(hdrVividMetadataVec, hdrVividMetadata);
 }
-} // namespace MetadataManager
 } // namespace OHOS

@@ -132,6 +132,7 @@
                 "egl_data.h",
                 "egl_surface.h",
                 "external_window.h",
+                "hdr_vivid_metadata.h",
                 "native_buffer.h",
                 "native_buffer_inner.h",
                 "native_image.h",
@@ -318,17 +319,6 @@
                 "export/color_space_convertor.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/utils/color_manager"
-            }
-          },
-          {
-            "type": "so",
-            "name": "//foundation/graphic/graphic_2d/utils/metadata_manager:metadata_manager",
-            "header": {
-              "header_files": [
-                "export/metadata_helper.h",
-                "export/hdr_vivid_metadata.h"
-              ],
-              "header_base": "//foundation/graphic/graphic_2d/utils/metadata_manager"
             }
           },
           {

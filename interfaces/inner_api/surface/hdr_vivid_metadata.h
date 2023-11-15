@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 
-#ifndef UTILS_METADATA_MANAGER_EXPORT_HDR_VIVID_METADATA_H
-#define UTILS_METADATA_MANAGER_EXPORT_HDR_VIVID_METADATA_H
+#ifndef FRAMEWORKS_SURFACE_INCLUDE_HDR_VIVID_METADATA_H
+#define FRAMEWORKS_SURFACE_INCLUDE_HDR_VIVID_METADATA_H
 
-struct HdrVividMetadataV1 {
+namespace OHOS {
+using HdrVividMetadataV1 = struct {
     unsigned int systemStartCode;
     unsigned int minimumMaxRgbPq;
     unsigned int averageMaxRgbPq;
@@ -46,5 +47,6 @@ struct HdrVividMetadataV1 {
     unsigned int colorSaturationNum;
     unsigned int colorSaturationGain[16];
 };
+} // namespace OHOS
 
-#endif // UTILS_METADATA_MANAGER_EXPORT_HDR_VIVID_METADATA_H
+#endif // FRAMEWORKS_SURFACE_INCLUDE_HDR_VIVID_METADATA_H

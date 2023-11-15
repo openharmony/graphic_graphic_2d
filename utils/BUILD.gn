@@ -21,10 +21,6 @@ group("color_manager") {
   ]
 }
 
-group("metadata_manager") {
-  public_deps = [ "metadata_manager:metadata_manager" ]
-}
-
 group("buffer_handle") {
   public_deps = [ "buffer_handle:buffer_handle" ]
 }
@@ -100,7 +96,6 @@ ohos_shared_library("libgraphic_utils") {
     "gl_utils:gl_utils",
     "gslogger:libgslogger",
     "matrix:matrix",
-    "metadata_manager:metadata_manager",
     "option_parser:option_parser",
     "promise:promise",
     "raw_maker:raw_maker",

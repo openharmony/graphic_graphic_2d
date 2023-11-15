@@ -22,7 +22,6 @@ using namespace testing::ext;
 using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
 
 namespace OHOS {
-namespace MetadataManager {
 class MetadataManagerTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -52,17 +51,38 @@ void MetadataManagerTest::SetUpTestCase()
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: test ParseColorSpaceType
+* CaseDescription: test ConvertColorSpaceTypeToInfo
 */
-HWTEST_F(MetadataManagerTest, ParseColorSpaceTypeTest, Function | SmallTest | Level2)
+HWTEST_F(MetadataManagerTest, ConvertColorSpaceTypeToInfoTest, Function | SmallTest | Level2)
 {
     CM_ColorSpaceInfo colorSpaceInfo;
-    ASSERT_EQ(MetadataHelper::ParseColorSpaceType(CM_SRGB_FULL, colorSpaceInfo), GSERROR_OK);
+    ASSERT_EQ(MetadataHelper::ConvertColorSpaceTypeToInfo(CM_SRGB_FULL, colorSpaceInfo), GSERROR_OK);
 
     ASSERT_EQ(colorSpaceInfo.primaries, COLORPRIMARIES_SRGB);
     ASSERT_EQ(colorSpaceInfo.transfunc, TRANSFUNC_SRGB);
     ASSERT_EQ(colorSpaceInfo.matrix, MATRIX_BT601_N);
     ASSERT_EQ(colorSpaceInfo.range, RANGE_FULL);
+}
+
+/*
+* Function: MetadataManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: test ConvertColorSpaceInfoToType
+*/
+HWTEST_F(MetadataManagerTest, ConvertColorSpaceInfoToTypeTest, Function | SmallTest | Level2)
+{
+    CM_ColorSpaceInfo colorSpaceInfo = {
+        .primaries = COLORPRIMARIES_SRGB,
+        .transfunc = TRANSFUNC_SRGB,
+        .matrix = MATRIX_BT601_N,
+        .range = RANGE_FULL,
+    };
+    CM_ColorSpaceType colorSpaceType;
+    ASSERT_EQ(MetadataHelper::ConvertColorSpaceInfoToType(colorSpaceInfo, colorSpaceType), GSERROR_OK);
+
+    ASSERT_EQ(colorSpaceType, CM_SRGB_FULL);
 }
 
 /*
@@ -226,6 +246,5 @@ HWTEST_F(MetadataManagerTest, HDRVividMetadataTest, Function | SmallTest | Level
             ASSERT_EQ(metadataSet.colorSaturationGain[i], metadataGet.colorSaturationGain[i]);
         }
     }
-}
 }
 }
