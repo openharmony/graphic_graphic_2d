@@ -35,12 +35,14 @@ void DestoryNativeWindow(OHNativeWindow* window);
 
 // pSurfaceBuffer type is OHOS::sptr<OHOS::SurfaceBuffer>*
 OHNativeWindowBuffer* CreateNativeWindowBufferFromSurfaceBuffer(void* pSurfaceBuffer);
+OHNativeWindowBuffer* CreateNativeWindowBufferFromNativeBuffer(OH_NativeBuffer* nativeBuffer);
 void DestroyNativeWindowBuffer(OHNativeWindowBuffer* buffer);
 
 int32_t NativeWindowRequestBuffer(OHNativeWindow *window, /* [out] */ OHNativeWindowBuffer **buffer,
     /* [out] get release fence */ int *fenceFd);
 int32_t NativeWindowFlushBuffer(OHNativeWindow *window, OHNativeWindowBuffer *buffer,
     int fenceFd, Region region);
+int32_t GetLastFlushedBuffer(OHNativeWindow *window, OHNativeWindowBuffer *buffer);
 int32_t NativeWindowCancelBuffer(OHNativeWindow *window, OHNativeWindowBuffer *buffer);
 
 // The meaning and quantity of parameters vary according to the code type.
