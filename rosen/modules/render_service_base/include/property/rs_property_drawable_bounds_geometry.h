@@ -269,17 +269,8 @@ public:
 };
 
 // ============================================================================
-// Filter
-class RSFilterDrawable : public RSPropertyDrawable {
-public:
-    RSFilterDrawable() = default;
-    ~RSFilterDrawable() override = default;
-    static bool GetBlurEnabled();
-    static void DrawFilter(RSRenderNode& node, RSPaintFilterCanvas& canvas, FilterType filterType);
-};
-
 // BackgroundFilter
-class RSBackgroundFilterDrawable : public RSFilterDrawable {
+class RSBackgroundFilterDrawable : public RSPropertyDrawable {
 public:
     explicit RSBackgroundFilterDrawable() = default;
     ~RSBackgroundFilterDrawable() override = default;
@@ -289,7 +280,7 @@ public:
 };
 
 // ForegroundFilter
-class RSForegroundFilterDrawable : public RSFilterDrawable {
+class RSForegroundFilterDrawable : public RSPropertyDrawable {
 public:
     explicit RSForegroundFilterDrawable() = default;
     ~RSForegroundFilterDrawable() override = default;

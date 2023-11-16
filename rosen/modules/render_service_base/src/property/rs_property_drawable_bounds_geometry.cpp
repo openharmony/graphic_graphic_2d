@@ -735,7 +735,6 @@ std::unique_ptr<RSPropertyDrawable> RSDynamicLightUpDrawable::Generate(const RSP
 
 void RSDynamicLightUpDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
-    // PLANNING: skip the 'save/clip/restore' part
     RSPropertiesPainter::DrawDynamicLightUp(node.GetRenderProperties(), canvas);
 }
 
@@ -760,84 +759,11 @@ void RSLightUpEffectDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canv
 }
 
 // ============================================================================
-// Filter
-bool RSFilterDrawable::GetBlurEnabled()
-{
-    static bool BLUR_ENABLED = RSSystemProperties::GetBlurEnabled();
-    return BLUR_ENABLED;
-}
-
-
-void RSFilterDrawable::DrawFilter(
-    RSRenderNode& node, RSPaintFilterCanvas& canvas, FilterType filterType)
-{
-#ifndef USE_ROSEN_DRAWING
-    auto& properties = node.GetMutableRenderProperties();
-
-    auto& RSFilter =
-        ((filterType == FilterType::BACKGROUND_FILTER) ? properties.GetBackgroundFilter() : properties.GetFilter());
-    if (RSFilter == nullptr) {
-        return;
-    }
-    auto filter = std::static_pointer_cast<RSSkiaFilter>(RSFilter);
-    RS_OPTIONAL_TRACE_NAME("DrawFilter " + filter->GetDescription());
-
-    auto skSurface = canvas.GetSurface();
-    if (skSurface == nullptr) {
-        ROSEN_LOGD("RSFilterDrawable::DrawFilter skSurface null");
-        auto paint = filter->GetPaint();
-        SkCanvas::SaveLayerRec slr(nullptr, &paint, SkCanvas::kInitWithPrevious_SaveLayerFlag);
-        canvas.saveLayer(slr);
-        filter->PostProcess(canvas);
-        return;
-    }
-
-    // for foreground filter, when do online opacity, rendering result already applied opacity,
-    // so drawImage should not apply opacity again
-    RSAutoCanvasRestore autoCanvasRestore(&canvas,
-        filterType == FilterType::FOREGROUND_FILTER ? RSPaintFilterCanvas::kAlpha : RSPaintFilterCanvas::kNone);
-    if (filterType == FilterType::FOREGROUND_FILTER) {
-        canvas.SetAlpha(1.0);
-    }
-
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    // Optional use cacheManager to draw filter
-    if (auto& cacheManager = properties.GetFilterCacheManager(filterType == FilterType::FOREGROUND_FILTER);
-        cacheManager != nullptr && !canvas.GetDisableFilterCache()) {
-        cacheManager->DrawFilter(canvas, filter);
-        return;
-    }
-#endif
-    auto clipIBounds = canvas.getDeviceClipBounds();
-    auto imageSnapshot = skSurface->makeImageSnapshot(clipIBounds.makeOutset(-1, -1));
-    if (imageSnapshot == nullptr) {
-        ROSEN_LOGE("RSFilterDrawable::DrawFilter image null");
-        return;
-    }
-    if (RSSystemProperties::GetImageGpuResourceCacheEnable(imageSnapshot->width(), imageSnapshot->height())) {
-        ROSEN_LOGD("RSFilterDrawable cache image resource(width:%{public}d, height:%{public}d).",
-            imageSnapshot->width(), imageSnapshot->height());
-        as_IB(imageSnapshot)->hintCacheGpuResource();
-    }
-
-    filter->PreProcess(imageSnapshot);
-    SkAutoCanvasRestore acr(&canvas, true);
-    canvas.resetMatrix();
-    auto visibleIRect = canvas.GetVisibleRect().round();
-    if (!visibleIRect.isEmpty()) {
-        canvas.clipIRect(visibleIRect);
-    }
-    filter->DrawImageRect(canvas, imageSnapshot, SkRect::Make(imageSnapshot->bounds()), SkRect::Make(clipIBounds));
-    filter->PostProcess(canvas);
-#else
-#endif
-}
-
 // background filter
 std::unique_ptr<RSPropertyDrawable> RSBackgroundFilterDrawable::Generate(
     const RSPropertyDrawableGenerateContext& context)
 {
-    if (!RSFilterDrawable::GetBlurEnabled()) {
+    if (!RSPropertiesPainter::BLUR_ENABLED) {
         ROSEN_LOGD("RSBackgroundFilterDrawable::Generate close blur.");
         return nullptr;
     }
@@ -854,15 +780,14 @@ std::unique_ptr<RSPropertyDrawable> RSBackgroundFilterDrawable::Generate(
 
 void RSBackgroundFilterDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
-    // PLANNING: skip the 'save/clip/restore' part
-    DrawFilter(node, canvas, FilterType::BACKGROUND_FILTER);
+    RSPropertiesPainter::DrawFilter(node.GetRenderProperties(), canvas, FilterType::BACKGROUND_FILTER);
 }
 
 // foreground filter
 std::unique_ptr<RSPropertyDrawable> RSForegroundFilterDrawable::Generate(
     const RSPropertyDrawableGenerateContext& context)
 {
-    if (!RSFilterDrawable::GetBlurEnabled()) {
+    if (!RSPropertiesPainter::BLUR_ENABLED) {
         ROSEN_LOGD("RSForegroundFilterDrawable::Generate close blur.");
         return nullptr;
     }
@@ -880,8 +805,7 @@ bool RSForegroundFilterDrawable::Update(const RSPropertyDrawableGenerateContext&
 
 void RSForegroundFilterDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
-    // PLANNING: skip the 'save/clip/restore' part
-    DrawFilter(node, canvas, FilterType::FOREGROUND_FILTER);
+    RSPropertiesPainter::DrawFilter(node.GetRenderProperties(), canvas, FilterType::FOREGROUND_FILTER);
 }
 
 // effect data
@@ -894,7 +818,6 @@ void RSEffectDataGenerateDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas&
 {
     if (auto effectNode = node.ReinterpretCastTo<RSEffectRenderNode>()) {
         if (auto& region = effectNode->effectRegion_) {
-            // PLANNING: skip the 'save/clip/restore' part
             RSPropertiesPainter::DrawBackgroundEffect(node.GetRenderProperties(), canvas, region->getBounds());
         }
     }
@@ -944,7 +867,6 @@ bool RSLinearGradientBlurFilterDrawable::Update(const RSPropertyDrawableGenerate
 
 void RSLinearGradientBlurFilterDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
-    // PLANNING: skip the 'save/clip/restore' part
     RSPropertiesPainter::DrawLinearGradientBlurFilter(node.GetRenderProperties(), canvas);
 }
 
@@ -1008,7 +930,6 @@ bool RSParticleDrawable::Update(const RSPropertyDrawableGenerateContext& context
 
 void RSParticleDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
-    // PLANNING: skip the 'save/clip/restore' part
     RSPropertiesPainter::DrawParticle(node.GetRenderProperties(), canvas);
 }
 

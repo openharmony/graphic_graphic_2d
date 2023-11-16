@@ -63,13 +63,13 @@ enum RSPropertyDrawableSlot : uint8_t {
     CONTENT_STYLE,
     CHILDREN,
     FOREGROUND_STYLE,
-    COLOR_FILTER,
     RESTORE_FRAME,
     RESTORE_CONTENT,
 
     // FG properties in Bounds clip
     FG_SAVE_BOUNDS,
     FG_CLIP_TO_BOUNDS,
+    COLOR_FILTER,
     LIGHT_UP_EFFECT,
     FOREGROUND_FILTER,
     LINEAR_GRADIENT_BLUR_FILTER,
@@ -84,7 +84,16 @@ enum RSPropertyDrawableSlot : uint8_t {
     PIXEL_STRETCH,
 
     RESTORE_ALL,
-    MAX,
+
+    // Annotations: Please remember to update this when new slots are added.
+    // NOTE: MAX and *_END enums are using the one-past-the-end style.
+    BG_PROPERTIES_BEGIN      = BACKGROUND_COLOR,
+    BG_PROPERTIES_END        = ENV_FOREGROUND_COLOR_STRATEGY + 1,
+    CONTENT_PROPERTIES_BEGIN = FRAME_OFFSET,
+    CONTENT_PROPERTIES_END   = FOREGROUND_STYLE + 1,
+    FG_PROPERTIES_BEGIN      = COLOR_FILTER,
+    FG_PROPERTIES_END        = FOREGROUND_COLOR + 1,
+    MAX                      = RESTORE_ALL + 1,
 };
 
 enum DrawableVecStatus : uint8_t {
@@ -130,12 +139,6 @@ public:
         RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec, uint8_t& drawableVecStatus);
 
 private:
-    static inline uint8_t CalculateDrawableVecStatus(
-        RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec);
-    static void OptimizeBoundsSaveRestore(
-        RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec, uint8_t flags);
-    static void OptimizeFrameSaveRestore(
-        RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec, uint8_t flags);
     static void UpdateSaveLayerSlots(const RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec);
 };
 

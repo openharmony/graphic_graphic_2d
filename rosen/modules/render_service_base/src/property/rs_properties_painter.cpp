@@ -66,13 +66,14 @@ constexpr float MAX_TRANS_RATIO = 0.95f;
 constexpr float MIN_SPOT_RATIO = 1.0f;
 constexpr float MAX_SPOT_RATIO = 1.95f;
 constexpr float MAX_AMBIENT_RADIUS = 150.0f;
-const bool BLUR_ENABLED = RSSystemProperties::GetBlurEnabled();
 // when the blur radius > SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD,
 // the snapshot should call outset before blur to shrink by 1px.
 constexpr static float SNAPSHOT_OUTSET_BLUR_RADIUS_THRESHOLD = 40.0f;
 constexpr static float FLOAT_ZERO_THRESHOLD = 0.001f;
 constexpr static uint8_t DIRECTION_NUM = 4;
 } // namespace
+
+const bool RSPropertiesPainter::BLUR_ENABLED = RSSystemProperties::GetBlurEnabled();
 
 #ifndef USE_ROSEN_DRAWING
 SkRect RSPropertiesPainter::Rect2SkRect(const RectF& r)
@@ -1195,7 +1196,9 @@ void RSPropertiesPainter::DrawLinearGradientBlurFilter(
         return;
     }
     SkAutoCanvasRestore acr(&canvas, true);
-    if (rect.has_value()) {
+    if (RSSystemProperties::GetPropertyDrawableEnable()) {
+        // do nothing
+    } else if (rect.has_value()) {
         canvas.clipRect((*rect), true);
     } else if (properties.GetClipBounds() != nullptr) {
         canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), true);
@@ -1212,7 +1215,9 @@ void RSPropertiesPainter::DrawLinearGradientBlurFilter(
         return;
     }
     Drawing::AutoCanvasRestore acr(canvas, true);
-    if (rect.has_value()) {
+    if (RSSystemProperties::GetPropertyDrawableEnable()) {
+        // do nothing
+    } else if (rect.has_value()) {
         canvas.ClipRect((*rect), Drawing::ClipOp::INTERSECT, true);
     } else if (properties.GetClipBounds() != nullptr) {
         canvas.ClipPath(properties.GetClipBounds()->GetDrawingPath(), Drawing::ClipOp::INTERSECT, true);
@@ -1490,7 +1495,9 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     g_blurCnt++;
 #ifndef USE_ROSEN_DRAWING
     SkAutoCanvasRestore acr(&canvas, true);
-    if (rect.has_value()) {
+    if (RSSystemProperties::GetPropertyDrawableEnable()) {
+        // do nothing
+    } else if (rect.has_value()) {
         canvas.clipRect((*rect), true);
     } else if (properties.GetClipBounds() != nullptr) {
         canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), true);
@@ -1510,7 +1517,9 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     }
 #else
     Drawing::AutoCanvasRestore acr(canvas, true);
-    if (rect.has_value()) {
+    if (RSSystemProperties::GetPropertyDrawableEnable()) {
+        // do nothing
+    } else if (rect.has_value()) {
         canvas.ClipRect((*rect), Drawing::ClipOp::INTERSECT, true);
     } else if (properties.GetClipBounds() != nullptr) {
         canvas.ClipPath(properties.GetClipBounds()->GetDrawingPath(), Drawing::ClipOp::INTERSECT, true);
@@ -1725,7 +1734,9 @@ void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, 
     RS_TRACE_NAME("ApplyBackgroundEffect");
 #ifndef USE_ROSEN_DRAWING
     SkAutoCanvasRestore acr(&canvas, true);
-    if (properties.GetClipBounds() != nullptr) {
+    if (RSSystemProperties::GetPropertyDrawableEnable()) {
+        // do nothing
+    } else if (properties.GetClipBounds() != nullptr) {
         canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), true);
     } else { // we always do clip for ApplyBackgroundEffect, even if ClipToBounds is false
         canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), true);
@@ -2997,7 +3008,9 @@ void RSPropertiesPainter::DrawDynamicLightUp(const RSProperties& properties, RSP
         return;
     }
     SkAutoCanvasRestore acr(&canvas, true);
-    if (properties.GetClipBounds() != nullptr) {
+    if (RSSystemProperties::GetPropertyDrawableEnable()) {
+        // do nothing
+    } else if (properties.GetClipBounds() != nullptr) {
         canvas.clipPath(properties.GetClipBounds()->GetSkiaPath(), true);
     } else {
         canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), true);
