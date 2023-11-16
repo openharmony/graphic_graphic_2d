@@ -450,7 +450,8 @@ void ConvertBlendmodeToPaint(const RSPropertyDrawableGenerateContext& context, S
 void RSPropertyDrawable::UpdateSaveLayerSlots(
     const RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec)
 {
-    SkPaint blendPaint = context.properties_.GetBlendPaint();
+    SkPaint blendPaint;
+    ConvertBlendmodeToPaint(context, blendPaint);
     // blendmode value is invalid, clear relative 4 slots
     if (!blendPaint.asBlendMode().has_value()) {
         drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_CONTENT] = nullptr;
