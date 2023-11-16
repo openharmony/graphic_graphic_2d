@@ -146,7 +146,11 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
     }
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
+#if defined(RS_ENABLE_GL)
+    if (canvas.recordingContext() == nullptr) {
+#elif defined(RS_ENABLE_VK)
     if (renderContext_->GetGrContext() == nullptr) {
+#endif
 #else
     if (canvas.getGrContext() == nullptr) {
 #endif
@@ -174,8 +178,13 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
     auto surfaceOrigin = kBottomLeft_GrSurfaceOrigin;
 #endif
 #ifdef NEW_SKIA
+#if defined(RS_ENABLE_GL)
+    return SkImage::MakeFromTexture(canvas.recordingContext(), backendTexture,
+        surfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
+#elif defined(RS_ENABLE_VK)
     return SkImage::MakeFromTexture(renderContext_->GetGrContext(), backendTexture,
         surfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
+#endif
 #else
     return SkImage::MakeFromTexture(canvas.getGrContext(), backendTexture,
         surfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);

@@ -35,7 +35,7 @@ void RSUniRenderListener::OnBufferAvailable()
     }
     RS_LOGD("RSUniRenderListener::OnBufferAvailable node id:%{public}" PRIu64, node->GetId());
     node->IncreaseAvailableBuffer();
-#ifdef RS_ENABLE_PARALLEL_RENDER
+#if (defined RS_ENABLE_PARALLEL_RENDER) && (defined RS_ENABLE_VK)
     if (node->IsParallelDisplayNode()) {
         RSParallelRenderManager::Instance()->NotifyUniRenderFinish();
         return;
