@@ -1673,6 +1673,9 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(const std::optional<R
         // invalidate cache if filter region is not inside of cached image region
         if (manager->IsCacheValid() && !filterRect.IsInsideOf(manager->GetCachedImageRegion())) {
             manager->UpdateCacheStateWithFilterRegion();
+            if (auto context = GetContext().lock()) {
+                context->MarkNeedPurge(RSContext::PurgeType::STRONGLY);
+            }
         }
     }
     // foreground filter
@@ -1680,6 +1683,9 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(const std::optional<R
         // invalidate cache if filter region is not inside of cached image region
         if (manager->IsCacheValid() && !filterRect.IsInsideOf(manager->GetCachedImageRegion())) {
             manager->UpdateCacheStateWithFilterRegion();
+            if (auto context = GetContext().lock()) {
+                context->MarkNeedPurge(RSContext::PurgeType::STRONGLY);
+            }
         }
     }
 #endif

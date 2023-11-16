@@ -259,10 +259,10 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
                 GetId(), GetName().c_str());
 #endif
             if (IsLeashWindow()) {
-                context->MarkNeedPurge(RSContext::PurgeType::PURGE_UNLOCK);
+                context->MarkNeedPurge(RSContext::PurgeType::GENTLY);
             }
             if (GetName().substr(0, 3) == "SCB") {
-                context->MarkNeedPurge(RSContext::PurgeType::PURGE_UNLOCK_SAFECACHE);
+                context->MarkNeedPurge(RSContext::PurgeType::STRONGLY);
             }
         }
     }
