@@ -294,7 +294,7 @@ void RenderContext::SetColorSpace(GraphicColorGamut colorSpace)
 }
 
 #ifndef USE_ROSEN_DRAWING
-bool RenderContext::SetUpGrContext()
+bool RenderContext::SetUpGrContext(sk_sp<GrDirectContext> skContext)
 {
     if (grContext_ != nullptr) {
         LOGD("grContext has already created!!");
@@ -302,6 +302,7 @@ bool RenderContext::SetUpGrContext()
     }
 
 #ifdef RS_ENABLE_GL
+    (void)(skContext);
     sk_sp<const GrGLInterface> glInterface(GrGLCreateNativeInterface());
     if (glInterface.get() == nullptr) {
         LOGE("SetUpGrContext failed to make native interface");
@@ -312,9 +313,6 @@ bool RenderContext::SetUpGrContext()
     options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
     options.fPreferExternalImagesOverES3 = true;
     options.fDisableDistanceFieldPaths = true;
-
-    // Advanced Filter
-    options.fProcessName = "render_service";
 
     mHandler_ = std::make_shared<MemoryHandler>();
     auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
@@ -331,7 +329,10 @@ bool RenderContext::SetUpGrContext()
 #endif
 #endif
 #ifdef RS_ENABLE_VK
-    sk_sp<GrDirectContext> grContext = RsVulkanContext::GetSingleton().CreateSkContext();
+    if (skContext == nullptr) {
+        skContext = RsVulkanContext::GetSingleton().CreateSkContext();
+    }
+    sk_sp<GrDirectContext> grContext(skContext);
 #endif
     if (grContext == nullptr) {
         LOGE("SetUpGrContext grContext is null");
@@ -369,7 +370,7 @@ bool RenderContext::SetUpGpuContext()
 #ifndef USE_ROSEN_DRAWING
 sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
 {
-    if (!SetUpGrContext()) {
+    if (!SetUpGrContext(nullptr)) {
         LOGE("GrContext is not ready!!!");
         return nullptr;
     }

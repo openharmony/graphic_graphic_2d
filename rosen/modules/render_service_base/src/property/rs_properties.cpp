@@ -43,10 +43,12 @@ constexpr int32_t INDEX_18 = 18;
 const Vector4f Vector4fZero { 0.f, 0.f, 0.f, 0.f };
 const auto EMPTY_RECT = RectF();
 constexpr float SPHERIZE_VALID_EPSILON = 0.001f; // used to judge if spherize valid
+constexpr uint8_t BORDER_TYPE_NONE = (uint32_t)BorderStyle::NONE;
 
 using ResetPropertyFunc = void (*)(RSProperties* prop);
-constexpr uint8_t BORDER_TYPE_NONE = (uint32_t)BorderStyle::NONE;
-const std::vector<ResetPropertyFunc> g_propertyResetterLUT = {
+// Every modifier before RSModifierType::CUSTOM is property modifier, and it should have a ResetPropertyFunc
+// NOTE: alway add new resetter when adding new property modifier
+const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_propertyResetterLUT = {
     nullptr,                                                             // INVALID,                  0
     nullptr,                                                             // BOUNDS,                   1
     nullptr,                                                             // FRAME,                    2
@@ -121,13 +123,12 @@ const std::vector<ResetPropertyFunc> g_propertyResetterLUT = {
         prop->SetOuterBorderStyle(BORDER_TYPE_NONE);
     },                                                                   // OUTER_BORDER_STYLE,       69
     [](RSProperties* prop) { prop->SetOuterBorderRadius(0.f); },         // OUTER_BORDER_RADIUS,      70
-    nullptr,
 };
 } // namespace
 
 // Only enable filter cache when uni-render is enabled and filter cache is enabled
 
-#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 const bool RSProperties::FilterCacheEnabled =
     RSSystemProperties::GetFilterCacheEnabled() && RSUniRenderJudgement::IsUniRender();
 #endif
@@ -2388,7 +2389,7 @@ std::string RSProperties::Dump() const
     return dumpInfo;
 }
 
-#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 void RSProperties::CreateFilterCacheManagerIfNeed()
 {
     if (!FilterCacheEnabled) {
@@ -2467,7 +2468,7 @@ void RSProperties::OnApplyModifiers()
         }
         needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
                       IsDynamicLightUpValid();
-#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
         CreateFilterCacheManagerIfNeed();
 #endif
     }

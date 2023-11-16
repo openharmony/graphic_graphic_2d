@@ -916,7 +916,7 @@ void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
         (iter->second)(canvas_->getTotalMatrix().getTranslateX(), canvas_->getTotalMatrix().getTranslateY(), width, height);
     }
 
-    if (node.IsNotifyRTBufferAvailable()) {
+    if (node.IsNotifyRTBufferAvailable() && !node.GetIsForeground()) {
         ROSEN_LOGD("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %{public}" PRIu64 ","
             " clip [%{public}f, %{public}f, %{public}f, %{public}f]", node.GetId(), x, y, width, height);
         canvas_->clear(SK_ColorTRANSPARENT);

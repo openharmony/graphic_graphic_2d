@@ -49,7 +49,7 @@ RSBaseRenderEngine::~RSBaseRenderEngine() noexcept
 {
 }
 
-void RSBaseRenderEngine::Init()
+void RSBaseRenderEngine::Init(bool independentContext)
 {
 #if defined(NEW_RENDER_CONTEXT)
     RenderType renderType = RenderType::GLES;
@@ -73,7 +73,13 @@ void RSBaseRenderEngine::Init()
         renderContext_->SetUniRenderMode(true);
     }
 #ifndef USE_ROSEN_DRAWING
+#if defined(RS_ENABLE_VK)
+    skContext_ = RsVulkanContext::GetSingleton().CreateSkContext(independentContext);
+    vkImageManager_ = std::make_shared<RSVkImageManager>();
+    renderContext_->SetUpGrContext(skContext_);
+#else
     renderContext_->SetUpGrContext();
+#endif // RS_ENABLE_VK
 #else
     renderContext_->SetUpGpuContext();
 #endif // USE_ROSEN_DRAWING

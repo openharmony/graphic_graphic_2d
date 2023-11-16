@@ -128,6 +128,7 @@ public:
     void SetWindowId(uint32_t windowId);
 
     void SetFreeze(bool isFreeze) override;
+    void SetForeground(bool isForeground);
 
 protected:
     bool NeedForcedSendToRemote() const override;

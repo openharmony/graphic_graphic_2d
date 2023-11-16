@@ -16,6 +16,10 @@
 #include "pipeline/rs_hardware_thread.h"
 #include <memory>
 
+#ifdef RS_ENABLE_EGLIMAGE
+#include "src/gpu/gl/GrGLDefines.h"
+#endif
+
 #include "hgm_core.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_uni_render_util.h"
@@ -35,6 +39,8 @@
 #ifdef RS_ENABLE_EGLIMAGE
 #include "rs_egl_image_manager.h"
 #endif // RS_ENABLE_EGLIMAGE
+#include <parameter.h>
+#include <parameters.h>
 
 namespace OHOS::Rosen {
 namespace {
@@ -64,7 +70,8 @@ void RSHardwareThread::Start()
                     return;
                 }
                 uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
-                uniRenderEngine_->Init();
+                bool enable = (system::GetParameter("zach.debug.enable", "1") == "1");
+                uniRenderEngine_->Init(enable);
             }).wait();
     }
     auto onPrepareCompleteFunc = [this](auto& surface, const auto& param, void* data) {
@@ -362,7 +369,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #else
             if (canvas->GetGPUContext() == nullptr) {
 #endif
-                RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer GrContext is null!");
+                RS_LOGE("RSHardwareThread::Redraw CreateEglImageFromBuffer GrContext is null!");
                 continue;
             }
 #if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
@@ -383,7 +390,9 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
             SkColorType colorType = (params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
                 kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
-            GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId, GL_RGBA8 };
+            GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId,
+                static_cast<GrGLenum>((params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ? 
+                    GR_GL_BGRA8 : GR_GL_RGBA8)};
             GrBackendTexture backendTexture(params.buffer->GetSurfaceBufferWidth(),
                 params.buffer->GetSurfaceBufferHeight(), GrMipMapped::kNo, grExternalTextureInfo);
 #endif
@@ -449,7 +458,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             auto image = std::make_shared<Drawing::Image>();
             if (!image->BuildFromTexture(*canvas->GetGPUContext(), externalTextureInfo,
                 Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr)) {
-                RS_LOGE("RSDividedRenderUtil::DrawImage: image BuildFromTexture failed");
+                RS_LOGE("RSHardwareThread::Redraw: image BuildFromTexture failed");
                 return;
             }
             canvas->AttachBrush(params.paint);

@@ -915,6 +915,11 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         if (surfaceNode == nullptr) {
             return;
         }
+        if (surfaceNode->IsHardwareEnabledType()
+            && CheckSubThreadNodeStatusIsDoing(surfaceNode->GetInstanceRootNodeId())) {
+            RS_LOGD("SubThread is processing %{public}s, skip acquire buffer", surfaceNode->GetName().c_str());
+            return;
+        }
         auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*surfaceNode);
         surfaceHandler.ResetCurrentFrameBufferConsumed();
         if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler)) {
@@ -935,6 +940,25 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         RequestNextVSync();
     }
     RS_OPTIONAL_TRACE_END();
+}
+
+bool RSMainThread::CheckSubThreadNodeStatusIsDoing(NodeId appNodeId) const
+{
+    for (auto& node : subThreadNodes_) {
+        if (node->GetCacheSurfaceProcessedStatus() != CacheProcessStatus::DOING) {
+            continue;
+        }
+        if (node->GetId() == appNodeId) {
+            return true;
+        }
+        for (auto& child : node->GetSortedChildren()) {
+            auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+            if (surfaceNode && surfaceNode->GetId() == appNodeId) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 void RSMainThread::CollectInfoForHardwareComposer()
@@ -2667,7 +2691,7 @@ bool RSMainThread::IsSingleDisplay()
     return rootNode->GetChildrenCount() == 1;
 }
 
-const uint32_t UIFIRST_MINIMUM_NODE_NUMBER = 20;
+const uint32_t UIFIRST_MINIMUM_NODE_NUMBER = 13; // minimum window number(13) for enabling UIFirst
 void RSMainThread::UpdateUIFirstSwitch()
 {
     if (deviceType_ == DeviceType::PHONE) {

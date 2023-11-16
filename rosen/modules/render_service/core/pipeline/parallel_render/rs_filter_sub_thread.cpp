@@ -34,6 +34,10 @@
 #include "res_type.h"
 #endif
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif // RS_ENABLE_VK
+
 namespace OHOS::Rosen {
 namespace {
 #ifdef RES_SCHED_ENABLE
@@ -218,6 +222,7 @@ sk_sp<GrContext> RSFilterSubThread::CreateShareGrContext()
 #endif
 {
     RS_TRACE_NAME("CreateShareGrContext");
+#ifdef RS_ENABLE_GL
     CreateShareEglContext();
     const GrGLInterface* grGlInterface = GrGLCreateNativeInterface();
     sk_sp<const GrGLInterface> glInterface(grGlInterface);
@@ -240,6 +245,12 @@ sk_sp<GrContext> RSFilterSubThread::CreateShareGrContext()
     sk_sp<GrDirectContext> grContext = GrDirectContext::MakeGL(std::move(glInterface), options);
 #else
     sk_sp<GrContext> grContext = GrContext::MakeGL(std::move(glInterface), options);
+#endif
+#endif
+
+#ifdef RS_ENABLE_VK
+    sk_sp<GrDirectContext> grContext = GrDirectContext::MakeVulkan(
+        RsVulkanContext::GetSingleton().GetGrVkBackendContext());
 #endif
     if (grContext == nullptr) {
         RS_LOGE("nullptr grContext is null");

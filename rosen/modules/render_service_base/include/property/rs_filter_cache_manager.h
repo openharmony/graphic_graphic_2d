@@ -16,7 +16,7 @@
 #ifndef RENDER_SERVICE_BASE_PROPERTY_RS_FILTER_CACHE_MANAGER_H
 #define RENDER_SERVICE_BASE_PROPERTY_RS_FILTER_CACHE_MANAGER_H
 
-#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include <condition_variable>
 #include <mutex>
 

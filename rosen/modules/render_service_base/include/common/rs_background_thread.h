@@ -20,8 +20,10 @@
 #include "common/rs_macros.h"
 #if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifndef USE_ROSEN_DRAWING
+#ifdef RS_ENABLE_GL
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
+#endif
 #include "include/core/SkSurface.h"
 #if defined(NEW_SKIA)
 #include "include/gpu/GrDirectContext.h"
