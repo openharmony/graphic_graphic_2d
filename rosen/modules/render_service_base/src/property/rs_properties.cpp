@@ -109,6 +109,7 @@ const std::vector<ResetPropertyFunc> g_propertyResetterLUT = {
     [](RSProperties* prop) { prop->SetSaturate({}); },                   // SATURATE,                 59
     [](RSProperties* prop) { prop->SetSepia({}); },                      // SEPIA,                    60
     [](RSProperties* prop) { prop->SetInvert({}); },                     // INVERT,                   61
+    [](RSProperties* prop) { prop->SetAiInvert({}); },
     [](RSProperties* prop) { prop->SetHueRotate({}); },                  // HUE_ROTATE,               62
     [](RSProperties* prop) { prop->SetColorBlend({}); },                 // COLOR_BLEND,              63
     [](RSProperties* prop) { prop->SetParticles({}); },                  // PARTICLE,                 64
@@ -1569,6 +1570,21 @@ void RSProperties::SetInvert(const std::optional<float>& invert)
 const std::optional<float>& RSProperties::GetInvert() const
 {
     return invert_;
+}
+
+
+void RSProperties::SetAiInvert(const std::optional<Vector4f>& aiInvert)
+{
+    aiInvert_ = aiInvert;
+    colorFilterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+    isDrawn_ = true;
+}
+
+const std::optional<Vector4f>& RSProperties::GetAiInvert() const
+{
+    return aiInvert_;
 }
 
 void RSProperties::SetHueRotate(const std::optional<float>& hueRotate)

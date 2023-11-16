@@ -242,6 +242,8 @@ public:
     const std::optional<Vector4f>& GetPixelStretch() const;
     void SetPixelStretchPercent(const std::optional<Vector4f>& stretchPercent);
     const std::optional<Vector4f>& GetPixelStretchPercent() const;
+    void SetAiInvert(const std::optional<Vector4f>& aiInvert);
+    const std::optional<Vector4f>& GetAiInvert() const;
     RectI GetPixelStretchDirtyRect() const;
 
     const std::shared_ptr<RSObjAbsGeometry>& GetBoundsGeometry() const;
@@ -359,6 +361,7 @@ private:
 
     std::optional<Vector4f> pixelStretch_;
     std::optional<Vector4f> pixelStretchPercent_;
+    std::optional<Vector4f> aiInvert_;
     std::optional<RRect> clipRRect_;
 
     std::optional<float> grayScale_;
