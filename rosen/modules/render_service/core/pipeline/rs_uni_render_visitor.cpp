@@ -1675,13 +1675,28 @@ void RSUniRenderVisitor::DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderNode& node
     }
 }
 
+void RSUniRenderVisitor::ProcessShadowFirst(RSRenderNode& node, bool inSubThread)
+{
+    if (RSSystemProperties::GetUseShadowBatchingEnabled()
+        && (node.GetRenderProperties().GetUseShadowBatching())) {
+        auto children = node.GetSortedChildren(inSubThread);
+        for (auto& child : children) {
+            if (auto node = child->ReinterpretCastTo<RSCanvasRenderNode>()) {
+                node->ProcessShadowBatching(*canvas_);
+            }
+        }
+    }
+}
+
 void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
 {
     if (DrawBlurInCache(node) || node.GetChildrenCount() == 0) {
         return;
     }
+    
     if (isSubThread_) {
         node.SetIsUsedBySubThread(true);
+        ProcessShadowFirst(node, isSubThread_);
         for (auto& child : node.GetSortedChildren(true)) {
             ProcessChildInner(node, child);
         }
@@ -1689,6 +1704,7 @@ void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
         node.ClearFullChildrenListIfNeeded(true);
         node.SetIsUsedBySubThread(false);
     } else {
+        ProcessShadowFirst(node, isSubThread_);
         for (auto& child : node.GetSortedChildren()) {
             ProcessChildInner(node, child);
         }

@@ -1085,6 +1085,11 @@ void RSNode::SetUseEffect(bool useEffect)
     SetProperty<RSUseEffectModifier, RSProperty<bool>>(RSModifierType::USE_EFFECT, useEffect);
 }
 
+void RSNode::SetUseShadowBatching(bool useShadowBatching)
+{
+    SetProperty<RSUseShadowBatchingModifier, RSProperty<bool>>(RSModifierType::USE_SHADOW_BATCHING, useShadowBatching);
+}
+
 void RSNode::SetColorBlendMode(RSColorBlendModeType blendMode)
 {
     SetProperty<RSColorBlendModeModifier, RSProperty<int>>(

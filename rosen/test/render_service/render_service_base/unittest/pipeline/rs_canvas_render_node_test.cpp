@@ -165,4 +165,18 @@ HWTEST_F(RSCanvasRenderNodeTest, ColorBlendModeTest, TestSize.Level1)
     canvas_->restore();
     canvas_->restore();
 }
+
+/**
+ * @tc.name: ProcessShadowBatchingTest
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasRenderNodeTest, ProcessShadowBatchingTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    std::weak_ptr<RSContext> context;
+    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
+    rsCanvasRenderNode->ProcessShadowBatching(*canvas_, true);
+}
 } // namespace OHOS::Rosen

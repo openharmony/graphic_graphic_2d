@@ -123,6 +123,7 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
         prop->SetOuterBorderStyle(BORDER_TYPE_NONE);
     },                                                                   // OUTER_BORDER_STYLE,       69
     [](RSProperties* prop) { prop->SetOuterBorderRadius(0.f); },         // OUTER_BORDER_RADIUS,      70
+    [](RSProperties* prop) { prop->SetUseShadowBatching(false); },       // USE_SHADOW_BATCHING,      71
 };
 } // namespace
 
@@ -1561,6 +1562,20 @@ void RSProperties::SetUseEffect(bool useEffect)
 bool RSProperties::GetUseEffect() const
 {
     return useEffect_;
+}
+
+void RSProperties::SetUseShadowBatching(bool useShadowBatching)
+{
+    if (useShadowBatching) {
+        isDrawn_ = true;
+    }
+    useShadowBatching_ = useShadowBatching;
+    SetDirty();
+}
+
+bool RSProperties::GetUseShadowBatching() const
+{
+    return useShadowBatching_;
 }
 
 void RSProperties::SetPixelStretch(const std::optional<Vector4f>& stretchSize)

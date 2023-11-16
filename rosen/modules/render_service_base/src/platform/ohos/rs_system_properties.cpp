@@ -173,6 +173,13 @@ bool RSSystemProperties::GetHardwareComposerEnabled()
     return hardwareComposerEnabled;
 }
 
+bool RSSystemProperties::GetUseShadowBatchingEnabled()
+{
+    static bool useShadowBatching =
+        std::atoi((system::GetParameter("persist.useShadowBatching.enabled", "1")).c_str()) != 0;
+    return useShadowBatching;
+}
+
 bool RSSystemProperties::GetAFBCEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.afbc.enabled", "1");

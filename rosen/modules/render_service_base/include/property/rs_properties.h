@@ -144,6 +144,9 @@ public:
     void SetSublayerTransform(const std::optional<Matrix3f>& sublayerTransform);
     const std::optional<Matrix3f>& GetSublayerTransform() const;
 
+    bool GetUseShadowBatching() const;
+    void SetUseShadowBatching(bool useShadowBatching);
+
     // particle properties
     void SetParticles(const RSRenderParticleVector& particles);
     RSRenderParticleVector GetParticles() const;
@@ -340,6 +343,7 @@ private:
 
     bool hasBounds_ = false;
     bool useEffect_ = false;
+    bool useShadowBatching_ = false;
 
     int colorBlendMode_ = 0;
 

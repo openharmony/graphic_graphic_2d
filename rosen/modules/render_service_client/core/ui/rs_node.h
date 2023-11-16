@@ -288,6 +288,8 @@ public:
 
     void SetUseEffect(bool useEffect);
 
+    void SetUseShadowBatching(bool useShadowBatching);
+
     void SetColorBlendMode(RSColorBlendModeType blendMode);
 
     // driven render
