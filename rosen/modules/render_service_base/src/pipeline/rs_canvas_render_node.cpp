@@ -34,7 +34,6 @@
 #include "platform/common/rs_log.h"
 #include "visitor/rs_node_visitor.h"
 #include "property/rs_property_drawable.h"
-#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {

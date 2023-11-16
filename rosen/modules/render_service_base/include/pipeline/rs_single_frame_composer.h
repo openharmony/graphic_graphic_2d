@@ -16,10 +16,10 @@
 #ifndef RS_SINGLE_FRAME_COMPOSER_H
 #define RS_SINGLE_FRAME_COMPOSER_H
 
-#include <mutex>
 #include <list>
-#include <thread>
 #include <map>
+#include <mutex>
+#include <thread>
 #include "common/rs_macros.h"
 #include "modifier/rs_modifier_type.h"
 #include "modifier/rs_render_modifier.h"

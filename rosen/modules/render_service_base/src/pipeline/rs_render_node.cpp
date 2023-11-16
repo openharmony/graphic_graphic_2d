@@ -34,7 +34,6 @@
 #include "property/rs_property_trace.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
-#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
