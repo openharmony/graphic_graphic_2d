@@ -16,9 +16,15 @@
 #include "hgm_frame_rate_manager.h"
 
 #include "common/rs_optional_trace.h"
+#include "common/rs_thread_handler.h"
+#include "pipeline/rs_uni_render_judgement.h"
+#include "hgm_core.h"
 #include "hgm_log.h"
 #include "parameters.h"
 #include "rs_trace.h"
+#include "sandbox_utils.h"
+#include "frame_rate_report.h"
+
 
 namespace OHOS {
 namespace Rosen {
@@ -28,14 +34,43 @@ namespace {
     constexpr float DIVISOR_TWO = 2.0f;
     constexpr int32_t DEFAULT_PREFERRED = 60;
     constexpr int32_t IDLE_TIMER_EXPIRED = 200; // ms
+    constexpr float ONE_MS_IN_NANO = 1000000.0f;
+    constexpr uint32_t UNI_RENDER_VSYNC_OFFSET = 5000000; // ns
 }
 
-void HgmFrameRateManager::UniProcessData(const FrameRateRangeData& data)
+void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
+    sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator)
 {
-    auto screenId = data.screenId;
+    UpdateVSyncMode(rsController, appController);
+    controller_ =
+        std::make_shared<HgmVSyncGeneratorController>(rsController, appController, vsyncGenerator);
+}
+
+void HgmFrameRateManager::UpdateVSyncMode(sptr<VSyncController> rsController, sptr<VSyncController> appController)
+{
+    HgmCore::Instance().RegisterRefreshRateModeChangeCallback([rsController, appController](int32_t mode) {
+        if (mode == HGM_REFRESHRATE_MODE_AUTO) {
+            rsController->SetPhaseOffset(0);
+            appController->SetPhaseOffset(0);
+            CreateVSyncGenerator()->SetVSyncMode(VSYNC_MODE_LTPO);
+        } else {
+            if (RSUniRenderJudgement::IsUniRender()) {
+                rsController->SetPhaseOffset(UNI_RENDER_VSYNC_OFFSET);
+                appController->SetPhaseOffset(UNI_RENDER_VSYNC_OFFSET);
+            }
+            CreateVSyncGenerator()->SetVSyncMode(VSYNC_MODE_LTPS);
+        }
+    });
+}
+
+void HgmFrameRateManager::UniProcessData(ScreenId screenId, uint64_t timestamp,
+                                         std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
+                                         const FrameRateLinkerMap& appFrameRateLinkers, bool forceUpdateFlag)
+{
     if (screenId == INVALID_SCREEN_ID) {
         return;
     }
+
     auto& hgmCore = HgmCore::Instance();
     FrameRateRange finalRange;
     if (auto scenePreferred = hgmCore.GetScenePreferred(); scenePreferred != 0) {
@@ -43,12 +78,13 @@ void HgmFrameRateManager::UniProcessData(const FrameRateRangeData& data)
         finalRange.max_ = RANGE_MAX_REFRESHRATE;
         finalRange.preferred_ = scenePreferred;
     } else {
-        finalRange.Merge(data.rsRange);
-        for (auto appRange : data.multiAppRange) {
-            finalRange.Merge(appRange.second);
+        finalRange = rsFrameRateLinker->GetExpectedRange();
+        for (auto linker : appFrameRateLinkers) {
+            finalRange.Merge(linker.second->GetExpectedRange());
         }
+
         if (!finalRange.IsValid()) {
-            if (data.forceUpdateFlag) {
+            if (forceUpdateFlag) {
                 finalRange.max_ = RANGE_MAX_REFRESHRATE;
                 finalRange.preferred_ = DEFAULT_PREFERRED;
             } else {
@@ -59,26 +95,73 @@ void HgmFrameRateManager::UniProcessData(const FrameRateRangeData& data)
             ResetScreenTimer(screenId);
         }
     }
+    Reset();
     CalcRefreshRate(screenId, finalRange);
-    rsFrameRate_ = GetDrawingFrameRate(currRefreshRate_, finalRange);
-    RS_OPTIONAL_TRACE_NAME("HgmFrameRateManager:UniProcessData refreshRate:" +
-        std::to_string(static_cast<int>(currRefreshRate_)) + ", rsFrameRate:" +
-        std::to_string(static_cast<int>(rsFrameRate_)) + ", finalRange=(" +
-        std::to_string(static_cast<int>(finalRange.min_)) + ", " +
-        std::to_string(static_cast<int>(finalRange.max_)) + ", " +
-        std::to_string(static_cast<int>(finalRange.preferred_)) + ")");
 
-    for (auto appRange : data.multiAppRange) {
-        multiAppFrameRate_[appRange.first] = GetDrawingFrameRate(currRefreshRate_, finalRange);
-        RS_OPTIONAL_TRACE_NAME("multiAppFrameRate:pid=" +
-            std::to_string(static_cast<int>(appRange.first)) + ", appRange=(" +
-            std::to_string(static_cast<int>(appRange.second.min_)) + ", " +
-            std::to_string(static_cast<int>(appRange.second.max_)) + ", " +
-            std::to_string(static_cast<int>(appRange.second.preferred_)) + "), frameRate=" +
-            std::to_string(static_cast<int>(multiAppFrameRate_[appRange.first])));
+    bool frameRateChanged = CollectFrameRateChange(finalRange, rsFrameRateLinker, appFrameRateLinkers);
+    if (!hgmCore.GetLtpoEnabled()) {
+        pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
+    } else if (frameRateChanged) {
+        auto oldRefreshRate = hgmCore.GetScreenCurrentRefreshRate(screenId);
+        HandleFrameRateChangeForLTPO(timestamp);
+        if (currRefreshRate_ != oldRefreshRate) {
+            std::unordered_map<pid_t, uint32_t> rates;
+            rates[GetRealPid()] = currRefreshRate_;
+            FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRates(rates);
+        }
     }
-    // [Temporary func]: Switch refresh rate immediately, func will be removed in the future.
-    ExecuteSwitchRefreshRate(screenId);
+}
+
+bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
+                                                 std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
+                                                 const FrameRateLinkerMap& appFrameRateLinkers)
+{
+    bool frameRateChanged = false;
+    bool controllerRateChanged = false;
+    auto rsFrameRate = GetDrawingFrameRate(currRefreshRate_, finalRange);
+    controllerRate_ = rsFrameRate > 0 ? rsFrameRate : controller_->GetCurrentRate();
+    if (controllerRate_ != controller_->GetCurrentRate()) {
+        rsFrameRateLinker->SetFrameRate(controllerRate_);
+        controllerRateChanged = true;
+        frameRateChanged = true;
+    }
+    RS_TRACE_NAME_FMT("HgmFrameRateManager::UniProcessData refreshRate: %d, rsFrameRate: %d, finalRange = (%d, %d, %d)",
+        currRefreshRate_, rsFrameRate, finalRange.min_, finalRange.max_, finalRange.preferred_);
+    RS_TRACE_INT("PreferredFrameRate", static_cast<int>(finalRange.preferred_));
+
+    for (auto linker : appFrameRateLinkers) {
+        auto appFrameRate = GetDrawingFrameRate(currRefreshRate_, linker.second->GetExpectedRange());
+        if (appFrameRate != linker.second->GetFrameRate() || controllerRateChanged) {
+            linker.second->SetFrameRate(appFrameRate);
+            appChangeData_.emplace_back(linker.second->GetId(), appFrameRate);
+            HGM_LOGI("HgmFrameRateManager: appChangeData linkerId = %{public}" PRIu64 ", %{public}d",
+                linker.second->GetId(), appFrameRate);
+            frameRateChanged = true;
+        }
+        RS_TRACE_NAME_FMT("HgmFrameRateManager::UniProcessData multiAppFrameRate: pid = %d, appFrameRate = %d, "\
+            "appRange = (%d, %d, %d)", ExtractPid(linker.first), appFrameRate, linker.second->GetExpectedRange().min_,
+            linker.second->GetExpectedRange().max_, linker.second->GetExpectedRange().preferred_);
+    }
+    return frameRateChanged;
+}
+
+void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp)
+{
+    RSTaskMessage::RSTask task = [this]() {
+        controller_->ChangeGeneratorRate(controllerRate_, appChangeData_);
+        pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
+    };
+
+    auto expectTime = timestamp + controller_->GetCurrentOffset();
+    uint64_t currTime = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+    int64_t delayTime = std::ceil(static_cast<int64_t>(expectTime - currTime) * 1.0f / ONE_MS_IN_NANO) + 1;
+    if (delayTime <= 0) {
+        HgmTaskHandleThread::Instance().PostTask(task);
+    } else {
+        HgmTaskHandleThread::Instance().PostTask(task, delayTime);
+    }
 }
 
 void HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRateRange& range)
@@ -89,6 +172,9 @@ void HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRateRang
     // 2. FrameRateRange[min, max, preferred] is [150, 150, 150], supported refreshRates
     // of current screen are {30, 60, 90}, the result will be 90.
     auto supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(id);
+    if (supportRefreshRateVec.empty()) {
+        return;
+    }
     std::sort(supportRefreshRateVec.begin(), supportRefreshRateVec.end());
     auto iter = std::lower_bound(supportRefreshRateVec.begin(), supportRefreshRateVec.end(), range.preferred_);
     if (iter != supportRefreshRateVec.end()) {
@@ -114,7 +200,7 @@ uint32_t HgmFrameRateManager::GetDrawingFrameRate(const uint32_t refreshRate, co
     const float currRefreshRate = static_cast<float>(refreshRate);
     const float preferredFps = static_cast<float>(range.preferred_);
     if (preferredFps < MARGIN || currRefreshRate < MARGIN) {
-        return -1;
+        return 0;
     }
     if (std::fmodf(currRefreshRate, range.preferred_) < MARGIN) {
         return static_cast<uint32_t>(preferredFps);
@@ -176,31 +262,22 @@ uint32_t HgmFrameRateManager::GetDrawingFrameRate(const uint32_t refreshRate, co
     return static_cast<uint32_t>(std::round(drawingFps));
 }
 
-void HgmFrameRateManager::ExecuteSwitchRefreshRate(const ScreenId id)
+std::shared_ptr<uint32_t> HgmFrameRateManager::GetPendingRefreshRate()
 {
-    static bool refreshRateSwitch = system::GetBoolParameter("persist.hgm.refreshrate.enabled", true);
-    if (!refreshRateSwitch) {
-        HGM_LOGD("HgmFrameRateManager: refreshRateSwitch is off, currRefreshRate is %{public}d", currRefreshRate_);
-        return;
-    }
-    uint32_t lcdRefreshRate = HgmCore::Instance().GetScreenCurrentRefreshRate(id);
-    if (currRefreshRate_ != lcdRefreshRate) {
-        HGM_LOGD("HgmFrameRateManager: current refreshRate is %{public}d",
-            static_cast<int>(currRefreshRate_));
-        int status = HgmCore::Instance().SetScreenRefreshRate(id, 0, currRefreshRate_);
-        if (status < EXEC_SUCCESS) {
-            currRefreshRate_ = lcdRefreshRate;
-            HGM_LOGE("HgmFrameRateManager: failed to set refreshRate %{public}d, screenId %{public}d",
-                static_cast<int>(currRefreshRate_), static_cast<int>(id));
-        }
-    }
+    return pendingRefreshRate_;
+}
+
+void HgmFrameRateManager::ResetPendingRefreshRate()
+{
+    pendingRefreshRate_.reset();
 }
 
 void HgmFrameRateManager::Reset()
 {
-    currRefreshRate_ = -1;
-    rsFrameRate_ = -1;
-    multiAppFrameRate_.clear();
+    currRefreshRate_ = 0;
+    controllerRate_ = 0;
+    pendingRefreshRate_.reset();
+    appChangeData_.clear();
 }
 
 int32_t HgmFrameRateManager::CalModifierPreferred(const HgmModifierProfile &hgmModifierProfile)

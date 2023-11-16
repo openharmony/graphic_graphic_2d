@@ -48,8 +48,11 @@
 
 namespace OHOS {
 namespace Rosen {
+#ifndef USE_ROSEN_DRAWING
 bool CopyDataToPixelMap(sk_sp<SkImage> img, const std::unique_ptr<Media::PixelMap>& pixelmap);
-
+#else
+bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_ptr<Media::PixelMap>& pixelmap);
+#endif
 class RSSurfaceCaptureVisitor : public RSNodeVisitor {
     public:
         RSSurfaceCaptureVisitor(float scaleX, float scaleY, bool isUniRender);
@@ -161,20 +164,6 @@ private:
     ScreenRotation screenCorrection_ = ScreenRotation::ROTATION_0;
 };
 
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
-#ifndef USE_ROSEN_DRAWING
-class DmaMem {
-public:
-    sptr<SurfaceBuffer> DmaMemAlloc(SkImageInfo &dstInfo, const std::unique_ptr<Media::PixelMap>& pixelmap);
-    sk_sp<SkSurface> GetSkSurfaceFromSurfaceBuffer(sptr<SurfaceBuffer> surfaceBuffer);
-    void ReleaseGLMemory();
-private:
-    EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
-    GLuint texId_ = 0;
-    OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
-};
-#endif
-#endif
 } // namespace Rosen
 } // namespace OHOS
 

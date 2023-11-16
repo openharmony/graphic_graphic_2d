@@ -62,6 +62,8 @@ public:
         return nullptr;
     }
 
+    std::shared_ptr<Rect> Bounds() const;
+
 private:
     std::shared_ptr<TextBlobImpl> textBlobImpl_;
 };

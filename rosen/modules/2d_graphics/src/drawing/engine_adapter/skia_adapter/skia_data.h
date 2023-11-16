@@ -36,6 +36,7 @@ public:
 
     bool BuildFromMalloc(const void* data, size_t length) override;
     bool BuildWithCopy(const void* data, size_t length) override;
+    bool BuildWithProc(const void* ptr, size_t length, DataReleaseProc proc, void* ctx) override;
     bool BuildWithoutCopy(const void* data, size_t length) override;
     bool BuildUninitialized(size_t length) override;
 

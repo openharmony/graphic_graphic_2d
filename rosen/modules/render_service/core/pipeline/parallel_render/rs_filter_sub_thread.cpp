@@ -34,10 +34,14 @@
 #include "res_type.h"
 #endif
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif // RS_ENABLE_VK
+
 namespace OHOS::Rosen {
 namespace {
 #ifdef RES_SCHED_ENABLE
-const uint32_t RS_SUB_QOS_LEVEL = 8;
+const uint32_t RS_SUB_QOS_LEVEL = 7;
 constexpr const char* RS_BUNDLE_NAME = "render_service";
 #endif
 // "/data/service/el0/render_service" is shader cache dir
@@ -100,11 +104,7 @@ float RSFilterSubThread::GetAppGpuMemoryInMB()
 {
     float total = 0.f;
     PostSyncTask([&total, this]() {
-#ifndef USE_ROSEN_DRAWING
         total = MemoryManager::GetAppGpuMemoryInMB(grContext_.get());
-#else
-        RS_LOGE("Drawing Unsupport GetAppGpuMemoryInMB");
-#endif
     });
     return total;
 }
@@ -154,12 +154,10 @@ void RSFilterSubThread::RenderCache(std::weak_ptr<RSFilter::RSFilterTask> filter
         RS_LOGE("grContext is null");
         return;
     }
-#ifndef USE_ROSEN_DRAWING
     if (!task->InitSurface(grContext_.get())) {
         RS_LOGE("InitSurface failed");
         return;
     }
-#endif
     if (!task->Render()) {
         RS_LOGE("Render failed");
     }
@@ -173,6 +171,7 @@ sk_sp<GrContext> RSFilterSubThread::CreateShareGrContext()
 #endif
 {
     RS_TRACE_NAME("CreateShareGrContext");
+#ifdef RS_ENABLE_GL
     CreateShareEglContext();
     const GrGLInterface* grGlInterface = GrGLCreateNativeInterface();
     sk_sp<const GrGLInterface> glInterface(grGlInterface);
@@ -195,6 +194,12 @@ sk_sp<GrContext> RSFilterSubThread::CreateShareGrContext()
     sk_sp<GrDirectContext> grContext = GrDirectContext::MakeGL(std::move(glInterface), options);
 #else
     sk_sp<GrContext> grContext = GrContext::MakeGL(std::move(glInterface), options);
+#endif
+#endif
+
+#ifdef RS_ENABLE_VK
+    sk_sp<GrDirectContext> grContext = GrDirectContext::MakeVulkan(
+        RsVulkanContext::GetSingleton().GetGrVkBackendContext());
 #endif
     if (grContext == nullptr) {
         RS_LOGE("nullptr grContext is null");
@@ -230,6 +235,8 @@ void RSFilterSubThread::ResetGrContext()
     }
 #ifndef USE_ROSEN_DRAWING
     grContext_->freeGpuResources();
+#else
+    grContext_->FreeGpuResources();
 #endif
 }
 } // namespace OHOS::Rosen

@@ -56,6 +56,7 @@ using BufferClearCallback = std::function<void()>;
 using OcclusionChangeCallback = std::function<void(std::shared_ptr<RSOcclusionData>)>;
 using SurfaceOcclusionChangeCallback = std::function<void(float)>;
 using HgmConfigChangeCallback = std::function<void(std::shared_ptr<RSHgmConfigData>)>;
+using OnRemoteDiedCallback = std::function<void()>;
 
 struct DataBaseRs {
     int32_t appPid = -1;
@@ -103,7 +104,8 @@ public:
 #endif
     std::shared_ptr<VSyncReceiver> CreateVSyncReceiver(
         const std::string& name,
-        const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr);
+        const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr,
+        uint64_t id = 0);
 
     bool TakeSurfaceCapture(
         NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY,
@@ -113,6 +115,7 @@ public:
         uint64_t focusNodeId);
 
     ScreenId GetDefaultScreenId();
+    ScreenId GetActiveScreenId();
 
     std::vector<ScreenId> GetAllScreenIds();
 
@@ -137,6 +140,8 @@ public:
     void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate);
 
     void SetRefreshRateMode(int32_t refreshRateMode);
+
+    void SyncFrameRateRange(const FrameRateRange& range);
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id);
 
@@ -170,7 +175,7 @@ public:
 
     bool RegisterBufferAvailableListener(
         NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread = false);
-    
+
     bool RegisterBufferClearListener(
         NodeId id, const BufferClearCallback &callback);
 
@@ -228,6 +233,8 @@ public:
     void SetHardwareEnabled(NodeId id, bool isEnabled);
 
     void SetCacheEnabledForRotation(bool isEnabled);
+
+    void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
 
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config);

@@ -110,17 +110,21 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old)
 int RSRenderServiceConnectionStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
+#ifdef ENABLE_IPC_SECURITY_ACCESS_COUNTER
     if (!securityManager_.IsAccessTimesRestricted(code, securityUtils_.GetCodeAccessCounter(code))) {
         RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access codeID=%{public}u by "
                 "pid=%{public}d with accessTimes = %{public}d.",
             code, GetCallingPid(), securityUtils_.GetCodeAccessCounter(code));
         return ERR_INVALID_STATE;
     }
+#endif
     if (!securityManager_.IsInterfaceCodeAccessible(code)) {
         RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access codeID=%{public}u.", code);
         return ERR_INVALID_STATE;
     }
+#ifdef ENABLE_IPC_SECURITY_ACCESS_COUNTER
     securityUtils_.IncreaseAccessCounter(code);
+#endif
     int ret = ERR_NONE;
     switch (code) {
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::COMMIT_TRANSACTION): {
@@ -214,6 +218,16 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             ScreenId id = GetDefaultScreenId();
+            reply.WriteUint64(id);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_SCREEN_ID): {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = GetActiveScreenId();
             reply.WriteUint64(id);
             break;
         }
@@ -340,6 +354,18 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             int32_t mode = data.ReadInt32();
             SetRefreshRateMode(mode);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SYNC_FRAME_RATE_RANGE): {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            uint32_t min = data.ReadUint32();
+            uint32_t max = data.ReadUint32();
+            uint32_t preferred = data.ReadUint32();
+            SyncFrameRateRange({min, max, preferred});
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CURRENT_REFRESH_RATE): {
@@ -712,6 +738,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION): {
             std::string name = data.ReadString();
             auto remoteObj = data.ReadRemoteObject();
+            uint64_t id = data.ReadUint64();
             if (remoteObj == nullptr) {
                 ret = ERR_NULL_OBJECT;
                 break;
@@ -725,7 +752,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_UNKNOWN_OBJECT;
                 break;
             }
-            sptr<IVSyncConnection> conn = CreateVSyncConnection(name, token);
+            sptr<IVSyncConnection> conn = CreateVSyncConnection(name, token, id);
             if (conn == nullptr) {
                 ret = ERR_NULL_OBJECT;
                 break;

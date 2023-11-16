@@ -176,11 +176,27 @@ public:
     Image() noexcept;
     // constructor adopt a raw image ptr, using for ArkUI, should remove after enable multi-media image decode.
     explicit Image(void* rawImg) noexcept;
+    explicit Image(std::shared_ptr<ImageImpl> imageImpl);
     virtual ~Image() {};
     Image* BuildFromBitmap(const Bitmap& bitmap);
     Image* BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix, const Brush& brush,
         BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace);
 
+    /*
+     * @brief                        Create Image from Pixmap.
+     * @param  pixmap                pixmap.
+     * @param  rasterReleaseProc     function called when pixels can be released; or nullptr.
+     * @param  releaseContext        state passed to rasterReleaseProc; or nullptr.
+     * @return                       Image sharing pixmap.
+     */
+    static std::shared_ptr<Image> MakeFromRaster(const Pixmap& pixmap,
+        RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext);
+
+    /*
+     * @brief  Create Image from ImageInfo, sharing pixels.
+     */
+    static std::shared_ptr<Image> MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
+                                                 size_t rowBytes);
 #ifdef ACE_ENABLE_GPU
     /*
      * @brief             Create Image from Bitmap. Image is uploaded to GPU back-end using context.
@@ -225,6 +241,11 @@ public:
 #endif
 
     /*
+     * @brief  Creates raster Bitmap with same pixels as Image.
+     */
+    bool AsLegacyBitmap(Bitmap& bitmap) const;
+
+    /*
      * @brief  Gets the width of Image.
      */
     int GetWidth() const;
@@ -263,12 +284,24 @@ public:
      */
     bool ReadPixels(Bitmap& bitmap, int x, int y);
 
+    bool ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
+                    int srcX, int srcY) const;
+
     bool ScalePixels(const Bitmap& bitmap, const SamplingOptions& sampling,
         bool allowCachingHint = true) const;
 
     std::shared_ptr<Data> EncodeToData(EncodedImageFormat& encodedImageFormat, int quality) const;
 
     bool IsLazyGenerated() const;
+
+    /*
+     * @brief  Get Bitmap by image's directContext, can call it if IsLazyGenerated return false.
+     */
+    bool GetROPixels(Bitmap& bitmap);
+
+    std::shared_ptr<Image> MakeRasterImage() const;
+
+    bool CanPeekPixels() const;
 
     /*
      * @brief   Returns true the contents of Image was created on or uploaded to GPU memory,

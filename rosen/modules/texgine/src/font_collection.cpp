@@ -17,6 +17,7 @@
 
 #include "texgine/dynamic_font_provider.h"
 #include "texgine/system_font_provider.h"
+#include "texgine/theme_font_provider.h"
 #include "texgine/typography_types.h"
 #include "texgine/utils/exlog.h"
 #include "texgine_string.h"
@@ -76,8 +77,8 @@ void FontCollection::SortTypeface(FontStyles &style) const
     }
 }
 
-std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch,
-    FontStyles &style, const std::string &script, const std::string &locale) const
+std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch, FontStyles &style,
+    const std::string &script, const std::string &locale, bool &fallbackTypeface) const
 {
     SortTypeface(style);
     auto fs = std::make_shared<TexgineFontStyle>();
@@ -100,14 +101,33 @@ std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch,
         }
 
         if (typeface->Has(ch)) {
+            fallbackTypeface = false;
             return typeface;
         }
     }
-    auto typeface = FindFallBackTypeface(ch, style, script, locale);
+    auto typeface = FindThemeTypeface(style);
+    if (typeface == nullptr) {
+        typeface = FindFallBackTypeface(ch, style, script, locale);
+    }
     if (typeface == nullptr) {
         typeface = GetTypefaceForFontStyles(style, script, locale);
     }
+    fallbackTypeface = true;
     return typeface;
+}
+
+std::shared_ptr<Typeface> FontCollection::FindThemeTypeface(const FontStyles &style) const
+{
+    std::shared_ptr<VariantFontStyleSet> styleSet = ThemeFontProvider::GetInstance()->MatchFamily("");
+    if (styleSet != nullptr) {
+        auto fs = std::make_shared<TexgineFontStyle>();
+        *fs = style.ToTexgineFontStyle();
+        auto texgineTypeface = styleSet->MatchStyle(fs);
+        if (texgineTypeface != nullptr && texgineTypeface->GetTypeface() != nullptr) {
+            return std::make_shared<Typeface>(texgineTypeface);
+        }
+    }
+    return nullptr;
 }
 
 std::shared_ptr<Typeface> FontCollection::GetTypefaceForFontStyles(const FontStyles &style,
@@ -157,7 +177,7 @@ std::shared_ptr<Typeface> FontCollection::FindFallBackTypeface(const uint32_t &c
     }
     // fallback cache
     struct FallbackCacheKey key = {.script = script, .locale = locale, .fs = style};
-    if (auto it = fallbackCache_.find(key); it != fallbackCache_.end()) {
+    if (auto it = fallbackCache_.find(key); it != fallbackCache_.end() && it->second->Has(ch)) {
         return it->second;
     }
 
@@ -175,9 +195,7 @@ std::shared_ptr<Typeface> FontCollection::FindFallBackTypeface(const uint32_t &c
     }
 
     auto tfs = style.ToTexgineFontStyle();
-    auto fallbackTypeface = fm->MatchFamilyStyleCharacter("", tfs,
-        bcp47.data(), bcp47.size(), ch);
-
+    auto fallbackTypeface = fm->MatchFamilyStyleCharacter("", tfs, bcp47.data(), bcp47.size(), ch);
     if (fallbackTypeface == nullptr || fallbackTypeface->GetTypeface() == nullptr) {
         return nullptr;
     }

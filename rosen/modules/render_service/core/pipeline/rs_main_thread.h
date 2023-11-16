@@ -158,6 +158,9 @@ public:
     std::string GetFocusAppBundleName() const;
 
     sptr<VSyncDistributor> rsVSyncDistributor_;
+    sptr<VSyncController> rsVSyncController_;
+    sptr<VSyncController> appVSyncController_;
+    sptr<VSyncGenerator> vsyncGenerator_;
 
     void ReleaseSurface();
 #ifndef USE_ROSEN_DRAWING
@@ -265,7 +268,7 @@ private:
     void PerfAfterAnim(bool needRequestNextVsync);
     void PerfForBlurIfNeeded();
     void PerfMultiWindow();
-    void RenderFrameStart();
+    void RenderFrameStart(uint64_t timestamp);
     void ResetHardwareEnabledState();
     void CheckIfHardwareForcedDisabled();
     void CheckAndUpdateTransactionIndex(
@@ -279,16 +282,19 @@ private:
     // UIFirst
     bool CheckParallelSubThreadNodesStatus();
     void CacheCommands();
+    bool CheckSubThreadNodeStatusIsDoing(NodeId appNodeId) const;
 
     // used for informing hgm the bundle name of SurfaceRenderNodes
     void InformHgmNodeInfo();
     void CheckIfNodeIsBundle(std::shared_ptr<RSSurfaceRenderNode> node);
 
     void SetFocusLeashWindowId();
-    void ProcessHgmFrameRate(std::shared_ptr<FrameRateRangeData> data, uint64_t timestamp);
-    void CollectFrameRateRange(std::shared_ptr<RSRenderNode> node);
+    void ProcessHgmFrameRate(uint64_t timestamp);
+    FrameRateRange CalcRSFrameRateRange(std::shared_ptr<RSRenderNode> node);
     int32_t GetNodePreferred(const std::vector<HgmModifierProfile>& hgmModifierProfileList) const;
     bool IsLastFrameUIFirstEnabled(NodeId appNodeId) const;
+    RS_REGION_VISIBLE_LEVEL GetRegionVisibleLevel(const Occlusion::Region& curRegion,
+        const Occlusion::Region& visibleRegion);
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
@@ -313,6 +319,7 @@ private:
     uint64_t lastAnimateTimestamp_ = 0;
     uint64_t prePerfTimestamp_ = 0;
     uint64_t lastCleanCacheTimestamp_ = 0;
+    uint64_t preSKReleaseResourceTimestamp_ = 0;
     std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;
 
     std::shared_ptr<RSContext> context_;
@@ -404,7 +411,7 @@ private:
     bool hasDrivenNodeMarkRender_ = false;
 
     std::shared_ptr<HgmFrameRateManager> frameRateMgr_ = nullptr;
-    std::shared_ptr<FrameRateRangeData> frameRateRangeData_ = nullptr;
+    std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;
 
     // UIFirst
     std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes_;

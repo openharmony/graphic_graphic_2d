@@ -42,8 +42,14 @@ public:
     int GetRowBytes() const override;
     ColorType GetColorType() const override;
     AlphaType GetAlphaType() const override;
+    bool ExtractSubset(Bitmap& dst, const Rect& subset) const override;
+    bool ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
+                    int srcX, int srcY) const override;
     void* GetPixels() const override;
     void SetPixels(void* pixels) override;
+    bool InstallPixels(const ImageInfo& info, void* pixels, size_t rowBytes,
+                       ReleaseProc releaseProc, void* context) override;
+    bool PeekPixels(Pixmap& pixmap) const override;
     const SkBitmap& ExportSkiaBitmap() const;
     void CopyPixels(Bitmap& dst, int srcLeft, int srcTop) const override;
     bool IsImmutable() override;
@@ -52,6 +58,11 @@ public:
     ColorQuad GetColor(int x, int y) const override;
     void Free() override;
     bool IsValid() const override;
+    bool IsEmpty() const override;
+    void SetSkBitmap(const SkBitmap& skBitmap);
+
+    std::shared_ptr<Data> Serialize() const override;
+    bool Deserialize(std::shared_ptr<Data> data) override;
 
 private:
     SkBitmap skiaBitmap_;

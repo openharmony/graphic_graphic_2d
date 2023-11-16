@@ -40,6 +40,14 @@
         <Setting name="3" value="1"/><!-- high refreshrate 120hz locked -->
     </Params>
 
+    <!-- stategies for LTPO -->
+    <Params name="LTPO_config">
+        <Setting name="switch" value="0"/>
+        <Setting name="maxTE" value="360"/>
+        <Setting name="alignRate" value="120"/>
+        <Setting name="pipelineOffsetNum" value="8"/>
+    </Params>
+
     <!-- bundle name black_list to be applied on mode 2 -->
     <Params name="bundle_name_black_list" value="2">
         <Setting name="blackBundle2"/>
@@ -67,10 +75,10 @@
     </Params>
 
     <Params name="ace_scene_dynamic_settings">
-        <DynamicSettings name="refresh">
+        <DynamicSettings name="refresh_drag_scene">
             <SpeedThresholds name="1" min="0" max="-1" preferred_fps="120"/>
         </DynamicSettings>
-        <DynamicSettings name="swiper">
+        <DynamicSettings name="swiper_drag_scene">
             <SpeedThresholds name="1" min="0" max="-1" preferred_fps="120"/>
         </DynamicSettings>
         <DynamicSettings name="tabs">

@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include "effect/runtime_effect.h"
+
 #include "impl_factory.h"
 
 #include "skia_adapter/skia_impl_factory.h"
@@ -59,6 +61,16 @@ std::unique_ptr<BitmapImpl> ImplFactory::CreateBitmapImpl()
     return EngineImplFactory::CreateBitmap();
 }
 
+std::unique_ptr<PixmapImpl> ImplFactory::CreatePixmapImpl()
+{
+    return EngineImplFactory::CreatePixmap();
+}
+
+std::unique_ptr<PixmapImpl> ImplFactory::CreatePixmapImpl(const ImageInfo& imageInfo, const void* addr, size_t rowBytes)
+{
+    return EngineImplFactory::CreatePixmap(imageInfo, addr, rowBytes);
+}
+
 std::unique_ptr<ImageImpl> ImplFactory::CreateImageImpl()
 {
     return EngineImplFactory::CreateImage();
@@ -96,6 +108,17 @@ std::unique_ptr<ImageFilterImpl> ImplFactory::CreateImageFilterImpl()
 std::unique_ptr<ShaderEffectImpl> ImplFactory::CreateShaderEffectImpl()
 {
     return EngineImplFactory::CreateShaderEffect();
+}
+
+std::unique_ptr<RuntimeEffectImpl> ImplFactory::CreateRuntimeEffectImpl()
+{
+    return EngineImplFactory::CreateRuntimeEffect();
+}
+
+std::unique_ptr<RuntimeShaderBuilderImpl> ImplFactory::CreateRuntimeShaderBuilderImpl(
+    std::shared_ptr<RuntimeEffect> runtimeEffect)
+{
+    return EngineImplFactory::CreateRuntimeShaderBuilder(runtimeEffect);
 }
 
 std::unique_ptr<SurfaceImpl> ImplFactory::CreateSurfaceImpl()

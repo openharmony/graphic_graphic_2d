@@ -35,8 +35,38 @@
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_pixel_map_util.h"
 
+#ifdef RS_ENABLE_VK
+#include "native_window.h"
+#include "native_buffer_inner.h"
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "include/gpu/GrBackendSemaphore.h"
+#include "platform/ohos/backend/native_buffer_utils.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
+#ifdef RS_ENABLE_VK
+namespace {
+SkColorType GetSkColorTypeFromVkFormat(VkFormat vkFormat)
+{
+    switch (vkFormat) {
+        case VK_FORMAT_R8G8B8A8_UNORM:
+            return kRGBA_8888_SkColorType;
+        case VK_FORMAT_R8G8B8_UNORM:
+            return kRGBA_888x_SkColorType;
+        case VK_FORMAT_R16G16B16A16_SFLOAT:
+            return kRGBA_F16_SkColorType;
+        case VK_FORMAT_R5G6B5_UNORM_PACK16:
+            return kRGBA_565_SkColorType;
+        case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+            return kRGBA_1010102_SkColorType;
+        default:
+            return kRGBA_8888_SkColorType;
+    }
+}
+} // un-named
+#endif
+
 namespace {
 constexpr int32_t CORNER_SIZE = 4;
 void SimplifyPaint(uint32_t color, SkPaint* paint)
@@ -701,8 +731,9 @@ ImageWithParmOpItem::ImageWithParmOpItem(const std::shared_ptr<RSImage>& rsImage
 }
 ImageWithParmOpItem::~ImageWithParmOpItem()
 {
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifndef USE_ROSEN_DRAWING
+#ifdef RS_ENABLE_GL
     RSTaskDispatcher::GetInstance().PostTask(tid_, [texId = texId_,
                                                     nativeWindowBuffer = nativeWindowBuffer_,
                                                     eglImage = eglImage_]() {
@@ -718,6 +749,13 @@ ImageWithParmOpItem::~ImageWithParmOpItem()
             eglDestroyImageKHR(disp, eglImage);
         }
     });
+#elif defined(RS_ENABLE_VK)
+    RSTaskDispatcher::GetInstance().PostTask(tid_, [nativeWindowBuffer = nativeWindowBuffer_]() {
+        if (nativeWindowBuffer) {
+            DestroyNativeWindowBuffer(nativeWindowBuffer);
+        }
+    });
+#endif
 #endif
 #endif
 }
@@ -728,13 +766,35 @@ void ImageWithParmOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) 
         return;
     }
 
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifndef USE_ROSEN_DRAWING
     std::shared_ptr<Media::PixelMap> pixelmap = rsImage_->GetPixelMap();
     if (pixelmap != nullptr && pixelmap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
+#ifdef RS_ENABLE_GL
         sk_sp<SkImage> dmaImage = GetSkImageFromSurfaceBuffer(canvas,
             reinterpret_cast<SurfaceBuffer*> (pixelmap->GetFd()));
         rsImage_->SetDmaImage(dmaImage);
+#elif defined(RS_ENABLE_VK)
+        SurfaceBuffer* surfaceBuffer = reinterpret_cast<SurfaceBuffer*>(pixelmap->GetFd());
+        nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&surfaceBuffer);
+        if (!skImage) {
+            tid_ = gettid();
+            auto backendTexture = MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
+                SurfaceBuffer->GetWidth(), SurfaceBuffer->GetHeight());
+            if (backendTexture.isValid()) {
+                GrVkImageInfo imageInfo;
+                backendTexture.getVkImageInfo(&imageInfo);
+                skImage_ = SkImage::MakeFromTexture(
+                    canvas.recordingContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
+                    GetSkColorTypeFromVkFormat(imageInfo.fFormat), kPremul_SkAlphaType, SkColorSpace::MakeSRGB(),
+                    delete_vk_image, new VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+                        imageInfo.fImage, imageInfo.fAlloc.fMemory));
+            } else {
+                skImage_ = nullptr;
+            }
+        }
+        rsImage_->SetDmaImage(skImage_);
+#endif
     } else {
         if (pixelmap && pixelmap->IsAstc()) {
             const void* data = pixelmap->GetWritablePixels();
@@ -982,6 +1042,9 @@ SurfaceBufferOpItem::~SurfaceBufferOpItem()
 void SurfaceBufferOpItem::Clear() const noexcept
 {
     RS_TRACE_NAME("SurfaceBufferOpItem::Clear");
+#ifdef RS_ENABLE_VK
+    skImage_ = nullptr;
+#endif
 #ifdef RS_ENABLE_GL
     if (texId_ != 0U) {
         glDeleteTextures(1, &texId_);
@@ -990,6 +1053,8 @@ void SurfaceBufferOpItem::Clear() const noexcept
         auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
         eglDestroyImageKHR(disp, eglImage_);
     }
+#endif
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (nativeWindowBuffer_ != nullptr) {
         DestroyNativeWindowBuffer(nativeWindowBuffer_);
     }
@@ -999,7 +1064,7 @@ void SurfaceBufferOpItem::Clear() const noexcept
 void SurfaceBufferOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 {
     Clear();
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (surfaceBufferInfo_.surfaceBuffer_ == nullptr) {
         ROSEN_LOGE("SurfaceBufferOpItem::Draw surfaceBuffer_ is nullptr");
         return;
@@ -1009,6 +1074,25 @@ void SurfaceBufferOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
         ROSEN_LOGE("SurfaceBufferOpItem::Draw create native window buffer fail");
         return;
     }
+#endif
+#ifdef RS_ENABLE_VK
+    auto backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
+        surfaceBufferInfo_.width_, surfaceBufferInfo_.height_);
+    if (backendTexture.isValid()) {
+        GrVkImageInfo imageInfo;
+        backendTexture.getVkImageInfo(&imageInfo);
+        skImage_ = SkImage::MakeFromTexture(
+            canvas.recordingContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
+            GetSkColorTypeFromVkFormat(imageInfo.fFormat), kPremul_SkAlphaType, SkColorSpace::MakeSRGB(),
+            delete_vk_image, new VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+                imageInfo.fImage, imageInfo.fAlloc.fMemory));
+        canvas.drawImage(skImage_, surfaceBufferInfo_.offsetX, surfaceBufferInfo_.offsetY);
+    } else {
+        skImage_ = nullptr;
+        ROSEN_LOGE("SurfaceBufferOpItem::Clear: backendTexture is not valid");
+    }
+#endif
+#ifdef RS_ENABLE_GL
     EGLint attrs[] = {
         EGL_IMAGE_PRESERVED,
         EGL_TRUE,
@@ -2175,6 +2259,9 @@ void ImageWithParmOpItem::SetNodeId(NodeId id)
 
 #else
 #include "pipeline/rs_draw_cmd.h"
+#include "platform/common/rs_log.h"
+#include "render/rs_pixel_map_util.h"
+#include "pipeline/rs_task_dispatcher.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -2210,6 +2297,14 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Media::PixelMap>&
 void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect,
     const Drawing::SamplingOptions& sampling, bool isBackground)
 {
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+    std::shared_ptr<Media::PixelMap> pixelmap = rsImage_->GetPixelMap();
+    if (pixelmap != nullptr && pixelmap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
+        std::shared_ptr<Drawing::Image> dmaImage = GetDrawingImageFromSurfaceBuffer(canvas,
+            reinterpret_cast<SurfaceBuffer*>(pixelmap->GetFd()));
+        rsImage_->SetDmaImage(dmaImage);
+    }
+#endif
     rsImage_->CanvasDrawImage(canvas, rect, sampling, isBackground);
 }
 
@@ -2228,6 +2323,91 @@ RSExtendImageObject *RSExtendImageObject::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
     return object;
+}
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+std::shared_ptr<Drawing::Image> RSExtendImageObject::GetDrawingImageFromSurfaceBuffer(
+    Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer) const
+{
+    if (surfaceBuffer == nullptr) {
+        RS_LOGE("GetDrawingImageFromSurfaceBuffer surfaceBuffer is nullptr");
+        return nullptr;
+    }
+    if (nativeWindowBuffer_ == nullptr) {
+        sptr<SurfaceBuffer> sfBuffer(surfaceBuffer);
+        nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&sfBuffer);
+        if (!nativeWindowBuffer_) {
+            RS_LOGE("GetDrawingImageFromSurfaceBuffer create native window buffer fail");
+            return nullptr;
+        }
+    }
+    EGLint attrs[] = {
+        EGL_IMAGE_PRESERVED,
+        EGL_TRUE,
+        EGL_NONE,
+    };
+
+    auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    if (eglImage_ == EGL_NO_IMAGE_KHR) {
+        eglImage_ = eglCreateImageKHR(disp, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_OHOS, nativeWindowBuffer_, attrs);
+        if (eglImage_ == EGL_NO_IMAGE_KHR) {
+            RS_LOGE("%{public}s create egl image fail %{public}d", __func__, eglGetError());
+            return nullptr;
+        }
+        tid_ = gettid();
+    }
+
+    // Create texture object
+    if (texId_ == 0U) {
+        glGenTextures(1, &texId_);
+        glBindTexture(GL_TEXTURE_2D, texId_);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, static_cast<GLeglImageOES>(eglImage_));
+    }
+
+    Drawing::TextureInfo externalTextureInfo;
+    externalTextureInfo.SetWidth(surfaceBuffer->GetWidth());
+    externalTextureInfo.SetHeight(surfaceBuffer->GetHeight());
+    externalTextureInfo.SetIsMipMapped(false);
+    externalTextureInfo.SetTarget(GL_TEXTURE_2D);
+    externalTextureInfo.SetID(texId_);
+    externalTextureInfo.SetFormat(GL_RGBA8_OES);
+
+    Drawing::BitmapFormat bitmapFormat = {
+        Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    auto image = std::make_shared<Drawing::Image>();
+    if (!image->BuildFromTexture(*(canvas.GetGPUContext()), externalTextureInfo,
+        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat,
+        std::make_shared<Drawing::ColorSpace>(Drawing::ColorSpace::ColorSpaceType::SRGB))) {
+        RS_LOGE("BuildFromTexture failed");
+        return nullptr;
+    }
+    return image;
+}
+#endif
+
+RSExtendImageObject::~RSExtendImageObject()
+{
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+    RSTaskDispatcher::GetInstance().PostTask(tid_, [texId = texId_,
+                                                    nativeWindowBuffer = nativeWindowBuffer_,
+                                                    eglImage = eglImage_]() {
+        if (texId != 0U) {
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glDeleteTextures(1, &texId);
+        }
+        if (nativeWindowBuffer != nullptr) {
+            DestroyNativeWindowBuffer(nativeWindowBuffer);
+        }
+        if (eglImage != EGL_NO_IMAGE_KHR) {
+            auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+            eglDestroyImageKHR(disp, eglImage);
+        }
+    });
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

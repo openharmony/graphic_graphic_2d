@@ -175,7 +175,7 @@ bool Typeface::Has(uint32_t ch)
 }
 
 std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch,
-    FontStyles &style, const std::string &script, const std::string &locale) const
+    FontStyles &style, const std::string &script, const std::string &locale, bool &fallbackTypeface) const
 {
     return g_measurerMockvars.typeface;
 }

@@ -118,6 +118,31 @@ void Matrix::GetAll(Buffer& buffer) const
 {
     matrixImplPtr->GetAll(buffer);
 }
+
+bool Matrix::IsIdentity() const
+{
+    return matrixImplPtr->IsIdentity();
+}
+
+void Matrix::PreRotate(scalar degree, scalar px, scalar py)
+{
+    matrixImplPtr->PreRotate(degree, px, py);
+}
+
+void Matrix::PreScale(scalar sx, scalar sy, scalar px, scalar py)
+{
+    matrixImplPtr->PreScale(sx, sy, px, py);
+}
+
+void Matrix::Reset()
+{
+    matrixImplPtr->Reset();
+}
+
+void Matrix::DeepCopy(const Matrix& matrix)
+{
+    matrixImplPtr.reset(matrix.matrixImplPtr->Clone());
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

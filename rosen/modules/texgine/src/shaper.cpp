@@ -75,13 +75,9 @@ std::vector<LineMetrics> Shaper::CreateEllipsisSpan(const TypographyStyle &ys, c
         return {};
     }
 
-    TextStyle xs;
-    xs.fontSize = textStyle.fontSize;
-    xs.fontFamilies = textStyle.fontFamilies;
-
     std::vector<VariantSpan> spans = {TextSpan::MakeFromText(ys.ellipsis)};
     for (auto &span : spans) {
-        span.SetTextStyle(xs);
+        span.SetTextStyle(textStyle);
     }
     auto ys2 = ys;
     ys2.wordBreakType = WordBreakType::BREAK_ALL;
@@ -363,7 +359,7 @@ std::vector<LineMetrics> Shaper::CreatePartlySpan(const bool cutRight, const Typ
 
     if (startIndex < endIndex) {
         // endIndex - 1 is the index of end
-        std::vector<uint16_t> chars = textSpan->cgs_.GetCharsToU16(startIndex, endIndex - 1, cutRight);
+        std::vector<uint16_t> chars = textSpan->cgs_.GetCharsToU16(startIndex, endIndex - 1, SpacesModel::NORMAL);
         VariantSpan partlySpan(TextSpan::MakeFromText(chars));
         partlySpan.SetTextStyle(span.GetTextStyle());
         std::vector<VariantSpan> spans = {partlySpan};
@@ -425,7 +421,7 @@ void Shaper::SplitJointLeftSpans(const EllipsisParams &params, const size_t left
     }
 
     // 0 means the first index of the array,true means handles spaces at the end of the left index of the array
-    std::vector<uint16_t> leftGroups = textSpan->cgs_.GetCharsToU16(0, leftIndex, true);
+    std::vector<uint16_t> leftGroups = textSpan->cgs_.GetCharsToU16(0, leftIndex, SpacesModel::NORMAL);
     VariantSpan leftSpan(TextSpan::MakeFromText(leftGroups));
     leftSpan.SetTextStyle(span.GetTextStyle());
     std::vector<VariantSpan> leftVariantSpans = {leftSpan};
@@ -443,7 +439,7 @@ void Shaper::SplitJointRightSpans(const EllipsisParams &params, const size_t rig
     }
     size_t maxIndex = textSpan->cgs_.GetSize();
     // maxIndex - 1 means last index of the array,false means handles spaces at the end of the right index of the array
-    std::vector<uint16_t> rightGroups = textSpan->cgs_.GetCharsToU16(rightIndex, maxIndex - 1, false);
+    std::vector<uint16_t> rightGroups = textSpan->cgs_.GetCharsToU16(rightIndex, maxIndex - 1, SpacesModel::NORMAL);
     VariantSpan rightSpan(TextSpan::MakeFromText(rightGroups));
     rightSpan.SetTextStyle(span.GetTextStyle());
     std::vector<VariantSpan> rightVariantSpans = {rightSpan};

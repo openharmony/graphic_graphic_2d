@@ -69,7 +69,9 @@
           "accessibility",
           "frame_aware_sched",
           "memmgr",
-          "memmgr_plugin" 
+          "memmgr_plugin",
+          "sensor",
+          "qos_manager"
         ],
         "third_party": [
           "flutter",
@@ -333,6 +335,7 @@
                 "ifont_provider.h",
                 "system_font_provider.h",
                 "text_style.h",
+                "theme_font_provider.h",
                 "typography_builder.h",
                 "typography_style.h",
                 "typography_types.h",

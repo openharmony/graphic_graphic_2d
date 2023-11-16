@@ -39,6 +39,7 @@ ohos_unittest("RSRenderServiceConnectionStubTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "sensor:sensor_interface_native",
   ]
   defines = []
   defines += gpu_defines
@@ -52,6 +53,7 @@ ohos_unittest("RSRenderServiceStubTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "sensor:sensor_interface_native",
   ]
   defines = []
   defines += gpu_defines

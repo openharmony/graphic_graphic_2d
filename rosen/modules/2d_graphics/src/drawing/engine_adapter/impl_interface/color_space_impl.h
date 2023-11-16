@@ -21,6 +21,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+class Data;
 enum class CMSTransferFuncType;
 enum class CMSMatrixType;
 class Image;
@@ -33,6 +34,8 @@ public:
     virtual void InitWithSRGBLinear() = 0;
     virtual void InitWithImage(const Image& image) = 0;
     virtual void InitWithRGB(const CMSTransferFuncType& func, const CMSMatrixType& matrix) = 0;
+    virtual std::shared_ptr<Data> Serialize() const = 0;
+    virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

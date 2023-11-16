@@ -30,7 +30,8 @@ public:
     {
         return pictureImplPtr->DowncastingTo<T>();
     }
-
+    std::shared_ptr<Data> Serialize() const;
+    bool Deserialize(std::shared_ptr<Data> data);
 private:
     std::shared_ptr<PictureImpl> pictureImplPtr;
 };

@@ -189,22 +189,34 @@ public:
 #ifndef USE_ROSEN_DRAWING
     SkSurface* GetSurface() const;
 #else
-    Drawing::Surface* GetSurface() const;
+    Drawing::Surface* GetSurface() const override;
 #endif
 
     // high contrast
     void SetHighContrast(bool enabled);
+#ifndef USE_ROSEN_DRAWING
     bool isHighContrastEnabled() const;
+#else
+    bool isHighContrastEnabled() const override;
+#endif
 
+#ifndef USE_ROSEN_DRAWING
     enum CacheType : uint8_t {
         UNDEFINED, // do not change current cache status
         ENABLED,   // explicitly enable cache
         DISABLED,  // explicitly disable cache
         OFFSCREEN, // offscreen rendering
     };
+#else
+    using CacheType = Drawing::CacheType;
+#endif
     // cache
     void SetCacheType(CacheType type);
+#ifndef USE_ROSEN_DRAWING
     CacheType GetCacheType() const;
+#else
+    Drawing::CacheType GetCacheType() const override;
+#endif
 
     // visible rect
 #ifndef USE_ROSEN_DRAWING
@@ -298,7 +310,7 @@ private:
     std::stack<Env> envStack_;
 
     std::atomic_bool isHighContrastEnabled_ { false };
-    CacheType cacheType_ { UNDEFINED };
+    CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
 #ifndef USE_ROSEN_DRAWING
     SkRect visibleRect_ = SkRect::MakeEmpty();
 #else
