@@ -293,5 +293,10 @@ int RSSystemProperties::GetSyncTransactionWaitDelay()
 {
     return 0;
 }
+
+bool RSSystemProperties::GetUseShadowBatchingEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

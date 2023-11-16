@@ -177,6 +177,6 @@ HWTEST_F(RSCanvasRenderNodeTest, ProcessShadowBatchingTest, TestSize.Level1)
     NodeId nodeId = 0;
     std::weak_ptr<RSContext> context;
     RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
-    rsCanvasRenderNode->ProcessShadowBatching(*canvas_, true);
+    rsCanvasRenderNode->ProcessShadowBatching(*canvas_);
 }
 } // namespace OHOS::Rosen
