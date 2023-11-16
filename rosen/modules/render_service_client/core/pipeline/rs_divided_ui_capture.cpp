@@ -136,8 +136,9 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::SetCanvas(std::shared_ptr<Dr
         return;
     }
 #ifndef USE_ROSEN_DRAWING
-    auto renderContext = RSRenderThread::Instance().GetRenderContext();
-    canvas->SetGrRecordingContext(renderContext->GetGrContext());
+    if (auto renderContext = RSRenderThread::Instance().GetRenderContext()) {
+        canvas->SetGrRecordingContext(renderContext->GetGrContext());
+    }
     canvas_ = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     canvas_->scale(scaleX_, scaleY_);
     canvas_->SetRecordingState(true);
