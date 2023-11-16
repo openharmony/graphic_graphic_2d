@@ -526,8 +526,6 @@ public:
     explicit RSSaveLayerContentDrawable(std::shared_ptr<int> content, SkPaint&& blendPaint)
         : content_(std::move(content)), blendPaint_(std::move(blendPaint)) {}
     ~RSSaveLayerContentDrawable() override = default;
-    static std::unique_ptr<RSPropertyDrawable> Generate(const RSPropertyDrawableGenerateContext& context,
-        std::shared_ptr<int> content);
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 
 private:
