@@ -1424,6 +1424,18 @@ void RSNode::MarkNodeGroup(bool isNodeGroup, bool isForced)
     }
 }
 
+void RSNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer)
+{
+    if (isNodeSingleFrameComposer_ != isNodeSingleFrameComposer) {
+        isNodeSingleFrameComposer_ = isNodeSingleFrameComposer;
+        std::unique_ptr<RSCommand> command =
+            std::make_unique<RSMarkNodeSingleFrameComposer>(GetId(), isNodeSingleFrameComposer);
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, IsRenderServiceNode());
+        }
+    }
+}
 
 void RSNode::SetGrayScale(float grayScale)
 {

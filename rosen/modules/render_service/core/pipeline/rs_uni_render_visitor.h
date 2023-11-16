@@ -453,6 +453,7 @@ private:
     void endCapture() const;
     std::shared_ptr<RSRecordingCanvas> recordingCanvas_;
 #endif
+    bool isNodeSingleFrameComposer_ = false;
     sk_sp<SkImage> cacheImgForCapture_ = nullptr;
 };
 } // namespace Rosen

@@ -73,6 +73,16 @@ public:
 
     virtual bool Marshalling(Parcel& parcel) = 0;
     [[nodiscard]] static RSRenderModifier* Unmarshalling(Parcel& parcel);
+
+    virtual uint64_t GetDrawCmdListId() const
+    {
+        return 0;
+    }
+    virtual void SetSingleFrameModifier(bool value) { (void)value; }
+    virtual bool GetSingleFrameModifier() const
+    {
+        return false;
+    }
 };
 
 class RSB_EXPORT RSGeometryTransRenderModifier : public RSRenderModifier {
@@ -166,6 +176,20 @@ public:
         }
     }
 
+    uint64_t GetDrawCmdListId() const override
+    {
+        DrawCmdListPtr drawCmd = property_->Get();
+        return reinterpret_cast<uint64_t>(drawCmd.get());
+    }
+    void SetSingleFrameModifier(bool value) override
+    {
+        isSingleFrameModifier_ = value;
+    }
+    bool GetSingleFrameModifier() const override
+    {
+        return isSingleFrameModifier_;
+    }
+
     // functions that are dedicated to driven render [start]
     RectF GetCmdsClipRect() const;
     void ApplyForDrivenContent(RSModifierContext& context) const;
@@ -177,6 +201,7 @@ protected:
 #else
     std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> property_;
 #endif
+    bool isSingleFrameModifier_ = false;
 };
 
 class RSB_EXPORT RSParticleRenderModifier : public RSRenderModifier {
