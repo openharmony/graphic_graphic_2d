@@ -321,9 +321,10 @@ bool RSUIDirector::HasUIAnimation()
     return false;
 }
 
-void RSUIDirector::SetUITaskRunner(const TaskRunner& uiTaskRunner)
+void RSUIDirector::SetUITaskRunner(const TaskRunner& uiTaskRunner, int32_t instanceId)
 {
     std::unique_lock<std::mutex> lock(g_uiTaskRunnersVisitorMutex);
+    instanceId_ = instanceId;
     g_uiTaskRunners[this] = uiTaskRunner;
     if (!isHgmConfigChangeCallbackReg_) {
         RSFrameRatePolicy::GetInstance()->RegisterHgmConfigChangeCallback();
@@ -360,23 +361,34 @@ void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds)
     if (cmds == nullptr || cmds->IsEmpty()) {
         return;
     }
-    ROSEN_LOGD("RSUIDirector::RecvMessages success");
-    PostTask([cmds]() {
-        ROSEN_LOGD("RSUIDirector::ProcessMessages success");
-        RSUIDirector::ProcessMessages(cmds);
-        std::unique_lock<std::mutex> lock(g_vsyncCallbackMutex);
-        if (requestVsyncCallback_ != nullptr) {
-            requestVsyncCallback_();
-        } else {
-            RSTransaction::FlushImplicitTransaction();
-        }
-    });
+    ROSEN_LOGD("ProcessMessages begin");
+    RSUIDirector::ProcessMessages(cmds);
 }
 
 void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
 {
-    static RSContext context; // RSCommand->process() needs it
-    cmds->Process(context);
+    std::map<int32_t, std::vector<std::unique_ptr<RSCommand>>> m;
+    for (auto &[id, _, cmd] : cmds->GetPayload()) {
+        m[RSNodeMap::Instance().GetNodeInstanceId(id)].push_back(std::move(cmd));
+    }
+    auto counter = std::make_shared<std::atomic_size_t>(m.size());
+    for (auto &[instanceId, commands] : m) {
+        PostTask([cmds = std::make_shared<std::vector<std::unique_ptr<RSCommand>>>(std::move(commands)), counter] {
+            for (auto &cmd : *cmds) {
+                RSContext context; // RSCommand->process() needs it
+                cmd->Process(context);
+            }
+            if (counter->fetch_sub(1) == 1) {
+                std::unique_lock<std::mutex> lock(g_vsyncCallbackMutex);
+                if (requestVsyncCallback_ != nullptr) {
+                    requestVsyncCallback_();
+                } else {
+                    RSTransaction::FlushImplicitTransaction();
+                }
+                ROSEN_LOGD("ProcessMessages end");
+            }
+        }, instanceId);
+    }
 }
 
 void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId, AnimationCallbackEvent event)
@@ -406,14 +418,21 @@ void RSUIDirector::PostFrameRateTask(const std::function<void()>& task)
     PostTask(task);
 }
 
-void RSUIDirector::PostTask(const std::function<void()>& task)
+void RSUIDirector::PostTask(const std::function<void()>& task, int32_t instanceId)
 {
     std::unique_lock<std::mutex> lock(g_uiTaskRunnersVisitorMutex);
-    for (auto [_, taskRunner] : g_uiTaskRunners) {
-        if (taskRunner == nullptr) {
-            ROSEN_LOGE("RSUIDirector::PostTask, uiTaskRunner is null");
+    for (const auto &[director, taskRunner] : g_uiTaskRunners) {
+        if (director->instanceId_ != instanceId) {
             continue;
         }
+        ROSEN_LOGD("RSUIDirector::PostTask instanceId=%{public}d success", instanceId);
+        taskRunner(task);
+        return;
+    }
+    if (instanceId != INSTANCE_ID_UNDEFINED) {
+        ROSEN_LOGW("RSUIDirector::PostTask instanceId=%{public}d not found", instanceId);
+    }
+    for (const auto &[_, taskRunner] : g_uiTaskRunners) {
         ROSEN_LOGD("RSUIDirector::PostTask success");
         taskRunner(task);
         return;
