@@ -63,7 +63,7 @@ declare namespace colorSpaceManager {
 
     /**
      * Indicates the standard red green blue (SRGB) color space based on IEC 61966-2.1:1999.
-     * PRIMARIES_BT709 | TRANSFUNC_SRGB | RANGE_FULL
+     * PRIMARIES_SRGB | TRANSFUNC_SRGB | RANGE_FULL
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 9
      */
@@ -138,7 +138,7 @@ declare namespace colorSpaceManager {
     DISPLAY_P3_LIMIT = 14,
 
     /**
-     * PRIMARIES_BT709 | TRANSFUNC_SRGB | RANGE_LIMIT
+     * PRIMARIES_SRGB | TRANSFUNC_SRGB | RANGE_LIMIT
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 11
      */
@@ -194,35 +194,35 @@ declare namespace colorSpaceManager {
     P3_PQ_LIMIT = 22,
 
     /**
-     * PRIMARIES_P3_D65 | TRANSFUNC_LINEAR | RANGE_FULL
+     * PRIMARIES_P3_D65 | TRANSFUNC_LINEAR
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 11
      */
     LINEAR_P3 = 23,
 
     /**
-     * PRIMARIES_BT709 | TRANSFUNC_LINEAR | RANGE_FULL
+     * PRIMARIES_SRGB | TRANSFUNC_LINEAR
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 11
      */
     LINEAR_SRGB = 24,
 
     /**
-     * PRIMARIES_BT709 | TRANSFUNC_LINEAR | RANGE_FULL
+     * PRIMARIES_BT709 | TRANSFUNC_LINEAR
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 11
      */
     LINEAR_BT709 = LINEAR_SRGB,
 
     /**
-     * PRIMARIES_BT2020 | TRANSFUNC_LINEAR | RANGE_FULL
+     * PRIMARIES_BT2020 | TRANSFUNC_LINEAR
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 11
      */
     LINEAR_BT2020 = 25,
 
     /**
-     * PRIMARIES_BT709 | TRANSFUNC_SRGB | RANGE_FULL
+     * PRIMARIES_SRGB | TRANSFUNC_SRGB | RANGE_FULL
      * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
      * @since 11
      */
