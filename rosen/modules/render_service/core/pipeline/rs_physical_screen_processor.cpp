@@ -74,6 +74,11 @@ void RSPhysicalScreenProcessor::ProcessDrivenSurface(RSDrivenSurfaceRenderNode& 
     RS_LOGI("RSPhysicalScreenProcessor::ProcessDrivenSurface() is not supported.");
 }
 
+void RSPhysicalScreenProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)
+{
+    RS_LOGI("RSPhysicalScreenProcessor::ProcessRcdSurface() is not supported");
+}
+
 void RSPhysicalScreenProcessor::Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers)
 {
     RS_TRACE_NAME("Redraw");

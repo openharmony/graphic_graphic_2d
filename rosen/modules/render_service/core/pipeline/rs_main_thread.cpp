@@ -99,6 +99,7 @@
 #include "pipeline/driven_render/rs_driven_render_manager.h"
 #endif
 
+#include "pipeline/round_corner_display/rs_rcd_render_manager.h"
 #include "scene_board_judgement.h"
 #include "vsync_iconnection_token.h"
 
@@ -350,6 +351,8 @@ void RSMainThread::Init()
     RSDrivenRenderManager::InitInstance();
     RSBackgroundThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext().get());
 #endif
+
+    RSRcdRenderManager::InitInstance();
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
 #if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)

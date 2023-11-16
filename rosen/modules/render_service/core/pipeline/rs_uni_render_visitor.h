@@ -26,6 +26,7 @@
 #include "rs_base_render_engine.h"
 
 #include "pipeline/driven_render/rs_driven_render_manager.h"
+#include "pipeline/round_corner_display/rs_rcd_render_manager.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_processor.h"
 #include "platform/ohos/overdraw/rs_cpu_overdraw_canvas_listener.h"
@@ -402,6 +403,7 @@ private:
 
     // driven render
     std::unique_ptr<DrivenInfo> drivenInfo_ = nullptr;
+    std::unique_ptr<RcdInfo> rcdInfo_ = nullptr;
 
     std::unordered_map<NodeId, RenderParam> unpairedTransitionNodes_;
     std::stack<RenderParam> curGroupedNodes_;

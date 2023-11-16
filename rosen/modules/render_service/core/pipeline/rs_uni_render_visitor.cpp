@@ -149,6 +149,9 @@ RSUniRenderVisitor::RSUniRenderVisitor()
         drivenInfo_ = std::make_unique<DrivenInfo>();
     }
 #endif
+    if (RSRcdRenderManager::GetInstance().GetRcdRenderEnabled()) {
+        rcdInfo_ = std::make_unique<RcdInfo>();
+    }
     surfaceNodePrepareMutex_ = std::make_shared<std::mutex>();
     parallelRenderType_ = ParallelRenderingType::DISABLE;
 #if defined(RS_ENABLE_PARALLEL_RENDER)
@@ -622,6 +625,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
         }
     }
 #endif
+    RSRcdRenderManager::GetInstance().DoPrepareRenderTask(rcdInfo_->prepareInfo);
 }
 
 void RSUniRenderVisitor::ParallelPrepareDisplayRenderNodeChildrens(RSDisplayRenderNode& node)
@@ -2412,6 +2416,19 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         RSDrivenRenderManager::GetInstance().DoProcessRenderTask(drivenInfo_->processInfo);
     }
 #endif
+
+    if (node.IsMirrorDisplay()) {
+        RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode, mirror without roundcornerdisplay");
+    } else {
+        RSSingleton<RoundCornerDisplay>::GetInstance().RunHardwareTask(
+            [this]() {
+                auto hardInfo = RSSingleton<RoundCornerDisplay>::GetInstance().GetHardwareInfo();
+                rcdInfo_->processInfo = {processor_, hardInfo.topLayer, hardInfo.bottomLayer};
+                RSRcdRenderManager::GetInstance().DoProcessRenderTask(rcdInfo_->processInfo);
+            }
+        );
+    }
+
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExcute()) {
         RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode: hardwareThread task has too many to excute");
     }

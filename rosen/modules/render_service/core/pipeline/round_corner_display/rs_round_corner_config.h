@@ -19,7 +19,7 @@
 #pragma once
 #include <libxml/parser.h>
 #include <libxml/tree.h>
-#include <SkBitmap.h>
+#include "include/core/SkBitmap.h"
 #include <cstring>
 #include <vector>
 #include <iostream>
