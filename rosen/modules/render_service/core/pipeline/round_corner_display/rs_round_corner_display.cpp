@@ -182,6 +182,7 @@ void RoundCornerDisplay::UpdateNotchStatus(int status)
         RS_LOGE("[%{public}s] notchStatus won't be over 1 or below 0 \n", __func__);
         return;
     }
+    notchSetting_ = status;
     if (notchStatus_ == status) {
         RS_LOGD("[%{public}s] NotchStatus do not change \n", __func__);
         return;
@@ -198,11 +199,47 @@ void RoundCornerDisplay::UpdateOrientationStatus(ScreenRotation orientation)
         RS_LOGD("[%{public}s] OrientationStatus do not change \n", __func__);
         return;
     }
+    
+    const int ladsToPortrait = 0;
+    const int portraitToLads = 1;
+
     lastOrientation_ = curOrientation_;
     curOrientation_ = orientation;
     RS_LOGD("[%{public}s] curOrientation_ = %{public}d, lastOrientation_ = %{public}d \n",
         __func__, curOrientation_, lastOrientation_);
     updateFlag_["orientation"] = true;
+    int transitionFlag = -1; // default
+    switch (lastOrientation_) {
+        case ScreenRotation::ROTATION_0:
+            if (curOrientation_ == ScreenRotation::ROTATION_90 || curOrientation_ == ScreenRotation::ROTATION_270) {
+                transitionFlag = portraitToLads;
+            }
+            break;
+        case ScreenRotation::ROTATION_90:
+            if (curOrientation_ == ScreenRotation::ROTATION_0 || curOrientation_ == ScreenRotation::ROTATION_180) {
+                transitionFlag = ladsToPortrait;
+            }
+            break;
+        case ScreenRotation::ROTATION_180:
+            if (curOrientation_ == ScreenRotation::ROTATION_90 || curOrientation_ == ScreenRotation::ROTATION_270) {
+                transitionFlag = portraitToLads;
+            }
+            break;
+        case ScreenRotation::ROTATION_270:
+            if (curOrientation_ == ScreenRotation::ROTATION_0 || curOrientation_ == ScreenRotation::ROTATION_180) {
+                transitionFlag = ladsToPortrait;
+            }
+            break;
+        default:
+            break;
+    }
+    if (notchSetting_ == WINDOW_NOTCH_DEFAULT) {
+        if (transitionFlag == ladsToPortrait) {
+            notchStatus_ = WINDOW_NOTCH_DEFAULT;
+        } else if (transitionFlag == portraitToLads) {
+            notchStatus_ = WINDOW_NOTCH_HIDDEN;
+        }
+    }
 }
 
 void RoundCornerDisplay::UpdateParameter(std::map<std::string, bool>& updateFlag)

@@ -89,8 +89,10 @@ private:
     uint32_t displayWidth_ = 0;
     uint32_t displayHeight_ = 0;
 
+    // setting of the notch
+    int notchSetting_ = WINDOW_NOTCH_DEFAULT;
     // status of the notch
-    int notchStatus_ = WINDOW_NOTCH_DEFAULT;
+    int notchStatus_ = notchSetting_;
 
     int showResourceType_ = TOP_PORTRAIT;
 
