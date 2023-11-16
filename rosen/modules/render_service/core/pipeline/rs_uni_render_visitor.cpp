@@ -143,6 +143,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     isQuickSkipPreparationEnabled_ = (quickSkipPrepareType_ != QuickSkipPrepareType::DISABLED);
     isDrawingCacheEnabled_ = RSSystemParameters::GetDrawingCacheEnabled();
     RSTagTracker::UpdateReleaseGpuResourceEnable(RSSystemProperties::GetReleaseGpuResourceEnabled());
+    isScreenRotationAnimating_ = RSSystemProperties::GetCacheEnabledForRotation();
 #if defined(RS_ENABLE_DRIVEN_RENDER)
     if (RSDrivenRenderManager::GetInstance().GetDrivenRenderEnabled()) {
         drivenInfo_ = std::make_unique<DrivenInfo>();
@@ -363,7 +364,7 @@ bool RSUniRenderVisitor::UpdateCacheChangeStatus(RSRenderNode& node)
         return true;
     }
     node.CheckDrawingCacheType();
-    if (!node.ShouldPaint() || isSurfaceRotationChanged_) {
+    if (!node.ShouldPaint() || isScreenRotationAnimating_) {
         node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     }
     // skip status check if there is no upper cache mark
@@ -2231,7 +2232,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
             if (geoPtr != nullptr) {
                 // enable cache if screen rotation
-                canvas_->SetCacheType(RSSystemProperties::GetCacheEnabledForRotation() ?
+                canvas_->SetCacheType(isScreenRotationAnimating_ ?
                     RSPaintFilterCanvas::CacheType::ENABLED : RSPaintFilterCanvas::CacheType::DISABLED);
             }
 
@@ -2261,7 +2262,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
             if (geoPtr != nullptr) {
                 // enable cache if screen rotation
-                canvas_->SetCacheType(RSSystemProperties::GetCacheEnabledForRotation() ?
+                canvas_->SetCacheType(isScreenRotationAnimating_ ?
                     RSPaintFilterCanvas::CacheType::ENABLED : RSPaintFilterCanvas::CacheType::DISABLED);
             }
 

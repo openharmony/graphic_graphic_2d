@@ -350,6 +350,7 @@ private:
     bool isCanvasNodeSkipDfxEnabled_ = false;
     bool isQuickSkipPreparationEnabled_ = false;
     bool isOcclusionEnabled_ = false;
+    bool isScreenRotationAnimating_ = false;
     bool isTextNeedCached_ = false;
     std::vector<std::string> dfxTargetSurfaceNames_;
     PartialRenderType partialRenderType_;
