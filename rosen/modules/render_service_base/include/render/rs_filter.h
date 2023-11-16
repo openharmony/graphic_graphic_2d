@@ -32,6 +32,7 @@ namespace Rosen {
 enum BLUR_COLOR_MODE : int {
     PRE_DEFINED = 0,           // use the pre-defined mask color
     AVERAGE     = 1,           // use the average color of the blurred area as mask color
+    FASTAVERAGE = 2,
     DEFAULT     = PRE_DEFINED
 };
 

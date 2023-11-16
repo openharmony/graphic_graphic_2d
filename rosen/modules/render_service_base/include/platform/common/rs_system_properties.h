@@ -145,6 +145,7 @@ public:
     static int GetFilterCacheUpdateInterval();
     static int GetFilterCacheSizeThreshold();
     static bool GetFilterPartialRenderEnabled();
+    static bool GetColorPickerPartialEnabled();
     static bool GetMaskLinearBlurEnabled();
     static bool GetKawaseEnabled();
     static float GetKawaseRandomColorFactor();

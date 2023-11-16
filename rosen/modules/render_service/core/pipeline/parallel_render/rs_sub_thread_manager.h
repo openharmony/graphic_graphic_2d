@@ -37,6 +37,7 @@ public:
     static RSSubThreadManager *Instance();
     void Start(RenderContext *context);
     void StartFilterThread(RenderContext* context);
+    void StartColorPickerThread(RenderContext* context);
     void StartRCDThread(RenderContext* context);
     void PostTask(const std::function<void()>& task, uint32_t threadIndex, bool isSyncTask = false);
     void WaitNodeTask(uint64_t nodeId);
@@ -72,6 +73,7 @@ private:
     std::unordered_map<pid_t, uint32_t> threadIndexMap_;
     std::unordered_map<uint32_t, pid_t> reThreadIndexMap_;
     std::shared_ptr<RSFilterSubThread> filterThread = nullptr;
+    std::shared_ptr<RSFilterSubThread> colorPickerThread_ = nullptr;
     bool needResetContext_ = false;
     bool needCancelTask_ = false;
 

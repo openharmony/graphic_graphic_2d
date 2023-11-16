@@ -81,6 +81,33 @@ void RSFilterSubThread::Start()
     };
 }
 
+void RSFilterSubThread::StartColorPicker()
+{
+    RS_LOGI("RSColorPickerSubThread::Start():%{public}d", threadIndex_);
+    std::string name = "RSColorPickerSubThread" + std::to_string(threadIndex_);
+    runner_ = AppExecFwk::EventRunner::Create(name);
+    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+    PostTask([this]() {
+#ifdef RES_SCHED_ENABLE
+        std::string strBundleName = RS_BUNDLE_NAME;
+        std::string strPid = std::to_string(getpid());
+        std::string strTid = std::to_string(gettid());
+        std::string strQos = std::to_string(RS_SUB_QOS_LEVEL);
+        std::unordered_map<std::string, std::string> mapPayload;
+        mapPayload["pid"] = strPid;
+        mapPayload[strTid] = strQos;
+        mapPayload["bundleName"] = strBundleName;
+        uint32_t type = OHOS::ResourceSchedule::ResType::RES_TYPE_THREAD_QOS_CHANGE;
+        int64_t value = 0;
+        OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, value, mapPayload);
+#endif
+        grContext_ = CreateShareGrContext();
+    });
+    RSColorPickerCacheTask::postColorPickerTask = [this](std::weak_ptr<RSColorPickerCacheTask> task) {
+        PostTask([this, task]() { ColorPickerRenderCache(task); });
+    };
+}
+
 void RSFilterSubThread::PostTask(const std::function<void()>& task)
 {
     if (handler_) {
@@ -160,6 +187,30 @@ void RSFilterSubThread::RenderCache(std::weak_ptr<RSFilter::RSFilterTask> filter
     }
     if (!task->Render()) {
         RS_LOGE("Render failed");
+    }
+}
+
+void RSFilterSubThread::ColorPickerRenderCache(std::weak_ptr<RSColorPickerCacheTask> colorPickerTask)
+{
+    RS_TRACE_NAME("ColorPickerRenderCache");
+    auto task = colorPickerTask.lock();
+    if (!task) {
+        RS_LOGE("Color picker task is null");
+        return;
+    }
+    if (grContext_ == nullptr) {
+        grContext_ = CreateShareGrContext();
+    }
+    if (grContext_ == nullptr) {
+        RS_LOGE("Color picker grContext is null");
+        return;
+    }
+    if (!task->InitSurface(grContext_.get())) {
+        RS_LOGE("Color picker initSurface failed");
+        return;
+    }
+    if (!task->Render()) {
+        RS_LOGE("Color picker render failed");
     }
 }
 

@@ -177,6 +177,7 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/sk_resource_manager.cpp",
 
     #property
+    "src/property/rs_color_picker_cache_task.cpp",
     "src/property/rs_filter_cache_manager.cpp",
     "src/property/rs_properties.cpp",
     "src/property/rs_properties_painter.cpp",
@@ -189,6 +190,8 @@ ohos_source_set("render_service_base_src") {
     #render
     "src/render/rs_blur_filter.cpp",
     "src/render/rs_border.cpp",
+    "src/render/rs_color_extract.cpp",
+    "src/render/rs_color_picker.cpp",
     "src/render/rs_filter.cpp",
     "src/render/rs_image.cpp",
     "src/render/rs_image_base.cpp",
