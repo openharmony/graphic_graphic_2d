@@ -883,6 +883,8 @@ void RSRenderNode::AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& 
     if (modifier->GetType() == RSModifierType::BOUNDS) {
         if (boundsModifier_ == nullptr) {
             boundsModifier_ = modifier;
+        } else {
+            boundsModifier_->Update(modifier->GetProperty(), false);
         }
         modifiers_.emplace(modifier->GetPropertyId(), boundsModifier_);
     }
@@ -890,6 +892,8 @@ void RSRenderNode::AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& 
     if (modifier->GetType() == RSModifierType::FRAME) {
         if (frameModifier_ == nullptr) {
             frameModifier_ = modifier;
+        } else {
+            frameModifier_->Update(modifier->GetProperty(), false);
         }
         modifiers_.emplace(modifier->GetPropertyId(), frameModifier_);
     }
