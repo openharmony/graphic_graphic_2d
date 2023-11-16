@@ -776,6 +776,80 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteParcelable(&screenHDRCapability);
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PIXEL_FORMAT): {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            GraphicPixelFormat pixelFormat;
+            int32_t result = GetPixelFormat(id, pixelFormat);
+            reply.WriteInt32(result);
+            if (result != StatusCode::SUCCESS) {
+                break;
+            }
+            reply.WriteUint32(static_cast<uint32_t>(pixelFormat));
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_PIXEL_FORMAT): {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            GraphicPixelFormat pixelFormat = static_cast<GraphicPixelFormat>(data.ReadInt32());
+            int32_t result = SetPixelFormat(id, pixelFormat);
+            reply.WriteInt32(result);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_HDR_FORMATS): {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            std::vector<uint32_t> hdrFormatsSend;
+            std::vector<ScreenHDRFormat> hdrFormats;
+            int32_t result = GetScreenSupportedHDRFormats(id, hdrFormats);
+            reply.WriteInt32(result);
+            if (result != StatusCode::SUCCESS) {
+                break;
+            }
+            std::copy(hdrFormats.begin(), hdrFormats.end(), std::back_inserter(hdrFormatsSend));
+            reply.WriteUInt32Vector(hdrFormatsSend);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_HDR_FORMAT): {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            ScreenHDRFormat hdrFormat;
+            int32_t result = GetScreenHDRFormat(id, hdrFormat);
+            reply.WriteInt32(result);
+            if (result != StatusCode::SUCCESS) {
+                break;
+            }
+            reply.WriteUint32(hdrFormat);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_HDR_FORMAT): {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            int32_t modeIdx = data.ReadInt32();
+            int32_t result = SetScreenHDRFormat(id, modeIdx);
+            reply.WriteInt32(result);
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_TYPE): {
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {

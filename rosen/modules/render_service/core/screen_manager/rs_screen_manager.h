@@ -58,6 +58,8 @@ struct ScreenInfo {
 
     uint32_t skipFrameInterval = DEFAULT_SKIP_FRAME_INTERVAL;  // skip frame interval for change screen refresh rate
 
+    GraphicPixelFormat pixelFormat = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
+    ScreenHDRFormat hdrFormat = ScreenHDRFormat::NOT_SUPPORT_HDR;
     uint32_t GetRotatedWidth() const
     {
         return (rotation == ScreenRotation::ROTATION_0 || rotation == ScreenRotation::ROTATION_180) ? width : height;
@@ -162,6 +164,16 @@ public:
     virtual int32_t GetScreenType(ScreenId id, RSScreenType& type) const = 0;
 
     virtual int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) = 0;
+     
+    virtual int32_t GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat) const = 0;
+
+    virtual int32_t SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat) = 0;
+
+    virtual int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) const = 0;
+
+    virtual int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat) const = 0;
+
+    virtual int32_t SetScreenHDRFormat(ScreenId id, int32_t modeIdx) = 0;
 
     virtual void HandlePostureData(const SensorEvent * const event) = 0;
 
@@ -281,6 +293,16 @@ public:
 
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) override;
 
+    int32_t GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat) const override;
+
+    int32_t SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat) override;
+
+    int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) const override;
+
+    int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat) const override;
+
+    int32_t SetScreenHDRFormat(ScreenId id, int32_t modeIdx) override;
+
     void HandlePostureData(const SensorEvent * const event) override;
 
     ScreenId GetActiveScreenId() const override;
@@ -333,6 +355,11 @@ private:
     int32_t GetScreenHDRCapabilityLocked(ScreenId id, RSScreenHDRCapability& screenHdrCapability) const;
     int32_t GetScreenTypeLocked(ScreenId id, RSScreenType& type) const;
     int32_t SetScreenSkipFrameIntervalLocked(ScreenId id, uint32_t skipFrameInterval);
+    int32_t GetPixelFormatLocked(ScreenId id, GraphicPixelFormat& pixelFormat) const;
+    int32_t SetPixelFormatLocked(ScreenId id, GraphicPixelFormat pixelFormat);
+    int32_t GetScreenSupportedHDRFormatsLocked(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) const;
+    int32_t GetScreenHDRFormatLocked(ScreenId id, ScreenHDRFormat& hdrFormat) const;
+    int32_t SetScreenHDRFormatLocked(ScreenId id, int32_t modeIdx);
 
     void RegisterSensorCallback();
     void UnRegisterSensorCallback();

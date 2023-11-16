@@ -197,6 +197,16 @@ public:
 
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability);
 
+    int32_t GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat);
+
+    int32_t SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat);
+
+    int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats);
+
+    int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat);
+
+    int32_t SetScreenHDRFormat(ScreenId id, int32_t modeIdx);
+
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType);
 
 #ifndef USE_ROSEN_DRAWING

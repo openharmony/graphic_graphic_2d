@@ -700,6 +700,53 @@ int32_t RSRenderServiceClient::GetScreenHDRCapability(ScreenId id, RSScreenHDRCa
     return renderService->GetScreenHDRCapability(id, screenHdrCapability);
 }
 
+int32_t RSRenderServiceClient::GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::GetPixelFormat renderService == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->GetPixelFormat(id, pixelFormat);
+}
+
+int32_t RSRenderServiceClient::SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::SetPixelFormat renderService == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->SetPixelFormat(id, pixelFormat);
+}
+
+int32_t RSRenderServiceClient::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->GetScreenSupportedHDRFormats(id, hdrFormats);
+}
+
+int32_t RSRenderServiceClient::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->GetScreenHDRFormat(id, hdrFormat);
+}
+
+int32_t RSRenderServiceClient::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->SetScreenHDRFormat(id, modeIdx);
+}
+
 int32_t RSRenderServiceClient::GetScreenType(ScreenId id, RSScreenType& screenType)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

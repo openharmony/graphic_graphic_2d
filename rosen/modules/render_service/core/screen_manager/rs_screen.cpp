@@ -52,13 +52,23 @@ RSScreen::RSScreen(const VirtualScreenConfigs &configs)
       height_(configs.height),
       isVirtual_(true),
       producerSurface_(configs.surface),
+      pixelFormat_(configs.pixelFormat),
       screenType_(RSScreenType::VIRTUAL_TYPE_SCREEN)
 {
-    hdrCapability_.formatCount = 0;
+    VirtualScreenInit();
 }
 
 RSScreen::~RSScreen() noexcept
 {
+}
+
+void RSScreen::VirtualScreenInit() noexcept
+{
+    hdrCapability_.formatCount = 0;
+    for (auto item : supportedVirtualHDRFormat_) {
+        hdrCapability_.formats.emplace_back(static_cast<GraphicHDRFormat>(item));
+        ++hdrCapability_.formatCount;
+    }
 }
 
 void RSScreen::PhysicalScreenInit() noexcept
@@ -674,6 +684,62 @@ void RSScreen::SetScreenVsyncEnabled(bool enabled) const
         hdiScreen_->SetScreenVsyncEnabled(enabled);
     }
 }
+
+int32_t RSScreen::GetScreenSupportedHDRFormats(std::vector<ScreenHDRFormat>& hdrFormats) const
+{
+    hdrFormats.clear();
+    for (auto item : hdrCapability_.formats) {
+        hdrFormats.emplace_back(static_cast<ScreenHDRFormat>(item));
+    }
+    if (hdrFormats.size() == 0) {
+        return StatusCode::HDI_ERROR;
+    }
+    return StatusCode::SUCCESS;
+}
+
+int32_t RSScreen::GetScreenHDRFormat(ScreenHDRFormat& hdrFormat) const
+{
+    if (hdrCapability_.formats.size() == 0) {
+        return StatusCode::HDI_ERROR;
+    }
+    if (IsVirtual()) {
+        hdrFormat = static_cast<ScreenHDRFormat>(hdrCapability_.formats[currentVirtualHDRFormatIdx_]);
+        return StatusCode::SUCCESS;
+    } else {
+        hdrFormat = static_cast<ScreenHDRFormat>(hdrCapability_.formats[currentPhysicalHDRFormatIdx_]);
+        return StatusCode::SUCCESS;
+    }
+    return StatusCode::HDI_ERROR;
+}
+
+int32_t RSScreen::SetScreenHDRFormat(int32_t modeIdx)
+{
+    if (modeIdx < 0 || modeIdx >= static_cast<int32_t>(hdrCapability_.formats.size())) {
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+    if (IsVirtual()) {
+        currentVirtualHDRFormatIdx_ = modeIdx;
+        return StatusCode::SUCCESS;
+    } else {
+        currentPhysicalHDRFormatIdx_ = modeIdx;
+        // Some hdi operation
+        return StatusCode::SUCCESS;
+    }
+    return StatusCode::HDI_ERROR;
+}
+
+int32_t RSScreen::GetPixelFormat(GraphicPixelFormat& pixelFormat) const
+{
+    pixelFormat = pixelFormat_;
+    return StatusCode::SUCCESS;
+}
+
+int32_t RSScreen::SetPixelFormat(GraphicPixelFormat pixelFormat)
+{
+    pixelFormat_ = pixelFormat;
+    return StatusCode::SUCCESS;
+}
+
 } // namespace impl
 } // namespace Rosen
 } // namespace OHOS

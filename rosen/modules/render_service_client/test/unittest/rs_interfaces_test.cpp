@@ -161,6 +161,45 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenResolution001, Function | SmallTest |
 }
 
 /*
+* Function: SetVirtualScreenPixelFormat/GetVirtualScreenPixelFormat
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. Call CreateVirtualScreen, use normal parameters.
+*                  2. Use SetVirtualScreenPixelFormat to set pixelFormat of virtualScreen
+*                  3. Use GetVirtualScreenPixelFormat to get current pixelFormat of virtualScreen
+*                  4. Check current pixelFormat of virtualScreen
+*/
+HWTEST_F(RSInterfacesTest, SetVirtualScreenPixelFormat001, Function | SmallTest | Level2)
+{
+    auto csurface = IConsumerSurface::Create();
+    EXPECT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    uint32_t defaultWidth = 720;
+    uint32_t defaultHeight = 1280;
+    GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_BGRA_8888;
+    EXPECT_NE(psurface, nullptr);
+
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "virtual5", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    GraphicPixelFormat curPixelFormat;
+    int32_t ret = rsInterfaces->GetPixelFormat(virtualScreenId, curPixelFormat);
+    EXPECT_NE(ret, StatusCode::SCREEN_NOT_FOUND);
+    EXPECT_EQ(curPixelFormat, GRAPHIC_PIXEL_FMT_RGBA_8888);
+
+    rsInterfaces->SetPixelFormat(virtualScreenId, pixelFormat);
+
+    ret = rsInterfaces->GetPixelFormat(virtualScreenId, curPixelFormat);
+    EXPECT_NE(ret, StatusCode::SCREEN_NOT_FOUND);
+    EXPECT_EQ(curPixelFormat, GRAPHIC_PIXEL_FMT_BGRA_8888);
+
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
+}
+
+/*
 * Function: GetAllScreenIds
 * Type: Function
 * Rank: Important(2)
@@ -740,6 +779,50 @@ HWTEST_F(RSInterfacesTest, GetScreenColorGamut002, Function | SmallTest | Level2
 HWTEST_F(RSInterfacesTest, SetScreenColorGamut002, Function | SmallTest | Level2)
 {
     int ret = rsInterfaces->SetScreenColorGamut(INVALID_SCREEN_ID, 0);
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+* Function: GetScreenSupportedHDRFormats
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenSupportedHDRFormats with INVALID_SCREEN_ID
+*                  2. check ret
+*/
+HWTEST_F(RSInterfacesTest, GetScreenSupportedHDRFormats002, Function | SmallTest | Level2)
+{
+    std::vector<ScreenHDRFormat> hdrFormats;
+    int ret = rsInterfaces->GetScreenSupportedHDRFormats(INVALID_SCREEN_ID, hdrFormats);
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+* Function: GetScreenHDRFormat
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenHDRFormat with INVALID_SCREEN_ID
+*                  2. check ret
+*/
+HWTEST_F(RSInterfacesTest, GetScreenHDRFormat002, Function | SmallTest | Level2)
+{
+    ScreenHDRFormat hdrFormat = ScreenHDRFormat::HDR_FORMAT_INVALID;
+    int ret = rsInterfaces->GetScreenHDRFormat(INVALID_SCREEN_ID, hdrFormat);
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+* Function: SetScreenHDRFormat
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenHDRFormat with INVALID_SCREEN_ID
+*                  2. check ret
+*/
+HWTEST_F(RSInterfacesTest, SetScreenHDRFormat002, Function | SmallTest | Level2)
+{
+    int ret = rsInterfaces->SetScreenHDRFormat(INVALID_SCREEN_ID, 0);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
 }
 

@@ -33,6 +33,7 @@ struct VirtualScreenConfigs {
     uint32_t width = 0;
     uint32_t height = 0;
     sptr<Surface> surface = nullptr;
+    GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
     int32_t flags = 0; // reserve flag.
 };
 
@@ -79,6 +80,11 @@ public:
     virtual void SetScreenSkipFrameInterval(uint32_t skipFrameInterval) = 0;
     virtual uint32_t GetScreenSkipFrameInterval() const = 0;
     virtual void SetScreenVsyncEnabled(bool enabled) const = 0;
+    virtual int32_t GetScreenSupportedHDRFormats(std::vector<ScreenHDRFormat>& hdrFormats) const = 0;
+    virtual int32_t GetScreenHDRFormat(ScreenHDRFormat& hdrFormat) const = 0;
+    virtual int32_t SetScreenHDRFormat(int32_t modeIdx) = 0;
+    virtual int32_t GetPixelFormat(GraphicPixelFormat& pixelFormat) const = 0;
+    virtual int32_t SetPixelFormat(GraphicPixelFormat pixelFormat) = 0;
 };
 
 namespace impl {
@@ -133,12 +139,18 @@ public:
     void SetScreenSkipFrameInterval(uint32_t skipFrameInterval) override;
     uint32_t GetScreenSkipFrameInterval() const override;
     void SetScreenVsyncEnabled(bool enabled) const override;
+    int32_t GetScreenSupportedHDRFormats(std::vector<ScreenHDRFormat>& hdrFormats) const override;
+    int32_t GetScreenHDRFormat(ScreenHDRFormat& hdrFormat) const override;
+    int32_t SetScreenHDRFormat(int32_t modeIdx) override;
+    int32_t GetPixelFormat(GraphicPixelFormat& pixelFormat) const override;
+    int32_t SetPixelFormat(GraphicPixelFormat pixelFormat) override;
 
 private:
     // create hdiScreen and get some information from drivers.
     void PhysicalScreenInit() noexcept;
     void ScreenCapabilityInit() noexcept;
 
+    void VirtualScreenInit() noexcept;
     void ModeInfoDump(std::string& dumpString);
     void CapabilityDump(std::string& dumpString);
     void PropDump(std::string& dumpString);
@@ -164,6 +176,7 @@ private:
     GraphicHDRCapability hdrCapability_;
     sptr<Surface> producerSurface_;  // has value if the screen is virtual
     GraphicDispPowerStatus powerStatus_ = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
+    GraphicPixelFormat pixelFormat_;
 
     std::vector<ScreenColorGamut> supportedVirtualColorGamuts_ = {
         COLOR_GAMUT_SRGB,
@@ -173,6 +186,10 @@ private:
     int32_t currentVirtualColorGamutIdx_ = 0;
     int32_t currentPhysicalColorGamutIdx_ = 0;
     ScreenGamutMap currentVirtualGamutMap_ = GAMUT_MAP_CONSTANT;
+    int32_t currentVirtualHDRFormatIdx_ = 0;
+    int32_t currentPhysicalHDRFormatIdx_ = 0;
+    std::vector<ScreenHDRFormat> supportedVirtualHDRFormat_ = {
+        NOT_SUPPORT_HDR };
     RSScreenType screenType_ = RSScreenType::UNKNOWN_TYPE_SCREEN;
     uint32_t skipFrameInterval_ = DEFAULT_SKIP_FRAME_INTERVAL;
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
