@@ -78,7 +78,7 @@ HWTEST_F(RSJankDetectorTest, GetRefreshPeriodTest, Function | SmallTest | Level1
 HWTEST_F(RSJankDetectorTest, GetSysTimeNsTest, Function | SmallTest | Level1)
 {
     // start GetSysTimeNsTest test
-    uint64_t endTimeStamp = jankDetector->GetSysTimeNs();;
+    uint64_t endTimeStamp = jankDetector->GetSysTimeNs();
     EXPECT_FALSE(endTimeStamp == 0);
 }
 } // namespace OHOS::Rosen

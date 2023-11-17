@@ -44,9 +44,11 @@ public:
     virtual ~RSCanvasRenderNode();
 
 #ifndef USE_ROSEN_DRAWING
-    void UpdateRecording(std::shared_ptr<DrawCmdList> drawCmds, RSModifierType type);
+    void UpdateRecording(std::shared_ptr<DrawCmdList> drawCmds,
+        RSModifierType type, bool isSingleFrameComposer = false);
 #else
-    void UpdateRecording(std::shared_ptr<Drawing::DrawCmdList> drawCmds, RSModifierType type);
+    void UpdateRecording(std::shared_ptr<Drawing::DrawCmdList> drawCmds,
+        RSModifierType type, bool isSingleFrameComposer = false);
 #endif
     void ClearRecording();
 
@@ -68,6 +70,8 @@ public:
     RSB_EXPORT RectF GetDrivenContentClipFrameRect() const;
     // functions that are dedicated to driven render [end]
 
+    RSB_EXPORT void ProcessShadowBatching(RSPaintFilterCanvas& canvas);
+
     RSRenderNodeType GetType() const override
     {
         return RSRenderNodeType::CANVAS_NODE;
@@ -75,7 +79,7 @@ public:
 
     void OnTreeStateChanged() override;
 private:
-    void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type) const;
+    void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
     void InternalDrawContent(RSPaintFilterCanvas& canvas);
     // functions that are dedicated to driven render [start]
     void DrawDrivenContent(RSPaintFilterCanvas& canvas);

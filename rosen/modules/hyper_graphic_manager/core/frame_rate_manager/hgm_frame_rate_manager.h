@@ -21,47 +21,57 @@
 
 #include "animation/rs_frame_rate_range.h"
 #include "common/rs_common_def.h"
+#include "pipeline/rs_render_frame_rate_linker.h"
 #include "screen_manager/screen_types.h"
 #include "hgm_one_shot_timer.h"
 #include "hgm_command.h"
 #include "hgm_screen.h"
-#include "hgm_core.h"
+#include "hgm_task_handle_thread.h"
+#include "hgm_vsync_generator_controller.h"
 
 namespace OHOS {
 namespace Rosen {
-struct FrameRateRangeData {
-    ScreenId screenId = INVALID_SCREEN_ID;
-    FrameRateRange rsRange;
-    std::unordered_map<pid_t, FrameRateRange> multiAppRange;
-    bool forceUpdateFlag = false;
-};
-
+using FrameRateLinkerMap = std::unordered_map<FrameRateLinkerId, std::shared_ptr<RSRenderFrameRateLinker>>;
 class HgmFrameRateManager {
 public:
-    HgmFrameRateManager() {}
+    HgmFrameRateManager() = default;
+    ~HgmFrameRateManager() = default;
 
-    void UniProcessData(const FrameRateRangeData& data);
+    void UniProcessData(ScreenId screenId, uint64_t timestamp,
+        std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
+        const FrameRateLinkerMap& appFrameRateLinkers, bool forceUpdateFlag);
     int32_t CalModifierPreferred(const HgmModifierProfile &hgmModifierProfile);
     std::shared_ptr<HgmOneShotTimer> GetScreenTimer(ScreenId screenId) const;
     void ResetScreenTimer(ScreenId screenId) const;
     void StartScreenTimer(ScreenId screenId, int32_t interval,
         std::function<void()> resetCallback, std::function<void()> expiredCallback);
     void StopScreenTimer(ScreenId screenId);
-    void Reset();
     void SetTimerExpiredCallback(std::function<void()> expiredCallback)
     {
         expiredCallback_ = expiredCallback;
     }
+
+    void Init(sptr<VSyncController> rsController,
+        sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
+    std::shared_ptr<uint32_t> GetPendingRefreshRate();
+    void ResetPendingRefreshRate();
 private:
+    void UpdateVSyncMode(sptr<VSyncController> rsController, sptr<VSyncController> appController);
+    void Reset();
+    bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
+        const FrameRateLinkerMap& appFrameRateLinkers);
+    void HandleFrameRateChangeForLTPO(uint64_t timestamp);
     void CalcRefreshRate(const ScreenId id, const FrameRateRange& range);
-    void ExecuteSwitchRefreshRate(const ScreenId id);
     uint32_t GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range);
     std::pair<float, float> applyDimension(
         SpeedTransType speedTransType, float xSpeed, float ySpeed, sptr<HgmScreen> hgmScreen);
 
-    uint32_t currRefreshRate_ = -1;
-    uint32_t rsFrameRate_ = -1;
-    std::unordered_map<pid_t, uint32_t> multiAppFrameRate_;
+    uint32_t currRefreshRate_ = 0;
+    uint32_t controllerRate_ = 0;
+    std::shared_ptr<uint32_t> pendingRefreshRate_;
+    std::shared_ptr<HgmVSyncGeneratorController> controller_;
+    std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData_;
+
     std::function<void()> expiredCallback_;
     std::unordered_map<ScreenId, std::shared_ptr<HgmOneShotTimer>> screenTimerMap_;
 };

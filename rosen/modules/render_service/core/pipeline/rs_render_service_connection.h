@@ -51,6 +51,7 @@ public:
 private:
     void CleanVirtualScreens() noexcept;
     void CleanRenderNodes() noexcept;
+    void CleanFrameRateLinkers() noexcept;
     void CleanAll(bool toDelete = false) noexcept;
 
     // IPC RSIRenderServiceConnection Interfaces
@@ -65,13 +66,16 @@ private:
     sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) override;
 
     sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,
-                                                 const sptr<VSyncIConnectionToken>& token) override;
+                                                 const sptr<VSyncIConnectionToken>& token,
+                                                 uint64_t id) override;
 
     int32_t SetFocusAppInfo(
         int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
         uint64_t focusNodeId) override;
 
     ScreenId GetDefaultScreenId() override;
+
+    ScreenId GetActiveScreenId() override;
 
     std::vector<ScreenId> GetAllScreenIds() override;
 
@@ -94,6 +98,8 @@ private:
     void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate) override;
 
     void SetRefreshRateMode(int32_t refreshRateMode) override;
+
+    void SyncFrameRateRange(const FrameRateRange& range) override;
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) override;
 
@@ -177,6 +183,8 @@ private:
     void SetAppWindowNum(uint32_t num) override;
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) override;
+
+    int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height) override;
 
     void ReportJankStats() override;
 

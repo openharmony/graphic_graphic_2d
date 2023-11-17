@@ -465,7 +465,7 @@ void DrawCmdList::ClearCache()
 #endif
 }
 
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
 void DrawCmdList::CheckClipRect(SkRect& rect)
 {
     std::lock_guard<std::mutex> lock(mutex_);

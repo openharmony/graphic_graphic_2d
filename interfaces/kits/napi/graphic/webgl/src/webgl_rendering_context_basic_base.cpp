@@ -186,20 +186,20 @@ napi_value WebGLRenderingContextBasicBase::GetContextInstance(napi_env env,
         napi_define_class(env, className.c_str(), NAPI_AUTO_LENGTH, constructor, nullptr, 0, nullptr, &contextClass);
         status = napi_new_instance(env, contextClass, 0, nullptr, &instanceValue);
         if (status != napi_ok) {
-            return nullptr;
+            return NVal::CreateNull(env).val_;
         }
         status = napi_wrap(env, instanceValue, static_cast<void*>(this), finalize_cb, nullptr, nullptr);
         if (status != napi_ok) {
-            return nullptr;
+            return NVal::CreateNull(env).val_;
         }
         status = napi_create_reference(env, instanceValue, 1, &contextRef_);
         if (status != napi_ok) {
-            return nullptr;
+            return NVal::CreateNull(env).val_;
         }
     } else {
         status = napi_get_reference_value(env, contextRef_, &instanceValue);
         if (status != napi_ok) {
-            return nullptr;
+            return NVal::CreateNull(env).val_;
         }
     }
     return instanceValue;

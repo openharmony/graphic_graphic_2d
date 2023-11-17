@@ -558,7 +558,7 @@ HWTEST_F(RSMainThreadTest, AddActiveNode, TestSize.Level1)
  */
 HWTEST_F(RSMainThreadTest, WaitUtilDrivenRenderFinished, TestSize.Level1)
 {
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
     auto mainThread = RSMainThread::Instance();
     mainThread->NotifyDrivenRenderFinish();
     mainThread->WaitUtilDrivenRenderFinished();

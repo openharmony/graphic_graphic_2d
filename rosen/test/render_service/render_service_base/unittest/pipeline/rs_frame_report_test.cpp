@@ -66,7 +66,10 @@ HWTEST_F(RsFrameReportTest, AnimateStart001, TestSize.Level1)
  */
 HWTEST_F(RsFrameReportTest, RenderStart001, TestSize.Level1)
 {
-    RsFrameReport::GetInstance().RenderStart();
+    uint64_t timestamp = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+    RsFrameReport::GetInstance().RenderStart(timestamp);
 }
 
 /**

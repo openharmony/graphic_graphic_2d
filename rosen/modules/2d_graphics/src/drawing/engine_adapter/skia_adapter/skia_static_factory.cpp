@@ -15,6 +15,8 @@
 
 #include "skia_static_factory.h"
 
+#include "skia_adapter/skia_surface.h"
+#include "skia_adapter/skia_image.h"
 #include "skia_adapter/skia_text_blob.h"
 #include "skia_adapter/skia_typeface.h"
 
@@ -36,6 +38,46 @@ std::shared_ptr<TextBlob> SkiaStaticFactory::MakeFromRSXform(const void* text, s
 std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromFile(const char path[])
 {
     return SkiaTypeface::MakeFromFile(path);
+}
+
+#ifdef ACE_ENABLE_GPU
+std::shared_ptr<Surface> SkiaStaticFactory::MakeRenderTarget(GPUContext* gpuContext,
+    bool budgeted, const ImageInfo& imageInfo)
+{
+    return SkiaSurface::MakeRenderTarget(gpuContext, budgeted, imageInfo);
+}
+#endif
+
+std::shared_ptr<Surface> SkiaStaticFactory::MakeRaster(const ImageInfo& imageInfo)
+{
+    return SkiaSurface::MakeRaster(imageInfo);
+}
+
+std::shared_ptr<Surface> SkiaStaticFactory::MakeRasterDirect(const ImageInfo& imageInfo, void* pixels, size_t rowBytes)
+{
+    return SkiaSurface::MakeRasterDirect(imageInfo, pixels, rowBytes);
+}
+
+std::shared_ptr<Surface> SkiaStaticFactory::MakeRasterN32Premul(int32_t width, int32_t height)
+{
+    return SkiaSurface::MakeRasterN32Premul(width, height);
+}
+
+std::shared_ptr<Image> SkiaStaticFactory::MakeFromRaster(const Pixmap& pixmap,
+    RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext)
+{
+    return SkiaImage::MakeFromRaster(pixmap, rasterReleaseProc, releaseContext);
+}
+
+std::shared_ptr<Image> SkiaStaticFactory::MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
+    size_t rowBytes)
+{
+    return SkiaImage::MakeRasterData(info, pixels, rowBytes);
+}
+
+std::shared_ptr<TextBlob> SkiaStaticFactory::DeserializeTextBlob(const void* data, size_t size)
+{
+    return SkiaTextBlob::Deserialize(data, size);
 }
 } // namespace Drawing
 } // namespace Rosen

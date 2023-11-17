@@ -29,7 +29,7 @@ void PrintLogE(const std::string &func, int line, const std::string &format, Arg
 {
     std::string prefix = "[%{public}s:%{public}d]";
     std::string formatFull = prefix + format;
-    OHOS::HiviewDFX::HiLogLabel label {LOG_CORE, 0xD001400, "JSApp"};
+    OHOS::HiviewDFX::HiLogLabel label {LOG_CORE, 0xD001400, "WebGL"};
     OHOS::HiviewDFX::HiLog::Error(label, formatFull.c_str(), func.c_str(), line, args...);
 }
 
@@ -38,10 +38,21 @@ void PrintLogI(const std::string &func, int line, const std::string &format, Arg
 {
     std::string prefix = "[%{public}s:%{public}d]";
     std::string formatFull = prefix + format;
-    OHOS::HiviewDFX::HiLogLabel label {LOG_CORE, 0xD001400, "JSApp"};
+    OHOS::HiviewDFX::HiLogLabel label {LOG_CORE, 0xD001400, "WebGL"};
     OHOS::HiviewDFX::HiLog::Info(label, formatFull.c_str(), func.c_str(), line, args...);
 }
+
+template<typename ...Args>
+void PrintLogD(const std::string &func, int line, const std::string &format, Args... args)
+{
+    std::string prefix = "[%{public}s:%{public}d]";
+    std::string formatFull = prefix + format;
+    OHOS::HiviewDFX::HiLogLabel label {LOG_CORE, 0xD001400, "WebGL"};
+    OHOS::HiviewDFX::HiLog::Debug(label, formatFull.c_str(), func.c_str(), line, args...);
+}
+
 #define LOGI(...) PrintLogI(__func__, __LINE__, ##__VA_ARGS__)
 #define LOGE(...) PrintLogE(__func__, __LINE__, ##__VA_ARGS__)
+#define LOGD(...) PrintLogD(__func__, __LINE__, ##__VA_ARGS__)
 
 #endif // WEBGL_LOG_H

@@ -87,6 +87,15 @@ RosenError HdiBackend::RegHwcDeadListener(OnHwcDeadCallback func, void* data)
     return ROSEN_ERROR_OK;
 }
 
+void HdiBackend::SetPendingPeriod(const OutputPtr &output, int64_t period)
+{
+    if (output == nullptr) {
+        HLOGE("output is nullptr.");
+        return;
+    }
+    output->SetPendingPeriod(period);
+}
+
 int32_t HdiBackend::PrepareCompleteIfNeed(const OutputPtr &output, bool needFlush)
 {
     std::vector<LayerPtr> compClientLayers;

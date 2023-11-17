@@ -56,6 +56,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_ATTACH_TO_DISPLAY,
     SURFACE_NODE_DETACH_TO_DISPLAY,
     SURFACE_NODE_SET_BOOT_ANIMATION,
+    SURFACE_NODE_SET_FOREGROUND,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -91,6 +92,7 @@ public:
     static void AttachToDisplay(RSContext& context, NodeId nodeId, uint64_t screenId);
     static void DetachToDisplay(RSContext& context, NodeId nodeId, uint64_t screenId);
     static void SetBootAnimation(RSContext& context, NodeId nodeId, bool isBootAnimation);
+    static void SetForeground(RSContext& context, NodeId nodeId, bool isForeground);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate, ARG(SURFACE_NODE, SURFACE_NODE_CREATE, SurfaceNodeCommandHelper::Create, NodeId))
@@ -153,6 +155,8 @@ ADD_COMMAND(RSSurfaceNodeDetachToDisplay,
 ADD_COMMAND(RSSurfaceNodeSetColorSpace,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_COLOR_SPACE, SurfaceNodeCommandHelper::SetColorSpace, NodeId, GraphicColorGamut))
 #endif
+ADD_COMMAND(RSSurfaceNodeSetForeground,
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_FOREGROUND, SurfaceNodeCommandHelper::SetForeground, NodeId, bool))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H

@@ -87,21 +87,29 @@ enum class RSModifierType : int16_t {
     SATURATE,                      // 60
     SEPIA,                         // 61
     INVERT,                        // 62
-    HUE_ROTATE,                    // 63
-    COLOR_BLEND,                   // 64
-    PARTICLE,                      // 65
-    SHADOW_IS_FILLED,              // 66
-    CUSTOM,                        // 67
-    EXTENDED,                      // 68
-    TRANSITION,                    // 69
-    BACKGROUND_STYLE,              // 70
-    CONTENT_STYLE,                 // 71
-    FOREGROUND_STYLE,              // 72
-    OVERLAY_STYLE,                 // 73
-    NODE_MODIFIER,                 // 74
-    ENV_FOREGROUND_COLOR,          // 75
-    ENV_FOREGROUND_COLOR_STRATEGY, // 76
-    GEOMETRYTRANS,                 // 77
+    AIINVERT,                      // 63
+    HUE_ROTATE,                    // 64
+    COLOR_BLEND,                   // 65
+    PARTICLE,                      // 66
+    SHADOW_IS_FILLED,              // 67
+    OUTER_BORDER_COLOR,            // 68
+    OUTER_BORDER_WIDTH,            // 69
+    OUTER_BORDER_STYLE,            // 70
+    OUTER_BORDER_RADIUS,           // 71
+    USE_SHADOW_BATCHING,           // 72
+    GREY_COEF1,                    // 73
+    GREY_COEF2,                    // 74
+    CUSTOM,                        // 75
+    EXTENDED,                      // 76
+    TRANSITION,                    // 77
+    BACKGROUND_STYLE,              // 78
+    CONTENT_STYLE,                 // 79
+    FOREGROUND_STYLE,              // 80
+    OVERLAY_STYLE,                 // 81
+    NODE_MODIFIER,                 // 82
+    ENV_FOREGROUND_COLOR,          // 83
+    ENV_FOREGROUND_COLOR_STRATEGY, // 84
+    GEOMETRYTRANS,                 // 85
 };
 
 enum class RSRenderPropertyType : int16_t {
@@ -116,12 +124,6 @@ enum class RSRenderPropertyType : int16_t {
     PROPERTY_VECTOR4_COLOR,
     PROPERTY_SKMATRIX,
     PROPERTY_RRECT,
-};
-
-enum class RSColorBlendModeType : int16_t {
-    NONE = 0,
-    DST_IN,
-    SRC_IN,
 };
 } // namespace Rosen
 } // namespace OHOS

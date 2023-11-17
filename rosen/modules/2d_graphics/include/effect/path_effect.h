@@ -60,6 +60,7 @@ public:
     PathEffect(PathEffectType t, scalar radius) noexcept;
     PathEffect(PathEffectType t, scalar segLength, scalar dev, uint32_t seedAssist) noexcept;
     PathEffect(PathEffectType t, PathEffect& e1, PathEffect& e2) noexcept;
+    PathEffect(PathEffectType t) noexcept;
 
     template<typename T>
     const std::shared_ptr<T> GetImpl() const
@@ -67,6 +68,8 @@ public:
         return impl_->DowncastingTo<T>();
     }
 
+    std::shared_ptr<Data> Serialize() const;
+    bool Deserialize(std::shared_ptr<Data> data);
 protected:
     PathEffect() noexcept;
 

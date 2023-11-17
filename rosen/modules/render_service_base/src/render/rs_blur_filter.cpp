@@ -179,6 +179,11 @@ void RSBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<
 #endif
 #else
     auto brush = GetBrush();
+    // if kawase blur failed, use gauss blur
+    KawaseParameter param = KawaseParameter(src, dst, blurRadiusX_, nullptr, brush.GetColor().GetAlphaF());
+    if (useKawase_ && KawaseBlurFilter::GetKawaseBlurFilter()->ApplyKawaseBlur(canvas, image, param)) {
+        return;
+    }
     canvas.AttachBrush(brush);
     canvas.DrawImageRect(*image, src, dst, Drawing::SamplingOptions());
     canvas.DetachBrush();

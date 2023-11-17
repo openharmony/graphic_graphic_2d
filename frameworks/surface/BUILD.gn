@@ -80,10 +80,7 @@ ohos_shared_library("surface") {
     "//commonlibrary/c_utils/base:utils_config",
   ]
 
-  deps = [
-    "$graphic_2d_root/utils/gslogger:libgslogger",
-    "$graphic_2d_root/utils/sync_fence:sync_fence",
-  ]
+  deps = [ "$graphic_2d_root/utils/sync_fence:sync_fence" ]
 
   public_deps = [
     "$graphic_2d_root/utils/buffer_handle:buffer_handle",
@@ -93,6 +90,7 @@ ohos_shared_library("surface") {
 
   external_deps = [
     "c_utils:utils",
+    "drivers_interface_display:display_buffer_idl_headers",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_single",
@@ -101,7 +99,9 @@ ohos_shared_library("surface") {
   if (graphic_2d_feature_drivers_interface_display_enable) {
     external_deps += [
       "drivers_interface_display:display_buffer_idl_headers",
+      "drivers_interface_display:display_commontype_idl_headers",
       "drivers_interface_display:libdisplay_buffer_hdi_impl",
+      "drivers_interface_display:libdisplay_buffer_hdi_impl_v1_1",
     ]
   }
 

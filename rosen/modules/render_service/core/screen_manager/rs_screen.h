@@ -65,6 +65,7 @@ public:
     virtual void ClearFpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) = 0;
     virtual void SetScreenBacklight(uint32_t level) = 0;
     virtual int32_t GetScreenBacklight() const = 0;
+    virtual void ResizeVirtualScreen(uint32_t width, uint32_t height) = 0;
     virtual int32_t GetScreenSupportedColorGamuts(std::vector<ScreenColorGamut> &mode) const = 0;
     virtual int32_t GetScreenSupportedMetaDataKeys(std::vector<ScreenHDRMetadataKey> &keys) const = 0;
     virtual int32_t GetScreenColorGamut(ScreenColorGamut &mode) const = 0;
@@ -117,6 +118,7 @@ public:
     void SurfaceDump(int32_t screenIndex, std::string& dumpString) override;
     void FpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) override;
     void ClearFpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) override;
+    void ResizeVirtualScreen(uint32_t width, uint32_t height) override;
     void SetScreenBacklight(uint32_t level) override;
     int32_t GetScreenBacklight() const override;
     int32_t GetScreenSupportedColorGamuts(std::vector<ScreenColorGamut> &mode) const override;

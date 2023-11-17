@@ -69,6 +69,7 @@ if (rosen_is_linux) {
 
 enable_export_macro = true
 enable_ipc_security = true
+enable_ipc_security_access_counter = false
 
 accessibility_root = "//foundation/barrierfree/accessibility"
 appframework_root = "//foundation/appframework"

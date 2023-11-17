@@ -62,10 +62,10 @@ public:
         return bitMapHeight_;
     }
 
-    WebGLContextAttributes *CreateWebGlContextAttributes()
+    std::shared_ptr<WebGLContextAttributes> CreateWebGlContextAttributes()
     {
         if (webGlContextAttributes_ == nullptr) {
-            webGlContextAttributes_ = new WebGLContextAttributes();
+            webGlContextAttributes_ = std::make_shared<WebGLContextAttributes>();
         }
         return webGlContextAttributes_;
     }
@@ -84,7 +84,7 @@ private:
     GLint packAlignment_ = 4;
     EGLSurface eglSurface_ = nullptr;
     NativeWindow* eglWindow_ = nullptr;
-    WebGLContextAttributes* webGlContextAttributes_ = nullptr;
+    std::shared_ptr<WebGLContextAttributes> webGlContextAttributes_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

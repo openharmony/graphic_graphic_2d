@@ -236,7 +236,7 @@ HWTEST_F(HdiOutputSysTest, FlushScreen002, Function | MediumTest| Level1)
 HWTEST_F(HdiOutputSysTest, ReleaseFramebuffer002, Function | MediumTest| Level1)
 {
     // last frame buffer is nullptr
-    sptr<SyncFence> releaseFence = SyncFence::INVALID_FENCE;;
+    sptr<SyncFence> releaseFence = SyncFence::INVALID_FENCE;
     ASSERT_EQ(HdiOutputSysTest::hdiOutput_->ReleaseFramebuffer(releaseFence), 0);
 
     // last frame buffer is not nullptr

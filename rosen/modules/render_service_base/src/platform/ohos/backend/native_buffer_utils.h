@@ -18,7 +18,13 @@
 
 #include <atomic>
 
+#include "native_buffer_inner.h"
+#include "sync_fence.h"
 #include "rs_vulkan_context.h"
+#include "native_window.h"
+#include "include/gpu/GrDirectContext.h"
+#include "include/gpu/GrBackendSemaphore.h"
+#include "include/core/SkSurface.h"
 
 namespace OHOS::Rosen {
 namespace NativeBufferUtils {
@@ -26,8 +32,12 @@ void DeleteVkImage(void* context);
 class VulkanCleanupHelper {
 public:
     VulkanCleanupHelper(RsVulkanContext& vkContext, VkImage image, VkDeviceMemory memory)
-        : fDevice_(vkContext.GetDevice()), fImage_(image), fMemory_(memory), fDestroyImage_(vkContext.vkDestroyImage),
-        fFreeMemory_(vkContext.vkFreeMemory), fRefCnt_(1) {}
+        : fDevice_(vkContext.GetDevice()),
+          fImage_(image),
+          fMemory_(memory),
+          fDestroyImage_(vkContext.vkDestroyImage),
+          fFreeMemory_(vkContext.vkFreeMemory),
+          fRefCnt_(1) {}
     ~VulkanCleanupHelper()
     {
         fDestroyImage_(fDevice_, fImage_, nullptr);
@@ -55,6 +65,33 @@ private:
     PFN_vkFreeMemory fFreeMemory_;
     mutable std::atomic<int32_t> fRefCnt_;
 };
+
+struct NativeSurfaceInfo {
+    NativeSurfaceInfo() = default;
+    NativeSurfaceInfo(NativeSurfaceInfo &&) = default;
+    NativeSurfaceInfo &operator=(NativeSurfaceInfo &&) = default;
+    NativeSurfaceInfo(const NativeSurfaceInfo &) = delete;
+    NativeSurfaceInfo &operator=(const NativeSurfaceInfo &) = delete;
+
+    NativeWindow* window = nullptr;
+    NativeWindowBuffer* nativeWindowBuffer = nullptr;
+    VkImage image = VK_NULL_HANDLE; // skia will destroy image
+    std::unique_ptr<SyncFence> fence = nullptr;
+    sk_sp<SkSurface> skSurface = nullptr;
+    uint32_t lastPresentedCount = 0;
+
+    ~NativeSurfaceInfo()
+    {
+        skSurface = nullptr;
+        NativeWindowCancelBuffer(window, nativeWindowBuffer);
+    }
+};
+
+bool MakeFromNativeWindowBuffer(sk_sp<GrDirectContext> skContext, NativeWindowBuffer* nativeWindowBuffer,
+    NativeSurfaceInfo& nativeSurface, int width, int height);
+
+GrBackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* nativeWindowBuffer,
+    int width, int height);
 }
 } // OHOS::Rosen
 #endif

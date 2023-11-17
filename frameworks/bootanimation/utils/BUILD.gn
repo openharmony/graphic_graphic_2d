@@ -33,7 +33,10 @@ ohos_shared_library("libbootanimation_utils") {
     "init:libbegetutil",
   ]
 
-  innerapi_tags = [ "platformsdk" ]
+  innerapi_tags = [
+    "platformsdk",
+    "sasdk",
+  ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

@@ -18,10 +18,14 @@
 #include <sstream>
 #include <string>
 
-#include "EGL/egl.h"
 #include "rs_trace.h"
 #include "window.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#elif defined(RS_ENABLE_GL)
+#include "EGL/egl.h"
+#endif
 
 #include "memory/rs_tag_tracker.h"
 
@@ -290,13 +294,15 @@ void RenderContext::SetColorSpace(GraphicColorGamut colorSpace)
 }
 
 #ifndef USE_ROSEN_DRAWING
-bool RenderContext::SetUpGrContext()
+bool RenderContext::SetUpGrContext(sk_sp<GrDirectContext> skContext)
 {
     if (grContext_ != nullptr) {
         LOGD("grContext has already created!!");
         return true;
     }
 
+#ifdef RS_ENABLE_GL
+    (void)(skContext);
     sk_sp<const GrGLInterface> glInterface(GrGLCreateNativeInterface());
     if (glInterface.get() == nullptr) {
         LOGE("SetUpGrContext failed to make native interface");
@@ -323,6 +329,13 @@ bool RenderContext::SetUpGrContext()
     sk_sp<GrDirectContext> grContext(GrDirectContext::MakeGL(std::move(glInterface), options));
 #else
     sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface), options));
+#endif
+#endif
+#ifdef RS_ENABLE_VK
+    if (skContext == nullptr) {
+        skContext = RsVulkanContext::GetSingleton().CreateSkContext();
+    }
+    sk_sp<GrDirectContext> grContext(skContext);
 #endif
     if (grContext == nullptr) {
         LOGE("SetUpGrContext grContext is null");
@@ -360,7 +373,7 @@ bool RenderContext::SetUpGpuContext()
 #ifndef USE_ROSEN_DRAWING
 sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
 {
-    if (!SetUpGrContext()) {
+    if (!SetUpGrContext(nullptr)) {
         LOGE("GrContext is not ready!!!");
         return nullptr;
     }
@@ -440,6 +453,8 @@ std::shared_ptr<Drawing::Surface> RenderContext::AcquireSurface(int width, int h
         default:
             break;
     }
+
+    RSTagTracker tagTracker(GetDrGPUContext(), RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
 
     struct Drawing::FrameBuffer bufferInfo;
     bufferInfo.width = width;

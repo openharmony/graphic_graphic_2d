@@ -14,6 +14,7 @@
  */
 
 #include "rs_render_service.h"
+#include "hgm_core.h"
 #include "rs_main_thread.h"
 #include "rs_qos_thread.h"
 #include "rs_render_service_connection.h"
@@ -65,12 +66,16 @@ bool RSRenderService::Init()
 
     // The offset needs to be set
     int64_t offset = 0;
-    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-        offset = UNI_RENDER_VSYNC_OFFSET;
+    if (!HgmCore::Instance().GetLtpoEnabled()) {
+        if (RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+            offset = UNI_RENDER_VSYNC_OFFSET;
+        }
+        rsVSyncController_ = new VSyncController(generator, offset);
+        appVSyncController_ = new VSyncController(generator, offset);
+    } else {
+        rsVSyncController_ = new VSyncController(generator, 0);
+        appVSyncController_ = new VSyncController(generator, 0);
     }
-    rsVSyncController_ = new VSyncController(generator, offset);
-    appVSyncController_ = new VSyncController(generator, offset);
     rsVSyncDistributor_ = new VSyncDistributor(rsVSyncController_, "rs");
     appVSyncDistributor_ = new VSyncDistributor(appVSyncController_, "app");
 
@@ -79,6 +84,9 @@ bool RSRenderService::Init()
         return false;
     }
     mainThread_->rsVSyncDistributor_ = rsVSyncDistributor_;
+    mainThread_->rsVSyncController_ = rsVSyncController_;
+    mainThread_->appVSyncController_ = appVSyncController_;
+    mainThread_->vsyncGenerator_ = generator;
     mainThread_->Init();
  
     RSQosThread::GetInstance()->appVSyncDistributor_ = appVSyncDistributor_;

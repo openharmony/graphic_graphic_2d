@@ -125,7 +125,7 @@ HWTEST_F(RSCanvasRenderNodeTest, ProcessDrivenBackgroundRenderTest, TestSize.Lev
     std::weak_ptr<RSContext> context;
     RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
     rsCanvasRenderNode.ProcessDrivenBackgroundRender(*canvas_);
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
     EXPECT_EQ(rsCanvasRenderNode.GetChildrenCount(), 0);
 #endif
 }
@@ -142,11 +142,10 @@ HWTEST_F(RSCanvasRenderNodeTest, ColorBlendModeTest, TestSize.Level1)
     canvas_->saveLayer(nullptr, nullptr);
 
     int blendMode = 0;
-    auto ConvertToSkBlendMode = [&](int blendMode) {
-        static const std::unordered_map<int, SkBlendMode> skBlendModeLUT = 
-        {
-            { static_cast<int>(RSColorBlendModeType::DST_IN), SkBlendMode::kDstIn },
-            { static_cast<int>(RSColorBlendModeType::SRC_IN), SkBlendMode::kSrcIn }
+    auto convertToSkBlendMode = [&blendMode]() {
+        static const std::unordered_map<int, SkBlendMode> skBlendModeLUT = {
+            {static_cast<int>(RSColorBlendModeType::DST_IN), SkBlendMode::kDstIn},
+            {static_cast<int>(RSColorBlendModeType::SRC_IN), SkBlendMode::kSrcIn}
         };
 
         auto iter = skBlendModeLUT.find(blendMode);
@@ -157,7 +156,7 @@ HWTEST_F(RSCanvasRenderNodeTest, ColorBlendModeTest, TestSize.Level1)
 
         return skBlendModeLUT.at(blendMode);
     };
-    SkBlendMode skBlendMode = ConvertToSkBlendMode(blendMode);
+    SkBlendMode skBlendMode = convertToSkBlendMode();
     SkPaint maskPaint;
     maskPaint.setBlendMode(skBlendMode);
     SkCanvas::SaveLayerRec maskLayerRec(nullptr, &maskPaint, nullptr, 0);
@@ -165,5 +164,19 @@ HWTEST_F(RSCanvasRenderNodeTest, ColorBlendModeTest, TestSize.Level1)
 
     canvas_->restore();
     canvas_->restore();
+}
+
+/**
+ * @tc.name: ProcessShadowBatchingTest
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasRenderNodeTest, ProcessShadowBatchingTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    std::weak_ptr<RSContext> context;
+    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
+    rsCanvasRenderNode.ProcessShadowBatching(*canvas_);
 }
 } // namespace OHOS::Rosen

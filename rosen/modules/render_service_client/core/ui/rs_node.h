@@ -19,6 +19,7 @@
 
 #include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_animation_timing_protocol.h"
+#include "animation/rs_frame_rate_range.h"
 #include "animation/rs_motion_path_option.h"
 #include "animation/rs_particle_params.h"
 #include "animation/rs_transition_effect.h"
@@ -240,12 +241,18 @@ public:
     void SetBorderStyle(uint32_t styleValue);
     void SetBorderStyle(uint32_t left, uint32_t top, uint32_t right, uint32_t bottom);
     void SetBorderStyle(const Vector4<BorderStyle>& style);
+    void SetOuterBorderColor(const Vector4<Color>& color);
+    void SetOuterBorderWidth(const Vector4f& width);
+    void SetOuterBorderStyle(const Vector4<BorderStyle>& style);
+    void SetOuterBorderRadius(const Vector4f& radius);
 
     void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
     void SetDynamicLightUpRate(const float rate);
     void SetDynamicLightUpDegree(const float lightUpDegree);
+    void SetGreyCoef1(const float greyCoef1);
+    void SetGreyCoef2(const float greyCoef2);
     void SetCompositingFilter(const std::shared_ptr<RSFilter>& compositingFilter);
 
     void SetShadowColor(uint32_t colorValue);
@@ -283,6 +290,8 @@ public:
 
     void SetUseEffect(bool useEffect);
 
+    void SetUseShadowBatching(bool useShadowBatching);
+
     void SetColorBlendMode(RSColorBlendModeType blendMode);
 
     // driven render
@@ -303,6 +312,8 @@ public:
     // Mark preferentially draw node and childrens
     void MarkNodeGroup(bool isNodeGroup, bool isForced = true);
 
+    void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer);
+
     void SetGrayScale(float grayScale);
 
     void SetBrightness(float brightness);
@@ -315,6 +326,8 @@ public:
 
     void SetInvert(float invert);
 
+    void SetAiInvert(const Vector4f& aiInvert);
+
     void SetHueRotate(float hueRotate);
 
     void SetColorBlend(uint32_t colorValue);
@@ -322,6 +335,8 @@ public:
     void AddFRCSceneInfo(const std::string& scene, float speed);
 
     void UpdateUIFrameRateRange(const FrameRateRange& range);
+
+    int32_t CalcExpectedFrameRate(const std::string& scene, float speed);
 
     void SetOutOfParent(OutOfParentType outOfParent);
 protected:
@@ -376,6 +391,8 @@ private:
     bool drivenFlag_ = false;
 
     bool isNodeGroup_ = false;
+
+    bool isNodeSingleFrameComposer_ = false;
 
     RSModifierExtractor stagingPropertiesExtractor_;
     RSShowingPropertiesFreezer showingPropertiesFreezer_;

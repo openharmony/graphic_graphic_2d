@@ -267,7 +267,7 @@ void TypographyImpl::Layout(double maxWidth)
         ScopedTrace scope("TypographyImpl::Layout");
 #endif
         LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "TypographyImpl::Layout");
-        LOGEX_FUNC_LINE(INFO) << "Layout maxWidth: " << maxWidth << ", spans.size(): " << spans_.size();
+        LOGEX_FUNC_LINE_DEBUG(INFO) << "Layout maxWidth: " << maxWidth << ", spans.size(): " << spans_.size();
         maxWidth_ = floor(maxWidth);
         if (spans_.empty()) {
             LOGEX_FUNC_LINE(ERROR) << "Empty spans";
@@ -431,7 +431,7 @@ int TypographyImpl::ComputeStrut()
     FontStyles style(typographyStyle_.lineStyle.fontWeight, typographyStyle_.lineStyle.fontStyle);
     auto typeface = fontCollection->GetTypefaceForFontStyles(style, {}, {});
     if (typeface == nullptr) {
-        LOGEX_FUNC_LINE_DEBUG() << "seek typeface failed";
+        LOGEX_FUNC_LINE(ERROR) << "seek typeface failed";
         return FAILED;
     }
 
@@ -481,7 +481,9 @@ int TypographyImpl::UpdateSpanMetrics(VariantSpan &span, double &coveredAscent)
         }
 
         FontStyles fs(style.fontWeight, style.fontStyle);
-        auto typeface = fontCollection->GetTypefaceForChar(0xFFFC, fs, "Latn", style.locale);
+        bool fallbackTypeface = false;
+        // 0xFFFC is a placeholder, use it to get typeface when text is empty.
+        auto typeface = fontCollection->GetTypefaceForChar(0xFFFC, fs, "Latn", style.locale, fallbackTypeface);
         if (typeface == nullptr) {
             typeface = fontCollection->GetTypefaceForFontStyles(fs, "Latn", style.locale);
         }

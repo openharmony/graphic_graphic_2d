@@ -1099,5 +1099,33 @@ HWTEST_F(RSInterfacesTest, UnRegisterSurfaceOcclusionChangeCallback001, Function
     int32_t ret = rsInterfaces->UnRegisterSurfaceOcclusionChangeCallback(id);
     ASSERT_EQ(ret, 0);
 }
+
+/*
+ * @tc.name: ResizeVirtualScreen001
+ * @tc.desc: ResizeVirtualScreen interface test.
+ * @tc.type: FUNC
+ * @tc.require: issueI8F2HB
+ */
+HWTEST_F(RSInterfacesTest, ResizeVirtualScreen001, Function | SmallTest | Level2)
+{
+    auto csurface = IConsumerSurface::Create();
+    EXPECT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    uint32_t defaultWidth = 720;
+    uint32_t defaultHeight = 1280;
+    uint32_t newWidth = 1920;
+    uint32_t newHeight = 1080;
+    EXPECT_NE(psurface, nullptr);
+
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "virtualScreen0", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    int32_t ret = rsInterfaces->ResizeVirtualScreen(virtualScreenId, newWidth, newHeight);
+    ASSERT_EQ(ret, 0);
+
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
+}
 } // namespace Rosen
 } // namespace OHOS

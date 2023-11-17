@@ -339,6 +339,29 @@ HWTEST_F(RSPropertiesPainterTest, DrawFilter002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawLinearGradientBlurFilter001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawLinearGradientBlurFilter001, TestSize.Level1)
+{
+    SkCanvas skCanvas;
+    RSPaintFilterCanvas canvas(&skCanvas);
+
+    std::vector<std::pair<float, float>> fractionStops;
+    fractionStops.push_back(std::make_pair(0.f, 0.f));
+    fractionStops.push_back(std::make_pair(1.f, 1.f));
+    std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara = std::make_shared<RSLinearGradientBlurPara>(
+        16, fractionStops, GradientDirection::BOTTOM);
+    RSProperties properties;
+    properties.SetLinearGradientBlurPara(linearGradientBlurPara);
+
+    RSPropertiesPainter::DrawLinearGradientBlurFilter(
+        properties, canvas, SkRect::MakeXYWH(0.f, 0.f, 1.f, 1.f));
+}
+
+/**
  * @tc.name: DrawBackground001
  * @tc.desc: test
  * @tc.type:FUNC
@@ -525,6 +548,36 @@ HWTEST_F(RSPropertiesPainterTest, DrawMask004, TestSize.Level1)
     SkISize size = SkISize::Make(w, h);
     SkRect maskBounds = SkRect::Make(size);
     RSPropertiesPainter::DrawMask(properties, skCanvas, maskBounds);
+}
+
+/**
+ * @tc.name: DrawDynamicLightUp001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawDynamicLightUp001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetDynamicLightUpRate(0.5);
+    properties.SetDynamicLightUpDegree(0.5);
+    SkCanvas skCanvas;
+    RSPaintFilterCanvas canvas(&skCanvas);
+    RSPropertiesPainter::DrawDynamicLightUp(properties, canvas);
+}
+
+/**
+ * @tc.name: DrawDynamicLightUp002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawDynamicLightUp002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetDynamicLightUpRate(0.3);
+    properties.SetDynamicLightUpDegree(0.8);
+    SkCanvas skCanvas;
+    RSPaintFilterCanvas canvas(&skCanvas);
+    RSPropertiesPainter::DrawDynamicLightUp(properties, canvas);
 }
 } // namespace Rosen
 } // namespace OHOS

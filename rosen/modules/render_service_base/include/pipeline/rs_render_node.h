@@ -35,6 +35,7 @@
 #include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_single_frame_composer.h"
 #include "property/rs_properties.h"
 #include "property/rs_property_drawable.h"
 
@@ -218,7 +219,7 @@ public:
     bool IsDirtyRegionUpdated() const;
     void CleanDirtyRegionUpdated();
 
-    void AddModifier(const std::shared_ptr<RSRenderModifier>& modifier);
+    void AddModifier(const std::shared_ptr<RSRenderModifier>& modifier, bool isSingleFrameComposer = false);
     void RemoveModifier(const PropertyId& id);
     std::shared_ptr<RSRenderModifier> GetModifier(const PropertyId& id);
     void ApplyChildrenModifiers();
@@ -299,7 +300,7 @@ public:
     void ClearCacheSurface(bool isClearCompletedCacheSurface = true);
     bool IsCacheSurfaceValid() const;
 
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     void UpdateBackendTexture();
 #endif
 
@@ -411,6 +412,9 @@ public:
     void MarkNodeGroup(NodeGroupType type, bool isNodeGroup);
     NodeGroupType GetNodeGroupType();
 
+    void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer);
+    bool GetNodeIsSingleFrameComposer() const;
+
     /////////////////////////////////////////////
 
     // shared transition params, in format <InNodeId, target weakPtr>, nullopt means no transition
@@ -460,6 +464,7 @@ protected:
     void AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& modifier);
     RSPaintFilterCanvas::SaveStatus renderNodeSaveCount_;
     std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>> drawCmdModifiers_;
+    std::shared_ptr<RSSingleFrameComposer> singleFrameComposer_ = nullptr;
     // if true, it means currently it's in partial render mode and this node is intersect with dirtyRegion
     bool isRenderUpdateIgnored_ = false;
     bool isShadowValidLastFrame_ = false;
@@ -538,7 +543,7 @@ private:
     std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
     std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
 #endif
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
 #ifndef USE_ROSEN_DRAWING
     GrBackendTexture cacheBackendTexture_;
     GrBackendTexture cacheCompletedBackendTexture_;
@@ -584,6 +589,7 @@ private:
 
     std::shared_ptr<RectF> drawRegion_ = nullptr;
     NodeGroupType nodeGroupType_ = NodeGroupType::NONE;
+    bool isNodeSingleFrameComposer_ = false;
 
     // shadowRectOffset means offset between shadowRect and absRect of node
     int shadowRectOffsetX_ = 0;

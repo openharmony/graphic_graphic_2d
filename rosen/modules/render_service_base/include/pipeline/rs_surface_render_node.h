@@ -69,10 +69,8 @@ public:
     void PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas);
     void PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas);
 
-#ifdef OHOS_PLATFORM
     void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID) override;
-#endif
     bool IsAppWindow() const
     {
         return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE;
@@ -432,7 +430,8 @@ public:
         const Occlusion::Region& region,
         VisibleData& visibleVec,
         std::map<uint32_t, bool>& pidVisMap,
-        bool needSetVisibleRegion = true);
+        bool needSetVisibleRegion = true,
+        RS_REGION_VISIBLE_LEVEL visibleLevel = UNKNOW_VISIBLE_LEVEL);
 
     const Occlusion::Region& GetVisibleDirtyRegion() const
     {
@@ -819,6 +818,16 @@ public:
     {
         hasSkipLayer_ = hasSkipLayer;
     }
+    
+    void SetForeground(bool isForeground)
+    {
+        isForeground_ = isForeground;
+    }
+
+    bool GetIsForeground() const
+    {
+        return isForeground_;
+    }
 private:
     void OnResetParent() override;
     void ClearChildrenCache();
@@ -853,7 +862,6 @@ private:
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
     bool hasFingerprint_ = false;
-    bool isReportFirstFrame_ = false;
     RectI srcRect_;
 #ifndef USE_ROSEN_DRAWING
     SkMatrix totalMatrix_;
@@ -1011,6 +1019,7 @@ private:
     uint32_t submittedSubThreadIndex_ = INT_MAX;
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
     std::atomic<bool> isNeedSubmitSubThread_ = true;
+    bool isForeground_ = false;
 
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;

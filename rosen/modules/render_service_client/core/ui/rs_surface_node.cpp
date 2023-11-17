@@ -555,5 +555,20 @@ bool RSSurfaceNode::GetBootAnimation() const
 {
     return isBootAnimation_;
 }
+
+void RSSurfaceNode::SetForeground(bool isForeground)
+{
+    ROSEN_LOGD("RSSurfaceNode::SetForeground, surfaceNodeId:[%" PRIu64 "] isForeground:%s",
+        GetId(), isForeground ? "true" : "false");
+    std::unique_ptr<RSCommand> commandRS =
+        std::make_unique<RSSurfaceNodeSetForeground>(GetId(), isForeground);
+    std::unique_ptr<RSCommand> commandRT =
+        std::make_unique<RSSurfaceNodeSetForeground>(GetId(), isForeground);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(commandRS, true);
+        transactionProxy->AddCommand(commandRT, false);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

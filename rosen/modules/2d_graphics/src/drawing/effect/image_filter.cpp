@@ -57,6 +57,10 @@ ImageFilter::ImageFilter(FilterType t, std::shared_ptr<ImageFilter> f1, std::sha
     impl_->InitWithCompose(f1, f2);
 }
 
+ImageFilter::ImageFilter(FilterType t) noexcept
+    : type_(t), impl_(ImplFactory::CreateImageFilterImpl())
+{}
+
 ImageFilter::ImageFilter() noexcept
     : type_(ImageFilter::FilterType::NO_TYPE), impl_(ImplFactory::CreateImageFilterImpl())
 {}
@@ -96,6 +100,17 @@ std::shared_ptr<ImageFilter> ImageFilter::CreateComposeImageFilter(
 {
     return std::make_shared<ImageFilter>(ImageFilter::FilterType::COMPOSE, f1, f2);
 }
+
+std::shared_ptr<Data> ImageFilter::Serialize() const
+{
+    return impl_->Serialize();
+}
+
+bool ImageFilter::Deserialize(std::shared_ptr<Data> data)
+{
+    return impl_->Deserialize(data);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -14,6 +14,8 @@
  */
 
 #include "vsync_controller.h"
+#include <scoped_bytrace.h>
+#include "vsync_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -36,14 +38,18 @@ VsyncError VSyncController::SetEnable(bool enbale, bool& isGeneratorEnable)
     if (generator == nullptr) {
         return VSYNC_ERROR_NULLPTR;
     }
-    std::lock_guard<std::mutex> locker(offsetMutex_);
+    int64_t phaseOffset;
+    {
+        std::lock_guard<std::mutex> locker(offsetMutex_);
+        phaseOffset = phaseOffset_;
+    }
     VsyncError ret = VSYNC_ERROR_OK;
     if (enbale) {
         // If the sampler does not complete the sampling work, the generator does not work
         // We need to tell the distributor to use the software vsync
         isGeneratorEnable = generator->IsEnable();
         if (isGeneratorEnable) {
-            ret = generator->AddListener(phaseOffset_, this);
+            ret = generator->AddListener(phaseOffset, this);
         } else {
             ret = VSYNC_ERROR_API_FAILED;
         }
@@ -75,12 +81,14 @@ VsyncError VSyncController::SetPhaseOffset(int64_t offset)
     if (generator == nullptr) {
         return VSYNC_ERROR_NULLPTR;
     }
-    std::lock_guard<std::mutex> locker(offsetMutex_);
-    phaseOffset_ = offset;
-    return generator->ChangePhaseOffset(this, phaseOffset_);
+    {
+        std::lock_guard<std::mutex> locker(offsetMutex_);
+        phaseOffset_ = offset;
+    }
+    return generator->ChangePhaseOffset(this, offset);
 }
 
-void VSyncController::OnVSyncEvent(int64_t now, int64_t period)
+void VSyncController::OnVSyncEvent(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode)
 {
     Callback *cb = nullptr;
     {
@@ -88,7 +96,26 @@ void VSyncController::OnVSyncEvent(int64_t now, int64_t period)
         cb = callback_;
     }
     if (cb != nullptr) {
-        cb->OnVSyncEvent(now, period);
+        cb->OnVSyncEvent(now, period, refreshRate, vsyncMode);
+    }
+}
+
+void VSyncController::OnPhaseOffsetChanged(int64_t phaseOffset)
+{
+    std::lock_guard<std::mutex> locker(offsetMutex_);
+    phaseOffset_ = phaseOffset;
+}
+
+/* std::pair<id, refresh rate> */
+void VSyncController::OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates)
+{
+    Callback *cb = nullptr;
+    {
+        std::lock_guard<std::mutex> locker(callbackMutex_);
+        cb = callback_;
+    }
+    if (cb != nullptr) {
+        cb->OnConnsRefreshRateChanged(refreshRates);
     }
 }
 }
