@@ -1596,6 +1596,21 @@ void RSUniRenderVisitor::DrawTargetSurfaceVisibleRegionForDFX(RSDisplayRenderNod
     }
 }
 
+void RSUniRenderVisitor::DrawCurrentRefreshRate(uint32_t currentRefreshRate)
+{
+    sk_sp<SkTypeface> tf = SkTypeface::MakeFromName("HarmonyOS Sans SC", SkFontStyle::Normal());
+    SkFont font;
+    font.setSize(100);
+    font.setTypeface(tf);
+    std::string info = std::to_string(currentRefreshRate);
+    sk_sp<SkTextBlob> textBlob = SkTextBlob::MakeFromString(info.c_str(), font);
+
+    SkPaint paint;
+    paint.setColor(SK_ColorGREEN);
+    paint.setAntiAlias(true);
+    canvas_->drawTextBlob(textBlob, 100.f, 200.f, paint); //100.f:绘制TextBlob的x标量 200.f:绘制TextBlob的y标量
+}
+
 void RSUniRenderVisitor::DrawAndTraceSingleDirtyRegionTypeForDFX(RSSurfaceRenderNode& node,
     DirtyRegionType dirtyType, bool isDrawn)
 {
@@ -2350,6 +2365,13 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         if (isDrawingCacheEnabled_ && RSSystemParameters::GetDrawingCacheEnabledDfx()) {
             DrawCacheRegionForDFX(cacheRenderNodeMapRects_);
         }
+
+        if (RSSystemParameters::GetShowRefreshRateEnabled()) {
+            RS_TRACE_BEGIN("RSUniRender::DrawCurrentRefreshRate");
+            DrawCurrentRefreshRate(currentRefreshRate_);
+            RS_TRACE_END();
+        }
+
 #ifndef USE_ROSEN_DRAWING
         endCapture();
 #endif
