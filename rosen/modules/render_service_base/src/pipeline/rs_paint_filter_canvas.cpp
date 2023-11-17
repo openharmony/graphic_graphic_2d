@@ -557,6 +557,7 @@ bool RSPaintFilterCanvas::OnFilterWithBrush(Brush& brush) const
     }
     return alphaStack_.top() > 0.f;
 }
+
 bool RSPaintFilterCanvas::GetRecordingState() const
 {
     return recordingState_;
