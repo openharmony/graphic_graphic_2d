@@ -26,7 +26,7 @@
 namespace OHOS {
 namespace Rosen {
 RSModifierExtractor::RSModifierExtractor(NodeId id) : id_(id) {}
-
+constexpr uint32_t DEBUG_MODIFIER_SIZE = 20;
 #define GET_PROPERTY_FROM_MODIFIERS(T, propertyType, defaultValue, operator)                                        \
     do {                                                                                                            \
         auto node = RSNodeMap::Instance().GetNode<RSNode>(id_);                                                     \
@@ -41,7 +41,9 @@ RSModifierExtractor::RSModifierExtractor(NodeId id) : id_(id) {}
             return std::static_pointer_cast<RSProperty<T>>(iter->second->GetProperty())->Get();                     \
         }                                                                                                           \
         T value = defaultValue;                                                                                     \
-        ROSEN_LOGI("RSModifierExtractor modifier size is %zu", node->modifiers_.size());                            \
+        if (node->modifiers_.size() > DEBUG_MODIFIER_SIZE) {                                                          \
+            ROSEN_LOGD("RSModifierExtractor modifier size is %zu", node->modifiers_.size());                        \
+        }                                                                                                           \
         for (auto& [_, modifier] : node->modifiers_) {                                                              \
             if (modifier->GetModifierType() == RSModifierType::propertyType) {                                      \
                 value operator std::static_pointer_cast<RSProperty<T>>(modifier->GetProperty())->Get();             \
