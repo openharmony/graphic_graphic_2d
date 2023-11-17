@@ -378,5 +378,19 @@ bool RSMaterialFilter::IsNearZero(float threshold) const
 {
     return ROSEN_EQ(radius_, 0.0f, threshold);
 }
+
+void RSMaterialFilter::ReleaseColorPicker()
+{
+    if (colorPickerTask_ != nullptr) {
+        colorPickerTask_->SetStatus(CacheProcessStatus::WAITING);
+        colorPickerTask_->Reset();
+#ifdef IS_OHOS
+        if (colorPickerTask_->GetHandler() != nullptr) {
+            auto task = colorPickerTask_;
+            task->GetHandler()->PostTask([task]() { task->ResetGrContext(); }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        }
+#endif
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

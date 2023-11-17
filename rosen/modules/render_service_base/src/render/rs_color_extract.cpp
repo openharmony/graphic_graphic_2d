@@ -160,7 +160,10 @@ void RSColorExtract::SplitBoxes(std::priority_queue<VBox, std::vector<VBox>, std
     return;
 }
 
-bool RSColorExtract::cmp(std::pair<uint32_t, uint32_t>&a, std::pair<uint32_t, uint32_t>&b) {return a.second > b.second;}
+bool RSColorExtract::cmp(std::pair<uint32_t, uint32_t> &a, std::pair<uint32_t, uint32_t> &b)
+{
+    return a.second > b.second;
+}
 
 std::vector<std::pair<uint32_t, uint32_t>> RSColorExtract::GenerateAverageColors(std::priority_queue<VBox,
     std::vector<VBox>, std::less<VBox> > &queue)

@@ -18,7 +18,6 @@
 
 #include <condition_variable>
 #include <mutex>
-#include "event_handler.h"
 #ifndef USE_ROSEN_DRAWING
 #include "include/core/SkImageInfo.h"
 #include "include/core/SkRect.h"
@@ -46,7 +45,7 @@ public:
     static std::function<void(std::weak_ptr<RSColorPickerCacheTask>)> postColorPickerTask;
 
     RSColorPickerCacheTask() = default;
-    ~RSColorPickerCacheTask();
+    ~RSColorPickerCacheTask() = default;
 #ifndef USE_ROSEN_DRAWING
     bool InitSurface(GrRecordingContext* grContext);
 #endif
@@ -73,9 +72,6 @@ public:
 
     void ResetGrContext();
 
-
-    void ReleaseCacheOffTree();
-
     void Notify()
     {
         cvParallelRender_.notify_one();
@@ -83,12 +79,19 @@ public:
 
     bool GetColor(RSColor& color);
 
-    bool GpuScaleImage(const sk_sp<SkImage> threadImage, std::shared_ptr<SkPixmap>& dst);
-
+    bool GpuScaleImage(std::shared_ptr<RSPaintFilterCanvas> cacheCanvas,
+        const sk_sp<SkImage> threadImage, std::shared_ptr<SkPixmap>& dst);
+#ifdef IS_OHOS
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> GetHandler()
+    {
+        return handler_;
+    }
+#endif
 private:
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> cacheSurface_ = nullptr;
     GrBackendTexture cacheBackendTexture_;
+    SkISize surfaceSize_;
 #endif
     bool valid_ = false;
     uint32_t* pixelPtr_ = nullptr;
@@ -96,6 +99,7 @@ private:
     sk_sp<SkImage> imageSnapshotCache_ = nullptr;
     RSColor color_;
     std::mutex parallelRenderMutex_;
+    std::mutex colorMutex_;
     std::condition_variable cvParallelRender_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_ = nullptr;
 };

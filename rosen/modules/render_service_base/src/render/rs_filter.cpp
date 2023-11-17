@@ -49,6 +49,9 @@ std::shared_ptr<RSFilter> RSFilter::CreateMaterialFilter(float radius, float sat
     float brightness, uint32_t colorValue, BLUR_COLOR_MODE mode)
 {
     MaterialParam materialParam = {radius, saturation, brightness, Color::FromArgbInt(colorValue)};
+    if (mode == BLUR_COLOR_MODE::AVERAGE) {
+        mode = BLUR_COLOR_MODE::FASTAVERAGE;
+    }
     return std::make_shared<RSMaterialFilter>(materialParam, mode);
 }
 

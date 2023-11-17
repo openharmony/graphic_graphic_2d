@@ -24,6 +24,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_filter.h"
+#include "render/rs_material_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -2498,6 +2499,14 @@ void RSProperties::ClearFilterCache()
     }
     if (backgroundFilterCacheManager_ != nullptr) {
         backgroundFilterCacheManager_->ReleaseCacheOffTree();
+    }
+    if (backgroundFilter_ != nullptr && (backgroundFilter_->GetFilterType() == RSFilter::MATERIAL)) {
+        auto filter = std::static_pointer_cast<RSMaterialFilter>(backgroundFilter_);
+        filter->ReleaseColorPicker();
+    }
+    if (filter_ != nullptr && (filter_->GetFilterType() == RSFilter::MATERIAL)) {
+        auto filter = std::static_pointer_cast<RSMaterialFilter>(filter_);
+        filter->ReleaseColorPicker();
     }
 }
 #endif
