@@ -176,6 +176,7 @@ public:
     static int GetSyncTransactionWaitDelay();
     static bool GetUseShadowBatchingEnabled();
     static bool GetSingleFrameComposerEnabled();
+    static bool GetSingleFrameComposerCanvasNodeEnabled();
 private:
     RSSystemProperties() = default;
 

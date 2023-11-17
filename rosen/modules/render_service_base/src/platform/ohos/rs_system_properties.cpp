@@ -619,5 +619,12 @@ bool RSSystemProperties::GetSingleFrameComposerEnabled()
         (std::atoi((system::GetParameter("persist.sys.graphic.singleFrameComposer", "0")).c_str()) != 0);
     return singleFrameComposerEnabled;
 }
+
+bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
+{
+    static bool singleFrameComposerCanvasNodeEnabled =
+        (std::atoi((system::GetParameter("persist.sys.graphic.singleFrameComposerCanvasNode", "0")).c_str()) != 0);
+    return singleFrameComposerCanvasNodeEnabled;
+}
 } // namespace Rosen
 } // namespace OHOS

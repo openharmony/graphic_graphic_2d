@@ -1514,5 +1514,17 @@ bool RSSurfaceRenderNode::HasOnlyOneRootNode() const
     return true;
 }
 
+bool RSSurfaceRenderNode::GetNodeIsSingleFrameComposer() const
+{
+    bool flag = false;
+    if (RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()) {
+        auto idx = GetName().find("hwstylusfeature");
+        if (idx != std::string::npos) {
+            flag = true;
+        }
+    }
+    return isNodeSingleFrameComposer_ || flag;
+}
+
 } // namespace Rosen
 } // namespace OHOS

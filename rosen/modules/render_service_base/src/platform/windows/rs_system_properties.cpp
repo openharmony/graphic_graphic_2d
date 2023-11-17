@@ -303,5 +303,10 @@ bool RSSystemProperties::GetSingleFrameComposerEnabled()
 {
     return false;
 }
+
+bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS
