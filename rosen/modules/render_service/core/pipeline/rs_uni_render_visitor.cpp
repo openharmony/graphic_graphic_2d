@@ -1679,7 +1679,7 @@ void RSUniRenderVisitor::ProcessShadowFirst(RSRenderNode& node, bool inSubThread
 {
     if (RSSystemProperties::GetUseShadowBatchingEnabled()
         && (node.GetRenderProperties().GetUseShadowBatching())) {
-        auto children = node.GetSortedChildren(inSubThread);
+        auto& children = node.GetSortedChildren(inSubThread);
         for (auto& child : children) {
             if (auto node = child->ReinterpretCastTo<RSCanvasRenderNode>()) {
                 node->ProcessShadowBatching(*canvas_);
