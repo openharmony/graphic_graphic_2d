@@ -194,6 +194,8 @@ public:
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
     void SetDynamicLightUpRate(const std::optional<float>& rate);
     void SetDynamicLightUpDegree(const std::optional<float>& lightUpDegree);
+    void SetGreyCoef1(const std::optional<float>& greyCoef1);
+    void SetGreyCoef2(const std::optional<float>& greyCoef2);
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
     const std::shared_ptr<RSFilter>& GetBackgroundFilter() const;
     const std::shared_ptr<RSLinearGradientBlurPara>& GetLinearGradientBlurPara() const;
@@ -218,6 +220,8 @@ public:
     float GetShadowRadius() const;
     const std::optional<float>& GetDynamicLightUpRate() const;
     const std::optional<float>& GetDynamicLightUpDegree() const;
+    const std::optional<float>& GetGreyCoef1() const;
+    const std::optional<float>& GetGreyCoef2() const;
     std::shared_ptr<RSPath> GetShadowPath() const;
     bool GetShadowMask() const;
     bool GetShadowIsFilled() const;
@@ -276,6 +280,7 @@ public:
     float GetLightUpEffect() const;
     bool IsLightUpEffectValid() const;
     bool IsDynamicLightUpValid() const;
+    bool IsGreyAdjustmenValid() const;
 
     // Image effect properties
     void SetGrayScale(const std::optional<float>& grayScale);
@@ -389,6 +394,8 @@ private:
     std::optional<float> dynamicLightUpDegree_;
     std::optional<Color> colorBlend_;
     std::optional<RectI> lastRect_;
+    std::optional<float> greyCoef1_{0.f};
+    std::optional<float> greyCoef2_{0.f};
 
     // OnApplyModifiers hooks
     void CheckEmptyBounds();

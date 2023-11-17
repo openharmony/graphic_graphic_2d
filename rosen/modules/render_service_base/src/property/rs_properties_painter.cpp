@@ -1285,9 +1285,90 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeMeanBlurShader(
 #endif
 }
 
+sk_sp<SkShader> RSPropertiesPainter::MakeGreyAdjustmentShader(const float coef1, const float coef2,
+    sk_sp<SkShader> imageShader)
+{
+    SkString GrayGradationString(R"(
+        uniform shader imageShader;
+        uniform float coefficient1;
+        uniform float coefficient2;
+
+        float poww(float x, float y) {
+            return (x < 0) ? -pow(-x, y) : pow(x, y);
+        }
+
+        float calculateT_y(float rgb) {
+            if (rgb > 127.5) { rgb = 255 - rgb; }
+            float b = 38.0;
+            float c = 45.0;
+            float d = 127.5;
+            float A = 3 * b - 3 * c + d;
+            float B = 3 * (c - 2 * b);
+            float C = 3 * b;
+            float p = (3 * A * C - pow(B, 2)) / (3 * pow(A, 2));
+            float q = ((-27 * pow(A, 2) * rgb) - 9 * A * B * C + 2 * pow(B, 3)) / (27 * pow(A, 3));
+            float s1 = -(q / 2.0);
+            float s2 = sqrt(pow(s1, 2) + pow(p / 3, 3));
+            return poww((s1 + s2), 1.0 / 3) + poww((s1 - s2), 1.0 / 3) - (B / (3 * A));
+        }
+
+        float calculateGreyAdjustY(float rgb) {
+            float t_r = calculateT_y(rgb);
+            if (rgb < 127.5) {
+                return (rgb + coefficient1 * pow((1 - t_r), 3));
+            } else {
+                return (255 - (255 - rgb + coefficient2 * pow((1 - t_r), 3)));
+            }
+        }
+
+        half4 main(float2 coord) {
+            vec3 color = vec3(imageShader.eval(coord).r, imageShader.eval(coord).g, imageShader.eval(coord).b);
+
+            float Y = (0.299 * color.r + 0.587 * color.g + 0.114 * color.b) * 255;
+            float U = (-0.147 * color.r - 0.289 * color.g + 0.436 * color.b) * 255;
+            float V = (0.615 * color.r - 0.515 * color.g - 0.100 * color.b) * 255;
+
+            Y = calculateGreyAdjustY(Y);
+            color.r = (Y + 1.14 * v) / 255.0;
+            color.g = (Y - 0.39 * U - 0.58 * V) / 255.0;
+            color.b = (Y + 2.03 * U) / 255.0;
+
+            return vec4(color.r, color.g, color.b, 1.0);
+        }
+    )");
+    auto [GrayAdjustEffect, GrayAdjustError] = SkRuntimeEffect::MakeForShader(GrayGradationString);
+
+    SkRuntimeShaderBuilder builder(GrayAdjustEffect);
+    builder.child("imageShader") = imageShader;
+    builder.uniform("coefficient1") = coef1;
+    builder.uniform("coefficient2") = coef2;
+    auto grayShader = builder.makeShader(nullptr, false);
+    return grayShader;
+}
+
+void RSPropertiesPainter::DrawGreyAdjustment(const RSProperties& properties, RSPaintFilterCanvas& canvas)
+{
+    RS_TRACE_NAME("RSPropertiesPainter::DrawGreyAdjustment");
+    auto skSurface = canvas.GetSurface();
+    auto clipBounds = canvas.getDeviceClipBounds();
+    auto imageSnapshot = skSurface->makeImageSnapshot(clipBounds);
+    auto imageShader = imageSnapshot->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
+    float coef1 = properties.GetGreyCoef1().value();
+    float coef2 = properties.GetGreyCoef2().value();
+
+    RS_TRACE_NAME("coef1" + std::to_string(coef1) + " coef2" + std::to_string(coef2));
+    auto grayedImageShader = MakeGreyAdjustmentShader(coef1, coef2, imageShader);
+    
+    SkPaint paint;
+    paint.setShader(grayedImageShader);
+    canvas.resetMatrix();
+    canvas.translate(clipBounds.left(), clipBounds.top());
+    canvas.drawPaint(paint);
+}
+
 #ifndef USE_ROSEN_DRAWING
-void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas, FilterType filterType,
-    const std::optional<SkRect>& rect, const std::shared_ptr<RSFilter>& externalFilter)
+void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas,
+    FilterType filterType, const std::optional<SkRect>& rect, const std::shared_ptr<RSFilter>& externalFilter)
 #else
 void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas,
     FilterType filterType, const std::optional<Drawing::Rect>& rect, const std::shared_ptr<RSFilter>& externalFilter)
@@ -1359,6 +1440,10 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         filterType == FilterType::FOREGROUND_FILTER ? RSPaintFilterCanvas::kAlpha : RSPaintFilterCanvas::kNone);
     if (filterType == FilterType::FOREGROUND_FILTER) {
         canvas.SetAlpha(1.0);
+    }
+
+    if (properties.IsGreyAdjustmenValid()) {
+        DrawGreyAdjustment(properties, canvas);
     }
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)

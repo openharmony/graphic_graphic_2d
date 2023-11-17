@@ -984,6 +984,18 @@ void RSNode::SetDynamicLightUpDegree(const float lightUpDegree)
         RSAnimatableProperty<float>>(RSModifierType::DYNAMIC_LIGHT_UP_DEGREE, lightUpDegree);
 }
 
+void RSNode::SetGreyCoef1(const float greyCoef1)
+{
+    SetProperty<RSGreyCoef1Modifier,
+        RSAnimatableProperty<float>>(RSModifierType::GREY_COEF1, greyCoef1);
+}
+
+void RSNode::SetGreyCoef2(const float greyCoef2)
+{
+    SetProperty<RSGreyCoef2Modifier,
+        RSAnimatableProperty<float>>(RSModifierType::GREY_COEF2, greyCoef2);
+}
+
 void RSNode::SetCompositingFilter(const std::shared_ptr<RSFilter>& compositingFilter) {}
 
 void RSNode::SetShadowColor(uint32_t colorValue)
