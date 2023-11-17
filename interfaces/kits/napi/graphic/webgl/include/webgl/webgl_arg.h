@@ -478,8 +478,6 @@ public:
 private:
     napi_env env_;
     bool GetWebGLArg(napi_value data, WebGLArgValue& args, const WebGLArgInfo& func);
-
-    std::vector<WebGLArgValue> values_ = {};
     WebGLArg(const WebGLArg&) = delete;
     WebGLArg& operator=(const WebGLArg&) = delete;
 };

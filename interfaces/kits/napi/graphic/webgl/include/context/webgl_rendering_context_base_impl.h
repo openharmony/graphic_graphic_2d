@@ -108,7 +108,7 @@ public:
     // common interface
     bool IsHighWebGL()
     {
-        return version_ > WEBGL_1_X;
+        return version_ > WEBGL_1_0;
     }
 
     void SetError(GLenum error)
@@ -211,8 +211,8 @@ public:
     napi_value VertexAttribfv(napi_env env, GLuint index, int32_t count, napi_value dataObj);
     napi_value VertexAttribf(napi_env env, GLuint index, int32_t count, GLfloat* data);
     napi_value GetAttribLocation(napi_env env, napi_value object, const std::string& name);
+    napi_value GetVertexAttrib(napi_env env, GLenum pname, GLuint index, VertexAttribInfo* info);
     napi_value GetVertexAttrib(napi_env env, GLenum pname, GLuint index);
-
     napi_value IsEnabled(napi_env env, GLenum cap);
     napi_value Disable(napi_env env, GLenum cap);
     napi_value Enable(napi_env env, GLenum cap);
