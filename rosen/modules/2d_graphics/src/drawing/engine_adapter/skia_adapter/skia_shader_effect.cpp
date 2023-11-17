@@ -173,7 +173,7 @@ void SkiaShaderEffect::InitWithTwoPointConical(const Point& startPt, scalar star
 }
 
 void SkiaShaderEffect::InitWithSweepGradient(const Point& centerPt, const std::vector<ColorQuad>& colors,
-    const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle)
+    const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle, const Matrix *matrix)
 {
     size_t count = (colors.size() == pos.size()) ? colors.size() : 0;
     if (count == 0) {
@@ -185,8 +185,12 @@ void SkiaShaderEffect::InitWithSweepGradient(const Point& centerPt, const std::v
         c.emplace_back(colors[i]);
         p.emplace_back(pos[i]);
     }
+    const SkMatrix *skMatrix = nullptr;
+    if (matrix != nullptr) {
+        skMatrix = &matrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix();
+    }
     shader_ = SkGradientShader::MakeSweep(centerPt.GetX(), centerPt.GetY(), &c[0], &p[0], count,
-        static_cast<SkTileMode>(mode), startAngle, endAngle, 0, nullptr);
+        static_cast<SkTileMode>(mode), startAngle, endAngle, 0, skMatrix);
 }
 
 sk_sp<SkShader> SkiaShaderEffect::GetShader() const

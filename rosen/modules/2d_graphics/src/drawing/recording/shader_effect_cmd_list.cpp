@@ -177,16 +177,16 @@ std::shared_ptr<ShaderEffect> CreateTwoPointConicalOpItem::Playback(const CmdLis
 }
 
 CreateSweepGradientOpItem::CreateSweepGradientOpItem(const Point& centerPt, const std::pair<uint32_t, size_t>& colors,
-    const std::pair<uint32_t, size_t>& pos, TileMode mode, scalar startAngle, scalar endAngle)
+    const std::pair<uint32_t, size_t>& pos, TileMode mode, scalar startAngle, scalar endAngle, const Matrix *matrix)
     : ShaderEffectOpItem(CREATE_SWEEP_GRADIENT), centerPt_(centerPt), colors_(colors),
-    pos_(pos), mode_(mode), startAngle_(startAngle), endAngle_(endAngle) {}
+    pos_(pos), mode_(mode), startAngle_(startAngle), endAngle_(endAngle), matrix_(matrix) {}
 
 std::shared_ptr<ShaderEffect> CreateSweepGradientOpItem::Playback(const CmdList& cmdList) const
 {
     auto colors = CmdListHelper::GetVectorFromCmdList<ColorQuad>(cmdList, colors_);
     auto pos = CmdListHelper::GetVectorFromCmdList<scalar>(cmdList, pos_);
 
-    return ShaderEffect::CreateSweepGradient(centerPt_, colors, pos, mode_, startAngle_, endAngle_);
+    return ShaderEffect::CreateSweepGradient(centerPt_, colors, pos, mode_, startAngle_, endAngle_, matrix_);
 }
 } // namespace Drawing
 } // namespace Rosen

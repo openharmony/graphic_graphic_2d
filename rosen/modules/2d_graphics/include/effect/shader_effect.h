@@ -58,7 +58,7 @@ public:
         TileMode mode);
     static std::shared_ptr<ShaderEffect> CreateSweepGradient(const Point& centerPt,
         const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode, scalar startAngle,
-        scalar endAngle);
+        scalar endAngle, const Matrix *matrix);
 
     virtual ~ShaderEffect() = default;
     ShaderEffectType GetType() const;
@@ -86,7 +86,8 @@ public:
     ShaderEffect(ShaderEffectType t, const Point& startPt, scalar startRadius, const Point& endPt, scalar endRadius,
         const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode) noexcept;
     ShaderEffect(ShaderEffectType t, const Point& centerPt, const std::vector<ColorQuad>& colors,
-        const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle) noexcept;
+        const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle,
+        const Matrix *matrix) noexcept;
     ShaderEffect(ShaderEffectType t) noexcept;
     ShaderEffect() noexcept;
 
