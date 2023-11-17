@@ -36,6 +36,7 @@
 
 #include "utils/log.h"
 
+#include "skia_adapter/skia_path.h"
 #include "skia_adapter/skia_picture.h"
 
 namespace OHOS {
@@ -349,6 +350,38 @@ std::shared_ptr<Data> CmdListHelper::GetDataFromCmdList(const CmdList& cmdList, 
     return imageData;
 }
 
+ImageHandle CmdListHelper::AddPathToCmdList(CmdList& cmdList, const Path& path)
+{
+    auto data = path.Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGE("path is invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return { 0 };
+    }
+
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize() };
+}
+
+std::shared_ptr<Path> CmdListHelper::GetPathFromCmdList(const CmdList& cmdList,
+    const ImageHandle& pathHandle)
+{
+    const void* ptr = cmdList.GetImageData(pathHandle.offset);
+    if (ptr == nullptr) {
+        LOGE("get path data failed!");
+        return nullptr;
+    }
+
+    auto pathData = std::make_shared<Data>();
+    pathData->BuildWithoutCopy(ptr, pathHandle.size);
+    auto path = std::make_shared<Path>();
+    if (path->Deserialize(pathData) == false) {
+        LOGE("path deserialize failed!");
+        return nullptr;
+    }
+
+    return path;
+}
+
 ImageHandle CmdListHelper::AddColorSpaceToCmdList(CmdList& cmdList, const std::shared_ptr<ColorSpace> colorSpace)
 {
     if (colorSpace == nullptr) {
@@ -556,6 +589,36 @@ std::shared_ptr<ImageFilter> GetImageFilterFromCmdList(const CmdList& cmdList,
     }
 
     return imageFilter;
+}
+
+std::vector<std::pair<OpItem*, void*>> CmdListHelper::GetDrawOpItemsFromHandle(const CmdList& cmdList,
+    const CmdListHandle& handle)
+{
+    if (handle.size == 0) {
+        LOGE("handle.size == 0 !");
+        return {};
+    }
+
+    const void* data = cmdList.GetCmdListData(handle.offset);
+    if (data == nullptr) {
+        LOGE("cmdList offset is invalid!");
+        return {};
+    }
+
+    auto drawCmdList = DrawCmdList::CreateFromData({data, handle.size});
+    if (drawCmdList == nullptr) {
+        LOGE("create cmdList failed!");
+        return {};
+    }
+
+    if (handle.imageSize > 0 && cmdList.GetImageData(handle.imageOffset) != nullptr) {
+        if (!drawCmdList->SetUpImageData(cmdList.GetImageData(handle.imageOffset), handle.imageSize)) {
+            LOGE("set up image data failed!");
+            return {};
+        }
+    }
+
+    return drawCmdList->UnmarshallingCmdList();
 }
 
 } // namespace Drawing

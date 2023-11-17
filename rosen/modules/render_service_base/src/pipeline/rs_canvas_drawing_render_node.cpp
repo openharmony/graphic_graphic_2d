@@ -262,9 +262,7 @@ void RSCanvasDrawingRenderNode::ApplyDrawCmdModifier(RSModifierContext& context,
     }
     for (const auto& drawCmdList : it->second) {
         drawCmdList->Playback(*context.canvas_);
-#ifndef USE_ROSEN_DRAWING
         drawCmdList->ClearOp();
-#endif
     }
     it->second.clear();
 }

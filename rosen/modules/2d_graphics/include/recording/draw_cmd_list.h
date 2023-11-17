@@ -34,6 +34,11 @@ public:
     }
 
     /*
+     * @brief         Clear Draw Ops Param
+     */
+    void ClearOp();
+
+    /*
      * @brief       Creates a DrawCmdList with contiguous buffers.
      * @param data  A contiguous buffers.
      */
@@ -92,6 +97,10 @@ public:
     std::vector<std::pair<uint32_t, uint32_t>> GetReplacedOpList();
 
     void SetReplacedOpList(std::vector<std::pair<uint32_t, uint32_t>> replacedOpList);
+
+    std::vector<std::pair<OpItem*, void*>> UnmarshallingCmdList();
+
+    void AddOpToCmdList(std::shared_ptr<DrawCmdList> cmdList);
 
 private:
     MemAllocator largeObjectAllocator_;

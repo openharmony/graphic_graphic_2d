@@ -99,6 +99,8 @@ public:
      */
     void* OffsetToAddr(size_t offset) const;
 
+    void ClearData();
+
     MemAllocator(MemAllocator&&) = delete;
     MemAllocator(const MemAllocator&) = default;
     MemAllocator& operator=(MemAllocator&&) = delete;

@@ -49,6 +49,14 @@ std::shared_ptr<DrawCmdList> RecordingCanvas::GetDrawCmdList() const
     return cmdList_;
 }
 
+void RecordingCanvas::Clear() const
+{
+    if (cmdList_ == nullptr) {
+        return;
+    }
+    cmdList_->ClearOp();
+}
+
 void RecordingCanvas::DrawPoint(const Point& point)
 {
     cmdList_->AddOp<DrawPointOpItem>(point);
@@ -124,7 +132,7 @@ void RecordingCanvas::DrawCircle(const Point& centerPt, scalar radius)
 
 void RecordingCanvas::DrawPath(const Path& path)
 {
-    auto pathHandle = CmdListHelper::AddRecordedToCmdList<RecordingPath>(*cmdList_, path);
+    auto pathHandle = CmdListHelper::AddPathToCmdList(*cmdList_, path);
     cmdList_->AddOp<DrawPathOpItem>(pathHandle);
 }
 
@@ -148,7 +156,7 @@ void RecordingCanvas::DrawBackground(const Brush& brush)
 void RecordingCanvas::DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos,
     scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag)
 {
-    auto pathHandle = CmdListHelper::AddRecordedToCmdList<RecordingPath>(*cmdList_, path);
+    auto pathHandle = CmdListHelper::AddPathToCmdList(*cmdList_, path);
     cmdList_->AddOp<DrawShadowOpItem>(pathHandle, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag);
 }
 
@@ -339,7 +347,7 @@ void RecordingCanvas::ClipRoundRect(const RoundRect& roundRect, ClipOp op, bool 
 
 void RecordingCanvas::ClipPath(const Path& path, ClipOp op, bool doAntiAlias)
 {
-    auto pathHandle = CmdListHelper::AddRecordedToCmdList<RecordingPath>(*cmdList_, path);
+    auto pathHandle = CmdListHelper::AddPathToCmdList(*cmdList_, path);
     cmdList_->AddOp<ClipPathOpItem>(pathHandle, op, doAntiAlias);
 }
 

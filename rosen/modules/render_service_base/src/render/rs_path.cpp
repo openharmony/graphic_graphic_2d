@@ -59,7 +59,7 @@ std::shared_ptr<RSPath> RSPath::CreateRSPath(const std::string& path)
     SkParsePath::FromSVGString(path.c_str(), &skAnimationPath);
     return RSPath::CreateRSPath(skAnimationPath);
 #else
-    Drawing::RecordingPath drAnimationPath;
+    Drawing::Path drAnimationPath;
     drAnimationPath.BuildFromSVGString(path);
     return RSPath::CreateRSPath(drAnimationPath);
 #endif

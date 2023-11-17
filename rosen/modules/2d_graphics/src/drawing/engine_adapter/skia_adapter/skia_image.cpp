@@ -28,6 +28,7 @@
 #include "skia_gpu_context.h"
 #endif
 #ifdef ROSEN_OHOS
+#include "src/core/SkAutoMalloc.h"
 #include "src/core/SkReadBuffer.h"
 #include "src/core/SkWriteBuffer.h"
 #endif
@@ -436,12 +437,56 @@ std::shared_ptr<Data> SkiaImage::Serialize() const
     }
 
     SkBinaryWriteBuffer writer;
-    writer.writeImage(skiaImage_.get());
-    size_t length = writer.bytesWritten();
-    std::shared_ptr<Data> data = std::make_shared<Data>();
-    data->BuildUninitialized(length);
-    writer.writeToMemory(data->WritableData());
-    return data;
+    bool type = skiaImage_->isLazyGenerated();
+    writer.writeBool(type);
+    if (type) {
+        writer.writeImage(skiaImage_.get());
+        size_t length = writer.bytesWritten();
+        std::shared_ptr<Data> data = std::make_shared<Data>();
+        data->BuildUninitialized(length);
+        writer.writeToMemory(data->WritableData());
+        return data;
+    } else {
+        SkBitmap bitmap;
+
+        auto context = as_IB(skiaImage_.get())->directContext();
+        if (!as_IB(skiaImage_.get())->getROPixels(context, &bitmap)) {
+            LOGE("SkiaImage::SerializeNoLazyImage SkImage getROPixels failed");
+            return nullptr;
+        }
+        SkPixmap pixmap;
+        if (!bitmap.peekPixels(&pixmap)) {
+            LOGE("SkiaImage::SerializeNoLazyImage SkImage peekPixels failed");
+            return nullptr;
+        }
+        size_t rb = pixmap.rowBytes();
+        int32_t width = pixmap.width();
+        int32_t height = pixmap.height();
+        const void* addr = pixmap.addr();
+        size_t size = rb * static_cast<size_t>(height);
+
+        writer.writeUInt(size);
+        writer.writeByteArray(addr, size);
+        writer.writeUInt(rb);
+        writer.write32(width);
+        writer.write32(height);
+
+        writer.writeUInt(pixmap.colorType());
+        writer.writeUInt(pixmap.alphaType());
+
+        if (pixmap.colorSpace() == nullptr) {
+            writer.writeUInt(0);
+        } else {
+            auto data = pixmap.colorSpace()->serialize();
+            writer.writeUInt(data->size());
+            writer.writeByteArray(data->data(), data->size());
+        }
+        size_t length = writer.bytesWritten();
+        std::shared_ptr<Data> data = std::make_shared<Data>();
+        data->BuildUninitialized(length);
+        writer.writeToMemory(data->WritableData());
+        return data;
+    }
 #else
     return nullptr;
 #endif
@@ -456,8 +501,42 @@ bool SkiaImage::Deserialize(std::shared_ptr<Data> data)
     }
 
     SkReadBuffer reader(data->GetData(), data->GetSize());
-    skiaImage_ = reader.readImage();
-    return skiaImage_ != nullptr;
+    bool type = reader.readBool();
+
+    if (type) {
+        skiaImage_ = reader.readImage();
+        return skiaImage_ != nullptr;
+    } else {
+        size_t pixmapSize = reader.readUInt();
+        SkAutoMalloc pixBuffer(pixmapSize);
+        if (!reader.readByteArray(pixBuffer.get(), pixmapSize)) {
+            return false;
+        }
+
+        size_t rb = reader.readUInt();
+        int32_t width = reader.read32();
+        int32_t height = reader.read32();
+
+        SkColorType colorType = static_cast<SkColorType>(reader.readUInt());
+        SkAlphaType alphaType = static_cast<SkAlphaType>(reader.readUInt());
+        sk_sp<SkColorSpace> colorSpace;
+
+        size_t size = reader.readUInt();
+        if (size == 0) {
+            colorSpace = nullptr;
+        } else {
+            SkAutoMalloc colorBuffer(size);
+            if (!reader.readByteArray(colorBuffer.get(), size)) {
+                return false;
+            }
+            colorSpace = SkColorSpace::Deserialize(colorBuffer.get(), size);
+        }
+
+        SkImageInfo imageInfo = SkImageInfo::Make(width, height, colorType, alphaType, colorSpace);
+        auto skData = SkData::MakeWithCopy(const_cast<void*>(pixBuffer.get()), pixmapSize);
+        skiaImage_ = SkImage::MakeRasterData(imageInfo, skData, rb);
+        return true;
+    }
 #else
     return false;
 #endif
