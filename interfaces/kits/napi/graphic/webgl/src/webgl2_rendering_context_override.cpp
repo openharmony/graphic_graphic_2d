@@ -342,7 +342,7 @@ napi_value WebGL2RenderingContextImpl::GetFrameBufferAttachmentParameter(
     return HandleFrameBufferPname(env, target, attachment, pname, attachmentObject);
 }
 
-void WebGL2RenderingContextImpl::DoObjectDelete(int type, WebGLObject *obj)
+void WebGL2RenderingContextImpl::DoObjectDelete(int32_t type, WebGLObject *obj)
 {
     WebGLRenderingContextBaseImpl::DoObjectDelete(type, obj);
     if (type == WebGLObject::WEBGL_OBJECT_BUFFER) {
