@@ -194,6 +194,8 @@ private:
     void SetTpFeatureConfig(int32_t feature, const char* config) override;
 #endif
 
+    void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
+
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;

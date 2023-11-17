@@ -82,6 +82,7 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     REGISTER_HGM_CFG_CALLBACK,
     SET_ROTATION_CACHE_ENABLED,
     SET_TP_FEATURE_CONFIG,
+    SET_VIRTUAL_SCREEN_USING_STATUS,
 };
 } // namespace Rosen
 } // namespace OHOS

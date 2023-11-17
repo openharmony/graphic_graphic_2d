@@ -172,6 +172,7 @@ public:
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config);
 #endif
+    void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

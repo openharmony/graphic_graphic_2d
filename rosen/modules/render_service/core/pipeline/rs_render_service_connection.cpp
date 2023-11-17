@@ -310,8 +310,10 @@ ScreenId RSRenderServiceConnection::CreateVirtualScreen(
     std::lock_guard<std::mutex> lock(mutex_);
     auto newVirtualScreenId = screenManager_->CreateVirtualScreen(name, width, height, surface, mirrorId, flags);
     virtualScreenIds_.insert(newVirtualScreenId);
-    auto& hgmCore = HgmCore::Instance();
-    hgmCore.StartScreenScene(SceneType::SCREEN_RECORD);
+    if (surface != nullptr) {
+        auto& hgmCore = HgmCore::Instance();
+        hgmCore.StartScreenScene(SceneType::SCREEN_RECORD);
+    }
     return newVirtualScreenId;
 }
 
@@ -928,5 +930,19 @@ void RSRenderServiceConnection::SetTpFeatureConfig(int32_t feature, const char* 
     }
 }
 #endif
+
+void RSRenderServiceConnection::SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus)
+{
+    if (isVirtualScreenUsingStatus) {
+        auto& hgmCore = HgmCore::Instance();
+        hgmCore.StartScreenScene(SceneType::SCREEN_RECORD);
+        hgmCore.SetModeBySettingConfig();
+    } else {
+        auto& hgmCore = HgmCore::Instance();
+        hgmCore.StopScreenScene(SceneType::SCREEN_RECORD);
+        hgmCore.SetModeBySettingConfig();
+    }
+    return;
+}
 } // namespace Rosen
 } // namespace OHOS

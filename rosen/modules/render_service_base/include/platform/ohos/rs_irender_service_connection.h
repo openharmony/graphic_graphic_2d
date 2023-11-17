@@ -189,6 +189,8 @@ public:
 
     virtual void SetCacheEnabledForRotation(bool isEnabled) = 0;
 
+    virtual void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) = 0;
+
 #ifdef TP_FEATURE_ENABLE
     virtual void SetTpFeatureConfig(int32_t feature, const char* config) = 0;
 #endif
