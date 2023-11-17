@@ -718,7 +718,8 @@ public:
     void ResetAnimateState() {
         animateState_ = false;
     }
-    bool GetAnimateState() const{
+    bool GetAnimateState() const
+    {
         return animateState_;
     }
     bool IsParentLeashWindowInScale() const;

@@ -598,11 +598,87 @@ void RSPropertiesPainter::DrawColorfulShadowInner(
 }
 #endif
 
+void RSPropertiesPainter::GetDarkColor(RSColor& color)
+{
+    // convert to lab
+    float minColorRange = 0;
+    float maxColorRange = 255;
+    float R = float(color.GetRed()) / maxColorRange;
+    float G = float(color.GetGreen()) / maxColorRange;
+    float B = float(color.GetBlue()) / maxColorRange;
+    
+    float X = 0.4124 * R + 0.3576 * G + 0.1805 * B;
+    float Y = 0.2126 * R + 0.7152 * G + 0.0722 * B;
+    float Z = 0.0193 * R + 0.1192 * G + 0.9505 * B;
+
+    float Xn = 0.9505;
+    float Yn = 1.0000;
+    float Zn = 1.0889999;
+    float Fx = (X / Xn) > 0.008856 ? pow((X / Xn), 1.0 / 3) : (7.787 * (X / Xn) + 16.0 / 116);
+    float Fy = (Y / Yn) > 0.008856 ? pow((Y / Yn), 1.0 / 3) : (7.787 * (Y / Yn) + 16.0 / 116);
+    float Fz = (Z / Zn) > 0.008856 ? pow((Z / Zn), 1.0 / 3) : (7.787 * (Z / Zn) + 16.0 / 116);
+    float L = 116 * Fy - 16;
+    float a = 500 * (Fx - Fy);
+    float b = 200 * (Fy - Fz);
+
+    float standardLightness = 75.0;
+    if (L > standardLightness) {
+        float L1 = standardLightness;
+        float xw = 0.9505;
+        float yw = 1.0000;
+        float zw = 1.0889999;
+
+        float fy = (L1 + 16) / 116;
+        float fx = fy + (a / 500);
+        float fz = fy - (b / 200);
+
+        float X1 = xw * ((pow(fx, 3) > 0.008856) ? pow(fx, 3) : ((fx - 16.0 / 116) / 7.787));
+        float Y1 = yw * ((pow(fy, 3) > 0.008856) ? pow(fy, 3) : ((fy - 16.0 / 116) / 7.787));
+        float Z1 = zw * ((pow(fz, 3) > 0.008856) ? pow(fz, 3) : ((fz - 16.0 / 116) / 7.787));
+
+        float DarkR = 3.2406 * X1 - 1.5372 * Y1 - 0.4986 * Z1;
+        float DarkG = -0.9689 * X1 + 1.8758 * Y1 + 0.0415 * Z1;
+        float DarkB = 0.0557 * X1 - 0.2040 * Y1 + 1.0570 * Z1;
+
+        DarkR = std::clamp(maxColorRange * DarkR, minColorRange, maxColorRange);
+        DarkG = std::clamp(maxColorRange * DarkG, minColorRange, maxColorRange);
+        DarkB = std::clamp(maxColorRange * DarkB, minColorRange, maxColorRange);
+
+        color = RSColor(DarkR, DarkG, DarkB, color.GetAlpha());
+    }
+}
+
+RSColor RSPropertiesPainter::PickColor(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& skPath,
+    SkMatrix& matrix, SkIRect& deviceClipBounds)
+{
+    SkRect clipBounds = skPath.getBounds();
+    SkIRect clipIBounds = clipBounds.roundIn();
+    SkSurface* skSurface = canvas.GetSurface();
+    int32_t fLeft = std::clamp(int(matrix.getTranslateX()), 0, deviceClipBounds.width() - 1);
+    int32_t fTop = std::clamp(int(matrix.getTranslateX()), 0, deviceClipBounds.height() - 1);
+
+    SkIRect regionBounds = SkIRect::MakeXYWH(fLeft, fTop, clipIBounds.width(), clipIBounds.height());
+    sk_sp<SkImage> shadowRegionImage = skSurface->makeImageSnapshot(regionBounds);
+
+    auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
+    RSColor color;
+    if (RSColorPickerCacheTask::PostPartialColorPickerTask(colorPickerTask, shadowRegionImage)
+        && colorPickerTask->GetColor(color)) {
+        colorPickerTask->GetColorAverage(color);
+        return color;
+    }
+    colorPickerTask->GetColorAverage(color);
+
+    return color;
+}
+
 #ifndef USE_ROSEN_DRAWING
 void RSPropertiesPainter::DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& skPath)
 {
     skPath.offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
     Color spotColor = properties.GetShadowColor();
+    auto shadowAlpha = spotColor.GetAlpha();
+    auto deviceClipBounds = canvas.getDeviceClipBounds();
 
     // The translation of the matrix is rounded to improve the hit ratio of skia blurfilter cache,
     // the function <compute_key_and_clip_bounds> in <skia/src/gpu/GrBlurUtil.cpp> for more details.
@@ -611,6 +687,18 @@ void RSPropertiesPainter::DrawShadowInner(const RSProperties& properties, RSPain
     matrix.setTranslateX(std::ceil(matrix.getTranslateX()));
     matrix.setTranslateY(std::ceil(matrix.getTranslateY()));
     canvas.setMatrix(matrix);
+
+    RSColor colorPicked;
+    auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
+    if (colorPickerTask != nullptr && properties.GetShadowColorStrategy()) {
+        colorPicked = PickColor(properties, canvas, skPath, matrix, deviceClipBounds);
+        GetDarkColor(colorPicked);
+        if (!colorPickerTask->GetFirstGetColorFinished()) {
+            shadowAlpha = 0;
+        }
+    } else {
+        colorPicked = spotColor;
+    }
 
     if (properties.shadow_->GetHardwareAcceleration()) {
         if (properties.GetShadowElevation() <= 0.f) {
@@ -627,7 +715,8 @@ void RSPropertiesPainter::DrawShadowInner(const RSProperties& properties, RSPain
             ambientColor.AsArgbInt(), spotColor.AsArgbInt(), SkShadowFlags::kTransparentOccluder_ShadowFlag);
     } else {
         SkPaint paint;
-        paint.setColor(spotColor.AsArgbInt());
+        paint.setColor(SkColorSetARGB(shadowAlpha, colorPicked.GetRed(),
+            colorPicked.GetGreen(), colorPicked.GetBlue()));
         paint.setAntiAlias(true);
         paint.setMaskFilter(SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, properties.GetShadowRadius()));
         canvas.drawPath(skPath, paint);

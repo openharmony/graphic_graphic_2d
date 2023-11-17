@@ -41,6 +41,9 @@ public:
         const RRect* rrect = nullptr, bool isAbsCoordinate = true);
     static void DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect = nullptr);
     static int GetAndResetBlurCnt();
+    static RSColor PickColor(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& skPath,
+        SkMatrix& matrix, SkIRect& deviceClipBounds);
+    static void GetDarkColor(RSColor& color);
 
     static void DrawPixelStretch(const RSProperties& properties, RSPaintFilterCanvas& canvas);
     static void DrawForegroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);

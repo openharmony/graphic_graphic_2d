@@ -560,6 +560,9 @@ void RSShadowDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
         return;
     }
 #ifndef USE_ROSEN_DRAWING
+    const RSProperties& properties = node.GetRenderProperties();
+    auto shadowAlpha = color_.GetAlpha();
+    auto deviceClipBounds = canvas.getDeviceClipBounds();
     SkAutoCanvasRestore acr(&canvas, true);
     SkPath skPath;
     ClipShadowPath(node, canvas, skPath);
@@ -568,8 +571,19 @@ void RSShadowDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
     matrix.setTranslateX(std::ceil(matrix.getTranslateX()));
     matrix.setTranslateY(std::ceil(matrix.getTranslateY()));
     canvas.setMatrix(matrix);
+    RSColor colorPicked;
+    auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
+    if (colorPickerTask != nullptr && properties.GetShadowColorStrategy()) {
+        colorPicked = RSPropertiesPainter::PickColor(properties, canvas, skPath, matrix, deviceClipBounds);
+        RSPropertiesPainter::GetDarkColor(colorPicked);
+        if (!colorPickerTask->GetFirstGetColorFinished()) {
+            shadowAlpha = 0;
+        }
+    } else {
+        colorPicked = color_;
+    }
     SkPaint paint;
-    paint.setColor(color_.AsArgbInt());
+    paint.setColor(SkColorSetARGB(shadowAlpha, colorPicked.GetRed(), colorPicked.GetGreen(), colorPicked.GetBlue()));
     paint.setAntiAlias(true);
     paint.setMaskFilter(SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, radius_));
     canvas.drawPath(skPath, paint);

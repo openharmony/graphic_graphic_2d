@@ -78,6 +78,7 @@ public:
     std::shared_ptr<RSPath> GetShadowPath() const;
     bool GetShadowMask() const;
     bool GetShadowIsFilled() const;
+    bool GetShadowColorStrategy() const;
 
     Gravity GetFrameGravity() const;
 

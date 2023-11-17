@@ -27,6 +27,8 @@
 #include "recording/recording_canvas.h"
 #endif
 
+#include "src/core/SkCanvasPriv.h"
+
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -377,7 +379,8 @@ bool RSUniRenderVisitor::UpdateCacheChangeStatus(RSRenderNode& node)
         isDrawingCacheChanged_.top() = isDrawingCacheChanged_.top() || curDirty_;
     }
     if (!curCacheFilterRects_.empty() && !node.IsInstanceOf<RSEffectRenderNode>() &&
-        (node.GetRenderProperties().GetBackgroundFilter() || node.GetRenderProperties().GetUseEffect())) {
+        (node.GetRenderProperties().GetBackgroundFilter() || node.GetRenderProperties().GetUseEffect() ||
+        node.GetRenderProperties().IsShadowValid())) {
         curCacheFilterRects_.top().emplace(node.GetId());
     }
     // drawing group root node
@@ -3193,8 +3196,17 @@ bool RSUniRenderVisitor::DrawBlurInCache(RSRenderNode& node)
             curCacheFilterRects_.top().erase(node.GetId());
             if (curCacheFilterRects_.empty() || !node.ChildHasFilter()) {
                 // no filter to draw, return
-                return true;
             }
+        } else if (node.GetRenderProperties().IsShadowValid()) {
+            // clear hole while generating cache surface
+            SkAutoCanvasRestore arc(canvas_.get(), true);
+            RectI shadowRect;
+            auto rrect = node.GetRenderProperties().GetRRect();
+            RSPropertiesPainter::GetShadowDirtyRect(shadowRect, node.GetRenderProperties(), &rrect, false);
+            SkCanvasPriv::ResetClip(canvas_.get());
+            canvas_->clipRect(SkRect::MakeXYWH(shadowRect.left_, shadowRect.top_,
+                shadowRect.width_, shadowRect.height_));
+            canvas_->clear(SK_ColorTRANSPARENT);
         } else if (node.GetRenderProperties().GetBackgroundFilter() || node.GetRenderProperties().GetUseEffect()) {
             // clear hole while generating cache surface
 #ifndef USE_ROSEN_DRAWING
@@ -3210,7 +3222,6 @@ bool RSUniRenderVisitor::DrawBlurInCache(RSRenderNode& node)
         }
     } else if (curGroupedNodes_.empty() && !node.ChildHasFilter()) {
         // no filter to draw, return
-        return true;
     }
     return false;
 }

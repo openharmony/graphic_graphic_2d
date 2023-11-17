@@ -32,7 +32,6 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_system_properties.h"
-#include "event_handler.h"
 #include "render/rs_color_picker.h"
 #include "include/effects/SkRuntimeEffect.h"
 
@@ -83,6 +82,12 @@ public:
 
     bool GetColor(RSColor& color);
 
+    void CalculateColorAverage(RSColor& ColorCur);
+
+    void GetColorAverage(RSColor& color);
+
+    bool GetFirstGetColorFinished();
+
     bool GpuScaleImage(const sk_sp<SkImage> threadImage, std::shared_ptr<SkPixmap>& dst);
 
 private:
@@ -95,6 +100,10 @@ private:
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
     sk_sp<SkImage> imageSnapshotCache_ = nullptr;
     RSColor color_;
+    std::vector<RSColor> colorArray_;
+    std::vector<bool> colorArrayValid_;
+    RSColor colorAverage_;
+    bool firstGetColorFinished_;
     std::mutex parallelRenderMutex_;
     std::condition_variable cvParallelRender_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_ = nullptr;

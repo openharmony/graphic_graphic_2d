@@ -123,6 +123,7 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
         prop->SetOuterBorderStyle(BORDER_TYPE_NONE);
     },                                                                   // OUTER_BORDER_STYLE,       69
     [](RSProperties* prop) { prop->SetOuterBorderRadius(0.f); },         // OUTER_BORDER_RADIUS,      70
+    [](RSProperties* prop) { prop->SetShadowColorStrategy(false); },     // ShadowColorStrategy,      74
 };
 } // namespace
 
@@ -1187,6 +1188,23 @@ void RSProperties::SetShadowIsFilled(bool shadowIsFilled)
     contentDirty_ = true;
 }
 
+void RSProperties::SetShadowColorStrategy(bool shadowColorStrategy)
+{
+    if (!shadow_.has_value()) {
+        shadow_ = std::make_optional<RSShadow>();
+    }
+    shadow_->SetColorStrategy(shadowColorStrategy);
+    SetDirty();
+    filterNeedUpdate_ = true;
+    // [planning] if shadow stores as texture and out of node
+    // node content would not be affected
+    contentDirty_ = true;
+    if (shadowColorStrategy && colorPickerTaskShadow_ == nullptr) {
+        CreateColorPickerTaskForShadow();
+    }
+}
+
+
 const Color& RSProperties::GetShadowColor() const
 {
     static const auto DEFAULT_SPOT_COLOR_VALUE = Color::FromArgbInt(DEFAULT_SPOT_COLOR);
@@ -1231,6 +1249,11 @@ bool RSProperties::GetShadowMask() const
 bool RSProperties::GetShadowIsFilled() const
 {
     return shadow_ ? shadow_->GetIsFilled() : false;
+}
+
+bool RSProperties::GetShadowColorStrategy() const
+{
+    return shadow_ ? shadow_->GetColorStrategy() : false;
 }
 
 const std::optional<RSShadow>& RSProperties::GetShadow() const
@@ -2435,6 +2458,14 @@ void RSProperties::ClearFilterCache()
         backgroundFilterCacheManager_->ReleaseCacheOffTree();
     }
 }
+
+void RSProperties::CreateColorPickerTaskForShadow()
+{
+    if (colorPickerTaskShadow_ == nullptr) {
+        colorPickerTaskShadow_ = std::make_shared<RSColorPickerCacheTask>();
+    }
+}
+
 #endif
 
 void RSProperties::OnApplyModifiers()
@@ -2467,7 +2498,7 @@ void RSProperties::OnApplyModifiers()
             filter_.reset();
         }
         needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
-                      IsDynamicLightUpValid();
+                        IsDynamicLightUpValid() || IsShadowValid();
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
         CreateFilterCacheManagerIfNeed();
 #endif
@@ -2538,5 +2569,11 @@ int RSProperties::GetColorBlendMode() const
 {
     return colorBlendMode_;
 }
+
+const std::shared_ptr<RSColorPickerCacheTask>& RSProperties::GetColorPickerCacheTaskShadow() const
+{
+    return colorPickerTaskShadow_;
+}
+
 } // namespace Rosen
 } // namespace OHOS

@@ -154,9 +154,10 @@ bool RSColorPickerCacheTask::Render()
         uint32_t errorCode = 0;
         std::shared_ptr<RSColorPicker> colorPicker = RSColorPicker::CreateColorPicker(dst, errorCode);
         if (errorCode == 0) {
-            colorPicker->GetAverageColor(color);
+            colorPicker->GetLargestProportionColor(color);
             std::unique_lock<std::mutex> lock(parallelRenderMutex_);
             color_ = RSColor(SkColorGetR(color), SkColorGetG(color), SkColorGetB(color), SkColorGetA(color));
+            firstGetColorFinished_ = true;
             valid_ = true;
         } else {
             valid_ = false;
@@ -182,6 +183,71 @@ bool RSColorPickerCacheTask::GetColor(RSColor& color)
     color = color_;
     return valid_;
 }
+
+void RSColorPickerCacheTask::CalculateColorAverage(RSColor& colorCur)
+{
+    // black color defination
+    RSColor black = RSColor(0, 0, 0, 255);
+    int colorArrayLen = colorArray_.size();
+    int colorArraySize = 21;
+    int continueBlackColorNum = 20;
+    if (colorArrayLen >= colorArraySize) {
+        colorArray_.pop_back();
+    }
+    colorArray_.emplace(colorArray_.begin(), colorCur);
+    int validColorNum = 0;
+    int R = 0;
+    int G = 0;
+    int B = 0;
+    int mark = 0;
+
+    for (int i = 0; i < colorArrayLen; i++) {
+        if (colorArray_[i] == black) {
+            ++mark;
+        } else {
+            if (mark > continueBlackColorNum) {
+                R += black.GetRed() * mark;
+                G += black.GetGreen() * mark;
+                B += black.GetBlue() * mark;
+            }
+            R += colorArray_[i].GetRed() * mark;
+            G += colorArray_[i].GetGreen() * mark;
+            B += colorArray_[i].GetBlue() * mark;
+            validColorNum++;
+            mark = 0;
+        }
+    }
+
+    if (mark > continueBlackColorNum) {
+        R += black.GetRed() * mark;
+        G += black.GetGreen() * mark;
+        B += black.GetBlue() * mark;
+        validColorNum += mark;
+    }
+    
+    if (validColorNum != 0) {
+        R = R / validColorNum;
+        G = G / validColorNum;
+        B = B / validColorNum;
+    } else {
+        colorAverage_ = colorCur;
+    }
+
+    colorAverage_ = RSColor(R, G, B, colorCur.GetAlpha());
+}
+
+void RSColorPickerCacheTask::GetColorAverage(RSColor& color)
+{
+    std::unique_lock<std::mutex> lock(parallelRenderMutex_);
+    CalculateColorAverage(color_);
+    color = colorAverage_;
+}
+
+bool RSColorPickerCacheTask::GetFirstGetColorFinished()
+{
+    return firstGetColorFinished_;
+}
+
 
 void RSColorPickerCacheTask::ResetGrContext()
 {
