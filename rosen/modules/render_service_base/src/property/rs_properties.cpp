@@ -113,19 +113,20 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetSaturate({}); },                   // SATURATE,                 60
     [](RSProperties* prop) { prop->SetSepia({}); },                      // SEPIA,                    61
     [](RSProperties* prop) { prop->SetInvert({}); },                     // INVERT,                   62
-    [](RSProperties* prop) { prop->SetHueRotate({}); },                  // HUE_ROTATE,               63
-    [](RSProperties* prop) { prop->SetColorBlend({}); },                 // COLOR_BLEND,              64
-    [](RSProperties* prop) { prop->SetParticles({}); },                  // PARTICLE,                 65
-    [](RSProperties* prop) { prop->SetShadowIsFilled(false); },          // SHADOW_IS_FILLED,         66
-    [](RSProperties* prop) { prop->SetOuterBorderColor(RSColor()); },    // OUTER_BORDER_COLOR,       67
-    [](RSProperties* prop) { prop->SetOuterBorderWidth(0.f); },          // OUTER_BORDER_WIDTH,       68
+    [](RSProperties* prop) { prop->SetAiInvert({}); },                   // AIINVERT,                 63
+    [](RSProperties* prop) { prop->SetHueRotate({}); },                  // HUE_ROTATE,               64
+    [](RSProperties* prop) { prop->SetColorBlend({}); },                 // COLOR_BLEND,              65
+    [](RSProperties* prop) { prop->SetParticles({}); },                  // PARTICLE,                 66
+    [](RSProperties* prop) { prop->SetShadowIsFilled(false); },          // SHADOW_IS_FILLED,         67
+    [](RSProperties* prop) { prop->SetOuterBorderColor(RSColor()); },    // OUTER_BORDER_COLOR,       68
+    [](RSProperties* prop) { prop->SetOuterBorderWidth(0.f); },          // OUTER_BORDER_WIDTH,       69
     [](RSProperties* prop) {
         prop->SetOuterBorderStyle(BORDER_TYPE_NONE);
-    },                                                                   // OUTER_BORDER_STYLE,       69
-    [](RSProperties* prop) { prop->SetOuterBorderRadius(0.f); },         // OUTER_BORDER_RADIUS,      70
-    [](RSProperties* prop) { prop->SetUseShadowBatching(false); },       // USE_SHADOW_BATCHING,      71
-    [](RSProperties* prop) { prop->SetGreyCoef1({0.f}); },               // GREY_COEF1,               72
-    [](RSProperties* prop) { prop->SetGreyCoef2({0.f}); },               // GREY_COEF2,               73
+    },                                                                   // OUTER_BORDER_STYLE,       70
+    [](RSProperties* prop) { prop->SetOuterBorderRadius(0.f); },         // OUTER_BORDER_RADIUS,      71
+    [](RSProperties* prop) { prop->SetUseShadowBatching(false); },       // USE_SHADOW_BATCHING,      72
+    [](RSProperties* prop) { prop->SetGreyCoef1({0.f}); },               // GREY_COEF1,               73
+    [](RSProperties* prop) { prop->SetGreyCoef2({0.f}); },               // GREY_COEF2,               74
 };
 } // namespace
 
@@ -1728,6 +1729,21 @@ void RSProperties::SetInvert(const std::optional<float>& invert)
 const std::optional<float>& RSProperties::GetInvert() const
 {
     return invert_;
+}
+
+
+void RSProperties::SetAiInvert(const std::optional<Vector4f>& aiInvert)
+{
+    aiInvert_ = aiInvert;
+    colorFilterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+    isDrawn_ = true;
+}
+
+const std::optional<Vector4f>& RSProperties::GetAiInvert() const
+{
+    return aiInvert_;
 }
 
 void RSProperties::SetHueRotate(const std::optional<float>& hueRotate)

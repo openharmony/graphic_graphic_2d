@@ -326,6 +326,8 @@ public:
 
     void SetInvert(float invert);
 
+    void SetAiInvert(const Vector4f& aiInvert);
+
     void SetHueRotate(float hueRotate);
 
     void SetColorBlend(uint32_t colorValue);

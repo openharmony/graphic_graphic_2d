@@ -87,28 +87,29 @@ enum class RSModifierType : int16_t {
     SATURATE,                      // 60
     SEPIA,                         // 61
     INVERT,                        // 62
-    HUE_ROTATE,                    // 63
-    COLOR_BLEND,                   // 64
-    PARTICLE,                      // 65
-    SHADOW_IS_FILLED,              // 66
-    OUTER_BORDER_COLOR,            // 67
-    OUTER_BORDER_WIDTH,            // 68
-    OUTER_BORDER_STYLE,            // 69
-    OUTER_BORDER_RADIUS,           // 70
-    USE_SHADOW_BATCHING,           // 71
-    GREY_COEF1,                    // 72
-    GREY_COEF2,                    // 73
-    CUSTOM,                        // 74
-    EXTENDED,                      // 75
-    TRANSITION,                    // 76
-    BACKGROUND_STYLE,              // 77
-    CONTENT_STYLE,                 // 78
-    FOREGROUND_STYLE,              // 79
-    OVERLAY_STYLE,                 // 80
-    NODE_MODIFIER,                 // 81
-    ENV_FOREGROUND_COLOR,          // 82
-    ENV_FOREGROUND_COLOR_STRATEGY, // 83
-    GEOMETRYTRANS,                 // 84
+    AIINVERT,                      // 63
+    HUE_ROTATE,                    // 64
+    COLOR_BLEND,                   // 65
+    PARTICLE,                      // 66
+    SHADOW_IS_FILLED,              // 67
+    OUTER_BORDER_COLOR,            // 68
+    OUTER_BORDER_WIDTH,            // 69
+    OUTER_BORDER_STYLE,            // 70
+    OUTER_BORDER_RADIUS,           // 71
+    USE_SHADOW_BATCHING,           // 72
+    GREY_COEF1,                    // 73
+    GREY_COEF2,                    // 74
+    CUSTOM,                        // 75
+    EXTENDED,                      // 76
+    TRANSITION,                    // 77
+    BACKGROUND_STYLE,              // 78
+    CONTENT_STYLE,                 // 79
+    FOREGROUND_STYLE,              // 80
+    OVERLAY_STYLE,                 // 81
+    NODE_MODIFIER,                 // 82
+    ENV_FOREGROUND_COLOR,          // 83
+    ENV_FOREGROUND_COLOR_STRATEGY, // 84
+    GEOMETRYTRANS,                 // 85
 };
 
 enum class RSRenderPropertyType : int16_t {

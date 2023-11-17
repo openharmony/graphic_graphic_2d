@@ -2598,6 +2598,68 @@ void RSPropertiesPainter::DrawColorFilter(const RSProperties& properties, RSPain
 #endif
 }
 
+void RSPropertiesPainter::DrawBinarizationShader(const RSProperties& properties, RSPaintFilterCanvas& canvas)
+{
+    SkAutoCanvasRestore acr(&canvas, true);
+    canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), true);
+    auto skSurface = canvas.GetSurface();
+    if (skSurface == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawColorFilter skSurface is null");
+        return;
+    }
+    auto clipBounds = canvas.getDeviceClipBounds();
+    auto imageSnapshot = skSurface->makeImageSnapshot(clipBounds);
+    if (imageSnapshot == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawColorFilter image is null");
+        return;
+    }
+    auto aiInvert = properties.GetAiInvert();
+    auto imageShader = imageSnapshot->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
+    auto shader = MakeBinarizationShader(aiInvert->x_, aiInvert->y_, aiInvert->z_ * 255.0, imageShader);
+    SkPaint paint;
+    paint.setShader(shader);
+    paint.setAntiAlias(true);
+    canvas.resetMatrix();
+    canvas.translate(clipBounds.left(), clipBounds.top());
+    canvas.drawPaint(paint);
+}
+
+#ifndef USE_ROSEN_DRAWING
+#ifdef NEW_SKIA
+sk_sp<SkShader> RSPropertiesPainter::MakeBinarizationShader(float low, float high, float threshold,
+    sk_sp<SkShader> imageShader)
+{
+    static constexpr char prog[] = R"(
+        uniform half low;
+        uniform half high;
+        uniform half threshold;
+        uniform shader imageShader;
+        half4 main(float2 coord) {
+            vec3 c = vec3(imageShader.eval(coord).r * 255,
+                imageShader.eval(coord).g * 255, imageShader.eval(coord).b * 255);
+            float gray = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
+            float bin = step(threshold, gray);
+            bin = bin * -1 + 1;
+            float range = high - low;
+            bin = bin * range + low;
+            return vec4(bin, bin, bin, 1.0);
+        }
+    )";
+    auto [effect, err] = SkRuntimeEffect::MakeForShader(SkString(prog));
+    if (!effect) {
+        ROSEN_LOGE("MakeBinarizationShader::RuntimeShader effect error: %{public}s\n", err.c_str());
+        return nullptr;
+    }
+    SkRuntimeShaderBuilder builder(effect);
+    builder.child("imageShader") = imageShader;
+    builder.uniform("low") = low;
+    builder.uniform("high") = high;
+    builder.uniform("threshold") = threshold;
+    return builder.makeShader(nullptr, false);
+}
+#endif
+#endif
+
 void RSPropertiesPainter::DrawLightUpEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
 #ifndef USE_ROSEN_DRAWING

@@ -652,6 +652,15 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+class RSC_EXPORT RSAiInvertModifier : public RSForegroundModifier {
+public:
+    explicit RSAiInvertModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSAiInvertModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
 class RSC_EXPORT RSHueRotateModifier : public RSForegroundModifier {
 public:
     explicit RSHueRotateModifier(const std::shared_ptr<RSPropertyBase>& property);
