@@ -549,5 +549,35 @@ HWTEST_F(RSPropertiesPainterTest, DrawMask004, TestSize.Level1)
     SkRect maskBounds = SkRect::Make(size);
     RSPropertiesPainter::DrawMask(properties, skCanvas, maskBounds);
 }
+
+/**
+ * @tc.name: DrawDynamicLightUp001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawDynamicLightUp001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetDynamicLightUpRate(0.5);
+    properties.SetDynamicLightUpDegree(0.5);
+    SkCanvas skCanvas;
+    RSPaintFilterCanvas canvas(&skCanvas);
+    RSPropertiesPainter::DrawDynamicLightUp(properties, canvas);
+}
+
+/**
+ * @tc.name: DrawDynamicLightUp002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawDynamicLightUp002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetDynamicLightUpRate(0.3);
+    properties.SetDynamicLightUpDegree(0.8);
+    SkCanvas skCanvas;
+    RSPaintFilterCanvas canvas(&skCanvas);
+    RSPropertiesPainter::DrawDynamicLightUp(properties, canvas);
+}
 } // namespace Rosen
 } // namespace OHOS
