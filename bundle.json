@@ -132,7 +132,6 @@
                 "egl_data.h",
                 "egl_surface.h",
                 "external_window.h",
-                "hdr_vivid_metadata.h",
                 "native_buffer.h",
                 "native_buffer_inner.h",
                 "native_image.h",

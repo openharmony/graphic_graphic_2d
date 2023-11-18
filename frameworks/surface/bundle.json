@@ -45,7 +45,6 @@
                 "egl_data.h",
                 "egl_surface.h",
                 "external_window.h",
-                "hdr_vivid_metadata.h",
                 "ibuffer_consumer_listener.h",
                 "ibuffer_producer.h",
                 "iconsumer_surface.h",
