@@ -20,9 +20,7 @@
 #include "buffer_log.h"
 #include "native_window.h"
 #include "surface_buffer_impl.h"
-#include <v1_0/cm_color_space.h>
-#include <v1_0/buffer_handle_meta_key_type.h>
-#include <metadata_convertor.h>
+#include "metadata_helper.h"
 
 using namespace OHOS;
 using namespace HDI::Display::Graphic::Common::V1_0;
@@ -218,11 +216,7 @@ int32_t OH_NativeBuffer_SetColorSpace(OH_NativeBuffer *buffer, OH_NativeBuffer_C
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
     SurfaceBuffer* sbuffer = OH_NativeBufferToSurfaceBuffer(buffer);
-    std::vector<uint8_t> setData;
-    if (MetadataManager::ConvertMetadataToVec(NATIVE_COLORSPACE_TO_HDI_MAP[colorSpace], setData) != GSERROR_OK) {
-        return OHOS::GSERROR_INTERNAL;
-    }
-    GSError ret = sbuffer->SetMetadata(BufferHandleAttrKey::ATTRKEY_COLORSPACE_TYPE, setData);
+    GSError ret = MetadataHelper::SetColorSpaceType(sbuffer, NATIVE_COLORSPACE_TO_HDI_MAP[colorSpace]);
     if (GSErrorStr(ret) == "<500 api call failed>with low error <Not supported>") {
         return OHOS::GSERROR_NOT_SUPPORT;
     }
