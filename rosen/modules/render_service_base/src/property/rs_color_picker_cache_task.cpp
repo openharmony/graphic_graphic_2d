@@ -211,10 +211,11 @@ void RSColorPickerCacheTask::CalculateColorAverage(RSColor& colorCur)
                 R += black.GetRed() * mark;
                 G += black.GetGreen() * mark;
                 B += black.GetBlue() * mark;
+                validColorNum += mark;
             }
-            R += colorArray_[i].GetRed() * mark;
-            G += colorArray_[i].GetGreen() * mark;
-            B += colorArray_[i].GetBlue() * mark;
+            R += colorArray_[i].GetRed();
+            G += colorArray_[i].GetGreen();
+            B += colorArray_[i].GetBlue();
             validColorNum++;
             mark = 0;
         }

@@ -214,6 +214,8 @@ class RSShadowDrawable : public RSShadowBaseDrawable {
 public:
     explicit RSShadowDrawable(const RSProperties& properties);
     ~RSShadowDrawable() override = default;
+    RSColor GetColorForShadow(RSRenderNode& node, RSPaintFilterCanvas& canvas,
+        SkPath& skPath, SkMatrix& matrix);
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 
 protected:

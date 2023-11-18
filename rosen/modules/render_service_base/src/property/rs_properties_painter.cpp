@@ -655,7 +655,7 @@ RSColor RSPropertiesPainter::PickColor(const RSProperties& properties, RSPaintFi
     SkIRect clipIBounds = clipBounds.roundIn();
     SkSurface* skSurface = canvas.GetSurface();
     int32_t fLeft = std::clamp(int(matrix.getTranslateX()), 0, deviceClipBounds.width() - 1);
-    int32_t fTop = std::clamp(int(matrix.getTranslateX()), 0, deviceClipBounds.height() - 1);
+    int32_t fTop = std::clamp(int(matrix.getTranslateY()), 0, deviceClipBounds.height() - 1);
 
     SkIRect regionBounds = SkIRect::MakeXYWH(fLeft, fTop, clipIBounds.width(), clipIBounds.height());
     sk_sp<SkImage> shadowRegionImage = skSurface->makeImageSnapshot(regionBounds);
@@ -665,6 +665,7 @@ RSColor RSPropertiesPainter::PickColor(const RSProperties& properties, RSPaintFi
     if (RSColorPickerCacheTask::PostPartialColorPickerTask(colorPickerTask, shadowRegionImage)
         && colorPickerTask->GetColor(color)) {
         colorPickerTask->GetColorAverage(color);
+        colorPickerTask->SetStatus(CacheProcessStatus::WAITING);
         return color;
     }
     colorPickerTask->GetColorAverage(color);
@@ -691,6 +692,10 @@ void RSPropertiesPainter::DrawShadowInner(const RSProperties& properties, RSPain
     RSColor colorPicked;
     auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
     if (colorPickerTask != nullptr && properties.GetShadowColorStrategy()) {
+        // Make color shadow work even shadowAlapha not set
+        if (shadowAlpha == 0) {
+            shadowAlpha = UINT8_MAX;
+        }
         colorPicked = PickColor(properties, canvas, skPath, matrix, deviceClipBounds);
         GetDarkColor(colorPicked);
         if (!colorPickerTask->GetFirstGetColorFinished()) {

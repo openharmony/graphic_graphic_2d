@@ -98,6 +98,7 @@ private:
     GrBackendTexture cacheBackendTexture_;
 #endif
     bool valid_ = false;
+    bool firstGetColorFinished_ = false;
     uint32_t* pixelPtr_ = nullptr;
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
     sk_sp<SkImage> imageSnapshotCache_ = nullptr;
@@ -105,7 +106,6 @@ private:
     std::vector<RSColor> colorArray_;
     std::vector<bool> colorArrayValid_;
     RSColor colorAverage_;
-    bool firstGetColorFinished_;
     std::mutex parallelRenderMutex_;
     std::condition_variable cvParallelRender_;
 #ifdef IS_OHOS

@@ -78,7 +78,6 @@ private:
     bool imageMask_ = false;
     bool isFilled_ = false;
     bool colorStrategy_ = false;
-
 };
 } // namespace Rosen
 } // namespace OHOS
