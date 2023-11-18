@@ -215,7 +215,7 @@ int32_t OH_NativeBuffer_SetColorSpace(OH_NativeBuffer *buffer, OH_NativeBuffer_C
         BLOGE("parameter error, please check input parameter");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
-    SurfaceBuffer* sbuffer = OH_NativeBufferToSurfaceBuffer(buffer);
+    sptr<SurfaceBuffer> sbuffer = OH_NativeBufferToSurfaceBuffer(buffer);
     GSError ret = MetadataHelper::SetColorSpaceType(sbuffer, NATIVE_COLORSPACE_TO_HDI_MAP[colorSpace]);
     if (GSErrorStr(ret) == "<500 api call failed>with low error <Not supported>") {
         return OHOS::GSERROR_NOT_SUPPORT;
