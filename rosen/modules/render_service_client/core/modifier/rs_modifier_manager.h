@@ -42,12 +42,18 @@ public:
     void Draw();
 
     const FrameRateRange& GetUIFrameRateRange() const;
+    // spring animation related
+    void RegisterSpringAnimation(PropertyId propertyId, AnimationId animId);
+    void UnregisterSpringAnimation(PropertyId propertyId, AnimationId animId);
+    std::shared_ptr<RSRenderAnimation> QuerySpringAnimation(PropertyId propertyId);
 
 private:
     void OnAnimationFinished(const std::shared_ptr<RSRenderAnimation>& animation);
+    const std::shared_ptr<RSRenderAnimation> GetAnimation(AnimationId id) const;
 
     std::set<std::shared_ptr<RSModifier>> modifiers_;
     std::unordered_map<AnimationId, std::weak_ptr<RSRenderAnimation>> animations_;
+    std::unordered_map<PropertyId, AnimationId> springAnimations_;
 
     FrameRateRange uiRange_ = {0, 0, 0};
 
