@@ -1699,7 +1699,7 @@ void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
     if (DrawBlurInCache(node) || node.GetChildrenCount() == 0) {
         return;
     }
-    
+
     if (isSubThread_) {
         node.SetIsUsedBySubThread(true);
         ProcessShadowFirst(node, isSubThread_);
@@ -2155,7 +2155,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         Occlusion::Region dirtyRegionTest;
         std::vector<RectI> rects;
         bool clipPath = false;
-        int saveCount_t = canvas_->save();
+#ifdef RS_ENABLE_VK
+        int saveCountBeforeClip = canvas_->save();
+#endif
 #ifdef RS_ENABLE_EGLQUERYSURFACE
         // Get displayNode buffer age in order to merge visible dirty region for displayNode.
         // And then set egl damage region to improve uni_render efficiency.
@@ -2183,20 +2185,18 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 rects.emplace_back(rect);
             }
             if (!isDirtyRegionAlignedEnable_) {
-#ifndef USE_ROSEN_DRAWING
+                for (auto& r : rects) {
 #ifdef RS_ENABLE_VK
-                for (auto& r : rects) {
-                    region.op(SkIRect::MakeXYWH(r.left_, r.top_, r.width_, r.height_), SkRegion::kUnion_Op);
+                    auto topAfterFlip = r.top_;
 #else
-                auto disH = screenInfo_.GetRotatedHeight();
-                for (auto& r : rects) {
-                    region.op(SkIRect::MakeXYWH(r.left_, disH - r.GetBottom(), r.width_, r.height_),
-                        SkRegion::kUnion_Op);
+                    auto topAfterFlip = screenInfo_.GetRotatedHeight() - r.GetBottom();
 #endif
+#ifndef USE_ROSEN_DRAWING
+                    region.op(SkIRect::MakeXYWH(r.left_, topAfterFlip, r.width_, r.height_), SkRegion::kUnion_Op);
 #else
                     Drawing::Region tmpRegion;
-                    tmpRegion.SetRect(Drawing::RectI(r.left_, disH - r.GetBottom(),
-                        r.left_ + r.width_, disH - r.GetBottom() + r.height_));
+                    tmpRegion.SetRect(Drawing::RectI(r.left_, topAfterFlip,
+                        r.left_ + r.width_, topAfterFlip + r.height_));
                     region.Op(tmpRegion, Drawing::RegionOp::UNION);
 #endif
 #ifndef USE_ROSEN_DRAWING
@@ -2392,7 +2392,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RSSingleton<RoundCornerDisplay>::GetInstance().DrawRoundCorner(canvas_);
         }
         RSMainThread::Instance()->RemoveTask(CLEAR_GPU_CACHE);
-        canvas_->restoreToCount(saveCount_t);
+#ifdef RS_ENABLE_VK
+        canvas_->restoreToCount(saveCountBeforeClip);
+#endif
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
         renderFrame_->Flush();
         RS_TRACE_END();
