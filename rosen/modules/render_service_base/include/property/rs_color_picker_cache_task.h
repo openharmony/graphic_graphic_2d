@@ -18,7 +18,9 @@
 
 #include <condition_variable>
 #include <mutex>
+#ifdef IS_OHOS
 #include "event_handler.h"
+#endif
 #ifndef USE_ROSEN_DRAWING
 #include "include/core/SkImageInfo.h"
 #include "include/core/SkRect.h"
@@ -106,7 +108,9 @@ private:
     bool firstGetColorFinished_;
     std::mutex parallelRenderMutex_;
     std::condition_variable cvParallelRender_;
+#ifdef IS_OHOS
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_ = nullptr;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS
