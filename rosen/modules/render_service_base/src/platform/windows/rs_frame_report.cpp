@@ -48,7 +48,7 @@ void RsFrameReport::AnimateStart()
 {
 }
 
-void RsFrameReport::RenderStart()
+void RsFrameReport::RenderStart(uint64_t timestamp)
 {
 }
 

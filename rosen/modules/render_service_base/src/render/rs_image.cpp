@@ -209,6 +209,8 @@ void RSImage::ApplyCanvasClip(Drawing::Canvas& canvas)
 }
 #endif
 
+#ifndef USE_ROSEN_DRAWING
+
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
 static SkImage::CompressionType PixelFormatToCompressionType(Media::PixelFormat pixelFormat) {
     switch (pixelFormat) {
@@ -221,7 +223,6 @@ static SkImage::CompressionType PixelFormatToCompressionType(Media::PixelFormat 
 }
 #endif
 
-#ifndef USE_ROSEN_DRAWING
 void RSImage::UploadGpu(RSPaintFilterCanvas& canvas)
 {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
@@ -269,7 +270,7 @@ void RSImage::UploadGpu(Drawing::Canvas& canvas)
 {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
     if (compressData_) {
-        auto cache = RSImageCache::Instance().GetDrawingImageCache(uniqueId_, gettid());
+        auto cache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, gettid());
         std::lock_guard<std::mutex> lock(mutex_);
         if (cache) {
             image_ = cache;
@@ -283,10 +284,10 @@ void RSImage::UploadGpu(Drawing::Canvas& canvas)
                 static_cast<int>(srcRect_.height_), Drawing::CompressedType::ASTC);
             if (image) {
                 image_ = image;
-                RSImageCache::Instance().CacheDrawingImage(uniqueId_, image, gettid());
+                RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image, gettid());
             } else {
                 RS_LOGE("make astc image %{public}d (%{public}d, %{public}d) failed",
-                    uniqueId_, (int)srcRect_.width_, (int)srcRect_.height_);
+                    (int)uniqueId_, (int)srcRect_.width_, (int)srcRect_.height_);
             }
             compressData_ = nullptr;
         }
@@ -410,8 +411,16 @@ void RSImage::SetCompressData(
 #endif
 }
 
+#ifndef USE_ROSEN_DRAWING
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
 void RSImage::SetCompressData(const sk_sp<SkData> compressData)
+{
+    isDrawn_ = false;
+    compressData_ = compressData;
+}
+#endif
+#else
+void RSImage::SetCompressData(const std:shared_ptr<Drawing::Data> compressData)
 {
     isDrawn_ = false;
     compressData_ = compressData;
@@ -635,7 +644,7 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     RSImageBase::IncreaseCacheRefCount(uniqueId, useSkImage, pixelMap);
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
 #if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-    if (pixelMap != nullptr && pixelMap->GetAllocatorType() != Media::AllocatorType::DMA_ALLOC) {
+    if (pixelMap != nullptr) {
         rsImage->ConvertPixelMapToSkImage();
     }
 #endif

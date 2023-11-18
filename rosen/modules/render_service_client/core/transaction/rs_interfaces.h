@@ -46,6 +46,9 @@ public:
 
     ScreenId GetDefaultScreenId();
 
+    // for bootAnimation only
+    ScreenId GetActiveScreenId();
+
     std::vector<ScreenId> GetAllScreenIds();
 
     // mirrorId: decide which screen id to mirror, INVALID_SCREEN_ID means do not mirror any screen.
@@ -99,6 +102,8 @@ public:
 
     void SetRefreshRateMode(int32_t refreshRateMode);
 
+    void SyncFrameRateRange(const FrameRateRange& range);
+
     uint32_t GetScreenCurrentRefreshRate(ScreenId id);
 
     int32_t GetCurrentRefreshRateMode();
@@ -144,6 +149,11 @@ public:
         const std::string& name,
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr);
 
+    std::shared_ptr<VSyncReceiver> CreateVSyncReceiver(
+        const std::string& name,
+        uint64_t id,
+        const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr);
+
     int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
 
     int32_t RegisterSurfaceOcclusionChangeCallback(
@@ -168,6 +178,8 @@ public:
     void EnableCacheForRotation();
 
     void DisableCacheForRotation();
+
+    void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
 
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config);

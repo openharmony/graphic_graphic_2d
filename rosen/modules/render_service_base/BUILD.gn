@@ -93,6 +93,7 @@ ohos_source_set("render_service_base_src") {
     "src/command/rs_command_factory.cpp",
     "src/command/rs_display_node_command.cpp",
     "src/command/rs_effect_node_command.cpp",
+    "src/command/rs_frame_rate_linker_command.cpp",
     "src/command/rs_node_command.cpp",
     "src/command/rs_node_showing_command.cpp",
     "src/command/rs_proxy_node_command.cpp",
@@ -164,6 +165,8 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_paint_filter_canvas.cpp",
     "src/pipeline/rs_proxy_render_node.cpp",
     "src/pipeline/rs_recording_canvas.cpp",
+    "src/pipeline/rs_render_frame_rate_linker.cpp",
+    "src/pipeline/rs_render_frame_rate_linker_map.cpp",
     "src/pipeline/rs_render_node.cpp",
     "src/pipeline/rs_render_node_map.cpp",
     "src/pipeline/rs_root_render_node.cpp",
@@ -174,6 +177,7 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/sk_resource_manager.cpp",
 
     #property
+    "src/property/rs_color_picker_cache_task.cpp",
     "src/property/rs_filter_cache_manager.cpp",
     "src/property/rs_properties.cpp",
     "src/property/rs_properties_painter.cpp",
@@ -186,6 +190,8 @@ ohos_source_set("render_service_base_src") {
     #render
     "src/render/rs_blur_filter.cpp",
     "src/render/rs_border.cpp",
+    "src/render/rs_color_extract.cpp",
+    "src/render/rs_color_picker.cpp",
     "src/render/rs_filter.cpp",
     "src/render/rs_image.cpp",
     "src/render/rs_image_base.cpp",
@@ -305,6 +311,11 @@ ohos_source_set("render_service_base_src") {
       "access_token:libtokenid_sdk",
       "ipc:ipc_core",
     ]
+  }
+
+  if (rosen_is_ohos && defined(enable_ipc_security_access_counter) &&
+      enable_ipc_security_access_counter) {
+    defines += [ "ENABLE_IPC_SECURITY_ACCESS_COUNTER" ]
   }
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {

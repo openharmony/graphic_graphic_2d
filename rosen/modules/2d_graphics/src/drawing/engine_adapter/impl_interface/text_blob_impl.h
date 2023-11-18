@@ -18,6 +18,7 @@
 
 #include "impl_interface/base_impl.h"
 #include "utils/data.h"
+#include "utils/rect.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -27,6 +28,7 @@ public:
     ~TextBlobImpl() override = default;
 
     virtual std::shared_ptr<Data> Serialize() const = 0;
+    virtual std::shared_ptr<Rect> Bounds() const = 0;
 
 protected:
     TextBlobImpl() noexcept = default;

@@ -24,7 +24,7 @@ namespace Drawing {
 class OpItem {
 public:
     explicit OpItem(uint32_t type) : type_(type) {}
-    ~OpItem() = default;
+    virtual ~OpItem() = default;
 
     /*
      * @brief Gets the offset of next OpItem.

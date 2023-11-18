@@ -375,10 +375,15 @@ public:
 #endif
 private:
     std::shared_ptr<RSImage> rsImage_;
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifndef USE_ROSEN_DRAWING
+#ifdef RS_ENABLE_GL
     mutable EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
     mutable GLuint texId_ = 0;
+#endif
+#ifdef RS_ENABLE_VK
+    mutable sk_sp<SkImage> skImage_ = nullptr;
+#endif
     mutable OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
     mutable pid_t tid_ = 0;
 #endif
@@ -1569,10 +1574,15 @@ private:
     void Clear() const noexcept;
 
     mutable RSSurfaceBufferInfo surfaceBufferInfo_;
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    mutable OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
+#endif
+#ifdef RS_ENABLE_VK
+    mutable sk_sp<SkImage> skImage_ = nullptr;
+#endif
 #ifdef RS_ENABLE_GL
     mutable EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
     mutable GLuint texId_ = 0;
-    mutable OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
 #endif
 };
 #endif
@@ -1585,6 +1595,10 @@ private:
 #include "recording/adaptive_image_helper.h"
 #include "draw/canvas.h"
 #include "parcel.h"
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#include <native_window.h>
+#include "surface_buffer.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -1594,13 +1608,24 @@ public:
     RSExtendImageObject(const std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Data>& data,
         const Drawing::AdaptiveImageInfo& imageInfo);
     RSExtendImageObject(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::AdaptiveImageInfo& imageInfo);
-    ~RSExtendImageObject() override = default;
+    ~RSExtendImageObject() override;
     void Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect,
         const Drawing::SamplingOptions& sampling, bool isBackground = false) override;
     bool Marshalling(Parcel &parcel) const;
     static RSExtendImageObject *Unmarshalling(Parcel &parcel);
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+    std::shared_ptr<Drawing::Image> GetDrawingImageFromSurfaceBuffer(
+        Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer) const;
+#endif
 protected:
     std::shared_ptr<RSImage> rsImage_;
+private:
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+    mutable EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
+    mutable GLuint texId_ = 0;
+    mutable OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
+    mutable pid_t tid_ = 0;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

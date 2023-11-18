@@ -543,6 +543,17 @@ bool RSPaintFilterCanvas::OnFilter() const
 {
     return alphaStack_.top() > 0.f;
 }
+
+bool RSPaintFilterCanvas::GetRecordingState() const
+{
+    return recordingState_;
+}
+
+void RSPaintFilterCanvas::SetDisableFilterCache(bool flag) const
+{
+    recordingState_ = flag;
+}
+
 #endif // USE_ROSEN_DRAWING
 
 void RSPaintFilterCanvas::MultiplyAlpha(float alpha)
@@ -807,7 +818,11 @@ void RSPaintFilterCanvas::SetCacheType(CacheType type)
 {
     cacheType_ = type;
 }
+#ifndef USE_ROSEN_DRAWING
 RSPaintFilterCanvas::CacheType RSPaintFilterCanvas::GetCacheType() const
+#else
+Drawing::CacheType RSPaintFilterCanvas::GetCacheType() const
+#endif
 {
     return cacheType_;
 }
@@ -927,13 +942,13 @@ RSPaintFilterCanvas::CachedEffectData::CachedEffectData(sk_sp<SkImage>&& image, 
 void RSPaintFilterCanvas::SetCanvasStatus(const CanvasStatus& status)
 {
     SetAlpha(status.alpha_);
-    setMatrix(status.matrix_);
+    SetMatrix(status.matrix_);
     SetEffectData(status.effectData_);
 }
 
 RSPaintFilterCanvas::CanvasStatus RSPaintFilterCanvas::GetCanvasStatus() const
 {
-    return { GetAlpha(), getTotalMatrix(), GetEffectData() };
+    return { GetAlpha(), GetTotalMatrix(), GetEffectData() };
 }
 
 RSPaintFilterCanvas::CachedEffectData::CachedEffectData(std::shared_ptr<Drawing::Image>&& image,

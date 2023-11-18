@@ -34,7 +34,6 @@ namespace Slot {
 // NOTE: MUST update DrawableGeneratorLut in rs_property_drawable.cpp when new slots are added
 enum RSPropertyDrawableSlot : uint8_t {
     INVALID = 0,
-
     SAVE_ALL,
 
     // Bounds Geometry
@@ -45,9 +44,9 @@ enum RSPropertyDrawableSlot : uint8_t {
     ENV_FOREGROUND_COLOR,
     SHADOW,
 
-    // In Bounds Clip
+    // BG properties in Bounds Clip
     SAVE_LAYER_BACKGROUND,
-    SAVE_BOUNDS,
+    BG_SAVE_BOUNDS,
     CLIP_TO_BOUNDS,
     BACKGROUND_COLOR,
     BACKGROUND_SHADER,
@@ -57,10 +56,10 @@ enum RSPropertyDrawableSlot : uint8_t {
     BACKGROUND_STYLE,
     DYNAMIC_LIGHT_UP,
     ENV_FOREGROUND_COLOR_STRATEGY,
-    EXTRA_RESTORE_BOUNDS,
-    SAVE_LAYER_CONTENT,
+    BG_RESTORE_BOUNDS,
 
     // Frame Geometry
+    SAVE_LAYER_CONTENT,
     SAVE_FRAME,
     FRAME_OFFSET,
     CLIP_TO_FRAME,
@@ -70,33 +69,34 @@ enum RSPropertyDrawableSlot : uint8_t {
     COLOR_FILTER,
     RESTORE_FRAME,
 
-    // In Bounds clip (again)
-    EXTRA_SAVE_BOUNDS,
-    EXTRA_CLIP_TO_BOUNDS,
+    // FG properties in Bounds clip
+    FG_SAVE_BOUNDS,
+    FG_CLIP_TO_BOUNDS,
     LIGHT_UP_EFFECT,
     FOREGROUND_FILTER,
     LINEAR_GRADIENT_BLUR_FILTER,
+    FOREGROUND_COLOR,
+    FG_RESTORE_BOUNDS,
+
+    // No clip (unless ClipToBounds is set)
     BORDER,
     OVERLAY,
-    FOREGROUND_COLOR,
     PARTICLE_EFFECT,
-    RESTORE_BOUNDS,
-
-    // Without clip
     PIXEL_STRETCH,
+
     RESTORE_ALL,
     MAX,
 };
 
 enum DrawableVecStatus : uint8_t {
-    CLIP_BOUNDS            = 1 << 0,
-    BOUNDS_PROPERTY_BEFORE = 1 << 1,
-    BOUNDS_PROPERTY_AFTER  = 1 << 2,
-    CLIP_FRAME             = 1 << 3,
-    FRAME_PROPERTY         = 1 << 4,
-    HAS_CHILDREN           = 1 << 5,
-    BOUNDS_MASK            = CLIP_BOUNDS | BOUNDS_PROPERTY_BEFORE | BOUNDS_PROPERTY_AFTER,
-    FRAME_MASK             = CLIP_FRAME | FRAME_PROPERTY | HAS_CHILDREN,
+    CLIP_BOUNDS        = 1 << 0,
+    BG_BOUNDS_PROPERTY = 1 << 1,
+    FG_BOUNDS_PROPERTY = 1 << 2,
+    CLIP_FRAME         = 1 << 3,
+    FRAME_PROPERTY     = 1 << 4,
+    HAS_CHILDREN       = 1 << 5,
+    BOUNDS_MASK        = CLIP_BOUNDS | BG_BOUNDS_PROPERTY | FG_BOUNDS_PROPERTY,
+    FRAME_MASK         = CLIP_FRAME | FRAME_PROPERTY | HAS_CHILDREN,
 };
 } // namespace Slot
 

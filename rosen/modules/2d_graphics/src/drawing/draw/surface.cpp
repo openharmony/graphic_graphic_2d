@@ -99,6 +99,11 @@ void Surface::FlushAndSubmit(bool syncCpu)
     impl_->FlushAndSubmit(syncCpu);
 }
 
+void Surface::Flush()
+{
+    impl_->Flush();
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

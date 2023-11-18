@@ -53,7 +53,7 @@ void DumpCharGroup(int32_t index, const CharGroup &cg, double glyphEm,
 }
 } // namespace
 
-hb_blob_t *HbFaceReferenceTableTypeface(hb_face_t *face, hb_tag_t tag, void *context)
+hb_blob_t* HbFaceReferenceTableTypeface(hb_face_t* face, hb_tag_t tag, void* context)
 {
     if (context == nullptr) {
         return nullptr;
@@ -71,7 +71,7 @@ hb_blob_t *HbFaceReferenceTableTypeface(hb_face_t *face, hb_tag_t tag, void *con
         return nullptr;
     }
 
-    void *buffer = malloc(tableSize);
+    void* buffer = malloc(tableSize);
     if (buffer == nullptr) {
         return nullptr;
     }
@@ -83,7 +83,7 @@ hb_blob_t *HbFaceReferenceTableTypeface(hb_face_t *face, hb_tag_t tag, void *con
         return nullptr;
     }
 
-    return hb_blob_create(reinterpret_cast<char *>(buffer),
+    return hb_blob_create(reinterpret_cast<char*>(buffer),
                           tableSize, HB_MEMORY_MODE_WRITABLE, buffer, free);
 }
 
@@ -121,6 +121,7 @@ int MeasurerImpl::Measure(CharGroups &cgs)
     };
 
     if (fontFeatures_ == nullptr || fontFeatures_->GetFeatures().size() == 0) {
+        std::lock_guard<std::mutex> lock(mutex_);
         auto it = cache_.find(key);
         if (it != cache_.end()) {
             cgs = it->second.cgs.Clone();
@@ -149,7 +150,9 @@ int MeasurerImpl::Measure(CharGroups &cgs)
     if (fontFeatures_ == nullptr || fontFeatures_->GetFeatures().size() == 0) {
         if (cgs.CheckCodePoint()) {
             detectionName_ = cgs.GetTypefaceName();
-            cache_[key] = {cgs.Clone(), boundaries_};
+            struct MeasurerCacheVal value = {cgs.Clone(), boundaries_};
+            std::lock_guard<std::mutex> lock(mutex_);
+            cache_[key] = value;
         }
     }
     return SUCCESSED;
@@ -161,33 +164,26 @@ void MeasurerImpl::SeekTypeface(std::list<struct MeasuringRun> &runs)
     ScopedTrace scope("MeasurerImpl::SeekTypeface");
 #endif
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "typeface");
-    int index = 0;
     for (auto runsit = runs.begin(); runsit != runs.end(); runsit++) {
         if (runsit->end > text_.size()) {
             LOGEX_FUNC_LINE(ERROR) << "runsit->end overflow of text_";
-            throw TEXGINE_EXCEPTION(ERROR_STATUS);
+            break;
         }
         size_t utf16Index = static_cast<size_t>(runsit->start);
         uint32_t cp = 0;
         std::shared_ptr<Typeface> lastTypeface = nullptr;
         while (utf16Index < runsit->end) {
             U16_NEXT(text_.data(), utf16Index, runsit->end, cp);
-            // 2 & 6 means output width，0 means fill with 0
-            LOGEX_FUNC_LINE_DEBUG(Logger::SetToNoReturn) << "[" << std::setw(2) << std::setfill('0') << index++
-                << ": 0x" << std::setw(6) << std::setfill('0') << std::hex << std::uppercase << cp << "]";
             if (lastTypeface && lastTypeface->Has(cp)) {
                 LOGCEX_DEBUG() << " cached";
                 continue;
             }
             if (runsit->typeface) {
-                index--;
                 LOGCEX_DEBUG() << " new";
                 auto next = runsit;
-                runs.insert(++next, {
-                    .start = utf16Index - U16_LENGTH(cp),
-                    .end = runsit->end,
-                    .script = runsit->script,
-                });
+                struct MeasuringRun run = {.start = utf16Index - U16_LENGTH(cp), .end = runsit->end,
+                    .script = runsit->script};
+                runs.insert(++next, run);
                 runsit->end = utf16Index - U16_LENGTH(cp);
                 break;
             }
@@ -196,7 +192,8 @@ void MeasurerImpl::SeekTypeface(std::list<struct MeasuringRun> &runs)
                                  (char)(((runsit->script) >> SECOND_BYTE) & 0xFF),
                                  (char)(((runsit->script) >> THIRD_BYTE) & 0xFF),
                                  (char)((runsit->script) & 0xFF), '\0'};
-            lastTypeface = fontCollection_.GetTypefaceForChar(cp, style_, runScript, locale_);
+            bool fallbackTypeface = false;
+            lastTypeface = fontCollection_.GetTypefaceForChar(cp, style_, runScript, locale_, fallbackTypeface);
             if (lastTypeface == nullptr) {
                 LOGCEX_DEBUG() << " no typeface";
                 continue;
@@ -204,6 +201,9 @@ void MeasurerImpl::SeekTypeface(std::list<struct MeasuringRun> &runs)
 
             LOGCEX_DEBUG() << " found at " << lastTypeface->GetName();
             runsit->typeface = lastTypeface;
+            if (fallbackTypeface) {
+                lastTypeface = nullptr;
+            }
         }
     }
 }
@@ -220,12 +220,13 @@ void MeasurerImpl::SeekScript(std::list<struct MeasuringRun> &runs)
         throw TEXGINE_EXCEPTION(API_FAILED);
     }
 
-    runs.push_back({.start = startIndex_, .end = endIndex_});
+    struct MeasuringRun run = {.start = startIndex_, .end = endIndex_};
+    runs.push_back(run);
     DoSeekScript(runs, icuGetUnicodeFuncs);
     hb_unicode_funcs_destroy(icuGetUnicodeFuncs);
 }
 
-void MeasurerImpl::DoSeekScript(std::list<struct MeasuringRun> &runs, hb_unicode_funcs_t *icuGetUnicodeFuncs)
+void MeasurerImpl::DoSeekScript(std::list<struct MeasuringRun> &runs, hb_unicode_funcs_t* icuGetUnicodeFuncs)
 {
     int index = 0;
     for (auto it = runs.begin(); it != runs.end(); it++) {
@@ -262,7 +263,8 @@ void MeasurerImpl::DoSeekScript(std::list<struct MeasuringRun> &runs, hb_unicode
             } else {
                 index--;
                 auto next = it;
-                runs.insert(++next, { .start = utf16Index - U16_LENGTH(cp), .end = it->end });
+                struct MeasuringRun run = {.start = utf16Index - U16_LENGTH(cp), .end = it->end};
+                runs.insert(++next, run);
                 it->end = utf16Index - U16_LENGTH(cp);
                 break;
             }
@@ -330,25 +332,30 @@ int MeasurerImpl::DoShape(CharGroups &cgs, MeasuringRun &run, size_t &index)
         LOGEX_FUNC_LINE(ERROR) << "text is nullptr";
         return FAILED;
     }
-    hb_buffer_add_utf16(hbuffer, reinterpret_cast<const uint16_t *>(text_.data()),
-        INVALID_TEXT_LENGTH, run.start, run.end - run.start);
+    hb_buffer_add_utf16(hbuffer, text_.data(), INVALID_TEXT_LENGTH, run.start, run.end - run.start);
     hb_buffer_set_direction(hbuffer, rtl_ ? HB_DIRECTION_RTL : HB_DIRECTION_LTR);
-    hb_buffer_set_unicode_funcs(hbuffer, hb_unicode_funcs_create(hb_icu_get_unicode_funcs()));
+    auto icuGetUnicodeFuncs = hb_unicode_funcs_create(hb_icu_get_unicode_funcs());
+    if (!icuGetUnicodeFuncs) {
+        LOGEX_FUNC_LINE(ERROR) << "icuGetUnicodeFuncs is nullptr";
+        HbDestroy(hbuffer, nullptr, nullptr, nullptr);
+        return FAILED;
+    }
+
+    hb_buffer_set_unicode_funcs(hbuffer, icuGetUnicodeFuncs);
     hb_buffer_set_script(hbuffer, run.script);
     hb_buffer_set_language(hbuffer, hb_language_from_string(locale_.c_str(), INVALID_TEXT_LENGTH));
 
     auto hface = hb_face_create_for_tables(HbFaceReferenceTableTypeface, typeface->Get()->GetTypeface().get(), 0);
     if (!hface) {
         LOGEX_FUNC_LINE(ERROR) << "hface is nullptr";
-        hb_buffer_destroy(hbuffer);
+        HbDestroy(hbuffer, nullptr, nullptr, icuGetUnicodeFuncs);
         return FAILED;
     }
 
     auto hfont = hb_font_create(hface);
     if (!hfont) {
         LOGEX_FUNC_LINE(ERROR) << "hfont is nullptr";
-        hb_buffer_destroy(hbuffer);
-        hb_face_destroy(hface);
+        HbDestroy(hbuffer, nullptr, hface, icuGetUnicodeFuncs);
         return FAILED;
     }
 
@@ -357,19 +364,35 @@ int MeasurerImpl::DoShape(CharGroups &cgs, MeasuringRun &run, size_t &index)
     hb_shape(hfont, hbuffer, ff.data(), ff.size());
 
     if (GetGlyphs(cgs, run, index, hbuffer, typeface)) {
-        hb_buffer_destroy(hbuffer);
-        hb_font_destroy(hfont);
-        hb_face_destroy(hface);
+        HbDestroy(hbuffer, hfont, hface, icuGetUnicodeFuncs);
         return FAILED;
     }
 
-    hb_buffer_destroy(hbuffer);
-    hb_font_destroy(hfont);
-    hb_face_destroy(hface);
+    HbDestroy(hbuffer, hfont, hface, icuGetUnicodeFuncs);
     return SUCCESSED;
 }
 
-int MeasurerImpl::GetGlyphs(CharGroups &cgs, MeasuringRun &run, size_t &index, hb_buffer_t *hbuffer,
+void MeasurerImpl::HbDestroy(hb_buffer_t* hbuffer, hb_font_t* hfont, hb_face_t* hface,
+    hb_unicode_funcs_t* icuGetUnicodeFuncs)
+{
+    if (hbuffer) {
+        hb_buffer_destroy(hbuffer);
+    }
+
+    if (hfont) {
+        hb_font_destroy(hfont);
+    }
+
+    if (hface) {
+        hb_face_destroy(hface);
+    }
+
+    if (icuGetUnicodeFuncs) {
+        hb_unicode_funcs_destroy(icuGetUnicodeFuncs);
+    }
+}
+
+int MeasurerImpl::GetGlyphs(CharGroups &cgs, MeasuringRun &run, size_t &index, hb_buffer_t* hbuffer,
     std::shared_ptr<TextEngine::Typeface> typeface)
 {
     uint32_t ng = 0u;
@@ -396,13 +419,14 @@ int MeasurerImpl::GetGlyphs(CharGroups &cgs, MeasuringRun &run, size_t &index, h
     std::map<uint32_t, CharGroup> cgsByCluster{{run.end, {}}};
     for (uint32_t i = 0; i < ng; i++) {
         auto &cg = cgsByCluster[hginfos[i].cluster];
-        cg.glyphs.push_back({
+        struct Glyph glyph = {
             .codepoint = hginfos[i].codepoint,
             .advanceX = glyphEm * hgpositions[i].x_advance,
             .advanceY = glyphEm * hgpositions[i].y_advance,
             .offsetX = glyphEm * hgpositions[i].x_offset,
-            .offsetY = glyphEm * hgpositions[i].y_offset,
-        });
+            .offsetY = glyphEm * hgpositions[i].y_offset
+        };
+        cg.glyphs.push_back(glyph);
         cg.typeface = typeface;
     }
 
@@ -453,7 +477,7 @@ void MeasurerImpl::DoCgsByCluster(std::map<uint32_t, TextEngine::CharGroup> &cgs
     }
 }
 
-void MeasurerImpl::GenerateHBFeatures(std::vector<hb_feature_t> &fontFeatures, const FontFeatures *ff)
+void MeasurerImpl::GenerateHBFeatures(std::vector<hb_feature_t> &fontFeatures, const FontFeatures* ff)
 {
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "GenerateHBFeatures");
     if (ff == nullptr) {

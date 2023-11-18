@@ -49,6 +49,8 @@ public:
 
     static std::shared_ptr<TextBlob> Deserialize(const void* data, size_t size);
 
+    std::shared_ptr<Rect> Bounds() const override;
+
 private:
     sk_sp<SkTextBlob> skTextBlob_;
 };

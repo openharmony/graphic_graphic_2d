@@ -209,12 +209,27 @@ bool RSSystemProperties::GetFilterPartialRenderEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetColorPickerPartialEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetMaskLinearBlurEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetDebugTraceEnabled()
 {
     return false;
 }
 
 bool RSSystemProperties::FindNodeInTargetList(std::string node)
+{
+    return false;
+}
+
+bool RSSystemProperties::IsFoldScreenFlag()
 {
     return false;
 }

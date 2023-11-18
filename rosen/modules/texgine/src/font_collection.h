@@ -33,10 +33,12 @@ public:
     FontCollection(std::vector<std::shared_ptr<VariantFontStyleSet>> &&fontStyleSets);
 
     std::shared_ptr<Typeface> GetTypefaceForChar(const uint32_t &ch, FontStyles &style,
-        const std::string &script, const std::string &locale) const;
+        const std::string &script, const std::string &locale, bool &fallbackTypeface) const;
 
     std::shared_ptr<Typeface> GetTypefaceForFontStyles(const FontStyles &style, const std::string &script,
         const std::string &locale) const;
+
+    std::shared_ptr<Typeface> FindThemeTypeface(const FontStyles &style) const;
 
     std::shared_ptr<Typeface> FindFallBackTypeface(const uint32_t &ch, const FontStyles &style,
         const std::string &script, const std::string &locale) const;

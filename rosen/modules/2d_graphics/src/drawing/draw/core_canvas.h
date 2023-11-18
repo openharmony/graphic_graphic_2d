@@ -65,6 +65,15 @@ struct Lattice {
     Color fColors;
 };
 
+enum CacheType : uint8_t {
+    UNDEFINED, // do not change current cache status
+    ENABLED,   // explicitly enable cache
+    DISABLED,  // explicitly disable cache
+    OFFSCREEN, // offscreen rendering
+};
+
+class Surface;
+
 /*
  * @brief  Contains the option used to create the layer.
  */
@@ -291,6 +300,11 @@ public:
     virtual bool IsClipEmpty();
 
     /*
+     * @brief  Returns true if clip is SkRect and not empty.
+     */
+    virtual bool IsClipRect();
+
+    /*
      * @brief  Returns true if clip is emptySkRect rect, transformed by SkMatrix,
      *         can be quickly determined to be outside of clip.
      */
@@ -341,6 +355,10 @@ public:
     virtual CoreCanvas& AttachBrush(const Brush& brush);
     virtual CoreCanvas& DetachPen();
     virtual CoreCanvas& DetachBrush();
+
+    virtual bool isHighContrastEnabled() const;
+    virtual Drawing::CacheType GetCacheType() const;
+    virtual Drawing::Surface* GetSurface() const;
 
     template<typename T>
     const std::shared_ptr<T> GetImpl() const

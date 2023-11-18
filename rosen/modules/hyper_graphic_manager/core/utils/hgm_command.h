@@ -112,6 +112,7 @@ public:
     std::unordered_map<std::string, detailedStrat> detailedStrategies_;
     std::unordered_map<std::string, std::string> animationDynamicStrats_;
     std::unordered_map<std::string, std::string> bundle_black_list_;
+    std::unordered_map<std::string, std::string> ltpoConfig_;
     DynamicSetting dynamicSetting_;
     DynamicSetting aceSceneDynamicSetting_;
 

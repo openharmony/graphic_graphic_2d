@@ -77,6 +77,7 @@ static Drawing::ColorType PixelFormatToDrawingColorType(PixelFormat pixelFormat)
         case PixelFormat::ALPHA_8:
             return Drawing::ColorType::COLORTYPE_ALPHA_8;
         case PixelFormat::RGBA_F16:
+            return Drawing::ColorType::COLORTYPE_RGBA_F16;
         case PixelFormat::UNKNOWN:
         case PixelFormat::ARGB_8888:
         case PixelFormat::RGB_888:
@@ -170,7 +171,7 @@ sk_sp<SkImage> RSPixelMapUtil::ExtractSkImage(std::shared_ptr<Media::PixelMap> p
     ImageInfo imageInfo;
     pixelMap->GetImageInfo(imageInfo);
     auto skImageInfo = MakeSkImageInfo(imageInfo);
-    SkPixmap skPixmap(skImageInfo, reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowBytes());
+    SkPixmap skPixmap(skImageInfo, reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
     return SkImage::MakeFromRaster(skPixmap, PixelMapReleaseProc, new PixelMapReleaseContext(pixelMap));
 }
 #else

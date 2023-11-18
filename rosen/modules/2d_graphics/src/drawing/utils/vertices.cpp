@@ -47,6 +47,16 @@ bool Vertices::MakeCopy(VertexMode mode,
     return verticesImplPtr_->MakeCopy(mode, vertexCount, positions, texs, colors);
 }
 
+std::shared_ptr<Data> Vertices::Serialize() const
+{
+    return verticesImplPtr_->Serialize();
+}
+
+bool Vertices::Deserialize(std::shared_ptr<Data> data)
+{
+    return verticesImplPtr_->Deserialize(data);
+}
+
 Vertices::Builder::Builder(VertexMode mode, int vertexCount, int indexCount, uint32_t flags)
     : builderImplPtr_(ImplFactory::CreateVerticesBuilderImpl())
 {

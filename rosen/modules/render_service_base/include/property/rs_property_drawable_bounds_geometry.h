@@ -52,7 +52,7 @@ public:
     explicit RSBorderDrawable(SkPaint&& paint) : RSPropertyDrawable(), paint_(std::move(paint)) {}
 #else
     explicit RSBorderDrawable(Drawing::Brush&& brush, Drawing::Pen&& pen)
-        : RSPropertyDrawable(), brush_(std::move(brush), pen(std::move(pen)))
+        : RSPropertyDrawable(), brush_(std::move(brush)), pen_(std::move(pen))
     {}
 #endif
     ~RSBorderDrawable() override = default;
@@ -76,7 +76,6 @@ public:
 #endif
     ~RSBorderDRRectDrawable() override = default;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
-    bool Update(const RSPropertyDrawableGenerateContext& context) override;
     void OnBoundsChange(const RSProperties& properties);
 
 private:
@@ -98,7 +97,6 @@ public:
 #endif
     ~RSBorderFourLineDrawable() override = default;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
-    bool Update(const RSPropertyDrawableGenerateContext& context) override;
     void OnBoundsChange(const RSProperties& properties);
 
 private:
@@ -114,7 +112,6 @@ public:
 #endif
     ~RSBorderPathDrawable() override = default;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
-    bool Update(const RSPropertyDrawableGenerateContext& context) override;
     void OnBoundsChange(const RSProperties& properties);
 
 private:
@@ -135,7 +132,6 @@ public:
 #endif
     ~RSBorderFourLineRoundCornerDrawable() override = default;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
-    bool Update(const RSPropertyDrawableGenerateContext& context) override;
     void OnBoundsChange(const RSProperties& properties);
 
 private:
@@ -211,7 +207,7 @@ protected:
 #endif
     float offsetX_;
     float offsetY_;
-    Color color_;
+    const Color color_;
 };
 
 class RSShadowDrawable : public RSShadowBaseDrawable {
@@ -221,7 +217,7 @@ public:
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 
 protected:
-    float radius_;
+    const float radius_;
 };
 
 class RSColorfulShadowDrawable : public RSShadowBaseDrawable {
@@ -246,7 +242,7 @@ public:
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 
 protected:
-    float shadowElevation_;
+    const float shadowElevation_;
 };
 
 // ============================================================================
@@ -453,10 +449,18 @@ protected:
 
 class RSBackgroundColorDrawable : public RSBackgroundDrawable {
 public:
+#ifndef USE_ROSEN_DRAWING
     explicit RSBackgroundColorDrawable(bool hasRoundedCorners, SkColor color) : RSBackgroundDrawable(hasRoundedCorners)
     {
         paint_.setColor(color);
     }
+#else
+    explicit RSBackgroundColorDrawable(bool hasRoundedCorners, Drawing::Color color)
+        : RSBackgroundDrawable(hasRoundedCorners)
+    {
+        brush_.SetColor(color);
+    }
+#endif
     ~RSBackgroundColorDrawable() override = default;
     static std::unique_ptr<RSPropertyDrawable> Generate(const RSPropertyDrawableGenerateContext& context);
 };
@@ -470,10 +474,10 @@ public:
         paint_.setShader(std::move(filter));
     }
 #else
-    explicit RSBackgroundShaderDrawable(bool hasRoundedCorners, std::shared_ptr<Drawing::Shader> filter)
+    explicit RSBackgroundShaderDrawable(bool hasRoundedCorners, std::shared_ptr<Drawing::ShaderEffect> filter)
         : RSBackgroundDrawable(hasRoundedCorners)
     {
-        brush_.SetShader(std::move(filter));
+        brush_.SetShaderEffect(std::move(filter));
     }
 #endif
     ~RSBackgroundShaderDrawable() override = default;

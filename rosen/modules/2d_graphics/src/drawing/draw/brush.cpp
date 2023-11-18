@@ -64,7 +64,7 @@ void Brush::SetColor(int c)
     color_.SetColorQuad(c);
 }
 
-void Brush::SetARGB(int r, int g, int b, int a)
+void Brush::SetARGB(int a, int r, int g, int b)
 {
     color_.SetRgb(r, g, b, a);
 }

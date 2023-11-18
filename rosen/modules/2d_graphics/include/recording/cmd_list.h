@@ -40,6 +40,12 @@ struct ImageHandle {
     AlphaType alphaType;
 };
 
+struct FlattenableHandle {
+    uint32_t offset;
+    size_t size;
+    uint32_t type;
+};
+
 struct VerticesHandle {
     uint32_t offset;
     size_t size;

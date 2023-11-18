@@ -145,6 +145,8 @@ public:
     static int GetFilterCacheUpdateInterval();
     static int GetFilterCacheSizeThreshold();
     static bool GetFilterPartialRenderEnabled();
+    static bool GetColorPickerPartialEnabled();
+    static bool GetMaskLinearBlurEnabled();
     static bool GetKawaseEnabled();
     static float GetKawaseRandomColorFactor();
     static bool GetRandomColorEnabled();
@@ -161,6 +163,7 @@ public:
     static bool GetUIFirstEnabled();
     static bool GetDebugTraceEnabled();
     static bool FindNodeInTargetList(std::string node);
+    static bool IsFoldScreenFlag();
     static bool GetCacheCmdEnabled();
     static bool GetASTCEnabled();
     static bool GetImageGpuResourceCacheEnable(int width, int height);

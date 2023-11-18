@@ -103,7 +103,8 @@ public:
 
 std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     const std::string& name,
-    const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper)
+    const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper,
+    uint64_t id)
 {
     return std::make_shared<VSyncReceiverWindows>();
 }
@@ -121,6 +122,11 @@ int32_t RSRenderServiceClient::SetFocusAppInfo(
 }
 
 ScreenId RSRenderServiceClient::GetDefaultScreenId()
+{
+    return 0;
+}
+
+ScreenId RSRenderServiceClient::GetActiveScreenId()
 {
     return 0;
 }
@@ -148,6 +154,10 @@ void RSRenderServiceClient::SetScreenRefreshRate(ScreenId id, int32_t sceneId, i
 }
 
 void RSRenderServiceClient::SetRefreshRateMode(int32_t refreshRateMode)
+{
+}
+
+void RSRenderServiceClient::SyncFrameRateRange(const FrameRateRange& range)
 {
 }
 
@@ -347,6 +357,11 @@ void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled)
 void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 {
 }
+
+void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
+{
+}
+
 
 #ifdef TP_FEATURE_ENABLE
 void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* config)

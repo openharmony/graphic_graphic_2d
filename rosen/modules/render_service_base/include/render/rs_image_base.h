@@ -47,13 +47,14 @@ public:
     virtual void DrawImage(RSPaintFilterCanvas& canvas, const SkPaint& paint);
 #endif
     void SetImage(const sk_sp<SkImage> image);
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void SetDmaImage(const sk_sp<SkImage> image);
 #endif
 #else
-    virtual void DrawImage(Drawing::Canvas& canvas, const Drawing::Brush& brush);
+    virtual void DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions,
+        const Drawing::Brush& brush);
     void SetImage(const std::shared_ptr<Drawing::Image> image);
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void SetDmaImage(const std::shared_ptr<Drawing::Image> image);
 #endif
 #endif
@@ -107,6 +108,12 @@ protected:
     bool isDrawn_ = false;
     uint64_t uniqueId_ = 0;
     bool renderServiceImage_ = false;
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
+    bool isPinImage_ = false;
+#endif
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -87,10 +87,11 @@ public:
         const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode) noexcept;
     ShaderEffect(ShaderEffectType t, const Point& centerPt, const std::vector<ColorQuad>& colors,
         const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle) noexcept;
-
-protected:
+    ShaderEffect(ShaderEffectType t) noexcept;
     ShaderEffect() noexcept;
 
+    std::shared_ptr<Data> Serialize() const;
+    bool Deserialize(std::shared_ptr<Data> data);
 private:
     ShaderEffectType type_;
     std::shared_ptr<ShaderEffectImpl> impl_;

@@ -52,6 +52,10 @@ public:
         return AdapterType::SKIA_ADAPTER;
     }
 
+    static std::shared_ptr<Image> MakeFromRaster(const Pixmap& pixmap,
+        RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext);
+    static std::shared_ptr<Image> MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
+        size_t rowBytes);
     void* BuildFromBitmap(const Bitmap& bitmap) override;
     void* BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix, const Brush& brush,
         BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace) override;
@@ -67,6 +71,7 @@ public:
     void SetGrBackendTexture(const GrBackendTexture& grBackendTexture);
     bool IsValid(GPUContext* context) const override;
 #endif
+    bool AsLegacyBitmap(Bitmap& bitmap) const override;
     int GetWidth() const override;
     int GetHeight() const override;
     ColorType GetColorType() const override;
@@ -74,12 +79,18 @@ public:
     uint32_t GetUniqueID() const override;
     ImageInfo GetImageInfo() override;
     bool ReadPixels(Bitmap& bitmap, int x, int y) override;
+    bool ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
+                    int srcX, int srcY) const override;
     bool IsTextureBacked() const override;
 
     bool ScalePixels(const Bitmap& bitmap, const SamplingOptions& sampling,
         bool allowCachingHint = true) const override;
     std::shared_ptr<Data> EncodeToData(EncodedImageFormat& encodedImageFormat, int quality) const override;
     bool IsLazyGenerated() const override;
+    bool GetROPixels(Bitmap& bitmap) override;
+    std::shared_ptr<Image> MakeRasterImage() const override;
+    bool CanPeekPixels() const override;
+
     bool IsOpaque() const override;
 
     const sk_sp<SkImage> GetImage() const;

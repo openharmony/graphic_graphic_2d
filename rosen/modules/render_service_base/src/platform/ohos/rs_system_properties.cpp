@@ -322,7 +322,7 @@ HgmRefreshRates RSSystemProperties::GetHgmRefreshRatesEnabled()
 void RSSystemProperties::SetHgmRefreshRateModesEnabled(std::string param)
 {
     system::SetParameter("persist.rosen.sethgmrefreshratemode.enabled", param);
-    RS_LOGD("RSSystemProperties::SetHgmRefreshRateModesEnabled set to %{public}s", param.c_str());
+    RS_LOGI("RSSystemProperties::SetHgmRefreshRateModesEnabled set to %{public}s", param.c_str());
 }
 
 HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
@@ -403,7 +403,25 @@ bool RSSystemProperties::GetFilterPartialRenderEnabled()
     // Determine whether the filter partial render should be enabled. The default value is 0,
     // which means that it is unenabled.
     static bool enabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.filterPartialRenderEnabled", "0")).c_str()) != 0;
+        std::atoi((system::GetParameter("persist.sys.graphic.filterPartialRenderEnabled", "1")).c_str()) != 0;
+    return enabled;
+}
+
+bool RSSystemProperties::GetColorPickerPartialEnabled()
+{
+    // Determine whether the color picker partial render should be enabled. The default value is 0,
+    // which means that it is unenabled.
+    static bool enabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.colorPickerPartialEnabled", "1")).c_str()) != 0;
+    return enabled;
+}
+
+bool RSSystemProperties::GetMaskLinearBlurEnabled()
+{
+    // Determine whether the mask LinearBlur render should be enabled. The default value is 0,
+    // which means that it is unenabled.
+    static bool enabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.maskLinearBlurEnabled", "0")).c_str()) != 0;
     return enabled;
 }
 
@@ -496,6 +514,12 @@ bool RSSystemProperties::FindNodeInTargetList(std::string node)
     }
     bool res = std::find(targetVec.begin(), targetVec.end(), node) != targetVec.end();
     return res;
+}
+
+bool RSSystemProperties::IsFoldScreenFlag()
+{
+    static bool isFoldScreenFlag = system::GetParameter("const.window.foldscreen.type", "") != "";
+    return isFoldScreenFlag;
 }
 
 bool RSSystemProperties::GetCacheCmdEnabled()

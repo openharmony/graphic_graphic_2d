@@ -892,6 +892,15 @@ bool SkiaCanvas::IsClipEmpty()
     return skCanvas_->isClipEmpty();
 }
 
+bool SkiaCanvas::IsClipRect()
+{
+    if (!skCanvas_) {
+        LOGE("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return false;
+    }
+    return skCanvas_->isClipRect();
+}
+
 bool SkiaCanvas::QuickReject(const Rect& rect)
 {
     if (!skCanvas_) {

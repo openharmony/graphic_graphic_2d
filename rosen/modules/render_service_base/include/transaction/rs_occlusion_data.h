@@ -23,7 +23,13 @@
 
 namespace OHOS {
 namespace Rosen {
-using VisibleData = std::vector<uint64_t>;
+enum RS_REGION_VISIBLE_LEVEL : uint32_t {
+    ALL_VISIBLE = 0,
+    SEMI_VISIBLE,
+    INVISIBLE,
+    UNKNOW_VISIBLE_LEVEL,
+};
+using VisibleData = std::vector<std::pair<uint64_t, RS_REGION_VISIBLE_LEVEL>>;
 class RSB_EXPORT RSOcclusionData : public Parcelable {
 public:
     RSOcclusionData() = default;

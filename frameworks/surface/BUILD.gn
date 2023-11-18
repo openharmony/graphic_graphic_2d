@@ -81,10 +81,7 @@ ohos_shared_library("surface") {
     "//commonlibrary/c_utils/base:utils_config",
   ]
 
-  deps = [
-    "$graphic_2d_root/utils/gslogger:libgslogger",
-    "$graphic_2d_root/utils/sync_fence:sync_fence",
-  ]
+  deps = [ "$graphic_2d_root/utils/sync_fence:sync_fence" ]
 
   public_deps = [
     "$graphic_2d_root/utils/buffer_handle:buffer_handle",
@@ -94,6 +91,7 @@ ohos_shared_library("surface") {
 
   external_deps = [
     "c_utils:utils",
+    "drivers_interface_display:display_buffer_idl_headers",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_single",

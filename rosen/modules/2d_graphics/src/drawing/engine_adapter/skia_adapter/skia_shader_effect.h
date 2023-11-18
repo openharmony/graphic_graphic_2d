@@ -55,6 +55,8 @@ public:
      */
     void SetSkShader(const sk_sp<SkShader>& skShader);
 
+    std::shared_ptr<Data> Serialize() const override;
+    bool Deserialize(std::shared_ptr<Data> data) override;
 private:
     sk_sp<SkShader> shader_;
 };

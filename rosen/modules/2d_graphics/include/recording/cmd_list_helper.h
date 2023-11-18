@@ -188,6 +188,29 @@ public:
 
     static ImageHandle AddDataToCmdList(CmdList& cmdList, const Data* data);
     static std::shared_ptr<Data> GetDataFromCmdList(const CmdList& cmdList, const ImageHandle& imageHandle);
+
+    static ImageHandle AddColorSpaceToCmdList(CmdList& cmdList, const std::shared_ptr<ColorSpace> colorSpace);
+    static std::shared_ptr<ColorSpace> GetColorSpaceFromCmdList(const CmdList& cmdList, const ImageHandle& imageHandle);
+
+    static FlattenableHandle AddShaderEffectToCmdList(CmdList& cmdList, std::shared_ptr<ShaderEffect> shaderEffect);
+    static std::shared_ptr<ShaderEffect> GetShaderEffectFromCmdList(const CmdList& cmdList,
+        const FlattenableHandle& shaderEffectHandle);
+
+    static FlattenableHandle AddPathEffectToCmdList(CmdList& cmdList, std::shared_ptr<PathEffect> pathEffect);
+    static std::shared_ptr<PathEffect> GetPathEffectFromCmdList(const CmdList& cmdList,
+        const FlattenableHandle& pathEffectHandle);
+
+    static FlattenableHandle AddMaskFilterToCmdList(CmdList& cmdList, std::shared_ptr<MaskFilter> maskFilter);
+    static std::shared_ptr<MaskFilter> GetMaskFilterFromCmdList(const CmdList& cmdList,
+        const FlattenableHandle& maskFilterHandle);
+
+    static FlattenableHandle AddColorFilterToCmdList(CmdList& cmdList, std::shared_ptr<ColorFilter> colorFilter);
+    static std::shared_ptr<ShaderEffect> GetColorFilterFromCmdList(const CmdList& cmdList,
+        const FlattenableHandle& colorFilterHandle);
+
+    static FlattenableHandle AddImageFilterToCmdList(CmdList& cmdList, std::shared_ptr<ImageFilter> imageFilter);
+    static std::shared_ptr<ImageFilter> GetImageFilterFromCmdList(const CmdList& cmdList,
+        const FlattenableHandle& imageFilterHandle);
 };
 } // namespace Drawing
 } // namespace Rosen

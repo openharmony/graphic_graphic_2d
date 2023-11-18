@@ -17,7 +17,7 @@
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_SECURITY_UTILS_H
 
 #include <unordered_map>
-
+#include <mutex>
 #include "ipc_security/rs_ipc_interface_code_underlying_type.h"
 namespace OHOS {
 namespace Rosen {
@@ -31,6 +31,7 @@ public:
 
 private:
     std::unordered_map<uint32_t, uint32_t> accessCounter_;
+    mutable std::mutex accessCounterMutex_;
 };
 } // namespace Rosen
 } // namespace OHOS

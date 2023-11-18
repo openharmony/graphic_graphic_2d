@@ -33,6 +33,7 @@ ohos_fuzztest("RSRenderServiceConnectionFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "sensor:sensor_interface_native",
   ]
 }
 
