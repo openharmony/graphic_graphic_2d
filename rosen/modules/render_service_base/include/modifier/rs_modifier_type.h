@@ -89,28 +89,28 @@ enum class RSModifierType : int16_t {
     SEPIA,                         // 62
     INVERT,                        // 63
     AIINVERT,                      // 64
-    HUE_ROTATE,                    // 64
-    COLOR_BLEND,                   // 65
-    PARTICLE,                      // 66
-    SHADOW_IS_FILLED,              // 67
-    OUTER_BORDER_COLOR,            // 68
-    OUTER_BORDER_WIDTH,            // 69
-    OUTER_BORDER_STYLE,            // 70
-    OUTER_BORDER_RADIUS,           // 71
-    USE_SHADOW_BATCHING,           // 72
-    GREY_COEF1,                    // 73
-    GREY_COEF2,                    // 74
-    CUSTOM,                        // 75
-    EXTENDED,                      // 76
-    TRANSITION,                    // 77
-    BACKGROUND_STYLE,              // 78
-    CONTENT_STYLE,                 // 79
-    FOREGROUND_STYLE,              // 80
-    OVERLAY_STYLE,                 // 81
-    NODE_MODIFIER,                 // 82
-    ENV_FOREGROUND_COLOR,          // 83
-    ENV_FOREGROUND_COLOR_STRATEGY, // 84
-    GEOMETRYTRANS,                 // 85
+    HUE_ROTATE,                    // 65
+    COLOR_BLEND,                   // 66
+    PARTICLE,                      // 67
+    SHADOW_IS_FILLED,              // 68
+    OUTER_BORDER_COLOR,            // 69
+    OUTER_BORDER_WIDTH,            // 70
+    OUTER_BORDER_STYLE,            // 71
+    OUTER_BORDER_RADIUS,           // 72
+    USE_SHADOW_BATCHING,           // 73
+    GREY_COEF1,                    // 74
+    GREY_COEF2,                    // 75
+    CUSTOM,                        // 76
+    EXTENDED,                      // 77
+    TRANSITION,                    // 78
+    BACKGROUND_STYLE,              // 79
+    CONTENT_STYLE,                 // 80
+    FOREGROUND_STYLE,              // 81
+    OVERLAY_STYLE,                 // 82
+    NODE_MODIFIER,                 // 83
+    ENV_FOREGROUND_COLOR,          // 84
+    ENV_FOREGROUND_COLOR_STRATEGY, // 85
+    GEOMETRYTRANS,                 // 86
 };
 
 enum class RSRenderPropertyType : int16_t {
