@@ -148,6 +148,12 @@ public:
 
     int32_t SetScreenHDRFormat(ScreenId id, int32_t modeIdx);
 
+    int32_t GetScreenSupportedColorSpaces(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces);
+
+    int32_t GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace);
+
+    int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace);
+
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType);
 
     /* skipFrameInterval : decide how many frames apart to refresh a frame,

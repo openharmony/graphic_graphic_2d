@@ -21,6 +21,7 @@
 #include <memory>
 #include <mutex>
 #include <refbase.h>
+#include <surface_type.h>
 #ifndef ROSEN_CROSS_PLATFORM
 #include <surface.h>
 #endif
@@ -206,6 +207,12 @@ public:
     int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat);
 
     int32_t SetScreenHDRFormat(ScreenId id, int32_t modeIdx);
+
+    int32_t GetScreenSupportedColorSpaces(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces);
+
+    int32_t GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace);
+
+    int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace);
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType);
 

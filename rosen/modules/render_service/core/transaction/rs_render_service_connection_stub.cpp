@@ -850,6 +850,52 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteInt32(result);
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_COLORSPACES): {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            std::vector<uint32_t> colorSpacesSend;
+            std::vector<GraphicCM_ColorSpaceType> colorSpaces;
+            int32_t result = GetScreenSupportedColorSpaces(id, colorSpaces);
+            reply.WriteInt32(result);
+            if (result != StatusCode::SUCCESS) {
+                break;
+            }
+            std::copy(colorSpaces.begin(), colorSpaces.end(), std::back_inserter(colorSpacesSend));
+            reply.WriteUInt32Vector(colorSpacesSend);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_COLORSPACE): {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            GraphicCM_ColorSpaceType colorSpace;
+            int32_t result = GetScreenColorSpace(id, colorSpace);
+            reply.WriteInt32(result);
+            if (result != StatusCode::SUCCESS) {
+                break;
+            }
+            reply.WriteUint32(colorSpace);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_COLORSPACE): {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            ScreenId id = data.ReadUint64();
+            GraphicCM_ColorSpaceType colorSpace = static_cast<GraphicCM_ColorSpaceType>(data.ReadInt32());
+            int32_t result = SetScreenColorSpace(id, colorSpace);
+            reply.WriteInt32(result);
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_TYPE): {
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {

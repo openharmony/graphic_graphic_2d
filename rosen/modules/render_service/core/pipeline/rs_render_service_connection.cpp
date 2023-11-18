@@ -828,6 +828,42 @@ int32_t RSRenderServiceConnection::SetScreenHDRFormat(ScreenId id, int32_t modeI
     }
 }
 
+int32_t RSRenderServiceConnection::GetScreenSupportedColorSpaces(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces)
+{
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSHardwareThread::Instance().ScheduleTask(
+            [=, &colorSpaces]() { return screenManager_->GetScreenSupportedColorSpaces(id, colorSpaces); }).get();
+    } else {
+        return mainThread_->ScheduleTask(
+            [=, &colorSpaces]() { return screenManager_->GetScreenSupportedColorSpaces(id, colorSpaces); }).get();
+    }
+}
+
+int32_t RSRenderServiceConnection::GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace)
+{
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSHardwareThread::Instance().ScheduleTask(
+            [=, &colorSpace]() { return screenManager_->GetScreenColorSpace(id, colorSpace); }).get();
+    } else {
+        return mainThread_->ScheduleTask(
+            [=, &colorSpace]() { return screenManager_->GetScreenColorSpace(id, colorSpace); }).get();
+    }
+}
+
+int32_t RSRenderServiceConnection::SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace)
+{
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSHardwareThread::Instance().ScheduleTask(
+            [=]() { return screenManager_->SetScreenColorSpace(id, colorSpace); }).get();
+    } else {
+        return mainThread_->ScheduleTask(
+            [=]() { return screenManager_->SetScreenColorSpace(id, colorSpace); }).get();
+    }
+}
+
 int32_t RSRenderServiceConnection::GetScreenType(ScreenId id, RSScreenType& screenType)
 {
     std::lock_guard<std::mutex> lock(mutex_);

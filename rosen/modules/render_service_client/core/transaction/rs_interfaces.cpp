@@ -331,6 +331,21 @@ int32_t RSInterfaces::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
     return renderServiceClient_->SetScreenHDRFormat(id, modeIdx);
 }
 
+int32_t RSInterfaces::GetScreenSupportedColorSpaces(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces)
+{
+    return renderServiceClient_->GetScreenSupportedColorSpaces(id, colorSpaces);
+}
+
+int32_t RSInterfaces::GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace)
+{
+    return renderServiceClient_->GetScreenColorSpace(id, colorSpace);
+}
+
+int32_t RSInterfaces::SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace)
+{
+    return renderServiceClient_->SetScreenColorSpace(id, colorSpace);
+}
+
 int32_t RSInterfaces::GetScreenType(ScreenId id, RSScreenType& screenType)
 {
     return renderServiceClient_->GetScreenType(id, screenType);

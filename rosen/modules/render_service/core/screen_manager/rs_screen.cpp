@@ -27,6 +27,29 @@ namespace Rosen {
 using namespace HiviewDFX;
 
 namespace impl {
+std::map<GraphicColorGamut, GraphicCM_ColorSpaceType> RSScreen::RS_TO_COMMON_COLOR_SPACE_TYPE_MAP {
+    {GRAPHIC_COLOR_GAMUT_STANDARD_BT601, GRAPHIC_CM_BT601_EBU_FULL},
+    {GRAPHIC_COLOR_GAMUT_STANDARD_BT709, GRAPHIC_CM_BT709_FULL},
+    {GRAPHIC_COLOR_GAMUT_SRGB, GRAPHIC_CM_SRGB_FULL},
+    {GRAPHIC_COLOR_GAMUT_ADOBE_RGB, GRAPHIC_CM_ADOBERGB_FULL},
+    {GRAPHIC_COLOR_GAMUT_DISPLAY_P3, GRAPHIC_CM_P3_FULL},
+    {GRAPHIC_COLOR_GAMUT_BT2020, GRAPHIC_CM_DISPLAY_BT2020_SRGB},
+    {GRAPHIC_COLOR_GAMUT_BT2100_PQ, GRAPHIC_CM_BT2020_PQ_FULL},
+    {GRAPHIC_COLOR_GAMUT_BT2100_HLG, GRAPHIC_CM_BT2020_HLG_FULL},
+    {GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020, GRAPHIC_CM_DISPLAY_BT2020_SRGB},
+};
+std::map<GraphicCM_ColorSpaceType, GraphicColorGamut> RSScreen::COMMON_COLOR_SPACE_TYPE_TO_RS_MAP {
+    {GRAPHIC_CM_BT601_EBU_FULL, GRAPHIC_COLOR_GAMUT_STANDARD_BT601},
+    {GRAPHIC_CM_BT709_FULL, GRAPHIC_COLOR_GAMUT_STANDARD_BT709},
+    {GRAPHIC_CM_SRGB_FULL, GRAPHIC_COLOR_GAMUT_SRGB},
+    {GRAPHIC_CM_ADOBERGB_FULL, GRAPHIC_COLOR_GAMUT_ADOBE_RGB},
+    {GRAPHIC_CM_P3_FULL, GRAPHIC_COLOR_GAMUT_DISPLAY_P3},
+    {GRAPHIC_CM_DISPLAY_BT2020_SRGB, GRAPHIC_COLOR_GAMUT_BT2020},
+    {GRAPHIC_CM_BT2020_PQ_FULL, GRAPHIC_COLOR_GAMUT_BT2100_PQ},
+    {GRAPHIC_CM_BT2020_HLG_FULL, GRAPHIC_COLOR_GAMUT_BT2100_HLG},
+    {GRAPHIC_CM_DISPLAY_BT2020_SRGB, GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020},
+};
+
 RSScreen::RSScreen(ScreenId id,
     bool isVirtual,
     std::shared_ptr<HdiOutput> output,
@@ -703,7 +726,7 @@ int32_t RSScreen::GetScreenHDRFormat(ScreenHDRFormat& hdrFormat) const
         return StatusCode::HDI_ERROR;
     }
     if (IsVirtual()) {
-        hdrFormat = static_cast<ScreenHDRFormat>(hdrCapability_.formats[currentVirtualHDRFormatIdx_]);
+        hdrFormat = supportedVirtualHDRFormat_[currentVirtualHDRFormatIdx_];
         return StatusCode::SUCCESS;
     } else {
         hdrFormat = static_cast<ScreenHDRFormat>(hdrCapability_.formats[currentPhysicalHDRFormatIdx_]);
@@ -714,15 +737,21 @@ int32_t RSScreen::GetScreenHDRFormat(ScreenHDRFormat& hdrFormat) const
 
 int32_t RSScreen::SetScreenHDRFormat(int32_t modeIdx)
 {
-    if (modeIdx < 0 || modeIdx >= static_cast<int32_t>(hdrCapability_.formats.size())) {
+    if (modeIdx < 0) {
         return StatusCode::INVALID_ARGUMENTS;
     }
     if (IsVirtual()) {
+        if (modeIdx >= static_cast<int32_t>(supportedVirtualHDRFormat_.size())) {
+            return StatusCode::INVALID_ARGUMENTS;
+        }
         currentVirtualHDRFormatIdx_ = modeIdx;
         return StatusCode::SUCCESS;
     } else {
-        currentPhysicalHDRFormatIdx_ = modeIdx;
+        if (modeIdx >= static_cast<int32_t>(hdrCapability_.formats.size())) {
+            return StatusCode::INVALID_ARGUMENTS;
+        }
         // Some hdi operation
+        currentPhysicalHDRFormatIdx_ = modeIdx;
         return StatusCode::SUCCESS;
     }
     return StatusCode::HDI_ERROR;
@@ -738,6 +767,65 @@ int32_t RSScreen::SetPixelFormat(GraphicPixelFormat pixelFormat)
 {
     pixelFormat_ = pixelFormat;
     return StatusCode::SUCCESS;
+}
+
+int32_t RSScreen::GetScreenSupportedColorSpaces(std::vector<GraphicCM_ColorSpaceType>& colorSpaces) const
+{
+    colorSpaces.clear();
+    if (IsVirtual()) {
+        for (auto item : supportedVirtualColorGamuts_) {
+            colorSpaces.emplace_back(RS_TO_COMMON_COLOR_SPACE_TYPE_MAP[static_cast<GraphicColorGamut>(item)]);
+        }
+    } else {
+        for (auto item : supportedPhysicalColorGamuts_) {
+            colorSpaces.emplace_back(RS_TO_COMMON_COLOR_SPACE_TYPE_MAP[static_cast<GraphicColorGamut>(item)]);
+        }
+    }
+    if (colorSpaces.size() == 0) {
+        return StatusCode::HDI_ERROR;
+    }
+    return StatusCode::SUCCESS;
+}
+
+int32_t RSScreen::GetScreenColorSpace(GraphicCM_ColorSpaceType& colorSpace) const
+{
+    ScreenColorGamut curGamut;
+    int32_t result = GetScreenColorGamut(curGamut);
+    colorSpace = RS_TO_COMMON_COLOR_SPACE_TYPE_MAP[static_cast<GraphicColorGamut>(curGamut)];
+    return result;
+}
+
+int32_t RSScreen::SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace) 
+{
+    auto iter = COMMON_COLOR_SPACE_TYPE_TO_RS_MAP.find(colorSpace);
+    if (iter == COMMON_COLOR_SPACE_TYPE_TO_RS_MAP.end()) {
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+    ScreenColorGamut dstColorGamut = static_cast<ScreenColorGamut>(iter->first);
+    int32_t curIdx = 0;
+    if (IsVirtual()) {
+        auto it = std::find(supportedVirtualColorGamuts_.begin(), supportedVirtualColorGamuts_.end(), dstColorGamut);
+        if (it == supportedVirtualColorGamuts_.end()) {
+            return StatusCode::INVALID_ARGUMENTS;
+        }
+        curIdx = std::distance(supportedVirtualColorGamuts_.begin(), it);
+        return StatusCode::SUCCESS;
+    }
+    std::vector<GraphicColorGamut> hdiMode;
+    if (hdiScreen_->GetScreenSupportedColorGamuts(hdiMode) != GRAPHIC_DISPLAY_SUCCESS) {
+        return StatusCode::HDI_ERROR;
+    }
+    auto it = std::find(hdiMode.begin(), hdiMode.end(), static_cast<GraphicColorGamut>(dstColorGamut));
+    if (it == hdiMode.end()) {
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+    curIdx = std::distance(hdiMode.begin(), it);
+    int32_t result = hdiScreen_->SetScreenColorGamut(hdiMode[curIdx]);
+    if (result == GRAPHIC_DISPLAY_SUCCESS) {
+        currentPhysicalColorGamutIdx_ = curIdx;
+        return StatusCode::SUCCESS;
+    }
+    return StatusCode::HDI_ERROR;
 }
 
 } // namespace impl

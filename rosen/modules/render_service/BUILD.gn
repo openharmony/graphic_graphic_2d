@@ -132,6 +132,7 @@ ohos_shared_library("librender_service") {
     "core",
     "core/round_corner_display",
     "$graphic_2d_root/frameworks/surface/include",
+    "$graphic_2d_root/interfaces/inner_api/surface",
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/modules/2d_graphics",
     "$graphic_2d_root/rosen/modules/composer/vsync/include",
