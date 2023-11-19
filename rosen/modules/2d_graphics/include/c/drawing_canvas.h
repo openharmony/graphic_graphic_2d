@@ -178,7 +178,7 @@ void OH_Drawing_CanvasDrawPath(OH_Drawing_Canvas*, const OH_Drawing_Path*);
 void OH_Drawing_CanvasDrawBitmap(OH_Drawing_Canvas*, const OH_Drawing_Bitmap*, float left, float top);
 
 /**
- * @brief Enumerates clip op of a canvas.
+ * @brief Enumerates clip op.
  * 
  * @since 11
  * @version 1.0
@@ -189,9 +189,9 @@ typedef enum {
      */
     DIFFERENCE,
     /**
-     * Clip with intersect.
+     * Clip with intersection.
      */
-    INTERSECT
+    INTERSECT,
 } OH_Drawing_CanvasClipOp;
 
 /**
@@ -204,7 +204,7 @@ typedef enum {
  * @param right Indicates the right position of the rect.
  * @param bottom Indicates the bottom position of the rect.
  * @param clipOp Indicates the operation to apply to clip.
- * @param doAntiAlias Indicates whether clip operation requires anti-alias.
+ * @param doAntiAlias Indicates whether clip operation requires anti-aliased.
  * @since 11
  * @version 1.0
  */
@@ -233,7 +233,7 @@ void OH_Drawing_CanvasTranslate(OH_Drawing_Canvas*, float dx, float dy);
  * @since 11
  * @version 1.0
  */
-void OH_Drawing_CanvasDrawScale(OH_Drawing_Canvas*, float sx, float sy);
+void OH_Drawing_CanvasScale(OH_Drawing_Canvas*, float sx, float sy);
 
 /**
  * @brief Clears a canvas by using a specified color.

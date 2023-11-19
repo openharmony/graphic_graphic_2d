@@ -154,7 +154,7 @@ void OH_Drawing_PenSetColor(OH_Drawing_Pen* cPen, uint32_t color)
 float OH_Drawing_PenGetWidth(const OH_Drawing_Pen* cPen)
 {
     if (cPen == nullptr) {
-        return 0;
+        return 0.f;
     }
     return CastToPen(*cPen).GetWidth();
 }
@@ -171,7 +171,7 @@ void OH_Drawing_PenSetWidth(OH_Drawing_Pen* cPen, float width)
 float OH_Drawing_PenGetMiterLimit(const OH_Drawing_Pen* cPen)
 {
     if (cPen == nullptr) {
-        return 0;
+        return 0.f;
     }
     return CastToPen(*cPen).GetMiterLimit();
 }

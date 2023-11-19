@@ -199,7 +199,7 @@ void OH_Drawing_CanvasTranslate(OH_Drawing_Canvas* cCanvas, float dx, float dy)
     canvas->Translate(dx, dy);
 }
 
-void OH_Drawing_CanvasDrawScale(OH_Drawing_Canvas* cCanvas, float sx, float sy)
+void OH_Drawing_CanvasScale(OH_Drawing_Canvas* cCanvas, float sx, float sy)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
