@@ -135,13 +135,6 @@ static SkImageInfo MakeSkImageInfo(const ImageInfo& imageInfo)
     sk_sp<SkColorSpace> cs = ColorSpaceToSkColorSpace(imageInfo.colorSpace);
     return SkImageInfo::Make(imageInfo.size.width, imageInfo.size.height, ct, at, cs);
 }
-#else
-static Drawing::BitmapFormat MakeDrawingBitmapFormat(const ImageInfo& imageInfo)
-{
-    Drawing::ColorType ct = PixelFormatToDrawingColorType(imageInfo.pixelFormat);
-    Drawing::AlphaType at = AlphaTypeToDrawingAlphaType(imageInfo.alphaType);
-    return Drawing::BitmapFormat { ct, at };
-}
 #endif
 
 struct PixelMapReleaseContext {
@@ -156,7 +149,6 @@ private:
     std::shared_ptr<PixelMap> pixelMap_;
 };
 
-#ifndef USE_ROSEN_DRAWING
 static void PixelMapReleaseProc(const void* /* pixels */, void* context)
 {
     PixelMapReleaseContext* ctx = static_cast<PixelMapReleaseContext*>(context);
@@ -166,6 +158,7 @@ static void PixelMapReleaseProc(const void* /* pixels */, void* context)
     }
 }
 
+#ifndef USE_ROSEN_DRAWING
 sk_sp<SkImage> RSPixelMapUtil::ExtractSkImage(std::shared_ptr<Media::PixelMap> pixelMap)
 {
     if (!pixelMap) {
@@ -186,15 +179,13 @@ std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
     }
     ImageInfo imageInfo;
     pixelMap->GetImageInfo(imageInfo);
-
-    Drawing::BitmapFormat format = MakeDrawingBitmapFormat(imageInfo);
-    Drawing::Bitmap bitmap;
-    bitmap.Build(imageInfo.size.width, imageInfo.size.height, format);
-    bitmap.SetPixels(const_cast<void*>(static_cast<const void*>(pixelMap->GetPixels())));
-
-    auto image = std::make_shared<Drawing::Image>();
-    image->BuildFromBitmap(bitmap);
-    return image;
+    Drawing::ImageInfo drawingImageInfo { imageInfo.size.width, imageInfo.size.height,
+        PixelFormatToDrawingColorType(imageInfo.pixelFormat),
+	AlphaTypeToDrawingAlphaType(imageInfo.alphaType),
+	// Drawing ColorSpace is not supported
+	nullptr };
+    Drawing::Pixmap imagePixmap(drawingImageInfo, reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
+    return Drawing::Image::MakeFromRaster(imagePixmap, PixelMapReleaseProc, new PixelMapReleaseContext(pixelMap));
 }
 
 #endif
