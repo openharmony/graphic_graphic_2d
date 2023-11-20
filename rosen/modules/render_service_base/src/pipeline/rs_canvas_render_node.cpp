@@ -282,7 +282,7 @@ void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas
     RSModifierContext context = { GetMutableRenderProperties(), &canvas };
     ApplyDrawCmdModifier(context, RSModifierType::FOREGROUND_STYLE);
 
-    auto aiInvert = GetRenderProperties().GetAiInvert();
+    auto& aiInvert = GetRenderProperties().GetAiInvert();
     if (aiInvert.has_value()) {
         RSPropertiesPainter::DrawBinarizationShader(GetRenderProperties(), canvas);
     }

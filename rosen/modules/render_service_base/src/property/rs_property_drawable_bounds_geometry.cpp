@@ -798,6 +798,22 @@ void RSEffectDataApplyDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& ca
 }
 
 // ============================================================================
+// Binarization
+void RSBinarizationDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
+{
+    RSPropertiesPainter::DrawBinarizationShader(node.GetRenderProperties(), canvas);
+}
+
+std::unique_ptr<RSPropertyDrawable> RSBinarizationDrawable::Generate(const RSPropertyDrawableGenerateContext& context)
+{
+    auto& aiInvert = context.properties_.GetAiInvert();
+    if (!aiInvert.has_value()) {
+        return nullptr;
+    }
+    return std::make_unique<RSBinarizationDrawable>();
+}
+
+// ============================================================================
 // LightUpEffect
 void RSLightUpEffectDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {

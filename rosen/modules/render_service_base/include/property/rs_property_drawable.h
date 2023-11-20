@@ -73,6 +73,7 @@ enum RSPropertyDrawableSlot : uint8_t {
     // FG properties in Bounds clip
     FG_SAVE_BOUNDS,
     FG_CLIP_TO_BOUNDS,
+    BINARIZATION,
     LIGHT_UP_EFFECT,
     FOREGROUND_FILTER,
     LINEAR_GRADIENT_BLUR_FILTER,
