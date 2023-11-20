@@ -19,6 +19,8 @@
 #include "drawing/engine_adapter/impl_interface/image_impl.h"
 #include "utils/drawing_macros.h"
 
+#include "include/core/SkImage.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -321,6 +323,8 @@ public:
     // using for recording, should to remove after using shared memory
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);
+
+    const sk_sp<SkImage> ExportSkImage();
 
 private:
     std::shared_ptr<ImageImpl> imageImplPtr;

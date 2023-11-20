@@ -613,13 +613,13 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTask::CreateSurface(const std:
     drawingContext->SetUpDrawingContext();
     return Drawing::Surface::MakeRenderTarget(drawingContext->GetDrawingContext, fasle, info);
 #else
-    auto renderContext = RSMainThread::Instance()->GetRenderContext();
+    auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
     if (renderContext == nullptr) {
         RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
         return nullptr;
     }
     renderContext->SetUpGpuContext();
-    return Drawing::Surface::MakeRenderTarget(renderContext->GetDrContext, fasle, info);
+    return Drawing::Surface::MakeRenderTarget(renderContext->GetDrGPUContext(), false, info);
 #endif
 #endif
     return Drawing::Surface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());

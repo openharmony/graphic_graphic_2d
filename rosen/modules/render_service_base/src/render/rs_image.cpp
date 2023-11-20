@@ -434,7 +434,7 @@ void RSImage::SetCompressData(const sk_sp<SkData> compressData)
 }
 #endif
 #else
-void RSImage::SetCompressData(const std:shared_ptr<Drawing::Data> compressData)
+void RSImage::SetCompressData(const std::shared_ptr<Drawing::Data> compressData)
 {
     isDrawn_ = false;
     compressData_ = compressData;

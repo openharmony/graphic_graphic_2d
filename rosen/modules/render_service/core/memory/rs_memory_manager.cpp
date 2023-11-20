@@ -327,6 +327,8 @@ float MemoryManager::GetAppGpuMemoryInMB(Drawing::GPUContext* gpuContext)
         rsMemSize += gpuTrace.GetGpuMemorySizeInMB();
     }
     return total - rsMemSize;
+#else
+    return 0.f;
 #endif
 }
 #endif

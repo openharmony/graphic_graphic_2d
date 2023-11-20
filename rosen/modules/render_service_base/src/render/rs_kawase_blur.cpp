@@ -251,7 +251,7 @@ SkMatrix KawaseBlurFilter::GetShaderTransform(const SkCanvas* canvas, const SkRe
     return matrix;
 }
 #else
-Drawing::Matrix KawaseBlurFilter::GetShaderTransform(const Drawing:;Canvas* canvas, const Drawing::Rect& blurRect,
+Drawing::Matrix KawaseBlurFilter::GetShaderTransform(const Drawing::Canvas* canvas, const Drawing::Rect& blurRect,
     float scale)
 {
     Drawing::Matrix matrix;
@@ -285,7 +285,7 @@ void KawaseBlurFilter::CheckInputImage(Drawing::Canvas& canvas, const std::share
     auto src = param.src;
     auto srcRect = Drawing::RectI(src.GetLeft(), src.GetTop(), src.GetTop(), src.GetBottom());
     if (image->GetImageInfo().GetBound() != srcRect) {
-        auto resizedImage = std::shared_ptr<Drawing::Image>();
+        auto resizedImage = std::make_shared<Drawing::Image>();
         if (resizedImage->BuildSubset(image, srcRect, *canvas.GetGPUContext())) {
             checkedImage = resizedImage;
             ROSEN_LOGD("KawaseBlurFilter::resize image success");
@@ -329,7 +329,7 @@ void KawaseBlurFilter::OutputOriginalImage(Drawing::Canvas& canvas, const std::s
     Drawing::Matrix matrix;
     matrix.Translate(dst.GetLeft(), dst.GetTop());
     inputMatrix.PostConcat(matrix);
-    Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::FilterMode::NONE);
+    Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     const auto inputShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
         Drawing::TileMode::CLAMP, linear, inputMatrix);
     brush.SetShaderEffect(inputShader);
@@ -422,8 +422,9 @@ bool KawaseBlurFilter::ApplyKawaseBlur(Drawing::Canvas& canvas, const std::share
     auto scaledInfo = Drawing::ImageInfo(std::ceil(width * blurScale_), std::ceil(height * blurScale_),
         originImageInfo.GetColorType(), originImageInfo.GetAlphaType(), originImageInfo.GetColorSpace());
     Drawing::Matrix blurMatrix;
-    blurMatrix.Translate(blurScale_, blurScale_);
-    Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::FilterMode::NONE);
+    blurMatrix.Translate(-src.GetLeft(), -src.GetTop());
+    blurMatrix.PostScale(blurScale_, blurScale_);
+    Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
 
     // Advanced Filter: check is AF usable only the first time
     bool isUsingAF = IS_ADVANCED_FILTER_USABLE_CHECK_ONCE && blurEffectAF_ != nullptr;
@@ -474,7 +475,7 @@ bool KawaseBlurFilter::ApplyKawaseBlur(Drawing::Canvas& canvas, const std::share
 bool KawaseBlurFilter::ApplyBlur(SkCanvas& canvas, const sk_sp<SkImage>& image, const sk_sp<SkImage>& blurImage,
     const KawaseParameter& param) const
 #else
-bool KawaseBlurFilter::ApplyKawaseBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
+bool KawaseBlurFilter::ApplyBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     const std::shared_ptr<Drawing::Image>& blurImage, const KawaseParameter& param) const
 #endif
 {
@@ -512,7 +513,7 @@ bool KawaseBlurFilter::ApplyKawaseBlur(Drawing::Canvas& canvas, const std::share
     }
     canvas.drawRect(dst, paint);
 #else
-    Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::FilterMode::NONE);
+    Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     const auto blurMatrix = GetShaderTransform(&canvas, dst, invBlurScale);
     const auto blurShader = Drawing::ShaderEffect::CreateImageShader(*blurImage, Drawing::TileMode::CLAMP,
         Drawing::TileMode::CLAMP, linear, blurMatrix);
@@ -539,7 +540,7 @@ bool KawaseBlurFilter::ApplyKawaseBlur(Drawing::Canvas& canvas, const std::share
         static auto factor = RSSystemProperties::GetKawaseRandomColorFactor();
         mixBuilder.SetUniform("inColorFactor", factor);
         ROSEN_LOGD("KawaseBlurFilter::kawase random color factor : %{public}f", factor);
-        brush.SetShaderEffect(mixBuilder.MakeShader(nullptr, image->isOpaque()));
+        brush.SetShaderEffect(mixBuilder.MakeShader(nullptr, image->IsOpaque()));
     } else {
         brush.SetShaderEffect(blurShader);
     }

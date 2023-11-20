@@ -340,8 +340,8 @@ RSSvgDomMaskDrawable::RSSvgDomMaskDrawable(std::shared_ptr<RSMask> mask) : RSMas
 
 void RSSvgDomMaskDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
-#ifndef USE_ROSEN_DRAWING
     auto& properties = node.GetRenderProperties();
+#ifndef USE_ROSEN_DRAWING
     auto bounds = RSPropertiesPainter::Rect2SkRect(properties.GetBoundsRect());
 
     canvas.save();
@@ -358,6 +358,7 @@ void RSSvgDomMaskDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
     canvas.saveLayer(bounds, &maskPaint_);
     canvas.clipRect(bounds, true);
 #else
+    auto bounds = RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect());
     canvas.Save();
     Drawing::SaveLayerOps slr(&bounds, nullptr);
     canvas.SaveLayer(slr);
@@ -381,8 +382,8 @@ RSSvgPictureMaskDrawable::RSSvgPictureMaskDrawable(std::shared_ptr<RSMask> mask)
 
 void RSSvgPictureMaskDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
-#ifndef USE_ROSEN_DRAWING
     auto& properties = node.GetRenderProperties();
+#ifndef USE_ROSEN_DRAWING
     auto bounds = RSPropertiesPainter::Rect2SkRect(properties.GetBoundsRect());
     canvas.save();
     canvas.saveLayer(bounds, nullptr);
@@ -398,6 +399,7 @@ void RSSvgPictureMaskDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& can
     canvas.saveLayer(bounds, &maskPaint_);
     canvas.clipRect(bounds, true);
 #else
+    auto bounds = RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect());
     canvas.Save();
     Drawing::SaveLayerOps slr(&bounds, nullptr);
     canvas.SaveLayer(slr);
@@ -421,8 +423,8 @@ RSGradientMaskDrawable::RSGradientMaskDrawable(std::shared_ptr<RSMask> mask) : R
 
 void RSGradientMaskDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
-#ifndef USE_ROSEN_DRAWING
     auto& properties = node.GetRenderProperties();
+#ifndef USE_ROSEN_DRAWING
     auto bounds = RSPropertiesPainter::Rect2SkRect(properties.GetBoundsRect());
     canvas.save();
     canvas.saveLayer(bounds, nullptr);
@@ -438,6 +440,7 @@ void RSGradientMaskDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canva
     canvas.saveLayer(bounds, &maskPaint_);
     canvas.clipRect(bounds, true);
 #else
+    auto bounds = RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect());
     canvas.Save();
     Drawing::SaveLayerOps slr(&bounds, nullptr);
     canvas.SaveLayer(slr);
@@ -464,8 +467,8 @@ RSPathMaskDrawable::RSPathMaskDrawable(std::shared_ptr<RSMask> mask) : RSMaskDra
 
 void RSPathMaskDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
-#ifndef USE_ROSEN_DRAWING
     auto& properties = node.GetRenderProperties();
+#ifndef USE_ROSEN_DRAWING
     auto bounds = RSPropertiesPainter::Rect2SkRect(properties.GetBoundsRect());
     canvas.save();
     canvas.saveLayer(bounds, nullptr);
@@ -480,6 +483,7 @@ void RSPathMaskDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
     canvas.saveLayer(bounds, &maskPaint_);
     canvas.clipRect(bounds, true);
 #else
+    auto bounds = RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect());
     canvas.Save();
     Drawing::SaveLayerOps slr(&bounds, nullptr);
     canvas.SaveLayer(slr);
@@ -567,9 +571,10 @@ void RSShadowBaseDrawable::ClipShadowPath(RSRenderNode& node, RSPaintFilterCanva
             canvas.ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
         }
     } else {
-        path.AddRoundRect(RRect2DrawingRRect(properties.GetRRect()));
+        path.AddRoundRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetRRect()));
         if (!properties.GetShadowIsFilled()) {
-            canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::DIFFERENCE, true);
+            canvas.ClipRoundRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetRRect()),
+                Drawing::ClipOp::DIFFERENCE, true);
         }
     }
 }
@@ -1123,13 +1128,21 @@ void RSBackgroundImageDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& ca
 // SaveLayerBackground
 void RSSaveLayerBackgroundDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
+#ifndef USE_ROSEN_DRAWING
     *content_ = canvas.saveLayer(nullptr, nullptr);
+#else
+    *content_ = canvas.SaveLayer({nullptr, nullptr});
+#endif
 }
 
 // SaveLayerContent
 void RSSaveLayerContentDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
+#ifndef USE_ROSEN_DRAWING
     *content_ = canvas.saveLayer(nullptr, &blendPaint_);
+#else
+    *content_ = canvas.SaveLayer({nullptr, &blendBrush_});
+#endif
 }
 
 } // namespace OHOS::Rosen

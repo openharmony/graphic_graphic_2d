@@ -444,10 +444,9 @@ void RSFilterCacheManager::TakeSnapshot(
 
     // shrink the srcRect by 1px to avoid edge artifacts.
     Drawing::RectI snapshotIBounds;
+    snapshotIBounds = srcRect;
     if (needSnapshotOutset) {
         snapshotIBounds.MakeOutset(-1, -1);
-    } else {
-        snapshotIBounds = srcRect;
     }
 
     // Take a screenshot.
@@ -571,7 +570,7 @@ void RSFilterCacheManager::DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canva
     RS_OPTIONAL_TRACE_FUNC();
 
     // Draw in device coordinates.
-    Rrawing::AutoCanvasRestore autoRestore(canvas, true);
+    Drawing::AutoCanvasRestore autoRestore(canvas, true);
     canvas.ResetMatrix();
 
     // Only draw within the visible rect.

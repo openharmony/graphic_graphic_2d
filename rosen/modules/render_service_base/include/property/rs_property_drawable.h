@@ -17,8 +17,9 @@
 #define RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_H
 
 #include <memory>
-#include <unordered_set>
+#include <set>
 #include <vector>
+
 #include "modifier/rs_render_modifier.h"
 
 namespace OHOS::Rosen {

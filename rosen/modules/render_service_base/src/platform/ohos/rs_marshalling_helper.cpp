@@ -2096,12 +2096,17 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 
     int32_t imageSize = parcel.ReadInt32();
     if (imageSize > 0) {
-        const void* imageData = RSMarshallingHelper::ReadFromParcel(parcel, imageSize);
+        bool isMal = false;
+        const void* imageData = RSMarshallingHelper::ReadFromParcel(parcel, imageSize, isMal);
         if (imageData == nullptr) {
             ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Drawing::MaskCmdList image is nullptr");
             return false;
         }
         val->SetUpImageData(imageData, imageSize);
+        if (isMal) {
+            free(const_cast<void*>(imageData));
+            imageData = nullptr;
+        }
     }
 
     return true;
