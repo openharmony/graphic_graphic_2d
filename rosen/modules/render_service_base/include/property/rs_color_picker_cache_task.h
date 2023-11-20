@@ -95,8 +95,8 @@ public:
 
     bool GetFirstGetColorFinished();
 
-    bool RSColorPickerCacheTask::GpuScaleImage(std::shared_ptr<RSPaintFilterCanvas> cacheCanvas,
-        const sk_sp<SkImage> threadImage, std::shared_ptr<SkPixmap>& dst)
+    bool GpuScaleImage(std::shared_ptr<RSPaintFilterCanvas> cacheCanvas,
+        const sk_sp<SkImage> threadImage, std::shared_ptr<SkPixmap>& dst);
 
     void SetDeviceSize(int& deviceWidth, int& deviceHeight);
 
