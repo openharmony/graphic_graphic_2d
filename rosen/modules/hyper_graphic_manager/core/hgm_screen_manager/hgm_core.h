@@ -16,6 +16,7 @@
 #ifndef HGM_CORE_H
 #define HGM_CORE_H
 
+#include <cstdint>
 #include <functional>
 #include <cinttypes>
 #include <memory>
@@ -28,10 +29,10 @@
 
 #include "hgm_screen.h"
 #include "vsync_type.h"
+#include "vsync_generator.h"
 #include "xml_parser.h"
 
 namespace OHOS::Rosen {
-constexpr float ONE_PULSE_IN_NANO = 2777777.0f;
 using RefreshRateModeChangeCallback = std::function<void(int32_t)>;
 class HgmCore final {
 public:
@@ -100,7 +101,13 @@ public:
 
     uint64_t GetPipelineOffset() const
     {
-        return pipelineOffsetPulseNum_ * ONE_PULSE_IN_NANO;
+        auto pulse = CreateVSyncGenerator()->GetVSyncPulse();
+        return static_cast<uint64_t>(pipelineOffsetPulseNum_ * pulse);
+    }
+
+    uint32_t GetSupportedMaxTE() const
+    {
+        return maxTE_;
     }
 
     // set refresh rates

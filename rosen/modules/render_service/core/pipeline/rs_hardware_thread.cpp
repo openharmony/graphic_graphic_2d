@@ -30,7 +30,7 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "rs_trace.h"
 #include "hdi_backend.h"
-#include <vsync_sampler.h>
+#include "vsync_sampler.h"
 #include "parameters.h"
 #ifdef RS_ENABLE_VK
 #include "rs_vk_image_manager.h"

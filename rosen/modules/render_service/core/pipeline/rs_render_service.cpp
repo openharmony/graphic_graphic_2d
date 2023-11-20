@@ -75,6 +75,7 @@ bool RSRenderService::Init()
     } else {
         rsVSyncController_ = new VSyncController(generator, 0);
         appVSyncController_ = new VSyncController(generator, 0);
+        generator->SetVSyncMode(VSYNC_MODE_LTPO);
     }
     rsVSyncDistributor_ = new VSyncDistributor(rsVSyncController_, "rs");
     appVSyncDistributor_ = new VSyncDistributor(appVSyncController_, "app");
