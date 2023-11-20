@@ -162,14 +162,14 @@ HWTEST_F(SurfaceBufferImplTest, Create001, Function | MediumTest | Level2)
 * Rank: Important(2)
 * EnvConditions: N/A
 * CaseDescription: 1. new SurfaceBufferImpl and Alloc
-                   2. call Set Metadata interface
-                   3. call Get Metadata interface
-                   4. check ret
-                   5. call List Metadata keys interface
-                   6. check ret
-                   7. call Erase Metadata key interface
-                   8. call List Metadata keys interface again
-                   9. check ret
+*                  2. call Set Metadata interface
+*                  3. call Get Metadata interface
+*                  4. check ret
+*                  5. call List Metadata keys interface
+*                  6. check ret
+*                  7. call Erase Metadata key interface
+*                  8. call List Metadata keys interface again
+*                  9. check ret
 */
 HWTEST_F(SurfaceBufferImplTest, Metadata001, Function | MediumTest | Level2)
 {
