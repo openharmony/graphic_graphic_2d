@@ -210,40 +210,24 @@ HWTEST_F(MetadataManagerTest, HDRStaticMetadataTest, Function | SmallTest | Leve
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: test SetHDRVividDynMetadataV1 and GetHDRVividDynMetadataV1
+* CaseDescription: test SetHDRDynamicMetadata and GetHDRDynamicMetadata
 */
-HWTEST_F(MetadataManagerTest, HDRVividMetadataTest, Function | SmallTest | Level2)
+HWTEST_F(MetadataManagerTest, HDRDynamicMetadataTest, Function | SmallTest | Level2)
 {
-    HdrVividMetadataV1 metadataSet = {
-        .systemStartCode = 0,
-        .minimumMaxRgbPq = 1,
-        .averageMaxRgbPq = 2,
-        .varianceMaxRgbPq = 3,
-        .maximumMaxRgbPq = 4,
-        .toneMappingMode = 5,
-        .toneMappingParamNum = 6,
-    };
-    for (uint32_t i = 0; i < 16; i++) {
-        metadataSet.colorSaturationGain[i] = i;
-    }
+    std::vector<uint8_t> metadataSet{1, 18, 119, 33, 196, 253, 112, 171, 74, 230, 99, 23, 0, 244, 82, 138, 13, 158, 100,
+        41, 50, 189, 111, 144, 3, 153, 75, 210, 243, 237, 19, 12, 128};
 
-    auto retSet = MetadataHelper::SetHDRVividDynMetadataV1(buffer_, metadataSet);
+    auto retSet = MetadataHelper::SetHDRDynamicMetadata(buffer_, metadataSet);
     ASSERT_TRUE(retSet == GSERROR_OK || GSErrorStr(retSet) == "<500 api call failed>with low error <Not supported>");
 
-    HdrVividMetadataV1 metadataGet;
-    auto retGet = MetadataHelper::GetHDRVividDynMetadataV1(buffer_, metadataGet);
+    std::vector<uint8_t> metadataGet;
+    auto retGet = MetadataHelper::GetHDRDynamicMetadata(buffer_, metadataGet);
     ASSERT_TRUE(retGet == GSERROR_OK || GSErrorStr(retGet) == "<500 api call failed>with low error <Not supported>");
 
     if (retSet == GSERROR_OK && retGet == GSERROR_OK) {
-        ASSERT_EQ(metadataSet.systemStartCode, metadataGet.systemStartCode);
-        ASSERT_EQ(metadataSet.minimumMaxRgbPq, metadataGet.minimumMaxRgbPq);
-        ASSERT_EQ(metadataSet.averageMaxRgbPq, metadataGet.averageMaxRgbPq);
-        ASSERT_EQ(metadataSet.varianceMaxRgbPq, metadataGet.varianceMaxRgbPq);
-        ASSERT_EQ(metadataSet.maximumMaxRgbPq, metadataGet.maximumMaxRgbPq);
-        ASSERT_EQ(metadataSet.toneMappingMode, metadataGet.toneMappingMode);
-        ASSERT_EQ(metadataSet.toneMappingParamNum, metadataGet.toneMappingParamNum);
-        for (uint32_t i = 0; i < 16; i++) {
-            ASSERT_EQ(metadataSet.colorSaturationGain[i], metadataGet.colorSaturationGain[i]);
+        ASSERT_EQ(metadataSet.size(), metadataGet.size());
+        for (uint32_t i = 0; i < metadataSet.size(); i++) {
+            ASSERT_EQ(metadataSet[i], metadataGet[i]);
         }
     }
 }
