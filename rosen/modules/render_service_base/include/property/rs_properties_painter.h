@@ -115,6 +115,8 @@ public:
         float dynamicLightUpRate, float dynamicLightUpDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader);
 #endif // USE_ROSEN_DRAWING
 
+    static const bool BLUR_ENABLED;
+
 private:
     static void ApplyBackgroundEffectFallback(const RSProperties& properties, RSPaintFilterCanvas& canvas);
     static void TransformGradientBlurDirection(uint8_t& direction, const uint8_t directionBias);
@@ -189,8 +191,6 @@ private:
         std::shared_ptr<Drawing::ShaderEffect> gradientShader);
 #endif // USE_ROSEN_DRAWING
     inline static int g_blurCnt = 0;
-    friend class RSLinearGradientBlurFilterDrawable;
-    friend class RSLightUpEffectDrawable;
 };
 } // namespace Rosen
 } // namespace OHOS

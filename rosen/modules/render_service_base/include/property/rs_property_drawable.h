@@ -16,18 +16,15 @@
 #ifndef RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_H
 #define RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_H
 
-#include <list>
-#include <map>
+#include <memory>
 #include <unordered_set>
-#include <utility>
-
+#include <vector>
 #include "modifier/rs_render_modifier.h"
 
 namespace OHOS::Rosen {
 class RSPaintFilterCanvas;
 class RSProperties;
 class RSPropertyDrawableGenerateContext;
-class RSRenderModifier;
 class RSRenderNode;
 
 namespace Slot {
@@ -66,13 +63,13 @@ enum RSPropertyDrawableSlot : uint8_t {
     CONTENT_STYLE,
     CHILDREN,
     FOREGROUND_STYLE,
-    COLOR_FILTER,
     RESTORE_FRAME,
     RESTORE_CONTENT,
 
     // FG properties in Bounds clip
     FG_SAVE_BOUNDS,
     FG_CLIP_TO_BOUNDS,
+    COLOR_FILTER,
     LIGHT_UP_EFFECT,
     FOREGROUND_FILTER,
     LINEAR_GRADIENT_BLUR_FILTER,
@@ -87,7 +84,16 @@ enum RSPropertyDrawableSlot : uint8_t {
     PIXEL_STRETCH,
 
     RESTORE_ALL,
-    MAX,
+
+    // Annotations: Please remember to update this when new slots are added.
+    // NOTE: MAX and *_END enums are using the one-past-the-end style.
+    BG_PROPERTIES_BEGIN      = BACKGROUND_COLOR,
+    BG_PROPERTIES_END        = ENV_FOREGROUND_COLOR_STRATEGY + 1,
+    CONTENT_PROPERTIES_BEGIN = FRAME_OFFSET,
+    CONTENT_PROPERTIES_END   = FOREGROUND_STYLE + 1,
+    FG_PROPERTIES_BEGIN      = COLOR_FILTER,
+    FG_PROPERTIES_END        = FOREGROUND_COLOR + 1,
+    MAX                      = RESTORE_ALL + 1,
 };
 
 enum DrawableVecStatus : uint8_t {
@@ -125,20 +131,14 @@ public:
 
     // Generator Utilities
     static void InitializeSaveRestore(const RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec);
-    static std::set<Slot::RSPropertyDrawableSlot> GenerateDirtySlots(
+    static std::unordered_set<Slot::RSPropertyDrawableSlot> GenerateDirtySlots(
         const RSProperties& properties, const std::unordered_set<RSModifierType>& dirtyTypes);
     static bool UpdateDrawableVec(const RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec,
-        std::set<Slot::RSPropertyDrawableSlot>& dirtySlots);
+        std::unordered_set<Slot::RSPropertyDrawableSlot>& dirtySlots);
     static void UpdateSaveRestore(
         RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec, uint8_t& drawableVecStatus);
 
 private:
-    static inline uint8_t CalculateDrawableVecStatus(
-        RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec);
-    static void OptimizeBoundsSaveRestore(
-        RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec, uint8_t flags);
-    static void OptimizeFrameSaveRestore(
-        RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec, uint8_t flags);
     static void UpdateSaveLayerSlots(const RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec);
 };
 
