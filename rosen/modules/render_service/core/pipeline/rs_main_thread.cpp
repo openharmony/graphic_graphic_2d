@@ -1291,6 +1291,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     if (pendingRefreshRate != nullptr) {
         hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate);
         frameRateMgr_->ResetPendingRefreshRate();
+        currentRefreshRate_ = *pendingRefreshRate;
         RS_TRACE_NAME("RSMainThread::ProcessHgmFrameRate pendingRefreshRate: " + std::to_string(*pendingRefreshRate));
     }
 
@@ -1347,6 +1348,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         SetFocusLeashWindowId();
         uniVisitor->SetFocusedNodeId(focusNodeId_, focusLeashWindowId_);
         rootNode->Prepare(uniVisitor);
+        uniVisitor->SetCurrentRefreshRate(currentRefreshRate_);
         RSPointLightManager::Instance()->PrepareLight();
         CalcOcclusion();
         doParallelComposition_ = RSInnovation::GetParallelCompositionEnabled(isUniRender_) &&

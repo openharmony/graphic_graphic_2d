@@ -162,6 +162,11 @@ public:
         forceUpdateFlag_ = flag;
     }
 
+    void SetCurrentRefreshRate(uint32_t currentRefreshRate)
+    {
+        currentRefreshRate_ = currentRefreshRate;
+    }
+
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
 private:
     void DrawWatermarkIfNeed();
@@ -183,6 +188,7 @@ private:
     void DrawAllSurfaceOpaqueRegionForDFX(RSDisplayRenderNode& node);
     void DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderNode& node);
     void DrawTargetSurfaceVisibleRegionForDFX(RSDisplayRenderNode& node);
+    void DrawCurrentRefreshRate(uint32_t currentRefreshRate);
     // check if surface name is in dfx target list
     inline bool CheckIfSurfaceTargetedForDFX(std::string nodeName)
     {
@@ -457,6 +463,8 @@ private:
 #endif
     bool isNodeSingleFrameComposer_ = false;
     sk_sp<SkImage> cacheImgForCapture_ = nullptr;
+
+    uint32_t currentRefreshRate_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
