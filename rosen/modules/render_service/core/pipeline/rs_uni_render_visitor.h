@@ -26,6 +26,7 @@
 #include "rs_base_render_engine.h"
 
 #include "pipeline/driven_render/rs_driven_render_manager.h"
+#include "pipeline/round_corner_display/rs_rcd_render_manager.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_processor.h"
 #include "platform/ohos/overdraw/rs_cpu_overdraw_canvas_listener.h"
@@ -161,6 +162,11 @@ public:
         forceUpdateFlag_ = flag;
     }
 
+    void SetCurrentRefreshRate(uint32_t currentRefreshRate)
+    {
+        currentRefreshRate_ = currentRefreshRate;
+    }
+
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
 private:
     void DrawWatermarkIfNeed();
@@ -182,6 +188,7 @@ private:
     void DrawAllSurfaceOpaqueRegionForDFX(RSDisplayRenderNode& node);
     void DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderNode& node);
     void DrawTargetSurfaceVisibleRegionForDFX(RSDisplayRenderNode& node);
+    void DrawCurrentRefreshRate(uint32_t currentRefreshRate);
     // check if surface name is in dfx target list
     inline bool CheckIfSurfaceTargetedForDFX(std::string nodeName)
     {
@@ -402,6 +409,7 @@ private:
 
     // driven render
     std::unique_ptr<DrivenInfo> drivenInfo_ = nullptr;
+    std::unique_ptr<RcdInfo> rcdInfo_ = nullptr;
 
     std::unordered_map<NodeId, RenderParam> unpairedTransitionNodes_;
     std::stack<RenderParam> curGroupedNodes_;
@@ -455,6 +463,8 @@ private:
 #endif
     bool isNodeSingleFrameComposer_ = false;
     sk_sp<SkImage> cacheImgForCapture_ = nullptr;
+
+    uint32_t currentRefreshRate_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

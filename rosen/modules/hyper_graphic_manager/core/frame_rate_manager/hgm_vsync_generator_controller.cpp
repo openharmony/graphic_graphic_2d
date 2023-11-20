@@ -14,6 +14,7 @@
  */
 
 #include "hgm_vsync_generator_controller.h"
+#include <cstdint>
 
 #include "hgm_core.h"
 #include "hgm_log.h"
@@ -21,10 +22,6 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-    constexpr float ONE_SECOND_IN_NANO = 1000000000.0f;
-}
-
 HgmVSyncGeneratorController::HgmVSyncGeneratorController(sptr<VSyncController> rsController,
     sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator)
     : rsController_(rsController),
@@ -37,10 +34,16 @@ HgmVSyncGeneratorController::~HgmVSyncGeneratorController() {}
 
 uint32_t HgmVSyncGeneratorController::GetAppOffset(uint32_t controllerRate)
 {
-    auto alignPeriod = ONE_SECOND_IN_NANO / (HgmCore::Instance().GetAlignRate());
-    auto currentPeriod = ONE_SECOND_IN_NANO / controllerRate;
-    uint32_t pulseNum = static_cast<uint32_t>((std::abs(currentPeriod - alignPeriod)) / ONE_PULSE_IN_NANO);
-    return pulseNum;
+    auto alignRate = HgmCore::Instance().GetAlignRate();
+    auto supportedMaxTE = HgmCore::Instance().GetSupportedMaxTE();
+    if (alignRate == 0 || controllerRate == 0) {
+        HGM_LOGE("HgmVSyncGeneratorController::GetAppOffset illegal alignRate or controllerRate");
+        return 0;
+    }
+    if (alignRate < controllerRate) {
+        return 0;
+    }
+    return static_cast<uint32_t>(supportedMaxTE / controllerRate - supportedMaxTE / alignRate);
 }
 
 void HgmVSyncGeneratorController::ChangeGeneratorRate(uint32_t controllerRate,

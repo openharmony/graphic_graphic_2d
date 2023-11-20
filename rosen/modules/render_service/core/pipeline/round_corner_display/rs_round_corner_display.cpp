@@ -55,6 +55,11 @@ bool RoundCornerDisplay::SeletedLcdModel(const char* lcdModelName)
     }
     supportTopSurface_ = lcdModel_->surfaceConfig.topSurface.support;
     supportBottomSurface_ = lcdModel_->surfaceConfig.bottomSurface.support;
+    supportHardware_ = lcdModel_->hardwareConfig.hardwareComposer.support;
+    hardInfo_.supportHardware = supportHardware_;
+    RS_LOGI("[%{public}s] Selected model: %{public}s, supported: top->%{public}d, bottom->%{public}d,"
+        "hardware->%{public}d \n", __func__, lcdModelName, static_cast<int>(supportTopSurface_),
+        static_cast<int>(supportBottomSurface_), static_cast<int>(supportHardware_));
     return true;
 }
 
@@ -79,6 +84,36 @@ bool RoundCornerDisplay::LoadImg(const char* path, sk_sp<SkImage>& img)
         RS_LOGE("[%{public}s] Decode picture file failed! \n", __func__);
         return false;
     }
+    return true;
+}
+
+bool RoundCornerDisplay::DecodeBitmap(sk_sp<SkImage> image, SkBitmap &bitmap)
+{
+    if (image == nullptr) {
+        RS_LOGE("[%{public}s] No image found \n", __func__);
+        return false;
+    }
+    if (!image->asLegacyBitmap(&bitmap, SkImage::kRO_LegacyBitmapMode)) {
+        RS_LOGE("[%{public}s] Create bitmap from skImage failed \n", __func__);
+        return false;
+    }
+    return true;
+}
+
+bool RoundCornerDisplay::SetHardwareLayerSize()
+{
+    if (hardInfo_.topLayer == nullptr) {
+        RS_LOGE("[%{public}s] No topLayer found in hardInfo \n", __func__);
+        return false;
+    }
+    if (hardInfo_.bottomLayer == nullptr) {
+        RS_LOGE("[%{public}s] No bottomLayer found in hardInfo \n", __func__);
+        return false;
+    }
+    hardInfo_.topLayer->layerWidth = displayWidth_;
+    hardInfo_.topLayer->layerHeight = displayHeight_;
+    hardInfo_.bottomLayer->layerWidth = displayWidth_;
+    hardInfo_.bottomLayer->layerHeight = displayHeight_;
     return true;
 }
 
@@ -107,6 +142,11 @@ bool RoundCornerDisplay::GetTopSurfaceSource()
         return false;
     }
     LoadImg(rog_->portraitMap[rs_rcd::NODE_PORTRAIT].layerHide.fileName.c_str(), imgTopHidden_);
+    if (supportHardware_) {
+        DecodeBitmap(imgTopPortrait_, bitmapTopPortrait_);
+        DecodeBitmap(imgTopLadsOrit_, bitmapTopLadsOrit_);
+        DecodeBitmap(imgTopHidden_, bitmapTopHidden_);
+    }
     return true;
 }
 
@@ -121,6 +161,9 @@ bool RoundCornerDisplay::GetBottomSurfaceSource()
         return false;
     }
     LoadImg(rog_->portraitMap[rs_rcd::NODE_PORTRAIT].layerDown.fileName.c_str(), imgBottomPortrait_);
+    if (supportHardware_) {
+        DecodeBitmap(imgBottomPortrait_, bitmapBottomPortrait_);
+    }
     return true;
 }
 
@@ -254,6 +297,10 @@ void RoundCornerDisplay::UpdateParameter(std::map<std::string, bool>& updateFlag
     if (flag) {
         RcdChooseTopResourceType();
         RcdChooseRSResource();
+        if (supportHardware_) {
+            RcdChooseHardwareResource();
+            SetHardwareLayerSize();
+        }
     } else {
         RS_LOGD("[%{public}s] Status is not changed \n", __func__);
     }
@@ -307,6 +354,7 @@ void RoundCornerDisplay::RcdChooseRSResource()
         case TOP_LADS_ORIT:
             curTop_ = imgTopLadsOrit_;
             RS_LOGD("prepare imgTopLadsOrit_ resource \n");
+            break;
         default:
             RS_LOGE("[%{public}s] No showResourceType found with type %{public}d \n", __func__, showResourceType_);
             break;
@@ -314,9 +362,55 @@ void RoundCornerDisplay::RcdChooseRSResource()
     curBottom_ = imgBottomPortrait_;
 }
 
+void RoundCornerDisplay::RcdChooseHardwareResource()
+{
+    if (rog_ == nullptr) {
+        RS_LOGE("[%{public}s] No rog info \n", __func__);
+        return;
+    }
+    switch (showResourceType_) {
+        case TOP_PORTRAIT:
+            if (rog_->portraitMap.count(rs_rcd::NODE_PORTRAIT) < 1) {
+                RS_LOGE("[%{public}s] PORTRAIT layerHide do not configured \n", __func__);
+                break;
+            }
+            hardInfo_.topLayer = &rog_->portraitMap[rs_rcd::NODE_PORTRAIT].layerUp;
+            hardInfo_.topLayer->curBitmap = &bitmapTopPortrait_;
+            break;
+        case TOP_HIDDEN:
+            if (rog_->portraitMap.count(rs_rcd::NODE_PORTRAIT) < 1) {
+                RS_LOGE("[%{public}s] PORTRAIT layerHide do not configured \n", __func__);
+                break;
+            }
+            hardInfo_.topLayer = &rog_->portraitMap[rs_rcd::NODE_PORTRAIT].layerHide;
+            hardInfo_.topLayer->curBitmap = &bitmapTopHidden_;
+            break;
+        case TOP_LADS_ORIT:
+            if (rog_->landscapeMap.count(rs_rcd::NODE_LANDSCAPE) < 1) {
+                RS_LOGE("[%{public}s] PORTRAIT layerHide do not configured \n", __func__);
+                break;
+            }
+            hardInfo_.topLayer = &rog_->landscapeMap[rs_rcd::NODE_LANDSCAPE].layerUp;
+            hardInfo_.topLayer->curBitmap = &bitmapTopLadsOrit_;
+            break;
+        default:
+            RS_LOGE("[%{public}s] No showResourceType found with type %{public}d \n", __func__, showResourceType_);
+            break;
+    }
+    if (rog_->portraitMap.count(rs_rcd::NODE_PORTRAIT) < 1) {
+        RS_LOGE("[%{public}s] PORTRAIT layerHide do not configured \n", __func__);
+        return;
+    }
+    hardInfo_.bottomLayer = &rog_->portraitMap[rs_rcd::NODE_PORTRAIT].layerDown;
+    hardInfo_.bottomLayer->curBitmap = &bitmapBottomPortrait_;
+}
+
 void RoundCornerDisplay::DrawRoundCorner(std::shared_ptr<RSPaintFilterCanvas> canvas)
 {
     std::lock_guard<std::mutex> lock(resourceMut_);
+    if (supportHardware_) {
+        return;
+    }
     if (canvas == nullptr) {
         RS_LOGE("[%{public}s] Canvas is null \n", __func__);
         return;

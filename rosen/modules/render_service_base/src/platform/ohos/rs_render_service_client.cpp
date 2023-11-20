@@ -936,5 +936,13 @@ void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* conf
     renderService->SetTpFeatureConfig(feature, config);
 }
 #endif
+
+void RSRenderServiceClient::SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetVirtualScreenUsingStatus(isVirtualScreenUsingStatus);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

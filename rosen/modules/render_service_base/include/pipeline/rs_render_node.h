@@ -384,6 +384,9 @@ public:
     bool IsParentLeashWindow() const;
     void SetParentLeashWindow();
 
+    bool IsParentScbScreen() const;
+    void SetParentScbScreen();
+
     bool HasCachedTexture() const;
 
     void SetDrawRegion(const std::shared_ptr<RectF>& rect);
@@ -413,7 +416,7 @@ public:
     NodeGroupType GetNodeGroupType();
 
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer);
-    bool GetNodeIsSingleFrameComposer() const;
+    virtual bool GetNodeIsSingleFrameComposer() const;
 
     /////////////////////////////////////////////
 
@@ -465,6 +468,7 @@ protected:
     RSPaintFilterCanvas::SaveStatus renderNodeSaveCount_;
     std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>> drawCmdModifiers_;
     std::shared_ptr<RSSingleFrameComposer> singleFrameComposer_ = nullptr;
+    bool isNodeSingleFrameComposer_ = false;
     // if true, it means currently it's in partial render mode and this node is intersect with dirtyRegion
     bool isRenderUpdateIgnored_ = false;
     bool isShadowValidLastFrame_ = false;
@@ -575,6 +579,7 @@ private:
     bool hasAbilityComponent_ = false;
     bool isAncestorDirty_ = false;
     bool isParentLeashWindow_ = false;
+    bool isParentScbScreen_ = false;
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
 
     // driven render
@@ -589,7 +594,6 @@ private:
 
     std::shared_ptr<RectF> drawRegion_ = nullptr;
     NodeGroupType nodeGroupType_ = NodeGroupType::NONE;
-    bool isNodeSingleFrameComposer_ = false;
 
     // shadowRectOffset means offset between shadowRect and absRect of node
     int shadowRectOffsetX_ = 0;

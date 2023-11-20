@@ -120,6 +120,8 @@ DECLARE_NOANIMATABLE_MODIFIER(ShadowMask, bool, SHADOW_MASK, Background)
 
 DECLARE_NOANIMATABLE_MODIFIER(ShadowIsFilled, bool, SHADOW_IS_FILLED, Background)
 
+DECLARE_NOANIMATABLE_MODIFIER(ShadowColorStrategy, bool, SHADOW_COLOR_STRATEGY, Background)
+
 DECLARE_NOANIMATABLE_MODIFIER(Mask, std::shared_ptr<RSMask>, MASK, Foreground)
 
 DECLARE_ANIMATABLE_MODIFIER(Spherize, float, SPHERIZE, Replace, Appearance, MEDIUM)
@@ -162,3 +164,10 @@ DECLARE_ANIMATABLE_MODIFIER(GreyCoef1, float, GREY_COEF1, Replace, Background, C
 
 DECLARE_ANIMATABLE_MODIFIER(GreyCoef2, float, GREY_COEF2, Replace, Background, COARSE)
 
+DECLARE_ANIMATABLE_MODIFIER(Bloom, float, BLOOM, Replace, Foreground, COARSE)
+
+DECLARE_ANIMATABLE_MODIFIER(LightPosition, Vector4f, LIGHT_POSITION, Replace, Foreground, LAYOUT)
+
+DECLARE_ANIMATABLE_MODIFIER(LightIntensity, float, LIGHT_INTENSITY, Replace, Foreground, COARSE)
+
+DECLARE_NOANIMATABLE_MODIFIER(IlluminatedType, int, ILLUMINATED_TYPE, Foreground)

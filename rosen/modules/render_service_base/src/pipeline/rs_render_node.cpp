@@ -1051,10 +1051,6 @@ bool RSRenderNode::ApplyModifiers()
     dirtyTypes_.clear();
     lastApplyTimestamp_ = lastTimestamp_;
     UpdateShouldPaint();
-    if (renderProperties_.backref_.expired()) {
-        // If the weak_ptr renderProperties_.backref_ is not assigned, assign it.
-        renderProperties_.backref_ = weak_from_this();
-    }
 
     // return true if positionZ changed
     return renderProperties_.GetPositionZ() != prevPositionZ;
@@ -1673,6 +1669,9 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(const std::optional<R
         // invalidate cache if filter region is not inside of cached image region
         if (manager->IsCacheValid() && !filterRect.IsInsideOf(manager->GetCachedImageRegion())) {
             manager->UpdateCacheStateWithFilterRegion();
+            if (auto context = GetContext().lock()) {
+                context->MarkNeedPurge(RSContext::PurgeType::STRONGLY);
+            }
         }
     }
     // foreground filter
@@ -1680,6 +1679,9 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(const std::optional<R
         // invalidate cache if filter region is not inside of cached image region
         if (manager->IsCacheValid() && !filterRect.IsInsideOf(manager->GetCachedImageRegion())) {
             manager->UpdateCacheStateWithFilterRegion();
+            if (auto context = GetContext().lock()) {
+                context->MarkNeedPurge(RSContext::PurgeType::STRONGLY);
+            }
         }
     }
 #endif
@@ -2132,6 +2134,14 @@ bool RSRenderNode::IsParentLeashWindow() const
 void RSRenderNode::SetParentLeashWindow()
 {
     isParentLeashWindow_ = true;
+}
+bool RSRenderNode::IsParentScbScreen() const
+{
+    return isParentScbScreen_;
+}
+void RSRenderNode::SetParentScbScreen()
+{
+    isParentScbScreen_ = true;
 }
 bool RSRenderNode::HasCachedTexture() const
 {

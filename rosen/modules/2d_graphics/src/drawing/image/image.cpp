@@ -152,7 +152,7 @@ bool Image::ReadPixels(Bitmap& bitmap, int x, int y)
 }
 
 bool Image::ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
-    int srcX, int srcY) const
+    int32_t srcX, int32_t srcY) const
 {
     return imageImplPtr->ReadPixels(dstInfo, dstPixels, dstRowBytes, srcX, srcY);
 }
@@ -177,7 +177,7 @@ bool Image::IsLazyGenerated() const
     return imageImplPtr->IsLazyGenerated();
 }
 
-bool Image::GetROPixels(Bitmap& bitmap)
+bool Image::GetROPixels(Bitmap& bitmap) const
 {
     return imageImplPtr->GetROPixels(bitmap);
 }

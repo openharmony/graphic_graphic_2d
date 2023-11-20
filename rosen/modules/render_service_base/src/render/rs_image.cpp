@@ -83,7 +83,14 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
         DrawImageRepeatRect(samplingOptions, paint, canvas);
     } else {
         SkAutoCanvasRestore acr(&canvas, HasRadius());
+        if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
+            canvas.save();
+            RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas);
+        }
         canvas.drawImageRect(image_, src_, dst_, samplingOptions, &paint, SkCanvas::kFast_SrcRectConstraint);
+        if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
+            canvas.restore();
+        }
     }
     lastRect_ = rect;
 #else
@@ -362,6 +369,10 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
 #ifndef USE_ROSEN_DRAWING
             dst_ = SkRect::MakeXYWH(dstRect_.left_ + i * dstRect_.width_, dstRect_.top_ + j * dstRect_.height_,
                 dstRect_.width_, dstRect_.height_);
+            if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
+                canvas.save();
+                RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas);
+            }
             if (canvas.GetRecordingState() && image_->isTextureBacked()) {
                 auto recordingCanvas = static_cast<RSRecordingCanvas*>(canvas.GetRecordingCanvas());
                 auto cpuImage = image_->makeRasterImage();
@@ -383,6 +394,9 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
             canvas.DrawImageRect(*image_, src, dst, samplingOptions,
                 Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
 #endif
+            if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
+                canvas.restore();
+            }
         }
     }
     if (imageRepeat_ == ImageRepeat::NO_REPEAT) {

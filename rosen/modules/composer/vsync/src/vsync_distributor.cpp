@@ -570,13 +570,13 @@ void VSyncDistributor::ChangeConnsRateLocked()
 {
     std::lock_guard<std::mutex> locker(changingConnsRefreshRatesMtx_);
     for (auto refreshRate : changingConnsRefreshRates_) {
-        if ((refreshRate.second <= 0) || (VSYNC_MAX_REFRESHRATE % refreshRate.second != 0)) {
-            // the refresh rate is invalid
-            continue;
-        }
         for (auto conn : connections_) {
             if (conn->id_ != refreshRate.first) {
-                // not current id
+                continue;
+            }
+            if ((refreshRate.second <= 0) ||
+                ((refreshRate.second > 0) && (VSYNC_MAX_REFRESHRATE % refreshRate.second != 0))) {
+                conn->vsyncPulseFreq_ = 1;
                 continue;
             }
             conn->vsyncPulseFreq_ = VSYNC_MAX_REFRESHRATE / refreshRate.second;

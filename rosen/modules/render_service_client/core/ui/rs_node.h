@@ -265,6 +265,7 @@ public:
     void SetShadowPath(const std::shared_ptr<RSPath>& shadowPath);
     void SetShadowMask(bool shadowMask);
     void SetShadowIsFilled(bool shadowIsFilled);
+    void SetShadowColorStrategy(bool shadowColorStrategy);
 
     void SetFrameGravity(Gravity gravity);
 
@@ -315,6 +316,16 @@ public:
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer);
 
     void SetGrayScale(float grayScale);
+
+    void SetLightIntensity(float lightIntensity);
+
+    void SetLightPosition(const Vector4f& lightPosition);
+
+    void SetLightPosition(float positionX, float positionY, float positionZ);
+
+    void SetIlluminatedType(uint32_t illuminatedType);
+
+    void SetBloom(float bloomIntensity);
 
     void SetBrightness(float brightness);
 

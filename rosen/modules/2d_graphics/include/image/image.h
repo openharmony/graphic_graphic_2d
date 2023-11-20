@@ -285,7 +285,7 @@ public:
     bool ReadPixels(Bitmap& bitmap, int x, int y);
 
     bool ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
-                    int srcX, int srcY) const;
+                    int32_t srcX, int32_t srcY) const;
 
     bool ScalePixels(const Bitmap& bitmap, const SamplingOptions& sampling,
         bool allowCachingHint = true) const;
@@ -297,7 +297,7 @@ public:
     /*
      * @brief  Get Bitmap by image's directContext, can call it if IsLazyGenerated return false.
      */
-    bool GetROPixels(Bitmap& bitmap);
+    bool GetROPixels(Bitmap& bitmap) const;
 
     std::shared_ptr<Image> MakeRasterImage() const;
 

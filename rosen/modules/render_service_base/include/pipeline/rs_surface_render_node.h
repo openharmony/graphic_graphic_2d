@@ -96,6 +96,11 @@ public:
         return GetName().find("RosenWeb") != std::string::npos;
     }
 
+    bool IsScbScreen() const
+    {
+        return nodeType_ == RSSurfaceNodeType::SCB_SCREEN_NODE;
+    }
+
     bool IsHardwareEnabledTopSurface() const
     {
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window";
@@ -718,7 +723,8 @@ public:
     void ResetAnimateState() {
         animateState_ = false;
     }
-    bool GetAnimateState() const{
+    bool GetAnimateState() const
+    {
         return animateState_;
     }
     bool IsParentLeashWindowInScale() const;
@@ -828,6 +834,7 @@ public:
     {
         return isForeground_;
     }
+    bool GetNodeIsSingleFrameComposer() const override;
 private:
     void OnResetParent() override;
     void ClearChildrenCache();

@@ -134,7 +134,7 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
         if (appFrameRate != linker.second->GetFrameRate() || controllerRateChanged) {
             linker.second->SetFrameRate(appFrameRate);
             appChangeData_.emplace_back(linker.second->GetId(), appFrameRate);
-            HGM_LOGI("HgmFrameRateManager: appChangeData linkerId = %{public}" PRIu64 ", %{public}d",
+            HGM_LOGD("HgmFrameRateManager: appChangeData linkerId = %{public}" PRIu64 ", %{public}d",
                 linker.second->GetId(), appFrameRate);
             frameRateChanged = true;
         }
@@ -294,6 +294,9 @@ int32_t HgmFrameRateManager::CalModifierPreferred(const HgmModifierProfile &hgmM
 
     auto dynamicSettingMap = parsedConfigData->GetAnimationDynamicSettingMap(hgmModifierProfile.hgmModifierType);
     for (const auto &iter: dynamicSettingMap) {
+        if (mixSpeed == 0) {
+            return DEFAULT_PREFERRED;
+        }
         if (mixSpeed >= iter.second.min && (mixSpeed < iter.second.max || iter.second.max == -1)) {
             return iter.second.preferred_fps;
         }

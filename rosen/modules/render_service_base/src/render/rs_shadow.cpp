@@ -70,6 +70,11 @@ void RSShadow::SetIsFilled(bool isFilled)
     isFilled_ = isFilled;
 }
 
+void RSShadow::SetColorStrategy(bool colorStrategy)
+{
+    colorStrategy_ = colorStrategy;
+}
+
 const Color& RSShadow::GetColor() const
 {
     return color_;
@@ -115,6 +120,11 @@ bool RSShadow::GetIsFilled() const
     return isFilled_;
 }
 
+bool RSShadow::GetColorStrategy() const
+{
+    return colorStrategy_;
+}
+
 bool RSShadow::IsValid() const
 {
     if (isHardwareAcceleration_) {
@@ -123,5 +133,6 @@ bool RSShadow::IsValid() const
         return radius_ > 0.f;
     }
 }
+
 } // namespace Rosen
 } // namespace OHOS

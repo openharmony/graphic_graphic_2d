@@ -136,6 +136,7 @@ enum class RSSurfaceNodeType : uint8_t {
     LEASH_WINDOW_NODE,        // leashwindow
     SELF_DRAWING_WINDOW_NODE, // create by wms, such as pointer window and bootanimation
     FOREGROUND_SURFACE,
+    SCB_SCREEN_NODE,          // surfacenode created as sceneboard
 };
 
 struct RSSurfaceRenderNodeConfig {

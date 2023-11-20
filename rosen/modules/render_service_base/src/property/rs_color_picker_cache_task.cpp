@@ -48,8 +48,10 @@ bool RSColorPickerCacheTask::InitSurface(GrRecordingContext* grContext)
         ROSEN_LOGE("RSColorPickerCacheTask cacheSurface is null");
         return true;
     }
+#ifdef IS_OHOS
     auto runner = AppExecFwk::EventRunner::Current();
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+#endif
     SkImageInfo info = SkImageInfo::MakeN32Premul(surfaceSize_.width(), surfaceSize_.height());
     cacheSurface_ = SkSurface::MakeRenderTarget(grContext, SkBudgeted::kYes, info);
 
@@ -153,6 +155,7 @@ bool RSColorPickerCacheTask::Render()
             colorPicker->GetAverageColor(color);
             std::unique_lock<std::mutex> lock(colorMutex_);
             color_ = RSColor(SkColorGetR(color), SkColorGetG(color), SkColorGetB(color), SkColorGetA(color));
+            firstGetColorFinished_ = true;
             valid_ = true;
         } else {
             valid_ = false;
@@ -178,6 +181,72 @@ bool RSColorPickerCacheTask::GetColor(RSColor& color)
     color = color_;
     return valid_;
 }
+
+void RSColorPickerCacheTask::CalculateColorAverage(RSColor& colorCur)
+{
+    // black color defination
+    RSColor black = RSColor(0, 0, 0, 255);
+    int colorArrayLen = colorArray_.size();
+    int colorArraySize = 21;
+    int continueBlackColorNum = 20;
+    if (colorArrayLen >= colorArraySize) {
+        colorArray_.pop_back();
+    }
+    colorArray_.emplace(colorArray_.begin(), colorCur);
+    int validColorNum = 0;
+    int R = 0;
+    int G = 0;
+    int B = 0;
+    int mark = 0;
+
+    for (int i = 0; i < colorArrayLen; i++) {
+        if (colorArray_[i] == black) {
+            ++mark;
+        } else {
+            if (mark > continueBlackColorNum) {
+                R += black.GetRed() * mark;
+                G += black.GetGreen() * mark;
+                B += black.GetBlue() * mark;
+                validColorNum += mark;
+            }
+            R += colorArray_[i].GetRed();
+            G += colorArray_[i].GetGreen();
+            B += colorArray_[i].GetBlue();
+            validColorNum++;
+            mark = 0;
+        }
+    }
+
+    if (mark > continueBlackColorNum) {
+        R += black.GetRed() * mark;
+        G += black.GetGreen() * mark;
+        B += black.GetBlue() * mark;
+        validColorNum += mark;
+    }
+    
+    if (validColorNum != 0) {
+        R = R / validColorNum;
+        G = G / validColorNum;
+        B = B / validColorNum;
+    } else {
+        colorAverage_ = colorCur;
+    }
+
+    colorAverage_ = RSColor(R, G, B, colorCur.GetAlpha());
+}
+
+void RSColorPickerCacheTask::GetColorAverage(RSColor& color)
+{
+    std::unique_lock<std::mutex> lock(parallelRenderMutex_);
+    CalculateColorAverage(color_);
+    color = colorAverage_;
+}
+
+bool RSColorPickerCacheTask::GetFirstGetColorFinished()
+{
+    return firstGetColorFinished_;
+}
+
 
 void RSColorPickerCacheTask::ResetGrContext()
 {

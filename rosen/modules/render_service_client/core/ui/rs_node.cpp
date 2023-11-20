@@ -31,7 +31,9 @@
 #include "command/rs_base_node_command.h"
 #include "command/rs_node_command.h"
 #include "common/rs_color.h"
+#include "common/rs_common_def.h"
 #include "common/rs_obj_geometry.h"
+#include "common/rs_vector4.h"
 #include "modifier/rs_modifier.h"
 #include "modifier/rs_property_modifier.h"
 #include "pipeline/rs_node_map.h"
@@ -1050,6 +1052,12 @@ void RSNode::SetShadowIsFilled(bool shadowIsFilled)
     SetProperty<RSShadowIsFilledModifier, RSProperty<bool>>(RSModifierType::SHADOW_IS_FILLED, shadowIsFilled);
 }
 
+void RSNode::SetShadowColorStrategy(bool shadowColorStrategy)
+{
+    SetProperty<RSShadowColorStrategyModifier, RSProperty<bool>>(
+        RSModifierType::SHADOW_COLOR_STRATEGY, shadowColorStrategy);
+}
+
 void RSNode::SetFrameGravity(Gravity gravity)
 {
     ROSEN_LOGI("RSNode::SetFrameGravity, gravity = %{public}d", gravity);
@@ -1452,6 +1460,34 @@ void RSNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer)
 void RSNode::SetGrayScale(float grayScale)
 {
     SetProperty<RSGrayScaleModifier, RSAnimatableProperty<float>>(RSModifierType::GRAY_SCALE, grayScale);
+}
+
+void RSNode::SetLightIntensity(float lightIntensity)
+{
+    ROSEN_LOGD("RSNode::SetLightIntensity:%{public}f", lightIntensity);
+    SetProperty<RSLightIntensityModifier, RSAnimatableProperty<float>>(RSModifierType::LIGHT_INTENSITY, lightIntensity);
+}
+
+void RSNode::SetLightPosition(float positionX, float positionY, float positionZ)
+{
+    SetLightPosition(Vector4f(positionX, positionY, positionZ, 0.f));
+}
+
+void RSNode::SetLightPosition(const Vector4f& lightPosition)
+{
+    SetProperty<RSLightPositionModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::LIGHT_POSITION, lightPosition);
+}
+
+void RSNode::SetIlluminatedType(uint32_t illuminatedType)
+{
+    ROSEN_LOGD("RSNode::SetIlluminatedType:%{public}d", illuminatedType);
+    SetProperty<RSIlluminatedTypeModifier, RSProperty<int>>(
+        RSModifierType::ILLUMINATED_TYPE, illuminatedType);
+}
+
+void RSNode::SetBloom(float bloomIntensity)
+{
+    SetProperty<RSBloomModifier, RSAnimatableProperty<float>>(RSModifierType::BLOOM, bloomIntensity);
 }
 
 void RSNode::SetBrightness(float brightness)

@@ -95,7 +95,7 @@ bool RSSystemProperties::GetHighContrastStatus()
 }
 
 #ifndef NEW_SKIA
-ReleaseGpuResourceType RSSystemProperties::GetReleaseGpuResourceEnabled()
+bool RSSystemProperties::GetReleaseResourceEnabled()
 {
     return {};
 }
@@ -300,6 +300,11 @@ bool RSSystemProperties::GetUseShadowBatchingEnabled()
 }
 
 bool RSSystemProperties::GetSingleFrameComposerEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
 {
     return false;
 }

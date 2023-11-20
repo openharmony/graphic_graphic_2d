@@ -30,7 +30,7 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "rs_trace.h"
 #include "hdi_backend.h"
-#include <vsync_sampler.h>
+#include "vsync_sampler.h"
 #include "parameters.h"
 #ifdef RS_ENABLE_VK
 #include "rs_vk_image_manager.h"
@@ -122,6 +122,29 @@ void RSHardwareThread::ReleaseBuffer(sptr<SurfaceBuffer> buffer, sptr<SyncFence>
     }
 }
 
+void RSHardwareThread::RefreshRateCounts(std::string& dumpString)
+{
+    if (refreshRateCounts_.empty()) {
+        return;
+    }
+    std::map<uint32_t, int>::iterator iter;
+    for (iter = refreshRateCounts_.begin(); iter != refreshRateCounts_.end(); iter++) {
+        dumpString.append(
+            "Refresh Rate:" + std::to_string(iter->first) + ", Count:" + std::to_string(iter->second) + ";\n");
+    }
+    RS_LOGD("RSHardwareThread::RefreshRateCounts refresh rate counts info is displayed");
+}
+
+void RSHardwareThread::ClearRefreshRateCounts(std::string& dumpString)
+{
+    if (refreshRateCounts_.empty()) {
+        return;
+    }
+    refreshRateCounts_.clear();
+    dumpString.append("The refresh rate counts info is cleared successfully!\n");
+    RS_LOGD("RSHardwareThread::RefreshRateCounts refresh rate counts info is cleared");
+}
+
 void RSHardwareThread::ReleaseLayers(OutputPtr output, const std::unordered_map<uint32_t, LayerPtr>& layerMap)
 {
     // get present timestamp from and set present timestamp to surface
@@ -176,6 +199,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     RSTaskMessage::RSTask task = [this, output = output, layers = layers, rate = rate, timestamp = currTimestamp]() {
         RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %d, now: %lu", rate, timestamp);
         ExecuteSwitchRefreshRate(rate);
+        AddRefreshRateCount(rate);
         PerformSetActiveMode(output);
         output->SetLayerInfo(layers);
         if (output->IsDeviceValid()) {
@@ -498,6 +522,14 @@ void RSHardwareThread::LayerPresentTimestamp(const LayerInfoPtr& layer, const sp
     }
     if (surface->SetPresentTimestamp(buffer->GetSeqNum(), layer->GetPresentTimestamp()) != GSERROR_OK) {
         RS_LOGD("RsDebug RSUniRenderComposerAdapter::LayerPresentTimestamp: SetPresentTimestamp failed");
+    }
+}
+
+void RSHardwareThread::AddRefreshRateCount(uint32_t rate)
+{
+    auto [iter, success] = refreshRateCounts_.try_emplace(rate, 1);
+    if (!success) {
+        iter->second++;
     }
 }
 }

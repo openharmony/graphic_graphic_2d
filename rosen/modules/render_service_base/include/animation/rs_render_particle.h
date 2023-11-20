@@ -414,12 +414,12 @@ public:
     }
     RSRenderParticleVector() = default;
     ~RSRenderParticleVector() = default;
-    int GetParticleSize()
+    int GetParticleSize() const
     {
         return renderParticleVector_.size();
     }
 
-    std::vector<std::shared_ptr<RSRenderParticle>> GetParticleVector()
+    const std::vector<std::shared_ptr<RSRenderParticle>>& GetParticleVector() const
     {
         return renderParticleVector_;
     }

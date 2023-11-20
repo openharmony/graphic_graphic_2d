@@ -58,52 +58,161 @@ void OH_Drawing_CanvasDestroy(OH_Drawing_Canvas* cCanvas)
 
 void OH_Drawing_CanvasBind(OH_Drawing_Canvas* cCanvas, OH_Drawing_Bitmap* cBitmap)
 {
-    CastToCanvas(cCanvas)->Bind(CastToBitmap(*cBitmap));
+    if (cBitmap == nullptr) {
+        return;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->Bind(CastToBitmap(*cBitmap));
 }
 
 void OH_Drawing_CanvasAttachPen(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Pen* cPen)
 {
-    CastToCanvas(cCanvas)->AttachPen(CastToPen(*cPen));
+    if (cPen == nullptr) {
+        return;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->AttachPen(CastToPen(*cPen));
 }
 
 void OH_Drawing_CanvasDetachPen(OH_Drawing_Canvas* cCanvas)
 {
-    CastToCanvas(cCanvas)->DetachPen();
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->DetachPen();
 }
 
 void OH_Drawing_CanvasAttachBrush(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Brush* cBrush)
 {
-    CastToCanvas(cCanvas)->AttachBrush(CastToBrush(*cBrush));
+    if (cBrush == nullptr) {
+        return;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->AttachBrush(CastToBrush(*cBrush));
 }
 
 void OH_Drawing_CanvasDetachBrush(OH_Drawing_Canvas* cCanvas)
 {
-    CastToCanvas(cCanvas)->DetachBrush();
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->DetachBrush();
 }
 
 void OH_Drawing_CanvasSave(OH_Drawing_Canvas* cCanvas)
 {
-    CastToCanvas(cCanvas)->Save();
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->Save();
 }
 
 void OH_Drawing_CanvasRestore(OH_Drawing_Canvas* cCanvas)
 {
-    CastToCanvas(cCanvas)->Restore();
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->Restore();
 }
 
 void OH_Drawing_CanvasDrawLine(OH_Drawing_Canvas* cCanvas, float x1, float y1, float x2, float y2)
 {
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
     Point startPt(x1, y1);
     Point endPt(x2, y2);
-    CastToCanvas(cCanvas)->DrawLine(startPt, endPt);
+    canvas->DrawLine(startPt, endPt);
 }
 
 void OH_Drawing_CanvasDrawPath(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Path* cPath)
 {
-    CastToCanvas(cCanvas)->DrawPath(CastToPath(*cPath));
+    if (cPath == nullptr) {
+        return;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->DrawPath(CastToPath(*cPath));
+}
+
+void OH_Drawing_CanvasDrawBitmap(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Bitmap* cBitmap, float left, float top)
+{
+    if (cBitmap == nullptr) {
+        return;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->DrawBitmap(CastToBitmap(*cBitmap), left, top);
+}
+
+static ClipOp CClipOpCastToClipOp(OH_Drawing_CanvasClipOp cClipOp)
+{
+    ClipOp clipOp = ClipOp::INTERSECT;
+    switch (cClipOp) {
+        case DIFFERENCE:
+            clipOp = ClipOp::DIFFERENCE;
+            break;
+        case INTERSECT:
+            clipOp = ClipOp::INTERSECT;
+            break;
+        default:
+            break;
+    }
+    return clipOp;
+}
+
+void OH_Drawing_CanvasClipRect(OH_Drawing_Canvas* cCanvas, float left, float top, float right, float bottom,
+    OH_Drawing_CanvasClipOp cClipOp, bool doAntiAlias)
+{
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    Rect rect{left, top, right, bottom};
+    canvas->ClipRect(rect, CClipOpCastToClipOp(cClipOp), doAntiAlias);
+}
+
+void OH_Drawing_CanvasTranslate(OH_Drawing_Canvas* cCanvas, float dx, float dy)
+{
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->Translate(dx, dy);
+}
+
+void OH_Drawing_CanvasScale(OH_Drawing_Canvas* cCanvas, float sx, float sy)
+{
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->Scale(sx, sy);
 }
 
 void OH_Drawing_CanvasClear(OH_Drawing_Canvas* cCanvas, uint32_t color)
 {
-    CastToCanvas(cCanvas)->Clear(color);
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->Clear(color);
 }

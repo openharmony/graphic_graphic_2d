@@ -23,6 +23,7 @@
 #include "animation/rs_animation_timing_protocol.h"
 #include "common/rs_common_def.h"
 #include "modifier/rs_modifier_type.h"
+#include "modifier/rs_property.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -102,6 +103,7 @@ protected:
     virtual void SetPropertyOnAllAnimationFinish() {}
 
     void StartCustomAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
+    virtual void SetInitialVelocity(const std::shared_ptr<RSPropertyBase>& velocity) {};
 
 private:
     static AnimationId GenerateId();

@@ -101,15 +101,15 @@ void MaskBrushOpItem::Playback(MaskPlayer& player, const void* opItem)
 
 void MaskBrushOpItem::Playback(Brush& brush, const CmdList& cmdList) const
 {
-    auto colorSpace = CmdListHelper::GetFromCmdList<ColorSpaceCmdList, ColorSpace>(
+    auto colorSpace = CmdListHelper::GetColorSpaceFromCmdList(
         cmdList, brushHandle_.colorSpaceHandle);
-    auto shaderEffect = CmdListHelper::GetFromCmdList<ShaderEffectCmdList, ShaderEffect>(
+    auto shaderEffect = CmdListHelper::GetShaderEffectFromCmdList(
         cmdList, brushHandle_.shaderEffectHandle);
-    auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
+    auto colorFilter = CmdListHelper::GetColorFilterFromCmdList(
         cmdList, brushHandle_.colorFilterHandle);
-    auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
+    auto imageFilter = CmdListHelper::GetImageFilterFromCmdList(
         cmdList, brushHandle_.imageFilterHandle);
-    auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
+    auto maskFilter = CmdListHelper::GetMaskFilterFromCmdList(
         cmdList, brushHandle_.maskFilterHandle);
 
     Filter filter;

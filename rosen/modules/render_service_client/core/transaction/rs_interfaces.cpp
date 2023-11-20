@@ -408,5 +408,10 @@ void RSInterfaces::SetTpFeatureConfig(int32_t feature, const char* config)
     renderServiceClient_->SetTpFeatureConfig(feature, config);
 }
 #endif
+
+void RSInterfaces::SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus)
+{
+    renderServiceClient_->SetVirtualScreenUsingStatus(isVirtualScreenUsingStatus);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -19,10 +19,11 @@
 #include <functional>
 
 #include "animation/rs_animation_timing_protocol.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
-class AnimationCallback {
+class RSC_EXPORT AnimationCallback {
 public:
     explicit AnimationCallback(const std::function<void()>& callback);
     virtual ~AnimationCallback();
@@ -31,7 +32,7 @@ protected:
     std::function<void()> callback_;
 };
 
-class AnimationFinishCallback : public AnimationCallback {
+class RSC_EXPORT AnimationFinishCallback : public AnimationCallback {
 public:
     AnimationFinishCallback(const std::function<void()>& callback,
         FinishCallbackType finishCallbackType = FinishCallbackType::TIME_SENSITIVE);
@@ -42,7 +43,7 @@ public:
     const FinishCallbackType finishCallbackType_;
 };
 
-class AnimationRepeatCallback {
+class RSC_EXPORT AnimationRepeatCallback {
 public:
     AnimationRepeatCallback(const std::function<void()>& callback) : callback_(callback) {};
     ~AnimationRepeatCallback() {};

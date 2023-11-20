@@ -43,20 +43,34 @@ void OH_Drawing_BrushDestroy(OH_Drawing_Brush* cBrush)
 
 bool OH_Drawing_BrushIsAntiAlias(const OH_Drawing_Brush* cBrush)
 {
+    if (cBrush == nullptr) {
+        return false;
+    }
     return CastToBrush(*cBrush).IsAntiAlias();
 }
 
 void OH_Drawing_BrushSetAntiAlias(OH_Drawing_Brush* cBrush, bool aa)
 {
-    CastToBrush(cBrush)->SetAntiAlias(aa);
+    Brush* brush = CastToBrush(cBrush);
+    if (brush == nullptr) {
+        return;
+    }
+    brush->SetAntiAlias(aa);
 }
 
 uint32_t OH_Drawing_BrushGetColor(const OH_Drawing_Brush* cBrush)
 {
+    if (cBrush == nullptr) {
+        return 0;
+    }
     return CastToBrush(*cBrush).GetColor().CastToColorQuad();
 }
 
 void OH_Drawing_BrushSetColor(OH_Drawing_Brush* cBrush, uint32_t color)
 {
-    CastToBrush(cBrush)->SetColor(color);
+    Brush* brush = CastToBrush(cBrush);
+    if (brush == nullptr) {
+        return;
+    }
+    brush->SetColor(color);
 }

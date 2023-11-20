@@ -67,6 +67,21 @@ public:
 
     void DrawRoundCorner(std::shared_ptr<RSPaintFilterCanvas> canvas);
 
+    void RunHardwareTask(const std::function<void()>& task)
+    {
+        std::lock_guard<std::mutex> lock(resourceMut_);
+        if (!supportHardware_) {
+            return;
+        }
+        UpdateParameter(updateFlag_);
+        task(); // do task
+    }
+    
+    rs_rcd::RoundCornerHardware GetHardwareInfo() const
+    {
+        return hardInfo_;
+    }
+
 private:
     // load config
     rs_rcd::LCDModel* lcdModel_ = nullptr;
@@ -85,6 +100,12 @@ private:
     sk_sp<SkImage> imgTopHidden_ = nullptr;
     sk_sp<SkImage> imgBottomPortrait_ = nullptr;
 
+    // notch resources for harden
+    SkBitmap bitmapTopPortrait_;
+    SkBitmap bitmapTopLadsOrit_;
+    SkBitmap bitmapTopHidden_;
+    SkBitmap bitmapBottomPortrait_;
+
     // display resolution
     uint32_t displayWidth_ = 0;
     uint32_t displayHeight_ = 0;
@@ -94,7 +115,7 @@ private:
     // status of the notch
     int notchStatus_ = notchSetting_;
 
-    int showResourceType_ = TOP_PORTRAIT;
+    int showResourceType_ = (notchSetting_ == WINDOW_NOTCH_DEFAULT) ? TOP_PORTRAIT : TOP_HIDDEN;
 
     // status of the rotation
     ScreenRotation curOrientation_ = ScreenRotation::ROTATION_0;
@@ -102,12 +123,15 @@ private:
 
     bool supportTopSurface_ = false;
     bool supportBottomSurface_ = false;
+    bool supportHardware_ = false;
 
     // the resource to be drawn
     sk_sp<SkImage> curTop_ = nullptr;
     sk_sp<SkImage> curBottom_ = nullptr;
 
     std::mutex resourceMut_;
+
+    rs_rcd::RoundCornerHardware hardInfo_;
 
     bool Init();
 
@@ -118,6 +142,10 @@ private:
 
     // load single image as skimage
     bool LoadImg(const char* path, sk_sp<SkImage>& img);
+
+    bool DecodeBitmap(sk_sp<SkImage> skimage, SkBitmap &bitmap);
+
+    bool SetHardwareLayerSize();
 
     // load all images according to the resolution
     bool LoadImgsbyResolution(uint32_t width, uint32_t height);
@@ -133,6 +161,8 @@ private:
     void RcdChooseTopResourceType();
 
     void RcdChooseRSResource();
+
+    void RcdChooseHardwareResource();
 };
 } // namespace Rosen
 } // namespace OHOS

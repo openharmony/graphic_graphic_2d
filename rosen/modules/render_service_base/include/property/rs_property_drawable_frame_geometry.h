@@ -16,8 +16,7 @@
 #ifndef RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_FRAME_GEOMETRY_H
 #define RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_FRAME_GEOMETRY_H
 
-#include <list>
-#include <utility>
+#include "include/core/SkPaint.h"
 
 #include "property/rs_property_drawable.h"
 
@@ -54,6 +53,7 @@ public:
     ~RSColorFilterDrawable() override = default;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
     static std::unique_ptr<RSPropertyDrawable> Generate(const RSPropertyDrawableGenerateContext& context);
+    bool Update(const RSPropertyDrawableGenerateContext& context) override;
 
 private:
 #ifndef USE_ROSEN_DRAWING
