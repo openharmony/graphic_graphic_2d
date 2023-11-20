@@ -652,28 +652,42 @@ void RSPropertiesPainter::GetDarkColor(RSColor& color)
 }
 
 RSColor RSPropertiesPainter::PickColor(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& skPath,
-    SkMatrix& matrix, SkIRect& deviceClipBounds)
+    SkMatrix& matrix, SkIRect& deviceClipBounds, RSColor& colorPicked)
 {
     SkRect clipBounds = skPath.getBounds();
     SkIRect clipIBounds = clipBounds.roundIn();
     SkSurface* skSurface = canvas.GetSurface();
-    int32_t fLeft = std::clamp(int(matrix.getTranslateX()), 0, deviceClipBounds.width() - 1);
-    int32_t fTop = std::clamp(int(matrix.getTranslateY()), 0, deviceClipBounds.height() - 1);
+    if (skSurface == nullptr) {
+        return;
+    }
+
+    auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
+    colorPickerTask->SetIsShadow(true);
+    int deviceWidth = 0;
+    int deviceHeight = 0;
+    int deviceClipBoundsW = deviceClipBounds.width();
+    int deviceClipBoundsH = deviceClipBounds.height();
+    if (!colorPickerTask->GetDeviceSize(deviceWidth, deviceHeight)) {
+        colorPickerTask->SetDeviceSize(deviceClipBoundsW, deviceClipBoundsH);
+    }
+    int32_t fLeft = std::clamp(int(matrix.getTranslateX()), 0, deviceWidth - 1);
+    int32_t fTop = std::clamp(int(matrix.getTranslateY()), 0, deviceHeight - 1);
 
     SkIRect regionBounds = SkIRect::MakeXYWH(fLeft, fTop, clipIBounds.width(), clipIBounds.height());
     sk_sp<SkImage> shadowRegionImage = skSurface->makeImageSnapshot(regionBounds);
 
-    auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
-    RSColor color;
-    if (RSColorPickerCacheTask::PostPartialColorPickerTask(colorPickerTask, shadowRegionImage)
-        && colorPickerTask->GetColor(color)) {
-        colorPickerTask->GetColorAverage(color);
-        colorPickerTask->SetStatus(CacheProcessStatus::WAITING);
-        return color;
+    if (shadowRegionImage == nullptr) {
+        return;
     }
-    colorPickerTask->GetColorAverage(color);
 
-    return color;
+    if (RSColorPickerCacheTask::PostPartialColorPickerTask(colorPickerTask, shadowRegionImage)
+        && colorPickerTask->GetColor(colorPicked)) {
+        colorPickerTask->GetColorAverage(colorPicked);
+        colorPickerTask->SetStatus(CacheProcessStatus::WAITING);
+        return;
+    }
+    colorPickerTask->GetColorAverage(colorPicked);
+    return;
 }
 
 #ifndef USE_ROSEN_DRAWING
@@ -681,7 +695,8 @@ void RSPropertiesPainter::DrawShadowInner(const RSProperties& properties, RSPain
 {
     skPath.offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
     Color spotColor = properties.GetShadowColor();
-    auto shadowAlpha = spotColor.GetAlpha();
+    // color shadow alpha deault is 255, if need to be changed, should add a arkui interface
+    auto shadowAlpha = UINT8_MAX;
     auto deviceClipBounds = canvas.getDeviceClipBounds();
 
     // The translation of the matrix is rounded to improve the hit ratio of skia blurfilter cache,
@@ -695,11 +710,7 @@ void RSPropertiesPainter::DrawShadowInner(const RSProperties& properties, RSPain
     RSColor colorPicked;
     auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
     if (colorPickerTask != nullptr && properties.GetShadowColorStrategy()) {
-        // Make color shadow work even shadowAlapha not set
-        if (shadowAlpha == 0) {
-            shadowAlpha = UINT8_MAX;
-        }
-        colorPicked = PickColor(properties, canvas, skPath, matrix, deviceClipBounds);
+        colorPicked = PickColor(properties, canvas, skPath, matrix, deviceClipBounds, colorPicked);
         GetDarkColor(colorPicked);
         if (!colorPickerTask->GetFirstGetColorFinished()) {
             shadowAlpha = 0;

@@ -555,19 +555,16 @@ void RSShadowBaseDrawable::ClipShadowPath(RSRenderNode& node, RSPaintFilterCanva
 #endif
 
 RSColor RSShadowDrawable::GetColorForShadow(RSRenderNode& node, RSPaintFilterCanvas& canvas,
-    SkPath& skPath, SkMatrix& matrix)
+    SkPath& skPath, SkMatrix& matrix, SkIRect& deviceClipBounds)
 {
     RSColor colorPicked;
     const RSProperties& properties = node.GetRenderProperties();
-    auto shadowAlpha = color_.GetAlpha();
+    // color shadow alpha deault is 255, if need to be changed, should add a arkui interface
+    auto shadowAlpha = UINT8_MAX;
     auto deviceClipBounds = canvas.getDeviceClipBounds();
     auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
     if (colorPickerTask != nullptr && properties.GetShadowColorStrategy()) {
-        // Make color shadow work even shadowAlapha not set
-        if (shadowAlpha == 0) {
-            shadowAlpha = UINT8_MAX;
-        }
-        colorPicked = RSPropertiesPainter::PickColor(properties, canvas, skPath, matrix, deviceClipBounds);
+        colorPicked = RSPropertiesPainter::PickColor(properties, canvas, skPath, matrix, deviceClipBounds, colorPicked);
         RSPropertiesPainter::GetDarkColor(colorPicked);
         if (!colorPickerTask->GetFirstGetColorFinished()) {
             shadowAlpha = 0;
@@ -584,6 +581,7 @@ void RSShadowDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
         return;
     }
 #ifndef USE_ROSEN_DRAWING
+    auto deviceClipBounds = canvas.getDeviceClipBounds();
     SkAutoCanvasRestore acr(&canvas, true);
     SkPath skPath;
     ClipShadowPath(node, canvas, skPath);
@@ -592,7 +590,7 @@ void RSShadowDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
     matrix.setTranslateX(std::ceil(matrix.getTranslateX()));
     matrix.setTranslateY(std::ceil(matrix.getTranslateY()));
     canvas.setMatrix(matrix);
-    RSColor colorPicked = GetColorForShadow(node, canvas, skPath, matrix);
+    RSColor colorPicked = GetColorForShadow(node, canvas, skPath, matrix, deviceClipBounds);
     SkPaint paint;
     paint.setColor(SkColorSetARGB(colorPicked.GetAlpha(), colorPicked.GetRed(),
         colorPicked.GetGreen(), colorPicked.GetBlue()));

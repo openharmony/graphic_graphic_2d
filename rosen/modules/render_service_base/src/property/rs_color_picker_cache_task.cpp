@@ -156,6 +156,11 @@ bool RSColorPickerCacheTask::Render()
         uint32_t errorCode = 0;
         std::shared_ptr<RSColorPicker> colorPicker = RSColorPicker::CreateColorPicker(dst, errorCode);
         if (errorCode == 0) {
+            if (isShadow_) {
+                colorPicker->GetLargestProportionColor(color);
+            } else {
+                colorPicker->GetAverageColor(color);
+            }
             colorPicker->GetLargestProportionColor(color);
             std::unique_lock<std::mutex> lock(parallelRenderMutex_);
             color_ = RSColor(SkColorGetR(color), SkColorGetG(color), SkColorGetB(color), SkColorGetA(color));
@@ -303,6 +308,28 @@ bool RSColorPickerCacheTask::PostPartialColorPickerTask(std::shared_ptr<RSColorP
         return false;
     }
 }
+
+void RSColorPickerCacheTask::SetDeviceSize(int& deviceWidth, int& deviceHeight)
+{
+    deviceWidth_ = deviceWidth;
+    deviceHeight_ = deviceHeight;
+}
+
+void RSColorPickerCacheTask::SetIsShadow(bool isShadow)
+{
+    isShadow_ = isShadow;
+}
+
+bool RSColorPickerCacheTask::GetDeviceSize(int& deviceWidth, int& deviceHeight) const
+{
+    if (deviceWidth_.has_value() && deviceHeight_.has_value()) {
+        deviceWidth = deviceWidth_.value();
+        deviceHeight = deviceHeight_.value();
+        return true;
+    }
+    return false;
+}
+
 
 } // namespace Rosen
 } // namespace OHOS
