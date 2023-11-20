@@ -84,6 +84,7 @@ public:
     static void DrawBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas, const SkRect& rect);
     static sk_sp<SkShader> MakeDynamicLightUpShader(
         float dynamicLightUpRate, float dynamicLightUpDeg, sk_sp<SkShader> imageShader);
+    static void DrawGreyAdjustment(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 #else // USE_ROSEN_DRAWING
     static void Clip(Drawing::Canvas& canvas, RectF rect, bool isAntiAlias = true);
     static void DrawBorder(const RSProperties& properties, Drawing::Canvas& canvas);
@@ -155,7 +156,6 @@ private:
     static sk_sp<SkShader> MakeMeanBlurShader(sk_sp<SkShader> srcImageShader,
         sk_sp<SkShader> blurImageShader, sk_sp<SkShader> gradientShader);
     static sk_sp<SkShader> MakeGreyAdjustmentShader(const float coef1, const float coef2, sk_sp<SkShader> imageShader);
-    static void DrawGreyAdjustment(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 
     static void DrawBorderBase(const RSProperties& properties, SkCanvas& canvas,
                                const std::shared_ptr<RSBorder>& border, Vector4f& outset,
