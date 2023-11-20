@@ -608,7 +608,8 @@ HWTEST_F(ShaderEffectTest, ArgsContructor017, TestSize.Level1)
     std::vector<ColorQuad> colors;
     std::vector<scalar> position;
     auto newShaderEffect = std::make_unique<ShaderEffect>(
-        ShaderEffect::ShaderEffectType::BLEND, centerPoint, colors, position, TileMode::REPEAT, startAngle, endAngle, nullptr);
+        ShaderEffect::ShaderEffectType::BLEND, centerPoint, colors, position, TileMode::REPEAT, startAngle, endAngle,
+        nullptr);
     ASSERT_TRUE(newShaderEffect != nullptr);
 }
 
@@ -627,7 +628,8 @@ HWTEST_F(ShaderEffectTest, ArgsContructor018, TestSize.Level1)
     std::vector<ColorQuad> colors;
     std::vector<scalar> position;
     auto newShaderEffect = std::make_unique<ShaderEffect>(
-        ShaderEffect::ShaderEffectType::COLOR, centerPoint, colors, position, TileMode::REPEAT, startAngle, endAngle, nullptr);
+        ShaderEffect::ShaderEffectType::COLOR, centerPoint, colors, position, TileMode::REPEAT, startAngle, endAngle,
+        nullptr);
     ASSERT_TRUE(newShaderEffect != nullptr);
 }
 } // namespace Drawing
