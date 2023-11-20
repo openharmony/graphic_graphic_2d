@@ -178,7 +178,7 @@ static const std::array<RSPropertyDrawable::DrawableGenerator, RSPropertyDrawabl
     nullptr,                                      // FG_SAVE_BOUNDS,
     nullptr,                                      // EXTRA_CLIP_TO_BOUNDS,
     RSColorFilterDrawable::Generate,              // COLOR_FILTER,
-    RSBinarizationDrawable::Generate,             // BINARIZATION, 
+    RSBinarizationDrawable::Generate,             // BINARIZATION,
     RSLightUpEffectDrawable::Generate,            // LIGHT_UP_EFFECT,
     RSForegroundFilterDrawable::Generate,         // FOREGROUND_FILTER,
     RSLinearGradientBlurFilterDrawable::Generate, // LINEAR_GRADIENT_BLUR_FILTER,
