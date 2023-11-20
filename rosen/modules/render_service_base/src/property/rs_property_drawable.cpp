@@ -131,6 +131,10 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::SHADOW_IS_FILLED, RSPropertyDrawableSlot::INVALID },
     { RSModifierType::COLOR_BLEND_MODE, RSPropertyDrawableSlot::SAVE_LAYER_CONTENT },
     { RSModifierType::USE_SHADOW_BATCHING, RSPropertyDrawableSlot::INVALID },
+    { RSModifierType::LIGHT_INTENSITY, RSPropertyDrawableSlot::POINT_LIGHT },
+    { RSModifierType::LIGHT_POSITION, RSPropertyDrawableSlot::POINT_LIGHT },
+    { RSModifierType::ILLUMINATED_TYPE, RSPropertyDrawableSlot::POINT_LIGHT },
+    { RSModifierType::BLOOM, RSPropertyDrawableSlot::POINT_LIGHT },
     { RSModifierType::CUSTOM, RSPropertyDrawableSlot::INVALID },
     { RSModifierType::EXTENDED, RSPropertyDrawableSlot::INVALID },
     { RSModifierType::TRANSITION, RSPropertyDrawableSlot::TRANSITION },
@@ -195,6 +199,7 @@ static const std::array<RSPropertyDrawable::DrawableGenerator, RSPropertyDrawabl
     nullptr,                                      // RESTORE_BACKGROUND
 
     // No clip (unless ClipToBounds is set)
+    RSPointLightDrawable::Generate,                       // POINT_LIGHT
     RSBorderDrawable::Generate,                           // BORDER,
     CustomModifierAdapter<RSModifierType::OVERLAY_STYLE>, // OVERLAY
     RSParticleDrawable::Generate,                         // PARTICLE_EFFECT,

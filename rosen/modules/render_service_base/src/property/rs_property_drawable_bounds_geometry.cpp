@@ -91,6 +91,27 @@ RSPropertyDrawable::DrawablePtr RSClipBoundsDrawable::Generate(const RSPropertyD
 }
 
 // ============================================================================
+// PointLight
+RSPropertyDrawable::DrawablePtr RSPointLightDrawable::Generate(const RSPropertyDrawableGenerateContext& context)
+{
+    const auto& properties = context.properties_;
+    const auto& illuminatedPtr = properties.GetIlluminated();
+    if (illuminatedPtr && illuminatedPtr->IsIlluminatedValid()) {
+        return std::make_unique<RSPointLightDrawable>();
+    }
+    return nullptr;
+}
+
+void RSPointLightDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
+{
+    auto& properties = node.GetMutableRenderProperties();
+    const auto& illuminatedPtr = properties.GetIlluminated();
+    if (illuminatedPtr && illuminatedPtr->IsIlluminated() && ROSEN_EQ(properties.GetBloom(), 0.f)) {
+        RSPropertiesPainter::DrawLight(properties, canvas);
+    }
+}
+
+// ============================================================================
 // Border
 RSPropertyDrawable::DrawablePtr RSBorderDrawable::Generate(const RSPropertyDrawableGenerateContext& context)
 {

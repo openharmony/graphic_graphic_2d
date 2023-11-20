@@ -45,6 +45,17 @@ public:
 };
 
 // ============================================================================
+// PointLight
+class RSPointLightDrawable : public RSPropertyDrawable {
+public:
+    explicit RSPointLightDrawable() = default;
+    ~RSPointLightDrawable() override = default;
+    void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
+
+    static RSPropertyDrawable::DrawablePtr Generate(const RSPropertyDrawableGenerateContext& context);
+};
+
+// ============================================================================
 // Border
 class RSBorderDrawable : public RSPropertyDrawable {
 public:

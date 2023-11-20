@@ -1708,7 +1708,6 @@ void RSProperties::SetLightIntensity(float lightIntensity)
         lightSourcePtr_ = std::make_shared<RSLightSource>();
     }
     lightSourcePtr_->SetLightIntensity(lightIntensity);
-    colorFilterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
 
@@ -1732,7 +1731,6 @@ void RSProperties::SetLightPosition(const Vector4f& lightPosition)
         lightSourcePtr_ = std::make_shared<RSLightSource>();
     }
     lightSourcePtr_->SetLightPosition(lightPosition);
-    colorFilterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
 }
@@ -1744,7 +1742,6 @@ void RSProperties::SetIlluminatedType(int illuminatedType)
     }
     auto curIlluminateType = IlluminatedType(illuminatedType);
     illuminatedPtr_->SetIlluminatedType(curIlluminateType);
-    colorFilterNeedUpdate_ = true;
     isDrawn_ = true;
     SetDirty();
     contentDirty_ = true;
@@ -1769,7 +1766,6 @@ void RSProperties::SetBloom(float bloomIntensity)
         illuminatedPtr_ = std::make_shared<RSIlluminated>();
     }
     illuminatedPtr_->SetBloomIntensity(bloomIntensity);
-    colorFilterNeedUpdate_ = true;
     isDrawn_ = true;
     SetDirty();
     contentDirty_ = true;
