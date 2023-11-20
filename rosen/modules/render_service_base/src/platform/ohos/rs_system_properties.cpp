@@ -609,7 +609,7 @@ bool RSSystemProperties::GetSyncTransactionEnabled()
 int RSSystemProperties::GetSyncTransactionWaitDelay()
 {
     static int syncTransactionWaitDelay =
-        std::atoi((system::GetParameter("persist.sys.graphic.syncTransactionWaitDelay", "200")).c_str());
+        std::atoi((system::GetParameter("persist.sys.graphic.syncTransactionWaitDelay", "500")).c_str());
     return syncTransactionWaitDelay;
 }
 
