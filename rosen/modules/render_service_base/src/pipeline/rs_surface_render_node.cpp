@@ -803,11 +803,32 @@ void RSSurfaceRenderNode::AccumulateOcclusionRegion(Occlusion::Region& accumulat
     return;
 }
 
+RS_REGION_VISIBLE_LEVEL RSSurfaceRenderNode::GetVisibleLevelForWMS(RSVisibleLevel visibleLevel)
+{
+    switch (visibleLevel) {
+        case RSVisibleLevel::RS_INVISIBLE:
+            return RS_REGION_VISIBLE_LEVEL::INVISIBLE;
+        case RSVisibleLevel::RS_ALL_VISIBLE:
+            return RS_REGION_VISIBLE_LEVEL::ALL_VISIBLE;
+        case RSVisibleLevel::RS_SEMI_NONDEFAULT_VISIBLE:
+        case RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE:
+            return RS_REGION_VISIBLE_LEVEL::SEMI_VISIBLE;
+        default:
+            break;
+    }
+    return RS_REGION_VISIBLE_LEVEL::UNKNOW_VISIBLE_LEVEL;
+}
+
+bool RSSurfaceRenderNode::IsMultiInstance()
+{
+    return GetName().find("filemanager") != std::string::npos || GetName().find("browser") != std::string::npos;
+}
+
 void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& region,
                                                     VisibleData& visibleVec,
-                                                    std::map<uint32_t, bool>& pidVisMap,
+                                                    std::map<uint32_t, RSVisibleLevel>& pidVisMap,
                                                     bool needSetVisibleRegion,
-                                                    RS_REGION_VISIBLE_LEVEL visibleLevel)
+                                                    RSVisibleLevel visibleLevel)
 {
     if (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE || IsAbilityComponent()) {
         SetOcclusionVisible(true);
@@ -817,17 +838,13 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
 
     bool vis = region.GetSize() > 0;
     if (vis) {
-        visibleVec.emplace_back(std::make_pair(GetId(), visibleLevel));
+        visibleVec.emplace_back(std::make_pair(GetId(), GetVisibleLevelForWMS(visibleLevel)));
     }
 
     // collect visible changed pid
-    if (qosPidCal_ && GetType() == RSRenderNodeType::SURFACE_NODE) {
+    if (qosPidCal_ && GetType() == RSRenderNodeType::SURFACE_NODE && !IsMultiInstance()) {
         uint32_t tmpPid = ExtractPid(GetId());
-        if (pidVisMap.find(tmpPid) != pidVisMap.end()) {
-            pidVisMap[tmpPid] |= vis;
-        } else {
-            pidVisMap[tmpPid] = vis;
-        }
+        pidVisMap[tmpPid] = visibleLevel;
     }
 
     visibleRegionForCallBack_ = region;

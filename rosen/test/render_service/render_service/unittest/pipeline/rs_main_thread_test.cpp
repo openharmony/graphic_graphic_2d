@@ -241,7 +241,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusion, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, CheckQosVisChanged001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    std::map<uint32_t, bool> pidVisMap;
+    std::map<uint32_t, RSVisibleLevel> pidVisMap;
     auto isVisibleChanged = mainThread->CheckQosVisChanged(pidVisMap);
     ASSERT_EQ(false, isVisibleChanged);
 }
@@ -255,9 +255,9 @@ HWTEST_F(RSMainThreadTest, CheckQosVisChanged001, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, CheckQosVisChanged002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    std::map<uint32_t, bool> pidVisMap;
-    pidVisMap[0] = true;
-    mainThread->lastPidVisMap_[0] = false;
+    std::map<uint32_t, RSVisibleLevel> pidVisMap;
+    pidVisMap[0] = RSVisibleLevel::RS_ALL_VISIBLE;
+    mainThread->lastPidVisMap_[0] = RSVisibleLevel::RS_INVISIBLE;
     auto isVisibleChanged = mainThread->CheckQosVisChanged(pidVisMap);
     ASSERT_EQ(true, isVisibleChanged);
 }
@@ -271,9 +271,9 @@ HWTEST_F(RSMainThreadTest, CheckQosVisChanged002, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, CheckQosVisChanged003, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    std::map<uint32_t, bool> pidVisMap;
-    pidVisMap[0] = true;
-    mainThread->lastPidVisMap_[0] = true;
+    std::map<uint32_t, RSVisibleLevel> pidVisMap;
+    pidVisMap[0] = RSVisibleLevel::RS_ALL_VISIBLE;
+    mainThread->lastPidVisMap_[0] = RSVisibleLevel::RS_ALL_VISIBLE;
     auto isVisibleChanged = mainThread->CheckQosVisChanged(pidVisMap);
     ASSERT_EQ(false, isVisibleChanged);
 }

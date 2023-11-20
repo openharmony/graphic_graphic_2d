@@ -299,7 +299,7 @@ HWTEST_F(RSUniRenderVisitorTest, CalcDirtyDisplayRegion, TestSize.Level1)
     Occlusion::Rect rect{0, 80, 2560, 1600};
     Occlusion::Region region{rect};
     VisibleData vData;
-    std::map<uint32_t, bool> pidVisMap;
+    std::map<uint32_t, RSVisibleLevel> pidVisMap;
 
     auto partialRenderType = RSSystemProperties::GetUniPartialRenderEnabled();
     auto isPartialRenderEnabled = (partialRenderType != PartialRenderType::DISABLED);
@@ -361,7 +361,7 @@ HWTEST_F(RSUniRenderVisitorTest, SetSurfafaceGlobalDirtyRegion, TestSize.Level1)
     Occlusion::Rect rect{0, 80, 2560, 1600};
     Occlusion::Region region{rect};
     VisibleData vData;
-    std::map<uint32_t, bool> pidVisMap;
+    std::map<uint32_t, RSVisibleLevel> pidVisMap;
     rsSurfaceRenderNode1->SetVisibleRegionRecursive(region, vData, pidVisMap);
 
     config.id = 11;

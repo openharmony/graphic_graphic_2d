@@ -96,7 +96,7 @@ HWTEST_F(RSQosThreadTest, QosThreadStartAndStop, TestSize.Level1)
 
 HWTEST_F(RSQosThreadTest,  QosOnRSVisibilityChangeCB, TestSize.Level1)
 {
-    std::map<uint32_t, bool> pidVisMap;
+    std::map<uint32_t, RSVisibleLevel> pidVisMap;
 
     // qosCal not setted
     RSQosThread::GetInstance()->OnRSVisibilityChangeCB(pidVisMap);
@@ -115,7 +115,7 @@ HWTEST_F(RSQosThreadTest, QosFakeSo, TestSize.Level1)
     RSQosThread::ThreadStart();
     RSQosThread::ThreadStop();
 
-    std::map<uint32_t, bool> pidVisMap;
+    std::map<uint32_t, RSVisibleLevel> pidVisMap;
     RSQosThread::GetInstance()->SetQosCal(true);
     RSQosThread::GetInstance()->OnRSVisibilityChangeCB(pidVisMap);
 }

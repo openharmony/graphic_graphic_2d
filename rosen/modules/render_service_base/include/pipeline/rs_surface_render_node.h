@@ -346,6 +346,7 @@ public:
 
     void SetFingerprint(bool hasFingerprint);
     bool GetFingerprint() const;
+    bool IsMultiInstance();
 
     std::shared_ptr<RSDirtyRegionManager> GetDirtyManager() const;
     std::shared_ptr<RSDirtyRegionManager> GetCacheSurfaceDirtyManager() const;
@@ -431,12 +432,14 @@ public:
 
     bool IsSurfaceInStartingWindowStage() const;
 
+    RS_REGION_VISIBLE_LEVEL GetVisibleLevelForWMS(RSVisibleLevel visibleLevel);
+
     void SetVisibleRegionRecursive(
         const Occlusion::Region& region,
         VisibleData& visibleVec,
-        std::map<uint32_t, bool>& pidVisMap,
+        std::map<uint32_t, RSVisibleLevel>& pidVisMap,
         bool needSetVisibleRegion = true,
-        RS_REGION_VISIBLE_LEVEL visibleLevel = UNKNOW_VISIBLE_LEVEL);
+        RSVisibleLevel visibleLevel = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL);
 
     const Occlusion::Region& GetVisibleDirtyRegion() const
     {

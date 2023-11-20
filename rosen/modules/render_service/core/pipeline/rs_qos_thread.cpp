@@ -19,8 +19,11 @@
 
 #include "vsync_distributor.h"
 #include "platform/common/rs_innovation.h"
+#include "common/rs_common_def.h"
 
 namespace OHOS::Rosen {
+constexpr int32_t SIMI_VISIBLE_RATE = 2;
+constexpr int32_t DEFAULT_RATE = 1;
 std::once_flag RSQosThread::flag_;
 RSQosThread* RSQosThread::instance_ = nullptr;
 sptr<VSyncDistributor> RSQosThread::appVSyncDistributor_ = nullptr;
@@ -101,15 +104,17 @@ void RSQosThread::ResetQosPid()
     QosOnRSResetPid();
 }
 
-void RSQosThread::OnRSVisibilityChangeCB(std::map<uint32_t, bool>& pidVisMap)
+void RSQosThread::OnRSVisibilityChangeCB(const std::map<uint32_t, RSVisibleLevel>& pidVisMap)
 {
     if (!qosCal_) {
         return;
     }
-
-    using QosOnRSVisibilityChangeCBFunc = void (*)(std::map<uint32_t, bool>&);
-
-    auto QosOnRSVisibilityChangeCB = (QosOnRSVisibilityChangeCBFunc)RSInnovation::_s_qosOnRSVisibilityChangeCB;
-    QosOnRSVisibilityChangeCB(pidVisMap);
+    for (auto iter:pidVisMap) {
+        if (iter.second == RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE) {
+            SetQosVSyncRate(iter.first, SIMI_VISIBLE_RATE);
+        } else {
+            SetQosVSyncRate(iter.first, DEFAULT_RATE);
+        }
+    }
 }
 } // amespace OHOS::Rosen

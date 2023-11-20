@@ -106,6 +106,14 @@ enum class NodePriorityType : uint8_t {
     SUB_LOW_PRIORITY, // node render in sub thread with low priority
 };
 
+enum class RSVisibleLevel : uint32_t {
+    RS_ALL_VISIBLE = 0,
+    RS_SEMI_NONDEFAULT_VISIBLE,
+    RS_SEMI_DEFAULT_VISIBLE,
+    RS_INVISIBLE,
+    RS_UNKNOW_VISIBLE_LEVEL,
+};
+
 // status for sub thread node
 enum class CacheProcessStatus : uint8_t {
     WAITING = 0, // waiting for process
