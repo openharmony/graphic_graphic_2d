@@ -20,9 +20,8 @@ namespace Rosen {
 using namespace std;
 void Util::SplitString(const string& str, vector<string>& vec, const string& pattern)
 {
-    string::size_type pos1, pos2;
-    pos2 = str.find(pattern);
-    pos1 = 0;
+    string::size_type pos1 = 0;
+    string::size_type pos2 = str.find(pattern);
     while (string::npos != pos2) {
         vec.push_back(str.substr(pos1, pos2 - pos1));
         pos1 = pos2 + pattern.size();

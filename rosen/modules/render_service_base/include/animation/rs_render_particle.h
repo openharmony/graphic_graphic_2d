@@ -202,8 +202,8 @@ public:
     RenderParticleColorParaType()
         : colorVal_(), updator_(ParticleUpdator::NONE), redRandom_(), greenRandom_(), blueRandom_(), alphaRandom_()
     {}
-    RenderParticleColorParaType(const RenderParticleColorParaType& velocity) = default;
-    RenderParticleColorParaType& operator=(const RenderParticleColorParaType& velocity) = default;
+    RenderParticleColorParaType(const RenderParticleColorParaType& color) = default;
+    RenderParticleColorParaType& operator=(const RenderParticleColorParaType& color) = default;
     ~RenderParticleColorParaType() = default;
 };
 

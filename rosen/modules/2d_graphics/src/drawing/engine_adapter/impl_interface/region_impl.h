@@ -28,17 +28,14 @@ enum class RegionOp;
 
 class RegionImpl : public BaseImpl {
 public:
-    static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     RegionImpl() {}
     ~RegionImpl() override {}
-    AdapterType GetType() const override
-    {
-        return AdapterType::BASE_INTERFACE;
-    }
-
     virtual bool SetRect(const RectI& rectI) = 0;
     virtual bool SetPath(const Path& path, const Region& clip) = 0;
+    virtual bool GetBoundaryPath(Path* path) const = 0;
     virtual bool IsIntersects(const Region& other) const = 0;
+    virtual bool IsEmpty() const = 0;
+    virtual bool IsRect() const = 0;
     virtual bool Op(const Region& region, const RegionOp op) = 0;
 };
 } // namespace Drawing

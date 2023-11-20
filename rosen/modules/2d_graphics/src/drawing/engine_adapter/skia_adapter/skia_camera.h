@@ -28,8 +28,10 @@ namespace Drawing {
 class SkiaCamera : public CameraImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     SkiaCamera() noexcept;
     ~SkiaCamera() override {}
+
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;

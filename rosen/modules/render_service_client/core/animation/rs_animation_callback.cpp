@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,8 +26,9 @@ AnimationCallback::~AnimationCallback()
     }
 }
 
-AnimationFinishCallback::AnimationFinishCallback(const std::function<void()>& callback, bool isTimingSensitive)
-    : AnimationCallback(callback), isTimingSensitive_(isTimingSensitive)
+AnimationFinishCallback::AnimationFinishCallback(
+    const std::function<void()>& callback, Rosen::FinishCallbackType finishCallbackType)
+    : AnimationCallback(callback), finishCallbackType_(finishCallbackType)
 {}
 
 void AnimationFinishCallback::Execute()

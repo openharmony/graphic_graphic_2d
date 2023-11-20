@@ -17,8 +17,12 @@
 
 #include "include/effects/SkLumaColorFilter.h"
 #include "include/effects/SkOverdrawColorFilter.h"
+#include "src/core/SkReadBuffer.h"
+#include "src/core/SkWriteBuffer.h"
 
 #include "effect/color_filter.h"
+#include "utils/data.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -78,6 +82,43 @@ void SkiaColorFilter::SetColorFilter(const sk_sp<SkColorFilter>& filter)
 {
     filter_ = filter;
 }
+
+std::shared_ptr<Data> SkiaColorFilter::Serialize() const
+{
+#ifdef ROSEN_OHOS
+    if (filter_ == nullptr) {
+        LOGE("SkiaColorFilter::Serialize, filter_ is nullptr!");
+        return nullptr;
+    }
+
+    SkBinaryWriteBuffer writer;
+    writer.writeFlattenable(filter_.get());
+    size_t length = writer.bytesWritten();
+    std::shared_ptr<Data> data = std::make_shared<Data>();
+    data->BuildUninitialized(length);
+    writer.writeToMemory(data->WritableData());
+    return data;
+#else
+    return nullptr;
+#endif
+}
+
+bool SkiaColorFilter::Deserialize(std::shared_ptr<Data> data)
+{
+#ifdef ROSEN_OHOS
+    if (data == nullptr) {
+        LOGE("SkiaColorFilter::Deserialize, data is invalid!");
+        return false;
+    }
+
+    SkReadBuffer reader(data->GetData(), data->GetSize());
+    filter_ = reader.readColorFilter();
+    return filter_ != nullptr;
+#else
+    return false;
+#endif
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

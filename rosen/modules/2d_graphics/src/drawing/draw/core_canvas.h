@@ -65,6 +65,15 @@ struct Lattice {
     Color fColors;
 };
 
+enum CacheType : uint8_t {
+    UNDEFINED, // do not change current cache status
+    ENABLED,   // explicitly enable cache
+    DISABLED,  // explicitly disable cache
+    OFFSCREEN, // offscreen rendering
+};
+
+class Surface;
+
 /*
  * @brief  Contains the option used to create the layer.
  */
@@ -151,17 +160,17 @@ public:
     /*
      * @brief  Gets the total matrix of Canvas to device.
      */
-    Matrix GetTotalMatrix() const;
+    virtual Matrix GetTotalMatrix() const;
 
     /*
      * @brief  Gets bounds of clip in local coordinates.
      */
-    Rect GetLocalClipBounds() const;
+    virtual Rect GetLocalClipBounds() const;
 
     /*
      * @brief  Gets bounds of clip in device corrdinates.
      */
-    RectI GetDeviceClipBounds() const;
+    virtual RectI GetDeviceClipBounds() const;
 
     /*
      * @brief  Gets GPU context of the GPU surface associated with Canvas.
@@ -248,7 +257,7 @@ public:
      * @param op           To apply to clip.
      * @param doAntiAlias  true if clip is to be anti-aliased. The default value is false.
      */
-    virtual void ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias = false);
+    virtual void ClipRect(const Rect& rect, ClipOp op = ClipOp::INTERSECT, bool doAntiAlias = false);
 
     /*
      * @brief              Replace the clipping area with the intersection or difference between the
@@ -266,7 +275,7 @@ public:
      * @param op           To apply to clip.
      * @param doAntiAlias  true if clip is to be anti-aliased. The default value is false.
      */
-    virtual void ClipRoundRect(const RoundRect& roundRect, ClipOp op, bool doAntiAlias = false);
+    virtual void ClipRoundRect(const RoundRect& roundRect, ClipOp op = ClipOp::INTERSECT, bool doAntiAlias = false);
 
     /*
      * @brief              Replace the clipping area with the intersection or difference of the
@@ -275,7 +284,7 @@ public:
      * @param op           To apply to clip.
      * @param doAntiAlias  true if clip is to be anti-aliased. The default value is false.
      */
-    virtual void ClipPath(const Path& path, ClipOp op, bool doAntiAlias = false);
+    virtual void ClipPath(const Path& path, ClipOp op = ClipOp::INTERSECT, bool doAntiAlias = false);
 
     /*
      * @brief              Replace the clipping area with the intersection or difference of the
@@ -289,6 +298,11 @@ public:
      * @brief  Returns true if clip is empty.
      */
     virtual bool IsClipEmpty();
+
+    /*
+     * @brief  Returns true if clip is SkRect and not empty.
+     */
+    virtual bool IsClipRect();
 
     /*
      * @brief  Returns true if clip is emptySkRect rect, transformed by SkMatrix,
@@ -341,6 +355,10 @@ public:
     virtual CoreCanvas& AttachBrush(const Brush& brush);
     virtual CoreCanvas& DetachPen();
     virtual CoreCanvas& DetachBrush();
+
+    virtual bool isHighContrastEnabled() const;
+    virtual Drawing::CacheType GetCacheType() const;
+    virtual Drawing::Surface* GetSurface() const;
 
     template<typename T>
     const std::shared_ptr<T> GetImpl() const

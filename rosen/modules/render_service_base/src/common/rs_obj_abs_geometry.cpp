@@ -56,9 +56,12 @@ void RSObjAbsGeometry::ConcatMatrix(const SkMatrix& matrix)
 #else
 void RSObjAbsGeometry::ConcatMatrix(const Drawing::Matrix& matrix)
 {
-    matrix_ = matrix_ * matrix;
+    if (matrix.isIdentity()) {
+        return;
+    }
+    matrix_.PreConcat(matrix);
     if (absMatrix_.has_value()) {
-        *absMatrix_ = (*absMatrix_) * matrix;
+        absMatrix_->PreConcat(matrix);
     }
     SetAbsRect();
 }
@@ -86,11 +89,10 @@ void RSObjAbsGeometry::UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& par
 #ifndef USE_ROSEN_DRAWING
         absMatrix_ = parent->GetAbsMatrix();
 #else
-        absMatrix_ = Drawing::Matrix();
-        for (int i = 0; i < Drawing::Matrix::MATRIX_SIZE; i++) {
-            auto& matrix = parent->GetAbsMatrix();
-            absMatrix_->Set(static_cast<Drawing::Matrix::Index>(i), matrix.Get(i));
+        if (!absMatrix_) {
+            absMatrix_.emplace();
         }
+        absMatrix_->DeepCopy(parent->GetAbsMatrix());
 #endif
     }
 #ifndef USE_ROSEN_DRAWING
@@ -98,8 +100,7 @@ void RSObjAbsGeometry::UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& par
         absMatrix_->preTranslate(offset->x(), offset->y());
     }
 #else
-    if (absMatrix_.has_value() && offset.has_value() &&
-        !((offset.value().GetX() == 0) && (offset.value().GetY() == 0))) {
+    if (absMatrix_.has_value() && offset.has_value() && !offset.value().IsZero()) {
         absMatrix_->PreTranslate(offset->GetX(), offset->GetY());
     }
 #endif
@@ -107,7 +108,7 @@ void RSObjAbsGeometry::UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& par
 #ifndef USE_ROSEN_DRAWING
     matrix_.reset();
 #else
-    matrix_ = Drawing::Matrix();
+    matrix_.Reset();
 #endif
     // filter invalid width and height
     if (IsEmpty()) {
@@ -131,16 +132,16 @@ void RSObjAbsGeometry::UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& par
         absMatrix_->preConcat(matrix_);
 #else
         if (contextMatrix_.has_value()) {
-            *absMatrix_ = (*absMatrix_) * (*contextMatrix_);
+            absMatrix_->PreConcat(*contextMatrix_);
         }
-        *absMatrix_ = (*absMatrix_) * matrix_;
+        absMatrix_->PreConcat(matrix_);
 #endif
     }
     // if clipRect is valid, update rect with clipRect
 #ifndef USE_ROSEN_DRAWING
     if (clipRect.has_value() && !clipRect.value().isEmpty()) {
 #else
-    if (clipRect.has_value() && !clipRect.value().IsValid()) {
+    if (clipRect.has_value() && !clipRect.value().IsEmpty()) {
 #endif
         auto mappedClipRect = clipRect.value();
 #ifndef USE_ROSEN_DRAWING
@@ -167,8 +168,7 @@ void RSObjAbsGeometry::UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& par
         width_ = mappedClipRect.width();
         height_ = mappedClipRect.height();
 #else
-        if (matrix_.Get(Drawing::Matrix::Index::SCALE_X) == 1 && matrix_.Get(Drawing::Matrix::Index::SCALE_Y) == 1 &&
-            matrix_.Get(Drawing::Matrix::Index::PERSP_2) == 1) {
+        if (!matrix_.IsIdentity()) {
             Drawing::Matrix invertMatrix;
             if (matrix_.Invert(invertMatrix)) {
                 invertMatrix.MapRect(mappedClipRect, mappedClipRect);
@@ -193,7 +193,7 @@ void RSObjAbsGeometry::UpdateMatrix(const std::shared_ptr<RSObjAbsGeometry>& par
 #ifndef USE_ROSEN_DRAWING
         matrix_.preConcat(*contextMatrix_);
 #else
-        matrix_ = matrix_ * (*contextMatrix_);
+        matrix_.PreConcat(*contextMatrix_);
 #endif
     }
     // Update the absolute rectangle of the current view
@@ -226,7 +226,7 @@ void RSObjAbsGeometry::UpdateByMatrixFromSelf()
 #ifndef USE_ROSEN_DRAWING
         matrix_.preConcat(*contextMatrix_);
 #else
-        matrix_ = matrix_ * (*contextMatrix_);
+        matrix_.PreConcat(*contextMatrix_);
 #endif
     }
 
@@ -265,9 +265,7 @@ void RSObjAbsGeometry::UpdateAbsMatrix2D()
 #ifndef USE_ROSEN_DRAWING
             matrix_.preRotate(trans_->rotation_, trans_->pivotX_ * width_, trans_->pivotY_ * height_);
 #else
-            Drawing::Matrix other;
-            other.Rotate(trans_->rotation_, trans_->pivotX_ * width_, trans_->pivotY_ * height_);
-            matrix_.PreConcat(other);
+            matrix_.PreRotate(trans_->rotation_, trans_->pivotX_ * width_, trans_->pivotY_ * height_);
 #endif
         }
         // Scale
@@ -275,11 +273,7 @@ void RSObjAbsGeometry::UpdateAbsMatrix2D()
 #ifndef USE_ROSEN_DRAWING
             matrix_.preScale(trans_->scaleX_, trans_->scaleY_, trans_->pivotX_ * width_, trans_->pivotY_ * height_);
 #else
-            if (!(1 == trans_->scaleX_ && 1 == trans_->scaleY_)) {
-                Drawing::Matrix other;
-                other.Scale(trans_->scaleX_, trans_->scaleY_, trans_->pivotX_ * width_, trans_->pivotY_ * height_);
-                matrix_.PreConcat(other);
-            }
+            matrix_.PreScale(trans_->scaleX_, trans_->scaleY_, trans_->pivotX_ * width_, trans_->pivotY_ * height_);
 #endif
         }
     }

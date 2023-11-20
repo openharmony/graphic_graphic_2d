@@ -26,8 +26,10 @@ namespace Drawing {
 class DRAWING_API SkiaColorSpace : public ColorSpaceImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     SkiaColorSpace() noexcept;
     ~SkiaColorSpace() override {};
+
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;
@@ -39,7 +41,8 @@ public:
     void InitWithRGB(const CMSTransferFuncType& func, const CMSMatrixType& matrix) override;
     sk_sp<SkColorSpace> GetColorSpace() const;
     void SetColorSpace(sk_sp<SkColorSpace> skColorSpace);
-
+    std::shared_ptr<Data> Serialize() const override;
+    bool Deserialize(std::shared_ptr<Data> data) override;
 private:
     sk_sp<SkColorSpace> colorSpace_;
 };

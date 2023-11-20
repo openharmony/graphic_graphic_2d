@@ -13,27 +13,22 @@
  * limitations under the License.
  */
 
-#include "skia_font_mgr_ohos.h"
-
-#ifndef CROSS_PLATFORM
-#include "src/ports/skia_ohos/SkFontMgr_ohos.h"
-#endif
+#include "rs_render_service_security_utils.h"
 
 namespace OHOS {
 namespace Rosen {
-namespace Drawing {
-std::shared_ptr<FontMgrImpl> SkiaFontMgr::Factory()
+
+uint32_t RSRenderServiceSecurityUtils::GetCodeAccessCounter(uint32_t code) const
 {
-    return std::make_shared<SkiaFontMgrOhos>(nullptr);
+    std::lock_guard<std::mutex> lock(accessCounterMutex_);
+    return accessCounter_.count(code) == 0 ? 0 : accessCounter_.at(code);
 }
 
-SkiaFontMgrOhos::SkiaFontMgrOhos(const char* path)
-#ifndef CROSS_PLATFORM
-    : SkiaFontMgr(std::make_shared<SkFontMgr_OHOS>(path)) {}
-#else
-    : SkiaFontMgr(nullptr) {}
-#endif
+void RSRenderServiceSecurityUtils::IncreaseAccessCounter(uint32_t code)
+{
+    std::lock_guard<std::mutex> lock(accessCounterMutex_);
+    accessCounter_[code] = accessCounter_.count(code) == 0 ? 1 : accessCounter_[code] + 1;
+}
 
-} // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

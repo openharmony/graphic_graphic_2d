@@ -139,6 +139,14 @@ void RSRecordingCanvas::DrawPixelMapRect(const std::shared_ptr<Media::PixelMap>&
         dst, samplingOptions, paint);
 }
 
+void RSRecordingCanvas::DrawRsImage(const std::shared_ptr<RSImageBase>& rsImage,
+    const SkSamplingOptions& samplingOptions, const SkPaint& paint, SrcRectConstraint constraint)
+{
+    RS_DRAWOP_TRACE_FUNC();
+    std::unique_ptr<OpItem> op = std::make_unique<PixelMapRectOpItem>(rsImage, samplingOptions, paint, constraint);
+    AddOp(std::move(op));
+}
+
 void RSRecordingCanvas::DrawPixelMap(const std::shared_ptr<Media::PixelMap>& pixelmap, SkScalar x, SkScalar y,
     const SkSamplingOptions& samplingOptions, const SkPaint* paint)
 {
@@ -611,7 +619,7 @@ bool RSRecordingCanvas::IsCustomTextType() const
 namespace OHOS {
 namespace Rosen {
 
-ExtendRecordingCanvas::ExtendRecordingCanvas(int width, int weight) : Drawing::RecordingCanvas(width, height) {}
+ExtendRecordingCanvas::ExtendRecordingCanvas(int width, int height) : Drawing::RecordingCanvas(width, height) {}
 
 void ExtendRecordingCanvas::DrawImageWithParm(
     const std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Data>& data,
@@ -619,7 +627,7 @@ void ExtendRecordingCanvas::DrawImageWithParm(
 {
     auto object = std::make_shared<RSExtendImageObject>(image, data, rsImageInfo);
     auto objectHandle =
-        Drawing::CmdListHelper::AddImageObjectToCmdList(*Drawing::RecordingCanvas::GetCmdList(), object);
+        Drawing::CmdListHelper::AddImageObjectToCmdList(*Drawing::RecordingCanvas::GetDrawCmdList(), object);
     Drawing::RecordingCanvas::GetDrawCmdList()->AddOp<Drawing::DrawImageWithParmOpItem>(objectHandle, sampling);
 }
 
@@ -628,7 +636,7 @@ void ExtendRecordingCanvas::DrawExtendPixelMap(const std::shared_ptr<Media::Pixe
 {
     auto object = std::make_shared<RSExtendImageObject>(pixelMap, rsImageInfo);
     auto objectHandle =
-        Drawing::CmdListHelper::AddImageObjectToCmdList(*Drawing::RecordingCanvas::GetCmdList(), object);
+        Drawing::CmdListHelper::AddImageObjectToCmdList(*Drawing::RecordingCanvas::GetDrawCmdList(), object);
     Drawing::RecordingCanvas::GetDrawCmdList()->AddOp<Drawing::DrawExtendPixelMapOpItem>(objectHandle, sampling);
 }
 } // namespace Rosen

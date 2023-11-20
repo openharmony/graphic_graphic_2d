@@ -20,6 +20,9 @@ namespace Rosen {
 RSIRenderServiceInterfaceCodeAccessVerifier::RSIRenderServiceInterfaceCodeAccessVerifier()
 {
     CheckCodeUnderlyingTypeStandardized<CodeEnumType>(codeEnumTypeName_);
+#ifdef ENABLE_IPC_SECURITY
+    AddRSIRenderServiceInterfaceCodePermission();
+#endif
 }
 
 bool RSIRenderServiceInterfaceCodeAccessVerifier::IsExclusiveVerificationPassed(CodeUnderlyingType code)
@@ -27,7 +30,7 @@ bool RSIRenderServiceInterfaceCodeAccessVerifier::IsExclusiveVerificationPassed(
     bool hasPermission = true;
     switch (code) {
         case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_CONNECTION): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         default: {
@@ -36,5 +39,32 @@ bool RSIRenderServiceInterfaceCodeAccessVerifier::IsExclusiveVerificationPassed(
     }
     return hasPermission;
 }
+#ifdef ENABLE_IPC_SECURITY
+void RSIRenderServiceInterfaceCodeAccessVerifier::AddRSIRenderServiceInterfaceCodePermission()
+{
+    for (auto& mapping : permissionRSIRenderServiceInterfaceMappings_) {
+        CodeEnumType interfaceName = mapping.first;
+        PermissionType permission = mapping.second;
+        std::string newPermission = PermissionEnumToString(permission);
+        if (newPermission == "unknown") {
+            continue;
+        }
+        CodeUnderlyingType code = static_cast<CodeUnderlyingType>(interfaceName);
+        AddPermission(code, newPermission);
+    }
+}
+
+bool RSIRenderServiceInterfaceCodeAccessVerifier::IsAccessTimesVerificationPassed(
+    CodeUnderlyingType code, uint32_t times) const
+{
+    auto interfaceName = static_cast<CodeEnumType>(code);
+    if (accessRSIRenderServiceInterfaceTimesRestrictions_.count(interfaceName) == 0) {
+        return true;
+    }
+    uint32_t restrictedTimes = accessRSIRenderServiceInterfaceTimesRestrictions_.at(interfaceName);
+    return times > restrictedTimes ? false : true;
+}
+#endif
+
 } // namespace Rosen
 } // namespace OHOS

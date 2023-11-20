@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -78,6 +78,12 @@ public:
     inline bool operator!=(const RectT<T>& rect) const
     {
         return !operator==(rect);
+    }
+
+    inline bool IsNearEqual(const RectT<T>& rect, T threshold = std::numeric_limits<T>::epsilon()) const
+    {
+        return ROSEN_EQ<T>(left_, rect.left_, threshold) && ROSEN_EQ<T>(top_, rect.top_, threshold) &&
+            ROSEN_EQ<T>(width_, rect.width_, threshold) && ROSEN_EQ<T>(height_, rect.height_, threshold);
     }
 
     inline RectT& operator=(const RectT& other)
@@ -196,6 +202,15 @@ public:
             std::to_string(width_) + ", " + std::to_string(height_) + ")";
     }
 
+    // outset: left, top, right, bottom
+    RectT<T> MakeOutset(Vector4<T> outset) const
+    {
+        return RectT(left_ - outset.x_,
+                     top_ - outset.y_,
+                     width_ + outset.x_ + outset.z_,
+                     height_ + outset.y_ + outset.w_);
+    }
+
     #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const
     {
@@ -301,6 +316,7 @@ public:
     RRectT& operator=(const RRectT<T>& other);
     bool operator==(const RRectT& other) const;
     bool operator!=(const RRectT& other) const;
+    bool IsNearEqual(const RRectT& other, T threshold = std::numeric_limits<T>::epsilon()) const;
 };
 
 typedef RRectT<float> RRect;
@@ -411,6 +427,15 @@ template<typename T>
 inline bool RRectT<T>::operator!=(const RRectT& other) const
 {
     return !operator==(other);
+}
+
+template<typename T>
+inline bool RRectT<T>::IsNearEqual(const RRectT& rrectT, T threshold) const
+{
+    return (rect_.IsNearEqual(rrectT.rect_, threshold)) && (radius_[0].IsNearEqual(rrectT.radius_[0], threshold)) &&
+        (radius_[1].IsNearEqual(rrectT.radius_[1], threshold)) &&
+        (radius_[2].IsNearEqual(rrectT.radius_[2], threshold)) &&
+        (radius_[3].IsNearEqual(rrectT.radius_[3], threshold));
 }
 } // namespace Rosen
 } // namespace OHOS

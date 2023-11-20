@@ -28,14 +28,17 @@ namespace Drawing {
 class DRAWING_API SkiaPath : public PathImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     SkiaPath() noexcept;
     ~SkiaPath() override {};
     SkiaPath(const SkiaPath& p) noexcept;
     SkiaPath &operator=(const SkiaPath& p) noexcept;
+
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;
     }
+
     PathImpl* Clone() override;
 
     bool InitWithSVGString(const std::string& str) override;
@@ -47,6 +50,7 @@ public:
     void LineTo(scalar x, scalar y) override;
     void ArcTo(scalar pt1X, scalar pt1Y, scalar pt2X, scalar pt2Y, scalar startAngle, scalar sweepAngle) override;
     void ArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction, scalar endX, scalar endY) override;
+    void ArcTo(scalar x1, scalar y1, scalar x2, scalar y2, scalar radius) override;
     void CubicTo(
         scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y, scalar endPtX, scalar endPtY) override;
     void QuadTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endPtY) override;

@@ -62,13 +62,8 @@ struct Lattice;
 
 class CoreCanvasImpl : public BaseImpl {
 public:
-    static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     CoreCanvasImpl() {};
     ~CoreCanvasImpl() override {};
-    AdapterType GetType() const override
-    {
-        return AdapterType::BASE_INTERFACE;
-    }
 
     virtual void Bind(const Bitmap& bitmap) = 0;
 
@@ -137,6 +132,7 @@ public:
     virtual void ClipPath(const Path& path, ClipOp op, bool doAntiAlias = false) = 0;
     virtual void ClipRegion(const Region& region, ClipOp op = ClipOp::INTERSECT) = 0;
     virtual bool IsClipEmpty() = 0;
+    virtual bool IsClipRect() = 0;
     virtual bool QuickReject(const Rect& rect) = 0;
 
     // transform

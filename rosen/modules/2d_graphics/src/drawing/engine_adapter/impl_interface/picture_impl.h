@@ -24,13 +24,8 @@ namespace Rosen {
 namespace Drawing {
 class PictureImpl : public BaseImpl {
 public:
-    static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     PictureImpl() noexcept {}
     ~PictureImpl() override {}
-    AdapterType GetType() const override
-    {
-        return AdapterType::BASE_INTERFACE;
-    }
 
     // using for recording, should to remove after using shared memory
     virtual std::shared_ptr<Data> Serialize() const = 0;

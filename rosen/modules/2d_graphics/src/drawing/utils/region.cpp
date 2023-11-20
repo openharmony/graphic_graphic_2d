@@ -32,9 +32,24 @@ bool Region::SetPath(const Path& path, const Region& clip)
     return impl_->SetPath(path, clip);
 }
 
+bool Region::GetBoundaryPath(Path* path) const
+{
+    return impl_->GetBoundaryPath(path);
+}
+
 bool Region::IsIntersects(const Region& other) const
 {
     return impl_->IsIntersects(other);
+}
+
+bool Region::IsEmpty() const
+{
+    return impl_->IsEmpty();
+}
+
+bool Region::IsRect() const
+{
+    return impl_->IsRect();
 }
 
 bool Region::Op(const Region& region, RegionOp op)

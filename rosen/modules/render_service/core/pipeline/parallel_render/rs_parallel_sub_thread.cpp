@@ -364,6 +364,47 @@ void RSParallelSubThread::Render()
 #endif
 }
 
+#ifdef USE_ROSEN_DRAWING
+bool RSParallelSubThread::FlushForRosenDrawing()
+{
+    if (drCanvas_ == nullptr) {
+        RS_LOGE("in Flush(), drCanvas is nullptr");
+        return false;
+    }
+    if (renderType_ == ParallelRenderType::DRAW_IMAGE) {
+        RS_TRACE_BEGIN("Flush");
+#ifdef NEW_SKIA
+        if (drContext_) {
+            drContext_->FlushAndSubmit(false);
+        }
+#else
+        // drCanvas->flush() may tasks a long time when window is zoomed in and out. So let flush operation of
+        // subMainThreads are executed in sequence to reduce probability rather than solve the question.
+        RSParallelRenderManager::Instance()->LockFlushMutex();
+        drCanvas_->Flush();
+        RSParallelRenderManager::Instance()->UnlockFlushMutex();
+#endif
+        RS_TRACE_END();
+        RS_TRACE_BEGIN("Create Fence");
+#ifdef NEW_RENDER_CONTEXT
+        if (renderContext_ == nullptr) {
+            RS_LOGE("renderContext_ is nullptr");
+            return false;
+        }
+        auto frame = renderContext_->GetRSRenderSurfaceFrame();
+        EGLDisplay eglDisplay = frame->eglState->eglDisplay;
+        eglSync_ = eglCreateSyncKHR(eglDisplay, EGL_SYNC_FENCE_KHR, nullptr);
+#else
+        eglSync_ = eglCreateSyncKHR(renderContext_->GetEGLDisplay(), EGL_SYNC_FENCE_KHR, nullptr);
+#endif
+        RS_TRACE_END();
+        texture_ = surface_->GetImageSnapshot();
+        drCanvas_->Discard();
+    }
+    return true;
+}
+#endif
+
 void RSParallelSubThread::Flush()
 {
     threadTask_ = nullptr;
@@ -400,32 +441,8 @@ void RSParallelSubThread::Flush()
         skCanvas_->discard();
     }
 #else
-    if (drCanvas_ == nullptr) {
-        RS_LOGE("in Flush(), drCanvas is nullptr");
+    if (!FlushForRosenDrawing()) {
         return;
-    }
-    if (renderType_ == ParallelRenderType::DRAW_IMAGE) {
-        RS_TRACE_BEGIN("Flush");
-        // drCanvas->flush() may tasks a long time when window is zoomed in and out. So let flush operation of
-        // subMainThreads are executed in sequence to reduce probability rather than solve the question.
-        RSParallelRenderManager::Instance()->LockFlushMutex();
-        drCanvas_->Flush();
-        RSParallelRenderManager::Instance()->UnlockFlushMutex();
-        RS_TRACE_END();
-        RS_TRACE_BEGIN("Create Fence");
-#ifdef NEW_RENDER_CONTEXT
-        if (renderContext_ == nullptr) {
-            RS_LOGE("renderContext_ is nullptr");
-            return;
-        }
-        auto frame = renderContext_->GetRSRenderSurfaceFrame();
-        EGLDisplay eglDisplay = frame->eglState->eglDisplay;
-        eglSync_ = eglCreateSyncKHR(eglDisplay, EGL_SYNC_FENCE_KHR, nullptr);
-#else
-        eglSync_ = eglCreateSyncKHR(renderContext_->GetEGLDisplay(), EGL_SYNC_FENCE_KHR, nullptr);
-#endif
-        RS_TRACE_END();
-        texture_ = surface_->GetImageSnapshot();
     }
 #endif
 #endif
@@ -584,17 +601,11 @@ void RSParallelSubThread::AcquireSubDrawingSurface(int width, int height)
         return;
     }
 
-    Drawing::BitmapFormat format = { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-    Drawing::Bitmap bitmap;
-    bitmap.Build(width, height, format);
-
-    Drawing::Image image;
-    image.BuildFromBitmap(*drContext_, bitmap);
-
-    surface_ = std::make_shared<Drawing::Surface>();
-    if (!surface_->Bind(image)) {
+    Drawing::ImageInfo surfaceInfo =
+        Drawing::ImageInfo{width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL};
+    surface_ = Drawing::Surface::MakeRenderTarget(drContext_.get(), true, surfaceInfo);
+    if (surface_ == nullptr) {
         RS_LOGE("surface is not ready!!!");
-        surface_ = nullptr;
         return;
     }
 }
@@ -605,6 +616,8 @@ void RSParallelSubThread::StartComposition()
     if (processorRenderEngine_ == nullptr) {
         processorRenderEngine_ = std::make_shared<RSUniRenderEngine>();
         processorRenderEngine_->Init();
+        auto context = processorRenderEngine_->GetRenderContext();
+        context->SetAndMakeCurrentShareContex(eglShareContext_);
     }
     compositionVisitor_ = std::make_shared<RSUniRenderVisitor>();
     auto parallelRenderManager = RSParallelRenderManager::Instance();

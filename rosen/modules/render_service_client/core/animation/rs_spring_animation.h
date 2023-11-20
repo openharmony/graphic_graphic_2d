@@ -39,6 +39,8 @@ public:
 
     const RSAnimationTimingCurve& GetTimingCurve() const;
 
+    void SetZeroThreshold(const float zeroThreshold) override;
+
 protected:
     void OnStart() override;
 
@@ -47,7 +49,11 @@ private:
 
     void StartUIAnimation(const std::shared_ptr<RSRenderSpringAnimation>& animation);
 
+    bool GetIsLogicallyFinishCallback() const;
+
     RSAnimationTimingCurve timingCurve_ { RSAnimationTimingCurve::SPRING };
+    bool isLogicallyFinishCallback_ { false };
+    float zeroThreshold_ { 0.0f };
 };
 } // namespace Rosen
 } // namespace OHOS

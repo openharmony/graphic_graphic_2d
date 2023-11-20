@@ -26,8 +26,10 @@ namespace Drawing {
 class SkiaColorFilter : public ColorFilterImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     SkiaColorFilter() noexcept;
     ~SkiaColorFilter() override {};
+
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;
@@ -47,6 +49,8 @@ public:
      */
     void SetColorFilter(const sk_sp<SkColorFilter>& filter);
 
+    std::shared_ptr<Data> Serialize() const override;
+    bool Deserialize(std::shared_ptr<Data> data) override;
 private:
     sk_sp<SkColorFilter> filter_;
 };

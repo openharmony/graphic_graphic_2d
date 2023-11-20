@@ -114,4 +114,38 @@ HWTEST_F(RSDisplayRenderNodeTest, IsRotationChangedTest, TestSize.Level1)
     node->UpdateRotation();
     ASSERT_FALSE(node->IsRotationChanged());
 }
+
+/**
+ * @tc.name: SetBootAnimationTest
+ * @tc.desc: SetBootAnimation
+ * @tc.type:FUNC
+ * @tc.require:SR000HSUII
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    auto childNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    node.AddChild(childNode);
+    childNode->SetBootAnimation(true);
+    ASSERT_EQ(childNode->GetBootAnimation(), true);
+    ASSERT_EQ(node.GetContainBootAnimation(), true);
+    node.SetBootAnimation(false);
+    ASSERT_FALSE(node.GetBootAnimation());
+}
+
+/**
+ * @tc.name: GetBootAnimationTest
+ * @tc.desc: GetBootAnimation
+ * @tc.type:FUNC
+ * @tc.require:SR000HSUII
+ */
+HWTEST_F(RSDisplayRenderNodeTest, GetBootAnimationTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    node->SetBootAnimation(true);
+    ASSERT_TRUE(node->GetBootAnimation());
+    node->SetBootAnimation(false);
+    ASSERT_FALSE(node->GetBootAnimation());
+}
+
 } // namespace OHOS::Rosen

@@ -109,7 +109,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
         }
         // we are the only one who holds the finish callback, if the callback is NOT timing sensitive, we need to
         // execute it asynchronously, in order to avoid timing issues.
-        if (finishCallback->isTimingSensitive_ == false) {
+        if (finishCallback->finishCallbackType_ == FinishCallbackType::TIME_INSENSITIVE) {
             ROSEN_LOGD("RSImplicitAnimator::CloseImplicitAnimation, No implicit animations created, execute finish "
                        "callback asynchronously");
             RSUIDirector::PostTask([finishCallback]() { finishCallback->Execute(); });
@@ -395,12 +395,22 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
         case ImplicitAnimationParamType::SPRING: {
             auto springImplicitParam = static_cast<RSImplicitSpringAnimationParam*>(params.get());
             animation = springImplicitParam->CreateAnimation(property, startValue, endValue);
+            const auto& finishCallback =
+                std::get<const std::shared_ptr<AnimationFinishCallback>>(globalImplicitParams_.top());
+            if (finishCallback && finishCallback->finishCallbackType_ == FinishCallbackType::LOGICALLY) {
+                animation->SetZeroThreshold(property->GetThreshold());
+            }
             break;
         }
         case ImplicitAnimationParamType::INTERPOLATING_SPRING: {
             auto interpolatingSpringImplicitParam =
                 static_cast<RSImplicitInterpolatingSpringAnimationParam*>(params.get());
             animation = interpolatingSpringImplicitParam->CreateAnimation(property, startValue, endValue);
+            const auto& finishCallback =
+                std::get<const std::shared_ptr<AnimationFinishCallback>>(globalImplicitParams_.top());
+            if (finishCallback && finishCallback->finishCallbackType_ == FinishCallbackType::LOGICALLY) {
+                animation->SetZeroThreshold(property->GetThreshold());
+            }
             break;
         }
         case ImplicitAnimationParamType::PATH: {

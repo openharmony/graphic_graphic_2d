@@ -28,7 +28,9 @@ namespace Drawing {
 class SkiaFont : public FontImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     SkiaFont() noexcept = default;
+    SkiaFont(std::shared_ptr<Typeface> typeface, scalar size, scalar scaleX, scalar skewX) noexcept;
     ~SkiaFont() override = default;
 
     AdapterType GetType() const override
@@ -42,12 +44,15 @@ public:
     void SetTypeface(std::shared_ptr<Typeface> typeface) override;
     void SetSize(scalar textSize) override;
     void SetEmbolden(bool isEmbolden) override;
+    void SetScaleX(scalar scaleX) override;
     void SetSkewX(scalar skewX) override;
     void SetLinearMetrics(bool isLinearMetrics) override;
 
     scalar GetMetrics(FontMetrics* metrics) const override;
     void GetWidths(const uint16_t glyphs[], int count, scalar widths[]) const override;
     void GetWidths(const uint16_t glyphs[], int count, scalar widths[], Rect bounds[]) const override;
+
+    scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding) override;
 
     const SkFont& GetFont() const;
 

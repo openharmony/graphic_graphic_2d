@@ -64,10 +64,10 @@ enum class OutOfParentType {
     UNKNOWN
 };
 
-enum class RSColorBlendModeType {
-    SRC_IN, // use foreground color and background alpha
-    DST_IN, // use background color and foreground alpha
-    NONE,
+enum class RSColorBlendModeType : int16_t {
+    NONE = 0,
+    DST_IN,
+    SRC_IN,
 };
 
 class Decoration final {

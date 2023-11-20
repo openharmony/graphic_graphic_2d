@@ -67,6 +67,11 @@ void RecordingPath::ArcTo(scalar rx, scalar ry, scalar angle, PathDirection dire
     cmdList_->AddOp<ArcToOpItem>(rx, ry, angle, direction, endX, endY);
 }
 
+void RecordingPath::ArcTo(scalar x1, scalar y1, scalar x2, scalar y2, scalar radius)
+{
+    cmdList_->AddOp<ArcToOpItem>(x1, y1, x2, y2, radius);
+}
+
 void RecordingPath::CubicTo(scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y,
     scalar endPtX, scalar endPtY)
 {

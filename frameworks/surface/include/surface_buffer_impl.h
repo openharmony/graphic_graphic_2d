@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -64,7 +64,7 @@ public:
     void SetSurfaceBufferHeight(int32_t width) override;
 
     uint32_t GetSeqNum() const override;
-    
+
     sptr<EglData> GetEglData() const override;
     void SetEglData(const sptr<EglData>& data) override;
 
@@ -82,6 +82,12 @@ public:
 
     BufferWrapper GetBufferWrapper() override;
     void SetBufferWrapper(BufferWrapper wrapper) override;
+
+    // metadata
+    GSError SetMetadata(uint32_t key, const std::vector<uint8_t>& value) override;
+    GSError GetMetadata(uint32_t key, std::vector<uint8_t>& value) override;
+    GSError ListMetadataKeys(std::vector<uint32_t>& keys) override;
+    GSError EraseMetadataKey(uint32_t key) override;
 
 private:
     void FreeBufferHandleLocked();

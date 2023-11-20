@@ -19,11 +19,9 @@
 #include <memory>
 
 #include "include/core/SkTextBlob.h"
-#include "include/core/SkSerialProcs.h"
 
 #include "impl_interface/text_blob_impl.h"
 #include "text/text_blob.h"
-#include "utils/data.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -31,6 +29,7 @@ namespace Drawing {
 class SkiaTextBlob : public TextBlobImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     explicit SkiaTextBlob(sk_sp<SkTextBlob> skTextBlob);
     ~SkiaTextBlob() override = default;
 
@@ -39,11 +38,18 @@ public:
         return AdapterType::SKIA_ADAPTER;
     }
 
+    static std::shared_ptr<TextBlob> MakeFromText(const void* text, size_t byteLength,
+        const Font& font, TextEncoding encoding);
+    static std::shared_ptr<TextBlob> MakeFromRSXform(const void* text, size_t byteLength,
+        const RSXform xform[], const Font& font, TextEncoding encoding);
+
     sk_sp<SkTextBlob> GetTextBlob() const;
 
-    std::shared_ptr<Data> Serialize(const SkSerialProcs& procs) const;
+    std::shared_ptr<Data> Serialize() const override;
 
-    static std::shared_ptr<TextBlob> Deserialize(const void* data, size_t size, const SkDeserialProcs& procs);
+    static std::shared_ptr<TextBlob> Deserialize(const void* data, size_t size);
+
+    std::shared_ptr<Rect> Bounds() const override;
 
 private:
     sk_sp<SkTextBlob> skTextBlob_;

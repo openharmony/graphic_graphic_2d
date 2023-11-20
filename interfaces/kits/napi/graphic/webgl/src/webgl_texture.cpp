@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,27 +13,16 @@
  * limitations under the License.
  */
 
-#include "skia_typeface_ohos.h"
+#include "webgl/webgl_texture.h"
 
-#ifndef CROSS_PLATFORM
-#include "src/ports/skia_ohos/SkTypeface_ohos.h"
-#endif
-
-#include "skia_adapter/skia_convert_utils.h"
+#include "context/webgl2_rendering_context_base.h"
+#include "context/webgl_rendering_context_base.h"
+#include "napi/n_class.h"
+#include "napi/n_func_arg.h"
+#include "util/util.h"
+#include "webgl/webgl_arg.h"
 
 namespace OHOS {
 namespace Rosen {
-namespace Drawing {
-SkiaTypefaceOhos::SkiaTypefaceOhos(const std::string& specifiedName, FontInfo& info)
-{
-    SkString skName;
-    SkiaConvertUtils::StdStringCastToSkString(specifiedName, skName);
-#ifndef CROSS_PLATFORM
-    skTypeface_ = sk_make_sp<SkTypeface_OHOS>(skName, info);
-#else
-    skTypeface_ = nullptr;
-#endif
-}
-} // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

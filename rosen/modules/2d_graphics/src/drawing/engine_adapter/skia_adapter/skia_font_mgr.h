@@ -28,7 +28,7 @@ namespace Drawing {
 class SkiaFontMgr : public FontMgrImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
-    explicit SkiaFontMgr(std::shared_ptr<SkFontMgr> skFontMgr);
+    explicit SkiaFontMgr(sk_sp<SkFontMgr> skFontMgr);
     virtual ~SkiaFontMgr() = default;
 
     AdapterType GetType() const override
@@ -38,15 +38,13 @@ public:
 
     static std::shared_ptr<FontMgrImpl> CreateDefaultFontMgr();
 
-    static std::shared_ptr<FontMgrImpl> Factory();
-
     Typeface* MatchFamilyStyleCharacter(const char familyName[], const FontStyle& fontStyle,
                                         const char* bcp47[], int bcp47Count,
                                         int32_t character) override;
     FontStyleSet* MatchFamily(const char familyName[]) const override;
 
-protected:
-    std::shared_ptr<SkFontMgr> skFontMgr_;
+private:
+    sk_sp<SkFontMgr> skFontMgr_;
 };
 } // namespace Drawing
 } // namespace Rosen

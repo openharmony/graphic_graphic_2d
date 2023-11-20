@@ -58,7 +58,7 @@ std::string Typeface::GetName()
 
 bool Typeface::ParseCmap(const std::shared_ptr<CmapParser> &parser)
 {
-    LOGEX_FUNC_LINE(DEBUG) << "Parse Cmap: " << GetName();
+    LOGEX_FUNC_LINE_DEBUG(DEBUG) << "Parse Cmap: " << GetName();
 #ifdef LOGGER_ENABLE_SCOPE
     ScopedTrace scope("Typeface::InitCmap");
 #endif

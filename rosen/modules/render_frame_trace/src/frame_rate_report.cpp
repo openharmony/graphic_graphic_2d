@@ -12,26 +12,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#ifndef SKIA_FONT_STYLE_SET_OHOS_H
-#define SKIA_FONT_STYLE_SET_OHOS_H
-
-#include <cstdint>
+#include "frame_rate_report.h"
 #include <string>
-
-#include "src/ports/skia_ohos/FontConfig_ohos.h"
-
-#include "skia_adapter/skia_font_style_set.h"
-
-namespace OHOS {
-namespace Rosen {
-namespace Drawing {
-class SkiaFontStyleSetOhos : public SkiaFontStyleSet {
-public:
-    explicit SkiaFontStyleSetOhos(const std::shared_ptr<FontConfig_OHOS>& fontConfig, int index, bool isFallback);
-    ~SkiaFontStyleSetOhos() override = default;
-};
-} // namespace Drawing
-} // namespace Rosen
-} // namespace OHOS
+#ifdef QOS_MANAGER
+#include "concurrent_task_client.h"
 #endif
+
+namespace FRAME_TRACE {
+
+FrameRateReport* FrameRateReport::instance_ = nullptr;
+bool FrameRateReport::SendFrameRates(const std::unordered_map<int, uint32_t>& rates)
+{
+    if (rates.empty()) {
+        return true;
+    }
+    #ifdef QOS_MANAGER
+    OHOS::ConcurrentTask::DeadlineReply ddlReply;
+    OHOS::ConcurrentTask::ConcurrentTaskClient::GetInstance().QueryDeadline(
+        OHOS::ConcurrentTask::DDL_RATE, ddlReply, rates);
+    return ddlReply.setStatus;
+    #else
+    return true;
+    #endif
+}
+
+} // namespace FRAME_TRACE

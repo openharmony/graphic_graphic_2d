@@ -55,7 +55,8 @@ FontCollectionTxt::FontCollectionTxt(bool createWithICU)
 #ifndef USE_ROSEN_DRAWING
     dynamicFontManager = sk_make_sp<txt::DynamicFontManager>();
 #else
-    dynamicFontManager = RSFontMgr::CreateDynamicFontMgr();
+    dynamicFontManager = nullptr;
+    LOGE("Drawing is not supported dynamic font");
 #endif
     txtCollection->SetDynamicFontManager(dynamicFontManager);
     LoadSystemFont();
@@ -113,7 +114,7 @@ void FontCollectionTxt::LoadFontFromList(const uint8_t* font_data,
     }
     txtCollection->ClearFontFamilyCache();
 #else
-    LOGE("Drawing is not supported");
+    LOGE("Drawing is not supported dynamic font");
 #endif
 }
 } // namespace rosen

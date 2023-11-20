@@ -254,6 +254,11 @@ bool CoreCanvas::IsClipEmpty()
     return impl_->IsClipEmpty();
 }
 
+bool CoreCanvas::IsClipRect()
+{
+    return impl_->IsClipRect();
+}
+
 bool CoreCanvas::QuickReject(const Rect& rect)
 {
     return impl_->QuickReject(rect);
@@ -356,6 +361,21 @@ CoreCanvas& CoreCanvas::DetachBrush()
 std::shared_ptr<CoreCanvasImpl> CoreCanvas::GetCanvasData() const
 {
     return impl_;
+}
+
+bool CoreCanvas::isHighContrastEnabled() const
+{
+    return false;
+}
+
+Drawing::CacheType CoreCanvas::GetCacheType() const
+{
+    return Drawing::CacheType::UNDEFINED;
+}
+
+Drawing::Surface* CoreCanvas::GetSurface() const
+{
+    return nullptr;
 }
 } // namespace Drawing
 } // namespace Rosen

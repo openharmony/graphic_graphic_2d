@@ -27,14 +27,7 @@ namespace Rosen {
 namespace Drawing {
 class TypefaceImpl : public BaseImpl {
 public:
-    static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     ~TypefaceImpl() override = default;
-
-    AdapterType GetType() const override
-    {
-        return AdapterType::BASE_INTERFACE;
-    }
-
     virtual std::string GetFamilyName() const = 0;
     virtual FontStyle GetFontStyle() const = 0;
     virtual size_t GetTableSize(uint32_t tag) const = 0;

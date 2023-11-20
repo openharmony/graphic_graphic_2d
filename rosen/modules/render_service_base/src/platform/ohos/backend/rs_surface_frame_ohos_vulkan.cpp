@@ -19,6 +19,12 @@
 namespace OHOS {
 namespace Rosen {
 
+RSSurfaceFrameOhosVulkan::RSSurfaceFrameOhosVulkan(sk_sp<SkSurface> surface, int32_t width,
+    int32_t height, int32_t bufferAge)
+    : surface_(surface), width_(width), height_(height), bufferAge_(bufferAge)
+{
+}
+
 RSSurfaceFrameOhosVulkan::RSSurfaceFrameOhosVulkan(sk_sp<SkSurface> surface, int32_t width, int32_t height)
     : surface_(surface), width_(width), height_(height)
 {
@@ -26,6 +32,25 @@ RSSurfaceFrameOhosVulkan::RSSurfaceFrameOhosVulkan(sk_sp<SkSurface> surface, int
 
 void RSSurfaceFrameOhosVulkan::SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height)
 {
+#ifdef RS_ENABLE_VK
+    std::vector<SkIRect> skIRects;
+    SkIRect skIRect = {left, top, width, height};
+    skIRects.push_back(skIRect);
+    surface_->setDrawingArea(skIRects);
+#endif
+}
+
+void RSSurfaceFrameOhosVulkan::SetDamageRegion(const std::vector<RectI>& rects)
+{
+#ifdef RS_ENABLE_VK
+    std::vector<SkIRect> skIRects;
+    for (auto &rect : rects) {
+        SkIRect skIRect = {rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()};
+        skIRects.push_back(skIRect);
+    }
+
+    surface_->setDrawingArea(skIRects);
+#endif
 }
 
 SkCanvas* RSSurfaceFrameOhosVulkan::GetCanvas()
@@ -50,8 +75,7 @@ void RSSurfaceFrameOhosVulkan::SetReleaseFence(const int32_t& fence)
 
 int32_t RSSurfaceFrameOhosVulkan::GetBufferAge() const
 {
-    ROSEN_LOGE("RSSurfaceFrameOhosVulkan::GetBufferAge return -1");
-    return -1;
+    return bufferAge_;
 }
 } // namespace Rosen
 } // namespace OHOS

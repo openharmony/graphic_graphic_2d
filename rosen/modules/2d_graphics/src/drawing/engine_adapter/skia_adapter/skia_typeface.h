@@ -20,6 +20,7 @@
 #include "include/core/SkTypeface.h"
 
 #include "impl_interface/typeface_impl.h"
+#include "text/typeface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -27,6 +28,7 @@ namespace Drawing {
 class SkiaTypeface : public TypefaceImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     explicit SkiaTypeface(sk_sp<SkTypeface> skTypeface);
     ~SkiaTypeface() override = default;
 
@@ -44,10 +46,12 @@ public:
     bool GetItalic() const override;
     uint32_t GetUniqueID() const override;
 
+    static std::shared_ptr<Typeface> MakeFromFile(const char path[]);
+
     static sk_sp<SkData> SerializeTypeface(SkTypeface* typeface, void* ctx);
     static sk_sp<SkTypeface> DeserializeTypeface(const void* data, size_t length, void* ctx);
 
-protected:
+private:
     SkiaTypeface() = default;
 
     sk_sp<SkTypeface> skTypeface_;

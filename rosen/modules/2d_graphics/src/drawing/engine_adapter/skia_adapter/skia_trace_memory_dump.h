@@ -26,8 +26,15 @@ namespace Rosen {
 namespace Drawing {
 class SkiaTraceMemoryDump : public TraceMemoryDumpImpl {
 public:
+    static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     SkiaTraceMemoryDump(const char* categoryKey, bool itemizeType);
     virtual ~SkiaTraceMemoryDump() = default;
+
+    AdapterType GetType() const override
+    {
+        return AdapterType::SKIA_ADAPTER;
+    }
 
     void DumpNumericValue(const char* dumpName, const char* valueName, const char* units, uint64_t value) override;
 

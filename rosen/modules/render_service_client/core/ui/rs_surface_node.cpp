@@ -85,7 +85,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
 
         command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(node->GetId());
         transactionProxy->AddCommand(command, isWindow);
-        
+
         RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
         command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(node->GetId(), true);
         transactionProxy->AddCommand(command, isWindow);
@@ -536,6 +536,38 @@ void RSSurfaceNode::SetHardwareEnabled(bool isEnabled)
         std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     if (renderServiceClient != nullptr) {
         renderServiceClient->SetHardwareEnabled(GetId(), isEnabled);
+    }
+}
+
+void RSSurfaceNode::SetBootAnimation(bool isBootAnimation)
+{
+    isBootAnimation_ = isBootAnimation;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetBootAnimation>(GetId(), isBootAnimation);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+    ROSEN_LOGD("RSSurfaceNode::SetBootAnimation, surfaceNodeId:[%" PRIu64 "] isBootAnimation:%s",
+        GetId(), isBootAnimation ? "true" : "false");
+}
+bool RSSurfaceNode::GetBootAnimation() const
+{
+    return isBootAnimation_;
+}
+
+void RSSurfaceNode::SetForeground(bool isForeground)
+{
+    ROSEN_LOGD("RSSurfaceNode::SetForeground, surfaceNodeId:[%" PRIu64 "] isForeground:%s",
+        GetId(), isForeground ? "true" : "false");
+    std::unique_ptr<RSCommand> commandRS =
+        std::make_unique<RSSurfaceNodeSetForeground>(GetId(), isForeground);
+    std::unique_ptr<RSCommand> commandRT =
+        std::make_unique<RSSurfaceNodeSetForeground>(GetId(), isForeground);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(commandRS, true);
+        transactionProxy->AddCommand(commandRT, false);
     }
 }
 } // namespace Rosen

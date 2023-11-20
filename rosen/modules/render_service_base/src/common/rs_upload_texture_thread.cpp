@@ -40,6 +40,13 @@ void RSUploadTextureThread::PostTask(const std::function<void()>& task)
     }
 }
 
+void RSUploadTextureThread::PostSyncTask(const std::function<void()>& task)
+{
+    if (handler_) {
+        handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
+}
+
 void RSUploadTextureThread::PostTask(const std::function<void()>& task, const std::string& name)
 {
     if (handler_) {

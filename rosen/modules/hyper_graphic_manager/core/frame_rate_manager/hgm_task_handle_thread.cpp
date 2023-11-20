@@ -13,14 +13,25 @@
  * limitations under the License.
  */
 
-#include "skia_dynamic_font_mgr.h"
+#include "hgm_task_handle_thread.h"
 
-#include "txt/asset_font_manager.h"
+namespace OHOS::Rosen {
+HgmTaskHandleThread& HgmTaskHandleThread::Instance()
+{
+    static HgmTaskHandleThread instance;
+    return instance;
+}
 
-namespace OHOS {
-namespace Rosen {
-namespace Drawing {
-SkiaDynamicFontMgr::SkiaDynamicFontMgr() : SkiaFontMgr(std::make_shared<txt::DynamicFontManager>()) {}
-} // namespace Drawing
-} // namespace Rosen
-} // namespace OHOS
+HgmTaskHandleThread::HgmTaskHandleThread()
+{
+    runner_ = AppExecFwk::EventRunner::Create("HgmTaskHandleThread");
+    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+}
+
+void HgmTaskHandleThread::PostTask(const std::function<void()>& task, int64_t delayTime)
+{
+    if (handler_) {
+        handler_->PostTask(task, delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
+}
+}

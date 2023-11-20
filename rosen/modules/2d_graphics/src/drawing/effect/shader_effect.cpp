@@ -87,6 +87,10 @@ ShaderEffect::ShaderEffect() noexcept
     : type_(ShaderEffect::ShaderEffectType::NO_TYPE), impl_(ImplFactory::CreateShaderEffectImpl())
 {}
 
+ShaderEffect::ShaderEffect(ShaderEffectType t) noexcept
+    : type_(t), impl_(ImplFactory::CreateShaderEffectImpl())
+{}
+
 ShaderEffect::ShaderEffectType ShaderEffect::GetType() const
 {
     return type_;
@@ -144,6 +148,17 @@ std::shared_ptr<ShaderEffect> ShaderEffect::CreateSweepGradient(const Point& cen
     return std::make_shared<ShaderEffect>(
         ShaderEffect::ShaderEffectType::SWEEP_GRADIENT, centerPt, colors, pos, mode, startAngle, endAngle);
 }
+
+std::shared_ptr<Data> ShaderEffect::Serialize() const
+{
+    return impl_->Serialize();
+}
+
+bool ShaderEffect::Deserialize(std::shared_ptr<Data> data)
+{
+    return impl_->Deserialize(data);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

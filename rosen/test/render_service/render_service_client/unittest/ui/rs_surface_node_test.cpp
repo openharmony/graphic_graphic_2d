@@ -1128,4 +1128,20 @@ HWTEST_F(RSSurfaceNodeTest, Fingerprint, TestSize.Level1)
     surfaceNode->SetFingerprint(false);
     ASSERT_EQ(false, surfaceNode->GetFingerprint());
 }
+
+/**
+ * @tc.name: SetBootAnimation Test
+ * @tc.desc: SetBootAnimation and GetBootAnimation
+ * @tc.type: FUNC
+ * @tc.require:SR000HSUII
+ */
+HWTEST_F(RSSurfaceNodeTest, SetBootAnimationTest, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetBootAnimation(true);
+    ASSERT_EQ(true, surfaceNode->GetBootAnimation());
+    surfaceNode->SetBootAnimation(false);
+    ASSERT_EQ(false, surfaceNode->GetBootAnimation());
+}
 } // namespace OHOS::Rosen

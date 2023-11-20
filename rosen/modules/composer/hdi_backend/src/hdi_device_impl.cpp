@@ -513,6 +513,8 @@ int32_t HdiDeviceImpl::SetLayerColor(uint32_t screenId, uint32_t layerId, Graphi
         .a = layerColor.a
     };
 
+    HLOGD("SetLayerColor screenId:%{public}u, layerId:%{public}u", screenId, layerId);
+
     return g_composer->SetLayerColor(screenId, layerId, color);
 }
 

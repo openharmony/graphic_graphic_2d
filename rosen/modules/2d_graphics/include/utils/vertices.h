@@ -78,7 +78,8 @@ public:
         }
         return verticesImplPtr_->DowncastingTo<T>();
     }
-
+    std::shared_ptr<Data> Serialize() const;
+    bool Deserialize(std::shared_ptr<Data> data);
     class Builder {
     public:
         Builder(VertexMode mode, int vertexCount, int indexCount, uint32_t flags);

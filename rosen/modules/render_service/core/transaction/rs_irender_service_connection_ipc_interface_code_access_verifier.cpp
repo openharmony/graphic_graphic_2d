@@ -20,6 +20,9 @@ namespace Rosen {
 RSIRenderServiceConnectionInterfaceCodeAccessVerifier::RSIRenderServiceConnectionInterfaceCodeAccessVerifier()
 {
     CheckCodeUnderlyingTypeStandardized<CodeEnumType>(codeEnumTypeName_);
+#ifdef ENABLE_IPC_SECURITY
+    AddRSIRenderServiceConnectionInterfaceCodePermission();
+#endif
 }
 
 bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificationPassed(CodeUnderlyingType code)
@@ -27,7 +30,7 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
     bool hasPermission = true;
     switch (code) {
         case static_cast<CodeUnderlyingType>(CodeEnumType::COMMIT_TRANSACTION): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_UNI_RENDER_ENABLED): {
@@ -39,15 +42,19 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_NODE_AND_SURFACE): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_FOCUS_APP_INFO): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_DEFAULT_SCREEN_ID): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_DEFAULT_SCREEN_ID");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_ACTIVE_SCREEN_ID): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_ACTIVE_SCREEN_ID");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_ALL_SCREEN_IDS): {
@@ -75,23 +82,23 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_REFRESH_RATE): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_REFRESH_RATE_MODE): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_CURRENT_REFRESH_RATE): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_CURRENT_REFRESH_RATE_MODE): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_SUPPORTED_REFRESH_RATES): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_SCREEN_RESOLUTION): {
@@ -103,11 +110,11 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_SURFACE_CAPTURE): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_APPLICATION_AGENT): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_VIRTUAL_SCREEN_RESOLUTION): {
@@ -131,11 +138,11 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_TOTAL_APP_MEM_SIZE): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_CAPABILITY): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_POWER_STATUS): {
@@ -155,11 +162,11 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_BUFFER_AVAILABLE_LISTENER): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_BUFFER_CLEAR_LISTENER): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_SUPPORTED_GAMUTS): {
@@ -167,7 +174,7 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_SUPPORTED_METADATAKEYS): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_GAMUT): {
@@ -187,7 +194,7 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_VSYNC_CONNECTION): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_HDR_CAPABILITY): {
@@ -199,15 +206,15 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_BITMAP): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_PIXELMAP): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_SKIP_FRAME_INTERVAL): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_OCCLUSION_CHANGE_CALLBACK): {
@@ -223,39 +230,39 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_JANK_STATS): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_RESPONSE): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_COMPLETE): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_JANK_FRAME): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::EXECUTE_SYNCHRONOUS_TASK): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_HARDWARE_ENABLED): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_HGM_CFG_CALLBACK): {
-            /* to implement access interception */
+            hasPermission = CheckPermission(code);
             break;
         }
         default: {
@@ -264,5 +271,33 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
     }
     return hasPermission;
 }
+
+#ifdef ENABLE_IPC_SECURITY
+void RSIRenderServiceConnectionInterfaceCodeAccessVerifier::AddRSIRenderServiceConnectionInterfaceCodePermission()
+{
+    for (auto& mapping : permissionRSIRenderServiceConnectionInterfaceMappings_) {
+        CodeEnumType interfaceName = mapping.first;
+        PermissionType permission = mapping.second;
+        std::string newPermission = PermissionEnumToString(permission);
+        if (newPermission == "unknown") {
+            continue;
+        }
+        CodeUnderlyingType code = static_cast<CodeUnderlyingType>(interfaceName);
+        AddPermission(code, newPermission);
+    }
+}
+
+bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsAccessTimesVerificationPassed(
+    CodeUnderlyingType code, uint32_t times) const
+{
+    auto interfaceName = static_cast<CodeEnumType>(code);
+    if (accessRSIRenderServiceConnectionInterfaceTimesRestrictions_.count(interfaceName) == 0) {
+        return true;
+    }
+    uint32_t restrictedTimes = accessRSIRenderServiceConnectionInterfaceTimesRestrictions_.at(interfaceName);
+    return times > restrictedTimes ? false : true;
+}
+#endif
+
 } // namespace Rosen
 } // namespace OHOS

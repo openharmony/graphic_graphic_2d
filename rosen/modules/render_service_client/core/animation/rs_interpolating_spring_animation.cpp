@@ -56,6 +56,17 @@ const RSAnimationTimingCurve& RSInterpolatingSpringAnimation::GetTimingCurve() c
     return timingCurve_;
 }
 
+void RSInterpolatingSpringAnimation::SetZeroThreshold(const float zeroThreshold)
+{
+    constexpr float ZERO = 0.0f;
+    if (zeroThreshold_ < ZERO) {
+        ROSEN_LOGE("RSInterpolatingSpringAnimation::SetZeroThreshold: invalid threshold.");
+        return;
+    }
+    zeroThreshold_ = zeroThreshold;
+    isLogicallyFinishCallback_ = true;
+}
+
 void RSInterpolatingSpringAnimation::OnStart()
 {
     RSPropertyAnimation::OnStart();
@@ -66,6 +77,9 @@ void RSInterpolatingSpringAnimation::OnStart()
     UpdateParamToRenderAnimation(animation);
     animation->SetSpringParameters(timingCurve_.response_, timingCurve_.dampingRatio_, timingCurve_.initialVelocity_);
     animation->SetAdditive(GetAdditive());
+    if (GetIsLogicallyFinishCallback()) {
+        animation->SetZeroThreshold(zeroThreshold_);
+    }
     if (isCustom_) {
         animation->AttachRenderProperty(property_->GetRenderProperty());
         StartUIAnimation(animation);
@@ -101,6 +115,11 @@ void RSInterpolatingSpringAnimation::StartUIAnimation(
     const std::shared_ptr<RSRenderInterpolatingSpringAnimation>& animation)
 {
     StartCustomAnimation(animation);
+}
+
+bool RSInterpolatingSpringAnimation::GetIsLogicallyFinishCallback() const
+{
+    return isLogicallyFinishCallback_;
 }
 } // namespace Rosen
 } // namespace OHOS

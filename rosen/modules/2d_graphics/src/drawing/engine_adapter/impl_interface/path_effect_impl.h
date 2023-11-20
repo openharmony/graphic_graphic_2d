@@ -27,17 +27,13 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+class Data;
 class PathEffect;
 enum class PathDashStyle;
 class PathEffectImpl : public BaseImpl {
 public:
-    static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     PathEffectImpl() noexcept {}
     ~PathEffectImpl() override {}
-    AdapterType GetType() const override
-    {
-        return AdapterType::BASE_INTERFACE;
-    }
 
     virtual void InitWithDash(const scalar intervals[], int count, scalar phase) = 0;
     virtual void InitWithPathDash(const Path& path, scalar advance, scalar phase, PathDashStyle style) = 0;
@@ -45,6 +41,8 @@ public:
     virtual void InitWithDiscrete(scalar segLength, scalar dev, uint32_t seedAssist) = 0;
     virtual void InitWithSum(const PathEffect& e1, const PathEffect& e2) = 0;
     virtual void InitWithCompose(const PathEffect& e1, const PathEffect& e2) = 0;
+    virtual std::shared_ptr<Data> Serialize() const = 0;
+    virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

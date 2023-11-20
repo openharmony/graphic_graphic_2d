@@ -60,7 +60,10 @@ public:
     }
 
     MaskFilter(FilterType t, BlurType blurType, scalar sigma) noexcept;
+    MaskFilter(FilterType t) noexcept;
 
+    std::shared_ptr<Data> Serialize() const;
+    bool Deserialize(std::shared_ptr<Data> data);
 protected:
     MaskFilter() noexcept;
 

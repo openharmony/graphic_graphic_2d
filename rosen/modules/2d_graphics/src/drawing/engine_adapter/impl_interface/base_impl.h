@@ -26,14 +26,10 @@ namespace Rosen {
 namespace Drawing {
 class BaseImpl : public std::enable_shared_from_this<BaseImpl> {
 public:
-    static inline constexpr AdapterType TYPE = AdapterType::NONE;
     BaseImpl() noexcept {}
     virtual ~BaseImpl() {}
 
-    virtual AdapterType GetType() const
-    {
-        return AdapterType::NONE;
-    }
+    virtual AdapterType GetType() const = 0;
 
     template<typename T>
     bool IsInstanceOf()

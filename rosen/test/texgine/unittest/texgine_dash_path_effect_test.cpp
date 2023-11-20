@@ -16,12 +16,20 @@
 #ifndef USE_GRAPHIC_TEXT_GINE
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-
 #include "texgine_dash_path_effect.h"
 
 using namespace testing;
 using namespace testing::ext;
+#else
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
+#include "texgine_path_effect.h"
 
+using namespace testing;
+using namespace testing::ext;
+#endif
+
+#ifndef USE_GRAPHIC_TEXT_GINE
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
@@ -43,16 +51,7 @@ HWTEST_F(TexgineDashPathEffectTest, Make, TestSize.Level1)
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS
-
 #else
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
-
-#include "texgine_path_effect.h"
-
-using namespace testing;
-using namespace testing::ext;
-
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {

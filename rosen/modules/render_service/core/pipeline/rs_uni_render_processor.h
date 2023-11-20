@@ -32,7 +32,7 @@ public:
     void ProcessSurface(RSSurfaceRenderNode& node) override;
     void ProcessDisplaySurface(RSDisplayRenderNode& node) override;
     void ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node) override;
-    void PostProcess() override;
+    void PostProcess(RSDisplayRenderNode* node) override;
 private:
     std::unique_ptr<RSUniRenderComposerAdapter> uniComposerAdapter_;
     std::vector<LayerInfoPtr> layers_;

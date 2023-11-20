@@ -13,22 +13,14 @@
  * limitations under the License.
  */
 
-#include "skia_font_style_set_ohos.h"
+#ifndef RS_CORE_PIPELINE_RCD_NOT_COPYABLE_H
+#define RS_CORE_PIPELINE_RCD_NOT_COPYABLE_H
 
-#ifndef CROSS_PLATFORM
-#include "src/ports/skia_ohos/SkFontStyleSet_ohos.h"
+class RsNotCopyable {
+protected:
+    RsNotCopyable() = default;
+    ~RsNotCopyable() = default;
+    RsNotCopyable(const RsNotCopyable&) = delete;
+    RsNotCopyable& operator=(const RsNotCopyable&) = delete;
+};
 #endif
-
-namespace OHOS {
-namespace Rosen {
-namespace Drawing {
-SkiaFontStyleSetOhos::SkiaFontStyleSetOhos(
-    const std::shared_ptr<FontConfig_OHOS>& fontConfig, int index, bool isFallback)
-#ifndef CROSS_PLATFORM
-    : SkiaFontStyleSet(std::make_shared<SkFontStyleSet_OHOS>(fontConfig, index, isFallback)) {}
-#else
-    : SkiaFontStyleSet(nullptr) {}
-#endif
-} // namespace Drawing
-} // namespace Rosen
-} // namespace OHOS

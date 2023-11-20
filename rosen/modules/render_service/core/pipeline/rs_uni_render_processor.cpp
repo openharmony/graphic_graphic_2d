@@ -20,7 +20,7 @@
 
 #include "platform/common/rs_log.h"
 
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
 #include "pipeline/driven_render/rs_driven_surface_render_node.h"
 #endif
 
@@ -48,8 +48,25 @@ bool RSUniRenderProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int3
     return uniComposerAdapter_->Init(screenInfo_, offsetX, offsetY, mirrorAdaptiveCoefficient_);
 }
 
-void RSUniRenderProcessor::PostProcess()
+void RSUniRenderProcessor::PostProcess(RSDisplayRenderNode* node)
 {
+    if (node != nullptr) {
+        auto acquireFence = node->GetAcquireFence();
+        auto& selfDrawingNodes = RSMainThread::Instance()->GetSelfDrawingNodes();
+        for (auto surfaceNode : selfDrawingNodes) {
+            if (!surfaceNode->IsCurrentFrameHardwareEnabled()) {
+                // current frame : gpu
+                // use display node's acquire fence as release fence to ensure not release buffer until gpu finish
+                surfaceNode->SetCurrentReleaseFence(acquireFence);
+                if (surfaceNode->IsLastFrameHardwareEnabled()) {
+                    // last frame : hwc
+                    // use display node's acquire fence as release fence to ensure not release buffer until its real
+                    // release fence signals
+                    surfaceNode->SetReleaseFence(acquireFence);
+                }
+            }
+        }
+    }
     uniComposerAdapter_->CommitLayers(layers_);
     MultiLayersPerf(layerNum);
     RS_LOGD("RSUniRenderProcessor::PostProcess layers_:%{public}zu", layers_.size());
@@ -93,7 +110,7 @@ void RSUniRenderProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
 
 void RSUniRenderProcessor::ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node)
 {
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
     auto layer = uniComposerAdapter_->CreateLayer(node);
     if (layer == nullptr) {
         RS_LOGE("RSUniRenderProcessor::ProcessDrivenSurface: failed to createLayer for node(id: %{public}" PRIu64 ")",

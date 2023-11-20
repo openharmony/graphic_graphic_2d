@@ -41,6 +41,12 @@ bool SkiaData::BuildWithCopy(const void* data, size_t length)
     return skData_ != nullptr;
 }
 
+bool SkiaData::BuildWithProc(const void* ptr, size_t length, DataReleaseProc proc, void* ctx)
+{
+    skData_ = SkData::MakeWithProc(ptr, length, proc, ctx);
+    return skData_ != nullptr;
+}
+
 bool SkiaData::BuildWithoutCopy(const void* data, size_t length)
 {
     skData_ = SkData::MakeWithoutCopy(data, length);

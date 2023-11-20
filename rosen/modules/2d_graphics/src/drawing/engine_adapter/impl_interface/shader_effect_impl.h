@@ -32,19 +32,14 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+class Data;
 class Image;
 class ShaderEffect;
 enum class TileMode;
 class ShaderEffectImpl : public BaseImpl {
 public:
-    static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     ShaderEffectImpl() noexcept {}
     ~ShaderEffectImpl() override {}
-    AdapterType GetType() const override
-    {
-        return AdapterType::BASE_INTERFACE;
-    }
-
     virtual void InitWithColor(ColorQuad color) = 0;
     virtual void InitWithBlend(const ShaderEffect& s1, const ShaderEffect& s2, BlendMode mode) = 0;
     virtual void InitWithImage(
@@ -59,6 +54,8 @@ public:
         scalar endRadius, const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode) = 0;
     virtual void InitWithSweepGradient(const Point& centerPt, const std::vector<ColorQuad>& colors,
         const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle) = 0;
+    virtual std::shared_ptr<Data> Serialize() const = 0;
+    virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

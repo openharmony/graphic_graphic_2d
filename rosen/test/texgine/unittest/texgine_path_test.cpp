@@ -23,12 +23,17 @@ using namespace testing::ext;
 
 struct MockVars {
     std::shared_ptr<SkPath> skPath_ = std::make_shared<SkPath>();
-} g_tphMockvars;
+};
+
+namespace {
+struct MockVars g_tphMockvars;
 
 void InitTphMockVars(struct MockVars &&vars)
 {
     g_tphMockvars = std::move(vars);
 }
+
+} // namespace
 
 namespace OHOS {
 namespace Rosen {

@@ -13,22 +13,19 @@
  * limitations under the License.
  */
 
-#ifndef SKIA_DYNAMIC_FONT_MGR_H
-#define SKIA_DYNAMIC_FONT_MGR_H
-
-#include <string>
-
-#include "skia_adapter/skia_font_mgr.h"
+#include "command/rs_frame_rate_linker_command.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
-namespace Drawing {
-class SkiaDynamicFontMgr : public SkiaFontMgr {
-public:
-    explicit SkiaDynamicFontMgr();
-    ~SkiaDynamicFontMgr() override = default;
-};
-} // namespace Drawing
+void RSFrameRateLinkerCommandHelper::UpdateRange(RSContext& context, FrameRateLinkerId id, FrameRateRange range)
+{
+    ROSEN_LOGD("RSFrameRateLinkerCommandHelper::UpdateRange %{public}" PRIu64 ", {%{public}d, %{public}d, %{public}d}",
+        id, range.min_, range.max_, range.preferred_);
+    auto linker = context.GetMutableFrameRateLinkerMap().GetFrameRateLinker(id);
+    if (linker != nullptr) {
+        linker->SetExpectedRange(range);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
-#endif

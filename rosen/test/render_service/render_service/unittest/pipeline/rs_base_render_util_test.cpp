@@ -515,7 +515,7 @@ HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_001, TestSize.L
 HWTEST_F(RSBaseRenderUtilTest, SetPropertiesForCanvas_001, TestSize.Level2)
 {
     std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10); // width height
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());;
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
     BufferDrawParam params;
     params.clipRect = SkRect::MakeWH(5, 5);
     RSBaseRenderUtil::SetPropertiesForCanvas(*canvas, params);
@@ -533,7 +533,7 @@ HWTEST_F(RSBaseRenderUtilTest, SetPropertiesForCanvas_001, TestSize.Level2)
 HWTEST_F(RSBaseRenderUtilTest, SetPropertiesForCanvas_002, TestSize.Level2)
 {
     std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10); // width height
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());;
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
     BufferDrawParam params;
     params.isNeedClip = false;
     RSBaseRenderUtil::SetPropertiesForCanvas(*canvas, params);
@@ -550,7 +550,7 @@ HWTEST_F(RSBaseRenderUtilTest, SetPropertiesForCanvas_002, TestSize.Level2)
 HWTEST_F(RSBaseRenderUtilTest, SetPropertiesForCanvas_003, TestSize.Level2)
 {
     std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10); // width height
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());;
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
     BufferDrawParam params;
     params.cornerRadius = Vector4f(1.0f);
     RSBaseRenderUtil::SetPropertiesForCanvas(*canvas, params);
@@ -567,7 +567,7 @@ HWTEST_F(RSBaseRenderUtilTest, SetPropertiesForCanvas_003, TestSize.Level2)
 HWTEST_F(RSBaseRenderUtilTest, SetPropertiesForCanvas_004, TestSize.Level2)
 {
     std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10); // width height
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());;
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
     BufferDrawParam params;
     params.clipRect = SkRect::MakeWH(5, 5);
     params.backgroundColor = SK_ColorRED;
@@ -656,7 +656,7 @@ HWTEST_F(RSBaseRenderUtilTest, IsNeedClient_005, Function | SmallTest | Level2)
 HWTEST_F(RSBaseRenderUtilTest, IsNeedClient_006, Function | SmallTest | Level2)
 {
     ComposeInfo info;
-    node_->GetMutableRenderProperties().SetRotationY(90.0f);;
+    node_->GetMutableRenderProperties().SetRotationY(90.0f);
     bool needClient = RSBaseRenderUtil::IsNeedClient(*node_, info);
     ASSERT_EQ(needClient, true);
 }

@@ -130,7 +130,7 @@ DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 
 PartialRenderType RSSystemProperties::GetPartialRenderEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.partialrender.enabled", "2");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.partialrender.enabled", "0");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<PartialRenderType>(ConvertToInt(enable, DEFAULT_PARTIAL_RENDER_ENABLED_VALUE));
@@ -173,6 +173,13 @@ bool RSSystemProperties::GetHardwareComposerEnabled()
     return hardwareComposerEnabled;
 }
 
+bool RSSystemProperties::GetUseShadowBatchingEnabled()
+{
+    static bool useShadowBatching =
+        std::atoi((system::GetParameter("persist.useShadowBatching.enabled", "1")).c_str()) != 0;
+    return useShadowBatching;
+}
+
 bool RSSystemProperties::GetAFBCEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.afbc.enabled", "1");
@@ -211,7 +218,7 @@ bool RSSystemProperties::GetTargetDirtyRegionDfxEnabled(std::vector<std::string>
     static CachedHandle g_Handle = CachedParameterCreate("rosen.dirtyregiondebug.surfacenames", "0");
     int changed = 0;
     const char *targetSurfacesStr = CachedParameterGetChanged(g_Handle, &changed);
-    if (ConvertToInt(targetSurfacesStr, 0) == 0) {
+    if (strcmp(targetSurfacesStr, "0") == 0) {
         dfxTargetSurfaceNames_.clear();
         return false;
     }
@@ -322,7 +329,7 @@ HgmRefreshRates RSSystemProperties::GetHgmRefreshRatesEnabled()
 void RSSystemProperties::SetHgmRefreshRateModesEnabled(std::string param)
 {
     system::SetParameter("persist.rosen.sethgmrefreshratemode.enabled", param);
-    RS_LOGD("RSSystemProperties::SetHgmRefreshRateModesEnabled set to %{public}s", param.c_str());
+    RS_LOGI("RSSystemProperties::SetHgmRefreshRateModesEnabled set to %{public}s", param.c_str());
 }
 
 HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
@@ -403,7 +410,25 @@ bool RSSystemProperties::GetFilterPartialRenderEnabled()
     // Determine whether the filter partial render should be enabled. The default value is 0,
     // which means that it is unenabled.
     static bool enabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.filterPartialRenderEnabled", "0")).c_str()) != 0;
+        std::atoi((system::GetParameter("persist.sys.graphic.filterPartialRenderEnabled", "1")).c_str()) != 0;
+    return enabled;
+}
+
+bool RSSystemProperties::GetColorPickerPartialEnabled()
+{
+    // Determine whether the color picker partial render should be enabled. The default value is 0,
+    // which means that it is unenabled.
+    static bool enabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.colorPickerPartialEnabled", "1")).c_str()) != 0;
+    return enabled;
+}
+
+bool RSSystemProperties::GetMaskLinearBlurEnabled()
+{
+    // Determine whether the mask LinearBlur render should be enabled. The default value is 0,
+    // which means that it is unenabled.
+    static bool enabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.maskLinearBlurEnabled", "0")).c_str()) != 0;
     return enabled;
 }
 
@@ -498,6 +523,12 @@ bool RSSystemProperties::FindNodeInTargetList(std::string node)
     return res;
 }
 
+bool RSSystemProperties::IsFoldScreenFlag()
+{
+    static bool isFoldScreenFlag = system::GetParameter("const.window.foldscreen.type", "") != "";
+    return isFoldScreenFlag;
+}
+
 bool RSSystemProperties::GetCacheCmdEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.cacheCmd.enabled", "1");
@@ -580,6 +611,13 @@ int RSSystemProperties::GetSyncTransactionWaitDelay()
     static int syncTransactionWaitDelay =
         std::atoi((system::GetParameter("persist.sys.graphic.syncTransactionWaitDelay", "100")).c_str());
     return syncTransactionWaitDelay;
+}
+
+bool RSSystemProperties::GetSingleFrameComposerEnabled()
+{
+    static bool singleFrameComposerEnabled =
+        (std::atoi((system::GetParameter("persist.sys.graphic.singleFrameComposer", "0")).c_str()) != 0);
+    return singleFrameComposerEnabled;
 }
 } // namespace Rosen
 } // namespace OHOS

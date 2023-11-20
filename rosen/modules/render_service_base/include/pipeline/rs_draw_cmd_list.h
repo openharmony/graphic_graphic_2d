@@ -24,6 +24,7 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
+#include "memory/rs_dfx_string.h"
 #include <parcel.h>
 
 #ifndef USE_ROSEN_DRAWING
@@ -63,6 +64,7 @@ public:
     size_t GetSize() const;
     int GetWidth() const;
     int GetHeight() const;
+    void DumpPicture(DfxString& info) const;
 
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSB_EXPORT DrawCmdList* Unmarshalling(Parcel& parcel);
@@ -71,7 +73,7 @@ public:
     void GenerateCache(const RSPaintFilterCanvas* canvas = nullptr, const SkRect* rect = nullptr);
     void ClearCache();
 
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
     // functions that are dedicated to driven render [start]
     void CheckClipRect(SkRect& rect);
     void ReplaceDrivenCmds();
@@ -86,7 +88,7 @@ private:
     int width_;
     int height_;
 
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
     // variables that are dedicated to driven render [start]
     std::vector<std::pair<int, std::unique_ptr<OpItem>>> opReplacedByDrivenRender_;
     // variables that are dedicated to driven render [end]

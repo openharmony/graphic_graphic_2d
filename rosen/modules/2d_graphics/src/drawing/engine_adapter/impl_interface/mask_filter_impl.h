@@ -25,18 +25,16 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+class Data;
 enum class BlurType;
 class MaskFilterImpl : public BaseImpl {
 public:
-    static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     MaskFilterImpl() noexcept {}
     ~MaskFilterImpl() override {}
-    AdapterType GetType() const override
-    {
-        return AdapterType::BASE_INTERFACE;
-    }
 
     virtual void InitWithBlur(BlurType t, scalar sigma) = 0;
+    virtual std::shared_ptr<Data> Serialize() const = 0;
+    virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -13,25 +13,31 @@
  * limitations under the License.
  */
 
-#ifndef SKIA_TYPEFACE_OHOS_H
-#define SKIA_TYPEFACE_OHOS_H
+#ifndef RENDER_SERVICE_CORE_PIPELINE_RCD_RENDER_RS_SUB_THREAD_H
+#define RENDER_SERVICE_CORE_PIPELINE_RCD_RENDER_RS_SUB_THREAD_H
 
-#include <cstdint>
+#pragma once
 #include <string>
-
-#include "src/ports/skia_ohos/FontInfo_ohos.h"
-
-#include "skia_adapter/skia_typeface.h"
+#include <vector>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include "render_context/render_context.h"
+#include "event_handler.h"
 
 namespace OHOS {
 namespace Rosen {
-namespace Drawing {
-class SkiaTypefaceOhos : public SkiaTypeface {
+class RSSubThreadRCD {
 public:
-    explicit SkiaTypefaceOhos(const std::string& specifiedName, FontInfo& info);
-    ~SkiaTypefaceOhos() override = default;
+    RSSubThreadRCD(){};
+    virtual ~RSSubThreadRCD();
+    void Start(RenderContext* context);
+    void PostTask(const std::function<void()>& task);
+private:
+    std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
+    RenderContext *renderContext_ = nullptr;
 };
-} // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
-#endif
+#endif // RENDER_SERVICE_CORE_PIPELINE_RCD_RENDER_RS_SUB_THREAD_H

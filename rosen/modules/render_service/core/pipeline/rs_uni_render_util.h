@@ -59,11 +59,15 @@ public:
 #ifndef USE_ROSEN_DRAWING
     static Occlusion::Region AlignedDirtyRegion(const Occlusion::Region& dirtyRegion, int32_t alignedBits = 32);
     static int GetRotationFromMatrix(SkMatrix matrix);
+    static int GetRotationDegreeFromMatrix(SkMatrix matrix);
+    static bool Is3DRotation(SkMatrix matrix);
 #else
     static Occlusion::Region AlignedDirtyRegion(const Occlusion::Region& dirtyRegion, int32_t alignedBits = 32);
     static int GetRotationFromMatrix(Drawing::Matrix matrix);
+    static int GetRotationDegreeFromMatrix(Drawing::Matrix matrix);
+    static bool Is3DRotation(Drawing::Matrix matrix);
 #endif
-    static bool Is3DRotation(SkMatrix matrix);
+
     static void AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
         std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
         std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes, uint64_t focusNodeId = 0,

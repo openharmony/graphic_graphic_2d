@@ -19,6 +19,8 @@
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
+#include <algorithm>
 
 #ifdef ENABLE_IPC_SECURITY
 #include "accesstoken_kit.h"
@@ -29,6 +31,8 @@
 
 #include "common/rs_macros.h"
 #include "ipc_security/rs_ipc_interface_code_underlying_type.h"
+#include "ipc_security/rs_ipc_interface_permission_type.h"
+
 #include "nocopyable.h"
 
 namespace OHOS {
@@ -38,6 +42,7 @@ public:
     virtual ~RSInterfaceCodeAccessVerifierBase() noexcept = default;
 
     bool IsInterfaceCodeAccessible(CodeUnderlyingType code);
+    virtual bool IsAccessTimesVerificationPassed(CodeUnderlyingType code, uint32_t times) const;
 
 protected:
     /* this class cannot be instantiated */
@@ -49,15 +54,26 @@ protected:
     /* specify tools for verifying the access right */
 #ifdef ENABLE_IPC_SECURITY
     Security::AccessToken::ATokenTypeEnum GetTokenType() const;
+    Security::AccessToken::AccessTokenID GetTokenID() const;
+    bool CheckNativePermission(const Security::AccessToken::AccessTokenID tokenID, const std::string& permission) const;
+    bool CheckHapPermission(const Security::AccessToken::AccessTokenID tokenID, const std::string& permission) const;
+    std::string PermissionEnumToString(PermissionType permission) const;
+    bool AddPermission(CodeUnderlyingType interfaceName, const std::string& newPermission);
+    std::vector<std::string> GetPermissions(CodeUnderlyingType interfaceName) const;
+    int GetInterfacePermissionSize() const;
+
     bool IsSystemApp() const;
 #endif
     bool IsSystemCalling(const std::string& callingCode) const;
+    bool CheckPermission(CodeUnderlyingType code) const;
 
 private:
     DISALLOW_COPY_AND_MOVE(RSInterfaceCodeAccessVerifierBase);
 
     /* specify the communal verification rules in the base class */
     bool IsCommonVerificationPassed(CodeUnderlyingType code);
+    std::unordered_map<CodeUnderlyingType, std::vector<std::string>> interfacePermissions_;
+
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -28,6 +28,12 @@ enum class FillMode {
     BOTH,
 };
 
+enum class FinishCallbackType {
+    TIME_SENSITIVE,
+    TIME_INSENSITIVE,
+    LOGICALLY,
+};
+
 class RSB_EXPORT RSAnimationTimingProtocol {
 public:
     RSAnimationTimingProtocol() = default;
@@ -74,6 +80,11 @@ public:
         range_ = range;
     }
 
+    void SetFinishCallbackType(FinishCallbackType finishCallbackType)
+    {
+        finishCallbackType_ = finishCallbackType;
+    }
+
     int GetDuration() const
     {
         return duration_;
@@ -114,6 +125,11 @@ public:
         return range_;
     }
 
+    FinishCallbackType GetFinishCallbackType() const
+    {
+        return finishCallbackType_;
+    }
+
     static const RSAnimationTimingProtocol DEFAULT;
     static const RSAnimationTimingProtocol IMMEDIATE;
 
@@ -126,6 +142,7 @@ protected:
     FillMode fillMode_ { FillMode::FORWARDS };
     bool isForward_ { true };
     FrameRateRange range_ = {0, 0, 0};
+    FinishCallbackType finishCallbackType_ { FinishCallbackType::TIME_SENSITIVE };
 };
 } // namespace Rosen
 } // namespace OHOS

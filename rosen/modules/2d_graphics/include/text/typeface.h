@@ -22,16 +22,15 @@
 #include "impl_interface/typeface_impl.h"
 #include "text/font_style.h"
 
-struct FontInfo;
-
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 class Typeface {
 public:
     explicit Typeface(std::shared_ptr<TypefaceImpl> typefaceImpl) noexcept;
-    Typeface(const std::string& specifiedName, FontInfo& info);
     virtual ~Typeface() = default;
+
+    static std::shared_ptr<Typeface> MakeFromFile(const char path[]);
 
     /*
      * @brief   Get the familyName for this typeface.

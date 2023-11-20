@@ -65,6 +65,8 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     uint32_t level = GetData<uint32_t>();
     int32_t modeIdx = GetData<uint32_t>();
     uint32_t skipFrameInterval = GetData<uint32_t>();
+    uint32_t width = GetData<uint32_t>();
+    uint32_t height = GetData<uint32_t>();
 
     // test
     auto& rsInterfaces = RSInterfaces::GetInstance();
@@ -93,9 +95,11 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     rsInterfaces.GetScreenHDRCapability(static_cast<ScreenId>(id), screenHdrCapability);
     RSScreenType screenType = RSScreenType::BUILT_IN_TYPE_SCREEN;
     rsInterfaces.GetScreenType(static_cast<ScreenId>(id), screenType);
-    SurfaceOcclusionChangeCallback surfaceOcclusionCb = [](bool) {};
-    rsInterfaces.RegisterSurfaceOcclusionChangeCallback(static_cast<NodeId>(id), surfaceOcclusionCb);
+    SurfaceOcclusionChangeCallback surfaceOcclusionCb = [](float) {};
+    std::vector<float> partitionPoints;
+    rsInterfaces.RegisterSurfaceOcclusionChangeCallback(static_cast<NodeId>(id), surfaceOcclusionCb, partitionPoints);
     rsInterfaces.UnRegisterSurfaceOcclusionChangeCallback(static_cast<NodeId>(id));
+    rsInterfaces.ResizeVirtualScreen(static_cast<NodeId>(id), width, height);
 
     sleep(1);
 

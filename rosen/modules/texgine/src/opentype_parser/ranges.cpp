@@ -37,14 +37,9 @@ int32_t Ranges::GetGlyphId(uint32_t codepoint) const
     }
 
     for (const auto &[start, end, gid] : ranges_) {
-        if (codepoint > end) {
-            continue;
-        }
-
-        if (codepoint >= start) {
+        if (codepoint >= start && codepoint < end) {
             return codepoint + gid;
         }
-        break;
     }
 
     return INVALID_GLYPH_ID;

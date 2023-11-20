@@ -15,9 +15,9 @@
 
 #include "property/rs_property_drawable_utilities.h"
 
+#include "pipeline/rs_render_node.h"
 #include "property/rs_properties.h"
 #include "property/rs_properties_painter.h"
-#include "pipeline/rs_render_node.h"
 
 namespace OHOS::Rosen {
 // ============================================================================
@@ -108,5 +108,4 @@ void RSAlphaOffscreenDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& can
     canvas.SaveLayer(slr);
 #endif
 }
-
 } // namespace OHOS::Rosen

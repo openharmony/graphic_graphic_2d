@@ -388,6 +388,96 @@ std::string CharGroups::GetTypefaceName()
 
     return (*pcgs_)[0].typeface->GetName();
 }
+
+double CharGroups::GetAllCharWidth() const
+{
+    double allCharWidth = 0.0;
+    if (!GetSize()) {
+        LOGEX_FUNC_LINE(ERROR) << "pcgs_ is empty";
+        return allCharWidth;
+    }
+
+    for (const auto &charGroup : *pcgs_) {
+        allCharWidth += charGroup.GetWidth();
+    }
+    return allCharWidth;
+}
+
+double CharGroups::GetCharWidth(const size_t index) const
+{
+    if (!IsValid()) {
+        LOGEX_FUNC_LINE(ERROR) << "pcgs_ is null";
+        return 0.0;
+    }
+    // size - 1 means last index of the array
+    if (index > (pcgs_->size() - 1)) {
+        LOGEX_FUNC_LINE(ERROR) << "the index is out of range, index = " << index << " pcgs_ size = " << pcgs_->size();
+        return 0.0;
+    }
+    return pcgs_->at(index).GetWidth();
+}
+
+std::vector<uint16_t> CharGroups::GetCharsToU16(size_t start, size_t end, const SpacesModel &spacesModel)
+{
+    if (pcgs_ == nullptr) {
+        LOGEX_FUNC_LINE(ERROR) << "pcgs_ is null";
+        return {};
+    }
+    // size - 1 means last index of the array
+    size_t maxIndex = pcgs_->size() - 1;
+    if ((start > end) || (start > maxIndex) || (end > maxIndex)) {
+        LOGEX_FUNC_LINE(ERROR) << "invalid parameter, start = " << start <<
+            " end = " << end << " size = " << pcgs_->size();
+        return {};
+    }
+
+    switch (spacesModel) {
+        case SpacesModel::NORMAL:
+            break;
+        case SpacesModel::LEFT: {
+            if (!pcgs_->at(end).chars.empty() && u_isspace(pcgs_->at(end).chars.back())) {
+                pcgs_->at(end).chars.pop_back();
+            }
+            if (pcgs_->at(end).chars.empty()) {
+                end--;
+            }
+            break;
+        }
+        case SpacesModel::RIGHT: {
+            if (!pcgs_->at(start).chars.empty() && u_isspace(pcgs_->at(start).chars.front())) {
+                pcgs_->at(start).chars.erase(pcgs_->at(start).chars.begin());
+            }
+            if (pcgs_->at(start).chars.empty()) {
+                start++;
+            }
+            break;
+        }
+        default:
+            break;
+    }
+
+    std::vector<uint16_t> charData;
+    for (; start <= end; start++) {
+        charData.insert(charData.end(), pcgs_->at(start).chars.begin(), pcgs_->at(start).chars.end());
+    }
+    return charData;
+}
+
+bool CharGroups::IsSingleWord() const
+{
+    if (!IsValid()) {
+        LOGEX_FUNC_LINE(ERROR) << "pcgs_ is null";
+        return false;
+    }
+    bool isSingleWord = true;
+    for (const auto &charGroup : *pcgs_) {
+        if (charGroup.HasWhitesSpace()) {
+            isSingleWord = false;
+            break;
+        }
+    }
+    return isSingleWord;
+}
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS

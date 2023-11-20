@@ -28,11 +28,6 @@ std::shared_ptr<FontMgr> FontMgr::CreateDefaultFontMgr()
     return std::make_shared<FontMgr>(ImplFactory::CreateDefaultFontMgrImpl());
 }
 
-std::shared_ptr<FontMgr> FontMgr::CreateDynamicFontMgr()
-{
-    return std::make_shared<FontMgr>(ImplFactory::CreateDynamicFontMgrImpl());
-}
-
 Typeface* FontMgr::MatchFamilyStyleCharacter(const char familyName[], const FontStyle& fontStyle,
                                              const char* bcp47[], int bcp47Count,
                                              int32_t character) const

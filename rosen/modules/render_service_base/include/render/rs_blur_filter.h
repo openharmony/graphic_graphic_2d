@@ -60,12 +60,14 @@ public:
 
     bool CanSkipFrame() const override;
 
+    bool IsNearEqual(
+        const std::shared_ptr<RSFilter>& other, float threshold = std::numeric_limits<float>::epsilon()) const override;
+    bool IsNearZero(float threshold = std::numeric_limits<float>::epsilon()) const override;
+
 private:
     float blurRadiusX_;
     float blurRadiusY_;
-#ifndef USE_ROSEN_DRAWING
     bool useKawase_ = false;
-#endif
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -32,13 +32,7 @@ enum class FontEdging;
 
 class FontImpl : public BaseImpl {
 public:
-    static inline constexpr AdapterType TYPE = AdapterType::BASE_INTERFACE;
     ~FontImpl() override = default;
-
-    AdapterType GetType() const override
-    {
-        return AdapterType::BASE_INTERFACE;
-    }
 
     virtual void SetEdging(FontEdging edging) = 0;
     virtual void SetSubpixel(bool isSubpixel) = 0;
@@ -46,12 +40,15 @@ public:
     virtual void SetTypeface(std::shared_ptr<Typeface> typeface) = 0;
     virtual void SetSize(scalar textSize) = 0;
     virtual void SetEmbolden(bool isEmbolden) = 0;
+    virtual void SetScaleX(scalar scaleX) = 0;
     virtual void SetSkewX(scalar skewX) = 0;
     virtual void SetLinearMetrics(bool isLinearMetrics) = 0;
 
     virtual scalar GetMetrics(FontMetrics* metrics) const = 0;
     virtual void GetWidths(const uint16_t glyphs[], int count, scalar widths[]) const = 0;
     virtual void GetWidths(const uint16_t glyphs[], int count, scalar widths[], Rect bounds[]) const = 0;
+
+    virtual scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding) = 0;
 
 protected:
     FontImpl() noexcept = default;

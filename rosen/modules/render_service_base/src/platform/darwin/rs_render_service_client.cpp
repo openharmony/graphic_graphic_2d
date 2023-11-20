@@ -103,7 +103,8 @@ public:
 
 std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     const std::string& name,
-    const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper)
+    const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper,
+    uint64_t id)
 {
     return std::make_shared<VSyncReceiverDarwin>();
 }
@@ -121,6 +122,11 @@ int32_t RSRenderServiceClient::SetFocusAppInfo(
 }
 
 ScreenId RSRenderServiceClient::GetDefaultScreenId()
+{
+    return 0;
+}
+
+ScreenId RSRenderServiceClient::GetActiveScreenId()
 {
     return 0;
 }
@@ -148,6 +154,10 @@ void RSRenderServiceClient::SetScreenRefreshRate(ScreenId id, int32_t sceneId, i
 }
 
 void RSRenderServiceClient::SetRefreshRateMode(int32_t refreshRateMode)
+{
+}
+
+void RSRenderServiceClient::SyncFrameRateRange(const FrameRateRange& range)
 {
 }
 
@@ -256,6 +266,11 @@ int32_t RSRenderServiceClient::SetScreenGamutMap(ScreenId id, ScreenGamutMap mod
     return {};
 }
 
+int32_t RSRenderServiceClient::SetScreenCorrection(ScreenId id, ScreenRotation screenRotation)
+{
+    return {};
+}
+
 int32_t RSRenderServiceClient::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode)
 {
     return {};
@@ -296,7 +311,7 @@ int32_t RSRenderServiceClient::RegisterOcclusionChangeCallback(const OcclusionCh
 }
 
 int32_t RSRenderServiceClient::RegisterSurfaceOcclusionChangeCallback(
-    NodeId id, const SurfaceOcclusionChangeCallback& callback)
+    NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints)
 {
     return {};
 }
@@ -317,6 +332,11 @@ void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
 
 void RSRenderServiceClient::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
 {
+}
+
+int32_t RSRenderServiceClient::ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height)
+{
+    return {};
 }
 
 void RSRenderServiceClient::ReportJankStats()
@@ -340,6 +360,10 @@ void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled)
 }
 
 void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
+{
+}
+
+void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
 {
 }
 

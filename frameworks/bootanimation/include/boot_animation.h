@@ -21,13 +21,9 @@
 #include <include/core/SkImageInfo.h>
 #include <include/core/SkImage.h>
 #include <include/codec/SkCodec.h>
-#include <display.h>
-#include <display_type.h>
-#include <display_manager.h>
 #ifdef PLAYER_FRAMEWORK_ENABLE
 #include <media_errors.h>
 #endif
-#include <foundation/window/window_manager/interfaces/innerkits/wm/window_manager.h>
 #include <ipc_skeleton.h>
 #include <iremote_broker.h>
 #include <iservice_registry.h>
@@ -40,10 +36,9 @@
 #include <render_context/render_context.h>
 #endif
 #include <system_ability_definition.h>
+#include <ui/rs_display_node.h>
 #include <ui/rs_surface_extractor.h>
-#include <window.h>
-#include <window_option.h>
-#include <window_scene.h>
+
 #include "boot_animationconfig.h"
 #include "boot_videoplayer.h"
 #include "event_handler.h"
@@ -69,12 +64,12 @@ private:
     void OnDraw(SkCanvas* canvas, int32_t curNo);
     void InitRsSurface();
     void InitRsSurfaceNode();
+    void InitRsDisplayNode();
     void InitPicCoordinates();
     int32_t windowWidth_;
     int32_t windowHeight_;
     Rosen::ScreenId defaultId_;
-    sptr<OHOS::Rosen::Window> window_;
-    sptr<OHOS::Rosen::WindowScene> scene_;
+
 #ifdef NEW_RENDER_CONTEXT
     std::shared_ptr<OHOS::Rosen::RenderContextBase> renderContext_;
     std::shared_ptr<OHOS::Rosen::RSRenderSurface> rsSurface_;
@@ -84,6 +79,7 @@ private:
     OHOS::Rosen::RenderContext* rc_;
 #endif
     std::shared_ptr<OHOS::Rosen::RSSurfaceNode> rsSurfaceNode_;
+    std::shared_ptr<OHOS::Rosen::RSDisplayNode> rsDisplayNode_;
     int32_t freq_ = 30;
     int32_t realHeight_ = 0;
     int32_t realWidth_ = 0;

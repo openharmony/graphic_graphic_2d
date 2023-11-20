@@ -33,6 +33,10 @@
 #include "res_sched_client.h"
 #endif
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 namespace OHOS::Rosen {
 namespace {
 #ifdef RES_SCHED_ENABLE
@@ -109,22 +113,18 @@ float RSSubThread::GetAppGpuMemoryInMB()
 {
     float total = 0.f;
     PostSyncTask([&total, this]() {
-#ifndef USE_ROSEN_DRAWING
         total = MemoryManager::GetAppGpuMemoryInMB(grContext_.get());
-#else
-        RS_LOGE("Drawing Unsupport GetAppGpuMemoryInMB");
-#endif
     });
     return total;
 }
 
 void RSSubThread::CreateShareEglContext()
 {
-#ifdef RS_ENABLE_GL
     if (renderContext_ == nullptr) {
         RS_LOGE("renderContext_ is nullptr");
         return;
     }
+#ifdef RS_ENABLE_GL
     eglShareContext_ = renderContext_->CreateShareContext();
     if (eglShareContext_ == EGL_NO_CONTEXT) {
         RS_LOGE("eglShareContext_ is EGL_NO_CONTEXT");
@@ -164,7 +164,7 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
     visitor->SetSubThreadConfig(threadIndex_);
     visitor->SetFocusedNodeId(RSMainThread::Instance()->GetFocusNodeId(),
         RSMainThread::Instance()->GetFocusLeashWindowId());
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     while (threadTask->GetTaskSize() > 0) {
         auto task = threadTask->GetNextRenderTask();
         if (!task || (task->GetIdx() == 0)) {
@@ -254,6 +254,7 @@ sk_sp<GrContext> RSSubThread::CreateShareGrContext()
 #endif
 {
     RS_TRACE_NAME("CreateShareGrContext");
+#ifdef RS_ENABLE_GL
     CreateShareEglContext();
     const GrGLInterface *grGlInterface = GrGLCreateNativeInterface();
     sk_sp<const GrGLInterface> glInterface(grGlInterface);
@@ -277,6 +278,11 @@ sk_sp<GrContext> RSSubThread::CreateShareGrContext()
     sk_sp<GrDirectContext> grContext = GrDirectContext::MakeGL(std::move(glInterface), options);
 #else
     sk_sp<GrContext> grContext = GrContext::MakeGL(std::move(glInterface), options);
+#endif
+#endif
+
+#ifdef RS_ENABLE_VK
+    sk_sp<GrDirectContext> grContext = GrDirectContext::MakeVulkan(RsVulkanContext::GetSingleton().GetGrVkBackendContext());
 #endif
     if (grContext == nullptr) {
         RS_LOGE("nullptr grContext is null");

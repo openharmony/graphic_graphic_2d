@@ -40,12 +40,6 @@ public:
     static std::shared_ptr<FontMgr> CreateDefaultFontMgr();
 
     /*
-     * @brief   Create a dynamic fontMgr.
-     * @return  A shared pointer to dynamic fontMgr.
-     */
-    static std::shared_ptr<FontMgr> CreateDynamicFontMgr();
-
-    /*
      * @brief             Use the system fallback to find a typeface for the given character.
      * @param familyName  A const char array of familyName.
      * @param fontStyle   FontStyle.

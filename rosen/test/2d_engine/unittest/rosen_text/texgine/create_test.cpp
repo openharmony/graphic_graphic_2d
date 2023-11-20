@@ -24,17 +24,17 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-class OH_Texgine_RosenTypographyTest : public testing::Test {};
+class OHTexgineRosenTypographyTest : public testing::Test {};
 namespace {
 constexpr int32_t ZERO_VALUE = 0;
 }
 
 /*
- * @tc.name: OH_Texgine_RosenTypographyTest001
+ * @tc.name: OHTexgineRosenTypographyTest001
  * @tc.desc: test for texgine typography
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Texgine_RosenTypographyTest, OH_Texgine_RosenTypographyTest001, TestSize.Level1)
+HWTEST_F(OHTexgineRosenTypographyTest, OHTexgineRosenTypographyTest001, TestSize.Level1)
 {
     TypographyStyle typoStype;
     std::unique_ptr<TypographyCreate> builder = TypographyCreate::Create(typoStype, FontCollection::Create());

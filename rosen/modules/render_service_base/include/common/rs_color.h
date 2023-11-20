@@ -19,6 +19,7 @@
 #include <sys/types.h>
 #include <stdint.h>
 
+#include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 
 namespace OHOS {
@@ -37,6 +38,7 @@ public:
     {
         return !operator==(rhs);
     }
+    bool IsNearEqual(const RSColor& other, int16_t threshold = std::numeric_limits<int16_t>::epsilon()) const;
     RSColor operator+(const RSColor& rhs) const;
     RSColor operator-(const RSColor& rhs) const;
     RSColor operator*(float scale) const;

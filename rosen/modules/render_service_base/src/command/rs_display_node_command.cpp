@@ -87,5 +87,12 @@ void DisplayNodeCommandHelper::SetDisplayMode(RSContext& context, NodeId id, con
     }
 }
 
+void DisplayNodeCommandHelper::SetBootAnimation(RSContext& context, NodeId nodeId, bool isBootAnimation)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(nodeId)) {
+        node->SetBootAnimation(isBootAnimation);
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

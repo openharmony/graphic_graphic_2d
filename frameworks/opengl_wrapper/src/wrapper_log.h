@@ -19,11 +19,11 @@
 namespace OHOS {
 #if (defined(__aarch64__) || defined(__x86_64__))
 #define WPUBI64  "%{public}ld"
-#define WPUBSize "%{public}lu"
+#define WPUB_SIZE "%{public}lu"
 #define WPUBU64  "%{public}lu"
 #else
 #define WPUBI64  "%{public}lld"
-#define WPUBSize "%{public}u"
+#define WPUB_SIZE "%{public}u"
 #define WPUBU64  "%{public}llu"
 #endif
 

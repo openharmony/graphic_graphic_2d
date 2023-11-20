@@ -49,11 +49,18 @@ public:
 
     /*
      * @brief        Constructs Region to match outline of path within clip.
-     * @param &path  Providing outline
+     * @param &path  Providing outline.
      * @param &clip  Containing path.
      * @return       Return true if constructed Region is not empty.
      */
     virtual bool SetPath(const Path& path, const Region& clip);
+
+    /*
+     * @brief       Appends outline of Region to path.
+     * @param path  Path to append to.
+     * @return      Return true if path changed.
+     */
+    bool GetBoundaryPath(Path* path) const;
 
     /*
      * @brief         Determines whether it intersects other.
@@ -61,6 +68,18 @@ public:
      * @return        If true indicates that other and Region have area in common.
      */
     bool IsIntersects(const Region& other) const;
+
+    /*
+     * @brief         Determines whether Region is empty.
+     * @return        If true indicates that bounds has no width or height.
+     */
+    bool IsEmpty() const;
+
+    /*
+     * @brief         Determines whether Region is one Rect with positive dimensions.
+     * @return        If true indicates that Region contains one Rect.
+     */
+    bool IsRect() const;
 
     /*
      * @brief          Replaces Region with the result of Region op region.

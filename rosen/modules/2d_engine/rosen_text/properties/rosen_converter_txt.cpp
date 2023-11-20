@@ -366,7 +366,7 @@ void RosenConvertTypographyStyle(const TypographyStyle& typographyStyle, txt::Pa
     txtParagraphStyle.text_direction = RosenConvertTxtTextDirection(typographyStyle.textDirection_);
     txtParagraphStyle.max_lines = typographyStyle.maxLines_;
     txtParagraphStyle.ellipsis = typographyStyle.ellipsis_;
-    txtParagraphStyle.ellipsisModal = RosenConvertTxtTextEllipsisModal(typographyStyle.ellipsisModal_);
+    txtParagraphStyle.ellipsis_modal = RosenConvertTxtTextEllipsisModal(typographyStyle.ellipsisModal_);
     txtParagraphStyle.locale = typographyStyle.locale_;
     txtParagraphStyle.break_strategy = RosenConverMinkinBreakStrategy(typographyStyle.breakStrategy_);
     txtParagraphStyle.word_break_type = RosenConverMinkinWordBreakType(typographyStyle.wordBreakType_);

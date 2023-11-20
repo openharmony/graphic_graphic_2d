@@ -64,7 +64,7 @@ auto ScoredSpansChecker(const std::vector<struct ScoredSpanCheck> &cls)
 auto DoBreakLinesChecker(const std::vector<int> &arg)
 {
     return [arg](std::vector<struct ScoredSpan> &arg1,
-        double &arg2, TypographyStyle &arg3, LineBreaker &object) {
+        double &arg2, TypographyStyle &arg3, std::vector<float> &arg4, LineBreaker &object) {
         if (arg.size() != arg1.size()) {
             return false;
         }
@@ -188,7 +188,7 @@ std::vector<int> prevs012 = {0, 1, 2};
  */
 #define PARAMFUNC DoBreakLines
 HWTEST_F(LineBreakerTest, DoBreakLines, TestSize.Level1) {
-    DEFINE_VOID_TESTINFO3(std::vector<struct ScoredSpan>, double, TypographyStyle);
+    DEFINE_VOID_TESTINFO4(std::vector<struct ScoredSpan>, double, TypographyStyle, std::vector<float>);
     LineBreaker breaker;
     for (auto i = 0; i < static_cast<int>(ss1.size()); i++) {
         ss1[i].span = ts11_;
@@ -197,19 +197,19 @@ HWTEST_F(LineBreakerTest, DoBreakLines, TestSize.Level1) {
     }
 
     // arg1~3 is the parameters of DoBreakLines
-    RUN_VOID_TESTINFO3(breaker, { .arg1 = ss1, .arg2 = 100, .arg3 = gStyle_,
+    RUN_VOID_TESTINFO4(breaker, { .arg1 = ss1, .arg2 = 100, .arg3 = gStyle_, .arg4 = {},
         .checkFunc = DoBreakLinesChecker(prevs012) });
-    RUN_VOID_TESTINFO3(breaker, { .arg1 = ss1, .arg2 = 1e9, .arg3 = gStyle_,
+    RUN_VOID_TESTINFO4(breaker, { .arg1 = ss1, .arg2 = 1e9, .arg3 = gStyle_, .arg4 = {},
         .checkFunc = DoBreakLinesChecker(prevs000) });
-    RUN_VOID_TESTINFO3(breaker, { .arg1 = ss1, .arg2 = 1e9, .arg3 = hStyle_,
+    RUN_VOID_TESTINFO4(breaker, { .arg1 = ss1, .arg2 = 1e9, .arg3 = hStyle_, .arg4 = {},
         .checkFunc = DoBreakLinesChecker(prevs000) });
-    RUN_VOID_TESTINFO3(breaker, { .arg1 = ss2, .arg2 = 100, .arg3 = gStyle_,
+    RUN_VOID_TESTINFO4(breaker, { .arg1 = ss2, .arg2 = 100, .arg3 = gStyle_, .arg4 = {},
         .checkFunc = DoBreakLinesChecker(prevs002) });
-    RUN_VOID_TESTINFO3(breaker, { .arg1 = ss2, .arg2 = 100, .arg3 = hStyle_,
+    RUN_VOID_TESTINFO4(breaker, { .arg1 = ss2, .arg2 = 100, .arg3 = hStyle_, .arg4 = {},
         .checkFunc = DoBreakLinesChecker(prevs001) });
-    RUN_VOID_TESTINFO3(breaker, { .arg1 = ss3, .arg2 = 100, .arg3 = gStyle_,
+    RUN_VOID_TESTINFO4(breaker, { .arg1 = ss3, .arg2 = 100, .arg3 = gStyle_, .arg4 = {},
         .checkFunc = DoBreakLinesChecker(prevs002) });
-    RUN_VOID_TESTINFO3(breaker, { .arg1 = ss3, .arg2 = 100, .arg3 = hStyle_,
+    RUN_VOID_TESTINFO4(breaker, { .arg1 = ss3, .arg2 = 100, .arg3 = hStyle_, .arg4 = {},
         .checkFunc = DoBreakLinesChecker(prevs002) });
 }
 #undef PARAMFUNC
@@ -235,11 +235,11 @@ DEFINE_PARAM_TEST2(LineBreaker, GenerateBreaks, std::vector<VariantSpan>, std::v
 #define PARAMFUNC GenerateLineMetrics
 HWTEST_F(LineBreakerTest, GenerateLineMetrics, TestSize.Level1)
 {
-    DEFINE_TESTINFO2(std::vector<VariantSpan>, std::vector<int32_t>);
+    DEFINE_TESTINFO4(double, std::vector<VariantSpan>, std::vector<int32_t>, std::vector<float>);
     LineBreaker breaker;
-    RUN_TESTINFO2(breaker, { .arg1 = {3, VariantSpan{}}, .arg2 = {2, 10},
+    RUN_TESTINFO4(breaker, { .arg1 = 100.0, .arg2 = {3, VariantSpan{}}, .arg3 = {2, 10}, .arg4 = {},
         .exception = ExceptionType::OUT_OF_RANGE });
-    RUN_TESTINFO2(breaker, { .arg1 = {9, VariantSpan{}}, .arg2 = {2, 4, 7, 9},
+    RUN_TESTINFO4(breaker, { .arg1 = 100.0, .arg2 = {9, VariantSpan{}}, .arg3 = {2, 4, 7, 9}, .arg4 = {},
         .checkFunc = LineMetricsSizesChecker({2, 2, 3, 2}) });
 }
 #undef PARAMFUNC

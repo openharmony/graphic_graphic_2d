@@ -83,7 +83,8 @@ public:
     ColorSpace(ColorSpaceType t) noexcept;
     ColorSpace(ColorSpaceType t, const Image& image) noexcept;
     ColorSpace(ColorSpaceType t, const CMSTransferFuncType& func, const CMSMatrixType& matrix) noexcept;
-
+    std::shared_ptr<Data> Serialize() const;
+    bool Deserialize(std::shared_ptr<Data> data);
 protected:
     ColorSpace() noexcept;
 

@@ -27,8 +27,10 @@ namespace Drawing {
 class SkiaImageFilter : public ImageFilterImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     SkiaImageFilter() noexcept;
     ~SkiaImageFilter() override {};
+
     AdapterType GetType() const override
     {
         return AdapterType::SKIA_ADAPTER;
@@ -46,6 +48,8 @@ public:
      */
     void SetSkImageFilter(const sk_sp<SkImageFilter>& filter);
 
+    std::shared_ptr<Data> Serialize() const override;
+    bool Deserialize(std::shared_ptr<Data> data) override;
 private:
     sk_sp<SkImageFilter> filter_;
 };

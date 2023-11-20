@@ -28,6 +28,7 @@ namespace Drawing {
 class SkiaTextBlobBuilder : public TextBlobBuilderImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
+
     SkiaTextBlobBuilder() = default;
     SkiaTextBlobBuilder(const SkiaTextBlobBuilder& other) = delete;
     SkiaTextBlobBuilder& operator=(const SkiaTextBlobBuilder& other) = delete;

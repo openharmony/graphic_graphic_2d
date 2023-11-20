@@ -112,8 +112,9 @@ int TextShaper::DoShape(std::shared_ptr<TextSpan> &span, const TextStyle &xs,
         return 1;
     }
 
-    span->u16vect_ = span->cgs_.ToUTF16();
-    auto measurer = Measurer::Create(span->u16vect_, *fontCollection);
+    std::vector<uint16_t> u16vect = span->cgs_.ToUTF16();
+    span->u16vect_ = u16vect;
+    auto measurer = Measurer::Create(u16vect, *fontCollection);
     if (measurer == nullptr) {
         return 1;
     }

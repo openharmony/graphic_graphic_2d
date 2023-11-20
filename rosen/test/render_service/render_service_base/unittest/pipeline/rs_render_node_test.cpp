@@ -103,6 +103,7 @@ HWTEST_F(RSRenderNodeTest, AddModifierTest, TestSize.Level1)
     std::shared_ptr<RSRenderModifier> modifier = nullptr;
     RSRenderNode node(id, context);
     node.AddModifier(modifier);
+    ASSERT_FALSE(node.IsDirty());
 }
 
 /**
@@ -117,6 +118,7 @@ HWTEST_F(RSRenderNodeTest, SetSharedTransitionParamTest, TestSize.Level1)
     const std::optional<SharedTransitionParam> sharedTransitionParam;
     RSRenderNode node(id, context);
     node.SetSharedTransitionParam(std::move(sharedTransitionParam));
+    ASSERT_FALSE(node.IsDirty());
 }
 
 /**
@@ -299,6 +301,36 @@ HWTEST_F(RSRenderNodeTest,  SetDrawingCacheRootIdTest, TestSize.Level2)
 
     node.SetDrawingCacheRootId(drawingCacheRootNode.GetId());
     ASSERT_EQ(node.GetDrawingCacheRootId(), drawingCacheRootNode.GetId());
+}
+
+/**
+ * @tc.name: SetContainBootAnimation
+ * @tc.desc: test SetContainBootAnimation and GetContainBootAnimation
+ * @tc.type: FUNC
+ * @tc.require:SR000HSUII
+ */
+HWTEST_F(RSRenderNodeTest,  SetContainBootAnimation001, TestSize.Level2)
+{
+    RSRenderNode node(id, context);
+    node.SetContainBootAnimation(true);
+    ASSERT_EQ(node.GetContainBootAnimation(), true);
+    node.SetContainBootAnimation(false);
+    ASSERT_EQ(node.GetContainBootAnimation(), false);
+}
+
+/**
+ * @tc.name: SetBootAnimationTest
+ * @tc.desc: SetBootAnimation and GetBootAnimation
+ * @tc.type:FUNC
+ * @tc.require:SR000HSUII
+ */
+HWTEST_F(RSRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    node.SetBootAnimation(true);
+    ASSERT_EQ(node.GetBootAnimation(), true);
+    node.SetBootAnimation(false);
+    ASSERT_FALSE(node.GetBootAnimation());
 }
 } // namespace Rosen
 } // namespace OHOS

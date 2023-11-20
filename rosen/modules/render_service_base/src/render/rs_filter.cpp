@@ -46,10 +46,10 @@ std::shared_ptr<RSFilter> RSFilter::CreateMaterialFilter(int style, float dipSca
 }
 
 std::shared_ptr<RSFilter> RSFilter::CreateMaterialFilter(float radius, float saturation,
-    float brightness, uint32_t colorValue)
+    float brightness, uint32_t colorValue, BLUR_COLOR_MODE mode)
 {
     MaterialParam materialParam = {radius, saturation, brightness, Color::FromArgbInt(colorValue)};
-    return std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::DEFAULT);
+    return std::make_shared<RSMaterialFilter>(materialParam, mode);
 }
 
 std::shared_ptr<RSFilter> RSFilter::CreateLightUpEffectFilter(float lightUpDegree)
