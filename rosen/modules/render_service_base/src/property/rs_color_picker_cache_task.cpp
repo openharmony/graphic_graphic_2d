@@ -157,7 +157,6 @@ bool RSColorPickerCacheTask::Render()
             } else {
                 colorPicker->GetAverageColor(color);
             }
-            std::unique_lock<std::mutex> lock(parallelRenderMutex_);
             std::unique_lock<std::mutex> lock(colorMutex_);
             color_ = RSColor(SkColorGetR(color), SkColorGetG(color), SkColorGetB(color), SkColorGetA(color));
             firstGetColorFinished_ = true;
