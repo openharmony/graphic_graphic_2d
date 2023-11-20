@@ -59,7 +59,7 @@ public:
 #endif
     void SetTagEnd();
     ~RSTagTracker();
-    static void UpdateReleaseGpuResourceEnable(ReleaseGpuResourceType releaseResEnable);
+    static void UpdateReleaseResourceEnabled(bool releaseResEnabled);
     static std::string TagType2String(TAGTYPE type);
 private:
     bool isSetTagEnd_ = false;
@@ -72,7 +72,6 @@ private:
 #else
     Drawing::GPUContext* gpuContext_ = nullptr;
 #endif
-    static ReleaseGpuResourceType releaseGpuResourceEnable_;
 };
 } // namespace Rosen
 } // namespace OHOS

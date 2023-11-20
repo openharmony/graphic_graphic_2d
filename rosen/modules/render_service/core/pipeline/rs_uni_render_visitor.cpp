@@ -159,7 +159,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
         (partialRenderType_ != PartialRenderType::SET_DAMAGE) && !isRegionDebugEnabled_;
     isQuickSkipPreparationEnabled_ = (quickSkipPrepareType_ != QuickSkipPrepareType::DISABLED);
     isDrawingCacheEnabled_ = RSSystemParameters::GetDrawingCacheEnabled();
-    RSTagTracker::UpdateReleaseGpuResourceEnable(RSSystemProperties::GetReleaseGpuResourceEnabled());
+    RSTagTracker::UpdateReleaseResourceEnabled(RSSystemProperties::GetReleaseResourceEnabled());
     isScreenRotationAnimating_ = RSSystemProperties::GetCacheEnabledForRotation();
 #if defined(RS_ENABLE_DRIVEN_RENDER)
     if (RSDrivenRenderManager::GetInstance().GetDrivenRenderEnabled()) {
@@ -2412,15 +2412,18 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         } else {
             RSSingleton<RoundCornerDisplay>::GetInstance().DrawRoundCorner(canvas_);
         }
-        RSMainThread::Instance()->RemoveTask(CLEAR_GPU_CACHE);
+        auto mainThread = RSMainThread::Instance();
+        if (!mainThread->GetClearMemoryFinished()) {
+            mainThread->RemoveTask(CLEAR_GPU_CACHE);
+        }
 #ifdef RS_ENABLE_VK
-        canvas_->restoreToCount(saveCountBeforeClip);
+        canvas_->restoreToCount(saveCount_t);
 #endif
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
         renderFrame_->Flush();
         RS_TRACE_END();
         RS_OPTIONAL_TRACE_BEGIN("RSUniRender:WaitUtilUniRenderFinished");
-        RSMainThread::Instance()->WaitUtilUniRenderFinished();
+        mainThread->WaitUtilUniRenderFinished();
         RS_OPTIONAL_TRACE_END();
         if (cacheImgForCapture_ != nullptr) {
             node.SetCacheImgForCapture(cacheImgForCapture_);
@@ -2469,7 +2472,10 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             return node ? (!node->IsOnTheTree()) : true;
         });
     }
-    RSMainThread::Instance()->ClearGpuCache();
+    auto mainThread = RSMainThread::Instance();
+    if (!mainThread->GetClearMemoryFinished()) {
+        mainThread->ClearMemoryCache();
+    }
     RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode end");
 }
 

@@ -34,8 +34,8 @@ public:
 
     enum PurgeType {
         NONE,
-        PURGE_UNLOCK,
-        PURGE_UNLOCK_SAFECACHE
+        GENTLY,
+        STRONGLY
     };
 
     RSRenderNodeMap& GetMutableNodeMap()

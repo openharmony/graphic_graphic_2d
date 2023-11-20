@@ -128,7 +128,7 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
 }
 
 #ifndef NEW_SKIA
-ReleaseGpuResourceType RSSystemProperties::GetReleaseGpuResourceEnabled()
+bool RSSystemProperties::GetReleaseResourceEnabled()
 {
     return {};
 }
