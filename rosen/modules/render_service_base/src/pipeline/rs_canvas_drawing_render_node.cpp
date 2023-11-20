@@ -270,12 +270,16 @@ void RSCanvasDrawingRenderNode::ApplyDrawCmdModifier(RSModifierContext& context,
 }
 
 #ifndef USE_ROSEN_DRAWING
-SkBitmap RSCanvasDrawingRenderNode::GetBitmap()
+SkBitmap RSCanvasDrawingRenderNode::GetBitmap(const uint64_t tid)
 {
     SkBitmap bitmap;
     std::lock_guard<std::mutex> lock(mutex_);
     if (!skImage_) {
         RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: skImage_ is nullptr");
+        return bitmap;
+    }
+    if (RSSystemProperties::GetUniRenderEnabled() && GetTid() != tid) {
+        RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: skImage_ used by multi threads");
         return bitmap;
     }
     if (!skImage_->asLegacyBitmap(&bitmap)) {
@@ -284,7 +288,8 @@ SkBitmap RSCanvasDrawingRenderNode::GetBitmap()
     return bitmap;
 }
 
-bool RSCanvasDrawingRenderNode::GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect)
+bool RSCanvasDrawingRenderNode::GetPixelmap(
+    const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect, const uint64_t tid)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!pixelmap || !rect) {
@@ -300,6 +305,11 @@ bool RSCanvasDrawingRenderNode::GetPixelmap(const std::shared_ptr<Media::PixelMa
     sk_sp<SkImage> skImage = skSurface_->makeImageSnapshot();
     if (skImage == nullptr) {
         RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: makeImageSnapshot failed");
+        return false;
+    }
+
+    if (RSSystemProperties::GetUniRenderEnabled() && GetTid() != tid) {
+        RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: SkSurface used by multi threads");
         return false;
     }
 
