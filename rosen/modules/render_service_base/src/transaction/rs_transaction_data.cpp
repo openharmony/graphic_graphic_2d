@@ -15,6 +15,7 @@
 
 #include "transaction/rs_transaction_data.h"
 
+#include "command/rs_canvas_node_command.h"
 #include "command/rs_command.h"
 #include "command/rs_command_factory.h"
 #include "platform/common/rs_log.h"
@@ -87,6 +88,18 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
     success = success && parcel.WriteUint64(index_);
     success = success && parcel.WriteUint64(syncId_);
     return success;
+}
+
+void RSTransactionData::ProcessBySingleFrameComposer(RSContext& context)
+{
+    std::unique_lock<std::mutex> lock(commandMutex_);
+    for (auto& [nodeId, followType, command] : payload_) {
+        if (command != nullptr &&
+            command->GetType() == RSCommandType::CANVAS_NODE &&
+            command->GetSubType() == RSCanvasNodeCommandType::CANVAS_NODE_UPDATE_RECORDING) {
+            command->Process(context);
+        }
+    }
 }
 
 void RSTransactionData::Process(RSContext& context)

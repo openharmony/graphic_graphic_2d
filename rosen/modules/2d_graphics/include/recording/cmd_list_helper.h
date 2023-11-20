@@ -205,7 +205,7 @@ public:
         const FlattenableHandle& maskFilterHandle);
 
     static FlattenableHandle AddColorFilterToCmdList(CmdList& cmdList, std::shared_ptr<ColorFilter> colorFilter);
-    static std::shared_ptr<ShaderEffect> GetColorFilterFromCmdList(const CmdList& cmdList,
+    static std::shared_ptr<ColorFilter> GetColorFilterFromCmdList(const CmdList& cmdList,
         const FlattenableHandle& colorFilterHandle);
 
     static FlattenableHandle AddImageFilterToCmdList(CmdList& cmdList, std::shared_ptr<ImageFilter> imageFilter);

@@ -31,8 +31,8 @@ public:
     virtual AlphaType GetAlphaType() = 0;
     virtual size_t GetRowBytes() = 0;
     virtual const void* GetAddr() = 0;
-    virtual int GetWidth() = 0;
-    virtual int GetHeight() = 0;
+    virtual int32_t GetWidth() = 0;
+    virtual int32_t GetHeight() = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

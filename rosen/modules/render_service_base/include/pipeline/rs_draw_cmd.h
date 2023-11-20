@@ -375,10 +375,15 @@ public:
 #endif
 private:
     std::shared_ptr<RSImage> rsImage_;
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifndef USE_ROSEN_DRAWING
+#ifdef RS_ENABLE_GL
     mutable EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
     mutable GLuint texId_ = 0;
+#endif
+#ifdef RS_ENABLE_VK
+    mutable sk_sp<SkImage> skImage_ = nullptr;
+#endif
     mutable OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
     mutable pid_t tid_ = 0;
 #endif
@@ -1569,10 +1574,15 @@ private:
     void Clear() const noexcept;
 
     mutable RSSurfaceBufferInfo surfaceBufferInfo_;
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    mutable OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
+#endif
+#ifdef RS_ENABLE_VK
+    mutable sk_sp<SkImage> skImage_ = nullptr;
+#endif
 #ifdef RS_ENABLE_GL
     mutable EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
     mutable GLuint texId_ = 0;
-    mutable OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
 #endif
 };
 #endif

@@ -109,7 +109,6 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
             return modifier;
         },
     },
-
     { RSModifierType::GEOMETRYTRANS, [](Parcel& parcel) -> RSRenderModifier* {
 #ifndef USE_ROSEN_DRAWING
             std::shared_ptr<RSRenderProperty<SkMatrix>> prop;

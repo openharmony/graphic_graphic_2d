@@ -18,10 +18,12 @@
 
 #include "event_handler.h"
 #include "common/rs_macros.h"
-#if defined(RS_ENABLE_UNI_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifndef USE_ROSEN_DRAWING
+#ifdef RS_ENABLE_GL
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
+#endif
 #include "include/core/SkSurface.h"
 #if defined(NEW_SKIA)
 #include "include/gpu/GrDirectContext.h"
@@ -38,7 +40,7 @@ class RSB_EXPORT RSBackgroundThread final {
 public:
     static RSBackgroundThread& Instance();
     void PostTask(const std::function<void()>& task);
-#if defined(RS_ENABLE_UNI_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void InitRenderContext(RenderContext* context);
     void CleanGrResource();
 #ifndef USE_ROSEN_DRAWING
@@ -57,11 +59,13 @@ private:
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
-#if defined(RS_ENABLE_UNI_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#ifdef RS_ENABLE_GL
     void CreateShareEglContext();
+    EGLContext eglShareContext_ = EGL_NO_CONTEXT;
+#endif
     RenderContext* renderContext_ = nullptr;
 #ifndef USE_ROSEN_DRAWING
-    EGLContext eglShareContext_ = EGL_NO_CONTEXT;
     sk_sp<GrDirectContext> CreateShareGrContext();
     sk_sp<GrDirectContext> grContext_ = nullptr;
 #else

@@ -173,6 +173,13 @@ bool RSSystemProperties::GetHardwareComposerEnabled()
     return hardwareComposerEnabled;
 }
 
+bool RSSystemProperties::GetUseShadowBatchingEnabled()
+{
+    static bool useShadowBatching =
+        std::atoi((system::GetParameter("persist.useShadowBatching.enabled", "1")).c_str()) != 0;
+    return useShadowBatching;
+}
+
 bool RSSystemProperties::GetAFBCEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.afbc.enabled", "1");
@@ -407,6 +414,15 @@ bool RSSystemProperties::GetFilterPartialRenderEnabled()
     return enabled;
 }
 
+bool RSSystemProperties::GetColorPickerPartialEnabled()
+{
+    // Determine whether the color picker partial render should be enabled. The default value is 0,
+    // which means that it is unenabled.
+    static bool enabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.colorPickerPartialEnabled", "1")).c_str()) != 0;
+    return enabled;
+}
+
 bool RSSystemProperties::GetMaskLinearBlurEnabled()
 {
     // Determine whether the mask LinearBlur render should be enabled. The default value is 0,
@@ -595,6 +611,20 @@ int RSSystemProperties::GetSyncTransactionWaitDelay()
     static int syncTransactionWaitDelay =
         std::atoi((system::GetParameter("persist.sys.graphic.syncTransactionWaitDelay", "100")).c_str());
     return syncTransactionWaitDelay;
+}
+
+bool RSSystemProperties::GetSingleFrameComposerEnabled()
+{
+    static bool singleFrameComposerEnabled =
+        (std::atoi((system::GetParameter("persist.sys.graphic.singleFrameComposer", "0")).c_str()) != 0);
+    return singleFrameComposerEnabled;
+}
+
+bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
+{
+    static bool singleFrameComposerCanvasNodeEnabled =
+        (std::atoi((system::GetParameter("persist.sys.graphic.singleFrameComposerCanvasNode", "0")).c_str()) != 0);
+    return singleFrameComposerCanvasNodeEnabled;
 }
 } // namespace Rosen
 } // namespace OHOS

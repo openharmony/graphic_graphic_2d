@@ -462,5 +462,58 @@ void RSImplicitAnimator::ExecuteWithoutAnimation(const std::function<void()>& ca
     callback();
     implicitAnimationDisabled_ = implicitAnimationDisabled;
 }
+
+void RSImplicitAnimator::CreateImplicitAnimationWithInitialVelocity(const std::shared_ptr<RSNode>& target,
+    const std::shared_ptr<RSPropertyBase>& property, const std::shared_ptr<RSPropertyBase>& startValue,
+    const std::shared_ptr<RSPropertyBase>& endValue, const std::shared_ptr<RSPropertyBase>& velocity)
+{
+    if (globalImplicitParams_.empty() || implicitAnimations_.empty() || keyframeAnimations_.empty()) {
+        ROSEN_LOGE("RSImplicitAnimator::CreateImplicitAnimationWithInitialVelocity:Failed to create implicit "
+                   "animation, need to open implicit animation firstly!");
+        return;
+    }
+
+    if (target == nullptr || property == nullptr) {
+        ROSEN_LOGE(
+            "RSImplicitAnimator::CreateImplicitAnimationWithInitialVelocity:target node or property is a nullptr.");
+        return;
+    }
+
+    std::shared_ptr<RSAnimation> animation;
+    auto params = implicitAnimationParams_.top();
+    if (!params || params->GetType() != ImplicitAnimationParamType::SPRING) {
+        ROSEN_LOGE(
+            "RSImplicitAnimator::CreateImplicitAnimationWithInitialVelocity:the parameters of animations are invalid.");
+        return;
+    }
+
+    auto springImplicitParam = static_cast<RSImplicitSpringAnimationParam*>(params.get());
+    if (!springImplicitParam) {
+        ROSEN_LOGE("RSImplicitAnimator::CreateImplicitAnimationWithInitialVelocity:the parameter of spring animations "
+                   "is null.");
+        return;
+    }
+
+    animation = springImplicitParam->CreateAnimation(property, startValue, endValue);
+    if (!animation) {
+        ROSEN_LOGE("RSImplicitAnimator::CreateImplicitAnimationWithInitialVelocity: failed to create animation.");
+        return;
+    }
+
+    animation->SetInitialVelocity(velocity);
+    const auto& finishCallback = std::get<const std::shared_ptr<AnimationFinishCallback>>(globalImplicitParams_.top());
+    if (finishCallback && finishCallback->finishCallbackType_ == FinishCallbackType::LOGICALLY) {
+        animation->SetZeroThreshold(property->GetThreshold());
+    }
+
+    auto& repeatCallback = std::get<std::shared_ptr<AnimationRepeatCallback>>(globalImplicitParams_.top());
+    if (repeatCallback) {
+        animation->SetRepeatCallback(std::move(repeatCallback));
+        repeatCallback.reset();
+    }
+
+    target->AddAnimation(animation);
+    implicitAnimations_.top().emplace_back(animation, target->GetId());
+}
 } // namespace Rosen
 } // namespace OHOS

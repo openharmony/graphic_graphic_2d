@@ -19,6 +19,7 @@
 #include <type_traits>
 #include <unistd.h>
 
+#include "animation/rs_animation_callback.h"
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_implicit_animator_map.h"
 #include "animation/rs_motion_path_option.h"
@@ -445,6 +446,53 @@ public:
     void SetUpdateCallback(const std::function<void(T)>& updateCallback)
     {
         propertyChangeListener_ = updateCallback;
+    }
+
+    std::vector<std::shared_ptr<RSAnimation>> AnimateWithInitialVelocity(
+        const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
+        const std::shared_ptr<RSPropertyBase>& targetValue,
+        const std::shared_ptr<RSAnimatableProperty<T>>& velocity = nullptr,
+        const std::function<void()>& finishCallback = nullptr, const std::function<void()>& repeatCallback = nullptr)
+    {
+        auto endValue = std::static_pointer_cast<RSAnimatableProperty<T>>(targetValue);
+        if (!endValue) {
+            return {};
+        }
+
+        auto node = RSProperty<T>::target_.lock();
+        if (!node) {
+            RSProperty<T>::stagingValue_ = endValue->Get();
+            return {};
+        }
+
+        const auto& implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+        if (!implicitAnimator) {
+            RSProperty<T>::stagingValue_ = endValue->Get();
+            return {};
+        }
+
+        std::shared_ptr<AnimationFinishCallback> animationFinishCallback;
+        if (finishCallback) {
+            animationFinishCallback =
+                std::make_shared<AnimationFinishCallback>(finishCallback, timingProtocol.GetFinishCallbackType());
+        }
+
+        std::shared_ptr<AnimationRepeatCallback> animationRepeatCallback;
+        if (repeatCallback) {
+            animationRepeatCallback = std::make_shared<AnimationRepeatCallback>(repeatCallback);
+        }
+
+        implicitAnimator->OpenImplicitAnimation(
+            timingProtocol, timingCurve, std::move(animationFinishCallback), std::move(animationRepeatCallback));
+        auto startValue = std::make_shared<RSAnimatableProperty<T>>(RSProperty<T>::stagingValue_);
+        if (velocity) {
+            implicitAnimator->CreateImplicitAnimationWithInitialVelocity(
+                node, RSProperty<T>::shared_from_this(), startValue, endValue, velocity);
+        } else {
+            implicitAnimator->CreateImplicitAnimation(node, RSProperty<T>::shared_from_this(), startValue, endValue);
+        }
+
+        return implicitAnimator->CloseImplicitAnimation();
     }
 
 protected:

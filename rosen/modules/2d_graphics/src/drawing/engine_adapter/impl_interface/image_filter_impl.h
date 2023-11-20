@@ -17,6 +17,7 @@
 #define IMAGE_FILTER_IMPL_H
 
 #include <memory>
+#include <vector>
 
 #include "base_impl.h"
 

@@ -43,7 +43,7 @@ public:
     virtual AlphaType GetAlphaType() const = 0;
     virtual bool ExtractSubset(Bitmap& dst, const Rect& subset) const = 0;
     virtual bool ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
-                            int srcX, int srcY) const = 0;
+                            int32_t srcX, int32_t srcY) const = 0;
     virtual void* GetPixels() const = 0;
     virtual void SetPixels(void* pixel) = 0;
     virtual void CopyPixels(Bitmap& dst, int srcLeft, int srcTop) const = 0;

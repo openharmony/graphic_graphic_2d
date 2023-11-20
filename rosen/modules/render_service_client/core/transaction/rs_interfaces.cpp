@@ -347,6 +347,11 @@ void RSInterfaces::ShowWatermark(const std::shared_ptr<Media::PixelMap> &waterma
     renderServiceClient_->ShowWatermark(watermarkImg, isShow);
 }
 
+int32_t RSInterfaces::ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height)
+{
+    return renderServiceClient_->ResizeVirtualScreen(id, width, height);
+}
+
 MemoryGraphic RSInterfaces::GetMemoryGraphic(int pid)
 {
     return renderServiceClient_->GetMemoryGraphic(pid);

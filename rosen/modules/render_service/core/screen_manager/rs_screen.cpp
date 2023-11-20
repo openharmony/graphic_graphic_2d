@@ -499,6 +499,16 @@ void RSScreen::ClearFpsDump(int32_t screenIndex, std::string& dumpString, std::s
     hdiOutput_->ClearFpsDump(dumpString, arg);
 }
 
+void RSScreen::ResizeVirtualScreen(uint32_t width, uint32_t height)
+{
+    if (!IsVirtual()) {
+        RS_LOGW("RSScreen %{public}s: physical screen not support ResizeVirtualScreen.", __func__);
+        return;
+    }
+    width_ = static_cast<int32_t>(width);
+    height_ = static_cast<int32_t>(height);
+}
+
 void RSScreen::SetScreenBacklight(uint32_t level)
 {
     if (IsVirtual()) {

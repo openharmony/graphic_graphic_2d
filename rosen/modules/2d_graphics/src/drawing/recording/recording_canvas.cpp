@@ -136,11 +136,11 @@ void RecordingCanvas::DrawBackground(const Brush& brush)
         brush.GetBlendMode(),
         brush.IsAntiAlias(),
         filter.GetFilterQuality(),
-        CmdListHelper::AddRecordedToCmdList<RecordingColorSpace>(*cmdList_, brush.GetColorSpace()),
-        CmdListHelper::AddRecordedToCmdList<RecordingShaderEffect>(*cmdList_, brush.GetShaderEffect()),
-        CmdListHelper::AddRecordedToCmdList<RecordingColorFilter>(*cmdList_, filter.GetColorFilter()),
-        CmdListHelper::AddRecordedToCmdList<RecordingImageFilter>(*cmdList_, filter.GetImageFilter()),
-        CmdListHelper::AddRecordedToCmdList<RecordingMaskFilter>(*cmdList_, filter.GetMaskFilter()),
+        CmdListHelper::AddColorSpaceToCmdList(*cmdList_, brush.GetColorSpace()),
+        CmdListHelper::AddShaderEffectToCmdList(*cmdList_, brush.GetShaderEffect()),
+        CmdListHelper::AddColorFilterToCmdList(*cmdList_, filter.GetColorFilter()),
+        CmdListHelper::AddImageFilterToCmdList(*cmdList_, filter.GetImageFilter()),
+        CmdListHelper::AddMaskFilterToCmdList(*cmdList_, filter.GetMaskFilter()),
     };
     cmdList_->AddOp<DrawBackgroundOpItem>(brushHandle);
 }
@@ -218,11 +218,11 @@ void RecordingCanvas::DrawImageNine(const Image* image, const RectI& center, con
             brush->GetBlendMode(),
             brush->IsAntiAlias(),
             filter.GetFilterQuality(),
-            CmdListHelper::AddRecordedToCmdList<RecordingColorSpace>(*cmdList_, brush->GetColorSpace()),
-            CmdListHelper::AddRecordedToCmdList<RecordingShaderEffect>(*cmdList_, brush->GetShaderEffect()),
-            CmdListHelper::AddRecordedToCmdList<RecordingColorFilter>(*cmdList_, filter.GetColorFilter()),
-            CmdListHelper::AddRecordedToCmdList<RecordingImageFilter>(*cmdList_, filter.GetImageFilter()),
-            CmdListHelper::AddRecordedToCmdList<RecordingMaskFilter>(*cmdList_, filter.GetMaskFilter()),
+            CmdListHelper::AddColorSpaceToCmdList(*cmdList_, brush->GetColorSpace()),
+            CmdListHelper::AddShaderEffectToCmdList(*cmdList_, brush->GetShaderEffect()),
+            CmdListHelper::AddColorFilterToCmdList(*cmdList_, filter.GetColorFilter()),
+            CmdListHelper::AddImageFilterToCmdList(*cmdList_, filter.GetImageFilter()),
+            CmdListHelper::AddMaskFilterToCmdList(*cmdList_, filter.GetMaskFilter()),
         };
     }
 
@@ -249,11 +249,11 @@ void RecordingCanvas::DrawImageLattice(const Image* image, const Lattice& lattic
             brush->GetBlendMode(),
             brush->IsAntiAlias(),
             filter.GetFilterQuality(),
-            CmdListHelper::AddRecordedToCmdList<RecordingColorSpace>(*cmdList_, brush->GetColorSpace()),
-            CmdListHelper::AddRecordedToCmdList<RecordingShaderEffect>(*cmdList_, brush->GetShaderEffect()),
-            CmdListHelper::AddRecordedToCmdList<RecordingColorFilter>(*cmdList_, filter.GetColorFilter()),
-            CmdListHelper::AddRecordedToCmdList<RecordingImageFilter>(*cmdList_, filter.GetImageFilter()),
-            CmdListHelper::AddRecordedToCmdList<RecordingMaskFilter>(*cmdList_, filter.GetMaskFilter()),
+            CmdListHelper::AddColorSpaceToCmdList(*cmdList_, brush->GetColorSpace()),
+            CmdListHelper::AddShaderEffectToCmdList(*cmdList_, brush->GetShaderEffect()),
+            CmdListHelper::AddColorFilterToCmdList(*cmdList_, filter.GetColorFilter()),
+            CmdListHelper::AddImageFilterToCmdList(*cmdList_, filter.GetImageFilter()),
+            CmdListHelper::AddMaskFilterToCmdList(*cmdList_, filter.GetMaskFilter()),
         };
     }
 
@@ -418,11 +418,11 @@ void RecordingCanvas::SaveLayer(const SaveLayerOps& saveLayerOps)
             brush->GetBlendMode(),
             brush->IsAntiAlias(),
             filter.GetFilterQuality(),
-            CmdListHelper::AddRecordedToCmdList<RecordingColorSpace>(*cmdList_, brush->GetColorSpace()),
-            CmdListHelper::AddRecordedToCmdList<RecordingShaderEffect>(*cmdList_, brush->GetShaderEffect()),
-            CmdListHelper::AddRecordedToCmdList<RecordingColorFilter>(*cmdList_, filter.GetColorFilter()),
-            CmdListHelper::AddRecordedToCmdList<RecordingImageFilter>(*cmdList_, filter.GetImageFilter()),
-            CmdListHelper::AddRecordedToCmdList<RecordingMaskFilter>(*cmdList_, filter.GetMaskFilter()),
+            CmdListHelper::AddColorSpaceToCmdList(*cmdList_, brush->GetColorSpace()),
+            CmdListHelper::AddShaderEffectToCmdList(*cmdList_, brush->GetShaderEffect()),
+            CmdListHelper::AddColorFilterToCmdList(*cmdList_, filter.GetColorFilter()),
+            CmdListHelper::AddImageFilterToCmdList(*cmdList_, filter.GetImageFilter()),
+            CmdListHelper::AddMaskFilterToCmdList(*cmdList_, filter.GetMaskFilter()),
         };
     }
     CmdListHandle imageFilterHandle = CmdListHelper::AddRecordedToCmdList<RecordingImageFilter>(
@@ -491,12 +491,12 @@ CoreCanvas& RecordingCanvas::AttachPen(const Pen& pen)
         pen.GetBlendMode(),
         pen.IsAntiAlias(),
         filter.GetFilterQuality(),
-        CmdListHelper::AddRecordedToCmdList<RecordingPathEffect>(*cmdList_, pen.GetPathEffect()),
-        CmdListHelper::AddRecordedToCmdList<RecordingColorSpace>(*cmdList_, pen.GetColorSpace()),
-        CmdListHelper::AddRecordedToCmdList<RecordingShaderEffect>(*cmdList_, pen.GetShaderEffect()),
-        CmdListHelper::AddRecordedToCmdList<RecordingColorFilter>(*cmdList_, filter.GetColorFilter()),
-        CmdListHelper::AddRecordedToCmdList<RecordingImageFilter>(*cmdList_, filter.GetImageFilter()),
-        CmdListHelper::AddRecordedToCmdList<RecordingMaskFilter>(*cmdList_, filter.GetMaskFilter()),
+        CmdListHelper::AddPathEffectToCmdList(*cmdList_, pen.GetPathEffect()),
+        CmdListHelper::AddColorSpaceToCmdList(*cmdList_, pen.GetColorSpace()),
+        CmdListHelper::AddShaderEffectToCmdList(*cmdList_, pen.GetShaderEffect()),
+        CmdListHelper::AddColorFilterToCmdList(*cmdList_, filter.GetColorFilter()),
+        CmdListHelper::AddImageFilterToCmdList(*cmdList_, filter.GetImageFilter()),
+        CmdListHelper::AddMaskFilterToCmdList(*cmdList_, filter.GetMaskFilter()),
     };
     cmdList_->AddOp<AttachPenOpItem>(penHandle);
 
@@ -511,11 +511,11 @@ CoreCanvas& RecordingCanvas::AttachBrush(const Brush& brush)
         brush.GetBlendMode(),
         brush.IsAntiAlias(),
         filter.GetFilterQuality(),
-        CmdListHelper::AddRecordedToCmdList<RecordingColorSpace>(*cmdList_, brush.GetColorSpace()),
-        CmdListHelper::AddRecordedToCmdList<RecordingShaderEffect>(*cmdList_, brush.GetShaderEffect()),
-        CmdListHelper::AddRecordedToCmdList<RecordingColorFilter>(*cmdList_, filter.GetColorFilter()),
-        CmdListHelper::AddRecordedToCmdList<RecordingImageFilter>(*cmdList_, filter.GetImageFilter()),
-        CmdListHelper::AddRecordedToCmdList<RecordingMaskFilter>(*cmdList_, filter.GetMaskFilter()),
+        CmdListHelper::AddColorSpaceToCmdList(*cmdList_, brush.GetColorSpace()),
+        CmdListHelper::AddShaderEffectToCmdList(*cmdList_, brush.GetShaderEffect()),
+        CmdListHelper::AddColorFilterToCmdList(*cmdList_, filter.GetColorFilter()),
+        CmdListHelper::AddImageFilterToCmdList(*cmdList_, filter.GetImageFilter()),
+        CmdListHelper::AddMaskFilterToCmdList(*cmdList_, filter.GetMaskFilter()),
     };
     cmdList_->AddOp<AttachBrushOpItem>(brushHandle);
 

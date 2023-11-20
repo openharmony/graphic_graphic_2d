@@ -554,6 +554,30 @@ void RSShadowBaseDrawable::ClipShadowPath(RSRenderNode& node, RSPaintFilterCanva
 }
 #endif
 
+RSColor RSShadowDrawable::GetColorForShadow(RSRenderNode& node, RSPaintFilterCanvas& canvas,
+    SkPath& skPath, SkMatrix& matrix)
+{
+    RSColor colorPicked;
+    const RSProperties& properties = node.GetRenderProperties();
+    auto shadowAlpha = color_.GetAlpha();
+    auto deviceClipBounds = canvas.getDeviceClipBounds();
+    auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
+    if (colorPickerTask != nullptr && properties.GetShadowColorStrategy()) {
+        // Make color shadow work even shadowAlapha not set
+        if (shadowAlpha == 0) {
+            shadowAlpha = UINT8_MAX;
+        }
+        colorPicked = RSPropertiesPainter::PickColor(properties, canvas, skPath, matrix, deviceClipBounds);
+        RSPropertiesPainter::GetDarkColor(colorPicked);
+        if (!colorPickerTask->GetFirstGetColorFinished()) {
+            shadowAlpha = 0;
+        }
+    } else {
+        colorPicked = color_;
+    }
+    return RSColor(colorPicked.GetRed(), colorPicked.GetGreen(), colorPicked.GetBlue(), shadowAlpha);
+}
+
 void RSShadowDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
     if (canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::ENABLED) {
@@ -568,8 +592,10 @@ void RSShadowDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
     matrix.setTranslateX(std::ceil(matrix.getTranslateX()));
     matrix.setTranslateY(std::ceil(matrix.getTranslateY()));
     canvas.setMatrix(matrix);
+    RSColor colorPicked = GetColorForShadow(node, canvas, skPath, matrix);
     SkPaint paint;
-    paint.setColor(color_.AsArgbInt());
+    paint.setColor(SkColorSetARGB(colorPicked.GetAlpha(), colorPicked.GetRed(),
+        colorPicked.GetGreen(), colorPicked.GetBlue()));
     paint.setAntiAlias(true);
     paint.setMaskFilter(SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, radius_));
     canvas.drawPath(skPath, paint);
@@ -867,7 +893,7 @@ void RSFilterDrawable::DrawFilter(
         canvas.SetAlpha(1.0);
     }
 
-#if defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
     if (auto& cacheManager = properties.GetFilterCacheManager(filterType == FilterType::FOREGROUND_FILTER);
         cacheManager != nullptr && !canvas.GetDisableFilterCache()) {
@@ -1222,130 +1248,24 @@ void RSBackgroundImageDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& ca
 #endif
 }
 
-#ifndef USE_ROSEN_DRAWING
 void RSEffectDataGenerateDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
-    RS_TRACE_NAME("DrawBackgroundEffect " + filter_->GetDescription());
-    auto& properties = node.GetMutableRenderProperties();
-    auto skSurface = canvas.GetSurface();
-    if (skSurface == nullptr) {
-        ROSEN_LOGE("RSEffectDataGenerateDrawable::Draw skSurface null");
-        return;
-    }
-
-    SkAutoCanvasRestore acr(&canvas, true);
-    if (auto node = RSBaseRenderNode::ReinterpretCast<RSEffectRenderNode>(properties.backref_.lock())) {
-        auto& rect = node->effectRegion_->getBounds();
-        canvas.clipRect(rect);
-    }
-
-    auto filter = std::static_pointer_cast<RSSkiaFilter>(filter_);
-#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
-    // Optional use cacheManager to draw filter
-    if (auto& cacheManager = properties.GetFilterCacheManager(false);
-        cacheManager != nullptr && !canvas.GetDisableFilterCache()) {
-        auto&& data = cacheManager->GeneratedCachedEffectData(canvas, filter);
-        canvas.SetEffectData(data);
-        return;
-    }
-#endif
-
-    auto imageRect = canvas.getDeviceClipBounds();
-    auto imageSnapshot = skSurface->makeImageSnapshot(imageRect);
-    if (imageSnapshot == nullptr) {
-        ROSEN_LOGE("RSEffectDataGenerateDrawable::Draw image snapshot null");
-        return;
-    }
-
-    filter->PreProcess(imageSnapshot);
-    // create a offscreen skSurface
-    sk_sp<SkSurface> offscreenSurface = skSurface->makeSurface(imageSnapshot->imageInfo());
-    if (offscreenSurface == nullptr) {
-        ROSEN_LOGE("RSEffectDataGenerateDrawable::Draw offscreenSurface null");
-        return;
-    }
-    RSPaintFilterCanvas offscreenCanvas(offscreenSurface.get());
-    auto clipBounds = SkRect::MakeIWH(imageRect.width(), imageRect.height());
-    filter->DrawImageRect(offscreenCanvas, imageSnapshot, SkRect::Make(imageSnapshot->bounds()), clipBounds);
-    filter->PostProcess(offscreenCanvas);
-
-    auto imageCache = offscreenSurface->makeImageSnapshot();
-    if (imageCache == nullptr) {
-        ROSEN_LOGE("RSEffectDataGenerateDrawable::DrawBackgroundEffect imageCache snapshot null");
-        return;
-    }
-    auto data = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(imageCache), std::move(imageRect));
-    canvas.SetEffectData(std::move(data));
-}
-#else
-void RSEffectDataGenerateDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
-{
-    // Drawing:: need to be adapted furture
-    RS_TRACE_NAME("DrawBackgroundEffect " + filter_->GetDescription());
-    auto& properties = node.GetMutableRenderProperties();
-    auto drawingSurface = canvas.GetSurface();
-    if (drawingSurface == nullptr) {
-        ROSEN_LOGE("RSEffectDataGenerateDrawable::Draw surface null");
-        return;
-    }
-
-    RSAutoCanvasRestore acr(&canvas);
-    if (auto node = RSBaseRenderNode::ReinterpretCast<RSEffectRenderNode>(properties.backref_.lock())) {
-        auto rect = node->effectRegion_->GetBounds();
-        canvas.ClipRect(rect, Drawing::ClipOp::INTERSECT, false);
-    }
-
-    auto imageRect = canvas.GetDeviceClipBounds();
-    auto imageSnapshot = drawingSurface->GetImageSnapshot(imageRect);
-    if (imageSnapshot == nullptr) {
-        ROSEN_LOGE("RSEffectDataGenerateDrawable::Draw image snapshot null");
-        return;
+    if (auto effectNode = node.ReinterpretCastTo<RSEffectRenderNode>()) {
+        if (auto& region = effectNode->effectRegion_) {
+            RSPropertiesPainter::DrawBackgroundEffect(node.GetRenderProperties(), canvas, region->getBounds());
+        }
     }
 }
-#endif
 
-// ============================================================================
-// SavelayerBackground
-std::unique_ptr<RSPropertyDrawable> RSSaveLayerBackgroundDrawable::Generate(
-    const RSPropertyDrawableGenerateContext& context)
-{
-    auto& properties = context.properties_;
-    if (properties.GetColorBlendMode() == static_cast<int>(RSColorBlendModeType::NONE)) {
-        return nullptr;
-    }
-    return std::make_unique<RSSaveLayerBackgroundDrawable>();
-}
-
+// SaveLayerBackground
 void RSSaveLayerBackgroundDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
-    canvas.saveLayer(nullptr, nullptr);
+    *content_ = canvas.saveLayer(nullptr, nullptr);
 }
 
-// ============================================================================
-// SavelayerContent
-std::unique_ptr<RSPropertyDrawable> RSSaveLayerContentDrawable::Generate(
-    const RSPropertyDrawableGenerateContext& context)
-{
-    auto& properties = context.properties_;
-    int blendMode = properties.GetColorBlendMode();
-    if (blendMode == static_cast<int>(RSColorBlendModeType::NONE)) {
-        return nullptr;
-    }
-    static const std::vector<SkBlendMode> blendModeList = {
-        SkBlendMode::kSrcIn, // RSColorBlendModeType::SRC_IN
-        SkBlendMode::kDstIn, // RSColorBlendModeType::DST_IN
-    };
-    if (static_cast<unsigned long>(blendMode) >= blendModeList.size()) {
-        ROSEN_LOGE("color blendmode is set %d which is invalid.", blendMode);
-        return nullptr;
-    }
-    SkPaint blendPaint;
-    blendPaint.setBlendMode(blendModeList[blendMode]);
-    return std::make_unique<RSSaveLayerContentDrawable>(std::move(blendPaint));
-}
-
+// SaveLayerContent
 void RSSaveLayerContentDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
-    canvas.saveLayer(nullptr, &blendPaint_);
+    *content_ = canvas.saveLayer(nullptr, &blendPaint_);
 }
 } // namespace OHOS::Rosen

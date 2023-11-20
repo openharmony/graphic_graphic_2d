@@ -28,6 +28,7 @@
 #include "include/core/SkColor.h"
 #include "include/effects/SkColorMatrix.h"
 #include "include/effects/SkImageFilters.h"
+#include "property/rs_color_picker_cache_task.h"
 #else
 #include "effect/color_filter.h"
 #include "draw/color.h"
@@ -130,6 +131,7 @@ private:
     bool useKawase_ = false;
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkColorFilter> colorFilter_;
+    std::shared_ptr<RSColorPickerCacheTask> colorPickerTask_;
 #else
     std::shared_ptr<Drawing::ColorFilter> colorFilter_;
 #endif

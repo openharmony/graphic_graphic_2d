@@ -145,6 +145,7 @@ public:
     static int GetFilterCacheUpdateInterval();
     static int GetFilterCacheSizeThreshold();
     static bool GetFilterPartialRenderEnabled();
+    static bool GetColorPickerPartialEnabled();
     static bool GetMaskLinearBlurEnabled();
     static bool GetKawaseEnabled();
     static float GetKawaseRandomColorFactor();
@@ -173,6 +174,9 @@ public:
     static bool IsPhoneType();
     static bool GetSyncTransactionEnabled();
     static int GetSyncTransactionWaitDelay();
+    static bool GetUseShadowBatchingEnabled();
+    static bool GetSingleFrameComposerEnabled();
+    static bool GetSingleFrameComposerCanvasNodeEnabled();
 private:
     RSSystemProperties() = default;
 

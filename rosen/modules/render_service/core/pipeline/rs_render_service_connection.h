@@ -184,6 +184,8 @@ private:
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) override;
 
+    int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height) override;
+
     void ReportJankStats() override;
 
     void ReportEventResponse(DataBaseRs info) override;

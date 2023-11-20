@@ -80,14 +80,14 @@ public:
     ImageInfo GetImageInfo() override;
     bool ReadPixels(Bitmap& bitmap, int x, int y) override;
     bool ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
-                    int srcX, int srcY) const override;
+                    int32_t srcX, int32_t srcY) const override;
     bool IsTextureBacked() const override;
 
     bool ScalePixels(const Bitmap& bitmap, const SamplingOptions& sampling,
         bool allowCachingHint = true) const override;
     std::shared_ptr<Data> EncodeToData(EncodedImageFormat& encodedImageFormat, int quality) const override;
     bool IsLazyGenerated() const override;
-    bool GetROPixels(Bitmap& bitmap) override;
+    bool GetROPixels(Bitmap& bitmap) const override;
     std::shared_ptr<Image> MakeRasterImage() const override;
     bool CanPeekPixels() const override;
 

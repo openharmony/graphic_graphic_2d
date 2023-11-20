@@ -26,6 +26,9 @@
 namespace OHOS {
 namespace Rosen {
 using namespace Media;
+namespace {
+    constexpr float HALF_F = 2;
+}
 
 #ifndef USE_ROSEN_DRAWING
 static sk_sp<SkColorSpace> ColorSpaceToSkColorSpace(ColorSpace colorSpace)
@@ -194,6 +197,50 @@ std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
     return image;
 }
 
+#endif
+
+#ifndef USE_ROSEN_DRAWING
+void RSPixelMapUtil::TransformDataSetForAstc(std::shared_ptr<Media::PixelMap> pixelMap,
+                                             SkRect& src, SkRect& dst, RSPaintFilterCanvas& canvas)
+{
+    TransformData transformData;
+    pixelMap->GetTransformData(transformData);
+    SkMatrix matrix;
+    matrix.postScale(transformData.scaleX, transformData.scaleY, dst.fLeft / HALF_F + dst.fRight / HALF_F,
+                     dst.fTop / HALF_F + dst.fBottom / HALF_F);
+    matrix.postRotate(transformData.rotateD, dst.fLeft / HALF_F + dst.fRight / HALF_F,
+                      dst.fTop / HALF_F + dst.fBottom / HALF_F);
+    if (transformData.flipX) {
+        matrix.postScale(-1, 1, dst.fLeft / HALF_F + dst.fRight / HALF_F,
+                         dst.fTop / HALF_F + dst.fBottom / HALF_F);
+    }
+    if (transformData.flipY) {
+        matrix.postScale(1, -1, dst.fLeft / HALF_F + dst.fRight / HALF_F,
+                         dst.fTop / HALF_F + dst.fBottom / HALF_F);
+    }
+    canvas.concat(matrix);
+
+    //crop
+    if (transformData.cropLeft >= 0 && transformData.cropTop >= 0 &&
+        transformData.cropWidth >= 0 && transformData.cropHeight >= 0) {
+        float rightMinus = src.fRight - transformData.cropLeft - transformData.cropWidth;
+        float bottomMinus = src.fBottom - transformData.cropTop - transformData.cropHeight;
+        src.fLeft += transformData.cropLeft;
+        src.fTop += transformData.cropTop;
+        src.fRight -= rightMinus;
+        src.fBottom -= bottomMinus;
+        dst.fLeft += (transformData.cropLeft + rightMinus) / HALF_F;
+        dst.fTop += (transformData.cropTop + bottomMinus) / HALF_F;
+        dst.fRight -= (transformData.cropLeft + rightMinus) / HALF_F;
+        dst.fBottom -= (transformData.cropTop + bottomMinus) / HALF_F;
+    }
+
+    //translate
+    dst.fLeft += transformData.translateX / HALF_F;
+    dst.fTop += transformData.translateY / HALF_F;
+    dst.fRight += transformData.translateX / HALF_F;
+    dst.fBottom += transformData.translateY / HALF_F;
+}
 #endif
 } // namespace Rosen
 } // namespace OHOS

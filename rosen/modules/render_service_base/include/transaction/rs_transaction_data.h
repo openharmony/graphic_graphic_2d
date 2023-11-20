@@ -54,6 +54,7 @@ public:
     }
 
     void Process(RSContext& context);
+    void ProcessBySingleFrameComposer(RSContext& context);
 
     void Clear();
 

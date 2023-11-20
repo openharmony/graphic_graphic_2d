@@ -953,6 +953,19 @@ RSScreenData RSScreenManager::GetScreenData(ScreenId id) const
     return screenData;
 }
 
+int32_t RSScreenManager::ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (screens_.count(id) == 0) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    screens_.at(id)->ResizeVirtualScreen(width, height);
+    RS_LOGD("RSScreenManager %{public}s: resize virtual screen success", __func__);
+
+    return SUCCESS;
+}
+
 int32_t RSScreenManager::GetScreenBacklight(ScreenId id)
 {
     std::lock_guard<std::mutex> lock(mutex_);

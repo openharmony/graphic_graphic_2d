@@ -31,7 +31,9 @@
 #include "command/rs_base_node_command.h"
 #include "command/rs_node_command.h"
 #include "common/rs_color.h"
+#include "common/rs_common_def.h"
 #include "common/rs_obj_geometry.h"
+#include "common/rs_vector4.h"
 #include "modifier/rs_modifier.h"
 #include "modifier/rs_property_modifier.h"
 #include "pipeline/rs_node_map.h"
@@ -984,6 +986,18 @@ void RSNode::SetDynamicLightUpDegree(const float lightUpDegree)
         RSAnimatableProperty<float>>(RSModifierType::DYNAMIC_LIGHT_UP_DEGREE, lightUpDegree);
 }
 
+void RSNode::SetGreyCoef1(const float greyCoef1)
+{
+    SetProperty<RSGreyCoef1Modifier,
+        RSAnimatableProperty<float>>(RSModifierType::GREY_COEF1, greyCoef1);
+}
+
+void RSNode::SetGreyCoef2(const float greyCoef2)
+{
+    SetProperty<RSGreyCoef2Modifier,
+        RSAnimatableProperty<float>>(RSModifierType::GREY_COEF2, greyCoef2);
+}
+
 void RSNode::SetCompositingFilter(const std::shared_ptr<RSFilter>& compositingFilter) {}
 
 void RSNode::SetShadowColor(uint32_t colorValue)
@@ -1038,6 +1052,12 @@ void RSNode::SetShadowIsFilled(bool shadowIsFilled)
     SetProperty<RSShadowIsFilledModifier, RSProperty<bool>>(RSModifierType::SHADOW_IS_FILLED, shadowIsFilled);
 }
 
+void RSNode::SetShadowColorStrategy(bool shadowColorStrategy)
+{
+    SetProperty<RSShadowColorStrategyModifier, RSProperty<bool>>(
+        RSModifierType::SHADOW_COLOR_STRATEGY, shadowColorStrategy);
+}
+
 void RSNode::SetFrameGravity(Gravity gravity)
 {
     ROSEN_LOGI("RSNode::SetFrameGravity, gravity = %{public}d", gravity);
@@ -1083,6 +1103,11 @@ void RSNode::SetMask(const std::shared_ptr<RSMask>& mask)
 void RSNode::SetUseEffect(bool useEffect)
 {
     SetProperty<RSUseEffectModifier, RSProperty<bool>>(RSModifierType::USE_EFFECT, useEffect);
+}
+
+void RSNode::SetUseShadowBatching(bool useShadowBatching)
+{
+    SetProperty<RSUseShadowBatchingModifier, RSProperty<bool>>(RSModifierType::USE_SHADOW_BATCHING, useShadowBatching);
 }
 
 void RSNode::SetColorBlendMode(RSColorBlendModeType blendMode)
@@ -1419,10 +1444,50 @@ void RSNode::MarkNodeGroup(bool isNodeGroup, bool isForced)
     }
 }
 
+void RSNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer)
+{
+    if (isNodeSingleFrameComposer_ != isNodeSingleFrameComposer) {
+        isNodeSingleFrameComposer_ = isNodeSingleFrameComposer;
+        std::unique_ptr<RSCommand> command =
+            std::make_unique<RSMarkNodeSingleFrameComposer>(GetId(), isNodeSingleFrameComposer);
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, IsRenderServiceNode());
+        }
+    }
+}
 
 void RSNode::SetGrayScale(float grayScale)
 {
     SetProperty<RSGrayScaleModifier, RSAnimatableProperty<float>>(RSModifierType::GRAY_SCALE, grayScale);
+}
+
+void RSNode::SetLightIntensity(float lightIntensity)
+{
+    ROSEN_LOGD("RSNode::SetLightIntensity:%{public}f", lightIntensity);
+    SetProperty<RSLightIntensityModifier, RSAnimatableProperty<float>>(RSModifierType::LIGHT_INTENSITY, lightIntensity);
+}
+
+void RSNode::SetLightPosition(float positionX, float positionY, float positionZ)
+{
+    SetLightPosition(Vector4f(positionX, positionY, positionZ, 0.f));
+}
+
+void RSNode::SetLightPosition(const Vector4f& lightPosition)
+{
+    SetProperty<RSLightPositionModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::LIGHT_POSITION, lightPosition);
+}
+
+void RSNode::SetIlluminatedType(uint32_t illuminatedType)
+{
+    ROSEN_LOGD("RSNode::SetIlluminatedType:%{public}d", illuminatedType);
+    SetProperty<RSIlluminatedTypeModifier, RSProperty<int>>(
+        RSModifierType::ILLUMINATED_TYPE, illuminatedType);
+}
+
+void RSNode::SetBloom(float bloomIntensity)
+{
+    SetProperty<RSBloomModifier, RSAnimatableProperty<float>>(RSModifierType::BLOOM, bloomIntensity);
 }
 
 void RSNode::SetBrightness(float brightness)
@@ -1448,6 +1513,11 @@ void RSNode::SetSepia(float sepia)
 void RSNode::SetInvert(float invert)
 {
     SetProperty<RSInvertModifier, RSAnimatableProperty<float>>(RSModifierType::INVERT, invert);
+}
+
+void RSNode::SetAiInvert(const Vector4f& aiInvert)
+{
+    SetProperty<RSAiInvertModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::AIINVERT, aiInvert);
 }
 
 void RSNode::SetHueRotate(float hueRotate)

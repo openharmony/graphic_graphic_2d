@@ -859,6 +859,17 @@ void RSRenderServiceClient::ShowWatermark(const std::shared_ptr<Media::PixelMap>
     }
 }
 
+int32_t RSRenderServiceClient::ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::ResizeVirtualScreen renderService == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+
+    return renderService->ResizeVirtualScreen(id, width, height);
+}
+
 void RSRenderServiceClient::ReportJankStats()
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

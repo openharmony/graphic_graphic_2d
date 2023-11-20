@@ -34,6 +34,10 @@
 #include "res_type.h"
 #endif
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif // RS_ENABLE_VK
+
 namespace OHOS::Rosen {
 namespace {
 #ifdef RES_SCHED_ENABLE
@@ -74,6 +78,33 @@ void RSFilterSubThread::Start()
     });
     RSFilter::postTask = [this](std::weak_ptr<RSFilter::RSFilterTask> task) {
         PostTask([this, task]() { RenderCache(task); });
+    };
+}
+
+void RSFilterSubThread::StartColorPicker()
+{
+    RS_LOGI("RSColorPickerSubThread::Start():%{public}d", threadIndex_);
+    std::string name = "RSColorPickerSubThread" + std::to_string(threadIndex_);
+    runner_ = AppExecFwk::EventRunner::Create(name);
+    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+    PostTask([this]() {
+#ifdef RES_SCHED_ENABLE
+        std::string strBundleName = RS_BUNDLE_NAME;
+        std::string strPid = std::to_string(getpid());
+        std::string strTid = std::to_string(gettid());
+        std::string strQos = std::to_string(RS_SUB_QOS_LEVEL);
+        std::unordered_map<std::string, std::string> mapPayload;
+        mapPayload["pid"] = strPid;
+        mapPayload[strTid] = strQos;
+        mapPayload["bundleName"] = strBundleName;
+        uint32_t type = OHOS::ResourceSchedule::ResType::RES_TYPE_THREAD_QOS_CHANGE;
+        int64_t value = 0;
+        OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, value, mapPayload);
+#endif
+        grContext_ = CreateShareGrContext();
+    });
+    RSColorPickerCacheTask::postColorPickerTask = [this](std::weak_ptr<RSColorPickerCacheTask> task) {
+        PostTask([this, task]() { ColorPickerRenderCache(task); });
     };
 }
 
@@ -159,6 +190,30 @@ void RSFilterSubThread::RenderCache(std::weak_ptr<RSFilter::RSFilterTask> filter
     }
 }
 
+void RSFilterSubThread::ColorPickerRenderCache(std::weak_ptr<RSColorPickerCacheTask> colorPickerTask)
+{
+    RS_TRACE_NAME("ColorPickerRenderCache");
+    auto task = colorPickerTask.lock();
+    if (!task) {
+        RS_LOGE("Color picker task is null");
+        return;
+    }
+    if (grContext_ == nullptr) {
+        grContext_ = CreateShareGrContext();
+    }
+    if (grContext_ == nullptr) {
+        RS_LOGE("Color picker grContext is null");
+        return;
+    }
+    if (!task->InitSurface(grContext_.get())) {
+        RS_LOGE("Color picker initSurface failed");
+        return;
+    }
+    if (!task->Render()) {
+        RS_LOGE("Color picker render failed");
+    }
+}
+
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
 sk_sp<GrDirectContext> RSFilterSubThread::CreateShareGrContext()
@@ -167,6 +222,7 @@ sk_sp<GrContext> RSFilterSubThread::CreateShareGrContext()
 #endif
 {
     RS_TRACE_NAME("CreateShareGrContext");
+#ifdef RS_ENABLE_GL
     CreateShareEglContext();
     const GrGLInterface* grGlInterface = GrGLCreateNativeInterface();
     sk_sp<const GrGLInterface> glInterface(grGlInterface);
@@ -189,6 +245,12 @@ sk_sp<GrContext> RSFilterSubThread::CreateShareGrContext()
     sk_sp<GrDirectContext> grContext = GrDirectContext::MakeGL(std::move(glInterface), options);
 #else
     sk_sp<GrContext> grContext = GrContext::MakeGL(std::move(glInterface), options);
+#endif
+#endif
+
+#ifdef RS_ENABLE_VK
+    sk_sp<GrDirectContext> grContext = GrDirectContext::MakeVulkan(
+        RsVulkanContext::GetSingleton().GetGrVkBackendContext());
 #endif
     if (grContext == nullptr) {
         RS_LOGE("nullptr grContext is null");

@@ -30,6 +30,20 @@ class RosenImageWrapper;
 using TransColorProc = bool (*)(const uint8_t *in, uint32_t inCount, uint32_t *out, uint32_t outCount);
 using CustomFreePixelMap = void (*)(void *addr, void *context, uint32_t size);
 
+typedef struct {
+    float scaleX;
+    float scaleY;
+    float rotateD;
+    float cropLeft;
+    float cropTop;
+    float cropWidth;
+    float cropHeight;
+    float translateX;
+    float translateY;
+    bool flipX;
+    bool flipY;
+} TransformData;
+
 struct InitializationOptions {
     Size size;
     PixelFormat pixelFormat = PixelFormat::UNKNOWN;
@@ -154,6 +168,26 @@ public:
     // -------[inner api for ImageSource/ImagePacker codec] it will get a colorspace object pointer----end-------
 #endif
 
+    NATIVEEXPORT bool IsAstc()
+    {
+        return isAstc_;
+    }
+
+    NATIVEEXPORT void SetAstc(bool isAstc)
+    {
+        isAstc_ = isAstc;
+    }
+
+    NATIVEEXPORT void GetTransformData(TransformData &transformData)
+    {
+        transformData = transformData_;
+    }
+
+    NATIVEEXPORT void SetTransformData(TransformData transformData)
+    {
+        transformData_ = transformData;
+    }
+
 private:
     static constexpr uint8_t TLV_VARINT_BITS = 7;
     static constexpr uint8_t TLV_VARINT_MASK = 0x7F;
@@ -241,6 +275,8 @@ private:
     uint32_t pixelsSize_ = 0;
     bool editable_ = false;
     bool useSourceAsResponse_ = false;
+    bool isAstc_ = false;
+    TransformData transformData_ = {1, 1, 0, -1, -1, -1, -1, 0, 0, false, false};
 
     // only used by rosen backend
     std::shared_ptr<RosenImageWrapper> rosenImageWrapper_;

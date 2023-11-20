@@ -26,6 +26,7 @@
 #include "rs_base_render_engine.h"
 
 #include "pipeline/driven_render/rs_driven_render_manager.h"
+#include "pipeline/round_corner_display/rs_rcd_render_manager.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_processor.h"
 #include "platform/ohos/overdraw/rs_cpu_overdraw_canvas_listener.h"
@@ -295,6 +296,7 @@ private:
     sk_sp<SkImage> GetCacheImageFromMirrorNode(std::shared_ptr<RSDisplayRenderNode> mirrorNode);
 
     void SwitchColorFilterDrawing(int currentSaveCount);
+    void ProcessShadowFirst(RSRenderNode& node, bool inSubThread);
 
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> offscreenSurface_;                 // temporary holds offscreen surface
@@ -356,6 +358,7 @@ private:
     bool isCanvasNodeSkipDfxEnabled_ = false;
     bool isQuickSkipPreparationEnabled_ = false;
     bool isOcclusionEnabled_ = false;
+    bool isScreenRotationAnimating_ = false;
     bool isTextNeedCached_ = false;
     std::vector<std::string> dfxTargetSurfaceNames_;
     PartialRenderType partialRenderType_;
@@ -381,7 +384,9 @@ private:
 
     bool isDirtyRegionAlignedEnable_ = false;
     std::shared_ptr<std::mutex> surfaceNodePrepareMutex_;
+#if defined(RS_ENABLE_PARALLEL_RENDER)
     uint32_t parallelRenderVisitorIndex_ = 0;
+#endif
     ParallelRenderingType parallelRenderType_;
 
     RectI prepareClipRect_{0, 0, 0, 0}; // renderNode clip rect used in Prepare
@@ -404,6 +409,7 @@ private:
 
     // driven render
     std::unique_ptr<DrivenInfo> drivenInfo_ = nullptr;
+    std::unique_ptr<RcdInfo> rcdInfo_ = nullptr;
 
     std::unordered_map<NodeId, RenderParam> unpairedTransitionNodes_;
     std::stack<RenderParam> curGroupedNodes_;
@@ -414,7 +420,9 @@ private:
 
     std::weak_ptr<RSBaseRenderNode> logicParentNode_;
 
+#if defined(RS_ENABLE_PARALLEL_RENDER)
     bool isCalcCostEnable_ = false;
+#endif
     // adapt to sceneboard, mark if the canvasNode within the scope of surfaceNode
     bool isSubNodeOfSurfaceInPrepare_ = false;
     bool isSubNodeOfSurfaceInProcess_ = false;
@@ -422,7 +430,9 @@ private:
     uint32_t appWindowNum_ = 0;
 
     bool isParallel_ = false;
+#if defined(RS_ENABLE_PARALLEL_RENDER)
     bool doParallelRender_ = false;
+#endif
     // displayNodeMatrix only used in offScreen render case to ensure correct composer layer info when with rotation,
     // displayNodeMatrix indicates display node's matrix info
 #ifndef USE_ROSEN_DRAWING
@@ -451,6 +461,7 @@ private:
     void endCapture() const;
     std::shared_ptr<RSRecordingCanvas> recordingCanvas_;
 #endif
+    bool isNodeSingleFrameComposer_ = false;
     sk_sp<SkImage> cacheImgForCapture_ = nullptr;
 
     uint32_t currentRefreshRate_ = 0;

@@ -167,6 +167,8 @@ public:
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
 
+    int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height);
+
     void ReportJankStats();
 
     void ReportEventResponse(DataBaseRs info);
