@@ -387,7 +387,8 @@ void RSMaterialFilter::ReleaseColorPicker()
 #ifdef IS_OHOS
         if (colorPickerTask_->GetHandler() != nullptr) {
             auto task = colorPickerTask_;
-            task->GetHandler()->PostTask([task]() { task->ResetGrContext(); }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+            task->GetHandler()->PostTask(
+                [task]() { task->ResetGrContext(); }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
         }
 #endif
     }

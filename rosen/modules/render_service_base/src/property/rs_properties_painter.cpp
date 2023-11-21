@@ -1451,11 +1451,19 @@ void RSPropertiesPainter::DrawGreyAdjustment(const RSProperties& properties, RSP
 {
     RS_TRACE_NAME("RSPropertiesPainter::DrawGreyAdjustment");
     auto skSurface = canvas.GetSurface();
+    if (skSurface == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawGreyAdjustment skSurface null");
+        return;
+    }
     auto clipBounds = canvas.getDeviceClipBounds();
     auto imageSnapshot = skSurface->makeImageSnapshot(clipBounds);
+    if (imageSnapshot == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawGreyAdjustment image is null");
+        return;
+    }
     auto imageShader = imageSnapshot->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
-    float coef1 = properties.GetGreyCoef1().value();
-    float coef2 = properties.GetGreyCoef2().value();
+    float coef1 = properties.GetGreyCoef1();
+    float coef2 = properties.GetGreyCoef2();
 
     RS_TRACE_NAME("coef1" + std::to_string(coef1) + " coef2" + std::to_string(coef2));
     auto grayedImageShader = MakeGreyAdjustmentShader(coef1, coef2, imageShader);
