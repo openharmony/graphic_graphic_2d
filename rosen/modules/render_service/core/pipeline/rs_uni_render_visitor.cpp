@@ -1904,6 +1904,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         return;
     }
     isPartialRenderEnabled_ &= (node.GetScreenId() == screenManager->GetDefaultScreenId());
+    isOpDropped_ &= (node.GetScreenId() == screenManager->GetDefaultScreenId());
     screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
     isSecurityDisplay_ = node.GetSecurityDisplay();
     auto mirrorNode = node.GetMirrorSource().lock();
