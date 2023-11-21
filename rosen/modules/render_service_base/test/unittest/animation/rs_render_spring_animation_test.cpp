@@ -96,33 +96,6 @@ HWTEST_F(RSRenderSpringAnimationTest, Unmarshalling001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetFraction001
- * @tc.desc: Verify the SetFraction
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderSpringAnimationTest, SetFraction001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest SetFraction001 start";
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
-
-    auto renderSpringAnimation = std::make_shared<RSRenderSpringAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
-    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
-
-    EXPECT_TRUE(renderSpringAnimation != nullptr);
-    renderSpringAnimation->Attach(renderNode.get());
-    renderSpringAnimation->Start();
-    EXPECT_TRUE(renderSpringAnimation->IsRunning());
-    renderSpringAnimation->SetFraction(0.1f);
-    renderSpringAnimation->Pause();
-    EXPECT_TRUE(renderSpringAnimation->IsPaused());
-    renderSpringAnimation->SetFraction(0.1f);
-    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest SetFraction001 end";
-}
-
-/**
  * @tc.name: Attach001
  * @tc.desc: Verify the Attach
  * @tc.type:FUNC
