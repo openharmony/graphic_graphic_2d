@@ -132,5 +132,42 @@ HWTEST_F(RSAnimationFractionTest, GetAnimationFraction002, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSAnimationFractionTest GetAnimationFraction002 end";
 }
 
+/**
+ * @tc.name: GetRemainingRepeatCount001
+ * @tc.desc: Verify the GetRemainingRepeatCount
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, GetRemainingRepeatCount001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GetRemainingRepeatCount001 start";
+    RSAnimationFraction fraction;
+    fraction.SetRepeatCount(-1);
+    int remainingRepeatCount = fraction.GetRemainingRepeatCount();
+    EXPECT_EQ(remainingRepeatCount, -1);
+
+    fraction.SetRepeatCount(0);
+    remainingRepeatCount = fraction.GetRemainingRepeatCount();
+    EXPECT_EQ(remainingRepeatCount, 0);
+
+    fraction.SetRepeatCount(1);
+    remainingRepeatCount = fraction.GetRemainingRepeatCount();
+    EXPECT_EQ(remainingRepeatCount, 1);
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GetRemainingRepeatCount001 end";
+}
+
+/**
+ * @tc.name: GetCurrentIsReverseCycle001
+ * @tc.desc: Verify funciton GetCurrentIsReverseCycle
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, GetCurrentIsReverseCycle001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GetCurrentIsReverseCycle001 start";
+    RSAnimationFraction fraction;
+    fraction.ResetFraction();
+    bool currentIsReverseCycle = fraction.GetCurrentIsReverseCycle();
+    EXPECT_TRUE(currentIsReverseCycle == false);
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest GetCurrentIsReverseCycle001 end";
+}
 } // namespace Rosen
 } // namespace OHOS

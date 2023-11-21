@@ -106,4 +106,33 @@ HWTEST_F(RSLightUpEffectFilterTest, ComposeTest, TestSize.Level1)
     auto filter_ = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
     EXPECT_NE(filter->Compose(filter_), nullptr);
 }
+
+/**
+ * @tc.name: IsNearEqual001
+ * @tc.desc: Verify function IsNearEqual
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, IsNearEqual001, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    float lightUpDegree1 = 1.2f;
+    float threshold = 0.5f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+
+    std::shared_ptr<RSFilter> other1 = std::make_shared<RSLightUpEffectFilter>(lightUpDegree1);
+    EXPECT_TRUE(filter->IsNearEqual(other1, threshold));
+}
+
+/**
+ * @tc.name: IsNearZero001
+ * @tc.desc: Verify function IsNearZero
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, IsNearZero001, TestSize.Level1)
+{
+    float lightUpDegree = 0.2f;
+    float threshold = 0.5f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    EXPECT_TRUE(filter->IsNearZero(threshold));
+}
 } // namespace OHOS::Rosen
