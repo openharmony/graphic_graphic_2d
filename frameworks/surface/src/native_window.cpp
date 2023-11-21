@@ -175,9 +175,9 @@ int32_t NativeWindowFlushBuffer(OHNativeWindow *window, OHNativeWindowBuffer *bu
     return OHOS::GSERROR_OK;
 }
 
-int32_t GetLastFlushedBuffer(OHNativeWindow *window, OHNativeWindowBuffer *buffer)
+int32_t GetLastFlushedBuffer(OHNativeWindow *window, OHNativeWindowBuffer **buffer)
 {
-    if (window == nullptr) {
+    if (window == nullptr || buffer == nullptr) {
         BLOGE("parameter error, please check input parameter");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
@@ -187,7 +187,8 @@ int32_t GetLastFlushedBuffer(OHNativeWindow *window, OHNativeWindowBuffer *buffe
             BLOGE("Not allowed to obtain protect surface buffer");
             return OHOS::GSERROR_NO_PERMISSION;
         }
-        buffer = window->bufferCache_[window->lastBufferSeqNum];
+        *buffer = window->bufferCache_[window->lastBufferSeqNum];
+        BLOGD("The last flushed buffer seqNum is %{public}u", window->lastBufferSeqNum);
         return OHOS::GSERROR_OK;
     }
 
