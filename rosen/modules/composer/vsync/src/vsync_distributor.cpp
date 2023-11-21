@@ -352,7 +352,9 @@ void VSyncDistributor::OnVSyncEvent(int64_t now, int64_t period, uint32_t refres
     event_.timestamp = now;
     event_.vsyncCount++;
     event_.period = period;
-    event_.vsyncPulseCount += (VSYNC_MAX_REFRESHRATE / refreshRate);
+    if (refreshRate > 0) {
+        event_.vsyncPulseCount += (VSYNC_MAX_REFRESHRATE / refreshRate);
+    }
     vsyncMode_ = vsyncMode;
     ChangeConnsRateLocked();
     con_.notify_all();

@@ -224,8 +224,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
             std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count());
         int64_t delayTime = std::round((static_cast<int64_t>(expectCommitTime - currTime)) / 1000000);
-        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers expectCommitTime: %lu, period: %lu, currTime: %lu" \
-            ", delayTime: %lu", expectCommitTime, period, currTime, delayTime);
+        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers expectCommitTime: %lu, period: %ld, currTime: %lu" \
+            ", delayTime: %ld", expectCommitTime, period, currTime, delayTime);
         if (period == 0 || delayTime <= 0) {
             PostTask(task);
         } else {

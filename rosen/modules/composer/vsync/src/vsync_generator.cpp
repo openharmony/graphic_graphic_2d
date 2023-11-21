@@ -297,14 +297,19 @@ int64_t VSyncGenerator::ComputeListenerNextVSyncTimeStamp(const Listener& listen
     int64_t phase = phase_ + listener.phase_;
     now -= phase;
     if (now < 0) {
-        now = -period_;
+        if (vsyncMode_ == VSYNC_MODE_LTPO) {
+            now -= period_;
+        } else {
+            now = -period_;
+        }
     }
     int64_t numPeriod = now / period_;
     int64_t nextTime = (numPeriod + 1) * period_ + phase;
     nextTime += referenceTime;
 
-    // 3 / 5 just empirical value
-    if ((vsyncMode_ == VSYNC_MODE_LTPS) && (nextTime - listener.lastTime_ < (3 * period_ / 5))) {
+    // 3 / 5 and 1 / 10 are just empirical value
+    if (((vsyncMode_ == VSYNC_MODE_LTPS) && (nextTime - listener.lastTime_ < (3 * period_ / 5))) ||
+        ((vsyncMode_ == VSYNC_MODE_LTPO) && (nextTime - listener.lastTime_ < (1 * period_ / 10)))) {
         nextTime += period_;
     }
 
@@ -350,13 +355,12 @@ VsyncError VSyncGenerator::UpdateMode(int64_t period, int64_t phase, int64_t ref
     phase_ = phase;
     if ((pendingVsyncMode_ == VSYNC_MODE_LTPO) || (vsyncMode_ == VSYNC_MODE_LTPO)) {
         int32_t refreshRate = JudgeRefreshRateLocked(period);
-        if (refreshRate == 0) {
-            return VSYNC_ERROR_NOT_SUPPORT;
-        }
         referenceTimeOffset_ = referenceTimeOffsetPulseNum_ * pulse_;
         int64_t pendingReferenceTime = referenceTime - referenceTimeOffset_;
-        if ((pendingReferenceTime >= referenceTime_) && ((currRefreshRate_ == refreshRate) || currRefreshRate_ == 0)) {
+        if (pendingReferenceTime >= referenceTime_) {
             referenceTime_ = pendingReferenceTime;
+        }
+        if ((refreshRate != 0) && ((currRefreshRate_ == refreshRate) || currRefreshRate_ == 0)) {
             period_ = period != 0 ? period : period_;
         }
     } else {
