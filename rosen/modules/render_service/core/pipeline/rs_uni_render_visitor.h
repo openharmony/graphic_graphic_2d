@@ -247,6 +247,8 @@ private:
 
     void CheckColorSpace(RSSurfaceRenderNode& node);
     void HandleColorGamuts(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
+    void CheckPixelFormat(RSSurfaceRenderNode& node);
+    void HandlePixelFormat(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
     void AddOverDrawListener(std::unique_ptr<RSRenderFrame>& renderFrame,
         std::shared_ptr<RSCanvasListener>& overdrawListener);
     /* Judge if surface render node could skip preparation:
@@ -374,6 +376,7 @@ private:
 
     bool needFilter_ = false;
     GraphicColorGamut newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    GraphicPixelFormat newPixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
     std::vector<ScreenColorGamut> colorGamutModes_;
     uint64_t currentFocusedNodeId_ = 0;
     uint64_t focusedLeashWindowId_ = 0;
@@ -465,6 +468,9 @@ private:
     sk_sp<SkImage> cacheImgForCapture_ = nullptr;
 
     uint32_t currentRefreshRate_ = 0;
+#ifdef USE_VIDEO_PROCESS_ENGINE
+    float GetScreenLightNits();
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

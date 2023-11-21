@@ -82,6 +82,9 @@ public:
     static GSError SetHDRDynamicMetadata(sptr<SurfaceBuffer>& buffer, const std::vector<uint8_t>& hdrDynamicMetadata);
     static GSError GetHDRDynamicMetadata(const sptr<SurfaceBuffer>& buffer, std::vector<uint8_t>& hdrDynamicMetadata);
 
+    static GSError SetHDRStaticMetadata(sptr<SurfaceBuffer>& buffer, const std::vector<uint8_t>& hdrStaticMetadata);
+    static GSError GetHDRStaticMetadata(const sptr<SurfaceBuffer>& buffer, std::vector<uint8_t>& hdrStaticMetadata);
+
 private:
     static constexpr uint32_t TRANSFUNC_OFFSET = 8;
     static constexpr uint32_t MATRIX_OFFSET = 16;

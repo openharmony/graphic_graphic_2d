@@ -16,6 +16,7 @@ declare_args() {
   graphic_2d_feature_ace_enable_gpu = true
   graphic_2d_feature_color_gamut_enable = false
   graphic_2d_feature_rs_enable_eglimage = false
+  graphic_2d_feature_use_video_processing_engine = true
   graphic_2d_feature_use_texgine = false
   graphic_2d_feature_rs_enable_uni_render = false
   graphic_2d_feature_wuji_enable = false
@@ -27,6 +28,7 @@ declare_args() {
   graphic_2d_feature_parallel_upload_enable = true
   enable_text_gine = true
   use_texgine = true
+  use_video_processing_engine = true
   logger_enable_scope = false
   texgine_enable_debug_log = false
   player_framework_enable = true
@@ -105,6 +107,7 @@ if (graphic_2d_feature_rs_enable_eglimage || current_os == "android") {
 }
 
 # use_texgine = graphic_2d_feature_use_texgine
+use_video_processing_engine = graphic_2d_feature_use_video_processing_engine
 
 if (graphic_2d_feature_rs_enable_uni_render) {
   rs_enable_driven_render = true

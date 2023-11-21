@@ -412,11 +412,19 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #endif
 #ifndef USE_ROSEN_DRAWING
 #if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
-            SkColorType colorType = (params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
-                kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
-            GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId,
-                static_cast<GrGLenum>((params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ? 
-                    GR_GL_BGRA8 : GR_GL_RGBA8)};
+            SkColorType colorType = kRGBA_8888_SkColorType;
+            auto pixelFmt = params.buffer->GetFormat();
+            if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
+                colorType = kBGRA_8888_SkColorType;
+            } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
+                colorType = kRGBA_1010102_SkColorType;
+            }
+            auto glType = GL_RGBA8;
+            if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
+                glType = GL_RGB10_A2;
+            }
+
+            GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId, static_cast<GrGLenum>(glType) };
             GrBackendTexture backendTexture(params.buffer->GetSurfaceBufferWidth(),
                 params.buffer->GetSurfaceBufferHeight(), GrMipMapped::kNo, grExternalTextureInfo);
 #endif
@@ -458,13 +466,32 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                 RS_LOGE("RSHardwareThread::DrawImage: image is nullptr!");
                 return;
             }
+
+#ifdef USE_VIDEO_PROCESS_ENGINE
+            sk_sp<SkShader> imageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
+            if (imageShader == nullptr) {
+                RS_LOGE("RSHardwareThread::DrawImage imageShader is nullptr.");
+            } else {
+                params.paint.setShader(imageShader);
+                uniRenderEngine_->ColorSpaceConvertor(imageShader, params);
+            }
+#endif
+
 #ifdef NEW_SKIA
             RS_TRACE_NAME_FMT("DrawImage(GPU) seqNum: %d", bufferId);
+#ifdef USE_VIDEO_PROCESS_ENGINE
             canvas->drawImageRect(image, params.srcRect, params.dstRect, SkSamplingOptions(),
                 &(params.paint), SkCanvas::kStrict_SrcRectConstraint);
 #else
+            canvas->drawRect(params.dstRect, (params.paint));
+#endif // USE_VIDEO_PROCESS_ENGINE
+#else
             RS_TRACE_NAME_FMT("DrawImage(GPU) seqNum: %d", bufferId);
+#ifdef USE_VIDEO_PROCESS_ENGINE
             canvas->drawImageRect(image, params.srcRect, params.dstRect, &(params.paint));
+#else
+            canvas->drawRect(params.dstRect, &(params.paint));
+#endif // USE_VIDEO_PROCESS_ENGINE
 #endif
 #else // USE_ROSEN_DRAWING
             Drawing::ColorType colorType = (params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?

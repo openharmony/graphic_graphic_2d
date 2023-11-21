@@ -133,4 +133,16 @@ GSError MetadataHelper::GetHDRDynamicMetadata(const sptr<SurfaceBuffer>& buffer,
 {
     return buffer->GetMetadata(ATTRKEY_HDR_DYNAMIC_METADATA, hdrDynamicMetadata);
 }
+
+GSError MetadataHelper::SetHDRStaticMetadata(sptr<SurfaceBuffer>& buffer,
+    const std::vector<uint8_t>& hdrStaticMetadata)
+{
+    return buffer->SetMetadata(ATTRKEY_HDR_STATIC_METADATA, hdrStaticMetadata);
+}
+
+GSError MetadataHelper::GetHDRStaticMetadata(const sptr<SurfaceBuffer>& buffer,
+    std::vector<uint8_t>& hdrStaticMetadata)
+{
+    return buffer->GetMetadata(ATTRKEY_HDR_STATIC_METADATA, hdrStaticMetadata);
+}
 } // namespace OHOS

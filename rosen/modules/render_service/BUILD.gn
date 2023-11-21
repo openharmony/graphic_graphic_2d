@@ -42,6 +42,9 @@ ohos_shared_library("librender_service") {
   if (use_musl) {
     defines += [ "FRAME_AWARE_TRACE" ]
   }
+  if (use_video_processing_engine) {
+    defines += [ "USE_VODEO_PROCESSING_ENGINE" ]
+  }
   defines += gpu_defines
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
     cflags = [ "-flto=thin" ]
@@ -160,6 +163,9 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
   ]
+  if (use_video_processing_engine) {
+    include_dirs += ["//foundation/multimedia/video_processing_engine/interfaces/inner_api/algorithm"]
+  }
 
   deps = [
     "$graphic_2d_root:libsurface",
@@ -212,7 +218,12 @@ ohos_shared_library("librender_service") {
     "samgr:samgr_proxy",
     "sensor:sensor_interface_native",
     "window_manager:libwsutils",
+    "drivers_interface_display:display_commontype_idl_headers"
   ]
+  if (use_video_processing_engine) {
+    external_deps += ["video_processing_engine:videoprocessingengine",
+    ]
+  }
 
   if (defined(ddgr_ext_configs)) {
     libs = ddgr_ext_configs.ddgr_libs
