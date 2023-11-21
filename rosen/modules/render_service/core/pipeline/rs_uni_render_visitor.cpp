@@ -552,7 +552,6 @@ void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr
         return;
     }
 
-    screenManager->GetScreenSupportedColorGamuts(node.GetScreenId(), colorGamutModes_);
     for (auto& child : node.GetCurAllSurfaces()) {
         auto surfaceNodePtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
         if (!surfaceNodePtr) {
@@ -4634,7 +4633,7 @@ float RSUniRenderVisitor::GetScreenLightNits()
 
     int32_t backLightLevel = screenManager->GetScreenBacklight(currentVisitDisplay_);
 
-    if (backLight <= 0) {
+    if (backLightLevel <= 0) {
         return screenLightNits;
     }
 

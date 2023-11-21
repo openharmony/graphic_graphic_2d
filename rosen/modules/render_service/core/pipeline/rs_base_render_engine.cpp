@@ -99,7 +99,7 @@ void RSBaseRenderEngine::Init(bool independentContext)
     vkImageManager_ = std::make_shared<RSVkImageManager>();
 #endif
 #ifdef USE_VIDEO_PROCESS_ENGINE
-    colorSpaceConverterDisplay_ = Media::VideoProcessingEngine::ColorSpaceConvertorDisplay::Create();
+    colorSpaceConverterDisplay_ = Media::VideoProcessingEngine::ColorSpaceConverterDisplay::Create();
 #endif
 }
 
@@ -131,8 +131,8 @@ bool RSBaseRenderEngine::NeedForceCPU(const std::vector<LayerInfoPtr>& layers)
             forceCPU = true;
             break;
         }
-    }
 #endif
+    }
 
     return forceCPU;
 }
@@ -470,7 +470,7 @@ void RSBaseRenderEngine::ColorSpaceConvertor(sk_sp<SkShader> &inputShader, Buffe
     using namespace Media::VideoProcessingEngine;
 
     constexpr float DEFAULT_TMO_NITS = 206.0;
-    Media::VideoProcessingEngine::ColorSpaceConvertorDisplayParameter parameter = {
+    ColorSpaceConverterDisplayParameter parameter = {
         .tmoNits = DEFAULT_TMO_NITS,
         .currentDisplayNits = params.screenLightNits,
     };

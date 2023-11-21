@@ -272,7 +272,7 @@ private:
 #endif
     using SurfaceId = uint64_t;
 #ifdef USE_VIDEO_PROCESS_ENGINE
-    std::shared_ptr<Media::VideoProcessingEngine::ColorSpaceConvertorDisplay> colorSpaceConverterDisplay_ = nullptr;
+    std::shared_ptr<Media::VideoProcessingEngine::ColorSpaceConverterDisplay> colorSpaceConverterDisplay_ = nullptr;
 #endif
 };
 } // namespace Rosen

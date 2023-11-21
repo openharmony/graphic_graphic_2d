@@ -479,7 +479,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 
 #ifdef NEW_SKIA
             RS_TRACE_NAME_FMT("DrawImage(GPU) seqNum: %d", bufferId);
-#ifdef USE_VIDEO_PROCESS_ENGINE
+#ifndef USE_VIDEO_PROCESS_ENGINE
             canvas->drawImageRect(image, params.srcRect, params.dstRect, SkSamplingOptions(),
                 &(params.paint), SkCanvas::kStrict_SrcRectConstraint);
 #else
@@ -487,7 +487,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #endif // USE_VIDEO_PROCESS_ENGINE
 #else
             RS_TRACE_NAME_FMT("DrawImage(GPU) seqNum: %d", bufferId);
-#ifdef USE_VIDEO_PROCESS_ENGINE
+#ifndef USE_VIDEO_PROCESS_ENGINE
             canvas->drawImageRect(image, params.srcRect, params.dstRect, &(params.paint));
 #else
             canvas->drawRect(params.dstRect, &(params.paint));
