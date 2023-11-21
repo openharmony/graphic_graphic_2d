@@ -2862,7 +2862,7 @@ void RSPropertiesPainter::DrawBinarizationShader(const RSProperties& properties,
         ROSEN_LOGE("RSPropertiesPainter::DrawColorFilter image is null");
         return;
     }
-    auto aiInvert = properties.GetAiInvert();
+    auto& aiInvert = properties.GetAiInvert();
     auto imageShader = imageSnapshot->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
     auto shader = MakeBinarizationShader(aiInvert->x_, aiInvert->y_, aiInvert->z_ * 255.0, imageShader);
     SkPaint paint;
