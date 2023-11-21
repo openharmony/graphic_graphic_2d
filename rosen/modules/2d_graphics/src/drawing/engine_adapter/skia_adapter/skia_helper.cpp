@@ -12,29 +12,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#ifndef PIXMAPIMPL_H
-#define PIXMAPIMPL_H
-
-#include "base_impl.h"
-#include "image/image_info.h"
+#include "skia_helper.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class PixmapImpl : public BaseImpl {
-public:
-    PixmapImpl() {}
-    ~PixmapImpl() override {}
-    virtual std::shared_ptr<ColorSpace> GetColorSpace() const = 0;
-    virtual ColorType GetColorType() const = 0;
-    virtual AlphaType GetAlphaType() const = 0;
-    virtual size_t GetRowBytes() const = 0;
-    virtual const void* GetAddr() const = 0;
-    virtual int32_t GetWidth() const = 0;
-    virtual int32_t GetHeight() const = 0;
-};
+std::shared_ptr<Data> SkiaHelper::FlattenableSerialize(const SkFlattenable* flattenable)
+{
+    if (flattenable == nullptr) {
+        LOGE("SkiaHelper::FlattenableSerialize, flattenable is nullptr!");
+        return nullptr;
+    }
+
+    SkBinaryWriteBuffer writer;
+    writer.writeFlattenable(flattenable);
+    size_t length = writer.bytesWritten();
+    std::shared_ptr<Data> data = std::make_shared<Data>();
+    data->BuildUninitialized(length);
+    writer.writeToMemory(data->WritableData());
+    return data;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
-#endif

@@ -14,11 +14,11 @@
  */
 
 #include "skia_image_filter.h"
+#include "skia_helper.h"
 
 #include "include/effects/SkImageFilters.h"
 #include "include/core/SkTileMode.h"
-#include "src/core/SkReadBuffer.h"
-#include "src/core/SkWriteBuffer.h"
+#include "src/core/SkImageFilter_Base.h"
 
 #if !defined(USE_CANVASKIT0310_SKIA) && !defined(NEW_SKIA)
 #include "include/effects/SkBlurImageFilter.h"
@@ -139,13 +139,7 @@ std::shared_ptr<Data> SkiaImageFilter::Serialize() const
         return nullptr;
     }
 
-    SkBinaryWriteBuffer writer;
-    writer.writeFlattenable(filter_.get());
-    size_t length = writer.bytesWritten();
-    std::shared_ptr<Data> data = std::make_shared<Data>();
-    data->BuildUninitialized(length);
-    writer.writeToMemory(data->WritableData());
-    return data;
+    return SkiaHelper::FlattenableSerialize(filter_.get());
 #else
     return nullptr;
 #endif
@@ -159,9 +153,8 @@ bool SkiaImageFilter::Deserialize(std::shared_ptr<Data> data)
         return false;
     }
 
-    SkReadBuffer reader(data->GetData(), data->GetSize());
-    filter_ = reader.readImageFilter();
-    return filter_ != nullptr;
+    filter_ = SkiaHelper::FlattenableDeserialize<SkImageFilter_Base>(data);
+    return true;
 #else
     return false;
 #endif

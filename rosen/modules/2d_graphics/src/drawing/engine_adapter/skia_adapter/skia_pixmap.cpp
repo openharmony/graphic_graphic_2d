@@ -36,39 +36,39 @@ const SkPixmap& SkiaPixmap::ExportSkiaPixmap() const
 
 SkiaPixmap::~SkiaPixmap() {}
 
-std::shared_ptr<ColorSpace> SkiaPixmap::GetColorSpace()
+std::shared_ptr<ColorSpace> SkiaPixmap::GetColorSpace() const
 {
     std::shared_ptr<SkiaColorSpace> skiaColorSpace = std::make_shared<SkiaColorSpace>();
     skiaColorSpace->SetColorSpace(skiaPixmap_.refColorSpace());
     return ColorSpace::CreateFromImpl(skiaColorSpace);
 }
 
-ColorType SkiaPixmap::GetColorType()
+ColorType SkiaPixmap::GetColorType() const
 {
     return SkiaImageInfo::ConvertToColorType(skiaPixmap_.colorType());
 }
 
-AlphaType SkiaPixmap::GetAlphaType()
+AlphaType SkiaPixmap::GetAlphaType() const
 {
     return SkiaImageInfo::ConvertToAlphaType(skiaPixmap_.alphaType());
 }
 
-size_t SkiaPixmap::GetRowBytes()
+size_t SkiaPixmap::GetRowBytes() const
 {
     return skiaPixmap_.rowBytes();
 }
 
-const void* SkiaPixmap::GetAddr()
+const void* SkiaPixmap::GetAddr() const
 {
     return skiaPixmap_.addr();
 }
 
-int32_t SkiaPixmap::GetWidth()
+int32_t SkiaPixmap::GetWidth() const
 {
     return skiaPixmap_.width();
 }
 
-int32_t SkiaPixmap::GetHeight()
+int32_t SkiaPixmap::GetHeight() const
 {
     return skiaPixmap_.height();
 }
