@@ -198,7 +198,7 @@ void RSAnimationManager::UnregisterParticleAnimation(PropertyId propertyId, Anim
     }
 }
 
-const std::unordered_map<PropertyId, AnimationId>& RSAnimationManager::GetParticleAnimations()
+std::unordered_map<PropertyId, AnimationId> RSAnimationManager::GetParticleAnimations()
 {
     return particleAnimations_;
 }

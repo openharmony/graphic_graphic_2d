@@ -24,7 +24,6 @@
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_display_render_node.h"
-#include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -765,10 +764,6 @@ void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager
     auto& cachedImageRect = manager->GetCachedImageRegion();
     if (dirtyManager.HasIntersectionWithVisitedDirtyRect(cachedImageRect)) {
         manager->UpdateCacheStateWithDirtyRegion();
-    }
-    // Skip filter cache occlusion check for RSEffectRenderNode
-    if (IsInstanceOf<RSEffectRenderNode>()) {
-        return;
     }
     // record node's cache area if it has valid filter cache
     if (!manager->IsCacheValid()) {

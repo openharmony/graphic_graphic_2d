@@ -752,7 +752,7 @@ void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams, cons
         uiAnimation->SetFinishCallback(std::make_shared<AnimationFinishCallback>(finishCallback));
     }
     auto animation =
-        std::make_shared<RSRenderParticleAnimation>(animationId, propertyId, std::move(particlesRenderParams));
+        std::make_shared<RSRenderParticleAnimation>(animationId, propertyId, particlesRenderParams);
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateParticle>(GetId(), animation);
     auto transactionProxy = RSTransactionProxy::GetInstance();

@@ -43,7 +43,7 @@ void RSRenderParticleSystem::Emit(int64_t deltaTime)
     for (size_t iter = 0; iter < emitters_.size(); iter++) {
         if (emitters_[iter] != nullptr) {
             emitters_[iter]->EmitParticle(deltaTime);
-            auto& particles = emitters_[iter]->GetParticles();
+            auto particles = emitters_[iter]->GetParticles();
             activeParticles_.insert(activeParticles_.end(), particles.begin(), particles.end());
         }
     }

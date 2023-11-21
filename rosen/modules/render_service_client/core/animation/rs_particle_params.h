@@ -178,7 +178,7 @@ public:
                 auto interpolator = curve.GetInterpolator(duration);
 
                 valChangeOverLife.push_back(std::make_shared<ChangeInOverLife<float>>(
-                    fromValue, toValue, startMillis, endMillis, std::move(interpolator)));
+                    fromValue, toValue, startMillis, endMillis, interpolator));
             }
             value.valChangeOverLife_ = valChangeOverLife;
         }
@@ -208,9 +208,9 @@ public:
                 auto interpolator = curve.GetInterpolator(duration);
 
                 colorChangeOverLife.push_back(std::make_shared<ChangeInOverLife<Color>>(
-                    fromValue, toValue, startMillis, endMillis, std::move(interpolator)));
+                    fromValue, toValue, startMillis, endMillis, interpolator));
             }
-            color.valChangeOverLife_ = std::move(colorChangeOverLife);
+            color.valChangeOverLife_ = colorChangeOverLife;
         }
         return color;
     }

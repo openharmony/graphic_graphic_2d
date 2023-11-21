@@ -20,6 +20,7 @@
 
 #include "rs_render_particle.h"
 
+#include "animation/rs_interpolator.h"
 #include "animation/rs_render_particle_system.h"
 #include "animation/rs_render_property_animation.h"
 #include "common/rs_macros.h"
@@ -29,15 +30,15 @@ namespace Rosen {
 class RSB_EXPORT RSRenderParticleAnimation : public RSRenderPropertyAnimation {
 public:
     RSRenderParticleAnimation(AnimationId id, const PropertyId& propertyId,
-        const std::vector<std::shared_ptr<ParticleRenderParams>>& particlesRenderParams);
+        const std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams);
 
-    ~RSRenderParticleAnimation() override = default;
+    virtual ~RSRenderParticleAnimation() = default;
     RSRenderParticleAnimation() = default;
 
     bool Marshalling(Parcel& parcel) const override;
 
     [[nodiscard]] static RSRenderParticleAnimation* Unmarshalling(Parcel& parcel);
-    const RSRenderParticleVector& GetRenderParticle()
+    RSRenderParticleVector GetRenderParticle()
     {
         return renderParticleVector_;
     }
@@ -49,8 +50,8 @@ protected:
 
 private:
     bool ParseParam(Parcel& parcel) override;
-    std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams_;
     std::shared_ptr<RSRenderParticleSystem> particleSystem_;
+    std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams_;
     RSRenderParticleVector renderParticleVector_;
 };
 } // namespace Rosen
