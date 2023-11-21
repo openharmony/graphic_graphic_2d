@@ -49,13 +49,4 @@ OH_Drawing_FontCollection* OH_Drawing_CreateFontCollection(void)
 
 void OH_Drawing_DestroyFontCollection(OH_Drawing_FontCollection* fontCollection)
 {
-#ifndef USE_GRAPHIC_TEXT_GINE
-    delete ConvertToFontCollection<rosen::FontCollection>(fontCollection);
-#else
-#ifndef USE_TEXGINE
-    delete ConvertToFontCollection<OHOS::Rosen::AdapterTxt::FontCollection>(fontCollection);
-#else
-    delete ConvertToFontCollection<OHOS::Rosen::AdapterTextEngine::FontCollection>(fontCollection);
-#endif
-#endif
 }
