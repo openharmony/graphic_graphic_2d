@@ -59,6 +59,8 @@ public:
     void Free() override;
     bool IsValid() const override;
     bool IsEmpty() const override;
+    Pixmap GetPixmap() const override;
+    bool TryAllocPixels(const ImageInfo& info) override;
     void SetSkBitmap(const SkBitmap& skBitmap);
 
     std::shared_ptr<Data> Serialize() const override;

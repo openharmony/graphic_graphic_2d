@@ -152,6 +152,16 @@ ImageInfo Bitmap::GetImageInfo() const
     return imageInfo_;
 }
 
+Pixmap Bitmap::GetPixmap() const
+{
+    return bmpImplPtr->GetPixmap();
+}
+
+bool Bitmap::TryAllocPixels(const ImageInfo& info)
+{
+    return bmpImplPtr->TryAllocPixels(info);
+}
+
 std::shared_ptr<Data> Bitmap::Serialize() const
 {
     return bmpImplPtr->Serialize();

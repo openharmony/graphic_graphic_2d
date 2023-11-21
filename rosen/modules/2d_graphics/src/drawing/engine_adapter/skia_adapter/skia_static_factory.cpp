@@ -79,6 +79,16 @@ std::shared_ptr<TextBlob> SkiaStaticFactory::DeserializeTextBlob(const void* dat
 {
     return SkiaTextBlob::Deserialize(data, size);
 }
+
+bool SkiaStaticFactory::CanComputeFastBounds(const Brush& brush)
+{
+    return SkiaPaint::CanComputeFastBounds(brush);
+}
+
+const Rect& SkiaStaticFactory::ComputeFastBounds(const Brush& brush, const Rect& orig, Rect* storage)
+{
+    return SkiaPaint::ComputeFastBounds(brush, orig, storage);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

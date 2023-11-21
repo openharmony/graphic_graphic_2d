@@ -81,12 +81,8 @@ public:
 
     bool IsEqual(const RSImage& other) const;
 #ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
     void CanvasDrawImage(RSPaintFilterCanvas& canvas, const SkRect& rect, const SkSamplingOptions& samplingOptions,
         const SkPaint& paint, bool isBackground = false);
-#else
-    void CanvasDrawImage(RSPaintFilterCanvas& canvas, const SkRect& rect, const SkPaint& paint, bool isBackground = false);
-#endif
 #else
     void CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect,
         const Drawing::SamplingOptions& samplingOptions, bool isBackground = false);
@@ -146,11 +142,7 @@ private:
 #ifndef USE_ROSEN_DRAWING
     void ApplyCanvasClip(RSPaintFilterCanvas& canvas);
     void UploadGpu(RSPaintFilterCanvas& canvas);
-#ifdef NEW_SKIA
     void DrawImageRepeatRect(const SkSamplingOptions& samplingOptions, const SkPaint& paint, RSPaintFilterCanvas& canvas);
-#else
-    void DrawImageRepeatRect(const SkPaint& paint, RSPaintFilterCanvas& canvas);
-#endif
 #else
     void ApplyCanvasClip(Drawing::Canvas& canvas);
     void UploadGpu(Drawing::Canvas& canvas);

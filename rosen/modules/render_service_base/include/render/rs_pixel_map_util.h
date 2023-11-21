@@ -28,6 +28,7 @@ template <typename T>
 class sk_sp;
 class SkImage;
 #else
+#include "draw/canvas.h"
 #include "image/image.h"
 #endif
 
@@ -39,10 +40,12 @@ public:
     // and the PixelMap should not hold SkImage to avoid circular references.
 #ifndef USE_ROSEN_DRAWING
     static sk_sp<SkImage> ExtractSkImage(std::shared_ptr<Media::PixelMap> pixelMap);
-    static void TransformDataSetForAstc(std::shared_ptr<Media::PixelMap> pixelMap_,
-                                        SkRect& src_, SkRect& dst_, RSPaintFilterCanvas& canvas);
+    static void TransformDataSetForAstc(std::shared_ptr<Media::PixelMap> pixelMap,
+                                        SkRect& src, SkRect& dst, RSPaintFilterCanvas& canvas);
 #else
     static std::shared_ptr<Drawing::Image> ExtractDrawingImage(std::shared_ptr<Media::PixelMap> pixelMap);
+    static void TransformDataSetForAstc(std::shared_ptr<Media::PixelMap> pixelMap,
+                                        Drawing::Rect& src, Drawing::Rect& dst, Drawing::Canvas& canvas);
 #endif
 };
 } // namespace Rosen

@@ -373,17 +373,9 @@ bool RSParallelSubThread::FlushForRosenDrawing()
     }
     if (renderType_ == ParallelRenderType::DRAW_IMAGE) {
         RS_TRACE_BEGIN("Flush");
-#ifdef NEW_SKIA
         if (drContext_) {
             drContext_->FlushAndSubmit(false);
         }
-#else
-        // drCanvas->flush() may tasks a long time when window is zoomed in and out. So let flush operation of
-        // subMainThreads are executed in sequence to reduce probability rather than solve the question.
-        RSParallelRenderManager::Instance()->LockFlushMutex();
-        drCanvas_->Flush();
-        RSParallelRenderManager::Instance()->UnlockFlushMutex();
-#endif
         RS_TRACE_END();
         RS_TRACE_BEGIN("Create Fence");
 #ifdef NEW_RENDER_CONTEXT
@@ -416,17 +408,9 @@ void RSParallelSubThread::Flush()
     }
     if (renderType_ == ParallelRenderType::DRAW_IMAGE) {
         RS_TRACE_BEGIN("Flush");
-#ifdef NEW_SKIA
         if (grContext_) {
             grContext_->flushAndSubmit(false);
         }
-#else
-        // skCanvas_->flush() may tasks a long time when window is zoomed in and out. So let flush operation of
-        // subMainThreads are executed in sequence to reduce probability rather than solve the question.
-        RSParallelRenderManager::Instance()->LockFlushMutex();
-        skCanvas_->flush();
-        RSParallelRenderManager::Instance()->UnlockFlushMutex();
-#endif
         RS_TRACE_END();
         RS_TRACE_BEGIN("Create Fence");
 #ifdef NEW_RENDER_CONTEXT

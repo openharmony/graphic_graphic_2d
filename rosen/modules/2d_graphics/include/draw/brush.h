@@ -21,6 +21,7 @@
 #include "effect/filter.h"
 #include "effect/shader_effect.h"
 #include "utils/drawing_macros.h"
+#include "utils/rect.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -58,6 +59,9 @@ public:
 
     bool IsAntiAlias() const;
     void SetAntiAlias(bool aa);
+
+    bool CanComputeFastBounds();
+    const Rect& ComputeFastBounds(const Rect& orig, Rect* storage);
 
     void Reset();
 

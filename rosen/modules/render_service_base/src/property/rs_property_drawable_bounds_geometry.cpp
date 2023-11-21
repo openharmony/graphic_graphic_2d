@@ -1180,11 +1180,7 @@ void RSBackgroundImageDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& ca
 
 #ifndef USE_ROSEN_DRAWING
     auto boundsRect = RSPropertiesPainter::Rect2SkRect(properties.GetBoundsRect());
-#ifdef NEW_SKIA
     image->CanvasDrawImage(canvas, boundsRect, SkSamplingOptions(), paint_, true);
-#else
-    image->CanvasDrawImage(canvas, boundsRect, paint_, true);
-#endif
 #else
     auto boundsRect = RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect());
     canvas.AttachBrush(brush_);

@@ -340,7 +340,7 @@ void SkiaCanvas::DrawBackground(const Brush& brush)
         return;
     }
     SkPaint paint;
-    skiaPaint_.BrushToSkPaint(brush, paint);
+    SkiaPaint::BrushToSkPaint(brush, paint);
     skCanvas_->drawPaint(paint);
 }
 
@@ -500,7 +500,7 @@ void SkiaCanvas::DrawImageNine(const Image* image, const RectI& center, const Re
     std::unique_ptr<SkPaint> paint = nullptr;
     if (brush != nullptr) {
         paint = std::make_unique<SkPaint>();
-        skiaPaint_.BrushToSkPaint(*brush, *paint);
+        SkiaPaint::BrushToSkPaint(*brush, *paint);
     }
     skCanvas_->drawImageNine(img.get(), skCenter, skDst, skFilterMode, paint.get());
 }
@@ -550,7 +550,7 @@ void SkiaCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, co
     std::unique_ptr<SkPaint> paint = nullptr;
     if (brush != nullptr) {
         paint = std::make_unique<SkPaint>();
-        skiaPaint_.BrushToSkPaint(*brush, *paint);
+        SkiaPaint::BrushToSkPaint(*brush, *paint);
     }
 
     skCanvas_->drawImageLattice(img.get(), skLattice, skDst, skFilterMode, paint.get());
@@ -1023,7 +1023,7 @@ void SkiaCanvas::SaveLayer(const SaveLayerOps& saveLayerOps)
     auto brush = saveLayerOps.GetBrush();
     if (brush != nullptr) {
         paint = std::make_unique<SkPaint>();
-        skiaPaint_.BrushToSkPaint(*brush, *paint);
+        SkiaPaint::BrushToSkPaint(*brush, *paint);
     }
     sk_sp<SkImageFilter> skImageFilter = nullptr;
     auto imageFilter = saveLayerOps.GetImageFilter();

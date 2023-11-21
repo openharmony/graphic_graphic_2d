@@ -50,7 +50,7 @@ void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& no
         }
         auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
         if (!surfaceDirtyManager->SetBufferAge(bufferAge)) {
-            ROSEN_LOGE("RSUniRenderUtil::MergeVisibleDirtyRegion with invalid buffer age %{public}d", bufferAge);
+            ROSEN_LOGE("RSUniRenderUtil::MergeDirtyHistory with invalid buffer age %{public}d", bufferAge);
         }
         surfaceDirtyManager->IntersectDirtyRect(surfaceNode->GetOldDirtyInSurface());
         surfaceDirtyManager->UpdateDirty(useAlignedDirtyRegion);

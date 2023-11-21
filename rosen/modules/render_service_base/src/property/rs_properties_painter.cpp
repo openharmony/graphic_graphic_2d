@@ -450,10 +450,13 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
         filter.SetMaskFilter(
             Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, properties.GetShadowRadius()));
         brush.SetFilter(filter);
+        if (brush.CanComputeFastBounds()) {
+            brush.ComputeFastBounds(shadowRect, &shadowRect);
+        }
     }
 
     auto geoPtr = (properties.GetBoundsGeometry());
-    Drawing::Matrix matrix = geoPtr ? geoPtr->GetAbsMatrix() : Drawing::Matrix();
+    Drawing::Matrix matrix = (geoPtr && isAbsCoordinate) ? geoPtr->GetAbsMatrix() : Drawing::Matrix();
     matrix.MapRect(shadowRect, shadowRect);
 
     dirtyShadow.left_ = shadowRect.GetLeft();
@@ -555,11 +558,7 @@ void RSPropertiesPainter::DrawColorfulShadowInner(
 
     // save layer, draw image with clipPath, blur and draw back
     SkPaint blurPaint;
-#ifdef NEW_SKIA
     blurPaint.setImageFilter(SkImageFilters::Blur(blurRadius, blurRadius, SkTileMode::kDecal, nullptr));
-#else
-    blurPaint.setImageFilter(SkBlurImageFilter::Make(blurRadius, blurRadius, SkTileMode::kDecal, nullptr));
-#endif
     canvas.saveLayer(nullptr, &blurPaint);
 
     canvas.translate(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
@@ -2880,7 +2879,6 @@ void RSPropertiesPainter::DrawBinarizationShader(const RSProperties& properties,
 }
 
 #ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
 sk_sp<SkShader> RSPropertiesPainter::MakeBinarizationShader(float low, float high, float threshold,
     sk_sp<SkShader> imageShader)
 {
@@ -2912,7 +2910,6 @@ sk_sp<SkShader> RSPropertiesPainter::MakeBinarizationShader(float low, float hig
     builder.uniform("threshold") = threshold;
     return builder.makeShader(nullptr, false);
 }
-#endif
 #endif
 
 void RSPropertiesPainter::DrawLightUpEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas)

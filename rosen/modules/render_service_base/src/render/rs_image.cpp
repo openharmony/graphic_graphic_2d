@@ -53,33 +53,19 @@ bool RSImage::IsEqual(const RSImage& other) const
            (imageFit_ == other.imageFit_) && (imageRepeat_ == other.imageRepeat_) &&
            (scale_ == other.scale_) && radiusEq && (compressData_ == other.compressData_);
 }
+
 #ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
 void RSImage::CanvasDrawImage(RSPaintFilterCanvas& canvas, const SkRect& rect, const SkSamplingOptions& samplingOptions,
     const SkPaint& paint, bool isBackground)
-#else
-void RSImage::CanvasDrawImage(RSPaintFilterCanvas& canvas, const SkRect& rect, const SkPaint& paint, bool isBackground)
-#endif
 {
-#ifdef NEW_SKIA
     if (!isDrawn_ || rect != lastRect_) {
-#endif
         UpdateNodeIdToPicture(nodeId_);
         SkAutoCanvasRestore acr(&canvas, HasRadius());
         frameRect_.SetAll(rect.left(), rect.top(), rect.width(), rect.height());
-#else
-void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect,
-    const Drawing::SamplingOptions& samplingOptions, bool isBackground)
-{
-    canvas.Save();
-    frameRect_.SetAll(rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight());
-#endif
         if (!isBackground) {
             ApplyImageFit();
             ApplyCanvasClip(canvas);
         }
-#ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
         DrawImageRepeatRect(samplingOptions, paint, canvas);
     } else {
         SkAutoCanvasRestore acr(&canvas, HasRadius());
@@ -93,14 +79,34 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
         }
     }
     lastRect_ = rect;
-#else
-    DrawImageRepeatRect(paint, canvas);
-#endif
-#else
-    DrawImageRepeatRect(samplingOptions, canvas);
-    canvas.Restore();
-#endif
 }
+#else
+void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect,
+    const Drawing::SamplingOptions& samplingOptions, bool isBackground)
+{
+    if (!isDrawn_ || rect != lastRect_) {
+        UpdateNodeIdToPicture(nodeId_);
+        Drawing::AutoCanvasRestore acr(canvas, HasRadius());
+        frameRect_.SetAll(rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight());
+        if (!isBackground) {
+            ApplyImageFit();
+            ApplyCanvasClip(canvas);
+        }
+        DrawImageRepeatRect(samplingOptions, canvas);
+    } else {
+        Drawing::AutoCanvasRestore acr(canvas, HasRadius());
+        if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
+            canvas.Save();
+            RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas);
+        }
+        canvas.DrawImageRect(image_, src_, dst_, samplingOptions, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+        if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
+            canvas.Restore();
+        }
+    }
+    lastRect_ = rect;
+}
+#endif
 
 struct ImageParameter
 {
@@ -239,15 +245,10 @@ void RSImage::UploadGpu(RSPaintFilterCanvas& canvas)
         if (cache) {
             image_ = cache;
         } else {
-#ifdef NEW_SKIA
             if (canvas.recordingContext() == nullptr) {
-#else
-            if (canvas.getGrContext() == nullptr) {
-#endif
                 return;
             }
             RS_TRACE_NAME("make compress img");
-#ifdef NEW_SKIA
             // [planning] new skia remove enum kASTC_CompressionType
             // Need to confirm if kBC1_RGBA8_UNORM and kASTC_CompressionType are the same
             Media::ImageInfo imageInfo;
@@ -255,10 +256,6 @@ void RSImage::UploadGpu(RSPaintFilterCanvas& canvas)
             auto image = SkImage::MakeTextureFromCompressed(GrAsDirectContext(canvas.recordingContext()), compressData_,
                 static_cast<int>(srcRect_.width_), static_cast<int>(srcRect_.height_),
                 PixelFormatToCompressionType(imageInfo.pixelFormat));
-#else
-            auto image = SkImage::MakeFromCompressed(canvas.getGrContext(), compressData_,
-                static_cast<int>(srcRect_.width_), static_cast<int>(srcRect_.height_), SkImage::kASTC_CompressionType);
-#endif
             if (image) {
                 image_ = image;
                 SKResourceManager::Instance().HoldResource(image);
@@ -304,11 +301,7 @@ void RSImage::UploadGpu(Drawing::Canvas& canvas)
 #endif
 
 #ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
 void RSImage::DrawImageRepeatRect(const SkSamplingOptions& samplingOptions, const SkPaint& paint, RSPaintFilterCanvas& canvas)
-#else
-void RSImage::DrawImageRepeatRect(const SkPaint& paint, RSPaintFilterCanvas& canvas)
-#endif
 #else
 void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas)
 #endif
@@ -358,45 +351,49 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
 #ifndef USE_ROSEN_DRAWING
     src_ = RSPropertiesPainter::Rect2SkRect(srcRect_);
 #else
-    if (image_ == nullptr) {
-        RS_LOGE("RSImage::DrawImageRepeatRect failed, image is nullptr");
-        return;
-    }
-    auto src = RSPropertiesPainter::Rect2DrawingRect(srcRect_);
+    src_ = RSPropertiesPainter::Rect2DrawingRect(srcRect_);
 #endif
+    bool isAstc = pixelMap_ != nullptr && pixelMap_->IsAstc();
     for (int i = minX; i <= maxX; ++i) {
         for (int j = minY; j <= maxY; ++j) {
 #ifndef USE_ROSEN_DRAWING
             dst_ = SkRect::MakeXYWH(dstRect_.left_ + i * dstRect_.width_, dstRect_.top_ + j * dstRect_.height_,
                 dstRect_.width_, dstRect_.height_);
-            if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
+            if (isAstc) {
                 canvas.save();
                 RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas);
             }
             if (canvas.GetRecordingState() && image_->isTextureBacked()) {
                 auto recordingCanvas = static_cast<RSRecordingCanvas*>(canvas.GetRecordingCanvas());
                 auto cpuImage = image_->makeRasterImage();
-#ifdef NEW_SKIA
                 recordingCanvas->drawImageRect(cpuImage, src_, dst_, samplingOptions,
                     &paint, SkCanvas::kFast_SrcRectConstraint);
             } else {
                 canvas.drawImageRect(image_, src_, dst_, samplingOptions, &paint, SkCanvas::kFast_SrcRectConstraint);
-#else
-                recordingCanvas->drawImageRect(cpuImage, src_, dst_,
-                    &paint, SkCanvas::kFast_SrcRectConstraint);
-            } else {
-                canvas.drawImageRect(image_, src, dst, &paint, SkCanvas::kFast_SrcRectConstraint);
-#endif
             }
-#else
-            auto dst = Drawing::Rect(dstRect_.left_ + i * dstRect_.width_, dstRect_.top_ + j * dstRect_.height_,
-                dstRect_.left_ + (i + 1) * dstRect_.width_, dstRect_.top_ + (j + 1) * dstRect_.height_);
-            canvas.DrawImageRect(*image_, src, dst, samplingOptions,
-                Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
-#endif
-            if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
+            if (isAstc) {
                 canvas.restore();
             }
+#else
+            dst_ = Drawing::Rect(dstRect_.left_ + i * dstRect_.width_, dstRect_.top_ + j * dstRect_.height_,
+                dstRect_.left_ + (i + 1) * dstRect_.width_, dstRect_.top_ + (j + 1) * dstRect_.height_);
+            if (isAstc) {
+                canvas.Save();
+                RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas);
+            }
+            if (canvas.GetRecordingState() && image_->IsTextureBacked()) {
+                auto recordingCanvas = static_cast<RSRecordingCanvas*>(canvas.GetRecordingCanvas());
+                auto cpuImage = image_->MakeRasterImage();
+                recordingCanvas->DrawImageRect(cpuImage, src_, dst_, samplingOptions,
+                    Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+            } else {
+                canvas.DrawImageRect(image_, src_, dst_, samplingOptions,
+                    Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+            }
+            if (isAstc) {
+                canvas.Restore();
+            }
+#endif
         }
     }
     if (imageRepeat_ == ImageRepeat::NO_REPEAT) {
@@ -463,7 +460,7 @@ void RSImage::SetRadius(const std::vector<Drawing::Point>& radius)
 #ifndef USE_ROSEN_DRAWING
         hasRadius_ = hasRadius_ || !radius_[i].isZero();
 #else
-        hasRadius_ = hasRadius_ || radius_[i].GetX() != 0 || radius_[i].GetY() != 0;
+        hasRadius_ = hasRadius_ || !radius_[i].IsZero();
 #endif
     }
 }
@@ -552,11 +549,7 @@ bool RSImage::Marshalling(Parcel& parcel) const
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.height_)) &&
                    RSMarshallingHelper::Marshalling(parcel, nodeId_) &&
                    parcel.WriteBool(pixelMap_ == nullptr) &&
-#ifndef USE_ROSEN_DRAWING
                    RSMarshallingHelper::Marshalling(parcel, image) &&
-#else
-                   RSMarshallingHelper::Marshalling(parcel, image) &&
-#endif
                    RSMarshallingHelper::Marshalling(parcel, pixelMap_) &&
                    RSMarshallingHelper::Marshalling(parcel, compressData_) &&
                    RSMarshallingHelper::Marshalling(parcel, imageFit) &&

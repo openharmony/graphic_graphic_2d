@@ -31,12 +31,7 @@
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
 #endif
-#ifdef NEW_SKIA
 #include "include/gpu/GrDirectContext.h"
-#else
-#include "include/gpu/GrContext.h"
-#include "include/gpu/GrGpuResource.h"
-#endif
 #include "rs_trace.h"
 
 #include "animation/rs_animation_fraction.h"
@@ -2225,35 +2220,19 @@ void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::str
         std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
         rendercontext->CleanAllShaderCache();
 #endif
-#ifdef NEW_SKIA
         grContext->flushAndSubmit(true);
-#else
-        grContext->flush(kSyncCpu_GrFlushFlag, 0, nullptr);
-#endif
     } else if (type == "cpu") {
         grContext->flush();
         SkGraphics::PurgeAllCaches();
-#ifdef NEW_SKIA
         grContext->flushAndSubmit(true);
-#else
-        grContext->flush(kSyncCpu_GrFlushFlag, 0, nullptr);
-#endif
     } else if (type == "gpu") {
         grContext->flush();
         grContext->freeGpuResources();
-#ifdef NEW_SKIA
         grContext->flushAndSubmit(true);
-#else
-        grContext->flush(kSyncCpu_GrFlushFlag, 0, nullptr);
-#endif
     } else if (type == "uihidden") {
         grContext->flush();
         grContext->purgeUnlockedResources(true);
-#ifdef NEW_SKIA
         grContext->flushAndSubmit(true);
-#else
-        grContext->flush(kSyncCpu_GrFlushFlag, 0, nullptr);
-#endif
     } else if (type == "shader") {
 #ifdef NEW_RENDER_CONTEXT
         MemoryHandler::ClearShader();

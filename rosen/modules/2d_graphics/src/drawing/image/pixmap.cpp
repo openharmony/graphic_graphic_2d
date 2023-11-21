@@ -63,6 +63,11 @@ int32_t Pixmap::GetHeight() const
     return pixmapImplPtr_->GetHeight();
 }
 
+bool Pixmap::ScalePixels(const Pixmap& dst, const SamplingOptions& options) const
+{
+    return pixmapImplPtr_->ScalePixels(dst, options);
+}
+
 Pixmap::~Pixmap() {}
 } // namespace Drawing
 } // namespace Rosen

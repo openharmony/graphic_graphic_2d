@@ -57,6 +57,11 @@ void SkiaMatrix::PreRotate(scalar degree)
     skMatrix_.preRotate(degree);
 }
 
+void SkiaMatrix::PostRotate(scalar degree)
+{
+    skMatrix_.postRotate(degree);
+}
+
 void SkiaMatrix::PreTranslate(scalar dx, scalar dy)
 {
     skMatrix_.preTranslate(dx, dy);

@@ -29,6 +29,11 @@ SkiaPixmap::SkiaPixmap(const ImageInfo& imageInfo, const void* addr, size_t rowB
     skiaPixmap_ = SkPixmap(skImageInfo, addr, rowBytes);
 }
 
+void SkiaPixmap::ImportSkiaPixmap(const SkPixmap& skPixmap)
+{
+    skiaPixmap_ = skPixmap;
+}
+
 const SkPixmap& SkiaPixmap::ExportSkiaPixmap() const
 {
     return skiaPixmap_;
@@ -73,6 +78,17 @@ int32_t SkiaPixmap::GetHeight() const
     return skiaPixmap_.height();
 }
 
+bool SkiaPixmap::ScalePixels(const Pixmap& dst, const SamplingOptions& options) const
+{
+    SkSamplingOptions skSamplingOptions;
+    if (options.GetUseCubic()) {
+        skSamplingOptions = SkSamplingOptions({ options.GetCubicCoffB(), options.GetCubicCoffC() });
+    } else {
+        skSamplingOptions = SkSamplingOptions(static_cast<SkFilterMode>(options.GetFilterMode()),
+            static_cast<SkMipmapMode>(options.GetMipmapMode()));
+    }
+    return skiaPixmap_.scalePixels(dst.GetImpl<SkiaPixmap>()->ExportSkiaPixmap(), skSamplingOptions);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

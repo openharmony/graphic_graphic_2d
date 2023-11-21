@@ -58,6 +58,8 @@ public:
      */
     void PreRotate(scalar degree);
 
+    void PostRotate(scalar degree);
+
     /*
      * @brief     Sets Matrix to Matrix constructed from translation (dx, dy) multiplied by Matrix.
      * @param dx  X-axis translation after applying Matrix.

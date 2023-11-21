@@ -77,17 +77,18 @@ std::shared_ptr<Image> SkiaImage::MakeRasterData(const ImageInfo& info, std::sha
     return std::make_shared<Image>(imageImpl);
 }
 
-void* SkiaImage::BuildFromBitmap(const Bitmap& bitmap)
+bool SkiaImage::BuildFromBitmap(const Bitmap& bitmap)
 {
     auto skBitmapImpl = bitmap.GetImpl<SkiaBitmap>();
     if (skBitmapImpl != nullptr) {
         const SkBitmap skBitmap = skBitmapImpl->ExportSkiaBitmap();
         skiaImage_ = SkImage::MakeFromBitmap(skBitmap);
+        return skiaImage_ != nullptr;
     }
-    return nullptr;
+    return false;
 }
 
-void* SkiaImage::BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix,
+bool SkiaImage::BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix,
     const Brush& brush, BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace)
 {
     auto skPictureImpl = picture.GetImpl<SkiaPicture>();
@@ -96,14 +97,15 @@ void* SkiaImage::BuildFromPicture(const Picture& picture, const SizeI& dimension
 
     SkISize skISize = SkISize::Make(dimensions.Width(), dimensions.Height());
     SkPaint paint;
-    skiaPaint_.BrushToSkPaint(brush, paint);
+    SkiaPaint::BrushToSkPaint(brush, paint);
     SkImage::BitDepth b = static_cast<SkImage::BitDepth>(bitDepth);
 
     if (skPictureImpl != nullptr && skMatrixImpl != nullptr && skColorSpaceImpl != nullptr) {
         skiaImage_ = SkImage::MakeFromPicture(skPictureImpl->GetPicture(), skISize, &skMatrixImpl->ExportSkiaMatrix(),
             &paint, b, skColorSpaceImpl->GetColorSpace());
+        return skiaImage_ != nullptr;
     }
-    return nullptr;
+    return false;
 }
 
 #ifdef ACE_ENABLE_GPU
@@ -296,6 +298,20 @@ AlphaType SkiaImage::GetAlphaType() const
                                      SkiaImageInfo::ConvertToAlphaType(skiaImage_->alphaType());
 }
 
+std::shared_ptr<ColorSpace> SkiaImage::GetColorSpace() const
+{
+    if (skiaImage_ == nullptr) {
+        return nullptr;
+    }
+    sk_sp<SkColorSpace> skColorSpace = skiaImage_->refColorSpace();
+    if (skColorSpace == nullptr) {
+        return nullptr;
+    }
+    std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>();
+    colorSpace->GetImpl<SkiaColorSpace>()->SetColorSpace(skColorSpace);
+    return colorSpace;
+}
+
 uint32_t SkiaImage::GetUniqueID() const
 {
     return (skiaImage_ == nullptr) ? 0 : skiaImage_->uniqueID();
@@ -352,14 +368,18 @@ bool SkiaImage::ScalePixels(const Bitmap& bitmap, const SamplingOptions& samplin
     return (skiaImage_ == nullptr) ? false : skiaImage_->scalePixels(skPixmap, samplingOptions, skCachingHint);
 }
 
-std::shared_ptr<Data> SkiaImage::EncodeToData(EncodedImageFormat& encodedImageFormat, int quality) const
+std::shared_ptr<Data> SkiaImage::EncodeToData(EncodedImageFormat encodedImageFormat, int quality) const
 {
-    SkEncodedImageFormat skEncodedImageFormat = SkiaImageInfo::ConvertToSkEncodedImageFormat(encodedImageFormat);
     if (skiaImage_ == nullptr) {
         LOGE("SkiaImage::EncodeToData, skiaImage_ is null!");
         return nullptr;
     }
+    SkEncodedImageFormat skEncodedImageFormat = SkiaImageInfo::ConvertToSkEncodedImageFormat(encodedImageFormat);
     auto skData = skiaImage_->encodeToData(skEncodedImageFormat, quality);
+    if (skData == nullptr) {
+        LOGE("SkiaImage::EncodeToData, skData null!");
+        return nullptr;
+    }
     std::shared_ptr<Data> data = std::make_shared<Data>();
     data->GetImpl<SkiaData>()->SetSkData(skData);
     return data;

@@ -232,6 +232,48 @@ void RSPixelMapUtil::TransformDataSetForAstc(std::shared_ptr<Media::PixelMap> pi
     dst.fRight += transformData.translateX / HALF_F;
     dst.fBottom += transformData.translateY / HALF_F;
 }
+#else
+void RSPixelMapUtil::TransformDataSetForAstc(std::shared_ptr<Media::PixelMap> pixelMap,
+                                             Drawing::Rect& src, Drawing::Rect& dst, Drawing::Canvas& canvas)
+{
+    TransformData transformData;
+    pixelMap->GetTransformData(transformData);
+    Drawing::Matrix matrix;
+    matrix.PostScale(transformData.scaleX, transformData.scaleY, dst.GetLeft() / HALF_F + dst.GetRight() / HALF_F,
+                     dst.GetTop() / HALF_F + dst.GetBottom() / HALF_F);
+    matrix.PostRotate(transformData.rotateD, dst.GetLeft() / HALF_F + dst.GetRight() / HALF_F,
+                      dst.GetTop() / HALF_F + dst.GetBottom() / HALF_F);
+    if (transformData.flipX) {
+        matrix.PostScale(-1, 1, dst.GetLeft() / HALF_F + dst.GetRight() / HALF_F,
+                         dst.GetTop() / HALF_F + dst.GetBottom() / HALF_F);
+    }
+    if (transformData.flipY) {
+        matrix.PostScale(1, -1, dst.GetLeft() / HALF_F + dst.GetRight() / HALF_F,
+                         dst.GetTop() / HALF_F + dst.GetBottom() / HALF_F);
+    }
+    canvas.ConcatMatrix(matrix);
+
+    //crop
+    if (transformData.cropLeft >= 0 && transformData.cropTop >= 0 &&
+        transformData.cropWidth >= 0 && transformData.cropHeight >= 0) {
+        float rightMinus = src.GetRight() - transformData.cropLeft - transformData.cropWidth;
+        float bottomMinus = src.GetBottom() - transformData.cropTop - transformData.cropHeight;
+        src.SetLeft(src.GetLeft() + transformData.cropLeft);
+        src.SetTop(src.GetTop() + transformData.cropTop);
+        src.SetRight(src.GetRight() - rightMinus);
+        src.SetBottom(src.GetBottom() - bottomMinus);
+        dst.SetLeft(dst.GetLeft() + (transformData.cropLeft + rightMinus) / HALF_F);
+        dst.SetTop(dst.GetTop() + (transformData.cropTop + bottomMinus) / HALF_F);
+        dst.SetRight(dst.GetRight() - (transformData.cropLeft + rightMinus) / HALF_F);
+        dst.SetBottom(dst.GetBottom() - (transformData.cropTop + bottomMinus) / HALF_F);
+    }
+
+    //translate
+    dst.SetLeft(dst.GetLeft() + transformData.translateX / HALF_F);
+    dst.SetTop(dst.GetTop() + transformData.translateY / HALF_F);
+    dst.SetRight(dst.GetRight() + transformData.translateX / HALF_F);
+    dst.SetBottom(dst.GetBottom() + transformData.translateY / HALF_F);
+}
 #endif
 } // namespace Rosen
 } // namespace OHOS

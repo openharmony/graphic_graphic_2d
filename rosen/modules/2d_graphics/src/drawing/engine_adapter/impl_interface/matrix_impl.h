@@ -42,6 +42,7 @@ public:
     virtual void SetScale(scalar sx, scalar sy) = 0;
 
     virtual void PreRotate(scalar degree) = 0;
+    virtual void PostRotate(scalar degree) = 0;
     virtual void PreTranslate(scalar dx, scalar dy) = 0;
     virtual void PreScale(scalar sx, scalar sy) = 0;
     virtual void PostScale(scalar sx, scalar sy) = 0;

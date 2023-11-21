@@ -49,16 +49,15 @@ Image::Image(std::shared_ptr<ImageImpl> imageImpl) : imageImplPtr(imageImpl) {}
 
 Image::Image(void* rawImg) noexcept : imageImplPtr(ImplFactory::CreateImageImpl(rawImg)) {}
 
-Image* Image::BuildFromBitmap(const Bitmap& bitmap)
+bool Image::BuildFromBitmap(const Bitmap& bitmap)
 {
-    return static_cast<Image*>(imageImplPtr->BuildFromBitmap(bitmap));
+    return imageImplPtr->BuildFromBitmap(bitmap);
 }
 
-Image* Image::BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix,
+bool Image::BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix,
     const Brush& brush, BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace)
 {
-    return static_cast<Image*>(
-        imageImplPtr->BuildFromPicture(picture, dimensions, matrix, brush, bitDepth, colorSpace));
+    return imageImplPtr->BuildFromPicture(picture, dimensions, matrix, brush, bitDepth, colorSpace);
 }
 
 std::shared_ptr<Image> MakeFromRaster(const Pixmap& pixmap,
@@ -137,6 +136,11 @@ AlphaType Image::GetAlphaType() const
     return imageImplPtr->GetAlphaType();
 }
 
+std::shared_ptr<ColorSpace> Image::GetColorSpace() const
+{
+    return imageImplPtr->GetColorSpace();
+}
+
 uint32_t Image::GetUniqueID() const
 {
     return imageImplPtr->GetUniqueID();
@@ -168,7 +172,7 @@ bool Image::ScalePixels(const Bitmap& bitmap, const SamplingOptions& sampling, b
     return imageImplPtr->ScalePixels(bitmap, sampling, allowCachingHint);
 }
 
-std::shared_ptr<Data> Image::EncodeToData(EncodedImageFormat& encodedImageFormat, int quality) const
+std::shared_ptr<Data> Image::EncodeToData(EncodedImageFormat encodedImageFormat, int quality) const
 {
     return imageImplPtr->EncodeToData(encodedImageFormat, quality);
 }

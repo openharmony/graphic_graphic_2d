@@ -47,6 +47,11 @@ void Matrix::PreRotate(scalar degree)
     matrixImplPtr->PreRotate(degree);
 }
 
+void Matrix::PostRotate(scalar degree)
+{
+    matrixImplPtr->PostRotate(degree);
+}
+
 void Matrix::PreTranslate(scalar dx, scalar dy)
 {
     matrixImplPtr->PreTranslate(dx, dy);

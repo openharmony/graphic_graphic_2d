@@ -18,10 +18,13 @@
 
 #include "base_impl.h"
 #include "image/image_info.h"
+#include "utils/sampling_options.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+class Pixmap;
+
 class PixmapImpl : public BaseImpl {
 public:
     PixmapImpl() {}
@@ -33,6 +36,7 @@ public:
     virtual const void* GetAddr() const = 0;
     virtual int32_t GetWidth() const = 0;
     virtual int32_t GetHeight() const = 0;
+    virtual bool ScalePixels(const Pixmap& dst, const SamplingOptions& options) const = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

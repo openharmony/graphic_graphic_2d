@@ -86,6 +86,11 @@ std::shared_ptr<ColorSpace> ColorSpace::CreateRGB(const CMSTransferFuncType& fun
     return std::make_shared<ColorSpace>(ColorSpace::ColorSpaceType::RGB, func, matrix);
 }
 
+sk_sp<SkColorSpace> ColorSpace::GetSkColorSpace() const
+{
+    return impl_->GetSkColorSpace();
+}
+
 std::shared_ptr<Data> ColorSpace::Serialize() const
 {
     return impl_->Serialize();

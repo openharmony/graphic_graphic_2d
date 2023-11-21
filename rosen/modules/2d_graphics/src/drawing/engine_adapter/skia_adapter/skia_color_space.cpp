@@ -93,6 +93,11 @@ sk_sp<SkColorSpace> SkiaColorSpace::GetColorSpace() const
     return colorSpace_;
 }
 
+sk_sp<SkColorSpace> SkiaColorSpace::GetSkColorSpace() const
+{
+    return colorSpace_;
+}
+
 std::shared_ptr<Data> SkiaColorSpace::Serialize() const
 {
     if (colorSpace_ == nullptr) {

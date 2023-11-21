@@ -44,6 +44,7 @@ public:
     const SkMatrix& ExportSkiaMatrix() const;
 
     void PreRotate(scalar degree) override;
+    void PostRotate(scalar degree) override;
     void PreTranslate(scalar dx, scalar dy) override;
     void PreScale(scalar sx, scalar sy) override;
     void PostScale(scalar sx, scalar sy) override;

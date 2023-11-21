@@ -78,6 +78,16 @@ std::shared_ptr<TextBlob> StaticFactory::DeserializeTextBlob(const void* data, s
 {
     return EngineStaticFactory::DeserializeTextBlob(data, size);
 }
+
+bool StaticFactory::CanComputeFastBounds(const Brush& brush)
+{
+    return EngineStaticFactory::CanComputeFastBounds(brush);
+}
+
+const Rect& StaticFactory::ComputeFastBounds(const Brush& brush, const Rect& orig, Rect* storage)
+{
+    return EngineStaticFactory::ComputeFastBounds(brush, orig, storage);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -34,6 +34,8 @@ public:
     const void* GetAddr() const;
     int32_t GetWidth() const;
     int32_t GetHeight() const;
+    bool ScalePixels(const Pixmap& dst, const SamplingOptions& options) const;
+
     template<typename T>
     const std::shared_ptr<T> GetImpl() const
     {

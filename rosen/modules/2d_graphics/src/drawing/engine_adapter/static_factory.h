@@ -18,9 +18,12 @@
 
 #include <cstdint>
 
+#include "draw/brush.h"
 #include "draw/surface.h"
+#include "image/pixmap.h"
 #include "text/text_blob.h"
 #include "text/typeface.h"
+#include "utils/rect.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -43,6 +46,8 @@ public:
     static std::shared_ptr<Image> MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
         size_t rowBytes);
     static std::shared_ptr<TextBlob> DeserializeTextBlob(const void* data, size_t size);
+    static bool CanComputeFastBounds(const Brush& brush);
+    static const Rect& ComputeFastBounds(const Brush& brush, const Rect& orig, Rect* storage);
 };
 } // namespace Drawing
 } // namespace Rosen

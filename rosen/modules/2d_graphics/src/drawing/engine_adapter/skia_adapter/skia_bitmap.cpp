@@ -170,6 +170,20 @@ bool SkiaBitmap::IsEmpty() const
     return skiaBitmap_.empty();
 }
 
+Pixmap SkiaBitmap::GetPixmap() const
+{
+    SkPixmap skPixmap = skiaBitmap_.pixmap();
+    Pixmap pixmap;
+    pixmap.GetImpl<SkiaPixmap>()->ImportSkiaPixmap(skPixmap);
+    return pixmap;
+}
+
+bool SkiaBitmap::TryAllocPixels(const ImageInfo& info)
+{
+    SkImageInfo skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(info);
+    return skiaBitmap_.tryAllocPixels(skImageInfo);
+}
+
 void SkiaBitmap::SetSkBitmap(const SkBitmap& skBitmap)
 {
     skiaBitmap_ = skBitmap;
