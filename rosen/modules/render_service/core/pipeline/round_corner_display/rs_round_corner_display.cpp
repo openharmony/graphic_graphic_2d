@@ -55,8 +55,8 @@ bool RoundCornerDisplay::SeletedLcdModel(const char* lcdModelName)
     }
     supportTopSurface_ = lcdModel_->surfaceConfig.topSurface.support;
     supportBottomSurface_ = lcdModel_->surfaceConfig.bottomSurface.support;
-    supportHardware_ = lcdModel_->hardwareConfig.hardwareComposer.support;
-    hardInfo_.supportHardware = supportHardware_;
+    supportHardware_ = false;
+    hardInfo_.supportHardware = false;
     RS_LOGI("[%{public}s] Selected model: %{public}s, supported: top->%{public}d, bottom->%{public}d,"
         "hardware->%{public}d \n", __func__, lcdModelName, static_cast<int>(supportTopSurface_),
         static_cast<int>(supportBottomSurface_), static_cast<int>(supportHardware_));
