@@ -195,8 +195,7 @@
             "header": {
               "header_files": [
                 "graphic_common.h",
-                "graphic_common_c.h",
-                "metadata_convertor.h"
+                "graphic_common_c.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/common"
             }
