@@ -21,7 +21,6 @@
 #include "parcel.h"
 #include "rs_modifier_type.h"
 
-#include "animation/rs_render_particle.h"
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
 #include "memory/rs_dfx_string.h"
@@ -41,6 +40,7 @@ namespace Rosen {
 class RSProperties;
 class RSPaintFilterCanvas;
 class RSRenderNode;
+class RSRenderParticleVector;
 
 class RSModifierContext {
 public:
@@ -204,38 +204,6 @@ protected:
     bool isSingleFrameModifier_ = false;
 };
 
-class RSB_EXPORT RSParticleRenderModifier : public RSRenderModifier {
-public:
-    RSParticleRenderModifier(
-        const std::shared_ptr<RSRenderProperty<RSRenderParticleVector>>& property)
-        : property_(property ? property
-                             : std::make_shared<RSRenderProperty<RSRenderParticleVector>>())
-    {
-        property_->SetModifierType(RSModifierType::PARTICLE);
-    }
-    ~RSParticleRenderModifier() override = default;
-    void Apply(RSModifierContext& context) const override;
-
-    PropertyId GetPropertyId() override
-    {
-        return property_->GetId();
-    }
-
-    std::shared_ptr<RSRenderPropertyBase> GetProperty() override
-    {
-        return property_;
-    }
-
-    void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
-    bool Marshalling(Parcel& parcel) override;
-
-    RSModifierType GetType() override
-    {
-        return RSModifierType::PARTICLE;
-    }
-    std::shared_ptr<RSRenderProperty<RSRenderParticleVector>> property_;
-};
-
 class RSAnimatableRenderModifier : public RSRenderModifier {
 public:
     RSAnimatableRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
@@ -369,6 +337,8 @@ public:
 
 #define DECLARE_NOANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, MODIFIER_TIER) \
     DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, Add, MODIFIER_TIER, ZERO)
+
+DECLARE_NOANIMATABLE_MODIFIER(Particles, RSRenderParticleVector, PARTICLE, Foreground)
 
 #include "modifier/rs_modifiers_def.in"
 
