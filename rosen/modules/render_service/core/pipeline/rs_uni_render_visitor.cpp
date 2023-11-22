@@ -161,6 +161,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     isDrawingCacheEnabled_ = RSSystemParameters::GetDrawingCacheEnabled();
     RSTagTracker::UpdateReleaseResourceEnabled(RSSystemProperties::GetReleaseResourceEnabled());
     isScreenRotationAnimating_ = RSSystemProperties::GetCacheEnabledForRotation();
+    isSubSurfaceEnabled_ = RSSystemProperties::GetSubSurfaceEnabled();
 #if defined(RS_ENABLE_DRIVEN_RENDER)
     if (RSDrivenRenderManager::GetInstance().GetDrivenRenderEnabled()) {
         drivenInfo_ = std::make_unique<DrivenInfo>();
@@ -336,8 +337,10 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
                 firstVisitedCache_ = INVALID_NODEID;
                 PrepareSharedTransitionNode(*child);
             }
+            SaveCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
             curDirty_ = child->IsDirty();
             child->Prepare(shared_from_this());
+            RestoreCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
         }
         SetNodeCacheChangeStatus(node);
     } else {
@@ -453,6 +456,60 @@ bool RSUniRenderVisitor::IsFirstVisitedCacheForced() const
         }
     }
     return false;
+}
+
+void RSUniRenderVisitor::SaveCurSurface(std::shared_ptr<RSDirtyRegionManager> dirtyManager,
+    std::shared_ptr<RSSurfaceRenderNode> surfaceNode)
+{
+    if (!isSubSurfaceEnabled_) {
+        return;
+    }
+    surfaceDirtyManager_.push(dirtyManager);
+    surfaceNode_.push(surfaceNode);
+}
+
+void RSUniRenderVisitor::RestoreCurSurface(std::shared_ptr<RSDirtyRegionManager> &dirtyManager,
+    std::shared_ptr<RSSurfaceRenderNode> &surfaceNode)
+{
+    if (!isSubSurfaceEnabled_) {
+        return;
+    }
+    dirtyManager = surfaceDirtyManager_.top();
+    surfaceNode = surfaceNode_.top();
+    surfaceDirtyManager_.pop();
+    surfaceNode_.pop();
+}
+
+void RSUniRenderVisitor::PrepareSubSurfaceNodes(RSSurfaceRenderNode& node) {
+    if (!isSubSurfaceEnabled_) {
+        return;
+    }
+    for (auto &nodes : node.GetSubSurfaceNodes()) {
+        for (auto &node : nodes.second) {
+            auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.lock());
+            if (surfaceNode != nullptr) {
+                SaveCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
+                PrepareSurfaceRenderNode(*surfaceNode);
+                RestoreCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
+            }
+        }
+    }
+}
+
+void RSUniRenderVisitor::ProcessSubSurfaceNodes(RSSurfaceRenderNode& node) {
+    if (!isSubSurfaceEnabled_) {
+        return;
+    }
+    for (auto &nodes : node.GetSubSurfaceNodes()) {
+        for (auto &node : nodes.second) {
+            auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.lock());
+            if (surfaceNode != nullptr && ProcessSharedTransitionNode(*surfaceNode)) {
+                SaveCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
+                ProcessSurfaceRenderNode(*surfaceNode);
+                RestoreCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
+            }
+        }
+    }
 }
 
 void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node)
@@ -946,6 +1003,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
             node.GetName().find(CAPTURE_WINDOW_NAME) == std::string::npos) {
             displayHasSkipSurface_[currentVisitDisplay_] = true;
         }
+        PrepareSubSurfaceNodes(node);
         return;
     }
     // reset HasSecurityLayer
@@ -1021,6 +1079,9 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
             // if update appwindow, its children should not skip
             localZOrder_ = 0.0f;
             isQuickSkipPreparationEnabled_ = false;
+            if (isSubSurfaceEnabled_) {
+                isQuickSkipPreparationEnabled_ = true;
+            }
             node.ResetChildHardwareEnabledNodes();
 #ifndef USE_ROSEN_DRAWING
             boundsRect_ = SkRect::MakeWH(property.GetBoundsWidth(), property.GetBoundsHeight());
@@ -1759,7 +1820,9 @@ void RSUniRenderVisitor::ProcessChildInner(RSRenderNode& node, const RSRenderNod
         if (node.GetDrawingCacheRootId() != INVALID_NODEID) {
             child->SetDrawingCacheRootId(node.GetDrawingCacheRootId());
         }
+        SaveCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
         child->Process(shared_from_this());
+        RestoreCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
     }
 }
 
@@ -3425,9 +3488,13 @@ bool RSUniRenderVisitor::IsRosenWebHardwareDisabled(RSSurfaceRenderNode& node, i
 void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
     if (isUIFirst_ && isSubThread_) {
+        bool isFirstLevelSurface = !RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetParent().lock());
+        if (isSubSurfaceEnabled_) {
+            isFirstLevelSurface = node.IsFirstLevelSurfaceNode();
+        }
         if (auto parentNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(node.GetParent().lock()) ||
             (SceneBoardJudgement::IsSceneBoardEnabled() && (node.IsLeashWindow() || (node.IsAppWindow() &&
-            !RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetParent().lock()))))) {
+            isFirstLevelSurface)))) {
             UpdateCacheSurface(node);
             return;
         }
@@ -3480,6 +3547,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #endif
     if (!CheckIfSurfaceRenderNodeNeedProcess(node)) {
         node.UpdateFilterCacheStatusWithVisible(false);
+        ProcessSubSurfaceNodes(node);
         return;
     } else {
         node.UpdateFilterCacheStatusWithVisible(true);
@@ -3494,6 +3562,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         !node.SubNodeNeedDraw(node.GetOldDirtyInSurface(), partialRenderType_)) {
         RS_PROCESS_TRACE(isPhone_, false, node.GetName() + " QuickReject Skip");
         RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode skip: %{public}s", node.GetName().c_str());
+        ProcessSubSurfaceNodes(node);
         return;
     }
 #endif
@@ -3957,11 +4026,17 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         if (isSubNodeOfSurfaceInProcess_ && !dirtyRect.IsEmpty() && !node.IsAncestorDirty() &&
             !curSurfaceNode_->SubNodeNeedDraw(dirtyRect, partialRenderType_) && !node.IsParentLeashWindow() &&
             !node.IsParentScbScreen()) {
-            if (isCanvasNodeSkipDfxEnabled_) {
-                curSurfaceNode_->GetDirtyManager()->UpdateDirtyRegionInfoForDfx(
-                    node.GetId(), node.GetType(), DirtyRegionType::CANVAS_NODE_SKIP_RECT, dirtyRect);
-            } else {
-                return;
+            bool subSurfaceNeedDraw = false;
+            if (isSubSurfaceEnabled_) {
+                subSurfaceNeedDraw = node.SubSurfaceNodeNeedDraw(partialRenderType_);
+            }
+            if (!subSurfaceNeedDraw) {
+                if (isCanvasNodeSkipDfxEnabled_) {
+                    curSurfaceNode_->GetDirtyManager()->UpdateDirtyRegionInfoForDfx(
+                        node.GetId(), node.GetType(), DirtyRegionType::CANVAS_NODE_SKIP_RECT, dirtyRect);
+                } else {
+                    return;
+                }
             }
         }
     }

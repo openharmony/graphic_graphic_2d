@@ -234,6 +234,20 @@ void RSSurfaceRenderNode::CollectSurface(
         }
 #endif
     }
+
+    if (GetSubSurfaceEnabled()) {
+        if (onlyFirstLevel) {
+            return;
+        }
+        for (auto &nodes : node->GetSubSurfaceNodes()) {
+            for (auto &node : nodes.second) {
+                auto surfaceNode = node.lock();
+                if (surfaceNode != nullptr) {
+                    surfaceNode->CollectSurface(surfaceNode, vec, isUniRender, onlyFirstLevel);
+                }
+            }
+        }
+    }
 }
 
 void RSSurfaceRenderNode::ClearChildrenCache()
@@ -1530,6 +1544,5 @@ bool RSSurfaceRenderNode::GetNodeIsSingleFrameComposer() const
     }
     return isNodeSingleFrameComposer_ || flag;
 }
-
 } // namespace Rosen
 } // namespace OHOS
