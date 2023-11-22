@@ -137,7 +137,8 @@ void RSPaintFilterCanvasBase::DrawPath(const Path& path)
 
 void RSPaintFilterCanvasBase::DrawBackground(const Brush& brush)
 {
-    if (canvas_ != nullptr && OnFilter()) {
+    Brush b(brush);
+    if (canvas_ != nullptr && OnFilterWithBrush(b)) {
         canvas_->DrawBackground(brush);
     }
 }
@@ -541,6 +542,19 @@ CoreCanvas& RSPaintFilterCanvas::AttachBrush(const Brush& brush)
 
 bool RSPaintFilterCanvas::OnFilter() const
 {
+    return alphaStack_.top() > 0.f;
+}
+
+bool RSPaintFilterCanvas::OnFilterWithBrush(Brush& brush) const
+{
+    if (brush.GetColor() == 0x00000001) { // foreground color and foreground color strategy identification
+        brush.SetColor(envStack_.top().envForegroundColor_.AsArgbInt());
+    }
+
+    // use alphaStack_.top() to multiply alpha
+    if (alphaStack_.top() < 1 && alphaStack_.top() > 0) {
+        brush.SetAlpha(brush.GetAlpha() * alphaStack_.top());
+    }
     return alphaStack_.top() > 0.f;
 }
 
