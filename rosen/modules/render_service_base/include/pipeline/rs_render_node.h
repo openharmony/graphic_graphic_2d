@@ -124,7 +124,6 @@ public:
     bool SubSurfaceNodeNeedDraw(PartialRenderType opDropType);
     void AddSubSurfaceNode(SharedPtr child, SharedPtr parent);
     void RemoveSubSurfaceNode(SharedPtr child, SharedPtr parent);
-    bool MountSoftkeyboard(SharedPtr child);
     inline bool GetSubSurfaceEnabled() const
     {
         return isSubSurfaceEnabled_;

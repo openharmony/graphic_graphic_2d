@@ -14,18 +14,8 @@
  */
 
 #include <iostream>
-
 #include "dm/display_manager.h"
 #include "securec.h"
-
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkBitmap.h"
-#include "include/core/SkTextBlob.h"
-#else
-#include "draw/canvas.h"
-#include "image/bitmap.h"
-#endif
-
 #include "transaction/rs_transaction.h"
 #include "ui/rs_surface_node.h"
 
