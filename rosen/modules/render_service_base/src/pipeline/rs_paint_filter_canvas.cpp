@@ -891,7 +891,7 @@ void RSPaintFilterCanvas::onDrawImage2(const SkImage* image, SkScalar left, SkSc
     if (recordingState_) {
         image = image->makeRasterImage().get();
     }
-    return SkPaintFilterCanvas::onDrawImage2(image, left, top, sampling, &apf.paint());
+    return SkPaintFilterCanvas::onDrawImage2(image, left, top, sampling, paint);
 }
 
 void RSPaintFilterCanvas::onDrawImageRect2(const SkImage* image, const SkRect& src, const SkRect& dst, 
@@ -899,16 +899,15 @@ void RSPaintFilterCanvas::onDrawImageRect2(const SkImage* image, const SkRect& s
     if (recordingState_) {
         image = image->makeRasterImage().get();
     }
-    return SkPaintFilterCanvas::onDrawImageRect2(image, src, dst, sampling, &apf.paint(), constraint);
+    return SkPaintFilterCanvas::onDrawImageRect2(image, src, dst, sampling, paint, constraint);
 }
 
 void RSPaintFilterCanvas::onDrawImageLattice2(const SkImage* image, const Lattice& lattice,
     const SkRect& dst, SkFilterMode filter, const SkPaint* paint) {
-    AutoPaintFilter apf(this, paint);
     if (recordingState_) {
         image = image->makeRasterImage().get();
     }
-    return SkPaintFilterCanvas::onDrawImageLattice2(image, lattice, dst, filter, &apf.paint());
+    return SkPaintFilterCanvas::onDrawImageLattice2(image, lattice, dst, filter, paint);
 }
 #endif
 
