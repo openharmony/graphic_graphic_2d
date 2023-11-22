@@ -25,6 +25,8 @@
       ],
       "adapted_system_type": [ "standard" ],
       "features": [
+        "graphic_2d_feature_product",
+        "graphic_2d_feature_pgo",
         "graphic_2d_feature_bootanimation_enable",
         "graphic_2d_feature_ace_enable_gpu",
         "graphic_2d_feature_rs_enable_eglimage",

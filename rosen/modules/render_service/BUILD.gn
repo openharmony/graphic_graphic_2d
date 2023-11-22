@@ -47,6 +47,19 @@ ohos_shared_library("librender_service") {
     cflags = [ "-flto=thin" ]
     if (enhanced_opt) {
       cflags += [ "-fwhole-program-vtables" ]
+      if (graphic_2d_feature_pgo && graphic_2d_feature_product != "default") {
+        cflags += [
+          "-fprofile-use=" + rebase_path(
+                  "//toolchain/pgo-profiles/${graphic_2d_feature_product}/librender_service.profdata",
+                  root_build_dir),
+          "-Wno-error=backend-plugin",
+          "-Wno-profile-instr-out-data",
+          "-Wno-profile-instr-unprofiled",
+        ]
+      }
+      if (graphic_2d_feature_product == "pc" && target_cpu == "arm64") {
+        cflags += [ "-moutline-atomics" ]
+      }
     }
   }
 
