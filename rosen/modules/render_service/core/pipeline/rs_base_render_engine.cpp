@@ -464,8 +464,10 @@ void RSBaseRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam
 }
 
 #ifdef USE_VIDEO_PROCESS_ENGINE
-bool RSBaseRenderEngine::ConvertColorGamutToSpaceInfo(const GraphicColorGamut& colorGamut, CM_ColorSpaceInfo& colorSpaceInfo)
+bool RSBaseRenderEngine::ConvertColorGamutToSpaceInfo(const GraphicColorGamut& colorGamut,
+    HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo)
 {
+    using namespace HDI::Display::Graphic::Common::V1_0;
     static const std::map<GraphicColorGamut, CM_ColorSpaceType> RS_TO_COMMON_COLOR_SPACE_TYPE_MAP {
         {GRAPHIC_COLOR_GAMUT_STANDARD_BT601, CM_BT601_EBU_FULL},
         {GRAPHIC_COLOR_GAMUT_STANDARD_BT709, CM_BT709_FULL},
@@ -479,11 +481,11 @@ bool RSBaseRenderEngine::ConvertColorGamutToSpaceInfo(const GraphicColorGamut& c
     };
 
     CM_ColorSpaceType colorSpaceType = CM_COLORSPACE_NONE;
-    if (RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.find(params.targetColorGamut) != RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.end()) {
-        colorSpaceType = RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.at(params.targetColorGamut);
+    if (RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.find(colorGamut) != RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.end()) {
+        colorSpaceType = RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.at(colorGamut);
     }
 
-    ret = MetadataHelper::ConvertColorSpaceTypeToInfo(colorSpaceType, parameter.outputColorSpace.colorSpaceInfo);
+    GSError ret = MetadataHelper::ConvertColorSpaceTypeToInfo(colorSpaceType, colorSpaceInfo);
     if (ret != GSERROR_OK) {
         RS_LOGE("RSBaseRenderEngine::ConvertColorGamutToSpaceInfo ConvertColorSpaceTypeToInfo failed with %{public}u.", ret);
         return false;
@@ -492,11 +494,13 @@ bool RSBaseRenderEngine::ConvertColorGamutToSpaceInfo(const GraphicColorGamut& c
     return true;
 }
 
-bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(BufferDrawParam& params)
+bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
+    const BufferDrawParam& params, Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter)
 {
+    using namespace HDI::Display::Graphic::Common::V1_0;
     constexpr float DEFAULT_TMO_NITS = 206.0;
-    parameter.tmoNits = DEFAULT_TMO_NITS,
-    parameter.currentDisplayNits = params.screenLightNits,
+    parameter.tmoNits = DEFAULT_TMO_NITS;
+    parameter.currentDisplayNits = params.screenLightNits;
 
     GSError ret = MetadataHelper::GetColorSpaceInfo(params.buffer, parameter.inputColorSpace.colorSpaceInfo);
     if (ret != GSERROR_OK) {
@@ -541,10 +545,8 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(BufferDrawParam&
 void RSBaseRenderEngine::ColorSpaceConvertor(sk_sp<SkShader> &inputShader, BufferDrawParam& params)
 {
     RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::ColorSpaceConvertor");
-    using namespace HDI::Display::Graphic::Common::V1_0;
-
     Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
-    if (!SetColorSpaceConverterDisplayParameter(parameter, params)) {
+    if (!SetColorSpaceConverterDisplayParameter(params, parameter)) {
         RS_OPTIONAL_TRACE_END();
         return;
     }

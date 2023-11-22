@@ -46,7 +46,7 @@ CM_ColorSpaceType HdiOutput::ComputeTargetColorSpace(const std::vector<LayerInfo
         }
 
         CM_ColorSpaceType colorSpace;
-        if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceType) != GSERROR_OK) {
+        if (MetadataHelper::GetColorSpaceType(buffer, colorSpace) != GSERROR_OK) {
             HLOGW("HdiOutput::ComputeTargetColorSpace Get color space from surface buffer failed");
             continue;
         }
