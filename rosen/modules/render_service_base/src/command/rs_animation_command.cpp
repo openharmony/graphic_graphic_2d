@@ -72,7 +72,7 @@ void AnimationCommandHelper::CreateParticleAnimation(
     node->GetAnimationManager().AddAnimation(animation);
     auto property = std::make_shared<RSRenderProperty<RSRenderParticleVector>>(
         animation->GetRenderParticle(), propertyId);
-    auto modifier = std::make_shared<RSParticleRenderModifier>(property);
+    auto modifier = std::make_shared<RSParticlesRenderModifier>(property);
     node->AddModifier(modifier);
     animation->AttachRenderProperty(property);
     auto currentTime = context.GetCurrentTimestamp();

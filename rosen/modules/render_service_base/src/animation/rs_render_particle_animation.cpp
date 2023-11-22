@@ -25,12 +25,10 @@
 namespace OHOS {
 namespace Rosen {
 RSRenderParticleAnimation::RSRenderParticleAnimation(AnimationId id, const PropertyId& propertyId,
-    const std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams)
-    : RSRenderPropertyAnimation(id, propertyId)
-{
-    particlesRenderParams_ = particlesRenderParams;
-    particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams_);
-}
+    const std::vector<std::shared_ptr<ParticleRenderParams>>& particlesRenderParams)
+    : RSRenderPropertyAnimation(id, propertyId), particlesRenderParams_(particlesRenderParams),
+      particleSystem_(std::make_shared<RSRenderParticleSystem>(particlesRenderParams_))
+{}
 
 bool RSRenderParticleAnimation::Animate(int64_t time)
 {
@@ -38,7 +36,7 @@ bool RSRenderParticleAnimation::Animate(int64_t time)
     animationFraction_.SetLastFrameTime(time);
     if (particleSystem_ != nullptr) {
         auto renderParticle = particleSystem_->Simulation(deltaTime);
-        renderParticleVector_ = RSRenderParticleVector(renderParticle);
+        renderParticleVector_ = RSRenderParticleVector(std::move(renderParticle));
     }
     auto property = std::static_pointer_cast<RSRenderProperty<RSRenderParticleVector>>(property_);
     if (property) {

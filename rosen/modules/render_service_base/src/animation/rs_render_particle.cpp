@@ -261,10 +261,10 @@ void ParticleRenderParams::SetParticleSpin(const RenderParticleParaType<float>& 
     spin_ = spin;
 }
 
-RSRenderParticle::RSRenderParticle(std::shared_ptr<ParticleRenderParams> particleParams)
+RSRenderParticle::RSRenderParticle(const std::shared_ptr<ParticleRenderParams>& particleParams)
+    : particleRenderParams_(particleParams)
 {
-    particleRenderParams_ = particleParams;
-    InitProperty(particleParams);
+    InitProperty(particleRenderParams_);
 }
 
 // Set methods
@@ -494,13 +494,13 @@ int64_t RSRenderParticle::GetActiveTime()
     return activeTime_;
 }
 
-std::shared_ptr<ParticleRenderParams> RSRenderParticle::GetParticleRenderParams()
+const std::shared_ptr<ParticleRenderParams>& RSRenderParticle::GetParticleRenderParams()
 {
     return particleRenderParams_;
 }
 
 // Other methods
-void RSRenderParticle::InitProperty(std::shared_ptr<ParticleRenderParams> particleParams)
+void RSRenderParticle::InitProperty(const std::shared_ptr<ParticleRenderParams>& particleParams)
 {
     // Initialize particle properties
     auto emitShape = particleParams->GetEmitShape();
