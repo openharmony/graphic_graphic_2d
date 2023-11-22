@@ -14,8 +14,8 @@
  */
 
 #include "property/rs_property_drawable_utilities.h"
-
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_single_frame_composer.h"
 #include "property/rs_properties.h"
 #include "property/rs_properties_painter.h"
 
@@ -72,8 +72,22 @@ void RSModifierDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
         return;
     }
     RSModifierContext context = { node.GetMutableRenderProperties(), &canvas };
-    for (const auto& modifier : itr->second) {
-        modifier->Apply(context);
+    if (RSSystemProperties::GetSingleFrameComposerEnabled()) {
+        bool needSkip = false;
+        if (node.GetNodeIsSingleFrameComposer() && node.singleFrameComposer_ != nullptr) {
+            needSkip = node.singleFrameComposer_->SingleFrameModifierAddToList(type_, itr->second);
+        }
+        for (const auto& modifier : itr->second) {
+            if (node.singleFrameComposer_ != nullptr &&
+                node.singleFrameComposer_->SingleFrameIsNeedSkip(needSkip, modifier)) {
+                continue;
+            }
+            modifier->Apply(context);
+        }
+    } else {
+        for (const auto& modifier : itr->second) {
+            modifier->Apply(context);
+        }
     }
 }
 
