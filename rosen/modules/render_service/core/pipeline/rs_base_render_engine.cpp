@@ -464,24 +464,8 @@ void RSBaseRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam
 }
 
 #ifdef USE_VIDEO_PROCESS_ENGINE
-void RSBaseRenderEngine::ColorSpaceConvertor(sk_sp<SkShader> &inputShader, BufferDrawParam& params)
+bool RSBaseRenderEngine::ConvertColorGamutToSpaceInfo(const GraphicColorGamut& colorGamut, CM_ColorSpaceInfo& colorSpaceInfo)
 {
-    using namespace HDI::Display::Graphic::Common::V1_0;
-    using namespace Media::VideoProcessingEngine;
-
-    constexpr float DEFAULT_TMO_NITS = 206.0;
-    ColorSpaceConverterDisplayParameter parameter = {
-        .tmoNits = DEFAULT_TMO_NITS,
-        .currentDisplayNits = params.screenLightNits,
-    };
-
-    CM_ColorSpaceInfo colorSpaceInfo;
-    GSError ret = MetadataHelper::GetColorSpaceInfo(params.buffer, parameter.inputColorSpace.colorSpaceInfo);
-    if (ret != GSERROR_OK) {
-        RS_LOGE("RSBaseRenderEngine::ColorSpaceConvertor GetColorSpaceInfo failed with %{public}u.", ret);
-        return;
-    }
-
     static const std::map<GraphicColorGamut, CM_ColorSpaceType> RS_TO_COMMON_COLOR_SPACE_TYPE_MAP {
         {GRAPHIC_COLOR_GAMUT_STANDARD_BT601, CM_BT601_EBU_FULL},
         {GRAPHIC_COLOR_GAMUT_STANDARD_BT709, CM_BT709_FULL},
@@ -501,8 +485,27 @@ void RSBaseRenderEngine::ColorSpaceConvertor(sk_sp<SkShader> &inputShader, Buffe
 
     ret = MetadataHelper::ConvertColorSpaceTypeToInfo(colorSpaceType, parameter.outputColorSpace.colorSpaceInfo);
     if (ret != GSERROR_OK) {
-        RS_LOGE("RSBaseRenderEngine::ColorSpaceConvertor ConvertColorSpaceTypeToInfo failed with %{public}u.", ret);
-        return;
+        RS_LOGE("RSBaseRenderEngine::ConvertColorGamutToSpaceInfo ConvertColorSpaceTypeToInfo failed with %{public}u.", ret);
+        return false;
+    }
+
+    return true;
+}
+
+bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(BufferDrawParam& params)
+{
+    constexpr float DEFAULT_TMO_NITS = 206.0;
+    parameter.tmoNits = DEFAULT_TMO_NITS,
+    parameter.currentDisplayNits = params.screenLightNits,
+
+    GSError ret = MetadataHelper::GetColorSpaceInfo(params.buffer, parameter.inputColorSpace.colorSpaceInfo);
+    if (ret != GSERROR_OK) {
+        RS_LOGE("RSBaseRenderEngine::ColorSpaceConvertor GetColorSpaceInfo failed with %{public}u.", ret);
+        return false;
+    }
+
+    if (!ConvertColorGamutToSpaceInfo(params.targetColorGamut, parameter.outputColorSpace.colorSpaceInfo)) {
+        return false;
     }
 
     CM_HDR_Metadata_Type hdrMetadataType = CM_METADATA_NONE;
@@ -525,24 +528,41 @@ void RSBaseRenderEngine::ColorSpaceConvertor(sk_sp<SkShader> &inputShader, Buffe
         }
     }
 
-    RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor parameter inputColorSpace.colorSpaceInfo = %{public}u, \
-            inputColorSpace.metadataType = %{public}u, outputColorSpace.colorSpaceInfo = %{public}u, \
+    RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor parameter inputColorSpace.colorSpaceInfo.primaries = %{public}u, \
+            inputColorSpace.metadataType = %{public}u, outputColorSpace.colorSpaceInfo.primaries = %{public}u, \
             outputColorSpace.metadataType = %{public}u, tmoNits = %{public}f, currentDisplayNits = %{public}f",
-            parameter.inputColorSpace.colorSpaceInfo, parameter.inputColorSpace.metadataType, 
-            parameter.outputColorSpace.colorSpaceInfo, parameter.outputColorSpace.metadataType,
+            parameter.inputColorSpace.colorSpaceInfo.primaries, parameter.inputColorSpace.metadataType,
+            parameter.outputColorSpace.colorSpaceInfo.primaries, parameter.outputColorSpace.metadataType,
             parameter.tmoNits, parameter.currentDisplayNits);
+
+    return true;
+}
+
+void RSBaseRenderEngine::ColorSpaceConvertor(sk_sp<SkShader> &inputShader, BufferDrawParam& params)
+{
+    RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::ColorSpaceConvertor");
+    using namespace HDI::Display::Graphic::Common::V1_0;
+
+    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
+    if (!SetColorSpaceConverterDisplayParameter(parameter, params)) {
+        RS_OPTIONAL_TRACE_END();
+        return;
+    }
 
     sk_sp<SkShader> outputShader;
     auto convRet = colorSpaceConverterDisplay_->Process(inputShader, outputShader, parameter);
-    if (convRet != VPE_ALGO_ERR_OK) {
+    if (convRet != Media::VideoProcessingEngine::VPE_ALGO_ERR_OK) {
         RS_LOGE("RSBaseRenderEngine::ColorSpaceConvertor colorSpaceConverterDisplay failed with %{public}u.", convRet);
+        RS_OPTIONAL_TRACE_END();
         return;
     }
     if (outputShader == nullptr) {
         RS_LOGE("RSBaseRenderEngine::ColorSpaceConvertor outputShader is nullptr.");
+        RS_OPTIONAL_TRACE_END();
         return;
     }
     params.paint.setShader(outputShader);
+    RS_OPTIONAL_TRACE_END();
 }
 #endif
 

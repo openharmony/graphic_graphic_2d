@@ -424,7 +424,8 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                 glType = GL_RGB10_A2;
             }
 
-            GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId, static_cast<GrGLenum>(glType) };
+            GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId,
+                static_cast<GrGLenum>(glType) };
             GrBackendTexture backendTexture(params.buffer->GetSurfaceBufferWidth(),
                 params.buffer->GetSurfaceBufferHeight(), GrMipMapped::kNo, grExternalTextureInfo);
 #endif

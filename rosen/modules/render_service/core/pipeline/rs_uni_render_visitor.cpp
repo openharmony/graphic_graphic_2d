@@ -518,7 +518,8 @@ void RSUniRenderVisitor::CheckColorSpace(RSSurfaceRenderNode& node)
 
         if (colorSpaceInfo.primaries != COLORPRIMARIES_SRGB) {
             newColorSpace_ = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
-            RS_LOGD("RSUniRenderVisitor::CheckColorSpace: node(%{public}s) set new colorspace primaries %{public}d", node.GetName().c_str(), colorSpaceInfo.primaries);
+            RS_LOGD("RSUniRenderVisitor::CheckColorSpace: node(%{public}s) set new colorspace primaries %{public}d",
+                    node.GetName().c_str(), colorSpaceInfo.primaries);
         }
         return;
     }
