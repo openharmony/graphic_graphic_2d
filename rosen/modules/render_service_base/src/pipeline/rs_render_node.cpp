@@ -1941,7 +1941,7 @@ void RSRenderNode::UpdateCompletedCacheSurface()
 }
 void RSRenderNode::SetTextureValidFlag(bool isValid)
 {
-#ifdef RS_ENABLE_GL
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
     isTextureValid_ = isValid;
 #endif
@@ -1952,7 +1952,7 @@ void RSRenderNode::ClearCacheSurface(bool isClearCompletedCacheSurface)
     cacheSurface_ = nullptr;
     if (isClearCompletedCacheSurface) {
         cacheCompletedSurface_ = nullptr;
-#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
         isTextureValid_ = false;
 #endif
     }
