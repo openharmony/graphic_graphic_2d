@@ -667,6 +667,66 @@ HWTEST_F(RSNodeTest, SetandGetCornerRadius005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetandGetOuterBorderRadius001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetOuterBorderRadius001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetOuterBorderRadius(floatData[1]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetOuterBorderRadius().x_, floatData[1]));
+}
+
+/**
+ * @tc.name: SetandGetOuterBorderRadius002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetOuterBorderRadius002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetOuterBorderRadius(floatData[2]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetOuterBorderRadius().x_, floatData[2]));
+}
+
+/**
+ * @tc.name: SetandGetOuterBorderRadius003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetOuterBorderRadius003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetOuterBorderRadius(floatData[3]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetOuterBorderRadius().x_, floatData[3]));
+}
+
+/**
+ * @tc.name: SetandGetOuterBorderRadius004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetOuterBorderRadius004, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetOuterBorderRadius(floatData[4]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetOuterBorderRadius().x_, floatData[4]));
+}
+
+/**
+ * @tc.name: SetandGetOuterBorderRadius005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetOuterBorderRadius005, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetOuterBorderRadius(floatData[0]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetOuterBorderRadius().x_, floatData[0]));
+}
+
+/**
  * @tc.name: SetandGetRotationThree001
  * @tc.desc:
  * @tc.type:FUNC
@@ -1503,6 +1563,66 @@ HWTEST_F(RSNodeTest, SetandGetBorderWidth005, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetBorderWidth(floatData[0]);
     EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetBorderWidth().x_, floatData[0]));
+}
+
+/**
+ * @tc.name: SetandGetOuterBorderWidth001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetOuterBorderWidth001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetOuterBorderWidth(floatData[1]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetOuterBorderWidth().x_, floatData[1]));
+}
+
+/**
+ * @tc.name: SetandGetOuterBorderWidth002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetOuterBorderWidth002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetOuterBorderWidth(floatData[2]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetOuterBorderWidth().x_, floatData[2]));
+}
+
+/**
+ * @tc.name: SetandGetOuterBorderWidth003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetOuterBorderWidth003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetOuterBorderWidth(floatData[3]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetOuterBorderWidth().x_, floatData[3]));
+}
+
+/**
+ * @tc.name: SetandGetOuterBorderWidth004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetOuterBorderWidth004, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetOuterBorderWidth(floatData[4]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetOuterBorderWidth().x_, floatData[4]));
+}
+
+/**
+ * @tc.name: SetandGetOuterBorderWidth005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetOuterBorderWidth005, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetOuterBorderWidth(floatData[0]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetOuterBorderWidth().x_, floatData[0]));
 }
 
 /**
@@ -2415,6 +2535,58 @@ HWTEST_F(RSNodeTest, SetandGetBorderStyle004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetandGetOuterBorderStyle001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetOuterBorderStyle001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    uint32_t borderStyle = static_cast<uint32_t>(BorderStyle::SOLID);
+    rsNode->SetOuterBorderStyle(BorderStyle::SOLID);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetOuterBorderStyle().x_ == borderStyle);
+}
+
+/**
+ * @tc.name: SetandGetOuterBorderStyle002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetOuterBorderStyle002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    uint32_t borderStyle = static_cast<uint32_t>(BorderStyle::DASHED);
+    rsNode->SetOuterBorderStyle(BorderStyle::DASHED);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetOuterBorderStyle().x_ == borderStyle);
+}
+
+/**
+ * @tc.name: SetandGetOuterBorderStyle003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetOuterBorderStyle003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    uint32_t borderStyle = static_cast<uint32_t>(BorderStyle::DOTTED);
+    rsNode->SetOuterBorderStyle(BorderStyle::DOTTED);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetOuterBorderStyle().x_ == borderStyle);
+}
+
+/**
+ * @tc.name: SetandGetOuterBorderStyle004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetOuterBorderStyle004, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    uint32_t borderStyle = static_cast<uint32_t>(BorderStyle::NONE);
+    rsNode->SetOuterBorderStyle(BorderStyle::NONE);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetOuterBorderStyle().x_ == borderStyle);
+}
+
+/**
  * @tc.name: SetandGetFrameGravity001
  * @tc.desc:
  * @tc.type:FUNC
@@ -2685,6 +2857,45 @@ HWTEST_F(RSNodeTest, SetandGetBorderColor003, TestSize.Level1)
     constexpr uint32_t colorValue = std::numeric_limits<uint32_t>::min();
     rsNode->SetBorderColor(colorValue);
     EXPECT_TRUE(rsNode->GetStagingProperties().GetBorderColor() == Color::FromArgbInt(colorValue));
+}
+
+/**
+ * @tc.name: SetandGetOuterBorderColor001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetOuterBorderColor001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    constexpr uint32_t colorValue = 0x034123;
+    rsNode->SetOuterBorderColor(Color::FromArgbInt(colorValue));
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetOuterBorderColor().x_ == Color::FromArgbInt(colorValue));
+}
+
+/**
+ * @tc.name: SetandGetOuterBorderColor002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetOuterBorderColor002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    constexpr uint32_t colorValue = std::numeric_limits<uint32_t>::max();
+    rsNode->SetOuterBorderColor(Color::FromArgbInt(colorValue));
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetOuterBorderColor().x_ == Color::FromArgbInt(colorValue));
+}
+
+/**
+ * @tc.name: SetandGetOuterBorderColor003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetOuterBorderColor003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    constexpr uint32_t colorValue = std::numeric_limits<uint32_t>::min();
+    rsNode->SetOuterBorderColor(Color::FromArgbInt(colorValue));
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetOuterBorderColor().x_ == Color::FromArgbInt(colorValue));
 }
 
 /**
