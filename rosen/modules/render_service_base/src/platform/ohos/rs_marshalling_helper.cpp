@@ -37,6 +37,7 @@
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
 #include "modifier/rs_render_modifier.h"
+#include "pipeline/rs_draw_cmd.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_blur_filter.h"
 #include "render/rs_filter.h"
@@ -49,7 +50,6 @@
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
 #include "transaction/rs_ashmem_helper.h"
-#include "pipeline/rs_draw_cmd.h"
 
 #ifndef USE_ROSEN_DRAWING
 #include "include/core/SkDrawable.h"
@@ -81,6 +81,7 @@
 #ifdef RS_ENABLE_RECORDING
 #include "benchmarks/rs_recording_thread.h"
 #endif
+
 #if defined (ENABLE_DDGR_OPTIMIZE)
 #include <sys/mman.h>
 #include "securec.h"
