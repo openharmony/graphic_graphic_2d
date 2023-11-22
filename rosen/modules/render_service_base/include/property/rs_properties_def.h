@@ -27,12 +27,13 @@
 #include "common/rs_rect.h"
 #include "common/rs_vector4.h"
 
-#define INVALID_INTENSITY (-1.f)
 namespace OHOS {
 namespace Rosen {
 class RSObjGeometry;
 class RSImage;
 class RSShader;
+
+constexpr float INVALID_INTENSITY = -1.f;
 
 enum class Gravity {
     CENTER = 0,
