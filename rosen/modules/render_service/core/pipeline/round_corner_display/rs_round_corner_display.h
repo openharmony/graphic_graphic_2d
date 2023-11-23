@@ -110,12 +110,10 @@ private:
     uint32_t displayWidth_ = 0;
     uint32_t displayHeight_ = 0;
 
-    // setting of the notch
-    int notchSetting_ = WINDOW_NOTCH_DEFAULT;
     // status of the notch
-    int notchStatus_ = notchSetting_;
+    int notchStatus_ = WINDOW_NOTCH_DEFAULT;
 
-    int showResourceType_ = (notchSetting_ == WINDOW_NOTCH_DEFAULT) ? TOP_PORTRAIT : TOP_HIDDEN;
+    int showResourceType_ = (notchStatus_ == WINDOW_NOTCH_DEFAULT) ? TOP_PORTRAIT : TOP_HIDDEN;
 
     // status of the rotation
     ScreenRotation curOrientation_ = ScreenRotation::ROTATION_0;
