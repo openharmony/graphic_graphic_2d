@@ -45,6 +45,7 @@ GSError MetadataHelper::SetColorSpaceInfo(sptr<SurfaceBuffer>& buffer, const CM_
     std::vector<uint8_t> colorSpaceInfoVec;
     auto ret = ConvertMetadataToVec(colorSpaceInfo, colorSpaceInfoVec);
     if (ret != GSERROR_OK) {
+        BLOGW("MetadataHelper::SetColorSpaceInfo ConvertMetadataToVec failed, return value is %{public}d", ret);
         return ret;
     }
     return buffer->SetMetadata(ATTRKEY_COLORSPACE_INFO, colorSpaceInfoVec);
@@ -55,6 +56,7 @@ GSError MetadataHelper::GetColorSpaceInfo(const sptr<SurfaceBuffer>& buffer, CM_
     std::vector<uint8_t> colorSpaceInfoVec;
     auto ret = buffer->GetMetadata(ATTRKEY_COLORSPACE_INFO, colorSpaceInfoVec);
     if (ret != GSERROR_OK) {
+        BLOGW("MetadataHelper::GetColorSpaceInfo GetMetadata failed, return value is %{public}d", ret);
         return ret;
     }
     return ConvertVecToMetadata(colorSpaceInfoVec, colorSpaceInfo);
@@ -65,6 +67,7 @@ GSError MetadataHelper::SetColorSpaceType(sptr<SurfaceBuffer>& buffer, const CM_
     CM_ColorSpaceInfo colorSpaceInfo;
     auto ret = ConvertColorSpaceTypeToInfo(colorSpaceType, colorSpaceInfo);
     if (ret != GSERROR_OK) {
+        BLOGW("MetadataHelper::SetColorSpaceType ConvertColorSpaceTypeToInfo failed, return value is %{public}d", ret);
         return ret;
     }
     return SetColorSpaceInfo(buffer, colorSpaceInfo);
@@ -75,6 +78,7 @@ GSError MetadataHelper::GetColorSpaceType(const sptr<SurfaceBuffer>& buffer, CM_
     CM_ColorSpaceInfo colorSpaceInfo;
     auto ret = GetColorSpaceInfo(buffer, colorSpaceInfo);
     if (ret != GSERROR_OK) {
+        BLOGW("MetadataHelper::GetColorSpaceType GetColorSpaceInfo failed, return value is %{public}d", ret);
         return ret;
     }
     return ConvertColorSpaceInfoToType(colorSpaceInfo, colorSpaceType);
@@ -85,6 +89,7 @@ GSError MetadataHelper::SetHDRMetadataType(sptr<SurfaceBuffer>& buffer, const CM
     std::vector<uint8_t> hdrMetadataTypeVec;
     auto ret = ConvertMetadataToVec(hdrMetadataType, hdrMetadataTypeVec);
     if (ret != GSERROR_OK) {
+        BLOGW("MetadataHelper::SetHDRMetadataType ConvertMetadataToVec failed, return value is %{public}d", ret);
         return ret;
     }
     return buffer->SetMetadata(ATTRKEY_HDR_METADATA_TYPE, hdrMetadataTypeVec);
@@ -95,6 +100,7 @@ GSError MetadataHelper::GetHDRMetadataType(const sptr<SurfaceBuffer>& buffer, CM
     std::vector<uint8_t> hdrMetadataTypeVec;
     auto ret = buffer->GetMetadata(ATTRKEY_HDR_METADATA_TYPE, hdrMetadataTypeVec);
     if (ret != GSERROR_OK) {
+        BLOGW("MetadataHelper::GetHDRMetadataType GetMetadata failed, return value is %{public}d", ret);
         return ret;
     }
     return ConvertVecToMetadata(hdrMetadataTypeVec, hdrMetadataType);
@@ -106,6 +112,7 @@ GSError MetadataHelper::SetHDRStaticMetadata(sptr<SurfaceBuffer>& buffer,
     std::vector<uint8_t> hdrStaticMetadataVec;
     auto ret = ConvertMetadataToVec(hdrStaticMetadata, hdrStaticMetadataVec);
     if (ret != GSERROR_OK) {
+        BLOGW("MetadataHelper::SetHDRStaticMetadata ConvertMetadataToVec failed, return value is %{public}d", ret);
         return ret;
     }
     return buffer->SetMetadata(ATTRKEY_HDR_STATIC_METADATA, hdrStaticMetadataVec);
@@ -117,6 +124,7 @@ GSError MetadataHelper::GetHDRStaticMetadata(const sptr<SurfaceBuffer>& buffer,
     std::vector<uint8_t> hdrStaticMetadataVec;
     auto ret = buffer->GetMetadata(ATTRKEY_HDR_STATIC_METADATA, hdrStaticMetadataVec);
     if (ret != GSERROR_OK) {
+        BLOGW("MetadataHelper::GetHDRStaticMetadata GetMetadata failed, return value is %{public}d", ret);
         return ret;
     }
     return ConvertVecToMetadata(hdrStaticMetadataVec, hdrStaticMetadata);

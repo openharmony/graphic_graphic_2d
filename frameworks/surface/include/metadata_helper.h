@@ -24,6 +24,7 @@
 #include "surface_buffer.h"
 #include "v1_0/cm_color_space.h"
 #include "v1_0/hdr_static_metadata.h"
+#include "buffer_log.h"
 
 namespace OHOS {
 class MetadataHelper {
@@ -34,6 +35,7 @@ public:
     {
         data.resize(sizeof(T));
         if (memcpy_s(data.data(), data.size(), &metadata, sizeof(T)) != EOK) {
+            BLOGW("MetadataHelper::ConvertMetadataToVec memcpy_s failed");
             return GSERROR_API_FAILED;
         }
         return GSERROR_OK;
@@ -43,10 +45,12 @@ public:
     static GSError ConvertVecToMetadata(const std::vector<uint8_t>& data, T& metadata)
     {
         if (data.size() != sizeof(T)) {
+            BLOGW("MetadataHelper::ConvertMetadataToVec metadata size doesn't match");
             return GSERROR_NOT_SUPPORT;
         }
 
         if (memcpy_s(&metadata, sizeof(T), data.data(), data.size()) != EOK) {
+            BLOGW("MetadataHelper::ConvertMetadataToVec memcpy_s failed");
             return GSERROR_API_FAILED;
         }
         return GSERROR_OK;
