@@ -893,6 +893,20 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
     screenPowerStatus_[id] = status;
 }
 
+bool RSScreenManager::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (screens_.count(id) == 0) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return false;
+    }
+
+    RS_LOGD("RSScreenManager %{public}s: canvasRotation: %{public}d", __func__, canvasRotation);
+    
+    return screens_.at(id)->SetVirtualMirrorScreenCanvasRotation(canvasRotation);
+}
+
 void RSScreenManager::GetVirtualScreenResolution(ScreenId id, RSVirtualScreenResolution& virtualScreenResolution) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -1027,6 +1041,17 @@ ScreenInfo RSScreenManager::QueryScreenInfo(ScreenId id) const
     ret = screen->GetScreenHDRFormat(info.hdrFormat);
 
     return info;
+}
+
+bool RSScreenManager::GetCanvasRotation(ScreenId id) const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (screens_.count(id) == 0) {
+        RS_LOGW("RSScreenManager::GetCanvasRotation: There is no screen for id %{public}" PRIu64 ".", id);
+        return false;
+    }
+    return screens_.at(id)->GetCanvasRotation();
 }
 
 sptr<Surface> RSScreenManager::GetProducerSurface(ScreenId id) const

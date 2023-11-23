@@ -743,6 +743,20 @@ void RSScreen::SetScreenVsyncEnabled(bool enabled) const
     }
 }
 
+bool RSScreen::SetVirtualMirrorScreenCanvasRotation(bool canvasRotation)
+{
+    if (IsVirtual()) {
+        canvasRotation_ = canvasRotation;
+        return true;
+    }
+    return false;
+}
+
+bool RSScreen::GetCanvasRotation() const
+{
+    return canvasRotation_;
+}
+
 int32_t RSScreen::GetScreenSupportedHDRFormats(std::vector<ScreenHDRFormat>& hdrFormats) const
 {
     hdrFormats.clear();

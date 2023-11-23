@@ -92,6 +92,8 @@ public:
 
     bool SetVirtualMirrorScreenBufferRotation(ScreenId id, bool bufferRotation);
 
+    bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation);
+
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);

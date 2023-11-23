@@ -182,10 +182,14 @@ int32_t RSInterfaces::SetVirtualScreenResolution(ScreenId id, uint32_t width, ui
     return renderServiceClient_->SetVirtualScreenResolution(id, width, height);
 }
 
+bool RSInterfaces::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation)
+{
+    return renderServiceClient_->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
+}
+
 bool RSInterfaces::SetVirtualMirrorScreenBufferRotation(ScreenId id, bool bufferRotation)
 {
-    RS_LOGD("RSInterfaces::SetVirtualMirrorScreenBufferRotation is not supported.");
-    return true;
+    return false;
 }
 
 RSVirtualScreenResolution RSInterfaces::GetVirtualScreenResolution(ScreenId id)
