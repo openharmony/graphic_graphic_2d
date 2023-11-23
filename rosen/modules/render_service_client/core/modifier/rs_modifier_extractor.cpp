@@ -42,8 +42,8 @@ constexpr uint32_t DEBUG_MODIFIER_SIZE = 20;
             return std::static_pointer_cast<RSProperty<T>>(iter->second->GetProperty())->Get();                     \
         }                                                                                                           \
         T value = defaultValue;                                                                                     \
-        if (node->modifiers_.size() > DEBUG_MODIFIER_SIZE) {                                                          \
-            ROSEN_LOGD("RSModifierExtractor modifier size is %zu", node->modifiers_.size());                        \
+        if (node->modifiers_.size() > DEBUG_MODIFIER_SIZE) {                                                        \
+            ROSEN_LOGD("RSModifierExtractor modifier size is %{public}zu", node->modifiers_.size());                \
         }                                                                                                           \
         for (auto& [_, modifier] : node->modifiers_) {                                                              \
             if (modifier->GetModifierType() == RSModifierType::propertyType) {                                      \
