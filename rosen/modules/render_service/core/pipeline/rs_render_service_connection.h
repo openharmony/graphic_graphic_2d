@@ -159,6 +159,22 @@ private:
 
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) override;
 
+    int32_t GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat) override;
+
+    int32_t SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat) override;
+
+    int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) override;
+
+    int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat) override;
+
+    int32_t SetScreenHDRFormat(ScreenId id, int32_t modeIdx) override;
+
+    int32_t GetScreenSupportedColorSpaces(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces) override;
+
+    int32_t GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace) override;
+
+    int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) override;
+
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType) override;
 
 #ifndef USE_ROSEN_DRAWING
@@ -184,6 +200,8 @@ private:
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) override;
 
+    int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height) override;
+
     void ReportJankStats() override;
 
     void ReportEventResponse(DataBaseRs info) override;
@@ -199,6 +217,8 @@ private:
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config) override;
 #endif
+
+    void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;

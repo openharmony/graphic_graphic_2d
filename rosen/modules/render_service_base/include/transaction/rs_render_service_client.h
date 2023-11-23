@@ -21,6 +21,7 @@
 #include <memory>
 #include <mutex>
 #include <refbase.h>
+#include <surface_type.h>
 #ifndef ROSEN_CROSS_PLATFORM
 #include <surface.h>
 #endif
@@ -56,6 +57,7 @@ using BufferClearCallback = std::function<void()>;
 using OcclusionChangeCallback = std::function<void(std::shared_ptr<RSOcclusionData>)>;
 using SurfaceOcclusionChangeCallback = std::function<void(float)>;
 using HgmConfigChangeCallback = std::function<void(std::shared_ptr<RSHgmConfigData>)>;
+using OnRemoteDiedCallback = std::function<void()>;
 
 struct DataBaseRs {
     int32_t appPid = -1;
@@ -174,7 +176,7 @@ public:
 
     bool RegisterBufferAvailableListener(
         NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread = false);
-    
+
     bool RegisterBufferClearListener(
         NodeId id, const BufferClearCallback &callback);
 
@@ -195,6 +197,22 @@ public:
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode);
 
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability);
+
+    int32_t GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat);
+
+    int32_t SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat);
+
+    int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats);
+
+    int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat);
+
+    int32_t SetScreenHDRFormat(ScreenId id, int32_t modeIdx);
+
+    int32_t GetScreenSupportedColorSpaces(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces);
+
+    int32_t GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace);
+
+    int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace);
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType);
 
@@ -221,6 +239,8 @@ public:
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
 
+    int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height);
+
     void ReportJankStats();
 
     void ReportEventResponse(DataBaseRs info);
@@ -233,9 +253,12 @@ public:
 
     void SetCacheEnabledForRotation(bool isEnabled);
 
+    void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
+
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config);
 #endif
+    void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap);
     std::mutex mutex_;

@@ -700,6 +700,81 @@ int32_t RSRenderServiceClient::GetScreenHDRCapability(ScreenId id, RSScreenHDRCa
     return renderService->GetScreenHDRCapability(id, screenHdrCapability);
 }
 
+int32_t RSRenderServiceClient::GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::GetPixelFormat renderService == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->GetPixelFormat(id, pixelFormat);
+}
+
+int32_t RSRenderServiceClient::SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::SetPixelFormat renderService == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->SetPixelFormat(id, pixelFormat);
+}
+
+int32_t RSRenderServiceClient::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->GetScreenSupportedHDRFormats(id, hdrFormats);
+}
+
+int32_t RSRenderServiceClient::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->GetScreenHDRFormat(id, hdrFormat);
+}
+
+int32_t RSRenderServiceClient::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->SetScreenHDRFormat(id, modeIdx);
+}
+
+int32_t RSRenderServiceClient::GetScreenSupportedColorSpaces(
+    ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->GetScreenSupportedColorSpaces(id, colorSpaces);
+}
+
+int32_t RSRenderServiceClient::GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->GetScreenColorSpace(id, colorSpace);
+}
+
+int32_t RSRenderServiceClient::SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->SetScreenColorSpace(id, colorSpace);
+}
+
 int32_t RSRenderServiceClient::GetScreenType(ScreenId id, RSScreenType& screenType)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -859,6 +934,17 @@ void RSRenderServiceClient::ShowWatermark(const std::shared_ptr<Media::PixelMap>
     }
 }
 
+int32_t RSRenderServiceClient::ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::ResizeVirtualScreen renderService == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+
+    return renderService->ResizeVirtualScreen(id, width, height);
+}
+
 void RSRenderServiceClient::ReportJankStats()
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -907,6 +993,14 @@ void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
     }
 }
 
+void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetOnRemoteDiedCallback(callback);
+    }
+}
+
 #ifdef TP_FEATURE_ENABLE
 void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* config)
 {
@@ -917,5 +1011,13 @@ void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* conf
     renderService->SetTpFeatureConfig(feature, config);
 }
 #endif
+
+void RSRenderServiceClient::SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetVirtualScreenUsingStatus(isVirtualScreenUsingStatus);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

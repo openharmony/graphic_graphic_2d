@@ -28,7 +28,6 @@ namespace Rosen {
 class RSSurfaceFrameOhosVulkan : public RSSurfaceFrameOhos {
 public:
     RSSurfaceFrameOhosVulkan(sk_sp<SkSurface> surface, int32_t width, int32_t height, int32_t bufferAge);
-    RSSurfaceFrameOhosVulkan(sk_sp<SkSurface> surface, int32_t width, int32_t height);
     ~RSSurfaceFrameOhosVulkan() override = default;
 
     SkCanvas* GetCanvas() override;

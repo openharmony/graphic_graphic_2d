@@ -98,8 +98,15 @@ public:
     static inline GLuint textureId2 = 0;
     static inline EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;
     static inline EGLContext eglContext_ = EGL_NO_CONTEXT;
-    static inline EGLConfig config_;;
+    static inline EGLConfig config_;
+    static void OnFrameAvailable(void *context);
 };
+
+void NativeImageTest::OnFrameAvailable(void *context)
+{
+    (void) context;
+    cout << "OnFrameAvailable is called" << endl;
+}
 
 void NativeImageTest::SetUpTestCase()
 {
@@ -559,6 +566,92 @@ HWTEST_F(NativeImageTest, OHNativeImageUpdateSurfaceImage005, Function | MediumT
     delete region;
 
     ret = OH_NativeImage_UpdateSurfaceImage(image);
+    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+}
+
+/*
+* Function: OH_NativeImage_GetSurfaceId
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. create image
+*                  2. GetSurfaceId
+*                  2. check ret
+* @tc.require: issueI86VH2
+*/
+HWTEST_F(NativeImageTest, OHNativeImageGetSurfaceId001, Function | MediumTest | Level1)
+{
+    if (image == nullptr) {
+        image = OH_NativeImage_Create(textureId, GL_TEXTURE_2D);
+        ASSERT_NE(image, nullptr);
+    }
+
+    uint64_t surfaceId;
+    int32_t ret = OH_NativeImage_GetSurfaceId(image, &surfaceId);
+    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+}
+
+/*
+* Function: OH_NativeImage_SetOnFrameAvailableListener
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. check image and nativeWindow
+*                  2. call OH_NativeImage_SetOnFrameAvailableListener
+*                  3. call OH_NativeWindow_NativeWindowFlushBuffer
+*                  4. check OnFrameAvailable is called
+* @tc.require: issueI86VH2
+*/
+HWTEST_F(NativeImageTest, OHNativeImageSetOnFrameAvailableListener001, Function | MediumTest | Level1)
+{
+    if (image == nullptr) {
+        image = OH_NativeImage_Create(textureId, GL_TEXTURE_2D);
+        ASSERT_NE(image, nullptr);
+    }
+
+    if (nativeWindow == nullptr) {
+        nativeWindow = OH_NativeImage_AcquireNativeWindow(image);
+        ASSERT_NE(nativeWindow, nullptr);
+    }
+
+    OH_OnFrameAvailableListener listener;
+    listener.context = this;
+    listener.onFrameAvailable = NativeImageTest::OnFrameAvailable;
+    int32_t ret = OH_NativeImage_SetOnFrameAvailableListener(image, listener);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    NativeWindowBuffer* nativeWindowBuffer = nullptr;
+    int fenceFd = -1;
+    ret = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow, &nativeWindowBuffer, &fenceFd);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    struct Region *region = new Region();
+    struct Region::Rect *rect = new Region::Rect();
+    rect->x = 0x100;
+    rect->y = 0x100;
+    rect->w = 0x100;
+    rect->h = 0x100;
+    region->rects = rect;
+    ret = OH_NativeWindow_NativeWindowFlushBuffer(nativeWindow, nativeWindowBuffer, fenceFd, *region);
+    ASSERT_EQ(ret, GSERROR_OK);
+    delete region;
+
+    ret = OH_NativeImage_UpdateSurfaceImage(image);
+    ASSERT_EQ(ret, SURFACE_ERROR_OK);
+}
+
+/*
+* Function: OH_NativeImage_UnsetOnFrameAvailableListener
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeImage_UnsetOnFrameAvailableListener
+*                  2. check ret
+* @tc.require: issueI86VH2
+*/
+HWTEST_F(NativeImageTest, OHNativeImageUnsetOnFrameAvailableListener001, Function | MediumTest | Level1)
+{
+    int32_t ret = OH_NativeImage_UnsetOnFrameAvailableListener(image);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
 }
 

@@ -32,6 +32,7 @@ namespace Rosen {
 enum BLUR_COLOR_MODE : int {
     PRE_DEFINED = 0,           // use the pre-defined mask color
     AVERAGE     = 1,           // use the average color of the blurred area as mask color
+    FASTAVERAGE = 2,
     DEFAULT     = PRE_DEFINED
 };
 
@@ -58,7 +59,8 @@ public:
     static std::shared_ptr<RSFilter> CreateMaterialFilter(
         int style, float dipScale, BLUR_COLOR_MODE mode = DEFAULT, float ratio = 1.0);
     static std::shared_ptr<RSFilter> CreateMaterialFilter(
-        float radius, float saturation, float brightness, uint32_t colorValue);
+        float radius, float saturation, float brightness, uint32_t colorValue,
+        BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT);
     static std::shared_ptr<RSFilter> CreateLightUpEffectFilter(float lightUpDegree);
 
     enum FilterType {

@@ -22,6 +22,9 @@
 #include "hgm_log.h"
 #include "parameters.h"
 #include "rs_trace.h"
+#include "sandbox_utils.h"
+#include "frame_rate_report.h"
+
 
 namespace OHOS {
 namespace Rosen {
@@ -92,7 +95,6 @@ void HgmFrameRateManager::UniProcessData(ScreenId screenId, uint64_t timestamp,
             ResetScreenTimer(screenId);
         }
     }
-
     Reset();
     CalcRefreshRate(screenId, finalRange);
 
@@ -100,7 +102,13 @@ void HgmFrameRateManager::UniProcessData(ScreenId screenId, uint64_t timestamp,
     if (!hgmCore.GetLtpoEnabled()) {
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
     } else if (frameRateChanged) {
+        auto oldRefreshRate = hgmCore.GetScreenCurrentRefreshRate(screenId);
         HandleFrameRateChangeForLTPO(timestamp);
+        if (currRefreshRate_ != oldRefreshRate) {
+            std::unordered_map<pid_t, uint32_t> rates;
+            rates[GetRealPid()] = currRefreshRate_;
+            FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRates(rates);
+        }
     }
 }
 
@@ -126,7 +134,7 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
         if (appFrameRate != linker.second->GetFrameRate() || controllerRateChanged) {
             linker.second->SetFrameRate(appFrameRate);
             appChangeData_.emplace_back(linker.second->GetId(), appFrameRate);
-            HGM_LOGI("HgmFrameRateManager: appChangeData linkerId = %{public}" PRIu64 ", %{public}d",
+            HGM_LOGD("HgmFrameRateManager: appChangeData linkerId = %{public}" PRIu64 ", %{public}d",
                 linker.second->GetId(), appFrameRate);
             frameRateChanged = true;
         }
@@ -164,6 +172,9 @@ void HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRateRang
     // 2. FrameRateRange[min, max, preferred] is [150, 150, 150], supported refreshRates
     // of current screen are {30, 60, 90}, the result will be 90.
     auto supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(id);
+    if (supportRefreshRateVec.empty()) {
+        return;
+    }
     std::sort(supportRefreshRateVec.begin(), supportRefreshRateVec.end());
     auto iter = std::lower_bound(supportRefreshRateVec.begin(), supportRefreshRateVec.end(), range.preferred_);
     if (iter != supportRefreshRateVec.end()) {
@@ -283,6 +294,9 @@ int32_t HgmFrameRateManager::CalModifierPreferred(const HgmModifierProfile &hgmM
 
     auto dynamicSettingMap = parsedConfigData->GetAnimationDynamicSettingMap(hgmModifierProfile.hgmModifierType);
     for (const auto &iter: dynamicSettingMap) {
+        if (mixSpeed == 0) {
+            return DEFAULT_PREFERRED;
+        }
         if (mixSpeed >= iter.second.min && (mixSpeed < iter.second.max || iter.second.max == -1)) {
             return iter.second.preferred_fps;
         }

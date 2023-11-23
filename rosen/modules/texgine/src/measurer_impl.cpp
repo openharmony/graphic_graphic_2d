@@ -121,6 +121,7 @@ int MeasurerImpl::Measure(CharGroups &cgs)
     };
 
     if (fontFeatures_ == nullptr || fontFeatures_->GetFeatures().size() == 0) {
+        std::lock_guard<std::mutex> lock(mutex_);
         auto it = cache_.find(key);
         if (it != cache_.end()) {
             cgs = it->second.cgs.Clone();
@@ -150,6 +151,7 @@ int MeasurerImpl::Measure(CharGroups &cgs)
         if (cgs.CheckCodePoint()) {
             detectionName_ = cgs.GetTypefaceName();
             struct MeasurerCacheVal value = {cgs.Clone(), boundaries_};
+            std::lock_guard<std::mutex> lock(mutex_);
             cache_[key] = value;
         }
     }
@@ -176,7 +178,7 @@ void MeasurerImpl::SeekTypeface(std::list<struct MeasuringRun> &runs)
                 LOGCEX_DEBUG() << " cached";
                 continue;
             }
-            if (runsit->typeface) {
+            if (lastTypeface && runsit->typeface) {
                 LOGCEX_DEBUG() << " new";
                 auto next = runsit;
                 struct MeasuringRun run = {.start = utf16Index - U16_LENGTH(cp), .end = runsit->end,

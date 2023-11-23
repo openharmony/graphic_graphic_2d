@@ -74,6 +74,8 @@ public:
     ColorFilter(FilterType t, const ColorMatrix& m) noexcept;
     ColorFilter(FilterType t, ColorFilter& f1, ColorFilter& f2) noexcept;
     ColorFilter(FilterType t) noexcept;
+    std::shared_ptr<Data> Serialize() const;
+    bool Deserialize(std::shared_ptr<Data> data);
 
 protected:
     ColorFilter() noexcept;

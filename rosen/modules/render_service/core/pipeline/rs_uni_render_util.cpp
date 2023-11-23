@@ -374,7 +374,7 @@ bool RSUniRenderUtil::HandleSubThreadNode(RSRenderNode& node, RSPaintFilterCanva
     }
     if (!node.HasCachedTexture()) {
         RS_TRACE_NAME_FMT("HandleSubThreadNode wait %" PRIu64 "", node.GetId());
-#if defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
         RSSubThreadManager::Instance()->WaitNodeTask(node.GetId());
         node.UpdateCompletedCacheSurface();
 #endif
@@ -402,7 +402,7 @@ bool RSUniRenderUtil::HandleCaptureNode(RSRenderNode& node, RSPaintFilterCanvas&
         if (curNode->IsOnTheTree()) {
             return HandleSubThreadNode(*curNode, canvas);
         } else {
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
             if (curNode->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) {
                 RSSubThreadManager::Instance()->WaitNodeTask(curNode->GetId());
             }
@@ -484,7 +484,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         return;
     }
     bool isRotation = displayNode->IsRotationChanged();
-    bool isNeedAssignToSubThread = false;
+    bool rotationCache = RSSystemProperties::GetCacheEnabledForRotation();
     bool isFocusNodeFound = false;
     uint64_t realFocusNodeId = 0;
     std::string logInfo = "";
@@ -501,9 +501,6 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         if (node == nullptr) {
             ROSEN_LOGE("RSUniRenderUtil::AssignWindowNodes nullptr found in sortedChildren, this should not happen");
             continue;
-        }
-        if (node->IsLeashWindow()) {
-            isNeedAssignToSubThread = node->IsScale() || ROSEN_EQ(node->GetGlobalAlpha(), 0.0f);
         }
         if (deviceType != DeviceType::PHONE) {
             if (node->GetId() == focusNodeId) {
@@ -523,7 +520,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
     // trace info for assign window nodes
     bool debugTraceEnable = Rosen::RSSystemProperties::GetDebugTraceEnabled();
     if (debugTraceEnable) {
-        logInfo += "{ isNeedAssignToSubThread: " + std::to_string(isNeedAssignToSubThread) + ", " +
+        logInfo += "{ rotationCache: " + std::to_string(rotationCache) + ", " +
             "isRotation: " + std::to_string(isRotation) + " }; " +
             "realFocusNodeId: " + std::to_string(realFocusNodeId) + " ]";
     }
@@ -533,11 +530,15 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
             ROSEN_LOGE("RSUniRenderUtil::AssignWindowNodes nullptr found in sortedChildren, this should not happen");
             continue;
         }
+        bool isNeedAssignToSubThread = !rotationCache && node->IsLeashWindow()
+            && (node->IsScale() || ROSEN_EQ(node->GetGlobalAlpha(), 0.0f))
+            && !node->HasFilter();
         // trace info for assign window nodes
         if (debugTraceEnable) {
             logInfo += "node:[ " + node->GetName() + ", " + std::to_string(node->GetId()) + " ]" +
                 "( " + std::to_string(static_cast<uint32_t>(node->GetCacheSurfaceProcessedStatus())) + ", " +
-                std::to_string(node->HasFilter()) + ", " + std::to_string(node->HasAbilityComponent()) + " ); ";
+                std::to_string(node->HasFilter()) + ", " + std::to_string(node->HasAbilityComponent()) +
+                ", " + std::to_string(node->IsScale()) + ", " + std::to_string(isNeedAssignToSubThread) + " ); ";
         }
         std::string surfaceName = node->GetName();
         bool needFilter = surfaceName == ENTRY_VIEW || surfaceName == WALLPAPER_VIEW ||
@@ -555,12 +556,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         }
         if (deviceType == DeviceType::PHONE) {
             if (isNeedAssignToSubThread) { // app start or close scene
-                if ((!node->HasFilter() || ROSEN_EQ(node->GetGlobalAlpha(), 0.0f))
-                    && !node->HasAbilityComponent() && !isRotation) {
-                    AssignSubThreadNode(subThreadNodes, node);
-                } else {
-                    AssignMainThreadNode(mainThreadNodes, node);
-                }
+                AssignSubThreadNode(subThreadNodes, node);
             } else { // other scene
                 AssignMainThreadNode(mainThreadNodes, node);
             }
@@ -621,7 +617,7 @@ void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRen
         node->UpdateCacheSurfaceDirtyManager(2); // 2 means buffer age
     }
     subThreadNodes.emplace_back(node);
-#if defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE &&
         node->GetCacheSurface(UNI_MAIN_THREAD_INDEX, false) && node->GetCacheSurfaceNeedUpdated()) {
         node->UpdateCompletedCacheSurface();
@@ -802,7 +798,7 @@ void RSUniRenderUtil::PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>&&
             instance->ReleaseSurface();
         });
     } else {
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
         auto instance = RSSubThreadManager::Instance();
         instance->AddToReleaseQueue(std::move(surface), threadIndex);
         instance->ReleaseSurface(threadIndex);

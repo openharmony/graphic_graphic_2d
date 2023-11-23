@@ -117,6 +117,16 @@ std::string BootAnimationConfig::GetBootVideoPath()
     return custConfig_.custVideoPath;
 }
 
+int32_t BootAnimationConfig::GetRotateScreenId()
+{
+    return custConfig_.rotateScreenId;
+}
+
+int32_t BootAnimationConfig::GetRotateDegree()
+{
+    return custConfig_.rotateDegree;
+}
+
 void BootAnimationConfig::ParserCustomCfgFile()
 {
     std::string file = GetCustomCfgFile();

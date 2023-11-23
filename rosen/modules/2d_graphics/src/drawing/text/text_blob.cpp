@@ -60,6 +60,14 @@ std::shared_ptr<TextBlob> TextBlob::Deserialize(const void* data, size_t size)
 {
     return StaticFactory::DeserializeTextBlob(data, size);
 }
+
+std::shared_ptr<Rect> TextBlob::Bounds() const
+{
+    if (textBlobImpl_) {
+        return textBlobImpl_->Bounds();
+    }
+    return nullptr;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

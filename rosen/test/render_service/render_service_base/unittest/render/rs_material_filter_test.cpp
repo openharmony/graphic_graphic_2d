@@ -124,4 +124,53 @@ HWTEST_F(RSMaterialFilterTest, CanSkipFrameTest, TestSize.Level1)
     auto res = rsMaterialFilter.CanSkipFrame();
     EXPECT_TRUE(res);
 }
+
+/**
+ * @tc.name: IsNearEqual001
+ * @tc.desc: Verify function IsNearEqual
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaterialFilterTest, IsNearEqual001, TestSize.Level1)
+{
+    int16_t red = 10;
+    int16_t green = 11;
+    int16_t blue = 12;
+    int16_t alpha = 13;
+    RSColor color(red, green, blue, alpha);
+    float radius = 0.5f;
+    float saturation = 1.0f;
+    float brightness = 1.0f;
+    struct MaterialParam materialParam = { radius, saturation, brightness, color };
+    BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT;
+    std::shared_ptr<RSFilter> rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, mode);
+
+    float saturation1 = 1.2f;
+    struct MaterialParam materialParam1 = { radius, saturation1, brightness, color };
+    float threshold = 1.0f;
+    std::shared_ptr<RSFilter> rsMaterialFilter1 = std::make_shared<RSMaterialFilter>(materialParam1, mode);
+    EXPECT_TRUE(rsMaterialFilter->IsNearEqual(rsMaterialFilter1, threshold));
+}
+
+/**
+ * @tc.name: IsNearZero001
+ * @tc.desc: Verify function IsNearZero
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaterialFilterTest, IsNearZero001, TestSize.Level1)
+{
+    int16_t red = 10;
+    int16_t green = 11;
+    int16_t blue = 12;
+    int16_t alpha = 13;
+    RSColor color(red, green, blue, alpha);
+    float radius = 0.5f;
+    float saturation = 1.0f;
+    float brightness = 1.0f;
+    struct MaterialParam materialParam = { radius, saturation, brightness, color };
+    BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT;
+    std::shared_ptr<RSFilter> rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, mode);
+
+    float threshold = 1.0f;
+    EXPECT_TRUE(rsMaterialFilter->IsNearZero(threshold));
+}
 } // namespace OHOS::Rosen

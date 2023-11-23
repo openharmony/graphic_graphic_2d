@@ -242,15 +242,23 @@ void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
     cacheDir_ = cacheFilePath;
 }
 
-bool RSUIDirector::RunningCustomAnimation(uint64_t timeStamp)
+bool RSUIDirector::FlushAnimation(uint64_t timeStamp)
 {
     bool hasRunningAnimation = false;
     auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+    if (modifierManager != nullptr) {
+        hasRunningAnimation = modifierManager->Animate(timeStamp);
+    }
+    return hasRunningAnimation;
+}
+
+void RSUIDirector::FlushModifier()
+{
+    auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
     if (modifierManager == nullptr) {
-        return hasRunningAnimation;
+        return;
     }
 
-    hasRunningAnimation = modifierManager->Animate(timeStamp);
     modifierManager->Draw();
     {
         auto node = surfaceNode_.lock();
@@ -264,7 +272,6 @@ bool RSUIDirector::RunningCustomAnimation(uint64_t timeStamp)
 
     // post animation finish callback(s) to task queue
     RSUIDirector::RecvMessages();
-    return hasRunningAnimation;
 }
 
 void RSUIDirector::SetUITaskRunner(const TaskRunner& uiTaskRunner)

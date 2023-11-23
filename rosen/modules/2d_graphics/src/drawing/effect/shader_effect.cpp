@@ -76,15 +76,19 @@ ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& startPt, scalar star
 }
 
 ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& centerPt, const std::vector<ColorQuad>& colors,
-    const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle) noexcept
+    const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle, const Matrix *matrix) noexcept
     : ShaderEffect()
 {
     type_ = t;
-    impl_->InitWithSweepGradient(centerPt, colors, pos, mode, startAngle, endAngle);
+    impl_->InitWithSweepGradient(centerPt, colors, pos, mode, startAngle, endAngle, matrix);
 }
 
 ShaderEffect::ShaderEffect() noexcept
     : type_(ShaderEffect::ShaderEffectType::NO_TYPE), impl_(ImplFactory::CreateShaderEffectImpl())
+{}
+
+ShaderEffect::ShaderEffect(ShaderEffectType t) noexcept
+    : type_(t), impl_(ImplFactory::CreateShaderEffectImpl())
 {}
 
 ShaderEffect::ShaderEffectType ShaderEffect::GetType() const
@@ -139,11 +143,22 @@ std::shared_ptr<ShaderEffect> ShaderEffect::CreateTwoPointConical(const Point& s
 
 std::shared_ptr<ShaderEffect> ShaderEffect::CreateSweepGradient(const Point& centerPt,
     const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode, scalar startAngle,
-    scalar endAngle)
+    scalar endAngle, const Matrix *matrix)
 {
     return std::make_shared<ShaderEffect>(
-        ShaderEffect::ShaderEffectType::SWEEP_GRADIENT, centerPt, colors, pos, mode, startAngle, endAngle);
+        ShaderEffect::ShaderEffectType::SWEEP_GRADIENT, centerPt, colors, pos, mode, startAngle, endAngle, matrix);
 }
+
+std::shared_ptr<Data> ShaderEffect::Serialize() const
+{
+    return impl_->Serialize();
+}
+
+bool ShaderEffect::Deserialize(std::shared_ptr<Data> data)
+{
+    return impl_->Deserialize(data);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

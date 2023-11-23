@@ -130,6 +130,22 @@ public:
 
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) override;
 
+    int32_t GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat) override;
+
+    int32_t SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat) override;
+
+    int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) override;
+
+    int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat) override;
+
+    int32_t SetScreenHDRFormat(ScreenId id, int32_t modeIdx) override;
+
+    int32_t GetScreenSupportedColorSpaces(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces) override;
+
+    int32_t GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace) override;
+
+    int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) override;
+
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType) override;
 
 #ifndef USE_ROSEN_DRAWING
@@ -155,6 +171,8 @@ public:
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) override;
 
+    int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height) override;
+
     void ReportJankStats() override;
 
     void ReportEventResponse(DataBaseRs info) override;
@@ -167,9 +185,14 @@ public:
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
+    void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) override;
+
+    void RunOnRemoteDiedCallback() override;
+
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config) override;
 #endif
+    void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);
@@ -180,6 +203,7 @@ private:
 
     pid_t pid_ = GetRealPid();
     uint32_t transactionDataIndex_ = 0;
+    OnRemoteDiedCallback OnRemoteDiedCallback_;
 };
 } // namespace Rosen
 } // namespace OHOS

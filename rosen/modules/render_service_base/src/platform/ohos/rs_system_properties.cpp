@@ -31,7 +31,6 @@ constexpr int DEFAULT_CACHE_WIDTH = 1344;
 constexpr int DEFAULT_CACHE_HEIGHT = 2772;
 constexpr int DEFAULT_PARTIAL_RENDER_ENABLED_VALUE = 2;
 constexpr int DEFAULT_UNI_PARTIAL_RENDER_ENABLED_VALUE = 4;
-constexpr int DEFAULT_GPU_RESOURCE_ENABLED_VALUE = 2;
 constexpr int DEFAULT_CORRECTION_MODE_VALUE = 999;
 
 int ConvertToInt(const char *originValue, int defaultValue)
@@ -150,12 +149,12 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
 #endif
 }
 
-ReleaseGpuResourceType RSSystemProperties::GetReleaseGpuResourceEnabled()
+bool RSSystemProperties::GetReleaseResourceEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("persist.release.gpuresource.enabled", "2");
+    static CachedHandle g_Handle = CachedParameterCreate("persist.release.gpuresource.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return static_cast<ReleaseGpuResourceType>(ConvertToInt(enable, DEFAULT_GPU_RESOURCE_ENABLED_VALUE));
+    return ConvertToInt(enable, 1) != 0;
 }
 
 bool RSSystemProperties::GetOcclusionEnabled()
@@ -171,6 +170,13 @@ bool RSSystemProperties::GetHardwareComposerEnabled()
     static bool hardwareComposerEnabled = system::GetParameter(
         "persist.rosen.hardwarecomposer.enabled", "1") != "0";
     return hardwareComposerEnabled;
+}
+
+bool RSSystemProperties::GetUseShadowBatchingEnabled()
+{
+    static bool useShadowBatching =
+        std::atoi((system::GetParameter("persist.useShadowBatching.enabled", "1")).c_str()) != 0;
+    return useShadowBatching;
 }
 
 bool RSSystemProperties::GetAFBCEnabled()
@@ -322,7 +328,7 @@ HgmRefreshRates RSSystemProperties::GetHgmRefreshRatesEnabled()
 void RSSystemProperties::SetHgmRefreshRateModesEnabled(std::string param)
 {
     system::SetParameter("persist.rosen.sethgmrefreshratemode.enabled", param);
-    RS_LOGD("RSSystemProperties::SetHgmRefreshRateModesEnabled set to %{public}s", param.c_str());
+    RS_LOGI("RSSystemProperties::SetHgmRefreshRateModesEnabled set to %{public}s", param.c_str());
 }
 
 HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
@@ -404,6 +410,24 @@ bool RSSystemProperties::GetFilterPartialRenderEnabled()
     // which means that it is unenabled.
     static bool enabled =
         std::atoi((system::GetParameter("persist.sys.graphic.filterPartialRenderEnabled", "1")).c_str()) != 0;
+    return enabled;
+}
+
+bool RSSystemProperties::GetColorPickerPartialEnabled()
+{
+    // Determine whether the color picker partial render should be enabled. The default value is 0,
+    // which means that it is unenabled.
+    static bool enabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.colorPickerPartialEnabled", "1")).c_str()) != 0;
+    return enabled;
+}
+
+bool RSSystemProperties::GetMaskLinearBlurEnabled()
+{
+    // Determine whether the mask LinearBlur render should be enabled. The default value is 0,
+    // which means that it is unenabled.
+    static bool enabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.maskLinearBlurEnabled", "0")).c_str()) != 0;
     return enabled;
 }
 
@@ -498,6 +522,12 @@ bool RSSystemProperties::FindNodeInTargetList(std::string node)
     return res;
 }
 
+bool RSSystemProperties::IsFoldScreenFlag()
+{
+    static bool isFoldScreenFlag = system::GetParameter("const.window.foldscreen.type", "") != "";
+    return isFoldScreenFlag;
+}
+
 bool RSSystemProperties::GetCacheCmdEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.cacheCmd.enabled", "1");
@@ -578,8 +608,22 @@ bool RSSystemProperties::GetSyncTransactionEnabled()
 int RSSystemProperties::GetSyncTransactionWaitDelay()
 {
     static int syncTransactionWaitDelay =
-        std::atoi((system::GetParameter("persist.sys.graphic.syncTransactionWaitDelay", "100")).c_str());
+        std::atoi((system::GetParameter("persist.sys.graphic.syncTransactionWaitDelay", "500")).c_str());
     return syncTransactionWaitDelay;
+}
+
+bool RSSystemProperties::GetSingleFrameComposerEnabled()
+{
+    static bool singleFrameComposerEnabled =
+        (std::atoi((system::GetParameter("persist.sys.graphic.singleFrameComposer", "0")).c_str()) != 0);
+    return singleFrameComposerEnabled;
+}
+
+bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
+{
+    static bool singleFrameComposerCanvasNodeEnabled =
+        (std::atoi((system::GetParameter("persist.sys.graphic.singleFrameComposerCanvasNode", "0")).c_str()) != 0);
+    return singleFrameComposerCanvasNodeEnabled;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -75,7 +75,7 @@ public:
         if (webGLObj->GetClassName() == T::className) {
             return static_cast<T *>(webGLObj);
         }
-        LOGD("Invalid object input object %{public}s real %{public}s",
+        LOGE("Invalid object input object %{public}s real %{public}s",
             webGLObj->GetClassName().c_str(), T::className.c_str());
         return nullptr;
     }

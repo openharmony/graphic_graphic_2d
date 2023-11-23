@@ -289,7 +289,7 @@ HWTEST_F(ShaderEffectTest, CreateSweepGradient001, TestSize.Level1)
     scalar startAngle = 0.2f;
     scalar endAngle = 0.5f;
     auto newShaderEffect =
-        ShaderEffect::CreateSweepGradient(centerPoint, colors, position, tileMode, startAngle, endAngle);
+        ShaderEffect::CreateSweepGradient(centerPoint, colors, position, tileMode, startAngle, endAngle, nullptr);
     EXPECT_TRUE(newShaderEffect != nullptr);
 }
 
@@ -309,7 +309,7 @@ HWTEST_F(ShaderEffectTest, CreateSweepGradient002, TestSize.Level1)
     scalar startAngle = 10.2f;
     scalar endAngle = 10.5f;
     auto newShaderEffect =
-        ShaderEffect::CreateSweepGradient(centerPoint, colors, position, tileMode, startAngle, endAngle);
+        ShaderEffect::CreateSweepGradient(centerPoint, colors, position, tileMode, startAngle, endAngle, nullptr);
     EXPECT_TRUE(newShaderEffect != nullptr);
 }
 
@@ -608,7 +608,8 @@ HWTEST_F(ShaderEffectTest, ArgsContructor017, TestSize.Level1)
     std::vector<ColorQuad> colors;
     std::vector<scalar> position;
     auto newShaderEffect = std::make_unique<ShaderEffect>(
-        ShaderEffect::ShaderEffectType::BLEND, centerPoint, colors, position, TileMode::REPEAT, startAngle, endAngle);
+        ShaderEffect::ShaderEffectType::BLEND, centerPoint, colors, position, TileMode::REPEAT, startAngle, endAngle,
+        nullptr);
     ASSERT_TRUE(newShaderEffect != nullptr);
 }
 
@@ -627,7 +628,8 @@ HWTEST_F(ShaderEffectTest, ArgsContructor018, TestSize.Level1)
     std::vector<ColorQuad> colors;
     std::vector<scalar> position;
     auto newShaderEffect = std::make_unique<ShaderEffect>(
-        ShaderEffect::ShaderEffectType::COLOR, centerPoint, colors, position, TileMode::REPEAT, startAngle, endAngle);
+        ShaderEffect::ShaderEffectType::COLOR, centerPoint, colors, position, TileMode::REPEAT, startAngle, endAngle,
+        nullptr);
     ASSERT_TRUE(newShaderEffect != nullptr);
 }
 } // namespace Drawing

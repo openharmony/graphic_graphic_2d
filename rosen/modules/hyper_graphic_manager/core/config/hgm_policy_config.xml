@@ -75,10 +75,10 @@
     </Params>
 
     <Params name="ace_scene_dynamic_settings">
-        <DynamicSettings name="refresh">
+        <DynamicSettings name="refresh_drag_scene">
             <SpeedThresholds name="1" min="0" max="-1" preferred_fps="120"/>
         </DynamicSettings>
-        <DynamicSettings name="swiper">
+        <DynamicSettings name="swiper_drag_scene">
             <SpeedThresholds name="1" min="0" max="-1" preferred_fps="120"/>
         </DynamicSettings>
         <DynamicSettings name="tabs">

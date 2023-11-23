@@ -64,9 +64,25 @@ AlphaType Bitmap::GetAlphaType() const
     return bmpImplPtr->GetAlphaType();
 }
 
+bool Bitmap::PeekPixels(Pixmap& pixmap) const
+{
+    return bmpImplPtr->PeekPixels(pixmap);
+}
+
 void Bitmap::SetPixels(void* pixel)
 {
     bmpImplPtr->SetPixels(pixel);
+}
+
+bool Bitmap::ExtractSubset(Bitmap& dst, const Rect& subset) const
+{
+    return bmpImplPtr->ExtractSubset(dst, subset);
+}
+
+bool Bitmap::ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
+    int32_t srcX, int32_t srcY) const
+{
+    return bmpImplPtr->ReadPixels(dstInfo, dstPixels, dstRowBytes, srcX, srcY);
 }
 
 void* Bitmap::GetPixels() const
@@ -77,6 +93,12 @@ void* Bitmap::GetPixels() const
 void Bitmap::CopyPixels(Bitmap& dst, int srcLeft, int srcTop) const
 {
     bmpImplPtr->CopyPixels(dst, srcLeft, srcTop);
+}
+
+bool Bitmap::InstallPixels(const ImageInfo& info, void* pixels, size_t rowBytes,
+    ReleaseProc releaseProc, void* context)
+{
+    return bmpImplPtr->InstallPixels(info, pixels, rowBytes, releaseProc, context);
 }
 
 bool Bitmap::IsImmutable()
@@ -97,6 +119,11 @@ void Bitmap::ClearWithColor(const ColorQuad& color) const
 bool Bitmap::IsValid() const
 {
     return bmpImplPtr->IsValid();
+}
+
+bool Bitmap::IsEmpty() const
+{
+    return bmpImplPtr->IsEmpty();
 }
 
 ColorQuad Bitmap::GetColor(int x, int y) const

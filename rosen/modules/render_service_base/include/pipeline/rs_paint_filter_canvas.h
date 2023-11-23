@@ -126,6 +126,7 @@ public:
 
 protected:
     virtual bool OnFilter() const = 0;
+    virtual bool OnFilterWithBrush(Drawing::Brush& brush) const = 0;
     Drawing::Canvas* canvas_ = nullptr;
 };
 #endif // USE_ROSEN_DRAWING
@@ -189,22 +190,34 @@ public:
 #ifndef USE_ROSEN_DRAWING
     SkSurface* GetSurface() const;
 #else
-    Drawing::Surface* GetSurface() const;
+    Drawing::Surface* GetSurface() const override;
 #endif
 
     // high contrast
     void SetHighContrast(bool enabled);
+#ifndef USE_ROSEN_DRAWING
     bool isHighContrastEnabled() const;
+#else
+    bool isHighContrastEnabled() const override;
+#endif
 
+#ifndef USE_ROSEN_DRAWING
     enum CacheType : uint8_t {
         UNDEFINED, // do not change current cache status
         ENABLED,   // explicitly enable cache
         DISABLED,  // explicitly disable cache
         OFFSCREEN, // offscreen rendering
     };
+#else
+    using CacheType = Drawing::CacheType;
+#endif
     // cache
     void SetCacheType(CacheType type);
+#ifndef USE_ROSEN_DRAWING
     CacheType GetCacheType() const;
+#else
+    Drawing::CacheType GetCacheType() const override;
+#endif
 
     // visible rect
 #ifndef USE_ROSEN_DRAWING
@@ -247,6 +260,8 @@ public:
         std::shared_ptr<CachedEffectData> effectData_;
     };
     CanvasStatus GetCanvasStatus() const;
+    void SetCanvasStatus(const CanvasStatus& status);
+    SkCanvas* GetRecordingCanvas() const;
 #else
     // effect cache data relate
     struct CachedEffectData {
@@ -270,7 +285,6 @@ public:
 #endif
     bool GetRecordingState() const;
     void SetRecordingState(bool flag);
-    SkCanvas* GetRecordingCanvas() const;
 
 protected:
     using Env = struct {
@@ -285,6 +299,7 @@ protected:
     std::stack<float> GetAlphaStack();
     std::stack<Env> GetEnvStack();
     bool OnFilter() const override;
+    bool OnFilterWithBrush(Drawing::Brush& brush) const override;
 #endif
 
 private:
@@ -297,7 +312,7 @@ private:
     std::stack<Env> envStack_;
 
     std::atomic_bool isHighContrastEnabled_ { false };
-    CacheType cacheType_ { UNDEFINED };
+    CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
 #ifndef USE_ROSEN_DRAWING
     SkRect visibleRect_ = SkRect::MakeEmpty();
 #else

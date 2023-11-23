@@ -26,6 +26,9 @@
 namespace OHOS {
 namespace Rosen {
 using namespace Media;
+namespace {
+    constexpr float HALF_F = 2;
+}
 
 #ifndef USE_ROSEN_DRAWING
 static sk_sp<SkColorSpace> ColorSpaceToSkColorSpace(ColorSpace colorSpace)
@@ -77,6 +80,7 @@ static Drawing::ColorType PixelFormatToDrawingColorType(PixelFormat pixelFormat)
         case PixelFormat::ALPHA_8:
             return Drawing::ColorType::COLORTYPE_ALPHA_8;
         case PixelFormat::RGBA_F16:
+            return Drawing::ColorType::COLORTYPE_RGBA_F16;
         case PixelFormat::UNKNOWN:
         case PixelFormat::ARGB_8888:
         case PixelFormat::RGB_888:
@@ -131,13 +135,6 @@ static SkImageInfo MakeSkImageInfo(const ImageInfo& imageInfo)
     sk_sp<SkColorSpace> cs = ColorSpaceToSkColorSpace(imageInfo.colorSpace);
     return SkImageInfo::Make(imageInfo.size.width, imageInfo.size.height, ct, at, cs);
 }
-#else
-static Drawing::BitmapFormat MakeDrawingBitmapFormat(const ImageInfo& imageInfo)
-{
-    Drawing::ColorType ct = PixelFormatToDrawingColorType(imageInfo.pixelFormat);
-    Drawing::AlphaType at = AlphaTypeToDrawingAlphaType(imageInfo.alphaType);
-    return Drawing::BitmapFormat { ct, at };
-}
 #endif
 
 struct PixelMapReleaseContext {
@@ -152,7 +149,6 @@ private:
     std::shared_ptr<PixelMap> pixelMap_;
 };
 
-#ifndef USE_ROSEN_DRAWING
 static void PixelMapReleaseProc(const void* /* pixels */, void* context)
 {
     PixelMapReleaseContext* ctx = static_cast<PixelMapReleaseContext*>(context);
@@ -162,6 +158,7 @@ static void PixelMapReleaseProc(const void* /* pixels */, void* context)
     }
 }
 
+#ifndef USE_ROSEN_DRAWING
 sk_sp<SkImage> RSPixelMapUtil::ExtractSkImage(std::shared_ptr<Media::PixelMap> pixelMap)
 {
     if (!pixelMap) {
@@ -170,7 +167,7 @@ sk_sp<SkImage> RSPixelMapUtil::ExtractSkImage(std::shared_ptr<Media::PixelMap> p
     ImageInfo imageInfo;
     pixelMap->GetImageInfo(imageInfo);
     auto skImageInfo = MakeSkImageInfo(imageInfo);
-    SkPixmap skPixmap(skImageInfo, reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowBytes());
+    SkPixmap skPixmap(skImageInfo, reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
     return SkImage::MakeFromRaster(skPixmap, PixelMapReleaseProc, new PixelMapReleaseContext(pixelMap));
 }
 #else
@@ -182,17 +179,59 @@ std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
     }
     ImageInfo imageInfo;
     pixelMap->GetImageInfo(imageInfo);
-
-    Drawing::BitmapFormat format = MakeDrawingBitmapFormat(imageInfo);
-    Drawing::Bitmap bitmap;
-    bitmap.Build(imageInfo.size.width, imageInfo.size.height, format);
-    bitmap.SetPixels(const_cast<void*>(static_cast<const void*>(pixelMap->GetPixels())));
-
-    auto image = std::make_shared<Drawing::Image>();
-    image->BuildFromBitmap(bitmap);
-    return image;
+    Drawing::ImageInfo drawingImageInfo { imageInfo.size.width, imageInfo.size.height,
+        PixelFormatToDrawingColorType(imageInfo.pixelFormat),
+	AlphaTypeToDrawingAlphaType(imageInfo.alphaType),
+	// Drawing ColorSpace is not supported
+	nullptr };
+    Drawing::Pixmap imagePixmap(drawingImageInfo, reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
+    return Drawing::Image::MakeFromRaster(imagePixmap, PixelMapReleaseProc, new PixelMapReleaseContext(pixelMap));
 }
 
+#endif
+
+#ifndef USE_ROSEN_DRAWING
+void RSPixelMapUtil::TransformDataSetForAstc(std::shared_ptr<Media::PixelMap> pixelMap,
+                                             SkRect& src, SkRect& dst, RSPaintFilterCanvas& canvas)
+{
+    TransformData transformData;
+    pixelMap->GetTransformData(transformData);
+    SkMatrix matrix;
+    matrix.postScale(transformData.scaleX, transformData.scaleY, dst.fLeft / HALF_F + dst.fRight / HALF_F,
+                     dst.fTop / HALF_F + dst.fBottom / HALF_F);
+    matrix.postRotate(transformData.rotateD, dst.fLeft / HALF_F + dst.fRight / HALF_F,
+                      dst.fTop / HALF_F + dst.fBottom / HALF_F);
+    if (transformData.flipX) {
+        matrix.postScale(-1, 1, dst.fLeft / HALF_F + dst.fRight / HALF_F,
+                         dst.fTop / HALF_F + dst.fBottom / HALF_F);
+    }
+    if (transformData.flipY) {
+        matrix.postScale(1, -1, dst.fLeft / HALF_F + dst.fRight / HALF_F,
+                         dst.fTop / HALF_F + dst.fBottom / HALF_F);
+    }
+    canvas.concat(matrix);
+
+    //crop
+    if (transformData.cropLeft >= 0 && transformData.cropTop >= 0 &&
+        transformData.cropWidth >= 0 && transformData.cropHeight >= 0) {
+        float rightMinus = src.fRight - transformData.cropLeft - transformData.cropWidth;
+        float bottomMinus = src.fBottom - transformData.cropTop - transformData.cropHeight;
+        src.fLeft += transformData.cropLeft;
+        src.fTop += transformData.cropTop;
+        src.fRight -= rightMinus;
+        src.fBottom -= bottomMinus;
+        dst.fLeft += (transformData.cropLeft + rightMinus) / HALF_F;
+        dst.fTop += (transformData.cropTop + bottomMinus) / HALF_F;
+        dst.fRight -= (transformData.cropLeft + rightMinus) / HALF_F;
+        dst.fBottom -= (transformData.cropTop + bottomMinus) / HALF_F;
+    }
+
+    //translate
+    dst.fLeft += transformData.translateX / HALF_F;
+    dst.fTop += transformData.translateY / HALF_F;
+    dst.fRight += transformData.translateX / HALF_F;
+    dst.fBottom += transformData.translateY / HALF_F;
+}
 #endif
 } // namespace Rosen
 } // namespace OHOS

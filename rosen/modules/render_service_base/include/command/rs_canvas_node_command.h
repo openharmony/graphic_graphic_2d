@@ -20,6 +20,7 @@
 #include "command/rs_command_templates.h"
 #include "common/rs_macros.h"
 #include "modifier/rs_modifier_type.h"
+#include "pipeline/rs_canvas_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -49,6 +50,14 @@ public:
         RSContext& context, NodeId id, std::shared_ptr<Drawing::DrawCmdList> drawCmds, uint16_t modifierType);
 #endif
     static void ClearRecording(RSContext& context, NodeId id);
+private:
+#ifndef USE_ROSEN_DRAWING
+    static bool AddCmdToSingleFrameComposer(std::shared_ptr<RSCanvasRenderNode> node,
+        std::shared_ptr<DrawCmdList> drawCmds, RSModifierType type);
+#else
+    static bool AddCmdToSingleFrameComposer(std::shared_ptr<RSCanvasRenderNode> node,
+        std::shared_ptr<Drawing::DrawCmdList> drawCmds, RSModifierType type);
+#endif
 };
 
 ADD_COMMAND(RSCanvasNodeCreate, ARG(CANVAS_NODE, CANVAS_NODE_CREATE, RSCanvasNodeCommandHelper::Create, NodeId))

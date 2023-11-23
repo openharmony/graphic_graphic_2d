@@ -80,10 +80,12 @@ public:
 
     void Init();
     void Start();
+    void ProcessDataBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void RequestNextVSync();
     void PostTask(RSTaskMessage::RSTask task);
-    void PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime);
+    void PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
+        AppExecFwk::EventQueue::Priority priority = AppExecFwk::EventQueue::Priority::IDLE);
     void RemoveTask(const std::string& name);
     void PostSyncTask(RSTaskMessage::RSTask task);
     bool IsIdle() const;
@@ -92,7 +94,7 @@ public:
     void RsEventParamDump(std::string& dumpString);
     bool IsUIFirstOn() const;
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
-    void ClearGpuCache();
+    void ClearMemoryCache(bool deeply = false);
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
@@ -105,6 +107,11 @@ public:
     const std::shared_ptr<RSBaseRenderEngine>& GetRenderEngine() const
     {
         return isUniRender_ ? uniRenderEngine_ : renderEngine_;
+    }
+
+    bool GetClearMemoryFinished() const
+    {
+        return clearMemoryFinished_;
     }
 
     RSContext& GetContext()
@@ -239,16 +246,8 @@ private:
     void SetRSEventDetectorLoopStartTag();
     void SetRSEventDetectorLoopFinishTag();
     void UpdateUIFirstSwitch();
+    uint32_t GetRefreshRate() const;
     void SkipCommandByNodeId(std::vector<std::unique_ptr<RSTransactionData>>& transactionVec, pid_t pid);
-#ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
-    void ReleaseExitSurfaceNodeAllGpuResource(GrDirectContext* grContext);
-#else
-    void ReleaseExitSurfaceNodeAllGpuResource(GrContext* grContext);
-#endif
-#else
-    void ReleaseExitSurfaceNodeAllGpuResource(Drawing::GPUContext* grContext);
-#endif
 
     bool DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
 
@@ -268,20 +267,21 @@ private:
     void PerfAfterAnim(bool needRequestNextVsync);
     void PerfForBlurIfNeeded();
     void PerfMultiWindow();
-    void RenderFrameStart();
+    void RenderFrameStart(uint64_t timestamp);
     void ResetHardwareEnabledState();
     void CheckIfHardwareForcedDisabled();
     void CheckAndUpdateTransactionIndex(
         std::shared_ptr<TransactionDataMap>& transactionDataEffective, std::string& transactionFlags);
 
-    bool IsResidentProcess(pid_t pid);
+    bool IsRenderedProcess(pid_t pid) const;
     bool IsNeedSkip(NodeId instanceRootNodeId, pid_t pid);
 
-    bool NeedReleaseGpuResource(const RSRenderNodeMap& nodeMap);
-
     // UIFirst
+    void ResetSubThreadGrContext();
+    void CheckParallelSubThreadNodesStatusImplementation();
     bool CheckParallelSubThreadNodesStatus();
     void CacheCommands();
+    bool CheckSubThreadNodeStatusIsDoing(NodeId appNodeId) const;
 
     // used for informing hgm the bundle name of SurfaceRenderNodes
     void InformHgmNodeInfo();
@@ -318,6 +318,7 @@ private:
     uint64_t lastAnimateTimestamp_ = 0;
     uint64_t prePerfTimestamp_ = 0;
     uint64_t lastCleanCacheTimestamp_ = 0;
+    uint64_t preSKReleaseResourceTimestamp_ = 0;
     std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;
 
     std::shared_ptr<RSContext> context_;
@@ -349,6 +350,8 @@ private:
     // used for stalling mainThread before displayNode has no freed buffer to request
     std::condition_variable displayNodeBufferReleasedCond_;
 
+    bool clearMemoryFinished_ = true;
+
     // driven render
     mutable std::mutex drivenRenderMutex_;
     bool drivenRenderFinished_ = false;
@@ -378,6 +381,8 @@ private:
     uint32_t appWindowNum_ = 0;
     uint32_t requestNextVsyncNum_ = 0;
     bool lastFrameHasFilter_ = false;
+
+    uint32_t currentRefreshRate_ = 0;
 
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
     std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;
@@ -420,6 +425,10 @@ private:
     DeviceType deviceType_ = DeviceType::PHONE;
     bool isCachedSurfaceUpdated_ = false;
     bool isUiFirstOn_ = false;
+#ifdef RS_ENABLE_VK
+    bool needResetSubThreadGrContext_ = false;
+    uint64_t frameCountForResetSubThreadGrContext_ = 0;
+#endif
 
     // used for informing hgm the bundle name of SurfaceRenderNodes
     bool noBundle_ = false;

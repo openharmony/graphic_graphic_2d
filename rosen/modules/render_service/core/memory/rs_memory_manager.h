@@ -85,6 +85,7 @@ public:
     static void ReleaseAllGpuResource(Drawing::GPUContext* gpuContext, Drawing::GPUResourceTag& tag);
     static void ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, bool scratchResourcesOnly = true);
     static void ReleaseUnlockAndSafeCacheGpuResource(Drawing::GPUContext* grContext);
+    static float GetAppGpuMemoryInMB(Drawing::GPUContext* gpuContext);
 #endif
 
 private:

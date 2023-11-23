@@ -18,6 +18,7 @@
 
 #include "common/rs_common_def.h"
 #include "property/rs_properties.h"
+#include "property/rs_properties_def.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -61,6 +62,10 @@ public:
     Vector4<Color> GetBorderColor() const;
     Vector4f GetBorderWidth() const;
     Vector4<uint32_t> GetBorderStyle() const;
+    Vector4<Color> GetOuterBorderColor() const;
+    Vector4f GetOuterBorderWidth() const;
+    Vector4<uint32_t> GetOuterBorderStyle() const;
+    Vector4f GetOuterBorderRadius() const;
 
     std::shared_ptr<RSFilter> GetBackgroundFilter() const;
     std::shared_ptr<RSFilter> GetFilter() const;
@@ -74,6 +79,7 @@ public:
     std::shared_ptr<RSPath> GetShadowPath() const;
     bool GetShadowMask() const;
     bool GetShadowIsFilled() const;
+    bool GetShadowColorStrategy() const;
 
     Gravity GetFrameGravity() const;
 
@@ -85,6 +91,11 @@ public:
     std::shared_ptr<RSMask> GetMask() const;
     float GetSpherizeDegree() const;
     float GetLightUpEffectDegree() const;
+
+    float GetLightIntensity() const;
+    Vector4f GetLightPosition() const;
+    int GetIlluminatedType() const;
+    float GetBloom() const;
 
     std::string Dump() const;
 private:

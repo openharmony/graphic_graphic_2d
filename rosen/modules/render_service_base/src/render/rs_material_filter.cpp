@@ -36,10 +36,10 @@ namespace Rosen {
 namespace {
 constexpr float BLUR_SIGMA_SCALE = 0.57735f;
 // style to MaterialParam map
-std::unordered_map<MATERIAL_BLUR_STYLE, MaterialParam> materialParams_ {
+static const std::unordered_map<MATERIAL_BLUR_STYLE, MaterialParam> MATERIAL_PARAM {
     // card blur params
     { STYLE_CARD_THIN_LIGHT,         { 23.0f,  1.05, 1.05, RSColor(0xFFFFFF33) } },
-    { STYLE_CARD_LIGHT,              { 50.0f,  1.8,  1.2,  RSColor(0xFAFAFA99) } },
+    { STYLE_CARD_LIGHT,              { 50.0f,  1.8,  1.0,  RSColor(0xFAFAFA99) } },
     { STYLE_CARD_THICK_LIGHT,        { 57.0f,  1.2,  1.1,  RSColor(0xFFFFFF8C) } },
     { STYLE_CARD_THIN_DARK,          { 75.0f,  1.35, 1.0,  RSColor(0x1A1A1A6B) } },
     { STYLE_CARD_DARK,               { 50.0f,  2.15, 1.0,  RSColor(0x1F1F1FD1) } },
@@ -54,7 +54,32 @@ std::unordered_map<MATERIAL_BLUR_STYLE, MaterialParam> materialParams_ {
     { STYLE_BACKGROUND_LARGE_DARK,   { 75.0f,  1.5,  1.0,  RSColor(0x0D0D0D80) } },
     { STYLE_BACKGROUND_XLARGE_DARK,  { 130.0f, 1.3,  1.0,  RSColor(0x0D0D0D80) } },
 };
+
+static const std::unordered_map<MATERIAL_BLUR_STYLE, MaterialParam> KAWASE_MATERIAL_PARAM {
+    // card blur params
+    { STYLE_CARD_THIN_LIGHT,         { 23.0f,  1.05, 1.05, RSColor(0xFFFFFF33) } },
+    { STYLE_CARD_LIGHT,              { 50.0f,  1.8,  1.0,  RSColor(0xFAFAFA99) } },
+    { STYLE_CARD_THICK_LIGHT,        { 57.0f,  1.2,  1.1,  RSColor(0xFFFFFF8C) } },
+    { STYLE_CARD_THIN_DARK,          { 75.0f,  1.35, 1.0,  RSColor(0x1A1A1A6B) } },
+    { STYLE_CARD_DARK,               { 50.0f,  2.15, 1.0,  RSColor(0x1F1F1FD1) } },
+    { STYLE_CARD_THICK_DARK,         { 75.0f,  2.15, 1.0,  RSColor(0x1F1F1FD1) } },
+    // background blur params
+    { STYLE_BACKGROUND_SMALL_LIGHT,  { 12.0f,  1.05, 1.0,  RSColor(0x80808033) } },
+    { STYLE_BACKGROUND_MEDIUM_LIGHT, { 29.0f,  1.1,  1.0,  RSColor(0x80808033) } },
+    { STYLE_BACKGROUND_LARGE_LIGHT,  { 45.0f,  1.2,  1.0,  RSColor(0x80808033) } },
+    { STYLE_BACKGROUND_XLARGE_LIGHT, { 120.0f, 1.3,  1.0,  RSColor(0x6666664C) } },
+    { STYLE_BACKGROUND_SMALL_DARK,   { 15.0f,  1.1,  1.0,  RSColor(0x0D0D0D80) } },
+    { STYLE_BACKGROUND_MEDIUM_DARK,  { 55.0f,  1.15, 1.0,  RSColor(0x0D0D0D80) } },
+    { STYLE_BACKGROUND_LARGE_DARK,   { 75.0f,  1.5,  1.0,  RSColor(0x0D0D0D80) } },
+    { STYLE_BACKGROUND_XLARGE_DARK,  { 130.0f, 1.3,  1.0,  RSColor(0x0D0D0D80) } },
+};
 } // namespace
+
+#ifndef USE_ROSEN_DRAWING
+const bool KAWASE_BLUR_ENABLED = RSSystemProperties::GetKawaseEnabled();
+#else
+const bool KAWASE_BLUR_ENABLED = false;
+#endif
 
 RSMaterialFilter::RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode, float ratio)
 #ifndef USE_ROSEN_DRAWING
@@ -83,6 +108,9 @@ RSMaterialFilter::RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE 
     imageFilter_ = RSMaterialFilter::CreateMaterialFilter(
         materialParam.radius, materialParam.saturation, materialParam.brightness);
     type_ = FilterType::MATERIAL;
+    if (colorMode_ == FASTAVERAGE) {
+        colorPickerTask_ = std::make_shared<RSColorPickerCacheTask>();
+    }
 
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
     hash_ = SkOpts::hash(&materialParam, sizeof(materialParam), hash_);
@@ -165,7 +193,6 @@ sk_sp<SkImageFilter> RSMaterialFilter::CreateMaterialFilter(float radius, float 
 {
     colorFilter_ = GetColorFilter(sat, brightness);
 #if defined(NEW_SKIA)
-    useKawase_ = RSSystemProperties::GetKawaseEnabled();
     sk_sp<SkImageFilter> blurFilter = SkImageFilters::Blur(radius, radius, SkTileMode::kClamp, nullptr); // blur
 #else
     sk_sp<SkImageFilter> blurFilter = SkBlurImageFilter::Make(radius, radius, nullptr, nullptr,
@@ -193,8 +220,9 @@ std::shared_ptr<Drawing::ImageFilter> RSMaterialFilter::CreateMaterialStyle(
     MATERIAL_BLUR_STYLE style, float dipScale, float ratio)
 #endif
 {
-    if (materialParams_.find(style) != materialParams_.end()) {
-        MaterialParam materialParam = materialParams_[style];
+    const auto& materialParams = KAWASE_BLUR_ENABLED ? KAWASE_MATERIAL_PARAM : MATERIAL_PARAM;
+    if (materialParams.find(style) != materialParams.end()) {
+        const auto& materialParam = materialParams.at(style);
         maskColor_ = RSColor(materialParam.maskColor.AsRgbaInt());
         maskColor_.MultiplyAlpha(ratio);
         radius_ = RSMaterialFilter::RadiusVp2Sigma(materialParam.radius, dipScale) * ratio;
@@ -213,6 +241,14 @@ void RSMaterialFilter::PreProcess(sk_sp<SkImage> imageSnapshot)
         SkColor colorPicker = RSPropertiesPainter::CalcAverageColor(imageSnapshot);
         maskColor_ = RSColor(
             SkColorGetR(colorPicker), SkColorGetG(colorPicker), SkColorGetB(colorPicker), maskColor_.GetAlpha());
+    } else if (colorMode_ == FASTAVERAGE) {
+        RSColor color;
+        if (RSColorPickerCacheTask::PostPartialColorPickerTask(colorPickerTask_, imageSnapshot)) {
+            if (colorPickerTask_->GetColor(color)) {
+                maskColor_ = RSColor(color.GetRed(), color.GetGreen(), color.GetBlue(), maskColor_.GetAlpha());
+            }
+            colorPickerTask_->SetStatus(CacheProcessStatus::WAITING);
+        }
     }
 }
 #else
@@ -319,7 +355,7 @@ void RSMaterialFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_
 #ifdef NEW_SKIA
     // if kawase blur failed, use gauss blur
     KawaseParameter param = KawaseParameter(src, dst, radius_, colorFilter_, paint.getAlphaf());
-    if (useKawase_ && KawaseBlurFilter::GetKawaseBlurFilter()->ApplyKawaseBlur(canvas, image, param)) {
+    if (KAWASE_BLUR_ENABLED && KawaseBlurFilter::GetKawaseBlurFilter()->ApplyKawaseBlur(canvas, image, param)) {
         return;
     }
     canvas.drawImageRect(image.get(), src, dst, SkSamplingOptions(), &paint, SkCanvas::kStrict_SrcRectConstraint);
@@ -366,6 +402,21 @@ bool RSMaterialFilter::IsNearEqual(const std::shared_ptr<RSFilter>& other, float
 bool RSMaterialFilter::IsNearZero(float threshold) const
 {
     return ROSEN_EQ(radius_, 0.0f, threshold);
+}
+
+void RSMaterialFilter::ReleaseColorPicker()
+{
+    if (colorPickerTask_ != nullptr) {
+        colorPickerTask_->SetStatus(CacheProcessStatus::WAITING);
+        colorPickerTask_->Reset();
+#ifdef IS_OHOS
+        if (colorPickerTask_->GetHandler() != nullptr) {
+            auto task = colorPickerTask_;
+            task->GetHandler()->PostTask(
+                [task]() { task->ResetGrContext(); }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        }
+#endif
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -81,6 +81,27 @@ public:
     }
 
     /*
+     * @brief  Returns number of bytes per pixel.
+     */
+    int32_t GetBytesPerPixel() const
+    {
+        // returns the number of bytes per pixel: 1byte, 2bytes, 4bytes
+        switch (colorType_) {
+            case COLORTYPE_ALPHA_8:
+                return 1;
+            case COLORTYPE_RGB_565:
+            case COLORTYPE_ARGB_4444:
+                return 2;
+            case COLORTYPE_RGBA_8888:
+            case COLORTYPE_BGRA_8888:
+            case COLORTYPE_N32:
+                return 4;
+            default:
+                return 0;
+        }
+    }
+
+    /*
      * @brief  Sets the width value of ImageInfo.
      */
     void SetWidth(int width)
@@ -123,7 +144,7 @@ public:
     /*
      * @brief  Gets the bounds of ImageInfo.
      */
-    RectI GetBounds() const
+    RectI GetBound() const
     {
         return RectI(0, 0, width_, height_);
     }

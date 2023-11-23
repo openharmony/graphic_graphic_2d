@@ -46,8 +46,9 @@ public:
     }
 
 #ifndef USE_ROSEN_DRAWING
-    SkBitmap GetBitmap();
-    bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect);
+    SkBitmap GetBitmap(const uint64_t tid = UINT32_MAX);
+    bool GetPixelmap(
+        const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect, const uint64_t tid = UINT32_MAX);
 #else
     Drawing::Bitmap GetBitmap();
     bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect);

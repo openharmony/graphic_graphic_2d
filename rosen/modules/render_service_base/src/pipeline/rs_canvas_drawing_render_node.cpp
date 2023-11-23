@@ -72,7 +72,7 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
         if (!ResetSurface(width, height, canvas)) {
             return;
         }
-#if (defined NEW_SKIA) && (defined RS_ENABLE_GL)
+#if (defined NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
         auto image = preSurface->makeImageSnapshot();
         if (!image) {
             return;
@@ -164,8 +164,8 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
             return;
         }
         auto newImage = std::make_shared<Drawing::Image>();
-        Drawing::BitmapFormat info = Drawing::BitmapFormat { Drawing::COLORTYPE::COLORTYPE_RGBA_8888,
-            Drawing::AlphaType::ALPHATYPE_PREMUL };
+        Drawing::BitmapFormat info = Drawing::BitmapFormat { Drawing::COLORTYPE_RGBA_8888,
+            Drawing::ALPHATYPE_PREMUL };
         bool ret = newImage->BuildFromTexture(*canvas.GetGPUContext(), sharedBackendTexture.GetTextureInfo(),
             origin, info, nullptr);
         if (!ret) {
@@ -206,7 +206,7 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
 {
     SkImageInfo info = SkImageInfo::Make(width, height, kRGBA_8888_SkColorType, kPremul_SkAlphaType);
 
-#if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
+#if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
 #ifdef NEW_SKIA
     auto grContext = canvas.recordingContext();
 #else
@@ -234,8 +234,8 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
 #else
 bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilterCanvas& canvas)
 {
-    Drawing::BitmapFormat info =
-        Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    Drawing::ImageInfo info =
+        Drawing::ImageInfo{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
 
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
     auto gpuContext = canvas.GetGPUContext();
@@ -276,12 +276,16 @@ void RSCanvasDrawingRenderNode::ApplyDrawCmdModifier(RSModifierContext& context,
 }
 
 #ifndef USE_ROSEN_DRAWING
-SkBitmap RSCanvasDrawingRenderNode::GetBitmap()
+SkBitmap RSCanvasDrawingRenderNode::GetBitmap(const uint64_t tid)
 {
     SkBitmap bitmap;
     std::lock_guard<std::mutex> lock(mutex_);
     if (!skImage_) {
         RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: skImage_ is nullptr");
+        return bitmap;
+    }
+    if (RSSystemProperties::GetUniRenderEnabled() && GetTid() != tid) {
+        RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: skImage_ used by multi threads");
         return bitmap;
     }
     if (!skImage_->asLegacyBitmap(&bitmap)) {
@@ -290,7 +294,8 @@ SkBitmap RSCanvasDrawingRenderNode::GetBitmap()
     return bitmap;
 }
 
-bool RSCanvasDrawingRenderNode::GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect)
+bool RSCanvasDrawingRenderNode::GetPixelmap(
+    const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect, const uint64_t tid)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!pixelmap || !rect) {
@@ -306,6 +311,11 @@ bool RSCanvasDrawingRenderNode::GetPixelmap(const std::shared_ptr<Media::PixelMa
     sk_sp<SkImage> skImage = skSurface_->makeImageSnapshot();
     if (skImage == nullptr) {
         RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: makeImageSnapshot failed");
+        return false;
+    }
+
+    if (RSSystemProperties::GetUniRenderEnabled() && GetTid() != tid) {
+        RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: SkSurface used by multi threads");
         return false;
     }
 
@@ -327,7 +337,7 @@ Drawing::Bitmap RSCanvasDrawingRenderNode::GetBitmap()
         RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: image_ is nullptr");
         return bitmap;
     }
-    if (!image_->AsLegacyBitmap(&bitmap)) {
+    if (!image_->AsLegacyBitmap(bitmap)) {
         RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: asLegacyBitmap failed");
     }
     return bitmap;
@@ -416,7 +426,11 @@ bool RSCanvasDrawingRenderNode::IsNeedResetSurface(const int& width, const int& 
 
 void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType type)
 {
+#ifndef USE_ROSEN_DRAWING
     dirtyTypes_.emplace(type);
+#else
+    dirtyTypes_.set(static_cast<int>(type), true);
+#endif
     for (auto drawCmdModifier : drawCmdModifiers_) {
         if (drawCmdModifier.second.empty()) {
             continue;

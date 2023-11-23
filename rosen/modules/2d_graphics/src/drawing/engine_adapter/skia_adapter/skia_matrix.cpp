@@ -122,17 +122,13 @@ void SkiaMatrix::MapPoints(std::vector<Point>& dst, const std::vector<Point>& sr
     if (count == 0) {
         return;
     }
-    std::vector<SkPoint> pt1;
-    std::vector<SkPoint> pt2;
-    for (uint32_t i = 0; i < count; ++i) {
-        pt1.emplace_back(SkPoint::Make(dst[i].GetX(), dst[i].GetY()));
-        pt2.emplace_back(SkPoint::Make(src[i].GetX(), src[i].GetY()));
+    if (dst.size() > count) {
+        for (int i = dst.size(); i > count; --i) {
+            dst.pop_back();
+        }
     }
-    skMatrix_.mapPoints(&pt1[0], &pt2[0], count);
-    dst.clear();
-    for (uint32_t i = 0; i < count; ++i) {
-        dst.emplace_back(Point(pt1[i].fX, pt1[i].fY));
-    }
+    skMatrix_.mapPoints(
+        reinterpret_cast<SkPoint*>(dst.data()), reinterpret_cast<const SkPoint*>(src.data()), count);
 }
 
 bool SkiaMatrix::MapRect(Rect& dst, const Rect& src) const
@@ -166,6 +162,25 @@ bool SkiaMatrix::IsIdentity() const
     return skMatrix_.isIdentity();
 }
 
+MatrixImpl* SkiaMatrix::Clone()
+{
+    return new SkiaMatrix(*this);
+}
+
+void SkiaMatrix::PreRotate(scalar degree, scalar px, scalar py)
+{
+    skMatrix_.preRotate(degree, px, py);
+}
+
+void SkiaMatrix::PreScale(scalar sx, scalar sy, scalar px, scalar py)
+{
+    skMatrix_.preScale(sx, sy, px, py);
+}
+
+void SkiaMatrix::Reset()
+{
+    skMatrix_.reset();
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

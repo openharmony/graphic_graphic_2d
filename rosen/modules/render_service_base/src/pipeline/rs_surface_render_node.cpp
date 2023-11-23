@@ -190,6 +190,12 @@ void RSSurfaceRenderNode::CollectSurface(
     const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec, bool isUniRender,
     bool onlyFirstLevel)
 {
+    if (IsScbScreen()) {
+        for (auto& child : node->GetSortedChildren()) {
+            child->CollectSurface(child, vec, isUniRender, onlyFirstLevel);
+        }
+        return;
+    }
     if (IsStartingWindow()) {
         if (isUniRender) {
             vec.emplace_back(shared_from_this());
@@ -259,10 +265,10 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
                 GetId(), GetName().c_str());
 #endif
             if (IsLeashWindow()) {
-                context->MarkNeedPurge(RSContext::PurgeType::PURGE_UNLOCK);
+                context->MarkNeedPurge(RSContext::PurgeType::GENTLY);
             }
             if (GetName().substr(0, 3) == "SCB") {
-                context->MarkNeedPurge(RSContext::PurgeType::PURGE_UNLOCK_SAFECACHE);
+                context->MarkNeedPurge(RSContext::PurgeType::STRONGLY);
             }
         }
     }
@@ -657,8 +663,7 @@ void RSSurfaceRenderNode::NotifyUIBufferAvailable()
             callbackFromUI_->OnBufferAvailable();
 #ifdef OHOS_PLATFORM
             if (IsAppWindow()) {
-                RSJankStats::GetInstance().SetFirstFrame();
-                RSJankStats::GetInstance().SetPid(ExtractPid(GetId()));
+                RSJankStats::GetInstance().SetFirstFrame(ExtractPid(GetId()));
             }
 #endif
         }
@@ -975,7 +980,7 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusWithVisible(bool visible)
         return;
     }
     prevVisible_ = visible;
-#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (!visible && !filterNodes_.empty()) {
         for (auto& node : filterNodes_) {
             node.second->GetMutableRenderProperties().ClearFilterCache();
@@ -1331,6 +1336,16 @@ void RSSurfaceRenderNode::UpdateAbilityNodeIds(NodeId id, bool isAdded)
     }
 }
 
+void RSSurfaceRenderNode::AddAbilityComponentNodeIds(std::unordered_set<NodeId> nodeIds)
+{
+    abilityNodeIds_.insert(nodeIds.begin(), nodeIds.end());
+}
+
+void RSSurfaceRenderNode::ResetAbilityNodeIds()
+{
+    abilityNodeIds_.clear();
+}
+
 const std::unordered_set<NodeId>& RSSurfaceRenderNode::GetAbilityNodeIds() const
 {
     return abilityNodeIds_;
@@ -1512,6 +1527,18 @@ bool RSSurfaceRenderNode::HasOnlyOneRootNode() const
     }
 
     return true;
+}
+
+bool RSSurfaceRenderNode::GetNodeIsSingleFrameComposer() const
+{
+    bool flag = false;
+    if (RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()) {
+        auto idx = GetName().find("hwstylusfeature");
+        if (idx != std::string::npos) {
+            flag = true;
+        }
+    }
+    return isNodeSingleFrameComposer_ || flag;
 }
 
 } // namespace Rosen

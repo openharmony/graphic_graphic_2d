@@ -14,6 +14,11 @@
  */
 
 #include "pipeline/rs_hardware_thread.h"
+#include <memory>
+
+#ifdef RS_ENABLE_EGLIMAGE
+#include "src/gpu/gl/GrGLDefines.h"
+#endif
 
 #include "hgm_core.h"
 #include "pipeline/rs_base_render_util.h"
@@ -25,12 +30,17 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "rs_trace.h"
 #include "hdi_backend.h"
-#include <vsync_sampler.h>
+#include "vsync_sampler.h"
 #include "parameters.h"
+#ifdef RS_ENABLE_VK
+#include "rs_vk_image_manager.h"
+#endif
 
 #ifdef RS_ENABLE_EGLIMAGE
 #include "rs_egl_image_manager.h"
 #endif // RS_ENABLE_EGLIMAGE
+#include <parameter.h>
+#include <parameters.h>
 
 namespace OHOS::Rosen {
 namespace {
@@ -60,7 +70,11 @@ void RSHardwareThread::Start()
                     return;
                 }
                 uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+#ifdef RS_ENABLE_VK
+                uniRenderEngine_->Init(true);
+#else
                 uniRenderEngine_->Init();
+#endif
             }).wait();
     }
     auto onPrepareCompleteFunc = [this](auto& surface, const auto& param, void* data) {
@@ -109,6 +123,29 @@ void RSHardwareThread::ReleaseBuffer(sptr<SurfaceBuffer> buffer, sptr<SyncFence>
         buffer = nullptr;
         releaseFence = SyncFence::INVALID_FENCE;
     }
+}
+
+void RSHardwareThread::RefreshRateCounts(std::string& dumpString)
+{
+    if (refreshRateCounts_.empty()) {
+        return;
+    }
+    std::map<uint32_t, int>::iterator iter;
+    for (iter = refreshRateCounts_.begin(); iter != refreshRateCounts_.end(); iter++) {
+        dumpString.append(
+            "Refresh Rate:" + std::to_string(iter->first) + ", Count:" + std::to_string(iter->second) + ";\n");
+    }
+    RS_LOGD("RSHardwareThread::RefreshRateCounts refresh rate counts info is displayed");
+}
+
+void RSHardwareThread::ClearRefreshRateCounts(std::string& dumpString)
+{
+    if (refreshRateCounts_.empty()) {
+        return;
+    }
+    refreshRateCounts_.clear();
+    dumpString.append("The refresh rate counts info is cleared successfully!\n");
+    RS_LOGD("RSHardwareThread::RefreshRateCounts refresh rate counts info is cleared");
 }
 
 void RSHardwareThread::ReleaseLayers(OutputPtr output, const std::unordered_map<uint32_t, LayerPtr>& layerMap)
@@ -165,6 +202,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     RSTaskMessage::RSTask task = [this, output = output, layers = layers, rate = rate, timestamp = currTimestamp]() {
         RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %d, now: %lu", rate, timestamp);
         ExecuteSwitchRefreshRate(rate);
+        AddRefreshRateCount(rate);
         PerformSetActiveMode(output);
         output->SetLayerInfo(layers);
         if (output->IsDeviceValid()) {
@@ -303,8 +341,12 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         return;
     }
 #ifdef RS_ENABLE_EGLIMAGE
+#ifdef RS_ENABLE_VK
+    std::unordered_map<int32_t, std::shared_ptr<NativeVkImageRes>> imageCacheSeqs;
+#else // RS_ENABLE_VK
     std::unordered_map<int32_t, std::unique_ptr<ImageCacheSeq>> imageCacheSeqs;
-#endif
+#endif // RS_ENABLE_VK
+#endif // RS_ENABLE_EGLIMAGE
     for (const auto& layer : layers) {
         if (layer == nullptr) {
             continue;
@@ -356,9 +398,10 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #else
             if (canvas->GetGPUContext() == nullptr) {
 #endif
-                RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer GrContext is null!");
+                RS_LOGE("RSHardwareThread::Redraw CreateEglImageFromBuffer GrContext is null!");
                 continue;
             }
+#if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
             auto eglImageCache = uniRenderEngine_->GetEglImageManager()->CreateImageCacheFromBuffer(params.buffer,
                 params.acquireFence);
             if (eglImageCache == nullptr) {
@@ -371,21 +414,53 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             }
             auto bufferId = params.buffer->GetSeqNum();
             imageCacheSeqs[bufferId] = std::move(eglImageCache);
+#endif
 #ifndef USE_ROSEN_DRAWING
+#if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
             SkColorType colorType = (params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
                 kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
-            GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId, GL_RGBA8 };
+            GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId,
+                static_cast<GrGLenum>((params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ? 
+                    GR_GL_BGRA8 : GR_GL_RGBA8)};
             GrBackendTexture backendTexture(params.buffer->GetSurfaceBufferWidth(),
                 params.buffer->GetSurfaceBufferHeight(), GrMipMapped::kNo, grExternalTextureInfo);
+#endif
 #ifdef NEW_SKIA
+#if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
             auto image = SkImage::MakeFromTexture(canvas->recordingContext(), backendTexture,
                 kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
+#elif defined(RS_ENABLE_VK)
+            auto imageCache = uniRenderEngine_->GetVkImageManager()->CreateImageCacheFromBuffer(
+                params.buffer, params.acquireFence);
+            if (!imageCache) {
+                continue;
+            }
+            auto bufferId = params.buffer->GetSeqNum();
+            imageCacheSeqs[bufferId] = imageCache;
+            auto& backendTexture = imageCache->GetBackendTexture();
+            if (!backendTexture.isValid()) {
+                ROSEN_LOGE("RSHardwareThread: backendTexture is not valid!!!");
+                return;
+            }
+
+            SkColorType colorType = (params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
+                kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
+            auto image = SkImage::MakeFromTexture(
+                canvas->recordingContext(),
+                backendTexture,
+                kTopLeft_GrSurfaceOrigin,
+                colorType,
+                kPremul_SkAlphaType,
+                SkColorSpace::MakeSRGB(),
+                NativeBufferUtils::DeleteVkImage,
+                imageCache->RefCleanupHelper());
+#endif
 #else
             auto image = SkImage::MakeFromTexture(canvas->getGrContext(), backendTexture,
                 kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
 #endif
             if (image == nullptr) {
-                RS_LOGE("RSDividedRenderUtil::DrawImage: image is nullptr!");
+                RS_LOGE("RSHardwareThread::DrawImage: image is nullptr!");
                 return;
             }
 #ifdef NEW_SKIA
@@ -412,7 +487,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             auto image = std::make_shared<Drawing::Image>();
             if (!image->BuildFromTexture(*canvas->GetGPUContext(), externalTextureInfo,
                 Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr)) {
-                RS_LOGE("RSDividedRenderUtil::DrawImage: image BuildFromTexture failed");
+                RS_LOGE("RSHardwareThread::Redraw: image BuildFromTexture failed");
                 return;
             }
             canvas->AttachBrush(params.paint);
@@ -452,6 +527,14 @@ void RSHardwareThread::LayerPresentTimestamp(const LayerInfoPtr& layer, const sp
     }
     if (surface->SetPresentTimestamp(buffer->GetSeqNum(), layer->GetPresentTimestamp()) != GSERROR_OK) {
         RS_LOGD("RsDebug RSUniRenderComposerAdapter::LayerPresentTimestamp: SetPresentTimestamp failed");
+    }
+}
+
+void RSHardwareThread::AddRefreshRateCount(uint32_t rate)
+{
+    auto [iter, success] = refreshRateCounts_.try_emplace(rate, 1);
+    if (!success) {
+        iter->second++;
     }
 }
 }

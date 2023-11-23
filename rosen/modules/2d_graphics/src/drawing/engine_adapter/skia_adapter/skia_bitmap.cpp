@@ -14,6 +14,7 @@
  */
 
 #include "skia_bitmap.h"
+#include "skia_pixmap.h"
 
 #include "include/core/SkImageInfo.h"
 
@@ -77,6 +78,20 @@ AlphaType SkiaBitmap::GetAlphaType() const
     return SkiaImageInfo::ConvertToAlphaType(skiaBitmap_.alphaType());
 }
 
+bool SkiaBitmap::ExtractSubset(Bitmap& dst, const Rect& subset) const
+{
+    const SkBitmap& subBitmap = dst.GetImpl<SkiaBitmap>()->ExportSkiaBitmap();
+    SkIRect subRect = SkIRect::MakeLTRB(subset.GetLeft(), subset.GetTop(), subset.GetRight(), subset.GetBottom());
+    return skiaBitmap_.extractSubset(const_cast<SkBitmap*>(&subBitmap), subRect);
+}
+
+bool SkiaBitmap::ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
+                            int32_t srcX, int32_t srcY) const
+{
+    SkImageInfo skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(dstInfo);
+    return skiaBitmap_.readPixels(skImageInfo, dstPixels, dstRowBytes, srcX, srcY);
+}
+
 void* SkiaBitmap::GetPixels() const
 {
     return skiaBitmap_.getPixels();
@@ -85,6 +100,19 @@ void* SkiaBitmap::GetPixels() const
 void SkiaBitmap::SetPixels(void* pixels)
 {
     skiaBitmap_.setPixels(pixels);
+}
+
+bool SkiaBitmap::InstallPixels(const ImageInfo& info, void* pixels, size_t rowBytes,
+                               ReleaseProc releaseProc, void* context)
+{
+    SkImageInfo skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(info);
+    return skiaBitmap_.installPixels(skImageInfo, pixels, rowBytes, releaseProc, context);
+}
+
+bool SkiaBitmap::PeekPixels(Pixmap& pixmap) const
+{
+    const SkPixmap& skiaPixmap = pixmap.GetImpl<SkiaPixmap>()->ExportSkiaPixmap();
+    return skiaBitmap_.peekPixels(const_cast<SkPixmap*>(&skiaPixmap));
 }
 
 const SkBitmap& SkiaBitmap::ExportSkiaBitmap() const
@@ -135,6 +163,16 @@ void SkiaBitmap::Free()
 bool SkiaBitmap::IsValid() const
 {
     return skiaBitmap_.drawsNothing();
+}
+
+bool SkiaBitmap::IsEmpty() const
+{
+    return skiaBitmap_.empty();
+}
+
+void SkiaBitmap::SetSkBitmap(const SkBitmap& skBitmap)
+{
+    skiaBitmap_ = skBitmap;
 }
 
 std::shared_ptr<Data> SkiaBitmap::Serialize() const

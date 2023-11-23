@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -98,6 +98,21 @@ HWTEST_F(RSPropertyTest, Property003, TestSize.Level1)
 
     prop->Set(floatData[2]);
     ASSERT_EQ(prop->Get(), floatData[2]);
+}
+
+/**
+ * @tc.name: Property004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyTest, Property004, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSAnimatableProperty<float>>(UINT32_MAX);
+    ASSERT_TRUE(prop != nullptr);
+    ASSERT_EQ(prop->Get(), UINT32_MAX);
+
+    prop->SetThresholdType(ThresholdType::COARSE);
+    ASSERT_EQ(prop->GetThreshold(), 1.0f / 256.0f);
 }
 
 /**

@@ -137,7 +137,7 @@ HWTEST_F(SkiaShaderEffectTest, InitWithSweepGradient001, TestSize.Level1)
     scalar startAngle = 45.0f;
     scalar endAngle = 60.0f;
     SkiaShaderEffect skiaShaderEffect;
-    skiaShaderEffect.InitWithSweepGradient(centerPt, color, pos, TileMode::MIRROR, startAngle, endAngle);
+    skiaShaderEffect.InitWithSweepGradient(centerPt, color, pos, TileMode::MIRROR, startAngle, endAngle, nullptr);
 }
 
 } // namespace Drawing

@@ -62,6 +62,7 @@ public:
     bool InitArgs(size_t argc);
     bool InitArgs(size_t minArgc, size_t maxArgc);
     size_t GetArgc() const;
+    size_t GetMaxArgc(void) const;
     napi_value GetThisVar() const;
     napi_value operator[](size_t argPos) const;
     napi_value GetArg(size_t argPos) const;
@@ -70,10 +71,11 @@ private:
     bool InitArgs(std::function<bool()> argcChecker);
     void SetArgc(size_t argc);
     void SetThisVar(napi_value thisVar);
-
+    void SetMaxArgc(size_t maxArgc);
     napi_env env_ = nullptr;
     napi_callback_info info_ = nullptr;
     size_t argc_ = 0;
+    size_t maxArgc_ = 0;
     std::unique_ptr<napi_value[]> argv_ = {nullptr};
     napi_value thisVar_ = nullptr;
 };

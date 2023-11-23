@@ -125,7 +125,7 @@ HWTEST_F(RSCanvasRenderNodeTest, ProcessDrivenBackgroundRenderTest, TestSize.Lev
     std::weak_ptr<RSContext> context;
     RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
     rsCanvasRenderNode.ProcessDrivenBackgroundRender(*canvas_);
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
     EXPECT_EQ(rsCanvasRenderNode.GetChildrenCount(), 0);
 #endif
 }
@@ -164,5 +164,19 @@ HWTEST_F(RSCanvasRenderNodeTest, ColorBlendModeTest, TestSize.Level1)
 
     canvas_->restore();
     canvas_->restore();
+}
+
+/**
+ * @tc.name: ProcessShadowBatchingTest
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasRenderNodeTest, ProcessShadowBatchingTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    std::weak_ptr<RSContext> context;
+    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
+    rsCanvasRenderNode.ProcessShadowBatching(*canvas_);
 }
 } // namespace OHOS::Rosen

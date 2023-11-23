@@ -28,6 +28,7 @@
 #include "include/core/SkColor.h"
 #include "include/effects/SkColorMatrix.h"
 #include "include/effects/SkImageFilters.h"
+#include "property/rs_color_picker_cache_task.h"
 #else
 #include "effect/color_filter.h"
 #include "draw/color.h"
@@ -108,6 +109,7 @@ public:
     bool IsNearEqual(
         const std::shared_ptr<RSFilter>& other, float threshold = std::numeric_limits<float>::epsilon()) const override;
     bool IsNearZero(float threshold = std::numeric_limits<float>::epsilon()) const override;
+    void ReleaseColorPicker();
 
 private:
     BLUR_COLOR_MODE colorMode_;
@@ -127,9 +129,9 @@ private:
 #endif
     static float RadiusVp2Sigma(float radiusVp, float dipScale);
 
-    bool useKawase_ = false;
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkColorFilter> colorFilter_;
+    std::shared_ptr<RSColorPickerCacheTask> colorPickerTask_;
 #else
     std::shared_ptr<Drawing::ColorFilter> colorFilter_;
 #endif

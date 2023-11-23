@@ -110,7 +110,10 @@ public:
     CoreCanvas& DetachPen() override;
     CoreCanvas& DetachBrush() override;
 
+    void SetIsCustomTextType(bool isCustomTextType);
+    bool IsCustomTextType() const;
 private:
+    bool isCustomTextType_ = false;
     std::shared_ptr<DrawCmdList> cmdList_ = nullptr;
     int saveCount_ = 0;
 };

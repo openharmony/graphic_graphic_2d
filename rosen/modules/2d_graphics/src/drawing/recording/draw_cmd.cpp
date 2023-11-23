@@ -38,6 +38,7 @@
 #include "effect/shader_effect.h"
 #include "utils/scalar.h"
 #include "utils/log.h"
+#include "draw/surface.h"
 
 #define CHECK_AND_RETURN_RET_LOG(cond, ret, fmt, ...)  \
     do {                                               \
@@ -115,6 +116,7 @@ std::unordered_map<uint32_t, CanvasPlayer::PlaybackFunc> CanvasPlayer::opPlaybac
     { DrawOpItem::PATCH_OPITEM,             DrawPatchOpItem::Playback },
     { DrawOpItem::EDGEAAQUAD_OPITEM, DrawEdgeAAQuadOpItem::Playback },
     { DrawOpItem::VERTICES_OPITEM,          DrawVerticesOpItem::Playback },
+    { DrawOpItem::NO_IPC_IMAGE_DRAW_OPITEM, NoIPCImageOpItem::Playback },
 };
 
 CanvasPlayer::CanvasPlayer(Canvas& canvas, const CmdList& cmdList, const Rect& rect)
@@ -135,6 +137,35 @@ bool CanvasPlayer::Playback(uint32_t type, void* opItem)
     (*func)(*this, opItem);
 
     return true;
+}
+
+GenerateCachedOpItemPlayer::GenerateCachedOpItemPlayer(CmdList &cmdList, Canvas* canvas, const Rect* rect)
+    : canvas_(canvas), rect_(rect), cmdList_(cmdList) {}
+
+std::shared_ptr<NoIPCImageOpItem> GenerateCachedOpItemPlayer::GenerateCachedOpItem(uint32_t type, void* opItem,
+    bool addCmdList, bool& replaceSuccess)
+{
+    if (opItem == nullptr) {
+        return nullptr;
+    } else if (type == DrawOpItem::ATTACH_PEN_OPITEM) {
+        penOpItemStack.push(opItem);
+    } else if (type == DrawOpItem::ATTACH_BRUSH_OPITEM) {
+        brushOpItemStack.push(opItem);
+    } else if (type == DrawOpItem::DETACH_PEN_OPITEM) {
+        penOpItemStack.pop();
+    } else if (type == DrawOpItem::DETACH_BRUSH_OPITEM) {
+        brushOpItemStack.pop();
+    } else if (type == DrawOpItem::TEXT_BLOB_OPITEM) {
+        auto *op = static_cast<DrawTextBlobOpItem*>(opItem);
+        if (op) {
+            AttachPenOpItem* penOpItem = penOpItemStack.empty() ? nullptr :
+                static_cast<AttachPenOpItem*>(penOpItemStack.top());
+            AttachBrushOpItem* brushOpItem = brushOpItemStack.empty() ? nullptr :
+                static_cast<AttachBrushOpItem*>(brushOpItemStack.top());
+            return op->GenerateCachedOpItem(cmdList_, canvas_, penOpItem, brushOpItem, addCmdList, replaceSuccess);
+        }
+    }
+    return nullptr;
 }
 
 std::unordered_map<uint32_t, UnmarshallingPlayer::UnmarshallingFunc> UnmarshallingPlayer::opUnmarshallingFuncLUT_ = {
@@ -579,15 +610,15 @@ std::shared_ptr<OpItem> DrawBackgroundOpItem::Unmarshalling(const CmdList& cmdLi
 
 void DrawBackgroundOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
 {
-    auto colorSpace = CmdListHelper::GetFromCmdList<ColorSpaceCmdList, ColorSpace>(
+    auto colorSpace = CmdListHelper::GetColorSpaceFromCmdList(
         cmdList, brushHandle_.colorSpaceHandle);
-    auto shaderEffect = CmdListHelper::GetFromCmdList<ShaderEffectCmdList, ShaderEffect>(
+    auto shaderEffect = CmdListHelper::GetShaderEffectFromCmdList(
         cmdList, brushHandle_.shaderEffectHandle);
-    auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
+    auto colorFilter = CmdListHelper::GetColorFilterFromCmdList(
         cmdList, brushHandle_.colorFilterHandle);
-    auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
+    auto imageFilter = CmdListHelper::GetImageFilterFromCmdList(
         cmdList, brushHandle_.imageFilterHandle);
-    auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
+    auto maskFilter = CmdListHelper::GetMaskFilterFromCmdList(
         cmdList, brushHandle_.maskFilterHandle);
 
     Filter filter;
@@ -921,15 +952,15 @@ void DrawImageNineOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
 
     std::shared_ptr<Brush> brush = nullptr;
     if (hasBrush_) {
-        auto colorSpace = CmdListHelper::GetFromCmdList<ColorSpaceCmdList, ColorSpace>(
+        auto colorSpace = CmdListHelper::GetColorSpaceFromCmdList(
             cmdList, brushHandle_.colorSpaceHandle);
-        auto shaderEffect = CmdListHelper::GetFromCmdList<ShaderEffectCmdList, ShaderEffect>(
+        auto shaderEffect = CmdListHelper::GetShaderEffectFromCmdList(
             cmdList, brushHandle_.shaderEffectHandle);
-        auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
+        auto colorFilter = CmdListHelper::GetColorFilterFromCmdList(
             cmdList, brushHandle_.colorFilterHandle);
-        auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
+        auto imageFilter = CmdListHelper::GetImageFilterFromCmdList(
             cmdList, brushHandle_.imageFilterHandle);
-        auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
+        auto maskFilter = CmdListHelper::GetMaskFilterFromCmdList(
             cmdList, brushHandle_.maskFilterHandle);
 
         Filter filter;
@@ -1047,15 +1078,15 @@ void DrawImageLatticeOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canva
 
     std::shared_ptr<Brush> brush = nullptr;
     if (hasBrush_) {
-        auto colorSpace = CmdListHelper::GetFromCmdList<ColorSpaceCmdList, ColorSpace>(
+        auto colorSpace = CmdListHelper::GetColorSpaceFromCmdList(
             cmdList, brushHandle_.colorSpaceHandle);
-        auto shaderEffect = CmdListHelper::GetFromCmdList<ShaderEffectCmdList, ShaderEffect>(
+        auto shaderEffect = CmdListHelper::GetShaderEffectFromCmdList(
             cmdList, brushHandle_.shaderEffectHandle);
-        auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
+        auto colorFilter = CmdListHelper::GetColorFilterFromCmdList(
             cmdList, brushHandle_.colorFilterHandle);
-        auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
+        auto imageFilter = CmdListHelper::GetImageFilterFromCmdList(
             cmdList, brushHandle_.imageFilterHandle);
-        auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
+        auto maskFilter = CmdListHelper::GetMaskFilterFromCmdList(
             cmdList, brushHandle_.maskFilterHandle);
 
         Filter filter;
@@ -1333,7 +1364,123 @@ void DrawTextBlobOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
     }
 }
 
+bool DrawTextBlobOpItem::GenerateCachedOpItem(std::shared_ptr<CmdList> cacheCmdList, const TextBlob* textBlob)
+{
+    if (!textBlob) {
+        LOGE("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return false;
+    }
+
+    auto bounds = textBlob->Bounds();
+    if (!bounds || !bounds->IsValid()) {
+        return false;
+    }
+    bounds->Offset(x_, y_);
+
+    // create CPU raster surface
+    Drawing::ImageInfo offscreenInfo { bounds->GetWidth(), bounds->GetHeight(),
+        Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL, nullptr};
+    
+    std::shared_ptr<Surface> offscreenSurface = Surface::MakeRaster(offscreenInfo);
+
+    if (offscreenSurface == nullptr) {
+        return false;
+    }
+
+    auto offscreenCanvas = offscreenSurface->GetCanvas();
+
+    if (bounds->GetLeft() != 0 || bounds->GetTop() != 0) {
+        offscreenCanvas->Translate(-bounds->GetLeft(), -bounds->GetTop());
+    }
+
+    offscreenCanvas->DrawTextBlob(textBlob, x_, y_);
+
+    std::shared_ptr<Image> image = offscreenSurface->GetImageSnapshot();
+
+    Drawing::Rect src(0, 0, image->GetWidth(), image->GetHeight());
+    Drawing::Rect dst(bounds->GetLeft(), bounds->GetTop(), bounds->GetRight(), bounds->GetBottom());
+    SamplingOptions sampling;
+    auto imageHandle = CmdListHelper::AddImageToCmdList(*cacheCmdList, image);
+    cacheCmdList->AddOp<DrawImageRectOpItem>(imageHandle, src, dst, sampling,
+        SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    return true;
+}
+
+std::shared_ptr<NoIPCImageOpItem> DrawTextBlobOpItem::GenerateCachedOpItem(CmdList& cmdList, Canvas* canvas,
+    AttachPenOpItem* penOpItem, AttachBrushOpItem* brushOpItem, bool addCmdList, bool& replaceSuccess)
+{
+    std::shared_ptr<TextBlob> textBlob = CmdListHelper::GetTextBlobFromCmdList(cmdList, textBlob_);
+    if (!textBlob) {
+        LOGE("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+
+    auto bounds = textBlob->Bounds();
+    if (!bounds || !bounds->IsValid()) {
+        return nullptr;
+    }
+    bounds->Offset(x_, y_);
+
+    std::shared_ptr<Surface> offscreenSurface = nullptr;
+
+    if (auto surface = canvas != nullptr ? canvas->GetSurface() : nullptr) {
+        // create GPU accelerated surface if possible
+        offscreenSurface = surface->MakeSurface(bounds->GetWidth(), bounds->GetHeight());
+    } else {
+        // create CPU raster surface
+        Drawing::ImageInfo offscreenInfo { bounds->GetWidth(), bounds->GetHeight(),
+            Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL, nullptr};
+        offscreenSurface = Surface::MakeRaster(offscreenInfo);
+    }
+    if (offscreenSurface == nullptr) {
+        return nullptr;
+    }
+
+    auto offscreenCanvas = offscreenSurface->GetCanvas();
+
+    // align draw op to [0, 0]
+    if (bounds->GetLeft() != 0 || bounds->GetTop() != 0) {
+        offscreenCanvas->Translate(-bounds->GetLeft(), -bounds->GetTop());
+    }
+
+    if (penOpItem) {
+        penOpItem->Unmarshalling(cmdList, offscreenCanvas.get());
+    }
+
+    if (brushOpItem) {
+        brushOpItem->Unmarshalling(cmdList, offscreenCanvas.get());
+    }
+
+    offscreenCanvas->DrawTextBlob(textBlob.get(), x_, y_);
+
+    std::shared_ptr<Image> image = offscreenSurface->GetImageSnapshot();
+    Drawing::Rect src(0, 0, image->GetWidth(), image->GetHeight());
+    Drawing::Rect dst(bounds->GetLeft(), bounds->GetTop(), bounds->GetRight(), bounds->GetBottom());
+    SamplingOptions sampling;
+    std::shared_ptr<NoIPCImageOpItem> ipcImageOpItem = nullptr;
+    if (!addCmdList) {
+        ipcImageOpItem = std::make_shared<NoIPCImageOpItem>(image, src, dst, sampling,
+            SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    } else {
+        auto imageHandle = CmdListHelper::AddImageToCmdList(cmdList, image);
+        cmdList.AddOp<DrawImageRectOpItem>(imageHandle, src, dst, sampling,
+            SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+        replaceSuccess = true;
+    }
+    
+    if (penOpItem) {
+        offscreenCanvas->DetachPen();
+    }
+
+    if (brushOpItem) {
+        offscreenCanvas->DetachBrush();
+    }
+
+    return ipcImageOpItem;
+}
+
 ClipRectOpItem::ClipRectOpItem() : DrawOpItem(CLIP_RECT_OPITEM) {}
+
 ClipRectOpItem::ClipRectOpItem(const Rect& rect, ClipOp op, bool doAntiAlias)
     : DrawOpItem(CLIP_RECT_OPITEM), rect_(rect), clipOp_(op), doAntiAlias_(doAntiAlias) {}
 
@@ -1794,15 +1941,15 @@ void SaveLayerOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
 {
     std::shared_ptr<Brush> brush = nullptr;
     if (hasBrush_) {
-        auto colorSpace = CmdListHelper::GetFromCmdList<ColorSpaceCmdList, ColorSpace>(
+        auto colorSpace = CmdListHelper::GetColorSpaceFromCmdList(
             cmdList, brushHandle_.colorSpaceHandle);
-        auto shaderEffect = CmdListHelper::GetFromCmdList<ShaderEffectCmdList, ShaderEffect>(
+        auto shaderEffect = CmdListHelper::GetShaderEffectFromCmdList(
             cmdList, brushHandle_.shaderEffectHandle);
-        auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
+        auto colorFilter = CmdListHelper::GetColorFilterFromCmdList(
             cmdList, brushHandle_.colorFilterHandle);
-        auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
+        auto imageFilter = CmdListHelper::GetImageFilterFromCmdList(
             cmdList, brushHandle_.imageFilterHandle);
-        auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
+        auto maskFilter = CmdListHelper::GetMaskFilterFromCmdList(
             cmdList, brushHandle_.maskFilterHandle);
 
         Filter filter;
@@ -1920,17 +2067,17 @@ std::shared_ptr<OpItem> AttachPenOpItem::Unmarshalling(const CmdList& cmdList, v
 
 void AttachPenOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
 {
-    auto pathEffect = CmdListHelper::GetFromCmdList<PathEffectCmdList, PathEffect>(
+    auto pathEffect = CmdListHelper::GetPathEffectFromCmdList(
         cmdList, penHandle_.pathEffectHandle);
-    auto colorSpace = CmdListHelper::GetFromCmdList<ColorSpaceCmdList, ColorSpace>(
+    auto colorSpace = CmdListHelper::GetColorSpaceFromCmdList(
         cmdList, penHandle_.colorSpaceHandle);
-    auto shaderEffect = CmdListHelper::GetFromCmdList<ShaderEffectCmdList, ShaderEffect>(
+    auto shaderEffect = CmdListHelper::GetShaderEffectFromCmdList(
         cmdList, penHandle_.shaderEffectHandle);
-    auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
+    auto colorFilter = CmdListHelper::GetColorFilterFromCmdList(
         cmdList, penHandle_.colorFilterHandle);
-    auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
+    auto imageFilter = CmdListHelper::GetImageFilterFromCmdList(
         cmdList, penHandle_.imageFilterHandle);
-    auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
+    auto maskFilter = CmdListHelper::GetMaskFilterFromCmdList(
         cmdList, penHandle_.maskFilterHandle);
 
     Filter filter;
@@ -1995,15 +2142,15 @@ std::shared_ptr<OpItem> AttachBrushOpItem::Unmarshalling(const CmdList& cmdList,
 
 void AttachBrushOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
 {
-    auto colorSpace = CmdListHelper::GetFromCmdList<ColorSpaceCmdList, ColorSpace>(
+    auto colorSpace = CmdListHelper::GetColorSpaceFromCmdList(
         cmdList, brushHandle_.colorSpaceHandle);
-    auto shaderEffect = CmdListHelper::GetFromCmdList<ShaderEffectCmdList, ShaderEffect>(
+    auto shaderEffect = CmdListHelper::GetShaderEffectFromCmdList(
         cmdList, brushHandle_.shaderEffectHandle);
-    auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
+    auto colorFilter = CmdListHelper::GetColorFilterFromCmdList(
         cmdList, brushHandle_.colorFilterHandle);
-    auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
+    auto imageFilter = CmdListHelper::GetImageFilterFromCmdList(
         cmdList, brushHandle_.imageFilterHandle);
-    auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
+    auto maskFilter = CmdListHelper::GetMaskFilterFromCmdList(
         cmdList, brushHandle_.maskFilterHandle);
 
     Filter filter;
@@ -2355,6 +2502,34 @@ void DrawExtendPixelMapOpItem::Playback(Canvas& canvas, const CmdList& cmdList, 
     }
     extendObject->Playback(canvas, rect, sampling_, false);
 }
+
+NoIPCImageOpItem::NoIPCImageOpItem(std::shared_ptr<Image> image, const Rect& src, const Rect& dst,
+    const SamplingOptions& sampling, SrcRectConstraint constraint)
+    : DrawOpItem(NO_IPC_IMAGE_DRAW_OPITEM),
+    image_(image),
+    src_(src),
+    dst_(dst),
+    sampling_(sampling),
+    constraint_(constraint)
+{
+}
+
+void NoIPCImageOpItem::Playback(CanvasPlayer& player, void* opItem)
+{
+    if (opItem != nullptr) {
+        auto* op = static_cast<NoIPCImageOpItem*>(opItem);
+        op->Playback(player.canvas_, player.cmdList_);
+    }
+}
+
+void NoIPCImageOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
+{
+    if (image_ == nullptr) {
+        return;
+    }
+    canvas.DrawImageRect(*image_, src_, dst_, sampling_, constraint_);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

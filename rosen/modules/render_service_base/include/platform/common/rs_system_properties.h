@@ -59,12 +59,6 @@ enum class PartialRenderType {
     SET_DAMAGE_AND_DROP_OP_NOT_VISIBLEDIRTY     // 4, drop draw_op if node is not in visible dirty region (unirender)
 };
 
-enum class ReleaseGpuResourceType {
-    DISABLED = 0,                            // 0, disable releaseGpuResource
-    WINDOW_HIDDEN,                           // 1, release window GpuResource when it Exit or GoBackGround
-    WINDOW_HIDDEN_AND_LAUCHER,               // 2, release window and launcher GpuResource when it Exit or GoBackGround
-};
-
 enum class DumpSurfaceType {
     DISABLED = 0,
     SINGLESURFACE,
@@ -127,7 +121,7 @@ public:
     static bool GetDumpLayersEnabled();
     static bool GetHardwareComposerEnabled();
     static bool GetAFBCEnabled();
-    static ReleaseGpuResourceType GetReleaseGpuResourceEnabled();
+    static bool GetReleaseResourceEnabled();
 
     static void SetDrawTextAsBitmap(bool flag);
     static bool GetDrawTextAsBitmap();
@@ -145,6 +139,8 @@ public:
     static int GetFilterCacheUpdateInterval();
     static int GetFilterCacheSizeThreshold();
     static bool GetFilterPartialRenderEnabled();
+    static bool GetColorPickerPartialEnabled();
+    static bool GetMaskLinearBlurEnabled();
     static bool GetKawaseEnabled();
     static float GetKawaseRandomColorFactor();
     static bool GetRandomColorEnabled();
@@ -161,6 +157,7 @@ public:
     static bool GetUIFirstEnabled();
     static bool GetDebugTraceEnabled();
     static bool FindNodeInTargetList(std::string node);
+    static bool IsFoldScreenFlag();
     static bool GetCacheCmdEnabled();
     static bool GetASTCEnabled();
     static bool GetImageGpuResourceCacheEnable(int width, int height);
@@ -171,6 +168,9 @@ public:
     static bool IsPhoneType();
     static bool GetSyncTransactionEnabled();
     static int GetSyncTransactionWaitDelay();
+    static bool GetUseShadowBatchingEnabled();
+    static bool GetSingleFrameComposerEnabled();
+    static bool GetSingleFrameComposerCanvasNodeEnabled();
 private:
     RSSystemProperties() = default;
 

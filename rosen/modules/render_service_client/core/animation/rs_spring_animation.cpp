@@ -18,6 +18,8 @@
 #include "animation/rs_animation_common.h"
 #include "animation/rs_render_spring_animation.h"
 #include "command/rs_animation_command.h"
+#include "modifier/rs_modifier_manager.h"
+#include "modifier/rs_modifier_manager_map.h"
 #include "modifier/rs_property.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_proxy.h"
@@ -79,6 +81,9 @@ void RSSpringAnimation::OnStart()
     if (GetIsLogicallyFinishCallback()) {
         animation->SetZeroThreshold(zeroThreshold_);
     }
+    if (initialVelocity_) {
+        animation->SetInitialVelocity(initialVelocity_->GetRenderProperty());
+    }
     if (isCustom_) {
         animation->AttachRenderProperty(property_->GetRenderProperty());
         StartUIAnimation(animation);
@@ -111,11 +116,31 @@ void RSSpringAnimation::StartRenderAnimation(const std::shared_ptr<RSRenderSprin
 void RSSpringAnimation::StartUIAnimation(const std::shared_ptr<RSRenderSpringAnimation>& animation)
 {
     StartCustomAnimation(animation);
+    auto& modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+    if (modifierManager == nullptr) {
+        ROSEN_LOGE("RSSpringAnimation::StartUIAnimation: failed to get modifier manager, "
+            "animationId: %{public}" PRIu64 "!", GetId());
+        return;
+    }
+
+    auto propertyId = GetPropertyId();
+    auto prevAnimation = modifierManager->QuerySpringAnimation(propertyId);
+    modifierManager->RegisterSpringAnimation(propertyId, GetId());
+    // stop running the previous animation and inherit velocity from it
+    animation->InheritSpringAnimation(prevAnimation);
 }
 
 bool RSSpringAnimation::GetIsLogicallyFinishCallback() const
 {
     return isLogicallyFinishCallback_;
+}
+
+void RSSpringAnimation::SetInitialVelocity(const std::shared_ptr<RSPropertyBase>& velocity)
+{
+    if (!velocity) {
+        ROSEN_LOGE("RSSpringAnimation::SetInitialVelocity: velocity is a nullptr.");
+    }
+    initialVelocity_ = velocity;
 }
 } // namespace Rosen
 } // namespace OHOS

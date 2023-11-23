@@ -17,6 +17,8 @@
 
 #include "include/effects/SkImageFilters.h"
 #include "include/core/SkTileMode.h"
+#include "src/core/SkReadBuffer.h"
+#include "src/core/SkWriteBuffer.h"
 
 #if !defined(USE_CANVASKIT0310_SKIA) && !defined(NEW_SKIA)
 #include "include/effects/SkBlurImageFilter.h"
@@ -26,6 +28,7 @@
 
 #include "effect/color_filter.h"
 #include "effect/image_filter.h"
+#include "utils/data.h"
 #include "utils/log.h"
 
 namespace OHOS {
@@ -127,6 +130,43 @@ void SkiaImageFilter::SetSkImageFilter(const sk_sp<SkImageFilter>& filter)
 {
     filter_ = filter;
 }
+
+std::shared_ptr<Data> SkiaImageFilter::Serialize() const
+{
+#ifdef ROSEN_OHOS
+    if (filter_ == nullptr) {
+        LOGE("SkiaImageFilter::Serialize, filter_ is nullptr!");
+        return nullptr;
+    }
+
+    SkBinaryWriteBuffer writer;
+    writer.writeFlattenable(filter_.get());
+    size_t length = writer.bytesWritten();
+    std::shared_ptr<Data> data = std::make_shared<Data>();
+    data->BuildUninitialized(length);
+    writer.writeToMemory(data->WritableData());
+    return data;
+#else
+    return nullptr;
+#endif
+}
+
+bool SkiaImageFilter::Deserialize(std::shared_ptr<Data> data)
+{
+#ifdef ROSEN_OHOS
+    if (data == nullptr) {
+        LOGE("SkiaImageFilter::Deserialize, data is invalid!");
+        return false;
+    }
+
+    SkReadBuffer reader(data->GetData(), data->GetSize());
+    filter_ = reader.readImageFilter();
+    return filter_ != nullptr;
+#else
+    return false;
+#endif
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

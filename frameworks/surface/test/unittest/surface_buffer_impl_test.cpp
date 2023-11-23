@@ -18,9 +18,7 @@
 #include <surface_buffer_impl.h>
 #include <buffer_manager.h>
 #include <buffer_utils.h>
-#include <v1_0/cm_color_space.h>
-#include <v1_0/buffer_handle_meta_key_type.h>
-#include <metadata_convertor.h>
+#include <metadata_helper.h>
 
 using namespace testing;
 using namespace testing::ext;
@@ -164,14 +162,14 @@ HWTEST_F(SurfaceBufferImplTest, Create001, Function | MediumTest | Level2)
 * Rank: Important(2)
 * EnvConditions: N/A
 * CaseDescription: 1. new SurfaceBufferImpl and Alloc
-                   2. call Set Metadata interface
-                   3. call Get Metadata interface
-                   4. check ret
-                   5. call List Metadata keys interface
-                   6. check ret
-                   7. call Erase Metadata key interface
-                   8. call List Metadata keys interface again
-                   9. check ret
+*                  2. call Set Metadata interface
+*                  3. call Get Metadata interface
+*                  4. check ret
+*                  5. call List Metadata keys interface
+*                  6. check ret
+*                  7. call Erase Metadata key interface
+*                  8. call List Metadata keys interface again
+*                  9. check ret
 */
 HWTEST_F(SurfaceBufferImplTest, Metadata001, Function | MediumTest | Level2)
 {
@@ -182,11 +180,11 @@ HWTEST_F(SurfaceBufferImplTest, Metadata001, Function | MediumTest | Level2)
     auto sret = bm->Alloc(requestConfig, sbi);
     ASSERT_EQ(sret, OHOS::GSERROR_OK);
 
-    BufferHandleAttrKey metadataKey = ATTRKEY_COLORSPACE_TYPE;
+    uint32_t metadataKey = 2;
 
-    CM_ColorSpaceType setMetadata = CM_BT709_LIMIT;
+    uint32_t setMetadata = 4260097;
     std::vector<uint8_t> setData;
-    ASSERT_EQ(MetadataManager::ConvertMetadataToVec(setMetadata, setData), OHOS::GSERROR_OK);
+    ASSERT_EQ(MetadataHelper::ConvertMetadataToVec(setMetadata, setData), OHOS::GSERROR_OK);
     sret = sbi->SetMetadata(metadataKey, setData);
     ASSERT_TRUE(sret == OHOS::GSERROR_OK || GSErrorStr(sret) == "<500 api call failed>with low error <Not supported>");
 
@@ -195,8 +193,8 @@ HWTEST_F(SurfaceBufferImplTest, Metadata001, Function | MediumTest | Level2)
     ASSERT_TRUE(sret == OHOS::GSERROR_OK || GSErrorStr(sret) == "<500 api call failed>with low error <Not supported>");
 
     if (sret == OHOS::GSERROR_OK) {
-        CM_ColorSpaceType getMetadata;
-        ASSERT_EQ(MetadataManager::ConvertVecToMetadata(getData, getMetadata), OHOS::GSERROR_OK);
+        uint32_t getMetadata;
+        ASSERT_EQ(MetadataHelper::ConvertVecToMetadata(getData, getMetadata), OHOS::GSERROR_OK);
         ASSERT_EQ(setMetadata, getMetadata);
     }
 

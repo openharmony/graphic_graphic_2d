@@ -15,11 +15,10 @@
 
 #include "pipeline/rs_effect_render_node.h"
 
-#include "common/rs_obj_abs_geometry.h"
 #include "memory/rs_memory_track.h"
-#include "platform/common/rs_log.h"
+
+#include "common/rs_obj_abs_geometry.h"
 #include "property/rs_properties_painter.h"
-#include "render/rs_skia_filter.h"
 #include "visitor/rs_node_visitor.h"
 
 namespace OHOS {
@@ -66,7 +65,7 @@ void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
         RSPropertiesPainter::DrawBackgroundEffect(properties, canvas, effectRegion_->getBounds());
     }
 #else
-    if (effectRegion_.has_value() && effectRegion_->isValid() && properties.GetBackgroundFilter() != nullptr &&
+    if (effectRegion_.has_value() && effectRegion_->IsValid() && properties.GetBackgroundFilter() != nullptr &&
         canvas.GetCacheType() != RSPaintFilterCanvas::CacheType::OFFSCREEN) {
         RSPropertiesPainter::DrawBackgroundEffect(properties, canvas, effectRegion_->GetBounds());
     }

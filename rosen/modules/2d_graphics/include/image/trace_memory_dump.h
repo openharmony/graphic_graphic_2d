@@ -35,6 +35,8 @@ public:
 
     void LogTotals(OHOS::Rosen::DfxString& log);
 
+    float GetGpuMemorySizeInMB() const;
+
     float GetGLMemorySize() const;
 
     template<typename T>

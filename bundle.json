@@ -70,7 +70,8 @@
           "frame_aware_sched",
           "memmgr",
           "memmgr_plugin",
-          "sensor"
+          "sensor",
+          "qos_manager"
         ],
         "third_party": [
           "flutter",
@@ -104,7 +105,6 @@
             "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain:skeffectchain",
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
-            "//foundation/graphic/graphic_2d/frameworks/surfaceimage:libnative_image",
             "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text:rosen_text",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
             "//foundation/graphic/graphic_2d/rosen/modules/texgine:libtexgine",
@@ -135,7 +135,6 @@
                 "external_window.h",
                 "native_buffer.h",
                 "native_buffer_inner.h",
-                "native_image.h",
                 "ibuffer_consumer_listener.h",
                 "ibuffer_producer.h",
                 "iconsumer_surface.h",
@@ -170,6 +169,16 @@
           },
           {
             "type": "so",
+            "name": "//foundation/graphic/graphic_2d/frameworks/surfaceimage:libnative_image",
+            "header": {
+              "header_files": [
+                "native_image.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/surface"
+            }
+          },
+          {
+            "type": "so",
             "name": "//foundation/graphic/graphic_2d:libgl",
             "header": {
               "header_files": [
@@ -186,8 +195,7 @@
             "header": {
               "header_files": [
                 "graphic_common.h",
-                "graphic_common_c.h",
-                "metadata_convertor.h"
+                "graphic_common_c.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/common"
             }
@@ -334,6 +342,7 @@
                 "ifont_provider.h",
                 "system_font_provider.h",
                 "text_style.h",
+                "theme_font_provider.h",
                 "typography_builder.h",
                 "typography_style.h",
                 "typography_types.h",

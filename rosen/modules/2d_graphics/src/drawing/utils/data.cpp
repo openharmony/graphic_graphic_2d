@@ -32,6 +32,11 @@ bool Data::BuildWithCopy(const void* data, size_t length)
     return impl_->BuildWithCopy(data, length);
 }
 
+bool Data::BuildWithProc(const void* ptr, size_t length, DataReleaseProc proc, void* ctx)
+{
+    return impl_->BuildWithProc(ptr, length, proc, ctx);
+}
+
 bool Data::BuildWithoutCopy(const void* data, size_t length)
 {
     return impl_->BuildWithoutCopy(data, length);
