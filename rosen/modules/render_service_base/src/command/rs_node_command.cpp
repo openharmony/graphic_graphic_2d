@@ -53,6 +53,14 @@ void RSNodeCommandHelper::MarkNodeGroup(RSContext& context, NodeId nodeId, bool 
     }
 }
 
+void RSNodeCommandHelper::MarkNodeSingleFrameComposer(RSContext& context, NodeId nodeId, bool isNodeSingleFrameComposer)
+{
+    auto& nodeMap = context.GetNodeMap();
+    if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
+        node->MarkNodeSingleFrameComposer(isNodeSingleFrameComposer);
+    }
+}
+
 void RSNodeCommandHelper::MarkDrivenRender(RSContext& context, NodeId nodeId, bool flag)
 {
     auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
@@ -140,7 +148,7 @@ void RSNodeCommandHelper::UnregisterGeometryTransitionPair(RSContext& context, N
     }
 }
 
-void RSNodeCommandHelper::UpdateUIFrameRateRange(RSContext& context, NodeId nodeId, const FrameRateRange& range)
+void RSNodeCommandHelper::UpdateUIFrameRateRange(RSContext& context, NodeId nodeId, FrameRateRange range)
 {
     auto& nodeMap = context.GetNodeMap();
     if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {

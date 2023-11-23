@@ -36,6 +36,34 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(const RSDisplayNodeConfig& displa
     return node;
 }
 
+bool RSDisplayNode::Marshalling(Parcel& parcel) const
+{
+    return parcel.WriteUint64(GetId()) && parcel.WriteUint64(screenId_) && parcel.WriteBool(isMirroredDisplay_);
+}
+
+RSDisplayNode::SharedPtr RSDisplayNode::Unmarshalling(Parcel& parcel)
+{
+    uint64_t id = UINT64_MAX;
+    uint64_t screenId = UINT64_MAX;
+    bool isMirrored = false;
+    if (!(parcel.ReadUint64(id) && parcel.ReadUint64(screenId) && parcel.ReadBool(isMirrored))) {
+        ROSEN_LOGE("RSDisplayNode::Unmarshalling, read param failed");
+        return nullptr;
+    }
+
+    if (auto prevNode = RSNodeMap::Instance().GetNode(id)) {
+        // if the node id is already in the map, we should not create a new node
+        return prevNode->ReinterpretCastTo<RSDisplayNode>();
+    }
+
+    RSDisplayNodeConfig config { .screenId = screenId, .isMirrored = isMirrored };
+
+    SharedPtr displayNode(new RSDisplayNode(config, id));
+    RSNodeMap::MutableInstance().RegisterNode(displayNode);
+
+    return displayNode;
+}
+
 void RSDisplayNode::ClearChildren()
 {
     auto children = GetChildren();
@@ -120,7 +148,7 @@ void RSDisplayNode::SetScreenRotation(const uint32_t& rotation)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
-    ROSEN_LOGD("RSDisplayNode::SetScreenRotation, displayNodeId:[%{public}" PRIu64 "]"
+    ROSEN_LOGI("RSDisplayNode::SetScreenRotation, displayNodeId:[%{public}" PRIu64 "]"
                " screenRotation:[%{public}d]", GetId(), rotation);
 }
 
@@ -136,6 +164,10 @@ RSDisplayNode::RSDisplayNode(const RSDisplayNodeConfig& config)
     (void)offsetX_;
     (void)offsetY_;
 }
+
+RSDisplayNode::RSDisplayNode(const RSDisplayNodeConfig& config, NodeId id)
+    : RSNode(true, id), screenId_(config.screenId), offsetX_(0), offsetY_(0), isMirroredDisplay_(config.isMirrored)
+{}
 
 void RSDisplayNode::SetBootAnimation(bool isBootAnimation)
 {

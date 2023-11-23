@@ -18,6 +18,7 @@
 
 #include "common/rs_macros.h"
 #include "pipeline/rs_render_node_map.h"
+#include "pipeline/rs_render_frame_rate_linker_map.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -33,8 +34,8 @@ public:
 
     enum PurgeType {
         NONE,
-        PURGE_UNLOCK,
-        PURGE_UNLOCK_SAFECACHE
+        GENTLY,
+        STRONGLY
     };
 
     RSRenderNodeMap& GetMutableNodeMap()
@@ -45,6 +46,16 @@ public:
     const RSRenderNodeMap& GetNodeMap() const
     {
         return nodeMap;
+    }
+
+    RSRenderFrameRateLinkerMap& GetMutableFrameRateLinkerMap()
+    {
+        return frameRateLinkerMap;
+    }
+
+    const RSRenderFrameRateLinkerMap& GetFrameRateLinkerMap() const
+    {
+        return frameRateLinkerMap;
     }
 
     const std::shared_ptr<RSBaseRenderNode>& GetGlobalRootRenderNode() const
@@ -85,6 +96,7 @@ public:
 
 private:
     RSRenderNodeMap nodeMap;
+    RSRenderFrameRateLinkerMap frameRateLinkerMap;
     std::shared_ptr<RSBaseRenderNode> globalRootRenderNode_ = std::make_shared<RSRenderNode>(0, true);
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> animatingNodeList_;
     PurgeType purgeType_ = PurgeType::NONE;

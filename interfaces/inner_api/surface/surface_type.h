@@ -86,44 +86,50 @@ using GraphicBlendType = enum {
     GRAPHIC_BLEND_BUTT              /**< Null operation */
 };
 
+/*
+ * @brief Enumeration values are indicated for external consistency.
+ */
 using GraphicPixelFormat = enum {
-    GRAPHIC_PIXEL_FMT_CLUT8 = 0,                 /**< CLUT8 format */
-    GRAPHIC_PIXEL_FMT_CLUT1,                     /**< CLUT1 format */
-    GRAPHIC_PIXEL_FMT_CLUT4,                     /**< CLUT4 format */
-    GRAPHIC_PIXEL_FMT_RGB_565,                   /**< RGB565 format */
-    GRAPHIC_PIXEL_FMT_RGBA_5658,                 /**< RGBA5658 format */
-    GRAPHIC_PIXEL_FMT_RGBX_4444,                 /**< RGBX4444 format */
-    GRAPHIC_PIXEL_FMT_RGBA_4444,                 /**< RGBA4444 format */
-    GRAPHIC_PIXEL_FMT_RGB_444,                   /**< RGB444 format */
-    GRAPHIC_PIXEL_FMT_RGBX_5551,                 /**< RGBX5551 format */
-    GRAPHIC_PIXEL_FMT_RGBA_5551,                 /**< RGBA5551 format */
-    GRAPHIC_PIXEL_FMT_RGB_555,                   /**< RGB555 format */
-    GRAPHIC_PIXEL_FMT_RGBX_8888,                 /**< RGBX8888 format */
-    GRAPHIC_PIXEL_FMT_RGBA_8888,                 /**< RGBA8888 format */
-    GRAPHIC_PIXEL_FMT_RGB_888,                   /**< RGB888 format */
-    GRAPHIC_PIXEL_FMT_BGR_565,                   /**< BGR565 format */
-    GRAPHIC_PIXEL_FMT_BGRX_4444,                 /**< BGRX4444 format */
-    GRAPHIC_PIXEL_FMT_BGRA_4444,                 /**< BGRA4444 format */
-    GRAPHIC_PIXEL_FMT_BGRX_5551,                 /**< BGRX5551 format */
-    GRAPHIC_PIXEL_FMT_BGRA_5551,                 /**< BGRA5551 format */
-    GRAPHIC_PIXEL_FMT_BGRX_8888,                 /**< BGRX8888 format */
-    GRAPHIC_PIXEL_FMT_BGRA_8888,                 /**< BGRA8888 format */
-    GRAPHIC_PIXEL_FMT_YUV_422_I,                 /**< YUV422 interleaved format */
-    GRAPHIC_PIXEL_FMT_YCBCR_422_SP,              /**< YCBCR422 semi-planar format */
-    GRAPHIC_PIXEL_FMT_YCRCB_422_SP,              /**< YCRCB422 semi-planar format */
-    GRAPHIC_PIXEL_FMT_YCBCR_420_SP,              /**< YCBCR420 semi-planar format */
-    GRAPHIC_PIXEL_FMT_YCRCB_420_SP,              /**< YCRCB420 semi-planar format */
-    GRAPHIC_PIXEL_FMT_YCBCR_422_P,               /**< YCBCR422 planar format */
-    GRAPHIC_PIXEL_FMT_YCRCB_422_P,               /**< YCRCB422 planar format */
-    GRAPHIC_PIXEL_FMT_YCBCR_420_P,               /**< YCBCR420 planar format */
-    GRAPHIC_PIXEL_FMT_YCRCB_420_P,               /**< YCRCB420 planar format */
-    GRAPHIC_PIXEL_FMT_YUYV_422_PKG,              /**< YUYV422 packed format */
-    GRAPHIC_PIXEL_FMT_UYVY_422_PKG,              /**< UYVY422 packed format */
-    GRAPHIC_PIXEL_FMT_YVYU_422_PKG,              /**< YVYU422 packed format */
-    GRAPHIC_PIXEL_FMT_VYUY_422_PKG,              /**< VYUY422 packed format */
-    GRAPHIC_PIXEL_FMT_RGBA_1010102,              /**< RGBA_1010102 packed format */
-    GRAPHIC_PIXEL_FMT_VENDER_MASK = 0X7FFF0000,  /**< vendor mask format */
-    GRAPHIC_PIXEL_FMT_BUTT = 0X7FFFFFFF          /**< Invalid pixel format */
+    GRAPHIC_PIXEL_FMT_CLUT8 = 0,                    /**< CLUT8 format */
+    GRAPHIC_PIXEL_FMT_CLUT1 = 1,                    /**< CLUT1 format */
+    GRAPHIC_PIXEL_FMT_CLUT4 = 2,                    /**< CLUT4 format */
+    GRAPHIC_PIXEL_FMT_RGB_565 = 3,                  /**< RGB565 format */
+    GRAPHIC_PIXEL_FMT_RGBA_5658 = 4,                /**< RGBA5658 format */
+    GRAPHIC_PIXEL_FMT_RGBX_4444 = 5,                /**< RGBX4444 format */
+    GRAPHIC_PIXEL_FMT_RGBA_4444 = 6,                /**< RGBA4444 format */
+    GRAPHIC_PIXEL_FMT_RGB_444 = 7,                  /**< RGB444 format */
+    GRAPHIC_PIXEL_FMT_RGBX_5551 = 8,                /**< RGBX5551 format */
+    GRAPHIC_PIXEL_FMT_RGBA_5551 = 9,                /**< RGBA5551 format */
+    GRAPHIC_PIXEL_FMT_RGB_555 = 10,                 /**< RGB555 format */
+    GRAPHIC_PIXEL_FMT_RGBX_8888 = 11,               /**< RGBX8888 format */
+    GRAPHIC_PIXEL_FMT_RGBA_8888 = 12,               /**< RGBA8888 format */
+    GRAPHIC_PIXEL_FMT_RGB_888 = 13,                 /**< RGB888 format */
+    GRAPHIC_PIXEL_FMT_BGR_565 = 14,                 /**< BGR565 format */
+    GRAPHIC_PIXEL_FMT_BGRX_4444 = 15,               /**< BGRX4444 format */
+    GRAPHIC_PIXEL_FMT_BGRA_4444 = 16,               /**< BGRA4444 format */
+    GRAPHIC_PIXEL_FMT_BGRX_5551 = 17,               /**< BGRX5551 format */
+    GRAPHIC_PIXEL_FMT_BGRA_5551 = 18,               /**< BGRA5551 format */
+    GRAPHIC_PIXEL_FMT_BGRX_8888 = 19,               /**< BGRX8888 format */
+    GRAPHIC_PIXEL_FMT_BGRA_8888 = 20,               /**< BGRA8888 format */
+    GRAPHIC_PIXEL_FMT_YUV_422_I = 21,               /**< YUV422 interleaved format */
+    GRAPHIC_PIXEL_FMT_YCBCR_422_SP = 22,            /**< YCBCR422 semi-planar format */
+    GRAPHIC_PIXEL_FMT_YCRCB_422_SP = 23,            /**< YCRCB422 semi-planar format */
+    GRAPHIC_PIXEL_FMT_YCBCR_420_SP = 24,            /**< YCBCR420 semi-planar format */
+    GRAPHIC_PIXEL_FMT_YCRCB_420_SP = 25,            /**< YCRCB420 semi-planar format */
+    GRAPHIC_PIXEL_FMT_YCBCR_422_P = 26,             /**< YCBCR422 planar format */
+    GRAPHIC_PIXEL_FMT_YCRCB_422_P = 27,             /**< YCRCB422 planar format */
+    GRAPHIC_PIXEL_FMT_YCBCR_420_P = 28,             /**< YCBCR420 planar format */
+    GRAPHIC_PIXEL_FMT_YCRCB_420_P = 29,             /**< YCRCB420 planar format */
+    GRAPHIC_PIXEL_FMT_YUYV_422_PKG = 30,            /**< YUYV422 packed format */
+    GRAPHIC_PIXEL_FMT_UYVY_422_PKG = 31,            /**< UYVY422 packed format */
+    GRAPHIC_PIXEL_FMT_YVYU_422_PKG = 32,            /**< YVYU422 packed format */
+    GRAPHIC_PIXEL_FMT_VYUY_422_PKG = 33,            /**< VYUY422 packed format */
+    GRAPHIC_PIXEL_FMT_RGBA_1010102 = 34,            /**< RGBA_1010102 packed format */
+    GRAPHIC_PIXEL_FMT_YCBCR_P010 = 35,              /**< YCBCR420 semi-planar 10bit packed format */
+    GRAPHIC_PIXEL_FMT_YCRCB_P010 = 36,              /**< YCRCB420 semi-planar 10bit packed format */
+    GRAPHIC_PIXEL_FMT_RAW10 = 37,                   /**< Raw 10bit packed format */
+    GRAPHIC_PIXEL_FMT_VENDER_MASK = 0X7FFF0000,     /**< vendor mask format */
+    GRAPHIC_PIXEL_FMT_BUTT = 0X7FFFFFFF             /**< Invalid pixel format */
 };
 
 using GraphicLayerType = enum {

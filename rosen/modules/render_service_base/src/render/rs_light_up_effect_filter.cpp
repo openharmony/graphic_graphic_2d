@@ -15,6 +15,8 @@
 #include "render/rs_light_up_effect_filter.h"
 
 #include "src/core/SkOpts.h"
+
+#include "platform/common/rs_log.h"
 #ifdef USE_ROSEN_DRAWING
 #include "effect/color_matrix.h"
 #endif
@@ -122,6 +124,22 @@ std::shared_ptr<RSFilter> RSLightUpEffectFilter::Multiply(float rhs)
 std::shared_ptr<RSFilter> RSLightUpEffectFilter::Negate()
 {
     return std::make_shared<RSLightUpEffectFilter>(-lightUpDegree_);
+}
+
+bool RSLightUpEffectFilter::IsNearEqual(const std::shared_ptr<RSFilter>& other, float threshold) const
+{
+    auto otherLightUpFilter = std::static_pointer_cast<RSLightUpEffectFilter>(other);
+    if (otherLightUpFilter == nullptr) {
+        ROSEN_LOGE("RSLightUpEffectFilter::IsNearEqual: the types of filters are different.");
+        return true;
+    }
+    float otherLightUpDegree = otherLightUpFilter->GetLightUpDegree();
+    return ROSEN_EQ(lightUpDegree_, otherLightUpDegree, threshold);
+}
+
+bool RSLightUpEffectFilter::IsNearZero(float threshold) const
+{
+    return ROSEN_EQ(lightUpDegree_, 0.0f, threshold);
 }
 } // namespace Rosen
 } // namespace OHOS

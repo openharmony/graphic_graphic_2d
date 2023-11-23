@@ -313,6 +313,23 @@ void OH_Drawing_SetTextStyleFontFamilies(OH_Drawing_TextStyle* style,
 
 void OH_Drawing_SetTextStyleFontStyle(OH_Drawing_TextStyle* style, int fontStyle)
 {
+#ifndef USE_GRAPHIC_TEXT_GINE
+    FontStyle rosenFontStyle;
+    switch (fontStyle) {
+        case FONT_STYLE_NORMAL: {
+            rosenFontStyle = rosen::FontStyle::NORMAL;
+            break;
+        }
+        case FONT_STYLE_ITALIC: {
+            rosenFontStyle = rosen::FontStyle::ITALIC;
+            break;
+        }
+        default: {
+            rosenFontStyle = rosen::FontStyle::NORMAL;
+        }
+    }
+    ConvertToOriginalText<TextStyle>(style)->fontStyle_ = rosenFontStyle;
+#else
     FontStyle rosenFontStyle;
     switch (fontStyle) {
         case FONT_STYLE_NORMAL: {
@@ -327,9 +344,6 @@ void OH_Drawing_SetTextStyleFontStyle(OH_Drawing_TextStyle* style, int fontStyle
             rosenFontStyle = FontStyle::NORMAL;
         }
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TextStyle>(style)->fontStyle_ = rosenFontStyle;
-#else
     ConvertToOriginalText<TextStyle>(style)->fontStyle = rosenFontStyle;
 #endif
 }

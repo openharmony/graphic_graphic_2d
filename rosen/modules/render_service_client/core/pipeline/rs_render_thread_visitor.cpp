@@ -347,8 +347,6 @@ void RSRenderThreadVisitor::UpdateDirtyAndSetEGLDamageRegion(std::unique_ptr<RSS
 #else
         int32_t bufferAge = surfaceFrame->GetBufferAge();
 #endif
-        // we'll fix this in Split Render Mode.
-        bufferAge = 0;
         if (!curDirtyManager_->SetBufferAge(bufferAge)) {
             ROSEN_LOGD("ProcessRootRenderNode SetBufferAge with invalid buffer age %{public}d", bufferAge);
             curDirtyManager_->ResetDirtyAsSurfaceSize();
@@ -918,7 +916,7 @@ void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
         (iter->second)(canvas_->getTotalMatrix().getTranslateX(), canvas_->getTotalMatrix().getTranslateY(), width, height);
     }
 
-    if (node.IsNotifyRTBufferAvailable()) {
+    if (node.IsNotifyRTBufferAvailable() && !node.GetIsForeground()) {
         ROSEN_LOGD("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %{public}" PRIu64 ","
             " clip [%{public}f, %{public}f, %{public}f, %{public}f]", node.GetId(), x, y, width, height);
         canvas_->clear(SK_ColorTRANSPARENT);

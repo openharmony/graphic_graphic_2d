@@ -168,7 +168,8 @@ private:
 class CreateSweepGradientOpItem : public ShaderEffectOpItem {
 public:
     CreateSweepGradientOpItem(const Point& centerPt, const std::pair<uint32_t, size_t>& colors,
-        const std::pair<uint32_t, size_t>& pos, TileMode mode, scalar startAngle, scalar endAngle);
+        const std::pair<uint32_t, size_t>& pos, TileMode mode, scalar startAngle, scalar endAngle,
+        const Matrix *matrix);
     ~CreateSweepGradientOpItem() = default;
 
     std::shared_ptr<ShaderEffect> Playback(const CmdList& cmdList) const;
@@ -179,6 +180,7 @@ private:
     TileMode mode_;
     scalar startAngle_;
     scalar endAngle_;
+    const Matrix *matrix_ = nullptr;
 };
 } // namespace Drawing
 } // namespace Rosen

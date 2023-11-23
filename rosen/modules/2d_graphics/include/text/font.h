@@ -38,6 +38,7 @@ enum class FontEdging {
 class Font {
 public:
     Font();
+    Font(std::shared_ptr<Typeface> typeface, scalar size, scalar scaleX, scalar skewX);
     virtual ~Font() = default;
 
     /*
@@ -77,7 +78,13 @@ public:
     void SetEmbolden(bool isEmbolden);
 
     /*
-     * @brief        Sets text skew on x-axis.
+     * @brief         Set text scale on x-axis.
+     * @param scaleX  Text horizontal scale.
+     */
+    void SetScaleX(scalar scaleX);
+
+    /*
+     * @brief        Set text skew on x-axis.
      * @param skewX  Additional shear on x-axis relative to y-axis.
      */
     void SetSkewX(scalar skewX);
@@ -111,6 +118,15 @@ public:
      * @param bounds  Bounds for each glyph relative to (0, 0) returned to the caller.
      */
     void GetWidths(const uint16_t glyphs[], int count, scalar widths[], Rect bounds[]) const;
+
+    /*
+     * @brief             Measure the width of text.
+     * @param text        Character storage encoded with TextEncoding
+     * @param byteLength  Length of character storage in bytes
+     * @param encoding    Text encoding.
+     * @return            The width of text.
+     */
+    scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding);
 
     template<typename T>
     const std::shared_ptr<T> GetImpl() const

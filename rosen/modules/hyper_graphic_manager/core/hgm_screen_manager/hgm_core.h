@@ -16,6 +16,7 @@
 #ifndef HGM_CORE_H
 #define HGM_CORE_H
 
+#include <cstdint>
 #include <functional>
 #include <cinttypes>
 #include <memory>
@@ -27,9 +28,12 @@
 #include <event_handler.h>
 
 #include "hgm_screen.h"
+#include "vsync_type.h"
+#include "vsync_generator.h"
 #include "xml_parser.h"
 
 namespace OHOS::Rosen {
+using RefreshRateModeChangeCallback = std::function<void(int32_t)>;
 class HgmCore final {
 public:
     static HgmCore& Instance();
@@ -64,6 +68,48 @@ public:
         return mParsedConfigData_;
     }
 
+    void SetPendingScreenRefreshRate(uint32_t rate)
+    {
+        pendingScreenRefreshRate_ = rate;
+    }
+
+    uint32_t GetPendingScreenRefreshRate() const
+    {
+        return pendingScreenRefreshRate_;
+    }
+
+    void SetTimestamp(uint64_t timestamp)
+    {
+        timestamp_ = timestamp;
+    }
+
+    uint64_t GetCurrentTimestamp() const
+    {
+        return timestamp_;
+    }
+
+    bool GetLtpoEnabled() const
+    {
+        return ltpoEnabled_ && (customFrameRateMode_ == HGM_REFRESHRATE_MODE_AUTO) &&
+            (maxTE_ == VSYNC_MAX_REFRESHRATE);
+    }
+
+    uint32_t GetAlignRate() const
+    {
+        return alignRate_;
+    }
+
+    uint64_t GetPipelineOffset() const
+    {
+        auto pulse = CreateVSyncGenerator()->GetVSyncPulse();
+        return static_cast<uint64_t>(pipelineOffsetPulseNum_ * pulse);
+    }
+
+    uint32_t GetSupportedMaxTE() const
+    {
+        return maxTE_;
+    }
+
     // set refresh rates
     int32_t SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate);
     static int32_t SetRateAndResolution(ScreenId id, int32_t sceneId, int32_t rate, int32_t width, int32_t height);
@@ -86,6 +132,11 @@ public:
     void StopScreenScene(SceneType sceceType);
     int32_t GetScenePreferred() const;
     int32_t SetModeBySettingConfig();
+
+    // for LTPO
+    void SetLtpoConfig();
+    int64_t GetIdealPeriod(uint32_t rate);
+    void RegisterRefreshRateModeChangeCallback(const RefreshRateModeChangeCallback& callback);
 private:
     HgmCore();
     ~HgmCore() = default;
@@ -116,6 +167,15 @@ private:
     std::string currentBundleName_;
     ScreenId activeScreenId_ = INVALID_SCREEN_ID;
     std::unordered_set<SceneType> screenSceneSet_;
+
+    // for LTPO
+    uint32_t pendingScreenRefreshRate_ = 0;
+    uint64_t timestamp_ = 0;
+    bool ltpoEnabled_ = false;
+    uint32_t maxTE_ = 0;
+    uint32_t alignRate_ = 0;
+    uint32_t pipelineOffsetPulseNum_ = 0;
+    RefreshRateModeChangeCallback refreshRateModeChangeCallback_ = nullptr;
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CORE_H

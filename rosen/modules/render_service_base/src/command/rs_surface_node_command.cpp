@@ -173,6 +173,9 @@ void SurfaceNodeCommandHelper::AttachToDisplay(RSContext& context, NodeId nodeId
 {
     const auto& nodeMap = context.GetNodeMap();
     auto surfaceRenderNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(nodeId);
+    if (surfaceRenderNode == nullptr) {
+        return;
+    }
     nodeMap.TraverseDisplayNodes(
         [&surfaceRenderNode, &screenId](const std::shared_ptr<RSDisplayRenderNode>& displayRenderNode) {
             if (displayRenderNode == nullptr || displayRenderNode->GetScreenId() != screenId ||
@@ -187,6 +190,9 @@ void SurfaceNodeCommandHelper::DetachToDisplay(RSContext& context, NodeId nodeId
 {
     const auto& nodeMap = context.GetNodeMap();
     auto surfaceRenderNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(nodeId);
+    if (surfaceRenderNode == nullptr) {
+        return;
+    }
     nodeMap.TraverseDisplayNodes(
         [&surfaceRenderNode, &screenId](const std::shared_ptr<RSDisplayRenderNode>& displayRenderNode) {
             if (displayRenderNode == nullptr || displayRenderNode->GetScreenId() != screenId ||
@@ -201,6 +207,13 @@ void SurfaceNodeCommandHelper::SetBootAnimation(RSContext& context, NodeId nodeI
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
         node->SetBootAnimation(isBootAnimation);
+    }
+}
+
+void SurfaceNodeCommandHelper::SetForeground(RSContext& context, NodeId nodeId, bool isForeground)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetForeground(isForeground);
     }
 }
 } // namespace Rosen

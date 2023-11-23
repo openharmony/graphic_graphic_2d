@@ -67,7 +67,7 @@ string WebGLProgram::GetClassName()
 WebGLProgram::WebGLProgram(napi_env env, napi_value exports) : NExporter(env, exports), programId_(0)
 {
     LOGD("WebGLProgram::WebGLProgram %{public}p", this);
-};
+}
 
 WebGLProgram::~WebGLProgram()
 {
@@ -77,7 +77,7 @@ WebGLProgram::~WebGLProgram()
 bool WebGLProgram::AttachShader(uint32_t index, uint32_t shaderId)
 {
     if (attachedShader_[0] == 0) {
-        return false;
+        return true;
     }
     if (index >= (sizeof(attachedShader_) / sizeof(attachedShader_[0]))) {
         return false;
@@ -92,7 +92,7 @@ bool WebGLProgram::AttachShader(uint32_t index, uint32_t shaderId)
 bool WebGLProgram::DetachShader(uint32_t index, uint32_t shaderId)
 {
     if (attachedShader_[0] == 0) {
-        return false;
+        return true;
     }
     if (index >= (sizeof(attachedShader_) / sizeof(attachedShader_[0]))) {
         return false;

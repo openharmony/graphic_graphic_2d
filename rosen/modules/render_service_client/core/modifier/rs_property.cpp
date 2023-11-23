@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -55,6 +55,26 @@ void RSPropertyBase::UpdateExtendModifierForGeometry(const std::shared_ptr<RSNod
 {
     if (type_ == RSModifierType::BOUNDS || type_ == RSModifierType::FRAME) {
         node->MarkAllExtendModifierDirty();
+    }
+}
+
+float RSPropertyBase::GetThresholdByThresholdType(ThresholdType thresholdType) const
+{
+    switch (thresholdType) {
+        case ThresholdType::LAYOUT:
+            return LAYOUT_NEAR_ZERO_THRESHOLD;
+        case ThresholdType::COARSE:
+            return FLOAT_NEAR_ZERO_COARSE_THRESHOLD;
+        case ThresholdType::MEDIUM:
+            return FLOAT_NEAR_ZERO_MEDIUM_THRESHOLD;
+        case ThresholdType::FINE:
+            return FLOAT_NEAR_ZERO_FINE_THRESHOLD;
+        case ThresholdType::COLOR:
+            return COLOR_NEAR_ZERO_THRESHOLD;
+        case ThresholdType::ZERO:
+            return ZERO;
+        default:
+            return DEFAULT_NEAR_ZERO_THRESHOLD;
     }
 }
 

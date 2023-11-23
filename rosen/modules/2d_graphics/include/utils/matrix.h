@@ -49,6 +49,7 @@ public:
     void Rotate(scalar degree, scalar px, scalar py);
     void Translate(scalar dx, scalar dy);
     void Scale(scalar sx, scalar sy, scalar px, scalar py);
+    void SetScale(scalar sx, scalar sy);
 
     /*
      * @brief         Sets Matrix to Matrix multiplied by Matrix constructed
@@ -72,11 +73,15 @@ public:
      */
     void PreScale(scalar sx, scalar sy);
 
+    void PostScale(scalar sx, scalar sy);
+
     /*
      * @brief         Sets Matrix to Matrix other multiplied by Matrix.
      * @param other   Matrix on left side of multiply expression.
      */
     void PreConcat(const Matrix& other);
+
+    void PostConcat(const Matrix& other);
 
     /*
      * @brief           Sets inverse to the inverse of Matrix.
@@ -123,6 +128,18 @@ public:
         return matrixImplPtr->DowncastingTo<T>();
     }
 
+    /*
+     * Returns true if matrix is Identity. Identity matrix is:
+     *    | 1 0 0 |
+     *    | 0 1 0 |
+     *    | 0 0 1 |
+     */
+    bool IsIdentity() const;
+
+    void PreRotate(scalar degree, scalar px, scalar py);
+    void PreScale(scalar sx, scalar sy, scalar px, scalar py);
+    void Reset();
+    void DeepCopy(const Matrix& matrix);
 private:
     std::shared_ptr<MatrixImpl> matrixImplPtr;
 };

@@ -16,6 +16,7 @@
 #include "skia_impl_factory.h"
 
 #include "skia_adapter/skia_bitmap.h"
+#include "skia_adapter/skia_pixmap.h"
 #include "skia_adapter/skia_camera.h"
 #include "skia_adapter/skia_canvas.h"
 #include "skia_adapter/skia_color_filter.h"
@@ -36,6 +37,8 @@
 #include "skia_adapter/skia_picture.h"
 #include "skia_adapter/skia_region.h"
 #include "skia_adapter/skia_shader_effect.h"
+#include "skia_adapter/skia_runtime_effect.h"
+#include "skia_adapter/skia_runtime_shader_builder.h"
 #include "skia_adapter/skia_surface.h"
 #include "skia_adapter/skia_text_blob_builder.h"
 #include "skia_adapter/skia_trace_memory_dump.h"
@@ -81,6 +84,16 @@ std::unique_ptr<BitmapImpl> SkiaImplFactory::CreateBitmap()
     return std::make_unique<SkiaBitmap>();
 }
 
+std::unique_ptr<PixmapImpl> SkiaImplFactory::CreatePixmap()
+{
+    return std::make_unique<SkiaPixmap>();
+}
+
+std::unique_ptr<PixmapImpl> SkiaImplFactory::CreatePixmap(const ImageInfo& imageInfo, const void* addr, size_t rowBytes)
+{
+    return std::make_unique<SkiaPixmap>(imageInfo, addr, rowBytes);
+}
+
 std::unique_ptr<ImageImpl> SkiaImplFactory::CreateImage()
 {
     return std::make_unique<SkiaImage>();
@@ -120,6 +133,17 @@ std::unique_ptr<ImageFilterImpl> SkiaImplFactory::CreateImageFilter()
 std::unique_ptr<ShaderEffectImpl> SkiaImplFactory::CreateShaderEffect()
 {
     return std::make_unique<SkiaShaderEffect>();
+}
+
+std::unique_ptr<RuntimeEffectImpl> SkiaImplFactory::CreateRuntimeEffect()
+{
+    return std::make_unique<SkiaRuntimeEffect>();
+}
+
+std::unique_ptr<RuntimeShaderBuilderImpl> SkiaImplFactory::CreateRuntimeShaderBuilder(
+    std::shared_ptr<RuntimeEffect> runtimeEffect)
+{
+    return std::make_unique<SkiaRuntimeShaderBuilder>(runtimeEffect);
 }
 
 std::unique_ptr<SurfaceImpl> SkiaImplFactory::CreateSurface()
@@ -170,6 +194,12 @@ std::unique_ptr<VerticesImpl::BuilderImpl> SkiaImplFactory::CreateVerticesBuilde
 std::unique_ptr<FontImpl> SkiaImplFactory::CreateFont()
 {
     return std::make_unique<SkiaFont>();
+}
+
+std::unique_ptr<FontImpl> SkiaImplFactory::CreateFont(std::shared_ptr<Typeface> typeface,
+    scalar size, scalar scaleX, scalar skewX)
+{
+    return std::make_unique<SkiaFont>(typeface, size, scaleX, skewX);
 }
 
 std::unique_ptr<TextBlobBuilderImpl> SkiaImplFactory::CreateTextBlobBuilder()

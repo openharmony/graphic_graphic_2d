@@ -42,6 +42,11 @@ size_t SkiaGraphics::GetFontCacheLimit()
 {
     return SkGraphics::GetFontCacheLimit();
 }
+
+void SkiaGraphics::PurgeResourceCache()
+{
+    return SkGraphics::PurgeResourceCache();
+}
 }
 }
 }

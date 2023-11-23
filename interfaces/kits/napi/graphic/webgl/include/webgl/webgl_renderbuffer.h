@@ -53,19 +53,37 @@ public:
 
     ~WebGLRenderbuffer() {};
 
-    GLenum GetTarget() const { return target_; }
-    void SetTarget(GLenum target) { target_ = target; }
+    GLenum GetTarget() const
+    {
+        return target_;
+    }
+    void SetTarget(GLenum target)
+    {
+        target_ = target;
+    }
 
-    void SetInternalFormat(GLenum internalFormat) { internalFormat_ = internalFormat; }
-    GLenum GetInternalFormat() const { return internalFormat_; }
+    void SetInternalFormat(GLenum internalFormat)
+    {
+        internalFormat_ = internalFormat;
+    }
+    GLenum GetInternalFormat() const
+    {
+        return internalFormat_;
+    }
 
     void SetSize(GLsizei width, GLsizei height)
     {
         width_ = width;
         height_ = height;
     }
-    GLsizei GetWidth() const { return width_; }
-    GLsizei GetHeight() const { return height_; }
+    GLsizei GetWidth() const
+    {
+        return width_;
+    }
+    GLsizei GetHeight() const
+    {
+        return height_;
+    }
 private:
     uint32_t renderbuffer_;
     GLenum target_ { 0 };

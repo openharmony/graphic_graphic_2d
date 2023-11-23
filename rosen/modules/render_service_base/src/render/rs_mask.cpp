@@ -277,17 +277,16 @@ bool RSMask::MarshallingPathAndBrush(Parcel& parcel) const
         maskBrush_.GetBlendMode(),
         maskBrush_.IsAntiAlias(),
         filter.GetFilterQuality(),
-
-        Drawing::CmdListHelper::AddRecordedToCmdList<Drawing::RecordingColorSpace>(
-            *maskCmdList, maskBrush_.GetColorSpace()),
-        Drawing::CmdListHelper::AddRecordedToCmdList<Drawing::RecordingShaderEffect>(
-            *maskCmdList, maskBrush_.GetShaderEffect()),
-        Drawing::CmdListHelper::AddRecordedToCmdList<Drawing::RecordingColorFilter>(
-            *maskCmdList, filter.GetColorFilter()),
-        Drawing::CmdListHelper::AddRecordedToCmdList<Drawing::RecordingImageFilter>(
-            *maskCmdList, filter.GetImageFilter()),
-        Drawing::CmdListHelper::AddRecordedToCmdList<Drawing::RecordingMaskFilter>(
-            *maskCmdList, filter.GetMaskFilter()),
+        Drawing::CmdListHelper::AddColorSpaceToCmdList(*maskCmdList,
+            maskBrush_.GetColorSpace()),
+        Drawing::CmdListHelper::AddShaderEffectToCmdList(*maskCmdList,
+            maskBrush_.GetShaderEffect()),
+        Drawing::CmdListHelper::AddColorFilterToCmdList(*maskCmdList,
+            filter.GetColorFilter()),
+        Drawing::CmdListHelper::AddImageFilterToCmdList(*maskCmdList,
+            filter.GetImageFilter()),
+        Drawing::CmdListHelper::AddMaskFilterToCmdList(*maskCmdList,
+            filter.GetMaskFilter()),
     };
     maskCmdList->AddOp<Drawing::MaskBrushOpItem>(brushHandle);
 
@@ -327,7 +326,7 @@ RSMask* RSMask::Unmarshalling(Parcel& parcel)
         return nullptr;
     }
     if (maskCmdList) {
-        maskCmdList->Playback(*rsMask->maskPath_, rsMask->maskBrush_);
+        maskCmdList->Playback(rsMask->maskPath_, rsMask->maskBrush_);
     }
 #endif
 

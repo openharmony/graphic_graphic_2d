@@ -111,6 +111,8 @@ public:
     void onDrawBitmapLattice(const SkBitmap& bm, const SkCanvas::Lattice& lattice, const SkRect& dst,
         const SkPaint* paint) override;
     void onDrawBitmapNine(const SkBitmap& bm, const SkIRect& center, const SkRect& dst, const SkPaint* paint) override;
+    void drawImageNine(const std::shared_ptr<Media::PixelMap>& pixelmap, const SkIRect& center,
+        const SkRect& dst, SkFilterMode filter, const SkPaint* paint);
     void onDrawBitmapRect(const SkBitmap& bm, const SkRect* src, const SkRect& dst,
         const SkPaint* paint, SrcRectConstraint constraint) override;
     void onDrawImage(const SkImage* img, SkScalar x, SkScalar y, const SkPaint* paint)override;

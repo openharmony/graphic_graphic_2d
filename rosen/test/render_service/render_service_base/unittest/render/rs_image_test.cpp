@@ -89,7 +89,8 @@ HWTEST_F(RSImageTest, LifeCycle001, TestSize.Level1)
      * @tc.steps: step1. create RSMask by Gradient
      */
     RSImage rsImage;
-    SkCanvas canvas;
+    SkCanvas skCanvas;
+    RSPaintFilterCanvas canvas(&skCanvas);
     float fLeft = 1.0f;
     float ftop = 1.0f;
     float fRight = 1.0f;
@@ -176,7 +177,8 @@ HWTEST_F(RSImageTest, TestRSImage001, TestSize.Level1)
 HWTEST_F(RSImageTest, TestRSImage002, TestSize.Level1)
 {
     RSImage image;
-    SkCanvas canvas;
+    SkCanvas skCanvas;
+    RSPaintFilterCanvas canvas(&skCanvas);
     SkRect rect;
     SkPaint paint;
     bool isBackground = false;
@@ -199,7 +201,8 @@ HWTEST_F(RSImageTest, TestRSImage002, TestSize.Level1)
 HWTEST_F(RSImageTest, TestRSImage003, TestSize.Level1)
 {
     RSImage image;
-    SkCanvas canvas;
+    SkCanvas skCanvas;
+    RSPaintFilterCanvas canvas(&skCanvas);
     SkRect rect;
     SkPaint paint;
     bool isBackground = false;
@@ -247,7 +250,8 @@ HWTEST_F(RSImageTest, TestRSImage003, TestSize.Level1)
 HWTEST_F(RSImageTest, TestRSImage004, TestSize.Level1)
 {
     RSImage image;
-    SkCanvas canvas;
+    SkCanvas skCanvas;
+    RSPaintFilterCanvas canvas(&skCanvas);
     SkRect rect = SkRect::MakeWH(100, 100);
     RectF dstRect(10, 10, 80, 80);
     SkPaint paint;
@@ -279,7 +283,8 @@ HWTEST_F(RSImageTest, RSImageBase001, TestSize.Level1)
     RectF rect(0, 0, 100, 100);
     imageBase.SetSrcRect(rect);
     imageBase.SetDstRect(rect);
-    SkCanvas canvas;
+    SkCanvas skCanvas;
+    RSPaintFilterCanvas canvas(&skCanvas);
     SkPaint paint;
 #ifdef NEW_SKIA
     SkSamplingOptions samplingOptions = SkSamplingOptions();
@@ -308,7 +313,8 @@ HWTEST_F(RSImageTest, RSImageCache001, TestSize.Level1)
     std::shared_ptr<RSImage> newImage;
     EXPECT_EQ(RSMarshallingHelper::Unmarshalling(parcel, newImage), true);
 
-    SkCanvas canvas;
+    SkCanvas skCanvas;
+    RSPaintFilterCanvas canvas(&skCanvas);
     SkPaint paint;
     SkRect rect = SkRect::MakeWH(100, 100);
 #ifdef NEW_SKIA

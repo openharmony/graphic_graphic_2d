@@ -63,7 +63,9 @@ std::vector<Boundary> WordBreaker::GetBoundary(const std::vector<uint16_t> &u16s
         throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
     }
 
-    wbi->setText({u16str.data() + startIndex_, static_cast<int32_t>(endIndex_ - startIndex_)});
+    auto u16Data = u16str.data();
+    const icu::UnicodeString ustr = {u16Data + startIndex_, static_cast<int32_t>(endIndex_ - startIndex_)};
+    wbi->setText(ustr);
 
     std::vector<Boundary> boundaries;
     auto beg = wbi->first();

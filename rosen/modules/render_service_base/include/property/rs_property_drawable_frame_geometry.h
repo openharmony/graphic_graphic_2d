@@ -16,12 +16,7 @@
 #ifndef RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_FRAME_GEOMETRY_H
 #define RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_FRAME_GEOMETRY_H
 
-#include <list>
-#include <utility>
-
-#ifndef USE_ROSEN_DRAWING
-#include "include/core/SkRect.h"
-#endif
+#include "include/core/SkPaint.h"
 
 #include "property/rs_property_drawable.h"
 
@@ -39,22 +34,11 @@ public:
 // ClipFrame
 class RSClipFrameDrawable : public RSPropertyDrawable {
 public:
-#ifndef USE_ROSEN_DRAWING
-    explicit RSClipFrameDrawable(const SkRect& content) : content_(content) {}
-#else
-    explicit RSClipFrameDrawable(const Drawing::Rect& content) : content_(content) {}
-#endif
+    explicit RSClipFrameDrawable() = default;
     ~RSClipFrameDrawable() override = default;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 
     static RSPropertyDrawable::DrawablePtr Generate(const RSPropertyDrawableGenerateContext& context);
-
-private:
-#ifndef USE_ROSEN_DRAWING
-    SkRect content_;
-#else
-    Drawing::Rect content_;
-#endif
 };
 
 // ============================================================================
@@ -69,6 +53,7 @@ public:
     ~RSColorFilterDrawable() override = default;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
     static std::unique_ptr<RSPropertyDrawable> Generate(const RSPropertyDrawableGenerateContext& context);
+    bool Update(const RSPropertyDrawableGenerateContext& context) override;
 
 private:
 #ifndef USE_ROSEN_DRAWING
@@ -77,5 +62,5 @@ private:
     Drawing::Brush brush_;
 #endif
 };
-};     // namespace OHOS::Rosen
+} // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_FRAME_GEOMETRY_H

@@ -45,6 +45,11 @@
 #include "image/gpu_context.h"
 #endif
 
+#ifdef RS_ENABLE_VK
+#include "pipeline/rs_vk_image_manager.h"
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t MEMUNIT_RATE = 1024;
@@ -103,7 +108,7 @@ void MemoryManager::ReleaseAllGpuResource(GrDirectContext* grContext, GrGpuResou
 void MemoryManager::ReleaseAllGpuResource(GrContext* grContext, GrGpuResourceTag& tag)
 #endif
 {
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!grContext) {
         RS_LOGE("ReleaseGpuResByTag fail, grContext is nullptr");
     }
@@ -133,7 +138,7 @@ void MemoryManager::ReleaseAllGpuResource(GrDirectContext* grContext, pid_t pid)
 void MemoryManager::ReleaseAllGpuResource(GrContext* grContext, pid_t pid)
 #endif
 {
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     GrGpuResourceTag tag(pid, 0, 0, 0);
     ReleaseAllGpuResource(grContext, tag);
 #endif
@@ -155,7 +160,7 @@ void MemoryManager::ReleaseUnlockGpuResource(GrDirectContext* grContext, GrGpuRe
 void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, GrGpuResourceTag& tag)
 #endif
 {
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!grContext) {
         RS_LOGE("ReleaseGpuResByTag fail, grContext is nullptr");
     }
@@ -185,7 +190,7 @@ void MemoryManager::ReleaseUnlockGpuResource(GrDirectContext* grContext, NodeId 
 void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, NodeId surfaceNodeId)
 #endif
 {
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     GrGpuResourceTag tag(ExtractPid(surfaceNodeId), 0, 0, 0);
     ReleaseUnlockGpuResource(grContext, tag); // clear gpu resource by pid
 #endif
@@ -207,7 +212,7 @@ void MemoryManager::ReleaseUnlockGpuResource(GrDirectContext* grContext, pid_t p
 void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, pid_t pid)
 #endif
 {
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     GrGpuResourceTag tag(pid, 0, 0, 0);
     ReleaseUnlockGpuResource(grContext, tag); // clear gpu resource by pid
 #endif
@@ -229,7 +234,7 @@ void MemoryManager::ReleaseUnlockGpuResource(GrDirectContext* grContext, bool sc
 void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, bool scratchResourcesOnly)
 #endif
 {
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!grContext) {
         RS_LOGE("ReleaseGpuResByTag fail, grContext is nullptr");
     }
@@ -257,7 +262,7 @@ void MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(GrDirectContext* grCont
 void MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(GrContext* grContext)
 #endif
 {
-#ifdef RS_ENABLE_GL
+#if defined (RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!grContext) {
         RS_LOGE("ReleaseUnlockAndSafeCacheGpuResource fail, grContext is nullptr");
     }
@@ -288,7 +293,7 @@ float MemoryManager::GetAppGpuMemoryInMB(GrContext* grContext)
     if (!grContext) {
         return 0.f;
     }
-#ifdef RS_ENABLE_GL
+#if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
     SkiaMemoryTracer trace("category", true);
     grContext->dumpMemoryStatistics(&trace);
     auto total = trace.GetGpuMemorySizeInMB();
@@ -388,8 +393,8 @@ MemoryGraphic MemoryManager::CountPidMemory(int pid, const GrContext* grContext)
 
     // Count mem of RS
     totalMemGraphic.SetPid(pid);
-    
-#ifdef RS_ENABLE_GL
+
+#if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
     // Count mem of Skia GPU
     if (grContext) {
         SkiaMemoryTracer gpuTracer("category", true);
@@ -555,7 +560,7 @@ void MemoryManager::DumpGpuCache(DfxString& log, const GrContext* grContext, GrG
         return;
     }
     /////////////////////////////GPU/////////////////////////
-#ifdef RS_ENABLE_GL
+#if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
     log.AppendFormat("\n---------------\nSkia GPU Caches:%s\n", name.c_str());
     SkiaMemoryTracer gpuTracer("category", true);
     if (tag) {
@@ -603,7 +608,7 @@ void MemoryManager::DumpAllGpuInfo(DfxString& log, const GrContext* grContext)
         log.AppendFormat("No valid gpu cache instance.\n");
         return;
     }
-#ifdef RS_ENABLE_GL
+#if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes([&log, &grContext](const std::shared_ptr<RSSurfaceRenderNode> node) {
         GrGpuResourceTag tag(ExtractPid(node->GetId()), 0, node->GetId(), 0);

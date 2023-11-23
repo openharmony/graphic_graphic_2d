@@ -29,11 +29,16 @@
 #include "rs_filter_sub_thread.h"
 
 namespace OHOS::Rosen {
+constexpr char TOPIC_RCD_DISPLAY_SIZE[] = "RCD_UPDATE_DISPLAY_SIZE";
+constexpr char TOPIC_RCD_DISPLAY_ROTATION[] = "RCD_UPDATE_DISPLAY_ROTATION";
+constexpr char TOPIC_RCD_DISPLAY_NOTCH[] = "RCD_UPDATE_DISPLAY_NOTCH";
 class RSSubThreadManager {
 public:
     static RSSubThreadManager *Instance();
     void Start(RenderContext *context);
     void StartFilterThread(RenderContext* context);
+    void StartColorPickerThread(RenderContext* context);
+    void StartRCDThread(RenderContext* context);
     void PostTask(const std::function<void()>& task, uint32_t threadIndex, bool isSyncTask = false);
     void WaitNodeTask(uint64_t nodeId);
     void NodeTaskNotify(uint64_t nodeId);
@@ -68,8 +73,11 @@ private:
     std::unordered_map<pid_t, uint32_t> threadIndexMap_;
     std::unordered_map<uint32_t, pid_t> reThreadIndexMap_;
     std::shared_ptr<RSFilterSubThread> filterThread = nullptr;
+    std::shared_ptr<RSFilterSubThread> colorPickerThread_ = nullptr;
     bool needResetContext_ = false;
     bool needCancelTask_ = false;
+
+    bool isRcdServiceRegister_ = false;
 };
 }
 #endif // RENDER_SERVICE_CORE_PIPELINE_PARALLEL_RENDER_RS_SUB_THREAD_MANAGER_H

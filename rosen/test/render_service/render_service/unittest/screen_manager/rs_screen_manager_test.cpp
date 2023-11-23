@@ -726,4 +726,55 @@ HWTEST_F(RSScreenManagerTest, SetScreenSkipFrameInterval_001, TestSize.Level1)
     auto result = screenManager->SetScreenSkipFrameInterval(screenId, interval);
     ASSERT_EQ(result, StatusCode::SCREEN_NOT_FOUND);
 }
+
+/*
+ * @tc.name: ResizeVirtualScreen_001
+ * @tc.desc: Test ResizeVirtualScreen
+ * @tc.type: FUNC
+ * @tc.require: issueI8F2HB
+ */
+HWTEST_F(RSScreenManagerTest, ResizeVirtualScreen_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen0";
+    uint32_t width = 500;
+    uint32_t height = 300;
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+    auto info = screenManager->QueryScreenInfo(id);
+    ASSERT_EQ(info.width, width);
+    ASSERT_EQ(info.height, height);
+
+    width = 0;
+    height = 0;
+    ASSERT_EQ(SUCCESS, static_cast<StatusCode>(screenManager->ResizeVirtualScreen(id, width, height)));
+    info = screenManager->QueryScreenInfo(id);
+    ASSERT_EQ(info.width, width);
+    ASSERT_EQ(info.height, height);
+
+    width = 100;
+    height = 200;
+    ASSERT_EQ(SUCCESS, static_cast<StatusCode>(screenManager->ResizeVirtualScreen(id, width, height)));
+    info = screenManager->QueryScreenInfo(id);
+    ASSERT_EQ(info.width, width);
+    ASSERT_EQ(info.height, height);
+
+    width = 10000;
+    height = 9000;
+    ASSERT_EQ(SUCCESS, static_cast<StatusCode>(screenManager->ResizeVirtualScreen(id, width, height)));
+    info = screenManager->QueryScreenInfo(id);
+    ASSERT_EQ(info.width, width);
+    ASSERT_EQ(info.height, height);
+
+    screenManager->RemoveVirtualScreen(id);
+    sleep(1);
+}
 } // namespace OHOS::Rosen

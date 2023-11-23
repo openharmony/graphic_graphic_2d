@@ -16,11 +16,17 @@
 #include "text/typeface.h"
 
 #include "impl_interface/typeface_impl.h"
+#include "static_factory.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 Typeface::Typeface(std::shared_ptr<TypefaceImpl> typefaceImpl) noexcept : typefaceImpl_(typefaceImpl) {}
+
+std::shared_ptr<Typeface> Typeface::MakeFromFile(const char path[])
+{
+    return StaticFactory::MakeFromFile(path);
+}
 
 std::string Typeface::GetFamilyName() const
 {

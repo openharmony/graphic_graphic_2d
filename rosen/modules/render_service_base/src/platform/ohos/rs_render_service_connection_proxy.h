@@ -42,13 +42,15 @@ public:
     sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) override;
 
     virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,
-                                                         const sptr<VSyncIConnectionToken>& token) override;
+                                                         const sptr<VSyncIConnectionToken>& token,
+                                                         uint64_t id = 0) override;
 
     int32_t SetFocusAppInfo(
         int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
         uint64_t focusNodeId) override;
 
     ScreenId GetDefaultScreenId() override;
+    ScreenId GetActiveScreenId() override;
 
     std::vector<ScreenId> GetAllScreenIds() override;
 
@@ -72,6 +74,8 @@ public:
     void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate) override;
 
     void SetRefreshRateMode(int32_t refreshRateMode) override;
+
+    void SyncFrameRateRange(const FrameRateRange& range) override;
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) override;
 
@@ -120,6 +124,8 @@ public:
 
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode) override;
 
+    int32_t SetScreenCorrection(ScreenId id, ScreenRotation screenRotation) override;
+
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) override;
 
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) override;
@@ -139,7 +145,7 @@ public:
     int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) override;
 
     int32_t RegisterSurfaceOcclusionChangeCallback(
-        NodeId id, sptr<RSISurfaceOcclusionChangeCallback> callback) override;
+        NodeId id, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints) override;
 
     int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) override;
 
@@ -148,6 +154,8 @@ public:
     void SetAppWindowNum(uint32_t num) override;
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) override;
+
+    int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height) override;
 
     void ReportJankStats() override;
 
@@ -161,9 +169,14 @@ public:
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
+    void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) override;
+
+    void RunOnRemoteDiedCallback() override;
+
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config) override;
 #endif
+    void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);
@@ -174,6 +187,7 @@ private:
 
     pid_t pid_ = GetRealPid();
     uint32_t transactionDataIndex_ = 0;
+    OnRemoteDiedCallback OnRemoteDiedCallback_;
 };
 } // namespace Rosen
 } // namespace OHOS

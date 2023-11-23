@@ -39,6 +39,10 @@ public:
 
     const RSAnimationTimingCurve& GetTimingCurve() const;
 
+    void SetZeroThreshold(const float zeroThreshold) override;
+
+    void SetInitialVelocity(const std::shared_ptr<RSPropertyBase>& velocity) override;
+
 protected:
     void OnStart() override;
 
@@ -47,7 +51,13 @@ private:
 
     void StartUIAnimation(const std::shared_ptr<RSRenderSpringAnimation>& animation);
 
+    bool GetIsLogicallyFinishCallback() const;
+
     RSAnimationTimingCurve timingCurve_ { RSAnimationTimingCurve::SPRING };
+    bool isLogicallyFinishCallback_ { false };
+    float zeroThreshold_ { 0.0f };
+
+    std::shared_ptr<RSPropertyBase> initialVelocity_;
 };
 } // namespace Rosen
 } // namespace OHOS

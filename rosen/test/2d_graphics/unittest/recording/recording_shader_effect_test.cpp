@@ -317,7 +317,8 @@ HWTEST_F(RecordingShaderEffectTest, CreateSweepGradient001, TestSize.Level1)
     scalar startAngle = 0.2f;
     scalar endAngle = 0.5f;
     auto newRecordingShaderEffect =
-        RecordingShaderEffect::CreateSweepGradient(centerPoint, colors, position, tileMode, startAngle, endAngle);
+        RecordingShaderEffect::CreateSweepGradient(centerPoint, colors, position, tileMode, startAngle, endAngle,
+        nullptr);
     EXPECT_TRUE(newRecordingShaderEffect != nullptr);
     auto shaderEffectCmdList = newRecordingShaderEffect->GetCmdList();
     EXPECT_TRUE(shaderEffectCmdList != nullptr);
@@ -341,7 +342,8 @@ HWTEST_F(RecordingShaderEffectTest, CreateSweepGradient002, TestSize.Level1)
     scalar startAngle = 10.2f;
     scalar endAngle = 10.5f;
     auto newRecordingShaderEffect =
-        RecordingShaderEffect::CreateSweepGradient(centerPoint, colors, position, tileMode, startAngle, endAngle);
+        RecordingShaderEffect::CreateSweepGradient(centerPoint, colors, position, tileMode, startAngle, endAngle,
+        nullptr);
     EXPECT_TRUE(newRecordingShaderEffect != nullptr);
     auto shaderEffectCmdList = newRecordingShaderEffect->GetCmdList();
     EXPECT_TRUE(shaderEffectCmdList != nullptr);

@@ -58,14 +58,16 @@ std::shared_ptr<RSRenderModifier> RSEnvForegroundColorStrategyModifier::CreateRe
         return renderModifier;                                                                     \
     }
 
-#define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP, MODIFIER_TIER)              \
-    RS##MODIFIER_NAME##Modifier::RS##MODIFIER_NAME##Modifier(const std::shared_ptr<RSPropertyBase>& property) \
-        : RS##MODIFIER_TIER##Modifier(property, RSModifierType::MODIFIER_TYPE)                                \
-    {}                                                                                                        \
-    RSModifierType RS##MODIFIER_NAME##Modifier::GetModifierType() const                                       \
-    {                                                                                                         \
-        return RSModifierType::MODIFIER_TYPE;                                                                 \
-    }                                                                                                         \
+#define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP, MODIFIER_TIER, THRESHOLD_TYPE) \
+    RS##MODIFIER_NAME##Modifier::RS##MODIFIER_NAME##Modifier(const std::shared_ptr<RSPropertyBase>& property)    \
+        : RS##MODIFIER_TIER##Modifier(property, RSModifierType::MODIFIER_TYPE)                                   \
+    {                                                                                                            \
+        property_->SetThresholdType(ThresholdType::THRESHOLD_TYPE);                                              \
+    }                                                                                                            \
+    RSModifierType RS##MODIFIER_NAME##Modifier::GetModifierType() const                                          \
+    {                                                                                                            \
+        return RSModifierType::MODIFIER_TYPE;                                                                    \
+    }                                                                                                            \
     DECLARE_ANIMATABLE_MODIFIER_CREATE(MODIFIER_NAME)
 
 #define DECLARE_NOANIMATABLE_MODIFIER_CREATE(MODIFIER_NAME)                                        \

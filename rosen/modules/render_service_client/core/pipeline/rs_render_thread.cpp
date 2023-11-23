@@ -435,7 +435,7 @@ void RSRenderThread::Render()
     }
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::Render");
     if (RsFrameReport::GetInstance().GetEnable()) {
-        RsFrameReport::GetInstance().RenderStart();
+        RsFrameReport::GetInstance().RenderStart(timestamp_);
     }
     std::unique_lock<std::mutex> lock(mutex_);
     const auto& rootNode = context_->GetGlobalRootRenderNode();

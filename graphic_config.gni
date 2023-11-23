@@ -33,7 +33,7 @@ declare_args() {
   graphic_2d_feature_drivers_interface_display_enable = true
   graphic_2d_feature_tp_switch_enbale = false
 
-  if (defined(build_cross_platform_version) && build_cross_platform_version) {
+  if (defined(is_arkui_x) && is_arkui_x) {
     use_new_render_context = false
     is_cross_platform = true
   } else {
@@ -93,8 +93,7 @@ if (graphic_2d_feature_ace_enable_gpu) {
   libvulkan = []
 }
 
-if ((graphic_2d_feature_rs_enable_eglimage &&
-     !graphic_2d_feature_enable_vulkan) || current_os == "android") {
+if (graphic_2d_feature_rs_enable_eglimage || current_os == "android") {
   gpu_defines += [
     "RS_ENABLE_EGLIMAGE",
     "RS_ENABLE_EGLQUERYSURFACE",

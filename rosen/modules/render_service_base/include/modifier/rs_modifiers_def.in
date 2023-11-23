@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,75 +16,83 @@
 // Declare animatable and noanimatable modifiers
 // args: (MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP)
 
-DECLARE_ANIMATABLE_MODIFIER(Bounds, Vector4f, BOUNDS, Replace, Geometry)
+DECLARE_ANIMATABLE_MODIFIER(Bounds, Vector4f, BOUNDS, Replace, Geometry, LAYOUT)
 
-DECLARE_ANIMATABLE_MODIFIER(BoundsSize, Vector2f, BOUNDS, Replace, Geometry)
+DECLARE_ANIMATABLE_MODIFIER(BoundsSize, Vector2f, BOUNDS, Replace, Geometry, LAYOUT)
 
-DECLARE_ANIMATABLE_MODIFIER(BoundsPosition, Vector2f, BOUNDS, Replace, Geometry)
+DECLARE_ANIMATABLE_MODIFIER(BoundsPosition, Vector2f, BOUNDS, Replace, Geometry, LAYOUT)
 
-DECLARE_ANIMATABLE_MODIFIER(Frame, Vector4f, FRAME, Replace, Geometry)
+DECLARE_ANIMATABLE_MODIFIER(Frame, Vector4f, FRAME, Replace, Geometry, LAYOUT)
 
-DECLARE_ANIMATABLE_MODIFIER(SandBox, Vector2f, SANDBOX, Replace, Geometry)
+DECLARE_ANIMATABLE_MODIFIER(SandBox, Vector2f, SANDBOX, Replace, Geometry, LAYOUT)
 
-DECLARE_ANIMATABLE_MODIFIER(PositionZ, float, POSITION_Z, Add, Geometry)
+DECLARE_ANIMATABLE_MODIFIER(PositionZ, float, POSITION_Z, Add, Geometry, LAYOUT)
 
-DECLARE_ANIMATABLE_MODIFIER(Pivot, Vector2f, PIVOT, Replace, Geometry)
+DECLARE_ANIMATABLE_MODIFIER(Pivot, Vector2f, PIVOT, Replace, Geometry, FINE)
 
-DECLARE_ANIMATABLE_MODIFIER(PivotZ, float, PIVOT_Z, Replace, Geometry)
+DECLARE_ANIMATABLE_MODIFIER(PivotZ, float, PIVOT_Z, Replace, Geometry, FINE)
 
-DECLARE_ANIMATABLE_MODIFIER(Quaternion, Quaternion, QUATERNION, Replace, Geometry)
+DECLARE_ANIMATABLE_MODIFIER(Quaternion, Quaternion, QUATERNION, Replace, Geometry, FINE)
 
-DECLARE_ANIMATABLE_MODIFIER(Rotation, float, ROTATION, Add, Geometry)
+DECLARE_ANIMATABLE_MODIFIER(Rotation, float, ROTATION, Add, Geometry, FINE)
 
-DECLARE_ANIMATABLE_MODIFIER(RotationX, float, ROTATION_X, Add, Geometry)
+DECLARE_ANIMATABLE_MODIFIER(RotationX, float, ROTATION_X, Add, Geometry, FINE)
 
-DECLARE_ANIMATABLE_MODIFIER(RotationY, float, ROTATION_Y, Add, Geometry)
+DECLARE_ANIMATABLE_MODIFIER(RotationY, float, ROTATION_Y, Add, Geometry, FINE)
 
-DECLARE_ANIMATABLE_MODIFIER(CameraDistance, float, CAMERA_DISTANCE, Replace, Geometry)
+DECLARE_ANIMATABLE_MODIFIER(CameraDistance, float, CAMERA_DISTANCE, Replace, Geometry, COARSE)
 
-DECLARE_ANIMATABLE_MODIFIER(Scale, Vector2f, SCALE, Multiply, Geometry)
+DECLARE_ANIMATABLE_MODIFIER(Scale, Vector2f, SCALE, Multiply, Geometry, FINE)
 
-DECLARE_ANIMATABLE_MODIFIER(Translate, Vector2f, TRANSLATE, Add, Geometry)
+DECLARE_ANIMATABLE_MODIFIER(Translate, Vector2f, TRANSLATE, Add, Geometry, LAYOUT)
 
-DECLARE_ANIMATABLE_MODIFIER(TranslateZ, float, TRANSLATE_Z, Add, Geometry)
+DECLARE_ANIMATABLE_MODIFIER(TranslateZ, float, TRANSLATE_Z, Add, Geometry, LAYOUT)
 
-DECLARE_ANIMATABLE_MODIFIER(CornerRadius, Vector4f, CORNER_RADIUS, Add, Appearance)
+DECLARE_ANIMATABLE_MODIFIER(CornerRadius, Vector4f, CORNER_RADIUS, Add, Appearance, MEDIUM)
 
-DECLARE_ANIMATABLE_MODIFIER(Alpha, float, ALPHA, Multiply, Appearance)
+DECLARE_ANIMATABLE_MODIFIER(Alpha, float, ALPHA, Multiply, Appearance, COARSE)
 
 DECLARE_NOANIMATABLE_MODIFIER(AlphaOffscreen, bool, ALPHA_OFFSCREEN, Appearance)
 
-DECLARE_ANIMATABLE_MODIFIER(ForegroundColor, Color, FOREGROUND_COLOR, Add, Foreground)
+DECLARE_ANIMATABLE_MODIFIER(ForegroundColor, Color, FOREGROUND_COLOR, Add, Foreground, COLOR)
 
-DECLARE_ANIMATABLE_MODIFIER(BackgroundColor, Color, BACKGROUND_COLOR, Add, Background)
+DECLARE_ANIMATABLE_MODIFIER(BackgroundColor, Color, BACKGROUND_COLOR, Add, Background, COLOR)
 
 DECLARE_NOANIMATABLE_MODIFIER(BackgroundShader, std::shared_ptr<RSShader>, BACKGROUND_SHADER, Background)
 
 DECLARE_NOANIMATABLE_MODIFIER(BgImage, std::shared_ptr<RSImage>, BG_IMAGE, Background)
 
-DECLARE_ANIMATABLE_MODIFIER(BgImageWidth, float, BG_IMAGE_WIDTH, Add, Background)
+DECLARE_ANIMATABLE_MODIFIER(BgImageWidth, float, BG_IMAGE_WIDTH, Add, Background, LAYOUT)
 
-DECLARE_ANIMATABLE_MODIFIER(BgImageHeight, float, BG_IMAGE_HEIGHT, Add, Background)
+DECLARE_ANIMATABLE_MODIFIER(BgImageHeight, float, BG_IMAGE_HEIGHT, Add, Background, LAYOUT)
 
-DECLARE_ANIMATABLE_MODIFIER(BgImagePositionX, float, BG_IMAGE_POSITION_X, Add, Background)
+DECLARE_ANIMATABLE_MODIFIER(BgImagePositionX, float, BG_IMAGE_POSITION_X, Add, Background, LAYOUT)
 
-DECLARE_ANIMATABLE_MODIFIER(BgImagePositionY, float, BG_IMAGE_POSITION_Y, Add, Background)
+DECLARE_ANIMATABLE_MODIFIER(BgImagePositionY, float, BG_IMAGE_POSITION_Y, Add, Background, LAYOUT)
 
-DECLARE_ANIMATABLE_MODIFIER(BorderColor, Vector4<Color>, BORDER_COLOR, Replace, Foreground)
+DECLARE_ANIMATABLE_MODIFIER(BorderColor, Vector4<Color>, BORDER_COLOR, Replace, Foreground, COLOR)
 
-DECLARE_ANIMATABLE_MODIFIER(BorderWidth, Vector4f, BORDER_WIDTH, Replace, Foreground)
+DECLARE_ANIMATABLE_MODIFIER(BorderWidth, Vector4f, BORDER_WIDTH, Replace, Foreground, LAYOUT)
 
 DECLARE_NOANIMATABLE_MODIFIER(BorderStyle, Vector4<uint32_t>, BORDER_STYLE, Foreground)
 
-DECLARE_ANIMATABLE_MODIFIER(Filter, std::shared_ptr<RSFilter>, FILTER, Add, Foreground)
+DECLARE_ANIMATABLE_MODIFIER(OuterBorderColor, Vector4<Color>, OUTER_BORDER_COLOR, Replace, Foreground, COLOR)
 
-DECLARE_ANIMATABLE_MODIFIER(BackgroundFilter, std::shared_ptr<RSFilter>, BACKGROUND_FILTER, Add, Background)
+DECLARE_ANIMATABLE_MODIFIER(OuterBorderWidth, Vector4f, OUTER_BORDER_WIDTH, Replace, Foreground, LAYOUT)
+
+DECLARE_NOANIMATABLE_MODIFIER(OuterBorderStyle, Vector4<uint32_t>, OUTER_BORDER_STYLE, Foreground)
+
+DECLARE_ANIMATABLE_MODIFIER(OuterBorderRadius, Vector4f, OUTER_BORDER_RADIUS, Add, Foreground, MEDIUM)
+
+DECLARE_ANIMATABLE_MODIFIER(Filter, std::shared_ptr<RSFilter>, FILTER, Add, Foreground, COARSE)
+
+DECLARE_ANIMATABLE_MODIFIER(BackgroundFilter, std::shared_ptr<RSFilter>, BACKGROUND_FILTER, Add, Background, COARSE)
 
 DECLARE_NOANIMATABLE_MODIFIER(LinearGradientBlurPara, std::shared_ptr<RSLinearGradientBlurPara>, LINEAR_GRADIENT_BLUR_PARA, Foreground)
 
 DECLARE_NOANIMATABLE_MODIFIER(FrameGravity, Gravity, FRAME_GRAVITY, Appearance)
 
-DECLARE_ANIMATABLE_MODIFIER(ClipRRect, RRect, CLIP_RRECT, Replace, Appearance)
+DECLARE_ANIMATABLE_MODIFIER(ClipRRect, RRect, CLIP_RRECT, Replace, Appearance, MEDIUM)
 
 DECLARE_NOANIMATABLE_MODIFIER(ClipBounds, std::shared_ptr<RSPath>, CLIP_BOUNDS, Appearance)
 
@@ -94,17 +102,17 @@ DECLARE_NOANIMATABLE_MODIFIER(ClipToFrame, bool, CLIP_TO_FRAME, Appearance)
 
 DECLARE_NOANIMATABLE_MODIFIER(Visible, bool, VISIBLE, Appearance)
 
-DECLARE_ANIMATABLE_MODIFIER(ShadowColor, Color, SHADOW_COLOR, Replace, Background)
+DECLARE_ANIMATABLE_MODIFIER(ShadowColor, Color, SHADOW_COLOR, Replace, Background, COLOR)
 
-DECLARE_ANIMATABLE_MODIFIER(ShadowOffsetX, float, SHADOW_OFFSET_X, Replace, Background)
+DECLARE_ANIMATABLE_MODIFIER(ShadowOffsetX, float, SHADOW_OFFSET_X, Replace, Background, LAYOUT)
 
-DECLARE_ANIMATABLE_MODIFIER(ShadowOffsetY, float, SHADOW_OFFSET_Y, Replace, Background)
+DECLARE_ANIMATABLE_MODIFIER(ShadowOffsetY, float, SHADOW_OFFSET_Y, Replace, Background, LAYOUT)
 
-DECLARE_ANIMATABLE_MODIFIER(ShadowAlpha, float, SHADOW_ALPHA, Replace, Background)
+DECLARE_ANIMATABLE_MODIFIER(ShadowAlpha, float, SHADOW_ALPHA, Replace, Background, COARSE)
 
-DECLARE_ANIMATABLE_MODIFIER(ShadowElevation, float, SHADOW_ELEVATION, Replace, Background)
+DECLARE_ANIMATABLE_MODIFIER(ShadowElevation, float, SHADOW_ELEVATION, Replace, Background, COARSE)
 
-DECLARE_ANIMATABLE_MODIFIER(ShadowRadius, float, SHADOW_RADIUS, Replace, Background)
+DECLARE_ANIMATABLE_MODIFIER(ShadowRadius, float, SHADOW_RADIUS, Replace, Background, LAYOUT)
 
 DECLARE_NOANIMATABLE_MODIFIER(ShadowPath, std::shared_ptr<RSPath>, SHADOW_PATH, Background)
 
@@ -112,36 +120,54 @@ DECLARE_NOANIMATABLE_MODIFIER(ShadowMask, bool, SHADOW_MASK, Background)
 
 DECLARE_NOANIMATABLE_MODIFIER(ShadowIsFilled, bool, SHADOW_IS_FILLED, Background)
 
+DECLARE_NOANIMATABLE_MODIFIER(ShadowColorStrategy, bool, SHADOW_COLOR_STRATEGY, Background)
+
 DECLARE_NOANIMATABLE_MODIFIER(Mask, std::shared_ptr<RSMask>, MASK, Foreground)
 
-DECLARE_ANIMATABLE_MODIFIER(Spherize, float, SPHERIZE, Replace, Appearance)
+DECLARE_ANIMATABLE_MODIFIER(Spherize, float, SPHERIZE, Replace, Appearance, MEDIUM)
 
-DECLARE_ANIMATABLE_MODIFIER(LightUpEffect, float, LIGHT_UP_EFFECT, Replace, Foreground)
+DECLARE_ANIMATABLE_MODIFIER(LightUpEffect, float, LIGHT_UP_EFFECT, Replace, Foreground, COARSE)
 
-DECLARE_ANIMATABLE_MODIFIER(PixelStretch, Vector4f, PIXEL_STRETCH, Replace, Geometry)
+DECLARE_ANIMATABLE_MODIFIER(PixelStretch, Vector4f, PIXEL_STRETCH, Replace, Geometry, COARSE)
 
-DECLARE_ANIMATABLE_MODIFIER(PixelStretchPercent, Vector4f, PIXEL_STRETCH_PERCENT, Replace, Geometry)
+DECLARE_ANIMATABLE_MODIFIER(PixelStretchPercent, Vector4f, PIXEL_STRETCH_PERCENT, Replace, Geometry, FINE)
 
-DECLARE_ANIMATABLE_MODIFIER(GrayScale, float, GRAY_SCALE, Add, Foreground)
+DECLARE_ANIMATABLE_MODIFIER(GrayScale, float, GRAY_SCALE, Add, Foreground, COARSE)
 
-DECLARE_ANIMATABLE_MODIFIER(Brightness, float, BRIGHTNESS, Add, Foreground)
+DECLARE_ANIMATABLE_MODIFIER(Brightness, float, BRIGHTNESS, Add, Foreground, COARSE)
 
-DECLARE_ANIMATABLE_MODIFIER(Contrast, float, CONTRAST, Add, Foreground)
+DECLARE_ANIMATABLE_MODIFIER(Contrast, float, CONTRAST, Add, Foreground, COARSE)
 
-DECLARE_ANIMATABLE_MODIFIER(Saturate, float, SATURATE, Add, Foreground)
+DECLARE_ANIMATABLE_MODIFIER(Saturate, float, SATURATE, Add, Foreground, COARSE)
 
-DECLARE_ANIMATABLE_MODIFIER(Sepia, float, SEPIA, Add, Foreground)
+DECLARE_ANIMATABLE_MODIFIER(Sepia, float, SEPIA, Add, Foreground, COARSE)
 
-DECLARE_ANIMATABLE_MODIFIER(Invert, float, INVERT, Add, Foreground)
+DECLARE_ANIMATABLE_MODIFIER(Invert, float, INVERT, Add, Foreground, COARSE)
 
-DECLARE_ANIMATABLE_MODIFIER(HueRotate, float, HUE_ROTATE, Add, Foreground)
+DECLARE_ANIMATABLE_MODIFIER(AiInvert, Vector4f, AIINVERT, Add, Foreground, COARSE)
 
-DECLARE_ANIMATABLE_MODIFIER(ColorBlend, Color, COLOR_BLEND, Add, Foreground)
+DECLARE_ANIMATABLE_MODIFIER(HueRotate, float, HUE_ROTATE, Add, Foreground, COARSE)
+
+DECLARE_ANIMATABLE_MODIFIER(ColorBlend, Color, COLOR_BLEND, Add, Foreground, COLOR)
 
 DECLARE_NOANIMATABLE_MODIFIER(UseEffect, bool, USE_EFFECT, Background)
 
-DECLARE_ANIMATABLE_MODIFIER(DynamicLightUpRate, float, DYNAMIC_LIGHT_UP_RATE, Replace, Foreground)
+DECLARE_NOANIMATABLE_MODIFIER(ColorBlendMode, int, COLOR_BLEND_MODE, Background)
 
-DECLARE_ANIMATABLE_MODIFIER(DynamicLightUpDegree, float, DYNAMIC_LIGHT_UP_DEGREE, Replace, Foreground)
+DECLARE_ANIMATABLE_MODIFIER(DynamicLightUpRate, float, DYNAMIC_LIGHT_UP_RATE, Replace, Foreground, COARSE)
 
-DECLARE_NOANIMATABLE_MODIFIER(ColorBlendMode, int, COLOR_BLENDMODE, Background)
+DECLARE_ANIMATABLE_MODIFIER(DynamicLightUpDegree, float, DYNAMIC_LIGHT_UP_DEGREE, Replace, Foreground, COARSE)
+
+DECLARE_NOANIMATABLE_MODIFIER(UseShadowBatching, bool, USE_SHADOW_BATCHING, Background)
+
+DECLARE_ANIMATABLE_MODIFIER(GreyCoef1, float, GREY_COEF1, Replace, Background, COARSE)
+
+DECLARE_ANIMATABLE_MODIFIER(GreyCoef2, float, GREY_COEF2, Replace, Background, COARSE)
+
+DECLARE_ANIMATABLE_MODIFIER(Bloom, float, BLOOM, Replace, Foreground, COARSE)
+
+DECLARE_ANIMATABLE_MODIFIER(LightPosition, Vector4f, LIGHT_POSITION, Replace, Foreground, LAYOUT)
+
+DECLARE_ANIMATABLE_MODIFIER(LightIntensity, float, LIGHT_INTENSITY, Replace, Foreground, COARSE)
+
+DECLARE_NOANIMATABLE_MODIFIER(IlluminatedType, int, ILLUMINATED_TYPE, Foreground)

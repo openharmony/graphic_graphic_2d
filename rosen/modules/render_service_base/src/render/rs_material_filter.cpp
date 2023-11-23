@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,7 @@
 
 #include "common/rs_common_def.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 #include "platform/common/rs_system_properties.h"
 
@@ -88,12 +89,10 @@ RSMaterialFilter::RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mo
     imageFilter_ = RSMaterialFilter::CreateMaterialStyle(static_cast<MATERIAL_BLUR_STYLE>(style), dipScale, ratio);
     type_ = FilterType::MATERIAL;
 
-#ifndef USE_ROSEN_DRAWING
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
     hash_ = SkOpts::hash(&style, sizeof(style), hash_);
     hash_ = SkOpts::hash(&colorMode_, sizeof(colorMode_), hash_);
     hash_ = SkOpts::hash(&ratio, sizeof(ratio), hash_);
-#endif
 }
 
 RSMaterialFilter::RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE mode)
@@ -107,12 +106,13 @@ RSMaterialFilter::RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE 
     imageFilter_ = RSMaterialFilter::CreateMaterialFilter(
         materialParam.radius, materialParam.saturation, materialParam.brightness);
     type_ = FilterType::MATERIAL;
+    if (colorMode_ == FASTAVERAGE) {
+        colorPickerTask_ = std::make_shared<RSColorPickerCacheTask>();
+    }
 
-#ifndef USE_ROSEN_DRAWING
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
     hash_ = SkOpts::hash(&materialParam, sizeof(materialParam), hash_);
     hash_ = SkOpts::hash(&colorMode_, sizeof(colorMode_), hash_);
-#endif
 }
 
 RSMaterialFilter::~RSMaterialFilter() = default;
@@ -145,16 +145,19 @@ std::shared_ptr<RSDrawingFilter> RSMaterialFilter::Compose(const std::shared_ptr
     std::shared_ptr<RSMaterialFilter> result = std::make_shared<RSMaterialFilter>(materialParam, colorMode_);
 #ifndef USE_ROSEN_DRAWING
     result->imageFilter_ = SkImageFilters::Compose(imageFilter_, other->GetImageFilter());
-    auto otherHash = other->Hash();
-    result->hash_ = SkOpts::hash(&otherHash, sizeof(otherHash), hash_);
 #else
     result->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, other->GetImageFilter());
 #endif
+    auto otherHash = other->Hash();
+    result->hash_ = SkOpts::hash(&otherHash, sizeof(otherHash), hash_);
     return result;
 }
 
 #ifndef USE_ROSEN_DRAWING
 sk_sp<SkColorFilter> RSMaterialFilter::GetColorFilter(float sat, float brightness)
+#else
+std::shared_ptr<Drawing::ColorFilter> RSMaterialFilter::GetColorFilter(float sat, float brightness)
+#endif
 {
     float normalizedDegree = brightness - 1.0;
     const float brightnessMat[] = {
@@ -164,14 +167,26 @@ sk_sp<SkColorFilter> RSMaterialFilter::GetColorFilter(float sat, float brightnes
         0.000000f, 0.000000f, 0.000000f, 1.000000f, 0.000000f,
     };
 
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkColorFilter> brightnessFilter = SkColorFilters::Matrix(brightnessMat); // brightness
     SkColorMatrix cm;
     cm.setSaturation(sat);
     sk_sp<SkColorFilter> satFilter = SkColorFilters::Matrix(cm); // saturation
     sk_sp<SkColorFilter> filterCompose = SkColorFilters::Compose(satFilter, brightnessFilter);
+#else
+    Drawing::ColorMatrix bm;
+    bm.SetArray(brightnessMat);
+    std::shared_ptr<Drawing::ColorFilter> brightnessFilter = Drawing::ColorFilter::CreateMatrixColorFilter(bm);
+    Drawing::ColorMatrix cm;
+    cm.SetSaturation(sat);
+    std::shared_ptr<Drawing::ColorFilter> satFilter = Drawing::ColorFilter::CreateMatrixColorFilter(cm);
+    std::shared_ptr<Drawing::ColorFilter> filterCompose =
+        Drawing::ColorFilter::CreateComposeColorFilter(*satFilter, *brightnessFilter);
+#endif
     return filterCompose;
 }
 
+#ifndef USE_ROSEN_DRAWING
 sk_sp<SkImageFilter> RSMaterialFilter::CreateMaterialFilter(float radius, float sat, float brightness)
 {
     colorFilter_ = GetColorFilter(sat, brightness);
@@ -187,27 +202,12 @@ sk_sp<SkImageFilter> RSMaterialFilter::CreateMaterialFilter(float radius, float 
 #else
 std::shared_ptr<Drawing::ImageFilter> RSMaterialFilter::CreateMaterialFilter(float radius, float sat, float brightness)
 {
+    colorFilter_ = GetColorFilter(sat, brightness);
+    useKawase_ = RSSystemProperties::GetKawaseEnabled();
     std::shared_ptr<Drawing::ImageFilter> blurFilter =
         Drawing::ImageFilter::CreateBlurImageFilter(radius, radius, Drawing::TileMode::CLAMP, nullptr);
-    float normalizedDegree = brightness - 1.0;
-    const Drawing::scalar brightnessMat[] = {
-        1.000000f, 0.000000f, 0.000000f, 0.000000f, normalizedDegree,
-        0.000000f, 1.000000f, 0.000000f, 0.000000f, normalizedDegree,
-        0.000000f, 0.000000f, 1.000000f, 0.000000f, normalizedDegree,
-        0.000000f, 0.000000f, 0.000000f, 1.000000f, 0.000000f,
-    };
-
-    Drawing::ColorMatrix bm;
-    bm.SetArray(brightnessMat);
-    std::shared_ptr<Drawing::ColorFilter> brightnessFilter =
-        Drawing::ColorFilter::CreateMatrixColorFilter(bm); // brightness
-    Drawing::ColorMatrix cm;
-    cm.SetSaturation(sat);
-    std::shared_ptr<Drawing::ColorFilter> satFilter = Drawing::ColorFilter::CreateMatrixColorFilter(cm); // saturation
-    std::shared_ptr<Drawing::ColorFilter> filterCompose =
-        Drawing::ColorFilter::CreateComposeColorFilter(*brightnessFilter, *satFilter); // saturation
-
-    return Drawing::ImageFilter::CreateColorFilterImageFilter(*filterCompose, blurFilter);
+    
+    return Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter_, blurFilter);
 }
 #endif
 
@@ -239,6 +239,14 @@ void RSMaterialFilter::PreProcess(sk_sp<SkImage> imageSnapshot)
         SkColor colorPicker = RSPropertiesPainter::CalcAverageColor(imageSnapshot);
         maskColor_ = RSColor(
             SkColorGetR(colorPicker), SkColorGetG(colorPicker), SkColorGetB(colorPicker), maskColor_.GetAlpha());
+    } else if (colorMode_ == FASTAVERAGE) {
+        RSColor color;
+        if (RSColorPickerCacheTask::PostPartialColorPickerTask(colorPickerTask_, imageSnapshot)) {
+            if (colorPickerTask_->GetColor(color)) {
+                maskColor_ = RSColor(color.GetRed(), color.GetGreen(), color.GetBlue(), maskColor_.GetAlpha());
+            }
+            colorPickerTask_->SetStatus(CacheProcessStatus::WAITING);
+        }
     }
 }
 #else
@@ -281,11 +289,6 @@ bool RSMaterialFilter::IsValid() const
 {
     constexpr float epsilon = 0.05f;
     return radius_ > epsilon;
-}
-
-bool RSMaterialFilter::IsPartialValid() const
-{
-    return !KAWASE_BLUR_ENABLED || radius_ >= 1.0f;
 }
 
 std::shared_ptr<RSFilter> RSMaterialFilter::Add(const std::shared_ptr<RSFilter>& rhs)
@@ -359,6 +362,11 @@ void RSMaterialFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_
 #endif
 #else
     auto brush = GetBrush();
+    // if kawase blur failed, use gauss blur
+    KawaseParameter param = KawaseParameter(src, dst, radius_, colorFilter_, brush.GetColor().GetAlphaF());
+    if (useKawase_ && KawaseBlurFilter::GetKawaseBlurFilter()->ApplyKawaseBlur(canvas, image, param)) {
+        return;
+    }
     canvas.AttachBrush(brush);
     canvas.DrawImageRect(*image, src, dst, Drawing::SamplingOptions());
     canvas.DetachBrush();
@@ -375,5 +383,38 @@ bool RSMaterialFilter::CanSkipFrame() const
     constexpr float HEAVY_BLUR_THRESHOLD = 25.0f;
     return radius_ > HEAVY_BLUR_THRESHOLD;
 };
+
+bool RSMaterialFilter::IsNearEqual(const std::shared_ptr<RSFilter>& other, float threshold) const
+{
+    auto otherMaterialFilter = std::static_pointer_cast<RSMaterialFilter>(other);
+    if (otherMaterialFilter == nullptr) {
+        ROSEN_LOGE("RSMaterialFilter::IsNearEqual: the types of filters are different.");
+        return true;
+    }
+    return ROSEN_EQ(radius_, otherMaterialFilter->radius_, 1.0f) &&
+           ROSEN_EQ(saturation_, otherMaterialFilter->saturation_, threshold) &&
+           ROSEN_EQ(brightness_, otherMaterialFilter->brightness_, threshold) &&
+           maskColor_.IsNearEqual(otherMaterialFilter->maskColor_, 0);
+}
+
+bool RSMaterialFilter::IsNearZero(float threshold) const
+{
+    return ROSEN_EQ(radius_, 0.0f, threshold);
+}
+
+void RSMaterialFilter::ReleaseColorPicker()
+{
+    if (colorPickerTask_ != nullptr) {
+        colorPickerTask_->SetStatus(CacheProcessStatus::WAITING);
+        colorPickerTask_->Reset();
+#ifdef IS_OHOS
+        if (colorPickerTask_->GetHandler() != nullptr) {
+            auto task = colorPickerTask_;
+            task->GetHandler()->PostTask(
+                [task]() { task->ResetGrContext(); }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        }
+#endif
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

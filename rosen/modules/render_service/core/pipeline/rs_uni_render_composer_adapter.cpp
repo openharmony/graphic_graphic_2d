@@ -24,7 +24,8 @@
 #include "rs_trace.h"
 #include "string_utils.h"
 
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
+#if defined(RS_ENABLE_DRIVEN_RENDER)
 #include "pipeline/driven_render/rs_driven_surface_render_node.h"
 #endif
 
@@ -63,7 +64,7 @@ bool RSUniRenderComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offs
     bool directClientCompEnableStatus = RSSystemProperties::GetDirectClientCompEnableStatus();
     output_->SetDirectClientCompEnableStatus(directClientCompEnableStatus);
 
-#if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
+#if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
     // enable direct GPU composition.
     output_->SetLayerCompCapacity(LAYER_COMPOSITION_CAPACITY);
 #else // (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
@@ -122,7 +123,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
 
 ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDrivenSurfaceRenderNode& node) const
 {
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
     const auto& buffer = node.GetBuffer(); // we guarantee the buffer is valid.
     const RectI dstRect = node.GetDstRect();
     const auto& srcRect = node.GetSrcRect();
@@ -145,6 +146,29 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDrivenSurfaceRenderNo
 #else
     return {};
 #endif
+}
+
+ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSRcdSurfaceRenderNode& node) const
+{
+    const auto& buffer = node.GetBuffer(); // we guarantee the buffer is valid.
+    const RectI dstRect = node.GetDstRect();
+    const auto& srcRect = node.GetSrcRect();
+    ComposeInfo info {};
+    info.srcRect = GraphicIRect {srcRect.left_, srcRect.top_, srcRect.width_, srcRect.height_};
+    info.dstRect = GraphicIRect {dstRect.left_, dstRect.top_, dstRect.width_, dstRect.height_};
+    info.boundRect = info.dstRect;
+    info.visibleRect = info.dstRect;
+    info.zOrder = static_cast<int32_t>(node.GetGlobalZOrder());
+    info.alpha.enGlobalAlpha = true;
+    info.alpha.gAlpha = 255; // 255 means not transparent
+    SetPreBufferInfo(node, info);
+    info.buffer = buffer;
+    info.fence = node.GetAcquireFence();
+    info.blendType = GRAPHIC_BLEND_SRCOVER;
+    info.needClient = false;
+    info.matrix = GraphicMatrix {1.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f};
+    info.gravity = static_cast<int32_t>(Gravity::RESIZE);
+    return info;
 }
 
 void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
@@ -699,7 +723,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
 
 LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDrivenSurfaceRenderNode& node)
 {
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
     if (output_ == nullptr) {
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer: output is nullptr");
         return nullptr;
@@ -733,6 +757,33 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDrivenSurfaceRenderNode& 
 #else
     return nullptr;
 #endif
+}
+
+LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSRcdSurfaceRenderNode& node)
+{
+    if (output_ == nullptr) {
+        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer: output is nullptr");
+        return nullptr;
+    }
+
+    if (node.GetBuffer() == nullptr) {
+        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer buffer is nullptr!");
+        return nullptr;
+    }
+
+    ComposeInfo info = BuildComposeInfo(node);
+    RS_LOGD("RSUniRenderComposerAdapter::ProcessRcdSurface rcdSurfaceNode id:%{public}" PRIu64 " DstRect"
+        " [%{public}d %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d %{public}d %{public}d]"
+        " rawbuffer [%{public}d %{public}d] surfaceBuffer [%{public}d %{public}d], z-Order:%{public}d,"
+        " blendType = %{public}d",
+        node.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
+        info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.h,
+        info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
+        info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType);
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    SetComposeInfoToLayer(layer, info, node.GetConsumer(), &node);
+    LayerRotate(layer, node);
+    return layer;
 }
 
 static int GetSurfaceNodeRotation(RSBaseRenderNode& node)

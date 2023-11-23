@@ -34,6 +34,7 @@ public:
     static RSHardwareThread& Instance();
     void Start();
     void PostTask(const std::function<void()>& task);
+    void PostDelayTask(const std::function<void()>& task, int64_t delayTime);
     void CommitAndReleaseLayers(OutputPtr output, const std::vector<LayerInfoPtr>& layers);
     void ReleaseBuffer(sptr<SurfaceBuffer> buffer, sptr<SyncFence> releaseFence, sptr<IConsumerSurface> cSurface);
     template<typename Task, typename Return = std::invoke_result_t<Task>>
@@ -44,6 +45,8 @@ public:
         return std::move(taskFuture);
     }
     uint32_t GetunExcuteTaskNum();
+    void RefreshRateCounts(std::string& dumpString);
+    void ClearRefreshRateCounts(std::string& dumpString);
 private:
     RSHardwareThread() = default;
     ~RSHardwareThread() = default;
@@ -57,6 +60,8 @@ private:
     void ReleaseLayers(OutputPtr output, const std::unordered_map<uint32_t, LayerPtr>& layerMap);
     void LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<IConsumerSurface>& surface) const;
     void PerformSetActiveMode(OutputPtr output);
+    void ExecuteSwitchRefreshRate(uint32_t rate);
+    void AddRefreshRateCount(uint32_t rate);
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
@@ -67,6 +72,8 @@ private:
     std::atomic<uint32_t> unExcuteTaskNum_ = 0;
 
     HgmRefreshRates hgmRefreshRates_;
+
+    std::map<uint32_t, int> refreshRateCounts_;
 };
 }
 #endif // RS_HARDWARE_THREAD_H

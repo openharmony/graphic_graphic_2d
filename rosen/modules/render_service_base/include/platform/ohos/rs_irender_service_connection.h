@@ -61,13 +61,16 @@ public:
     virtual sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) = 0;
 
     virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,
-                                                         const sptr<VSyncIConnectionToken>& token = nullptr) = 0;
+                                                         const sptr<VSyncIConnectionToken>& token = nullptr,
+                                                         uint64_t id = 0) = 0;
 
     virtual int32_t SetFocusAppInfo(
         int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
         uint64_t focusNodeId) = 0;
 
     virtual ScreenId GetDefaultScreenId() = 0;
+
+    virtual ScreenId GetActiveScreenId() = 0;
 
     virtual std::vector<ScreenId> GetAllScreenIds() = 0;
 
@@ -91,6 +94,8 @@ public:
     virtual void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate) = 0;
 
     virtual void SetRefreshRateMode(int32_t refreshRateMode) = 0;
+
+    virtual void SyncFrameRateRange(const FrameRateRange& range) = 0;
 
     virtual uint32_t GetScreenCurrentRefreshRate(ScreenId id) = 0;
 
@@ -131,7 +136,7 @@ public:
 
     virtual void RegisterBufferAvailableListener(
         NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread) = 0;
-    
+
     virtual void RegisterBufferClearListener(
         NodeId id, sptr<RSIBufferClearCallback> callback) = 0;
 
@@ -144,6 +149,8 @@ public:
     virtual int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx) = 0;
 
     virtual int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode) = 0;
+
+    virtual int32_t SetScreenCorrection(ScreenId id, ScreenRotation screenRotation) = 0;
 
     virtual int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) = 0;
 
@@ -165,7 +172,7 @@ public:
     virtual int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) = 0;
 
     virtual int32_t RegisterSurfaceOcclusionChangeCallback(
-        NodeId id, sptr<RSISurfaceOcclusionChangeCallback> callback) = 0;
+        NodeId id, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints) = 0;
 
     virtual int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) = 0;
 
@@ -174,6 +181,8 @@ public:
     virtual void SetAppWindowNum(uint32_t num) = 0;
 
     virtual void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) = 0;
+
+    virtual int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height) = 0;
 
     virtual void ReportJankStats() = 0;
 
@@ -186,6 +195,12 @@ public:
     virtual void SetHardwareEnabled(NodeId id, bool isEnabled) = 0;
 
     virtual void SetCacheEnabledForRotation(bool isEnabled) = 0;
+
+    virtual void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) = 0;
+
+    virtual void RunOnRemoteDiedCallback() = 0;
+
+    virtual void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) = 0;
 
 #ifdef TP_FEATURE_ENABLE
     virtual void SetTpFeatureConfig(int32_t feature, const char* config) = 0;

@@ -20,8 +20,44 @@
 #include "buffer_log.h"
 #include "native_window.h"
 #include "surface_buffer_impl.h"
+#include "metadata_helper.h"
 
 using namespace OHOS;
+using namespace HDI::Display::Graphic::Common::V1_0;
+static std::unordered_map<OH_NativeBuffer_ColorSpace, CM_ColorSpaceType> NATIVE_COLORSPACE_TO_HDI_MAP = {
+    {OH_COLORSPACE_NONE, CM_COLORSPACE_NONE},
+    {OH_COLORSPACE_BT601_EBU_FULL, CM_BT601_EBU_FULL},
+    {OH_COLORSPACE_BT601_SMPTE_C_FULL, CM_BT601_SMPLE_C_FULL},
+    {OH_COLORSPACE_BT709_FULL, CM_BT709_FULL},
+    {OH_COLORSPACE_BT2020_HLG_FULL, CM_BT2020_HLG_FULL},
+    {OH_COLORSPACE_BT2020_PQ_FULL, CM_BT2020_PQ_FULL},
+    {OH_COLORSPACE_BT601_EBU_LIMIT, CM_BT601_EBU_LIMIT},
+    {OH_COLORSPACE_BT601_SMPTE_C_LIMIT, CM_BT601_SMPLE_C_LIMIT},
+    {OH_COLORSPACE_BT709_LIMIT, CM_BT709_LIMIT},
+    {OH_COLORSPACE_BT2020_HLG_LIMIT, CM_BT2020_HLG_LIMIT},
+    {OH_COLORSPACE_BT2020_PQ_LIMIT, CM_BT2020_PQ_LIMIT},
+    {OH_COLORSPACE_SRGB_FULL, CM_SRGB_FULL},
+    {OH_COLORSPACE_P3_FULL, CM_P3_FULL},
+    {OH_COLORSPACE_P3_HLG_FULL, CM_P3_HLG_FULL},
+    {OH_COLORSPACE_P3_PQ_FULL, CM_P3_PQ_FULL},
+    {OH_COLORSPACE_ADOBERGB_FULL, CM_ADOBERGB_FULL},
+    {OH_COLORSPACE_SRGB_LIMIT, CM_SRGB_LIMIT},
+    {OH_COLORSPACE_P3_LIMIT, CM_P3_LIMIT},
+    {OH_COLORSPACE_P3_HLG_LIMIT, CM_P3_HLG_LIMIT},
+    {OH_COLORSPACE_P3_PQ_LIMIT, CM_P3_PQ_LIMIT},
+    {OH_COLORSPACE_ADOBERGB_LIMIT, CM_ADOBERGB_LIMIT},
+    {OH_COLORSPACE_LINEAR_SRGB, CM_LINEAR_SRGB},
+    {OH_COLORSPACE_LINEAR_BT709, CM_LINEAR_BT709},
+    {OH_COLORSPACE_LINEAR_P3, CM_LINEAR_P3},
+    {OH_COLORSPACE_LINEAR_BT2020, CM_LINEAR_BT2020},
+    {OH_COLORSPACE_DISPLAY_SRGB, CM_DISPLAY_SRGB},
+    {OH_COLORSPACE_DISPLAY_P3_SRGB, CM_DISPLAY_P3_SRGB},
+    {OH_COLORSPACE_DISPLAY_P3_HLG, CM_DISPLAY_P3_HLG},
+    {OH_COLORSPACE_DISPLAY_P3_PQ, CM_DISPLAY_P3_PQ},
+    {OH_COLORSPACE_DISPLAY_BT2020_SRGB, CM_DISPLAY_BT2020_SRGB},
+    {OH_COLORSPACE_DISPLAY_BT2020_HLG, CM_DISPLAY_BT2020_HLG},
+    {OH_COLORSPACE_DISPLAY_BT2020_PQ, CM_DISPLAY_BT2020_PQ}
+};
 
 static OH_NativeBuffer* OH_NativeBufferFromSurfaceBuffer(SurfaceBuffer* buffer)
 {
@@ -171,4 +207,18 @@ OH_NativeBuffer* OH_NativeBufferFromNativeWindowBuffer(OHNativeWindowBuffer* nat
     }
     OH_NativeBuffer* buffer = OH_NativeBufferFromSurfaceBuffer(nativeWindowBuffer->sfbuffer);
     return buffer;
+}
+
+int32_t OH_NativeBuffer_SetColorSpace(OH_NativeBuffer *buffer, OH_NativeBuffer_ColorSpace colorSpace)
+{
+    if (buffer == nullptr || NATIVE_COLORSPACE_TO_HDI_MAP.find(colorSpace) == NATIVE_COLORSPACE_TO_HDI_MAP.end()) {
+        BLOGE("parameter error, please check input parameter");
+        return OHOS::GSERROR_INVALID_ARGUMENTS;
+    }
+    sptr<SurfaceBuffer> sbuffer = OH_NativeBufferToSurfaceBuffer(buffer);
+    GSError ret = MetadataHelper::SetColorSpaceType(sbuffer, NATIVE_COLORSPACE_TO_HDI_MAP[colorSpace]);
+    if (GSErrorStr(ret) == "<500 api call failed>with low error <Not supported>") {
+        return OHOS::GSERROR_NOT_SUPPORT;
+    }
+    return ret;
 }

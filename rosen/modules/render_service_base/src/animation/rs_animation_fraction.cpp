@@ -240,5 +240,22 @@ void RSAnimationFraction::ResetFraction()
     currentRepeatCount_ = 0;
     currentIsReverseCycle_ = false;
 }
+
+int RSAnimationFraction::GetRemainingRepeatCount() const
+{
+    if (repeatCount_ == INFINITE) {
+        return INFINITE;
+    }
+    if (currentRepeatCount_ >= repeatCount_) {
+        return 0;
+    } else {
+        return repeatCount_ - currentRepeatCount_;
+    }
+}
+
+bool RSAnimationFraction::GetCurrentIsReverseCycle() const
+{
+    return currentIsReverseCycle_;
+}
 } // namespace Rosen
 } // namespace OHOS

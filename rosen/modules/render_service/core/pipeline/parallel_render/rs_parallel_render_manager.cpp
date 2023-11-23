@@ -309,6 +309,36 @@ void RSParallelRenderManager::WaitCompositionEnd()
     }
 }
 
+#ifdef USE_ROSEN_DRAWING
+bool RSParallelRenderManager::DrawImageMergeFuncForRosenDrawing(RSPaintFilterCanvas& canvas,
+    std::shared_ptr<Drawing::Image> texture)
+{
+    Drawing::TextureOrigin origin = Drawing::TextureOrigin::TOP_LEFT;
+    auto sharedBackendTexture = texture->GetBackendTexture(false, &origin);
+    if (!sharedBackendTexture.IsValid()) {
+        RS_LOGE("Texture of subThread does not has GPU backend");
+        return false;
+    }
+    auto newImage = std::make_shared<Drawing::Image>();
+    if (newImage == nullptr) {
+        RS_LOGE("Texture of subThread create Drawing image fail");
+        return false;
+    }
+    if (canvas.GetGPUContext() == nullptr) {
+        return false;
+    }
+    Drawing::BitmapFormat fmt =
+        Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    bool ret = newImage->BuildFromTexture(*canvas.GetGPUContext(), sharedBackendTexture.GetTextureInfo(),
+        origin, fmt, nullptr);
+    if (!ret) {
+        return false;
+    }
+    canvas.DrawImage(*newImage, 0, 0, Drawing::SamplingOptions());
+    return true;
+}
+#endif
+
 void RSParallelRenderManager::DrawImageMergeFunc(RSPaintFilterCanvas& canvas)
 {
     for (unsigned int i = 0; i < expectedSubThreadNum_; ++i) {
@@ -354,7 +384,9 @@ void RSParallelRenderManager::DrawImageMergeFunc(RSPaintFilterCanvas& canvas)
             canvas.drawImage(texture, 0, 0);
 #endif
 #else
-            canvas.DrawImage(*texture, 0, 0, Drawing::SamplingOptions());
+            if (!DrawImageMergeFuncForRosenDrawing(canvas, texture)) {
+                continue;
+            }
 #endif
             // For any one subMainThread' sksurface, we just clear transparent color of self drawing
             // surface drawed in larger skSurface, such as skSurface 0 should clear self drawing surface
@@ -550,11 +582,9 @@ void RSParallelRenderManager::TryEnableParallelRendering()
     }
     if (parallelMode_) {
 #ifdef NEW_RENDER_CONTEXT
-        StartSubRenderThread(PARALLEL_THREAD_NUM,
-            renderEngine->GetRenderContext(), renderEngine->GetDrawingContext());
+        StartSubRenderThread(PARALLEL_THREAD_NUM, renderEngine->GetRenderContext(), renderEngine->GetDrawingContext());
 #else
-        StartSubRenderThread(PARALLEL_THREAD_NUM,
-            renderEngine->GetRenderContext().get());
+        StartSubRenderThread(PARALLEL_THREAD_NUM, renderEngine->GetRenderContext().get());
 #endif
     } else {
         EndSubRenderThread();

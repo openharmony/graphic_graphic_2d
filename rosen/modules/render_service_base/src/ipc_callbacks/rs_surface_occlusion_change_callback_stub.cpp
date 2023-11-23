@@ -37,8 +37,8 @@ int RSSurfaceOcclusionChangeCallbackStub::OnRemoteRequest(
     switch (code) {
         case static_cast<uint32_t>(
             RSISurfaceOcclusionChangeCallbackInterfaceCode::ON_SURFACE_OCCLUSION_VISIBLE_CHANGED): {
-            bool visible = data.ReadBool();
-            OnSurfaceOcclusionVisibleChanged(visible);
+            float visibleAreaRatio = data.ReadFloat();
+            OnSurfaceOcclusionVisibleChanged(visibleAreaRatio);
             break;
         }
         default: {

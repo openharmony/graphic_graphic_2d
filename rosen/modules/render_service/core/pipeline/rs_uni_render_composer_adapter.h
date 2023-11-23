@@ -30,6 +30,7 @@ namespace OHOS {
 namespace Rosen {
 class RSComposerAdapter;
 class RSDrivenSurfaceRenderNode;
+class RSRcdSurfaceRenderNode;
 class RSUniRenderComposerAdapter {
 public:
     RSUniRenderComposerAdapter() = default;
@@ -40,6 +41,7 @@ public:
     LayerInfoPtr CreateLayer(RSDisplayRenderNode& node);
     LayerInfoPtr CreateLayer(RSSurfaceRenderNode& node) const;
     LayerInfoPtr CreateLayer(RSDrivenSurfaceRenderNode& node);
+    LayerInfoPtr CreateLayer(RSRcdSurfaceRenderNode& node);
     void CommitLayers(const std::vector<LayerInfoPtr>& layers);
 
 private:
@@ -48,6 +50,7 @@ private:
     ComposeInfo BuildComposeInfo(RSSurfaceRenderNode& node) const;
     ComposeInfo BuildComposeInfo(RSDisplayRenderNode& node) const;
     ComposeInfo BuildComposeInfo(RSDrivenSurfaceRenderNode& node) const;
+    ComposeInfo BuildComposeInfo(RSRcdSurfaceRenderNode& node) const;
     void SetComposeInfoToLayer(
         const LayerInfoPtr& layer,
         const ComposeInfo& info,

@@ -55,6 +55,8 @@ public:
     /* only used for mock tests */
     RosenError SetHdiBackendDevice(HdiDevice* device);
     void StartSample(const OutputPtr &output);
+    /* set a temporary period used only for VSyncSampler::GetHardwarePeriod interface */
+    void SetPendingPeriod(const OutputPtr &output, int64_t period);
 private:
     HdiBackend() = default;
     virtual ~HdiBackend() = default;

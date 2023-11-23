@@ -112,7 +112,7 @@ public:
      */
     static std::shared_ptr<RecordingShaderEffect> CreateSweepGradient(const Point& centerPt,
         const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode, scalar startAngle,
-        scalar endAngle);
+        scalar endAngle, const Matrix *matrix);
 
     RecordingShaderEffect() noexcept;
     ~RecordingShaderEffect() override = default;

@@ -46,15 +46,15 @@ namespace Rosen {
 namespace {
 using ModifierUnmarshallingFunc = RSRenderModifier* (*)(Parcel& parcel);
 
-#define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP, MODIFIER_TIER)        \
-    { RSModifierType::MODIFIER_TYPE, [](Parcel& parcel) -> RSRenderModifier* {                          \
-            std::shared_ptr<RSRenderAnimatableProperty<TYPE>> prop;                                     \
-            if (!RSMarshallingHelper::Unmarshalling(parcel, prop)) {                                    \
-                return nullptr;                                                                         \
-            }                                                                                           \
-            auto modifier = new RS##MODIFIER_NAME##RenderModifier(prop);                                \
-            return ((!modifier) ? nullptr : modifier);                                                  \
-        },                                                                                              \
+#define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP, MODIFIER_TIER, THRESHOLD_TYPE) \
+    { RSModifierType::MODIFIER_TYPE, [](Parcel& parcel) -> RSRenderModifier* {                                   \
+            std::shared_ptr<RSRenderAnimatableProperty<TYPE>> prop;                                              \
+            if (!RSMarshallingHelper::Unmarshalling(parcel, prop)) {                                             \
+                return nullptr;                                                                                  \
+            }                                                                                                    \
+            auto modifier = new RS##MODIFIER_NAME##RenderModifier(prop);                                         \
+            return ((!modifier) ? nullptr : modifier);                                                           \
+        },                                                                                                       \
     },
 
 #define DECLARE_NOANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, MODIFIER_TIER)                \
@@ -109,7 +109,6 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
             return modifier;
         },
     },
-
     { RSModifierType::GEOMETRYTRANS, [](Parcel& parcel) -> RSRenderModifier* {
 #ifndef USE_ROSEN_DRAWING
             std::shared_ptr<RSRenderProperty<SkMatrix>> prop;
@@ -160,7 +159,7 @@ bool RSDrawCmdListRenderModifier::Marshalling(Parcel& parcel)
 
 RectF RSDrawCmdListRenderModifier::GetCmdsClipRect() const
 {
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
     auto cmds = property_->Get();
     return RSPropertiesPainter::GetCmdsClipRect(cmds);
 #else
@@ -170,30 +169,12 @@ RectF RSDrawCmdListRenderModifier::GetCmdsClipRect() const
 
 void RSDrawCmdListRenderModifier::ApplyForDrivenContent(RSModifierContext& context) const
 {
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
     if (context.canvas_) {
         auto cmds = property_->Get();
         RSPropertiesPainter::DrawFrameForDriven(context.properties_, *context.canvas_, cmds);
     }
 #endif
-}
-
-void RSParticleRenderModifier::Apply(RSModifierContext& context) const
-{
-    auto renderProperty = std::static_pointer_cast<RSRenderProperty<RSRenderParticleVector>>(property_);
-    context.properties_.SetParticles(renderProperty->Get());
-}
-
-void RSParticleRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)
-{
-    if (auto property = std::static_pointer_cast<RSRenderProperty<RSRenderParticleVector>>(prop)) {
-        property_->Set(property->Get());
-    }
-}
-
-bool RSParticleRenderModifier::Marshalling(Parcel& parcel)
-{
-    return true;
 }
 
 bool RSEnvForegroundColorRenderModifier::Marshalling(Parcel& parcel)
@@ -374,7 +355,7 @@ const T& Replace(const std::optional<T>& a, T&& b)
 }
 } // namespace
 
-#define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP, MODIFIER_TIER)                    \
+#define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP, MODIFIER_TIER, THRESHOLD_TYPE)    \
     bool RS##MODIFIER_NAME##RenderModifier::Marshalling(Parcel& parcel)                                             \
     {                                                                                                               \
         auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<TYPE>>(property_);                \
@@ -416,6 +397,7 @@ const T& Replace(const std::optional<T>& a, T&& b)
     }
 
 #include "modifier/rs_modifiers_def.in"
+DECLARE_NOANIMATABLE_MODIFIER(Particles, RSRenderParticleVector, PARTICLE, Foreground)
 
 #undef DECLARE_ANIMATABLE_MODIFIER
 #undef DECLARE_NOANIMATABLE_MODIFIER

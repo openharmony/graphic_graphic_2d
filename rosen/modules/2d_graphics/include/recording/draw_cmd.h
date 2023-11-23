@@ -18,6 +18,7 @@
 
 #include <unordered_map>
 #include <functional>
+#include <stack>
 
 #include "draw/canvas.h"
 #include "draw/pen.h"
@@ -32,11 +33,11 @@ struct BrushHandle {
     BlendMode mode;
     bool isAntiAlias;
     Filter::FilterQuality filterQuality;
-    CmdListHandle colorSpaceHandle;
-    CmdListHandle shaderEffectHandle;
-    CmdListHandle colorFilterHandle;
-    CmdListHandle imageFilterHandle;
-    CmdListHandle maskFilterHandle;
+    ImageHandle colorSpaceHandle;
+    FlattenableHandle shaderEffectHandle;
+    FlattenableHandle colorFilterHandle;
+    FlattenableHandle imageFilterHandle;
+    FlattenableHandle maskFilterHandle;
 };
 
 struct PenHandle {
@@ -48,12 +49,12 @@ struct PenHandle {
     BlendMode mode;
     bool isAntiAlias;
     Filter::FilterQuality filterQuality;
-    CmdListHandle pathEffectHandle;
-    CmdListHandle colorSpaceHandle;
-    CmdListHandle shaderEffectHandle;
-    CmdListHandle colorFilterHandle;
-    CmdListHandle imageFilterHandle;
-    CmdListHandle maskFilterHandle;
+    FlattenableHandle pathEffectHandle;
+    ImageHandle colorSpaceHandle;
+    FlattenableHandle shaderEffectHandle;
+    FlattenableHandle colorFilterHandle;
+    FlattenableHandle imageFilterHandle;
+    FlattenableHandle maskFilterHandle;
 };
 
 class CanvasPlayer {
@@ -77,19 +78,36 @@ public:
     UnmarshallingPlayer(const CmdList& cmdList);
     ~UnmarshallingPlayer() = default;
 
-    bool Unmarshalling(uint32_t type, void* opItem);
+    std::shared_ptr<OpItem> Unmarshalling(uint32_t type, void* opItem);
 
     const CmdList& cmdList_;
 
-    using UnmarshallingFunc = void(*)(const CmdList& cmdList, void* opItem);
+    using UnmarshallingFunc = std::shared_ptr<OpItem>(*)(const CmdList& cmdList, void* opItem);
 private:
     static std::unordered_map<uint32_t, UnmarshallingFunc> opUnmarshallingFuncLUT_;
+};
+
+class NoIPCImageOpItem;
+
+class GenerateCachedOpItemPlayer {
+public:
+    GenerateCachedOpItemPlayer(CmdList &cmdList, Canvas* canvas = nullptr, const Rect* rect = nullptr);
+    ~GenerateCachedOpItemPlayer() = default;
+
+    std::shared_ptr<NoIPCImageOpItem> GenerateCachedOpItem(uint32_t type, void* opItem, bool addCmdList,
+        bool& replaceSuccess);
+    
+    Canvas* canvas_;
+    const Rect* rect_;
+    CmdList& cmdList_;
+    std::stack<void*> brushOpItemStack;
+    std::stack<void*> penOpItemStack;
 };
 
 class DrawOpItem : public OpItem {
 public:
     explicit DrawOpItem(uint32_t type) : OpItem(type) {}
-    ~DrawOpItem() = default;
+    ~DrawOpItem() override = default;
 
     enum Type : uint32_t {
         OPITEM_HEAD,
@@ -146,14 +164,17 @@ public:
         PATCH_OPITEM,
         EDGEAAQUAD_OPITEM,
         VERTICES_OPITEM,
+        NO_IPC_IMAGE_DRAW_OPITEM,
     };
 };
 
 class DrawPointOpItem : public DrawOpItem {
 public:
+    DrawPointOpItem();
     explicit DrawPointOpItem(const Point& point);
-    ~DrawPointOpItem() = default;
+    ~DrawPointOpItem() override = default;
 
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
@@ -163,10 +184,11 @@ private:
 
 class DrawPointsOpItem : public DrawOpItem {
 public:
+    DrawPointsOpItem();
     explicit DrawPointsOpItem(PointMode mode, const std::pair<uint32_t, size_t> pts);
-    ~DrawPointsOpItem() = default;
+    ~DrawPointsOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -180,9 +202,11 @@ private:
 
 class DrawLineOpItem : public DrawOpItem {
 public:
+    DrawLineOpItem();
     DrawLineOpItem(const Point& startPt, const Point& endPt);
-    ~DrawLineOpItem() = default;
+    ~DrawLineOpItem() override = default;
 
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
@@ -193,9 +217,11 @@ private:
 
 class DrawRectOpItem : public DrawOpItem {
 public:
+    DrawRectOpItem();
     explicit DrawRectOpItem(const Rect& rect);
-    ~DrawRectOpItem() = default;
+    ~DrawRectOpItem() override = default;
 
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
@@ -205,10 +231,11 @@ private:
 
 class DrawRoundRectOpItem : public DrawOpItem {
 public:
+    DrawRoundRectOpItem();
     explicit DrawRoundRectOpItem(const std::pair<uint32_t, size_t> radiusXYData, const Rect& rect);
-    ~DrawRoundRectOpItem()  = default;
+    ~DrawRoundRectOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -222,11 +249,12 @@ private:
 
 class DrawNestedRoundRectOpItem : public DrawOpItem {
 public:
+    DrawNestedRoundRectOpItem();
     DrawNestedRoundRectOpItem(const std::pair<uint32_t, size_t> outerRadiusXYData, const Rect& outerRect,
         const std::pair<uint32_t, size_t> innerRadiusXYData, const Rect& innerRect);
-    ~DrawNestedRoundRectOpItem() = default;
+    ~DrawNestedRoundRectOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -242,9 +270,11 @@ private:
 
 class DrawArcOpItem : public DrawOpItem {
 public:
+    DrawArcOpItem();
     DrawArcOpItem(const Rect& rect, scalar startAngle, scalar sweepAngle);
-    ~DrawArcOpItem() = default;
+    ~DrawArcOpItem() override = default;
 
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
@@ -256,9 +286,11 @@ private:
 
 class DrawPieOpItem : public DrawOpItem {
 public:
+    DrawPieOpItem();
     DrawPieOpItem(const Rect& rect, scalar startAngle, scalar sweepAngle);
-    ~DrawPieOpItem() = default;
+    ~DrawPieOpItem() override = default;
 
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
@@ -270,9 +302,11 @@ private:
 
 class DrawOvalOpItem : public DrawOpItem {
 public:
+    DrawOvalOpItem();
     explicit DrawOvalOpItem(const Rect& rect);
-    ~DrawOvalOpItem() = default;
+    ~DrawOvalOpItem() override = default;
 
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
@@ -282,9 +316,11 @@ private:
 
 class DrawCircleOpItem : public DrawOpItem {
 public:
+    DrawCircleOpItem();
     DrawCircleOpItem(const Point& centerPt, scalar radius);
-    ~DrawCircleOpItem() = default;
+    ~DrawCircleOpItem() override = default;
 
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
@@ -295,10 +331,11 @@ private:
 
 class DrawPathOpItem : public DrawOpItem {
 public:
+    DrawPathOpItem();
     explicit DrawPathOpItem(const CmdListHandle& path);
-    ~DrawPathOpItem() = default;
+    ~DrawPathOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -311,10 +348,11 @@ private:
 
 class DrawBackgroundOpItem : public DrawOpItem {
 public:
+    DrawBackgroundOpItem();
     DrawBackgroundOpItem(const BrushHandle& brushHandle);
-    ~DrawBackgroundOpItem() = default;
+    ~DrawBackgroundOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -327,11 +365,12 @@ private:
 
 class DrawShadowOpItem : public DrawOpItem {
 public:
+    DrawShadowOpItem();
     DrawShadowOpItem(const CmdListHandle& path, const Point3& planeParams, const Point3& devLightPos,
         scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag);
-    ~DrawShadowOpItem() = default;
+    ~DrawShadowOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -350,10 +389,11 @@ private:
 
 class DrawRegionOpItem : public DrawOpItem {
 public:
+    DrawRegionOpItem();
     DrawRegionOpItem(const CmdListHandle& path);
-    ~DrawRegionOpItem() = default;
+    ~DrawRegionOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -366,11 +406,12 @@ private:
 
 class DrawPatchOpItem : public DrawOpItem {
 public:
+    DrawPatchOpItem();
     explicit DrawPatchOpItem(const std::pair<uint32_t, size_t> cubics, const std::pair<uint32_t, size_t> colors,
         const std::pair<uint32_t, size_t> texCoords, BlendMode mode);
-    ~DrawPatchOpItem() = default;
+    ~DrawPatchOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -386,11 +427,12 @@ private:
 
 class DrawEdgeAAQuadOpItem : public DrawOpItem {
 public:
+    DrawEdgeAAQuadOpItem();
     explicit DrawEdgeAAQuadOpItem(const Rect& rect, const std::pair<uint32_t, size_t> clipQuad,
         QuadAAFlags aaFlags, ColorQuad color, BlendMode mode);
-    ~DrawEdgeAAQuadOpItem() = default;
+    ~DrawEdgeAAQuadOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -407,11 +449,12 @@ private:
 
 class DrawImageNineOpItem : public DrawOpItem {
 public:
+    DrawImageNineOpItem();
     explicit DrawImageNineOpItem(const ImageHandle& image, const RectI& center, const Rect& dst,
         FilterMode filterMode, const BrushHandle& brushHandle, bool hasBrush);
-    ~DrawImageNineOpItem() = default;
+    ~DrawImageNineOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -430,9 +473,9 @@ private:
 class DrawAnnotationOpItem : public DrawOpItem {
 public:
     explicit DrawAnnotationOpItem(const Rect& rect, const char* key, const ImageHandle& data);
-    ~DrawAnnotationOpItem() = default;
+    ~DrawAnnotationOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -447,11 +490,12 @@ private:
 
 class DrawImageLatticeOpItem : public DrawOpItem {
 public:
+    DrawImageLatticeOpItem();
     explicit DrawImageLatticeOpItem(const ImageHandle& image, const Lattice& lattice, const Rect& dst,
         FilterMode filterMode, const BrushHandle& brushHandle, bool hasBrush);
-    ~DrawImageLatticeOpItem() = default;
+    ~DrawImageLatticeOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -469,10 +513,11 @@ private:
 
 class DrawVerticesOpItem : public DrawOpItem {
 public:
+    DrawVerticesOpItem();
     DrawVerticesOpItem(const VerticesHandle& vertices, BlendMode mode);
-    ~DrawVerticesOpItem() = default;
+    ~DrawVerticesOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -486,10 +531,11 @@ private:
 
 class DrawBitmapOpItem : public DrawOpItem {
 public:
+    DrawBitmapOpItem();
     DrawBitmapOpItem(const ImageHandle& bitmap, scalar px, scalar py);
-    ~DrawBitmapOpItem() = default;
+    ~DrawBitmapOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -504,10 +550,11 @@ private:
 
 class DrawImageOpItem : public DrawOpItem {
 public:
+    DrawImageOpItem();
     DrawImageOpItem(const ImageHandle& image, scalar px, scalar py, const SamplingOptions& samplingOptions);
-    ~DrawImageOpItem() = default;
+    ~DrawImageOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -523,11 +570,12 @@ private:
 
 class DrawImageRectOpItem : public DrawOpItem {
 public:
+    DrawImageRectOpItem();
     DrawImageRectOpItem(const ImageHandle& image, const Rect& src, const Rect& dst,
         const SamplingOptions& sampling, SrcRectConstraint constraint);
-    ~DrawImageRectOpItem() = default;
+    ~DrawImageRectOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -544,10 +592,11 @@ private:
 
 class DrawPictureOpItem : public DrawOpItem {
 public:
+    DrawPictureOpItem();
     explicit DrawPictureOpItem(const ImageHandle& picture);
-    ~DrawPictureOpItem() = default;
+    ~DrawPictureOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -560,9 +609,11 @@ private:
 
 class DrawColorOpItem : public DrawOpItem {
 public:
+    DrawColorOpItem();
     explicit DrawColorOpItem(ColorQuad color, BlendMode mode);
-    ~DrawColorOpItem() = default;
+    ~DrawColorOpItem() override = default;
 
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
@@ -571,16 +622,24 @@ private:
     BlendMode mode_;
 };
 
+class AttachPenOpItem;
+class AttachBrushOpItem;
 class DrawTextBlobOpItem : public DrawOpItem {
 public:
+    DrawTextBlobOpItem();
     explicit DrawTextBlobOpItem(const ImageHandle& textBlob, const scalar x, const scalar y);
-    ~DrawTextBlobOpItem() = default;
+    ~DrawTextBlobOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas, const CmdList& cmdList);
+
+    std::shared_ptr<NoIPCImageOpItem> GenerateCachedOpItem(CmdList& cmdList, Canvas* canvas,
+        AttachPenOpItem* penOpItem, AttachBrushOpItem* brushOpItem, bool addCmdList, bool& replaceSuccess);
+    
+    bool GenerateCachedOpItem(std::shared_ptr<CmdList> cacheCmdList, const TextBlob* textBlob);
 
 private:
     ImageHandle textBlob_;
@@ -591,9 +650,11 @@ private:
 
 class ClipRectOpItem : public DrawOpItem {
 public:
+    ClipRectOpItem();
     ClipRectOpItem(const Rect& rect, ClipOp op, bool doAntiAlias);
-    ~ClipRectOpItem() = default;
+    ~ClipRectOpItem() override = default;
 
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
@@ -605,9 +666,11 @@ private:
 
 class ClipIRectOpItem : public DrawOpItem {
 public:
+    ClipIRectOpItem();
     ClipIRectOpItem(const RectI& rect, ClipOp op = ClipOp::INTERSECT);
-    ~ClipIRectOpItem() = default;
+    ~ClipIRectOpItem() override = default;
 
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
@@ -618,10 +681,11 @@ private:
 
 class ClipRoundRectOpItem : public DrawOpItem {
 public:
+    ClipRoundRectOpItem();
     ClipRoundRectOpItem(const std::pair<uint32_t, size_t> radiusXYData, const Rect& rect, ClipOp op, bool doAntiAlias);
-    ~ClipRoundRectOpItem() = default;
+    ~ClipRoundRectOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -637,10 +701,11 @@ private:
 
 class ClipPathOpItem : public DrawOpItem {
 public:
+    ClipPathOpItem();
     ClipPathOpItem(const CmdListHandle& path, ClipOp clipOp, bool doAntiAlias);
-    ~ClipPathOpItem() = default;
+    ~ClipPathOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -655,10 +720,11 @@ private:
 
 class ClipRegionOpItem : public DrawOpItem {
 public:
+    ClipRegionOpItem();
     ClipRegionOpItem(const CmdListHandle& region, ClipOp clipOp = ClipOp::INTERSECT);
-    ~ClipRegionOpItem() = default;
+    ~ClipRegionOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -672,9 +738,11 @@ private:
 
 class SetMatrixOpItem : public DrawOpItem {
 public:
+    SetMatrixOpItem();
     explicit SetMatrixOpItem(const Matrix& matrix);
-    ~SetMatrixOpItem() = default;
+    ~SetMatrixOpItem() override = default;
 
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
@@ -685,17 +753,20 @@ private:
 class ResetMatrixOpItem : public DrawOpItem {
 public:
     ResetMatrixOpItem();
-    ~ResetMatrixOpItem() = default;
+    ~ResetMatrixOpItem() override = default;
 
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 };
 
 class ConcatMatrixOpItem : public DrawOpItem {
 public:
+    ConcatMatrixOpItem();
     explicit ConcatMatrixOpItem(const Matrix& matrix);
-    ~ConcatMatrixOpItem() = default;
+    ~ConcatMatrixOpItem() override = default;
 
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
@@ -705,9 +776,11 @@ private:
 
 class TranslateOpItem : public DrawOpItem {
 public:
+    TranslateOpItem();
     TranslateOpItem(scalar dx, scalar dy);
-    ~TranslateOpItem() = default;
+    ~TranslateOpItem() override = default;
 
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
@@ -718,9 +791,11 @@ private:
 
 class ScaleOpItem : public DrawOpItem {
 public:
+    ScaleOpItem();
     ScaleOpItem(scalar sx, scalar sy);
-    ~ScaleOpItem() = default;
+    ~ScaleOpItem() override = default;
 
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
@@ -731,9 +806,11 @@ private:
 
 class RotateOpItem : public DrawOpItem {
 public:
+    RotateOpItem();
     RotateOpItem(scalar deg, scalar sx, scalar sy);
-    ~RotateOpItem() = default;
+    ~RotateOpItem() override = default;
 
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
@@ -745,9 +822,11 @@ private:
 
 class ShearOpItem : public DrawOpItem {
 public:
+    ShearOpItem();
     ShearOpItem(scalar sx, scalar sy);
-    ~ShearOpItem() = default;
+    ~ShearOpItem() override = default;
 
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
@@ -759,17 +838,20 @@ private:
 class FlushOpItem : public DrawOpItem {
 public:
     FlushOpItem();
-    ~FlushOpItem() = default;
+    ~FlushOpItem() override = default;
 
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 };
 
 class ClearOpItem : public DrawOpItem {
 public:
+    ClearOpItem();
     explicit ClearOpItem(ColorQuad color);
-    ~ClearOpItem() = default;
+    ~ClearOpItem() override = default;
 
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 
@@ -780,19 +862,21 @@ private:
 class SaveOpItem : public DrawOpItem {
 public:
     SaveOpItem();
-    ~SaveOpItem() = default;
+    ~SaveOpItem() override = default;
 
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 };
 
 class SaveLayerOpItem : public DrawOpItem {
 public:
+    SaveLayerOpItem();
     SaveLayerOpItem(const Rect& rect, bool hasBrush, const BrushHandle& brushHandle, const CmdListHandle& imageFilter,
         uint32_t saveLayerFlags);
-    ~SaveLayerOpItem() = default;
+    ~SaveLayerOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -810,8 +894,9 @@ private:
 class RestoreOpItem : public DrawOpItem {
 public:
     RestoreOpItem();
-    ~RestoreOpItem() = default;
+    ~RestoreOpItem() override = default;
 
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 };
@@ -819,18 +904,20 @@ public:
 class DiscardOpItem : public DrawOpItem {
 public:
     DiscardOpItem();
-    ~DiscardOpItem() = default;
+    ~DiscardOpItem() override = default;
 
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 };
 
 class AttachPenOpItem : public DrawOpItem {
 public:
+    AttachPenOpItem();
     AttachPenOpItem(const PenHandle& penHandle);
-    ~AttachPenOpItem() = default;
+    ~AttachPenOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -843,10 +930,11 @@ private:
 
 class AttachBrushOpItem : public DrawOpItem {
 public:
+    AttachBrushOpItem();
     AttachBrushOpItem(const BrushHandle& brushHandle);
-    ~AttachBrushOpItem() = default;
+    ~AttachBrushOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -860,8 +948,9 @@ private:
 class DetachPenOpItem : public DrawOpItem {
 public:
     DetachPenOpItem();
-    ~DetachPenOpItem() = default;
+    ~DetachPenOpItem() override = default;
 
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 };
@@ -869,18 +958,20 @@ public:
 class DetachBrushOpItem : public DrawOpItem {
 public:
     DetachBrushOpItem();
-    ~DetachBrushOpItem() = default;
+    ~DetachBrushOpItem() override = default;
 
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     static void Playback(CanvasPlayer& player, void* opItem);
     void Playback(Canvas& canvas);
 };
 
 class ClipAdaptiveRoundRectOpItem : public DrawOpItem {
 public:
+    ClipAdaptiveRoundRectOpItem();
     ClipAdaptiveRoundRectOpItem(const std::pair<uint32_t, size_t>& radiusData);
-    ~ClipAdaptiveRoundRectOpItem() = default;
+    ~ClipAdaptiveRoundRectOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -893,11 +984,12 @@ private:
 
 class DrawAdaptiveImageOpItem : public DrawOpItem {
 public:
+    DrawAdaptiveImageOpItem();
     DrawAdaptiveImageOpItem(const ImageHandle& image, const AdaptiveImageInfo& rsImageInfo,
         const SamplingOptions& smapling, const bool isImage);
-    ~DrawAdaptiveImageOpItem() = default;
+    ~DrawAdaptiveImageOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -913,11 +1005,12 @@ private:
 
 class DrawAdaptivePixelMapOpItem : public DrawOpItem {
 public:
+    DrawAdaptivePixelMapOpItem();
     DrawAdaptivePixelMapOpItem(const ImageHandle& pixelMap, const AdaptiveImageInfo& imageInfo,
         const SamplingOptions& smapling);
-    ~DrawAdaptivePixelMapOpItem() = default;
+    ~DrawAdaptivePixelMapOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -932,10 +1025,11 @@ private:
 
 class DrawExtendPixelMapOpItem : public DrawOpItem {
 public:
+    DrawExtendPixelMapOpItem();
     DrawExtendPixelMapOpItem(const ImageHandle& objectHandle, const SamplingOptions& sampling);
-    ~DrawExtendPixelMapOpItem() = default;
+    ~DrawExtendPixelMapOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -949,10 +1043,11 @@ private:
 
 class DrawImageWithParmOpItem : public DrawOpItem {
 public:
+    DrawImageWithParmOpItem();
     DrawImageWithParmOpItem(const ImageHandle& objectHandle, const SamplingOptions& sampling);
-    ~DrawImageWithParmOpItem() = default;
+    ~DrawImageWithParmOpItem() override = default;
 
-    static void Unmarshalling(const CmdList& cmdList, void* opItem);
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList);
 
     static void Playback(CanvasPlayer& player, void* opItem);
@@ -963,6 +1058,24 @@ private:
     SamplingOptions sampling_;
     std::function<void(Canvas&, const Rect&)> playbackTask_ = nullptr;
 };
+
+class NoIPCImageOpItem : public DrawOpItem {
+public:
+    NoIPCImageOpItem(std::shared_ptr<Image> image, const Rect& src, const Rect& dst,
+        const SamplingOptions& sampling, SrcRectConstraint constraint);
+    ~NoIPCImageOpItem() = default;
+
+    static void Playback(CanvasPlayer& player, void* opItem);
+    void Playback(Canvas& canvas, const CmdList& cmdList);
+
+private:
+    std::shared_ptr<Image> image_;
+    Rect src_;
+    Rect dst_;
+    SamplingOptions sampling_;
+    SrcRectConstraint constraint_;
+};
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

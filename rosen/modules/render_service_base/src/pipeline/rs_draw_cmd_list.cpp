@@ -63,6 +63,7 @@ static std::unordered_map<RSOpType, OpUnmarshallingFunc> opUnmarshallingFuncLUT 
     { COLOR_FILTER_BITMAP_OPITEM,  ColorFilterBitmapOpItem::Unmarshalling },
     { BITMAP_RECT_OPITEM,          BitmapRectOpItem::Unmarshalling },
     { BITMAP_NINE_OPITEM,          BitmapNineOpItem::Unmarshalling },
+    { PIXELMAP_NINE_OPITEM,        PixelmapNineOpItem::Unmarshalling },
     { PIXELMAP_OPITEM,             PixelMapOpItem::Unmarshalling },
     { PIXELMAP_RECT_OPITEM,        PixelMapRectOpItem::Unmarshalling },
     { ADAPTIVE_RRECT_OPITEM,       AdaptiveRRectOpItem::Unmarshalling },
@@ -240,6 +241,24 @@ void DrawCmdList::UpdateNodeIdToPicture(NodeId nodeId)
         ops_[index]->SetNodeId(nodeId);
     }
 #endif
+}
+
+void DrawCmdList::DumpPicture(DfxString& info) const
+{
+    if (imageIndexs_.empty()) {
+        RS_LOGW("DrawCmdList::DumpPicture no need update");
+        return;
+    }
+    info.AppendFormat("Resources:%d\n", imageIndexs_.size());
+    info.AppendFormat("Size  [width * height]    Addr\n");
+    for (size_t i = 0; i < imageIndexs_.size(); i++) {
+        auto index = imageIndexs_[i];
+        if (index > ops_.size()) {
+            RS_LOGW("DrawCmdList::DumpPicture index[%{public}d] error", index);
+            continue;
+        }
+        ops_[index]->DumpPicture(info);
+    }
 }
 
 void DrawCmdList::FindIndexOfImage() const
@@ -447,7 +466,7 @@ void DrawCmdList::ClearCache()
 #endif
 }
 
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
 void DrawCmdList::CheckClipRect(SkRect& rect)
 {
     std::lock_guard<std::mutex> lock(mutex_);

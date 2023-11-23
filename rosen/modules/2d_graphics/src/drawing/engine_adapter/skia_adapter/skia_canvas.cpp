@@ -85,8 +85,8 @@ Matrix SkiaCanvas::GetTotalMatrix() const
     auto skMatrix = skCanvas_->getTotalMatrix();
     Matrix matrix;
     matrix.SetMatrix(skMatrix.getScaleX(), skMatrix.getSkewX(), skMatrix.getTranslateX(),
-        skMatrix.getSkewX(), skMatrix.getScaleY(), skMatrix.getTranslateY(),
-        skMatrix.getPerspX(), skMatrix.getPerspY(), 1);
+        skMatrix.getSkewY(), skMatrix.getScaleY(), skMatrix.getTranslateY(),
+        skMatrix.getPerspX(), skMatrix.getPerspY(), skMatrix.get(SkMatrix::kMPersp2));
     return matrix;
 }
 
@@ -890,6 +890,15 @@ bool SkiaCanvas::IsClipEmpty()
         return false;
     }
     return skCanvas_->isClipEmpty();
+}
+
+bool SkiaCanvas::IsClipRect()
+{
+    if (!skCanvas_) {
+        LOGE("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return false;
+    }
+    return skCanvas_->isClipRect();
 }
 
 bool SkiaCanvas::QuickReject(const Rect& rect)

@@ -47,6 +47,8 @@ public:
     void SetLastFrameTime(int64_t lastFrameTime);
     int64_t GetLastFrameTime() const;
     void ResetFraction();
+    int GetRemainingRepeatCount() const;
+    bool GetCurrentIsReverseCycle() const;
 
     void SetRepeatCallbackEnable(bool isEnable)
     {

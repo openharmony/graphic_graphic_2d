@@ -19,6 +19,10 @@
 #include <memory>
 
 #include "impl_interface/text_blob_impl.h"
+#include "text/font.h"
+#include "text/font_types.h"
+#include "text/rs_xform.h"
+#include "utils/data.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -28,6 +32,27 @@ public:
     explicit TextBlob(std::shared_ptr<TextBlobImpl> textBlobImpl) noexcept;
     virtual ~TextBlob() = default;
 
+    static std::shared_ptr<TextBlob> MakeFromText(const void* text, size_t byteLength,
+        const Font& font, TextEncoding encoding = TextEncoding::UTF8);
+    static std::shared_ptr<TextBlob> MakeFromString(const char* str,
+        const Font& font, TextEncoding encoding = TextEncoding::UTF8);
+    static std::shared_ptr<TextBlob> MakeFromRSXform(const void* text, size_t byteLength,
+        const RSXform xform[], const Font& font, TextEncoding encoding = TextEncoding::UTF8);
+
+    /*
+     * @brief   Serialize TextBlob.
+     * @return  A shared point to serialized data.
+     */
+    std::shared_ptr<Data> Serialize() const;
+
+    /*
+     * @brief       Deserialize TextBlob.
+     * @param data  Serialized data.
+     * @param size  Data size.
+     * @return      A shared point to deserialized data.
+     */
+    static std::shared_ptr<TextBlob> Deserialize(const void* data, size_t size);
+
     template<typename T>
     const std::shared_ptr<T> GetImpl() const
     {
@@ -36,6 +61,8 @@ public:
         }
         return nullptr;
     }
+
+    std::shared_ptr<Rect> Bounds() const;
 
 private:
     std::shared_ptr<TextBlobImpl> textBlobImpl_;

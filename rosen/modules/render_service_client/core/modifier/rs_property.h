@@ -19,6 +19,7 @@
 #include <type_traits>
 #include <unistd.h>
 
+#include "animation/rs_animation_callback.h"
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_implicit_animator_map.h"
 #include "animation/rs_motion_path_option.h"
@@ -59,6 +60,27 @@
 
 namespace OHOS {
 namespace Rosen {
+// used to determine when the spring animation ends visually
+enum class ThresholdType {
+    LAYOUT,  // 0.5f for properties like position, as the difference in properties by 0.5 appears visually unchanged
+    COARSE,  // 1.0f / 256.0f
+    MEDIUM,  // 1.0f / 1000.0f
+    FINE,    // 1.0f / 3072.0f
+    COLOR,   // 0.0f
+    DEFAULT, // 1.0f / 256.0f
+    ZERO,    // 0.0f for noanimatable property
+};
+
+namespace {
+constexpr float DEFAULT_NEAR_ZERO_THRESHOLD = 1.0f / 256.0f;
+constexpr float FLOAT_NEAR_ZERO_COARSE_THRESHOLD = 1.0f / 256.0f;
+constexpr float FLOAT_NEAR_ZERO_MEDIUM_THRESHOLD = 1.0f / 1000.0f;
+constexpr float FLOAT_NEAR_ZERO_FINE_THRESHOLD = 1.0f / 3072.0f;
+constexpr float COLOR_NEAR_ZERO_THRESHOLD = 0.0f;
+constexpr float LAYOUT_NEAR_ZERO_THRESHOLD = 0.5f;
+constexpr float ZERO = 0.0f;
+} // namespace
+
 template<class...>
 struct make_void { using type = void; };
 template<class... T>
@@ -79,7 +101,7 @@ struct supports_animatable_arithmetic<T,
         decltype(std::declval<T>() - std::declval<T>()),
         decltype(std::declval<T>() * std::declval<float>()),
         decltype(std::declval<T>() == std::declval<T>())>>
-        : std::true_type {};
+    : std::true_type {};
 
 class RSC_EXPORT RSPropertyBase : public std::enable_shared_from_this<RSPropertyBase> {
 public:
@@ -89,6 +111,12 @@ public:
     PropertyId GetId() const
     {
         return id_;
+    }
+
+    virtual void SetThresholdType(ThresholdType thresholdType) {}
+    virtual float GetThreshold() const
+    {
+        return 0.0f;
     }
 
 protected:
@@ -112,6 +140,8 @@ protected:
     {
         return RSRenderPropertyType::INVALID;
     }
+
+    float GetThresholdByModifierType() const;
 
     virtual void UpdateOnAllAnimationFinish() {}
 
@@ -139,6 +169,8 @@ protected:
     {
         return false;
     }
+
+    float GetThresholdByThresholdType(ThresholdType thresholdType) const;
 
     PropertyId id_;
     RSModifierType type_ { RSModifierType::INVALID };
@@ -416,6 +448,53 @@ public:
         propertyChangeListener_ = updateCallback;
     }
 
+    std::vector<std::shared_ptr<RSAnimation>> AnimateWithInitialVelocity(
+        const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
+        const std::shared_ptr<RSPropertyBase>& targetValue,
+        const std::shared_ptr<RSAnimatableProperty<T>>& velocity = nullptr,
+        const std::function<void()>& finishCallback = nullptr, const std::function<void()>& repeatCallback = nullptr)
+    {
+        auto endValue = std::static_pointer_cast<RSAnimatableProperty<T>>(targetValue);
+        if (!endValue) {
+            return {};
+        }
+
+        auto node = RSProperty<T>::target_.lock();
+        if (!node) {
+            RSProperty<T>::stagingValue_ = endValue->Get();
+            return {};
+        }
+
+        const auto& implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+        if (!implicitAnimator) {
+            RSProperty<T>::stagingValue_ = endValue->Get();
+            return {};
+        }
+
+        std::shared_ptr<AnimationFinishCallback> animationFinishCallback;
+        if (finishCallback) {
+            animationFinishCallback =
+                std::make_shared<AnimationFinishCallback>(finishCallback, timingProtocol.GetFinishCallbackType());
+        }
+
+        std::shared_ptr<AnimationRepeatCallback> animationRepeatCallback;
+        if (repeatCallback) {
+            animationRepeatCallback = std::make_shared<AnimationRepeatCallback>(repeatCallback);
+        }
+
+        implicitAnimator->OpenImplicitAnimation(
+            timingProtocol, timingCurve, std::move(animationFinishCallback), std::move(animationRepeatCallback));
+        auto startValue = std::make_shared<RSAnimatableProperty<T>>(RSProperty<T>::stagingValue_);
+        if (velocity) {
+            implicitAnimator->CreateImplicitAnimationWithInitialVelocity(
+                node, RSProperty<T>::shared_from_this(), startValue, endValue, velocity);
+        } else {
+            implicitAnimator->CreateImplicitAnimation(node, RSProperty<T>::shared_from_this(), startValue, endValue);
+        }
+
+        return implicitAnimator->CloseImplicitAnimation();
+    }
+
 protected:
     void UpdateOnAllAnimationFinish() override
     {
@@ -507,11 +586,22 @@ protected:
         }
     }
 
+    void SetThresholdType(ThresholdType thresholdType) override
+    {
+        thresholdType_ = thresholdType;
+    }
+
+    float GetThreshold() const override
+    {
+        return RSProperty<T>::GetThresholdByThresholdType(thresholdType_);
+    }
+
     T showingValue_ {};
     std::shared_ptr<RSRenderAnimatableProperty<T>> renderProperty_;
     int runningPathNum_ { 0 };
     std::shared_ptr<RSMotionPathOption> motionPathOption_ {};
     std::function<void(T)> propertyChangeListener_;
+    ThresholdType thresholdType_ { ThresholdType::DEFAULT };
 
 private:
     RSRenderPropertyType GetPropertyType() const override

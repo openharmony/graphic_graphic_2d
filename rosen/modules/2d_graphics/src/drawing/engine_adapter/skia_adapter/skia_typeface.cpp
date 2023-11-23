@@ -93,6 +93,17 @@ uint32_t SkiaTypeface::GetUniqueID() const
     return skTypeface_->uniqueID();
 }
 
+std::shared_ptr<Typeface> SkiaTypeface::MakeFromFile(const char path[])
+{
+    sk_sp<SkTypeface> skTypeface = SkTypeface::MakeFromFile(path);
+    if (!skTypeface) {
+        LOGE("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);
+    return std::make_shared<Typeface>(typefaceImpl);
+}
+
 sk_sp<SkData> SkiaTypeface::SerializeTypeface(SkTypeface* typeface, void* ctx)
 {
     if (!typeface) {

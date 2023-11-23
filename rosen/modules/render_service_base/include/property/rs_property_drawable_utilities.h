@@ -16,9 +16,6 @@
 #ifndef RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_UTILITIES_H
 #define RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_UTILITIES_H
 
-#include <list>
-#include <utility>
-
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_property_drawable.h"
 

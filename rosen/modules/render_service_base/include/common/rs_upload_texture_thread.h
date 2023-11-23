@@ -36,6 +36,7 @@ class RSB_EXPORT RSUploadTextureThread final {
 public:
     static RSUploadTextureThread& Instance();
     void PostTask(const std::function<void()>& task);
+    void PostSyncTask(const std::function<void()>& task);
     void PostTask(const std::function<void()>& task, const std::string& name);
     void RemoveTask(const std::string& name);
     void InitRenderContext(RenderContext* context);

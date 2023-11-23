@@ -14,6 +14,7 @@
  */
 
 #include "rs_render_service.h"
+#include "hgm_core.h"
 #include "rs_main_thread.h"
 #include "rs_qos_thread.h"
 #include "rs_render_service_connection.h"
@@ -65,12 +66,17 @@ bool RSRenderService::Init()
 
     // The offset needs to be set
     int64_t offset = 0;
-    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-        offset = UNI_RENDER_VSYNC_OFFSET;
+    if (!HgmCore::Instance().GetLtpoEnabled()) {
+        if (RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+            offset = UNI_RENDER_VSYNC_OFFSET;
+        }
+        rsVSyncController_ = new VSyncController(generator, offset);
+        appVSyncController_ = new VSyncController(generator, offset);
+    } else {
+        rsVSyncController_ = new VSyncController(generator, 0);
+        appVSyncController_ = new VSyncController(generator, 0);
+        generator->SetVSyncMode(VSYNC_MODE_LTPO);
     }
-    rsVSyncController_ = new VSyncController(generator, offset);
-    appVSyncController_ = new VSyncController(generator, offset);
     rsVSyncDistributor_ = new VSyncDistributor(rsVSyncController_, "rs");
     appVSyncDistributor_ = new VSyncDistributor(appVSyncController_, "app");
 
@@ -79,6 +85,9 @@ bool RSRenderService::Init()
         return false;
     }
     mainThread_->rsVSyncDistributor_ = rsVSyncDistributor_;
+    mainThread_->rsVSyncController_ = rsVSyncController_;
+    mainThread_->appVSyncController_ = appVSyncController_;
+    mainThread_->vsyncGenerator_ = generator;
     mainThread_->Init();
  
     RSQosThread::GetInstance()->appVSyncDistributor_ = appVSyncDistributor_;
@@ -234,7 +243,11 @@ void RSRenderService::DumpHelpInfo(std::string& dumpString) const
         .append("trimMem cpu/gpu/shader         ")
         .append("|release Cache\n")
         .append("surfacenode [id]               ")
-        .append("|dump node info\n");
+        .append("|dump node info\n")
+        .append("fpsCount                       ")
+        .append("|dump the refresh rate counts info\n")
+        .append("clearFpsCount                  ")
+        .append("|clear the refresh rate counts info\n");
 }
 
 void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets,
@@ -300,6 +313,20 @@ void RSRenderService::DumpRenderServiceTree(std::string& dumpString) const
     mainThread_->RenderServiceTreeDump(dumpString);
 }
 
+void RSRenderService::DumpRefreshRateCounts(std::string& dumpString) const
+{
+    dumpString.append("\n");
+    dumpString.append("-- RefreshRateCounts: \n");
+    RSHardwareThread::Instance().RefreshRateCounts(dumpString);
+}
+
+void RSRenderService::DumpClearRefreshRateCounts(std::string& dumpString) const
+{
+    dumpString.append("\n");
+    dumpString.append("-- ClearRefreshRateCounts: \n");
+    RSHardwareThread::Instance().ClearRefreshRateCounts(dumpString);
+}
+
 void RSRenderService::DumpSurfaceNode(std::string& dumpString, NodeId id) const
 {
     dumpString.append("\n");
@@ -362,28 +389,56 @@ static bool IsNumber(const std::string& type)
     return number == type.length();
 }
 
-void RSRenderService::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
+static bool ExtractDumpInfo(std::unordered_set<std::u16string>& argSets, std::string& dumpInfo, std::u16string title)
 {
     if (!RSUniRenderJudgement::IsUniRender()) {
-        dumpString.append("\n---------------\nNot in UniRender and no information");
-    } else {
-        std::string type;
-        if (argSets.size() > 1) {
-            argSets.erase(u"dumpMem");
-            if (!argSets.empty()) {
-                type = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
-            }
-        }
-        int pid = 0;
-        if (!type.empty() && IsNumber(type)) {
-            pid = std::stoi(type);
-        }
-        mainThread_->ScheduleTask(
-            [this, &argSets, &dumpString, &type, &pid]() {
-                return mainThread_->DumpMem(argSets, dumpString, type, pid);
-            }).wait();
+        dumpInfo.append("\n---------------\n Not in UniRender and no information");
+        return false;
+    }
+    if (argSets.size() < 2) {
+        dumpInfo.append("\n---------------\n no need extract info");
+        return false;
+    }
+    argSets.erase(title);
+    if (!argSets.empty()) {
+        dumpInfo = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+    }
+    return true;
+}
+
+void RSRenderService::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
+{
+    std::string type;
+    bool isSuccess = ExtractDumpInfo(argSets, type, u"dumpMem");
+    if (!isSuccess) {
         return;
     }
+    int pid = 0;
+    if (!type.empty() && IsNumber(type) && type.length() < 10) {
+        pid = std::stoi(type);
+    }
+    mainThread_->ScheduleTask(
+        [this, &argSets, &dumpString, &type, &pid]() {
+            return mainThread_->DumpMem(argSets, dumpString, type, pid);
+        }).wait();
+}
+
+void RSRenderService::DumpNode(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
+{
+    std::string type;
+    bool isSuccess = ExtractDumpInfo(argSets, type, u"dumpNode");
+    if (!isSuccess) {
+        return;
+    }
+    uint64_t nodeId = 0;
+    if (!type.empty() && IsNumber(type) && type.length() < 20) {
+        nodeId = std::stoull(type);
+    }
+    mainThread_->ScheduleTask(
+        [this, &dumpString, &nodeId]() {
+            return mainThread_->DumpNode(dumpString, nodeId);
+        }).wait();
+    
 }
 
 void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
@@ -401,6 +456,9 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     std::u16string arg11(u"dumpMem");
     std::u16string arg12(u"surfacenode");
     std::u16string arg13(u"fpsClear");
+    std::u16string arg14(u"dumpNode");
+    std::u16string arg15(u"fpsCount");
+    std::u16string arg16(u"clearFpsCount");
     if (argSets.count(arg9) || argSets.count(arg1) != 0) {
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
@@ -447,11 +505,22 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
                 [this, &dumpString, &id]() { return DumpSurfaceNode(dumpString, id); }).wait();
         }
     }
+    if (argSets.count(arg14)) {
+        DumpNode(argSets, dumpString);
+    }
     FPSDUMPProcess(argSets, dumpString, arg3);
     FPSDUMPClearProcess(argSets, dumpString, arg13);
     if (argSets.size() == 0 || argSets.count(arg8) != 0 || dumpString.empty()) {
         mainThread_->ScheduleTask(
             [this, &dumpString]() { DumpHelpInfo(dumpString); }).wait();
+    }
+    if (argSets.count(arg9) || argSets.count(arg15) != 0) {
+        mainThread_->ScheduleTask(
+            [this, &dumpString]() { DumpRefreshRateCounts(dumpString); }).wait();
+    }
+    if (argSets.count(arg16) != 0) {
+        mainThread_->ScheduleTask(
+            [this, &dumpString]() { DumpClearRefreshRateCounts(dumpString); }).wait();
     }
 }
 } // namespace Rosen

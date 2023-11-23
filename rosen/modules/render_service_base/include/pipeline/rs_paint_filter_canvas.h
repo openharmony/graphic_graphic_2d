@@ -95,10 +95,13 @@ public:
     void DrawPicture(const Drawing::Picture& picture) override;
     void DrawTextBlob(const Drawing::TextBlob* blob, const Drawing::scalar x, const Drawing::scalar y) override;
 
-    void ClipRect(const Drawing::Rect& rect, Drawing::ClipOp op, bool doAntiAlias) override;
+    void ClipRect(const Drawing::Rect& rect, Drawing::ClipOp op = Drawing::ClipOp::INTERSECT,
+        bool doAntiAlias = false) override;
     void ClipIRect(const Drawing::RectI& rect, Drawing::ClipOp op = Drawing::ClipOp::INTERSECT) override;
-    void ClipRoundRect(const Drawing::RoundRect& roundRect, Drawing::ClipOp op, bool doAntiAlias) override;
-    void ClipPath(const Drawing::Path& path, Drawing::ClipOp op, bool doAntiAlias) override;
+    void ClipRoundRect(const Drawing::RoundRect& roundRect, Drawing::ClipOp op = Drawing::ClipOp::INTERSECT,
+        bool doAntiAlias = false) override;
+    void ClipPath(const Drawing::Path& path, Drawing::ClipOp op = Drawing::ClipOp::INTERSECT,
+        bool doAntiAlias = false) override;
     void ClipRegion(const Drawing::Region& region, Drawing::ClipOp op = Drawing::ClipOp::INTERSECT) override;
 
     void SetMatrix(const Drawing::Matrix& matrix) override;
@@ -123,6 +126,7 @@ public:
 
 protected:
     virtual bool OnFilter() const = 0;
+    virtual bool OnFilterWithBrush(Drawing::Brush& brush) const = 0;
     Drawing::Canvas* canvas_ = nullptr;
 };
 #endif // USE_ROSEN_DRAWING
@@ -178,7 +182,7 @@ public:
 #ifndef USE_ROSEN_DRAWING
     SaveStatus Save(SaveType type = kALL);
 #else
-    SaveStatus SaveAllStatus();
+    SaveStatus SaveAllStatus(SaveType type = kALL);
 #endif
     SaveStatus GetSaveStatus() const;
     void RestoreStatus(const SaveStatus& status);
@@ -186,22 +190,34 @@ public:
 #ifndef USE_ROSEN_DRAWING
     SkSurface* GetSurface() const;
 #else
-    Drawing::Surface* GetSurface() const;
+    Drawing::Surface* GetSurface() const override;
 #endif
 
     // high contrast
     void SetHighContrast(bool enabled);
+#ifndef USE_ROSEN_DRAWING
     bool isHighContrastEnabled() const;
+#else
+    bool isHighContrastEnabled() const override;
+#endif
 
+#ifndef USE_ROSEN_DRAWING
     enum CacheType : uint8_t {
         UNDEFINED, // do not change current cache status
         ENABLED,   // explicitly enable cache
         DISABLED,  // explicitly disable cache
         OFFSCREEN, // offscreen rendering
     };
+#else
+    using CacheType = Drawing::CacheType;
+#endif
     // cache
     void SetCacheType(CacheType type);
+#ifndef USE_ROSEN_DRAWING
     CacheType GetCacheType() const;
+#else
+    Drawing::CacheType GetCacheType() const override;
+#endif
 
     // visible rect
 #ifndef USE_ROSEN_DRAWING
@@ -283,6 +299,7 @@ protected:
     std::stack<float> GetAlphaStack();
     std::stack<Env> GetEnvStack();
     bool OnFilter() const override;
+    bool OnFilterWithBrush(Drawing::Brush& brush) const override;
 #endif
 
 private:
@@ -295,7 +312,7 @@ private:
     std::stack<Env> envStack_;
 
     std::atomic_bool isHighContrastEnabled_ { false };
-    CacheType cacheType_ { UNDEFINED };
+    CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
 #ifndef USE_ROSEN_DRAWING
     SkRect visibleRect_ = SkRect::MakeEmpty();
 #else

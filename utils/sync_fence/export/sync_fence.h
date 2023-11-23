@@ -87,10 +87,10 @@ public:
 
     void WriteToMessageParcel(MessageParcel &parcel);
     static sptr<SyncFence> ReadFromMessageParcel(MessageParcel &parcel);
+    FenceStatus GetStatus();
 
 private:
     std::vector<SyncPointInfo> GetFenceInfo();
-    FenceStatus GetStatus();
 
     UniqueFd fenceFd_;
     static int SyncMerge(const char *name, int fd1, int fd2);

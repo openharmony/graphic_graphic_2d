@@ -493,7 +493,7 @@ HWTEST_F(VulkanLoaderUnitTest, vkCreateDevice_Test, TestSize.Level1)
         queueInfo.queueCount = 1;
         queueInfo.pQueuePriorities = &defaultQueuePriority;
         queueCreateInfos.push_back(queueInfo);
-        deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());;
+        deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
         deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
 
         std::vector<const char*> deviceExtensions;

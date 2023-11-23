@@ -17,16 +17,18 @@
 
 #include <memory>
 #include <sys/types.h>
+#include <utility>
 #include <vector>
+
 #include "pixel_map.h"
 
 #include "animation/rs_interpolator.h"
 #include "common/rs_color.h"
 #include "common/rs_color_palette.h"
-#include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "common/rs_vector2.h"
 #include "render/rs_image.h"
+
 namespace OHOS {
 namespace Rosen {
 enum class ParticleUpdator: uint32_t { NONE = 0, RANDOM, CURVE };
@@ -60,14 +62,10 @@ public:
     std::shared_ptr<RSInterpolator> interpolator_ { RSInterpolator::DEFAULT };
     ChangeInOverLife() : fromValue_(), toValue_(), startMillis_(), endMillis_(), interpolator_() {}
     ChangeInOverLife(const T& fromValue, const T& toValue, const int& startMillis, const int& endMillis,
-        const std::shared_ptr<RSInterpolator>& interpolator)
-    {
-        fromValue_ = fromValue;
-        toValue_ = toValue;
-        startMillis_ = startMillis;
-        endMillis_ = endMillis;
-        interpolator_ = interpolator;
-    }
+        std::shared_ptr<RSInterpolator> interpolator)
+        : fromValue_(fromValue), toValue_(toValue), startMillis_(startMillis), endMillis_(endMillis),
+          interpolator_(std::move(interpolator))
+    {}
     ChangeInOverLife(const ChangeInOverLife& change) = default;
     ChangeInOverLife& operator=(const ChangeInOverLife& change) = default;
     ~ChangeInOverLife() = default;
@@ -82,15 +80,8 @@ public:
     std::vector<std::shared_ptr<ChangeInOverLife<T>>> valChangeOverLife_;
     RenderParticleParaType(const Range<T>& val, const ParticleUpdator& updator, const Range<float>& random,
         const std::vector<std::shared_ptr<ChangeInOverLife<T>>>& valChangeOverLife)
-    {
-        val_ = val;
-        updator_ = updator;
-        random_ = random;
-        for (size_t i = 0; i < valChangeOverLife.size(); i++) {
-            auto change = valChangeOverLife[i];
-            valChangeOverLife_.push_back(change);
-        }
-    }
+        : val_(val), updator_(updator), random_(random), valChangeOverLife_(valChangeOverLife)
+    {}
     RenderParticleParaType() : val_(), updator_(ParticleUpdator::NONE), random_() {}
     RenderParticleParaType(const RenderParticleParaType& paraType) = default;
     RenderParticleParaType& operator=(const RenderParticleParaType& paraType) = default;
@@ -116,21 +107,13 @@ public:
     {}
     EmitterConfig(const int& emitRate, const ShapeType& emitShape, const Vector2f& position, const Vector2f& emitSize,
         const int32_t& particleCount, const int64_t& lifeTime, const ParticleType& type, const float& radius,
-        const std::shared_ptr<RSImage>& image, Vector2f imageSize)
+        std::shared_ptr<RSImage> image, Vector2f imageSize)
+        : emitRate_(emitRate), emitShape_(emitShape), position_(position), emitSize_(emitSize),
+          particleCount_(particleCount), lifeTime_(lifeTime), type_(type), radius_(radius), image_(std::move(image)),
+          imageSize_(imageSize)
     {
-        emitRate_ = emitRate;
-        emitShape_ = emitShape;
-        position_ = position;
-        emitSize_ = emitSize;
-        particleCount_ = particleCount;
-        lifeTime_ = lifeTime;
-        type_ = type;
-        radius_ = radius;
-        image_ = image;
-        imageSize_ = imageSize;
         if (image_ != nullptr) {
-            auto pixelMap = image_->GetPixelMap();
-            if (pixelMap != nullptr) {
+            if (const auto& pixelMap = image_->GetPixelMap()) {
                 image_->SetDstRect(RectF(position_.x_, position_.y_, static_cast<float>(pixelMap->GetWidth()),
                     static_cast<float>(pixelMap->GetHeight())));
             }
@@ -148,10 +131,8 @@ public:
 
     ParticleVelocity() : velocityValue_(), velocityAngle_() {}
     ParticleVelocity(const Range<float>& velocityValue, const Range<float>& velocityAngle)
-    {
-        velocityValue_ = Range(velocityValue.start_, velocityValue.end_);
-        velocityAngle_ = Range(velocityAngle.start_, velocityAngle.end_);
-    }
+        : velocityValue_(velocityValue), velocityAngle_(velocityAngle)
+    {}
     ParticleVelocity(const ParticleVelocity& velocity) = default;
     ParticleVelocity& operator=(const ParticleVelocity& velocity) = default;
     ~ParticleVelocity() = default;
@@ -165,10 +146,8 @@ public:
     RenderParticleAcceleration() = default;
     RenderParticleAcceleration(
         const RenderParticleParaType<float>& accelerationValue, const RenderParticleParaType<float>& accelerationAngle)
-    {
-        accelerationValue_ = accelerationValue;
-        accelerationAngle_ = accelerationAngle;
-    }
+        : accelerationValue_(accelerationValue), accelerationAngle_(accelerationAngle)
+    {}
     RenderParticleAcceleration(const RenderParticleAcceleration& acceleration) = default;
     RenderParticleAcceleration& operator=(const RenderParticleAcceleration& acceleration) = default;
     ~RenderParticleAcceleration() = default;
@@ -186,24 +165,15 @@ public:
     std::vector<std::shared_ptr<ChangeInOverLife<Color>>> valChangeOverLife_;
     RenderParticleColorParaType(const Range<Color>& colorVal, const ParticleUpdator& updator,
         const Range<float>& redRandom, const Range<float>& greenRandom, const Range<float>& blueRandom,
-        const Range<float>& alphaRandom, std::vector<std::shared_ptr<ChangeInOverLife<Color>>>& valChangeOverLife)
-    {
-        colorVal_ = colorVal;
-        updator_ = updator;
-        redRandom_ = redRandom;
-        greenRandom_ = greenRandom;
-        blueRandom_ = blueRandom;
-        alphaRandom_ = alphaRandom;
-        for (size_t i = 0; i < valChangeOverLife.size(); i++) {
-            auto change = valChangeOverLife[i];
-            valChangeOverLife_.push_back(change);
-        }
-    }
+        const Range<float>& alphaRandom, std::vector<std::shared_ptr<ChangeInOverLife<Color>>> valChangeOverLife)
+        : colorVal_(colorVal), updator_(updator), redRandom_(redRandom), greenRandom_(greenRandom),
+          blueRandom_(blueRandom), alphaRandom_(alphaRandom), valChangeOverLife_(std::move(valChangeOverLife))
+    {}
     RenderParticleColorParaType()
         : colorVal_(), updator_(ParticleUpdator::NONE), redRandom_(), greenRandom_(), blueRandom_(), alphaRandom_()
     {}
-    RenderParticleColorParaType(const RenderParticleColorParaType& velocity) = default;
-    RenderParticleColorParaType& operator=(const RenderParticleColorParaType& velocity) = default;
+    RenderParticleColorParaType(const RenderParticleColorParaType& color) = default;
+    RenderParticleColorParaType& operator=(const RenderParticleColorParaType& color) = default;
     ~RenderParticleColorParaType() = default;
 };
 
@@ -220,15 +190,9 @@ public:
         const RenderParticleAcceleration& acceleration, const RenderParticleColorParaType& color,
         const RenderParticleParaType<float>& opacity, const RenderParticleParaType<float>& scale,
         const RenderParticleParaType<float>& spin)
-    {
-        emitterConfig_ = emitterConfig;
-        velocity_ = velocity;
-        acceleration_ = acceleration;
-        color_ = color;
-        opacity_ = opacity;
-        scale_ = scale;
-        spin_ = spin;
-    }
+        : emitterConfig_(emitterConfig), velocity_(velocity), acceleration_(acceleration), color_(color),
+          opacity_(opacity), scale_(scale), spin_(spin)
+    {}
     ParticleRenderParams() : emitterConfig_(), velocity_(), acceleration_(), color_(), opacity_(), scale_(), spin_() {};
     ParticleRenderParams(const ParticleRenderParams& params) = default;
     ParticleRenderParams& operator=(const ParticleRenderParams& params) = default;
@@ -302,7 +266,7 @@ public:
 
 class RSB_EXPORT RSRenderParticle {
 public:
-    explicit RSRenderParticle(std::shared_ptr<ParticleRenderParams> particleParams);
+    explicit RSRenderParticle(const std::shared_ptr<ParticleRenderParams>& particleParams);
     RSRenderParticle() = default;
     ~RSRenderParticle() = default;
 
@@ -354,10 +318,10 @@ public:
     Vector2f GetImageSize();
     ParticleType GetParticleType();
     int64_t GetActiveTime();
-    std::shared_ptr<ParticleRenderParams> GetParticleRenderParams();
+    const std::shared_ptr<ParticleRenderParams>& GetParticleRenderParams();
 
     // Other methods
-    void InitProperty(std::shared_ptr<ParticleRenderParams> particleParams);
+    void InitProperty(const std::shared_ptr<ParticleRenderParams>& particleParams);
     bool IsAlive() const;
     void SetIsDead();
     static float GetRandomValue(float min, float max);
@@ -408,18 +372,17 @@ private:
 
 class RSB_EXPORT RSRenderParticleVector {
 public:
-    explicit RSRenderParticleVector(std::vector<std::shared_ptr<RSRenderParticle>> renderParticleVector)
-    {
-        renderParticleVector_ = renderParticleVector;
-    }
+    explicit RSRenderParticleVector(std::vector<std::shared_ptr<RSRenderParticle>>&& renderParticleVector)
+        : renderParticleVector_(std::move(renderParticleVector))
+    {}
     RSRenderParticleVector() = default;
     ~RSRenderParticleVector() = default;
-    int GetParticleSize()
+    int GetParticleSize() const
     {
         return renderParticleVector_.size();
     }
 
-    std::vector<std::shared_ptr<RSRenderParticle>> GetParticleVector()
+    const std::vector<std::shared_ptr<RSRenderParticle>>& GetParticleVector() const
     {
         return renderParticleVector_;
     }
@@ -440,6 +403,7 @@ public:
         return equal;
     }
 
+private:
     std::vector<std::shared_ptr<RSRenderParticle>> renderParticleVector_;
 };
 } // namespace Rosen

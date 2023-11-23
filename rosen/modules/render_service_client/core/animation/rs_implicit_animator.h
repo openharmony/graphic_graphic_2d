@@ -74,6 +74,10 @@ public:
 
     void CreateImplicitTransition(RSNode& target);
 
+    void CreateImplicitAnimationWithInitialVelocity(const std::shared_ptr<RSNode>& target,
+        const std::shared_ptr<RSPropertyBase>& property, const std::shared_ptr<RSPropertyBase>& startValue,
+        const std::shared_ptr<RSPropertyBase>& endValue, const std::shared_ptr<RSPropertyBase>& velocity);
+
 private:
     void EndImplicitAnimation();
     void BeginImplicitCurveAnimation();

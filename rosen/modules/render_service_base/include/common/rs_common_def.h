@@ -34,6 +34,7 @@ namespace Rosen {
 using AnimationId = uint64_t;
 using NodeId = uint64_t;
 using PropertyId = uint64_t;
+using FrameRateLinkerId = uint64_t;
 constexpr uint32_t UNI_MAIN_THREAD_INDEX = UINT32_MAX;
 constexpr uint64_t INVALID_NODEID = 0;
 
@@ -134,6 +135,8 @@ enum class RSSurfaceNodeType : uint8_t {
     STARTING_WINDOW_NODE,     // starting window, surfacenode created by wms
     LEASH_WINDOW_NODE,        // leashwindow
     SELF_DRAWING_WINDOW_NODE, // create by wms, such as pointer window and bootanimation
+    FOREGROUND_SURFACE,
+    SCB_SCREEN_NODE,          // surfacenode created as sceneboard
 };
 
 struct RSSurfaceRenderNodeConfig {

@@ -35,6 +35,7 @@ enum class PermissionType : CodeUnderlyingType {
     RUNNING_STATE_OBSERVER,
     START_ABILITIES_FROM_BACKGROUND,
     CHANGE_ABILITY_ENABLED_STATE,
+    UPDATE_CONFIGURATION,
 };
 extern const std::unordered_map<PermissionType, std::string> PERMISSION_MAP;
 

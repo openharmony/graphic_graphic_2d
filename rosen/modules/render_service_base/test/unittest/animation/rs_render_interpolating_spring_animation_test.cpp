@@ -185,5 +185,27 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, OnInitialize001, TestSize.Lev
     EXPECT_TRUE(renderInterpolatingSpringAnimation->IsRunning());
     GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest OnInitialize001 end";
 }
+
+/**
+ * @tc.name: SetZeroThreshold001
+ * @tc.desc: Verify funciton SetZeroThreshold
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInterpolatingSpringAnimationTest, SetZeroThreshold001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest SetZeroThreshold001 start";
+    auto property =
+        std::make_shared<RSRenderAnimatableProperty<float>>(0.0f, PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property1 =
+        std::make_shared<RSRenderAnimatableProperty<float>>(0.0f, PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property2 =
+        std::make_shared<RSRenderAnimatableProperty<float>>(1.0f, PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+
+    auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimationMock>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    renderInterpolatingSpringAnimation->SetZeroThreshold(-0.5f);
+    renderInterpolatingSpringAnimation->SetZeroThreshold(0.5f);
+    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest SetZeroThreshold001 end";
+}
 } // namespace Rosen
 } // namespace OHOS

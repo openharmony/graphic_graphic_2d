@@ -11,6 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
 group("test") {
   testonly = true
 
@@ -61,4 +63,8 @@ group("test") {
     "render_service_client/unittest/transaction:unittest",
     "render_service_client/unittest/ui:unittest",
   ]
+
+  if (tp_feature_enable) {
+    deps += [ "render_service/unittest/touch_screen:unittest" ]
+  }
 }

@@ -22,6 +22,9 @@
 #include "include/core/SkSurface.h"
 #if defined(NEW_SKIA)
 #include "include/gpu/GrDirectContext.h"
+#ifdef RS_ENABLE_VK
+#include"include/gpu/vk/GrVkBackendContext.h"
+#endif
 #else
 #include "include/gpu/GrContext.h"
 #endif
@@ -67,7 +70,9 @@ private:
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     RenderContext *renderContext_ = nullptr;
+#ifdef RS_ENABLE_GL
     EGLContext eglShareContext_ = EGL_NO_CONTEXT;
+#endif
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
     sk_sp<GrDirectContext> grContext_ = nullptr;
