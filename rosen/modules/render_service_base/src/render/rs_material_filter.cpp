@@ -36,7 +36,7 @@ namespace Rosen {
 namespace {
 constexpr float BLUR_SIGMA_SCALE = 0.57735f;
 // style to MaterialParam map
-std::unordered_map<MATERIAL_BLUR_STYLE, MaterialParam> materialParams_ {
+static const std::unordered_map<MATERIAL_BLUR_STYLE, MaterialParam> MATERIAL_PARAM {
     // card blur params
     { STYLE_CARD_THIN_LIGHT,         { 23.0f,  1.05, 1.05, RSColor(0xFFFFFF33) } },
     { STYLE_CARD_LIGHT,              { 50.0f,  1.8,  1.0,  RSColor(0xFAFAFA99) } },
@@ -55,7 +55,7 @@ std::unordered_map<MATERIAL_BLUR_STYLE, MaterialParam> materialParams_ {
     { STYLE_BACKGROUND_XLARGE_DARK,  { 130.0f, 1.3,  1.0,  RSColor(0x0D0D0D80) } },
 };
 
-std::unordered_map<MATERIAL_BLUR_STYLE, MaterialParam> kawaseMaterialParams_ {
+static const std::unordered_map<MATERIAL_BLUR_STYLE, MaterialParam> KAWASE_MATERIAL_PARAM {
     // card blur params
     { STYLE_CARD_THIN_LIGHT,         { 23.0f,  1.05, 1.05, RSColor(0xFFFFFF33) } },
     { STYLE_CARD_LIGHT,              { 50.0f,  1.8,  1.0,  RSColor(0xFAFAFA99) } },
@@ -75,8 +75,10 @@ std::unordered_map<MATERIAL_BLUR_STYLE, MaterialParam> kawaseMaterialParams_ {
 };
 } // namespace
 
-#if !defined(USE_ROSEN_DRAWING)
+#ifndef USE_ROSEN_DRAWING
 const bool KAWASE_BLUR_ENABLED = RSSystemProperties::GetKawaseEnabled();
+#else
+const bool KAWASE_BLUR_ENABLED = false;
 #endif
 
 RSMaterialFilter::RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mode, float ratio)
@@ -218,9 +220,9 @@ std::shared_ptr<Drawing::ImageFilter> RSMaterialFilter::CreateMaterialStyle(
     MATERIAL_BLUR_STYLE style, float dipScale, float ratio)
 #endif
 {
-    auto materialParams = KAWASE_BLUR_ENABLED ? kawaseMaterialParams_ : materialParams_;
+    const auto& materialParams = KAWASE_BLUR_ENABLED ? KAWASE_MATERIAL_PARAM : MATERIAL_PARAM;
     if (materialParams.find(style) != materialParams.end()) {
-        MaterialParam materialParam = materialParams[style];
+        const auto& materialParam = materialParams.at(style);
         maskColor_ = RSColor(materialParam.maskColor.AsRgbaInt());
         maskColor_.MultiplyAlpha(ratio);
         radius_ = RSMaterialFilter::RadiusVp2Sigma(materialParam.radius, dipScale) * ratio;
