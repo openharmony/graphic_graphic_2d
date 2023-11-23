@@ -95,7 +95,7 @@ public:
     {
         return surface_;
     }
-    bool SetUpGpuContext(sk_sp<GrDirectContext> skContext);
+    bool SetUpGpuContext();
 #endif
 
     EGLSurface CreateEGLSurface(EGLNativeWindowType eglNativeWindow);

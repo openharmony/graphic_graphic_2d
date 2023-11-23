@@ -293,7 +293,11 @@ private:
     void UpdateCacheRenderNodeMapWithBlur(RSRenderNode& node);
     bool IsFirstVisitedCacheForced() const;
     bool IsRosenWebHardwareDisabled(RSSurfaceRenderNode& node, int rotation) const;
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> GetCacheImageFromMirrorNode(std::shared_ptr<RSDisplayRenderNode> mirrorNode);
+#else
+    std::shared_ptr<Drawing::Image> GetCacheImageFromMirrorNode(std::shared_ptr<RSDisplayRenderNode> mirrorNode);
+#endif
 
     void SwitchColorFilterDrawing(int currentSaveCount);
     void ProcessShadowFirst(RSRenderNode& node, bool inSubThread);
@@ -464,7 +468,11 @@ private:
     bool isNodeSingleFrameComposer_ = false;
 
     // use for screen recording optimization
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> cacheImgForCapture_ = nullptr;
+#else
+    std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
+#endif
     // attention: please synchronize the change of RSUniRenderVisitor::ProcessChildren to this func
     void ProcessChildrenForScreenRecordingOptimization(RSDisplayRenderNode& node, NodeId rootIdOfCaptureWindow);
     NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);

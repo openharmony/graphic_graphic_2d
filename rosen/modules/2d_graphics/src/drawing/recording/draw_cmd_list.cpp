@@ -74,8 +74,7 @@ void DrawCmdList::SetHeight(int32_t height)
 bool DrawCmdList::IsEmpty() const
 {
     uint32_t offset = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
-    if (width_ <= 0 || height_ <= 0 ||
-        (opAllocator_.GetSize() <= offset && unmarshalledOpItems_.size() == 0)) {
+    if (opAllocator_.GetSize() <= offset && unmarshalledOpItems_.size() == 0) {
         return true;
     }
     return false;
@@ -84,7 +83,7 @@ bool DrawCmdList::IsEmpty() const
 void DrawCmdList::UnmarshallingOps()
 {
     uint32_t offset = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
-    if (width_ <= 0 || height_ <= 0 || opAllocator_.GetSize() <= offset) {
+    if (opAllocator_.GetSize() <= offset) {
         return;
     }
 
@@ -122,8 +121,7 @@ void DrawCmdList::UnmarshallingOps()
 void DrawCmdList::Playback(Canvas& canvas, const Rect* rect)
 {
     uint32_t offset = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
-    if (width_ <= 0 || height_ <= 0 ||
-        (opAllocator_.GetSize() <= offset && unmarshalledOpItems_.size() == 0)) {
+    if (opAllocator_.GetSize() <= offset && unmarshalledOpItems_.size() == 0) {
         return;
     }
 
@@ -179,7 +177,7 @@ void DrawCmdList::GenerateCache(Canvas* canvas, const Rect* rect)
 {
 #ifdef ROSEN_OHOS
     uint32_t offset = 2 * sizeof(int32_t);
-    if (width_ <= 0 || height_ <= 0 || opAllocator_.GetSize() <= offset) {
+    if (opAllocator_.GetSize() <= offset) {
         return;
     }
 
@@ -214,7 +212,7 @@ void DrawCmdList::GenerateCache(Canvas* canvas, const Rect* rect)
 void DrawCmdList::GenerateCacheInRenderService(Canvas* canvas, const Rect* rect)
 {
 #ifdef ROSEN_OHOS
-    if (width_ <= 0 || height_ <= 0 || unmarshalledOpItems_.size() == 0) {
+    if (unmarshalledOpItems_.size() == 0) {
         return;
     }
 

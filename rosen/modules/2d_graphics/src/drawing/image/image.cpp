@@ -16,6 +16,7 @@
 #include "image/image.h"
 
 #include "impl_factory.h"
+#include "skia_adapter/skia_image.h"
 #include "static_factory.h"
 
 namespace OHOS {
@@ -205,6 +206,11 @@ std::shared_ptr<Data> Image::Serialize() const
 bool Image::Deserialize(std::shared_ptr<Data> data)
 {
     return imageImplPtr->Deserialize(data);
+}
+
+const sk_sp<SkImage> Image::ExportSkImage()
+{
+    return GetImpl<SkiaImage>()->GetImage();
 }
 
 } // namespace Drawing

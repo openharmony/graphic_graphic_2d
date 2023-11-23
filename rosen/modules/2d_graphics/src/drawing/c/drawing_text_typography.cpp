@@ -314,7 +314,7 @@ void OH_Drawing_SetTextStyleFontFamilies(OH_Drawing_TextStyle* style,
 void OH_Drawing_SetTextStyleFontStyle(OH_Drawing_TextStyle* style, int fontStyle)
 {
 #ifndef USE_GRAPHIC_TEXT_GINE
-    FontStyle rosenFontStyle;
+    rosen::FontStyle rosenFontStyle;
     switch (fontStyle) {
         case FONT_STYLE_NORMAL: {
             rosenFontStyle = rosen::FontStyle::NORMAL;

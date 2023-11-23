@@ -36,13 +36,22 @@ void RSAliasDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 RSSaveDrawable::RSSaveDrawable(std::shared_ptr<int> content) : content_(std::move(content)) {}
 void RSSaveDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
+#ifndef USE_ROSEN_DRAWING
     *content_ = canvas.save();
+#else
+    *content_ = canvas.GetSaveCount();
+    canvas.Save();
+#endif
 }
 
 RSRestoreDrawable::RSRestoreDrawable(std::shared_ptr<int> content) : content_(std::move(content)) {}
 void RSRestoreDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
+#ifndef USE_ROSEN_DRAWING
     canvas.restoreToCount(*content_);
+#else
+    canvas.RestoreToCount(*content_);
+#endif
 }
 
 RSCustomSaveDrawable::RSCustomSaveDrawable(
@@ -51,7 +60,11 @@ RSCustomSaveDrawable::RSCustomSaveDrawable(
 {}
 void RSCustomSaveDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
+#ifndef USE_ROSEN_DRAWING
     *content_ = canvas.Save(type_);
+#else
+    *content_ = canvas.SaveAllStatus(type_);
+#endif
 }
 
 RSCustomRestoreDrawable::RSCustomRestoreDrawable(std::shared_ptr<RSPaintFilterCanvas::SaveStatus> content)
