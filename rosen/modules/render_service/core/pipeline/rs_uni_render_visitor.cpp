@@ -2522,7 +2522,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         RSSingleton<RoundCornerDisplay>::GetInstance().RunHardwareTask(
             [this]() {
                 auto hardInfo = RSSingleton<RoundCornerDisplay>::GetInstance().GetHardwareInfo();
-                rcdInfo_->processInfo = {processor_, hardInfo.topLayer, hardInfo.bottomLayer};
+                rcdInfo_->processInfo = {processor_, hardInfo.topLayer, hardInfo.bottomLayer,
+                    hardInfo.resourceChanged};
                 RSRcdRenderManager::GetInstance().DoProcessRenderTask(rcdInfo_->processInfo);
             }
         );

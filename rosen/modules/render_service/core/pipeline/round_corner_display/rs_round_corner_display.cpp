@@ -55,8 +55,7 @@ bool RoundCornerDisplay::SeletedLcdModel(const char* lcdModelName)
     }
     supportTopSurface_ = lcdModel_->surfaceConfig.topSurface.support;
     supportBottomSurface_ = lcdModel_->surfaceConfig.bottomSurface.support;
-    supportHardware_ = false;
-    hardInfo_.supportHardware = false;
+    supportHardware_ = lcdModel_->hardwareConfig.hardwareComposer.support;
     RS_LOGI("[%{public}s] Selected model: %{public}s, supported: top->%{public}d, bottom->%{public}d,"
         "hardware->%{public}d \n", __func__, lcdModelName, static_cast<int>(supportTopSurface_),
         static_cast<int>(supportBottomSurface_), static_cast<int>(supportHardware_));
@@ -287,20 +286,22 @@ void RoundCornerDisplay::UpdateOrientationStatus(ScreenRotation orientation)
 
 void RoundCornerDisplay::UpdateParameter(std::map<std::string, bool>& updateFlag)
 {
-    bool flag = false;
+    hardInfo_.resourceChanged = false;
     for (auto item = updateFlag.begin(); item != updateFlag.end(); item++) {
         if (item->second == true) {
-            flag = true;
+            resourceChanged = true;
             item->second = false;  // reset
         }
     }
-    if (flag) {
+    if (resourceChanged) {
         RcdChooseTopResourceType();
         RcdChooseRSResource();
         if (supportHardware_) {
             RcdChooseHardwareResource();
             SetHardwareLayerSize();
         }
+        hardInfo_.resourceChanged = resourceChanged; // output
+        resourceChanged = false; // reset
     } else {
         RS_LOGD("[%{public}s] Status is not changed \n", __func__);
     }

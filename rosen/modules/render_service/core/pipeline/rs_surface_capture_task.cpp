@@ -700,7 +700,43 @@ void RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node
         RS_LOGE("RSSurfaceCaptureVisitor::ProcessDisplayRenderNode: Canvas is null!");
         return;
     }
-    ProcessChildren(node);
+    
+    if (IsUniRender()) {
+        FindHardwareEnabledNodes();
+        if (hasSecurityOrSkipLayer_) {
+            RS_LOGD("RSSurfaceCaptureVisitor::ProcessDisplayRenderNode: \
+                process RSDisplayRenderNode(id:[%{public}" PRIu64 "]) Not using UniRender buffer.", node.GetId());
+            ProcessChildren(node);
+            DrawWatermarkIfNeed(node);
+        } else {
+            if (node.GetBuffer() == nullptr) {
+                RS_LOGE("RSSurfaceCaptureVisitor::ProcessDisplayRenderNode: buffer is null!");
+                return;
+            }
+
+            RS_LOGD("RSSurfaceCaptureVisitor::ProcessDisplayRenderNode: \
+                process RSDisplayRenderNode(id:[%{public}" PRIu64 "]) using UniRender buffer.", node.GetId());
+
+            if (hardwareEnabledNodes_.size() != 0) {
+                AdjustZOrderAndDrawSurfaceNode();
+            }
+
+            auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
+
+            // Screen capture considering color inversion
+            ColorFilterMode colorFilterMode = renderEngine_->GetColorFilterMode();
+            if (colorFilterMode >= ColorFilterMode::INVERT_COLOR_ENABLE_MODE &&
+                colorFilterMode <= ColorFilterMode::INVERT_DALTONIZATION_TRITANOMALY_MODE) {
+                RS_LOGD("RSSurfaceCaptureVisitor::ProcessDisplayRenderNode: \
+                    SetColorFilterModeToPaint mode:%{public}d.", static_cast<int32_t>(colorFilterMode));
+                RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, params.paint);
+            }
+
+            renderEngine_->DrawDisplayNodeWithParams(*canvas_, node, params);
+        }
+    } else {
+        ProcessChildren(node);
+    }
 }
 
 void RSSurfaceCaptureVisitor::ProcessEffectRenderNode(RSEffectRenderNode& node)
