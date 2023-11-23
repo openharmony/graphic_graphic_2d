@@ -1853,17 +1853,23 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     }
 
     SkPaint paint;
-    SkMatrix inverseMat, scaleMat;
+    SkMatrix inverseMat, rotateMat;
     auto boundsGeo = (properties.GetBoundsGeometry());
     if (boundsGeo && !boundsGeo->IsEmpty()) {
-        if (!canvas.getTotalMatrix().invert(&inverseMat)) {
-            ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch get inverse matrix failed.");
+        auto transMat = canvas.getTotalMatrix();
+        rotateMat.setScale(transMat.getScaleX(), transMat.getScaleY());
+        rotateMat.setSkewX(transMat.getSkewX());
+        rotateMat.setSkewY(transMat.getSkewY());
+        rotateMat.preTranslate(-bounds.x(), -bounds.y());
+        rotateMat.postTranslate(bounds.x(), bounds.y());
+
+        SkRect transBounds = rotateMat.mapRect(bounds);
+
+        rotateMat.setTranslateX(bounds.x() - transBounds.x());
+        rotateMat.setTranslateX(bounds.y() - transBounds.y());
+        if (!rotateMat.invert(&inverseMat)) {
+            ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch get invert matrix failed.");
         }
-        scaleMat.setScale(inverseMat.getScaleX(), inverseMat.getScaleY());
-        scaleMat.setSkewX(inverseMat.getSkewX());
-        scaleMat.setSkewY(inverseMat.getSkewY());
-        scaleMat.preTranslate(-bounds.width() / 2.0, -bounds.height() / 2.0);
-        scaleMat.postTranslate(bounds.width() / 2.0, bounds.height() / 2.0);
     }
 
     canvas.save();
@@ -1872,12 +1878,12 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     // NOTE: Ensure that EPS is consistent with rs_properties.cpp
     constexpr static float EPS = 1e-5f;
     if (pixelStretch->x_ > EPS || pixelStretch->y_ > EPS || pixelStretch->z_ > EPS || pixelStretch->w_ > EPS) {
-        paint.setShader(image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, SkSamplingOptions(), &scaleMat));
+        paint.setShader(image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, SkSamplingOptions(), &inverseMat));
         canvas.drawRect(
             SkRect::MakeXYWH(-pixelStretch->x_, -pixelStretch->y_, scaledBounds.width(), scaledBounds.height()), paint);
     } else {
-        scaleMat.postScale(scaledBounds.width() / bounds.width(), scaledBounds.height() / bounds.height());
-        paint.setShader(image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, SkSamplingOptions(), &scaleMat));
+        inverseMat.postScale(scaledBounds.width() / bounds.width(), scaledBounds.height() / bounds.height());
+        paint.setShader(image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, SkSamplingOptions(), &inverseMat));
         canvas.translate(-pixelStretch->x_, -pixelStretch->y_);
         canvas.drawRect(SkRect::MakeXYWH(pixelStretch->x_, pixelStretch->y_, bounds.width(), bounds.height()), paint);
     }
