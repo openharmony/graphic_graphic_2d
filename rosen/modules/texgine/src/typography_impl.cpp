@@ -403,6 +403,7 @@ void TypographyImpl::DoLayout()
         double offsetX = 0;
         for (auto &vs : lineMetrics_[i].lineSpans) {
             vs.AdjustOffsetY(yOffsets_[i]);
+            offsetX += HALF(vs.GetTextStyle().letterSpacing);
             vs.AdjustOffsetX(offsetX);
             offsetX += vs.GetWidth();
 
