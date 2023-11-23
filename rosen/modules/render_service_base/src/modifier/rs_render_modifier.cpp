@@ -177,24 +177,6 @@ void RSDrawCmdListRenderModifier::ApplyForDrivenContent(RSModifierContext& conte
 #endif
 }
 
-void RSParticleRenderModifier::Apply(RSModifierContext& context) const
-{
-    auto renderProperty = std::static_pointer_cast<RSRenderProperty<RSRenderParticleVector>>(property_);
-    context.properties_.SetParticles(renderProperty->Get());
-}
-
-void RSParticleRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)
-{
-    if (auto property = std::static_pointer_cast<RSRenderProperty<RSRenderParticleVector>>(prop)) {
-        property_->Set(property->Get());
-    }
-}
-
-bool RSParticleRenderModifier::Marshalling(Parcel& parcel)
-{
-    return true;
-}
-
 bool RSEnvForegroundColorRenderModifier::Marshalling(Parcel& parcel)
 {
     auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Color>>(property_);
@@ -415,6 +397,7 @@ const T& Replace(const std::optional<T>& a, T&& b)
     }
 
 #include "modifier/rs_modifiers_def.in"
+DECLARE_NOANIMATABLE_MODIFIER(Particles, RSRenderParticleVector, PARTICLE, Foreground)
 
 #undef DECLARE_ANIMATABLE_MODIFIER
 #undef DECLARE_NOANIMATABLE_MODIFIER

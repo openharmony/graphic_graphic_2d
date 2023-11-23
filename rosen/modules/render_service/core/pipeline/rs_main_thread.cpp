@@ -125,7 +125,6 @@ constexpr uint64_t CLEAN_CACHE_FREQ = 60;
 constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
 constexpr uint64_t PERF_PERIOD_BLUR = 80000000;
 constexpr uint64_t SK_RELEASE_RESOURCE_PERIOD = 5000000000;
-constexpr const char* MEM_GPU_TYPE = "gpu";
 constexpr uint64_t PERF_PERIOD_MULTI_WINDOW = 80000000;
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
@@ -139,6 +138,9 @@ constexpr const char* MEM_MGR = "MemMgr";
 #ifdef RS_ENABLE_GL
 constexpr size_t DEFAULT_SKIA_CACHE_SIZE        = 96 * (1 << 20);
 constexpr int DEFAULT_SKIA_CACHE_COUNT          = 2 * (1 << 12);
+#endif
+#if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
+constexpr const char* MEM_GPU_TYPE = "gpu";
 #endif
 const std::map<int, int32_t> BLUR_CNT_TO_BLUR_CODE {
     { 1, 10021 },
@@ -581,15 +583,24 @@ std::unordered_map<NodeId, bool> RSMainThread::GetCacheCmdSkippedNodes() const
     return cacheCmdSkippedNodes_;
 }
 
-bool RSMainThread::CheckParallelSubThreadNodesStatus()
+void RSMainThread::ResetSubThreadGrContext()
 {
-    RS_OPTIONAL_TRACE_FUNC();
-    cacheCmdSkippedInfo_.clear();
-    cacheCmdSkippedNodes_.clear();
-    if (subThreadNodes_.empty()) {
+#ifdef RS_ENABLE_VK
+    constexpr uint64_t delayNumOfFrameCount_ = 2;
+    if (!needResetSubThreadGrContext_) {
+        needResetSubThreadGrContext_ = true;
+        frameCountForResetSubThreadGrContext_ = frameCount_.load();
+    } else if (frameCount_.load() > frameCountForResetSubThreadGrContext_ + delayNumOfFrameCount_) {
+        needResetSubThreadGrContext_ = false;
         RSSubThreadManager::Instance()->ResetSubThreadGrContext();
-        return false;
     }
+#else
+    RSSubThreadManager::Instance()->ResetSubThreadGrContext();
+#endif
+}
+
+void RSMainThread::CheckParallelSubThreadNodesStatusImplementation()
+{
     for (auto& node : subThreadNodes_) {
         if (node == nullptr) {
             RS_LOGE("RSMainThread::CheckParallelSubThreadNodesStatus sunThreadNode is nullptr!");
@@ -622,6 +633,22 @@ bool RSMainThread::CheckParallelSubThreadNodesStatus()
             }
         }
     }
+}
+
+bool RSMainThread::CheckParallelSubThreadNodesStatus()
+{
+    RS_OPTIONAL_TRACE_FUNC();
+    cacheCmdSkippedInfo_.clear();
+    cacheCmdSkippedNodes_.clear();
+    if (subThreadNodes_.empty()) {
+        ResetSubThreadGrContext();
+        return false;
+    } else {
+#ifdef RS_ENABLE_VK
+        needResetSubThreadGrContext_ = false;
+#endif
+    }
+    CheckParallelSubThreadNodesStatusImplementation();
     if (!cacheCmdSkippedNodes_.empty()) {
         return true;
     }

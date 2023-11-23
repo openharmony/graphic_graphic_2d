@@ -79,6 +79,7 @@ enum RSPropertyDrawableSlot : uint8_t {
     RESTORE_BACKGROUND,
 
     // No clip (unless ClipToBounds is set)
+    POINT_LIGHT,
     BORDER,
     OVERLAY,
     PARTICLE_EFFECT,

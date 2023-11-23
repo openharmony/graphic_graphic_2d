@@ -88,8 +88,8 @@ public:
     DEFINE_FUNC(CreateInstance);
     DEFINE_FUNC(CreateSemaphore);
     DEFINE_FUNC(CreateSwapchainKHR);
-    DEFINE_PROC(DestroyCommandPool);
-    DEFINE_PROC(DestroyDebugReportCallbackEXT);
+    DEFINE_FUNC(DestroyCommandPool);
+    DEFINE_FUNC(DestroyDebugReportCallbackEXT);
     DEFINE_FUNC(DestroyDevice);
     DEFINE_FUNC(DestroyFence);
     DEFINE_FUNC(DestroyImage);
@@ -152,7 +152,7 @@ public:
         return backendContext_;
     }
 
-    sk_sp<GrDirectContext> CreateSkContext(bool indenpent = false);
+    sk_sp<GrDirectContext> CreateSkContext(bool independentContext = false);
     sk_sp<GrDirectContext> GetSkContext();
 
     static VKAPI_ATTR VkResult HookedVkQueueSubmit(VkQueue queue, uint32_t submitCount,

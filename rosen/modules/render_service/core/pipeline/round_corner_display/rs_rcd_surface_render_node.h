@@ -133,6 +133,7 @@ private:
     uint32_t GetRcdBufferWidth() const;
     uint32_t GetRcdBufferHeight() const;
     uint32_t GetRcdBufferSize() const;
+    float rcdGlobalZOrder_ = 0.0f;
 
 #ifdef NEW_RENDER_CONTEXT
     std::shared_ptr<RSRenderSurface> surface_;

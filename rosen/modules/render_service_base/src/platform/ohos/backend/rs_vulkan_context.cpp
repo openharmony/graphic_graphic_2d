@@ -176,9 +176,9 @@ bool RsVulkanContext::CreateInstance()
     return true;
 }
 
-bool RsVulkanContext::CreateDevice()
+bool RsVulkanContext::SelectPhysicalDevice()
 {
-    if (!physicalDevice_) {
+    if (!instance_) {
         return false;
     }
     uint32_t deviceCount = 0;
@@ -197,8 +197,11 @@ bool RsVulkanContext::CreateDevice()
     return true;
 }
 
-bool RsVulkanContext::GetGraphicsQueueFamilyIndex()
+bool RsVulkanContext::CreateDevice()
 {
+    if (!physicalDevice_) {
+        return false;
+    }
     uint32_t queueCount;
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice_, &queueCount, nullptr);
 
@@ -229,16 +232,11 @@ bool RsVulkanContext::GetGraphicsQueueFamilyIndex()
     vkGetPhysicalDeviceFeatures2(physicalDevice_, &physicalDeviceFeatures2_);
 
     const VkDeviceCreateInfo createInfo = {
-        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-        .pNext = &physicalDeviceFeatures2_,
-        .flags = 0,
-        .queueCreateInfoCount = queueCreate.size(),
-        .pQueueCreateInfos = queueCreate.data(),
-        .enabledLayerCount = 0,
-        .ppEnabledLayerNames = nullptr,
+        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO, .pNext = &physicalDeviceFeatures2_,
+        .flags = 0, .queueCreateInfoCount = queueCreate.size(), .pQueueCreateInfos = queueCreate.data(),
+        .enabledLayerCount = 0, .ppEnabledLayerNames = nullptr,
         .enabledExtensionCount = static_cast<uint32_t>(gDeviceExtensions.size()),
-        .ppEnabledExtensionNames = gDeviceExtensions.data(),
-        .pEnabledFeatures = nullptr,
+        .ppEnabledExtensionNames = gDeviceExtensions.data(), .pEnabledFeatures = nullptr,
     };
     if (vkCreateDevice(physicalDevice_, &createInfo, nullptr, &device_) != VK_SUCCESS) {
         ROSEN_LOGE("vkCreateDevice failed");
@@ -248,6 +246,8 @@ bool RsVulkanContext::GetGraphicsQueueFamilyIndex()
     if (!SetupDeviceProcAddresses(device_)) {
         return false;
     }
+
+    vkGetDeviceQueue(device_, graphicsQueueFamilyIndex_, 0, &queue_);
     vkGetDeviceQueue(device_, graphicsQueueFamilyIndex_, 1, &hardwareQueue_);
     return true;
 }
@@ -303,7 +303,7 @@ bool RsVulkanContext::CreateSkiaBackendContext(GrVkBackendContext* context, bool
     return true;
 }
 
-bool RsVulkanContext::SetupDevcieProcAddresses(VkDevice device)
+bool RsVulkanContext::SetupDeviceProcAddresses(VkDevice device)
 {
     ACQUIRE_PROC(AllocateCommandBuffers, device_);
     ACQUIRE_PROC(AllocateMemory, device_);
@@ -410,7 +410,7 @@ GrVkGetProc RsVulkanContext::CreateSkiaGetProc() const
     };
 }
 
-sk_sp<GrDirectContext> RsVulkanContext::(bool independentContext)
+sk_sp<GrDirectContext> RsVulkanContext::CreateSkContext(bool independentContext)
 {
     std::unique_lock<std::mutex> lock(vkMutex_);
     if (independentContext) {
@@ -429,7 +429,7 @@ sk_sp<GrDirectContext> RsVulkanContext::(bool independentContext)
         skContext_->setResourceCacheLimits(cacheLimitsTimes * maxResources,
             cacheLimitsTimes * std::fmin(maxResourcesSize, GR_CACHE_MAX_BYTE_SIZE));
     } else {
-        skContext->setResourceCacheLimits(GR_CACHE_MAX_COUNT, GR_CACHE_MAX_BYTE_SIZE);
+        skContext_->setResourceCacheLimits(GR_CACHE_MAX_COUNT, GR_CACHE_MAX_BYTE_SIZE);
     }
     RS_LOGE("skContext_:%{public}p %{public}p", skContext_.get(), backendContext_.fQueue);
     return skContext_;
@@ -437,7 +437,6 @@ sk_sp<GrDirectContext> RsVulkanContext::(bool independentContext)
 
 sk_sp<GrDirectContext> RsVulkanContext::CreateNewSkContext()
 {
-    //GrVkBackendContext bc;
     CreateSkiaBackendContext(&hbackendContext_, true);
     skContext_ = GrDirectContext::MakeVulkan(hbackendContext_);
     int maxResources = 0;
@@ -451,7 +450,7 @@ sk_sp<GrDirectContext> RsVulkanContext::CreateNewSkContext()
         skContext_->setResourceCacheLimits(GR_CACHE_MAX_COUNT, GR_CACHE_MAX_BYTE_SIZE);
     }
     hcontext_ = skContext_;
-    RS_LOGE("new skContext_:%{public}p %{public}p", skContext_.get(), hbackendContext_.fQueue);
+    RS_LOGD("new skContext_:%{public}p %{public}p", skContext_.get(), hbackendContext_.fQueue);
     return skContext_;
 }
 

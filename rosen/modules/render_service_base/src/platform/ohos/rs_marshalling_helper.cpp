@@ -37,6 +37,7 @@
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
 #include "modifier/rs_render_modifier.h"
+#include "pipeline/rs_draw_cmd.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_blur_filter.h"
 #include "render/rs_filter.h"
@@ -49,7 +50,6 @@
 #include "render/rs_path.h"
 #include "render/rs_shader.h"
 #include "transaction/rs_ashmem_helper.h"
-#include "pipeline/rs_draw_cmd.h"
 
 #ifndef USE_ROSEN_DRAWING
 #include "include/core/SkDrawable.h"
@@ -81,6 +81,7 @@
 #ifdef RS_ENABLE_RECORDING
 #include "benchmarks/rs_recording_thread.h"
 #endif
+
 #if defined (ENABLE_DDGR_OPTIMIZE)
 #include <sys/mman.h>
 #include "securec.h"
@@ -1377,7 +1378,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RenderParticleParaType<f
     if (success) {
         Range<float> value(valueStart, valueEnd);
         Range<float> random(randomStart, randomEnd);
-        val = RenderParticleParaType<float>(value, updator, random, valChangeOverLife);
+        val = RenderParticleParaType<float>(value, updator, random, std::move(valChangeOverLife));
     }
     return success;
 }
@@ -1440,8 +1441,8 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RenderParticleColorParaT
             success = success && Unmarshalling(parcel, startMillis);
             success = success && Unmarshalling(parcel, endMillis);
             std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
-            auto change =
-                std::make_shared<ChangeInOverLife<Color>>(fromValue, toValue, startMillis, endMillis, interpolator);
+            auto change = std::make_shared<ChangeInOverLife<Color>>(
+                fromValue, toValue, startMillis, endMillis, std::move(interpolator));
             valChangeOverLife.push_back(change);
         }
     }
@@ -1452,7 +1453,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RenderParticleColorParaT
         Range<float> blueRandom(blueRandomStart, blueRandomEnd);
         Range<float> alphaRandom(alphaRandomStart, alphaRandomEnd);
         val = RenderParticleColorParaType(
-            colorVal, updator, redRandom, greenRandom, blueRandom, alphaRandom, valChangeOverLife);
+            colorVal, updator, redRandom, greenRandom, blueRandom, alphaRandom, std::move(valChangeOverLife));
     }
     return success;
 }
@@ -2190,94 +2191,97 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
 
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
-#define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                                       \
-    EXPLICIT_INSTANTIATION(TEMPLATE, bool)                                           \
-    EXPLICIT_INSTANTIATION(TEMPLATE, float)                                          \
-    EXPLICIT_INSTANTIATION(TEMPLATE, int)                                            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Color)                                          \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                                        \
-    EXPLICIT_INSTANTIATION(TEMPLATE, GradientDirection)                              \
-    EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)                    \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                                       \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)                      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSImage>)                       \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)                        \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)                        \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)                      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<std::shared_ptr<ParticleRenderParams>>)              \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleRenderParams>)          \
-    EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleColorParaType)                    \
-    EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleParaType<float>)                  \
-    EXPLICIT_INSTANTIATION(TEMPLATE, ParticleVelocity)                               \
-    EXPLICIT_INSTANTIATION(TEMPLATE, EmitterConfig)                                  \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                       \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                              \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                                 \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                                       \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<DrawCmdList>)                   \
-    EXPLICIT_INSTANTIATION(TEMPLATE, SkMatrix)                                       \
+#define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                                           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, bool)                                               \
+    EXPLICIT_INSTANTIATION(TEMPLATE, float)                                              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, int)                                                \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Color)                                              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                                            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, GradientDirection)                                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)                        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                                           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                                         \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)                          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSImage>)                           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)                            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)                            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)                          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<std::shared_ptr<ParticleRenderParams>>) \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleRenderParams>)              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RSRenderParticleVector)                             \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleColorParaType)                        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleParaType<float>)                      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, ParticleVelocity)                                   \
+    EXPLICIT_INSTANTIATION(TEMPLATE, EmitterConfig)                                      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                                           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<DrawCmdList>)                       \
+    EXPLICIT_INSTANTIATION(TEMPLATE, SkMatrix)                                           \
     EXPLICIT_INSTANTIATION(TEMPLATE, SkM44)
 #else
-#define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                                       \
-    EXPLICIT_INSTANTIATION(TEMPLATE, bool)                                           \
-    EXPLICIT_INSTANTIATION(TEMPLATE, float)                                          \
-    EXPLICIT_INSTANTIATION(TEMPLATE, int)                                            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Color)                                          \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                                        \
-    EXPLICIT_INSTANTIATION(TEMPLATE, GradientDirection)                              \
-    EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)                    \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                                       \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)                      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSImage>)                       \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)                        \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)                        \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)                      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<std::shared_ptr<ParticleRenderParams>>)              \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleRenderParams>)          \
-    EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleColorParaType)                    \
-    EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleParaType<float>)                  \
-    EXPLICIT_INSTANTIATION(TEMPLATE, ParticleVelocity)                               \
-    EXPLICIT_INSTANTIATION(TEMPLATE, EmitterConfig)                                  \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                       \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                              \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                                 \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                                       \
-    EXPLICIT_INSTANTIATION(TEMPLATE, RRectT<float>)                                  \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<DrawCmdList>)                   \
+#define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                                           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, bool)                                               \
+    EXPLICIT_INSTANTIATION(TEMPLATE, float)                                              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, int)                                                \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Color)                                              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                                            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, GradientDirection)                                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)                        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                                           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                                         \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)                          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSImage>)                           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)                            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)                            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)                          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<std::shared_ptr<ParticleRenderParams>>) \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleRenderParams>)              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RSRenderParticleVector)                             \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleColorParaType)                        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleParaType<float>)                      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, ParticleVelocity)                                   \
+    EXPLICIT_INSTANTIATION(TEMPLATE, EmitterConfig)                                      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                                           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RRectT<float>)                                      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<DrawCmdList>)                       \
     EXPLICIT_INSTANTIATION(TEMPLATE, SkMatrix)
 #endif
 #else
-#define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, bool)                                         \
-    EXPLICIT_INSTANTIATION(TEMPLATE, float)                                        \
-    EXPLICIT_INSTANTIATION(TEMPLATE, int)                                          \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Color)                                        \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                                      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, GradientDirection)                            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)                  \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                                   \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)                    \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSImage>)                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)                      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)                      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)                    \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)    \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<std::shared_ptr<ParticleRenderParams>>)              \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleRenderParams>)        \
-    EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleColorParaType)                  \
-    EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleParaType<float>)                \
-    EXPLICIT_INSTANTIATION(TEMPLATE, ParticleVelocity)                             \
-    EXPLICIT_INSTANTIATION(TEMPLATE, EmitterConfig)                                \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                            \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                               \
-    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>)        \
+#define BATCH_EXPLICIT_INSTANTIATION(TEMPLATE)                                           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, bool)                                               \
+    EXPLICIT_INSTANTIATION(TEMPLATE, float)                                              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, int)                                                \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Color)                                              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Gravity)                                            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, GradientDirection)                                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)                        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                                           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                                         \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)                          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSImage>)                           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)                            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)                            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)                          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)          \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<std::shared_ptr<ParticleRenderParams>>) \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleRenderParams>)              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RSRenderParticleVector)                             \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleColorParaType)                        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleParaType<float>)                      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, ParticleVelocity)                                   \
+    EXPLICIT_INSTANTIATION(TEMPLATE, EmitterConfig)                                      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                                           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>)              \
     EXPLICIT_INSTANTIATION(TEMPLATE, Drawing::Matrix)
 #endif
 

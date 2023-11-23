@@ -124,6 +124,7 @@ private:
     bool supportTopSurface_ = false;
     bool supportBottomSurface_ = false;
     bool supportHardware_ = false;
+    bool resourceChanged = false;
 
     // the resource to be drawn
     sk_sp<SkImage> curTop_ = nullptr;

@@ -752,7 +752,7 @@ void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams, cons
         uiAnimation->SetFinishCallback(std::make_shared<AnimationFinishCallback>(finishCallback));
     }
     auto animation =
-        std::make_shared<RSRenderParticleAnimation>(animationId, propertyId, particlesRenderParams);
+        std::make_shared<RSRenderParticleAnimation>(animationId, propertyId, std::move(particlesRenderParams));
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateParticle>(GetId(), animation);
     auto transactionProxy = RSTransactionProxy::GetInstance();
@@ -1464,7 +1464,6 @@ void RSNode::SetGrayScale(float grayScale)
 
 void RSNode::SetLightIntensity(float lightIntensity)
 {
-    ROSEN_LOGD("RSNode::SetLightIntensity:%{public}f", lightIntensity);
     SetProperty<RSLightIntensityModifier, RSAnimatableProperty<float>>(RSModifierType::LIGHT_INTENSITY, lightIntensity);
 }
 
@@ -1480,7 +1479,6 @@ void RSNode::SetLightPosition(const Vector4f& lightPosition)
 
 void RSNode::SetIlluminatedType(uint32_t illuminatedType)
 {
-    ROSEN_LOGD("RSNode::SetIlluminatedType:%{public}d", illuminatedType);
     SetProperty<RSIlluminatedTypeModifier, RSProperty<int>>(
         RSModifierType::ILLUMINATED_TYPE, illuminatedType);
 }

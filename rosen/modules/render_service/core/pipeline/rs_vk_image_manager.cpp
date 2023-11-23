@@ -29,7 +29,7 @@ namespace Rosen {
 
 NativeVkImageRes::~NativeVkImageRes()
 {
-    NativeBufferUtils::delete_vk_image(mVulkanCleanupHelper);
+    NativeBufferUtils::DeleteVkImage(mVulkanCleanupHelper);
     DestoryNativeWindowBuffer(mNativeWindowBuffer);
 }
 
@@ -83,7 +83,7 @@ std::shared_ptr<NativeVkImageRes> RSVkImageManager::CreateImageCacheFromBuffer(s
     return imageCache;
 }
 
-void RSVkImageManager::WaitAcquireFence(const sptr<SyncFence>& acquireFence);
+void RSVkImageManager::WaitAcquireFence(const sptr<SyncFence>& acquireFence)
 {
     if (acquireFence == nullptr) {
         return;
@@ -139,7 +139,7 @@ void RSVkImageManager::UnMapVkImageFromSurfaceBuffer(int32_t seqNum)
             }
             (void)imageCacheSeqs_.erase(seqNum);
         }
-        RS_LOGD("RSVkImageManager::UnMapEglImageFromSurfaceBuffer: %{public}d", seqNum);
+        RS_LOGD("RSVkImageManager::UnMapVkImageFromSurfaceBuffer: %{public}d", seqNum);
     };
     if (threadIndex == UNI_MAIN_THREAD_INDEX) {
         RSMainThread::Instance()->PostTask(func);
@@ -156,7 +156,7 @@ void RSVkImageManager::UnMapVkImageFromSurfaceBufferForUniRedraw(int32_t seqNum)
             return;
         }
         (void)imageCacheSeqs_.erase(seqNum);
-        RS_LOGD("RSVkImageManager::UnMapEglImageFromSurfaceBufferForRedraw");0
+        RS_LOGD("RSVkImageManager::UnMapVkImageFromSurfaceBufferForRedraw");
     });
 }
 

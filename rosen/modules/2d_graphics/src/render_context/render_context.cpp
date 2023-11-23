@@ -294,7 +294,11 @@ void RenderContext::SetColorSpace(GraphicColorGamut colorSpace)
 }
 
 #ifndef USE_ROSEN_DRAWING
+#ifdef RS_ENABLE_VK
 bool RenderContext::SetUpGrContext(sk_sp<GrDirectContext> skContext)
+#else
+bool RenderContext::SetUpGrContext()
+#endif
 {
     if (grContext_ != nullptr) {
         LOGD("grContext has already created!!");
@@ -302,7 +306,6 @@ bool RenderContext::SetUpGrContext(sk_sp<GrDirectContext> skContext)
     }
 
 #ifdef RS_ENABLE_GL
-    (void)(skContext);
     sk_sp<const GrGLInterface> glInterface(GrGLCreateNativeInterface());
     if (glInterface.get() == nullptr) {
         LOGE("SetUpGrContext failed to make native interface");
@@ -373,7 +376,11 @@ bool RenderContext::SetUpGpuContext()
 #ifndef USE_ROSEN_DRAWING
 sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
 {
+#ifdef RS_ENABLE_VK
     if (!SetUpGrContext(nullptr)) {
+#else
+    if (!SetUpGrContext()) {
+#endif
         LOGE("GrContext is not ready!!!");
         return nullptr;
     }

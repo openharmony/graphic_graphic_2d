@@ -92,6 +92,10 @@ void RSImageBase::DrawImage(RSPaintFilterCanvas& canvas, const SkPaint& paint)
     ConvertPixelMapToSkImage();
     auto src = RSPropertiesPainter::Rect2SkRect(srcRect_);
     auto dst = RSPropertiesPainter::Rect2SkRect(dstRect_);
+    if (image_ == nullptr) {
+        RS_LOGE("RSImageBase::DrawImage image_ is nullptr");
+        return;
+    }
 #ifdef NEW_SKIA
     canvas.drawImageRect(image_, src, dst, samplingOptions, &paint, SkCanvas::kStrict_SrcRectConstraint);
 #else
