@@ -132,6 +132,7 @@ constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 constexpr uint32_t WAIT_FOR_HARDWARE_THREAD_TASK_TIMEOUT = 3000;
 constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
 constexpr uint32_t WAIT_FOR_MEM_MGR_SERVICE = 100;
+constexpr uint32_t CAL_NODE_PREFERRED_LIMIT = 50;
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* MEM_MGR = "MemMgr";
@@ -1843,13 +1844,19 @@ void RSMainThread::Animate(uint64_t timestamp)
     // isCalculateAnimationValue is embedded modify for stat animate frame drop
     bool isCalculateAnimationValue = false;
     // iterate and animate all animating nodes, remove if animation finished
+    bool calNodePreferredFlag = true;
+    if (context_->animatingNodeList_.size() > CAL_NODE_PREFERRED_LIMIT) {
+        calNodePreferredFlag = false;
+    }
     EraseIf(context_->animatingNodeList_,
-        [this, timestamp, &curWinAnim, &needRequestNextVsync, &isCalculateAnimationValue](const auto& iter) -> bool {
+        [this, timestamp, calNodePreferredFlag, &curWinAnim, &needRequestNextVsync,
+        &isCalculateAnimationValue](const auto& iter) -> bool {
         auto node = iter.second.lock();
         if (node == nullptr) {
             RS_LOGD("RSMainThread::Animate removing expired animating node");
             return true;
         }
+        node->SetCalPreferredNode(calNodePreferredFlag);
         if (cacheCmdSkippedInfo_.count(ExtractPid(node->GetId())) > 0) {
             RS_LOGD("RSMainThread::Animate skip the cached node");
             return false;
@@ -2569,9 +2576,13 @@ int32_t RSMainThread::GetNodePreferred(const std::vector<HgmModifierProfile>& hg
 FrameRateRange RSMainThread::CalcRSFrameRateRange(std::shared_ptr<RSRenderNode> node)
 {
     FrameRateRange rsRange;
-    auto preferred = GetNodePreferred(node->GetHgmModifierProfileList());
-    if (preferred > 0) {
-        rsRange = {0, RANGE_MAX_REFRESHRATE, preferred};
+    if (!node->IsCalPreferredNode()) {
+        rsRange = {0, RANGE_MAX_REFRESHRATE, OLED_120_HZ};
+    } else if (node->HasAnimation()) {
+        auto preferred = GetNodePreferred(node->GetHgmModifierProfileList());
+        if (preferred > 0) {
+            rsRange = {0, RANGE_MAX_REFRESHRATE, preferred};
+        }
     }
     return rsRange;
 }

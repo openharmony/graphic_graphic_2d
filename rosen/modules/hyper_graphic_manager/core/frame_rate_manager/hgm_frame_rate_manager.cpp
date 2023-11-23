@@ -294,9 +294,6 @@ int32_t HgmFrameRateManager::CalModifierPreferred(const HgmModifierProfile &hgmM
 
     auto dynamicSettingMap = parsedConfigData->GetAnimationDynamicSettingMap(hgmModifierProfile.hgmModifierType);
     for (const auto &iter: dynamicSettingMap) {
-        if (mixSpeed == 0) {
-            return DEFAULT_PREFERRED;
-        }
         if (mixSpeed >= iter.second.min && (mixSpeed < iter.second.max || iter.second.max == -1)) {
             return iter.second.preferred_fps;
         }

@@ -446,6 +446,13 @@ public:
     void SetIsUsedBySubThread(bool isUsedBySubThread);
     bool GetIsUsedBySubThread() const;
 
+    bool IsCalPreferredNode() {
+        return isCalPreferredNode_;
+    }
+    void SetCalPreferredNode(bool isCalPreferredNode) {
+        isCalPreferredNode_ = isCalPreferredNode;
+    }
+
 protected:
     virtual void OnApplyModifiers() {}
 
@@ -612,12 +619,13 @@ private:
     int64_t lastTimestamp_ = -1;
     int64_t lastApplyTimestamp_ = -1;
     float timeDelta_ = -1;
-    std::unordered_map<PropertyId, std::variant<float, Vector2f>> propertyValueMap_;
+    std::unordered_map<PropertyId, std::variant<float, Vector2f, Vector4f>> propertyValueMap_;
     std::vector<HgmModifierProfile> hgmModifierProfileList_;
 
     std::vector<std::unique_ptr<RSPropertyDrawable>> propertyDrawablesVec_;
     uint8_t drawableVecStatus_ = 0;
     void UpdateDrawableVec();
+    bool isCalPreferredNode_ = true;
 
     friend class RSAliasDrawable;
     friend class RSMainThread;
