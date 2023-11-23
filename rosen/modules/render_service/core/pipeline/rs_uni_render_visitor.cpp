@@ -609,10 +609,9 @@ void RSUniRenderVisitor::HandlePixelFormat(RSDisplayRenderNode& node, const sptr
     }
 
     if (screenType == VIRTUAL_TYPE_SCREEN) {
-        newPixelFormat_ = GRAPHIC_PIXEL_FMT_RGBA_8888;
-        // if (screenManager->GetPixelFormat(node.GetScreenId(), newPixelFormat_) != SUCCESS) {
-        //     RS_LOGE("RSUniRenderVisitor::HandlePixelFormat get screen color gamut failed.")
-        // }
+        if (screenManager->GetPixelFormat(node.GetScreenId(), newPixelFormat_) != SUCCESS) {
+            RS_LOGE("RSUniRenderVisitor::HandlePixelFormat get screen color gamut failed.");
+        }
         return;
     }
 
