@@ -139,7 +139,7 @@ void RSPaintFilterCanvasBase::DrawBackground(const Brush& brush)
 {
     Brush b(brush);
     if (canvas_ != nullptr && OnFilterWithBrush(b)) {
-        canvas_->DrawBackground(brush);
+        canvas_->DrawBackground(b);
     }
 }
 
