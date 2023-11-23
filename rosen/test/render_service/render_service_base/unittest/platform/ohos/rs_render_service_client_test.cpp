@@ -159,5 +159,20 @@ HWTEST_F(RSClientTest, RegisterApplicationAgent_Nullptr, TestSize.Level1)
     ASSERT_NE(renderService, nullptr);
     renderService->RegisterApplicationAgent(123, nullptr); // pid: 123
 }
+
+/**
+ * @tc.name: CreateVirtualScreen Test
+ * @tc.desc: CreateVirtualScreen Test
+ * @tc.type:FUNC
+ * @tc.require: issueI8FSLX
+ */
+HWTEST_F(RSClientTest, CreateVirtualScreen, TestSize.Level2)
+{
+    ASSERT_NE(rsClient, nullptr);
+    std::vector<NodeId> filteredAppVector = {1};
+    ScreenId virtualScreenId = rsClient->CreateVirtualScreen(
+        "virtual0", 320, 180, nullptr, INVALID_SCREEN_ID, -1, filteredAppVector);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+}
 } // namespace Rosen
 } // namespace OHOS
