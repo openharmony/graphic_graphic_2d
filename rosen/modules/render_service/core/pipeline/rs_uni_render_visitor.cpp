@@ -2308,6 +2308,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 region.getBoundaryPath(&dirtyPath);
                 canvas_->clipPath(dirtyPath, true);
             }
+            canvas_->clear(SK_ColorTRANSPARENT);
 #else
             if (region.IsEmpty()) {
                 // [planning] Remove this after frame buffer can cancel
@@ -2321,6 +2322,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 region.GetBoundaryPath(&dirtyPath);
                 canvas_->ClipPath(dirtyPath, Drawing::ClipOp::INTERSECT, true);
             }
+            canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
 #endif
         }
 #endif
