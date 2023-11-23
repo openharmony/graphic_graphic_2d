@@ -356,7 +356,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         {CM_P3_FULL, GRAPHIC_COLOR_GAMUT_DISPLAY_P3},
     };
     GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
-    if (RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.find(colorSpaceType) != RS_GAMUT_TO_COLORSPACE_MAP.end()) {
+    if (RS_GAMUT_TO_COLORSPACE_MAP.find(colorSpaceType) != RS_GAMUT_TO_COLORSPACE_MAP.end()) {
         colorGamut = RS_GAMUT_TO_COLORSPACE_MAP.at(colorSpaceType);
     }
 #endif
