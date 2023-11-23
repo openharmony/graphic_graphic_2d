@@ -20,8 +20,6 @@ config("render_service_link_config") {
     ldflags = [
       "-Wl,--lto-O2",
       "-Wl,-mllvm",
-      "-Wl,-import-instr-limit=5",
-      "-Wl,-mllvm",
       "-Wl,-wholeprogramdevirt-check=fallback",
       "-Wl,-Bsymbolic",
     ]
@@ -47,13 +45,14 @@ ohos_shared_library("librender_service") {
     cflags = [ "-flto=thin" ]
     if (enhanced_opt) {
       cflags += [ "-fwhole-program-vtables" ]
-      if (graphic_2d_feature_pgo && graphic_2d_feature_product != "default") {
+      if (graphic_2d_feature_enable_pgo &&
+          graphic_2d_feature_product != "default") {
         cflags += [
           "-fprofile-use=" + rebase_path(
-                  "//toolchain/pgo-profiles/${graphic_2d_feature_product}/librender_service.profdata",
+                  "${graphic_2d_feature_pgo_path}/librender_service.profdata",
                   root_build_dir),
           "-Wno-error=backend-plugin",
-          "-Wno-profile-instr-out-data",
+          "-Wno-profile-instr-out-of-date",
           "-Wno-profile-instr-unprofiled",
         ]
       }

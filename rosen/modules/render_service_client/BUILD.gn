@@ -221,8 +221,6 @@ config("render_service_client_link_config") {
     ldflags = [
       "-Wl,--lto-O2",
       "-Wl,-mllvm",
-      "-Wl,-import-instr-limit=5",
-      "-Wl,-mllvm",
       "-Wl,-wholeprogramdevirt-check=fallback",
       "-Wl,-Bsymbolic",
     ]
