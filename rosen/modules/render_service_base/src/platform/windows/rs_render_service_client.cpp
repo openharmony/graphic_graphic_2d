@@ -306,7 +306,8 @@ int32_t RSRenderServiceClient::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
     return {};
 }
 
-int32_t RSRenderServiceClient::GetScreenSupportedColorSpaces(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces)
+int32_t RSRenderServiceClient::GetScreenSupportedColorSpaces(
+    ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces)
 {
     return {};
 }

@@ -866,7 +866,8 @@ HWTEST_F(RSInterfacesTest, GetScreenColorSpace002, Function | SmallTest | Level2
 */
 HWTEST_F(RSInterfacesTest, SetScreenColorSpace002, Function | SmallTest | Level2)
 {
-    int ret = rsInterfaces->SetScreenColorSpace(INVALID_SCREEN_ID, GraphicCM_ColorSpaceType::GRAPHIC_CM_COLORSPACE_NONE);
+    int ret = rsInterfaces->SetScreenColorSpace(
+        INVALID_SCREEN_ID, GraphicCM_ColorSpaceType::GRAPHIC_CM_COLORSPACE_NONE);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
 }
 

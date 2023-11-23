@@ -177,7 +177,8 @@ public:
 
     virtual int32_t SetScreenHDRFormat(ScreenId id, int32_t modeIdx) = 0;
 
-    virtual int32_t GetScreenSupportedColorSpaces(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces) const = 0;
+    virtual int32_t GetScreenSupportedColorSpaces(
+        ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces) const = 0;
 
     virtual int32_t GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace) const = 0;
 
@@ -311,7 +312,8 @@ public:
 
     int32_t SetScreenHDRFormat(ScreenId id, int32_t modeIdx) override;
 
-    int32_t GetScreenSupportedColorSpaces(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces) const override;
+    int32_t GetScreenSupportedColorSpaces(
+        ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces) const override;
 
     int32_t GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace) const override;
 

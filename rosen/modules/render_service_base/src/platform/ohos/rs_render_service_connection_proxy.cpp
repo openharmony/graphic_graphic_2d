@@ -1258,7 +1258,8 @@ int32_t RSRenderServiceConnectionProxy::SetPixelFormat(ScreenId id, GraphicPixel
     return result;
 }
 
-int32_t RSRenderServiceConnectionProxy::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats)
+int32_t RSRenderServiceConnectionProxy::GetScreenSupportedHDRFormats(
+    ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -1327,7 +1328,8 @@ int32_t RSRenderServiceConnectionProxy::SetScreenHDRFormat(ScreenId id, int32_t 
     return result;
 }
 
-int32_t RSRenderServiceConnectionProxy::GetScreenSupportedColorSpaces(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces)
+int32_t RSRenderServiceConnectionProxy::GetScreenSupportedColorSpaces(
+    ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces)
 {
     MessageParcel data;
     MessageParcel reply;
