@@ -640,6 +640,8 @@ public:
     // manage abilities' nodeid info
     void UpdateAbilityNodeIds(NodeId id, bool isAdded);
     const std::unordered_set<NodeId>& GetAbilityNodeIds() const;
+    void AddAbilityComponentNodeIds(std::unordered_set<NodeId> nodeIds);
+    void ResetAbilityNodeIds();
 
     // manage appWindowNode's child hardware enabled nodes info
     void ResetChildHardwareEnabledNodes();

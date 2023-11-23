@@ -859,6 +859,12 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeAfterUpdate(RSSurfaceRen
             rsParent->SetHasFilter(hasFilter);
             rsParent->SetHasHardwareNode(hasHardwareNode);
             rsParent->SetHasAbilityComponent(hasAbilityComponent);
+            // [uifirst] leashWindow add or clear abilityNodeId for checking subthread node status
+            if (hasAbilityComponent) {
+                rsParent->AddAbilityComponentNodeIds(node.GetAbilityNodeIds());
+            } else {
+                rsParent->ResetAbilityNodeIds();
+            }
         } else {
             node.SetHasFilter(hasFilter);
             node.SetHasHardwareNode(hasHardwareNode);

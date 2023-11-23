@@ -631,6 +631,17 @@ void RSMainThread::CheckParallelSubThreadNodesStatusImplementation()
             } else {
                 cacheCmdSkippedInfo_[pid].first.push_back(node->GetId());
             }
+            if (!node->HasAbilityComponent()) {
+                continue;
+            }
+            for (auto& nodeId : node->GetAbilityNodeIds()) {
+                pid_t abilityNodePid = ExtractPid(nodeId);
+                if (cacheCmdSkippedInfo_.count(abilityNodePid) == 0) {
+                    cacheCmdSkippedInfo_[abilityNodePid] = std::make_pair(std::vector<NodeId>{node->GetId()}, true);
+                } else {
+                    cacheCmdSkippedInfo_[abilityNodePid].first.push_back(node->GetId());
+                }
+            }
         }
     }
 }
