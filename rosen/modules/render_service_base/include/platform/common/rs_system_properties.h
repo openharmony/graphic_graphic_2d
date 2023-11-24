@@ -171,6 +171,7 @@ public:
     static bool GetUseShadowBatchingEnabled();
     static bool GetSingleFrameComposerEnabled();
     static bool GetSingleFrameComposerCanvasNodeEnabled();
+    static bool GetSubSurfaceEnabled();
 private:
     RSSystemProperties() = default;
 
