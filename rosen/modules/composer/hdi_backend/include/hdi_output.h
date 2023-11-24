@@ -26,7 +26,6 @@
 #include "hdi_framebuffer_surface.h"
 #include "hdi_screen.h"
 #include "vsync_sampler.h"
-#include "metadata_helper.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -65,10 +64,6 @@ public:
     /* for RS end */
 
     static std::shared_ptr<HdiOutput> CreateHdiOutput(uint32_t screenId);
-    static OHOS::HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceType ComputeTargetColorSpace(
-        const std::vector<LayerInfoPtr>& layers);
-    static OHOS::HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceType ComputeTargetColorSpace(
-        const std::vector<LayerPtr>& layers);
     RosenError Init();
     const std::unordered_map<uint32_t, LayerPtr>& GetLayers();
     const std::vector<GraphicIRect>& GetOutputDamages();
@@ -125,6 +120,7 @@ private:
     void RecordCompositionTime(int64_t timeStamp);
     inline bool CheckFbSurface();
     bool CheckAndUpdateClientBufferCahce(sptr<SurfaceBuffer> buffer, uint32_t& index);
+    void SetBufferColorSpace(sptr<SurfaceBuffer>& buffer, const std::vector<LayerPtr>& layers) const;
 };
 } // namespace Rosen
 } // namespace OHOS

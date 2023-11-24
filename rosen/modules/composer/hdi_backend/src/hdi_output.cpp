@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <scoped_bytrace.h>
 #include "hdi_output.h"
+#include "metadata_helper.h"
 
 using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
 
@@ -33,39 +34,6 @@ namespace Rosen {
 std::shared_ptr<HdiOutput> HdiOutput::CreateHdiOutput(uint32_t screenId)
 {
     return std::make_shared<HdiOutput>(screenId);
-}
-
-CM_ColorSpaceType HdiOutput::ComputeTargetColorSpace(const std::vector<LayerInfoPtr>& layers)
-{
-    CM_ColorSpaceType targetColorSpace = CM_DISPLAY_SRGB;
-    for (auto& layer : layers) {
-        auto buffer = layer->GetBuffer();
-        if (buffer == nullptr) {
-            HLOGW("HdiOutput::ComputeTargetColorSpace The buffer of layer is nullptr");
-            continue;
-        }
-
-        CM_ColorSpaceType colorSpace;
-        if (MetadataHelper::GetColorSpaceType(buffer, colorSpace) != GSERROR_OK) {
-            HLOGW("HdiOutput::ComputeTargetColorSpace Get color space from surface buffer failed");
-            continue;
-        }
-
-        if (colorSpace != CM_DISPLAY_SRGB) {
-            targetColorSpace = CM_DISPLAY_P3_SRGB;
-        }
-    }
-
-    return targetColorSpace;
-}
-
-CM_ColorSpaceType HdiOutput::ComputeTargetColorSpace(const std::vector<LayerPtr>& layers)
-{
-    std::vector<LayerInfoPtr> layersInfo;
-    for (auto& layer : layers) {
-        layersInfo.emplace_back(layer->GetLayerInfo());
-    }
-    return ComputeTargetColorSpace(layersInfo);
 }
 
 HdiOutput::HdiOutput(uint32_t screenId) : screenId_(screenId)
@@ -384,6 +352,32 @@ bool HdiOutput::CheckAndUpdateClientBufferCahce(sptr<SurfaceBuffer> buffer, uint
     return false;
 }
 
+void HdiOutput::SetBufferColorSpace(sptr<SurfaceBuffer>& buffer, const std::vector<LayerPtr>& layers) const
+{
+    CM_ColorSpaceType targetColorSpace = CM_DISPLAY_SRGB;
+    for (auto& layer : layers) {
+        auto buffer = layer->GetLayerInfo()->GetBuffer();
+        if (buffer == nullptr) {
+            HLOGW("HdiOutput::SetBufferColorSpace The buffer of layer is nullptr");
+            continue;
+        }
+
+        CM_ColorSpaceType colorSpace;
+        if (MetadataHelper::GetColorSpaceType(buffer, colorSpace) != GSERROR_OK) {
+            HLOGW("HdiOutput::SetBufferColorSpace Get color space from surface buffer failed");
+            continue;
+        }
+
+        if (colorSpace != CM_DISPLAY_SRGB) {
+            targetColorSpace = CM_DISPLAY_P3_SRGB;
+        }
+    }
+
+    if (MetadataHelper::SetColorSpaceType(buffer, targetColorSpace) != GSERROR_OK) {
+        HLOGE("HdiOutput::SetBufferColorSpace set metadata to buffer failed");
+    }
+}
+
 int32_t HdiOutput::FlushScreen(std::vector<LayerPtr> &compClientLayers)
 {
     auto fbEntry = GetFramebuffer();
@@ -412,10 +406,7 @@ int32_t HdiOutput::FlushScreen(std::vector<LayerPtr> &compClientLayers)
         bufferCached = CheckAndUpdateClientBufferCahce(currFrameBuffer_, index);
     }
 
-    auto colorSpace = ComputeTargetColorSpace(compClientLayers);
-    if (MetadataHelper::SetColorSpaceType(currFrameBuffer_, colorSpace) != GSERROR_OK) {
-        HLOGE("HdiOutput::FlushScreen Set color space to currFrameBuffer failed");
-    }
+    SetBufferColorSpace(currFrameBuffer_, compClientLayers);
 
     CHECK_DEVICE_NULL(device_);
     int32_t ret = device_->SetScreenClientDamage(screenId_, outputDamages_);
