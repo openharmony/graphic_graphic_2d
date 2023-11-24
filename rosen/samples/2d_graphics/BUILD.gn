@@ -63,7 +63,6 @@ ohos_executable("drawing_engine_sample") {
     "include",
     "drawing_engine",
     "drawing_engine/drawing_surface",
-    "$graphic_2d_root/frameworks/surface/include",
     "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
     "$graphic_2d_root/utils/sync_fence/export",
     "$graphic_2d_root/rosen/include/common",
@@ -117,7 +116,6 @@ ohos_executable("drawing_engine_sample") {
   ]
   external_deps = [
     "c_utils:utils",
-    "drivers_interface_display:display_commontype_idl_headers",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "image_framework:image_native",
