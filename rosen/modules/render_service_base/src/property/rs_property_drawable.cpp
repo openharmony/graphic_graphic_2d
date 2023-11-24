@@ -124,7 +124,7 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::OUTER_BORDER_COLOR, RSPropertyDrawableSlot::OUTER_BORDER },
     { RSModifierType::OUTER_BORDER_WIDTH, RSPropertyDrawableSlot::OUTER_BORDER },
     { RSModifierType::OUTER_BORDER_STYLE, RSPropertyDrawableSlot::OUTER_BORDER },
-    { RSModifierType::OUTER_BORDER_COLOR, RSPropertyDrawableSlot::OUTER_BORDER },
+    { RSModifierType::OUTER_BORDER_RADIUS, RSPropertyDrawableSlot::OUTER_BORDER },
     { RSModifierType::USE_SHADOW_BATCHING, RSPropertyDrawableSlot::INVALID },
     { RSModifierType::LIGHT_INTENSITY, RSPropertyDrawableSlot::POINT_LIGHT },
     { RSModifierType::LIGHT_POSITION, RSPropertyDrawableSlot::POINT_LIGHT },
