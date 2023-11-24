@@ -79,6 +79,11 @@ uint32_t Pen::GetAlpha() const
     return brush_.GetAlpha();
 }
 
+scalar Pen::GetAlphaF() const
+{
+    return brush_.GetAlphaF();
+}
+
 void Pen::SetAlpha(uint32_t a)
 {
     return brush_.SetAlpha(a);

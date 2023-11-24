@@ -90,6 +90,11 @@ uint32_t Brush::GetAlpha() const
     return color_.GetAlpha();
 }
 
+scalar Brush::GetAlphaF() const
+{
+    return color_.GetAlphaF();
+}
+
 void Brush::SetAlpha(uint32_t a)
 {
     color_.SetAlpha(a);
