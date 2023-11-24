@@ -914,7 +914,6 @@ std::stack<RSPaintFilterCanvas::Env> RSPaintFilterCanvas::GetEnvStack()
 }
 #endif
 
-
 #ifndef USE_ROSEN_DRAWING
 SkCanvas::SaveLayerStrategy RSPaintFilterCanvas::getSaveLayerStrategy(const SaveLayerRec& rec)
 {
