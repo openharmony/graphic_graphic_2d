@@ -18,11 +18,12 @@
 
 #include <memory>
 #include <mutex>
+#include "utils/drawing_macros.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class MemAllocator {
+class DRAWING_API MemAllocator {
 public:
     static constexpr uint32_t MEMORY_EXPANSION_FACTOR = 2;
 

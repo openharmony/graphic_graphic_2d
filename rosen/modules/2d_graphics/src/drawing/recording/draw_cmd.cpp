@@ -111,8 +111,9 @@ std::unordered_map<uint32_t, CanvasPlayer::PlaybackFunc> CanvasPlayer::opPlaybac
     { DrawOpItem::CLIP_ADAPTIVE_ROUND_RECT_OPITEM, ClipAdaptiveRoundRectOpItem::Playback},
     { DrawOpItem::ADAPTIVE_IMAGE_OPITEM,    DrawAdaptiveImageOpItem::Playback},
     { DrawOpItem::ADAPTIVE_PIXELMAP_OPITEM, DrawAdaptivePixelMapOpItem::Playback},
-    { DrawOpItem::EXTEND_PIXELMAP_OPITEM,   DrawExtendPixelMapOpItem::Playback},
     { DrawOpItem::IMAGE_WITH_PARM_OPITEM,   DrawImageWithParmOpItem::Playback},
+    { DrawOpItem::EXTEND_PIXELMAP_OPITEM,   DrawExtendPixelMapOpItem::Playback},
+    { DrawOpItem::PIXELMAP_RECT_OPITEM,     DrawPixelMapRectOpItem::Playback},
     { DrawOpItem::REGION_OPITEM,            DrawRegionOpItem::Playback },
     { DrawOpItem::PATCH_OPITEM,             DrawPatchOpItem::Playback },
     { DrawOpItem::EDGEAAQUAD_OPITEM, DrawEdgeAAQuadOpItem::Playback },
@@ -232,8 +233,9 @@ std::unordered_map<uint32_t, UnmarshallingPlayer::UnmarshallingFunc> Unmarshalli
     { DrawOpItem::CLIP_ADAPTIVE_ROUND_RECT_OPITEM, ClipAdaptiveRoundRectOpItem::Unmarshalling},
     { DrawOpItem::ADAPTIVE_IMAGE_OPITEM,    DrawAdaptiveImageOpItem::Unmarshalling},
     { DrawOpItem::ADAPTIVE_PIXELMAP_OPITEM, DrawAdaptivePixelMapOpItem::Unmarshalling},
-    { DrawOpItem::EXTEND_PIXELMAP_OPITEM,   DrawExtendPixelMapOpItem::Unmarshalling},
     { DrawOpItem::IMAGE_WITH_PARM_OPITEM,   DrawImageWithParmOpItem::Unmarshalling},
+    { DrawOpItem::EXTEND_PIXELMAP_OPITEM,   DrawExtendPixelMapOpItem::Unmarshalling},
+    { DrawOpItem::PIXELMAP_RECT_OPITEM,     DrawPixelMapRectOpItem::Unmarshalling},
     { DrawOpItem::REGION_OPITEM,            DrawRegionOpItem::Unmarshalling },
     { DrawOpItem::PATCH_OPITEM,             DrawPatchOpItem::Unmarshalling },
     { DrawOpItem::EDGEAAQUAD_OPITEM, DrawEdgeAAQuadOpItem::Unmarshalling },
@@ -2573,6 +2575,56 @@ void DrawExtendPixelMapOpItem::Playback(Canvas& canvas, const CmdList& cmdList, 
         return;
     }
     extendObject->Playback(canvas, rect, sampling_, false);
+}
+
+DrawPixelMapRectOpItem::DrawPixelMapRectOpItem() : DrawOpItem(PIXELMAP_RECT_OPITEM) {}
+DrawPixelMapRectOpItem::DrawPixelMapRectOpItem(const ImageHandle& objectHandle, const SamplingOptions& sampling)
+    : DrawOpItem(PIXELMAP_RECT_OPITEM), objectHandle_(objectHandle), sampling_(sampling) {}
+
+std::shared_ptr<OpItem> DrawPixelMapRectOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+{
+    CHECK_AND_RETURN_RET_LOG(opItem != nullptr, nullptr, "opItem is nullptr!");
+    auto op = std::make_shared<DrawPixelMapRectOpItem>();
+    COPY_OPITEN_AND_RETURN_RET_LOG(DrawPixelMapRectOpItem, op.get(), opItem, nullptr, "failed to memcpy_s");
+    op->Unmarshalling(cmdList);
+    return op;
+}
+
+void DrawPixelMapRectOpItem::Unmarshalling(const CmdList& cmdList)
+{
+    auto extendObject = CmdListHelper::GetImageBaseOjFromCmdList(cmdList, objectHandle_);
+    if (extendObject == nullptr) {
+        LOGE("extendObject is nullptr!");
+        return;
+    }
+
+    playbackTask_ = [this, extendObject](Canvas& canvas, const Rect& rect) {
+        extendObject->Playback(canvas, rect, sampling_);
+    };
+}
+
+
+void DrawPixelMapRectOpItem::Playback(CanvasPlayer& player, void* opItem)
+{
+    if (opItem != nullptr) {
+        auto* op = static_cast<DrawPixelMapRectOpItem*>(opItem);
+        op->Playback(player.canvas_, player.cmdList_, player.rect_);
+    }
+}
+
+void DrawPixelMapRectOpItem::Playback(Canvas& canvas, const CmdList& cmdList, const Rect& rect) const
+{
+    if (playbackTask_) {
+        playbackTask_(canvas, rect);
+        return;
+    }
+
+    auto extendObject = CmdListHelper::GetImageBaseOjFromCmdList(cmdList, objectHandle_);
+    if (extendObject == nullptr) {
+        LOGE("extendObject is nullptr!");
+        return;
+    }
+    extendObject->Playback(canvas, rect, sampling_);
 }
 
 NoIPCImageOpItem::NoIPCImageOpItem(std::shared_ptr<Image> image, const Rect& src, const Rect& dst,

@@ -648,6 +648,16 @@ void ExtendRecordingCanvas::DrawExtendPixelMap(const std::shared_ptr<Media::Pixe
         Drawing::CmdListHelper::AddImageObjectToCmdList(*Drawing::RecordingCanvas::GetDrawCmdList(), object);
     Drawing::RecordingCanvas::GetDrawCmdList()->AddOp<Drawing::DrawExtendPixelMapOpItem>(objectHandle, sampling);
 }
+
+void ExtendRecordingCanvas::DrawPixelMapRect(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::Rect& src,
+    const Drawing::Rect& dst, const Drawing::SamplingOptions& sampling,
+    Drawing::SrcRectConstraint constraint)
+{
+    auto object = std::make_shared<RSExtendImageBaseOj>(pixelMap, src, dst);
+    auto objectHandle =
+        Drawing::CmdListHelper::AddImageBaseOjToCmdList(*Drawing::RecordingCanvas::GetDrawCmdList(), object);
+    Drawing::RecordingCanvas::GetDrawCmdList()->AddOp<Drawing::DrawPixelMapRectOpItem>(objectHandle, sampling);
+}
 } // namespace Rosen
 } // namespace OHOS
 #endif // USE_ROSEN_DRAWING

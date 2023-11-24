@@ -552,7 +552,8 @@ private:
     sk_sp<SkSurface> cacheSurface_ = nullptr;
     sk_sp<SkSurface> cacheCompletedSurface_ = nullptr;
 #else
-    std::shared_ptr<Drawing::Bitmap> cacheBitmap_ = nullptr;
+    std::shared_ptr<Drawing::Image> GetCompletedImage(
+        RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst);
     std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
     std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
 #endif

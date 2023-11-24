@@ -2474,6 +2474,42 @@ RSExtendImageObject::~RSExtendImageObject()
     });
 #endif
 }
+
+RSExtendImageBaseOj::RSExtendImageBaseOj(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::Rect& src,
+    const Drawing::Rect& dst)
+{
+    if (pixelMap) {
+        rsImage_ = std::make_shared<RSImageBase>();
+        rsImage_->SetPixelMap(pixelMap);
+        rsImage_->SetSrcRect(RectF(src.GetLeft(), src.GetTop(), src.GetWidth(), src.GetHeight()));
+        rsImage_->SetDstRect(RectF(dst.GetLeft(), dst.GetTop(), dst.GetWidth(), dst.GetHeight()));
+    }
+}
+
+void RSExtendImageBaseOj::Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect,
+    const Drawing::SamplingOptions& sampling)
+{
+    if (rsImage_) {
+        rsImage_->DrawImage(canvas, sampling);
+    }
+}
+
+
+bool RSExtendImageBaseOj::Marshalling(Parcel &parcel) const
+{
+    bool ret = RSMarshallingHelper::Marshalling(parcel, rsImage_);
+    return ret;
+}
+
+RSExtendImageBaseOj *RSExtendImageBaseOj::Unmarshalling(Parcel &parcel)
+{
+    auto object = new RSExtendImageBaseOj();
+    bool ret = RSMarshallingHelper::Unmarshalling(parcel, object->rsImage_);
+    if (!ret) {
+        return nullptr;
+    }
+    return object;
+}
 } // namespace Rosen
 } // namespace OHOS
 #endif // USE_ROSEN_DRAWING

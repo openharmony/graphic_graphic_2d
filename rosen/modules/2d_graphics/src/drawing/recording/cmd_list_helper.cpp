@@ -208,6 +208,18 @@ std::shared_ptr<ExtendImageObject> CmdListHelper::GetImageObjectFromCmdList(
 #endif
 }
 
+ImageHandle CmdListHelper::AddImageBaseOjToCmdList(CmdList& cmdList, const std::shared_ptr<ExtendImageBaseOj>& object)
+{
+    auto index = cmdList.AddImageBaseOj(object);
+    return { index };
+}
+
+std::shared_ptr<ExtendImageBaseOj> CmdListHelper::GetImageBaseOjFromCmdList(
+    const CmdList& cmdList, const ImageHandle& objectHandle)
+{
+    return (const_cast<CmdList&>(cmdList)).GetImageBaseOj(objectHandle.offset);
+}
+
 ImageHandle CmdListHelper::AddPictureToCmdList(CmdList& cmdList, const Picture& picture)
 {
     auto data = picture.Serialize();

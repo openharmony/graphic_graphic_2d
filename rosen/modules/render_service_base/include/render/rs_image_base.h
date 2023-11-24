@@ -51,8 +51,7 @@ public:
     void SetDmaImage(const sk_sp<SkImage> image);
 #endif
 #else
-    virtual void DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions,
-        const Drawing::Brush& brush);
+    virtual void DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions);
     void SetImage(const std::shared_ptr<Drawing::Image> image);
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void SetDmaImage(const std::shared_ptr<Drawing::Image> image);

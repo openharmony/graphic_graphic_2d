@@ -1461,35 +1461,80 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
     float scaleX = size.x_ / boundsWidth_;
     float scaleY = size.y_ / boundsHeight_;
     canvas.Scale(scaleX, scaleY);
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    if (isUIFirst) {
-        RS_LOGE("[%{public}s:%{public}d] Drawing is not supported", __func__, __LINE__);
-        return;
-    }
-#endif
-    auto surface = GetCompletedCacheSurface(threadIndex, true);
-    if (surface == nullptr || (boundsWidth_ == 0 || boundsHeight_ == 0)) {
-        RS_LOGE("invalid complete cache surface");
-        canvas.Restore();
-        return;
-    }
-    auto image = surface->GetImageSnapshot();
-    if (image == nullptr) {
-        RS_LOGE("invalid complete cache image");
+    auto cacheImage = GetCompletedImage(canvas, threadIndex, isUIFirst);
+    if (cacheImage == nullptr) {
         canvas.Restore();
         return;
     }
     Drawing::Brush brush;
     canvas.AttachBrush(brush);
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
-    if (cacheType == CacheType::ANIMATE_PROPERTY && renderProperties_.IsShadowValid()) {
-        canvas.DrawImage(*image, -shadowRectOffsetX_ * scaleX,
+    if ((cacheType == CacheType::ANIMATE_PROPERTY && renderProperties_.IsShadowValid()) || isUIFirst) {
+        canvas.DrawImage(*cacheImage, -shadowRectOffsetX_ * scaleX,
             -shadowRectOffsetY_ * scaleY, samplingOptions);
     } else {
-        canvas.DrawImage(*image, 0.0, 0.0, samplingOptions);
+        canvas.DrawImage(*cacheImage, 0.0, 0.0, Drawing::SamplingOptions());
     }
     canvas.DetachBrush();
     canvas.Restore();
+}
+
+std::shared_ptr<Drawing::Image> GetCompletedImage(
+    RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst)
+{
+    if (isUIFirst) {
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
+        if (!cacheCompletedBackendTexture_.IsValid()) {
+            RS_LOGE("invalid grBackendTexture_");
+            return nullptr;
+        }
+        auto image = std::make_shared<Drawing::Image>();
+        Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+        Drawing::BitmapFormat info = Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888,
+            Drawing::ALPHATYPE_PREMUL };
+        bool ret = image->BuildFromTexture(*canvas.GetGPUContext(), cacheCompletedBackendTexture_.GetTextureInfo(),
+            origin, info, nullptr);
+        if (!ret) {
+            RS_LOGE("RSRenderNode::GetCompletedImage image BuildFromTexture failed");
+            return nullptr;
+        }
+        return image;
+#endif
+    }
+
+    if (!cacheCompletedSurface_) {
+        RS_LOGE("DrawCacheSurface invalid cacheCompletedSurface");
+        return nullptr;
+    }
+    auto completeImage = cacheCompletedSurface_->GetImageSnapshot();
+    if (!completeImage) {
+        RS_LOGE("Get complete image failed");
+        return nullptr;
+    }
+    if (threadIndex == completedSurfaceThreadIndex_) {
+        return completeImage;
+    }
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+    auto backendTexture = completeImage->GetBackendTexture(false, &origin);
+    if (!backendTexture.IsValid()) {
+        RS_LOGE("get backendTexture failed");
+        return nullptr;
+    }
+    auto cacheImage = std::make_shared<Drawing::Image>();
+    Drawing::BitmapFormat info =
+        Drawing::BitmapFormat{ completeImage->GetColorType(), completeImage->GetAlphaType() };
+    bool ret = cacheImage->BuildFromTexture(*canvas.GetGPUContext(), backendTexture.GetTextureInfo(),
+        origin, info, nullptr);
+    if (!ret) {
+        RS_LOGE("RSRenderNode::GetCompletedImage image BuildFromTexture failed");
+        return nullptr;
+    }
+    return cacheImage;
+#else
+    return completeImage;
+#endif
 }
 #endif
 

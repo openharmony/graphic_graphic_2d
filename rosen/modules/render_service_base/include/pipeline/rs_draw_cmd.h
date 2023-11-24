@@ -1660,6 +1660,20 @@ private:
     mutable pid_t tid_ = 0;
 #endif
 };
+
+class RSB_EXPORT RSExtendImageBaseOj : public Drawing::ExtendImageBaseOj {
+public:
+    RSExtendImageBaseOj() = default;
+    RSExtendImageBaseOj(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::Rect& src,
+        const Drawing::Rect& dst);
+    ~RSExtendImageBaseOj() override = default;
+    void Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect,
+        const Drawing::SamplingOptions& sampling) override;
+    bool Marshalling(Parcel &parcel) const;
+    static RSExtendImageBaseOj *Unmarshalling(Parcel &parcel);
+protected:
+    std::shared_ptr<RSImageBase> rsImage_;
+};
 } // namespace Rosen
 } // namespace OHOS
 #endif // USE_ROSEN_DRAWING

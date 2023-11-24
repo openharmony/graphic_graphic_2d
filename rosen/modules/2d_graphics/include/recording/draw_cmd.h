@@ -160,8 +160,9 @@ public:
         CLIP_ADAPTIVE_ROUND_RECT_OPITEM,
         ADAPTIVE_IMAGE_OPITEM,
         ADAPTIVE_PIXELMAP_OPITEM,
-        EXTEND_PIXELMAP_OPITEM,
         IMAGE_WITH_PARM_OPITEM,
+        EXTEND_PIXELMAP_OPITEM,
+        PIXELMAP_RECT_OPITEM,
         REGION_OPITEM,
         PATCH_OPITEM,
         EDGEAAQUAD_OPITEM,
@@ -1042,7 +1043,25 @@ private:
     std::function<void(Canvas&, const Rect&)> playbackTask_ = nullptr;
 };
 
-class DrawExtendPixelMapOpItem : public DrawOpItem {
+class DRAWING_API DrawImageWithParmOpItem : public DrawOpItem {
+public:
+    DrawImageWithParmOpItem();
+    DrawImageWithParmOpItem(const ImageHandle& objectHandle, const SamplingOptions& sampling);
+    ~DrawImageWithParmOpItem() override = default;
+
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
+    void Unmarshalling(const CmdList& cmdList);
+
+    static void Playback(CanvasPlayer& player, void* opItem);
+    void Playback(Canvas& canvas, const CmdList& cmdList, const Rect& rect) const;
+
+private:
+    ImageHandle objectHandle_;
+    SamplingOptions sampling_;
+    std::function<void(Canvas&, const Rect&)> playbackTask_ = nullptr;
+};
+
+class DRAWING_API DrawExtendPixelMapOpItem : public DrawOpItem {
 public:
     DrawExtendPixelMapOpItem();
     DrawExtendPixelMapOpItem(const ImageHandle& objectHandle, const SamplingOptions& sampling);
@@ -1060,11 +1079,11 @@ private:
     std::function<void(Canvas&, const Rect&)> playbackTask_ = nullptr;
 };
 
-class DrawImageWithParmOpItem : public DrawOpItem {
+class DrawPixelMapRectOpItem : public DrawOpItem {
 public:
-    DrawImageWithParmOpItem();
-    DrawImageWithParmOpItem(const ImageHandle& objectHandle, const SamplingOptions& sampling);
-    ~DrawImageWithParmOpItem() override = default;
+    DrawPixelMapRectOpItem();
+    DrawPixelMapRectOpItem(const ImageHandle& objectHandle, const SamplingOptions& sampling);
+    ~DrawPixelMapRectOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
     void Unmarshalling(const CmdList& cmdList);

@@ -66,6 +66,7 @@ class DrawCmdList;
 class OpItem;
 #else
 class RSExtendImageObject;
+class RSExtendImageBaseOj;
 namespace Drawing {
 class DrawCmdList;
 class MaskCmdList;
@@ -159,6 +160,9 @@ public:
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::Image>& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Image>& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Image>& val, void*& imagepixelAddr);
+    static RSB_EXPORT bool UnmarshallingNoLazyGeneratedImage(Parcel& parcel,
+    std::shared_ptr<Drawing::Image>& val, void*& imagepixelAddr);
+    static RSB_EXPORT bool ReadColorSpaceFromParcel(Parcel& parcel, std::shared_ptr<Drawing::ColorSpace>& colorSpace);
 #endif
 
     // reloaded marshalling & unmarshalling function for types
@@ -218,6 +222,7 @@ public:
 #else
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Drawing::DrawCmdList>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSExtendImageObject>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSExtendImageBaseOj>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Drawing::MaskCmdList>)
 #endif
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Media::PixelMap>)

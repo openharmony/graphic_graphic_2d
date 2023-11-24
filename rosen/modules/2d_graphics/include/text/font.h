@@ -35,7 +35,7 @@ enum class FontEdging {
     SUBPIXEL_ANTI_ALIAS,
 };
 
-class Font {
+class DRAWING_API Font {
 public:
     Font();
     Font(std::shared_ptr<Typeface> typeface, scalar size, scalar scaleX, scalar skewX);

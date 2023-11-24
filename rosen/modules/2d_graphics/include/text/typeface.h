@@ -25,7 +25,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class Typeface {
+class DRAWING_API Typeface {
 public:
     explicit Typeface(std::shared_ptr<TypefaceImpl> typefaceImpl) noexcept;
     virtual ~Typeface() = default;

@@ -25,7 +25,7 @@ namespace Rosen {
 namespace Drawing {
 class FontStyleSetImpl;
 
-class FontStyleSet {
+class DRAWING_API FontStyleSet {
 public:
     explicit FontStyleSet(std::shared_ptr<FontStyleSetImpl> fontStyleSetImpl) noexcept;
     virtual ~FontStyleSet() = default;

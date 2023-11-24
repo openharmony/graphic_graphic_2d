@@ -338,6 +338,11 @@ void DrawCmdList::AddOpToCmdList(std::shared_ptr<DrawCmdList> cmdList)
         handle.imageSize = imageData.second;
     }
 
+#ifdef SUPPORT_OHOS_PIXMAP
+    imageObjectVec_.swap(cmdList->imageObjectVec_);
+#endif
+    imageBaseOjVec_.swap(cmdList->imageBaseOjVec_);
+
     cmdList->AddOp<DrawCmdListOpItem>(handle);
     return;
 }

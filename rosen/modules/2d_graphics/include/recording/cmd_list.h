@@ -68,6 +68,13 @@ public:
         const SamplingOptions& sampling, bool isBackground = false) = 0;
 };
 
+class DRAWING_API ExtendImageBaseOj {
+public:
+    virtual ~ExtendImageBaseOj() = default;
+    virtual void Playback(Canvas& canvas, const Rect& rect,
+        const SamplingOptions& sampling) = 0;
+};
+
 class DRAWING_API CmdList {
 public:
     enum Type : uint32_t {
@@ -176,6 +183,26 @@ public:
      * @brief  return real setup imageObject size.
      */
     uint32_t SetupObject(const std::vector<std::shared_ptr<ExtendImageObject>>& objectList);
+    
+     /*
+     * @brief  return imageBaseOj index, negative is error.
+     */
+    uint32_t AddImageBaseOj(const std::shared_ptr<ExtendImageBaseOj>& object);
+
+    /*
+     * @brief  get imageBaseOj by index.
+     */
+    std::shared_ptr<ExtendImageBaseOj> GetImageBaseOj(uint32_t id);
+
+    /*
+     * @brief  return imageBaseOj size, 0 is no imageBaseOj.
+     */
+    uint32_t GetAllBaseOj(std::vector<std::shared_ptr<ExtendImageBaseOj>>& objectList);
+
+    /*
+     * @brief  return real setup imageBaseOj size.
+     */
+    uint32_t SetupBaseOj(const std::vector<std::shared_ptr<ExtendImageBaseOj>>& objectList);
 
     CmdList(CmdList&&) = delete;
     CmdList(const CmdList&) = delete;
@@ -193,6 +220,8 @@ protected:
     std::vector<std::shared_ptr<ExtendImageObject>> imageObjectVec_;
     std::mutex imageObjectMutex_;
 #endif
+    std::vector<std::shared_ptr<ExtendImageBaseOj>> imageBaseOjVec_;
+    std::mutex imageBaseOjMutex_;
 };
 } // namespace Drawing
 } // namespace Rosen

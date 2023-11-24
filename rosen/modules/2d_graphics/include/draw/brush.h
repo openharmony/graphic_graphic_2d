@@ -61,8 +61,8 @@ public:
 
     void Reset();
 
-    friend bool operator==(const Brush& b1, const Brush& b2);
-    friend bool operator!=(const Brush& b1, const Brush& b2);
+    friend DRAWING_API bool operator==(const Brush& b1, const Brush& b2);
+    friend DRAWING_API bool operator!=(const Brush& b1, const Brush& b2);
 
 private:
     Color color_;

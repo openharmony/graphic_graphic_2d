@@ -152,7 +152,7 @@ private:
     unsigned int format_ = 0;
 };
 
-class BackendTexture {
+class DRAWING_API BackendTexture {
 public:
     BackendTexture() noexcept;
     BackendTexture(bool isValid) noexcept;
