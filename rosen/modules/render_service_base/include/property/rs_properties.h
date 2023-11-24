@@ -342,7 +342,11 @@ public:
     void OnApplyModifiers();
 
 private:
+#ifndef USE_ROSEN_DRAWING
     void ResetProperty(const std::unordered_set<RSModifierType>& dirtyTypes);
+#else
+    void ResetProperty(const std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>& dirtyTypes);
+#endif
     void SetDirty();
     void ResetDirty();
     bool IsDirty() const;

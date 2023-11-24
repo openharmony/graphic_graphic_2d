@@ -144,7 +144,7 @@ public:
     /*
      * @brief  Gets the bounds of ImageInfo.
      */
-    RectI GetBounds() const
+    RectI GetBound() const
     {
         return RectI(0, 0, width_, height_);
     }

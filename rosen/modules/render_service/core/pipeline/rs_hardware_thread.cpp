@@ -70,8 +70,11 @@ void RSHardwareThread::Start()
                     return;
                 }
                 uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
-                bool enable = (system::GetParameter("zach.debug.enable", "1") == "1");
-                uniRenderEngine_->Init(enable);
+#ifdef RS_ENABLE_VK
+                uniRenderEngine_->Init(true);
+#else
+                uniRenderEngine_->Init();
+#endif
             }).wait();
     }
     auto onPrepareCompleteFunc = [this](auto& surface, const auto& param, void* data) {
@@ -337,11 +340,13 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         RS_LOGE("RsDebug RSHardwareThread::Redraw：canvas is nullptr.");
         return;
     }
+#ifdef RS_ENABLE_EGLIMAGE
 #ifdef RS_ENABLE_VK
     std::unordered_map<int32_t, std::shared_ptr<NativeVkImageRes>> imageCacheSeqs;
-#elif defined(RS_ENABLE_EGLIMAGE)
+#else // RS_ENABLE_VK
     std::unordered_map<int32_t, std::unique_ptr<ImageCacheSeq>> imageCacheSeqs;
-#endif
+#endif // RS_ENABLE_VK
+#endif // RS_ENABLE_EGLIMAGE
     for (const auto& layer : layers) {
         if (layer == nullptr) {
             continue;
@@ -447,7 +452,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                 colorType,
                 kPremul_SkAlphaType,
                 SkColorSpace::MakeSRGB(),
-                NativeBufferUtils::delete_vk_image,
+                NativeBufferUtils::DeleteVkImage,
                 imageCache->RefCleanupHelper());
 #endif
 #else
@@ -504,7 +509,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #endif
     }
     renderFrame->Flush();
-#if defined(RS_ENABLE_EGLIMAGE) || defined(RS_ENABLE_VK)
+#ifdef RS_ENABLE_EGLIMAGE
     imageCacheSeqs.clear();
 #endif
     RS_LOGD("RsDebug RSHardwareThread::Redraw flush frame buffer end");

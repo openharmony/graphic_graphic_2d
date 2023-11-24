@@ -40,9 +40,6 @@ bool RSRcdRenderManager::GetRcdRenderEnabled() const
 
 void RSRcdRenderManager::DoPrepareRenderTask(const RcdPrepareInfo& info)
 {
-    topSurfaceNode_->ResetCurrFrameState();
-    bottomSurfaceNode_->ResetCurrFrameState();
-
     if (!isBufferCacheClear_) {
         topSurfaceNode_->ClearBufferCache();
         bottomSurfaceNode_->ClearBufferCache();
@@ -65,15 +62,15 @@ bool RSRcdRenderManager::IsRcdProcessInfoValid(const RcdProcessInfo& info)
 void RSRcdRenderManager::DoProcessRenderTask(const RcdProcessInfo& info)
 {
     RS_LOGD("RCD: Start Do Rcd Render process");
-    RS_TRACE_BEGIN("RSUniRender:DoProcessRenderTask");
+    RS_TRACE_BEGIN("RSUniRender:DoRCDProcessTask");
     if (!IsRcdProcessInfoValid(info)) {
         RS_LOGE("RCD: RcdProcessInfo is incorrect");
         return;
     }
     auto visitor = std::make_shared<RSRcdRenderVisitor>();
     visitor->SetUniProcessor(info.uniProcessor);
-    visitor->ProcessRcdSurfaceRenderNode(*bottomSurfaceNode_, info.bottomLayer);
-    visitor->ProcessRcdSurfaceRenderNode(*topSurfaceNode_, info.topLayer);
+    visitor->ProcessRcdSurfaceRenderNode(*bottomSurfaceNode_, info.bottomLayer, info.resourceChanged);
+    visitor->ProcessRcdSurfaceRenderNode(*topSurfaceNode_, info.topLayer, info.resourceChanged);
     RS_TRACE_END();
     RS_LOGD("RCD: Finish Do Rcd Render process");
 }

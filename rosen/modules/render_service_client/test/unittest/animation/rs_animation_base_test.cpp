@@ -145,7 +145,8 @@ void RSAnimationBaseTest::NotifyStartAnimation()
     int64_t startNum = START_NUMBER;
     bool hasRunningAnimation = true;
     while (hasRunningAnimation) {
-        hasRunningAnimation = rsUiDirector->RunningCustomAnimation(startNum);
+        hasRunningAnimation = rsUiDirector->FlushAnimation(startNum);
+        rsUiDirector->FlushModifier();
         rsUiDirector->SendMessages();
         startNum += INCREASE_NUMBER;
         usleep(DELAY_TIME_REFRESH);

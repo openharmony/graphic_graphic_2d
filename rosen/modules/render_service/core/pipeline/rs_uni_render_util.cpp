@@ -532,7 +532,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         }
         bool isNeedAssignToSubThread = !rotationCache && node->IsLeashWindow()
             && (node->IsScale() || ROSEN_EQ(node->GetGlobalAlpha(), 0.0f))
-            && !node->HasFilter() && !node->HasAbilityComponent();
+            && !node->HasFilter();
         // trace info for assign window nodes
         if (debugTraceEnable) {
             logInfo += "node:[ " + node->GetName() + ", " + std::to_string(node->GetId()) + " ]" +

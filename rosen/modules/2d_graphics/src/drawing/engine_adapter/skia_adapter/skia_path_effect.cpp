@@ -14,6 +14,7 @@
  */
 
 #include "skia_path_effect.h"
+#include "skia_helper.h"
 
 #include <memory>
 
@@ -22,8 +23,6 @@
 #include "include/effects/SkCornerPathEffect.h"
 #include "include/effects/SkDashPathEffect.h"
 #include "include/effects/SkDiscretePathEffect.h"
-#include "src/core/SkReadBuffer.h"
-#include "src/core/SkWriteBuffer.h"
 #include "skia_path.h"
 
 #include "effect/path_effect.h"
@@ -95,13 +94,7 @@ std::shared_ptr<Data> SkiaPathEffect::Serialize() const
         return nullptr;
     }
 
-    SkBinaryWriteBuffer writer;
-    writer.writeFlattenable(pathEffect_.get());
-    size_t length = writer.bytesWritten();
-    std::shared_ptr<Data> data = std::make_shared<Data>();
-    data->BuildUninitialized(length);
-    writer.writeToMemory(data->WritableData());
-    return data;
+    return SkiaHelper::FlattenableSerialize(pathEffect_.get());
 #else
     return nullptr;
 #endif
@@ -115,9 +108,8 @@ bool SkiaPathEffect::Deserialize(std::shared_ptr<Data> data)
         return false;
     }
 
-    SkReadBuffer reader(data->GetData(), data->GetSize());
-    pathEffect_ = reader.readPathEffect();
-    return pathEffect_ != nullptr;
+    pathEffect_ = SkiaHelper::FlattenableDeserialize<SkPathEffect>(data);
+    return true;
 #else
     return false;
 #endif

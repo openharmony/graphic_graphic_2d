@@ -25,7 +25,6 @@ RSRcdRenderVisitor::RSRcdRenderVisitor()
 {
     auto mainThread = RSMainThread::Instance();
     renderEngine_ = mainThread->GetRenderEngine();
-    uniGlobalZOrder_ = static_cast<float>(0x7FFFFFFF); // make at toppest layer
 }
 
 bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
@@ -64,7 +63,8 @@ bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
     return true;
 }
 
-void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& node, rs_rcd::RoundCornerLayer* layerInfo)
+void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& node, rs_rcd::RoundCornerLayer* layerInfo,
+    bool resourceChanged)
 {
     if (uniProcessor_ == nullptr) {
         RS_LOGE("RSRcdRenderVisitor RSProcessor is null!");
@@ -73,6 +73,12 @@ void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& nod
 
     if (node.IsInvalidSurface()) {
         RS_LOGE("RSRcdRenderVisitor RCDSurfaceType is NONE!");
+        return;
+    }
+
+    sptr<SurfaceBuffer> buffer = node.GetBuffer();
+    if (!resourceChanged && buffer != nullptr) {
+        uniProcessor_->ProcessRcdSurface(node);
         return;
     }
 
@@ -112,11 +118,6 @@ void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& nod
     ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     node.GetConsumer()->SetScalingMode(node.GetBuffer()->GetSeqNum(), scalingMode);
 
-    if (node.IsTopSurface()) {
-        node.SetGlobalZOrder(uniGlobalZOrder_);
-    } else {
-        node.SetGlobalZOrder(uniGlobalZOrder_ - 1);
-    }
     uniProcessor_->ProcessRcdSurface(node);
 }
 

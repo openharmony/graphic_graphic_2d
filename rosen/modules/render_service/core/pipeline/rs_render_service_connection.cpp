@@ -757,6 +757,12 @@ int32_t RSRenderServiceConnection::SetScreenCorrection(ScreenId id, ScreenRotati
     return screenManager_->SetScreenCorrection(id, screenRotation);
 }
 
+bool RSRenderServiceConnection::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return screenManager_->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
+}
+
 int32_t RSRenderServiceConnection::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode)
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
@@ -773,6 +779,103 @@ int32_t RSRenderServiceConnection::GetScreenHDRCapability(ScreenId id, RSScreenH
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return screenManager_->GetScreenHDRCapability(id, screenHdrCapability);
+}
+
+int32_t RSRenderServiceConnection::GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat)
+{
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSHardwareThread::Instance().ScheduleTask(
+            [=, &pixelFormat]() { return screenManager_->GetPixelFormat(id, pixelFormat); }).get();
+    } else {
+        return mainThread_->ScheduleTask(
+            [=, &pixelFormat]() { return screenManager_->GetPixelFormat(id, pixelFormat); }).get();
+    }
+}
+
+int32_t RSRenderServiceConnection::SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat)
+{
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSHardwareThread::Instance().ScheduleTask(
+            [=]() { return screenManager_->SetPixelFormat(id, pixelFormat); }).get();
+    } else {
+        return mainThread_->ScheduleTask(
+            [=]() { return screenManager_->SetPixelFormat(id, pixelFormat); }).get();
+    }
+}
+
+int32_t RSRenderServiceConnection::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats)
+{
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSHardwareThread::Instance().ScheduleTask(
+            [=, &hdrFormats]() { return screenManager_->GetScreenSupportedHDRFormats(id, hdrFormats); }).get();
+    } else {
+        return mainThread_->ScheduleTask(
+            [=, &hdrFormats]() { return screenManager_->GetScreenSupportedHDRFormats(id, hdrFormats); }).get();
+    }
+}
+
+int32_t RSRenderServiceConnection::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat)
+{
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSHardwareThread::Instance().ScheduleTask(
+            [=, &hdrFormat]() { return screenManager_->GetScreenHDRFormat(id, hdrFormat); }).get();
+    } else {
+        return mainThread_->ScheduleTask(
+            [=, &hdrFormat]() { return screenManager_->GetScreenHDRFormat(id, hdrFormat); }).get();
+    }
+}
+
+int32_t RSRenderServiceConnection::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
+{
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSHardwareThread::Instance().ScheduleTask(
+            [=]() { return screenManager_->SetScreenHDRFormat(id, modeIdx); }).get();
+    } else {
+        return mainThread_->ScheduleTask(
+            [=]() { return screenManager_->SetScreenHDRFormat(id, modeIdx); }).get();
+    }
+}
+
+int32_t RSRenderServiceConnection::GetScreenSupportedColorSpaces(
+    ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces)
+{
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSHardwareThread::Instance().ScheduleTask(
+            [=, &colorSpaces]() { return screenManager_->GetScreenSupportedColorSpaces(id, colorSpaces); }).get();
+    } else {
+        return mainThread_->ScheduleTask(
+            [=, &colorSpaces]() { return screenManager_->GetScreenSupportedColorSpaces(id, colorSpaces); }).get();
+    }
+}
+
+int32_t RSRenderServiceConnection::GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace)
+{
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSHardwareThread::Instance().ScheduleTask(
+            [=, &colorSpace]() { return screenManager_->GetScreenColorSpace(id, colorSpace); }).get();
+    } else {
+        return mainThread_->ScheduleTask(
+            [=, &colorSpace]() { return screenManager_->GetScreenColorSpace(id, colorSpace); }).get();
+    }
+}
+
+int32_t RSRenderServiceConnection::SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace)
+{
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSHardwareThread::Instance().ScheduleTask(
+            [=]() { return screenManager_->SetScreenColorSpace(id, colorSpace); }).get();
+    } else {
+        return mainThread_->ScheduleTask(
+            [=]() { return screenManager_->SetScreenColorSpace(id, colorSpace); }).get();
+    }
 }
 
 int32_t RSRenderServiceConnection::GetScreenType(ScreenId id, RSScreenType& screenType)

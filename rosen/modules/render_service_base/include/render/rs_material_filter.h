@@ -129,7 +129,6 @@ private:
 #endif
     static float RadiusVp2Sigma(float radiusVp, float dipScale);
 
-    bool useKawase_ = false;
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkColorFilter> colorFilter_;
     std::shared_ptr<RSColorPickerCacheTask> colorPickerTask_;

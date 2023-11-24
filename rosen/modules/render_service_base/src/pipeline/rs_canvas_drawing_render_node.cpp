@@ -158,8 +158,8 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
             return;
         }
         auto newImage = std::make_shared<Drawing::Image>();
-        Drawing::BitmapFormat info = Drawing::BitmapFormat { Drawing::COLORTYPE::COLORTYPE_RGBA_8888,
-            Drawing::AlphaType::ALPHATYPE_PREMUL };
+        Drawing::BitmapFormat info = Drawing::BitmapFormat { Drawing::COLORTYPE_RGBA_8888,
+            Drawing::ALPHATYPE_PREMUL };
         bool ret = newImage->BuildFromTexture(*canvas.GetGPUContext(), sharedBackendTexture.GetTextureInfo(),
             origin, info, nullptr);
         if (!ret) {
@@ -200,7 +200,7 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
 {
     SkImageInfo info = SkImageInfo::Make(width, height, kRGBA_8888_SkColorType, kPremul_SkAlphaType);
 
-#if ((defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)) || (defined RS_ENABLE_VK)
+#if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
 #ifdef NEW_SKIA
     auto grContext = canvas.recordingContext();
 #else
@@ -228,8 +228,8 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
 #else
 bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilterCanvas& canvas)
 {
-    Drawing::BitmapFormat info =
-        Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    Drawing::ImageInfo info =
+        Drawing::ImageInfo{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
 
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
     auto gpuContext = canvas.GetGPUContext();
@@ -262,9 +262,7 @@ void RSCanvasDrawingRenderNode::ApplyDrawCmdModifier(RSModifierContext& context,
     }
     for (const auto& drawCmdList : it->second) {
         drawCmdList->Playback(*context.canvas_);
-#ifndef USE_ROSEN_DRAWING
         drawCmdList->ClearOp();
-#endif
     }
     it->second.clear();
 }
@@ -331,7 +329,7 @@ Drawing::Bitmap RSCanvasDrawingRenderNode::GetBitmap()
         RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: image_ is nullptr");
         return bitmap;
     }
-    if (!image_->AsLegacyBitmap(&bitmap)) {
+    if (!image_->AsLegacyBitmap(bitmap)) {
         RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: asLegacyBitmap failed");
     }
     return bitmap;
@@ -420,7 +418,11 @@ bool RSCanvasDrawingRenderNode::IsNeedResetSurface(const int& width, const int& 
 
 void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType type)
 {
+#ifndef USE_ROSEN_DRAWING
     dirtyTypes_.emplace(type);
+#else
+    dirtyTypes_.set(static_cast<int>(type), true);
+#endif
     for (auto drawCmdModifier : drawCmdModifiers_) {
         if (drawCmdModifier.second.empty()) {
             continue;

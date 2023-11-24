@@ -49,7 +49,11 @@ RSBaseRenderEngine::~RSBaseRenderEngine() noexcept
 {
 }
 
+#ifdef RS_ENABLE_VK
 void RSBaseRenderEngine::Init(bool independentContext)
+#else
+void RSBaseRenderEngine::Init()
+#endif
 {
 #if defined(NEW_RENDER_CONTEXT)
     RenderType renderType = RenderType::GLES;
@@ -236,9 +240,9 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::share
     if (forceCPU) {
         bufferUsage |= BUFFER_USAGE_CPU_WRITE;
     }
-#else // (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
+#else
     bufferUsage |= BUFFER_USAGE_CPU_WRITE;
-#endif // (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
+#endif
     rsSurface->SetSurfaceBufferUsage(bufferUsage);
 
     // check if we can use GPU context
@@ -468,9 +472,9 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 #endif
     auto image = SkImage::MakeFromTexture(
         canvas.recordingContext(), backendTexture, surfaceOrigin, colorType, kPremul_SkAlphaType,
-        SkColorSpace::MakeSRGB(), NativeBufferUtils::delete_vk_image, imageCache->RefCleanupHelper());
+        SkColorSpace::MakeSRGB(), NativeBufferUtils::DeleteVkImage, imageCache->RefCleanupHelper());
     
-    canvas.drawImageRect(image, params.srcRect, params.dstRecr,
+    canvas.drawImageRect(image, params.srcRect, params.dstRect,
         SkSamplingOptions(), &(params.paint), SkCanvas::kStrict_SrcRectConstraint);
     RS_OPTIONAL_TRACE_END();
 #else // RS_ENABLE_VK
@@ -491,7 +495,8 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 #else
     canvas.AttachBrush(params.paint);
     canvas.DrawImageRect(*image.get(), params.srcRect, params.dstRect,
-        Drawing::SamplingOptions(), Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+        Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR),
+        Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     canvas.DetachBrush();
 #endif
     RS_OPTIONAL_TRACE_END();
@@ -501,9 +506,9 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw)
 {
 #ifdef RS_ENABLE_VK
-    auto regUnMapEglImageFunc = [this, isForUniRedraw](int32_t bufferId) {
+    auto regUnMapVkImageFunc = [this, isForUniRedraw](int32_t bufferId) {
         if (isForUniRedraw) {
-            vkmageManager_->UnMapVkImageFromSurfaceBufferForUniRedraw(bufferId);
+            vkImageManager_->UnMapVkImageFromSurfaceBufferForUniRedraw(bufferId);
         } else {
             vkImageManager_->UnMapVkImageFromSurfaceBuffer(bufferId);
         }
@@ -512,7 +517,8 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurfac
         (consumer->RegisterDeleteBufferListener(regUnMapVkImageFunc, isForUniRedraw) != GSERROR_OK)) {
         RS_LOGE("RSBaseRenderEngine::RegisterDeleteBufferListener: failed to register UnMapVkImage callback.");
     }
-#endif
+    return;
+#endif // #ifdef RS_ENABLE_VK
 
 #ifdef RS_ENABLE_EGLIMAGE
     auto regUnMapEglImageFunc = [this, isForUniRedraw](int32_t bufferId) {
@@ -531,6 +537,14 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurfac
 
 void RSBaseRenderEngine::RegisterDeleteBufferListener(RSSurfaceHandler& handler)
 {
+#ifdef RS_ENABLE_VK
+    auto regUnMapVkImageFunc = [this](int32_t bufferId) {
+        vkImageManager_->UnMapVkImageFromSurfaceBuffer(bufferId);
+    };
+    handler.RegisterDeleteBufferListener(regUnMapVkImageFunc);
+    return;
+#endif // #ifdef RS_ENABLE_VK
+
 #ifdef RS_ENABLE_EGLIMAGE
     auto regUnMapEglImageFunc = [this](int32_t bufferId) {
         eglImageManager_->UnMapEglImageFromSurfaceBuffer(bufferId);
@@ -545,6 +559,7 @@ void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
     if (vkImageManager_ != nullptr) {
         vkImageManager_->ShrinkCachesIfNeeded(isForUniRedraw);
     }
+    return;
 #endif // RS_ENABLE_VK
 
 #ifdef RS_ENABLE_EGLIMAGE

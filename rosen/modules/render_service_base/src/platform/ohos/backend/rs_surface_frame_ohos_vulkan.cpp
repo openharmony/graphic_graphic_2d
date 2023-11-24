@@ -25,11 +25,6 @@ RSSurfaceFrameOhosVulkan::RSSurfaceFrameOhosVulkan(sk_sp<SkSurface> surface, int
 {
 }
 
-RSSurfaceFrameOhosVulkan::RSSurfaceFrameOhosVulkan(sk_sp<SkSurface> surface, int32_t width, int32_t height)
-    : surface_(surface), width_(width), height_(height)
-{
-}
-
 void RSSurfaceFrameOhosVulkan::SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height)
 {
 #ifdef RS_ENABLE_VK

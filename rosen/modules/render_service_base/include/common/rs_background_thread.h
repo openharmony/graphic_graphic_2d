@@ -62,14 +62,17 @@ private:
 #if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifdef RS_ENABLE_GL
     void CreateShareEglContext();
+#ifndef USE_ROSEN_DRAWING
     EGLContext eglShareContext_ = EGL_NO_CONTEXT;
+#else
+    EGLContext eglShareContext_ = static_cast<EGLContext>(0);
+#endif
 #endif
     RenderContext* renderContext_ = nullptr;
 #ifndef USE_ROSEN_DRAWING
     sk_sp<GrDirectContext> CreateShareGrContext();
     sk_sp<GrDirectContext> grContext_ = nullptr;
 #else
-    EGLContext eglShareContext_ = static_cast<EGLContext>(0);
     std::shared_ptr<Drawing::GPUContext> CreateShareGPUContext();
     std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;
 #endif

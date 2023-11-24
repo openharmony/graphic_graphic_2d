@@ -1554,24 +1554,14 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSPa
         ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling RSPath is nullptr");
         return parcel.WriteInt32(-1);
     }
-    if (val->GetDrawingPath().GetDrawingType() != Drawing::DrawingType::RECORDING) {
-        ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling Drawing::Path is invalid");
-        return parcel.WriteInt32(-1);
-    }
-    auto recordingPath = static_cast<const Drawing::RecordingPath&>(val->GetDrawingPath());
-    auto cmdListData = recordingPath.GetCmdList()->GetData();
-    bool ret = parcel.WriteInt32(cmdListData.second);
-    if (cmdListData.second == 0) {
-        ROSEN_LOGW("unirender: RSMarshallingHelper::Marshalling RecordingPathCmdList size is 0");
-        return ret;
+    
+    std::shared_ptr<Drawing::Data> data = val->GetDrawingPath().Serialize();
+    if (!data) {
+        ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling Path is nullptr");
+        return false;
     }
 
-    ret &= RSMarshallingHelper::WriteToParcel(parcel, cmdListData.first, cmdListData.second);
-    if (!ret) {
-        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::RecordingPathCmdList");
-    }
-
-    return ret;
+    return parcel.WriteInt32(1) && Marshalling(parcel, data);
 }
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSPath>& val)
@@ -1581,28 +1571,20 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSPath>&
         val = nullptr;
         return true;
     }
-    if (size == 0) {
-        ROSEN_LOGW("unirender: RSMarshallingHelper::Unmarshalling Drawing::PathCmdList size is 0");
-        val = RSPath::CreateRSPath();
-        return true;
+
+    std::shared_ptr<Drawing::Data> data;
+    Drawing::Path path;
+    if (!Unmarshalling(parcel, data) || !data) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Path");
+        return false;
     }
-    bool isMalloc = false;
-    const void* data = RSMarshallingHelper::ReadFromParcel(parcel, size, isMalloc);
-    if (data == nullptr) {
+
+    if (!path.Deserialize(data)) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling RSPath");
         return false;
     }
-    auto pathCmdList = Drawing::PathCmdList::CreateFromData({ data, size }, true);
-    if (isMalloc) {
-        free(const_cast<void*>(data));
-        data = nullptr;
-    }
-    if (pathCmdList == nullptr) {
-        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling RSPath path cmdlist is nullptr");
-        return false;
-    }
-    auto path = pathCmdList->Playback();
-    val = RSPath::CreateRSPath(*path);
+
+    val = RSPath::CreateRSPath(path);
     return val != nullptr;
 }
 #endif
@@ -2096,12 +2078,17 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 
     int32_t imageSize = parcel.ReadInt32();
     if (imageSize > 0) {
-        const void* imageData = RSMarshallingHelper::ReadFromParcel(parcel, imageSize);
+        bool isMal = false;
+        const void* imageData = RSMarshallingHelper::ReadFromParcel(parcel, imageSize, isMal);
         if (imageData == nullptr) {
             ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Drawing::MaskCmdList image is nullptr");
             return false;
         }
         val->SetUpImageData(imageData, imageSize);
+        if (isMal) {
+            free(const_cast<void*>(imageData));
+            imageData = nullptr;
+        }
     }
 
     return true;

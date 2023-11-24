@@ -62,6 +62,9 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContex
 
 RSSurfaceRenderNode::~RSSurfaceRenderNode()
 {
+#ifdef USE_SURFACE_TEXTURE
+    SetSurfaceTexture(nullptr);
+#endif
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
 }
 
@@ -312,6 +315,12 @@ void RSSurfaceRenderNode::OnResetParent()
 
 void RSSurfaceRenderNode::SetIsNotifyUIBufferAvailable(bool available)
 {
+#ifdef USE_SURFACE_TEXTURE
+    auto texture = GetSurfaceTexture();
+    if (texture) {
+        texture->MarkUiFrameAvailable(available);
+    }
+#endif
     isNotifyUIBufferAvailable_.store(available);
 }
 
@@ -564,6 +573,13 @@ void RSSurfaceRenderNode::UpdateSurfaceDefaultSize(float width, float height)
     if (consumer_ != nullptr) {
         consumer_->SetDefaultWidthAndHeight(width, height);
     }
+#else
+#ifdef USE_SURFACE_TEXTURE
+    auto texture = GetSurfaceTexture();
+    if (texture) {
+        texture->UpdateSurfaceDefaultSize(width, height);
+    }
+#endif
 #endif
 }
 
@@ -1348,6 +1364,16 @@ void RSSurfaceRenderNode::UpdateAbilityNodeIds(NodeId id, bool isAdded)
     } else {
         abilityNodeIds_.erase(id);
     }
+}
+
+void RSSurfaceRenderNode::AddAbilityComponentNodeIds(std::unordered_set<NodeId> nodeIds)
+{
+    abilityNodeIds_.insert(nodeIds.begin(), nodeIds.end());
+}
+
+void RSSurfaceRenderNode::ResetAbilityNodeIds()
+{
+    abilityNodeIds_.clear();
 }
 
 const std::unordered_set<NodeId>& RSSurfaceRenderNode::GetAbilityNodeIds() const

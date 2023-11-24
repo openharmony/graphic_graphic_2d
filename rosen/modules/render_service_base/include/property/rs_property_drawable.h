@@ -17,8 +17,9 @@
 #define RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_H
 
 #include <memory>
-#include <unordered_set>
+#include <set>
 #include <vector>
+
 #include "modifier/rs_render_modifier.h"
 
 namespace OHOS::Rosen {
@@ -40,6 +41,7 @@ enum RSPropertyDrawableSlot : uint8_t {
     TRANSITION,
     ENV_FOREGROUND_COLOR,
     SHADOW,
+    OUTER_BORDER,
 
     // BG properties in Bounds Clip
     SAVE_LAYER_BACKGROUND,
@@ -133,8 +135,14 @@ public:
 
     // Generator Utilities
     static void InitializeSaveRestore(const RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec);
+#ifndef USE_ROSEN_DRAWING
     static std::unordered_set<Slot::RSPropertyDrawableSlot> GenerateDirtySlots(
         const RSProperties& properties, const std::unordered_set<RSModifierType>& dirtyTypes);
+#else
+    static std::unordered_set<Slot::RSPropertyDrawableSlot> GenerateDirtySlots(
+        const RSProperties& properties,
+        std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>& dirtyTypes);
+#endif
     static bool UpdateDrawableVec(const RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec,
         std::unordered_set<Slot::RSPropertyDrawableSlot>& dirtySlots);
     static void UpdateSaveRestore(

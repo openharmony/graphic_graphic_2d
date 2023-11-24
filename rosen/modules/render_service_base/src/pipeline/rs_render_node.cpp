@@ -548,7 +548,11 @@ void RSRenderNode::SetContentDirty()
 void RSRenderNode::SetDirty()
 {
     // Sometimes dirtyStatus_ were not correctly reset, we use dirtyTypes_ to determine if we should add to active list
+#ifndef USE_ROSEN_DRAWING
     if (dirtyStatus_ == NodeDirty::CLEAN || dirtyTypes_.empty()) {
+#else
+    if (dirtyStatus_ == NodeDirty::CLEAN || dirtyTypes_.none()) {
+#endif
         AddActiveNode();
         dirtyStatus_ = NodeDirty::DIRTY;
     }
@@ -1122,7 +1126,11 @@ void RSRenderNode::SetRSFrameRateRangeByPreferred(int32_t preferred)
 bool RSRenderNode::ApplyModifiers()
 {
     // quick reject test
+#ifndef USE_ROSEN_DRAWING
     if (!RSRenderNode::IsDirty() || dirtyTypes_.empty()) {
+#else
+    if (!RSRenderNode::IsDirty() || dirtyTypes_.none()) {
+#endif
         return false;
     }
     hgmModifierProfileList_.clear();
@@ -1137,7 +1145,11 @@ bool RSRenderNode::ApplyModifiers()
 
     // Apply modifiers
     for (auto& [id, modifier] : modifiers_) {
+#ifndef USE_ROSEN_DRAWING
         if (!dirtyTypes_.count(modifier->GetType())) {
+#else
+        if (!dirtyTypes_.test(static_cast<size_t>(modifier->GetType()))) {
+#endif
             continue;
         }
         modifier->Apply(context);
@@ -1156,7 +1168,12 @@ bool RSRenderNode::ApplyModifiers()
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (auto& manager = renderProperties_.GetFilterCacheManager(false);
         manager != nullptr &&
+#ifndef USE_ROSEN_DRAWING
         (dirtyTypes_.count(RSModifierType::BACKGROUND_COLOR) || dirtyTypes_.count(RSModifierType::BG_IMAGE))) {
+#else
+        (dirtyTypes_.test(static_cast<size_t>(RSModifierType::BACKGROUND_COLOR)) ||
+        dirtyTypes_.test(static_cast<size_t>(RSModifierType::BG_IMAGE)))) {
+#endif
         manager->UpdateCacheStateWithDirtyRegion();
     }
     if (auto& manager = renderProperties_.GetFilterCacheManager(true)) {
@@ -1170,7 +1187,11 @@ bool RSRenderNode::ApplyModifiers()
 #endif
 
     // update state
+#ifndef USE_ROSEN_DRAWING
     dirtyTypes_.clear();
+#else
+    dirtyTypes_.reset();
+#endif
     lastApplyTimestamp_ = lastTimestamp_;
     UpdateShouldPaint();
 
@@ -1426,7 +1447,7 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
         height = boundsHeight_;
     }
 #ifndef USE_ROSEN_DRAWING
-#if ((defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)) || (defined RS_ENABLE_VK)
+#if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
     if (grContext == nullptr) {
         if (func) {
             func(std::move(cacheSurface_), std::move(cacheCompletedSurface_),
@@ -1442,7 +1463,7 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
     cacheSurface_ = SkSurface::MakeRasterN32Premul(width, height);
 #endif
 #else // USE_ROSEN_DRAWING
-#if ((defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)) || (defined RS_ENABLE_VK)
+#if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
     if (gpuContext == nullptr) {
         if (func) {
             func(std::move(cacheSurface_), std::move(cacheCompletedSurface_),

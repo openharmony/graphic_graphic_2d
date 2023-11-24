@@ -149,7 +149,11 @@ class RSBaseRenderEngine {
 public:
     RSBaseRenderEngine();
     virtual ~RSBaseRenderEngine() noexcept;
+#ifdef RS_ENABLE_VK
     void Init(bool indenpent = false);
+#else
+    void Init();
+#endif
     RSBaseRenderEngine(const RSBaseRenderEngine&) = delete;
     void operator=(const RSBaseRenderEngine&) = delete;
 

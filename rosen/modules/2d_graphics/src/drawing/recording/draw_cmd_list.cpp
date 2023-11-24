@@ -30,6 +30,15 @@ DrawCmdList::DrawCmdList(int32_t width, int32_t height) : width_(width), height_
     opAllocator_.Add(&height_, sizeof(int32_t));
 }
 
+void DrawCmdList::ClearOp()
+{
+    opAllocator_.ClearData();
+    opAllocator_.Add(&width_, sizeof(int32_t));
+    opAllocator_.Add(&height_, sizeof(int32_t));
+    imageAllocator_.ClearData();
+    lastOpItemOffset_ = std::nullopt;
+}
+
 std::shared_ptr<DrawCmdList> DrawCmdList::CreateFromData(const CmdListData& data, bool isCopy)
 {
     auto cmdList = std::make_shared<DrawCmdList>();
@@ -74,8 +83,7 @@ void DrawCmdList::SetHeight(int32_t height)
 bool DrawCmdList::IsEmpty() const
 {
     uint32_t offset = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
-    if (width_ <= 0 || height_ <= 0 ||
-        (opAllocator_.GetSize() <= offset && unmarshalledOpItems_.size() == 0)) {
+    if (opAllocator_.GetSize() <= offset && unmarshalledOpItems_.size() == 0) {
         return true;
     }
     return false;
@@ -84,7 +92,7 @@ bool DrawCmdList::IsEmpty() const
 void DrawCmdList::UnmarshallingOps()
 {
     uint32_t offset = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
-    if (width_ <= 0 || height_ <= 0 || opAllocator_.GetSize() <= offset) {
+    if (opAllocator_.GetSize() <= offset) {
         return;
     }
 
@@ -96,6 +104,9 @@ void DrawCmdList::UnmarshallingOps()
         auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
         if (curOpItemPtr != nullptr) {
             uint32_t type = curOpItemPtr->GetType();
+            if (type == DrawOpItem::CMD_LIST_OPITEM) {
+                return;
+            }
             if (opReplaceIndex < replacedOpList_.size() &&
                 replacedOpList_[opReplaceIndex].first == offset) {
                 auto* replacePtr = opAllocator_.OffsetToAddr(replacedOpList_[opReplaceIndex].second);
@@ -112,14 +123,49 @@ void DrawCmdList::UnmarshallingOps()
             LOGE("DrawCmdList::UnmarshallingOps failed, opItem is nullptr");
             break;
         }
+        if (!replacedOpList_.empty() && offset >= replacedOpList_[0].second) {
+            LOGD("DrawCmdList::UnmarshallingOps seek end by cache textOps");
+            break;
+        }
     } while (offset != 0);
+}
+
+std::vector<std::pair<OpItem*, void*>> DrawCmdList::UnmarshallingCmdList()
+{
+    std::vector<std::pair<OpItem*, void*>> opItems;
+    uint32_t offset = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
+    if (width_ <= 0 || height_ <= 0 || opAllocator_.GetSize() <= offset) {
+        return opItems;
+    }
+
+    UnmarshallingPlayer player = { *this };
+    do {
+        void* itemPtr = opAllocator_.OffsetToAddr(offset);
+        auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
+        if (curOpItemPtr != nullptr) {
+            player.Unmarshalling(curOpItemPtr->GetType(), itemPtr);
+            offset = curOpItemPtr->GetNextOpItemOffset();
+            auto playFunc = CanvasPlayer::GetFuncFromType(curOpItemPtr->GetType());
+            if (playFunc == nullptr) {
+                continue;
+            }
+            opItems.push_back({curOpItemPtr, (void*)playFunc});
+        } else {
+            LOGE("DrawCmdList::UnmarshallingCmdList failed, opItem is nullptr");
+            break;
+        }
+    } while (offset != 0);
+    return opItems;
 }
 
 void DrawCmdList::Playback(Canvas& canvas, const Rect* rect)
 {
+    if (canvas.GetDrawingType() == DrawingType::RECORDING) {
+        AddOpToCmdList(static_cast<RecordingCanvas&>(canvas).GetDrawCmdList());
+        return;
+    }
     uint32_t offset = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
-    if (width_ <= 0 || height_ <= 0 ||
-        (opAllocator_.GetSize() <= offset && unmarshalledOpItems_.size() == 0)) {
+    if (opAllocator_.GetSize() <= offset && unmarshalledOpItems_.size() == 0) {
         return;
     }
 
@@ -175,10 +221,14 @@ void DrawCmdList::GenerateCache(Canvas* canvas, const Rect* rect)
 {
 #ifdef ROSEN_OHOS
     uint32_t offset = 2 * sizeof(int32_t);
-    if (width_ <= 0 || height_ <= 0 || opAllocator_.GetSize() <= offset) {
+    if (opAllocator_.GetSize() <= offset) {
         return;
     }
 
+    if (isCached_) {
+        LOGD("DrawCmdList::GenerateCache Invoke multiple times");
+        return;
+    }
     GenerateCachedOpItemPlayer player = {*this, canvas, rect};
 
     uint32_t maxOffset = opAllocator_.GetSize();
@@ -206,7 +256,7 @@ void DrawCmdList::GenerateCache(Canvas* canvas, const Rect* rect)
 void DrawCmdList::GenerateCacheInRenderService(Canvas* canvas, const Rect* rect)
 {
 #ifdef ROSEN_OHOS
-    if (width_ <= 0 || height_ <= 0 || unmarshalledOpItems_.size() == 0) {
+    if (unmarshalledOpItems_.size() == 0) {
         return;
     }
 
@@ -267,6 +317,29 @@ std::vector<std::pair<uint32_t, uint32_t>> DrawCmdList::GetReplacedOpList()
 void DrawCmdList::SetReplacedOpList(std::vector<std::pair<uint32_t, uint32_t>> replacedOpList)
 {
     replacedOpList_ = replacedOpList;
+}
+
+void DrawCmdList::AddOpToCmdList(std::shared_ptr<DrawCmdList> cmdList)
+{
+    CmdListHandle handle = { 0 };
+    handle.type = GetType();
+
+    auto data = GetData();
+    if (data.first != nullptr && data.second != 0) {
+        handle.offset = cmdList->AddCmdListData(data);
+        handle.size = data.second;
+    } else {
+        return;
+    }
+
+    auto imageData = GetAllImageData();
+    if (imageData.first != nullptr && imageData.second != 0) {
+        handle.imageOffset = cmdList->AddImageData(imageData.first, imageData.second);
+        handle.imageSize = imageData.second;
+    }
+
+    cmdList->AddOp<DrawCmdListOpItem>(handle);
+    return;
 }
 
 } // namespace Drawing

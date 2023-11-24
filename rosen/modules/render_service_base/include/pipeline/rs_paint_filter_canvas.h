@@ -126,6 +126,7 @@ public:
 
 protected:
     virtual bool OnFilter() const = 0;
+    virtual bool OnFilterWithBrush(Drawing::Brush& brush) const = 0;
     Drawing::Canvas* canvas_ = nullptr;
 };
 #endif // USE_ROSEN_DRAWING
@@ -260,6 +261,7 @@ public:
     };
     CanvasStatus GetCanvasStatus() const;
     void SetCanvasStatus(const CanvasStatus& status);
+    SkCanvas* GetRecordingCanvas() const;
 #else
     // effect cache data relate
     struct CachedEffectData {
@@ -283,7 +285,6 @@ public:
 #endif
     bool GetRecordingState() const;
     void SetRecordingState(bool flag);
-    SkCanvas* GetRecordingCanvas() const;
 
 protected:
     using Env = struct {
@@ -298,6 +299,7 @@ protected:
     std::stack<float> GetAlphaStack();
     std::stack<Env> GetEnvStack();
     bool OnFilter() const override;
+    bool OnFilterWithBrush(Drawing::Brush& brush) const override;
 #endif
 
 private:

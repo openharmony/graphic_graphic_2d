@@ -36,7 +36,7 @@ RSTagTracker::RSTagTracker(GrContext* grContext, RSTagTracker::TAGTYPE tagType)
     if (!g_releaseResourceEnabled_) {
         return;
     }
-#ifdef RS_ENABLE_GL
+#if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
     GrGpuResourceTag tag(0, 0, 0, tagType);
     grContext_->setCurrentGrResourceTag(tag);
 #endif
@@ -154,7 +154,7 @@ RSTagTracker::RSTagTracker(GrContext* grContext, GrGpuResourceTag& tag)
     if (!g_releaseResourceEnabled_) {
         return;
     }
-#ifdef RS_ENABLE_GL
+#if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
     grContext_->setCurrentGrResourceTag(tag);
 #endif
 }
@@ -185,7 +185,7 @@ void RSTagTracker::SetTagEnd()
         return;
     }
     isSetTagEnd_ = true;
-#ifdef RS_ENABLE_GL
+#if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
     GrGpuResourceTag tagEnd;
     grContext_->setCurrentGrResourceTag(tagEnd);
 #endif
@@ -211,7 +211,7 @@ RSTagTracker::~RSTagTracker()
         return;
     }
 #ifndef USE_ROSEN_DRAWING
-#ifdef RS_ENABLE_GL
+#if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
     // Set empty tag to notify skia that the tag is complete
     if (!isSetTagEnd_ && grContext_) {
         GrGpuResourceTag tagEnd;

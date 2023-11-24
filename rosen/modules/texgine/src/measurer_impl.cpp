@@ -178,7 +178,7 @@ void MeasurerImpl::SeekTypeface(std::list<struct MeasuringRun> &runs)
                 LOGCEX_DEBUG() << " cached";
                 continue;
             }
-            if (runsit->typeface) {
+            if (lastTypeface && runsit->typeface) {
                 LOGCEX_DEBUG() << " new";
                 auto next = runsit;
                 struct MeasuringRun run = {.start = utf16Index - U16_LENGTH(cp), .end = runsit->end,

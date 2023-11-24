@@ -125,7 +125,6 @@ constexpr uint64_t CLEAN_CACHE_FREQ = 60;
 constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
 constexpr uint64_t PERF_PERIOD_BLUR = 80000000;
 constexpr uint64_t SK_RELEASE_RESOURCE_PERIOD = 5000000000;
-constexpr const char* MEM_GPU_TYPE = "gpu";
 constexpr uint64_t PERF_PERIOD_MULTI_WINDOW = 80000000;
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
@@ -139,6 +138,9 @@ constexpr const char* MEM_MGR = "MemMgr";
 #ifdef RS_ENABLE_GL
 constexpr size_t DEFAULT_SKIA_CACHE_SIZE        = 96 * (1 << 20);
 constexpr int DEFAULT_SKIA_CACHE_COUNT          = 2 * (1 << 12);
+#endif
+#if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
+constexpr const char* MEM_GPU_TYPE = "gpu";
 #endif
 const std::map<int, int32_t> BLUR_CNT_TO_BLUR_CODE {
     { 1, 10021 },
@@ -628,6 +630,17 @@ void RSMainThread::CheckParallelSubThreadNodesStatusImplementation()
                 cacheCmdSkippedInfo_[pid] = std::make_pair(std::vector<NodeId>{node->GetId()}, false);
             } else {
                 cacheCmdSkippedInfo_[pid].first.push_back(node->GetId());
+            }
+            if (!node->HasAbilityComponent()) {
+                continue;
+            }
+            for (auto& nodeId : node->GetAbilityNodeIds()) {
+                pid_t abilityNodePid = ExtractPid(nodeId);
+                if (cacheCmdSkippedInfo_.count(abilityNodePid) == 0) {
+                    cacheCmdSkippedInfo_[abilityNodePid] = std::make_pair(std::vector<NodeId>{node->GetId()}, true);
+                } else {
+                    cacheCmdSkippedInfo_[abilityNodePid].first.push_back(node->GetId());
+                }
             }
         }
     }

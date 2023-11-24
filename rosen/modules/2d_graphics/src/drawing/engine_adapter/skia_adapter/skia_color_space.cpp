@@ -114,7 +114,7 @@ bool SkiaColorSpace::Deserialize(std::shared_ptr<Data> data)
     }
 
     colorSpace_ = SkColorSpace::Deserialize(data->GetData(), data->GetSize());
-    return colorSpace_ != nullptr;
+    return true;
 }
 
 } // namespace Drawing

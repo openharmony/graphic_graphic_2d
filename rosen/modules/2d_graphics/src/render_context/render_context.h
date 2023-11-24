@@ -80,7 +80,11 @@ public:
     {
         return skSurface_;
     }
-    bool SetUpGrContext(sk_sp<GrDirectContext> skContext = nullptr);
+#ifdef RS_ENABLE_VK
+    bool SetUpGrContext(sk_sp<GrDirectContext> skContext);
+#else
+    bool SetUpGrContext();
+#endif
 #else
     Drawing::GPUContext* GetDrGPUContext() const
     {
@@ -91,7 +95,7 @@ public:
     {
         return surface_;
     }
-    bool SetUpGpuContext(sk_sp<GrDirectContext> skContext);
+    bool SetUpGpuContext();
 #endif
 
     EGLSurface CreateEGLSurface(EGLNativeWindowType eglNativeWindow);

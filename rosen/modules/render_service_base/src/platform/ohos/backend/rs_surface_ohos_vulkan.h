@@ -65,14 +65,14 @@ private:
     struct NativeWindow* mNativeWindow = nullptr;
     int mWidth = -1;
     int mHeight = -1;
-    int32_t SetNativeWindowInfo(int32_t width, int32_t height);
+    void SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC);
 #ifdef ENABLE_NATIVEBUFFER
     uint32_t mPresentCount = 0;
     std::list<NativeWindowBuffer*> mSurfaceList;
     std::unordered_map<NativeWindowBuffer*, NativeBufferUtils::NativeSurfaceInfo> mSurfaceMap;
     sk_sp<GrDirectContext> mSkContext = nullptr;
     int32_t RequestNativeWindowBuffer(
-        NativeWindowBuffer** nativeWindowBuffer, int32_t width, int32_t height, int& fenceFd);
+        NativeWindowBuffer** nativeWindowBuffer, int32_t width, int32_t height, int& fenceFd, bool useAFBC);
     void CreateVkSemaphore(VkSemaphore* semaphore,
         const RsVulkanContext& vkContext, NativeBufferUtils::NativeSurfaceInfo& nativeSurface);
 #else // ENABLE_NATIVEBUFFER

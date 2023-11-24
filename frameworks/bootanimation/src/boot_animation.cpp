@@ -145,6 +145,20 @@ void BootAnimation::Run(Rosen::ScreenId id, int screenWidth, int screenHeight)
     LOGI("Run enter");
     animationConfig_.ParserCustomCfgFile();
 
+    if (animationConfig_.GetRotateScreenId() >= 0) {
+        Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
+        id = interface.GetActiveScreenId();
+        Rosen::RSScreenModeInfo modeinfo = interface.GetScreenActiveMode(id);
+        screenWidth = modeinfo.GetScreenWidth();
+        screenHeight = modeinfo.GetScreenHeight();
+        if (id > 0) {
+            LOGI("SetScreenPowerStatus POWER_STATUS_OFF_FAKE: 0");
+            interface.SetScreenPowerStatus(0, Rosen::ScreenPowerStatus::POWER_STATUS_OFF_FAKE);
+            LOGI("SetScreenPowerStatus POWER_STATUS_ON: %{public}llu", id);
+            interface.SetScreenPowerStatus(id, Rosen::ScreenPowerStatus::POWER_STATUS_ON);
+        }
+    }
+
     runner_ = AppExecFwk::EventRunner::Create(false);
     mainHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     mainHandler_->PostTask(std::bind(&BootAnimation::Init, this, id, screenWidth, screenHeight));
@@ -160,11 +174,17 @@ void BootAnimation::InitRsSurfaceNode()
 {
     LOGI("Init RsSurfaceNode enter");
     struct Rosen::RSSurfaceNodeConfig rsSurfaceNodeConfig;
+    rsSurfaceNodeConfig.SurfaceNodeName = "BootAnimationNode";
     Rosen::RSSurfaceNodeType rsSurfaceNodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
     rsSurfaceNode_ = Rosen::RSSurfaceNode::Create(rsSurfaceNodeConfig, rsSurfaceNodeType);
     if (!rsSurfaceNode_) {
         LOGE("rsSurfaceNode_ is nullptr");
         return;
+    }
+    int32_t rotateScreenId = animationConfig_.GetRotateScreenId();
+    if (rotateScreenId >= 0 && (Rosen::ScreenId)rotateScreenId == defaultId_) {
+        LOGI("SurfaceNode set rotation degree: %{public}d", animationConfig_.GetRotateDegree());
+        rsSurfaceNode_->SetRotation(animationConfig_.GetRotateDegree());
     }
     rsSurfaceNode_->SetPositionZ(MAX_ZORDER);
     rsSurfaceNode_->SetBounds({0, 0, windowWidth_, windowHeight_});

@@ -143,7 +143,7 @@ bool RSFilterCacheManager::RSFilterCacheTask::Render()
 {
     RS_TRACE_NAME_FMT("RSFilterCacheManager::RSFilterCacheTask::Render:%p", this);
     ROSEN_LOGD("RSFilterCacheManager::RSFilterCacheTask::Render:%{public}p", this);
-    if (cacheSurface_ == nullptr || filter_ == nullptr) {
+    if (cacheSurface_ == nullptr) {
         SetStatus(CacheProcessStatus::WAITING);
         return false;
     }
@@ -151,7 +151,7 @@ bool RSFilterCacheManager::RSFilterCacheTask::Render()
     auto cacheCanvas = std::make_shared<RSPaintFilterCanvas>(cacheSurface_.get());
     if (cacheCanvas == nullptr) {
         SetStatus(CacheProcessStatus::WAITING);
-        ROSEN_LOGD("RSFilterCacheManager::Render: cacheCanvas is null");
+        ROSEN_LOGE("RSFilterCacheManager::Render: cacheCanvas is null");
         return false;
     }
 #ifndef USE_ROSEN_DRAWING
@@ -170,14 +170,23 @@ bool RSFilterCacheManager::RSFilterCacheTask::Render()
     auto threadImage = std::make_shared<Drawing::Image>();
     if (!threadImage->BuildFromTexture(*cacheCanvas->GetGPUContext(), cacheBackendTexture_.GetTextureInfo(),
         Drawing::TextureOrigin::BOTTOM_LEFT, bitmapFormat, nullptr)) {
-        ROSEN_LOGD("RSFilterCacheManager::Render: cacheCanvas is null");
+        ROSEN_LOGE("RSFilterCacheManager::Render: cacheCanvas is null");
         return false;
     }
     auto src = Drawing::Rect(0, 0, surfaceSize_.GetWidth(), surfaceSize_.GetHeight());
     auto dst = Drawing::Rect(0, 0, surfaceSize_.GetWidth(), surfaceSize_.GetHeight());
 #endif
-    filter_->DrawImageRect(*cacheCanvas, threadImage, src, dst);
-    filter_->PostProcess(*cacheCanvas);
+    CHECK_CACHE_PROCESS_STATUS;
+    {
+        auto filterTemp = filter_.lock();
+        if (!filterTemp) {
+            SetStatus(CacheProcessStatus::WAITING);
+            ROSEN_LOGE("RSFilterCacheManager::Render: filterTemp is null");
+            return false;
+        }
+        filterTemp->DrawImageRect(*cacheCanvas, threadImage, src, dst);
+        filterTemp->PostProcess(*cacheCanvas);
+    }
     CHECK_CACHE_PROCESS_STATUS;
 #ifndef USE_ROSEN_DRAWING
     cacheSurface_->flushAndSubmit(true);
@@ -420,7 +429,7 @@ void RSFilterCacheManager::TakeSnapshot(
 
     // Update the cache state.
     snapshotRegion_ = RectI(srcRect.x(), srcRect.y(), srcRect.width(), srcRect.height());
-    cachedSnapshot_ = std::make_unique<RSPaintFilterCanvas::CachedEffectData>(std::move(snapshot), snapshotIBounds);
+    cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(snapshot), snapshotIBounds);
 
     // If the cached image is larger than threshold, we will increase the cache update interval, which is configurable
     // by `hdc shell param set persist.sys.graphic.filterCacheUpdateInterval <interval>`, the default value is 1.
@@ -444,10 +453,9 @@ void RSFilterCacheManager::TakeSnapshot(
 
     // shrink the srcRect by 1px to avoid edge artifacts.
     Drawing::RectI snapshotIBounds;
+    snapshotIBounds = srcRect;
     if (needSnapshotOutset) {
         snapshotIBounds.MakeOutset(-1, -1);
-    } else {
-        snapshotIBounds = srcRect;
     }
 
     // Take a screenshot.
@@ -465,7 +473,7 @@ void RSFilterCacheManager::TakeSnapshot(
 
     // Update the cache state.
     snapshotRegion_ = RectI(srcRect.GetLeft(), srcRect.GetTop(), srcRect.GetWidth(), srcRect.GetHeight());
-    cachedSnapshot_ = std::make_unique<RSPaintFilterCanvas::CachedEffectData>(std::move(snapshot), snapshotIBounds);
+    cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(snapshot), snapshotIBounds);
 
     // If the cached image is larger than threshold, we will increase the cache update interval, which is configurable
     // by `hdc shell param set persist.sys.graphic.filterCacheUpdateInterval <interval>`, the default value is 1.
@@ -571,7 +579,7 @@ void RSFilterCacheManager::DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canva
     RS_OPTIONAL_TRACE_FUNC();
 
     // Draw in device coordinates.
-    Rrawing::AutoCanvasRestore autoRestore(canvas, true);
+    Drawing::AutoCanvasRestore autoRestore(canvas, true);
     canvas.ResetMatrix();
 
     // Only draw within the visible rect.

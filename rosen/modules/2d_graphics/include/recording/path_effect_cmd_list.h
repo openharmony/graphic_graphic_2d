@@ -78,7 +78,7 @@ private:
 
 class CreatePathDashEffectOpItem : public PathEffectOpItem {
 public:
-    CreatePathDashEffectOpItem(const CmdListHandle& path, scalar advance, scalar phase, PathDashStyle style);
+    CreatePathDashEffectOpItem(const ImageHandle& path, scalar advance, scalar phase, PathDashStyle style);
     ~CreatePathDashEffectOpItem() = default;
 
     /*
@@ -87,7 +87,7 @@ public:
      */
     std::shared_ptr<PathEffect> Playback(const CmdList& cmdList) const;
 private:
-    CmdListHandle path_;
+    ImageHandle path_;
     scalar advance_;
     scalar phase_;
     PathDashStyle style_;

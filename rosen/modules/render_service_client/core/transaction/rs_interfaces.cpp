@@ -182,10 +182,14 @@ int32_t RSInterfaces::SetVirtualScreenResolution(ScreenId id, uint32_t width, ui
     return renderServiceClient_->SetVirtualScreenResolution(id, width, height);
 }
 
+bool RSInterfaces::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation)
+{
+    return renderServiceClient_->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
+}
+
 bool RSInterfaces::SetVirtualMirrorScreenBufferRotation(ScreenId id, bool bufferRotation)
 {
-    RS_LOGD("RSInterfaces::SetVirtualMirrorScreenBufferRotation is not supported.");
-    return true;
+    return false;
 }
 
 RSVirtualScreenResolution RSInterfaces::GetVirtualScreenResolution(ScreenId id)
@@ -304,6 +308,46 @@ std::shared_ptr<VSyncReceiver> RSInterfaces::CreateVSyncReceiver(
 int32_t RSInterfaces::GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability)
 {
     return renderServiceClient_->GetScreenHDRCapability(id, screenHdrCapability);
+}
+
+int32_t RSInterfaces::GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat)
+{
+    return renderServiceClient_->GetPixelFormat(id, pixelFormat);
+}
+
+int32_t RSInterfaces::SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat)
+{
+    return renderServiceClient_->SetPixelFormat(id, pixelFormat);
+}
+
+int32_t RSInterfaces::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats)
+{
+    return renderServiceClient_->GetScreenSupportedHDRFormats(id, hdrFormats);
+}
+
+int32_t RSInterfaces::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat)
+{
+    return renderServiceClient_->GetScreenHDRFormat(id, hdrFormat);
+}
+
+int32_t RSInterfaces::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
+{
+    return renderServiceClient_->SetScreenHDRFormat(id, modeIdx);
+}
+
+int32_t RSInterfaces::GetScreenSupportedColorSpaces(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces)
+{
+    return renderServiceClient_->GetScreenSupportedColorSpaces(id, colorSpaces);
+}
+
+int32_t RSInterfaces::GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace)
+{
+    return renderServiceClient_->GetScreenColorSpace(id, colorSpace);
+}
+
+int32_t RSInterfaces::SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace)
+{
+    return renderServiceClient_->SetScreenColorSpace(id, colorSpace);
 }
 
 int32_t RSInterfaces::GetScreenType(ScreenId id, RSScreenType& screenType)

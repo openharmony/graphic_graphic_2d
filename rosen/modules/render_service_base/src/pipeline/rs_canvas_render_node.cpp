@@ -42,6 +42,7 @@ namespace {
 constexpr PropertyId ANONYMOUS_MODIFIER_ID = 0;
 }
 
+#ifndef USE_ROSEN_DRAWING
 static inline SkBlendMode ConvertToSkBlendMode(int blendMode)
 {
     static const std::unordered_map<int, SkBlendMode> skBlendModeLUT = {
@@ -57,11 +58,32 @@ static inline SkBlendMode ConvertToSkBlendMode(int blendMode)
 
     return skBlendModeLUT.at(blendMode);
 }
+#else
+static inline Drawing::BlendMode ConvertToBlendMode(int blendMode)
+{
+    static const std::unordered_map<int, Drawing::BlendMode> blendModeLUT = {
+        {static_cast<int>(RSColorBlendModeType::DST_IN), Drawing::BlendMode::DST_IN},
+        {static_cast<int>(RSColorBlendModeType::SRC_IN), Drawing::BlendMode::SRC_IN}
+    };
+
+    auto iter = blendModeLUT.find(blendMode);
+    if (iter == blendModeLUT.end()) {
+        ROSEN_LOGE("The desired color_blend_mode is undefined, and the Drawing::BlendMode::SRC is used.");
+        return Drawing::BlendMode::SRC;
+    }
+
+    return blendModeLUT.at(blendMode);
+}
+#endif
 
 static inline void EnableColorBlendModeFilterLayer(RSPaintFilterCanvas& canvas, int& colorBlendMode)
 {
     if (colorBlendMode != static_cast<int>(RSColorBlendModeType::NONE)) {
+#ifndef USE_ROSEN_DRAWING
         canvas.saveLayer(nullptr, nullptr);
+#else
+        canvas.SaveLayer({nullptr, nullptr});
+#endif
         canvas.SaveAlpha();
         canvas.SetAlpha(1.0f);
     }
@@ -70,11 +92,19 @@ static inline void EnableColorBlendModeFilterLayer(RSPaintFilterCanvas& canvas, 
 static inline void EnableColorBlendModeMaskLayer(RSPaintFilterCanvas& canvas, int& colorBlendMode)
 {
     if (colorBlendMode != static_cast<int>(RSColorBlendModeType::NONE)) {
+#ifndef USE_ROSEN_DRAWING
         SkBlendMode skBlendMode = ConvertToSkBlendMode(colorBlendMode);
         SkPaint maskPaint;
         maskPaint.setBlendMode(skBlendMode);
         SkCanvas::SaveLayerRec maskLayerRec(nullptr, &maskPaint, nullptr, 0);
         canvas.saveLayer(maskLayerRec);
+#else
+        Drawing::BlendMode blendMode = ConvertToBlendMode(colorBlendMode);
+        Drawing::Brush brush;
+        brush.SetBlendMode(blendMode);
+        Drawing::SaveLayerOps maskLayerRec(nullptr, &brush, nullptr, 0);
+        canvas.SaveLayer(maskLayerRec);
+#endif
     }
 }
 
@@ -292,7 +322,11 @@ void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas
     int colorBlendMode = GetRenderProperties().GetColorBlendMode();
     if (colorBlendMode != static_cast<int>(RSColorBlendModeType::NONE)) {
         canvas.RestoreAlpha();
+#ifndef USE_ROSEN_DRAWING
         canvas.restore();
+#else
+        canvas.Restore();
+#endif
     }
     if (GetRenderProperties().IsLightUpEffectValid()) {
         RSPropertiesPainter::DrawLightUpEffect(GetRenderProperties(), canvas);

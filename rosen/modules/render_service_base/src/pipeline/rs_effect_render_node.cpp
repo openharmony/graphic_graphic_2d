@@ -65,7 +65,7 @@ void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
         RSPropertiesPainter::DrawBackgroundEffect(properties, canvas, effectRegion_->getBounds());
     }
 #else
-    if (effectRegion_.has_value() && effectRegion_->isValid() && properties.GetBackgroundFilter() != nullptr &&
+    if (effectRegion_.has_value() && effectRegion_->IsValid() && properties.GetBackgroundFilter() != nullptr &&
         canvas.GetCacheType() != RSPaintFilterCanvas::CacheType::OFFSCREEN) {
         RSPropertiesPainter::DrawBackgroundEffect(properties, canvas, effectRegion_->GetBounds());
     }

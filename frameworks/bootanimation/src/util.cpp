@@ -75,6 +75,16 @@ bool ReadCustomBootConfig(const std::string& path, BootCustomConfig& aniconfig)
         aniconfig.custVideoPath = custVideoPath->valuestring;
         LOGI("cust video path: %{public}s", aniconfig.custVideoPath.c_str());
     }
+    cJSON* rotateScreenJson = cJSON_GetObjectItem(overallData, "cust.bootanimation.rotate.screenid");
+    if (rotateScreenJson != nullptr && rotateScreenJson->valuestring != nullptr) {
+        aniconfig.rotateScreenId = std::stoi(rotateScreenJson->valuestring);
+        LOGI("cust rotateScreenId: %{public}d", aniconfig.rotateScreenId);
+    }
+    cJSON* rotateDegreeJson = cJSON_GetObjectItem(overallData, "cust.bootanimation.rotate.degree");
+    if (rotateDegreeJson != nullptr && rotateDegreeJson->valuestring != nullptr) {
+        aniconfig.rotateDegree = std::stoi(rotateDegreeJson->valuestring);
+        LOGI("cust rotateDegree: %{public}d", aniconfig.rotateDegree);
+    }
     cJSON_Delete(overallData);
     return true;
 }

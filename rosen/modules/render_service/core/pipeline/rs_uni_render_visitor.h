@@ -274,7 +274,8 @@ private:
 
     bool IsHardwareComposerEnabled();
 
-    bool CheckIfSurfaceRenderNodeNeedProcess(RSSurfaceRenderNode& node);
+    // choose to keep filter cache if node is filter occluded
+    bool CheckIfSurfaceRenderNodeNeedProcess(RSSurfaceRenderNode& node, bool& keepFilterCache);
 
     void ClearTransparentBeforeSaveLayer();
     // mark surfaceNode's child surfaceView nodes hardware forced disabled
@@ -283,7 +284,7 @@ private:
 
     // offscreen render related
     void PrepareOffscreenRender(RSRenderNode& node);
-    void FinishOffscreenRender();
+    void FinishOffscreenRender(bool isMirror = false);
     void ParallelPrepareDisplayRenderNodeChildrens(RSDisplayRenderNode& node);
     bool AdaptiveSubRenderThreadMode(bool doParallel);
     void ParallelRenderEnableHardwareComposer(RSSurfaceRenderNode& node);
@@ -293,7 +294,11 @@ private:
     void UpdateCacheRenderNodeMapWithBlur(RSRenderNode& node);
     bool IsFirstVisitedCacheForced() const;
     bool IsRosenWebHardwareDisabled(RSSurfaceRenderNode& node, int rotation) const;
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> GetCacheImageFromMirrorNode(std::shared_ptr<RSDisplayRenderNode> mirrorNode);
+#else
+    std::shared_ptr<Drawing::Image> GetCacheImageFromMirrorNode(std::shared_ptr<RSDisplayRenderNode> mirrorNode);
+#endif
 
     void SwitchColorFilterDrawing(int currentSaveCount);
     void ProcessShadowFirst(RSRenderNode& node, bool inSubThread);
@@ -471,7 +476,17 @@ private:
     std::shared_ptr<RSRecordingCanvas> recordingCanvas_;
 #endif
     bool isNodeSingleFrameComposer_ = false;
+
+    // use for screen recording optimization
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> cacheImgForCapture_ = nullptr;
+#else
+    std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
+#endif
+    // attention: please synchronize the change of RSUniRenderVisitor::ProcessChildren to this func
+    void ProcessChildrenForScreenRecordingOptimization(RSDisplayRenderNode& node, NodeId rootIdOfCaptureWindow);
+    NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);
+    bool CheckIfNeedResetRotate();
 
     uint32_t currentRefreshRate_ = 0;
 };

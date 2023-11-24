@@ -55,7 +55,8 @@ public:
     void SetTimeStamp(uint64_t timeStamp, const std::string& abilityName);
     void SetCacheDir(const std::string& cacheFilePath);
 
-    bool RunningCustomAnimation(uint64_t timeStamp);
+    bool FlushAnimation(uint64_t timeStamp);
+    void FlushModifier();
 
     void SetAppFreeze(bool isAppFreeze);
 

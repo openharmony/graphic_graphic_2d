@@ -25,6 +25,7 @@
 #include <unordered_set>
 #include <variant>
 #include <vector>
+#include <bitset>
 
 #include "animation/rs_animation_manager.h"
 #include "animation/rs_frame_rate_range.h"
@@ -189,7 +190,11 @@ public:
 
     virtual void AddDirtyType(RSModifierType type)
     {
+#ifndef USE_ROSEN_DRAWING
         dirtyTypes_.emplace(type);
+#else
+        dirtyTypes_.set(static_cast<int>(type), true);
+#endif
     }
 
     std::tuple<bool, bool, bool> Animate(int64_t timestamp);
@@ -490,7 +495,11 @@ protected:
     bool isOnTheTree_ = false;
     NodeId drawingCacheRootId_ = INVALID_NODEID;
 
+#ifndef USE_ROSEN_DRAWING
     std::unordered_set<RSModifierType> dirtyTypes_;
+#else
+    std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)> dirtyTypes_;
+#endif
     bool isFullChildrenListValid_ = false;
     bool isBootAnimation_ = false;
     RSProperties renderProperties_;

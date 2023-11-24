@@ -30,6 +30,7 @@
 #include "include/gpu/GrDirectContext.h"
 #include "platform/common/rs_log.h"
 #include "window.h"
+#include "platform/common/rs_system_properties.h"
 namespace OHOS {
 namespace Rosen {
 RSSurfaceOhosVulkan::RSSurfaceOhosVulkan(const sptr<Surface>& producer) : RSSurfaceOhos(producer)
@@ -52,7 +53,7 @@ RSSurfaceOhosVulkan::~RSSurfaceOhosVulkan()
 #endif // ENABLE_NATIVEBUFFER
 }
 
-int32_t RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height)
+void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC)
 {
     NativeWindowHandleOpt(mNativeWindow, SET_FORMAT, pixelFormat_);
 #ifdef RS_ENABLE_AFBC
@@ -94,9 +95,9 @@ void RSSurfaceOhosVulkan::CreateVkSemaphore(
 }
 
 int32_t RSSurfaceOhosVulkan::RequestNativeWindowBuffer(
-    NativeWindowBuffer** nativeWindowBuffer, int32_t width, int32_t height, int& fenceFd)
+    NativeWindowBuffer** nativeWindowBuffer, int32_t width, int32_t height, int& fenceFd, bool useAFBC)
 {
-    SetNativeWindowInfo(width, height);
+    SetNativeWindowInfo(width, height, useAFBC);
     struct timespec curTime = {0, 0};
     clock_gettime(CLOCK_MONOTONIC, &curTime);
     // 1000000000 is used for transfer second to nsec
@@ -126,7 +127,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
 
     NativeWindowBuffer* nativeWindowBuffer = nullptr;
     int fenceFd = -1;
-    if (RequestNativeWindowBuffer(&nativeWindowBuffer, width, height, fenceFd) != OHOS::GSERROR_OK) {
+    if (RequestNativeWindowBuffer(&nativeWindowBuffer, width, height, fenceFd, useAFBC) != OHOS::GSERROR_OK) {
         return nullptr;
     }
 
@@ -260,7 +261,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     if (vkContext.GetHardWareGrContext().get() == mSkContext.get()) {
         queue = vkContext.GetHardwareQueue();
     }
-    auto err = RsVulkanContext::interceptedVkQueueSignalReleaseImageOHOS(
+    auto err = RsVulkanContext::HookedVkQueueSignalReleaseImageOHOS(
         queue, 1, &semaphore, surface.image, &fenceFd);
     if (err != VK_SUCCESS) {
         ROSEN_LOGE("RSSurfaceOhosVulkan QueueSignalReleaseImageOHOS failed %{public}d", err);

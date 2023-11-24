@@ -216,7 +216,7 @@ bool RSSystemProperties::GetColorPickerPartialEnabled()
 
 bool RSSystemProperties::GetMaskLinearBlurEnabled()
 {
-    return false;
+    return true;
 }
 
 bool RSSystemProperties::GetDebugTraceEnabled()

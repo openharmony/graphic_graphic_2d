@@ -67,6 +67,7 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     uint32_t skipFrameInterval = GetData<uint32_t>();
     uint32_t width = GetData<uint32_t>();
     uint32_t height = GetData<uint32_t>();
+    bool canvasRotation = GetData<bool>();
 
     // test
     auto& rsInterfaces = RSInterfaces::GetInstance();
@@ -100,6 +101,7 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     rsInterfaces.RegisterSurfaceOcclusionChangeCallback(static_cast<NodeId>(id), surfaceOcclusionCb, partitionPoints);
     rsInterfaces.UnRegisterSurfaceOcclusionChangeCallback(static_cast<NodeId>(id));
     rsInterfaces.ResizeVirtualScreen(static_cast<NodeId>(id), width, height);
+    rsInterfaces.SetVirtualMirrorScreenCanvasRotation(static_cast<ScreenId>(id), canvasRotation);
 
     sleep(1);
 

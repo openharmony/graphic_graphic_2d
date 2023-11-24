@@ -32,6 +32,7 @@ RSRcdSurfaceRenderNode::RSRcdSurfaceRenderNode(
     rcdExtInfo_.surfaceType = type;
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
+    rcdGlobalZOrder_ = static_cast<float>(0x7FFFFFFF); // make at toppest layer
 }
 
 RSRcdSurfaceRenderNode::~RSRcdSurfaceRenderNode()
@@ -151,9 +152,11 @@ void RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(rs_rcd::RoundCornerLa
     if (IsTopSurface()) {
         rcdExtInfo_.srcRect_ = RectI(0, 0, bitmapWidth, bitmapHeight);
         rcdExtInfo_.dstRect_ = RectI(0, 0, bitmapWidth, bitmapHeight);
+        SetGlobalZOrder(rcdGlobalZOrder_);
     } else {
         rcdExtInfo_.srcRect_ = RectI(0, 0, bitmapWidth, bitmapHeight);
         rcdExtInfo_.dstRect_ = RectI(0, layerInfo->layerHeight - bitmapHeight, bitmapWidth, bitmapHeight);
+        SetGlobalZOrder(rcdGlobalZOrder_ - 1);
     }
 }
 

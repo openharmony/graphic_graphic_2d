@@ -13,26 +13,33 @@
  * limitations under the License.
  */
 
-#ifndef PIXMAPIMPL_H
-#define PIXMAPIMPL_H
+#ifndef SKIA_HELPER_H
+#define SKIA_HELPER_H
 
-#include "base_impl.h"
-#include "image/image_info.h"
+#include "include/core/SkFlattenable.h"
+#include "src/core/SkReadBuffer.h"
+#include "src/core/SkWriteBuffer.h"
+#include "utils/data.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class PixmapImpl : public BaseImpl {
+class SkiaHelper {
 public:
-    PixmapImpl() {}
-    ~PixmapImpl() override {}
-    virtual std::shared_ptr<ColorSpace> GetColorSpace() const = 0;
-    virtual ColorType GetColorType() const = 0;
-    virtual AlphaType GetAlphaType() const = 0;
-    virtual size_t GetRowBytes() const = 0;
-    virtual const void* GetAddr() const = 0;
-    virtual int32_t GetWidth() const = 0;
-    virtual int32_t GetHeight() const = 0;
+    static std::shared_ptr<Data> FlattenableSerialize(const SkFlattenable* flattenable);
+
+    template <typename T>
+    static sk_sp<T> FlattenableDeserialize(std::shared_ptr<Data> data)
+    {
+        if (data == nullptr) {
+            LOGE("SkiaHelper::FlattenableDeserialize, data is nullptr!");
+            return nullptr;
+        }
+
+        SkReadBuffer reader(data->GetData(), data->GetSize());
+        return reader.readFlattenable<T>();
+    }
 };
 } // namespace Drawing
 } // namespace Rosen

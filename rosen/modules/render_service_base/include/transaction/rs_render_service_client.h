@@ -21,6 +21,7 @@
 #include <memory>
 #include <mutex>
 #include <refbase.h>
+#include <surface_type.h>
 #ifndef ROSEN_CROSS_PLATFORM
 #include <surface.h>
 #endif
@@ -193,9 +194,27 @@ public:
 
     int32_t SetScreenCorrection(ScreenId id, ScreenRotation screenRotation);
 
+    bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation);
+
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode);
 
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability);
+
+    int32_t GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat);
+
+    int32_t SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat);
+
+    int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats);
+
+    int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat);
+
+    int32_t SetScreenHDRFormat(ScreenId id, int32_t modeIdx);
+
+    int32_t GetScreenSupportedColorSpaces(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces);
+
+    int32_t GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace);
+
+    int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace);
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType);
 
