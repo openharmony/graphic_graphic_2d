@@ -3821,7 +3821,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                 auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false, threadIndex_);
                 params.targetColorGamut = newColorSpace_;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-                params.screenLightNits = GetScreenLightNits();
+                params.screenBrightnessNits = GetScreenBrightnessNits();
 #endif
                 renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
             }
@@ -4706,33 +4706,33 @@ bool RSUniRenderVisitor::CheckIfNeedResetRotate() {
 }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-float RSUniRenderVisitor::GetScreenLightNits()
+float RSUniRenderVisitor::GetScreenBrightnessNits()
 {
     constexpr float DEFAULT_SCREEN_LIGHT_NITS = 500.0;
     constexpr float DEFAULT_SCREEN_LIGHT_MAX_NITS = 1200.0;
     constexpr int32_t DEFAULT_SCREEN_LIGHT_MAX_LEVEL = 255;
 
-    float screenLightNits = DEFAULT_SCREEN_LIGHT_NITS;
+    float screenBrightnessNits = DEFAULT_SCREEN_LIGHT_NITS;
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (screenManager == nullptr) {
-        RS_LOGW("RSUniRenderVisitor::GetScreenLightNits screenManager is nullptr.");
-        return screenLightNits;
+        RS_LOGW("RSUniRenderVisitor::GetScreenBrightnessNits screenManager is nullptr.");
+        return screenBrightnessNits;
     }
 
     RSScreenType screenType;
     if (screenManager->GetScreenType(currentVisitDisplay_, screenType) != SUCCESS) {
-        RS_LOGW("RSUniRenderVisitor::GetScreenLightNits GetScreenType fail.");
-        return screenLightNits;
+        RS_LOGW("RSUniRenderVisitor::GetScreenBrightnessNits GetScreenType fail.");
+        return screenBrightnessNits;
     }
 
     if (screenType == VIRTUAL_TYPE_SCREEN) {
-        return screenLightNits;
+        return screenBrightnessNits;
     }
 
     int32_t backLightLevel = screenManager->GetScreenBacklight(currentVisitDisplay_);
 
     if (backLightLevel <= 0) {
-        return screenLightNits;
+        return screenBrightnessNits;
     }
 
     return DEFAULT_SCREEN_LIGHT_MAX_NITS * backLightLevel / DEFAULT_SCREEN_LIGHT_MAX_LEVEL;

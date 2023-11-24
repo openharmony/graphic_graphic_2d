@@ -505,7 +505,7 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
     using namespace HDI::Display::Graphic::Common::V1_0;
     constexpr float DEFAULT_TMO_NITS = 206.0;
     parameter.tmoNits = DEFAULT_TMO_NITS;
-    parameter.currentDisplayNits = params.screenLightNits;
+    parameter.currentDisplayNits = params.screenBrightnessNits;
 
     GSError ret = MetadataHelper::GetColorSpaceInfo(params.buffer, parameter.inputColorSpace.colorSpaceInfo);
     if (ret != GSERROR_OK) {

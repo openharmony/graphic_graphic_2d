@@ -41,10 +41,6 @@
 namespace OHOS {
 namespace Rosen {
 class RSTransactionData;
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-constexpr float DEFAULT_SCREEN_LIGHT_NITS = 500;
-#endif
-
 struct BufferDrawParam {
     sptr<OHOS::SurfaceBuffer> buffer;
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
@@ -84,7 +80,7 @@ struct BufferDrawParam {
     GraphicHDRMetaDataSet metaDataSet; // dynamic meta datas for HDR10+, HDR VIVID
     uint32_t threadIndex = UNI_MAIN_THREAD_INDEX; // use to decide eglimage unmap thread index
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    float screenLightNits = DEFAULT_SCREEN_LIGHT_NITS;
+    float screenBrightnessNits = 0.f;
 #endif
 };
 

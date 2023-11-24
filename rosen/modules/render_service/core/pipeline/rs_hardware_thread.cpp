@@ -349,16 +349,8 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #endif // RS_ENABLE_EGLIMAGE
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    using namespace HDI::Display::Graphic::Common::V1_0;
-    auto colorSpaceType = HdiOutput::ComputeTargetColorSpace(layers);
-    static const std::map<CM_ColorSpaceType, GraphicColorGamut> RS_GAMUT_TO_COLORSPACE_MAP {
-        {CM_SRGB_FULL, GRAPHIC_COLOR_GAMUT_SRGB},
-        {CM_P3_FULL, GRAPHIC_COLOR_GAMUT_DISPLAY_P3},
-    };
     GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
-    if (RS_GAMUT_TO_COLORSPACE_MAP.find(colorSpaceType) != RS_GAMUT_TO_COLORSPACE_MAP.end()) {
-        colorGamut = RS_GAMUT_TO_COLORSPACE_MAP.at(colorSpaceType);
-    }
+    colorGamut = ComputeTargetColorGamut(layers);
 #endif
 
     for (const auto& layer : layers) {
@@ -580,4 +572,31 @@ void RSHardwareThread::AddRefreshRateCount(uint32_t rate)
         iter->second++;
     }
 }
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+GraphicColorGamut RSHardwareThread::ComputeTargetColorGamut(const std::vector<LayerInfoPtr>& layers)
+{
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
+    for (auto& layer : layers) {
+        auto buffer = layer->GetBuffer();
+        if (buffer == nullptr) {
+            RS_LOGW("RSHardwareThread::ComputeTargetColorGamut The buffer of layer is nullptr");
+            continue;
+        }
+
+        CM_ColorSpaceType colorSpace;
+        if (MetadataHelper::GetColorSpaceType(buffer, colorSpace) != GSERROR_OK) {
+            RS_LOGW("RSHardwareThread::ComputeTargetColorGamut Get color space from surface buffer failed");
+            continue;
+        }
+
+        if (colorSpace != CM_DISPLAY_SRGB) {
+            colorGamut = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+        }
+    }
+
+    return colorGamut;
+}
+#endif
 }

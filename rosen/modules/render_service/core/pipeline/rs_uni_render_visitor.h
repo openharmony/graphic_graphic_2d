@@ -483,7 +483,7 @@ private:
 
     uint32_t currentRefreshRate_ = 0;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    float GetScreenLightNits();
+    float GetScreenBrightnessNits();
 #endif
 };
 } // namespace Rosen
