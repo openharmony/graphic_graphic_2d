@@ -21,6 +21,7 @@
 #include <surface.h>
 #include <sync_fence.h>
 #include "hdi_log.h"
+#include "hdi_display_type.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -166,6 +167,11 @@ public:
     void* GetLayerAdditionalInfo()
     {
         return additionalInfo_;
+    }
+
+    void SetLayerColor(GraphicLayerColor layerColor)
+    {
+        layerColor_ = layerColor;
     }
 
     void SetColorTransform(const std::vector<float> &matrix)
@@ -316,6 +322,11 @@ public:
         return colorSpace_;
     }
 
+    GraphicLayerColor GetLayerColor() const
+    {
+        return layerColor_;
+    }
+
     std::vector<GraphicHDRMetaData> &GetMetaData()
     {
         return metaData_;
@@ -362,6 +373,7 @@ public:
         blendType_ = layerInfo->GetBlendType();
         colorTransformMatrix_ = layerInfo->GetColorTransform();
         colorSpace_ = layerInfo->GetColorDataSpace();
+        layerColor_ = layerInfo->GetLayerColor();
         metaData_ = layerInfo->GetMetaData();
         metaDataSet_ = layerInfo->GetMetaDataSet();
         tunnelHandle_ = layerInfo->GetTunnelHandle();
@@ -450,6 +462,7 @@ private:
     GraphicCompositionType compositionType_;
     GraphicBlendType blendType_;
     std::vector<float> colorTransformMatrix_;
+    GraphicLayerColor layerColor_;
     GraphicColorDataSpace colorSpace_ = GraphicColorDataSpace::GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
     std::vector<GraphicHDRMetaData> metaData_;
     GraphicHDRMetaDataSet metaDataSet_;

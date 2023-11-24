@@ -130,6 +130,13 @@ typedef struct {
     std::vector<uint32_t> deletingList;
 } GraphicLayerBuffer;
 
+typedef struct {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t a;
+} GraphicLayerColor;
+
 /*
  * @brief Called when a hot plug event occurs.
  *
