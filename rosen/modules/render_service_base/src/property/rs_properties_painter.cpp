@@ -1866,7 +1866,7 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
         SkRect transBounds = rotateMat.mapRect(bounds);
 
         rotateMat.setTranslateX(bounds.x() - transBounds.x());
-        rotateMat.setTranslateX(bounds.y() - transBounds.y());
+        rotateMat.setTranslateY(bounds.y() - transBounds.y());
         if (!rotateMat.invert(&inverseMat)) {
             ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch get invert matrix failed.");
         }
