@@ -135,6 +135,7 @@ enum class RSSurfaceNodeType : uint8_t {
     STARTING_WINDOW_NODE,     // starting window, surfacenode created by wms
     LEASH_WINDOW_NODE,        // leashwindow
     SELF_DRAWING_WINDOW_NODE, // create by wms, such as pointer window and bootanimation
+    SURFACE_TEXTURE_NODE,      // create by video
     FOREGROUND_SURFACE,
 };
 
@@ -145,6 +146,20 @@ struct RSSurfaceRenderNodeConfig {
     RSSurfaceNodeType nodeType = RSSurfaceNodeType::DEFAULT;
     void* additionalData = nullptr;
 };
+
+// types for RSSurfaceExt
+enum class RSSurfaceExtType : uint8_t {
+    NONE,
+    SURFACE_TEXTURE,
+};
+
+struct RSSurfaceExtConfig {
+    RSSurfaceExtType type = RSSurfaceExtType::NONE;
+    void* additionalData = nullptr;
+};
+using RSSurfaceTextureConfig = RSSurfaceExtConfig;
+using RSSurfaceTextureAttachCallBack = std::function<void(int64_t textureId, bool attach)>;
+using RSSurfaceTextureUpdateCallBack = std::function<void(std::vector<float>&)>;
 
 struct RSDisplayNodeConfig {
     uint64_t screenId = 0;

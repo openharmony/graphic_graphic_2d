@@ -33,6 +33,7 @@
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_system_properties.h"
+#include "platform/common/rs_surface_ext.h"
 #include "property/rs_properties_painter.h"
 #include "screen_manager/screen_types.h"
 #include "transaction/rs_occlusion_data.h"
@@ -818,6 +819,11 @@ public:
     {
         hasSkipLayer_ = hasSkipLayer;
     }
+
+#ifdef USE_SURFACE_TEXTURE
+    std::shared_ptr<RSSurfaceTexture> GetSurfaceTexture() const { return surfaceTexture_; };
+    void SetSurfaceTexture(const std::shared_ptr<RSSurfaceTexture> &texture) { surfaceTexture_ = texture; }
+#endif
     
     void SetForeground(bool isForeground)
     {
@@ -1019,6 +1025,9 @@ private:
     uint32_t submittedSubThreadIndex_ = INT_MAX;
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
     std::atomic<bool> isNeedSubmitSubThread_ = true;
+#ifdef USE_SURFACE_TEXTURE
+    std::shared_ptr<RSSurfaceTexture> surfaceTexture_ {};
+#endif
     bool isForeground_ = false;
 
     friend class RSUniRenderVisitor;
