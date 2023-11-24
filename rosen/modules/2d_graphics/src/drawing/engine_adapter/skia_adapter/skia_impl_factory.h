@@ -76,6 +76,7 @@ public:
     static std::unique_ptr<PathEffectImpl> CreatePathEffect();
     static std::unique_ptr<ColorSpaceImpl> CreateColorSpace();
     static std::unique_ptr<MatrixImpl> CreateMatrix();
+    static std::unique_ptr<MatrixImpl> CreateMatrix(const Matrix& other);
     static std::unique_ptr<Matrix44Impl> CreateMatrix44();
     static std::unique_ptr<CameraImpl> CreateCamera();
     static std::unique_ptr<RegionImpl> CreateRegion();

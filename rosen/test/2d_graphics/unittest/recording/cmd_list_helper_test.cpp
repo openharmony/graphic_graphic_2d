@@ -178,7 +178,7 @@ HWTEST_F(CmdListHelperTest, AddChildToCmdList001, TestSize.Level1)
 
     auto imageData = std::make_shared<Data>();
     imageData->BuildUninitialized(10);
-    childCmdList->AddOp<ClearOpItem>(Color::COLOR_BLACK);
+    childCmdList->AddOp<ClearOpItem::ConstructorHandle>(Color::COLOR_BLACK);
     childCmdList->AddImageData(imageData->GetData(), imageData->GetSize());
     handle = CmdListHelper::AddChildToCmdList(cmdList, childCmdList);
     EXPECT_EQ(handle.size, childCmdList->GetData().second);

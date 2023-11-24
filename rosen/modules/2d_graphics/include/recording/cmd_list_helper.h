@@ -31,7 +31,7 @@ class PixelMap;
 }
 namespace Rosen {
 namespace Drawing {
-class DrawCmdList;
+class DrawOpItem;
 class CmdListHelper {
 public:
     CmdListHelper() = default;
@@ -221,8 +221,8 @@ public:
     static std::shared_ptr<ImageFilter> GetImageFilterFromCmdList(const CmdList& cmdList,
         const FlattenableHandle& imageFilterHandle);
 
-    static std::vector<std::pair<OpItem*, void*>> GetDrawOpItemsFromHandle(const CmdList& cmdList,
-        const CmdListHandle& handle);
+    static std::vector<std::shared_ptr<DrawOpItem>> GetDrawOpItemsFromHandle(
+        const CmdList& cmdList, const CmdListHandle& handle);
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -166,6 +166,11 @@ std::unique_ptr<MatrixImpl> SkiaImplFactory::CreateMatrix()
     return std::make_unique<SkiaMatrix>();
 }
 
+std::unique_ptr<MatrixImpl> SkiaImplFactory::CreateMatrix(const Matrix& other)
+{
+    return std::make_unique<SkiaMatrix>(other);
+}
+
 std::unique_ptr<Matrix44Impl> SkiaImplFactory::CreateMatrix44()
 {
     return std::make_unique<SkiaMatrix44>();

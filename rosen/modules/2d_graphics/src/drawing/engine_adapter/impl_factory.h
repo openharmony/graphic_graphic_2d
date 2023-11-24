@@ -47,6 +47,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+class Matrix;
 class RuntimeEffect;
 class ImplFactory {
 public:
@@ -75,6 +76,7 @@ public:
     static std::unique_ptr<PathEffectImpl> CreatePathEffectImpl();
     static std::unique_ptr<ColorSpaceImpl> CreateColorSpaceImpl();
     static std::unique_ptr<MatrixImpl> CreateMatrixImpl();
+    static std::unique_ptr<MatrixImpl> CreateMatrixImpl(const Matrix& other);
     static std::unique_ptr<Matrix44Impl> CreateMatrix44Impl();
     static std::unique_ptr<CameraImpl> CreateCameraImpl();
     static std::unique_ptr<RegionImpl> CreateRegionImpl();
