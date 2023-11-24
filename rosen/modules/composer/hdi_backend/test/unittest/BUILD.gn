@@ -42,7 +42,6 @@ ohos_unittest("hdibackend_unit_test") {
 
   external_deps = [
     "c_utils:utils",
-    "drivers_interface_display:display_commontype_idl_headers",
     "hilog:libhilog",
     "ipc:ipc_core",
   ]
@@ -117,7 +116,6 @@ ohos_unittest("hdioutput_unit_test") {
 
   external_deps = [
     "c_utils:utils",
-    "drivers_interface_display:display_commontype_idl_headers",
     "hilog:libhilog",
     "ipc:ipc_core",
   ]

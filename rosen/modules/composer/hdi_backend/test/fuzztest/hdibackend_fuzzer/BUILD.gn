@@ -43,7 +43,6 @@ ohos_fuzztest("HdiBackendFuzzTest") {
 
   external_deps = [
     "c_utils:utils",
-    "drivers_interface_display:display_commontype_idl_headers",
     "hilog:libhilog",
   ]
 }
