@@ -26,6 +26,9 @@
 namespace OHOS {
 namespace Rosen {
 class RenderContext;
+class RSSurfaceExt;
+using RSSurfaceExtPtr = std::shared_ptr<RSSurfaceExt>;
+
 class RSSurface {
 public:
     RSSurface() = default;
@@ -53,6 +56,10 @@ public:
     // clear buffer for both producer and consumer and will receive OnGoBackground callback
     virtual void ClearAllBuffer() = 0;
     virtual void ResetBufferAge() = 0;
+#ifdef USE_SURFACE_TEXTURE
+    virtual RSSurfaceExtPtr CreateSurfaceExt(const RSSurfaceExtConfig& config) = 0;
+    virtual RSSurfaceExtPtr GetSurfaceExt(const RSSurfaceExtConfig& config) = 0;
+#endif
 protected:
 private:
 };

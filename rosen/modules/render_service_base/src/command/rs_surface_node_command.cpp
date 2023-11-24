@@ -25,9 +25,10 @@
 namespace OHOS {
 namespace Rosen {
 
-void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id)
+void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id, RSSurfaceNodeType type)
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context.weak_from_this());
+    node->SetSurfaceNodeType(type);
     auto& nodeMap = context.GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);
 }
@@ -194,5 +195,16 @@ void SurfaceNodeCommandHelper::DetachToDisplay(RSContext& context, NodeId nodeId
             displayRenderNode->RemoveChild(surfaceRenderNode);
         });
 }
+
+#ifdef USE_SURFACE_TEXTURE
+void SurfaceNodeCommandHelper::CreateSurfaceExt(RSContext& context, NodeId id, uint64_t texturePointer)
+{
+    auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
+    if (node != nullptr) {
+        RSSurfaceTexture *texture = (RSSurfaceTexture *)texturePointer;
+        node->SetSurfaceTexture(texture->shared_from_this());
+    }
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

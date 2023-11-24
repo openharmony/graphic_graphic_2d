@@ -116,6 +116,9 @@ private:
 
     static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
     static bool IsValidRootRenderNode(RSRootRenderNode& node);
+private:
+    void ProcessTextureSurfaceRenderNode(RSSurfaceRenderNode& node);
+    void ProcessOtherSurfaceRenderNode(RSSurfaceRenderNode& node);
 };
 } // namespace Rosen
 } // namespace OHOS
