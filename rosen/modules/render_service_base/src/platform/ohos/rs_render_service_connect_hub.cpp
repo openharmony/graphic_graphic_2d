@@ -132,11 +132,13 @@ bool RSRenderServiceConnectHub::Connect()
         }
     }
 
+    mutex_.lock();
     if (token_ == nullptr) {
         token_ = new IRemoteStub<RSIConnectionToken>();
     }
-
     sptr<RSIRenderServiceConnection> conn = renderService->CreateConnection(token_);
+    mutex_.unlock();
+
     if (conn == nullptr) {
         ROSEN_LOGE("RSRenderServiceConnectHub::Connect, failed to CreateConnection to render service.");
         return false;
