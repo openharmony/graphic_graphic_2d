@@ -130,6 +130,8 @@ public:
     bool CheckNodeHasToBePreparedByPid(NodeId nodeId, bool isClassifyByRoot);
     // check if active app has static drawing cache
     bool IsDrawingGroupChanged(RSRenderNode& cacheRootNode) const;
+    // check if active instance only move or scale it's main window surface without rearrangement
+    bool CheckIfInstanceOnlySurfaceBasicGeoTransform(NodeId instanceNodeId) const;
 
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app);
     void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);

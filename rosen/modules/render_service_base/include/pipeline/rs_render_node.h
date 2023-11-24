@@ -104,6 +104,10 @@ public:
     // if there is any new dirty op, check it
     bool IsContentDirty() const;
     void SetContentDirty();
+    bool IsOnlyBasicGeoTransfrom() const
+    {
+        return isOnlyBasicGeoTransform_;
+    }
 
     WeakPtr GetParent() const;
 
@@ -514,6 +518,7 @@ private:
     const std::weak_ptr<RSContext> context_;
     NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
     bool isContentDirty_ = false;
+    bool isOnlyBasicGeoTransform_ = true;
     friend class RSRenderPropertyBase;
     friend class RSRenderTransition;
     std::atomic<bool> isTunnelHandleChange_ = false;

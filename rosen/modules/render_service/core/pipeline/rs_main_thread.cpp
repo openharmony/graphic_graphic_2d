@@ -2564,6 +2564,28 @@ bool RSMainThread::IsDrawingGroupChanged(RSRenderNode& cacheRootNode) const
     return false;
 }
 
+bool RSMainThread::CheckIfInstanceOnlySurfaceBasicGeoTransform(NodeId instanceNodeId) const
+{
+    if (instanceNodeId == INVALID_NODEID) {
+        RS_LOGE("CheckIfInstanceOnlySurfaceBasicGeoTransform instanceNodeId invalid.");
+        return false;
+    }
+    auto iter = context_->activeNodesInRoot_.find(instanceNodeId);
+    if (iter != context_->activeNodesInRoot_.end()) {
+        const std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>>& activeNodeIds = iter->second;
+        for (auto [id, subNode] : activeNodeIds) {
+            if (subNode == nullptr) {
+                continue;
+            }
+            // filter active nodes except instance surface itself
+            if (id != instanceNodeId || !subNode->IsOnlyBasicGeoTransfrom()) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 int32_t RSMainThread::GetNodePreferred(const std::vector<HgmModifierProfile>& hgmModifierProfileList) const
 {
     if (hgmModifierProfileList.size() == 0) {

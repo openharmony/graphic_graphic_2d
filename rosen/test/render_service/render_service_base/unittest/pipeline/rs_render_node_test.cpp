@@ -332,5 +332,31 @@ HWTEST_F(RSRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
     node.SetBootAnimation(false);
     ASSERT_FALSE(node.GetBootAnimation());
 }
+
+/**
+ * @tc.name: OnlyBasicGeoTransfromTest01
+ * @tc.desc: Check node only contains BasicGeoTransfrom by default
+ * @tc.type: FUNC
+ * @tc.require: issueI8IXTX
+ */
+HWTEST_F(RSRenderNodeTest, OnlyBasicGeoTransfromTest01, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    ASSERT_EQ(node.IsOnlyBasicGeoTransfrom(), true);
+}
+
+/**
+ * @tc.name: OnlyBasicGeoTransfromTest02
+ * @tc.desc: Check node contains more than BasicGeoTransfrom if content dirty
+ * @tc.type: FUNC
+ * @tc.require: issueI8IXTX
+ */
+HWTEST_F(RSRenderNodeTest, OnlyBasicGeoTransfromTest02, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    node.SetContentDirty();
+    ASSERT_EQ(node.IsContentDirty(), true);
+    ASSERT_EQ(node.IsOnlyBasicGeoTransfrom(), false);
+}
 } // namespace Rosen
 } // namespace OHOS

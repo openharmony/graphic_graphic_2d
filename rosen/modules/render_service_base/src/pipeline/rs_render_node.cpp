@@ -56,6 +56,10 @@ const std::unordered_set<RSModifierType> ANIMATION_MODIFIER_TYPE  = {
     RSModifierType::ROTATION_Y,
     RSModifierType::ROTATION
 };
+const std::set<RSModifierType> BASIC_GEOTRANSFROM_ANIMATION_TYPE = {
+    RSModifierType::TRANSLATE,
+    RSModifierType::SCALE,
+};
 }
 
 RSRenderNode::RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context) : id_(id), context_(context)
@@ -425,6 +429,7 @@ void RSRenderNode::DumpNodeType(std::string& out) const
 void RSRenderNode::SetContentDirty()
 {
     isContentDirty_ = true;
+    isOnlyBasicGeoTransform_ = false;
     SetDirty();
 }
 
@@ -1017,6 +1022,7 @@ bool RSRenderNode::ApplyModifiers()
         return false;
     }
     hgmModifierProfileList_.clear();
+    isOnlyBasicGeoTransform_ = !IsContentDirty();
     const auto prevPositionZ = renderProperties_.GetPositionZ();
 
     // Reset and re-apply all modifiers
@@ -1038,6 +1044,9 @@ bool RSRenderNode::ApplyModifiers()
         modifier->Apply(context);
         if (ANIMATION_MODIFIER_TYPE.count(modifier->GetType())) {
             animationModifiers.push_back(modifier);
+        }
+        if (!BASIC_GEOTRANSFROM_ANIMATION_TYPE.count(modifier->GetType())) {
+            isOnlyBasicGeoTransform_ = false;
         }
     }
 
