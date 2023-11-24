@@ -70,12 +70,12 @@ private:
 
 class SetPathOpItem : public RegionOpItem {
 public:
-    SetPathOpItem(const CmdListHandle& path, const CmdListHandle& region);
+    SetPathOpItem(const ImageHandle& path, const CmdListHandle& region);
     ~SetPathOpItem() = default;
 
     void Playback(Region& region, const CmdList& CmdList) const;
 private:
-    CmdListHandle path_;
+    ImageHandle path_;
     CmdListHandle region_;
 };
 

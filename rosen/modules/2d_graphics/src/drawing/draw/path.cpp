@@ -240,6 +240,16 @@ bool Path::GetPositionAndTangent(scalar distance, Point& position, Point& tangen
     return impl_->GetPositionAndTangent(distance, position, tangent, forceClosed);
 }
 
+std::shared_ptr<Data> Path::Serialize() const
+{
+    return impl_->Serialize();
+}
+
+bool Path::Deserialize(std::shared_ptr<Data> data)
+{
+    return impl_->Deserialize(data);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

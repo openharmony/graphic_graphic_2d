@@ -69,6 +69,7 @@ public:
     const Rect& rect_;
 
     using PlaybackFunc = void(*)(CanvasPlayer& palyer, void* opItem);
+    static PlaybackFunc GetFuncFromType(uint32_t type);
 private:
     static std::unordered_map<uint32_t, PlaybackFunc> opPlaybackFuncLUT_;
 };
@@ -111,6 +112,7 @@ public:
 
     enum Type : uint32_t {
         OPITEM_HEAD,
+        CMD_LIST_OPITEM,
         POINT_OPITEM,
         POINTS_OPITEM,
         LINE_OPITEM,
@@ -166,6 +168,23 @@ public:
         VERTICES_OPITEM,
         NO_IPC_IMAGE_DRAW_OPITEM,
     };
+};
+
+class DrawCmdListOpItem : public DrawOpItem {
+public:
+    DrawCmdListOpItem();
+    explicit DrawCmdListOpItem(const CmdListHandle& handle);
+    ~DrawCmdListOpItem() override = default;
+
+    static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
+    void Unmarshalling(const CmdList& cmdList, Canvas* canvas = nullptr);
+
+    static void Playback(CanvasPlayer& player, void* opItem);
+    void Playback(Canvas& canvas, const CmdList& cmdList, const Rect& rect);
+
+private:
+    CmdListHandle handle_;
+    std::function<void(Canvas&)> playbackTask_ = nullptr;
 };
 
 class DrawPointOpItem : public DrawOpItem {
@@ -332,7 +351,7 @@ private:
 class DrawPathOpItem : public DrawOpItem {
 public:
     DrawPathOpItem();
-    explicit DrawPathOpItem(const CmdListHandle& path);
+    explicit DrawPathOpItem(const ImageHandle& path);
     ~DrawPathOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
@@ -342,7 +361,7 @@ public:
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
-    CmdListHandle path_;
+    ImageHandle path_;
     std::function<void(Canvas&)> playbackTask_ = nullptr;
 };
 
@@ -366,7 +385,7 @@ private:
 class DrawShadowOpItem : public DrawOpItem {
 public:
     DrawShadowOpItem();
-    DrawShadowOpItem(const CmdListHandle& path, const Point3& planeParams, const Point3& devLightPos,
+    DrawShadowOpItem(const ImageHandle& path, const Point3& planeParams, const Point3& devLightPos,
         scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag);
     ~DrawShadowOpItem() override = default;
 
@@ -377,7 +396,7 @@ public:
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
-    CmdListHandle path_;
+    ImageHandle path_;
     Point3 planeParams_;
     Point3 devLightPos_;
     scalar lightRadius_;
@@ -702,7 +721,7 @@ private:
 class ClipPathOpItem : public DrawOpItem {
 public:
     ClipPathOpItem();
-    ClipPathOpItem(const CmdListHandle& path, ClipOp clipOp, bool doAntiAlias);
+    ClipPathOpItem(const ImageHandle& path, ClipOp clipOp, bool doAntiAlias);
     ~ClipPathOpItem() override = default;
 
     static std::shared_ptr<OpItem> Unmarshalling(const CmdList& cmdList, void* opItem);
@@ -712,7 +731,7 @@ public:
     void Playback(Canvas& canvas, const CmdList& cmdList);
 
 private:
-    CmdListHandle path_;
+    ImageHandle path_;
     ClipOp clipOp_;
     bool doAntiAlias_;
     std::function<void(Canvas&)> playbackTask_ = nullptr;
