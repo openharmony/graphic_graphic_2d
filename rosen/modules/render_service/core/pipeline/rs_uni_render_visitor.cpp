@@ -480,7 +480,8 @@ void RSUniRenderVisitor::RestoreCurSurface(std::shared_ptr<RSDirtyRegionManager>
     surfaceNode_.pop();
 }
 
-void RSUniRenderVisitor::PrepareSubSurfaceNodes(RSSurfaceRenderNode& node) {
+void RSUniRenderVisitor::PrepareSubSurfaceNodes(RSSurfaceRenderNode& node)
+{
     if (!isSubSurfaceEnabled_) {
         return;
     }
@@ -496,7 +497,8 @@ void RSUniRenderVisitor::PrepareSubSurfaceNodes(RSSurfaceRenderNode& node) {
     }
 }
 
-void RSUniRenderVisitor::ProcessSubSurfaceNodes(RSSurfaceRenderNode& node) {
+void RSUniRenderVisitor::ProcessSubSurfaceNodes(RSSurfaceRenderNode& node)
+{
     if (!isSubSurfaceEnabled_) {
         return;
     }

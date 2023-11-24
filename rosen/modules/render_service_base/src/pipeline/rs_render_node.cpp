@@ -346,7 +346,7 @@ bool RSRenderNode::IsFirstLevelSurfaceNode()
         return false;
     }
     auto parentNode = parent_.lock();
-    while (parentNode && !parentNode->IsInstanceOf<RSDisplayRenderNode>()){
+    while (parentNode && !parentNode->IsInstanceOf<RSDisplayRenderNode>()) {
         auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(parentNode);
         if (node != nullptr && (node->IsMainWindowType() || node->IsLeashWindow())) {
             return false;
@@ -397,11 +397,14 @@ void RSRenderNode::AddSubSurfaceNode(SharedPtr child, SharedPtr parent)
         if (parentNode->subSurfaceNodes_.find(id) == parentNode->subSurfaceNodes_.end()) {
             parentNode->subSurfaceNodes_.insert({id, subSurfaceNodes});
         } else {
-            parentNode->subSurfaceNodes_[id].insert(parentNode->subSurfaceNodes_[id].end(), subSurfaceNodes.begin(), subSurfaceNodes.end());
+            parentNode->subSurfaceNodes_[id].insert(parentNode->subSurfaceNodes_[id].end(),
+                subSurfaceNodes.begin(), subSurfaceNodes.end());
         }
-        std::sort(parentNode->subSurfaceNodes_[id].begin(), parentNode->subSurfaceNodes_[id].end(), [](const auto &first, const auto &second) {
+        std::sort(parentNode->subSurfaceNodes_[id].begin(), parentNode->subSurfaceNodes_[id].end(),
+            [](const auto &first, const auto &second) {
             return
-                first.lock()->GetRenderProperties().GetPositionZ() < second.lock()->GetRenderProperties().GetPositionZ();
+                first.lock()->GetRenderProperties().GetPositionZ() <
+                second.lock()->GetRenderProperties().GetPositionZ();
         });
         if (parentNode->IsInstanceOf<RSSurfaceRenderNode>()) {
             break;
@@ -425,7 +428,9 @@ void RSRenderNode::RemoveSubSurfaceNode(SharedPtr child, SharedPtr parent)
         for (auto iter : subSurfaceNodes) {
             parentNode->subSurfaceNodes_[id].erase(
                 remove_if(parentNode->subSurfaceNodes_[id].begin(), parentNode->subSurfaceNodes_[id].end(),
-                    [iter](WeakPtr it) { return iter.lock() && it.lock() && iter.lock()->GetId() == it.lock()->GetId(); }),
+                    [iter](WeakPtr it) {
+                        return iter.lock() && it.lock() && iter.lock()->GetId() == it.lock()->GetId();
+                    }),
                 parentNode->subSurfaceNodes_[id].end()
             );
         }

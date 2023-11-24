@@ -46,11 +46,9 @@ bool InitSurface(std::shared_ptr<RSSurfaceNode>& surfaceNode, std::string surfac
     RSSurfaceNodeType surfaceNodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
     std::cout << "surface::Create" <<std::endl;
     surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, surfaceNodeType);
-
     if (!surfaceNode) {
         return false;
     }
-
     std::cout << "SetFrameGravity" <<std::endl;
     surfaceNode->SetFrameGravity(Gravity::RESIZE_ASPECT_FILL);
     float position_z;
@@ -109,7 +107,7 @@ int main()
 
     // Resize
     std::cout << "rs pointer window demo stage 4 Resize" << std::endl;
-    Resize(parentSurfaceNode, PARENT_WIDTH / 2, PARENT_HEIGHT / 2);
+    Resize(parentSurfaceNode, PARENT_WIDTH / 2, PARENT_HEIGHT / 2);  // 2 resize 1/2
     RSTransaction::FlushImplicitTransaction();
     sleep(SLEEP_TIME);
 
