@@ -266,37 +266,67 @@ void RSUniRenderVisitor::UpdateStaticCacheSubTree(const std::shared_ptr<RSRender
         if (child->GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
             child->SetDrawingCacheChanged(false);
         }
-        bool isUpdated = false;
         // [planning] pay attention to outofparent case
-        // since subtree is 'clean', effect node does not need fully preparation
         if (auto surfaceNode = child->ReinterpretCastTo<RSSurfaceRenderNode>()) {
+            // fully prepare hwcLayer and its subnodes
             if (surfaceNode->IsHardwareEnabledType()) {
                 PrepareSurfaceRenderNode(*surfaceNode);
-                isUpdated = true;
+                return;
             }
-            if (surfaceNode->GetSecurityLayer() && curSurfaceNode_ &&
-                curSurfaceNode_->GetId() == surfaceNode->GetInstanceRootNodeId()) {
-                curSurfaceNode_->SetHasSecurityLayer(true);
-                displayHasSecSurface_[currentVisitDisplay_] = true;
-            }
-            if (surfaceNode->GetSkipLayer() && curSurfaceNode_ &&
-                curSurfaceNode_->GetId() == surfaceNode->GetInstanceRootNodeId() &&
-                surfaceNode->GetName().find(CAPTURE_WINDOW_NAME) == std::string::npos) {
-                curSurfaceNode_->SetHasSkipLayer(true);
-                displayHasSkipSurface_[currentVisitDisplay_] = true;
+            UpdateSecurityAndSkipLayerRecord(*surfaceNode);
+        } else if (auto effectNode = child->ReinterpretCastTo<RSEffectRenderNode>()) {
+            // effectNode need to update effectRegion so effectNode and use-effect child should be updated
+            PrepareEffectNodeIfCacheReuse(cacheRootNode, effectNode);
+            return;
+        }
+        if (child->GetRenderProperties().NeedFilter() || child->GetRenderProperties().GetUseEffect()) {
+            child->Update(*curSurfaceDirtyManager_, cacheRootNode, dirtyFlag_, prepareClipRect_);
+        }
+        if (child->GetRenderProperties().GetUseEffect()) {
+            child->UpdateEffectRegion(effectRegion_);
+            if (effectRegion_) {
+                auto rect = effectRegion_->getBounds();
+                RS_OPTIONAL_TRACE_NAME_FMT("UpdateStaticCacheSubTree node %llu UpdateEffectRegion(l,t,w,h)"
+                    " [%f,%f,%f,%f]", child->GetId(), rect.left(), rect.top(), rect.width(), rect.height());
             }
         }
         if (child->GetRenderProperties().NeedFilter()) {
-            if (!isUpdated) {
-                child->Update(*curSurfaceDirtyManager_, cacheRootNode, dirtyFlag_, prepareClipRect_);
-            }
             UpdateForegroundFilterCacheWithDirty(*child, *curSurfaceDirtyManager_);
             if (curSurfaceNode_ && curSurfaceNode_->GetId() == child->GetInstanceRootNodeId()) {
                 curSurfaceNode_->UpdateChildrenFilterRects(child->GetOldDirtyInSurface());
             }
         }
-        UpdateStaticCacheSubTree(cacheRootNode, child->GetSortedChildren());
+        UpdateStaticCacheSubTree(child, child->GetSortedChildren());
     }
+}
+
+void RSUniRenderVisitor::PrepareEffectNodeIfCacheReuse(const std::shared_ptr<RSRenderNode>& cacheRootNode,
+    std::shared_ptr<RSEffectRenderNode> effectNode)
+{
+    if (effectNode == nullptr || curSurfaceDirtyManager_ == nullptr) {
+        return;
+    }
+    auto effectRegion = effectRegion_;
+#ifndef USE_ROSEN_DRAWING
+    effectRegion_ = SkPath();
+#else
+    effectRegion_ = Drawing::Path();
+#endif
+    effectNode->Update(*curSurfaceDirtyManager_, cacheRootNode, dirtyFlag_, prepareClipRect_);
+    if (effectNode->GetRenderProperties().NeedFilter()) {
+        UpdateForegroundFilterCacheWithDirty(*effectNode, *curSurfaceDirtyManager_);
+        if (curSurfaceNode_ && curSurfaceNode_->GetId() == effectNode->GetInstanceRootNodeId()) {
+            curSurfaceNode_->UpdateChildrenFilterRects(effectNode->GetOldDirtyInSurface());
+        }
+    }
+    UpdateStaticCacheSubTree(effectNode, effectNode->GetSortedChildren());
+    effectNode->SetEffectRegion(effectRegion_);
+    if (effectRegion_) {
+        auto regionRect = effectRegion_->getBounds();
+        RS_OPTIONAL_TRACE_NAME_FMT("PrepareEffectNodeIfCacheReuse node %llu SetEffectRegion(l,t,w,h) [%f,%f,%f,%f]",
+            effectNode->GetId(), regionRect.left(), regionRect.top(), regionRect.width(), regionRect.height());
+    }
+    effectRegion_ = effectRegion;
 }
 
 void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
@@ -888,18 +918,26 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeAfterUpdate(RSSurfaceRen
             std::to_string(preparedCanvasNodeInCurrentSurface_));
         preparedCanvasNodeInCurrentSurface_ = 0;
     }
-    if (node.GetSecurityLayer() && curSurfaceNode_ && curSurfaceNode_->GetId() == node.GetInstanceRootNodeId()) {
-        curSurfaceNode_->SetHasSecurityLayer(true);
-        displayHasSecSurface_[currentVisitDisplay_] = true;
-    }
-    if (node.GetSkipLayer() && curSurfaceNode_ && curSurfaceNode_->GetId() == node.GetInstanceRootNodeId() &&
-        node.GetName().find(CAPTURE_WINDOW_NAME) == std::string::npos) {
-        curSurfaceNode_->SetHasSkipLayer(true);
-        displayHasSkipSurface_[currentVisitDisplay_] = true;
-    }
+    UpdateSecurityAndSkipLayerRecord(node);
     // accumulate all visited dirty rects including leash window's shadow dirty
     if ((node.IsMainWindowType() || node.IsLeashWindow()) && curSurfaceDirtyManager_->IsCurrentFrameDirty()) {
         accumulatedDirtyRegions_.emplace_back(curSurfaceDirtyManager_->GetCurrentFrameDirtyRegion());
+    }
+}
+
+void RSUniRenderVisitor::UpdateSecurityAndSkipLayerRecord(RSSurfaceRenderNode& node)
+{
+    if (curSurfaceNode_ == nullptr) {
+        return;
+    }
+    if (node.GetSecurityLayer() && curSurfaceNode_->GetId() == node.GetInstanceRootNodeId()) {
+        curSurfaceNode_->SetHasSecurityLayer(true);
+        displayHasSecSurface_[currentVisitDisplay_] = true;
+    }
+    if (node.GetSkipLayer() && curSurfaceNode_->GetId() == node.GetInstanceRootNodeId() &&
+        node.GetName().find(CAPTURE_WINDOW_NAME) == std::string::npos) {
+        curSurfaceNode_->SetHasSkipLayer(true);
+        displayHasSkipSurface_[currentVisitDisplay_] = true;
     }
 }
 
