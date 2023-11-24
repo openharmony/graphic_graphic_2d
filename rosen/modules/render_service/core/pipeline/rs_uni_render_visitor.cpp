@@ -3448,7 +3448,7 @@ void RSUniRenderVisitor::DrawChildRenderNode(RSRenderNode& node)
     node.ProcessTransitionAfterChildren(*canvas_);
 }
 
-bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeNeedProcess(RSSurfaceRenderNode& node)
+bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeNeedProcess(RSSurfaceRenderNode& node, bool& keepFilterCache)
 {
     if (isSubThread_) {
         return true;
@@ -3466,6 +3466,9 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeNeedProcess(RSSurfaceRenderNode
     }
     if (!node.GetOcclusionVisible() && !doAnimate_ && isOcclusionEnabled_ && !isSecurityDisplay_) {
         MarkSubHardwareEnableNodeState(node);
+        if (!node.GetVisibleRegionForCallBack().IsEmpty()) {
+            keepFilterCache = true;
+        }
         RS_PROCESS_TRACE(isPhone_, false, node.GetName() + " Occlusion Skip");
         return false;
     }
@@ -3551,8 +3554,11 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #ifdef RS_ENABLE_VK
    node.SetGrContext(renderEngine_->GetSkContext().get());
 #endif
-    if (!CheckIfSurfaceRenderNodeNeedProcess(node)) {
-        node.UpdateFilterCacheStatusWithVisible(false);
+    bool keepFilterCache = false;
+    if (!CheckIfSurfaceRenderNodeNeedProcess(node, keepFilterCache)) {
+        if (!keepFilterCache) {
+            node.UpdateFilterCacheStatusWithVisible(false);
+        }
         return;
     } else {
         node.UpdateFilterCacheStatusWithVisible(true);

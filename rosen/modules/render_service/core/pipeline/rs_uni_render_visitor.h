@@ -274,7 +274,8 @@ private:
 
     bool IsHardwareComposerEnabled();
 
-    bool CheckIfSurfaceRenderNodeNeedProcess(RSSurfaceRenderNode& node);
+    // choose to keep filter cache if node is filter occluded
+    bool CheckIfSurfaceRenderNodeNeedProcess(RSSurfaceRenderNode& node, bool& keepFilterCache);
 
     void ClearTransparentBeforeSaveLayer();
     // mark surfaceNode's child surfaceView nodes hardware forced disabled
