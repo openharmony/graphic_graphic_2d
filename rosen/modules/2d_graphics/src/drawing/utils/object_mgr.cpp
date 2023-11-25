@@ -27,7 +27,7 @@ std::shared_ptr<ObjectMgr> ObjectMgr::GetInstance() noexcept(true)
             objectMgr.reset(new ObjectMgr());
         }
     }
-    return tfp;
+    return objectMgr;
 }
 
 void ObjectMgr::AddObject(void* obj)
