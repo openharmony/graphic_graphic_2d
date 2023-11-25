@@ -42,6 +42,9 @@
 #ifdef RS_ENABLE_EGLIMAGE
 #include "rs_egl_image_manager.h"
 #endif // RS_ENABLE_EGLIMAGE
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "colorspace_converter_display.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -234,6 +237,9 @@ public:
         return skContext_;
     }
 #endif
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    void ColorSpaceConvertor(sk_sp<SkShader> &inputShader, BufferDrawParam& params);
+#endif
 protected:
     void RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw = false);
     void RegisterDeleteBufferListener(RSSurfaceHandler& handler);
@@ -269,6 +275,13 @@ private:
     std::shared_ptr<RSVkImageManager> vkImageManager_ = nullptr;
 #endif
     using SurfaceId = uint64_t;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    bool SetColorSpaceConverterDisplayParameter(
+        const BufferDrawParam& params, Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter);
+    bool ConvertColorGamutToSpaceInfo(const GraphicColorGamut& colorGamut,
+        HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo);
+    std::shared_ptr<Media::VideoProcessingEngine::ColorSpaceConverterDisplay> colorSpaceConverterDisplay_ = nullptr;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

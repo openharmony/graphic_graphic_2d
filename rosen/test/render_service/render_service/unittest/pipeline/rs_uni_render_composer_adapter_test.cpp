@@ -15,7 +15,10 @@
 
 #include "gtest/gtest.h"
 #include "pipeline/rs_uni_render_composer_adapter.h"
+#include "pipeline/rs_uni_render_listener.h"
+#include "surface_buffer_impl.h"
 #include "rs_test_util.h"
+#include "metadata_helper.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1171,5 +1174,61 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleDown006, TestSize.Level2)
     surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_90);
     composerAdapter_->LayerScaleDown(layer, *surfaceNode);
     ASSERT_FALSE(layer->GetDirtyRegions()[0].h == DEFAULT_CANVAS_WIDTH);
+}
+
+/**
+ * @tc.name: SetBufferColorSpace001
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.SetBufferColorSpace
+ * @tc.type: FUNC
+ * @tc.require: issuesI8C4I9
+*/
+HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace001, TestSize.Level2)
+{
+    SetUp();
+
+    using namespace HDI::Display::Graphic::Common::V1_0;
+
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNode::SharedPtr nodePtr = std::make_shared<RSDisplayRenderNode>(1, config);
+
+    sptr<IBufferConsumerListener> listener = new RSUniRenderListener(nodePtr);
+    nodePtr->CreateSurface(listener);
+
+    auto rsSurface = nodePtr->GetRSSurface();
+    rsSurface->SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3,
+    };
+    GSError ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    nodePtr->SetBuffer(buffer, SyncFence::INVALID_FENCE, Rect(), 0);
+
+    composerAdapter_->SetBufferColorSpace(*nodePtr);
+
+    CM_ColorSpaceType colorSpaceType;
+    ret = MetadataHelper::GetColorSpaceType(buffer, colorSpaceType);
+    ASSERT_TRUE(ret == GSERROR_OK || GSErrorStr(ret) == "<500 api call failed>with low error <Not supported>");
+    if (ret == GSERROR_OK) {
+        ASSERT_EQ(colorSpaceType, CM_P3_FULL);
+    }
+
+    CM_ColorSpaceInfo colorSpaceInfo;
+    ret = MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo);
+    ASSERT_TRUE(ret == GSERROR_OK || GSErrorStr(ret) == "<500 api call failed>with low error <Not supported>");
+    if (ret == GSERROR_OK) {
+        ASSERT_EQ(colorSpaceInfo.primaries, COLORPRIMARIES_P3_D65);
+        ASSERT_EQ(colorSpaceInfo.transfunc, TRANSFUNC_SRGB);
+        ASSERT_EQ(colorSpaceInfo.matrix, MATRIX_P3);
+        ASSERT_EQ(colorSpaceInfo.range, RANGE_FULL);
+    }
 }
 } // namespace

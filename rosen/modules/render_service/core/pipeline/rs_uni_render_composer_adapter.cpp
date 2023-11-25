@@ -23,6 +23,7 @@
 #include "rs_divided_render_util.h"
 #include "rs_trace.h"
 #include "string_utils.h"
+#include "metadata_helper.h"
 
 #include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
 #if defined(RS_ENABLE_DRIVEN_RENDER)
@@ -97,6 +98,7 @@ void RSUniRenderComposerAdapter::SetPreBufferInfo(RSSurfaceHandler& surfaceHandl
 // private func, for RSDisplayRenderNode
 ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& node) const
 {
+    SetBufferColorSpace(node);
     const auto& buffer = node.GetBuffer(); // we guarantee the buffer is valid.
     ComposeInfo info {};
     info.srcRect = GraphicIRect {0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight()};
@@ -200,6 +202,47 @@ void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
     layer->SetMatrix(info.matrix);
     layer->SetGravity(info.gravity);
     SetMetaDataInfoToLayer(layer, info, surface);
+}
+
+void RSUniRenderComposerAdapter::SetBufferColorSpace(RSDisplayRenderNode& node) const
+{
+    sptr<SurfaceBuffer> buffer = node.GetBuffer();
+    if (buffer == nullptr) {
+        RS_LOGE("RSUniRenderComposerAdapter::SetBufferColorSpace SurfaceBuffer is null");
+        return;
+    }
+
+    auto rsSurface = node.GetRSSurface();
+    if (rsSurface == nullptr) {
+        RS_LOGE("RSUniRenderComposerAdapter::SetBufferColorSpace RSSurface is null");
+        return;
+    }
+
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    static const std::map<GraphicColorGamut, CM_ColorSpaceType> RS_TO_COMMON_COLOR_SPACE_TYPE_MAP {
+        {GRAPHIC_COLOR_GAMUT_STANDARD_BT601, CM_BT601_EBU_FULL},
+        {GRAPHIC_COLOR_GAMUT_STANDARD_BT709, CM_BT709_FULL},
+        {GRAPHIC_COLOR_GAMUT_SRGB, CM_SRGB_FULL},
+        {GRAPHIC_COLOR_GAMUT_ADOBE_RGB, CM_ADOBERGB_FULL},
+        {GRAPHIC_COLOR_GAMUT_DISPLAY_P3, CM_P3_FULL},
+        {GRAPHIC_COLOR_GAMUT_BT2020, CM_DISPLAY_BT2020_SRGB},
+        {GRAPHIC_COLOR_GAMUT_BT2100_PQ, CM_BT2020_PQ_FULL},
+        {GRAPHIC_COLOR_GAMUT_BT2100_HLG, CM_BT2020_HLG_FULL},
+        {GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020, CM_DISPLAY_BT2020_SRGB},
+    };
+
+    GraphicColorGamut rsColorSpace = rsSurface->GetColorSpace();
+    CM_ColorSpaceType colorSpace;
+    if (RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.find(rsColorSpace) != RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.end()) {
+        colorSpace = RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.at(rsColorSpace);
+    } else {
+        RS_LOGW("RSUniRenderComposerAdapter::SetBufferColorSpace unknown color space");
+        colorSpace = CM_COLORSPACE_NONE;
+    }
+
+    if (MetadataHelper::SetColorSpaceType(buffer, colorSpace) != GSERROR_OK) {
+        RS_LOGE("RSUniRenderComposerAdapter::SetBufferColorSpace set color space fail");
+    }
 }
 
 void RSUniRenderComposerAdapter::SetMetaDataInfoToLayer(const LayerInfoPtr& layer, const ComposeInfo& info,

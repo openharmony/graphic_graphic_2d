@@ -38,6 +38,7 @@
 #endif
 #endif
 #include "render/rs_skia_filter.h"
+#include "metadata_helper.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -101,6 +102,9 @@ void RSBaseRenderEngine::Init()
     skContext_ = RsVulkanContext::GetSingleton().CreateSkContext();
     vkImageManager_ = std::make_shared<RSVkImageManager>();
 #endif
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    colorSpaceConverterDisplay_ = Media::VideoProcessingEngine::ColorSpaceConverterDisplay::Create();
+#endif
 }
 
 bool RSBaseRenderEngine::NeedForceCPU(const std::vector<LayerInfoPtr>& layers)
@@ -124,12 +128,14 @@ bool RSBaseRenderEngine::NeedForceCPU(const std::vector<LayerInfoPtr>& layers)
         }
 #endif
 
+#ifndef USE_VIDEO_PROCESSING_ENGINE
         GraphicColorGamut srcGamut = static_cast<GraphicColorGamut>(buffer->GetSurfaceBufferColorGamut());
         GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
         if (srcGamut != dstGamut) {
             forceCPU = true;
             break;
         }
+#endif
     }
 
     return forceCPU;
@@ -170,10 +176,21 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
         return nullptr;
     }
 #ifndef USE_ROSEN_DRAWING
-    SkColorType colorType = (buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
-        kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
-    GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId,
-        static_cast<GrGLenum>((buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ? GR_GL_BGRA8 : GR_GL_RGBA8) };
+    SkColorType colorType = kRGBA_8888_SkColorType;
+    auto pixelFmt = buffer->GetFormat();
+    if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
+        colorType = kBGRA_8888_SkColorType;
+    } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
+        colorType = kRGBA_1010102_SkColorType;
+    }
+    auto glType = GR_GL_RGBA8;
+    if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
+        glType = GR_GL_BGRA8;
+    } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
+        glType = GR_GL_RGB10_A2;
+    }
+
+    GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId, static_cast<GrGLenum>(glType) };
     GrBackendTexture backendTexture(buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(),
         GrMipMapped::kNo, grExternalTextureInfo);
 #ifndef ROSEN_EMULATOR
@@ -450,6 +467,112 @@ void RSBaseRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam
     RS_OPTIONAL_TRACE_END();
 }
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+bool RSBaseRenderEngine::ConvertColorGamutToSpaceInfo(const GraphicColorGamut& colorGamut,
+    HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo)
+{
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    static const std::map<GraphicColorGamut, CM_ColorSpaceType> RS_TO_COMMON_COLOR_SPACE_TYPE_MAP {
+        {GRAPHIC_COLOR_GAMUT_STANDARD_BT601, CM_BT601_EBU_FULL},
+        {GRAPHIC_COLOR_GAMUT_STANDARD_BT709, CM_BT709_FULL},
+        {GRAPHIC_COLOR_GAMUT_SRGB, CM_SRGB_FULL},
+        {GRAPHIC_COLOR_GAMUT_ADOBE_RGB, CM_ADOBERGB_FULL},
+        {GRAPHIC_COLOR_GAMUT_DISPLAY_P3, CM_P3_FULL},
+        {GRAPHIC_COLOR_GAMUT_BT2020, CM_DISPLAY_BT2020_SRGB},
+        {GRAPHIC_COLOR_GAMUT_BT2100_PQ, CM_BT2020_PQ_FULL},
+        {GRAPHIC_COLOR_GAMUT_BT2100_HLG, CM_BT2020_HLG_FULL},
+        {GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020, CM_DISPLAY_BT2020_SRGB},
+    };
+
+    CM_ColorSpaceType colorSpaceType = CM_COLORSPACE_NONE;
+    if (RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.find(colorGamut) != RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.end()) {
+        colorSpaceType = RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.at(colorGamut);
+    }
+
+    GSError ret = MetadataHelper::ConvertColorSpaceTypeToInfo(colorSpaceType, colorSpaceInfo);
+    if (ret != GSERROR_OK) {
+        RS_LOGE("RSBaseRenderEngine::ConvertColorGamutToSpaceInfo ConvertColorSpaceTypeToInfo failed with \
+            %{public}u.", ret);
+        return false;
+    }
+
+    return true;
+}
+
+bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
+    const BufferDrawParam& params, Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter)
+{
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    constexpr float DEFAULT_TMO_NITS = 206.0;
+    parameter.tmoNits = DEFAULT_TMO_NITS;
+    parameter.currentDisplayNits = params.screenBrightnessNits;
+
+    GSError ret = MetadataHelper::GetColorSpaceInfo(params.buffer, parameter.inputColorSpace.colorSpaceInfo);
+    if (ret != GSERROR_OK) {
+        RS_LOGE("RSBaseRenderEngine::ColorSpaceConvertor GetColorSpaceInfo failed with %{public}u.", ret);
+        return false;
+    }
+
+    if (!ConvertColorGamutToSpaceInfo(params.targetColorGamut, parameter.outputColorSpace.colorSpaceInfo)) {
+        return false;
+    }
+
+    CM_HDR_Metadata_Type hdrMetadataType = CM_METADATA_NONE;
+    ret = MetadataHelper::GetHDRMetadataType(params.buffer, hdrMetadataType);
+    if (ret != GSERROR_OK) {
+        RS_LOGW("RSBaseRenderEngine::ColorSpaceConvertor GetHDRMetadataType failed with %{public}u.", ret);
+    }
+
+    parameter.inputColorSpace.metadataType = hdrMetadataType;
+    parameter.outputColorSpace.metadataType = hdrMetadataType;
+
+    if (hdrMetadataType != CM_METADATA_NONE) {
+        ret = MetadataHelper::GetHDRStaticMetadata(params.buffer, parameter.staticMetadata);
+        if (ret != GSERROR_OK) {
+            RS_LOGW("RSBaseRenderEngine::ColorSpaceConvertor GetHDRStaticMetadata failed with %{public}u.", ret);
+        }
+        ret = MetadataHelper::GetHDRDynamicMetadata(params.buffer, parameter.dynamicMetadata);
+        if (ret != GSERROR_OK) {
+            RS_LOGW("RSBaseRenderEngine::ColorSpaceConvertor GetHDRDynamicMetadata failed with %{public}u.", ret);
+        }
+    }
+
+    RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor parameter inputColorSpace.colorSpaceInfo.primaries = %{public}u, \
+            inputColorSpace.metadataType = %{public}u, outputColorSpace.colorSpaceInfo.primaries = %{public}u, \
+            outputColorSpace.metadataType = %{public}u, tmoNits = %{public}f, currentDisplayNits = %{public}f",
+            parameter.inputColorSpace.colorSpaceInfo.primaries, parameter.inputColorSpace.metadataType,
+            parameter.outputColorSpace.colorSpaceInfo.primaries, parameter.outputColorSpace.metadataType,
+            parameter.tmoNits, parameter.currentDisplayNits);
+
+    return true;
+}
+
+void RSBaseRenderEngine::ColorSpaceConvertor(sk_sp<SkShader> &inputShader, BufferDrawParam& params)
+{
+    RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::ColorSpaceConvertor");
+    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
+    if (!SetColorSpaceConverterDisplayParameter(params, parameter)) {
+        RS_OPTIONAL_TRACE_END();
+        return;
+    }
+
+    sk_sp<SkShader> outputShader;
+    auto convRet = colorSpaceConverterDisplay_->Process(inputShader, outputShader, parameter);
+    if (convRet != Media::VideoProcessingEngine::VPE_ALGO_ERR_OK) {
+        RS_LOGE("RSBaseRenderEngine::ColorSpaceConvertor colorSpaceConverterDisplay failed with %{public}u.", convRet);
+        RS_OPTIONAL_TRACE_END();
+        return;
+    }
+    if (outputShader == nullptr) {
+        RS_LOGE("RSBaseRenderEngine::ColorSpaceConvertor outputShader is nullptr.");
+        RS_OPTIONAL_TRACE_END();
+        return;
+    }
+    params.paint.setShader(outputShader);
+    RS_OPTIONAL_TRACE_END();
+}
+#endif
+
 void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
     RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::DrawImage(GPU)");
@@ -484,13 +607,32 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         RS_OPTIONAL_TRACE_END();
         return;
     }
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    sk_sp<SkShader> imageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
+    if (imageShader == nullptr) {
+        RS_LOGE("RSBaseRenderEngine::DrawImage imageShader is nullptr.");
+    } else {
+        params.paint.setShader(imageShader);
+        ColorSpaceConvertor(imageShader, params);
+    }
+#endif
+
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
+#ifndef USE_VIDEO_PROCESSING_ENGINE
     canvas.drawImageRect(image, params.srcRect, params.dstRect,
         SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear), &(params.paint),
         SkCanvas::kStrict_SrcRectConstraint);
 #else
+    canvas.drawRect(params.dstRect, (params.paint));
+#endif // USE_VIDEO_PROCESSING_ENGINE
+#else
+#ifndef USE_VIDEO_PROCESSING_ENGINE
     canvas.drawImageRect(image, params.srcRect, params.dstRect, &(params.paint));
+#else
+    canvas.drawRect(params.dstRect, &(params.paint));
+#endif // USE_VIDEO_PROCESSING_ENGINE
 #endif
 #else
     canvas.AttachBrush(params.paint);
