@@ -709,7 +709,7 @@ void RSPropertiesPainter::DrawShadowInner(const RSProperties& properties, RSPain
 
     RSColor colorPicked;
     auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
-    if (colorPickerTask != nullptr && 
+    if (colorPickerTask != nullptr &&
         properties.GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
         if (PickColor(properties, canvas, skPath, matrix, deviceClipBounds, colorPicked)) {
             GetDarkColor(colorPicked);
