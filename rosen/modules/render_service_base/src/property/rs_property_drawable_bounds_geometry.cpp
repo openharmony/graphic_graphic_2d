@@ -175,10 +175,8 @@ void RSBorderDRRectDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canva
 #ifndef USE_ROSEN_DRAWING
     canvas.drawDRRect(outer_, inner_, paint_);
 #else
-    canvas.AttachPen(pen_);
     canvas.AttachBrush(brush_);
     canvas.DrawNestedRoundRect(outer_, inner_);
-    canvas.DetachPen();
     canvas.DetachBrush();
 #endif
 }
