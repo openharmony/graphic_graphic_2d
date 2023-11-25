@@ -270,9 +270,9 @@ bool RSModifierExtractor::GetShadowIsFilled() const
     GET_PROPERTY_FROM_MODIFIERS(bool, SHADOW_IS_FILLED, false, =);
 }
 
-bool RSModifierExtractor::GetShadowColorStrategy() const
+int RSModifierExtractor::GetShadowColorStrategy() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(bool, SHADOW_COLOR_STRATEGY, false, =);
+    GET_PROPERTY_FROM_MODIFIERS(int, SHADOW_COLOR_STRATEGY, SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE, =);
 }
 
 Gravity RSModifierExtractor::GetFrameGravity() const

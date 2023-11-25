@@ -42,7 +42,7 @@ public:
         const RRect* rrect = nullptr, bool isAbsCoordinate = true);
     static void DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect = nullptr);
     static int GetAndResetBlurCnt();
-    static void PickColor(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& skPath,
+    static bool PickColor(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& skPath,
         SkMatrix& matrix, SkIRect& deviceClipBounds, RSColor& colorPicked);
     static void GetDarkColor(RSColor& color);
 

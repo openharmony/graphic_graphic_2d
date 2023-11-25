@@ -101,7 +101,7 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetShadowRadius(0.f); },              // SHADOW_RADIUS,            46
     [](RSProperties* prop) { prop->SetShadowPath({}); },                 // SHADOW_PATH,              47
     [](RSProperties* prop) { prop->SetShadowMask(false); },              // SHADOW_MASK,              48
-    [](RSProperties* prop) { prop->SetShadowColorStrategy(false); },     // ShadowColorStrategy,      49
+    [](RSProperties* prop) { prop->SetShadowColorStrategy(SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE); },     // ShadowColorStrategy,      49
     [](RSProperties* prop) { prop->SetMask({}); },                       // MASK,                     50
     [](RSProperties* prop) { prop->SetSpherize(0.f); },                  // SPHERIZE,                 51
     [](RSProperties* prop) { prop->SetLightUpEffect(1.f); },             // LIGHT_UP_EFFECT,          52
@@ -1254,7 +1254,7 @@ void RSProperties::SetShadowIsFilled(bool shadowIsFilled)
     contentDirty_ = true;
 }
 
-void RSProperties::SetShadowColorStrategy(bool shadowColorStrategy)
+void RSProperties::SetShadowColorStrategy(int shadowColorStrategy)
 {
     if (!shadow_.has_value()) {
         shadow_ = std::make_optional<RSShadow>();
@@ -1265,7 +1265,7 @@ void RSProperties::SetShadowColorStrategy(bool shadowColorStrategy)
     // [planning] if shadow stores as texture and out of node
     // node content would not be affected
     contentDirty_ = true;
-    if (shadowColorStrategy && colorPickerTaskShadow_ == nullptr) {
+    if (shadowColorStrategy != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE && colorPickerTaskShadow_ == nullptr) {
         CreateColorPickerTaskForShadow();
     }
 }
@@ -1317,9 +1317,9 @@ bool RSProperties::GetShadowIsFilled() const
     return shadow_ ? shadow_->GetIsFilled() : false;
 }
 
-bool RSProperties::GetShadowColorStrategy() const
+int RSProperties::GetShadowColorStrategy() const
 {
-    return shadow_ ? shadow_->GetColorStrategy() : false;
+    return shadow_ ? shadow_->GetColorStrategy() : SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
 }
 
 const std::optional<RSShadow>& RSProperties::GetShadow() const

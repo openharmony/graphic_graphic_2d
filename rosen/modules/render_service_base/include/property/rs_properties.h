@@ -213,7 +213,7 @@ public:
     void SetShadowPath(std::shared_ptr<RSPath> shadowPath);
     void SetShadowMask(bool shadowMask);
     void SetShadowIsFilled(bool shadowIsFilled);
-    void SetShadowColorStrategy(bool shadowColorStrategy);
+    void SetShadowColorStrategy(int shadowColorStrategy);
     const Color& GetShadowColor() const;
     float GetShadowOffsetX() const;
     float GetShadowOffsetY() const;
@@ -227,7 +227,7 @@ public:
     std::shared_ptr<RSPath> GetShadowPath() const;
     bool GetShadowMask() const;
     bool GetShadowIsFilled() const;
-    bool GetShadowColorStrategy() const;
+    int GetShadowColorStrategy() const;
     const std::optional<RSShadow>& GetShadow() const;
     bool IsShadowValid() const;
 

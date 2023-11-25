@@ -651,22 +651,22 @@ void RSPropertiesPainter::GetDarkColor(RSColor& color)
     }
 }
 
-void RSPropertiesPainter::PickColor(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& skPath,
+bool RSPropertiesPainter::PickColor(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& skPath,
     SkMatrix& matrix, SkIRect& deviceClipBounds, RSColor& colorPicked)
 {
     SkRect clipBounds = skPath.getBounds();
     SkIRect clipIBounds = clipBounds.roundIn();
     SkSurface* skSurface = canvas.GetSurface();
     if (skSurface == nullptr) {
-        return;
+        return false;
     }
 
     auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
     colorPickerTask->SetIsShadow(true);
     int deviceWidth = 0;
     int deviceHeight = 0;
-    int deviceClipBoundsW = deviceClipBounds.width();
-    int deviceClipBoundsH = deviceClipBounds.height();
+    int deviceClipBoundsW = skSurface->width();
+    int deviceClipBoundsH = skSurface->height();
     if (!colorPickerTask->GetDeviceSize(deviceWidth, deviceHeight)) {
         colorPickerTask->SetDeviceSize(deviceClipBoundsW, deviceClipBoundsH);
     }
@@ -677,17 +677,17 @@ void RSPropertiesPainter::PickColor(const RSProperties& properties, RSPaintFilte
     sk_sp<SkImage> shadowRegionImage = skSurface->makeImageSnapshot(regionBounds);
 
     if (shadowRegionImage == nullptr) {
-        return;
+        return false;
     }
 
     if (RSColorPickerCacheTask::PostPartialColorPickerTask(colorPickerTask, shadowRegionImage)
         && colorPickerTask->GetColor(colorPicked)) {
         colorPickerTask->GetColorAverage(colorPicked);
         colorPickerTask->SetStatus(CacheProcessStatus::WAITING);
-        return;
+        return true;
     }
     colorPickerTask->GetColorAverage(colorPicked);
-    return;
+    return true;
 }
 
 #ifndef USE_ROSEN_DRAWING
@@ -709,9 +709,12 @@ void RSPropertiesPainter::DrawShadowInner(const RSProperties& properties, RSPain
 
     RSColor colorPicked;
     auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
-    if (colorPickerTask != nullptr && properties.GetShadowColorStrategy()) {
-        PickColor(properties, canvas, skPath, matrix, deviceClipBounds, colorPicked);
-        GetDarkColor(colorPicked);
+    if (colorPickerTask != nullptr && properties.GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
+        if (PickColor(properties, canvas, skPath, matrix, deviceClipBounds, colorPicked)) {
+            GetDarkColor(colorPicked);
+        } else {
+            shadowAlpha = 0;
+        }
         if (!colorPickerTask->GetFirstGetColorFinished()) {
             shadowAlpha = 0;
         }

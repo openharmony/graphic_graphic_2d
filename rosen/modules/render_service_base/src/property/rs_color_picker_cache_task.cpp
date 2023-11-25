@@ -152,7 +152,7 @@ bool RSColorPickerCacheTask::Render()
         uint32_t errorCode = 0;
         std::shared_ptr<RSColorPicker> colorPicker = RSColorPicker::CreateColorPicker(dst, errorCode);
         if (errorCode == 0) {
-            if (isShadow_) {
+            if (isShadow_ && shadowColorStrategy_ == SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_MAIN) {
                 colorPicker->GetLargestProportionColor(color);
             } else {
                 colorPicker->GetAverageColor(color);
@@ -307,6 +307,11 @@ void RSColorPickerCacheTask::SetDeviceSize(int& deviceWidth, int& deviceHeight)
 void RSColorPickerCacheTask::SetIsShadow(bool isShadow)
 {
     isShadow_ = isShadow;
+}
+
+void RSColorPickerCacheTask::SetShadowColorStrategy(int shadowColorStrategy)
+{
+    shadowColorStrategy_ = shadowColorStrategy;
 }
 
 bool RSColorPickerCacheTask::GetDeviceSize(int& deviceWidth, int& deviceHeight) const

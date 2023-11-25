@@ -1052,9 +1052,9 @@ void RSNode::SetShadowIsFilled(bool shadowIsFilled)
     SetProperty<RSShadowIsFilledModifier, RSProperty<bool>>(RSModifierType::SHADOW_IS_FILLED, shadowIsFilled);
 }
 
-void RSNode::SetShadowColorStrategy(bool shadowColorStrategy)
+void RSNode::SetShadowColorStrategy(int shadowColorStrategy)
 {
-    SetProperty<RSShadowColorStrategyModifier, RSProperty<bool>>(
+    SetProperty<RSShadowColorStrategyModifier, RSProperty<int>>(
         RSModifierType::SHADOW_COLOR_STRATEGY, shadowColorStrategy);
 }
 
