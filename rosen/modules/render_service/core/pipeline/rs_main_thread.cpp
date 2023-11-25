@@ -225,9 +225,11 @@ RSMainThread::RSMainThread() : mainThreadId_(std::this_thread::get_id())
 
 RSMainThread::~RSMainThread() noexcept
 {
-    Memory::MemMgrClient::GetInstance().UnsubscribeAppState(*rsAppStateListener_);
     RemoveRSEventDetector();
     RSInnovation::CloseInnovationSo();
+    if (rsAppStateListener_) {
+        Memory::MemMgrClient::GetInstance().UnsubscribeAppState(*rsAppStateListener_);
+    }
 }
 
 void RSMainThread::Init()
