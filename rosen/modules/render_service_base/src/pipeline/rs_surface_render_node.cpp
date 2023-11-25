@@ -679,7 +679,7 @@ void RSSurfaceRenderNode::NotifyUIBufferAvailable()
             callbackFromUI_->OnBufferAvailable();
 #ifdef OHOS_PLATFORM
             if (IsAppWindow()) {
-                RSJankStats::GetInstance().SetFirstFrame(ExtractPid(GetId()));
+                RSJankStats::GetInstance().SetAppFirstFrame(ExtractPid(GetId()));
             }
 #endif
         }
