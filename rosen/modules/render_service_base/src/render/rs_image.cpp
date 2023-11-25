@@ -366,7 +366,7 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
             if (canvas.GetRecordingState() && image_->isTextureBacked()) {
                 auto recordingCanvas = static_cast<RSRecordingCanvas*>(canvas.GetRecordingCanvas());
                 auto cpuImage = image_->makeRasterImage();
-                recordingCanvas->drawImageRect(cpuImage, src_, dst_, samplingOptions,
+                recordingCanvas->drawImageRect(cpuImage, src_, dst_, SkSamplingOptions(),
                     &paint, SkCanvas::kFast_SrcRectConstraint);
             } else {
                 canvas.drawImageRect(image_, src_, dst_, samplingOptions, &paint, SkCanvas::kFast_SrcRectConstraint);
