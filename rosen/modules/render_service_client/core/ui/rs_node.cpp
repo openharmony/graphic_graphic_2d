@@ -1449,7 +1449,7 @@ void RSNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer)
     if (isNodeSingleFrameComposer_ != isNodeSingleFrameComposer) {
         isNodeSingleFrameComposer_ = isNodeSingleFrameComposer;
         std::unique_ptr<RSCommand> command =
-            std::make_unique<RSMarkNodeSingleFrameComposer>(GetId(), isNodeSingleFrameComposer);
+            std::make_unique<RSMarkNodeSingleFrameComposer>(GetId(), isNodeSingleFrameComposer, GetRealPid());
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
             transactionProxy->AddCommand(command, IsRenderServiceNode());

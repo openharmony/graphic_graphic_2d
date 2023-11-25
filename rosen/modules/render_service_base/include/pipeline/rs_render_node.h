@@ -437,7 +437,7 @@ public:
     void MarkNodeGroup(NodeGroupType type, bool isNodeGroup);
     NodeGroupType GetNodeGroupType();
 
-    void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer);
+    void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0);
     virtual bool GetNodeIsSingleFrameComposer() const;
 
     /////////////////////////////////////////////
@@ -649,6 +649,7 @@ private:
 
     bool isSubSurfaceEnabled_ = false;
     std::map<NodeId, std::vector<WeakPtr>> subSurfaceNodes_;
+    pid_t appPid_ = 0;
 
     friend class RSAliasDrawable;
     friend class RSMainThread;
