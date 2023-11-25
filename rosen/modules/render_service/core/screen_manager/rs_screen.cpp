@@ -853,7 +853,7 @@ int32_t RSScreen::SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace)
     if (iter == COMMON_COLOR_SPACE_TYPE_TO_RS_MAP.end()) {
         return StatusCode::INVALID_ARGUMENTS;
     }
-    ScreenColorGamut dstColorGamut = static_cast<ScreenColorGamut>(iter->first);
+    ScreenColorGamut dstColorGamut = static_cast<ScreenColorGamut>(iter->second);
     int32_t curIdx = 0;
     if (IsVirtual()) {
         auto it = std::find(supportedVirtualColorGamuts_.begin(), supportedVirtualColorGamuts_.end(), dstColorGamut);
