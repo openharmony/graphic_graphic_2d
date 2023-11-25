@@ -23,6 +23,7 @@
 
 #include "napi/n_exporter.h"
 #include "securec.h"
+#include "util/log.h"
 #include "webgl_rendering_context_basic_base.h"
 #include "webgl/webgl_active_info.h"
 #include "webgl/webgl_arg.h"
@@ -398,6 +399,17 @@ private:
         GLboolean transpose, const UniformExtInfo* info, GLint location, GLsizei count, GLfloat* srcData);
     napi_value HandleFrameBufferAttachmentPname(
         napi_env env, GLenum target, GLenum attachment, GLenum pname, GLint type);
+#define SET_ERROR(error)                                \
+    do {                                                \
+        LOGE("WebGL set error code %{public}u", error); \
+        SetError(error);                                \
+    } while (0)
+
+#define SET_ERROR_WITH_LOG(error, info, ...)                                \
+    do {                                                                    \
+        LOGE("WebGL set error code %{public}u" info, error, ##__VA_ARGS__); \
+        SetError(error);                                                    \
+    } while (0)
 };
 
 template<class T>

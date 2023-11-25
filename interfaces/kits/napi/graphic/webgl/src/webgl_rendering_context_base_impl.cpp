@@ -18,25 +18,12 @@
 #include "context/webgl_rendering_context_base.h"
 #include "napi/n_class.h"
 #include "util/log.h"
-#include "util/object_source.h"
 #include "util/util.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Impl {
 using namespace std;
-#define SET_ERROR(error)                                \
-    do {                                                \
-        LOGE("WebGL set error code %{public}u", error); \
-        SetError(error);                                \
-    } while (0)
-
-#define SET_ERROR_WITH_LOG(error, info, ...)                                \
-    do {                                                                    \
-        LOGE("WebGL set error code %{public}u" info, error, ##__VA_ARGS__); \
-        SetError(error);                                                    \
-    } while (0)
-
 WebGLRenderingContextBaseImpl::~WebGLRenderingContextBaseImpl() {}
 
 void WebGLRenderingContextBaseImpl::Init()
@@ -64,10 +51,10 @@ void WebGLRenderingContextBaseImpl::Init()
     maxVertexAttribs_ = static_cast<GLuint>(max);
     arrayVertexAttribs_.resize(maxVertexAttribs_);
 
-    stencilMask_[0] = 0xffffffff;
-    stencilMask_[1] = 0xffffffff;
-    stencilFuncMask_[0] = 0xffffffff;
-    stencilFuncMask_[1] = 0xffffffff;
+    stencilMask_[0] = 0xffffffff; // 0xffffffff: stencilMask_ max value
+    stencilMask_[1] = 0xffffffff; // 0xffffffff: stencilMask_ max value
+    stencilFuncMask_[0] = 0xffffffff; // 0xffffffff: stencilFuncMask_ max value
+    stencilFuncMask_[1] = 0xffffffff; // 0xffffffff: stencilFuncMask_ max value
     stencilFuncRef_[0] = 0;
     stencilFuncRef_[1] = 0;
 
@@ -1508,8 +1495,8 @@ napi_value WebGLRenderingContextBaseImpl::BindAttribLocation(
 napi_value WebGLRenderingContextBaseImpl::GenerateMipmap(napi_env env, GLenum target)
 {
     if (!CheckGLenum(target,
-            { WebGLRenderingContextBase::TEXTURE_2D, WebGLRenderingContextBase::TEXTURE_CUBE_MAP },
-            { WebGL2RenderingContextBase::TEXTURE_3D, WebGL2RenderingContextBase::TEXTURE_2D_ARRAY })) {
+        { WebGLRenderingContextBase::TEXTURE_2D, WebGLRenderingContextBase::TEXTURE_CUBE_MAP },
+        { WebGL2RenderingContextBase::TEXTURE_3D, WebGL2RenderingContextBase::TEXTURE_2D_ARRAY })) {
         SET_ERROR(WebGLRenderingContextBase::INVALID_ENUM);
         return NVal::CreateNull(env).val_;
     }
@@ -1944,7 +1931,7 @@ napi_value WebGLRenderingContextBaseImpl::StencilFunc(napi_env env, GLenum func,
 {
     LOGD("WebGL stencilFunc func %{public}u %{public}d %{public}u", func, ref, mask);
     if (!CheckGLenum(func,
-            { WebGLRenderingContextBase::NEVER, WebGLRenderingContextBase::LESS, WebGLRenderingContextBase::EQUAL,
+        { WebGLRenderingContextBase::NEVER, WebGLRenderingContextBase::LESS, WebGLRenderingContextBase::EQUAL,
             WebGLRenderingContextBase::LEQUAL, WebGLRenderingContextBase::GREATER,
             WebGLRenderingContextBase::NOTEQUAL, WebGLRenderingContextBase::GEQUAL,
             WebGLRenderingContextBase::ALWAYS }, {})) {
@@ -1986,7 +1973,7 @@ napi_value WebGLRenderingContextBaseImpl::StencilFuncSeparate(
             return NVal::CreateNull(env).val_;
     }
     if (!CheckGLenum(func,
-            { WebGLRenderingContextBase::NEVER, WebGLRenderingContextBase::LESS, WebGLRenderingContextBase::EQUAL,
+        { WebGLRenderingContextBase::NEVER, WebGLRenderingContextBase::LESS, WebGLRenderingContextBase::EQUAL,
             WebGLRenderingContextBase::LEQUAL, WebGLRenderingContextBase::GREATER,
             WebGLRenderingContextBase::NOTEQUAL, WebGLRenderingContextBase::GEQUAL,
             WebGLRenderingContextBase::ALWAYS }, {})) {
@@ -2030,7 +2017,7 @@ GLenum WebGLRenderingContextBaseImpl::CheckTexParameter(
         case WebGL2RenderingContextBase::TEXTURE_MAX_LEVEL:
         case WebGL2RenderingContextBase::TEXTURE_MAX_LOD:
         case WebGL2RenderingContextBase::TEXTURE_MIN_LOD: {
-             if (!IsHighWebGL()) {
+            if (!IsHighWebGL()) {
                 return WebGLRenderingContextBase::INVALID_ENUM;
             }
             break;
@@ -2228,7 +2215,8 @@ napi_value WebGLRenderingContextBaseImpl::GetUniform(napi_env env, napi_value pr
     WebGLProgram* webGLProgram = WebGLProgram::GetObjectInstance(env, programObj);
     WebGLUniformLocation* webGLUniformLocation = WebGLUniformLocation::GetObjectInstance(env, uniformObj);
     if (webGLUniformLocation == nullptr || webGLProgram == nullptr) {
-        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "webGLUniformLocation or webGLProgram is nullptr.");
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE,
+            "webGLUniformLocation or webGLProgram is nullptr.");
         return NVal::CreateNull(env).val_;
     }
     GLuint programId = webGLProgram->GetProgramId();
