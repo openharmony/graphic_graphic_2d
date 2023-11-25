@@ -334,10 +334,12 @@ ScreenId RSRenderServiceConnection::CreateVirtualScreen(
     uint32_t height,
     sptr<Surface> surface,
     ScreenId mirrorId,
-    int32_t flags)
+    int32_t flags,
+    std::vector<NodeId> filteredAppVector)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    auto newVirtualScreenId = screenManager_->CreateVirtualScreen(name, width, height, surface, mirrorId, flags);
+    auto newVirtualScreenId = screenManager_->CreateVirtualScreen(
+        name, width, height, surface, mirrorId, flags, filteredAppVector);
     virtualScreenIds_.insert(newVirtualScreenId);
     if (surface != nullptr) {
         auto& hgmCore = HgmCore::Instance();

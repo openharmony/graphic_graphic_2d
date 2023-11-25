@@ -94,7 +94,8 @@ RSScreen::RSScreen(const VirtualScreenConfigs &configs)
       isVirtual_(true),
       producerSurface_(configs.surface),
       pixelFormat_(configs.pixelFormat),
-      screenType_(RSScreenType::VIRTUAL_TYPE_SCREEN)
+      screenType_(RSScreenType::VIRTUAL_TYPE_SCREEN),
+      filteredAppSet_(configs.filteredAppSet)
 {
     VirtualScreenInit();
 }
@@ -878,7 +879,10 @@ int32_t RSScreen::SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace)
     }
     return StatusCode::HDI_ERROR;
 }
-
+const std::unordered_set<uint64_t>& RSScreen::GetFilteredAppSet() const
+{
+    return filteredAppSet_;
+}
 } // namespace impl
 } // namespace Rosen
 } // namespace OHOS
