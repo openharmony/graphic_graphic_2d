@@ -24,9 +24,9 @@ int RSSystemProperties::GetDumpFrameNum()
     return 0;
 }
 
-bool RSSystemProperties::GetRecordingEnabled()
+int RSSystemProperties::GetRecordingEnabled()
 {
-    return false;
+    return 0;
 }
 
 bool RSSystemProperties::IsSceneBoardEnabled()

@@ -99,7 +99,7 @@ public:
     static bool IsSceneBoardEnabled();
     static int GetDumpFrameNum();
     static void SetRecordingDisenabled();
-    static bool GetRecordingEnabled();
+    static int GetRecordingEnabled();
 
     static bool GetUniRenderEnabled();
     static bool GetRenderNodeTraceEnabled();

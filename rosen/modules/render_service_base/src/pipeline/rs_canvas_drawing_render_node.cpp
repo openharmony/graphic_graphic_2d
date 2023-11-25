@@ -89,6 +89,12 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
             RS_LOGE("RSCanvasDrawingRenderNode::ProcessRenderContents sharedTexture is nullptr");
             return;
         }
+        if (RSSystemProperties::GetRecordingEnabled()) {
+            if (sharedTexture->isTextureBacked()) {
+                RS_LOGI("RSCanvasDrawingRenderNode::ProcessRenderContents sharedTexture from texture to raster image");
+                sharedTexture = sharedTexture->makeRasterImage();
+            }
+        }
         canvas_->drawImage(sharedTexture, 0.f, 0.f);
 #else
         if (auto image = preSurface->makeImageSnapshot()) {

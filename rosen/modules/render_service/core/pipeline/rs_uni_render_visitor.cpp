@@ -4625,18 +4625,18 @@ void RSUniRenderVisitor::tryCapture(float width, float height)
 #endif
 #endif
     canvas_->addCanvas(recordingCanvas_.get());
-    RSRecordingThread::Instance().CheckAndRecording();
+    RSRecordingThread::Instance(renderEngine_->GetRenderContext().get()).CheckAndRecording();
 }
 
 void RSUniRenderVisitor::endCapture() const
 {
-    if (!RSRecordingThread::Instance().GetRecordingEnabled()) {
+    if (!RSRecordingThread::Instance(renderEngine_->GetRenderContext().get()).GetRecordingEnabled()) {
         return;
     }
     auto drawCmdList = recordingCanvas_->GetDrawCmdList();
     RS_TRACE_NAME("RSUniRender:RecordingToFile curFrameNum = " +
-                   std::to_string(RSRecordingThread::Instance().GetCurDumpFrame()));
-    RSRecordingThread::Instance().RecordingToFile(drawCmdList);
+        std::to_string(RSRecordingThread::Instance(renderEngine_->GetRenderContext().get()).GetCurDumpFrame()));
+    RSRecordingThread::Instance(renderEngine_->GetRenderContext().get()).RecordingToFile(drawCmdList);
 }
 #endif
 

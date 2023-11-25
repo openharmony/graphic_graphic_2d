@@ -2480,9 +2480,12 @@ void RSMarshallingHelper::EndNoSharedMem()
     g_tid.__reset();
 }
 
-bool RSMarshallingHelper::GetUseSharedMem()
+bool RSMarshallingHelper::GetUseSharedMem(std::thread::id tid)
 {
-    return g_useSharedMem;
+    if (tid == g_tid) {
+        return g_useSharedMem;
+    }
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS
