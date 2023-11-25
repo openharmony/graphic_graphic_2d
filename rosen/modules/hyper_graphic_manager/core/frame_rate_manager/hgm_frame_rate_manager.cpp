@@ -102,13 +102,13 @@ void HgmFrameRateManager::UniProcessData(ScreenId screenId, uint64_t timestamp,
     if (!hgmCore.GetLtpoEnabled()) {
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
     } else if (frameRateChanged) {
-        auto oldRefreshRate = hgmCore.GetScreenCurrentRefreshRate(screenId);
         HandleFrameRateChangeForLTPO(timestamp);
-        if (currRefreshRate_ != oldRefreshRate) {
-            std::unordered_map<pid_t, uint32_t> rates;
-            rates[GetRealPid()] = currRefreshRate_;
-            FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRates(rates);
+        std::unordered_map<pid_t, uint32_t> rates;
+        rates[GetRealPid()] = currRefreshRate_;
+        if (auto alignRate = hgmCore.GetAlignRate(); alignRate != 0) {
+            rates[UNI_APP_PID] = alignRate;
         }
+        FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRates(rates);
     }
 }
 
