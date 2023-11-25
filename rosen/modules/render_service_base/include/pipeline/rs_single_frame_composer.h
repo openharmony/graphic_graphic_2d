@@ -36,6 +36,8 @@ public:
     void SingleFrameAddModifier(const std::shared_ptr<RSRenderModifier>& modifier);
     static void SetSingleFrameFlag(const std::thread::id ipcThreadId);
     static bool IsShouldSingleFrameComposer();
+    static void AddOrRemoveAppPidToMap(bool isNodeSingleFrameComposer, pid_t pid);
+    static bool IsShouldProcessByIpcThread(pid_t pid);
 
 private:
     bool FindSingleFrameModifier(const std::list<std::shared_ptr<RSRenderModifier>>& modifierList);
@@ -47,6 +49,8 @@ private:
     mutable std::mutex singleFrameDrawMutex_;
     static std::map<std::thread::id, uint64_t> ipcThreadIdMap_;
     static std::mutex ipcThreadIdMapMutex_;
+    static std::map<pid_t, uint64_t> appPidMap_;
+    static std::mutex appPidMapMutex_;
 };
 }
 }
