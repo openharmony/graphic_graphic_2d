@@ -30,6 +30,7 @@
 #include "rs_render_surface.h"
 #else
 #include "platform/drawing/rs_surface.h"
+#include "platform/common/rs_surface_ext.h"
 #endif
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_node.h"
@@ -127,6 +128,13 @@ public:
 
     void SetFreeze(bool isFreeze) override;
 
+#ifdef USE_SURFACE_TEXTURE
+    void SetSurfaceTexture(const RSSurfaceExtConfig& config);
+    void MarkUiFrameAvailable(bool available);
+    void SetSurfaceTextureAttachCallBack(const RSSurfaceTextureAttachCallBack& attachCallback);
+    void SetSurfaceTextureUpdateCallBack(const RSSurfaceTextureUpdateCallBack& updateCallback);
+#endif
+
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);
@@ -137,6 +145,9 @@ protected:
     RSSurfaceNode& operator=(const RSSurfaceNode&&) = delete;
 
 private:
+#ifdef USE_SURFACE_TEXTURE
+    void CreateSurfaceExt(const RSSurfaceExtConfig& config);
+#endif
     bool CreateNode(const RSSurfaceRenderNodeConfig& config);
     bool CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config);
     void OnBoundsSizeChanged() const override;

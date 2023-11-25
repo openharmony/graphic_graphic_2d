@@ -19,6 +19,7 @@
 #include "command/rs_command_templates.h"
 #include "common/rs_macros.h"
 #include "common/rs_vector4.h"
+#include "platform/common/rs_surface_ext.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include "surface_type.h"
 #endif
@@ -55,11 +56,13 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_MARK_UIHIDDEN,
     SURFACE_NODE_ATTACH_TO_DISPLAY,
     SURFACE_NODE_DETACH_TO_DISPLAY,
+    SURFACE_NODE_CREATE_SURFACE_EXT,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
 public:
-    static void Create(RSContext& context, NodeId nodeId);
+    static void Create(RSContext& context,
+        NodeId nodeId, RSSurfaceNodeType surfaceNodeType = RSSurfaceNodeType::DEFAULT);
 #ifndef USE_ROSEN_DRAWING
     static void SetContextMatrix(RSContext& context, NodeId nodeId, const std::optional<SkMatrix>& matrix);
 #else
@@ -89,9 +92,13 @@ public:
     static void SetAnimationFinished(RSContext& context, NodeId nodeId);
     static void AttachToDisplay(RSContext& context, NodeId nodeId, uint64_t screenId);
     static void DetachToDisplay(RSContext& context, NodeId nodeId, uint64_t screenId);
+#ifdef USE_SURFACE_TEXTURE
+    static void CreateSurfaceExt(RSContext& context, NodeId id, uint64_t surfaceExt);
+#endif
 };
 
-ADD_COMMAND(RSSurfaceNodeCreate, ARG(SURFACE_NODE, SURFACE_NODE_CREATE, SurfaceNodeCommandHelper::Create, NodeId))
+ADD_COMMAND(RSSurfaceNodeCreate,
+    ARG(SURFACE_NODE, SURFACE_NODE_CREATE, SurfaceNodeCommandHelper::Create, NodeId, RSSurfaceNodeType))
 #ifndef USE_ROSEN_DRAWING
 ADD_COMMAND(
     RSSurfaceNodeSetContextMatrix, ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_MATRIX,
@@ -148,6 +155,11 @@ ADD_COMMAND(RSSurfaceNodeDetachToDisplay,
 #ifndef ROSEN_CROSS_PLATFORM
 ADD_COMMAND(RSSurfaceNodeSetColorSpace,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_COLOR_SPACE, SurfaceNodeCommandHelper::SetColorSpace, NodeId, GraphicColorGamut))
+#endif
+#ifdef USE_SURFACE_TEXTURE
+ADD_COMMAND(RSSurfaceNodeCreateSurfaceExt,
+    ARG(SURFACE_NODE, SURFACE_NODE_CREATE_SURFACE_EXT,
+    SurfaceNodeCommandHelper::CreateSurfaceExt, NodeId, uint64_t))
 #endif
 } // namespace Rosen
 } // namespace OHOS
