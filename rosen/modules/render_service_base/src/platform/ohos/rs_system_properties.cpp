@@ -632,5 +632,11 @@ bool RSSystemProperties::GetSubSurfaceEnabled()
         std::atoi((system::GetParameter("persist.sys.graphic.subSurface", "0")).c_str());
     return subSurfaceEnabled;
 }
+bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
+{
+    static bool openSecurityPermissionCheck =
+        std::atoi((system::GetParameter("persist.sys.graphic.openSecurityPermissionCheck", "0")).c_str()) != 0;
+    return openSecurityPermissionCheck;
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -313,5 +313,9 @@ bool RSSystemProperties::GetSubSurfaceEnabled()
 {
     return false;
 }
+bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -80,7 +80,10 @@ bool RSInterfaceCodeAccessVerifierBase::CheckHapPermission(
 
 bool RSInterfaceCodeAccessVerifierBase::CheckPermission(CodeUnderlyingType code) const
 {
-#ifdef ENABLE_IPC_SECURITY_ACCESS_COUNTER
+    bool securityPermissionCheckEnabled =  RSSystemProperties::GetSecurityPermissionCheckEnabled();
+    if (!securityPermissionCheckEnabled) {
+        return true;
+    }
     std::vector<std::string> permissions = GetPermissions(code);
     bool hasPermission = true;
     auto tokenType = GetTokenType();
@@ -104,7 +107,6 @@ bool RSInterfaceCodeAccessVerifierBase::CheckPermission(CodeUnderlyingType code)
             return false;
         }
     }
-#endif
     return true;
 }
 

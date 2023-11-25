@@ -172,6 +172,7 @@ public:
     static bool GetSingleFrameComposerEnabled();
     static bool GetSingleFrameComposerCanvasNodeEnabled();
     static bool GetSubSurfaceEnabled();
+    static bool GetSecurityPermissionCheckEnabled();
 private:
     RSSystemProperties() = default;
 
