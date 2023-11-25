@@ -1087,7 +1087,7 @@ std::unique_ptr<RSPropertyDrawable> RSPixelStretchDrawable::Generate(const RSPro
 void RSBackgroundDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
 #ifndef USE_ROSEN_DRAWING
-    canvas.drawRRect(RSPropertiesPainter::RRect2SkRRect(node.GetMutableRenderProperties().GetInnerRRect()), paint_);
+    canvas.drawRRect(RSPropertiesPainter::RRect2SkRRect(node.GetMutableRenderProperties().GetRRect()), paint_);
 #else
     canvas.DrawBackground(brush_);
 #endif
