@@ -15,6 +15,7 @@
 
 #include "skia_camera.h"
 
+#include "skia_matrix.h"
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -88,10 +89,8 @@ scalar SkiaCamera::GetCameraPosZ() const
 
 void SkiaCamera::ApplyToMatrix(Matrix& m)
 {
-    SkMatrix matrix;
+    SkMatrix& matrix = m.GetImpl<SkiaMatrix>()->ExportMatrix();
     view_.getMatrix(&matrix);
-    m.SetMatrix(matrix.getScaleX(), matrix.getSkewX(), matrix.getTranslateX(), matrix.getScaleY(), matrix.getSkewY(),
-        matrix.getTranslateY(), matrix.getPerspX(), matrix.getPerspY(), matrix.get(SkMatrix::kMPersp2));
 }
 } // namespace Drawing
 } // namespace Rosen

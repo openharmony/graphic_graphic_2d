@@ -36,6 +36,7 @@ void DrawCmdList::ClearOp()
     opAllocator_.Add(&width_, sizeof(int32_t));
     opAllocator_.Add(&height_, sizeof(int32_t));
     imageAllocator_.ClearData();
+    unmarshalledOpItems_.clear();
     lastOpItemOffset_ = std::nullopt;
 }
 
@@ -102,37 +103,41 @@ void DrawCmdList::UnmarshallingOps()
     do {
         void* itemPtr = opAllocator_.OffsetToAddr(offset);
         auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
-        if (curOpItemPtr != nullptr) {
-            uint32_t type = curOpItemPtr->GetType();
-            if (type == DrawOpItem::CMD_LIST_OPITEM) {
-                return;
-            }
-            if (opReplaceIndex < replacedOpList_.size() &&
-                replacedOpList_[opReplaceIndex].first == offset) {
-                auto* replacePtr = opAllocator_.OffsetToAddr(replacedOpList_[opReplaceIndex].second);
-                auto* replaceOpItemPtr = static_cast<OpItem*>(replacePtr);
-                unmarshalledOpItems_.emplace_back(player.Unmarshalling(replaceOpItemPtr->GetType(), replacePtr));
-                opReplacedByDrivenRender_.emplace_back((unmarshalledOpItems_.size() - 1),
-                    player.Unmarshalling(type, itemPtr));
-                opReplaceIndex++;
-            } else {
-                unmarshalledOpItems_.emplace_back(player.Unmarshalling(type, itemPtr));
-            }
-            offset = curOpItemPtr->GetNextOpItemOffset();
-        } else {
+        if (curOpItemPtr == nullptr) {
             LOGE("DrawCmdList::UnmarshallingOps failed, opItem is nullptr");
             break;
         }
-        if (!replacedOpList_.empty() && offset >= replacedOpList_[0].second) {
-            LOGD("DrawCmdList::UnmarshallingOps seek end by cache textOps");
-            break;
+        uint32_t type = curOpItemPtr->GetType();
+        if (type == DrawOpItem::CMD_LIST_OPITEM) {
+            unmarshalledOpItems_.clear();
+            return;
         }
+        auto op = player.Unmarshalling(type, itemPtr);
+        if (!op) {
+            offset = curOpItemPtr->GetNextOpItemOffset();
+            continue;
+        }
+        if (opReplaceIndex < replacedOpList_.size() &&
+            replacedOpList_[opReplaceIndex].first == offset) {
+            auto* replacePtr = opAllocator_.OffsetToAddr(replacedOpList_[opReplaceIndex].second);
+            if (replacePtr == nullptr) {
+                LOGE("DrawCmdList::Unmarshalling replace Ops failed, replace op is nullptr");
+                break;
+            }
+            auto* replaceOpItemPtr = static_cast<OpItem*>(replacePtr);
+            unmarshalledOpItems_.emplace_back(player.Unmarshalling(replaceOpItemPtr->GetType(), replacePtr));
+            opReplacedByDrivenRender_.emplace_back((unmarshalledOpItems_.size() - 1), op);
+            opReplaceIndex++;
+        } else {
+            unmarshalledOpItems_.emplace_back(op);
+        }
+        offset = curOpItemPtr->GetNextOpItemOffset();
     } while (offset != 0);
 }
 
-std::vector<std::pair<OpItem*, void*>> DrawCmdList::UnmarshallingCmdList()
+std::vector<std::shared_ptr<DrawOpItem>> DrawCmdList::UnmarshallingCmdList()
 {
-    std::vector<std::pair<OpItem*, void*>> opItems;
+    std::vector<std::shared_ptr<DrawOpItem>> opItems;
     uint32_t offset = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
     if (width_ <= 0 || height_ <= 0 || opAllocator_.GetSize() <= offset) {
         return opItems;
@@ -142,18 +147,15 @@ std::vector<std::pair<OpItem*, void*>> DrawCmdList::UnmarshallingCmdList()
     do {
         void* itemPtr = opAllocator_.OffsetToAddr(offset);
         auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
-        if (curOpItemPtr != nullptr) {
-            player.Unmarshalling(curOpItemPtr->GetType(), itemPtr);
-            offset = curOpItemPtr->GetNextOpItemOffset();
-            auto playFunc = CanvasPlayer::GetFuncFromType(curOpItemPtr->GetType());
-            if (playFunc == nullptr) {
-                continue;
-            }
-            opItems.push_back({curOpItemPtr, (void*)playFunc});
-        } else {
+        if (curOpItemPtr == nullptr) {
             LOGE("DrawCmdList::UnmarshallingCmdList failed, opItem is nullptr");
             break;
         }
+        auto op = player.Unmarshalling(curOpItemPtr->GetType(), itemPtr);
+        if (op) {
+            unmarshalledOpItems_.push_back(op);
+        }
+        offset = curOpItemPtr->GetNextOpItemOffset();
     } while (offset != 0);
     return opItems;
 }
@@ -186,35 +188,30 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect)
     if (rect != nullptr) {
         tmpRect = *rect;
     }
-    CanvasPlayer player = { canvas, *this, tmpRect};
-    if (unmarshalledOpItems_.size() == 0) {
-        do {
-            void* itemPtr = opAllocator_.OffsetToAddr(offset);
-            auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
-            if (curOpItemPtr != nullptr) {
-                if (!player.Playback(curOpItemPtr->GetType(), itemPtr)) {
-                    LOGE("DrawCmdList::Playback failed!");
-                    break;
-                }
-                offset = curOpItemPtr->GetNextOpItemOffset();
-            } else {
-                LOGE("DrawCmdList::Playback failed, opItem is nullptr");
-                break;
-            }
-        } while (offset != 0);
-    } else {
-        for (auto iter = unmarshalledOpItems_.begin(); iter != unmarshalledOpItems_.end(); ++iter) {
-            if ((*iter) != nullptr) {
-                if (!player.Playback((*iter)->GetType(), (*iter).get())) {
-                    LOGE("DrawCmdList::Playback failed!");
-                    break;
-                }
-            } else {
-                LOGE("DrawCmdList::Playback failed, opItem is nullptr");
-                break;
-            }
+
+    if (!unmarshalledOpItems_.empty()) {
+        for (auto op : unmarshalledOpItems_) {
+            op->Playback(&canvas, &tmpRect);
         }
+        return;
     }
+
+    UnmarshallingPlayer player = { *this };
+    do {
+        void* itemPtr = opAllocator_.OffsetToAddr(offset);
+        auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
+        if (curOpItemPtr == nullptr) {
+            LOGE("DrawCmdList::Playback failed, opItem is nullptr");
+            break;
+        }
+        uint32_t type = curOpItemPtr->GetType();
+        auto op = player.Unmarshalling(type, itemPtr);
+        if (op) {
+            unmarshalledOpItems_.emplace_back(op);
+            op->Playback(&canvas, &tmpRect);
+        }
+        offset = curOpItemPtr->GetNextOpItemOffset();
+    } while (offset != 0);
 }
 
 void DrawCmdList::GenerateCache(Canvas* canvas, const Rect* rect)
@@ -235,17 +232,15 @@ void DrawCmdList::GenerateCache(Canvas* canvas, const Rect* rect)
     do {
         void* itemPtr = opAllocator_.OffsetToAddr(offset);
         auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
-        if (curOpItemPtr != nullptr) {
-            bool replaceSuccess = false;
-            player.GenerateCachedOpItem(curOpItemPtr->GetType(), itemPtr, true, replaceSuccess);
-            if (replaceSuccess) {
-                replacedOpList_.push_back({offset, lastOpItemOffset_.value()});
-            }
-            offset = curOpItemPtr->GetNextOpItemOffset();
-        } else {
+        if (curOpItemPtr == nullptr) {
             LOGE("DrawCmdList::GenerateCache failed, opItem is nullptr");
             break;
         }
+        bool replaceSuccess = player.GenerateCachedOpItem(curOpItemPtr->GetType(), itemPtr);
+        if (replaceSuccess) {
+            replacedOpList_.push_back({offset, lastOpItemOffset_.value()});
+        }
+        offset = curOpItemPtr->GetNextOpItemOffset();
     } while (offset != 0 && offset < maxOffset);
 
     isCached_ = true;
@@ -260,16 +255,37 @@ void DrawCmdList::GenerateCacheInRenderService(Canvas* canvas, const Rect* rect)
         return;
     }
 
-    GenerateCachedOpItemPlayer player = {*this, canvas, rect};
+    DrawOpItem* brushOp = nullptr;
+    DrawOpItem* penOp = nullptr;
+
     for (int i = 0; i < unmarshalledOpItems_.size(); ++i) {
         auto opItem = unmarshalledOpItems_[i];
-        if (opItem != nullptr) {
-            bool replaceSuccess = false;
-            auto replaceCache = player.GenerateCachedOpItem(opItem->GetType(), opItem.get(), false, replaceSuccess);
-            if (replaceCache) {
-                opReplacedByDrivenRender_.emplace_back(i, unmarshalledOpItems_[i]);
-                unmarshalledOpItems_[i] = replaceCache;
+        uint32_t type = opItem->GetType();
+        switch (type) {
+            case DrawOpItem::ATTACH_PEN_OPITEM:
+                penOp = opItem.get();
+                break;
+            case DrawOpItem::ATTACH_BRUSH_OPITEM:
+                brushOp = opItem.get();
+                break;
+            case DrawOpItem::DETACH_PEN_OPITEM:
+                penOp = nullptr;
+                break;
+            case DrawOpItem::DETACH_BRUSH_OPITEM:
+                brushOp = nullptr;
+                break;
+            case DrawOpItem::TEXT_BLOB_OPITEM: {
+                DrawTextBlobOpItem* textBlobOp = static_cast<DrawTextBlobOpItem*>(opItem.get());
+                auto replaceCache = textBlobOp->GenerateCachedOpItem(
+                    canvas, static_cast<AttachPenOpItem*>(penOp), static_cast<AttachBrushOpItem*>(brushOp));
+                if (replaceCache) {
+                    opReplacedByDrivenRender_.emplace_back(i, unmarshalledOpItems_[i]);
+                    unmarshalledOpItems_[i] = replaceCache;
+                }
+                break;
             }
+            default:
+                break;
         }
     }
 
@@ -343,7 +359,7 @@ void DrawCmdList::AddOpToCmdList(std::shared_ptr<DrawCmdList> cmdList)
 #endif
     imageBaseOjVec_.swap(cmdList->imageBaseOjVec_);
 
-    cmdList->AddOp<DrawCmdListOpItem>(handle);
+    cmdList->AddOp<DrawCmdListOpItem::ConstructorHandle>(handle);
     return;
 }
 

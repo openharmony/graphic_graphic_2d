@@ -30,6 +30,7 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
 
     SkiaMatrix();
+    explicit SkiaMatrix(const Matrix& other);
     ~SkiaMatrix() override {}
 
     AdapterType GetType() const override
@@ -46,10 +47,13 @@ public:
     void PreRotate(scalar degree) override;
     void PostRotate(scalar degree) override;
     void PreTranslate(scalar dx, scalar dy) override;
+    void PostTranslate(scalar dx, scalar dy) override;
     void PreScale(scalar sx, scalar sy) override;
     void PostScale(scalar sx, scalar sy) override;
     void PreConcat(const Matrix& other) override;
+    void PreConcat(const Matrix44& other) override;
     void PostConcat(const Matrix& other) override;
+    void PostConcat(const Matrix44& other) override;
 
     bool Invert(Matrix& inverse) const override;
     void Multiply(const Matrix& a, const Matrix& b) override;
@@ -61,11 +65,13 @@ public:
     void Set(int index, scalar value) override;
     scalar Get(int index) const override;
     void GetAll(std::array<scalar, MatrixImpl::MATRIX_SIZE>& buffer) const override;
+    void SetAll(std::array<scalar, MatrixImpl::MATRIX_SIZE>& buffer) override;
     bool IsIdentity() const override;
 
     void ImportMatrix(const SkMatrix& skMatrix);
+    SkMatrix& ExportMatrix();
 
-    MatrixImpl* Clone() override;
+    void Clone(const Matrix& other) override;
     void PreRotate(scalar degree, scalar px, scalar py) override;
     void PreScale(scalar sx, scalar sy, scalar px, scalar py) override;
     void Reset() override;

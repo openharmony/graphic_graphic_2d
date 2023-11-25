@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-#include "effect/runtime_effect.h"
-
 #include "impl_factory.h"
 
+#include "effect/runtime_effect.h"
 #include "skia_adapter/skia_impl_factory.h"
+#include "utils/matrix.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -139,6 +139,11 @@ std::unique_ptr<ColorSpaceImpl> ImplFactory::CreateColorSpaceImpl()
 std::unique_ptr<MatrixImpl> ImplFactory::CreateMatrixImpl()
 {
     return EngineImplFactory::CreateMatrix();
+}
+
+std::unique_ptr<MatrixImpl> ImplFactory::CreateMatrixImpl(const Matrix& other)
+{
+    return EngineImplFactory::CreateMatrix(other);
 }
 
 std::unique_ptr<Matrix44Impl> ImplFactory::CreateMatrix44Impl()

@@ -227,6 +227,14 @@ uint32_t CmdList::SetupBaseOj(const std::vector<std::shared_ptr<ExtendImageBaseO
     }
     return imageBaseOjVec_.size();
 }
+
+void CmdList::CopyObjectTo(CmdList& other) const
+{
+#ifdef SUPPORT_OHOS_PIXMAP
+    other.imageObjectVec_ = imageObjectVec_;
+#endif
+    other.imageBaseOjVec_ = imageBaseOjVec_;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
