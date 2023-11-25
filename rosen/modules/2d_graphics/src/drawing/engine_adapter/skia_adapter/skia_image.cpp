@@ -254,10 +254,14 @@ void SkiaImage::ConvertToVKTexture(const GrBackendTexture& backendTexture, VKTex
 }
 
 bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const VKTextureInfo& info, TextureOrigin origin,
-        BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace,
-        void (*deleteFunc)(void*), void* cleanupHelper)
+    BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace,
+    void (*deleteFunc)(void*), void* cleanupHelper)
 {
     grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
+    if (!grContext_) {
+        LOGE("SkiaImage BuildFromTexture grContext_ is null");
+        return false;
+    }
 
     sk_sp<SkColorSpace> skColorSpace = nullptr;
     if (colorSpace != nullptr) {
@@ -265,7 +269,10 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const VKTextureInfo& in
     } else {
         skColorSpace = SkCorlorSpace::MakeSRGB();
     }
-
+    if (skColorSpace == nullptr) {
+        LOGE("SkiaImage BuildFromTexture skColorSpace is null");
+        return false;
+    }
     const auto& backendTexture = ConvertToGrBackendTexture(info);
 
     if (!backendTexture.isValid()) {
@@ -294,10 +301,10 @@ GrSurfaceOrigin SkiaImage::ConvertToGrSurfaceOrigin(const TextureOrigin& origin)
 }
 
 bool SkiaImage::BuildFromSurface(GPUContext& gpuContext, Surface& surface, TextureOrigin origin,
-        BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace)
+    BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace)
 {
     auto skSurface = surface.GetImpl<SkiaSurface>()->GetSkSurface();
-    if(!skSurface) {
+    if (!skSurface) {
         LOGE("SkiaImage::BuildFromSurface skSurface is null");
         return false;
     }

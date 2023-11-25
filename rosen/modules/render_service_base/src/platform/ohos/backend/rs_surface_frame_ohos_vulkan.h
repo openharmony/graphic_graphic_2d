@@ -30,7 +30,8 @@ public:
 #ifndef USE_ROSEN_DRAWING
     RSSurfaceFrameOhosVulkan(sk_sp<SkSurface> surface, int32_t width, int32_t height, int32_t bufferAge);
 #else
-    RSSurfaceFrameOhosVulkan(std::shared_ptr<Drawing::Surface> surface, int32_t width, int32_t height, int32_t bufferAge);
+    RSSurfaceFrameOhosVulkan(std::shared_ptr<Drawing::Surface> surface, int32_t width,
+        int32_t height, int32_t bufferAge);
 #endif
     ~RSSurfaceFrameOhosVulkan() override = default;
 

@@ -234,8 +234,8 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
     texture_info.imageUsageFlags = usageFlags;
     texture_info.sampleCount = 1;
     texture_info.levelCount = 1;
-    nativeSurface.drawingSurface = Drawing::Surface::MakeFromBackendRenderTarget(
-        skContext.get(), 
+    nativeSurface.drawingSurface_ = Drawing::Surface::MakeFromBackendRenderTarget(
+        skContext.get(),
         texture_info,
         Drawing::TextureOrigin::TOP_LEFT,
         DeleteVkImage,

@@ -131,7 +131,7 @@ bool SkiaSurface::Bind(const FrameBuffer& frameBuffer)
 
 #ifdef RS_ENABLE_VK
 std::shared_ptr<Surface> SkiaSurface::MakeFromBackendRenderTarget(GPUContext* gpuContext, const VKTextureInfo& info,
-        TextureOrigin origin, void (*deleteVkImage)(void *), void* cleanHelper)
+    TextureOrigin origin, void (*deleteVkImage)(void *), void* cleanHelper)
 {
     sk_sp<GrDirectContext> grContext = nullptr;
     if (gpuContext) {
@@ -140,7 +140,7 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendRenderTarget(GPUContext* gp
             grContext = skiaGpuContext->GetGrContext();
         }
     }
-    GrVkImageInfo image_info; 
+    GrVkImageInfo image_info;
     SkiaImage::ConvertToGrBackendTexture(info).getVkImageInfo(&image_info);
     GrBackendRenderTarget backendRenderTarget(info.width, info.height, 0, image_info);
     SkSurfaceProps surfaceProps(0, SkPixelGeometry::kUnknown_SkPixelGeometry);
@@ -150,7 +150,7 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendRenderTarget(GPUContext* gp
         backendRenderTarget, SkiaImage::ConvertToGrSurfaceOrigin(origin),
         kRGBA_8888_SkColorType, SkColorSpace::MakeSRGB(), &surfaceProps, deleteVkImage, cleanHelper);
     if (skSurface == nullptr) {
-        LOGE("skSurface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        LOGE("skSurface nullptr");
         return nullptr;
     }
 
@@ -317,18 +317,20 @@ void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
         GrFlushInfo flushInfo;
         flushInfo.fNumSemaphores = drawingflushInfo->numSemaphores;
         flushInfo.fSignalSemaphores = static_cast<GrBackendSemaphore*>(drawingflushInfo->backendSemaphore);
-        skSurface_->flush(
-           drawingflushInfo->backendSurfaceAccess == false ?
-           SkSurface::BackendSurfaceAccess::kNoAccess : SkSurface::BackendSurfaceAccess::kPresent,
-           flushInfo);
+        skSurface_->flush(drawingflushInfo->backendSurfaceAccess == false ?
+            SkSurface::BackendSurfaceAccess::kNoAccess : SkSurface::BackendSurfaceAccess::kPresent, flushInfo);
         return;
     }
     skSurface_->flush();
 }
 
 #ifdef RS_ENABLE_VK
-void SkiaSurface::Wait(int time, const VkSemaphore& semaphore)
+void SkiaSurface::Wait(int32_t time, const VkSemaphore& semaphore)
 {
+    if (skSurface_ == nullptr) {
+        LOGE("skSurface is nullptr");
+        return;
+    }
     GrBackendSemaphore backendSemaphore;
     backendSemaphore.initVulkan(semaphore);
     skSurface_->wait(time, &backendSemaphore);
@@ -336,6 +338,10 @@ void SkiaSurface::Wait(int time, const VkSemaphore& semaphore)
 
 void SkiaSurface::SetDrawingArea(const std::vector<RectI>& rects)
 {
+    if (skSurface_ == nullptr) {
+        LOGE("skSurface is nullptr");
+        return;
+    }
     std::vector<SkIRect> skIRects;
     for (auto &rect : rects) {
         SkIRect skIRect = {rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()};

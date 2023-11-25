@@ -163,6 +163,7 @@ struct VKAlloc {
     VkDeviceSize size = 0;
     uint32_t flags = 0;
 }
+
 struct VKYcbcrConversionInfo {
     VkFormat format = VK_FORMAT_UNDEFINED;
     uint64_t externalFormat = 0;
@@ -176,8 +177,8 @@ struct VKYcbcrConversionInfo {
 }
 
 struct VKTextureInfo {
-    int width = 0;
-    int height = 0;
+    int32_t width = 0;
+    int32_t height = 0;
     VkImage vkImage = VK_NULL_HANDLE;
     GrVkAlloc vkAlloc;
     VkImageTiling imageTiling = VK_IMAGE_TILING_OPTIMAL;

@@ -41,7 +41,7 @@ public:
 #endif
         NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper)
         : mNativeWindowBuffer(nativeWindowBuffer),
-        mBackendTexture(backendTexture),
+        mBackendTexture_(backendTexture),
         mVulkanCleanupHelper(vulkanCleanupHelper)
     {
     }
@@ -54,7 +54,7 @@ public:
     const Drawing::VKTextureInfo& GetBackendTexture() const
 #endif
     {
-        return mBackendTexture;
+        return mBackendTexture_;
     }
 
     NativeBufferUtils::VulkanCleanupHelper* RefCleanupHelper()
@@ -77,9 +77,9 @@ public:
 private:
     NativeWindowBuffer* mNativeWindowBuffer;
 #ifndef USE_ROSEN_DRAWING
-    GrBackendTexture mBackendTexture;
+    GrBackendTexture mBackendTexture_;
 #else
-    Drawing::VKTextureInfo mBackendTexture;
+    Drawing::VKTextureInfo mBackendTexture_;
 #endif
     NativeBufferUtils::VulkanCleanupHelper* mVulkanCleanupHelper;
     uint32_t threadIndex_ = UNI_MAIN_THREAD_INDEX;

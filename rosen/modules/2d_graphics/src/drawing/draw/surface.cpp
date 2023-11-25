@@ -110,17 +110,17 @@ void Surface::FlushAndSubmit(bool syncCpu)
 void Surface::Flush(FlushInfo *drawingflushInfo)
 {
     if (!impl_) {
-        LOGE("surfaceImpl nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        LOGE("surfaceImpl Flush failed impl nullptr");
         return;
     }
     impl_->Flush(drawingflushInfo);
 }
 
 #ifdef RS_ENABLE_VK
-void Surface::Wait(int time, const VkSemaphore& semaphore)
+void Surface::Wait(int32_t time, const VkSemaphore& semaphore)
 {
     if (!impl_) {
-        LOGE("surfaceImpl nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        LOGE("surfaceImpl Wait failed impl nullptr");
         return;
     }
     impl_->Wait(time, semaphore);
@@ -129,7 +129,7 @@ void Surface::Wait(int time, const VkSemaphore& semaphore)
 void Surface::SetDrawingArea(const std::vector<RectI>& rects)
 {
     if (!impl_) {
-        LOGE("surfaceImpl nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        LOGE("surfaceImpl SetDrawingArea failed impl nullptr");
         return;
     }
     impl_->SetDrawingArea(rects);

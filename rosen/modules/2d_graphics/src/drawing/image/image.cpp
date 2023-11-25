@@ -96,17 +96,18 @@ bool Image::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, Te
     return imageImplPtr->BuildFromTexture(gpuContext, info, origin, bitmapFormat, colorSpace);
 }
 bool Image::BuildFromSurface(GPUContext& gpuContext, Surface& surface, TextureOrigin origin,
-        BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace)
+    BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace)
 {
     return imageImplPtr->BuildFromSurface(gpuContext, surface, origin, bitmapFormat, colorSpace);
 }
 
 #ifdef RS_ENABLE_VK
 bool Image::BuildFromTexture(GPUContext& gpuContext, const VKTextureInfo& info, TextureOrigin origin,
-        BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace,
-        void (*deleteFunc)(void*), void* cleanupHelper)
+    BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace,
+    void (*deleteFunc)(void*), void* cleanupHelper)
 {
-    return imageImplPtr->BuildFromTexture(gpuContext, info, origin, bitmapFormat, colorSpace, deleteFunc, cleanupHelper);
+    return imageImplPtr->BuildFromTexture(gpuContext, info, origin, bitmapFormat,
+        colorSpace, deleteFunc, cleanupHelper);
 }
 #endif
 

@@ -26,8 +26,8 @@
 #include "include/gpu/GrBackendSemaphore.h"
 #include "include/core/SkSurface.h"
 #ifdef USE_ROSEN_DRAWING
-#include "image/image.h"
 #include "draw/surface.h"
+#include "image/image.h"
 #endif
 
 namespace OHOS::Rosen {
@@ -84,7 +84,7 @@ struct NativeSurfaceInfo {
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> skSurface = nullptr;
 #else
-    std::shared_ptr<Drawing::Surface> drawingSurface = nullptr;
+    std::shared_ptr<Drawing::Surface> drawingSurface_ = nullptr;
 #endif
     uint32_t lastPresentedCount = 0;
 
@@ -93,7 +93,7 @@ struct NativeSurfaceInfo {
 #ifndef USE_ROSEN_DRAWING
         skSurface = nullptr;
 #else
-        drawingSurface = nullptr;
+        drawingSurface_ = nullptr;
 #endif
         NativeWindowCancelBuffer(window, nativeWindowBuffer);
     }

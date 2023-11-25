@@ -38,8 +38,7 @@ struct FrameBuffer {
 };
 #endif
 
-struct FlushInfo
-{
+struct FlushInfo {
     bool backendSurfaceAccess = false;
     size_t numSemaphores = 0;
     void *backendSemaphore = nullptr;
@@ -155,7 +154,7 @@ public:
     }
 
 #ifdef RS_ENABLE_VK
-    void Wait(int time, const VkSemaphore& semaphore);
+    void Wait(int32_t time, const VkSemaphore& semaphore);
     void SetDrawingArea(const std::vector<RectI>& rects);
 #endif
 

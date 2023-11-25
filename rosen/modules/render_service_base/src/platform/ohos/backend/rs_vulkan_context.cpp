@@ -55,6 +55,7 @@ static std::vector<const char*> gDeviceExtensions = {
 
 static const int GR_CACHE_MAX_COUNT = 8192;
 static const size_t GR_CACHE_MAX_BYTE_SIZE = 96 * (1 << 20);
+static const int32_t CACHE_LIMITS_TIMES = 3;
 
 RsVulkanContext::RsVulkanContext()
     : handle_(nullptr), acquiredMandatoryProcAddresses_(false)
@@ -428,7 +429,7 @@ sk_sp<GrDirectContext> RsVulkanContext::CreateSkContext(bool independentContext)
     skContext_ = GrDirectContext::MakeVulkan(backendContext_);
     int maxResources = 0;
     size_t maxResourcesSize = 0;
-    int cacheLimitsTimes = 3;
+    int cacheLimitsTimes = CACHE_LIMITS_TIMES;
     skContext_->getResourceCacheLimits(&maxResources, &maxResourcesSize);
     if (maxResourcesSize > 0) {
         skContext_->setResourceCacheLimits(cacheLimitsTimes * maxResources,
@@ -454,7 +455,7 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanContext::CreateDrawingContext(bool 
     drawingContext_->BuildFromVK(backendContext_);
     int maxResources = 0;
     size_t maxResourcesSize = 0;
-    int cacheLimitsTimes = 3;
+    int cacheLimitsTimes = CACHE_LIMITS_TIMES;
     drawingContext_->GetResourceCacheLimits(&maxResources, &maxResourcesSize);
     if (maxResourcesSize > 0) {
         drawingContext_->SetResourceCacheLimits(cacheLimitsTimes * maxResources,
@@ -492,7 +493,7 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanContext::CreateNewDrawingContext()
     drawingContext_->BuildFromVK(hbackendContext_);
     int maxResources = 0;
     size_t maxResourcesSize = 0;
-    int cacheLimitsTimes = 3;
+    int cacheLimitsTimes = CACHE_LIMITS_TIMES;
     drawingContext_->GetResourceCacheLimits(&maxResources, &maxResourcesSize);
     if (maxResourcesSize > 0) {
         drawingContext_->SetResourceCacheLimits(cacheLimitsTimes * maxResources, cacheLimitsTimes *

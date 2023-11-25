@@ -33,11 +33,11 @@ namespace Drawing {
 class Data;
 #ifdef ACE_ENABLE_GPU
 class GPUContext;
-class TextureInfo;
-enum class TextureOrigin;
 enum class CompressedType;
 class BackendTexture;
 #endif
+class TextureInfo;
+enum class TextureOrigin;
 #ifdef RS_ENABLE_VK
 struct VKTextureInfo;
 #endif

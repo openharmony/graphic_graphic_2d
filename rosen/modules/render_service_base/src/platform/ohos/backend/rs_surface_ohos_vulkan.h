@@ -30,11 +30,10 @@
 #include "sync_fence.h"
 #include "native_buffer_utils.h"
 #endif // ENABLE_NATIVEBUFFER
-
-#include <surface.h>
+#include "image/image.h"
 #include "platform/ohos/rs_surface_ohos.h"
 #include "rs_surface_frame_ohos_vulkan.h"
-#include "image/image.h"
+#include <surface.h>
 
 namespace OHOS {
 namespace Rosen {

@@ -52,7 +52,7 @@ public:
     virtual void FlushAndSubmit(bool syncCpu) = 0;
     virtual void Flush(FlushInfo *drawingflushInfo = nullptr) = 0;
 #ifdef RS_ENABLE_VK
-    virtual void Wait(int time, const VkSemaphore& semaphore);
+    virtual void Wait(int32_t time, const VkSemaphore& semaphore);
     virtual void SetDrawingArea(const std::vector<RectI>& rects);
 #endif
 };

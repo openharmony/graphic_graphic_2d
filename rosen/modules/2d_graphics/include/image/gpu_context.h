@@ -114,6 +114,9 @@ public:
      */
     void Flush();
 
+    /*
+     * @brief   Call to ensure all drawing to the context has been submitted to underlying 3D API.
+     */
     void Submit();
 
     /*
