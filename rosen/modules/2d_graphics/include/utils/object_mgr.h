@@ -18,6 +18,7 @@
 
 #include <mutex>
 #include <vector>
+#include <memory>
 
 namespace OHOS {
 namespace Rosen {
