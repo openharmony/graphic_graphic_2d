@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#ifndef USE_ROSEN_DRAWING
 #include <gtest/gtest.h>
 
 #include "pipeline/rs_draw_cmd.h"
@@ -129,3 +130,4 @@ HWTEST_F(DrawCmdListTest, PlayBackForRecord002, TestSize.Level1)
 }
 } // namespace Rosen
 } // namespace OHOS
+#endif
