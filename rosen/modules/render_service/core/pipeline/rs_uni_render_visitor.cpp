@@ -2981,13 +2981,27 @@ void RSUniRenderVisitor::AddOverDrawListener(std::unique_ptr<RSRenderFrame>& ren
     }
 }
 
+bool RSUniRenderVisitor::IsNotDirtyHardwareEnabledTopSurface(std::shared_ptr<RSSurfaceRenderNode>& node) const
+{
+    if (!node->IsHardwareEnabledTopSurface()) {
+        return false;
+    }
+    // If the pointer is dirty in last frame but not in current, when gpu -> hardware composer.
+    // It should also calc global dirty in current frame.
+    node->SetNodeDirty(isHardwareForcedDisabled_ || node->HasSubNodeShouldPaint());
+    return !node->IsNodeDirty();
+}
+
 void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderNode>& node)
 {
     RS_OPTIONAL_TRACE_FUNC();
     auto displayDirtyManager = node->GetDirtyManager();
     for (auto it = node->GetCurAllSurfaces().rbegin(); it != node->GetCurAllSurfaces().rend(); ++it) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-        if (surfaceNode == nullptr || !IsHardwareEnabledNodeNeedCalcGlobalDirty(surfaceNode)) {
+        if (surfaceNode == nullptr) {
+            continue;
+        }
+        if (IsNotDirtyHardwareEnabledTopSurface(surfaceNode)) {
             continue;
         }
         auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
@@ -3292,7 +3306,7 @@ void RSUniRenderVisitor::AddContainerDirtyToGlobalDirty(std::shared_ptr<RSDispla
             // transparent region and opaque region in adjacent frame, may cause displaydirty region incomplete after
             // merge history (as surfacenode's dirty region merging opaque region will enlarge surface dirty region
             // which include transparent region but not counted in display dirtyregion)
-            if (!IsHardwareEnabledNodeNeedCalcGlobalDirty(surfaceNode)) {
+            if (!surfaceNode->IsNodeDirty()) {
                 continue;
             }
             auto transparentRegion = surfaceNode->GetTransparentRegion();

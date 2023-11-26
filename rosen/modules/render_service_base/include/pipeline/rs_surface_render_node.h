@@ -102,6 +102,17 @@ public:
         return nodeType_ == RSSurfaceNodeType::SCB_SCREEN_NODE;
     }
 
+    void SetNodeDirty(bool isNodeDirty)
+    {
+        isNodeDirty_ = isNodeDirty || isNodeDirtyInLastFrame_;
+        isNodeDirtyInLastFrame_ = isNodeDirty;
+    }
+
+    bool IsNodeDirty() const
+    {
+        return isNodeDirty_;
+    }
+
     bool IsHardwareEnabledTopSurface() const
     {
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window";
@@ -1021,8 +1032,9 @@ private:
     std::shared_ptr<Drawing::Image> cachedImage_;
 #endif
 
-    // used for hardware enabled pointer window
-    bool isLastFrameNeedCalcGlobalDirty_ = true;
+    // only used in hardware enabled pointer window, when gpu -> hardware composer
+    bool isNodeDirtyInLastFrame_ = true;
+    bool isNodeDirty_ = true;
     // used for hardware enabled nodes
     bool isHardwareEnabledNode_ = false;
     bool isCurrentFrameHardwareEnabled_ = false;
