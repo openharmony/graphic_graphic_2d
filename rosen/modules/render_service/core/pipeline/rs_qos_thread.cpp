@@ -95,6 +95,9 @@ void RSQosThread::SetQosVSyncRate(uint32_t pid, int32_t rate)
 
 void RSQosThread::ResetQosPid()
 {
+    if (!RSInnovation::_s_qosVsyncFuncLoaded) {
+        return;
+    }
     using QosOnRSResetPidFunc = void* (*)();
 
     auto QosOnRSResetPid = (QosOnRSResetPidFunc)RSInnovation::_s_qosOnRSResetPid;

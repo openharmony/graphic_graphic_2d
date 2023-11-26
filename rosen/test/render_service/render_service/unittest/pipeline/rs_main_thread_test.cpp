@@ -695,6 +695,8 @@ HWTEST_F(RSMainThreadTest, DoParallelComposition, TestSize.Level1)
 
     auto mainThread = RSMainThread::Instance();
     RSInnovation::_s_createParallelSyncSignal = (void*)RSMainThreadTest::CreateParallelSyncSignal;
-    mainThread->DoParallelComposition(node);
+    if (RSInnovation::GetParallelCompositionEnabled(mainThread->isUniRender_)) {
+        mainThread->DoParallelComposition(node);
+    }
 }
 } // namespace OHOS::Rosen
