@@ -96,6 +96,7 @@ private:
     std::vector<double> lineMaxCoveredDescent_;
     double maxWidth_ = 0.0;
     double maxLineWidth_ = 0.0;
+    float descent_ = 0.0;
     double height_ = 0.0;
     std::vector<double> yOffsets_ = {};
     double maxIntrinsicWidth_ = 0.0;

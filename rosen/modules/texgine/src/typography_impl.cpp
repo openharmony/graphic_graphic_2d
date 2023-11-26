@@ -367,7 +367,7 @@ int TypographyImpl::UpdateMetrics()
             }
 
             if (auto as = span.TryToAnySpan(); as != nullptr) {
-                span.AdjustOffsetY(-coveredAscent);
+                span.AdjustOffsetY(-ceil(coveredAscent));
             }
         }
 
@@ -468,6 +468,7 @@ int TypographyImpl::UpdateSpanMetrics(VariantSpan &span, double &coveredAscent)
     TexgineFontMetrics metrics;
     if (auto ts = span.TryToTextSpan(); ts != nullptr) {
         metrics = ts->tmetrics_;
+        descent_ = *metrics.fDescent_;
     } else {
         auto as = span.TryToAnySpan();
         auto families = style.fontFamilies;
@@ -496,8 +497,8 @@ int TypographyImpl::UpdateSpanMetrics(VariantSpan &span, double &coveredAscent)
         font.SetTypeface(typeface->Get());
         font.SetSize(style.fontSize);
         font.GetMetrics(&metrics);
+        descent_ = std::max(*metrics.fDescent_, descent_);
     }
-
     if (DoUpdateSpanMetrics(span, metrics, style, coveredAscent)) {
         LOGEX_FUNC_LINE(ERROR) << "DoUpdateSpanMetrics is error";
         return FAILED;
@@ -516,17 +517,17 @@ int TypographyImpl::DoUpdateSpanMetrics(const VariantSpan &span, const TexgineFo
     if (!onlyUseStrut) {
         double coveredDescent = 0;
         if (style.heightOnly) {
-            double metricsHeight = -*metrics.fAscent_ + *metrics.fDescent_;
+            double metricsHeight = -*metrics.fAscent_ + descent_;
             if (fabs(metricsHeight) < DBL_EPSILON) {
                 LOGEX_FUNC_LINE(ERROR) << "metrics is error";
                 return FAILED;
             }
 
             coveredAscent = (-*metrics.fAscent_ / metricsHeight) * style.heightScale * style.fontSize;
-            coveredDescent = (*metrics.fDescent_ / metricsHeight) * style.heightScale * style.fontSize;
+            coveredDescent = (descent_ / metricsHeight) * style.heightScale * style.fontSize;
         } else {
             coveredAscent = (-*metrics.fAscent_ + HALF(*metrics.fLeading_));
-            coveredDescent = (*metrics.fDescent_ + HALF(*metrics.fLeading_));
+            coveredDescent = (descent_ + HALF(*metrics.fLeading_));
         }
         if (auto as = span.TryToAnySpan(); as != nullptr) {
             UpadateAnySpanMetrics(as, coveredAscent, coveredDescent);
