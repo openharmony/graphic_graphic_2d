@@ -50,18 +50,6 @@ void InitTsMockVars(struct MockVars &&vars)
     g_tsMockvars = std::move(vars);
 }
 
-std::shared_ptr<TexgineTextBlobBuilder::RunBuffer> TexgineTextBlobBuilder::AllocRunPos(const TexgineFont& font,
-    int count)
-{
-    static std::shared_ptr<TexgineTextBlobBuilder::RunBuffer> buffer =
-        std::make_shared<TexgineTextBlobBuilder::RunBuffer>();
-    g_tsMockvars.catchedBufferGlyphs.resize(count);
-    g_tsMockvars.catchedBufferPos.resize(count * 2);
-    buffer->glyphs = g_tsMockvars.catchedBufferGlyphs.data();
-    buffer->pos = g_tsMockvars.catchedBufferPos.data();
-    return buffer;
-}
-
 std::shared_ptr<TexgineTextBlob> TexgineTextBlobBuilder::Make()
 {
     return g_tsMockvars.retvalTextBlobBuilderMake;

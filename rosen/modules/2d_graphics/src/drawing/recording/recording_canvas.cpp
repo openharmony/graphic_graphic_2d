@@ -295,15 +295,8 @@ void RecordingCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const s
         return;
     }
 
-    if (IsCustomTextType()) {
-        LOGD("RecordingCanvas::DrawTextBlob replace drawOpItem with cached one");
-        ImageHandle imageHandle;
-        DrawTextBlobOpItem::ConstructorHandle textOp(imageHandle, x, y);
-        textOp.GenerateCachedOpItem(cmdList_, blob);
-    } else {
-        auto textBlobHandle = CmdListHelper::AddTextBlobToCmdList(*cmdList_, blob);
-        cmdList_->AddOp<DrawTextBlobOpItem::ConstructorHandle>(textBlobHandle, x, y);
-    }
+    auto textBlobHandle = CmdListHelper::AddTextBlobToCmdList(*cmdList_, blob);
+    cmdList_->AddOp<DrawTextBlobOpItem::ConstructorHandle>(textBlobHandle, x, y);
 }
 
 void RecordingCanvas::ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias)

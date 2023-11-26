@@ -18,7 +18,11 @@
 
 #include <memory>
 
+#ifndef USE_ROSEN_DRAWING
 #include <include/core/SkFontMgr.h>
+#else
+#include "drawing.h"
+#endif
 
 #include "texgine_font_style.h"
 #include "texgine_string.h"
@@ -29,8 +33,13 @@ namespace Rosen {
 namespace TextEngine {
 class TexgineFontStyleSet {
 public:
+#ifndef USE_ROSEN_DRAWING
     explicit TexgineFontStyleSet(SkFontStyleSet *set);
     ~TexgineFontStyleSet();
+#else
+    explicit TexgineFontStyleSet(RSFontStyleSet *set);
+    ~TexgineFontStyleSet();
+#endif
 
     /*
      * @brief Return the count of typeface
@@ -65,13 +74,21 @@ public:
     /*
      * @brief Returns the SkFontStyleSet in TexgineFontStyleSet
      */
+#ifndef USE_ROSEN_DRAWING
     SkFontStyleSet *GetFontStyleSet() const
+#else
+    RSFontStyleSet *GetFontStyleSet() const
+#endif
     {
         return set_;
     }
 
 private:
+#ifndef USE_ROSEN_DRAWING
     SkFontStyleSet *set_ = nullptr;
+#else
+    RSFontStyleSet *set_ = nullptr;
+#endif
 };
 } // namespace TextEngine
 } // namespace Rosen

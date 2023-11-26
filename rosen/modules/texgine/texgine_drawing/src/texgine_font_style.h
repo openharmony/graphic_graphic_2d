@@ -18,7 +18,11 @@
 
 #include <memory>
 
+#ifndef USE_ROSEN_DRAWING
 #include <include/core/SkFontStyle.h>
+#else
+#include "drawing.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -32,25 +36,48 @@ public:
     };
 
     TexgineFontStyle();
+
     TexgineFontStyle(int weight, int width, Slant slant);
+
+#ifndef USE_ROSEN_DRAWING
     explicit TexgineFontStyle(const std::shared_ptr<SkFontStyle> style);
+#else
+    explicit TexgineFontStyle(const std::shared_ptr<RSFontStyle> style);
+#endif
+
+    /*
+     * @brief Sets SkFontStyle to TexgineFontStyle
+     */
+#ifndef USE_ROSEN_DRAWING
+    void SetStyle(const SkFontStyle &style);
+#else
+    void SetStyle(const RSFontStyle &style);
+#endif
+
+    /*
+     * @brief Sets SkFontStyle to TexgineFontStyle
+     */
+#ifndef USE_ROSEN_DRAWING
+    void SetFontStyle(const std::shared_ptr<SkFontStyle> fontStyle);
+#else
+    void SetFontStyle(const std::shared_ptr<RSFontStyle> fontStyle);
+#endif
+
     /*
      * @brief Returns SkFontStyle
      */
+#ifndef USE_ROSEN_DRAWING
     std::shared_ptr<SkFontStyle> GetFontStyle() const;
-
-    /*
-     * @brief Sets SkFontStyle to TexgineFontStyle
-     */
-    void SetFontStyle(const std::shared_ptr<SkFontStyle> fontStyle);
-
-    /*
-     * @brief Sets SkFontStyle to TexgineFontStyle
-     */
-    void SetStyle(const SkFontStyle &style);
+#else
+    std::shared_ptr<RSFontStyle> GetFontStyle() const;
+#endif
 
 private:
+#ifndef USE_ROSEN_DRAWING
     std::shared_ptr<SkFontStyle> fontStyle_ = nullptr;
+#else
+    std::shared_ptr<RSFontStyle> fontStyle_ = nullptr;
+#endif
 };
 } // namespace TextEngine
 } // namespace Rosen

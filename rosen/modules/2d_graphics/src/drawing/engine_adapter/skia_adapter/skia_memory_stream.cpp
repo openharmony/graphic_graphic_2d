@@ -13,36 +13,22 @@
  * limitations under the License.
  */
 
-#include "texgine_string.h"
+#include "skia_memory_stream.h"
+
+#include "include/core/SkStream.h"
 
 namespace OHOS {
 namespace Rosen {
-namespace TextEngine {
-#ifndef USE_ROSEN_DRAWING
-SkString *TexgineString::GetString() const
-#else
-std::string *TexgineString::GetString()
-#endif
-{
-    return string_.get();
-}
+namespace Drawing {
+SkiaMemoryStream::SkiaMemoryStream() : skMemoryStream_(std::make_unique<SkMemoryStream>()) {}
 
-#ifndef USE_ROSEN_DRAWING
-void TexgineString::SetString(const std::shared_ptr<SkString> string)
-#else
-void TexgineString::SetString(const std::shared_ptr<std::string> string)
-#endif
-{
-    string_ = string;
-}
+SkiaMemoryStream::SkiaMemoryStream(const void* data, size_t length, bool copyData)
+    : skMemoryStream_(std::make_unique<SkMemoryStream>(data, length, copyData)) {}
 
-std::string TexgineString::ToString() const
+std::unique_ptr<SkMemoryStream> SkiaMemoryStream::GetSkMemoryStream()
 {
-    if (string_ == nullptr) {
-        return "";
-    }
-    return string_->c_str();
+    return std::move(skMemoryStream_);
 }
-} // namespace TextEngine
+} // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

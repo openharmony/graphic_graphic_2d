@@ -18,7 +18,11 @@
 
 #include <memory>
 
+#ifndef USE_ROSEN_DRAWING
 #include <include/core/SkRect.h>
+#else
+#include "drawing.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -55,13 +59,21 @@ public:
     /*
      * @brief Return SkRect that user init or set to TexgineRect
      */
+#ifndef USE_ROSEN_DRAWING
     std::shared_ptr<SkRect> GetRect() const;
+#else
+    std::shared_ptr<RSRect> GetRect() const;
+#endif
 
     /*
      * @brief Sets SkRect to TexgineRect
      * @param rect SkRect user want
      */
+#ifndef USE_ROSEN_DRAWING
     void SetRect(const SkRect &rect);
+#else
+    void SetRect(const RSRect &rect);
+#endif
 
     float *fLeft_ = nullptr;
     float *fTop_ = nullptr;
@@ -69,7 +81,11 @@ public:
     float *fBottom_ = nullptr;
 
 private:
+#ifndef USE_ROSEN_DRAWING
     std::shared_ptr<SkRect> rect_ = nullptr;
+#else
+    std::shared_ptr<RSRect> rect_ = nullptr;
+#endif
 };
 } // namespace TextEngine
 } // namespace Rosen

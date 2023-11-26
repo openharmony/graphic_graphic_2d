@@ -18,8 +18,11 @@
 
 #include <memory>
 
+#ifndef USE_ROSEN_DRAWING
 #include <include/core/SkPaint.h>
-#include <include/core/SkBlendMode.h>
+#else
+#include "drawing.h"
+#endif
 
 #include "texgine_mask_filter.h"
 #include "texgine_path_effect.h"
@@ -68,11 +71,45 @@ public:
     };
 
     TexginePaint();
+
+#ifndef USE_ROSEN_DRAWING
+    /*
+     * @brief Gets SkPaint from TexginePaint
+     */
     SkPaint GetPaint() const;
+#else
+    /*
+     * @brief Gets Brush from TexginePaint
+     */
+    RSBrush GetBrush() const;
+
+    /*
+     * @brief Gets Pen from TexginePaint
+     */
+    RSPen GetPen() const;
+
+    /*
+     * @brief Gets Style from TexginePaint
+     */
+    Style GetStyle() const;
+#endif
+
+#ifndef USE_ROSEN_DRAWING
     /*
      * @brief Sets SkPaint to TexginePaint
      */
     void SetPaint(const SkPaint &paint);
+#else
+    /*
+     * @brief Sets Brush to TexginePaint
+     */
+    void SetBrush(const RSBrush &brush);
+
+    /*
+     * @brief Sets Pen to TexginePaint
+     */
+    void SetPen(const RSPen &pen);
+#endif
 
     /*
      * @brief Sets alpha and RGB used when stroking and filling
@@ -136,7 +173,13 @@ public:
     bool operator==(const TexginePaint &rhs) const;
 
 private:
+#ifndef USE_ROSEN_DRAWING
     std::shared_ptr<SkPaint> paint_ = nullptr;
+#else
+    Style style_;
+    std::shared_ptr<RSBrush> brush_ = nullptr;
+    std::shared_ptr<RSPen> pen_ = nullptr;
+#endif
 };
 } // namespace TextEngine
 } // namespace Rosen

@@ -20,6 +20,7 @@
 
 #include "include/core/SkFontMgr.h"
 
+#include "text/font_style_set.h"
 #include "impl_interface/font_style_set_impl.h"
 
 namespace OHOS {
@@ -39,7 +40,13 @@ public:
 
     Typeface* CreateTypeface(int index) override;
 
+    void GetStyle(int32_t index, FontStyle* fontStyle, std::string* styleName) override;
+
+    Typeface* MatchStyle(const FontStyle& pattern) override;
+
     int Count() override;
+
+    static FontStyleSet* CreateEmpty();
 
 private:
     std::shared_ptr<SkFontStyleSet> skFontStyleSet_;

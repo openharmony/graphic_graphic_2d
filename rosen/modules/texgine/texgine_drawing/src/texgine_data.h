@@ -18,7 +18,11 @@
 
 #include <memory>
 
+#ifndef USE_ROSEN_DRAWING
 #include <include/core/SkData.h>
+#else
+#include "drawing.h"
+#endif
 
 #include "texgine_canvas.h"
 #include "texgine_picture.h"
@@ -31,21 +35,28 @@ public:
     /*
      * @brief Return the instance of SkData
      */
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkData> GetData() const;
+#else
+    std::shared_ptr<RSData> GetData() const;
+#endif
 
     /*
      * @brief Set SkData to TexgineData
      */
+#ifndef USE_ROSEN_DRAWING
     void SetData(const sk_sp<SkData> &data);
-
-    /*
-     * @brief Create a TexgineData from file
-     * @param path The file path
-     */
+#else
+    void SetData(const std::shared_ptr<RSData> &data);
+#endif
     static std::shared_ptr<TexgineData> MakeFromFileName(const std::string &path);
 
 private:
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkData> data_ = nullptr;
+#else
+    std::shared_ptr<RSData> data_ = nullptr;
+#endif
 };
 } // namespace TextEngine
 } // namespace Rosen

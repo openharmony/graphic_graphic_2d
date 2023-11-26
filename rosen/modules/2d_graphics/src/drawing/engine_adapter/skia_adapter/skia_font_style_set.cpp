@@ -17,10 +17,12 @@
 
 #include "include/core/SkString.h"
 #include "include/core/SkTypeface.h"
+#include "include/core/SkFontMgr.h"
 
 #include "impl_interface/typeface_impl.h"
 #include "skia_adapter/skia_convert_utils.h"
 #include "skia_adapter/skia_typeface.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -37,9 +39,60 @@ Typeface* SkiaFontStyleSet::CreateTypeface(int index)
     return new Typeface(typefaceImpl);
 }
 
+void SkiaFontStyleSet::GetStyle(int32_t index, FontStyle* fontStyle, std::string* styleName)
+{
+    if (!skFontStyleSet_) {
+        LOGE("SkiaFontStyleSet::GetStyle, skFontStyleSet_ nullptr");
+        return;
+    }
+    SkFontStyle skFontStyle;
+    if (fontStyle) {
+        SkiaConvertUtils::DrawingFontStyleCastToSkFontStyle(*fontStyle, skFontStyle);
+    }
+    SkString skStyleName;
+    if (styleName) {
+        SkiaConvertUtils::StdStringCastToSkString(*styleName, skStyleName);
+    }
+    skFontStyleSet_->getStyle(index, fontStyle ? &skFontStyle : nullptr, styleName ? &skStyleName : nullptr);
+    if (fontStyle) {
+        SkiaConvertUtils::SkFontStyleCastToDrawingFontStyle(skFontStyle, *fontStyle);
+    }
+    if (styleName) {
+        SkiaConvertUtils::SkStringCastToStdString(skStyleName, *styleName);
+    }
+}
+
+Typeface* SkiaFontStyleSet::MatchStyle(const FontStyle& pattern)
+{
+    if (!skFontStyleSet_) {
+        LOGE("SkiaFontStyleSet::MatchStyle, skFontStyleSet_ nullptr");
+        return nullptr;
+    }
+    SkFontStyle skFontStyle;
+    SkiaConvertUtils::DrawingFontStyleCastToSkFontStyle(pattern, skFontStyle);
+    SkTypeface* skTypeface = skFontStyleSet_->matchStyle(skFontStyle);
+    if (!skTypeface) {
+        return nullptr;
+    }
+    std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(sk_sp(skTypeface));
+    return new Typeface(typefaceImpl);
+}
+
 int SkiaFontStyleSet::Count()
 {
     return skFontStyleSet_->count();
+}
+
+FontStyleSet* SkiaFontStyleSet::CreateEmpty()
+{
+    SkFontStyleSet* skFontStyleSetPtr = SkFontStyleSet::CreateEmpty();
+    if (!skFontStyleSetPtr) {
+        LOGE("SkiaFontStyleSet::CreateEmpty, skFontStyleSet nullptr");
+        return nullptr;
+    }
+    std::shared_ptr<SkFontStyleSet> skFontStyleSet{skFontStyleSetPtr};
+    std::shared_ptr<FontStyleSetImpl> fontStyleSetImpl = std::make_shared<SkiaFontStyleSet>(skFontStyleSet);
+    return new FontStyleSet(fontStyleSetImpl);
 }
 } // namespace Drawing
 } // namespace Rosen

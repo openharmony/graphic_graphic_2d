@@ -30,8 +30,8 @@ namespace Rosen {
 namespace TextEngine {
 class Typeface {
 public:
+    static std::shared_ptr<Typeface> MakeDefault();
     static std::unique_ptr<Typeface> MakeFromFile(const std::string &filename);
-
     Typeface(std::shared_ptr<TexgineTypeface> tf);
     ~Typeface();
 
