@@ -39,8 +39,6 @@
 #include "native_window.h"
 #include "native_buffer_inner.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
-#include "include/gpu/GrBackendSemaphore.h"
-#include "platform/ohos/backend/native_buffer_utils.h"
 #endif
 
 namespace OHOS {
@@ -755,9 +753,13 @@ ImageWithParmOpItem::~ImageWithParmOpItem()
         }
     });
 #elif defined(RS_ENABLE_VK)
-    RSTaskDispatcher::GetInstance().PostTask(tid_, [nativeWindowBuffer = nativeWindowBuffer_]() {
+    RSTaskDispatcher::GetInstance().PostTask(tid_, [nativeWindowBuffer = nativeWindowBuffer_,
+        cleanupHelper = cleanupHelper_]() {
         if (nativeWindowBuffer) {
             DestroyNativeWindowBuffer(nativeWindowBuffer);
+        }
+        if (cleanupHelper) {
+            NativeBufferUtils::DeleteVkImage(cleanupHelper);
         }
     });
 #endif
@@ -775,30 +777,10 @@ void ImageWithParmOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) 
 #ifndef USE_ROSEN_DRAWING
     std::shared_ptr<Media::PixelMap> pixelmap = rsImage_->GetPixelMap();
     if (pixelmap != nullptr && pixelmap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
         sk_sp<SkImage> dmaImage = GetSkImageFromSurfaceBuffer(canvas,
             reinterpret_cast<SurfaceBuffer*> (pixelmap->GetFd()));
         rsImage_->SetDmaImage(dmaImage);
-#elif defined(RS_ENABLE_VK)
-        SurfaceBuffer* surfaceBuffer = reinterpret_cast<SurfaceBuffer*>(pixelmap->GetFd());
-        nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&surfaceBuffer);
-        if (!skImage) {
-            tid_ = gettid();
-            auto backendTexture = MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
-                SurfaceBuffer->GetWidth(), SurfaceBuffer->GetHeight());
-            if (backendTexture.isValid()) {
-                GrVkImageInfo imageInfo;
-                backendTexture.getVkImageInfo(&imageInfo);
-                skImage_ = SkImage::MakeFromTexture(
-                    canvas.recordingContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
-                    GetSkColorTypeFromVkFormat(imageInfo.fFormat), kPremul_SkAlphaType, SkColorSpace::MakeSRGB(),
-                    delete_vk_image, new VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-                        imageInfo.fImage, imageInfo.fAlloc.fMemory));
-            } else {
-                skImage_ = nullptr;
-            }
-        }
-        rsImage_->SetDmaImage(skImage_);
 #endif
     } else {
         if (pixelmap && pixelmap->IsAstc()) {
@@ -814,7 +796,7 @@ void ImageWithParmOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) 
     rsImage_->CanvasDrawImage(canvas, *rect, samplingOptions_, paint_);
 }
 
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifndef USE_ROSEN_DRAWING
 sk_sp<SkImage> ImageWithParmOpItem::GetSkImageFromSurfaceBuffer(SkCanvas& canvas, SurfaceBuffer* surfaceBuffer) const
 {
@@ -830,6 +812,7 @@ sk_sp<SkImage> ImageWithParmOpItem::GetSkImageFromSurfaceBuffer(SkCanvas& canvas
             return nullptr;
         }
     }
+#ifdef RS_ENABLE_GL
     EGLint attrs[] = {
         EGL_IMAGE_PRESERVED,
         EGL_TRUE,
@@ -868,10 +851,32 @@ sk_sp<SkImage> ImageWithParmOpItem::GetSkImageFromSurfaceBuffer(SkCanvas& canvas
     auto skImage = SkImage::MakeFromTexture(canvas.getGrContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
         kRGBA_8888_SkColorType, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
 #endif
+#elif defined(RS_ENABLE_VK)
+    if (!backendTexture_.isValid()) {
+        backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
+            surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight());
+        if (backendTexture_.isValid()) {
+            GrVkImageInfo imageInfo;
+            backendTexture_.getVkImageInfo(&imageInfo);
+            cleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+                imageInfo.fImage, imageInfo.fAlloc.fMemory);
+        } else {
+            return nullptr;
+        }
+        tid_ = gettid();
+    }
+
+    GrVkImageInfo imageInfo;
+    backendTexture_.getVkImageInfo(&imageInfo);
+    auto skImage = SkImage::MakeFromTexture(
+        canvas.recordingContext(), backendTexture_, kTopLeft_GrSurfaceOrigin,
+        GetSkColorTypeFromVkFormat(imageInfo.fFormat), kPremul_SkAlphaType, SkColorSpace::MakeSRGB(),
+        NativeBufferUtils::DeleteVkImage, cleanupHelper_->Ref());
+#endif
     return skImage;
 }
 #endif // USE_ROSEN_DRAWING
-#endif // ROSEN_OHOS & RS_ENABLE_GL
+#endif // defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 
 #ifdef NEW_SKIA
 ConcatOpItem::ConcatOpItem(const SkM44& matrix) : OpItem(sizeof(ConcatOpItem)), matrix_(matrix) {}
@@ -1082,12 +1087,19 @@ void SurfaceBufferOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
     if (backendTexture.isValid()) {
         GrVkImageInfo imageInfo;
         backendTexture.getVkImageInfo(&imageInfo);
-        skImage_ = SkImage::MakeFromTexture(
-            canvas.recordingContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
-            GetSkColorTypeFromVkFormat(imageInfo.fFormat), kPremul_SkAlphaType, SkColorSpace::MakeSRGB(),
-            delete_vk_image, new VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+        skImage_ = SkImage::MakeFromTexture(canvas.recordingContext(),
+            backendTexture, kTopLeft_GrSurfaceOrigin, GetSkColorTypeFromVkFormat(imageInfo.fFormat),
+            kPremul_SkAlphaType, SkColorSpace::MakeSRGB(), NativeBufferUtils::DeleteVkImage,
+            new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
                 imageInfo.fImage, imageInfo.fAlloc.fMemory));
-        canvas.drawImage(skImage_, surfaceBufferInfo_.offsetX, surfaceBufferInfo_.offsetY);
+        if (canvas.GetRecordingState()) {
+            auto cpuImage = skImage->makeRasterImage();
+            auto samplingOptions = SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
+            canvas.drawImage(cpuImage, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, samplingOptions);
+            return;
+        }
+        auto samplingOptions = SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
+        canvas.drawImage(skImage_, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, samplingOptions);
     } else {
         skImage_ = nullptr;
         ROSEN_LOGE("SurfaceBufferOpItem::Clear: backendTexture is not valid");

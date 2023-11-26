@@ -39,8 +39,6 @@
 #ifdef RS_ENABLE_EGLIMAGE
 #include "rs_egl_image_manager.h"
 #endif // RS_ENABLE_EGLIMAGE
-#include <parameter.h>
-#include <parameters.h>
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "metadata_helper.h"

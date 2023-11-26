@@ -38,21 +38,22 @@ bool GetNativeBufferFormatProperties(const RsVulkanContext& vkContext, VkDevice 
 
     VkResult err = vkContext.vkGetNativeBufferPropertiesOHOS(device, nativeBuffer, nbProps);
     if (VK_SUCCESS != err) {
-        ROSEN_LOGE("RSSurfaceOhosVulkan GetNativeBufferPropertiesOHOS Failed ! %d", err);
+        ROSEN_LOGE("NativeBufferUtils: vkGetNativeBufferPropertiesOHOS Failed ! %d", err);
         return false;
     }
     return true;
 }
 
 bool CreateVkImage(const RsVulkanContext& vkContext, VkImage* image,
-    const VkNativeBufferFormatPropertiesOHOS* nbFormatProps, int width, int height)
+    const VkNativeBufferFormatPropertiesOHOS& nbFormatProps, const VkExtent3D& imageSize,
+    VkImageUsageFlags usageFlags = 0)
 {
     VkExternalFormatOHOS externalFormat;
     externalFormat.sType = VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_OHOS;
     externalFormat.pNext = nullptr;
     externalFormat.externalFormat = 0;
 
-    if (nbFormatProps.format != VK_FORMAT_UNDEFINED) {
+    if (nbFormatProps.format == VK_FORMAT_UNDEFINED) {
         externalFormat.externalFormat = nbFormatProps.externalFormat;
     }
 
@@ -71,8 +72,8 @@ bool CreateVkImage(const RsVulkanContext& vkContext, VkImage* image,
         &externalMemoryImageInfo,
         flags,
         VK_IMAGE_TYPE_2D,
-        nbFormatProps->format,
-        {width, height, 1},
+        nbFormatProps.format,
+        imageSize,
         1,
         1,
         VK_SAMPLE_COUNT_1_BIT,
@@ -86,7 +87,7 @@ bool CreateVkImage(const RsVulkanContext& vkContext, VkImage* image,
 
     VkResult err = vkContext.vkCreateImage(vkContext.GetDevice(), &imageCreateInfo, nullptr, image);
     if (err != VK_SUCCESS) {
-        ROSEN_LOGE("RSSurfaceOhosVulkan: CreateImage failed");
+        ROSEN_LOGE("NativeBufferUtils: vkCreateImage failed");
         return false;
     }
     return true;
@@ -108,7 +109,7 @@ bool AllocateDeviceMemory(const RsVulkanContext& vkContext, VkDeviceMemory* memo
     bool found = false;
     for (uint32_t i = 0; i < memTypeCnt; ++i) {
         if (nbProps.memoryTypeBits & (1 << i)) {
-            const VkPhysicalDeviceMemoryProperties &pdmp = physicalDeviceMemProps.memoryProperties;
+            const VkPhysicalDeviceMemoryProperties& pdmp = physicalDeviceMemProps.memoryProperties;
             uint32_t supportedFlags = pdmp.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
             if (supportedFlags == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
                 foundTypeIndex = i;
@@ -119,7 +120,7 @@ bool AllocateDeviceMemory(const RsVulkanContext& vkContext, VkDeviceMemory* memo
         }
     }
     if (!found) {
-        ROSEN_LOGE("RSSurfaceOhosVulkan not found %{public}u", nbProps.memoryTypeBits);
+        ROSEN_LOGE("NativeBufferUtils: no fit memory type, memoryTypeBits is %{public}u", nbProps.memoryTypeBits);
         vkContext.vkDestroyImage(device, image, nullptr);
         return false;
     }
@@ -142,12 +143,11 @@ bool AllocateDeviceMemory(const RsVulkanContext& vkContext, VkDeviceMemory* memo
     VkResult err = vkContext.vkAllocateMemory(device, &allocInfo, nullptr, memory);
     if (err != VK_SUCCESS) {
         vkContext.vkDestroyImage(device, image, nullptr);
-        ROSEN_LOGE("RSSurfaceOhosVulkan AllocateMemory Fail");
+        ROSEN_LOGE("NativeBufferUtils: vkAllocateMemory Fail");
         return false;
     }
     return true;
 }
-
 
 bool BindImageMemory(VkDevice device, const RsVulkanContext& vkContext, VkImage& image, VkDeviceMemory& memory)
 {
@@ -160,7 +160,7 @@ bool BindImageMemory(VkDevice device, const RsVulkanContext& vkContext, VkImage&
 
     VkResult err = vkContext.vkBindImageMemory2(device, 1, &bindImageInfo);
     if (err != VK_SUCCESS) {
-        ROSEN_LOGE("RSSurfaceOhosVulkan BindImageMemory2 failed");
+        ROSEN_LOGE("NativeBufferUtils: vkBindImageMemory2 failed");
         vkContext.vkDestroyImage(device, image, nullptr);
         vkContext.vkFreeMemory(device, memory, nullptr);
         return false;
@@ -173,7 +173,7 @@ bool MakeFromNativeWindowBuffer(sk_sp<GrDirectContext> skContext, NativeWindowBu
 {
     OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeWindowBuffer);
     if (nativeBuffer == nullptr) {
-        ROSEN_LOGE("RSSurfaceOhosVulkan: OH_NativeBufferFromNativeWindowBuffer failed");
+        ROSEN_LOGE("MakeFromNativeWindowBuffer: OH_NativeBufferFromNativeWindowBuffer failed");
         return false;
     }
 
@@ -187,8 +187,14 @@ bool MakeFromNativeWindowBuffer(sk_sp<GrDirectContext> skContext, NativeWindowBu
         return false;
     }
 
+    VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_SAMPLED_BIT;
+    if (nbFormatProps.format != VK_FORMAT_UNDEFINED) {
+        usageFlags = usageFlags | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT
+            | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    }
+
     VkImage image;
-    if (!CreateVkImage(vkContext, &image, &nbFormatProps, width, height)) {
+    if (!CreateVkImage(vkContext, &image, nbFormatProps, {width, height, 1}, usageFlags)) {
         return false;
     }
 
@@ -224,9 +230,9 @@ bool MakeFromNativeWindowBuffer(sk_sp<GrDirectContext> skContext, NativeWindowBu
     return true;
 }
 
-GrVkYcbcrConversionInfo GetYcbcrInfo(VkNativeBufferFormatPropertiesOHOS nbFormatProps)
+GrVkYcbcrConversionInfo GetYcbcrInfo(VkNativeBufferFormatPropertiesOHOS& nbFormatProps)
 {
-    GrVkYcbcrConversionInfo ycbrInfo = {
+    GrVkYcbcrConversionInfo ycbcrInfo = {
         .fFormat = nbFormatProps.format,
         .fExternalFormat = nbFormatProps.externalFormat,
         .fYcbcrModel = nbFormatProps.suggestedYcbcrModel,
@@ -236,12 +242,12 @@ GrVkYcbcrConversionInfo GetYcbcrInfo(VkNativeBufferFormatPropertiesOHOS nbFormat
         .fChromaFilter = VK_FILTER_NEAREST,
         .fForceExplicitReconstruction = VK_FALSE,
         .fFormatFeatures = nbFormatProps.formatFeatures
-    }
+    };
 
     if (VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_LINEAR_FILTER_BIT & nbFormatProps.formatFeatures) {
         ycbcrInfo.fChromaFilter = VK_FILTER_LINEAR;
     }
-    return ycbrInfo;
+    return ycbcrInfo;
 }
 
 GrBackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* nativeWindowBuffer,
@@ -250,11 +256,11 @@ GrBackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* nativeWi
     OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeWindowBuffer);
     if (!nativeBuffer) {
         ROSEN_LOGE("MakeBackendTextureFromNativeBuffer: OH_NativeBufferFromNativeWindowBuffer failed");
+        return {};
     }
 
     auto& vkContext = RsVulkanContext::GetSingleton();
-    VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
-    vkDevice device = vkContext.GetDevice();
+    VkDevice device = vkContext.GetDevice();
 
     VkNativeBufferFormatPropertiesOHOS nbFormatProps;
     VkNativeBufferPropertiesOHOS nbProps;
@@ -268,20 +274,18 @@ GrBackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* nativeWi
     }
 
     VkImage image;
-    if (!CreateVkImage(vkContext, image, nbFormatProps, width, height, usageFlags)) {
+    if (!CreateVkImage(vkContext, &image, nbFormatProps, {width, height, 1}, usageFlags)) {
         return {};
     }
 
     VkDeviceMemory memory;
-    if (!AllocateDeviceMemory(vkContext, &memory)) {
+    if (!AllocateDeviceMemory(vkContext, &memory, image, nativeBuffer, nbProps)) {
         return {};
     }
 
     if (!BindImageMemory(device, vkContext, image, memory)) {
         return {};
     }
-
-    GrVkYcbcrConversionInfo ycbrInfo = GetYcbcrInfo(nbFormatProps);
 
     GrVkAlloc alloc;
     alloc.fMemory = memory;
@@ -290,14 +294,14 @@ GrBackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* nativeWi
     GrVkImageInfo imageInfo;
     imageInfo.fImage = image;
     imageInfo.fAlloc = alloc;
-    imageInfo.fImageTiling = tiling;
+    imageInfo.fImageTiling = VK_IMAGE_TILING_OPTIMAL;
     imageInfo.fImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     imageInfo.fFormat = nbFormatProps.format;
     imageInfo.fImageUsageFlags = usageFlags;
     imageInfo.fLevelCount = 1;
     imageInfo.fCurrentQueueFamily = VK_QUEUE_FAMILY_EXTERNAL;
-    imageInfo.fYcbcrConbersionInfo = ycbcrInfo;
-    imageInfo.fSharingMode = imageCreateInfo.sharingMode;
+    imageInfo.fYcbcrConversionInfo = GetYcbcrInfo(nbFormatProps);
+    imageInfo.fSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
     return GrBackendTexture(width, height, imageInfo);
 }
