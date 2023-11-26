@@ -222,7 +222,7 @@ HWTEST_F(RSInterfacesTest, SetVirtualMirrorScreenCanvasRotation001, Function | S
         "virtual5", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
     EXPECT_EQ(rsInterfaces->SetVirtualMirrorScreenCanvasRotation(virtualScreenId, true), true);
-    EXPECT_EQ(rsInterfaces->SetVirtualMirrorScreenCanvasRotation(virtualScreenId, false), false);
+    EXPECT_EQ(rsInterfaces->SetVirtualMirrorScreenCanvasRotation(virtualScreenId, false), true);
     rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 
