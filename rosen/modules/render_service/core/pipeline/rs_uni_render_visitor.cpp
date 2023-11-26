@@ -4160,6 +4160,8 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
             }
             if (updateTimes >= CACHE_MAX_UPDATE_TIME) {
                 node.SetCacheType(CacheType::NONE);
+                node.MarkNodeGroup(RSRenderNode::GROUPED_BY_UI, false);
+                node.MarkNodeGroup(RSRenderNode::GROUPED_BY_ANIM, false);
                 RSUniRenderUtil::ClearCacheSurface(node, threadIndex_);
                 cacheRenderNodeMap.erase(node.GetId());
                 groupedTransitionNodes.erase(node.GetId());
