@@ -46,6 +46,7 @@ bool RSUniRenderProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int3
     // so we do not need to handle rotation in composer adapter any more,
     // just pass the buffer to composer straightly.
     screenInfo_.rotation = ScreenRotation::ROTATION_0;
+    isPhone_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
     return uniComposerAdapter_->Init(screenInfo_, offsetX, offsetY, mirrorAdaptiveCoefficient_);
 }
 
@@ -69,7 +70,9 @@ void RSUniRenderProcessor::PostProcess(RSDisplayRenderNode* node)
         }
     }
     uniComposerAdapter_->CommitLayers(layers_);
-    MultiLayersPerf(layerNum);
+    if (!isPhone_) {
+        MultiLayersPerf(layerNum);
+    }
     RS_LOGD("RSUniRenderProcessor::PostProcess layers_:%{public}zu", layers_.size());
 }
 
