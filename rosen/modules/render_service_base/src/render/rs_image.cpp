@@ -253,8 +253,10 @@ void RSImage::UploadGpu(RSPaintFilterCanvas& canvas)
             // Need to confirm if kBC1_RGBA8_UNORM and kASTC_CompressionType are the same
             Media::ImageInfo imageInfo;
             pixelMap_->GetImageInfo(imageInfo);
+            Media::Size realSize;
+            pixelMap_->GetAstcRealSize(realSize);
             auto image = SkImage::MakeTextureFromCompressed(GrAsDirectContext(canvas.recordingContext()), compressData_,
-                static_cast<int>(srcRect_.width_), static_cast<int>(srcRect_.height_),
+                static_cast<int>(realSize.width), static_cast<int>(realSize.height),
                 PixelFormatToCompressionType(imageInfo.pixelFormat));
             if (image) {
                 image_ = image;
