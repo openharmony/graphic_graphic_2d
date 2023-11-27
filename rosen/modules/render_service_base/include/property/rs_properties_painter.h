@@ -142,7 +142,8 @@ private:
     static sk_sp<SkShader> MakeVerticalMeanBlurShader(float radiusIn,
                                             sk_sp<SkShader> shader, sk_sp<SkShader> gradientShader);
     static sk_sp<SkShader> MakeLightUpEffectShader(float lightUpDeg, sk_sp<SkShader> imageShader);
-    static sk_sp<SkShader> MakeBinarizationShader(float low, float high, float threshold, sk_sp<SkShader> imageShader);
+    static sk_sp<SkShader> MakeBinarizationShader(float low, float high, float threshold,
+        float thresholdLow, float thresholdHigh, float imageWidth, float imageHeight, sk_sp<SkShader> imageShader);
     static void DrawHorizontalLinearGradientBlur(SkSurface* skSurface, RSPaintFilterCanvas& canvas,
         float radius, sk_sp<SkShader> alphaGradientShader, const SkIRect& clipIPadding);
     static void DrawVerticalLinearGradientBlur(SkSurface* skSurface, RSPaintFilterCanvas& canvas,
