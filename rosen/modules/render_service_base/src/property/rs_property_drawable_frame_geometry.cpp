@@ -56,6 +56,8 @@ void RSColorFilterDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas
     canvas.drawImageRect(imageSnapshot, SkRect::Make(clipBounds), options, &paint_);
 
 #else
+    canvas.ClipRoundRect(RSPropertiesPainter::RRect2DrawingRRect(node.GetMutableRenderProperties().GetRRect()),
+        Drawing::ClipOp::INTERSECT, true);
     auto drSurface = canvas.GetSurface();
     if (drSurface == nullptr) {
         ROSEN_LOGE("RSColorFilterDrawable::Draw drSurface is null");
