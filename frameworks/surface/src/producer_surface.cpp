@@ -54,7 +54,7 @@ ProducerSurface::ProducerSurface(sptr<IBufferProducer>& producer)
 ProducerSurface::~ProducerSurface()
 {
     if (producer_->GetSptrRefCount() > PRODUCER_REF_COUNT_IN_PRODUCER_SURFACE) {
-        BLOGNE("Wrong SptrRefCount! producer_:%{public}d", producer_->GetSptrRefCount());
+        BLOGND("Warning SptrRefCount! producer_:%{public}d", producer_->GetSptrRefCount());
     }
     BLOGND("dtor, name:%{public}s, Queue Id:%{public}" PRIu64, name_.c_str(), queueId_);
     auto ret = Disconnect();
