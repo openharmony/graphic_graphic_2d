@@ -2906,7 +2906,7 @@ sk_sp<SkShader> RSPropertiesPainter::MakeBinarizationShader(float low, float hig
                     if (x > imageWidth) {
                         break;
                     }
-                    half3 imgSample = imageShader.eval(float2(x , coord.y)).rgb;
+                    half3 imgSample = imageShader.eval(float2(x, coord.y)).rgb;
                     float graySample = 0.299 * imgSample.r + 0.587 * imgSample.g + 0.114 * imgSample.b;
                     if (thresholdLow < graySample && graySample < threshold) {
                         sumLow += 1;
@@ -2920,7 +2920,7 @@ sk_sp<SkShader> RSPropertiesPainter::MakeBinarizationShader(float low, float hig
                     if (y > imageHeight) {
                         break;
                     }
-                    half3 imgSample = imageShader.eval(float2(coord.x , y)).rgb;
+                    half3 imgSample = imageShader.eval(float2(coord.x, y)).rgb;
                     float graySample = 0.299 * imgSample.r + 0.587 * imgSample.g + 0.114 * imgSample.b;
                     if (thresholdLow < graySample && graySample < threshold) {
                         sumLow += 1;
