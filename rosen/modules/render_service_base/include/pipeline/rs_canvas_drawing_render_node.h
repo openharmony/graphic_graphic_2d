@@ -79,6 +79,9 @@ private:
     std::shared_ptr<Drawing::Surface> surface_;
     std::shared_ptr<Drawing::Image> image_;
 #endif
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    bool isGpuSurface_ = true;
+#endif
     std::mutex mutex_;
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
     ThreadInfo curThreadInfo_ = {};
