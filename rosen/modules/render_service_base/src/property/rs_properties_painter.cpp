@@ -1413,11 +1413,11 @@ sk_sp<SkShader> RSPropertiesPainter::MakeGreyAdjustmentShader(const float coef1,
             float b = 38.0;
             float c = 45.0;
             float d = 127.5;
-            float A = 3 * b - 3 * c + d;
-            float B = 3 * (c - 2 * b);
-            float C = 3 * b;
-            float p = (3 * A * C - pow(B, 2)) / (3 * pow(A, 2));
-            float q = ((-27 * pow(A, 2) * rgb) - 9 * A * B * C + 2 * pow(B, 3)) / (27 * pow(A, 3));
+            float A = 106.5;    // 3 * b - 3 * c + d;
+            float B = -93;      // 3 * (c - 2 * b);
+            float C = 114;      // 3 * b;
+            float p = 0.816240163988;                   // (3 * A * C - pow(B, 2)) / (3 * pow(A, 2));
+            float q = -rgb / 106.5 + 0.262253485943;    // -rgb/A - B*C/(3*pow(A,2)) + 2*pow(B,3)/(27*pow(A,3))
             float s1 = -(q / 2.0);
             float s2 = sqrt(pow(s1, 2) + pow(p / 3, 3));
             return poww((s1 + s2), 1.0 / 3) + poww((s1 - s2), 1.0 / 3) - (B / (3 * A));
@@ -1428,7 +1428,7 @@ sk_sp<SkShader> RSPropertiesPainter::MakeGreyAdjustmentShader(const float coef1,
             if (rgb < 127.5) {
                 return (rgb + coefficient1 * pow((1 - t_r), 3));
             } else {
-                return (255 - (255 - rgb + coefficient2 * pow((1 - t_r), 3)));
+                return (rgb - coefficient2 * pow((1 - t_r), 3));
             }
         }
 
@@ -1444,7 +1444,7 @@ sk_sp<SkShader> RSPropertiesPainter::MakeGreyAdjustmentShader(const float coef1,
             color.g = (Y - 0.39 * U - 0.58 * V) / 255.0;
             color.b = (Y + 2.03 * U) / 255.0;
 
-            return vec4(color.r, color.g, color.b, 1.0);
+            return vec4(color, 1.0);
         }
     )");
     auto [GrayAdjustEffect, GrayAdjustError] = SkRuntimeEffect::MakeForShader(GrayGradationString);
