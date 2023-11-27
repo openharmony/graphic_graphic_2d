@@ -22,6 +22,7 @@
 #include <queue>
 #include <unordered_map>
 #include <unordered_set>
+#include <future>
 
 #include <hdi_backend.h>
 #include <ipc_callbacks/screen_change_callback.h>
@@ -220,7 +221,7 @@ public:
 
     virtual void HandlePostureData(const SensorEvent * const event) = 0;
 
-    virtual ScreenId GetActiveScreenId() const = 0;
+    virtual ScreenId GetActiveScreenId() = 0;
     /* only used for mock tests */
     virtual void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) = 0;
 };
@@ -364,7 +365,7 @@ public:
 
     void HandlePostureData(const SensorEvent * const event) override;
 
-    ScreenId GetActiveScreenId() const override;
+    ScreenId GetActiveScreenId() override;
     
     /* only used for mock tests */
     void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) override
@@ -449,6 +450,10 @@ private:
     ScreenId innerScreenId_ = 0;
     ScreenId externalScreenId_ = INVALID_SCREEN_ID;
     ScreenId activeScreenId_ = 0;
+    bool isFirstTimeToGetActiveScreenId_ = true;
+    bool isPostureSensorDataHandled_ = false;
+    std::condition_variable activeScreenIdAssignedCV_;
+    mutable std::mutex activeScreenIdAssignedMutex_;
 };
 } // namespace impl
 } // namespace Rosen
