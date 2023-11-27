@@ -35,7 +35,7 @@ const uint32_t DEFAULT_AMBIENT_COLOR = 0x0A000000;
 const uint32_t DEFAULT_SPOT_COLOR = 0x00000000;
 
 enum SHADOW_COLOR_STRATEGY : int {
-    COLOR_STRATEGY_NONE = 0,           // use pre-defined shadow color  
+    COLOR_STRATEGY_NONE = 0,           // use pre-defined shadow color
     COLOR_STRATEGY_AVERAGE = 1,        // use average color of the shadow area
     COLOR_STRATEGY_MAIN = 2,           // use main color of the shadow area
 };
@@ -83,7 +83,7 @@ private:
     std::shared_ptr<RSPath> path_ = nullptr;
     bool imageMask_ = false;
     bool isFilled_ = false;
-    int colorStrategy_ = false;
+    int colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
 };
 } // namespace Rosen
 } // namespace OHOS
