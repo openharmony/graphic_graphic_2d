@@ -254,7 +254,8 @@ public:
 
     // update parent's children rect including childRect and itself
     void UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parentNode) const;
-    void UpdateFilterCacheManagerWithCacheRegion(const std::optional<RectI>& clipRect = std::nullopt) const;
+    void UpdateFilterCacheManagerWithCacheRegion(
+        RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect = std::nullopt) const;
 
     void SetStaticCached(bool isStaticCached);
     bool IsStaticCached() const;
@@ -552,6 +553,7 @@ private:
 
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, std::optional<RectI> clipRect);
     void AddModifierProfile(const std::shared_ptr<RSRenderModifier>& modifier, float width, float height);
+    void UpdateFullScreenFilterCacheRect(RSDirtyRegionManager& dirtyManager, bool isForeground) const;
 
     void UpdateShouldPaint(); // update node should paint state in apply modifier stage
     bool shouldPaint_ = true;

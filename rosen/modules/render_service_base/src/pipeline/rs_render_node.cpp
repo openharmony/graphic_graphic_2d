@@ -888,22 +888,11 @@ void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager
         return;
     }
     if (!manager->IsCacheValid()) {
-        dirtyManager.ResetSubNodeFilterCacheValid();
         return;
     }
     auto& cachedImageRect = manager->GetCachedImageRegion();
     if (dirtyManager.HasIntersectionWithVisitedDirtyRect(cachedImageRect)) {
         manager->UpdateCacheStateWithDirtyRegion();
-    }
-    // Skip filter cache occlusion check for RSEffectRenderNode
-    if (IsInstanceOf<RSEffectRenderNode>()) {
-        return;
-    }
-    // record node's cache area if it has valid filter cache
-    if (!manager->IsCacheValid()) {
-        dirtyManager.ResetSubNodeFilterCacheValid();
-    } else if (ROSEN_EQ(GetGlobalAlpha(), 1.0f) && ROSEN_EQ(properties.GetCornerRadius().x_, 0.0f)) {
-        dirtyManager.UpdateCacheableFilterRect(cachedImageRect);
     }
 #endif
 }
@@ -1856,7 +1845,30 @@ RectI RSRenderNode::GetFilterRect() const
     }
 }
 
-void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(const std::optional<RectI>& clipRect) const
+void RSRenderNode::UpdateFullScreenFilterCacheRect(
+    RSDirtyRegionManager& dirtyManager, bool isForeground) const
+{
+    // Skip filter cache occlusion check for RSEffectRenderNode
+    if (IsInstanceOf<RSEffectRenderNode>()) {
+        return;
+    }
+    auto& renderProperties = GetRenderProperties();
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    auto& manager = renderProperties.GetFilterCacheManager(isForeground);
+    // Record node's cache area if it has valid filter cache
+    // If there are any invalid caches under full screen cache filter, the occlusion shoud be invalidated
+    if (!manager->IsCacheValid() && dirtyManager.IsCacheableFilterRectEmpty()) {
+        dirtyManager.InvalidateFilterCacheRect();
+    } else if (ROSEN_EQ(GetGlobalAlpha(), 1.0f) && ROSEN_EQ(renderProperties.GetCornerRadius().x_, 0.0f) &&
+        manager->GetCachedImageRegion() == dirtyManager.GetSurfaceRect()) {
+        // Only record full screen filter cache for occlusion calculation
+        dirtyManager.UpdateCacheableFilterRect(manager->GetCachedImageRegion());
+    }
+#endif
+}
+
+void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(
+    RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect) const
 {
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (!RSProperties::FilterCacheEnabled) {
@@ -1880,6 +1892,7 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(const std::optional<R
                 context->MarkNeedPurge(RSContext::PurgeType::STRONGLY);
             }
         }
+        UpdateFullScreenFilterCacheRect(dirtyManager, false);
     }
     // foreground filter
     if (auto& manager = renderProperties.GetFilterCacheManager(true)) {
@@ -1890,6 +1903,7 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(const std::optional<R
                 context->MarkNeedPurge(RSContext::PurgeType::STRONGLY);
             }
         }
+        UpdateFullScreenFilterCacheRect(dirtyManager, true);
     }
 #endif
 }

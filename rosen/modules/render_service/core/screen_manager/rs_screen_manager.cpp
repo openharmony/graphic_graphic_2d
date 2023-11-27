@@ -319,7 +319,7 @@ void RSScreenManager::ProcessScreenHotPlugEvents()
                 continue;
             }
             if (screens_.count(id) != 0 && screenBacklight_.count(id) != 0 &&
-                screenPowerStatus_.count(id) != 0 && screenPowerStatus_[id] == ScreenPowerStatus::POWER_STATUS_ON) {
+                (screenPowerStatus_.count(id) == 0 || screenPowerStatus_[id] == ScreenPowerStatus::POWER_STATUS_ON)) {
                 screens_[id]->SetScreenBacklight(screenBacklight_[id]);
                 auto mainThread = RSMainThread::Instance();
                 mainThread->PostTask([mainThread]() {
