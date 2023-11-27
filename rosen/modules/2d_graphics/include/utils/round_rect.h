@@ -50,6 +50,11 @@ public:
 
     inline void Offset(scalar dx, scalar dy);
 
+    void AdjustRadiiX(double limit, double scale, CornerPos cornerPosA, CornerPos cornerPosB);
+    void AdjustRadiiY(double limit, double scale, CornerPos cornerPosA, CornerPos cornerPosB);
+    bool ClampToZero();
+    bool ScaleRadii();
+
 private:
     Rect rect_;
     // Four radii are stored: top-left/top-right/bottom-left/bottom-right corner radii.
@@ -81,6 +86,7 @@ inline RoundRect::RoundRect(const Rect& r, const std::vector<Point>& radiusXY) n
     for (int i = 0; i < CORNER_NUMBER && i < radiusXY.size(); ++i) {
         radiusXY_[i] = radiusXY[i];
     }
+    ScaleRadii();
 }
 
 inline void RoundRect::SetCornerRadius(CornerPos pos, scalar radiusX, scalar radiusY)
