@@ -35,6 +35,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_color_picker.h"
+#include "render/rs_shadow.h"
 #include "include/effects/SkRuntimeEffect.h"
 
 namespace OHOS {
