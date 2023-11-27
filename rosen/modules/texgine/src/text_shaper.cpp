@@ -154,11 +154,7 @@ std::shared_ptr<TexgineTextBlob> TextShaper::GenerateTextBlob(const TexgineFont 
     double &spanWidth, std::vector<double> &glyphWidths) const
 {
     TexgineTextBlobBuilder builder;
-    auto blob = builder.AllocRunPos(font, cgs.GetNumberOfGlyph());
-    if (blob == nullptr || blob->glyphs == nullptr || blob->pos == nullptr) {
-        LOGEX_FUNC_LINE(ERROR) << "allocRunPos return unavailable buffer";
-        throw TEXGINE_EXCEPTION(API_FAILED);
-    }
+    const auto& runBuffer = builder.AllocRunPos(font, cgs.GetNumberOfGlyph());
 
     auto offset = 0.0;
     auto index = 0;
@@ -167,9 +163,9 @@ std::shared_ptr<TexgineTextBlob> TextShaper::GenerateTextBlob(const TexgineFont 
         auto drawingOffset = offset;
         offset += cg.GetWidth();
         for (const auto &[cp, ax, ay, ox, oy] : cg.glyphs) {
-            blob->glyphs[index] = cp;
-            blob->pos[index * DOUBLE] = drawingOffset + ox;
-            blob->pos[index * DOUBLE + 1] = ay - oy;
+            runBuffer.glyphs[index] = cp;
+            runBuffer.pos[index * DOUBLE] = drawingOffset + ox;
+            runBuffer.pos[index * DOUBLE + 1] = ay - oy;
             index++;
             drawingOffset += ax;
         }

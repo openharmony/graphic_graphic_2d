@@ -13,36 +13,17 @@
  * limitations under the License.
  */
 
-#include "texgine_string.h"
+#include "utils/memory_stream.h"
+
+#include "impl_factory.h"
 
 namespace OHOS {
 namespace Rosen {
-namespace TextEngine {
-#ifndef USE_ROSEN_DRAWING
-SkString *TexgineString::GetString() const
-#else
-std::string *TexgineString::GetString()
-#endif
-{
-    return string_.get();
-}
+namespace Drawing {
+MemoryStream::MemoryStream() : memoryStreamImpl_(ImplFactory::CreateMemoryStreamImpl()) {}
 
-#ifndef USE_ROSEN_DRAWING
-void TexgineString::SetString(const std::shared_ptr<SkString> string)
-#else
-void TexgineString::SetString(const std::shared_ptr<std::string> string)
-#endif
-{
-    string_ = string;
-}
-
-std::string TexgineString::ToString() const
-{
-    if (string_ == nullptr) {
-        return "";
-    }
-    return string_->c_str();
-}
-} // namespace TextEngine
+MemoryStream::MemoryStream(const void* data, size_t length, bool copyData)
+    : memoryStreamImpl_(ImplFactory::CreateMemoryStreamImpl(data, length, copyData)) {}
+} // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

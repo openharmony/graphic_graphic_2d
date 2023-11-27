@@ -18,15 +18,24 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
+#ifndef USE_ROSEN_DRAWING
 sk_sp<SkTextBlob> TexgineTextBlob::GetTextBlob() const
+#else
+std::shared_ptr<RSTextBlob> TexgineTextBlob::GetTextBlob() const
+#endif
 {
     return textBlob_;
 }
 
+#ifndef USE_ROSEN_DRAWING
 void TexgineTextBlob::SetTextBlob(const sk_sp<SkTextBlob> textBlob)
+#else
+void TexgineTextBlob::SetTextBlob(const std::shared_ptr<RSTextBlob> textBlob)
+#endif
 {
     textBlob_ = textBlob;
 }
+
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS

@@ -18,8 +18,12 @@
 
 #include <memory>
 
+#ifndef USE_ROSEN_DRAWING
 #include <include/core/SkTypeface.h>
 #include <include/core/SkFontMgr.h>
+#else
+#include "drawing.h"
+#endif
 
 #include "texgine_font_style.h"
 #include "texgine_stream.h"
@@ -31,10 +35,15 @@ namespace TextEngine {
 class TexgineTypeface {
 public:
     TexgineTypeface();
-    explicit TexgineTypeface(SkTypeface *tf);
-    explicit TexgineTypeface(sk_sp<SkTypeface> typeface);
     explicit TexgineTypeface(void *context);
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkTypeface> GetTypeface() const;
+    explicit TexgineTypeface(sk_sp<SkTypeface> typeface);
+#else
+    std::shared_ptr<RSTypeface> GetTypeface() const;
+    explicit TexgineTypeface(std::shared_ptr<RSTypeface>  typeface);
+#endif
+
     /*
      * @brief Return the table contents that accroding table tag
      * @param tag The table tag
@@ -85,7 +94,11 @@ public:
 
 private:
     bool rawInformation_ = false;
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkTypeface> typeface_ = nullptr;
+#else
+    std::shared_ptr<RSTypeface> typeface_ = nullptr;
+#endif
 };
 } // namespace TextEngine
 } // namespace Rosen

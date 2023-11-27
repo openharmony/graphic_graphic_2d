@@ -191,6 +191,16 @@ std::shared_ptr<FontMgrImpl> ImplFactory::CreateDefaultFontMgrImpl()
 {
     return EngineImplFactory::CreateDefaultFontMgr();
 }
+
+std::shared_ptr<MemoryStreamImpl> ImplFactory::CreateMemoryStreamImpl()
+{
+    return EngineImplFactory::CreateMemoryStream();
+}
+
+std::shared_ptr<MemoryStreamImpl> ImplFactory::CreateMemoryStreamImpl(const void* data, size_t length, bool copyData)
+{
+    return EngineImplFactory::CreateMemoryStream(data, length, copyData);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

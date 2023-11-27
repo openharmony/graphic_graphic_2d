@@ -34,9 +34,19 @@ std::shared_ptr<TextBlob> StaticFactory::MakeFromRSXform(const void* text, size_
     return EngineStaticFactory::MakeFromRSXform(text, byteLength, xform, font, encoding);
 }
 
-std::shared_ptr<Typeface> StaticFactory::MakeFromFile(const char path[])
+std::shared_ptr<Typeface> StaticFactory::MakeDefault()
 {
-    return EngineStaticFactory::MakeFromFile(path);
+    return EngineStaticFactory::MakeDefault();
+}
+
+std::shared_ptr<Typeface> StaticFactory::MakeFromFile(const char path[], int index)
+{
+    return EngineStaticFactory::MakeFromFile(path, index);
+}
+
+std::shared_ptr<Typeface> StaticFactory::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index)
+{
+    return EngineStaticFactory::MakeFromStream(std::move(memoryStream), index);
 }
 
 #ifdef ACE_ENABLE_GPU
@@ -87,6 +97,16 @@ bool StaticFactory::CanComputeFastBounds(const Brush& brush)
 const Rect& StaticFactory::ComputeFastBounds(const Brush& brush, const Rect& orig, Rect* storage)
 {
     return EngineStaticFactory::ComputeFastBounds(brush, orig, storage);
+}
+
+FontStyleSet* StaticFactory::CreateEmptyFontStyleSet()
+{
+    return EngineStaticFactory::CreateEmptyFontStyleSet();
+}
+
+std::shared_ptr<Data> StaticFactory::MakeDataFromFileName(const char path[])
+{
+    return EngineStaticFactory::MakeDataFromFileName(path);
 }
 } // namespace Drawing
 } // namespace Rosen

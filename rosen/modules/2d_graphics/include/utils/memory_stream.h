@@ -13,36 +13,33 @@
  * limitations under the License.
  */
 
-#include "texgine_string.h"
+#ifndef MEMORY_STREAM_H
+#define MEMORY_STREAM_H
+
+#include <memory>
+#include <cstdint>
+
+#include "impl_interface/memory_stream_impl.h"
 
 namespace OHOS {
 namespace Rosen {
-namespace TextEngine {
-#ifndef USE_ROSEN_DRAWING
-SkString *TexgineString::GetString() const
-#else
-std::string *TexgineString::GetString()
-#endif
-{
-    return string_.get();
-}
+namespace Drawing {
+class MemoryStream {
+public:
+    MemoryStream();
+    MemoryStream(const void* data, size_t length, bool copyData = false);
+    virtual ~MemoryStream() = default;
 
-#ifndef USE_ROSEN_DRAWING
-void TexgineString::SetString(const std::shared_ptr<SkString> string)
-#else
-void TexgineString::SetString(const std::shared_ptr<std::string> string)
-#endif
-{
-    string_ = string;
-}
-
-std::string TexgineString::ToString() const
-{
-    if (string_ == nullptr) {
-        return "";
+    template<typename T>
+    const std::shared_ptr<T> GetImpl() const
+    {
+        return memoryStreamImpl_->DowncastingTo<T>();
     }
-    return string_->c_str();
-}
-} // namespace TextEngine
+
+private:
+    std::shared_ptr<MemoryStreamImpl> memoryStreamImpl_;
+};
+} // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
+#endif

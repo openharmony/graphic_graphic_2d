@@ -18,7 +18,11 @@
 
 #include <memory>
 
+#ifndef USE_ROSEN_DRAWING
 #include <include/core/SkFont.h>
+#else
+#include "drawing.h"
+#endif
 
 #include "texgine_font_metrics.h"
 #include "texgine_typeface.h"
@@ -41,7 +45,11 @@ public:
         FULL,
     };
 
+#ifndef USE_ROSEN_DRAWING
     std::shared_ptr<SkFont> GetFont() const;
+#else
+    std::shared_ptr<RSFont> GetFont() const;
+#endif
 
     /*
      * @brief Set typeface to SkFont
@@ -78,7 +86,11 @@ public:
      */
     void SetSkewX();
 private:
+#ifndef USE_ROSEN_DRAWING
     std::shared_ptr<SkFont> font_ = std::make_shared<SkFont>();
+#else
+    std::shared_ptr<RSFont> font_ = std::make_shared<RSFont>();
+#endif
 };
 } // namespace TextEngine
 } // namespace Rosen

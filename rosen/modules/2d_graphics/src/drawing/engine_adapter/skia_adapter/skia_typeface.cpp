@@ -20,6 +20,7 @@
 #include "include/core/SkFontStyle.h"
 
 #include "skia_adapter/skia_convert_utils.h"
+#include "skia_adapter/skia_memory_stream.h"
 #include "utils/log.h"
 
 namespace OHOS {
@@ -93,11 +94,43 @@ uint32_t SkiaTypeface::GetUniqueID() const
     return skTypeface_->uniqueID();
 }
 
-std::shared_ptr<Typeface> SkiaTypeface::MakeFromFile(const char path[])
+int32_t SkiaTypeface::GetUnitsPerEm() const
 {
-    sk_sp<SkTypeface> skTypeface = SkTypeface::MakeFromFile(path);
+    if (!skTypeface_) {
+        LOGE("SkiaTypeface::GetUnitsPerEm, skTypeface nullptr");
+        return 0;
+    }
+    return skTypeface_->getUnitsPerEm();
+}
+
+std::shared_ptr<Typeface> SkiaTypeface::MakeDefault()
+{
+    sk_sp<SkTypeface> skTypeface = SkTypeface::MakeDefault();
     if (!skTypeface) {
         LOGE("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);
+    return std::make_shared<Typeface>(typefaceImpl);
+}
+
+std::shared_ptr<Typeface> SkiaTypeface::MakeFromFile(const char path[], int index)
+{
+    sk_sp<SkTypeface> skTypeface = SkTypeface::MakeFromFile(path, index);
+    if (!skTypeface) {
+        LOGE("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);
+    return std::make_shared<Typeface>(typefaceImpl);
+}
+
+std::shared_ptr<Typeface> SkiaTypeface::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index)
+{
+    std::unique_ptr<SkStreamAsset> skMemoryStream = memoryStream->GetImpl<SkiaMemoryStream>()->GetSkMemoryStream();
+    sk_sp<SkTypeface> skTypeface = SkTypeface::MakeFromStream(std::move(skMemoryStream), index);
+    if (!skTypeface) {
+        LOGE("SkiaTypeface::MakeFromStream, skTypeface nullptr");
         return nullptr;
     }
     std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);

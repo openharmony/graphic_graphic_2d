@@ -16,6 +16,7 @@
 #include "utils/data.h"
 
 #include "impl_factory.h"
+#include "static_factory.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -55,6 +56,11 @@ size_t Data::GetSize() const
 const void* Data::GetData() const
 {
     return impl_->GetData();
+}
+
+std::shared_ptr<Data> Data::MakeFromFileName(const char path[])
+{
+    return StaticFactory::MakeDataFromFileName(path);
 }
 
 void* Data::WritableData()

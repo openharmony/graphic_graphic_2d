@@ -87,6 +87,13 @@ public:
      */
     const void* GetData() const;
 
+    /**
+     * @brief         Create a new data with the specified path.
+     * @param length  The specified path.
+     * @return        A shared pointer to Data.
+     */
+    static std::shared_ptr<Data> MakeFromFileName(const char path[]);
+
     /*
      * @brief   Get the adaptation layer instance, called in the adaptation layer.
      * @return  Adaptation Layer instance.

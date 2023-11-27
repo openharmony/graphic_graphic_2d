@@ -19,6 +19,7 @@
 #include <string>
 
 #include "impl_interface/base_impl.h"
+#include "text/font_style.h"
 #include "text/typeface.h"
 #include "utils/scalar.h"
 
@@ -30,6 +31,10 @@ public:
     ~FontStyleSetImpl() override = default;
 
     virtual Typeface* CreateTypeface(int index) = 0;
+
+    virtual void GetStyle(int32_t index, FontStyle* fontStyle, std::string* styleName) = 0;
+
+    virtual Typeface* MatchStyle(const FontStyle& pattern) = 0;
 
     virtual int Count() = 0;
 
