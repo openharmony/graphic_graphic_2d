@@ -17,6 +17,8 @@
 #include <scoped_bytrace.h>
 #include "hdi_output.h"
 #include "metadata_helper.h"
+#include "vsync_generator.h"
+#include "vsync_sampler.h"
 
 using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
 
@@ -563,6 +565,8 @@ void HdiOutput::Dump(std::string &result) const
         result += "FrameBufferSurface\n";
         fbSurface_->Dump(result);
     }
+    CreateVSyncGenerator()->Dump(result);
+    CreateVSyncSampler()->Dump(result);
 }
 
 void HdiOutput::DumpFps(std::string &result, const std::string &arg) const

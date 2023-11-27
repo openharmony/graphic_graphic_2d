@@ -62,6 +62,7 @@ public:
     virtual VsyncError SetVSyncMode(VSyncMode vsyncMode) = 0;
     virtual VSyncMode GetVSyncMode() = 0;
     virtual VsyncError SetVSyncPhaseByPulseNum(int32_t phaseByPulseNum) = 0;
+    virtual void Dump(std::string &result) = 0;
 };
 
 sptr<VSyncGenerator> CreateVSyncGenerator();
@@ -89,6 +90,7 @@ public:
     VsyncError SetVSyncMode(VSyncMode vsyncMode) override;
     VSyncMode GetVSyncMode() override;
     VsyncError SetVSyncPhaseByPulseNum(int32_t phaseByPulseNum) override;
+    void Dump(std::string &result) override;
 
 private:
     friend class OHOS::Rosen::VSyncGenerator;
@@ -144,6 +146,7 @@ private:
     VSyncMode vsyncMode_ = VSYNC_MODE_LTPS; //default LTPS
     VSyncMode pendingVsyncMode_ = VSYNC_MODE_INVALID;
     std::vector<Listener> listenersRecord_;
+    bool refreshRateIsChanged_ = false;
 };
 } // impl
 } // namespace Rosen
