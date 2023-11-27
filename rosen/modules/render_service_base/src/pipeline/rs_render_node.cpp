@@ -54,7 +54,8 @@ const std::unordered_set<RSModifierType> ANIMATION_MODIFIER_TYPE  = {
     RSModifierType::SCALE,
     RSModifierType::ROTATION_X,
     RSModifierType::ROTATION_Y,
-    RSModifierType::ROTATION
+    RSModifierType::ROTATION,
+    RSModifierType::FRAME,
 };
 const std::set<RSModifierType> BASIC_GEOTRANSFROM_ANIMATION_TYPE = {
     RSModifierType::TRANSLATE,
@@ -1060,10 +1061,7 @@ void RSRenderNode::DumpNodeInfo(DfxString& log)
 
 void RSRenderNode::AddModifierProfile(const std::shared_ptr<RSRenderModifier>& modifier, float width, float height)
 {
-    if (timeDelta_ < 0) {
-        return;
-    }
-    if (lastApplyTimestamp_ == lastTimestamp_) {
+    if (timeDelta_ < 0 || ROSEN_EQ(timeDelta_, 0.f) || lastApplyTimestamp_ == lastTimestamp_) {
         return;
     }
     auto propertyId = modifier->GetPropertyId();
@@ -1074,13 +1072,10 @@ void RSRenderNode::AddModifierProfile(const std::shared_ptr<RSRenderModifier>& m
             auto newPosition = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(newProperty)->Get();
             if (oldPropertyValue != propertyValueMap_.end()) {
                 auto oldPosition = std::get<Vector2f>(oldPropertyValue->second);
-                if (ROSEN_EQ(timeDelta_, 0.f)) {
-                    return;
-                }
                 auto xSpeed = (newPosition[0] - oldPosition[0]) / timeDelta_;
                 auto ySpeed = (newPosition[1] - oldPosition[1]) / timeDelta_;
                 HgmModifierProfile hgmModifierProfile = {xSpeed, ySpeed, HgmModifierType::TRANSLATE};
-                hgmModifierProfileList_.emplace_back(hgmModifierProfile);
+                hgmModifierProfileList_.emplace_back(std::move(hgmModifierProfile));
             }
             propertyValueMap_[propertyId] = newPosition;
             break;
@@ -1089,13 +1084,10 @@ void RSRenderNode::AddModifierProfile(const std::shared_ptr<RSRenderModifier>& m
             auto newPosition = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(newProperty)->Get();
             if (oldPropertyValue != propertyValueMap_.end()) {
                 auto oldPosition = std::get<Vector2f>(oldPropertyValue->second);
-                if (ROSEN_EQ(timeDelta_, 0.f)) {
-                    return;
-                }
                 auto xSpeed = (newPosition[0] - oldPosition[0]) * width / timeDelta_;
                 auto ySpeed = (newPosition[1] - oldPosition[1]) * height / timeDelta_;
                 HgmModifierProfile hgmModifierProfile = {xSpeed, ySpeed, HgmModifierType::SCALE};
-                hgmModifierProfileList_.emplace_back(hgmModifierProfile);
+                hgmModifierProfileList_.emplace_back(std::move(hgmModifierProfile));
             }
             propertyValueMap_[propertyId] = newPosition;
             break;
@@ -1105,6 +1097,22 @@ void RSRenderNode::AddModifierProfile(const std::shared_ptr<RSRenderModifier>& m
         case RSModifierType::ROTATION: {
             HgmModifierProfile hgmModifierProfile = {0, 0, HgmModifierType::ROTATION};
             hgmModifierProfileList_.emplace_back(hgmModifierProfile);
+            break;
+        }
+        case RSModifierType::FRAME: {
+            auto newPosition = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(newProperty)->Get();
+            if (oldPropertyValue != propertyValueMap_.end()) {
+                auto oldPosition = std::get<Vector4f>(oldPropertyValue->second);
+                auto xPositionSpeed = (newPosition[0] - oldPosition[0]) / timeDelta_;
+                auto yPositionSpeed = (newPosition[1] - oldPosition[1]) / timeDelta_;
+                auto widthSpeed = (newPosition[2] - oldPosition[2]) / timeDelta_;
+                auto heightSpeed = (newPosition[3] - oldPosition[3]) / timeDelta_;
+                HgmModifierProfile translateProfile = {xPositionSpeed, yPositionSpeed, HgmModifierType::TRANSLATE};
+                hgmModifierProfileList_.emplace_back(std::move(translateProfile));
+                HgmModifierProfile scaleProfile = {widthSpeed, heightSpeed, HgmModifierType::SCALE};
+                hgmModifierProfileList_.emplace_back(std::move(scaleProfile));
+            }
+            propertyValueMap_[propertyId] = newPosition;
             break;
         }
         default:
@@ -1151,7 +1159,7 @@ bool RSRenderNode::ApplyModifiers()
             continue;
         }
         modifier->Apply(context);
-        if (ANIMATION_MODIFIER_TYPE.count(modifier->GetType())) {
+        if (isCalPreferredNode_ && HasAnimation() && ANIMATION_MODIFIER_TYPE.count(modifier->GetType())) {
             animationModifiers.push_back(modifier);
         }
         if (!BASIC_GEOTRANSFROM_ANIMATION_TYPE.count(modifier->GetType())) {
