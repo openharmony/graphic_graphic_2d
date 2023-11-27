@@ -59,6 +59,20 @@ HWTEST_F(EglWrapperLayerTest, Init002, Level2)
 }
 
 /**
+ * @tc.name: Init003
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperLayerTest, Init003, Level1)
+{
+    EglWrapperLayer WrapperLayer;
+    EglWrapperDispatchTable *dispatchTable;
+    dispatchTable = nullptr; 
+    bool result = WrapperLayer.Init(dispatchTable);
+    ASSERT_EQ(result,false);
+}
+
+/**
  * @tc.name: InitLayers001
  * @tc.desc:
  * @tc.type: FUNC
@@ -83,4 +97,6 @@ HWTEST_F(EglWrapperLayerTest, LoadLayers001, Level1)
     bool result = EglWrapperLayer::GetInstance().LoadLayers();
     ASSERT_TRUE(result);
 }
+
+
 } // OHOS::Rosen
