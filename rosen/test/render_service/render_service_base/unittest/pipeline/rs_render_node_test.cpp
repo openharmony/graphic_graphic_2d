@@ -316,6 +316,50 @@ HWTEST_F(RSRenderNodeTest,  SetDrawingCacheRootIdTest, TestSize.Level2)
 }
 
 /**
+ * @tc.name: SetCacheGeoPreparationDelay01
+ * @tc.desc: test SetCacheGeoPreparationDelay once
+ * @tc.type: FUNC
+ * @tc.require: issueI8JMN8
+ */
+HWTEST_F(RSRenderNodeTest,  SetCacheGeoPreparationDelay01, TestSize.Level2)
+{
+    RSRenderNode node(id, context);
+    // test default value
+    ASSERT_EQ(node.GetCacheGeoPreparationDelay(), false);
+
+    node.SetCacheGeoPreparationDelay(true);
+    ASSERT_EQ(node.GetCacheGeoPreparationDelay(), true);
+}
+
+/**
+ * @tc.name: SetCacheGeoPreparationDelay02
+ * @tc.desc: test SetCacheGeoPreparationDelay would not be covered by later setting
+ * @tc.type: FUNC
+ * @tc.require: issueI8JMN8
+ */
+HWTEST_F(RSRenderNodeTest,  SetCacheGeoPreparationDelay02, TestSize.Level2)
+{
+    RSRenderNode node(id, context);
+    node.SetCacheGeoPreparationDelay(true);
+    node.SetCacheGeoPreparationDelay(false);
+    ASSERT_EQ(node.GetCacheGeoPreparationDelay(), true);
+}
+
+/**
+ * @tc.name: ResetCacheGeoPreparationDelay01
+ * @tc.desc: test SetCacheGeoPreparationDelay would be reset
+ * @tc.type: FUNC
+ * @tc.require: issueI8JMN8
+ */
+HWTEST_F(RSRenderNodeTest,  ResetCacheGeoPreparationDelay01, TestSize.Level2)
+{
+    RSRenderNode node(id, context);
+    node.SetCacheGeoPreparationDelay(true);
+    node.ResetCacheGeoPreparationDelay();
+    ASSERT_EQ(node.GetCacheGeoPreparationDelay(), false);
+}
+
+/**
  * @tc.name: SetContainBootAnimation
  * @tc.desc: test SetContainBootAnimation and GetContainBootAnimation
  * @tc.type: FUNC

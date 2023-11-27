@@ -340,8 +340,48 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
 {
     // GetSortedChildren() may remove disappearingChildren_ when transition animation end.
     // So the judgement whether node has removed child should be executed after this.
-    // merge last childRect as dirty if any child has been removed
     // NOTE: removal of transition node is moved to RSMainThread::Animate
+    MergeRemovedChildDirtyRegion(node);
+    // backup environment variables.
+    auto parentNode = std::move(logicParentNode_);
+    logicParentNode_ = node.weak_from_this();
+    node.ResetChildrenRect();
+
+    float alpha = curAlpha_;
+    curAlpha_ *= node.GetRenderProperties().GetAlpha();
+    node.SetGlobalAlpha(curAlpha_);
+    auto children = node.GetSortedChildren();
+    // check curSurfaceDirtyManager_ for UpdateStaticCacheSubTree calls
+    if (UpdateCacheChangeStatus(node) || curSurfaceDirtyManager_ == nullptr) {
+        // Get delay flag to restore geo changes
+        if (node.GetCacheGeoPreparationDelay()) {
+            dirtyFlag_ = true;
+        }
+        for (auto& child : children) {
+            if (UNLIKELY(child->GetSharedTransitionParam().has_value())) {
+                firstVisitedCache_ = INVALID_NODEID;
+                PrepareSharedTransitionNode(*child);
+            }
+            SaveCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
+            curDirty_ = child->IsDirty();
+            child->Prepare(shared_from_this());
+            RestoreCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
+        }
+        // Reset delay flag
+        node.ResetCacheGeoPreparationDelay();
+        SetNodeCacheChangeStatus(node);
+    } else {
+        RS_OPTIONAL_TRACE_NAME_FMT("UpdateCacheChangeStatus quick skip node %llu", node.GetId());
+        UpdateStaticCacheSubTree(node.ReinterpretCastTo<RSRenderNode>(), children);
+    }
+
+    curAlpha_ = alpha;
+    // restore environment variables
+    logicParentNode_ = std::move(parentNode);
+}
+
+void RSUniRenderVisitor::MergeRemovedChildDirtyRegion(RSRenderNode& node)
+{
     if (curSurfaceDirtyManager_ && node.HasRemovedChild()) {
         RectI dirtyRect = prepareClipRect_.IntersectRect(node.GetChildrenRect());
         if (isSubNodeOfSurfaceInPrepare_) {
@@ -356,37 +396,6 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
         }
         node.ResetHasRemovedChild();
     }
-
-    // backup environment variables.
-    auto parentNode = std::move(logicParentNode_);
-    logicParentNode_ = node.weak_from_this();
-    node.ResetChildrenRect();
-
-    float alpha = curAlpha_;
-    curAlpha_ *= node.GetRenderProperties().GetAlpha();
-    node.SetGlobalAlpha(curAlpha_);
-    auto children = node.GetSortedChildren();
-    // check curSurfaceDirtyManager_ for UpdateStaticCacheSubTree calls
-    if (UpdateCacheChangeStatus(node) || curSurfaceDirtyManager_ == nullptr) {
-        for (auto& child : children) {
-            if (UNLIKELY(child->GetSharedTransitionParam().has_value())) {
-                firstVisitedCache_ = INVALID_NODEID;
-                PrepareSharedTransitionNode(*child);
-            }
-            SaveCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
-            curDirty_ = child->IsDirty();
-            child->Prepare(shared_from_this());
-            RestoreCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
-        }
-        SetNodeCacheChangeStatus(node);
-    } else {
-        RS_OPTIONAL_TRACE_NAME_FMT("UpdateCacheChangeStatus quick skip node %llu", node.GetId());
-        UpdateStaticCacheSubTree(node.ReinterpretCastTo<RSRenderNode>(), children);
-    }
-
-    curAlpha_ = alpha;
-    // restore environment variables
-    logicParentNode_ = std::move(parentNode);
 }
 
 bool RSUniRenderVisitor::IsDrawingCacheStatic(RSRenderNode& node)
@@ -407,6 +416,7 @@ bool RSUniRenderVisitor::IsDrawingCacheStatic(RSRenderNode& node)
     // simplify Cache status reset
     node.GetFilterRectsInCache(allCacheFilterRects_);
     node.SetDrawingCacheChanged(false);
+    node.SetCacheGeoPreparationDelay(dirtyFlag_);
     if (allCacheFilterRects_.count(node.GetId())) {
         node.SetChildHasFilter(true);
         if (const auto directParent = node.GetParent().lock()) {
@@ -560,7 +570,6 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node)
         node.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE) {
         return;
     }
-
     if (!curCacheFilterRects_.empty()) {
         allCacheFilterRects_[node.GetId()].insert(curCacheFilterRects_.top().begin(),
             curCacheFilterRects_.top().end());

@@ -232,6 +232,8 @@ private:
     void MergeDirtyRectIfNeed(std::shared_ptr<RSSurfaceRenderNode> appNode,
         std::shared_ptr<RSSurfaceRenderNode> hwcNode);
     void AddContainerDirtyToGlobalDirty(std::shared_ptr<RSDisplayRenderNode>& node) const;
+    // merge last childRect as dirty if any child has been removed
+    void MergeRemovedChildDirtyRegion(RSRenderNode& node);
 
     // set global dirty region to each surface node
     void SetSurfaceGlobalDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node);

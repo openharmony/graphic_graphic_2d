@@ -2201,6 +2201,18 @@ void RSRenderNode::ResetDrawingCacheNeedUpdate()
 {
     drawingCacheNeedUpdate_ = false;
 }
+void RSRenderNode::SetCacheGeoPreparationDelay(bool val)
+{
+    cacheGeoPreparationDelay_ = cacheGeoPreparationDelay_ || val;
+}
+void RSRenderNode::ResetCacheGeoPreparationDelay()
+{
+    cacheGeoPreparationDelay_ = false;
+}
+bool RSRenderNode::GetCacheGeoPreparationDelay() const
+{
+    return cacheGeoPreparationDelay_;
+}
 void RSRenderNode::SetVisitedCacheRootIds(const std::unordered_set<NodeId>& visitedNodes)
 {
     visitedCacheRoots_ = visitedNodes;
