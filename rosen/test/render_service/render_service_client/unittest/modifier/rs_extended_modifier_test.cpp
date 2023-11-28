@@ -74,9 +74,7 @@ HWTEST_F(RSExtendedModifierTest, FinishDrawingTest, TestSize.Level1)
 {
     NodeId nodeId = 0;
     auto ctx = RSExtendedModifierHelper::CreateDrawingContext(nodeId);
-#ifndef USE_ROSEN_DRAWING
     RSExtendedModifierHelper::FinishDrawing(ctx);
     ASSERT_EQ(ctx.canvas, nullptr);
-#endif
 }
 } // namespace OHOS::Rosen

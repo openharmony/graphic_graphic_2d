@@ -61,6 +61,9 @@
 #include "hgm_core.h"
 #include "benchmarks/rs_recording_thread.h"
 #include "scene_board_judgement.h"
+#include "metadata_helper.h"
+#include <v1_0/buffer_handle_meta_key_type.h>
+#include <v1_0/cm_color_space.h>
 
 #include "pipeline/round_corner_display/rs_round_corner_display.h"
 #include "pipeline/round_corner_display/rs_message_bus.h"
@@ -270,45 +273,115 @@ void RSUniRenderVisitor::UpdateStaticCacheSubTree(const std::shared_ptr<RSRender
         if (child->GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
             child->SetDrawingCacheChanged(false);
         }
-        bool isUpdated = false;
         // [planning] pay attention to outofparent case
-        // since subtree is 'clean', effect node does not need fully preparation
         if (auto surfaceNode = child->ReinterpretCastTo<RSSurfaceRenderNode>()) {
+            // fully prepare hwcLayer and its subnodes
             if (surfaceNode->IsHardwareEnabledType()) {
                 PrepareSurfaceRenderNode(*surfaceNode);
-                isUpdated = true;
+                return;
             }
-            if (surfaceNode->GetSecurityLayer() && curSurfaceNode_ &&
-                curSurfaceNode_->GetId() == surfaceNode->GetInstanceRootNodeId()) {
-                curSurfaceNode_->SetHasSecurityLayer(true);
-                displayHasSecSurface_[currentVisitDisplay_] = true;
-            }
-            if (surfaceNode->GetSkipLayer() && curSurfaceNode_ &&
-                curSurfaceNode_->GetId() == surfaceNode->GetInstanceRootNodeId() &&
-                surfaceNode->GetName().find(CAPTURE_WINDOW_NAME) == std::string::npos) {
-                curSurfaceNode_->SetHasSkipLayer(true);
-                displayHasSkipSurface_[currentVisitDisplay_] = true;
+            UpdateSecurityAndSkipLayerRecord(*surfaceNode);
+        } else if (auto effectNode = child->ReinterpretCastTo<RSEffectRenderNode>()) {
+            // effectNode need to update effectRegion so effectNode and use-effect child should be updated
+            PrepareEffectNodeIfCacheReuse(cacheRootNode, effectNode);
+            return;
+        }
+        if (child->GetRenderProperties().NeedFilter() || child->GetRenderProperties().GetUseEffect()) {
+            child->Update(*curSurfaceDirtyManager_, cacheRootNode, dirtyFlag_, prepareClipRect_);
+        }
+        if (child->GetRenderProperties().GetUseEffect()) {
+            child->UpdateEffectRegion(effectRegion_);
+            if (effectRegion_) {
+                auto rect = effectRegion_->getBounds();
+                RS_OPTIONAL_TRACE_NAME_FMT("UpdateStaticCacheSubTree node %llu UpdateEffectRegion(l,t,w,h)"
+                    " [%f,%f,%f,%f]", child->GetId(), rect.left(), rect.top(), rect.width(), rect.height());
             }
         }
         if (child->GetRenderProperties().NeedFilter()) {
-            if (!isUpdated) {
-                child->Update(*curSurfaceDirtyManager_, cacheRootNode, dirtyFlag_, prepareClipRect_);
-            }
             UpdateForegroundFilterCacheWithDirty(*child, *curSurfaceDirtyManager_);
             if (curSurfaceNode_ && curSurfaceNode_->GetId() == child->GetInstanceRootNodeId()) {
                 curSurfaceNode_->UpdateChildrenFilterRects(child->GetOldDirtyInSurface());
             }
         }
-        UpdateStaticCacheSubTree(cacheRootNode, child->GetSortedChildren());
+        UpdateStaticCacheSubTree(child, child->GetSortedChildren());
     }
+}
+
+void RSUniRenderVisitor::PrepareEffectNodeIfCacheReuse(const std::shared_ptr<RSRenderNode>& cacheRootNode,
+    std::shared_ptr<RSEffectRenderNode> effectNode)
+{
+    if (effectNode == nullptr || curSurfaceDirtyManager_ == nullptr) {
+        return;
+    }
+    auto effectRegion = effectRegion_;
+#ifndef USE_ROSEN_DRAWING
+    effectRegion_ = SkPath();
+#else
+    effectRegion_ = Drawing::Path();
+#endif
+    effectNode->Update(*curSurfaceDirtyManager_, cacheRootNode, dirtyFlag_, prepareClipRect_);
+    if (effectNode->GetRenderProperties().NeedFilter()) {
+        UpdateForegroundFilterCacheWithDirty(*effectNode, *curSurfaceDirtyManager_);
+        if (curSurfaceNode_ && curSurfaceNode_->GetId() == effectNode->GetInstanceRootNodeId()) {
+            curSurfaceNode_->UpdateChildrenFilterRects(effectNode->GetOldDirtyInSurface());
+        }
+    }
+    UpdateStaticCacheSubTree(effectNode, effectNode->GetSortedChildren());
+    effectNode->SetEffectRegion(effectRegion_);
+    if (effectRegion_) {
+        auto regionRect = effectRegion_->getBounds();
+        RS_OPTIONAL_TRACE_NAME_FMT("PrepareEffectNodeIfCacheReuse node %llu SetEffectRegion(l,t,w,h) [%f,%f,%f,%f]",
+            effectNode->GetId(), regionRect.left(), regionRect.top(), regionRect.width(), regionRect.height());
+    }
+    effectRegion_ = effectRegion;
 }
 
 void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
 {
     // GetSortedChildren() may remove disappearingChildren_ when transition animation end.
     // So the judgement whether node has removed child should be executed after this.
-    // merge last childRect as dirty if any child has been removed
     // NOTE: removal of transition node is moved to RSMainThread::Animate
+    MergeRemovedChildDirtyRegion(node);
+    // backup environment variables.
+    auto parentNode = std::move(logicParentNode_);
+    logicParentNode_ = node.weak_from_this();
+    node.ResetChildrenRect();
+
+    float alpha = curAlpha_;
+    curAlpha_ *= node.GetRenderProperties().GetAlpha();
+    node.SetGlobalAlpha(curAlpha_);
+    auto children = node.GetSortedChildren();
+    // check curSurfaceDirtyManager_ for UpdateStaticCacheSubTree calls
+    if (UpdateCacheChangeStatus(node) || curSurfaceDirtyManager_ == nullptr) {
+        // Get delay flag to restore geo changes
+        if (node.GetCacheGeoPreparationDelay()) {
+            dirtyFlag_ = true;
+        }
+        for (auto& child : children) {
+            if (UNLIKELY(child->GetSharedTransitionParam().has_value())) {
+                firstVisitedCache_ = INVALID_NODEID;
+                PrepareSharedTransitionNode(*child);
+            }
+            SaveCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
+            curDirty_ = child->IsDirty();
+            child->Prepare(shared_from_this());
+            RestoreCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
+        }
+        // Reset delay flag
+        node.ResetCacheGeoPreparationDelay();
+        SetNodeCacheChangeStatus(node);
+    } else {
+        RS_OPTIONAL_TRACE_NAME_FMT("UpdateCacheChangeStatus quick skip node %llu", node.GetId());
+        UpdateStaticCacheSubTree(node.ReinterpretCastTo<RSRenderNode>(), children);
+    }
+
+    curAlpha_ = alpha;
+    // restore environment variables
+    logicParentNode_ = std::move(parentNode);
+}
+
+void RSUniRenderVisitor::MergeRemovedChildDirtyRegion(RSRenderNode& node)
+{
     if (curSurfaceDirtyManager_ && node.HasRemovedChild()) {
         RectI dirtyRect = prepareClipRect_.IntersectRect(node.GetChildrenRect());
         if (isSubNodeOfSurfaceInPrepare_) {
@@ -323,37 +396,6 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
         }
         node.ResetHasRemovedChild();
     }
-
-    // backup environment variables.
-    auto parentNode = std::move(logicParentNode_);
-    logicParentNode_ = node.weak_from_this();
-    node.ResetChildrenRect();
-
-    float alpha = curAlpha_;
-    curAlpha_ *= node.GetRenderProperties().GetAlpha();
-    node.SetGlobalAlpha(curAlpha_);
-    auto children = node.GetSortedChildren();
-    // check curSurfaceDirtyManager_ for UpdateStaticCacheSubTree calls
-    if (UpdateCacheChangeStatus(node) || curSurfaceDirtyManager_ == nullptr) {
-        for (auto& child : children) {
-            if (UNLIKELY(child->GetSharedTransitionParam().has_value())) {
-                firstVisitedCache_ = INVALID_NODEID;
-                PrepareSharedTransitionNode(*child);
-            }
-            SaveCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
-            curDirty_ = child->IsDirty();
-            child->Prepare(shared_from_this());
-            RestoreCurSurface(curSurfaceDirtyManager_, curSurfaceNode_);
-        }
-        SetNodeCacheChangeStatus(node);
-    } else {
-        RS_OPTIONAL_TRACE_NAME_FMT("UpdateCacheChangeStatus quick skip node %llu", node.GetId());
-        UpdateStaticCacheSubTree(node.ReinterpretCastTo<RSRenderNode>(), children);
-    }
-
-    curAlpha_ = alpha;
-    // restore environment variables
-    logicParentNode_ = std::move(parentNode);
 }
 
 bool RSUniRenderVisitor::IsDrawingCacheStatic(RSRenderNode& node)
@@ -374,6 +416,7 @@ bool RSUniRenderVisitor::IsDrawingCacheStatic(RSRenderNode& node)
     // simplify Cache status reset
     node.GetFilterRectsInCache(allCacheFilterRects_);
     node.SetDrawingCacheChanged(false);
+    node.SetCacheGeoPreparationDelay(dirtyFlag_);
     if (allCacheFilterRects_.count(node.GetId())) {
         node.SetChildHasFilter(true);
         if (const auto directParent = node.GetParent().lock()) {
@@ -527,7 +570,6 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node)
         node.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE) {
         return;
     }
-
     if (!curCacheFilterRects_.empty()) {
         allCacheFilterRects_[node.GetId()].insert(curCacheFilterRects_.top().begin(),
             curCacheFilterRects_.top().end());
@@ -566,24 +608,52 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node)
 
 void RSUniRenderVisitor::CheckColorSpace(RSSurfaceRenderNode& node)
 {
+    const sptr<SurfaceBuffer>& buffer = node.GetBuffer();
+    if (buffer != nullptr) {
+        using namespace HDI::Display::Graphic::Common::V1_0;
+        CM_ColorSpaceInfo colorSpaceInfo;
+        if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
+            RS_LOGW("RSUniRenderVisitor::CheckColorSpace: get color space info from metadata failed.");
+            return;
+        }
+
+        if (colorSpaceInfo.primaries != COLORPRIMARIES_SRGB) {
+            newColorSpace_ = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+            RS_LOGD("RSUniRenderVisitor::CheckColorSpace: node(%{public}s) set new colorspace primaries %{public}d",
+                    node.GetName().c_str(), colorSpaceInfo.primaries);
+        }
+        return;
+    }
+
     if (node.IsAppWindow()) {
-        auto surfaceNodeColorSpace = node.GetColorSpace();
-        if (surfaceNodeColorSpace != GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB) {
-            ROSEN_LOGD("RSUniRenderVisitor::CheckColorSpace: node (%{public}s) set new colorspace %{public}d",
-                node.GetName().c_str(), surfaceNodeColorSpace);
-            if (std::find(colorGamutModes_.begin(), colorGamutModes_.end(),
-                static_cast<ScreenColorGamut>(surfaceNodeColorSpace)) != colorGamutModes_.end()) {
-                newColorSpace_ = surfaceNodeColorSpace;
-            } else {
-                RS_LOGD("RSUniRenderVisitor::CheckColorSpace: colorSpace is not supported on current screen");
-            }
+        auto colorspace = node.GetColorSpace();
+        if (colorspace != GRAPHIC_COLOR_GAMUT_SRGB) {
+            newColorSpace_ = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+            RS_LOGD("RSUniRenderVisitor::CheckColorSpace: node(%{public}s) set new colorgamut %{public}d",
+                    node.GetName().c_str(), colorspace);
         }
     }
 }
 
 void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager)
 {
-    screenManager->GetScreenSupportedColorGamuts(node.GetScreenId(), colorGamutModes_);
+    newColorSpace_ = GRAPHIC_COLOR_GAMUT_SRGB;
+    RSScreenType screenType = BUILT_IN_TYPE_SCREEN;
+    if (screenManager->GetScreenType(node.GetScreenId(), screenType) != SUCCESS) {
+        RS_LOGE("RSUniRenderVisitor::HandleColorGamuts get screen type failed.");
+        return;
+    }
+
+    if (screenType == VIRTUAL_TYPE_SCREEN) {
+        ScreenColorGamut screenColorGamut;
+        if (screenManager->GetScreenColorGamut(node.GetScreenId(), screenColorGamut) != SUCCESS) {
+            RS_LOGE("RSUniRenderVisitor::HandleColorGamuts get screen color gamut failed.");
+            return;
+        }
+        newColorSpace_ = static_cast<GraphicColorGamut>(screenColorGamut);
+        return;
+    }
+
     for (auto& child : node.GetCurAllSurfaces()) {
         auto surfaceNodePtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
         if (!surfaceNodePtr) {
@@ -591,6 +661,65 @@ void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr
             continue;
         }
         CheckColorSpace(*surfaceNodePtr);
+    }
+}
+
+void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)
+{
+    if (hasFingerprint_) {
+        RS_LOGD("RSUniRenderVisitor::CheckPixelFormat hasFingerprint is true.");
+        return;
+    }
+    const sptr<SurfaceBuffer>& buffer = node.GetBuffer();
+    if (buffer == nullptr) {
+        RS_LOGD("RSUniRenderVisitor::CheckPixelFormat node(%{public}s) did not have buffer.", node.GetName().c_str());
+        return;
+    }
+
+    if (node.GetFingerprint()) {
+        hasFingerprint_ = true;
+        newPixelFormat_ = GRAPHIC_PIXEL_FMT_RGBA_1010102;
+        RS_LOGD("RSUniRenderVisitor::CheckPixelFormat newPixelFormat_ is set 1010102 for fingerprint.");
+        return;
+    }
+
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    CM_HDR_Metadata_Type hdrMetadataType = CM_METADATA_NONE;
+    if (MetadataHelper::GetHDRMetadataType(buffer, hdrMetadataType) != GSERROR_OK) {
+        RS_LOGD("RSUniRenderVisitor::CheckPixelFormat node(%{public}s) did not have metadatatype.",
+                node.GetName().c_str());
+        return;
+    }
+    if (hdrMetadataType != CM_METADATA_NONE) {
+        newPixelFormat_ = GRAPHIC_PIXEL_FMT_RGBA_1010102;
+        RS_LOGD("RSUniRenderVisitor::CheckPixelFormat newPixelFormat_ is set 1010102 for hdr.");
+    }
+}
+
+void RSUniRenderVisitor::HandlePixelFormat(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager)
+{
+    hasFingerprint_ = false;
+    newPixelFormat_ = GRAPHIC_PIXEL_FMT_RGBA_8888;
+    RSScreenType screenType = BUILT_IN_TYPE_SCREEN;
+    if (screenManager->GetScreenType(node.GetScreenId(), screenType) != SUCCESS) {
+        RS_LOGE("RSUniRenderVisitor::HandlePixelFormat get screen type failed.");
+        return;
+    }
+
+    if (screenType == VIRTUAL_TYPE_SCREEN) {
+        if (screenManager->GetPixelFormat(node.GetScreenId(), newPixelFormat_) != SUCCESS) {
+            RS_LOGE("RSUniRenderVisitor::HandlePixelFormat get screen color gamut failed.");
+        }
+        return;
+    }
+
+    for (auto& child : node.GetCurAllSurfaces()) {
+        auto surfaceNodePtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+        if (!surfaceNodePtr) {
+            RS_LOGD("RSUniRenderVisitor::PrepareDisplayRenderNode ReinterpretCastTo fail");
+            continue;
+        }
+        CheckPixelFormat(*surfaceNodePtr);
     }
 }
 
@@ -672,6 +801,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     node.CollectSurface(node.shared_from_this(), node.GetCurAllSurfaces(), true, false);
 
     HandleColorGamuts(node, screenManager);
+    HandlePixelFormat(node, screenManager);
 
 #if defined(RS_ENABLE_DRIVEN_RENDER)
     if (drivenInfo_) {
@@ -943,26 +1073,34 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeAfterUpdate(RSSurfaceRen
             std::to_string(preparedCanvasNodeInCurrentSurface_));
         preparedCanvasNodeInCurrentSurface_ = 0;
     }
-    if (node.GetSecurityLayer() && curSurfaceNode_ && curSurfaceNode_->GetId() == node.GetInstanceRootNodeId()) {
-        curSurfaceNode_->SetHasSecurityLayer(true);
-        displayHasSecSurface_[currentVisitDisplay_] = true;
-    }
-    if (node.GetSkipLayer() && curSurfaceNode_ && curSurfaceNode_->GetId() == node.GetInstanceRootNodeId() &&
-        node.GetName().find(CAPTURE_WINDOW_NAME) == std::string::npos) {
-        curSurfaceNode_->SetHasSkipLayer(true);
-        displayHasSkipSurface_[currentVisitDisplay_] = true;
-    }
+    UpdateSecurityAndSkipLayerRecord(node);
     // accumulate all visited dirty rects including leash window's shadow dirty
     if ((node.IsMainWindowType() || node.IsLeashWindow()) && curSurfaceDirtyManager_->IsCurrentFrameDirty()) {
         accumulatedDirtyRegions_.emplace_back(curSurfaceDirtyManager_->GetCurrentFrameDirtyRegion());
     }
 }
 
+void RSUniRenderVisitor::UpdateSecurityAndSkipLayerRecord(RSSurfaceRenderNode& node)
+{
+    if (curSurfaceNode_ == nullptr) {
+        return;
+    }
+    if (node.GetSecurityLayer() && curSurfaceNode_->GetId() == node.GetInstanceRootNodeId()) {
+        curSurfaceNode_->SetHasSecurityLayer(true);
+        displayHasSecSurface_[currentVisitDisplay_] = true;
+    }
+    if (node.GetSkipLayer() && curSurfaceNode_->GetId() == node.GetInstanceRootNodeId() &&
+        node.GetName().find(CAPTURE_WINDOW_NAME) == std::string::npos) {
+        curSurfaceNode_->SetHasSkipLayer(true);
+        displayHasSkipSurface_[currentVisitDisplay_] = true;
+    }
+}
+
 void RSUniRenderVisitor::UpdateForegroundFilterCacheWithDirty(RSRenderNode& node,
     RSDirtyRegionManager& dirtyManager)
 {
-    node.UpdateFilterCacheManagerWithCacheRegion(prepareClipRect_);
     node.UpdateFilterCacheWithDirty(dirtyManager, true);
+    node.UpdateFilterCacheManagerWithCacheRegion(dirtyManager, prepareClipRect_);
 }
 
 void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
@@ -970,9 +1108,6 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     RS_OPTIONAL_TRACE_NAME("RSUniRender::Prepare:[" + node.GetName() + "] pid: " +
         std::to_string(ExtractPid(node.GetId())) +
         ", nodeType " + std::to_string(static_cast<uint>(node.GetSurfaceNodeType())));
-    if (node.GetFingerprint() && node.GetBuffer() != nullptr) {
-        hasFingerprint_ = true;
-    }
 
     if (curDisplayNode_ == nullptr) {
         ROSEN_LOGE("RSUniRenderVisitor::PrepareSurfaceRenderNode, curDisplayNode_ is nullptr.");
@@ -2085,7 +2220,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         auto processor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor_);
         if (mirrorNode->GetSecurityDisplay() != isSecurityDisplay_ && processor &&
             (hasCaptureWindow_[mirrorNode->GetScreenId()] || displayHasSecSurface_[mirrorNode->GetScreenId()] ||
-            displayHasSkipSurface_[mirrorNode->GetScreenId()])) {
+            displayHasSkipSurface_[mirrorNode->GetScreenId()] || !screenInfo_.filteredAppSet.empty())) {
             canvas_ = processor->GetCanvas();
             if (canvas_ == nullptr) {
                 RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode failed to get canvas.");
@@ -2106,7 +2241,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
             sk_sp<SkImage> cacheImageProcessed = GetCacheImageFromMirrorNode(mirrorNode);
             if (cacheImageProcessed && !displayHasSkipSurface_[mirrorNode->GetScreenId()] &&
-                !displayHasSecSurface_[mirrorNode->GetScreenId()]) {
+                !displayHasSecSurface_[mirrorNode->GetScreenId()] && screenInfo_.filteredAppSet.empty()) {
                 ScaleMirrorIfNeed(node);
                 canvas_->save();
                 // If both canvas and skImage have rotated, we need to reset the canvas
@@ -2149,7 +2284,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
             std::shared_ptr<Drawing::Image> cacheImageProcessed = GetCacheImageFromMirrorNode(mirrorNode);
             if (cacheImageProcessed && !displayHasSkipSurface_[mirrorNode->GetScreenId()] &&
-                !displayHasSecSurface_[mirrorNode->GetScreenId()]) {
+                !displayHasSecSurface_[mirrorNode->GetScreenId()] && screenInfo_.filteredAppSet.empty()) {
                 ScaleMirrorIfNeed(node);
                 canvas_->Save();
                 // If both canvas and skImage have rotated, we need to reset the canvas
@@ -2293,10 +2428,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         // we should request a framebuffer whose size is equals to the physical screen size.
         RS_TRACE_BEGIN("RSUniRender:RequestFrame");
         BufferRequestConfig bufferConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_, true);
-        if (hasFingerprint_) {
-            bufferConfig.format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_1010102;
-            RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode, RGBA 8888 to RGBA 1010102");
-        }
+        bufferConfig.format = newPixelFormat_;
+        RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode, pixelformat is %{public}d in RequestFrame.",
+                newPixelFormat_);
         node.SetFingerprint(hasFingerprint_);
         RS_OPTIONAL_TRACE_BEGIN("RSUniRender::wait for bufferRequest cond");
         if (!RSMainThread::Instance()->WaitUntilDisplayNodeBufferReleased(node)) {
@@ -2353,7 +2487,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_OPTIONAL_TRACE_END();
             RSUniRenderUtil::MergeDirtyHistory(displayNodePtr, bufferAge, isDirtyRegionAlignedEnable_);
             Occlusion::Region dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegion(
-                displayNodePtr, isDirtyRegionAlignedEnable_);
+                displayNodePtr, RSMainThread::Instance()->GetDrawStatusVec(), isDirtyRegionAlignedEnable_);
             dirtyRegionTest = dirtyRegion;
             if (isDirtyRegionAlignedEnable_) {
                 SetSurfaceGlobalAlignedDirtyRegion(displayNodePtr, dirtyRegion);
@@ -2429,7 +2563,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
 #endif
 #endif
-
         RSPropertiesPainter::SetBgAntiAlias(true);
         if (!isParallel_ || isUIFirst_) {
 #ifndef USE_ROSEN_DRAWING
@@ -3551,6 +3684,13 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeNeedProcess(RSSurfaceRenderNode
         RS_PROCESS_TRACE(isPhone_, false, node.GetName() + " App Occluded Leashwindow Skip");
         return false;
     }
+    if (!screenInfo_.filteredAppSet.empty() &&
+        screenInfo_.filteredAppSet.find(node.GetId()) == screenInfo_.filteredAppSet.end()) {
+        RS_PROCESS_TRACE(isPhone_, false, node.GetName() + " skip because it isn't filtered App");
+        RS_LOGD("RSUniRenderVisitor::CheckIfSurfaceRenderNodeNeedProcess:\
+            %{public}s skip because it isn't filtered App", node.GetName().c_str());
+        return false;
+    }
     return true;
 }
 
@@ -3811,6 +3951,10 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
             } else {
                 node.SetGlobalAlpha(1.0f);
                 auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false, threadIndex_);
+                params.targetColorGamut = newColorSpace_;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+                params.screenBrightnessNits = GetScreenBrightnessNits();
+#endif
                 renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
             }
         }
@@ -4063,6 +4207,8 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
             }
             if (updateTimes >= CACHE_MAX_UPDATE_TIME) {
                 node.SetCacheType(CacheType::NONE);
+                node.MarkNodeGroup(RSRenderNode::GROUPED_BY_UI, false);
+                node.MarkNodeGroup(RSRenderNode::GROUPED_BY_ANIM, false);
                 RSUniRenderUtil::ClearCacheSurface(node, threadIndex_);
                 cacheRenderNodeMap.erase(node.GetId());
                 groupedTransitionNodes.erase(node.GetId());
@@ -4698,5 +4844,39 @@ bool RSUniRenderVisitor::CheckIfNeedResetRotate() {
     int angle = RSUniRenderUtil::GetRotationFromMatrix(canvas_->getTotalMatrix());
     return angle != 0 && angle % 90 == 0;
 }
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+float RSUniRenderVisitor::GetScreenBrightnessNits()
+{
+    constexpr float DEFAULT_SCREEN_LIGHT_NITS = 500.0;
+    constexpr float DEFAULT_SCREEN_LIGHT_MAX_NITS = 1200.0;
+    constexpr int32_t DEFAULT_SCREEN_LIGHT_MAX_LEVEL = 255;
+
+    float screenBrightnessNits = DEFAULT_SCREEN_LIGHT_NITS;
+    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    if (screenManager == nullptr) {
+        RS_LOGW("RSUniRenderVisitor::GetScreenBrightnessNits screenManager is nullptr.");
+        return screenBrightnessNits;
+    }
+
+    RSScreenType screenType;
+    if (screenManager->GetScreenType(currentVisitDisplay_, screenType) != SUCCESS) {
+        RS_LOGW("RSUniRenderVisitor::GetScreenBrightnessNits GetScreenType fail.");
+        return screenBrightnessNits;
+    }
+
+    if (screenType == VIRTUAL_TYPE_SCREEN) {
+        return screenBrightnessNits;
+    }
+
+    int32_t backLightLevel = screenManager->GetScreenBacklight(currentVisitDisplay_);
+
+    if (backLightLevel <= 0) {
+        return screenBrightnessNits;
+    }
+
+    return DEFAULT_SCREEN_LIGHT_MAX_NITS * backLightLevel / DEFAULT_SCREEN_LIGHT_MAX_LEVEL;
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

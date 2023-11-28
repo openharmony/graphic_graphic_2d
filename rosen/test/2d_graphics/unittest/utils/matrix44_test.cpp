@@ -112,7 +112,7 @@ HWTEST_F(Matrix44Test, Matrix44SetMatrix44Test001, TestSize.Level1)
 {
     std::unique_ptr<Matrix44> matrix44 = std::make_unique<Matrix44>();
     ASSERT_TRUE(matrix44 != nullptr);
-    matrix44->SetMatrix44({200, 150, 800, 60, 200, 150, 800, 60, 90, 22,
+    matrix44->SetMatrix44ColMajor({200, 150, 800, 60, 200, 150, 800, 60, 90, 22,
         3, 55, 66, 99, 14, 16});
 }
 
@@ -128,7 +128,7 @@ HWTEST_F(Matrix44Test, Matrix44SetMatrix44Test002, TestSize.Level1)
     ASSERT_TRUE(matrix44 != nullptr);
     std::array<scalar, 16> buffer = {200, 150, 80, 60, 200, 150, 80, 60,
         900, 221, 3, 60.5f, 60.1f, 90.5f, 80.8f, 60.6f};
-    matrix44->SetMatrix44(buffer);
+    matrix44->SetMatrix44ColMajor(buffer);
 }
 
 /**
@@ -143,7 +143,7 @@ HWTEST_F(Matrix44Test, Matrix44SetMatrix44Test003, TestSize.Level1)
     ASSERT_TRUE(matrix44 != nullptr);
     std::array<scalar, 16> buffer = {20.9f, 15.8f, 80.8f, 60.6f, 2.4f, 99.9f, 60.5f, 60.1f,
         90.5f, 2.4f, 99.9f, 60.5f, 60.1f, 90.5f, 80.8f, 60.6f};
-    matrix44->SetMatrix44(buffer);
+    matrix44->SetMatrix44ColMajor(buffer);
 }
 
 /**
@@ -172,9 +172,9 @@ HWTEST_F(Matrix44Test, Matrix44MultiplyTest002, TestSize.Level1)
     std::unique_ptr<Matrix44> matrix44 = std::make_unique<Matrix44>();
     ASSERT_TRUE(matrix44 != nullptr);
     Matrix44 matrix1;
-    matrix1.SetMatrix44({200, 150, 800, 60, 200, 150, 800, 60, 90, 22, 3, 55, 66, 99, 14, 16});
+    matrix1.SetMatrix44ColMajor({200, 150, 800, 60, 200, 150, 800, 60, 90, 22, 3, 55, 66, 99, 14, 16});
     Matrix44 matrix2;
-    matrix2.SetMatrix44({200, 150, 800, 60, 200, 150, 800, 60, 90, 22, 3, 55, 66, 99, 14, 16});
+    matrix2.SetMatrix44ColMajor({200, 150, 800, 60, 200, 150, 800, 60, 90, 22, 3, 55, 66, 99, 14, 16});
     Matrix44 matrix3 = matrix1 * matrix2;
 }
 } // namespace Drawing

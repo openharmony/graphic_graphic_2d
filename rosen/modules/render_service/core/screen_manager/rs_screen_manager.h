@@ -21,6 +21,7 @@
 #include <mutex>
 #include <queue>
 #include <unordered_map>
+#include <unordered_set>
 
 #include <hdi_backend.h>
 #include <ipc_callbacks/screen_change_callback.h>
@@ -51,11 +52,14 @@ enum class ScreenState : uint8_t {
 
 struct ScreenInfo {
     ScreenId id = INVALID_SCREEN_ID;
-    uint32_t width = 0;
+    uint32_t width = 0; // render resolution
     uint32_t height = 0;
+    uint32_t phyWidth = 0; // physical screen resolution
+    uint32_t phyHeight = 0;
     ScreenColorGamut colorGamut = ScreenColorGamut::COLOR_GAMUT_SRGB;
     ScreenState state = ScreenState::UNKNOWN;
     ScreenRotation rotation = ScreenRotation::ROTATION_0;
+    std::unordered_set<uint64_t> filteredAppSet = {};
 
     uint32_t skipFrameInterval = DEFAULT_SKIP_FRAME_INTERVAL;  // skip frame interval for change screen refresh rate
 
@@ -70,6 +74,27 @@ struct ScreenInfo {
     uint32_t GetRotatedHeight() const
     {
         return (rotation == ScreenRotation::ROTATION_0 || rotation == ScreenRotation::ROTATION_180) ? height : width;
+    }
+    uint32_t GetRotatedPhyWidth() const
+    {
+        return (rotation == ScreenRotation::ROTATION_0 ||
+            rotation == ScreenRotation::ROTATION_180) ? phyWidth : phyHeight;
+    }
+
+    uint32_t GetRotatedPhyHeight() const
+    {
+        return (rotation == ScreenRotation::ROTATION_0 ||
+            rotation == ScreenRotation::ROTATION_180) ? phyHeight : phyWidth;
+    }
+
+    float GetRogWidthRatio() const
+    {
+        return (width == 0) ? 1.f : static_cast<float>(phyWidth) / width;
+    }
+
+    float GetRogHeightRatio() const
+    {
+        return (height == 0) ? 1.f : static_cast<float>(phyHeight) / height;
     }
 };
 
@@ -95,7 +120,8 @@ public:
         uint32_t height,
         sptr<Surface> surface,
         ScreenId mirrorId = 0,
-        int flags = 0) = 0;
+        int flags = 0,
+        std::vector<uint64_t> filteredAppVector = {}) = 0;
 
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
 
@@ -103,6 +129,8 @@ public:
 
     virtual void SetScreenActiveMode(ScreenId id, uint32_t modeId) = 0;
 
+    virtual int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
+ 
     virtual int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
 
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
@@ -238,13 +266,16 @@ public:
         uint32_t height,
         sptr<Surface> surface,
         ScreenId mirrorId,
-        int32_t flags) override;
+        int32_t flags,
+        std::vector<uint64_t> filteredAppVector) override;
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
 
     void RemoveVirtualScreen(ScreenId id) override;
 
     void SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
+
+    int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 

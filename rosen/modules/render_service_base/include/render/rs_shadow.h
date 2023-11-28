@@ -34,6 +34,12 @@ const float DEFAULT_TRANSLATION_Z = 300.0f;
 const uint32_t DEFAULT_AMBIENT_COLOR = 0x0A000000;
 const uint32_t DEFAULT_SPOT_COLOR = 0x00000000;
 
+enum SHADOW_COLOR_STRATEGY : int {
+    COLOR_STRATEGY_NONE = 0,           // use pre-defined shadow color
+    COLOR_STRATEGY_AVERAGE = 1,        // use average color of the shadow area
+    COLOR_STRATEGY_MAIN = 2,           // use main color of the shadow area
+};
+
 class RSShadow {
 public:
     RSShadow();
@@ -47,7 +53,7 @@ public:
     void SetPath(const std::shared_ptr<RSPath>& path);
     void SetMask(bool imageMask);
     void SetIsFilled(bool isFilled);
-    void SetColorStrategy(bool colorStrategy);
+    void SetColorStrategy(int colorStrategy);
 
     const Color& GetColor() const;
     float GetOffsetX() const;
@@ -58,7 +64,7 @@ public:
     const std::shared_ptr<RSPath>& GetPath() const;
     bool GetMask() const;
     bool GetIsFilled() const;
-    bool GetColorStrategy() const;
+    int GetColorStrategy() const;
 
     bool GetHardwareAcceleration() const
     {
@@ -77,7 +83,7 @@ private:
     std::shared_ptr<RSPath> path_ = nullptr;
     bool imageMask_ = false;
     bool isFilled_ = false;
-    bool colorStrategy_ = false;
+    int colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
 };
 } // namespace Rosen
 } // namespace OHOS

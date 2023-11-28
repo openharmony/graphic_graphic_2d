@@ -405,7 +405,6 @@ void RSNode::SetProperty(RSModifierType modifierType, T value)
     }
     auto property = std::make_shared<PropertyName>(value);
     auto propertyModifier = std::make_shared<ModifierName>(property);
-    ROSEN_LOGI("RSNode::SetProperty modifier");
     propertyModifiers_.emplace(modifierType, propertyModifier);
     AddModifier(propertyModifier);
 }
@@ -1052,9 +1051,9 @@ void RSNode::SetShadowIsFilled(bool shadowIsFilled)
     SetProperty<RSShadowIsFilledModifier, RSProperty<bool>>(RSModifierType::SHADOW_IS_FILLED, shadowIsFilled);
 }
 
-void RSNode::SetShadowColorStrategy(bool shadowColorStrategy)
+void RSNode::SetShadowColorStrategy(int shadowColorStrategy)
 {
-    SetProperty<RSShadowColorStrategyModifier, RSProperty<bool>>(
+    SetProperty<RSShadowColorStrategyModifier, RSProperty<int>>(
         RSModifierType::SHADOW_COLOR_STRATEGY, shadowColorStrategy);
 }
 

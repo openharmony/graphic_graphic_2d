@@ -75,7 +75,8 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegion, Function | SmallTest | Le
     NodeId id = 0;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
-    (void)RSUniRenderUtil::MergeVisibleDirtyRegion(node);
+    std::vector<NodeId> hasVisibleDirtyRegionSurfaceVec;
+    (void)RSUniRenderUtil::MergeVisibleDirtyRegion(node, hasVisibleDirtyRegionSurfaceVec);
 }
 
 /*

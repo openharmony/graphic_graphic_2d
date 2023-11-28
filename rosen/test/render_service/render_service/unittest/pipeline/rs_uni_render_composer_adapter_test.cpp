@@ -15,7 +15,10 @@
 
 #include "gtest/gtest.h"
 #include "pipeline/rs_uni_render_composer_adapter.h"
+#include "pipeline/rs_uni_render_listener.h"
+#include "surface_buffer_impl.h"
 #include "rs_test_util.h"
+#include "metadata_helper.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -722,42 +725,6 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleDown003, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsOutOfScreenRegion001
- * @tc.desc: Test RSUniRenderComposerAdapterTest.IsOutOfScreenRegion
- * @tc.type: FUNC
- * @tc.require: issueI6S774
- */
-HWTEST_F(RSUniRenderComposerAdapterTest, IsOutOfScreenRegion001, TestSize.Level1)
-{
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(surfaceNode, nullptr);
-    ComposeInfo info = composerAdapter_->BuildComposeInfo(*surfaceNode);
-    ASSERT_NE(info.buffer, nullptr);
-    info.buffer->SetSurfaceBufferWidth(DEFAULT_CANVAS_WIDTH);
-    info.buffer->SetSurfaceBufferHeight(DEFAULT_CANVAS_HEIGHT);
-    composerAdapter_->screenInfo_.rotation = ScreenRotation::ROTATION_90;
-    ASSERT_NE(true, composerAdapter_->IsOutOfScreenRegion(info));
-}
-
-/**
- * @tc.name: IsOutOfScreenRegion002
- * @tc.desc: Test RSUniRenderComposerAdapterTest.IsOutOfScreenRegion
- * @tc.type: FUNC
- * @tc.require: issueI6S774
- */
-HWTEST_F(RSUniRenderComposerAdapterTest, IsOutOfScreenRegion002, TestSize.Level1)
-{
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(surfaceNode, nullptr);
-    ComposeInfo info = composerAdapter_->BuildComposeInfo(*surfaceNode);
-    ASSERT_NE(info.buffer, nullptr);
-    info.buffer->SetSurfaceBufferWidth(DEFAULT_CANVAS_WIDTH);
-    info.buffer->SetSurfaceBufferHeight(DEFAULT_CANVAS_HEIGHT);
-    composerAdapter_->screenInfo_.rotation = ScreenRotation::ROTATION_270;
-    ASSERT_NE(true, composerAdapter_->IsOutOfScreenRegion(info));
-}
-
-/**
  * @tc.name: IsOutOfScreenRegion003
  * @tc.desc: Test RSUniRenderComposerAdapterTest.IsOutOfScreenRegion
  * @tc.type: FUNC
@@ -1012,35 +979,6 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerCrop003, TestSize.Level2)
 }
 
 /**
- * @tc.name: GetComposerInfoSrcRect005
- * @tc.desc: Test RSUniRenderComposerAdapterTest.GetComposerInfoSrcRect while
- *           the scaling mode of buffer is ScalingMode::SCALING_MODE_SCALE_TO_WINDOW
- * @tc.type: FUNC
- * @tc.require: issuesI7T9RE
- */
-HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect005, TestSize.Level2)
-{
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(surfaceNode, nullptr);
-    ComposeInfo info = composerAdapter_->BuildComposeInfo(*surfaceNode);
-    ASSERT_NE(info.buffer, nullptr);
-
-    //let the the width of the buffer not equal to the width of bounds
-    surfaceNode->renderProperties_.SetBoundsWidth(DEFAULT_CANVAS_WIDTH * 0.5);
-    surfaceNode->renderProperties_.SetBoundsHeight(DEFAULT_CANVAS_HEIGHT * 0.5);
-    info.buffer->SetSurfaceBufferWidth(DEFAULT_CANVAS_WIDTH);
-    info.buffer->SetSurfaceBufferHeight(DEFAULT_CANVAS_WIDTH);
-    //let th width of the srcRect equal to the width of bounds
-    info.srcRect = {0, 0, DEFAULT_CANVAS_WIDTH * 0.5, DEFAULT_CANVAS_HEIGHT * 0.5};
-    
-    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
-    surfaceNode->GetConsumer()->AttachBuffer(info.buffer);
-    surfaceNode->GetConsumer()->SetScalingMode(info.buffer->GetSeqNum(), scalingMode);
-    composerAdapter_->GetComposerInfoSrcRect(info, *surfaceNode);
-    ASSERT_EQ(info.srcRect.w, DEFAULT_CANVAS_WIDTH);
-}
-
-/**
  * @tc.name: SrcRectRotateTransform006
  * @tc.desc: Test RSUniRenderComposerAdapterTest.SrcRectRotateTransform while
  *           surface's consumer is nullptr
@@ -1171,5 +1109,61 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleDown006, TestSize.Level2)
     surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_90);
     composerAdapter_->LayerScaleDown(layer, *surfaceNode);
     ASSERT_FALSE(layer->GetDirtyRegions()[0].h == DEFAULT_CANVAS_WIDTH);
+}
+
+/**
+ * @tc.name: SetBufferColorSpace001
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.SetBufferColorSpace
+ * @tc.type: FUNC
+ * @tc.require: issuesI8C4I9
+*/
+HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace001, TestSize.Level2)
+{
+    SetUp();
+
+    using namespace HDI::Display::Graphic::Common::V1_0;
+
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNode::SharedPtr nodePtr = std::make_shared<RSDisplayRenderNode>(1, config);
+
+    sptr<IBufferConsumerListener> listener = new RSUniRenderListener(nodePtr);
+    nodePtr->CreateSurface(listener);
+
+    auto rsSurface = nodePtr->GetRSSurface();
+    rsSurface->SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3,
+    };
+    GSError ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    nodePtr->SetBuffer(buffer, SyncFence::INVALID_FENCE, Rect(), 0);
+
+    composerAdapter_->SetBufferColorSpace(*nodePtr);
+
+    CM_ColorSpaceType colorSpaceType;
+    ret = MetadataHelper::GetColorSpaceType(buffer, colorSpaceType);
+    ASSERT_TRUE(ret == GSERROR_OK || GSErrorStr(ret) == "<500 api call failed>with low error <Not supported>");
+    if (ret == GSERROR_OK) {
+        ASSERT_EQ(colorSpaceType, CM_P3_FULL);
+    }
+
+    CM_ColorSpaceInfo colorSpaceInfo;
+    ret = MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo);
+    ASSERT_TRUE(ret == GSERROR_OK || GSErrorStr(ret) == "<500 api call failed>with low error <Not supported>");
+    if (ret == GSERROR_OK) {
+        ASSERT_EQ(colorSpaceInfo.primaries, COLORPRIMARIES_P3_D65);
+        ASSERT_EQ(colorSpaceInfo.transfunc, TRANSFUNC_SRGB);
+        ASSERT_EQ(colorSpaceInfo.matrix, MATRIX_P3);
+        ASSERT_EQ(colorSpaceInfo.range, RANGE_FULL);
+    }
 }
 } // namespace

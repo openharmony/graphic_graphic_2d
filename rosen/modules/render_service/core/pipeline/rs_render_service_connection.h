@@ -85,7 +85,8 @@ private:
         uint32_t height,
         sptr<Surface> surface,
         ScreenId mirrorId = 0,
-        int32_t flags = 0) override;
+        int32_t flags = 0,
+        std::vector<NodeId> filteredAppVector = {}) override;
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
 

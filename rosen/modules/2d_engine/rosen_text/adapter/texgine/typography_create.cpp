@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 std::unique_ptr<TypographyCreate> TypographyCreate::Create(const TypographyStyle& style,
-    std::shared_ptr<FontCollection> collection)
+    std::shared_ptr<OHOS::Rosen::FontCollection> collection)
 {
     return std::make_unique<AdapterTextEngine::TypographyCreate>(style, collection);
 }

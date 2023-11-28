@@ -433,7 +433,7 @@ public:
 
     bool IsSurfaceInStartingWindowStage() const;
 
-    RS_REGION_VISIBLE_LEVEL GetVisibleLevelForWMS(RSVisibleLevel visibleLevel);
+    WINDOW_LAYER_INFO_TYPE GetVisibleLevelForWMS(RSVisibleLevel visibleLevel);
 
     void SetVisibleRegionRecursive(
         const Occlusion::Region& region,
@@ -592,6 +592,17 @@ public:
     inline bool IsCurrentNodeInTransparentRegion(const Occlusion::Rect& nodeRect) const
     {
         return transparentRegion_.IsIntersectWith(nodeRect);
+    }
+
+    // Used when the node is opaque, but not calculate in occlusion
+    void SetTreatedAsTransparent(bool isOcclusion)
+    {
+        isTreatedAsTransparent_ = isOcclusion;
+    }
+
+    bool IsTreatedAsTransparent() const
+    {
+        return isTreatedAsTransparent_;
     }
 
     bool SubNodeIntersectWithDirty(const RectI& r) const;
@@ -783,9 +794,9 @@ public:
         isFilterCacheFullyCovered_ = val;
     }
 
-    bool GetFilterCacheValid() const
+    bool GetFilterCacheValidForOcclusion() const
     {
-        return isFilterCacheValid_;
+        return isFilterCacheValidForOcclusion_;
     }
 
     void CalcFilterCacheValidForOcclusion();
@@ -951,8 +962,9 @@ private:
 
     Occlusion::Region containerRegion_;
     bool isFilterCacheFullyCovered_ = false;
-    bool isFilterCacheValid_ = false;
+    bool isFilterCacheValidForOcclusion_ = false;
     bool isFilterCacheStatusChanged_ = false;
+    bool isTreatedAsTransparent_ = false;
     std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>>
         filterNodes_; // valid filter nodes within, including itself
     std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>> drawingCacheNodes_;
@@ -1009,6 +1021,8 @@ private:
     std::shared_ptr<Drawing::Image> cachedImage_;
 #endif
 
+    // used for hardware enabled pointer window
+    bool isLastFrameNeedCalcGlobalDirty_ = true;
     // used for hardware enabled nodes
     bool isHardwareEnabledNode_ = false;
     bool isCurrentFrameHardwareEnabled_ = false;

@@ -37,12 +37,20 @@ public:
     static inline NodeId id;
     static inline std::weak_ptr<RSContext> context = {};
     static inline RSPaintFilterCanvas* canvas_;
+#ifndef USE_ROSEN_DRAWING
     static inline SkCanvas skCanvas_;
+#else
+    static inline Drawing::Canvas drawingCanvas_;
+#endif
 };
 
 void RSRenderNodeTest::SetUpTestCase()
 {
+#ifndef USE_ROSEN_DRAWING
     canvas_ = new RSPaintFilterCanvas(&skCanvas_);
+#else
+    canvas_ = new RSPaintFilterCanvas(&drawingCanvas_);
+#endif
 }
 void RSRenderNodeTest::TearDownTestCase()
 {
@@ -132,10 +140,14 @@ HWTEST_F(RSRenderNodeTest, InitCacheSurfaceTest, TestSize.Level1)
     RSRenderNode node(id, context);
     CacheType type = CacheType::ANIMATE_PROPERTY;
     node.SetCacheType(type);
+#ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
     node.InitCacheSurface(canvas_->recordingContext());
 #else
     node.InitCacheSurface(canvas_->getGrContext());
+#endif
+#else
+   node.InitCacheSurface(canvas_->GetGPUContext().get());
 #endif
 }
 
@@ -301,6 +313,50 @@ HWTEST_F(RSRenderNodeTest,  SetDrawingCacheRootIdTest, TestSize.Level2)
 
     node.SetDrawingCacheRootId(drawingCacheRootNode.GetId());
     ASSERT_EQ(node.GetDrawingCacheRootId(), drawingCacheRootNode.GetId());
+}
+
+/**
+ * @tc.name: SetCacheGeoPreparationDelay01
+ * @tc.desc: test SetCacheGeoPreparationDelay once
+ * @tc.type: FUNC
+ * @tc.require: issueI8JMN8
+ */
+HWTEST_F(RSRenderNodeTest,  SetCacheGeoPreparationDelay01, TestSize.Level2)
+{
+    RSRenderNode node(id, context);
+    // test default value
+    ASSERT_EQ(node.GetCacheGeoPreparationDelay(), false);
+
+    node.SetCacheGeoPreparationDelay(true);
+    ASSERT_EQ(node.GetCacheGeoPreparationDelay(), true);
+}
+
+/**
+ * @tc.name: SetCacheGeoPreparationDelay02
+ * @tc.desc: test SetCacheGeoPreparationDelay would not be covered by later setting
+ * @tc.type: FUNC
+ * @tc.require: issueI8JMN8
+ */
+HWTEST_F(RSRenderNodeTest,  SetCacheGeoPreparationDelay02, TestSize.Level2)
+{
+    RSRenderNode node(id, context);
+    node.SetCacheGeoPreparationDelay(true);
+    node.SetCacheGeoPreparationDelay(false);
+    ASSERT_EQ(node.GetCacheGeoPreparationDelay(), true);
+}
+
+/**
+ * @tc.name: ResetCacheGeoPreparationDelay01
+ * @tc.desc: test SetCacheGeoPreparationDelay would be reset
+ * @tc.type: FUNC
+ * @tc.require: issueI8JMN8
+ */
+HWTEST_F(RSRenderNodeTest,  ResetCacheGeoPreparationDelay01, TestSize.Level2)
+{
+    RSRenderNode node(id, context);
+    node.SetCacheGeoPreparationDelay(true);
+    node.ResetCacheGeoPreparationDelay();
+    ASSERT_EQ(node.GetCacheGeoPreparationDelay(), false);
 }
 
 /**

@@ -203,6 +203,10 @@ public:
     {
         return frameCount_;
     }
+    std::vector<NodeId>& GetDrawStatusVec()
+    {
+        return curDrawStatusVec_;
+    }
 
     DeviceType GetDeviceType() const;
     bool IsSingleDisplay();
@@ -247,7 +251,10 @@ private:
     void RemoveRSEventDetector();
     void SetRSEventDetectorLoopStartTag();
     void SetRSEventDetectorLoopFinishTag();
+    void CallbackDrawContextStatusToWMS();
     void UpdateUIFirstSwitch();
+    // ROG: Resolution Online Government
+    void UpdateRogSizeIfNeeded();
     uint32_t GetRefreshRate() const;
     void SkipCommandByNodeId(std::vector<std::unique_ptr<RSTransactionData>>& transactionVec, pid_t pid);
 
@@ -368,6 +375,8 @@ private:
 
     std::map<uint32_t, RSVisibleLevel> lastPidVisMap_;
     VisibleData lastVisVec_;
+    std::map<NodeId, uint64_t> lastDrawStatusMap_;
+    std::vector<NodeId> curDrawStatusVec_;
     bool qosPidCal_ = false;
     bool isDirty_ = false;
     std::atomic_bool doWindowAnimate_ = false;

@@ -319,7 +319,7 @@ void RSScreenManager::ProcessScreenHotPlugEvents()
                 continue;
             }
             if (screens_.count(id) != 0 && screenBacklight_.count(id) != 0 &&
-                screenPowerStatus_.count(id) != 0 && screenPowerStatus_[id] == ScreenPowerStatus::POWER_STATUS_ON) {
+                (screenPowerStatus_.count(id) == 0 || screenPowerStatus_[id] == ScreenPowerStatus::POWER_STATUS_ON)) {
                 screens_[id]->SetScreenBacklight(screenBacklight_[id]);
                 auto mainThread = RSMainThread::Instance();
                 mainThread->PostTask([mainThread]() {
@@ -723,8 +723,8 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     uint32_t height,
     sptr<Surface> surface,
     ScreenId mirrorId,
-    int32_t flags
-    )
+    int32_t flags,
+    std::vector<NodeId> filteredAppVector)
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
@@ -748,6 +748,7 @@ ScreenId RSScreenManager::CreateVirtualScreen(
         RS_LOGD("RSScreenManager %{public}s: surface is nullptr.", __func__);
     }
 
+    std::unordered_set<NodeId> filteredAppSet(filteredAppVector.begin(), filteredAppVector.end());
     VirtualScreenConfigs configs;
     ScreenId newId = GenerateVirtualScreenIdLocked();
     configs.id = newId;
@@ -757,6 +758,7 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     configs.height = height;
     configs.surface = surface;
     configs.flags = flags;
+    configs.filteredAppSet= filteredAppSet;
 
     screens_[newId] = std::make_unique<RSScreen>(configs);
     RS_LOGD("RSScreenManager %{public}s: create virtual screen(id %{public}" PRIu64 ").", __func__, newId);
@@ -856,6 +858,18 @@ int32_t RSScreenManager::SetVirtualScreenResolution(ScreenId id, uint32_t width,
     // The main screen resolution can be changed by the mirrored virtual screen.
     MirrorChangeDefaultScreenResolution(id, width, height);
 
+    return SUCCESS;
+}
+
+int32_t RSScreenManager::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (screens_.count(id) == 0) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    screens_.at(id)->SetRogResolution(width, height);
     return SUCCESS;
 }
 
@@ -1024,6 +1038,8 @@ ScreenInfo RSScreenManager::QueryScreenInfo(ScreenId id) const
     info.id = id;
     info.width = screen->Width();
     info.height = screen->Height();
+    info.phyWidth = screen->PhyWidth();
+    info.phyHeight = screen->PhyHeight();
     auto ret = screen->GetScreenColorGamut(info.colorGamut);
     if (ret != StatusCode::SUCCESS) {
         info.colorGamut = COLOR_GAMUT_SRGB;
@@ -1039,7 +1055,7 @@ ScreenInfo RSScreenManager::QueryScreenInfo(ScreenId id) const
     info.skipFrameInterval = screen->GetScreenSkipFrameInterval();
     ret = screen->GetPixelFormat(info.pixelFormat);
     ret = screen->GetScreenHDRFormat(info.hdrFormat);
-
+    info.filteredAppSet = screen->GetFilteredAppSet();
     return info;
 }
 

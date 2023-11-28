@@ -204,6 +204,11 @@ public:
      */
     uint32_t SetupBaseOj(const std::vector<std::shared_ptr<ExtendImageBaseOj>>& objectList);
 
+    /*
+     * @brief  copy object vec to another CmdList.
+     */
+    void CopyObjectTo(CmdList& other) const;
+
     CmdList(CmdList&&) = delete;
     CmdList(const CmdList&) = delete;
     CmdList& operator=(CmdList&&) = delete;

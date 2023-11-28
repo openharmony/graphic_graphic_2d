@@ -28,6 +28,7 @@ config("2d_graphics_config") {
     "$drawing_src_dir/engine_adapter",
     "$platform_dir/image_native",
     "$rosen_root/modules/render_service_base/include",
+    "$rosen_root/modules/texgine/texgine_drawing/src",
   ]
 }
 
@@ -38,6 +39,7 @@ config("export_config") {
     "$drawing_src_dir",
     "$drawing_src_dir/engine_adapter",
     "$rosen_root/modules/render_service_base/include",
+    "$rosen_root/modules/texgine/texgine_drawing/src",
   ]
 
   if (ace_enable_gpu) {
@@ -108,6 +110,7 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_mask_filter.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_matrix.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_matrix44.cpp",
+      "$drawing_src_dir/engine_adapter/skia_adapter/skia_memory_stream.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_paint.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_path.cpp",
       "$drawing_src_dir/engine_adapter/skia_adapter/skia_path_effect.cpp",
@@ -165,7 +168,9 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/utils/data.cpp",
       "$drawing_src_dir/utils/matrix.cpp",
       "$drawing_src_dir/utils/matrix44.cpp",
+      "$drawing_src_dir/utils/memory_stream.cpp",
       "$drawing_src_dir/utils/region.cpp",
+      "$drawing_src_dir/utils/round_rect.cpp",
       "$drawing_src_dir/utils/vertices.cpp",
     ]
 
@@ -190,6 +195,7 @@ template("graphics2d_source_set") {
       "//third_party/skia/include/private",
       "//third_party/skia/src/core",
       "//third_party/skia/src/ports",
+      "$rosen_root/modules/texgine/texgine_drawing/src",
     ]
 
     configs = [ "//third_party/jsoncpp:jsoncpp_public_config" ]
@@ -412,7 +418,10 @@ if (enable_text_gine) {
     if (platform == "mingw") {
       platform = "windows"
     }
-    deps = [ ":2d_graphics_source_$platform" ]
+    deps = [
+      ":2d_graphics_source_$platform",
+      "$rosen_root/modules/texgine/texgine_drawing:libtexgine_drawing",
+    ]
     public_deps = [ "//third_party/bounds_checking_function:libsec_static" ]
     defines += [ "USE_GRAPHIC_TEXT_GINE" ]
     public_configs = [ ":2d_graphics_config" ]

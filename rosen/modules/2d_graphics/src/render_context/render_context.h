@@ -91,6 +91,11 @@ public:
         return drGPUContext_.get();
     }
 
+    std::shared_ptr<Drawing::GPUContext> GetSharedDrGPUContext() const
+    {
+        return drGPUContext_;
+    }
+
     std::shared_ptr<Drawing::Surface> GetSurface() const
     {
         return surface_;

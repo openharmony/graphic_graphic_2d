@@ -32,7 +32,7 @@ public:
     MaskFilterImpl() noexcept {}
     ~MaskFilterImpl() override {}
 
-    virtual void InitWithBlur(BlurType t, scalar sigma) = 0;
+    virtual void InitWithBlur(BlurType t, scalar sigma, bool respectCTM) = 0;
     virtual std::shared_ptr<Data> Serialize() const = 0;
     virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
 };

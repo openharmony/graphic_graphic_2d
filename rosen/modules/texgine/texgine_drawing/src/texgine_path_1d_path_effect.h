@@ -18,7 +18,11 @@
 
 #include <memory>
 
+#ifndef USE_ROSEN_DRAWING
 #include <include/effects/Sk1DPathEffect.h>
+#else
+#include "drawing.h"
+#endif
 
 #include "texgine_path.h"
 #include "texgine_path_effect.h"
@@ -32,7 +36,6 @@ public:
         K_TRANSLATE_STYLE,
         K_ROTATE_STYLE,
         K_MORPH_STYLE,
-
         K_LASTENUM_STYLE = K_MORPH_STYLE,
     };
 

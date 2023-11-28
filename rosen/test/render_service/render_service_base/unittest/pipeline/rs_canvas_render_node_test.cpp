@@ -30,12 +30,20 @@ public:
     static inline NodeId id;
     static inline std::weak_ptr<RSContext> context = {};
     static inline RSPaintFilterCanvas* canvas_;
+#ifndef USE_ROSEN_DRAWING
     static inline SkCanvas skCanvas_;
+#else
+    static inline Drawing::Canvas drawingCanvas_;
+#endif
 };
 
 void RSCanvasRenderNodeTest::SetUpTestCase()
 {
+#ifndef USE_ROSEN_DRAWING
     canvas_ = new RSPaintFilterCanvas(&skCanvas_);
+#else
+    canvas_ = new RSPaintFilterCanvas(&drawingCanvas_);
+#endif
 }
 void RSCanvasRenderNodeTest::TearDownTestCase()
 {
@@ -67,7 +75,11 @@ HWTEST_F(RSCanvasRenderNodeTest, UpdateRecording002, TestSize.Level1)
     int w;
     int h;
     auto canvasRenderNode = std::make_shared<RSCanvasRenderNode>(id + 1);
+#ifndef USE_ROSEN_DRAWING
     auto drawCmds = std::make_shared<DrawCmdList>(w, h);
+#else
+    auto drawCmds = std::make_shared<Drawing::DrawCmdList>(w, h);
+#endif
     canvasRenderNode->UpdateRecording(drawCmds, RSModifierType::INVALID);
 }
 
@@ -139,6 +151,7 @@ HWTEST_F(RSCanvasRenderNodeTest, ProcessDrivenBackgroundRenderTest, TestSize.Lev
 HWTEST_F(RSCanvasRenderNodeTest, ColorBlendModeTest, TestSize.Level1)
 {
     auto canvasRenderNode = std::make_shared<RSCanvasRenderNode>(id, context);
+#ifndef USE_ROSEN_DRAWING
     canvas_->saveLayer(nullptr, nullptr);
 
     int blendMode = 0;
@@ -164,6 +177,33 @@ HWTEST_F(RSCanvasRenderNodeTest, ColorBlendModeTest, TestSize.Level1)
 
     canvas_->restore();
     canvas_->restore();
+#else
+    canvas_->SaveLayer({nullptr, nullptr});
+
+    int blendMode = 0;
+    auto convertToBlendMode = [&blendMode]() {
+        static const std::unordered_map<int, Drawing::BlendMode> blendModeLUT = {
+            {static_cast<int>(RSColorBlendModeType::DST_IN), Drawing::BlendMode::DST_IN},
+            {static_cast<int>(RSColorBlendModeType::SRC_IN), Drawing::BlendMode::SRC_IN}
+        };
+
+        auto iter = blendModeLUT.find(blendMode);
+        if (iter == blendModeLUT.end()) {
+            ROSEN_LOGE("The desired color_blend_mode is undefined, and the Drawing::BlendMode::SRC is used.");
+            return Drawing::BlendMode::SRC;
+        }
+
+        return blendModeLUT.at(blendMode);
+    };
+    Drawing::BlendMode drawingBlendMode = convertToBlendMode();
+    Drawing::Brush maskBrush;
+    maskBrush.SetBlendMode(drawingBlendMode);
+    Drawing::SaveLayerOps maskLayerRec(nullptr, &maskBrush, nullptr, 0);
+    canvas_->SaveLayer(maskLayerRec);
+
+    canvas_->Restore();
+    canvas_->Restore();
+#endif
 }
 
 /**

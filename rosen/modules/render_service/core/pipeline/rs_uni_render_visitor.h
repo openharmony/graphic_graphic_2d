@@ -232,6 +232,8 @@ private:
     void MergeDirtyRectIfNeed(std::shared_ptr<RSSurfaceRenderNode> appNode,
         std::shared_ptr<RSSurfaceRenderNode> hwcNode);
     void AddContainerDirtyToGlobalDirty(std::shared_ptr<RSDisplayRenderNode>& node) const;
+    // merge last childRect as dirty if any child has been removed
+    void MergeRemovedChildDirtyRegion(RSRenderNode& node);
 
     // set global dirty region to each surface node
     void SetSurfaceGlobalDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node);
@@ -247,6 +249,8 @@ private:
 
     void CheckColorSpace(RSSurfaceRenderNode& node);
     void HandleColorGamuts(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
+    void CheckPixelFormat(RSSurfaceRenderNode& node);
+    void HandlePixelFormat(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
     void AddOverDrawListener(std::unique_ptr<RSRenderFrame>& renderFrame,
         std::shared_ptr<RSCanvasListener>& overdrawListener);
     /* Judge if surface render node could skip preparation:
@@ -281,6 +285,9 @@ private:
     // mark surfaceNode's child surfaceView nodes hardware forced disabled
     void MarkSubHardwareEnableNodeState(RSSurfaceRenderNode& surfaceNode);
     void CollectAppNodeForHwc(std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
+    void UpdateSecurityAndSkipLayerRecord(RSSurfaceRenderNode& node);
+    void PrepareEffectNodeIfCacheReuse(const std::shared_ptr<RSRenderNode>& cacheRootNode,
+        std::shared_ptr<RSEffectRenderNode> effectNode);
 
     // offscreen render related
     void PrepareOffscreenRender(RSRenderNode& node);
@@ -388,6 +395,7 @@ private:
 
     bool needFilter_ = false;
     GraphicColorGamut newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    GraphicPixelFormat newPixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
     std::vector<ScreenColorGamut> colorGamutModes_;
     uint64_t currentFocusedNodeId_ = 0;
     uint64_t focusedLeashWindowId_ = 0;
@@ -489,6 +497,9 @@ private:
     bool CheckIfNeedResetRotate();
 
     uint32_t currentRefreshRate_ = 0;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    float GetScreenBrightnessNits();
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

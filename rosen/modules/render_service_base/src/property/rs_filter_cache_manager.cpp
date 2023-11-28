@@ -614,6 +614,9 @@ void RSFilterCacheManager::InvalidateCache(CacheType cacheType)
     if (cacheType & CacheType::CACHE_TYPE_FILTERED_SNAPSHOT) {
         cachedFilteredSnapshot_.reset();
     }
+    task_->SetStatus(CacheProcessStatus::WAITING);
+    task_->SetCompleted(false);
+    task_->Reset();
 }
 
 void RSFilterCacheManager::ReleaseCacheOffTree()

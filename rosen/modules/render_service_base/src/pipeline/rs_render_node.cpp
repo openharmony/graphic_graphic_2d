@@ -54,7 +54,8 @@ const std::unordered_set<RSModifierType> ANIMATION_MODIFIER_TYPE  = {
     RSModifierType::SCALE,
     RSModifierType::ROTATION_X,
     RSModifierType::ROTATION_Y,
-    RSModifierType::ROTATION
+    RSModifierType::ROTATION,
+    RSModifierType::FRAME,
 };
 const std::set<RSModifierType> BASIC_GEOTRANSFROM_ANIMATION_TYPE = {
     RSModifierType::TRANSLATE,
@@ -860,7 +861,7 @@ void RSRenderNode::UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEn
 
 void RSRenderNode::UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parentNode) const
 {
-    if (!ShouldPaint() || oldDirty_.IsEmpty()) {
+    if (!ShouldPaint() || (oldDirty_.IsEmpty() && GetChildrenRect().IsEmpty())) {
         return;
     }
     auto renderParent = (parentNode);
@@ -888,22 +889,11 @@ void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager
         return;
     }
     if (!manager->IsCacheValid()) {
-        dirtyManager.ResetSubNodeFilterCacheValid();
         return;
     }
     auto& cachedImageRect = manager->GetCachedImageRegion();
     if (dirtyManager.HasIntersectionWithVisitedDirtyRect(cachedImageRect)) {
         manager->UpdateCacheStateWithDirtyRegion();
-    }
-    // Skip filter cache occlusion check for RSEffectRenderNode
-    if (IsInstanceOf<RSEffectRenderNode>()) {
-        return;
-    }
-    // record node's cache area if it has valid filter cache
-    if (!manager->IsCacheValid()) {
-        dirtyManager.ResetSubNodeFilterCacheValid();
-    } else if (ROSEN_EQ(GetGlobalAlpha(), 1.0f) && ROSEN_EQ(properties.GetCornerRadius().x_, 0.0f)) {
-        dirtyManager.UpdateCacheableFilterRect(cachedImageRect);
     }
 #endif
 }
@@ -1071,10 +1061,7 @@ void RSRenderNode::DumpNodeInfo(DfxString& log)
 
 void RSRenderNode::AddModifierProfile(const std::shared_ptr<RSRenderModifier>& modifier, float width, float height)
 {
-    if (timeDelta_ < 0) {
-        return;
-    }
-    if (lastApplyTimestamp_ == lastTimestamp_) {
+    if (timeDelta_ < 0 || ROSEN_EQ(timeDelta_, 0.f) || lastApplyTimestamp_ == lastTimestamp_) {
         return;
     }
     auto propertyId = modifier->GetPropertyId();
@@ -1085,13 +1072,10 @@ void RSRenderNode::AddModifierProfile(const std::shared_ptr<RSRenderModifier>& m
             auto newPosition = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(newProperty)->Get();
             if (oldPropertyValue != propertyValueMap_.end()) {
                 auto oldPosition = std::get<Vector2f>(oldPropertyValue->second);
-                if (ROSEN_EQ(timeDelta_, 0.f)) {
-                    return;
-                }
                 auto xSpeed = (newPosition[0] - oldPosition[0]) / timeDelta_;
                 auto ySpeed = (newPosition[1] - oldPosition[1]) / timeDelta_;
                 HgmModifierProfile hgmModifierProfile = {xSpeed, ySpeed, HgmModifierType::TRANSLATE};
-                hgmModifierProfileList_.emplace_back(hgmModifierProfile);
+                hgmModifierProfileList_.emplace_back(std::move(hgmModifierProfile));
             }
             propertyValueMap_[propertyId] = newPosition;
             break;
@@ -1100,13 +1084,10 @@ void RSRenderNode::AddModifierProfile(const std::shared_ptr<RSRenderModifier>& m
             auto newPosition = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(newProperty)->Get();
             if (oldPropertyValue != propertyValueMap_.end()) {
                 auto oldPosition = std::get<Vector2f>(oldPropertyValue->second);
-                if (ROSEN_EQ(timeDelta_, 0.f)) {
-                    return;
-                }
                 auto xSpeed = (newPosition[0] - oldPosition[0]) * width / timeDelta_;
                 auto ySpeed = (newPosition[1] - oldPosition[1]) * height / timeDelta_;
                 HgmModifierProfile hgmModifierProfile = {xSpeed, ySpeed, HgmModifierType::SCALE};
-                hgmModifierProfileList_.emplace_back(hgmModifierProfile);
+                hgmModifierProfileList_.emplace_back(std::move(hgmModifierProfile));
             }
             propertyValueMap_[propertyId] = newPosition;
             break;
@@ -1116,6 +1097,22 @@ void RSRenderNode::AddModifierProfile(const std::shared_ptr<RSRenderModifier>& m
         case RSModifierType::ROTATION: {
             HgmModifierProfile hgmModifierProfile = {0, 0, HgmModifierType::ROTATION};
             hgmModifierProfileList_.emplace_back(hgmModifierProfile);
+            break;
+        }
+        case RSModifierType::FRAME: {
+            auto newPosition = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(newProperty)->Get();
+            if (oldPropertyValue != propertyValueMap_.end()) {
+                auto oldPosition = std::get<Vector4f>(oldPropertyValue->second);
+                auto xPositionSpeed = (newPosition[0] - oldPosition[0]) / timeDelta_;
+                auto yPositionSpeed = (newPosition[1] - oldPosition[1]) / timeDelta_;
+                auto widthSpeed = (newPosition[2] - oldPosition[2]) / timeDelta_;
+                auto heightSpeed = (newPosition[3] - oldPosition[3]) / timeDelta_;
+                HgmModifierProfile translateProfile = {xPositionSpeed, yPositionSpeed, HgmModifierType::TRANSLATE};
+                hgmModifierProfileList_.emplace_back(std::move(translateProfile));
+                HgmModifierProfile scaleProfile = {widthSpeed, heightSpeed, HgmModifierType::SCALE};
+                hgmModifierProfileList_.emplace_back(std::move(scaleProfile));
+            }
+            propertyValueMap_[propertyId] = newPosition;
             break;
         }
         default:
@@ -1162,7 +1159,7 @@ bool RSRenderNode::ApplyModifiers()
             continue;
         }
         modifier->Apply(context);
-        if (ANIMATION_MODIFIER_TYPE.count(modifier->GetType())) {
+        if (isCalPreferredNode_ && HasAnimation() && ANIMATION_MODIFIER_TYPE.count(modifier->GetType())) {
             animationModifiers.push_back(modifier);
         }
         if (!BASIC_GEOTRANSFROM_ANIMATION_TYPE.count(modifier->GetType())) {
@@ -1856,7 +1853,30 @@ RectI RSRenderNode::GetFilterRect() const
     }
 }
 
-void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(const std::optional<RectI>& clipRect) const
+void RSRenderNode::UpdateFullScreenFilterCacheRect(
+    RSDirtyRegionManager& dirtyManager, bool isForeground) const
+{
+    // Skip filter cache occlusion check for RSEffectRenderNode
+    if (IsInstanceOf<RSEffectRenderNode>()) {
+        return;
+    }
+    auto& renderProperties = GetRenderProperties();
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    auto& manager = renderProperties.GetFilterCacheManager(isForeground);
+    // Record node's cache area if it has valid filter cache
+    // If there are any invalid caches under full screen cache filter, the occlusion shoud be invalidated
+    if (!manager->IsCacheValid() && dirtyManager.IsCacheableFilterRectEmpty()) {
+        dirtyManager.InvalidateFilterCacheRect();
+    } else if (ROSEN_EQ(GetGlobalAlpha(), 1.0f) && ROSEN_EQ(renderProperties.GetCornerRadius().x_, 0.0f) &&
+        manager->GetCachedImageRegion() == dirtyManager.GetSurfaceRect()) {
+        // Only record full screen filter cache for occlusion calculation
+        dirtyManager.UpdateCacheableFilterRect(manager->GetCachedImageRegion());
+    }
+#endif
+}
+
+void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(
+    RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect) const
 {
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (!RSProperties::FilterCacheEnabled) {
@@ -1880,6 +1900,7 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(const std::optional<R
                 context->MarkNeedPurge(RSContext::PurgeType::STRONGLY);
             }
         }
+        UpdateFullScreenFilterCacheRect(dirtyManager, false);
     }
     // foreground filter
     if (auto& manager = renderProperties.GetFilterCacheManager(true)) {
@@ -1890,6 +1911,7 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(const std::optional<R
                 context->MarkNeedPurge(RSContext::PurgeType::STRONGLY);
             }
         }
+        UpdateFullScreenFilterCacheRect(dirtyManager, true);
     }
 #endif
 }
@@ -2200,6 +2222,18 @@ bool RSRenderNode::GetDrawingCacheChanged() const
 void RSRenderNode::ResetDrawingCacheNeedUpdate()
 {
     drawingCacheNeedUpdate_ = false;
+}
+void RSRenderNode::SetCacheGeoPreparationDelay(bool val)
+{
+    cacheGeoPreparationDelay_ = cacheGeoPreparationDelay_ || val;
+}
+void RSRenderNode::ResetCacheGeoPreparationDelay()
+{
+    cacheGeoPreparationDelay_ = false;
+}
+bool RSRenderNode::GetCacheGeoPreparationDelay() const
+{
+    return cacheGeoPreparationDelay_;
 }
 void RSRenderNode::SetVisitedCacheRootIds(const std::unordered_set<NodeId>& visitedNodes)
 {

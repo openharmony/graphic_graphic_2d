@@ -80,7 +80,6 @@ public:
     friend inline bool operator==(const RectI& r1, const RectI& r2);
     friend inline bool operator!=(const RectI& r1, const RectI& r2);
 
-private:
     int32_t left_;
     int32_t right_;
     int32_t top_;
@@ -261,7 +260,6 @@ public:
     friend inline bool operator==(const RectF& r1, const RectF& r2);
     friend inline bool operator!=(const RectF& r1, const RectF& r2);
 
-private:
     scalar left_;
     scalar right_;
     scalar top_;

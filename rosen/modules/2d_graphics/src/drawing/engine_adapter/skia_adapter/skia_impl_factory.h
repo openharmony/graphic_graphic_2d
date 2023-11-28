@@ -44,6 +44,7 @@
 #include "impl_interface/text_blob_builder_impl.h"
 #include "impl_interface/vertices_impl.h"
 #include "impl_interface/trace_memory_dump_impl.h"
+#include "impl_interface/memory_stream_impl.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -76,6 +77,7 @@ public:
     static std::unique_ptr<PathEffectImpl> CreatePathEffect();
     static std::unique_ptr<ColorSpaceImpl> CreateColorSpace();
     static std::unique_ptr<MatrixImpl> CreateMatrix();
+    static std::unique_ptr<MatrixImpl> CreateMatrix(const Matrix& other);
     static std::unique_ptr<Matrix44Impl> CreateMatrix44();
     static std::unique_ptr<CameraImpl> CreateCamera();
     static std::unique_ptr<RegionImpl> CreateRegion();
@@ -86,6 +88,8 @@ public:
         scalar size, scalar scaleX, scalar skewX);
     static std::unique_ptr<TextBlobBuilderImpl> CreateTextBlobBuilder();
     static std::shared_ptr<FontMgrImpl> CreateDefaultFontMgr();
+    static std::shared_ptr<MemoryStreamImpl> CreateMemoryStream();
+    static std::shared_ptr<MemoryStreamImpl> CreateMemoryStream(const void* data, size_t length, bool copyData);
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -736,6 +736,12 @@ bool RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage(Parcel& parcel,
     return val != nullptr;
 }
 
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Image>& val)
+{
+    void* addr = nullptr;
+    return Unmarshalling(parcel, val, addr);
+}
+
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Image>& val, void*& imagepixelAddr)
 {
     (void)imagepixelAddr;

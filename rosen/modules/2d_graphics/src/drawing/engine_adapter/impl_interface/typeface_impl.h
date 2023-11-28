@@ -34,6 +34,7 @@ public:
     virtual size_t GetTableData(uint32_t tag, size_t offset, size_t length, void* data) const = 0;
     virtual bool GetItalic() const = 0;
     virtual uint32_t GetUniqueID() const = 0;
+    virtual int32_t GetUnitsPerEm() const = 0;
 
 protected:
     TypefaceImpl() noexcept = default;

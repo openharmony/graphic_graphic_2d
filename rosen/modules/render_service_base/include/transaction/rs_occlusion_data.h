@@ -23,13 +23,15 @@
 
 namespace OHOS {
 namespace Rosen {
-enum RS_REGION_VISIBLE_LEVEL : uint32_t {
+enum WINDOW_LAYER_INFO_TYPE : uint32_t {
     ALL_VISIBLE = 0,
     SEMI_VISIBLE,
     INVISIBLE,
-    UNKNOW_VISIBLE_LEVEL,
+    WINDOW_LAYER_DYNAMIC_STATUS,
+    WINDOW_LAYER_STATIC_STATUS,
+    WINDOW_LAYER_UNKNOWN_TYPE,
 };
-using VisibleData = std::vector<std::pair<uint64_t, RS_REGION_VISIBLE_LEVEL>>;
+using VisibleData = std::vector<std::pair<uint64_t, WINDOW_LAYER_INFO_TYPE>>;
 class RSB_EXPORT RSOcclusionData : public Parcelable {
 public:
     RSOcclusionData() = default;

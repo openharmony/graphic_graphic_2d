@@ -121,6 +121,7 @@ constexpr uint64_t CLEAN_CACHE_FREQ = 60;
 constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
 constexpr uint64_t PERF_PERIOD_BLUR = 80000000;
 constexpr uint64_t SK_RELEASE_RESOURCE_PERIOD = 5000000000;
+constexpr uint64_t MAX_DYNAMIC_STATUS_TIME = 5000000000;
 constexpr uint64_t PERF_PERIOD_MULTI_WINDOW = 80000000;
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
@@ -128,6 +129,7 @@ constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 constexpr uint32_t WAIT_FOR_HARDWARE_THREAD_TASK_TIMEOUT = 3000;
 constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
 constexpr uint32_t WAIT_FOR_MEM_MGR_SERVICE = 100;
+constexpr uint32_t CAL_NODE_PREFERRED_LIMIT = 50;
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* MEM_MGR = "MemMgr";
@@ -225,9 +227,11 @@ RSMainThread::RSMainThread() : mainThreadId_(std::this_thread::get_id())
 
 RSMainThread::~RSMainThread() noexcept
 {
-    Memory::MemMgrClient::GetInstance().UnsubscribeAppState(*rsAppStateListener_);
     RemoveRSEventDetector();
     RSInnovation::CloseInnovationSo();
+    if (rsAppStateListener_) {
+        Memory::MemMgrClient::GetInstance().UnsubscribeAppState(*rsAppStateListener_);
+    }
 }
 
 void RSMainThread::Init()
@@ -1342,6 +1346,7 @@ bool RSMainThread::GetParallelCompositionEnabled()
 void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
     UpdateUIFirstSwitch();
+    UpdateRogSizeIfNeeded();
     auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
 #if defined(RS_ENABLE_DRIVEN_RENDER)
     uniVisitor->SetDrivenRenderFlag(hasDrivenNodeOnUniTree_, hasDrivenNodeMarkRender_);
@@ -1464,8 +1469,44 @@ void RSMainThread::Render()
         rootNode->Process(rsVisitor);
         renderEngine_->ShrinkCachesIfNeeded();
     }
-
+    CallbackDrawContextStatusToWMS();
     PerfForBlurIfNeeded();
+}
+
+void RSMainThread::CallbackDrawContextStatusToWMS()
+{
+    VisibleData drawStatusVec;
+    for (auto dynamicNodeId : curDrawStatusVec_) {
+        if (lastDrawStatusMap_.find(dynamicNodeId) == lastDrawStatusMap_.end()) {
+            drawStatusVec.emplace_back(std::make_pair(dynamicNodeId,
+                WINDOW_LAYER_INFO_TYPE::WINDOW_LAYER_DYNAMIC_STATUS));
+            RS_LOGD("%{public}s nodeId[%{public}" PRIu64 "] status[%{public}d]",
+                __func__, dynamicNodeId, WINDOW_LAYER_INFO_TYPE::WINDOW_LAYER_DYNAMIC_STATUS);
+        }
+        lastDrawStatusMap_[dynamicNodeId] = timestamp_;
+    }
+    auto drawStatusIter = lastDrawStatusMap_.begin();
+    while (drawStatusIter != lastDrawStatusMap_.end()) {
+        if (timestamp_ - drawStatusIter->second > MAX_DYNAMIC_STATUS_TIME) {
+            drawStatusVec.emplace_back(std::make_pair(drawStatusIter->first,
+                WINDOW_LAYER_INFO_TYPE::WINDOW_LAYER_STATIC_STATUS));
+            RS_LOGD("%{public}s nodeId[%{public}" PRIu64 "] status[%{public}d]",
+                __func__, drawStatusIter->first, WINDOW_LAYER_INFO_TYPE::WINDOW_LAYER_STATIC_STATUS);
+            auto tmpIter = drawStatusIter++;
+            lastDrawStatusMap_.erase(tmpIter);
+        } else {
+            drawStatusIter++;
+        }
+    }
+    curDrawStatusVec_.clear();
+    if (!drawStatusVec.empty()) {
+        std::lock_guard<std::mutex> lock(occlusionMutex_);
+        for (auto it = occlusionListeners_.begin(); it != occlusionListeners_.end(); it++) {
+            if (it->second) {
+                it->second->OnOcclusionVisibleChanged(std::make_shared<RSOcclusionData>(drawStatusVec));
+            }
+        }
+    }
 }
 
 bool RSMainThread::CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces,
@@ -1845,13 +1886,19 @@ void RSMainThread::Animate(uint64_t timestamp)
     // isCalculateAnimationValue is embedded modify for stat animate frame drop
     bool isCalculateAnimationValue = false;
     // iterate and animate all animating nodes, remove if animation finished
+    bool calNodePreferredFlag = true;
+    if (context_->animatingNodeList_.size() > CAL_NODE_PREFERRED_LIMIT) {
+        calNodePreferredFlag = false;
+    }
     EraseIf(context_->animatingNodeList_,
-        [this, timestamp, &curWinAnim, &needRequestNextVsync, &isCalculateAnimationValue](const auto& iter) -> bool {
+        [this, timestamp, calNodePreferredFlag, &curWinAnim, &needRequestNextVsync,
+        &isCalculateAnimationValue](const auto& iter) -> bool {
         auto node = iter.second.lock();
         if (node == nullptr) {
             RS_LOGD("RSMainThread::Animate removing expired animating node");
             return true;
         }
+        node->SetCalPreferredNode(calNodePreferredFlag);
         if (cacheCmdSkippedInfo_.count(ExtractPid(node->GetId())) > 0) {
             RS_LOGD("RSMainThread::Animate skip the cached node");
             return false;
@@ -2578,9 +2625,13 @@ int32_t RSMainThread::GetNodePreferred(const std::vector<HgmModifierProfile>& hg
 FrameRateRange RSMainThread::CalcRSFrameRateRange(std::shared_ptr<RSRenderNode> node)
 {
     FrameRateRange rsRange;
-    auto preferred = GetNodePreferred(node->GetHgmModifierProfileList());
-    if (preferred > 0) {
-        rsRange = {0, RANGE_MAX_REFRESHRATE, preferred};
+    if (!node->IsCalPreferredNode()) {
+        rsRange = {0, RANGE_MAX_REFRESHRATE, OLED_120_HZ};
+    } else if (node->HasAnimation()) {
+        auto preferred = GetNodePreferred(node->GetHgmModifierProfileList());
+        if (preferred > 0) {
+            rsRange = {0, RANGE_MAX_REFRESHRATE, preferred};
+        }
     }
     return rsRange;
 }
@@ -2667,6 +2718,29 @@ bool RSMainThread::IsSingleDisplay()
         return false;
     }
     return rootNode->GetChildrenCount() == 1;
+}
+
+void RSMainThread::UpdateRogSizeIfNeeded()
+{
+    if (!RSSystemProperties::IsPhoneType() || RSSystemProperties::IsFoldScreenFlag()) {
+        return;
+    }
+    const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
+    if (!rootNode) {
+        return;
+    }
+    std::list<RSBaseRenderNode::SharedPtr> children = rootNode->GetSortedChildren();
+    if (!children.empty()) {
+        auto child = children.front();
+        if (child != nullptr && child->IsInstanceOf<RSDisplayRenderNode>()) {
+            auto displayNode = child->ReinterpretCastTo<RSDisplayRenderNode>();
+            if (displayNode) {
+                auto screenManager_ = CreateOrGetScreenManager();
+                screenManager_->SetRogScreenResolution(displayNode->GetScreenId(),
+                    displayNode->GetRogWidth(), displayNode->GetRogHeight());
+            }
+        }
+    }
 }
 
 const uint32_t UIFIRST_MINIMUM_NODE_NUMBER = 13; // minimum window number(13) for enabling UIFirst

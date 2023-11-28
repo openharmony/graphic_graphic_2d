@@ -20,8 +20,9 @@
 #include <iostream>
 
 #include "drawing/engine_adapter/impl_interface/matrix_impl.h"
-#include "utils/scalar.h"
 #include "utils/drawing_macros.h"
+#include "utils/matrix44.h"
+#include "utils/scalar.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -45,6 +46,8 @@ public:
     };
 
     Matrix();
+    Matrix(const Matrix& matrix);
+    Matrix& operator=(const Matrix& matrix);
     virtual ~Matrix() {}
     void Rotate(scalar degree, scalar px, scalar py);
     void Translate(scalar dx, scalar dy);
@@ -67,6 +70,8 @@ public:
      */
     void PreTranslate(scalar dx, scalar dy);
 
+    void PostTranslate(scalar dx, scalar dy);
+
     /*
      * @brief     Sets Matrix to Matrix multiplied by Matrix constructed
      *            from scaling by (sx, sy) about pivot point (0, 0).
@@ -83,7 +88,23 @@ public:
      */
     void PreConcat(const Matrix& other);
 
+    /*
+     * @brief         Sets Matrix to Matrix other multiplied by Matrix44.
+     * @param other   Matrix on left side of multiply expression.
+     */
+    void PreConcat(const Matrix44& matrix44);
+
+    /*
+     * @brief         Sets Matrix to Matrix other multiplied by Matrix.
+     * @param other   Matrix on right side of multiply expression.
+     */
     void PostConcat(const Matrix& other);
+
+    /*
+     * @brief         Sets Matrix to Matrix other multiplied by Matrix44.
+     * @param other   Matrix on right side of multiply expression.
+     */
+    void PostConcat(const Matrix44& matrix44);
 
     /*
      * @brief           Sets inverse to the inverse of Matrix.
@@ -124,10 +145,23 @@ public:
      * @param buffer  Storage for nine scalar values
      */
     void GetAll(Buffer& buffer) const;
+
+    /*
+     * @brief         Copies nine scalar values contained by Matrix from buffer.
+     * @param buffer  Storage for nine scalar values
+     */
+    void SetAll(Buffer& buffer);
+
     template<typename T>
     const std::shared_ptr<T> GetImpl() const
     {
         return matrixImplPtr->DowncastingTo<T>();
+    }
+
+    template<typename T>
+    const T* GetImplPtr() const
+    {
+        return reinterpret_cast<const T*>(matrixImplPtr.get());
     }
 
     /*
@@ -141,7 +175,6 @@ public:
     void PreRotate(scalar degree, scalar px, scalar py);
     void PreScale(scalar sx, scalar sy, scalar px, scalar py);
     void Reset();
-    void DeepCopy(const Matrix& matrix);
 private:
     std::shared_ptr<MatrixImpl> matrixImplPtr;
 };

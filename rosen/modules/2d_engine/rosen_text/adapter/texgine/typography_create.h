@@ -25,7 +25,7 @@ namespace Rosen {
 namespace AdapterTextEngine {
 class TypographyCreate : public ::OHOS::Rosen::TypographyCreate {
 public:
-    TypographyCreate(const TypographyStyle& style, std::shared_ptr<FontCollection> collection);
+    TypographyCreate(const TypographyStyle& style, std::shared_ptr<OHOS::Rosen::FontCollection> collection);
     void PushStyle(const TextStyle& style) override;
     void PopStyle() override;
     void AppendText(const std::u16string& text) override;
