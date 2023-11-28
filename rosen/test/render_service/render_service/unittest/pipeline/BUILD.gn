@@ -149,6 +149,9 @@ ohos_unittest("RSRenderServiceVisitorTest") {
   ]
   defines = []
   defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
 }
 
 ## Build RSComposerAdapterTest
@@ -236,6 +239,9 @@ ohos_unittest("RSBaseRenderUtilTest") {
   ]
   defines = []
   defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
 }
 
 ## Build RSSurfaceCaptureTaskTest
@@ -253,6 +259,9 @@ ohos_unittest("RSSurfaceCaptureTaskTest") {
   ]
   defines = []
   defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
 }
 
 ## Build RSUniRenderComposerAdapterTest
@@ -282,6 +291,9 @@ ohos_unittest("RSUniRenderUtilTest") {
   ]
   defines = []
   defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
 }
 
 ## Build RSUniRenderVisitorTest
@@ -300,6 +312,9 @@ ohos_unittest("RSUniRenderVisitorTest") {
   ]
   defines = []
   defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
 }
 
 ## Build RSUniUiCaptureTest
@@ -531,6 +546,9 @@ ohos_unittest("RSBaseRenderEngineUnitTest") {
   ]
   defines = []
   defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
 }
 
 ## Build RSRoundCornerDisplayTest
@@ -580,6 +598,9 @@ ohos_unittest("RSRenderEngineTest") {
   ]
   defines = []
   defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
 }
 
 ## Build RSNodeCostManagerTest
@@ -661,6 +682,9 @@ ohos_unittest("RSDividedRenderUtilTest") {
   ]
   defines = []
   defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
 }
 
 ## Build RSUniRenderEngineTest
@@ -675,6 +699,9 @@ ohos_unittest("RSUniRenderEngineTest") {
   ]
   defines = []
   defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
 }
 
 ## Build RSUnmarshalThreadTest
