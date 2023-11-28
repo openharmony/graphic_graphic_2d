@@ -2013,7 +2013,8 @@ int RSPropertiesPainter::GetAndResetBlurCnt()
     return blurCnt;
 }
 
-void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaintFilterCanvas& canvas, bool isAntiAlias)
+void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaintFilterCanvas& canvas,
+    bool isAntiAlias, bool isSurfaceView)
 {
     // only disable antialias when background is rect and g_forceBgAntiAlias is false
     bool antiAlias = g_forceBgAntiAlias || !properties.GetCornerRadius().IsZero();
@@ -2036,7 +2037,7 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaint
     SkPaint paint;
     paint.setAntiAlias(antiAlias);
     auto bgColor = properties.GetBackgroundColor();
-    if (bgColor != RgbPalette::Transparent()) {
+    if (bgColor != RgbPalette::Transparent() && !isSurfaceView) {
         paint.setColor(bgColor.AsArgbInt());
         canvas.drawRRect(RRect2SkRRect(properties.GetInnerRRect()), paint);
     }
