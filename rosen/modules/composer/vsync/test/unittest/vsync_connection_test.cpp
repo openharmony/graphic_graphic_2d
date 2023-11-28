@@ -116,6 +116,19 @@ HWTEST_F(VSyncConnectionTest, GetReceiveFd001, Function | MediumTest| Level3)
     ASSERT_EQ(VSyncConnectionTest::vsyncConnection->GetReceiveFd(fd), VSYNC_ERROR_OK);
     ASSERT_NE(fd, -1);
 }
+
+/*
+* Function: GetVSyncPeriod001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetVSyncPeriod
+ */
+HWTEST_F(VSyncConnectionTest, GetVSyncPeriod001, Function | MediumTest| Level3)
+{
+    int64_t period;
+    ASSERT_EQ(VSyncConnectionTest::vsyncConnection->GetVSyncPeriod(period), VSYNC_ERROR_OK);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

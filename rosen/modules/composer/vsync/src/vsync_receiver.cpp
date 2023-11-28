@@ -169,7 +169,6 @@ VsyncError VSyncReceiver::GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_
         timeStamp = listener_->timeStamp_;
     } else {
         if (listener_->periodShared_ == 0 || listener_->timeStampShared_ == 0) {
-            VLOGE("%{public}s Hardware vsync is not available. please try again later!", __func__);
             return VSYNC_ERROR_API_FAILED;
         }
         period = listener_->periodShared_;
