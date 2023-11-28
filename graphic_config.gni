@@ -49,9 +49,6 @@ accessibility_defines = []
 if (enable_text_gine) {
   gpu_defines += [ "USE_GRAPHIC_TEXT_GINE" ]
 }
-if (defined(use_rosen_drawing) && use_rosen_drawing) {
-  gpu_defines += [ "USE_ROSEN_DRAWING" ]
-}
 if (graphic_2d_feature_ace_enable_gpu) {
   if (graphic_2d_feature_enable_vulkan) {
     rs_enable_parallel_upload = false
