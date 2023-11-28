@@ -36,8 +36,8 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
     "rs_recording_canvas_test.cpp",
     "rs_render_node_map_test.cpp",
     "rs_render_node_test.cpp",
-    "rs_surface_render_node_test.cpp",
     "rs_root_render_node_test.cpp",
+    "rs_surface_render_node_test.cpp",
   ]
 
   cflags = [
