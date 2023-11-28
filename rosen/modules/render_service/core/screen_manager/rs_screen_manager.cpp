@@ -39,6 +39,7 @@ namespace {
     constexpr uint16_t SENSOR_EVENT_FIRST_DATA = 0;
     constexpr float HALF_FOLDED_MAX_THRESHOLD = 140.0F;
     constexpr float OPEN_HALF_FOLDED_MIN_THRESHOLD = 25.0F;
+    constexpr uint32_t WAIT_FOR_ACTIVE_SCREEN_ID_TIMEOUT = 1000;
 } // namespace
 using namespace HiviewDFX;
 namespace impl {
@@ -100,11 +101,11 @@ void RSScreenManager::RegisterSensorCallback()
     const int tryLimit = 5; // 5 times failure limit
     do {
         subscribeRet = SubscribeSensor(SENSOR_TYPE_ID_POSTURE, &user);
-        RS_LOGE("RSScreenManager RegisterSensorCallback, subscribeRet: %{public}d", subscribeRet);
+        RS_LOGI("RSScreenManager RegisterSensorCallback, subscribeRet: %{public}d", subscribeRet);
         setBatchRet = SetBatch(SENSOR_TYPE_ID_POSTURE, &user, POSTURE_INTERVAL, POSTURE_INTERVAL);
-        RS_LOGE("RSScreenManager RegisterSensorCallback, setBatchRet: %{public}d", setBatchRet);
+        RS_LOGI("RSScreenManager RegisterSensorCallback, setBatchRet: %{public}d", setBatchRet);
         activateRet = ActivateSensor(SENSOR_TYPE_ID_POSTURE, &user);
-        RS_LOGE("RSScreenManager RegisterSensorCallback, activateRet: %{public}d", activateRet);
+        RS_LOGI("RSScreenManager RegisterSensorCallback, activateRet: %{public}d", activateRet);
         if (subscribeRet != SENSOR_SUCCESS || setBatchRet != SENSOR_SUCCESS || activateRet != SENSOR_SUCCESS) {
             RS_LOGE("RSScreenManager RegisterSensorCallback failed.");
             usleep(1000); // wait 1000 us for next try
@@ -143,24 +144,24 @@ void RSScreenManager::HandlePostureData(const SensorEvent * const event)
     PostureData *postureData = reinterpret_cast<PostureData *>(event[SENSOR_EVENT_FIRST_DATA].data);
     float angle = (*postureData).angle;
     if (std::isless(angle, ANGLE_MIN_VAL) || std::isgreater(angle, ANGLE_MAX_VAL)) {
-        RS_LOGI("Invalid angle value, angle is %{public}f.", angle);
+        RS_LOGD("Invalid angle value, angle is %{public}f.", angle);
         return;
     }
-    RS_LOGI("angle vlaue in PostureData is: %{public}f.", angle);
+    RS_LOGD("angle vlaue in PostureData is: %{public}f.", angle);
     HandleSensorData(angle);
-    UnRegisterSensorCallback();
 }
 
 void RSScreenManager::HandleSensorData(float angle)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::unique_lock<std::mutex> lock(activeScreenIdAssignedMutex_);
     FoldState foldState = TransferAngleToScreenState(angle);
     if (foldState == FoldState::FOLDED) {
         activeScreenId_ = externalScreenId_;
     } else {
         activeScreenId_ = innerScreenId_;
     }
-    RS_LOGI("RSScreenManager activeScreenId: %{public}" PRIu64 " ", activeScreenId_);
+    isPostureSensorDataHandled_ = true;
+    activeScreenIdAssignedCV_.notify_one();
 }
 
 FoldState RSScreenManager::TransferAngleToScreenState(float angle)
@@ -180,12 +181,26 @@ FoldState RSScreenManager::TransferAngleToScreenState(float angle)
     return state;
 }
 
-ScreenId RSScreenManager::GetActiveScreenId() const
+ScreenId RSScreenManager::GetActiveScreenId()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::unique_lock<std::mutex> lock(activeScreenIdAssignedMutex_);
     if (!isFoldScreenFlag_) {
         return INVALID_SCREEN_ID;
     }
+    if (isPostureSensorDataHandled_) {
+        isFirstTimeToGetActiveScreenId_ = false;
+        UnRegisterSensorCallback();
+        RS_LOGD("RSScreenManager activeScreenId: %{public}" PRIu64 " ", activeScreenId_);
+        return activeScreenId_;
+    }
+    activeScreenIdAssignedCV_.wait_until(lock, std::chrono::system_clock::now() +
+        std::chrono::milliseconds(WAIT_FOR_ACTIVE_SCREEN_ID_TIMEOUT), [this]() {
+            return isPostureSensorDataHandled_; });
+    if (isFirstTimeToGetActiveScreenId_) {
+        isFirstTimeToGetActiveScreenId_ = false;
+        UnRegisterSensorCallback();
+    }
+    RS_LOGD("RSScreenManager activeScreenId: %{public}" PRIu64 " ", activeScreenId_);
     return activeScreenId_;
 }
 
@@ -412,6 +427,7 @@ void RSScreenManager::ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &o
             cb->OnScreenChanged(id, ScreenEvent::DISCONNECTED);
         }
         screens_.erase(id);
+        RS_LOGI("The screen for id %{public}" PRIu64 " already existed, remove the orignal one.", id);
     }
 
     screens_[id] = std::make_unique<RSScreen>(id, isVirtual, output, nullptr);
@@ -810,7 +826,7 @@ void RSScreenManager::RemoveVirtualScreenLocked(ScreenId id)
         return;
     }
 
-    screens_.erase(id);
+    screens_.erase(id);                                                                                                                                                                                                                
 
     // Update other screens' mirrorId.
     for (auto &[id, screen] : screens_) {
