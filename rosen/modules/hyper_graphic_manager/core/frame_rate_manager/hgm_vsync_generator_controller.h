@@ -31,8 +31,8 @@ public:
         sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
     ~HgmVSyncGeneratorController();
 
-    uint32_t GetAppOffset(uint32_t frameRate);
-    void ChangeGeneratorRate(uint32_t controllerRate,
+    static int32_t GetAppOffset(const uint32_t controllerRate);
+    void ChangeGeneratorRate(const uint32_t controllerRate,
                              std::vector<std::pair<FrameRateLinkerId, uint32_t>> appData);
     uint32_t GetCurrentRate() const;
     int64_t GetCurrentOffset() const;
@@ -41,7 +41,7 @@ private:
     sptr<VSyncController> appController_;
     sptr<VSyncGenerator> vsyncGenerator_;
     uint32_t currentRate_ = 0;
-    uint32_t currentOffset_ = 0;
+    int32_t currentOffset_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

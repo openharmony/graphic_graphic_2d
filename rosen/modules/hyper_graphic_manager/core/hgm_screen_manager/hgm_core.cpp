@@ -127,13 +127,13 @@ void HgmCore::SetLtpoConfig()
     }
 
     if (mParsedConfigData_->ltpoConfig_.find("maxTE") != mParsedConfigData_->ltpoConfig_.end()) {
-        maxTE_ = std::stoi(mParsedConfigData_->ltpoConfig_["maxTE"]);
+        maxTE_ = std::stoul(mParsedConfigData_->ltpoConfig_["maxTE"]);
     } else {
         HGM_LOGW("HgmCore failed to find TE strategy for LTPO");
     }
 
     if (mParsedConfigData_->ltpoConfig_.find("alignRate") != mParsedConfigData_->ltpoConfig_.end()) {
-        alignRate_ = std::stoi(mParsedConfigData_->ltpoConfig_["alignRate"]);
+        alignRate_ = std::stoul(mParsedConfigData_->ltpoConfig_["alignRate"]);
     } else {
         HGM_LOGW("HgmCore failed to find alignRate strategy for LTPO");
     }
@@ -152,6 +152,9 @@ void HgmCore::SetLtpoConfig()
 void HgmCore::RegisterRefreshRateModeChangeCallback(const RefreshRateModeChangeCallback& callback)
 {
     refreshRateModeChangeCallback_ = callback;
+    if (ltpoEnabled_) {
+        refreshRateModeChangeCallback_(customFrameRateMode_);
+    }
 }
 
 int32_t HgmCore::SetCustomRateMode(RefreshRateMode mode)

@@ -32,7 +32,7 @@ HgmVSyncGeneratorController::HgmVSyncGeneratorController(sptr<VSyncController> r
 
 HgmVSyncGeneratorController::~HgmVSyncGeneratorController() {}
 
-uint32_t HgmVSyncGeneratorController::GetAppOffset(uint32_t controllerRate)
+int32_t HgmVSyncGeneratorController::GetAppOffset(const uint32_t controllerRate)
 {
     auto alignRate = HgmCore::Instance().GetAlignRate();
     auto supportedMaxTE = HgmCore::Instance().GetSupportedMaxTE();
@@ -43,13 +43,13 @@ uint32_t HgmVSyncGeneratorController::GetAppOffset(uint32_t controllerRate)
     if (alignRate < controllerRate) {
         return 0;
     }
-    return static_cast<uint32_t>(supportedMaxTE / controllerRate - supportedMaxTE / alignRate);
+    return static_cast<int32_t>(supportedMaxTE / controllerRate - supportedMaxTE / alignRate);
 }
 
-void HgmVSyncGeneratorController::ChangeGeneratorRate(uint32_t controllerRate,
+void HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controllerRate,
                                                       std::vector<std::pair<FrameRateLinkerId, uint32_t>> appData)
 {
-    uint32_t pulseNum = GetAppOffset(controllerRate);
+    int32_t pulseNum = GetAppOffset(controllerRate);
 
     VSyncGenerator::ListenerRefreshRateData listenerRate = {.cb = appController_, .refreshRates = appData};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhase;

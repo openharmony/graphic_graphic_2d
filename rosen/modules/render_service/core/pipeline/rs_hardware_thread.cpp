@@ -225,8 +225,9 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         PostTask(task);
     } else {
         auto period  = CreateVSyncSampler()->GetHardwarePeriod();
-        uint64_t pipelineOffset = hgmCore.GetPipelineOffset();
-        uint64_t expectCommitTime = currTimestamp + pipelineOffset - period;
+        int64_t pipelineOffset = hgmCore.GetPipelineOffset();
+        uint64_t expectCommitTime = static_cast<uint64_t>(currTimestamp + static_cast<uint64_t>(pipelineOffset) -
+            static_cast<uint64_t>(period));
         uint64_t currTime = static_cast<uint64_t>(
             std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count());

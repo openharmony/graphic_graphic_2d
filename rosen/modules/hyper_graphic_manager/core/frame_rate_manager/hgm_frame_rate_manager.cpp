@@ -152,7 +152,7 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp)
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
     };
 
-    auto expectTime = timestamp + controller_->GetCurrentOffset();
+    uint64_t expectTime = timestamp + static_cast<uint64_t>(controller_->GetCurrentOffset());
     uint64_t currTime = static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());

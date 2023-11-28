@@ -56,7 +56,7 @@ public:
     std::shared_ptr<uint32_t> GetPendingRefreshRate();
     void ResetPendingRefreshRate();
 private:
-    void UpdateVSyncMode(sptr<VSyncController> rsController, sptr<VSyncController> appController);
+    static void UpdateVSyncMode(sptr<VSyncController> rsController, sptr<VSyncController> appController);
     void Reset();
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers);

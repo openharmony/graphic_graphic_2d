@@ -99,10 +99,10 @@ public:
         return alignRate_;
     }
 
-    uint64_t GetPipelineOffset() const
+    int64_t GetPipelineOffset() const
     {
         auto pulse = CreateVSyncGenerator()->GetVSyncPulse();
-        return static_cast<uint64_t>(pipelineOffsetPulseNum_ * pulse);
+        return pipelineOffsetPulseNum_ * pulse;
     }
 
     uint32_t GetSupportedMaxTE() const
@@ -174,7 +174,7 @@ private:
     bool ltpoEnabled_ = false;
     uint32_t maxTE_ = 0;
     uint32_t alignRate_ = 0;
-    uint32_t pipelineOffsetPulseNum_ = 0;
+    int32_t pipelineOffsetPulseNum_ = 0;
     RefreshRateModeChangeCallback refreshRateModeChangeCallback_ = nullptr;
 };
 } // namespace OHOS::Rosen
