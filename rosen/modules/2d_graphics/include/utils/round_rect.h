@@ -27,11 +27,12 @@ namespace Rosen {
 namespace Drawing {
 class DRAWING_API RoundRect {
 public:
-    enum CornerPos {
+    enum CornerPos : int {
         TOP_LEFT_POS,
         TOP_RIGHT_POS,
         BOTTOM_RIGHT_POS,
         BOTTOM_LEFT_POS,
+        CORNER_NUMBER
     };
 
     inline RoundRect() noexcept;
@@ -49,18 +50,23 @@ public:
 
     inline void Offset(scalar dx, scalar dy);
 
+    void AdjustRadiiX(double limit, double scale, CornerPos cornerPosA, CornerPos cornerPosB);
+    void AdjustRadiiY(double limit, double scale, CornerPos cornerPosA, CornerPos cornerPosB);
+    bool ClampToZero();
+    bool ScaleRadii();
+
 private:
     Rect rect_;
     // Four radii are stored: top-left/top-right/bottom-left/bottom-right corner radii.
-    std::vector<Point> radiusXY_;
+    Point radiusXY_[CORNER_NUMBER] = {{0, 0}, {0, 0}, {0, 0}, {0, 0}};
 };
 
-inline RoundRect::RoundRect() noexcept : rect_(), radiusXY_(4, Point(0, 0)) {}
+inline RoundRect::RoundRect() noexcept : rect_() {}
 
 inline RoundRect::RoundRect(const RoundRect& roundRect) noexcept : RoundRect()
 {
     rect_ = roundRect.rect_;
-    for (size_t i = 0; i < radiusXY_.size(); ++i) {
+    for (int i = 0; i < CORNER_NUMBER; ++i) {
         radiusXY_[i] = roundRect.radiusXY_[i];
     }
 }
@@ -68,7 +74,7 @@ inline RoundRect::RoundRect(const RoundRect& roundRect) noexcept : RoundRect()
 inline RoundRect::RoundRect(const Rect& r, scalar xRad, scalar yRad) noexcept : RoundRect()
 {
     rect_ = r;
-    for (size_t i = 0; i < radiusXY_.size(); ++i) {
+    for (int i = 0; i < CORNER_NUMBER; ++i) {
         radiusXY_[i].SetX(xRad);
         radiusXY_[i].SetY(yRad);
     }
@@ -77,9 +83,10 @@ inline RoundRect::RoundRect(const Rect& r, scalar xRad, scalar yRad) noexcept : 
 inline RoundRect::RoundRect(const Rect& r, const std::vector<Point>& radiusXY) noexcept : RoundRect()
 {
     rect_ = r;
-    for (size_t i = 0; i < radiusXY_.size(); ++i) {
+    for (int i = 0; i < CORNER_NUMBER && i < radiusXY.size(); ++i) {
         radiusXY_[i] = radiusXY[i];
     }
+    ScaleRadii();
 }
 
 inline void RoundRect::SetCornerRadius(CornerPos pos, scalar radiusX, scalar radiusY)

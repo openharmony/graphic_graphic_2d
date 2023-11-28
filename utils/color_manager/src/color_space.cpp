@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,52 +17,81 @@
 
 namespace OHOS {
 namespace ColorManager {
-const ColorSpace CS_SRGB = {
-    ColorSpacePrimaries {0.640f, 0.330f, 0.300f, 0.600f, 0.150f, 0.060f, 0.3127f, 0.3290f},
-    {2.4f, 1 / 1.055f, 0.055f / 1.055f, 1 / 12.92f, 0.04045f, 0.0f, 0.0f}};
+const ColorSpacePrimaries CSP_ADOBE_RGB = {0.640f, 0.330f, 0.210f, 0.710f, 0.150f, 0.060f, 0.3127f, 0.3290f};
+const ColorSpacePrimaries CSP_P3_DCI = {0.680f, 0.320f, 0.265f, 0.690f, 0.150f, 0.060f, 0.314f, 0.351f};
+const ColorSpacePrimaries CSP_P3_D65 = {0.680f, 0.320f, 0.265f, 0.690f, 0.150f, 0.060f, 0.3127f, 0.3290f};
+const ColorSpacePrimaries CSP_BT709 = {0.640f, 0.330f, 0.300f, 0.600f, 0.150f, 0.060f, 0.3127f, 0.3290f};
+const ColorSpacePrimaries CSP_BT601_P = {0.640f, 0.330f, 0.290f, 0.600f, 0.150f, 0.060f, 0.3127f, 0.3290f};
+const ColorSpacePrimaries CSP_BT601_N = {0.630f, 0.340f, 0.310f, 0.595f, 0.155f, 0.070f, 0.3127f, 0.3290f};
+const ColorSpacePrimaries CSP_BT2020 = {0.708f, 0.292f, 0.170f, 0.797f, 0.131f, 0.046f, 0.3127f, 0.3290f};
+const ColorSpacePrimaries CSP_NTSC_1953 = {0.670f, 0.330f, 0.210f, 0.710f, 0.140f, 0.080f, 0.310f, 0.316f};
+const ColorSpacePrimaries CSP_PRO_PHOTO_RGB = {0.7347f, 0.2653f, 0.1596f, 0.8404f, 0.0366f, 0.0001f, 0.34567f,
+    0.35850f};
 
-const ColorSpace CS_LINEAR_SRGB = {
-    ColorSpacePrimaries {0.640f, 0.330f, 0.300f, 0.600f, 0.150f, 0.060f, 0.3127f, 0.3290f},
-    {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}};
+const TransferFunc TF_ADOBE_RGB = {GAMMA_LIKE, 2.2f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f};
+const TransferFunc TF_GAMMA_2_6 = {GAMMA_LIKE, 2.6f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f};
+const TransferFunc TF_SRGB = {GAMMA_LIKE, 2.4f, 1 / 1.055f, 0.055f / 1.055f, 1 / 12.92f, 0.04045f, 0.0f, 0.0f};
+const TransferFunc TF_BT709 = {GAMMA_LIKE, 1 / 0.45f, 1 / 1.099f, 0.099f / 1.099f, 1 / 4.5f, 0.081f, 0.0f, 0.0f};
+const TransferFunc TF_HLG = {HLG, 0.0f, 0.17883277f, 0.28466892f, 0.55991073f, 1 / 12.0f, 3.0f, 0.5f};
+const TransferFunc TF_PQ = {PQ, 0.0f, 0.1593017578125f, 78.84375f, 0.8359375f, 18.8515625f, 18.6875f, 0.0f};
+const TransferFunc TF_LINEAR = {GAMMA_LIKE, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f};
+const TransferFunc TF_PRO_PHOTO_RGB = {GAMMA_LIKE, 1.8f, 1.0f, 0.0f, 1 / 16.0f, 0.031248f, 0.0f, 0.0f};
 
-const ColorSpace CS_NTSC_1953 = {
-    ColorSpacePrimaries {0.67f, 0.33f, 0.21f, 0.71f, 0.14f, 0.08f, 0.310f, 0.316f},
-    {1 / 0.45f, 1 / 1.099f, 0.099f / 1.099f, 1 / 4.5f, 0.081f, 0.0f, 0.0f}};
-
-const ColorSpace CS_BT709 = {
-    ColorSpacePrimaries {0.640f, 0.330f, 0.300f, 0.600f, 0.150f, 0.060f, 0.3127f, 0.3290f},
-    {1 / 0.45f, 1 / 1.099f, 0.099f / 1.099f, 1 / 4.5f, 0.081f, 0.0f, 0.0f}};
-
-const ColorSpace CS_BT2020 = {
-    ColorSpacePrimaries {0.708f, 0.292f, 0.170f, 0.797f, 0.131f, 0.046f, 0.3127f, 0.3290f},
-    {1 / 0.45f, 1 / 1.099f, 0.099f / 1.099f, 1 / 4.5f, 0.081f, 0.0f, 0.0f}};
-
-const ColorSpace CS_ADOBE_RGB = {
-    ColorSpacePrimaries {0.640f, 0.330f, 0.21f, 0.71f, 0.150f, 0.060f, 0.3127f, 0.3290f},
-    {2.2f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}};
-
-const ColorSpace CS_PRO_PHOTO_RGB = {
-    ColorSpacePrimaries {0.7347f, 0.2653f, 0.1596f, 0.8404f, 0.0366f, 0.0001f, 0.34567f, 0.35850f},
-    {1.8f, 1.0f, 0.0f, 1 / 16.0f, 0.031248f, 0.0f, 0.0f}};
-
-const ColorSpace CS_DISPLAY_P3 = {
-    ColorSpacePrimaries {0.680f, 0.320f, 0.265f, 0.690f, 0.150f, 0.060f, 0.3127f, 0.3290f},
-    {2.4f, 1 / 1.055f, 0.055f / 1.055f, 1 / 12.92f, 0.039f, 0.0f, 0.0f}};
-
-const ColorSpace CS_DCI_P3 = {
-    ColorSpacePrimaries {0.680f, 0.320f, 0.265f, 0.690f, 0.150f, 0.060f, 0.314f, 0.351f},
-    {2.6f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}};
+const ColorSpace CS_ADOBE_RGB = {CSP_ADOBE_RGB, TF_ADOBE_RGB};
+const ColorSpace CS_DCI_P3 = {CSP_P3_DCI, TF_GAMMA_2_6};
+const ColorSpace CS_DISPLAY_P3 = {CSP_P3_D65, TF_SRGB};
+const ColorSpace CS_SRGB = {CSP_BT709, TF_SRGB};
+const ColorSpace CS_BT709 = {CSP_BT709, TF_BT709};
+const ColorSpace CS_BT601_EBU = {CSP_BT601_P, TF_BT709};
+const ColorSpace CS_BT601_SMPTE_C = {CSP_BT601_N, TF_BT709};
+const ColorSpace CS_BT2020_HLG = {CSP_BT2020, TF_HLG};
+const ColorSpace CS_BT2020_PQ = {CSP_BT2020, TF_PQ};
+const ColorSpace CS_P3_HLG = {CSP_P3_D65, TF_HLG};
+const ColorSpace CS_P3_PQ = {CSP_P3_D65, TF_PQ};
+const ColorSpace CS_LINEAR_P3 = {CSP_P3_D65, TF_LINEAR};
+const ColorSpace CS_LINEAR_SRGB = {CSP_BT709, TF_LINEAR};
+const ColorSpace CS_LINEAR_BT2020 = {CSP_BT2020, TF_LINEAR};
+const ColorSpace CS_DISPLAY_BT2020_SRGB = {CSP_BT2020, TF_SRGB};
+const ColorSpace CS_BT2020 = {CSP_BT2020, TF_BT709};
+const ColorSpace CS_NTSC_1953 = {CSP_NTSC_1953, TF_BT709};
+const ColorSpace CS_PRO_PHOTO_RGB = {CSP_PRO_PHOTO_RGB, TF_PRO_PHOTO_RGB};
 
 const std::map<ColorSpaceName, ColorSpace> NamedColorSpace = {
-    {ColorSpaceName::SRGB, CS_SRGB},
-    {ColorSpaceName::LINEAR_SRGB, CS_LINEAR_SRGB},
-    {ColorSpaceName::NTSC_1953, CS_NTSC_1953},
-    {ColorSpaceName::BT709, CS_BT709},
-    {ColorSpaceName::BT2020, CS_BT2020},
-    {ColorSpaceName::ADOBE_RGB, CS_ADOBE_RGB},
-    {ColorSpaceName::PRO_PHOTO_RGB, CS_PRO_PHOTO_RGB},
-    {ColorSpaceName::DISPLAY_P3, CS_DISPLAY_P3},
-    {ColorSpaceName::DCI_P3, CS_DCI_P3},
+    { ColorSpaceName::ADOBE_RGB, CS_ADOBE_RGB },
+    { ColorSpaceName::DCI_P3, CS_DCI_P3 },
+    { ColorSpaceName::DISPLAY_P3, CS_DISPLAY_P3 },
+    { ColorSpaceName::SRGB, CS_SRGB },
+    { ColorSpaceName::BT709, CS_BT709 },
+    { ColorSpaceName::BT601_EBU, CS_BT601_EBU },
+    { ColorSpaceName::BT601_SMPTE_C, CS_BT601_SMPTE_C },
+    { ColorSpaceName::BT2020_HLG, CS_BT2020_HLG },
+    { ColorSpaceName::BT2020_PQ, CS_BT2020_PQ },
+    { ColorSpaceName::P3_HLG, CS_P3_HLG },
+    { ColorSpaceName::P3_PQ, CS_P3_PQ },
+    { ColorSpaceName::ADOBE_RGB_LIMIT, CS_ADOBE_RGB },
+    { ColorSpaceName::DISPLAY_P3_LIMIT, CS_DISPLAY_P3 },
+    { ColorSpaceName::SRGB_LIMIT, CS_SRGB },
+    { ColorSpaceName::BT709_LIMIT, CS_BT709 },
+    { ColorSpaceName::BT601_EBU_LIMIT, CS_BT601_EBU },
+    { ColorSpaceName::BT601_SMPTE_C_LIMIT, CS_BT601_SMPTE_C },
+    { ColorSpaceName::BT2020_HLG_LIMIT, CS_BT2020_HLG },
+    { ColorSpaceName::BT2020_PQ_LIMIT, CS_BT2020_PQ },
+    { ColorSpaceName::P3_HLG_LIMIT, CS_P3_HLG },
+    { ColorSpaceName::P3_PQ_LIMIT, CS_P3_PQ },
+    { ColorSpaceName::LINEAR_P3, CS_LINEAR_P3 },
+    { ColorSpaceName::LINEAR_SRGB, CS_LINEAR_SRGB },
+    { ColorSpaceName::LINEAR_BT709, CS_LINEAR_SRGB },
+    { ColorSpaceName::LINEAR_BT2020, CS_LINEAR_BT2020 },
+    { ColorSpaceName::DISPLAY_SRGB, CS_SRGB },
+    { ColorSpaceName::DISPLAY_P3_SRGB, CS_DISPLAY_P3 },
+    { ColorSpaceName::DISPLAY_P3_HLG, CS_P3_HLG },
+    { ColorSpaceName::DISPLAY_P3_PQ, CS_P3_PQ },
+    { ColorSpaceName::DISPLAY_BT2020_SRGB, CS_DISPLAY_BT2020_SRGB },
+    { ColorSpaceName::DISPLAY_BT2020_HLG, CS_BT2020_HLG },
+    { ColorSpaceName::DISPLAY_BT2020_PQ, CS_BT2020_PQ },
+    { ColorSpaceName::BT2020, CS_BT2020 },
+    { ColorSpaceName::NTSC_1953, CS_NTSC_1953 },
+    { ColorSpaceName::PRO_PHOTO_RGB, CS_PRO_PHOTO_RGB },
 };
 
 ColorSpace::ColorSpace(ColorSpaceName name)
@@ -94,6 +123,7 @@ ColorSpace::ColorSpace(const ColorSpacePrimaries &primaries, float gamma)
     std::array<float, 2> whiteP = {primaries.wX, primaries.wY};
     whitePoint = whiteP;
     transferFunc = {};
+    transferFunc.type = GAMMA_LIKE;
     transferFunc.g = gamma;
     transferFunc.a = 1.0f;
 }
@@ -110,6 +140,7 @@ ColorSpace::ColorSpace(const Matrix3x3 &toXYZ, const std::array<float, 2>& white
     : colorSpaceName(ColorSpaceName::CUSTOM), toXYZ(DXToD50(toXYZ, whitePoint)), whitePoint(whitePoint)
 {
     transferFunc = {};
+    transferFunc.type = GAMMA_LIKE;
     transferFunc.g = gamma;
     transferFunc.a = 1.0f;
 }
@@ -120,7 +151,7 @@ ColorSpace::ColorSpace(const sk_sp<SkColorSpace> src, ColorSpaceName name)
     if (src) {
         float func[7];
         src->transferFn(func);
-        transferFunc = {func[0], func[1], func[2], func[3], func[4], func[5], func[6]};
+        transferFunc = {GAMMA_LIKE, func[0], func[1], func[2], func[3], func[4], func[5], func[6]};
         skcms_Matrix3x3 toXYZD50;
         src->toXYZD50(&toXYZD50);
         toXYZ = SkToXYZToMatrix3(toXYZD50);
@@ -133,7 +164,7 @@ ColorSpace::ColorSpace(const skcms_ICCProfile& srcIcc, ColorSpaceName name)
 {
     if (srcIcc.has_toXYZD50 && srcIcc.has_trc) {
         skcms_TransferFunction func = srcIcc.trc[0].parametric;
-        transferFunc = {func.g, func.a, func.b, func.c, func.d, func.e, func.f};
+        transferFunc = {GAMMA_LIKE, func.g, func.a, func.b, func.c, func.d, func.e, func.f};
         toXYZ = SkToXYZToMatrix3(srcIcc.toXYZD50);
         whitePoint = ComputeWhitePoint(toXYZ);
     }
@@ -298,7 +329,14 @@ Vector3 ColorSpace::ToLinear(Vector3 v) const
     auto &p = transferFunc;
     Vector3 res = v;
     for (auto& n : res) {
-        n = n >= p.d ? std::pow(p.a * n + p.b, p.g) + p.e : p.c * n + p.f;
+        if (p.type == HLG) {
+            n = n > p.f ? (std::exp((n - p.c) / p.a) + p.b) * p.d : n * n / p.e;
+        } else if (p.type == PQ) {
+            float n_tmp = std::pow(n, 1.0f / p.b);
+            n = std::pow(std::max(n_tmp - p.c, 0.0f) / (p.d - p.e * n_tmp), 1.0f / p.a);
+        } else {
+            n = n >= p.d ? std::pow(p.a * n + p.b, p.g) + p.e : p.c * n + p.f;
+        }
     }
     return res;
 }
@@ -308,7 +346,14 @@ Vector3 ColorSpace::ToNonLinear(Vector3 v) const
     auto &p = transferFunc;
     Vector3 res = v;
     for (auto& n : res) {
-        n = n >= p.d * p.c ? (std::pow(n - p.e, 1.0f / p.g) - p.b) / p.a : (n - p.f) / p.c;
+        if (p.type == HLG) {
+            n = n > p.d ? p.a * std::log(n / p.d - p.b) + p.c : std::sqrt(p.e * n);
+        } else if (p.type == PQ) {
+            float n_tmp = std::pow(n, p.a);
+            n = std::pow((p.c + p.d * n_tmp) / (1.0f + p.e * n_tmp), p.b);
+        } else {
+            n = n >= p.d * p.c ? (std::pow(n - p.e, 1.0f / p.g) - p.b) / p.a : (n - p.f) / p.c;
+        }
     }
     return res;
 }

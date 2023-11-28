@@ -23,7 +23,7 @@
 
 #include "texgine_paint.h"
 #include "texgine/typography_types.h"
-
+#include "draw/pen.h"
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
@@ -102,7 +102,6 @@ struct TextStyle {
     std::optional<TexginePaint> foreground = std::nullopt;
     std::optional<TexginePaint> background = std::nullopt;
     std::vector<TextShadow> shadows;
-
     // Implements the equality operator.
     bool operator ==(TextStyle const& rhs) const;
 };

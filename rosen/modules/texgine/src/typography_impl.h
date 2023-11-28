@@ -54,7 +54,9 @@ public:
     int GetLineCount() const override;
     void SetIndents(const std::vector<float> &indents) override;
     void Layout(double maxWidth) override;
+
     void Paint(TexgineCanvas &canvas, double offsetX, double offsetY) override;
+
     std::vector<TextRect> GetTextRectsByBoundary(Boundary boundary,
                                                  TextRectHeightStyle heightStyle,
                                                  TextRectWidthStyle widthStyle) const override;

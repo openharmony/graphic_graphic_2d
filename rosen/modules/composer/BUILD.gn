@@ -51,7 +51,10 @@ ohos_shared_library("libcomposer") {
     "hdi_backend/src/hdi_screen.cpp",
   ]
 
-  include_dirs = [ "$graphic_2d_root/utils/log" ]
+  include_dirs = [
+    "$graphic_2d_root/frameworks/surface/include",
+    "$graphic_2d_root/utils/log",
+  ]
 
   configs = [ ":composer_config" ]
 
@@ -81,6 +84,7 @@ ohos_shared_library("libcomposer") {
   if (graphic_2d_feature_drivers_interface_display_enable) {
     external_deps += [
       "drivers_interface_display:display_buffer_idl_headers",
+      "drivers_interface_display:display_commontype_idl_headers",
       "drivers_interface_display:display_composer_idl_headers",
       "drivers_interface_display:libdisplay_composer_hdi_impl",
     ]

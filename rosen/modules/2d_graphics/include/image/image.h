@@ -152,7 +152,7 @@ private:
     unsigned int format_ = 0;
 };
 
-class BackendTexture {
+class DRAWING_API BackendTexture {
 public:
     BackendTexture() noexcept;
     BackendTexture(bool isValid) noexcept;
@@ -180,8 +180,8 @@ public:
     explicit Image(void* rawImg) noexcept;
     explicit Image(std::shared_ptr<ImageImpl> imageImpl);
     virtual ~Image() {};
-    Image* BuildFromBitmap(const Bitmap& bitmap);
-    Image* BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix, const Brush& brush,
+    bool BuildFromBitmap(const Bitmap& bitmap);
+    bool BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix, const Brush& brush,
         BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace);
 
     /*
@@ -268,6 +268,11 @@ public:
     AlphaType GetAlphaType() const;
 
     /*
+     * @brief  Gets the color space of Image.
+     */
+    std::shared_ptr<ColorSpace> GetColorSpace() const;
+
+    /*
      * @brief  Gets the unique Id of Image.
      */
     uint32_t GetUniqueID() const;
@@ -292,7 +297,7 @@ public:
     bool ScalePixels(const Bitmap& bitmap, const SamplingOptions& sampling,
         bool allowCachingHint = true) const;
 
-    std::shared_ptr<Data> EncodeToData(EncodedImageFormat& encodedImageFormat, int quality) const;
+    std::shared_ptr<Data> EncodeToData(EncodedImageFormat encodedImageFormat, int quality) const;
 
     bool IsLazyGenerated() const;
 

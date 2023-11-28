@@ -16,6 +16,11 @@
 #include <cstdint>
 #include <scoped_bytrace.h>
 #include "hdi_output.h"
+#include "metadata_helper.h"
+#include "vsync_generator.h"
+#include "vsync_sampler.h"
+
+using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
 
 #define CHECK_DEVICE_NULL(device)                                   \
     do {                                                            \
@@ -349,6 +354,32 @@ bool HdiOutput::CheckAndUpdateClientBufferCahce(sptr<SurfaceBuffer> buffer, uint
     return false;
 }
 
+void HdiOutput::SetBufferColorSpace(sptr<SurfaceBuffer>& buffer, const std::vector<LayerPtr>& layers) const
+{
+    CM_ColorSpaceType targetColorSpace = CM_DISPLAY_SRGB;
+    for (auto& layer : layers) {
+        auto buffer = layer->GetLayerInfo()->GetBuffer();
+        if (buffer == nullptr) {
+            HLOGW("HdiOutput::SetBufferColorSpace The buffer of layer is nullptr");
+            continue;
+        }
+
+        CM_ColorSpaceType colorSpace;
+        if (MetadataHelper::GetColorSpaceType(buffer, colorSpace) != GSERROR_OK) {
+            HLOGW("HdiOutput::SetBufferColorSpace Get color space from surface buffer failed");
+            continue;
+        }
+
+        if (colorSpace != CM_DISPLAY_SRGB) {
+            targetColorSpace = CM_DISPLAY_P3_SRGB;
+        }
+    }
+
+    if (MetadataHelper::SetColorSpaceType(buffer, targetColorSpace) != GSERROR_OK) {
+        HLOGE("HdiOutput::SetBufferColorSpace set metadata to buffer failed");
+    }
+}
+
 int32_t HdiOutput::FlushScreen(std::vector<LayerPtr> &compClientLayers)
 {
     auto fbEntry = GetFramebuffer();
@@ -376,6 +407,8 @@ int32_t HdiOutput::FlushScreen(std::vector<LayerPtr> &compClientLayers)
     } else {
         bufferCached = CheckAndUpdateClientBufferCahce(currFrameBuffer_, index);
     }
+
+    SetBufferColorSpace(currFrameBuffer_, compClientLayers);
 
     CHECK_DEVICE_NULL(device_);
     int32_t ret = device_->SetScreenClientDamage(screenId_, outputDamages_);
@@ -532,6 +565,8 @@ void HdiOutput::Dump(std::string &result) const
         result += "FrameBufferSurface\n";
         fbSurface_->Dump(result);
     }
+    CreateVSyncGenerator()->Dump(result);
+    CreateVSyncSampler()->Dump(result);
 }
 
 void HdiOutput::DumpFps(std::string &result, const std::string &arg) const

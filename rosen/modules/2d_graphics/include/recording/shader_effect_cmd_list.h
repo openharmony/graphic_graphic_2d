@@ -151,7 +151,8 @@ private:
 class CreateTwoPointConicalOpItem : public ShaderEffectOpItem {
 public:
     CreateTwoPointConicalOpItem(const Point& startPt, scalar startRadius, const Point& endPt, scalar endRadius,
-        const std::pair<uint32_t, size_t>& colors, const std::pair<uint32_t, size_t>& pos, TileMode mode);
+        const std::pair<uint32_t, size_t>& colors, const std::pair<uint32_t, size_t>& pos, TileMode mode,
+        const Matrix *matrix);
     ~CreateTwoPointConicalOpItem() = default;
 
     std::shared_ptr<ShaderEffect> Playback(const CmdList& cmdList) const;
@@ -163,6 +164,7 @@ private:
     std::pair<uint32_t, size_t> colors_;
     std::pair<uint32_t, size_t> pos_;
     TileMode mode_;
+    const Matrix *matrix_ = nullptr;
 };
 
 class CreateSweepGradientOpItem : public ShaderEffectOpItem {

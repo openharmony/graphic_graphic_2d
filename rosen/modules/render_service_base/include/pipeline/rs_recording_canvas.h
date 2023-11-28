@@ -221,6 +221,9 @@ public:
         const Drawing::AdaptiveImageInfo& rsImageInfo, const Drawing::SamplingOptions& sampling);
     void DrawExtendPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap,
         const Drawing::AdaptiveImageInfo& rsImageInfo, const Drawing::SamplingOptions& sampling);
+    void DrawPixelMapRect(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::Rect& src,
+        const Drawing::Rect& dst, const Drawing::SamplingOptions& sampling,
+        Drawing::SrcRectConstraint constraint = Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
 };
 } // namespace Rosen
 } // namespace OHOS

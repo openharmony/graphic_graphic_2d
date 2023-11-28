@@ -42,6 +42,7 @@
 #include "skia_adapter/skia_surface.h"
 #include "skia_adapter/skia_text_blob_builder.h"
 #include "skia_adapter/skia_trace_memory_dump.h"
+#include "skia_adapter/skia_memory_stream.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -166,6 +167,11 @@ std::unique_ptr<MatrixImpl> SkiaImplFactory::CreateMatrix()
     return std::make_unique<SkiaMatrix>();
 }
 
+std::unique_ptr<MatrixImpl> SkiaImplFactory::CreateMatrix(const Matrix& other)
+{
+    return std::make_unique<SkiaMatrix>(other);
+}
+
 std::unique_ptr<Matrix44Impl> SkiaImplFactory::CreateMatrix44()
 {
     return std::make_unique<SkiaMatrix44>();
@@ -210,6 +216,16 @@ std::unique_ptr<TextBlobBuilderImpl> SkiaImplFactory::CreateTextBlobBuilder()
 std::shared_ptr<FontMgrImpl> SkiaImplFactory::CreateDefaultFontMgr()
 {
     return SkiaFontMgr::CreateDefaultFontMgr();
+}
+
+std::shared_ptr<MemoryStreamImpl> SkiaImplFactory::CreateMemoryStream()
+{
+    return std::make_shared<SkiaMemoryStream>();
+}
+
+std::shared_ptr<MemoryStreamImpl> SkiaImplFactory::CreateMemoryStream(const void* data, size_t length, bool copyData)
+{
+    return std::make_shared<SkiaMemoryStream>(data, length, copyData);
 }
 } // namespace Drawing
 } // namespace Rosen

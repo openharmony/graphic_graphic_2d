@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-#include "effect/runtime_effect.h"
-
 #include "impl_factory.h"
 
+#include "effect/runtime_effect.h"
 #include "skia_adapter/skia_impl_factory.h"
+#include "utils/matrix.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -141,6 +141,11 @@ std::unique_ptr<MatrixImpl> ImplFactory::CreateMatrixImpl()
     return EngineImplFactory::CreateMatrix();
 }
 
+std::unique_ptr<MatrixImpl> ImplFactory::CreateMatrixImpl(const Matrix& other)
+{
+    return EngineImplFactory::CreateMatrix(other);
+}
+
 std::unique_ptr<Matrix44Impl> ImplFactory::CreateMatrix44Impl()
 {
     return EngineImplFactory::CreateMatrix44();
@@ -185,6 +190,16 @@ std::unique_ptr<TextBlobBuilderImpl> ImplFactory::CreateTextBlobBuilderImpl()
 std::shared_ptr<FontMgrImpl> ImplFactory::CreateDefaultFontMgrImpl()
 {
     return EngineImplFactory::CreateDefaultFontMgr();
+}
+
+std::shared_ptr<MemoryStreamImpl> ImplFactory::CreateMemoryStreamImpl()
+{
+    return EngineImplFactory::CreateMemoryStream();
+}
+
+std::shared_ptr<MemoryStreamImpl> ImplFactory::CreateMemoryStreamImpl(const void* data, size_t length, bool copyData)
+{
+    return EngineImplFactory::CreateMemoryStream(data, length, copyData);
 }
 } // namespace Drawing
 } // namespace Rosen

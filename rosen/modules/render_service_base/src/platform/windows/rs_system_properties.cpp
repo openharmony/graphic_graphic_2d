@@ -24,9 +24,9 @@ int RSSystemProperties::GetDumpFrameNum()
     return 0;
 }
 
-bool RSSystemProperties::GetRecordingEnabled()
+int RSSystemProperties::GetRecordingEnabled()
 {
-    return false;
+    return 0;
 }
 
 bool RSSystemProperties::IsSceneBoardEnabled()
@@ -211,7 +211,7 @@ bool RSSystemProperties::GetColorPickerPartialEnabled()
 
 bool RSSystemProperties::GetMaskLinearBlurEnabled()
 {
-    return false;
+    return true;
 }
 
 bool RSSystemProperties::GetDebugTraceEnabled()
@@ -305,6 +305,11 @@ bool RSSystemProperties::GetSingleFrameComposerEnabled()
 }
 
 bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetSubSurfaceEnabled()
 {
     return false;
 }

@@ -124,7 +124,7 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::OUTER_BORDER_COLOR, RSPropertyDrawableSlot::OUTER_BORDER },
     { RSModifierType::OUTER_BORDER_WIDTH, RSPropertyDrawableSlot::OUTER_BORDER },
     { RSModifierType::OUTER_BORDER_STYLE, RSPropertyDrawableSlot::OUTER_BORDER },
-    { RSModifierType::OUTER_BORDER_COLOR, RSPropertyDrawableSlot::OUTER_BORDER },
+    { RSModifierType::OUTER_BORDER_RADIUS, RSPropertyDrawableSlot::OUTER_BORDER },
     { RSModifierType::USE_SHADOW_BATCHING, RSPropertyDrawableSlot::INVALID },
     { RSModifierType::LIGHT_INTENSITY, RSPropertyDrawableSlot::POINT_LIGHT },
     { RSModifierType::LIGHT_POSITION, RSPropertyDrawableSlot::POINT_LIGHT },
@@ -186,8 +186,8 @@ static const std::array<RSPropertyDrawable::DrawableGenerator, RSPropertyDrawabl
     // FG properties in Bounds clip
     nullptr,                                      // FG_SAVE_BOUNDS,
     nullptr,                                      // EXTRA_CLIP_TO_BOUNDS,
-    RSColorFilterDrawable::Generate,              // COLOR_FILTER,
     RSBinarizationDrawable::Generate,             // BINARIZATION,
+    RSColorFilterDrawable::Generate,              // COLOR_FILTER,
     RSLightUpEffectDrawable::Generate,            // LIGHT_UP_EFFECT,
     RSForegroundFilterDrawable::Generate,         // FOREGROUND_FILTER,
     RSLinearGradientBlurFilterDrawable::Generate, // LINEAR_GRADIENT_BLUR_FILTER,

@@ -68,11 +68,12 @@ ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& centerPt, scalar rad
 }
 
 ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& startPt, scalar startRadius, const Point& endPt,
-    scalar endRadius, const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode) noexcept
+    scalar endRadius, const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode,
+    const Matrix *matrix) noexcept
     : ShaderEffect()
 {
     type_ = t;
-    impl_->InitWithTwoPointConical(startPt, startRadius, endPt, endRadius, colors, pos, mode);
+    impl_->InitWithTwoPointConical(startPt, startRadius, endPt, endRadius, colors, pos, mode, matrix);
 }
 
 ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& centerPt, const std::vector<ColorQuad>& colors,
@@ -135,10 +136,11 @@ std::shared_ptr<ShaderEffect> ShaderEffect::CreateRadialGradient(const Point& ce
 
 std::shared_ptr<ShaderEffect> ShaderEffect::CreateTwoPointConical(const Point& startPt, scalar startRadius,
     const Point& endPt, scalar endRadius, const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos,
-    TileMode mode)
+    TileMode mode, const Matrix *matrix)
 {
     return std::make_shared<ShaderEffect>(
-        ShaderEffect::ShaderEffectType::CONICAL_GRADIENT, startPt, startRadius, endPt, endRadius, colors, pos, mode);
+        ShaderEffect::ShaderEffectType::CONICAL_GRADIENT, startPt, startRadius, endPt, endRadius, colors, pos, mode,
+        matrix);
 }
 
 std::shared_ptr<ShaderEffect> ShaderEffect::CreateSweepGradient(const Point& centerPt,

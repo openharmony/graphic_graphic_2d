@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include "vsync_distributor.h"
+#include "common/rs_common_def.h"
 
 namespace OHOS::Rosen {
 class RSQosThread {
@@ -31,7 +32,7 @@ public:
     static void ThreadStart();
     static void ThreadStop();
     static void ResetQosPid();
-    void OnRSVisibilityChangeCB(std::map<uint32_t, bool>& pidVisMap);
+    void OnRSVisibilityChangeCB(const std::map<uint32_t, RSVisibleLevel>& pidVisMap);
 
     void SetQosCal(bool qosCal)
     {

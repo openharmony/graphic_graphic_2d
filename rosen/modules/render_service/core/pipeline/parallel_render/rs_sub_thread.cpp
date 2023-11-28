@@ -202,16 +202,6 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
         node->Process(visitor);
         nodeProcessTracker.SetTagEnd();
 #ifndef USE_ROSEN_DRAWING
-#ifndef NEW_SKIA
-        auto skCanvas = surfaceNodePtr->GetCacheSurface(threadIndex_, true) ?
-            surfaceNodePtr->GetCacheSurface(threadIndex_, true)->getCanvas() : nullptr;
-        if (skCanvas) {
-            RS_TRACE_NAME_FMT("render cache flush, %s", surfaceNodePtr->GetName().c_str());
-            skCanvas->flush();
-        } else {
-            RS_LOGE("skCanvas is nullptr, flush failed");
-        }
-#else
         auto cacheSurface = surfaceNodePtr->GetCacheSurface(threadIndex_, true);
         if (cacheSurface) {
             RS_TRACE_NAME_FMT("Render cache skSurface flush and submit");
@@ -220,7 +210,6 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
             cacheSurface->flushAndSubmit(true);
             nodeFlushTracker.SetTagEnd();
         }
-#endif
 #else
         auto cacheSurface = surfaceNodePtr->GetCacheSurface(threadIndex_, true);
         if (cacheSurface) {
@@ -247,11 +236,7 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
 }
 
 #ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
 sk_sp<GrDirectContext> RSSubThread::CreateShareGrContext()
-#else
-sk_sp<GrContext> RSSubThread::CreateShareGrContext()
-#endif
 {
     RS_TRACE_NAME("CreateShareGrContext");
 #ifdef RS_ENABLE_GL
@@ -274,11 +259,7 @@ sk_sp<GrContext> RSSubThread::CreateShareGrContext()
     /* /data/service/el0/render_service is shader cache dir*/
     handler->ConfigureContext(&options, glesVersion, size, "/data/service/el0/render_service", true);
 
-#ifdef NEW_SKIA
     sk_sp<GrDirectContext> grContext = GrDirectContext::MakeGL(std::move(glInterface), options);
-#else
-    sk_sp<GrContext> grContext = GrContext::MakeGL(std::move(glInterface), options);
-#endif
 #endif
 
 #ifdef RS_ENABLE_VK

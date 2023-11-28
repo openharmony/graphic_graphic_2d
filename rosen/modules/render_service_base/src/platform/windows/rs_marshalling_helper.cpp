@@ -62,6 +62,8 @@
 #ifndef USE_ROSEN_DRAWING
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_draw_cmd_list.h"
+#else
+#include "property/rs_properties_def.h"
 #endif
 #include "pixel_map.h"
 #include "platform/common/rs_log.h"
@@ -716,6 +718,9 @@ bool RSMarshallingHelper::SkipFromParcel(Parcel& parcel, size_t size)
 }
 void RSMarshallingHelper::BeginNoSharedMem(std::thread::id tid) {}
 void RSMarshallingHelper::EndNoSharedMem() {}
-bool RSMarshallingHelper::GetUseSharedMem() { return true; }
+bool RSMarshallingHelper::GetUseSharedMem(std::thread::id tid)
+{
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS

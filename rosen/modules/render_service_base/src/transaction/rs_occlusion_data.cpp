@@ -36,7 +36,7 @@ RSOcclusionData* RSOcclusionData::Unmarshalling(Parcel& parcel)
     for (uint32_t i = 0; i < size; i++) {
         uint64_t id = parcel.ReadUint64();
         uint32_t visibelLevel = parcel.ReadUint32();
-        data->visibleData_.emplace_back(std::make_pair(id, (RS_REGION_VISIBLE_LEVEL)visibelLevel));
+        data->visibleData_.emplace_back(std::make_pair(id, (WINDOW_LAYER_INFO_TYPE)visibelLevel));
     }
     return data;
 }

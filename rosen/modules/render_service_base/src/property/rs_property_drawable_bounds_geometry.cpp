@@ -210,10 +210,8 @@ void RSBorderDRRectDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canva
 #ifndef USE_ROSEN_DRAWING
     canvas.drawDRRect(outer_, inner_, paint_);
 #else
-    canvas.AttachPen(pen_);
     canvas.AttachBrush(brush_);
     canvas.DrawNestedRoundRect(outer_, inner_);
-    canvas.DetachPen();
     canvas.DetachBrush();
 #endif
 }
@@ -657,9 +655,13 @@ RSColor RSShadowDrawable::GetColorForShadow(RSRenderNode& node, RSPaintFilterCan
     // color shadow alpha deault is 255, if need to be changed, should add a arkui interface
     auto shadowAlpha = UINT8_MAX;
     auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
-    if (colorPickerTask != nullptr && properties.GetShadowColorStrategy()) {
-        RSPropertiesPainter::PickColor(properties, canvas, skPath, matrix, deviceClipBounds, colorPicked);
-        RSPropertiesPainter::GetDarkColor(colorPicked);
+    if (colorPickerTask != nullptr &&
+        properties.GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
+        if (RSPropertiesPainter::PickColor(properties, canvas, skPath, matrix, deviceClipBounds, colorPicked)) {
+            RSPropertiesPainter::GetDarkColor(colorPicked);
+        } else {
+            shadowAlpha = 0;
+        }
         if (!colorPickerTask->GetFirstGetColorFinished()) {
             shadowAlpha = 0;
         }
@@ -1087,7 +1089,7 @@ std::unique_ptr<RSPropertyDrawable> RSPixelStretchDrawable::Generate(const RSPro
 void RSBackgroundDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
 #ifndef USE_ROSEN_DRAWING
-    canvas.drawRRect(RSPropertiesPainter::RRect2SkRRect(node.GetMutableRenderProperties().GetInnerRRect()), paint_);
+    canvas.drawRRect(RSPropertiesPainter::RRect2SkRRect(node.GetMutableRenderProperties().GetRRect()), paint_);
 #else
     canvas.DrawBackground(brush_);
 #endif
@@ -1180,11 +1182,7 @@ void RSBackgroundImageDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& ca
 
 #ifndef USE_ROSEN_DRAWING
     auto boundsRect = RSPropertiesPainter::Rect2SkRect(properties.GetBoundsRect());
-#ifdef NEW_SKIA
     image->CanvasDrawImage(canvas, boundsRect, SkSamplingOptions(), paint_, true);
-#else
-    image->CanvasDrawImage(canvas, boundsRect, paint_, true);
-#endif
 #else
     auto boundsRect = RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect());
     canvas.AttachBrush(brush_);

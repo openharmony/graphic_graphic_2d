@@ -88,6 +88,35 @@ HWTEST_F(RSScreenManagerTest, CreateVirtualScreen_001, TestSize.Level1)
 }
 
 /*
+ * @tc.name: CreateVirtualScreen_002
+ * @tc.desc: Test CreateVirtualScreen
+ * @tc.type: FUNC
+ * @tc.require: issueI8FSLX
+ */
+HWTEST_F(RSScreenManagerTest, CreateVirtualScreen_002, TestSize.Level2)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    std::vector<NodeId> filteredAppVector = {};
+
+    auto id = screenManager->CreateVirtualScreen(
+        name, width, height, psurface, INVALID_SCREEN_ID, -1, filteredAppVector);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+    screenManager->RemoveVirtualScreen(id);
+    usleep(500);
+}
+
+/*
  * @tc.name: GetAllScreenIds_001
  * @tc.desc: Test GetAllScreenIds
  * @tc.type: FUNC
@@ -201,6 +230,39 @@ HWTEST_F(RSScreenManagerTest, QueryScreenInfo_001, TestSize.Level1)
     ASSERT_EQ(id, info.id);
     screenManager->RemoveVirtualScreen(id);
     sleep(1);
+}
+
+/*
+ * @tc.name: QueryScreenInfo_002
+ * @tc.desc: Test QueryScreenInfo
+ * @tc.type: FUNC
+ * @tc.require: issueI8FSLX
+ */
+HWTEST_F(RSScreenManagerTest, QueryScreenInfo_002, TestSize.Level2)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    std::vector<NodeId> filteredAppVector = {1};
+
+    auto id = screenManager->CreateVirtualScreen(
+        name, width, height, psurface, INVALID_SCREEN_ID, -1, filteredAppVector);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    auto info = screenManager->QueryScreenInfo(id);
+    ASSERT_NE(info.filteredAppSet.end(), info.filteredAppSet.find(1));
+
+    screenManager->RemoveVirtualScreen(id);
+    usleep(500);
 }
 
 /*
@@ -725,6 +787,165 @@ HWTEST_F(RSScreenManagerTest, SetScreenSkipFrameInterval_001, TestSize.Level1)
     uint32_t interval = static_cast<uint32_t>(1);
     auto result = screenManager->SetScreenSkipFrameInterval(screenId, interval);
     ASSERT_EQ(result, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: GetPixelFormat_001
+ * @tc.desc: Test GetPixelFormat
+ * @tc.type: FUNC
+ * @tc.require: issueI8ECTE
+ */
+HWTEST_F(RSScreenManagerTest, GetPixelFormat_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    ASSERT_EQ(SUCCESS, screenManager->SetPixelFormat(id, static_cast<GraphicPixelFormat>(20)));
+    GraphicPixelFormat pixelFormat;
+    ASSERT_EQ(SUCCESS, screenManager->GetPixelFormat(id, pixelFormat));
+    ASSERT_EQ(GRAPHIC_PIXEL_FMT_BGRA_8888, pixelFormat);
+
+    screenManager->RemoveVirtualScreen(id);
+    sleep(1);
+}
+
+/*
+ * @tc.name: GetScreenSupportedHDRFormats_001
+ * @tc.desc: Test GetScreenSupportedHDRFormats
+ * @tc.type: FUNC
+ * @tc.require: issueI8ECTE
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenSupportedHDRFormats_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    std::vector<ScreenHDRFormat> hdrFormats;
+    ASSERT_EQ(SUCCESS, screenManager->GetScreenSupportedHDRFormats(id, hdrFormats));
+    ASSERT_LT(0, hdrFormats.size());
+
+    screenManager->RemoveVirtualScreen(id);
+    sleep(1);
+}
+
+/*
+ * @tc.name: GetScreenHDRFormat_001
+ * @tc.desc: Test GetScreenHDRFormat
+ * @tc.type: FUNC
+ * @tc.require: issueI8ECTE
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenHDRFormat_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    ASSERT_EQ(SUCCESS, screenManager->SetScreenHDRFormat(id, 0));
+    ScreenHDRFormat hdrFormat;
+    ASSERT_EQ(SUCCESS, screenManager->GetScreenHDRFormat(id, hdrFormat));
+    ASSERT_EQ(NOT_SUPPORT_HDR, hdrFormat);
+
+    screenManager->RemoveVirtualScreen(id);
+    sleep(1);
+}
+
+/*
+ * @tc.name: GetScreenSupportedColorSpaces_001
+ * @tc.desc: Test GetScreenSupportedColorSpaces
+ * @tc.type: FUNC
+ * @tc.require: issueI8ECTE
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenSupportedColorSpaces_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    std::vector<GraphicCM_ColorSpaceType> colorSpaces;
+    ASSERT_EQ(SUCCESS, screenManager->GetScreenSupportedColorSpaces(id, colorSpaces));
+    ASSERT_LT(0, colorSpaces.size());
+
+    screenManager->RemoveVirtualScreen(id);
+    sleep(1);
+}
+
+/*
+ * @tc.name: GetScreenColorSpace_001
+ * @tc.desc: Test GetScreenColorSpace
+ * @tc.type: FUNC
+ * @tc.require: issueI8ECTE
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenColorSpace_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    ASSERT_EQ(SUCCESS, screenManager->SetScreenColorSpace(
+        id, static_cast<GraphicCM_ColorSpaceType>(1 | (2 << 8) | (3 << 16) | (1 << 21))));
+    GraphicCM_ColorSpaceType colorSpace;
+    ASSERT_EQ(SUCCESS, screenManager->GetScreenColorSpace(id, colorSpace));
+    ASSERT_EQ(GRAPHIC_CM_SRGB_FULL, colorSpace);
+
+    screenManager->RemoveVirtualScreen(id);
+    sleep(1);
 }
 
 /*

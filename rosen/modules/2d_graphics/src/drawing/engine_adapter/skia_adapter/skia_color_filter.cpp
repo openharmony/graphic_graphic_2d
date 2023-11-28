@@ -14,11 +14,11 @@
  */
 
 #include "skia_color_filter.h"
+#include "skia_helper.h"
 
 #include "include/effects/SkLumaColorFilter.h"
 #include "include/effects/SkOverdrawColorFilter.h"
-#include "src/core/SkReadBuffer.h"
-#include "src/core/SkWriteBuffer.h"
+#include "src/core/SkColorFilterBase.h"
 
 #include "effect/color_filter.h"
 #include "utils/data.h"
@@ -91,13 +91,7 @@ std::shared_ptr<Data> SkiaColorFilter::Serialize() const
         return nullptr;
     }
 
-    SkBinaryWriteBuffer writer;
-    writer.writeFlattenable(filter_.get());
-    size_t length = writer.bytesWritten();
-    std::shared_ptr<Data> data = std::make_shared<Data>();
-    data->BuildUninitialized(length);
-    writer.writeToMemory(data->WritableData());
-    return data;
+    return SkiaHelper::FlattenableSerialize(filter_.get());
 #else
     return nullptr;
 #endif
@@ -111,9 +105,8 @@ bool SkiaColorFilter::Deserialize(std::shared_ptr<Data> data)
         return false;
     }
 
-    SkReadBuffer reader(data->GetData(), data->GetSize());
-    filter_ = reader.readColorFilter();
-    return filter_ != nullptr;
+    filter_ = SkiaHelper::FlattenableDeserialize<SkColorFilterBase>(data);
+    return true;
 #else
     return false;
 #endif

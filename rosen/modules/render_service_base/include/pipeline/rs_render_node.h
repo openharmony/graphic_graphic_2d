@@ -104,6 +104,10 @@ public:
     // if there is any new dirty op, check it
     bool IsContentDirty() const;
     void SetContentDirty();
+    bool IsOnlyBasicGeoTransfrom() const
+    {
+        return isOnlyBasicGeoTransform_;
+    }
 
     WeakPtr GetParent() const;
 
@@ -115,6 +119,19 @@ public:
     inline const std::list<WeakPtr> &GetChildren() const noexcept
     {
         return children_;
+    }
+
+    inline const std::map<NodeId, std::vector<WeakPtr>> &GetSubSurfaceNodes() const
+    {
+        return subSurfaceNodes_;
+    }
+    bool IsFirstLevelSurfaceNode();
+    bool SubSurfaceNodeNeedDraw(PartialRenderType opDropType);
+    void AddSubSurfaceNode(SharedPtr child, SharedPtr parent);
+    void RemoveSubSurfaceNode(SharedPtr child, SharedPtr parent);
+    inline bool GetSubSurfaceEnabled() const
+    {
+        return isSubSurfaceEnabled_;
     }
 
     // flag: isOnTheTree; instanceRootNodeId: displaynode or leash/appnode attached to
@@ -237,7 +254,8 @@ public:
 
     // update parent's children rect including childRect and itself
     void UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parentNode) const;
-    void UpdateFilterCacheManagerWithCacheRegion(const std::optional<RectI>& clipRect = std::nullopt) const;
+    void UpdateFilterCacheManagerWithCacheRegion(
+        RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect = std::nullopt) const;
 
     void SetStaticCached(bool isStaticCached);
     bool IsStaticCached() const;
@@ -340,6 +358,10 @@ public:
     // manage cache root nodeid
     void SetDrawingCacheRootId(NodeId id);
     NodeId GetDrawingCacheRootId() const;
+    // record cache geodirty for preparation optimization
+    void SetCacheGeoPreparationDelay(bool val);
+    void ResetCacheGeoPreparationDelay();
+    bool GetCacheGeoPreparationDelay() const;
 
     // driven render ///////////////////////////////////
     void SetIsMarkDriven(bool isMarkDriven);
@@ -420,7 +442,7 @@ public:
     void MarkNodeGroup(NodeGroupType type, bool isNodeGroup);
     NodeGroupType GetNodeGroupType();
 
-    void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer);
+    void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0);
     virtual bool GetNodeIsSingleFrameComposer() const;
 
     /////////////////////////////////////////////
@@ -450,6 +472,13 @@ public:
     virtual RectI GetFilterRect() const;
     void SetIsUsedBySubThread(bool isUsedBySubThread);
     bool GetIsUsedBySubThread() const;
+
+    bool IsCalPreferredNode() {
+        return isCalPreferredNode_;
+    }
+    void SetCalPreferredNode(bool isCalPreferredNode) {
+        isCalPreferredNode_ = isCalPreferredNode;
+    }
 
 protected:
     virtual void OnApplyModifiers() {}
@@ -514,6 +543,7 @@ private:
     const std::weak_ptr<RSContext> context_;
     NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
     bool isContentDirty_ = false;
+    bool isOnlyBasicGeoTransform_ = true;
     friend class RSRenderPropertyBase;
     friend class RSRenderTransition;
     std::atomic<bool> isTunnelHandleChange_ = false;
@@ -530,6 +560,7 @@ private:
 
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, std::optional<RectI> clipRect);
     void AddModifierProfile(const std::shared_ptr<RSRenderModifier>& modifier, float width, float height);
+    void UpdateFullScreenFilterCacheRect(RSDirtyRegionManager& dirtyManager, bool isForeground) const;
 
     void UpdateShouldPaint(); // update node should paint state in apply modifier stage
     bool shouldPaint_ = true;
@@ -552,7 +583,8 @@ private:
     sk_sp<SkSurface> cacheSurface_ = nullptr;
     sk_sp<SkSurface> cacheCompletedSurface_ = nullptr;
 #else
-    std::shared_ptr<Drawing::Bitmap> cacheBitmap_ = nullptr;
+    std::shared_ptr<Drawing::Image> GetCompletedImage(
+        RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst);
     std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
     std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
 #endif
@@ -573,6 +605,10 @@ private:
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
     bool isDrawingCacheChanged_ = false;
     bool drawingCacheNeedUpdate_ = false;
+    // since cache preparation optimization would skip child's dirtyFlag(geoDirty) update
+    // it should be recorded and update if marked dirty again
+    bool cacheGeoPreparationDelay_ = false;
+
     std::unordered_set<NodeId> curCacheFilterRects_ = {};
     std::unordered_set<NodeId> visitedCacheRoots_ = {};
 
@@ -621,12 +657,17 @@ private:
     int64_t lastTimestamp_ = -1;
     int64_t lastApplyTimestamp_ = -1;
     float timeDelta_ = -1;
-    std::unordered_map<PropertyId, std::variant<float, Vector2f>> propertyValueMap_;
+    std::unordered_map<PropertyId, std::variant<float, Vector2f, Vector4f>> propertyValueMap_;
     std::vector<HgmModifierProfile> hgmModifierProfileList_;
 
     std::vector<std::unique_ptr<RSPropertyDrawable>> propertyDrawablesVec_;
     uint8_t drawableVecStatus_ = 0;
     void UpdateDrawableVec();
+    bool isCalPreferredNode_ = true;
+
+    bool isSubSurfaceEnabled_ = false;
+    std::map<NodeId, std::vector<WeakPtr>> subSurfaceNodes_;
+    pid_t appPid_ = 0;
 
     friend class RSAliasDrawable;
     friend class RSMainThread;

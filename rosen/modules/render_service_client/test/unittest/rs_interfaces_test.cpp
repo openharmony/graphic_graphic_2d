@@ -222,7 +222,7 @@ HWTEST_F(RSInterfacesTest, SetVirtualMirrorScreenCanvasRotation001, Function | S
         "virtual5", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
     EXPECT_EQ(rsInterfaces->SetVirtualMirrorScreenCanvasRotation(virtualScreenId, true), true);
-    EXPECT_EQ(rsInterfaces->SetVirtualMirrorScreenCanvasRotation(virtualScreenId, false), false);
+    EXPECT_EQ(rsInterfaces->SetVirtualMirrorScreenCanvasRotation(virtualScreenId, false), true);
     rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 
@@ -364,6 +364,21 @@ HWTEST_F(RSInterfacesTest, CreateVirtualScreen004, Function | SmallTest | Level2
     auto backLight = rsInterfaces->GetScreenBacklight(virtualScreenId);
     EXPECT_EQ(backLight, -1);
     rsInterfaces->RemoveVirtualScreen(virtualScreenId);
+}
+
+/*
+* Function: CreateVirtualScreen
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: call CreateVirtualScreen with filteredAppVector
+*/
+HWTEST_F(RSInterfacesTest, CreateVirtualScreen005, Function | SmallTest | Level2)
+{
+    std::vector<NodeId> filteredAppVector = {};
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "virtual11", 320, 180, nullptr, INVALID_SCREEN_ID, -1, filteredAppVector);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 }
 
 /*

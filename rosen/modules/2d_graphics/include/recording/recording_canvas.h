@@ -16,6 +16,8 @@
 #ifndef RECORDING_CANVAS_H
 #define RECORDING_CANVAS_H
 
+#include <stack>
+
 #include "draw/canvas.h"
 #include "recording/adaptive_image_helper.h"
 #include "recording/draw_cmd_list.h"
@@ -39,6 +41,18 @@ public:
     {
         return DrawingType::RECORDING;
     }
+
+    void SetGrRecordingContext(std::shared_ptr<GPUContext> gpuContext)
+    {
+        gpuContext_ = gpuContext;
+    }
+
+    std::shared_ptr<GPUContext> GetGPUContext() const override
+    {
+        return gpuContext_;
+    }
+
+    void Clear() const;
 
     void DrawPoint(const Point& point) override;
     void DrawPoints(PointMode mode, size_t count, const Point pts[]) override;
@@ -113,9 +127,15 @@ public:
     void SetIsCustomTextType(bool isCustomTextType);
     bool IsCustomTextType() const;
 private:
+    enum SaveOpState {
+        LazySaveOp,
+        RealSaveOp
+    };
+    void CheckForLazySave();
     bool isCustomTextType_ = false;
     std::shared_ptr<DrawCmdList> cmdList_ = nullptr;
-    int saveCount_ = 0;
+    std::stack<SaveOpState> saveOpStateStack_;
+    std::shared_ptr<GPUContext> gpuContext_ = nullptr;
 };
 } // namespace Drawing
 } // namespace Rosen

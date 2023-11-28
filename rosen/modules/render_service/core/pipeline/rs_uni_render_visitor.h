@@ -232,6 +232,8 @@ private:
     void MergeDirtyRectIfNeed(std::shared_ptr<RSSurfaceRenderNode> appNode,
         std::shared_ptr<RSSurfaceRenderNode> hwcNode);
     void AddContainerDirtyToGlobalDirty(std::shared_ptr<RSDisplayRenderNode>& node) const;
+    // merge last childRect as dirty if any child has been removed
+    void MergeRemovedChildDirtyRegion(RSRenderNode& node);
 
     // set global dirty region to each surface node
     void SetSurfaceGlobalDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node);
@@ -247,6 +249,8 @@ private:
 
     void CheckColorSpace(RSSurfaceRenderNode& node);
     void HandleColorGamuts(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
+    void CheckPixelFormat(RSSurfaceRenderNode& node);
+    void HandlePixelFormat(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
     void AddOverDrawListener(std::unique_ptr<RSRenderFrame>& renderFrame,
         std::shared_ptr<RSCanvasListener>& overdrawListener);
     /* Judge if surface render node could skip preparation:
@@ -274,12 +278,16 @@ private:
 
     bool IsHardwareComposerEnabled();
 
-    bool CheckIfSurfaceRenderNodeNeedProcess(RSSurfaceRenderNode& node);
+    // choose to keep filter cache if node is filter occluded
+    bool CheckIfSurfaceRenderNodeNeedProcess(RSSurfaceRenderNode& node, bool& keepFilterCache);
 
     void ClearTransparentBeforeSaveLayer();
     // mark surfaceNode's child surfaceView nodes hardware forced disabled
     void MarkSubHardwareEnableNodeState(RSSurfaceRenderNode& surfaceNode);
     void CollectAppNodeForHwc(std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
+    void UpdateSecurityAndSkipLayerRecord(RSSurfaceRenderNode& node);
+    void PrepareEffectNodeIfCacheReuse(const std::shared_ptr<RSRenderNode>& cacheRootNode,
+        std::shared_ptr<RSEffectRenderNode> effectNode);
 
     // offscreen render related
     void PrepareOffscreenRender(RSRenderNode& node);
@@ -301,6 +309,12 @@ private:
 
     void SwitchColorFilterDrawing(int currentSaveCount);
     void ProcessShadowFirst(RSRenderNode& node, bool inSubThread);
+    void SaveCurSurface(std::shared_ptr<RSDirtyRegionManager> dirtyManager,
+        std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
+    void RestoreCurSurface(std::shared_ptr<RSDirtyRegionManager> &dirtyManager,
+        std::shared_ptr<RSSurfaceRenderNode> &surfaceNode);
+    void PrepareSubSurfaceNodes(RSSurfaceRenderNode& node);
+    void ProcessSubSurfaceNodes(RSSurfaceRenderNode& node);
 
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> offscreenSurface_;                 // temporary holds offscreen surface
@@ -315,6 +329,8 @@ private:
     ScreenInfo screenInfo_;
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
     std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;
+    std::stack<std::shared_ptr<RSDirtyRegionManager>> surfaceDirtyManager_;
+    std::stack<std::shared_ptr<RSSurfaceRenderNode>> surfaceNode_;
     float curAlpha_ = 1.f;
     bool dirtyFlag_ { false };
     std::unique_ptr<RSRenderFrame> renderFrame_;
@@ -375,9 +391,11 @@ private:
     bool isDrawingCacheEnabled_ = false;
     std::stack<bool> isDrawingCacheChanged_ = {};
     std::vector<RectI> accumulatedDirtyRegions_ = {};
+    bool isSubSurfaceEnabled_ = false;
 
     bool needFilter_ = false;
     GraphicColorGamut newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    GraphicPixelFormat newPixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
     std::vector<ScreenColorGamut> colorGamutModes_;
     uint64_t currentFocusedNodeId_ = 0;
     uint64_t focusedLeashWindowId_ = 0;
@@ -479,6 +497,9 @@ private:
     bool CheckIfNeedResetRotate();
 
     uint32_t currentRefreshRate_ = 0;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    float GetScreenBrightnessNits();
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

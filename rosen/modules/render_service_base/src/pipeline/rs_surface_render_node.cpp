@@ -62,6 +62,9 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContex
 
 RSSurfaceRenderNode::~RSSurfaceRenderNode()
 {
+#ifdef USE_SURFACE_TEXTURE
+    SetSurfaceTexture(nullptr);
+#endif
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
 }
 
@@ -234,6 +237,20 @@ void RSSurfaceRenderNode::CollectSurface(
         }
 #endif
     }
+
+    if (GetSubSurfaceEnabled()) {
+        if (onlyFirstLevel) {
+            return;
+        }
+        for (auto &nodes : node->GetSubSurfaceNodes()) {
+            for (auto &node : nodes.second) {
+                auto surfaceNode = node.lock();
+                if (surfaceNode != nullptr) {
+                    surfaceNode->CollectSurface(surfaceNode, vec, isUniRender, onlyFirstLevel);
+                }
+            }
+        }
+    }
 }
 
 void RSSurfaceRenderNode::ClearChildrenCache()
@@ -298,6 +315,12 @@ void RSSurfaceRenderNode::OnResetParent()
 
 void RSSurfaceRenderNode::SetIsNotifyUIBufferAvailable(bool available)
 {
+#ifdef USE_SURFACE_TEXTURE
+    auto texture = GetSurfaceTexture();
+    if (texture) {
+        texture->MarkUiFrameAvailable(available);
+    }
+#endif
     isNotifyUIBufferAvailable_.store(available);
 }
 
@@ -550,6 +573,13 @@ void RSSurfaceRenderNode::UpdateSurfaceDefaultSize(float width, float height)
     if (consumer_ != nullptr) {
         consumer_->SetDefaultWidthAndHeight(width, height);
     }
+#else
+#ifdef USE_SURFACE_TEXTURE
+    auto texture = GetSurfaceTexture();
+    if (texture) {
+        texture->UpdateSurfaceDefaultSize(width, height);
+    }
+#endif
 #endif
 }
 
@@ -663,7 +693,7 @@ void RSSurfaceRenderNode::NotifyUIBufferAvailable()
             callbackFromUI_->OnBufferAvailable();
 #ifdef OHOS_PLATFORM
             if (IsAppWindow()) {
-                RSJankStats::GetInstance().SetFirstFrame(ExtractPid(GetId()));
+                RSJankStats::GetInstance().SetAppFirstFrame(ExtractPid(GetId()));
             }
 #endif
         }
@@ -785,15 +815,17 @@ void RSSurfaceRenderNode::AccumulateOcclusionRegion(Occlusion::Region& accumulat
     if (GetName().find("hisearch") != std::string::npos) {
         return;
     }
+    SetTreatedAsTransparent(false);
     // when a surfacenode is in animation (i.e. 3d animation), its dstrect cannot be trusted, we treated it as a full
     // transparent layer.
     if (GetAnimateState() || IsParentLeashWindowInScale()) {
+        SetTreatedAsTransparent(true);
         ResetAnimateState();
         return;
     }
 
     // full surfacenode valid filter cache can be treated as opaque
-    if (filterCacheOcclusionEnabled && IsTransparent() && GetFilterCacheValid()) {
+    if (filterCacheOcclusionEnabled && IsTransparent() && GetFilterCacheValidForOcclusion()) {
         accumulatedRegion.OrSelf(curRegion);
         hasFilterCacheOcclusion = true;
     } else {
@@ -802,11 +834,32 @@ void RSSurfaceRenderNode::AccumulateOcclusionRegion(Occlusion::Region& accumulat
     return;
 }
 
+WINDOW_LAYER_INFO_TYPE RSSurfaceRenderNode::GetVisibleLevelForWMS(RSVisibleLevel visibleLevel)
+{
+    switch (visibleLevel) {
+        case RSVisibleLevel::RS_INVISIBLE:
+            return WINDOW_LAYER_INFO_TYPE::SEMI_VISIBLE;
+        case RSVisibleLevel::RS_ALL_VISIBLE:
+            return WINDOW_LAYER_INFO_TYPE::ALL_VISIBLE;
+        case RSVisibleLevel::RS_SEMI_NONDEFAULT_VISIBLE:
+        case RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE:
+            return WINDOW_LAYER_INFO_TYPE::SEMI_VISIBLE;
+        default:
+            break;
+    }
+    return WINDOW_LAYER_INFO_TYPE::SEMI_VISIBLE;
+}
+
+bool RSSurfaceRenderNode::IsMultiInstance()
+{
+    return GetName().find("filemanager") != std::string::npos || GetName().find("browser") != std::string::npos;
+}
+
 void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& region,
                                                     VisibleData& visibleVec,
-                                                    std::map<uint32_t, bool>& pidVisMap,
+                                                    std::map<uint32_t, RSVisibleLevel>& pidVisMap,
                                                     bool needSetVisibleRegion,
-                                                    RS_REGION_VISIBLE_LEVEL visibleLevel)
+                                                    RSVisibleLevel visibleLevel)
 {
     if (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE || IsAbilityComponent()) {
         SetOcclusionVisible(true);
@@ -816,17 +869,13 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
 
     bool vis = region.GetSize() > 0;
     if (vis) {
-        visibleVec.emplace_back(std::make_pair(GetId(), visibleLevel));
+        visibleVec.emplace_back(std::make_pair(GetId(), GetVisibleLevelForWMS(visibleLevel)));
     }
 
     // collect visible changed pid
-    if (qosPidCal_ && GetType() == RSRenderNodeType::SURFACE_NODE) {
+    if (qosPidCal_ && GetType() == RSRenderNodeType::SURFACE_NODE && !IsMultiInstance()) {
         uint32_t tmpPid = ExtractPid(GetId());
-        if (pidVisMap.find(tmpPid) != pidVisMap.end()) {
-            pidVisMap[tmpPid] |= vis;
-        } else {
-            pidVisMap[tmpPid] = vis;
-        }
+        pidVisMap[tmpPid] = visibleLevel;
     }
 
     visibleRegionForCallBack_ = region;
@@ -869,7 +918,7 @@ bool RSSurfaceRenderNode::SubNodeIntersectWithDirty(const RectI& r) const
         return true;
     }
     // if current node is transparent
-    if (IsTransparent() || IsCurrentNodeInTransparentRegion(nodeRect)) {
+    if (IsTransparent() || IsCurrentNodeInTransparentRegion(nodeRect) || IsTreatedAsTransparent()) {
         return dirtyRegionBelowCurrentLayer_.IsIntersectWith(nodeRect);
     }
     return false;
@@ -936,9 +985,9 @@ void RSSurfaceRenderNode::CalcFilterCacheValidForOcclusion()
         return;
     }
     isFilterCacheStatusChanged_ = false;
-    bool currentCacheValid = isFilterCacheFullyCovered_ && dirtyManager_->GetSubNodeFilterCacheValid();
-    if (isFilterCacheValid_ != currentCacheValid) {
-        isFilterCacheValid_ = currentCacheValid;
+    bool currentCacheValidForOcclusion = isFilterCacheFullyCovered_ && dirtyManager_->IsFilterCacheRectValid();
+    if (isFilterCacheValidForOcclusion_ != currentCacheValidForOcclusion) {
+        isFilterCacheValidForOcclusion_ = currentCacheValidForOcclusion;
         isFilterCacheStatusChanged_ = true;
     }
 }
@@ -1540,6 +1589,5 @@ bool RSSurfaceRenderNode::GetNodeIsSingleFrameComposer() const
     }
     return isNodeSingleFrameComposer_ || flag;
 }
-
 } // namespace Rosen
 } // namespace OHOS

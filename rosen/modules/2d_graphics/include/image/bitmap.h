@@ -70,6 +70,8 @@ public:
     BitmapFormat GetFormat() const;
     void SetFormat(const BitmapFormat& format);
     ImageInfo GetImageInfo() const;
+    Pixmap GetPixmap() const;
+    bool TryAllocPixels(const ImageInfo& info);
     template<typename T>
     const std::shared_ptr<T> GetImpl() const
     {

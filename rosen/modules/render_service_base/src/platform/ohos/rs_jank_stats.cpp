@@ -32,8 +32,8 @@ namespace Rosen {
 namespace {
 constexpr float VSYNC_PERIOD = 16.6f;                // 16.6ms
 constexpr float S_TO_MS = 1000.f;                    // s to ms
-constexpr int64_t TRACE_TIMEOUT = 10000;             // 10s
-constexpr int64_t JANK_TIMEOUT = 10000;              // 10s
+constexpr int64_t TRACE_TIMEOUT = 5000;              // 5s
+constexpr int64_t JANK_TIMEOUT = 5000;               // 5s
 constexpr int64_t S_TO_NS = 1000000000;              // s to ns
 }
 
@@ -47,7 +47,7 @@ void RSJankStats::SetStartTime()
 {
     startTime_ = GetCurrentSystimeMs();
     startTimeSteady_ = GetCurrentSteadyTimeMs();
-    if (isfirstSetStart_) {
+    if (isFirstSetStart_) {
         lastReportTime_ = startTime_;
         lastReportTimeSteady_ = startTimeSteady_;
     }
@@ -62,7 +62,7 @@ void RSJankStats::SetStartTime()
             jankFrames.isSetReportEventJankFrame_ = false;
         }
     }
-    isfirstSetStart_ = false;
+    isFirstSetStart_ = false;
 }
 
 void RSJankStats::SetEndTime()
@@ -75,20 +75,19 @@ void RSJankStats::SetEndTime()
     const int64_t vsyncDuration = endTimeSteady_ - startTimeSteady_;
     const int64_t missedVsync = static_cast<int64_t>(vsyncDuration / VSYNC_PERIOD);
     SetRSJankStats(missedVsync);
-    const int64_t frameDuration = (isfirstSetEnd_ ? vsyncDuration : (endTimeSteady_ - lastEndTimeSteady_));
-    const int64_t missedFrames = static_cast<int64_t>(frameDuration / VSYNC_PERIOD);
-    const int32_t missedFramesToReport =
-        static_cast<int32_t>((isfirstSetEnd_ ? missedFrames : std::max<int64_t>(0, missedFrames - 1)));
+    const int64_t frameDurationToRecord = (isFirstSetEnd_ ? vsyncDuration : (endTimeSteady_ - lastEndTimeSteady_));
+    const int64_t missedFramesToRecord = static_cast<int64_t>(frameDurationToRecord / VSYNC_PERIOD);
+    RecordJankFrameInit();
+    RecordJankFrame(missedFramesToRecord);
     {
         std::lock_guard<std::mutex> lock(animateJankFramesMutex_);
-        RecordJankFrameInit();
         for (auto &[uniqueId, jankFrames] : animateJankFrames_) {
             if (jankFrames.isReportEventResponse_) {
                 ReportEventResponse(jankFrames);
                 jankFrames.isUpdateJankFrame_ = true;
             }
             if (jankFrames.isUpdateJankFrame_) {
-                UpdateJankFrame(frameDuration, missedFramesToReport, jankFrames);
+                UpdateJankFrame(jankFrames);
             }
             if (jankFrames.isReportEventComplete_) {
                 ReportEventComplete(jankFrames);
@@ -100,12 +99,12 @@ void RSJankStats::SetEndTime()
             if (jankFrames.isReportEventResponse_) {
                 SetAnimationTraceBegin(traceId, jankFrames);
             }
-            RecordJankFrame(missedFrames);
             if (jankFrames.isReportEventComplete_ || jankFrames.isReportEventJankFrame_) {
                 RecordAnimationDynamicFrameRate(traceId, jankFrames);
                 SetAnimationTraceEnd(traceId);
                 jankFrames.isUpdateJankFrame_ = false;
             }
+            jankFrames.isFirstFrame_ = false;
         }
     }
     {
@@ -113,12 +112,12 @@ void RSJankStats::SetEndTime()
         ReportEventFirstFrame();
     }
     CheckAnimationTraceTimeout();
-    isfirstSetEnd_ = false;
+    isFirstSetEnd_ = false;
 }
 
 void RSJankStats::UpdateEndTime()
 {
-    if (isfirstSetEnd_) {
+    if (isFirstSetEnd_) {
         lastEndTime_ = GetCurrentSystimeMs();
         endTime_ = lastEndTime_;
         lastEndTimeSteady_ = GetCurrentSteadyTimeMs();
@@ -172,11 +171,17 @@ void RSJankStats::SetRSJankStats(int64_t missedVsync)
     }
 }
 
-void RSJankStats::UpdateJankFrame(int64_t frameDuration, int32_t missedFramesToReport, JankFrames& jankFrames)
+void RSJankStats::UpdateJankFrame(JankFrames& jankFrames)
 {
     if (jankFrames.startTimeSteady_ == TIMESTAMP_INITIAL) {
         jankFrames.startTimeSteady_ = startTimeSteady_;
     }
+    const bool isAnimationFirstFrame = isFirstSetEnd_ || jankFrames.isFirstFrame_;
+    const int64_t frameDuration =
+        (isAnimationFirstFrame ? (endTimeSteady_ - startTimeSteady_) : (endTimeSteady_ - lastEndTimeSteady_));
+    const int32_t missedFrames = static_cast<int32_t>(frameDuration / VSYNC_PERIOD);
+    const int32_t missedFramesToReport =
+        (isAnimationFirstFrame ? missedFrames : std::max<int32_t>(0, missedFrames - 1));
     jankFrames.totalFrames_++;
     jankFrames.totalFrameTimeSteady_ += frameDuration;
     jankFrames.maxFrameTimeSteady_ = std::max<int64_t>(jankFrames.maxFrameTimeSteady_, frameDuration);
@@ -236,6 +241,7 @@ void RSJankStats::SetReportEventResponse(DataBaseRs info)
         jankFrames.info_ = info;
         jankFrames.isSetReportEventResponse_ = true;
         jankFrames.setTimeSteady_ = setTimeSteady;
+        jankFrames.isFirstFrame_ = true;
         animateJankFrames_.emplace(info.uniqueId, jankFrames);
     } else {
         animateJankFrames_[info.uniqueId].info_ = info;
@@ -273,7 +279,7 @@ void RSJankStats::SetReportEventJankFrame(DataBaseRs info)
     }
 }
 
-void RSJankStats::SetFirstFrame(pid_t appPid)
+void RSJankStats::SetAppFirstFrame(pid_t appPid)
 {
     std::lock_guard<std::mutex> lock(firstFrameAppPidsMutex_);
     firstFrameAppPids_.push(appPid);

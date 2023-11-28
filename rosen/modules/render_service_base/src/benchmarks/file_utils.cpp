@@ -19,6 +19,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -109,6 +110,28 @@ bool WriteStringToFile(const std::string& str, const std::string& filePath)
     bool result = WriteStringToFile(fd, str);
     close(fd);
     return result;
+}
+
+bool WriteMessageParcelToFile(std::shared_ptr<MessageParcel> messageParcel, std::string opsDescription,
+    int frameNum, std::string fileDir)
+{
+    // file name
+    std::string drawCmdListFile = fileDir + "/frame" + std::to_string(frameNum) + ".drawing";
+    std::string opsFile = fileDir + "/ops_frame" + std::to_string(frameNum) + ".txt";
+    // get data
+    size_t sz = messageParcel->GetDataSize();
+#ifndef USE_ROSEN_DRAWING
+    uintptr_t buf = messageParcel->GetData();
+#else
+    auto buf = reinterpret_cast<uintptr_t>(messageParcel->GetData());
+#endif
+    std::string line = "RSRecordingThread::FinishRecordingOneFrame curDumpFrame = " +
+        std::to_string(frameNum) + ", size = " + std::to_string(sz);
+    RS_LOGD("%{public}s", line.c_str());
+    RS_TRACE_NAME(line);
+
+    return OHOS::Rosen::Benchmarks::WriteToFile(buf, sz, drawCmdListFile) &&
+        OHOS::Rosen::Benchmarks::WriteStringToFile(opsDescription, opsFile);
 }
 }
 } // namespace Rosen

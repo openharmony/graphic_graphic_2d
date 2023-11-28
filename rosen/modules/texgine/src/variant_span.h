@@ -69,6 +69,7 @@ public:
 
     void Paint(TexgineCanvas &canvas, double offsetX, double offsetY) noexcept(false);
     void PaintShadow(TexgineCanvas &canvas, double offsetX, double offsetY) noexcept(false);
+
     bool IsRTL() const noexcept(false);
     bool IsHardBreak() const noexcept(false);
 

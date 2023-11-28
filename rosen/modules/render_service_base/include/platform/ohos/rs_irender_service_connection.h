@@ -81,7 +81,8 @@ public:
         uint32_t height,
         sptr<Surface> surface,
         ScreenId mirrorId = 0,
-        int32_t flags = 0) = 0;
+        int32_t flags = 0,
+        std::vector<NodeId> filteredAppVector = {}) = 0;
 
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
 

@@ -29,6 +29,11 @@ SkiaPixmap::SkiaPixmap(const ImageInfo& imageInfo, const void* addr, size_t rowB
     skiaPixmap_ = SkPixmap(skImageInfo, addr, rowBytes);
 }
 
+void SkiaPixmap::ImportSkiaPixmap(const SkPixmap& skPixmap)
+{
+    skiaPixmap_ = skPixmap;
+}
+
 const SkPixmap& SkiaPixmap::ExportSkiaPixmap() const
 {
     return skiaPixmap_;
@@ -36,43 +41,54 @@ const SkPixmap& SkiaPixmap::ExportSkiaPixmap() const
 
 SkiaPixmap::~SkiaPixmap() {}
 
-std::shared_ptr<ColorSpace> SkiaPixmap::GetColorSpace()
+std::shared_ptr<ColorSpace> SkiaPixmap::GetColorSpace() const
 {
     std::shared_ptr<SkiaColorSpace> skiaColorSpace = std::make_shared<SkiaColorSpace>();
     skiaColorSpace->SetColorSpace(skiaPixmap_.refColorSpace());
     return ColorSpace::CreateFromImpl(skiaColorSpace);
 }
 
-ColorType SkiaPixmap::GetColorType()
+ColorType SkiaPixmap::GetColorType() const
 {
     return SkiaImageInfo::ConvertToColorType(skiaPixmap_.colorType());
 }
 
-AlphaType SkiaPixmap::GetAlphaType()
+AlphaType SkiaPixmap::GetAlphaType() const
 {
     return SkiaImageInfo::ConvertToAlphaType(skiaPixmap_.alphaType());
 }
 
-size_t SkiaPixmap::GetRowBytes()
+size_t SkiaPixmap::GetRowBytes() const
 {
     return skiaPixmap_.rowBytes();
 }
 
-const void* SkiaPixmap::GetAddr()
+const void* SkiaPixmap::GetAddr() const
 {
     return skiaPixmap_.addr();
 }
 
-int32_t SkiaPixmap::GetWidth()
+int32_t SkiaPixmap::GetWidth() const
 {
     return skiaPixmap_.width();
 }
 
-int32_t SkiaPixmap::GetHeight()
+int32_t SkiaPixmap::GetHeight() const
 {
     return skiaPixmap_.height();
 }
 
+bool SkiaPixmap::ScalePixels(const Pixmap& dst, const SamplingOptions& options) const
+{
+    SkSamplingOptions skSamplingOptions;
+    if (options.GetUseCubic()) {
+        skSamplingOptions = SkSamplingOptions({ options.GetCubicCoffB(), options.GetCubicCoffC() });
+    } else {
+        skSamplingOptions = SkSamplingOptions(static_cast<SkFilterMode>(options.GetFilterMode()),
+            static_cast<SkMipmapMode>(options.GetMipmapMode()));
+    }
+    return skiaPixmap_.scalePixels(dst.GetImpl<SkiaPixmap>()->ExportSkiaPixmap(), skSamplingOptions);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -35,6 +35,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_color_picker.h"
+#include "render/rs_shadow.h"
 #include "include/effects/SkRuntimeEffect.h"
 
 namespace OHOS {
@@ -99,6 +100,8 @@ public:
 
     void SetIsShadow(bool isShadow);
 
+    void SetShadowColorStrategy(int shadowColorStrategy);
+
     bool GetDeviceSize(int& deviceWidth, int& deviceHeight) const;
 
 
@@ -111,6 +114,7 @@ private:
     bool valid_ = false;
     bool firstGetColorFinished_ = false;
     bool isShadow_ = false;
+    int shadowColorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
     uint32_t* pixelPtr_ = nullptr;
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
     sk_sp<SkImage> imageSnapshotCache_ = nullptr;

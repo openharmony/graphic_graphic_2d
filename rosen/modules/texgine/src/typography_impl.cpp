@@ -403,6 +403,7 @@ void TypographyImpl::DoLayout()
         double offsetX = 0;
         for (auto &vs : lineMetrics_[i].lineSpans) {
             vs.AdjustOffsetY(yOffsets_[i]);
+            offsetX += HALF(vs.GetTextStyle().letterSpacing);
             vs.AdjustOffsetX(offsetX);
             offsetX += vs.GetWidth();
 
@@ -481,9 +482,8 @@ int TypographyImpl::UpdateSpanMetrics(VariantSpan &span, double &coveredAscent)
         }
 
         FontStyles fs(style.fontWeight, style.fontStyle);
-        bool fallbackTypeface = false;
         // 0xFFFC is a placeholder, use it to get typeface when text is empty.
-        auto typeface = fontCollection->GetTypefaceForChar(0xFFFC, fs, "Latn", style.locale, fallbackTypeface);
+        auto typeface = fontCollection->GetTypefaceForChar(0xFFFC, fs, "Latn", style.locale);
         if (typeface == nullptr) {
             typeface = fontCollection->GetTypefaceForFontStyles(fs, "Latn", style.locale);
         }

@@ -28,6 +28,7 @@
 #include "skia_gpu_context.h"
 #endif
 #ifdef ROSEN_OHOS
+#include "src/core/SkAutoMalloc.h"
 #include "src/core/SkReadBuffer.h"
 #include "src/core/SkWriteBuffer.h"
 #endif
@@ -77,17 +78,18 @@ std::shared_ptr<Image> SkiaImage::MakeRasterData(const ImageInfo& info, std::sha
     return std::make_shared<Image>(imageImpl);
 }
 
-void* SkiaImage::BuildFromBitmap(const Bitmap& bitmap)
+bool SkiaImage::BuildFromBitmap(const Bitmap& bitmap)
 {
     auto skBitmapImpl = bitmap.GetImpl<SkiaBitmap>();
     if (skBitmapImpl != nullptr) {
         const SkBitmap skBitmap = skBitmapImpl->ExportSkiaBitmap();
         skiaImage_ = SkImage::MakeFromBitmap(skBitmap);
+        return skiaImage_ != nullptr;
     }
-    return nullptr;
+    return false;
 }
 
-void* SkiaImage::BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix,
+bool SkiaImage::BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix,
     const Brush& brush, BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace)
 {
     auto skPictureImpl = picture.GetImpl<SkiaPicture>();
@@ -96,14 +98,15 @@ void* SkiaImage::BuildFromPicture(const Picture& picture, const SizeI& dimension
 
     SkISize skISize = SkISize::Make(dimensions.Width(), dimensions.Height());
     SkPaint paint;
-    skiaPaint_.BrushToSkPaint(brush, paint);
+    SkiaPaint::BrushToSkPaint(brush, paint);
     SkImage::BitDepth b = static_cast<SkImage::BitDepth>(bitDepth);
 
     if (skPictureImpl != nullptr && skMatrixImpl != nullptr && skColorSpaceImpl != nullptr) {
         skiaImage_ = SkImage::MakeFromPicture(skPictureImpl->GetPicture(), skISize, &skMatrixImpl->ExportSkiaMatrix(),
             &paint, b, skColorSpaceImpl->GetColorSpace());
+        return skiaImage_ != nullptr;
     }
-    return nullptr;
+    return false;
 }
 
 #ifdef ACE_ENABLE_GPU
@@ -296,6 +299,20 @@ AlphaType SkiaImage::GetAlphaType() const
                                      SkiaImageInfo::ConvertToAlphaType(skiaImage_->alphaType());
 }
 
+std::shared_ptr<ColorSpace> SkiaImage::GetColorSpace() const
+{
+    if (skiaImage_ == nullptr) {
+        return nullptr;
+    }
+    sk_sp<SkColorSpace> skColorSpace = skiaImage_->refColorSpace();
+    if (skColorSpace == nullptr) {
+        return nullptr;
+    }
+    std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>();
+    colorSpace->GetImpl<SkiaColorSpace>()->SetColorSpace(skColorSpace);
+    return colorSpace;
+}
+
 uint32_t SkiaImage::GetUniqueID() const
 {
     return (skiaImage_ == nullptr) ? 0 : skiaImage_->uniqueID();
@@ -352,14 +369,18 @@ bool SkiaImage::ScalePixels(const Bitmap& bitmap, const SamplingOptions& samplin
     return (skiaImage_ == nullptr) ? false : skiaImage_->scalePixels(skPixmap, samplingOptions, skCachingHint);
 }
 
-std::shared_ptr<Data> SkiaImage::EncodeToData(EncodedImageFormat& encodedImageFormat, int quality) const
+std::shared_ptr<Data> SkiaImage::EncodeToData(EncodedImageFormat encodedImageFormat, int quality) const
 {
-    SkEncodedImageFormat skEncodedImageFormat = SkiaImageInfo::ConvertToSkEncodedImageFormat(encodedImageFormat);
     if (skiaImage_ == nullptr) {
         LOGE("SkiaImage::EncodeToData, skiaImage_ is null!");
         return nullptr;
     }
+    SkEncodedImageFormat skEncodedImageFormat = SkiaImageInfo::ConvertToSkEncodedImageFormat(encodedImageFormat);
     auto skData = skiaImage_->encodeToData(skEncodedImageFormat, quality);
+    if (skData == nullptr) {
+        LOGE("SkiaImage::EncodeToData, skData null!");
+        return nullptr;
+    }
     std::shared_ptr<Data> data = std::make_shared<Data>();
     data->GetImpl<SkiaData>()->SetSkData(skData);
     return data;
@@ -440,12 +461,56 @@ std::shared_ptr<Data> SkiaImage::Serialize() const
     }
 
     SkBinaryWriteBuffer writer;
-    writer.writeImage(skiaImage_.get());
-    size_t length = writer.bytesWritten();
-    std::shared_ptr<Data> data = std::make_shared<Data>();
-    data->BuildUninitialized(length);
-    writer.writeToMemory(data->WritableData());
-    return data;
+    bool type = skiaImage_->isLazyGenerated();
+    writer.writeBool(type);
+    if (type) {
+        writer.writeImage(skiaImage_.get());
+        size_t length = writer.bytesWritten();
+        std::shared_ptr<Data> data = std::make_shared<Data>();
+        data->BuildUninitialized(length);
+        writer.writeToMemory(data->WritableData());
+        return data;
+    } else {
+        SkBitmap bitmap;
+
+        auto context = as_IB(skiaImage_.get())->directContext();
+        if (!as_IB(skiaImage_.get())->getROPixels(context, &bitmap)) {
+            LOGE("SkiaImage::SerializeNoLazyImage SkImage getROPixels failed");
+            return nullptr;
+        }
+        SkPixmap pixmap;
+        if (!bitmap.peekPixels(&pixmap)) {
+            LOGE("SkiaImage::SerializeNoLazyImage SkImage peekPixels failed");
+            return nullptr;
+        }
+        size_t rb = pixmap.rowBytes();
+        int32_t width = pixmap.width();
+        int32_t height = pixmap.height();
+        const void* addr = pixmap.addr();
+        size_t size = rb * static_cast<size_t>(height);
+
+        writer.writeUInt(size);
+        writer.writeByteArray(addr, size);
+        writer.writeUInt(rb);
+        writer.write32(width);
+        writer.write32(height);
+
+        writer.writeUInt(pixmap.colorType());
+        writer.writeUInt(pixmap.alphaType());
+
+        if (pixmap.colorSpace() == nullptr) {
+            writer.writeUInt(0);
+        } else {
+            auto data = pixmap.colorSpace()->serialize();
+            writer.writeUInt(data->size());
+            writer.writeByteArray(data->data(), data->size());
+        }
+        size_t length = writer.bytesWritten();
+        std::shared_ptr<Data> data = std::make_shared<Data>();
+        data->BuildUninitialized(length);
+        writer.writeToMemory(data->WritableData());
+        return data;
+    }
 #else
     return nullptr;
 #endif
@@ -460,8 +525,42 @@ bool SkiaImage::Deserialize(std::shared_ptr<Data> data)
     }
 
     SkReadBuffer reader(data->GetData(), data->GetSize());
-    skiaImage_ = reader.readImage();
-    return skiaImage_ != nullptr;
+    bool type = reader.readBool();
+
+    if (type) {
+        skiaImage_ = reader.readImage();
+        return skiaImage_ != nullptr;
+    } else {
+        size_t pixmapSize = reader.readUInt();
+        SkAutoMalloc pixBuffer(pixmapSize);
+        if (!reader.readByteArray(pixBuffer.get(), pixmapSize)) {
+            return false;
+        }
+
+        size_t rb = reader.readUInt();
+        int32_t width = reader.read32();
+        int32_t height = reader.read32();
+
+        SkColorType colorType = static_cast<SkColorType>(reader.readUInt());
+        SkAlphaType alphaType = static_cast<SkAlphaType>(reader.readUInt());
+        sk_sp<SkColorSpace> colorSpace;
+
+        size_t size = reader.readUInt();
+        if (size == 0) {
+            colorSpace = nullptr;
+        } else {
+            SkAutoMalloc colorBuffer(size);
+            if (!reader.readByteArray(colorBuffer.get(), size)) {
+                return false;
+            }
+            colorSpace = SkColorSpace::Deserialize(colorBuffer.get(), size);
+        }
+
+        SkImageInfo imageInfo = SkImageInfo::Make(width, height, colorType, alphaType, colorSpace);
+        auto skData = SkData::MakeWithCopy(const_cast<void*>(pixBuffer.get()), pixmapSize);
+        skiaImage_ = SkImage::MakeRasterData(imageInfo, skData, rb);
+        return true;
+    }
 #else
     return false;
 #endif

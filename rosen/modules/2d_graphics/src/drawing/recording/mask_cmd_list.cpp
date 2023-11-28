@@ -128,7 +128,7 @@ void MaskBrushOpItem::Playback(Brush& brush, const CmdList& cmdList) const
     brush.SetFilter(filter);
 }
 
-MaskPathOpItem::MaskPathOpItem(const CmdListHandle& pathHandle)
+MaskPathOpItem::MaskPathOpItem(const ImageHandle& pathHandle)
     : MaskOpItem(MASK_PATH_OPITEM), pathHandle_(pathHandle) {}
 
 void MaskPathOpItem::Playback(MaskPlayer& player, const void* opItem)
@@ -141,8 +141,7 @@ void MaskPathOpItem::Playback(MaskPlayer& player, const void* opItem)
 
 void MaskPathOpItem::Playback(std::shared_ptr<Path>& path, const CmdList& cmdList) const
 {
-    auto readPath = CmdListHelper::GetFromCmdList<PathCmdList, Path>(
-        cmdList, pathHandle_);
+    auto readPath = CmdListHelper::GetPathFromCmdList(cmdList, pathHandle_);
     path = readPath;
 }
 } // namespace Drawing

@@ -405,7 +405,6 @@ void RSNode::SetProperty(RSModifierType modifierType, T value)
     }
     auto property = std::make_shared<PropertyName>(value);
     auto propertyModifier = std::make_shared<ModifierName>(property);
-    ROSEN_LOGI("RSNode::SetProperty modifier");
     propertyModifiers_.emplace(modifierType, propertyModifier);
     AddModifier(propertyModifier);
 }
@@ -1052,9 +1051,9 @@ void RSNode::SetShadowIsFilled(bool shadowIsFilled)
     SetProperty<RSShadowIsFilledModifier, RSProperty<bool>>(RSModifierType::SHADOW_IS_FILLED, shadowIsFilled);
 }
 
-void RSNode::SetShadowColorStrategy(bool shadowColorStrategy)
+void RSNode::SetShadowColorStrategy(int shadowColorStrategy)
 {
-    SetProperty<RSShadowColorStrategyModifier, RSProperty<bool>>(
+    SetProperty<RSShadowColorStrategyModifier, RSProperty<int>>(
         RSModifierType::SHADOW_COLOR_STRATEGY, shadowColorStrategy);
 }
 
@@ -1449,7 +1448,7 @@ void RSNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer)
     if (isNodeSingleFrameComposer_ != isNodeSingleFrameComposer) {
         isNodeSingleFrameComposer_ = isNodeSingleFrameComposer;
         std::unique_ptr<RSCommand> command =
-            std::make_unique<RSMarkNodeSingleFrameComposer>(GetId(), isNodeSingleFrameComposer);
+            std::make_unique<RSMarkNodeSingleFrameComposer>(GetId(), isNodeSingleFrameComposer, GetRealPid());
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
             transactionProxy->AddCommand(command, IsRenderServiceNode());

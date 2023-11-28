@@ -15,6 +15,8 @@
 
 #include "draw/brush.h"
 
+#include "static_factory.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -138,6 +140,16 @@ bool Brush::IsAntiAlias() const
 void Brush::SetAntiAlias(bool aa)
 {
     antiAlias_ = aa;
+}
+
+bool Brush::CanComputeFastBounds()
+{
+    return StaticFactory::CanComputeFastBounds(*this);
+}
+
+const Rect& Brush::ComputeFastBounds(const Rect& orig, Rect* storage)
+{
+    return StaticFactory::ComputeFastBounds(*this, orig, storage);
 }
 
 void Brush::Reset()

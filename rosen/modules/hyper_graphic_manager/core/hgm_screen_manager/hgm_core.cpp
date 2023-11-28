@@ -166,14 +166,12 @@ int32_t HgmCore::SetModeBySettingConfig()
         HGM_LOGW("HgmCore no parsed xml configuration found, failed to apply refreshrate mode");
         return HGM_ERROR;
     }
-
     std::string settingTag = std::to_string(customFrameRateMode_);
     auto mapIter = mParsedConfigData_->customerSettingConfig_.find(settingTag);
     if (mapIter == mParsedConfigData_->customerSettingConfig_.end()) {
         HGM_LOGW("HgmCore failed to find strategy for customer setting : %{public}d", customFrameRateMode_);
         return HGM_ERROR;
     }
-
     std::string strat = mParsedConfigData_->customerSettingConfig_[settingTag];
     auto strategy = mParsedConfigData_->detailedStrategies_.find(strat);
     if (strategy == mParsedConfigData_->detailedStrategies_.end()) {
@@ -189,14 +187,12 @@ int32_t HgmCore::SetModeBySettingConfig()
         HGM_LOGW("HgmCore get an illegal rate via parsed config data : %{public}d", rateToSwitch);
         return HGM_ERROR;
     }
-
     rateToSwitch = RequestBundlePermission(rateToSwitch);
     for (auto &screen : screenList_) {
         int32_t setRange = screen->SetRefreshRateRange(
             static_cast<uint32_t>(rateFloor), static_cast<uint32_t>(rateToSwitch));
         if (customFrameRateMode_ == HGM_REFRESHRATE_MODE_AUTO) {
             rateToSwitch = OLED_60_HZ;
-            HGM_LOGI("HgmCore auto mode, set refreshrate 60HZ");
         }
         int32_t setThisScreen = SetScreenRefreshRate(screen->GetId(), 0, rateToSwitch);
         if (setThisScreen < EXEC_SUCCESS || setRange != EXEC_SUCCESS) {
@@ -206,6 +202,13 @@ int32_t HgmCore::SetModeBySettingConfig()
     }
     std::unordered_map<pid_t, uint32_t> rates;
     rates[GetRealPid()] = rateToSwitch;
+    if (customFrameRateMode_ == HGM_REFRESHRATE_MODE_AUTO) {
+        if (alignRate_ != 0) {
+            rates[UNI_APP_PID] = alignRate_;
+        }
+    } else {
+        rates[UNI_APP_PID] = rateToSwitch;
+    }
     FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRates(rates);
     return EXEC_SUCCESS;
 }

@@ -41,6 +41,7 @@ public:
     void InitWithRGB(const CMSTransferFuncType& func, const CMSMatrixType& matrix) override;
     sk_sp<SkColorSpace> GetColorSpace() const;
     void SetColorSpace(sk_sp<SkColorSpace> skColorSpace);
+    sk_sp<SkColorSpace> GetSkColorSpace() const override;
     std::shared_ptr<Data> Serialize() const override;
     bool Deserialize(std::shared_ptr<Data> data) override;
 private:

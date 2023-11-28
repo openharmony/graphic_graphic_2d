@@ -267,8 +267,9 @@ HWTEST_F(RecordingShaderEffectTest, CreateTwoPointConical001, TestSize.Level1)
     std::vector<ColorQuad> colors;
     std::vector<scalar> position;
     TileMode tileMode = TileMode::MIRROR;
+    Matrix matrix;
     auto newRecordingShaderEffect = RecordingShaderEffect::CreateTwoPointConical(
-        startPoint, startRadius, endPoint, endRadius, colors, position, tileMode);
+        startPoint, startRadius, endPoint, endRadius, colors, position, tileMode, &matrix);
     EXPECT_TRUE(newRecordingShaderEffect != nullptr);
     auto shaderEffectCmdList = newRecordingShaderEffect->GetCmdList();
     EXPECT_TRUE(shaderEffectCmdList != nullptr);
@@ -292,8 +293,9 @@ HWTEST_F(RecordingShaderEffectTest, CreateTwoPointConical002, TestSize.Level1)
     std::vector<ColorQuad> colors;
     std::vector<scalar> position;
     TileMode tileMode = TileMode::REPEAT;
+    Matrix matrix;
     auto newRecordingShaderEffect = RecordingShaderEffect::CreateTwoPointConical(
-        startPoint, startRadius, endPoint, endRadius, colors, position, tileMode);
+        startPoint, startRadius, endPoint, endRadius, colors, position, tileMode, &matrix);
     EXPECT_TRUE(newRecordingShaderEffect != nullptr);
     auto shaderEffectCmdList = newRecordingShaderEffect->GetCmdList();
     EXPECT_TRUE(shaderEffectCmdList != nullptr);

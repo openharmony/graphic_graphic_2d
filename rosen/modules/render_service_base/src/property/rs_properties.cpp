@@ -101,7 +101,8 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetShadowRadius(0.f); },              // SHADOW_RADIUS,            46
     [](RSProperties* prop) { prop->SetShadowPath({}); },                 // SHADOW_PATH,              47
     [](RSProperties* prop) { prop->SetShadowMask(false); },              // SHADOW_MASK,              48
-    [](RSProperties* prop) { prop->SetShadowColorStrategy(false); },     // ShadowColorStrategy,      49
+    [](RSProperties* prop) { prop->SetShadowColorStrategy(               // ShadowColorStrategy,      49
+        SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE); },
     [](RSProperties* prop) { prop->SetMask({}); },                       // MASK,                     50
     [](RSProperties* prop) { prop->SetSpherize(0.f); },                  // SPHERIZE,                 51
     [](RSProperties* prop) { prop->SetLightUpEffect(1.f); },             // LIGHT_UP_EFFECT,          52
@@ -475,8 +476,7 @@ void RSProperties::UpdateSandBoxMatrix(const std::optional<Drawing::Matrix>& roo
 #ifndef USE_ROSEN_DRAWING
     sandbox_->matrix_ = rootMat.preTranslate(sandbox_->position_->x_, sandbox_->position_->y_);
 #else
-    Drawing::Matrix matrix;
-    matrix.DeepCopy(rootMatrix.value());
+    Drawing::Matrix matrix = rootMatrix.value();
     matrix.PreTranslate(sandbox_->position_->x_, sandbox_->position_->y_);
     sandbox_->matrix_ = matrix;
 #endif
@@ -1254,7 +1254,7 @@ void RSProperties::SetShadowIsFilled(bool shadowIsFilled)
     contentDirty_ = true;
 }
 
-void RSProperties::SetShadowColorStrategy(bool shadowColorStrategy)
+void RSProperties::SetShadowColorStrategy(int shadowColorStrategy)
 {
     if (!shadow_.has_value()) {
         shadow_ = std::make_optional<RSShadow>();
@@ -1265,7 +1265,7 @@ void RSProperties::SetShadowColorStrategy(bool shadowColorStrategy)
     // [planning] if shadow stores as texture and out of node
     // node content would not be affected
     contentDirty_ = true;
-    if (shadowColorStrategy && colorPickerTaskShadow_ == nullptr) {
+    if (shadowColorStrategy != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE && colorPickerTaskShadow_ == nullptr) {
         CreateColorPickerTaskForShadow();
     }
 }
@@ -1317,9 +1317,9 @@ bool RSProperties::GetShadowIsFilled() const
     return shadow_ ? shadow_->GetIsFilled() : false;
 }
 
-bool RSProperties::GetShadowColorStrategy() const
+int RSProperties::GetShadowColorStrategy() const
 {
-    return shadow_ ? shadow_->GetColorStrategy() : false;
+    return shadow_ ? shadow_->GetColorStrategy() : SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
 }
 
 const std::optional<RSShadow>& RSProperties::GetShadow() const
@@ -2690,8 +2690,6 @@ void RSProperties::OnApplyModifiers()
         if (clipToFrame_ && clipToBounds_ && frameOffsetX_ == 0 && frameOffsetY_ == 0) {
             clipToFrame_ = false;
         }
-        frameGeo_->Round();
-        boundsGeo_->Round();
     }
     if (colorFilterNeedUpdate_) {
         GenerateColorFilter();

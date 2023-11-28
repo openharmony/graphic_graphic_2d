@@ -38,6 +38,7 @@ struct JankFrames {
     bool isReportEventComplete_ = false;
     bool isReportEventJankFrame_ = false;
     bool isUpdateJankFrame_ = false;
+    bool isFirstFrame_ = false;
     int64_t setTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t startTimeSteady_ = TIMESTAMP_INITIAL;
     int32_t seqMissedFrames_ = 0;
@@ -53,7 +54,7 @@ struct JankFrameRecordStats {
     const std::string countTraceName_;
     const int64_t recordThreshold_;
     bool isRecorded_ = false;
-    JankFrameRecordStats(std::string countTraceName, int64_t recordThreshold)
+    JankFrameRecordStats(const std::string& countTraceName, int64_t recordThreshold)
         : countTraceName_(countTraceName), recordThreshold_(recordThreshold) {}
 };
 
@@ -73,7 +74,7 @@ public:
     void SetReportEventResponse(DataBaseRs info);
     void SetReportEventComplete(DataBaseRs info);
     void SetReportEventJankFrame(DataBaseRs info);
-    void SetFirstFrame(pid_t appPid);
+    void SetAppFirstFrame(pid_t appPid);
 
 private:
     RSJankStats() {};
@@ -85,7 +86,7 @@ private:
 
     void UpdateEndTime();
     void SetRSJankStats(int64_t missedVsync);
-    void UpdateJankFrame(int64_t frameDuration, int32_t missedFramesToReport, JankFrames& jankFrames);
+    void UpdateJankFrame(JankFrames& jankFrames);
     void ReportEventResponse(const JankFrames& jankFrames) const;
     void ReportEventComplete(const JankFrames& jankFrames) const;
     void ReportEventJankFrame(const JankFrames& jankFrames) const;
@@ -109,8 +110,8 @@ private:
     static constexpr bool IS_FOLD_DISP = false;
     static inline const std::string JANK_FRAME_6F_COUNT_TRACE_NAME = "JANK_FRAME_6F";
     std::vector<JankFrameRecordStats> jankFrameRecorder_{ {"JANK_ANIMATOR_FRAME_2F", 2} };
-    bool isfirstSetStart_ = true;
-    bool isfirstSetEnd_ = true;
+    bool isFirstSetStart_ = true;
+    bool isFirstSetEnd_ = true;
     bool isNeedReportJankStats_ = false;
     int64_t startTime_ = TIMESTAMP_INITIAL;
     int64_t startTimeSteady_ = TIMESTAMP_INITIAL;

@@ -28,39 +28,44 @@ Pixmap::Pixmap(const ImageInfo& imageInfo, const void* addr, size_t rowBytes)
     : pixmapImplPtr_(ImplFactory::CreatePixmapImpl(imageInfo, addr, rowBytes))
 {}
 
-std::shared_ptr<ColorSpace> Pixmap::GetColorSpace()
+std::shared_ptr<ColorSpace> Pixmap::GetColorSpace() const
 {
     return pixmapImplPtr_->GetColorSpace();
 }
 
-ColorType Pixmap::GetColorType()
+ColorType Pixmap::GetColorType() const
 {
     return pixmapImplPtr_->GetColorType();
 }
 
-AlphaType Pixmap::GetAlphaType()
+AlphaType Pixmap::GetAlphaType() const
 {
     return pixmapImplPtr_->GetAlphaType();
 }
 
-size_t Pixmap::GetRowBytes()
+size_t Pixmap::GetRowBytes() const
 {
     return pixmapImplPtr_->GetRowBytes();
 }
 
-const void* Pixmap::GetAddr()
+const void* Pixmap::GetAddr() const
 {
     return pixmapImplPtr_->GetAddr();
 }
 
-int32_t Pixmap::GetWidth()
+int32_t Pixmap::GetWidth() const
 {
     return pixmapImplPtr_->GetWidth();
 }
 
-int32_t Pixmap::GetHeight()
+int32_t Pixmap::GetHeight() const
 {
     return pixmapImplPtr_->GetHeight();
+}
+
+bool Pixmap::ScalePixels(const Pixmap& dst, const SamplingOptions& options) const
+{
+    return pixmapImplPtr_->ScalePixels(dst, options);
 }
 
 Pixmap::~Pixmap() {}

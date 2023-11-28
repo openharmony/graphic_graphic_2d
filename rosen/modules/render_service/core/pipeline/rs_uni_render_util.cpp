@@ -50,7 +50,7 @@ void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& no
         }
         auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
         if (!surfaceDirtyManager->SetBufferAge(bufferAge)) {
-            ROSEN_LOGE("RSUniRenderUtil::MergeVisibleDirtyRegion with invalid buffer age %{public}d", bufferAge);
+            ROSEN_LOGE("RSUniRenderUtil::MergeDirtyHistory with invalid buffer age %{public}d", bufferAge);
         }
         surfaceDirtyManager->IntersectDirtyRect(surfaceNode->GetOldDirtyInSurface());
         surfaceDirtyManager->UpdateDirty(useAlignedDirtyRegion);
@@ -60,7 +60,7 @@ void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& no
 }
 
 Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node,
-    bool useAlignedDirtyRegion)
+    std::vector<NodeId>& hasVisibleDirtyRegionSurfaceVec, bool useAlignedDirtyRegion)
 {
     Occlusion::Region allSurfaceVisibleDirtyRegion;
     for (auto it = node->GetCurAllSurfaces().rbegin(); it != node->GetCurAllSurfaces().rend(); ++it) {
@@ -76,6 +76,9 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(std::shared_ptr<RSDis
         Occlusion::Region surfaceDirtyRegion { dirtyRect };
         Occlusion::Region surfaceVisibleDirtyRegion = surfaceDirtyRegion.And(visibleRegion);
         surfaceNode->SetVisibleDirtyRegion(surfaceVisibleDirtyRegion);
+        if (!surfaceVisibleDirtyRegion.IsEmpty()) {
+            hasVisibleDirtyRegionSurfaceVec.emplace_back(surfaceNode->GetId());
+        }
         if (useAlignedDirtyRegion) {
             Occlusion::Region alignedRegion = AlignedDirtyRegion(surfaceVisibleDirtyRegion);
             surfaceNode->SetAlignedVisibleDirtyRegion(alignedRegion);

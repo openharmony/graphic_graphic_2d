@@ -66,6 +66,22 @@ public:
         return screenId_;
     }
 
+    void SetRogSize(uint32_t rogWidth, uint32_t rogHeight)
+    {
+        rogWidth_ = rogWidth;
+        rogHeight_ = rogHeight;
+    }
+
+    uint32_t GetRogWidth() const
+    {
+        return rogWidth_;
+    }
+
+    uint32_t GetRogHeight() const
+    {
+        return rogHeight_;
+    }
+
     void SetDisplayOffset(int32_t offsetX, int32_t offsetY)
     {
         offsetX_ = offsetX;
@@ -289,6 +305,8 @@ private:
     uint64_t screenId_;
     int32_t offsetX_;
     int32_t offsetY_;
+    uint32_t rogWidth_;
+    uint32_t rogHeight_;
     bool forceSoftComposite_ { false };
     bool isMirroredDisplay_ = false;
     bool isSecurityDisplay_ = false;

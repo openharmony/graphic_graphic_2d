@@ -87,8 +87,8 @@ public:
 
     void Reset();
 
-    friend bool operator==(const Pen& p1, const Pen& p2);
-    friend bool operator!=(const Pen& p1, const Pen& p2);
+    friend DRAWING_API bool operator==(const Pen& p1, const Pen& p2);
+    friend DRAWING_API bool operator!=(const Pen& p1, const Pen& p2);
 
 private:
     scalar width_;

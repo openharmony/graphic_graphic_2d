@@ -54,8 +54,8 @@ public:
     ImageImpl() noexcept {}
     ~ImageImpl() override {}
 
-    virtual void* BuildFromBitmap(const Bitmap& bitmap) = 0;
-    virtual void* BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix,
+    virtual bool BuildFromBitmap(const Bitmap& bitmap) = 0;
+    virtual bool BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix,
         const Brush& brush, BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace) = 0;
 #ifdef ACE_ENABLE_GPU
     virtual bool BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap) = 0;
@@ -73,6 +73,7 @@ public:
     virtual int GetHeight() const = 0;
     virtual ColorType GetColorType() const = 0;
     virtual AlphaType GetAlphaType() const = 0;
+    virtual std::shared_ptr<ColorSpace> GetColorSpace() const = 0;
     virtual uint32_t GetUniqueID() const = 0;
     virtual ImageInfo GetImageInfo() = 0;
     virtual bool ReadPixels(Bitmap& bitmap, int x, int y) = 0;
@@ -81,7 +82,7 @@ public:
     virtual bool IsTextureBacked() const = 0;
     virtual bool ScalePixels(const Bitmap& bitmap, const SamplingOptions& sampling,
         bool allowCachingHint = true) const = 0;
-    virtual std::shared_ptr<Data> EncodeToData(EncodedImageFormat& encodedImageFormat, int quality) const = 0;
+    virtual std::shared_ptr<Data> EncodeToData(EncodedImageFormat encodedImageFormat, int quality) const = 0;
     virtual bool IsLazyGenerated() const = 0;
     virtual bool GetROPixels(Bitmap& bitmap) const = 0;
     virtual std::shared_ptr<Image> MakeRasterImage() const = 0;

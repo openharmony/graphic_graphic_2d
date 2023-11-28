@@ -53,11 +53,13 @@ void RSNodeCommandHelper::MarkNodeGroup(RSContext& context, NodeId nodeId, bool 
     }
 }
 
-void RSNodeCommandHelper::MarkNodeSingleFrameComposer(RSContext& context, NodeId nodeId, bool isNodeSingleFrameComposer)
+void RSNodeCommandHelper::MarkNodeSingleFrameComposer(RSContext& context,
+    NodeId nodeId, bool isNodeSingleFrameComposer, pid_t pid)
 {
     auto& nodeMap = context.GetNodeMap();
     if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
-        node->MarkNodeSingleFrameComposer(isNodeSingleFrameComposer);
+        RSSingleFrameComposer::AddOrRemoveAppPidToMap(isNodeSingleFrameComposer, pid);
+        node->MarkNodeSingleFrameComposer(isNodeSingleFrameComposer, pid);
     }
 }
 
