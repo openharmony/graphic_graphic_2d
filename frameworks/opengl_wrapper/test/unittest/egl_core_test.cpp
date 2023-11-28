@@ -72,7 +72,6 @@ HWTEST_F(EglCoreTest, EglCoreInit002, Level2)
     gWrapperHook.isLoad = temp;
 }
 
-
 /**
  * @tc.name: EglCoreInit003
  * @tc.desc:
