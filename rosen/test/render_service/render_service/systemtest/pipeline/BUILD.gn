@@ -90,6 +90,9 @@ if (graphic_2d_feature_rs_enable_uni_render) {
     ]
     defines = []
     defines += gpu_defines
+    if (defined(use_rosen_drawing) && use_rosen_drawing) {
+      defines += [ "USE_ROSEN_DRAWING" ]
+    }
   }
 }
 
