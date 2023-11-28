@@ -36,9 +36,6 @@ void RSPixelMapUtilTest::TearDownTestCase() {}
 void RSPixelMapUtilTest::SetUp() {}
 void RSPixelMapUtilTest::TearDown() {}
 
-
-
-
 static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
 {
     Media::InitializationOptions opts;
@@ -74,6 +71,5 @@ HWTEST_F(RSPixelMapUtilTest, ExtractSkImage, TestSize.Level1)
 
     EXPECT_NE(nullptr, RSPixelMapUtil::ExtractSkImage(pixelmap));
 }
-
-}
-}
+} // namespace Rosen
+} // namespace OHOS

@@ -28,6 +28,7 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
     "rs_display_render_node_test.cpp",
     "rs_draw_cmd_list_test.cpp",
     "rs_draw_cmd_test.cpp",
+    "rs_effect_render_node_test.cpp",
     "rs_frame_report_test.cpp",
     "rs_occlusion_config_test.cpp",
     "rs_paint_filter_canvas_test.cpp",
@@ -36,7 +37,11 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
     "rs_render_node_map_test.cpp",
     "rs_render_node_test.cpp",
     "rs_surface_render_node_test.cpp",
+    "rs_root_render_node_test.cpp",
   ]
+
+  resource_config_file = "//foundation/graphic/graphic_2d/rosen/test/resource/ohos_test.xml"
+
   cflags = [
     "-Wall",
     "-Werror",

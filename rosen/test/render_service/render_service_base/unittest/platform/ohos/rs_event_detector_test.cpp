@@ -31,8 +31,9 @@ public:
     static inline std::shared_ptr<RSBaseEventDetector> rsDetector = nullptr;
 };
 
-void RSEventDetectorTest::SetUpTestCase() {
-    rsDetector = RSBaseEventDetector::CreateRSTimeOutDetector(123, "0");
+void RSEventDetectorTest::SetUpTestCase()
+{
+    rsDetector = RSBaseEventDetector::CreateRSTimeOutDetector(1, "0");
 }
 void RSEventDetectorTest::TearDownTestCase() {}
 void RSEventDetectorTest::SetUp() {}
@@ -57,11 +58,12 @@ HWTEST_F(RSEventDetectorTest, CreateRSTimeOutDetector, TestSize.Level1)
  */
 HWTEST_F(RSEventDetectorTest, settings, TestSize.Level1)
 {
-    rsDetector->SetParam("timeOutThresholdMs","1");
+    rsDetector->SetParam("timeOutThresholdMs", "1");
     rsDetector->SetLoopStartTag();
-    std::string name = "bundle";
-    rsDetector->SetLoopFinishTag(1, 2, name, "ability");
+    std::string bundle = "bundle";
+    std::string ability = "ability";
+    rsDetector->SetLoopFinishTag(1, 1, bundle, ability);
 }
 
-}
-}
+} // namespace Rosen
+} // namespace OHOS

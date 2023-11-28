@@ -18,7 +18,8 @@
 #include "platform/common/rs_log.h"
 using namespace testing;
 using namespace testing::ext;
-
+namespace OHOS { 
+namespace Rosen {
 class RSRootRenderNodeTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -29,10 +30,10 @@ public:
     static inline std::weak_ptr<RSContext> context = {};
 };
 
-void RSEffectRenderNodeTest::SetUpTestCase() {}
-void RSEffectRenderNodeTest::TearDownTestCase() {}
-void RSEffectRenderNodeTest::SetUp() {}
-void RSEffectRenderNodeTest::TearDown() {}
+void RSRootRenderNodeTest::SetUpTestCase() {}
+void RSRootRenderNodeTest::TearDownTestCase() {}
+void RSRootRenderNodeTest::SetUp() {}
+void RSRootRenderNodeTest::TearDown() {}
 
 /**
  * @tc.name: settings
@@ -40,7 +41,7 @@ void RSEffectRenderNodeTest::TearDown() {}
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSEffectRenderNodeTest, settings, TestSize.Level1)
+HWTEST_F(RSRootRenderNodeTest, settings, TestSize.Level1)
 {   
     NodeId nodeId = 0;
     RSRootRenderNode rsRootRenderNode(nodeId, context);
@@ -61,7 +62,7 @@ HWTEST_F(RSEffectRenderNodeTest, settings, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSEffectRenderNodeTest, Prepare, TestSize.Level1)
+HWTEST_F(RSRootRenderNodeTest, Prepare, TestSize.Level1)
 {
     std::shared_ptr<RSNodeVisitor> visitor = nullptr;
     NodeId nodeId = 0;
@@ -75,11 +76,13 @@ HWTEST_F(RSEffectRenderNodeTest, Prepare, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSEffectRenderNodeTest, Process, TestSize.Level1)
+HWTEST_F(RSRootRenderNodeTest, Process, TestSize.Level1)
 {
     std::shared_ptr<RSNodeVisitor> visitor = nullptr;
     NodeId nodeId = 0;
     std::weak_ptr<RSContext> context;
     RSRootRenderNode rsRootRenderNode(nodeId, context);
-    rsEffectRenderNode.Process(visitor);
+    rsRootRenderNode.Process(visitor);
 }
+} // namespace Rosen
+} // namespace OHOS

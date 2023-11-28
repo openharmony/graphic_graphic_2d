@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration ver="2.0">
+    <target name="RSRenderServiceBasePlatformTest">
+        <preparer>
+            <option name="push" value="test.jpg -> /data/test/resource" src="res"/>
+            <option name="push" value="libc++.z.so -> /data/test/resource" src="out"/>
+        </preparer>
+    </target>
+
     <target name="RSRenderServiceBaseRenderTest">
         <preparer>
             <option name="push" value="test.jpg -> /data/test/resource" src="res"/>

@@ -52,5 +52,5 @@ HWTEST_F(KawaseBlurFilterTest, testInterface, TestSize.Level1)
 
     kawaseBlurFilter->ApplyKawaseBlur(canvas, image, param);
 }
-}
-}
+} // namespace Rosen
+} // namespace OHOS

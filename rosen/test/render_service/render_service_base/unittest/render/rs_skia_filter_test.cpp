@@ -15,8 +15,8 @@
 
 #include "gtest/gtest.h"
 
-#include "render/rs_skia_filter.h"
 #include "render/rs_blur_filter.h"
+#include "render/rs_skia_filter.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -48,8 +48,5 @@ HWTEST_F(RSSkiaFilterTest, ExtractSkImage, TestSize.Level1)
 
     rsSkiaFilter.GetImageFilter();
 }
-
-
-
-}
-}
+} // namespace Rosen
+} // namespace OHOS

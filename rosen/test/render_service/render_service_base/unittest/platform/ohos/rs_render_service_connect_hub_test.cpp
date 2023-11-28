@@ -33,6 +33,10 @@ public:
     static inline std::shared_ptr<RSRenderServiceClient> rsClient = nullptr;
 };
 
+void RSRenderServiceConnectHubTest::SetUpTestCase() {}
+void RSRenderServiceConnectHubTest::TearDownTestCase() {}
+void RSRenderServiceConnectHubTest::SetUp() {}
+void RSRenderServiceConnectHubTest::TearDown() {}
 
 /**
  * @tc.name: GetRenderService

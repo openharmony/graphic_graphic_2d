@@ -17,6 +17,9 @@
 
 #include "render/rs_filter.h"
 
+using namespace testing;
+using namespace testing::ext;
+
 namespace OHOS::Rosen {
 class RSFilterTest : public testing::Test {
 public:
@@ -45,7 +48,7 @@ HWTEST_F(RSFilterTest, CreateBlurFilter, TestSize.Level1)
 
     float dipScale = 1.0f;
     float ratio = 1.0f;
-    auto filter2 = RSFilter::CreateMaterialFilter(0, dipScale, BLUR_COLOR_MODE::DEFAULT, ratio)
+    auto filter2 = RSFilter::CreateMaterialFilter(0, dipScale, BLUR_COLOR_MODE::DEFAULT, ratio);
     ASSERT_NE(filter2, nullptr);
     
     float radius = 1.0f;
@@ -55,4 +58,4 @@ HWTEST_F(RSFilterTest, CreateBlurFilter, TestSize.Level1)
     ASSERT_NE(filter3, nullptr);
 }
 
-}
+} // namespace OHOS::Rosen
