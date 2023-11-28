@@ -62,6 +62,8 @@ std::shared_ptr<Media::PixelMap> RSUniUICapture::TakeLocalCapture()
         RS_LOGE("RSUniUICapture::TakeLocalCapture: pixelmap == nullptr!");
         return nullptr;
     }
+    RS_LOGD("RSUniUICapture::TakeLocalCapture: PixelMap: (%{public}d, %{public}d)", pixelmap->GetWidth(),
+        pixelmap->GetHeight());
 #ifndef USE_ROSEN_DRAWING
     auto skSurface = CreateSurface(pixelmap);
     if (skSurface == nullptr) {
@@ -82,8 +84,8 @@ std::shared_ptr<Media::PixelMap> RSUniUICapture::TakeLocalCapture()
 
 std::shared_ptr<Media::PixelMap> RSUniUICapture::CreatePixelMapByNode(std::shared_ptr<RSRenderNode> node) const
 {
-    int pixmapWidth = node->GetRenderProperties().GetBoundsWidth();
-    int pixmapHeight = node->GetRenderProperties().GetBoundsHeight();
+    float pixmapWidth = node->GetRenderProperties().GetBoundsWidth();
+    float pixmapHeight = node->GetRenderProperties().GetBoundsHeight();
     Media::InitializationOptions opts;
     opts.size.width = ceil(pixmapWidth * scaleX_);
     opts.size.height = ceil(pixmapHeight * scaleY_);
