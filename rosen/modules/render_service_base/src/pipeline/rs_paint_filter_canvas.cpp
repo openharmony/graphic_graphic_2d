@@ -872,16 +872,6 @@ void RSPaintFilterCanvas::onDrawPicture(const SkPicture* picture, const SkMatrix
     }
 }
 
-bool RSPaintFilterCanvas::GetRecordingState() const
-{
-    return recordingState_;
-}
-
-void RSPaintFilterCanvas::SetRecordingState(bool flag)
-{
-    recordingState_ = flag;
-}
-
 SkCanvas* RSPaintFilterCanvas::GetRecordingCanvas() const
 {
     return recordingState_? fList[0] : nullptr;
@@ -964,17 +954,22 @@ bool RSPaintFilterCanvas::OnFilterWithBrush(Brush& brush) const
     return alphaStack_.top() > 0.f;
 }
 
-bool RSPaintFilterCanvas::GetRecordingState() const
-{
-    return recordingState_;
-}
-
 void RSPaintFilterCanvas::SetDisableFilterCache(bool flag) const
 {
     recordingState_ = flag;
 }
 
 #endif // USE_ROSEN_DRAWING
+
+bool RSPaintFilterCanvas::GetRecordingState() const
+{
+    return recordingState_;
+}
+
+void RSPaintFilterCanvas::SetRecordingState(bool flag)
+{
+    recordingState_ = flag;
+}
 
 void RSPaintFilterCanvas::MultiplyAlpha(float alpha)
 {

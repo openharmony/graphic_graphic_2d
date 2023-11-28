@@ -196,10 +196,10 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
         GetRenderProperties().GetFrameGravity(), GetRenderProperties().GetFrameRect(), width, height, mat)) {
         canvas.ConcatMatrix(mat);
     }
-    auto image = surface_->GetImageSnapshot();
+    auto image_ = surface_->GetImageSnapshot();
 
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
-    canvas.DrawImage(*image, 0.f, 0.f, samplingOptions);
+    canvas.DrawImage(*image_, 0.f, 0.f, samplingOptions);
 }
 #endif
 
