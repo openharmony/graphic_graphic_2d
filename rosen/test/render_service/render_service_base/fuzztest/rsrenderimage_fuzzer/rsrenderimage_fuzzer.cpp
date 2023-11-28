@@ -306,7 +306,7 @@ bool RSMaskFuzzTest(const uint8_t* data, size_t size)
     SkPath skPath;
     SkPaint skPaint;
 #else
-    Drawing:;Path path;
+    Drawing::Path path;
     Drawing::Brush brush;
 #endif
     sk_sp<SkSVGDOM> svgDom;

@@ -314,7 +314,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawArc001, TestSize.Level1)
     Drawing::scalar startAngle = 0.0;
     Drawing::scalar sweepAngle = 0.0;
     auto listener = new RSGPUOverdrawCanvasListener(canvas);
-    listener->onDrawArc(rect, startAngle, sweepAngle);
+    listener->DrawArc(rect, startAngle, sweepAngle);
     delete listener;
 }
 
@@ -374,7 +374,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawRegion001, TestSize.Level1)
 HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawPicture001, TestSize.Level1)
 {
     Drawing::Canvas canvas;
-    Drawing::Picture* picture;
+    Drawing::Picture picture;
     auto listener = new RSGPUOverdrawCanvasListener(canvas);
     listener->DrawPicture(picture);
     delete listener;

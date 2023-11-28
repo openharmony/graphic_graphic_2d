@@ -413,9 +413,9 @@ HWTEST_F(RSListenedCanvasTest, onDrawPicture001, TestSize.Level1)
 }
 
 #else
-class MockDrawingCanvas : public DrawingCanvas {
+class MockDrawingCanvas : public Drawing::Canvas {
 public:
-    MOCK_METHOD1(DrawRegion, void(const SkRegion& region));
+    MOCK_METHOD1(DrawRegion, void(const Drawing::Region& region));
 };
 
 class MockRSPaintFilterCanvas : public RSPaintFilterCanvas {
@@ -426,7 +426,7 @@ public:
 
 class MockRSCanvasListener : public RSCanvasListener {
 public:
-    explicit MockRSCanvasListener(SkCanvas& canvas) : RSCanvasListener(canvas) {}
+    explicit MockRSCanvasListener(Drawing::Canvas& canvas) : RSCanvasListener(canvas) {}
     MOCK_METHOD1(DrawRect, void(const Drawing::Rect& rect));
 };
 
@@ -459,12 +459,12 @@ HWTEST_F(RSListenedCanvasTest, RequestPassThrough, Function | SmallTest | Level2
         std::shared_ptr<RSListenedCanvas> listenedCanvas = nullptr;
         STEP("3. create RSListenedCanvas from MockRSPaintFilterCanvas")
         {
-            listenedCanvas = std::make_shared<RSListenedCanvas>(mockRSPaintFilterCanvas.get());
+            listenedCanvas = std::make_shared<RSListenedCanvas>(*mockRSPaintFilterCanvas);
         }
 
         STEP("4. call RSListenedCanvas's drawRect")
         {
-            listenedCanvas->drawRect(rect);
+            listenedCanvas->DrawRect(rect);
         }
     }
 }
@@ -506,7 +506,7 @@ HWTEST_F(RSListenedCanvasTest, RequestSplitToListener, Function | SmallTest | Le
         std::shared_ptr<RSListenedCanvas> listenedCanvas = nullptr;
         STEP("4. create RSListenedCanvas from MockRSPaintFilterCanvas")
         {
-            listenedCanvas = std::make_shared<RSListenedCanvas>(mockRSPaintFilterCanvas.get());
+            listenedCanvas = std::make_shared<RSListenedCanvas>(*mockRSPaintFilterCanvas);
             listenedCanvas->SetListener(mockRSCanvasListener);
         }
 
@@ -546,7 +546,7 @@ HWTEST_F(RSListenedCanvasTest, onDrawArc001, TestSize.Level1)
     Drawing::Rect rect;
     Drawing::scalar startAngle = 0.1;
     Drawing::scalar sweepAngle = 0.2;
-    RSListenedCanvas listenedCanvas(&canvas);
+    RSListenedCanvas listenedCanvas(canvas);
     auto listener = std::make_shared<MockRSCanvasListener>(canvas);
     listenedCanvas.DrawArc(rect, startAngle, sweepAngle);
     listenedCanvas.SetListener(listener);
@@ -563,7 +563,7 @@ HWTEST_F(RSListenedCanvasTest, onDrawPath001, TestSize.Level1)
 {
     MockDrawingCanvas canvas;
     Drawing::Path path;
-    RSListenedCanvas listenedCanvas(&canvas);
+    RSListenedCanvas listenedCanvas(canvas);
     auto listener = std::make_shared<MockRSCanvasListener>(canvas);
     listenedCanvas.DrawPath(path);
     listenedCanvas.SetListener(listener);
@@ -580,7 +580,7 @@ HWTEST_F(RSListenedCanvasTest, onDrawRegion001, TestSize.Level1)
 {
     MockDrawingCanvas canvas;
     Drawing::Region region;
-    RSListenedCanvas listenedCanvas(&canvas);
+    RSListenedCanvas listenedCanvas(canvas);
     auto listener = std::make_shared<MockRSCanvasListener>(canvas);
     listenedCanvas.DrawRegion(region);
     listenedCanvas.SetListener(listener);
@@ -600,10 +600,10 @@ HWTEST_F(RSListenedCanvasTest, onDrawPoints001, TestSize.Level1)
     Drawing::scalar y = 0.2;
     auto point = Rosen::Drawing::Point(x, y);
     RSListenedCanvas listenedCanvas(canvas);
-    listenedCanvas.DrawPoints(point);
+    listenedCanvas.DrawPoint(point);
     auto listener = std::make_shared<MockRSCanvasListener>(canvas);
     listenedCanvas.SetListener(listener);
-    listenedCanvas.DrawPoints(point);
+    listenedCanvas.DrawPoint(point);
 }
 #endif
 } // namespace Rosen
