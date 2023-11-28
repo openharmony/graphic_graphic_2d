@@ -40,7 +40,6 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
     "rs_root_render_node_test.cpp",
   ]
 
-
   cflags = [
     "-Wall",
     "-Werror",

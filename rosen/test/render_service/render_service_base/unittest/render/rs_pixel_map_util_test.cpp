@@ -53,7 +53,10 @@ static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
     canvas->clear(SK_ColorYELLOW);
     SkPaint paint;
     paint.setColor(SK_ColorRED);
-    canvas->drawRect(SkRect::MakeXYWH(50, 50, 25, 25), paint);
+    int width = 50;
+    int height = 50;
+    int half = 25;
+    canvas->drawRect(SkRect::MakeXYWH(width, height, half, half), paint);
     return pixelmap;
 }
 
