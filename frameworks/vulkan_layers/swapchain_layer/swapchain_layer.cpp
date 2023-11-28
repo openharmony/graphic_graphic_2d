@@ -561,8 +561,8 @@ VKAPI_ATTR VkResult CreateImages(int32_t &numImages, Swapchain* swapchain, const
         }
         img.buffer = buffer;
         img.requested = true;
-        imageCreate.extent = VkExtent3D {static_cast<uint32_t>(img.buffer->sfbuffer->GetSurfaceBufferWidth()),
-                                          static_cast<uint32_t>(img.buffer->sfbuffer->GetSurfaceBufferHeight()), 1};
+        imageCreate.extent = VkExtent3D {static_cast<uint32_t>(img.buffer->sfbuffer->GetWidth()),
+                                          static_cast<uint32_t>(img.buffer->sfbuffer->GetHeight()), 1};
         ((VkNativeBufferOHOS*)(imageCreate.pNext))->handle =
             reinterpret_cast<struct OHBufferHandle *>(img.buffer->sfbuffer->GetBufferHandle());
         result = pDisp->CreateImage(device, &imageCreate, nullptr, &img.image);
