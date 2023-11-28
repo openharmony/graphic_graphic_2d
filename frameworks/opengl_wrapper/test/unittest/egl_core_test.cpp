@@ -17,9 +17,9 @@
 
 #include "EGL/egl_core.h"
 
+#include "egl_defs.h"
 #include "egl_wrapper_layer.h"
 #include "egl_wrapper_loader.h"
-#include "egl_defs.h"
 
 using namespace testing;
 using namespace testing::ext;
