@@ -92,11 +92,13 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         node->SetFrameGravity(Gravity::RESIZE);
 
 #if defined(USE_SURFACE_TEXTURE) && defined(ROSEN_ANDROID)
-        RSSurfaceExtConfig config = {
+        if (type == RSSurfaceNodeType::SURFACE_TEXTURE_NODE) {
+            RSSurfaceExtConfig config = {
             .type = RSSurfaceExtType::SURFACE_TEXTURE,
             .additionalData = nullptr,
-        };
-        node->CreateSurfaceExt(config);
+            };
+            node->CreateSurfaceExt(config);
+        }
 #endif
     }
 
