@@ -201,13 +201,13 @@ int32_t HgmCore::SetModeBySettingConfig()
         }
     }
     std::unordered_map<pid_t, uint32_t> rates;
-    rates[GetRealPid()] = rateToSwitch;
+    rates[GetRealPid()] = static_cast<uint32_t>(rateToSwitch);
     if (customFrameRateMode_ == HGM_REFRESHRATE_MODE_AUTO) {
         if (alignRate_ != 0) {
             rates[UNI_APP_PID] = alignRate_;
         }
     } else {
-        rates[UNI_APP_PID] = rateToSwitch;
+        rates[UNI_APP_PID] = static_cast<uint32_t>(rateToSwitch);
     }
     FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRates(rates);
     return EXEC_SUCCESS;

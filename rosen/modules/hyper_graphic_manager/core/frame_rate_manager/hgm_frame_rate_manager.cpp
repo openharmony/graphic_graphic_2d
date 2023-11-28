@@ -65,7 +65,7 @@ void HgmFrameRateManager::UpdateVSyncMode(sptr<VSyncController> rsController, sp
 
 void HgmFrameRateManager::UniProcessData(ScreenId screenId, uint64_t timestamp,
                                          std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
-                                         const FrameRateLinkerMap& appFrameRateLinkers, bool forceUpdateFlag)
+                                         const FrameRateLinkerMap& appFrameRateLinkers, bool idleTimerExpired)
 {
     if (screenId == INVALID_SCREEN_ID) {
         return;
@@ -84,11 +84,13 @@ void HgmFrameRateManager::UniProcessData(ScreenId screenId, uint64_t timestamp,
         }
 
         if (!finalRange.IsValid()) {
-            if (forceUpdateFlag) {
+            if (idleTimerExpired) {
                 finalRange.max_ = RANGE_MAX_REFRESHRATE;
                 finalRange.preferred_ = DEFAULT_PREFERRED;
             } else {
-                StartScreenTimer(screenId, IDLE_TIMER_EXPIRED, nullptr, expiredCallback_);
+                StartScreenTimer(screenId, IDLE_TIMER_EXPIRED, nullptr, [this]() {
+                    forceUpdateCallback_(true, false);
+                });
                 return;
             }
         } else {
@@ -101,6 +103,9 @@ void HgmFrameRateManager::UniProcessData(ScreenId screenId, uint64_t timestamp,
     bool frameRateChanged = CollectFrameRateChange(finalRange, rsFrameRateLinker, appFrameRateLinkers);
     if (!hgmCore.GetLtpoEnabled()) {
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
+        if (currRefreshRate_ != hgmCore.GetPendingScreenRefreshRate()) {
+            forceUpdateCallback_(false, true);
+        }
     } else if (frameRateChanged) {
         HandleFrameRateChangeForLTPO(timestamp);
         std::unordered_map<pid_t, uint32_t> rates;
@@ -150,6 +155,9 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp)
     RSTaskMessage::RSTask task = [this]() {
         controller_->ChangeGeneratorRate(controllerRate_, appChangeData_);
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
+        if (currRefreshRate_ != HgmCore::Instance().GetPendingScreenRefreshRate()) {
+            forceUpdateCallback_(false, true);
+        }
     };
 
     auto expectTime = timestamp + controller_->GetCurrentOffset();

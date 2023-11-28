@@ -2364,7 +2364,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             curDisplayDirtyManager_->UpdateDirty(isDirtyRegionAlignedEnable_);
         }
         if (isOpDropped_ && dirtySurfaceNodeMap_.empty()
-            && !curDisplayDirtyManager_->IsCurrentFrameDirty() && !forceUpdateFlag_) {
+            && !curDisplayDirtyManager_->IsCurrentFrameDirty()) {
             RS_LOGD("DisplayNode skip");
             RS_TRACE_NAME("DisplayNode skip");
             resetRotate_ = CheckIfNeedResetRotate();
@@ -2381,7 +2381,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             if (!RSMainThread::Instance()->WaitHardwareThreadTaskExcute()) {
                 RS_LOGW("RSUniRenderVisitor::ProcessDisplayRenderNode: hardwareThread task has too many to excute");
             }
-            if (needCreateDisplayNodeLayer) {
+            if (needCreateDisplayNodeLayer || forceUpdateFlag_) {
                 processor_->ProcessDisplaySurface(node);
                 processor_->PostProcess(&node);
             }
