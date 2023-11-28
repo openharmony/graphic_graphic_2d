@@ -61,7 +61,7 @@ private:
     void LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<IConsumerSurface>& surface) const;
     void PerformSetActiveMode(OutputPtr output);
     void ExecuteSwitchRefreshRate(uint32_t rate);
-    void AddRefreshRateCount(uint32_t rate);
+    void AddRefreshRateCount();
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     GraphicColorGamut ComputeTargetColorGamut(const std::vector<LayerInfoPtr>& layers);
 #endif
@@ -76,7 +76,7 @@ private:
 
     HgmRefreshRates hgmRefreshRates_;
 
-    std::map<uint32_t, int> refreshRateCounts_;
+    std::map<uint32_t, uint64_t> refreshRateCounts_;
 };
 }
 #endif // RS_HARDWARE_THREAD_H

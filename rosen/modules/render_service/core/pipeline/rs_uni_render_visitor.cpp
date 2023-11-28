@@ -1830,7 +1830,8 @@ void RSUniRenderVisitor::DrawCurrentRefreshRate(uint32_t currentRefreshRate)
     SkPaint paint;
     paint.setColor(SK_ColorGREEN);
     paint.setAntiAlias(true);
-    canvas_->drawTextBlob(textBlob, 100.f, 200.f, paint); //100.f:绘制TextBlob的x标量 200.f:绘制TextBlob的y标量
+    canvas_->drawTextBlob(
+        textBlob, 100.f, 200.f, paint);  // 100.f:Scalar x of drawing TextBlob; 200.f:Scalar y of drawing TextBlob
 }
 
 void RSUniRenderVisitor::DrawAndTraceSingleDirtyRegionTypeForDFX(RSSurfaceRenderNode& node,
@@ -2702,7 +2703,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 
         if (RSSystemParameters::GetShowRefreshRateEnabled()) {
             RS_TRACE_BEGIN("RSUniRender::DrawCurrentRefreshRate");
-            DrawCurrentRefreshRate(currentRefreshRate_);
+            uint32_t currentRefreshRate =
+                OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(node.GetScreenId());
+            DrawCurrentRefreshRate(currentRefreshRate);
             RS_TRACE_END();
         }
 
