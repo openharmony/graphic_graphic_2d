@@ -719,6 +719,7 @@ void RSPropertiesPainter::DrawShadowInner(const RSProperties& properties, RSPain
             shadowAlpha = 0;
         }
     } else {
+        shadowAlpha = spotColor.GetAlpha();
         colorPicked = spotColor;
     }
 

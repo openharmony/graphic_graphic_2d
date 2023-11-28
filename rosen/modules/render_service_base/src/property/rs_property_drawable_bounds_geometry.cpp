@@ -666,6 +666,7 @@ RSColor RSShadowDrawable::GetColorForShadow(RSRenderNode& node, RSPaintFilterCan
             shadowAlpha = 0;
         }
     } else {
+        shadowAlpha = color_.GetAlpha();
         colorPicked = color_;
     }
     return RSColor(colorPicked.GetRed(), colorPicked.GetGreen(), colorPicked.GetBlue(), shadowAlpha);
