@@ -37,8 +37,40 @@ public:
     static Rect _s_invalid_rect_;
 
     Rect() : left_(0), top_(0), right_(0), bottom_(0) {}
-    Rect(int l, int t, int r, int b) : left_(l), top_(t), right_(r), bottom_(b) {}
-    Rect(const RectI& r) : left_(r.left_), top_(r.top_), right_(r.GetRight()), bottom_(r.GetBottom()) {}
+    Rect(int l, int t, int r, int b)
+    {
+        if (r <= l || b <= t) {
+            SetEmpty();
+        } else {
+            left_ = l;
+            top_ = t;
+            right_ = r;
+            bottom_ = b;
+        }
+    }
+
+    Rect(const RectI& r)
+    {
+        if (r.IsEmpty()) {
+            SetEmpty();
+        } else {
+            left_ = r.left_;
+            top_ = r.top_;
+            right_ = r.GetRight();
+            bottom_ = r.GetBottom();
+            if (IsEmpty()) {
+                SetEmpty();
+            }
+        }
+    }
+
+    void SetEmpty()
+    {
+        left_ = 0;
+        top_ = 0;
+        right_ = 0;
+        bottom_ = 0;
+    }
 
     bool IsEmpty() const
     {
