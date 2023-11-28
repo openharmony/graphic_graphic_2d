@@ -38,6 +38,7 @@ RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(NodeId id, const std::weak_
 
 RSCanvasDrawingRenderNode::~RSCanvasDrawingRenderNode()
 {
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifndef USE_ROSEN_DRAWING
     if (preThreadInfo_.second && skSurface_) {
         preThreadInfo_.second(std::move(skSurface_));
@@ -46,6 +47,7 @@ RSCanvasDrawingRenderNode::~RSCanvasDrawingRenderNode()
     if (preThreadInfo_.second && surface_) {
         preThreadInfo_.second(std::move(surface_));
     }
+#endif
 #endif
 }
 
@@ -59,20 +61,22 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
     }
     std::lock_guard<std::mutex> lock(mutex_);
     if (IsNeedResetSurface(width, height)) {
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
         if (preThreadInfo_.second && skSurface_) {
             preThreadInfo_.second(std::move(skSurface_));
         }
+        preThreadInfo_ = curThreadInfo_;
+#endif
         if (!ResetSurface(width, height, canvas)) {
             return;
         }
-        preThreadInfo_ = curThreadInfo_;
-    } else if (preThreadInfo_.first != curThreadInfo_.first) {
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    } else if ((isGpuSurface_) && (preThreadInfo_.first != curThreadInfo_.first)) {
         auto preMatrix = canvas_->getTotalMatrix();
         auto preSurface = skSurface_;
         if (!ResetSurface(width, height, canvas)) {
             return;
         }
-#if (defined NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
         auto image = preSurface->makeImageSnapshot();
         if (!image) {
             return;
@@ -96,17 +100,15 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
             }
         }
         canvas_->drawImage(sharedTexture, 0.f, 0.f);
-#else
-        if (auto image = preSurface->makeImageSnapshot()) {
-            canvas_->drawImage(image, 0.f, 0.f);
-        }
-#endif
         if (preThreadInfo_.second && preSurface) {
             preThreadInfo_.second(std::move(preSurface));
         }
         preThreadInfo_ = curThreadInfo_;
         canvas_->setMatrix(preMatrix);
     }
+#else
+    }
+#endif
 
     RSModifierContext context = { GetMutableRenderProperties(), canvas_.get() };
     ApplyDrawCmdModifier(context, RSModifierType::CONTENT_STYLE);
@@ -206,18 +208,21 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
 {
     SkImageInfo info = SkImageInfo::Make(width, height, kRGBA_8888_SkColorType, kPremul_SkAlphaType);
 
-#if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifdef NEW_SKIA
     auto grContext = canvas.recordingContext();
 #else
     auto grContext = canvas.getGrContext();
 #endif
+    isGpuSurface_ = true;
     if (grContext == nullptr) {
         RS_LOGD("RSCanvasDrawingRenderNode::ResetSurface: GrContext is nullptr");
+        isGpuSurface_ = false;
         skSurface_ = SkSurface::MakeRaster(info);
     } else {
         skSurface_ = SkSurface::MakeRenderTarget(grContext, SkBudgeted::kNo, info);
         if (!skSurface_) {
+            isGpuSurface_ = false;
             skSurface_ = SkSurface::MakeRaster(info);
         }
     }
