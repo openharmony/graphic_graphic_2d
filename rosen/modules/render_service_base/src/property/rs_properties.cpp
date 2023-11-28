@@ -1267,6 +1267,7 @@ void RSProperties::SetShadowColorStrategy(int shadowColorStrategy)
     contentDirty_ = true;
     if (shadowColorStrategy != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE && colorPickerTaskShadow_ == nullptr) {
         CreateColorPickerTaskForShadow();
+        colorPickerTaskShadow_->SetShadowColorStrategy(shadowColorStrategy);
     }
 }
 
