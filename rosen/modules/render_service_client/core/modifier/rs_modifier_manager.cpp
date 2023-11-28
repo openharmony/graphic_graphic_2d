@@ -66,6 +66,11 @@ void RSModifierManager::RemoveAnimation(AnimationId keyId)
     animations_.erase(animationItr);
 }
 
+bool RSModifierManager::HasUIAnimation()
+{
+    return !animations_.empty();
+}
+
 bool RSModifierManager::Animate(int64_t time)
 {
     RS_TRACE_NAME("RunningCustomAnimation num:[" + std::to_string(animations_.size()) + "]");
