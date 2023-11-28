@@ -136,9 +136,7 @@ ohos_static_library("rs_test_common") {
     "//third_party/googletest:gtest_main",
   ]
 
-  public_deps += [
-    "../../../../../modules/2d_graphics:2d_graphics"
-  ]
+  public_deps += [ "../../../../../modules/2d_graphics:2d_graphics" ]
 
   external_deps = [
     "c_utils:utils",
