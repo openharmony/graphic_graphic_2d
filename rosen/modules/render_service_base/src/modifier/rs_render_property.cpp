@@ -38,6 +38,10 @@ void RSRenderPropertyBase::OnChange() const
 
 bool RSRenderPropertyBase::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val)
 {
+    if (val == nullptr) {
+        ROSEN_LOGE("RSRenderPropertyBase::Marshalling: the value of the property is a null pointer!");
+        return false;
+    }
     RSRenderPropertyType type = val->GetPropertyType();
     if (!(parcel.WriteInt16(static_cast<int16_t>(type)))) {
         return false;
