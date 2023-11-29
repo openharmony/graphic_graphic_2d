@@ -149,7 +149,7 @@ bool RSCanvasRenderNodeFuzzTest(const uint8_t* data, size_t size)
     SkCanvas tmpCanvas;
 #else
     std::shared_ptr<Drawing::DrawCmdList> drawCmds = std::make_shared<Drawing::DrawCmdList>(w, h);
-    SkCanvas tmpCanvas;
+    Drawing::Canvas tmpCanvas;
 #endif
     float alpha = GetData<float>();
     RSPaintFilterCanvas canvas(&tmpCanvas, alpha);

@@ -257,7 +257,7 @@ HWTEST_F(RSCPUOverdrawCanvasListenerTest, NoIntersect, Function | SmallTest | Le
     PART("CaseDescription")
     {
         std::unique_ptr<MockDrawingCanvas> mockDrawingCanvas = nullptr;
-        STEP("1. new mock MockSkCanvas")
+        STEP("1. new mock MockDrawingCanvas")
         {
             mockDrawingCanvas = std::make_unique<MockDrawingCanvas>();
         }
@@ -275,9 +275,9 @@ HWTEST_F(RSCPUOverdrawCanvasListenerTest, NoIntersect, Function | SmallTest | Le
 
         STEP("4. call RSCPUOverdrawCanvasListener's onDrawRect 3 times")
         {
-            rsOverdrawCanvasListener->onDrawRect(SkRect::MakeXYWH(0, 0, 100, 100), {});
-            rsOverdrawCanvasListener->onDrawRect(SkRect::MakeXYWH(200, 200, 300, 300), {});
-            rsOverdrawCanvasListener->onDrawRect(SkRect::MakeXYWH(400, 400, 500, 500), {});
+            rsOverdrawCanvasListener->onDrawRect(Drawing::Rect(0, 0, 100, 100));
+            rsOverdrawCanvasListener->onDrawRect(Drawing::Rect(200, 200, 300, 300));
+            rsOverdrawCanvasListener->onDrawRect(Drawing::Rect(400, 400, 500, 500));
             rsOverdrawCanvasListener->Draw();
         }
     }

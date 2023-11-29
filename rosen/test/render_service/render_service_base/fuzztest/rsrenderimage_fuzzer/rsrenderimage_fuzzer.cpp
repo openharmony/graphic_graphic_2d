@@ -343,7 +343,7 @@ bool RSPathFuzzTest(const uint8_t* data, size_t size)
 #ifndef USE_ROSEN_DRAWING
     SkPath skPath = SkPath();
 #else
-    Drawing::Path path = Drawing::Path();
+    Drawing::Path drPath = Drawing::Path();
 #endif
     // std::string path = GetStringFromData(STR_LEN);
     float distance = GetData<float>();
@@ -357,7 +357,7 @@ bool RSPathFuzzTest(const uint8_t* data, size_t size)
 #ifndef USE_ROSEN_DRAWING
     rsPath1->SetSkiaPath(skPath);
 #else
-    rsPath1->SetDrawingPath(skPath);
+    rsPath1->SetDrawingPath(drPath);
 #endif
 
     return true;
