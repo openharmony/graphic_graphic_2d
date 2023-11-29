@@ -91,7 +91,7 @@ public:
     }
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> GetMainHandler()
     {
-        return mainhandler_;
+        return mainHandler_;
     }
 #endif
     void CalculateColorAverage(RSColor& ColorCur);
