@@ -40,6 +40,7 @@ constexpr uint32_t POINTER_WINDOW_INIT_SIZE = 64;
 std::shared_ptr<RSSurfaceNode> surfaceNode;
 uint64_t screenId = 0;
 
+namespace {
 void Resize(std::shared_ptr<RSSurfaceNode> surfaceNode, int32_t width, int32_t height)
 {
     width = (width / POINTER_WINDOW_INIT_SIZE + 1) * POINTER_WINDOW_INIT_SIZE;
@@ -179,6 +180,7 @@ void PrintCallback()
 {
     std::cout << "OnRemoteDied Callback" << std::endl;
     isRemote = false;
+}
 }
 
 int main()
