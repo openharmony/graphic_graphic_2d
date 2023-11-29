@@ -17,17 +17,17 @@
 
 #include "platform/common/rs_system_properties.h"
 #include "recording/cmd_list_helper.h"
+#include "recording/color_filter_cmd_list.h"
+#include "recording/color_space_cmd_list.h"
 #include "recording/draw_cmd_list.h"
+#include "recording/image_filter_cmd_list.h"
+#include "recording/mask_filter_cmd_list.h"
 #include "recording/mem_allocator.h"
 #include "recording/op_item.h"
 #include "recording/path_cmd_list.h"
-#include "recording/color_filter_cmd_list.h"
-#include "recording/color_space_cmd_list.h"
-#include "recording/image_filter_cmd_list.h"
-#include "recording/mask_filter_cmd_list.h"
 #include "recording/path_effect_cmd_list.h"
-#include "recording/shader_effect_cmd_list.h"
 #include "recording/region_cmd_list.h"
+#include "recording/shader_effect_cmd_list.h"
 
 #include "draw/brush.h"
 #include "draw/path.h"
@@ -214,11 +214,12 @@ std::unordered_map<uint32_t, UnmarshallingPlayer::UnmarshallingFunc> Unmarshalli
     { DrawOpItem::PIXELMAP_RECT_OPITEM,     DrawPixelMapRectOpItem::Unmarshalling},
     { DrawOpItem::REGION_OPITEM,            DrawRegionOpItem::Unmarshalling },
     { DrawOpItem::PATCH_OPITEM,             DrawPatchOpItem::Unmarshalling },
-    { DrawOpItem::EDGEAAQUAD_OPITEM, DrawEdgeAAQuadOpItem::Unmarshalling },
+    { DrawOpItem::EDGEAAQUAD_OPITEM,        DrawEdgeAAQuadOpItem::Unmarshalling },
     { DrawOpItem::VERTICES_OPITEM,          DrawVerticesOpItem::Unmarshalling },
 #ifdef ROSEN_OHOS
-    { DrawOpItem::SURFACEBUFFER_OPITEM,          DrawSurfaceBufferOpItem::Unmarshalling },
+    { DrawOpItem::SURFACEBUFFER_OPITEM,     DrawSurfaceBufferOpItem::Unmarshalling },
 #endif
+    { DrawOpItem::DRAW_FUNC_OPITEM,         DrawFuncOpItem::Unmarshalling },
 };
 
 UnmarshallingPlayer::UnmarshallingPlayer(const CmdList& cmdList) : cmdList_(cmdList) {}
@@ -1562,7 +1563,7 @@ DrawPixelMapRectOpItem::DrawPixelMapRectOpItem(
     const CmdList& cmdList, DrawPixelMapRectOpItem::ConstructorHandle* handle)
     : DrawWithPaintOpItem(cmdList, handle->paintHandle, PIXELMAP_RECT_OPITEM), sampling_(handle->sampling)
 {
-    objectHandle_ = CmdListHelper::GetImageBaseOjFromCmdList(cmdList, handle->objectHandle);
+    objectHandle_ = CmdListHelper::GetImageBaseObjFromCmdList(cmdList, handle->objectHandle);
 }
 
 std::shared_ptr<DrawOpItem> DrawPixelMapRectOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
@@ -1596,6 +1597,29 @@ void ImageSnapshotOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->AttachPaint(paint_);
     canvas->DrawImageRect(*image_, src_, dst_, sampling_, SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
 }
+
+/* DrawFuncOpItem */
+DrawFuncOpItem::DrawFuncOpItem(DrawFuncOpItem::ConstructorHandle* handle)
+    : DrawOpItem(DRAW_FUNC_OPITEM), func_(handle->func_)
+{}
+
+std::shared_ptr<DrawOpItem> DrawFuncOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    auto constructorHandle = static_cast<DrawFuncOpItem::ConstructorHandle*>(handle);
+    if (constructorHandle == nullptr || constructorHandle->func_ == nullptr) {
+        return nullptr;
+    }
+    return std::make_shared<DrawFuncOpItem>(constructorHandle);
+}
+
+void DrawFuncOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (func_ == nullptr) {
+        return;
+    }
+    func_(canvas, rect);
+}
+
 #ifdef ROSEN_OHOS
 DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(const CmdList& cmdList,
     DrawSurfaceBufferOpItem::ConstructorHandle* handle)

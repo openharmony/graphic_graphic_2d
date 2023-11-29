@@ -1133,7 +1133,7 @@ float RSProperties::GetGreyCoef2() const
     return greyCoef2_;
 }
 
-bool RSProperties::IsGreyAdjustmenValid() const
+bool RSProperties::IsGreyAdjustmentValid() const
 {
     return ROSEN_GNE(greyCoef1_, 0.0) && ROSEN_LE(greyCoef1_, 127.0) &&   // 127.0 number
         ROSEN_GNE(greyCoef2_, 0.0) && ROSEN_LE(greyCoef2_, 127.0);        // 127.0 number
@@ -1752,7 +1752,7 @@ void RSProperties::SetLightIntensity(float lightIntensity)
     if (ROSEN_EQ(lightIntensity, INVALID_INTENSITY)) { // skip when resetFunc call
         return;
     }
-    auto preIntensity = lightSourcePtr_->GetPreLigthIntensity();
+    auto preIntensity = lightSourcePtr_->GetPreLightIntensity();
     auto renderNode = backref_.lock();
     bool preIntensityIsZero = ROSEN_EQ(preIntensity, 0.f);
     bool curIntensityIsZero = ROSEN_EQ(lightIntensity, 0.f);
@@ -2764,7 +2764,7 @@ void RSProperties::OnApplyModifiers()
         }
         IfLinearGradientBlurInvalid();
         needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
-                        IsDynamicLightUpValid() || IsGreyAdjustmenValid() || linearGradientBlurPara_ != nullptr ||
+                        IsDynamicLightUpValid() || IsGreyAdjustmentValid() || linearGradientBlurPara_ != nullptr ||
                         GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
         CreateFilterCacheManagerIfNeed();
@@ -2842,5 +2842,14 @@ const std::shared_ptr<RSColorPickerCacheTask>& RSProperties::GetColorPickerCache
     return colorPickerTaskShadow_;
 }
 
+bool RSProperties::GetHaveEffectRegion() const
+{
+    return haveEffectRegion_;
+}
+
+void RSProperties::SetHaveEffectRegion(bool haveEffectRegion)
+{
+    haveEffectRegion_ = haveEffectRegion;
+}
 } // namespace Rosen
 } // namespace OHOS

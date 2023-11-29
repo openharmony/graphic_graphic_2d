@@ -56,10 +56,7 @@ protected:
     void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground) const override;
 
 private:
-    bool needFilter_ = false;
     void UpdateNeedFilter(bool needFilter);
-    
-    friend class RSEffectDataGenerateDrawable;
 };
 } // namespace Rosen
 } // namespace OHOS

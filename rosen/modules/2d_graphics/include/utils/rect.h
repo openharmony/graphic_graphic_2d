@@ -63,7 +63,7 @@ public:
 
     inline void Offset(int dx, int dy);
     inline void MakeOutset(int dx, int dy);
-    inline bool Contains(const RectI& other);
+    inline bool Contains(const RectI& other) const;
     /*
      * @brief        If RectI intersects other, sets RectI to intersection.
      * @param other  limit of result.
@@ -205,7 +205,7 @@ inline bool RectI::Join(const RectI& other)
     return true;
 }
 
-inline bool RectI::Contains(const RectI& other)
+inline bool RectI::Contains(const RectI& other) const
 {
     return !other.IsEmpty() && !this->IsEmpty() &&
         left_ <= other.left_ && top_ <= other.top_ &&

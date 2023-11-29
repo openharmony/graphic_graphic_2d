@@ -45,9 +45,9 @@ public:
         const SamplingOptions& sampling, bool isBackground = false) = 0;
 };
 
-class DRAWING_API ExtendImageBaseOj {
+class DRAWING_API ExtendImageBaseObj {
 public:
-    virtual ~ExtendImageBaseOj() = default;
+    virtual ~ExtendImageBaseObj() = default;
     virtual void Playback(Canvas& canvas, const Rect& rect,
         const SamplingOptions& sampling) = 0;
 };
@@ -171,24 +171,24 @@ public:
     uint32_t SetupObject(const std::vector<std::shared_ptr<ExtendImageObject>>& objectList);
     
      /*
-     * @brief  return imageBaseOj index, negative is error.
+     * @brief  return imageBaseObj index, negative is error.
      */
-    uint32_t AddImageBaseOj(const std::shared_ptr<ExtendImageBaseOj>& object);
+    uint32_t AddImageBaseObj(const std::shared_ptr<ExtendImageBaseObj>& object);
 
     /*
-     * @brief  get imageBaseOj by index.
+     * @brief  get imageBaseObj by index.
      */
-    std::shared_ptr<ExtendImageBaseOj> GetImageBaseOj(uint32_t id);
+    std::shared_ptr<ExtendImageBaseObj> GetImageBaseObj(uint32_t id);
 
     /*
-     * @brief  return imageBaseOj size, 0 is no imageBaseOj.
+     * @brief  return imageBaseObj size, 0 is no imageBaseObj.
      */
-    uint32_t GetAllBaseOj(std::vector<std::shared_ptr<ExtendImageBaseOj>>& objectList);
+    uint32_t GetAllBaseObj(std::vector<std::shared_ptr<ExtendImageBaseObj>>& objectList);
 
     /*
-     * @brief  return real setup imageBaseOj size.
+     * @brief  return real setup imageBaseObj size.
      */
-    uint32_t SetupBaseOj(const std::vector<std::shared_ptr<ExtendImageBaseOj>>& objectList);
+    uint32_t SetupBaseObj(const std::vector<std::shared_ptr<ExtendImageBaseObj>>& objectList);
 
     /*
      * @brief  copy object vec to another CmdList.
@@ -243,8 +243,8 @@ protected:
     std::vector<std::shared_ptr<ExtendImageObject>> imageObjectVec_;
     std::mutex imageObjectMutex_;
 #endif
-    std::vector<std::shared_ptr<ExtendImageBaseOj>> imageBaseOjVec_;
-    std::mutex imageBaseOjMutex_;
+    std::vector<std::shared_ptr<ExtendImageBaseObj>> imageBaseObjVec_;
+    std::mutex imageBaseObjMutex_;
 #ifdef ROSEN_OHOS
     std::vector<sptr<SurfaceBuffer>> surfaceBufferVec_;
     std::mutex surfaceBufferMutex_;

@@ -66,7 +66,7 @@ void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
     // 1. No child with useEffect(true) (needFilter_ == false)
     // 2. Background filter is null
     // 3. Canvas is offscreen
-    if (!needFilter_ || properties.GetBackgroundFilter() == nullptr ||
+    if (!properties.GetHaveEffectRegion() || properties.GetBackgroundFilter() == nullptr ||
         !RSSystemProperties::GetEffectMergeEnabled() ||
         canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::OFFSCREEN) {
         canvas.SetEffectData(nullptr);
@@ -84,7 +84,7 @@ void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
 
 RectI RSEffectRenderNode::GetFilterRect() const
 {
-    if (!needFilter_) {
+    if (!GetRenderProperties().GetHaveEffectRegion()) {
         return {};
     }
     return RSRenderNode::GetFilterRect();
@@ -133,12 +133,13 @@ void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::RectI>& ef
 
 void RSEffectRenderNode::UpdateNeedFilter(bool needFilter)
 {
+    auto& properties = GetMutableRenderProperties();
     // clear cache if new region is null or outside current region
     if (auto& manager = GetRenderProperties().GetFilterCacheManager(false);
         manager && manager->IsCacheValid() && needFilter == false) {
         manager->UpdateCacheStateWithFilterRegion();
     }
-    needFilter_ = needFilter;
+    properties.SetHaveEffectRegion(needFilter);
 }
 
 void RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion(

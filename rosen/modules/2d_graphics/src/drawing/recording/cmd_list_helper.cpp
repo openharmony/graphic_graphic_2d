@@ -195,16 +195,17 @@ std::shared_ptr<ExtendImageObject> CmdListHelper::GetImageObjectFromCmdList(
 #endif
 }
 
-OpDataHandle CmdListHelper::AddImageBaseOjToCmdList(CmdList& cmdList, const std::shared_ptr<ExtendImageBaseOj>& object)
+OpDataHandle CmdListHelper::AddImageBaseObjToCmdList(
+    CmdList& cmdList, const std::shared_ptr<ExtendImageBaseObj>& object)
 {
-    auto index = cmdList.AddImageBaseOj(object);
+    auto index = cmdList.AddImageBaseObj(object);
     return { index };
 }
 
-std::shared_ptr<ExtendImageBaseOj> CmdListHelper::GetImageBaseOjFromCmdList(
+std::shared_ptr<ExtendImageBaseObj> CmdListHelper::GetImageBaseObjFromCmdList(
     const CmdList& cmdList, const OpDataHandle& objectHandle)
 {
-    return (const_cast<CmdList&>(cmdList)).GetImageBaseOj(objectHandle.offset);
+    return (const_cast<CmdList&>(cmdList)).GetImageBaseObj(objectHandle.offset);
 }
 
 OpDataHandle CmdListHelper::AddPictureToCmdList(CmdList& cmdList, const Picture& picture)

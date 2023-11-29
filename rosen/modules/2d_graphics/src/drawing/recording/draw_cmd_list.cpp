@@ -433,7 +433,7 @@ void DrawCmdList::AddOpToCmdList(std::shared_ptr<DrawCmdList> cmdList)
 #ifdef SUPPORT_OHOS_PIXMAP
     imageObjectVec_.swap(cmdList->imageObjectVec_);
 #endif
-    imageBaseOjVec_.swap(cmdList->imageBaseOjVec_);
+    imageBaseObjVec_.swap(cmdList->imageBaseObjVec_);
     size_t size = opAllocator_.GetSize() - offset;
     auto imageData = GetAllImageData();
     auto bitmapData = GetAllBitmapData();

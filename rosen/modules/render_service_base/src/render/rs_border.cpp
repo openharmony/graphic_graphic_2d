@@ -376,10 +376,11 @@ void RSBorder::PaintFourLine(Drawing::Canvas& canvas, Drawing::Pen& pen, RectF r
 }
 
 #ifndef USE_ROSEN_DRAWING
-void RSBorder::PaintTopPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect, SkPoint& innerRectCenter) const
+void RSBorder::PaintTopPath(
+    SkCanvas& canvas, SkPaint& paint, const SkRRect& rrect, const SkPoint& innerRectCenter) const
 #else
-void RSBorder::PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect,
-    Drawing::Point& innerRectCenter) const
+void RSBorder::PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
+    const Drawing::Point& innerRectCenter) const
 #endif
 {
 #ifndef USE_ROSEN_DRAWING
@@ -502,15 +503,16 @@ void RSBorder::PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing:
 }
 
 #ifndef USE_ROSEN_DRAWING
-void RSBorder::PaintRightPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect, SkPoint& innerRectCenter) const
+void RSBorder::PaintRightPath(
+    SkCanvas& canvas, SkPaint& paint, const SkRRect& rrect, const SkPoint& innerRectCenter) const
 {
     float offsetX = rrect.rect().x();
     float offsetY = rrect.rect().y();
     float width = rrect.rect().width();
     float height = rrect.rect().height();
 #else
-void RSBorder::PaintRightPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect,
-    Drawing::Point& innerRectCenter) const
+void RSBorder::PaintRightPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
+    const Drawing::Point& innerRectCenter) const
 {
     float offsetX = rrect.GetRect().GetLeft();
     float offsetY = rrect.GetRect().GetTop();
@@ -631,15 +633,16 @@ void RSBorder::PaintRightPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawin
 }
 
 #ifndef USE_ROSEN_DRAWING
-void RSBorder::PaintBottomPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect, SkPoint& innerRectCenter) const
+void RSBorder::PaintBottomPath(
+    SkCanvas& canvas, SkPaint& paint, const SkRRect& rrect, const SkPoint& innerRectCenter) const
 {
     float offsetX = rrect.rect().x();
     float offsetY = rrect.rect().y();
     float width = rrect.rect().width();
     float height = rrect.rect().height();
 #else
-void RSBorder::PaintBottomPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect,
-    Drawing::Point& innerRectCenter) const
+void RSBorder::PaintBottomPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
+    const Drawing::Point& innerRectCenter) const
 {
     float offsetX = rrect.GetRect().GetLeft();
     float offsetY = rrect.GetRect().GetTop();
@@ -764,14 +767,15 @@ void RSBorder::PaintBottomPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawi
 }
 
 #ifndef USE_ROSEN_DRAWING
-void RSBorder::PaintLeftPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect, SkPoint& innerRectCenter) const
+void RSBorder::PaintLeftPath(
+    SkCanvas& canvas, SkPaint& paint, const SkRRect& rrect, const SkPoint& innerRectCenter) const
 {
     float offsetX = rrect.rect().x();
     float offsetY = rrect.rect().y();
     float height = rrect.rect().height();
 #else
-void RSBorder::PaintLeftPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect,
-    Drawing::Point& innerRectCenter) const
+void RSBorder::PaintLeftPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
+    const Drawing::Point& innerRectCenter) const
 {
     float offsetX = rrect.GetRect().GetLeft();
     float offsetY = rrect.GetRect().GetTop();

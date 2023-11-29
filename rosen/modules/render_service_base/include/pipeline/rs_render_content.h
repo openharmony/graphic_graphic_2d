@@ -23,9 +23,12 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSB_EXPORT RSRenderContent {
+
+class RSB_EXPORT RSRenderContent : public std::enable_shared_from_this<RSRenderContent> {
 public:
     RSRenderContent();
+    ~RSRenderContent() = default;
+
     RSRenderContent(const RSRenderContent&) = delete;
     RSRenderContent(const RSRenderContent&&) = delete;
     RSRenderContent& operator=(const RSRenderContent&) = delete;
@@ -33,16 +36,21 @@ public:
 
     RSProperties& GetMutableRenderProperties();
     const RSProperties& GetRenderProperties() const;
+    using DrawCmdContainer = std::map<RSModifierType, std::list<std::shared_ptr<RSRenderModifier>>>;
+    RSRenderNodeType GetType() const;
 
-    const RSPropertyDrawable::DrawableVec& GetPropertyDrawableVec() const;
-    void IterateOnDrawableRange(Slot::RSPropertyDrawableSlot begin, Slot::RSPropertyDrawableSlot end,
-        RSPaintFilterCanvas& canvas, RSRenderNode& node);
+    void DrawPropertyDrawable(RSPropertyDrawableSlot slot, RSPaintFilterCanvas& canvas) const;
+    void DrawPropertyDrawableRange(
+        RSPropertyDrawableSlot begin, RSPropertyDrawableSlot end, RSPaintFilterCanvas& canvas) const;
 
 private:
     RSProperties renderProperties_;
     RSPropertyDrawable::DrawableVec propertyDrawablesVec_;
+    DrawCmdContainer drawCmdModifiers_;
+    RSRenderNodeType type_ = RSRenderNodeType::UNKNOW;
 
     friend class RSRenderNode;
+    friend class RSModifierDrawable;
 };
 } // namespace Rosen
 } // namespace OHOS

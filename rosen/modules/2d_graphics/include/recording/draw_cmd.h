@@ -19,6 +19,7 @@
 #include <unordered_map>
 #include <functional>
 #include <stack>
+#include <utility>
 
 #include "draw/canvas.h"
 #include "draw/paint.h"
@@ -105,6 +106,7 @@ public:
         VERTICES_OPITEM,
         IMAGE_SNAPSHOT_OPITEM,
         SURFACEBUFFER_OPITEM,
+        DRAW_FUNC_OPITEM,
     };
 
     virtual void Playback(Canvas* canvas, const Rect* rect) = 0;
@@ -1242,8 +1244,28 @@ public:
     void Playback(Canvas* canvas, const Rect* rect) override;
 private:
     SamplingOptions sampling_;
-    std::shared_ptr<ExtendImageBaseOj> objectHandle_;
+    std::shared_ptr<ExtendImageBaseObj> objectHandle_;
 };
+
+class DrawFuncOpItem : public DrawOpItem {
+public:
+    using DrawFunc = std::function<void(Canvas* canvas, const Rect* rect)>;
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle(DrawFunc func)
+            : OpItem(DrawOpItem::DRAW_FUNC_OPITEM), func_(std::move(func))
+        {}
+        ~ConstructorHandle() override = default;
+        DrawFunc func_;
+    };
+    DrawFuncOpItem(ConstructorHandle* handle);
+    ~DrawFuncOpItem() override = default;
+
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const CmdList& cmdList, void* handle);
+    void Playback(Canvas* canvas, const Rect* rect) override;
+private:
+    DrawFunc func_;
+};
+
 #ifdef ROSEN_OHOS
 class DrawSurfaceBufferOpItem : public DrawWithPaintOpItem {
 public:

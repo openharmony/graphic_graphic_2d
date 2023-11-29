@@ -281,38 +281,38 @@ uint32_t CmdList::SetupObject(const std::vector<std::shared_ptr<ExtendImageObjec
 #endif
 }
 
-uint32_t CmdList::AddImageBaseOj(const std::shared_ptr<ExtendImageBaseOj>& object)
+uint32_t CmdList::AddImageBaseObj(const std::shared_ptr<ExtendImageBaseObj>& object)
 {
-    std::lock_guard<std::mutex> lock(imageBaseOjMutex_);
-    imageBaseOjVec_.emplace_back(object);
-    return static_cast<uint32_t>(imageBaseOjVec_.size()) - 1;
+    std::lock_guard<std::mutex> lock(imageBaseObjMutex_);
+    imageBaseObjVec_.emplace_back(object);
+    return static_cast<uint32_t>(imageBaseObjVec_.size()) - 1;
 }
 
-std::shared_ptr<ExtendImageBaseOj> CmdList::GetImageBaseOj(uint32_t id)
+std::shared_ptr<ExtendImageBaseObj> CmdList::GetImageBaseObj(uint32_t id)
 {
-    std::lock_guard<std::mutex> lock(imageBaseOjMutex_);
-    if (id >= imageBaseOjVec_.size()) {
+    std::lock_guard<std::mutex> lock(imageBaseObjMutex_);
+    if (id >= imageBaseObjVec_.size()) {
         return nullptr;
     }
-    return imageBaseOjVec_[id];
+    return imageBaseObjVec_[id];
 }
 
-uint32_t CmdList::GetAllBaseOj(std::vector<std::shared_ptr<ExtendImageBaseOj>>& objectList)
+uint32_t CmdList::GetAllBaseObj(std::vector<std::shared_ptr<ExtendImageBaseObj>>& objectList)
 {
-    std::lock_guard<std::mutex> lock(imageBaseOjMutex_);
-    for (const auto &object : imageBaseOjVec_) {
+    std::lock_guard<std::mutex> lock(imageBaseObjMutex_);
+    for (const auto &object : imageBaseObjVec_) {
         objectList.emplace_back(object);
     }
     return objectList.size();
 }
 
-uint32_t CmdList::SetupBaseOj(const std::vector<std::shared_ptr<ExtendImageBaseOj>>& objectList)
+uint32_t CmdList::SetupBaseObj(const std::vector<std::shared_ptr<ExtendImageBaseObj>>& objectList)
 {
-    std::lock_guard<std::mutex> lock(imageBaseOjMutex_);
+    std::lock_guard<std::mutex> lock(imageBaseObjMutex_);
     for (const auto &object : objectList) {
-        imageBaseOjVec_.emplace_back(object);
+        imageBaseObjVec_.emplace_back(object);
     }
-    return imageBaseOjVec_.size();
+    return imageBaseObjVec_.size();
 }
 
 void CmdList::CopyObjectTo(CmdList& other) const
@@ -320,7 +320,7 @@ void CmdList::CopyObjectTo(CmdList& other) const
 #ifdef SUPPORT_OHOS_PIXMAP
     other.imageObjectVec_ = imageObjectVec_;
 #endif
-    other.imageBaseOjVec_ = imageBaseOjVec_;
+    other.imageBaseObjVec_ = imageBaseObjVec_;
 }
 
 uint32_t CmdList::GetOpCnt() const

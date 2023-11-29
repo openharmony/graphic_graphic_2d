@@ -169,7 +169,7 @@ public:
     virtual Rect GetLocalClipBounds() const;
 
     /*
-     * @brief  Gets bounds of clip in device corrdinates.
+     * @brief  Gets bounds of clip in device coordinates.
      */
     virtual RectI GetDeviceClipBounds() const;
 
