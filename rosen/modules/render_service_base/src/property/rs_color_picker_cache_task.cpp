@@ -343,11 +343,13 @@ void RSColorPickerCacheTask::ReleaseColorPicker()
     ROSEN_LOGD("RSColorPickerCacheTask::ReleaseColorPicker");
     SetStatus(CacheProcessStatus::WAITING);
     Reset();
-    if (GetHandler() != nullptr) {
-        auto task = this;
-        task->GetHandler()->PostTask(
-            [task]() { task->ResetGrContext(); }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
-    }
+    #ifdef IS_OHOS
+        if (GetHandler() != nullptr) {
+            auto task = this;
+            task->GetHandler()->PostTask(
+                [task]() { task->ResetGrContext(); }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        }
+    #endif
     // release finished
     waitRelease_ = false;
 }
