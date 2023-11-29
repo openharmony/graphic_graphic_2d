@@ -62,6 +62,8 @@ bool RSColorPickerCacheTask::InitSurface(GrRecordingContext* grContext)
 bool RSColorPickerCacheTask::InitTask(const sk_sp<SkImage> imageSnapshot)
 {
     RS_TRACE_NAME("RSColorPickerCacheTask InitTask");
+    auto runner = AppExecFwk::EventRunner::Current();
+    mainHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
     if (imageSnapshot == nullptr) {
         ROSEN_LOGE("RSColorPickerCacheTask imageSnapshot is null");
         return false;
@@ -314,6 +316,11 @@ void RSColorPickerCacheTask::SetShadowColorStrategy(int shadowColorStrategy)
     shadowColorStrategy_ = shadowColorStrategy;
 }
 
+void RSColorPickerCacheTask::SetWaitRelease(bool waitRelease)
+{
+    waitRelease_ = waitRelease;
+}
+
 bool RSColorPickerCacheTask::GetDeviceSize(int& deviceWidth, int& deviceHeight) const
 {
     if (deviceWidth_.has_value() && deviceHeight_.has_value()) {
@@ -324,6 +331,23 @@ bool RSColorPickerCacheTask::GetDeviceSize(int& deviceWidth, int& deviceHeight) 
     return false;
 }
 
+bool SColorPickerCacheTask::GetWaitRelease() const
+{
+    return waitRelease_;
+}
+
+void RSColorPickerCacheTask::ReleaseColorPicker()
+{
+    SetStatus(CacheProcessStatus::WAITING);
+    Reset();
+    if (GetHandler() != nullptr) {
+        auto task = this;
+        task->GetHandler()->PostTask(
+            [task]() { task->ResetGrContext(); }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
+    // release finished
+    waitRelease_ = false;
+}
 
 } // namespace Rosen
 } // namespace OHOS

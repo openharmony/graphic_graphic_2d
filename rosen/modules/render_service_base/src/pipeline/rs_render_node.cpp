@@ -2491,6 +2491,15 @@ void RSRenderNode::SetIsUsedBySubThread(bool isUsedBySubThread)
     isUsedBySubThread_.store(isUsedBySubThread);
 }
 
+bool RSRenderNode::GetLastIsNeedAssignToSubThread() const
+{
+    return lastIsNeedAssignToSubThread_;
+}
+void RSRenderNode::SetLastIsNeedAssignToSubThread(bool lastIsNeedAssignToSubThread)
+{
+    lastIsNeedAssignToSubThread_ = lastIsNeedAssignToSubThread;
+}
+
 void RSRenderNode::IterateOnDrawableRange(
     RSPropertyDrawableSlot begin, RSPropertyDrawableSlot end, RSPaintFilterCanvas& canvas)
 {

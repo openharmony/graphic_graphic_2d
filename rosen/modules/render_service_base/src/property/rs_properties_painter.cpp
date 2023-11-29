@@ -679,6 +679,12 @@ bool RSPropertiesPainter::PickColor(const RSProperties& properties, RSPaintFilte
         return false;
     }
 
+    // when color picker task resource is waitting for release, use color picked last frame
+    if (colorPickerTask->GetWaitRelease()) {
+        colorPickerTask->GetColorAverage(colorPicked);
+        return;
+    } 
+
     if (RSColorPickerCacheTask::PostPartialColorPickerTask(colorPickerTask, shadowRegionImage)
         && colorPickerTask->GetColor(colorPicked)) {
         colorPickerTask->GetColorAverage(colorPicked);
@@ -694,8 +700,8 @@ void RSPropertiesPainter::DrawShadowInner(const RSProperties& properties, RSPain
 {
     skPath.offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
     Color spotColor = properties.GetShadowColor();
-    // color shadow alpha deault is 255, if need to be changed, should add a arkui interface
-    auto shadowAlpha = UINT8_MAX;
+    // shadow alpha follow setting
+    auto shadowAlpha = spotColor.GetAlpha();
     auto deviceClipBounds = canvas.getDeviceClipBounds();
 
     // The translation of the matrix is rounded to improve the hit ratio of skia blurfilter cache,

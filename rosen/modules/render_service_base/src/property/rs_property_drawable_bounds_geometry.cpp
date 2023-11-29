@@ -652,8 +652,8 @@ RSColor RSShadowDrawable::GetColorForShadow(RSRenderNode& node, RSPaintFilterCan
 {
     RSColor colorPicked;
     const RSProperties& properties = node.GetRenderProperties();
-    // color shadow alpha deault is 255, if need to be changed, should add a arkui interface
-    auto shadowAlpha = UINT8_MAX;
+    // shadow alpha follow setting
+    auto shadowAlpha = color_.GetAlpha();
     auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
     if (colorPickerTask != nullptr &&
         properties.GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
