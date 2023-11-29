@@ -62,8 +62,10 @@ bool RSColorPickerCacheTask::InitSurface(GrRecordingContext* grContext)
 bool RSColorPickerCacheTask::InitTask(const sk_sp<SkImage> imageSnapshot)
 {
     RS_TRACE_NAME("RSColorPickerCacheTask InitTask");
-    auto runner = AppExecFwk::EventRunner::Current();
-    mainHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+    #ifdef IS_OHOS
+        auto runner = AppExecFwk::EventRunner::Current();
+        mainHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+    #endif
     if (imageSnapshot == nullptr) {
         ROSEN_LOGE("RSColorPickerCacheTask imageSnapshot is null");
         return false;
@@ -338,6 +340,7 @@ bool RSColorPickerCacheTask::GetWaitRelease() const
 
 void RSColorPickerCacheTask::ReleaseColorPicker()
 {
+    ROSEN_LOGD("RSColorPickerCacheTask::ReleaseColorPicker");
     SetStatus(CacheProcessStatus::WAITING);
     Reset();
     if (GetHandler() != nullptr) {
