@@ -2738,16 +2738,15 @@ void RSMainThread::GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize)
 void RSMainThread::SubscribeAppState()
 {
     PostTask([this]() {
-        int32_t subscribeFailCount = 0;
         rsAppStateListener_ = std::make_shared<RSAppStateListener>();
         if (Memory::MemMgrClient::GetInstance().SubscribeAppState(*rsAppStateListener_) != -1) {
             RS_LOGD("Subscribe MemMgr Success");
-            subscribeFailCount = 0;
+            subscribeFailCount_ = 0;
             return;
         } else {
             RS_LOGE("Subscribe Failed, try again");
-            subscribeFailCount++;
-            if (subscribeFailCount < 10) { // The maximum number of failures is 10
+            subscribeFailCount_++;
+            if (subscribeFailCount_ < 10) { // The maximum number of failures is 10
                 SubscribeAppState();
             } else {
                 RS_LOGE("Subscribe Failed 10 times, exiting");
