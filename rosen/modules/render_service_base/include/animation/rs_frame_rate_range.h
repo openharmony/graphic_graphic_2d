@@ -75,13 +75,13 @@ public:
         }
     }
 
-    bool operator==(const FrameRateRange& other)
+    bool operator==(const FrameRateRange& other) const
     {
         return this->min_ == other.min_ && this->max_ == other.max_ &&
             this->preferred_ == other.preferred_;
     }
 
-    bool operator!=(const FrameRateRange& other)
+    bool operator!=(const FrameRateRange& other) const
     {
         return this->min_ != other.min_ || this->max_ != other.max_ ||
             this->preferred_ != other.preferred_;
