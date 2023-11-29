@@ -340,7 +340,6 @@ bool RSColorPickerCacheTask::GetWaitRelease() const
 
 void RSColorPickerCacheTask::ReleaseColorPicker()
 {
-    ROSEN_LOGD("RSColorPickerCacheTask::ReleaseColorPicker");
     SetStatus(CacheProcessStatus::WAITING);
     Reset();
     #ifdef IS_OHOS
