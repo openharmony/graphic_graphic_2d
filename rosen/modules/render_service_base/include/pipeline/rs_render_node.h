@@ -104,10 +104,8 @@ public:
     // if there is any new dirty op, check it
     bool IsContentDirty() const;
     void SetContentDirty();
-    bool IsOnlyBasicGeoTransfrom() const
-    {
-        return isOnlyBasicGeoTransform_;
-    }
+    void ResetIsOnlyBasicGeoTransfrom();
+    bool IsOnlyBasicGeoTransfrom() const;
 
     WeakPtr GetParent() const;
 

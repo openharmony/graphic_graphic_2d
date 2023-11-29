@@ -543,6 +543,16 @@ void RSRenderNode::DumpNodeType(std::string& out) const
     }
 }
 
+void RSRenderNode::ResetIsOnlyBasicGeoTransfrom()
+{
+    isOnlyBasicGeoTransform_ = true;
+}
+
+bool RSRenderNode::IsOnlyBasicGeoTransfrom() const
+{
+    return isOnlyBasicGeoTransform_;
+}
+
 // attention: current all base node's dirty ops causing content dirty
 void RSRenderNode::SetContentDirty()
 {
@@ -1157,7 +1167,6 @@ bool RSRenderNode::ApplyModifiers()
         return false;
     }
     hgmModifierProfileList_.clear();
-    isOnlyBasicGeoTransform_ = !IsContentDirty();
     const auto prevPositionZ = renderProperties_.GetPositionZ();
 
     // Reset and re-apply all modifiers

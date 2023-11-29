@@ -939,6 +939,10 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         if (surfaceNode == nullptr) {
             return;
         }
+        // Reset BasicGeoTrans info at the beginning of cmd process
+        if (surfaceNode->IsMainWindowType()) {
+            surfaceNode->ResetIsOnlyBasicGeoTransfrom();
+        }
         if (surfaceNode->IsHardwareEnabledType()
             && CheckSubThreadNodeStatusIsDoing(surfaceNode->GetInstanceRootNodeId())) {
             RS_LOGD("SubThread is processing %{public}s, skip acquire buffer", surfaceNode->GetName().c_str());
