@@ -682,7 +682,7 @@ bool RSPropertiesPainter::PickColor(const RSProperties& properties, RSPaintFilte
     // when color picker task resource is waitting for release, use color picked last frame
     if (colorPickerTask->GetWaitRelease()) {
         colorPickerTask->GetColorAverage(colorPicked);
-        return;
+        return true;
     }
 
     if (RSColorPickerCacheTask::PostPartialColorPickerTask(colorPickerTask, shadowRegionImage)
