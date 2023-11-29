@@ -82,9 +82,9 @@ struct RcdSourceInfo {
 
 struct HardwareLayerInfo {
     std::filesystem::path pathBin;
-    int bufferSize;
-    int cldWidth;
-    int cldHeight;
+    int bufferSize = 0;
+    int cldWidth = 0;
+    int cldHeight = 0;
 };
 
 class RSRcdSurfaceRenderNode : public RSRenderNode, public RSSurfaceHandler {
