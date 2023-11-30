@@ -462,9 +462,10 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #ifdef USE_VIDEO_PROCESSING_ENGINE
             auto image = SkImage::MakeFromTexture(canvas->recordingContext(), backendTexture,
                 kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, skColorSpace);
-#endif
+#else
             auto image = SkImage::MakeFromTexture(canvas->recordingContext(), backendTexture,
                 kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
+#endif
 #elif defined(RS_ENABLE_VK)
             auto imageCache = uniRenderEngine_->GetVkImageManager()->CreateImageCacheFromBuffer(
                 params.buffer, params.acquireFence);
@@ -508,7 +509,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                 params.paint.setShader(imageShader);
                 params.targetColorGamut = colorGamut;
 
-                auto screenManger = CreateOrGetScreenManager();
+                auto screenManager = CreateOrGetScreenManager();
                 params.screenBrightnessNits = screenManager->GetScreenBrightnessNits(screenId);
 
                 uniRenderEngine_->ColorSpaceConvertor(imageShader, params);
