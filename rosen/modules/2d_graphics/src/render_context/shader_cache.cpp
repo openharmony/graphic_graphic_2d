@@ -134,7 +134,7 @@ std::shared_ptr<Drawing::Data> ShaderCache::Load(const Drawing::Data& key)
     }
 
     if (!valueSize || valueSize > bufferSize_) {
-        LOGE("load: failed to get the cache value with the given key");
+        LOGD("load: failed to get the cache value with the given key");
         free(valueBuffer);
         valueBuffer = nullptr;
         return nullptr;
