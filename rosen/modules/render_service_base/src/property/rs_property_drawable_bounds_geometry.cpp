@@ -339,6 +339,7 @@ void RSBorderFourLineRoundCornerDrawable::Draw(RSRenderNode& node, RSPaintFilter
 #ifndef USE_ROSEN_DRAWING
     SkAutoCanvasRestore acr(&canvas, true);
     auto& properties = node.GetMutableRenderProperties();
+    canvas.clipRRect(rrect_, true);
     canvas.clipRRect(innerRrect_, SkClipOp::kDifference, true);
     if (isFirstLayerBorder_) {
         properties.GetBorder()->PaintTopPath(canvas, paint_, rrect_);
@@ -354,6 +355,7 @@ void RSBorderFourLineRoundCornerDrawable::Draw(RSRenderNode& node, RSPaintFilter
 #else
     Drawing::AutoCanvasRestore acr(canvas, true);
     auto& properties = node.GetMutableRenderProperties();
+    canvas.ClipRoundRect(rrect_, true);
     canvas.ClipRoundRect(innerRrect_, Drawing::ClipOp::DIFFERENCE, true);
     properties.GetBorder()->PaintTopPath(canvas, pen_, rrect_);
     properties.GetBorder()->PaintRightPath(canvas, pen_, rrect_);

@@ -22,12 +22,15 @@
 #include <string>
 #include <vector>
 
+#include "nocopyable.h"
 #include "transaction/rs_render_service_client.h"
 
 namespace OHOS {
+namespace Rosen {
 namespace {
 using UniqueId = int64_t;
 using TraceId = int32_t;
+
 constexpr int64_t TIMESTAMP_INITIAL = -1;
 
 struct JankFrames {
@@ -64,7 +67,6 @@ struct AnimationTraceStats {
 };
 } // namespace
 
-namespace Rosen {
 class RSJankStats {
 public:
     static RSJankStats& GetInstance();
@@ -79,10 +81,7 @@ public:
 private:
     RSJankStats() {};
     ~RSJankStats() {};
-    RSJankStats(const RSJankStats&) = delete;
-    RSJankStats(const RSJankStats&&) = delete;
-    void operator=(const RSJankStats&) = delete;
-    void operator=(const RSJankStats&&) = delete;
+    DISALLOW_COPY_AND_MOVE(RSJankStats);
 
     void UpdateEndTime();
     void SetRSJankStats(int64_t missedVsync);
@@ -92,11 +91,11 @@ private:
     void ReportEventJankFrame(const JankFrames& jankFrames) const;
     void ReportEventFirstFrame();
     void ReportEventFirstFrameByPid(pid_t appPid) const;
-    void SetAnimationTraceBegin(TraceId traceId, const JankFrames& jankFrames);
     void RecordJankFrameInit();
     void RecordJankFrame(int64_t missedFrames);
     void RecordJankFrameSingle(int64_t missedFrames, JankFrameRecordStats& recordStats);
     void RecordAnimationDynamicFrameRate(TraceId traceId, const JankFrames& jankFrames) const;
+    void SetAnimationTraceBegin(TraceId traceId, const JankFrames& jankFrames);
     void SetAnimationTraceEnd(TraceId traceId);
     void CheckAnimationTraceTimeout();
     std::string GetSceneDescription(const DataBaseRs& info) const;
@@ -109,7 +108,7 @@ private:
     static constexpr size_t JANK_STATS_SIZE = 8;
     static constexpr bool IS_FOLD_DISP = false;
     static inline const std::string JANK_FRAME_6F_COUNT_TRACE_NAME = "JANK_FRAME_6F";
-    std::vector<JankFrameRecordStats> jankFrameRecorder_{ {"JANK_ANIMATOR_FRAME_2F", 2} };
+    std::vector<JankFrameRecordStats> jankAnimatorFrameRecorder_{ {"JANK_ANIMATOR_FRAME_2F", 2} };
     bool isFirstSetStart_ = true;
     bool isFirstSetEnd_ = true;
     bool isNeedReportJankStats_ = false;
@@ -142,6 +141,8 @@ private:
         JANK_FRAME_INVALID,
     };
 };
+
 } // namespace Rosen
 } // namespace OHOS
-#endif
+
+#endif // ROSEN_JANK_STATS_H

@@ -2331,11 +2331,12 @@ void RSPropertiesPainter::DrawBorderBase(const RSProperties& properties, SkCanva
             canvas.drawPath(borderPath, paint);
         } else {
             SkAutoCanvasRestore acr(&canvas, true);
+            auto rrect = RRect2SkRRect(GetRRectForDrawingBorder(
+                properties.GetRRect(), border, outset, isFirstLayerBorder));
+            canvas.clipRRect(rrect, true);
             auto innerSkRRect = RRect2SkRRect(GetInnerRRectForDrawingBorder(
                 properties, border, innerOutset, isFirstLayerBorder));
             canvas.clipRRect(innerSkRRect, SkClipOp::kDifference, true);
-            auto rrect = RRect2SkRRect(GetRRectForDrawingBorder(
-                properties.GetRRect(), border, outset, isFirstLayerBorder));
             paint.setStyle(SkPaint::Style::kStroke_Style);
             border->PaintTopPath(canvas, paint, rrect);
             border->PaintRightPath(canvas, paint, rrect);
