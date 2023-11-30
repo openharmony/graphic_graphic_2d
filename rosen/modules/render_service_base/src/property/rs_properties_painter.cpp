@@ -1645,7 +1645,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
 
 #ifndef USE_ROSEN_DRAWING
 void RSPropertiesPainter::DrawBackgroundEffect(
-    const RSProperties& properties, RSPaintFilterCanvas& canvas, const SkRect& rect)
+    const RSProperties& properties, RSPaintFilterCanvas& canvas, const SkIRect& rect)
 #else
 void RSPropertiesPainter::DrawBackgroundEffect(
     const RSProperties& properties, RSPaintFilterCanvas& canvas, const Drawing::Rect& rect)
@@ -1665,7 +1665,7 @@ void RSPropertiesPainter::DrawBackgroundEffect(
 
 #ifndef USE_ROSEN_DRAWING
     SkAutoCanvasRestore acr(&canvas, true);
-    canvas.clipRect(rect);
+    canvas.clipIRect(rect);
     auto filter = std::static_pointer_cast<RSSkiaFilter>(RSFilter);
 #else
     Drawing::AutoCanvasRestore acr(canvas, true);

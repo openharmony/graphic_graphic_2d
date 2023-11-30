@@ -940,7 +940,7 @@ void RSEffectDataGenerateDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas&
 {
     if (auto effectNode = node.ReinterpretCastTo<RSEffectRenderNode>()) {
         if (auto& region = effectNode->effectRegion_) {
-            RSPropertiesPainter::DrawBackgroundEffect(node.GetRenderProperties(), canvas, region->getBounds());
+            RSPropertiesPainter::DrawBackgroundEffect(node.GetRenderProperties(), canvas, *region);
         }
     }
 }

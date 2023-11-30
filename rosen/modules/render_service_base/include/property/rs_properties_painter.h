@@ -82,7 +82,7 @@ public:
     static void DrawSpherize(const RSProperties& properties, RSPaintFilterCanvas& canvas,
         const sk_sp<SkSurface>& spherizeSurface);
     // EffectView and useEffect
-    static void DrawBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas, const SkRect& rect);
+    static void DrawBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas, const SkIRect& rect);
     static sk_sp<SkShader> MakeDynamicLightUpShader(
         float dynamicLightUpRate, float dynamicLightUpDeg, sk_sp<SkShader> imageShader);
     static void DrawGreyAdjustment(const RSProperties& properties, RSPaintFilterCanvas& canvas);

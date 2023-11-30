@@ -20,6 +20,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "property/rs_properties_painter.h"
 #include "visitor/rs_node_visitor.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -60,33 +61,32 @@ void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
     // 2. Background filter is null
     // 3. Canvas is offscreen
 #ifndef USE_ROSEN_DRAWING
-    if (effectRegion_.has_value() && !effectRegion_->isEmpty() && properties.GetBackgroundFilter() != nullptr &&
+    if (effectRegion_.has_value() && properties.GetBackgroundFilter() != nullptr &&
         canvas.GetCacheType() != RSPaintFilterCanvas::CacheType::OFFSCREEN) {
-        RSPropertiesPainter::DrawBackgroundEffect(properties, canvas, effectRegion_->getBounds());
+        RSPropertiesPainter::DrawBackgroundEffect(properties, canvas, *effectRegion_);
+    } else {
+        canvas.SetEffectData(nullptr);
     }
 #else
-    if (effectRegion_.has_value() && effectRegion_->IsValid() && properties.GetBackgroundFilter() != nullptr &&
-        canvas.GetCacheType() != RSPaintFilterCanvas::CacheType::OFFSCREEN) {
-        RSPropertiesPainter::DrawBackgroundEffect(properties, canvas, effectRegion_->GetBounds());
-    }
+    // PLANNING: add drawing implementation
 #endif
 }
 
 RectI RSEffectRenderNode::GetFilterRect() const
 {
-    if (effectRegion_.has_value()) {
-        auto& matrix = GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
-#ifndef USE_ROSEN_DRAWING
-        auto bounds = effectRegion_->makeTransform(matrix).getBounds();
-        return {bounds.x(), bounds.y(), bounds.width(), bounds.height()};
-#else
-        auto region = effectRegion_;
-        region->Transform(matrix);
-        auto bounds = region->GetBounds();
-        return {bounds.GetLeft(), bounds.GetRight(), bounds.GetWidth(), bounds.GetHeight()};
-#endif
+    if (!effectRegion_.has_value()) {
+        ROSEN_LOGE("RSEffectRenderNode::GetFilterRect: effectRegion has no value");
+        return {};
     }
+    auto& matrix = GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
+#ifndef USE_ROSEN_DRAWING
+    // re-map local rect to absolute rect
+    auto bounds = matrix.mapRect(SkRect::Make(*effectRegion_)).roundOut();
+    return { bounds.x(), bounds.y(), bounds.width(), bounds.height() };
+#else
+    // PLANNING: add drawing implementation
     return {};
+#endif
 }
 
 #ifndef USE_ROSEN_DRAWING
@@ -97,22 +97,43 @@ void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::Path>& reg
 {
     if (!region.has_value()) {
         effectRegion_.reset();
+        ROSEN_LOGE("RSEffectRenderNode::SetEffectRegion: region has no value");
         return;
     }
-    auto matrix = GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
+    const auto& geoPtr = GetRenderProperties().GetBoundsGeometry();
+    const auto& matrix = geoPtr->GetAbsMatrix();
+    const auto& absRect = geoPtr->GetAbsRect();
 #ifndef USE_ROSEN_DRAWING
+    // intersect effect region with node bounds
+    auto rect = region->getBounds();
+    if (!rect.intersect(
+        SkRect::MakeLTRB(absRect.GetLeft(), absRect.GetTop(), absRect.GetRight(), absRect.GetBottom()))) {
+        effectRegion_.reset();
+        ROSEN_LOGE("RSEffectRenderNode::SetEffectRegion: intersect rect failed.");
+        return;
+    }
+
+    // Map absolute rect to local matrix
     SkMatrix revertMatrix;
-    // Map absolute matrix to local matrix
-    if (matrix.invert(&revertMatrix)) {
-        effectRegion_ = region.value().makeTransform(revertMatrix);
+    if (!matrix.invert(&revertMatrix)) {
+        effectRegion_.reset();
+        ROSEN_LOGE("RSEffectRenderNode::SetEffectRegion: get invert matrix failed.");
+        return;
+    }
+    auto prevEffectRegion = std::move(effectRegion_);
+    effectRegion_ = revertMatrix.mapRect(rect).roundOut();
+
+    // Update cache state if filter region has changed
+    auto& manager = GetRenderProperties().GetFilterCacheManager(false);
+    if (!manager || !manager->IsCacheValid()) {
+        ROSEN_LOGE("RSEffectRenderNode::SetEffectRegion: CacheManager is null or invalid");
+        return;
+    }
+    if (prevEffectRegion.has_value() && !prevEffectRegion->contains(*effectRegion_)) {
+        manager->UpdateCacheStateWithFilterRegion();
     }
 #else
-    Drawing::Matrix revertMatrix;
-    // Map absolute matrix to local matrix
-    if (matrix.Invert(revertMatrix)) {
-        effectRegion_ = region;
-        effectRegion_.value().Transform(revertMatrix);
-    }
+    // PLANNING: add drawing implementation
 #endif
 }
 } // namespace Rosen
