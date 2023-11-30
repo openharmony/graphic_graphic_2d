@@ -941,6 +941,9 @@ bool RSRenderServiceConnection::GetPixelmap(
     auto getPixelmapTask = [&node, &pixelmap, rect, &result, tid]() {
         result = node->GetPixelmap(pixelmap, rect, tid);
     };
+    if (!node->IsOnTheTree()) {
+        node->ClearOp();
+    }
     if (tid == UINT32_MAX) {
         if (!mainThread_->IsIdle()) {
             return false;
