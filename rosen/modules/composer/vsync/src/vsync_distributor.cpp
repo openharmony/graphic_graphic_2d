@@ -146,7 +146,7 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
     // 1, 2: index of array data.
     data[1] = now + period;
     data[2] = vsyncCount;
-    if ((CreateVSyncGenerator()->GetVSyncMode()) && info_.name_ == "rs") {
+    if ((CreateVSyncGenerator()->GetVSyncMode() == VSYNC_MODE_LTPS) && info_.name_ == "rs") {
         // 5000000 is the vsync offset.
         data[1] += period - 5000000;
     }

@@ -98,11 +98,18 @@ void TexgineFont::SetHinting(const TexgineFontHinting hinting)
 void TexgineFont::SetSkewX()
 {
 #ifndef USE_ROSEN_DRAWING
-    font_->setEmbolden(false); // false means bold is turned off by default
     font_->setSkewX(-DEFAULT_ITALIC / 4); // standard italic offset is 1/4
 #else
-    font_->SetEmbolden(false); // false means bold is turned off by default
     font_->SetSkewX(-DEFAULT_ITALIC / 4); // standard italic offset is 1/4
+#endif
+}
+
+void TexgineFont::SetBold()
+{
+#ifndef USE_ROSEN_DRAWING
+    font_->setEmbolden(true); // false means bold is turned off by default
+#else
+    font_->SetEmbolden(true);
 #endif
 }
 } // namespace TextEngine

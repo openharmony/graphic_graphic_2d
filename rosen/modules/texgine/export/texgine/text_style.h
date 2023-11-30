@@ -81,7 +81,7 @@ struct TextStyle {
     FontWeight fontWeight = FontWeight::W400;
     FontStyle fontStyle = FontStyle::NORMAL;
     std::vector<std::string> fontFamilies = {};
-    double fontSize = 16.0;
+    double fontSize = 14.0;
     FontFeatures fontFeature;
 
     // Decoration style

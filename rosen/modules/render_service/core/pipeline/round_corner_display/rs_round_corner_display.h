@@ -134,15 +134,15 @@ private:
 
     bool Init();
 
-    bool LoadConfigFile();
+    static bool LoadConfigFile();
 
     // choose LCD mode
     bool SeletedLcdModel(const char* lcdModelName);
 
     // load single image as skimage
-    bool LoadImg(const char* path, sk_sp<SkImage>& img);
+    static bool LoadImg(const char* path, sk_sp<SkImage>& img);
 
-    bool DecodeBitmap(sk_sp<SkImage> skimage, SkBitmap &bitmap);
+    static bool DecodeBitmap(sk_sp<SkImage> image, SkBitmap &bitmap);
 
     bool SetHardwareLayerSize();
 

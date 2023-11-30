@@ -26,6 +26,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
+#define DYNAMIC_FONT_WEIGHT 6
 std::unique_ptr<Typeface> Typeface::MakeFromFile(const std::string &filename)
 {
     auto st = TexgineTypeface::MakeFromFile(filename.c_str());
@@ -117,6 +118,27 @@ bool Typeface::Has(uint32_t ch)
     }
 
     return cmapParser_->GetGlyphId(ch) != CmapParser::INVALID_GLYPH_ID;
+}
+
+void Typeface::ComputeFakeryItalic(bool isItalic)
+{
+    isFakeItalic_ = isItalic;
+}
+
+bool Typeface::DetectionItalic()
+{
+    return isFakeItalic_;
+}
+
+void Typeface::ComputeFakery(int wantedWeight)
+{
+    bool isFakeBold = wantedWeight >= DYNAMIC_FONT_WEIGHT;
+    isFakeBold_ = isFakeBold;
+}
+
+bool Typeface::DetectionFakeBold()
+{
+    return isFakeBold_;
 }
 } // namespace TextEngine
 } // namespace Rosen

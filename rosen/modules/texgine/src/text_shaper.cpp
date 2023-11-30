@@ -36,8 +36,12 @@ void TextShaper::PartFontPropertySet(TexgineFont& font, std::shared_ptr<TextSpan
     font.SetEdging(TexgineFont::FontEdging::ANTIALIAS);
     font.SetSubpixel(true);
     font.SetHinting(TexgineFont::TexgineFontHinting::SLIGHT);
-    if (ts->cgs_.Get(0).typeface->Get()->DetectRawInformation()) {
+    if (ts->cgs_.Get(0).typeface->Get()->DetectRawInformation() ||
+        ts->cgs_.Get(0).typeface->DetectionItalic()) {
         font.SetSkewX();
+    }
+    if (ts->cgs_.Get(0).typeface->DetectionFakeBold()) {
+        font.SetBold();
     }
     font.SetTypeface(ts->cgs_.Get(0).typeface->Get());
 }

@@ -414,5 +414,20 @@ HWTEST_F(RSRenderNodeTest, OnlyBasicGeoTransfromTest02, TestSize.Level1)
     ASSERT_EQ(node.IsContentDirty(), true);
     ASSERT_EQ(node.IsOnlyBasicGeoTransfrom(), false);
 }
+
+/**
+ * @tc.name: OnlyBasicGeoTransfromTest03
+ * @tc.desc: Check node resets BasicGeoTransfrom as true
+ * @tc.type: FUNC
+ * @tc.require: issueI8KEUU
+ */
+HWTEST_F(RSRenderNodeTest, OnlyBasicGeoTransfromTest03, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    node.SetContentDirty();
+    ASSERT_EQ(node.IsOnlyBasicGeoTransfrom(), false);
+    node.ResetIsOnlyBasicGeoTransfrom();
+    ASSERT_EQ(node.IsOnlyBasicGeoTransfrom(), true);
+}
 } // namespace Rosen
 } // namespace OHOS

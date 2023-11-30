@@ -90,20 +90,14 @@ std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch,
     const std::string &script, const std::string &locale) const
 {
     SortTypeface(style);
-    if (style.GetFontStyle()) {
-        auto typeface = FindFallBackTypeface(ch, style, script, locale);
-        if (!typeface) {
-            return nullptr;
-        }
-        return typeface;
-    }
-
     auto fs = std::make_shared<TexgineFontStyle>();
     *fs = style.ToTexgineFontStyle();
     for (const auto &fontStyleSet : fontStyleSets_) {
         std::shared_ptr<Typeface> typeface = nullptr;
         struct TypefaceCacheKey key = {.fss = fontStyleSet, .fs = style};
         if (auto it = typefaceCache_.find(key); it != typefaceCache_.end()) {
+            typeface->ComputeFakeryItalic(style.GetFontStyle());
+            typeface->ComputeFakery(style.GetWeight());
             typeface = it->second;
         } else {
             if (fontStyleSet == nullptr) {
@@ -122,6 +116,10 @@ std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch,
         }
     }
     auto typeface = FindThemeTypeface(style);
+    if (typeface) {
+        typeface->ComputeFakeryItalic(style.GetFontStyle());
+        typeface->ComputeFakery(style.GetWeight());
+    }
     if (typeface == nullptr) {
         typeface = FindFallBackTypeface(ch, style, script, locale);
     }

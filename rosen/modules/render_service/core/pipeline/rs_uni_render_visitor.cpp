@@ -2085,7 +2085,7 @@ void RSUniRenderVisitor::ProcessParallelDisplayRenderNode(RSDisplayRenderNode& n
     if (overdrawListener != nullptr) {
         overdrawListener->Draw();
     }
-    DrawWatermarkIfNeed();
+    DrawWatermarkIfNeed(node);
     RS_TRACE_BEGIN("ProcessParallelDisplayRenderNode:FlushFrame");
     renderFrame_->Flush();
     RS_TRACE_END();
@@ -2267,7 +2267,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                         *mirrorNode, mirrorNode->GetRootIdOfCaptureWindow());
                     canvas_->restoreToCount(saveCount);
                 }
-                DrawWatermarkIfNeed();
+                DrawWatermarkIfNeed(*mirrorNode, true);
             } else {
                 mirrorNode->SetCacheImgForCapture(nullptr);
                 int saveCount = canvas_->save();
@@ -2275,7 +2275,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 PrepareOffscreenRender(*mirrorNode);
                 ProcessChildren(*mirrorNode);
                 FinishOffscreenRender(true);
-                DrawWatermarkIfNeed();
+                DrawWatermarkIfNeed(*mirrorNode, true);
                 canvas_->restoreToCount(saveCount);
             }
 #else
@@ -2308,7 +2308,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                     canvas_->RestoreToCount(saveCount);
                 }
                 canvas_->Restore();
-                DrawWatermarkIfNeed();
+                DrawWatermarkIfNeed(*mirrorNode, true);
             } else {
                 mirrorNode->SetCacheImgForCapture(nullptr);
                 auto saveCount = canvas_->GetSaveCount();
@@ -2317,7 +2317,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 PrepareOffscreenRender(*mirrorNode);
                 ProcessChildren(*mirrorNode);
                 FinishOffscreenRender(true);
-                DrawWatermarkIfNeed();
+                DrawWatermarkIfNeed(*mirrorNode, true);
                 canvas_->RestoreToCount(saveCount);
             }
 #endif
@@ -2332,7 +2332,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             return;
         }
         ProcessChildren(node);
-        DrawWatermarkIfNeed();
+        DrawWatermarkIfNeed(node);
 #if defined(RS_ENABLE_DRIVEN_RENDER)
     } else if (drivenInfo_ && drivenInfo_->currDrivenRenderMode == DrivenUniRenderMode::REUSE_WITH_CLIP_HOLE) {
         RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode DrivenUniRenderMode is REUSE_WITH_CLIP_HOLE");
@@ -2680,7 +2680,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         if (overdrawListener != nullptr) {
             overdrawListener->Draw();
         }
-        DrawWatermarkIfNeed();
+        DrawWatermarkIfNeed(node);
         // the following code makes DirtyRegion visible, enable this method by turning on the dirtyregiondebug property
         if (isPartialRenderEnabled_) {
             if (isDirtyRegionDfxEnabled_) {
@@ -2990,13 +2990,27 @@ void RSUniRenderVisitor::AddOverDrawListener(std::unique_ptr<RSRenderFrame>& ren
     }
 }
 
+bool RSUniRenderVisitor::IsNotDirtyHardwareEnabledTopSurface(std::shared_ptr<RSSurfaceRenderNode>& node) const
+{
+    if (!node->IsHardwareEnabledTopSurface()) {
+        return false;
+    }
+    // If the pointer is dirty in last frame but not in current, when gpu -> hardware composer.
+    // It should also calc global dirty in current frame.
+    node->SetNodeDirty(isHardwareForcedDisabled_ || node->HasSubNodeShouldPaint());
+    return !node->IsNodeDirty();
+}
+
 void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderNode>& node)
 {
     RS_OPTIONAL_TRACE_FUNC();
     auto displayDirtyManager = node->GetDirtyManager();
     for (auto it = node->GetCurAllSurfaces().rbegin(); it != node->GetCurAllSurfaces().rend(); ++it) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-        if (surfaceNode == nullptr || !IsHardwareEnabledNodeNeedCalcGlobalDirty(surfaceNode)) {
+        if (surfaceNode == nullptr) {
+            continue;
+        }
+        if (IsNotDirtyHardwareEnabledTopSurface(surfaceNode)) {
             continue;
         }
         auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
@@ -3301,7 +3315,7 @@ void RSUniRenderVisitor::AddContainerDirtyToGlobalDirty(std::shared_ptr<RSDispla
             // transparent region and opaque region in adjacent frame, may cause displaydirty region incomplete after
             // merge history (as surfacenode's dirty region merging opaque region will enlarge surface dirty region
             // which include transparent region but not counted in display dirtyregion)
-            if (!IsHardwareEnabledNodeNeedCalcGlobalDirty(surfaceNode)) {
+            if (!surfaceNode->IsNodeDirty()) {
                 continue;
             }
             auto transparentRegion = surfaceNode->GetTransparentRegion();
@@ -4343,6 +4357,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         canvas_->SetCacheType(RSPaintFilterCanvas::CacheType::ENABLED);
     }
     if (auto drawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>()) {
+        std::lock_guard<std::mutex> lock(drawingMutex_);
 #ifndef USE_ROSEN_DRAWING
         auto clearFunc = [id = threadIndex_](sk_sp<SkSurface> surface) {
             // The second param is null, 0 is an invalid value.
@@ -4591,9 +4606,16 @@ bool RSUniRenderVisitor::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> r
     return true;
 }
 
-void RSUniRenderVisitor::DrawWatermarkIfNeed()
+void RSUniRenderVisitor::DrawWatermarkIfNeed(RSDisplayRenderNode& node, bool isMirror)
 {
     if (RSMainThread::Instance()->GetWatermarkFlag()) {
+        auto screenManager = CreateOrGetScreenManager();
+        auto mainScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
+        auto mainWidth = static_cast<float>(mainScreenInfo.width);
+        auto mainHeight = static_cast<float>(mainScreenInfo.height);
+        if (RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0 && isMirror) {
+            std::swap(mainWidth, mainHeight);
+        }
 #ifndef USE_ROSEN_DRAWING
         sk_sp<SkImage> skImage = RSMainThread::Instance()->GetWatermarkImg();
         if (!skImage) {
@@ -4602,7 +4624,7 @@ void RSUniRenderVisitor::DrawWatermarkIfNeed()
         }
         SkPaint rectPaint;
         auto skSrcRect = SkRect::MakeWH(skImage->width(), skImage->height());
-        auto skDstRect = SkRect::MakeWH(screenInfo_.width, screenInfo_.height);
+        auto skDstRect = SkRect::MakeWH(mainWidth, mainHeight);
 #ifdef NEW_SKIA
         canvas_->drawImageRect(
             skImage, skSrcRect, skDstRect, SkSamplingOptions(), &rectPaint, SkCanvas::kStrict_SrcRectConstraint);
@@ -4617,7 +4639,7 @@ void RSUniRenderVisitor::DrawWatermarkIfNeed()
         Drawing::Brush rectPaint;
         canvas_->AttachBrush(rectPaint);
         auto srcRect = Drawing::Rect(0, 0, drImage->GetWidth(), drImage->GetHeight());
-        auto dstRect = Drawing::Rect(0, 0, screenInfo_.width, screenInfo_.height);
+        auto dstRect = Drawing::Rect(0, 0, mainWidth, mainHeight);
         canvas_->DrawImageRect(*drImage, srcRect, dstRect, Drawing::SamplingOptions(),
             Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
         canvas_->DetachBrush();

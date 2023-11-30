@@ -55,6 +55,11 @@
 #include "transaction/rs_marshalling_helper.h"
 #include <optional>
 
+#ifdef RS_ENABLE_VK
+#include "include/gpu/GrBackendSurface.h"
+#include "platform/ohos/backend/native_buffer_utils.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 class RSPaintFilterCanvas;
@@ -370,7 +375,7 @@ public:
 
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static OpItem* Unmarshalling(Parcel& parcel);
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> GetSkImageFromSurfaceBuffer(SkCanvas& canvas, SurfaceBuffer* surfaceBuffer) const;
 #endif
@@ -384,7 +389,8 @@ private:
     mutable GLuint texId_ = 0;
 #endif
 #ifdef RS_ENABLE_VK
-    mutable sk_sp<SkImage> skImage_ = nullptr;
+    mutable GrBackendTexture backendTexture_ = {};
+    mutable NativeBufferUtils::VulkanCleanupHelper* cleanupHelper_ = nullptr;
 #endif
     mutable OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
     mutable pid_t tid_ = 0;

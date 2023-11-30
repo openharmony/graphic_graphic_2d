@@ -35,18 +35,6 @@ namespace OHOS {
 namespace Rosen {
 namespace Impl {
 using namespace std;
-#define SET_ERROR(error) \
-    do {                      \
-        LOGE("WebGL2 set error code %{public}u", error);    \
-        SetError(error);      \
-    } while (0)
-
-#define SET_ERROR_WITH_LOG(error, info, ...) \
-    do {                      \
-        LOGE("WebGL2 set error code %{public}u" info, error, ##__VA_ARGS__);    \
-        SetError(error);      \
-    } while (0)
-
 void WebGL2RenderingContextImpl::Init()
 {
     WebGLRenderingContextBaseImpl::Init();

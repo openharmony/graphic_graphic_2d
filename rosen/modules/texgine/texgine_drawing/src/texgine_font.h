@@ -85,6 +85,8 @@ public:
      * @brief Set font default non-bold italics mode
      */
     void SetSkewX();
+
+    void SetBold();
 private:
 #ifndef USE_ROSEN_DRAWING
     std::shared_ptr<SkFont> font_ = std::make_shared<SkFont>();
