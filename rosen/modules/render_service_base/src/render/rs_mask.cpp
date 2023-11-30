@@ -290,7 +290,7 @@ bool RSMask::MarshallingPathAndBrush(Parcel& parcel) const
     };
     maskCmdList->AddOp<Drawing::MaskBrushOpItem>(brushHandle);
 
-    auto pathHandle = Drawing::CmdListHelper::AddRecordedToCmdList<Drawing::RecordingPath>(*maskCmdList, *maskPath_);
+    auto pathHandle = Drawing::CmdListHelper::AddPathToCmdList(*maskCmdList, *maskPath_);
     maskCmdList->AddOp<Drawing::MaskPathOpItem>(pathHandle);
 
     if (!RSMarshallingHelper::Marshalling(parcel, maskCmdList)) {

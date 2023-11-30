@@ -64,18 +64,18 @@ bool RSSystemProperties::IsSceneBoardEnabled()
 // used by clients
 int RSSystemProperties::GetDumpFrameNum()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.recording.frameNum", "0");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.recording.frameNum", "0");
     int changed = 0;
     const char *num = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(num, 0);
 }
 
-bool RSSystemProperties::GetRecordingEnabled()
+int RSSystemProperties::GetRecordingEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.recording.enabled", "0");
     int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 0) != 0;
+    const char *num = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(num, 0);
 }
 
 
@@ -87,7 +87,7 @@ void RSSystemProperties::SetRecordingDisenabled()
 
 std::string RSSystemProperties::GetRecordingFile()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.dumpfile.path", "");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.dumpfile.path", "");
     int changed = 0;
     const char *file = CachedParameterGetChanged(g_Handle, &changed);
     return file == nullptr ? "" : file;
@@ -427,7 +427,7 @@ bool RSSystemProperties::GetMaskLinearBlurEnabled()
     // Determine whether the mask LinearBlur render should be enabled. The default value is 0,
     // which means that it is unenabled.
     static bool enabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.maskLinearBlurEnabled", "0")).c_str()) != 0;
+        std::atoi((system::GetParameter("persist.sys.graphic.maskLinearBlurEnabled", "1")).c_str()) != 0;
     return enabled;
 }
 
@@ -624,6 +624,13 @@ bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
     static bool singleFrameComposerCanvasNodeEnabled =
         (std::atoi((system::GetParameter("persist.sys.graphic.singleFrameComposerCanvasNode", "0")).c_str()) != 0);
     return singleFrameComposerCanvasNodeEnabled;
+}
+
+bool RSSystemProperties::GetSubSurfaceEnabled()
+{
+    static bool subSurfaceEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.subSurface", "0")).c_str());
+    return subSurfaceEnabled;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -15,8 +15,10 @@
 
 #include "skia_static_factory.h"
 
+#include "skia_adapter/skia_data.h"
 #include "skia_adapter/skia_surface.h"
 #include "skia_adapter/skia_image.h"
+#include "skia_adapter/skia_font_style_set.h"
 #include "skia_adapter/skia_text_blob.h"
 #include "skia_adapter/skia_typeface.h"
 
@@ -35,12 +37,29 @@ std::shared_ptr<TextBlob> SkiaStaticFactory::MakeFromRSXform(const void* text, s
     return SkiaTextBlob::MakeFromRSXform(text, byteLength, xform, font, encoding);
 }
 
-std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromFile(const char path[])
+std::shared_ptr<Typeface> SkiaStaticFactory::MakeDefault()
 {
-    return SkiaTypeface::MakeFromFile(path);
+    return SkiaTypeface::MakeDefault();
+}
+
+std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromFile(const char path[], int index)
+{
+    return SkiaTypeface::MakeFromFile(path, index);
+}
+
+std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index)
+{
+    return SkiaTypeface::MakeFromStream(std::move(memoryStream), index);
 }
 
 #ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_VK
+std::shared_ptr<Surface> SkiaStaticFactory::MakeFromBackendRenderTarget(GPUContext* gpuuContext,
+    const VKTextureInfo& info, TextureOrigin origin, void (*deleteVkImage)(void *), void* cleanHelper)
+{
+    return SkiaSurface::MakeFromBackendRenderTarget(gpuuContext, info, origin, deleteVkImage, cleanHelper);
+}
+#endif
 std::shared_ptr<Surface> SkiaStaticFactory::MakeRenderTarget(GPUContext* gpuContext,
     bool budgeted, const ImageInfo& imageInfo)
 {
@@ -78,6 +97,26 @@ std::shared_ptr<Image> SkiaStaticFactory::MakeRasterData(const ImageInfo& info, 
 std::shared_ptr<TextBlob> SkiaStaticFactory::DeserializeTextBlob(const void* data, size_t size)
 {
     return SkiaTextBlob::Deserialize(data, size);
+}
+
+bool SkiaStaticFactory::CanComputeFastBounds(const Brush& brush)
+{
+    return SkiaPaint::CanComputeFastBounds(brush);
+}
+
+const Rect& SkiaStaticFactory::ComputeFastBounds(const Brush& brush, const Rect& orig, Rect* storage)
+{
+    return SkiaPaint::ComputeFastBounds(brush, orig, storage);
+}
+
+FontStyleSet* SkiaStaticFactory::CreateEmptyFontStyleSet()
+{
+    return SkiaFontStyleSet::CreateEmpty();
+}
+
+std::shared_ptr<Data> SkiaStaticFactory::MakeDataFromFileName(const char path[])
+{
+    return SkiaData::MakeFromFileName(path);
 }
 } // namespace Drawing
 } // namespace Rosen

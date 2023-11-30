@@ -34,7 +34,8 @@ public:
     virtual void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height) = 0;
     virtual void Destroy() = 0;
     virtual void RenderFrame() = 0;
-    virtual SkCanvas* AcquireCanvas(std::unique_ptr<SurfaceFrame>& frame) = 0;
+    virtual SkCanvas* AcquireSkCanvas(std::unique_ptr<SurfaceFrame>& frame) = 0;
+    virtual Drawing::Canvas* AcquireDrCanvas(std::unique_ptr<SurfaceFrame>& frame) = 0;
 };
 }
 }

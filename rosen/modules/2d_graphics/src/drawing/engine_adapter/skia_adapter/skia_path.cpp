@@ -24,7 +24,12 @@
 #include "include/core/SkString.h"
 #include "skia_matrix.h"
 
+#include "src/core/SkReadBuffer.h"
+#include "src/core/SkWriteBuffer.h"
+
 #include "draw/path.h"
+#include "utils/data.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -377,6 +382,29 @@ bool SkiaPath::GetPositionAndTangent(scalar distance, Point& position, Point& ta
     }
 
     return ret;
+}
+
+std::shared_ptr<Data> SkiaPath::Serialize() const
+{
+    SkBinaryWriteBuffer writer;
+    writer.writePath(path_);
+    size_t length = writer.bytesWritten();
+    std::shared_ptr<Data> data = std::make_shared<Data>();
+    data->BuildUninitialized(length);
+    writer.writeToMemory(data->WritableData());
+    return data;
+}
+
+bool SkiaPath::Deserialize(std::shared_ptr<Data> data)
+{
+    if (data == nullptr) {
+        LOGE("SkiaPath::Deserialize, data is invalid!");
+        return false;
+    }
+
+    SkReadBuffer reader(data->GetData(), data->GetSize());
+    reader.readPath(&path_);
+    return true;
 }
 
 } // namespace Drawing

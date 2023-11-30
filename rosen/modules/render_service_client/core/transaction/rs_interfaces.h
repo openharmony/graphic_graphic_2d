@@ -59,7 +59,8 @@ public:
         uint32_t height,
         sptr<Surface> surface,
         ScreenId mirrorId = 0,
-        int flags = 0);
+        int flags = 0,
+        std::vector<NodeId> filteredAppVector = {});
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
 #endif
@@ -91,6 +92,8 @@ public:
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 
     bool SetVirtualMirrorScreenBufferRotation(ScreenId id, bool bufferRotation);
+
+    bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation);
 
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
 
@@ -137,6 +140,22 @@ public:
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode);
 
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability);
+
+    int32_t GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat);
+
+    int32_t SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat);
+
+    int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats);
+
+    int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat);
+
+    int32_t SetScreenHDRFormat(ScreenId id, int32_t modeIdx);
+
+    int32_t GetScreenSupportedColorSpaces(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces);
+
+    int32_t GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace);
+
+    int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace);
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType);
 

@@ -92,6 +92,8 @@ struct AnimationDynamicSetting {
     int32_t preferred_fps;
 };
 
+constexpr int UNI_APP_PID = -1;
+
 using DynamicSetting = std::unordered_map<std::string, std::unordered_map<std::string, AnimationDynamicSetting>>;
 
 class ParsedConfigData {

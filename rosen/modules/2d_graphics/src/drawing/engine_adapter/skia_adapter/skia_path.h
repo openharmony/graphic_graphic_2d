@@ -94,6 +94,8 @@ public:
 
     scalar GetLength(bool forceClosed) const override;
     bool GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed) const override;
+    std::shared_ptr<Data> Serialize() const override;
+    bool Deserialize(std::shared_ptr<Data> data) override;
 private:
     class SkPathSvgCacheManager {
     public:

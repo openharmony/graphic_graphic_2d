@@ -19,7 +19,6 @@
 #include "context/webgl_rendering_context_base_impl.h"
 #include "napi/n_class.h"
 #include "util/log.h"
-#include "util/object_source.h"
 #include "util/util.h"
 
 namespace OHOS {

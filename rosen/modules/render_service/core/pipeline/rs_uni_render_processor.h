@@ -38,6 +38,7 @@ private:
     std::unique_ptr<RSUniRenderComposerAdapter> uniComposerAdapter_;
     std::vector<LayerInfoPtr> layers_;
     size_t layerNum = 0;
+    bool isPhone_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

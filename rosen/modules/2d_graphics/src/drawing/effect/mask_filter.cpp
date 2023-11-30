@@ -22,10 +22,10 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-MaskFilter::MaskFilter(FilterType t, BlurType blurType, scalar sigma) noexcept : MaskFilter()
+MaskFilter::MaskFilter(FilterType t, BlurType blurType, scalar sigma, bool respectCTM) noexcept : MaskFilter()
 {
     type_ = t;
-    impl_->InitWithBlur(blurType, sigma);
+    impl_->InitWithBlur(blurType, sigma, respectCTM);
 }
 
 MaskFilter::MaskFilter() noexcept : type_(MaskFilter::FilterType::NO_TYPE), impl_(ImplFactory::CreateMaskFilterImpl())
@@ -39,9 +39,9 @@ MaskFilter::FilterType MaskFilter::GetType() const
     return type_;
 }
 
-std::shared_ptr<MaskFilter> MaskFilter::CreateBlurMaskFilter(BlurType blurType, scalar sigma)
+std::shared_ptr<MaskFilter> MaskFilter::CreateBlurMaskFilter(BlurType blurType, scalar sigma, bool respectCTM)
 {
-    return std::make_shared<MaskFilter>(MaskFilter::FilterType::BLUR, blurType, sigma);
+    return std::make_shared<MaskFilter>(MaskFilter::FilterType::BLUR, blurType, sigma, respectCTM);
 }
 
 std::shared_ptr<Data> MaskFilter::Serialize() const

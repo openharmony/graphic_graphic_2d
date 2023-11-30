@@ -30,6 +30,11 @@
 #include "include/gpu/GrDirectContext.h"
 #include "platform/common/rs_log.h"
 #include "window.h"
+#include "platform/common/rs_system_properties.h"
+#ifdef USE_ROSEN_DRAWING
+#include "drawing/engine_adapter/skia_adapter/skia_gpu_context.h"
+#include "engine_adapter/skia_adapter/skia_surface.h"
+#endif
 namespace OHOS {
 namespace Rosen {
 RSSurfaceOhosVulkan::RSSurfaceOhosVulkan(const sptr<Surface>& producer) : RSSurfaceOhos(producer)
@@ -52,7 +57,7 @@ RSSurfaceOhosVulkan::~RSSurfaceOhosVulkan()
 #endif // ENABLE_NATIVEBUFFER
 }
 
-int32_t RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height)
+void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC)
 {
     NativeWindowHandleOpt(mNativeWindow, SET_FORMAT, pixelFormat_);
 #ifdef RS_ENABLE_AFBC
@@ -94,9 +99,9 @@ void RSSurfaceOhosVulkan::CreateVkSemaphore(
 }
 
 int32_t RSSurfaceOhosVulkan::RequestNativeWindowBuffer(
-    NativeWindowBuffer** nativeWindowBuffer, int32_t width, int32_t height, int& fenceFd)
+    NativeWindowBuffer** nativeWindowBuffer, int32_t width, int32_t height, int& fenceFd, bool useAFBC)
 {
-    SetNativeWindowInfo(width, height);
+    SetNativeWindowInfo(width, height, useAFBC);
     struct timespec curTime = {0, 0};
     clock_gettime(CLOCK_MONOTONIC, &curTime);
     // 1000000000 is used for transfer second to nsec
@@ -126,14 +131,17 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
 
     NativeWindowBuffer* nativeWindowBuffer = nullptr;
     int fenceFd = -1;
-    if (RequestNativeWindowBuffer(&nativeWindowBuffer, width, height, fenceFd) != OHOS::GSERROR_OK) {
+    if (RequestNativeWindowBuffer(&nativeWindowBuffer, width, height, fenceFd, useAFBC) != OHOS::GSERROR_OK) {
         return nullptr;
     }
 
     mSurfaceList.emplace_back(nativeWindowBuffer);
     NativeBufferUtils::NativeSurfaceInfo& nativeSurface = mSurfaceMap[nativeWindowBuffer];
-
+#ifndef USE_ROSEN_DRAWING
     if (nativeSurface.skSurface == nullptr) {
+#else
+    if (nativeSurface.drawingSurface == nullptr) {
+#endif
         nativeSurface.window = mNativeWindow;
         if (!NativeBufferUtils::MakeFromNativeWindowBuffer(
             mSkContext, nativeWindowBuffer, nativeSurface, width, height)) {
@@ -158,14 +166,23 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
             auto& vkContext = RsVulkanContext::GetSingleton();
             VkSemaphore semaphore;
             CreateVkSemaphore(&semaphore, vkContext, nativeSurface);
+#ifndef USE_ROSEN_DRAWING
             GrBackendSemaphore backendSemaphore;
             backendSemaphore.initVulkan(semaphore);
             nativeSurface.skSurface->wait(1, &backendSemaphore);
+#else
+            nativeSurface.drawingSurface->Wait(1, semaphore);
+#endif
         }
     }
     int32_t bufferAge = mPresentCount - nativeSurface.lastPresentedCount;
+#ifndef USE_ROSEN_DRAWING
     std::unique_ptr<RSSurfaceFrameOhosVulkan> frame =
         std::make_unique<RSSurfaceFrameOhosVulkan>(nativeSurface.skSurface, width, height, bufferAge);
+#else
+    std::unique_ptr<RSSurfaceFrameOhosVulkan> frame =
+        std::make_unique<RSSurfaceFrameOhosVulkan>(nativeSurface.drawingSurface, width, height, bufferAge);
+#endif
     std::unique_ptr<RSSurfaceFrame> ret(std::move(frame));
     return ret;
 }
@@ -246,21 +263,29 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     GrBackendSemaphore backendSemaphore;
     backendSemaphore.initVulkan(semaphore);
 
+    auto& surface = mSurfaceMap[mSurfaceList.front()];
+
+#ifndef USE_ROSEN_DRAWING
     GrFlushInfo flushInfo;
     flushInfo.fNumSemaphores = 1;
     flushInfo.fSignalSemaphores = &backendSemaphore;
-
-    auto& surface = mSurfaceMap[mSurfaceList.front()];
     surface.skSurface->flush(SkSurface::BackendSurfaceAccess::kPresent, flushInfo);
     mSkContext->submit();
-
+#else
+    Drawing::FlushInfo drawingFlushInfo;
+    drawingFlushInfo.backendSurfaceAccess = true;
+    drawingFlushInfo.numSemaphores = 1;
+    drawingFlushInfo.backendSemaphore = static_cast<void*>(&backendSemaphore);
+    surface.drawingSurface->Flush(&drawingFlushInfo);
+    mSkContext->Submit();
+#endif
     int fenceFd = -1;
 
     auto queue = vkContext.GetQueue();
     if (vkContext.GetHardWareGrContext().get() == mSkContext.get()) {
         queue = vkContext.GetHardwareQueue();
     }
-    auto err = RsVulkanContext::interceptedVkQueueSignalReleaseImageOHOS(
+    auto err = RsVulkanContext::HookedVkQueueSignalReleaseImageOHOS(
         queue, 1, &semaphore, surface.image, &fenceFd);
     if (err != VK_SUCCESS) {
         ROSEN_LOGE("RSSurfaceOhosVulkan QueueSignalReleaseImageOHOS failed %{public}d", err);

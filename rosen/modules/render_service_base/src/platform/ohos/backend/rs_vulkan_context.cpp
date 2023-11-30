@@ -31,7 +31,11 @@
 namespace OHOS {
 namespace Rosen {
 
+#ifndef USE_ROSEN_DRAWING
 thread_local sk_sp<GrDirectContext> RsVulkanContext::skContext_ = nullptr;
+#else
+thread_local std::shared_ptr<Drawing::GPUContext> RsVulkanContext::drawingContext_ = nullptr;
+#endif
 
 static std::vector<const char*> gInstanceExtensions = {
     VK_KHR_SURFACE_EXTENSION_NAME,
@@ -51,6 +55,7 @@ static std::vector<const char*> gDeviceExtensions = {
 
 static const int GR_CACHE_MAX_COUNT = 8192;
 static const size_t GR_CACHE_MAX_BYTE_SIZE = 96 * (1 << 20);
+static const int32_t CACHE_LIMITS_TIMES = 3;
 
 RsVulkanContext::RsVulkanContext()
     : handle_(nullptr), acquiredMandatoryProcAddresses_(false)
@@ -176,9 +181,9 @@ bool RsVulkanContext::CreateInstance()
     return true;
 }
 
-bool RsVulkanContext::CreateDevice()
+bool RsVulkanContext::SelectPhysicalDevice()
 {
-    if (!physicalDevice_) {
+    if (!instance_) {
         return false;
     }
     uint32_t deviceCount = 0;
@@ -197,8 +202,11 @@ bool RsVulkanContext::CreateDevice()
     return true;
 }
 
-bool RsVulkanContext::GetGraphicsQueueFamilyIndex()
+bool RsVulkanContext::CreateDevice()
 {
+    if (!physicalDevice_) {
+        return false;
+    }
     uint32_t queueCount;
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice_, &queueCount, nullptr);
 
@@ -229,16 +237,11 @@ bool RsVulkanContext::GetGraphicsQueueFamilyIndex()
     vkGetPhysicalDeviceFeatures2(physicalDevice_, &physicalDeviceFeatures2_);
 
     const VkDeviceCreateInfo createInfo = {
-        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-        .pNext = &physicalDeviceFeatures2_,
-        .flags = 0,
-        .queueCreateInfoCount = queueCreate.size(),
-        .pQueueCreateInfos = queueCreate.data(),
-        .enabledLayerCount = 0,
-        .ppEnabledLayerNames = nullptr,
+        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO, .pNext = &physicalDeviceFeatures2_,
+        .flags = 0, .queueCreateInfoCount = queueCreate.size(), .pQueueCreateInfos = queueCreate.data(),
+        .enabledLayerCount = 0, .ppEnabledLayerNames = nullptr,
         .enabledExtensionCount = static_cast<uint32_t>(gDeviceExtensions.size()),
-        .ppEnabledExtensionNames = gDeviceExtensions.data(),
-        .pEnabledFeatures = nullptr,
+        .ppEnabledExtensionNames = gDeviceExtensions.data(), .pEnabledFeatures = nullptr,
     };
     if (vkCreateDevice(physicalDevice_, &createInfo, nullptr, &device_) != VK_SUCCESS) {
         ROSEN_LOGE("vkCreateDevice failed");
@@ -248,6 +251,8 @@ bool RsVulkanContext::GetGraphicsQueueFamilyIndex()
     if (!SetupDeviceProcAddresses(device_)) {
         return false;
     }
+
+    vkGetDeviceQueue(device_, graphicsQueueFamilyIndex_, 0, &queue_);
     vkGetDeviceQueue(device_, graphicsQueueFamilyIndex_, 1, &hardwareQueue_);
     return true;
 }
@@ -303,7 +308,7 @@ bool RsVulkanContext::CreateSkiaBackendContext(GrVkBackendContext* context, bool
     return true;
 }
 
-bool RsVulkanContext::SetupDevcieProcAddresses(VkDevice device)
+bool RsVulkanContext::SetupDeviceProcAddresses(VkDevice device)
 {
     ACQUIRE_PROC(AllocateCommandBuffers, device_);
     ACQUIRE_PROC(AllocateMemory, device_);
@@ -410,7 +415,8 @@ GrVkGetProc RsVulkanContext::CreateSkiaGetProc() const
     };
 }
 
-sk_sp<GrDirectContext> RsVulkanContext::(bool independentContext)
+#ifndef USE_ROSEN_DRAWING
+sk_sp<GrDirectContext> RsVulkanContext::CreateSkContext(bool independentContext)
 {
     std::unique_lock<std::mutex> lock(vkMutex_);
     if (independentContext) {
@@ -423,21 +429,46 @@ sk_sp<GrDirectContext> RsVulkanContext::(bool independentContext)
     skContext_ = GrDirectContext::MakeVulkan(backendContext_);
     int maxResources = 0;
     size_t maxResourcesSize = 0;
-    int cacheLimitsTimes = 3;
+    int cacheLimitsTimes = CACHE_LIMITS_TIMES;
     skContext_->getResourceCacheLimits(&maxResources, &maxResourcesSize);
     if (maxResourcesSize > 0) {
         skContext_->setResourceCacheLimits(cacheLimitsTimes * maxResources,
             cacheLimitsTimes * std::fmin(maxResourcesSize, GR_CACHE_MAX_BYTE_SIZE));
     } else {
-        skContext->setResourceCacheLimits(GR_CACHE_MAX_COUNT, GR_CACHE_MAX_BYTE_SIZE);
+        skContext_->setResourceCacheLimits(GR_CACHE_MAX_COUNT, GR_CACHE_MAX_BYTE_SIZE);
     }
     RS_LOGE("skContext_:%{public}p %{public}p", skContext_.get(), backendContext_.fQueue);
     return skContext_;
 }
+#else
+std::shared_ptr<Drawing::GPUContext> RsVulkanContext::CreateDrawingContext(bool independentContext)
+{
+    std::unique_lock<std::mutex> lock(vkMutex_);
+    if (independentContext) {
+        return CreateNewDrawingContext();
+    }
+    if (drawingContext_ != nullptr) {
+        return drawingContext_;
+    }
 
+    drawingContext_ = std::make_shared<Drawing::GPUContext>();
+    drawingContext_->BuildFromVK(backendContext_);
+    int maxResources = 0;
+    size_t maxResourcesSize = 0;
+    int cacheLimitsTimes = CACHE_LIMITS_TIMES;
+    drawingContext_->GetResourceCacheLimits(&maxResources, &maxResourcesSize);
+    if (maxResourcesSize > 0) {
+        drawingContext_->SetResourceCacheLimits(cacheLimitsTimes * maxResources,
+            cacheLimitsTimes * std::fmin(maxResourcesSize, GR_CACHE_MAX_BYTE_SIZE));
+    } else {
+        drawingContext_->SetResourceCacheLimits(GR_CACHE_MAX_COUNT, GR_CACHE_MAX_BYTE_SIZE);
+    }
+    return drawingContext_;
+}
+#endif
+#ifndef USE_ROSEN_DRAWING
 sk_sp<GrDirectContext> RsVulkanContext::CreateNewSkContext()
 {
-    //GrVkBackendContext bc;
     CreateSkiaBackendContext(&hbackendContext_, true);
     skContext_ = GrDirectContext::MakeVulkan(hbackendContext_);
     int maxResources = 0;
@@ -451,10 +482,31 @@ sk_sp<GrDirectContext> RsVulkanContext::CreateNewSkContext()
         skContext_->setResourceCacheLimits(GR_CACHE_MAX_COUNT, GR_CACHE_MAX_BYTE_SIZE);
     }
     hcontext_ = skContext_;
-    RS_LOGE("new skContext_:%{public}p %{public}p", skContext_.get(), hbackendContext_.fQueue);
+    RS_LOGD("new skContext_:%{public}p %{public}p", skContext_.get(), hbackendContext_.fQueue);
     return skContext_;
 }
+#else
+std::shared_ptr<Drawing::GPUContext> RsVulkanContext::CreateNewDrawingContext()
+{
+    CreateSkiaBackendContext(&hbackendContext_, true);
+    drawingContext_ = std::make_shared<Drawing::GPUContext>();
+    drawingContext_->BuildFromVK(hbackendContext_);
+    int maxResources = 0;
+    size_t maxResourcesSize = 0;
+    int cacheLimitsTimes = CACHE_LIMITS_TIMES;
+    drawingContext_->GetResourceCacheLimits(&maxResources, &maxResourcesSize);
+    if (maxResourcesSize > 0) {
+        drawingContext_->SetResourceCacheLimits(cacheLimitsTimes * maxResources, cacheLimitsTimes *
+            std::fmin(maxResourcesSize, GR_CACHE_MAX_BYTE_SIZE));
+    } else {
+        drawingContext_->SetResourceCacheLimits(GR_CACHE_MAX_COUNT, GR_CACHE_MAX_BYTE_SIZE);
+    }
+    hcontext_ = drawingContext_;
+    return drawingContext_;
+}
+#endif
 
+#ifndef USE_ROSEN_DRAWING
 sk_sp<GrDirectContext> RsVulkanContext::GetSkContext()
 {
     if (skContext_ != nullptr) {
@@ -463,6 +515,15 @@ sk_sp<GrDirectContext> RsVulkanContext::GetSkContext()
     CreateSkContext();
     return skContext_;
 }
-
+#else
+std::shared_ptr<Drawing::GPUContext> RsVulkanContext::GetDrawingContext()
+{
+    if (drawingContext_ != nullptr) {
+        return drawingContext_;
+    }
+    CreateDrawingContext();
+    return drawingContext_;
+}
+#endif
 }
 }

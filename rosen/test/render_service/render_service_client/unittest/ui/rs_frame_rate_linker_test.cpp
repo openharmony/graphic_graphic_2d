@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,14 +14,13 @@
  */
 
 #include "gtest/gtest.h"
+
 #include "ui/rs_frame_rate_linker.h"
 
 using namespace testing;
 using namespace testing::ext;
 
-namespace OHOS {
-namespace Rosen {
-
+namespace OHOS::Rosen {
 class RSFrameRateLinkerTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -36,18 +35,62 @@ void RSFrameRateLinkerTest::SetUp() {}
 void RSFrameRateLinkerTest::TearDown() {}
 
 /**
+ * @tc.name: Create
+ * @tc.desc: Test Create
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSFrameRateLinkerTest, Create, TestSize.Level1)
+{
+    auto frameRateLinker = RSFrameRateLinker::Create();
+    ASSERT_NE(frameRateLinker, nullptr);
+    EXPECT_EQ(frameRateLinker.use_count(), 1);
+    EXPECT_GT(frameRateLinker->GetId(), 0);
+}
+
+/**
  * @tc.name: UpdateFrameRateRange
- * @tc.desc:
- * @tc.type:FUNC
+ * @tc.desc: Test UpdateFrameRateRange
+ * @tc.type: FUNC
  */
 HWTEST_F(RSFrameRateLinkerTest, UpdateFrameRateRange, TestSize.Level1)
 {
-    RSFrameRateLinker rsFrameRateLinker;
-    FrameRateRange range = {0, 0, 0};
-    rsFrameRateLinker.UpdateFrameRateRange(range);
-
-    rsFrameRateLinker.UpdateFrameRateRangeImme(range);
+    std::shared_ptr<RSFrameRateLinker> frameRateLinker = RSFrameRateLinker::Create();
+    ASSERT_NE(frameRateLinker, nullptr);
+    FrameRateRange initialRange = {30, 144, 60};
+    FrameRateRange newRange = {60, 144, 120};
+    frameRateLinker->UpdateFrameRateRange(initialRange);
+    frameRateLinker->UpdateFrameRateRange({30, 144, 60});
+    frameRateLinker->UpdateFrameRateRange(newRange);
 }
 
-} // namespace Rosen
-} // namespace OHOS
+/**
+ * @tc.name: UpdateFrameRateRangeImme
+ * @tc.desc: Test UpdateFrameRateRangeImme
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSFrameRateLinkerTest, UpdateFrameRateRangeImme, TestSize.Level1)
+{
+    std::shared_ptr<RSFrameRateLinker> frameRateLinker = RSFrameRateLinker::Create();
+    ASSERT_NE(frameRateLinker, nullptr);
+    FrameRateRange initialRange = {30, 144, 60};
+    FrameRateRange newRange = {60, 144, 120};
+    frameRateLinker->UpdateFrameRateRangeImme(initialRange);
+    frameRateLinker->UpdateFrameRateRangeImme({30, 144, 60});
+    frameRateLinker->UpdateFrameRateRangeImme(newRange);
+}
+
+/**
+ * @tc.name: SetEnable
+ * @tc.desc: Test SetEnable
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSFrameRateLinkerTest, SetEnable, TestSize.Level1)
+{
+    std::shared_ptr<RSFrameRateLinker> frameRateLinker = RSFrameRateLinker::Create();
+    ASSERT_NE(frameRateLinker, nullptr);
+    frameRateLinker->SetEnable(true);
+    EXPECT_TRUE(frameRateLinker->IsEnable());
+    frameRateLinker->SetEnable(false);
+    EXPECT_FALSE(frameRateLinker->IsEnable());
+}
+} // namespace OHOS::Rosen

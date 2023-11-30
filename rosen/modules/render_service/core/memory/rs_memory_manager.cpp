@@ -120,7 +120,7 @@ void MemoryManager::ReleaseAllGpuResource(GrContext* grContext, GrGpuResourceTag
 #else
 void MemoryManager::ReleaseAllGpuResource(Drawing::GPUContext* gpuContext, Drawing::GPUResourceTag& tag)
 {
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!gpuContext) {
         RS_LOGE("ReleaseGpuResByTag fail, gpuContext is nullptr");
     }
@@ -146,7 +146,7 @@ void MemoryManager::ReleaseAllGpuResource(GrContext* grContext, pid_t pid)
 #else
 void MemoryManager::ReleaseAllGpuResource(Drawing::GPUContext* gpuContext, pid_t pid)
 {
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     Drawing::GPUResourceTag tag(pid, 0, 0, 0);
     ReleaseAllGpuResource(gpuContext, tag);
 #endif
@@ -172,7 +172,7 @@ void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, GrGpuResource
 #else
 void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, Drawing::GPUResourceTag& tag)
 {
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!gpuContext) {
         RS_LOGE("ReleaseGpuResByTag fail, gpuContext is nullptr");
     }
@@ -198,7 +198,7 @@ void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, NodeId surfac
 #else
 void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, NodeId surfaceNodeId)
 {
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     Drawing::GPUResourceTag tag(ExtractPid(surfaceNodeId), 0, 0, 0);
     ReleaseUnlockGpuResource(grContext, tag);
 #endif
@@ -220,7 +220,7 @@ void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, pid_t pid)
 #else
 void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, pid_t pid)
 {
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     Drawing::GPUResourceTag tag(pid, 0, 0, 0);
     ReleaseUnlockGpuResource(grContext, tag); // clear gpu resource by pid
 #endif
@@ -245,7 +245,7 @@ void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, bool scratchR
 #else
 void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, bool scratchResourcesOnly)
 {
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!gpuContext) {
         RS_LOGE("ReleaseGpuResByTag fail, gpuContext is nullptr");
     }
@@ -273,7 +273,7 @@ void MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(GrContext* grContext)
 #else
 void MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(Drawing::GPUContext* gpuContext)
 {
-#ifdef RS_ENABLE_GL
+#if defined (RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!gpuContext) {
         RS_LOGE("ReleaseUnlockAndSafeCacheGpuResource fail, gpuContext is nullptr");
     }
@@ -293,7 +293,7 @@ float MemoryManager::GetAppGpuMemoryInMB(GrContext* grContext)
     if (!grContext) {
         return 0.f;
     }
-#ifdef RS_ENABLE_GL
+#if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
     SkiaMemoryTracer trace("category", true);
     grContext->dumpMemoryStatistics(&trace);
     auto total = trace.GetGpuMemorySizeInMB();
@@ -312,10 +312,10 @@ float MemoryManager::GetAppGpuMemoryInMB(GrContext* grContext)
 #else
 float MemoryManager::GetAppGpuMemoryInMB(Drawing::GPUContext* gpuContext)
 {
-#ifdef RS_ENABLE_GL
     if (!gpuContext) {
         return 0.f;
     }
+#if defined (RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     Drawing::TraceMemoryDump trace("category", true);
     gpuContext->DumpMemoryStatistics(&trace);
     auto total = trace.GetGpuMemorySizeInMB();
@@ -327,6 +327,8 @@ float MemoryManager::GetAppGpuMemoryInMB(Drawing::GPUContext* gpuContext)
         rsMemSize += gpuTrace.GetGpuMemorySizeInMB();
     }
     return total - rsMemSize;
+#else
+    return 0.f;
 #endif
 }
 #endif
@@ -417,7 +419,7 @@ MemoryGraphic MemoryManager::CountPidMemory(int pid, const Drawing::GPUContext* 
     MemoryGraphic rsMemGraphic = MemoryTrack::Instance().CountRSMemory(pid);
     totalMemGraphic += rsMemGraphic;
 
-#ifdef RS_ENABLE_GL
+#if defined (RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Count mem of Skia GPU
     if (gpuContext) {
         Drawing::TraceMemoryDump gpuTracer("category", true);
@@ -582,7 +584,7 @@ void MemoryManager::DumpGpuCache(
         return;
     }
     /* GPU */
-#ifdef RS_ENABLE_GL
+#if defined (RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     log.AppendFormat("\n---------------\nSkia GPU Caches:%s\n", name.c_str());
     Drawing::TraceMemoryDump gpuTracer("category", true);
     if (tag) {
@@ -624,7 +626,7 @@ void MemoryManager::DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* gp
         log.AppendFormat("No valid gpu cache instance.\n");
         return;
     }
-#ifdef RS_ENABLE_GL
+#if defined (RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes([&log, &gpuContext](const std::shared_ptr<RSSurfaceRenderNode> node) {
         Drawing::GPUResourceTag tag(ExtractPid(node->GetId()), 0, node->GetId(), 0);

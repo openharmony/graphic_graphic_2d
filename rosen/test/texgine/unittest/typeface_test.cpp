@@ -70,7 +70,7 @@ size_t TexgineTypeface::GetTableData(uint32_t tag, size_t offset, size_t length,
 
 void TexgineTypeface::GetFamilyName(TexgineString* name) const
 {
-    name->SetString(g_typefaceMockvars.name);
+    name->SetString(std::make_shared<SkString>(g_typefaceMockvars.name));
 }
 
 extern "C" {

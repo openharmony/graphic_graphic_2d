@@ -123,14 +123,14 @@ HWTEST_F(RSDisplayRenderNodeTest, IsRotationChangedTest, TestSize.Level1)
  */
 HWTEST_F(RSDisplayRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
 {
-    RSRenderNode node(id, context);
-    auto childNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
-    node.AddChild(childNode);
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id, context);
+    auto childNode = std::make_shared<RSDisplayRenderNode>(id + 1, config, context);
+    node->AddChild(childNode);
     childNode->SetBootAnimation(true);
     ASSERT_EQ(childNode->GetBootAnimation(), true);
-    ASSERT_EQ(node.GetContainBootAnimation(), true);
-    node.SetBootAnimation(false);
-    ASSERT_FALSE(node.GetBootAnimation());
+    ASSERT_EQ(node->GetContainBootAnimation(), true);
+    node->SetBootAnimation(false);
+    ASSERT_FALSE(node->GetBootAnimation());
 }
 
 /**

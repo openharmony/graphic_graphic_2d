@@ -32,6 +32,7 @@ RSRcdSurfaceRenderNode::RSRcdSurfaceRenderNode(
     rcdExtInfo_.surfaceType = type;
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
+    rcdGlobalZOrder_ = static_cast<float>(0x7FFFFFFF); // make at toppest layer
 }
 
 RSRcdSurfaceRenderNode::~RSRcdSurfaceRenderNode()
@@ -142,8 +143,8 @@ void RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(rs_rcd::RoundCornerLa
     }
     layerBitmap = *(layerInfo->curBitmap);
 
-    uint32_t bitmapHeight = layerBitmap.height();
-    uint32_t bitmapWidth = layerBitmap.width();
+    uint32_t bitmapHeight = static_cast<uint32_t>(layerBitmap.height());
+    uint32_t bitmapWidth = static_cast<uint32_t>(layerBitmap.width());
     SetRcdBufferHeight(bitmapHeight);
     SetRcdBufferWidth(bitmapWidth);
     SetRcdBufferSize(cldLayerInfo.bufferSize);
@@ -151,9 +152,11 @@ void RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(rs_rcd::RoundCornerLa
     if (IsTopSurface()) {
         rcdExtInfo_.srcRect_ = RectI(0, 0, bitmapWidth, bitmapHeight);
         rcdExtInfo_.dstRect_ = RectI(0, 0, bitmapWidth, bitmapHeight);
+        SetGlobalZOrder(rcdGlobalZOrder_);
     } else {
         rcdExtInfo_.srcRect_ = RectI(0, 0, bitmapWidth, bitmapHeight);
         rcdExtInfo_.dstRect_ = RectI(0, layerInfo->layerHeight - bitmapHeight, bitmapWidth, bitmapHeight);
+        SetGlobalZOrder(rcdGlobalZOrder_ - 1);
     }
 }
 
@@ -197,20 +200,20 @@ bool RSRcdSurfaceRenderNode::FillHardwareResource(HardwareLayerInfo &cldLayerInf
         uint32_t baseColor = 0;
     };
 
-    const int bytesPerPixel = 4; // 4 means four bytes per pixel
+    const uint32_t bytesPerPixel = 4; // 4 means four bytes per pixel
     CldInfo cldInfo;
-    cldInfo.cldSize = cldLayerInfo.bufferSize;
-    cldInfo.cldWidth = cldLayerInfo.cldWidth;
-    cldInfo.cldHeight = cldLayerInfo.cldHeight;
-    cldInfo.cldStride = cldLayerInfo.cldWidth * bytesPerPixel;
-    cldInfo.exWidth = width;
-    cldInfo.exHeight = height;
+    cldInfo.cldSize = static_cast<uint32_t>(cldLayerInfo.bufferSize);
+    cldInfo.cldWidth = static_cast<uint32_t>(cldLayerInfo.cldWidth);
+    cldInfo.cldHeight = static_cast<uint32_t>(cldLayerInfo.cldHeight);
+    cldInfo.cldStride = static_cast<uint32_t>(cldLayerInfo.cldWidth * bytesPerPixel);
+    cldInfo.exWidth = static_cast<uint32_t>(width);
+    cldInfo.exHeight = static_cast<uint32_t>(height);
     
     int offset = 0;
     int offsetCldInfo = 0;
     offsetCldInfo = height * stride;
     offset = (height + 1) * stride;
-    cldInfo.cldDataOffset = offset;
+    cldInfo.cldDataOffset = static_cast<uint32_t>(offset);
     
     errno_t ret = memcpy_s(reinterpret_cast<void*>(img + offsetCldInfo), sizeof(cldInfo), &cldInfo, sizeof(cldInfo));
     if (ret != EOK) {

@@ -92,6 +92,10 @@ void RSImageBase::DrawImage(RSPaintFilterCanvas& canvas, const SkPaint& paint)
     ConvertPixelMapToSkImage();
     auto src = RSPropertiesPainter::Rect2SkRect(srcRect_);
     auto dst = RSPropertiesPainter::Rect2SkRect(dstRect_);
+    if (image_ == nullptr) {
+        RS_LOGE("RSImageBase::DrawImage image_ is nullptr");
+        return;
+    }
 #ifdef NEW_SKIA
     canvas.drawImageRect(image_, src, dst, samplingOptions, &paint, SkCanvas::kStrict_SrcRectConstraint);
 #else
@@ -99,8 +103,7 @@ void RSImageBase::DrawImage(RSPaintFilterCanvas& canvas, const SkPaint& paint)
 #endif
 }
 #else
-void RSImageBase::DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions,
-    const Drawing::Brush& brush)
+void RSImageBase::DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions)
 {
     ConvertPixelMapToDrawingImage();
     auto src = RSPropertiesPainter::Rect2DrawingRect(srcRect_);
@@ -109,9 +112,7 @@ void RSImageBase::DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOpti
         RS_LOGE("RSImageBase::DrawImage image_ is nullptr");
         return;
     }
-    canvas.AttachBrush(brush);
     canvas.DrawImageRect(*image_, src, dst, samplingOptions);
-    canvas.DetachBrush();
 }
 #endif
 

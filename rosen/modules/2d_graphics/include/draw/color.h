@@ -21,8 +21,8 @@
 
 #include "common/rs_macros.h"
 #include "effect/color_space.h"
-#include "utils/drawing_macros.h"
 #include "utils/scalar.h"
+#include "utils/drawing_macros.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -54,11 +54,8 @@ struct Color4f {
 };
 
 typedef uint32_t ColorQuad;
-#ifndef USE_ROSEN_DRAWING
-class RS_EXPORT Color {
-#else
+
 class DRAWING_API Color {
-#endif
 public:
     constexpr static ColorQuad COLOR_TRANSPARENT = 0;
     constexpr static ColorQuad COLOR_BLACK = 0xFF000000;
@@ -137,13 +134,8 @@ public:
     void SetColorQuad(uint32_t c);
     ColorQuad CastToColorQuad() const;
 
-#ifndef USE_ROSEN_DRAWING
-    RS_EXPORT friend bool operator==(const Color& c1, const Color& c2);
-    RS_EXPORT friend bool operator!=(const Color& c1, const Color& c2);
-#else
     friend DRAWING_API bool operator==(const Color& c1, const Color& c2);
     friend DRAWING_API bool operator!=(const Color& c1, const Color& c2);
-#endif
 
 private:
     uint32_t alpha_;

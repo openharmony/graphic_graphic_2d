@@ -117,7 +117,7 @@ napi_value WebGLRenderingContextBase::GetExtension(napi_env env, napi_callback_i
     if (!funcArg.InitArgs(NARG_CNT::ONE)) {
         return NVal::CreateNull(env).val_;
     }
-    bool succ= false;
+    bool succ = false;
     unique_ptr<char[]> name = nullptr;
     uint32_t nameLen = 0;
     tie(succ, name, nameLen) = NVal(env, funcArg[NARG_POS::FIRST]).ToUTF8String();

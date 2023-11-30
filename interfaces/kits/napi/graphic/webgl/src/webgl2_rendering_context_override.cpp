@@ -33,12 +33,6 @@ namespace OHOS {
 namespace Rosen {
 namespace Impl {
 using namespace std;
-#define SET_ERROR(error)                             \
-    do {                                             \
-        LOGE("WebGL2 error code %{public}u", error); \
-        SetError(error);                             \
-    } while (0)
-
 napi_value WebGL2RenderingContextImpl::GetParameter(napi_env env, GLenum pname)
 {
     switch (pname) {

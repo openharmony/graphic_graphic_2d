@@ -27,7 +27,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class TextBlob {
+class DRAWING_API TextBlob {
 public:
     explicit TextBlob(std::shared_ptr<TextBlobImpl> textBlobImpl) noexcept;
     virtual ~TextBlob() = default;

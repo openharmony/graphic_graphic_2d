@@ -101,7 +101,8 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetShadowRadius(0.f); },              // SHADOW_RADIUS,            46
     [](RSProperties* prop) { prop->SetShadowPath({}); },                 // SHADOW_PATH,              47
     [](RSProperties* prop) { prop->SetShadowMask(false); },              // SHADOW_MASK,              48
-    [](RSProperties* prop) { prop->SetShadowColorStrategy(false); },     // ShadowColorStrategy,      49
+    [](RSProperties* prop) { prop->SetShadowColorStrategy(               // ShadowColorStrategy,      49
+        SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE); },
     [](RSProperties* prop) { prop->SetMask({}); },                       // MASK,                     50
     [](RSProperties* prop) { prop->SetSpherize(0.f); },                  // SPHERIZE,                 51
     [](RSProperties* prop) { prop->SetLightUpEffect(1.f); },             // LIGHT_UP_EFFECT,          52
@@ -153,6 +154,7 @@ RSProperties::RSProperties()
 
 RSProperties::~RSProperties() = default;
 
+#ifndef USE_ROSEN_DRAWING
 void RSProperties::ResetProperty(const std::unordered_set<RSModifierType>& dirtyTypes)
 {
     for (const auto& type : dirtyTypes) {
@@ -164,6 +166,21 @@ void RSProperties::ResetProperty(const std::unordered_set<RSModifierType>& dirty
         }
     }
 }
+#else
+void RSProperties::ResetProperty(const std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>& dirtyTypes)
+{
+    if (dirtyTypes.none()) {
+        return;
+    }
+    for (uint8_t type = 0; type < static_cast<size_t>(RSModifierType::CUSTOM); type++) {
+        if (dirtyTypes[type]) {
+            if (auto& resetFunc = g_propertyResetterLUT[type]) {
+                resetFunc(this);
+            }
+        }
+    }
+}
+#endif
 
 void RSProperties::SetBounds(Vector4f bounds)
 {
@@ -459,8 +476,7 @@ void RSProperties::UpdateSandBoxMatrix(const std::optional<Drawing::Matrix>& roo
 #ifndef USE_ROSEN_DRAWING
     sandbox_->matrix_ = rootMat.preTranslate(sandbox_->position_->x_, sandbox_->position_->y_);
 #else
-    Drawing::Matrix matrix;
-    matrix.DeepCopy(rootMatrix.value());
+    Drawing::Matrix matrix = rootMatrix.value();
     matrix.PreTranslate(sandbox_->position_->x_, sandbox_->position_->y_);
     sandbox_->matrix_ = matrix;
 #endif
@@ -1116,7 +1132,7 @@ const std::shared_ptr<RSFilter>& RSProperties::GetFilter() const
 bool RSProperties::IsDynamicLightUpValid() const
 {
     return dynamicLightUpRate_.has_value() && dynamicLightUpDegree_.has_value() &&
-           ROSEN_GNE(*dynamicLightUpRate_, 0.0) && ROSEN_GE(*dynamicLightUpDegree_, 0.0) &&
+           ROSEN_GNE(*dynamicLightUpRate_, 0.0) && ROSEN_GE(*dynamicLightUpDegree_, -1.0) &&
            ROSEN_LE(*dynamicLightUpDegree_, 1.0);
 }
 
@@ -1238,7 +1254,7 @@ void RSProperties::SetShadowIsFilled(bool shadowIsFilled)
     contentDirty_ = true;
 }
 
-void RSProperties::SetShadowColorStrategy(bool shadowColorStrategy)
+void RSProperties::SetShadowColorStrategy(int shadowColorStrategy)
 {
     if (!shadow_.has_value()) {
         shadow_ = std::make_optional<RSShadow>();
@@ -1249,8 +1265,9 @@ void RSProperties::SetShadowColorStrategy(bool shadowColorStrategy)
     // [planning] if shadow stores as texture and out of node
     // node content would not be affected
     contentDirty_ = true;
-    if (shadowColorStrategy && colorPickerTaskShadow_ == nullptr) {
+    if (shadowColorStrategy != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE && colorPickerTaskShadow_ == nullptr) {
         CreateColorPickerTaskForShadow();
+        colorPickerTaskShadow_->SetShadowColorStrategy(shadowColorStrategy);
     }
 }
 
@@ -1301,9 +1318,9 @@ bool RSProperties::GetShadowIsFilled() const
     return shadow_ ? shadow_->GetIsFilled() : false;
 }
 
-bool RSProperties::GetShadowColorStrategy() const
+int RSProperties::GetShadowColorStrategy() const
 {
-    return shadow_ ? shadow_->GetColorStrategy() : false;
+    return shadow_ ? shadow_->GetColorStrategy() : SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
 }
 
 const std::optional<RSShadow>& RSProperties::GetShadow() const
@@ -1709,7 +1726,6 @@ void RSProperties::SetLightIntensity(float lightIntensity)
         lightSourcePtr_ = std::make_shared<RSLightSource>();
     }
     lightSourcePtr_->SetLightIntensity(lightIntensity);
-    colorFilterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
 
@@ -1733,7 +1749,6 @@ void RSProperties::SetLightPosition(const Vector4f& lightPosition)
         lightSourcePtr_ = std::make_shared<RSLightSource>();
     }
     lightSourcePtr_->SetLightPosition(lightPosition);
-    colorFilterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
 }
@@ -1745,7 +1760,6 @@ void RSProperties::SetIlluminatedType(int illuminatedType)
     }
     auto curIlluminateType = IlluminatedType(illuminatedType);
     illuminatedPtr_->SetIlluminatedType(curIlluminateType);
-    colorFilterNeedUpdate_ = true;
     isDrawn_ = true;
     SetDirty();
     contentDirty_ = true;
@@ -1770,7 +1784,6 @@ void RSProperties::SetBloom(float bloomIntensity)
         illuminatedPtr_ = std::make_shared<RSIlluminated>();
     }
     illuminatedPtr_->SetBloomIntensity(bloomIntensity);
-    colorFilterNeedUpdate_ = true;
     isDrawn_ = true;
     SetDirty();
     contentDirty_ = true;
@@ -2678,8 +2691,6 @@ void RSProperties::OnApplyModifiers()
         if (clipToFrame_ && clipToBounds_ && frameOffsetX_ == 0 && frameOffsetY_ == 0) {
             clipToFrame_ = false;
         }
-        frameGeo_->Round();
-        boundsGeo_->Round();
     }
     if (colorFilterNeedUpdate_) {
         GenerateColorFilter();

@@ -16,6 +16,7 @@ declare_args() {
   graphic_2d_feature_ace_enable_gpu = true
   graphic_2d_feature_color_gamut_enable = false
   graphic_2d_feature_rs_enable_eglimage = false
+  graphic_2d_feature_use_video_processing_engine = false
   graphic_2d_feature_use_texgine = false
   graphic_2d_feature_rs_enable_uni_render = false
   graphic_2d_feature_wuji_enable = false
@@ -27,11 +28,13 @@ declare_args() {
   graphic_2d_feature_parallel_upload_enable = true
   enable_text_gine = true
   use_texgine = true
+  use_video_processing_engine = false
   logger_enable_scope = false
   texgine_enable_debug_log = false
   player_framework_enable = true
   graphic_2d_feature_drivers_interface_display_enable = true
   graphic_2d_feature_tp_switch_enbale = false
+  graphic_2d_feature_enable_recording_dcl = false
 
   if (defined(is_arkui_x) && is_arkui_x) {
     use_new_render_context = false
@@ -65,6 +68,13 @@ if (graphic_2d_feature_ace_enable_gpu) {
     } else {
       rs_enable_parallel_upload = false
     }
+  }
+  if (graphic_2d_feature_enable_recording_dcl) {
+    rs_enable_recording_dcl = true
+    gpu_defines += [ "ENABLE_RECORDING_DCL" ]
+    graphic_2d_feature_enable_vulkan = true
+  } else {
+    rs_enable_recording_dcl = false
   }
   ace_enable_gpu = true
   rs_enable_gpu = true
@@ -105,6 +115,7 @@ if (graphic_2d_feature_rs_enable_eglimage || current_os == "android") {
 }
 
 # use_texgine = graphic_2d_feature_use_texgine
+use_video_processing_engine = graphic_2d_feature_use_video_processing_engine
 
 if (graphic_2d_feature_rs_enable_uni_render) {
   rs_enable_driven_render = true
@@ -172,6 +183,7 @@ skia_root_new = "//third_party/skia"
 memmgr_root = "//foundation/resourceschedule/memmgr"
 memmgr_plugin_root = "//foundation/resourceschedule/memmgr_plugin"
 fuzz_test_output_path = "graphic_2d/graphic_2d"
+video_processing_engine_root = "//foundation/multimedia/video_processing_engine"
 
 accessibility_enable = false
 if (defined(global_parts_info) &&

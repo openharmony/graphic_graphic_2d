@@ -69,6 +69,16 @@ void MemAllocator::Clear()
     size_ = 0;
 }
 
+void MemAllocator::ClearData()
+{
+    if (!isReadOnly_ && startPtr_) {
+        delete[] startPtr_;
+    }
+    startPtr_ = nullptr;
+    capacity_ = 0;
+    size_ = 0;
+}
+
 bool MemAllocator::Resize(size_t size)
 {
     if (isReadOnly_ || size == 0 || size > MEM_SIZE_MAX || size < size_) {

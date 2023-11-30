@@ -110,12 +110,10 @@ private:
     uint32_t displayWidth_ = 0;
     uint32_t displayHeight_ = 0;
 
-    // setting of the notch
-    int notchSetting_ = WINDOW_NOTCH_DEFAULT;
     // status of the notch
-    int notchStatus_ = notchSetting_;
+    int notchStatus_ = WINDOW_NOTCH_DEFAULT;
 
-    int showResourceType_ = (notchSetting_ == WINDOW_NOTCH_DEFAULT) ? TOP_PORTRAIT : TOP_HIDDEN;
+    int showResourceType_ = (notchStatus_ == WINDOW_NOTCH_DEFAULT) ? TOP_PORTRAIT : TOP_HIDDEN;
 
     // status of the rotation
     ScreenRotation curOrientation_ = ScreenRotation::ROTATION_0;
@@ -124,6 +122,7 @@ private:
     bool supportTopSurface_ = false;
     bool supportBottomSurface_ = false;
     bool supportHardware_ = false;
+    bool resourceChanged = false;
 
     // the resource to be drawn
     sk_sp<SkImage> curTop_ = nullptr;
@@ -135,15 +134,15 @@ private:
 
     bool Init();
 
-    bool LoadConfigFile();
+    static bool LoadConfigFile();
 
     // choose LCD mode
     bool SeletedLcdModel(const char* lcdModelName);
 
     // load single image as skimage
-    bool LoadImg(const char* path, sk_sp<SkImage>& img);
+    static bool LoadImg(const char* path, sk_sp<SkImage>& img);
 
-    bool DecodeBitmap(sk_sp<SkImage> skimage, SkBitmap &bitmap);
+    static bool DecodeBitmap(sk_sp<SkImage> image, SkBitmap &bitmap);
 
     bool SetHardwareLayerSize();
 

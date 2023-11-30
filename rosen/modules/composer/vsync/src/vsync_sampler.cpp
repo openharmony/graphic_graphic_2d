@@ -296,6 +296,28 @@ void VSyncSampler::SetPendingPeriod(int64_t period)
     }
 }
 
+void VSyncSampler::Dump(std::string &result)
+{
+    result.append("\n-- VSyncSampler --");
+    result += "\nperiod:" + std::to_string(period_);
+    result += "\nphase:" + std::to_string(phase_);
+    result += "\nreferenceTime:" + std::to_string(referenceTime_);
+    result += "\nmodeUpdated:" + std::to_string(modeUpdated_);
+    result += "\nhardwareVSyncStatus:" + std::to_string(hardwareVSyncStatus_);
+    result += "\nnumSamples:" + std::to_string(numSamples_);
+    result += "\nsamples:[";
+    for (uint32_t i = 0; i < numSamples_; i++) {
+        result += std::to_string(samples_[(firstSampleIndex_ + i) % MAX_SAMPLES]) + ",";
+    }
+    result += "]";
+    result += "\npresentFenceTime:[";
+    for (uint32_t i = 0; i < NUM_PRESENT; i++) {
+        result += std::to_string(presentFenceTime_[i]) + ",";
+    }
+    result += "]";
+    result += "\npresentFenceTimeOffset:" + std::to_string(presentFenceTimeOffset_);
+}
+
 VSyncSampler::~VSyncSampler()
 {
 }

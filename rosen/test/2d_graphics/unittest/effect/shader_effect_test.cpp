@@ -247,8 +247,9 @@ HWTEST_F(ShaderEffectTest, CreateTwoPointConical001, TestSize.Level1)
     std::vector<ColorQuad> colors;
     std::vector<scalar> position;
     TileMode tileMode = TileMode::MIRROR;
-    auto newShaderEffect =
-        ShaderEffect::CreateTwoPointConical(startPoint, startRadius, endPoint, endRadius, colors, position, tileMode);
+    Matrix matrix;
+    auto newShaderEffect = ShaderEffect::CreateTwoPointConical(startPoint, startRadius, endPoint, endRadius, colors,
+        position, tileMode, &matrix);
     EXPECT_TRUE(newShaderEffect != nullptr);
 }
 
@@ -268,8 +269,9 @@ HWTEST_F(ShaderEffectTest, CreateTwoPointConical002, TestSize.Level1)
     std::vector<ColorQuad> colors;
     std::vector<scalar> position;
     TileMode tileMode = TileMode::REPEAT;
-    auto newShaderEffect =
-        ShaderEffect::CreateTwoPointConical(startPoint, startRadius, endPoint, endRadius, colors, position, tileMode);
+    Matrix matrix;
+    auto newShaderEffect = ShaderEffect::CreateTwoPointConical(startPoint, startRadius, endPoint, endRadius, colors,
+        position, tileMode, &matrix);
     EXPECT_TRUE(newShaderEffect != nullptr);
 }
 
@@ -568,8 +570,9 @@ HWTEST_F(ShaderEffectTest, ArgsContructor015, TestSize.Level1)
     scalar endRadius = 0.7f;
     std::vector<ColorQuad> colors;
     std::vector<scalar> position;
+    Matrix matrix;
     auto newShaderEffect = std::make_unique<ShaderEffect>(ShaderEffect::ShaderEffectType::COLOR, startPoint,
-        startRadius, endPoint, endRadius, colors, position, TileMode::REPEAT);
+        startRadius, endPoint, endRadius, colors, position, TileMode::REPEAT, &matrix);
     ASSERT_TRUE(newShaderEffect != nullptr);
 }
 
@@ -588,8 +591,9 @@ HWTEST_F(ShaderEffectTest, ArgsContructor016, TestSize.Level1)
     scalar endRadius = 10.7f;
     std::vector<ColorQuad> colors;
     std::vector<scalar> position;
+    Matrix matrix;
     auto newShaderEffect = std::make_unique<ShaderEffect>(ShaderEffect::ShaderEffectType::LINEAR_GRADIENT, startPoint,
-        startRadius, endPoint, endRadius, colors, position, TileMode::REPEAT);
+        startRadius, endPoint, endRadius, colors, position, TileMode::REPEAT, &matrix);
     ASSERT_TRUE(newShaderEffect != nullptr);
 }
 

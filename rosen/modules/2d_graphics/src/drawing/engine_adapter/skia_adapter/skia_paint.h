@@ -108,8 +108,8 @@ public:
     void ApplyBrushToFill(const Brush& brush);
     void ApplyPenToStroke(const Pen& pen);
 
-    void BrushToSkPaint(const Brush& brush, SkPaint& paint) const;
-    void PenToSkPaint(const Pen& pen, SkPaint& paint) const;
+    static void BrushToSkPaint(const Brush& brush, SkPaint& paint);
+    static void PenToSkPaint(const Pen& pen, SkPaint& paint);
 
     void DisableStroke();
     void DisableFill();
@@ -117,6 +117,9 @@ public:
     SortedPaints& GetSortedPaints();
     void SetStrokeFirst(bool isStrokeFirst);
     bool IsStrokeFirst() const;
+
+    static bool CanComputeFastBounds(const Brush& brush);
+    static const Rect& ComputeFastBounds(const Brush& brush, const Rect& orig, Rect* storage);
 
 private:
     template <class T>
@@ -127,7 +130,7 @@ private:
     void GenerateFillAndStrokePaint();
     void ApplyFillCoreToSkPaint(const SkStyleFillCore& fillCore, SkPaint& paint);
     void ApplyStrokeCoreToSkPaint(const SkStyleStrokeCore& strokeCore, SkPaint& paint);
-    void ApplyFilter(SkPaint& paint, const Filter& filter) const;
+    static void ApplyFilter(SkPaint& paint, const Filter& filter);
 
     bool isStrokeFirst_;
     PaintData stroke_;

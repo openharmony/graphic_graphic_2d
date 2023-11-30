@@ -23,10 +23,11 @@
 
 namespace OHOS {
 namespace Rosen {
+static std::mutex drawingMutex_;
 #ifndef USE_ROSEN_DRAWING
-using ThreadInfo = std::pair<uint64_t, std::function<void(sk_sp<SkSurface>)>>;
+using ThreadInfo = std::pair<uint32_t, std::function<void(sk_sp<SkSurface>)>>;
 #else
-using ThreadInfo = std::pair<uint64_t, std::function<void(std::shared_ptr<Drawing::Surface>)>>;
+using ThreadInfo = std::pair<uint32_t, std::function<void(std::shared_ptr<Drawing::Surface>)>>;
 #endif
 
 class RSB_EXPORT RSCanvasDrawingRenderNode : public RSCanvasRenderNode {
@@ -46,9 +47,9 @@ public:
     }
 
 #ifndef USE_ROSEN_DRAWING
-    SkBitmap GetBitmap(const uint64_t tid = UINT32_MAX);
-    bool GetPixelmap(
-        const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect, const uint64_t tid = UINT32_MAX);
+    SkBitmap GetBitmap(const uint32_t tid = UNI_MAIN_THREAD_INDEX);
+    bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect,
+        const uint32_t tid = UNI_MAIN_THREAD_INDEX);
 #else
     Drawing::Bitmap GetBitmap();
     bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect);
@@ -59,12 +60,13 @@ public:
         curThreadInfo_ = threadInfo;
     }
 
-    uint64_t GetTid() const
+    uint32_t GetTid() const
     {
         return curThreadInfo_.first;
     }
 
     void AddDirtyType(RSModifierType type) override;
+    void ClearOp();
 
 private:
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
@@ -79,10 +81,13 @@ private:
     std::shared_ptr<Drawing::Surface> surface_;
     std::shared_ptr<Drawing::Image> image_;
 #endif
-    std::mutex mutex_;
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    bool isGpuSurface_ = true;
+#endif
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
-    ThreadInfo curThreadInfo_ = {};
-    ThreadInfo preThreadInfo_ = {};
+    ThreadInfo curThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(sk_sp<SkSurface>)>() };
+    ThreadInfo preThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(sk_sp<SkSurface>)>() };
+    std::mutex drawCmdListsMutex_;
 #ifndef USE_ROSEN_DRAWING
     std::map<RSModifierType, std::list<DrawCmdListPtr>> drawCmdLists_;
 #else

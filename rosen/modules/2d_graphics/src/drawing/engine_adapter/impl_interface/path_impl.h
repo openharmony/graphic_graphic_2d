@@ -29,6 +29,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+class Data;
 class Path;
 enum class PathDirection;
 enum class PathFillType;
@@ -89,6 +90,8 @@ public:
 
     virtual scalar GetLength(bool forceClosed) const = 0;
     virtual bool GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed) const = 0;
+    virtual std::shared_ptr<Data> Serialize() const = 0;
+    virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

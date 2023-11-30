@@ -209,7 +209,7 @@ typedef enum {
  * @version 1.0
  */
 void OH_Drawing_CanvasClipRect(OH_Drawing_Canvas*, float left, float top, float right, float bottom,
-    OH_Drawing_CanvasClipOp clipOp = INTERSECT, bool doAntiAlias = false);
+    OH_Drawing_CanvasClipOp clipOp, bool doAntiAlias);
 
 /**
  * @brief Translates by dx along the x-axis and dy along the y-axis.

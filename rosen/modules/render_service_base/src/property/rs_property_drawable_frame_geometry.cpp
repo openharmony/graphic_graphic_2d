@@ -21,6 +21,8 @@
 #include "property/rs_properties.h"
 #include "property/rs_properties_painter.h"
 
+#include "src/image/SkImage_Base.h"
+
 namespace OHOS::Rosen {
 void RSFrameGeometryDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
@@ -50,10 +52,34 @@ void RSColorFilterDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas
         ROSEN_LOGE("RSColorFilterDrawable::Draw image is null");
         return;
     }
+    as_IB(imageSnapshot)->hintCacheGpuResource();
     SkAutoCanvasRestore acr(&canvas, true);
     canvas.resetMatrix();
     static SkSamplingOptions options(SkFilterMode::kNearest, SkMipmapMode::kNone);
     canvas.drawImageRect(imageSnapshot, SkRect::Make(clipBounds), options, &paint_);
+
+#else
+    canvas.ClipRoundRect(RSPropertiesPainter::RRect2DrawingRRect(node.GetMutableRenderProperties().GetRRect()),
+        Drawing::ClipOp::INTERSECT, true);
+    auto drSurface = canvas.GetSurface();
+    if (drSurface == nullptr) {
+        ROSEN_LOGE("RSColorFilterDrawable::Draw drSurface is null");
+        return;
+    }
+    auto clipBounds = canvas.GetDeviceClipBounds();
+    auto imageSnapshot = drSurface->GetImageSnapshot(clipBounds);
+    if (imageSnapshot == nullptr) {
+        ROSEN_LOGE("RSColorFilterDrawable::Draw image is null");
+        return;
+    }
+    Drawing::AutoCanvasRestore acr(canvas, true);
+    canvas.ResetMatrix();
+    static Drawing::SamplingOptions options(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+    canvas.AttachBrush(brush_);
+    Drawing::Rect clipBoundsRect = {clipBounds.GetLeft(), clipBounds.GetTop(),
+        clipBounds.GetRight(), clipBounds.GetBottom()};
+    canvas.DrawImageRect(*imageSnapshot, clipBoundsRect, options);
+    canvas.DetachBrush();
 #endif
 }
 
@@ -69,8 +95,12 @@ std::unique_ptr<RSPropertyDrawable> RSColorFilterDrawable::Generate(const RSProp
     paint.setColorFilter(colorFilter);
     return std::make_unique<RSColorFilterDrawable>(std::move(paint));
 #else
-    // Drawing need to be adapted feature
-    return nullptr;
+    Drawing::Brush brush;
+    brush.SetAntiAlias(true);
+    Drawing::Filter filter;
+    filter.SetColorFilter(colorFilter);
+    brush.SetFilter(filter);
+    return std::make_unique<RSColorFilterDrawable>(std::move(brush));
 #endif
 }
 
@@ -83,7 +113,9 @@ bool RSColorFilterDrawable::Update(const RSPropertyDrawableGenerateContext& cont
 #ifndef USE_ROSEN_DRAWING
     paint_.setColorFilter(colorFilter);
 #else
-    // Drawing need to be adapted feature
+    Drawing::Filter filter;
+    filter.SetColorFilter(colorFilter);
+    brush_.SetFilter(filter);
 #endif
     return true;
 }

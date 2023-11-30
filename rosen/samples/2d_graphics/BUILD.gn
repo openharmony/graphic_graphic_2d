@@ -41,20 +41,15 @@ ohos_executable("drawing_engine_sample") {
   ]
 
   if (ace_enable_gpu) {
-    if (graphic_2d_feature_enable_vulkan) {
-      sources += [
-        "drawing_engine/drawing_surface/surface_frame_ohos_vulkan.cpp",
-        "drawing_engine/drawing_surface/surface_ohos_vulkan.cpp",
-        "drawing_engine/vulkan_render_backend.cpp",
-      ]
-    } else {
-      sources += [
-        "drawing_engine/drawing_surface/surface_frame_ohos_gl.cpp",
-        "drawing_engine/drawing_surface/surface_ohos_gl.cpp",
-        "drawing_engine/egl_manager.cpp",
-        "drawing_engine/gles_render_backend.cpp",
-      ]
-    }
+    sources += [
+      "drawing_engine/drawing_surface/surface_frame_ohos_gl.cpp",
+      "drawing_engine/drawing_surface/surface_frame_ohos_vulkan.cpp",
+      "drawing_engine/drawing_surface/surface_ohos_gl.cpp",
+      "drawing_engine/drawing_surface/surface_ohos_vulkan.cpp",
+      "drawing_engine/egl_manager.cpp",
+      "drawing_engine/gles_render_backend.cpp",
+      "drawing_engine/vulkan_render_backend.cpp",
+    ]
   }
 
   configs = []
@@ -66,6 +61,8 @@ ohos_executable("drawing_engine_sample") {
     "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
     "$graphic_2d_root/utils/sync_fence/export",
     "$graphic_2d_root/rosen/include/common",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/platform/ohos/backend",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
   ]
 
@@ -100,6 +97,12 @@ ohos_executable("drawing_engine_sample") {
 
   public_deps = libgl
   defines = gpu_defines
+
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+
+    deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  }
 
   #defines = [ "USE_CANVASKIT0310_SKIA" ]
   #defines += gpu_defines

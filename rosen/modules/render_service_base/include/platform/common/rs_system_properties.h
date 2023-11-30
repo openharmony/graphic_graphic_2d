@@ -99,7 +99,7 @@ public:
     static bool IsSceneBoardEnabled();
     static int GetDumpFrameNum();
     static void SetRecordingDisenabled();
-    static bool GetRecordingEnabled();
+    static int GetRecordingEnabled();
 
     static bool GetUniRenderEnabled();
     static bool GetRenderNodeTraceEnabled();
@@ -171,6 +171,7 @@ public:
     static bool GetUseShadowBatchingEnabled();
     static bool GetSingleFrameComposerEnabled();
     static bool GetSingleFrameComposerCanvasNodeEnabled();
+    static bool GetSubSurfaceEnabled();
 private:
     RSSystemProperties() = default;
 

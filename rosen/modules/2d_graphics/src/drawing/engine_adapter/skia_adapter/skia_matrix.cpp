@@ -16,11 +16,14 @@
 #include "skia_matrix.h"
 
 #include "utils/matrix.h"
+#include "skia_matrix44.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 SkiaMatrix::SkiaMatrix() : skMatrix_() {}
+
+SkiaMatrix::SkiaMatrix(const Matrix& other) : skMatrix_(other.GetImplPtr<SkiaMatrix>()->ExportSkiaMatrix()) {}
 
 const SkMatrix& SkiaMatrix::ExportSkiaMatrix() const
 {
@@ -30,6 +33,11 @@ const SkMatrix& SkiaMatrix::ExportSkiaMatrix() const
 void SkiaMatrix::ImportMatrix(const SkMatrix& skMatrix)
 {
     skMatrix_ = skMatrix;
+}
+
+SkMatrix& SkiaMatrix::ExportMatrix()
+{
+    return skMatrix_;
 }
 
 void SkiaMatrix::Rotate(scalar degree, scalar px, scalar py)
@@ -57,9 +65,19 @@ void SkiaMatrix::PreRotate(scalar degree)
     skMatrix_.preRotate(degree);
 }
 
+void SkiaMatrix::PostRotate(scalar degree)
+{
+    skMatrix_.postRotate(degree);
+}
+
 void SkiaMatrix::PreTranslate(scalar dx, scalar dy)
 {
     skMatrix_.preTranslate(dx, dy);
+}
+
+void SkiaMatrix::PostTranslate(scalar dx, scalar dy)
+{
+    skMatrix_.postTranslate(dx, dy);
 }
 
 void SkiaMatrix::PreScale(scalar sx, scalar sy)
@@ -74,12 +92,22 @@ void SkiaMatrix::PostScale(scalar sx, scalar sy)
 
 void SkiaMatrix::PreConcat(const Matrix& other)
 {
-    skMatrix_.preConcat(other.GetImpl<SkiaMatrix>()->ExportSkiaMatrix());
+    skMatrix_.preConcat(other.GetImplPtr<SkiaMatrix>()->ExportSkiaMatrix());
+}
+
+void SkiaMatrix::PreConcat(const Matrix44& other)
+{
+    skMatrix_.preConcat(other.GetImpl<SkiaMatrix44>()->GetSkMatrix44().asM33());
 }
 
 void SkiaMatrix::PostConcat(const Matrix& other)
 {
-    skMatrix_.postConcat(other.GetImpl<SkiaMatrix>()->ExportSkiaMatrix());
+    skMatrix_.postConcat(other.GetImplPtr<SkiaMatrix>()->ExportSkiaMatrix());
+}
+
+void SkiaMatrix::PostConcat(const Matrix44& other)
+{
+    skMatrix_.postConcat(other.GetImpl<SkiaMatrix44>()->GetSkMatrix44().asM33());
 }
 
 bool SkiaMatrix::Invert(Matrix& inverse) const
@@ -122,17 +150,13 @@ void SkiaMatrix::MapPoints(std::vector<Point>& dst, const std::vector<Point>& sr
     if (count == 0) {
         return;
     }
-    std::vector<SkPoint> pt1;
-    std::vector<SkPoint> pt2;
-    for (uint32_t i = 0; i < count; ++i) {
-        pt1.emplace_back(SkPoint::Make(dst[i].GetX(), dst[i].GetY()));
-        pt2.emplace_back(SkPoint::Make(src[i].GetX(), src[i].GetY()));
+    if (dst.size() > count) {
+        for (int i = dst.size(); i > count; --i) {
+            dst.pop_back();
+        }
     }
-    skMatrix_.mapPoints(&pt1[0], &pt2[0], count);
-    dst.clear();
-    for (uint32_t i = 0; i < count; ++i) {
-        dst.emplace_back(Point(pt1[i].fX, pt1[i].fY));
-    }
+    skMatrix_.mapPoints(
+        reinterpret_cast<SkPoint*>(dst.data()), reinterpret_cast<const SkPoint*>(src.data()), count);
 }
 
 bool SkiaMatrix::MapRect(Rect& dst, const Rect& src) const
@@ -161,14 +185,19 @@ void SkiaMatrix::GetAll(std::array<scalar, MatrixImpl::MATRIX_SIZE>& buffer) con
     skMatrix_.get9(buffer.data());
 }
 
+void SkiaMatrix::SetAll(std::array<scalar, MatrixImpl::MATRIX_SIZE>& buffer)
+{
+    skMatrix_.set9(buffer.data());
+}
+
 bool SkiaMatrix::IsIdentity() const
 {
     return skMatrix_.isIdentity();
 }
 
-MatrixImpl* SkiaMatrix::Clone()
+void SkiaMatrix::Clone(const Matrix& other)
 {
-    return new SkiaMatrix(*this);
+    skMatrix_ = other.GetImplPtr<SkiaMatrix>()->ExportSkiaMatrix();
 }
 
 void SkiaMatrix::PreRotate(scalar degree, scalar px, scalar py)

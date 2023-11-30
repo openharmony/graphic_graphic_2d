@@ -56,10 +56,12 @@ public:
         RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext);
     static std::shared_ptr<Image> MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
         size_t rowBytes);
-    void* BuildFromBitmap(const Bitmap& bitmap) override;
-    void* BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix, const Brush& brush,
+    bool BuildFromBitmap(const Bitmap& bitmap) override;
+    bool BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix, const Brush& brush,
         BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace) override;
 #ifdef ACE_ENABLE_GPU
+    bool BuildFromSurface(GPUContext& gpuContext, Surface& surface, TextureOrigin origin,
+        BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace) override;
     bool BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap) override;
     bool MakeFromEncoded(const std::shared_ptr<Data>& data) override;
     bool BuildSubset(const std::shared_ptr<Image> image, const RectI& rect, GPUContext& gpuContext) override;
@@ -71,11 +73,17 @@ public:
     void SetGrBackendTexture(const GrBackendTexture& grBackendTexture);
     bool IsValid(GPUContext* context) const override;
 #endif
+#ifdef RS_ENABLE_VK
+    bool BuildFromTexture(GPUContext& gpuContext, const VKTextureInfo& info, TextureOrigin origin,
+        BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace,
+        void (*deleteFunc)(void*), void* cleanupHelper) override;
+#endif
     bool AsLegacyBitmap(Bitmap& bitmap) const override;
     int GetWidth() const override;
     int GetHeight() const override;
     ColorType GetColorType() const override;
     AlphaType GetAlphaType() const override;
+    std::shared_ptr<ColorSpace> GetColorSpace() const override;
     uint32_t GetUniqueID() const override;
     ImageInfo GetImageInfo() override;
     bool ReadPixels(Bitmap& bitmap, int x, int y) override;
@@ -85,7 +93,7 @@ public:
 
     bool ScalePixels(const Bitmap& bitmap, const SamplingOptions& sampling,
         bool allowCachingHint = true) const override;
-    std::shared_ptr<Data> EncodeToData(EncodedImageFormat& encodedImageFormat, int quality) const override;
+    std::shared_ptr<Data> EncodeToData(EncodedImageFormat encodedImageFormat, int quality) const override;
     bool IsLazyGenerated() const override;
     bool GetROPixels(Bitmap& bitmap) const override;
     std::shared_ptr<Image> MakeRasterImage() const override;
@@ -110,6 +118,12 @@ public:
 #endif
 #endif
 
+    static GrBackendTexture ConvertToGrBackendTexture(const TextureInfo& info);
+    static GrSurfaceOrigin ConvertToGrSurfaceOrigin(const TextureOrigin& origin);
+#ifdef RS_ENABLE_VK
+    static GrBackendTexture ConvertToGrBackendTexture(const VKTextureInfo& info);
+    static void ConvertToVKTexture(const GrBackendTexture& backendTexture, VKTextureInfo& info);
+#endif
     std::shared_ptr<Data> Serialize() const override;
     bool Deserialize(std::shared_ptr<Data> data) override;
 
@@ -122,7 +136,6 @@ private:
 #endif
 #endif
     sk_sp<SkImage> skiaImage_;
-    SkiaPaint skiaPaint_;
     GrBackendTexture grBackendTexture_;
 };
 } // namespace Drawing

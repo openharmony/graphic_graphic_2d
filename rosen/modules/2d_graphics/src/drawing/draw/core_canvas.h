@@ -50,6 +50,7 @@ enum class QuadAAFlags {
 };
 
 const int DIVES_SIZE = 2;
+#undef TRANSPARENT
 struct Lattice {
     enum RectType : uint8_t {
         DEFAULT = 0,

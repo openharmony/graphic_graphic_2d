@@ -55,9 +55,12 @@ public:
     void SetTimeStamp(uint64_t timeStamp, const std::string& abilityName);
     void SetCacheDir(const std::string& cacheFilePath);
 
-    bool RunningCustomAnimation(uint64_t timeStamp);
+    bool FlushAnimation(uint64_t timeStamp);
+    void FlushModifier();
 
     void SetAppFreeze(bool isAppFreeze);
+
+    void SetRequestVsyncCallback(const std::function<void()>& callback);
 
     static void PostFrameRateTask(const std::function<void()>& task);
 
@@ -87,6 +90,7 @@ private:
     int surfaceWidth_ = 0;
     int surfaceHeight_ = 0;
     std::string cacheDir_;
+    static std::function<void()> requestVsyncCallback_;
 
     friend class RSApplicationAgentImpl;
     friend class RSRenderThread;

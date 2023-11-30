@@ -38,14 +38,17 @@ public:
         return std::move(canvas_);
     }
 private:
+    void CanvasRotation(ScreenRotation screenRotation, float width, float height);
     sptr<Surface> producerSurface_;
     std::unique_ptr<RSRenderFrame> renderFrame_;
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
     bool forceCPU_ = false;
     bool isExpand_ = false;
     bool isPhone_ = false;
-    float boundsWidth_ = 0;
-    float boundsHeight_ = 0;
+    float mirrorWidth_ = 0.f;
+    float mirrorHeight_ = 0.f;
+    bool canvasRotation_ = false;
+    ScreenRotation mainScreenRotation_ = ScreenRotation::ROTATION_0;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -16,6 +16,8 @@
 #ifndef COLOR_SPACE_IMPL_H
 #define COLOR_SPACE_IMPL_H
 
+#include "include/core/SkColorSpace.h"
+
 #include "base_impl.h"
 
 namespace OHOS {
@@ -34,6 +36,7 @@ public:
     virtual void InitWithSRGBLinear() = 0;
     virtual void InitWithImage(const Image& image) = 0;
     virtual void InitWithRGB(const CMSTransferFuncType& func, const CMSMatrixType& matrix) = 0;
+    virtual sk_sp<SkColorSpace> GetSkColorSpace() const = 0;
     virtual std::shared_ptr<Data> Serialize() const = 0;
     virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
 };

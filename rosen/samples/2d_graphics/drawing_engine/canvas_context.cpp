@@ -29,12 +29,12 @@ CanvasContext* CanvasContext::Create()
     auto type = Setting::GetRenderBackendType();
     switch (type) {
         case RenderBackendType::VULKAN:
-#ifdef ACE_ENABLE_VK
+#ifdef RS_ENABLE_VK
             std::cout << "CanvasContext::Create with vulkan backend" << std::endl;
             return new CanvasContext(std::make_unique<VulkanRenderBackend>());
 #endif
         case RenderBackendType::GLES:
-#ifdef ACE_ENABLE_GL
+#ifdef RS_ENABLE_GL
             std::cout << "CanvasContext::Create with gles backend" << std::endl;
             return new CanvasContext(std::make_unique<GLESRenderBackend>());
 #endif
@@ -66,9 +66,14 @@ void CanvasContext::RenderFrame()
     renderBackend_->RenderFrame();
 }
 
-SkCanvas* CanvasContext::AcquireCanvas(std::unique_ptr<SurfaceFrame>& frame)
+SkCanvas* CanvasContext::AcquireSkCanvas(std::unique_ptr<SurfaceFrame>& frame)
 {
-    return renderBackend_->AcquireCanvas(frame);
+    return renderBackend_->AcquireSkCanvas(frame);
+}
+
+Drawing::Canvas* CanvasContext::AcquireDrCanvas(std::unique_ptr<SurfaceFrame>& frame)
+{
+    return renderBackend_->AcquireDrCanvas(frame);
 }
 
 void CanvasContext::InitDrawContext()

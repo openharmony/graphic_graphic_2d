@@ -450,10 +450,13 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
         filter.SetMaskFilter(
             Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, properties.GetShadowRadius()));
         brush.SetFilter(filter);
+        if (brush.CanComputeFastBounds()) {
+            brush.ComputeFastBounds(shadowRect, &shadowRect);
+        }
     }
 
     auto geoPtr = (properties.GetBoundsGeometry());
-    Drawing::Matrix matrix = geoPtr ? geoPtr->GetAbsMatrix() : Drawing::Matrix();
+    Drawing::Matrix matrix = (geoPtr && isAbsCoordinate) ? geoPtr->GetAbsMatrix() : Drawing::Matrix();
     matrix.MapRect(shadowRect, shadowRect);
 
     dirtyShadow.left_ = shadowRect.GetLeft();
@@ -555,11 +558,7 @@ void RSPropertiesPainter::DrawColorfulShadowInner(
 
     // save layer, draw image with clipPath, blur and draw back
     SkPaint blurPaint;
-#ifdef NEW_SKIA
     blurPaint.setImageFilter(SkImageFilters::Blur(blurRadius, blurRadius, SkTileMode::kDecal, nullptr));
-#else
-    blurPaint.setImageFilter(SkBlurImageFilter::Make(blurRadius, blurRadius, SkTileMode::kDecal, nullptr));
-#endif
     canvas.saveLayer(nullptr, &blurPaint);
 
     canvas.translate(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
@@ -651,22 +650,22 @@ void RSPropertiesPainter::GetDarkColor(RSColor& color)
     }
 }
 
-void RSPropertiesPainter::PickColor(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& skPath,
+bool RSPropertiesPainter::PickColor(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& skPath,
     SkMatrix& matrix, SkIRect& deviceClipBounds, RSColor& colorPicked)
 {
     SkRect clipBounds = skPath.getBounds();
     SkIRect clipIBounds = clipBounds.roundIn();
     SkSurface* skSurface = canvas.GetSurface();
     if (skSurface == nullptr) {
-        return;
+        return false;
     }
 
     auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
     colorPickerTask->SetIsShadow(true);
     int deviceWidth = 0;
     int deviceHeight = 0;
-    int deviceClipBoundsW = deviceClipBounds.width();
-    int deviceClipBoundsH = deviceClipBounds.height();
+    int deviceClipBoundsW = skSurface->width();
+    int deviceClipBoundsH = skSurface->height();
     if (!colorPickerTask->GetDeviceSize(deviceWidth, deviceHeight)) {
         colorPickerTask->SetDeviceSize(deviceClipBoundsW, deviceClipBoundsH);
     }
@@ -677,17 +676,23 @@ void RSPropertiesPainter::PickColor(const RSProperties& properties, RSPaintFilte
     sk_sp<SkImage> shadowRegionImage = skSurface->makeImageSnapshot(regionBounds);
 
     if (shadowRegionImage == nullptr) {
-        return;
+        return false;
+    }
+
+    // when color picker task resource is waitting for release, use color picked last frame
+    if (colorPickerTask->GetWaitRelease()) {
+        colorPickerTask->GetColorAverage(colorPicked);
+        return true;
     }
 
     if (RSColorPickerCacheTask::PostPartialColorPickerTask(colorPickerTask, shadowRegionImage)
         && colorPickerTask->GetColor(colorPicked)) {
         colorPickerTask->GetColorAverage(colorPicked);
         colorPickerTask->SetStatus(CacheProcessStatus::WAITING);
-        return;
+        return true;
     }
     colorPickerTask->GetColorAverage(colorPicked);
-    return;
+    return true;
 }
 
 #ifndef USE_ROSEN_DRAWING
@@ -695,8 +700,8 @@ void RSPropertiesPainter::DrawShadowInner(const RSProperties& properties, RSPain
 {
     skPath.offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
     Color spotColor = properties.GetShadowColor();
-    // color shadow alpha deault is 255, if need to be changed, should add a arkui interface
-    auto shadowAlpha = UINT8_MAX;
+    // shadow alpha follow setting
+    auto shadowAlpha = spotColor.GetAlpha();
     auto deviceClipBounds = canvas.getDeviceClipBounds();
 
     // The translation of the matrix is rounded to improve the hit ratio of skia blurfilter cache,
@@ -709,13 +714,18 @@ void RSPropertiesPainter::DrawShadowInner(const RSProperties& properties, RSPain
 
     RSColor colorPicked;
     auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
-    if (colorPickerTask != nullptr && properties.GetShadowColorStrategy()) {
-        PickColor(properties, canvas, skPath, matrix, deviceClipBounds, colorPicked);
-        GetDarkColor(colorPicked);
+    if (colorPickerTask != nullptr &&
+        properties.GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
+        if (PickColor(properties, canvas, skPath, matrix, deviceClipBounds, colorPicked)) {
+            GetDarkColor(colorPicked);
+        } else {
+            shadowAlpha = 0;
+        }
         if (!colorPickerTask->GetFirstGetColorFinished()) {
             shadowAlpha = 0;
         }
     } else {
+        shadowAlpha = spotColor.GetAlpha();
         colorPicked = spotColor;
     }
 
@@ -1021,7 +1031,7 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeHorizontalMeanBl
     std::shared_ptr<Drawing::RuntimeEffect> effect = Drawing::RuntimeEffect::CreateForShader(prog);
     std::shared_ptr<Drawing::ShaderEffect> children[] = {shader, gradientShader};
     size_t childCount = 2;
-    std::shared_ptr<Drawing::Data> data = {};
+    std::shared_ptr<Drawing::Data> data = std::make_shared<Drawing::Data>();
     data->BuildWithCopy(&radiusIn, sizeof(radiusIn));
     return effect->MakeShader(data, children, childCount, nullptr, false);
 #endif
@@ -1073,7 +1083,7 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeVerticalMeanBlur
     std::shared_ptr<Drawing::RuntimeEffect> effect = Drawing::RuntimeEffect::CreateForShader(prog);
     std::shared_ptr<Drawing::ShaderEffect> children[] = {shader, gradientShader};
     size_t childCount = 2;
-    std::shared_ptr<Drawing::Data> data = {};
+    std::shared_ptr<Drawing::Data> data = std::make_shared<Drawing::Data>();
     data->BuildWithCopy(&radiusIn, sizeof(radiusIn));
     return effect->MakeShader(data, children, childCount, nullptr, false);
 #endif
@@ -1414,11 +1424,11 @@ sk_sp<SkShader> RSPropertiesPainter::MakeGreyAdjustmentShader(const float coef1,
             float b = 38.0;
             float c = 45.0;
             float d = 127.5;
-            float A = 3 * b - 3 * c + d;
-            float B = 3 * (c - 2 * b);
-            float C = 3 * b;
-            float p = (3 * A * C - pow(B, 2)) / (3 * pow(A, 2));
-            float q = ((-27 * pow(A, 2) * rgb) - 9 * A * B * C + 2 * pow(B, 3)) / (27 * pow(A, 3));
+            float A = 106.5;    // 3 * b - 3 * c + d;
+            float B = -93;      // 3 * (c - 2 * b);
+            float C = 114;      // 3 * b;
+            float p = 0.816240163988;                   // (3 * A * C - pow(B, 2)) / (3 * pow(A, 2));
+            float q = -rgb / 106.5 + 0.262253485943;    // -rgb/A - B*C/(3*pow(A,2)) + 2*pow(B,3)/(27*pow(A,3))
             float s1 = -(q / 2.0);
             float s2 = sqrt(pow(s1, 2) + pow(p / 3, 3));
             return poww((s1 + s2), 1.0 / 3) + poww((s1 - s2), 1.0 / 3) - (B / (3 * A));
@@ -1429,7 +1439,7 @@ sk_sp<SkShader> RSPropertiesPainter::MakeGreyAdjustmentShader(const float coef1,
             if (rgb < 127.5) {
                 return (rgb + coefficient1 * pow((1 - t_r), 3));
             } else {
-                return (255 - (255 - rgb + coefficient2 * pow((1 - t_r), 3)));
+                return (rgb - coefficient2 * pow((1 - t_r), 3));
             }
         }
 
@@ -1445,7 +1455,7 @@ sk_sp<SkShader> RSPropertiesPainter::MakeGreyAdjustmentShader(const float coef1,
             color.g = (Y - 0.39 * U - 0.58 * V) / 255.0;
             color.b = (Y + 2.03 * U) / 255.0;
 
-            return vec4(color.r, color.g, color.b, 1.0);
+            return vec4(color, 1.0);
         }
     )");
     auto [GrayAdjustEffect, GrayAdjustError] = SkRuntimeEffect::MakeForShader(GrayGradationString);
@@ -1853,17 +1863,23 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     }
 
     SkPaint paint;
-    SkMatrix inverseMat, scaleMat;
+    SkMatrix inverseMat, rotateMat;
     auto boundsGeo = (properties.GetBoundsGeometry());
     if (boundsGeo && !boundsGeo->IsEmpty()) {
-        if (!canvas.getTotalMatrix().invert(&inverseMat)) {
-            ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch get inverse matrix failed.");
+        auto transMat = canvas.getTotalMatrix();
+        rotateMat.setScale(transMat.getScaleX(), transMat.getScaleY());
+        rotateMat.setSkewX(transMat.getSkewX());
+        rotateMat.setSkewY(transMat.getSkewY());
+        rotateMat.preTranslate(-bounds.x(), -bounds.y());
+        rotateMat.postTranslate(bounds.x(), bounds.y());
+
+        SkRect transBounds = rotateMat.mapRect(bounds);
+
+        rotateMat.setTranslateX(bounds.x() - transBounds.x());
+        rotateMat.setTranslateY(bounds.y() - transBounds.y());
+        if (!rotateMat.invert(&inverseMat)) {
+            ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch get invert matrix failed.");
         }
-        scaleMat.setScale(inverseMat.getScaleX(), inverseMat.getScaleY());
-        scaleMat.setSkewX(inverseMat.getSkewX());
-        scaleMat.setSkewY(inverseMat.getSkewY());
-        scaleMat.preTranslate(-bounds.width() / 2.0, -bounds.height() / 2.0);
-        scaleMat.postTranslate(bounds.width() / 2.0, bounds.height() / 2.0);
     }
 
     canvas.save();
@@ -1872,12 +1888,12 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     // NOTE: Ensure that EPS is consistent with rs_properties.cpp
     constexpr static float EPS = 1e-5f;
     if (pixelStretch->x_ > EPS || pixelStretch->y_ > EPS || pixelStretch->z_ > EPS || pixelStretch->w_ > EPS) {
-        paint.setShader(image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, SkSamplingOptions(), &scaleMat));
+        paint.setShader(image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, SkSamplingOptions(), &inverseMat));
         canvas.drawRect(
             SkRect::MakeXYWH(-pixelStretch->x_, -pixelStretch->y_, scaledBounds.width(), scaledBounds.height()), paint);
     } else {
-        scaleMat.postScale(scaledBounds.width() / bounds.width(), scaledBounds.height() / bounds.height());
-        paint.setShader(image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, SkSamplingOptions(), &scaleMat));
+        inverseMat.postScale(scaledBounds.width() / bounds.width(), scaledBounds.height() / bounds.height());
+        paint.setShader(image->makeShader(SkTileMode::kClamp, SkTileMode::kClamp, SkSamplingOptions(), &inverseMat));
         canvas.translate(-pixelStretch->x_, -pixelStretch->y_);
         canvas.drawRect(SkRect::MakeXYWH(pixelStretch->x_, pixelStretch->y_, bounds.width(), bounds.height()), paint);
     }
@@ -2004,7 +2020,8 @@ int RSPropertiesPainter::GetAndResetBlurCnt()
     return blurCnt;
 }
 
-void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaintFilterCanvas& canvas, bool isAntiAlias)
+void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaintFilterCanvas& canvas,
+    bool isAntiAlias, bool isSurfaceView)
 {
     // only disable antialias when background is rect and g_forceBgAntiAlias is false
     bool antiAlias = g_forceBgAntiAlias || !properties.GetCornerRadius().IsZero();
@@ -2027,7 +2044,7 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaint
     SkPaint paint;
     paint.setAntiAlias(antiAlias);
     auto bgColor = properties.GetBackgroundColor();
-    if (bgColor != RgbPalette::Transparent()) {
+    if (bgColor != RgbPalette::Transparent() && !isSurfaceView) {
         paint.setColor(bgColor.AsArgbInt());
         canvas.drawRRect(RRect2SkRRect(properties.GetInnerRRect()), paint);
     }
@@ -2817,6 +2834,7 @@ void RSPropertiesPainter::DrawColorFilter(const RSProperties& properties, RSPain
         ROSEN_LOGE("RSPropertiesPainter::DrawColorFilter image is null");
         return;
     }
+    as_IB(imageSnapshot)->hintCacheGpuResource();
     canvas.resetMatrix();
     SkSamplingOptions options(SkFilterMode::kNearest, SkMipmapMode::kNone);
     canvas.drawImageRect(imageSnapshot, SkRect::Make(clipBounds), options, &paint);
@@ -2864,7 +2882,12 @@ void RSPropertiesPainter::DrawBinarizationShader(const RSProperties& properties,
     }
     auto& aiInvert = properties.GetAiInvert();
     auto imageShader = imageSnapshot->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
-    auto shader = MakeBinarizationShader(aiInvert->x_, aiInvert->y_, aiInvert->z_ * 255.0, imageShader);
+    float thresholdLow = aiInvert->z_ - aiInvert->w_;
+    float thresholdHigh = aiInvert->z_ + aiInvert->w_;
+    float imageWidth = clipBounds.width();
+    float imageHeight = clipBounds.height();
+    auto shader = MakeBinarizationShader(
+        aiInvert->x_, aiInvert->y_, aiInvert->z_, thresholdLow, thresholdHigh, imageWidth, imageHeight, imageShader);
     SkPaint paint;
     paint.setShader(shader);
     paint.setAntiAlias(true);
@@ -2874,24 +2897,71 @@ void RSPropertiesPainter::DrawBinarizationShader(const RSProperties& properties,
 }
 
 #ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
-sk_sp<SkShader> RSPropertiesPainter::MakeBinarizationShader(float low, float high, float threshold,
-    sk_sp<SkShader> imageShader)
+sk_sp<SkShader> RSPropertiesPainter::MakeBinarizationShader(float low, float high, float threshold, float thresholdLow,
+    float thresholdHigh, float imageWidth, float imageHeight, sk_sp<SkShader> imageShader)
 {
     static constexpr char prog[] = R"(
         uniform half low;
         uniform half high;
         uniform half threshold;
+        uniform half thresholdLow;
+        uniform half thresholdHigh;
+        uniform half imageWidth;
+        uniform half imageHeight;
         uniform shader imageShader;
-        half4 main(float2 coord) {
-            vec3 c = vec3(imageShader.eval(coord).r * 255,
-                imageShader.eval(coord).g * 255, imageShader.eval(coord).b * 255);
-            float gray = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
-            float bin = step(threshold, gray);
-            bin = bin * -1 + 1;
-            float range = high - low;
-            bin = bin * range + low;
-            return vec4(bin, bin, bin, 1.0);
+        half4 sumFilter(float2 coord, half imageWidth, half imageHeight, half threshold, half thresholdLow,
+            half thresholdHigh, half low, half high)
+        {
+            half sumLow = 0;
+            half sumHigh = 0;
+            if (imageWidth > imageHeight) {
+                for (half x = 0.0; x < 500; x += 1.0) {
+                    if (x > imageWidth) {
+                        break;
+                    }
+                    half3 imgSample = imageShader.eval(float2(x, coord.y)).rgb;
+                    float graySample = 0.299 * imgSample.r + 0.587 * imgSample.g + 0.114 * imgSample.b;
+                    if (thresholdLow < graySample && graySample < threshold) {
+                        sumLow += 1;
+                    }
+                    if (threshold < graySample && graySample < thresholdHigh) {
+                        sumHigh += 1;
+                    }
+                }
+            } else {
+                for (half y = 0.0; y < 500; y += 1.0) {
+                    if (y > imageHeight) {
+                        break;
+                    }
+                    half3 imgSample = imageShader.eval(float2(coord.x, y)).rgb;
+                    float graySample = 0.299 * imgSample.r + 0.587 * imgSample.g + 0.114 * imgSample.b;
+                    if (thresholdLow < graySample && graySample < threshold) {
+                        sumLow += 1;
+                    }
+                    if (threshold < graySample && graySample < thresholdHigh) {
+                        sumHigh += 1;
+                    }
+                }
+            }
+            if (sumLow > sumHigh) {
+                return half4(high, high, high, 1.0);
+            } else {
+                return half4(low, low, low, 1.0);
+            }
+        }
+        half4 main(float2 coord)
+        {
+            half3 img = imageShader.eval(coord).rgb;
+            float gray = 0.299 * img.r + 0.587 * img.g + 0.114 * img.b;
+            half4 res = half4(0);
+            if (gray < thresholdLow) {
+                res = half4(high, high, high, 1.0);
+            } else if (gray > thresholdHigh) {
+                res = half4(low, low, low, 1.0);
+            } else {
+                res = sumFilter(coord, imageWidth, imageHeight, threshold, thresholdLow, thresholdHigh, low, high);
+            }
+            return res;
         }
     )";
     auto [effect, err] = SkRuntimeEffect::MakeForShader(SkString(prog));
@@ -2904,9 +2974,12 @@ sk_sp<SkShader> RSPropertiesPainter::MakeBinarizationShader(float low, float hig
     builder.uniform("low") = low;
     builder.uniform("high") = high;
     builder.uniform("threshold") = threshold;
+    builder.uniform("thresholdLow") = thresholdLow;
+    builder.uniform("thresholdHigh") = thresholdHigh;
+    builder.uniform("imageWidth") = imageWidth;
+    builder.uniform("imageHeight") = imageHeight;
     return builder.makeShader(nullptr, false);
 }
-#endif
 #endif
 
 void RSPropertiesPainter::DrawLightUpEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas)

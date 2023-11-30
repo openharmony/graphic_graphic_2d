@@ -40,6 +40,14 @@ bool Surface::Bind(const FrameBuffer& frameBuffer)
     return impl_->Bind(frameBuffer);
 }
 
+#ifdef RS_ENABLE_VK
+std::shared_ptr<Surface> Surface::MakeFromBackendRenderTarget(GPUContext* gpuContext, const VKTextureInfo& info,
+    TextureOrigin origin, void (*deleteFunc)(void*), void* cleanupHelper)
+{
+    return StaticFactory::MakeFromBackendRenderTarget(gpuContext, info, origin, deleteFunc, cleanupHelper);
+}
+#endif
+
 std::shared_ptr<Surface> Surface::MakeRenderTarget(GPUContext* gpuContext, bool budgeted, const ImageInfo& imageInfo)
 {
     return StaticFactory::MakeRenderTarget(gpuContext, budgeted, imageInfo);
@@ -99,10 +107,34 @@ void Surface::FlushAndSubmit(bool syncCpu)
     impl_->FlushAndSubmit(syncCpu);
 }
 
-void Surface::Flush()
+void Surface::Flush(FlushInfo *drawingflushInfo)
 {
-    impl_->Flush();
+    if (!impl_) {
+        LOGE("surfaceImpl Flush failed impl nullptr");
+        return;
+    }
+    impl_->Flush(drawingflushInfo);
 }
+
+#ifdef RS_ENABLE_VK
+void Surface::Wait(int32_t time, const VkSemaphore& semaphore)
+{
+    if (!impl_) {
+        LOGE("surfaceImpl Wait failed impl nullptr");
+        return;
+    }
+    impl_->Wait(time, semaphore);
+}
+
+void Surface::SetDrawingArea(const std::vector<RectI>& rects)
+{
+    if (!impl_) {
+        LOGE("surfaceImpl SetDrawingArea failed impl nullptr");
+        return;
+    }
+    impl_->SetDrawingArea(rects);
+}
+#endif
 
 } // namespace Drawing
 } // namespace Rosen

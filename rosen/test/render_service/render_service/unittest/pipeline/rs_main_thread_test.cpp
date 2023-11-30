@@ -241,7 +241,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusion, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, CheckQosVisChanged001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    std::map<uint32_t, bool> pidVisMap;
+    std::map<uint32_t, RSVisibleLevel> pidVisMap;
     auto isVisibleChanged = mainThread->CheckQosVisChanged(pidVisMap);
     ASSERT_EQ(false, isVisibleChanged);
 }
@@ -255,9 +255,9 @@ HWTEST_F(RSMainThreadTest, CheckQosVisChanged001, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, CheckQosVisChanged002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    std::map<uint32_t, bool> pidVisMap;
-    pidVisMap[0] = true;
-    mainThread->lastPidVisMap_[0] = false;
+    std::map<uint32_t, RSVisibleLevel> pidVisMap;
+    pidVisMap[0] = RSVisibleLevel::RS_ALL_VISIBLE;
+    mainThread->lastPidVisMap_[0] = RSVisibleLevel::RS_INVISIBLE;
     auto isVisibleChanged = mainThread->CheckQosVisChanged(pidVisMap);
     ASSERT_EQ(true, isVisibleChanged);
 }
@@ -271,9 +271,9 @@ HWTEST_F(RSMainThreadTest, CheckQosVisChanged002, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, CheckQosVisChanged003, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    std::map<uint32_t, bool> pidVisMap;
-    pidVisMap[0] = true;
-    mainThread->lastPidVisMap_[0] = true;
+    std::map<uint32_t, RSVisibleLevel> pidVisMap;
+    pidVisMap[0] = RSVisibleLevel::RS_ALL_VISIBLE;
+    mainThread->lastPidVisMap_[0] = RSVisibleLevel::RS_ALL_VISIBLE;
     auto isVisibleChanged = mainThread->CheckQosVisChanged(pidVisMap);
     ASSERT_EQ(false, isVisibleChanged);
 }
@@ -534,7 +534,7 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData004, TestSize.Level1)
 
 /**
  * @tc.name: AddActiveNode
- * @tc.desc: Test AddActiveNode, add not-on-tree node, check if fails
+ * @tc.desc: Test AddActiveNode, add invalid node id, check if fails
  * @tc.type: FUNC
  * @tc.require: issueI6Q9A2
  */
@@ -542,12 +542,49 @@ HWTEST_F(RSMainThreadTest, AddActiveNode, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     mainThread->context_->activeNodesInRoot_.clear();
-    // invalid pid
-    NodeId id = 0;
-    // not on tree
+    // invalid nodeid
+    NodeId id = INVALID_NODEID;
     auto node = std::make_shared<RSRenderNode>(id, mainThread->context_);
     mainThread->context_->AddActiveNode(node);
     ASSERT_EQ(static_cast<int>(mainThread->context_->activeNodesInRoot_.size()), 0);
+}
+
+/**
+ * @tc.name: CheckIfInstanceOnlySurfaceBasicGeoTransform01
+ * @tc.desc: Test static instance(no dirty) would be classify as only basic geo transform
+ * @tc.type: FUNC
+ * @tc.require: issueI8IXTX
+ */
+HWTEST_F(RSMainThreadTest, CheckIfInstanceOnlySurfaceBasicGeoTransform01, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->context_->activeNodesInRoot_.clear();
+    // valid nodeid
+    NodeId id = 1;
+    auto node = std::make_shared<RSRenderNode>(id, mainThread->context_);
+    ASSERT_NE(node, nullptr);
+    ASSERT_EQ(mainThread->CheckIfInstanceOnlySurfaceBasicGeoTransform(id), true);
+}
+
+/**
+ * @tc.name: CheckIfInstanceOnlySurfaceBasicGeoTransform02
+ * @tc.desc: Test new instance would not be classify as only basic geo transform
+ * @tc.type: FUNC
+ * @tc.require: issueI8IXTX
+ */
+HWTEST_F(RSMainThreadTest, CheckIfInstanceOnlySurfaceBasicGeoTransform02, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->context_->activeNodesInRoot_.clear();
+    // valid nodeid
+    NodeId id = 1;
+    auto node = std::make_shared<RSRenderNode>(id, mainThread->context_);
+    ASSERT_NE(node, nullptr);
+    node->SetIsOnTheTree(true, id, id);
+    mainThread->context_->AddActiveNode(node);
+    ASSERT_EQ(static_cast<int>(mainThread->context_->activeNodesInRoot_.size()), 1);
+
+    ASSERT_EQ(mainThread->CheckIfInstanceOnlySurfaceBasicGeoTransform(id), false);
 }
 
 /**
@@ -695,6 +732,8 @@ HWTEST_F(RSMainThreadTest, DoParallelComposition, TestSize.Level1)
 
     auto mainThread = RSMainThread::Instance();
     RSInnovation::_s_createParallelSyncSignal = (void*)RSMainThreadTest::CreateParallelSyncSignal;
-    mainThread->DoParallelComposition(node);
+    if (RSInnovation::GetParallelCompositionEnabled(mainThread->isUniRender_)) {
+        mainThread->DoParallelComposition(node);
+    }
 }
 } // namespace OHOS::Rosen

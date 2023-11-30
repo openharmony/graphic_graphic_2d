@@ -343,7 +343,8 @@ ScreenId RSRenderServiceConnectionProxy::CreateVirtualScreen(
     uint32_t height,
     sptr<Surface> surface,
     ScreenId mirrorId,
-    int32_t flags)
+    int32_t flags,
+    std::vector<NodeId> filteredAppVector)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -367,6 +368,7 @@ ScreenId RSRenderServiceConnectionProxy::CreateVirtualScreen(
 
     data.WriteUint64(mirrorId);
     data.WriteInt32(flags);
+    data.WriteUInt64Vector(filteredAppVector);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -1214,6 +1216,190 @@ int32_t RSRenderServiceConnectionProxy::GetScreenHDRCapability(ScreenId id, RSSc
     return SUCCESS;
 }
 
+int32_t RSRenderServiceConnectionProxy::GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return WRITE_PARCEL_ERR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PIXEL_FORMAT);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
+    if (result == SUCCESS) {
+        pixelFormat = static_cast<GraphicPixelFormat>(reply.ReadUint32());
+    }
+    return result;
+}
+
+int32_t RSRenderServiceConnectionProxy::SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return WRITE_PARCEL_ERR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    data.WriteUint32(static_cast<uint32_t>(pixelFormat));
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_PIXEL_FORMAT);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
+    return result;
+}
+
+int32_t RSRenderServiceConnectionProxy::GetScreenSupportedHDRFormats(
+    ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_HDR_FORMATS);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
+    if (result == SUCCESS) {
+        hdrFormats.clear();
+        std::vector<uint32_t> hdrFormatsRecv;
+        reply.ReadUInt32Vector(&hdrFormatsRecv);
+        for (auto i : hdrFormatsRecv) {
+            hdrFormats.push_back(static_cast<ScreenHDRFormat>(i));
+        }
+    }
+    return result;
+}
+
+int32_t RSRenderServiceConnectionProxy::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_HDR_FORMAT);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
+    if (result == SUCCESS) {
+        hdrFormat = static_cast<ScreenHDRFormat>(reply.ReadUint32());
+    }
+    return result;
+}
+
+int32_t RSRenderServiceConnectionProxy::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    data.WriteInt32(modeIdx);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_HDR_FORMAT);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
+    return result;
+}
+
+int32_t RSRenderServiceConnectionProxy::GetScreenSupportedColorSpaces(
+    ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_COLORSPACES);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
+    if (result == SUCCESS) {
+        colorSpaces.clear();
+        std::vector<uint32_t> colorSpacesRecv;
+        reply.ReadUInt32Vector(&colorSpacesRecv);
+        for (auto i : colorSpacesRecv) {
+            colorSpaces.push_back(static_cast<GraphicCM_ColorSpaceType>(i));
+        }
+    }
+    return result;
+}
+
+int32_t RSRenderServiceConnectionProxy::GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_COLORSPACE);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
+    if (result == SUCCESS) {
+        colorSpace = static_cast<GraphicCM_ColorSpaceType>(reply.ReadUint32());
+    }
+    return result;
+}
+
+int32_t RSRenderServiceConnectionProxy::SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    data.WriteInt32(colorSpace);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_COLORSPACE);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
+    return result;
+}
+
 int32_t RSRenderServiceConnectionProxy::GetScreenType(ScreenId id, RSScreenType& screenType)
 {
     MessageParcel data;
@@ -1261,6 +1447,27 @@ bool RSRenderServiceConnectionProxy::GetBitmap(NodeId id, Drawing::Bitmap& bitma
         return false;
     }
     return true;
+}
+
+bool RSRenderServiceConnectionProxy::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    data.WriteBool(canvasRotation);
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return false;
+    }
+    bool result = reply.ReadBool();
+    return result;
 }
 
 #ifndef USE_ROSEN_DRAWING

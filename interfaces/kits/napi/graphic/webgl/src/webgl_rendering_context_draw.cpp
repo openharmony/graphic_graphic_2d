@@ -18,25 +18,12 @@
 #include "context/webgl2_rendering_context_base.h"
 #include "napi/n_class.h"
 #include "util/log.h"
-#include "util/object_source.h"
 #include "util/util.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Impl {
 using namespace std;
-#define SET_ERROR(error) \
-    do { \
-        LOGE("WebGL set error code %{public}u", error); \
-        SetError(error); \
-    } while (0)
-
-#define SET_ERROR_WITH_LOG(error, info, ...) \
-    do {                      \
-        LOGE("WebGL error code %{public}u " info, error, ##__VA_ARGS__); \
-        SetError(error); \
-    } while (0)
-
 void WebGLRenderingContextBaseImpl::TexImage2D_(
     const TexImageArg& imgArg, WebGLTexture* texture, const void* pixels, bool changeUnpackAlignment)
 {

@@ -114,7 +114,7 @@ using RoundCornerLayer = struct RoundCornerLayer {
 };
 
 using RoundCornerHardware = struct RoundCornerHardware {
-    bool supportHardware = false;
+    bool resourceChanged = false;
     RoundCornerLayer* topLayer = nullptr;
     RoundCornerLayer* bottomLayer = nullptr;
 };

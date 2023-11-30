@@ -43,10 +43,12 @@
 #include "impl_interface/shader_effect_impl.h"
 #include "impl_interface/surface_impl.h"
 #include "impl_interface/text_blob_builder_impl.h"
+#include "impl_interface/memory_stream_impl.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+class Matrix;
 class RuntimeEffect;
 class ImplFactory {
 public:
@@ -75,6 +77,7 @@ public:
     static std::unique_ptr<PathEffectImpl> CreatePathEffectImpl();
     static std::unique_ptr<ColorSpaceImpl> CreateColorSpaceImpl();
     static std::unique_ptr<MatrixImpl> CreateMatrixImpl();
+    static std::unique_ptr<MatrixImpl> CreateMatrixImpl(const Matrix& other);
     static std::unique_ptr<Matrix44Impl> CreateMatrix44Impl();
     static std::unique_ptr<CameraImpl> CreateCameraImpl();
     static std::unique_ptr<RegionImpl> CreateRegionImpl();
@@ -85,6 +88,8 @@ public:
         scalar size, scalar scaleX, scalar skewX);
     static std::unique_ptr<TextBlobBuilderImpl> CreateTextBlobBuilderImpl();
     static std::shared_ptr<FontMgrImpl> CreateDefaultFontMgrImpl();
+    static std::shared_ptr<MemoryStreamImpl> CreateMemoryStreamImpl();
+    static std::shared_ptr<MemoryStreamImpl> CreateMemoryStreamImpl(const void* data, size_t length, bool copyData);
 };
 } // namespace Drawing
 } // namespace Rosen

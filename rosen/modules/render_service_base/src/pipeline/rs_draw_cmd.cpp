@@ -39,8 +39,6 @@
 #include "native_window.h"
 #include "native_buffer_inner.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
-#include "include/gpu/GrBackendSemaphore.h"
-#include "platform/ohos/backend/native_buffer_utils.h"
 #endif
 
 namespace OHOS {
@@ -267,11 +265,7 @@ void FlushOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
     canvas.flush();
 }
 
-#ifdef NEW_SKIA
 MatrixOpItem::MatrixOpItem(const SkM44& matrix) : OpItem(sizeof(MatrixOpItem)), matrix_(matrix) {}
-#else
-MatrixOpItem::MatrixOpItem(const SkMatrix& matrix) : OpItem(sizeof(MatrixOpItem)), matrix_(matrix) {}
-#endif
 
 void MatrixOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 {
@@ -335,6 +329,10 @@ void TextBlobOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
     if (isHighContrastEnabled) {
         ROSEN_LOGD("TextBlobOpItem::Draw highContrastEnabled");
         uint32_t color = paint_.getColor();
+        if (SkColorGetA(color) == 0) {
+            canvas.drawTextBlob(textBlob_, x_, y_, paint_);
+            return;
+        }
         uint32_t channelSum = SkColorGetR(color) + SkColorGetG(color) + SkColorGetB(color);
         bool flag = channelSum < 594; // 594 is empirical value
 
@@ -586,6 +584,36 @@ void BitmapNineOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 }
 #endif
 
+PixelmapNineOpItem::PixelmapNineOpItem(const std::shared_ptr<Media::PixelMap>& pixelmap, const SkIRect& center,
+    const SkRect& rectDst, const SkFilterMode filter, const SkPaint* paint)
+    : OpItemWithPaint(sizeof(PixelmapNineOpItem)), center_(center), rectDst_(rectDst), filter_(filter)
+{
+    if (pixelmap) {
+        rsImage_ = std::make_shared<RSImageBase>();
+        rsImage_->SetPixelMap(pixelmap);
+    }
+    if (paint) {
+        paint_ = *paint;
+    }
+}
+
+PixelmapNineOpItem::PixelmapNineOpItem(const std::shared_ptr<RSImageBase> rsImage, const SkIRect& center,
+    const SkRect& rectDst, const SkFilterMode filter, const SkPaint* paint)
+    : OpItemWithPaint(sizeof(PixelmapNineOpItem)), center_(center), rectDst_(rectDst), filter_(filter),
+    rsImage_(rsImage)
+{
+    if (paint) {
+        paint_ = *paint;
+    }
+}
+
+void PixelmapNineOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
+{
+    const std::shared_ptr<Media::PixelMap>& pixelmap = rsImage_->GetPixelMap();
+    sk_sp<SkImage> skImage = RSPixelMapUtil::ExtractSkImage(pixelmap);
+    canvas.drawImageNine(skImage.get(), center_, rectDst_, filter_, &paint_);
+}
+
 AdaptiveRRectOpItem::AdaptiveRRectOpItem(float radius, const SkPaint& paint)
     : OpItemWithPaint(sizeof(AdaptiveRRectOpItem)), radius_(radius), paint_(paint)
 {}
@@ -641,11 +669,7 @@ ClipOutsetRectOpItem::ClipOutsetRectOpItem(float dx, float dy)
 void ClipOutsetRectOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) const
 {
     auto clipRect = canvas.getLocalClipBounds().makeOutset(dx_, dy_);
-#ifdef NEW_SKIA
     canvas.clipRect(clipRect, SkClipOp::kIntersect, true);
-#else
-    canvas.clipRect(clipRect, SkClipOp::kExtraEnumNeedInternallyPleaseIgnoreWillGoAway5, true);
-#endif
 }
 
 PathOpItem::PathOpItem(const SkPath& path, const SkPaint& paint) : OpItemWithPaint(sizeof(PathOpItem))
@@ -678,15 +702,9 @@ void PaintOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
     canvas.drawPaint(paint_);
 }
 
-#ifdef NEW_SKIA
 ImageWithParmOpItem::ImageWithParmOpItem(const sk_sp<SkImage> img, const sk_sp<SkData> data,
     const RsImageInfo& rsimageInfo, const SkSamplingOptions& samplingOptions, const SkPaint& paint)
     : OpItemWithPaint(sizeof(ImageWithParmOpItem)), samplingOptions_(samplingOptions)
-#else
-ImageWithParmOpItem::ImageWithParmOpItem(const sk_sp<SkImage> img, const sk_sp<SkData> data,
-    const RsImageInfo& rsimageInfo, const SkPaint& paint)
-    : OpItemWithPaint(sizeof(ImageWithParmOpItem))
-#endif
 {
     rsImage_ = std::make_shared<RSImage>();
     rsImage_->SetImage(img);
@@ -698,16 +716,10 @@ ImageWithParmOpItem::ImageWithParmOpItem(const sk_sp<SkImage> img, const sk_sp<S
     paint_ = paint;
 }
 
-#ifdef NEW_SKIA
 ImageWithParmOpItem::ImageWithParmOpItem(
     const std::shared_ptr<Media::PixelMap>& pixelmap, const RsImageInfo& rsimageInfo,
     const SkSamplingOptions& samplingOptions, const SkPaint& paint)
     : OpItemWithPaint(sizeof(ImageWithParmOpItem)), samplingOptions_(samplingOptions)
-#else
-ImageWithParmOpItem::ImageWithParmOpItem(
-    const std::shared_ptr<Media::PixelMap>& pixelmap, const RsImageInfo& rsimageInfo, const SkPaint& paint)
-    : OpItemWithPaint(sizeof(ImageWithParmOpItem))
-#endif
 {
     rsImage_ = std::make_shared<RSImage>();
     rsImage_->SetPixelMap(pixelmap);
@@ -718,14 +730,9 @@ ImageWithParmOpItem::ImageWithParmOpItem(
     paint_ = paint;
 }
 
-#ifdef NEW_SKIA
 ImageWithParmOpItem::ImageWithParmOpItem(const std::shared_ptr<RSImage>& rsImage,
     const SkSamplingOptions& samplingOptions, const SkPaint& paint)
     : OpItemWithPaint(sizeof(ImageWithParmOpItem)), rsImage_(rsImage), samplingOptions_(samplingOptions)
-#else
-ImageWithParmOpItem::ImageWithParmOpItem(const std::shared_ptr<RSImage>& rsImage, const SkPaint& paint)
-    : OpItemWithPaint(sizeof(ImageWithParmOpItem)), rsImage_(rsImage)
-#endif
 {
     paint_ = paint;
 }
@@ -750,9 +757,13 @@ ImageWithParmOpItem::~ImageWithParmOpItem()
         }
     });
 #elif defined(RS_ENABLE_VK)
-    RSTaskDispatcher::GetInstance().PostTask(tid_, [nativeWindowBuffer = nativeWindowBuffer_]() {
+    RSTaskDispatcher::GetInstance().PostTask(tid_, [nativeWindowBuffer = nativeWindowBuffer_,
+        cleanupHelper = cleanupHelper_]() {
         if (nativeWindowBuffer) {
             DestroyNativeWindowBuffer(nativeWindowBuffer);
+        }
+        if (cleanupHelper) {
+            NativeBufferUtils::DeleteVkImage(cleanupHelper);
         }
     });
 #endif
@@ -770,30 +781,10 @@ void ImageWithParmOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) 
 #ifndef USE_ROSEN_DRAWING
     std::shared_ptr<Media::PixelMap> pixelmap = rsImage_->GetPixelMap();
     if (pixelmap != nullptr && pixelmap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
         sk_sp<SkImage> dmaImage = GetSkImageFromSurfaceBuffer(canvas,
             reinterpret_cast<SurfaceBuffer*> (pixelmap->GetFd()));
         rsImage_->SetDmaImage(dmaImage);
-#elif defined(RS_ENABLE_VK)
-        SurfaceBuffer* surfaceBuffer = reinterpret_cast<SurfaceBuffer*>(pixelmap->GetFd());
-        nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&surfaceBuffer);
-        if (!skImage) {
-            tid_ = gettid();
-            auto backendTexture = MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
-                SurfaceBuffer->GetWidth(), SurfaceBuffer->GetHeight());
-            if (backendTexture.isValid()) {
-                GrVkImageInfo imageInfo;
-                backendTexture.getVkImageInfo(&imageInfo);
-                skImage_ = SkImage::MakeFromTexture(
-                    canvas.recordingContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
-                    GetSkColorTypeFromVkFormat(imageInfo.fFormat), kPremul_SkAlphaType, SkColorSpace::MakeSRGB(),
-                    delete_vk_image, new VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-                        imageInfo.fImage, imageInfo.fAlloc.fMemory));
-            } else {
-                skImage_ = nullptr;
-            }
-        }
-        rsImage_->SetDmaImage(skImage_);
 #endif
     } else {
         if (pixelmap && pixelmap->IsAstc()) {
@@ -806,14 +797,10 @@ void ImageWithParmOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) 
 #endif
 #endif
 
-#ifdef NEW_SKIA
     rsImage_->CanvasDrawImage(canvas, *rect, samplingOptions_, paint_);
-#else
-    rsImage_->CanvasDrawImage(canvas, *rect, paint_);
-#endif
 }
 
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifndef USE_ROSEN_DRAWING
 sk_sp<SkImage> ImageWithParmOpItem::GetSkImageFromSurfaceBuffer(SkCanvas& canvas, SurfaceBuffer* surfaceBuffer) const
 {
@@ -829,6 +816,7 @@ sk_sp<SkImage> ImageWithParmOpItem::GetSkImageFromSurfaceBuffer(SkCanvas& canvas
             return nullptr;
         }
     }
+#ifdef RS_ENABLE_GL
     EGLint attrs[] = {
         EGL_IMAGE_PRESERVED,
         EGL_TRUE,
@@ -867,10 +855,32 @@ sk_sp<SkImage> ImageWithParmOpItem::GetSkImageFromSurfaceBuffer(SkCanvas& canvas
     auto skImage = SkImage::MakeFromTexture(canvas.getGrContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
         kRGBA_8888_SkColorType, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
 #endif
+#elif defined(RS_ENABLE_VK)
+    if (!backendTexture_.isValid()) {
+        backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
+            surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight());
+        if (backendTexture_.isValid()) {
+            GrVkImageInfo imageInfo;
+            backendTexture_.getVkImageInfo(&imageInfo);
+            cleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+                imageInfo.fImage, imageInfo.fAlloc.fMemory);
+        } else {
+            return nullptr;
+        }
+        tid_ = gettid();
+    }
+
+    GrVkImageInfo imageInfo;
+    backendTexture_.getVkImageInfo(&imageInfo);
+    auto skImage = SkImage::MakeFromTexture(
+        canvas.recordingContext(), backendTexture_, kTopLeft_GrSurfaceOrigin,
+        GetSkColorTypeFromVkFormat(imageInfo.fFormat), kPremul_SkAlphaType, SkColorSpace::MakeSRGB(),
+        NativeBufferUtils::DeleteVkImage, cleanupHelper_->Ref());
+#endif
     return skImage;
 }
 #endif // USE_ROSEN_DRAWING
-#endif // ROSEN_OHOS & RS_ENABLE_GL
+#endif // defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 
 #ifdef NEW_SKIA
 ConcatOpItem::ConcatOpItem(const SkM44& matrix) : OpItem(sizeof(ConcatOpItem)), matrix_(matrix) {}
@@ -1081,12 +1091,22 @@ void SurfaceBufferOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
     if (backendTexture.isValid()) {
         GrVkImageInfo imageInfo;
         backendTexture.getVkImageInfo(&imageInfo);
-        skImage_ = SkImage::MakeFromTexture(
-            canvas.recordingContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
-            GetSkColorTypeFromVkFormat(imageInfo.fFormat), kPremul_SkAlphaType, SkColorSpace::MakeSRGB(),
-            delete_vk_image, new VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+        skImage_ = SkImage::MakeFromTexture(canvas.recordingContext(),
+            backendTexture, kTopLeft_GrSurfaceOrigin, GetSkColorTypeFromVkFormat(imageInfo.fFormat),
+            kPremul_SkAlphaType, SkColorSpace::MakeSRGB(), NativeBufferUtils::DeleteVkImage,
+            new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
                 imageInfo.fImage, imageInfo.fAlloc.fMemory));
-        canvas.drawImage(skImage_, surfaceBufferInfo_.offsetX, surfaceBufferInfo_.offsetY);
+        if (canvas.GetRecordingState()) {
+            if (!skImage_) {
+                return;
+            }
+            auto cpuImage = skImage_->makeRasterImage();
+            auto samplingOptions = SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
+            canvas.drawImage(cpuImage, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, samplingOptions);
+            return;
+        }
+        auto samplingOptions = SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
+        canvas.drawImage(skImage_, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, samplingOptions);
     } else {
         skImage_ = nullptr;
         ROSEN_LOGE("SurfaceBufferOpItem::Clear: backendTexture is not valid");
@@ -1149,10 +1169,12 @@ void SurfaceBufferOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 #endif
     if (canvas.GetRecordingState()) {
         auto cpuImage = skImage->makeRasterImage();
-        canvas.drawImage(cpuImage, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_);
+        auto samplingOptions = SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
+        canvas.drawImage(cpuImage, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, samplingOptions, nullptr);
         return;
     }
-    canvas.drawImage(skImage, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_);
+    auto samplingOptions = SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
+    canvas.drawImage(skImage, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, samplingOptions, nullptr);
 #endif // RS_ENABLE_GL
 }
 #endif // ROSEN_OHOS
@@ -1769,6 +1791,39 @@ OpItem* BitmapNineOpItem::Unmarshalling(Parcel& parcel)
 #else
     return new BitmapNineOpItem(bitmapInfo, center, rectDst, &paint);
 #endif
+}
+
+bool PixelmapNineOpItem::Marshalling(Parcel& parcel) const
+{
+    bool success = RSMarshallingHelper::Marshalling(parcel, center_) &&
+                   RSMarshallingHelper::Marshalling(parcel, rectDst_) &&
+                   RSMarshallingHelper::Marshalling(parcel, static_cast<int32_t>(filter_)) &&
+                   RSMarshallingHelper::Marshalling(parcel, rsImage_) &&
+                   RSMarshallingHelper::Marshalling(parcel, paint_);
+    if (!success) {
+        ROSEN_LOGE("PixelmapNineOpItem::Marshalling failed!");
+        return false;
+    }
+    return success;
+}
+
+OpItem* PixelmapNineOpItem::Unmarshalling(Parcel& parcel)
+{
+    SkIRect center;
+    SkRect rectDst;
+    int32_t filter;
+    std::shared_ptr<RSImageBase> rsImage;
+    SkPaint paint;
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, center) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, rectDst) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, filter) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, rsImage) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, paint);
+    if (!success) {
+        ROSEN_LOGE("PixelmapNineOpItem::Unmarshalling failed!");
+        return nullptr;
+    }
+    return new PixelmapNineOpItem(rsImage, center, rectDst, static_cast<SkFilterMode>(filter), &paint);
 }
 
 // AdaptiveRRectOpItem
@@ -2408,6 +2463,42 @@ RSExtendImageObject::~RSExtendImageObject()
         }
     });
 #endif
+}
+
+RSExtendImageBaseOj::RSExtendImageBaseOj(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::Rect& src,
+    const Drawing::Rect& dst)
+{
+    if (pixelMap) {
+        rsImage_ = std::make_shared<RSImageBase>();
+        rsImage_->SetPixelMap(pixelMap);
+        rsImage_->SetSrcRect(RectF(src.GetLeft(), src.GetTop(), src.GetWidth(), src.GetHeight()));
+        rsImage_->SetDstRect(RectF(dst.GetLeft(), dst.GetTop(), dst.GetWidth(), dst.GetHeight()));
+    }
+}
+
+void RSExtendImageBaseOj::Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect,
+    const Drawing::SamplingOptions& sampling)
+{
+    if (rsImage_) {
+        rsImage_->DrawImage(canvas, sampling);
+    }
+}
+
+
+bool RSExtendImageBaseOj::Marshalling(Parcel &parcel) const
+{
+    bool ret = RSMarshallingHelper::Marshalling(parcel, rsImage_);
+    return ret;
+}
+
+RSExtendImageBaseOj *RSExtendImageBaseOj::Unmarshalling(Parcel &parcel)
+{
+    auto object = new RSExtendImageBaseOj();
+    bool ret = RSMarshallingHelper::Unmarshalling(parcel, object->rsImage_);
+    if (!ret) {
+        return nullptr;
+    }
+    return object;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -47,6 +47,7 @@ public:
     uint32_t GetunExcuteTaskNum();
     void RefreshRateCounts(std::string& dumpString);
     void ClearRefreshRateCounts(std::string& dumpString);
+    GSError ClearFrameBuffers(OutputPtr output);
 private:
     RSHardwareThread() = default;
     ~RSHardwareThread() = default;
@@ -62,6 +63,9 @@ private:
     void PerformSetActiveMode(OutputPtr output);
     void ExecuteSwitchRefreshRate(uint32_t rate);
     void AddRefreshRateCount(uint32_t rate);
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    GraphicColorGamut ComputeTargetColorGamut(const std::vector<LayerInfoPtr>& layers);
+#endif
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;

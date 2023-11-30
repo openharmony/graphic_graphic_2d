@@ -37,7 +37,7 @@ bool RecordingRegion::SetRect(const RectI& rectI)
 
 bool RecordingRegion::SetPath(const Path& path, const Region& clip)
 {
-    auto pathHandle = CmdListHelper::AddRecordedToCmdList<RecordingPath>(*cmdList_, path);
+    auto pathHandle = CmdListHelper::AddPathToCmdList(*cmdList_, path);
     auto regionHandle = CmdListHelper::AddRecordedToCmdList<RecordingRegion>(*cmdList_, clip);
     cmdList_->AddOp<SetPathOpItem>(pathHandle, regionHandle);
     return true;

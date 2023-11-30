@@ -21,6 +21,7 @@
 #include "effect/filter.h"
 #include "effect/shader_effect.h"
 #include "utils/drawing_macros.h"
+#include "utils/rect.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -44,6 +45,7 @@ public:
     void SetColor(const Color4f& cf, std::shared_ptr<ColorSpace> s);
 
     uint32_t GetAlpha() const;
+    scalar GetAlphaF() const;
     void SetAlpha(uint32_t a);
     void SetAlphaF(scalar a);
 
@@ -59,10 +61,13 @@ public:
     bool IsAntiAlias() const;
     void SetAntiAlias(bool aa);
 
+    bool CanComputeFastBounds();
+    const Rect& ComputeFastBounds(const Rect& orig, Rect* storage);
+
     void Reset();
 
-    friend bool operator==(const Brush& b1, const Brush& b2);
-    friend bool operator!=(const Brush& b1, const Brush& b2);
+    friend DRAWING_API bool operator==(const Brush& b1, const Brush& b2);
+    friend DRAWING_API bool operator!=(const Brush& b1, const Brush& b2);
 
 private:
     Color color_;

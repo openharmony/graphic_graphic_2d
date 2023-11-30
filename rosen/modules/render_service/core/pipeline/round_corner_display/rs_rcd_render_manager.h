@@ -33,6 +33,7 @@ struct RcdProcessInfo {
     std::shared_ptr<RSProcessor> uniProcessor = nullptr;
     rs_rcd::RoundCornerLayer* topLayer = nullptr;
     rs_rcd::RoundCornerLayer* bottomLayer = nullptr;
+    bool resourceChanged = false;
 };
 
 struct RcdInfo {
@@ -57,7 +58,7 @@ public:
 
     void DoPrepareRenderTask(const RcdPrepareInfo& info);
     void DoProcessRenderTask(const RcdProcessInfo& info);
-    bool IsRcdProcessInfoValid(const RcdProcessInfo& info);
+    static bool IsRcdProcessInfoValid(const RcdProcessInfo& info);
 
     RSRcdRenderManager() = default;
     virtual ~RSRcdRenderManager() = default;

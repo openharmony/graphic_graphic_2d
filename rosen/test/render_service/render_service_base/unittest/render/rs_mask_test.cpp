@@ -45,8 +45,13 @@ HWTEST_F(RSMaskTest, LifeCycle001, TestSize.Level1)
     /**
      * @tc.steps: step1. create RSMask by Gradient
      */
+#ifndef USE_ROSEN_DRAWING
     SkPaint paint;
     std::shared_ptr<RSMask> mask = RSMask::CreateGradientMask(paint);
+#else
+    Drawing::Brush brush;
+    std::shared_ptr<RSMask> mask = RSMask::CreateGradientMask(brush);
+#endif
     ASSERT_TRUE(mask != nullptr);
 
     ASSERT_TRUE(mask->IsGradientMask());
@@ -62,9 +67,15 @@ HWTEST_F(RSMaskTest, LifeCycle002, TestSize.Level1)
     /**
      * @tc.steps: step1. create RSMask by Path
      */
+#ifndef USE_ROSEN_DRAWING
     SkPaint paint;
     SkPath path;
     std::shared_ptr<RSMask> mask = RSMask::CreatePathMask(path, paint);
+#else
+    Drawing::Brush brush;
+    Drawing::Path path;
+    std::shared_ptr<RSMask> mask = RSMask::CreatePathMask(path, brush);
+#endif
     ASSERT_TRUE(mask != nullptr);
 
     ASSERT_TRUE(mask->IsPathMask());
@@ -101,14 +112,23 @@ HWTEST_F(RSMaskTest, LifeCycle004, TestSize.Level1)
     /**
      * @tc.steps: step1. create RSMask by Gradient
      */
+#ifndef USE_ROSEN_DRAWING
     SkPaint paint;
     std::shared_ptr<RSMask> mask = RSMask::CreateGradientMask(paint);
+#else
+    Drawing::Brush brush;
+    std::shared_ptr<RSMask> mask = RSMask::CreateGradientMask(brush);
+#endif
     ASSERT_TRUE(mask != nullptr);
 
     /**
      * @tc.steps: step2. check set value
      */
+#ifndef USE_ROSEN_DRAWING
     ASSERT_TRUE(mask->GetMaskPaint() == paint);
+#else
+    ASSERT_TRUE(mask->GetMaskBrush() == brush);
+#endif
 }
 
 /**
@@ -121,15 +141,23 @@ HWTEST_F(RSMaskTest, LifeCycle005, TestSize.Level1)
     /**
      * @tc.steps: step1. create RSMask by Path
      */
+#ifndef USE_ROSEN_DRAWING
     SkPaint paint;
     SkPath path;
     std::shared_ptr<RSMask> mask = RSMask::CreatePathMask(path, paint);
+#else
+    Drawing::Brush brush;
+    Drawing::Path path;
+    std::shared_ptr<RSMask> mask = RSMask::CreatePathMask(path, brush);
+#endif
     ASSERT_TRUE(mask != nullptr);
 
     /**
      * @tc.steps: step2. check set value
      */
+#ifndef USE_ROSEN_DRAWING
     ASSERT_TRUE(mask->GetMaskPath() == path);
+#endif
 }
 
 /**
@@ -203,17 +231,29 @@ HWTEST_F(RSMaskTest, LifeCycle008, TestSize.Level1)
     /**
      * @tc.steps: step1. create RSMask by Path
      */
+#ifndef USE_ROSEN_DRAWING
     SkPaint paint;
     SkPath path;
     std::shared_ptr<RSMask> mask = RSMask::CreatePathMask(path, paint);
+#else
+    Drawing::Brush brush;
+    Drawing::Path path;
+    std::shared_ptr<RSMask> mask = RSMask::CreatePathMask(path, brush);
+#endif
     ASSERT_TRUE(mask != nullptr);
 
     /**
      * @tc.steps: step2. check set value
      */
+#ifndef USE_ROSEN_DRAWING
     SkPath path2;
+#else
+    Drawing::Path path2;
+#endif
     mask->SetMaskPath(path2);
+#ifndef USE_ROSEN_DRAWING
     ASSERT_TRUE(mask->GetMaskPath() == path2);
+#endif
 }
 
 /**
@@ -226,16 +266,27 @@ HWTEST_F(RSMaskTest, LifeCycle009, TestSize.Level1)
     /**
      * @tc.steps: step1. create RSMask by Gradient
      */
+#ifndef USE_ROSEN_DRAWING
     SkPaint paint;
     std::shared_ptr<RSMask> mask = RSMask::CreateGradientMask(paint);
+#else
+    Drawing::Brush brush;
+    std::shared_ptr<RSMask> mask = RSMask::CreateGradientMask(brush);
+#endif
     ASSERT_TRUE(mask != nullptr);
 
     /**
      * @tc.steps: step2. check set value
      */
+#ifndef USE_ROSEN_DRAWING
     SkPaint paint2;
     mask->SetMaskPaint(paint2);
     ASSERT_TRUE(mask->GetMaskPaint() == paint2);
+#else
+    Drawing::Brush brush2;
+    mask->SetMaskBrush(brush2);
+    ASSERT_TRUE(mask->GetMaskBrush() == brush2);
+#endif
 }
 
 /**
@@ -248,8 +299,13 @@ HWTEST_F(RSMaskTest, MarshlingandUnMarshling001, TestSize.Level1)
     /**
      * @tc.steps: step1. create RSMask by Gradient
      */
+#ifndef USE_ROSEN_DRAWING
     SkPaint paint;
     std::shared_ptr<RSMask> mask = RSMask::CreateGradientMask(paint);
+#else
+    Drawing::Brush brush;
+    std::shared_ptr<RSMask> mask = RSMask::CreateGradientMask(brush);
+#endif
     ASSERT_TRUE(mask != nullptr);
     Parcel parcel;
     char* buffer = static_cast<char*>(malloc(parcel.GetMaxCapacity()));

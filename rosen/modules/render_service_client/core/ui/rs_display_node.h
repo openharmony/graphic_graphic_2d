@@ -67,6 +67,7 @@ protected:
     RSDisplayNode(const RSDisplayNode&&) = delete;
     RSDisplayNode& operator=(const RSDisplayNode&) = delete;
     RSDisplayNode& operator=(const RSDisplayNode&&) = delete;
+    void OnBoundsSizeChanged() const override;
 
 private:
     uint64_t screenId_;

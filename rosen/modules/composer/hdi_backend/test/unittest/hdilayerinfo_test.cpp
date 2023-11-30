@@ -379,6 +379,38 @@ HWTEST_F(HdiLayerInfoTest, ColorTransform001, Function | MediumTest | Level1)
 }
 
 /*
+* Function: SetLayerColor and GetColorTransform
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetLayerColor
+*                  2. call SetLayerColor and check ret
+* @tc.require: issueI5H317
+ */
+HWTEST_F(HdiLayerInfoTest, LayerColor001, Function | MediumTest | Level1)
+{
+    const uint32_t COLOR_R = 155;
+    const uint32_t COLOR_G = 224;
+    const uint32_t COLOR_B = 88;
+    const uint32_t COLOR_A = 128;
+
+    GraphicLayerColor layercolor = {
+        .r = COLOR_R,
+        .g = COLOR_G,
+        .b = COLOR_B,
+        .a = COLOR_A
+    };
+
+    HdiLayerInfoTest::hdiLayerInfo_->SetLayerColor(layercolor);
+    GraphicLayerColor color = HdiLayerInfoTest::hdiLayerInfo_->GetLayerColor();
+    ASSERT_EQ(color.r, layercolor.r);
+    ASSERT_EQ(color.g, layercolor.g);
+    ASSERT_EQ(color.b, layercolor.b);
+    ASSERT_EQ(color.a, layercolor.a);
+}
+
+
+/*
 * Function: SetColorDataSpace and GetColorDataSpace
 * Type: Function
 * Rank: Important(1)

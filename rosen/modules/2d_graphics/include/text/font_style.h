@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include "utils/drawing_macros.h"
 
 template<typename T>
 static constexpr const T& TPin(const T& x, const T& lo, const T& hi)
@@ -32,7 +33,7 @@ namespace Drawing {
 constexpr static int BIT16 = 16;
 constexpr static int BIT24 = 24;
 
-class FontStyle {
+class DRAWING_API FontStyle {
 public:
     enum Weight {
         INVISIBLE_WEIGHT    =    0,

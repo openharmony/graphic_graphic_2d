@@ -80,14 +80,19 @@ public:
     bool HasIntersectionWithVisitedDirtyRect(const RectI& absRect) const;
     void UpdateCacheableFilterRect(const RectI& rect);
     bool IfCacheableFilterRectFullyCover(const RectI& targetRect);
-    void ResetSubNodeFilterCacheValid()
+    bool IsCacheableFilterRectEmpty() const
     {
-        isSubNodeFilterCacheValid_ = false;
+        return cacheableFilterRects_.empty();
     }
 
-    bool GetSubNodeFilterCacheValid()
+    void InvalidateFilterCacheRect()
     {
-        return isSubNodeFilterCacheValid_;
+        isFilterCacheRectValid_ = false;
+    }
+
+    bool IsFilterCacheRectValid()
+    {
+        return isFilterCacheRectValid_;
     }
 
     // return current frame dirtyregion, can be changed in prepare and process (displaynode) stage
@@ -179,11 +184,11 @@ private:
     std::vector<RectI> dirtyHistory_;
     int historyHead_ = -1;
     unsigned int historySize_ = 0;
-    const unsigned HISTORY_QUEUE_MAX_SIZE = 4;
+    const unsigned HISTORY_QUEUE_MAX_SIZE = 5;
     // may add new set function for bufferAge
     unsigned int bufferAge_ = HISTORY_QUEUE_MAX_SIZE;
     bool isDirtyRegionAlignedEnable_ = false;
-    bool isSubNodeFilterCacheValid_ = true;
+    bool isFilterCacheRectValid_ = true;
     bool isDisplayDirtyManager_ = false;
 
     // Used for coordinate switch, i.e. dirtyRegion = dirtyRegion + offset.

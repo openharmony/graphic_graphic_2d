@@ -294,7 +294,11 @@ void RenderContext::SetColorSpace(GraphicColorGamut colorSpace)
 }
 
 #ifndef USE_ROSEN_DRAWING
+#ifdef RS_ENABLE_VK
 bool RenderContext::SetUpGrContext(sk_sp<GrDirectContext> skContext)
+#else
+bool RenderContext::SetUpGrContext()
+#endif
 {
     if (grContext_ != nullptr) {
         LOGD("grContext has already created!!");
@@ -302,7 +306,6 @@ bool RenderContext::SetUpGrContext(sk_sp<GrDirectContext> skContext)
     }
 
 #ifdef RS_ENABLE_GL
-    (void)(skContext);
     sk_sp<const GrGLInterface> glInterface(GrGLCreateNativeInterface());
     if (glInterface.get() == nullptr) {
         LOGE("SetUpGrContext failed to make native interface");
@@ -345,12 +348,17 @@ bool RenderContext::SetUpGrContext(sk_sp<GrDirectContext> skContext)
     return true;
 }
 #else
+#ifdef RS_ENABLE_VK
+bool RenderContext::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext)
+#else
 bool RenderContext::SetUpGpuContext()
+#endif
 {
     if (drGPUContext_ != nullptr) {
         LOGD("Drawing GPUContext has already created!!");
         return true;
     }
+#ifdef RS_ENABLE_GL
     mHandler_ = std::make_shared<MemoryHandler>();
     auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
     if (isUniRenderMode_) {
@@ -365,6 +373,13 @@ bool RenderContext::SetUpGpuContext()
         LOGE("SetUpGrContext drGPUContext is null");
         return false;
     }
+#endif
+#ifdef RS_ENABLE_VK
+    if (drawingContext == nullptr) {
+        drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
+    }
+    std::shared_ptr<Drawing::GPUContext> drGPUContext(drawingContext);
+#endif
     drGPUContext_ = std::move(drGPUContext);
     return true;
 }
@@ -373,7 +388,11 @@ bool RenderContext::SetUpGpuContext()
 #ifndef USE_ROSEN_DRAWING
 sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
 {
+#ifdef RS_ENABLE_VK
     if (!SetUpGrContext(nullptr)) {
+#else
+    if (!SetUpGrContext()) {
+#endif
         LOGE("GrContext is not ready!!!");
         return nullptr;
     }
@@ -428,7 +447,11 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
 #else
 std::shared_ptr<Drawing::Surface> RenderContext::AcquireSurface(int width, int height)
 {
+#ifdef RS_ENABLE_VK
+    if (!SetUpGpuContext(nullptr)) {
+#else
     if (!SetUpGpuContext()) {
+#endif
         LOGE("GrContext is not ready!!!");
         return nullptr;
     }

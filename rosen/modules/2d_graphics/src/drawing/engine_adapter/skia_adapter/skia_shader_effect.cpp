@@ -14,14 +14,14 @@
  */
 
 #include "skia_shader_effect.h"
+#include "skia_helper.h"
 
 #include <vector>
 
 #include "include/core/SkMatrix.h"
 #include "include/core/SkTileMode.h"
 #include "include/effects/SkGradientShader.h"
-#include "src/core/SkReadBuffer.h"
-#include "src/core/SkWriteBuffer.h"
+#include "src/shaders/SkShaderBase.h"
 #if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
 #include "include/core/SkSamplingOptions.h"
 #endif
@@ -151,7 +151,8 @@ void SkiaShaderEffect::InitWithRadialGradient(const Point& centerPt, scalar radi
 }
 
 void SkiaShaderEffect::InitWithTwoPointConical(const Point& startPt, scalar startRadius, const Point& endPt,
-    scalar endRadius, const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode)
+    scalar endRadius, const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode,
+    const Matrix *matrix)
 {
     SkPoint start;
     SkPoint end;
@@ -168,8 +169,13 @@ void SkiaShaderEffect::InitWithTwoPointConical(const Point& startPt, scalar star
         c.emplace_back(colors[i]);
         p.emplace_back(pos[i]);
     }
+    const SkMatrix *skMatrix = nullptr;
+    if (matrix != nullptr) {
+        skMatrix = &matrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix();
+    }
+
     shader_ = SkGradientShader::MakeTwoPointConical(
-        start, startRadius, end, endRadius, &c[0], &p[0], count, static_cast<SkTileMode>(mode));
+        start, startRadius, end, endRadius, &c[0], &p[0], count, static_cast<SkTileMode>(mode), 0, skMatrix);
 }
 
 void SkiaShaderEffect::InitWithSweepGradient(const Point& centerPt, const std::vector<ColorQuad>& colors,
@@ -211,13 +217,7 @@ std::shared_ptr<Data> SkiaShaderEffect::Serialize() const
         return nullptr;
     }
 
-    SkBinaryWriteBuffer writer;
-    writer.writeFlattenable(shader_.get());
-    size_t length = writer.bytesWritten();
-    std::shared_ptr<Data> data = std::make_shared<Data>();
-    data->BuildUninitialized(length);
-    writer.writeToMemory(data->WritableData());
-    return data;
+    return SkiaHelper::FlattenableSerialize(shader_.get());
 #else
     return nullptr;
 #endif
@@ -231,9 +231,8 @@ bool SkiaShaderEffect::Deserialize(std::shared_ptr<Data> data)
         return false;
     }
 
-    SkReadBuffer reader(data->GetData(), data->GetSize());
-    shader_ = reader.readShader();
-    return shader_ != nullptr;
+    shader_ = SkiaHelper::FlattenableDeserialize<SkShaderBase>(data);
+    return true;
 #else
     return false;
 #endif

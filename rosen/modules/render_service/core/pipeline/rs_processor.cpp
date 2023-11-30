@@ -62,7 +62,7 @@ bool RSProcessor::FrameAwareTraceBoost(size_t layerNum)
         if (ft.RenderFrameTraceIsOpen()) {
             ft.RenderFrameTraceClose();
             PerfRequest(FRAME_TRACE_PERF_REQUESTED_CODE, false);
-            RS_LOGI("RsDebug RSProcessor::Perf: FrameTrace 0");
+            RS_LOGD("RsDebug RSProcessor::Perf: FrameTrace 0");
         }
         return false;
     }
@@ -76,7 +76,7 @@ bool RSProcessor::FrameAwareTraceBoost(size_t layerNum)
             return false;
         }
         PerfRequest(FRAME_TRACE_PERF_REQUESTED_CODE, true);
-        RS_LOGI("RsDebug RSProcessor::Perf: FrameTrace 1");
+        RS_LOGD("RsDebug RSProcessor::Perf: FrameTrace 1");
         lastRequestPerfTime = currentTime;
     }
     return true;

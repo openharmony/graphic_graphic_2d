@@ -18,9 +18,14 @@
 
 #include <cstdint>
 
+#include "draw/brush.h"
 #include "draw/surface.h"
+#include "image/pixmap.h"
+#include "text/font_style_set.h"
 #include "text/text_blob.h"
 #include "text/typeface.h"
+#include "utils/data.h"
+#include "utils/rect.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -31,8 +36,14 @@ public:
         const Font& font, TextEncoding encoding);
     static std::shared_ptr<TextBlob> MakeFromRSXform(const void* text, size_t byteLength,
         const RSXform xform[], const Font& font, TextEncoding encoding);
-    static std::shared_ptr<Typeface> MakeFromFile(const char path[]);
+    static std::shared_ptr<Typeface> MakeDefault();
+    static std::shared_ptr<Typeface> MakeFromFile(const char path[], int index);
+    static std::shared_ptr<Typeface> MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index);
 #ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_VK
+    static std::shared_ptr<Surface> MakeFromBackendRenderTarget(GPUContext* gpuuContext, const VKTextureInfo& info,
+        TextureOrigin origin, void (*deleteVkImage)(void *), void* cleanHelper);
+#endif
     static std::shared_ptr<Surface> MakeRenderTarget(GPUContext* gpuContext, bool budgeted, const ImageInfo& imageInfo);
 #endif
     static std::shared_ptr<Surface> MakeRaster(const ImageInfo& imageInfo);
@@ -43,6 +54,10 @@ public:
     static std::shared_ptr<Image> MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
         size_t rowBytes);
     static std::shared_ptr<TextBlob> DeserializeTextBlob(const void* data, size_t size);
+    static bool CanComputeFastBounds(const Brush& brush);
+    static const Rect& ComputeFastBounds(const Brush& brush, const Rect& orig, Rect* storage);
+    static FontStyleSet* CreateEmptyFontStyleSet();
+    static std::shared_ptr<Data> MakeDataFromFileName(const char path[]);
 };
 } // namespace Drawing
 } // namespace Rosen

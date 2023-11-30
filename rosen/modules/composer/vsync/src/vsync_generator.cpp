@@ -129,7 +129,7 @@ void VSyncGenerator::ThreadLoop()
             if (err == std::cv_status::timeout) {
                 isWakeup = true;
             } else {
-                ScopedBytrace func("VSyncGenerator::ThreadLoop::Continue");
+                ScopedDebugTrace func("VSyncGenerator::ThreadLoop::Continue");
                 continue;
             }
         }
@@ -145,10 +145,10 @@ void VSyncGenerator::ThreadLoop()
                 listeners = GetListenerTimeouted(newOccurTimestamp, occurReferenceTime);
             }
         }
-        ScopedDebugTrace func("GenerateVsyncCount:" + std::to_string(listeners.size()) +
-                              ", period:" + std::to_string(period_) +
-                              ", currRefreshRate_:" + std::to_string(currRefreshRate_) +
-                              ", vsyncMode_:" + std::to_string(vsyncMode_));
+        ScopedBytrace func("GenerateVsyncCount:" + std::to_string(listeners.size()) +
+                           ", period:" + std::to_string(period_) +
+                           ", currRefreshRate_:" + std::to_string(currRefreshRate_) +
+                           ", vsyncMode_:" + std::to_string(vsyncMode_));
         for (uint32_t i = 0; i < listeners.size(); i++) {
             listeners[i].callback_->OnVSyncEvent(listeners[i].lastTime_, period_, currRefreshRate_, vsyncMode_);
         }
@@ -254,6 +254,7 @@ bool VSyncGenerator::UpdateChangeDataLocked(int64_t now, int64_t referenceTime, 
         referenceTime_ = nextVSyncTime;
         changingGeneratorRefreshRate_ = 0; // reset
         needChangeGeneratorRefreshRate_ = false;
+        refreshRateIsChanged_ = true;
         modelChanged = true;
     }
 
@@ -297,14 +298,21 @@ int64_t VSyncGenerator::ComputeListenerNextVSyncTimeStamp(const Listener& listen
     int64_t phase = phase_ + listener.phase_;
     now -= phase;
     if (now < 0) {
-        now = -period_;
+        if (vsyncMode_ == VSYNC_MODE_LTPO) {
+            now -= period_;
+        } else {
+            now = -period_;
+        }
     }
     int64_t numPeriod = now / period_;
     int64_t nextTime = (numPeriod + 1) * period_ + phase;
     nextTime += referenceTime;
 
+    // 3 / 5 and 1 / 10 are just empirical value
+    int64_t threshold = refreshRateIsChanged_ ? (1 * period_ / 10) : (3 * period_ / 5);
     // 3 / 5 just empirical value
-    if ((vsyncMode_ == VSYNC_MODE_LTPS) && (nextTime - listener.lastTime_ < (3 * period_ / 5))) {
+    if (((vsyncMode_ == VSYNC_MODE_LTPS) && (nextTime - listener.lastTime_ < (3 * period_ / 5))) ||
+        ((vsyncMode_ == VSYNC_MODE_LTPO) && (nextTime - listener.lastTime_ < threshold))) {
         nextTime += period_;
     }
 
@@ -337,11 +345,15 @@ std::vector<VSyncGenerator::Listener> VSyncGenerator::GetListenerTimeoutedLTPO(i
             ret.push_back(listeners_[i]);
         }
     }
+    refreshRateIsChanged_ = false;
     return ret;
 }
 
 VsyncError VSyncGenerator::UpdateMode(int64_t period, int64_t phase, int64_t referenceTime)
 {
+    ScopedBytrace func("UpdateMode, period:" + std::to_string(period) +
+                        ", phase:" + std::to_string(phase) +
+                        ", referenceTime:" + std::to_string((referenceTime)));
     if (period < 0 || referenceTime < 0) {
         VLOGE("wrong parameter, period:" VPUBI64 ", referenceTime:" VPUBI64, period, referenceTime);
         return VSYNC_ERROR_INVALID_ARGUMENTS;
@@ -350,13 +362,12 @@ VsyncError VSyncGenerator::UpdateMode(int64_t period, int64_t phase, int64_t ref
     phase_ = phase;
     if ((pendingVsyncMode_ == VSYNC_MODE_LTPO) || (vsyncMode_ == VSYNC_MODE_LTPO)) {
         int32_t refreshRate = JudgeRefreshRateLocked(period);
-        if (refreshRate == 0) {
-            return VSYNC_ERROR_NOT_SUPPORT;
-        }
         referenceTimeOffset_ = referenceTimeOffsetPulseNum_ * pulse_;
         int64_t pendingReferenceTime = referenceTime - referenceTimeOffset_;
-        if ((pendingReferenceTime >= referenceTime_) && ((currRefreshRate_ == refreshRate) || currRefreshRate_ == 0)) {
+        if (pendingReferenceTime >= referenceTime_) {
             referenceTime_ = pendingReferenceTime;
+        }
+        if ((refreshRate != 0) && ((currRefreshRate_ == refreshRate) || currRefreshRate_ == 0)) {
             period_ = period != 0 ? period : period_;
         }
     } else {
@@ -369,6 +380,7 @@ VsyncError VSyncGenerator::UpdateMode(int64_t period, int64_t phase, int64_t ref
 
 VsyncError VSyncGenerator::AddListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb)
 {
+    ScopedDebugTrace func("AddListener");
     std::lock_guard<std::mutex> locker(mutex_);
     if (cb == nullptr) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
@@ -488,6 +500,7 @@ VsyncError VSyncGenerator::SetVSyncPhaseByPulseNum(int32_t phaseByPulseNum)
 
 VsyncError VSyncGenerator::RemoveListener(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb)
 {
+    ScopedDebugTrace func("RemoveListener");
     std::lock_guard<std::mutex> locker(mutex_);
     if (cb == nullptr) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
@@ -532,6 +545,15 @@ bool VSyncGenerator::IsEnable()
 {
     std::lock_guard<std::mutex> locker(mutex_);
     return period_ > 0;
+}
+
+void VSyncGenerator::Dump(std::string &result)
+{
+    result.append("\n-- VSyncGenerator --");
+    result += "\nperiod:" + std::to_string(period_);
+    result += "\nphase:" + std::to_string(phase_);
+    result += "\nreferenceTime:" + std::to_string(referenceTime_);
+    result += "\nvsyncMode:" + std::to_string(vsyncMode_);
 }
 } // namespace impl
 sptr<VSyncGenerator> CreateVSyncGenerator()

@@ -344,6 +344,7 @@ int TypographyImpl::UpdateMetrics()
     lineMaxAscent_ = {};
     lineMaxCoveredAscent_ = {};
     lineMaxCoveredDescent_ = {};
+    yOffsets_ = {};
     height_ = 0.0;
     double prevMaxDescent = 0.0;
     double yOffset = 0.0;
@@ -367,7 +368,7 @@ int TypographyImpl::UpdateMetrics()
             }
 
             if (auto as = span.TryToAnySpan(); as != nullptr) {
-                span.AdjustOffsetY(-coveredAscent);
+                span.AdjustOffsetY(-ceil(coveredAscent));
             }
         }
 
@@ -403,6 +404,7 @@ void TypographyImpl::DoLayout()
         double offsetX = 0;
         for (auto &vs : lineMetrics_[i].lineSpans) {
             vs.AdjustOffsetY(yOffsets_[i]);
+            offsetX += HALF(vs.GetTextStyle().letterSpacing);
             vs.AdjustOffsetX(offsetX);
             offsetX += vs.GetWidth();
 
@@ -468,6 +470,7 @@ int TypographyImpl::UpdateSpanMetrics(VariantSpan &span, double &coveredAscent)
     TexgineFontMetrics metrics;
     if (auto ts = span.TryToTextSpan(); ts != nullptr) {
         metrics = ts->tmetrics_;
+        descent_ = *metrics.fDescent_;
     } else {
         auto as = span.TryToAnySpan();
         auto families = style.fontFamilies;
@@ -481,9 +484,8 @@ int TypographyImpl::UpdateSpanMetrics(VariantSpan &span, double &coveredAscent)
         }
 
         FontStyles fs(style.fontWeight, style.fontStyle);
-        bool fallbackTypeface = false;
         // 0xFFFC is a placeholder, use it to get typeface when text is empty.
-        auto typeface = fontCollection->GetTypefaceForChar(0xFFFC, fs, "Latn", style.locale, fallbackTypeface);
+        auto typeface = fontCollection->GetTypefaceForChar(0xFFFC, fs, "Latn", style.locale);
         if (typeface == nullptr) {
             typeface = fontCollection->GetTypefaceForFontStyles(fs, "Latn", style.locale);
         }
@@ -496,8 +498,8 @@ int TypographyImpl::UpdateSpanMetrics(VariantSpan &span, double &coveredAscent)
         font.SetTypeface(typeface->Get());
         font.SetSize(style.fontSize);
         font.GetMetrics(&metrics);
+        descent_ = std::max(*metrics.fDescent_, descent_);
     }
-
     if (DoUpdateSpanMetrics(span, metrics, style, coveredAscent)) {
         LOGEX_FUNC_LINE(ERROR) << "DoUpdateSpanMetrics is error";
         return FAILED;
@@ -516,17 +518,17 @@ int TypographyImpl::DoUpdateSpanMetrics(const VariantSpan &span, const TexgineFo
     if (!onlyUseStrut) {
         double coveredDescent = 0;
         if (style.heightOnly) {
-            double metricsHeight = -*metrics.fAscent_ + *metrics.fDescent_;
+            double metricsHeight = -*metrics.fAscent_ + descent_;
             if (fabs(metricsHeight) < DBL_EPSILON) {
                 LOGEX_FUNC_LINE(ERROR) << "metrics is error";
                 return FAILED;
             }
 
             coveredAscent = (-*metrics.fAscent_ / metricsHeight) * style.heightScale * style.fontSize;
-            coveredDescent = (*metrics.fDescent_ / metricsHeight) * style.heightScale * style.fontSize;
+            coveredDescent = (descent_ / metricsHeight) * style.heightScale * style.fontSize;
         } else {
             coveredAscent = (-*metrics.fAscent_ + HALF(*metrics.fLeading_));
-            coveredDescent = (*metrics.fDescent_ + HALF(*metrics.fLeading_));
+            coveredDescent = (descent_ + HALF(*metrics.fLeading_));
         }
         if (auto as = span.TryToAnySpan(); as != nullptr) {
             UpadateAnySpanMetrics(as, coveredAscent, coveredDescent);

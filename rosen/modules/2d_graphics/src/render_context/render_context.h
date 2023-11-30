@@ -80,18 +80,31 @@ public:
     {
         return skSurface_;
     }
-    bool SetUpGrContext(sk_sp<GrDirectContext> skContext = nullptr);
+#ifdef RS_ENABLE_VK
+    bool SetUpGrContext(sk_sp<GrDirectContext> skContext);
+#else
+    bool SetUpGrContext();
+#endif
 #else
     Drawing::GPUContext* GetDrGPUContext() const
     {
         return drGPUContext_.get();
     }
 
+    std::shared_ptr<Drawing::GPUContext> GetSharedDrGPUContext() const
+    {
+        return drGPUContext_;
+    }
+
     std::shared_ptr<Drawing::Surface> GetSurface() const
     {
         return surface_;
     }
-    bool SetUpGpuContext(sk_sp<GrDirectContext> skContext);
+#ifdef RS_ENABLE_VK
+    bool SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext);
+#else
+    bool SetUpGpuContext();
+#endif
 #endif
 
     EGLSurface CreateEGLSurface(EGLNativeWindowType eglNativeWindow);

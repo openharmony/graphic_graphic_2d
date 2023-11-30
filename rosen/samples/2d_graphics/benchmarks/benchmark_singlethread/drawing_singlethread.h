@@ -25,7 +25,7 @@ public:
 
     virtual void Start() override;
     virtual void Stop() override;
-    virtual void Test(SkCanvas* canvas, int width, int height) override;
+    virtual void Test(Drawing::Canvas* canvas, int width, int height) override;
     virtual void Output() override;
 };
 }

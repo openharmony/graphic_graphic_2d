@@ -18,7 +18,9 @@
 
 #include "base_impl.h"
 #include "utils/rect.h"
-
+#ifdef RS_ENABLE_VK
+#include "vulkan/vulkan.h"
+#endif
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -26,6 +28,7 @@ class Bitmap;
 class Canvas;
 class Image;
 class Surface;
+struct FlushInfo;
 #ifdef ACE_ENABLE_GPU
 struct FrameBuffer;
 class ImageInfo;
@@ -47,7 +50,11 @@ public:
     virtual std::shared_ptr<Image> GetImageSnapshot(const RectI& bounds) const = 0;
     virtual std::shared_ptr<Surface> MakeSurface(int width, int height) const = 0;
     virtual void FlushAndSubmit(bool syncCpu) = 0;
-    virtual void Flush() = 0;
+    virtual void Flush(FlushInfo *drawingflushInfo = nullptr) = 0;
+#ifdef RS_ENABLE_VK
+    virtual void Wait(int32_t time, const VkSemaphore& semaphore);
+    virtual void SetDrawingArea(const std::vector<RectI>& rects);
+#endif
 };
 } // namespace Drawing
 } // namespace Rosen

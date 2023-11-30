@@ -15,14 +15,12 @@
 
 #include "gtest/gtest.h"
 #include "render/rs_path.h"
-#include "include/core/SkPath.h"
 #ifndef USE_ROSEN_DRAWING
 #include "include/core/SkPath.h"
 #include "include/core/SkMatrix.h"
 #include "include/core/SkPathMeasure.h"
 #include "include/utils/SkParsePath.h"
 #else
-#include "recording/recording_path.h"
 #include "draw/path.h"
 #include "utils/matrix.h"
 #include "utils/scalar.h"
@@ -48,12 +46,21 @@ void RSPathTest::TearDown() {}
 static const int START_X = 20;
 static const int START_Y = 20;
 
+#ifndef USE_ROSEN_DRAWING
 static SkPath CreateSkPath()
 {
     SkPath path;
     path.moveTo(START_X, START_Y);
     return path;
 }
+#else
+static Drawing::Path CreateDrawingPath()
+{
+    Drawing::Path path;
+    path.MoveTo(START_X, START_Y);
+    return path;
+}
+#endif
 
 /**
  * @tc.name: CreateRSPathTest
@@ -78,8 +85,8 @@ HWTEST_F(RSPathTest, CreateRSPathTest002, TestSize.Level1)
     auto rsPath = RSPath::CreateRSPath(path1);
     ASSERT_NE(rsPath, nullptr);
 #else
-    Drawing::Path path2;
-    auto rsPath = RSPath::CreateRSPath(path2);
+    Drawing::Path path1 = CreateDrawingPath();
+    auto rsPath = RSPath::CreateRSPath(path1);
     ASSERT_NE(rsPath, nullptr);
 #endif
 }
@@ -91,8 +98,14 @@ HWTEST_F(RSPathTest, CreateRSPathTest002, TestSize.Level1)
  */
 HWTEST_F(RSPathTest, SetSkiaPathTest, TestSize.Level1)
 {
+#ifndef USE_ROSEN_DRAWING
     SkPath path = CreateSkPath();
     RSPath rsPath;
     rsPath.SetSkiaPath(path);
+#else
+    Drawing::Path path = CreateDrawingPath();
+    RSPath rsPath;
+    rsPath.SetDrawingPath(path);
+#endif
 }
 } // namespace OHOS::Rosen

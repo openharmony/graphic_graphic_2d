@@ -18,7 +18,6 @@
 
 #include "rs_render_particle_emitter.h"
 
-#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {

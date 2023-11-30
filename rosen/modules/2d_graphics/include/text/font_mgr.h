@@ -28,7 +28,7 @@ namespace Rosen {
 namespace Drawing {
 class FontMgrImpl;
 
-class FontMgr {
+class DRAWING_API FontMgr {
 public:
     explicit FontMgr(std::shared_ptr<FontMgrImpl> fontMgrImpl) noexcept;
     virtual ~FontMgr() = default;

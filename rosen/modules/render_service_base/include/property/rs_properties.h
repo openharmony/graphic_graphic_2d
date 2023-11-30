@@ -213,7 +213,7 @@ public:
     void SetShadowPath(std::shared_ptr<RSPath> shadowPath);
     void SetShadowMask(bool shadowMask);
     void SetShadowIsFilled(bool shadowIsFilled);
-    void SetShadowColorStrategy(bool shadowColorStrategy);
+    void SetShadowColorStrategy(int shadowColorStrategy);
     const Color& GetShadowColor() const;
     float GetShadowOffsetX() const;
     float GetShadowOffsetY() const;
@@ -227,7 +227,7 @@ public:
     std::shared_ptr<RSPath> GetShadowPath() const;
     bool GetShadowMask() const;
     bool GetShadowIsFilled() const;
-    bool GetShadowColorStrategy() const;
+    int GetShadowColorStrategy() const;
     const std::optional<RSShadow>& GetShadow() const;
     bool IsShadowValid() const;
 
@@ -342,7 +342,11 @@ public:
     void OnApplyModifiers();
 
 private:
+#ifndef USE_ROSEN_DRAWING
     void ResetProperty(const std::unordered_set<RSModifierType>& dirtyTypes);
+#else
+    void ResetProperty(const std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>& dirtyTypes);
+#endif
     void SetDirty();
     void ResetDirty();
     bool IsDirty() const;

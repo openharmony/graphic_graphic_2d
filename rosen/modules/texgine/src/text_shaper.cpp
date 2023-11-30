@@ -16,6 +16,7 @@
 #include "text_shaper.h"
 
 #include "measurer.h"
+#include "texgine_font_manager.h"
 #include "texgine_exception.h"
 #include "texgine_font.h"
 #include "texgine_text_blob_builder.h"
@@ -30,39 +31,26 @@ namespace Rosen {
 namespace TextEngine {
 #define DOUBLE 2
 
-int TextShaper::Shape(const VariantSpan &span, const TypographyStyle &ys,
-    const std::shared_ptr<FontProviders> &fontProviders) const
+void TextShaper::PartFontPropertySet(TexgineFont& font, std::shared_ptr<TextSpan> ts)
 {
-#ifdef LOGGER_ENABLE_SCOPE
-    ScopedTrace scope("TextShaper::ShapeLineSpans");
-#endif
-    LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "TextShaper::ShapeLineSpans");
-    if (span == nullptr) {
-        LOGEX_FUNC_LINE(ERROR) << "span is nullptr";
-        throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
+    font.SetEdging(TexgineFont::FontEdging::ANTIALIAS);
+    font.SetSubpixel(true);
+    font.SetHinting(TexgineFont::TexgineFontHinting::SLIGHT);
+    if (ts->cgs_.Get(0).typeface->Get()->DetectRawInformation() ||
+        ts->cgs_.Get(0).typeface->DetectionItalic()) {
+        font.SetSkewX();
     }
-
-    if (span.TryToAnySpan() != nullptr) {
-        // Shape successed
-        return 0;
+    if (ts->cgs_.Get(0).typeface->DetectionFakeBold()) {
+        font.SetBold();
     }
+    font.SetTypeface(ts->cgs_.Get(0).typeface->Get());
+}
 
-    auto xs = span.GetTextStyle();
-    auto ts = span.TryToTextSpan();
-    if (ts->cgs_.GetBack().IsHardBreak()) {
-        xs = ys.ConvertToTextStyle();
-    }
-
-    auto ret = DoShape(ts, xs, ys, fontProviders);
-    if (ret) {
-        LOGEX_FUNC_LINE(ERROR) << "DoShape failed";
-        // Shape failed
-        return 1;
-    }
-
+int TextShaper::FilterTextSpan(std::shared_ptr<TextSpan> ts)
+{
     if (!ts->cgs_.IsValid()) {
         LOGEX_FUNC_LINE(ERROR) << "cgs is inValid";
-        throw TEXGINE_EXCEPTION(INVALID_CHAR_GROUPS);
+        return 1;
     }
 
     if (ts->cgs_.GetSize() <= 0) {
@@ -72,14 +60,46 @@ int TextShaper::Shape(const VariantSpan &span, const TypographyStyle &ys,
 
     if (ts->cgs_.Get(0).typeface == nullptr) {
         LOGEX_FUNC_LINE(ERROR) << "first cgs have no typeface";
-        throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
+        return 1;
+    }
+
+    return 0; // Shape successed
+}
+
+int TextShaper::Shape(const VariantSpan &span, const TypographyStyle &ys,
+    const std::shared_ptr<FontProviders> &fontProviders)
+{
+#ifdef LOGGER_ENABLE_SCOPE
+    ScopedTrace scope("TextShaper::ShapeLineSpans");
+#endif
+    LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "TextShaper::ShapeLineSpans");
+    if (span == nullptr) {
+        LOGEX_FUNC_LINE(ERROR) << "span is nullptr";
+        return 1; // Shape failed
+    }
+
+    if (span.TryToAnySpan() != nullptr) {
+        return 0; // Shape successed
+    }
+
+    auto xs = span.GetTextStyle();
+    std::shared_ptr<TextSpan> ts = span.TryToTextSpan();
+    if (ts->cgs_.GetBack().IsHardBreak()) {
+        xs = ys.ConvertToTextStyle();
+    }
+
+    auto ret = DoShape(ts, xs, ys, fontProviders);
+    if (ret) {
+        LOGEX_FUNC_LINE(ERROR) << "DoShape failed";
+        return 1;
+    }
+
+    if (FilterTextSpan(ts)) {
+        return 1; // Shape failed
     }
 
     TexgineFont font;
-    font.SetEdging(TexgineFont::FontEdging::ANTIALIAS);
-    font.SetSubpixel(true);
-    font.SetHinting(TexgineFont::TexgineFontHinting::SLIGHT);
-    font.SetTypeface(ts->cgs_.Get(0).typeface->Get());
+    PartFontPropertySet(font, ts);
     font.SetSize(xs.fontSize);
     font.GetMetrics(&ts->tmetrics_);
 
@@ -98,7 +118,7 @@ int TextShaper::DoShape(std::shared_ptr<TextSpan> &span, const TextStyle &xs,
 {
     if (fontProviders == nullptr || span == nullptr) {
         LOGEX_FUNC_LINE(ERROR) << "providers or span is nullptr";
-        throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
+        return 1;
     }
 
     auto families = xs.fontFamilies;
@@ -114,7 +134,7 @@ int TextShaper::DoShape(std::shared_ptr<TextSpan> &span, const TextStyle &xs,
 
     std::vector<uint16_t> u16vect = span->cgs_.ToUTF16();
     span->u16vect_ = u16vect;
-    auto measurer = Measurer::Create(u16vect, *fontCollection);
+    auto measurer = Measurer::Create(span->u16vect_, *fontCollection);
     if (measurer == nullptr) {
         return 1;
     }
@@ -138,11 +158,7 @@ std::shared_ptr<TexgineTextBlob> TextShaper::GenerateTextBlob(const TexgineFont 
     double &spanWidth, std::vector<double> &glyphWidths) const
 {
     TexgineTextBlobBuilder builder;
-    auto blob = builder.AllocRunPos(font, cgs.GetNumberOfGlyph());
-    if (blob == nullptr || blob->glyphs == nullptr || blob->pos == nullptr) {
-        LOGEX_FUNC_LINE(ERROR) << "allocRunPos return unavailable buffer";
-        throw TEXGINE_EXCEPTION(API_FAILED);
-    }
+    const auto& runBuffer = builder.AllocRunPos(font, cgs.GetNumberOfGlyph());
 
     auto offset = 0.0;
     auto index = 0;
@@ -151,9 +167,9 @@ std::shared_ptr<TexgineTextBlob> TextShaper::GenerateTextBlob(const TexgineFont 
         auto drawingOffset = offset;
         offset += cg.GetWidth();
         for (const auto &[cp, ax, ay, ox, oy] : cg.glyphs) {
-            blob->glyphs[index] = cp;
-            blob->pos[index * DOUBLE] = drawingOffset + ox;
-            blob->pos[index * DOUBLE + 1] = ay - oy;
+            runBuffer.glyphs[index] = cp;
+            runBuffer.pos[index * DOUBLE] = drawingOffset + ox;
+            runBuffer.pos[index * DOUBLE + 1] = ay - oy;
             index++;
             drawingOffset += ax;
         }

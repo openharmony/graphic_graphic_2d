@@ -405,7 +405,6 @@ void RSNode::SetProperty(RSModifierType modifierType, T value)
     }
     auto property = std::make_shared<PropertyName>(value);
     auto propertyModifier = std::make_shared<ModifierName>(property);
-    ROSEN_LOGI("RSNode::SetProperty modifier");
     propertyModifiers_.emplace(modifierType, propertyModifier);
     AddModifier(propertyModifier);
 }
@@ -752,7 +751,7 @@ void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams, cons
         uiAnimation->SetFinishCallback(std::make_shared<AnimationFinishCallback>(finishCallback));
     }
     auto animation =
-        std::make_shared<RSRenderParticleAnimation>(animationId, propertyId, particlesRenderParams);
+        std::make_shared<RSRenderParticleAnimation>(animationId, propertyId, std::move(particlesRenderParams));
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateParticle>(GetId(), animation);
     auto transactionProxy = RSTransactionProxy::GetInstance();
@@ -1052,9 +1051,9 @@ void RSNode::SetShadowIsFilled(bool shadowIsFilled)
     SetProperty<RSShadowIsFilledModifier, RSProperty<bool>>(RSModifierType::SHADOW_IS_FILLED, shadowIsFilled);
 }
 
-void RSNode::SetShadowColorStrategy(bool shadowColorStrategy)
+void RSNode::SetShadowColorStrategy(int shadowColorStrategy)
 {
-    SetProperty<RSShadowColorStrategyModifier, RSProperty<bool>>(
+    SetProperty<RSShadowColorStrategyModifier, RSProperty<int>>(
         RSModifierType::SHADOW_COLOR_STRATEGY, shadowColorStrategy);
 }
 
@@ -1449,7 +1448,7 @@ void RSNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer)
     if (isNodeSingleFrameComposer_ != isNodeSingleFrameComposer) {
         isNodeSingleFrameComposer_ = isNodeSingleFrameComposer;
         std::unique_ptr<RSCommand> command =
-            std::make_unique<RSMarkNodeSingleFrameComposer>(GetId(), isNodeSingleFrameComposer);
+            std::make_unique<RSMarkNodeSingleFrameComposer>(GetId(), isNodeSingleFrameComposer, GetRealPid());
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
             transactionProxy->AddCommand(command, IsRenderServiceNode());
@@ -1464,7 +1463,6 @@ void RSNode::SetGrayScale(float grayScale)
 
 void RSNode::SetLightIntensity(float lightIntensity)
 {
-    ROSEN_LOGD("RSNode::SetLightIntensity:%{public}f", lightIntensity);
     SetProperty<RSLightIntensityModifier, RSAnimatableProperty<float>>(RSModifierType::LIGHT_INTENSITY, lightIntensity);
 }
 
@@ -1480,7 +1478,6 @@ void RSNode::SetLightPosition(const Vector4f& lightPosition)
 
 void RSNode::SetIlluminatedType(uint32_t illuminatedType)
 {
-    ROSEN_LOGD("RSNode::SetIlluminatedType:%{public}d", illuminatedType);
     SetProperty<RSIlluminatedTypeModifier, RSProperty<int>>(
         RSModifierType::ILLUMINATED_TYPE, illuminatedType);
 }

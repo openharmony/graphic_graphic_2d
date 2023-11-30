@@ -18,6 +18,8 @@
 
 #include <string>
 
+#include "include/core/SkColorSpace.h"
+
 #include "drawing/engine_adapter/impl_interface/color_space_impl.h"
 #include "utils/drawing_macros.h"
 
@@ -66,6 +68,7 @@ public:
      */
     static std::shared_ptr<ColorSpace> CreateFromImpl(std::shared_ptr<ColorSpaceImpl> impl);
 
+    ColorSpace() noexcept;
     virtual ~ColorSpace() = default;
     ColorSpaceType GetType() const;
     virtual DrawingType GetDrawingType() const
@@ -83,10 +86,15 @@ public:
     ColorSpace(ColorSpaceType t) noexcept;
     ColorSpace(ColorSpaceType t, const Image& image) noexcept;
     ColorSpace(ColorSpaceType t, const CMSTransferFuncType& func, const CMSMatrixType& matrix) noexcept;
+
+    /*
+     * @brief      Caller use method toProfile of SkColorSpace, the parameter is type skcms_ICCProfile.
+     * @           In order not to encapsulate this method. Drawing ColorSpace needs to be converted to SkColorSpace.
+     * @return     A shared pointer to SkColorSpace.
+     */
+    sk_sp<SkColorSpace> GetSkColorSpace() const;
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);
-protected:
-    ColorSpace() noexcept;
 
 private:
     ColorSpaceType type_;

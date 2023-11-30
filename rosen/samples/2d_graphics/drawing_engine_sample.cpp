@@ -15,6 +15,7 @@
 
 #include "drawing_engine_sample.h"
 
+#include "SkCanvas.h"
 #include "window.h"
 #include <securec.h>
 #include <vsync_generator.h>
@@ -25,6 +26,7 @@
 #include <iostream>
 
 #include "include/core/SkBitmap.h"
+#include "draw/canvas.h"
 
 using namespace OHOS;
 using namespace OHOS::Rosen;
@@ -181,6 +183,7 @@ void DrawingEngineSample::OnBufferAvailable()
 {
 }
 
+#ifndef USE_ROSEN_DRAWING
 void DrawingEngineSample::ExcuteBenchMark(SkCanvas* canvas)
 {
     std::cout << "ExcuteBenchMark benchmark is " << benchMark_ << std::endl;
@@ -191,29 +194,60 @@ void DrawingEngineSample::ExcuteBenchMark(SkCanvas* canvas)
     benchMark_->Test(canvas, drawingWidth, drawingHeight);
     benchMark_->Stop();
 }
+#else
+void DrawingEngineSample::ExcuteBenchMark(Drawing::Canvas* canvas)
+{
+    std::cout << "ExcuteBenchMark benchmark is " << benchMark_ << std::endl;
+    if (benchMark_ == nullptr) {
+        return;
+    }
+    benchMark_->Start();
+    benchMark_->Test(canvas, drawingWidth, drawingHeight);
+    benchMark_->Stop();
+}
+#endif
 
 SurfaceError DrawingEngineSample::DoDraw()
 {
-    LOGI("DrawingEngineSample::DoDraw+");
-    std::shared_ptr<SurfaceBase> surface = OHOS::Rosen::SurfaceOhos::CreateSurface(drawingPSurface);
-    if (surface == nullptr) {
+    std::cout << "DrawingEngineSample::DoDraw+" << std::endl;
+    if (surface_ == nullptr) {
+        surface_ = OHOS::Rosen::SurfaceOhos::CreateSurface(drawingPSurface);
+    }
+    if (surface_ == nullptr) {
+        std::cout << "DrawingEngineSample::surface_ is nullptr" << std::endl;
         return SURFACE_ERROR_ERROR;
     }
-    surface->SetDrawingProxy(drawingProxy);
+    surface_->SetDrawingProxy(drawingProxy);
 
-    auto surfaceFrame = surface->RequestFrame(drawingWidth, drawingHeight);
+    std::unique_ptr<SurfaceFrame> surfaceFrame;
+
+#ifdef RS_ENABLE_VK
+    // For skia and DDGR by Nativewindow
+    surfaceFrame = surface_->NativeRequestFrame(drawingWidth, drawingHeight);
     if (surfaceFrame == nullptr) {
         std::cout << "Request Frame Failed" << std::endl;
         return SURFACE_ERROR_ERROR;
     }
-
-    SkCanvas* canvas = surface->GetCanvas(surfaceFrame);
-
+#else
+    // For DDGR by flutter vulkan swapchian and skia-gl by swapbuffer
+    surfaceFrame = surface_->RequestFrame(drawingWidth, drawingHeight);
+#endif
+#ifndef USE_ROSEN_DRAWING
+    SkCanvas* canvas = surface_->GetSkCanvas(surfaceFrame);
     ExcuteBenchMark(canvas);
+#else
+    Drawing::Canvas* drcanvas = surface_->GetCanvas(surfaceFrame);
+    ExcuteBenchMark(drcanvas);
+#endif
+#ifdef RS_ENABLE_VK
+    // For skia and DDGR by Nativewindow
+    surface_->NativeFlushFrame(surfaceFrame);
+#else
+    // For DDGR by flutter and skia-gl by swapbuffer
+    surface_->FlushFrame(surfaceFrame);
+#endif
 
-    surface->FlushFrame(surfaceFrame);
-
-    LOGI("DrawingEngineSample::DoDraw-");
+    std::cout << "DrawingEngineSample::DoDraw-" << std::endl;
     return SURFACE_ERROR_OK;
 }
 

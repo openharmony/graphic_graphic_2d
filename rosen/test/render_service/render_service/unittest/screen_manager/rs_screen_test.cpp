@@ -308,6 +308,80 @@ HWTEST_F(RSScreenTest, SetScreenSkipFrameIntervalTest, testing::ext::TestSize.Le
 }
 
 /*
+ * @tc.name: GetScreenSupportedHDRFormats_001
+ * @tc.desc: GetScreenSupportedHDRFormats Test
+ * @tc.type: FUNC
+ * @tc.require: issueI8ECTE
+ */
+HWTEST_F(RSScreenTest, GetScreenSupportedHDRFormats_001, testing::ext::TestSize.Level1)
+{
+    VirtualScreenConfigs config;
+    auto virtualScreen = std::make_unique<impl::RSScreen>(config);
+    std::vector<ScreenHDRFormat> hdrFormats;
+    ASSERT_EQ(virtualScreen->GetScreenSupportedHDRFormats(hdrFormats), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: SetScreenHDRFormat_001
+ * @tc.desc: SetScreenHDRFormat Test
+ * @tc.type: FUNC
+ * @tc.require: issueI8ECTE
+ */
+HWTEST_F(RSScreenTest, SetScreenHDRFormat_001, testing::ext::TestSize.Level1)
+{
+    ScreenId id = static_cast<uint64_t>(1000);
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, false, HdiOutput::CreateHdiOutput(id), nullptr);
+    ASSERT_EQ(rsScreen->SetScreenHDRFormat(static_cast<int32_t>(1000)), INVALID_ARGUMENTS);
+    VirtualScreenConfigs config;
+    auto virtualScreen = std::make_unique<impl::RSScreen>(config);
+    ASSERT_EQ(virtualScreen->SetScreenHDRFormat(static_cast<int32_t>(1000)), INVALID_ARGUMENTS);
+}
+
+/*
+ * @tc.name: SetPixelFormat_001
+ * @tc.desc: SetPixelFormat Test
+ * @tc.type: FUNC
+ * @tc.require: issueI8ECTE
+ */
+HWTEST_F(RSScreenTest, SetPixelFormat_001, testing::ext::TestSize.Level1)
+{
+    ScreenId id = static_cast<uint64_t>(1000);
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, false, HdiOutput::CreateHdiOutput(id), nullptr);
+    ASSERT_EQ(rsScreen->SetPixelFormat(static_cast<GraphicPixelFormat>(20)), StatusCode::SUCCESS); //BGRA8888
+    VirtualScreenConfigs config;
+    auto virtualScreen = std::make_unique<impl::RSScreen>(config);
+    ASSERT_EQ(virtualScreen->SetPixelFormat(static_cast<GraphicPixelFormat>(20)), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: GetScreenSupportedColorSpaces_001
+ * @tc.desc: GetScreenSupportedColorSpaces Test
+ * @tc.type: FUNC
+ * @tc.require: issueI8ECTE
+ */
+HWTEST_F(RSScreenTest, GetScreenSupportedColorSpaces_001, testing::ext::TestSize.Level1)
+{
+    VirtualScreenConfigs config;
+    auto virtualScreen = std::make_unique<impl::RSScreen>(config);
+    std::vector<GraphicCM_ColorSpaceType> colorSpaces;
+    ASSERT_EQ(virtualScreen->GetScreenSupportedColorSpaces(colorSpaces), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: SetScreenColorSpace_001
+ * @tc.desc: SetScreenColorSpace Test
+ * @tc.type: FUNC
+ * @tc.require: issueI8ECTE
+ */
+HWTEST_F(RSScreenTest, SetScreenColorSpace_001, testing::ext::TestSize.Level1)
+{
+    VirtualScreenConfigs config;
+    auto virtualScreen = std::make_unique<impl::RSScreen>(config);
+    ASSERT_EQ(virtualScreen->SetScreenColorSpace(
+        static_cast<GraphicCM_ColorSpaceType>(1 | (2 << 8) | (3 << 16) | (1 << 21))), SUCCESS);
+}
+
+/*
  * @tc.name: SurfaceDumpTest
  * @tc.desc: SurfaceDump Test
  * @tc.type: FUNC

@@ -35,6 +35,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_color_picker.h"
+#include "render/rs_shadow.h"
 #include "include/effects/SkRuntimeEffect.h"
 
 namespace OHOS {
@@ -88,6 +89,10 @@ public:
     {
         return handler_;
     }
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> GetMainHandler()
+    {
+        return mainHandler_;
+    }
 #endif
     void CalculateColorAverage(RSColor& ColorCur);
 
@@ -99,8 +104,15 @@ public:
 
     void SetIsShadow(bool isShadow);
 
+    void SetShadowColorStrategy(int shadowColorStrategy);
+
+    void SetWaitRelease(bool waitRelease);
+
     bool GetDeviceSize(int& deviceWidth, int& deviceHeight) const;
 
+    bool GetWaitRelease() const;
+
+    void ReleaseColorPicker();
 
 private:
 #ifndef USE_ROSEN_DRAWING
@@ -111,6 +123,8 @@ private:
     bool valid_ = false;
     bool firstGetColorFinished_ = false;
     bool isShadow_ = false;
+    bool waitRelease_ = false;
+    int shadowColorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
     uint32_t* pixelPtr_ = nullptr;
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
     sk_sp<SkImage> imageSnapshotCache_ = nullptr;
@@ -125,6 +139,7 @@ private:
     std::optional<int> deviceHeight_;
 #ifdef IS_OHOS
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_ = nullptr;
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> mainHandler_ = nullptr;
 #endif
 };
 } // namespace Rosen

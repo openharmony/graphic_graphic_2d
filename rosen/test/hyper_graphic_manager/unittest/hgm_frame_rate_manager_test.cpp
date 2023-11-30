@@ -24,6 +24,13 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+    int32_t width = 720;
+    int32_t height = 1080;
+    int32_t phyWidth = 685;
+    int32_t phyHeight = 1218;
+    ScreenSize screenSize = {width, height, phyWidth, phyHeight};
+}
 class HgmFrameRateMgrTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -45,18 +52,51 @@ void HgmFrameRateMgrTest::TearDown() {}
  */
 HWTEST_F(HgmFrameRateMgrTest, UniProcessData, Function | SmallTest | Level1)
 {
-    std::unique_ptr<HgmFrameRateManager> mgr = std::make_unique<HgmFrameRateManager>();
+    auto &instance = HgmCore::Instance();
     ScreenId id = 8;
-    std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker;
-    FrameRateLinkerMap appFrameLinkers;
+    sptr<HgmScreen> screen = nullptr;
+    int32_t width = 1344;
+    int32_t height = 2772;
+    uint32_t rate = 120;
+    uint32_t rate2 = 60;
+    uint32_t rate3 = 90;
+    int32_t mode = 1;
+    int32_t mode2 = 2;
+    int32_t mode3 = 3;
+    instance.AddScreen(id, 1, screenSize);
+    instance.AddScreenInfo(id, width, height, rate, mode);
+    instance.AddScreenInfo(id, width, height, rate2, mode2);
+    instance.AddScreenInfo(id, width, height, rate3, mode3);
+
+    std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker = std::make_shared<RSRenderFrameRateLinker>();
+    ASSERT_NE(rsFrameRateLinker, nullptr);
+    rsFrameRateLinker->SetExpectedRange({0, 120, 60});
+
+    std::shared_ptr<RSRenderFrameRateLinker> appFrameLinker1 = std::make_shared<RSRenderFrameRateLinker>();
+    ASSERT_NE(appFrameLinker1, nullptr);
+    appFrameLinker1->SetExpectedRange({0, 120, 90});
+    std::shared_ptr<RSRenderFrameRateLinker> appFrameLinker2 = std::make_shared<RSRenderFrameRateLinker>();
+    ASSERT_NE(appFrameLinker2, nullptr);
+    appFrameLinker2->SetExpectedRange({0, 120, 120});
+    std::unordered_map<FrameRateLinkerId, std::shared_ptr<RSRenderFrameRateLinker>> appFrameLinkers =
+        {{1, appFrameLinker1}, {2, appFrameLinker2}};
+
     uint64_t timestamp = 10000000;
     bool flag = false;
+    sptr<VSyncGenerator> vsyncGenerator = CreateVSyncGenerator();
+    sptr<VSyncController> rsController = new VSyncController(vsyncGenerator, 0);
+    sptr<VSyncController> appController = new VSyncController(vsyncGenerator, 0);
+    std::shared_ptr<HgmVSyncGeneratorController> controller =
+        std::make_shared<HgmVSyncGeneratorController>(rsController, appController, vsyncGenerator);
+    ASSERT_NE(controller, nullptr);
+    std::unique_ptr<HgmFrameRateManager> frameRateMgr = std::make_unique<HgmFrameRateManager>();
     PART("CaseDescription") {
         STEP("1. get a HgmFrameRateManager") {
-            STEP_ASSERT_NE(mgr, nullptr);
+            ASSERT_NE(frameRateMgr, nullptr);
+            frameRateMgr->Init(rsController, appController, vsyncGenerator);
         }
         STEP("2. check the result of UniProcessData") {
-            mgr->UniProcessData(id, timestamp, rsFrameRateLinker, appFrameLinkers, flag);
+            frameRateMgr->UniProcessData(id, timestamp, rsFrameRateLinker, appFrameLinkers, flag);
         }
     }
 }

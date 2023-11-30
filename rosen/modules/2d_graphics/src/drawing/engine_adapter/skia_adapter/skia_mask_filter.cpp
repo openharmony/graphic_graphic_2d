@@ -12,10 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "src/core/SkReadBuffer.h"
-#include "src/core/SkWriteBuffer.h"
+#include "src/core/SkMaskFilterBase.h"
 #include "skia_mask_filter.h"
-
+#include "skia_helper.h"
 #include "effect/mask_filter.h"
 #include "utils/data.h"
 #include "utils/log.h"
@@ -25,9 +24,9 @@ namespace Rosen {
 namespace Drawing {
 SkiaMaskFilter::SkiaMaskFilter() noexcept : filter_(nullptr) {}
 
-void SkiaMaskFilter::InitWithBlur(BlurType t, scalar sigma)
+void SkiaMaskFilter::InitWithBlur(BlurType t, scalar sigma, bool respectCTM)
 {
-    filter_ = SkMaskFilter::MakeBlur(static_cast<SkBlurStyle>(t), sigma);
+    filter_ = SkMaskFilter::MakeBlur(static_cast<SkBlurStyle>(t), sigma, respectCTM);
 }
 
 sk_sp<SkMaskFilter> SkiaMaskFilter::GetMaskFilter() const
@@ -48,13 +47,7 @@ std::shared_ptr<Data> SkiaMaskFilter::Serialize() const
         return nullptr;
     }
 
-    SkBinaryWriteBuffer writer;
-    writer.writeFlattenable(filter_.get());
-    size_t length = writer.bytesWritten();
-    std::shared_ptr<Data> data = std::make_shared<Data>();
-    data->BuildUninitialized(length);
-    writer.writeToMemory(data->WritableData());
-    return data;
+    return SkiaHelper::FlattenableSerialize(filter_.get());
 #else
     return nullptr;
 #endif
@@ -68,9 +61,8 @@ bool SkiaMaskFilter::Deserialize(std::shared_ptr<Data> data)
         return false;
     }
 
-    SkReadBuffer reader(data->GetData(), data->GetSize());
-    filter_ = reader.readMaskFilter();
-    return filter_ != nullptr;
+    filter_ = SkiaHelper::FlattenableDeserialize<SkMaskFilterBase>(data);
+    return true;
 #else
     return false;
 #endif

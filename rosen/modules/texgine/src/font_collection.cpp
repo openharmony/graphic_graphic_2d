@@ -21,6 +21,7 @@
 #include "texgine/typography_types.h"
 #include "texgine/utils/exlog.h"
 #include "texgine_string.h"
+#include "texgine_font.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -53,14 +54,22 @@ void FontCollection::SortTypeface(FontStyles &style) const
         [](std::shared_ptr<TexgineTypeface> &ty1, const std::shared_ptr<TexgineTypeface> &ty2) {
             auto fs1 = ty1->GetFontStyle()->GetFontStyle();
             auto fs2 = ty2->GetFontStyle()->GetFontStyle();
-            return (fs1->weight() != fs2->weight()) ?
-                fs1->weight() < fs2->weight() : fs1->slant() < fs2->slant();
+#ifndef USE_ROSEN_DRAWING
+            return (fs1->weight() != fs2->weight()) ? fs1->weight() < fs2->weight() : fs1->slant() < fs2->slant();
+#else
+            return (fs1->GetWeight() != fs2->GetWeight()) ? fs1->GetWeight() < fs2->GetWeight()
+                : fs1->GetSlant() < fs2->GetSlant();
+#endif
         }
     );
 
     std::vector<int> weights;
     for (auto ty : typefaces) {
+#ifndef USE_ROSEN_DRAWING
         auto weight = ty->GetFontStyle()->GetFontStyle()->weight() / MULTIPLE;
+#else
+        auto weight = ty->GetFontStyle()->GetFontStyle()->GetWeight() / MULTIPLE;
+#endif
         weights.push_back(weight);
     }
 
@@ -78,7 +87,7 @@ void FontCollection::SortTypeface(FontStyles &style) const
 }
 
 std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch, FontStyles &style,
-    const std::string &script, const std::string &locale, bool &fallbackTypeface) const
+    const std::string &script, const std::string &locale) const
 {
     SortTypeface(style);
     auto fs = std::make_shared<TexgineFontStyle>();
@@ -87,6 +96,8 @@ std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch,
         std::shared_ptr<Typeface> typeface = nullptr;
         struct TypefaceCacheKey key = {.fss = fontStyleSet, .fs = style};
         if (auto it = typefaceCache_.find(key); it != typefaceCache_.end()) {
+            typeface->ComputeFakeryItalic(style.GetFontStyle());
+            typeface->ComputeFakery(style.GetWeight());
             typeface = it->second;
         } else {
             if (fontStyleSet == nullptr) {
@@ -101,18 +112,20 @@ std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch,
         }
 
         if (typeface->Has(ch)) {
-            fallbackTypeface = false;
             return typeface;
         }
     }
     auto typeface = FindThemeTypeface(style);
+    if (typeface) {
+        typeface->ComputeFakeryItalic(style.GetFontStyle());
+        typeface->ComputeFakery(style.GetWeight());
+    }
     if (typeface == nullptr) {
         typeface = FindFallBackTypeface(ch, style, script, locale);
     }
     if (typeface == nullptr) {
         typeface = GetTypefaceForFontStyles(style, script, locale);
     }
-    fallbackTypeface = true;
     return typeface;
 }
 
@@ -146,12 +159,21 @@ std::shared_ptr<Typeface> FontCollection::GetTypefaceForFontStyles(const FontSty
             fontStyleSet->GetStyle(i, matchingStyle, styleName);
 
             int score = 0;
+#ifndef USE_ROSEN_DRAWING
             score += (MAX_WIDTH - std::abs(providingStyle.GetFontStyle()->width() -
                                           matchingStyle->GetFontStyle()->width())) * SECOND_PRIORITY;
             score += (MAX_SLANT - std::abs(providingStyle.GetFontStyle()->slant() -
                                           matchingStyle->GetFontStyle()->slant())) * FIRST_PRIORITY;
             score += (MAX_WEIGHT - std::abs(providingStyle.GetFontStyle()->weight() / MULTIPLE -
                                            matchingStyle->GetFontStyle()->weight() / MULTIPLE));
+#else
+            score += (MAX_WIDTH - std::abs(providingStyle.GetFontStyle()->GetWidth() -
+                                          matchingStyle->GetFontStyle()->GetWidth())) * SECOND_PRIORITY;
+            score += (MAX_SLANT - std::abs(providingStyle.GetFontStyle()->GetSlant() -
+                                          matchingStyle->GetFontStyle()->GetSlant())) * FIRST_PRIORITY;
+            score += (MAX_WEIGHT - std::abs(providingStyle.GetFontStyle()->GetWeight() / MULTIPLE -
+                                           matchingStyle->GetFontStyle()->GetWeight() / MULTIPLE));
+#endif
             if (score > bestScore) {
                 bestScore = score;
                 bestIndex = i;
@@ -194,12 +216,25 @@ std::shared_ptr<Typeface> FontCollection::FindFallBackTypeface(const uint32_t &c
         return nullptr;
     }
 
-    auto tfs = style.ToTexgineFontStyle();
-    auto fallbackTypeface = fm->MatchFamilyStyleCharacter("", tfs, bcp47.data(), bcp47.size(), ch);
+    if (style.GetFontStyle()) {
+        typefaceCache_.clear();
+        TexgineFontStyle tfs = style.ToTexgineFontStyle();
+        std::shared_ptr<TexgineTypeface> fallbackTypeface = fm->MatchFamilyStyleCharacter("", tfs,
+            bcp47.data(), bcp47.size(), ch);
+        if (fallbackTypeface == nullptr || fallbackTypeface->GetTypeface() == nullptr) {
+            return nullptr;
+        }
+        fallbackTypeface->InputOriginalStyle(true); // true means record italic style
+        auto typeface = std::make_shared<Typeface>(fallbackTypeface);
+        return typeface;
+    }
+
+    TexgineFontStyle tfs = style.ToTexgineFontStyle();
+    std::shared_ptr<TexgineTypeface> fallbackTypeface = fm->MatchFamilyStyleCharacter("", tfs,
+        bcp47.data(), bcp47.size(), ch);
     if (fallbackTypeface == nullptr || fallbackTypeface->GetTypeface() == nullptr) {
         return nullptr;
     }
-
     auto typeface = std::make_shared<Typeface>(fallbackTypeface);
     fallbackCache_[key] = typeface;
     return typeface;

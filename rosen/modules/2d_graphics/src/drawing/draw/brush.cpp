@@ -15,6 +15,8 @@
 
 #include "draw/brush.h"
 
+#include "static_factory.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -90,6 +92,11 @@ uint32_t Brush::GetAlpha() const
     return color_.GetAlpha();
 }
 
+scalar Brush::GetAlphaF() const
+{
+    return color_.GetAlphaF();
+}
+
 void Brush::SetAlpha(uint32_t a)
 {
     color_.SetAlpha(a);
@@ -138,6 +145,16 @@ bool Brush::IsAntiAlias() const
 void Brush::SetAntiAlias(bool aa)
 {
     antiAlias_ = aa;
+}
+
+bool Brush::CanComputeFastBounds()
+{
+    return StaticFactory::CanComputeFastBounds(*this);
+}
+
+const Rect& Brush::ComputeFastBounds(const Rect& orig, Rect* storage)
+{
+    return StaticFactory::ComputeFastBounds(*this, orig, storage);
 }
 
 void Brush::Reset()

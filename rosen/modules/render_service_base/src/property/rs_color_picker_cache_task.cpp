@@ -62,6 +62,10 @@ bool RSColorPickerCacheTask::InitSurface(GrRecordingContext* grContext)
 bool RSColorPickerCacheTask::InitTask(const sk_sp<SkImage> imageSnapshot)
 {
     RS_TRACE_NAME("RSColorPickerCacheTask InitTask");
+    #ifdef IS_OHOS
+        auto runner = AppExecFwk::EventRunner::Current();
+        mainHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+    #endif
     if (imageSnapshot == nullptr) {
         ROSEN_LOGE("RSColorPickerCacheTask imageSnapshot is null");
         return false;
@@ -152,7 +156,7 @@ bool RSColorPickerCacheTask::Render()
         uint32_t errorCode = 0;
         std::shared_ptr<RSColorPicker> colorPicker = RSColorPicker::CreateColorPicker(dst, errorCode);
         if (errorCode == 0) {
-            if (isShadow_) {
+            if (isShadow_ && shadowColorStrategy_ == SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_MAIN) {
                 colorPicker->GetLargestProportionColor(color);
             } else {
                 colorPicker->GetAverageColor(color);
@@ -309,6 +313,16 @@ void RSColorPickerCacheTask::SetIsShadow(bool isShadow)
     isShadow_ = isShadow;
 }
 
+void RSColorPickerCacheTask::SetShadowColorStrategy(int shadowColorStrategy)
+{
+    shadowColorStrategy_ = shadowColorStrategy;
+}
+
+void RSColorPickerCacheTask::SetWaitRelease(bool waitRelease)
+{
+    waitRelease_ = waitRelease;
+}
+
 bool RSColorPickerCacheTask::GetDeviceSize(int& deviceWidth, int& deviceHeight) const
 {
     if (deviceWidth_.has_value() && deviceHeight_.has_value()) {
@@ -319,6 +333,25 @@ bool RSColorPickerCacheTask::GetDeviceSize(int& deviceWidth, int& deviceHeight) 
     return false;
 }
 
+bool RSColorPickerCacheTask::GetWaitRelease() const
+{
+    return waitRelease_;
+}
+
+void RSColorPickerCacheTask::ReleaseColorPicker()
+{
+    SetStatus(CacheProcessStatus::WAITING);
+    Reset();
+    #ifdef IS_OHOS
+        if (GetHandler() != nullptr) {
+            auto task = this;
+            task->GetHandler()->PostTask(
+                [task]() { task->ResetGrContext(); }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        }
+    #endif
+    // release finished
+    waitRelease_ = false;
+}
 
 } // namespace Rosen
 } // namespace OHOS

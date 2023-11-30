@@ -116,11 +116,13 @@ typedef enum : uint32_t {
 
 typedef enum : uint32_t {
     NOT_SUPPORT_HDR = 0,
-    DOLBY_VISION,
-    HDR10,
-    HLG,
-    HDR10_PLUS,
-    HDR_VIVID,
+    VIDEO_HLG,
+    VIDEO_HDR10,
+    VIDEO_HDR_VIVID,
+    IMAGE_HDR_VIVID_DUAL,
+    IMAGE_HDR_VIVID_SINGLE,
+    IMAGE_HDR_ISO_DUAL,
+    IMAGE_HDR_ISO_SINGLE,
 } ScreenHDRFormat;
 
 typedef enum : uint32_t {

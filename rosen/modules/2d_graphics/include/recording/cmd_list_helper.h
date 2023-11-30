@@ -31,6 +31,7 @@ class PixelMap;
 }
 namespace Rosen {
 namespace Drawing {
+class DrawOpItem;
 class CmdListHelper {
 public:
     CmdListHelper() = default;
@@ -47,8 +48,13 @@ public:
     static ImageHandle AddPixelMapToCmdList(CmdList& cmdList, const std::shared_ptr<Media::PixelMap>& pixelMap);
     static std::shared_ptr<Media::PixelMap> GetPixelMapFromCmdList(
         const CmdList& cmdList, const ImageHandle& pixelMapHandle);
-    static ImageHandle AddImageObjectToCmdList(CmdList& cmdList, const std::shared_ptr<ExtendImageObject>& object);
+    static ImageHandle DRAWING_API AddImageObjectToCmdList(
+        CmdList& cmdList, const std::shared_ptr<ExtendImageObject>& object);
     static std::shared_ptr<ExtendImageObject> GetImageObjectFromCmdList(
+        const CmdList& cmdList, const ImageHandle& objectHandle);
+    static ImageHandle DRAWING_API AddImageBaseOjToCmdList(
+        CmdList& cmdList, const std::shared_ptr<ExtendImageBaseOj>& object);
+    static std::shared_ptr<ExtendImageBaseOj> GetImageBaseOjFromCmdList(
         const CmdList& cmdList, const ImageHandle& objectHandle);
     static ImageHandle AddPictureToCmdList(CmdList& cmdList, const Picture& picture);
     static std::shared_ptr<Picture> GetPictureFromCmdList(const CmdList& cmdList, const ImageHandle& pictureHandle);
@@ -189,6 +195,9 @@ public:
     static ImageHandle AddDataToCmdList(CmdList& cmdList, const Data* data);
     static std::shared_ptr<Data> GetDataFromCmdList(const CmdList& cmdList, const ImageHandle& imageHandle);
 
+    static ImageHandle AddPathToCmdList(CmdList& cmdList, const Path& path);
+    static std::shared_ptr<Path> GetPathFromCmdList(const CmdList& cmdList, const ImageHandle& pathHandle);
+
     static ImageHandle AddColorSpaceToCmdList(CmdList& cmdList, const std::shared_ptr<ColorSpace> colorSpace);
     static std::shared_ptr<ColorSpace> GetColorSpaceFromCmdList(const CmdList& cmdList, const ImageHandle& imageHandle);
 
@@ -211,6 +220,9 @@ public:
     static FlattenableHandle AddImageFilterToCmdList(CmdList& cmdList, std::shared_ptr<ImageFilter> imageFilter);
     static std::shared_ptr<ImageFilter> GetImageFilterFromCmdList(const CmdList& cmdList,
         const FlattenableHandle& imageFilterHandle);
+
+    static std::vector<std::shared_ptr<DrawOpItem>> GetDrawOpItemsFromHandle(
+        const CmdList& cmdList, const CmdListHandle& handle);
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -141,6 +141,8 @@ std::shared_ptr<Drawing::GPUContext> RSBackgroundThread::GetShareGPUContext() co
 std::shared_ptr<Drawing::GPUContext> RSBackgroundThread::CreateShareGPUContext()
 {
     RS_TRACE_NAME("CreateShareGrContext");
+#ifdef RS_ENABLE_GL
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
     CreateShareEglContext();
 
     Drawing::GPUContextOptions options = {};
@@ -149,13 +151,18 @@ std::shared_ptr<Drawing::GPUContext> RSBackgroundThread::CreateShareGPUContext()
     auto size = glesVersion ? strlen(glesVersion) : 0;
     /* /data/service/el0/render_service is shader cache dir*/
     handler->ConfigureContext(&options, glesVersion, size, "/data/service/el0/render_service", true);
-
-    auto gpuContext = std::make_shared<Drawing::GPUContext>();
     if (!gpuContext->BuildFromGL(options)) {
         RS_LOGE("BuildFromGL fail");
         return nullptr;
     }
-
+#endif
+#ifdef RS_ENABLE_VK
+    auto gpuContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
+#endif
+    if (gpuContext == nullptr) {
+        RS_LOGE("BuildFromVK fail")
+        return nullptr;
+    }
     return gpuContext;
 }
 

@@ -102,13 +102,13 @@ void HgmFrameRateManager::UniProcessData(ScreenId screenId, uint64_t timestamp,
     if (!hgmCore.GetLtpoEnabled()) {
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
     } else if (frameRateChanged) {
-        auto oldRefreshRate = hgmCore.GetScreenCurrentRefreshRate(screenId);
         HandleFrameRateChangeForLTPO(timestamp);
-        if (currRefreshRate_ != oldRefreshRate) {
-            std::unordered_map<pid_t, uint32_t> rates;
-            rates[GetRealPid()] = currRefreshRate_;
-            FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRates(rates);
+        std::unordered_map<pid_t, uint32_t> rates;
+        rates[GetRealPid()] = currRefreshRate_;
+        if (auto alignRate = hgmCore.GetAlignRate(); alignRate != 0) {
+            rates[UNI_APP_PID] = alignRate;
         }
+        FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRates(rates);
     }
 }
 
@@ -152,7 +152,7 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp)
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
     };
 
-    auto expectTime = timestamp + controller_->GetCurrentOffset();
+    uint64_t expectTime = timestamp + static_cast<uint64_t>(controller_->GetCurrentOffset());
     uint64_t currTime = static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
@@ -294,9 +294,6 @@ int32_t HgmFrameRateManager::CalModifierPreferred(const HgmModifierProfile &hgmM
 
     auto dynamicSettingMap = parsedConfigData->GetAnimationDynamicSettingMap(hgmModifierProfile.hgmModifierType);
     for (const auto &iter: dynamicSettingMap) {
-        if (mixSpeed == 0) {
-            return DEFAULT_PREFERRED;
-        }
         if (mixSpeed >= iter.second.min && (mixSpeed < iter.second.max || iter.second.max == -1)) {
             return iter.second.preferred_fps;
         }

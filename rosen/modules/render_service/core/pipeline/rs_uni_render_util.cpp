@@ -50,7 +50,7 @@ void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& no
         }
         auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
         if (!surfaceDirtyManager->SetBufferAge(bufferAge)) {
-            ROSEN_LOGE("RSUniRenderUtil::MergeVisibleDirtyRegion with invalid buffer age %{public}d", bufferAge);
+            ROSEN_LOGE("RSUniRenderUtil::MergeDirtyHistory with invalid buffer age %{public}d", bufferAge);
         }
         surfaceDirtyManager->IntersectDirtyRect(surfaceNode->GetOldDirtyInSurface());
         surfaceDirtyManager->UpdateDirty(useAlignedDirtyRegion);
@@ -60,7 +60,7 @@ void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& no
 }
 
 Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(std::shared_ptr<RSDisplayRenderNode>& node,
-    bool useAlignedDirtyRegion)
+    std::vector<NodeId>& hasVisibleDirtyRegionSurfaceVec, bool useAlignedDirtyRegion)
 {
     Occlusion::Region allSurfaceVisibleDirtyRegion;
     for (auto it = node->GetCurAllSurfaces().rbegin(); it != node->GetCurAllSurfaces().rend(); ++it) {
@@ -76,6 +76,9 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(std::shared_ptr<RSDis
         Occlusion::Region surfaceDirtyRegion { dirtyRect };
         Occlusion::Region surfaceVisibleDirtyRegion = surfaceDirtyRegion.And(visibleRegion);
         surfaceNode->SetVisibleDirtyRegion(surfaceVisibleDirtyRegion);
+        if (!surfaceVisibleDirtyRegion.IsEmpty()) {
+            hasVisibleDirtyRegionSurfaceVec.emplace_back(surfaceNode->GetId());
+        }
         if (useAlignedDirtyRegion) {
             Occlusion::Region alignedRegion = AlignedDirtyRegion(surfaceVisibleDirtyRegion);
             surfaceNode->SetAlignedVisibleDirtyRegion(alignedRegion);
@@ -475,6 +478,31 @@ bool RSUniRenderUtil::Is3DRotation(Drawing::Matrix matrix)
 
 #endif
 
+void RSUniRenderUtil::ReleaseColorPickerResource(std::shared_ptr<RSRenderNode>& node)
+{
+    if (node == nullptr) {
+        return;
+    }
+    if (node->GetRenderProperties().GetColorPickerCacheTaskShadow() != nullptr) {
+        #ifdef IS_OHOS
+            auto& colorPickerCacheTaskShadow = node->GetRenderProperties().GetColorPickerCacheTaskShadow();
+            auto mainHandler = colorPickerCacheTaskShadow->GetMainHandler();
+            if (mainHandler != nullptr) {
+                auto task = colorPickerCacheTaskShadow;
+                task->SetWaitRelease(true);
+                mainHandler->PostTask(
+                    [task]() { task->ReleaseColorPicker(); }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+            }
+        #endif
+    }
+    // Recursive to release color picker resource
+    for (auto& child : node->GetChildren()) {
+        if (auto canvasChild = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(child)) {
+            ReleaseColorPickerResource(canvasChild);
+        }
+    }
+}
+
 void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
     std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
     std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes, uint64_t focusNodeId, DeviceType deviceType)
@@ -532,7 +560,16 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         }
         bool isNeedAssignToSubThread = !rotationCache && node->IsLeashWindow()
             && (node->IsScale() || ROSEN_EQ(node->GetGlobalAlpha(), 0.0f))
-            && !node->HasFilter() && !node->HasAbilityComponent();
+            && !node->HasFilter();
+        
+        // release color picker resource when thread-switching between RS and subthread
+        bool lastIsNeedAssignToSubThread = node->GetLastIsNeedAssignToSubThread();
+        if (isNeedAssignToSubThread != lastIsNeedAssignToSubThread) {
+            auto renderNode = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(node);
+            ReleaseColorPickerResource(renderNode);
+            node->SetLastIsNeedAssignToSubThread(isNeedAssignToSubThread);
+        }
+
         // trace info for assign window nodes
         if (debugTraceEnable) {
             logInfo += "node:[ " + node->GetName() + ", " + std::to_string(node->GetId()) + " ]" +

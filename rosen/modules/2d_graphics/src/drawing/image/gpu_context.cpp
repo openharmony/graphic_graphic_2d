@@ -16,6 +16,9 @@
 #include "image/gpu_context.h"
 
 #include "impl_factory.h"
+#ifdef RS_ENABLE_VK
+#include "include/gpu/vk/GrVkBackendContext.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -26,6 +29,13 @@ bool GPUContext::BuildFromGL(const GPUContextOptions& options)
 {
     return impl_->BuildFromGL(options);
 }
+
+#ifdef RS_ENABLE_VK
+bool GPUContext::BuildFromVK(const GrVkBackendContext& context)
+{
+    return impl_->BuildFromVK(context);
+}
+#endif
 
 void GPUContext::GetResourceCacheLimits(int* maxResource, size_t* maxResourceBytes) const
 {
@@ -45,6 +55,11 @@ void GPUContext::Flush()
 void GPUContext::FlushAndSubmit(bool syncCpu)
 {
     impl_->FlushAndSubmit(syncCpu);
+}
+
+void GPUContext::Submit()
+{
+    impl_->Submit();
 }
 
 void GPUContext::PerformDeferredCleanup(std::chrono::milliseconds msNotUsed)

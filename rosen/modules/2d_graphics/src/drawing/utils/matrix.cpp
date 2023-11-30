@@ -22,6 +22,14 @@ namespace Rosen {
 namespace Drawing {
 Matrix::Matrix() : matrixImplPtr(ImplFactory::CreateMatrixImpl()) {}
 
+Matrix::Matrix(const Matrix& other) : matrixImplPtr(ImplFactory::CreateMatrixImpl()) {}
+
+Matrix& Matrix::operator=(const Matrix& matrix)
+{
+    matrixImplPtr->Clone(matrix);
+    return *this;
+}
+
 void Matrix::Rotate(scalar degree, scalar px, scalar py)
 {
     matrixImplPtr->Rotate(degree, px, py);
@@ -47,9 +55,19 @@ void Matrix::PreRotate(scalar degree)
     matrixImplPtr->PreRotate(degree);
 }
 
+void Matrix::PostRotate(scalar degree)
+{
+    matrixImplPtr->PostRotate(degree);
+}
+
 void Matrix::PreTranslate(scalar dx, scalar dy)
 {
     matrixImplPtr->PreTranslate(dx, dy);
+}
+
+void Matrix::PostTranslate(scalar dx, scalar dy)
+{
+    matrixImplPtr->PostTranslate(dx, dy);
 }
 
 void Matrix::PreScale(scalar sx, scalar sy)
@@ -67,9 +85,19 @@ void Matrix::PreConcat(const Matrix& other)
     matrixImplPtr->PreConcat(other);
 }
 
+void Matrix::PreConcat(const Matrix44& matrix44)
+{
+    matrixImplPtr->PreConcat(matrix44);
+}
+
 void Matrix::PostConcat(const Matrix& other)
 {
     matrixImplPtr->PostConcat(other);
+}
+
+void Matrix::PostConcat(const Matrix44& matrix44)
+{
+    matrixImplPtr->PostConcat(matrix44);
 }
 
 bool Matrix::Invert(Matrix& inverse) const
@@ -119,6 +147,11 @@ void Matrix::GetAll(Buffer& buffer) const
     matrixImplPtr->GetAll(buffer);
 }
 
+void Matrix::SetAll(Buffer& buffer)
+{
+    matrixImplPtr->SetAll(buffer);
+}
+
 bool Matrix::IsIdentity() const
 {
     return matrixImplPtr->IsIdentity();
@@ -137,11 +170,6 @@ void Matrix::PreScale(scalar sx, scalar sy, scalar px, scalar py)
 void Matrix::Reset()
 {
     matrixImplPtr->Reset();
-}
-
-void Matrix::DeepCopy(const Matrix& matrix)
-{
-    matrixImplPtr.reset(matrix.matrixImplPtr->Clone());
 }
 } // namespace Drawing
 } // namespace Rosen

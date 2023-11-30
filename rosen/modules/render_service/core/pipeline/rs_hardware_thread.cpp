@@ -39,8 +39,10 @@
 #ifdef RS_ENABLE_EGLIMAGE
 #include "rs_egl_image_manager.h"
 #endif // RS_ENABLE_EGLIMAGE
-#include <parameter.h>
-#include <parameters.h>
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "metadata_helper.h"
+#endif
 
 namespace OHOS::Rosen {
 namespace {
@@ -70,8 +72,11 @@ void RSHardwareThread::Start()
                     return;
                 }
                 uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
-                bool enable = (system::GetParameter("zach.debug.enable", "1") == "1");
-                uniRenderEngine_->Init(enable);
+#ifdef RS_ENABLE_VK
+                uniRenderEngine_->Init(true);
+#else
+                uniRenderEngine_->Init();
+#endif
             }).wait();
     }
     auto onPrepareCompleteFunc = [this](auto& surface, const auto& param, void* data) {
@@ -218,14 +223,15 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         PostTask(task);
     } else {
         auto period  = CreateVSyncSampler()->GetHardwarePeriod();
-        uint64_t pipelineOffset = hgmCore.GetPipelineOffset();
-        uint64_t expectCommitTime = currTimestamp + pipelineOffset - period;
+        int64_t pipelineOffset = hgmCore.GetPipelineOffset();
+        uint64_t expectCommitTime = static_cast<uint64_t>(currTimestamp + static_cast<uint64_t>(pipelineOffset) -
+            static_cast<uint64_t>(period));
         uint64_t currTime = static_cast<uint64_t>(
             std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count());
         int64_t delayTime = std::round((static_cast<int64_t>(expectCommitTime - currTime)) / 1000000);
-        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers expectCommitTime: %lu, period: %lu, currTime: %lu" \
-            ", delayTime: %lu", expectCommitTime, period, currTime, delayTime);
+        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers expectCommitTime: %lu, period: %ld, currTime: %lu" \
+            ", delayTime: %ld", expectCommitTime, period, currTime, delayTime);
         if (period == 0 || delayTime <= 0) {
             PostTask(task);
         } else {
@@ -314,6 +320,18 @@ void RSHardwareThread::OnPrepareComplete(sptr<Surface>& surface,
     }
 }
 
+GSError RSHardwareThread::ClearFrameBuffers(OutputPtr output)
+{
+    if (output == nullptr) {
+        RS_LOGE("Clear frame buffers failed for the output is nullptr");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    if (uniRenderEngine_ != nullptr) {
+        uniRenderEngine_->ResetCurrentContext();
+    }
+    return output->ClearFrameBuffer();
+}
+
 void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers, uint32_t screenId)
 {
     RS_TRACE_NAME("RSHardwareThread::Redraw");
@@ -337,11 +355,19 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         RS_LOGE("RsDebug RSHardwareThread::Redraw：canvas is nullptr.");
         return;
     }
+#ifdef RS_ENABLE_EGLIMAGE
 #ifdef RS_ENABLE_VK
     std::unordered_map<int32_t, std::shared_ptr<NativeVkImageRes>> imageCacheSeqs;
-#elif defined(RS_ENABLE_EGLIMAGE)
+#else // RS_ENABLE_VK
     std::unordered_map<int32_t, std::unique_ptr<ImageCacheSeq>> imageCacheSeqs;
+#endif // RS_ENABLE_VK
+#endif // RS_ENABLE_EGLIMAGE
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
+    colorGamut = ComputeTargetColorGamut(layers);
 #endif
+
     for (const auto& layer : layers) {
         if (layer == nullptr) {
             continue;
@@ -412,11 +438,20 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #endif
 #ifndef USE_ROSEN_DRAWING
 #if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
-            SkColorType colorType = (params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
-                kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
+            SkColorType colorType = kRGBA_8888_SkColorType;
+            auto pixelFmt = params.buffer->GetFormat();
+            if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
+                colorType = kBGRA_8888_SkColorType;
+            } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
+                colorType = kRGBA_1010102_SkColorType;
+            }
+            auto glType = GL_RGBA8;
+            if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
+                glType = GL_RGB10_A2;
+            }
+
             GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId,
-                static_cast<GrGLenum>((params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ? 
-                    GR_GL_BGRA8 : GR_GL_RGBA8)};
+                static_cast<GrGLenum>(glType) };
             GrBackendTexture backendTexture(params.buffer->GetSurfaceBufferWidth(),
                 params.buffer->GetSurfaceBufferHeight(), GrMipMapped::kNo, grExternalTextureInfo);
 #endif
@@ -447,7 +482,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                 colorType,
                 kPremul_SkAlphaType,
                 SkColorSpace::MakeSRGB(),
-                NativeBufferUtils::delete_vk_image,
+                NativeBufferUtils::DeleteVkImage,
                 imageCache->RefCleanupHelper());
 #endif
 #else
@@ -458,15 +493,36 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                 RS_LOGE("RSHardwareThread::DrawImage: image is nullptr!");
                 return;
             }
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+            sk_sp<SkShader> imageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
+            if (imageShader == nullptr) {
+                RS_LOGE("RSHardwareThread::DrawImage imageShader is nullptr.");
+            } else {
+                params.paint.setShader(imageShader);
+                params.targetColorGamut = colorGamut;
+                uniRenderEngine_->ColorSpaceConvertor(imageShader, params);
+            }
+#endif
+
 #ifdef NEW_SKIA
             RS_TRACE_NAME_FMT("DrawImage(GPU) seqNum: %d", bufferId);
+#ifndef USE_VIDEO_PROCESSING_ENGINE
             canvas->drawImageRect(image, params.srcRect, params.dstRect, SkSamplingOptions(),
                 &(params.paint), SkCanvas::kStrict_SrcRectConstraint);
 #else
+            canvas->drawRect(params.dstRect, (params.paint));
+#endif // USE_VIDEO_PROCESSING_ENGINE
+#else
             RS_TRACE_NAME_FMT("DrawImage(GPU) seqNum: %d", bufferId);
+#ifndef USE_VIDEO_PROCESSING_ENGINE
             canvas->drawImageRect(image, params.srcRect, params.dstRect, &(params.paint));
+#else
+            canvas->drawRect(params.dstRect, &(params.paint));
+#endif // USE_VIDEO_PROCESSING_ENGINE
 #endif
 #else // USE_ROSEN_DRAWING
+#if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
             Drawing::ColorType colorType = (params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
                 Drawing::ColorType::COLORTYPE_BGRA_8888 : Drawing::ColorType::COLORTYPE_RGBA_8888;
             Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
@@ -485,6 +541,29 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                 RS_LOGE("RSHardwareThread::Redraw: image BuildFromTexture failed");
                 return;
             }
+#elif defined RS_ENABLE_VK
+            auto imageCache = uniRenderEngine_->GetVkImageManager()->CreateImageCacheFromBuffer(
+                params.buffer, params.acquireFence);
+            if (!imageCache) {
+                continue;
+            }
+            auto bufferId = params.buffer->GetSeqNum();
+            imageCacheSeqs[bufferId] = imageCache;
+            auto& backendTexture = imageCache->GetBackendTexture();
+
+            Drawing::ColorType colorType = (params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
+                Drawing::ColorType::COLORTYPE_BGRA_8888 : Drawing::ColorType::COLORTYPE_RGBA_8888;
+            Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
+
+            auto image = std::make_shared<Drawing::Image>();
+            if (!image->BuildFromTexture(*canvas->GetGPUContext(), backendTexture,
+                Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr,
+                NativeBufferUtils::DeleteVkImage,
+                imageCache->RefCleanupHelper())) {
+                RS_LOGE("RSHardwareThread::Redraw: image BuildFromTexture failed");
+                return;
+            }
+#endif
             canvas->AttachBrush(params.paint);
             RS_TRACE_NAME_FMT("DrawImage(GPU) seqNum: %d", bufferId);
             canvas->DrawImageRect(*image, params.srcRect, params.dstRect,
@@ -504,7 +583,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #endif
     }
     renderFrame->Flush();
-#if defined(RS_ENABLE_EGLIMAGE) || defined(RS_ENABLE_VK)
+#ifdef RS_ENABLE_EGLIMAGE
     imageCacheSeqs.clear();
 #endif
     RS_LOGD("RsDebug RSHardwareThread::Redraw flush frame buffer end");
@@ -532,4 +611,31 @@ void RSHardwareThread::AddRefreshRateCount(uint32_t rate)
         iter->second++;
     }
 }
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+GraphicColorGamut RSHardwareThread::ComputeTargetColorGamut(const std::vector<LayerInfoPtr>& layers)
+{
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
+    for (auto& layer : layers) {
+        auto buffer = layer->GetBuffer();
+        if (buffer == nullptr) {
+            RS_LOGW("RSHardwareThread::ComputeTargetColorGamut The buffer of layer is nullptr");
+            continue;
+        }
+
+        CM_ColorSpaceType colorSpace;
+        if (MetadataHelper::GetColorSpaceType(buffer, colorSpace) != GSERROR_OK) {
+            RS_LOGW("RSHardwareThread::ComputeTargetColorGamut Get color space from surface buffer failed");
+            continue;
+        }
+
+        if (colorSpace != CM_DISPLAY_SRGB) {
+            colorGamut = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+        }
+    }
+
+    return colorGamut;
+}
+#endif
 }

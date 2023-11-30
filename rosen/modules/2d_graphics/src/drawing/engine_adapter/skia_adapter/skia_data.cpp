@@ -69,6 +69,18 @@ const void* SkiaData::GetData() const
     return (skData_ == nullptr) ? nullptr : skData_->data();
 }
 
+std::shared_ptr<Data> SkiaData::MakeFromFileName(const char path[])
+{
+    sk_sp<SkData> skData = SkData::MakeFromFileName(path);
+    if (!skData) {
+        LOGE("SkiaData::MakeFromFileName, skData is nullptr!");
+        return nullptr;
+    }
+    std::shared_ptr<Data> data = std::make_shared<Data>();
+    data->GetImpl<SkiaData>()->SetSkData(skData);
+    return data;
+}
+
 void* SkiaData::WritableData()
 {
     return (skData_ == nullptr) ? nullptr : skData_->writable_data();

@@ -93,6 +93,11 @@ sk_sp<SkColorSpace> SkiaColorSpace::GetColorSpace() const
     return colorSpace_;
 }
 
+sk_sp<SkColorSpace> SkiaColorSpace::GetSkColorSpace() const
+{
+    return colorSpace_;
+}
+
 std::shared_ptr<Data> SkiaColorSpace::Serialize() const
 {
     if (colorSpace_ == nullptr) {
@@ -114,7 +119,7 @@ bool SkiaColorSpace::Deserialize(std::shared_ptr<Data> data)
     }
 
     colorSpace_ = SkColorSpace::Deserialize(data->GetData(), data->GetSize());
-    return colorSpace_ != nullptr;
+    return true;
 }
 
 } // namespace Drawing

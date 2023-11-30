@@ -54,8 +54,13 @@ public:
 
     bool BuildFromGL(const GPUContextOptions& options) override;
 
+#ifdef RS_ENABLE_VK
+    bool BuildFromVK(const GrVkBackendContext& context) override;
+#endif
+
     void Flush() override;
     void FlushAndSubmit(bool syncCpu) override;
+    void Submit() override;
     void PerformDeferredCleanup(std::chrono::milliseconds msNotUsed) override;
 
     void GetResourceCacheLimits(int* maxResource, size_t* maxResourceBytes) const override;
@@ -90,6 +95,14 @@ public:
     sk_sp<GrContext> GetGrContext() const;
     void SetGrContext(const sk_sp<GrContext>& grContext);
 #endif
+#ifdef NEW_SKIA
+    const sk_sp<GrDirectContext> ExportSkiaContext() const
+#else
+    const sk_sp<GrContext> ExportSkiaContext() const
+#endif
+    {
+        return grContext_;
+    }
 
 private:
 #ifdef NEW_SKIA

@@ -801,10 +801,10 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode002, TestSize.Level
 {
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSSurfaceRenderNodeConfig config;
-    RSSurfaceRenderNode rsSurfaceRenderNode(config);
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     rsRenderServiceVisitor.processor_ =
         RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
-    rsRenderServiceVisitor.ProcessSurfaceRenderNode(rsSurfaceRenderNode);
+    rsRenderServiceVisitor.ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
 }
 
 /**
@@ -817,12 +817,12 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode003, TestSize.Level
 {
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSSurfaceRenderNodeConfig config;
-    RSSurfaceRenderNode rsSurfaceRenderNode(config);
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     rsRenderServiceVisitor.processor_ =
         RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
     rsRenderServiceVisitor.isSecurityDisplay_ = true;
-    rsSurfaceRenderNode.SetSecurityLayer(true);
-    rsRenderServiceVisitor.ProcessSurfaceRenderNode(rsSurfaceRenderNode);
+    rsSurfaceRenderNode->SetSecurityLayer(true);
+    rsRenderServiceVisitor.ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
 }
 
 /**
@@ -835,11 +835,11 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode004, TestSize.Level
 {
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSSurfaceRenderNodeConfig config;
-    RSSurfaceRenderNode rsSurfaceRenderNode(config);
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     rsRenderServiceVisitor.processor_ =
         RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
-    rsSurfaceRenderNode.renderProperties_.SetAlpha(0.0f);
-    rsRenderServiceVisitor.ProcessSurfaceRenderNode(rsSurfaceRenderNode);
+    rsSurfaceRenderNode->renderProperties_.SetAlpha(0.0f);
+    rsRenderServiceVisitor.ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
 }
 
 /**
@@ -852,12 +852,12 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode005, TestSize.Level
 {
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSSurfaceRenderNodeConfig config;
-    RSSurfaceRenderNode rsSurfaceRenderNode(config);
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     rsRenderServiceVisitor.processor_ =
         RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
-    rsSurfaceRenderNode.SetSkipLayer(true);
-    ASSERT_EQ(true, rsSurfaceRenderNode.GetSkipLayer());
-    rsRenderServiceVisitor.ProcessSurfaceRenderNode(rsSurfaceRenderNode);
+    rsSurfaceRenderNode->SetSkipLayer(true);
+    ASSERT_EQ(true, rsSurfaceRenderNode->GetSkipLayer());
+    rsRenderServiceVisitor.ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
 }
 
 /**

@@ -99,6 +99,7 @@ private:
     int32_t SetLayerCrop();
     int32_t SetLayerZorder();
     int32_t SetLayerPreMulti();
+    int32_t SetLayerColor();
     int32_t SetLayerColorTransform();
     int32_t SetLayerColorDataSpace();
     int32_t SetLayerMetaData();

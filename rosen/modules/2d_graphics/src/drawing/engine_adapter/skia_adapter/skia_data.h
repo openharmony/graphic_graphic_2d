@@ -44,6 +44,8 @@ public:
     size_t GetSize() const override;
     const void* GetData() const override;
 
+    static std::shared_ptr<Data> MakeFromFileName(const char path[]);
+
     /*
      * @brief  Export Skia member variables for use by the adaptation layer.
      */

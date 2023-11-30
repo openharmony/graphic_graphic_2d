@@ -372,7 +372,8 @@ void Transition1()
     uint64_t timeStamp = START_NUMBER;
     bool hasRunningAnimation = true;
     while (hasRunningAnimation) {
-        hasRunningAnimation = rsUiDirector->RunningCustomAnimation(timeStamp);
+        hasRunningAnimation = rsUiDirector->FlushAnimation(timeStamp);
+        rsUiDirector->FlushModifier();
         rsUiDirector->SendMessages();
         timeStamp += INCREASE_NUMBER;
         usleep(SLEEP_TIME);
@@ -416,7 +417,8 @@ void Transition2()
     uint64_t timeStamp = START_NUMBER;
     bool hasRunningAnimation = true;
     while (hasRunningAnimation) {
-        hasRunningAnimation = rsUiDirector->RunningCustomAnimation(timeStamp);
+        hasRunningAnimation = rsUiDirector->FlushAnimation(timeStamp);
+        rsUiDirector->FlushModifier();
         rsUiDirector->SendMessages();
         timeStamp += INCREASE_NUMBER;
         usleep(SLEEP_TIME);
@@ -459,7 +461,8 @@ void Transition3()
     uint64_t timeStamp = START_NUMBER;
     bool hasRunningAnimation = true;
     while (hasRunningAnimation) {
-        hasRunningAnimation = rsUiDirector->RunningCustomAnimation(timeStamp);
+        hasRunningAnimation = rsUiDirector->FlushAnimation(timeStamp);
+        rsUiDirector->FlushModifier();
         rsUiDirector->SendMessages();
         timeStamp += INCREASE_NUMBER;
         usleep(SLEEP_TIME);
@@ -482,7 +485,8 @@ void Transition4()
     uint64_t timeStamp = START_NUMBER;
     bool hasRunningAnimation = true;
     while (hasRunningAnimation) {
-        hasRunningAnimation = rsUiDirector->RunningCustomAnimation(timeStamp);
+        hasRunningAnimation = rsUiDirector->FlushAnimation(timeStamp);
+        rsUiDirector->FlushModifier();
         rsUiDirector->SendMessages();
         timeStamp += INCREASE_NUMBER;
         usleep(SLEEP_TIME);

@@ -41,19 +41,6 @@ void RSAnimationFractionTest::SetUp()
 void RSAnimationFractionTest::TearDown() {}
 
 /**
- * @tc.name: AnimationScaleChangedCallback001
- * @tc.desc: Verify the AnimationScaleChangedCallback
- * @tc.type:FUNC
- */
-HWTEST_F(RSAnimationFractionTest, AnimationScaleChangedCallback001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSAnimationFractionTest AnimationScaleChangedCallback001 start";
-    RSAnimationFraction::OnAnimationScaleChangedCallback("", "1", nullptr);
-    RSAnimationFraction::OnAnimationScaleChangedCallback("persist.sys.graphic.animationscale", "1", nullptr);
-    GTEST_LOG_(INFO) << "RSAnimationFractionTest AnimationScaleChangedCallback001 end";
-}
-
-/**
  * @tc.name: GetAnimationFraction001
  * @tc.desc: Verify the GetAnimationFraction
  * @tc.type:FUNC
@@ -168,6 +155,19 @@ HWTEST_F(RSAnimationFractionTest, GetCurrentIsReverseCycle001, TestSize.Level1)
     bool currentIsReverseCycle = fraction.GetCurrentIsReverseCycle();
     EXPECT_TRUE(currentIsReverseCycle == false);
     GTEST_LOG_(INFO) << "RSAnimationFractionTest GetCurrentIsReverseCycle001 end";
+}
+
+/**
+ * @tc.name: AnimationScaleChangedCallback001
+ * @tc.desc: Verify the AnimationScaleChangedCallback
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, AnimationScaleChangedCallback001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest AnimationScaleChangedCallback001 start";
+    RSAnimationFraction::OnAnimationScaleChangedCallback("", "1", nullptr);
+    RSAnimationFraction::OnAnimationScaleChangedCallback("persist.sys.graphic.animationscale", "1", nullptr);
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest AnimationScaleChangedCallback001 end";
 }
 } // namespace Rosen
 } // namespace OHOS

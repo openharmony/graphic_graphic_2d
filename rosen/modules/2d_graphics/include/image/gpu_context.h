@@ -101,10 +101,23 @@ public:
      */
     bool BuildFromGL(const GPUContextOptions& options);
 
+   /*
+     * @brief           Creates a VK GPUContext for a backend context.
+     * @param options   Option to create a VK GPUContext.
+     */
+#ifdef RS_ENABLE_VK
+    bool BuildFromVK(const GrVkBackendContext& context);
+#endif
+
     /*
      * @brief   Call to ensure all drawing to the context has been flushed to underlying 3D API specific objects.
      */
     void Flush();
+
+    /*
+     * @brief   Call to ensure all drawing to the context has been submitted to underlying 3D API.
+     */
+    void Submit();
 
     /*
      * @brief   Call to ensure all drawing to the context has been flushed and submitted to underlying 3D API.

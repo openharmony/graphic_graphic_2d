@@ -42,8 +42,12 @@ ohos_shared_library("librender_service") {
   if (use_musl) {
     defines += [ "FRAME_AWARE_TRACE" ]
   }
+  if (use_video_processing_engine) {
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+  }
   defines += gpu_defines
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
+    defines += [ "IS_OHOS" ]
     cflags = [ "-flto=thin" ]
     if (enhanced_opt) {
       cflags += [ "-fwhole-program-vtables" ]
@@ -140,9 +144,11 @@ ohos_shared_library("librender_service") {
     "core",
     "core/round_corner_display",
     "$graphic_2d_root/frameworks/surface/include",
+    "$graphic_2d_root/interfaces/inner_api/surface",
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/modules/2d_graphics",
     "$graphic_2d_root/rosen/modules/composer/vsync/include",
+    "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
     "$graphic_2d_root/rosen/modules/render_frame_trace/include",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
@@ -160,6 +166,9 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
   ]
+  if (use_video_processing_engine) {
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+  }
 
   deps = [
     "$graphic_2d_root:libsurface",
@@ -167,8 +176,12 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
     "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "$graphic_2d_root/rosen/samples/2d_graphics:drawing_engine_sample",
   ]
+
+  if (rs_enable_recording_dcl) {
+    dep +=
+        [ "$graphic_2d_root/rosen/samples/2d_graphics:drawing_engine_sample" ]
+  }
 
   public_deps = [
     "//third_party/libpng:libpng",
@@ -201,6 +214,7 @@ ohos_shared_library("librender_service") {
 
   external_deps = [
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
     "eventhandler:libeventhandler",
     "hicollie:libhicollie",
     "hilog:libhilog",
@@ -213,6 +227,9 @@ ohos_shared_library("librender_service") {
     "sensor:sensor_interface_native",
     "window_manager:libwsutils",
   ]
+  if (use_video_processing_engine) {
+    external_deps += [ "video_processing_engine:videoprocessingengine" ]
+  }
 
   if (defined(ddgr_ext_configs)) {
     libs = ddgr_ext_configs.ddgr_libs
@@ -276,10 +293,12 @@ ohos_executable("render_service") {
   include_dirs = [
     "core",
     "//commonlibrary/c_utils/base/include",
+    "$graphic_2d_root/frameworks/surface/include",
   ]
 
   deps = [
     ":librender_service",
+    "$graphic_2d_root:libsurface",
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
@@ -287,6 +306,7 @@ ohos_executable("render_service") {
 
   external_deps = [
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
     "hilog:libhilog",
     "ipc:ipc_core",
     "sensor:sensor_interface_native",

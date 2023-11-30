@@ -262,6 +262,7 @@ ohos_unittest("RSUniRenderComposerAdapterTest") {
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
     "hilog:libhilog",
     "sensor:sensor_interface_native",
   ]

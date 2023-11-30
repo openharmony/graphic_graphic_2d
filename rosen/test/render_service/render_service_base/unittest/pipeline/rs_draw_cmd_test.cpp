@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#ifndef USE_ROSEN_DRAWING
 #include <gtest/gtest.h>
 #include <securec.h>
 
@@ -660,3 +661,4 @@ HWTEST_F(RSDrawCmdTest, MultiplyAlphaOpItem001, TestSize.Level1)
 }
 } // namespace Rosen
 } // namespace OHOS
+#endif

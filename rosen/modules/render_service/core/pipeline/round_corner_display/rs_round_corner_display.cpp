@@ -55,8 +55,7 @@ bool RoundCornerDisplay::SeletedLcdModel(const char* lcdModelName)
     }
     supportTopSurface_ = lcdModel_->surfaceConfig.topSurface.support;
     supportBottomSurface_ = lcdModel_->surfaceConfig.bottomSurface.support;
-    supportHardware_ = false;
-    hardInfo_.supportHardware = false;
+    supportHardware_ = lcdModel_->hardwareConfig.hardwareComposer.support;
     RS_LOGI("[%{public}s] Selected model: %{public}s, supported: top->%{public}d, bottom->%{public}d,"
         "hardware->%{public}d \n", __func__, lcdModelName, static_cast<int>(supportTopSurface_),
         static_cast<int>(supportBottomSurface_), static_cast<int>(supportHardware_));
@@ -207,14 +206,13 @@ void RoundCornerDisplay::UpdateDisplayParameter(uint32_t width, uint32_t height)
     RS_LOGD("[%{public}s] displayWidth_ updated from %{public}u -> %{public}u,"
         "displayHeight_ updated from %{public}u -> %{public}u \n", __func__,
         displayWidth_, width, displayHeight_, height);
-
     displayWidth_ = width;
     displayHeight_ = height;
+    updateFlag_["display"] = true;
 
     RSSingleton<RSSubThreadRCD>::GetInstance().PostTask([this]() {
         LoadImgsbyResolution(displayWidth_, displayHeight_);
     });
-    updateFlag_["display"] = true;
 }
 
 void RoundCornerDisplay::UpdateNotchStatus(int status)
@@ -225,7 +223,6 @@ void RoundCornerDisplay::UpdateNotchStatus(int status)
         RS_LOGE("[%{public}s] notchStatus won't be over 1 or below 0 \n", __func__);
         return;
     }
-    notchSetting_ = status;
     if (notchStatus_ == status) {
         RS_LOGD("[%{public}s] NotchStatus do not change \n", __func__);
         return;
@@ -242,65 +239,31 @@ void RoundCornerDisplay::UpdateOrientationStatus(ScreenRotation orientation)
         RS_LOGD("[%{public}s] OrientationStatus do not change \n", __func__);
         return;
     }
-    
-    const int ladsToPortrait = 0;
-    const int portraitToLads = 1;
-
     lastOrientation_ = curOrientation_;
     curOrientation_ = orientation;
     RS_LOGD("[%{public}s] curOrientation_ = %{public}d, lastOrientation_ = %{public}d \n",
         __func__, curOrientation_, lastOrientation_);
     updateFlag_["orientation"] = true;
-    int transitionFlag = -1; // default
-    switch (lastOrientation_) {
-        case ScreenRotation::ROTATION_0:
-            if (curOrientation_ == ScreenRotation::ROTATION_90 || curOrientation_ == ScreenRotation::ROTATION_270) {
-                transitionFlag = portraitToLads;
-            }
-            break;
-        case ScreenRotation::ROTATION_90:
-            if (curOrientation_ == ScreenRotation::ROTATION_0 || curOrientation_ == ScreenRotation::ROTATION_180) {
-                transitionFlag = ladsToPortrait;
-            }
-            break;
-        case ScreenRotation::ROTATION_180:
-            if (curOrientation_ == ScreenRotation::ROTATION_90 || curOrientation_ == ScreenRotation::ROTATION_270) {
-                transitionFlag = portraitToLads;
-            }
-            break;
-        case ScreenRotation::ROTATION_270:
-            if (curOrientation_ == ScreenRotation::ROTATION_0 || curOrientation_ == ScreenRotation::ROTATION_180) {
-                transitionFlag = ladsToPortrait;
-            }
-            break;
-        default:
-            break;
-    }
-    if (notchSetting_ == WINDOW_NOTCH_DEFAULT) {
-        if (transitionFlag == ladsToPortrait) {
-            notchStatus_ = WINDOW_NOTCH_DEFAULT;
-        } else if (transitionFlag == portraitToLads) {
-            notchStatus_ = WINDOW_NOTCH_HIDDEN;
-        }
-    }
 }
 
 void RoundCornerDisplay::UpdateParameter(std::map<std::string, bool>& updateFlag)
 {
-    bool flag = false;
+    hardInfo_.resourceChanged = false;
     for (auto item = updateFlag.begin(); item != updateFlag.end(); item++) {
         if (item->second == true) {
-            flag = true;
-            item->second = false;  // reset
+            resourceChanged = true;
+            item->second = false; // reset
         }
     }
-    if (flag) {
+    if (resourceChanged) {
         RcdChooseTopResourceType();
         RcdChooseRSResource();
         if (supportHardware_) {
             RcdChooseHardwareResource();
             SetHardwareLayerSize();
         }
+        hardInfo_.resourceChanged = resourceChanged; // output
+        resourceChanged = false; // reset
     } else {
         RS_LOGD("[%{public}s] Status is not changed \n", __func__);
     }

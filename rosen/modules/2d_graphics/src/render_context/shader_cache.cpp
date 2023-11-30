@@ -67,7 +67,7 @@ void ShaderCache::InitShaderCache(const char* identity, const size_t size, bool 
         LOGW("abandon, bad hash value, cleared for future regeneration");
     }
 
-    LOGI("shadercache initiation success");
+    LOGD("shadercache initiation success");
     initialized_ = true;
 }
 

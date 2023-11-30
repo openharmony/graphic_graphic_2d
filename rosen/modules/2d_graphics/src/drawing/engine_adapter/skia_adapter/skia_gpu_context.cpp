@@ -91,6 +91,14 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
     return grContext_ != nullptr ? true : false;
 }
 
+#ifdef RS_ENABLE_VK
+bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context)
+{
+    grContext_ = GrDirectContext::MakeVulkan(context);
+    return grContext_ != nullptr ? true : false;
+}
+#endif
+
 void SkiaGPUContext::Flush()
 {
     if (!grContext_) {
@@ -107,6 +115,15 @@ void SkiaGPUContext::FlushAndSubmit(bool syncCpu)
         return;
     }
     grContext_->flushAndSubmit(syncCpu);
+}
+
+void SkiaGPUContext::Submit()
+{
+    if (!grContext_) {
+        LOGE("SkiaGPUContext::Submit, grContext_ is nullptr");
+        return;
+    }
+    grContext_->submit();
 }
 
 void SkiaGPUContext::PerformDeferredCleanup(std::chrono::milliseconds msNotUsed)

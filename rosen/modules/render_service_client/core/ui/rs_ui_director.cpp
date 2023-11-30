@@ -56,6 +56,7 @@ namespace OHOS {
 namespace Rosen {
 static std::unordered_map<RSUIDirector*, TaskRunner> g_uiTaskRunners;
 static std::mutex g_uiTaskRunnersVisitorMutex;
+std::function<void()> RSUIDirector::requestVsyncCallback_ = nullptr;
 
 std::shared_ptr<RSUIDirector> RSUIDirector::Create()
 {
@@ -231,6 +232,11 @@ void RSUIDirector::SetAppFreeze(bool isAppFreeze)
     }
 }
 
+void RSUIDirector::SetRequestVsyncCallback(const std::function<void()>& callback)
+{
+    requestVsyncCallback_ = callback;
+}
+
 void RSUIDirector::SetTimeStamp(uint64_t timeStamp, const std::string& abilityName)
 {
     timeStamp_ = timeStamp;
@@ -242,15 +248,23 @@ void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
     cacheDir_ = cacheFilePath;
 }
 
-bool RSUIDirector::RunningCustomAnimation(uint64_t timeStamp)
+bool RSUIDirector::FlushAnimation(uint64_t timeStamp)
 {
     bool hasRunningAnimation = false;
     auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+    if (modifierManager != nullptr) {
+        hasRunningAnimation = modifierManager->Animate(timeStamp);
+    }
+    return hasRunningAnimation;
+}
+
+void RSUIDirector::FlushModifier()
+{
+    auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
     if (modifierManager == nullptr) {
-        return hasRunningAnimation;
+        return;
     }
 
-    hasRunningAnimation = modifierManager->Animate(timeStamp);
     modifierManager->Draw();
     {
         auto node = surfaceNode_.lock();
@@ -264,7 +278,6 @@ bool RSUIDirector::RunningCustomAnimation(uint64_t timeStamp)
 
     // post animation finish callback(s) to task queue
     RSUIDirector::RecvMessages();
-    return hasRunningAnimation;
 }
 
 void RSUIDirector::SetUITaskRunner(const TaskRunner& uiTaskRunner)
@@ -306,7 +319,11 @@ void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds)
     PostTask([cmds]() {
         ROSEN_LOGD("RSUIDirector::ProcessMessages success");
         RSUIDirector::ProcessMessages(cmds);
-        RSTransaction::FlushImplicitTransaction();
+        if (requestVsyncCallback_ != nullptr) {
+            requestVsyncCallback_();
+        } else {
+            RSTransaction::FlushImplicitTransaction();
+        }
     });
 }
 
