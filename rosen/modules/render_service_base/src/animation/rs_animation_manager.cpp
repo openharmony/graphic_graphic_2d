@@ -115,7 +115,7 @@ std::tuple<bool, bool, bool> RSAnimationManager::Animate(int64_t time, bool node
     return { hasRunningAnimation, needRequestNextVsync, isCalculateAnimationValue };
 }
 
-const FrameRateRange& RSAnimationManager::GetFrameRateRangeFromRSAnimations() const
+const FrameRateRange& RSAnimationManager::GetFrameRateRange() const
 {
     return rsRange_;
 }

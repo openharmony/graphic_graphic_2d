@@ -129,7 +129,7 @@ constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 constexpr uint32_t WAIT_FOR_HARDWARE_THREAD_TASK_TIMEOUT = 3000;
 constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
 constexpr uint32_t WAIT_FOR_MEM_MGR_SERVICE = 100;
-constexpr uint32_t CAL_NODE_PREFERRED_LIMIT = 50;
+constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* MEM_MGR = "MemMgr";
@@ -1327,6 +1327,11 @@ void RSMainThread::NotifyDrivenRenderFinish()
 
 void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
 {
+    RS_TRACE_FUNC();
+    if (rsFrameRateLinker_ != nullptr) {
+        rsFrameRateLinker_->SetExpectedRange(rsCurrRange_);
+        RS_TRACE_NAME_FMT("rsCurrRange = (%d, %d, %d)", rsCurrRange_.min_, rsCurrRange_.max_, rsCurrRange_.preferred_);
+    }
     // Check and processing refresh rate task.
     auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
     hgmCore.SetTimestamp(timestamp);
@@ -1889,26 +1894,31 @@ void RSMainThread::Animate(uint64_t timestamp)
     bool needRequestNextVsync = false;
     // isCalculateAnimationValue is embedded modify for stat animate frame drop
     bool isCalculateAnimationValue = false;
-    // iterate and animate all animating nodes, remove if animation finished
-    bool calNodePreferredFlag = true;
-    if (context_->animatingNodeList_.size() > CAL_NODE_PREFERRED_LIMIT) {
-        calNodePreferredFlag = false;
+    bool isCalcPreferredFps = context_->animatingNodeList_.size() > CAL_NODE_PREFERRED_FPS_LIMIT ? false : true;
+    bool isDisplaySyncEnabled =
+        HgmCore::Instance().GetCurrentRefreshRateMode() == HGM_REFRESHRATE_MODE_AUTO ? true : false;
+    int64_t period = 0;
+    if (receiver_) {
+        receiver_->GetVSyncPeriod(period);
     }
+    // iterate and animate all animating nodes, remove if animation finished
     EraseIf(context_->animatingNodeList_,
-        [this, timestamp, calNodePreferredFlag, &curWinAnim, &needRequestNextVsync,
-        &isCalculateAnimationValue](const auto& iter) -> bool {
+        [this, timestamp, period, isDisplaySyncEnabled, isCalcPreferredFps,
+        &curWinAnim, &needRequestNextVsync, &isCalculateAnimationValue](const auto& iter) -> bool {
         auto node = iter.second.lock();
         if (node == nullptr) {
             RS_LOGD("RSMainThread::Animate removing expired animating node");
             return true;
         }
-        node->SetCalPreferredNode(calNodePreferredFlag);
+        node->SetIsCalcPreferredFps(isCalcPreferredFps);
         if (cacheCmdSkippedInfo_.count(ExtractPid(node->GetId())) > 0) {
             RS_LOGD("RSMainThread::Animate skip the cached node");
             return false;
         }
-        auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] = node->Animate(timestamp);
+        auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] =
+            node->Animate(timestamp, period, isDisplaySyncEnabled);
         if (!hasRunningAnimation) {
+            node->InActivateDisplaySync();
             RS_LOGD("RSMainThread::Animate removing finished animating node %{public}" PRIu64, node->GetId());
         }
         // request vsync if: 1. node has running animation, or 2. transition animation just ended
@@ -2617,40 +2627,24 @@ bool RSMainThread::CheckIfInstanceOnlySurfaceBasicGeoTransform(NodeId instanceNo
     return true;
 }
 
-int32_t RSMainThread::GetNodePreferred(const std::vector<HgmModifierProfile>& hgmModifierProfileList) const
+FrameRateRange RSMainThread::CalcAnimateFrameRateRange(std::shared_ptr<RSRenderNode> node)
 {
-    if (hgmModifierProfileList.size() == 0) {
-        return 0;
-    }
-    int32_t nodePreferred = 0;
-    for (auto &hgmModifierProfile : hgmModifierProfileList) {
-        auto modifierPreferred = frameRateMgr_->CalModifierPreferred(hgmModifierProfile);
-        nodePreferred = std::max(nodePreferred, modifierPreferred);
-    }
-    return nodePreferred;
-}
-
-FrameRateRange RSMainThread::CalcRSFrameRateRange(std::shared_ptr<RSRenderNode> node)
-{
-    FrameRateRange rsRange;
-    if (!node->IsCalPreferredNode()) {
-        rsRange = {0, RANGE_MAX_REFRESHRATE, OLED_120_HZ};
-    } else if (node->HasAnimation()) {
-        auto preferred = GetNodePreferred(node->GetHgmModifierProfileList());
-        if (preferred > 0) {
-            rsRange = {0, RANGE_MAX_REFRESHRATE, preferred};
+    int32_t preferredFps = 0;
+    if (node->IsCalcPreferredFps()) {
+        for (auto &profile : node->GetHgmModifierProfileList()) {
+            auto modifierPreferred = frameRateMgr_->CalModifierPreferred(profile);
+            preferredFps = std::max(preferredFps, modifierPreferred);
         }
+    } else {
+        preferredFps = OLED_120_HZ;
     }
-    return rsRange;
+    return node->CalcExpectedFrameRateRange(preferredFps);
 }
 
 void RSMainThread::ApplyModifiers()
 {
-    FrameRateRange rsCurrRange;
+    rsCurrRange_.Reset();
     if (context_->activeNodesInRoot_.empty()) {
-        if (rsFrameRateLinker_ != nullptr) {
-            rsFrameRateLinker_->SetExpectedRange(rsCurrRange);
-        }
         return;
     }
     RS_TRACE_NAME_FMT("ApplyModifiers (PropertyDrawableEnable %s)",
@@ -2658,7 +2652,7 @@ void RSMainThread::ApplyModifiers()
     for (const auto& [root, nodeSet] : context_->activeNodesInRoot_) {
         for (const auto& [id, nodePtr] : nodeSet) {
             bool isZOrderChanged = nodePtr->ApplyModifiers();
-            rsCurrRange.Merge(CalcRSFrameRateRange(nodePtr));
+            rsCurrRange_.Merge(CalcAnimateFrameRateRange(nodePtr));
             if (!isZOrderChanged) {
                 continue;
             }
@@ -2666,10 +2660,6 @@ void RSMainThread::ApplyModifiers()
                 parent->isChildrenSorted_ = false;
             }
         }
-    }
-
-    if (rsFrameRateLinker_ != nullptr) {
-        rsFrameRateLinker_->SetExpectedRange(rsCurrRange);
     }
 }
 

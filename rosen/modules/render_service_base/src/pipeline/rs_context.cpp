@@ -23,6 +23,7 @@ void RSContext::RegisterAnimatingRenderNode(const std::shared_ptr<RSRenderNode>&
 {
     NodeId id = nodePtr->GetId();
     animatingNodeList_.emplace(id, nodePtr);
+    nodePtr->ActivateDisplaySync();
     ROSEN_LOGD("RSContext::RegisterAnimatingRenderNode, register node id: %{public}" PRIu64, id);
 }
 

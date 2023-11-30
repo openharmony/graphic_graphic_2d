@@ -35,6 +35,7 @@
 #include "memory/rs_dfx_string.h"
 #include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_dirty_region_manager.h"
+#include "pipeline/rs_render_display_sync.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_single_frame_composer.h"
 #include "property/rs_properties.h"
@@ -199,7 +200,7 @@ public:
 #endif
     }
 
-    std::tuple<bool, bool, bool> Animate(int64_t timestamp);
+    std::tuple<bool, bool, bool> Animate(int64_t timestamp, int64_t period = 0, bool isDisplaySyncEnabled = false);
 
     bool IsClipBound() const;
     // clipRect has value in UniRender when calling PrepareCanvasRenderNode, else it is nullopt
@@ -455,28 +456,28 @@ public:
     float GetGlobalAlpha() const;
     virtual void OnAlphaChanged() {}
 
-    void SetRSFrameRateRange(FrameRateRange range);
-    const FrameRateRange& GetRSFrameRateRange();
     void UpdateUIFrameRateRange(const FrameRateRange& range);
     const FrameRateRange& GetUIFrameRateRange() const;
 
-    void ResetRSFrameRateRange();
-    void ResetUIFrameRateRange();
+    void ActivateDisplaySync();
+    void InActivateDisplaySync();
+    FrameRateRange CalcExpectedFrameRateRange(int32_t preferredFps);
 
     void MarkNonGeometryChanged();
     const std::vector<HgmModifierProfile>& GetHgmModifierProfileList();
-    void SetRSFrameRateRangeByPreferred(int32_t preferred);
     bool ApplyModifiers();
 
     virtual RectI GetFilterRect() const;
     void SetIsUsedBySubThread(bool isUsedBySubThread);
     bool GetIsUsedBySubThread() const;
 
-    bool IsCalPreferredNode() {
-        return isCalPreferredNode_;
+    bool IsCalcPreferredFps() const
+    {
+        return isCalcPreferredFps_;
     }
-    void SetCalPreferredNode(bool isCalPreferredNode) {
-        isCalPreferredNode_ = isCalPreferredNode;
+    void SetIsCalcPreferredFps(bool isCalcPreferredFps)
+    {
+        isCalcPreferredFps_ = isCalcPreferredFps;
     }
 
 protected:
@@ -650,7 +651,6 @@ private:
 
     std::atomic_bool isUsedBySubThread_ = false;
 
-    FrameRateRange rsRange_ = {0, 0, 0};
     FrameRateRange uiRange_ = {0, 0, 0};
 
     int64_t lastTimestamp_ = -1;
@@ -658,11 +658,12 @@ private:
     float timeDelta_ = -1;
     std::unordered_map<PropertyId, std::variant<float, Vector2f, Vector4f>> propertyValueMap_;
     std::vector<HgmModifierProfile> hgmModifierProfileList_;
+    std::shared_ptr<RSRenderDisplaySync> displaySync_ = nullptr;
 
     std::vector<std::unique_ptr<RSPropertyDrawable>> propertyDrawablesVec_;
     uint8_t drawableVecStatus_ = 0;
     void UpdateDrawableVec();
-    bool isCalPreferredNode_ = true;
+    bool isCalcPreferredFps_ = true;
 
     bool isSubSurfaceEnabled_ = false;
     std::map<NodeId, std::vector<WeakPtr>> subSurfaceNodes_;
