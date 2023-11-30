@@ -25,10 +25,6 @@
 #include <parameters.h>
 #include "param/sys_param.h"
 
-void SensorPostureDataCallback(SensorEvent *event)
-{
-    OHOS::Rosen::CreateOrGetScreenManager()->HandlePostureData(event);
-}
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -40,6 +36,10 @@ namespace {
     constexpr float HALF_FOLDED_MAX_THRESHOLD = 140.0F;
     constexpr float OPEN_HALF_FOLDED_MIN_THRESHOLD = 25.0F;
     constexpr uint32_t WAIT_FOR_ACTIVE_SCREEN_ID_TIMEOUT = 1000;
+    void SensorPostureDataCallback(SensorEvent *event)
+    {
+        OHOS::Rosen::CreateOrGetScreenManager()->HandlePostureData(event);
+    }
 } // namespace
 using namespace HiviewDFX;
 namespace impl {

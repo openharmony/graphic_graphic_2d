@@ -1632,10 +1632,10 @@ void RSUniRenderVisitor::CopyForParallelPrepare(std::shared_ptr<RSUniRenderVisit
     isOpDropped_ = isOpDropped_ && visitor->isOpDropped_;
     needFilter_ = needFilter_ || visitor->needFilter_;
     for (const auto &u : visitor->displayHasSecSurface_) {
-        displayHasSecSurface_[u.first] |= u.second;
+        displayHasSecSurface_[u.first] = displayHasSecSurface_[u.first] || u.second;
     }
     for (const auto &u : visitor->displayHasSkipSurface_) {
-        displayHasSkipSurface_[u.first] |= u.second;
+        displayHasSkipSurface_[u.first] = displayHasSkipSurface_[u.first] || u.second;
     }
     for (const auto &u : visitor->dirtySurfaceNodeMap_) {
         dirtySurfaceNodeMap_[u.first] = u.second;
