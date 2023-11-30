@@ -29,7 +29,7 @@
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 #include "visitor/rs_node_visitor.h"
-
+#include "rs_trace.h"
 namespace OHOS {
 namespace Rosen {
 RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(NodeId id, const std::weak_ptr<RSContext>& context)
@@ -135,6 +135,7 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
 {
     int width = 0;
     int height = 0;
+    RS_TRACE_NAME_FMT("RSCanvasDrawingRenderNode::ProcessRenderContents %llu", GetId());
     if (!GetSizeFromDrawCmdModifiers(width, height)) {
         return;
     }
@@ -266,6 +267,7 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
 
 void RSCanvasDrawingRenderNode::ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type)
 {
+    std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
     auto it = drawCmdLists_.find(type);
     if (it == drawCmdLists_.end() || it->second.empty()) {
         return;
@@ -450,10 +452,20 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType type)
 #else
             if (auto cmd = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(prop)->Get()) {
 #endif
+                std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
                 drawCmdLists_[drawCmdModifier.first].emplace_back(cmd);
             }
         }
     }
+    if (!IsOnTheTree()) {
+        ClearOp();
+    }
+}
+
+void RSCanvasDrawingRenderNode::ClearOp()
+{
+    std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
+    drawCmdLists_.clear();
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -66,6 +66,7 @@ public:
     }
 
     void AddDirtyType(RSModifierType type) override;
+    void ClearOp();
 
 private:
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
@@ -86,6 +87,7 @@ private:
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
     ThreadInfo curThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(sk_sp<SkSurface>)>() };
     ThreadInfo preThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(sk_sp<SkSurface>)>() };
+    std::mutex drawCmdListsMutex_;
 #ifndef USE_ROSEN_DRAWING
     std::map<RSModifierType, std::list<DrawCmdListPtr>> drawCmdLists_;
 #else
