@@ -23,7 +23,7 @@ namespace OHOS {
 namespace Rosen {
 class RSRcdRenderListener : public IBufferConsumerListener {
 public:
-    RSRcdRenderListener(std::weak_ptr<RSRcdSurfaceRenderNode> surfaceRenderNode);
+    explicit RSRcdRenderListener(std::weak_ptr<RSRcdSurfaceRenderNode> surfaceRenderNode);
     ~RSRcdRenderListener() override;
     void OnBufferAvailable() override;
     void OnGoBackground() override;
