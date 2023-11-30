@@ -157,7 +157,10 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSRcdSurfaceRenderNode&
     const auto& srcRect = node.GetSrcRect();
     ComposeInfo info {};
     info.srcRect = GraphicIRect {srcRect.left_, srcRect.top_, srcRect.width_, srcRect.height_};
-    info.dstRect = GraphicIRect {dstRect.left_, dstRect.top_, dstRect.width_, dstRect.height_};
+    info.dstRect = GraphicIRect {static_cast<int32_t>(dstRect.left_ * screenInfo_.GetRogWidthRatio()),
+        static_cast<int32_t>(dstRect.top_ * screenInfo_.GetRogHeightRatio()),
+        static_cast<int32_t>(dstRect.width_ * screenInfo_.GetRogWidthRatio()),
+        static_cast<int32_t>(dstRect.height_ * screenInfo_.GetRogHeightRatio())};
     info.boundRect = info.dstRect;
     info.visibleRect = info.dstRect;
     info.zOrder = static_cast<int32_t>(node.GetGlobalZOrder());
