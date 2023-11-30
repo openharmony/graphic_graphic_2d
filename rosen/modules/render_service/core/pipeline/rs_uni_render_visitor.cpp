@@ -2428,7 +2428,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         // we should request a framebuffer whose size is equals to the physical screen size.
         RS_TRACE_BEGIN("RSUniRender:RequestFrame");
         BufferRequestConfig bufferConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_, true,
-            newColorSpace_, newPixelFormat);
+            newColorSpace_, newPixelFormat_);
         RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode, colorspace is %{public}d in RequestFrame.",
                 newColorSpace_);
         RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode, pixelformat is %{public}d in RequestFrame.",

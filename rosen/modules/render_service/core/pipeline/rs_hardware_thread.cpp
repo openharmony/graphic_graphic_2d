@@ -344,11 +344,13 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     bool forceCPU = RSBaseRenderEngine::NeedForceCPU(layers);
     auto screenManager = CreateOrGetScreenManager();
     auto screenInfo = screenManager->QueryScreenInfo(screenId);
+#ifdef USE_VIDEO_PROCESSING_ENGINE
     GraphicColorGamut colorGamut = ComputeTargetColorGamut(layers);
     GraphicPixelFormat pixelFormat = ComputeTargetPixelFormat(layers);
     auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, true, colorGamut, pixelFormat);
-#ifdef USE_VIDEO_PROCESSING_ENGINE
     auto skColorSpace = RSBaseRenderEngine::ConvertColorGamutToSkColorSpace(colorGamut);
+#else
+    auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, true);
 #endif
     auto renderFrame = uniRenderEngine_->RequestFrame(surface, renderFrameConfig, forceCPU);
     if (renderFrame == nullptr) {
@@ -649,7 +651,7 @@ GraphicColorGamut RSHardwareThread::ComputeTargetColorGamut(const std::vector<La
 GraphicPixelFormat RSHardwareThread::ComputeTargetPixelFormat(const std::vector<LayerInfoPtr>& layers)
 {
     using namespace HDI::Display::Graphic::Common::V1_0;
-    GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FORMAT_RGBA_8888;
+    GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
     for (auto& layer : layers) {
         auto buffer = layer->GetBuffer();
         if (buffer == nullptr) {
@@ -664,7 +666,7 @@ GraphicPixelFormat RSHardwareThread::ComputeTargetPixelFormat(const std::vector<
         }
 
         if (metadataType != CM_METADATA_NONE) {
-            pixelFormat = GRAPHIC_PIXEL_FORMAT_RGBA_1010102;
+            pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
         }
     }
 

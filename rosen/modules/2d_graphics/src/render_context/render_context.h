@@ -223,6 +223,7 @@ private:
     EGLConfig config_;
 #ifndef ROSEN_CROSS_PLATFORM
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    int32_t pixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
 #endif
 
     bool isUniRenderMode_ = false;

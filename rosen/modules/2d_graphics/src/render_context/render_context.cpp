@@ -399,7 +399,7 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
 
     switch (pixelFormat_) {
         case GRAPHIC_PIXEL_FMT_RGBA_1010102:
-            framebufferInfo.fFormat = GL_RGBA10_A2;
+            framebufferInfo.fFormat = GL_RGB10_A2;
             colorType = kRGBA_1010102_SkColorType;
             break;
         default:
