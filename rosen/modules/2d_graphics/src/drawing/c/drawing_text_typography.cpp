@@ -295,8 +295,10 @@ void OH_Drawing_SetTextStyleFontHeight(OH_Drawing_TextStyle* style, double fontH
 {
 #ifndef USE_GRAPHIC_TEXT_GINE
     ConvertToOriginalText<TextStyle>(style)->height_ = fontHeight;
+    ConvertToOriginalText<TextStyle>(style)->hasHeightOverride_ = true;
 #else
     ConvertToOriginalText<TextStyle>(style)->heightScale = fontHeight;
+    ConvertToOriginalText<TextStyle>(style)->heightOnly = true;
 #endif
 }
 
