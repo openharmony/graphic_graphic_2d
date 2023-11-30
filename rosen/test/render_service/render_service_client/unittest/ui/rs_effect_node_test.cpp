@@ -41,7 +41,7 @@ void RSEffectNodeTest::TearDown() {}
  * @tc.type:FUNC
  */
 HWTEST_F(RSEffectNodeTest, Create001, TestSize.Level1)
-{    
+{
     RSEffectNode::SharedPtr effectNode = RSEffectNode::Create(true);
     ASSERT_TRUE(effectNode != nullptr);
 }
