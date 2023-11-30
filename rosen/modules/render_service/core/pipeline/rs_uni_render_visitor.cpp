@@ -2427,8 +2427,10 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         rsSurface->SetColorSpace(newColorSpace_);
         // we should request a framebuffer whose size is equals to the physical screen size.
         RS_TRACE_BEGIN("RSUniRender:RequestFrame");
-        BufferRequestConfig bufferConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_, true);
-        bufferConfig.format = newPixelFormat_;
+        BufferRequestConfig bufferConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_, true,
+            newColorSpace_, newPixelFormat);
+        RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode, colorspace is %{public}d in RequestFrame.",
+                newColorSpace_);
         RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode, pixelformat is %{public}d in RequestFrame.",
                 newPixelFormat_);
         node.SetFingerprint(hasFingerprint_);
@@ -3986,7 +3988,8 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                 auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false, threadIndex_);
                 params.targetColorGamut = newColorSpace_;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-                params.screenBrightnessNits = GetScreenBrightnessNits();
+                auto screenManager = CreateOrGetScreenManager();
+                params.screenBrightnessNits = screenManager->GetScreenBrightnessNits();
 #endif
                 renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
             }
@@ -4912,39 +4915,5 @@ bool RSUniRenderVisitor::CheckIfNeedResetRotate() {
     int angle = RSUniRenderUtil::GetRotationFromMatrix(canvas_->getTotalMatrix());
     return angle != 0 && angle % 90 == 0;
 }
-
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-float RSUniRenderVisitor::GetScreenBrightnessNits()
-{
-    constexpr float DEFAULT_SCREEN_LIGHT_NITS = 500.0;
-    constexpr float DEFAULT_SCREEN_LIGHT_MAX_NITS = 1200.0;
-    constexpr int32_t DEFAULT_SCREEN_LIGHT_MAX_LEVEL = 255;
-
-    float screenBrightnessNits = DEFAULT_SCREEN_LIGHT_NITS;
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    if (screenManager == nullptr) {
-        RS_LOGW("RSUniRenderVisitor::GetScreenBrightnessNits screenManager is nullptr.");
-        return screenBrightnessNits;
-    }
-
-    RSScreenType screenType;
-    if (screenManager->GetScreenType(currentVisitDisplay_, screenType) != SUCCESS) {
-        RS_LOGW("RSUniRenderVisitor::GetScreenBrightnessNits GetScreenType fail.");
-        return screenBrightnessNits;
-    }
-
-    if (screenType == VIRTUAL_TYPE_SCREEN) {
-        return screenBrightnessNits;
-    }
-
-    int32_t backLightLevel = screenManager->GetScreenBacklight(currentVisitDisplay_);
-
-    if (backLightLevel <= 0) {
-        return screenBrightnessNits;
-    }
-
-    return DEFAULT_SCREEN_LIGHT_MAX_NITS * backLightLevel / DEFAULT_SCREEN_LIGHT_MAX_LEVEL;
-}
-#endif
 } // namespace Rosen
 } // namespace OHOS

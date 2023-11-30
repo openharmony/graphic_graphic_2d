@@ -498,9 +498,6 @@ private:
     bool CheckIfNeedResetRotate();
 
     uint32_t currentRefreshRate_ = 0;
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-    float GetScreenBrightnessNits();
-#endif
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -288,11 +288,6 @@ EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
     return surface;
 }
 
-void RenderContext::SetColorSpace(GraphicColorGamut colorSpace)
-{
-    colorSpace_ = colorSpace;
-}
-
 #ifndef USE_ROSEN_DRAWING
 #ifdef RS_ENABLE_VK
 bool RenderContext::SetUpGrContext(sk_sp<GrDirectContext> skContext)
@@ -400,8 +395,16 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
     GrGLFramebufferInfo framebufferInfo;
     framebufferInfo.fFBOID = 0;
     framebufferInfo.fFormat = GL_RGBA8;
-
     SkColorType colorType = kRGBA_8888_SkColorType;
+
+    switch (pixelFormat_) {
+        case GRAPHIC_PIXEL_FMT_RGBA_1010102:
+            framebufferInfo.fFormat = GL_RGBA10_A2;
+            colorType = kRGBA_1010102_SkColorType;
+            break;
+        default:
+            break;
+    }
 
     GrBackendRenderTarget backendRenderTarget(width, height, 0, 8, framebufferInfo);
 #if defined(NEW_SKIA)

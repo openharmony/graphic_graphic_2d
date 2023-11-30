@@ -224,6 +224,10 @@ public:
     virtual ScreenId GetActiveScreenId() = 0;
     /* only used for mock tests */
     virtual void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) = 0;
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    virtual float GetScreenBrightnessNits(ScreenId id) = 0;
+#endif
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -375,6 +379,11 @@ public:
         }
         screens_[rsScreen->Id()] = std::move(rsScreen);
     }
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    float GetScreenBrightnessNits(ScreenId id) override;
+#endif
+
 private:
     RSScreenManager();
     ~RSScreenManager() noexcept override;

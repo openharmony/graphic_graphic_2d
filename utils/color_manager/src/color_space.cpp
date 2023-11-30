@@ -361,15 +361,27 @@ Vector3 ColorSpace::ToNonLinear(Vector3 v) const
 sk_sp<SkColorSpace> ColorSpace::ToSkColorSpace() const
 {
     skcms_Matrix3x3 toXYZ = ToSkiaXYZ();
-    skcms_TransferFunction skTransferFun = {
-        transferFunc.g,
-        transferFunc.a,
-        transferFunc.b,
-        transferFunc.c,
-        transferFunc.d,
-        transferFunc.e,
-        transferFunc.f,
-    };
+    skcms_TransferFunction skTransferFun;
+    switch (transferFunc.type) {
+        case HLG:
+            skTransferFun = SkNamedTransferFn::kHLG;
+            break;
+        case PQ:
+            skTransferFun = SkNamedTransferFn::kPQ;
+            break;
+        default:
+            skTransferFun = {
+                transferFunc.g,
+                transferFunc.a,
+                transferFunc.b,
+                transferFunc.c,
+                transferFunc.d,
+                transferFunc.e,
+                transferFunc.f,
+            };
+            break;
+    }
+
     return SkColorSpace::MakeRGB(skTransferFun, toXYZ);
 }
 
