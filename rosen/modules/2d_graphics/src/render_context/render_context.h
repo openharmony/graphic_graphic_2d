@@ -45,9 +45,7 @@
 #include "image/gpu_context.h"
 #endif
 #include "memory_handler.h"
-#ifndef ROSEN_CROSS_PLATFORM
 #include "surface_type.h"
-#endif
 
 #define GLES_VERSION 2
 namespace OHOS {
@@ -123,13 +121,11 @@ public:
         return eglDisplay_;
     }
 
-#ifndef ROSEN_CROSS_PLATFORM
     void SetColorSpace(GraphicColorGamut colorSpace);
     GraphicColorGamut GetColorSpace() const
     {
         return colorSpace_;
     }
-#endif
 
     bool IsEglContextReady() const
     {
@@ -193,9 +189,7 @@ private:
     bool valid_ = false;
 #endif   
     EGLConfig config_;
-#ifndef ROSEN_CROSS_PLATFORM
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-#endif
 
     bool isUniRenderMode_ = false;
     const std::string UNIRENDER_CACHE_DIR = "/data/service/el0/render_service";

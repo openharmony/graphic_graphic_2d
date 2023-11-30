@@ -44,10 +44,8 @@ public:
     virtual void SetUiTimeStamp(uint64_t uiTimestamp = 0) = 0;
     virtual void SetDamageRegion(const std::vector<RectI>& rects) = 0;
     virtual int32_t GetBufferAge() = 0;
-#ifndef ROSEN_CROSS_PLATFORM
     virtual GraphicColorGamut GetColorSpace() = 0;
     virtual void SetColorSpace(GraphicColorGamut colorSpace) = 0;
-#endif
     virtual void ClearBuffer() = 0;
     virtual SkCanvas* GetCanvas() = 0;
     virtual sk_sp<SkSurface> GetSurface() = 0;

@@ -266,6 +266,7 @@ ohos_source_set("render_service_base_src") {
   }
 
   include_dirs = [
+    "$graphic_2d_root/interfaces/inner_api/surface",
     "$graphic_2d_root/frameworks/surface/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
