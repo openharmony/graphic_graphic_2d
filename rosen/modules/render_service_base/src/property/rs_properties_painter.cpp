@@ -2094,7 +2094,7 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     canvas.ClipRect(bounds, Drawing::ClipOp::INTERSECT, false);
     auto tmpBounds = canvas.GetDeviceClipBounds();
     Drawing::Rect clipBounds(
-        tmpBounds.GetLeft(), tmpBounds.GetTop(), tmpBounds.GetWidth() - 1, tmpBounds.GetHeight() - 1);
+        tmpBounds.GetLeft(), tmpBounds.GetTop(), tmpBounds.GetRight() - 1, tmpBounds.GetBottom() - 1);
     canvas.Restore();
 
     /*  Calculates the relative coordinates of the clipbounds
@@ -2143,7 +2143,7 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     canvas.Save();
     canvas.Translate(bounds.GetLeft(), bounds.GetTop());
     Drawing::SamplingOptions samplingOptions;
-    if (pixelStretch->x_ < 0) {
+    if (pixelStretch->x_ > 0) {
         brush.SetShaderEffect(Drawing::ShaderEffect::CreateImageShader(
             *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, scaleMat));
         canvas.AttachBrush(brush);
