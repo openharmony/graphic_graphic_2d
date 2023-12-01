@@ -48,7 +48,7 @@ HWTEST_F(RSRenderFrameRateLinkerMapTest, RegisterFrameRateLinker, TestSize.Level
     ASSERT_NE(frameRateLinker, nullptr);
     frameRateLinkerMap.RegisterFrameRateLinker(frameRateLinker);
     EXPECT_EQ(frameRateLinkerMap.GetFrameRateLinker(id), frameRateLinker);
-    EXPECT_EQ(frameRateLinkerMap.GetFrameRateLinkerMap().size(), 1);
+    EXPECT_EQ(frameRateLinkerMap.Get().size(), 1);
 }
 
 /**
@@ -64,7 +64,7 @@ HWTEST_F(RSRenderFrameRateLinkerMapTest, UnregisterFrameRateLinker, TestSize.Lev
     auto frameRateLinker = std::make_shared<RSRenderFrameRateLinker>(id);
     ASSERT_NE(frameRateLinker, nullptr);
     frameRateLinkerMap.RegisterFrameRateLinker(frameRateLinker);
-    EXPECT_EQ(frameRateLinkerMap.GetFrameRateLinkerMap().size(), 1);
+    EXPECT_EQ(frameRateLinkerMap.Get().size(), 1);
     frameRateLinkerMap.UnregisterFrameRateLinker(id);
     EXPECT_EQ(frameRateLinkerMap.GetFrameRateLinker(id), nullptr);
 }

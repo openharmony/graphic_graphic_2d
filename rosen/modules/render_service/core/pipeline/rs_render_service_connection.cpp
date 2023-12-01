@@ -424,7 +424,7 @@ void RSRenderServiceConnection::SetRefreshRateMode(int32_t refreshRateMode)
 void RSRenderServiceConnection::SyncFrameRateRange(const FrameRateRange& range)
 {
     auto& context = mainThread_->GetContext();
-    auto& frameRateLikerMap = context.GetFrameRateLinkerMap().GetFrameRateLinkerMap();
+    auto& frameRateLikerMap = context.GetFrameRateLinkerMap().Get();
     auto iter = std::find_if(frameRateLikerMap.begin(), frameRateLikerMap.end(), [this](const auto& pair) {
         return ExtractPid(pair.first) == remotePid_;
     });
