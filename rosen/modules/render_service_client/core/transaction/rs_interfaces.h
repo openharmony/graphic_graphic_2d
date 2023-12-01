@@ -184,6 +184,9 @@ public:
 
     void SetAppWindowNum(uint32_t num);
 
+    // Set the system overload Animated Scenes to RS for special load shedding
+    bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes);
+
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
 
     int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height);

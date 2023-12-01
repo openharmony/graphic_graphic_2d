@@ -381,6 +381,11 @@ void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
 {
 }
 
+bool RSRenderServiceClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes)
+{
+    return {};
+}
+
 void RSRenderServiceClient::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
 {
 }

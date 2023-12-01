@@ -2575,6 +2575,22 @@ void RSMainThread::SetAppWindowNum(uint32_t num)
     appWindowNum_ = num;
 }
 
+bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes)
+{
+    if (systemAnimatedScenes < SystemAnimatedScenes::ENTER_MISSION_CENTER ||
+            systemAnimatedScenes > SystemAnimatedScenes::OTHERS) {
+        RS_LOGD("RSMainThread::SetSystemAnimatedScenes Out of range.");
+        return false;
+    }
+    systemAnimatedScenes_ = systemAnimatedScenes;
+    return true;
+}
+
+SystemAnimatedScenes RSMainThread::GetSystemAnimatedScenes()
+{
+    return systemAnimatedScenes_;
+}
+
 bool RSMainThread::CheckNodeHasToBePreparedByPid(NodeId nodeId, bool isClassifyByRoot)
 {
     if (context_->activeNodesInRoot_.empty() || nodeId == INVALID_NODEID) {
