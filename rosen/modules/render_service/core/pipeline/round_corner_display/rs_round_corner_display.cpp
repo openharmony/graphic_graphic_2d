@@ -20,6 +20,7 @@
 #include <SkMatrix.h>
 #include <SkCanvas.h>
 #include <mutex>
+#include <parameters.h>
 #include "common/rs_singleton.h"
 #include "rs_sub_thread_rcd.h"
 
@@ -41,6 +42,7 @@ bool RoundCornerDisplay::Init()
     LoadConfigFile();
     SeletedLcdModel(rs_rcd::ATTR_DEFAULT);
     LoadImgsbyResolution(displayWidth_, displayHeight_);
+    isRcdEnable_ = RSSystemProperties::GetRSScreenRoundCornerEnable();
     RS_LOGD("[%{public}s] RoundCornerDisplay init \n", __func__);
     return true;
 }

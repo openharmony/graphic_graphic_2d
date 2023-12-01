@@ -765,7 +765,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
     prepareClipRect_.SetAll(0, 0, screenInfo_.width, screenInfo_.height);
     // rcd message send
-    if (!node.IsMirrorDisplay()) {
+    if ((!node.IsMirrorDisplay()) && RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnabel()) {
         using rcd_msg = RSSingleton<RsMessageBus>;
         rcd_msg::GetInstance().SendMsg<uint32_t, uint32_t>(TOPIC_RCD_DISPLAY_SIZE,
             screenInfo_.width, screenInfo_.height);
@@ -2744,7 +2744,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
         if (node.IsMirrorDisplay()) {
             RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode, mirror without roundcornerdisplay");
-        } else {
+        } else if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnabel()) {
             RSSingleton<RoundCornerDisplay>::GetInstance().DrawRoundCorner(canvas_);
         }
         auto mainThread = RSMainThread::Instance();
@@ -2785,7 +2785,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 
     if (node.IsMirrorDisplay()) {
         RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode, mirror without roundcornerdisplay");
-    } else {
+    } else if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnabel()) {
         RSSingleton<RoundCornerDisplay>::GetInstance().RunHardwareTask(
             [this]() {
                 auto hardInfo = RSSingleton<RoundCornerDisplay>::GetInstance().GetHardwareInfo();
@@ -2823,7 +2823,9 @@ void RSUniRenderVisitor::DrawSurfaceLayer(const std::shared_ptr<RSDisplayRenderN
     const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes) const
 {
     auto subThreadManager = RSSubThreadManager::Instance();
-    subThreadManager->StartRCDThread(renderEngine_->GetRenderContext().get());
+    if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnabel()) {
+        subThreadManager->StartRCDThread(renderEngine_->GetRenderContext().get());
+    }
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     subThreadManager->StartFilterThread(renderEngine_->GetRenderContext().get());
     subThreadManager->StartColorPickerThread(renderEngine_->GetRenderContext().get());

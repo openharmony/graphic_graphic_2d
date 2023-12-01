@@ -82,6 +82,11 @@ public:
         return hardInfo_;
     }
 
+    bool GetRcdEnabel() const
+    {
+        return isRcdEnable_;
+    }
+
 private:
     // load config
     rs_rcd::LCDModel* lcdModel_ = nullptr;
@@ -136,6 +141,8 @@ private:
     bool supportBottomSurface_ = false;
     bool supportHardware_ = false;
     bool resourceChanged = false;
+
+    bool isRcdEnable_ = false;
 
 #ifndef USE_ROSEN_DRAWING
     // the resource to be drawn
