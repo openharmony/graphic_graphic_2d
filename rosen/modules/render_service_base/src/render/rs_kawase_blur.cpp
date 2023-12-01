@@ -283,7 +283,7 @@ void KawaseBlurFilter::CheckInputImage(Drawing::Canvas& canvas, const std::share
     const KawaseParameter& param, std::shared_ptr<Drawing::Image>& checkedImage)
 {
     auto src = param.src;
-    auto srcRect = Drawing::RectI(src.GetLeft(), src.GetTop(), src.GetTop(), src.GetBottom());
+    auto srcRect = Drawing::RectI(src.GetLeft(), src.GetTop(), src.GetRight(), src.GetBottom());
     if (image->GetImageInfo().GetBound() != srcRect) {
         auto resizedImage = std::make_shared<Drawing::Image>();
         if (resizedImage->BuildSubset(image, srcRect, *canvas.GetGPUContext())) {

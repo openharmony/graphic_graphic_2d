@@ -102,7 +102,7 @@ bool WriteStringToFile(const std::string& str, const std::string& filePath)
 namespace OHOS {
 namespace Rosen {
 
-MSKPSrc::MSKPSrc(std::string path) : fPath_(path)
+MSKPSrc::MSKPSrc(const std::string& path) : fPath_(path)
 {
     std::unique_ptr<SkStreamAsset> stream = SkStream::MakeFromFile(fPath_.c_str());
 
