@@ -262,7 +262,7 @@ uint32_t CmdList::GetAllSurfaceBuffer(std::vector<sptr<SurfaceBuffer>>& objectLi
     for (const auto &object : surfaceBufferVec_) {
         objectList.emplace_back(object);
     }
-    return objectList.size();
+    return static_cast<uint32_t>(objectList.size());
 }
 
 uint32_t CmdList::SetupSurfaceBuffer(const std::vector<sptr<SurfaceBuffer>>& objectList)
@@ -271,7 +271,7 @@ uint32_t CmdList::SetupSurfaceBuffer(const std::vector<sptr<SurfaceBuffer>>& obj
     for (const auto &object : objectList) {
         surfaceBufferVec_.emplace_back(object);
     }
-    return surfaceBufferVec_.size();
+    return static_cast<uint32_t>(surfaceBufferVec_.size());
 }
 #endif
 } // namespace Drawing

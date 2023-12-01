@@ -363,16 +363,12 @@ template("graphics2d_source_set") {
           "EGL_EGLEXT_PROTOTYPES",
         ]
       }
-      include_dirs += [
-        "$graphic_2d_root/interfaces/inner_api/surface",
-      ]
+      include_dirs += [ "$graphic_2d_root/interfaces/inner_api/surface" ]
       public_deps += [
         "$graphic_2d_root:libgl",
         "$graphic_2d_root/frameworks/surface:surface",
       ]
-      external_deps += [
-        "c_utils:utils",
-      ]
+      external_deps += [ "c_utils:utils" ]
     }
 
     part_name = "graphic_2d"

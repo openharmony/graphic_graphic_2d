@@ -1450,6 +1450,7 @@ void DrawSurfaceBufferOpItem::Clear()
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (nativeWindowBuffer_ != nullptr) {
         DestroyNativeWindowBuffer(nativeWindowBuffer_);
+        nativeWindowBuffer_ = nullptr;
     }
 #endif
 }
