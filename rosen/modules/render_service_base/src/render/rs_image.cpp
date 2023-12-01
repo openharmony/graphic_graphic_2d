@@ -290,6 +290,7 @@ void RSImage::UploadGpu(Drawing::Canvas& canvas)
                 static_cast<int>(srcRect_.height_), Drawing::CompressedType::ASTC);
             if (image) {
                 image_ = image;
+                SKResourceManager::Instance().HoldResource(image);
                 RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image, gettid());
             } else {
                 RS_LOGE("make astc image %{public}d (%{public}d, %{public}d) failed",

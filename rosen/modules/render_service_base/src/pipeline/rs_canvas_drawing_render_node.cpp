@@ -197,7 +197,9 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
         canvas.ConcatMatrix(mat);
     }
     auto image_ = surface_->GetImageSnapshot();
-
+    if (image_) {
+        SKResourceManager::Instance().HoldResource(image_);
+    }
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
     canvas.DrawImage(*image_, 0.f, 0.f, samplingOptions);
 }
