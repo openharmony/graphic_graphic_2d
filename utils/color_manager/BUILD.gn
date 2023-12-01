@@ -12,6 +12,12 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+platform = current_os
+if (current_os == "mingw") {
+  platform = "windows"
+}
 
 ## Build color_manager.so {{{
 config("color_manager_config") {
@@ -31,30 +37,56 @@ config("color_manager_config") {
 
 config("color_manager_public_config") {
   include_dirs = [ "export" ]
+  if (defined(use_new_skia) && use_new_skia) {
+    include_dirs += [ "$skia_root_new" ]
+  } else {
+    include_dirs += [ "$flutter_root" ]
+  }
 }
 
-ohos_shared_library("color_manager") {
-  sources = [
-    "src/color.cpp",
-    "src/color_space.cpp",
-    "src/color_space_convertor.cpp",
-  ]
+template("color_manager_source_set") {
+  forward_variables_from(invoker, "*")
 
-  configs = [ ":color_manager_config" ]
+  ohos_source_set(target_name) {
+    sources = [
+      "src/color.cpp",
+      "src/color_space.cpp",
+      "src/color_space_convertor.cpp",
+    ]
 
-  public_configs = [ ":color_manager_public_config" ]
+    configs = [ ":color_manager_config" ]
+    public_configs = [ ":color_manager_public_config" ]
 
-  public_deps = [ "//third_party/bounds_checking_function:libsec_shared" ]
-
-  if (defined(use_new_skia) && use_new_skia) {
-    public_deps += [ "//third_party/skia:skia_ohos" ]
-  } else {
-    public_deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
   }
+}
 
-  innerapi_tags = [ "platformsdk" ]
-  subsystem_name = "graphic"
-  part_name = "graphic_2d"
+color_manager_source_set("color_manager_source") {
+}
+
+if (current_os == "ohos") {
+  ohos_shared_library("color_manager") {
+    public_deps = [
+      ":color_manager_source",
+      "//third_party/bounds_checking_function:libsec_shared",
+    ]
+
+    if (defined(use_new_skia) && use_new_skia) {
+      public_deps += [ "$skia_root_new:skia_ohos" ]
+    } else {
+      public_deps += [ "$flutter_root/build/skia:ace_skia_ohos" ]
+    }
+    innerapi_tags = [ "platformsdk" ]
+    subsystem_name = "graphic"
+    part_name = "graphic_2d"
+  }
+} else {
+  ohos_source_set("color_manager") {
+    public_deps = [ ":color_manager_source" ]
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
 }
 
 group("test") {
