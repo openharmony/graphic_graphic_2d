@@ -339,9 +339,9 @@ static const sk_sp<SkColorFilter>& InvertProtanomalyMat()
 static const std::shared_ptr<Drawing::ColorFilter>& InvertProtanomalyMat()
 {
     static const Drawing::scalar colorMatrixArray[MATRIX_SIZE] = {
-        0.025,  -0.796, -0.228, 1.0, 0.0,
-        -0.334, -0.438, -0.228, 1.0, 0.0,
-        -0.382, -1.392, 0.772,  1.0, 0.0,
+        -0.109, -0.663, -0.228, 1.0, 0.0,
+        -0.468, -0.304, -0.228, 1.0, 0.0,
+        -0.516, -1.258, 0.772,  1.0, 0.0,
         0.0,    0.0,    0.0,    1.0, 0.0
     };
     Drawing::ColorMatrix colorMatrix;
@@ -367,9 +367,9 @@ static const sk_sp<SkColorFilter>& InvertDeuteranomalyMat()
 static const std::shared_ptr<Drawing::ColorFilter>& InvertDeuteranomalyMat()
 {
     static const Drawing::scalar colorMatrixArray[MATRIX_SIZE] = {
-        -0.31,  -0.462, -0.228, 1.0, 0.0,
-        -0.545, -0.227, -0.228, 1.0, 0.0,
-        -0.857, -0.917, 0.772,  1.0, 0.0,
+        0.113,  -0.885, -0.228, 1.0, 0.0,
+        -0.123, -0.649, -0.228, 1.0, 0.0,
+        -0.434, -1.341, 0.772,  1.0, 0.0,
         0.0,    0.0,    0.0,    1.0, 0.0
     };
     Drawing::ColorMatrix colorMatrix;
@@ -395,10 +395,10 @@ static const sk_sp<SkColorFilter>& InvertTritanomalyMat()
 static const std::shared_ptr<Drawing::ColorFilter>& InvertTritanomalyMat()
 {
     static const Drawing::scalar colorMatrixArray[MATRIX_SIZE] = {
-        0.401,  -1.98,  0.578, 1.0, 0.0,
-        -0.599, -0.796, 0.393, 1.0, 0.0,
-        -0.599, -1.07,  0.667, 1.0, 0.0,
-        0.0,    0.0,    0.0,   1.0, 0.0
+        0.402,  -0.792, -0.609, 1.0, 0.0,
+        -0.598, 0.392,  -0.794, 1.0, 0.0,
+        -0.598, 0.118,  -0.521, 1.0, 0.0,
+        0.0,    0.0,    0.0,    1.0, 0.0
     };
     Drawing::ColorMatrix colorMatrix;
     colorMatrix.SetArray(colorMatrixArray);

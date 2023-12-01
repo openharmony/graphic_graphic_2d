@@ -29,9 +29,14 @@ public:
     void TearDown() override;
 
 private:
+#ifndef USE_ROSEN_DRAWING
     static sk_sp<SkImage> CreateSkImage();
+#else
+    static std::shared_ptr<Drawing::Image> CreateSkImage();
+#endif
 };
 
+#ifndef USE_ROSEN_DRAWING
 sk_sp<SkImage> RSUniRenderUtilTest::CreateSkImage()
 {
     const SkImageInfo info = SkImageInfo::MakeN32(200, 200, kOpaque_SkAlphaType);
@@ -43,6 +48,22 @@ sk_sp<SkImage> RSUniRenderUtilTest::CreateSkImage()
     canvas->drawRect(SkRect::MakeXYWH(50, 50, 100, 100), paint);
     return surface->makeImageSnapshot();
 }
+#else
+std::shared_ptr<Drawing::Image> CreateSkImage()
+{
+    const Drawing::ImageInfo info =
+    Drawing::ImageInfo{200, 200, Drawing::COLORTYPE_N32, Drawing::ALPHATYPE_OPAQUE };
+    auto surface = Drawing::Surface::MakeRaster(info);
+    auto canvas = surface->GetCanvas();
+    canvas->Clear(Drawing::Color::COLOR_YELLOW);
+    Drawing::Brush paint;
+    paint.SetColor(Drawing::Color::COLOR_RED);
+    canvas->AttachBrush(paint);
+    canvas->DrawRect(Drawing::Rect(50, 50, 100, 100));
+    canvas->DetachBrush();
+    return surface->GetImageSnapshot();
+}
+#endif
 
 void RSUniRenderUtilTest::SetUpTestCase() {}
 void RSUniRenderUtilTest::TearDownTestCase() {}
@@ -219,8 +240,13 @@ HWTEST_F(RSUniRenderUtilTest, ClearNodeCacheSurface, Function | SmallTest | Leve
  */
 HWTEST_F(RSUniRenderUtilTest, HandleCaptureNode, Function | SmallTest | Level2)
 {
+#ifndef USE_ROSEN_DRAWING
     SkCanvas skCanvas;
     RSPaintFilterCanvas canvas(&skCanvas);
+#else
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+#endif
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
     RSUniRenderUtil::HandleCaptureNode(*surfaceNode, canvas);

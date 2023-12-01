@@ -64,6 +64,10 @@ ohos_fuzztest("RSRenderServiceConnectionStubFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
   sources = [ "rsrenderserviceconnectionstub_fuzzer.cpp" ]
+
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
 }
 
 ###############################################################################
