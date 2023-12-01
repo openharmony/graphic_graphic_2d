@@ -49,6 +49,11 @@ std::shared_ptr<Typeface> StaticFactory::MakeFromStream(std::unique_ptr<MemorySt
     return EngineStaticFactory::MakeFromStream(std::move(memoryStream), index);
 }
 
+std::shared_ptr<Typeface> StaticFactory::MakeFromName(const char familyName[], FontStyle fontStyle)
+{
+    return EngineStaticFactory::MakeFromName(familyName, fontStyle);
+}
+
 #ifdef ACE_ENABLE_GPU
 #ifdef RS_ENABLE_VK
 std::shared_ptr<Surface> StaticFactory::MakeFromBackendRenderTarget(GPUContext* gpuContext, const VKTextureInfo& info,

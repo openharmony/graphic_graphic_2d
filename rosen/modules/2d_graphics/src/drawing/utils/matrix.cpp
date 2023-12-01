@@ -60,6 +60,11 @@ void Matrix::PostRotate(scalar degree)
     matrixImplPtr->PostRotate(degree);
 }
 
+void Matrix::PostRotate(scalar degree, scalar px, scalar py)
+{
+    matrixImplPtr->PostRotate(degree, px, py);
+}
+
 void Matrix::PreTranslate(scalar dx, scalar dy)
 {
     matrixImplPtr->PreTranslate(dx, dy);
@@ -78,6 +83,11 @@ void Matrix::PreScale(scalar sx, scalar sy)
 void Matrix::PostScale(scalar sx, scalar sy)
 {
     matrixImplPtr->PostScale(sx, sy);
+}
+
+void Matrix::PostScale(scalar sx, scalar sy, scalar px, scalar py)
+{
+    matrixImplPtr->PostScale(sx, sy, px, py);
 }
 
 void Matrix::PreConcat(const Matrix& other)

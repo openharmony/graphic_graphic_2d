@@ -337,7 +337,11 @@ void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas
 
     auto illuminatedPtr_ = GetRenderProperties().GetIlluminated();
     if (illuminatedPtr_ && illuminatedPtr_->IsIlluminated() && ROSEN_EQ(GetRenderProperties().GetBloom(), 0.f)) {
+#ifndef USE_ROSEN_DRAWING
         RSPropertiesPainter::DrawLight(GetRenderProperties(), canvas);
+#else
+// Drawing is not supported
+#endif
     }
     RSPropertiesPainter::DrawBorder(GetRenderProperties(), canvas);
     ApplyDrawCmdModifier(context, RSModifierType::OVERLAY_STYLE);

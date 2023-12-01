@@ -1095,11 +1095,15 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
 
 void RSRenderNode::DumpNodeInfo(DfxString& log)
 {
+#ifndef USE_ROSEN_DRAWING
     for (auto& [type, modifiers] : drawCmdModifiers_) {
         for (auto modifier : modifiers) {
             modifier->DumpPicture(log);
         }
     }
+#else
+// Drawing is not supported
+#endif
 }
 
 void RSRenderNode::AddModifierProfile(const std::shared_ptr<RSRenderModifier>& modifier, float width, float height)
@@ -1645,7 +1649,7 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
     canvas.Restore();
 }
 
-std::shared_ptr<Drawing::Image> GetCompletedImage(
+std::shared_ptr<Drawing::Image> RSRenderNode::GetCompletedImage(
     RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst)
 {
     if (isUIFirst) {
@@ -1890,10 +1894,6 @@ RectI RSRenderNode::GetFilterRect() const
 void RSRenderNode::UpdateFullScreenFilterCacheRect(
     RSDirtyRegionManager& dirtyManager, bool isForeground) const
 {
-    // Skip filter cache occlusion check for RSEffectRenderNode
-    if (IsInstanceOf<RSEffectRenderNode>()) {
-        return;
-    }
     auto& renderProperties = GetRenderProperties();
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     auto& manager = renderProperties.GetFilterCacheManager(isForeground);
@@ -1902,7 +1902,7 @@ void RSRenderNode::UpdateFullScreenFilterCacheRect(
     if (!manager->IsCacheValid() && dirtyManager.IsCacheableFilterRectEmpty()) {
         dirtyManager.InvalidateFilterCacheRect();
     } else if (ROSEN_EQ(GetGlobalAlpha(), 1.0f) && ROSEN_EQ(renderProperties.GetCornerRadius().x_, 0.0f) &&
-        manager->GetCachedImageRegion() == dirtyManager.GetSurfaceRect()) {
+        manager->GetCachedImageRegion() == dirtyManager.GetSurfaceRect() && !IsInstanceOf<RSEffectRenderNode>()) {
         // Only record full screen filter cache for occlusion calculation
         dirtyManager.UpdateCacheableFilterRect(manager->GetCachedImageRegion());
     }
@@ -2501,6 +2501,15 @@ bool RSRenderNode::GetIsUsedBySubThread() const
 void RSRenderNode::SetIsUsedBySubThread(bool isUsedBySubThread)
 {
     isUsedBySubThread_.store(isUsedBySubThread);
+}
+
+bool RSRenderNode::GetLastIsNeedAssignToSubThread() const
+{
+    return lastIsNeedAssignToSubThread_;
+}
+void RSRenderNode::SetLastIsNeedAssignToSubThread(bool lastIsNeedAssignToSubThread)
+{
+    lastIsNeedAssignToSubThread_ = lastIsNeedAssignToSubThread;
 }
 
 void RSRenderNode::IterateOnDrawableRange(

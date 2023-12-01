@@ -280,6 +280,15 @@ void RSUIDirector::FlushModifier()
     RSUIDirector::RecvMessages();
 }
 
+bool RSUIDirector::HasUIAnimation()
+{
+    auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+    if (modifierManager != nullptr) {
+        return modifierManager->HasUIAnimation();
+    }
+    return false;
+}
+
 void RSUIDirector::SetUITaskRunner(const TaskRunner& uiTaskRunner)
 {
     std::unique_lock<std::mutex> lock(g_uiTaskRunnersVisitorMutex);

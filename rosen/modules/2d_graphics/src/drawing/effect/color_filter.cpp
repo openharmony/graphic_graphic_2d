@@ -115,6 +115,11 @@ bool ColorFilter::Deserialize(std::shared_ptr<Data> data)
     return impl_->Deserialize(data);
 }
 
+bool ColorFilter::AsAColorMatrix(scalar matrix[MATRIX_SIZE]) const
+{
+    return impl_->AsAColorMatrix(matrix);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

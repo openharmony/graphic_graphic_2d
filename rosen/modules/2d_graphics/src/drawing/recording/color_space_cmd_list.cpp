@@ -90,7 +90,7 @@ std::shared_ptr<ColorSpace> CreateSRGBLinearOpItem::Playback() const
     return ColorSpace::CreateSRGBLinear();
 }
 
-CreateRefImageOpItem::CreateRefImageOpItem(const ImageHandle& image)
+CreateRefImageOpItem::CreateRefImageOpItem(const OpDataHandle& image)
     : ColorSpaceOpItem(CREATE_REF_IMAGE), image_(image) {}
 
 std::shared_ptr<ColorSpace> CreateRefImageOpItem::Playback(const CmdList& cmdList) const

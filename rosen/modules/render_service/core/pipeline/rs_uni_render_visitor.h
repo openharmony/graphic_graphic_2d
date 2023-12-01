@@ -162,11 +162,6 @@ public:
         forceUpdateFlag_ = flag;
     }
 
-    void SetCurrentRefreshRate(uint32_t currentRefreshRate)
-    {
-        currentRefreshRate_ = currentRefreshRate;
-    }
-
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
 private:
     void DrawWatermarkIfNeed(RSDisplayRenderNode& node, bool isMirror = false);
@@ -496,8 +491,6 @@ private:
     void ProcessChildrenForScreenRecordingOptimization(RSDisplayRenderNode& node, NodeId rootIdOfCaptureWindow);
     NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);
     bool CheckIfNeedResetRotate();
-
-    uint32_t currentRefreshRate_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

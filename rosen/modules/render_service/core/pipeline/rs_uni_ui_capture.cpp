@@ -124,10 +124,8 @@ std::shared_ptr<Drawing::Surface> RSUniUICapture::CreateSurface(
 
     Drawing::ImageInfo info = Drawing::ImageInfo{pixelmap->GetWidth(), pixelmap->GetHeight(),
         Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL};
-    std::shared_ptr<Drawing::Surface> surface =
-        std::make_shared<Drawing::Surface>(info, address, pixelmap->GetRowBytes());
 
-    return surface;
+    return Drawing::Surface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
 }
 #endif
 

@@ -58,6 +58,12 @@ AlphaType SkiaPixmap::GetAlphaType() const
     return SkiaImageInfo::ConvertToAlphaType(skiaPixmap_.alphaType());
 }
 
+ColorQuad SkiaPixmap::GetColor(int x, int y) const
+{
+    SkColor color = skiaPixmap_.getColor(x, y);
+    return static_cast<ColorQuad>(color);
+}
+
 size_t SkiaPixmap::GetRowBytes() const
 {
     return skiaPixmap_.rowBytes();

@@ -56,7 +56,7 @@ void RSObjAbsGeometry::ConcatMatrix(const SkMatrix& matrix)
 #else
 void RSObjAbsGeometry::ConcatMatrix(const Drawing::Matrix& matrix)
 {
-    if (matrix.isIdentity()) {
+    if (matrix.IsIdentity()) {
         return;
     }
     matrix_.PreConcat(matrix);

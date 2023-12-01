@@ -88,6 +88,7 @@ public:
     virtual uint32_t GetUniqueID() const = 0;
     virtual ImageInfo GetImageInfo() = 0;
     virtual bool ReadPixels(Bitmap& bitmap, int x, int y) = 0;
+    virtual bool ReadPixels(Pixmap& pixmap, int x, int y) = 0;
     virtual bool ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
                             int32_t srcX, int32_t srcY) const = 0;
     virtual bool IsTextureBacked() const = 0;

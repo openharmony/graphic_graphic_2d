@@ -69,6 +69,7 @@ bool RoundCornerDisplay::LoadConfigFile()
     return rcdCfg.Load(rs_rcd::PATH_CONFIG_FILE);
 }
 
+#ifndef USE_ROSEN_DRAWING
 bool RoundCornerDisplay::LoadImg(const char* path, sk_sp<SkImage>& img)
 {
     std::string filePath = std::string(rs_rcd::PATH_CONFIG_DIR) + "/" + path;
@@ -98,6 +99,36 @@ bool RoundCornerDisplay::DecodeBitmap(sk_sp<SkImage> image, SkBitmap &bitmap)
     }
     return true;
 }
+#else
+bool RoundCornerDisplay::LoadImg(const char* path, std::shared_ptr<Drawing::Image>& img)
+{
+    std::string filePath = std::string(rs_rcd::PATH_CONFIG_DIR) + "/" + path;
+    RS_LOGD("[%{public}s] Read Img(%{public}s) \n", __func__, filePath.c_str());
+    std::shared_ptr<Drawing::Data> drData = Drawing::Data::MakeFromFileName(filePath.c_str());
+    if (drData == nullptr) {
+        RS_LOGE("[%{public}s] Open picture file failed! \n", __func__);
+        return false;
+    }
+    if (!img->MakeFromEncoded(drData)) {
+        RS_LOGE("[%{public}s] Decode picture file failed! \n", __func__);
+        return false;
+    }
+    return true;
+}
+
+bool RoundCornerDisplay::DecodeBitmap(std::shared_ptr<Drawing::Image> image, Drawing::Bitmap &bitmap)
+{
+    if (image == nullptr) {
+        RS_LOGE("[%{public}s] No image found \n", __func__);
+        return false;
+    }
+    if (!image->AsLegacyBitmap(bitmap)) {
+        RS_LOGE("[%{public}s] Create bitmap from drImage failed \n", __func__);
+        return false;
+    }
+    return true;
+}
+#endif
 
 bool RoundCornerDisplay::SetHardwareLayerSize()
 {
@@ -382,14 +413,28 @@ void RoundCornerDisplay::DrawRoundCorner(std::shared_ptr<RSPaintFilterCanvas> ca
     if (supportTopSurface_) {
         RS_LOGD("[%{public}s] TopSurface supported \n", __func__);
         if (curTop_ != nullptr) {
+#ifndef USE_ROSEN_DRAWING
             canvas->drawImage(curTop_, 0, 0);
+#else
+            Drawing::Brush brush;
+            canvas->AttachBrush(brush);
+            canvas->DrawImage(*curTop_, 0, 0, Drawing::SamplingOptions());
+            canvas->DetachBrush();
+#endif
             RS_LOGD("[%{public}s] Draw top \n", __func__);
         }
     }
     if (supportBottomSurface_) {
         RS_LOGD("[%{public}s] BottomSurface supported \n", __func__);
         if (curBottom_ != nullptr) {
+#ifndef USE_ROSEN_DRAWING
             canvas->drawImage(curBottom_, 0, displayHeight_ - curBottom_->height());
+#else
+            Drawing::Brush brush;
+            canvas->AttachBrush(brush);
+            canvas->DrawImage(*curBottom_, 0, displayHeight_ - curBottom_->GetHeight(), Drawing::SamplingOptions());
+            canvas->DetachBrush();
+#endif
             RS_LOGD("[%{public}s] Draw Bottom \n", __func__);
         }
     }

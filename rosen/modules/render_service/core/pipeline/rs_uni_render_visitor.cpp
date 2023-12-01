@@ -25,6 +25,7 @@
 #include "include/core/SkTextBlob.h"
 #else
 #include "recording/recording_canvas.h"
+#include "skia_adapter/skia_canvas.h"
 #endif
 
 #include "src/core/SkCanvasPriv.h"
@@ -292,9 +293,16 @@ void RSUniRenderVisitor::UpdateStaticCacheSubTree(const std::shared_ptr<RSRender
         if (child->GetRenderProperties().GetUseEffect()) {
             child->UpdateEffectRegion(effectRegion_);
             if (effectRegion_) {
+#ifndef USE_ROSEN_DRAWING
                 auto rect = effectRegion_->getBounds();
                 RS_OPTIONAL_TRACE_NAME_FMT("UpdateStaticCacheSubTree node %llu UpdateEffectRegion(l,t,w,h)"
                     " [%f,%f,%f,%f]", child->GetId(), rect.left(), rect.top(), rect.width(), rect.height());
+#else
+                auto rect = effectRegion_->GetBounds();
+                RS_OPTIONAL_TRACE_NAME_FMT("UpdateStaticCacheSubTree node %llu UpdateEffectRegion(l,t,w,h)"
+                    " [%f,%f,%f,%f]", child->GetId(), rect.GetLeft(), rect.GetTop(),
+                    rect.GetWidth(), rect.GetHeight());
+#endif
             }
         }
         if (child->GetRenderProperties().NeedFilter()) {
@@ -329,9 +337,16 @@ void RSUniRenderVisitor::PrepareEffectNodeIfCacheReuse(const std::shared_ptr<RSR
     UpdateStaticCacheSubTree(effectNode, effectNode->GetSortedChildren());
     effectNode->SetEffectRegion(effectRegion_);
     if (effectRegion_) {
+#ifndef USE_ROSEN_DRAWING
         auto regionRect = effectRegion_->getBounds();
         RS_OPTIONAL_TRACE_NAME_FMT("PrepareEffectNodeIfCacheReuse node %llu SetEffectRegion(l,t,w,h) [%f,%f,%f,%f]",
             effectNode->GetId(), regionRect.left(), regionRect.top(), regionRect.width(), regionRect.height());
+#else
+        auto regionRect = effectRegion_->GetBounds();
+        RS_OPTIONAL_TRACE_NAME_FMT("PrepareEffectNodeIfCacheReuse node %llu SetEffectRegion(l,t,w,h) [%f,%f,%f,%f]",
+            effectNode->GetId(), regionRect.GetLeft(), regionRect.GetTop(),
+            regionRect.GetWidth(), regionRect.GetHeight());
+#endif
     }
     effectRegion_ = effectRegion;
 }
@@ -1231,15 +1246,9 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     dirtyFlag_ = dirtyFlag_ || node.GetDstRectChanged();
     parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
-#ifndef USE_ROSEN_DRAWING
-    if (!(parentSurfaceNodeMatrix_.getSkewX() < std::numeric_limits<float>::epsilon() &&
-        parentSurfaceNodeMatrix_.getSkewY() < std::numeric_limits<float>::epsilon())) {
-#else
-    if (!(parentSurfaceNodeMatrix_.Get(Drawing::Matrix::SKEW_X) < std::numeric_limits<float>::epsilon() &&
-        parentSurfaceNodeMatrix_.Get(Drawing::Matrix::SKEW_Y) < std::numeric_limits<float>::epsilon())) {
-#endif
+    if (RSUniRenderUtil::GetRotationDegreeFromMatrix(parentSurfaceNodeMatrix_) % ROTATION_90 != 0) {
         isSurfaceRotationChanged_ = true;
-        doAnimate_ = doAnimate_ || isSurfaceRotationChanged_;
+        doAnimate_ = true;
         node.SetAnimateState();
     }
 
@@ -1632,10 +1641,10 @@ void RSUniRenderVisitor::CopyForParallelPrepare(std::shared_ptr<RSUniRenderVisit
     isOpDropped_ = isOpDropped_ && visitor->isOpDropped_;
     needFilter_ = needFilter_ || visitor->needFilter_;
     for (const auto &u : visitor->displayHasSecSurface_) {
-        displayHasSecSurface_[u.first] |= u.second;
+        displayHasSecSurface_[u.first] = displayHasSecSurface_[u.first] || u.second;
     }
     for (const auto &u : visitor->displayHasSkipSurface_) {
-        displayHasSkipSurface_[u.first] |= u.second;
+        displayHasSkipSurface_[u.first] = displayHasSkipSurface_[u.first] || u.second;
     }
     for (const auto &u : visitor->dirtySurfaceNodeMap_) {
         dirtySurfaceNodeMap_[u.first] = u.second;
@@ -1820,6 +1829,7 @@ void RSUniRenderVisitor::DrawTargetSurfaceVisibleRegionForDFX(RSDisplayRenderNod
 
 void RSUniRenderVisitor::DrawCurrentRefreshRate(uint32_t currentRefreshRate)
 {
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkTypeface> tf = SkTypeface::MakeFromName("HarmonyOS Sans SC", SkFontStyle::Normal());
     SkFont font;
     font.setSize(100);
@@ -1830,7 +1840,24 @@ void RSUniRenderVisitor::DrawCurrentRefreshRate(uint32_t currentRefreshRate)
     SkPaint paint;
     paint.setColor(SK_ColorGREEN);
     paint.setAntiAlias(true);
-    canvas_->drawTextBlob(textBlob, 100.f, 200.f, paint); //100.f:绘制TextBlob的x标量 200.f:绘制TextBlob的y标量
+    canvas_->drawTextBlob(
+        textBlob, 100.f, 200.f, paint);  // 100.f:Scalar x of drawing TextBlob; 200.f:Scalar y of drawing TextBlob
+#else
+    std::shared_ptr<Drawing::Typeface> tf = Drawing::Typeface::MakeFromName("HarmonyOS Sans SC", Drawing::FontStyle());
+    Drawing::Font font;
+    font.SetSize(100);
+    font.SetTypeface(tf);
+    std::string info = std::to_string(currentRefreshRate);
+    std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromString(info.c_str(), font);
+
+    Drawing::Brush brush;
+    brush.SetColor(SK_ColorGREEN);
+    brush.SetAntiAlias(true);
+    canvas_->AttachBrush(brush);
+    canvas_->DrawTextBlob(
+        textBlob.get(), 100.f, 200.f); //100.f:Scalar x of drawing TextBlob 200.f:Scalar y of drawing TextBlob
+    canvas_->DetachBrush();
+#endif
 }
 
 void RSUniRenderVisitor::DrawAndTraceSingleDirtyRegionTypeForDFX(RSSurfaceRenderNode& node,
@@ -1926,7 +1953,8 @@ void RSUniRenderVisitor::ProcessShadowFirst(RSRenderNode& node, bool inSubThread
 
 void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
 {
-    if (DrawBlurInCache(node) || node.GetChildrenCount() == 0) {
+    if (DrawBlurInCache(node) || node.GetChildrenCount() == 0 ||
+        (canvas_ && canvas_->getDeviceClipBounds().isEmpty())) {
         return;
     }
 
@@ -2124,7 +2152,7 @@ std::shared_ptr<Drawing::Image> RSUniRenderVisitor::GetCacheImageFromMirrorNode(
             auto imageBackendTexure = cacheImage->GetBackendTexture(false, nullptr);
             if (grContext != nullptr && imageBackendTexure.IsValid()) {
                 Drawing::BitmapFormat bitmapFormat = {Drawing::ColorType::COLORTYPE_RGBA_8888,
-                    Drawing::AlphaType::ALPHATYPE_PERMUL};
+                    Drawing::AlphaType::ALPHATYPE_PREMUL};
                 image->BuildFromTexture(*grContext, imageBackendTexure.GetTextureInfo(),
                     Drawing::TextureOrigin::BOTTOM_LEFT, bitmapFormat, nullptr);
             }
@@ -2521,9 +2549,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                         r.left_ + r.width_, topAfterFlip + r.height_));
                     region.Op(tmpRegion, Drawing::RegionOp::UNION);
 #endif
-#ifndef USE_ROSEN_DRAWING
                 }
-#endif
             }
             // SetDamageRegion and opDrop will be disabled for dirty region DFX visualization
             if (!isRegionDebugEnabled_) {
@@ -2709,7 +2735,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 
         if (RSSystemParameters::GetShowRefreshRateEnabled()) {
             RS_TRACE_BEGIN("RSUniRender::DrawCurrentRefreshRate");
-            DrawCurrentRefreshRate(currentRefreshRate_);
+            uint32_t currentRefreshRate =
+                OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(node.GetScreenId());
+            DrawCurrentRefreshRate(currentRefreshRate);
             RS_TRACE_END();
         }
 
@@ -2804,10 +2832,9 @@ void RSUniRenderVisitor::DrawSurfaceLayer(const std::shared_ptr<RSDisplayRenderN
     subThreadManager->SubmitSubThreadTask(displayNode, subThreadNodes);
 #endif
 }
-
+#ifndef USE_ROSEN_DRAWING
 void RSUniRenderVisitor::SwitchColorFilterDrawing(int currentSaveCount)
 {
-#ifndef USE_ROSEN_DRAWING
     ColorFilterMode colorFilterMode = renderEngine_->GetColorFilterMode();
     if (colorFilterMode >= ColorFilterMode::INVERT_COLOR_ENABLE_MODE &&
         colorFilterMode <= ColorFilterMode::INVERT_DALTONIZATION_TRITANOMALY_MODE) {
@@ -2832,10 +2859,34 @@ void RSUniRenderVisitor::SwitchColorFilterDrawing(int currentSaveCount)
         canvas_->saveLayer(rec);
         canvas_->restoreToCount(currentSaveCount);
     }
-#else
-    // planning: Need implementation
-#endif
 }
+#else
+void RSUniRenderVisitor::SwitchColorFilterDrawing(int currentSaveCount)
+{
+    ColorFilterMode colorFilterMode = renderEngine_->GetColorFilterMode();
+    if (colorFilterMode >= ColorFilterMode::INVERT_COLOR_ENABLE_MODE &&
+        colorFilterMode <= ColorFilterMode::INVERT_DALTONIZATION_TRITANOMALY_MODE) {
+        RS_LOGD("RsDebug RSBaseRenderEngine::SetColorFilterModeToPaint mode:%{public}d",
+            static_cast<int32_t>(colorFilterMode));
+        Drawing::Brush brush;
+        RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, brush);
+#if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
+#ifdef NEW_RENDER_CONTEXT
+        RSTagTracker tagTracker(
+            renderEngine_->GetDrawingContext()->GetDrawingContext(),
+            RSTagTracker::TAG_SAVELAYER_COLOR_FILTER);
+#else
+        RSTagTracker tagTracker(
+            renderEngine_->GetRenderContext()->GetDrGPUContext(),
+            RSTagTracker::TAG_SAVELAYER_COLOR_FILTER);
+#endif
+#endif
+        Drawing::SaveLayerOps rec(nullptr, &brush, Drawing::SaveLayerOps::INIT_WITH_PREVIOUS);
+        canvas_->SaveLayer(rec);
+        canvas_->RestoreToCount(currentSaveCount);
+    }
+}
+#endif
 
 void RSUniRenderVisitor::UpdateHardwareEnabledInfoBeforeCreateLayer()
 {
@@ -3589,6 +3640,7 @@ bool RSUniRenderVisitor::DrawBlurInCache(RSRenderNode& node)
             }
         } else if (node.GetRenderProperties().IsShadowValid()) {
             // clear hole while generating cache surface
+#ifndef USE_ROSEN_DRAWING
             SkAutoCanvasRestore arc(canvas_.get(), true);
             RectI shadowRect;
             auto rrect = node.GetRenderProperties().GetRRect();
@@ -3597,6 +3649,18 @@ bool RSUniRenderVisitor::DrawBlurInCache(RSRenderNode& node)
             canvas_->clipRect(SkRect::MakeXYWH(shadowRect.left_, shadowRect.top_,
                 shadowRect.width_, shadowRect.height_));
             canvas_->clear(SK_ColorTRANSPARENT);
+#else
+            Drawing::AutoCanvasRestore arc(*canvas_.get(), true);
+            RectI shadowRect;
+            auto rrect = node.GetRenderProperties().GetRRect();
+            RSPropertiesPainter::GetShadowDirtyRect(shadowRect, node.GetRenderProperties(), &rrect, false);
+            std::shared_ptr<Drawing::CoreCanvasImpl> coreCanvas = canvas_->GetCanvasData();
+            auto skiaCanvas = static_cast<Drawing::SkiaCanvas *>(coreCanvas.get());
+            SkCanvasPriv::ResetClip(skiaCanvas->ExportSkCanvas());
+            canvas_->ClipRect(Drawing::Rect(shadowRect.left_, shadowRect.top_,
+                shadowRect.width_ + shadowRect.left_, shadowRect.height_ + shadowRect.top_));
+            canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+#endif
         } else if (node.GetRenderProperties().GetBackgroundFilter() || node.GetRenderProperties().GetUseEffect()) {
             // clear hole while generating cache surface
 #ifndef USE_ROSEN_DRAWING
@@ -4912,7 +4976,11 @@ bool RSUniRenderVisitor::CheckIfNeedResetRotate() {
     if (canvas_ == nullptr) {
         return true;
     }
+#ifndef USE_ROSEN_DRAWING
     int angle = RSUniRenderUtil::GetRotationFromMatrix(canvas_->getTotalMatrix());
+#else
+    int angle = RSUniRenderUtil::GetRotationFromMatrix(canvas_->GetTotalMatrix());
+#endif
     return angle != 0 && angle % 90 == 0;
 }
 } // namespace Rosen

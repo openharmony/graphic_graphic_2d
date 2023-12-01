@@ -75,7 +75,7 @@ std::unordered_map<uint32_t, std::string> typeOpDes = {
     { DrawOpItem::ADAPTIVE_IMAGE_OPITEM,    "ADAPTIVE_IMAGE_OPITEM" },
     { DrawOpItem::ADAPTIVE_PIXELMAP_OPITEM, "ADAPTIVE_PIXELMAP_OPITEM" },
     { DrawOpItem::IMAGE_WITH_PARM_OPITEM,   "IMAGE_WITH_PARM_OPITEM" },
-    { DrawOpItem::EXTEND_PIXELMAP_OPITEM,   "EXTEND_PIXELMAP_OPITEM" },
+    { DrawOpItem::PIXELMAP_WITH_PARM_OPITEM, "PIXELMAP_WITH_PARM_OPITEM" },
     { DrawOpItem::PIXELMAP_RECT_OPITEM,     "PIXELMAP_RECT_OPITEM" },
     { DrawOpItem::REGION_OPITEM,            "REGION_OPITEM" },
     { DrawOpItem::PATCH_OPITEM,             "PATCH_OPITEM" },

@@ -52,6 +52,11 @@ std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromStream(std::unique_ptr<Memo
     return SkiaTypeface::MakeFromStream(std::move(memoryStream), index);
 }
 
+std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromName(const char familyName[], FontStyle fontStyle)
+{
+    return SkiaTypeface::MakeFromName(familyName, fontStyle);
+}
+
 #ifdef ACE_ENABLE_GPU
 #ifdef RS_ENABLE_VK
 std::shared_ptr<Surface> SkiaStaticFactory::MakeFromBackendRenderTarget(GPUContext* gpuuContext,

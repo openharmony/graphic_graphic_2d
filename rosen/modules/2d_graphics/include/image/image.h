@@ -342,6 +342,8 @@ public:
      */
     bool ReadPixels(Bitmap& bitmap, int x, int y);
 
+    bool ReadPixels(Pixmap& pixmap, int x, int y);
+
     bool ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
                     int32_t srcX, int32_t srcY) const;
 

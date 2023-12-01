@@ -109,7 +109,7 @@ std::shared_ptr<ShaderEffect> CreateBlendShaderOpItem::Playback(const CmdList& c
     return ShaderEffect::CreateBlendShader(*dst, *src, mode_);
 }
 
-CreateImageShaderOpItem::CreateImageShaderOpItem(const ImageHandle& image, TileMode tileX, TileMode tileY,
+CreateImageShaderOpItem::CreateImageShaderOpItem(const OpDataHandle& image, TileMode tileX, TileMode tileY,
     const SamplingOptions& sampling, const Matrix& matrix) : ShaderEffectOpItem(CREATE_IMAGE_SHADER),
     image_(image), tileX_(tileX), tileY_(tileY), samplingOptions_(sampling), matrix_(matrix) {}
 
@@ -123,7 +123,7 @@ std::shared_ptr<ShaderEffect> CreateImageShaderOpItem::Playback(const CmdList& c
     return ShaderEffect::CreateImageShader(*image, tileX_, tileY_, samplingOptions_, matrix_);
 }
 
-CreatePictureShaderOpItem::CreatePictureShaderOpItem(const ImageHandle& picture, TileMode tileX, TileMode tileY,
+CreatePictureShaderOpItem::CreatePictureShaderOpItem(const OpDataHandle& picture, TileMode tileX, TileMode tileY,
     FilterMode mode, const Matrix& matrix, const Rect& rect) : ShaderEffectOpItem(CREATE_PICTURE_SHADER),
     picture_(picture), tileX_(tileX), tileY_(tileY), filterMode_(mode), matrix_(matrix), rect_(rect) {}
 

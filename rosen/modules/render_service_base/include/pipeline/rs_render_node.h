@@ -471,6 +471,9 @@ public:
     void SetIsUsedBySubThread(bool isUsedBySubThread);
     bool GetIsUsedBySubThread() const;
 
+    void SetLastIsNeedAssignToSubThread(bool lastIsNeedAssignToSubThread);
+    bool GetLastIsNeedAssignToSubThread() const;
+
     bool IsCalcPreferredFps() const
     {
         return isCalcPreferredFps_;
@@ -650,6 +653,7 @@ private:
     bool geometryChangeNotPerceived_ = false;
 
     std::atomic_bool isUsedBySubThread_ = false;
+    bool lastIsNeedAssignToSubThread_ = false;
 
     FrameRateRange uiRange_ = {0, 0, 0};
 

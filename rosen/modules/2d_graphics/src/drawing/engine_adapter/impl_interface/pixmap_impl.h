@@ -32,6 +32,7 @@ public:
     virtual std::shared_ptr<ColorSpace> GetColorSpace() const = 0;
     virtual ColorType GetColorType() const = 0;
     virtual AlphaType GetAlphaType() const = 0;
+    virtual ColorQuad GetColor(int x, int y) const = 0;
     virtual size_t GetRowBytes() const = 0;
     virtual const void* GetAddr() const = 0;
     virtual int32_t GetWidth() const = 0;

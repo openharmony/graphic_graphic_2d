@@ -128,7 +128,7 @@ void MaskBrushOpItem::Playback(Brush& brush, const CmdList& cmdList) const
     brush.SetFilter(filter);
 }
 
-MaskPathOpItem::MaskPathOpItem(const ImageHandle& pathHandle)
+MaskPathOpItem::MaskPathOpItem(const OpDataHandle& pathHandle)
     : MaskOpItem(MASK_PATH_OPITEM), pathHandle_(pathHandle) {}
 
 void MaskPathOpItem::Playback(MaskPlayer& player, const void* opItem)

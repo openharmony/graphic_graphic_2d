@@ -125,12 +125,11 @@ void RSImageBase::SetImage(const std::shared_ptr<Drawing::Image> image)
     isDrawn_ = false;
     image_ = image;
     if (image_) {
-#ifndef USE_ROSEN_DRAWING
         SKResourceManager::Instance().HoldResource(image);
+#ifndef USE_ROSEN_DRAWING
         srcRect_.SetAll(0.0, 0.0, image_->width(), image_->height());
         GenUniqueId(image_->uniqueID());
 #else
-        // Drawing need to be adapted furture
         srcRect_.SetAll(0.0, 0.0, image_->GetWidth(), image_->GetHeight());
         GenUniqueId(image_->GetUniqueID());
 #endif
@@ -146,11 +145,7 @@ void RSImageBase::SetDmaImage(const std::shared_ptr<Drawing::Image> image)
 {
     isDrawn_ = false;
     image_ = image;
-#ifndef USE_ROSEN_DRAWING
     SKResourceManager::Instance().HoldResource(image);
-#else
-    // Drawing need to be adapted furture
-#endif
 }
 #endif
 
@@ -452,6 +447,9 @@ void RSImageBase::ConvertPixelMapToDrawingImage()
         }
         if (!image_) {
             image_ = RSPixelMapUtil::ExtractDrawingImage(pixelMap_);
+            if (image_) {
+                SKResourceManager::Instance().HoldResource(image_);
+            }
             if (!pixelMap_->IsEditable()) {
 #if defined(ROSEN_OHOS)
                 RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_, gettid());

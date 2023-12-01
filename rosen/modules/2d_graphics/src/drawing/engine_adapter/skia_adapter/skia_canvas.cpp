@@ -186,16 +186,15 @@ void SkiaCanvas::DrawPoints(PointMode mode, size_t count, const Point pts[])
         return;
     }
 
-    std::vector<SkPoint> skPts(count);
+    SkPoint skPts[count];
     for (size_t i = 0; i < count; ++i) {
-        skPts[i].fX = pts[i].GetX();
-        skPts[i].fY = pts[i].GetY();
+        skPts[i] = {pts[i].GetX(), pts[i].GetY()};
     }
 
     SortedPaints& paints = skiaPaint_.GetSortedPaints();
     for (int i = 0; i < paints.count_; i++) {
         SkPaint* paint = paints.paints_[i];
-        skCanvas_->drawPoints(static_cast<SkCanvas::PointMode>(mode), count, skPts.data(), *paint);
+        skCanvas_->drawPoints(static_cast<SkCanvas::PointMode>(mode), count, skPts, *paint);
     }
 }
 

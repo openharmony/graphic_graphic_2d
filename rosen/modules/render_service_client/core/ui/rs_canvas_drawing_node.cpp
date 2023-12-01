@@ -224,7 +224,7 @@ bool RSCanvasDrawingNode::GetPixelmap(const std::shared_ptr<Media::PixelMap> pix
         Drawing::Bitmap bitmap;
         Drawing::ImageInfo imageInfo(pixelmap->GetWidth(), pixelmap->GetHeight(),
             Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL);
-        bitmap.InstallPixels(info, static_cast<uint8_t*>(pixelmap->GetWritablePixels()), pixelmap->GetRowBytes());
+        bitmap.InstallPixels(imageInfo, static_cast<uint8_t*>(pixelmap->GetWritablePixels()), pixelmap->GetRowBytes());
 
         Drawing::Canvas canvas;
         canvas.Bind(bitmap);

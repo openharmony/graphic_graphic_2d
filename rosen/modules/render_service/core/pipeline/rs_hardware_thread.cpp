@@ -132,7 +132,7 @@ void RSHardwareThread::RefreshRateCounts(std::string& dumpString)
     if (refreshRateCounts_.empty()) {
         return;
     }
-    std::map<uint32_t, int>::iterator iter;
+    std::map<uint32_t, uint64_t>::iterator iter;
     for (iter = refreshRateCounts_.begin(); iter != refreshRateCounts_.end(); iter++) {
         dumpString.append(
             "Refresh Rate:" + std::to_string(iter->first) + ", Count:" + std::to_string(iter->second) + ";\n");
@@ -204,8 +204,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     RSTaskMessage::RSTask task = [this, output = output, layers = layers, rate = rate, timestamp = currTimestamp]() {
         RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %d, now: %lu", rate, timestamp);
         ExecuteSwitchRefreshRate(rate);
-        AddRefreshRateCount(rate);
         PerformSetActiveMode(output);
+        AddRefreshRateCount();
         output->SetLayerInfo(layers);
         if (output->IsDeviceValid()) {
             hdiBackend_->Repaint(output);
@@ -615,9 +615,13 @@ void RSHardwareThread::LayerPresentTimestamp(const LayerInfoPtr& layer, const sp
     }
 }
 
-void RSHardwareThread::AddRefreshRateCount(uint32_t rate)
+void RSHardwareThread::AddRefreshRateCount()
 {
-    auto [iter, success] = refreshRateCounts_.try_emplace(rate, 1);
+    auto screenManager = CreateOrGetScreenManager();
+    ScreenId id = screenManager->GetDefaultScreenId();
+    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+    uint32_t currentRefreshRate = hgmCore.GetScreenCurrentRefreshRate(id);
+    auto [iter, success] = refreshRateCounts_.try_emplace(currentRefreshRate, 1);
     if (!success) {
         iter->second++;
     }

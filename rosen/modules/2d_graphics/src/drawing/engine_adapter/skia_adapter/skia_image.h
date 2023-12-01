@@ -87,6 +87,7 @@ public:
     uint32_t GetUniqueID() const override;
     ImageInfo GetImageInfo() override;
     bool ReadPixels(Bitmap& bitmap, int x, int y) override;
+    bool ReadPixels(Pixmap& pixmap, int x, int y) override;
     bool ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
                     int32_t srcX, int32_t srcY) const override;
     bool IsTextureBacked() const override;

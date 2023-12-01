@@ -33,7 +33,7 @@ struct BrushHandle {
     BlendMode mode;
     bool isAntiAlias;
     Filter::FilterQuality filterQuality;
-    ImageHandle colorSpaceHandle;
+    OpDataHandle colorSpaceHandle;
     FlattenableHandle shaderEffectHandle;
     FlattenableHandle colorFilterHandle;
     FlattenableHandle imageFilterHandle;
@@ -50,7 +50,7 @@ struct PenHandle {
     bool isAntiAlias;
     Filter::FilterQuality filterQuality;
     FlattenableHandle pathEffectHandle;
-    ImageHandle colorSpaceHandle;
+    OpDataHandle colorSpaceHandle;
     FlattenableHandle shaderEffectHandle;
     FlattenableHandle colorFilterHandle;
     FlattenableHandle imageFilterHandle;
@@ -141,7 +141,7 @@ public:
         ADAPTIVE_IMAGE_OPITEM,
         ADAPTIVE_PIXELMAP_OPITEM,
         IMAGE_WITH_PARM_OPITEM,
-        EXTEND_PIXELMAP_OPITEM,
+        PIXELMAP_WITH_PARM_OPITEM,
         PIXELMAP_RECT_OPITEM,
         REGION_OPITEM,
         PATCH_OPITEM,
@@ -428,9 +428,9 @@ private:
 class DrawPathOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const ImageHandle& path) : OpItem(DrawOpItem::PATH_OPITEM), path(path) {}
+        ConstructorHandle(const OpDataHandle& path) : OpItem(DrawOpItem::PATH_OPITEM), path(path) {}
         ~ConstructorHandle() override = default;
-        ImageHandle path;
+        OpDataHandle path;
     };
     DrawPathOpItem(const CmdList& cmdList, ConstructorHandle* handle);
     ~DrawPathOpItem() override = default;
@@ -461,12 +461,12 @@ private:
 class DrawShadowOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const ImageHandle& path, const Point3& planeParams, const Point3& devLightPos,
+        ConstructorHandle(const OpDataHandle& path, const Point3& planeParams, const Point3& devLightPos,
             scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag)
             : OpItem(DrawOpItem::SHADOW_OPITEM), path(path), planeParams(planeParams), devLightPos(devLightPos),
             lightRadius(lightRadius), ambientColor(ambientColor), spotColor(spotColor), flag(flag) {}
         ~ConstructorHandle() override = default;
-        ImageHandle path;
+        OpDataHandle path;
         Point3 planeParams;
         Point3 devLightPos;
         scalar lightRadius;
@@ -558,10 +558,10 @@ private:
 class DrawVerticesOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const VerticesHandle& vertices, BlendMode mode)
+        ConstructorHandle(const OpDataHandle& vertices, BlendMode mode)
             : OpItem(DrawOpItem::VERTICES_OPITEM), vertices(vertices), mode(mode) {}
         ~ConstructorHandle() override = default;
-        VerticesHandle vertices;
+        OpDataHandle vertices;
         BlendMode mode;
     };
     DrawVerticesOpItem(const CmdList& cmdList, ConstructorHandle* handle);
@@ -596,11 +596,11 @@ private:
 class DrawImageNineOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const ImageHandle& image, const RectI& center, const Rect& dst, FilterMode filterMode,
+        ConstructorHandle(const OpDataHandle& image, const RectI& center, const Rect& dst, FilterMode filterMode,
             const BrushHandle& brushHandle, bool hasBrush) : OpItem(DrawOpItem::IMAGE_NINE_OPITEM), image(image),
             center(center), dst(dst), filter(filterMode), brushHandle(brushHandle), hasBrush(hasBrush) {}
         ~ConstructorHandle() override = default;
-        ImageHandle image;
+        OpDataHandle image;
         RectI center;
         Rect dst;
         FilterMode filter;
@@ -624,12 +624,12 @@ private:
 class DrawAnnotationOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const Rect& rect, const char* key, const ImageHandle& data)
+        ConstructorHandle(const Rect& rect, const char* key, const OpDataHandle& data)
             : OpItem(DrawOpItem::IMAGE_ANNOTATION_OPITEM), rect(rect), key(key), data(data) {}
         ~ConstructorHandle() override = default;
         Rect rect;
         const char* key;
-        const ImageHandle data;
+        const OpDataHandle data;
     };
     DrawAnnotationOpItem(const CmdList& cmdList, ConstructorHandle* handle);
     ~DrawAnnotationOpItem() override = default;
@@ -645,11 +645,11 @@ private:
 class DrawImageLatticeOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const ImageHandle& image, const Lattice& lattice, const Rect& dst, FilterMode filterMode,
+        ConstructorHandle(const OpDataHandle& image, const Lattice& lattice, const Rect& dst, FilterMode filterMode,
             const BrushHandle& brushHandle, bool hasBrush) : OpItem(DrawOpItem::IMAGE_LATTICE_OPITEM), image(image),
             lattice(lattice), dst(dst), filter(filterMode), brushHandle(brushHandle), hasBrush(hasBrush) {}
         ~ConstructorHandle() override = default;
-        ImageHandle image;
+        OpDataHandle image;
         Lattice lattice;
         Rect dst;
         FilterMode filter;
@@ -695,10 +695,10 @@ private:
 class DrawImageOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const ImageHandle& image, scalar px, scalar py, const SamplingOptions& samplingOptions)
+        ConstructorHandle(const OpDataHandle& image, scalar px, scalar py, const SamplingOptions& samplingOptions)
             : OpItem(DrawOpItem::IMAGE_OPITEM), image(image), px(px), py(py), samplingOptions(samplingOptions) {}
         ~ConstructorHandle() override = default;
-        ImageHandle image;
+        OpDataHandle image;
         scalar px;
         scalar py;
         SamplingOptions samplingOptions;
@@ -719,11 +719,11 @@ private:
 class DrawImageRectOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const ImageHandle& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling,
+        ConstructorHandle(const OpDataHandle& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling,
             SrcRectConstraint constraint) : OpItem(DrawOpItem::IMAGE_RECT_OPITEM), image(image), src(src), dst(dst),
             sampling(sampling), constraint(constraint) {}
         ~ConstructorHandle() override = default;
-        ImageHandle image;
+        OpDataHandle image;
         Rect src;
         Rect dst;
         SamplingOptions sampling;
@@ -745,9 +745,9 @@ private:
 class DrawPictureOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const ImageHandle& picture) : OpItem(DrawOpItem::PICTURE_OPITEM), picture(picture) {}
+        ConstructorHandle(const OpDataHandle& picture) : OpItem(DrawOpItem::PICTURE_OPITEM), picture(picture) {}
         ~ConstructorHandle() override = default;
-        ImageHandle picture;
+        OpDataHandle picture;
     };
     DrawPictureOpItem(const CmdList& cmdList, ConstructorHandle* handle);
     ~DrawPictureOpItem() override = default;
@@ -761,13 +761,13 @@ private:
 class DrawTextBlobOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const ImageHandle& textBlob, scalar x, scalar y) : OpItem(DrawOpItem::TEXT_BLOB_OPITEM),
+        ConstructorHandle(const OpDataHandle& textBlob, scalar x, scalar y) : OpItem(DrawOpItem::TEXT_BLOB_OPITEM),
             textBlob(textBlob), x(x), y(y) {}
         ~ConstructorHandle() override = default;
         bool GenerateCachedOpItem(std::shared_ptr<CmdList> cacheCmdList, const TextBlob* textBlob);
         bool GenerateCachedOpItem(CmdList& cmdList, Canvas* canvas, AttachPenOpItem::ConstructorHandle* penOpHandle,
             AttachBrushOpItem::ConstructorHandle* brushOpHandle);
-        ImageHandle textBlob;
+        OpDataHandle textBlob;
         scalar x;
         scalar y;
     };
@@ -849,10 +849,10 @@ private:
 class ClipPathOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const ImageHandle& path, ClipOp clipOp, bool doAntiAlias)
+        ConstructorHandle(const OpDataHandle& path, ClipOp clipOp, bool doAntiAlias)
             : OpItem(DrawOpItem::PATH_OPITEM), path(path), clipOp(clipOp), doAntiAlias(doAntiAlias) {}
         ~ConstructorHandle() override = default;
-        ImageHandle path;
+        OpDataHandle path;
         ClipOp clipOp;
         bool doAntiAlias;
     };
@@ -1117,11 +1117,11 @@ private:
 class DrawAdaptiveImageOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const ImageHandle& image, const AdaptiveImageInfo& rsImageInfo,
+        ConstructorHandle(const OpDataHandle& image, const AdaptiveImageInfo& rsImageInfo,
             const SamplingOptions& sampling, const bool isImage) : OpItem(DrawOpItem::ADAPTIVE_IMAGE_OPITEM),
             image(image), rsImageInfo(rsImageInfo), sampling(sampling), isImage(isImage) {}
         ~ConstructorHandle() override = default;
-        ImageHandle image;
+        OpDataHandle image;
         AdaptiveImageInfo rsImageInfo;
         SamplingOptions sampling;
         bool isImage;
@@ -1141,11 +1141,11 @@ private:
 class DrawAdaptivePixelMapOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const ImageHandle& pixelMap, const AdaptiveImageInfo& imageInfo,
+        ConstructorHandle(const OpDataHandle& pixelMap, const AdaptiveImageInfo& imageInfo,
             const SamplingOptions& smapling) : OpItem(DrawOpItem::ADAPTIVE_PIXELMAP_OPITEM), pixelMap(pixelMap),
             imageInfo(imageInfo), smapling(smapling) {}
         ~ConstructorHandle() override = default;
-        ImageHandle pixelMap;
+        OpDataHandle pixelMap;
         AdaptiveImageInfo imageInfo;
         SamplingOptions smapling;
     };
@@ -1162,10 +1162,10 @@ private:
 class DrawImageWithParmOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const ImageHandle& objectHandle, const SamplingOptions& sampling)
+        ConstructorHandle(const OpDataHandle& objectHandle, const SamplingOptions& sampling)
             : OpItem(DrawOpItem::IMAGE_WITH_PARM_OPITEM), objectHandle(objectHandle), sampling(sampling) {}
         ~ConstructorHandle() override = default;
-        ImageHandle objectHandle;
+        OpDataHandle objectHandle;
         SamplingOptions sampling;
     };
     DrawImageWithParmOpItem(const CmdList& cmdList, ConstructorHandle* handle);
@@ -1178,17 +1178,17 @@ private:
     std::shared_ptr<ExtendImageObject> objectHandle_;
 };
 
-class DrawExtendPixelMapOpItem : public DrawOpItem {
+class DrawPixelMapWithParmOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const ImageHandle& objectHandle, const SamplingOptions& sampling)
-            : OpItem(DrawOpItem::EXTEND_PIXELMAP_OPITEM), objectHandle(objectHandle), sampling(sampling) {}
+        ConstructorHandle(const OpDataHandle& objectHandle, const SamplingOptions& sampling)
+            : OpItem(DrawOpItem::PIXELMAP_WITH_PARM_OPITEM), objectHandle(objectHandle), sampling(sampling) {}
         ~ConstructorHandle() override = default;
-        ImageHandle objectHandle;
+        OpDataHandle objectHandle;
         SamplingOptions sampling;
     };
-    DrawExtendPixelMapOpItem(const CmdList& cmdList, ConstructorHandle* handle);
-    ~DrawExtendPixelMapOpItem() override = default;
+    DrawPixelMapWithParmOpItem(const CmdList& cmdList, ConstructorHandle* handle);
+    ~DrawPixelMapWithParmOpItem() override = default;
 
     static std::shared_ptr<DrawOpItem> Unmarshalling(const CmdList& cmdList, void* handle);
     void Playback(Canvas* canvas, const Rect* rect) override;
@@ -1197,17 +1197,17 @@ private:
     std::shared_ptr<ExtendImageObject> objectHandle_;
 };
 
-class DrawExtendPixelMapRectOpItem : public DrawOpItem {
+class DrawPixelMapRectOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const ImageHandle& objectHandle, const SamplingOptions& sampling)
+        ConstructorHandle(const OpDataHandle& objectHandle, const SamplingOptions& sampling)
             : OpItem(DrawOpItem::PIXELMAP_RECT_OPITEM), objectHandle(objectHandle), sampling(sampling) {}
         ~ConstructorHandle() override = default;
-        ImageHandle objectHandle;
+        OpDataHandle objectHandle;
         SamplingOptions sampling;
     };
-    DrawExtendPixelMapRectOpItem(const CmdList& cmdList, ConstructorHandle* handle);
-    ~DrawExtendPixelMapRectOpItem() override = default;
+    DrawPixelMapRectOpItem(const CmdList& cmdList, ConstructorHandle* handle);
+    ~DrawPixelMapRectOpItem() override = default;
 
     static std::shared_ptr<DrawOpItem> Unmarshalling(const CmdList& cmdList, void* handle);
     void Playback(Canvas* canvas, const Rect* rect) override;

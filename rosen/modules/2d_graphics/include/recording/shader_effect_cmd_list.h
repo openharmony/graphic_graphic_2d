@@ -90,13 +90,13 @@ private:
 
 class CreateImageShaderOpItem : public ShaderEffectOpItem {
 public:
-    CreateImageShaderOpItem(const ImageHandle& image, TileMode tileX, TileMode tileY,
+    CreateImageShaderOpItem(const OpDataHandle& image, TileMode tileX, TileMode tileY,
         const SamplingOptions& sampling, const Matrix& matrix);
     ~CreateImageShaderOpItem() = default;
 
     std::shared_ptr<ShaderEffect> Playback(const CmdList& cmdList) const;
 private:
-    ImageHandle image_;
+    OpDataHandle image_;
     TileMode tileX_;
     TileMode tileY_;
     SamplingOptions samplingOptions_;
@@ -105,13 +105,13 @@ private:
 
 class CreatePictureShaderOpItem : public ShaderEffectOpItem {
 public:
-    CreatePictureShaderOpItem(const ImageHandle& picture, TileMode tileX, TileMode tileY,
+    CreatePictureShaderOpItem(const OpDataHandle& picture, TileMode tileX, TileMode tileY,
         FilterMode mode, const Matrix& matrix, const Rect& rect);
     ~CreatePictureShaderOpItem() = default;
 
     std::shared_ptr<ShaderEffect> Playback(const CmdList& cmdList) const;
 private:
-    ImageHandle picture_;
+    OpDataHandle picture_;
     TileMode tileX_;
     TileMode tileY_;
     FilterMode filterMode_;

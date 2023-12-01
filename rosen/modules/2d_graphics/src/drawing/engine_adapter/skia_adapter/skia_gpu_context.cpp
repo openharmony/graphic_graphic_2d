@@ -200,7 +200,7 @@ void SkiaGPUContext::PurgeUnlockedResources(bool scratchResourcesOnly)
     grContext_->purgeUnlockedResources(scratchResourcesOnly);
 }
 
-void SkiaGPUContext::PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag tag)
+void SkiaGPUContext::PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag &tag)
 {
     if (!grContext_) {
         LOGE("SkiaGPUContext::PurgeUnlockedResourcesByTag, grContext_ is nullptr");
@@ -219,7 +219,7 @@ void SkiaGPUContext::PurgeUnlockAndSafeCacheGpuResources()
     grContext_->purgeUnlockAndSafeCacheGpuResources();
 }
 
-void SkiaGPUContext::ReleaseByTag(const GPUResourceTag tag)
+void SkiaGPUContext::ReleaseByTag(const GPUResourceTag &tag)
 {
     if (!grContext_) {
         LOGE("SkiaGPUContext::ReleaseByTag, grContext_ is nullptr");
@@ -229,7 +229,7 @@ void SkiaGPUContext::ReleaseByTag(const GPUResourceTag tag)
     grContext_->releaseByTag(grTag);
 }
 
-void SkiaGPUContext::DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag tag)
+void SkiaGPUContext::DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag)
 {
     if (!grContext_) {
         LOGE("SkiaGPUContext::DumpMemoryStatisticsByTag, grContext_ is nullptr");
@@ -260,7 +260,7 @@ void SkiaGPUContext::DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump)
     grContext_->dumpMemoryStatistics(skTraceMemoryDump);
 }
 
-void SkiaGPUContext::SetCurrentGpuResourceTag(const GPUResourceTag tag)
+void SkiaGPUContext::SetCurrentGpuResourceTag(const GPUResourceTag &tag)
 {
     if (!grContext_) {
         LOGE("SkiaGPUContext::ReleaseByTag, grContext_ is nullptr");

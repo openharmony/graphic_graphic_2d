@@ -35,6 +35,11 @@ ohos_unittest("frame_analyzer_test") {
     deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
   }
 
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+    deps += [ "../../../modules/2d_graphics:2d_graphics" ]
+  }
+
   cflags = [
     "-Wall",
     "-Werror",

@@ -64,6 +64,15 @@ public:
     void PostRotate(scalar degree);
 
     /*
+     * @brief         Sets Matrix to Matrix constructed from rotating by degrees
+     *                about pivot point(px,py), multiplied by Matrix.
+     * @param degree  Angle of axes relative to upright axes.
+     * @param px      pivot on x-axis
+     * @param px      pivot on y-axis
+     */
+    void PostRotate(scalar degree, scalar px, scalar py);
+
+    /*
      * @brief     Sets Matrix to Matrix constructed from translation (dx, dy) multiplied by Matrix.
      * @param dx  X-axis translation after applying Matrix.
      * @param dy  Y-axis translation after applying Matrix.
@@ -81,6 +90,16 @@ public:
     void PreScale(scalar sx, scalar sy);
 
     void PostScale(scalar sx, scalar sy);
+    
+    /*
+     * @brief         Sets Matrix to Matrix constructed from scaling by (sx, sy)
+     *                about pivot point(px,py), multiplied by Matrix.
+     * @param sx      horizontal scale factor
+     * @param sy      vertical scale factor
+     * @param px      pivot on x-axis
+     * @param px      pivot on y-axis
+     */
+    void PostScale(scalar sx, scalar sy, scalar px, scalar py);
 
     /*
      * @brief         Sets Matrix to Matrix other multiplied by Matrix.

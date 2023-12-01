@@ -142,7 +142,11 @@ std::shared_ptr<TexgineFontStyle> TexgineTypeface::GetFontStyle() const
 
 size_t TexgineTypeface::FontStyleDetection()
 {
+#ifndef USE_ROSEN_DRAWING
     return static_cast<size_t>(typeface_->fontStyle().slant());
+#else
+    return static_cast<size_t>(typeface_->GetFontStyle().GetSlant());
+#endif
 }
 
 void TexgineTypeface::InputOriginalStyle(bool primitivism)

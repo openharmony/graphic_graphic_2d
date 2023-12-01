@@ -378,7 +378,7 @@ MemoryGraphic MemoryManager::CountSubMemory(int pid, const Drawing::GPUContext* 
     auto subThreadManager = RSSubThreadManager::Instance();
     std::vector<MemoryGraphic> subMems = subThreadManager->CountSubMem(pid);
     for (const auto& mem : subMems) {
-        mem += subMems;
+        memoryGraphic += mem;
     }
     return memoryGraphic;
 }

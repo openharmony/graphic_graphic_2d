@@ -30,6 +30,7 @@ namespace OHOS {
         size_t g_size = 0;
         size_t g_pos;
         constexpr size_t STR_LEN = 10;
+        constexpr int32_t MAX_SIZE = 1024;
     }
 
     /*
@@ -87,6 +88,10 @@ namespace OHOS {
         GraphicTransformType transform = GetData<GraphicTransformType>();
         int32_t width = GetData<int32_t>();
         int32_t height = GetData<int32_t>();
+        width = width > MAX_SIZE ? MAX_SIZE : width;
+        width = width < 0 ? 0 : width;
+        height = height > MAX_SIZE ? MAX_SIZE : height;
+        height = height < 0 ? 0 : height;
         BufferRequestConfig config = GetData<BufferRequestConfig>();
         std::string keyInt32 = GetStringFromData(STR_LEN);
         int32_t valueInt32 = GetData<int32_t>();

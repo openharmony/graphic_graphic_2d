@@ -917,11 +917,11 @@ void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
     Drawing::Rect originRect = Drawing::Rect(x, y, width + x, height + y);
     canvas_->ClipRect(originRect, Drawing::ClipOp::INTERSECT, false);
     if (node.IsNotifyRTBufferAvailable() == true) {
-        ROSEN_LOGI("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %{public}lu,"
+        ROSEN_LOGI("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %{public}" PRIu64 ","
             "clip [%{public}f, %{public}f, %{public}f, %{public}f]", node.GetId(), x, y, width, height);
         canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
     } else {
-        ROSEN_LOGI("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %{public}lu,"
+        ROSEN_LOGI("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %{public}" PRIu64 ","
             "not clip [%{public}f, %{public}f, %{public}f, %{public}f]", node.GetId(), x, y, width, height);
         auto backgroundColor = node.GetRenderProperties().GetBackgroundColor();
         if (backgroundColor != RgbPalette::Transparent()) {
@@ -1010,7 +1010,12 @@ void RSRenderThreadVisitor::ProcessOtherSurfaceRenderNode(RSSurfaceRenderNode& n
         auto height = std::floor(node.GetRenderProperties().GetBoundsHeight() - (2 * pixel)); // height decrease 2 pixels
         auto iter = surfaceCallbacks_.find(node.GetId());
         if (iter != surfaceCallbacks_.end()) {
+#ifndef USE_ROSEN_DRAWING
             (iter->second)(canvas_->getTotalMatrix().getTranslateX(), canvas_->getTotalMatrix().getTranslateY(), width, height);
+#else
+            (iter->second)(canvas_->GetTotalMatrix().Get(Drawing::Matrix::TRANS_X),
+                canvas_->GetTotalMatrix().Get(Drawing::Matrix::TRANS_Y), width, height);
+#endif
         }
         return;
     }

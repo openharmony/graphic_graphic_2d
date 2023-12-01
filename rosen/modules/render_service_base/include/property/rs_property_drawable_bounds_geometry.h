@@ -86,7 +86,8 @@ public:
 #ifndef USE_ROSEN_DRAWING
     explicit RSBorderDRRectDrawable(SkPaint&& paint, const RSProperties& properties, const bool& isFirstLayerBorder);
 #else
-    explicit RSBorderDRRectDrawable(Drawing::Brush&& brush, Drawing::Pen&& pen, const RSProperties& properties);
+    explicit RSBorderDRRectDrawable(Drawing::Brush&& brush, Drawing::Pen&& pen, const RSProperties& properties,
+        const bool& isFirstLayerBorder);
 #endif
     ~RSBorderDRRectDrawable() override = default;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
@@ -108,7 +109,8 @@ public:
 #ifndef USE_ROSEN_DRAWING
     explicit RSBorderFourLineDrawable(SkPaint&& paint, const RSProperties& properties, const bool& isFirstLayerBorder);
 #else
-    explicit RSBorderFourLineDrawable(Drawing::Brush&& brush, Drawing::Pen&& pen, const RSProperties& properties);
+    explicit RSBorderFourLineDrawable(Drawing::Brush&& brush, Drawing::Pen&& pen, const RSProperties& properties,
+        const bool& isFirstLayerBorder);
 #endif
     ~RSBorderFourLineDrawable() override = default;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
@@ -124,7 +126,8 @@ public:
 #ifndef USE_ROSEN_DRAWING
     explicit RSBorderPathDrawable(SkPaint&& paint, const RSProperties& properties, const bool& isFirstLayerBorder);
 #else
-    explicit RSBorderPathDrawable(Drawing::Brush&& brush, Drawing::Pen&& pen, const RSProperties& properties);
+    explicit RSBorderPathDrawable(Drawing::Brush&& brush, Drawing::Pen&& pen, const RSProperties& properties,
+        const bool& isFirstLayerBorder);
 #endif
     ~RSBorderPathDrawable() override = default;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
@@ -146,7 +149,7 @@ public:
         const bool& isFirstLayerBorder);
 #else
     explicit RSBorderFourLineRoundCornerDrawable(Drawing::Brush&& brush, Drawing::Pen&& pen,
-        const RSProperties& properties);
+        const RSProperties& properties, const bool& isFirstLayerBorder);
 #endif
     ~RSBorderFourLineRoundCornerDrawable() override = default;
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
@@ -233,8 +236,13 @@ class RSShadowDrawable : public RSShadowBaseDrawable {
 public:
     explicit RSShadowDrawable(const RSProperties& properties);
     ~RSShadowDrawable() override = default;
+#ifndef USE_ROSEN_DRAWING
     RSColor GetColorForShadow(RSRenderNode& node, RSPaintFilterCanvas& canvas,
         SkPath& skPath, SkMatrix& matrix, SkIRect& deviceClipBounds);
+#else
+    RSColor GetColorForShadow(RSRenderNode& node, RSPaintFilterCanvas& canvas,
+        Drawing::Path& skPath, Drawing::Matrix& matrix, Drawing::RectI& deviceClipBounds);
+#endif
     void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
 
 protected:
@@ -419,8 +427,7 @@ public:
         paint_.setColor(color);
     }
 #else
-    explicit RSBackgroundColorDrawable(bool hasRoundedCorners, Drawing::Color color)
-        : RSBackgroundDrawable(hasRoundedCorners)
+    explicit RSBackgroundColorDrawable(Drawing::Color color) : RSBackgroundDrawable()
     {
         brush_.SetColor(color);
     }
@@ -438,8 +445,7 @@ public:
         paint_.setShader(std::move(filter));
     }
 #else
-    explicit RSBackgroundShaderDrawable(bool hasRoundedCorners, std::shared_ptr<Drawing::ShaderEffect> filter)
-        : RSBackgroundDrawable(hasRoundedCorners)
+    explicit RSBackgroundShaderDrawable(std::shared_ptr<Drawing::ShaderEffect> filter) : RSBackgroundDrawable()
     {
         brush_.SetShaderEffect(std::move(filter));
     }

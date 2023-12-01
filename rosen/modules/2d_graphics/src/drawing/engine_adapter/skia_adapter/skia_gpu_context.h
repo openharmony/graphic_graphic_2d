@@ -76,17 +76,17 @@ public:
 
     void PurgeUnlockedResources(bool scratchResourcesOnly) override;
 
-    void PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag tag) override;
+    void PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag &tag) override;
 
     void PurgeUnlockAndSafeCacheGpuResources() override;
 
-    void ReleaseByTag(const GPUResourceTag tag) override;
+    void ReleaseByTag(const GPUResourceTag &tag) override;
 
-    void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag tag) override;
+    void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) override;
 
     void DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump) override;
 
-    void SetCurrentGpuResourceTag(const GPUResourceTag tag) override;
+    void SetCurrentGpuResourceTag(const GPUResourceTag &tag) override;
 
 #ifdef NEW_SKIA
     sk_sp<GrDirectContext> GetGrContext() const;

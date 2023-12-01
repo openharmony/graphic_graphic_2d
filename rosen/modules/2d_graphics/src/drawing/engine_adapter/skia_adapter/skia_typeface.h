@@ -51,6 +51,7 @@ public:
     static std::shared_ptr<Typeface> MakeDefault();
     static std::shared_ptr<Typeface> MakeFromFile(const char path[], int index);
     static std::shared_ptr<Typeface> MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index);
+    static std::shared_ptr<Typeface> MakeFromName(const char familyName[], FontStyle fontStyle);
 
     static sk_sp<SkData> SerializeTypeface(SkTypeface* typeface, void* ctx);
     static sk_sp<SkTypeface> DeserializeTypeface(const void* data, size_t length, void* ctx);

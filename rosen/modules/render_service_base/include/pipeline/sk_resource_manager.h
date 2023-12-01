@@ -20,7 +20,11 @@
 #include <mutex>
 #include <unistd.h>
 
+#ifndef USE_ROSEN_DRAWING
 #include <include/core/SkImage.h>
+#else
+#include "image/image.h"
+#endif
 
 #include "common/rs_macros.h"
 
@@ -28,14 +32,22 @@ namespace OHOS::Rosen {
 class RSB_EXPORT SKResourceManager final {
 public:
     static SKResourceManager& Instance();
+#ifndef USE_ROSEN_DRAWING
     void HoldResource(sk_sp<SkImage> img);
+#else
+    void HoldResource(const std::shared_ptr<Drawing::Image> &img);
+#endif
     void ReleaseResource();
 private:
     SKResourceManager() = default;
     ~SKResourceManager() = default;
 
     std::recursive_mutex mutex_;
+#ifndef USE_ROSEN_DRAWING
     std::map<pid_t, std::list<sk_sp<SkImage>>> skImages_;
+#else
+    std::map<pid_t, std::list<std::shared_ptr<Drawing::Image>>> images_;
+#endif
 };
 } // OHOS::Rosen
 #endif // SK_RESOURCE_MANAGER_H

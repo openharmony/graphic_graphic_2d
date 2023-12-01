@@ -357,22 +357,9 @@ void RSJankStats::ReportEventFirstFrameByPid(pid_t appPid) const
         OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "APP_PID", static_cast<int32_t>(appPid));
 }
 
-void RSJankStats::SetAnimationTraceBegin(TraceId traceId, const JankFrames& jankFrames)
-{
-    if (animationAsyncTraces_.find(traceId) != animationAsyncTraces_.end()) {
-        return;
-    }
-    const auto &info = jankFrames.info_;
-    int64_t inputTime = ConvertTimeToSystime(info.inputTime);
-    const std::string traceName = GetSceneDescription(info) + ", " + std::to_string(inputTime);
-    AnimationTraceStats traceStat = {.traceName_ = traceName, .traceCreateTimeSteady_ = endTimeSteady_};
-    animationAsyncTraces_.emplace(traceId, traceStat);
-    RS_ASYNC_TRACE_BEGIN(traceName, traceId);
-}
-
 void RSJankStats::RecordJankFrameInit()
 {
-    for (auto& recordStats : jankFrameRecorder_) {
+    for (auto& recordStats : jankAnimatorFrameRecorder_) {
         recordStats.isRecorded_ = false;
     }
 }
@@ -382,7 +369,7 @@ void RSJankStats::RecordJankFrame(int64_t missedFrames)
     if (missedFrames <= 0 || animationAsyncTraces_.empty()) {
         return;
     }
-    for (auto& recordStats : jankFrameRecorder_) {
+    for (auto& recordStats : jankAnimatorFrameRecorder_) {
         RecordJankFrameSingle(missedFrames, recordStats);
     }
 }
@@ -410,6 +397,19 @@ void RSJankStats::RecordAnimationDynamicFrameRate(TraceId traceId, const JankFra
     float animationDynamicFrameRate = animationTotalFrames / animationDuration;
     RS_TRACE_NAME_FMT("RSJankStats::RecordAnimationDynamicFrameRate frame rate is %.2f: %s",
                       animationDynamicFrameRate, animationAsyncTraces_.at(traceId).traceName_.c_str());
+}
+
+void RSJankStats::SetAnimationTraceBegin(TraceId traceId, const JankFrames& jankFrames)
+{
+    if (animationAsyncTraces_.find(traceId) != animationAsyncTraces_.end()) {
+        return;
+    }
+    const auto &info = jankFrames.info_;
+    int64_t inputTime = ConvertTimeToSystime(info.inputTime);
+    const std::string traceName = GetSceneDescription(info) + ", " + std::to_string(inputTime);
+    AnimationTraceStats traceStat = {.traceName_ = traceName, .traceCreateTimeSteady_ = endTimeSteady_};
+    animationAsyncTraces_.emplace(traceId, traceStat);
+    RS_ASYNC_TRACE_BEGIN(traceName, traceId);
 }
 
 void RSJankStats::SetAnimationTraceEnd(TraceId traceId)

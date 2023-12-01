@@ -80,6 +80,9 @@ if (enable_text_gine) {
 
     if (defined(use_rosen_drawing) && use_rosen_drawing) {
       defines += [ "USE_ROSEN_DRAWING" ]
+      if (ace_enable_gpu) {
+        defines += [ "ACE_ENABLE_GPU" ]
+      }
     }
 
     deps = [ "$graphic_2d_root/rosen/modules/texgine:libtexgine_source" ]
@@ -123,6 +126,9 @@ if (enable_text_gine) {
 
     if (defined(use_rosen_drawing) && use_rosen_drawing) {
       defines += [ "USE_ROSEN_DRAWING" ]
+      if (ace_enable_gpu) {
+        defines += [ "ACE_ENABLE_GPU" ]
+      }
     }
 
     deps = [ "$skia_root_new:skia_$platform" ]

@@ -188,8 +188,8 @@ void RecordingCanvas::DrawEdgeAAQuad(const Rect& rect, const Point clip[4],
 
 void RecordingCanvas::DrawVertices(const Vertices& vertices, BlendMode mode)
 {
-    auto verticesHandle = CmdListHelper::AddVerticesToCmdList(*cmdList_, vertices);
-    cmdList_->AddOp<DrawVerticesOpItem::ConstructorHandle>(verticesHandle, mode);
+    auto opDataHandle = CmdListHelper::AddVerticesToCmdList(*cmdList_, vertices);
+    cmdList_->AddOp<DrawVerticesOpItem::ConstructorHandle>(opDataHandle, mode);
 }
 
 void RecordingCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
@@ -468,7 +468,7 @@ void RecordingCanvas::ClipAdaptiveRoundRect(const std::vector<Point>& radius)
 void RecordingCanvas::DrawImage(const std::shared_ptr<Image>& image, const std::shared_ptr<Data>& data,
     const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& smapling)
 {
-    ImageHandle imageHandle;
+    OpDataHandle imageHandle;
     if (data != nullptr) {
         imageHandle = CmdListHelper::AddCompressDataToCmdList(*cmdList_, data);
         cmdList_->AddOp<DrawAdaptiveImageOpItem::ConstructorHandle>(imageHandle, rsImageInfo, smapling, false);

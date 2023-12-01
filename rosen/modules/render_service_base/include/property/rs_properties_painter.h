@@ -43,8 +43,13 @@ public:
         const RRect* rrect = nullptr, bool isAbsCoordinate = true);
     static void DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect = nullptr);
     static int GetAndResetBlurCnt();
+#ifndef USE_ROSEN_DRAWING
     static bool PickColor(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& skPath,
         SkMatrix& matrix, SkIRect& deviceClipBounds, RSColor& colorPicked);
+#else
+    static bool PickColor(const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::Path& drPath,
+    Drawing::Matrix& matrix, Drawing::RectI& deviceClipBounds, RSColor& colorPicked);
+#endif
     static void GetDarkColor(RSColor& color);
 
     static void DrawPixelStretch(const RSProperties& properties, RSPaintFilterCanvas& canvas);
@@ -82,7 +87,7 @@ public:
     static void DrawSpherize(const RSProperties& properties, RSPaintFilterCanvas& canvas,
         const sk_sp<SkSurface>& spherizeSurface);
     // EffectView and useEffect
-    static void DrawBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas, const SkRect& rect);
+    static void DrawBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas, const SkIRect& rect);
     static sk_sp<SkShader> MakeDynamicLightUpShader(
         float dynamicLightUpRate, float dynamicLightUpDeg, sk_sp<SkShader> imageShader);
     static void DrawGreyAdjustment(const RSProperties& properties, RSPaintFilterCanvas& canvas);
@@ -112,9 +117,10 @@ public:
         const std::shared_ptr<Drawing::Surface>& spherizeSurface);
     // EffectView and useEffect
     static void DrawBackgroundEffect(
-        const RSProperties& properties, RSPaintFilterCanvas& canvas, const Drawing::Rect& rect);
+        const RSProperties& properties, RSPaintFilterCanvas& canvas, const Drawing::RectI& rect);
     static std::shared_ptr<Drawing::ShaderEffect> MakeDynamicLightUpShader(
         float dynamicLightUpRate, float dynamicLightUpDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader);
+    static void DrawGreyAdjustment(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 #endif // USE_ROSEN_DRAWING
 
     static const bool BLUR_ENABLED;
@@ -177,6 +183,9 @@ private:
         std::shared_ptr<Drawing::ShaderEffect> shader, std::shared_ptr<Drawing::ShaderEffect> gradientShader);
     static std::shared_ptr<Drawing::ShaderEffect> MakeLightUpEffectShader(
         float lightUpDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader);
+    static std::shared_ptr<Drawing::ShaderEffect> MakeBinarizationShader(float low, float high, float threshold,
+        float thresholdLow, float thresholdHigh, float imageWidth, float imageHeight,
+        std::shared_ptr<Drawing::ShaderEffect> imageShader);
     static void DrawHorizontalLinearGradientBlur(Drawing::Surface* surface, RSPaintFilterCanvas& canvas,
         float radius, std::shared_ptr<Drawing::ShaderEffect> alphaGradientShader, const Drawing::RectI& clipIPadding);
     static void DrawVerticalLinearGradientBlur(Drawing::Surface* surface, RSPaintFilterCanvas& canvas,
@@ -185,12 +194,14 @@ private:
     static void DrawLinearGradientBlur(Drawing::Surface* surface, RSPaintFilterCanvas& canvas,
         const std::shared_ptr<RSLinearGradientBlurPara>& para,
         std::shared_ptr<Drawing::ShaderEffect> alphaGradientShader, const Drawing::RectI& clipIPadding);
-    static void DrawMaskLinearGradientBlur(Drawing::Surface* surface, RSPaintFilterCanvas& canvas,
+    static void DrawMaskLinearGradientBlur(Drawing::Surface* drSurface, RSPaintFilterCanvas& canvas,
         std::shared_ptr<RSDrawingFilter>& blurFilter, std::shared_ptr<Drawing::ShaderEffect> alphaGradientShader,
         const Drawing::RectI& clipIPadding);
     static std::shared_ptr<Drawing::ShaderEffect> MakeMeanBlurShader(
         std::shared_ptr<Drawing::ShaderEffect> srcImageShader, std::shared_ptr<Drawing::ShaderEffect> blurImageShader,
         std::shared_ptr<Drawing::ShaderEffect> gradientShader);
+    static std::shared_ptr<Drawing::ShaderEffect> MakeGreyAdjustmentShader(const float coef1, const float coef2,
+        std::shared_ptr<Drawing::ShaderEffect> imageShader);
 #endif // USE_ROSEN_DRAWING
     inline static int g_blurCnt = 0;
 };

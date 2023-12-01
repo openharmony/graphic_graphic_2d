@@ -43,6 +43,11 @@ AlphaType Pixmap::GetAlphaType() const
     return pixmapImplPtr_->GetAlphaType();
 }
 
+ColorQuad Pixmap::GetColor(int x, int y) const
+{
+    return pixmapImplPtr_->GetColor(x, y);
+}
+
 size_t Pixmap::GetRowBytes() const
 {
     return pixmapImplPtr_->GetRowBytes();

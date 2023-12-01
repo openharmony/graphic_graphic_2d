@@ -78,7 +78,7 @@ void SetRectOpItem::Playback(Region& region) const
     region.SetRect(rectI_);
 }
 
-SetPathOpItem::SetPathOpItem(const ImageHandle& path, const CmdListHandle& region)
+SetPathOpItem::SetPathOpItem(const OpDataHandle& path, const CmdListHandle& region)
     : RegionOpItem(SETPATH_OPITEM), path_(path), region_(region) {}
 
 void SetPathOpItem::Playback(Region& region, const CmdList& cmdList) const

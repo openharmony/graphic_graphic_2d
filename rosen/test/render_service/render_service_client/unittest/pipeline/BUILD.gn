@@ -22,6 +22,7 @@ ohos_unittest("RSRenderClientPipelineTest") {
   module_out_path = module_output_path
 
   sources = [
+    "rs_divided_ui_capture_test.cpp",
     "rs_node_map_test.cpp",
     "rs_render_thread_test.cpp",
     "rs_render_thread_visitor_test.cpp",

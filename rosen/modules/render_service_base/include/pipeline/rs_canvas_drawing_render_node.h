@@ -51,8 +51,9 @@ public:
     bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect,
         const uint32_t tid = UNI_MAIN_THREAD_INDEX);
 #else
-    Drawing::Bitmap GetBitmap();
-    bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect);
+    Drawing::Bitmap GetBitmap(const uint64_t tid = UINT32_MAX);
+    bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap,
+        const Drawing::Rect* rect, const uint64_t tid = UINT32_MAX);
 #endif
 
     void SetSurfaceClearFunc(ThreadInfo threadInfo)
@@ -66,6 +67,7 @@ public:
     }
 
     void AddDirtyType(RSModifierType type) override;
+    void ClearOp();
 
 private:
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
@@ -86,6 +88,7 @@ private:
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
     ThreadInfo curThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(sk_sp<SkSurface>)>() };
     ThreadInfo preThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(sk_sp<SkSurface>)>() };
+    std::mutex drawCmdListsMutex_;
 #ifndef USE_ROSEN_DRAWING
     std::map<RSModifierType, std::list<DrawCmdListPtr>> drawCmdLists_;
 #else

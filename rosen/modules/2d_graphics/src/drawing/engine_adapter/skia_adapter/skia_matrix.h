@@ -46,10 +46,12 @@ public:
 
     void PreRotate(scalar degree) override;
     void PostRotate(scalar degree) override;
+    void PostRotate(scalar degree, scalar px, scalar py) override;
     void PreTranslate(scalar dx, scalar dy) override;
     void PostTranslate(scalar dx, scalar dy) override;
     void PreScale(scalar sx, scalar sy) override;
     void PostScale(scalar sx, scalar sy) override;
+    void PostScale(scalar sx, scalar sy, scalar px, scalar py) override;
     void PreConcat(const Matrix& other) override;
     void PreConcat(const Matrix44& other) override;
     void PostConcat(const Matrix& other) override;

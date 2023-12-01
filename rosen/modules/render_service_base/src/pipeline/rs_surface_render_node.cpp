@@ -887,6 +887,8 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
         visibleRegion_ = region;
         SetOcclusionVisible(vis);
     }
+    // when there is filter cache occlusion, also save occlusion status without filter cache
+    SetOcclusionVisibleWithoutFilter(vis);
 
     for (auto& child : GetChildren()) {
         if (auto surfaceChild = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child)) {
@@ -1034,7 +1036,7 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusWithVisible(bool visible)
     }
     prevVisible_ = visible;
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    if (!visible && !filterNodes_.empty()) {
+    if (!visible && !filterNodes_.empty() && !isOcclusionVisibleWithoutFilter_) {
         for (auto& node : filterNodes_) {
             node.second->GetMutableRenderProperties().ClearFilterCache();
         }

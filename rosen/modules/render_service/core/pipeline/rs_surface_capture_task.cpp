@@ -707,7 +707,11 @@ void RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node
             // Adding matrix affine transformation logic
             auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
             if (geoPtr != nullptr) {
+#ifndef USE_ROSEN_DRAWING
                 canvas_->concat(geoPtr->GetMatrix());
+#else
+                canvas_->ConcatMatrix(geoPtr->GetMatrix());
+#endif
             }
 
             ProcessChildren(node);

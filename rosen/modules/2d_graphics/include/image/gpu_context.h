@@ -179,7 +179,7 @@ public:
      * @brief                   Purge unlocked resources by tag from the cache until
      *                          the provided byte count has been reached or we have purged all unlocked resources.
      */
-    void PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag tag);
+    void PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag &tag);
 
     /*
      * @brief                   Purge unlocked resources from the safe cache until
@@ -190,12 +190,12 @@ public:
     /*
      * @brief                   Releases GPUResource objects and removes them from the cache by tag.
      */
-    void ReleaseByTag(const GPUResourceTag tag);
+    void ReleaseByTag(const GPUResourceTag &tag);
 
     /*
      * @brief                   Enumerates all cached GPU resources and dumps their memory to traceMemoryDump.
      */
-    void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag tag) const;
+    void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) const;
 
     /*
      * @brief                   Enumerates all cached GPU resources and dumps their memory to traceMemoryDump.
@@ -205,7 +205,7 @@ public:
     /*
      * @brief                   Set current resource tag for gpu cache recycle.
      */
-    void SetCurrentGpuResourceTag(const GPUResourceTag tag);
+    void SetCurrentGpuResourceTag(const GPUResourceTag &tag);
 
     /*
      * @brief   Get the adaptation layer instance, called in the adaptation layer.

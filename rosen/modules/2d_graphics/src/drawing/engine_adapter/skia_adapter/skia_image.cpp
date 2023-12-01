@@ -479,6 +479,12 @@ bool SkiaImage::ReadPixels(Bitmap& bitmap, int x, int y)
     return (skiaImage_ == nullptr) ? false : skiaImage_->readPixels(skPixmap, x, y);
 }
 
+bool SkiaImage::ReadPixels(Pixmap& pixmap, int x, int y)
+{
+    auto& skPixmap = pixmap.GetImpl<SkiaPixmap>()->ExportSkiaPixmap();
+    return (skiaImage_ == nullptr) ? false : skiaImage_->readPixels(skPixmap, x, y);
+}
+
 bool SkiaImage::ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
     int32_t srcX, int32_t srcY) const
 {

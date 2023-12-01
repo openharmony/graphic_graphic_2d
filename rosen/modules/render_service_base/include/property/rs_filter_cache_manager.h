@@ -222,14 +222,15 @@ private:
         GrBackendTexture resultBackendTexture_;
         SkISize surfaceSize_;
         std::weak_ptr<RSSkiaFilter> filter_;
+        GrBackendTexture cacheCompletedBackendTexture_;
 #else
         std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
         Drawing::BackendTexture cacheBackendTexture_;
         Drawing::BackendTexture resultBackendTexture_;
         Drawing::RectI surfaceSize_;
-        std::weak_ptr<RSSkiaFilter> filter_;
+        std::weak_ptr<RSDrawingFilter> filter_;
+        Drawing::BackendTexture cacheCompletedBackendTexture_;
 #endif
-        GrBackendTexture cacheCompletedBackendTexture_;
         std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
         std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshot_ = nullptr;
         std::mutex grBackendTextureMutex_;

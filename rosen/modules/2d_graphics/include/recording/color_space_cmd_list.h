@@ -86,7 +86,7 @@ public:
 
 class CreateRefImageOpItem : public ColorSpaceOpItem {
 public:
-    explicit CreateRefImageOpItem(const ImageHandle& image);
+    explicit CreateRefImageOpItem(const OpDataHandle& image);
     ~CreateRefImageOpItem() = default;
 
     /*
@@ -95,7 +95,7 @@ public:
     std::shared_ptr<ColorSpace> Playback(const CmdList& cmdList) const;
 
 private:
-    ImageHandle image_;
+    OpDataHandle image_;
 };
 
 class CreateRGBOpItem : public ColorSpaceOpItem {

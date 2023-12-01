@@ -97,14 +97,14 @@ private:
 
 class MaskPathOpItem : public MaskOpItem {
 public:
-    explicit MaskPathOpItem(const ImageHandle& pathHandle);
+    explicit MaskPathOpItem(const OpDataHandle& pathHandle);
     ~MaskPathOpItem() = default;
 
     static void Playback(MaskPlayer& player, const void* opItem);
 
     void Playback(std::shared_ptr<Path>& path, const CmdList& cmdList) const;
 private:
-    ImageHandle pathHandle_;
+    OpDataHandle pathHandle_;
 };
 } // namespace Drawing
 } // namespace Rosen

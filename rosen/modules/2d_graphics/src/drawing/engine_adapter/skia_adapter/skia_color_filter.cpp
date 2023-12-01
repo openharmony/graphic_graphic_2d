@@ -112,6 +112,15 @@ bool SkiaColorFilter::Deserialize(std::shared_ptr<Data> data)
 #endif
 }
 
+bool SkiaColorFilter::AsAColorMatrix(scalar matrix[MATRIX_SIZE]) const
+{
+    if (filter_ == nullptr) {
+        LOGE("SkiaColorFilter::AsAColorMatrix filter_ is nullptr!");
+        return false;
+    }
+    return filter_->asAColorMatrix(matrix);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

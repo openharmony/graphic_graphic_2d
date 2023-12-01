@@ -218,8 +218,8 @@ std::unordered_map<uint32_t, UnmarshallingPlayer::UnmarshallingFunc> Unmarshalli
     { DrawOpItem::ADAPTIVE_IMAGE_OPITEM,    DrawAdaptiveImageOpItem::Unmarshalling},
     { DrawOpItem::ADAPTIVE_PIXELMAP_OPITEM, DrawAdaptivePixelMapOpItem::Unmarshalling},
     { DrawOpItem::IMAGE_WITH_PARM_OPITEM,   DrawImageWithParmOpItem::Unmarshalling},
-    { DrawOpItem::EXTEND_PIXELMAP_OPITEM,   DrawExtendPixelMapOpItem::Unmarshalling},
-    { DrawOpItem::PIXELMAP_RECT_OPITEM,     DrawExtendPixelMapRectOpItem::Unmarshalling},
+    { DrawOpItem::PIXELMAP_WITH_PARM_OPITEM, DrawPixelMapWithParmOpItem::Unmarshalling},
+    { DrawOpItem::PIXELMAP_RECT_OPITEM,     DrawPixelMapRectOpItem::Unmarshalling},
     { DrawOpItem::REGION_OPITEM,            DrawRegionOpItem::Unmarshalling },
     { DrawOpItem::PATCH_OPITEM,             DrawPatchOpItem::Unmarshalling },
     { DrawOpItem::EDGEAAQUAD_OPITEM, DrawEdgeAAQuadOpItem::Unmarshalling },
@@ -1337,47 +1337,47 @@ void DrawImageWithParmOpItem::Playback(Canvas* canvas, const Rect* rect)
     objectHandle_->Playback(*canvas, *rect, sampling_, false);
 }
 
-/* DrawExtendPixelMapOpItem */
-DrawExtendPixelMapOpItem::DrawExtendPixelMapOpItem(
-    const CmdList& cmdList, DrawExtendPixelMapOpItem::ConstructorHandle* handle)
-    : DrawOpItem(EXTEND_PIXELMAP_OPITEM), sampling_(handle->sampling)
+/* DrawPixelMapWithParmOpItem */
+DrawPixelMapWithParmOpItem::DrawPixelMapWithParmOpItem(
+    const CmdList& cmdList, DrawPixelMapWithParmOpItem::ConstructorHandle* handle)
+    : DrawOpItem(PIXELMAP_WITH_PARM_OPITEM), sampling_(handle->sampling)
 {
     objectHandle_ = CmdListHelper::GetImageObjectFromCmdList(cmdList, handle->objectHandle);
 }
 
-std::shared_ptr<DrawOpItem> DrawExtendPixelMapOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+std::shared_ptr<DrawOpItem> DrawPixelMapWithParmOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawExtendPixelMapOpItem>(
-        cmdList, static_cast<DrawExtendPixelMapOpItem::ConstructorHandle*>(handle));
+    return std::make_shared<DrawPixelMapWithParmOpItem>(
+        cmdList, static_cast<DrawPixelMapWithParmOpItem::ConstructorHandle*>(handle));
 }
 
-void DrawExtendPixelMapOpItem::Playback(Canvas* canvas, const Rect* rect)
+void DrawPixelMapWithParmOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (objectHandle_ == nullptr) {
-        LOGE("DrawExtendPixelMapOpItem objectHandle is nullptr!");
+        LOGE("DrawPixelMapWithParmOpItem objectHandle is nullptr!");
         return;
     }
     objectHandle_->Playback(*canvas, *rect, sampling_, false);
 }
 
-/* DrawExtendPixelMapRectOpItem */
-DrawExtendPixelMapRectOpItem::DrawExtendPixelMapRectOpItem(
-    const CmdList& cmdList, DrawExtendPixelMapRectOpItem::ConstructorHandle* handle)
+/* DrawPixelMapRectOpItem */
+DrawPixelMapRectOpItem::DrawPixelMapRectOpItem(
+    const CmdList& cmdList, DrawPixelMapRectOpItem::ConstructorHandle* handle)
     : DrawOpItem(PIXELMAP_RECT_OPITEM), sampling_(handle->sampling)
 {
     objectHandle_ = CmdListHelper::GetImageBaseOjFromCmdList(cmdList, handle->objectHandle);
 }
 
-std::shared_ptr<DrawOpItem> DrawExtendPixelMapRectOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+std::shared_ptr<DrawOpItem> DrawPixelMapRectOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawExtendPixelMapRectOpItem>(
-        cmdList, static_cast<DrawExtendPixelMapRectOpItem::ConstructorHandle*>(handle));
+    return std::make_shared<DrawPixelMapRectOpItem>(
+        cmdList, static_cast<DrawPixelMapRectOpItem::ConstructorHandle*>(handle));
 }
 
-void DrawExtendPixelMapRectOpItem::Playback(Canvas* canvas, const Rect* rect)
+void DrawPixelMapRectOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (objectHandle_ == nullptr) {
-        LOGE("DrawExtendPixelMapOpItem objectHandle is nullptr!");
+        LOGE("DrawPixelMapWithParmOpItem objectHandle is nullptr!");
         return;
     }
     objectHandle_->Playback(*canvas, *rect, sampling_);

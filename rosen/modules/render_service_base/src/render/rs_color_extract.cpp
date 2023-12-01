@@ -21,6 +21,7 @@
 namespace OHOS {
 namespace Rosen {
 
+#ifndef USE_ROSEN_DRAWING
 RSColorExtract::RSColorExtract(std::shared_ptr<SkPixmap> pixmap)
 {
     if (pixmap == nullptr) {
@@ -40,7 +41,29 @@ RSColorExtract::RSColorExtract(std::shared_ptr<SkPixmap> pixmap)
     }
     GetNFeatureColors(specifiedFeatureColorNum_);
 }
+#else
+RSColorExtract::RSColorExtract(std::shared_ptr<Drawing::Pixmap> pixmap)
+{
+    if (pixmap == nullptr) {
+        return ;
+    }
+    pixelmap_ = pixmap;
+    colorValLen_ = static_cast<uint32_t>(pixmap->GetWidth() * pixmap->GetHeight());
+    auto colorVal = new uint32_t[colorValLen_]();
+    std::shared_ptr<uint32_t> colorShared(colorVal, [](uint32_t *ptr) {
+        delete[] ptr;
+    });
+    colorVal_ = std::move(colorShared);
+    for (int i = 0; i < pixmap->GetHeight(); i++) {
+        for (int j = 0; j < pixmap->GetWidth(); j++) {
+            colorVal[i * pixmap->GetWidth() + j] = pixmap->GetColor(j, i);
+        }
+    }
+    GetNFeatureColors(specifiedFeatureColorNum_);
+}
+#endif
 
+#ifndef USE_ROSEN_DRAWING
 RSColorExtract::RSColorExtract(std::shared_ptr<SkPixmap> pixmap, double* coordinates)
 {
     if (pixmap == nullptr) {
@@ -67,6 +90,34 @@ RSColorExtract::RSColorExtract(std::shared_ptr<SkPixmap> pixmap, double* coordin
     }
     GetNFeatureColors(specifiedFeatureColorNum_);
 }
+#else
+RSColorExtract::RSColorExtract(std::shared_ptr<Drawing::Pixmap> pixmap, double* coordinates)
+{
+    if (pixmap == nullptr) {
+        return;
+    }
+    pixelmap_ = pixmap;
+    uint32_t left = static_cast<uint32_t>(pixmap->GetWidth() * coordinates[0]); // 0 is index of left
+    uint32_t top = static_cast<uint32_t>(pixmap->GetHeight() * coordinates[1]); // 1 is index of top
+    uint32_t right = static_cast<uint32_t>(pixmap->GetWidth() * coordinates[2]); // 2 is index of right
+    uint32_t bottom = static_cast<uint32_t>(pixmap->GetHeight() * coordinates[3]); // 3 is index of bottom
+    colorValLen_ = (right - left) * (bottom -top);
+    if (colorValLen_ <= 0) {
+        return;
+    }
+    auto colorVal = new uint32_t[colorValLen_]();
+    std::shared_ptr<uint32_t> colorShared(colorVal, [](uint32_t *ptr) {
+        delete[] ptr;
+    });
+    colorVal_ = std::move(colorShared);
+    for (uint32_t i = top; i < bottom; i++) {
+        for (uint32_t j = left; j < right; j++) {
+            colorVal[(i - top) * (right - left) + (j - left)] = pixmap->GetColor(j, i);
+        }
+    }
+    GetNFeatureColors(specifiedFeatureColorNum_);
+}
+#endif
 
 // Return red component of a quantized color
 uint32_t RSColorExtract::QuantizedRed(uint32_t color)

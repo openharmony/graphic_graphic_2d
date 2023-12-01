@@ -347,7 +347,10 @@ std::vector<LineMetrics> Shaper::CreatePartlySpan(const bool cutRight, const Typ
     size_t startIndex = static_cast<size_t>(textSpan->cgs_.GetRange().start);
     size_t endIndex = static_cast<size_t>(textSpan->cgs_.GetRange().end);
     double deletedWidth = 0.0;
-    while (startIndex < endIndex && deletedWidth < exceedWidth) {
+    while (startIndex < endIndex) {
+        if (deletedWidth >= exceedWidth) {
+            break;
+        }
         if (cutRight) {
             endIndex--;
             deletedWidth += textSpan->cgs_.GetCharWidth(endIndex);

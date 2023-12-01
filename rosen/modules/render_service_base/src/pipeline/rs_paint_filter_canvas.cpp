@@ -954,7 +954,7 @@ bool RSPaintFilterCanvas::OnFilterWithBrush(Brush& brush) const
     return alphaStack_.top() > 0.f;
 }
 
-void RSPaintFilterCanvas::SetDisableFilterCache(bool flag) const
+void RSPaintFilterCanvas::SetRecordingState(bool flag)
 {
     recordingState_ = flag;
 }
@@ -1304,12 +1304,12 @@ std::optional<Drawing::Rect> RSPaintFilterCanvas::GetLocalClipBounds(const Drawi
     return dst;
 }
 
-std::stack<float> RSPaintFilterCanvas::GetAlphaStack()
+const std::stack<float>& RSPaintFilterCanvas::GetAlphaStack()
 {
     return alphaStack_;
 }
 
-std::stack<RSPaintFilterCanvas::Env> RSPaintFilterCanvas::GetEnvStack()
+const std::stack<RSPaintFilterCanvas::Env>& RSPaintFilterCanvas::GetEnvStack()
 {
     return envStack_;
 }

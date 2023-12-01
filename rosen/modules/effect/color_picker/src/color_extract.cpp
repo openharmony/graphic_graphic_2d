@@ -39,7 +39,7 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap)
         delete[] ptr;
     });
     colorVal_ = std::move(colorShared);
-    int realColorCnt = 0;
+    uint32_t realColorCnt = 0;
     for (int i = 0; i < pixmap->GetHeight(); i++) {
         for (int j = 0; j < pixmap->GetWidth(); j++) {
             uint32_t pixelColor;
@@ -75,7 +75,7 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap, double* coor
         delete[] ptr;
     });
     colorVal_ = std::move(colorShared);
-    int realColorCnt = 0;
+    uint32_t realColorCnt = 0;
     for (uint32_t i = top; i < bottom; i++) {
         for (uint32_t j = left; j < right; j++) {
             uint32_t pixelColor;

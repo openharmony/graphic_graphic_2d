@@ -91,7 +91,7 @@ std::shared_ptr<PathEffect> CreateDashPathEffectOpItem::Playback(const CmdList& 
 }
 
 CreatePathDashEffectOpItem::CreatePathDashEffectOpItem(
-    const ImageHandle& path, scalar advance, scalar phase, PathDashStyle style)
+    const OpDataHandle& path, scalar advance, scalar phase, PathDashStyle style)
     : PathEffectOpItem(CREATE_PATH_DASH), path_(path), advance_(advance), phase_(phase), style_(style) {}
 
 std::shared_ptr<PathEffect> CreatePathDashEffectOpItem::Playback(const CmdList& cmdList) const

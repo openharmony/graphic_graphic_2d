@@ -393,8 +393,6 @@ private:
     uint32_t requestNextVsyncNum_ = 0;
     bool lastFrameHasFilter_ = false;
 
-    uint32_t currentRefreshRate_ = 0;
-
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
     std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;
     std::shared_ptr<RSBaseEventDetector> rsCompositionTimeoutDetector_;

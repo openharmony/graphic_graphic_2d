@@ -70,6 +70,11 @@ void SkiaMatrix::PostRotate(scalar degree)
     skMatrix_.postRotate(degree);
 }
 
+void SkiaMatrix::PostRotate(scalar degree, scalar px, scalar py)
+{
+    skMatrix_.postRotate(degree, px, py);
+}
+
 void SkiaMatrix::PreTranslate(scalar dx, scalar dy)
 {
     skMatrix_.preTranslate(dx, dy);
@@ -88,6 +93,11 @@ void SkiaMatrix::PreScale(scalar sx, scalar sy)
 void SkiaMatrix::PostScale(scalar sx, scalar sy)
 {
     skMatrix_.postScale(sx, sy);
+}
+
+void SkiaMatrix::PostScale(scalar sx, scalar sy, scalar px, scalar py)
+{
+    skMatrix_.postScale(sx, sy, px, py);
 }
 
 void SkiaMatrix::PreConcat(const Matrix& other)

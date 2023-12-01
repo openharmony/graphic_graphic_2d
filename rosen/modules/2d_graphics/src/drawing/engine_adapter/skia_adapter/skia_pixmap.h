@@ -40,6 +40,7 @@ public:
     std::shared_ptr<ColorSpace> GetColorSpace() const override;
     ColorType GetColorType() const override;
     AlphaType GetAlphaType() const override;
+    ColorQuad GetColor(int x, int y) const override;
     size_t GetRowBytes() const override;
     const void* GetAddr() const override;
     int32_t GetWidth() const override;

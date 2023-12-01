@@ -484,13 +484,13 @@ void ExtendRecordingCanvas::DrawImageWithParm(
         objectHandle, sampling);
 }
 
-void ExtendRecordingCanvas::DrawExtendPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap,
+void ExtendRecordingCanvas::DrawPixelMapWithParm(const std::shared_ptr<Media::PixelMap>& pixelMap,
     const Drawing::AdaptiveImageInfo& rsImageInfo, const Drawing::SamplingOptions& sampling)
 {
     auto object = std::make_shared<RSExtendImageObject>(pixelMap, rsImageInfo);
     auto objectHandle =
         Drawing::CmdListHelper::AddImageObjectToCmdList(*Drawing::RecordingCanvas::GetDrawCmdList(), object);
-    Drawing::RecordingCanvas::GetDrawCmdList()->AddOp<Drawing::DrawExtendPixelMapOpItem::ConstructorHandle>(
+    Drawing::RecordingCanvas::GetDrawCmdList()->AddOp<Drawing::DrawPixelMapWithParmOpItem::ConstructorHandle>(
         objectHandle, sampling);
 }
 

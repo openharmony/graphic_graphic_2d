@@ -219,7 +219,7 @@ public:
     ~ExtendRecordingCanvas() override = default;
     void DrawImageWithParm(const std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Data>& data,
         const Drawing::AdaptiveImageInfo& rsImageInfo, const Drawing::SamplingOptions& sampling);
-    void DrawExtendPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap,
+    void DrawPixelMapWithParm(const std::shared_ptr<Media::PixelMap>& pixelMap,
         const Drawing::AdaptiveImageInfo& rsImageInfo, const Drawing::SamplingOptions& sampling);
     void DrawPixelMapRect(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::Rect& src,
         const Drawing::Rect& dst, const Drawing::SamplingOptions& sampling,

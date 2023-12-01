@@ -38,6 +38,11 @@ std::shared_ptr<Typeface> Typeface::MakeFromStream(std::unique_ptr<MemoryStream>
     return StaticFactory::MakeFromStream(std::move(memoryStream), index);
 }
 
+std::shared_ptr<Typeface> Typeface::MakeFromName(const char familyName[], FontStyle fontStyle)
+{
+    return StaticFactory::MakeFromName(familyName, fontStyle);
+}
+
 std::string Typeface::GetFamilyName() const
 {
     if (typefaceImpl_) {

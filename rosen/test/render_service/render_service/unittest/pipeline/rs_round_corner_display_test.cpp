@@ -128,8 +128,13 @@ HWTEST_F(RSRoundCornerDisplayTest, RSDrawRoundCornerTest, TestSize.Level1)
     uint32_t height = 2772;
     rcdInstance.UpdateDisplayParameter(width, height);
 
+#ifndef USE_ROSEN_DRAWING
     std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(width, height);
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
+#else
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(width, height);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+#endif
     ASSERT_NE(canvas, nullptr);
     rcdInstance.DrawRoundCorner(canvas);
 }

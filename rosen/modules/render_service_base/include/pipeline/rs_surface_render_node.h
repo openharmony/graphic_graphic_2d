@@ -415,6 +415,11 @@ public:
         return isOcclusionVisible_;
     }
 
+    void SetOcclusionVisibleWithoutFilter(bool visible)
+    {
+        isOcclusionVisibleWithoutFilter_ = visible;
+    }
+
     const Occlusion::Region& GetVisibleRegion() const
     {
         return visibleRegion_;
@@ -945,6 +950,7 @@ private:
     bool isDirtyRegionAlignedEnable_ = false;
     Occlusion::Region alignedVisibleDirtyRegion_;
     bool isOcclusionVisible_ = true;
+    bool isOcclusionVisibleWithoutFilter_ = true;
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
     std::shared_ptr<RSDirtyRegionManager> cacheSurfaceDirtyManager_ = nullptr;
     RectI dstRect_;

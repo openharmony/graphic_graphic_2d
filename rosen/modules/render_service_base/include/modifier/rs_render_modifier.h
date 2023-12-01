@@ -61,11 +61,12 @@ public:
 
     virtual void Apply(RSModifierContext& context) const = 0;
 
+#ifndef USE_ROSEN_DRAWING
     virtual void DumpPicture(DfxString& info) const
     {
         return;
     }
-
+#endif
     virtual PropertyId GetPropertyId() = 0;
     virtual std::shared_ptr<RSRenderPropertyBase> GetProperty() = 0;
     virtual RSModifierType GetType() = 0;
@@ -148,6 +149,7 @@ public:
         return property_->GetId();
     }
 
+#ifndef USE_ROSEN_DRAWING
     void DumpPicture(DfxString& info) const override
     {
         if (!property_) {
@@ -158,6 +160,7 @@ public:
         }
         property_->Get()->DumpPicture(info);
     }
+#endif
 
     std::shared_ptr<RSRenderPropertyBase> GetProperty() override
     {
@@ -178,7 +181,11 @@ public:
 
     uint64_t GetDrawCmdListId() const override
     {
+#ifndef USE_ROSEN_DRAWING
         DrawCmdListPtr drawCmd = property_->Get();
+#else
+        Drawing::DrawCmdListPtr drawCmd = property_->Get();
+#endif
         return reinterpret_cast<uint64_t>(drawCmd.get());
     }
     void SetSingleFrameModifier(bool value) override

@@ -137,6 +137,19 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeFromStream(std::unique_ptr<MemoryStr
     return std::make_shared<Typeface>(typefaceImpl);
 }
 
+std::shared_ptr<Typeface> SkiaTypeface::MakeFromName(const char familyName[], FontStyle fontStyle)
+{
+    SkFontStyle skFontStyle;
+    SkiaConvertUtils::DrawingFontStyleCastToSkFontStyle(fontStyle, skFontStyle);
+    sk_sp<SkTypeface> skTypeface = SkTypeface::MakeFromName(familyName, skFontStyle);
+    if (!skTypeface) {
+        LOGE("SkiaTypeface::MakeFromName, skTypeface nullptr");
+        return nullptr;
+    }
+    std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);
+    return std::make_shared<Typeface>(typefaceImpl);
+}
+
 sk_sp<SkData> SkiaTypeface::SerializeTypeface(SkTypeface* typeface, void* ctx)
 {
     if (!typeface) {

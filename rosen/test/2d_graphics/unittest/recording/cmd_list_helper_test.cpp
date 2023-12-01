@@ -48,7 +48,7 @@ HWTEST_F(CmdListHelperTest, AddImageToCmdList001, TestSize.Level1)
 {
     CmdList cmdList;
     std::shared_ptr<Image> image = nullptr;
-    ImageHandle handle = CmdListHelper::AddImageToCmdList(cmdList, image);
+    OpDataHandle handle = CmdListHelper::AddImageToCmdList(cmdList, image);
     EXPECT_EQ(handle.offset, 0);
     EXPECT_EQ(handle.size, 0);
 }
@@ -62,7 +62,7 @@ HWTEST_F(CmdListHelperTest, AddImageToCmdList001, TestSize.Level1)
 HWTEST_F(CmdListHelperTest, GetImageFromCmdList001, TestSize.Level1)
 {
     CmdList cmdList;
-    ImageHandle handle = {};
+    OpDataHandle handle = {};
     auto imageData = std::make_shared<Data>();
     imageData->BuildUninitialized(10);
     handle.offset = cmdList.AddImageData(imageData->GetData(), imageData->GetSize());
@@ -119,7 +119,7 @@ HWTEST_F(CmdListHelperTest, GetBitmapFromCmdList001, TestSize.Level1)
 HWTEST_F(CmdListHelperTest, GetPictureFromCmdList001, TestSize.Level1)
 {
     CmdList cmdList;
-    ImageHandle handle = {};
+    OpDataHandle handle = {};
     auto imageData = std::make_shared<Data>();
     imageData->BuildUninitialized(10);
     handle.offset = cmdList.AddImageData(imageData->GetData(), imageData->GetSize());
@@ -139,7 +139,7 @@ HWTEST_F(CmdListHelperTest, AddCompressDataToCmdList001, TestSize.Level1)
     CmdList cmdList;
     Bitmap bitmap;
     std::shared_ptr<Data> data = nullptr;
-    ImageHandle handle = CmdListHelper::AddCompressDataToCmdList(cmdList, data);
+    OpDataHandle handle = CmdListHelper::AddCompressDataToCmdList(cmdList, data);
     EXPECT_EQ(handle.offset, 0);
     EXPECT_EQ(handle.size, 0);
 

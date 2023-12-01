@@ -1188,15 +1188,23 @@ void RSMainThread::ClearMemoryCache(bool deeply)
         } else {
             MemoryManager::ReleaseUnlockGpuResource(grContext);
         }
+        grContext->flushAndSubmit(true);
 #else
         auto grContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
-        if (grContext) {
-            RS_LOGD("clear gpu cache");
-            grContext->FlushAndSubmit(true);
-            grContext->PurgeUnlockAndSafeCacheGpuResources();
+        if (!grContext) {
+            return;
         }
+        RS_LOGD("Clear memory cache");
+        RS_TRACE_NAME_FMT("Clear memory cache");
+        grContext->Flush();
+        SkGraphics::PurgeAllCaches(); // clear cpu cache
+        if (deeply) {
+            MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
+        } else {
+            MemoryManager::ReleaseUnlockGpuResource(grContext);
+        }
+        grContext->FlushAndSubmit(true);
 #endif
-        grContext->flushAndSubmit(true);
         this->clearMemoryFinished_ = true;
     }, CLEAR_GPU_CACHE, 3000 / GetRefreshRate()); // The unit is milliseconds
 }
@@ -1339,8 +1347,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     if (pendingRefreshRate != nullptr) {
         hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate);
         frameRateMgr_->ResetPendingRefreshRate();
-        currentRefreshRate_ = *pendingRefreshRate;
-        RS_TRACE_NAME("RSMainThread::ProcessHgmFrameRate pendingRefreshRate: " + std::to_string(*pendingRefreshRate));
+        RS_TRACE_NAME_FMT("RSMainThread::ProcessHgmFrameRate pendingRefreshRate: %d", *pendingRefreshRate);
     }
 
     auto appFrameLinkers = GetContext().GetFrameRateLinkerMap().GetFrameRateLinkerMap();
@@ -1397,7 +1404,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         SetFocusLeashWindowId();
         uniVisitor->SetFocusedNodeId(focusNodeId_, focusLeashWindowId_);
         rootNode->Prepare(uniVisitor);
-        uniVisitor->SetCurrentRefreshRate(currentRefreshRate_);
         RSPointLightManager::Instance()->PrepareLight();
         CalcOcclusion();
         doParallelComposition_ = RSInnovation::GetParallelCompositionEnabled(isUniRender_) &&

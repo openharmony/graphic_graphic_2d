@@ -486,6 +486,7 @@ RSPropertyDrawableGenerateContext::RSPropertyDrawableGenerateContext(RSRenderNod
     : node_(node.shared_from_this()), properties_(node.GetRenderProperties()), hasChildren_(!node.GetChildren().empty())
 {}
 
+#ifndef USE_ROSEN_DRAWING
 void ConvertBlendmodeToPaint(const RSPropertyDrawableGenerateContext& context, SkPaint& blendPaint)
 {
     static const std::unordered_map<int, SkBlendMode> skBlendModeLUT = {
@@ -501,24 +502,55 @@ void ConvertBlendmodeToPaint(const RSPropertyDrawableGenerateContext& context, S
     }
     blendPaint.setBlendMode(skBlendModeLUT.at(blendMode));
 }
+#else
+void ConvertBlendmodeToPaint(const RSPropertyDrawableGenerateContext& context, Drawing::Brush& blendBrush)
+{
+    static const std::unordered_map<int, Drawing::BlendMode> BlendModeLUT = {
+        { static_cast<int>(RSColorBlendModeType::DST_IN), Drawing::BlendMode::DST_IN },
+        { static_cast<int>(RSColorBlendModeType::SRC_IN), Drawing::BlendMode::SRC_IN }
+    };
+    auto& properties = context.properties_;
+    int blendMode = properties.GetColorBlendMode();
+    auto iter = BlendModeLUT.find(blendMode);
+    if (iter == BlendModeLUT.end()) {
+        ROSEN_LOGE("The desired color_blend_mode is undefined, will behave as no blendmode.");
+        return;
+    }
+    blendBrush.SetBlendMode(BlendModeLUT.at(blendMode));
+}
+#endif
 
 void RSPropertyDrawable::UpdateSaveLayerSlots(
     const RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec)
 {
+#ifndef USE_ROSEN_DRAWING
     SkPaint blendPaint;
     ConvertBlendmodeToPaint(context, blendPaint);
     // blendmode value is invalid, clear relative 4 slots
     if (!blendPaint.asBlendMode().has_value()) {
+#else
+    Drawing::Brush blendBrush;
+    ConvertBlendmodeToPaint(context, blendBrush);
+    // blendmode value is invalid, clear relative 4 slots
+    // Drawing need to adapt;
+#endif
         drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_CONTENT] = nullptr;
         drawableVec[RSPropertyDrawableSlot::RESTORE_CONTENT] = nullptr;
         drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_BACKGROUND] = nullptr;
         drawableVec[RSPropertyDrawableSlot::RESTORE_BACKGROUND] = nullptr;
         return;
+#ifndef USE_ROSEN_DRAWING
     }
+#endif
     // dirty slots COLOR_BLEND changed from none to valid value
     auto contentCount = std::make_shared<int>(-1);
+#ifndef USE_ROSEN_DRAWING
     drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_CONTENT] =
         std::make_unique<RSSaveLayerContentDrawable>(contentCount, std::move(blendPaint));
+#else
+    drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_CONTENT] =
+        std::make_unique<RSSaveLayerContentDrawable>(contentCount, std::move(blendBrush));
+#endif
     drawableVec[RSPropertyDrawableSlot::RESTORE_CONTENT] = std::make_unique<RSRestoreDrawable>(contentCount);
     auto backgroundCount = std::make_shared<int>(-1);
     drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_BACKGROUND] =

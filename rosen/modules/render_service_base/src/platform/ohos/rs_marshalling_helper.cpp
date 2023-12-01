@@ -1919,7 +1919,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
     ret &= parcel.WriteUint32(objectBaseSize);
     if (objectBaseSize > 0) {
         for (const auto& objectBase : objectBaseVec) {
-            auto rsBaseObject = std::static_pointer_cast<RSExtendImageBase>(objectBase);
+            auto rsBaseObject = std::static_pointer_cast<RSExtendImageBaseOj>(objectBase);
             ret &= RSMarshallingHelper::Marshalling(parcel, rsBaseObject);
             if (!ret) {
                 ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList imageBase");

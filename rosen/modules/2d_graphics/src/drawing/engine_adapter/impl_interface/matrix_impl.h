@@ -44,10 +44,12 @@ public:
 
     virtual void PreRotate(scalar degree) = 0;
     virtual void PostRotate(scalar degree) = 0;
+    virtual void PostRotate(scalar degree, scalar px, scalar py) = 0;
     virtual void PreTranslate(scalar dx, scalar dy) = 0;
     virtual void PostTranslate(scalar dx, scalar dy) = 0;
     virtual void PreScale(scalar sx, scalar sy) = 0;
     virtual void PostScale(scalar sx, scalar sy) = 0;
+    virtual void PostScale(scalar sx, scalar sy, scalar px, scalar py) = 0;
     virtual void PreConcat(const Matrix& other) = 0;
     virtual void PreConcat(const Matrix44& other) = 0;
     virtual void PostConcat(const Matrix& other) = 0;

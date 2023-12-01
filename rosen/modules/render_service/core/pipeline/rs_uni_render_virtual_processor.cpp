@@ -108,6 +108,7 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
 
 void RSUniRenderVirtualProcessor::CanvasRotation(ScreenRotation screenRotation, float width, float height)
 {
+#ifndef USE_ROSEN_DRAWING
     if (screenRotation == ScreenRotation::ROTATION_90) {
         canvas_->rotate(90, height / 2.0f, height / 2.0f); // 90 degrees
         canvas_->translate(0, height - width);
@@ -116,6 +117,16 @@ void RSUniRenderVirtualProcessor::CanvasRotation(ScreenRotation screenRotation, 
     } else if (screenRotation == ScreenRotation::ROTATION_270) {
         canvas_->rotate(270, height / 2.0f, height / 2.0f); // 270 degrees
     }
+#else
+    if (screenRotation == ScreenRotation::ROTATION_90) {
+        canvas_->Rotate(90, height / 2.0f, height / 2.0f); // 90 degrees
+        canvas_->Translate(0, height - width);
+    } else if (screenRotation == ScreenRotation::ROTATION_180) {
+        canvas_->Rotate(180, width / 2.0f, height / 2.0f); // 180 degrees
+    } else if (screenRotation == ScreenRotation::ROTATION_270) {
+        canvas_->Rotate(270, height / 2.0f, height / 2.0f); // 270 degrees
+    }
+#endif
 }
 
 void RSUniRenderVirtualProcessor::PostProcess(RSDisplayRenderNode* node)
@@ -167,7 +178,7 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
         auto mainScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
         float mainWidth = static_cast<float>(mainScreenInfo.width);
         float mainHeight = static_cast<float>(mainScreenInfo.height);
-        if ((RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0) | canvasRotation_) {
+        if ((RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0) || canvasRotation_) {
             std::swap(mainWidth, mainHeight);
             if (canvasRotation_) {
                 CanvasRotation(mainScreenRotation_, mirrorWidth_, mirrorHeight_);
@@ -192,12 +203,12 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
             Drawing::Rect mirrorDstRect;
             if ((mirrorHeight_ / mirrorWidth_) < (mainHeight / mainWidth)) {
                 float mirrorScale = mirrorHeight_ / mainHeight;
-                mirrorDstRect = SkRect::MakeXYWH((mirrorWidth_ - (mirrorScale * mainWidth)) / 2, 0, // 2 for calc X
-                    mirrorScale * mainWidth, mirrorHeight_);
+                mirrorDstRect = Drawing::Rect((mirrorWidth_ - (mirrorScale * mainWidth)) / 2, 0, // 2 for calc X
+                    mirrorScale * mainWidth + mirrorWidth_ - (mirrorScale * mainWidth) / 2, mirrorHeight_);
             } else if ((mirrorHeight_ / mirrorWidth_) > (mainHeight / mainWidth)) {
                 float mirrorScale = mirrorWidth_ / mainWidth;
-                mirrorDstRect = SkRect::MakeXYWH(0, (mirrorHeight_ - (mirrorScale * mainHeight)) / 2, // 2 for calc Y
-                    mirrorWidth_, mirrorScale * mainHeight);
+                mirrorDstRect = Drawing::Rect(0, (mirrorHeight_ - (mirrorScale * mainHeight)) / 2, // 2 for calc Y
+                    mirrorWidth_, mirrorScale * mainHeight + (mirrorHeight_ - (mirrorScale * mainHeight)) / 2);
             }
             params.dstRect = mirrorDstRect;
 #endif

@@ -98,7 +98,11 @@ private:
     std::shared_ptr<Drawing::GPUContext> grContext_ = nullptr;
 #endif
     RecordingMode mode_ = RecordingMode::STOP_RECORDING;
+#ifndef USE_ROSEN_DRAWING
     std::vector<std::shared_ptr<DrawCmdList>> drawCmdListVec_;
+#else
+    std::vector<std::shared_ptr<Drawing::DrawCmdList>> drawCmdListVec_;
+#endif
     std::vector<std::shared_ptr<MessageParcel>> messageParcelVec_;
     std::vector<std::string> opsDescriptionVec_;
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;

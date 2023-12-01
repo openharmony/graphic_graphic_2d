@@ -51,7 +51,7 @@ Brush::Brush(std::shared_ptr<ShaderEffect> e) noexcept
     : color_(), blendMode_(BlendMode::SRC_OVER), filter_(), colorSpace_(nullptr), shaderEffect_(e), antiAlias_(false)
 {}
 
-Color Brush::GetColor() const
+const Color& Brush::GetColor() const
 {
     return color_;
 }
@@ -87,16 +87,6 @@ void Brush::SetColor(const Color4f& cf, std::shared_ptr<ColorSpace> s)
     colorSpace_ = s;
 }
 
-uint32_t Brush::GetAlpha() const
-{
-    return color_.GetAlpha();
-}
-
-scalar Brush::GetAlphaF() const
-{
-    return color_.GetAlphaF();
-}
-
 void Brush::SetAlpha(uint32_t a)
 {
     color_.SetAlpha(a);
@@ -107,12 +97,7 @@ void Brush::SetAlphaF(scalar a)
     color_.SetAlphaF(a);
 }
 
-BlendMode Brush::GetBlendMode() const
-{
-    return blendMode_;
-}
-
-void Brush::SetBlendMode(BlendMode mode)
+void Brush::SetBlendMode(const BlendMode& mode)
 {
     blendMode_ = mode;
 }
@@ -122,7 +107,7 @@ void Brush::SetFilter(const Filter& filter)
     filter_ = filter;
 }
 
-Filter Brush::GetFilter() const
+const Filter& Brush::GetFilter() const
 {
     return filter_;
 }

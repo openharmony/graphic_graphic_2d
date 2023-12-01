@@ -712,9 +712,11 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
 #ifndef USE_VIDEO_PROCESSING_ENGINE
-    canvas.drawImageRect(image, params.srcRect, params.dstRect,
-        SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear), &(params.paint),
-        SkCanvas::kStrict_SrcRectConstraint);
+    auto samplingOptions = RSSystemProperties::IsPhoneType()
+                               ? SkSamplingOptions()
+                               : SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
+    canvas.drawImageRect(
+        image, params.srcRect, params.dstRect, samplingOptions, &(params.paint), SkCanvas::kStrict_SrcRectConstraint);
 #else
     canvas.drawRect(params.dstRect, (params.paint));
 #endif // USE_VIDEO_PROCESSING_ENGINE
@@ -727,8 +729,10 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 #endif
 #else
     canvas.AttachBrush(params.paint);
-    canvas.DrawImageRect(*image.get(), params.srcRect, params.dstRect,
-        Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR),
+    auto samplingOptions = RSSystemProperties::IsPhoneType()
+                               ? Drawing::SamplingOptions()
+                               : Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
+    canvas.DrawImageRect(*image.get(), params.srcRect, params.dstRect, samplingOptions,
         Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     canvas.DetachBrush();
 #endif

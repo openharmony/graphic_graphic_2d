@@ -132,7 +132,10 @@ public:
     void SetRgbF(scalar r, scalar g, scalar b, scalar a = 1.0);
 
     void SetColorQuad(uint32_t c);
-    ColorQuad CastToColorQuad() const;
+    inline ColorQuad CastToColorQuad() const
+    {
+        return ((alpha_ & 0xffu) << 24) | ((red_ & 0xffu) << 16) | ((green_ & 0xffu) << 8) | ((blue_ & 0xffu) << 0);
+    }
 
     friend DRAWING_API bool operator==(const Color& c1, const Color& c2);
     friend DRAWING_API bool operator!=(const Color& c1, const Color& c2);
