@@ -167,7 +167,7 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
         auto mainScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
         float mainWidth = static_cast<float>(mainScreenInfo.width);
         float mainHeight = static_cast<float>(mainScreenInfo.height);
-        if ((RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0) | canvasRotation_) {
+        if ((RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0) || canvasRotation_) {
             std::swap(mainWidth, mainHeight);
             if (canvasRotation_) {
                 CanvasRotation(mainScreenRotation_, mirrorWidth_, mirrorHeight_);

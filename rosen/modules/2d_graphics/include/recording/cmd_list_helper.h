@@ -199,7 +199,8 @@ public:
     static std::shared_ptr<Path> GetPathFromCmdList(const CmdList& cmdList, const OpDataHandle& pathHandle);
 
     static OpDataHandle AddColorSpaceToCmdList(CmdList& cmdList, const std::shared_ptr<ColorSpace> colorSpace);
-    static std::shared_ptr<ColorSpace> GetColorSpaceFromCmdList(const CmdList& cmdList, const OpDataHandle& imageHandle);
+    static std::shared_ptr<ColorSpace> GetColorSpaceFromCmdList(const CmdList& cmdList,
+        const OpDataHandle& imageHandle);
 
     static FlattenableHandle AddShaderEffectToCmdList(CmdList& cmdList, std::shared_ptr<ShaderEffect> shaderEffect);
     static std::shared_ptr<ShaderEffect> GetShaderEffectFromCmdList(const CmdList& cmdList,
