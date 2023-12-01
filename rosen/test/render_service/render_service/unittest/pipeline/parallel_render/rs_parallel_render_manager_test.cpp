@@ -198,8 +198,12 @@ HWTEST_F(RSParallelRenderManagerTest, PackProcessRenderTaskTest, TestSize.Level1
     RSParallelRenderManager::Instance()->PackRenderTask(*rsSurfaceRenderNode2, TaskType::PROCESS_TASK);
     RSParallelRenderManager::Instance()->PackRenderTask(*rsSurfaceRenderNode3, TaskType::PROCESS_TASK);
 
-    SkCanvas skCanvas;
-    auto canvas = RSPaintFilterCanvas(&skCanvas);
+#ifndef USE_ROSEN_DRAWING
+    SkCanvas tmpCanvas;
+#else
+    Drawing::Canvas tmpCanvas;
+#endif
+    RSPaintFilterCanvas canvas(&tmpCanvas);
     RSParallelRenderManager::Instance()->MergeRenderResult(canvas);
 }
 
@@ -257,8 +261,12 @@ HWTEST_F(RSParallelRenderManagerTest, SetFrameSizeTest, TestSize.Level1)
  */
 HWTEST_F(RSParallelRenderManagerTest, AddSelfDrawingSurfaceTest, TestSize.Level1)
 {
-    SkCanvas skCanvas;
-    auto canvas = RSPaintFilterCanvas(&skCanvas);
+#ifndef USE_ROSEN_DRAWING
+    SkCanvas tmpCanvas;
+#else
+    Drawing::Canvas tmpCanvas;
+#endif
+    RSPaintFilterCanvas canvas(&tmpCanvas);
     auto instance = RSParallelRenderManager::Instance();
     instance->AddSelfDrawingSurface(0, false, { 0.f, 0.f, 100.f, 100.f });
     instance->ClearSelfDrawingSurface(canvas, 0);

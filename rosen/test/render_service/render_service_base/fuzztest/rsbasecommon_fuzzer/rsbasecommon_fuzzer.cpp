@@ -125,7 +125,11 @@ bool RSObjAbsGeometryFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // getdata
+#ifndef USE_ROSEN_DRAWING
     SkMatrix matrix;
+#else
+    Drawing::Matrix matrix;
+#endif
     std::shared_ptr<RSObjAbsGeometry> parent = std::make_shared<RSObjAbsGeometry>();
     float offsetX = GetData<float>();
     float offsetY = GetData<float>();
@@ -134,7 +138,11 @@ bool RSObjAbsGeometryFuzzTest(const uint8_t* data, size_t size)
     // Test
     RSObjAbsGeometry rsobjabsgeometry;
     rsobjabsgeometry.ConcatMatrix(matrix);
+#ifndef USE_ROSEN_DRAWING
     rsobjabsgeometry.UpdateMatrix(parent, SkPoint::Make(offsetX, offsetY), std::nullopt);
+#else
+    rsobjabsgeometry.UpdateMatrix(parent, Drawing::Point(offsetX, offsetY), std::nullopt);
+#endif
     (void)rsobjabsgeometry.MapAbsRect(rect);
 
     return true;

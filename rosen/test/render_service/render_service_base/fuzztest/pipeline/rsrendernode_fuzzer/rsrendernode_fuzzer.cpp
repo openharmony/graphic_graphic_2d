@@ -143,11 +143,16 @@ bool RSCanvasRenderNodeFuzzTest(const uint8_t* data, size_t size)
     NodeId id = GetData<NodeId>();
     int w = GetData<int>();
     int h = GetData<int>();
-    std::shared_ptr<DrawCmdList> drawCmds = std::make_shared<DrawCmdList>(w, h);
     RSModifierType type = GetData<RSModifierType>();
-    SkCanvas skCanvas;
+#ifndef USE_ROSEN_DRAWING
+    std::shared_ptr<DrawCmdList> drawCmds = std::make_shared<DrawCmdList>(w, h);
+    SkCanvas tmpCanvas;
+#else
+    std::shared_ptr<Drawing::DrawCmdList> drawCmds = std::make_shared<Drawing::DrawCmdList>(w, h);
+    Drawing::Canvas tmpCanvas;
+#endif
     float alpha = GetData<float>();
-    RSPaintFilterCanvas canvas(&skCanvas, alpha);
+    RSPaintFilterCanvas canvas(&tmpCanvas, alpha);
     RSCanvasRenderNode node(id);
 
     // test
@@ -283,11 +288,12 @@ bool RSDrawCmdListFuzzTest(const uint8_t* data, size_t size)
 
     int w = GetData<int>();
     int h = GetData<int>();
-    SkCanvas skCanvas;
     float fLeft = GetData<float>();
     float fTop = GetData<float>();
     float fRight = GetData<float>();
     float fBottom = GetData<float>();
+#ifndef USE_ROSEN_DRAWING
+    SkCanvas skCanvas;
     SkRect rect = { fLeft, fTop, fRight, fBottom };
     float alpha = GetData<float>();
     RSPaintFilterCanvas canvas(&skCanvas, alpha);
@@ -296,7 +302,17 @@ bool RSDrawCmdListFuzzTest(const uint8_t* data, size_t size)
     DrawCmdList* list = new DrawCmdList(w, h);
     list->Playback(skCanvas, &rect);
     list->Playback(canvas, &rect);
+#else
+    Drawing::Canvas drCanvas;
+    Drawing::Rect rect = { fLeft, fTop, fRight, fBottom };
+    float alpha = GetData<float>();
+    RSPaintFilterCanvas canvas(&drCanvas, alpha);
 
+    // test
+    Drawing::DrawCmdList* list = new Drawing::DrawCmdList(w, h);
+    list->Playback(drCanvas, &rect);
+    list->Playback(canvas, &rect);
+#endif
     return true;
 }
 
