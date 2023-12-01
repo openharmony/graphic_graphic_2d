@@ -54,6 +54,7 @@ public:
     std::shared_ptr<Image> GetImageSnapshot() const override;
     std::shared_ptr<Image> GetImageSnapshot(const RectI& bounds) const override;
     std::shared_ptr<Surface> MakeSurface(int width, int height) const override;
+    BackendTexture GetBackendTexture() const override;
     void SetSkSurface(const sk_sp<SkSurface>& skSurface);
     void FlushAndSubmit(bool syncCpu) override;
     void Flush(FlushInfo *drawingflushInfo = nullptr) override;
