@@ -224,6 +224,11 @@ public:
 
     static std::vector<std::shared_ptr<DrawOpItem>> GetDrawOpItemsFromHandle(
         const CmdList& cmdList, const CmdListHandle& handle);
+#ifdef ROSEN_OHOS
+    static uint32_t AddSurfaceBufferToCmdList(CmdList& cmdList, const sptr<SurfaceBuffer>& imageFilter);
+    static sptr<SurfaceBuffer> GetSurfaceBufferFromCmdList(
+        const CmdList& cmdList, uint32_t imageFilterHandle);
+#endif
 };
 } // namespace Drawing
 } // namespace Rosen

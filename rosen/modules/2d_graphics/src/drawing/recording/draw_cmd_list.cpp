@@ -246,7 +246,7 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect)
         return;
     }
     uint32_t offset = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
-    if (opAllocator_.GetSize() <= offset && unmarshalledOpItems_.size() == 0) {
+    if (width_ <= 0 || height_ <= 0 || (opAllocator_.GetSize() <= offset && unmarshalledOpItems_.size() == 0)) {
         return;
     }
 
