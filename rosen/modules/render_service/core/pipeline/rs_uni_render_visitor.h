@@ -250,6 +250,12 @@ private:
      * If so, reset status flag and stop traversal
      */
     bool CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& node);
+    /* Judge if uifirst surface render node could skip subtree preparation:
+     * mainwindow check if it has leashwindow parent
+     * If so, check parent or check itself
+     */
+    bool CheckIfUIFirstSurfaceContentReusable(std::shared_ptr<RSSurfaceRenderNode>& node);
+
     void PrepareTypesOfSurfaceRenderNodeBeforeUpdate(RSSurfaceRenderNode& node);
     void PrepareTypesOfSurfaceRenderNodeAfterUpdate(RSSurfaceRenderNode& node);
     // judge if node's cache changes
@@ -393,6 +399,9 @@ private:
     bool isSubThread_ = false;
     bool isUIFirst_ = false;
     uint32_t threadIndex_ = UNI_MAIN_THREAD_INDEX;
+    // check each surface could be reused per frame
+    // currently available to uiFirst
+    bool isCachedSurfaceReuse_ = false;
 
     bool isDirtyRegionAlignedEnable_ = false;
     std::shared_ptr<std::mutex> surfaceNodePrepareMutex_;
