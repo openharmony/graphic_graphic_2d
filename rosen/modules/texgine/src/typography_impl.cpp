@@ -267,7 +267,7 @@ void TypographyImpl::Layout(double maxWidth)
         ScopedTrace scope("TypographyImpl::Layout");
 #endif
         LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "TypographyImpl::Layout");
-        LOGEX_FUNC_LINE_DEBUG(INFO) << "Layout maxWidth: " << maxWidth << ", spans.size(): " << spans_.size();
+        LOGEX_FUNC_LINE_DEBUG() << "Layout maxWidth: " << maxWidth << ", spans.size(): " << spans_.size();
         maxWidth_ = floor(maxWidth);
         if (spans_.empty()) {
             LOGEX_FUNC_LINE(ERROR) << "Empty spans";
@@ -346,6 +346,7 @@ int TypographyImpl::UpdateMetrics()
     lineMaxCoveredDescent_ = {};
     yOffsets_ = {};
     height_ = 0.0;
+    descent_ = 0.0;
     double prevMaxDescent = 0.0;
     double yOffset = 0.0;
 
@@ -518,30 +519,35 @@ int TypographyImpl::DoUpdateSpanMetrics(const VariantSpan &span, const TexgineFo
     if (!onlyUseStrut) {
         double coveredDescent = 0;
         if (style.heightOnly) {
-            double metricsHeight = -*metrics.fAscent_ + descent_;
+            double metricsHeight = style.heightScale * style.fontSize;
             if (fabs(metricsHeight) < DBL_EPSILON) {
                 LOGEX_FUNC_LINE(ERROR) << "metrics is error";
                 return FAILED;
             }
 
             coveredAscent = (-*metrics.fAscent_ / metricsHeight) * style.heightScale * style.fontSize;
-            coveredDescent = (descent_ / metricsHeight) * style.heightScale * style.fontSize;
+            coveredDescent = (*metrics.fDescent_ / metricsHeight) * style.heightScale * style.fontSize;
         } else {
             coveredAscent = (-*metrics.fAscent_ + HALF(*metrics.fLeading_));
-            coveredDescent = (descent_ + HALF(*metrics.fLeading_));
+            coveredDescent = (*metrics.fDescent_ + HALF(*metrics.fLeading_));
         }
+        lineMaxCoveredAscent_.back() = std::max(coveredAscent, lineMaxCoveredAscent_.back());
+        lineMaxCoveredDescent_.back() = std::max(coveredDescent, lineMaxCoveredDescent_.back());
         if (auto as = span.TryToAnySpan(); as != nullptr) {
             UpadateAnySpanMetrics(as, coveredAscent, coveredDescent);
             ascent = coveredAscent;
         }
         if (style.halfLeading) {
-            double halfLeading = strut_.halfLeading == 0 ? HALF(style.fontSize) : strut_.halfLeading;
-            double lineHeight = style.heightScale * style.fontSize + halfLeading;
-            coveredAscent = HALF(lineHeight);
-            coveredDescent = HALF(lineHeight - style.fontSize);
+            double height = -*metrics.fAscent_ + *metrics.fDescent_;
+            double blobHeight = style.heightOnly ? style.heightScale * style.fontSize : height + *metrics.fLeading_;
+            double leading = blobHeight - height;
+            double availableVspace = blobHeight - leading;
+            double halfLeading = HALF(leading);
+            coveredAscent = -*metrics.fAscent_ / height * availableVspace + halfLeading;
+            coveredDescent = *metrics.fDescent_ / height * availableVspace + halfLeading;
+            lineMaxCoveredAscent_.back() = std::max(lineMaxCoveredAscent_.back(), coveredAscent);
+            lineMaxCoveredDescent_.back() = std::max(lineMaxCoveredDescent_.back(), coveredDescent);
         }
-        lineMaxCoveredAscent_.back() = std::max(coveredAscent, lineMaxCoveredAscent_.back());
-        lineMaxCoveredDescent_.back() = std::max(coveredDescent, lineMaxCoveredDescent_.back());
     }
     lineMaxAscent_.back() = std::max(lineMaxAscent_.back(), ascent);
     return SUCCESSED;
