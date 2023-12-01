@@ -262,7 +262,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawPicture001, TestSize.Level1)
  * @tc.name: Create001
  * @tc.desc: test
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require:#I8K89C
  */
 HWTEST_F(RSGPUOverdrawCanvasListenerTest, Create001, TestSize.Level1)
 {
@@ -275,7 +275,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, Create001, TestSize.Level1)
  * @tc.name: onDrawRect
  * @tc.desc: test
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require:#I8K89C
  */
 HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawRect001, TestSize.Level1)
 {
@@ -290,7 +290,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawRect001, TestSize.Level1)
  * @tc.name: onDrawOval
  * @tc.desc: test
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require:#I8K89C
  */
 HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawOval001, TestSize.Level1)
 {
@@ -305,7 +305,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawOval001, TestSize.Level1)
  * @tc.name: onDrawArc
  * @tc.desc: test
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require:#I8K89C
  */
 HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawArc001, TestSize.Level1)
 {
@@ -322,7 +322,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawArc001, TestSize.Level1)
  * @tc.name: onDrawArc
  * @tc.desc: test
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require:#I8K89C
  */
 HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawArc002, TestSize.Level1)
 {
@@ -339,7 +339,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawArc002, TestSize.Level1)
  * @tc.name: onDrawPath
  * @tc.desc: test
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require:#I8K89C
  */
 HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawPath001, TestSize.Level1)
 {
@@ -354,7 +354,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawPath001, TestSize.Level1)
  * @tc.name: onDrawRegion
  * @tc.desc: test
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require:#I8K89C
  */
 HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawRegion001, TestSize.Level1)
 {
@@ -369,7 +369,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawRegion001, TestSize.Level1)
  * @tc.name: onDrawPicture
  * @tc.desc: test
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require:#I8K89C
  */
 HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawPicture001, TestSize.Level1)
 {
