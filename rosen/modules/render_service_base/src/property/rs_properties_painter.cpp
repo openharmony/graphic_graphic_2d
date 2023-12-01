@@ -2284,13 +2284,14 @@ void RSPropertiesPainter::DrawBorderLight(const RSProperties& properties, SkCanv
     lightBuilder->uniform("specularStrength") = SkV3 { strength, 0, 0 };
     shader = lightBuilder->makeShader(nullptr, false);
     paint.setShader(shader);
-    paint.setStrokeWidth(6);
+    float borderWidth = std::ceil(properties.GetIlluminatedBorderWidth());
+    paint.setStrokeWidth(borderWidth);
     paint.setStyle(SkPaint::Style::kStroke_Style);
     auto borderRect = properties.GetRRect().rect_;
     float borderRadius = properties.GetRRect().radius_[0].x_;
-    auto borderRRect =
-        RRect(RectF(borderRect.left_ + 3, borderRect.top_ + 3, borderRect.width_ - 6, borderRect.height_ - 6),
-            borderRadius - 3, borderRadius - 3);
+    auto borderRRect = RRect(RectF(borderRect.left_ + borderWidth / 2.0f, borderRect.top_ + borderWidth / 2.0f,
+                                 borderRect.width_ - borderWidth, borderRect.height_ - borderWidth),
+        borderRadius - borderWidth / 2.0f, borderRadius - borderWidth / 2.0f);
     canvas.drawRRect(RRect2SkRRect(borderRRect), paint);
 }
 #endif
