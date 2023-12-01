@@ -294,10 +294,8 @@ void RSBorderPathDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
     canvas.drawPath(borderPath_, paint_);
 #else
     canvas.AttachPen(pen_);
-    canvas.AttachBrush(brush_);
     canvas.DrawPath(borderPath_);
     canvas.DetachPen();
-    canvas.DetachBrush();
 #endif
 }
 

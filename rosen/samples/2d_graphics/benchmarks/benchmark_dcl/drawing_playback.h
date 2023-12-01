@@ -41,7 +41,7 @@ namespace OHOS {
 namespace Rosen {
 class MSKPSrc {
 public:
-    explicit MSKPSrc(std::string path);
+    explicit MSKPSrc(const std::string& path);
 
     bool Draw(SkCanvas* c) const;
     bool NextFrame();
