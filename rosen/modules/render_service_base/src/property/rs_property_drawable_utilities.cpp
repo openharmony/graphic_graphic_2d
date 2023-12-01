@@ -25,7 +25,7 @@ namespace OHOS::Rosen {
 RSAliasDrawable::RSAliasDrawable(Slot::RSPropertyDrawableSlot slot) : slot_(slot) {}
 void RSAliasDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
-    auto& it = node.propertyDrawablesVec_[slot_];
+    auto& it = node.GetRenderContent()->GetPropertyDrawableVec()[slot_];
     if (it) {
         it->Draw(node, canvas);
     }

@@ -198,8 +198,12 @@ HWTEST_F(RSParallelRenderManagerTest, PackProcessRenderTaskTest, TestSize.Level1
     RSParallelRenderManager::Instance()->PackRenderTask(*rsSurfaceRenderNode2, TaskType::PROCESS_TASK);
     RSParallelRenderManager::Instance()->PackRenderTask(*rsSurfaceRenderNode3, TaskType::PROCESS_TASK);
 
-    SkCanvas skCanvas;
-    auto canvas = RSPaintFilterCanvas(&skCanvas);
+#ifndef USE_ROSEN_DRAWING
+    SkCanvas tmpCanvas;
+#else
+    Drawing::Canvas tmpCanvas;
+#endif
+    RSPaintFilterCanvas canvas(&tmpCanvas);
     RSParallelRenderManager::Instance()->MergeRenderResult(canvas);
 }
 
@@ -257,8 +261,12 @@ HWTEST_F(RSParallelRenderManagerTest, SetFrameSizeTest, TestSize.Level1)
  */
 HWTEST_F(RSParallelRenderManagerTest, AddSelfDrawingSurfaceTest, TestSize.Level1)
 {
-    SkCanvas skCanvas;
-    auto canvas = RSPaintFilterCanvas(&skCanvas);
+#ifndef USE_ROSEN_DRAWING
+    SkCanvas tmpCanvas;
+#else
+    Drawing::Canvas tmpCanvas;
+#endif
+    RSPaintFilterCanvas canvas(&tmpCanvas);
     auto instance = RSParallelRenderManager::Instance();
     instance->AddSelfDrawingSurface(0, false, { 0.f, 0.f, 100.f, 100.f });
     instance->ClearSelfDrawingSurface(canvas, 0);
@@ -417,7 +425,7 @@ HWTEST_F(RSParallelRenderManagerTest, GetCostTest1, TestSize.Level1)
 {
     RSRenderNode rsRenderNode(1);
     auto instance = std::make_shared<RSParallelRenderManager>();
-    rsRenderNode.renderProperties_.SetAlpha(1.0f);
+    rsRenderNode.GetMutableRenderProperties().SetAlpha(1.0f);
     auto cost = instance->GetCost(rsRenderNode);
     ASSERT_EQ(cost, 2);
 }
@@ -432,8 +440,8 @@ HWTEST_F(RSParallelRenderManagerTest, GetCostTest2, TestSize.Level1)
 {
     RSRenderNode rsRenderNode(1);
     auto instance = std::make_shared<RSParallelRenderManager>();
-    rsRenderNode.renderProperties_.SetAlpha(1.0f);
-    rsRenderNode.renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
+    rsRenderNode.GetMutableRenderProperties().SetAlpha(1.0f);
+    rsRenderNode.GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
     auto cost = instance->GetCost(rsRenderNode);
     ASSERT_EQ(cost, 2);
 }
@@ -448,10 +456,10 @@ HWTEST_F(RSParallelRenderManagerTest, GetCostTest, TestSize.Level1)
 {
     RSRenderNode rsRenderNode(1);
     auto instance = std::make_shared<RSParallelRenderManager>();
-    rsRenderNode.renderProperties_.SetAlpha(1.0f);
-    rsRenderNode.renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
-    rsRenderNode.renderProperties_.decoration_ = std::make_optional<Decoration>();
-    rsRenderNode.renderProperties_.decoration_->bgImage_ = std::make_shared<RSImage>();
+    rsRenderNode.GetMutableRenderProperties().SetAlpha(1.0f);
+    rsRenderNode.GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    rsRenderNode.GetMutableRenderProperties().decoration_ = std::make_optional<Decoration>();
+    rsRenderNode.GetMutableRenderProperties().decoration_->bgImage_ = std::make_shared<RSImage>();
     auto cost = instance->GetCost(rsRenderNode);
     ASSERT_EQ(cost, 2);
 }

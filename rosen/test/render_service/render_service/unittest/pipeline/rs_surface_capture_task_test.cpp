@@ -572,7 +572,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessSurfaceRenderNode002, Function | Small
     ASSERT_NE(nullptr, visitor);
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode node(config);
-    node.renderProperties_.SetAlpha(0.0f);
+    node.GetMutableRenderProperties().SetAlpha(0.0f);
     visitor->ProcessSurfaceRenderNode(node);
 }
 
@@ -587,7 +587,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessSurfaceRenderNode004, Function | Small
     ASSERT_NE(nullptr, visitor_);
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode node(config);
-    node.renderProperties_.SetAlpha(0.0f);
+    node.GetMutableRenderProperties().SetAlpha(0.0f);
     visitor_->IsDisplayNode(true);
 #ifndef USE_ROSEN_DRAWING
     SkCanvas skCanvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
@@ -610,7 +610,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessSurfaceRenderNode005, Function | Small
     ASSERT_NE(nullptr, visitor_);
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode node(config);
-    node.renderProperties_.SetAlpha(0.0f);
+    node.GetMutableRenderProperties().SetAlpha(0.0f);
     visitor_->IsDisplayNode(true);
 #ifndef USE_ROSEN_DRAWING
     SkCanvas skCanvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
@@ -646,8 +646,8 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessRootRenderNode002, Function | SmallTes
 {
     ASSERT_NE(nullptr, visitor_);
     RSRootRenderNode node(0);
-    node.renderProperties_.SetVisible(true);
-    node.renderProperties_.SetAlpha(DEFAULT_CANVAS_SCALE);
+    node.GetMutableRenderProperties().SetVisible(true);
+    node.GetMutableRenderProperties().SetAlpha(DEFAULT_CANVAS_SCALE);
     visitor_->ProcessRootRenderNode(node);
     visitor_->ProcessCanvasRenderNode(node);
 }
@@ -662,8 +662,8 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessRootRenderNode003, Function | SmallTes
 {
     ASSERT_NE(nullptr, visitor_);
     RSRootRenderNode node(0);
-    node.renderProperties_.SetVisible(true);
-    node.renderProperties_.SetAlpha(DEFAULT_CANVAS_SCALE);
+    node.GetMutableRenderProperties().SetVisible(true);
+    node.GetMutableRenderProperties().SetAlpha(DEFAULT_CANVAS_SCALE);
     visitor_->canvas_ = nullptr;
     visitor_->ProcessRootRenderNode(node);
     visitor_->ProcessCanvasRenderNode(node);
@@ -679,8 +679,8 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessRootRenderNode004, Function | SmallTes
 {
     ASSERT_NE(nullptr, visitor_);
     RSRootRenderNode node(0);
-    node.renderProperties_.SetVisible(true);
-    node.renderProperties_.SetAlpha(.0f);
+    node.GetMutableRenderProperties().SetVisible(true);
+    node.GetMutableRenderProperties().SetAlpha(.0f);
     visitor_->ProcessRootRenderNode(node);
     visitor_->ProcessCanvasRenderNode(node);
 }

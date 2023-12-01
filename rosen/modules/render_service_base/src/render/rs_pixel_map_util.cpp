@@ -41,6 +41,18 @@ static sk_sp<SkColorSpace> ColorSpaceToSkColorSpace(ColorSpace colorSpace)
             return SkColorSpace::MakeSRGB();
     }
 }
+#else
+static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(Drawing::ColorSpace colorSpace)
+{
+    switch (colorSpace) {
+        case ColorSpace::LINEAR_SRGB:
+            return Drawing::ColorSpace::CreateSRGBLinear();
+        case ColorSpace::SRGB:
+            return Drawing::ColorSpace::CreateSRGB();
+        default:
+            return Drawing::ColorSpace::CreateSRGB();
+    }
+}
 #endif
 
 #ifndef USE_ROSEN_DRAWING
@@ -182,8 +194,7 @@ std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
     Drawing::ImageInfo drawingImageInfo { imageInfo.size.width, imageInfo.size.height,
         PixelFormatToDrawingColorType(imageInfo.pixelFormat),
 	AlphaTypeToDrawingAlphaType(imageInfo.alphaType),
-	// Drawing ColorSpace is not supported
-	nullptr };
+	ColorSpaceToDrawingColorSpace(ImageInfo.colorSpace) };
     Drawing::Pixmap imagePixmap(drawingImageInfo, reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
     return Drawing::Image::MakeFromRaster(imagePixmap, PixelMapReleaseProc, new PixelMapReleaseContext(pixelMap));
 }

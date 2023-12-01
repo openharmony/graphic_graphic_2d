@@ -286,7 +286,11 @@ bool RSPropertiesPainterFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // getdata
-    SkCanvas skCanvas;
+#ifndef USE_ROSEN_DRAWING
+    SkCanvas tmpCanvas;
+#else
+    Drawing::Canvas tmpCanvas;
+#endif
     float fLeft = GetData<float>();
     float fTop = GetData<float>();
     float fWidth = GetData<float>();
@@ -302,20 +306,29 @@ bool RSPropertiesPainterFuzzTest(const uint8_t* data, size_t size)
     float skTop = GetData<float>();
     float skRight = GetData<float>();
     float skBottom = GetData<float>();
+#ifndef USE_ROSEN_DRAWING
     SkRect maskBounds { skLeft, skTop, skRight, skBottom };
+    SkMatrix mat;
+#else
+    Drawing::Rect maskBounds { skLeft, skTop, skRight, skBottom };
+    Drawing::Matrix mat;
+#endif
     Gravity gravity = GetData<Gravity>();
     float fW = GetData<float>();
     float fH = GetData<float>();
-    SkMatrix mat;
 
-    RSPropertiesPainter::Clip(skCanvas, rect);
-    RSPropertiesPainter::DrawBorder(properties, skCanvas);
+    RSPropertiesPainter::Clip(tmpCanvas, rect);
+    RSPropertiesPainter::DrawBorder(properties, tmpCanvas);
     RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties);
-    RSPropertiesPainter::DrawForegroundColor(properties, skCanvas);
-    RSPropertiesPainter::DrawMask(properties, skCanvas);
-    RSPropertiesPainter::DrawMask(properties, skCanvas, maskBounds);
+    RSPropertiesPainter::DrawForegroundColor(properties, tmpCanvas);
+    RSPropertiesPainter::DrawMask(properties, tmpCanvas);
+    RSPropertiesPainter::DrawMask(properties, tmpCanvas, maskBounds);
     RSPropertiesPainter::GetGravityMatrix(gravity, rect, fW, fH, mat);
+#ifndef USE_ROSEN_DRAWING
     RSPropertiesPainter::Rect2SkRect(rect);
+#else
+    RSPropertiesPainter::Rect2DrawingRect(rect);
+#endif
 
     return true;
 }

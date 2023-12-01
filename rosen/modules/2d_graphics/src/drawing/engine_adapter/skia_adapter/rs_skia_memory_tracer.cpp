@@ -18,7 +18,7 @@
 namespace OHOS::Rosen {
 constexpr uint32_t MEMUNIT_RATE = 1024;
 
-SkiaMemoryTracer::SkiaMemoryTracer(std::vector<ResourcePair> resourceMap, bool itemizeType)
+SkiaMemoryTracer::SkiaMemoryTracer(const std::vector<ResourcePair>& resourceMap, bool itemizeType)
     : resourceMap_(resourceMap), itemizeType_(itemizeType), totalSize_("bytes", 0), purgeableSize_("bytes", 0)
 {}
 
