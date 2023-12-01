@@ -93,7 +93,7 @@ enum NativeWindowOperation {
     /**
      * set native window buffer geometry,
      * variable parameter in function is
-     * [in] int32_t height, [in] int32_t width
+     * [in] int32_t width, [in] int32_t height
      */
     SET_BUFFER_GEOMETRY,
     /**
