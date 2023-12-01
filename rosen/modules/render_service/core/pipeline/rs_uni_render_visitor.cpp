@@ -1927,7 +1927,8 @@ void RSUniRenderVisitor::ProcessShadowFirst(RSRenderNode& node, bool inSubThread
 
 void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
 {
-    if (DrawBlurInCache(node) || node.GetChildrenCount() == 0) {
+    if (DrawBlurInCache(node) || node.GetChildrenCount() == 0 ||
+        (canvas_ && canvas_->getDeviceClipBounds().isEmpty())) {
         return;
     }
 
