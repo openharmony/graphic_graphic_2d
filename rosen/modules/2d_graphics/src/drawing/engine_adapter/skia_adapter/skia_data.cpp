@@ -59,6 +59,12 @@ bool SkiaData::BuildUninitialized(size_t length)
     return skData_ != nullptr;
 }
 
+bool SkiaData::BuildEmpty()
+{
+    skData_ = SkData::MakeEmpty();
+    return skData_ != nullptr;
+}
+
 size_t SkiaData::GetSize() const
 {
     return (skData_ == nullptr) ? 0 : skData_->size();

@@ -151,7 +151,7 @@ void SkiaMatrix::MapPoints(std::vector<Point>& dst, const std::vector<Point>& sr
         return;
     }
     if (dst.size() > count) {
-        for (int i = dst.size(); i > count; --i) {
+        for (size_t i = dst.size(); i > count; --i) {
             dst.pop_back();
         }
     }

@@ -33,6 +33,7 @@ public:
     virtual bool BuildWithProc(const void* ptr, size_t length, DataReleaseProc proc, void* ctx) = 0;
     virtual bool BuildWithoutCopy(const void* data, size_t length) = 0;
     virtual bool BuildUninitialized(size_t length) = 0;
+    virtual bool BuildEmpty() = 0;
 
     virtual void* WritableData() = 0;
     virtual size_t GetSize() const = 0;
