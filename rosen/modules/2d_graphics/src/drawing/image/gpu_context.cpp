@@ -97,7 +97,7 @@ void GPUContext::PurgeUnlockedResources(bool scratchResourcesOnly)
     impl_->PurgeUnlockedResources(scratchResourcesOnly);
 }
 
-void GPUContext::PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag tag)
+void GPUContext::PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag &tag)
 {
     impl_->PurgeUnlockedResourcesByTag(scratchResourcesOnly, tag);
 }
@@ -107,12 +107,12 @@ void GPUContext::PurgeUnlockAndSafeCacheGpuResources()
     impl_->PurgeUnlockAndSafeCacheGpuResources();
 }
 
-void GPUContext::ReleaseByTag(const GPUResourceTag tag)
+void GPUContext::ReleaseByTag(const GPUResourceTag &tag)
 {
     impl_->ReleaseByTag(tag);
 }
 
-void GPUContext::DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag tag) const
+void GPUContext::DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) const
 {
     impl_->DumpMemoryStatisticsByTag(traceMemoryDump, tag);
 }
@@ -122,7 +122,7 @@ void GPUContext::DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump) const
     impl_->DumpMemoryStatistics(traceMemoryDump);
 }
 
-void GPUContext::SetCurrentGpuResourceTag(const GPUResourceTag tag)
+void GPUContext::SetCurrentGpuResourceTag(const GPUResourceTag &tag)
 {
     impl_->SetCurrentGpuResourceTag(tag);
 }

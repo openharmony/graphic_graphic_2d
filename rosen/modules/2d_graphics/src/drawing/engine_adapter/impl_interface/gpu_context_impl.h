@@ -57,17 +57,17 @@ public:
 
     virtual void PurgeUnlockedResources(bool scratchResourcesOnly) = 0;
 
-    virtual void PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag tag) = 0;
+    virtual void PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag &tag) = 0;
 
     virtual void PurgeUnlockAndSafeCacheGpuResources() = 0;
 
-    virtual void ReleaseByTag(const GPUResourceTag tag) = 0;
+    virtual void ReleaseByTag(const GPUResourceTag &tag) = 0;
 
-    virtual void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag tag) = 0;
+    virtual void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) = 0;
 
     virtual void DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump) = 0;
 
-    virtual void SetCurrentGpuResourceTag(const GPUResourceTag tag) = 0;
+    virtual void SetCurrentGpuResourceTag(const GPUResourceTag &tag) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

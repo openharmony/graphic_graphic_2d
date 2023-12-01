@@ -296,10 +296,24 @@ protected:
     void onDrawPicture(const SkPicture* picture, const SkMatrix* matrix, const SkPaint* paint) override;
     SkCanvas::SaveLayerStrategy getSaveLayerStrategy(const SaveLayerRec& rec) override;
 #else
-    std::stack<float> GetAlphaStack();
-    std::stack<Env> GetEnvStack();
+    const std::stack<float>& GetAlphaStack();
+    const std::stack<Env>& GetEnvStack();
     bool OnFilter() const override;
     bool OnFilterWithBrush(Drawing::Brush& brush) const override;
+    inline bool OnFilterWithBrush(Drawing::Brush& brush) const override
+    {
+        float alpha = alphaStack_.top();
+        // foreground color and foreground color strategy identification
+        if (brush.GetColor().CastToColorQuad() == 0x00000001) {
+            brush.SetColor(envStack_.top().envForegroundColor_.AsArgbInt());
+        }
+
+        // use alphaStack_.top() to multiply alpha
+        if (alpha < 1 && alpha > 0) {
+            brush.SetAlpha(brush.GetAlpha() * alpha);
+        }
+        return alpha > 0.f;
+    }
 #endif
 
 private:
