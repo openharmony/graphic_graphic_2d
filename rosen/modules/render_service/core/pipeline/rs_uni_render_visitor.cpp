@@ -4651,15 +4651,11 @@ bool RSUniRenderVisitor::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> r
         return false;
     }
     processor_ = RSProcessorFactory::CreateProcessor(displayNode->GetCompositeType());
-    if (processor_ == nullptr) {
-        RS_LOGE("RSUniRenderVisitor::DoDirectComposition: RSProcessor is null!");
+    if (processor_ == nullptr || renderEngine_ == nullptr) {
+        RS_LOGE("RSUniRenderVisitor::DoDirectComposition: RSProcessor or renderEngine is null!");
         return false;
     }
 
-    if (renderEngine_ == nullptr) {
-        RS_LOGE("RSUniRenderVisitor::DoDirectComposition: renderEngine is null!");
-        return false;
-    }
     if (!processor_->Init(*displayNode, displayNode->GetDisplayOffsetX(), displayNode->GetDisplayOffsetY(),
         INVALID_SCREEN_ID, renderEngine_)) {
         RS_LOGE("RSUniRenderVisitor::DoDirectComposition: processor init failed!");
