@@ -24,6 +24,9 @@
 #include "recording/mem_allocator.h"
 #include "recording/adaptive_image_helper.h"
 #include "utils/drawing_macros.h"
+#ifdef ROSEN_OHOS
+#include "surface_buffer.h"
+#endif
 
 namespace OHOS {
 namespace Media {
@@ -214,6 +217,28 @@ public:
     CmdList& operator=(CmdList&&) = delete;
     CmdList& operator=(const CmdList&) = delete;
 
+#ifdef ROSEN_OHOS
+    /*
+     * @brief  return surfaceBuffer index, negative is error.
+     */
+    uint32_t AddSurfaceBuffer(const sptr<SurfaceBuffer>& surfaceBuffer);
+
+    /*
+     * @brief  get surfaceBuffer by index.
+     */
+    sptr<SurfaceBuffer> GetSurfaceBuffer(uint32_t id);
+
+    /*
+     * @brief  return surfaceBuffer size, 0 is no surfaceBuffer.
+     */
+    uint32_t GetAllSurfaceBuffer(std::vector<sptr<SurfaceBuffer>>& objectList);
+
+    /*
+     * @brief  return real setup surfaceBuffer size.
+     */
+    uint32_t SetupSurfaceBuffer(const std::vector<sptr<SurfaceBuffer>>& objectList);
+#endif
+
 protected:
     MemAllocator opAllocator_;
     MemAllocator imageAllocator_;
@@ -227,6 +252,10 @@ protected:
 #endif
     std::vector<std::shared_ptr<ExtendImageBaseOj>> imageBaseOjVec_;
     std::mutex imageBaseOjMutex_;
+#ifdef ROSEN_OHOS
+    std::vector<sptr<SurfaceBuffer>> surfaceBufferVec_;
+    std::mutex surfaceBufferMutex_;
+#endif
 };
 } // namespace Drawing
 } // namespace Rosen
