@@ -4667,6 +4667,16 @@ bool RSUniRenderVisitor::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> r
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExcute()) {
         RS_LOGW("RSUniRenderVisitor::DoDirectComposition: hardwareThread task has too many to excute");
     }
+    if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnabel()) {
+        RSSingleton<RoundCornerDisplay>::GetInstance().RunHardwareTask(
+            [this]() {
+                auto hardInfo = RSSingleton<RoundCornerDisplay>::GetInstance().GetHardwareInfo();
+                rcdInfo_->processInfo = {processor_, hardInfo.topLayer, hardInfo.bottomLayer,
+                    hardInfo.resourceChanged};
+                RSRcdRenderManager::GetInstance().DoProcessRenderTask(rcdInfo_->processInfo);
+            }
+        );
+    }
     processor_->PostProcess(displayNode.get());
     RS_LOGD("RSUniRenderVisitor::DoDirectComposition end");
     return true;

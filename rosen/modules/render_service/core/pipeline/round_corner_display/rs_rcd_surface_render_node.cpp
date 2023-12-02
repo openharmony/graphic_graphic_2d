@@ -123,13 +123,13 @@ BufferRequestConfig RSRcdSurfaceRenderNode::GetHardenBufferRequestConfig() const
     return config;
 }
 
-void RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(rs_rcd::RoundCornerLayer* layerInfo)
+bool RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(rs_rcd::RoundCornerLayer* layerInfo)
 {
     RS_LOGD("RCD: Start PrepareHardwareResourceBuffer");
 
     if (layerInfo == nullptr) {
         RS_LOGE("RCD: layerInfo is nullptr");
-        return;
+        return false;
     }
 
     cldLayerInfo.pathBin = std::string(rs_rcd::PATH_CONFIG_DIR) + "/" + layerInfo->binFileName;
@@ -139,7 +139,7 @@ void RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(rs_rcd::RoundCornerLa
 
     if (layerInfo->curBitmap == nullptr) {
         RS_LOGE("layerInfo->curBitmap is nullptr");
-        return;
+        return false;
     }
     layerBitmap = *(layerInfo->curBitmap);
 
@@ -150,6 +150,11 @@ void RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(rs_rcd::RoundCornerLa
     uint32_t bitmapHeight = static_cast<uint32_t>(layerBitmap.GetHeight());
     uint32_t bitmapWidth = static_cast<uint32_t>(layerBitmap.GetWidth());
 #endif
+
+    if (bitmapHeight <= 0 || bitmapWidth <= 0 || layerInfo->layerHeight <= 0) {
+        RS_LOGE("bitmapHeight, bitmapWidth or layerHeight is wrong value");
+        return false;
+    }
     SetRcdBufferHeight(bitmapHeight);
     SetRcdBufferWidth(bitmapWidth);
     SetRcdBufferSize(cldLayerInfo.bufferSize);
@@ -163,6 +168,7 @@ void RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(rs_rcd::RoundCornerLa
         rcdExtInfo_.dstRect_ = RectI(0, layerInfo->layerHeight - bitmapHeight, bitmapWidth, bitmapHeight);
         SetGlobalZOrder(rcdGlobalZOrder_ - 1);
     }
+    return true;
 }
 
 bool RSRcdSurfaceRenderNode::SetHardwareResourceToBuffer()

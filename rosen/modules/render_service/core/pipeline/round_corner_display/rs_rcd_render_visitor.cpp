@@ -97,7 +97,10 @@ void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& nod
         return;
     }
 
-    node.PrepareHardwareResourceBuffer(layerInfo);
+    if (!node.PrepareHardwareResourceBuffer(layerInfo)) {
+        RS_LOGE("PrepareHardwareResourceBuffer is wrong");
+        return;
+    }
 
 #ifdef NEW_RENDER_CONTEXT
     auto renderFrame = renderEngine_->RequestFrame(std::static_pointer_cast<RSRenderSurfaceOhos>(rsSurface),
