@@ -59,6 +59,7 @@ ohos_unittest("RSNodeCommandTest") {
   }
   external_deps = [
     "c_utils:utils",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 
