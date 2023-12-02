@@ -66,13 +66,8 @@ bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
 void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& node, rs_rcd::RoundCornerLayer* layerInfo,
     bool resourceChanged)
 {
-    if (uniProcessor_ == nullptr) {
-        RS_LOGE("RSRcdRenderVisitor RSProcessor is null!");
-        return;
-    }
-
-    if (node.IsInvalidSurface()) {
-        RS_LOGE("RSRcdRenderVisitor RCDSurfaceType is NONE!");
+    if (uniProcessor_ == nullptr || node.IsInvalidSurface()) {
+        RS_LOGE("RSRcdRenderVisitor RSProcessor is null or node invalid!");
         return;
     }
 

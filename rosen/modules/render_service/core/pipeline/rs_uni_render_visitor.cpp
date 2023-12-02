@@ -133,6 +133,20 @@ bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 }
 }
 
+void DoScreenRcdTask(std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo)
+{
+    if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnabel()) {
+        RSSingleton<RoundCornerDisplay>::GetInstance().RunHardwareTask(
+            [&processor, &rcdInfo]() {
+                auto hardInfo = RSSingleton<RoundCornerDisplay>::GetInstance().GetHardwareInfo();
+                rcdInfo->processInfo = {processor, hardInfo.topLayer, hardInfo.bottomLayer,
+                    hardInfo.resourceChanged};
+                RSRcdRenderManager::GetInstance().DoProcessRenderTask(rcdInfo->processInfo);
+            }
+        );
+    }
+}
+
 #if defined(RS_ENABLE_PARALLEL_RENDER) && (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK))
 constexpr uint32_t PARALLEL_RENDER_MINIMUM_RENDER_NODE_NUMBER = 50;
 #endif
@@ -2785,15 +2799,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 
     if (node.IsMirrorDisplay()) {
         RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode, mirror without roundcornerdisplay");
-    } else if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnabel()) {
-        RSSingleton<RoundCornerDisplay>::GetInstance().RunHardwareTask(
-            [this]() {
-                auto hardInfo = RSSingleton<RoundCornerDisplay>::GetInstance().GetHardwareInfo();
-                rcdInfo_->processInfo = {processor_, hardInfo.topLayer, hardInfo.bottomLayer,
-                    hardInfo.resourceChanged};
-                RSRcdRenderManager::GetInstance().DoProcessRenderTask(rcdInfo_->processInfo);
-            }
-        );
+    } else {
+        DoScreenRcdTask(processor_, rcdInfo_);
     }
 
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExcute()) {
@@ -4667,16 +4674,7 @@ bool RSUniRenderVisitor::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> r
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExcute()) {
         RS_LOGW("RSUniRenderVisitor::DoDirectComposition: hardwareThread task has too many to excute");
     }
-    if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnabel()) {
-        RSSingleton<RoundCornerDisplay>::GetInstance().RunHardwareTask(
-            [this]() {
-                auto hardInfo = RSSingleton<RoundCornerDisplay>::GetInstance().GetHardwareInfo();
-                rcdInfo_->processInfo = {processor_, hardInfo.topLayer, hardInfo.bottomLayer,
-                    hardInfo.resourceChanged};
-                RSRcdRenderManager::GetInstance().DoProcessRenderTask(rcdInfo_->processInfo);
-            }
-        );
-    }
+    DoScreenRcdTask(processor_, rcdInfo_);
     processor_->PostProcess(displayNode.get());
     RS_LOGD("RSUniRenderVisitor::DoDirectComposition end");
     return true;
