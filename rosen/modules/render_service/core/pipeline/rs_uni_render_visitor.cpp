@@ -3838,7 +3838,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     RS_PROCESS_TRACE(isPhone_,
         node.IsFocusedNode(currentFocusedNodeId_) || node.IsFocusedNode(focusedLeashWindowId_),
         "RSUniRender::Process:[" + node.GetName() + "] " +
-        node.GetDstRect().ToString() + " Alpha: " + std::to_string(node.GetGlobalAlpha()).substr(0, 4));
+        node.GetDstRect().ToString() + " Alpha: " + std::to_string(node.GetGlobalAlpha()));
     RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node:%{public}" PRIu64 ",child size:%{public}u,"
         "name:%{public}s,OcclusionVisible:%{public}d",
         node.GetId(), node.GetChildrenCount(), node.GetName().c_str(), node.GetOcclusionVisible());
@@ -4949,7 +4949,8 @@ void RSUniRenderVisitor::ScaleMirrorIfNeed(RSDisplayRenderNode& node)
     }
 }
 
-NodeId RSUniRenderVisitor::FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node) {
+NodeId RSUniRenderVisitor::FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node)
+{
     if (node == nullptr || node->GetParent().lock() == nullptr) {
         return INVALID_NODEID;
     } else if (node->GetParent().lock()->GetType() == RSRenderNodeType::DISPLAY_NODE) {
@@ -4959,7 +4960,8 @@ NodeId RSUniRenderVisitor::FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNo
     }
 }
 
-bool RSUniRenderVisitor::CheckIfNeedResetRotate() {
+bool RSUniRenderVisitor::CheckIfNeedResetRotate()
+{
     if (canvas_ == nullptr) {
         return true;
     }
@@ -4968,7 +4970,7 @@ bool RSUniRenderVisitor::CheckIfNeedResetRotate() {
 #else
     int angle = RSUniRenderUtil::GetRotationFromMatrix(canvas_->GetTotalMatrix());
 #endif
-    return angle != 0 && angle % 90 == 0;
+    return angle != 0 && angle % ROTATION_90 == 0;
 }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE

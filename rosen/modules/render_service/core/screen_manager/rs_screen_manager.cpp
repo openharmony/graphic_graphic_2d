@@ -195,7 +195,8 @@ ScreenId RSScreenManager::GetActiveScreenId()
     }
     activeScreenIdAssignedCV_.wait_until(lock, std::chrono::system_clock::now() +
         std::chrono::milliseconds(WAIT_FOR_ACTIVE_SCREEN_ID_TIMEOUT), [this]() {
-            return isPostureSensorDataHandled_; });
+            return isPostureSensorDataHandled_; 
+        });
     if (isFirstTimeToGetActiveScreenId_) {
         isFirstTimeToGetActiveScreenId_ = false;
         UnRegisterSensorCallback();
@@ -826,7 +827,7 @@ void RSScreenManager::RemoveVirtualScreenLocked(ScreenId id)
         return;
     }
 
-    screens_.erase(id);                                                                                                                                                                                                                
+    screens_.erase(id);
 
     // Update other screens' mirrorId.
     for (auto &[id, screen] : screens_) {
