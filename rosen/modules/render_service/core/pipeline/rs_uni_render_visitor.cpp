@@ -1857,7 +1857,7 @@ void RSUniRenderVisitor::DrawCurrentRefreshRate(uint32_t currentRefreshRate)
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkTypeface> tf = SkTypeface::MakeFromName("HarmonyOS Sans SC", SkFontStyle::Normal());
     SkFont font;
-    font.setSize(100);
+    font.setSize(100);  // 100:Scalar of setting font size
     font.setTypeface(tf);
     std::string info = std::to_string(currentRefreshRate);
     sk_sp<SkTextBlob> textBlob = SkTextBlob::MakeFromString(info.c_str(), font);
@@ -1870,7 +1870,7 @@ void RSUniRenderVisitor::DrawCurrentRefreshRate(uint32_t currentRefreshRate)
 #else
     std::shared_ptr<Drawing::Typeface> tf = Drawing::Typeface::MakeFromName("HarmonyOS Sans SC", Drawing::FontStyle());
     Drawing::Font font;
-    font.SetSize(100);
+    font.SetSize(100);  // 100:Scalar of setting font size
     font.SetTypeface(tf);
     std::string info = std::to_string(currentRefreshRate);
     std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromString(info.c_str(), font);
@@ -1880,7 +1880,7 @@ void RSUniRenderVisitor::DrawCurrentRefreshRate(uint32_t currentRefreshRate)
     brush.SetAntiAlias(true);
     canvas_->AttachBrush(brush);
     canvas_->DrawTextBlob(
-        textBlob.get(), 100.f, 200.f); //100.f:Scalar x of drawing TextBlob 200.f:Scalar y of drawing TextBlob
+        textBlob.get(), 100.f, 200.f);  // 100.f:Scalar x of drawing TextBlob; 200.f:Scalar y of drawing TextBlob
     canvas_->DetachBrush();
 #endif
 }
