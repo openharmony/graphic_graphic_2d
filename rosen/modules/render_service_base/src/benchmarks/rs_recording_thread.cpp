@@ -42,7 +42,7 @@ RSRecordingThread &RSRecordingThread::Instance(RenderContext* context)
 
 void RSRecordingThread::Start()
 {
-    runner_ = AppExecFwk::EventRunner::Create("RRecordingThread");
+    runner_ = AppExecFwk::EventRunner::Create("RSRecordingThread");
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     PostTask([this]() {
         grContext_ = CreateShareGrContext();
