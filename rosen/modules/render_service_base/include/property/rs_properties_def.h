@@ -113,6 +113,7 @@ public:
     void SetLightPosition(const Vector4f& lightPosition)
     {
         lightPosition_ = lightPosition;
+        radius_ = CalculateLightRadius(lightPosition_.z_);
     }
     void SetLightIntensity(float lightIntensity)
     {
@@ -147,12 +148,25 @@ public:
     {
         return preIntensity_;
     }
+    float GetLightRadius() const
+    {
+        return radius_;
+    }
 
 private:
-    Vector4f lightPosition_;
-    Vector4f absLightPosition_; // absolute light Position;
-    float intensity_;
-    float preIntensity_;
+    static float CalculateLightRadius(float lightPosZ)
+    {
+        float num = 1.0f / 255;
+        float count = 8;
+        float cos = std::pow(num, 1.f / count);
+        float tan = std::sqrt(static_cast<float>(1 - pow(cos, 2))) / cos;
+        return lightPosZ * tan;
+    }
+    Vector4f lightPosition_ = Vector4f();
+    Vector4f absLightPosition_ = Vector4f(); // absolute light Position;
+    float intensity_ = 0.f;
+    float preIntensity_ = 0.f;
+    float radius_ = 0.f;
 };
 
 class RSIlluminated final {
@@ -163,10 +177,6 @@ public:
             preIlluminatedType_ = illuminatedType_;
         }
         illuminatedType_ = illuminatedType;
-    }
-    void SetIsIlluminated(bool isIlluminated)
-    {
-        isIlluminated_ = isIlluminated;
     }
     void SetBloomIntensity(float bloomIntensity)
     {
@@ -190,7 +200,7 @@ public:
     }
     bool IsIlluminated() const
     {
-        return isIlluminated_;
+        return !lightSources_.empty();
     }
     bool IsIlluminatedValid() const
     {
@@ -200,13 +210,26 @@ public:
     {
         return preIlluminatedType_;
     }
+    void AddLightSource(const std::shared_ptr<RSLightSource>& lightSourcePtr)
+    {
+        lightSources_.emplace(lightSourcePtr);
+    }
+    void ClearLightSource()
+    {
+        lightSources_.clear();
+    }
+    std::unordered_set<std::shared_ptr<RSLightSource>>& GetLightSources()
+    {
+        return lightSources_;
+    }
 
 private:
-    IlluminatedType illuminatedType_;
-    bool isIlluminated_;
-    float bloomIntensity_;
-    float illuminatedBorderWidth_;
-    IlluminatedType preIlluminatedType_;
+    IlluminatedType illuminatedType_ = IlluminatedType::NONE;
+    float bloomIntensity_ = 0.f;
+    float illuminatedBorderWidth_ = 0.f;
+    IlluminatedType preIlluminatedType_ = IlluminatedType::NONE;
+    // record the light sources that the node is illuminated by.
+    std::unordered_set<std::shared_ptr<RSLightSource>> lightSources_;
 };
 } // namespace Rosen
 } // namespace OHOS

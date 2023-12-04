@@ -325,6 +325,11 @@ Vector4f RSModifierExtractor::GetLightPosition() const
     GET_PROPERTY_FROM_MODIFIERS(Vector4f, LIGHT_POSITION, Vector4f(0.f), =);
 }
 
+float RSModifierExtractor::GetIlluminatedBorderWidth() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, ILLUMINATED_BORDER_WIDTH, 0.f, =);
+}
+
 int RSModifierExtractor::GetIlluminatedType() const
 {
     GET_PROPERTY_FROM_MODIFIERS(int, ILLUMINATED_TYPE, 0, =);
