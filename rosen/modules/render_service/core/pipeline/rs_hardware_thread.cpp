@@ -661,14 +661,12 @@ GraphicPixelFormat RSHardwareThread::ComputeTargetPixelFormat(const std::vector<
             continue;
         }
 
-        CM_HDR_Metadata_Type metadataType;
-        if (MetadataHelper::GetHDRMetadataType(buffer, metadataType) != GSERROR_OK) {
-            RS_LOGW("RSHardwareThread::ComputeTargetPixelFormat Get HDR metadata type from surface buffer failed");
-            continue;
-        }
-
-        if (metadataType != CM_METADATA_NONE) {
+        auto bufferPixelFormat = buffer->GetFormat();
+        if (bufferPixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010102 ||
+            bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCBCR_P010 ||
+            bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
             pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
+            RS_LOGD("RSHardwareThread::ComputeTargetPixelFormat pixelformat is set to 1010102 for 10bit buffer");
             break;
         }
     }

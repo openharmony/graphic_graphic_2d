@@ -652,7 +652,6 @@ void RSUniRenderVisitor::CheckColorSpace(RSSurfaceRenderNode& node)
 
 void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager)
 {
-    newColorSpace_ = GRAPHIC_COLOR_GAMUT_SRGB;
     RSScreenType screenType = BUILT_IN_TYPE_SCREEN;
     if (screenManager->GetScreenType(node.GetScreenId(), screenType) != SUCCESS) {
         RS_LOGE("RSUniRenderVisitor::HandleColorGamuts get screen type failed.");
@@ -666,16 +665,6 @@ void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr
             return;
         }
         newColorSpace_ = static_cast<GraphicColorGamut>(screenColorGamut);
-        return;
-    }
-
-    for (auto& child : node.GetCurAllSurfaces()) {
-        auto surfaceNodePtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
-        if (!surfaceNodePtr) {
-            RS_LOGD("RSUniRenderVisitor::PrepareDisplayRenderNode ReinterpretCastTo fail");
-            continue;
-        }
-        CheckColorSpace(*surfaceNodePtr);
     }
 }
 
@@ -698,23 +687,17 @@ void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)
         return;
     }
 
-    using namespace HDI::Display::Graphic::Common::V1_0;
-    CM_HDR_Metadata_Type hdrMetadataType = CM_METADATA_NONE;
-    if (MetadataHelper::GetHDRMetadataType(buffer, hdrMetadataType) != GSERROR_OK) {
-        RS_LOGD("RSUniRenderVisitor::CheckPixelFormat node(%{public}s) did not have metadatatype.",
-                node.GetName().c_str());
-        return;
-    }
-    if (hdrMetadataType != CM_METADATA_NONE) {
+    auto bufferPixelFormat = buffer->GetFormat();
+    if (bufferPixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010102 ||
+        bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCBCR_P010 ||
+        bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
         newPixelFormat_ = GRAPHIC_PIXEL_FMT_RGBA_1010102;
-        RS_LOGD("RSUniRenderVisitor::CheckPixelFormat newPixelFormat_ is set 1010102 for hdr.");
+        RS_LOGD("RSUniRenderVisitor::CheckPixelFormat pixelformat is set to 1010102 for 10bit buffer");
     }
 }
 
 void RSUniRenderVisitor::HandlePixelFormat(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager)
 {
-    hasFingerprint_ = false;
-    newPixelFormat_ = GRAPHIC_PIXEL_FMT_RGBA_8888;
     RSScreenType screenType = BUILT_IN_TYPE_SCREEN;
     if (screenManager->GetScreenType(node.GetScreenId(), screenType) != SUCCESS) {
         RS_LOGE("RSUniRenderVisitor::HandlePixelFormat get screen type failed.");
@@ -725,16 +708,6 @@ void RSUniRenderVisitor::HandlePixelFormat(RSDisplayRenderNode& node, const sptr
         if (screenManager->GetPixelFormat(node.GetScreenId(), newPixelFormat_) != SUCCESS) {
             RS_LOGE("RSUniRenderVisitor::HandlePixelFormat get screen color gamut failed.");
         }
-        return;
-    }
-
-    for (auto& child : node.GetCurAllSurfaces()) {
-        auto surfaceNodePtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
-        if (!surfaceNodePtr) {
-            RS_LOGD("RSUniRenderVisitor::PrepareDisplayRenderNode ReinterpretCastTo fail");
-            continue;
-        }
-        CheckPixelFormat(*surfaceNodePtr);
     }
 }
 
@@ -802,6 +775,9 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     node.UpdateRotation();
     curAlpha_ = node.GetRenderProperties().GetAlpha();
     isParallel_ = false;
+    newColorSpace_ = GRAPHIC_COLOR_GAMUT_SRGB;
+    hasFingerprint_ = false;
+    newPixelFormat_ = GRAPHIC_COLOR_GAMUT_RGBA_8888;
 #if defined(RS_ENABLE_PARALLEL_RENDER) && (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK))
     ParallelPrepareDisplayRenderNodeChildrens(node);
 #else
@@ -1141,6 +1117,11 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (node.GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos) {
         hasCaptureWindow_[currentVisitDisplay_] = true;
     }
+
+    node.SetAncestorDisplayNode(curDisplayNode_);
+    CheckColorSpace(node);
+    CheckPixelFormat(node);
+
     // stop traversal if node keeps static
     if (isQuickSkipPreparationEnabled_ && CheckIfSurfaceRenderNodeStatic(node)) {
         // node type is mainwindow.
@@ -4050,7 +4031,8 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                 params.targetColorGamut = newColorSpace_;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
                 auto screenManager = CreateOrGetScreenManager();
-                params.screenBrightnessNits = screenManager->GetScreenBrightnessNits(currentVisitDisplay_);
+                auto ancestor = node.GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
+                params.screenBrightnessNits = screenManager->GetScreenBrightnessNits(ancestor->GetScreenId());
 #endif
                 renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
             }

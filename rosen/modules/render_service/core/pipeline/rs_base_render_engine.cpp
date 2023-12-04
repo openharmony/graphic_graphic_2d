@@ -542,8 +542,6 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
     const BufferDrawParam& params, Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter)
 {
     using namespace HDI::Display::Graphic::Common::V1_0;
-    parameter.tmoNits = params.screenBrightnessNits;
-    parameter.currentDisplayNits = params.screenBrightnessNits;
 
     GSError ret = MetadataHelper::GetColorSpaceInfo(params.buffer, parameter.inputColorSpace.colorSpaceInfo);
     if (ret != GSERROR_OK) {
@@ -564,15 +562,23 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
     parameter.inputColorSpace.metadataType = hdrMetadataType;
     parameter.outputColorSpace.metadataType = hdrMetadataType;
 
-    if (hdrMetadataType != CM_METADATA_NONE) {
-        ret = MetadataHelper::GetHDRStaticMetadata(params.buffer, parameter.staticMetadata);
-        if (ret != GSERROR_OK) {
-            RS_LOGW("RSBaseRenderEngine::ColorSpaceConvertor GetHDRStaticMetadata failed with %{public}u.", ret);
-        }
-        ret = MetadataHelper::GetHDRDynamicMetadata(params.buffer, parameter.dynamicMetadata);
-        if (ret != GSERROR_OK) {
-            RS_LOGW("RSBaseRenderEngine::ColorSpaceConvertor GetHDRDynamicMetadata failed with %{public}u.", ret);
-        }
+    ret = MetadataHelper::GetHDRStaticMetadata(params.buffer, parameter.staticMetadata);
+    if (ret != GSERROR_OK) {
+        RS_LOGW("RSBaseRenderEngine::ColorSpaceConvertor GetHDRStaticMetadata failed with %{public}u.", ret);
+    }
+    ret = MetadataHelper::GetHDRDynamicMetadata(params.buffer, parameter.dynamicMetadata);
+    if (ret != GSERROR_OK) {
+        RS_LOGW("RSBaseRenderEngine::ColorSpaceConvertor GetHDRDynamicMetadata failed with %{public}u.", ret);
+    }
+
+    // Set brightness to screen brightness when HDR Vivid, otherwise 500 nits
+    if (hdrMetadataType == CM_VIDEO_HDR_VIVID) {
+        parameter.tmoNits = params.screenBrightnessNits;
+        parameter.currentDisplayNits = params.screenBrightnessNits;
+    } else {
+        constexpr float SDR_SCREEN_LIGHT = 500.0f;
+        parameter.tmoNits = SDR_SCREEN_LIGHT;
+        parameter.currentDisplayNits = SDR_SCREEN_LIGHT;
     }
 
     RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor parameter inputColorSpace.colorSpaceInfo.primaries = %{public}u, \

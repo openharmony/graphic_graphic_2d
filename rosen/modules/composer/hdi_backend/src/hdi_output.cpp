@@ -372,6 +372,7 @@ void HdiOutput::SetBufferColorSpace(sptr<SurfaceBuffer>& buffer, const std::vect
 
         if (colorSpaceInfo.primaries != COLORPRIMARIES_SRGB) {
             targetColorSpace = CM_DISPLAY_P3_SRGB;
+            break;
         }
     }
 

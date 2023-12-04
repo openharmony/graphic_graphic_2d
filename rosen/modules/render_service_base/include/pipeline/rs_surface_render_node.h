@@ -873,6 +873,16 @@ public:
         return isForeground_;
     }
     bool GetNodeIsSingleFrameComposer() const override;
+
+    void SetAncestorDisplayNode(const RSBaseRenderNode::WeakPtr& ancestorDisplayNode)
+    {
+        ancestorDisplayNode_ = ancestorDisplayNode;
+    }
+
+    RSBaseRenderNode::WeakPtr GetAncestorDisplayNode() const
+    {
+        return ancestorDisplayNode_;
+    }
 private:
     void OnResetParent() override;
     void ClearChildrenCache();
@@ -1073,6 +1083,8 @@ private:
     std::shared_ptr<RSSurfaceTexture> surfaceTexture_ {};
 #endif
     bool isForeground_ = false;
+
+    RSBaseRenderNode::WeakPtr ancestorDisplayNode_;
 
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;
