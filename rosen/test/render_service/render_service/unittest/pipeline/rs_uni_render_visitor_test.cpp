@@ -28,6 +28,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_processor_factory.h"
+#include "pipeline/rs_uni_render_util.h"
 #include "rs_test_util.h"
 #include "system/rs_system_parameters.h"
 #include "draw/color.h"
@@ -2476,4 +2477,206 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessSharedTransitionNode003, TestSize.Level2
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     ASSERT_TRUE(rsUniRenderVisitor->ProcessSharedTransitionNode(*node));
 }
+
+/**
+ * @tc.name: UpdateStaticCacheSubTree001
+ * @tc.desc: Test RSUniRenderVisitorTest.UpdateStaticCacheSubTree while
+ *           node doesn't have Child
+ * @tc.type: FUNC
+ * @tc.require: issueI7UGLR
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateStaticCacheSubTree001, TestSize.Level2)
+{
+    NodeId id = 0;
+    auto node = std::make_shared<RSRenderNode>(id);
+
+    ASSERT_NE(node, nullptr);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->UpdateStaticCacheSubTree(node, node->GetSortedChildren());
+    ASSERT_EQ(node->GetDrawingCacheChanged(), false);
+}
+
+/**
+ * @tc.name: UpdateStaticCacheSubTree002
+ * @tc.desc: Test RSUniRenderVisitorTest.UpdateStaticCacheSubTree while
+ *           node has Child
+ * @tc.type: FUNC
+ * @tc.require: issueI7UGLR
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateStaticCacheSubTree002, TestSize.Level2)
+{
+    NodeId id = 0;
+    auto node = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    NodeId id2 = 1;
+    auto child = std::make_shared<RSRenderNode>(id2);
+    ASSERT_NE(child, nullptr);
+
+    node->AddChild(child);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->UpdateStaticCacheSubTree(node, node->GetSortedChildren());
+    ASSERT_EQ(node->GetDrawingCacheChanged(), false);
+}
+
+
+/**
+ * @tc.name: DrawTargetSurfaceVisibleRegionForDFX001
+ * @tc.desc: Test RSUniRenderVisitorTest.DrawTargetSurfaceVisibleRegionForDFX while
+ *           RSDisplayRenderNode is the same as displafConfig set
+ * @tc.type: FUNC
+ * @tc.require: issueI7UGLR
+ */
+HWTEST_F(RSUniRenderVisitorTest, DrawTargetSurfaceVisibleRegionForDFX001, TestSize.Level2)
+{
+    RSDisplayNodeConfig displayConfig;
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(20, displayConfig, rsContext->weak_from_this());
+    ASSERT_NE(rsDisplayRenderNode, nullptr);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->DrawTargetSurfaceVisibleRegionForDFX(*rsDisplayRenderNode);
+}
+
+/**
+ * @tc.name: DrawCurrentRefreshRate001
+ * @tc.desc: Test RSUniRenderVisitorTest.DrawCurrentRefreshRate while
+ *           currentRefreshRate is equal to 0
+ * @tc.type: FUNC
+ * @tc.require: issueI7UGLR
+ */
+HWTEST_F(RSUniRenderVisitorTest, DrawCurrentRefreshRate001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->DrawCurrentRefreshRate(0);
+}
+
+
+/**
+ * @tc.name: ProcessChildrenForScreenRecordingOptimization001
+ * @tc.desc: Test RSUniRenderVisitorTest.ProcessChildrenForScreenRecordingOptimization while
+ *           isSubThread_ is equal to false
+ * @tc.type: FUNC
+ * @tc.require: issueI7UGLR
+ */
+HWTEST_F(RSUniRenderVisitorTest, ProcessChildrenForScreenRecordingOptimization001, TestSize.Level2)
+{
+    NodeId id = 0;
+    RSDisplayNodeConfig displayConfig;
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(20, displayConfig, rsContext->weak_from_this());
+    ASSERT_NE(rsDisplayRenderNode, nullptr);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->ProcessChildrenForScreenRecordingOptimization(*rsDisplayRenderNode, id);
+    ASSERT_EQ(rsDisplayRenderNode->GetIsUsedBySubThread(), false);
+}
+
+/**
+ * @tc.name: ProcessChildrenForScreenRecordingOptimization002
+ * @tc.desc: Test RSUniRenderVisitorTest.ProcessChildrenForScreenRecordingOptimization while
+ *           isSubThread_ is equal to true
+ * @tc.type: FUNC
+ * @tc.require: issueI7UGLR
+ */
+HWTEST_F(RSUniRenderVisitorTest, ProcessChildrenForScreenRecordingOptimization002, TestSize.Level2)
+{
+    NodeId id = 0;
+    RSDisplayNodeConfig displayConfig;
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(20, displayConfig, rsContext->weak_from_this());
+    ASSERT_NE(rsDisplayRenderNode, nullptr);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->isSubThread_ = true;
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->ProcessChildrenForScreenRecordingOptimization(*rsDisplayRenderNode, id);
+}
+
+/**
+ * @tc.name: ProcessChildInner001
+ * @tc.desc: Test RSUniRenderVisitorTest.ProcessChildInner while
+ *           node has child
+ * @tc.type: FUNC
+ * @tc.require: issueI7UGLR
+ */
+HWTEST_F(RSUniRenderVisitorTest, ProcessChildInner001, TestSize.Level2)
+{
+    NodeId id = 0;
+    NodeId id2 = 1;
+    RSRenderNode *node = new RSRenderNode(id2);
+    auto child = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(child, nullptr);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->ProcessChildInner(*node, child);
+}
+
+/**
+ * @tc.name: GetCacheImageFromMirrorNode001
+ * @tc.desc: Test RSUniRenderVisitorTest.GetCacheImageFromMirrorNode while
+ *           cacheImage == nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueI7UGLR
+ */
+HWTEST_F(RSUniRenderVisitorTest, GetCacheImageFromMirrorNode001, TestSize.Level2)
+{
+    RSDisplayNodeConfig displayConfig;
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(20, displayConfig, rsContext->weak_from_this());
+    ASSERT_NE(rsDisplayRenderNode, nullptr);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_EQ(rsUniRenderVisitor->GetCacheImageFromMirrorNode(rsDisplayRenderNode), nullptr);
+
+}
+
+/**
+ * @tc.name: DrawSurfaceLayer001
+ * @tc.desc: Test RSUniRenderVisitorTest.DrawSurfaceLayer while
+ *           displayNode has child
+ * @tc.type: FUNC
+ * @tc.require: issueI7UGLR
+ */
+HWTEST_F(RSUniRenderVisitorTest, DrawSurfaceLayer001, TestSize.Level2)
+{
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(displayNode, nullptr);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    displayNode->AddChild(surfaceNode);
+
+    std::list<std::shared_ptr<RSSurfaceRenderNode>> mainThreadNodes;
+    std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes;
+    RSUniRenderUtil::AssignWindowNodes(displayNode, mainThreadNodes, subThreadNodes);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->DrawSurfaceLayer(displayNode, subThreadNodes);
+
+}
+
+/**
+ * @tc.name: SwitchColorFilterDrawing001
+ * @tc.desc: Test RSUniRenderVisitorTest.SwitchColorFilterDrawing while
+ *           currentSaveCount == 0
+ * @tc.type: FUNC
+ * @tc.require: issueI7UGLR
+ */
+HWTEST_F(RSUniRenderVisitorTest, SwitchColorFilterDrawing001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->SwitchColorFilterDrawing(0);
+}
+
 } // OHOS::Rosen

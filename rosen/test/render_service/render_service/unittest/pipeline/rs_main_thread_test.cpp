@@ -581,6 +581,7 @@ HWTEST_F(RSMainThreadTest, CheckIfInstanceOnlySurfaceBasicGeoTransform02, TestSi
     auto node = std::make_shared<RSRenderNode>(id, mainThread->context_);
     ASSERT_NE(node, nullptr);
     node->SetIsOnTheTree(true, id, id);
+    node->SetContentDirty();
     mainThread->context_->AddActiveNode(node);
     ASSERT_EQ(static_cast<int>(mainThread->context_->activeNodesInRoot_.size()), 1);
 
