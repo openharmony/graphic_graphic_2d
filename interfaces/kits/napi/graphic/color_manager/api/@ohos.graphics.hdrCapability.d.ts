@@ -18,11 +18,11 @@ import { AsyncCallback } from './basic';
 /**
  * HDR Capability.
  *
- * @namespace HDRCapability
+ * @namespace hdrCapability
  * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
  * @since 11
  */
-declare namespace HDRCapability {
+declare namespace hdrCapability {
   /**
    * Enumerates the HDR Format
    *
@@ -90,4 +90,4 @@ declare namespace HDRCapability {
   }
 }
 
-export default HDRCapability;
+export default hdrCapability;
