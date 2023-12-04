@@ -361,7 +361,7 @@ Vector3 ColorSpace::ToNonLinear(Vector3 v) const
 sk_sp<SkColorSpace> ColorSpace::ToSkColorSpace() const
 {
     skcms_Matrix3x3 toXYZ = ToSkiaXYZ();
-        skcms_TransferFunction skTransferFun = {
+    skcms_TransferFunction skTransferFun = {
         transferFunc.g,
         transferFunc.a,
         transferFunc.b,
