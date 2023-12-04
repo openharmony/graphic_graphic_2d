@@ -1050,13 +1050,14 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
         return;
     }
     // traversal filter nodes including app window
-    EraseIf(filterNodes_, [this](const auto& pair) {
+    EraseIf(filterNodes_, [this, &clipRect](const auto& pair) {
         auto& node = pair.second;
         if (node == nullptr || !node->IsOnTheTree() || !node->GetRenderProperties().NeedFilter()) {
             return true;
         }
         node->UpdateFilterCacheWithDirty(*dirtyManager_, false);
         node->UpdateFilterCacheWithDirty(*dirtyManager_, true);
+        node->UpdateFilterCacheManagerWithCacheRegion(*dirtyManager_, clipRect);
         return false;
     });
     SetFilterCacheFullyCovered(false);
@@ -1594,6 +1595,16 @@ bool RSSurfaceRenderNode::GetNodeIsSingleFrameComposer() const
         }
     }
     return isNodeSingleFrameComposer_ || flag;
+}
+
+bool RSSurfaceRenderNode::GetHasSharedTransitionNode() const
+{
+    return hasSharedTransitionNode_;
+}
+
+void RSSurfaceRenderNode::SetHasSharedTransitionNode(bool hasSharedTransitionNode)
+{
+    hasSharedTransitionNode_ = hasSharedTransitionNode;
 }
 } // namespace Rosen
 } // namespace OHOS

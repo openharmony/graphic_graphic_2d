@@ -498,7 +498,11 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-            sk_sp<SkShader> imageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
+            SkMatrix matrix;
+            auto sx = params.dstRect.width() / params.srcRect.width();
+            auto sy = params.dstRect.height() / params.srcRect.height();
+            matrix.setScaleTranslate(sx, sy, params.dstRect.x(), params.dstRect.y());
+            sk_sp<SkShader> imageShader = image->makeShader(SkSamplingOptions(), matrix);
             if (imageShader == nullptr) {
                 RS_LOGE("RSHardwareThread::DrawImage imageShader is nullptr.");
             } else {

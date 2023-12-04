@@ -234,6 +234,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
 #ifdef RS_ENABLE_UNI_RENDER
     if (RSSystemProperties::GetSnapshotWithDMAEnabled()) {
         surface->FlushAndSubmit(true);
+        Drawing::BackendTexture backendTexture = surface->GetBackendTexture();
         auto wrapper = std::make_shared<std::tuple<std::unique_ptr<Media::PixelMap>>>();
         std::get<0>(*wrapper) = std::move(pixelmap);
         auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>();
@@ -244,9 +245,16 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
         auto screenCorrection = ScreenCorrection(screenCorrection_)
         auto wrapperSf = std::make_shared<std::tuple<std::shared_ptr<Drawing::Surface>>>();
         std::get<0>(*wrapperSf) = std::move(surface);
-        std::function<void()> copytask = [wrapper, callback, wrapperSf,
+        std::function<void()> copytask = [wrapper, callback, backendTexture, wrapperSf,
                                              ableRotation, rotation, id, screenCorrection]() -> void {
             RS_TRACE_NAME("copy and send capture");
+            if (!backendTexture.IsValid()) {
+                RS_LOGE("RSSurfaceCaptureTask: Surface bind Image failed: BackendTexture is invalid");
+                callback->OnSurfaceCapture(id, nullptr);
+                RSUniRenderUtil::ClearNodeCacheSurface(
+                    std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
+                return;
+            }
             auto pixelmap = std::move(std::get<0>(*wrapper));
             if (pixelmap == nullptr) {
                 RS_LOGE("RSSurfaceCaptureTask: pixelmap == nullptr");
@@ -273,7 +281,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
             Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
             Drawing::BitmapFormat bitmapFormat =
                 Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-            bool ret = tmpImg->BuildFromSurface(*canvas->GetGPUContext(), *std::get<0>(*wrapperSf),
+            bool ret = tmpImg->BuildFromTexture(*canvas->GetGPUContext(), backendTexture.GetTextureInfo(),
                 origin, bitmapFormat, nullptr);
             if (!ret) {
                 RS_LOGE("RSSurfaceCaptureTask::Run sharedTexture is nullptr");

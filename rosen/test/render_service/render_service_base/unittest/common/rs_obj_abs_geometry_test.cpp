@@ -112,8 +112,13 @@ HWTEST_F(RSObjAbsGeometryTest, UpdateMatrix002, TestSize.Level1)
     float y = 0.f;
     float w = 3.5f;
     float h = 3.5f;
+#ifndef USE_ROSEN_DRAWING
     SkPoint offset = SkPoint::Make(offsetX, offsetY);
     SkRect clipRect = SkRect::MakeLTRB(left, top, right, bottom);
+#else
+    Drawing::Point offset = Drawing::Point(offsetX, offsetY);
+    Drawing::Rect clipRect = Drawing::Rect(left, top, right, bottom);
+#endif
     rsObjAbsGeometry.SetRect(x, y, w, h);
     rsObjAbsGeometry.UpdateMatrix(parent, offset, clipRect);
     x = 0.5f;

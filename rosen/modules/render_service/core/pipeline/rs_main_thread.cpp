@@ -390,10 +390,12 @@ void RSMainThread::Init()
 
     frameRateMgr_ = std::make_unique<HgmFrameRateManager>();
     frameRateMgr_->Init(rsVSyncController_, appVSyncController_, vsyncGenerator_);
-    frameRateMgr_->SetTimerExpiredCallback([]() {
-        RSMainThread::Instance()->PostTask([]() {
-            RS_OPTIONAL_TRACE_NAME("RSMainThread::TimerExpiredCallback Run");
-            RSMainThread::Instance()->SetForceUpdateUniRenderFlag(true);
+    frameRateMgr_->SetForceUpdateCallback([](bool idleTimerExpired, bool forceUpdate) {
+        RSMainThread::Instance()->PostTask([idleTimerExpired, forceUpdate]() {
+            RS_TRACE_NAME_FMT("RSMainThread::TimerExpiredCallback Run idleTimerExpiredFlag: %s  forceUpdateFlag: %s",
+                idleTimerExpired? "True":"False", forceUpdate? "True": "False");
+            RSMainThread::Instance()->SetForceUpdateUniRenderFlag(forceUpdate);
+            RSMainThread::Instance()->SetIdleTimerExpiredFlag(idleTimerExpired);
             RSMainThread::Instance()->RequestNextVSync();
         });
     });
@@ -1158,7 +1160,7 @@ uint32_t RSMainThread::GetRefreshRate() const
     auto screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
         RS_LOGE("RSMainThread::GetRefreshRate screenManager is nullptr");
-        return 0;
+        return 60; // The default refreshrate is 60
     }
     return OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(screenManager->GetDefaultScreenId());
 }
@@ -1206,7 +1208,8 @@ void RSMainThread::ClearMemoryCache(bool deeply)
         grContext->FlushAndSubmit(true);
 #endif
         this->clearMemoryFinished_ = true;
-    }, CLEAR_GPU_CACHE, 3000 / GetRefreshRate()); // The unit is milliseconds
+    },
+    CLEAR_GPU_CACHE, 3000 / GetRefreshRate()); // The unit is milliseconds
 }
 
 void RSMainThread::WaitUtilUniRenderFinished()
@@ -1351,7 +1354,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     }
 
     auto appFrameLinkers = GetContext().GetFrameRateLinkerMap().GetFrameRateLinkerMap();
-    frameRateMgr_->UniProcessData(0, timestamp, rsFrameRateLinker_, appFrameLinkers, forceUpdateUniRenderFlag_);
+    frameRateMgr_->UniProcessData(0, timestamp, rsFrameRateLinker_, appFrameLinkers, idleTimerExpiredFlag_);
 }
 
 bool RSMainThread::GetParallelCompositionEnabled()
@@ -1378,9 +1381,11 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     }
     bool needTraverseNodeTree = true;
     if (doDirectComposition_ && !isDirty_ && !isAccessibilityConfigChanged_
-        && !isCachedSurfaceUpdated_ && !forceUpdateUniRenderFlag_) {
+        && !isCachedSurfaceUpdated_) {
         if (isHardwareEnabledBufferUpdated_) {
             needTraverseNodeTree = !uniVisitor->DoDirectComposition(rootNode);
+        } else if (forceUpdateUniRenderFlag_) {
+            RS_TRACE_NAME("RSMainThread::UniRender ForceUpdateUniRender");
         } else {
             RS_LOGI("RSMainThread::Render nothing to update");
             for (auto& node: hardwareEnabledNodes_) {
@@ -1448,6 +1453,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     }
     isDirty_ = false;
     forceUpdateUniRenderFlag_ = false;
+    idleTimerExpiredFlag_ = false;
 }
 
 void RSMainThread::Render()
@@ -2833,7 +2839,8 @@ void RSMainThread::SubscribeAppState()
                 RS_LOGE("Subscribe Failed 10 times, exiting");
             }
         }
-    }, MEM_MGR, WAIT_FOR_MEM_MGR_SERVICE);
+    },
+    MEM_MGR, WAIT_FOR_MEM_MGR_SERVICE);
 }
 
 void RSMainThread::HandleOnTrim(Memory::SystemMemoryLevel level)

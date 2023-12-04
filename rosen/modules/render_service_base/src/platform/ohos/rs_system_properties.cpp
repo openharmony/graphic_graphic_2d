@@ -119,6 +119,12 @@ bool RSSystemProperties::GetRenderNodeTraceEnabled()
     return isNeedTrace;
 }
 
+bool RSSystemProperties::GetRSScreenRoundCornerEnable()
+{
+    static bool isNeedScreenRCD = system::GetParameter("persist.rosen.screenroundcornerrcd.enabled", "1") != "0";
+    return isNeedScreenRCD;
+}
+
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.dirtyregiondebug.enabled", "0");

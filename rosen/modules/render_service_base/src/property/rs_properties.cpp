@@ -2167,7 +2167,7 @@ void RSProperties::GenerateColorFilter()
         colorFilter_ = filter->makeComposed(colorFilter_);
 #else
         filter = Drawing::ColorFilter::CreateBlendModeColorFilter(Drawing::Color::ColorQuadSetARGB(
-            colorBlend.GetRed(), colorBlend.GetGreen(), colorBlend.GetBlue(), colorBlend.GetAlpha()),
+            colorBlend.GetAlpha(), colorBlend.GetRed(), colorBlend.GetGreen(), colorBlend.GetBlue()),
             Drawing::BlendMode::PLUS);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);

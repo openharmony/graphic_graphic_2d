@@ -47,7 +47,9 @@ ohos_unittest("RSRenderServiceBaseCommonTest") {
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/test/include",
   ]
-
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    public_deps = [ "$graphic_2d_root/rosen/modules/2d_graphics::2d_graphics" ]
+  }
   deps = [
     "../../../../../modules/render_service_base:render_service_base_src",
     "//third_party/googletest:gtest_main",
@@ -61,6 +63,7 @@ ohos_unittest("RSRenderServiceBaseCommonTest") {
   }
   external_deps = [
     "c_utils:utils",
+    "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",
   ]

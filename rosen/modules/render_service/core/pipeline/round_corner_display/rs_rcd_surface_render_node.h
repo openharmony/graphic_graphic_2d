@@ -115,7 +115,7 @@ public:
     void Reset();
     bool SetHardwareResourceToBuffer();
     BufferRequestConfig GetHardenBufferRequestConfig() const;
-    void PrepareHardwareResourceBuffer(rs_rcd::RoundCornerLayer* layerInfo);
+    bool PrepareHardwareResourceBuffer(rs_rcd::RoundCornerLayer* layerInfo);
     bool IsBottomSurface() const;
     bool IsTopSurface() const;
     bool IsInvalidSurface() const;

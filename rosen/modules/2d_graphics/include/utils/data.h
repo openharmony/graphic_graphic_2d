@@ -69,6 +69,8 @@ public:
      */
     bool BuildUninitialized(size_t length);
 
+    bool BuildEmpty();
+
     /*
      * @brief   Gets a writable pointer to Data buffer.
      * @return  A writable pointer to Data buffer.

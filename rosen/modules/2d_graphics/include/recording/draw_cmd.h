@@ -25,6 +25,22 @@
 #include "recording/cmd_list.h"
 #include "recording/recording_canvas.h"
 
+#ifdef ROSEN_OHOS
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+#include "external_window.h"
+#include "window.h"
+#endif
+#ifdef RS_ENABLE_GL
+#include <GLES/gl.h>
+#include "EGL/egl.h"
+#include "EGL/eglext.h"
+#include "GLES2/gl2.h"
+#include "GLES2/gl2ext.h"
+#include "include/gpu/gl/GrGLTypes.h"
+#include "include/gpu/GrBackendSurface.h"
+#endif
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -148,6 +164,7 @@ public:
         EDGEAAQUAD_OPITEM,
         VERTICES_OPITEM,
         IMAGE_SNAPSHOT_OPITEM,
+        SURFACEBUFFER_OPITEM,
     };
 
     virtual void Playback(Canvas* canvas, const Rect* rect) = 0;
@@ -1215,6 +1232,39 @@ private:
     SamplingOptions sampling_;
     std::shared_ptr<ExtendImageBaseOj> objectHandle_;
 };
+#ifdef ROSEN_OHOS
+class DrawSurfaceBufferOpItem : public DrawOpItem {
+public:
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle(uint32_t surfaceBufferId, int offSetX, int offSetY, int width, int height)
+            : OpItem(DrawOpItem::SURFACEBUFFER_OPITEM), surfaceBufferId(surfaceBufferId),
+            surfaceBufferInfo(nullptr, offSetX, offSetY, width, height) {}
+        ~ConstructorHandle() override = default;
+        uint32_t surfaceBufferId;
+        DrawingSurfaceBufferInfo surfaceBufferInfo;
+    };
+
+    DrawSurfaceBufferOpItem(const CmdList& cmdList, ConstructorHandle* handle);
+    ~DrawSurfaceBufferOpItem() = default;
+
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const CmdList& cmdList, void* handle);
+    void Playback(Canvas* canvas, const Rect* rect) override;
+
+private:
+    DrawingSurfaceBufferInfo surfaceBufferInfo_;
+    void Clear();
+    void Draw(Canvas* canvas);
+
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
+#endif
+#ifdef RS_ENABLE_GL
+    EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
+    GLuint texId_ = 0;
+#endif
+};
+#endif
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

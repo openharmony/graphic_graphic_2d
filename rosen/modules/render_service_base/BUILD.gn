@@ -165,6 +165,7 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_paint_filter_canvas.cpp",
     "src/pipeline/rs_proxy_render_node.cpp",
     "src/pipeline/rs_recording_canvas.cpp",
+    "src/pipeline/rs_render_content.cpp",
     "src/pipeline/rs_render_display_sync.cpp",
     "src/pipeline/rs_render_frame_rate_linker.cpp",
     "src/pipeline/rs_render_frame_rate_linker_map.cpp",

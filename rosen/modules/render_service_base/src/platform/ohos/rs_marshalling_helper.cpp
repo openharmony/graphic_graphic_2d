@@ -1139,55 +1139,34 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSSh
         ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling RSShader is nullptr");
         return parcel.WriteInt32(-1);
     }
-    if (val->GetDrawingShader()->GetDrawingType() != Drawing::DrawingType::RECORDING) {
-        ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling Drawing::ShaderEffect is invalid");
-        return parcel.WriteInt32(-1);
+    auto& shaderEffect = val->GetDrawingShader();
+    int32_t type = static_cast<int32_t>(shaderEffect->GetType());
+    std::shared_ptr<Drawing::Data> data = shaderEffect->Serialize();
+    if (!data) {
+        ROSEN_LOGE("unirender: RSMarshallingHelper::Marshalling RSShader, data is nullptr");
+        return false;
     }
-    auto recordingShaderEffect = static_cast<Drawing::RecordingShaderEffect*>(val->GetDrawingShader().get());
-    auto cmdListData = recordingShaderEffect->GetCmdList()->GetData();
-    bool ret = parcel.WriteInt32(cmdListData.second);
-    if (cmdListData.second == 0) {
-        ROSEN_LOGW("unirender: RSMarshallingHelper::Marshalling RecordingShaderEffectCmdList size is 0");
-        return ret;
-    }
-
-    ret &= RSMarshallingHelper::WriteToParcel(parcel, cmdListData.first, cmdListData.second);
-    if (!ret) {
-        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::RecordingShaderEffect");
-    }
-
-    return ret;
+    return parcel.WriteInt32(type) && Marshalling(parcel, data);
 }
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSShader>& val)
 {
-    int32_t size = parcel.ReadInt32();
-    if (size == -1) {
+    int32_t type = parcel.ReadInt32();
+    if (type == -1) {
         val = nullptr;
         return true;
     }
-    if (size == 0) {
-        ROSEN_LOGW("unirender: RSMarshallingHelper::Unmarshalling Drawing::ShaderEffectCmdList size is 0");
-        val = RSShader::CreateRSShader();
-        return true;
-    }
-
-    bool isMalloc = false;
-    const void* data = RSMarshallingHelper::ReadFromParcel(parcel, size, isMalloc);
-    if (data == nullptr) {
-        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling RSShader");
+    std::shared_ptr<Drawing::Data> data;
+    if (!Unmarshalling(parcel, data) || !data) {
+        ROSEN_LOGE("unirender: RSMarshallingHelper::Unmarshalling RSShader, data is nullptr");
         return false;
     }
-    auto shaderEffectCmdList = Drawing::ShaderEffectCmdList::CreateFromData({ data, size }, true);
-    if (isMalloc) {
-        free(const_cast<void*>(data));
-        data = nullptr;
-    }
-    if (shaderEffectCmdList == nullptr) {
-        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling RSShader shader effect cmdlist is nullptr");
+    auto shaderEffect = std::make_shared<Drawing::ShaderEffect>
+        (static_cast<Drawing::ShaderEffect::ShaderEffectType>(type));
+    if (!shaderEffect->Deserialize(data)) {
+        ROSEN_LOGE("unirender: RSMarshallingHelper::Unmarshalling RSShader, Deserialize failed");
         return false;
     }
-    auto shaderEffect = shaderEffectCmdList->Playback();
     val = RSShader::CreateRSShader(shaderEffect);
     return val != nullptr;
 }

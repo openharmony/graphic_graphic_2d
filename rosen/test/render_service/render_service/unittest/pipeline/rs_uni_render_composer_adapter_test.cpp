@@ -176,8 +176,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect001, TestSize.Lev
     ComposeInfo info = composerAdapter_->BuildComposeInfo(*surfaceNode);
     info.srcRect.x = DEFAULT_CANVAS_WIDTH;
     info.srcRect.y = DEFAULT_CANVAS_HEIGHT;
-    surfaceNode->renderProperties_.SetBoundsWidth(DEFAULT_CANVAS_WIDTH);
-    surfaceNode->renderProperties_.SetBoundsHeight(DEFAULT_CANVAS_HEIGHT);
+    surfaceNode->GetMutableRenderProperties().SetBoundsWidth(DEFAULT_CANVAS_WIDTH);
+    surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT);
     composerAdapter_->GetComposerInfoSrcRect(info, *surfaceNode);
     ASSERT_NE(0, info.srcRect.x);
     ASSERT_NE(0, info.srcRect.y);
@@ -229,8 +229,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect004, TestSize.Lev
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
-    surfaceNode->renderProperties_.SetBoundsWidth(DEFAULT_CANVAS_WIDTH);
-    surfaceNode->renderProperties_.SetBoundsHeight(DEFAULT_CANVAS_HEIGHT);
+    surfaceNode->GetMutableRenderProperties().SetBoundsWidth(DEFAULT_CANVAS_WIDTH);
+    surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT);
     RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(dstRect);
     surfaceNode->SetDstRect(dstRect);
@@ -240,8 +240,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect004, TestSize.Lev
     info.buffer->SetSurfaceBufferHeight(DEFAULT_CANVAS_HEIGHT);
     composerAdapter_->GetComposerInfoSrcRect(info, *surfaceNode);
 
-    surfaceNode->renderProperties_.SetBoundsWidth(DEFAULT_CANVAS_WIDTH_1K);
-    surfaceNode->renderProperties_.SetBoundsHeight(DEFAULT_CANVAS_HEIGHT_1K);
+    surfaceNode->GetMutableRenderProperties().SetBoundsWidth(DEFAULT_CANVAS_WIDTH_1K);
+    surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT_1K);
     ComposeInfo info2 = composerAdapter_->BuildComposeInfo(*surfaceNode);
     composerAdapter_->GetComposerInfoSrcRect(info2, *surfaceNode);
 }
@@ -256,8 +256,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity001, TestSize.Level1
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
-    surfaceNode->renderProperties_.SetBoundsWidth(DEFAULT_CANVAS_WIDTH);
-    surfaceNode->renderProperties_.SetBoundsHeight(DEFAULT_CANVAS_HEIGHT);
+    surfaceNode->GetMutableRenderProperties().SetBoundsWidth(DEFAULT_CANVAS_WIDTH);
+    surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT);
     ASSERT_NE(surfaceNode, nullptr);
     RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(dstRect);
@@ -267,12 +267,12 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity001, TestSize.Level1
     info.buffer->SetSurfaceBufferWidth(DEFAULT_CANVAS_WIDTH);
     info.buffer->SetSurfaceBufferHeight(DEFAULT_CANVAS_HEIGHT);
 
-    surfaceNode->renderProperties_.frameGravity_ = Gravity::RESIZE;
+    surfaceNode->GetMutableRenderProperties().frameGravity_ = Gravity::RESIZE;
     composerAdapter_->DealWithNodeGravity(*surfaceNode, info);
 
-    surfaceNode->renderProperties_.frameGravity_ = Gravity::TOP;
-    surfaceNode->renderProperties_.SetBoundsWidth(DEFAULT_CANVAS_WIDTH_1K);
-    surfaceNode->renderProperties_.SetBoundsHeight(DEFAULT_CANVAS_HEIGHT_1K);
+    surfaceNode->GetMutableRenderProperties().frameGravity_ = Gravity::TOP;
+    surfaceNode->GetMutableRenderProperties().SetBoundsWidth(DEFAULT_CANVAS_WIDTH_1K);
+    surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT_1K);
     composerAdapter_->DealWithNodeGravity(*surfaceNode, info);
 }
 
@@ -286,8 +286,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity002, TestSize.Level1
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
-    surfaceNode->renderProperties_.SetBoundsWidth(DEFAULT_CANVAS_WIDTH);
-    surfaceNode->renderProperties_.SetBoundsHeight(DEFAULT_CANVAS_HEIGHT);
+    surfaceNode->GetMutableRenderProperties().SetBoundsWidth(DEFAULT_CANVAS_WIDTH);
+    surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT);
     ASSERT_NE(surfaceNode, nullptr);
     RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(dstRect);
@@ -297,11 +297,11 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity002, TestSize.Level1
     info.buffer->SetSurfaceBufferWidth(DEFAULT_CANVAS_WIDTH);
     info.buffer->SetSurfaceBufferHeight(DEFAULT_CANVAS_HEIGHT);
 
-    surfaceNode->renderProperties_.frameGravity_ = Gravity::TOP;
+    surfaceNode->GetMutableRenderProperties().frameGravity_ = Gravity::TOP;
     composerAdapter_->DealWithNodeGravity(*surfaceNode, info);
 
-    surfaceNode->renderProperties_.SetBoundsWidth(DEFAULT_CANVAS_WIDTH);
-    surfaceNode->renderProperties_.SetBoundsHeight(DEFAULT_CANVAS_HEIGHT_1K);
+    surfaceNode->GetMutableRenderProperties().SetBoundsWidth(DEFAULT_CANVAS_WIDTH);
+    surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT_1K);
     composerAdapter_->DealWithNodeGravity(*surfaceNode, info);
 }
 
@@ -315,8 +315,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity003, TestSize.Level1
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
-    surfaceNode->renderProperties_.SetBoundsWidth(DEFAULT_CANVAS_WIDTH);
-    surfaceNode->renderProperties_.SetBoundsHeight(DEFAULT_CANVAS_HEIGHT);
+    surfaceNode->GetMutableRenderProperties().SetBoundsWidth(DEFAULT_CANVAS_WIDTH);
+    surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT);
     ASSERT_NE(surfaceNode, nullptr);
     RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(dstRect);
@@ -326,8 +326,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity003, TestSize.Level1
     info.buffer->SetSurfaceBufferWidth(DEFAULT_CANVAS_WIDTH);
     info.buffer->SetSurfaceBufferHeight(DEFAULT_CANVAS_HEIGHT);
 
-    surfaceNode->renderProperties_.frameGravity_ = Gravity::TOP;
-    surfaceNode->renderProperties_.SetBoundsHeight(DEFAULT_CANVAS_HEIGHT_1K);
+    surfaceNode->GetMutableRenderProperties().frameGravity_ = Gravity::TOP;
+    surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT_1K);
     composerAdapter_->screenInfo_.rotation = ScreenRotation::ROTATION_90;
     composerAdapter_->DealWithNodeGravity(*surfaceNode, info);
 }
@@ -342,8 +342,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity004, TestSize.Level1
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
-    surfaceNode->renderProperties_.SetBoundsWidth(DEFAULT_CANVAS_WIDTH);
-    surfaceNode->renderProperties_.SetBoundsHeight(DEFAULT_CANVAS_HEIGHT);
+    surfaceNode->GetMutableRenderProperties().SetBoundsWidth(DEFAULT_CANVAS_WIDTH);
+    surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT);
     ASSERT_NE(surfaceNode, nullptr);
     RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(dstRect);
@@ -353,8 +353,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity004, TestSize.Level1
     info.buffer->SetSurfaceBufferWidth(DEFAULT_CANVAS_WIDTH);
     info.buffer->SetSurfaceBufferHeight(DEFAULT_CANVAS_HEIGHT);
 
-    surfaceNode->renderProperties_.frameGravity_ = Gravity::TOP;
-    surfaceNode->renderProperties_.SetBoundsHeight(DEFAULT_CANVAS_HEIGHT_1K);
+    surfaceNode->GetMutableRenderProperties().frameGravity_ = Gravity::TOP;
+    surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT_1K);
     composerAdapter_->screenInfo_.rotation = ScreenRotation::ROTATION_270;
     composerAdapter_->DealWithNodeGravity(*surfaceNode, info);
 }
@@ -369,8 +369,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity005, TestSize.Level1
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
-    surfaceNode->renderProperties_.SetBoundsWidth(DEFAULT_CANVAS_WIDTH);
-    surfaceNode->renderProperties_.SetBoundsHeight(DEFAULT_CANVAS_HEIGHT);
+    surfaceNode->GetMutableRenderProperties().SetBoundsWidth(DEFAULT_CANVAS_WIDTH);
+    surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT);
     ASSERT_NE(surfaceNode, nullptr);
     RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(dstRect);
@@ -380,8 +380,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity005, TestSize.Level1
     info.buffer->SetSurfaceBufferWidth(DEFAULT_CANVAS_WIDTH);
     info.buffer->SetSurfaceBufferHeight(DEFAULT_CANVAS_HEIGHT);
 
-    surfaceNode->renderProperties_.frameGravity_ = Gravity::TOP;
-    surfaceNode->renderProperties_.SetBoundsHeight(DEFAULT_CANVAS_HEIGHT_1K);
+    surfaceNode->GetMutableRenderProperties().frameGravity_ = Gravity::TOP;
+    surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT_1K);
     composerAdapter_->screenInfo_.rotation = ScreenRotation::ROTATION_180;
     composerAdapter_->DealWithNodeGravity(*surfaceNode, info);
 }
@@ -945,8 +945,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SrcRectRotateTransform005, TestSize.Lev
     RectI rect{DEFAULT_CANVAS_WIDTH * 0.5, DEFAULT_CANVAS_HEIGHT * 0.5, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(rect);
     surfaceNode->SetDstRect(rect);
-    surfaceNode->renderProperties_.SetBoundsWidth(DEFAULT_CANVAS_WIDTH * 1.5);
-    surfaceNode->renderProperties_.SetBoundsHeight(DEFAULT_CANVAS_HEIGHT * 1.5);
+    surfaceNode->GetMutableRenderProperties().SetBoundsWidth(DEFAULT_CANVAS_WIDTH * 1.5);
+    surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT * 1.5);
     surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT90);
     auto srcRect = composerAdapter_->SrcRectRotateTransform(*surfaceNode);
     ASSERT_EQ(srcRect.top_, DEFAULT_CANVAS_WIDTH * 0.5);

@@ -90,6 +90,14 @@ public:
     static GSError GetHDRStaticMetadata(const sptr<SurfaceBuffer>& buffer, std::vector<uint8_t>& hdrStaticMetadata);
 
 private:
+    static constexpr uint32_t PRIMARIES_MASK =
+        static_cast<uint32_t>(HDI::Display::Graphic::Common::V1_0::CM_PRIMARIES_MASK);
+    static constexpr uint32_t TRANSFUNC_MASK =
+        static_cast<uint32_t>(HDI::Display::Graphic::Common::V1_0::CM_TRANSFUNC_MASK);
+    static constexpr uint32_t MATRIX_MASK =
+        static_cast<uint32_t>(HDI::Display::Graphic::Common::V1_0::CM_MATRIX_MASK);
+    static constexpr uint32_t RANGE_MASK =
+        static_cast<uint32_t>(HDI::Display::Graphic::Common::V1_0::CM_RANGE_MASK);
     static constexpr uint32_t TRANSFUNC_OFFSET = 8;
     static constexpr uint32_t MATRIX_OFFSET = 16;
     static constexpr uint32_t RANGE_OFFSET = 21;

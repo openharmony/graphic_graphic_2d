@@ -883,6 +883,8 @@ public:
     {
         return ancestorDisplayNode_;
     }
+    bool GetHasSharedTransitionNode() const;
+    void SetHasSharedTransitionNode(bool hasSharedTransitionNode);
 private:
     void OnResetParent() override;
     void ClearChildrenCache();
@@ -1084,7 +1086,11 @@ private:
 #endif
     bool isForeground_ = false;
 
+<<<<<<< HEAD
     RSBaseRenderNode::WeakPtr ancestorDisplayNode_;
+=======
+    bool hasSharedTransitionNode_ = false;
+>>>>>>> master
 
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;

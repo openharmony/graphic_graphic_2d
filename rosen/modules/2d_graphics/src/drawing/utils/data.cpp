@@ -48,6 +48,11 @@ bool Data::BuildUninitialized(size_t length)
     return impl_->BuildUninitialized(length);
 }
 
+bool Data::BuildEmpty()
+{
+    return impl_->BuildEmpty();
+}
+
 size_t Data::GetSize() const
 {
     return impl_->GetSize();

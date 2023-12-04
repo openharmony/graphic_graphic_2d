@@ -117,8 +117,10 @@ static void TestDrawingDataSerialization(size_t size)
     /**
      * @tc.steps: step1. create SkData with size
      */
-    std::shared_ptr<Drawing::Data> drawingData;
-    if (size != 0) {
+    auto drawingData = std::make_shared<Drawing::Data>;
+    if (size == 0) {
+        drawingData->BuildEmpty();
+    } else {
         unsigned char originalData[size];
         drawingData->BuildWithCopy(originalData, size);
     }
@@ -173,8 +175,10 @@ static void TestDrawingDataSerializationWithCopy(size_t size)
     /**
      * @tc.steps: step1. create SkData with size
      */
-    std::shared_ptr<Drawing::Data> drawingData;
-    if (size != 0) {
+    auto drawingData = std::make_shared<Drawing::Data>;
+    if (size == 0) {
+        drawingData->BuildEmpty();
+    } else {
         unsigned char originalData[size];
         drawingData->BuildWithoutCopy(originalData, size);
     }

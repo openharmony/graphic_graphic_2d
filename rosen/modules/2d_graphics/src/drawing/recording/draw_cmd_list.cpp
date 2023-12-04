@@ -97,6 +97,7 @@ void DrawCmdList::ClearOp()
     opAllocator_.Add(&height_, sizeof(int32_t));
     imageAllocator_.ClearData();
     unmarshalledOpItems_.clear();
+    lastOpGenSize_ = 0;
     lastOpItemOffset_ = std::nullopt;
 }
 
@@ -177,6 +178,8 @@ void DrawCmdList::UnmarshallingOps()
     }
 
     UnmarshallingPlayer player = { *this };
+    unmarshalledOpItems_.clear();
+    lastOpGenSize_ = 0;
 
     uint32_t opReplaceIndex = 0;
     do {
@@ -212,6 +215,7 @@ void DrawCmdList::UnmarshallingOps()
         }
         offset = curOpItemPtr->GetNextOpItemOffset();
     } while (offset != 0);
+    lastOpGenSize_ = opAllocator_.GetSize();
 }
 
 std::vector<std::shared_ptr<DrawOpItem>> DrawCmdList::UnmarshallingCmdList()
@@ -246,7 +250,7 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect)
         return;
     }
     uint32_t offset = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
-    if (opAllocator_.GetSize() <= offset && unmarshalledOpItems_.size() == 0) {
+    if (width_ <= 0 || height_ <= 0 || (opAllocator_.GetSize() <= offset && unmarshalledOpItems_.size() == 0)) {
         return;
     }
 
@@ -268,29 +272,28 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect)
         tmpRect = *rect;
     }
 
-    if (!unmarshalledOpItems_.empty()) {
+    if (lastOpGenSize_ != opAllocator_.GetSize() || unmarshalledOpItems_.size() == 0) {
+        UnmarshallingPlayer player = { *this };
+        unmarshalledOpItems_.clear();
+        do {
+            void* itemPtr = opAllocator_.OffsetToAddr(offset);
+            auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
+            if (curOpItemPtr != nullptr) {
+                uint32_t type = curOpItemPtr->GetType();
+                auto op = player.Unmarshalling(type, itemPtr);
+                if (op) {
+                    unmarshalledOpItems_.emplace_back(op);
+                    op->Playback(&canvas, &tmpRect);
+                }
+                offset = curOpItemPtr->GetNextOpItemOffset();
+            }
+        } while (offset != 0);
+        lastOpGenSize_ = opAllocator_.GetSize();
+    } else {
         for (auto op : unmarshalledOpItems_) {
             op->Playback(&canvas, &tmpRect);
         }
-        return;
     }
-
-    UnmarshallingPlayer player = { *this };
-    do {
-        void* itemPtr = opAllocator_.OffsetToAddr(offset);
-        auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
-        if (curOpItemPtr == nullptr) {
-            LOGE("DrawCmdList::Playback failed, opItem is nullptr");
-            break;
-        }
-        uint32_t type = curOpItemPtr->GetType();
-        auto op = player.Unmarshalling(type, itemPtr);
-        if (op) {
-            unmarshalledOpItems_.emplace_back(op);
-            op->Playback(&canvas, &tmpRect);
-        }
-        offset = curOpItemPtr->GetNextOpItemOffset();
-    } while (offset != 0);
 }
 
 void DrawCmdList::GenerateCache(Canvas* canvas, const Rect* rect)
@@ -416,30 +419,23 @@ void DrawCmdList::SetReplacedOpList(std::vector<std::pair<uint32_t, uint32_t>> r
 
 void DrawCmdList::AddOpToCmdList(std::shared_ptr<DrawCmdList> cmdList)
 {
-    CmdListHandle handle = { 0 };
-    handle.type = GetType();
-
-    auto data = GetData();
-    if (data.first != nullptr && data.second != 0) {
-        handle.offset = cmdList->AddCmdListData(data);
-        handle.size = data.second;
-    } else {
+    uint32_t offset = 2 * sizeof(int32_t);
+    void* addr = opAllocator_.OffsetToAddr(offset);
+    if (addr == nullptr) {
         return;
-    }
-
-    auto imageData = GetAllImageData();
-    if (imageData.first != nullptr && imageData.second != 0) {
-        handle.imageOffset = cmdList->AddImageData(imageData.first, imageData.second);
-        handle.imageSize = imageData.second;
     }
 
 #ifdef SUPPORT_OHOS_PIXMAP
     imageObjectVec_.swap(cmdList->imageObjectVec_);
 #endif
     imageBaseOjVec_.swap(cmdList->imageBaseOjVec_);
-
-    cmdList->AddOp<DrawCmdListOpItem::ConstructorHandle>(handle);
-    return;
+    size_t size = opAllocator_.GetSize() - offset;
+    auto imageData = GetAllImageData();
+    std::lock_guard<std::mutex> lock(cmdList->mutex_);
+    cmdList->opAllocator_.Add(addr, size);
+    if (imageData.first != nullptr && imageData.second != 0) {
+        cmdList->imageAllocator_.Add(imageData.first, imageData.second);
+    }
 }
 
 } // namespace Drawing

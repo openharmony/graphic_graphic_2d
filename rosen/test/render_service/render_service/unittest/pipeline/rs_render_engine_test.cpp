@@ -424,7 +424,7 @@ HWTEST_F(RSRenderEngineTest, ProcessSurfaceRenderNodeWithUni001, Function | Smal
     bool isUnirender = RSUniRenderJudgement::IsUniRender();
     ASSERT_NE(nullptr, visitor_);
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->renderProperties_.SetBackgroundFilter(nullptr);
+    surfaceNode->GetMutableRenderProperties().SetBackgroundFilter(nullptr);
     if (isUnirender) {
         visitor_->CaptureSurfaceInDisplayWithUni(*surfaceNode);
     }
@@ -526,8 +526,8 @@ HWTEST_F(RSRenderEngineTest, ProcessSurfaceRenderNode006, Function | SmallTest |
     bool isUnirender = RSUniRenderJudgement::IsUniRender();
     ASSERT_NE(nullptr, visitor_);
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->renderProperties_.SetVisible(true);
-    surfaceNode->renderProperties_.SetAlpha(DEFAULT_BOUNDS_WIDTH);
+    surfaceNode->GetMutableRenderProperties().SetVisible(true);
+    surfaceNode->GetMutableRenderProperties().SetAlpha(DEFAULT_BOUNDS_WIDTH);
     if (!isUnirender) {
         visitor_->ProcessSurfaceRenderNodeWithoutUni(*surfaceNode);
     }
@@ -544,8 +544,8 @@ HWTEST_F(RSRenderEngineTest, ProcessSurfaceRenderNode007, Function | SmallTest |
     bool isUnirender = RSUniRenderJudgement::IsUniRender();
     ASSERT_NE(nullptr, visitor_);
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->renderProperties_.SetVisible(true);
-    surfaceNode->renderProperties_.SetAlpha(.0f);
+    surfaceNode->GetMutableRenderProperties().SetVisible(true);
+    surfaceNode->GetMutableRenderProperties().SetAlpha(.0f);
     if (isUnirender) {
         visitor_->ProcessSurfaceRenderNode(*surfaceNode);
     }

@@ -110,6 +110,7 @@ public:
 private:
     MemAllocator largeObjectAllocator_;
     std::vector<std::shared_ptr<DrawOpItem>> unmarshalledOpItems_;
+    size_t lastOpGenSize_ = 0;
     int32_t width_;
     int32_t height_;
     std::vector<std::pair<uint32_t, uint32_t>> replacedOpList_;

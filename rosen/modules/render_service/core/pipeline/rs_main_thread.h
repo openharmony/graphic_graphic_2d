@@ -194,6 +194,10 @@ public:
     {
         forceUpdateUniRenderFlag_ = flag;
     }
+    void SetIdleTimerExpiredFlag(bool flag)
+    {
+        idleTimerExpiredFlag_ = flag;
+    }
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> GetWatermarkImg();
 #else
@@ -444,6 +448,7 @@ private:
     bool noBundle_ = false;
     std::string currentBundleName_ = "";
     bool forceUpdateUniRenderFlag_ = false;
+    bool idleTimerExpiredFlag_ = false;
     // for ui first
     std::mutex mutex_;
 #ifndef USE_ROSEN_DRAWING

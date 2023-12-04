@@ -598,7 +598,7 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
                 AssignMainThreadNode(mainThreadNodes, node);
             }
         } else { // PC or TABLET
-            if (node->GetId() == realFocusNodeId) {
+            if (node->GetId() == realFocusNodeId && node->GetHasSharedTransitionNode()) {
                 AssignMainThreadNode(mainThreadNodes, node);
                 continue;
             }

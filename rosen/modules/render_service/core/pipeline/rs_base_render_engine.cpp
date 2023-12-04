@@ -702,7 +702,14 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    sk_sp<SkShader> imageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
+    SkMatrix matrix;
+    auto sx = params.dstRect.width() / params.srcRect.width();
+    auto sy = params.dstRect.height() / params.srcRect.height();
+    matrix.setScaleTranslate(sx, sy, params.dstRect.x(), params.dstRect.y());
+    auto samplingOptions = RSSystemProperties::IsPhoneType()
+                            ? SkSamplingOptions()
+                            : SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
+    sk_sp<SkShader> imageShader = image->makeShader(samplingOptions, matrix);
     if (imageShader == nullptr) {
         RS_LOGE("RSBaseRenderEngine::DrawImage imageShader is nullptr.");
     } else {

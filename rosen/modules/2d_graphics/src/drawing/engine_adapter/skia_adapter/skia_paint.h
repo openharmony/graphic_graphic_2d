@@ -58,7 +58,7 @@ struct SkStyleFillCore {
         maskFilter_ = nullptr;
     }
 
-    bool operator==(const SkStyleFillCore& other)
+    bool operator==(const SkStyleFillCore& other) const
     {
         return antiAlias_ == other.antiAlias_ && alpha_ == other.alpha_ && color_ == other.color_ &&
                blendMode_ == other.blendMode_ && colorSpace_ == other.colorSpace_ && shader_ == other.shader_ &&

@@ -133,6 +133,20 @@ bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 }
 }
 
+void DoScreenRcdTask(std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo)
+{
+    if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
+        RSSingleton<RoundCornerDisplay>::GetInstance().RunHardwareTask(
+            [&processor, &rcdInfo]() {
+                auto hardInfo = RSSingleton<RoundCornerDisplay>::GetInstance().GetHardwareInfo();
+                rcdInfo->processInfo = {processor, hardInfo.topLayer, hardInfo.bottomLayer,
+                    hardInfo.resourceChanged};
+                RSRcdRenderManager::GetInstance().DoProcessRenderTask(rcdInfo->processInfo);
+            }
+        );
+    }
+}
+
 #if defined(RS_ENABLE_PARALLEL_RENDER) && (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK))
 constexpr uint32_t PARALLEL_RENDER_MINIMUM_RENDER_NODE_NUMBER = 50;
 #endif
@@ -273,6 +287,15 @@ void RSUniRenderVisitor::UpdateStaticCacheSubTree(const std::shared_ptr<RSRender
         }
         if (child->GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
             child->SetDrawingCacheChanged(false);
+        }
+        // set flag for surface node whose children contain shared transition node
+        if (child->GetSharedTransitionParam().has_value()) {
+            curSurfaceNode_->SetHasSharedTransitionNode(true);
+            auto leashNode =
+                RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(curSurfaceNode_->GetParent().lock());
+            if (leashNode && leashNode->GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
+                leashNode->SetHasSharedTransitionNode(true);
+            }
         }
         // [planning] pay attention to outofparent case
         if (auto surfaceNode = child->ReinterpretCastTo<RSSurfaceRenderNode>()) {
@@ -738,7 +761,8 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
     prepareClipRect_.SetAll(0, 0, screenInfo_.width, screenInfo_.height);
     // rcd message send
-    if (!node.IsMirrorDisplay()) {
+    if ((screenInfo_.state == ScreenState::HDI_OUTPUT_ENABLE) &&
+        RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
         using rcd_msg = RSSingleton<RsMessageBus>;
         rcd_msg::GetInstance().SendMsg<uint32_t, uint32_t>(TOPIC_RCD_DISPLAY_SIZE,
             screenInfo_.width, screenInfo_.height);
@@ -1135,6 +1159,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         PrepareSubSurfaceNodes(node);
         return;
     }
+    node.SetHasSharedTransitionNode(false);
     // reset HasSecurityLayer
     node.SetHasSecurityLayer(false);
     node.SetHasSkipLayer(false);
@@ -1934,8 +1959,7 @@ void RSUniRenderVisitor::ProcessShadowFirst(RSRenderNode& node, bool inSubThread
 
 void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
 {
-    if (DrawBlurInCache(node) || node.GetChildrenCount() == 0 ||
-        (canvas_ && canvas_->getDeviceClipBounds().isEmpty())) {
+    if (DrawBlurInCache(node) || node.GetChildrenCount() == 0) {
         return;
     }
 
@@ -2373,7 +2397,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             curDisplayDirtyManager_->UpdateDirty(isDirtyRegionAlignedEnable_);
         }
         if (isOpDropped_ && dirtySurfaceNodeMap_.empty()
-            && !curDisplayDirtyManager_->IsCurrentFrameDirty() && !forceUpdateFlag_) {
+            && !curDisplayDirtyManager_->IsCurrentFrameDirty()) {
             RS_LOGD("DisplayNode skip");
             RS_TRACE_NAME("DisplayNode skip");
             resetRotate_ = CheckIfNeedResetRotate();
@@ -2390,7 +2414,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             if (!RSMainThread::Instance()->WaitHardwareThreadTaskExcute()) {
                 RS_LOGW("RSUniRenderVisitor::ProcessDisplayRenderNode: hardwareThread task has too many to excute");
             }
-            if (needCreateDisplayNodeLayer) {
+            if (needCreateDisplayNodeLayer || forceUpdateFlag_) {
                 processor_->ProcessDisplaySurface(node);
                 processor_->PostProcess(&node);
             }
@@ -2633,6 +2657,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 // render directly
                 ProcessChildren(node);
             }
+            SwitchColorFilterDrawing(saveCount);
             canvas_->RestoreToCount(saveCount);
 #endif
         }
@@ -2722,9 +2747,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #ifdef ENABLE_RECORDING_DCL
         endCapture();
 #endif
-        if (node.IsMirrorDisplay()) {
-            RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode, mirror without roundcornerdisplay");
-        } else {
+        if ((screenInfo_.state == ScreenState::HDI_OUTPUT_ENABLE) &&
+            RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
             RSSingleton<RoundCornerDisplay>::GetInstance().DrawRoundCorner(canvas_);
         }
         auto mainThread = RSMainThread::Instance();
@@ -2763,17 +2787,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     }
 #endif
 
-    if (node.IsMirrorDisplay()) {
-        RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode, mirror without roundcornerdisplay");
-    } else {
-        RSSingleton<RoundCornerDisplay>::GetInstance().RunHardwareTask(
-            [this]() {
-                auto hardInfo = RSSingleton<RoundCornerDisplay>::GetInstance().GetHardwareInfo();
-                rcdInfo_->processInfo = {processor_, hardInfo.topLayer, hardInfo.bottomLayer,
-                    hardInfo.resourceChanged};
-                RSRcdRenderManager::GetInstance().DoProcessRenderTask(rcdInfo_->processInfo);
-            }
-        );
+    if (screenInfo_.state == ScreenState::HDI_OUTPUT_ENABLE) {
+        DoScreenRcdTask(processor_, rcdInfo_);
     }
 
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExcute()) {
@@ -2803,13 +2818,16 @@ void RSUniRenderVisitor::DrawSurfaceLayer(const std::shared_ptr<RSDisplayRenderN
     const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes) const
 {
     auto subThreadManager = RSSubThreadManager::Instance();
-    subThreadManager->StartRCDThread(renderEngine_->GetRenderContext().get());
+    if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
+        subThreadManager->StartRCDThread(renderEngine_->GetRenderContext().get());
+    }
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     subThreadManager->StartFilterThread(renderEngine_->GetRenderContext().get());
     subThreadManager->StartColorPickerThread(renderEngine_->GetRenderContext().get());
     subThreadManager->SubmitSubThreadTask(displayNode, subThreadNodes);
 #endif
 }
+
 #ifndef USE_ROSEN_DRAWING
 void RSUniRenderVisitor::SwitchColorFilterDrawing(int currentSaveCount)
 {
@@ -2859,8 +2877,8 @@ void RSUniRenderVisitor::SwitchColorFilterDrawing(int currentSaveCount)
             RSTagTracker::TAG_SAVELAYER_COLOR_FILTER);
 #endif
 #endif
-        Drawing::SaveLayerOps rec(nullptr, &brush, Drawing::SaveLayerOps::INIT_WITH_PREVIOUS);
-        canvas_->SaveLayer(rec);
+        Drawing::SaveLayerOps slr(nullptr, &brush, Drawing::SaveLayerOps::INIT_WITH_PREVIOUS);
+        canvas_->SaveLayer(slr);
         canvas_->RestoreToCount(currentSaveCount);
     }
 }
@@ -4119,24 +4137,9 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     ProcessCanvasRenderNode(node);
     canvas_->restoreToCount(saveCount);
 #else
-    ColorFilterMode colorFilterMode = renderEngine_->GetColorFilterMode();
     int saveCount;
-    if (colorFilterMode >= ColorFilterMode::INVERT_COLOR_ENABLE_MODE &&
-        colorFilterMode <= ColorFilterMode::INVERT_DALTONIZATION_TRITANOMALY_MODE) {
-        RS_LOGD("RsDebug RSBaseRenderEngine::SetColorFilterModeToPaint mode:%{public}d",
-            static_cast<int32_t>(colorFilterMode));
-
-        Drawing::Brush brush;
-        RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, brush);
-        RSTagTracker tagTracker(renderEngine_->GetRenderContext()->GetDrGPUContext(),
-                                RSTagTracker::TAG_SAVELAYER_COLOR_FILTER);
-        Drawing::SaveLayerOps saveLayerOps(nullptr, &brush);
-        saveCount = canvas_->GetSaveCount();
-        canvas_->SaveLayer(saveLayerOps);
-    } else {
-        saveCount = canvas_->GetSaveCount();
-        canvas_->Save();
-    }
+    saveCount = canvas_->GetSaveCount();
+    canvas_->Save();
     ProcessCanvasRenderNode(node);
     canvas_->RestoreToCount(saveCount);
 #endif
@@ -4321,7 +4324,7 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
 void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 {
     processedCanvasNodeInCurrentSurface_++;
-    if (!node.ShouldPaint()) {
+    if (!node.ShouldPaint() || (canvas_ && canvas_->getDeviceClipBounds().isEmpty())) {
         return;
     }
     node.MarkNodeSingleFrameComposer(isNodeSingleFrameComposer_);
@@ -4624,15 +4627,11 @@ bool RSUniRenderVisitor::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> r
         return false;
     }
     processor_ = RSProcessorFactory::CreateProcessor(displayNode->GetCompositeType());
-    if (processor_ == nullptr) {
-        RS_LOGE("RSUniRenderVisitor::DoDirectComposition: RSProcessor is null!");
+    if (processor_ == nullptr || renderEngine_ == nullptr) {
+        RS_LOGE("RSUniRenderVisitor::DoDirectComposition: RSProcessor or renderEngine is null!");
         return false;
     }
 
-    if (renderEngine_ == nullptr) {
-        RS_LOGE("RSUniRenderVisitor::DoDirectComposition: renderEngine is null!");
-        return false;
-    }
     if (!processor_->Init(*displayNode, displayNode->GetDisplayOffsetX(), displayNode->GetDisplayOffsetY(),
         INVALID_SCREEN_ID, renderEngine_)) {
         RS_LOGE("RSUniRenderVisitor::DoDirectComposition: processor init failed!");
@@ -4647,6 +4646,7 @@ bool RSUniRenderVisitor::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> r
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExcute()) {
         RS_LOGW("RSUniRenderVisitor::DoDirectComposition: hardwareThread task has too many to excute");
     }
+    DoScreenRcdTask(processor_, rcdInfo_);
     processor_->PostProcess(displayNode.get());
     RS_LOGD("RSUniRenderVisitor::DoDirectComposition end");
     return true;
@@ -4718,6 +4718,13 @@ bool RSUniRenderVisitor::ParallelComposition(const std::shared_ptr<RSBaseRenderN
 
 void RSUniRenderVisitor::PrepareSharedTransitionNode(RSBaseRenderNode& node)
 {
+    // set flag for surface node whose children contain shared transition node
+    curSurfaceNode_->SetHasSharedTransitionNode(true);
+    auto leashNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(curSurfaceNode_->GetParent().lock());
+    if (leashNode && leashNode->GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
+        leashNode->SetHasSharedTransitionNode(true);
+    }
+
     // Sanity check done by caller, transitionParam should always has value.
     auto& transitionParam = node.GetSharedTransitionParam();
 
