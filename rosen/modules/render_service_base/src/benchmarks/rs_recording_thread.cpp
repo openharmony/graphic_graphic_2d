@@ -191,7 +191,9 @@ void RSRecordingThread::FinishRecordingOneFrame()
     }
     auto modeSubThread = mode_;
     mode_ = RecordingMode::STOP_RECORDING;
+#ifdef RS_ENABLE_GL
     RSTaskMessage::RSTask task = [this, modeSubThread]() {
+#endif
         for (int curFrameIndex = 0; curFrameIndex < dumpFrameNum_; curFrameIndex++) {
             std::shared_ptr<MessageParcel> messageParcel = std::make_shared<MessageParcel>();
             std::string opsDescription = "drawing ops no description";
@@ -222,8 +224,10 @@ void RSRecordingThread::FinishRecordingOneFrame()
         fileDir_ = "";
         RSSystemProperties::SetRecordingDisenabled();
         RS_LOGD("RSRecordingThread::FinishRecordingOneFrame isRecordingEnabled = false");
+#ifdef RS_ENABLE_GL
     };
     PostTask(task);
+#endif
 }
 
 #ifndef USE_ROSEN_DRAWING
