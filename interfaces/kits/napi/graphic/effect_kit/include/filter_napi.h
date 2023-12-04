@@ -17,12 +17,15 @@
 #define FILTER_NAPI_H
 
 #include <memory>
+#include <mutex>
 #include <vector>
 #include "pixel_map_napi.h"
 #include "include/core/SkImageFilter.h"
 
 namespace OHOS {
 namespace Rosen {
+static std::mutex getPixelMapAsyncExecuteMutex_;
+static std::mutex getPixelMapAsyncCompleteMutex_;
 class FilterNapi {
 public:
     FilterNapi();
@@ -32,9 +35,12 @@ public:
 private:
     static thread_local napi_ref sConstructor_;
     static void Destructor(napi_env env, void* nativeObject, void* finalize_hint);
+    static void GetPixelMapAsyncExecute(napi_env env, void* data);
+    static void GetPixelMapAsyncComplete(napi_env env, napi_status status, void* data);
     static napi_value CreateEffect(napi_env env, napi_callback_info info);
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static napi_value GetPixelMap(napi_env env, napi_callback_info info);
+    static napi_value GetPixelMapAsync(napi_env env, napi_callback_info info);
     static napi_value Blur(napi_env env, napi_callback_info info);
     static napi_value Brightness(napi_env env, napi_callback_info info);
     static napi_value Grayscale(napi_env env, napi_callback_info info);
