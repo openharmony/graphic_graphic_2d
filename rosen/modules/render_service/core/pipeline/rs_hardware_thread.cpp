@@ -29,6 +29,7 @@
 #include "platform/common/rs_system_properties.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "rs_trace.h"
+#include "common/rs_optional_trace.h"
 #include "hdi_backend.h"
 #include "vsync_sampler.h"
 #include "parameters.h"
@@ -288,11 +289,8 @@ void RSHardwareThread::PerformSetActiveMode(OutputPtr output)
 
         auto supportedModes = screenManager->GetScreenSupportedModes(id);
         for (auto mode : supportedModes) {
-            std::string temp = "RSHardwareThread check modes w: " + std::to_string(mode.GetScreenWidth()) +
-                ", h: " + std::to_string(mode.GetScreenHeight()) +
-                ", rate: " + std::to_string(mode.GetScreenRefreshRate()) +
-                ", id: " + std::to_string(mode.GetScreenModeId());
-            RS_LOGD("%{public}s", temp.c_str());
+            RS_OPTIONAL_TRACE_NAME_FMT("RSHardwareThread check modes w: %d, h: %d, rate: %d, id: %d",
+                mode.GetScreenWidth(), mode.GetScreenHeight(), mode.GetScreenRefreshRate(), mode.GetScreenModeId());
         }
 
         screenManager->SetScreenActiveMode(id, modeId);

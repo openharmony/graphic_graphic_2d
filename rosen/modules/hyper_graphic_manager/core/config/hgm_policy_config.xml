@@ -84,5 +84,8 @@
         <DynamicSettings name="scrollable_drag_scene">
             <SpeedThresholds name="1" min="0" max="-1" preferred_fps="120"/>
         </DynamicSettings>
+        <DynamicSettings name="scrollBar_drag_scene">
+            <SpeedThresholds name="1" min="0" max="-1" preferred_fps="120"/>
+        </DynamicSettings>
     </Params>
 </HgmConfig>
