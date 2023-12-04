@@ -777,7 +777,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     isParallel_ = false;
     newColorSpace_ = GRAPHIC_COLOR_GAMUT_SRGB;
     hasFingerprint_ = false;
-    newPixelFormat_ = GRAPHIC_COLOR_GAMUT_RGBA_8888;
+    newPixelFormat_ = GRAPHIC_PIXEL_FMT_RGBA_8888;
 #if defined(RS_ENABLE_PARALLEL_RENDER) && (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK))
     ParallelPrepareDisplayRenderNodeChildrens(node);
 #else
