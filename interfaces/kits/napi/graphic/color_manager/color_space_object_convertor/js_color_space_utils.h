@@ -140,7 +140,7 @@ const std::map<ApiColorSpaceType, ColorSpaceName> JS_TO_NATIVE_COLOR_SPACE_NAME_
     { ApiColorSpaceType::CUSTOM, ColorSpaceName::CUSTOM },
 };
 
-const std::map<ApiColorSpaceType, std::string> JS_TO_STRING_MAP = {
+const std::multimap<ApiColorSpaceType, std::string> JS_TO_STRING_MAP = {
     { ApiColorSpaceType::UNKNOWN, "UNKNOWN" },
     { ApiColorSpaceType::ADOBE_RGB_1998, "ADOBE_RGB_1998" },
     { ApiColorSpaceType::DCI_P3, "DCI_P3" },
