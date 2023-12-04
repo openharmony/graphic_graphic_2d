@@ -1086,11 +1086,8 @@ private:
 #endif
     bool isForeground_ = false;
 
-<<<<<<< HEAD
     RSBaseRenderNode::WeakPtr ancestorDisplayNode_;
-=======
     bool hasSharedTransitionNode_ = false;
->>>>>>> master
 
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;
