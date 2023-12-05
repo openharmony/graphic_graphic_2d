@@ -158,6 +158,12 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
             return;
         }
 
+        const auto& property = node.GetRenderProperties();
+        auto geoPtr = (property.GetBoundsGeometry());
+        if (geoPtr) {
+            canvas_->setMatrix(geoPtr->GetAbsMatrix());
+        }
+
 #ifndef USE_ROSEN_DRAWING
         canvas_->save();
         canvas_->clear(SK_ColorBLACK);
