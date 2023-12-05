@@ -1254,7 +1254,7 @@ void RSPropertiesPainter::DrawLinearGradientBlurFilter(
 {
     const auto& para = properties.GetLinearGradientBlurPara();
     if (para == nullptr || para->blurRadius_ <= 0) {
-        ROSEN_LOGE("RSPropertiesPainter::DrawLinearGradientBlurFilter para invalid");
+        ROSEN_LOGD("RSPropertiesPainter::DrawLinearGradientBlurFilter para invalid");
         return;
     }
     RS_TRACE_NAME("DrawLinearGradientBlurFilter");
@@ -2050,6 +2050,14 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     auto boundsGeo = (properties.GetBoundsGeometry());
     if (boundsGeo && !boundsGeo->IsEmpty()) {
         auto transMat = canvas.getTotalMatrix();
+        /* transMat.getSkewY() is the sin of the rotation angle(sin0 = 0,sin90 =1 sin180 = 0,sin270 = -1),
+            if transMat.getSkewY() is not 0 or -1 or 1,the rotation angle is not a multiple of 90,not Stretch*/
+        if (ROSEN_EQ(transMat.getSkewY(), 0.f) || ROSEN_EQ(transMat.getSkewY(), 1.f) ||
+            ROSEN_EQ(transMat.getSkewY(), -1.f)) {
+        } else {
+            ROSEN_LOGD("rotate degree is not 0 or 90 or 180 or 270,return.");
+            return;
+        }
         rotateMat.setScale(transMat.getScaleX(), transMat.getScaleY());
         rotateMat.setSkewX(transMat.getSkewX());
         rotateMat.setSkewY(transMat.getSkewY());
@@ -2094,7 +2102,7 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     canvas.ClipRect(bounds, Drawing::ClipOp::INTERSECT, false);
     auto tmpBounds = canvas.GetDeviceClipBounds();
     Drawing::Rect clipBounds(
-        tmpBounds.GetLeft(), tmpBounds.GetTop(), tmpBounds.GetWidth() - 1, tmpBounds.GetHeight() - 1);
+        tmpBounds.GetLeft(), tmpBounds.GetTop(), tmpBounds.GetRight() - 1, tmpBounds.GetBottom() - 1);
     canvas.Restore();
 
     /*  Calculates the relative coordinates of the clipbounds
@@ -2143,7 +2151,7 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     canvas.Save();
     canvas.Translate(bounds.GetLeft(), bounds.GetTop());
     Drawing::SamplingOptions samplingOptions;
-    if (pixelStretch->x_ < 0) {
+    if (pixelStretch->x_ > 0) {
         brush.SetShaderEffect(Drawing::ShaderEffect::CreateImageShader(
             *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, scaleMat));
         canvas.AttachBrush(brush);
@@ -2271,13 +2279,7 @@ void RSPropertiesPainter::DrawBackground(const RSProperties& properties, RSPaint
         Drawing::AutoCanvasRestore acr(canvas, true);
         canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, antiAlias);
         auto shaderEffect = bgShader->GetDrawingShader();
-        if (shaderEffect && shaderEffect->GetDrawingType() == Drawing::DrawingType::RECORDING) {
-            auto shader =
-                std::static_pointer_cast<Drawing::RecordingShaderEffect>(shaderEffect)->GetCmdList()->Playback();
-            brush.SetShaderEffect(shader);
-        } else {
-            brush.SetShaderEffect(shaderEffect);
-        }
+        brush.SetShaderEffect(shaderEffect);
         canvas.DrawBackground(brush);
     }
     if (const auto& bgImage = properties.GetBgImage()) {
@@ -2467,13 +2469,14 @@ void RSPropertiesPainter::DrawBorderLight(const RSProperties& properties, SkCanv
     lightBuilder->uniform("specularStrength") = SkV3 { strength, 0, 0 };
     shader = lightBuilder->makeShader(nullptr, false);
     paint.setShader(shader);
-    paint.setStrokeWidth(6);
+    float borderWidth = std::ceil(properties.GetIlluminatedBorderWidth());
+    paint.setStrokeWidth(borderWidth);
     paint.setStyle(SkPaint::Style::kStroke_Style);
     auto borderRect = properties.GetRRect().rect_;
     float borderRadius = properties.GetRRect().radius_[0].x_;
-    auto borderRRect =
-        RRect(RectF(borderRect.left_ + 3, borderRect.top_ + 3, borderRect.width_ - 6, borderRect.height_ - 6),
-            borderRadius - 3, borderRadius - 3);
+    auto borderRRect = RRect(RectF(borderRect.left_ + borderWidth / 2.0f, borderRect.top_ + borderWidth / 2.0f,
+                                 borderRect.width_ - borderWidth, borderRect.height_ - borderWidth),
+        borderRadius - borderWidth / 2.0f, borderRadius - borderWidth / 2.0f);
     canvas.drawRRect(RRect2SkRRect(borderRRect), paint);
 }
 #endif

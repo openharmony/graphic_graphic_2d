@@ -51,6 +51,46 @@ RSCanvasDrawingRenderNode::~RSCanvasDrawingRenderNode()
 #endif
 }
 
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+bool RSCanvasDrawingRenderNode::ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas)
+{
+    auto preMatrix = canvas_->getTotalMatrix();
+    auto preSurface = skSurface_;
+    if (!ResetSurface(width, height, canvas)) {
+        return false;
+    }
+    auto image = preSurface->makeImageSnapshot();
+    if (!image) {
+        return false;
+    }
+    GrSurfaceOrigin origin = kBottomLeft_GrSurfaceOrigin;
+    auto sharedBackendTexture = image->getBackendTexture(false, &origin);
+    if (!sharedBackendTexture.isValid()) {
+        RS_LOGE("RSCanvasDrawingRenderNode::ResetSurfaceWithTexture sharedBackendTexture is nullptr");
+        return false;
+    }
+    auto sharedTexture = SkImage::MakeFromTexture(
+        canvas.recordingContext(), sharedBackendTexture, origin, image->colorType(), image->alphaType(), nullptr);
+    if (sharedTexture == nullptr) {
+        RS_LOGE("RSCanvasDrawingRenderNode::ResetSurfaceWithTexture sharedTexture is nullptr");
+        return false;
+    }
+    if (RSSystemProperties::GetRecordingEnabled()) {
+        if (sharedTexture->isTextureBacked()) {
+            RS_LOGI("RSCanvasDrawingRenderNode::ResetSurfaceWithTexture sharedTexture from texture to raster image");
+            sharedTexture = sharedTexture->makeRasterImage();
+        }
+    }
+    canvas_->drawImage(sharedTexture, 0.f, 0.f);
+    if (preThreadInfo_.second && preSurface) {
+        preThreadInfo_.second(std::move(preSurface));
+    }
+    preThreadInfo_ = curThreadInfo_;
+    canvas_->setMatrix(preMatrix);
+    return true;
+}
+#endif
+
 #ifndef USE_ROSEN_DRAWING
 void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canvas)
 {
@@ -71,39 +111,9 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
         }
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     } else if ((isGpuSurface_) && (preThreadInfo_.first != curThreadInfo_.first)) {
-        auto preMatrix = canvas_->getTotalMatrix();
-        auto preSurface = skSurface_;
-        if (!ResetSurface(width, height, canvas)) {
+        if (!ResetSurfaceWithTexture(width, height, canvas)) {
             return;
         }
-        auto image = preSurface->makeImageSnapshot();
-        if (!image) {
-            return;
-        }
-        GrSurfaceOrigin origin = kBottomLeft_GrSurfaceOrigin;
-        auto sharedBackendTexture = image->getBackendTexture(false, &origin);
-        if (!sharedBackendTexture.isValid()) {
-            RS_LOGE("RSCanvasDrawingRenderNode::ProcessRenderContents sharedBackendTexture is nullptr");
-            return;
-        }
-        auto sharedTexture = SkImage::MakeFromTexture(
-            canvas.recordingContext(), sharedBackendTexture, origin, image->colorType(), image->alphaType(), nullptr);
-        if (sharedTexture == nullptr) {
-            RS_LOGE("RSCanvasDrawingRenderNode::ProcessRenderContents sharedTexture is nullptr");
-            return;
-        }
-        if (RSSystemProperties::GetRecordingEnabled()) {
-            if (sharedTexture->isTextureBacked()) {
-                RS_LOGI("RSCanvasDrawingRenderNode::ProcessRenderContents sharedTexture from texture to raster image");
-                sharedTexture = sharedTexture->makeRasterImage();
-            }
-        }
-        canvas_->drawImage(sharedTexture, 0.f, 0.f);
-        if (preThreadInfo_.second && preSurface) {
-            preThreadInfo_.second(std::move(preSurface));
-        }
-        preThreadInfo_ = curThreadInfo_;
-        canvas_->setMatrix(preMatrix);
     }
 #else
     }
@@ -115,7 +125,7 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
 
     SkMatrix mat;
     if (RSPropertiesPainter::GetGravityMatrix(
-        GetRenderProperties().GetFrameGravity(), GetRenderProperties().GetFrameRect(), width, height, mat)) {
+            GetRenderProperties().GetFrameGravity(), GetRenderProperties().GetFrameRect(), width, height, mat)) {
         canvas.concat(mat);
     }
     skImage_ = skSurface_->makeImageSnapshot();

@@ -442,7 +442,6 @@ void RoundCornerDisplay::DrawRoundCorner(std::shared_ptr<RSPaintFilterCanvas>& c
         }
     }
 }
-} // namespace Rosen
 
 void RoundCornerDisplay::DrawRoundCorner(std::unique_ptr<RSPaintFilterCanvas>& canvas)
 {

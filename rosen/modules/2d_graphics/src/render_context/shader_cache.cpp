@@ -224,5 +224,31 @@ void ShaderCache::Store(const Drawing::Data& key, const Drawing::Data& data)
         deferredSaveThread.detach();
     }
 }
+
+size_t ShaderCache::QuerryShaderSize() const
+{
+    if (!cacheData_) {
+        LOGE("QuerryShaderSize: cachedata has been destructed");
+        return 0;
+    }
+    return cacheData_->GetTotalSize();
+}
+
+size_t ShaderCache::QuerryShaderNum() const
+{
+    if (!cacheData_) {
+        LOGE("QuerryShaderNum: cachedata has been destructed");
+        return 0;
+    }
+    return cacheData_->GetShaderNum();
+}
+
+size_t ShaderCache::CleanAllShaders() const
+{
+    if (cacheData_) {
+        cacheData_->Clear();
+    }
+    return 0;
+}
 }   // namespace Rosen
 }   // namespace OHOS

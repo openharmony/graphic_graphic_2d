@@ -140,6 +140,11 @@ constexpr int DEFAULT_SKIA_CACHE_COUNT          = 2 * (1 << 12);
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
 constexpr const char* MEM_GPU_TYPE = "gpu";
 #endif
+#ifdef RS_ENABLE_VK
+constexpr uint32_t DEFERRED_RELEASE_TIME_INTERVAL_MS = 200;
+constexpr uint32_t DEFERRED_RELEASE_TIME_INTERVAL_NS = 200000000;
+constexpr uint32_t DEFERRED_RELEASE_FRAME_COUNT = 50;
+#endif
 const std::map<int, int32_t> BLUR_CNT_TO_BLUR_CODE {
     { 1, 10021 },
     { 2, 10022 },
@@ -390,10 +395,12 @@ void RSMainThread::Init()
 
     frameRateMgr_ = std::make_unique<HgmFrameRateManager>();
     frameRateMgr_->Init(rsVSyncController_, appVSyncController_, vsyncGenerator_);
-    frameRateMgr_->SetTimerExpiredCallback([]() {
-        RSMainThread::Instance()->PostTask([]() {
-            RS_OPTIONAL_TRACE_NAME("RSMainThread::TimerExpiredCallback Run");
-            RSMainThread::Instance()->SetForceUpdateUniRenderFlag(true);
+    frameRateMgr_->SetForceUpdateCallback([](bool idleTimerExpired, bool forceUpdate) {
+        RSMainThread::Instance()->PostTask([idleTimerExpired, forceUpdate]() {
+            RS_TRACE_NAME_FMT("RSMainThread::TimerExpiredCallback Run idleTimerExpiredFlag: %s  forceUpdateFlag: %s",
+                idleTimerExpired? "True":"False", forceUpdate? "True": "False");
+            RSMainThread::Instance()->SetForceUpdateUniRenderFlag(forceUpdate);
+            RSMainThread::Instance()->SetIdleTimerExpiredFlag(idleTimerExpired);
             RSMainThread::Instance()->RequestNextVSync();
         });
     });
@@ -534,6 +541,23 @@ void RSMainThread::ProcessCommand()
             ClearMemoryCache(true);
             break;
         default:
+#ifdef RS_ENABLE_VK
+#ifdef NEW_RENDER_CONTEXT
+            auto grContext = GetRenderEngine()->GetDrawingContext()->GetDrawingContext();
+#else
+            auto grContext = GetRenderEngine()->GetRenderContext()->GetGrContext();
+#endif
+            // deferred release gpu resource
+            if (timestamp_ - lastDeferedCleanCacheTimestamp_ > DEFERRED_RELEASE_TIME_INTERVAL_NS) {
+                deferedCleanCount_ = 0;
+            } else if (deferedCleanCount_ > DEFERRED_RELEASE_FRAME_COUNT) {
+                MemoryManager::PerformDeferedCleanup(grContext,
+                    std::chrono::milliseconds(DEFERRED_RELEASE_TIME_INTERVAL_MS));
+            } else {
+                deferedCleanCount_++;
+            }
+            lastDeferedCleanCacheTimestamp_ = timestamp_;
+#endif
             break;
     }
     context_->purgeType_ = RSContext::PurgeType::NONE;
@@ -584,24 +608,15 @@ std::unordered_map<NodeId, bool> RSMainThread::GetCacheCmdSkippedNodes() const
     return cacheCmdSkippedNodes_;
 }
 
-void RSMainThread::ResetSubThreadGrContext()
+bool RSMainThread::CheckParallelSubThreadNodesStatus()
 {
-#ifdef RS_ENABLE_VK
-    constexpr uint64_t delayNumOfFrameCount_ = 2;
-    if (!needResetSubThreadGrContext_) {
-        needResetSubThreadGrContext_ = true;
-        frameCountForResetSubThreadGrContext_ = frameCount_.load();
-    } else if (frameCount_.load() > frameCountForResetSubThreadGrContext_ + delayNumOfFrameCount_) {
-        needResetSubThreadGrContext_ = false;
+    RS_OPTIONAL_TRACE_FUNC();
+    cacheCmdSkippedInfo_.clear();
+    cacheCmdSkippedNodes_.clear();
+    if (subThreadNodes_.empty()) {
         RSSubThreadManager::Instance()->ResetSubThreadGrContext();
+        return false;
     }
-#else
-    RSSubThreadManager::Instance()->ResetSubThreadGrContext();
-#endif
-}
-
-void RSMainThread::CheckParallelSubThreadNodesStatusImplementation()
-{
     for (auto& node : subThreadNodes_) {
         if (node == nullptr) {
             RS_LOGE("RSMainThread::CheckParallelSubThreadNodesStatus sunThreadNode is nullptr!");
@@ -645,22 +660,6 @@ void RSMainThread::CheckParallelSubThreadNodesStatusImplementation()
             }
         }
     }
-}
-
-bool RSMainThread::CheckParallelSubThreadNodesStatus()
-{
-    RS_OPTIONAL_TRACE_FUNC();
-    cacheCmdSkippedInfo_.clear();
-    cacheCmdSkippedNodes_.clear();
-    if (subThreadNodes_.empty()) {
-        ResetSubThreadGrContext();
-        return false;
-    } else {
-#ifdef RS_ENABLE_VK
-        needResetSubThreadGrContext_ = false;
-#endif
-    }
-    CheckParallelSubThreadNodesStatusImplementation();
     if (!cacheCmdSkippedNodes_.empty()) {
         return true;
     }
@@ -1158,7 +1157,7 @@ uint32_t RSMainThread::GetRefreshRate() const
     auto screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
         RS_LOGE("RSMainThread::GetRefreshRate screenManager is nullptr");
-        return 0;
+        return 60; // The default refreshrate is 60
     }
     return OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(screenManager->GetDefaultScreenId());
 }
@@ -1169,6 +1168,7 @@ void RSMainThread::ClearMemoryCache(bool deeply)
         return;
     }
     this->clearMemoryFinished_ = false;
+    this->clearMemDeeply_ = this->clearMemDeeply_ || deeply;
     PostTask([this, deeply]() {
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_RENDER_CONTEXT
@@ -1206,7 +1206,9 @@ void RSMainThread::ClearMemoryCache(bool deeply)
         grContext->FlushAndSubmit(true);
 #endif
         this->clearMemoryFinished_ = true;
-    }, CLEAR_GPU_CACHE, 3000 / GetRefreshRate()); // The unit is milliseconds
+        this->clearMemDeeply_ = false;
+    },
+    CLEAR_GPU_CACHE, 3000 / GetRefreshRate()); // The unit is milliseconds
 }
 
 void RSMainThread::WaitUtilUniRenderFinished()
@@ -1350,8 +1352,8 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         RS_TRACE_NAME_FMT("RSMainThread::ProcessHgmFrameRate pendingRefreshRate: %d", *pendingRefreshRate);
     }
 
-    auto appFrameLinkers = GetContext().GetFrameRateLinkerMap().GetFrameRateLinkerMap();
-    frameRateMgr_->UniProcessData(0, timestamp, rsFrameRateLinker_, appFrameLinkers, forceUpdateUniRenderFlag_);
+    auto appFrameLinkers = GetContext().GetFrameRateLinkerMap().Get();
+    frameRateMgr_->UniProcessData(0, timestamp, rsFrameRateLinker_, appFrameLinkers, idleTimerExpiredFlag_);
 }
 
 bool RSMainThread::GetParallelCompositionEnabled()
@@ -1378,9 +1380,11 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     }
     bool needTraverseNodeTree = true;
     if (doDirectComposition_ && !isDirty_ && !isAccessibilityConfigChanged_
-        && !isCachedSurfaceUpdated_ && !forceUpdateUniRenderFlag_) {
+        && !isCachedSurfaceUpdated_) {
         if (isHardwareEnabledBufferUpdated_) {
             needTraverseNodeTree = !uniVisitor->DoDirectComposition(rootNode);
+        } else if (forceUpdateUniRenderFlag_) {
+            RS_TRACE_NAME("RSMainThread::UniRender ForceUpdateUniRender");
         } else {
             RS_LOGI("RSMainThread::Render nothing to update");
             for (auto& node: hardwareEnabledNodes_) {
@@ -1448,6 +1452,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     }
     isDirty_ = false;
     forceUpdateUniRenderFlag_ = false;
+    idleTimerExpiredFlag_ = false;
 }
 
 void RSMainThread::Render()
@@ -1598,6 +1603,8 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
                 filterCacheOcclusionEnabled);
         } else {
             curSurface->SetVisibleRegionRecursive({}, curVisVec, pidVisMap);
+            RS_LOGD("%{public}s nodeId[%{public}" PRIu64 "] visibleLevel[%{public}d]",
+                __func__, curSurface->GetId(), RSVisibleLevel::RS_INVISIBLE);
         }
     }
 
@@ -2529,15 +2536,14 @@ void RSMainThread::PerfForBlurIfNeeded()
     int blurCnt = RSPropertiesPainter::GetAndResetBlurCnt();
     // clamp blurCnt to 0~3.
     blurCnt = std::clamp<int>(blurCnt, 0, 3);
-    if (blurCnt != preBlurCnt && preBlurCnt != 0) {
+    if (blurCnt > preBlurCnt && preBlurCnt != 0) {
         PerfRequest(BLUR_CNT_TO_BLUR_CODE.at(preBlurCnt), false);
-        preBlurCnt = 0;
     }
     if (blurCnt == 0) {
         return;
     }
     static uint64_t prePerfTimestamp = 0;
-    if (timestamp_ - prePerfTimestamp > PERF_PERIOD_BLUR || blurCnt != preBlurCnt) {
+    if (timestamp_ - prePerfTimestamp > PERF_PERIOD_BLUR || blurCnt > preBlurCnt) {
         PerfRequest(BLUR_CNT_TO_BLUR_CODE.at(blurCnt), true);
         prePerfTimestamp = timestamp_;
         preBlurCnt = blurCnt;
@@ -2833,7 +2839,8 @@ void RSMainThread::SubscribeAppState()
                 RS_LOGE("Subscribe Failed 10 times, exiting");
             }
         }
-    }, MEM_MGR, WAIT_FOR_MEM_MGR_SERVICE);
+    },
+    MEM_MGR, WAIT_FOR_MEM_MGR_SERVICE);
 }
 
 void RSMainThread::HandleOnTrim(Memory::SystemMemoryLevel level)

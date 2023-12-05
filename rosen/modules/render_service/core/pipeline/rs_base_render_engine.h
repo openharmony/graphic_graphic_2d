@@ -244,6 +244,7 @@ public:
     }
 #endif
 #ifdef USE_VIDEO_PROCESSING_ENGINE
+    static sk_sp<SkColorSpace> ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut);
     void ColorSpaceConvertor(sk_sp<SkShader> &inputShader, BufferDrawParam& params);
 #endif
 protected:
@@ -257,11 +258,11 @@ private:
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
         const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
-        const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
+        const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB);
 #else
     std::shared_ptr<Drawing::Image> CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
         const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
-        const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
+        const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB);
 #endif
 
     static inline std::atomic_bool isHighContrastEnabled_ = false;

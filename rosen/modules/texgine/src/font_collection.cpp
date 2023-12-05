@@ -96,9 +96,11 @@ std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch,
         std::shared_ptr<Typeface> typeface = nullptr;
         struct TypefaceCacheKey key = {.fss = fontStyleSet, .fs = style};
         if (auto it = typefaceCache_.find(key); it != typefaceCache_.end()) {
-            typeface->ComputeFakeryItalic(style.GetFontStyle());
-            typeface->ComputeFakery(style.GetWeight());
             typeface = it->second;
+            if (typeface) {
+                typeface->ComputeFakeryItalic(style.GetFontStyle());
+                typeface->ComputeFakery(style.GetWeight());
+            }
         } else {
             if (fontStyleSet == nullptr) {
                 continue;

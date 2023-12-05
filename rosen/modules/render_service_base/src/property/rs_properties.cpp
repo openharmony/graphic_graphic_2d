@@ -134,8 +134,9 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetGreyCoef2(0.f); },               // GREY_COEF2,                 75
     [](RSProperties* prop) { prop->SetLightIntensity(-1.f); },            // LIGHT_INTENSITY           76
     [](RSProperties* prop) { prop->SetLightPosition({}); },               // LIGHT_POSITION            77
-    [](RSProperties* prop) { prop->SetIlluminatedType(-1); },             // ILLUMINATED_TYPE          78
-    [](RSProperties* prop) { prop->SetBloom({}); },                       // BLOOM                     79
+    [](RSProperties* prop) { prop->SetIlluminatedBorderWidth({}); },      // ILLUMINATED_BORDER_WIDTH  78
+    [](RSProperties* prop) { prop->SetIlluminatedType(-1); },             // ILLUMINATED_TYPE          79
+    [](RSProperties* prop) { prop->SetBloom({}); },                       // BLOOM                     80
 };
 } // namespace
 
@@ -1753,6 +1754,16 @@ void RSProperties::SetLightPosition(const Vector4f& lightPosition)
     contentDirty_ = true;
 }
 
+void RSProperties::SetIlluminatedBorderWidth(float illuminatedBorderWidth)
+{
+    if (!illuminatedPtr_) {
+        illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    }
+    illuminatedPtr_->SetIlluminatedBorderWidth(illuminatedBorderWidth);
+    SetDirty();
+    contentDirty_ = true;
+}
+
 void RSProperties::SetIlluminatedType(int illuminatedType)
 {
     if (!illuminatedPtr_) {
@@ -1807,6 +1818,11 @@ int RSProperties::GetIlluminatedType() const
 float RSProperties::GetBloom() const
 {
     return illuminatedPtr_ ? illuminatedPtr_->GetBloomIntensity() : 0.f;
+}
+
+float RSProperties::GetIlluminatedBorderWidth() const
+{
+    return illuminatedPtr_ ? illuminatedPtr_->GetIlluminatedBorderWidth() : 0.f;
 }
 
 void RSProperties::CalculateAbsLightPosition()
@@ -2167,7 +2183,7 @@ void RSProperties::GenerateColorFilter()
         colorFilter_ = filter->makeComposed(colorFilter_);
 #else
         filter = Drawing::ColorFilter::CreateBlendModeColorFilter(Drawing::Color::ColorQuadSetARGB(
-            colorBlend.GetRed(), colorBlend.GetGreen(), colorBlend.GetBlue(), colorBlend.GetAlpha()),
+            colorBlend.GetAlpha(), colorBlend.GetRed(), colorBlend.GetGreen(), colorBlend.GetBlue()),
             Drawing::BlendMode::PLUS);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);

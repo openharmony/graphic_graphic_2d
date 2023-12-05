@@ -28,14 +28,18 @@ const ColorSpacePrimaries CSP_NTSC_1953 = {0.670f, 0.330f, 0.210f, 0.710f, 0.140
 const ColorSpacePrimaries CSP_PRO_PHOTO_RGB = {0.7347f, 0.2653f, 0.1596f, 0.8404f, 0.0366f, 0.0001f, 0.34567f,
     0.35850f};
 
-const TransferFunc TF_ADOBE_RGB = {GAMMA_LIKE, 2.2f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f};
-const TransferFunc TF_GAMMA_2_6 = {GAMMA_LIKE, 2.6f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f};
-const TransferFunc TF_SRGB = {GAMMA_LIKE, 2.4f, 1 / 1.055f, 0.055f / 1.055f, 1 / 12.92f, 0.04045f, 0.0f, 0.0f};
-const TransferFunc TF_BT709 = {GAMMA_LIKE, 1 / 0.45f, 1 / 1.099f, 0.099f / 1.099f, 1 / 4.5f, 0.081f, 0.0f, 0.0f};
-const TransferFunc TF_HLG = {HLG, 0.0f, 0.17883277f, 0.28466892f, 0.55991073f, 1 / 12.0f, 3.0f, 0.5f};
-const TransferFunc TF_PQ = {PQ, 0.0f, 0.1593017578125f, 78.84375f, 0.8359375f, 18.8515625f, 18.6875f, 0.0f};
-const TransferFunc TF_LINEAR = {GAMMA_LIKE, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f};
-const TransferFunc TF_PRO_PHOTO_RGB = {GAMMA_LIKE, 1.8f, 1.0f, 0.0f, 1 / 16.0f, 0.031248f, 0.0f, 0.0f};
+// use unique g value to represent HLG and PG transfer function
+constexpr float HLG_G = -3.0f;
+constexpr float PQ_G = -2.0f;
+
+const TransferFunc TF_ADOBE_RGB = {2.2f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+const TransferFunc TF_GAMMA_2_6 = {2.6f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+const TransferFunc TF_SRGB = {2.4f, 1 / 1.055f, 0.055f / 1.055f, 1 / 12.92f, 0.04045f, 0.0f, 0.0f};
+const TransferFunc TF_BT709 = {1 / 0.45f, 1 / 1.099f, 0.099f / 1.099f, 1 / 4.5f, 0.081f, 0.0f, 0.0f};
+const TransferFunc TF_HLG = {HLG_G, 2.0f, 2.0f, 1 / 0.17883277f, 0.28466892f, 0.55991073f, 0.0f};
+const TransferFunc TF_PQ = {PQ_G, -107 / 128.0f, 1.0f, 32 / 2523.0f, 2413 / 128.0f, -2392 / 128.0f, 8192 / 1305.0f};
+const TransferFunc TF_LINEAR = {1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+const TransferFunc TF_PRO_PHOTO_RGB = {1.8f, 1.0f, 0.0f, 1 / 16.0f, 0.031248f, 0.0f, 0.0f};
 
 const ColorSpace CS_ADOBE_RGB = {CSP_ADOBE_RGB, TF_ADOBE_RGB};
 const ColorSpace CS_DCI_P3 = {CSP_P3_DCI, TF_GAMMA_2_6};
@@ -123,7 +127,6 @@ ColorSpace::ColorSpace(const ColorSpacePrimaries &primaries, float gamma)
     std::array<float, 2> whiteP = {primaries.wX, primaries.wY};
     whitePoint = whiteP;
     transferFunc = {};
-    transferFunc.type = GAMMA_LIKE;
     transferFunc.g = gamma;
     transferFunc.a = 1.0f;
 }
@@ -140,7 +143,6 @@ ColorSpace::ColorSpace(const Matrix3x3 &toXYZ, const std::array<float, 2>& white
     : colorSpaceName(ColorSpaceName::CUSTOM), toXYZ(DXToD50(toXYZ, whitePoint)), whitePoint(whitePoint)
 {
     transferFunc = {};
-    transferFunc.type = GAMMA_LIKE;
     transferFunc.g = gamma;
     transferFunc.a = 1.0f;
 }
@@ -151,7 +153,7 @@ ColorSpace::ColorSpace(const sk_sp<SkColorSpace> src, ColorSpaceName name)
     if (src) {
         float func[7];
         src->transferFn(func);
-        transferFunc = {GAMMA_LIKE, func[0], func[1], func[2], func[3], func[4], func[5], func[6]};
+        transferFunc = {func[0], func[1], func[2], func[3], func[4], func[5], func[6]};
         skcms_Matrix3x3 toXYZD50;
         src->toXYZD50(&toXYZD50);
         toXYZ = SkToXYZToMatrix3(toXYZD50);
@@ -164,7 +166,7 @@ ColorSpace::ColorSpace(const skcms_ICCProfile& srcIcc, ColorSpaceName name)
 {
     if (srcIcc.has_toXYZD50 && srcIcc.has_trc) {
         skcms_TransferFunction func = srcIcc.trc[0].parametric;
-        transferFunc = {GAMMA_LIKE, func.g, func.a, func.b, func.c, func.d, func.e, func.f};
+        transferFunc = {func.g, func.a, func.b, func.c, func.d, func.e, func.f};
         toXYZ = SkToXYZToMatrix3(srcIcc.toXYZD50);
         whitePoint = ComputeWhitePoint(toXYZ);
     }
@@ -329,11 +331,12 @@ Vector3 ColorSpace::ToLinear(Vector3 v) const
     auto &p = transferFunc;
     Vector3 res = v;
     for (auto& n : res) {
-        if (p.type == HLG) {
-            n = n > p.f ? (std::exp((n - p.c) / p.a) + p.b) * p.d : n * n / p.e;
-        } else if (p.type == PQ) {
-            float n_tmp = std::pow(n, 1.0f / p.b);
-            n = std::pow(std::max(n_tmp - p.c, 0.0f) / (p.d - p.e * n_tmp), 1.0f / p.a);
+        if (FloatEqual(p.g, HLG_G)) {
+            float coef = -1 / (p.g * p.a * p.b);
+            n = n > 1 / p.a ? coef * (std::exp(p.c * (n - p.e)) + p.d) : n * n / -p.g;
+        } else if (FloatEqual(p.g, PQ_G)) {
+            float tmp = std::pow(n, p.c);
+            n = std::pow(std::max(p.a + p.b * tmp, 0.0f) / (p.d + p.e * tmp), p.f);
         } else {
             n = n >= p.d ? std::pow(p.a * n + p.b, p.g) + p.e : p.c * n + p.f;
         }
@@ -346,11 +349,12 @@ Vector3 ColorSpace::ToNonLinear(Vector3 v) const
     auto &p = transferFunc;
     Vector3 res = v;
     for (auto& n : res) {
-        if (p.type == HLG) {
-            n = n > p.d ? p.a * std::log(n / p.d - p.b) + p.c : std::sqrt(p.e * n);
-        } else if (p.type == PQ) {
-            float n_tmp = std::pow(n, p.a);
-            n = std::pow((p.c + p.d * n_tmp) / (1.0f + p.e * n_tmp), p.b);
+        if (FloatEqual(p.g, HLG_G)) {
+            float coef = -p.g * p.a * p.b;
+            n = n > 1 / coef ? std::log(coef * n - p.d) / p.c + p.e : std::sqrt(-p.g * n);
+        } else if (FloatEqual(p.g, PQ_G)) {
+            float tmp = std::pow(n, 1 / p.f);
+            n = std::pow((-p.a + p.d * tmp) / (p.b - p.e * tmp), 1 / p.c);
         } else {
             n = n >= p.d * p.c ? (std::pow(n - p.e, 1.0f / p.g) - p.b) / p.a : (n - p.f) / p.c;
         }

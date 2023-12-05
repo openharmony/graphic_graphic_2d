@@ -124,8 +124,8 @@ HWTEST_F(RSParallelPackVisitorTest, CalcSurfaceRenderNodeCostTest2, TestSize.Lev
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
     auto rsParallelPackVisitor = std::make_shared<RSParallelPackVisitor>();
     rsSurfaceRenderNode->SetSecurityLayer(false);
-    rsSurfaceRenderNode->renderProperties_.SetAlpha(2.0f);
-    rsSurfaceRenderNode->renderProperties_.SetVisible(true);
+    rsSurfaceRenderNode->GetMutableRenderProperties().SetAlpha(2.0f);
+    rsSurfaceRenderNode->GetMutableRenderProperties().SetVisible(true);
     rsSurfaceRenderNode->SetOcclusionVisible(true);
     rsParallelPackVisitor->CalcSurfaceRenderNodeCost(*rsSurfaceRenderNode);
     ASSERT_TRUE(rsSurfaceRenderNode->ShouldPaint());
@@ -202,7 +202,7 @@ HWTEST_F(RSParallelPackVisitorTest, IsSkipProcessingTest2, TestSize.Level1)
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
     auto rsParallelPackVisitor = std::make_shared<RSParallelPackVisitor>();
     ASSERT_FALSE(rsParallelPackVisitor->isSecurityDisplay_ && rsSurfaceRenderNode.GetSecurityLayer());
-    rsSurfaceRenderNode.renderProperties_.SetAlpha(0.0f);
+    rsSurfaceRenderNode.GetMutableRenderProperties().SetAlpha(0.0f);
     rsSurfaceRenderNode.shouldPaint_ = false;
     auto result = rsParallelPackVisitor->IsSkipProcessing(rsSurfaceRenderNode);
     ASSERT_TRUE(result);

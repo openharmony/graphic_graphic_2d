@@ -110,8 +110,12 @@ HWTEST_F(RSDrivenRenderManagerTest, ClipHoleForDrivenNode, TestSize.Level1)
     (void)system::SetParameter("persist.rosen.drivenrender.enabled", "false");
     RSDrivenRenderManager::InitInstance();
     auto rsContext = std::make_shared<RSContext>();
-    SkCanvas skCanvas;
-    RSPaintFilterCanvas canvas(&skCanvas);
+#ifndef USE_ROSEN_DRAWING
+    SkCanvas tmpCanvas;
+#else
+    Drawing::Canvas tmpCanvas;
+#endif
+    RSPaintFilterCanvas canvas(&tmpCanvas);
     // canvas node id = 1
     auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(1, rsContext->weak_from_this());
 

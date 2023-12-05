@@ -354,7 +354,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareSurfaceRenderNode004, TestSize.Level
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     rsRenderServiceVisitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
 #endif
-    rsSurfaceRenderNode.renderProperties_.SetAlpha(0.0f);
+    rsSurfaceRenderNode.GetMutableRenderProperties().SetAlpha(0.0f);
     rsRenderServiceVisitor.PrepareSurfaceRenderNode(rsSurfaceRenderNode);
 }
 
@@ -848,7 +848,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode004, TestSize.Level
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     rsRenderServiceVisitor.processor_ =
         RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
-    rsSurfaceRenderNode->renderProperties_.SetAlpha(0.0f);
+    rsSurfaceRenderNode->GetMutableRenderProperties().SetAlpha(0.0f);
     rsRenderServiceVisitor.ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
 }
 

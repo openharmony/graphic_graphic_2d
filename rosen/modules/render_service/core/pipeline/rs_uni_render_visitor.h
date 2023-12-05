@@ -491,9 +491,6 @@ private:
     void ProcessChildrenForScreenRecordingOptimization(RSDisplayRenderNode& node, NodeId rootIdOfCaptureWindow);
     NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);
     bool CheckIfNeedResetRotate();
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-    float GetScreenBrightnessNits();
-#endif
 };
 } // namespace Rosen
 } // namespace OHOS

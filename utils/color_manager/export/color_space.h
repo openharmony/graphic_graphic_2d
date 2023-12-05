@@ -110,14 +110,7 @@ struct ColorSpacePrimaries {
     float wY;
 };
 
-enum TransFuncType : uint32_t {
-    GAMMA_LIKE = 0,
-    HLG,
-    PQ,
-};
-
 struct TransferFunc {
-    TransFuncType type;
     float g;
     float a;
     float b;

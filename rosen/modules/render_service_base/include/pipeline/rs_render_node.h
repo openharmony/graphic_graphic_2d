@@ -37,6 +37,7 @@
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_render_display_sync.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_render_content.h"
 #include "pipeline/rs_single_frame_composer.h"
 #include "property/rs_properties.h"
 #include "property/rs_property_drawable.h"
@@ -60,6 +61,9 @@ class RSContext;
 class RSNodeVisitor;
 class RSCommand;
 class RSPropertyDrawable;
+namespace NativeBufferUtils {
+class VulkanCleanupHelper;
+}
 class RSB_EXPORT RSRenderNode : public std::enable_shared_from_this<RSRenderNode>  {
 public:
 
@@ -264,13 +268,13 @@ public:
     bool NeedInitCacheCompletedSurface() const;
     inline bool IsPureContainer() const
     {
-        return (drawCmdModifiers_.empty() && !renderProperties_.isDrawn_ && !renderProperties_.alphaNeedApply_);
+        return (drawCmdModifiers_.empty() && !GetRenderProperties().isDrawn_ && !GetRenderProperties().alphaNeedApply_);
     }
 
     bool IsContentNode() const
     {
         return ((drawCmdModifiers_.size() == 1 && drawCmdModifiers_.count(RSModifierType::CONTENT_STYLE)) ||
-            drawCmdModifiers_.empty()) && !renderProperties_.isDrawn_;
+            drawCmdModifiers_.empty()) && !GetRenderProperties().isDrawn_;
     }
 
 #ifndef USE_ROSEN_DRAWING
@@ -483,6 +487,7 @@ public:
         isCalcPreferredFps_ = isCalcPreferredFps;
     }
 
+    const std::shared_ptr<RSRenderContent> GetRenderContent() const;
 protected:
     virtual void OnApplyModifiers() {}
 
@@ -521,7 +526,6 @@ protected:
 #endif
     bool isFullChildrenListValid_ = false;
     bool isBootAnimation_ = false;
-    RSProperties renderProperties_;
     void IterateOnDrawableRange(
         Slot::RSPropertyDrawableSlot begin, Slot::RSPropertyDrawableSlot end, RSPaintFilterCanvas& canvas);
 
@@ -595,6 +599,10 @@ private:
 #ifndef USE_ROSEN_DRAWING
     GrBackendTexture cacheBackendTexture_;
     GrBackendTexture cacheCompletedBackendTexture_;
+#ifdef RS_ENABLE_VK
+    NativeBufferUtils::VulkanCleanupHelper* cacheCleanupHelper_ = nullptr;
+    NativeBufferUtils::VulkanCleanupHelper* cacheCompletedCleanupHelper_ = nullptr;
+#endif
 #else
     Drawing::BackendTexture cacheBackendTexture_;
     Drawing::BackendTexture cacheCompletedBackendTexture_;
@@ -664,7 +672,6 @@ private:
     std::vector<HgmModifierProfile> hgmModifierProfileList_;
     std::shared_ptr<RSRenderDisplaySync> displaySync_ = nullptr;
 
-    std::vector<std::unique_ptr<RSPropertyDrawable>> propertyDrawablesVec_;
     uint8_t drawableVecStatus_ = 0;
     void UpdateDrawableVec();
     bool isCalcPreferredFps_ = true;
@@ -672,6 +679,8 @@ private:
     bool isSubSurfaceEnabled_ = false;
     std::map<NodeId, std::vector<WeakPtr>> subSurfaceNodes_;
     pid_t appPid_ = 0;
+
+    const std::shared_ptr<RSRenderContent> renderContent_ = std::make_shared<RSRenderContent>();
 
     friend class RSAliasDrawable;
     friend class RSMainThread;

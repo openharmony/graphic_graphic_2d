@@ -15,20 +15,19 @@
 
 #include "skia_surface.h"
 
-#ifdef ACE_ENABLE_GPU
-#include "include/gpu/GrBackendSurface.h"
-#endif
+#include "include/gpu/GrBackendSemaphore.h"
 
 #include "draw/surface.h"
-#include "include/gpu/GrBackendSemaphore.h"
 #include "utils/log.h"
-#include "skia_image.h"
+
 #include "skia_bitmap.h"
 #include "skia_canvas.h"
 #ifdef ACE_ENABLE_GPU
 #include "skia_gpu_context.h"
-#include "skia_image_info.h"
 #endif
+#include "skia_image.h"
+#include "skia_image_info.h"
+#include "skia_texture_info.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -141,13 +140,13 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendRenderTarget(GPUContext* gp
         }
     }
     GrVkImageInfo image_info;
-    SkiaImage::ConvertToGrBackendTexture(info).getVkImageInfo(&image_info);
+    SkiaTextureInfo::ConvertToGrBackendTexture(info).getVkImageInfo(&image_info);
     GrBackendRenderTarget backendRenderTarget(info.width, info.height, 0, image_info);
     SkSurfaceProps surfaceProps(0, SkPixelGeometry::kUnknown_SkPixelGeometry);
 
     sk_sp<SkSurface> skSurface =
         SkSurface::MakeFromBackendRenderTarget(grContext.get(),
-        backendRenderTarget, SkiaImage::ConvertToGrSurfaceOrigin(origin),
+        backendRenderTarget, SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
         kRGBA_8888_SkColorType, SkColorSpace::MakeSRGB(), &surfaceProps, deleteVkImage, cleanHelper);
     if (skSurface == nullptr) {
         LOGE("skSurface nullptr");
@@ -268,6 +267,24 @@ std::shared_ptr<Image> SkiaSurface::GetImageSnapshot(const RectI& bounds) const
     auto image = std::make_shared<Image>();
     image->GetImpl<SkiaImage>()->SetSkImage(skImage);
     return image;
+}
+
+BackendTexture SkiaSurface::GetBackendTexture() const
+{
+    if (skSurface_ == nullptr) {
+        LOGE("skSurface is nullptr");
+        return {};
+    }
+
+    GrBackendTexture grBackendTexture =
+        skSurface_->getBackendTexture(SkSurface::BackendHandleAccess::kFlushRead_BackendHandleAccess);
+    auto backendTexture = BackendTexture(true);
+#ifdef RS_ENABLE_VK
+    backendTexture.SetTextureInfo(SkiaTextureInfo::ConvertToVKTexture(grBackendTexture));
+#else
+    backendTexture.SetTextureInfo(SkiaTextureInfo::ConvertToTextureInfo(grBackendTexture));
+#endif
+    return backendTexture;
 }
 
 std::shared_ptr<Surface> SkiaSurface::MakeSurface(int width, int height) const

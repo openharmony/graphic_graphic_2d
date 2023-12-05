@@ -35,6 +35,7 @@
 #include "common/rs_obj_geometry.h"
 #include "common/rs_vector4.h"
 #include "modifier/rs_modifier.h"
+#include "modifier/rs_property.h"
 #include "modifier/rs_property_modifier.h"
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
@@ -1474,6 +1475,12 @@ void RSNode::SetLightPosition(float positionX, float positionY, float positionZ)
 void RSNode::SetLightPosition(const Vector4f& lightPosition)
 {
     SetProperty<RSLightPositionModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::LIGHT_POSITION, lightPosition);
+}
+
+void RSNode::SetIlluminatedBorderWidth(float illuminatedBorderWidth)
+{
+    SetProperty<RSIlluminatedBorderWidthModifier, RSAnimatableProperty<float>>(
+        RSModifierType::ILLUMINATED_BORDER_WIDTH, illuminatedBorderWidth);
 }
 
 void RSNode::SetIlluminatedType(uint32_t illuminatedType)

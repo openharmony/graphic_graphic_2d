@@ -200,7 +200,7 @@ ohos_shared_library("librender_service") {
   }
 
   if (rs_enable_gpu) {
-    if (graphic_2d_feature_enable_vulkan) {
+    if (graphic_2d_feature_enable_flutter_vulkan) {
       include_dirs += [ "//third_party/flutter/engine/flutter/vulkan" ]
     }
 

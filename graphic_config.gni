@@ -24,6 +24,7 @@ declare_args() {
   graphic_2d_feature_freemem_enable = false
   graphic_2d_feature_parallel_render_enable = true
   graphic_2d_feature_enable_vulkan = false
+  graphic_2d_feature_enable_flutter_vulkan = false
   graphic_2d_feature_enable_filter_cache = true
   graphic_2d_feature_parallel_upload_enable = true
   enable_text_gine = true
@@ -51,6 +52,9 @@ if (enable_text_gine) {
   gpu_defines += [ "USE_GRAPHIC_TEXT_GINE" ]
 }
 if (graphic_2d_feature_ace_enable_gpu) {
+  if (graphic_2d_feature_enable_flutter_vulkan) {
+    gpu_defines += [ "RS_ENABLE_OLD_VK" ]
+  }
   if (graphic_2d_feature_enable_vulkan) {
     rs_enable_parallel_upload = false
     gpu_defines += [
@@ -89,10 +93,11 @@ if (graphic_2d_feature_ace_enable_gpu) {
 
   libvulkan = []
   if (graphic_2d_feature_enable_vulkan) {
-    libvulkan += [
-      "//third_party/flutter/engine/flutter/vulkan:vulkan_flutter",
-      "//third_party/vulkan-loader/openharmony:vulkan_loader",
-    ]
+    libvulkan += [ "//third_party/vulkan-loader/openharmony:vulkan_loader" ]
+  }
+  if (graphic_2d_feature_enable_flutter_vulkan) {
+    libvulkan +=
+        [ "//third_party/flutter/engine/flutter/vulkan:vulkan_flutter" ]
   }
 } else {
   gpu_defines = [ "ACE_DISABLE_GL" ]
@@ -127,7 +132,7 @@ if (graphic_2d_feature_rs_enable_uni_render) {
   rs_enable_driven_render = false
 }
 
-if (graphic_2d_feature_enable_afbc && !graphic_2d_feature_enable_vulkan) {
+if (graphic_2d_feature_enable_afbc) {
   gpu_defines += [ "RS_ENABLE_AFBC" ]
 }
 

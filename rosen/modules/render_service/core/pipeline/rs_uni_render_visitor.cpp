@@ -15,7 +15,7 @@
 
 #include "pipeline/rs_uni_render_visitor.h"
 
-#ifdef RS_ENABLE_VK
+#ifdef RS_ENABLE_OLD_VK
 #include <vulkan_window.h>
 #endif
 
@@ -287,6 +287,15 @@ void RSUniRenderVisitor::UpdateStaticCacheSubTree(const std::shared_ptr<RSRender
         }
         if (child->GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
             child->SetDrawingCacheChanged(false);
+        }
+        // set flag for surface node whose children contain shared transition node
+        if (child->GetSharedTransitionParam().has_value()) {
+            curSurfaceNode_->SetHasSharedTransitionNode(true);
+            auto leashNode =
+                RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(curSurfaceNode_->GetParent().lock());
+            if (leashNode && leashNode->GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
+                leashNode->SetHasSharedTransitionNode(true);
+            }
         }
         // [planning] pay attention to outofparent case
         if (auto surfaceNode = child->ReinterpretCastTo<RSSurfaceRenderNode>()) {
@@ -666,7 +675,6 @@ void RSUniRenderVisitor::CheckColorSpace(RSSurfaceRenderNode& node)
 
 void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager)
 {
-    newColorSpace_ = GRAPHIC_COLOR_GAMUT_SRGB;
     RSScreenType screenType = BUILT_IN_TYPE_SCREEN;
     if (screenManager->GetScreenType(node.GetScreenId(), screenType) != SUCCESS) {
         RS_LOGE("RSUniRenderVisitor::HandleColorGamuts get screen type failed.");
@@ -680,16 +688,6 @@ void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr
             return;
         }
         newColorSpace_ = static_cast<GraphicColorGamut>(screenColorGamut);
-        return;
-    }
-
-    for (auto& child : node.GetCurAllSurfaces()) {
-        auto surfaceNodePtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
-        if (!surfaceNodePtr) {
-            RS_LOGD("RSUniRenderVisitor::PrepareDisplayRenderNode ReinterpretCastTo fail");
-            continue;
-        }
-        CheckColorSpace(*surfaceNodePtr);
     }
 }
 
@@ -712,23 +710,17 @@ void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)
         return;
     }
 
-    using namespace HDI::Display::Graphic::Common::V1_0;
-    CM_HDR_Metadata_Type hdrMetadataType = CM_METADATA_NONE;
-    if (MetadataHelper::GetHDRMetadataType(buffer, hdrMetadataType) != GSERROR_OK) {
-        RS_LOGD("RSUniRenderVisitor::CheckPixelFormat node(%{public}s) did not have metadatatype.",
-                node.GetName().c_str());
-        return;
-    }
-    if (hdrMetadataType != CM_METADATA_NONE) {
+    auto bufferPixelFormat = buffer->GetFormat();
+    if (bufferPixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010102 ||
+        bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCBCR_P010 ||
+        bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
         newPixelFormat_ = GRAPHIC_PIXEL_FMT_RGBA_1010102;
-        RS_LOGD("RSUniRenderVisitor::CheckPixelFormat newPixelFormat_ is set 1010102 for hdr.");
+        RS_LOGD("RSUniRenderVisitor::CheckPixelFormat pixelformat is set to 1010102 for 10bit buffer");
     }
 }
 
 void RSUniRenderVisitor::HandlePixelFormat(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager)
 {
-    hasFingerprint_ = false;
-    newPixelFormat_ = GRAPHIC_PIXEL_FMT_RGBA_8888;
     RSScreenType screenType = BUILT_IN_TYPE_SCREEN;
     if (screenManager->GetScreenType(node.GetScreenId(), screenType) != SUCCESS) {
         RS_LOGE("RSUniRenderVisitor::HandlePixelFormat get screen type failed.");
@@ -739,16 +731,6 @@ void RSUniRenderVisitor::HandlePixelFormat(RSDisplayRenderNode& node, const sptr
         if (screenManager->GetPixelFormat(node.GetScreenId(), newPixelFormat_) != SUCCESS) {
             RS_LOGE("RSUniRenderVisitor::HandlePixelFormat get screen color gamut failed.");
         }
-        return;
-    }
-
-    for (auto& child : node.GetCurAllSurfaces()) {
-        auto surfaceNodePtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
-        if (!surfaceNodePtr) {
-            RS_LOGD("RSUniRenderVisitor::PrepareDisplayRenderNode ReinterpretCastTo fail");
-            continue;
-        }
-        CheckPixelFormat(*surfaceNodePtr);
     }
 }
 
@@ -817,6 +799,9 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     node.UpdateRotation();
     curAlpha_ = node.GetRenderProperties().GetAlpha();
     isParallel_ = false;
+    newColorSpace_ = GRAPHIC_COLOR_GAMUT_SRGB;
+    hasFingerprint_ = false;
+    newPixelFormat_ = GRAPHIC_PIXEL_FMT_RGBA_8888;
 #if defined(RS_ENABLE_PARALLEL_RENDER) && (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK))
     ParallelPrepareDisplayRenderNodeChildrens(node);
 #else
@@ -903,6 +888,7 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
         if (result) {
             return false;
         }
+        node.SetSurfaceCacheContentStatic(true);
     }
     RS_OPTIONAL_TRACE_NAME("Skip static surface " + node.GetName() + " nodeid - pid: " +
         std::to_string(node.GetId()) + " - " + std::to_string(ExtractPid(node.GetId())));
@@ -1031,6 +1017,8 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeBeforeUpdate(RSSurfaceRe
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
         node.SetFilterCacheFullyCovered(false);
         node.ResetFilterNodes();
+        node.SetSurfaceCacheContentStatic(
+            RSMainThread::Instance()->CheckIfInstanceOnlySurfaceBasicGeoTransform(node.GetId()));
         // [planning] check if it is not reset recursively
         firstVisitedCache_ = INVALID_NODEID;
         curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
@@ -1156,6 +1144,11 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (node.GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos) {
         hasCaptureWindow_[currentVisitDisplay_] = true;
     }
+
+    node.SetAncestorDisplayNode(curDisplayNode_);
+    CheckColorSpace(node);
+    CheckPixelFormat(node);
+
     // stop traversal if node keeps static
     if (isQuickSkipPreparationEnabled_ && CheckIfSurfaceRenderNodeStatic(node)) {
         // node type is mainwindow.
@@ -1169,6 +1162,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         PrepareSubSurfaceNodes(node);
         return;
     }
+    node.SetHasSharedTransitionNode(false);
     // reset HasSecurityLayer
     node.SetHasSecurityLayer(false);
     node.SetHasSkipLayer(false);
@@ -1847,7 +1841,7 @@ void RSUniRenderVisitor::DrawCurrentRefreshRate(uint32_t currentRefreshRate)
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkTypeface> tf = SkTypeface::MakeFromName("HarmonyOS Sans SC", SkFontStyle::Normal());
     SkFont font;
-    font.setSize(100);
+    font.setSize(100);  // 100:Scalar of setting font size
     font.setTypeface(tf);
     std::string info = std::to_string(currentRefreshRate);
     sk_sp<SkTextBlob> textBlob = SkTextBlob::MakeFromString(info.c_str(), font);
@@ -1860,7 +1854,7 @@ void RSUniRenderVisitor::DrawCurrentRefreshRate(uint32_t currentRefreshRate)
 #else
     std::shared_ptr<Drawing::Typeface> tf = Drawing::Typeface::MakeFromName("HarmonyOS Sans SC", Drawing::FontStyle());
     Drawing::Font font;
-    font.SetSize(100);
+    font.SetSize(100);  // 100:Scalar of setting font size
     font.SetTypeface(tf);
     std::string info = std::to_string(currentRefreshRate);
     std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromString(info.c_str(), font);
@@ -1870,7 +1864,7 @@ void RSUniRenderVisitor::DrawCurrentRefreshRate(uint32_t currentRefreshRate)
     brush.SetAntiAlias(true);
     canvas_->AttachBrush(brush);
     canvas_->DrawTextBlob(
-        textBlob.get(), 100.f, 200.f); //100.f:Scalar x of drawing TextBlob 200.f:Scalar y of drawing TextBlob
+        textBlob.get(), 100.f, 200.f);  // 100.f:Scalar x of drawing TextBlob; 200.f:Scalar y of drawing TextBlob
     canvas_->DetachBrush();
 #endif
 }
@@ -1968,8 +1962,7 @@ void RSUniRenderVisitor::ProcessShadowFirst(RSRenderNode& node, bool inSubThread
 
 void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
 {
-    if (DrawBlurInCache(node) || node.GetChildrenCount() == 0 ||
-        (canvas_ && canvas_->getDeviceClipBounds().isEmpty())) {
+    if (DrawBlurInCache(node) || node.GetChildrenCount() == 0) {
         return;
     }
 
@@ -2407,7 +2400,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             curDisplayDirtyManager_->UpdateDirty(isDirtyRegionAlignedEnable_);
         }
         if (isOpDropped_ && dirtySurfaceNodeMap_.empty()
-            && !curDisplayDirtyManager_->IsCurrentFrameDirty() && !forceUpdateFlag_) {
+            && !curDisplayDirtyManager_->IsCurrentFrameDirty()) {
             RS_LOGD("DisplayNode skip");
             RS_TRACE_NAME("DisplayNode skip");
             resetRotate_ = CheckIfNeedResetRotate();
@@ -2424,7 +2417,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             if (!RSMainThread::Instance()->WaitHardwareThreadTaskExcute()) {
                 RS_LOGW("RSUniRenderVisitor::ProcessDisplayRenderNode: hardwareThread task has too many to excute");
             }
-            if (needCreateDisplayNodeLayer) {
+            if (needCreateDisplayNodeLayer || forceUpdateFlag_) {
                 processor_->ProcessDisplaySurface(node);
                 processor_->PostProcess(&node);
             }
@@ -2432,7 +2425,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
 #endif
 
-#if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_VK)
+#if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_OLD_VK)
         if (isParallel_ &&!isPartialRenderEnabled_) {
             auto parallelRenderManager = RSParallelRenderManager::Instance();
             vulkan::VulkanWindow::InitializeVulkan(
@@ -2467,13 +2460,12 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode No RSSurface found");
             return;
         }
-        rsSurface->SetColorSpace(newColorSpace_);
         // we should request a framebuffer whose size is equals to the physical screen size.
         RS_TRACE_BEGIN("RSUniRender:RequestFrame");
-        BufferRequestConfig bufferConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_, true);
-        bufferConfig.format = newPixelFormat_;
-        RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode, pixelformat is %{public}d in RequestFrame.",
-                newPixelFormat_);
+        BufferRequestConfig bufferConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_, true,
+            newColorSpace_, newPixelFormat_);
+        RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode, colorspace is %{public}d, pixelformat is %{public}d in "\
+                "RequestFrame.", newColorSpace_, newPixelFormat_);
         node.SetFingerprint(hasFingerprint_);
         RS_OPTIONAL_TRACE_BEGIN("RSUniRender::wait for bufferRequest cond");
         if (!RSMainThread::Instance()->WaitUntilDisplayNodeBufferReleased(node)) {
@@ -2668,6 +2660,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 // render directly
                 ProcessChildren(node);
             }
+            SwitchColorFilterDrawing(saveCount);
             canvas_->RestoreToCount(saveCount);
 #endif
         }
@@ -2819,7 +2812,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     }
     auto mainThread = RSMainThread::Instance();
     if (!mainThread->GetClearMemoryFinished()) {
-        mainThread->ClearMemoryCache();
+        mainThread->ClearMemoryCache(mainThread->GetClearMemDeeply());
     }
     RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode end");
 }
@@ -2837,6 +2830,7 @@ void RSUniRenderVisitor::DrawSurfaceLayer(const std::shared_ptr<RSDisplayRenderN
     subThreadManager->SubmitSubThreadTask(displayNode, subThreadNodes);
 #endif
 }
+
 #ifndef USE_ROSEN_DRAWING
 void RSUniRenderVisitor::SwitchColorFilterDrawing(int currentSaveCount)
 {
@@ -2886,8 +2880,8 @@ void RSUniRenderVisitor::SwitchColorFilterDrawing(int currentSaveCount)
             RSTagTracker::TAG_SAVELAYER_COLOR_FILTER);
 #endif
 #endif
-        Drawing::SaveLayerOps rec(nullptr, &brush, Drawing::SaveLayerOps::INIT_WITH_PREVIOUS);
-        canvas_->SaveLayer(rec);
+        Drawing::SaveLayerOps slr(nullptr, &brush, Drawing::SaveLayerOps::INIT_WITH_PREVIOUS);
+        canvas_->SaveLayer(slr);
         canvas_->RestoreToCount(currentSaveCount);
     }
 }
@@ -3837,7 +3831,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     RS_PROCESS_TRACE(isPhone_,
         node.IsFocusedNode(currentFocusedNodeId_) || node.IsFocusedNode(focusedLeashWindowId_),
         "RSUniRender::Process:[" + node.GetName() + "] " +
-        node.GetDstRect().ToString() + " Alpha: " + std::to_string(node.GetGlobalAlpha()).substr(0, 4));
+        node.GetDstRect().ToString() + " Alpha: " + std::to_string(node.GetGlobalAlpha()));
     RS_LOGD("RSUniRenderVisitor::ProcessSurfaceRenderNode node:%{public}" PRIu64 ",child size:%{public}u,"
         "name:%{public}s,OcclusionVisible:%{public}d",
         node.GetId(), node.GetChildrenCount(), node.GetName().c_str(), node.GetOcclusionVisible());
@@ -4057,7 +4051,9 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
                 auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false, threadIndex_);
                 params.targetColorGamut = newColorSpace_;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-                params.screenBrightnessNits = GetScreenBrightnessNits();
+                auto screenManager = CreateOrGetScreenManager();
+                auto ancestor = node.GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
+                params.screenBrightnessNits = screenManager->GetScreenBrightnessNits(ancestor->GetScreenId());
 #endif
                 renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
             }
@@ -4144,24 +4140,9 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     ProcessCanvasRenderNode(node);
     canvas_->restoreToCount(saveCount);
 #else
-    ColorFilterMode colorFilterMode = renderEngine_->GetColorFilterMode();
     int saveCount;
-    if (colorFilterMode >= ColorFilterMode::INVERT_COLOR_ENABLE_MODE &&
-        colorFilterMode <= ColorFilterMode::INVERT_DALTONIZATION_TRITANOMALY_MODE) {
-        RS_LOGD("RsDebug RSBaseRenderEngine::SetColorFilterModeToPaint mode:%{public}d",
-            static_cast<int32_t>(colorFilterMode));
-
-        Drawing::Brush brush;
-        RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, brush);
-        RSTagTracker tagTracker(renderEngine_->GetRenderContext()->GetDrGPUContext(),
-                                RSTagTracker::TAG_SAVELAYER_COLOR_FILTER);
-        Drawing::SaveLayerOps saveLayerOps(nullptr, &brush);
-        saveCount = canvas_->GetSaveCount();
-        canvas_->SaveLayer(saveLayerOps);
-    } else {
-        saveCount = canvas_->GetSaveCount();
-        canvas_->Save();
-    }
+    saveCount = canvas_->GetSaveCount();
+    canvas_->Save();
     ProcessCanvasRenderNode(node);
     canvas_->RestoreToCount(saveCount);
 #endif
@@ -4346,7 +4327,7 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
 void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 {
     processedCanvasNodeInCurrentSurface_++;
-    if (!node.ShouldPaint()) {
+    if (!node.ShouldPaint() || (canvas_ && canvas_->getDeviceClipBounds().isEmpty())) {
         return;
     }
     node.MarkNodeSingleFrameComposer(isNodeSingleFrameComposer_);
@@ -4740,6 +4721,13 @@ bool RSUniRenderVisitor::ParallelComposition(const std::shared_ptr<RSBaseRenderN
 
 void RSUniRenderVisitor::PrepareSharedTransitionNode(RSBaseRenderNode& node)
 {
+    // set flag for surface node whose children contain shared transition node
+    curSurfaceNode_->SetHasSharedTransitionNode(true);
+    auto leashNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(curSurfaceNode_->GetParent().lock());
+    if (leashNode && leashNode->GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
+        leashNode->SetHasSharedTransitionNode(true);
+    }
+
     // Sanity check done by caller, transitionParam should always has value.
     auto& transitionParam = node.GetSharedTransitionParam();
 
@@ -4963,7 +4951,8 @@ void RSUniRenderVisitor::ScaleMirrorIfNeed(RSDisplayRenderNode& node)
     }
 }
 
-NodeId RSUniRenderVisitor::FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node) {
+NodeId RSUniRenderVisitor::FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node)
+{
     if (node == nullptr || node->GetParent().lock() == nullptr) {
         return INVALID_NODEID;
     } else if (node->GetParent().lock()->GetType() == RSRenderNodeType::DISPLAY_NODE) {
@@ -4973,7 +4962,8 @@ NodeId RSUniRenderVisitor::FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNo
     }
 }
 
-bool RSUniRenderVisitor::CheckIfNeedResetRotate() {
+bool RSUniRenderVisitor::CheckIfNeedResetRotate()
+{
     if (canvas_ == nullptr) {
         return true;
     }
@@ -4982,41 +4972,7 @@ bool RSUniRenderVisitor::CheckIfNeedResetRotate() {
 #else
     int angle = RSUniRenderUtil::GetRotationFromMatrix(canvas_->GetTotalMatrix());
 #endif
-    return angle != 0 && angle % 90 == 0;
+    return angle != 0 && angle % ROTATION_90 == 0;
 }
-
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-float RSUniRenderVisitor::GetScreenBrightnessNits()
-{
-    constexpr float DEFAULT_SCREEN_LIGHT_NITS = 500.0;
-    constexpr float DEFAULT_SCREEN_LIGHT_MAX_NITS = 1200.0;
-    constexpr int32_t DEFAULT_SCREEN_LIGHT_MAX_LEVEL = 255;
-
-    float screenBrightnessNits = DEFAULT_SCREEN_LIGHT_NITS;
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    if (screenManager == nullptr) {
-        RS_LOGW("RSUniRenderVisitor::GetScreenBrightnessNits screenManager is nullptr.");
-        return screenBrightnessNits;
-    }
-
-    RSScreenType screenType;
-    if (screenManager->GetScreenType(currentVisitDisplay_, screenType) != SUCCESS) {
-        RS_LOGW("RSUniRenderVisitor::GetScreenBrightnessNits GetScreenType fail.");
-        return screenBrightnessNits;
-    }
-
-    if (screenType == VIRTUAL_TYPE_SCREEN) {
-        return screenBrightnessNits;
-    }
-
-    int32_t backLightLevel = screenManager->GetScreenBacklight(currentVisitDisplay_);
-
-    if (backLightLevel <= 0) {
-        return screenBrightnessNits;
-    }
-
-    return DEFAULT_SCREEN_LIGHT_MAX_NITS * backLightLevel / DEFAULT_SCREEN_LIGHT_MAX_LEVEL;
-}
-#endif
 } // namespace Rosen
 } // namespace OHOS

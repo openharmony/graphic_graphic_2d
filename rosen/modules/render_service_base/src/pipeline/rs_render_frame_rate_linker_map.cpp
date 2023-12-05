@@ -23,10 +23,14 @@ RSRenderFrameRateLinkerMap::RSRenderFrameRateLinkerMap()
 {
 }
 
-void RSRenderFrameRateLinkerMap::RegisterFrameRateLinker(const std::shared_ptr<RSRenderFrameRateLinker>& linkerPtr)
+bool RSRenderFrameRateLinkerMap::RegisterFrameRateLinker(const std::shared_ptr<RSRenderFrameRateLinker>& linkerPtr)
 {
     FrameRateLinkerId id = linkerPtr->GetId();
+    if (frameRateLikerMap_.count(id)) {
+        return false;
+    }
     frameRateLikerMap_.emplace(id, linkerPtr);
+    return true;
 }
 
 void RSRenderFrameRateLinkerMap::UnregisterFrameRateLinker(FrameRateLinkerId id)

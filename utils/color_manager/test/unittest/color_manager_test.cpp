@@ -26,6 +26,50 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace ColorManager {
+constexpr uint32_t MATRIX_SIZE = 3;
+
+static void CheckColorSpaceEqual(const ColorSpace& cs0, const ColorSpace& cs1)
+{
+    ASSERT_TRUE(FloatEqual(cs0.transferFunc.g, cs1.transferFunc.g));
+    ASSERT_TRUE(FloatEqual(cs0.transferFunc.a, cs1.transferFunc.a));
+    ASSERT_TRUE(FloatEqual(cs0.transferFunc.b, cs1.transferFunc.b));
+    ASSERT_TRUE(FloatEqual(cs0.transferFunc.c, cs1.transferFunc.c));
+    ASSERT_TRUE(FloatEqual(cs0.transferFunc.d, cs1.transferFunc.d));
+    ASSERT_TRUE(FloatEqual(cs0.transferFunc.e, cs1.transferFunc.e));
+    ASSERT_TRUE(FloatEqual(cs0.transferFunc.f, cs1.transferFunc.f));
+
+    for (uint32_t i = 0; i < MATRIX_SIZE; ++i) {
+        for (uint32_t j = 0; j < MATRIX_SIZE; ++j) {
+            ASSERT_TRUE(FloatEqual(cs0.toXYZ[i][j], cs1.toXYZ[i][j]));
+        }
+    }
+}
+
+static void CheckSkColorSpaceEqual(sk_sp<SkColorSpace> cs0, sk_sp<SkColorSpace> cs1)
+{
+    skcms_TransferFunction f0;
+    cs0->transferFn(&f0);
+    skcms_TransferFunction f1;
+    cs1->transferFn(&f1);
+    ASSERT_TRUE(FloatEqual(f0.g, f1.g));
+    ASSERT_TRUE(FloatEqual(f0.a, f1.a));
+    ASSERT_TRUE(FloatEqual(f0.b, f1.b));
+    ASSERT_TRUE(FloatEqual(f0.c, f1.c));
+    ASSERT_TRUE(FloatEqual(f0.d, f1.d));
+    ASSERT_TRUE(FloatEqual(f0.e, f1.e));
+    ASSERT_TRUE(FloatEqual(f0.f, f1.f));
+
+    skcms_Matrix3x3 m0;
+    cs0->toXYZD50(&m0);
+    skcms_Matrix3x3 m1;
+    cs1->toXYZD50(&m1);
+    for (uint32_t i = 0; i < MATRIX_SIZE; ++i) {
+        for (uint32_t j = 0; j < MATRIX_SIZE; ++j) {
+            ASSERT_TRUE(FloatEqual(m0.vals[i][j], m1.vals[i][j]));
+        }
+    }
+}
+
 class ColorManagerTest : public testing::Test {
 public:
     static constexpr HiviewDFX::HiLogLabel LOG_LABEL = {LOG_CORE, 0, "ColorManagerTest"};
@@ -572,9 +616,9 @@ HWTEST_F(ColorManagerTest, P3_PQTosRGB, Function | SmallTest | Level2)
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: sRGB convert to DCI_P3
+* CaseDescription: SkColorSpace to ColorSpace
 */
-HWTEST_F(ColorManagerTest, skiaToColorSpace, Function | SmallTest | Level2)
+HWTEST_F(ColorManagerTest, SkColorSpaceToColorSpace, Function | SmallTest | Level2)
 {
     sk_sp<SkColorSpace> skiaSrgb = SkColorSpace::MakeSRGB();
     ASSERT_NE(nullptr, skiaSrgb);
@@ -592,6 +636,58 @@ HWTEST_F(ColorManagerTest, skiaToColorSpace, Function | SmallTest | Level2)
     result = color.Convert(displayP3);
     Color p3Color = Color(0.1238f, 0.19752f, 0.29182f, 0.4, ColorSpaceName::DISPLAY_P3);
     ASSERT_EQ(p3Color.ColorEqual(result), true);
+
+    ColorSpace csSrgb(SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kSRGB));
+    CheckColorSpaceEqual(csSrgb, ColorSpace(SRGB));
+
+    ColorSpace csAdobeRgb(SkColorSpace::MakeRGB(SkNamedTransferFn::k2Dot2, SkNamedGamut::kAdobeRGB));
+    CheckColorSpaceEqual(csAdobeRgb, ColorSpace(ADOBE_RGB));
+
+    ColorSpace csDisplayP3(SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3));
+    CheckColorSpaceEqual(csDisplayP3, ColorSpace(DISPLAY_P3));
+
+    ColorSpace csBt2020(SkColorSpace::MakeRGB(SkNamedTransferFn::kRec2020, SkNamedGamut::kRec2020));
+    CheckColorSpaceEqual(csBt2020, ColorSpace(BT2020));
+
+    ColorSpace csBt2020Hlg(SkColorSpace::MakeRGB(SkNamedTransferFn::kHLG, SkNamedGamut::kRec2020));
+    CheckColorSpaceEqual(csBt2020Hlg, ColorSpace(BT2020_HLG));
+
+    ColorSpace csBt2020Pq(SkColorSpace::MakeRGB(SkNamedTransferFn::kPQ, SkNamedGamut::kRec2020));
+    CheckColorSpaceEqual(csBt2020Pq, ColorSpace(BT2020_PQ));
+
+    ColorSpace csLinearBt2020(SkColorSpace::MakeRGB(SkNamedTransferFn::kLinear, SkNamedGamut::kRec2020));
+    CheckColorSpaceEqual(csLinearBt2020, ColorSpace(LINEAR_BT2020));
+}
+
+/*
+* Function: ColorManagerTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: ColorSpace to SkColorSpace
+*/
+HWTEST_F(ColorManagerTest, ColorSpaceToSkColorSpace, Function | SmallTest | Level2)
+{
+    auto skSrgb = ColorSpace(SRGB).ToSkColorSpace();
+    CheckSkColorSpaceEqual(skSrgb, SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kSRGB));
+
+    auto skAdobeRgb = ColorSpace(ADOBE_RGB).ToSkColorSpace();
+    CheckSkColorSpaceEqual(skAdobeRgb, SkColorSpace::MakeRGB(SkNamedTransferFn::k2Dot2, SkNamedGamut::kAdobeRGB));
+
+    auto skDisplayP3 = ColorSpace(DISPLAY_P3).ToSkColorSpace();
+    CheckSkColorSpaceEqual(skDisplayP3, SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3));
+
+    auto skBt2020 = ColorSpace(BT2020).ToSkColorSpace();
+    CheckSkColorSpaceEqual(skBt2020, SkColorSpace::MakeRGB(SkNamedTransferFn::kRec2020, SkNamedGamut::kRec2020));
+
+    auto skBt2020Hlg = ColorSpace(BT2020_HLG).ToSkColorSpace();
+    CheckSkColorSpaceEqual(skBt2020Hlg, SkColorSpace::MakeRGB(SkNamedTransferFn::kHLG, SkNamedGamut::kRec2020));
+
+    auto skBt2020Pq = ColorSpace(BT2020_PQ).ToSkColorSpace();
+    CheckSkColorSpaceEqual(skBt2020Pq, SkColorSpace::MakeRGB(SkNamedTransferFn::kPQ, SkNamedGamut::kRec2020));
+
+    auto skLinearBt2020 = ColorSpace(LINEAR_BT2020).ToSkColorSpace();
+    CheckSkColorSpaceEqual(skLinearBt2020, SkColorSpace::MakeRGB(SkNamedTransferFn::kLinear, SkNamedGamut::kRec2020));
 }
 
 /**
@@ -604,7 +700,7 @@ HWTEST_F(ColorManagerTest, CreateColorSpace001, TestSize.Level1)
 {
     // customized parameters
     ColorSpacePrimaries primaries{0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f};
-    TransferFunc transFunc{GAMMA_LIKE, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f};
+    TransferFunc transFunc{0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f};
     Matrix3x3 toXYZ = {{
         {0.1f, 0.2f, 0.3f},
         {0.1f, 0.2f, 0.3f},

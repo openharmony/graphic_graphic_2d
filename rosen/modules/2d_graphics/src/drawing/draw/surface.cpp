@@ -82,6 +82,11 @@ std::shared_ptr<Image> Surface::GetImageSnapshot() const
     return impl_->GetImageSnapshot();
 }
 
+BackendTexture Surface::GetBackendTexture() const
+{
+    return impl_->GetBackendTexture();
+}
+
 std::shared_ptr<Image> Surface::GetImageSnapshot(const RectI& bounds) const
 {
     return impl_->GetImageSnapshot(bounds);

@@ -364,14 +364,15 @@ void HdiOutput::SetBufferColorSpace(sptr<SurfaceBuffer>& buffer, const std::vect
             continue;
         }
 
-        CM_ColorSpaceType colorSpace;
-        if (MetadataHelper::GetColorSpaceType(buffer, colorSpace) != GSERROR_OK) {
+        CM_ColorSpaceInfo colorSpaceInfo;
+        if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
             HLOGW("HdiOutput::SetBufferColorSpace Get color space from surface buffer failed");
             continue;
         }
 
-        if (colorSpace != CM_DISPLAY_SRGB) {
+        if (colorSpaceInfo.primaries != COLORPRIMARIES_SRGB) {
             targetColorSpace = CM_DISPLAY_P3_SRGB;
+            break;
         }
     }
 
