@@ -97,7 +97,8 @@ HWTEST_F(VSyncGeneratorTest, UpdateMode003, Function | MediumTest| Level0)
 {
     VSyncGeneratorTest::vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
     ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->UpdateMode(0, 0, 0), VSYNC_ERROR_NOT_SUPPORT);
-    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->UpdateMode(25000000, 0, 0), VSYNC_ERROR_OK); //period为25000000时刷新频率40hz，用于测试JudgeRefreshRateLocked
+    // 25000000 is period, refreshRate is 40hz，for JudgeRefreshRateLocked test
+    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->UpdateMode(25000000, 0, 0), VSYNC_ERROR_OK);
 }
 
 /*
