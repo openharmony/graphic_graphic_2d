@@ -586,24 +586,15 @@ std::unordered_map<NodeId, bool> RSMainThread::GetCacheCmdSkippedNodes() const
     return cacheCmdSkippedNodes_;
 }
 
-void RSMainThread::ResetSubThreadGrContext()
+bool RSMainThread::CheckParallelSubThreadNodesStatus()
 {
-#ifdef RS_ENABLE_VK
-    constexpr uint64_t delayNumOfFrameCount_ = 2;
-    if (!needResetSubThreadGrContext_) {
-        needResetSubThreadGrContext_ = true;
-        frameCountForResetSubThreadGrContext_ = frameCount_.load();
-    } else if (frameCount_.load() > frameCountForResetSubThreadGrContext_ + delayNumOfFrameCount_) {
-        needResetSubThreadGrContext_ = false;
+    RS_OPTIONAL_TRACE_FUNC();
+    cacheCmdSkippedInfo_.clear();
+    cacheCmdSkippedNodes_.clear();
+    if (subThreadNodes_.empty()) {
         RSSubThreadManager::Instance()->ResetSubThreadGrContext();
+        return false;
     }
-#else
-    RSSubThreadManager::Instance()->ResetSubThreadGrContext();
-#endif
-}
-
-void RSMainThread::CheckParallelSubThreadNodesStatusImplementation()
-{
     for (auto& node : subThreadNodes_) {
         if (node == nullptr) {
             RS_LOGE("RSMainThread::CheckParallelSubThreadNodesStatus sunThreadNode is nullptr!");
@@ -647,22 +638,6 @@ void RSMainThread::CheckParallelSubThreadNodesStatusImplementation()
             }
         }
     }
-}
-
-bool RSMainThread::CheckParallelSubThreadNodesStatus()
-{
-    RS_OPTIONAL_TRACE_FUNC();
-    cacheCmdSkippedInfo_.clear();
-    cacheCmdSkippedNodes_.clear();
-    if (subThreadNodes_.empty()) {
-        ResetSubThreadGrContext();
-        return false;
-    } else {
-#ifdef RS_ENABLE_VK
-        needResetSubThreadGrContext_ = false;
-#endif
-    }
-    CheckParallelSubThreadNodesStatusImplementation();
     if (!cacheCmdSkippedNodes_.empty()) {
         return true;
     }
