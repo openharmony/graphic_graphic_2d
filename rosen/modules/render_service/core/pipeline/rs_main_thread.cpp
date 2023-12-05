@@ -2753,7 +2753,7 @@ void RSMainThread::UpdateRogSizeIfNeeded()
     }
 }
 
-const uint32_t UIFIRST_MINIMUM_NODE_NUMBER = 12; // minimum window number(12) for enabling UIFirst
+const uint32_t UIFIRST_MINIMUM_NODE_NUMBER = 4; // minimum window number(4) for enabling UIFirst
 
 void RSMainThread::UpdateUIFirstSwitch()
 {
@@ -2767,16 +2767,22 @@ void RSMainThread::UpdateUIFirstSwitch()
         auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
             rootNode->GetSortedChildren().front());
         if (displayNode) {
-            uint32_t childrenCount = 0;
-            if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-                std::vector<RSBaseRenderNode::SharedPtr> curAllSurfacesVec;
-                displayNode->CollectSurface(displayNode, curAllSurfacesVec, true, true);
-                childrenCount = curAllSurfacesVec.size();
-            } else {
-                childrenCount = displayNode->GetChildrenCount();
+            uint32_t childrenLeashWindowCount = 0;
+            bool isUIFirstMiniWindowNumSatisfied = false;
+            std::vector<RSBaseRenderNode::SharedPtr> curAllSurfacesVec;
+            displayNode->CollectSurface(displayNode, curAllSurfacesVec, true, true);
+            for (auto it = curAllSurfacesVec.begin(); it != curAllSurfacesVec.end(); it++) {
+                if (auto surfaceNode = (*it)->ReinterpretCastTo<RSSurfaceRenderNode>()) {
+                    if (surfaceNode->IsLeashWindow()) {
+                        childrenLeashWindowCount++;
+                    }
+                }
+                if (childrenLeashWindowCount >= UIFIRST_MINIMUM_NODE_NUMBER) {
+                    isUIFirstMiniWindowNumSatisfied = true;
+                    break;
+                }
             }
-            isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled() &&
-                (childrenCount >= UIFIRST_MINIMUM_NODE_NUMBER);
+            isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled() && isUIFirstMiniWindowNumSatisfied;
         }
     }
 }
