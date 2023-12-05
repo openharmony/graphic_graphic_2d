@@ -72,7 +72,9 @@ void RSBaseRenderEngine::Init()
 #else
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     renderContext_ = std::make_shared<RenderContext>();
+#ifdef RS_ENABLE_GL
     renderContext_->InitializeEglContext();
+#endif
     if (RSUniRenderJudgement::IsUniRender()) {
         RS_LOGI("RSRenderEngine::RSRenderEngine set new cacheDir");
         renderContext_->SetUniRenderMode(true);
