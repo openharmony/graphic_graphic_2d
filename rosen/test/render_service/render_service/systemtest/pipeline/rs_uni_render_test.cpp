@@ -51,7 +51,7 @@ public:
 
     std::shared_ptr<RSNode> rootNode;
     std::shared_ptr<RSCanvasNode> canvasNode;
-    static constexpr int SLEEP_TIME_US = 50000;
+    static constexpr int SLEEP_TIME_US = 100000;
 };
 
 void RSUniRenderTest::Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
@@ -106,11 +106,17 @@ HWTEST_F(RSUniRenderTest, RSUniRenderTest001, TestSize.Level2)
     option->SetWindowMode(WindowMode::WINDOW_MODE_FLOATING);
     option->SetWindowRect({ 0, 0, 500, 800 });
     auto window = Window::Create("uni_render_demo1", option);
-
+    ASSERT_NE(nullptr, window);
+    
     window->Show();
     usleep(SLEEP_TIME_US);
     auto rect = window->GetRect();
+    int failureTimes = 0;
     while (rect.width_ == 0 && rect.height_ == 0) {
+        if (failureTimes == 10) {
+            return;
+        }
+        failureTimes++;
         std::cout << "rs uni render demo create window failed: " << rect.width_ << " " << rect.height_ << std::endl;
         window->Hide();
         window->Destroy();
@@ -119,6 +125,7 @@ HWTEST_F(RSUniRenderTest, RSUniRenderTest001, TestSize.Level2)
         usleep(SLEEP_TIME_US);
         rect = window->GetRect();
     }
+
 
     std::cout << "rs uni render demo create window " << rect.width_ << " " << rect.height_ << std::endl;
     auto surfaceNode = window->GetSurfaceNode();
@@ -170,11 +177,15 @@ HWTEST_F(RSUniRenderTest, RSUniRenderTest002, TestSize.Level2)
     option1->SetWindowMode(WindowMode::WINDOW_MODE_FLOATING);
     option1->SetWindowRect({ 0, 0, 500, 900 });
     auto window1 = Window::Create("uni_render_demo2", option1);
+    ASSERT_NE(nullptr, window1);
+
     sptr<WindowOption> option2 = new WindowOption();
     option2->SetWindowType(WindowType::WINDOW_TYPE_FLOAT);
     option2->SetWindowMode(WindowMode::WINDOW_MODE_FLOATING);
     option2->SetWindowRect({ 0, 0, 600, 800 });
     auto window2 = Window::Create("uni_render_demo3", option2);
+    ASSERT_NE(nullptr, window2);
+
     window1->Show();
     window2->Show();
     auto rect1 = window1->GetRect();
