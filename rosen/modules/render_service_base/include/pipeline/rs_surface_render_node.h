@@ -858,6 +858,18 @@ public:
         hasSkipLayer_ = hasSkipLayer;
     }
 
+    bool GetSurfaceCacheContentStatic()
+    {
+        return surfaceCacheContentStatic_;
+    }
+
+    void SetSurfaceCacheContentStatic(bool contentStatic)
+    {
+        surfaceCacheContentStatic_ = contentStatic;
+    }
+
+    bool IsUIFirstCacheReusable();
+
 #ifdef USE_SURFACE_TEXTURE
     std::shared_ptr<RSSurfaceTexture> GetSurfaceTexture() const { return surfaceTexture_; };
     void SetSurfaceTexture(const std::shared_ptr<RSSurfaceTexture> &texture) { surfaceTexture_ = texture; }
@@ -1074,6 +1086,7 @@ private:
     bool prevVisible_ = false;
     bool hasSecurityLayer_ = false;
     bool hasSkipLayer_ = false;
+    bool surfaceCacheContentStatic_ = false;
 
     uint32_t processZOrder_ = -1;
 

@@ -1493,7 +1493,7 @@ std::vector<std::shared_ptr<RSSurfaceRenderNode>> RSSurfaceRenderNode::GetLeashW
 
 bool RSSurfaceRenderNode::IsCurrentFrameStatic()
 {
-    if (dirtyManager_ == nullptr || !dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty()) {
+    if (IsMainWindowType() && !surfaceCacheContentStatic_) {
         return false;
     }
     if (IsAppWindow()) {
@@ -1511,8 +1511,14 @@ bool RSSurfaceRenderNode::IsCurrentFrameStatic()
         // leashwindow subthread cache considered static if and only if all nested surfacenode static
         // (include appwindow and starting window)
         auto nestedSurfaceNodes = GetLeashWindowNestedSurfaces();
-        for (auto& nestedSurface: nestedSurfaceNodes) {
-            if (nestedSurface && !nestedSurface->IsCurrentFrameStatic()) {
+        if (nestedSurfaceNodes.size() > 0) {
+            for (auto& nestedSurface: nestedSurfaceNodes) {
+                if (nestedSurface && !nestedSurface->IsCurrentFrameStatic()) {
+                    return false;
+                }
+            }
+        } else {
+            if (dirtyManager_ == nullptr || !dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty()) {
                 return false;
             }
         }
@@ -1522,6 +1528,12 @@ bool RSSurfaceRenderNode::IsCurrentFrameStatic()
     } else {
         return false;
     }
+}
+
+bool RSSurfaceRenderNode::IsUIFirstCacheReusable()
+{
+    return GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE &&
+        IsCurrentFrameStatic() && HasCachedTexture();
 }
 
 void RSSurfaceRenderNode::UpdateCacheSurfaceDirtyManager(int bufferAge)

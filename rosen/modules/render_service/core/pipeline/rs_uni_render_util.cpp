@@ -503,6 +503,36 @@ void RSUniRenderUtil::ReleaseColorPickerResource(std::shared_ptr<RSRenderNode>& 
     }
 }
 
+bool RSUniRenderUtil::IsNodeAssignSubThread(std::shared_ptr<RSSurfaceRenderNode> node, bool isDisplayRotation)
+{
+    bool rotationCache = RSSystemProperties::GetCacheEnabledForRotation();
+    bool isNeedAssignToSubThread = !rotationCache && node->IsLeashWindow()
+        && (node->IsScale() || ROSEN_EQ(node->GetGlobalAlpha(), 0.0f))
+        && !node->HasFilter();
+    std::string surfaceName = node->GetName();
+    bool needFilter = surfaceName == ENTRY_VIEW || surfaceName == WALLPAPER_VIEW ||
+        surfaceName == SYSUI_STATUS_BAR || surfaceName == SCREENLOCK_WINDOW ||
+        surfaceName == SYSUI_DROPDOWN || surfaceName == PRIVACY_INDICATOR;
+    bool needFilterSCB = surfaceName.substr(0, 3) == "SCB" ||
+        surfaceName.substr(0, 13) == "BlurComponent"; // filter BlurComponent, 13 is string len
+    if (needFilter || needFilterSCB || node->IsSelfDrawingType()) {
+        return false;
+    }
+    if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) { // node exceed one vsync
+        return true;
+    }
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE) {
+        return isNeedAssignToSubThread;
+    } else { // PC or TABLET
+        if ((node->IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()) ||
+            node->IsFocusedNode(RSMainThread::Instance()->GetFocusLeashWindowId())) &&
+            node->GetHasSharedTransitionNode()) {
+            return false;
+        }
+        return node->QuerySubAssignable(isDisplayRotation);
+    }
+}
+
 void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
     std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
     std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes, uint64_t focusNodeId, DeviceType deviceType)
@@ -512,10 +542,6 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         return;
     }
     bool isRotation = displayNode->IsRotationChanged();
-    bool rotationCache = RSSystemProperties::GetCacheEnabledForRotation();
-    bool isFocusNodeFound = false;
-    uint64_t realFocusNodeId = 0;
-    std::string logInfo = "";
     std::list<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         std::vector<RSBaseRenderNode::SharedPtr> curAllSurfacesVec;
@@ -530,87 +556,13 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
             ROSEN_LOGE("RSUniRenderUtil::AssignWindowNodes nullptr found in sortedChildren, this should not happen");
             continue;
         }
-        if (deviceType != DeviceType::PHONE) {
-            if (node->GetId() == focusNodeId) {
-                isFocusNodeFound = true;
-                realFocusNodeId = focusNodeId;
-            }
-            if (!isFocusNodeFound && node->IsLeashWindow()) {
-                for (auto& child : node->GetSortedChildren()) {
-                    if (child && child->GetId() == focusNodeId) {
-                        isFocusNodeFound = true;
-                        realFocusNodeId = node->GetId();
-                    }
-                }
-            }
-        }
-    }
-    // trace info for assign window nodes
-    bool debugTraceEnable = Rosen::RSSystemProperties::GetDebugTraceEnabled();
-    if (debugTraceEnable) {
-        logInfo += "{ rotationCache: " + std::to_string(rotationCache) + ", " +
-            "isRotation: " + std::to_string(isRotation) + " }; " +
-            "realFocusNodeId: " + std::to_string(realFocusNodeId) + " ]";
-    }
-    for (auto iter = curAllSurfaces.begin(); iter != curAllSurfaces.end(); iter++) {
-        auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*iter);
-        if (node == nullptr) {
-            ROSEN_LOGE("RSUniRenderUtil::AssignWindowNodes nullptr found in sortedChildren, this should not happen");
-            continue;
-        }
-        bool isNeedAssignToSubThread = !rotationCache && node->IsLeashWindow()
-            && (node->IsScale() || ROSEN_EQ(node->GetGlobalAlpha(), 0.0f))
-            && !node->HasFilter();
-        
-        // release color picker resource when thread-switching between RS and subthread
-        bool lastIsNeedAssignToSubThread = node->GetLastIsNeedAssignToSubThread();
-        if (isNeedAssignToSubThread != lastIsNeedAssignToSubThread) {
-            auto renderNode = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(node);
-            ReleaseColorPickerResource(renderNode);
-            node->SetLastIsNeedAssignToSubThread(isNeedAssignToSubThread);
-        }
-
-        // trace info for assign window nodes
-        if (debugTraceEnable) {
-            logInfo += "node:[ " + node->GetName() + ", " + std::to_string(node->GetId()) + " ]" +
-                "( " + std::to_string(static_cast<uint32_t>(node->GetCacheSurfaceProcessedStatus())) + ", " +
-                std::to_string(node->HasFilter()) + ", " + std::to_string(node->HasAbilityComponent()) +
-                ", " + std::to_string(node->IsScale()) + ", " + std::to_string(isNeedAssignToSubThread) + " ); ";
-        }
-        std::string surfaceName = node->GetName();
-        bool needFilter = surfaceName == ENTRY_VIEW || surfaceName == WALLPAPER_VIEW ||
-            surfaceName == SYSUI_STATUS_BAR || surfaceName == SCREENLOCK_WINDOW ||
-            surfaceName == SYSUI_DROPDOWN || surfaceName == PRIVACY_INDICATOR;
-        bool needFilterSCB = surfaceName.substr(0, 3) == "SCB" ||
-            surfaceName.substr(0, 13) == "BlurComponent"; // filter BlurComponent, 13 is string len
-        if (needFilter || needFilterSCB || node->IsSelfDrawingType()) {
+        if (IsNodeAssignSubThread(node, isRotation)) {
+            AssignSubThreadNode(subThreadNodes, node);
+        } else {
             AssignMainThreadNode(mainThreadNodes, node);
-            continue;
-        }
-        if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) { // node exceed one vsync
-            AssignSubThreadNode(subThreadNodes, node, deviceType, realFocusNodeId);
-            continue;
-        }
-        if (deviceType == DeviceType::PHONE) {
-            if (isNeedAssignToSubThread) { // app start or close scene
-                AssignSubThreadNode(subThreadNodes, node);
-            } else { // other scene
-                AssignMainThreadNode(mainThreadNodes, node);
-            }
-        } else { // PC or TABLET
-            if (node->GetId() == realFocusNodeId && node->GetHasSharedTransitionNode()) {
-                AssignMainThreadNode(mainThreadNodes, node);
-                continue;
-            }
-            if (node->QuerySubAssignable(isRotation)) {
-                AssignSubThreadNode(subThreadNodes, node, deviceType, realFocusNodeId);
-            } else {
-                AssignMainThreadNode(mainThreadNodes, node);
-            }
         }
     }
     SortSubThreadNodes(subThreadNodes);
-    RS_OPTIONAL_TRACE_NAME("RSUniRenderUtil::AssignWindowNodes:" + logInfo);
 }
 
 void RSUniRenderUtil::AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
@@ -646,8 +598,7 @@ void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRen
     node->SetIsMainThreadNode(false);
 
     // skip complete static window, DO NOT assign it to subthread.
-    if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE &&
-        node->IsCurrentFrameStatic() && node->HasCachedTexture()) {
+    if (node->IsUIFirstCacheReusable()) {
         node->SetNeedSubmitSubThread(false);
         RS_OPTIONAL_TRACE_NAME_FMT("subThreadNodes : static skip %s", node->GetName().c_str());
     } else {
@@ -673,7 +624,10 @@ void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRen
         node->SetCacheSurfaceNeedUpdated(false);
     }
 #endif
-    if ((deviceType == DeviceType::PC || deviceType == DeviceType::TABLET) && node->GetId() == focusNodeId) {
+    deviceType = RSMainThread::Instance()->GetDeviceType();
+    bool isFocus = node->IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()) ||
+        (node->IsFocusedNode(RSMainThread::Instance()->GetFocusLeashWindowId()));
+    if ((deviceType == DeviceType::PC || deviceType == DeviceType::TABLET) && isFocus) {
         node->SetPriority(NodePriorityType::SUB_FOCUSNODE_PRIORITY); // for resolving response latency
         return;
     }
