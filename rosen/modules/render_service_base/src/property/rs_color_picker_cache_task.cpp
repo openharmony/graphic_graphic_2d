@@ -339,8 +339,8 @@ void RSColorPickerCacheTask::CalculateColorAverage(RSColor& colorCur)
     // black color defination
     RSColor black = RSColor(0, 0, 0, 255);
     int colorArrayLen = colorArray_.size();
-    int colorArraySize = 21;
-    int continueBlackColorNum = 20;
+    int colorArraySize = 10;
+    int continueBlackColorNum = 5;
     if (colorArrayLen >= colorArraySize) {
         colorArray_.pop_back();
     }
