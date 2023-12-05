@@ -14,6 +14,7 @@
  */
 
 #include "rs_surface_frame_ohos_vulkan.h"
+#include "rs_trace.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -33,6 +34,7 @@ RSSurfaceFrameOhosVulkan::RSSurfaceFrameOhosVulkan(std::shared_ptr<Drawing::Surf
 void RSSurfaceFrameOhosVulkan::SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height)
 {
 #ifdef RS_ENABLE_VK
+    RS_TRACE_FUNC()
 #ifndef USE_ROSEN_DRAWING
     std::vector<SkIRect> skIRects;
     SkIRect skIRect = {left, top, width, height};
@@ -50,6 +52,7 @@ void RSSurfaceFrameOhosVulkan::SetDamageRegion(int32_t left, int32_t top, int32_
 void RSSurfaceFrameOhosVulkan::SetDamageRegion(const std::vector<RectI>& rects)
 {
 #ifdef RS_ENABLE_VK
+    RS_TRACE_FUNC()
 #ifndef USE_ROSEN_DRAWING
     std::vector<SkIRect> skIRects;
     for (auto &rect : rects) {

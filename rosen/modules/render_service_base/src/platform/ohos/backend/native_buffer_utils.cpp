@@ -230,16 +230,19 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
         SkColorSpace::MakeSRGB(), &props, DeleteVkImage, new VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
         image, memory));
 #else
-    Drawing::VKTextureInfo texture_info;
-    texture_info.width = width;
-    texture_info.height = height;
-    texture_info.vkImage = image;
-    texture_info.imageTiling = VK_IMAGE_TILING_OPTIMAL;
-    texture_info.imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    texture_info.format = nbFormatProps.format;
-    texture_info.imageUsageFlags = usageFlags;
-    texture_info.sampleCount = 1;
-    texture_info.levelCount = 1;
+    Drawing::TextureInfo texture_info;
+    texture_info.SetWidth(width);
+    texture_info.SetHeight(height);
+    std::shared_ptr<Drawing::VKTextureInfo> vkTextureInfo = std::make_shared<Drawing::VKTextureInfo>();
+    vkTextureInfo->vkImage = image;
+    vkTextureInfo->imageTiling = VK_IMAGE_TILING_OPTIMAL;
+    vkTextureInfo->imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    vkTextureInfo->format = nbFormatProps.format;
+    vkTextureInfo->imageUsageFlags = usageFlags;
+    vkTextureInfo->sampleCount = 1;
+    vkTextureInfo->levelCount = 1;
+    texture_info.SetVKTextureInfo(vkTextureInfo);
+    
     nativeSurface.drawingSurface_ = Drawing::Surface::MakeFromBackendRenderTarget(
         skContext.get(),
         texture_info,
@@ -279,7 +282,7 @@ GrVkYcbcrConversionInfo GetYcbcrInfo(VkNativeBufferFormatPropertiesOHOS& nbForma
 GrBackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* nativeWindowBuffer,
     int width, int height)
 #else
-Drawing::VKTextureInfo MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* nativeWindowBuffer,
+Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* nativeWindowBuffer,
     int width, int height)
 #endif
 {
@@ -336,36 +339,38 @@ Drawing::VKTextureInfo MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* na
 
     return GrBackendTexture(width, height, imageInfo);
 #else
-    Drawing::VKTextureInfo imageInfo;
-    imageInfo.width = width;
-    imageInfo.height = height;
+    Drawing::BackendTexture backendTexture(true);
+    Drawing::TextureInfo textureInfo;
+    textureInfo.SetWidth(width);
+    textureInfo.SetHeight(height);
 
-    imageInfo.vkImage = image;
-
-    imageInfo.vkAlloc.memory = memory;
-    imageInfo.vkAlloc.size = nbProps.allocationSize;
-
-    imageInfo.imageTiling = tiling;
-    imageInfo.imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    imageInfo.format = nbFormatProps.format;
-    imageInfo.imageUsageFlags = usageFlags;
-    imageInfo.levelCount = 1;
-    imageInfo.currentQueueFamily = VK_QUEUE_FAMILY_EXTERNAL;
-
-    imageInfo.ycbcrConversionInfo.format = nbFormatProps.format;
-    imageInfo.ycbcrConversionInfo.externalFormat = nbFormatProps.externalFormat;
-    imageInfo.ycbcrConversionInfo.ycbcrModel = nbFormatProps.suggestedYcbcrModel;
-    imageInfo.ycbcrConversionInfo.ycbcrRange = nbFormatProps.suggestedYcbcrRange;
-    imageInfo.ycbcrConversionInfo.xChromaOffset = nbFormatProps.suggestedXChromaOffset;
-    imageInfo.ycbcrConversionInfo.yChromaOffset = nbFormatProps.suggestedYChromaOffset;
-    imageInfo.ycbcrConversionInfo.chromaFilter = VK_FILTER_NEAREST;
-    imageInfo.ycbcrConversionInfo.forceExplicitReconstruction = VK_FALSE;
-    imageInfo.ycbcrConversionInfo.formatFeatures = nbFormatProps.formatFeatures;
+    std::shared_ptr<Drawing::VKTextureInfo> imageInfo = std::make_shared<Drawing::VKTextureInfo>();
+    imageInfo->vkImage = image;
+    imageInfo->vkAlloc.memory = memory;
+    imageInfo->vkAlloc.size = nbProps.allocationSize;
+    imageInfo->imageTiling = VK_IMAGE_TILING_OPTIMAL;
+    imageInfo->imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageInfo->format = nbFormatProps.format;
+    imageInfo->imageUsageFlags = usageFlags;
+    imageInfo->levelCount = 1;
+    imageInfo->currentQueueFamily = VK_QUEUE_FAMILY_EXTERNAL;
+    imageInfo->ycbcrConversionInfo.format = nbFormatProps.format;
+    imageInfo->ycbcrConversionInfo.externalFormat = nbFormatProps.externalFormat;
+    imageInfo->ycbcrConversionInfo.ycbcrModel = nbFormatProps.suggestedYcbcrModel;
+    imageInfo->ycbcrConversionInfo.ycbcrRange = nbFormatProps.suggestedYcbcrRange;
+    imageInfo->ycbcrConversionInfo.xChromaOffset = nbFormatProps.suggestedXChromaOffset;
+    imageInfo->ycbcrConversionInfo.yChromaOffset = nbFormatProps.suggestedYChromaOffset;
+    imageInfo->ycbcrConversionInfo.chromaFilter = VK_FILTER_NEAREST;
+    imageInfo->ycbcrConversionInfo.forceExplicitReconstruction = VK_FALSE;
+    imageInfo->ycbcrConversionInfo.formatFeatures = nbFormatProps.formatFeatures;
     if (VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_LINEAR_FILTER_BIT & nbFormatProps.formatFeatures) {
-        imageInfo.ycbcrConversionInfo.chromaFilter = VK_FILTER_LINEAR;
+        imageInfo->ycbcrConversionInfo.chromaFilter = VK_FILTER_LINEAR;
     }
+    imageInfo->sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    imageInfo.sharingMode = imageCreateInfo.sharingMode;
+    textureInfo.SetVKTextureInfo(imageInfo);
+    backendTexture.SetTextureInfo(textureInfo);
+    reurn backendTexture;
 #endif
 }
 } // namespace NativeBufferUtils

@@ -240,21 +240,21 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
         Drawing::ColorType::COLORTYPE_BGRA_8888 : Drawing::ColorType::COLORTYPE_RGBA_8888;
     Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
 
+    auto image = std::make_shared<Drawing::Image>();
     Drawing::TextureInfo externalTextureInfo;
     externalTextureInfo.SetWidth(buffer->GetSurfaceBufferWidth());
     externalTextureInfo.SetHeight(buffer->GetSurfaceBufferHeight());
+
+#if defined(RS_ENABLE_GL)
     externalTextureInfo.SetIsMipMapped(false);
     externalTextureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
     externalTextureInfo.SetID(eglTextureId);
     externalTextureInfo.SetFormat(GL_RGBA8);
-
-    auto image = std::make_shared<Drawing::Image>();
-#if defined(RS_ENABLE_GL)
     if (!image->BuildFromTexture(*canvas.GetGPUContext(), externalTextureInfo,
 #elif defined(RS_ENABLE_VK)
     if (!image->BuildFromTexture(*renderContext_->GetDrGPUContext(), externalTextureInfo,
 #endif
-        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr)) {
+        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, nullptr, nullptr)) {
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer image BuildFromTexture failed");
         return nullptr;
     }
@@ -639,7 +639,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 #else
     auto surfaceOrigin = Drawing::TextureOrigin::BOTTOM_LEFT;
 #endif
-    if (!image->BuildFromTexture(*canvas.GetGPUContext(), backendTexture,
+    if (!image->BuildFromTexture(*canvas.GetGPUContext(), backendTexture.GetTextureInfo(),
         surfaceOrigin, bitmapFormat, nullptr,
         NativeBufferUtils::DeleteVkImage, imageCache->RefCleanupHelper())) {
             ROSEN_LOGE("RSBaseRenderEngine::DrawImage: backendTexture is not valid!!!");

@@ -56,7 +56,7 @@ std::shared_ptr<Typeface> StaticFactory::MakeFromName(const char familyName[], F
 
 #ifdef ACE_ENABLE_GPU
 #ifdef RS_ENABLE_VK
-std::shared_ptr<Surface> StaticFactory::MakeFromBackendRenderTarget(GPUContext* gpuContext, const VKTextureInfo& info,
+std::shared_ptr<Surface> StaticFactory::MakeFromBackendRenderTarget(GPUContext* gpuContext, TextureInfo& info,
     TextureOrigin origin, void (*deleteVkImage)(void *), void* cleanHelper)
 {
     return EngineStaticFactory::MakeFromBackendRenderTarget(gpuContext, info, origin, deleteVkImage, cleanHelper);

@@ -68,15 +68,11 @@ public:
     bool BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
         CompressedType type) override;
     bool BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
-        BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace) override;
+        BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace,
+        void (*deleteFunc)(void*) = nullptr, void* cleanupHelper = nullptr) override;
     BackendTexture GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin* origin) override;
     void SetGrBackendTexture(const GrBackendTexture& grBackendTexture);
     bool IsValid(GPUContext* context) const override;
-#endif
-#ifdef RS_ENABLE_VK
-    bool BuildFromTexture(GPUContext& gpuContext, const VKTextureInfo& info, TextureOrigin origin,
-        BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace,
-        void (*deleteFunc)(void*), void* cleanupHelper) override;
 #endif
     bool AsLegacyBitmap(Bitmap& bitmap) const override;
     int GetWidth() const override;

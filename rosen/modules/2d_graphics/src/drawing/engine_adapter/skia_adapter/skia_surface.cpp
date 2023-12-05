@@ -129,7 +129,7 @@ bool SkiaSurface::Bind(const FrameBuffer& frameBuffer)
 }
 
 #ifdef RS_ENABLE_VK
-std::shared_ptr<Surface> SkiaSurface::MakeFromBackendRenderTarget(GPUContext* gpuContext, const VKTextureInfo& info,
+std::shared_ptr<Surface> SkiaSurface::MakeFromBackendRenderTarget(GPUContext* gpuContext, TextureInfo& info,
     TextureOrigin origin, void (*deleteVkImage)(void *), void* cleanHelper)
 {
     sk_sp<GrDirectContext> grContext = nullptr;
@@ -141,7 +141,7 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendRenderTarget(GPUContext* gp
     }
     GrVkImageInfo image_info;
     SkiaTextureInfo::ConvertToGrBackendTexture(info).getVkImageInfo(&image_info);
-    GrBackendRenderTarget backendRenderTarget(info.width, info.height, 0, image_info);
+    GrBackendRenderTarget backendRenderTarget(info.GetWidth(), info.GetHeight(), 0, image_info);
     SkSurfaceProps surfaceProps(0, SkPixelGeometry::kUnknown_SkPixelGeometry);
 
     sk_sp<SkSurface> skSurface =

@@ -2317,10 +2317,33 @@ void ImageWithParmOpItem::SetNodeId(NodeId id)
 #include "platform/common/rs_log.h"
 #include "render/rs_pixel_map_util.h"
 #include "pipeline/rs_task_dispatcher.h"
+#ifdef RS_ENABLE_VK
+#include "include/gpu/GrBackendSemaphore.h"
+#include "native_window.h"
+#include "native_buffer_inner.h"
+#include "platform/ohos/backend/native_buffer_utils.h"
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
 constexpr int32_t CORNER_SIZE = 4;
+
+#ifdef RS_ENABLE_VK
+Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
+{
+    switch (vkFormat) {
+        case VK_FORMAT_R8G8B8A8_UNORM:
+            return Drawing::COLORTYPE_RGBA_8888;
+        case VK_FORMAT_R16G16B16A16_SFLOAT:
+            return Drawing::COLORTYPE_RGBA_F16;
+        case VK_FORMAT_R5G6B5_UNORM_PACK16:
+            return Drawing::COLORTYPE_RGB_565;
+        default:
+            return Drawing::COLORTYPE_RGBA_8888;
+    }
+}
+#endif
 
 RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Drawing::Image>& image,
     const std::shared_ptr<Drawing::Data>& data, const Drawing::AdaptiveImageInfo& imageInfo)
@@ -2352,17 +2375,31 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Media::PixelMap>&
 void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect,
     const Drawing::SamplingOptions& sampling, bool isBackground)
 {
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     std::shared_ptr<Media::PixelMap> pixelmap = rsImage_->GetPixelMap();
     if (pixelmap != nullptr && pixelmap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
+#if defined(RS_ENABLE_GL)
         std::shared_ptr<Drawing::Image> dmaImage = GetDrawingImageFromSurfaceBuffer(canvas,
             reinterpret_cast<SurfaceBuffer*>(pixelmap->GetFd()));
+#else
+        std::shared_ptr<Drawing::Image> dmaImage = MakeFromTextureForVK(canvas,
+            reinterpret_cast<SurfaceBuffer*>(pixelmap->GetFd()));
+#endif
         rsImage_->SetDmaImage(dmaImage);
+    } else {
+        if (pixelmap && pixelmap->IsAstc()) {
+            const void* data = pixelmap->GetWritablePixels();
+            std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
+            const int seekSize = 16;
+            if (pixelmap->GetCapacity() > seekSize) {
+                fileData->BuildWithoutCopy((void*)((char*) data + seekSize), pixelmap->GetCapacity() - seekSize);
+            }
+            rsImage_->SetCompressData(fileData);
+        }
     }
 #endif
     rsImage_->CanvasDrawImage(canvas, rect, sampling, isBackground);
 }
-
 
 bool RSExtendImageObject::Marshalling(Parcel &parcel) const
 {
@@ -2444,6 +2481,49 @@ std::shared_ptr<Drawing::Image> RSExtendImageObject::GetDrawingImageFromSurfaceB
 }
 #endif
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+std::shared_ptr<Drawing::Image> RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas,
+    SurfaceBuffer *surfaceBuffer)
+{
+    if (surfaceBuffer == nullptr) {
+        RS_LOGE("MakeFromTextureForVK surfaceBuffer is nullptr");
+        return nullptr;
+    }
+    if (nativeWindowBuffer_ == nullptr) {
+        sptr<SurfaceBuffer> sfBuffer(surfaceBuffer);
+        nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&sfBuffer);
+        if (!nativeWindowBuffer_) {
+            RS_LOGE("MakeFromTextureForVK create native window buffer fail");
+            return nullptr;
+        }
+    }
+    if (!backendTexture_.IsValid()) {
+        backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
+            surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight());
+        if (backendTexture_.IsValid()) {
+            auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
+            cleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+                vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
+        } else {
+            return nullptr;
+        }
+        tid_ = gettid();
+    }
+    auto imageInfo = std::make_shared<Draiwng::Image>();
+    auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
+    Drawing::ColorType colorType = GetColorTypeFromVKFormat(vkTextureInfo->format);
+    Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    if (!imageInfo->BuildFromTexture(*canvas.GetGPUContext(), backendTexture_.GetTextureInfo(),
+        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr,
+        NativeBufferUtils::DeleteVkImage,
+        cleanupHelper_->Ref())) {
+        RS_LOGE("MakeFromTextureForVK build image failed");
+        return nullptr;
+    }
+    return imageInfo;
+}
+#endif
+
 RSExtendImageObject::~RSExtendImageObject()
 {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
@@ -2460,6 +2540,17 @@ RSExtendImageObject::~RSExtendImageObject()
         if (eglImage != EGL_NO_IMAGE_KHR) {
             auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
             eglDestroyImageKHR(disp, eglImage);
+        }
+    });
+#endif
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    RSTaskDispatcher::GetInstance().PostTask(tid_, [nativeWindowBuffer = nativeWindowBuffer_,
+        cleanupHelper = cleanupHelper_]() {
+        if (nativeWindowBuffer != nullptr) {
+            DestroyNativeWindowBuffer(nativeWindowBuffer);
+        }
+        if (cleanupHelper != nullptr) {
+            NativeBufferUtils::DeleteVkImage(cleanupHelper);
         }
     });
 #endif

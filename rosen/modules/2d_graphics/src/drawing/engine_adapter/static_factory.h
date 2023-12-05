@@ -42,7 +42,7 @@ public:
     static std::shared_ptr<Typeface> MakeFromName(const char familyName[], FontStyle fontStyle);
 #ifdef ACE_ENABLE_GPU
 #ifdef RS_ENABLE_VK
-    static std::shared_ptr<Surface> MakeFromBackendRenderTarget(GPUContext* gpuContext, const VKTextureInfo& info,
+    static std::shared_ptr<Surface> MakeFromBackendRenderTarget(GPUContext* gpuContext, TextureInfo& info,
         TextureOrigin origin, void (*deleteVkImage)(void *), void* cleanHelper);
 #endif
     static std::shared_ptr<Surface> MakeRenderTarget(GPUContext* gpuContext, bool budgeted, const ImageInfo& imageInfo);

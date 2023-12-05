@@ -560,7 +560,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
 
             auto image = std::make_shared<Drawing::Image>();
-            if (!image->BuildFromTexture(*canvas->GetGPUContext(), backendTexture,
+            if (!image->BuildFromTexture(*canvas->GetGPUContext(), backendTexture.GetTextureInfo(),
                 Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr,
                 NativeBufferUtils::DeleteVkImage,
                 imageCache->RefCleanupHelper())) {

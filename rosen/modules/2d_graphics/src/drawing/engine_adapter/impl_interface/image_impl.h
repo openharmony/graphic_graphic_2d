@@ -35,11 +35,11 @@ class Data;
 class GPUContext;
 enum class CompressedType;
 class BackendTexture;
-#endif
 class TextureInfo;
 enum class TextureOrigin;
 #ifdef RS_ENABLE_VK
 struct VKTextureInfo;
+#endif
 #endif
 enum class BitDepth;
 class Surface;
@@ -68,14 +68,10 @@ public:
     virtual bool BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
         CompressedType type) = 0;
     virtual bool BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
-        BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace) = 0;
+        BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace,
+        void (*deleteFunc)(void*) = nullptr, void* cleanupHelper = nullptr) = 0;
     virtual bool BuildFromSurface(GPUContext& gpuContext, Surface& surface, TextureOrigin origin,
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace) = 0;
-#ifdef RS_ENABLE_VK
-    virtual bool BuildFromTexture(GPUContext& gpuContext, const VKTextureInfo& info, TextureOrigin origin,
-        BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace,
-        void (*deleteFunc)(void*), void* cleanupHelper) = 0;
-#endif
     virtual BackendTexture GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin* origin) = 0;
     virtual bool IsValid(GPUContext* context) const = 0;
 #endif

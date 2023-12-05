@@ -1245,10 +1245,17 @@ public:
     };
 
     DrawSurfaceBufferOpItem(const CmdList& cmdList, ConstructorHandle* handle);
-    ~DrawSurfaceBufferOpItem() = default;
+    ~DrawSurfaceBufferOpItem();
 
     static std::shared_ptr<DrawOpItem> Unmarshalling(const CmdList& cmdList, void* handle);
     void Playback(Canvas* canvas, const Rect* rect) override;
+#ifdef RS_ENABLE_VK
+    static void SetBaseCallback(
+        std::function<Drawing::BackendTexture(NativeWindowBuffer* buffer, int width, int height)> makeBackendTexture,
+        std::function<void(void* context)> deleteImage,
+        std::function<void*(VkImage image, VkDeviceMemory memory)> helper);
+    )
+#endif
 
 private:
     DrawingSurfaceBufferInfo surfaceBufferInfo_;
@@ -1257,6 +1264,12 @@ private:
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
+#endif
+#ifdef RS_ENABLE_VK
+    static std::function<Drawing::BackendTexture(NativeWindowBuffer* buffer, int width, int height)>
+        makeBackendTextureFromNativeBuffer;
+    static std::function<void(void* context)> deleteVkImage;
+    static std::function<void*(VkImage image, VkDeviceMemory memory)> vulkanCleanupHelper;
 #endif
 #ifdef RS_ENABLE_GL
     EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;

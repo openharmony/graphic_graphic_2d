@@ -38,114 +38,14 @@ public:
         }
     }
 #ifdef RS_ENABLE_VK
-    static GrBackendTexture ConvertToGrBackendVKTexture(const VKTextureInfo& info)
-    {
-        GrVkImageInfo imageInfo;
-        imageInfo.fImage = info.vkImage;
-
-        GrVkAlloc alloc;
-        alloc.fMemory = info.vkAlloc.memory;
-        alloc.fOffset = info.vkAlloc.offset;
-        alloc.fSize = info.vkAlloc.size;
-        alloc.fFlags = info.vkAlloc.flags;
-        imageInfo.vkAlloc = alloc;
-
-        imageInfo.fImageTiling = info.imageTiling;
-        imageInfo.fImageLayout = info.imageLayout;
-        imageInfo.fFormat = info.format;
-        imageInfo.fImageUsageFlags = info.imageUsageFlags;
-        imageInfo.fSampleCount = info.sampleCount;
-        imageInfo.fLevelCount = info.levelCount;
-        imageInfo.fCurrentQueueFamily = info.currentQueueFamily;
-        imageInfo.fProtected = info.vkProtected ? GrProtected::kYes : GrProtected::kNo;
-
-        GrVkYcbcrConversionInfo ycbcrInfo = {
-            .fFormat = info.ycbcrConversionInfo.format,
-            .fExternalFormat = info.ycbcrConversionInfo.externalFormat,
-            .fYcbcrModel = info.ycbcrConversionInfo.ycbcrModel,
-            .fYcbcrRange = info.ycbcrConversionInfo.ycbcrRange,
-            .fXChromaOffset = info.ycbcrConversionInfo.xChromaOffset,
-            .fYChromaOffset = info.ycbcrConversionInfo.yChromaOffset,
-            .fChromaFilter = info.ycbcrConversionInfo.chromaFilter,
-            .fForceExplicitReconstruction = info.ycbcrConversionInfo.forceExplicitReconstruction,
-            .fFormatFeatures = info.ycbcrConversionInfo.formatFeatures,
-        };
-        imageInfo.fYcbcrConversionInfo = ycbcrInfo;
-
-        imageInfo.fSharingMode = info.sharingMode;
-
-        GrBackendTexture backendTexture(info.width, info.height, imageInfo);
-        return backendTexture;
-    }
-
-    static VKTextureInfo ConvertToVKTexture(const GrBackendTexture& backendTexture)
-    {
-        VKTextureInfo info;
-        info.width = backendTexture.width();
-        info.height = backendTexture.height();
-
-        GrVkImageInfo vkImageInfo;
-        backendTexture.getVkImageInfo(&vkImageInfo);
-
-        info.vkImage = vkImageInfo.fImage;
-
-        info.vkAlloc.memory = vkImageInfo.fAlloc.fMemory;
-        info.vkAlloc.offset = vkImageInfo.fAlloc.fOffset;
-        info.vkAlloc.size = vkImageInfo.fAlloc.fSize;
-        info.vkAlloc.flags = vkImageInfo.fAlloc.fFlags;
-
-        info.imageTiling = vkImageInfo.fImageTiling;
-        info.imageLayout = vkImageInfo.fImageLayout;
-        info.format = vkImageInfo.fFormat;
-        info.imageUsageFlags = vkImageInfo.fImageUsageFlags;
-        info.sampleCount = vkImageInfo.fSampleCount;
-        info.levelCount = vkImageInfo.fLevelCount;
-        info.currentQueueFamily = vkImageInfo.fCurrentQueueFamily;
-        info.vkProtected = (vkImageInfo.fProtected == GrProtected::kYes) ? true : false;
-
-        info.ycbcrConversionInfo.format = vkImageInfo.fYcbcrConversionInfo.fFormat;
-        info.ycbcrConversionInfo.externalFormat = vkImageInfo.fYcbcrConversionInfo.fExternalFormat;
-        info.ycbcrConversionInfo.ycbcrModel = vkImageInfo.fYcbcrConversionInfo.fYcbcrModel;
-        info.ycbcrConversionInfo.ycbcrRange = vkImageInfo.fYcbcrConversionInfo.fYcbcrRange;
-        info.ycbcrConversionInfo.xChromaOffset = vkImageInfo.fYcbcrConversionInfo.fXChromaOffset;
-        info.ycbcrConversionInfo.yChromaOffset = vkImageInfo.fYcbcrConversionInfo.fYChromaOffset;
-        info.ycbcrConversionInfo.chromaFilter = vkImageInfo.fYcbcrConversionInfo.fChromaFilter;
-        info.ycbcrConversionInfo.forceExplicitReconstruction =
-            vkImageInfo.fYcbcrConversionInfo.fForceExplicitReconstruction;
-        info.ycbcrConversionInfo.formatFeatures = vkImageInfo.fYcbcrConversionInfo.fFormatFeatures;
-
-        info.sharingMode = vkImageInfo.fSharingMode;
-        return info;
-    }
+    static GrBackendTexture ConvertToGrBackendVKTexture(const TextureInfo& info);
+    
+    static void ConvertToVKTexture(const GrBackendTexture& backendTexture, TextureInfo& info);
 #endif
 
-    static TextureInfo ConvertToTextureInfo(const GrBackendTexture& grBackendTexture)
-    {
-        GrGLTextureInfo* grGLTextureInfo = new GrGLTextureInfo();
-        grBackendTexture.getGLTextureInfo(grGLTextureInfo);
-        TextureInfo textureInfo;
-        textureInfo.SetWidth(grBackendTexture.width());
-        textureInfo.SetHeight(grBackendTexture.height());
-        textureInfo.SetIsMipMapped(static_cast<bool>(grBackendTexture.mipmapped()));
-        textureInfo.SetTarget(grGLTextureInfo->fTarget);
-        textureInfo.SetID(grGLTextureInfo->fID);
-        textureInfo.SetFormat(grGLTextureInfo->fFormat);
-        delete grGLTextureInfo;
+    static TextureInfo ConvertToTextureInfo(const GrBackendTexture& grBackendTexture);
 
-        return textureInfo;
-    }
-
-    static GrBackendTexture ConvertToGrBackendTexture(const TextureInfo& info)
-    {
-#ifdef RS_ENABLE_VK
-        return ConvertToGrBackendVKTexture(info);
-#else
-        GrGLTextureInfo grGLTextureInfo = { info.GetTarget(), info.GetID(), info.GetFormat() };
-        GrBackendTexture backendTexture(info.GetWidth(), info.GetHeight(),
-            static_cast<GrMipMapped>(info.GetIsMipMapped()), grGLTextureInfo);
-        return backendTexture;
-#endif
-    }
+    static GrBackendTexture ConvertToGrBackendTexture(const TextureInfo& info);
 };
 } // namespace Drawing
 } // namespace Rosen

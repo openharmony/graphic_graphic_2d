@@ -41,7 +41,7 @@ bool Surface::Bind(const FrameBuffer& frameBuffer)
 }
 
 #ifdef RS_ENABLE_VK
-std::shared_ptr<Surface> Surface::MakeFromBackendRenderTarget(GPUContext* gpuContext, const VKTextureInfo& info,
+std::shared_ptr<Surface> Surface::MakeFromBackendRenderTarget(GPUContext* gpuContext, TextureInfo& info,
     TextureOrigin origin, void (*deleteFunc)(void*), void* cleanupHelper)
 {
     return StaticFactory::MakeFromBackendRenderTarget(gpuContext, info, origin, deleteFunc, cleanupHelper);

@@ -53,11 +53,15 @@ std::shared_ptr<NativeVkImageRes> NativeVkImageRes::Create(sptr<OHOS::SurfaceBuf
         new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
             imageInfo.fImage, imageInfo.fAlloc.fMemory));
 #else
+    if (!backendTexture.IsValid() || !backendTexture.GetTextureInfo().GetVKTextureInfo()) {
+        return nullptr;
+    }
     return std::make_unique<NativeVkImageRes>(
         nativeWindowBuffer,
         backendTexture,
         new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-            backendTexture.vkImage, backendTexture.vkAlloc.memory));
+            backendTexture.GetTextureInfo().GetVKTextureInfo()->vkImage,
+            backendTexture.GetTextureInfo().GetVKTextureInfo()->vkAlloc.memory));
 #endif
 }
 

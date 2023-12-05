@@ -214,6 +214,10 @@ void DrawCmdList::UnmarshallingOps()
             unmarshalledOpItems_.emplace_back(op);
         }
         offset = curOpItemPtr->GetNextOpItemOffset();
+        if (!replacedOpList_.empty() && offset >= replacedOpList_[0].second) {
+            LOGD("DrawCmdList::UnmarshallingOps seek end by cache textOps");
+            break;
+        }
     } while (offset != 0);
     lastOpGenSize_ = opAllocator_.GetSize();
 }

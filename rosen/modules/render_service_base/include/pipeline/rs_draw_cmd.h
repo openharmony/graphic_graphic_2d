@@ -1634,7 +1634,7 @@ private:
 #include "recording/adaptive_image_helper.h"
 #include "draw/canvas.h"
 #include "parcel.h"
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include <native_window.h>
 #include "surface_buffer.h"
 #endif
@@ -1656,14 +1656,23 @@ public:
     std::shared_ptr<Drawing::Image> GetDrawingImageFromSurfaceBuffer(
         Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer) const;
 #endif
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    std::shared_ptr<Drawing::Image> MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer);
+#endif
 protected:
     std::shared_ptr<RSImage> rsImage_;
 private:
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#ifdef RS_ENABLE_GL
     mutable EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
     mutable GLuint texId_ = 0;
+#endif
     mutable OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
     mutable pid_t tid_ = 0;
+#endif
+#ifdef RS_ENABLE_VK
+    mutable Drawing::BackendTexture backendTexture_ = {};
+    mutable NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper_ = nullptr;
 #endif
 };
 
