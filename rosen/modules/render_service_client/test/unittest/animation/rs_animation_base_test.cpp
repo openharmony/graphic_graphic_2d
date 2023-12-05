@@ -78,9 +78,12 @@ void RSAnimationBaseTest::InitAnimationWindow()
     option->SetWindowMode(WindowMode::WINDOW_MODE_FLOATING);
     option->SetWindowRect({ 0, 0, 720, 1280 });
     window = Window::Create("animation_ut", option);
+    while (!window) {
+        window = Window::Create("animation_ut", option);
+    }
     window->Show();
     sleep(1);
-    auto rect = window->GetRect();
+    auto rect = window->GetRequestRect();
     while (rect.width_ == 0 && rect.height_ == 0) {
         std::cout << "animation_ut create window failed: " << rect.width_ << " " << rect.height_ << std::endl;
         window->Hide();
@@ -88,7 +91,7 @@ void RSAnimationBaseTest::InitAnimationWindow()
         window = Window::Create("animation_ut", option);
         window->Show();
         sleep(1);
-        rect = window->GetRect();
+        rect = window->GetRequestRect();
     }
     std::cout << "animation_ut create window " << rect.width_ << " " << rect.height_ << std::endl;
     animationSurfaceNode = window->GetSurfaceNode();
