@@ -45,9 +45,7 @@
 #include "image/gpu_context.h"
 #endif
 #include "memory_handler.h"
-#ifndef ROSEN_CROSS_PLATFORM
 #include "surface_type.h"
-#endif
 
 #define GLES_VERSION 2
 namespace OHOS {
@@ -137,10 +135,24 @@ public:
     }
 
 #ifndef ROSEN_CROSS_PLATFORM
-    void SetColorSpace(GraphicColorGamut colorSpace);
+    void SetColorSpace(GraphicColorGamut colorSpace)
+    {
+        colorSpace_ = colorSpace;
+    }
+
     GraphicColorGamut GetColorSpace() const
     {
         return colorSpace_;
+    }
+
+    void SetPixelFormat(int32_t pixelFormat)
+    {
+        pixelFormat_ = pixelFormat;
+    }
+
+    int32_t GetPixelFormat() const
+    {
+        return pixelFormat_;
     }
 #endif
 
@@ -208,6 +220,7 @@ private:
     EGLConfig config_;
 #ifndef ROSEN_CROSS_PLATFORM
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    int32_t pixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
 #endif
 
     bool isUniRenderMode_ = false;
@@ -215,6 +228,8 @@ private:
     std::string cacheDir_;
     std::shared_ptr<MemoryHandler> mHandler_;
     std::mutex shareContextMutex_;
+
+    sk_sp<SkColorSpace> ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut) const;
 };
 
 class RenderContextFactory {

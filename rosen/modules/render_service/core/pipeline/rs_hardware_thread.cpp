@@ -344,7 +344,15 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     bool forceCPU = RSBaseRenderEngine::NeedForceCPU(layers);
     auto screenManager = CreateOrGetScreenManager();
     auto screenInfo = screenManager->QueryScreenInfo(screenId);
+    sk_sp<SkColorSpace> skColorSpace = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    GraphicColorGamut colorGamut = ComputeTargetColorGamut(layers);
+    GraphicPixelFormat pixelFormat = ComputeTargetPixelFormat(layers);
+    auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, true, colorGamut, pixelFormat);
+    skColorSpace = RSBaseRenderEngine::ConvertColorGamutToSkColorSpace(colorGamut);
+#else
     auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, true);
+#endif
     auto renderFrame = uniRenderEngine_->RequestFrame(surface, renderFrameConfig, forceCPU);
     if (renderFrame == nullptr) {
         RS_LOGE("RsDebug RSHardwareThread::Redraw：failed to request frame.");
@@ -362,11 +370,6 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     std::unordered_map<int32_t, std::unique_ptr<ImageCacheSeq>> imageCacheSeqs;
 #endif // RS_ENABLE_VK
 #endif // RS_ENABLE_EGLIMAGE
-
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-    GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
-    colorGamut = ComputeTargetColorGamut(layers);
-#endif
 
     for (const auto& layer : layers) {
         if (layer == nullptr) {
@@ -458,7 +461,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #ifdef NEW_SKIA
 #if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
             auto image = SkImage::MakeFromTexture(canvas->recordingContext(), backendTexture,
-                kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
+                kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, skColorSpace);
 #elif defined(RS_ENABLE_VK)
             auto imageCache = uniRenderEngine_->GetVkImageManager()->CreateImageCacheFromBuffer(
                 params.buffer, params.acquireFence);
@@ -505,6 +508,10 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             } else {
                 params.paint.setShader(imageShader);
                 params.targetColorGamut = colorGamut;
+
+                auto screenManager = CreateOrGetScreenManager();
+                params.screenBrightnessNits = screenManager->GetScreenBrightnessNits(screenId);
+
                 uniRenderEngine_->ColorSpaceConvertor(imageShader, params);
             }
 #endif
@@ -632,18 +639,43 @@ GraphicColorGamut RSHardwareThread::ComputeTargetColorGamut(const std::vector<La
             continue;
         }
 
-        CM_ColorSpaceType colorSpace;
-        if (MetadataHelper::GetColorSpaceType(buffer, colorSpace) != GSERROR_OK) {
+        CM_ColorSpaceInfo colorSpaceInfo;
+        if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
             RS_LOGW("RSHardwareThread::ComputeTargetColorGamut Get color space from surface buffer failed");
             continue;
         }
 
-        if (colorSpace != CM_DISPLAY_SRGB) {
+        if (colorSpaceInfo.primaries != COLORPRIMARIES_SRGB) {
             colorGamut = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+            break;
         }
     }
 
     return colorGamut;
+}
+
+GraphicPixelFormat RSHardwareThread::ComputeTargetPixelFormat(const std::vector<LayerInfoPtr>& layers)
+{
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
+    for (auto& layer : layers) {
+        auto buffer = layer->GetBuffer();
+        if (buffer == nullptr) {
+            RS_LOGW("RSHardwareThread::ComputeTargetPixelFormat The buffer of layer is nullptr");
+            continue;
+        }
+
+        auto bufferPixelFormat = buffer->GetFormat();
+        if (bufferPixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010102 ||
+            bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCBCR_P010 ||
+            bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
+            pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
+            RS_LOGD("RSHardwareThread::ComputeTargetPixelFormat pixelformat is set to 1010102 for 10bit buffer");
+            break;
+        }
+    }
+
+    return pixelFormat;
 }
 #endif
 }

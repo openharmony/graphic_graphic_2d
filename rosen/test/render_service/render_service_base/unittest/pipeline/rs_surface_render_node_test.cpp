@@ -447,5 +447,19 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
     node->SetBootAnimation(false);
     ASSERT_FALSE(node->GetBootAnimation());
 }
+
+/**
+ * @tc.name: AncestorDisplayNodeTest
+ * @tc.desc: SetAncestorDisplayNode and GetAncestorDisplayNode
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, AncestorDisplayNodeTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    auto displayNode = std::make_shared<RSBaseRenderNode>(0, context);
+    node->SetAncestorDisplayNode(displayNode);
+    ASSERT_EQ(node->GetAncestorDisplayNode().lock(), displayNode);
+}
 } // namespace Rosen
 } // namespace OHOS

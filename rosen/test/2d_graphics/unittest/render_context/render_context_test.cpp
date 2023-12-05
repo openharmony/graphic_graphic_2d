@@ -170,4 +170,34 @@ HWTEST_F(RenderContextTest, MakeSelfCurrentTest001, Level1)
     renderContext.MakeSelfCurrent();
 #endif
 }
+
+/**
+ * @tc.name: ColorSpaceTest001
+ * @tc.desc: Verify the SetColorSpaceTest and GetColorSpaceTest of RenderContextTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, ColorSpaceTest001, Level1)
+{
+#ifdef ACE_ENABLE_GL
+    // start ColorSpaceTest001 test
+    RenderContext renderContext;
+    renderContext.SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    ASSERT_EQ(renderContext.GetColorSpace(), GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+#endif
+}
+
+/**
+ * @tc.name: PixelFormatTest001
+ * @tc.desc: Verify the SetPixelFormatTest and GetPixelFormat of RenderContextTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, PixelFormatTest001, Level1)
+{
+#ifdef ACE_ENABLE_GL
+    // start PixelFormatTest001 test
+    RenderContext renderContext;
+    renderContext.SetPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
+    ASSERT_EQ(renderContext.GetPixelFormat(), GRAPHIC_PIXEL_FMT_RGBA_1010102);
+#endif
+}
 } // namespace OHOS::Rosen

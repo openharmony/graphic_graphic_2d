@@ -874,6 +874,15 @@ public:
     }
     bool GetNodeIsSingleFrameComposer() const override;
 
+    void SetAncestorDisplayNode(const RSBaseRenderNode::WeakPtr& ancestorDisplayNode)
+    {
+        ancestorDisplayNode_ = ancestorDisplayNode;
+    }
+
+    RSBaseRenderNode::WeakPtr GetAncestorDisplayNode() const
+    {
+        return ancestorDisplayNode_;
+    }
     bool GetHasSharedTransitionNode() const;
     void SetHasSharedTransitionNode(bool hasSharedTransitionNode);
 private:
@@ -1077,6 +1086,7 @@ private:
 #endif
     bool isForeground_ = false;
 
+    RSBaseRenderNode::WeakPtr ancestorDisplayNode_;
     bool hasSharedTransitionNode_ = false;
 
     friend class RSUniRenderVisitor;

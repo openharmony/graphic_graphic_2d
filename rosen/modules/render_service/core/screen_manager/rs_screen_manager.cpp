@@ -205,6 +205,34 @@ ScreenId RSScreenManager::GetActiveScreenId()
     return activeScreenId_;
 }
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+float RSScreenManager::GetScreenBrightnessNits(ScreenId id)
+{
+    constexpr float DEFAULT_SCREEN_LIGHT_NITS = 500.0;
+    constexpr float DEFAULT_SCREEN_LIGHT_MAX_NITS = 1200.0;
+    constexpr int32_t DEFAULT_SCREEN_LIGHT_MAX_LEVEL = 255;
+
+    float screenBrightnessNits = DEFAULT_SCREEN_LIGHT_NITS;
+
+    RSScreenType screenType;
+    if (GetScreenType(id, screenType) != SUCCESS) {
+        RS_LOGW("RSScreenManager::GetScreenBrightnessNits GetScreenType fail.");
+        return screenBrightnessNits;
+    }
+
+    if (screenType == VIRTUAL_TYPE_SCREEN) {
+        return screenBrightnessNits;
+    }
+
+    int32_t backLightLevel = GetScreenBacklight(id);
+    if (backLightLevel <= 0) {
+        return screenBrightnessNits;
+    }
+
+    return DEFAULT_SCREEN_LIGHT_MAX_NITS * backLightLevel / DEFAULT_SCREEN_LIGHT_MAX_LEVEL;
+}
+#endif
+
 void RSScreenManager::OnHotPlug(std::shared_ptr<HdiOutput> &output, bool connected, void *data)
 {
     if (output == nullptr) {
