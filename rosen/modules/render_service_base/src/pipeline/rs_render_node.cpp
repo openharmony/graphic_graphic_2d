@@ -16,6 +16,7 @@
 #include "pipeline/rs_render_node.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -36,6 +37,104 @@
 #include "property/rs_property_trace.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
+
+#ifdef RS_ENABLE_VK
+#include "include/gpu/GrBackendSurface.h"
+#include "platform/ohos/backend/native_buffer_utils.h"
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
+#ifdef RS_ENABLE_VK
+namespace {
+uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+{
+    auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton();
+    VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
+
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkContext.vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+            return i;
+        }
+    }
+
+    return UINT32_MAX;
+}
+
+void SetVkImageInfo(GrVkImageInfo& skImageInfo, const VkImageCreateInfo& imageInfo)
+{
+    skImageInfo.fImageTiling = imageInfo.tiling;
+    skImageInfo.fImageLayout = imageInfo.initialLayout;
+    skImageInfo.fFormat = imageInfo.format;
+    skImageInfo.fImageUsageFlags = imageInfo.usage;
+    skImageInfo.fLevelCount = imageInfo.mipLevels;
+    skImageInfo.fCurrentQueueFamily = VK_QUEUE_FAMILY_EXTERNAL;
+    skImageInfo.fYcbcrConversionInfo = {};
+    skImageInfo.fSharingMode = imageInfo.sharingMode;
+}
+
+GrBackendTexture MakeBackendTexture(uint32_t width, uint32_t height, VkFormat format = VK_FORMAT_R8G8B8A8_UNORM)
+{
+    VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL;
+    VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+        VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    VkImageCreateInfo imageInfo {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .imageType = VK_IMAGE_TYPE_2D,
+        .format = format,
+        .extent = {width, height, 1},
+        .mipLevels = 1,
+        .arrayLayers = 1,
+        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .tiling = tiling,
+        .usage = usage,
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
+    };
+
+    auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton();
+    VkDevice device = vkContext.GetDevice();
+    VkImage image = VK_NULL_HANDLE;
+    VkDeviceMemory memory = VK_NULL_HANDLE;
+
+    if (vkContext.vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
+        return {};
+    }
+
+    VkMemoryRequirements memRequirements;
+    vkContext.vkGetImageMemoryRequirements(device, image, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    if (allocInfo.memoryTypeIndex == UINT32_MAX) {
+        return {};
+    }
+
+    if (vkContext.vkAllocateMemory(device, &allocInfo, nullptr, &memory) != VK_SUCCESS) {
+        return {};
+    }
+
+    vkContext.vkBindImageMemory(device, image, memory, 0);
+
+    GrVkAlloc alloc;
+    alloc.fMemory = memory;
+    alloc.fOffset = memRequirements.size;
+
+    GrVkImageInfo skImageInfo;
+    skImageInfo.fImage = image;
+    skImageInfo.fAlloc = alloc;
+    SetVkImageInfo(skImageInfo, imageInfo);
+
+    return GrBackendTexture(width, height, skImageInfo);
+}
+} // un-named
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -1507,9 +1606,31 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
         }
         return;
     }
+#ifdef RS_ENABLE_GL
     SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
     std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
     cacheSurface_ = SkSurface::MakeRenderTarget(grContext, SkBudgeted::kYes, info);
+#endif
+#ifdef RS_ENABLE_VK
+    std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
+    cacheBackendTexture_ = MakeBackendTexture(width, height);
+    if (!cacheBackendTexture_.isValid()) {
+        if (func) {
+            func(std::move(cacheSurface_), std::move(cacheCompletedSurface_),
+                cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
+            ClearCacheSurface();
+        }
+        return;
+    }
+    GrVkImageInfo imageInfo;
+    cacheBackendTexture_.getVkImageInfo(&imageInfo);
+    cacheCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+        imageInfo.fImage, imageInfo.fAlloc.fMemory);
+    SkSurfaceProps props(0, SkPixelGeometry::kUnknown_SkPixelGeometry);
+    cacheSurface_ = SkSurface::MakeFromBackendTexture(
+        grContext, cacheBackendTexture_, kBottomLeft_GrSurfaceOrigin, 1, kRGBA_8888_SkColorType,
+        SkColorSpace::MakeSRGB(), &props, NativeBufferUtils::DeleteVkImage, cacheCleanupHelper_);
+#endif
 #else
     cacheSurface_ = SkSurface::MakeRasterN32Premul(width, height);
 #endif
@@ -1591,8 +1712,15 @@ sk_sp<SkImage> RSRenderNode::GetCompletedImage(RSPaintFilterCanvas& canvas, uint
             RS_LOGE("invalid grBackendTexture_");
             return nullptr;
         }
+#ifdef RS_ENABLE_GL
         auto image = SkImage::MakeFromTexture(canvas.recordingContext(), cacheCompletedBackendTexture_,
             kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
+#endif
+#ifdef RS_ENABLE_VK
+        auto image = SkImage::MakeFromTexture(canvas.recordingContext(), cacheCompletedBackendTexture_,
+            kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr,
+            NativeBufferUtils::DeleteVkImage, cacheCompletedCleanupHelper_->Ref());
+#endif
         return image;
 #endif
     }
@@ -2203,6 +2331,9 @@ void RSRenderNode::UpdateCompletedCacheSurface()
     std::swap(cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     std::swap(cacheBackendTexture_, cacheCompletedBackendTexture_);
+#ifdef RS_ENABLE_VK
+    std::swap(cacheCleanupHelper_, cacheCompletedCleanupHelper_);
+#endif
     SetTextureValidFlag(true);
 #endif
 }

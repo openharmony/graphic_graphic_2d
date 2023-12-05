@@ -61,6 +61,9 @@ class RSContext;
 class RSNodeVisitor;
 class RSCommand;
 class RSPropertyDrawable;
+namespace NativeBufferUtils {
+class VulkanCleanupHelper;
+}
 class RSB_EXPORT RSRenderNode : public std::enable_shared_from_this<RSRenderNode>  {
 public:
 
@@ -596,6 +599,10 @@ private:
 #ifndef USE_ROSEN_DRAWING
     GrBackendTexture cacheBackendTexture_;
     GrBackendTexture cacheCompletedBackendTexture_;
+#ifdef RS_ENABLE_VK
+    NativeBufferUtils::VulkanCleanupHelper* cacheCleanupHelper_ = nullptr;
+    NativeBufferUtils::VulkanCleanupHelper* cacheCompletedCleanupHelper_ = nullptr;
+#endif
 #else
     Drawing::BackendTexture cacheBackendTexture_;
     Drawing::BackendTexture cacheCompletedBackendTexture_;
