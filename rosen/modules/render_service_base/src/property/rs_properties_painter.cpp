@@ -1254,7 +1254,7 @@ void RSPropertiesPainter::DrawLinearGradientBlurFilter(
 {
     const auto& para = properties.GetLinearGradientBlurPara();
     if (para == nullptr || para->blurRadius_ <= 0) {
-        ROSEN_LOGE("RSPropertiesPainter::DrawLinearGradientBlurFilter para invalid");
+        ROSEN_LOGD("RSPropertiesPainter::DrawLinearGradientBlurFilter para invalid");
         return;
     }
     RS_TRACE_NAME("DrawLinearGradientBlurFilter");
