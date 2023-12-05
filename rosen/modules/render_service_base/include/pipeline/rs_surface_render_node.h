@@ -858,6 +858,18 @@ public:
         hasSkipLayer_ = hasSkipLayer;
     }
 
+    bool GetSurfaceCacheContentStatic()
+    {
+        return surfaceCacheContentStatic_;
+    }
+
+    void SetSurfaceCacheContentStatic(bool contentStatic)
+    {
+        surfaceCacheContentStatic_ = contentStatic;
+    }
+
+    bool IsUIFirstCacheReusable();
+
 #ifdef USE_SURFACE_TEXTURE
     std::shared_ptr<RSSurfaceTexture> GetSurfaceTexture() const { return surfaceTexture_; };
     void SetSurfaceTexture(const std::shared_ptr<RSSurfaceTexture> &texture) { surfaceTexture_ = texture; }
@@ -873,6 +885,18 @@ public:
         return isForeground_;
     }
     bool GetNodeIsSingleFrameComposer() const override;
+
+    void SetAncestorDisplayNode(const RSBaseRenderNode::WeakPtr& ancestorDisplayNode)
+    {
+        ancestorDisplayNode_ = ancestorDisplayNode;
+    }
+
+    RSBaseRenderNode::WeakPtr GetAncestorDisplayNode() const
+    {
+        return ancestorDisplayNode_;
+    }
+    bool GetHasSharedTransitionNode() const;
+    void SetHasSharedTransitionNode(bool hasSharedTransitionNode);
 private:
     void OnResetParent() override;
     void ClearChildrenCache();
@@ -1062,6 +1086,7 @@ private:
     bool prevVisible_ = false;
     bool hasSecurityLayer_ = false;
     bool hasSkipLayer_ = false;
+    bool surfaceCacheContentStatic_ = false;
 
     uint32_t processZOrder_ = -1;
 
@@ -1073,6 +1098,9 @@ private:
     std::shared_ptr<RSSurfaceTexture> surfaceTexture_ {};
 #endif
     bool isForeground_ = false;
+
+    RSBaseRenderNode::WeakPtr ancestorDisplayNode_;
+    bool hasSharedTransitionNode_ = false;
 
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;

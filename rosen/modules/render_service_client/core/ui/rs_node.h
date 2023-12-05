@@ -323,6 +323,8 @@ public:
 
     void SetLightPosition(float positionX, float positionY, float positionZ);
 
+    void SetIlluminatedBorderWidth(float illuminatedBorderWidth);
+
     void SetIlluminatedType(uint32_t illuminatedType);
 
     void SetBloom(float bloomIntensity);

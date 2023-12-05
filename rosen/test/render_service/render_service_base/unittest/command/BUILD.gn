@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Copyright (c) 2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -26,7 +26,9 @@ ohos_unittest("RSNodeCommandTest") {
     "rs_canvas_drawing_node_command_test.cpp",
     "rs_canvas_node_command_test.cpp",
     "rs_display_node_command_test.cpp",
+    "rs_effect_node_command_test.cpp",
     "rs_frame_rate_linker_command_test.cpp",
+    "rs_message_processor_test.cpp",
     "rs_node_command_test.cpp",
     "rs_proxy_node_command_test.cpp",
     "rs_root_node_command_test.cpp",
@@ -59,6 +61,7 @@ ohos_unittest("RSNodeCommandTest") {
   }
   external_deps = [
     "c_utils:utils",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 

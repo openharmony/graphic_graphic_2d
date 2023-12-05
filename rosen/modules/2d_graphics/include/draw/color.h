@@ -72,7 +72,7 @@ public:
 
     constexpr static uint8_t RGB_MAX = 255;
     // Return color value from component values.
-    static inline ColorQuad ColorQuadSetARGB(uint32_t r, uint32_t g, uint32_t b, uint32_t a)
+    static inline ColorQuad ColorQuadSetARGB(uint32_t a, uint32_t r, uint32_t g, uint32_t b)
     {
         return ((a & 0xffu) << 24) | ((r & 0xffu) << 16) | ((g & 0xffu) << 8) | ((b & 0xffu) << 0);
     }

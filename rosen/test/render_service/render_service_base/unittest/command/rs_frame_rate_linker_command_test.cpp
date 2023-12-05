@@ -14,12 +14,14 @@
  */
 
 #include "gtest/gtest.h"
-#include "include/command/rs_frame_rate_linker_command.h"
+
+#include "command/rs_frame_rate_linker_command.h"
 
 using namespace testing;
 using namespace testing::ext;
 
-namespace OHOS::Rosen {
+namespace OHOS {
+namespace Rosen {
 class RSFrameRateLinkerCommandTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -33,16 +35,19 @@ void RSFrameRateLinkerCommandTest::TearDownTestCase() {}
 void RSFrameRateLinkerCommandTest::SetUp() {}
 void RSFrameRateLinkerCommandTest::TearDown() {}
 
+
 /**
- * @tc.name: RSFrameRateLinkerCommand
- * @tc.desc: Test RSFrameRateLinkerCommand
+ * @tc.name: UpdateRange
+ * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(RSFrameRateLinkerCommandTest, RSFrameRateLinkerCommand, TestSize.Level1)
+HWTEST_F(RSFrameRateLinkerCommandTest, UpdateRange, TestSize.Level1)
 {
     RSContext context;
-    FrameRateLinkerId id = 1;
-    FrameRateRange range;
-    RSFrameRateLinkerCommandHelper::UpdateRange(context, id, range);
+    uint64_t nodeId = 0;
+    FrameRateRange range = {0, 0, 0};
+    RSFrameRateLinkerCommandHelper::UpdateRange(context, nodeId, range);
 }
-} // namespace OHOS::Rosen
+
+} // namespace Rosen
+} // namespace OHOS

@@ -102,19 +102,20 @@ enum class RSModifierType : int16_t {
     GREY_COEF2,                    // 75
     LIGHT_INTENSITY,               // 76
     LIGHT_POSITION,                // 77
-    ILLUMINATED_TYPE,              // 78
-    BLOOM,                         // 79
-    CUSTOM,                        // 80
-    EXTENDED,                      // 81
-    TRANSITION,                    // 82
-    BACKGROUND_STYLE,              // 83
-    CONTENT_STYLE,                 // 84
-    FOREGROUND_STYLE,              // 85
-    OVERLAY_STYLE,                 // 86
-    NODE_MODIFIER,                 // 87
-    ENV_FOREGROUND_COLOR,          // 88
-    ENV_FOREGROUND_COLOR_STRATEGY, // 89
-    GEOMETRYTRANS,                 // 90
+    ILLUMINATED_BORDER_WIDTH,      // 78
+    ILLUMINATED_TYPE,              // 79
+    BLOOM,                         // 80
+    CUSTOM,                        // 81
+    EXTENDED,                      // 82
+    TRANSITION,                    // 83
+    BACKGROUND_STYLE,              // 84
+    CONTENT_STYLE,                 // 85
+    FOREGROUND_STYLE,              // 86
+    OVERLAY_STYLE,                 // 87
+    NODE_MODIFIER,                 // 88
+    ENV_FOREGROUND_COLOR,          // 89
+    ENV_FOREGROUND_COLOR_STRATEGY, // 90
+    GEOMETRYTRANS,                 // 91
 #ifdef USE_ROSEN_DRAWING
     MAX_RS_MODIFIER_TYPE,
 #endif

@@ -976,8 +976,8 @@ bool RSBaseRenderUtil::IsForceClient()
     return (std::atoi((system::GetParameter("rosen.client_composition.enabled", "0")).c_str()) != 0);
 }
 
-BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(
-    const ScreenInfo& screenInfo, bool isPhysical)
+BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(const ScreenInfo& screenInfo, bool isPhysical,
+    GraphicColorGamut colorGamut, GraphicPixelFormat pixelFormat)
 {
     BufferRequestConfig config {};
     const auto width = isPhysical ? screenInfo.width : screenInfo.GetRotatedWidth();
@@ -985,7 +985,8 @@ BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(
     config.width = static_cast<int32_t>(width);
     config.height = static_cast<int32_t>(height);
     config.strideAlignment = 0x8; // default stride is 8 Bytes.
-    config.format = isPhysical ? GRAPHIC_PIXEL_FMT_RGBA_8888 : screenInfo.pixelFormat;
+    config.colorGamut = isPhysical ? colorGamut : static_cast<GraphicColorGamut>(screenInfo.colorGamut);
+    config.format = isPhysical ? pixelFormat : screenInfo.pixelFormat;
     config.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB;
     config.timeout = 0;
     return config;

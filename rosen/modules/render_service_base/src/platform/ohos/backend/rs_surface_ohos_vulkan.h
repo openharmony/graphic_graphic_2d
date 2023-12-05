@@ -18,6 +18,7 @@
 
 #include <cstdint>
 // default enable native buffer
+#define ENABLE_NATIVEBUFFER
 
 #ifndef ENABLE_NATIVEBUFFER
 #include <vulkan_window.h>

@@ -112,7 +112,7 @@ private:
     void UpdateWakeupDelay(int64_t occurTimestamp, int64_t nextTimeStamp);
     bool ChangeListenerOffsetInternal();
     bool ChangeListenerRefreshRatesInternal();
-    int32_t JudgeRefreshRateLocked(int64_t period);
+    uint32_t JudgeRefreshRateLocked(int64_t period);
     bool CheckTimingCorrect(int64_t now, int64_t referenceTime, int64_t nextVSyncTime);
     bool UpdateChangeDataLocked(int64_t now, int64_t referenceTime, int64_t nextVSyncTime);
     void UpdateVSyncModeLocked();

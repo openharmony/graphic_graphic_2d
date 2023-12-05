@@ -109,7 +109,7 @@ ohos_executable("drawing_engine_sample") {
   deps += [
     #"//third_party/skia:skia",
   ]
-  if (graphic_2d_feature_enable_vulkan) {
+  if (graphic_2d_feature_enable_flutter_vulkan) {
     include_dirs += [ "//third_party/flutter/engine/flutter/vulkan" ]
   }
   public_deps += [

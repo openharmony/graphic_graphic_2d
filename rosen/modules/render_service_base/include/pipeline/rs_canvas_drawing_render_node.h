@@ -74,6 +74,9 @@ private:
     bool ResetSurface(int width, int height, RSPaintFilterCanvas& canvas);
     bool GetSizeFromDrawCmdModifiers(int& width, int& height);
     bool IsNeedResetSurface(const int& width, const int& height) const;
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    bool ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas);
+#endif
 
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> skSurface_;

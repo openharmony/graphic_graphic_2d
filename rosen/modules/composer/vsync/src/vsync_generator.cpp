@@ -250,7 +250,7 @@ bool VSyncGenerator::UpdateChangeDataLocked(int64_t now, int64_t referenceTime, 
     // update generate refreshRate
     if (needChangeGeneratorRefreshRate_) {
         currRefreshRate_ = changingGeneratorRefreshRate_;
-        period_ = pulse_ * (VSYNC_MAX_REFRESHRATE / currRefreshRate_);
+        period_ = pulse_ * static_cast<int64_t>(VSYNC_MAX_REFRESHRATE / currRefreshRate_);
         referenceTime_ = nextVSyncTime;
         changingGeneratorRefreshRate_ = 0; // reset
         needChangeGeneratorRefreshRate_ = false;
@@ -361,7 +361,7 @@ VsyncError VSyncGenerator::UpdateMode(int64_t period, int64_t phase, int64_t ref
     std::lock_guard<std::mutex> locker(mutex_);
     phase_ = phase;
     if ((pendingVsyncMode_ == VSYNC_MODE_LTPO) || (vsyncMode_ == VSYNC_MODE_LTPO)) {
-        int32_t refreshRate = JudgeRefreshRateLocked(period);
+        uint32_t refreshRate = JudgeRefreshRateLocked(period);
         referenceTimeOffset_ = referenceTimeOffsetPulseNum_ * pulse_;
         int64_t pendingReferenceTime = referenceTime - referenceTimeOffset_;
         if (pendingReferenceTime >= referenceTime_) {
@@ -393,7 +393,7 @@ VsyncError VSyncGenerator::AddListener(int64_t phase, const sptr<OHOS::Rosen::VS
 
     listeners_.push_back(listener);
 
-    int i = 0;
+    size_t i = 0;
     for (; i < listenersRecord_.size(); i++) {
         if (listener.callback_ == listenersRecord_[i].callback_) {
             break;
@@ -407,7 +407,7 @@ VsyncError VSyncGenerator::AddListener(int64_t phase, const sptr<OHOS::Rosen::VS
     return VSYNC_ERROR_OK;
 }
 
-int32_t VSyncGenerator::JudgeRefreshRateLocked(int64_t period)
+uint32_t VSyncGenerator::JudgeRefreshRateLocked(int64_t period)
 {
     if (period <= 0) {
         return 0;
@@ -430,7 +430,7 @@ int32_t VSyncGenerator::JudgeRefreshRateLocked(int64_t period)
         return 0;
     }
     pulse_ = period / (VSYNC_MAX_REFRESHRATE / refreshRate);
-    return refreshRate;
+    return static_cast<uint32_t>(refreshRate);
 }
 
 VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefreshRateData &listenerRefreshRates,

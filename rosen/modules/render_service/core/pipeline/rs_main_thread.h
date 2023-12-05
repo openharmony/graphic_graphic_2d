@@ -194,6 +194,10 @@ public:
     {
         forceUpdateUniRenderFlag_ = flag;
     }
+    void SetIdleTimerExpiredFlag(bool flag)
+    {
+        idleTimerExpiredFlag_ = flag;
+    }
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> GetWatermarkImg();
 #else
@@ -213,6 +217,10 @@ public:
     bool IsSingleDisplay();
     uint64_t GetFocusNodeId() const;
     uint64_t GetFocusLeashWindowId() const;
+    bool GetClearMemDeeply() const
+    {
+        return clearMemDeeply_;
+    }
 
     void SubscribeAppState();
     void HandleOnTrim(Memory::SystemMemoryLevel level);
@@ -287,8 +295,6 @@ private:
     bool IsNeedSkip(NodeId instanceRootNodeId, pid_t pid);
 
     // UIFirst
-    void ResetSubThreadGrContext();
-    void CheckParallelSubThreadNodesStatusImplementation();
     bool CheckParallelSubThreadNodesStatus();
     void CacheCommands();
     bool CheckSubThreadNodeStatusIsDoing(NodeId appNodeId) const;
@@ -327,6 +333,9 @@ private:
     uint64_t lastAnimateTimestamp_ = 0;
     uint64_t prePerfTimestamp_ = 0;
     uint64_t lastCleanCacheTimestamp_ = 0;
+    uint64_t lastDeferedCleanCacheTimestamp_ = 0;
+    uint64_t deferedCleanCount_ = 0;
+
     uint64_t preSKReleaseResourceTimestamp_ = 0;
     std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;
 
@@ -360,6 +369,7 @@ private:
     std::condition_variable displayNodeBufferReleasedCond_;
 
     bool clearMemoryFinished_ = true;
+    bool clearMemDeeply_ = false;
 
     // driven render
     mutable std::mutex drivenRenderMutex_;
@@ -435,15 +445,12 @@ private:
     DeviceType deviceType_ = DeviceType::PHONE;
     bool isCachedSurfaceUpdated_ = false;
     bool isUiFirstOn_ = false;
-#ifdef RS_ENABLE_VK
-    bool needResetSubThreadGrContext_ = false;
-    uint64_t frameCountForResetSubThreadGrContext_ = 0;
-#endif
 
     // used for informing hgm the bundle name of SurfaceRenderNodes
     bool noBundle_ = false;
     std::string currentBundleName_ = "";
     bool forceUpdateUniRenderFlag_ = false;
+    bool idleTimerExpiredFlag_ = false;
     // for ui first
     std::mutex mutex_;
 #ifndef USE_ROSEN_DRAWING

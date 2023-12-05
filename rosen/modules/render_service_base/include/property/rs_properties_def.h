@@ -168,21 +168,26 @@ public:
     {
         isIlluminated_ = isIlluminated;
     }
-
     void SetBloomIntensity(float bloomIntensity)
     {
         bloomIntensity_ = bloomIntensity;
+    }
+    void SetIlluminatedBorderWidth(float illuminatedBorderWidth)
+    {
+        illuminatedBorderWidth_ = illuminatedBorderWidth;
     }
     float GetBloomIntensity() const
     {
         return bloomIntensity_;
     }
-
     const IlluminatedType& GetIlluminatedType() const
     {
         return illuminatedType_;
     }
-
+    float GetIlluminatedBorderWidth() const
+    {
+        return illuminatedBorderWidth_;
+    }
     bool IsIlluminated() const
     {
         return isIlluminated_;
@@ -200,6 +205,7 @@ private:
     IlluminatedType illuminatedType_;
     bool isIlluminated_;
     float bloomIntensity_;
+    float illuminatedBorderWidth_;
     IlluminatedType preIlluminatedType_;
 };
 } // namespace Rosen

@@ -68,6 +68,7 @@ RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY) : RSDrawingFilt
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
     hash_ = SkOpts::hash(&blurRadiusX, sizeof(blurRadiusX), hash_);
     hash_ = SkOpts::hash(&blurRadiusY, sizeof(blurRadiusY), hash_);
+    useKawase_ = RSSystemProperties::GetKawaseEnabled();
 }
 #endif
 

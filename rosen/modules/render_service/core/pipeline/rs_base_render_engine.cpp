@@ -72,7 +72,9 @@ void RSBaseRenderEngine::Init()
 #else
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     renderContext_ = std::make_shared<RenderContext>();
+#ifdef RS_ENABLE_GL
     renderContext_->InitializeEglContext();
+#endif
     if (RSUniRenderJudgement::IsUniRender()) {
         RS_LOGI("RSRenderEngine::RSRenderEngine set new cacheDir");
         renderContext_->SetUniRenderMode(true);
@@ -164,10 +166,12 @@ bool RSBaseRenderEngine::NeedForceCPU(const std::vector<LayerInfoPtr>& layers)
 
 #ifndef USE_ROSEN_DRAWING
 sk_sp<SkImage> RSBaseRenderEngine::CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
-    const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, const uint32_t threadIndex)
+    const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, const uint32_t threadIndex,
+    GraphicColorGamut colorGamut)
 #else
 std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
-    const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, const uint32_t threadIndex)
+    const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, const uint32_t threadIndex,
+    GraphicColorGamut colorGamut)
 #endif
 {
 #ifdef RS_ENABLE_EGLIMAGE
@@ -201,6 +205,13 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
         return nullptr;
     }
 #ifndef USE_ROSEN_DRAWING
+    sk_sp<SkColorSpace> skColorSpace = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    skColorSpace = ConvertColorGamutToSkColorSpace(colorGamut);
+#else
+    (void)colorGamut;
+#endif
+
     SkColorType colorType = kRGBA_8888_SkColorType;
     auto pixelFmt = buffer->GetFormat();
     if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
@@ -226,7 +237,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
 #ifdef NEW_SKIA
 #if defined(RS_ENABLE_GL)
     return SkImage::MakeFromTexture(canvas.recordingContext(), backendTexture,
-        surfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
+        surfaceOrigin, colorType, kPremul_SkAlphaType, skColorSpace);
 #elif defined(RS_ENABLE_VK)
     return SkImage::MakeFromTexture(renderContext_->GetGrContext(), backendTexture,
         surfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
@@ -279,6 +290,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::share
         return nullptr;
     }
     RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::RequestFrame(RSSurface)");
+    rsSurface->SetColorSpace(config.colorGamut);
     rsSurface->SetSurfacePixelFormat(config.format);
 
     auto bufferUsage = config.usage;
@@ -532,9 +544,6 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
     const BufferDrawParam& params, Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter)
 {
     using namespace HDI::Display::Graphic::Common::V1_0;
-    constexpr float DEFAULT_TMO_NITS = 206.0;
-    parameter.tmoNits = DEFAULT_TMO_NITS;
-    parameter.currentDisplayNits = params.screenBrightnessNits;
 
     GSError ret = MetadataHelper::GetColorSpaceInfo(params.buffer, parameter.inputColorSpace.colorSpaceInfo);
     if (ret != GSERROR_OK) {
@@ -555,15 +564,23 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
     parameter.inputColorSpace.metadataType = hdrMetadataType;
     parameter.outputColorSpace.metadataType = hdrMetadataType;
 
-    if (hdrMetadataType != CM_METADATA_NONE) {
-        ret = MetadataHelper::GetHDRStaticMetadata(params.buffer, parameter.staticMetadata);
-        if (ret != GSERROR_OK) {
-            RS_LOGW("RSBaseRenderEngine::ColorSpaceConvertor GetHDRStaticMetadata failed with %{public}u.", ret);
-        }
-        ret = MetadataHelper::GetHDRDynamicMetadata(params.buffer, parameter.dynamicMetadata);
-        if (ret != GSERROR_OK) {
-            RS_LOGW("RSBaseRenderEngine::ColorSpaceConvertor GetHDRDynamicMetadata failed with %{public}u.", ret);
-        }
+    ret = MetadataHelper::GetHDRStaticMetadata(params.buffer, parameter.staticMetadata);
+    if (ret != GSERROR_OK) {
+        RS_LOGW("RSBaseRenderEngine::ColorSpaceConvertor GetHDRStaticMetadata failed with %{public}u.", ret);
+    }
+    ret = MetadataHelper::GetHDRDynamicMetadata(params.buffer, parameter.dynamicMetadata);
+    if (ret != GSERROR_OK) {
+        RS_LOGW("RSBaseRenderEngine::ColorSpaceConvertor GetHDRDynamicMetadata failed with %{public}u.", ret);
+    }
+
+    // Set brightness to screen brightness when HDR Vivid, otherwise 500 nits
+    if (hdrMetadataType == CM_VIDEO_HDR_VIVID) {
+        parameter.tmoNits = params.screenBrightnessNits;
+        parameter.currentDisplayNits = params.screenBrightnessNits;
+    } else {
+        constexpr float SDR_SCREEN_LIGHT = 500.0f;
+        parameter.tmoNits = SDR_SCREEN_LIGHT;
+        parameter.currentDisplayNits = SDR_SCREEN_LIGHT;
     }
 
     RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor parameter inputColorSpace.colorSpaceInfo.primaries = %{public}u, \
@@ -574,6 +591,30 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
             parameter.tmoNits, parameter.currentDisplayNits);
 
     return true;
+}
+
+sk_sp<SkColorSpace> RSBaseRenderEngine::ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut)
+{
+    sk_sp<SkColorSpace> skColorSpace = nullptr;
+    switch (colorGamut) {
+        case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
+#if defined(NEW_SKIA)
+            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
+#else
+            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDCIP3);
+#endif
+            break;
+        case GRAPHIC_COLOR_GAMUT_ADOBE_RGB:
+            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kAdobeRGB);
+            break;
+        case GRAPHIC_COLOR_GAMUT_BT2020:
+            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kRec2020);
+            break;
+        default:
+            break;
+    }
+
+    return skColorSpace;
 }
 
 void RSBaseRenderEngine::ColorSpaceConvertor(sk_sp<SkShader> &inputShader, BufferDrawParam& params)
@@ -654,7 +695,8 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 #endif
     RS_OPTIONAL_TRACE_END();
 #else // RS_ENABLE_VK
-    auto image = CreateEglImageFromBuffer(canvas, params.buffer, params.acquireFence, params.threadIndex);
+    auto image = CreateEglImageFromBuffer(canvas, params.buffer, params.acquireFence, params.threadIndex,
+        params.targetColorGamut);
     if (image == nullptr) {
         RS_LOGE("RSBaseRenderEngine::DrawImage: image is nullptr!");
         RS_OPTIONAL_TRACE_END();
@@ -662,7 +704,14 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    sk_sp<SkShader> imageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
+    SkMatrix matrix;
+    auto sx = params.dstRect.width() / params.srcRect.width();
+    auto sy = params.dstRect.height() / params.srcRect.height();
+    matrix.setScaleTranslate(sx, sy, params.dstRect.x(), params.dstRect.y());
+    auto samplingOptions = RSSystemProperties::IsPhoneType()
+                            ? SkSamplingOptions()
+                            : SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
+    sk_sp<SkShader> imageShader = image->makeShader(samplingOptions, matrix);
     if (imageShader == nullptr) {
         RS_LOGE("RSBaseRenderEngine::DrawImage imageShader is nullptr.");
     } else {

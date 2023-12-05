@@ -195,7 +195,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(int32_t width,
         ROSEN_LOGD("RSSurfaceOhosVulkan: create native window");
     }
 
-    SetNativeWindowInfo(width, height);
+    SetNativeWindowInfo(width, height, useAFBC);
     NativeWindowHandleOpt(mNativeWindow, SET_UI_TIMESTAMP, uiTimestamp);
 
     if (mVulkanWindow == nullptr) {

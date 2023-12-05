@@ -692,7 +692,18 @@ std::vector<std::shared_ptr<DrawOpItem>> CmdListHelper::GetDrawOpItemsFromHandle
 
     return drawCmdList->UnmarshallingCmdList();
 }
+#ifdef ROSEN_OHOS
+uint32_t CmdListHelper::AddSurfaceBufferToCmdList(CmdList& cmdList, const sptr<SurfaceBuffer>& surfaceBuffer)
+{
+    return cmdList.AddSurfaceBuffer(surfaceBuffer);
+}
 
+sptr<SurfaceBuffer> CmdListHelper::GetSurfaceBufferFromCmdList(
+    const CmdList& cmdList, uint32_t surfaceBufferHandle)
+{
+    return (const_cast<CmdList&>(cmdList)).GetSurfaceBuffer(surfaceBufferHandle);
+}
+#endif
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

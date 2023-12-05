@@ -122,6 +122,7 @@ public:
     static bool GetHardwareComposerEnabled();
     static bool GetAFBCEnabled();
     static bool GetReleaseResourceEnabled();
+    static bool GetRSScreenRoundCornerEnable();
 
     static void SetDrawTextAsBitmap(bool flag);
     static bool GetDrawTextAsBitmap();

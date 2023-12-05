@@ -144,9 +144,8 @@ void BootAnimation::Run(Rosen::ScreenId id, int screenWidth, int screenHeight)
 {
     LOGI("Run enter");
     animationConfig_.ParserCustomCfgFile();
-
+    Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
     if (animationConfig_.GetRotateScreenId() >= 0) {
-        Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
         id = interface.GetActiveScreenId();
         Rosen::RSScreenModeInfo modeinfo = interface.GetScreenActiveMode(id);
         screenWidth = modeinfo.GetScreenWidth();
@@ -157,6 +156,8 @@ void BootAnimation::Run(Rosen::ScreenId id, int screenWidth, int screenHeight)
             LOGI("SetScreenPowerStatus POWER_STATUS_ON: %{public}llu", id);
             interface.SetScreenPowerStatus(id, Rosen::ScreenPowerStatus::POWER_STATUS_ON);
         }
+    } else if (interface.GetScreenPowerStatus(id) != Rosen::ScreenPowerStatus::POWER_STATUS_ON) {
+        interface.SetScreenPowerStatus(id, Rosen::ScreenPowerStatus::POWER_STATUS_ON);
     }
 
     runner_ = AppExecFwk::EventRunner::Create(false);

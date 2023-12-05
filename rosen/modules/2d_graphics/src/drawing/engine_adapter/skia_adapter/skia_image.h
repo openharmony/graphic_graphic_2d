@@ -119,12 +119,6 @@ public:
 #endif
 #endif
 
-    static GrBackendTexture ConvertToGrBackendTexture(const TextureInfo& info);
-    static GrSurfaceOrigin ConvertToGrSurfaceOrigin(const TextureOrigin& origin);
-#ifdef RS_ENABLE_VK
-    static GrBackendTexture ConvertToGrBackendTexture(const VKTextureInfo& info);
-    static void ConvertToVKTexture(const GrBackendTexture& backendTexture, VKTextureInfo& info);
-#endif
     std::shared_ptr<Data> Serialize() const override;
     bool Deserialize(std::shared_ptr<Data> data) override;
 

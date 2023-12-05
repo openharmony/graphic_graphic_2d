@@ -20,9 +20,7 @@
 #include "include/gpu/vk/GrVkExtensions.h"
 #include "vulkan/vulkan_core.h"
 
-#if !VULKAN_LINK_STATICALLY
 #define VK_NO_PROTOTYPES 1
-#endif
 
 #include "vulkan/vulkan.h"
 #include "include/gpu/vk/GrVkBackendContext.h"

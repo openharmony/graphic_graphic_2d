@@ -288,11 +288,6 @@ EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
     return surface;
 }
 
-void RenderContext::SetColorSpace(GraphicColorGamut colorSpace)
-{
-    colorSpace_ = colorSpace;
-}
-
 #ifndef USE_ROSEN_DRAWING
 #ifdef RS_ENABLE_VK
 bool RenderContext::SetUpGrContext(sk_sp<GrDirectContext> skContext)
@@ -400,8 +395,12 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
     GrGLFramebufferInfo framebufferInfo;
     framebufferInfo.fFBOID = 0;
     framebufferInfo.fFormat = GL_RGBA8;
-
     SkColorType colorType = kRGBA_8888_SkColorType;
+
+    if (pixelFormat_ == GRAPHIC_PIXEL_FMT_RGBA_1010102) {
+        framebufferInfo.fFormat = GL_RGB10_A2;
+        colorType = kRGBA_1010102_SkColorType;
+    }
 
     GrBackendRenderTarget backendRenderTarget(width, height, 0, 8, framebufferInfo);
 #if defined(NEW_SKIA)
@@ -410,27 +409,7 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
     SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
 #endif
 
-    sk_sp<SkColorSpace> skColorSpace = nullptr;
-
-    switch (colorSpace_) {
-        // [planning] in order to stay consistant with the colorspace used before, we disabled
-        // GRAPHIC_COLOR_GAMUT_SRGB to let the branch to default, then skColorSpace is set to nullptr
-        case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
-#if defined(NEW_SKIA)
-            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
-#else
-            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDCIP3);
-#endif
-            break;
-        case GRAPHIC_COLOR_GAMUT_ADOBE_RGB:
-            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kAdobeRGB);
-            break;
-        case GRAPHIC_COLOR_GAMUT_BT2020:
-            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kRec2020);
-            break;
-        default:
-            break;
-    }
+    sk_sp<SkColorSpace> skColorSpace = ConvertColorGamutToSkColorSpace(colorSpace_);
 
     RSTagTracker tagTracker(GetGrContext(), RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
 
@@ -602,6 +581,32 @@ void RenderContext::ClearRedundantResources()
         drGPUContext_->PerformDeferredCleanup(std::chrono::seconds(10));
     }
 #endif
+}
+
+sk_sp<SkColorSpace> RenderContext::ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut) const
+{
+    sk_sp<SkColorSpace> skColorSpace = nullptr;
+    switch (colorGamut) {
+        // [planning] in order to stay consistant with the colorspace used before, we disabled
+        // GRAPHIC_COLOR_GAMUT_SRGB to let the branch to default, then skColorSpace is set to nullptr
+        case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
+#if defined(NEW_SKIA)
+            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
+#else
+            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDCIP3);
+#endif
+            break;
+        case GRAPHIC_COLOR_GAMUT_ADOBE_RGB:
+            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kAdobeRGB);
+            break;
+        case GRAPHIC_COLOR_GAMUT_BT2020:
+            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kRec2020);
+            break;
+        default:
+            break;
+    }
+
+    return skColorSpace;
 }
 
 RenderContextFactory& RenderContextFactory::GetInstance()
