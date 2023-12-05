@@ -226,7 +226,8 @@ void RSImage::ApplyCanvasClip(Drawing::Canvas& canvas)
 #ifndef USE_ROSEN_DRAWING
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
-static SkImage::CompressionType PixelFormatToCompressionType(Media::PixelFormat pixelFormat) {
+static SkImage::CompressionType PixelFormatToCompressionType(Media::PixelFormat pixelFormat)
+{
     switch (pixelFormat) {
         case Media::PixelFormat::ASTC_4x4: return SkImage::CompressionType::kASTC_RGBA8_4x4;
         case Media::PixelFormat::ASTC_6x6: return SkImage::CompressionType::kASTC_RGBA8_6x6;
@@ -305,7 +306,8 @@ void RSImage::UploadGpu(Drawing::Canvas& canvas)
 #endif
 
 #ifndef USE_ROSEN_DRAWING
-void RSImage::DrawImageRepeatRect(const SkSamplingOptions& samplingOptions, const SkPaint& paint, RSPaintFilterCanvas& canvas)
+void RSImage::DrawImageRepeatRect(const SkSamplingOptions& samplingOptions, const SkPaint& paint,
+	RSPaintFilterCanvas& canvas)
 #else
 void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas)
 #endif
@@ -339,7 +341,7 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
 
     // draw repeat rect
 #ifndef USE_ROSEN_DRAWING
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK))
 #if !defined(RS_ENABLE_PARALLEL_UPLOAD) || !defined(RS_ENABLE_UNI_RENDER)
     if (pixelMap_ != nullptr && image_ == nullptr) {
         ConvertPixelMapToSkImage();
@@ -420,7 +422,7 @@ void RSImage::SetCompressData(
 }
 
 #ifndef USE_ROSEN_DRAWING
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK))
 void RSImage::SetCompressData(const sk_sp<SkData> compressData)
 {
     isDrawn_ = false;

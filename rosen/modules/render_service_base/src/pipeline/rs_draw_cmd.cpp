@@ -36,6 +36,7 @@
 #include "render/rs_pixel_map_util.h"
 
 #ifdef RS_ENABLE_VK
+#include "include/gpu/GrBackendSemaphore.h"
 #include "native_window.h"
 #include "native_buffer_inner.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"

@@ -116,7 +116,7 @@ RSTagTracker::RSTagTracker(GrContext* grContext, NodeId nodeId, RSTagTracker::TA
     if (!g_releaseResourceEnabled_) {
         return;
     }
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     GrGpuResourceTag tag(ExtractPid(nodeId), 0, nodeId, tagType);
     grContext_->setCurrentGrResourceTag(tag);
 #endif

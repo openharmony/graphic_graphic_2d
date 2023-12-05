@@ -1737,7 +1737,7 @@ sk_sp<SkImage> RSRenderNode::GetCompletedImage(RSPaintFilterCanvas& canvas, uint
     if (threadIndex == completedSurfaceThreadIndex_) {
         return completeImage;
     }
-#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     GrSurfaceOrigin origin = kBottomLeft_GrSurfaceOrigin;
     auto backendTexture = completeImage->getBackendTexture(false, &origin);
     if (!backendTexture.isValid()) {

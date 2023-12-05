@@ -40,7 +40,11 @@ std::shared_ptr<RSEglImageManager> RSEglImageManagerTest::eglImageManager_ = nul
 void RSEglImageManagerTest::SetUpTestCase()
 {
     renderContext_->InitializeEglContext();
+#ifdef RS_ENABLE_VK
+    renderContext_->SetUpGrContext(nullptr);
+#else
     renderContext_->SetUpGrContext();
+#endif
     eglImageManager_ = std::make_shared<RSEglImageManager>(renderContext_->GetEGLDisplay());
 }
 

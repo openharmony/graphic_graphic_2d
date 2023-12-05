@@ -30,7 +30,7 @@ namespace Rosen {
 NativeVkImageRes::~NativeVkImageRes()
 {
     NativeBufferUtils::DeleteVkImage(mVulkanCleanupHelper);
-    DestoryNativeWindowBuffer(mNativeWindowBuffer);
+    DestroyNativeWindowBuffer(mNativeWindowBuffer);
 }
 
 std::shared_ptr<NativeVkImageRes> NativeVkImageRes::Create(sptr<OHOS::SurfaceBuffer> buffer)
