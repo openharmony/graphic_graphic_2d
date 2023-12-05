@@ -144,7 +144,7 @@ private:
     void DumpToFile(uint32_t sequence);
 
     uint32_t GetUsedSize();
-    void DeleteBuffers(int32_t count);
+    void DeleteBuffersLocked(int32_t count);
 
     GSError PopFromFreeList(sptr<SurfaceBuffer>& buffer, const BufferRequestConfig &config);
     GSError PopFromDirtyList(sptr<SurfaceBuffer>& buffer);
