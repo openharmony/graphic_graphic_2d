@@ -2169,6 +2169,9 @@ MARSHALLING_AND_UNMARSHALLING(DrawCmdList)
 #define MARSHALLING_AND_UNMARSHALLING(TEMPLATE)                                                 \
     bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TEMPLATE>& val) \
     {                                                                                           \
+        if (val == nullptr) {                                                                   \
+            RS_LOGW("MarshallingHelper::Marshalling nullptr");                                  \
+        }                                                                                       \
         return parcel.WriteParcelable(val.get());                                               \
     }                                                                                           \
     bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE>& val)     \
