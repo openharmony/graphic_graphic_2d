@@ -26,6 +26,8 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace ColorManager {
+constexpr uint32_t MATRIX_SIZE = 3;
+
 static void CheckColorSpaceEqual(const ColorSpace& cs0, const ColorSpace& cs1)
 {
     ASSERT_TRUE(FloatEqual(cs0.transferFunc.g, cs1.transferFunc.g));
@@ -36,8 +38,8 @@ static void CheckColorSpaceEqual(const ColorSpace& cs0, const ColorSpace& cs1)
     ASSERT_TRUE(FloatEqual(cs0.transferFunc.e, cs1.transferFunc.e));
     ASSERT_TRUE(FloatEqual(cs0.transferFunc.f, cs1.transferFunc.f));
 
-    for (uint32_t i = 0; i < 3; ++i) {
-        for (uint32_t j = 0; j < 3; ++j) {
+    for (uint32_t i = 0; i < MATRIX_SIZE; ++i) {
+        for (uint32_t j = 0; j < MATRIX_SIZE; ++j) {
             ASSERT_TRUE(FloatEqual(cs0.toXYZ[i][j], cs1.toXYZ[i][j]));
         }
     }
@@ -61,8 +63,8 @@ static void CheckSkColorSpaceEqual(sk_sp<SkColorSpace> cs0, sk_sp<SkColorSpace> 
     cs0->toXYZD50(&m0);
     skcms_Matrix3x3 m1;
     cs1->toXYZD50(&m1);
-    for (uint32_t i = 0; i < 3; ++i) {
-        for (uint32_t j = 0; j < 3; ++j) {
+    for (uint32_t i = 0; i < MATRIX_SIZE; ++i) {
+        for (uint32_t j = 0; j < MATRIX_SIZE; ++j) {
             ASSERT_TRUE(FloatEqual(m0.vals[i][j], m1.vals[i][j]));
         }
     }

@@ -28,6 +28,7 @@ const ColorSpacePrimaries CSP_NTSC_1953 = {0.670f, 0.330f, 0.210f, 0.710f, 0.140
 const ColorSpacePrimaries CSP_PRO_PHOTO_RGB = {0.7347f, 0.2653f, 0.1596f, 0.8404f, 0.0366f, 0.0001f, 0.34567f,
     0.35850f};
 
+// use unique g value to represent HLG and PG transfer function
 constexpr float HLG_G = -3.0f;
 constexpr float PQ_G = -2.0f;
 
