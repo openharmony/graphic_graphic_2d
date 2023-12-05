@@ -96,6 +96,9 @@ void DrawCmdList::ClearOp()
     opAllocator_.Add(&width_, sizeof(int32_t));
     opAllocator_.Add(&height_, sizeof(int32_t));
     imageAllocator_.ClearData();
+    bitmapAllocator_.ClearData();
+    imageMap_.clear();
+    imageHandleVec_.clear();
     unmarshalledOpItems_.clear();
     lastOpGenSize_ = 0;
     lastOpItemOffset_ = std::nullopt;
@@ -216,6 +219,10 @@ void DrawCmdList::UnmarshallingOps()
         offset = curOpItemPtr->GetNextOpItemOffset();
     } while (offset != 0);
     lastOpGenSize_ = opAllocator_.GetSize();
+
+    if ((int)imageAllocator_.GetSize() > 0) {
+        imageAllocator_.ClearData();
+    }
 }
 
 std::vector<std::shared_ptr<DrawOpItem>> DrawCmdList::UnmarshallingCmdList()
@@ -431,10 +438,15 @@ void DrawCmdList::AddOpToCmdList(std::shared_ptr<DrawCmdList> cmdList)
     imageBaseOjVec_.swap(cmdList->imageBaseOjVec_);
     size_t size = opAllocator_.GetSize() - offset;
     auto imageData = GetAllImageData();
+    auto bitmapData = GetAllBitmapData();
     std::lock_guard<std::mutex> lock(cmdList->mutex_);
     cmdList->opAllocator_.Add(addr, size);
     if (imageData.first != nullptr && imageData.second != 0) {
         cmdList->imageAllocator_.Add(imageData.first, imageData.second);
+    }
+
+    if (bitmapData.first != nullptr && bitmapData.second != 0) {
+        cmdList->bitmapAllocator_.Add(bitmapData.first, bitmapData.second);
     }
 }
 

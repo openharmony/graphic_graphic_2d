@@ -1879,6 +1879,20 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
         }
     }
 
+    auto bitmapData = val->GetAllBitmapData();
+    ret &= parcel.WriteInt32(bitmapData.second);
+    if (!ret) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList bitmap size");
+        return ret;
+    }
+    if (bitmapData.second > 0) {
+        ret &= RSMarshallingHelper::WriteToParcel(parcel, bitmapData.first, bitmapData.second);
+        if (!ret) {
+            ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList bitmap");
+            return ret;
+        }
+    }
+
     std::vector<std::shared_ptr<Drawing::ExtendImageObject>> objectVec;
     uint32_t objectSize = val->GetAllObject(objectVec);
     ret &= parcel.WriteUint32(objectSize);
@@ -1970,6 +1984,21 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         if (isMal) {
             free(const_cast<void*>(imageData));
             imageData = nullptr;
+        }
+    }
+
+    int32_t bitmapSize = parcel.ReadInt32();
+    if (bitmapSize > 0) {
+        bool isMal = false;
+        const void* bitmapData = RSMarshallingHelper::ReadFromParcel(parcel, bitmapSize, isMal);
+        if (bitmapData == nullptr) {
+            ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Drawing::DrawCmdList bitmap is nullptr");
+            return false;
+        }
+        val->SetUpBitmapData(bitmapData, bitmapSize);
+        if (isMal) {
+            free(const_cast<void*>(bitmapData));
+            bitmapData = nullptr;
         }
     }
 
@@ -2099,6 +2128,20 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
         }
     }
 
+    auto bitmapData = val->GetAllBitampData();
+    ret &= parcel.WriteInt32(bitmapData.second);
+    if (!ret) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::MaskCmdList bitmap size");
+        return ret;
+    }
+    if (bitmapData.second > 0) {
+        ret &= RSMarshallingHelper::WriteToParcel(parcel, bitmapData.first, bitmapData.second);
+        if (!ret) {
+            ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::MaskCmdList bitmap");
+            return ret;
+        }
+    }
+
     return ret;
 }
 
@@ -2112,14 +2155,12 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         ROSEN_LOGW("unirender: RSMarshallingHelper::Unmarshalling Drawing::MaskCmdList size is 0");
         return true;
     }
-
     bool isMalloc = false;
     const void* data = RSMarshallingHelper::ReadFromParcel(parcel, size, isMalloc);
     if (data == nullptr) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Drawing::MaskCmdList");
         return false;
     }
-
     val = Drawing::MaskCmdList::CreateFromData({ data, size }, true);
     if (isMalloc) {
         free(const_cast<void*>(data));
@@ -2129,7 +2170,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Drawing::MaskCmdList is nullptr");
         return false;
     }
-
     int32_t imageSize = parcel.ReadInt32();
     if (imageSize > 0) {
         bool isMal = false;
@@ -2144,7 +2184,20 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
             imageData = nullptr;
         }
     }
-
+    int32_t bitmapSize = parcel.ReadInt32();
+    if (bitmapSize > 0) {
+        bool isMal = false;
+        const void* bitmapData = RSMarshallingHelper::ReadFromParcel(parcel, bitmapSize, isMal);
+        if (bitmapData == nullptr) {
+            ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Drawing::MaskCmdList bitmap is nullptr");
+            return false;
+        }
+        val->SetUpBitmapData(bitmapData, bitmapSize);
+        if (isMal) {
+            free(const_cast<void*>(bitmapData));
+            bitmapData = nullptr;
+        }
+    }
     return true;
 }
 #endif

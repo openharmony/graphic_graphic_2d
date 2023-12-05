@@ -52,7 +52,7 @@ FontStyleSet* SkiaFontMgr::MatchFamily(const char familyName[]) const
     if (!skFontStyleSetPtr) {
         return nullptr;
     }
-    std::shared_ptr<SkFontStyleSet> skFontStyleSet{skFontStyleSetPtr};
+    sk_sp<SkFontStyleSet> skFontStyleSet{skFontStyleSetPtr};
     std::shared_ptr<FontStyleSetImpl> fontStyleSetImpl = std::make_shared<SkiaFontStyleSet>(skFontStyleSet);
     return new FontStyleSet(fontStyleSetImpl);
 }

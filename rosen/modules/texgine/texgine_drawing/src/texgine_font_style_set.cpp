@@ -29,11 +29,13 @@ TexgineFontStyleSet::TexgineFontStyleSet(RSFontStyleSet *set)
 
 TexgineFontStyleSet::~TexgineFontStyleSet()
 {
-#ifndef USE_ROSEN_DRAWING
     if (set_) {
+#ifndef USE_ROSEN_DRAWING
         set_->unref();
-    }
+#else
+        delete set_;
 #endif
+    }
 }
 
 int TexgineFontStyleSet::Count() const
