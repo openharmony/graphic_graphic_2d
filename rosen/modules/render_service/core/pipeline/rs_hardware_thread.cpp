@@ -254,8 +254,8 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
     ScreenId id = RSMainThread::Instance()->GetFrameRateMgr()->GetCurScreenId();
     if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id)) {
         RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers SetScreenRefreshRate: %d", refreshRate);
-        RS_LOGI("RSHardwareThread::CommitAndReleaseLayers SetScreenRefreshRate = %{public}d", refreshRate);
-        RS_LOGI("liweiiii RSHardwareThread: screenId %{public}d refreshRate %{public}d", (int)id, refreshRate);
+        RS_LOGI("RSHardwareThread::CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d",
+            static_cast<int>(id), refreshRate);
         int32_t status = hgmCore.SetScreenRefreshRate(id, 0, refreshRate);
         if (status < EXEC_SUCCESS) {
             RS_LOGE("RSHardwareThread: failed to set refreshRate %{public}d, screenId %{public}llu", refreshRate, id);

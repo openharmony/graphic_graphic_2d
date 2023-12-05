@@ -479,12 +479,12 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
 
-    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
-    hgmCore.NotifyScreenPowerStatus(id, status);
 
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
         RSHardwareThread::Instance().ScheduleTask(
             [=]() { screenManager_->SetScreenPowerStatus(id, status); }).wait();
+
+        OHOS::Rosen::HgmCore::Instance().NotifyScreenPowerStatus(id, status);
     } else {
         mainThread_->ScheduleTask(
             [=]() { screenManager_->SetScreenPowerStatus(id, status); }).wait();

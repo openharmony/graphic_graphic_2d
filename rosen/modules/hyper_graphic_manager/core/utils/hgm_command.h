@@ -123,7 +123,7 @@ public:
         std::string strategy;
         // <"switch", "1">
         std::unordered_map<std::string, std::string> ltpoConfig;
-        // <"com.huawei.camera", "4">
+        // <"pkgName", "4">
         std::unordered_map<std::string, std::string> appList;
         SceneConfigMap sceneList;
         DynamicSettingMap animationDynamicSettings;

@@ -54,7 +54,7 @@ void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
 
     auto& hgmCore = HgmCore::Instance();
     auto data = std::make_shared<RSHgmConfigData>();
-    // 获取真实的screenType和screenSetting
+
     auto screenType = hgmCore.GetFrameRateMgr()->GetCurScreenStrategyId();
     auto screenSetting = std::to_string(hgmCore.GetCurrentRefreshRateMode());
     auto dynamicSettingMap = hgmCore.GetPolicyConfigData()->GetAceSceneDynamicSettingMap(screenType, screenSetting);
@@ -81,7 +81,7 @@ void HgmConfigCallbackManager::SyncCallback()
 
     auto& hgmCore = HgmCore::Instance();
     auto data = std::make_shared<RSHgmConfigData>();
-    // 获取真实的screenType和screenSetting
+
     auto screenType = hgmCore.GetFrameRateMgr()->GetCurScreenStrategyId();
     auto screenSetting = std::to_string(hgmCore.GetCurrentRefreshRateMode());
     auto dynamicSettingMap = hgmCore.GetPolicyConfigData()->GetAceSceneDynamicSettingMap(screenType, screenSetting);

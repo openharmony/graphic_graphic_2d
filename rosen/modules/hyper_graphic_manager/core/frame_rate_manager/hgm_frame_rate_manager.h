@@ -127,7 +127,7 @@ private:
     // Used to record your votes, and clear your votes after you die
     std::unordered_set<pid_t> pidRecord_;
 
-    std::string curPkgName_ = "com.huawei.hmos.sceneboard";
+    std::string curPkgName_ = "";
     RefreshRateMode curRefreshRateMode_ = HGM_REFRESHRATE_MODE_AUTO;
     ScreenId curScreenId_ = 0;
     std::string curScreenStrategyId_ = "LTPO-DEFAULT";

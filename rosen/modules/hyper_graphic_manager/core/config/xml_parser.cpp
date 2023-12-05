@@ -117,7 +117,7 @@ int32_t XMLParser::ParseParam(xmlNode &node)
         std::string mode = ExtractPropertyValue("value", node);
         mParsedData_->defaultRefreshRateMode_ = mode;
 
-        HGM_LOGI("yangxiao ParseParam default_refreshrate_mode %{public}s",
+        HGM_LOGI("HgmXMLParser ParseParam default_refreshrate_mode %{public}s",
                  mParsedData_->defaultRefreshRateMode_.c_str());
     }
 
@@ -198,7 +198,7 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
         strategy.drawMax = IsNumber(drawMax) ? std::stoi(drawMax) : 0;
 
         mParsedData_->strategyConfigs_[name] = strategy;
-        HGM_LOGI("yangxiao ParseStrategyConfig name=%{public}s min=%{public}d drawMin=%{public}d",
+        HGM_LOGI("HgmXMLParser ParseStrategyConfig name=%{public}s min=%{public}d drawMin=%{public}d",
                  name.c_str(), mParsedData_->strategyConfigs_[name].min, mParsedData_->strategyConfigs_[name].drawMin);
     }
 
@@ -249,7 +249,7 @@ int32_t XMLParser::ParseScreenConfig(xmlNode &node)
             }
         }
         screenConfig[id] = screenSetting;
-        HGM_LOGI("yangxiao ParseScreenConfig id=%{public}s", id.c_str());
+        HGM_LOGI("HgmXMLParser ParseScreenConfig id=%{public}s", id.c_str());
     }
     mParsedData_->screenConfigs_[type] = screenConfig;
     return EXEC_SUCCESS;
@@ -280,7 +280,7 @@ int32_t XMLParser::ParseSimplex(xmlNode &node, std::unordered_map<std::string, s
         }
         config[key] = value;
 
-        HGM_LOGI("yangxiao ParseSimplex %{public}s=%{public}s %{public}s=%{public}s",
+        HGM_LOGI("HgmXMLParser ParseSimplex %{public}s=%{public}s %{public}s=%{public}s",
                  keyName.c_str(), key.c_str(), valueName.c_str(), config[key].c_str());
     }
 
@@ -321,7 +321,7 @@ int32_t XMLParser::ParserDynamicSetting(xmlNode &node, PolicyConfigData::Dynamic
             dynamicConfig.preferred_fps = std::stoi(preferred_fps);
             dynamicSettingMap[dynamicSettingType][name] = dynamicConfig;
 
-            HGM_LOGI("yangxiao ParserDynamicSetting dynamicType=%{public}s name=%{public}s min=%{public}d",
+            HGM_LOGI("HgmXMLParser ParserDynamicSetting dynamicType=%{public}s name=%{public}s min=%{public}d",
                      dynamicSettingType.c_str(), name.c_str(), dynamicSettingMap[dynamicSettingType][name].min);
         }
     }
@@ -350,7 +350,7 @@ int32_t XMLParser::ParseSceneList(xmlNode &node, PolicyConfigData::SceneConfigMa
         sceneConfig.priority = ExtractPropertyValue("priority", *currNode);
 
         sceneList[name] = sceneConfig;
-        HGM_LOGI("yangxiao ParseSceneList name=%{public}s strategy=%{public}s priority=%{public}s",
+        HGM_LOGI("HgmXMLParser ParseSceneList name=%{public}s strategy=%{public}s priority=%{public}s",
                  name.c_str(), sceneList[name].strategy.c_str(), sceneList[name].priority.c_str());
     }
 
