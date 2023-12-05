@@ -26,12 +26,12 @@ namespace Rosen {
 class RSRenderFrameRateLinker;
 class RSB_EXPORT RSRenderFrameRateLinkerMap final {
 public:
-    void RegisterFrameRateLinker(const std::shared_ptr<RSRenderFrameRateLinker>& linkerPtr);
+    bool RegisterFrameRateLinker(const std::shared_ptr<RSRenderFrameRateLinker>& linkerPtr);
     void UnregisterFrameRateLinker(FrameRateLinkerId id);
     void FilterFrameRateLinkerByPid(pid_t pid);
     std::shared_ptr<RSRenderFrameRateLinker> GetFrameRateLinker(FrameRateLinkerId id);
 
-    const std::unordered_map<FrameRateLinkerId, std::shared_ptr<RSRenderFrameRateLinker>>& GetFrameRateLinkerMap() const
+    const std::unordered_map<FrameRateLinkerId, std::shared_ptr<RSRenderFrameRateLinker>>& Get() const
     {
         return frameRateLikerMap_;
     }
