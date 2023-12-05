@@ -616,9 +616,9 @@ HWTEST_F(ColorManagerTest, P3_PQTosRGB, Function | SmallTest | Level2)
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: SKIA to ColorSpace
+* CaseDescription: SkColorSpace to ColorSpace
 */
-HWTEST_F(ColorManagerTest, SkiaToColorSpace, Function | SmallTest | Level2)
+HWTEST_F(ColorManagerTest, SkColorSpaceToColorSpace, Function | SmallTest | Level2)
 {
     sk_sp<SkColorSpace> skiaSrgb = SkColorSpace::MakeSRGB();
     ASSERT_NE(nullptr, skiaSrgb);
@@ -664,9 +664,9 @@ HWTEST_F(ColorManagerTest, SkiaToColorSpace, Function | SmallTest | Level2)
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: ColorSpace to SKIA
+* CaseDescription: ColorSpace to SkColorSpace
 */
-HWTEST_F(ColorManagerTest, ColorSpaceToSkia, Function | SmallTest | Level2)
+HWTEST_F(ColorManagerTest, ColorSpaceToSkColorSpace, Function | SmallTest | Level2)
 {
     auto skSrgb = ColorSpace(SRGB).ToSkColorSpace();
     CheckSkColorSpaceEqual(skSrgb, SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kSRGB));
