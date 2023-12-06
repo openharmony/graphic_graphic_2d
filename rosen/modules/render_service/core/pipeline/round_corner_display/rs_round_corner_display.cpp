@@ -402,7 +402,48 @@ void RoundCornerDisplay::RcdChooseHardwareResource()
     hardInfo_.bottomLayer->curBitmap = &bitmapBottomPortrait_;
 }
 
-void RoundCornerDisplay::DrawRoundCorner(std::shared_ptr<RSPaintFilterCanvas> canvas)
+void RoundCornerDisplay::DrawRoundCorner(std::shared_ptr<RSPaintFilterCanvas>& canvas)
+{
+    std::lock_guard<std::mutex> lock(resourceMut_);
+    if (supportHardware_) {
+        return;
+    }
+    if (canvas == nullptr) {
+        RS_LOGE("[%{public}s] Canvas is null \n", __func__);
+        return;
+    }
+    UpdateParameter(updateFlag_);
+    if (supportTopSurface_) {
+        RS_LOGD("[%{public}s] TopSurface supported \n", __func__);
+        if (curTop_ != nullptr) {
+#ifndef USE_ROSEN_DRAWING
+            canvas->drawImage(curTop_, 0, 0);
+#else
+            Drawing::Brush brush;
+            canvas->AttachBrush(brush);
+            canvas->DrawImage(*curTop_, 0, 0, Drawing::SamplingOptions());
+            canvas->DetachBrush();
+#endif
+            RS_LOGD("[%{public}s] Draw top \n", __func__);
+        }
+    }
+    if (supportBottomSurface_) {
+        RS_LOGD("[%{public}s] BottomSurface supported \n", __func__);
+        if (curBottom_ != nullptr) {
+#ifndef USE_ROSEN_DRAWING
+            canvas->drawImage(curBottom_, 0, displayHeight_ - curBottom_->height());
+#else
+            Drawing::Brush brush;
+            canvas->AttachBrush(brush);
+            canvas->DrawImage(*curBottom_, 0, displayHeight_ - curBottom_->GetHeight(), Drawing::SamplingOptions());
+            canvas->DetachBrush();
+#endif
+            RS_LOGD("[%{public}s] Draw Bottom \n", __func__);
+        }
+    }
+}
+
+void RoundCornerDisplay::DrawRoundCorner(std::unique_ptr<RSPaintFilterCanvas>& canvas)
 {
     std::lock_guard<std::mutex> lock(resourceMut_);
     if (supportHardware_) {

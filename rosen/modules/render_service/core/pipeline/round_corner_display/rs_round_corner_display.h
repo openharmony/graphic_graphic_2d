@@ -65,7 +65,9 @@ public:
     // update curOrientation_ and lastOrientation_
     void UpdateOrientationStatus(ScreenRotation orientation);
 
-    void DrawRoundCorner(std::shared_ptr<RSPaintFilterCanvas> canvas);
+    void DrawRoundCorner(std::shared_ptr<RSPaintFilterCanvas>& canvas);
+
+    void DrawRoundCorner(std::unique_ptr<RSPaintFilterCanvas>& canvas);
 
     void RunHardwareTask(const std::function<void()>& task)
     {
