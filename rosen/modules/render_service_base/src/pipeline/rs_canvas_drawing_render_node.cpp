@@ -503,6 +503,9 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType type)
 #else
     dirtyTypes_.set(static_cast<int>(type), true);
 #endif
+    if (!IsOnTheTree()) {
+        ClearOp();
+    }
     for (auto drawCmdModifier : drawCmdModifiers_) {
         if (drawCmdModifier.second.empty()) {
             continue;
@@ -524,9 +527,6 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType type)
                 drawCmdLists_[drawCmdModifier.first].emplace_back(cmd);
             }
         }
-    }
-    if (!IsOnTheTree()) {
-        ClearOp();
     }
 }
 
