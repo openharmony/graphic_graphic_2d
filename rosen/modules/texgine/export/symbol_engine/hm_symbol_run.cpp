@@ -14,8 +14,8 @@
  */
 
 #include "hm_symbol_run.h"
-#include <include/pathops/SkPathOps.h>
-#include <src/ports/skia_ohos/HmSymbolConfig_ohos.h>
+#include "include/pathops/SkPathOps.h"
+#include "src/ports/skia_ohos/HmSymbolConfig_ohos.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -56,7 +56,7 @@ void HMSymbolRun::SetSymbolRenderColor(const SymbolRenderingStrategy& renderMode
         // SINGLE and HIERARCHICAL: Supports single color setting
         case SymbolRenderingStrategy::SINGLE:
         case SymbolRenderingStrategy::MULTIPLE_OPACITY:
-            for (size_t i = 0; i < symbolInfo.renderGroups_.size(); ++i) {
+            for (size_t i = 0; i < symbolInfo.renderGroups.size(); ++i) {
                 symbolInfo.renderGroups[i].color.r = colors[0].r; // the 0 indicates the the first color is used
                 symbolInfo.renderGroups[i].color.g = colors[0].g; // the 0 indicates the the first color is used
                 symbolInfo.renderGroups[i].color.b = colors[0].b; // the 0 indicates the the first color is used
@@ -64,7 +64,7 @@ void HMSymbolRun::SetSymbolRenderColor(const SymbolRenderingStrategy& renderMode
             break;
         // MULTIPLE_COLOR: Supports mutiple color setting
         case SymbolRenderingStrategy::MULTIPLE_COLOR:
-            for (size_t i = 0, j = 0; i < symbolInfo.renderGroups_.size() && j < colors.size(); ++i, ++j) {
+            for (size_t i = 0, j = 0; i < symbolInfo.renderGroups.size() && j < colors.size(); ++i, ++j) {
                 symbolInfo.renderGroups[i].color.r = colors[j].r;
                 symbolInfo.renderGroups[i].color.g = colors[j].g;
                 symbolInfo.renderGroups[i].color.b = colors[j].b;
