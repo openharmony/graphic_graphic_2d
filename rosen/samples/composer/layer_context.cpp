@@ -72,6 +72,11 @@ void LayerContext::SetTestYUVStatus(bool status)
     testYUV_ = status;
 }
 
+void LayerContext::SetTestLayerColor(bool status)
+{
+    testLayerColor_ = status;
+}
+
 OHOS::Rosen::LayerType LayerContext::GetLayerType() const
 {
     return layerType_;
@@ -132,23 +137,9 @@ SurfaceError LayerContext::DrawBufferColor()
     return ret;
 }
 
-SurfaceError LayerContext::FillHDILayer()
+void LayerContext::FillHDILayer()
 {
-    OHOS::sptr<SurfaceBuffer> buffer = nullptr;
-    int32_t acquireFence = -1;
-    int64_t timestamp;
-    Rect damage;
-    SurfaceError ret = cSurface_->AcquireBuffer(buffer, acquireFence, timestamp, damage);
-    sptr<SyncFence> acquireSyncFence = new SyncFence(acquireFence);
-    if (ret != SURFACE_ERROR_OK) {
-        LOGE("Acquire buffer failed");
-        return ret;
-    }
-
     GraphicLayerAlpha alpha = { .enPixelAlpha = true };
-
-    hdiLayer_->SetSurface(cSurface_);
-    hdiLayer_->SetBuffer(buffer, acquireSyncFence);
     hdiLayer_->SetZorder(static_cast<int32_t>(zorder_));
     hdiLayer_->SetAlpha(alpha);
     if (layerType_ >= LayerType::LAYER_EXTRA) {
@@ -163,9 +154,52 @@ SurfaceError LayerContext::FillHDILayer()
     dirtyRegions.emplace_back(src_);
     hdiLayer_->SetDirtyRegions(dirtyRegions);
     hdiLayer_->SetLayerSize(dst_);
-    hdiLayer_->SetBlendType(GraphicBlendType::GRAPHIC_BLEND_SRCOVER);
+
+    if (testLayerColor_) {
+        hdiLayer_->SetBlendType(GraphicBlendType::GRAPHIC_BLEND_SRC);
+    } else {
+        hdiLayer_->SetBlendType(GraphicBlendType::GRAPHIC_BLEND_SRCOVER);
+    }
+
+    hdiLayer_->SetPreMulti(true);
     hdiLayer_->SetCropRect(src_);
-    hdiLayer_->SetPreMulti(false);
+}
+
+SurfaceError LayerContext::FillHDIBuffer()
+{
+    OHOS::sptr<SurfaceBuffer> buffer = nullptr;
+    int32_t acquireFence = -1;
+    int64_t timestamp;
+    Rect damage;
+    SurfaceError ret = cSurface_->AcquireBuffer(buffer, acquireFence, timestamp, damage);
+    sptr<SyncFence> acquireSyncFence = new SyncFence(acquireFence);
+    if (ret != SURFACE_ERROR_OK) {
+        LOGE("Acquire buffer failed");
+        return ret;
+    }
+
+    hdiLayer_->SetSurface(cSurface_);
+
+    if (testLayerColor_) {
+        if (layerType_ != LayerType::LAYER_LAUNCHER) {
+            hdiLayer_->SetBuffer(buffer, acquireSyncFence);
+        } else {
+            const uint32_t COLOR_R = 255;   // 255 is red color
+            const uint32_t COLOR_G = 255;   // 255 is green color
+            const uint32_t COLOR_B = 255;   // 255 is blue color
+            const uint32_t COLOR_A = 255;   // 255 is alpha
+            GraphicLayerColor color = {
+                .r = COLOR_R,
+                .g = COLOR_G,
+                .b = COLOR_B,
+                .a = COLOR_A
+            };
+
+            hdiLayer_->SetLayerColor(color);
+        }
+    } else {
+        hdiLayer_->SetBuffer(buffer, acquireSyncFence);
+    }
 
     prevBuffer_ = buffer;
     prevFence_ = acquireSyncFence;
@@ -201,6 +235,8 @@ void LayerContext::SetLayerCompositionType()
 {
     if (layerType_ >= LayerType::LAYER_EXTRA && testClient_) {
         hdiLayer_->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    } else if (layerType_ == LayerType::LAYER_LAUNCHER && testLayerColor_) {
+        hdiLayer_->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
     } else {
         hdiLayer_->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     }

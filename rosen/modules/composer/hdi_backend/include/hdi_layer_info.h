@@ -50,6 +50,7 @@ static const std::map<GraphicCompositionType, std::string> CompositionTypeStrs =
     {GRAPHIC_COMPOSITION_CLIENT_CLEAR,       "5 <client clear composistion>"},
     {GRAPHIC_COMPOSITION_TUNNEL,             "6 <tunnel composistion>"},
     {GRAPHIC_COMPOSITION_BUTT,               "7 <uninitialized>"},
+    {GRAPHIC_COMPOSITION_SOLID_COLOR,        "8 <layercolor composition>"},
 };
 
 static const std::map<GraphicBlendType, std::string> BlendTypeStrs = {

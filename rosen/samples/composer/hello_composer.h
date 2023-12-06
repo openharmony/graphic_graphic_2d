@@ -47,6 +47,7 @@ private:
     bool postHotPlugEvent_ = false;
     bool testClient_ = false;
     bool testLayerRotate_ = false;
+    bool testLayerColor_ = false;
     HdiBackend* backend_ = nullptr;
     std::vector<std::unique_ptr<HdiScreen>> screens_;
     std::shared_ptr<HdiOutput> curOutput_;

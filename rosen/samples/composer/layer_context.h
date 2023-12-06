@@ -48,11 +48,13 @@ public:
 
     void OnBufferAvailable() override;
     SurfaceError DrawBufferColor();
-    SurfaceError FillHDILayer();
+    void FillHDILayer();
+    SurfaceError FillHDIBuffer();
     const std::shared_ptr<HdiLayerInfo> GetHdiLayer();
     void SetTestClientStatus(bool status);
     void SetTestRotateStatus(bool status);
     void SetTestYUVStatus(bool status);
+    void SetTestLayerColor(bool status);
     LayerType GetLayerType() const;
     sptr<SurfaceBuffer> GetPreBuffer() const
     {
@@ -80,6 +82,7 @@ private:
     bool testClient_ = false;
     bool testRotate_ = false;
     bool testYUV_ = false;
+    bool testLayerColor_ = false;
 
     void DrawColor(void *image, int width, int height);
     void DrawExtraColor(void *image, uint32_t width, uint32_t height);
