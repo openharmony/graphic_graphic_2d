@@ -140,7 +140,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
             : ScreenRotation::INVALID_SCREEN_ROTATION;
         bool ableRotation = ((displayNode != nullptr) && visitor_->IsUniRender());
         auto id = nodeId_;
-        auto screenCorrection = ScreenCorrection(screenCorrection_)
+        auto screenCorrection = ScreenCorrection(screenCorrection_);
         auto wrapperSf = std::make_shared<std::tuple<sk_sp<SkSurface>>>();
         std::get<0>(*wrapperSf) = std::move(skSurface);
         std::function<void()> copytask = [wrapper, callback, grBackendTexture, wrapperSf,

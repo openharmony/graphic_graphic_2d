@@ -36,6 +36,7 @@
 #include "render/rs_pixel_map_util.h"
 
 #ifdef RS_ENABLE_VK
+#include "include/gpu/GrBackendSemaphore.h"
 #include "native_window.h"
 #include "native_buffer_inner.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
@@ -51,11 +52,11 @@ SkColorType GetSkColorTypeFromVkFormat(VkFormat vkFormat)
         case VK_FORMAT_R8G8B8A8_UNORM:
             return kRGBA_8888_SkColorType;
         case VK_FORMAT_R8G8B8_UNORM:
-            return kRGBA_888x_SkColorType;
+            return kRGB_888x_SkColorType;
         case VK_FORMAT_R16G16B16A16_SFLOAT:
             return kRGBA_F16_SkColorType;
         case VK_FORMAT_R5G6B5_UNORM_PACK16:
-            return kRGBA_565_SkColorType;
+            return kRGB_565_SkColorType;
         case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
             return kRGBA_1010102_SkColorType;
         default:

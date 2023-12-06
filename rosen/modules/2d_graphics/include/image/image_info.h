@@ -32,7 +32,8 @@ enum class EncodedImageFormat {
 class ImageInfo {
 public:
     ImageInfo() = default;
-    ImageInfo(int width, int height, ColorType colorType, AlphaType alphaType, std::shared_ptr<ColorSpace> colorSpace = nullptr)
+    ImageInfo(int width, int height, ColorType colorType, AlphaType alphaType,
+	          std::shared_ptr<ColorSpace> colorSpace = nullptr)
         : width_(width), height_(height), colorType_(colorType), alphaType_(alphaType), colorSpace_(colorSpace) {}
     ~ImageInfo() = default;
     
@@ -151,7 +152,7 @@ public:
 
 private:
     int width_ = 0;
-    int height_ =0;
+    int height_ = 0;
     ColorType colorType_ = COLORTYPE_UNKNOWN;
     AlphaType alphaType_ = ALPHATYPE_UNKNOWN;
     std::shared_ptr<ColorSpace> colorSpace_ = nullptr;

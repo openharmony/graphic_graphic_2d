@@ -116,11 +116,11 @@ std::shared_ptr<Drawing::GPUContext> RSRecordingThread::CreateShareGrContext()
 
 void RSRecordingThread::CreateShareEglContext()
 {
-#ifdef RS_ENABLE_GL
     if (renderContext_ == nullptr) {
         RS_LOGE("renderContext_ is nullptr");
         return;
     }
+#ifdef RS_ENABLE_GL
     eglShareContext_ = renderContext_->CreateShareContext();
     if (eglShareContext_ == EGL_NO_CONTEXT) {
         RS_LOGE("eglShareContext_ is EGL_NO_CONTEXT");
