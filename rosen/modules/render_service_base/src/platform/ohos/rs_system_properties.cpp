@@ -144,15 +144,9 @@ PartialRenderType RSSystemProperties::GetPartialRenderEnabled()
 PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
 {
     int changed = 0;
-#if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_VK)
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.partialrender.enabled", "0");
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return static_cast<PartialRenderType>(ConvertToInt(enable, 0));
-#else
     static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.partialrender.enabled", "4");
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<PartialRenderType>(ConvertToInt(enable, DEFAULT_UNI_PARTIAL_RENDER_ENABLED_VALUE));
-#endif
 }
 
 bool RSSystemProperties::GetReleaseResourceEnabled()

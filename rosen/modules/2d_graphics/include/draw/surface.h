@@ -161,6 +161,7 @@ public:
 #ifdef RS_ENABLE_VK
     void Wait(int32_t time, const VkSemaphore& semaphore);
     void SetDrawingArea(const std::vector<RectI>& rects);
+    void ClearDrawingArea();
 #endif
 
 private:

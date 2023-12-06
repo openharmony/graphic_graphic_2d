@@ -54,8 +54,9 @@ public:
     virtual void FlushAndSubmit(bool syncCpu) = 0;
     virtual void Flush(FlushInfo *drawingflushInfo = nullptr) = 0;
 #ifdef RS_ENABLE_VK
-    virtual void Wait(int32_t time, const VkSemaphore& semaphore);
-    virtual void SetDrawingArea(const std::vector<RectI>& rects);
+    virtual void Wait(int32_t time, const VkSemaphore& semaphore) = 0;
+    virtual void SetDrawingArea(const std::vector<RectI>& rects) = 0;
+    virtual void ClearDrawingArea() = 0;
 #endif
 };
 } // namespace Drawing

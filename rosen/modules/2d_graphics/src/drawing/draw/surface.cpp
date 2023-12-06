@@ -139,6 +139,17 @@ void Surface::SetDrawingArea(const std::vector<RectI>& rects)
     }
     impl_->SetDrawingArea(rects);
 }
+
+void Surface::ClearDrawingArea()
+{
+    if (!impl_) {
+        LOGE("surfaceImpl ClearDrawingArea failed impl nullptr");
+        return;
+    }
+    impl_->ClearDrawingArea();
+}
+
+
 #endif
 
 } // namespace Drawing

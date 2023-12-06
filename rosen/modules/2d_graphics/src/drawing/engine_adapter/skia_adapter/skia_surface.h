@@ -61,6 +61,7 @@ public:
 #ifdef RS_ENABLE_VK
     void Wait(int32_t time, const VkSemaphore& semaphore) override;
     void SetDrawingArea(const std::vector<RectI>& rects) override;
+    void ClearDrawingArea() override;
 #endif
     sk_sp<SkSurface> GetSkSurface() const;
 private:

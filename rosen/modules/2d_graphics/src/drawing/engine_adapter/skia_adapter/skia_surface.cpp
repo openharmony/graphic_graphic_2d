@@ -366,6 +366,15 @@ void SkiaSurface::SetDrawingArea(const std::vector<RectI>& rects)
     }
     skSurface_->setDrawingArea(skIRects);
 }
+
+void SkiaSurface::ClearDrawingArea()
+{
+    if (skSurface_ == nullptr) {
+        LOGE("skSurface is nullptr");
+        return;
+    }
+    skSurface_->clearDrawingArea();
+}
 #endif
 
 } // namespace Drawing

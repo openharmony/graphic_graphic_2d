@@ -159,6 +159,12 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
         }
     }
 
+#ifndef USE_ROSEN_DRAWING
+    nativeSurface.skSurface->clearDrawingArea();
+#else
+    nativeSurface.drawingSurface->ClearDrawingArea();
+#endif
+
     if (fenceFd >= 0) {
         nativeSurface.fence = std::make_unique<SyncFence>(fenceFd);
         auto status = nativeSurface.fence->GetStatus();
