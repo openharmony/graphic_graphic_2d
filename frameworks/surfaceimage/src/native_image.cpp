@@ -17,12 +17,14 @@
 #include "surface.h"
 #include "surface_image.h"
 #include "window.h"
+#include "surface_utils.h"
 
 using namespace OHOS;
 
 struct OH_NativeImage {
     OHOS::sptr<OHOS::SurfaceImage> consumer;
     OHOS::sptr<OHOS::IBufferProducer> producer;
+    OHOS::sptr<OHOS::Surface> pSurface = nullptr;
     struct NativeWindow* nativeWindow = nullptr;
 };
 
@@ -46,9 +48,10 @@ OHNativeWindow* OH_NativeImage_AcquireNativeWindow(OH_NativeImage* image)
     }
 
     if (image->nativeWindow == nullptr) {
-        sptr<OHOS::IBufferProducer> producer = image->producer;
-        sptr<OHOS::Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
-        image->nativeWindow = CreateNativeWindowFromSurface(&pSurface);
+        if (image->pSurface == nullptr) {
+            image->pSurface = Surface::CreateSurfaceAsProducer(image->producer);
+        }
+        image->nativeWindow = CreateNativeWindowFromSurface(&(image->pSurface));
     }
 
     return image->nativeWindow;
@@ -106,6 +109,12 @@ int32_t OH_NativeImage_GetSurfaceId(OH_NativeImage* image, uint64_t* surfaceId)
         return SURFACE_ERROR_ERROR;
     }
     *surfaceId = image->consumer->GetUniqueId();
+
+    if (image->pSurface == nullptr) {
+        image->pSurface = Surface::CreateSurfaceAsProducer(image->producer);
+    }
+    SurfaceUtils* utils = SurfaceUtils::GetInstance();
+    utils->Add(*surfaceId, image->pSurface);
     return SURFACE_ERROR_OK;
 }
 
@@ -136,7 +145,8 @@ void OH_NativeImage_Destroy(OH_NativeImage** image)
     if ((*image)->consumer != nullptr) {
         (void)(*image)->consumer->UnsetOnBufferAvailableListener();
     }
-
+    SurfaceUtils* utils = SurfaceUtils::GetInstance();
+    utils->Remove((*image)->consumer->GetUniqueId());
     if ((*image)->nativeWindow != nullptr) {
         DestoryNativeWindow((*image)->nativeWindow);
         (*image)->nativeWindow = nullptr;
