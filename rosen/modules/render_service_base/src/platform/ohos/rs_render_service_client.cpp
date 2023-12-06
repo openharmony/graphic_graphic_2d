@@ -937,6 +937,16 @@ void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
     }
 }
 
+bool RSRenderServiceClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::SetSystemAnimatedScenes renderService == nullptr!");
+        return false;
+    }
+    return renderService->SetSystemAnimatedScenes(systemAnimatedScenes);
+}
+
 void RSRenderServiceClient::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

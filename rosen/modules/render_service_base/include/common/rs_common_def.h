@@ -134,6 +134,24 @@ enum class DeviceType : uint8_t {
     OTHERS,
 };
 
+// types for PC SystemAnimatedScenes
+enum class SystemAnimatedScenes : uint32_t {
+    ENTER_MISSION_CENTER, // Enter the mission center
+    EXIT_MISSION_CENTER, // Exit the mission center
+    ENTER_TFS_WINDOW, // Three-finger sliding window recovery
+    EXIT_TFU_WINDOW, // The three-finger up window disappears
+    ENTER_WINDOW_FULL_SCREEN, // Enter the window full screen
+    EXIT_WINDOW_FULL_SCREEN, // Exit the window full screen
+    ENTER_MAX_WINDOW, // Enter the window maximization state
+    EXIT_MAX_WINDOW, // Exit the window maximization state
+    ENTER_SPLIT_SCREEN, // Enter the split screen
+    EXIT_SPLIT_SCREEN, // Exit the split screen
+    ENTER_APP_CENTER, // Enter the app center
+    EXIT_APP_CENTER, // Exit the app center
+    APPEAR_MISSION_CENTER, // A special case scenario that displays the mission center
+    OTHERS, // 1.Default state 2.The state in which the animation ends
+};
+
 // types for RSSurfaceRenderNode
 enum class RSSurfaceNodeType : uint8_t {
     DEFAULT,

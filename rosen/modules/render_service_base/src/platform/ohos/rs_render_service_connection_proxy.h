@@ -172,6 +172,8 @@ public:
 
     void SetAppWindowNum(uint32_t num) override;
 
+    bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes) override;
+
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) override;
 
     int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height) override;
