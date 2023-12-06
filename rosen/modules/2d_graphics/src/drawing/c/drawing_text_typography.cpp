@@ -14,6 +14,7 @@
  */
 
 #include "c/drawing_text_typography.h"
+#include "utils/log.h"
 #include "utils/object_mgr.h"
 
 #ifndef USE_GRAPHIC_TEXT_GINE
@@ -396,8 +397,47 @@ void OH_Drawing_TypographyHandlerPushTextStyle(OH_Drawing_TypographyCreate* hand
     ConvertToOriginalText<TypographyCreate>(handler)->PushStyle(*rosenTextStyle);
 }
 
+static bool IsUtf8(const char* text)
+{
+    int len = strlen(text);
+    int n;
+    for (int i = 0; i < len; i++) {
+        int c = text[i];
+        if (0x00 <= c && c <= 0x7F) { // 0x00 and 0x7F is the range of utf-8
+            n = 0;
+        } else if ((c & 0xE0) == 0xC0) { // 0xE0 and 0xC0 is the range of utf-8
+            n = 1;
+        } else if (c == 0xED && i < (len - 1) &&
+            (text[i + 1] & 0xA0) == 0xA0) { // 0xA0 and 0xED is the range of utf-8
+            return false;
+        } else if ((c & 0xF0) == 0xE0) { // 0xE0 and 0xF0 is the range of utf-8
+            n = 2; // 2 means the size of range
+        } else if ((c & 0xF8) == 0xF0) { // 0xF0 and 0xF8 is the range of utf-8
+            n = 3; // 3 means the size of range
+        } else {
+            return false;
+        }
+
+        for (int j = 0; j < n && i < len; j++) {
+            // 0x80 and 0xC0 is the range of utf-8
+            if ((++i == len) || ((text[i] & 0xC0) != 0x80)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 void OH_Drawing_TypographyHandlerAddText(OH_Drawing_TypographyCreate* handler, const char* text)
 {
+    if (!text) {
+        LOGE("null text");
+        return;
+    } else if (!IsUtf8(text)) {
+        LOGE("text is not utf-8, text: %{public}s", text);
+        return;
+    }
+
     const std::u16string wideText =
         std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(text);
 #ifndef USE_GRAPHIC_TEXT_GINE
