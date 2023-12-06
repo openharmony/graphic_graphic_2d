@@ -32,11 +32,11 @@ Quaternion RSValueEstimator::Estimate(float fraction,
 std::shared_ptr<RSFilter> RSValueEstimator::Estimate(
     float fraction, const std::shared_ptr<RSFilter>& startValue, const std::shared_ptr<RSFilter>& endValue)
 {
-    if ((startValue == nullptr || !startValue->IsValid()) && (endValue == nullptr || !endValue->IsValid())) {
+    if ((startValue == nullptr || !startValue->RSFilter::IsValid()) && (endValue == nullptr || !endValue->RSFilter::IsValid())) {
         return endValue;
     }
 
-    if (startValue == nullptr || !startValue->IsValid()) {
+    if (startValue == nullptr || !startValue->RSFilter::IsValid()) {
         if (endValue->GetFilterType() == RSFilter::MATERIAL) {
             auto material = std::static_pointer_cast<RSMaterialFilter>(endValue)->TransformFilter(fraction);
             return material;
@@ -44,7 +44,7 @@ std::shared_ptr<RSFilter> RSValueEstimator::Estimate(
         return endValue * fraction;
     }
 
-    if (endValue == nullptr || !endValue->IsValid()) {
+    if (endValue == nullptr || !endValue->RSFilter::IsValid()) {
         if (startValue->GetFilterType() == RSFilter::MATERIAL && fraction < 0.5f) {
             auto material =
                 std::static_pointer_cast<RSMaterialFilter>(startValue)->TransformFilter(1.0f - fraction * 2);
