@@ -519,7 +519,7 @@ int TypographyImpl::DoUpdateSpanMetrics(const VariantSpan &span, const TexgineFo
     if (!onlyUseStrut) {
         double coveredDescent = 0;
         if (style.heightOnly) {
-            double metricsHeight = style.heightScale * style.fontSize;
+            double metricsHeight = -*metrics.fAscent_ + descent_;
             if (fabs(metricsHeight) < DBL_EPSILON) {
                 LOGEX_FUNC_LINE(ERROR) << "metrics is error";
                 return FAILED;
@@ -531,8 +531,6 @@ int TypographyImpl::DoUpdateSpanMetrics(const VariantSpan &span, const TexgineFo
             coveredAscent = (-*metrics.fAscent_ + HALF(*metrics.fLeading_));
             coveredDescent = (*metrics.fDescent_ + HALF(*metrics.fLeading_));
         }
-        lineMaxCoveredAscent_.back() = std::max(coveredAscent, lineMaxCoveredAscent_.back());
-        lineMaxCoveredDescent_.back() = std::max(coveredDescent, lineMaxCoveredDescent_.back());
         if (auto as = span.TryToAnySpan(); as != nullptr) {
             UpadateAnySpanMetrics(as, coveredAscent, coveredDescent);
             ascent = coveredAscent;
@@ -545,9 +543,9 @@ int TypographyImpl::DoUpdateSpanMetrics(const VariantSpan &span, const TexgineFo
             double halfLeading = HALF(leading);
             coveredAscent = -*metrics.fAscent_ / height * availableVspace + halfLeading;
             coveredDescent = *metrics.fDescent_ / height * availableVspace + halfLeading;
-            lineMaxCoveredAscent_.back() = std::max(lineMaxCoveredAscent_.back(), coveredAscent);
-            lineMaxCoveredDescent_.back() = std::max(lineMaxCoveredDescent_.back(), coveredDescent);
         }
+        lineMaxCoveredAscent_.back() = std::max(lineMaxCoveredAscent_.back(), coveredAscent);
+        lineMaxCoveredDescent_.back() = std::max(lineMaxCoveredDescent_.back(), coveredDescent);
     }
     lineMaxAscent_.back() = std::max(lineMaxAscent_.back(), ascent);
     return SUCCESSED;
