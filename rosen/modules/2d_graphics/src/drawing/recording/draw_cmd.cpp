@@ -1506,7 +1506,7 @@ void DrawSurfaceBufferOpItem::Draw(Canvas* canvas)
         Drawing::AlphaType::ALPHATYPE_PREMUL };
     auto ptr = [](void* context) {
         DrawSurfaceBufferOpItem::deleteVkImage(context);
-    }
+    };
     auto image = std::make_shared<Drawing::Image>();
     auto vkTextureInfo = backendTexture.GetTextureInfo().GetVKTextureInfo();
     if (!vkTextureInfo && !image->BuildFromTexture(*canvas->GetGPUContext(), backendTexture.GetTextureInfo(),
