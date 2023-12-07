@@ -57,6 +57,7 @@ namespace Rosen {
 static std::unordered_map<RSUIDirector*, TaskRunner> g_uiTaskRunners;
 static std::mutex g_uiTaskRunnersVisitorMutex;
 std::function<void()> RSUIDirector::requestVsyncCallback_ = nullptr;
+static std::mutex g_vsyncCallbackMutex;
 
 std::shared_ptr<RSUIDirector> RSUIDirector::Create()
 {
@@ -234,6 +235,7 @@ void RSUIDirector::SetAppFreeze(bool isAppFreeze)
 
 void RSUIDirector::SetRequestVsyncCallback(const std::function<void()>& callback)
 {
+    std::unique_lock<std::mutex> lock(g_vsyncCallbackMutex);
     requestVsyncCallback_ = callback;
 }
 
@@ -328,6 +330,7 @@ void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds)
     PostTask([cmds]() {
         ROSEN_LOGD("RSUIDirector::ProcessMessages success");
         RSUIDirector::ProcessMessages(cmds);
+        std::unique_lock<std::mutex> lock(g_vsyncCallbackMutex);
         if (requestVsyncCallback_ != nullptr) {
             requestVsyncCallback_();
         } else {
