@@ -45,7 +45,7 @@ RSImageBase::~RSImageBase()
             if (renderServiceImage_) {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
 #if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-                if (isPinImage_) {
+                if (!RSSystemProperties::GetRsVulkanEnabled() && isPinImage_) {
                     RSUploadTextureThread::Instance().RemoveTask(std::to_string(uniqueId_));
                     auto unpinTask = [image = image_]() {
                         auto grContext = RSUploadTextureThread::Instance().GetShareGrContext().get();
@@ -56,7 +56,7 @@ RSImageBase::~RSImageBase()
                     RSUploadTextureThread::Instance().PostSyncTask(unpinTask);
                 }
 #endif
-#endif                
+#endif
                 auto task = [uniqueId = uniqueId_]() {
                     RSImageCache::Instance().ReleasePixelMapCache(uniqueId);
                 };
@@ -417,7 +417,7 @@ void RSImageBase::ConvertPixelMapToSkImage()
             }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
 #if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-            if (renderServiceImage_) {
+            if (!RSSystemProperties::GetRsVulkanEnabled() && renderServiceImage_) {
                 auto image = image_;
                 auto pixelMap = pixelMap_;
                 std::function<void()> uploadTexturetask = [image, pixelMap]() -> void {

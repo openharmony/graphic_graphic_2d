@@ -22,6 +22,7 @@
 #include "include/gpu/gl/GrGLInterface.h"
 #include "rs_trace.h"
 #include "sk_image_chain.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -73,6 +74,10 @@ bool SKImageChain::CreateCPUCanvas()
 bool SKImageChain::CreateGPUCanvas()
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetAceVulkanEnabled()) {
+        LOGI("GPU rendering is not supported.");
+        return false;
+    }
     EglManager::GetInstance().Init();
     sk_sp<const GrGLInterface> glInterface(GrGLCreateNativeInterface());
 #if defined(NEW_SKIA)

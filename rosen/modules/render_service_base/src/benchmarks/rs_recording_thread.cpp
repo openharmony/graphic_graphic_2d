@@ -58,40 +58,51 @@ sk_sp<GrContext> RSRecordingThread::CreateShareGrContext()
 {
     RS_TRACE_NAME("RSRecordingThread::CreateShareGrContext");
 #ifdef RS_ENABLE_GL
-    CreateShareEglContext();
-    const GrGLInterface *grGlInterface = GrGLCreateNativeInterface();
-    sk_sp<const GrGLInterface> glInterface(grGlInterface);
-    if (glInterface.get() == nullptr) {
-        RS_LOGE("CreateShareGrContext failed");
-        return nullptr;
-    }
+    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+        CreateShareEglContext();
+        const GrGLInterface *grGlInterface = GrGLCreateNativeInterface();
+        sk_sp<const GrGLInterface> glInterface(grGlInterface);
+        if (glInterface.get() == nullptr) {
+            RS_LOGE("CreateShareGrContext failed");
+            return nullptr;
+        }
 
-    GrContextOptions options = {};
-    options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
-    options.fPreferExternalImagesOverES3 = true;
-    options.fDisableDistanceFieldPaths = true;
+        GrContextOptions options = {};
+        options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
+        options.fPreferExternalImagesOverES3 = true;
+        options.fDisableDistanceFieldPaths = true;
 
-    auto handler = std::make_shared<MemoryHandler>();
-    auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-    auto size = glesVersion ? strlen(glesVersion) : 0;
-    /* /data/service/el0/render_service is shader cache dir*/
-    handler->ConfigureContext(&options, glesVersion, size, "/data/service/el0/render_service", true);
+        auto handler = std::make_shared<MemoryHandler>();
+        auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+        auto size = glesVersion ? strlen(glesVersion) : 0;
+        /* /data/service/el0/render_service is shader cache dir*/
+        handler->ConfigureContext(&options, glesVersion, size, "/data/service/el0/render_service", true);
 
 #ifdef NEW_SKIA
-    sk_sp<GrDirectContext> grContext = GrDirectContext::MakeGL(std::move(glInterface), options);
+        sk_sp<GrDirectContext> grContext = GrDirectContext::MakeGL(std::move(glInterface), options);
 #else
-    sk_sp<GrContext> grContext = GrContext::MakeGL(std::move(glInterface), options);
+        sk_sp<GrContext> grContext = GrContext::MakeGL(std::move(glInterface), options);
 #endif
-#endif
-#ifdef RS_ENABLE_VK
-    sk_sp<GrDirectContext> grContext = GrDirectContext::MakeVulkan(
-        RsVulkanContext::GetSingleton().GetGrVkBackendContext());
-#endif
-    if (grContext == nullptr) {
-        RS_LOGE("nullptr grContext is null");
-        return nullptr;
+        if (grContext == nullptr) {
+            RS_LOGE("nullptr grContext is null");
+            return nullptr;
+        }
+        return grContext;
     }
-    return grContext;
+#endif
+
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetRsVulkanEnabled()) {
+        sk_sp<GrDirectContext> grContext = GrDirectContext::MakeVulkan(
+            RsVulkanContext::GetSingleton().GetGrVkBackendContext());
+        if (grContext == nullptr) {
+            RS_LOGE("nullptr grContext is null");
+            return nullptr;
+        }
+        return grContext;
+    }
+#endif
+    return nullptr;
 }
 #else
 std::shared_ptr<Drawing::GPUContext> RSRecordingThread::CreateShareGrContext()
@@ -121,6 +132,9 @@ void RSRecordingThread::CreateShareEglContext()
         return;
     }
 #ifdef RS_ENABLE_GL
+    if (RSSystemProperties::GetRsVulkanEnabled()) {
+        return;
+    }
     eglShareContext_ = renderContext_->CreateShareContext();
     if (eglShareContext_ == EGL_NO_CONTEXT) {
         RS_LOGE("eglShareContext_ is EGL_NO_CONTEXT");
@@ -136,6 +150,9 @@ void RSRecordingThread::CreateShareEglContext()
 void RSRecordingThread::DestroyShareEglContext()
 {
 #ifdef RS_ENABLE_GL
+    if (RSSystemProperties::GetRsVulkanEnabled()) {
+        return;
+    }
     if (renderContext_ != nullptr) {
         eglDestroyContext(renderContext_->GetEGLDisplay(), eglShareContext_);
         eglShareContext_ = EGL_NO_CONTEXT;
@@ -147,7 +164,7 @@ bool RSRecordingThread::IsIdle()
 {
     return handler_ && handler_->IsIdle();
 }
- 
+
 void RSRecordingThread::PostTask(const std::function<void()> &task)
 {
     if (handler_) {

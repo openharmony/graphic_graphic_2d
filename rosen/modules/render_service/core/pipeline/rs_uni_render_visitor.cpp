@@ -212,7 +212,9 @@ RSUniRenderVisitor::RSUniRenderVisitor(std::shared_ptr<RSPaintFilterCanvas> canv
 #if defined(RS_ENABLE_PARALLEL_RENDER) && (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK))
     parallelRenderVisitorIndex_ = surfaceIndex;
 #if defined(RS_ENABLE_GL)
-    canvas_ = canvas;
+    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+        canvas_ = canvas;
+    }
 #endif
 #endif
 }
@@ -999,7 +1001,9 @@ void RSUniRenderVisitor::CollectAppNodeForHwc(std::shared_ptr<RSSurfaceRenderNod
 
     if (isParallel_ && !isUIFirst_) {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
-        RSParallelRenderManager::Instance()->AddAppWindowNode(parallelRenderVisitorIndex_, surfaceNode);
+        if (!RSSystemProperties::GetRsVulkanEnabled()) {
+            RSParallelRenderManager::Instance()->AddAppWindowNode(parallelRenderVisitorIndex_, surfaceNode);
+        }
 #endif
     } else {
         if (surfaceNode->IsHardwareEnabledTopSurface()) {
@@ -2064,6 +2068,9 @@ void RSUniRenderVisitor::ProcessChildInner(RSRenderNode& node, const RSRenderNod
 void RSUniRenderVisitor::ProcessParallelDisplayRenderNode(RSDisplayRenderNode& node)
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_VK)
+    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+        return;
+    }
     RS_TRACE_NAME("ProcessParallelDisplayRenderNode[" + std::to_string(node.GetId()));
     RS_LOGD("RSUniRenderVisitor::ProcessParallelDisplayRenderNode node: %{public}" PRIu64 ", child size:%{public}u",
         node.GetId(), node.GetChildrenCount());
@@ -2207,7 +2214,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         node.SetCacheImgForCapture(nullptr);
     }
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_VK)
-    if (node.IsParallelDisplayNode()) {
+    if (RSSystemProperties::GetRsVulkanEnabled() && node.IsParallelDisplayNode()) {
         ProcessParallelDisplayRenderNode(node);
         return;
     }
@@ -2217,7 +2224,10 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode node: %{public}" PRIu64 ", child size:%{public}u",
         node.GetId(), node.GetChildrenCount());
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
-    bool isNeedCalcCost = node.GetSurfaceChangedRects().size() > 0;
+    bool isNeedCalcCost = false;
+    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+        isNeedCalcCost = node.GetSurfaceChangedRects().size() > 0;
+    }
 #endif
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
@@ -2304,7 +2314,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             }
 #ifndef USE_ROSEN_DRAWING
 #if defined RS_ENABLE_GL
-            glFinish();
+            if (!RSSystemProperties::GetRsVulkanEnabled()) {
+                glFinish();
+            }
 #endif
             sk_sp<SkImage> cacheImageProcessed = GetCacheImageFromMirrorNode(mirrorNode);
             if (cacheImageProcessed && !displayHasSkipSurface_[mirrorNode->GetScreenId()] &&
@@ -2537,12 +2549,14 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         std::vector<RectI> rects;
         bool clipPath = false;
 #ifdef RS_ENABLE_VK
+        if (RSSystemProperties::GetRsVulkanEnabled()) {
 #ifndef USE_ROSEN_DRAWING
-        int saveCountBeforeClip = canvas_->save();
+            int saveCountBeforeClip = canvas_->save();
 #else
-        int saveCountBeforeClip = canvas_->GetSaveCout();
-        canvas_->Save();
+            int saveCountBeforeClip = canvas_->GetSaveCout();
+            canvas_->Save();
 #endif
+        }
 #endif
 #ifdef RS_ENABLE_EGLQUERYSURFACE
         // Get displayNode buffer age in order to merge visible dirty region for displayNode.
@@ -2572,10 +2586,15 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             }
             if (!isDirtyRegionAlignedEnable_) {
                 for (auto& r : rects) {
+                    uint32_t topAfterFlip = 0;
 #ifdef RS_ENABLE_VK
-                    auto topAfterFlip = r.top_;
+                    if (RSSystemProperties::GetRsVulkanEnabled()) {
+                        topAfterFlip = r.top_;
+                    } else {
+                        topAfterFlip = screenInfo_.GetRotatedHeight() - r.GetBottom();
+                    }
 #else
-                    auto topAfterFlip = screenInfo_.GetRotatedHeight() - r.GetBottom();
+                    topAfterFlip = screenInfo_.GetRotatedHeight() - r.GetBottom();
 #endif
 #ifndef USE_ROSEN_DRAWING
                     region.op(SkIRect::MakeXYWH(r.left_, topAfterFlip, r.width_, r.height_), SkRegion::kUnion_Op);
@@ -2630,11 +2649,13 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
 #ifdef RS_ENABLE_VK
         else {
+            if (RSSystemProperties::GetRsVulkanEnabled()) {
 #ifndef USE_ROSEN_DRAWING
-            canvas_->clear(SK_ColorTRANSPARENT);
+                canvas_->clear(SK_ColorTRANSPARENT);
 #else
-            canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+                canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
 #endif
+            }
         }
 #endif
         RSPropertiesPainter::SetBgAntiAlias(true);
@@ -2701,25 +2722,27 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
         }
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
-        if ((isParallel_ && !isUIFirst_ && ((rects.size() > 0) || !isPartialRenderEnabled_)) && isCalcCostEnable_) {
-            auto parallelRenderManager = RSParallelRenderManager::Instance();
-            parallelRenderManager->CopyCalcCostVisitorAndPackTask(*this, node, isNeedCalcCost,
-                doAnimate_, isOpDropped_);
-            if (parallelRenderManager->IsNeedCalcCost()) {
-                parallelRenderManager->LoadBalanceAndNotify(TaskType::CALC_COST_TASK);
-                parallelRenderManager->WaitCalcCostEnd();
-                parallelRenderManager->UpdateNodeCost(node);
+        if (!RSSystemProperties::GetRsVulkanEnabled()) {
+            if ((isParallel_ && !isUIFirst_ && ((rects.size() > 0) || !isPartialRenderEnabled_)) && isCalcCostEnable_) {
+                auto parallelRenderManager = RSParallelRenderManager::Instance();
+                parallelRenderManager->CopyCalcCostVisitorAndPackTask(*this, node, isNeedCalcCost,
+                    doAnimate_, isOpDropped_);
+                if (parallelRenderManager->IsNeedCalcCost()) {
+                    parallelRenderManager->LoadBalanceAndNotify(TaskType::CALC_COST_TASK);
+                    parallelRenderManager->WaitCalcCostEnd();
+                    parallelRenderManager->UpdateNodeCost(node);
+                }
             }
-        }
-        if (isParallel_ && !isUIFirst_ && ((rects.size() > 0) || !isPartialRenderEnabled_)) {
-            ClearTransparentBeforeSaveLayer();
-            auto parallelRenderManager = RSParallelRenderManager::Instance();
-            parallelRenderManager->SetFrameSize(screenInfo_.width, screenInfo_.height);
-            parallelRenderManager->CopyVisitorAndPackTask(*this, node);
-            parallelRenderManager->LoadBalanceAndNotify(TaskType::PROCESS_TASK);
-            parallelRenderManager->MergeRenderResult(*canvas_);
-            parallelRenderManager->CommitSurfaceNum(node.GetChildrenCount());
-            parallelRenderManager->ProcessFilterSurfaceRenderNode();
+            if (isParallel_ && !isUIFirst_ && ((rects.size() > 0) || !isPartialRenderEnabled_)) {
+                ClearTransparentBeforeSaveLayer();
+                auto parallelRenderManager = RSParallelRenderManager::Instance();
+                parallelRenderManager->SetFrameSize(screenInfo_.width, screenInfo_.height);
+                parallelRenderManager->CopyVisitorAndPackTask(*this, node);
+                parallelRenderManager->LoadBalanceAndNotify(TaskType::PROCESS_TASK);
+                parallelRenderManager->MergeRenderResult(*canvas_);
+                parallelRenderManager->CommitSurfaceNum(node.GetChildrenCount());
+                parallelRenderManager->ProcessFilterSurfaceRenderNode();
+            }
         }
 #endif
         if (saveLayerCnt > 0) {
@@ -2795,11 +2818,13 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             mainThread->RemoveTask(CLEAR_GPU_CACHE);
         }
 #ifdef RS_ENABLE_VK
+        if (RSSystemProperties::GetRsVulkanEnabled()) {
 #ifndef USE_ROSEN_DRAWING
-        canvas_->restoreToCount(saveCountBeforeClip);
+            canvas_->restoreToCount(saveCountBeforeClip);
 #else
-        canvas_->RestoreToCount(saveCountBeforeClip);
+            canvas_->RestoreToCount(saveCountBeforeClip);
 #endif
+        }
 #endif
         RS_TRACE_BEGIN("RSUniRender:FlushFrame");
         renderFrame_->Flush();
@@ -2933,13 +2958,15 @@ void RSUniRenderVisitor::UpdateHardwareEnabledInfoBeforeCreateLayer()
     }
     if (isParallel_ && !isUIFirst_) {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
-        std::vector<std::shared_ptr<RSSurfaceRenderNode>>().swap(appWindowNodesInZOrder_);
-        auto subThreadNum = RSParallelRenderManager::Instance()->GetParallelThreadNumber();
-        auto appWindowNodesMap = RSParallelRenderManager::Instance()->GetAppWindowNodes();
-        std::vector<std::shared_ptr<RSSurfaceRenderNode>> appWindowNodes;
-        for (uint32_t i = 0; i < subThreadNum; i++) {
-            appWindowNodes = appWindowNodesMap[i];
-            appWindowNodesInZOrder_.insert(appWindowNodesInZOrder_.end(), appWindowNodes.begin(), appWindowNodes.end());
+        if (!RSSystemProperties::GetRsVulkanEnabled()) {
+            std::vector<std::shared_ptr<RSSurfaceRenderNode>>().swap(appWindowNodesInZOrder_);
+            auto subThreadNum = RSParallelRenderManager::Instance()->GetParallelThreadNumber();
+            auto appWindowNodesMap = RSParallelRenderManager::Instance()->GetAppWindowNodes();
+            std::vector<std::shared_ptr<RSSurfaceRenderNode>> appWindowNodes;
+            for (uint32_t i = 0; i < subThreadNum; i++) {
+                appWindowNodes = appWindowNodesMap[i];
+                appWindowNodesInZOrder_.insert(appWindowNodesInZOrder_.end(), appWindowNodes.begin(), appWindowNodes.end());
+            }
         }
 #endif
     }
@@ -3510,11 +3537,17 @@ std::vector<RectI> RSUniRenderVisitor::GetDirtyRects(const Occlusion::Region &re
     for (const Occlusion::Rect& rect : rects) {
         // origin transformation
 #ifdef RS_ENABLE_VK
-        retRects.emplace_back(RectI(rect.left_, rect.top_,
+        if (RSSystemProperties::GetRsVulkanEnabled()) {
+            retRects.emplace_back(RectI(rect.left_, rect.top_,
+                rect.right_ - rect.left_, rect.bottom_ - rect.top_));
+        } else {
+            retRects.emplace_back(RectI(rect.left_, screenInfo_.GetRotatedHeight() - rect.bottom_,
+                rect.right_ - rect.left_, rect.bottom_ - rect.top_));
+        }
 #else
         retRects.emplace_back(RectI(rect.left_, screenInfo_.GetRotatedHeight() - rect.bottom_,
-#endif
             rect.right_ - rect.left_, rect.bottom_ - rect.top_));
+#endif
     }
     RS_LOGD("GetDirtyRects size %{public}d %{public}s", region.GetSize(), region.GetRegionInfo().c_str());
     return retRects;
@@ -3893,11 +3926,13 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #endif
 #endif
 #ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetRsVulkanEnabled()) {
 #ifndef USE_ROSEN_DRAWING
-    node.SetGrContext(renderEngine_->GetSkContext().get());
+        node.SetGrContext(renderEngine_->GetSkContext().get());
 #else
-    node.SetDrawingGPUContext(renderEngine_->GetSkContext().get());
+        node.SetDrawingGPUContext(renderEngine_->GetSkContext().get());
 #endif
+    }
 #endif
     bool keepFilterCache = false;
     if (!CheckIfSurfaceRenderNodeNeedProcess(node, keepFilterCache)) {
@@ -4615,12 +4650,14 @@ bool RSUniRenderVisitor::AdaptiveSubRenderThreadMode(bool doParallel)
 void RSUniRenderVisitor::ParallelRenderEnableHardwareComposer(RSSurfaceRenderNode& node)
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined (RS_ENABLE_GL)
-    if (isParallel_ && !isUIFirst_) {
-        const auto& property = node.GetRenderProperties();
-        auto dstRect = node.GetDstRect();
-        RectF clipRect = {dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetWidth(), dstRect.GetHeight()};
-        RSParallelRenderManager::Instance()->AddSelfDrawingSurface(parallelRenderVisitorIndex_,
-            property.GetCornerRadius().IsZero(), clipRect, property.GetCornerRadius());
+    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+        if (isParallel_ && !isUIFirst_) {
+            const auto& property = node.GetRenderProperties();
+            auto dstRect = node.GetDstRect();
+            RectF clipRect = {dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetWidth(), dstRect.GetHeight()};
+            RSParallelRenderManager::Instance()->AddSelfDrawingSurface(parallelRenderVisitorIndex_,
+                property.GetCornerRadius().IsZero(), clipRect, property.GetCornerRadius());
+        }
     }
 #endif
 }
@@ -4744,6 +4781,9 @@ void RSUniRenderVisitor::SetAppWindowNum(uint32_t num)
 bool RSUniRenderVisitor::ParallelComposition(const std::shared_ptr<RSBaseRenderNode> rootNode)
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined (RS_ENABLE_GL)
+    if (RSSystemProperties::GetRsVulkanEnabled()) {
+        return false;
+    }
     auto parallelRenderManager = RSParallelRenderManager::Instance();
     parallelRenderManager->SetParallelMode(true);
     if (parallelRenderManager->GetParallelMode()) {

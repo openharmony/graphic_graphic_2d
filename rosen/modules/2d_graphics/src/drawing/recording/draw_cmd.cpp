@@ -15,6 +15,7 @@
 
 #include "recording/draw_cmd.h"
 
+#include "platform/common/rs_system_properties.h"
 #include "recording/cmd_list_helper.h"
 #include "recording/draw_cmd_list.h"
 #include "recording/mem_allocator.h"
@@ -43,6 +44,12 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+#if defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK)
+static const bool g_rsVulkanEnabled = false;
+#elif defined (RS_ENABLE_GL)
+static const bool g_rsVulkanEnabled = false;
+#endif
+
 namespace {
 void BrushHandleToBrush(const BrushHandle& brushHandle, const CmdList& cmdList, Brush& brush)
 {
@@ -767,7 +774,7 @@ bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(
     // create CPU raster surface
     Drawing::ImageInfo offscreenInfo { bounds->GetWidth(), bounds->GetHeight(),
         Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL, nullptr};
-    
+
     std::shared_ptr<Surface> offscreenSurface = Surface::MakeRaster(offscreenInfo);
 
     if (offscreenSurface == nullptr) {
@@ -1460,12 +1467,14 @@ void DrawSurfaceBufferOpItem::Playback(Canvas* canvas, const Rect* rect)
 void DrawSurfaceBufferOpItem::Clear()
 {
 #ifdef RS_ENABLE_GL
-    if (texId_ != 0U) {
-        glDeleteTextures(1, &texId_);
-    }
-    if (eglImage_ != EGL_NO_IMAGE_KHR) {
-        auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-        eglDestroyImageKHR(disp, eglImage_);
+    if (!g_rsVulkanEnabled) {
+        if (texId_ != 0U) {
+            glDeleteTextures(1, &texId_);
+        }
+        if (eglImage_ != EGL_NO_IMAGE_KHR) {
+            auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+            eglDestroyImageKHR(disp, eglImage_);
+        }
     }
 #endif
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
@@ -1504,6 +1513,9 @@ void DrawSurfaceBufferOpItem::Draw(Canvas* canvas)
 #endif
 
 #ifdef RS_ENABLE_GL
+    if (g_rsVulkanEnabled) {
+        return;
+    }
     EGLint attrs[] = {
         EGL_IMAGE_PRESERVED,
         EGL_TRUE,
