@@ -2602,9 +2602,13 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             } else {
                 RS_TRACE_NAME("RSUniRenderVisitor: clipPath");
                 clipPath = true;
+#ifdef RS_ENABLE_VK
+                canvas_->clipRegion(region);
+#else
                 SkPath dirtyPath;
                 region.getBoundaryPath(&dirtyPath);
                 canvas_->clipPath(dirtyPath, true);
+#endif
             }
             canvas_->clear(SK_ColorTRANSPARENT);
 #else

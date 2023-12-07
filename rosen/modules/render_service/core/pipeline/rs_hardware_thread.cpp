@@ -365,6 +365,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     }
 #ifdef RS_ENABLE_EGLIMAGE
 #ifdef RS_ENABLE_VK
+    canvas->clear(SK_ColorTRANSPARENT);
     std::unordered_map<int32_t, std::shared_ptr<NativeVkImageRes>> imageCacheSeqs;
 #else // RS_ENABLE_VK
     std::unordered_map<int32_t, std::unique_ptr<ImageCacheSeq>> imageCacheSeqs;
@@ -375,7 +376,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         if (layer == nullptr) {
             continue;
         }
-        
+
         if (layer->GetSurface()->GetName() == "RCDSurfaceNode") {
             softDrawFlag = true;
             continue;
