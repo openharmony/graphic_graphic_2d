@@ -113,6 +113,11 @@ bool RSSurfaceRenderNode::ShouldPrepareSubnodes()
     return true;
 }
 
+void RSSurfaceRenderNode::StoreMustRenewedInfo()
+{
+    mustRenewedInfo_ = RSRenderNode::HasMustRenewedInfo() || hasSecurityLayer_ || hasSkipLayer_;
+}
+
 std::string RSSurfaceRenderNode::DirtyRegionDump() const
 {
     std::string dump = GetName() +
