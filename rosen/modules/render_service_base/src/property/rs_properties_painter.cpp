@@ -3534,7 +3534,7 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeDynamicLightUpSh
         uniform half dynamicLightUpRate;
         uniform half dynamicLightUpDeg;
 
-        half4 main(vec4 src, vec4 dst) {
+        vec4 main(vec4 src, vec4 dst) {
             float x = 0.299 * dst.r + 0.587 * dst.g + 0.114 * dst.b;
             float y = (0 - dynamicLightUpRate) * x + dynamicLightUpDeg;
             float R = clamp((dst.r + y), 0.0, 1.0);
@@ -3549,7 +3549,7 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeDynamicLightUpSh
         ROSEN_LOGE("MakeDynamicLightUpBlender::RuntimeBlender effect error: %{public}s\n", err.c_str());
         return nullptr;
     }
-    SkRuntimeBlenderBuilder builder(effect);
+    SkRuntimeBlendBuilder builder(effect);
     builder.uniform("dynamicLightUpRate") = dynamicLightUpRate;
     builder.uniform("dynamicLightUpDeg") = dynamicLightUpDeg;
     return builder.makeBlender();
