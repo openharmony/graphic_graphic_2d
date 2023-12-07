@@ -16,6 +16,7 @@
 #ifndef RECORDING_CANVAS_H
 #define RECORDING_CANVAS_H
 
+#include <optional>
 #include <stack>
 
 #include "draw/canvas.h"
@@ -153,6 +154,8 @@ private:
     };
     void CheckForLazySave();
     bool isCustomTextType_ = false;
+    std::optional<Brush> customTextBrush_ = std::nullopt;
+    std::optional<Pen> customTextPen_ = std::nullopt;
     std::shared_ptr<DrawCmdList> cmdList_ = nullptr;
     std::stack<SaveOpState> saveOpStateStack_;
     std::shared_ptr<GPUContext> gpuContext_ = nullptr;

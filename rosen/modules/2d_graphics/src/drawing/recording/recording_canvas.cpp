@@ -295,8 +295,15 @@ void RecordingCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const s
         return;
     }
 
-    auto textBlobHandle = CmdListHelper::AddTextBlobToCmdList(*cmdList_, blob);
-    cmdList_->AddOp<DrawTextBlobOpItem::ConstructorHandle>(textBlobHandle, x, y);
+    if (IsCustomTextType()) {
+        LOGD("RecordingCanvas::DrawTextBlob replace drawOpItem with cached one");
+        OpDataHandle imageHandle;
+        DrawTextBlobOpItem::ConstructorHandle textOp(imageHandle, x, y);
+        textOp.GenerateCachedOpItem(cmdList_, blob, this, customTextBrush_, customTextPen_);
+    } else {
+        auto textBlobHandle = CmdListHelper::AddTextBlobToCmdList(*cmdList_, blob);
+        cmdList_->AddOp<DrawTextBlobOpItem::ConstructorHandle>(textBlobHandle, x, y);
+    }
 }
 #ifdef ROSEN_OHOS
 void RecordingCanvas::DrawSurfaceBuffer(const DrawingSurfaceBufferInfo& surfaceBufferInfo)
@@ -498,6 +505,10 @@ void RecordingCanvas::DrawPixelMap(const std::shared_ptr<Media::PixelMap>& pixel
 
 CoreCanvas& RecordingCanvas::AttachPen(const Pen& pen)
 {
+    if (IsCustomTextType()) {
+        customTextPen_ = pen;
+    }
+
     Filter filter = pen.GetFilter();
     PenHandle penHandle = {
         pen.GetColor(),
@@ -522,6 +533,10 @@ CoreCanvas& RecordingCanvas::AttachPen(const Pen& pen)
 
 CoreCanvas& RecordingCanvas::AttachBrush(const Brush& brush)
 {
+    if (IsCustomTextType()) {
+        customTextBrush_ = brush;
+    }
+
     Filter filter = brush.GetFilter();
     BrushHandle brushHandle = {
         brush.GetColor(),
@@ -541,6 +556,10 @@ CoreCanvas& RecordingCanvas::AttachBrush(const Brush& brush)
 
 CoreCanvas& RecordingCanvas::DetachPen()
 {
+    if (IsCustomTextType()) {
+        customTextPen_ = std::nullopt;
+    }
+    
     cmdList_->AddOp<DetachPenOpItem::ConstructorHandle>();
 
     return *this;
@@ -548,6 +567,10 @@ CoreCanvas& RecordingCanvas::DetachPen()
 
 CoreCanvas& RecordingCanvas::DetachBrush()
 {
+    if (IsCustomTextType()) {
+        customTextBrush_ = std::nullopt;
+    }
+
     cmdList_->AddOp<DetachBrushOpItem::ConstructorHandle>();
 
     return *this;

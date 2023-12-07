@@ -16,6 +16,7 @@
 #ifndef CMD_LIST_H
 #define CMD_LIST_H
 
+#include <map>
 #include <optional>
 #include <vector>
 
@@ -60,6 +61,8 @@ struct CmdListHandle {
     size_t size;
     uint32_t imageOffset;
     size_t imageSize;
+    uint32_t bitmapOffset;
+    size_t bitmapSize;
 };
 
 using CmdListData = std::pair<const void*, size_t>;
@@ -146,6 +149,14 @@ public:
     uint32_t AddImageData(const void* data, size_t size);
     const void* GetImageData(uint32_t offset) const;
     CmdListData GetAllImageData() const;
+
+    OpDataHandle AddImage(const Image& image);
+    std::shared_ptr<Image> GetImage(const OpDataHandle& imageHandle);
+
+    uint32_t AddBitmapData(const void* data, size_t size);
+    const void* GetBitmapData(uint32_t offset) const;
+    bool SetUpBitmapData(const void* data, size_t size);
+    CmdListData GetAllBitmapData() const;
 
     /*
      * @brief  return pixelmap index, negative is error.
@@ -242,8 +253,12 @@ public:
 protected:
     MemAllocator opAllocator_;
     MemAllocator imageAllocator_;
+    MemAllocator bitmapAllocator_;
     std::optional<uint32_t> lastOpItemOffset_ = std::nullopt;
     std::mutex mutex_;
+    std::map<uint32_t, std::shared_ptr<Image>> imageMap_;
+    std::vector<std::pair<uint32_t, OpDataHandle>> imageHandleVec_;
+
 #ifdef SUPPORT_OHOS_PIXMAP
     std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVec_;
     std::mutex pixelMapMutex_;

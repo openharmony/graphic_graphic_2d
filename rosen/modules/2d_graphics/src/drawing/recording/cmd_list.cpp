@@ -97,6 +97,90 @@ CmdListData CmdList::GetAllImageData() const
     return std::make_pair(imageAllocator_.GetData(), imageAllocator_.GetSize());
 }
 
+OpDataHandle CmdList::AddImage(const Image& image)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    OpDataHandle ret = {0, 0};
+    uint32_t uniqueId = image.GetUniqueID();
+
+    for (auto iter = imageHandleVec_.begin(); iter != imageHandleVec_.end(); iter++) {
+        if (iter->first == uniqueId) {
+            return iter->second;
+        }
+    }
+
+    auto data = image.Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGE("image is vaild");
+        return ret;
+    }
+    void* addr = imageAllocator_.Add(data->GetData(), data->GetSize());
+    if (addr == nullptr) {
+        LOGE("CmdList AddImageData failed!");
+        return ret;
+    }
+    uint32_t offset = imageAllocator_.AddrToOffset(addr);
+    imageHandleVec_.push_back(std::pair<uint32_t, OpDataHandle>(uniqueId, {offset, data->GetSize()}));
+
+    return {offset, data->GetSize()};
+}
+
+std::shared_ptr<Image> CmdList::GetImage(const OpDataHandle& imageHandle)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto imageIt = imageMap_.find(imageHandle.offset);
+    if (imageIt != imageMap_.end()) {
+        return imageMap_[imageHandle.offset];
+    }
+
+    if (imageHandle.size == 0) {
+        LOGE("image is vaild");
+        return nullptr;
+    }
+
+    const void* ptr = imageAllocator_.OffsetToAddr(imageHandle.offset);
+    if (ptr == nullptr) {
+        LOGE("get image data failed");
+        return nullptr;
+    }
+
+    auto imageData = std::make_shared<Data>();
+    imageData->BuildWithoutCopy(ptr, imageHandle.size);
+    auto image = std::make_shared<Image>();
+    if (image->Deserialize(imageData) == false) {
+        LOGE("image deserialize failed!");
+        return nullptr;
+    }
+    imageMap_[imageHandle.offset] = image;
+    return image;
+}
+
+uint32_t CmdList::AddBitmapData(const void* data, size_t size)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    void* addr = bitmapAllocator_.Add(data, size);
+    if (addr == nullptr) {
+        LOGE("CmdList AddImageData failed!");
+        return 0;
+    }
+    return bitmapAllocator_.AddrToOffset(addr);
+}
+
+const void* CmdList::GetBitmapData(uint32_t offset) const
+{
+    return bitmapAllocator_.OffsetToAddr(offset);
+}
+
+bool CmdList::SetUpBitmapData(const void* data, size_t size)
+{
+    return bitmapAllocator_.BuildFromDataWithCopy(data, size);
+}
+
+CmdListData CmdList::GetAllBitmapData() const
+{
+    return std::make_pair(bitmapAllocator_.GetData(), bitmapAllocator_.GetSize());
+}
+
 uint32_t CmdList::AddPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap)
 {
 #ifdef SUPPORT_OHOS_PIXMAP

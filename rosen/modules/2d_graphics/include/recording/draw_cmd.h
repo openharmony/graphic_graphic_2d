@@ -781,7 +781,8 @@ public:
         ConstructorHandle(const OpDataHandle& textBlob, scalar x, scalar y) : OpItem(DrawOpItem::TEXT_BLOB_OPITEM),
             textBlob(textBlob), x(x), y(y) {}
         ~ConstructorHandle() override = default;
-        bool GenerateCachedOpItem(std::shared_ptr<CmdList> cacheCmdList, const TextBlob* textBlob);
+        bool GenerateCachedOpItem(std::shared_ptr<CmdList> cacheCmdList, const TextBlob* textBlob,
+            Canvas* canvas, std::optional<Brush> brush, std::optional<Pen> pen);
         bool GenerateCachedOpItem(CmdList& cmdList, Canvas* canvas, AttachPenOpItem::ConstructorHandle* penOpHandle,
             AttachBrushOpItem::ConstructorHandle* brushOpHandle);
         OpDataHandle textBlob;

@@ -750,8 +750,8 @@ void DrawTextBlobOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawTextBlob(textBlob_.get(), x_, y_);
 }
 
-bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(
-    std::shared_ptr<CmdList> cacheCmdList, const TextBlob* textBlob)
+bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(std::shared_ptr<CmdList> cacheCmdList,
+    const TextBlob* textBlob, Canvas* canvas, std::optional<Brush> brush, std::optional<Pen> pen)
 {
     if (!textBlob) {
         LOGE("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
@@ -767,23 +767,38 @@ bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(
     // create CPU raster surface
     Drawing::ImageInfo offscreenInfo { bounds->GetWidth(), bounds->GetHeight(),
         Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL, nullptr};
-    
     std::shared_ptr<Surface> offscreenSurface = Surface::MakeRaster(offscreenInfo);
-
     if (offscreenSurface == nullptr) {
         return false;
     }
-
     auto offscreenCanvas = offscreenSurface->GetCanvas();
-
+    if (offscreenCanvas == nullptr) {
+        return false;
+    }
     if (bounds->GetLeft() != 0 || bounds->GetTop() != 0) {
         offscreenCanvas->Translate(-bounds->GetLeft(), -bounds->GetTop());
     }
 
+    //OffscreenCanvas used once, detach is unnecessary, FakeBrush/Pen avoid affecting ImageRectOp, attach is necessary.
+    if (brush.has_value()) {
+        offscreenCanvas->AttachBrush(brush.value());
+    }
+    if (pen.has_value()) {
+        offscreenCanvas->AttachPen(pen.value());
+    }
     offscreenCanvas->DrawTextBlob(textBlob, x, y);
+    if (brush.has_value()) {
+        Brush fakeBrush;
+        fakeBrush.SetAntiAlias(true);
+        canvas->AttachBrush(fakeBrush);
+    }
+    if (pen.has_value()) {
+        Pen fakePen;
+        fakePen.SetAntiAlias(true);
+        canvas->AttachPen(fakePen);
+    }
 
     std::shared_ptr<Image> image = offscreenSurface->GetImageSnapshot();
-
     Drawing::Rect src(0, 0, image->GetWidth(), image->GetHeight());
     Drawing::Rect dst(bounds->GetLeft(), bounds->GetTop(), bounds->GetRight(), bounds->GetBottom());
     SamplingOptions sampling;
