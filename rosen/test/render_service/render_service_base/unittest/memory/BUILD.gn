@@ -19,6 +19,9 @@ module_output_path = "graphic/rosen_engine/render_service_base/memory"
 ##############################  RSRenderServiceBaseMemoryTest  ##################################
 ohos_unittest("RSRenderServiceBaseMemoryTest") {
   module_out_path = module_output_path
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
 
   sources = [
     "rs_memory_graphic_test.cpp",

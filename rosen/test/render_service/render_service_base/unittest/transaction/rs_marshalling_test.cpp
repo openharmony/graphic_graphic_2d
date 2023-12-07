@@ -117,7 +117,7 @@ static void TestDrawingDataSerialization(size_t size)
     /**
      * @tc.steps: step1. create SkData with size
      */
-    auto drawingData = std::make_shared<Drawing::Data>;
+    auto drawingData = std::make_shared<Drawing::Data>();
     if (size == 0) {
         drawingData->BuildEmpty();
     } else {
@@ -175,7 +175,7 @@ static void TestDrawingDataSerializationWithCopy(size_t size)
     /**
      * @tc.steps: step1. create SkData with size
      */
-    auto drawingData = std::make_shared<Drawing::Data>;
+    auto drawingData = std::make_shared<Drawing::Data>();
     if (size == 0) {
         drawingData->BuildEmpty();
     } else {

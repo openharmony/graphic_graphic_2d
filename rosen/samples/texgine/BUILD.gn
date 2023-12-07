@@ -60,6 +60,9 @@ config("libskia_rs_framework_public_config") {
 }
 
 ohos_shared_library("libskia_rs_framework") {
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
   sources = [ "skia_rs_framework.cpp" ]
 
   configs = [ ":libskia_rs_framework_config" ]
@@ -99,6 +102,10 @@ ohos_source_set("texgine_sample") {
     "hilog:libhilog",
     "hitrace:hitrace_meter",
   ]
+
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

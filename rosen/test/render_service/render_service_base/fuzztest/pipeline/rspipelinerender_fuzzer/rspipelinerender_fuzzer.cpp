@@ -73,9 +73,10 @@ bool RSPaintFilterCanvasFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
-#ifndef USE_ROSEN_DRAWING
+
 bool RSRecordingCanvasFuzzTest(const uint8_t* data, size_t size)
 {
+#ifndef USE_ROSEN_DRAWING
     if (data == nullptr) {
         return false;
     }
@@ -91,10 +92,9 @@ bool RSRecordingCanvasFuzzTest(const uint8_t* data, size_t size)
     recordingCanvas.DrawAdaptiveRRect(GetData<float>(), skPaint);
     recordingCanvas.DrawAdaptiveRRectScale(GetData<float>(), skPaint);
     recordingCanvas.MultiplyAlpha(GetData<float>());
-
+#endif
     return true;
 }
-#endif
 
 } // namespace Rosen
 } // namespace OHOS

@@ -50,10 +50,12 @@ void InitTsMockVars(struct MockVars &&vars)
     g_tsMockvars = std::move(vars);
 }
 
+#ifndef USE_ROSEN_DRAWING
 std::shared_ptr<TexgineTextBlob> TexgineTextBlobBuilder::Make()
 {
     return g_tsMockvars.retvalTextBlobBuilderMake;
 }
+#endif
 
 std::shared_ptr<FontCollection> FontProviders::GenerateFontCollection(
     const std::vector<std::string> &families) const noexcept(true)

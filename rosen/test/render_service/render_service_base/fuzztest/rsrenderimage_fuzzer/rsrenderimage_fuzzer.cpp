@@ -248,13 +248,13 @@ bool RSImageFuzzTest(const uint8_t* data, size_t size)
     Drawing::Point vector2 { fX2, fY2 };
     Drawing::Point vector3 { fX3, fY3 };
     Drawing::Point vector4 { fX4, fY4 };
-    std::vector<Drawing::Point> radius[] = { vector1, vector2, vector3, vector4 };
+    std::vector<Drawing::Point> radius = { vector1, vector2, vector3, vector4 };
 #endif
     double scale = GetData<double>();
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkData> skData;
 #else
-    std::shared_ptr<Drawing::Data> data;
+    std::shared_ptr<Drawing::Data> drawingData;
 #endif
     int width = GetData<int>();
     int height = GetData<int>();
@@ -282,7 +282,7 @@ bool RSImageFuzzTest(const uint8_t* data, size_t size)
 #ifndef USE_ROSEN_DRAWING
     rsImage.SetCompressData(skData, id, width, height);
 #else
-    rsImage.SetCompressData(data, id, width, height);
+    rsImage.SetCompressData(drawingData, id, width, height);
 #endif
     return true;
 }

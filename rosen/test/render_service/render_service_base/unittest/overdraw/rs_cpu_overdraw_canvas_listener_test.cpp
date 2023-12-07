@@ -237,7 +237,7 @@ HWTEST_F(RSCPUOverdrawCanvasListenerTest, onDrawEdgeAAQuad001, TestSize.Level1)
 #else
 class MockDrawingCanvas : public Drawing::Canvas {
 public:
-    MOCK_METHOD1(DrawRegion, void(const Draiwng::Region& region));
+    MOCK_METHOD1(DrawRegion, void(const Drawing::Region& region));
 };
 
 /*
@@ -264,7 +264,7 @@ HWTEST_F(RSCPUOverdrawCanvasListenerTest, NoIntersect, Function | SmallTest | Le
 
         STEP("2. expect MockDrawingCanvas call DrawRegion once")
         {
-            EXPECT_CALL(*mockDrawingCanvas, DrawRegion(_, _)).Times(1);
+            EXPECT_CALL(*mockDrawingCanvas, DrawRegion(_)).Times(1);
         }
 
         std::unique_ptr<RSCPUOverdrawCanvasListener> rsOverdrawCanvasListener = nullptr;
@@ -275,9 +275,9 @@ HWTEST_F(RSCPUOverdrawCanvasListenerTest, NoIntersect, Function | SmallTest | Le
 
         STEP("4. call RSCPUOverdrawCanvasListener's onDrawRect 3 times")
         {
-            rsOverdrawCanvasListener->onDrawRect(Drawing::Rect(0, 0, 100, 100));
-            rsOverdrawCanvasListener->onDrawRect(Drawing::Rect(200, 200, 300, 300));
-            rsOverdrawCanvasListener->onDrawRect(Drawing::Rect(400, 400, 500, 500));
+            rsOverdrawCanvasListener->DrawRect(Drawing::Rect(0, 0, 100, 100));
+            rsOverdrawCanvasListener->DrawRect(Drawing::Rect(200, 200, 300, 300));
+            rsOverdrawCanvasListener->DrawRect(Drawing::Rect(400, 400, 500, 500));
             rsOverdrawCanvasListener->Draw();
         }
     }

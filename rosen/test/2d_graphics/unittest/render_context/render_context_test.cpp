@@ -76,7 +76,11 @@ HWTEST_F(RenderContextTest, SetUpGrContextTest, Function | SmallTest | Level2)
 #ifdef ACE_ENABLE_GL
     // start SetUpGrContextTest test
     RenderContext renderContext;
+#ifndef USE_ROSEN_DRAWING
     bool grContext = renderContext.SetUpGrContext();
+#else
+    bool grContext = renderContext.SetUpGpuContext();
+#endif
     EXPECT_EQ(grContext, false);
 #endif
 }

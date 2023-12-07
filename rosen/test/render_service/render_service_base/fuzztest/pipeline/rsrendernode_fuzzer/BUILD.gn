@@ -20,6 +20,9 @@ module_output_path = "graphic_2d/graphic_2d"
 ohos_fuzztest("RSRenderNodeFuzzTest") {
   fuzz_config_file = "//foundation/graphic/graphic_2d/rosen/test/render_service/render_service_base/fuzztest/pipeline/rsrendernode_fuzzer"
   module_out_path = module_output_path
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
 
   include_dirs = [
     "//foundation/graphic/graphic_2d/frameworks/surface/include",

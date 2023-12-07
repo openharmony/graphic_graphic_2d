@@ -30,6 +30,9 @@ ohos_unittest("RenderContextTest") {
   module_out_path = module_output_path
   sources = [ "render_context_test.cpp" ]
   deps = [ ":render_context" ]
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
 
   external_deps = [
     "c_utils:utils",

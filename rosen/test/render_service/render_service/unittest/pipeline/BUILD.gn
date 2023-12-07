@@ -329,6 +329,9 @@ ohos_unittest("RSUniUiCaptureTest") {
   ]
   defines = []
   defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
 }
 
 ## Build RSQosThreadTest
@@ -393,6 +396,9 @@ ohos_unittest("RSEglImageManagerTest") {
 
   defines = []
   defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
 }
 
 ## Build RSParallelHardwareComposerTest
@@ -407,6 +413,9 @@ ohos_unittest("RSParallelHardwareComposerTest") {
   ]
   defines = []
   defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
 }
 
 ## Build RSParallelPackVisitorTest
@@ -437,6 +446,9 @@ ohos_unittest("RSParallelRenderManagerTest") {
   ]
   defines = []
   defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
 }
 
 ## Build RSParallelSubThreadTest
@@ -452,6 +464,9 @@ ohos_unittest("RSParallelSubThreadTest") {
   ]
   defines = []
   defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
 }
 
 ## Build RSParallelTaskManagerTest
@@ -584,6 +599,9 @@ ohos_unittest("RSRoundCornerDisplayTest") {
   ]
   defines = []
   defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
 }
 
 ## Build RSRenderEngineTest

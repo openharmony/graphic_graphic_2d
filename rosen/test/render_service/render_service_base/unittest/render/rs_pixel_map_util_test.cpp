@@ -46,6 +46,7 @@ static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
     if (address == nullptr) {
         return nullptr;
     }
+#ifndef USE_ROSEN_DRAWING
     SkImageInfo info =
         SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
     auto skSurface = SkSurface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
@@ -57,6 +58,23 @@ static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
     int h = 50;
     int half = 25;
     canvas->drawRect(SkRect::MakeXYWH(w, h, half, half), paint);
+#else
+    Drawing::Bitmap bitmap;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL};
+    bitmap.Build(pixelmap->GetWidth(), pixelmap->GetHeight(), format);
+    auto surface = std::make_shared<Drawing::Surface>();
+    surface->Bind(bitmap);
+    auto canvas = surface->GetCanvas();
+    canvas->Clear(Drawing::Color::COLOR_YELLOW);
+    Drawing::Brush brush;
+    brush.SetColor(Drawing::Color::COLOR_RED);
+    int w = 50;
+    int h = 50;
+    int half = 25;
+    canvas->AttachBrush(brush);
+    canvas->DrawRect(Drawing::Rect(w, h, half, half));
+    canvas->DetachBrush();
+#endif
     return pixelmap;
 }
 
@@ -72,7 +90,11 @@ HWTEST_F(RSPixelMapUtilTest, ExtractSkImage, TestSize.Level1)
     int height = 300;
     pixelmap = CreatePixelMap(width, height);
 
+#ifndef USE_ROSEN_DRAWING
     EXPECT_NE(nullptr, RSPixelMapUtil::ExtractSkImage(pixelmap));
+#else
+    EXPECT_NE(nullptr, RSPixelMapUtil::ExtractDrawingImage(pixelmap));
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

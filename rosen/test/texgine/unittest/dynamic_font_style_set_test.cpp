@@ -41,10 +41,12 @@ auto Init(struct Mockvars vars)
     };
 }
 
+#ifndef USE_ROSEN_DRAWING
 std::shared_ptr<TexgineFontStyle> TexgineTypeface::GetFontStyle() const
 {
     return g_dfssMockVars.fontStyle;
 }
+#endif
 
 Typeface::Typeface(std::shared_ptr<TexgineTypeface> tf)
 {
