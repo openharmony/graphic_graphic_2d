@@ -101,7 +101,7 @@ constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001401, "Bufferqu
             BLOGE(fmt, ##__VA_ARGS__);                   \
             return ret;                                  \
         }                                                \
-    } while (0);
+    } while (0)
 
 #define BLOGE_CHECK_AND_RETURN(cond, fmt, ...)           \
     do {                                                 \
@@ -109,7 +109,7 @@ constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001401, "Bufferqu
             BLOGE(fmt, ##__VA_ARGS__);                   \
             return;                                      \
         }                                                \
-    } while (0);
+    } while (0)
 
 #define BLOGE_CHECK_AND_BREAK(cond, fmt, ...)            \
     if (1) {                                             \
