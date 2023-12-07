@@ -236,7 +236,6 @@ ohos_shared_library("librender_service") {
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "sensor:sensor_interface_native",
     "window_manager:libwsutils",
   ]
   if (use_video_processing_engine) {
@@ -264,6 +263,10 @@ ohos_shared_library("librender_service") {
       defined(global_parts_info.resourceschedule_resource_schedule_service)) {
     external_deps += [ "resource_schedule_service:ressched_client" ]
     defines += [ "RES_SCHED_ENABLE" ]
+  }
+
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
   }
 
   if (accessibility_enable) {
@@ -321,8 +324,11 @@ ohos_executable("render_service") {
     "drivers_interface_display:display_commontype_idl_headers",
     "hilog:libhilog",
     "ipc:ipc_core",
-    "sensor:sensor_interface_native",
   ]
+
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
