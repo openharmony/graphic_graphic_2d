@@ -2884,7 +2884,7 @@ void RSUniRenderVisitor::SwitchColorFilterDrawing(int currentSaveCount)
             RSTagTracker::TAG_SAVELAYER_COLOR_FILTER);
 #endif
 #endif
-        RSColorFilterCanvas::SaveLayerRec rec;
+        SkCanvas::SaveLayerRec rec;
         rec.fSaveLayerFlags = SkCanvas::kInitWithPrevious_SaveLayerFlag;
         rec.fPaint = &paint;
         canvas_->saveLayer(rec);

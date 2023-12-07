@@ -337,25 +337,6 @@ private:
     bool recordingState_ = false;
 };
 
-// This class extends RSPaintFilterCanvas to also create a color filter for the paint.
-class RSB_EXPORT RSColorFilterCanvas : public RSPaintFilterCanvas {
-public:
-    explicit RSColorFilterCanvas(RSPaintFilterCanvas* canvas);
-    ~RSColorFilterCanvas() override = default;
-
-#ifdef USE_ROSEN_DRAWING
-    CoreCanvas& AttachPen(const Drawing::Pen& pen) override;
-    CoreCanvas& AttachBrush(const Drawing::Brush& brush) override;
-#endif
-
-protected:
-#ifndef USE_ROSEN_DRAWING
-    bool onFilter(SkPaint& paint) const override;
-#else
-    bool onFilter() const;
-#endif
-};
-
 // Helper class similar to SkAutoCanvasRestore, but also restores alpha and/or env
 class RSB_EXPORT RSAutoCanvasRestore {
 public:

@@ -139,13 +139,16 @@ std::unique_ptr<OpItem> OpItemWithPaint::GenerateCachedOpItem(
         offscreenCanvas->translate(-bounds.left(), -bounds.top());
     }
 
+    if (paint_.getColor() == 0x00000001) {
+        offscreenCanvas->SetEnvForegroundColor(Color::FromArgbInt(0xFF000000)); // 0xFF000000 is black
+    }
     // draw on the bitmap.
     Draw(*offscreenCanvas, rect);
 
     // generate BitmapOpItem with correct offset
     SkPaint paint;
     paint.setAntiAlias(true);
-    if (paint_.getColor() == 0x00000001) {
+    if (paint_.getColor() != 0x00000001) {
 #ifdef NEW_SKIA
         return std::make_unique<BitmapOpItem>(offscreenSurface->makeImageSnapshot(), bounds.x(), bounds.y(),
             SkSamplingOptions(), &paint);
@@ -413,8 +416,14 @@ ColorFilterBitmapOpItem::ColorFilterBitmapOpItem(std::shared_ptr<RSImageBase> rs
 
 void ColorFilterBitmapOpItem::Draw(RSPaintFilterCanvas &canvas, const SkRect *) const
 {
-    auto colorFilterCanvas = std::make_shared<RSColorFilterCanvas>(&canvas);
-    BitmapOpItem::Draw(*colorFilterCanvas, nullptr);
+    SkAutoCanvasRestore acr(&canvas, false);
+    canvas.saveLayer(nullptr, nullptr);
+    BitmapOpItem::Draw(canvas, nullptr);
+    // Color the layer with foreground color
+    SkPaint colorFilterPaint;
+    colorFilterPaint.setColor(canvas.GetEnvForegroundColor().AsArgbInt());
+    colorFilterPaint.setBlendMode(SkBlendMode::kSrcIn);
+    canvas.drawPaint(colorFilterPaint);
 }
 
 #ifdef NEW_SKIA
@@ -1629,9 +1638,25 @@ bool ColorFilterBitmapOpItem::Marshalling(Parcel& parcel) const
 
 OpItem* ColorFilterBitmapOpItem::Unmarshalling(Parcel &parcel)
 {
-    return BitmapOpItem::Unmarshalling(parcel);
-}
+    std::shared_ptr<RSImageBase> rsImage;
+    SkPaint paint;
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, rsImage) &&
+                   RSMarshallingHelper::Unmarshalling(parcel, paint);
+#ifdef NEW_SKIA
+    SkSamplingOptions samplingOptions;
+    success = success && RSMarshallingHelper::Unmarshalling(parcel, samplingOptions);
+#endif
+    if (!success) {
+        ROSEN_LOGE("ColorFilterBitmapOpItem::Unmarshalling failed!");
+        return nullptr;
+    }
 
+#ifdef NEW_SKIA
+    return new ColorFilterBitmapOpItem(rsImage, samplingOptions, paint);
+#else
+    return new ColorFilterBitmapOpItem(rsImage, paint);
+#endif
+}
 
 // BitmapRectOpItem
 bool BitmapRectOpItem::Marshalling(Parcel& parcel) const
