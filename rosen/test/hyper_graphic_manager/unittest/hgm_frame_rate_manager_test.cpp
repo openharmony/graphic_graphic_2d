@@ -114,17 +114,21 @@ HWTEST_F(HgmFrameRateMgrTest, HgmOneShotTimerTest, Function | SmallTest | Level2
     int32_t interval = 200; // 200ms means waiting time
 
     PART("CaseDescription") {
-        STEP("1. insert and start screenTimer") {
+        STEP("1. set force update callback") {
+            mgr->SetForceUpdateCallback([](bool idleTimerExpired, bool forceUpdate) {});
+        }
+        STEP("2. insert and start screenTimer") {
             mgr->StartScreenTimer(id, interval, nullptr, nullptr);
             auto timer = mgr->GetScreenTimer(id);
             STEP_ASSERT_NE(timer, nullptr);
         }
-        STEP("2. reset screenTimer") {
+        STEP("3. reset screenTimer") {
             mgr->ResetScreenTimer(id);
             auto timer = mgr->GetScreenTimer(id);
             STEP_ASSERT_NE(timer, nullptr);
         }
     }
 }
+
 } // namespace Rosen
 } // namespace OHOS

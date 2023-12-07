@@ -78,6 +78,7 @@ ohos_shared_library("libcomposer") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hitrace:hitrace_meter",
     "ipc:ipc_core",
   ]
 

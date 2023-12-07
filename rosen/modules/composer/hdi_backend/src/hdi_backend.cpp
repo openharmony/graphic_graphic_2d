@@ -18,6 +18,8 @@
 
 #include <scoped_bytrace.h>
 #include "surface_buffer.h"
+#include "hitrace_meter.h"
+#include "sync_fence_tracker.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -148,6 +150,11 @@ void HdiBackend::Repaint(const OutputPtr &output)
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("commit failed, ret is %{public}d", ret);
         // return
+    }
+
+    if (IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP)) {
+        static SyncFenceTracker presentFenceThread("Present Fence");
+        presentFenceThread.TrackFence(fbFence);
     }
 
     ret = output->UpdateInfosAfterCommit(fbFence);
