@@ -290,6 +290,16 @@ EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
 
 #ifndef USE_ROSEN_DRAWING
 #ifdef RS_ENABLE_VK
+void RenderContext::AbandonContext()
+{
+    if (grContext_ == nullptr) {
+        LOGD("grContext is nullptr.");
+        return;
+    }
+    grContext_->flushAndSubmit(true);
+    grContext_->purgeUnlockAndSafeCacheGpuResources();
+}
+
 bool RenderContext::SetUpGrContext(sk_sp<GrDirectContext> skContext)
 #else
 bool RenderContext::SetUpGrContext()

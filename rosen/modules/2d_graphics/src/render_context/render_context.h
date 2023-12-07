@@ -79,6 +79,7 @@ public:
         return skSurface_;
     }
 #ifdef RS_ENABLE_VK
+    void AbandonContext();
     bool SetUpGrContext(sk_sp<GrDirectContext> skContext);
 #else
     bool SetUpGrContext();

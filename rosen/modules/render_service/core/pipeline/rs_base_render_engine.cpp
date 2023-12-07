@@ -121,13 +121,15 @@ void RSBaseRenderEngine::Init()
 
 void RSBaseRenderEngine::ResetCurrentContext()
 {
-#if (defined RS_ENABLE_GL)
     if (renderContext_ == nullptr) {
         RS_LOGE("This render context is nullptr.");
         return;
     }
+#if (defined RS_ENABLE_GL)
     renderContext_->ShareMakeCurrentNoSurface(EGL_NO_CONTEXT);
-#endif // RS_ENABLE_GL
+#elif defined(RS_ENABLE_VK) // end RS_ENABLE_GL and enter RS_ENABLE_VK
+    renderContext_->AbandonContext();
+#endif // end RS_ENABLE_GL and RS_ENABLE_VK
 }
 
 bool RSBaseRenderEngine::NeedForceCPU(const std::vector<LayerInfoPtr>& layers)
