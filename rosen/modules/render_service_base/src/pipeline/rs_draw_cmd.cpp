@@ -359,8 +359,7 @@ SymbolOpItem::SymbolOpItem(const HMSymbolData& symbol, SkPoint locate, const SkP
 void SymbolOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 {
     SkPath path(symbol_.path_);
-    RS_LOGD("[%{public}llu] SymbolOpItem::Draw at %{public}d, %{public}d", nodeId_,
-        static_cast<int>(locate_.x()), static_cast<int>(locate_.y()));
+
     // 1.0 move path
     path.offset(locate_.x(), locate_.y());
 
