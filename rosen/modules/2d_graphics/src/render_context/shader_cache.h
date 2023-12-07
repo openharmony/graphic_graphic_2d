@@ -62,11 +62,21 @@ public:
         return initialized_;
     }
 
-    size_t QuerryShaderSize() const;
+    size_t QuerryShaderSize() const
+    {
+        return cacheData_->GetTotalSize();
+    }
 
-    size_t QuerryShaderNum() const;
+    size_t QuerryShaderNum() const
+    {
+        return cacheData_->GetShaderNum();
+    }
 
-    size_t CleanAllShaders() const;
+    size_t CleanAllShaders() const
+    {
+        cacheData_->Clear();
+        return 0;
+    }
 
 private:
     ShaderCache() = default;

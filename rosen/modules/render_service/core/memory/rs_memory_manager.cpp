@@ -283,18 +283,6 @@ void MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(Drawing::GPUContext* gp
 }
 #endif
 
-#ifdef RS_ENABLE_VK
-void MemoryManager::PerformDeferedCleanup(GrDirectContext* grContext, std::chrono::milliseconds msNotUsed)
-{
-    if (!grContext) {
-        RS_LOGE("PerformDeferedCleanup fail, gpuContext is nullptr");
-        return;
-    }
-    RS_TRACE_FUNC();
-    grContext->performDeferredCleanup(msNotUsed);
-}
-#endif
-
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
 float MemoryManager::GetAppGpuMemoryInMB(GrDirectContext* grContext)
@@ -661,7 +649,7 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const GrContext* grCont
         return;
     }
     /////////////////////////////GPU/////////////////////////
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+#ifdef RS_ENABLE_GL
     std::string gpuInfo;
     // total
     DumpGpuCache(log, grContext, nullptr, gpuInfo);
