@@ -73,7 +73,13 @@ void RSImage::CanvasDrawImage(RSPaintFilterCanvas& canvas, const SkRect& rect, c
             canvas.save();
             RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas);
         }
-        canvas.drawImageRect(image_, src_, dst_, samplingOptions, &paint, SkCanvas::kFast_SrcRectConstraint);
+        if (canvas.GetRecordingState()) {
+            auto recordingCanvas = static_cast<RSRecordingCanvas*>(canvas.GetRecordingCanvas());
+            recordingCanvas->drawImageRect(image_, src_, dst_, SkSamplingOptions(),
+                &paint, SkCanvas::kFast_SrcRectConstraint);
+        } else {
+            canvas.drawImageRect(image_, src_, dst_, samplingOptions, &paint, SkCanvas::kFast_SrcRectConstraint);
+        }
         if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
             canvas.restore();
         }
@@ -375,7 +381,14 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
                 recordingCanvas->drawImageRect(cpuImage, src_, dst_, SkSamplingOptions(),
                     &paint, SkCanvas::kFast_SrcRectConstraint);
             } else {
-                canvas.drawImageRect(image_, src_, dst_, samplingOptions, &paint, SkCanvas::kFast_SrcRectConstraint);
+                if (canvas.GetRecordingState()) {
+                    auto recordingCanvas = static_cast<RSRecordingCanvas*>(canvas.GetRecordingCanvas());
+                    recordingCanvas->drawImageRect(image_, src_, dst_, SkSamplingOptions(),
+                        &paint, SkCanvas::kFast_SrcRectConstraint);
+                } else {
+                    canvas.drawImageRect(image_, src_, dst_, samplingOptions, &paint, 
+                        SkCanvas::kFast_SrcRectConstraint);
+                }
             }
             if (isAstc) {
                 canvas.restore();
