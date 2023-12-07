@@ -36,8 +36,8 @@ namespace Rosen {
 namespace TextEngine {
 class HMSymbolRun {
 public:
-    HMSymbolRun(){}
-    ~HMSymbolRun(){}
+    HMSymbolRun() {}
+    ~HMSymbolRun() {}
 
     static SymbolLayers GetSymbolLayers(const SkGlyphID& glyphId, const HMSymbolTxt& symbolText);
 

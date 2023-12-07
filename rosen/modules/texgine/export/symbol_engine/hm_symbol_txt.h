@@ -27,8 +27,8 @@ namespace TextEngine {
 
 class HMSymbolTxt {
 public:
-    HMSymbolTxt(){}
-    ~HMSymbolTxt(){}
+    HMSymbolTxt() {}
+    ~HMSymbolTxt() {}
 
     void SetRenderColor(const std::vector<SColor>& colorList)
     {
