@@ -2065,6 +2065,51 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareTypesOfSurfaceRenderNodeBeforeUpdate002,
 }
 
 /*
+ * @tc.name: ResetCurSurfaceInfoAsUpperSurfaceParent001
+ * @tc.desc: Reset but keep single node's surfaceInfo
+ * @tc.type: FUNC
+ * @tc.require: issuesI8MQCS
+ */
+HWTEST_F(RSUniRenderVisitorTest, ResetCurSurfaceInfoAsUpperSurfaceParent001, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    std::weak_ptr<RSSurfaceRenderNode> upperSurfaceNode;
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetParent(upperSurfaceNode);
+    
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+
+    rsUniRenderVisitor->ResetCurSurfaceInfoAsUpperSurfaceParent(*surfaceNode);
+    ASSERT_EQ(rsUniRenderVisitor->curSurfaceNode_, surfaceNode);
+}
+
+/*
+ * @tc.name: ResetCurSurfaceInfoAsUpperSurfaceParent002
+ * @tc.desc: Reset but keep node's surfaceInfo since upper surface's InstanceRootNode is not registered
+ * @tc.type: FUNC
+ * @tc.require: issuesI8MQCS
+ */
+HWTEST_F(RSUniRenderVisitorTest, ResetCurSurfaceInfoAsUpperSurfaceParent002, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto upperSurfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_NE(upperSurfaceNode, nullptr);
+    upperSurfaceNode->instanceRootNodeId_ = upperSurfaceNode->GetId();
+    ASSERT_EQ(upperSurfaceNode->GetInstanceRootNode(), nullptr);
+    surfaceNode->SetParent(std::weak_ptr<RSSurfaceRenderNode>(upperSurfaceNode));
+    
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+
+    rsUniRenderVisitor->ResetCurSurfaceInfoAsUpperSurfaceParent(*surfaceNode);
+    ASSERT_EQ(rsUniRenderVisitor->curSurfaceNode_, surfaceNode);
+}
+
+/*
  * @tc.name: PrepareSurfaceRenderNode001
  * @tc.desc: Test RSUniRenderVisitorTest.PrepareSurfaceRenderNode while surface node has security layer
  * @tc.type: FUNC

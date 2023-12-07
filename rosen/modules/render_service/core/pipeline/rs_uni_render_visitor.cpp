@@ -889,7 +889,6 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
         isClassifyByRootNode ? rootId : node.GetId(), isClassifyByRootNode)) {
         return false;
     }
-    curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
     // [Attention] node's ability pid could be different but should have same rootId
     auto abilityNodeIds = node.GetAbilityNodeIds();
     bool result = isClassifyByRootNode
@@ -904,18 +903,36 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
     RS_OPTIONAL_TRACE_NAME("Skip static surface " + node.GetName() + " nodeid - pid: " +
         std::to_string(node.GetId()) + " - " + std::to_string(ExtractPid(node.GetId())));
     // static node's dirty region is empty
-    curSurfaceDirtyManager_ = node.GetDirtyManager();
-    if (curSurfaceDirtyManager_) {
-        curSurfaceDirtyManager_->Clear();
+    auto dirtyManager = node.GetDirtyManager();
+    if (dirtyManager) {
+        dirtyManager->Clear();
         if (node.IsTransparent()) {
-            curSurfaceDirtyManager_->UpdateVisitedDirtyRects(accumulatedDirtyRegions_);
+            dirtyManager->UpdateVisitedDirtyRects(accumulatedDirtyRegions_);
         }
         node.UpdateFilterCacheStatusIfNodeStatic(prepareClipRect_);
     }
     node.ResetDrawingCacheStatusIfNodeStatic(allCacheFilterRects_);
+    // Attention: curSurface info would be reset as upper surfaceParent if it has
+    ResetCurSurfaceInfoAsUpperSurfaceParent(node);
     // static surface keeps same position
     curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), curDisplayNode_->GetLastFrameSurfacePos(node.GetId()));
     return true;
+}
+
+void RSUniRenderVisitor::ResetCurSurfaceInfoAsUpperSurfaceParent(RSSurfaceRenderNode& node)
+{
+    auto directParent = node.GetParent().lock();
+    if (directParent == nullptr) {
+        return;
+    }
+    if (auto parentInstance = directParent->GetInstanceRootNode()) {
+        // in case leashwindow is not directParent
+        auto surfaceParent = parentInstance->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (surfaceParent && (surfaceParent->IsLeashWindow() || surfaceParent->IsMainWindowType())) {
+            curSurfaceNode_ = surfaceParent;
+            curSurfaceDirtyManager_ = surfaceParent->GetDirtyManager();
+        }
+    }
 }
 
 bool RSUniRenderVisitor::IsHardwareComposerEnabled()
@@ -1071,18 +1088,19 @@ bool RSUniRenderVisitor::CheckIfUIFirstSurfaceContentReusable(std::shared_ptr<RS
     if (!isUIFirst_ || node == nullptr) {
         return false;
     }
-    auto directParent = node->GetParent().lock();
     auto deviceType = RSMainThread::Instance()->GetDeviceType();
-    if (directParent) {
-        auto surfaceParent = directParent->ReinterpretCastTo<RSSurfaceRenderNode>();
-        if (surfaceParent && surfaceParent->IsLeashWindow()) {
-            RS_OPTIONAL_TRACE_NAME(surfaceParent->GetName() + " leashwindow CheckIfUIFirstSurfaceContentReusable: " +
-                std::to_string(surfaceParent->IsUIFirstCacheReusable(deviceType)));
-            return RSUniRenderUtil::IsNodeAssignSubThread(surfaceParent, curDisplayNode_->IsRotationChanged()) &&
-                surfaceParent->IsUIFirstCacheReusable(deviceType);
+    if (auto directParent = node->GetParent().lock()) {
+        if (auto parentInstance = directParent->GetInstanceRootNode()) {
+            auto surfaceParent = parentInstance->ReinterpretCastTo<RSSurfaceRenderNode>();
+            if (surfaceParent && surfaceParent->IsLeashWindow()) {
+                RS_OPTIONAL_TRACE_NAME(surfaceParent->GetName() + " CheckIfUIFirstSurfaceContentReusable(leash): " +
+                    std::to_string(surfaceParent->IsUIFirstCacheReusable(deviceType)));
+                return RSUniRenderUtil::IsNodeAssignSubThread(surfaceParent, curDisplayNode_->IsRotationChanged()) &&
+                    surfaceParent->IsUIFirstCacheReusable(deviceType);
+            }
         }
     }
-    RS_OPTIONAL_TRACE_NAME(node->GetName() + " mainwindow CheckIfUIFirstSurfaceContentReusable: " +
+    RS_OPTIONAL_TRACE_NAME(node->GetName() + " CheckIfUIFirstSurfaceContentReusable(mainwindow): " +
         std::to_string(node->IsUIFirstCacheReusable(deviceType)));
     return RSUniRenderUtil::IsNodeAssignSubThread(node, curDisplayNode_->IsRotationChanged()) &&
         node->IsUIFirstCacheReusable(deviceType);
@@ -1391,6 +1409,10 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
     node.SetOpaqueRegionBaseInfo(
         screenRect, geoPtr->GetAbsRect(), screenRotation, node.IsFocusedNode(currentFocusedNodeId_), dstCornerRadius);
+    if (node.IsMainWindowType()) {
+        // Attention: curSurface info would be reset as upper surfaceParent if it has
+        ResetCurSurfaceInfoAsUpperSurfaceParent(node);
+    }
 }
 
 void RSUniRenderVisitor::PrepareProxyRenderNode(RSProxyRenderNode& node)
