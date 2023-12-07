@@ -3474,11 +3474,6 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeLightUpEffectSha
 void RSPropertiesPainter::DrawDynamicLightUp(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
 #ifndef USE_ROSEN_DRAWING
-    SkSurface* skSurface = canvas.GetSurface();
-    if (skSurface == nullptr) {
-        ROSEN_LOGD("RSPropertiesPainter::DrawDynamicLightUp skSurface is null");
-        return;
-    }
     SkAutoCanvasRestore acr(&canvas, true);
     if (RSSystemProperties::GetPropertyDrawableEnable()) {
         // do nothing
@@ -3488,19 +3483,10 @@ void RSPropertiesPainter::DrawDynamicLightUp(const RSProperties& properties, RSP
         canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), true);
     }
 
-    auto clipBounds = canvas.getDeviceClipBounds();
-    auto image = skSurface->makeImageSnapshot(clipBounds);
-    if (image == nullptr) {
-        ROSEN_LOGE("RSPropertiesPainter::DrawDynamicLightUp image is null");
-        return;
-    }
-    auto imageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
-    auto shader = MakeDynamicLightUpShader(
-        properties.GetDynamicLightUpRate().value(), properties.GetDynamicLightUpDegree().value(), imageShader);
+    auto blender = MakeDynamicLightUpBlender(
+        properties.GetDynamicLightUpRate().value(), properties.GetDynamicLightUpDegree().value());
     SkPaint paint;
-    paint.setShader(shader);
-    canvas.resetMatrix();
-    canvas.translate(clipBounds.left(), clipBounds.top());
+    paint.setBlender(blender);
     canvas.drawPaint(paint);
 #else
     Drawing::Surface* surface = canvas.GetSurface();
@@ -3536,13 +3522,38 @@ void RSPropertiesPainter::DrawDynamicLightUp(const RSProperties& properties, RSP
 }
 
 #ifndef USE_ROSEN_DRAWING
-sk_sp<SkShader> RSPropertiesPainter::MakeDynamicLightUpShader(
-    float dynamicLightUpRate, float dynamicLightUpDeg, sk_sp<SkShader> imageShader)
+sk_sp<SkBlender> RSPropertiesPainter::MakeDynamicLightUpBlender(
+    float dynamicLightUpRate, float dynamicLightUpDeg)
 #else
 std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeDynamicLightUpShader(
     float dynamicLightUpRate, float dynamicLightUpDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader)
 #endif
 {
+#ifndef USE_ROSEN_DRAWING
+    static constexpr char prog[] = R"(
+        uniform half dynamicLightUpRate;
+        uniform half dynamicLightUpDeg;
+
+        vec4 main(vec4 src, vec4 dst) {
+            float x = 0.299 * dst.r + 0.587 * dst.g + 0.114 * dst.b;
+            float y = (0 - dynamicLightUpRate) * x + dynamicLightUpDeg;
+            float R = clamp((dst.r + y), 0.0, 1.0);
+            float G = clamp((dst.g + y), 0.0, 1.0);
+            float B = clamp((dst.b + y), 0.0, 1.0);
+            return vec4(R, G, B, 1.0);
+        }
+    )";
+
+    auto [effect, err] = SkRuntimeEffect::MakeForBlender(SkString(prog));
+    if (!effect) {
+        ROSEN_LOGE("MakeDynamicLightUpBlender::RuntimeBlender effect error: %{public}s\n", err.c_str());
+        return nullptr;
+    }
+    SkRuntimeBlendBuilder builder(effect);
+    builder.uniform("dynamicLightUpRate") = dynamicLightUpRate;
+    builder.uniform("dynamicLightUpDeg") = dynamicLightUpDeg;
+    return builder.makeBlender();
+#else
     static constexpr char prog[] = R"(
         uniform half dynamicLightUpRate;
         uniform half dynamicLightUpDeg;
@@ -3559,18 +3570,6 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeDynamicLightUpSh
             return vec4(R, G, B, 1.0);
         }
     )";
-#ifndef USE_ROSEN_DRAWING
-    auto [effect, err] = SkRuntimeEffect::MakeForShader(SkString(prog));
-    if (!effect) {
-        ROSEN_LOGE("MakeDynamicLightUpShader::RuntimeShader effect error: %{public}s\n", err.c_str());
-        return nullptr;
-    }
-    SkRuntimeShaderBuilder builder(effect);
-    builder.child("imageShader") = imageShader;
-    builder.uniform("dynamicLightUpRate") = dynamicLightUpRate;
-    builder.uniform("dynamicLightUpDeg") = dynamicLightUpDeg;
-    return builder.makeShader(nullptr, false);
-#else
     std::shared_ptr<Drawing::RuntimeEffect> effect = Drawing::RuntimeEffect::CreateForShader(prog);
     if (!effect) {
         ROSEN_LOGE("MakeDynamicLightUpShader::RuntimeShader effect error\n");

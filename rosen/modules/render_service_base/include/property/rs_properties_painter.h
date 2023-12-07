@@ -89,8 +89,8 @@ public:
         const sk_sp<SkSurface>& spherizeSurface);
     // EffectView and useEffect
     static void DrawBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas, const SkIRect& rect);
-    static sk_sp<SkShader> MakeDynamicLightUpShader(
-        float dynamicLightUpRate, float dynamicLightUpDeg, sk_sp<SkShader> imageShader);
+    static sk_sp<SkBlender> MakeDynamicLightUpBlender(
+        float dynamicLightUpRate, float dynamicLightUpDeg);
     static void DrawGreyAdjustment(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 #else // USE_ROSEN_DRAWING
     static void Clip(Drawing::Canvas& canvas, RectF rect, bool isAntiAlias = true);
