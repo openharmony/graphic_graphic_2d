@@ -33,6 +33,7 @@ public:
     HgmConfigCallbackManager &operator=(const HgmConfigCallbackManager &) = delete;
 
     void RegisterHgmConfigChangeCallback(pid_t pid, const sptr<RSIHgmConfigChangeCallback>& callback);
+    void SyncCallback();
     void UnRegisterHgmConfigChangeCallback(pid_t pid);
 
 private:

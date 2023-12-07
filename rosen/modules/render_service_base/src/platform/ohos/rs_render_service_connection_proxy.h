@@ -180,6 +180,14 @@ public:
 
     void ReportJankStats() override;
 
+    void NotifyLightFactorStatus(bool isSafe) override;
+
+    void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) override;
+
+    void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
+
+    void NotifyTouchEvent(int32_t touchStatus) override;
+
     void ReportEventResponse(DataBaseRs info) override;
 
     void ReportEventComplete(DataBaseRs info) override;
