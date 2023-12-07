@@ -19,6 +19,7 @@
 #ifdef RS_ENABLE_VK
 #include "include/gpu/vk/GrVkBackendContext.h"
 #endif
+#include "utils/system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -33,6 +34,9 @@ bool GPUContext::BuildFromGL(const GPUContextOptions& options)
 #ifdef RS_ENABLE_VK
 bool GPUContext::BuildFromVK(const GrVkBackendContext& context)
 {
+    if (!SystemProperties::GetRsVulkanEnabled()) {
+        return false;
+    }
     return impl_->BuildFromVK(context);
 }
 #endif

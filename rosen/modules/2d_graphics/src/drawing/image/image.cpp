@@ -18,6 +18,7 @@
 #include "impl_factory.h"
 #include "skia_adapter/skia_image.h"
 #include "static_factory.h"
+#include "utils/system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -99,6 +100,9 @@ bool Image::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, Te
     BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace,
     void (*deleteFunc)(void*), void* cleanupHelper)
 {
+    if (!SystemProperties::GetRsVulkanEnabled()) {
+        return false;
+    }
     return imageImplPtr->BuildFromTexture(gpuContext, info, origin, bitmapFormat,
         colorSpace, deleteFunc, cleanupHelper);
 }

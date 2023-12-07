@@ -173,12 +173,24 @@ public:
     static bool GetSingleFrameComposerEnabled();
     static bool GetSingleFrameComposerCanvasNodeEnabled();
     static bool GetSubSurfaceEnabled();
+
+    static inline bool GetAceVulkanEnabled() noexcept
+    {
+        return aceVulkanEnabled_;
+    }
+
+    static inline bool GetRsVulkanEnabled() noexcept
+    {
+        return rsVulkanEnabled_;
+    }
 private:
     RSSystemProperties() = default;
 
     static inline bool isUniRenderEnabled_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
     inline static bool cacheEnabledForRotation_ = false;
+    static const bool aceVulkanEnabled_;
+    static const bool rsVulkanEnabled_;
 };
 
 } // namespace Rosen
