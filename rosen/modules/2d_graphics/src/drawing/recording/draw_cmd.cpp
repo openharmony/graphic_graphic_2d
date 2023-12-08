@@ -1456,9 +1456,11 @@ void DrawSurfaceBufferOpItem::SetBaseCallback(
     std::function<void(void* context)> deleteImage,
     std::function<void*(VkImage image, VkDeviceMemory memory)> helper)
 {
-    DrawSurfaceBufferOpItem::makeBackendTextureFromNativeBuffer = makeBackendTexture;
-    DrawSurfaceBufferOpItem::deleteVkImage = deleteImage;
-    DrawSurfaceBufferOpItem::vulkanCleanupHelper = helper;
+    if (GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN || GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+        DrawSurfaceBufferOpItem::makeBackendTextureFromNativeBuffer = makeBackendTexture;
+        DrawSurfaceBufferOpItem::deleteVkImage = deleteImage;
+        DrawSurfaceBufferOpItem::vulkanCleanupHelper = helper;
+    }
 }
 #endif
 
@@ -1503,28 +1505,30 @@ void DrawSurfaceBufferOpItem::Clear()
 void DrawSurfaceBufferOpItem::Draw(Canvas* canvas)
 {
 #ifdef RS_ENABLE_VK
-    if (!DrawSurfaceBufferOpItem::makeBackendTextureFromNativeBuffer ||
-        !DrawSurfaceBufferOpItem::deleteVkImage ||
-        !DrawSurfaceBufferOpItem::vulkanCleanupHelper ||
-        !canvas) {
-        return;
+    if (GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN || GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+        if (!DrawSurfaceBufferOpItem::makeBackendTextureFromNativeBuffer ||
+            !DrawSurfaceBufferOpItem::deleteVkImage ||
+            !DrawSurfaceBufferOpItem::vulkanCleanupHelper ||
+            !canvas) {
+            return;
+        }
+        auto backendTexture = DrawSurfaceBufferOpItem::makeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
+            surfaceBufferInfo_.width_, surfaceBufferInfo_.height_);
+        Drawing::BitmapFormat bitmapFormat = { Drawing::ColorType::COLORTYPE_RGBA_8888,
+            Drawing::AlphaType::ALPHATYPE_PREMUL };
+        auto ptr = [](void* context) {
+            DrawSurfaceBufferOpItem::deleteVkImage(context);
+        };
+        auto image = std::make_shared<Drawing::Image>();
+        auto vkTextureInfo = backendTexture.GetTextureInfo().GetVKTextureInfo();
+        if (!vkTextureInfo && !image->BuildFromTexture(*canvas->GetGPUContext(), backendTexture.GetTextureInfo(),
+            Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, ptr,
+            DrawSurfaceBufferOpItem::vulkanCleanupHelper(vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory))) {
+            LOGE("DrawSurfaceBufferOpItem::Draw: image BuildFromTexture failed");
+            return;
+        }
+        canvas->DrawImage(*image, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, Drawing::SamplingOptions());
     }
-    auto backendTexture = DrawSurfaceBufferOpItem::makeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
-        surfaceBufferInfo_.width_, surfaceBufferInfo_.height_);
-    Drawing::BitmapFormat bitmapFormat = { Drawing::ColorType::COLORTYPE_RGBA_8888,
-        Drawing::AlphaType::ALPHATYPE_PREMUL };
-    auto ptr = [](void* context) {
-        DrawSurfaceBufferOpItem::deleteVkImage(context);
-    };
-    auto image = std::make_shared<Drawing::Image>();
-    auto vkTextureInfo = backendTexture.GetTextureInfo().GetVKTextureInfo();
-    if (!vkTextureInfo && !image->BuildFromTexture(*canvas->GetGPUContext(), backendTexture.GetTextureInfo(),
-        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, ptr,
-        DrawSurfaceBufferOpItem::vulkanCleanupHelper(vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory))) {
-        LOGE("DrawSurfaceBufferOpItem::Draw: image BuildFromTexture failed");
-        return;
-    }
-    canvas->DrawImage(*image, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, Drawing::SamplingOptions());
 #endif
 
 #ifdef RS_ENABLE_GL

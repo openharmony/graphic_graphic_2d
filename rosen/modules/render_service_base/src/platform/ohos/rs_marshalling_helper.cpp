@@ -2339,7 +2339,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
         }
     }
 
-    auto bitmapData = val->GetAllBitampData();
+    auto bitmapData = val->GetAllBitmapData();
     ret &= parcel.WriteInt32(bitmapData.second);
     if (!ret) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::MaskCmdList bitmap size");

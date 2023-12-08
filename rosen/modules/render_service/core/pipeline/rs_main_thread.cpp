@@ -264,11 +264,13 @@ void RSMainThread::Init()
         SKResourceManager::Instance().ReleaseResource();
     };
 #if defined(ROSEN_OHOS) && defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_VK)
-    std::function<void*(VkImage, VkDeviceMemory)> createCleanup = [] (VkImage image, VkDeviceMemory memory) -> void* {
-        return new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(), image, memory);
-    };
-    Drawing::DrawSurfaceBufferOpItem::SetBaseCallback(NativeBufferUtils::MakeBackendTextureFromNativeBuffer,
-        NativeBufferUtils::DeleteVkImage, createCleanup);
+    if (GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN || GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+        std::function<void*(VkImage, VkDeviceMemory)> createCleanup = [] (VkImage image, VkDeviceMemory memory) -> void* {
+            return new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(), image, memory);
+        };
+        Drawing::DrawSurfaceBufferOpItem::SetBaseCallback(NativeBufferUtils::MakeBackendTextureFromNativeBuffer,
+            NativeBufferUtils::DeleteVkImage, createCleanup);
+    }
 #endif
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
