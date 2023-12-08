@@ -2172,6 +2172,12 @@ sk_sp<SkImage> RSUniRenderVisitor::GetCacheImageFromMirrorNode(std::shared_ptr<R
 {
     sk_sp<SkImage> image = nullptr;
     auto cacheImage = mirrorNode->GetCacheImgForCapture();
+
+    bool parallelComposition = RSMainThread::Instance()->GetParallelCompositionEnabled();
+    if (!parallelComposition) {
+        return cacheImage;
+    }
+
     if (cacheImage != nullptr) {
         auto renderContext = renderEngine_->GetRenderContext();
         if (renderContext != nullptr) {
@@ -2191,6 +2197,12 @@ std::shared_ptr<Drawing::Image> RSUniRenderVisitor::GetCacheImageFromMirrorNode(
 {
     auto image = std::make_shared<Drawing::Image>();
     auto cacheImage = mirrorNode->GetCacheImgForCapture();
+
+    bool parallelComposition = RSMainThread::Instance()->GetParallelCompositionEnabled();
+    if (!parallelComposition) {
+        return cacheImage;
+    }
+
     if (cacheImage != nullptr) {
         auto renderContext = renderEngine_->GetRenderContext();
         if (renderContext != nullptr) {
