@@ -285,7 +285,9 @@ BackendTexture SkiaSurface::GetBackendTexture() const
     auto backendTexture = BackendTexture(true);
 #ifdef RS_ENABLE_VK
     if (SystemProperties::GetRsVulkanEnabled()) {
-        backendTexture.SetTextureInfo(SkiaTextureInfo::ConvertToVKTexture(grBackendTexture));
+        TextureInfo info;
+        SkiaTextureInfo::ConvertToVKTexture(grBackendTexture, info);
+        backendTexture.SetTextureInfo(info);
     } else {
         backendTexture.SetTextureInfo(SkiaTextureInfo::ConvertToTextureInfo(grBackendTexture));
     }

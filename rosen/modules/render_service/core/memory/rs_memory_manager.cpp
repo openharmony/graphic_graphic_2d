@@ -649,7 +649,7 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const GrContext* grCont
         return;
     }
     /////////////////////////////GPU/////////////////////////
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     std::string gpuInfo;
     // total
     DumpGpuCache(log, grContext, nullptr, gpuInfo);
