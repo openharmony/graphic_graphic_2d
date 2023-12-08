@@ -3286,14 +3286,22 @@ void RSUniRenderVisitor::CalcDirtyRegionForFilterNode(const RectI& filterRect,
 
     RectI displayDirtyRect = displayDirtyManager->GetCurrentFrameDirtyRegion();
     RectI currentSurfaceDirtyRect = currentSurfaceDirtyManager->GetCurrentFrameDirtyRegion();
-
-    if (!displayDirtyRect.IntersectRect(filterRect).IsEmpty() ||
-        !currentSurfaceDirtyRect.IntersectRect(filterRect).IsEmpty()) {
+    bool displayDirtyIntersectRectFilter = !displayDirtyRect.IntersectRect(filterRect).IsEmpty();
+    bool surfaceDirtyIntersectRectFilter = !currentSurfaceDirtyRect.IntersectRect(filterRect).IsEmpty();
+    if (displayDirtyIntersectRectFilter || surfaceDirtyIntersectRectFilter) {
         currentSurfaceDirtyManager->MergeDirtyRect(filterRect);
+        if (!currentSurfaceNode->IsTransparent()) {
+            Occlusion::Region filterRegion(Occlusion::Rect(filterRect.GetLeft(), filterRect.GetTop(),
+                filterRect.GetRight(), filterRect.GetBottom()));
+            if (!filterRegion.Sub(currentSurfaceNode->GetOpaqueRegion()).IsEmpty()) {
+                displayDirtyManager->MergeDirtyRect(filterRect);
+                return;
+            }
+        }
     }
 
     if (currentSurfaceNode->IsTransparent()) {
-        if (!displayDirtyRect.IntersectRect(filterRect).IsEmpty()) {
+        if (displayDirtyIntersectRectFilter) {
             displayDirtyManager->MergeDirtyRect(filterRect);
             return;
         }
