@@ -1255,7 +1255,6 @@ public:
         std::function<Drawing::BackendTexture(NativeWindowBuffer* buffer, int width, int height)> makeBackendTexture,
         std::function<void(void* context)> deleteImage,
         std::function<void*(VkImage image, VkDeviceMemory memory)> helper);
-    )
 #endif
 
 private:
