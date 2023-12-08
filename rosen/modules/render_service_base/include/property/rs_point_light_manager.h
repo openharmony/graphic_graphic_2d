@@ -24,22 +24,6 @@ namespace Rosen {
 class RSB_EXPORT RSPointLightManager {
 public:
     static RSPointLightManager* Instance();
-    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>& GetLightSourceMap()
-    {
-        return lightSourceNodeMap_;
-    }
-    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>& GetIlluminatedMap()
-    {
-        return illuminatedNodeMap_;
-    }
-    std::vector<std::weak_ptr<RSRenderNode>>& GetDirtyLightSourceList()
-    {
-        return dirtyLightSourceList_;
-    }
-    std::vector<std::weak_ptr<RSRenderNode>>& GetDirtyIlluminatedList()
-    {
-        return dirtyIlluminatedList_;
-    }
     void RegisterLightSource(const std::shared_ptr<RSRenderNode>& renderNode);
     void RegisterIlluminated(const std::shared_ptr<RSRenderNode>& renderNode);
     void UnRegisterLightSource(const std::shared_ptr<RSRenderNode>& renderNode);
@@ -57,7 +41,8 @@ private:
     RSPointLightManager& operator=(const RSPointLightManager&&) = delete;
 
     void ClearDirtyList();
-    void CheckIlluminated(Vector4f lightSourceAbsPosition, const std::shared_ptr<RSRenderNode>& illuminatedNode);
+    static void CheckIlluminated(
+        const std::shared_ptr<RSRenderNode>& lightSourceNode, const std::shared_ptr<RSRenderNode>& illuminatedNode);
     void PrepareLight(std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>& map,
         std::vector<std::weak_ptr<RSRenderNode>>& dirtyList, bool isLightSourceDirty);
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> lightSourceNodeMap_;

@@ -20,10 +20,9 @@
 #include "common/rs_vector4.h"
 #include "pipeline/rs_render_node.h"
 
-#define TWO 2
-#define THREE 3
 namespace OHOS {
 namespace Rosen {
+constexpr int TWO = 2;
 
 RSPointLightManager* RSPointLightManager::Instance()
 {
@@ -68,19 +67,21 @@ void RSPointLightManager::ClearDirtyList()
 }
 void RSPointLightManager::PrepareLight()
 {
-    auto& lightSourceMap = GetLightSourceMap();
-    auto& illuminatedMap = GetIlluminatedMap();
-    auto& dirtyLightSourceList = GetDirtyLightSourceList();
-    auto& dirtyIlluminatedList = GetDirtyIlluminatedList();
-    if (lightSourceMap.empty() || illuminatedMap.empty()) {
+    if (lightSourceNodeMap_.empty() || illuminatedNodeMap_.empty()) {
         ClearDirtyList();
         return;
     }
-    if ((dirtyIlluminatedList.empty() && dirtyLightSourceList.empty())) {
+    if ((dirtyIlluminatedList_.empty() && dirtyLightSourceList_.empty())) {
         return;
     }
-    PrepareLight(lightSourceMap, dirtyIlluminatedList, false);
-    PrepareLight(illuminatedMap, dirtyLightSourceList, true);
+    for (const auto& illuminatedWeakPtr : dirtyIlluminatedList_) {
+        auto illuminatedNodePtr = illuminatedWeakPtr.lock();
+        if (illuminatedNodePtr) {
+            illuminatedNodePtr->GetRenderProperties().GetIlluminated()->ClearLightSource();
+        }
+    }
+    PrepareLight(lightSourceNodeMap_, dirtyIlluminatedList_, false);
+    PrepareLight(illuminatedNodeMap_, dirtyLightSourceList_, true);
     ClearDirtyList();
 }
 void RSPointLightManager::PrepareLight(std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>& map,
@@ -91,39 +92,42 @@ void RSPointLightManager::PrepareLight(std::unordered_map<NodeId, std::weak_ptr<
         if (!mapElm) {
             return true;
         }
+        if (!mapElm->IsOnTheTree()) { // skip check when node is not on the tree
+            return false;
+        }
         for (const auto& weakPtr : dirtyList) {
             auto dirtyNodePtr = weakPtr.lock();
             if (!dirtyNodePtr) {
                 continue;
             }
-            Vector4f lightSourceAbsPosition;
-            std::shared_ptr<RSRenderNode> illuminatedNode = nullptr;
-            if (isLightSourceDirty) {
-                lightSourceAbsPosition = dirtyNodePtr->GetRenderProperties().GetLightSource()->GetAbsLightPosition();
-                illuminatedNode = mapElm;
-            } else {
-                lightSourceAbsPosition = mapElm->GetRenderProperties().GetLightSource()->GetAbsLightPosition();
-                illuminatedNode = dirtyNodePtr;
-            }
-            CheckIlluminated(lightSourceAbsPosition, illuminatedNode);
+            std::shared_ptr<RSRenderNode> lightSourceNode = isLightSourceDirty ? dirtyNodePtr : mapElm;
+            std::shared_ptr<RSRenderNode> illuminatedNode = isLightSourceDirty ? mapElm : dirtyNodePtr;
+            CheckIlluminated(lightSourceNode, illuminatedNode);
         }
         return false;
     });
 }
-void RSPointLightManager::CheckIlluminated(Vector4f lightSourceAbsPosition,
-    const std::shared_ptr<RSRenderNode>& illuminatedNode)
+void RSPointLightManager::CheckIlluminated(
+    const std::shared_ptr<RSRenderNode>& lightSourceNode, const std::shared_ptr<RSRenderNode>& illuminatedNode)
 {
-    RectI effectAbsRect = (illuminatedNode->GetRenderProperties().GetBoundsGeometry())->GetAbsRect();
-    int32_t radius = effectAbsRect.GetHeight() * THREE;
+    const auto& geoPtr = (illuminatedNode->GetRenderProperties().GetBoundsGeometry());
+    if (!geoPtr || geoPtr->IsEmpty()) {
+        return;
+    }
+    auto lightSourcePtr = lightSourceNode->GetRenderProperties().GetLightSource();
+    RectI effectAbsRect = geoPtr->GetAbsRect();
+    int radius = static_cast<int>(lightSourcePtr->GetLightRadius());
     effectAbsRect.SetAll(effectAbsRect.left_ - radius, effectAbsRect.top_ - radius, effectAbsRect.width_ + TWO * radius,
         effectAbsRect.height_ + TWO * radius);
+    const auto& lightSourceAbsPosition = lightSourcePtr->GetAbsLightPosition();
     auto lightAbsPositionX = static_cast<int>(lightSourceAbsPosition[0]);
     auto lightAbsPositionY = static_cast<int>(lightSourceAbsPosition[1]);
-    if (effectAbsRect.Intersect(lightAbsPositionX, lightAbsPositionY)) {
-        illuminatedNode->GetRenderProperties().GetIlluminated()->SetIsIlluminated(true);
+    auto illuminatedRootNodeId = illuminatedNode->GetInstanceRootNodeId();
+    auto lightSourceRootNodeId = lightSourceNode->GetInstanceRootNodeId();
+    if (effectAbsRect.Intersect(lightAbsPositionX, lightAbsPositionY) &&
+        illuminatedRootNodeId == lightSourceRootNodeId) {
+        illuminatedNode->GetRenderProperties().GetIlluminated()->AddLightSource(lightSourcePtr);
         illuminatedNode->SetDirty();
-    } else {
-        illuminatedNode->GetRenderProperties().GetIlluminated()->SetIsIlluminated(false);
     }
 }
 } // namespace Rosen

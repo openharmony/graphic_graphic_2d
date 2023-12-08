@@ -292,6 +292,18 @@ HWTEST_F(RSNodeTest, SetandGetBoundsWidth003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetIlluminatedBorderWidthTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetIlluminatedBorderWidthTest, TestSize.Level1)
+{
+    auto rootNode = RSCanvasNode::Create();
+    rootNode->SetIlluminatedBorderWidth(floatData[1]);
+    EXPECT_TRUE(ROSEN_EQ(rootNode->GetStagingProperties().GetIlluminatedBorderWidth(), floatData[1]));
+}
+
+/**
  * @tc.name: SetandGetBoundsWidth004
  * @tc.desc:
  * @tc.type:FUNC
