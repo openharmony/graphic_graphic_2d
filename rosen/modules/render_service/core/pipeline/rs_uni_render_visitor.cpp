@@ -289,7 +289,7 @@ void RSUniRenderVisitor::UpdateStaticCacheSubTree(const std::shared_ptr<RSRender
             child->SetDrawingCacheChanged(false);
         }
         // set flag for surface node whose children contain shared transition node
-        if (child->GetSharedTransitionParam().has_value()) {
+        if (child->GetSharedTransitionParam().has_value() && curSurfaceNode_) {
             curSurfaceNode_->SetHasSharedTransitionNode(true);
             auto leashNode =
                 RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(curSurfaceNode_->GetParent().lock());
@@ -4762,10 +4762,12 @@ bool RSUniRenderVisitor::ParallelComposition(const std::shared_ptr<RSBaseRenderN
 void RSUniRenderVisitor::PrepareSharedTransitionNode(RSBaseRenderNode& node)
 {
     // set flag for surface node whose children contain shared transition node
-    curSurfaceNode_->SetHasSharedTransitionNode(true);
-    auto leashNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(curSurfaceNode_->GetParent().lock());
-    if (leashNode && leashNode->GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
-        leashNode->SetHasSharedTransitionNode(true);
+    if (curSurfaceNode_) {
+        curSurfaceNode_->SetHasSharedTransitionNode(true);
+        auto leashNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(curSurfaceNode_->GetParent().lock());
+        if (leashNode && leashNode->GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
+            leashNode->SetHasSharedTransitionNode(true);
+        }
     }
 
     // Sanity check done by caller, transitionParam should always has value.

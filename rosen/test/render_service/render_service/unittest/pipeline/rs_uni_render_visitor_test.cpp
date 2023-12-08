@@ -1785,123 +1785,154 @@ HWTEST_F(RSUniRenderVisitorTest, CheckIfSurfaceRenderNodeNeedProcess003, TestSiz
 
 /**
  * @tc.name: PrepareSharedTransitionNode001
- * @tc.desc: Test RSUniRenderVisitorTest.PrepareSharedTransitionNode for unpaired transition nodes
+ * @tc.desc: Test RSUniRenderVisitorTest.PrepareSharedTransitionNode while paired node is already destroyed
  * @tc.type: FUNC
- * @tc.require: issuesI7RNL4
+ * @tc.require: issueI8MVJ6
  */
 HWTEST_F(RSUniRenderVisitorTest, PrepareSharedTransitionNode001, TestSize.Level2)
 {
-    auto transitionInNode = RSTestUtil::CreateSurfaceNode();
-    auto transitionOutNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(transitionInNode, nullptr);
-    ASSERT_NE(transitionOutNode, nullptr);
-    transitionInNode->sharedTransitionParam_ = {transitionInNode->GetId(), transitionOutNode};
-    transitionOutNode->sharedTransitionParam_ = std::nullopt;
-    
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-#ifndef USE_ROSEN_DRAWING
-    auto skCanvas = std::make_shared<SkCanvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-#else
-    auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-#endif
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-#ifndef USE_ROSEN_DRAWING
-    ASSERT_NE(skCanvas, nullptr);
-    rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas.get());
-#else
-    ASSERT_NE(drawingCanvas, nullptr);
-    rsUniRenderVisitor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
-#endif
+    auto node = RSTestUtil::CreateSurfaceNode();
+    auto pairedNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(node, nullptr);
+    ASSERT_NE(pairedNode, nullptr);
 
-    rsUniRenderVisitor->PrepareSharedTransitionNode(*transitionInNode);
-    ASSERT_EQ(transitionInNode->sharedTransitionParam_, std::nullopt);
+    node->sharedTransitionParam_ = {node->GetId(), pairedNode};
+    pairedNode.reset();
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->PrepareSharedTransitionNode(*node);
+    ASSERT_EQ(node->GetSharedTransitionParam(), std::nullopt);
 }
 
 /**
  * @tc.name: PrepareSharedTransitionNode002
- * @tc.desc: Test RSUniRenderVisitorTest.PrepareSharedTransitionNode while
- *           transition node ptr is nullptr
+ * @tc.desc: Test RSUniRenderVisitorTest.PrepareSharedTransitionNode while paired node is not a transition node
  * @tc.type: FUNC
- * @tc.require: issuesI7RNL4
+ * @tc.require: issueI8MVJ6
  */
 HWTEST_F(RSUniRenderVisitorTest, PrepareSharedTransitionNode002, TestSize.Level2)
 {
-    auto transitionInNode = RSTestUtil::CreateSurfaceNode();
-    auto transitionOutNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(transitionInNode, nullptr);
-    ASSERT_NE(transitionOutNode, nullptr);
-    transitionInNode->sharedTransitionParam_ = { transitionInNode->GetId(), transitionOutNode };
-    transitionOutNode.reset();
+    auto node = RSTestUtil::CreateSurfaceNode();
+    auto pairedNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(node, nullptr);
+    ASSERT_NE(pairedNode, nullptr);
+
+    node->sharedTransitionParam_ = {node->GetId(), pairedNode};
+    pairedNode->SetIsOnTheTree(true);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->PrepareSharedTransitionNode(*transitionInNode);
-    ASSERT_EQ(transitionInNode->sharedTransitionParam_, std::nullopt);
+    rsUniRenderVisitor->PrepareSharedTransitionNode(*node);
+    ASSERT_EQ(node->GetSharedTransitionParam(), std::nullopt);
 }
 
 /**
  * @tc.name: PrepareSharedTransitionNode003
- * @tc.desc: Test RSUniRenderVisitorTest.PrepareSharedTransitionNode while
- *           transition node's transition param is null
+ * @tc.desc: Test RSUniRenderVisitorTest.PrepareSharedTransitionNode while paired node is not paired with this node
  * @tc.type: FUNC
- * @tc.require: issuesI7RNL4
+ * @tc.require: issueI8MVJ6
  */
 HWTEST_F(RSUniRenderVisitorTest, PrepareSharedTransitionNode003, TestSize.Level2)
 {
-    auto transitionInNode = RSTestUtil::CreateSurfaceNode();
-    auto transitionOutNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(transitionInNode, nullptr);
-    ASSERT_NE(transitionOutNode, nullptr);
-    transitionInNode->sharedTransitionParam_ = {transitionInNode->GetId(), transitionOutNode};
-    transitionOutNode->sharedTransitionParam_ = std::nullopt;
+    auto node = RSTestUtil::CreateSurfaceNode();
+    auto pairedNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(node, nullptr);
+    ASSERT_NE(pairedNode, nullptr);
+
+    node->sharedTransitionParam_ = {node->GetId(), pairedNode};
+    pairedNode->sharedTransitionParam_ = {pairedNode->GetId(), pairedNode};
+    pairedNode->SetIsOnTheTree(true);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->PrepareSharedTransitionNode(*transitionInNode);
-    ASSERT_EQ(transitionInNode->sharedTransitionParam_, std::nullopt);
+    rsUniRenderVisitor->PrepareSharedTransitionNode(*node);
+    ASSERT_EQ(node->GetSharedTransitionParam(), std::nullopt);
 }
 
 /**
  * @tc.name: PrepareSharedTransitionNode004
- * @tc.desc: Test RSUniRenderVisitorTest.PrepareSharedTransitionNode while transition node don't match
+ * @tc.desc: Test RSUniRenderVisitorTest.PrepareSharedTransitionNode while transition node match
  * @tc.type: FUNC
- * @tc.require: issuesI7RNL4
+ * @tc.require: issueI8MVJ6
  */
 HWTEST_F(RSUniRenderVisitorTest, PrepareSharedTransitionNode004, TestSize.Level2)
 {
-    auto transitionInNode = RSTestUtil::CreateSurfaceNode();
-    auto transitionOutNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(transitionInNode, nullptr);
-    ASSERT_NE(transitionOutNode, nullptr);
-    transitionInNode->sharedTransitionParam_ = {transitionInNode->GetId(), transitionOutNode};
-    transitionOutNode->sharedTransitionParam_ = {transitionInNode->GetId(), transitionOutNode};
+    auto node = RSTestUtil::CreateSurfaceNode();
+    auto pairedNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(node, nullptr);
+    ASSERT_NE(pairedNode, nullptr);
+
+    node->sharedTransitionParam_ = {node->GetId(), pairedNode};
+    pairedNode->sharedTransitionParam_ = {node->GetId(), pairedNode};
+    pairedNode->SetIsOnTheTree(true);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->PrepareSharedTransitionNode(*transitionInNode);
-    ASSERT_EQ(transitionInNode->sharedTransitionParam_, std::nullopt);
+    rsUniRenderVisitor->PrepareSharedTransitionNode(*node);
+    ASSERT_EQ(rsUniRenderVisitor->prepareClipRect_, RectI(0, 0, INT_MAX, INT_MAX));
 }
 
 /**
  * @tc.name: PrepareSharedTransitionNode005
- * @tc.desc: Test RSUniRenderVisitorTest.PrepareSharedTransitionNode while all sanity checks passed
+ * @tc.desc: Test mark curSurfaceNode while PrepareSharedTransitionNode
  * @tc.type: FUNC
- * @tc.require: issuesI7RNL4
+ * @tc.require: issueI8MVJ6
  */
 HWTEST_F(RSUniRenderVisitorTest, PrepareSharedTransitionNode005, TestSize.Level2)
 {
-    auto transitionInNode  = RSTestUtil::CreateSurfaceNode();
-    auto transitionOutNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(transitionInNode, nullptr);
-    ASSERT_NE(transitionOutNode, nullptr);
-    transitionInNode->sharedTransitionParam_ = {transitionInNode->GetId(), transitionOutNode};
-    transitionOutNode->sharedTransitionParam_ = {transitionInNode->GetId(), transitionInNode};
-    transitionOutNode->SetIsOnTheTree(true);
-    
+    auto node = RSTestUtil::CreateSurfaceNode();
+    auto pairedNode = RSTestUtil::CreateSurfaceNode();
+    auto curSurfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(node, nullptr);
+    ASSERT_NE(pairedNode, nullptr);
+    ASSERT_NE(curSurfaceNode, nullptr);
+
+    node->sharedTransitionParam_ = {node->GetId(), pairedNode};
+    pairedNode->sharedTransitionParam_ = {node->GetId(), pairedNode};
+    pairedNode->SetIsOnTheTree(true);
+
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->PrepareSharedTransitionNode(*transitionInNode);
-    ASSERT_NE(transitionInNode->sharedTransitionParam_, std::nullopt);
+    rsUniRenderVisitor->curSurfaceNode_ = curSurfaceNode;
+    rsUniRenderVisitor->PrepareSharedTransitionNode(*node);
+    ASSERT_TRUE(curSurfaceNode->GetHasSharedTransitionNode());
+}
+
+/**
+ * @tc.name: PrepareSharedTransitionNode006
+ * @tc.desc: Test mark curSurfaceNode's parent while PrepareSharedTransitionNode
+ * @tc.type: FUNC
+ * @tc.require: issueI8MVJ6
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareSharedTransitionNode006, TestSize.Level2)
+{
+    auto node = RSTestUtil::CreateSurfaceNode();
+    auto pairedNode = RSTestUtil::CreateSurfaceNode();
+    auto curSurfaceNode = RSTestUtil::CreateSurfaceNode();
+    auto parentNode = RSTestUtil::CreateSurfaceNode();
+
+    ASSERT_NE(node, nullptr);
+    ASSERT_NE(pairedNode, nullptr);
+    ASSERT_NE(curSurfaceNode, nullptr);
+    ASSERT_NE(parentNode, nullptr);
+
+    node->sharedTransitionParam_ = {node->GetId(), pairedNode};
+    pairedNode->sharedTransitionParam_ = {node->GetId(), pairedNode};
+    pairedNode->SetIsOnTheTree(true);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curSurfaceNode_ = curSurfaceNode;
+
+    parentNode->AddChild(curSurfaceNode);
+    // while curSurfaceNode's parent isn't LEASH_WINDOW_NODE, shouldn't mark it
+    rsUniRenderVisitor->PrepareSharedTransitionNode(*node);
+    ASSERT_FALSE(parentNode->GetHasSharedTransitionNode());
+    // while curSurfaceNode's parent is LEASH_WINDOW_NODE, should mark it
+    parentNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    rsUniRenderVisitor->PrepareSharedTransitionNode(*node);
+    ASSERT_TRUE(parentNode->GetHasSharedTransitionNode());
 }
 
 /**
