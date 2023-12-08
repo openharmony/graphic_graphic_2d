@@ -36,6 +36,16 @@ void TexgineTextBlob::SetTextBlob(const std::shared_ptr<RSTextBlob> textBlob)
     textBlob_ = textBlob;
 }
 
+void TexgineTextBlob::GetGlyphIDs(std::vector<SkGlyphID>& glyphIds)
+{
+    GetGlyphIDforTextBlob(textBlob_.get(), glyphIds);
+}
+
+SkPath TexgineTextBlob::GetPathbyGlyphID(const SkGlyphID& glyphId)
+{
+    return GetPathforTextBlob(glyphId, textBlob_.get());
+}
+
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS

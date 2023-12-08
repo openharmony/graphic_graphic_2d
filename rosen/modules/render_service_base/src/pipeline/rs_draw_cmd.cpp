@@ -354,6 +354,100 @@ void TextBlobOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
     }
 }
 
+SymbolOpItem::SymbolOpItem(const HMSymbolData& symbol, SkPoint locate, const SkPaint& paint)
+    : OpItemWithPaint(sizeof(SymbolOpItem)), symbol_(symbol), locate_(locate), paint_(paint), nodeId_(0)
+{
+}
+
+static void MergePath(SkPath& multPath, RenderGroup& group, std::vector<SkPath>& pathLayers)
+{
+    for (auto groupInfo : group.groupInfos) {
+        SkPath pathStemp;
+        for (auto k : groupInfo.layerIndexes) {
+            if (k >= pathLayers.size()) {
+                continue;
+            }
+            pathStemp.addPath(pathLayers[k]);
+        }
+        for (size_t h : groupInfo.maskIndexes) {
+            if (h >= pathLayers.size()) {
+                continue;
+            }
+            SkPath outPath;
+            auto isOk = Op(pathStemp, pathLayers[h], SkPathOp::kDifference_SkPathOp, &outPath);
+            if (isOk) {
+                pathStemp = outPath;
+            }
+        }
+        multPath.addPath(pathStemp);
+    }
+}
+
+void SymbolOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
+{
+    SkPath path(symbol_.path_);
+
+    // 1.0 move path
+    path.offset(locate_.x(), locate_.y());
+
+    // 2.0 split path
+    std::vector<SkPath> paths;
+    HMSymbol::PathOutlineDecompose(path, paths);
+    std::vector<SkPath> pathLayers;
+    HMSymbol::MultilayerPath(symbol_.symbolInfo_.layers, paths, pathLayers);
+
+    // 3.0 set paint
+    SkPaint paintCopy = paint_;
+    paintCopy.setAntiAlias(true);
+    paintCopy.setStyle(SkPaint::kStrokeAndFill_Style);
+    paintCopy.setStrokeWidth(0.0f);
+    paintCopy.setStrokeJoin(SkPaint::kRound_Join);
+
+    // draw path
+    std::vector<RenderGroup> groups = symbol_.symbolInfo_.renderGroups;
+    RS_LOGD("SymbolOpItem::Draw RenderGroup size %{public}d", static_cast<int>(groups.size()));
+    if (groups.size() == 0) {
+        canvas.drawPath(path, paintCopy);
+    }
+    for (auto group : groups) {
+        SkPath multPath;
+        MergePath(multPath, group, pathLayers);
+        // color
+        paintCopy.setColor(SkColorSetRGB(group.color.r, group.color.g, group.color.b));
+        paintCopy.setAlphaf(group.color.a);
+        canvas.drawPath(multPath, paintCopy);
+    }
+}
+
+bool SymbolOpItem::Marshalling(Parcel& parcel) const
+{
+    RS_LOGD("SymbolOpItem::Marshalling at %{public}d, %{public}d",
+        static_cast<int>(locate_.x()), static_cast<int>(locate_.y()));
+    bool success = RSMarshallingHelper::Marshalling(parcel, symbol_) &&
+        RSMarshallingHelper::Marshalling(parcel, locate_) &&
+        RSMarshallingHelper::Marshalling(parcel, paint_);
+    if (!success) {
+        RS_LOGE("SymbolOpItem::Marshalling failed!");
+        return false;
+    }
+    return true;
+}
+
+OpItem* SymbolOpItem::Unmarshalling(Parcel& parcel)
+{
+    HMSymbolData symbol;
+    SkPoint point;
+    SkPaint paint;
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, symbol) &&
+        RSMarshallingHelper::Unmarshalling(parcel, point) &&
+        RSMarshallingHelper::Unmarshalling(parcel, paint);
+    if (!success) {
+        RS_LOGE("SymbolOpItem::Unmarshalling failed!");
+        return nullptr;
+    }
+    return new SymbolOpItem(symbol, point, paint);
+}
+
 #ifdef NEW_SKIA
 BitmapOpItem::BitmapOpItem(const sk_sp<SkImage> bitmapInfo, float left, float top,
     const SkSamplingOptions& samplingOptions, const SkPaint* paint)
