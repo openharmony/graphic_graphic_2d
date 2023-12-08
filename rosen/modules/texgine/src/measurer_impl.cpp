@@ -328,7 +328,7 @@ int MeasurerImpl::DoShape(CharGroups &cgs, MeasuringRun &run, size_t &index)
         LOGEX_FUNC_LINE(ERROR) << "text is nullptr";
         return FAILED;
     }
-    hb_buffer_add_utf16(hbuffer, text_.data(), INVALID_TEXT_LENGTH, run.start, run.end - run.start);
+    hb_buffer_add_utf16(hbuffer, text_.data(), text_.size(), run.start, run.end - run.start);
     hb_buffer_set_direction(hbuffer, rtl_ ? HB_DIRECTION_RTL : HB_DIRECTION_LTR);
     auto icuGetUnicodeFuncs = hb_unicode_funcs_create(hb_icu_get_unicode_funcs());
     if (!icuGetUnicodeFuncs) {

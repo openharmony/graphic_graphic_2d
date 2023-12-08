@@ -97,10 +97,6 @@ std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch,
         struct TypefaceCacheKey key = {.fss = fontStyleSet, .fs = style};
         if (auto it = typefaceCache_.find(key); it != typefaceCache_.end()) {
             typeface = it->second;
-            if (typeface) {
-                typeface->ComputeFakeryItalic(style.GetFontStyle());
-                typeface->ComputeFakery(style.GetWeight());
-            }
         } else {
             if (fontStyleSet == nullptr) {
                 continue;
@@ -114,12 +110,13 @@ std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch,
         }
 
         if (typeface->Has(ch)) {
+            typeface->ComputeFakeryItalic(style.GetFontStyle());
+            typeface->ComputeFakery(style.GetWeight());
             return typeface;
         }
     }
     auto typeface = FindThemeTypeface(style);
     if (typeface) {
-        typeface->ComputeFakeryItalic(style.GetFontStyle());
         typeface->ComputeFakery(style.GetWeight());
     }
     if (typeface == nullptr) {
@@ -127,6 +124,9 @@ std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch,
     }
     if (typeface == nullptr) {
         typeface = GetTypefaceForFontStyles(style, script, locale);
+    }
+    if (typeface) {
+        typeface->ComputeFakeryItalic(style.GetFontStyle());
     }
     return typeface;
 }
