@@ -89,10 +89,18 @@ public:
             modifier->Update(prop, isDelta);
         }
     }
+#ifndef USE_ROSEN_DRAWING
     static void UpdateModifierDrawCmdList(
         RSContext& context, NodeId nodeId, DrawCmdListPtr value, PropertyId id, bool isDelta)
     {
         std::shared_ptr<RSRenderPropertyBase> prop = std::make_shared<RSRenderProperty<DrawCmdListPtr>>(value, id);
+#else
+    static void UpdateModifierDrawCmdList(
+        RSContext& context, NodeId nodeId, Drawing::DrawCmdListPtr value, PropertyId id, bool isDelta)
+    {
+        std::shared_ptr<RSRenderPropertyBase> prop =
+            std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(value, id);
+#endif
         auto& nodeMap = context.GetNodeMap();
         auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
         if (!node) {
@@ -104,7 +112,11 @@ public:
         }
         modifier->Update(prop, isDelta);
         if (value) {
+#ifndef USE_ROSEN_DRAWING
             value->UpdateNodeIdToPicture(nodeId);
+#else
+            // Drawing need to be adapted furture
+#endif
         }
     }
 
