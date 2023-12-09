@@ -30,6 +30,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_uni_render_engine.h"
+#include "platform/common/rs_system_properties.h"
 
 using namespace testing::ext;
 
@@ -197,6 +198,10 @@ std::shared_ptr<RSSurfaceNode> RSSurfaceCaptureTaskTest::CreateSurface(std::stri
 void RSSurfaceCaptureTaskTest::InitRenderContext()
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetAceVulkanEnabled()) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     if (renderContext_ == nullptr) {
         HiLog::Info(LOG_LABEL, "%s: init renderContext_", __func__);
         renderContext_ = RenderContextFactory::GetInstance().CreateEngine();
@@ -219,9 +224,11 @@ void RSSurfaceCaptureTaskTest::FillSurface(std::shared_ptr<RSSurfaceNode> surfac
         return;
     }
 #ifdef ACE_ENABLE_GL
-    HiLog::Info(LOG_LABEL, "ACE_ENABLE_GL");
-    InitRenderContext();
-    rsSurface->SetRenderContext(renderContext_);
+    if (!RSSystemProperties::GetAceVulkanEnabled()) {
+        HiLog::Info(LOG_LABEL, "ACE_ENABLE_GL");
+        InitRenderContext();
+        rsSurface->SetRenderContext(renderContext_);
+    }
 #endif // ACE_ENABLE_GL
     auto frame = rsSurface->RequestFrame(DEFAULT_BOUNDS_WIDTH, DEFAULT_BOUNDS_HEIGHT);
     std::unique_ptr<RSSurfaceFrame> framePtr = std::move(frame);
@@ -746,7 +753,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CaptureSurfaceInDisplayWithUni001, Function |
 {
     bool isUnirender = RSUniRenderJudgement::IsUniRender();
     ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNode();    
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     surfaceNode->SetSecurityLayer(false);
     if (!isUnirender) {
         visitor_->CaptureSingleSurfaceNodeWithUni(*surfaceNode);

@@ -2561,11 +2561,12 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         std::vector<RectI> rects;
         bool clipPath = false;
 #ifdef RS_ENABLE_VK
+        int saveCountBeforeClip = 0;
         if (RSSystemProperties::GetRsVulkanEnabled()) {
 #ifndef USE_ROSEN_DRAWING
-            int saveCountBeforeClip = canvas_->save();
+            saveCountBeforeClip = canvas_->save();
 #else
-            int saveCountBeforeClip = canvas_->GetSaveCout();
+            saveCountBeforeClip = canvas_->GetSaveCout();
             canvas_->Save();
 #endif
         }
@@ -2634,7 +2635,13 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 RS_TRACE_NAME("RSUniRenderVisitor: clipPath");
                 clipPath = true;
 #ifdef RS_ENABLE_VK
-                canvas_->clipRegion(region);
+                if (RSSystemProperties::GetRsVulkanEnabled()) {
+                    canvas_->clipRegion(region);
+                } else {
+                    SkPath dirtyPath;
+                    region.getBoundaryPath(&dirtyPath);
+                    canvas_->clipPath(dirtyPath, true);
+                }
 #else
                 SkPath dirtyPath;
                 region.getBoundaryPath(&dirtyPath);

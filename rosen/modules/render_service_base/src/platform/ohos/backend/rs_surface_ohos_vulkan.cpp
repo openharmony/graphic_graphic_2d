@@ -181,7 +181,12 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
 #endif
         }
     }
-    int32_t bufferAge = mPresentCount - nativeSurface.lastPresentedCount;
+    int32_t bufferAge;
+    if (nativeSurface.lastPresentedCount == -1) {
+        bufferAge = 0;
+    } else {
+        bufferAge = mPresentCount - nativeSurface.lastPresentedCount;
+    }
 #ifndef USE_ROSEN_DRAWING
     std::unique_ptr<RSSurfaceFrameOhosVulkan> frame =
         std::make_unique<RSSurfaceFrameOhosVulkan>(nativeSurface.skSurface, width, height, bufferAge);

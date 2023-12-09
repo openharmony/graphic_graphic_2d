@@ -171,9 +171,6 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info
     BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace,
     void (*deleteFunc)(void*), void* cleanupHelper)
 {
-    if (!SystemProperties::GetRsVulkanEnabled()) {
-        return false;
-    }
     grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
     if (!grContext_) {
         LOGE("SkiaImage BuildFromTexture grContext_ is null");
@@ -188,15 +185,21 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info
     }
 
 #ifdef RS_ENABLE_VK
-    const auto& backendTexture = SkiaTextureInfo::ConvertToGrBackendTexture(info);
-    if (!backendTexture.isValid()) {
-        LOGE("SkiaImage BuildFromTexture backend texture is not valid!!!!");
-        return false;
-    }
+    if (SystemProperties::GetRsVulkanEnabled()) {
+        const auto& backendTexture = SkiaTextureInfo::ConvertToGrBackendTexture(info);
+        if (!backendTexture.isValid()) {
+            LOGE("SkiaImage BuildFromTexture backend texture is not valid!!!!");
+            return false;
+        }
 
-    skiaImage_ = SkImage::MakeFromTexture(grContext_.get(), backendTexture,
-        SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin), SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
-        SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace, deleteFunc, cleanupHelper);
+        skiaImage_ = SkImage::MakeFromTexture(grContext_.get(), backendTexture,
+            SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin), SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
+            SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace, deleteFunc, cleanupHelper);
+    } else {
+        skiaImage_ = SkImage::MakeFromTexture(grContext_.get(),  SkiaTextureInfo::ConvertToGrBackendTexture(info),
+            SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin), SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
+            SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace);
+    }
 #else
     skiaImage_ = SkImage::MakeFromTexture(grContext_.get(),  SkiaTextureInfo::ConvertToGrBackendTexture(info),
         SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin), SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),

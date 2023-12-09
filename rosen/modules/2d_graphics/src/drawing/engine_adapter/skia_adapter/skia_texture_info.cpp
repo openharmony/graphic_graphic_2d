@@ -14,6 +14,7 @@
  */
 
 #include "skia_texture_info.h"
+#include "utils/system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -24,7 +25,12 @@ GrBackendTexture SkiaTextureInfo::ConvertToGrBackendVKTexture(const TextureInfo&
 {
     auto vkInfo = info.GetVKTextureInfo();
     GrVkImageInfo imageInfo;
-        
+
+    if (!SystemProperties::GetRsVulkanEnabled()) {
+        GrBackendTexture backendTexture(0, 0, imageInfo);
+        return backendTexture;
+    }
+
     if (!vkInfo) {
         GrBackendTexture backendTexture(info.GetWidth(), info.GetHeight(), imageInfo);
         return backendTexture;
@@ -67,6 +73,9 @@ GrBackendTexture SkiaTextureInfo::ConvertToGrBackendVKTexture(const TextureInfo&
 
 void SkiaTextureInfo::ConvertToVKTexture(const GrBackendTexture& backendTexture, TextureInfo& info)
 {
+    if (!SystemProperties::GetRsVulkanEnabled()) {
+        return;
+    }
     std::shared_ptr<VKTextureInfo> vkInfo = std::make_shared<VKTextureInfo>();
     info.SetWidth(backendTexture.width());
     info.SetHeight(backendTexture.height());

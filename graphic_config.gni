@@ -28,6 +28,7 @@ declare_args() {
   graphic_2d_feature_parallel_render_enable = true
   graphic_2d_feature_enable_vulkan = false
   graphic_2d_feature_enable_flutter_vulkan = false
+  graphic_2d_feature_enable_opengl = true
   graphic_2d_feature_enable_filter_cache = true
   graphic_2d_feature_parallel_upload_enable = true
   enable_text_gine = true
@@ -49,6 +50,10 @@ declare_args() {
   }
 }
 
+if (graphic_2d_feature_product == "phone") {
+  graphic_2d_feature_enable_vulkan = false
+}
+
 gpu_defines = []
 accessibility_defines = []
 if (enable_text_gine) {
@@ -64,7 +69,8 @@ if (graphic_2d_feature_ace_enable_gpu) {
       "ACE_ENABLE_VK",
       "RS_ENABLE_VK",
     ]
-  } else {
+  }
+  if (graphic_2d_feature_enable_opengl) {
     gpu_defines += [
       "ACE_ENABLE_GL",
       "RS_ENABLE_GL",
@@ -162,6 +168,7 @@ check_graphic_ext_file_args = [
   "--filename",
   rebase_path("//foundation/graphic/graphic_2d_ext/ohcore/build/config.gni"),
 ]
+
 check_ddgr_ext_file_args = [
   "--filename",
   rebase_path("//foundation/graphic/graphic_2d_ext/ddgr/ddgr_config.gni"),

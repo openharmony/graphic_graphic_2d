@@ -13,13 +13,19 @@
  * limitations under the License.
  */
 
+#include <parameter.h>
+#include <parameters.h>
 #include "utils/system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 #if defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)
-const bool SystemProperties::aceVulkanEnabled_ = false;
+const bool SystemProperties::aceVulkanEnabled_ =
+    (std::atoi(system::GetParameter("persist.sys.graphic.GpuApiType", "-1").c_str()) != INVALID_SYS_GPU_API_TYPE) ?
+        ((std::atoi(system::GetParameter("persist.sys.graphic.GpuApiType", "0").c_str()) == 0) ? false : true) :
+        (((system::GetParameter("const.gpu.vendor", "0").compare("higpu.v200") == 0) &&
+          (system::GetParameter("const.build.product", "0").compare("ALN") == 0)) ? true : false);
 #elif defined (ACE_ENABLE_GL)
 const bool SystemProperties::aceVulkanEnabled_ = false;
 #else
@@ -27,7 +33,11 @@ const bool SystemProperties::aceVulkanEnabled_ = true;
 #endif
 
 #if defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK)
-const bool SystemProperties::rsVulkanEnabled_ = false;
+const bool SystemProperties::rsVulkanEnabled_ =
+    (std::atoi(system::GetParameter("persist.sys.graphic.GpuApiType", "-1").c_str()) != INVALID_SYS_GPU_API_TYPE) ?
+        ((std::atoi(system::GetParameter("persist.sys.graphic.GpuApiType", "0").c_str()) == 0) ? false : true) :
+        (((system::GetParameter("const.gpu.vendor", "0").compare("higpu.v200") == 0) &&
+          (system::GetParameter("const.build.product", "0").compare("ALN") == 0)) ? true : false);
 #elif defined (RS_ENABLE_GL)
 const bool SystemProperties::rsVulkanEnabled_ = false;
 #else

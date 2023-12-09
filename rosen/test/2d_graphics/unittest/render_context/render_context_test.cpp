@@ -45,7 +45,7 @@ HWTEST_F(RenderContextTest, CreateEGLSurfaceTest001, Function | SmallTest | Leve
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     // start CreateEGLSurfaceTest001 test
@@ -64,7 +64,7 @@ HWTEST_F(RenderContextTest, CreateEGLSurfaceTest002, Function | SmallTest | Leve
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     // start CreateEGLSurfaceTest002 test
@@ -84,7 +84,7 @@ HWTEST_F(RenderContextTest, SetUpGrContextTest, Function | SmallTest | Level2)
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     // start SetUpGrContextTest test
@@ -107,7 +107,7 @@ HWTEST_F(RenderContextTest, AcquireSurfaceTest, Function | SmallTest | Level2)
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     // start AcquireSurfaceTest test
@@ -126,7 +126,7 @@ HWTEST_F(RenderContextTest, QueryEglBufferAgeTest001, Function | SmallTest | Lev
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     // start QueryEglBufferAgeTest001 test
@@ -145,7 +145,7 @@ HWTEST_F(RenderContextTest, QueryEglBufferAgeTest002, Function | SmallTest | Lev
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     // start QueryEglBufferAgeTest002 test
@@ -164,7 +164,7 @@ HWTEST_F(RenderContextTest, ClearRedundantResourcesTest001, Level1)
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     // start ClearRedundantResourcesTest001 test
@@ -183,7 +183,7 @@ HWTEST_F(RenderContextTest, DamageFrameTest001, Level1)
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     // start DamageFrameTest001 test
@@ -202,7 +202,7 @@ HWTEST_F(RenderContextTest, MakeSelfCurrentTest001, Level1)
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     // start MakeSelfCurrentTest001 test
@@ -221,7 +221,7 @@ HWTEST_F(RenderContextTest, ColorSpaceTest001, Level1)
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     // start ColorSpaceTest001 test
@@ -240,7 +240,7 @@ HWTEST_F(RenderContextTest, PixelFormatTest001, Level1)
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     // start PixelFormatTest001 test

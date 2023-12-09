@@ -49,7 +49,7 @@ HWTEST_F(ShaderCacheTest, instance_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     GTEST_LOG_(INFO) << "ShaderCacheTest instance_test_001 start";
@@ -88,7 +88,7 @@ HWTEST_F(ShaderCacheTest, initialization_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     GTEST_LOG_(INFO) << "ShaderCacheTest initialization_test_001 start";
@@ -114,7 +114,7 @@ HWTEST_F(ShaderCacheTest, initialization_test_001, TestSize.Level1)
 #endif
 }
 
- 
+
 /**
  * @tc.name: initialization_test_002
  * @tc.desc: Verify the file directory setting function of shader cache
@@ -126,7 +126,7 @@ HWTEST_F(ShaderCacheTest, initialization_test_002, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     GTEST_LOG_(INFO) << "ShaderCacheTest initialization_test_002 start";
@@ -167,7 +167,7 @@ HWTEST_F(ShaderCacheTest, store_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     GTEST_LOG_(INFO) << "ShaderCacheTest store_test_001 start";
@@ -210,7 +210,7 @@ HWTEST_F(ShaderCacheTest, store_test_002, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     GTEST_LOG_(INFO) << "ShaderCacheTest store_test_002 start";
@@ -253,7 +253,7 @@ HWTEST_F(ShaderCacheTest, writing_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     GTEST_LOG_(INFO) << "ShaderCacheTest writing_test_001 start";
@@ -300,7 +300,7 @@ HWTEST_F(ShaderCacheTest, writing_test_002, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     GTEST_LOG_(INFO) << "ShaderCacheTest writing_test_002 start";
