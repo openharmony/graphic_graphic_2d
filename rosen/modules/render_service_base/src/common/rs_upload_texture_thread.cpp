@@ -15,6 +15,7 @@
 
 #include "common/rs_upload_texture_thread.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #if defined(RS_ENABLE_UNI_RENDER) && defined(RS_ENABLE_GL)
 #include "render_context/render_context.h"
 #endif

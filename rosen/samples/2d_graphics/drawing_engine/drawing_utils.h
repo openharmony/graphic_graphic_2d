@@ -44,13 +44,17 @@ public:
     static RenderBackendType GetRenderBackendType()
     {
 #if defined(ACE_ENABLE_VK)
-        RenderBackendType type = RenderBackendType::VULKAN;
-#elif defined(ACE_ENABLE_GL)
-        RenderBackendType type = RenderBackendType::GLES;
-#else
-        RenderBackendType type = RenderBackendType::SOFTWARE;
+        if (RSSystemProperties::GetAceVulkanEnabled()) {
+            return RenderBackendType::VULKAN;
+        }
 #endif
-        return type;
+
+#if defined(ACE_ENABLE_GL)
+        if (!RSSystemProperties::GetAceVulkanEnabled()) {
+            return RenderBackendType::GLES;
+        }
+#endif
+        return RenderBackendType::SOFTWARE;
     }
 };
 }

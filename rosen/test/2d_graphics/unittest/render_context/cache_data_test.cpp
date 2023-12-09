@@ -49,7 +49,7 @@ HWTEST_F(CacheDataTest, cachedata_init_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     GTEST_LOG_(INFO) << "CacheDataTest cachedata_init_test_001 start";
@@ -75,7 +75,7 @@ HWTEST_F(CacheDataTest, serialized_size_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     GTEST_LOG_(INFO) << "CacheDataTest serialized_size_test_001 start";
@@ -105,7 +105,7 @@ HWTEST_F(CacheDataTest, get_data_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     GTEST_LOG_(INFO) << "CacheDataTest get_data_test_001 start";
@@ -133,7 +133,7 @@ HWTEST_F(CacheDataTest, serialization_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     GTEST_LOG_(INFO) << "CacheDataTest serialization_test_001 start";
@@ -163,7 +163,7 @@ HWTEST_F(CacheDataTest, deserialization_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     GTEST_LOG_(INFO) << "CacheDataTest deserialization_test_001 start";
@@ -193,7 +193,7 @@ HWTEST_F(CacheDataTest, write_data_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     GTEST_LOG_(INFO) << "CacheDataTest write_data_test_001 start";
@@ -224,7 +224,7 @@ HWTEST_F(CacheDataTest, clean_data_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     GTEST_LOG_(INFO) << "CacheDataTest clean_data_test_001 start";
@@ -263,7 +263,7 @@ HWTEST_F(CacheDataTest, clean_data_test_002, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
     if (RSSystemProperties::GetAceVulkanEnabled()) {
-        ASSERT_TRUE(false);
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
     GTEST_LOG_(INFO) << "CacheDataTest clean_data_test_002 start";

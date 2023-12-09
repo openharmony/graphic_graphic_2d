@@ -30,13 +30,17 @@ CanvasContext* CanvasContext::Create()
     switch (type) {
         case RenderBackendType::VULKAN:
 #ifdef RS_ENABLE_VK
-            std::cout << "CanvasContext::Create with vulkan backend" << std::endl;
-            return new CanvasContext(std::make_unique<VulkanRenderBackend>());
+            if (RSSystemProperties::GetRsVulkanEnabled()) {
+                std::cout << "CanvasContext::Create with vulkan backend" << std::endl;
+                return new CanvasContext(std::make_unique<VulkanRenderBackend>());
+            }
 #endif
         case RenderBackendType::GLES:
 #ifdef RS_ENABLE_GL
-            std::cout << "CanvasContext::Create with gles backend" << std::endl;
-            return new CanvasContext(std::make_unique<GLESRenderBackend>());
+            if (!RSSystemProperties::GetRsVulkanEnabled()) {
+                std::cout << "CanvasContext::Create with gles backend" << std::endl;
+                return new CanvasContext(std::make_unique<GLESRenderBackend>());
+            }
 #endif
         case RenderBackendType::SOFTWARE:
             std::cout << "CanvasContext::Create with software backend" << std::endl;

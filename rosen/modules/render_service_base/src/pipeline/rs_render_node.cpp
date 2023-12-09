@@ -48,6 +48,9 @@
 namespace {
 uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
+    if (!OHOS::Rosen::RSSystemProperties::GetRsVulkanEnabled()) {
+        return UINT32_MAX;
+    }
     auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton();
     VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
 
@@ -1607,29 +1610,33 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
         return;
     }
 #ifdef RS_ENABLE_GL
-    SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
-    std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-    cacheSurface_ = SkSurface::MakeRenderTarget(grContext, SkBudgeted::kYes, info);
+    if (!OHOS::Rosen::RSSystemProperties::GetRsVulkanEnabled()) {
+        SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
+        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
+        cacheSurface_ = SkSurface::MakeRenderTarget(grContext, SkBudgeted::kYes, info);
+    }
 #endif
 #ifdef RS_ENABLE_VK
-    std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
-    cacheBackendTexture_ = MakeBackendTexture(width, height);
-    if (!cacheBackendTexture_.isValid()) {
-        if (func) {
-            func(std::move(cacheSurface_), std::move(cacheCompletedSurface_),
-                cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
-            ClearCacheSurface();
+    if (OHOS::Rosen::RSSystemProperties::GetRsVulkanEnabled()) {
+        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
+        cacheBackendTexture_ = MakeBackendTexture(width, height);
+        if (!cacheBackendTexture_.isValid()) {
+            if (func) {
+                func(std::move(cacheSurface_), std::move(cacheCompletedSurface_),
+                    cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
+                ClearCacheSurface();
+            }
+            return;
         }
-        return;
+        GrVkImageInfo imageInfo;
+        cacheBackendTexture_.getVkImageInfo(&imageInfo);
+        cacheCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+            imageInfo.fImage, imageInfo.fAlloc.fMemory);
+        SkSurfaceProps props(0, SkPixelGeometry::kUnknown_SkPixelGeometry);
+        cacheSurface_ = SkSurface::MakeFromBackendTexture(
+            grContext, cacheBackendTexture_, kBottomLeft_GrSurfaceOrigin, 1, kRGBA_8888_SkColorType,
+            SkColorSpace::MakeSRGB(), &props, NativeBufferUtils::DeleteVkImage, cacheCleanupHelper_);
     }
-    GrVkImageInfo imageInfo;
-    cacheBackendTexture_.getVkImageInfo(&imageInfo);
-    cacheCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-        imageInfo.fImage, imageInfo.fAlloc.fMemory);
-    SkSurfaceProps props(0, SkPixelGeometry::kUnknown_SkPixelGeometry);
-    cacheSurface_ = SkSurface::MakeFromBackendTexture(
-        grContext, cacheBackendTexture_, kBottomLeft_GrSurfaceOrigin, 1, kRGBA_8888_SkColorType,
-        SkColorSpace::MakeSRGB(), &props, NativeBufferUtils::DeleteVkImage, cacheCleanupHelper_);
 #endif
 #else
     cacheSurface_ = SkSurface::MakeRasterN32Premul(width, height);
@@ -1712,14 +1719,20 @@ sk_sp<SkImage> RSRenderNode::GetCompletedImage(RSPaintFilterCanvas& canvas, uint
             RS_LOGE("invalid grBackendTexture_");
             return nullptr;
         }
+        sk_sp<SkImage> image = nullptr;
 #ifdef RS_ENABLE_GL
-        auto image = SkImage::MakeFromTexture(canvas.recordingContext(), cacheCompletedBackendTexture_,
-            kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
+        if (!OHOS::Rosen::RSSystemProperties::GetRsVulkanEnabled()) {
+            image = SkImage::MakeFromTexture(canvas.recordingContext(), cacheCompletedBackendTexture_,
+                kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
+        }
 #endif
+
 #ifdef RS_ENABLE_VK
-        auto image = SkImage::MakeFromTexture(canvas.recordingContext(), cacheCompletedBackendTexture_,
-            kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr,
-            NativeBufferUtils::DeleteVkImage, cacheCompletedCleanupHelper_->Ref());
+        if (OHOS::Rosen::RSSystemProperties::GetRsVulkanEnabled()) {
+            image = SkImage::MakeFromTexture(canvas.recordingContext(), cacheCompletedBackendTexture_,
+                kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr,
+                NativeBufferUtils::DeleteVkImage, cacheCompletedCleanupHelper_->Ref());
+        }
 #endif
         return image;
 #endif
@@ -2332,7 +2345,9 @@ void RSRenderNode::UpdateCompletedCacheSurface()
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     std::swap(cacheBackendTexture_, cacheCompletedBackendTexture_);
 #ifdef RS_ENABLE_VK
-    std::swap(cacheCleanupHelper_, cacheCompletedCleanupHelper_);
+    if (OHOS::Rosen::RSSystemProperties::GetRsVulkanEnabled()) {
+        std::swap(cacheCleanupHelper_, cacheCompletedCleanupHelper_);
+    }
 #endif
     SetTextureValidFlag(true);
 #endif

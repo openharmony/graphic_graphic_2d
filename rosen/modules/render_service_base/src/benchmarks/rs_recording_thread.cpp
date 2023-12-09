@@ -196,6 +196,40 @@ bool RSRecordingThread::CheckAndRecording()
     return GetRecordingEnabled();
 }
 
+void RSRecordingThread::FinishRecordingOneFrameTask(RecordingMode modeSubThread)
+{
+    for (int curFrameIndex = 0; curFrameIndex < dumpFrameNum_; curFrameIndex++) {
+        std::shared_ptr<MessageParcel> messageParcel = std::make_shared<MessageParcel>();
+        std::string opsDescription = "drawing ops no description";
+        if (modeSubThread == RecordingMode::HIGH_SPPED_RECORDING) {
+            RS_LOGI("RSRecordingThread::High speed!");
+            messageParcel->SetMaxCapacity(RECORDING_PARCEL_CAPCITY);
+            RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
+#ifndef USE_ROSEN_DRAWING
+            drawCmdListVec_[curFrameIndex]->Marshalling(*messageParcel);
+#endif
+            RSMarshallingHelper::EndNoSharedMem();
+#ifndef USE_ROSEN_DRAWING
+            opsDescription = drawCmdListVec_[curFrameIndex]-> GetOpsWithDesc();
+#endif
+        } else if (modeSubThread == RecordingMode::LOW_SPEED_RECORDING) {
+            messageParcel = messageParcelVec_[curFrameIndex];
+#ifndef USE_ROSEN_DRAWING
+            opsDescription = opsDescriptionVec_[curFrameIndex];
+#endif
+        }
+        OHOS::Rosen::Benchmarks::WriteMessageParcelToFile(messageParcel, opsDescription, curFrameIndex, fileDir_);
+    }
+    drawCmdListVec_.clear();
+    messageParcelVec_.clear();
+    opsDescriptionVec_.clear();
+    curDumpFrame_ = 0;
+    dumpFrameNum_ = 0;
+    fileDir_ = "";
+    RSSystemProperties::SetRecordingDisenabled();
+    RS_LOGD("RSRecordingThread::FinishRecordingOneFrame isRecordingEnabled = false");
+}
+
 void RSRecordingThread::FinishRecordingOneFrame()
 {
     std::string line = "RSRecordingThread::FinishRecordingOneFrame curDumpFrame = " + std::to_string(curDumpFrame_) +
@@ -209,41 +243,16 @@ void RSRecordingThread::FinishRecordingOneFrame()
     auto modeSubThread = mode_;
     mode_ = RecordingMode::STOP_RECORDING;
 #ifdef RS_ENABLE_GL
-    RSTaskMessage::RSTask task = [this, modeSubThread]() {
-#endif
-        for (int curFrameIndex = 0; curFrameIndex < dumpFrameNum_; curFrameIndex++) {
-            std::shared_ptr<MessageParcel> messageParcel = std::make_shared<MessageParcel>();
-            std::string opsDescription = "drawing ops no description";
-            if (modeSubThread == RecordingMode::HIGH_SPPED_RECORDING) {
-                RS_LOGI("RSRecordingThread::High speed!");
-                messageParcel->SetMaxCapacity(RECORDING_PARCEL_CAPCITY);
-                RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
-#ifndef USE_ROSEN_DRAWING
-                drawCmdListVec_[curFrameIndex]->Marshalling(*messageParcel);
-#endif
-                RSMarshallingHelper::EndNoSharedMem();
-#ifndef USE_ROSEN_DRAWING
-                opsDescription = drawCmdListVec_[curFrameIndex]-> GetOpsWithDesc();
-#endif
-            } else if (modeSubThread == RecordingMode::LOW_SPEED_RECORDING) {
-                messageParcel = messageParcelVec_[curFrameIndex];
-#ifndef USE_ROSEN_DRAWING
-                opsDescription = opsDescriptionVec_[curFrameIndex];
-#endif
-            }
-            OHOS::Rosen::Benchmarks::WriteMessageParcelToFile(messageParcel, opsDescription, curFrameIndex, fileDir_);
-        }
-        drawCmdListVec_.clear();
-        messageParcelVec_.clear();
-        opsDescriptionVec_.clear();
-        curDumpFrame_ = 0;
-        dumpFrameNum_ = 0;
-        fileDir_ = "";
-        RSSystemProperties::SetRecordingDisenabled();
-        RS_LOGD("RSRecordingThread::FinishRecordingOneFrame isRecordingEnabled = false");
-#ifdef RS_ENABLE_GL
-    };
-    PostTask(task);
+    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+        RSTaskMessage::RSTask task = [this, modeSubThread]() {
+            FinishRecordingOneFrameTask(modeSubThread);
+        };
+        PostTask(task);
+    } else {
+        FinishRecordingOneFrameTask(modeSubThread);
+    }
+#else
+    FinishRecordingOneFrameTask(modeSubThread);
 #endif
 }
 

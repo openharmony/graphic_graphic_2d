@@ -39,17 +39,12 @@
 #include "effect/shader_effect.h"
 #include "utils/scalar.h"
 #include "utils/log.h"
+#include "utils/system_properties.h"
 #include "draw/surface.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-#if defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK)
-static const bool g_rsVulkanEnabled = false;
-#elif defined (RS_ENABLE_GL)
-static const bool g_rsVulkanEnabled = false;
-#endif
-
 namespace {
 void BrushHandleToBrush(const BrushHandle& brushHandle, const CmdList& cmdList, Brush& brush)
 {
@@ -1456,11 +1451,13 @@ void DrawSurfaceBufferOpItem::SetBaseCallback(
     std::function<void(void* context)> deleteImage,
     std::function<void*(VkImage image, VkDeviceMemory memory)> helper)
 {
-    if (GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN || GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-        DrawSurfaceBufferOpItem::makeBackendTextureFromNativeBuffer = makeBackendTexture;
-        DrawSurfaceBufferOpItem::deleteVkImage = deleteImage;
-        DrawSurfaceBufferOpItem::vulkanCleanupHelper = helper;
+    if (!SystemProperties::GetRsVulkanEnabled()) {
+        return;
     }
+
+    DrawSurfaceBufferOpItem::makeBackendTextureFromNativeBuffer = makeBackendTexture;
+    DrawSurfaceBufferOpItem::deleteVkImage = deleteImage;
+    DrawSurfaceBufferOpItem::vulkanCleanupHelper = helper;
 }
 #endif
 
@@ -1484,7 +1481,7 @@ void DrawSurfaceBufferOpItem::Playback(Canvas* canvas, const Rect* rect)
 void DrawSurfaceBufferOpItem::Clear()
 {
 #ifdef RS_ENABLE_GL
-    if (!g_rsVulkanEnabled) {
+    if (!SystemProperties::GetRsVulkanEnabled()) {
         if (texId_ != 0U) {
             glDeleteTextures(1, &texId_);
         }
@@ -1505,7 +1502,7 @@ void DrawSurfaceBufferOpItem::Clear()
 void DrawSurfaceBufferOpItem::Draw(Canvas* canvas)
 {
 #ifdef RS_ENABLE_VK
-    if (GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN || GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+    if (SystemProperties::GetRsVulkanEnabled()) {
         if (!DrawSurfaceBufferOpItem::makeBackendTextureFromNativeBuffer ||
             !DrawSurfaceBufferOpItem::deleteVkImage ||
             !DrawSurfaceBufferOpItem::vulkanCleanupHelper ||
@@ -1532,7 +1529,7 @@ void DrawSurfaceBufferOpItem::Draw(Canvas* canvas)
 #endif
 
 #ifdef RS_ENABLE_GL
-    if (g_rsVulkanEnabled) {
+    if (SystemProperties::GetRsVulkanEnabled()) {
         return;
     }
     EGLint attrs[] = {

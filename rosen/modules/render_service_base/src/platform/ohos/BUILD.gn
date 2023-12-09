@@ -85,7 +85,8 @@ ohos_source_set("rosen_ohos_sources") {
           "backend/rs_surface_ohos_vulkan.cpp",
           "backend/rs_vulkan_context.cpp",
         ]
-      } else {
+      }
+      if (graphic_2d_feature_enable_opengl) {
         sources += [
           "backend/rs_surface_frame_ohos_gl.cpp",
           "backend/rs_surface_ohos_gl.cpp",

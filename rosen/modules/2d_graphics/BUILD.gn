@@ -67,6 +67,7 @@ template("graphics2d_source_set") {
     }
 
     public_deps = []
+    external_deps = []
     sources = [
       "$drawing_src_dir/c/drawing_bitmap.cpp",
       "$drawing_src_dir/c/drawing_brush.cpp",
@@ -175,9 +176,13 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/utils/object_mgr.cpp",
       "$drawing_src_dir/utils/region.cpp",
       "$drawing_src_dir/utils/round_rect.cpp",
-      "$drawing_src_dir/utils/system_properties.cpp",
       "$drawing_src_dir/utils/vertices.cpp",
     ]
+
+    if (platform == "ohos" || platform == "ohos_ng") {
+      external_deps += [ "init:libbegetutil" ]
+      sources += [ "$drawing_src_dir/utils/system_properties.cpp" ]
+    }
 
     if (ace_enable_gpu) {
       sources += [
@@ -247,7 +252,7 @@ template("graphics2d_source_set") {
       public_deps += [ "//third_party/vulkan-headers:vulkan_headers" ]
     }
     if (platform == "ohos" || platform == "ohos_ng") {
-      external_deps = [
+      external_deps += [
         "hilog:libhilog",
         "image_framework:image_native",
       ]

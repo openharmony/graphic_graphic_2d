@@ -73,6 +73,7 @@ public:
 private:
     void CreateShareEglContext();
     void DestroyShareEglContext();
+    void FinishRecordingOneFrameTask(RecordingMode mode);
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
     sk_sp<GrDirectContext> CreateShareGrContext();

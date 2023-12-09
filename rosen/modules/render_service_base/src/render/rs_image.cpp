@@ -231,13 +231,9 @@ void RSImage::ApplyCanvasClip(Drawing::Canvas& canvas)
 
 #ifndef USE_ROSEN_DRAWING
 
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 static SkImage::CompressionType PixelFormatToCompressionType(Media::PixelFormat pixelFormat)
 {
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
-        return SkImage::CompressionType::kNone;
-    }
-
     switch (pixelFormat) {
         case Media::PixelFormat::ASTC_4x4: return SkImage::CompressionType::kASTC_RGBA8_4x4;
         case Media::PixelFormat::ASTC_6x6: return SkImage::CompressionType::kASTC_RGBA8_6x6;

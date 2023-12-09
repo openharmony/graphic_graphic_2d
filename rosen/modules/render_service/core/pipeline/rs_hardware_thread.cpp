@@ -361,7 +361,9 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     }
 #ifdef RS_ENABLE_EGLIMAGE
 #ifdef RS_ENABLE_VK
-    canvas->clear(SK_ColorTRANSPARENT);
+    if (RSSystemProperties::GetRsVulkanEnabled()) {
+        canvas->clear(SK_ColorTRANSPARENT);
+    }
     std::unordered_map<int32_t, std::shared_ptr<NativeVkImageRes>> imageCacheSeqsVK;
 #endif
 #ifdef RS_ENABLE_GL

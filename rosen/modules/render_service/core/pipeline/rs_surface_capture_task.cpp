@@ -501,6 +501,9 @@ sk_sp<SkSurface> RSSurfaceCaptureTask::CreateSurface(const std::unique_ptr<Media
 #ifndef USE_ROSEN_DRAWING
 void DmaMem::ReleaseGLMemory()
 {
+    if (RSSystemProperties::GetRsVulkanEnabled()) {
+        return;
+    }
     if (texId_ != 0U) {
         glBindTexture(GL_TEXTURE_2D, 0);
         glDeleteTextures(1, &texId_);
@@ -523,6 +526,9 @@ void DmaMem::ReleaseGLMemory()
 #ifndef USE_ROSEN_DRAWING
 sptr<SurfaceBuffer> DmaMem::DmaMemAlloc(SkImageInfo &dstInfo, const std::unique_ptr<Media::PixelMap>& pixelmap)
 {
+    if (RSSystemProperties::GetRsVulkanEnabled()) {
+        return nullptr;
+    }
 #if defined(_WIN32) || defined(_APPLE) || defined(A_PLATFORM) || defined(IOS_PLATFORM)
     RS_LOGE("Unsupport dma mem alloc");
     return nullptr;
@@ -559,6 +565,9 @@ sptr<SurfaceBuffer> DmaMem::DmaMemAlloc(SkImageInfo &dstInfo, const std::unique_
 #ifndef USE_ROSEN_DRAWING
 sk_sp<SkSurface> DmaMem::GetSkSurfaceFromSurfaceBuffer(sptr<SurfaceBuffer> surfaceBuffer)
 {
+    if (RSSystemProperties::GetRsVulkanEnabled()) {
+        return nullptr;
+    }
     if (surfaceBuffer == nullptr) {
         RS_LOGE("GetSkImageFromSurfaceBuffer surfaceBuffer is nullptr");
         return nullptr;
@@ -845,13 +854,13 @@ void RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node
         RS_LOGE("RSSurfaceCaptureVisitor::ProcessDisplayRenderNode: Canvas is null!");
         return;
     }
-    
+
     if (IsUniRender()) {
         FindHardwareEnabledNodes();
         if (hasSecurityOrSkipLayer_) {
             RS_LOGD("RSSurfaceCaptureVisitor::ProcessDisplayRenderNode: \
                 process RSDisplayRenderNode(id:[%{public}" PRIu64 "]) Not using UniRender buffer.", node.GetId());
-            
+
             // Adding matrix affine transformation logic
             auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
             if (geoPtr != nullptr) {

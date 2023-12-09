@@ -106,13 +106,17 @@ void RSParallelRenderManager::StartSubRenderThread(uint32_t threadNum, RenderCon
         drawingContext_ = drawingContext;
 #endif
 
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
         if (RSSystemProperties::GetRsVulkanEnabled() || context) {
+#endif
             for (uint32_t i = 0; i < threadNum; ++i) {
                 auto curThread = std::make_unique<RSParallelSubThread>(context, renderType_, i);
                 curThread->StartSubThread();
                 threadList_.push_back(std::move(curThread));
             }
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
         }
+#endif
 
         processTaskManager_.Initialize(threadNum);
         prepareTaskManager_.Initialize(threadNum);
