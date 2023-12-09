@@ -230,8 +230,9 @@ public:
                nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
     }
 
-    // used to determine whether the layer-1 surfacenodes can be skipped in the subthread of focus-first framework
-    bool IsCurrentFrameStatic(DeviceType deviceType);
+    bool IsUIFirstSelfDrawCheck();
+    bool IsVisibleDirtyEmpty(DeviceType deviceType);
+    bool IsCurFrameStatic(DeviceType deviceType);
     void UpdateCacheSurfaceDirtyManager(int bufferAge = 2);
 
     bool GetNeedSubmitSubThread() const
@@ -913,6 +914,9 @@ private:
     bool SubNodeIntersectWithExtraDirtyRegion(const RectI& r) const;
     Vector4f GetWindowCornerRadius();
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> GetLeashWindowNestedSurfaces();
+    bool IsHistoryOccludedDirtyRegionNeedSubmit();
+    void ClearHistoryUnSubmittedDirtyInfo();
+    void UpdateHistoryUnsubmittedDirtyInfo();
 
     std::mutex mutexRT_;
     std::mutex mutexUI_;
@@ -1113,6 +1117,9 @@ private:
     size_t lastFrameChildrenCnt_ = 0;
     // node only have translate and scale changes
     bool surfaceCacheContentStatic_ = false;
+
+    std::atomic<bool> hasUnSubmittedOccludedDirtyRegion_ = false;
+    RectI historyUnSubmittedOccludedDirtyRegion_;
 
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;

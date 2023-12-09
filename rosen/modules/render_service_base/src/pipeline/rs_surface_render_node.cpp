@@ -28,6 +28,7 @@
 
 #include "command/rs_surface_node_command.h"
 #include "common/rs_common_def.h"
+#include "rs_trace.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_rect.h"
@@ -1491,14 +1492,29 @@ std::vector<std::shared_ptr<RSSurfaceRenderNode>> RSSurfaceRenderNode::GetLeashW
     return res;
 }
 
-bool RSSurfaceRenderNode::IsCurrentFrameStatic(DeviceType deviceType)
+bool RSSurfaceRenderNode::IsHistoryOccludedDirtyRegionNeedSubmit()
 {
-    bool isDirty = deviceType == DeviceType::PHONE ?
-        (dirtyManager_ == nullptr || !dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty()) :
-        (IsMainWindowType() && !surfaceCacheContentStatic_);
-    if (isDirty) {
-        return false;
-    }
+    return (hasUnSubmittedOccludedDirtyRegion_ &&
+        !historyUnSubmittedOccludedDirtyRegion_.IsEmpty() &&
+        !visibleRegion_.IsEmpty() &&
+        !visibleRegion_.IsIntersectWith(historyUnSubmittedOccludedDirtyRegion_));
+}
+
+void RSSurfaceRenderNode::ClearHistoryUnSubmittedDirtyInfo()
+{
+    hasUnSubmittedOccludedDirtyRegion_ = false;
+    historyUnSubmittedOccludedDirtyRegion_.Clear();
+}
+
+void RSSurfaceRenderNode::UpdateHistoryUnsubmittedDirtyInfo()
+{
+    hasUnSubmittedOccludedDirtyRegion_ = true;
+    historyUnSubmittedOccludedDirtyRegion_ = dirtyManager_->GetCurrentFrameDirtyRegion().JoinRect(
+        historyUnSubmittedOccludedDirtyRegion_);
+}
+
+bool RSSurfaceRenderNode::IsUIFirstSelfDrawCheck()
+{
     if (IsAppWindow()) {
         auto hardwareEnabledNodes = GetChildHardwareEnabledNodes();
         for (auto& hardwareEnabledNode : hardwareEnabledNodes) {
@@ -1512,21 +1528,83 @@ bool RSSurfaceRenderNode::IsCurrentFrameStatic(DeviceType deviceType)
         return true;
     } else if (IsLeashWindow()) {
         auto nestedSurfaceNodes = GetLeashWindowNestedSurfaces();
-        // leashwindow children changed or has other type node except surfacenode
-        if (deviceType == DeviceType::PC && (lastFrameChildrenCnt_ != GetChildren().size() ||
-            nestedSurfaceNodes.size() != GetChildren().size())) {
-            return false;
-        }
         // leashwindow subthread cache considered static if and only if all nested surfacenode static
         // (include appwindow and starting window)
         for (auto& nestedSurface: nestedSurfaceNodes) {
-            if (nestedSurface && !nestedSurface->IsCurrentFrameStatic(deviceType)) {
+            if (nestedSurface && !nestedSurface->IsUIFirstSelfDrawCheck()) {
                 return false;
             }
         }
         return true;
     } else if (IsSelfDrawingType()) {
-        return isCurrentFrameBufferConsumed_;
+        return !isCurrentFrameBufferConsumed_;
+    } else {
+        return false;
+    }
+}
+
+bool RSSurfaceRenderNode::IsCurFrameStatic(DeviceType deviceType)
+{
+    bool isDirty = deviceType == DeviceType::PHONE ?
+        (dirtyManager_ == nullptr || !dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty()) :
+        (IsMainWindowType() && !surfaceCacheContentStatic_);
+    if (isDirty) {
+        return false;
+    }
+    if (IsMainWindowType()) {
+        return true;
+    } else if (IsLeashWindow()) {
+        auto nestedSurfaceNodes = GetLeashWindowNestedSurfaces();
+        // leashwindow children changed or has other type node except surfacenode
+        if (deviceType == DeviceType::PC && (lastFrameChildrenCnt_ != GetChildren().size() ||
+            nestedSurfaceNodes.size() != GetChildren().size())) {
+            return false;
+        }
+        for (auto& nestedSurface: nestedSurfaceNodes) {
+            if (nestedSurface && !nestedSurface->IsCurFrameStatic(deviceType)) {
+                return false;
+            }
+        }
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool RSSurfaceRenderNode::IsVisibleDirtyEmpty(DeviceType deviceType)
+{
+    bool isStaticUnderVisibleRegion = false;
+    if (dirtyManager_ == nullptr || !dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty()) {
+        if (deviceType == DeviceType::PHONE) {
+            return false;
+        }
+        // Visible dirty region optimization takes effecct only in PC or TABLET scenarios
+        Occlusion::Rect currentFrameDirty(dirtyManager_->GetCurrentFrameDirtyRegion());
+        if (!visibleRegion_.IsEmpty() && visibleRegion_.IsIntersectWith(currentFrameDirty)) {
+            ClearHistoryUnSubmittedDirtyInfo();
+            return false;
+        }
+        isStaticUnderVisibleRegion = true;
+    }
+    if (IsMainWindowType()) {
+        if (deviceType != DeviceType::PHONE) {
+            if (IsHistoryOccludedDirtyRegionNeedSubmit()) {
+                ClearHistoryUnSubmittedDirtyInfo();
+                return false;
+            }
+            if (isStaticUnderVisibleRegion) {
+                UpdateHistoryUnsubmittedDirtyInfo();
+            }
+        }
+        return true;
+    } else if (IsLeashWindow()) {
+        auto nestedSurfaceNodes = GetLeashWindowNestedSurfaces();
+        for (auto& nestedSurface: nestedSurfaceNodes) {
+            if (nestedSurface && !nestedSurface->IsVisibleDirtyEmpty(deviceType)) {
+                return false;
+            }
+        }
+        return true;
     } else {
         return false;
     }
@@ -1535,7 +1613,7 @@ bool RSSurfaceRenderNode::IsCurrentFrameStatic(DeviceType deviceType)
 bool RSSurfaceRenderNode::IsUIFirstCacheReusable(DeviceType deviceType)
 {
     return GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE &&
-        IsCurrentFrameStatic(deviceType) && HasCachedTexture();
+        HasCachedTexture() && IsUIFirstSelfDrawCheck() && IsCurFrameStatic(deviceType);
 }
 
 void RSSurfaceRenderNode::UpdateCacheSurfaceDirtyManager(int bufferAge)

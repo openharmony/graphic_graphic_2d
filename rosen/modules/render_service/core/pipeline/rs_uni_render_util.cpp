@@ -598,7 +598,9 @@ void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRen
     node->SetIsMainThreadNode(false);
     auto deviceType = RSMainThread::Instance()->GetDeviceType();
     // skip complete static window, DO NOT assign it to subthread.
-    if (node->IsUIFirstCacheReusable(deviceType)) {
+    if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE &&
+        node->HasCachedTexture() && node->IsUIFirstSelfDrawCheck() &&
+        (node->IsCurFrameStatic(deviceType) || node->IsVisibleDirtyEmpty(deviceType))) {
         node->SetNeedSubmitSubThread(false);
         RS_OPTIONAL_TRACE_NAME_FMT("subThreadNodes : static skip %s", node->GetName().c_str());
     } else {
