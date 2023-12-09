@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 #include <hilog/log.h>
 
+#include "platform/common/rs_system_properties.h"
 #include "render_context.h"
 
 using namespace testing::ext;
@@ -43,6 +44,10 @@ void RenderContextTest::TearDown() {}
 HWTEST_F(RenderContextTest, CreateEGLSurfaceTest001, Function | SmallTest | Level2)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetAceVulkanEnabled()) {
+        ASSERT_TRUE(false);
+        return;
+    }
     // start CreateEGLSurfaceTest001 test
     RenderContext renderContext;
     EGLSurface eglSurface = renderContext.CreateEGLSurface(nullptr);
@@ -58,6 +63,10 @@ HWTEST_F(RenderContextTest, CreateEGLSurfaceTest001, Function | SmallTest | Leve
 HWTEST_F(RenderContextTest, CreateEGLSurfaceTest002, Function | SmallTest | Level2)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetAceVulkanEnabled()) {
+        ASSERT_TRUE(false);
+        return;
+    }
     // start CreateEGLSurfaceTest002 test
     RenderContext renderContext;
     renderContext.InitializeEglContext();
@@ -74,10 +83,14 @@ HWTEST_F(RenderContextTest, CreateEGLSurfaceTest002, Function | SmallTest | Leve
 HWTEST_F(RenderContextTest, SetUpGrContextTest, Function | SmallTest | Level2)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetAceVulkanEnabled()) {
+        ASSERT_TRUE(false);
+        return;
+    }
     // start SetUpGrContextTest test
     RenderContext renderContext;
 #ifndef USE_ROSEN_DRAWING
-    bool grContext = renderContext.SetUpGrContext();
+    bool grContext = renderContext.SetUpGrContext(nullptr);
 #else
     bool grContext = renderContext.SetUpGpuContext();
 #endif
@@ -93,6 +106,10 @@ HWTEST_F(RenderContextTest, SetUpGrContextTest, Function | SmallTest | Level2)
 HWTEST_F(RenderContextTest, AcquireSurfaceTest, Function | SmallTest | Level2)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetAceVulkanEnabled()) {
+        ASSERT_TRUE(false);
+        return;
+    }
     // start AcquireSurfaceTest test
     RenderContext renderContext;
     auto surface = renderContext.AcquireSurface(0, 0);
@@ -108,6 +125,10 @@ HWTEST_F(RenderContextTest, AcquireSurfaceTest, Function | SmallTest | Level2)
 HWTEST_F(RenderContextTest, QueryEglBufferAgeTest001, Function | SmallTest | Level2)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetAceVulkanEnabled()) {
+        ASSERT_TRUE(false);
+        return;
+    }
     // start QueryEglBufferAgeTest001 test
     RenderContext renderContext;
     EGLint bufferAge = renderContext.QueryEglBufferAge();
@@ -123,6 +144,10 @@ HWTEST_F(RenderContextTest, QueryEglBufferAgeTest001, Function | SmallTest | Lev
 HWTEST_F(RenderContextTest, QueryEglBufferAgeTest002, Function | SmallTest | Level2)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetAceVulkanEnabled()) {
+        ASSERT_TRUE(false);
+        return;
+    }
     // start QueryEglBufferAgeTest002 test
     RenderContext renderContext;
     EGLint bufferAge = renderContext.QueryEglBufferAge();
@@ -138,6 +163,10 @@ HWTEST_F(RenderContextTest, QueryEglBufferAgeTest002, Function | SmallTest | Lev
 HWTEST_F(RenderContextTest, ClearRedundantResourcesTest001, Level1)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetAceVulkanEnabled()) {
+        ASSERT_TRUE(false);
+        return;
+    }
     // start ClearRedundantResourcesTest001 test
     RenderContext renderContext;
     renderContext.InitializeEglContext();
@@ -153,6 +182,10 @@ HWTEST_F(RenderContextTest, ClearRedundantResourcesTest001, Level1)
 HWTEST_F(RenderContextTest, DamageFrameTest001, Level1)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetAceVulkanEnabled()) {
+        ASSERT_TRUE(false);
+        return;
+    }
     // start DamageFrameTest001 test
     RenderContext renderContext;
     renderContext.InitializeEglContext();
@@ -168,6 +201,10 @@ HWTEST_F(RenderContextTest, DamageFrameTest001, Level1)
 HWTEST_F(RenderContextTest, MakeSelfCurrentTest001, Level1)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetAceVulkanEnabled()) {
+        ASSERT_TRUE(false);
+        return;
+    }
     // start MakeSelfCurrentTest001 test
     RenderContext renderContext;
     renderContext.InitializeEglContext();
@@ -183,6 +220,10 @@ HWTEST_F(RenderContextTest, MakeSelfCurrentTest001, Level1)
 HWTEST_F(RenderContextTest, ColorSpaceTest001, Level1)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetAceVulkanEnabled()) {
+        ASSERT_TRUE(false);
+        return;
+    }
     // start ColorSpaceTest001 test
     RenderContext renderContext;
     renderContext.SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
@@ -198,6 +239,10 @@ HWTEST_F(RenderContextTest, ColorSpaceTest001, Level1)
 HWTEST_F(RenderContextTest, PixelFormatTest001, Level1)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetAceVulkanEnabled()) {
+        ASSERT_TRUE(false);
+        return;
+    }
     // start PixelFormatTest001 test
     RenderContext renderContext;
     renderContext.SetPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);

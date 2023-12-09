@@ -75,11 +75,7 @@ void RSHardwareThread::Start()
                     return;
                 }
                 uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
-#ifdef RS_ENABLE_VK
                 uniRenderEngine_->Init(true);
-#else
-                uniRenderEngine_->Init();
-#endif
             }).wait();
     }
     auto onPrepareCompleteFunc = [this](auto& surface, const auto& param, void* data) {
@@ -366,10 +362,11 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #ifdef RS_ENABLE_EGLIMAGE
 #ifdef RS_ENABLE_VK
     canvas->clear(SK_ColorTRANSPARENT);
-    std::unordered_map<int32_t, std::shared_ptr<NativeVkImageRes>> imageCacheSeqs;
-#else // RS_ENABLE_VK
+    std::unordered_map<int32_t, std::shared_ptr<NativeVkImageRes>> imageCacheSeqsVK;
+#endif
+#ifdef RS_ENABLE_GL
     std::unordered_map<int32_t, std::unique_ptr<ImageCacheSeq>> imageCacheSeqs;
-#endif // RS_ENABLE_VK
+#endif
 #endif // RS_ENABLE_EGLIMAGE
     bool softDrawFlag = false;
     for (const auto& layer : layers) {
@@ -433,68 +430,86 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                 RS_LOGE("RSHardwareThread::Redraw CreateEglImageFromBuffer GrContext is null!");
                 continue;
             }
+            uint32_t eglTextureId = 0;
+            uint32_t bufferId = 0;
+            (void)eglTextureId;
+            (void)bufferId;
 #if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
-            auto eglImageCache = uniRenderEngine_->GetEglImageManager()->CreateImageCacheFromBuffer(params.buffer,
-                params.acquireFence);
-            if (eglImageCache == nullptr) {
-                continue;
+            if (!RSSystemProperties::GetRsVulkanEnabled()) {
+                auto eglImageCache = uniRenderEngine_->GetEglImageManager()->CreateImageCacheFromBuffer(params.buffer,
+                    params.acquireFence);
+                if (eglImageCache == nullptr) {
+                    continue;
+                }
+                eglTextureId = eglImageCache->TextureId();
+                if (eglTextureId == 0) {
+                    RS_LOGE("RSHardwareThread::Redraw CreateImageCacheFromBuffer return invalid texture ID");
+                    continue;
+                }
+                bufferId = params.buffer->GetSeqNum();
+                imageCacheSeqs[bufferId] = std::move(eglImageCache);
             }
-            auto eglTextureId = eglImageCache->TextureId();
-            if (eglTextureId == 0) {
-                RS_LOGE("RSHardwareThread::Redraw CreateImageCacheFromBuffer return invalid texture ID");
-                continue;
-            }
-            auto bufferId = params.buffer->GetSeqNum();
-            imageCacheSeqs[bufferId] = std::move(eglImageCache);
 #endif
 #ifndef USE_ROSEN_DRAWING
-#if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
             SkColorType colorType = kRGBA_8888_SkColorType;
-            auto pixelFmt = params.buffer->GetFormat();
-            if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
-                colorType = kBGRA_8888_SkColorType;
-            } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
-                colorType = kRGBA_1010102_SkColorType;
-            }
-            auto glType = GL_RGBA8;
-            if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
-                glType = GL_RGB10_A2;
-            }
+            std::shared_ptr<GrBackendTexture> backendTexturePtr = nullptr;
+            (void)colorType;
+            (void)backendTexturePtr;
+#if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
+            if (!RSSystemProperties::GetRsVulkanEnabled()) {
+                auto pixelFmt = params.buffer->GetFormat();
+                if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
+                    colorType = kBGRA_8888_SkColorType;
+                } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
+                    colorType = kRGBA_1010102_SkColorType;
+                }
+                auto glType = GL_RGBA8;
+                if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
+                    glType = GL_RGB10_A2;
+                }
 
-            GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId,
-                static_cast<GrGLenum>(glType) };
-            GrBackendTexture backendTexture(params.buffer->GetSurfaceBufferWidth(),
-                params.buffer->GetSurfaceBufferHeight(), GrMipMapped::kNo, grExternalTextureInfo);
+                GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, eglTextureId,
+                    static_cast<GrGLenum>(glType) };
+                backendTexturePtr = std::make_shared<GrBackendTexture>(params.buffer->GetSurfaceBufferWidth(),
+                    params.buffer->GetSurfaceBufferHeight(), GrMipMapped::kNo, grExternalTextureInfo);
+            }
 #endif
 #ifdef NEW_SKIA
+            sk_sp<SkImage> image = nullptr;
+            (void)image;
 #if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
-            auto image = SkImage::MakeFromTexture(canvas->recordingContext(), backendTexture,
-                kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, skColorSpace);
-#elif defined(RS_ENABLE_VK)
-            auto imageCache = uniRenderEngine_->GetVkImageManager()->CreateImageCacheFromBuffer(
-                params.buffer, params.acquireFence);
-            if (!imageCache) {
-                continue;
+            if (!RSSystemProperties::GetRsVulkanEnabled() && backendTexturePtr != nullptr) {
+                image = SkImage::MakeFromTexture(canvas->recordingContext(), *backendTexturePtr,
+                    kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, skColorSpace);
             }
-            auto bufferId = params.buffer->GetSeqNum();
-            imageCacheSeqs[bufferId] = imageCache;
-            auto& backendTexture = imageCache->GetBackendTexture();
-            if (!backendTexture.isValid()) {
-                ROSEN_LOGE("RSHardwareThread: backendTexture is not valid!!!");
-                return;
-            }
+#endif
+#if defined(RS_ENABLE_VK)
+            if (RSSystemProperties::GetRsVulkanEnabled()) {
+                auto imageCache = uniRenderEngine_->GetVkImageManager()->CreateImageCacheFromBuffer(
+                    params.buffer, params.acquireFence);
+                if (!imageCache) {
+                    continue;
+                }
+                auto bufferId = params.buffer->GetSeqNum();
+                imageCacheSeqsVK[bufferId] = imageCache;
+                auto& backendTexture = imageCache->GetBackendTexture();
+                if (!backendTexture.isValid()) {
+                    ROSEN_LOGE("RSHardwareThread: backendTexture is not valid!!!");
+                    return;
+                }
 
-            SkColorType colorType = (params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
-                kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
-            auto image = SkImage::MakeFromTexture(
-                canvas->recordingContext(),
-                backendTexture,
-                kTopLeft_GrSurfaceOrigin,
-                colorType,
-                kPremul_SkAlphaType,
-                SkColorSpace::MakeSRGB(),
-                NativeBufferUtils::DeleteVkImage,
-                imageCache->RefCleanupHelper());
+                SkColorType colorType = (params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
+                    kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
+                image = SkImage::MakeFromTexture(
+                    canvas->recordingContext(),
+                    backendTexture,
+                    kTopLeft_GrSurfaceOrigin,
+                    colorType,
+                    kPremul_SkAlphaType,
+                    SkColorSpace::MakeSRGB(),
+                    NativeBufferUtils::DeleteVkImage,
+                    imageCache->RefCleanupHelper());
+            }
 #endif
 #else
             auto image = SkImage::MakeFromTexture(canvas->getGrContext(), backendTexture,
@@ -567,7 +582,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                 continue;
             }
             auto bufferId = params.buffer->GetSeqNum();
-            imageCacheSeqs[bufferId] = imageCache;
+            imageCacheSeqsVK[bufferId] = imageCache;
             auto& backendTexture = imageCache->GetBackendTexture();
 
             Drawing::ColorType colorType = (params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
@@ -608,7 +623,12 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 
     renderFrame->Flush();
 #ifdef RS_ENABLE_EGLIMAGE
+#ifdef RS_ENABLE_VK
+    imageCacheSeqsVK.clear();
+#endif
+#ifdef RS_ENABLE_GL
     imageCacheSeqs.clear();
+#endif
 #endif
     RS_LOGD("RsDebug RSHardwareThread::Redraw flush frame buffer end");
 }

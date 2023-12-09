@@ -41,11 +41,7 @@ void RSEglImageManagerTest::SetUpTestCase()
 {
     renderContext_->InitializeEglContext();
 #ifndef USE_ROSEN_DRAWING
-#ifdef RS_ENABLE_VK
     renderContext_->SetUpGrContext(nullptr);
-#else
-    renderContext_->SetUpGrContext();
-#endif
 #else
     renderContext_->SetUpGpuContext();
 #endif

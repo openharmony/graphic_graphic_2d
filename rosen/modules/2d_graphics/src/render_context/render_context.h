@@ -80,10 +80,8 @@ public:
     }
 #ifdef RS_ENABLE_VK
     void AbandonContext();
-    bool SetUpGrContext(sk_sp<GrDirectContext> skContext);
-#else
-    bool SetUpGrContext();
 #endif
+    bool SetUpGrContext(sk_sp<GrDirectContext> skContext);
 #else
     Drawing::GPUContext* GetDrGPUContext() const
     {
@@ -183,11 +181,11 @@ public:
     }
 #endif
     EGLContext CreateShareContext();
-#ifdef ROSEN_IOS    
+#ifdef ROSEN_IOS
     sk_sp<SkColorSpace> ColorSpace() const { return color_space_; }
     bool UpdateStorageSizeIfNecessary();
     bool ResourceMakeCurrent();
-#endif    
+#endif
 
 private:
 #ifndef USE_ROSEN_DRAWING
@@ -217,7 +215,7 @@ private:
     int32_t storage_width_ = 0;
     int32_t storage_height_ = 0;
     bool valid_ = false;
-#endif   
+#endif
     EGLConfig config_;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 #ifndef ROSEN_CROSS_PLATFORM

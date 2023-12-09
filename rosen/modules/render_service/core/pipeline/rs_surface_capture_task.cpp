@@ -468,27 +468,31 @@ sk_sp<SkSurface> RSSurfaceCaptureTask::CreateSurface(const std::unique_ptr<Media
     SkImageInfo info = SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(),
         kRGBA_8888_SkColorType, kPremul_SkAlphaType);
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
+    if (!RSSystemProperties::GetRsVulkanEnabled()) {
 #if defined(NEW_RENDER_CONTEXT)
-    auto drawingContext = RSMainThread::Instance()->GetRenderEngine()->GetDrawingContext();
-    if (drawingContext == nullptr) {
-        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
-        return nullptr;
-    }
-    drawingContext->SetUpDrawingContext();
-    return SkSurface::MakeRenderTarget(drawingContext->GetDrawingContext(), SkBudgeted::kNo, info);
+        auto drawingContext = RSMainThread::Instance()->GetRenderEngine()->GetDrawingContext();
+        if (drawingContext == nullptr) {
+            RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
+            return nullptr;
+        }
+        drawingContext->SetUpDrawingContext();
+        return SkSurface::MakeRenderTarget(drawingContext->GetDrawingContext(), SkBudgeted::kNo, info);
 #else
-    auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
-    if (renderContext == nullptr) {
-        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
-        return nullptr;
-    }
-    renderContext->SetUpGrContext();
-    return SkSurface::MakeRenderTarget(renderContext->GetGrContext(), SkBudgeted::kNo, info);
+        auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
+        if (renderContext == nullptr) {
+            RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
+            return nullptr;
+        }
+        renderContext->SetUpGrContext(nullptr);
+        return SkSurface::MakeRenderTarget(renderContext->GetGrContext(), SkBudgeted::kNo, info);
 #endif
+    }
 #endif
 #ifdef RS_ENABLE_VK
-    return SkSurface::MakeRenderTarget(
-        RSMainThread::Instance()->GetRenderEngine()->GetSkContext().get(), SkBudgeted::kNo, info);
+    if (RSSystemProperties::GetRsVulkanEnabled()) {
+        return SkSurface::MakeRenderTarget(
+            RSMainThread::Instance()->GetRenderEngine()->GetSkContext().get(), SkBudgeted::kNo, info);
+    }
 #endif
     return SkSurface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
 }
