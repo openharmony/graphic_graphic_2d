@@ -951,7 +951,7 @@ bool RSSurfaceRenderNode::SubNodeNeedDraw(const RectI &r, PartialRenderType opDr
 }
 
 void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect,
-    const ScreenRotation screenRotation, const bool isFocusWindow, const Vector4<int>& cornerRadius)
+    const ScreenRotation screenRotation, const bool isFocusWindow)
 {
     Occlusion::Rect absRectR {absRect};
     Occlusion::Region oldOpaqueRegion { opaqueRegion_ };
@@ -966,13 +966,9 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
         if (IsAppWindow() && HasContainerWindow()) {
             opaqueRegion_ = ResetOpaqueRegion(absRect, screenRotation, isFocusWindow);
         } else {
-            if (!cornerRadius.IsZero()) {
-                auto maxRadius = std::max({ cornerRadius.x_, cornerRadius.y_, cornerRadius.z_, cornerRadius.w_ });
-                Vector4<int> dstCornerRadius((cornerRadius.x_ > 0 ? maxRadius : 0),
-                                             (cornerRadius.y_ > 0 ? maxRadius : 0),
-                                             (cornerRadius.z_ > 0 ? maxRadius : 0),
-                                             (cornerRadius.w_ > 0 ? maxRadius : 0));
-                opaqueRegion_ = SetCornerRadiusOpaqueRegion(absRect, dstCornerRadius);
+            auto corner = GetWindowCornerRadius();
+            if (!corner.IsZero()) {
+                opaqueRegion_ = SetCornerRadiusOpaqueRegion(absRect, std::ceil(corner.x_));
             } else {
                 opaqueRegion_ = Occlusion::Region{absRectR};
             }
@@ -1278,26 +1274,19 @@ Occlusion::Region RSSurfaceRenderNode::SetFocusedWindowOpaqueRegion(const RectI&
     return opaqueRegion;
 }
 
-Occlusion::Region RSSurfaceRenderNode::SetCornerRadiusOpaqueRegion(
-    const RectI& absRect, const Vector4<int>& cornerRadius) const
+Occlusion::Region RSSurfaceRenderNode::SetCornerRadiusOpaqueRegion(const RectI& absRect, float radius) const
 {
-    Occlusion::Rect opaqueRect0{ absRect.GetLeft(), absRect.GetTop(),
-        absRect.GetRight(), absRect.GetBottom()};
-    Occlusion::Rect opaqueRect1{ absRect.GetLeft(), absRect.GetTop(),
-        absRect.GetLeft() + cornerRadius.x_, absRect.GetTop() + cornerRadius.x_};
-    Occlusion::Rect opaqueRect2{ absRect.GetRight() - cornerRadius.y_, absRect.GetTop(),
-        absRect.GetRight(), absRect.GetTop() + cornerRadius.y_};
-    Occlusion::Rect opaqueRect3{ absRect.GetRight() - cornerRadius.z_, absRect.GetBottom() - cornerRadius.z_,
-        absRect.GetRight(), absRect.GetBottom()};
-    Occlusion::Rect opaqueRect4{ absRect.GetLeft(), absRect.GetBottom() - cornerRadius.w_,
-        absRect.GetLeft() + cornerRadius.w_, absRect.GetBottom()};
-
-    Occlusion::Region r0{opaqueRect0};
+    Occlusion::Rect opaqueRect1{ absRect.left_ + radius,
+        absRect.top_,
+        absRect.GetRight() - radius,
+        absRect.GetBottom()};
+    Occlusion::Rect opaqueRect2{ absRect.left_,
+        absRect.top_ + radius,
+        absRect.GetRight(),
+        absRect.GetBottom() - radius};
     Occlusion::Region r1{opaqueRect1};
     Occlusion::Region r2{opaqueRect2};
-    Occlusion::Region r3{opaqueRect3};
-    Occlusion::Region r4{opaqueRect4};
-    Occlusion::Region opaqueRegion = r0.Sub(r1).Sub(r2).Sub(r3).Sub(r4);
+    Occlusion::Region opaqueRegion = r1.Or(r2);
     return opaqueRegion;
 }
 
@@ -1351,26 +1340,24 @@ void RSSurfaceRenderNode::ResetSurfaceContainerRegion(const RectI& screeninfo, c
     containerRegion_ = absRegion.Sub(innerRectRegion);
 }
 
-bool RSSurfaceRenderNode::CheckOpaqueRegionBaseInfo(const RectI& screeninfo, const RectI& absRect,
-    const ScreenRotation screenRotation, const bool isFocusWindow, const Vector4<int>& cornerRadius)
+bool RSSurfaceRenderNode::CheckOpaqueRegionBaseInfo(
+    const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation, const bool isFocusWindow)
 {
     return opaqueRegionBaseInfo_.screenRect_ == screeninfo &&
         opaqueRegionBaseInfo_.absRect_ == absRect &&
         opaqueRegionBaseInfo_.screenRotation_ == screenRotation &&
         opaqueRegionBaseInfo_.isFocusWindow_ == isFocusWindow &&
-        opaqueRegionBaseInfo_.cornerRadius_ == cornerRadius &&
         opaqueRegionBaseInfo_.isTransparent_ == IsTransparent() &&
         opaqueRegionBaseInfo_.hasContainerWindow_ == HasContainerWindow();
 }
 
-void RSSurfaceRenderNode::SetOpaqueRegionBaseInfo(const RectI& screeninfo, const RectI& absRect,
-    const ScreenRotation screenRotation, const bool isFocusWindow, const Vector4<int>& cornerRadius)
+void RSSurfaceRenderNode::SetOpaqueRegionBaseInfo(
+    const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation, const bool isFocusWindow)
 {
     opaqueRegionBaseInfo_.screenRect_ = screeninfo;
     opaqueRegionBaseInfo_.absRect_ = absRect;
     opaqueRegionBaseInfo_.screenRotation_ = screenRotation;
     opaqueRegionBaseInfo_.isFocusWindow_ = isFocusWindow;
-    opaqueRegionBaseInfo_.cornerRadius_ = cornerRadius;
     opaqueRegionBaseInfo_.isTransparent_ = IsTransparent();
     opaqueRegionBaseInfo_.hasContainerWindow_ = HasContainerWindow();
 }

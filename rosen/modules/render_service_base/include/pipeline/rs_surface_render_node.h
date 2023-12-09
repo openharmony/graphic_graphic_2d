@@ -685,19 +685,19 @@ public:
         return GetNodeId() == focusedNodeId;
     }
 
-    void ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation,
-        const bool isFocusWindow, const Vector4<int>& cornerRadius);
+    void ResetSurfaceOpaqueRegion(
+        const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation, const bool isFocusWindow);
     Occlusion::Region ResetOpaqueRegion(
         const RectI& absRect, const ScreenRotation screenRotation, const bool isFocusWindow) const;
     Occlusion::Region SetUnfocusedWindowOpaqueRegion(const RectI& absRect, const ScreenRotation screenRotation) const;
     Occlusion::Region SetFocusedWindowOpaqueRegion(const RectI& absRect, const ScreenRotation screenRotation) const;
-    Occlusion::Region SetCornerRadiusOpaqueRegion(const RectI& absRect, const Vector4<int>& cornerRadius) const;
+    Occlusion::Region SetCornerRadiusOpaqueRegion(const RectI& absRect, float radius) const;
     void ResetSurfaceContainerRegion(const RectI& screeninfo, const RectI& absRect,
         const ScreenRotation screenRotation);
-    bool CheckOpaqueRegionBaseInfo(const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation,
-        const bool isFocusWindow, const Vector4<int>& cornerRadius);
-    void SetOpaqueRegionBaseInfo(const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation,
-        const bool isFocusWindow, const Vector4<int>& cornerRadius);
+    bool CheckOpaqueRegionBaseInfo(
+        const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation, const bool isFocusWindow);
+    void SetOpaqueRegionBaseInfo(
+        const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation, const bool isFocusWindow);
 
     bool IsStartAnimationFinished() const;
     void SetStartAnimationFinished();
@@ -1029,7 +1029,6 @@ private:
         bool isFocusWindow_;
         bool isTransparent_;
         bool hasContainerWindow_;
-        Vector4<int> cornerRadius_;
     };
     
     //<screenRect, absRect, screenRotation, isFocusWindow, isTransparent, hasContainerWindow>

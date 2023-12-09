@@ -387,14 +387,6 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
     logicParentNode_ = node.weak_from_this();
     node.ResetChildrenRect();
 
-    auto tempCornerRadius = curCornerRadius_;
-    if (!isSubNodeOfSurfaceInPrepare_) {
-        Vector4f::Max(node.GetRenderProperties().GetCornerRadius(), curCornerRadius_, curCornerRadius_);
-    }
-    if (node.GetType() == RSRenderNodeType::SURFACE_NODE) {
-        node.SetGlobalCornerRadius(curCornerRadius_);
-    }
-
     float alpha = curAlpha_;
     curAlpha_ *= node.GetRenderProperties().GetAlpha();
     node.SetGlobalAlpha(curAlpha_);
@@ -424,7 +416,6 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
         SetNodeCacheChangeStatus(node);
     }
 
-    curCornerRadius_ = std::move(tempCornerRadius);
     curAlpha_ = alpha;
     // restore environment variables
     logicParentNode_ = std::move(parentNode);
@@ -1377,20 +1368,14 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     // needs to be done before CheckOpaqueRegionBaseInfo
     auto screenRotation = curDisplayNode_->GetRotation();
     auto screenRect = RectI(0, 0, screenInfo_.width, screenInfo_.height);
-    Vector4f cornerRadius;
-    Vector4f::Max(node.GetWindowCornerRadius(), node.GetGlobalCornerRadius(), cornerRadius);
-    Vector4<int> dstCornerRadius(static_cast<int>(std::ceil(cornerRadius.x_)),
-                                 static_cast<int>(std::ceil(cornerRadius.y_)),
-                                 static_cast<int>(std::ceil(cornerRadius.z_)),
-                                 static_cast<int>(std::ceil(cornerRadius.w_)));
     if (!node.CheckOpaqueRegionBaseInfo(
-        screenRect, geoPtr->GetAbsRect(), screenRotation, node.IsFocusedNode(currentFocusedNodeId_), dstCornerRadius)
+        screenRect, geoPtr->GetAbsRect(), screenRotation, node.IsFocusedNode(currentFocusedNodeId_))
         && node.GetSurfaceNodeType() != RSSurfaceNodeType::SELF_DRAWING_NODE) {
         node.ResetSurfaceOpaqueRegion(screenRect, geoPtr->GetAbsRect(),
-            screenRotation, node.IsFocusedNode(currentFocusedNodeId_), dstCornerRadius);
+            screenRotation, node.IsFocusedNode(currentFocusedNodeId_));
     }
     node.SetOpaqueRegionBaseInfo(
-        screenRect, geoPtr->GetAbsRect(), screenRotation, node.IsFocusedNode(currentFocusedNodeId_), dstCornerRadius);
+        screenRect, geoPtr->GetAbsRect(), screenRotation, node.IsFocusedNode(currentFocusedNodeId_));
 }
 
 void RSUniRenderVisitor::PrepareProxyRenderNode(RSProxyRenderNode& node)
@@ -4448,7 +4433,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         // Otherwise, its childrenRect_ should be considered.
         RectI dirtyRect = node.HasChildrenOutOfRect() ?
             node.GetOldDirtyInSurface().JoinRect(node.GetChildrenRect()) : node.GetOldDirtyInSurface();
-        if (isSubNodeOfSurfaceInProcess_ && !node.IsAncestorDirty() &&
+        if (isSubNodeOfSurfaceInProcess_ && !dirtyRect.IsEmpty() && !node.IsAncestorDirty() &&
             !curSurfaceNode_->SubNodeNeedDraw(dirtyRect, partialRenderType_) && !node.IsParentLeashWindow() &&
             !node.IsParentScbScreen()) {
             bool subSurfaceNeedDraw = false;

@@ -460,16 +460,6 @@ public:
     float GetGlobalAlpha() const;
     virtual void OnAlphaChanged() {}
 
-    inline const Vector4f& GetGlobalCornerRadius() noexcept
-    {
-        return globalCornerRadius_;
-    }
-
-    inline void SetGlobalCornerRadius(const Vector4f& globalCornerRadius) noexcept
-    {
-        globalCornerRadius_ = globalCornerRadius;
-    }
-
     void UpdateUIFrameRateRange(const FrameRateRange& range);
     const FrameRateRange& GetUIFrameRateRange() const;
 
@@ -656,7 +646,6 @@ private:
     bool isContentChanged_ = false;
     OutOfParentType outOfParent_ = OutOfParentType::UNKNOWN;
     float globalAlpha_ = 1.0f;
-    Vector4f globalCornerRadius_{ 0.f, 0.f, 0.f, 0.f };
     std::optional<SharedTransitionParam> sharedTransitionParam_;
 
     std::shared_ptr<RectF> drawRegion_ = nullptr;

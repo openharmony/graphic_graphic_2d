@@ -328,7 +328,6 @@ private:
     std::stack<std::shared_ptr<RSDirtyRegionManager>> surfaceDirtyManager_;
     std::stack<std::shared_ptr<RSSurfaceRenderNode>> surfaceNode_;
     float curAlpha_ = 1.f;
-    Vector4f curCornerRadius_{ 0.f, 0.f, 0.f, 0.f };
     bool dirtyFlag_ { false };
     std::unique_ptr<RSRenderFrame> renderFrame_;
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
