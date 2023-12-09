@@ -23,10 +23,15 @@
 #include "common/rs_macros.h"
 
 namespace OHOS::Rosen {
+class RenderContext;
 class RSB_EXPORT RSOffscreenRenderThread {
 public:
     static RSOffscreenRenderThread& Instance();
     void PostTask(const std::function<void()>& task);
+#ifdef ROSEN_OHOS
+    const std::shared_ptr<RenderContext>& GetRenderContext();
+    void CleanGrResource();
+#endif
 private:
     RSOffscreenRenderThread();
     ~RSOffscreenRenderThread() = default;
@@ -40,6 +45,9 @@ private:
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
+#ifdef ROSEN_OHOS
+    std::shared_ptr<RenderContext> renderContext_ = nullptr;
+#endif
 };
 }
 #endif // RS_OFFSCREEN_RENDER_THREAD_H

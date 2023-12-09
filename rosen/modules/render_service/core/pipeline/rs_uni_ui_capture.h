@@ -73,6 +73,7 @@ private:
 #else
         void SetCanvas(std::shared_ptr<Drawing::RecordingCanvas> canvas);
 #endif
+        void SetPaintFilterCanvas(std::shared_ptr<RSPaintFilterCanvas> canvas);
 
     private:
         void ProcessSurfaceRenderNodeWithUni(RSSurfaceRenderNode& node);
@@ -92,6 +93,7 @@ private:
     sk_sp<SkSurface> CreateSurface(const std::shared_ptr<Media::PixelMap>& pixelmap) const;
     void PostTaskToRSRecord(std::shared_ptr<RSRecordingCanvas> canvas, std::shared_ptr<RSRenderNode> node,
         std::shared_ptr<RSUniUICaptureVisitor> visitor);
+    bool CopyDataToPixelMap(sk_sp<SkImage> img, std::shared_ptr<Media::PixelMap> pixelmap);
 #else
         Drawing::Matrix captureMatrix_ = Drawing::Matrix();
         bool isUniRender_ = false;
