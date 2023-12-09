@@ -535,7 +535,7 @@ bool RSUniRenderUtil::IsNodeAssignSubThread(std::shared_ptr<RSSurfaceRenderNode>
 
 void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
     std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
-    std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes, uint64_t focusNodeId, DeviceType deviceType)
+    std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes)
 {
     if (displayNode == nullptr) {
         ROSEN_LOGE("RSUniRenderUtil::AssignWindowNodes display node is null");
@@ -587,7 +587,7 @@ void RSUniRenderUtil::AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRe
 }
 
 void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes,
-    const std::shared_ptr<RSSurfaceRenderNode>& node, DeviceType deviceType, uint64_t focusNodeId)
+    const std::shared_ptr<RSSurfaceRenderNode>& node)
 {
     if (node == nullptr) {
         ROSEN_LOGW("RSUniRenderUtil::AssignSubThreadNode node is nullptr");
@@ -596,14 +596,15 @@ void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRen
     node->SetNeedSubmitSubThread(true);
     node->SetCacheType(CacheType::CONTENT);
     node->SetIsMainThreadNode(false);
-
+    auto deviceType = RSMainThread::Instance()->GetDeviceType();
     // skip complete static window, DO NOT assign it to subthread.
-    if (node->IsUIFirstCacheReusable()) {
+    if (node->IsUIFirstCacheReusable(deviceType)) {
         node->SetNeedSubmitSubThread(false);
         RS_OPTIONAL_TRACE_NAME_FMT("subThreadNodes : static skip %s", node->GetName().c_str());
     } else {
         node->UpdateCacheSurfaceDirtyManager(2); // 2 means buffer age
     }
+    node->SetLastFrameChildrenCnt(node->GetChildren().size());
     subThreadNodes.emplace_back(node);
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DONE &&
@@ -624,7 +625,6 @@ void RSUniRenderUtil::AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRen
         node->SetCacheSurfaceNeedUpdated(false);
     }
 #endif
-    deviceType = RSMainThread::Instance()->GetDeviceType();
     bool isFocus = node->IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()) ||
         (node->IsFocusedNode(RSMainThread::Instance()->GetFocusLeashWindowId()));
     if ((deviceType == DeviceType::PC || deviceType == DeviceType::TABLET) && isFocus) {

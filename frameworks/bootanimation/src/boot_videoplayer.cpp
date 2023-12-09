@@ -98,9 +98,7 @@ bool BootVideoPlayer::PlayVideo()
 
 void BootVideoPlayer::StopVideo()
 {
-#ifdef PLAYER_FRAMEWORK_ENABLE
-    mediaPlayer_->Stop();
-#endif
+    LOGI("BootVideoPlayer StopVideo");
     vsyncCallbacks_(userData_);
 }
 

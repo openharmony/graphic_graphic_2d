@@ -102,6 +102,7 @@ txt::ParagraphStyle Convert(const TypographyStyle &style)
         .locale = style.locale,
         .break_strategy = static_cast<minikin::BreakStrategy>(style.breakStrategy),
         .word_break_type = static_cast<minikin::WordBreakType>(style.wordBreakType),
+        .text_split_ratio = style.textSplitRatio,
 #endif
     };
 }

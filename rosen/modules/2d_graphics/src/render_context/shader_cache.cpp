@@ -224,7 +224,6 @@ void ShaderCache::Store(const Drawing::Data& key, const Drawing::Data& data)
         deferredSaveThread.detach();
     }
 }
-
 size_t ShaderCache::QuerryShaderSize() const
 {
     if (!cacheData_) {
@@ -243,12 +242,11 @@ size_t ShaderCache::QuerryShaderNum() const
     return cacheData_->GetShaderNum();
 }
 
-size_t ShaderCache::CleanAllShaders() const
+void ShaderCache::CleanAllShaders() const
 {
     if (cacheData_) {
         cacheData_->Clear();
     }
-    return 0;
 }
 }   // namespace Rosen
 }   // namespace OHOS

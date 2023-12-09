@@ -104,7 +104,6 @@ void SkiaTextureInfo::ConvertToVKTexture(const GrBackendTexture& backendTexture,
     vkInfo->sharingMode = vkImageInfo.fSharingMode;
 
     info.SetVKTextureInfo(vkInfo);
-    return info;
 }
 #endif
 

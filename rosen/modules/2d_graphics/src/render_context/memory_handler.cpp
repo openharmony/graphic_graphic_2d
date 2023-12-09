@@ -82,9 +82,8 @@ std::string MemoryHandler::ClearShader()
 {
     const auto& cache = ShaderCache::Instance();
     LOGW("All shaders are cleaned");
-    size_t cleanedRam = cache.CleanAllShaders();
-    std::string ramString = "All shaders are cleaned, RAM freed: " + std::to_string(cleanedRam);
-    return ramString;
+    cache.CleanAllShaders();
+    return "All shaders are cleaned, RAM freed: 0";
 }
 }   // namespace Rosen
 }   // namespace OHOS

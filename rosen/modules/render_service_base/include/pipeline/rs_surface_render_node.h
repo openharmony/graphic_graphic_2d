@@ -36,6 +36,7 @@
 #include "platform/common/rs_surface_ext.h"
 #include "property/rs_properties_painter.h"
 #include "screen_manager/screen_types.h"
+#include "surface_type.h"
 #include "transaction/rs_occlusion_data.h"
 
 #ifndef USE_ROSEN_DRAWING
@@ -231,7 +232,7 @@ public:
     }
 
     // used to determine whether the layer-1 surfacenodes can be skipped in the subthread of focus-first framework
-    bool IsCurrentFrameStatic();
+    bool IsCurrentFrameStatic(DeviceType deviceType);
     void UpdateCacheSurfaceDirtyManager(int bufferAge = 2);
 
     bool GetNeedSubmitSubThread() const
@@ -540,9 +541,9 @@ public:
     void SetLocalZOrder(float localZOrder);
     float GetLocalZOrder() const;
 
-#ifndef ROSEN_CROSS_PLATFORM
     void SetColorSpace(GraphicColorGamut colorSpace);
     GraphicColorGamut GetColorSpace() const;
+#ifndef ROSEN_CROSS_PLATFORM
     void SetConsumer(const sptr<IConsumerSurface>& consumer);
     void SetBlendType(GraphicBlendType blendType);
     GraphicBlendType GetBlendType();
@@ -684,19 +685,19 @@ public:
         return GetNodeId() == focusedNodeId;
     }
 
-    void ResetSurfaceOpaqueRegion(
-        const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation, const bool isFocusWindow);
+    void ResetSurfaceOpaqueRegion(const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation,
+        const bool isFocusWindow, const Vector4<int>& cornerRadius);
     Occlusion::Region ResetOpaqueRegion(
         const RectI& absRect, const ScreenRotation screenRotation, const bool isFocusWindow) const;
     Occlusion::Region SetUnfocusedWindowOpaqueRegion(const RectI& absRect, const ScreenRotation screenRotation) const;
     Occlusion::Region SetFocusedWindowOpaqueRegion(const RectI& absRect, const ScreenRotation screenRotation) const;
-    Occlusion::Region SetCornerRadiusOpaqueRegion(const RectI& absRect, float radius) const;
+    Occlusion::Region SetCornerRadiusOpaqueRegion(const RectI& absRect, const Vector4<int>& cornerRadius) const;
     void ResetSurfaceContainerRegion(const RectI& screeninfo, const RectI& absRect,
         const ScreenRotation screenRotation);
-    bool CheckOpaqueRegionBaseInfo(
-        const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation, const bool isFocusWindow);
-    void SetOpaqueRegionBaseInfo(
-        const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation, const bool isFocusWindow);
+    bool CheckOpaqueRegionBaseInfo(const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation,
+        const bool isFocusWindow, const Vector4<int>& cornerRadius);
+    void SetOpaqueRegionBaseInfo(const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation,
+        const bool isFocusWindow, const Vector4<int>& cornerRadius);
 
     bool IsStartAnimationFinished() const;
     void SetStartAnimationFinished();
@@ -868,7 +869,17 @@ public:
         surfaceCacheContentStatic_ = contentStatic;
     }
 
-    bool IsUIFirstCacheReusable();
+    size_t GetLastFrameChildrenCnt()
+    {
+        return lastFrameChildrenCnt_;
+    }
+
+    void SetLastFrameChildrenCnt(size_t childrenCnt)
+    {
+        lastFrameChildrenCnt_ = childrenCnt;
+    }
+
+    bool IsUIFirstCacheReusable(DeviceType deviceType);
 
 #ifdef USE_SURFACE_TEXTURE
     std::shared_ptr<RSSurfaceTexture> GetSurfaceTexture() const { return surfaceTexture_; };
@@ -946,8 +957,8 @@ private:
     std::string name_;
     std::string bundleName_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
-#ifndef ROSEN_CROSS_PLATFORM
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+#ifndef ROSEN_CROSS_PLATFORM
     GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_SRCOVER;
 #endif
     bool isNotifyRTBufferAvailablePre_ = false;
@@ -1018,6 +1029,7 @@ private:
         bool isFocusWindow_;
         bool isTransparent_;
         bool hasContainerWindow_;
+        Vector4<int> cornerRadius_;
     };
     
     //<screenRect, absRect, screenRotation, isFocusWindow, isTransparent, hasContainerWindow>
@@ -1086,7 +1098,6 @@ private:
     bool prevVisible_ = false;
     bool hasSecurityLayer_ = false;
     bool hasSkipLayer_ = false;
-    bool surfaceCacheContentStatic_ = false;
 
     uint32_t processZOrder_ = -1;
 
@@ -1101,6 +1112,9 @@ private:
 
     RSBaseRenderNode::WeakPtr ancestorDisplayNode_;
     bool hasSharedTransitionNode_ = false;
+    size_t lastFrameChildrenCnt_ = 0;
+    // node only have translate and scale changes
+    bool surfaceCacheContentStatic_ = false;
 
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;

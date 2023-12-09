@@ -28,6 +28,7 @@
 #include "skia_image.h"
 #include "skia_image_info.h"
 #include "skia_texture_info.h"
+#include "utils/system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -132,6 +133,9 @@ bool SkiaSurface::Bind(const FrameBuffer& frameBuffer)
 std::shared_ptr<Surface> SkiaSurface::MakeFromBackendRenderTarget(GPUContext* gpuContext, TextureInfo& info,
     TextureOrigin origin, void (*deleteVkImage)(void *), void* cleanHelper)
 {
+    if (!SystemProperties::GetRsVulkanEnabled()) {
+        return nullptr;
+    }
     sk_sp<GrDirectContext> grContext = nullptr;
     if (gpuContext) {
         std::shared_ptr<SkiaGPUContext> skiaGpuContext = gpuContext->GetImpl<SkiaGPUContext>();
@@ -280,7 +284,13 @@ BackendTexture SkiaSurface::GetBackendTexture() const
         skSurface_->getBackendTexture(SkSurface::BackendHandleAccess::kFlushRead_BackendHandleAccess);
     auto backendTexture = BackendTexture(true);
 #ifdef RS_ENABLE_VK
-    backendTexture.SetTextureInfo(SkiaTextureInfo::ConvertToVKTexture(grBackendTexture));
+    if (SystemProperties::GetRsVulkanEnabled()) {
+        TextureInfo info;
+        SkiaTextureInfo::ConvertToVKTexture(grBackendTexture, info);
+        backendTexture.SetTextureInfo(info);
+    } else {
+        backendTexture.SetTextureInfo(SkiaTextureInfo::ConvertToTextureInfo(grBackendTexture));
+    }
 #else
     backendTexture.SetTextureInfo(SkiaTextureInfo::ConvertToTextureInfo(grBackendTexture));
 #endif
@@ -344,6 +354,9 @@ void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
 #ifdef RS_ENABLE_VK
 void SkiaSurface::Wait(int32_t time, const VkSemaphore& semaphore)
 {
+    if (!SystemProperties::GetRsVulkanEnabled()) {
+        return;
+    }
     if (skSurface_ == nullptr) {
         LOGE("skSurface is nullptr");
         return;
@@ -355,6 +368,9 @@ void SkiaSurface::Wait(int32_t time, const VkSemaphore& semaphore)
 
 void SkiaSurface::SetDrawingArea(const std::vector<RectI>& rects)
 {
+    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+        return;
+    }
     if (skSurface_ == nullptr) {
         LOGE("skSurface is nullptr");
         return;

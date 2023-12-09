@@ -35,7 +35,9 @@ std::shared_ptr<RenderContextBase> RenderContextBaseFactory::CreateRenderContext
         renderContext = std::make_shared<RenderContextOhosRaster>();
     } else {
 #ifdef RS_ENABLE_VK
-        renderContext = std::make_shared<RenderContextOhosVk>();
+        if (RSSystemProperties::GetRsVulkanEnabled()) {
+            renderContext = std::make_shared<RenderContextOhosVk>();
+        }
 #endif
     }
     renderContext->SetPlatformName(PlatformName::OHOS);

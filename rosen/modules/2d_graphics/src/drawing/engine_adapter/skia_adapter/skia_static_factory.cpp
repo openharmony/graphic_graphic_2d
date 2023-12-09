@@ -21,6 +21,7 @@
 #include "skia_adapter/skia_font_style_set.h"
 #include "skia_adapter/skia_text_blob.h"
 #include "skia_adapter/skia_typeface.h"
+#include "utils/system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -62,6 +63,9 @@ std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromName(const char familyName[
 std::shared_ptr<Surface> SkiaStaticFactory::MakeFromBackendRenderTarget(GPUContext* gpuuContext,
     TextureInfo& info, TextureOrigin origin, void (*deleteVkImage)(void *), void* cleanHelper)
 {
+    if (!SystemProperties::GetRsVulkanEnabled()) {
+        return nullptr;
+    }
     return SkiaSurface::MakeFromBackendRenderTarget(gpuuContext, info, origin, deleteVkImage, cleanHelper);
 }
 #endif

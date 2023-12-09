@@ -94,6 +94,7 @@ public:
 
     float GetLightIntensity() const;
     Vector4f GetLightPosition() const;
+    float GetIlluminatedBorderWidth() const;
     int GetIlluminatedType() const;
     float GetBloom() const;
 

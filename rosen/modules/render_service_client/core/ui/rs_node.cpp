@@ -218,7 +218,8 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::AnimateWithCurrentOptions(
         ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
         return {};
     }
-    auto finishCallbackType = timingSensitive ? FinishCallbackType::TIME_SENSITIVE : FinishCallbackType::TIME_SENSITIVE;
+    auto finishCallbackType =
+        timingSensitive ? FinishCallbackType::TIME_SENSITIVE : FinishCallbackType::TIME_INSENSITIVE;
     // re-use the current options and replace the finish callback
     auto animationFinishCallback = std::make_shared<AnimationFinishCallback>(finishCallback, finishCallbackType);
     implicitAnimator->OpenImplicitAnimation(std::move(animationFinishCallback));

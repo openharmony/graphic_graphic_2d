@@ -155,10 +155,15 @@ bool RSFilterCacheManager::RSFilterCacheTask::Render()
         return false;
     }
 #ifndef USE_ROSEN_DRAWING
+    GrSurfaceOrigin surfaceOrigin = kTopLeft_GrSurfaceOrigin;
 #ifdef RS_ENABLE_VK
-    auto surfaceOrigin = kTopLeft_GrSurfaceOrigin;
+    if (RSSystemProperties::GetRsVulkanEnabled()) {
+        surfaceOrigin = kTopLeft_GrSurfaceOrigin;
+    } else {
+        surfaceOrigin = kBottomLeft_GrSurfaceOrigin;
+    }
 #else
-    auto surfaceOrigin = kBottomLeft_GrSurfaceOrigin;
+    surfaceOrigin = kBottomLeft_GrSurfaceOrigin;
 #endif
     auto threadImage = SkImage::MakeFromTexture(cacheCanvas->recordingContext(), cacheBackendTexture_,
         surfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);

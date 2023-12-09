@@ -26,12 +26,37 @@
 
 namespace OHOS {
 namespace Rosen {
-
+#ifdef RS_ENABLE_VK
+static const int32_t INVALID_SYS_GPU_API_TYPE = -1;
+const GpuApiType RSSystemProperties::systemGpuApiType_ =
+    (std::atoi(system::GetParameter("persist.sys.graphic.GpuApiType", "-1").c_str()) != INVALID_SYS_GPU_API_TYPE) ?
+        (static_cast<GpuApiType>(std::atoi((system::GetParameter("persist.sys.graphic.GpuApiType", "0")).c_str()))) :
+        ((system::GetParameter("const.gpu.vendor", "0").compare("higpu.v200") == 0) ?
+            RSSystemProperties::GetDefaultHiGpuV200Platform() : GpuApiType::OPENGL);
+#else
+const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
+#endif
 constexpr int DEFAULT_CACHE_WIDTH = 1344;
 constexpr int DEFAULT_CACHE_HEIGHT = 2772;
 constexpr int DEFAULT_PARTIAL_RENDER_ENABLED_VALUE = 2;
 constexpr int DEFAULT_UNI_PARTIAL_RENDER_ENABLED_VALUE = 4;
 constexpr int DEFAULT_CORRECTION_MODE_VALUE = 999;
+
+#if defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)
+const bool RSSystemProperties::aceVulkanEnabled_ = false;
+#elif defined (ACE_ENABLE_GL)
+const bool RSSystemProperties::aceVulkanEnabled_ = false;
+#else
+const bool RSSystemProperties::aceVulkanEnabled_ = true;
+#endif
+
+#if defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK)
+const bool RSSystemProperties::rsVulkanEnabled_ = false;
+#elif defined (RS_ENABLE_GL)
+const bool RSSystemProperties::rsVulkanEnabled_ = false;
+#else
+const bool RSSystemProperties::rsVulkanEnabled_ = true;
+#endif
 
 int ConvertToInt(const char *originValue, int defaultValue)
 {
@@ -182,6 +207,9 @@ bool RSSystemProperties::GetUseShadowBatchingEnabled()
 bool RSSystemProperties::GetAFBCEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.afbc.enabled", "1");
+    if (systemGpuApiType_ != GpuApiType::OPENGL && systemGpuApiType_ != GpuApiType::VULKAN) {
+        return false;
+    }
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;

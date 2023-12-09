@@ -55,6 +55,7 @@ struct TypographyStyle {
     BreakStrategy breakStrategy = BreakStrategy::GREEDY;
     WordBreakType wordBreakType = WordBreakType::BREAK_WORD;
     EllipsisModal ellipsisModal = EllipsisModal::TAIL;
+    float textSplitRatio = 0.5f;
 
     TextStyle GetTextStyle() const;
     TextAlign GetEffectiveAlign() const;

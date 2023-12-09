@@ -176,6 +176,11 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
     }
 #ifdef NEW_SKIA
     auto samplingOptions = SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
+    if (canvas.GetRecordingState()) {
+        auto cpuImage = skImage_->makeRasterImage();
+        canvas.drawImage(cpuImage,0.f, 0.f, samplingOptions, nullptr);
+        return;
+    }
     canvas.drawImage(skImage_, 0.f, 0.f, samplingOptions, nullptr);
 #else
     canvas.drawImage(skImage_, 0.f, 0.f, nullptr);

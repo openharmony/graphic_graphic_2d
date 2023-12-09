@@ -2379,9 +2379,9 @@ const std::shared_ptr<SkRuntimeShaderBuilder>& RSPropertiesPainter::GetPhongShad
     }
     sk_sp<SkRuntimeEffect> lightEffect_;
     SkString lightString(R"(
-        uniform vec3 lightPos;
-        uniform vec3 viewPos;
-        uniform vec3 specularStrength;
+        uniform mat4 lightPos;
+        uniform mat4 viewPos;
+        uniform vec4 specularStrength;
 
         half4 main(float2 fragCoord) {
             vec3 lightColor = vec3(1.0, 1.0, 1.0);
@@ -2395,16 +2395,20 @@ const std::shared_ptr<SkRuntimeShaderBuilder>& RSPropertiesPainter::GetPhongShad
             // ambient
             vec4 ambient = lightColor.rgb1 * ambientStrength;
             vec3 norm = normalize(NormalMap.rgb);
-            vec3 lightDir = normalize(vec3(lightPos.xy - fragCoord, lightPos.z));
-            // diffuse
-            float diff = max(dot(norm, lightDir), 0.0);
-            vec4 diffuse = diff * lightColor.rgb1;
-            vec3 viewDir = normalize(vec3(viewPos.xy - fragCoord, viewPos.z)); //视角向量
-            vec3 halfwayDir = normalize(lightDir + viewDir); //半向量
-            float spec = pow(max(dot(norm, halfwayDir), 0.0), shininess); //夹角的指数关系
-            vec4 specular = lightColor.rgb1 * spec; //乘入射光颜色
-            vec4 o = ambient + diffuse * diffuseStrength * diffuseColor.rgb1; //混合环境光 漫反射
-            fragColor = o + specular * specularStrength.r * specularColor.rgb1; //高光反射
+
+            for (int i = 0; i < 4; i++) {
+                if (abs(specularStrength[i]) > 0.01) {
+                    vec3 lightDir = normalize(vec3(lightPos[i].xy - fragCoord, lightPos[i].z));
+                    float diff = max(dot(norm, lightDir), 0.0);
+                    vec4 diffuse = diff * lightColor.rgb1;
+                    vec3 viewDir = normalize(vec3(viewPos[i].xy - fragCoord, viewPos[i].z)); // view vector
+                    vec3 halfwayDir = normalize(lightDir + viewDir); // half vector
+                    float spec = pow(max(dot(norm, halfwayDir), 0.0), shininess); // exponential relationship of angle
+                    vec4 specular = lightColor.rgb1 * spec; // multiply color of incident light
+                    vec4 o = ambient + diffuse * diffuseStrength * diffuseColor.rgb1; // diffuse reflection
+                    fragColor = fragColor + o + specular * specularStrength[i] * specularColor.rgb1;
+                }
+            }
             return half4(fragColor);
         }
     )");
@@ -2427,9 +2431,9 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPropertiesPainter::GetPh
     }
     std::shared_ptr<Drawing::RuntimeEffect> lightEffect_;
     std::string lightString(R"(
-        uniform vec3 lightPos;
-        uniform vec3 viewPos;
-        uniform vec3 specularStrength;
+        uniform mat4 lightPos;
+        uniform mat4 viewPos;
+        uniform vec4 specularStrength;
 
         half4 main(float2 fragCoord) {
             vec3 lightColor = vec3(1.0, 1.0, 1.0);
@@ -2443,16 +2447,20 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPropertiesPainter::GetPh
             // ambient
             vec4 ambient = lightColor.rgb1 * ambientStrength;
             vec3 norm = normalize(NormalMap.rgb);
-            vec3 lightDir = normalize(vec3(lightPos.xy - fragCoord, lightPos.z));
-            // diffuse
-            float diff = max(dot(norm, lightDir), 0.0);
-            vec4 diffuse = diff * lightColor.rgb1;
-            vec3 viewDir = normalize(vec3(viewPos.xy - fragCoord, viewPos.z)); // view vector
-            vec3 halfwayDir = normalize(lightDir + viewDir); // half vector
-            float spec = pow(max(dot(norm, halfwayDir), 0.0), shininess); // exponential relationship of angle
-            vec4 specular = lightColor.rgb1 * spec; // multiply color of incident light
-            vec4 o = ambient + diffuse * diffuseStrength * diffuseColor.rgb1; // diffuse reflection
-            fragColor = o + specular * specularStrength.r * specularColor.rgb1; // specular reflection
+
+            for (int i = 0; i < 4; i++) {
+                if (abs(specularStrength[i]) > 0.01) {
+                    vec3 lightDir = normalize(vec3(lightPos[i].xy - fragCoord, lightPos[i].z));
+                    float diff = max(dot(norm, lightDir), 0.0);
+                    vec4 diffuse = diff * lightColor.rgb1;
+                    vec3 viewDir = normalize(vec3(viewPos[i].xy - fragCoord, viewPos[i].z)); // view vector
+                    vec3 halfwayDir = normalize(lightDir + viewDir); // half vector
+                    float spec = pow(max(dot(norm, halfwayDir), 0.0), shininess); // exponential relationship of angle
+                    vec4 specular = lightColor.rgb1 * spec; // multiply color of incident light
+                    vec4 o = ambient + diffuse * diffuseStrength * diffuseColor.rgb1; // diffuse reflection
+                    fragColor = fragColor + o + specular * specularStrength[i] * specularColor.rgb1;
+                }
+            }
             return half4(fragColor);
         }
     )");
@@ -2477,70 +2485,114 @@ void RSPropertiesPainter::DrawLight(const RSProperties& properties, Drawing::Can
     if (!lightBuilder) {
         return;
     }
-    auto& lightSourceMap = RSPointLightManager::Instance()->GetLightSourceMap();
-    std::vector<std::shared_ptr<RSLightSource>> lightSourceList;
-    EraseIf(lightSourceMap, [&lightSourceList](const auto& pair) -> bool {
-        auto lightSourceNodePtr = pair.second.lock();
-        if (!lightSourceNodePtr) {
-            return true;
-        }
-        auto& lightSource = lightSourceNodePtr->GetRenderProperties().GetLightSource();
-        lightSourceList.push_back(lightSource);
-        return false;
-    });
-    if (lightSourceList.empty()) {
+    const auto& lightSources = properties.GetIlluminated()->GetLightSources();
+    if (lightSources.empty()) {
         ROSEN_LOGD("RSPropertiesPainter::DrawLight lightSourceList is empty!");
         return;
     }
-    auto& geoPtr = (properties.GetBoundsGeometry());
-    auto& contentAbsRect = geoPtr->GetAbsRect();
-    auto& lightPosition = lightSourceList[0]->GetAbsLightPosition();
-    auto lightIntensity = lightSourceList[0]->GetLightIntensity();
-    auto lightX = lightPosition[0] - contentAbsRect.left_;
-    auto lightY = lightPosition[1] - contentAbsRect.top_;
-    auto lightZ = lightPosition[2];
+    const auto& geoPtr = (properties.GetBoundsGeometry());
+    if (!geoPtr || geoPtr->IsEmpty()) {
+        return;
+    }
+    DrawLightInner(properties, canvas, lightBuilder, lightSources, geoPtr);
+}
+
 #ifndef USE_ROSEN_DRAWING
-    lightBuilder->uniform("lightPos") = SkV3 { lightX, lightY, lightZ };
-    lightBuilder->uniform("viewPos") = SkV3 { lightX, lightY, 300 };
+void RSPropertiesPainter::DrawLightInner(const RSProperties& properties, SkCanvas& canvas,
+    std::shared_ptr<SkRuntimeShaderBuilder>& lightBuilder,
+    const std::unordered_set<std::shared_ptr<RSLightSource>>& lightSources,
+    const std::shared_ptr<RSObjAbsGeometry>& geoPtr)
+{
+    const auto& contentAbsRect = geoPtr->GetAbsRect();
+    auto iter = lightSources.begin();
+    auto cnt = 0;
+    SkM44 lightPositionMatrix;
+    SkM44 viewPosMatrix;
+    SkV4 lightIntensityV4;
+    constexpr int MAX_LIGHT_SOUCES = 4;
+    while (iter != lightSources.end() && cnt < MAX_LIGHT_SOUCES) {
+        const auto& lightPosition = (*iter)->GetAbsLightPosition();
+        auto lightIntensity = (*iter)->GetLightIntensity();
+        auto lightPosX = lightPosition[0] - contentAbsRect.left_;
+        auto lightPosY = lightPosition[1] - contentAbsRect.top_;
+        auto lightPosZ = lightPosition[2];
+        auto lightPositionV4 = SkV4 { lightPosX, lightPosY, lightPosZ, 0 };
+        auto viewPosV4 = SkV4 { lightPosX, lightPosY, lightPosZ, 0 };
+        lightIntensityV4[cnt] = lightIntensity;
+        lightPositionMatrix.setCol(cnt, lightPositionV4);
+        viewPosMatrix.setCol(cnt, viewPosV4);
+        iter++;
+        cnt++;
+    }
+    lightBuilder->uniform("lightPos") = lightPositionMatrix;
+    lightBuilder->uniform("viewPos") = viewPosMatrix;
     SkPaint paint;
     paint.setAntiAlias(true);
+    auto illuminatedType = properties.GetIlluminated()->GetIlluminatedType();
+    ROSEN_LOGD("RSPropertiesPainter::DrawLight illuminatedType:%{public}d", illuminatedType);
+    if (illuminatedType == IlluminatedType::CONTENT) {
+        DrawContentLight(properties, canvas, lightBuilder, paint, lightIntensityV4);
+    } else if (illuminatedType == IlluminatedType::BORDER) {
+        DrawBorderLight(properties, canvas, lightBuilder, paint, lightIntensityV4);
+    } else if (illuminatedType == IlluminatedType::BORDER_CONTENT) {
+        DrawContentLight(properties, canvas, lightBuilder, paint, lightIntensityV4);
+        DrawBorderLight(properties, canvas, lightBuilder, paint, lightIntensityV4);
+    }
+}
 #else
-    lightBuilder->SetUniform("lightPos", lightX, lightY, lightZ);
-    lightBuilder->SetUniform("viewPos", lightX, lightY, 300);
+void RSPropertiesPainter::DrawLightInner(const RSProperties& properties, Drawing::Canvas& canvas,
+    std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder,
+    std::unordered_set<std::shared_ptr<RSLightSource>>& lightSources,
+    const std::shared_ptr<RSObjAbsGeometry>& geoPtr)
+{
+    const auto& contentAbsRect = geoPtr->GetAbsRect();
+    auto iter = lightSources.begin();
+    auto cnt = 0;
+    Drawing::Matrix44::Buffer lightPositionBuffer;
+    Vector4f lightIntensityV4;
+    constexpr int MAX_LIGHT_SOUCES = 4;
+    while (iter != lightSources.end() && cnt < MAX_LIGHT_SOUCES) {
+        const auto& lightPosition = (*iter)->GetAbsLightPosition();
+        auto lightIntensity = (*iter)->GetLightIntensity();
+        auto lightPosX = lightPosition[0] - contentAbsRect.left_;
+        auto lightPosY = lightPosition[1] - contentAbsRect.top_;
+        auto lightPosZ = lightPosition[2];
+        lightIntensityV4[cnt] = lightIntensity;
+        lightPositionBuffer[0][cnt] = lightPosX;
+        lightPositionBuffer[1][cnt] = lightPosY;
+        lightPositionBuffer[2][cnt] = lightPosZ;
+        iter++;
+        cnt++;
+    }
+    Drawing::Matrix44::Buffer viewPosBuffer = lightPositionBuffer;
+    Drawing::Matrix44 lightPositionMatrix;
+    Drawing::Matrix44 viewPosMatrix;
+    lightPositionMatrix.SetMatrix44ColMajor(lightPositionBuffer);
+    viewPosMatrix.SetMatrix44ColMajor(viewPosBuffer);
+    lightBuilder->SetUniform("lightPos", lightPositionMatrix);
+    lightBuilder->SetUniform("viewPos", viewPosMatrix);
     Drawing::Pen pen;
     Drawing::Brush brush;
     pen.SetAntiAlias(true);
     brush.SetAntiAlias(true);
-#endif
-    auto illuminatedType = properties.GetIlluminated()->GetIlluminatedType();
     ROSEN_LOGD("RSPropertiesPainter::DrawLight illuminatedType:%{public}d", illuminatedType);
-#ifndef USE_ROSEN_DRAWING
     if (illuminatedType == IlluminatedType::CONTENT) {
-        DrawContentLight(properties, canvas, lightBuilder, paint, lightIntensity);
+        DrawContentLight(properties, canvas, lightBuilder, brush, lightIntensityV4);
     } else if (illuminatedType == IlluminatedType::BORDER) {
-        DrawBorderLight(properties, canvas, lightBuilder, paint, lightIntensity);
+        DrawBorderLight(properties, canvas, lightBuilder, pen, lightIntensityV4);
     } else if (illuminatedType == IlluminatedType::BORDER_CONTENT) {
-        DrawContentLight(properties, canvas, lightBuilder, paint, lightIntensity);
-        DrawBorderLight(properties, canvas, lightBuilder, paint, lightIntensity);
+        DrawContentLight(properties, canvas, lightBuilder, brush, lightIntensityV4);
+        DrawBorderLight(properties, canvas, lightBuilder, pen, lightIntensityV4);
     }
-#else
-    if (illuminatedType == IlluminatedType::CONTENT) {
-        DrawContentLight(properties, canvas, lightBuilder, brush, lightIntensity);
-    } else if (illuminatedType == IlluminatedType::BORDER) {
-        DrawBorderLight(properties, canvas, lightBuilder, pen, lightIntensity);
-    } else if (illuminatedType == IlluminatedType::BORDER_CONTENT) {
-        DrawContentLight(properties, canvas, lightBuilder, brush, lightIntensity);
-        DrawBorderLight(properties, canvas, lightBuilder, pen, lightIntensity);
-    }
-#endif
 }
+#endif
 
 #ifndef USE_ROSEN_DRAWING
 void RSPropertiesPainter::DrawContentLight(const RSProperties& properties, SkCanvas& canvas,
-    std::shared_ptr<SkRuntimeShaderBuilder> lightBuilder, SkPaint& paint, float lightIntensity)
+    std::shared_ptr<SkRuntimeShaderBuilder>& lightBuilder, SkPaint& paint, SkV4& lightIntensity)
 #else
 void RSPropertiesPainter::DrawContentLight(const RSProperties& properties, Drawing::Canvas& canvas,
-    std::shared_ptr<Drawing::RuntimeShaderBuilder> lightBuilder, Drawing::Brush& brush, float lightIntensity)
+    std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush, Vector4f& lightIntensity)
 #endif
 {
     // content light
@@ -2549,14 +2601,14 @@ void RSPropertiesPainter::DrawContentLight(const RSProperties& properties, Drawi
 #else
     std::shared_ptr<Drawing::ShaderEffect> shader;
 #endif
-    auto contentStrength = lightIntensity * 0.3;
+    auto contentStrength = lightIntensity * 0.3f;
 #ifndef USE_ROSEN_DRAWING
-    lightBuilder->uniform("specularStrength") = SkV3 { contentStrength, 0, 0 };
+    lightBuilder->uniform("specularStrength") = contentStrength;
     shader = lightBuilder->makeShader(nullptr, false);
     paint.setShader(shader);
     canvas.drawRRect(RRect2SkRRect(properties.GetRRect()), paint);
 #else
-    lightBuilder->SetUniform("specularStrength", contentStrength, 0, 0);
+    lightBuilder->SetUniform("specularStrength", contentStrength);
     shader = lightBuilder->MakeShader(nullptr, false);
     brush.SetShaderEffect(shader);
     canvas.AttachBrush(brush);
@@ -2567,10 +2619,10 @@ void RSPropertiesPainter::DrawContentLight(const RSProperties& properties, Drawi
 
 #ifndef USE_ROSEN_DRAWING
 void RSPropertiesPainter::DrawBorderLight(const RSProperties& properties, SkCanvas& canvas,
-    std::shared_ptr<SkRuntimeShaderBuilder> lightBuilder, SkPaint& paint, float lightIntensity)
+    std::shared_ptr<SkRuntimeShaderBuilder>& lightBuilder, SkPaint& paint, SkV4& lightIntensity)
 #else
 void RSPropertiesPainter::DrawBorderLight(const RSProperties& properties, Drawing::Canvas& canvas,
-    std::shared_ptr<Drawing::RuntimeShaderBuilder> lightBuilder, Drawing::Pen& pen, float lightIntensity)
+    std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Pen& pen, Vector4f& lightIntensity)
 #endif
 {
     // border light
@@ -2579,24 +2631,25 @@ void RSPropertiesPainter::DrawBorderLight(const RSProperties& properties, Drawin
 #else
     std::shared_ptr<Drawing::ShaderEffect> shader;
 #endif
-    auto strength = lightIntensity;
 #ifndef USE_ROSEN_DRAWING
-    lightBuilder->uniform("specularStrength") = SkV3 { strength, 0, 0 };
+    lightBuilder->uniform("specularStrength") = lightIntensity;
     shader = lightBuilder->makeShader(nullptr, false);
     paint.setShader(shader);
-    paint.setStrokeWidth(6);
+    float borderWidth = std::ceil(properties.GetIlluminatedBorderWidth());
+    paint.setStrokeWidth(borderWidth);
     paint.setStyle(SkPaint::Style::kStroke_Style);
 #else
-    lightBuilder->SetUniform("specularStrength", strength, 0, 0);
+    lightBuilder->SetUniform("specularStrength", lightIntensity);
     shader = lightBuilder->MakeShader(nullptr, false);
     pen.SetShaderEffect(shader);
-    pen.SetWidth(6);
+    float borderWidth = std::ceil(properties.GetIlluminatedBorderWidth());
+    pen.SetWidth(borderWidth);
 #endif
     auto borderRect = properties.GetRRect().rect_;
     float borderRadius = properties.GetRRect().radius_[0].x_;
-    auto borderRRect =
-        RRect(RectF(borderRect.left_ + 3, borderRect.top_ + 3, borderRect.width_ - 6, borderRect.height_ - 6),
-            borderRadius - 3, borderRadius - 3);
+    auto borderRRect = RRect(RectF(borderRect.left_ + borderWidth / 2.0f, borderRect.top_ + borderWidth / 2.0f,
+        borderRect.width_ - borderWidth, borderRect.height_ - borderWidth),
+        borderRadius - borderWidth / 2.0f, borderRadius - borderWidth / 2.0f);
 #ifndef USE_ROSEN_DRAWING
     canvas.drawRRect(RRect2SkRRect(borderRRect), paint);
 #else
@@ -3476,11 +3529,6 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeLightUpEffectSha
 void RSPropertiesPainter::DrawDynamicLightUp(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
 #ifndef USE_ROSEN_DRAWING
-    SkSurface* skSurface = canvas.GetSurface();
-    if (skSurface == nullptr) {
-        ROSEN_LOGD("RSPropertiesPainter::DrawDynamicLightUp skSurface is null");
-        return;
-    }
     SkAutoCanvasRestore acr(&canvas, true);
     if (RSSystemProperties::GetPropertyDrawableEnable()) {
         // do nothing
@@ -3490,19 +3538,10 @@ void RSPropertiesPainter::DrawDynamicLightUp(const RSProperties& properties, RSP
         canvas.clipRRect(RRect2SkRRect(properties.GetRRect()), true);
     }
 
-    auto clipBounds = canvas.getDeviceClipBounds();
-    auto image = skSurface->makeImageSnapshot(clipBounds);
-    if (image == nullptr) {
-        ROSEN_LOGE("RSPropertiesPainter::DrawDynamicLightUp image is null");
-        return;
-    }
-    auto imageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
-    auto shader = MakeDynamicLightUpShader(
-        properties.GetDynamicLightUpRate().value(), properties.GetDynamicLightUpDegree().value(), imageShader);
+    auto blender = MakeDynamicLightUpBlender(
+        properties.GetDynamicLightUpRate().value(), properties.GetDynamicLightUpDegree().value());
     SkPaint paint;
-    paint.setShader(shader);
-    canvas.resetMatrix();
-    canvas.translate(clipBounds.left(), clipBounds.top());
+    paint.setBlender(blender);
     canvas.drawPaint(paint);
 #else
     Drawing::Surface* surface = canvas.GetSurface();
@@ -3540,13 +3579,38 @@ void RSPropertiesPainter::DrawDynamicLightUp(const RSProperties& properties, RSP
 }
 
 #ifndef USE_ROSEN_DRAWING
-sk_sp<SkShader> RSPropertiesPainter::MakeDynamicLightUpShader(
-    float dynamicLightUpRate, float dynamicLightUpDeg, sk_sp<SkShader> imageShader)
+sk_sp<SkBlender> RSPropertiesPainter::MakeDynamicLightUpBlender(
+    float dynamicLightUpRate, float dynamicLightUpDeg)
 #else
 std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeDynamicLightUpShader(
     float dynamicLightUpRate, float dynamicLightUpDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader)
 #endif
 {
+#ifndef USE_ROSEN_DRAWING
+    static constexpr char prog[] = R"(
+        uniform half dynamicLightUpRate;
+        uniform half dynamicLightUpDeg;
+
+        vec4 main(vec4 src, vec4 dst) {
+            float x = 0.299 * dst.r + 0.587 * dst.g + 0.114 * dst.b;
+            float y = (0 - dynamicLightUpRate) * x + dynamicLightUpDeg;
+            float R = clamp((dst.r + y), 0.0, 1.0);
+            float G = clamp((dst.g + y), 0.0, 1.0);
+            float B = clamp((dst.b + y), 0.0, 1.0);
+            return vec4(R, G, B, 1.0);
+        }
+    )";
+
+    auto [effect, err] = SkRuntimeEffect::MakeForBlender(SkString(prog));
+    if (!effect) {
+        ROSEN_LOGE("MakeDynamicLightUpBlender::RuntimeBlender effect error: %{public}s\n", err.c_str());
+        return nullptr;
+    }
+    SkRuntimeBlendBuilder builder(effect);
+    builder.uniform("dynamicLightUpRate") = dynamicLightUpRate;
+    builder.uniform("dynamicLightUpDeg") = dynamicLightUpDeg;
+    return builder.makeBlender();
+#else
     static constexpr char prog[] = R"(
         uniform half dynamicLightUpRate;
         uniform half dynamicLightUpDeg;
@@ -3563,18 +3627,6 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeDynamicLightUpSh
             return vec4(R, G, B, 1.0);
         }
     )";
-#ifndef USE_ROSEN_DRAWING
-    auto [effect, err] = SkRuntimeEffect::MakeForShader(SkString(prog));
-    if (!effect) {
-        ROSEN_LOGE("MakeDynamicLightUpShader::RuntimeShader effect error: %{public}s\n", err.c_str());
-        return nullptr;
-    }
-    SkRuntimeShaderBuilder builder(effect);
-    builder.child("imageShader") = imageShader;
-    builder.uniform("dynamicLightUpRate") = dynamicLightUpRate;
-    builder.uniform("dynamicLightUpDeg") = dynamicLightUpDeg;
-    return builder.makeShader(nullptr, false);
-#else
     std::shared_ptr<Drawing::RuntimeEffect> effect = Drawing::RuntimeEffect::CreateForShader(prog);
     if (!effect) {
         ROSEN_LOGE("MakeDynamicLightUpShader::RuntimeShader effect error\n");

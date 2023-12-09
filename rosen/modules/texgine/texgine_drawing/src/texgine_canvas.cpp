@@ -99,6 +99,19 @@ void TexgineCanvas::DrawTextBlob(
 #endif
 }
 
+void TexgineCanvas::DrawSymbol(const HMSymbolData &symbol, SkPoint locate, const TexginePaint &paint)
+{
+    if (canvas_ == nullptr) {
+        return;
+    }
+    canvas_->drawSymbol(symbol, locate, paint.GetPaint());
+}
+
+void TexgineCanvas::DrawPath(const SkPath &path, const TexginePaint &paint)
+{
+    canvas_->drawPath(path, paint.GetPaint());
+}
+
 void TexgineCanvas::Clear(uint32_t color) const
 {
     if (canvas_ == nullptr) {

@@ -53,6 +53,7 @@ public:
     virtual void AppendText(const std::u16string& text) = 0;
     virtual void AppendPlaceholder(const PlaceholderSpan& span) = 0;
     virtual std::unique_ptr<Typography> CreateTypography() = 0;
+    virtual void AppendSymbol(const uint32_t& symbolId) {}
 };
 } // namespace Rosen
 } // namespace OHOS

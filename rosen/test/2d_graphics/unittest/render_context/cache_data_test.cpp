@@ -18,6 +18,7 @@
 #include <cerrno>
 
 #include <gtest/gtest.h>
+#include "platform/common/rs_system_properties.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -47,6 +48,10 @@ void CacheDataTest::TearDown() {}
 HWTEST_F(CacheDataTest, cachedata_init_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetAceVulkanEnabled()) {
+        ASSERT_TRUE(false);
+        return;
+    }
     GTEST_LOG_(INFO) << "CacheDataTest cachedata_init_test_001 start";
     /**
      * @tc.steps: step1. initialize a cachedata
@@ -69,6 +74,10 @@ HWTEST_F(CacheDataTest, cachedata_init_test_001, TestSize.Level1)
 HWTEST_F(CacheDataTest, serialized_size_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetAceVulkanEnabled()) {
+        ASSERT_TRUE(false);
+        return;
+    }
     GTEST_LOG_(INFO) << "CacheDataTest serialized_size_test_001 start";
     /**
      * @tc.steps: step1. initialize a cachedata
@@ -95,6 +104,10 @@ HWTEST_F(CacheDataTest, serialized_size_test_001, TestSize.Level1)
 HWTEST_F(CacheDataTest, get_data_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetAceVulkanEnabled()) {
+        ASSERT_TRUE(false);
+        return;
+    }
     GTEST_LOG_(INFO) << "CacheDataTest get_data_test_001 start";
     /**
      * @tc.steps: step1. initialize a cachedata
@@ -119,6 +132,10 @@ HWTEST_F(CacheDataTest, get_data_test_001, TestSize.Level1)
 HWTEST_F(CacheDataTest, serialization_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetAceVulkanEnabled()) {
+        ASSERT_TRUE(false);
+        return;
+    }
     GTEST_LOG_(INFO) << "CacheDataTest serialization_test_001 start";
     /**
      * @tc.steps: step1. initialize a cachedata
@@ -145,6 +162,10 @@ HWTEST_F(CacheDataTest, serialization_test_001, TestSize.Level1)
 HWTEST_F(CacheDataTest, deserialization_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetAceVulkanEnabled()) {
+        ASSERT_TRUE(false);
+        return;
+    }
     GTEST_LOG_(INFO) << "CacheDataTest deserialization_test_001 start";
     /**
      * @tc.steps: step1. initialize a cachedata
@@ -171,6 +192,10 @@ HWTEST_F(CacheDataTest, deserialization_test_001, TestSize.Level1)
 HWTEST_F(CacheDataTest, write_data_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetAceVulkanEnabled()) {
+        ASSERT_TRUE(false);
+        return;
+    }
     GTEST_LOG_(INFO) << "CacheDataTest write_data_test_001 start";
     /**
      * @tc.steps: step1. initialize a cachedata
@@ -198,6 +223,10 @@ HWTEST_F(CacheDataTest, write_data_test_001, TestSize.Level1)
 HWTEST_F(CacheDataTest, clean_data_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetAceVulkanEnabled()) {
+        ASSERT_TRUE(false);
+        return;
+    }
     GTEST_LOG_(INFO) << "CacheDataTest clean_data_test_001 start";
     /**
      * @tc.steps: step1. initialize a cachedata
@@ -233,6 +262,10 @@ HWTEST_F(CacheDataTest, clean_data_test_001, TestSize.Level1)
 HWTEST_F(CacheDataTest, clean_data_test_002, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetAceVulkanEnabled()) {
+        ASSERT_TRUE(false);
+        return;
+    }
     GTEST_LOG_(INFO) << "CacheDataTest clean_data_test_002 start";
     /**
      * @tc.steps: step1. initialize a cachedata

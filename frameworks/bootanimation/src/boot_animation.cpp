@@ -25,6 +25,7 @@
 #include "rs_surface_factory.h"
 #endif
 #include "parameter.h"
+#include "platform/common/rs_system_properties.h"
 
 using namespace OHOS;
 
@@ -222,14 +223,16 @@ void BootAnimation::InitRsSurface()
         return;
     }
 #ifdef ACE_ENABLE_GL
-    rc_ = OHOS::Rosen::RenderContextFactory::GetInstance().CreateEngine();
-    if (rc_ == nullptr) {
-        LOGE("InitilizeEglContext failed");
-        return;
-    } else {
-        LOGI("init egl context");
-        rc_->InitializeEglContext();
-        rsSurface_->SetRenderContext(rc_);
+    if (!Rosen::RSSystemProperties::GetAceVulkanEnabled()) {
+        rc_ = OHOS::Rosen::RenderContextFactory::GetInstance().CreateEngine();
+        if (rc_ == nullptr) {
+            LOGE("InitilizeEglContext failed");
+            return;
+        } else {
+            LOGI("init egl context");
+            rc_->InitializeEglContext();
+            rsSurface_->SetRenderContext(rc_);
+        }
     }
 #endif
     if (rc_ == nullptr) {

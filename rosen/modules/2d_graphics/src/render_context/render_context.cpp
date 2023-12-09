@@ -23,7 +23,9 @@
 
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
-#elif defined(RS_ENABLE_GL)
+#endif
+
+#ifdef RS_ENABLE_GL
 #include "EGL/egl.h"
 #endif
 
@@ -292,6 +294,9 @@ EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
 #ifdef RS_ENABLE_VK
 void RenderContext::AbandonContext()
 {
+    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+        return;
+    }
     if (grContext_ == nullptr) {
         LOGD("grContext is nullptr.");
         return;
@@ -299,58 +304,68 @@ void RenderContext::AbandonContext()
     grContext_->flushAndSubmit(true);
     grContext_->purgeUnlockAndSafeCacheGpuResources();
 }
+#endif
 
 bool RenderContext::SetUpGrContext(sk_sp<GrDirectContext> skContext)
-#else
-bool RenderContext::SetUpGrContext()
-#endif
 {
     if (grContext_ != nullptr) {
         LOGD("grContext has already created!!");
         return true;
     }
-
 #ifdef RS_ENABLE_GL
-    sk_sp<const GrGLInterface> glInterface(GrGLCreateNativeInterface());
-    if (glInterface.get() == nullptr) {
-        LOGE("SetUpGrContext failed to make native interface");
-        return false;
-    }
+    (void)skContext;
+    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+        sk_sp<const GrGLInterface> glInterface(GrGLCreateNativeInterface());
+        if (glInterface.get() == nullptr) {
+            LOGE("SetUpGrContext failed to make native interface");
+            return false;
+        }
 
-    GrContextOptions options;
-    options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
-    options.fPreferExternalImagesOverES3 = true;
-    options.fDisableDistanceFieldPaths = true;
+        GrContextOptions options;
+        options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
+        options.fPreferExternalImagesOverES3 = true;
+        options.fDisableDistanceFieldPaths = true;
 
-    // Advanced Filter
-    options.fProcessName = "render_service";
+        // Advanced Filter
+        options.fProcessName = "render_service";
 
-    mHandler_ = std::make_shared<MemoryHandler>();
-    auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-    auto size = glesVersion ? strlen(glesVersion) : 0;
-    if (isUniRenderMode_) {
-        cacheDir_ = UNIRENDER_CACHE_DIR;
-    }
-    mHandler_->ConfigureContext(&options, glesVersion, size, cacheDir_, isUniRenderMode_);
+        mHandler_ = std::make_shared<MemoryHandler>();
+        auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+        auto size = glesVersion ? strlen(glesVersion) : 0;
+        if (isUniRenderMode_) {
+            cacheDir_ = UNIRENDER_CACHE_DIR;
+        }
+        mHandler_->ConfigureContext(&options, glesVersion, size, cacheDir_, isUniRenderMode_);
 
 #if defined(NEW_SKIA)
-    sk_sp<GrDirectContext> grContext(GrDirectContext::MakeGL(std::move(glInterface), options));
+        sk_sp<GrDirectContext> grContext(GrDirectContext::MakeGL(std::move(glInterface), options));
 #else
-    sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface), options));
+        sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface), options));
 #endif
+        if (grContext == nullptr) {
+            LOGE("SetUpGrContext grContext is null");
+            return false;
+        }
+        grContext_ = std::move(grContext);
+        return true;
+    }
 #endif
+
 #ifdef RS_ENABLE_VK
-    if (skContext == nullptr) {
-        skContext = RsVulkanContext::GetSingleton().CreateSkContext();
+    if (RSSystemProperties::GetRsVulkanEnabled()) {
+        if (skContext == nullptr) {
+            skContext = RsVulkanContext::GetSingleton().CreateSkContext();
+        }
+        sk_sp<GrDirectContext> grContext(skContext);
+        if (grContext == nullptr) {
+            LOGE("SetUpGrContext grContext is null");
+            return false;
+        }
+        grContext_ = std::move(grContext);
+        return true;
     }
-    sk_sp<GrDirectContext> grContext(skContext);
 #endif
-    if (grContext == nullptr) {
-        LOGE("SetUpGrContext grContext is null");
-        return false;
-    }
-    grContext_ = std::move(grContext);
-    return true;
+    return false;
 }
 #else
 #ifdef RS_ENABLE_VK
@@ -393,11 +408,7 @@ bool RenderContext::SetUpGpuContext()
 #ifndef USE_ROSEN_DRAWING
 sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
 {
-#ifdef RS_ENABLE_VK
     if (!SetUpGrContext(nullptr)) {
-#else
-    if (!SetUpGrContext()) {
-#endif
         LOGE("GrContext is not ready!!!");
         return nullptr;
     }

@@ -229,16 +229,18 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
 #endif
 #else
 #if defined(RS_ENABLE_GL) && !defined(ROSEN_PREVIEW)
-    if (renderContext_ == nullptr) {
-        renderContext_ = new RenderContext();
-        ROSEN_LOGD("Create RenderContext");
-        RS_TRACE_NAME("InitializeEglContext");
+    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+        if (renderContext_ == nullptr) {
+            renderContext_ = new RenderContext();
+            ROSEN_LOGD("Create RenderContext");
+            RS_TRACE_NAME("InitializeEglContext");
 #ifdef ROSEN_OHOS
-        renderContext_->InitializeEglContext(); // init egl context on RT
-        if (!cacheDir_.empty()) {
-            renderContext_->SetCacheDir(cacheDir_);
-        }
+            renderContext_->InitializeEglContext(); // init egl context on RT
+            if (!cacheDir_.empty()) {
+                renderContext_->SetCacheDir(cacheDir_);
+            }
 #endif
+        }
     }
 #endif
 #endif

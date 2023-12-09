@@ -17,7 +17,10 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 is_ok = true
 
 config("texgine_drawing_public_config") {
-  include_dirs = [ "./src" ]
+  include_dirs = [
+    "./src",
+    "../export",
+  ]
   cflags = [
     "-Wall",
     "-Werror",

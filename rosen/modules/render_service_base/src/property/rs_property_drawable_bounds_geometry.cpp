@@ -106,7 +106,7 @@ void RSPointLightDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
     auto& properties = node.GetMutableRenderProperties();
     const auto& illuminatedPtr = properties.GetIlluminated();
-    if (illuminatedPtr && illuminatedPtr->IsIlluminated() && ROSEN_EQ(properties.GetBloom(), 0.f)) {
+    if (illuminatedPtr && illuminatedPtr->IsIlluminated()) {
         RSPropertiesPainter::DrawLight(properties, canvas);
     }
 }

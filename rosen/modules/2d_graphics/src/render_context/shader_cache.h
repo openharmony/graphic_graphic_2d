@@ -66,7 +66,7 @@ public:
 
     size_t QuerryShaderNum() const;
 
-    size_t CleanAllShaders() const;
+    void CleanAllShaders() const;
 
 private:
     ShaderCache() = default;

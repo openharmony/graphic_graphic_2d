@@ -89,8 +89,8 @@ public:
         const sk_sp<SkSurface>& spherizeSurface);
     // EffectView and useEffect
     static void DrawBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas, const SkIRect& rect);
-    static sk_sp<SkShader> MakeDynamicLightUpShader(
-        float dynamicLightUpRate, float dynamicLightUpDeg, sk_sp<SkShader> imageShader);
+    static sk_sp<SkBlender> MakeDynamicLightUpBlender(
+        float dynamicLightUpRate, float dynamicLightUpDeg);
     static void DrawGreyAdjustment(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 #else // USE_ROSEN_DRAWING
     static void Clip(Drawing::Canvas& canvas, RectF rect, bool isAntiAlias = true);
@@ -138,10 +138,14 @@ private:
 #ifndef USE_ROSEN_DRAWING
     static void DrawColorfulShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
     static void DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
+    static void DrawLightInner(const RSProperties& properties, SkCanvas& canvas,
+        std::shared_ptr<SkRuntimeShaderBuilder>& lightBuilder,
+        const std::unordered_set<std::shared_ptr<RSLightSource>>& lightSources,
+        const std::shared_ptr<RSObjAbsGeometry>& geoPtr);
     static void DrawContentLight(const RSProperties& properties, SkCanvas& canvas,
-        std::shared_ptr<SkRuntimeShaderBuilder> lightBuilder, SkPaint& paint, float lightIntensity);
+        std::shared_ptr<SkRuntimeShaderBuilder>& lightBuilder, SkPaint& paint, SkV4& lightIntensity);
     static void DrawBorderLight(const RSProperties& properties, SkCanvas& canvas,
-        std::shared_ptr<SkRuntimeShaderBuilder> lightBuilder, SkPaint& paint, float lightIntensity);
+        std::shared_ptr<SkRuntimeShaderBuilder>& lightBuilder, SkPaint& paint, SkV4& lightIntensity);
     static bool GetGradientDirectionPoints(SkPoint (&pts)[2],
                                 const SkRect& clipBounds, GradientDirection direction);
     static sk_sp<SkShader> MakeAlphaGradientShader(const SkRect& clipBounds,
@@ -175,10 +179,14 @@ private:
     static void DrawColorfulShadowInner(
         const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::Path& path);
     static void DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::Path& path);
+    static void DrawLightInner(const RSProperties& properties, Drawing::Canvas& canvas,
+        std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder,
+        const std::unordered_set<std::shared_ptr<RSLightSource>>& lightSources,
+        const std::shared_ptr<RSObjAbsGeometry>& geoPtr);
     static void DrawContentLight(const RSProperties& properties, Drawing::Canvas& canvas,
-        std::shared_ptr<Drawing::RuntimeShaderBuilder> lightBuilder, Drawing::Brush& brush, float lightIntensity);
+        std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush, Vector4f& lightIntensity);
     static void DrawBorderLight(const RSProperties& properties, Drawing::Canvas& canvas,
-        std::shared_ptr<Drawing::RuntimeShaderBuilder> lightBuilder, Drawing::Pen& pen, float lightIntensity);
+        std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Pen& pen, Vector4f& lightIntensity);
     static bool GetGradientDirectionPoints(
         Drawing::Point (&pts)[2], const Drawing::Rect& clipBounds, GradientDirection direction);
     static std::shared_ptr<Drawing::ShaderEffect> MakeAlphaGradientShader(const Drawing::Rect& clipBounds,

@@ -65,14 +65,7 @@ static int ColorTypeToBytesPerPixel(ColorType colorType)
 
 OpDataHandle CmdListHelper::AddImageToCmdList(CmdList& cmdList, const Image& image)
 {
-    auto data = image.Serialize();
-    if (data == nullptr || data->GetSize() == 0) {
-        LOGE("image is valid!");
-        return { 0 };
-    }
-
-    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
-    return { offset, data->GetSize() };
+    return cmdList.AddImage(image);
 }
 
 OpDataHandle CmdListHelper::AddImageToCmdList(CmdList& cmdList, const std::shared_ptr<Image>& image)
@@ -86,24 +79,7 @@ OpDataHandle CmdListHelper::AddImageToCmdList(CmdList& cmdList, const std::share
 
 std::shared_ptr<Image> CmdListHelper::GetImageFromCmdList(const CmdList& cmdList, const OpDataHandle& opDataHandle)
 {
-    if (opDataHandle.size == 0) {
-        return nullptr;
-    }
-
-    const void* ptr = cmdList.GetImageData(opDataHandle.offset);
-    if (ptr == nullptr) {
-        LOGE("get image data failed!");
-        return nullptr;
-    }
-
-    auto imageData = std::make_shared<Data>();
-    imageData->BuildWithoutCopy(ptr, opDataHandle.size);
-    auto image = std::make_shared<Image>();
-    if (image->Deserialize(imageData) == false) {
-        LOGE("image deserialize failed!");
-        return nullptr;
-    }
-    return image;
+    return (const_cast<CmdList&>(cmdList)).GetImage(opDataHandle);
 }
 
 OpDataHandle CmdListHelper::AddVerticesToCmdList(CmdList& cmdList, const Vertices& vertices)
@@ -151,7 +127,7 @@ ImageHandle CmdListHelper::AddBitmapToCmdList(CmdList& cmdList, const Bitmap& bi
         return { 0 };
     }
 
-    auto offset = cmdList.AddImageData(bitmap.GetPixels(), bitmapSize);
+    auto offset = cmdList.AddBitmapData(bitmap.GetPixels(), bitmapSize);
     return { offset, bitmapSize, bitmap.GetWidth(), bitmap.GetHeight(), format.colorType, format.alphaType };
 }
 
@@ -161,7 +137,7 @@ std::shared_ptr<Bitmap> CmdListHelper::GetBitmapFromCmdList(const CmdList& cmdLi
         return nullptr;
     }
 
-    const void* ptr = cmdList.GetImageData(bitmapHandle.offset);
+    const void* ptr = cmdList.GetBitmapData(bitmapHandle.offset);
     if (ptr == nullptr) {
         LOGE("get bitmap data failed!");
         return nullptr;
@@ -170,7 +146,7 @@ std::shared_ptr<Bitmap> CmdListHelper::GetBitmapFromCmdList(const CmdList& cmdLi
     BitmapFormat format = { bitmapHandle.colorType, bitmapHandle.alphaType };
     auto bitmap = std::make_shared<Bitmap>();
     bitmap->Build(bitmapHandle.width, bitmapHandle.height, format);
-    bitmap->SetPixels(const_cast<void*>(cmdList.GetImageData(bitmapHandle.offset)));
+    bitmap->SetPixels(const_cast<void*>(cmdList.GetBitmapData(bitmapHandle.offset)));
 
     return bitmap;
 }
@@ -316,6 +292,12 @@ CmdListHandle CmdListHelper::AddChildToCmdList(CmdList& cmdList, const std::shar
     if (childImageData.first != nullptr && childImageData.second != 0) {
         childHandle.imageOffset = cmdList.AddImageData(childImageData.first, childImageData.second);
         childHandle.imageSize = childImageData.second;
+    }
+
+    auto childBitmapData = child->GetAllBitmapData();
+    if (childBitmapData.first != nullptr && childBitmapData.second != 0) {
+        childHandle.bitmapOffset = cmdList.AddBitmapData(childBitmapData.first, childBitmapData.second);
+        childHandle.bitmapSize = childBitmapData.second;
     }
 
     return childHandle;

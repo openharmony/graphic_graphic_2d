@@ -51,9 +51,6 @@ public:
     static void ReleaseAllGpuResource(GrDirectContext* grContext, GrGpuResourceTag& tag);
     static void ReleaseUnlockGpuResource(GrDirectContext* grContext, bool scratchResourcesOnly = true);
     static void ReleaseUnlockAndSafeCacheGpuResource(GrDirectContext* grContext);
-#ifdef RS_ENABLE_VK
-    static void PerformDeferedCleanup(GrDirectContext* grContext, std::chrono::milliseconds msNotUsed);
-#endif
     static float GetAppGpuMemoryInMB(GrDirectContext* grContext);
 #else
     static void DumpMemoryUsage(DfxString& log, const GrContext* grContext, std::string& type);

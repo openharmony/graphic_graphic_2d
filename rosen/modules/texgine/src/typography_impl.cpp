@@ -148,7 +148,7 @@ size_t TypographyImpl::FindGlyphTargetIndex(size_t line,
     offsetX = 0;
     size_t targetIndex = 0;
     for (const auto &width : widths) {
-        if (x < offsetX + HALF(fabs(width))) {
+        if (x < offsetX + fabs(width) * typographyStyle_.textSplitRatio) {
             break;
         }
 
@@ -205,7 +205,7 @@ IndexAndAffinity TypographyImpl::GetGlyphIndexByCoordinate(double x, double y) c
 
     // calc affinity
     if (targetIndex > 0 && targetIndex < widths.size()) {
-        auto mid = offsetX + HALF(fabs(widths[targetIndex]));
+        auto mid = offsetX + fabs(widths[targetIndex]) * typographyStyle_.textSplitRatio;
         if (x < mid) {
             count--;
             affinity = Affinity::NEXT;

@@ -19,6 +19,22 @@
 
 namespace OHOS {
 namespace Rosen {
+#if defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)
+const bool RSSystemProperties::aceVulkanEnabled_ = false;
+#elif defined (ACE_ENABLE_GL)
+const bool RSSystemProperties::aceVulkanEnabled_ = false;
+#else
+const bool RSSystemProperties::aceVulkanEnabled_ = true;
+#endif
+
+#if defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK)
+const bool RSSystemProperties::rsVulkanEnabled_ = false;
+#elif defined (RS_ENABLE_GL)
+const bool RSSystemProperties::rsVulkanEnabled_ = false;
+#else
+const bool RSSystemProperties::rsVulkanEnabled_ = true;
+#endif
+
 int RSSystemProperties::GetDumpFrameNum()
 {
     return 0;

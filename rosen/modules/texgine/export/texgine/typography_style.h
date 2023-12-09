@@ -66,6 +66,8 @@ struct TypographyStyle {
         std::optional<double> spacingScale = std::nullopt;
     } lineStyle;
 
+    float textSplitRatio = 0.5f;
+
     /*
      * @brief Returns the equivalent align by TextAlign and TextDirection.
      */

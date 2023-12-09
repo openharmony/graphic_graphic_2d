@@ -48,6 +48,9 @@ namespace Rosen {
 namespace {
 SkColorType GetSkColorTypeFromVkFormat(VkFormat vkFormat)
 {
+    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+        return kRGBA_8888_SkColorType;
+    }
     switch (vkFormat) {
         case VK_FORMAT_R8G8B8A8_UNORM:
             return kRGBA_8888_SkColorType;
@@ -349,6 +352,100 @@ void TextBlobOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
     } else {
         canvas.drawTextBlob(textBlob_, x_, y_, paint_);
     }
+}
+
+SymbolOpItem::SymbolOpItem(const HMSymbolData& symbol, SkPoint locate, const SkPaint& paint)
+    : OpItemWithPaint(sizeof(SymbolOpItem)), symbol_(symbol), locate_(locate), paint_(paint), nodeId_(0)
+{
+}
+
+static void MergePath(SkPath& multPath, RenderGroup& group, std::vector<SkPath>& pathLayers)
+{
+    for (auto groupInfo : group.groupInfos) {
+        SkPath pathStemp;
+        for (auto k : groupInfo.layerIndexes) {
+            if (k >= pathLayers.size()) {
+                continue;
+            }
+            pathStemp.addPath(pathLayers[k]);
+        }
+        for (size_t h : groupInfo.maskIndexes) {
+            if (h >= pathLayers.size()) {
+                continue;
+            }
+            SkPath outPath;
+            auto isOk = Op(pathStemp, pathLayers[h], SkPathOp::kDifference_SkPathOp, &outPath);
+            if (isOk) {
+                pathStemp = outPath;
+            }
+        }
+        multPath.addPath(pathStemp);
+    }
+}
+
+void SymbolOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
+{
+    SkPath path(symbol_.path_);
+
+    // 1.0 move path
+    path.offset(locate_.x(), locate_.y());
+
+    // 2.0 split path
+    std::vector<SkPath> paths;
+    HMSymbol::PathOutlineDecompose(path, paths);
+    std::vector<SkPath> pathLayers;
+    HMSymbol::MultilayerPath(symbol_.symbolInfo_.layers, paths, pathLayers);
+
+    // 3.0 set paint
+    SkPaint paintCopy = paint_;
+    paintCopy.setAntiAlias(true);
+    paintCopy.setStyle(SkPaint::kStrokeAndFill_Style);
+    paintCopy.setStrokeWidth(0.0f);
+    paintCopy.setStrokeJoin(SkPaint::kRound_Join);
+
+    // draw path
+    std::vector<RenderGroup> groups = symbol_.symbolInfo_.renderGroups;
+    RS_LOGD("SymbolOpItem::Draw RenderGroup size %{public}d", static_cast<int>(groups.size()));
+    if (groups.size() == 0) {
+        canvas.drawPath(path, paintCopy);
+    }
+    for (auto group : groups) {
+        SkPath multPath;
+        MergePath(multPath, group, pathLayers);
+        // color
+        paintCopy.setColor(SkColorSetRGB(group.color.r, group.color.g, group.color.b));
+        paintCopy.setAlphaf(group.color.a);
+        canvas.drawPath(multPath, paintCopy);
+    }
+}
+
+bool SymbolOpItem::Marshalling(Parcel& parcel) const
+{
+    RS_LOGD("SymbolOpItem::Marshalling at %{public}d, %{public}d",
+        static_cast<int>(locate_.x()), static_cast<int>(locate_.y()));
+    bool success = RSMarshallingHelper::Marshalling(parcel, symbol_) &&
+        RSMarshallingHelper::Marshalling(parcel, locate_) &&
+        RSMarshallingHelper::Marshalling(parcel, paint_);
+    if (!success) {
+        RS_LOGE("SymbolOpItem::Marshalling failed!");
+        return false;
+    }
+    return true;
+}
+
+OpItem* SymbolOpItem::Unmarshalling(Parcel& parcel)
+{
+    HMSymbolData symbol;
+    SkPoint point;
+    SkPaint paint;
+    bool success = RSMarshallingHelper::Unmarshalling(parcel, symbol) &&
+        RSMarshallingHelper::Unmarshalling(parcel, point) &&
+        RSMarshallingHelper::Unmarshalling(parcel, paint);
+    if (!success) {
+        RS_LOGE("SymbolOpItem::Unmarshalling failed!");
+        return nullptr;
+    }
+    return new SymbolOpItem(symbol, point, paint);
 }
 
 #ifdef NEW_SKIA
@@ -742,32 +839,39 @@ ImageWithParmOpItem::~ImageWithParmOpItem()
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifndef USE_ROSEN_DRAWING
 #ifdef RS_ENABLE_GL
-    RSTaskDispatcher::GetInstance().PostTask(tid_, [texId = texId_,
-                                                    nativeWindowBuffer = nativeWindowBuffer_,
-                                                    eglImage = eglImage_]() {
-        if (texId != 0U) {
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glDeleteTextures(1, &texId);
-        }
-        if (nativeWindowBuffer != nullptr) {
-            DestroyNativeWindowBuffer(nativeWindowBuffer);
-        }
-        if (eglImage != EGL_NO_IMAGE_KHR) {
-            auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-            eglDestroyImageKHR(disp, eglImage);
-        }
-    });
-#elif defined(RS_ENABLE_VK)
-    RSTaskDispatcher::GetInstance().PostTask(tid_, [nativeWindowBuffer = nativeWindowBuffer_,
-        cleanupHelper = cleanupHelper_]() {
-        if (nativeWindowBuffer) {
-            DestroyNativeWindowBuffer(nativeWindowBuffer);
-        }
-        if (cleanupHelper) {
-            NativeBufferUtils::DeleteVkImage(cleanupHelper);
-        }
-    });
+    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+        RSTaskDispatcher::GetInstance().PostTask(tid_, [texId = texId_,
+                                                        nativeWindowBuffer = nativeWindowBuffer_,
+                                                        eglImage = eglImage_]() {
+            if (texId != 0U) {
+                glBindTexture(GL_TEXTURE_2D, 0);
+                glDeleteTextures(1, &texId);
+            }
+            if (nativeWindowBuffer != nullptr) {
+                DestroyNativeWindowBuffer(nativeWindowBuffer);
+            }
+            if (eglImage != EGL_NO_IMAGE_KHR) {
+                auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+                eglDestroyImageKHR(disp, eglImage);
+            }
+        });
+    }
 #endif
+
+#if defined(RS_ENABLE_VK)
+    if (RSSystemProperties::GetRsVulkanEnabled()) {
+        RSTaskDispatcher::GetInstance().PostTask(tid_, [nativeWindowBuffer = nativeWindowBuffer_,
+            cleanupHelper = cleanupHelper_]() {
+            if (nativeWindowBuffer) {
+                DestroyNativeWindowBuffer(nativeWindowBuffer);
+            }
+            if (cleanupHelper) {
+                NativeBufferUtils::DeleteVkImage(cleanupHelper);
+            }
+        });
+    }
+#endif
+
 #endif
 #endif
 }
@@ -818,67 +922,75 @@ sk_sp<SkImage> ImageWithParmOpItem::GetSkImageFromSurfaceBuffer(SkCanvas& canvas
         }
     }
 #ifdef RS_ENABLE_GL
-    EGLint attrs[] = {
-        EGL_IMAGE_PRESERVED,
-        EGL_TRUE,
-        EGL_NONE,
-    };
+    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+        EGLint attrs[] = {
+            EGL_IMAGE_PRESERVED,
+            EGL_TRUE,
+            EGL_NONE,
+        };
 
-    auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    if (eglImage_ == EGL_NO_IMAGE_KHR) {
-        eglImage_ = eglCreateImageKHR(disp, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_OHOS, nativeWindowBuffer_, attrs);
+        auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
         if (eglImage_ == EGL_NO_IMAGE_KHR) {
-            RS_LOGE("%{public}s create egl image fail %{public}d", __func__, eglGetError());
-            return nullptr;
+            eglImage_ = eglCreateImageKHR(disp, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_OHOS, nativeWindowBuffer_, attrs);
+            if (eglImage_ == EGL_NO_IMAGE_KHR) {
+                RS_LOGE("%{public}s create egl image fail %{public}d", __func__, eglGetError());
+                return nullptr;
+            }
+            tid_ = gettid();
         }
-        tid_ = gettid();
-    }
 
-    // Create texture object
-    if (texId_ == 0U) {
-        glGenTextures(1, &texId_);
-        glBindTexture(GL_TEXTURE_2D, texId_);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, static_cast<GLeglImageOES>(eglImage_));
-    }
+        // Create texture object
+        if (texId_ == 0U) {
+            glGenTextures(1, &texId_);
+            glBindTexture(GL_TEXTURE_2D, texId_);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, static_cast<GLeglImageOES>(eglImage_));
+        }
 
-    GrGLTextureInfo textureInfo = { GL_TEXTURE_2D, texId_, GL_RGBA8_OES };
+        GrGLTextureInfo textureInfo = { GL_TEXTURE_2D, texId_, GL_RGBA8_OES };
 
-    GrBackendTexture backendTexture(
-        surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), GrMipMapped::kNo, textureInfo);
+        GrBackendTexture backendTexture(
+            surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), GrMipMapped::kNo, textureInfo);
 #ifdef NEW_SKIA
-    auto skImage = SkImage::MakeFromTexture(canvas.recordingContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
-        kRGBA_8888_SkColorType, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
+        auto skImage = SkImage::MakeFromTexture(canvas.recordingContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
+            kRGBA_8888_SkColorType, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
 #else
-    auto skImage = SkImage::MakeFromTexture(canvas.getGrContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
-        kRGBA_8888_SkColorType, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
+        auto skImage = SkImage::MakeFromTexture(canvas.getGrContext(), backendTexture, kTopLeft_GrSurfaceOrigin,
+            kRGBA_8888_SkColorType, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
 #endif
-#elif defined(RS_ENABLE_VK)
-    if (!backendTexture_.isValid()) {
-        backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
-            surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight());
-        if (backendTexture_.isValid()) {
-            GrVkImageInfo imageInfo;
-            backendTexture_.getVkImageInfo(&imageInfo);
-            cleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-                imageInfo.fImage, imageInfo.fAlloc.fMemory);
-        } else {
-            return nullptr;
-        }
-        tid_ = gettid();
+        return skImage;
     }
-
-    GrVkImageInfo imageInfo;
-    backendTexture_.getVkImageInfo(&imageInfo);
-    auto skImage = SkImage::MakeFromTexture(
-        canvas.recordingContext(), backendTexture_, kTopLeft_GrSurfaceOrigin,
-        GetSkColorTypeFromVkFormat(imageInfo.fFormat), kPremul_SkAlphaType, SkColorSpace::MakeSRGB(),
-        NativeBufferUtils::DeleteVkImage, cleanupHelper_->Ref());
 #endif
-    return skImage;
+
+#if defined(RS_ENABLE_VK)
+    if (RSSystemProperties::GetRsVulkanEnabled()) {
+        if (!backendTexture_.isValid()) {
+            backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
+                surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight());
+            if (backendTexture_.isValid()) {
+                GrVkImageInfo imageInfo;
+                backendTexture_.getVkImageInfo(&imageInfo);
+                cleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+                    imageInfo.fImage, imageInfo.fAlloc.fMemory);
+            } else {
+                return nullptr;
+            }
+            tid_ = gettid();
+        }
+
+        GrVkImageInfo imageInfo;
+        backendTexture_.getVkImageInfo(&imageInfo);
+        auto skImage = SkImage::MakeFromTexture(
+            canvas.recordingContext(), backendTexture_, kTopLeft_GrSurfaceOrigin,
+            GetSkColorTypeFromVkFormat(imageInfo.fFormat), kPremul_SkAlphaType, SkColorSpace::MakeSRGB(),
+            NativeBufferUtils::DeleteVkImage, cleanupHelper_->Ref());
+        return skImage;
+    }
+#endif
+    return nullptr;
 }
 #endif // USE_ROSEN_DRAWING
 #endif // defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
@@ -1054,15 +1166,19 @@ void SurfaceBufferOpItem::Clear() const noexcept
 {
     RS_TRACE_NAME("SurfaceBufferOpItem::Clear");
 #ifdef RS_ENABLE_VK
-    skImage_ = nullptr;
+    if (RSSystemProperties::GetRsVulkanEnabled()) {
+        skImage_ = nullptr;
+    }
 #endif
 #ifdef RS_ENABLE_GL
-    if (texId_ != 0U) {
-        glDeleteTextures(1, &texId_);
-    }
-    if (eglImage_ != EGL_NO_IMAGE_KHR) {
-        auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-        eglDestroyImageKHR(disp, eglImage_);
+    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+        if (texId_ != 0U) {
+            glDeleteTextures(1, &texId_);
+        }
+        if (eglImage_ != EGL_NO_IMAGE_KHR) {
+            auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+            eglDestroyImageKHR(disp, eglImage_);
+        }
     }
 #endif
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
@@ -1087,33 +1203,39 @@ void SurfaceBufferOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
     }
 #endif
 #ifdef RS_ENABLE_VK
-    auto backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
-        surfaceBufferInfo_.width_, surfaceBufferInfo_.height_);
-    if (backendTexture.isValid()) {
-        GrVkImageInfo imageInfo;
-        backendTexture.getVkImageInfo(&imageInfo);
-        skImage_ = SkImage::MakeFromTexture(canvas.recordingContext(),
-            backendTexture, kTopLeft_GrSurfaceOrigin, GetSkColorTypeFromVkFormat(imageInfo.fFormat),
-            kPremul_SkAlphaType, SkColorSpace::MakeSRGB(), NativeBufferUtils::DeleteVkImage,
-            new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-                imageInfo.fImage, imageInfo.fAlloc.fMemory));
-        if (canvas.GetRecordingState()) {
-            if (!skImage_) {
+    if (RSSystemProperties::GetRsVulkanEnabled()) {
+        auto backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
+            surfaceBufferInfo_.width_, surfaceBufferInfo_.height_);
+        if (backendTexture.isValid()) {
+            GrVkImageInfo imageInfo;
+            backendTexture.getVkImageInfo(&imageInfo);
+            skImage_ = SkImage::MakeFromTexture(canvas.recordingContext(),
+                backendTexture, kTopLeft_GrSurfaceOrigin, GetSkColorTypeFromVkFormat(imageInfo.fFormat),
+                kPremul_SkAlphaType, SkColorSpace::MakeSRGB(), NativeBufferUtils::DeleteVkImage,
+                new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+                    imageInfo.fImage, imageInfo.fAlloc.fMemory));
+            if (canvas.GetRecordingState()) {
+                if (!skImage_) {
+                    return;
+                }
+                auto cpuImage = skImage_->makeRasterImage();
+                auto samplingOptions = SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
+                canvas.drawImage(cpuImage, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, samplingOptions);
                 return;
             }
-            auto cpuImage = skImage_->makeRasterImage();
             auto samplingOptions = SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
-            canvas.drawImage(cpuImage, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, samplingOptions);
-            return;
+            canvas.drawImage(skImage_, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, samplingOptions);
+        } else {
+            skImage_ = nullptr;
+            ROSEN_LOGE("SurfaceBufferOpItem::Clear: backendTexture is not valid");
         }
-        auto samplingOptions = SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
-        canvas.drawImage(skImage_, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, samplingOptions);
-    } else {
-        skImage_ = nullptr;
-        ROSEN_LOGE("SurfaceBufferOpItem::Clear: backendTexture is not valid");
     }
 #endif
+
 #ifdef RS_ENABLE_GL
+    if (RSSystemProperties::GetRsVulkanEnabled()) {
+        return;
+    }
     EGLint attrs[] = {
         EGL_IMAGE_PRESERVED,
         EGL_TRUE,
@@ -2379,12 +2501,18 @@ void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect&
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     std::shared_ptr<Media::PixelMap> pixelmap = rsImage_->GetPixelMap();
     if (pixelmap != nullptr && pixelmap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
+        std::shared_ptr<Drawing::Image> dmaImage = nullptr;
 #if defined(RS_ENABLE_GL)
-        std::shared_ptr<Drawing::Image> dmaImage = GetDrawingImageFromSurfaceBuffer(canvas,
-            reinterpret_cast<SurfaceBuffer*>(pixelmap->GetFd()));
-#else
-        std::shared_ptr<Drawing::Image> dmaImage = MakeFromTextureForVK(canvas,
-            reinterpret_cast<SurfaceBuffer*>(pixelmap->GetFd()));
+        if (!RSSystemProperties::GetRsVulkanEnabled()) {
+            dmaImage = GetDrawingImageFromSurfaceBuffer(canvas,
+                reinterpret_cast<SurfaceBuffer*>(pixelmap->GetFd()));
+        }
+#endif
+#if defined(RS_ENABLE_VK)
+        if (RSSystemProperties::GetRsVulkanEnabled()) {
+            dmaImage = MakeFromTextureForVK(canvas,
+                reinterpret_cast<SurfaceBuffer*>(pixelmap->GetFd()));
+        }
 #endif
         rsImage_->SetDmaImage(dmaImage);
     } else {
@@ -2422,6 +2550,9 @@ RSExtendImageObject *RSExtendImageObject::Unmarshalling(Parcel &parcel)
 std::shared_ptr<Drawing::Image> RSExtendImageObject::GetDrawingImageFromSurfaceBuffer(
     Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer) const
 {
+    if (RSSystemProperties::GetRsVulkanEnabled()) {
+        return;
+    }
     if (surfaceBuffer == nullptr) {
         RS_LOGE("GetDrawingImageFromSurfaceBuffer surfaceBuffer is nullptr");
         return nullptr;
@@ -2528,6 +2659,9 @@ std::shared_ptr<Drawing::Image> RSExtendImageObject::MakeFromTextureForVK(Drawin
 RSExtendImageObject::~RSExtendImageObject()
 {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+    if (RSSystemProperties::GetRsVulkanEnabled()) {
+        return;
+    }
     RSTaskDispatcher::GetInstance().PostTask(tid_, [texId = texId_,
                                                     nativeWindowBuffer = nativeWindowBuffer_,
                                                     eglImage = eglImage_]() {

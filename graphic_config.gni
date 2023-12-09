@@ -192,6 +192,7 @@ memmgr_root = "//foundation/resourceschedule/memmgr"
 memmgr_plugin_root = "//foundation/resourceschedule/memmgr_plugin"
 fuzz_test_output_path = "graphic_2d/graphic_2d"
 video_processing_engine_root = "//foundation/multimedia/video_processing_engine"
+arkui_root = "//foundation/arkui"
 
 accessibility_enable = false
 if (defined(global_parts_info) &&

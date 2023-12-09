@@ -18,6 +18,7 @@
 #include "impl_factory.h"
 #include "static_factory.h"
 #include "utils/log.h"
+#include "utils/system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -44,6 +45,9 @@ bool Surface::Bind(const FrameBuffer& frameBuffer)
 std::shared_ptr<Surface> Surface::MakeFromBackendRenderTarget(GPUContext* gpuContext, TextureInfo& info,
     TextureOrigin origin, void (*deleteFunc)(void*), void* cleanupHelper)
 {
+    if (!SystemProperties::GetRsVulkanEnabled()) {
+        return nullptr;
+    }
     return StaticFactory::MakeFromBackendRenderTarget(gpuContext, info, origin, deleteFunc, cleanupHelper);
 }
 #endif
@@ -124,6 +128,9 @@ void Surface::Flush(FlushInfo *drawingflushInfo)
 #ifdef RS_ENABLE_VK
 void Surface::Wait(int32_t time, const VkSemaphore& semaphore)
 {
+    if (!SystemProperties::GetRsVulkanEnabled()) {
+        return;
+    }
     if (!impl_) {
         LOGE("surfaceImpl Wait failed impl nullptr");
         return;

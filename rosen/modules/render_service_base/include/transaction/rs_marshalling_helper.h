@@ -45,6 +45,14 @@ class SkTextBlob;
 class SkVertices;
 class SkTypeface;
 class SkBitmap;
+struct SkPoint;
+class HMSymbol;
+class HMSymbolData;
+struct GroupInfo;
+struct RenderGroup;
+struct SymbolLayers;
+struct SColor;
+struct SymbolLayersGroups;
 
 #ifdef NEW_SKIA
 struct SkSamplingOptions;
@@ -152,6 +160,84 @@ public:
         return false;
     }
 
+    template<typename T>
+    static bool MarshallingVec(Parcel& parcel, const std::vector<T>& val)
+    {
+        int size = val.size();
+        Marshalling(parcel, size);
+        for (int i = 0; i < size; i++) {
+            if (!Marshalling(parcel, val[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    template<typename T>
+    static bool UnmarshallingVec(Parcel& parcel, std::vector<T>& val)
+    {
+        int size = 0;
+        Unmarshalling(parcel, size);
+        if (size < 0) {
+            return false;
+        }
+        val.clear();
+        for (int i = 0; i < size; i++) {
+            T tmp;
+            if (!Unmarshalling(parcel, tmp)) {
+                return false;
+            }
+            val.push_back(tmp);
+        }
+        return true;
+    }
+
+    template<typename T>
+    static bool MarshallingVec2(Parcel& parcel, const std::vector<std::vector<T>>& val)
+    {
+        int size = val.size();
+        Marshalling(parcel, size);
+        for (int i = 0; i < size; i++) {
+            if (!MarshallingVec(parcel, val[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    template<typename T>
+    static bool UnmarshallingVec2(Parcel& parcel, std::vector<std::vector<T>>& val)
+    {
+        int size = 0;
+        Unmarshalling(parcel, size);
+        if (size < 0) {
+            return false;
+        }
+        val.clear();
+        for (int i = 0; i < size; i++) {
+            std::vector<T> tmp;
+            if (!UnmarshallingVec(parcel, tmp)) {
+                return false;
+            }
+            val.push_back(tmp);
+        }
+        return true;
+    }
+
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const GroupInfo& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, GroupInfo& val);
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const RenderGroup& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, RenderGroup& val);
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const SymbolLayers& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, SymbolLayers& val);
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const SymbolLayersGroups& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, SymbolLayersGroups& val);
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const HMSymbolData& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, HMSymbolData& val);
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const SkPoint& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, SkPoint& val);
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const SColor& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, SColor& val);
 #ifndef USE_ROSEN_DRAWING
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const sk_sp<SkImage>& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val);

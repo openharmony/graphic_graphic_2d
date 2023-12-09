@@ -19,9 +19,7 @@
 #include <memory>
 
 #include "rs_surface_frame.h"
-#ifndef ROSEN_CROSS_PLATFORM
 #include "surface_type.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -46,10 +44,8 @@ public:
 
     virtual RenderContext* GetRenderContext() = 0;
     virtual void SetRenderContext(RenderContext* context) = 0;
-#ifndef ROSEN_CROSS_PLATFORM
     virtual GraphicColorGamut GetColorSpace() const = 0;
     virtual void SetColorSpace(GraphicColorGamut colorSpace) = 0;
-#endif
     virtual uint32_t GetQueueSize() const = 0;
     virtual void ClearBuffer() = 0; // clear cache only for producer
 

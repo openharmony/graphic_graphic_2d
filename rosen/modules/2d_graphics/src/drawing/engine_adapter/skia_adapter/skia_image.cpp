@@ -35,6 +35,7 @@
 #include "skia_pixmap.h"
 #include "skia_surface.h"
 #include "skia_texture_info.h"
+#include "utils/system_properties.h"
 
 #ifdef ACE_ENABLE_GPU
 #include "skia_gpu_context.h"
@@ -170,6 +171,9 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info
     BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace,
     void (*deleteFunc)(void*), void* cleanupHelper)
 {
+    if (!SystemProperties::GetRsVulkanEnabled()) {
+        return false;
+    }
     grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
     if (!grContext_) {
         LOGE("SkiaImage BuildFromTexture grContext_ is null");

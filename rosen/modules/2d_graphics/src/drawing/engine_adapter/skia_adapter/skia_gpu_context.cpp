@@ -23,6 +23,7 @@
 #include "utils/data.h"
 #include "utils/log.h"
 #include "skia_trace_memory_dump.h"
+#include "utils/system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -94,6 +95,9 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
 #ifdef RS_ENABLE_VK
 bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context)
 {
+    if (!SystemProperties::GetRsVulkanEnabled()) {
+        return false;
+    }
     grContext_ = GrDirectContext::MakeVulkan(context);
     return grContext_ != nullptr ? true : false;
 }
