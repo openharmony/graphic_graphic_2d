@@ -86,14 +86,12 @@ void SurfaceNodeCommandHelper::SetFingerprint(RSContext& context, NodeId id, boo
     }
 }
 
-#ifndef ROSEN_CROSS_PLATFORM
 void SurfaceNodeCommandHelper::SetColorSpace(RSContext& context, NodeId id, GraphicColorGamut colorSpace)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
         node->SetColorSpace(colorSpace);
     }
 }
-#endif
 
 void SurfaceNodeCommandHelper::UpdateSurfaceDefaultSize(RSContext& context, NodeId id, float width, float height)
 {

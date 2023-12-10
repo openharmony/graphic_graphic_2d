@@ -104,13 +104,13 @@ public:
 
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<OHOS::Surface> GetSurface() const;
-
+#endif
     void SetColorSpace(GraphicColorGamut colorSpace);
     GraphicColorGamut GetColorSpace()
     {
         return colorSpace_;
     }
-#endif
+
     std::string GetName() const
     {
         return name_;
@@ -163,9 +163,7 @@ private:
     BufferAvailableCallback callback_;
     bool bufferAvailable_ = false;
     BoundsChangedCallback boundsChangedCallback_;
-#ifndef ROSEN_CROSS_PLATFORM
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-#endif
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
     bool hasFingerprint_ = false;
