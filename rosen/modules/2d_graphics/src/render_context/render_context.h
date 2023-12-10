@@ -81,7 +81,7 @@ public:
 #ifdef RS_ENABLE_VK
     void AbandonContext();
 #endif
-    bool SetUpGrContext(sk_sp<GrDirectContext> skContext);
+    bool SetUpGrContext(sk_sp<GrDirectContext> skContext = nullptr);
 #else
     Drawing::GPUContext* GetDrGPUContext() const
     {
