@@ -20,12 +20,28 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+
 #if defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)
-const bool SystemProperties::aceVulkanEnabled_ =
-    (std::atoi(system::GetParameter("persist.sys.graphic.GpuApiType", "-1").c_str()) != INVALID_SYS_GPU_API_TYPE) ?
-        ((std::atoi(system::GetParameter("persist.sys.graphic.GpuApiType", "0").c_str()) == 0) ? false : true) :
-        (((system::GetParameter("const.gpu.vendor", "0").compare("higpu.v200") == 0) &&
-          (system::GetParameter("const.build.product", "0").compare("ALN") == 0)) ? true : false);
+static bool VulkanEnabled()
+{
+    if (!((system::GetParameter("const.gpu.vendor", "0").compare("higpu.v200") == 0) &&
+          (system::GetParameter("const.build.product", "0").compare("ALN") == 0))) {
+        return false;
+    }
+
+    if (std::atoi(system::GetParameter(
+        "persist.sys.graphic.GpuApitype", "-1").c_str()) == (-1)) { // -1 is invalid type
+        return true;
+    }
+    if (std::atoi(system::GetParameter("persist.sys.graphic.GpuApitype", "0").c_str()) == 0) {
+        return false;
+    }
+    return true;
+}
+#endif
+
+#if defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)
+const bool SystemProperties::aceVulkanEnabled_ = VulkanEnabled();
 #elif defined (ACE_ENABLE_GL)
 const bool SystemProperties::aceVulkanEnabled_ = false;
 #else
@@ -33,11 +49,7 @@ const bool SystemProperties::aceVulkanEnabled_ = true;
 #endif
 
 #if defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK)
-const bool SystemProperties::rsVulkanEnabled_ =
-    (std::atoi(system::GetParameter("persist.sys.graphic.GpuApiType", "-1").c_str()) != INVALID_SYS_GPU_API_TYPE) ?
-        ((std::atoi(system::GetParameter("persist.sys.graphic.GpuApiType", "0").c_str()) == 0) ? false : true) :
-        (((system::GetParameter("const.gpu.vendor", "0").compare("higpu.v200") == 0) &&
-          (system::GetParameter("const.build.product", "0").compare("ALN") == 0)) ? true : false);
+const bool SystemProperties::rsVulkanEnabled_ = VulkanEnabled();
 #elif defined (RS_ENABLE_GL)
 const bool SystemProperties::rsVulkanEnabled_ = false;
 #else
