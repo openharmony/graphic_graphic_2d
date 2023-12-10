@@ -173,6 +173,7 @@ safwk_base = "//foundation/systemabilitymgr/safwk"
 skia_root_new = "//third_party/skia"
 memmgr_root = "//foundation/resourceschedule/memmgr"
 memmgr_plugin_root = "//foundation/resourceschedule/memmgr_plugin"
+arkui_root = "//foundation/arkui"
 
 accessibility_enable = false
 if (defined(global_parts_info) &&
