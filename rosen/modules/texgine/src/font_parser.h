@@ -19,13 +19,12 @@
 #include <hb.h>
 #include <string>
 #include <vector>
-#include <include/core/SkFontMgr.h>
-#include <include/core/SkString.h>
 
-#include "include/core/SkTypeface.h"
 #include "opentype_parser/cmap_table_parser.h"
 #include "opentype_parser/name_table_parser.h"
 #include "opentype_parser/post_table_parser.h"
+
+#include "texgine_typeface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -83,10 +82,10 @@ private:
     static void ProcessCmapTable(const struct CmapTables* cmapTable, FontDescriptor& fontDescriptor);
     int ProcessNameTable(const struct NameTable* nameTable, FontDescriptor& fontDescriptor) const;
     static void ProcessPostTable(const struct PostTable* postTable, FontDescriptor& fontDescriptor);
-    int ParseCmapTable(sk_sp<SkTypeface> typeface, FontDescriptor& fontDescriptor);
-    int ParseNameTable(sk_sp<SkTypeface> typeface, FontDescriptor& fontDescriptor);
-    int ParsePostTable(sk_sp<SkTypeface> typeface, FontDescriptor& fontDescriptor);
-    int ParseTable(sk_sp<SkTypeface> typeface, FontDescriptor& fontDescriptor);
+    int ParseCmapTable(std::shared_ptr<TexgineTypeface> typeface, FontDescriptor& fontDescriptor);
+    int ParseNameTable(std::shared_ptr<TexgineTypeface> typeface, FontDescriptor& fontDescriptor);
+    int ParsePostTable(std::shared_ptr<TexgineTypeface> typeface, FontDescriptor& fontDescriptor);
+    int ParseTable(std::shared_ptr<TexgineTypeface> typeface, FontDescriptor& fontDescriptor);
     int SetFontDescriptor();
 
     const char* data_;

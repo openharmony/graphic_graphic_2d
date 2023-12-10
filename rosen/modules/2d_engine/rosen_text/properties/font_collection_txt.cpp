@@ -16,17 +16,10 @@
 #include "rosen_text/properties/font_collection_txt.h"
 
 #include "flutter/fml/icu_util.h"
-#ifdef NEW_SKIA
 #include "third_party/skia/include/core/SkFontMgr.h"
 #include "third_party/skia/include/core/SkGraphics.h"
 #include "third_party/skia/include/core/SkStream.h"
 #include "third_party/skia/include/core/SkTypeface.h"
-#else
-#include "third_party/flutter/skia/include/core/SkFontMgr.h"
-#include "third_party/flutter/skia/include/core/SkGraphics.h"
-#include "third_party/flutter/skia/include/core/SkStream.h"
-#include "third_party/flutter/skia/include/core/SkTypeface.h"
-#endif
 #include "third_party/skia/include/core/SkRefCnt.h"
 #include "txt/asset_font_manager.h"
 #include "txt/test_font_manager.h"
@@ -55,8 +48,7 @@ FontCollectionTxt::FontCollectionTxt(bool createWithICU)
 #ifndef USE_ROSEN_DRAWING
     dynamicFontManager = sk_make_sp<txt::DynamicFontManager>();
 #else
-    dynamicFontManager = nullptr;
-    LOGD("Drawing is not supported dynamic font");
+    dynamicFontManager = RSFontMgr::CreateDynamicFontMgr();
 #endif
     txtCollection->SetDynamicFontManager(dynamicFontManager);
     LoadSystemFont();
@@ -112,9 +104,9 @@ void FontCollectionTxt::LoadFontFromList(const uint8_t* font_data,
     } else {
         font_provider.RegisterTypeface(typeface, family_name);
     }
-    txtCollection->ClearFontFamilyCache();
 #else
-    LOGD("Drawing is not supported dynamic font");
+    dynamicFontManager->LoadDynamicFont(family_name, font_data, length);
 #endif
+    txtCollection->ClearFontFamilyCache();
 }
 } // namespace rosen

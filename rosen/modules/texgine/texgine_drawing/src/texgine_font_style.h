@@ -72,6 +72,16 @@ public:
     std::shared_ptr<RSFontStyle> GetFontStyle() const;
 #endif
 
+    /*
+     * @brief Returns weight
+     */
+    int GetWeight() const;
+
+    /*
+     * @brief Returns width
+     */
+    int GetWidth() const;
+
 private:
 #ifndef USE_ROSEN_DRAWING
     std::shared_ptr<SkFontStyle> fontStyle_ = nullptr;

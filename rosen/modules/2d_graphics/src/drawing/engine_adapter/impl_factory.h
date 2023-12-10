@@ -88,6 +88,9 @@ public:
         scalar size, scalar scaleX, scalar skewX);
     static std::unique_ptr<TextBlobBuilderImpl> CreateTextBlobBuilderImpl();
     static std::shared_ptr<FontMgrImpl> CreateDefaultFontMgrImpl();
+#ifndef USE_TEXGINE
+    static std::shared_ptr<FontMgrImpl> CreateDynamicFontMgrImpl();
+#endif
     static std::shared_ptr<MemoryStreamImpl> CreateMemoryStreamImpl();
     static std::shared_ptr<MemoryStreamImpl> CreateMemoryStreamImpl(const void* data, size_t length, bool copyData);
 };

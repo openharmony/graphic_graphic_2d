@@ -90,16 +90,6 @@ std::shared_ptr<TexgineTypeface> TexgineFontStyleSet::MatchStyle(std::shared_ptr
 #endif
     return std::make_shared<TexgineTypeface>(typeface);
 }
-
-std::shared_ptr<TexgineFontStyleSet> TexgineFontStyleSet::CreateEmpty()
-{
-#ifndef USE_ROSEN_DRAWING
-    auto fss = SkFontStyleSet::CreateEmpty();
-#else
-    RSFontStyleSet* fss = RSFontStyleSet::CreateEmpty();
-#endif
-    return std::make_shared<TexgineFontStyleSet>(fss);
-}
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS

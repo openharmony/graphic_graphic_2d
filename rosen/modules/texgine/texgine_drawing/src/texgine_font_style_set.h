@@ -67,11 +67,6 @@ public:
     std::shared_ptr<TexgineTypeface> MatchStyle(const std::shared_ptr<TexgineFontStyle> pattern);
 
     /*
-     * @brief To create an empty TexgineFontStyleSet
-     */
-    static std::shared_ptr<TexgineFontStyleSet> CreateEmpty();
-
-    /*
      * @brief Returns the SkFontStyleSet in TexgineFontStyleSet
      */
 #ifndef USE_ROSEN_DRAWING

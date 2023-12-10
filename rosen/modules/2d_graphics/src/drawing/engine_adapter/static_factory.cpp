@@ -119,12 +119,6 @@ bool StaticFactory::AsBlendMode(const Brush& brush)
 {
     return EngineStaticFactory::AsBlendMode(brush);
 }
-
-FontStyleSet* StaticFactory::CreateEmptyFontStyleSet()
-{
-    return EngineStaticFactory::CreateEmptyFontStyleSet();
-}
-
 std::shared_ptr<Data> StaticFactory::MakeDataFromFileName(const char path[])
 {
     return EngineStaticFactory::MakeDataFromFileName(path);

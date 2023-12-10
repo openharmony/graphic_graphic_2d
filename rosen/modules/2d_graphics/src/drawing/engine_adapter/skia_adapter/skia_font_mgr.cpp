@@ -16,6 +16,9 @@
 #include "skia_font_mgr.h"
 
 #include "include/core/SkTypeface.h"
+#ifndef USE_TEXGINE
+#include "txt/asset_font_manager.h"
+#endif
 
 #include "skia_adapter/skia_convert_utils.h"
 #include "skia_adapter/skia_font_style_set.h"
@@ -30,6 +33,39 @@ std::shared_ptr<FontMgrImpl> SkiaFontMgr::CreateDefaultFontMgr()
 {
     return std::make_shared<SkiaFontMgr>(SkFontMgr::RefDefault());
 }
+
+#ifndef USE_TEXGINE
+std::shared_ptr<FontMgrImpl> SkiaFontMgr::CreateDynamicFontMgr()
+{
+    sk_sp<txt::DynamicFontManager> dynamicFontManager = sk_make_sp<txt::DynamicFontManager>();
+    return std::make_shared<SkiaFontMgr>(dynamicFontManager);
+}
+
+void SkiaFontMgr::LoadDynamicFont(const std::string& familyName, const uint8_t* data, size_t dataLength)
+{
+    auto stream = std::make_unique<SkMemoryStream>(data, dataLength, true);
+    auto typeface = SkTypeface::MakeFromStream(std::move(stream));
+    auto dynamicFontMgr = static_cast<txt::DynamicFontManager>(skFontMgr_.get());
+    if (familyName.empty()) {
+        dynamicFontMgr->font_provider().RegisterTypeface(typeface);
+    } else {
+        dynamicFontMgr->font_provider().RegisterTypeface(typeface, familyName);
+    }
+}
+
+void SkiaFontMgr::LoadThemeFont(const std::string& familyName, const std::string& themeName,
+    const uint8_t* data, size_t dataLength)
+{
+    auto dynamicFontMgr = static_cast<txt::DynamicFontManager>(skFontMgr_.get());
+    if (familyName.empty() || data == nullptr) {
+        dynamicFontMgr->font_provider().RegisterTypeface(nullptr, themeName);
+    } else {
+        auto stream = std::make_unique<SkMemoryStream>(data, dataLength, true);
+        auto typeface = SkTypeface::MakeFromStream(std::move(stream));
+        dynamicFontMgr->font_provider().RegisterTypeface(typeface, themeName);
+    }
+}
+#endif
 
 Typeface* SkiaFontMgr::MatchFamilyStyleCharacter(const char familyName[], const FontStyle& fontStyle,
                                                  const char* bcp47[], int bcp47Count,

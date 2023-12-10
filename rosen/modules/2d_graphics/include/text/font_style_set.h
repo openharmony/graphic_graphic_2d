@@ -60,7 +60,6 @@ public:
      */
     int Count();
 
-    static FontStyleSet* CreateEmpty();
 private:
     std::shared_ptr<FontStyleSetImpl> fontStyleSetImpl_;
 };

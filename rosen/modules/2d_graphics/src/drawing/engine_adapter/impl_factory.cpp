@@ -192,6 +192,13 @@ std::shared_ptr<FontMgrImpl> ImplFactory::CreateDefaultFontMgrImpl()
     return EngineImplFactory::CreateDefaultFontMgr();
 }
 
+#ifndef USE_TEXGINE
+std::shared_ptr<FontMgrImpl> ImplFactory::CreateDynamicFontMgrImpl()
+{
+    return EngineImplFactory::CreateDynamicFontMgr();
+}
+#endif
+
 std::shared_ptr<MemoryStreamImpl> ImplFactory::CreateMemoryStreamImpl()
 {
     return EngineImplFactory::CreateMemoryStream();

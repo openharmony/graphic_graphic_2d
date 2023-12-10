@@ -21,7 +21,6 @@
 #include "draw/brush.h"
 #include "draw/surface.h"
 #include "image/pixmap.h"
-#include "text/font_style_set.h"
 #include "text/text_blob.h"
 #include "text/typeface.h"
 #include "utils/data.h"
@@ -58,7 +57,6 @@ public:
     static bool CanComputeFastBounds(const Brush& brush);
     static const Rect& ComputeFastBounds(const Brush& brush, const Rect& orig, Rect* storage);
     static bool AsBlendMode(const Brush& brush);
-    static FontStyleSet* CreateEmptyFontStyleSet();
     static std::shared_ptr<Data> MakeDataFromFileName(const char path[]);
 };
 } // namespace Drawing

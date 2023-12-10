@@ -76,6 +76,30 @@ void TexgineFontStyle::SetStyle(const RSFontStyle &style)
     }
     *fontStyle_ = style;
 }
+
+int TexgineFontStyle::GetWeight() const
+{
+    if (fontStyle_ == nullptr) {
+        return 0;
+    }
+#ifndef USE_ROSEN_DRAWING
+    return fontStyle_->weight();
+#else
+    return fontStyle_->GetWeight();
+#endif
+}
+
+int TexgineFontStyle::GetWidth() const
+{
+    if (fontStyle_ == nullptr) {
+        return 0;
+    }
+#ifndef USE_ROSEN_DRAWING
+    return fontStyle_->width();
+#else
+    return fontStyle_->GetWidth();
+#endif
+}
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS

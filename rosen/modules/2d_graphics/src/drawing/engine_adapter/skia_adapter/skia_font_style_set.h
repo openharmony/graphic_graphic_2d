@@ -46,8 +46,6 @@ public:
 
     int Count() override;
 
-    static FontStyleSet* CreateEmpty();
-
 private:
     sk_sp<SkFontStyleSet> skFontStyleSet_;
 };

@@ -18,7 +18,6 @@
 #include "skia_adapter/skia_data.h"
 #include "skia_adapter/skia_surface.h"
 #include "skia_adapter/skia_image.h"
-#include "skia_adapter/skia_font_style_set.h"
 #include "skia_adapter/skia_text_blob.h"
 #include "skia_adapter/skia_typeface.h"
 #include "utils/system_properties.h"
@@ -118,22 +117,15 @@ const Rect& SkiaStaticFactory::ComputeFastBounds(const Brush& brush, const Rect&
     return SkiaPaint::ComputeFastBounds(brush, orig, storage);
 }
 
-FontStyleSet* SkiaStaticFactory::CreateEmptyFontStyleSet()
+bool SkiaStaticFactory::AsBlendMode(const Brush& brush)
 {
-    return SkiaFontStyleSet::CreateEmpty();
+    return SkiaPaint::AsBlendMode(brush);
 }
 
 std::shared_ptr<Data> SkiaStaticFactory::MakeDataFromFileName(const char path[])
 {
     return SkiaData::MakeFromFileName(path);
 }
-
-bool SkiaStaticFactory::AsBlendMode(const Brush& brush)
-{
-    return SkiaPaint::AsBlendMode(brush);
-}
-
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

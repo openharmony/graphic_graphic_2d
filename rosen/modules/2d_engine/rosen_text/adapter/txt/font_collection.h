@@ -39,7 +39,11 @@ public:
 
 private:
     std::shared_ptr<txt::FontCollection> fontCollection_ = nullptr;
+#ifndef USE_ROSEN_DRAWING
     sk_sp<txt::DynamicFontManager> dfmanager_ = nullptr;
+#else
+    std::shared_ptr<RSFontMgr> dfmanager_ = nullptr;
+#endif
     bool disableSystemFont_ = false;
 };
 } // namespace AdapterTxt
