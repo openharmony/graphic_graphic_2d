@@ -708,6 +708,10 @@ bool RSPropertiesPainter::PickColor(const RSProperties& properties, RSPaintFilte
     }
 
     auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
+    if (!colorPickerTask) {
+        ROSEN_LOGE("RSPropertiesPainter::PickColor colorPickerTask is null");
+        return false;
+    }
     colorPickerTask->SetIsShadow(true);
     int deviceWidth = 0;
     int deviceHeight = 0;
@@ -729,6 +733,12 @@ bool RSPropertiesPainter::PickColor(const RSProperties& properties, RSPaintFilte
 
     if (shadowRegionImage == nullptr) {
         return false;
+    }
+
+    // when color picker task resource is waitting for release, use color picked last frame
+    if (colorPickerTask->GetWaitRelease()) {
+        colorPickerTask->GetColorAverage(colorPicked);
+        return true;
     }
 
     if (RSColorPickerCacheTask::PostPartialColorPickerTask(colorPickerTask, shadowRegionImage)
@@ -804,6 +814,9 @@ void RSPropertiesPainter::DrawShadowInner(
 {
     path.Offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
     Color spotColor = properties.GetShadowColor();
+    // shadow alpha follow setting
+    auto shadowAlpha = spotColor.GetAlpha();
+    auto deviceClipBounds = canvas.GetDeviceClipBounds();
 
     // The translation of the matrix is rounded to improve the hit ratio of skia blurfilter cache,
     // the function <compute_key_and_clip_bounds> in <skia/src/gpu/GrBlurUtil.cpp> for more details.
@@ -812,6 +825,23 @@ void RSPropertiesPainter::DrawShadowInner(
     matrix.Set(Drawing::Matrix::TRANS_X, std::ceil(matrix.Get(Drawing::Matrix::TRANS_X)));
     matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
     canvas.SetMatrix(matrix);
+
+    RSColor colorPicked;
+    auto& colorPickerTask = properties.GetColorPickerCacheTaskShadow();
+    if (colorPickerTask != nullptr &&
+        properties.GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
+        if (PickColor(properties, canvas, path, matrix, deviceClipBounds, colorPicked)) {
+            GetDarkColor(colorPicked);
+        } else {
+            shadowAlpha = 0;
+        }
+        if (!colorPickerTask->GetFirstGetColorFinished()) {
+            shadowAlpha = 0;
+        }
+    } else {
+        shadowAlpha = spotColor.GetAlpha();
+        colorPicked = spotColor;
+    }
 
     if (properties.shadow_->GetHardwareAcceleration()) {
         if (properties.GetShadowElevation() <= 0.f) {
@@ -831,7 +861,8 @@ void RSPropertiesPainter::DrawShadowInner(
             Drawing::ShadowFlags::TRANSPARENT_OCCLUDER);
     } else {
         Drawing::Brush brush;
-        brush.SetColor(Drawing::Color(spotColor.AsArgbInt()));
+        brush.SetColor(Drawing::Color::ColorQuadSetARGB(
+            shadowAlpha, colorPicked.GetRed(), colorPicked.GetGreen(), colorPicked.GetBlue()));
         brush.SetAntiAlias(true);
         Drawing::Filter filter;
         filter.SetMaskFilter(
@@ -1968,7 +1999,9 @@ void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, 
         SkCanvas::kFast_SrcRectConstraint);
 #else
     Drawing::AutoCanvasRestore acr(canvas, true);
-    if (properties.GetClipBounds() != nullptr) {
+    if (RSSystemProperties::GetPropertyDrawableEnable()) {
+        // do nothing
+    } else if (properties.GetClipBounds() != nullptr) {
         canvas.ClipPath(properties.GetClipBounds()->GetDrawingPath(), Drawing::ClipOp::INTERSECT, true);
     } else { // we always do clip for ApplyBackgroundEffect, even if ClipToBounds is false
         canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
@@ -2913,18 +2946,11 @@ void RSPropertiesPainter::DrawMask(const RSProperties& properties, Drawing::Canv
         canvas.AttachBrush(mask->GetMaskBrush());
         canvas.DrawRect(rect);
         canvas.DetachBrush();
-    } else if (mask->IsPathMask() || mask->GetMaskPath()) {
-        auto path = mask->GetMaskPath();
-        std::shared_ptr<Drawing::Path> maskPath;
-        if (path->GetDrawingType() == Drawing::DrawingType::RECORDING) {
-            maskPath = std::static_pointer_cast<Drawing::RecordingPath>(path)->GetCmdList()->Playback();
-        } else {
-            maskPath = path;
-        }
+    } else if (mask->IsPathMask()) {
         Drawing::AutoCanvasRestore maskSave(canvas, true);
         canvas.Translate(maskBounds.GetLeft(), maskBounds.GetTop());
         canvas.AttachBrush(mask->GetMaskBrush());
-        canvas.DrawPath(*maskPath);
+        canvas.DrawPath(*mask->GetMaskPath());
         canvas.DetachBrush();
     }
 
@@ -3233,6 +3259,7 @@ void RSPropertiesPainter::DrawColorFilter(const RSProperties& properties, RSPain
         ROSEN_LOGE("RSPropertiesPainter::DrawColorFilter image is null");
         return;
     }
+    as_IB(imageSnapshot->ExportSkImage().get())->hintCacheGpuResource();
     canvas.ResetMatrix();
     Drawing::SamplingOptions options(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);
     canvas.AttachBrush(brush);
@@ -3548,7 +3575,9 @@ void RSPropertiesPainter::DrawDynamicLightUp(const RSProperties& properties, RSP
         return;
     }
     Drawing::AutoCanvasRestore acr(canvas, true);
-    if (properties.GetClipBounds() != nullptr) {
+    if (RSSystemProperties::GetPropertyDrawableEnable()) {
+        // do nothing
+    } else if (properties.GetClipBounds() != nullptr) {
         canvas.ClipPath(properties.GetClipBounds()->GetDrawingPath(), Drawing::ClipOp::INTERSECT, true);
     } else {
         canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);

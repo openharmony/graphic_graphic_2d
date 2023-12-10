@@ -275,8 +275,19 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
         surfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
 #endif
 #else
-    Drawing::ColorType colorType = (buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
-        Drawing::ColorType::COLORTYPE_BGRA_8888 : Drawing::ColorType::COLORTYPE_RGBA_8888;
+    std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    drawingColorSpace = ConvertColorGamutToDrawingColorSpace(colorGamut);
+#else
+    (void)colorGamut;
+#endif
+    Drawing::ColorType colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
+    auto pixelFmt = buffer->GetFormat();
+    if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
+        colorType = Drawing::ColorType::COLORTYPE_BGRA_8888;
+    } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
+        colorType = Drawing::ColorType::COLORTYPE_RGBA_1010102;
+    }
     Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
 
     auto image = std::make_shared<Drawing::Image>();
@@ -284,28 +295,36 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
     externalTextureInfo.SetWidth(buffer->GetSurfaceBufferWidth());
     externalTextureInfo.SetHeight(buffer->GetSurfaceBufferHeight());
 
+#ifndef ROSEN_EMULATOR
+    auto surfaceOrigin = Drawing::TextureOrigin::TOP_LEFT;
+#else
+    auto surfaceOrigin = Drawing::TextureOrigin::BOTTOM_LEFT;
+#endif
+
 #if defined(RS_ENABLE_GL)
     if (!RSSystemProperties::GetRsVulkanEnabled()) {
         externalTextureInfo.SetIsMipMapped(false);
         externalTextureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
         externalTextureInfo.SetID(eglTextureId);
-        externalTextureInfo.SetFormat(GL_RGBA8);
-    }
-#endif
-
-#if defined(RS_ENABLE_GL)
-    if (!RSSystemProperties::GetRsVulkanEnabled() &&
-        !image->BuildFromTexture(*canvas.GetGPUContext(), externalTextureInfo,
-        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, nullptr, nullptr)) {
-        RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer image BuildFromTexture failed");
-        return nullptr;
+        auto glType = GR_GL_RGBA8;
+        if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
+            glType = GR_GL_BGRA8;
+        } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
+            glType = GR_GL_RGB10_A2;
+        }
+        externalTextureInfo.SetFormat(glType);
+        if (!image->BuildFromTexture(*canvas.GetGPUContext(), externalTextureInfo,
+            surfaceOrigin, bitmapFormat, nullptr, nullptr, nullptr)) {
+            RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer image BuildFromTexture failed");
+            return nullptr;
+        }
     }
 #endif
 
 #if defined(RS_ENABLE_VK)
     if (RSSystemProperties::GetRsVulkanEnabled() &&
         !image->BuildFromTexture(*renderContext_->GetDrGPUContext(), externalTextureInfo,
-        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, nullptr, nullptr)) {
+        surfaceOrigin, bitmapFormat, nullptr, nullptr, nullptr)) {
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer image BuildFromTexture failed");
         return nullptr;
     }
@@ -640,6 +659,7 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
     return true;
 }
 
+#ifndef USE_ROSEN_DRAWING
 sk_sp<SkColorSpace> RSBaseRenderEngine::ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut)
 {
     sk_sp<SkColorSpace> skColorSpace = nullptr;
@@ -663,7 +683,29 @@ sk_sp<SkColorSpace> RSBaseRenderEngine::ConvertColorGamutToSkColorSpace(GraphicC
 
     return skColorSpace;
 }
+#else
+std::shared_ptr<Drawing::ColorSpace> RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(GraphicColorGamut colorGamut)
+{
+    std::shared_ptr<Drawing::ColorSpace>  colorSpace = nullptr;
+    switch (colorGamut) {
+        case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
+            colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
+            break;
+        case GRAPHIC_COLOR_GAMUT_ADOBE_RGB:
+            colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::ADOBE_RGB);
+            break;
+        case GRAPHIC_COLOR_GAMUT_BT2020:
+            colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020);
+            break;
+        default:
+            break;
+    }
 
+    return colorSpace;
+}
+#endif
+
+#ifndef USE_ROSEN_DRAWING
 void RSBaseRenderEngine::ColorSpaceConvertor(sk_sp<SkShader> &inputShader, BufferDrawParam& params)
 {
     RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::ColorSpaceConvertor");
@@ -688,6 +730,40 @@ void RSBaseRenderEngine::ColorSpaceConvertor(sk_sp<SkShader> &inputShader, Buffe
     params.paint.setShader(outputShader);
     RS_OPTIONAL_TRACE_END();
 }
+#else
+void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader, BufferDrawParam& params)
+{
+    RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::ColorSpaceConvertor");
+    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
+    if (!SetColorSpaceConverterDisplayParameter(params, parameter)) {
+        RS_OPTIONAL_TRACE_END();
+        return;
+    }
+
+    if(!inputShader) {
+        RS_LOGE("RSBaseRenderEngine::ColorSpaceConvertor inputShader is null");
+        RS_OPTIONAL_TRACE_END();
+        return;
+    }
+
+    sk_sp<SkShader> outputShader;
+    auto convRet = colorSpaceConverterDisplay_->Process(inputShader->ExportSkShader(), outputShader, parameter);
+    if (convRet != Media::VideoProcessingEngine::VPE_ALGO_ERR_OK) {
+        RS_LOGE("RSBaseRenderEngine::ColorSpaceConvertor colorSpaceConverterDisplay failed with %{public}u.", convRet);
+        RS_OPTIONAL_TRACE_END();
+        return;
+    }
+    if (outputShader == nullptr) {
+        RS_LOGE("RSBaseRenderEngine::ColorSpaceConvertor outputShader is nullptr.");
+        RS_OPTIONAL_TRACE_END();
+        return;
+    }
+    std::shared_ptr<Drawing::ShaderEffect> drawingEffect = std::make_shared<Drawing::ShaderEffect>();
+    drawingEffect->SetSkShader(outputShader);
+    params.paint.SetShaderEffect(drawingEffect);
+    RS_OPTIONAL_TRACE_END();
+}
+#endif
 #endif
 
 void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
@@ -758,6 +834,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
+#ifndef USE_ROSEN_DRAWING
     SkMatrix matrix;
     auto sx = params.dstRect.width() / params.srcRect.width();
     auto sy = params.dstRect.height() / params.srcRect.height();
@@ -772,6 +849,23 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         params.paint.setShader(imageShader);
         ColorSpaceConvertor(imageShader, params);
     }
+#else
+    Drawing::Matrix matrix;
+    auto sx = params.dstRect.GetWidth() / params.srcRect.GetWidth();
+    auto sy = params.dstRect.GetHeight() / params.srcRect.GetHeight();
+    matrix.SetScaleTranslate(sx, sy, params.dstRect.GetLeft(), params.dstRect.GetTop());
+    auto samplingOptions = RSSystemProperties::IsPhoneType()
+                            ? Drawing::SamplingOptions()
+                            : Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
+    auto imageShader = Drawing::ShaderEffect::CreateImageShader(
+        *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, matrix);
+    if (imageShader == nullptr) {
+        RS_LOGE("RSBaseRenderEngine::DrawImage imageShader is nullptr.");
+    } else {
+        params.paint.SetShaderEffect(imageShader);
+        ColorSpaceConvertor(imageShader, params);
+    }
+#endif
 #endif
 
 #ifndef USE_ROSEN_DRAWING
@@ -794,10 +888,10 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 #endif
 #else
     canvas.AttachBrush(params.paint);
-    auto samplingOptions = RSSystemProperties::IsPhoneType()
+    auto drawingSamplingOptions = RSSystemProperties::IsPhoneType()
                                ? Drawing::SamplingOptions()
                                : Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
-    canvas.DrawImageRect(*image.get(), params.srcRect, params.dstRect, samplingOptions,
+    canvas.DrawImageRect(*image.get(), params.srcRect, params.dstRect, drawingSamplingOptions,
         Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     canvas.DetachBrush();
 #endif

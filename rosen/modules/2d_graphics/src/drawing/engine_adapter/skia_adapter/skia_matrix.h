@@ -42,6 +42,7 @@ public:
     void Translate(scalar dx, scalar dy) override;
     void Scale(scalar sx, scalar sy, scalar px, scalar py) override;
     void SetScale(scalar sx, scalar sy) override;
+    void SetScaleTranslate(scalar sx, scalar sy, scalar dx, scalar dy) override;
     const SkMatrix& ExportSkiaMatrix() const;
 
     void PreRotate(scalar degree) override;

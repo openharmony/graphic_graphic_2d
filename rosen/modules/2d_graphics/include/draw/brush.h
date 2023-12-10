@@ -72,6 +72,7 @@ public:
     bool CanComputeFastBounds();
     const Rect& ComputeFastBounds(const Rect& orig, Rect* storage);
 
+    bool AsBlendMode();
     void Reset();
 
     friend DRAWING_API bool operator==(const Brush& b1, const Brush& b2);

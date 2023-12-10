@@ -115,6 +115,11 @@ const Rect& StaticFactory::ComputeFastBounds(const Brush& brush, const Rect& ori
     return EngineStaticFactory::ComputeFastBounds(brush, orig, storage);
 }
 
+bool StaticFactory::AsBlendMode(const Brush& brush)
+{
+    return EngineStaticFactory::AsBlendMode(brush);
+}
+
 FontStyleSet* StaticFactory::CreateEmptyFontStyleSet()
 {
     return EngineStaticFactory::CreateEmptyFontStyleSet();

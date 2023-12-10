@@ -127,6 +127,13 @@ std::shared_ptr<Data> SkiaStaticFactory::MakeDataFromFileName(const char path[])
 {
     return SkiaData::MakeFromFileName(path);
 }
+
+bool SkiaStaticFactory::AsBlendMode(const Brush& brush)
+{
+    return SkiaPaint::AsBlendMode(brush);
+}
+
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

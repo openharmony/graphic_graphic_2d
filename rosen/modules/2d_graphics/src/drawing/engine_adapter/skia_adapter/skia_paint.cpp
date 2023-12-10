@@ -427,6 +427,13 @@ const Rect& SkiaPaint::ComputeFastBounds(const Brush& brush, const Rect& orig, R
     }
     return *storage;
 }
+
+bool SkiaPaint::AsBlendMode(const Brush& brush)
+{
+    SkPaint skPaint;
+    BrushToSkPaint(brush, skPaint);
+    return skPaint.asBlendMode().has_value();
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

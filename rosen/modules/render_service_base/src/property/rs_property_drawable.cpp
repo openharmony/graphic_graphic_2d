@@ -273,12 +273,20 @@ std::unordered_set<RSPropertyDrawableSlot> RSPropertyDrawable::GenerateDirtySlot
         if (properties.GetBorder() != nullptr) {
             dirtySlots.emplace(RSPropertyDrawableSlot::BORDER);
         }
+        if (properties.GetOuterBorder() != nullptr) {
+            dirtySlots.emplace(RSPropertyDrawableSlot::OUTER_BORDER);
+        }
         // PLANNING: add other slots: ClipToFrame, ColorFilter
     }
-    if (dirtyTypes.test(static_cast<size_t>(RSModifierType::CORNER_RADIUS))
-        && (properties.GetBorder() != nullptr)) {
+    if (dirtyTypes.test(static_cast<size_t>(RSModifierType::CORNER_RADIUS))) {
         // border may should be updated with corner radius
-        dirtySlots.emplace(RSPropertyDrawableSlot::BORDER);
+        if (properties.GetBorder() != nullptr) {
+            dirtySlots.emplace(RSPropertyDrawableSlot::BORDER);
+        }
+
+        if (properties.GetOuterBorder() != nullptr) {
+            dirtySlots.emplace(RSPropertyDrawableSlot::OUTER_BORDER);
+        }
     }
 
     return dirtySlots;
@@ -532,16 +540,14 @@ void RSPropertyDrawable::UpdateSaveLayerSlots(
     Drawing::Brush blendBrush;
     ConvertBlendmodeToPaint(context, blendBrush);
     // blendmode value is invalid, clear relative 4 slots
-    // Drawing need to adapt;
+    if (!blendBrush.AsBlendMode()) {
 #endif
         drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_CONTENT] = nullptr;
         drawableVec[RSPropertyDrawableSlot::RESTORE_CONTENT] = nullptr;
         drawableVec[RSPropertyDrawableSlot::SAVE_LAYER_BACKGROUND] = nullptr;
         drawableVec[RSPropertyDrawableSlot::RESTORE_BACKGROUND] = nullptr;
         return;
-#ifndef USE_ROSEN_DRAWING
     }
-#endif
     // dirty slots COLOR_BLEND changed from none to valid value
     auto contentCount = std::make_shared<int>(-1);
 #ifndef USE_ROSEN_DRAWING

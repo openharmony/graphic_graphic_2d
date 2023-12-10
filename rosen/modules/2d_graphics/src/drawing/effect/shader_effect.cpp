@@ -18,7 +18,7 @@
 #include "impl_factory.h"
 
 #include "impl_interface/mask_filter_impl.h"
-
+#include "skia_adapter/skia_shader_effect.h"
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -159,6 +159,16 @@ std::shared_ptr<Data> ShaderEffect::Serialize() const
 bool ShaderEffect::Deserialize(std::shared_ptr<Data> data)
 {
     return impl_->Deserialize(data);
+}
+
+const sk_sp<SkShader> ShaderEffect::ExportSkShader()
+{
+    return GetImpl<SkiaShaderEffect>()->GetShader();
+}
+
+void ShaderEffect::SetSkShader(sk_sp<SkShader> shader)
+{
+    GetImpl<SkiaShaderEffect>()->SetSkShader(shader);
 }
 
 } // namespace Drawing

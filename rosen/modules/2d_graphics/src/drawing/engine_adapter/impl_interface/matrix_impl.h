@@ -41,6 +41,7 @@ public:
     virtual void Translate(scalar dx, scalar dy) = 0;
     virtual void Scale(scalar sx, scalar sy, scalar px, scalar py) = 0;
     virtual void SetScale(scalar sx, scalar sy) = 0;
+    virtual void SetScaleTranslate(scalar sx, scalar sy, scalar dx, scalar dy) = 0;
 
     virtual void PreRotate(scalar degree) = 0;
     virtual void PostRotate(scalar degree) = 0;

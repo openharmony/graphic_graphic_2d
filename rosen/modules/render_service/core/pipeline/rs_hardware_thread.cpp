@@ -340,12 +340,20 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     bool forceCPU = RSBaseRenderEngine::NeedForceCPU(layers);
     auto screenManager = CreateOrGetScreenManager();
     auto screenInfo = screenManager->QueryScreenInfo(screenId);
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkColorSpace> skColorSpace = nullptr;
+#else
+    std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
+#endif
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     GraphicColorGamut colorGamut = ComputeTargetColorGamut(layers);
     GraphicPixelFormat pixelFormat = ComputeTargetPixelFormat(layers);
     auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, true, colorGamut, pixelFormat);
+#ifndef USE_ROSEN_DRAWING
     skColorSpace = RSBaseRenderEngine::ConvertColorGamutToSkColorSpace(colorGamut);
+#else
+    drawingColorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(colorGamut);
+#endif
 #else
     auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo, true);
 #endif
@@ -523,6 +531,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
+#ifndef USE_ROSEN_DRAWING
             SkMatrix matrix;
             auto sx = params.dstRect.width() / params.srcRect.width();
             auto sy = params.dstRect.height() / params.srcRect.height();
@@ -539,6 +548,25 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 
                 uniRenderEngine_->ColorSpaceConvertor(imageShader, params);
             }
+#else
+            Drawing::Matrix matrix;
+            auto sx = params.dstRect.GetWidth() / params.srcRect.GetWidth();
+            auto sy = params.dstRect.GetHeight() / params.srcRect.GetHeight();
+            matrix.SetScaleTranslate(sx, sy, params.dstRect.GetLeft(), params.dstRect.GetTop());
+            auto imageShader = Drawing::ShaderEffect::CreateImageShader(
+                *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, Drawing::SamplingOptions(), matrix);
+            if (imageShader == nullptr) {
+                RS_LOGE("RSHardwareThread::DrawImage imageShader is nullptr.");
+            } else {
+                params.paint.SetShaderEffect(imageShader);
+                params.targetColorGamut = colorGamut;
+
+                auto screenManager = CreateOrGetScreenManager();
+                params.screenBrightnessNits = screenManager->GetScreenBrightnessNits(screenId);
+
+                uniRenderEngine_->ColorSpaceConvertor(imageShader, params);
+            }
+#endif
 #endif
 
 #ifdef NEW_SKIA
@@ -573,7 +601,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 
             auto image = std::make_shared<Drawing::Image>();
             if (!image->BuildFromTexture(*canvas->GetGPUContext(), externalTextureInfo,
-                Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr)) {
+                Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, drawingColorSpace)) {
                 RS_LOGE("RSHardwareThread::Redraw: image BuildFromTexture failed");
                 return;
             }

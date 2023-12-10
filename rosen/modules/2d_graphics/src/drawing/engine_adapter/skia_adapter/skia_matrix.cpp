@@ -60,6 +60,11 @@ void SkiaMatrix::SetScale(scalar sx, scalar sy)
     skMatrix_.setScale(sx, sy);
 }
 
+void SkiaMatrix::SetScaleTranslate(scalar sx, scalar sy, scalar dx, scalar dy)
+{
+    skMatrix_.setScaleTranslate(sx, sy, dx, dy);
+}
+
 void SkiaMatrix::PreRotate(scalar degree)
 {
     skMatrix_.preRotate(degree);

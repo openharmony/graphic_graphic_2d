@@ -17,6 +17,7 @@
 #define SHADER_EFFECT_H
 
 #include "drawing/engine_adapter/impl_interface/shader_effect_impl.h"
+#include "include/core/SkShader.h"
 #include "utils/drawing_macros.h"
 
 namespace OHOS {
@@ -94,6 +95,9 @@ public:
 
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);
+
+    const sk_sp<SkShader> ExportSkShader();
+    void SetSkShader(sk_sp<SkShader> shader);
 private:
     ShaderEffectType type_;
     std::shared_ptr<ShaderEffectImpl> impl_;

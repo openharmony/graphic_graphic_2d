@@ -72,9 +72,10 @@ void RSColorFilterDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas
         ROSEN_LOGE("RSColorFilterDrawable::Draw image is null");
         return;
     }
+    as_IB(imageSnapshot->ExportSkImage().get())->hintCacheGpuResource();
     Drawing::AutoCanvasRestore acr(canvas, true);
     canvas.ResetMatrix();
-    static Drawing::SamplingOptions options(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+    static Drawing::SamplingOptions options(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);
     canvas.AttachBrush(brush_);
     Drawing::Rect clipBoundsRect = {clipBounds.GetLeft(), clipBounds.GetTop(),
         clipBounds.GetRight(), clipBounds.GetBottom()};

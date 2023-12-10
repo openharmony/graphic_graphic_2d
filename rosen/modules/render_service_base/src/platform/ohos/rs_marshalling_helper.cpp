@@ -74,6 +74,9 @@
 #include "src/core/SkVerticesPriv.h"
 #endif
 #else
+#ifdef ROSEN_OHOS
+#include "buffer_utils.h"
+#endif
 #include "recording/mask_cmd_list.h"
 #include "recording/recording_path.h"
 #include "recording/recording_shader_effect.h"
@@ -836,12 +839,12 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
     } else {
         Drawing::Bitmap bitmap;
         if (!val->GetROPixels(bitmap)) {
-            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling get bitmap failed");
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling get bitmap failed");
             return false;
         }
         Drawing::Pixmap pixmap;
         if (!bitmap.PeekPixels(pixmap)) {
-            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling peek pixels failed");
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling peek pixels failed");
             return false;
         }
         size_t rb = pixmap.GetRowBytes();
@@ -852,7 +855,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
 
         parcel.WriteUint32(size);
         if (!WriteToParcel(parcel, addr, size)) {
-            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling Image write parcel failed");
+            ROSEN_LOGE("RSMarshallingHelper::Marshalling Image write parcel failed");
             return false;
         }
 
@@ -873,7 +876,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
             }
             parcel.WriteUint32(data->GetSize());
             if (!WriteToParcel(parcel, data->GetData(), data->GetSize())) {
-                ROSEN_LOGE("RSMarshallingHelper::Unmarshalling data write parcel failed");
+                ROSEN_LOGE("RSMarshallingHelper::Marshalling data write parcel failed");
                 return false;
             }
         }
@@ -2131,6 +2134,22 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
             }
         }
     }
+#ifdef ROSEN_OHOS
+    std::vector<sptr<SurfaceBuffer>> surfaceBufferVec;
+    uint32_t surfaceBufferSize = val->GetAllSurfaceBuffer(surfaceBufferVec);
+    ret &= parcel.WriteUint32(surfaceBufferSize);
+    if (surfaceBufferSize > 0) {
+        for (const auto& object : surfaceBufferVec) {
+            if (!object) {
+                ROSEN_LOGE("RSMarshallingHelper::Marshalling DrawCmdList surfaceBufferVec has null object");
+                return false;
+            }
+            MessageParcel* parcelSurfaceBuffer =  static_cast<MessageParcel*>(&parcel);
+            WriteSurfaceBufferImpl(
+                *parcelSurfaceBuffer, object->GetSeqNum(), object);
+        }
+    }
+#endif
     return ret;
 }
 
@@ -2246,6 +2265,24 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         val->SetupBaseOj(ObjectBaseVec);
     }
 
+#ifdef ROSEN_OHOS
+    uint32_t surfaceBufferSize = parcel.ReadUint32();
+    if (surfaceBufferSize > 0) {
+        std::vector<sptr<SurfaceBuffer>> surfaceBufferVec;
+        for (uint32_t i = 0; i < surfaceBufferSize; ++i) {
+            sptr<SurfaceBuffer> surfaceBuffer;
+            MessageParcel* parcelSurfaceBuffer = static_cast<MessageParcel*>(&parcel);
+            uint_32_t sequence = 0U;
+            GSError retCode = ReadSurfaceBufferImpl(*parcelSurfaceBuffer, sequence, surfaceBuffer);
+            if (retCode != GSERROR_OK) {
+                ROSEN_LOGE("RSMarshallingHelper::Unmarshalling DrawCmdList failed read surfaceBuffer: %{public}d %{public}d", i, retCode);
+                return false;
+            }
+            surfaceBufferVec.emplace_back(surfaceBuffer);
+        }
+        val->SetupSurfaceBuffer(surfaceBufferVec);
+    }
+#endif
     val->UnmarshallingOps();
     return ret;
 }

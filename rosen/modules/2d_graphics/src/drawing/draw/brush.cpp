@@ -147,6 +147,11 @@ void Brush::Reset()
     *this = Brush();
 }
 
+bool Brush::AsBlendMode()
+{
+    return StaticFactory::AsBlendMode(*this);
+}
+
 bool operator==(const Brush& b1, const Brush& b2)
 {
     return b1.color_ == b2.color_ && b1.blendMode_ == b2.blendMode_ && b1.shaderEffect_ == b2.shaderEffect_ &&

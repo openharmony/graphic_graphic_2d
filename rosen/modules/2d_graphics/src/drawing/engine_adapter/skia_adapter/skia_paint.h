@@ -121,6 +121,8 @@ public:
     static bool CanComputeFastBounds(const Brush& brush);
     static const Rect& ComputeFastBounds(const Brush& brush, const Rect& orig, Rect* storage);
 
+    static bool AsBlendMode(const Brush& brush);
+
 private:
     template <class T>
     void ApplyBrushOrPenToFillCore(const T& brushOrPen, SkStyleFillCore& fillData);

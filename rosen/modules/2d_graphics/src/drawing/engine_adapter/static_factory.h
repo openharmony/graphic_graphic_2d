@@ -57,6 +57,7 @@ public:
     static std::shared_ptr<TextBlob> DeserializeTextBlob(const void* data, size_t size);
     static bool CanComputeFastBounds(const Brush& brush);
     static const Rect& ComputeFastBounds(const Brush& brush, const Rect& orig, Rect* storage);
+    static bool AsBlendMode(const Brush& brush);
     static FontStyleSet* CreateEmptyFontStyleSet();
     static std::shared_ptr<Data> MakeDataFromFileName(const char path[]);
 };

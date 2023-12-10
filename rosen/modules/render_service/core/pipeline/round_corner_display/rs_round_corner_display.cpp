@@ -111,7 +111,9 @@ bool RoundCornerDisplay::LoadImg(const char* path, std::shared_ptr<Drawing::Imag
         RS_LOGE("[%{public}s] Open picture file failed! \n", __func__);
         return false;
     }
+    img = std::make_shared<Drawing::Image>();
     if (!img->MakeFromEncoded(drData)) {
+        img = nullptr;
         RS_LOGE("[%{public}s] Decode picture file failed! \n", __func__);
         return false;
     }

@@ -36,6 +36,7 @@ enum ColorType {
     COLORTYPE_BGRA_8888,
     COLORTYPE_RGBA_F16,
     COLORTYPE_N32,
+    COLORTYPE_RGBA_1010102,
 };
 
 enum AlphaType {

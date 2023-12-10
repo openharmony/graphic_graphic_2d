@@ -53,7 +53,7 @@ public:
     void Translate(scalar dx, scalar dy);
     void Scale(scalar sx, scalar sy, scalar px, scalar py);
     void SetScale(scalar sx, scalar sy);
-
+    void SetScaleTranslate(scalar sx, scalar sy, scalar dx, scalar dy);
     /*
      * @brief         Sets Matrix to Matrix multiplied by Matrix constructed
      *                from rotating by degrees about pivot point(0,0).

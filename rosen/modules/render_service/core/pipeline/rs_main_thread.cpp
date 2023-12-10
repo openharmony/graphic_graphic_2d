@@ -578,6 +578,7 @@ void RSMainThread::PrintCurrentStatus()
         default:
             break;
     }
+    RS_LOGI("[Drawing] Version: Non-released");
     RS_LOGE("RSMainThread::PrintCurrentStatus:  drawing is opened, gpu type is %{public}s", gpuType.c_str());
 #endif
 }

@@ -240,8 +240,13 @@ public:
     }
 #endif
 #ifdef USE_VIDEO_PROCESSING_ENGINE
+#ifndef USE_ROSEN_DRAWING
     static sk_sp<SkColorSpace> ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut);
     void ColorSpaceConvertor(sk_sp<SkShader> &inputShader, BufferDrawParam& params);
+#else
+    static std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToDrawingColorSpace(GraphicColorGamut colorGamut);
+    void ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader, BufferDrawParam& params);
+#endif
 #endif
 protected:
     void RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw = false);
