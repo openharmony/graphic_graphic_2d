@@ -3564,7 +3564,7 @@ void RSPropertiesPainter::DrawDynamicLightUp(const RSProperties& properties, RSP
     }
 
     auto blender = MakeDynamicLightUpBlender(
-        properties.GetDynamicLightUpRate().value(), properties.GetDynamicLightUpDegree().value());
+        properties.GetDynamicLightUpRate().value() * canvas.GetAlpha(), properties.GetDynamicLightUpDegree().value() * canvas.GetAlpha());
     SkPaint paint;
     paint.setBlender(blender);
     canvas.drawPaint(paint);
