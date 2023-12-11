@@ -136,7 +136,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RSDrawRoundCornerTest, TestSize.Level1)
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
 #endif
     ASSERT_NE(canvas, nullptr);
-    rcdInstance.DrawRoundCorner(canvas);
+    rcdInstance.DrawRoundCorner(canvas.get());
 }
 
 }

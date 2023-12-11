@@ -2474,6 +2474,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             }
             if (needCreateDisplayNodeLayer || forceUpdateFlag_) {
                 processor_->ProcessDisplaySurface(node);
+                if (screenInfo_.state == ScreenState::HDI_OUTPUT_ENABLE) {
+                    DoScreenRcdTask(processor_, rcdInfo_);
+                }
                 processor_->PostProcess(&node);
             }
             return;
@@ -2822,8 +2825,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         endCapture();
 #endif
         if ((screenInfo_.state == ScreenState::HDI_OUTPUT_ENABLE) &&
-            RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
-            RSSingleton<RoundCornerDisplay>::GetInstance().DrawRoundCorner(canvas_);
+            RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable() &&
+            (!RSSingleton<RoundCornerDisplay>::GetInstance().IsSupportHardware())) {
+            RSSingleton<RoundCornerDisplay>::GetInstance().DrawRoundCorner(canvas_.get());
         }
         auto mainThread = RSMainThread::Instance();
         if (!mainThread->GetClearMemoryFinished()) {
@@ -4735,10 +4739,12 @@ bool RSUniRenderVisitor::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> r
             processor_->ProcessSurface(*node);
         }
     }
+    if (screenInfo_.state == ScreenState::HDI_OUTPUT_ENABLE) {
+        DoScreenRcdTask(processor_, rcdInfo_);
+    }
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExcute()) {
         RS_LOGW("RSUniRenderVisitor::DoDirectComposition: hardwareThread task has too many to excute");
     }
-    DoScreenRcdTask(processor_, rcdInfo_);
     processor_->PostProcess(displayNode.get());
     RS_LOGD("RSUniRenderVisitor::DoDirectComposition end");
     return true;

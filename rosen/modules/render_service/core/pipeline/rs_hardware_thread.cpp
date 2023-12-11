@@ -368,19 +368,26 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     std::unordered_map<int32_t, std::unique_ptr<ImageCacheSeq>> imageCacheSeqs;
 #endif
 #endif // RS_ENABLE_EGLIMAGE
-    bool softDrawFlag = false;
+    bool isTopGpuDraw = false;
+    bool isBottomGpuDraw = false;
     for (const auto& layer : layers) {
         if (layer == nullptr) {
             continue;
         }
 
-        if (layer->GetSurface()->GetName() == "RCDSurfaceNode") {
-            softDrawFlag = true;
+        if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE ||
+            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR) {
             continue;
         }
 
-        if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE ||
-            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR) {
+        if (layer->GetSurface()->GetName() == "RCDTopSurfaceNode") {
+            RS_LOGE("RCD::HradDraw::RCDTopSurface failed. Start GPU draw");
+            isTopGpuDraw = true;
+            continue;
+        }
+        if (layer->GetSurface()->GetName() == "RCDBottomSurfaceNode") {
+            RS_LOGE("RCD::HradDraw::RCDTopSurface failed. Start GPU draw");
+            isBottomGpuDraw = true;
             continue;
         }
 
@@ -617,10 +624,13 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #endif
     }
 
-    if (softDrawFlag && RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
-        RSSingleton<RoundCornerDisplay>::GetInstance().DrawRoundCorner(canvas);
+    if (isTopGpuDraw && RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
+        RSSingleton<RoundCornerDisplay>::GetInstance().DrawTopRoundCorner(canvas.get());
     }
 
+    if (isBottomGpuDraw && RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
+        RSSingleton<RoundCornerDisplay>::GetInstance().DrawBottomRoundCorner(canvas.get());
+    }
     renderFrame->Flush();
 #ifdef RS_ENABLE_EGLIMAGE
 #ifdef RS_ENABLE_VK
