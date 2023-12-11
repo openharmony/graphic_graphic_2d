@@ -65,9 +65,7 @@ bool TextStyle::operator ==(TextStyle const &rhs) const
            letterSpacing == rhs.letterSpacing &&
            wordSpacing == rhs.wordSpacing &&
            foreground == rhs.foreground &&
-           background == rhs.background &&
-           isSymbolGlyph == rhs.isSymbolGlyph &&
-           symbol == rhs.symbol;
+           background == rhs.background;
 }
 } // namespace TextEngine
 } // namespace Rosen

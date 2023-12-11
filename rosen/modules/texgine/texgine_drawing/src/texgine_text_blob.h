@@ -20,7 +20,6 @@
 
 #ifndef USE_ROSEN_DRAWING
 #include <include/core/SkTextBlob.h>
-#include <include/core/SkPath.h>
 #else
 #include "drawing.h"
 #endif
@@ -47,11 +46,6 @@ public:
 #else
     void SetTextBlob(const std::shared_ptr<RSTextBlob> textBlob);
 #endif
-
-    void GetGlyphIDs(std::vector<SkGlyphID>& glyphIds);
-
-    SkPath GetPathbyGlyphID(const SkGlyphID& glyphId);
-
 private:
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkTextBlob> textBlob_ = nullptr;

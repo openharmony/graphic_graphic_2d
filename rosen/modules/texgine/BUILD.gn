@@ -48,8 +48,6 @@ config("libtexgine_public_config") {
 ohos_source_set("libtexgine_source") {
   if (is_ok) {
     sources = [
-      "export/symbol_engine/hm_symbol_run.cpp",
-      "export/symbol_engine/hm_symbol_txt.cpp",
       "src/bidi_processer.cpp",
       "src/char_groups.cpp",
       "src/dynamic_file_font_provider.cpp",

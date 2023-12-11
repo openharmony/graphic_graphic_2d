@@ -59,7 +59,6 @@ static std::unordered_map<RSOpType, OpUnmarshallingFunc> opUnmarshallingFuncLUT 
     { CLIP_REGION_OPITEM,          ClipRegionOpItem::Unmarshalling },
     { TRANSLATE_OPITEM,            TranslateOpItem::Unmarshalling },
     { TEXTBLOB_OPITEM,             TextBlobOpItem::Unmarshalling },
-    { HM_SYMBOL_OPITEM,            SymbolOpItem::Unmarshalling },
     { BITMAP_OPITEM,               BitmapOpItem::Unmarshalling },
     { COLOR_FILTER_BITMAP_OPITEM,  ColorFilterBitmapOpItem::Unmarshalling },
     { BITMAP_RECT_OPITEM,          BitmapRectOpItem::Unmarshalling },

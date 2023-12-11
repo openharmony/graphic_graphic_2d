@@ -49,16 +49,6 @@ public:
     void DrawTextBlob(const std::shared_ptr<TexgineTextBlob> &blob, float x, float y, const TexginePaint &paint);
 
     /*
-     * @brief Draws symbol at point, using clip, SkMatrix, and paint.
-     */
-    void DrawSymbol(const HMSymbolData &symbol, SkPoint locate, const TexginePaint &paint);
-
-    /*
-     * @brief Draws Path , using SkPath path and SkPaint paint.
-     */
-    void DrawPath(const SkPath &path, const TexginePaint &paint);
-
-    /*
      * @brief Fills clip with color color using SkBlendMode::kSrc.
      *        This has the effect of replacing all pixels contained by clip with color.
      * @param color unpremultiplied ARGB

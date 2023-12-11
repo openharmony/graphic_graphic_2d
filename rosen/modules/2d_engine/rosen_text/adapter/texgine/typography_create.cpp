@@ -53,12 +53,6 @@ void TypographyCreate::AppendText(const std::u16string& text)
     builder_->AppendSpan(text);
 }
 
-void TypographyCreate::AppendSymbol(const uint32_t& symbolId)
-{
-    std::vector<uint32_t> symbol = {symbolId};
-    builder_->AppendSpan(symbol);
-}
-
 class TextEnginePlaceholderRun : public TextEngine::AnySpan {
 public:
     explicit TextEnginePlaceholderRun(const PlaceholderSpan &span): span_(span)

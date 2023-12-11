@@ -32,7 +32,6 @@
 
 #include "common/rs_macros.h"
 #include "typography_types.h"
-#include "hm_symbol_txt.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -92,10 +91,6 @@ struct TextStyle {
     FontFeatures fontFeatures;
 
     bool operator ==(const TextStyle &rhs) const;
-
-    // symbol glyph
-    bool isSymbolGlyph = false;
-    HMSymbolTxt symbol;
 };
 } // namespace Rosen
 } // namespace OHOS

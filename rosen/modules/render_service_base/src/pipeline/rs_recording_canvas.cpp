@@ -381,13 +381,6 @@ void RSRecordingCanvas::onDrawTextBlob(const SkTextBlob* blob, SkScalar x, SkSca
     AddOp(std::move(op));
 }
 
-void RSRecordingCanvas::onDrawSymbol(const HMSymbolData& symbol, SkPoint locate, const SkPaint& paint)
-{
-    RS_DRAWOP_TRACE_FUNC();
-    std::unique_ptr<OpItem> op = std::make_unique<SymbolOpItem>(symbol, locate, paint);
-    AddOp(std::move(op));
-}
-
 void RSRecordingCanvas::DrawAdaptiveRRect(float radius, const SkPaint& paint)
 {
     RS_DRAWOP_TRACE_FUNC();

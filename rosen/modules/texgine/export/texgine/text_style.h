@@ -23,8 +23,6 @@
 
 #include "texgine_paint.h"
 #include "texgine/typography_types.h"
-#include "symbol_engine/hm_symbol_txt.h"
-
 #include "draw/pen.h"
 namespace OHOS {
 namespace Rosen {
@@ -106,10 +104,6 @@ struct TextStyle {
     std::vector<TextShadow> shadows;
     // Implements the equality operator.
     bool operator ==(TextStyle const& rhs) const;
-
-    // symbol glyph
-    bool isSymbolGlyph = false;
-    HMSymbolTxt symbol;
 };
 } // namespace TextEngine
 } // namespace Rosen

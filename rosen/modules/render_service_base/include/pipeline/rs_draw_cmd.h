@@ -109,7 +109,6 @@ enum RSOpType : uint16_t {
     RESTORE_ALPHA_OPITEM,
     SURFACEBUFFER_OPITEM,
     SCALE_OPITEM,
-    HM_SYMBOL_OPITEM,
 };
 namespace {
     std::string GetOpTypeString(RSOpType type)
@@ -160,7 +159,6 @@ namespace {
             GETOPTYPESTRING(RESTORE_ALPHA_OPITEM);
             GETOPTYPESTRING(SURFACEBUFFER_OPITEM);
             GETOPTYPESTRING(SCALE_OPITEM);
-            GETOPTYPESTRING(HM_SYMBOL_OPITEM);
             default:
                 break;
         }
@@ -812,47 +810,6 @@ private:
     sk_sp<SkTextBlob> textBlob_;
     float x_;
     float y_;
-};
-
-class SymbolOpItem : public OpItemWithPaint {
-public:
-    SymbolOpItem(const HMSymbolData& symbol, SkPoint locate, const SkPaint& paint);
-    ~SymbolOpItem() override {};
-    void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
-    std::optional<SkRect> GetCacheBounds() const override
-    {
-        return symbol_.path_.getBounds().makeOffset(locate_.x(), locate_.y());
-    }
-
-    std::string GetTypeWithDesc() const override
-    {
-        std::string desc = "{Optype: " + GetOpTypeString(GetType()) + ", Description: { ";
-        desc += "\tSymbolID = " + std::to_string(symbol_.symbolInfo_.symbolGlyphId) + "\n";
-        desc += "\tlocatex_ : " + std::to_string(locate_.x()) + "\n";
-        desc += "\tlocatey_ : " + std::to_string(locate_.y()) + "\n";
-        desc += "}, \n";
-        return desc;
-    }
-
-    RSOpType GetType() const override
-    {
-        return RSOpType::HM_SYMBOL_OPITEM;
-    }
-
-    void SetNodeId(NodeId id) override
-    {
-        nodeId_ = id;
-    }
-
-    bool Marshalling(Parcel& parcel) const override;
-    [[nodiscard]] static OpItem* Unmarshalling(Parcel& parcel);
-
-private:
-    HMSymbolData symbol_;
-    SkPoint locate_;
-    SkPaint paint_;
-
-    NodeId nodeId_;
 };
 
 class BitmapOpItem : public OpItemWithRSImage {
