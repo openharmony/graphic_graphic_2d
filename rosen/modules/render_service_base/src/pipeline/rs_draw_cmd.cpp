@@ -2463,6 +2463,7 @@ void ImageWithParmOpItem::SetNodeId(NodeId id)
 #include "platform/common/rs_log.h"
 #include "render/rs_pixel_map_util.h"
 #include "pipeline/rs_task_dispatcher.h"
+#include "platform/common/rs_system_properties.h"
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSemaphore.h"
 #include "native_window.h"
@@ -2574,7 +2575,7 @@ std::shared_ptr<Drawing::Image> RSExtendImageObject::GetDrawingImageFromSurfaceB
     Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer) const
 {
     if (RSSystemProperties::GetRsVulkanEnabled()) {
-        return;
+        return nullptr;
     }
     if (surfaceBuffer == nullptr) {
         RS_LOGE("GetDrawingImageFromSurfaceBuffer surfaceBuffer is nullptr");

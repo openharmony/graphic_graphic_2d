@@ -64,6 +64,12 @@ void SkiaMatrix44::Multiply(const Matrix44& a, const Matrix44& b)
     skMatrix44_.setConcat(m1->GetSkMatrix44(), m2->GetSkMatrix44());
 }
 
+void SkiaMatrix44::SetCol(int column, scalar x, scalar y, scalar z, scalar w)
+{
+    auto skv4 = SkV4 { x, y, z, w };
+    skMatrix44_.setCol(column, skv4);
+}
+
 void SkiaMatrix44::SetMatrix44ColMajor(const std::array<scalar, Matrix44Impl::MATRIX44_SIZE>& buffer)
 {
     SkScalar r[16] = {

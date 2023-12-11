@@ -67,6 +67,12 @@ void Matrix44::SetMatrix44RowMajor(const Buffer& buffer)
 {
     impl_->SetMatrix44RowMajor(buffer);
 }
+
+void Matrix44::SetCol(int column, scalar x, scalar y, scalar z, scalar w)
+{
+    impl_->SetCol(column, x, y, z, w);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

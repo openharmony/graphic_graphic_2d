@@ -90,7 +90,11 @@ std::shared_ptr<Media::PixelMap> RSUniUICapture::TakeLocalCapture()
         drawCallList->Playback(*canvas);
     }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> img(skSurface.get()->makeImageSnapshot());
+#else
+    auto img = drSurface->GetImageSnapshot();
+#endif
     if (!img) {
         RSOffscreenRenderThread::Instance().CleanGrResource();
         RS_LOGE("RSUniUICapture::TakeLocalCapture: img is nullptr");
@@ -106,11 +110,21 @@ std::shared_ptr<Media::PixelMap> RSUniUICapture::TakeLocalCapture()
     return pixelmap;
 }
 
+#ifndef USE_ROSEN_DRAWING
 bool RSUniUICapture::CopyDataToPixelMap(sk_sp<SkImage> img, std::shared_ptr<Media::PixelMap> pixelmap)
+#else
+bool RSUniUICapture::CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img,
+    std::shared_ptr<Media::PixelMap> pixelmap)
+#endif
 {
     auto size = pixelmap->GetRowBytes() * pixelmap->GetHeight();
+#ifndef USE_ROSEN_DRAWING
     SkImageInfo info = SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(),
         kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+#else
+    Drawing::ImageInfo info = Drawing::ImageInfo(pixelmap->GetWidth(), pixelmap->GetHeight(),
+        Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL);
+#endif
 #ifdef ROSEN_OHOS
     int fd = AshmemCreate("RSUniUICapture Data", size);
     if (fd < 0) {
@@ -130,8 +144,11 @@ bool RSUniUICapture::CopyDataToPixelMap(sk_sp<SkImage> img, std::shared_ptr<Medi
         ::close(fd);
         return false;
     }
-
+#ifndef USE_ROSEN_DRAWING
     if (!img->readPixels(info, data, pixelmap->GetRowBytes(), 0, 0)) {
+#else
+    if (!img->ReadPixels(info, data, pixelmap->GetRowBytes(), 0, 0)) {
+#endif // USE_ROSEN_DRAWING
         RS_LOGE("RSUniUICapture::CopyDataToPixelMap readPixels failed");
         ::close(fd);
         return false;
@@ -145,7 +162,11 @@ bool RSUniUICapture::CopyDataToPixelMap(sk_sp<SkImage> img, std::shared_ptr<Medi
         RS_LOGE("RSUniUICapture::CopyDataToPixelMap data is nullptr");
         return false;
     }
+#ifndef USE_ROSEN_DRAWING
     if (!img->readPixels(info, data, pixelmap->GetRowBytes(), 0, 0)) {
+#else
+    if (!img->ReadPixels(info, data, pixelmap->GetRowBytes(), 0, 0)) {
+#endif // USE_ROSEN_DRAWING
         RS_LOGE("RSUniUICapture::CopyDataToPixelMap readPixels failed");
         free(data);
         data = nullptr;
@@ -270,7 +291,11 @@ void RSUniUICapture::RSUniUICaptureVisitor::SetPaintFilterCanvas(std::shared_ptr
         return;
     }
     canvas_ = canvas;
+#ifndef USE_ROSEN_DRAWING
     canvas_->scale(scaleX_, scaleY_);
+#else
+    canvas_->Scale(scaleX_, scaleY_);
+#endif
     canvas_->SetDisableFilterCache(true);
 }
 
@@ -657,6 +682,5 @@ void RSUniUICapture::RSUniUICaptureVisitor::PrepareEffectRenderNode(RSEffectRend
     node.Update(*dirtyManager, nullptr, false);
     PrepareChildren(node);
 }
-
 } // namespace Rosen
 } // namespace OHOS

@@ -60,6 +60,16 @@ void RuntimeShaderBuilder::SetUniform(const std::string& name, float x, float y,
 {
     impl_->SetUniform(name, x, y, width, height);
 }
+
+void RuntimeShaderBuilder::SetUniform(const std::string& name, const Matrix44& uniformMatrix44)
+{
+    impl_->SetUniform(name, uniformMatrix44);
+}
+
+void RuntimeShaderBuilder::SetUniformVec4(const std::string& name, float x, float y, float z, float w)
+{
+    impl_->SetUniformVec4(name, x, y, z, w);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

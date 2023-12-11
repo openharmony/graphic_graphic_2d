@@ -18,6 +18,7 @@
 
 #include "drawing/engine_adapter/impl_interface/runtime_shader_builder_impl.h"
 #include "utils/drawing_macros.h"
+#include "utils/matrix44.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -37,7 +38,8 @@ public:
     void SetUniform(const std::string& name, float x, float y);
     void SetUniform(const std::string& name, float x, float y, float z);
     void SetUniform(const std::string& name, float x, float y, float width, float height);
-
+    void SetUniform(const std::string& name, const Matrix44& uniformMatrix44);
+    void SetUniformVec4(const std::string& name, float x, float y, float z, float w);
 private:
     std::shared_ptr<RuntimeShaderBuilderImpl> impl_;
 };
