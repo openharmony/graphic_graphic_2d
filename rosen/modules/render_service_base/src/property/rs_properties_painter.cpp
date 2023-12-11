@@ -1283,12 +1283,12 @@ void RSPropertiesPainter::DrawLinearGradientBlurFilter(
     const RSProperties& properties, RSPaintFilterCanvas& canvas, const std::optional<Drawing::Rect>& rect)
 #endif
 {
-    const auto& para = properties.GetLinearGradientBlurPara();
-    if (para == nullptr || para->blurRadius_ <= 0) {
-        ROSEN_LOGD("RSPropertiesPainter::DrawLinearGradientBlurFilter para invalid");
+    if (!BLUR_ENABLED) {
+        ROSEN_LOGD("RSPropertiesPainter::DrawLinearGradientBlurFilter close blur.");
         return;
     }
-    RS_TRACE_NAME("DrawLinearGradientBlurFilter");
+    const auto& para = properties.GetLinearGradientBlurPara();
+    if (para == nullptr || para->blurRadius_ <= 0) { return; }
 #ifndef USE_ROSEN_DRAWING
     SkSurface* surface = canvas.GetSurface();
     if (surface == nullptr) {
@@ -1341,7 +1341,6 @@ void RSPropertiesPainter::DrawLinearGradientBlurFilter(
         return;
     }
 
-    RS_TRACE_NAME("DrawLinearBlur");
 #ifndef USE_ROSEN_DRAWING
     canvas.resetMatrix();
     canvas.translate(clipIPadding.left(), clipIPadding.top());
@@ -1370,6 +1369,7 @@ void RSPropertiesPainter::DrawLinearGradientBlur(Drawing::Surface* surface, RSPa
 
     if (RSSystemProperties::GetMaskLinearBlurEnabled()) {
         // use faster LinearGradientBlur if valid
+        RS_OPTIONAL_TRACE_NAME("DrawLinearGradientBlur_mask");
         if (para->LinearGradientBlurFilter_ == nullptr) {
             ROSEN_LOGE("RSPropertiesPainter::DrawLinearGradientBlur blurFilter null");
             return;
@@ -1383,6 +1383,7 @@ void RSPropertiesPainter::DrawLinearGradientBlur(Drawing::Surface* surface, RSPa
         DrawMaskLinearGradientBlur(surface, canvas, filter, alphaGradientShader, clipIPadding);
     } else {
         // use original LinearGradientBlur
+        RS_OPTIONAL_TRACE_NAME("DrawLinearGradientBlur_original");
         float radius = para->blurRadius_ / 2;
         DrawHorizontalLinearGradientBlur(surface, canvas, radius, alphaGradientShader, clipIPadding);
         DrawVerticalLinearGradientBlur(surface, canvas, radius, alphaGradientShader, clipIPadding);
@@ -1653,7 +1654,6 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeGreyAdjustmentSh
 #ifndef USE_ROSEN_DRAWING
 void RSPropertiesPainter::DrawGreyAdjustment(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
-    RS_TRACE_NAME("RSPropertiesPainter::DrawGreyAdjustment");
     auto skSurface = canvas.GetSurface();
     if (skSurface == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawGreyAdjustment skSurface null");
@@ -1669,7 +1669,6 @@ void RSPropertiesPainter::DrawGreyAdjustment(const RSProperties& properties, RSP
     float coef1 = properties.GetGreyCoef1();
     float coef2 = properties.GetGreyCoef2();
 
-    RS_TRACE_NAME("coef1" + std::to_string(coef1) + " coef2" + std::to_string(coef2));
     auto grayedImageShader = MakeGreyAdjustmentShader(coef1, coef2, imageShader);
     
     SkPaint paint;
@@ -1681,7 +1680,6 @@ void RSPropertiesPainter::DrawGreyAdjustment(const RSProperties& properties, RSP
 #else
 void RSPropertiesPainter::DrawGreyAdjustment(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
-    RS_TRACE_NAME("RSPropertiesPainter::DrawGreyAdjustment");
     auto drSurface = canvas.GetSurface();
     if (drSurface == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawGreyAdjustment drSurface null");
@@ -1699,7 +1697,6 @@ void RSPropertiesPainter::DrawGreyAdjustment(const RSProperties& properties, RSP
     float coef1 = properties.GetGreyCoef1();
     float coef2 = properties.GetGreyCoef2();
 
-    RS_TRACE_NAME("coef1" + std::to_string(coef1) + " coef2" + std::to_string(coef2));
     auto grayedImageShader = MakeGreyAdjustmentShader(coef1, coef2, imageShader);
     
     Drawing::Brush brush;
