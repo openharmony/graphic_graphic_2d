@@ -714,7 +714,7 @@ void OH_Drawing_SetTextStyleHalfLeading(OH_Drawing_TextStyle* style, bool halfLe
 
 void OH_Drawing_SetTextStyleEllipsis(OH_Drawing_TextStyle* style, char* ellipsis)
 {
-    std::u16string u16Ellipsis = std::u16string(reinterpret_cast<const char16_t>(ellipsis));
+    std::u16string u16Ellipsis = std::u16string(reinterpret_cast<const char16_t*>(ellipsis));
     #ifndef USE_GRAPHIC_TEXT_GINE
         ConvertToOriginalText<TextStyle>(style)->ellipsis_ = u16Ellipsis;
     #else
