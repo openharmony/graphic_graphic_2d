@@ -339,8 +339,8 @@ void RSColorPickerCacheTask::CalculateColorAverage(RSColor& colorCur)
     // black color defination
     RSColor black = RSColor(0, 0, 0, 255);
     int colorArrayLen = colorArray_.size();
-    int colorArraySize = 21;
-    int continueBlackColorNum = 20;
+    int colorArraySize = 10;
+    int continueBlackColorNum = 5;
     if (colorArrayLen >= colorArraySize) {
         colorArray_.pop_back();
     }
@@ -351,8 +351,8 @@ void RSColorPickerCacheTask::CalculateColorAverage(RSColor& colorCur)
     int B = 0;
     int mark = 0;
 
-    for (int i = 0; i < colorArrayLen; i++) {
-        if (colorArray_[i] == black) {
+    for (int i = 0; i < static_cast<int>(colorArray_.size()); i++) {
+        if (colorArray_[i].GetRed() == 0 && colorArray_[i].GetGreen() == 0 && colorArray_[i].GetBlue() == 0) {
             ++mark;
         } else {
             if (mark > continueBlackColorNum) {

@@ -2716,7 +2716,7 @@ void RSProperties::OnApplyModifiers()
     }
     if (filterNeedUpdate_) {
         filterNeedUpdate_ = false;
-        if (IsShadowValid()) {
+        if (GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
             filterNeedUpdate_ = true;
         }
         if (backgroundFilter_ != nullptr && !backgroundFilter_->IsValid()) {
@@ -2726,7 +2726,8 @@ void RSProperties::OnApplyModifiers()
             filter_.reset();
         }
         needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
-                        IsDynamicLightUpValid() || IsShadowValid() || IsGreyAdjustmenValid();
+                        IsDynamicLightUpValid() || IsGreyAdjustmenValid() ||
+                        GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
         CreateFilterCacheManagerIfNeed();
 #endif

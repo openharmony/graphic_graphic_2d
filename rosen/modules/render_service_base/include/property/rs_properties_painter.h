@@ -41,7 +41,7 @@ public:
     static void DrawBackground(const RSProperties& properties, RSPaintFilterCanvas& canvas,
         bool isAntiAlias = true, bool isSurfaceView = false);
     static void GetShadowDirtyRect(RectI& dirtyShadow, const RSProperties& properties,
-        const RRect* rrect = nullptr, bool isAbsCoordinate = true);
+        const RRect* rrect = nullptr, bool isAbsCoordinate = true, bool radiusInclude = true);
     static void DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect = nullptr);
     static int GetAndResetBlurCnt();
 #ifndef USE_ROSEN_DRAWING

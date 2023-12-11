@@ -328,7 +328,7 @@ void RSPropertiesPainter::Clip(Drawing::Canvas& canvas, RectF rect, bool isAntiA
 
 #ifndef USE_ROSEN_DRAWING
 void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSProperties& properties,
-    const RRect* rrect, bool isAbsCoordinate)
+    const RRect* rrect, bool isAbsCoordinate, bool radiusInclude)
 {
     // [Planning]: After Skia being updated, we should directly call SkShadowUtils::GetLocalBounds here.
     if (!properties.IsShadowValid()) {
@@ -379,7 +379,7 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
         SkPaint paint;
         paint.setAntiAlias(true);
         paint.setMaskFilter(SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, properties.GetShadowRadius()));
-        if (paint.canComputeFastBounds()) {
+        if (paint.canComputeFastBounds() && radiusInclude) {
             paint.computeFastBounds(shadowRect, &shadowRect);
         }
     }

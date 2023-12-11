@@ -180,6 +180,8 @@ public:
 #endif
 
     void SetDirtyFlag();
+    void SetColorPickerForceRequestVsync(bool colorPickerForceRequestVsync);
+    void SetNoNeedToPostTask(bool noNeedToPostTask);
     void SetAccessibilityConfigChanged();
     void ForceRefreshForUni();
     void TrimMem(std::unordered_set<std::u16string>& argSets, std::string& result);
@@ -217,6 +219,7 @@ public:
 
     DeviceType GetDeviceType() const;
     bool IsSingleDisplay();
+    bool GetNoNeedToPostTask();
     uint64_t GetFocusNodeId() const;
     uint64_t GetFocusLeashWindowId() const;
     bool GetClearMemDeeply() const
@@ -249,6 +252,7 @@ private:
     void ReleaseAllNodesBuffer();
     void Render();
     void SetDeviceType();
+    void ColorPickerRequestVsyncIfNeed();
     void UniRender(std::shared_ptr<RSBaseRenderNode> rootNode);
     bool CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces, std::shared_ptr<RSSurfaceRenderNode> curSurface);
     void CalcOcclusionImplementation(std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces);
@@ -401,6 +405,10 @@ private:
     uint32_t appWindowNum_ = 0;
     uint32_t requestNextVsyncNum_ = 0;
     bool lastFrameHasFilter_ = false;
+
+    bool colorPickerForceRequestVsync_ = false;
+    std::atomic_bool noNeedToPostTask_ = false;
+    std::atomic_int colorPickerRequestFrameNum_ = 15;
 
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
     std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;

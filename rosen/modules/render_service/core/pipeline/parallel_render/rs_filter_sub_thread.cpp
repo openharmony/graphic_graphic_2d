@@ -104,6 +104,11 @@ void RSFilterSubThread::StartColorPicker()
         grContext_ = CreateShareGrContext();
     });
     RSColorPickerCacheTask::postColorPickerTask = [this](std::weak_ptr<RSColorPickerCacheTask> task) {
+        auto colorPickerTask = task.lock();
+        if (RSMainThread::Instance()->GetNoNeedToPostTask()) {
+            colorPickerTask->SetStatus(CacheProcessStatus::WAITING);
+            return;
+        }
         PostTask([this, task]() { ColorPickerRenderCache(task); });
     };
 }
@@ -218,6 +223,8 @@ void RSFilterSubThread::ColorPickerRenderCache(std::weak_ptr<RSColorPickerCacheT
     if (!task->Render()) {
         RS_LOGE("Color picker render failed");
     }
+    RSMainThread::Instance()->RequestNextVSync();
+    RSMainThread::Instance()->SetColorPickerForceRequestVsync(true);
 }
 
 #ifndef USE_ROSEN_DRAWING

@@ -497,7 +497,7 @@ bool RSUniRenderVisitor::UpdateCacheChangeStatus(RSRenderNode& node)
     }
     if (!curCacheFilterRects_.empty() && !node.IsInstanceOf<RSEffectRenderNode>() &&
         (node.GetRenderProperties().GetBackgroundFilter() || node.GetRenderProperties().GetUseEffect() ||
-        node.GetRenderProperties().IsShadowValid())) {
+        node.GetRenderProperties().GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE)) {
         curCacheFilterRects_.top().emplace(node.GetId());
     }
     // drawing group root node
@@ -3769,14 +3769,16 @@ bool RSUniRenderVisitor::DrawBlurInCache(RSRenderNode& node)
             curCacheFilterRects_.top().erase(node.GetId());
             if (curCacheFilterRects_.empty() || !node.ChildHasFilter()) {
                 // no filter to draw, return
+                return true;
             }
-        } else if (node.GetRenderProperties().IsShadowValid()) {
+        } else if (node.GetRenderProperties().GetShadowColorStrategy() !=
+            SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
             // clear hole while generating cache surface
 #ifndef USE_ROSEN_DRAWING
             SkAutoCanvasRestore arc(canvas_.get(), true);
             RectI shadowRect;
             auto rrect = node.GetRenderProperties().GetRRect();
-            RSPropertiesPainter::GetShadowDirtyRect(shadowRect, node.GetRenderProperties(), &rrect, false);
+            RSPropertiesPainter::GetShadowDirtyRect(shadowRect, node.GetRenderProperties(), &rrect, false, false);
             SkCanvasPriv::ResetClip(canvas_.get());
             canvas_->clipRect(SkRect::MakeXYWH(shadowRect.left_, shadowRect.top_,
                 shadowRect.width_, shadowRect.height_));
@@ -3808,6 +3810,7 @@ bool RSUniRenderVisitor::DrawBlurInCache(RSRenderNode& node)
         }
     } else if (curGroupedNodes_.empty() && !node.ChildHasFilter()) {
         // no filter to draw, return
+        return true;
     }
     return false;
 }

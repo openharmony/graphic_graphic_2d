@@ -1382,6 +1382,25 @@ bool RSMainThread::GetParallelCompositionEnabled()
     return doParallelComposition_;
 }
 
+void RSMainThread::ColorPickerRequestVsyncIfNeed()
+{
+    if (colorPickerForceRequestVsync_) {
+        colorPickerRequestFrameNum_--;
+        if (colorPickerRequestFrameNum_ > 0) {
+            RSMainThread::Instance()->SetNoNeedToPostTask(false);
+            RSMainThread::Instance()->SetDirtyFlag();
+            RequestNextVSync();
+        } else {
+            // The last frame reset to 15, then to request next 15 frames if need
+            colorPickerRequestFrameNum_ = 15;
+            RSMainThread::Instance()->SetNoNeedToPostTask(true);
+            colorPickerForceRequestVsync_ = false;
+        }
+    } else {
+        RSMainThread::Instance()->SetNoNeedToPostTask(false);
+    }
+}
+
 void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
     UpdateUIFirstSwitch();
@@ -1406,6 +1425,12 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             needTraverseNodeTree = !uniVisitor->DoDirectComposition(rootNode);
         } else if (forceUpdateUniRenderFlag_) {
             RS_TRACE_NAME("RSMainThread::UniRender ForceUpdateUniRender");
+        } else if (colorPickerForceRequestVsync_) {
+            RS_TRACE_NAME("RSMainThread::UniRender ColorPickerForceRequestVsync");
+            RSMainThread::Instance()->SetNoNeedToPostTask(false);
+            RSMainThread::Instance()->SetDirtyFlag();
+            RequestNextVSync();
+            return;
         } else {
             RS_LOGI("RSMainThread::Render nothing to update");
             for (auto& node: hardwareEnabledNodes_) {
@@ -1423,6 +1448,9 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             return;
         }
     }
+
+    ColorPickerRequestVsyncIfNeed();
+
     isCachedSurfaceUpdated_ = false;
     if (needTraverseNodeTree) {
         uniVisitor->SetAnimateState(doWindowAnimate_);
@@ -2513,6 +2541,21 @@ void RSMainThread::AddTransactionDataPidInfo(pid_t remotePid)
 void RSMainThread::SetDirtyFlag()
 {
     isDirty_ = true;
+}
+
+void RSMainThread::SetColorPickerForceRequestVsync(bool colorPickerForceRequestVsync)
+{
+    colorPickerForceRequestVsync_ = colorPickerForceRequestVsync;
+}
+
+void RSMainThread::SetNoNeedToPostTask(bool noNeedToPostTask)
+{
+    noNeedToPostTask_ = noNeedToPostTask;
+}
+
+bool RSMainThread::GetNoNeedToPostTask()
+{
+    return noNeedToPostTask_.load();
 }
 
 void RSMainThread::SetAccessibilityConfigChanged()
