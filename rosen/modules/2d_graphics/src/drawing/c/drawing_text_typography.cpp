@@ -599,11 +599,8 @@ OH_Drawing_PositionAndAffinity OH_Drawing_TypographyGetGlyphPositionAtCoordinate
     OH_Drawing_PositionAndAffinity drawingPositionAndAffinity =
         {originalPositionAndAffinity.pos_, *drawingAffinity};
 #else
-    auto originalPositionAndAffinity =
-        ConvertToOriginalText<Typography>(typography)->GetGlyphIndexByCoordinate(dx, dy);
-    auto drawingAffinity = ConvertToNDKText<OH_Drawing_Affinity>(&originalPositionAndAffinity.affinity);
-    OH_Drawing_PositionAndAffinity drawingPositionAndAffinity =
-        {originalPositionAndAffinity.index, *drawingAffinity};
+    OH_Drawing_Affinity drawingAffinity = AFFINITY_UPSTREAM;
+    OH_Drawing_PositionAndAffinity drawingPositionAndAffinity = {0, drawingAffinity};
 #endif
     return drawingPositionAndAffinity;
 }
@@ -619,8 +616,11 @@ OH_Drawing_PositionAndAffinity OH_Drawing_TypographyGetGlyphPositionAtCoordinate
     OH_Drawing_PositionAndAffinity drawingPositionAndAffinity =
         {originalPositionAndAffinity.pos_, *drawingAffinity};
 #else
-    OH_Drawing_Affinity drawingAffinity = AFFINITY_UPSTREAM;
-    OH_Drawing_PositionAndAffinity drawingPositionAndAffinity = {0, drawingAffinity};
+    auto originalPositionAndAffinity =
+        ConvertToOriginalText<Typography>(typography)->GetGlyphIndexByCoordinate(dx, dy);
+    auto drawingAffinity = ConvertToNDKText<OH_Drawing_Affinity>(&originalPositionAndAffinity.affinity);
+    OH_Drawing_PositionAndAffinity drawingPositionAndAffinity =
+        {originalPositionAndAffinity.index, *drawingAffinity};
 #endif
     return drawingPositionAndAffinity;
 }
@@ -712,12 +712,13 @@ void OH_Drawing_SetTextStyleHalfLeading(OH_Drawing_TextStyle* style, bool halfLe
     #endif
 }
 
-void OH_Drawing_SetTextStyleEllipsis(OH_Drawing_TextStyle* style, std::u16string ellipsis)
+void OH_Drawing_SetTextStyleEllipsis(OH_Drawing_TextStyle* style, char* ellipsis)
 {
+    std::u16string u16Ellipsis = std::u16string(reinterpret_cast<const char16_t>(ellipsis));
     #ifndef USE_GRAPHIC_TEXT_GINE
-        ConvertToOriginalText<TextStyle>(style)->ellipsis_ = ellipsis;
+        ConvertToOriginalText<TextStyle>(style)->ellipsis_ = u16Ellipsis;
     #else
-        ConvertToOriginalText<TextStyle>(style)->ellipsis = ellipsis;
+        ConvertToOriginalText<TextStyle>(style)->ellipsis = u16Ellipsis;
     #endif
 }
 
