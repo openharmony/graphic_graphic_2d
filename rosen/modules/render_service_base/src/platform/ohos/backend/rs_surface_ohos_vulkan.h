@@ -51,6 +51,7 @@ public:
     std::unique_ptr<RSSurfaceFrame> RequestFrame(
         int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC = true) override;
     bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
+    void SetColorSpace(GraphicColorGamut colorSpace) override;
     void SetSurfaceBufferUsage(uint64_t usage) override;
     void SetSurfacePixelFormat(int32_t pixelFormat) override;
     void ClearBuffer() override;

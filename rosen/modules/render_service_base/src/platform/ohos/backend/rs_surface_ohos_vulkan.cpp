@@ -59,6 +59,9 @@ RSSurfaceOhosVulkan::~RSSurfaceOhosVulkan()
 
 void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC)
 {
+    if (width != mWidth || height != mHeight) {
+        mSurfaceMap.clear();
+    }
     NativeWindowHandleOpt(mNativeWindow, SET_FORMAT, pixelFormat_);
 #ifdef RS_ENABLE_AFBC
     if (RSSystemProperties::GetAFBCEnabled()) {
@@ -155,7 +158,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
             mSurfaceList.pop_back();
             return nullptr;
         } else {
-            ROSEN_LOGI("RSSurfaceOhosVulkan: skSurface create success %{public}zu", mSurfaceMap.size());
+            ROSEN_LOGD("RSSurfaceOhosVulkan: skSurface create success %{public}zu", mSurfaceMap.size());
         }
     }
 
@@ -329,6 +332,14 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     return true;
 }
 #endif // ENABLE_NATIVEBUFFER
+
+void RSSurfaceOhosVulkan::SetColorSpace(GraphicColorGamut colorSpace)
+{
+    if (colorSpace != colorSpace_) {
+        colorSpace_ = colorSpace;
+        mSurfaceMap.clear();
+    }
+}
 
 void RSSurfaceOhosVulkan::SetSurfaceBufferUsage(uint64_t usage)
 {
