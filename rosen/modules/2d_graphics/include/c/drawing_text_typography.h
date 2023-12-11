@@ -44,7 +44,6 @@
 #include "drawing_types.h"
 
 #include "stdint.h"
-#include <string>
 
 #ifdef __cplusplus
 extern "C" {
