@@ -153,10 +153,15 @@ enum OH_Drawing_FontStyle {
  * @brief Enumerates text decoration style.
  */
 enum OH_Drawing_TextDecorationStyle {
+    /** Solid style */
     TEXT_DECORATION_STYLE_SOLID,
+    /** Double style */
     TEXT_DECORATION_STYLE_DOUBLE,
+    /** Dotted style */
     TEXT_DECORATION_STYLE_DOTTED,
+    /** Dashed style */
     TEXT_DECORATION_STYLE_DASHED,
+    /** Wavy style */
     TEXT_DECORATION_STYLE_WAVY,
 };
 
@@ -164,8 +169,11 @@ enum OH_Drawing_TextDecorationStyle {
  * @brief Enumerates ellipsis modal.
  */
 enum OH_Drawing_EllipsisModal {
+    /** Head modal */
     ELLIPSIS_MODAL_HEAD = 0,
+    /** Middle modal */
     ELLIPSIS_MODAL_MIDDLE = 1,
+    /** Tail modal */
     ELLIPSIS_MODAL_TAIL = 2,
 };
 
@@ -173,8 +181,11 @@ enum OH_Drawing_EllipsisModal {
  * @brief Enumerates break strategy.
  */
 enum OH_Drawing_BreakStrategy {
+    /** Greedy strategy */
     BREAK_STRATEGY_GREEDY = 0,
+    /** Quality strategy */
     BREAK_STRATEGY_HIGH_QUALITY = 1,
+    /** Balanced strategy */
     BREAK_STRATEGY_BALANCED = 2,
 };
 
@@ -182,8 +193,11 @@ enum OH_Drawing_BreakStrategy {
  * @brief Enumerates word break type.
  */
 enum OH_Drawing_WordBreakType {
+    /** Normal type */
     WORD_BREAK_TYPE_NORMAL = 0,
+    /** Break All type */
     WORD_BREAK_TYPE_BREAK_ALL = 1,
+    /** Break Word type */
     WORD_BREAK_TYPE_BREAK_WORD = 2,
 };
 
@@ -191,11 +205,17 @@ enum OH_Drawing_WordBreakType {
  * @brief Enumerates rect height style.
  */
 enum OH_Drawing_RectHeightStyle {
+    /** Tight style */
     RECT_HEIGHT_STYLE_TIGHT,
+    /** Max style */
     RECT_HEIGHT_STYLE_MAX,
+    /** Includelinespacemiddle style */
     RECT_HEIGHT_STYLE_INCLUDELINESPACEMIDDLE,
+    /** Includelinespacetop style */
     RECT_HEIGHT_STYLE_INCLUDELINESPACETOP,
+    /** Includelinespacebottom style */
     RECT_HEIGHT_STYLE_INCLUDELINESPACEBOTTOM,
+    /** Struct style */
     RECT_HEIGHT_STYLE_STRUCT,
 };
 
@@ -203,19 +223,39 @@ enum OH_Drawing_RectHeightStyle {
  * @brief Enumerates rect Width style.
  */
 enum OH_Drawing_RectWidthStyle {
+    /** Tight style */
     RECT_WIDTH_STYLE_TIGHT,
+    /** Max style */
     RECT_WIDTH_STYLE_MAX,
 };
 
+/**
+ * @brief Defines the rect of a textbox, including the left, right, top and bottom.
+ * 
+ * @since 11
+ * @version 1.0
+ */
 typedef struct {
+    /** left of textbox */
     float left_;
+    /** right of textbox */
     float right_;
+    /** top of textbox */
     float top_;
+    /** bottom of textbox */
     float bottom_;
 } OH_Drawing_Rect;
 
+/**
+ * @brief Defines the textbox of typography, including the rect and direction.
+ * 
+ * @since 11
+ * @version 1.0
+ */
 typedef struct {
+    /** rect of textBox */
     OH_Drawing_Rect rect_;
+    /** direction of textBox */
     OH_Drawing_TextDirection direction_;
 } OH_Drawing_TextBox;
 
@@ -223,17 +263,35 @@ typedef struct {
  * @brief Enumerates affinity.
  */
 enum OH_Drawing_Affinity {
+    /** upstream affinity */
     AFFINITY_UPSTREAM,
+    /** downstream affinity */
     AFFINITY_DOWNSTREAM,
 };
 
+/**
+ * @brief Defines the position and affinity of typography, including the position and affinity.
+ * 
+ * @since 11
+ * @version 1.0
+ */
 typedef struct {
+    /** position of typography */
     size_t pos_;
+    /** affinity of typography */
     OH_Drawing_Affinity affinity_;
 } OH_Drawing_PositionAndAffinity;
 
+/**
+ * @brief Defines the range of typography, including the start and end.
+ * 
+ * @since 11
+ * @version 1.0
+ */
 typedef struct {
+    /** start of range */
     size_t start_;
+    /** end of range */
     size_t end_;
 } OH_Drawing_Range;
 
@@ -616,6 +674,10 @@ bool OH_Drawing_TypographyDidExceedMaxLines(OH_Drawing_Typography*);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
+ * @param size_t Indicates the start of range to set.
+ * @param size_t Indicates the end of range to set.
+ * @param OH_Drawing_RectHeightStyle Indicates the height style to set. For details, see the enum <b>OH_Drawing_RectHeightStyle</b>.
+ * @param OH_Drawing_RectWidthStyle Indicates the width style to set. For details, see the enum <b>OH_Drawing_RectWidthStyle</b>.
  * @return Returns the rects for range.
  * @since 11
  * @version 1.0
@@ -639,6 +701,8 @@ OH_Drawing_TextBox* OH_Drawing_TypographyGetRectsForPlaceholders(OH_Drawing_Typo
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
+ * @param double Indicates the positionX of typography to set.
+ * @param double Indicates the positionY of typography to set.
  * @return Returns the glyphposition at coordinate.
  * @since 11
  * @version 1.0
@@ -651,6 +715,8 @@ OH_Drawing_PositionAndAffinity OH_Drawing_TypographyGetGlyphPositionAtCoordinate
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
+ * @param double Indicates the positionX of typography to set.
+ * @param double Indicates the positionY of typography to set.
  * @return Returns the glyphposition at coordinate with cluster.
  * @since 11
  * @version 1.0
@@ -663,6 +729,7 @@ OH_Drawing_PositionAndAffinity OH_Drawing_TypographyGetGlyphPositionAtCoordinate
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
+ * @param size_t Indicates the size of text to set.
  * @return Returns the word boundary.
  * @since 11
  * @version 1.0
@@ -685,6 +752,7 @@ size_t OH_Drawing_TypographyGetLineCount(OH_Drawing_Typography*);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param int Indicates the text decoration style to set. For details, see the enum <b>OH_Drawing_TextDecorationStyle</b>.
  * @since 11
  * @version 1.0
  */
@@ -695,6 +763,7 @@ void OH_Drawing_SetTextStyleDecorationStyle(OH_Drawing_TextStyle*, int);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param double Indicates the thickness scale of text decoration to set.
  * @since 11
  * @version 1.0
  */
@@ -705,6 +774,7 @@ void OH_Drawing_SetTextStyleDecorationThicknessScale(OH_Drawing_TextStyle*, doub
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param double Indicates the letter space to set.
  * @since 11
  * @version 1.0
  */
@@ -715,6 +785,7 @@ void OH_Drawing_SetTextStyleLetterSpacing(OH_Drawing_TextStyle*, double);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param double Indicates the word space to set.
  * @since 11
  * @version 1.0
  */
@@ -725,6 +796,7 @@ void OH_Drawing_SetTextStyleWordSpacing(OH_Drawing_TextStyle*, double);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param bool Indicates the half leading to set.
  * @since 11
  * @version 1.0
  */
@@ -735,16 +807,18 @@ void OH_Drawing_SetTextStyleHalfLeading(OH_Drawing_TextStyle*, bool);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param char* Indicates the pointer to ellipsis style.
  * @since 11
  * @version 1.0
  */
-void OH_Drawing_SetTextStyleEllipsis(OH_Drawing_TextStyle*, std::u16string);
+void OH_Drawing_SetTextStyleEllipsis(OH_Drawing_TextStyle*, char*);
 
 /**
  * @brief Sets the ellipsis modal.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param int Indicates the ellipsis model to set. For details, see the enum <b>OH_Drawing_EllipsisModal</b>.
  * @since 11
  * @version 1.0
  */
@@ -755,6 +829,7 @@ void OH_Drawing_SetTextStyleEllipsisModal(OH_Drawing_TextStyle*, int);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyStyle Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
+ * @param int Indicates the break strategy to set. For details, see the enum <b>OH_Drawing_BreakStrategy</b>.
  * @since 11
  * @version 1.0
  */
@@ -765,6 +840,7 @@ void OH_Drawing_SetTypographyTextBreakStrategy(OH_Drawing_TypographyStyle*, int)
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyStyle Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
+ * @param int Indicates the word break type to set. For details, see the enum <b>OH_Drawing_WordBreakType</b>.
  * @since 11
  * @version 1.0
  */
@@ -775,6 +851,7 @@ void OH_Drawing_SetTypographyTextWordBreakType(OH_Drawing_TypographyStyle*, int)
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyStyle Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
+ * @param int Indicates the ellipsis modal to set. For details, see the enum <b>OH_Drawing_EllipsisModal</b>.
  * @since 11
  * @version 1.0
  */
