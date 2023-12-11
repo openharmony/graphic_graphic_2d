@@ -43,6 +43,7 @@ public:
         const std::vector<struct ScoredSpan> &scoredSpans) noexcept(false);
     static std::vector<LineMetrics> GenerateLineMetrics(const double widthLimit, std::vector<VariantSpan> &spans,
         std::vector<int32_t> &breaks, const std::vector<float> &indents) noexcept(false);
+    static void ProcessHardBreak(std::vector<LineMetrics> &lineMetrics);
 };
 } // namespace TextEngine
 } // namespace Rosen

@@ -285,7 +285,6 @@ void TypographyImpl::Layout(double maxWidth)
         didExceedMaxLines_ = shaper.DidExceedMaxLines();
         maxIntrinsicWidth_ = shaper.GetMaxIntrinsicWidth();
         minIntrinsicWidth_ = shaper.GetMinIntrinsicWidth();
-        ProcessHardBreak();
 
         auto ret = ComputeStrut();
         if (ret) {
@@ -303,37 +302,6 @@ void TypographyImpl::Layout(double maxWidth)
         ApplyAlignment();
     } catch (struct TexgineException &e) {
         LOGEX_FUNC_LINE(ERROR) << "catch exception: " << e.message;
-    }
-}
-
-void TypographyImpl::ProcessHardBreak()
-{
-    bool isAllHardBreak = false;
-    int lineCount = static_cast<int>(lineMetrics_.size());
-    // If the number of lines equal 1 and the char is hard break, add a new line.
-    if (lineCount == 1 && lineMetrics_.back().lineSpans.back().IsHardBreak()) {
-        isAllHardBreak = true;
-        // When the number of lines more than 1, and the text ending with two hard breaks, add a new line.
-    } else if (lineCount > 1) {
-        // 1 is the last line, 2 is the penultimate line.
-        isAllHardBreak = lineMetrics_[lineCount - 1].lineSpans.front().IsHardBreak() &&
-            lineMetrics_[lineCount - 2].lineSpans.back().IsHardBreak();
-    }
-
-    if (isAllHardBreak) {
-        lineMetrics_.push_back(lineMetrics_.back());
-    }
-
-    for (auto i = 0; i < static_cast<int>(lineMetrics_.size() - 2); i++) {
-        if (!lineMetrics_[i].lineSpans.back().IsHardBreak() &&
-                lineMetrics_[i + 1].lineSpans.front().IsHardBreak()) {
-            lineMetrics_[i].lineSpans.push_back(lineMetrics_[i + 1].lineSpans.front());
-            lineMetrics_[i + 1].lineSpans.erase(lineMetrics_[i + 1].lineSpans.begin());
-        }
-
-        if (lineMetrics_[i + 1].lineSpans.empty()) {
-                lineMetrics_.erase(lineMetrics_.begin() + (i + 1));
-        }
     }
 }
 

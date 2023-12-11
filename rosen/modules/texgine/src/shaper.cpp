@@ -226,7 +226,9 @@ void Shaper::ConsiderHeadEllipsis(const TypographyStyle &ys, const std::shared_p
     double lastLineWidth = lastLine.GetAllSpanWidth();
     if (params.maxLines < lineMetrics_.size()) {
         if (params.ellipsisWidth > 0) {
-            while (lastLineWidth + params.ellipsisWidth < params.widthLimit) {
+            // lineMetrics_.size() - 2 is the index of second to last
+            while (!lineMetrics_[lineMetrics_.size() - 2].lineSpans.empty() &&
+                lastLineWidth + params.ellipsisWidth < params.widthLimit) {
                 // lineMetrics_.size() - 2 is the index of second to last
                 auto lastSpan = lineMetrics_[lineMetrics_.size() - 2].lineSpans.back();
                 // lineMetrics_.size() - 2 is the index of second to last

@@ -108,6 +108,23 @@ struct CharGroup {
         }
         return false;
     }
+
+    bool JudgeOnlyHardBreak() const
+    {
+        if (chars.empty()) {
+            return false;
+        }
+        bool onlyHardBreak = true;
+        for (size_t i = 0; i < chars.size(); i++) {
+            ULineBreak lineBreak = static_cast<ULineBreak>(
+                u_getIntPropertyValue(chars[i], UCHAR_LINE_BREAK));
+            onlyHardBreak = (lineBreak == U_LB_LINE_FEED || lineBreak == U_LB_MANDATORY_BREAK);
+            if (!onlyHardBreak) {
+                break;
+            }
+        }
+        return onlyHardBreak;
+    }
 };
 
 struct IndexRange {
@@ -170,6 +187,7 @@ public:
     double GetCharWidth(const size_t index) const;
     std::vector<uint16_t> GetCharsToU16(size_t start, size_t end, const SpacesModel &spacesModel);
     bool IsSingleWord() const;
+    bool JudgeOnlyHardBreak() const;
 private:
     friend void ReportMemoryUsage(const std::string &member, const CharGroups &that, bool needThis);
 

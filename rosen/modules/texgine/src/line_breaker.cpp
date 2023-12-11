@@ -38,7 +38,9 @@ std::vector<LineMetrics> LineBreaker::BreakLines(std::vector<VariantSpan> &spans
     auto ss = GenerateScoreSpans(spans);
     DoBreakLines(ss, widthLimit, tstyle, indents);
     auto lineBreaks = GenerateBreaks(spans, ss);
-    return GenerateLineMetrics(widthLimit, spans, lineBreaks, indents);
+    std::vector<LineMetrics> lineMetrics = GenerateLineMetrics(widthLimit, spans, lineBreaks, indents);
+    ProcessHardBreak(lineMetrics);
+    return lineMetrics;
 }
 
 std::vector<struct ScoredSpan> LineBreaker::GenerateScoreSpans(const std::vector<VariantSpan> &spans)
@@ -230,6 +232,37 @@ std::vector<LineMetrics> LineBreaker::GenerateLineMetrics(const double widthLimi
     }
 
     return lineMetrics;
+}
+
+void LineBreaker::ProcessHardBreak(std::vector<LineMetrics> &lineMetrics)
+{
+    bool isAllHardBreak = false;
+    int lineCount = static_cast<int>(lineMetrics.size());
+    // If the number of lines equal 1 and the char is hard break, add a new line.
+    if (lineCount == 1 && lineMetrics.back().lineSpans.back().IsHardBreak()) {
+        isAllHardBreak = true;
+        // When the number of lines more than 1, and the text ending with two hard breaks, add a new line.
+    } else if (lineCount > 1) {
+        // 1 is the last line
+        isAllHardBreak = lineMetrics[lineCount - 1].lineSpans.front().IsHardBreak() &&
+            lineMetrics[lineCount - 2].lineSpans.back().IsHardBreak(); // 2 is the penultimate line
+    }
+
+    if (isAllHardBreak) {
+        lineMetrics.push_back(lineMetrics.back());
+    }
+
+     // lineMetrics.size() - 2 means more than 2 rows are processed
+    for (auto i = 0; i < static_cast<int>(lineMetrics.size() - 2); i++) {
+        if (!lineMetrics[i].lineSpans.back().IsHardBreak() &&
+                lineMetrics[i + 1].lineSpans.front().IsHardBreak()) {
+            lineMetrics[i].lineSpans.push_back(lineMetrics[i + 1].lineSpans.front());
+            lineMetrics[i + 1].lineSpans.erase(lineMetrics[i + 1].lineSpans.begin());
+        }
+        if (lineMetrics[i + 1].lineSpans.empty()) {
+            lineMetrics.erase(lineMetrics.begin() + (i + 1));
+        }
+    }
 }
 } // namespace TextEngine
 } // namespace Rosen

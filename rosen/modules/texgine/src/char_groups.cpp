@@ -478,6 +478,22 @@ bool CharGroups::IsSingleWord() const
     }
     return isSingleWord;
 }
+
+bool CharGroups::JudgeOnlyHardBreak() const
+{
+    if (!IsValid()) {
+        LOGEX_FUNC_LINE(ERROR) << "pcgs_ is null";
+        return false;
+    }
+    bool onlyHardBreak = true;
+    for (auto i = range_.start; i < range_.end; i++) {
+        onlyHardBreak = pcgs_->at(i).JudgeOnlyHardBreak();
+        if (!onlyHardBreak) {
+            break;
+        }
+    }
+    return onlyHardBreak;
+}
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS
