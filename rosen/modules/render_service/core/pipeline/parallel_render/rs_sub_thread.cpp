@@ -325,8 +325,10 @@ void RSSubThread::ResetGrContext()
         return;
     }
 #ifndef USE_ROSEN_DRAWING
+    grContext_->flushAndSubmit(true);
     grContext_->freeGpuResources();
 #else
+    grContext_->FlushAndSubmit(true);
     grContext_->FreeGpuResources();
 #endif
 }
