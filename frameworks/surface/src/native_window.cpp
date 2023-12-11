@@ -39,6 +39,7 @@ OHNativeWindow* CreateNativeWindowFromSurface(void* pSurface)
     OHNativeWindow* nativeWindow = new OHNativeWindow();
     nativeWindow->surface =
                 *reinterpret_cast<OHOS::sptr<OHOS::Surface> *>(pSurface);
+    BLOGE_CHECK_AND_RETURN_RET(nativeWindow->surface != nullptr, nullptr, "window surface is null");
     nativeWindow->config.width = nativeWindow->surface->GetDefaultWidth();
     nativeWindow->config.height = nativeWindow->surface->GetDefaultHeight();
     nativeWindow->config.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA;
@@ -107,6 +108,7 @@ int32_t NativeWindowRequestBuffer(OHNativeWindow *window,
     }
     OHOS::sptr<OHOS::SurfaceBuffer> sfbuffer;
     OHOS::sptr<OHOS::SyncFence> releaseFence = OHOS::SyncFence::INVALID_FENCE;
+    BLOGE_CHECK_AND_RETURN_RET(window->surface != nullptr, SURFACE_ERROR_ERROR, "window surface is null");
     int32_t ret = window->surface->RequestBuffer(sfbuffer, releaseFence, window->config);
     if (ret != OHOS::GSError::GSERROR_OK || sfbuffer == nullptr) {
         BLOGE("API failed, please check RequestBuffer function ret:%{public}d, Queue Id:%{public}" PRIu64,
@@ -201,7 +203,7 @@ int32_t NativeWindowCancelBuffer(OHNativeWindow *window, OHNativeWindowBuffer *b
         BLOGE("parameter error, please check input parameter");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
-
+    BLOGE_CHECK_AND_RETURN_RET(window->surface != nullptr, SURFACE_ERROR_ERROR, "window surface is null");
     window->surface->CancelBuffer(buffer->sfbuffer);
     return OHOS::GSERROR_OK;
 }
