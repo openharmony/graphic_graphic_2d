@@ -18,6 +18,7 @@
 #include "skia_image.h"
 #include "skia_image_info.h"
 #include "skia_matrix.h"
+#include "skia_matrix44.h"
 #include "skia_shader_effect.h"
 #include "skia_runtime_effect.h"
 #include "skia_runtime_shader_builder.h"
@@ -95,6 +96,24 @@ void SkiaRuntimeShaderBuilder::SetUniform(const std::string& name, float x, floa
         return;
     }
     skRuntimeShaderBuilder_->uniform(name.c_str()) = SkV3{x, y, z};
+}
+
+void SkiaRuntimeShaderBuilder::SetUniform(const std::string& name, const Matrix44& uniformMatrix44)
+{
+    if (!skRuntimeShaderBuilder_) {
+        return;
+    }
+
+    skRuntimeShaderBuilder_->uniform(name.c_str()) = uniformMatrix44.GetImpl<SkiaMatrix44>()->GetSkMatrix44();
+}
+
+void SkiaRuntimeShaderBuilder::SetUniformVec4(const std::string& name, float x, float y, float z, float w)
+{
+    if (!skRuntimeShaderBuilder_) {
+        return;
+    }
+    SkV4 uniformSk4 { x, y, z, w };
+    skRuntimeShaderBuilder_->uniform(name.c_str()) = uniformSk4;
 }
 
 void SkiaRuntimeShaderBuilder::SetUniform(const std::string& name, float x, float y, float width, float height)

@@ -395,7 +395,7 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
 }
 #else
 void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSProperties& properties,
-    const RRect* rrect, bool isAbsCoordinate)
+    const RRect* rrect, bool isAbsCoordinate, bool radiusInclude)
 {
     // [Planning]: After Skia being updated, we should directly call SkShadowUtils::GetLocalBounds here.
     if (!properties.IsShadowValid()) {
@@ -2570,13 +2570,14 @@ void RSPropertiesPainter::DrawLightInner(const RSProperties& properties, SkCanva
 #else
 void RSPropertiesPainter::DrawLightInner(const RSProperties& properties, Drawing::Canvas& canvas,
     std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder,
-    std::unordered_set<std::shared_ptr<RSLightSource>>& lightSources,
+    const std::unordered_set<std::shared_ptr<RSLightSource>>& lightSources,
     const std::shared_ptr<RSObjAbsGeometry>& geoPtr)
 {
     const auto& contentAbsRect = geoPtr->GetAbsRect();
     auto iter = lightSources.begin();
     auto cnt = 0;
-    Drawing::Matrix44::Buffer lightPositionBuffer;
+    Drawing::Matrix44 lightPositionMatrix;
+    Drawing::Matrix44 viewPosMatrix;
     Vector4f lightIntensityV4;
     constexpr int MAX_LIGHT_SOUCES = 4;
     while (iter != lightSources.end() && cnt < MAX_LIGHT_SOUCES) {
@@ -2586,23 +2587,18 @@ void RSPropertiesPainter::DrawLightInner(const RSProperties& properties, Drawing
         auto lightPosY = lightPosition[1] - contentAbsRect.top_;
         auto lightPosZ = lightPosition[2];
         lightIntensityV4[cnt] = lightIntensity;
-        lightPositionBuffer[0][cnt] = lightPosX;
-        lightPositionBuffer[1][cnt] = lightPosY;
-        lightPositionBuffer[2][cnt] = lightPosZ;
+        lightPositionMatrix.SetCol(cnt, lightPosX, lightPosY, lightPosZ, 0);
+        viewPosMatrix.SetCol(cnt, lightPosX, lightPosY, lightPosZ, 0);
         iter++;
         cnt++;
     }
-    Drawing::Matrix44::Buffer viewPosBuffer = lightPositionBuffer;
-    Drawing::Matrix44 lightPositionMatrix;
-    Drawing::Matrix44 viewPosMatrix;
-    lightPositionMatrix.SetMatrix44ColMajor(lightPositionBuffer);
-    viewPosMatrix.SetMatrix44ColMajor(viewPosBuffer);
     lightBuilder->SetUniform("lightPos", lightPositionMatrix);
     lightBuilder->SetUniform("viewPos", viewPosMatrix);
     Drawing::Pen pen;
     Drawing::Brush brush;
     pen.SetAntiAlias(true);
     brush.SetAntiAlias(true);
+    auto illuminatedType = properties.GetIlluminated()->GetIlluminatedType();
     ROSEN_LOGD("RSPropertiesPainter::DrawLight illuminatedType:%{public}d", illuminatedType);
     if (illuminatedType == IlluminatedType::CONTENT) {
         DrawContentLight(properties, canvas, lightBuilder, brush, lightIntensityV4);
@@ -2636,7 +2632,8 @@ void RSPropertiesPainter::DrawContentLight(const RSProperties& properties, Drawi
     paint.setShader(shader);
     canvas.drawRRect(RRect2SkRRect(properties.GetRRect()), paint);
 #else
-    lightBuilder->SetUniform("specularStrength", contentStrength);
+    lightBuilder->SetUniformVec4("specularStrength", lightIntensity.x_,
+        lightIntensity.y_, lightIntensity.z_, lightIntensity.w_);
     shader = lightBuilder->MakeShader(nullptr, false);
     brush.SetShaderEffect(shader);
     canvas.AttachBrush(brush);
@@ -2667,7 +2664,8 @@ void RSPropertiesPainter::DrawBorderLight(const RSProperties& properties, Drawin
     paint.setStrokeWidth(borderWidth);
     paint.setStyle(SkPaint::Style::kStroke_Style);
 #else
-    lightBuilder->SetUniform("specularStrength", lightIntensity);
+    lightBuilder->SetUniformVec4("specularStrength", lightIntensity.x_,
+        lightIntensity.y_, lightIntensity.z_, lightIntensity.w_);
     shader = lightBuilder->MakeShader(nullptr, false);
     pen.SetShaderEffect(shader);
     float borderWidth = std::ceil(properties.GetIlluminatedBorderWidth());

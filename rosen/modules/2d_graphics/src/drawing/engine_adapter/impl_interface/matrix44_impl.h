@@ -43,6 +43,7 @@ public:
     virtual void SetMatrix44ColMajor(const std::array<scalar, MATRIX44_SIZE>& buffer) = 0;
     virtual void SetMatrix44RowMajor(const std::array<scalar, MATRIX44_SIZE>& buffer) = 0;
     virtual Matrix ConvertToMatrix() = 0;
+    virtual void SetCol(int column, scalar x, scalar y, scalar z, scalar w) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

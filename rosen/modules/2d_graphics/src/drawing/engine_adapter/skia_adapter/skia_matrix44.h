@@ -44,6 +44,7 @@ public:
     void PostTranslate(scalar dx, scalar dy, scalar dz) override;
     void PreScale(scalar sx, scalar sy, scalar sz) override;
     void Multiply(const Matrix44& a, const Matrix44& b) override;
+    void SetCol(int column, scalar x, scalar y, scalar z, scalar w) override;
     void SetMatrix44ColMajor(const std::array<scalar, MATRIX44_SIZE>& buffer) override;
     void SetMatrix44RowMajor(const std::array<scalar, MATRIX44_SIZE>& buffer) override;
     Matrix ConvertToMatrix() override;

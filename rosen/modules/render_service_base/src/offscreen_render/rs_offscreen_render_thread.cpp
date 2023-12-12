@@ -34,11 +34,15 @@ RSOffscreenRenderThread::RSOffscreenRenderThread()
     PostTask([this]() {
         renderContext_ = std::make_shared<RenderContext>();
         renderContext_->InitializeEglContext();
-#if defined(RS_ENABLE_VK)
+#ifndef USE_ROSEN_DRAWING
         renderContext_->SetUpGrContext(nullptr);
 #else
-        renderContext_->SetUpGrContext(nullptr);
-#endif // RS_ENABLE_VK
+#ifdef RS_ENABLE_VK
+        renderContext_->SetUpGpuContext(nullptr);
+#else
+        renderContext_->SetUpGpuContext();
+#endif
+#endif // USE_ROSEN_DRAWING
     });
 #endif
 }
@@ -59,12 +63,20 @@ const std::shared_ptr<RenderContext>& RSOffscreenRenderThread::GetRenderContext(
 void RSOffscreenRenderThread::CleanGrResource()
 {
     PostTask([this]() {
+#ifndef USE_ROSEN_DRAWING
         auto grContext = renderContext_->GetGrContext();
+#else
+        auto grContext = renderContext_->GetDrGPUContext();
+#endif
         if (grContext == nullptr) {
             RS_LOGE("RSOffscreenRenderThread::grContext is nullptr");
             return;
         }
+#ifndef USE_ROSEN_DRAWING
         grContext->freeGpuResources();
+#else
+        grContext->FreeGpuResources();
+#endif
         RS_LOGI("RSOffscreenRenderThread::CleanGrResource() finished");
     });
 }
