@@ -56,6 +56,7 @@ protected:
 private:
 #ifndef USE_ROSEN_DRAWING
     std::optional<SkIRect> effectRegion_ = std::nullopt;
+    void UpdateEffectRegion(const std::optional<SkIRect>& region);
 #else
     std::optional<Drawing::RectI> effectRegion_ = std::nullopt;
 #endif
