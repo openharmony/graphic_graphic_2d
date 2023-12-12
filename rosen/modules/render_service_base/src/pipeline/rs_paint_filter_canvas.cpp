@@ -728,7 +728,14 @@ void RSPaintFilterCanvasBase::SaveLayer(const SaveLayerOps& saveLayerRec)
     }
 #else
     if (canvas_ != nullptr) {
-        canvas_->SaveLayer(saveLayerRec);
+        Brush brush;
+        if (saveLayerRec.GetBrush() != nullptr) {
+            brush = *saveLayerRec.GetBrush();
+            OnFilterWithBrush(brush);
+        }
+        SaveLayerOps slo(saveLayerRec.GetBounds(), &brush,
+            saveLayerRec.GetImageFilter(), saveLayerRec.GetSaveLayerFlags());
+        canvas_->SaveLayer(slo);
     }
 #endif
 }

@@ -22,6 +22,7 @@
 #include "common/rs_macros.h"
 #ifdef USE_ROSEN_DRAWING
 #include "image/image.h"
+#include "text/hm_symbol.h"
 #endif
 
 #include <parcel.h>
@@ -224,6 +225,10 @@ public:
         return true;
     }
 
+#ifndef USE_ROSEN_DRAWING
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const sk_sp<SkImage>& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val, void*& imagepixelAddr);
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const GroupInfo& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, GroupInfo& val);
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const RenderGroup& val);
@@ -238,10 +243,6 @@ public:
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, SkPoint& val);
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const SColor& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, SColor& val);
-#ifndef USE_ROSEN_DRAWING
-    static RSB_EXPORT bool Marshalling(Parcel& parcel, const sk_sp<SkImage>& val);
-    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val);
-    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val, void*& imagepixelAddr);
 #else
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::Image>& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Image>& val);

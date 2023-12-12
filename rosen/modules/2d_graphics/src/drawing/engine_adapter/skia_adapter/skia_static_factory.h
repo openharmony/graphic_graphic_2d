@@ -17,10 +17,13 @@
 #define SKIA_STATIC_FACTORY_H
 
 #include <cstdint>
+#include <vector>
 
 #include "draw/brush.h"
+#include "draw/path.h"
 #include "draw/surface.h"
 #include "image/pixmap.h"
+#include "text/font_style_set.h"
 #include "text/text_blob.h"
 #include "text/typeface.h"
 #include "utils/data.h"
@@ -58,6 +61,13 @@ public:
     static const Rect& ComputeFastBounds(const Brush& brush, const Rect& orig, Rect* storage);
     static bool AsBlendMode(const Brush& brush);
     static std::shared_ptr<Data> MakeDataFromFileName(const char path[]);
+    static void PathOutlineDecompose(const Path& path, std::vector<Path>& paths);
+    static void MultilayerPath(const std::vector<std::vector<size_t>>& multMap,
+        const std::vector<Path>& paths, std::vector<Path>& multPaths);
+    static void GetDrawingGlyphIDforTextBlob(const TextBlob* blob, std::vector<uint16_t>& glyphIds);
+    static Path GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* blob);
+    static DrawingSymbolLayersGroups* GetSymbolLayersGroups(uint32_t glyphId);
+    static FontStyleSet* CreateEmpty();
 };
 } // namespace Drawing
 } // namespace Rosen

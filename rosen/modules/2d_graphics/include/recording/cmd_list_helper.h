@@ -16,14 +16,15 @@
 #ifndef CMD_LIST_HELPER_H
 #define CMD_LIST_HELPER_H
 
+#include <memory>
+#include <utility>
+
 #include "image/image.h"
-#include "utils/vertices.h"
 #include "recording/cmd_list.h"
+#include "text/hm_symbol.h"
 #include "text/text_blob.h"
 #include "utils/log.h"
-
-#include <utility>
-#include <memory>
+#include "utils/vertices.h"
 
 namespace OHOS {
 namespace Media {
@@ -224,6 +225,20 @@ public:
 
     static std::vector<std::shared_ptr<DrawOpItem>> GetDrawOpItemsFromHandle(
         const CmdList& cmdList, const CmdListHandle& handle);
+
+    static SymbolOpHandle AddSymbolToCmdList(CmdList& cmdList, const DrawingHMSymbolData& symbol);
+    static DrawingHMSymbolData GetSymbolFromCmdList(const CmdList& cmdList, const SymbolOpHandle& symbolHandle);
+
+    static SymbolLayersHandle AddSymbolLayersToCmdList(CmdList& cmdList, const DrawingSymbolLayers& symbolLayers);
+    static DrawingSymbolLayers GetSymbolLayersFromCmdList(const CmdList& cmdList,
+        const SymbolLayersHandle& symbolLayersHandle);
+
+    static RenderGroupHandle AddRenderGroupToCmdList(CmdList& cmdList, const DrawingRenderGroup& group);
+    static DrawingRenderGroup GetRenderGroupFromCmdList(const CmdList& cmdList,
+        const RenderGroupHandle& renderGroupHandle);
+
+    static GroupInfoHandle AddGroupInfoToCmdList(CmdList& cmdList, const DrawingGroupInfo& groupInfo);
+    static DrawingGroupInfo GetGroupInfoFromCmdList(const CmdList& cmdList, const GroupInfoHandle& groupInfoHandle);
 #ifdef ROSEN_OHOS
     static uint32_t AddSurfaceBufferToCmdList(CmdList& cmdList, const sptr<SurfaceBuffer>& imageFilter);
     static sptr<SurfaceBuffer> GetSurfaceBufferFromCmdList(

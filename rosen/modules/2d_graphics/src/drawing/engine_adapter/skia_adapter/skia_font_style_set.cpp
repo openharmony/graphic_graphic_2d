@@ -82,6 +82,17 @@ int SkiaFontStyleSet::Count()
 {
     return skFontStyleSet_->count();
 }
+
+FontStyleSet* SkiaFontStyleSet::CreateEmpty()
+{
+    SkFontStyleSet* skFontStyleSetPtr = SkFontStyleSet::CreateEmpty();
+    if (!skFontStyleSetPtr) {
+        return nullptr;
+    }
+    sk_sp<SkFontStyleSet> skFontStyleSet{skFontStyleSetPtr};
+    std::shared_ptr<FontStyleSetImpl> fontStyleSetImpl = std::make_shared<SkiaFontStyleSet>(skFontStyleSet);
+    return new FontStyleSet(fontStyleSetImpl);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

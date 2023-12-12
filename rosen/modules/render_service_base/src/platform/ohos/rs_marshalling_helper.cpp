@@ -138,6 +138,7 @@ static inline sk_sp<T> sk_reinterpret_cast(sk_sp<P> ptr)
 }
 } // namespace
 
+#ifndef USE_ROSEN_DRAWING
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const GroupInfo& val)
 {
     if (!MarshallingVec(parcel, val.layerIndexes)) {
@@ -346,6 +347,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SColor& val)
         Unmarshalling(parcel, val.b);
     return isok;
 }
+#endif
 
 #ifndef USE_ROSEN_DRAWING
 // SkData

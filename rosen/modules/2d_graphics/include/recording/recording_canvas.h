@@ -108,6 +108,7 @@ public:
     void DrawImageRect(const Image& image, const Rect& dst, const SamplingOptions& sampling) override;
     void DrawPicture(const Picture& picture) override;
     void DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y) override;
+    void DrawSymbol(const DrawingHMSymbolData& symbol, Point locate) override;
 
     void ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias) override;
     void ClipIRect(const RectI& rect, ClipOp op = ClipOp::INTERSECT) override;

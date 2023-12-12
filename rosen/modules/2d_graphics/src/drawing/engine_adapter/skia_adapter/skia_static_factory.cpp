@@ -16,8 +16,11 @@
 #include "skia_static_factory.h"
 
 #include "skia_adapter/skia_data.h"
-#include "skia_adapter/skia_surface.h"
+#include "skia_adapter/skia_font_style_set.h"
+#include "skia_adapter/skia_hm_symbol.h"
+#include "skia_adapter/skia_hm_symbol_config_ohos.h"
 #include "skia_adapter/skia_image.h"
+#include "skia_adapter/skia_surface.h"
 #include "skia_adapter/skia_text_blob.h"
 #include "skia_adapter/skia_typeface.h"
 #include "utils/system_properties.h"
@@ -125,6 +128,37 @@ bool SkiaStaticFactory::AsBlendMode(const Brush& brush)
 std::shared_ptr<Data> SkiaStaticFactory::MakeDataFromFileName(const char path[])
 {
     return SkiaData::MakeFromFileName(path);
+}
+
+void SkiaStaticFactory::PathOutlineDecompose(const Path& path, std::vector<Path>& paths)
+{
+    SkiaHMSymbol::PathOutlineDecompose(path, paths);
+}
+
+void SkiaStaticFactory::MultilayerPath(const std::vector<std::vector<size_t>>& multMap,
+    const std::vector<Path>& paths, std::vector<Path>& multPaths)
+{
+    SkiaHMSymbol::MultilayerPath(multMap, paths, multPaths);
+}
+
+void SkiaStaticFactory::GetDrawingGlyphIDforTextBlob(const TextBlob* blob, std::vector<uint16_t>& glyphIds)
+{
+    SkiaTextBlob::GetDrawingGlyphIDforTextBlob(blob, glyphIds);
+}
+
+Path SkiaStaticFactory::GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* blob)
+{
+    return SkiaTextBlob::GetDrawingPathforTextBlob(glyphId, blob);
+}
+
+DrawingSymbolLayersGroups* SkiaStaticFactory::GetSymbolLayersGroups(uint32_t glyphId)
+{
+    return SkiaHmSymbolConfigOhos::GetSymbolLayersGroups(glyphId);
+}
+
+FontStyleSet* SkiaStaticFactory::CreateEmpty()
+{
+    return SkiaFontStyleSet::CreateEmpty();
 }
 } // namespace Drawing
 } // namespace Rosen

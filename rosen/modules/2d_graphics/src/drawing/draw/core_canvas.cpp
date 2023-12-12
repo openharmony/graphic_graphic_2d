@@ -224,6 +224,11 @@ void CoreCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const scalar
     impl_->DrawTextBlob(blob, x, y);
 }
 
+void CoreCanvas::DrawSymbol(const DrawingHMSymbolData& symbol, Point locate)
+{
+    impl_->DrawSymbol(symbol, locate);
+}
+
 void CoreCanvas::ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias)
 {
     impl_->ClipRect(rect, op, doAntiAlias);

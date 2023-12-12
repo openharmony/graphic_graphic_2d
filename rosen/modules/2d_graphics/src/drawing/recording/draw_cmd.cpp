@@ -29,18 +29,18 @@
 #include "recording/shader_effect_cmd_list.h"
 #include "recording/region_cmd_list.h"
 
-#include "draw/path.h"
 #include "draw/brush.h"
+#include "draw/path.h"
+#include "draw/surface.h"
 #include "effect/color_filter.h"
 #include "effect/color_space.h"
 #include "effect/image_filter.h"
 #include "effect/mask_filter.h"
 #include "effect/path_effect.h"
 #include "effect/shader_effect.h"
-#include "utils/scalar.h"
 #include "utils/log.h"
+#include "utils/scalar.h"
 #include "utils/system_properties.h"
-#include "draw/surface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -194,6 +194,7 @@ std::unordered_map<uint32_t, UnmarshallingPlayer::UnmarshallingFunc> Unmarshalli
     { DrawOpItem::IMAGE_RECT_OPITEM,        DrawImageRectOpItem::Unmarshalling },
     { DrawOpItem::PICTURE_OPITEM,           DrawPictureOpItem::Unmarshalling },
     { DrawOpItem::TEXT_BLOB_OPITEM,         DrawTextBlobOpItem::Unmarshalling },
+    { DrawOpItem::SYMBOL_OPITEM,            DrawSymbolOpItem::Unmarshalling },
     { DrawOpItem::CLIP_RECT_OPITEM,         ClipRectOpItem::Unmarshalling },
     { DrawOpItem::CLIP_IRECT_OPITEM,        ClipIRectOpItem::Unmarshalling },
     { DrawOpItem::CLIP_ROUND_RECT_OPITEM,   ClipRoundRectOpItem::Unmarshalling },
@@ -920,6 +921,74 @@ std::shared_ptr<ImageSnapshotOpItem> DrawTextBlobOpItem::GenerateCachedOpItem(Ca
     SamplingOptions sampling;
     return std::make_shared<ImageSnapshotOpItem>(image, src, dst, sampling,
         SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+}
+
+/* DrawSymbolOpItem */
+DrawSymbolOpItem::DrawSymbolOpItem(const CmdList& cmdList, DrawSymbolOpItem::ConstructorHandle* handle)
+    : DrawOpItem(SYMBOL_OPITEM), locate_(handle->locate)
+{
+    symbol_ = CmdListHelper::GetSymbolFromCmdList(cmdList, handle->symbolHandle);
+}
+
+std::shared_ptr<DrawOpItem> DrawSymbolOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawSymbolOpItem>(cmdList, static_cast<DrawSymbolOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawSymbolOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (!canvas) {
+        LOGE("SymbolOpItem::Playback failed cause by canvas is nullptr");
+        return;
+    }
+
+    Drawing::Path path(symbol_.path_);
+
+    // 1.0 move path
+    path.Offset(locate_.GetX(), locate_.GetY());
+
+    // 2.0 split path
+    std::vector<Drawing::Path> paths;
+    DrawingHMSymbol::PathOutlineDecompose(path, paths);
+    std::vector<Drawing::Path> pathLayers;
+    DrawingHMSymbol::MultilayerPath(symbol_.symbolInfo_.layers, paths, pathLayers);
+
+    // draw path
+    std::vector<Drawing::DrawingRenderGroup> groups = symbol_.symbolInfo_.renderGroups;
+    LOGD("SymbolOpItem::Draw RenderGroup size %{public}d", static_cast<int>(groups.size()));
+    if (groups.size() == 0) {
+        canvas->DrawPath(path);
+    }
+    for (auto group : groups) {
+        Drawing::Path multPath;
+        MergeDrawingPath(multPath, group, pathLayers);
+        canvas->DrawPath(multPath);
+    }
+}
+
+void DrawSymbolOpItem::MergeDrawingPath(
+    Drawing::Path& multPath, Drawing::DrawingRenderGroup& group, std::vector<Drawing::Path>& pathLayers)
+{
+    for (auto groupInfo : group.groupInfos) {
+        Drawing::Path pathStemp;
+        for (auto k : groupInfo.layerIndexes) {
+            if (k >= pathLayers.size()) {
+                continue;
+            }
+            pathStemp.AddPath(pathLayers[k]);
+        }
+        for (size_t h : groupInfo.maskIndexes) {
+            if (h >= pathLayers.size()) {
+                continue;
+            }
+            Drawing::Path outPath;
+            auto isOk = outPath.Op(pathStemp, pathLayers[h], Drawing::PathOp::DIFFERENCE);
+            if (isOk) {
+                pathStemp = outPath;
+            }
+        }
+        multPath.AddPath(pathStemp);
+    }
 }
 
 /* ClipRectOpItem */
