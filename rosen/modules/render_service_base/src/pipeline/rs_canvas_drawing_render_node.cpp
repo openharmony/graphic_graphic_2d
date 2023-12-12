@@ -22,9 +22,11 @@
 #include "include/gpu/GrDirectContext.h"
 #endif
 
+#include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_recording_canvas.h"
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
@@ -170,9 +172,28 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
             GetRenderProperties().GetFrameGravity(), GetRenderProperties().GetFrameRect(), width, height, mat)) {
         canvas.concat(mat);
     }
-    skImage_ = skSurface_->makeImageSnapshot();
-    if (skImage_) {
-        SKResourceManager::Instance().HoldResource(skImage_);
+    if (!recordingCanvas_) {
+        skImage_ = skSurface_->makeImageSnapshot();
+        if (skImage_) {
+            SKResourceManager::Instance().HoldResource(skImage_);
+        }
+    } else {
+        auto cmds = recordingCanvas_->GetDrawCmdList();
+        recordingCanvas_ = std::make_shared<RSRecordingCanvas>(width, height);
+        canvas_ = std::make_unique<RSPaintFilterCanvas>(recordingCanvas_.get());
+        RSBackgroundThread::Instance().PostTask([cmds, this]() {
+            cmds->Playback(*skSurface_->getCanvas());
+            auto skImage = skSurface_->makeImageSnapshot();
+            if (skImage) {
+                SKResourceManager::Instance().HoldResource(skImage);
+            }
+            std::lock_guard<std::mutex> lock(imageMutex_);
+            skImage_ = skImage;
+        });
+    }
+    std::lock_guard<std::mutex> lock(imageMutex_);
+    if (!skImage_) {
+        return;
     }
 #ifdef NEW_SKIA
     auto samplingOptions = SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
@@ -313,6 +334,9 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
         if (!surface_) {
             isGpuSurface_ = false;
             surface_ = Drawing::Surface::MakeRaster(info);
+            recordingCanvas_ = std::make_shared<RSRecordingCanvas>(width, height);
+            canvas_ = std::make_unique<RSPaintFilterCanvas>(recordingCanvas_.get());
+            return surface_ != nullptr;
         }
     }
 #else

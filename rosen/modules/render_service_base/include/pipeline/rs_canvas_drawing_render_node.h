@@ -29,6 +29,7 @@ using ThreadInfo = std::pair<uint32_t, std::function<void(sk_sp<SkSurface>)>>;
 #else
 using ThreadInfo = std::pair<uint32_t, std::function<void(std::shared_ptr<Drawing::Surface>)>>;
 #endif
+class RSRecordingCanvas;
 
 class RSB_EXPORT RSCanvasDrawingRenderNode : public RSCanvasRenderNode {
 public:
@@ -80,6 +81,7 @@ private:
 
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> skSurface_;
+    std::mutex imageMutex_;
     sk_sp<SkImage> skImage_;
 #else
     std::shared_ptr<Drawing::Surface> surface_;
@@ -89,6 +91,7 @@ private:
     bool isGpuSurface_ = true;
 #endif
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
+    std::shared_ptr<RSRecordingCanvas> recordingCanvas_;
 #ifndef USE_ROSEN_DRAWING
     ThreadInfo curThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(sk_sp<SkSurface>)>() };
     ThreadInfo preThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(sk_sp<SkSurface>)>() };
