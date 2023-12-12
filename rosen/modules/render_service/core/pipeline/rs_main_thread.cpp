@@ -1226,7 +1226,7 @@ void RSMainThread::ClearMemoryCache(bool deeply)
         this->clearMemoryFinished_ = true;
         this->clearMemDeeply_ = false;
     },
-    CLEAR_GPU_CACHE, (this->deviceType_ == DeviceType::PHONE ? 3000 : 0) / GetRefreshRate());
+    CLEAR_GPU_CACHE, (this->deviceType_ == DeviceType::PHONE ? 3000 : 1000) / GetRefreshRate());
 }
 
 void RSMainThread::WaitUtilUniRenderFinished()
