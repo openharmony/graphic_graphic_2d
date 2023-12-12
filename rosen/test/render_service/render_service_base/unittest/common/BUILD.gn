@@ -30,8 +30,10 @@ ohos_unittest("RSRenderServiceBaseCommonTest") {
     "rs_thread_handler_generic_test.cpp",
     "rs_thread_looper_generic_test.cpp",
     "rs_thread_looper_impl_test.cpp",
-    "rs_upload_texture_thread_test.cpp",
   ]
+  if (defined(rs_enable_parallel_upload) && rs_enable_parallel_upload) {
+    sources += [ "rs_upload_texture_thread_test.cpp" ]
+  }
 
   configs = [
     ":common_test",
