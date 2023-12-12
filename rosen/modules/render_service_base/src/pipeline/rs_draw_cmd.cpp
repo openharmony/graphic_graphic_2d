@@ -48,7 +48,8 @@ namespace Rosen {
 namespace {
 SkColorType GetSkColorTypeFromVkFormat(VkFormat vkFormat)
 {
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return kRGBA_8888_SkColorType;
     }
     switch (vkFormat) {
@@ -848,7 +849,8 @@ ImageWithParmOpItem::~ImageWithParmOpItem()
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifndef USE_ROSEN_DRAWING
 #ifdef RS_ENABLE_GL
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         RSTaskDispatcher::GetInstance().PostTask(tid_, [texId = texId_,
                                                         nativeWindowBuffer = nativeWindowBuffer_,
                                                         eglImage = eglImage_]() {
@@ -868,7 +870,8 @@ ImageWithParmOpItem::~ImageWithParmOpItem()
 #endif
 
 #if defined(RS_ENABLE_VK)
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         RSTaskDispatcher::GetInstance().PostTask(tid_, [nativeWindowBuffer = nativeWindowBuffer_,
             cleanupHelper = cleanupHelper_]() {
             if (nativeWindowBuffer) {
@@ -931,7 +934,8 @@ sk_sp<SkImage> ImageWithParmOpItem::GetSkImageFromSurfaceBuffer(SkCanvas& canvas
         }
     }
 #ifdef RS_ENABLE_GL
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         EGLint attrs[] = {
             EGL_IMAGE_PRESERVED,
             EGL_TRUE,
@@ -975,7 +979,8 @@ sk_sp<SkImage> ImageWithParmOpItem::GetSkImageFromSurfaceBuffer(SkCanvas& canvas
 #endif
 
 #if defined(RS_ENABLE_VK)
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         if (!backendTexture_.isValid()) {
             backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
                 surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight());
@@ -1175,12 +1180,14 @@ void SurfaceBufferOpItem::Clear() const noexcept
 {
     RS_TRACE_NAME("SurfaceBufferOpItem::Clear");
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         skImage_ = nullptr;
     }
 #endif
 #ifdef RS_ENABLE_GL
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         if (texId_ != 0U) {
             glDeleteTextures(1, &texId_);
         }
@@ -1216,7 +1223,8 @@ void SurfaceBufferOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
     }
 #endif
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         auto backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
             surfaceBufferInfo_.width_, surfaceBufferInfo_.height_);
         if (backendTexture.isValid()) {
@@ -1246,7 +1254,8 @@ void SurfaceBufferOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 #endif
 
 #ifdef RS_ENABLE_GL
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         return;
     }
     EGLint attrs[] = {
@@ -2527,13 +2536,15 @@ void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect&
     if (pixelmap != nullptr && pixelmap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
         std::shared_ptr<Drawing::Image> dmaImage = nullptr;
 #if defined(RS_ENABLE_GL)
-        if (!RSSystemProperties::GetRsVulkanEnabled()) {
+        if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+            RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
             dmaImage = GetDrawingImageFromSurfaceBuffer(canvas,
                 reinterpret_cast<SurfaceBuffer*>(pixelmap->GetFd()));
         }
 #endif
 #if defined(RS_ENABLE_VK)
-        if (RSSystemProperties::GetRsVulkanEnabled()) {
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
             dmaImage = MakeFromTextureForVK(canvas,
                 reinterpret_cast<SurfaceBuffer*>(pixelmap->GetFd()));
         }
@@ -2574,7 +2585,8 @@ RSExtendImageObject *RSExtendImageObject::Unmarshalling(Parcel &parcel)
 std::shared_ptr<Drawing::Image> RSExtendImageObject::GetDrawingImageFromSurfaceBuffer(
     Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer) const
 {
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         return nullptr;
     }
     if (surfaceBuffer == nullptr) {
@@ -2683,7 +2695,8 @@ std::shared_ptr<Drawing::Image> RSExtendImageObject::MakeFromTextureForVK(Drawin
 RSExtendImageObject::~RSExtendImageObject()
 {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         return;
     }
     RSTaskDispatcher::GetInstance().PostTask(tid_, [texId = texId_,

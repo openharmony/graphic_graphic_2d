@@ -369,7 +369,8 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     }
 #ifdef RS_ENABLE_EGLIMAGE
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         canvas->clear(SK_ColorTRANSPARENT);
     }
     std::unordered_map<int32_t, std::shared_ptr<NativeVkImageRes>> imageCacheSeqsVK;
@@ -445,7 +446,8 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             (void)eglTextureId;
             (void)bufferId;
 #if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
-            if (!RSSystemProperties::GetRsVulkanEnabled()) {
+            if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+                RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
                 auto eglImageCache = uniRenderEngine_->GetEglImageManager()->CreateImageCacheFromBuffer(params.buffer,
                     params.acquireFence);
                 if (eglImageCache == nullptr) {
@@ -466,7 +468,8 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             (void)colorType;
             (void)backendTexturePtr;
 #if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
-            if (!RSSystemProperties::GetRsVulkanEnabled()) {
+            if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+                RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
                 auto pixelFmt = params.buffer->GetFormat();
                 if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
                     colorType = kBGRA_8888_SkColorType;
@@ -488,13 +491,15 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             sk_sp<SkImage> image = nullptr;
             (void)image;
 #if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
-            if (!RSSystemProperties::GetRsVulkanEnabled() && backendTexturePtr != nullptr) {
+            if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+                RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR && backendTexturePtr != nullptr) {
                 image = SkImage::MakeFromTexture(canvas->recordingContext(), *backendTexturePtr,
                     kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, skColorSpace);
             }
 #endif
 #if defined(RS_ENABLE_VK)
-            if (RSSystemProperties::GetRsVulkanEnabled()) {
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
                 auto imageCache = uniRenderEngine_->GetVkImageManager()->CreateImageCacheFromBuffer(
                     params.buffer, params.acquireFence);
                 if (!imageCache) {

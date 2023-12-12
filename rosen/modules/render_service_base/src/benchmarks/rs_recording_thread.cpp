@@ -58,7 +58,8 @@ sk_sp<GrContext> RSRecordingThread::CreateShareGrContext()
 {
     RS_TRACE_NAME("RSRecordingThread::CreateShareGrContext");
 #ifdef RS_ENABLE_GL
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         CreateShareEglContext();
         const GrGLInterface *grGlInterface = GrGLCreateNativeInterface();
         sk_sp<const GrGLInterface> glInterface(grGlInterface);
@@ -92,7 +93,8 @@ sk_sp<GrContext> RSRecordingThread::CreateShareGrContext()
 #endif
 
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         sk_sp<GrDirectContext> grContext = GrDirectContext::MakeVulkan(
             RsVulkanContext::GetSingleton().GetGrVkBackendContext());
         if (grContext == nullptr) {
@@ -132,7 +134,8 @@ void RSRecordingThread::CreateShareEglContext()
         return;
     }
 #ifdef RS_ENABLE_GL
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         return;
     }
     eglShareContext_ = renderContext_->CreateShareContext();
@@ -150,7 +153,8 @@ void RSRecordingThread::CreateShareEglContext()
 void RSRecordingThread::DestroyShareEglContext()
 {
 #ifdef RS_ENABLE_GL
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         return;
     }
     if (renderContext_ != nullptr) {
@@ -243,7 +247,8 @@ void RSRecordingThread::FinishRecordingOneFrame()
     auto modeSubThread = mode_;
     mode_ = RecordingMode::STOP_RECORDING;
 #ifdef RS_ENABLE_GL
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         RSTaskMessage::RSTask task = [this, modeSubThread]() {
             FinishRecordingOneFrameTask(modeSubThread);
         };

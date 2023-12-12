@@ -226,7 +226,8 @@ HWTEST_F(RsNodeCostManagerTest, IsSkipProcessingTest7, TestSize.Level1)
  */
 HWTEST_F(RsNodeCostManagerTest, CalcBaseRenderNodeCostTest1, TestSize.Level1)
 {
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -255,7 +256,8 @@ HWTEST_F(RsNodeCostManagerTest, CalcBaseRenderNodeCostTest1, TestSize.Level1)
  */
 HWTEST_F(RsNodeCostManagerTest, CalcBaseRenderNodeCostTest2, TestSize.Level1)
 {
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -281,7 +283,8 @@ HWTEST_F(RsNodeCostManagerTest, CalcBaseRenderNodeCostTest2, TestSize.Level1)
  */
 HWTEST_F(RsNodeCostManagerTest, CalcBaseRenderNodeCostTest3, TestSize.Level1)
 {
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -304,7 +307,8 @@ HWTEST_F(RsNodeCostManagerTest, CalcBaseRenderNodeCostTest3, TestSize.Level1)
  */
 HWTEST_F(RsNodeCostManagerTest, CalcCanvasRenderNodeCostTest1, TestSize.Level1)
 {
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -333,7 +337,8 @@ HWTEST_F(RsNodeCostManagerTest, CalcCanvasRenderNodeCostTest1, TestSize.Level1)
  */
 HWTEST_F(RsNodeCostManagerTest, CalcCanvasRenderNodeCostTest2, TestSize.Level1)
 {
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -368,7 +373,8 @@ HWTEST_F(RsNodeCostManagerTest, CalcCanvasRenderNodeCostTest2, TestSize.Level1)
  */
 HWTEST_F(RsNodeCostManagerTest, CalcCanvasRenderNodeCostTest3, TestSize.Level1)
 {
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -396,7 +402,8 @@ HWTEST_F(RsNodeCostManagerTest, CalcCanvasRenderNodeCostTest3, TestSize.Level1)
  */
 HWTEST_F(RsNodeCostManagerTest, CalcCanvasRenderNodeCostTest4, TestSize.Level1)
 {
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -436,7 +443,8 @@ HWTEST_F(RsNodeCostManagerTest, AddNodeCostTest, TestSize.Level1)
  */
 HWTEST_F(RsNodeCostManagerTest, CalcSurfaceRenderNodeCostTest1, TestSize.Level1)
 {
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -461,7 +469,8 @@ HWTEST_F(RsNodeCostManagerTest, CalcSurfaceRenderNodeCostTest1, TestSize.Level1)
  */
 HWTEST_F(RsNodeCostManagerTest, CalcSurfaceRenderNodeCostTest2, TestSize.Level1)
 {
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -489,7 +498,8 @@ HWTEST_F(RsNodeCostManagerTest, CalcSurfaceRenderNodeCostTest2, TestSize.Level1)
  */
 HWTEST_F(RsNodeCostManagerTest, CalcSurfaceRenderNodeCostTest3, TestSize.Level1)
 {
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -517,7 +527,8 @@ HWTEST_F(RsNodeCostManagerTest, CalcSurfaceRenderNodeCostTest3, TestSize.Level1)
  */
 HWTEST_F(RsNodeCostManagerTest, CalcSurfaceRenderNodeCostTest4, TestSize.Level1)
 {
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -545,7 +556,8 @@ HWTEST_F(RsNodeCostManagerTest, CalcSurfaceRenderNodeCostTest4, TestSize.Level1)
  */
 HWTEST_F(RsNodeCostManagerTest, CalcSurfaceRenderNodeCostTest5, TestSize.Level1)
 {
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }

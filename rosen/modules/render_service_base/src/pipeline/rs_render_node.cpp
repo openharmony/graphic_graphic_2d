@@ -48,7 +48,8 @@
 namespace {
 uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
-    if (!OHOS::Rosen::RSSystemProperties::GetRsVulkanEnabled()) {
+    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::VULKAN &&
+        OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::DDGR) {
         return UINT32_MAX;
     }
     auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton();
@@ -1610,14 +1611,16 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
         return;
     }
 #ifdef RS_ENABLE_GL
-    if (!OHOS::Rosen::RSSystemProperties::GetRsVulkanEnabled()) {
+    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::VULKAN &&
+        OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::DDGR) {
         SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
         std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
         cacheSurface_ = SkSurface::MakeRenderTarget(grContext, SkBudgeted::kYes, info);
     }
 #endif
 #ifdef RS_ENABLE_VK
-    if (OHOS::Rosen::RSSystemProperties::GetRsVulkanEnabled()) {
+    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
+        OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
         std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
         cacheBackendTexture_ = MakeBackendTexture(width, height);
         if (!cacheBackendTexture_.isValid()) {
@@ -1720,7 +1723,8 @@ sk_sp<SkImage> RSRenderNode::GetCompletedImage(RSPaintFilterCanvas& canvas, uint
             return nullptr;
         }
 #ifdef RS_ENABLE_VK
-        if (RSSystemProperties::GetRsVulkanEnabled()) {
+        if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
+            OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
             if (!cacheCompletedSurface_ || !cacheCompletedCleanupHelper_) {
                 return nullptr;
             }
@@ -1728,14 +1732,16 @@ sk_sp<SkImage> RSRenderNode::GetCompletedImage(RSPaintFilterCanvas& canvas, uint
 #endif
         sk_sp<SkImage> image = nullptr;
 #ifdef RS_ENABLE_GL
-        if (!OHOS::Rosen::RSSystemProperties::GetRsVulkanEnabled()) {
+        if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::VULKAN &&
+            OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::DDGR) {
             image = SkImage::MakeFromTexture(canvas.recordingContext(), cacheCompletedBackendTexture_,
                 kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
         }
 #endif
 
 #ifdef RS_ENABLE_VK
-        if (OHOS::Rosen::RSSystemProperties::GetRsVulkanEnabled()) {
+        if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
+            OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
             image = SkImage::MakeFromTexture(canvas.recordingContext(), cacheCompletedBackendTexture_,
                 kBottomLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr,
                 NativeBufferUtils::DeleteVkImage, cacheCompletedCleanupHelper_->Ref());
@@ -2352,7 +2358,8 @@ void RSRenderNode::UpdateCompletedCacheSurface()
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     std::swap(cacheBackendTexture_, cacheCompletedBackendTexture_);
 #ifdef RS_ENABLE_VK
-    if (OHOS::Rosen::RSSystemProperties::GetRsVulkanEnabled()) {
+    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
+        OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
         std::swap(cacheCleanupHelper_, cacheCompletedCleanupHelper_);
     }
 #endif
@@ -2371,14 +2378,16 @@ void RSRenderNode::ClearCacheSurface(bool isClearCompletedCacheSurface)
     std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
     cacheSurface_ = nullptr;
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
+        OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
         cacheCleanupHelper_ = nullptr;
     }
 #endif
     if (isClearCompletedCacheSurface) {
         cacheCompletedSurface_ = nullptr;
 #ifdef RS_ENABLE_VK
-        if (RSSystemProperties::GetRsVulkanEnabled()) {
+        if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
+            OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
             cacheCompletedCleanupHelper_ = nullptr;
         }
 #endif

@@ -185,7 +185,8 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info
     }
 
 #ifdef RS_ENABLE_VK
-    if (SystemProperties::GetRsVulkanEnabled()) {
+    if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         const auto& backendTexture = SkiaTextureInfo::ConvertToGrBackendTexture(info);
         if (!backendTexture.isValid()) {
             LOGE("SkiaImage BuildFromTexture backend texture is not valid!!!!");

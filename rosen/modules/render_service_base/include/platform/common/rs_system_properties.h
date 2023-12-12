@@ -186,20 +186,6 @@ public:
         return RSSystemProperties::systemGpuApiType_;
     }
 
-    static inline GpuApiType GetDefaultHiGpuV200Platform()
-    {
-        return RSSystemProperties::DefaultHiGpuV200Platform_;
-    }
-
-    static inline bool GetAceVulkanEnabled() noexcept
-    {
-        return aceVulkanEnabled_;
-    }
-
-    static inline bool GetRsVulkanEnabled() noexcept
-    {
-        return rsVulkanEnabled_;
-    }
 private:
     RSSystemProperties() = default;
 
@@ -207,9 +193,6 @@ private:
     inline static bool isDrawTextAsBitmap_ = false;
     inline static bool cacheEnabledForRotation_ = false;
     static const GpuApiType systemGpuApiType_;
-    static const GpuApiType DefaultHiGpuV200Platform_ = GpuApiType::OPENGL;
-    static const bool aceVulkanEnabled_;
-    static const bool rsVulkanEnabled_;
 };
 
 } // namespace Rosen

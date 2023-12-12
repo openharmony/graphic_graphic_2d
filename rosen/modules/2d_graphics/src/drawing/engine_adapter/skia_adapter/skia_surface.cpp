@@ -133,7 +133,8 @@ bool SkiaSurface::Bind(const FrameBuffer& frameBuffer)
 std::shared_ptr<Surface> SkiaSurface::MakeFromBackendRenderTarget(GPUContext* gpuContext, TextureInfo& info,
     TextureOrigin origin, void (*deleteVkImage)(void *), void* cleanHelper)
 {
-    if (!SystemProperties::GetRsVulkanEnabled()) {
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return nullptr;
     }
     sk_sp<GrDirectContext> grContext = nullptr;
@@ -284,7 +285,8 @@ BackendTexture SkiaSurface::GetBackendTexture() const
         skSurface_->getBackendTexture(SkSurface::BackendHandleAccess::kFlushRead_BackendHandleAccess);
     auto backendTexture = BackendTexture(true);
 #ifdef RS_ENABLE_VK
-    if (SystemProperties::GetRsVulkanEnabled()) {
+    if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         TextureInfo info;
         SkiaTextureInfo::ConvertToVKTexture(grBackendTexture, info);
         backendTexture.SetTextureInfo(info);
@@ -354,9 +356,11 @@ void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
 #ifdef RS_ENABLE_VK
 void SkiaSurface::Wait(int32_t time, const VkSemaphore& semaphore)
 {
-    if (!SystemProperties::GetRsVulkanEnabled()) {
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return;
     }
+
     if (skSurface_ == nullptr) {
         LOGE("skSurface is nullptr");
         return;
@@ -368,7 +372,8 @@ void SkiaSurface::Wait(int32_t time, const VkSemaphore& semaphore)
 
 void SkiaSurface::SetDrawingArea(const std::vector<RectI>& rects)
 {
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return;
     }
     if (skSurface_ == nullptr) {

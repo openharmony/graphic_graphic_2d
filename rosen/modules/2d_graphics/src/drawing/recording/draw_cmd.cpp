@@ -1451,7 +1451,8 @@ void DrawSurfaceBufferOpItem::SetBaseCallback(
     std::function<void(void* context)> deleteImage,
     std::function<void*(VkImage image, VkDeviceMemory memory)> helper)
 {
-    if (!SystemProperties::GetRsVulkanEnabled()) {
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return;
     }
 
@@ -1481,7 +1482,8 @@ void DrawSurfaceBufferOpItem::Playback(Canvas* canvas, const Rect* rect)
 void DrawSurfaceBufferOpItem::Clear()
 {
 #ifdef RS_ENABLE_GL
-    if (!SystemProperties::GetRsVulkanEnabled()) {
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         if (texId_ != 0U) {
             glDeleteTextures(1, &texId_);
         }
@@ -1502,7 +1504,8 @@ void DrawSurfaceBufferOpItem::Clear()
 void DrawSurfaceBufferOpItem::Draw(Canvas* canvas)
 {
 #ifdef RS_ENABLE_VK
-    if (SystemProperties::GetRsVulkanEnabled()) {
+    if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         if (!DrawSurfaceBufferOpItem::makeBackendTextureFromNativeBuffer ||
             !DrawSurfaceBufferOpItem::deleteVkImage ||
             !DrawSurfaceBufferOpItem::vulkanCleanupHelper ||
@@ -1529,7 +1532,8 @@ void DrawSurfaceBufferOpItem::Draw(Canvas* canvas)
 #endif
 
 #ifdef RS_ENABLE_GL
-    if (SystemProperties::GetRsVulkanEnabled()) {
+    if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         return;
     }
     EGLint attrs[] = {

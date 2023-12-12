@@ -39,7 +39,8 @@ std::shared_ptr<SurfaceBase> SurfaceOhos::CreateSurface(sptr<Surface> surface)
     switch (type) {
         case RenderBackendType::VULKAN:
 #ifdef ACE_ENABLE_VK
-            if (RSSystemProperties::GetAceVulkanEnabled()) {
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
                 LOGI("SurfaceOhos::CreateSurface with vulkan backend");
                 producer = std::make_shared<SurfaceOhosVulkan>(surface);
             }
@@ -47,7 +48,8 @@ std::shared_ptr<SurfaceBase> SurfaceOhos::CreateSurface(sptr<Surface> surface)
             break;
         case RenderBackendType::GLES:
 #ifdef ACE_ENABLE_GL
-            if (!RSSystemProperties::GetAceVulkanEnabled()) {
+            if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+                RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
                 LOGI("SurfaceOhos::CreateSurface with gles backend");
                 producer = std::make_shared<SurfaceOhosGl>(surface);
             }

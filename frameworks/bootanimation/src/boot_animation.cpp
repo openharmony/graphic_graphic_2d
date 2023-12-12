@@ -223,7 +223,8 @@ void BootAnimation::InitRsSurface()
         return;
     }
 #ifdef ACE_ENABLE_GL
-    if (!Rosen::RSSystemProperties::GetAceVulkanEnabled()) {
+    if (Rosen::RSSystemProperties::GetGpuApiType() != Rosen::GpuApiType::VULKAN &&
+        Rosen::RSSystemProperties::GetGpuApiType() != Rosen::GpuApiType::DDGR) {
         rc_ = OHOS::Rosen::RenderContextFactory::GetInstance().CreateEngine();
         if (rc_ == nullptr) {
             LOGE("InitilizeEglContext failed");

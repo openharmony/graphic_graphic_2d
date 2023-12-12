@@ -198,7 +198,8 @@ std::shared_ptr<RSSurfaceNode> RSSurfaceCaptureTaskTest::CreateSurface(std::stri
 void RSSurfaceCaptureTaskTest::InitRenderContext()
 {
 #ifdef ACE_ENABLE_GL
-    if (RSSystemProperties::GetAceVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
         return;
     }
@@ -224,7 +225,8 @@ void RSSurfaceCaptureTaskTest::FillSurface(std::shared_ptr<RSSurfaceNode> surfac
         return;
     }
 #ifdef ACE_ENABLE_GL
-    if (!RSSystemProperties::GetAceVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         HiLog::Info(LOG_LABEL, "ACE_ENABLE_GL");
         InitRenderContext();
         rsSurface->SetRenderContext(renderContext_);

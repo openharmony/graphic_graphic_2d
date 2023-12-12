@@ -294,7 +294,8 @@ EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
 #ifdef RS_ENABLE_VK
 void RenderContext::AbandonContext()
 {
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return;
     }
     if (grContext_ == nullptr) {
@@ -305,7 +306,6 @@ void RenderContext::AbandonContext()
     grContext_->purgeUnlockAndSafeCacheGpuResources();
 }
 #endif
-
 bool RenderContext::SetUpGrContext(sk_sp<GrDirectContext> skContext)
 {
     if (grContext_ != nullptr) {
@@ -314,7 +314,8 @@ bool RenderContext::SetUpGrContext(sk_sp<GrDirectContext> skContext)
     }
 #ifdef RS_ENABLE_GL
     (void)skContext;
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         sk_sp<const GrGLInterface> glInterface(GrGLCreateNativeInterface());
         if (glInterface.get() == nullptr) {
             LOGE("SetUpGrContext failed to make native interface");
@@ -352,7 +353,8 @@ bool RenderContext::SetUpGrContext(sk_sp<GrDirectContext> skContext)
 #endif
 
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         if (skContext == nullptr) {
             skContext = RsVulkanContext::GetSingleton().CreateSkContext();
         }

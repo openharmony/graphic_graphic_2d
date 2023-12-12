@@ -31,6 +31,7 @@
 #include "ipc_callbacks/hgm_config_change_callback_stub.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #ifdef NEW_RENDER_CONTEXT
 #include "render_backend/rs_surface_factory.h"
 #endif
@@ -135,13 +136,15 @@ std::shared_ptr<RSRenderSurface> RSRenderServiceClient::CreateRSSurface(const sp
 std::shared_ptr<RSSurface> RSRenderServiceClient::CreateRSSurface(const sptr<Surface> &surface)
 {
 #if defined (ACE_ENABLE_VK)
-    if (RSSystemProperties::GetAceVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         return std::make_shared<RSSurfaceOhosVulkan>(surface); // GPU render
     }
 #endif
 
 #if defined (ACE_ENABLE_GL)
-    if (!RSSystemProperties::GetAceVulkanEnabled()) {
+    if (Rosen::RSSystemProperties::GetGpuApiType() != Rosen::GpuApiType::VULKAN &&
+        Rosen::RSSystemProperties::GetGpuApiType() != Rosen::GpuApiType::DDGR) {
         return std::make_shared<RSSurfaceOhosGl>(surface); // GPU render
     }
 #endif

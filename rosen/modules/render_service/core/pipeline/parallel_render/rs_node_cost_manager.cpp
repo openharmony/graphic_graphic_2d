@@ -73,7 +73,8 @@ bool RSNodeCostManager::IsSkipProcessing(RSSurfaceRenderNode& node) const
 void RSNodeCostManager::CalcBaseRenderNodeCost(RSBaseRenderNode& node)
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         return;
     }
 
@@ -107,7 +108,8 @@ void RSNodeCostManager::CalcBaseRenderNodeCost(RSBaseRenderNode& node)
 void RSNodeCostManager::CalcCanvasRenderNodeCost(RSCanvasRenderNode& node)
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         return;
     }
     if (!node.ShouldPaint()) {
@@ -134,7 +136,8 @@ void RSNodeCostManager::CalcCanvasRenderNodeCost(RSCanvasRenderNode& node)
 void RSNodeCostManager::CalcSurfaceRenderNodeCost(RSSurfaceRenderNode& node)
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         return;
     }
     if (IsSkipProcessing(node)) {

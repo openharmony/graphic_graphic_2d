@@ -21,39 +21,31 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
-#if defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)
-static bool VulkanEnabled()
+#if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
+static GpuApiType GpuApiType()
 {
     if (!((system::GetParameter("const.gpu.vendor", "0").compare("higpu.v200") == 0) &&
           (system::GetParameter("const.build.product", "0").compare("ALN") == 0))) {
-        return false;
+        return GpuApiType::OPENGL;
     }
 
     if (std::atoi(system::GetParameter(
         "persist.sys.graphic.GpuApitype", "-1").c_str()) == (-1)) { // -1 is invalid type
-        return true;
+        return GpuApiType::VULKAN;
     }
     if (std::atoi(system::GetParameter("persist.sys.graphic.GpuApitype", "0").c_str()) == 0) {
-        return false;
+        return GpuApiType::OPENGL;
     }
-    return true;
+    return GpuApiType::VULKAN;
 }
 #endif
 
-#if defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)
-const bool SystemProperties::aceVulkanEnabled_ = VulkanEnabled();
-#elif defined (ACE_ENABLE_GL)
-const bool SystemProperties::aceVulkanEnabled_ = false;
+#if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
+const GpuApiType SystemProperties::systemGpuApiType_ = GpuApiType();
+#elif defined (ACE_ENABLE_GL) || defined (RS_ENABLE_GL)
+const GpuApiType SystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
 #else
-const bool SystemProperties::aceVulkanEnabled_ = true;
-#endif
-
-#if defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK)
-const bool SystemProperties::rsVulkanEnabled_ = VulkanEnabled();
-#elif defined (RS_ENABLE_GL)
-const bool SystemProperties::rsVulkanEnabled_ = false;
-#else
-const bool SystemProperties::rsVulkanEnabled_ = true;
+const GpuApiType SystemProperties::systemGpuApiType_ = GpuApiType::VULKAN;
 #endif
 } // namespace Drawing
 } // namespace Rosen

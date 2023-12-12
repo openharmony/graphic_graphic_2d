@@ -66,7 +66,8 @@ void RSUploadTextureThread::RemoveTask(const std::string& name)
 #ifndef USE_ROSEN_DRAWING
 void RSUploadTextureThread::InitRenderContext(RenderContext* context)
 {
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         return;
     }
     renderContext_ = context;
@@ -77,7 +78,8 @@ void RSUploadTextureThread::InitRenderContext(RenderContext* context)
 
 void RSUploadTextureThread::CreateShareEglContext()
 {
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         return;
     }
     if (renderContext_ == nullptr) {
@@ -97,7 +99,8 @@ void RSUploadTextureThread::CreateShareEglContext()
 
 sk_sp<GrDirectContext> RSUploadTextureThread::GetShareGrContext() const
 {
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         return nullptr;
     }
     return grContext_;
@@ -105,7 +108,8 @@ sk_sp<GrDirectContext> RSUploadTextureThread::GetShareGrContext() const
 
 sk_sp<GrDirectContext> RSUploadTextureThread::CreateShareGrContext()
 {
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         return nullptr;
     }
     RS_TRACE_NAME("CreateShareGrContext");
@@ -138,7 +142,8 @@ sk_sp<GrDirectContext> RSUploadTextureThread::CreateShareGrContext()
 
 void RSUploadTextureThread::CleanGrResource()
 {
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         return;
     }
     PostTask([this]() {

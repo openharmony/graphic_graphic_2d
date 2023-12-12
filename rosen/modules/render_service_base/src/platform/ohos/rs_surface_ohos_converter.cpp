@@ -46,14 +46,16 @@ sptr<Surface> RSSurfaceConverter::ConvertToOhosSurface(std::shared_ptr<RSSurface
         return nullptr;
     }
 #if defined(ACE_ENABLE_VK)
-    if (RSSystemProperties::GetAceVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         auto derivedPtr = std::static_pointer_cast<RSSurfaceOhosVulkan>(surface); // gpu render
         return derivedPtr->GetSurface();
     }
 #endif
 
 #if defined(ACE_ENABLE_GL)
-    if (!RSSystemProperties::GetAceVulkanEnabled()) {
+    if (Rosen::RSSystemProperties::GetGpuApiType() != Rosen::GpuApiType::VULKAN &&
+        Rosen::RSSystemProperties::GetGpuApiType() != Rosen::GpuApiType::DDGR) {
         auto derivedPtr = std::static_pointer_cast<RSSurfaceOhosGl>(surface); // gpu render
         return derivedPtr->GetSurface();
     }

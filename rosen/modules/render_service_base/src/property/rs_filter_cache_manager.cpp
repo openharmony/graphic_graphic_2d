@@ -158,7 +158,8 @@ bool RSFilterCacheManager::RSFilterCacheTask::Render()
 #ifndef USE_ROSEN_DRAWING
     GrSurfaceOrigin surfaceOrigin = kTopLeft_GrSurfaceOrigin;
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         surfaceOrigin = kTopLeft_GrSurfaceOrigin;
     } else {
         surfaceOrigin = kBottomLeft_GrSurfaceOrigin;

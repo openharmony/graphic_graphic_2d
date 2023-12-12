@@ -212,7 +212,8 @@ RSUniRenderVisitor::RSUniRenderVisitor(std::shared_ptr<RSPaintFilterCanvas> canv
 #if defined(RS_ENABLE_PARALLEL_RENDER) && (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK))
     parallelRenderVisitorIndex_ = surfaceIndex;
 #if defined(RS_ENABLE_GL)
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         canvas_ = canvas;
     }
 #endif
@@ -1027,7 +1028,8 @@ void RSUniRenderVisitor::CollectAppNodeForHwc(std::shared_ptr<RSSurfaceRenderNod
 
     if (isParallel_ && !isUIFirst_) {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
-        if (!RSSystemProperties::GetRsVulkanEnabled()) {
+        if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+            RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
             RSParallelRenderManager::Instance()->AddAppWindowNode(parallelRenderVisitorIndex_, surfaceNode);
         }
 #endif
@@ -2105,7 +2107,8 @@ void RSUniRenderVisitor::ProcessChildInner(RSRenderNode& node, const RSRenderNod
 void RSUniRenderVisitor::ProcessParallelDisplayRenderNode(RSDisplayRenderNode& node)
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_VK)
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return;
     }
     RS_TRACE_NAME("ProcessParallelDisplayRenderNode[" + std::to_string(node.GetId()));
@@ -2263,7 +2266,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         node.SetCacheImgForCapture(nullptr);
     }
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_VK)
-    if (RSSystemProperties::GetRsVulkanEnabled() && node.IsParallelDisplayNode()) {
+    if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && (node.IsParallelDisplayNode())) {
         ProcessParallelDisplayRenderNode(node);
         return;
     }
@@ -2274,7 +2278,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         node.GetId(), node.GetChildrenCount());
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
     bool isNeedCalcCost = false;
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         isNeedCalcCost = node.GetSurfaceChangedRects().size() > 0;
     }
 #endif
@@ -2363,7 +2368,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             }
 #ifndef USE_ROSEN_DRAWING
 #if defined RS_ENABLE_GL
-            if (!RSSystemProperties::GetRsVulkanEnabled()) {
+            if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+                RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
                 glFinish();
             }
 #endif
@@ -2599,7 +2605,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         bool clipPath = false;
 #ifdef RS_ENABLE_VK
         int saveCountBeforeClip = 0;
-        if (RSSystemProperties::GetRsVulkanEnabled()) {
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
 #ifndef USE_ROSEN_DRAWING
             saveCountBeforeClip = canvas_->save();
 #else
@@ -2638,7 +2645,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 for (auto& r : rects) {
                     uint32_t topAfterFlip = 0;
 #ifdef RS_ENABLE_VK
-                    if (RSSystemProperties::GetRsVulkanEnabled()) {
+                    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+                        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
                         topAfterFlip = r.top_;
                     } else {
                         topAfterFlip = screenInfo_.GetRotatedHeight() - r.GetBottom();
@@ -2673,7 +2681,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 RS_TRACE_NAME("RSUniRenderVisitor: clipPath");
                 clipPath = true;
 #ifdef RS_ENABLE_VK
-                if (RSSystemProperties::GetRsVulkanEnabled()) {
+                if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+                    RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
                     canvas_->clipRegion(region);
                 } else {
                     SkPath dirtyPath;
@@ -2705,7 +2714,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
 #ifdef RS_ENABLE_VK
         else {
-            if (RSSystemProperties::GetRsVulkanEnabled()) {
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
 #ifndef USE_ROSEN_DRAWING
                 canvas_->clear(SK_ColorTRANSPARENT);
 #else
@@ -2778,7 +2788,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
         }
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
-        if (!RSSystemProperties::GetRsVulkanEnabled()) {
+        if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+            RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
             if ((isParallel_ && !isUIFirst_ && ((rects.size() > 0) || !isPartialRenderEnabled_)) && isCalcCostEnable_) {
                 auto parallelRenderManager = RSParallelRenderManager::Instance();
                 parallelRenderManager->CopyCalcCostVisitorAndPackTask(*this, node, isNeedCalcCost,
@@ -2874,7 +2885,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             mainThread->RemoveTask(CLEAR_GPU_CACHE);
         }
 #ifdef RS_ENABLE_VK
-        if (RSSystemProperties::GetRsVulkanEnabled()) {
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
 #ifndef USE_ROSEN_DRAWING
             canvas_->restoreToCount(saveCountBeforeClip);
 #else
@@ -3014,7 +3026,8 @@ void RSUniRenderVisitor::UpdateHardwareEnabledInfoBeforeCreateLayer()
     }
     if (isParallel_ && !isUIFirst_) {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
-        if (!RSSystemProperties::GetRsVulkanEnabled()) {
+        if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+            RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
             std::vector<std::shared_ptr<RSSurfaceRenderNode>>().swap(appWindowNodesInZOrder_);
             auto subThreadNum = RSParallelRenderManager::Instance()->GetParallelThreadNumber();
             auto appWindowNodesMap = RSParallelRenderManager::Instance()->GetAppWindowNodes();
@@ -3601,7 +3614,8 @@ std::vector<RectI> RSUniRenderVisitor::GetDirtyRects(const Occlusion::Region &re
     for (const Occlusion::Rect& rect : rects) {
         // origin transformation
 #ifdef RS_ENABLE_VK
-        if (RSSystemProperties::GetRsVulkanEnabled()) {
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
             retRects.emplace_back(RectI(rect.left_, rect.top_,
                 rect.right_ - rect.left_, rect.bottom_ - rect.top_));
         } else {
@@ -3993,7 +4007,8 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #endif
 #endif
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
 #ifndef USE_ROSEN_DRAWING
         node.SetGrContext(renderEngine_->GetSkContext().get());
 #else
@@ -4717,7 +4732,8 @@ bool RSUniRenderVisitor::AdaptiveSubRenderThreadMode(bool doParallel)
 void RSUniRenderVisitor::ParallelRenderEnableHardwareComposer(RSSurfaceRenderNode& node)
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined (RS_ENABLE_GL)
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         if (isParallel_ && !isUIFirst_) {
             const auto& property = node.GetRenderProperties();
             auto dstRect = node.GetDstRect();
@@ -4848,7 +4864,8 @@ void RSUniRenderVisitor::SetAppWindowNum(uint32_t num)
 bool RSUniRenderVisitor::ParallelComposition(const std::shared_ptr<RSBaseRenderNode> rootNode)
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined (RS_ENABLE_GL)
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         return false;
     }
     auto parallelRenderManager = RSParallelRenderManager::Instance();

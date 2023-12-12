@@ -45,7 +45,8 @@ RSImageBase::~RSImageBase()
             if (renderServiceImage_) {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
 #if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-                if (!RSSystemProperties::GetRsVulkanEnabled() && isPinImage_) {
+                if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+                    RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR && isPinImage_) {
                     RSUploadTextureThread::Instance().RemoveTask(std::to_string(uniqueId_));
                     auto unpinTask = [image = image_]() {
                         auto grContext = RSUploadTextureThread::Instance().GetShareGrContext().get();
@@ -424,7 +425,8 @@ void RSImageBase::ConvertPixelMapToSkImage()
             }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
 #if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-            if (!RSSystemProperties::GetRsVulkanEnabled() && renderServiceImage_) {
+            if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+                RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR && renderServiceImage_) {
                 auto image = image_;
                 auto pixelMap = pixelMap_;
                 std::function<void()> uploadTexturetask = [image, pixelMap]() -> void {

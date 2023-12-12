@@ -48,7 +48,8 @@ void RSBackgroundThread::PostTask(const std::function<void()>& task)
 #ifdef RS_ENABLE_GL
 void RSBackgroundThread::CreateShareEglContext()
 {
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         return;
     }
     if (renderContext_ == nullptr) {
@@ -84,7 +85,8 @@ sk_sp<GrDirectContext> RSBackgroundThread::CreateShareGrContext()
 {
     RS_TRACE_NAME("CreateShareGrContext");
 #ifdef RS_ENABLE_GL
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         CreateShareEglContext();
         const GrGLInterface* glGlInterface = GrGLCreateNativeInterface();
         sk_sp<const GrGLInterface> glInterface(glGlInterface);
@@ -114,7 +116,8 @@ sk_sp<GrDirectContext> RSBackgroundThread::CreateShareGrContext()
 #endif
 
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         sk_sp<GrDirectContext> grContext = RsVulkanContext::GetSingleton().CreateSkContext();
         if (grContext == nullptr) {
             RS_LOGE("nullptr grContext is null");
@@ -156,7 +159,8 @@ std::shared_ptr<Drawing::GPUContext> RSBackgroundThread::CreateShareGPUContext()
 {
     RS_TRACE_NAME("CreateShareGrContext");
 #ifdef RS_ENABLE_GL
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         auto gpuContext = std::make_shared<Drawing::GPUContext>();
         if (gpuContext == nullptr) {
             RS_LOGE("BuildFromVK fail")
@@ -179,7 +183,8 @@ std::shared_ptr<Drawing::GPUContext> RSBackgroundThread::CreateShareGPUContext()
 #endif
 
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         auto gpuContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
         if (gpuContext == nullptr) {
             RS_LOGE("BuildFromVK fail")

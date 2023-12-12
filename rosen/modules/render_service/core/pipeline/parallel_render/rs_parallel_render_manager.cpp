@@ -56,7 +56,8 @@ RSParallelRenderManager::RSParallelRenderManager()
     }
     readyBufferNum_ = 0;
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         parallelDisplayNodes_.assign(PARALLEL_THREAD_NUM, nullptr);
         backParallelDisplayNodes_.assign(PARALLEL_THREAD_NUM, nullptr);
     }
@@ -107,7 +108,8 @@ void RSParallelRenderManager::StartSubRenderThread(uint32_t threadNum, RenderCon
 #endif
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-        if (RSSystemProperties::GetRsVulkanEnabled() || context) {
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR || context) {
 #endif
             for (uint32_t i = 0; i < threadNum; ++i) {
                 auto curThread = std::make_unique<RSParallelSubThread>(context, renderType_, i);
@@ -690,7 +692,8 @@ void RSParallelRenderManager::InitDisplayNodeAndRequestFrame(
     const std::shared_ptr<RSBaseRenderEngine> renderEngine, const ScreenInfo screenInfo)
 {
 #ifdef RS_ENABLE_VK
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return;
     }
     auto& context = RSMainThread::Instance()->GetContext();
@@ -727,7 +730,8 @@ void RSParallelRenderManager::InitDisplayNodeAndRequestFrame(
 void RSParallelRenderManager::ProcessParallelDisplaySurface(RSUniRenderVisitor &visitor)
 {
 #ifdef RS_ENABLE_VK
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return;
     }
     for (int i = 0; i < PARALLEL_THREAD_NUM; i++) {
@@ -742,7 +746,8 @@ void RSParallelRenderManager::ProcessParallelDisplaySurface(RSUniRenderVisitor &
 void RSParallelRenderManager::ReleaseBuffer()
 {
 #ifdef RS_ENABLE_VK
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return;
     }
     for (int i = 0; i < PARALLEL_THREAD_NUM; i++) {
@@ -758,7 +763,8 @@ void RSParallelRenderManager::ReleaseBuffer()
 void RSParallelRenderManager::NotifyUniRenderFinish()
 {
 #ifdef RS_ENABLE_VK
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return;
     }
     readyBufferNum_++;
@@ -774,7 +780,8 @@ std::shared_ptr<RSDisplayRenderNode> RSParallelRenderManager::GetParallelDisplay
     uint32_t subMainThreadIdx)
 {
 #ifdef RS_ENABLE_VK
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return nullptr;
     }
     return parallelDisplayNodes_[subMainThreadIdx];
@@ -787,7 +794,8 @@ std::unique_ptr<RSRenderFrame> RSParallelRenderManager::GetParallelFrame(
     uint32_t subMainThreadIdx)
 {
 #ifdef RS_ENABLE_VK
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return nullptr;
     }
     return std::move(parallelFrames_[subMainThreadIdx]);

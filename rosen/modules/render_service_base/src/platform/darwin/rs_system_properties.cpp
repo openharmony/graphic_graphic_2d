@@ -19,20 +19,12 @@
 
 namespace OHOS {
 namespace Rosen {
-#if defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)
-const bool RSSystemProperties::aceVulkanEnabled_ = false;
-#elif defined (ACE_ENABLE_GL)
-const bool RSSystemProperties::aceVulkanEnabled_ = false;
+#if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
+const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
+#elif defined (ACE_ENABLE_GL) || defined (RS_ENABLE_GL)
+const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
 #else
-const bool RSSystemProperties::aceVulkanEnabled_ = true;
-#endif
-
-#if defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK)
-const bool RSSystemProperties::rsVulkanEnabled_ = false;
-#elif defined (RS_ENABLE_GL)
-const bool RSSystemProperties::rsVulkanEnabled_ = false;
-#else
-const bool RSSystemProperties::rsVulkanEnabled_ = true;
+const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::VULKAN;
 #endif
 
 int RSSystemProperties::GetDumpFrameNum()

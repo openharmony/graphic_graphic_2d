@@ -79,7 +79,8 @@ void RSParallelSubThread::MainLoop()
 {
     InitSubThread();
 #ifdef RS_ENABLE_GL
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         CreateShareEglContext();
     }
 #endif
@@ -154,7 +155,8 @@ void RSParallelSubThread::InitSubThread()
 void RSParallelSubThread::CreateShareEglContext()
 {
 #ifdef RS_ENABLE_GL
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         return;
     }
     if (renderContext_ == nullptr) {
@@ -279,7 +281,8 @@ void RSParallelSubThread::Render()
     auto physicalGeoPtr = (
         physicalDisplayNode->GetRenderProperties().GetBoundsGeometry());
 #ifdef RS_ENABLE_GL
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         if (canvas_ == nullptr) {
             RS_LOGE("Canvas is nullptr");
             return;
@@ -339,7 +342,8 @@ void RSParallelSubThread::Render()
 #endif
 
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         if (!displayNode_) {
             RS_LOGE("RSParallelSubThread::Render displayNode_ nullptr");
             return;
@@ -412,7 +416,8 @@ void RSParallelSubThread::Flush()
 {
     threadTask_ = nullptr;
 #ifdef RS_ENABLE_GL
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
 #ifndef USE_ROSEN_DRAWING
         if (skCanvas_ == nullptr) {
             RS_LOGE("in Flush(), skCanvas is nullptr");
@@ -486,7 +491,8 @@ bool RSParallelSubThread::WaitReleaseFence()
 void RSParallelSubThread::CreateResource()
 {
 #ifdef RS_ENABLE_GL
-    if (!RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         int width, height;
         RSParallelRenderManager::Instance()->GetFrameSize(width, height);
         if (width != surfaceWidth_ || height != surfaceHeight_) {
@@ -519,7 +525,8 @@ void RSParallelSubThread::CreateResource()
 #endif
 
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetRsVulkanEnabled()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         displayNode_ = RSParallelRenderManager::Instance()->GetParallelDisplayNode(threadIndex_);
         if (!displayNode_) {
             RS_LOGE("RSParallelSubThread::CreateResource displayNode_ nullptr");
