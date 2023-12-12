@@ -696,8 +696,10 @@ bool OH_Drawing_TypographyDidExceedMaxLines(OH_Drawing_Typography*);
  * @param OH_Drawing_Typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
  * @param size_t Indicates the start of range to set.
  * @param size_t Indicates the end of range to set.
- * @param OH_Drawing_RectHeightStyle Indicates the height style to set. For details, see the enum <b>OH_Drawing_RectHeightStyle</b>.
- * @param OH_Drawing_RectWidthStyle Indicates the width style to set. For details, see the enum <b>OH_Drawing_RectWidthStyle</b>.
+ * @param OH_Drawing_RectHeightStyle Indicates the height style to set.
+ * For details, see the enum <b>OH_Drawing_RectHeightStyle</b>.
+ * @param OH_Drawing_RectWidthStyle Indicates the width style to set.
+ * For details, see the enum <b>OH_Drawing_RectWidthStyle</b>.
  * @return Returns the rects for range.
  * @since 11
  * @version 1.0
@@ -772,7 +774,8 @@ size_t OH_Drawing_TypographyGetLineCount(OH_Drawing_Typography*);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
- * @param int Indicates the text decoration style to set. For details, see the enum <b>OH_Drawing_TextDecorationStyle</b>.
+ * @param int Indicates the text decoration style to set.
+ * For details, see the enum <b>OH_Drawing_TextDecorationStyle</b>.
  * @since 11
  * @version 1.0
  */
