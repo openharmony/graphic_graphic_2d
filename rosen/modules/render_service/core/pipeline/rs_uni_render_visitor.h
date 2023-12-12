@@ -164,6 +164,7 @@ public:
 
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
 private:
+    void PartialRenderOptionInit();
     void DrawWatermarkIfNeed(RSDisplayRenderNode& node, bool isMirror = false);
 #ifndef USE_ROSEN_DRAWING
     void DrawDirtyRectForDFX(const RectI& dirtyRect, const SkColor color,

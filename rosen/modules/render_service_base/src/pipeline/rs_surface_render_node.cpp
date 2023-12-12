@@ -1384,7 +1384,8 @@ void RSSurfaceRenderNode::ResetChildrenFilterRects()
     childrenFilterRectsCacheValid_.clear();
 }
 
-void RSSurfaceRenderNode::UpdateChildrenFilterRects(std::shared_ptr<RSRenderNode> filternode, const RectI& rect, bool cacheValid)
+void RSSurfaceRenderNode::UpdateChildrenFilterRects(std::shared_ptr<RSRenderNode> filternode,
+    const RectI& rect, bool cacheValid)
 {
     if (!rect.IsEmpty()) {
         childrenFilterNodes_.emplace_back(filternode);

@@ -667,7 +667,6 @@ public:
 
     // [planning] Remove this after skia is upgraded, the clipRegion is supported
     void ResetChildrenFilterRects();
-    void UpdateChildrenFilterRects(const RectI& rect);
     void UpdateChildrenFilterRects(std::shared_ptr<RSRenderNode> filternode, const RectI& rect, bool cacheValid);
     const std::vector<RectI>& GetChildrenNeedFilterRects() const;
     const std::vector<bool>& GetChildrenNeedFilterRectsCacheValid() const;
