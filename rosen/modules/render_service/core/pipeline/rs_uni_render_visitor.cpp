@@ -2367,12 +2367,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 return;
             }
 #ifndef USE_ROSEN_DRAWING
-#if defined RS_ENABLE_GL
-            if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-                RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-                glFinish();
-            }
-#endif
             sk_sp<SkImage> cacheImageProcessed = GetCacheImageFromMirrorNode(mirrorNode);
             if (cacheImageProcessed && !displayHasSkipSurface_[mirrorNode->GetScreenId()] &&
                 !displayHasSecSurface_[mirrorNode->GetScreenId()] && screenInfo_.filteredAppSet.empty()) {
@@ -2413,9 +2407,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 canvas_->restoreToCount(saveCount);
             }
 #else
-#if defined RS_ENABLE_GL
-            glFinish();
-#endif
             std::shared_ptr<Drawing::Image> cacheImageProcessed = GetCacheImageFromMirrorNode(mirrorNode);
             if (cacheImageProcessed && !displayHasSkipSurface_[mirrorNode->GetScreenId()] &&
                 !displayHasSecSurface_[mirrorNode->GetScreenId()] && screenInfo_.filteredAppSet.empty()) {
