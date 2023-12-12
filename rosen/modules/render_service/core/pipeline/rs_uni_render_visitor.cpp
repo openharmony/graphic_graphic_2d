@@ -2668,6 +2668,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 canvas_->clipRect(SkRect::MakeEmpty());
             } else if (region.isRect()) {
                 canvas_->clipRegion(region);
+                canvas_->clear(SK_ColorTRANSPARENT);
             } else {
                 RS_TRACE_NAME("RSUniRenderVisitor: clipPath");
                 clipPath = true;
@@ -2685,13 +2686,13 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 canvas_->clipPath(dirtyPath, true);
 #endif
             }
-            canvas_->clear(SK_ColorTRANSPARENT);
 #else
             if (region.IsEmpty()) {
                 // [planning] Remove this after frame buffer can cancel
                 canvas_->ClipRect(Drawing::Rect());
             } else if (region.IsRect()) {
                 canvas_->ClipRegion(region);
+                canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
             } else {
                 RS_TRACE_NAME("RSUniRenderVisitor: clipPath");
                 clipPath = true;
@@ -2699,7 +2700,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 region.GetBoundaryPath(&dirtyPath);
                 canvas_->ClipPath(dirtyPath, Drawing::ClipOp::INTERSECT, true);
             }
-            canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
 #endif
         }
 #endif
