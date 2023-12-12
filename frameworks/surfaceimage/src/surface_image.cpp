@@ -94,32 +94,6 @@ void SurfaceImage::UpdateSurfaceInfo(uint32_t seqNum, sptr<SurfaceBuffer> buffer
     currentTransformType_ = ConsumerSurface::GetTransform();
 }
 
-void SurfaceImage::ComputeTransformMatrix()
-{
-    static const std::array<float, 16> rotate90 = {0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1};
-
-    std::array<float, TRANSFORM_MATRIX_ELE_COUNT> transformMatrix = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
-    float tx = 0.f;
-    float ty = 0.f;
-    float sx = 1.f;
-    float sy = 1.f;
-    if (currentTransformType_ == GraphicTransformType::GRAPHIC_ROTATE_90) {
-        transformMatrix = MatrixProduct(transformMatrix, rotate90);
-    }
-    float bufferWidth = currentSurfaceBuffer_->GetWidth();
-    float bufferHeight = currentSurfaceBuffer_->GetHeight();
-    if (currentCrop_.w < bufferWidth) {
-        tx = (float(currentCrop_.x) / bufferWidth);
-        sx = (float(currentCrop_.w) / bufferWidth);
-    }
-    if (currentCrop_.h < bufferHeight) {
-        ty = (float(bufferHeight - currentCrop_.y) / bufferHeight);
-        sy = (float(currentCrop_.h) / bufferHeight);
-    }
-    static const std::array<float, 16> cropMatrix = {sx, 0, 0, 0, 0, sy, 0, 0, 0, 0, 1, 0, tx, ty, 0, 1};
-    transformMatrix = MatrixProduct(cropMatrix, transformMatrix);
-}
-
 SurfaceError SurfaceImage::UpdateSurfaceImage()
 {
     std::lock_guard<std::mutex> lockGuard(opMutex_);
