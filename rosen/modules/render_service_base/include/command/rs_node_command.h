@@ -88,9 +88,19 @@ public:
         if (!modifier) {
             return;
         }
-        modifier->Update(prop, type == UPDATE_TYPE_INCREMENTAL);
-        if (type == UPDATE_TYPE_FORCE_OVERWRITE) {
-            node->GetAnimationManager().CancelAnimationByPropertyId(modifier->GetPropertyId());
+        switch (type) {
+            case UPDATE_TYPE_OVERWRITE:
+                modifier->Update(prop, false);
+                break;
+            case UPDATE_TYPE_INCREMENTAL:
+                modifier->Update(prop, true);
+                break;
+            case UPDATE_TYPE_FORCE_OVERWRITE:
+                modifier->Update(prop, false);
+                node->GetAnimationManager().CancelAnimationByPropertyId(modifier->GetPropertyId());
+                break;
+            default:
+                break;
         }
     }
 #ifndef USE_ROSEN_DRAWING

@@ -60,11 +60,16 @@ RSImplicitCancelAnimationParam::RSImplicitCancelAnimationParam(const RSAnimation
 std::shared_ptr<RSAnimation> RSImplicitCancelAnimationParam::CreateAnimation(std::shared_ptr<RSPropertyBase> property,
     const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const
 {
-    if (auto node = property->target_.lock()) {
-        node->CancelAnimationByProperty(property->GetId()); // remove all ui animation
-        property->SetValue(endValue);                       // force set ui value
-        property->UpdateOnAllAnimationFinish();             // force update RS value and remove all animation
+    if (property == nullptr) {
+        return nullptr;
     }
+    auto node = property->target_.lock();
+    if (node == nullptr) {
+        return nullptr;
+    }
+    node->CancelAnimationByProperty(property->GetId()); // remove all ui animation
+    property->SetValue(endValue);                       // force set ui value
+    property->UpdateOnAllAnimationFinish();             // force update RS value and remove all animation
     return nullptr;
 }
 
@@ -75,14 +80,13 @@ void RSImplicitCancelAnimationParam::AddPropertyToPendingSyncList(const std::sha
 
 void RSImplicitCancelAnimationParam::SyncProperties()
 {
-    ROSEN_LOGE("zouwei, RSImplicitCancelAnimationParam::SyncProperties, this is start+++++++");
     if (pendingSyncList_.empty()) {
         return;
     }
-    ROSEN_LOGE("zouwei, RSImplicitCancelAnimationParam::SyncProperties, this is second+++++++");
-    // Create task and execute it
-    std::map<std::pair<NodeId, PropertyId>, std::shared_ptr<RSRenderPropertyBase>> properties;
-    for (auto& rsProperty : this->pendingSyncList_) {
+
+    // Create sync map
+    RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap propertiesMap;
+    for (auto& rsProperty : pendingSyncList_) {
         auto node = rsProperty->target_.lock();
         if (node == nullptr) {
             continue;
@@ -90,81 +94,43 @@ void RSImplicitCancelAnimationParam::SyncProperties()
         if (!node->HasPropertyAnimation(rsProperty->GetId()) || rsProperty->GetIsCustom()) {
             continue;
         }
-        properties[std::make_pair(node->GetId(), rsProperty->GetId())] = nullptr;
+        propertiesMap.emplace(std::make_pair<NodeId, PropertyId>(node->GetId(), rsProperty->GetId()), nullptr);
     }
-    ROSEN_LOGE("zouwei, RSImplicitCancelAnimationParam::SyncProperties, this is after loop111111+++++++");
-    auto task = std::make_shared<RSNodeGetShowingPropertiesAndCancelAnimation>();
-    task->SetProperties(properties);
+    pendingSyncList_.clear();
+
+    // create task and execute it in RS
+    auto task = std::make_shared<RSNodeGetShowingPropertiesAndCancelAnimation>(1e10, std::move(propertiesMap));
     RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(task, true);
-    // when task is timeout, the caller need to decide whether to call this function again
-    if (!task || task->IsTimeout()) {
-        return;
-    }
-    ROSEN_LOGE("zouwei, RSImplicitCancelAnimationParam::SyncProperties, this is after bool 11111+++++++");
 
-    // we need to push a synchronous command to cancel animation, cause:
-    // case 1. some new animation have been added, but not flush to render side,
-    // resulting these animation not canceled in task
-    // case 2. the node or modifier has not yet been created on the render side, resulting in task failure
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy == nullptr) {
+    // Test if the task is executed successfully
+    if (!task || !task->IsSuccess()) {
         return;
     }
 
-    for (auto& rsProperty : this->pendingSyncList_) {
-        auto node = rsProperty->target_.lock();
+    // Apply task result
+    for (const auto& [key, value] : task->GetProperties()) {
+        const auto& [nodeId, propertyId] = key;
+        auto node = RSNodeMap::Instance().GetNode(nodeId);
         if (node == nullptr) {
             continue;
         }
-        std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCancel>(node->GetId(), rsProperty->GetId());
-        transactionProxy->AddCommand(command, node->IsRenderServiceNode(), node->GetFollowType(), node->GetId());
-        if (node->NeedForcedSendToRemote()) {
-            std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSAnimationCancel>(node->GetId(), rsProperty->GetId());
-            transactionProxy->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
+        auto modifier = node->GetModifier(propertyId);
+        if (modifier == nullptr) {
+            continue;
+        }
+        auto property = modifier->GetProperty();
+        if (property == nullptr) {
+            continue;
+        }
+        node->CancelAnimationByProperty(propertyId);
+        if (value != nullptr) {
+            // successfully canceled RS animation and extract value, update ui value
+            property->SetValueFromRender(value);
+        } else {
+            // property or node is not yet created in RS, just trigger a force update
+            property->UpdateOnAllAnimationFinish();
         }
     }
-
-    if (!task->GetResult()) {
-        // corresponding to case 2, as the new showing value is the same as staging value,
-        // need not to update the value, only need to clear animations in rs node.
-        // node->CancelAnimationByProperty(this->id_);
-        for (auto& rsProperty : this->pendingSyncList_) {
-            auto node = rsProperty->target_.lock();
-            if (node == nullptr) {
-                continue;
-            }
-            node->CancelAnimationByProperty(rsProperty->GetId());
-        }
-        return;
-    }
-
-    // 需要将properties获取的结果设回到rs侧，就需要获取对应的property
-    auto nodeProperties = task->GetProperties();
-    for (auto& rsProperty : this->pendingSyncList_) {
-        auto node = rsProperty->target_.lock();
-        auto propertyId = rsProperty->GetId();
-        auto nodeId = node->GetId();
-
-        for (auto& nodeProperty : nodeProperties) {
-            if (nodeId != nodeProperty.first.first
-                || propertyId != nodeProperty.first.second) {
-                continue;
-            }
-            if (!nodeProperty.second) {
-                continue;
-            }
-            rsProperty->SetValueFromRender(nodeProperty.second);
-            // auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty>(nodeProperty.second);
-            // if (!renderProperty) {
-            //     continue;
-            // }
-            // rsProperty->SetValue(renderProperty->Get());
-            node->CancelAnimationByProperty(nodeProperty.first.second);
-            break;
-        }
-    }
-    
-    return;
 }
 
 RSImplicitCurveAnimationParam::RSImplicitCurveAnimationParam(

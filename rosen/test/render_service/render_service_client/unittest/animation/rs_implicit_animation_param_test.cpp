@@ -49,7 +49,7 @@ void RSImplicitAnimationParamTest::TearDown() {}
 HWTEST_F(RSImplicitAnimationParamTest, ApplyTimingProtocolTest, Level1)
 {
     RSAnimationTimingProtocol timingProtocol;
-    RSImplicitAnimationParam rsImplicitAnimationParam(timingProtocol);
+    RSImplicitAnimationParam rsImplicitAnimationParam(timingProtocol, ImplicitAnimationParamType::CURVE);
     auto animation = std::make_shared<RSAnimation>();
     rsImplicitAnimationParam.ApplyTimingProtocol(animation);
     ASSERT_NE(animation, nullptr);
@@ -63,7 +63,7 @@ HWTEST_F(RSImplicitAnimationParamTest, ApplyTimingProtocolTest, Level1)
 HWTEST_F(RSImplicitAnimationParamTest, CreateAnimationTest, Level1)
 {
     RSAnimationTimingProtocol timingProtocol;
-    RSImplicitAnimationParam rsImplicitAnimationParam(timingProtocol);
+    RSImplicitAnimationParam rsImplicitAnimationParam(timingProtocol, ImplicitAnimationParamType::CURVE);
     auto property = std::make_shared<RSPropertyBase>();
     auto startValue = std::make_shared<RSPropertyBase>();
     auto endValue = std::make_shared<RSPropertyBase>();

@@ -762,5 +762,13 @@ bool RSMarshallingHelper::GetUseSharedMem(std::thread::id tid)
 {
     return true;
 }
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val)
+{
+    return true;
+}
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val)
+{
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS

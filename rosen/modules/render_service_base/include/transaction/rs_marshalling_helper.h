@@ -16,18 +16,19 @@
 #ifndef RENDER_SERVICE_BASE_TRANSACTION_RS_MARSHALLING_HELPER_H
 #define RENDER_SERVICE_BASE_TRANSACTION_RS_MARSHALLING_HELPER_H
 
+#include <map>
 #include <memory>
 #include <optional>
+#include <parcel.h>
 #include <thread>
+
+#include "common/rs_common_def.h"
 #include "common/rs_macros.h"
+
 #ifdef USE_ROSEN_DRAWING
 #include "image/image.h"
 #include "text/hm_symbol.h"
 #endif
-
-#include <parcel.h>
-
-#include "common/rs_common_def.h"
 
 #ifndef USE_ROSEN_DRAWING
 template<typename T>
@@ -105,6 +106,7 @@ class RSRenderSpringAnimation;
 class RSRenderTransition;
 class RSRenderTransitionEffect;
 class RSRenderModifier;
+class RSRenderPropertyBase;
 template<typename T>
 class RSRenderProperty;
 template<typename T>
@@ -351,6 +353,42 @@ public:
     DECLARE_TEMPLATE_OVERLOAD(RSRenderProperty)
     DECLARE_TEMPLATE_OVERLOAD(RSRenderAnimatableProperty)
 #undef DECLARE_TEMPLATE_OVERLOAD
+
+    // reloaded marshalling & unmarshalling function for std::map
+    template<typename T, typename P>
+    static bool Marshalling(Parcel& parcel, const std::unordered_map<T, P>& val)
+    {
+        if (!parcel.WriteUint32(val.size())) {
+            return false;
+        }
+        for (const auto& [key, value] : val) {
+            if (!Marshalling(parcel, key) || !Marshalling(parcel, value)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    template<typename T, typename P>
+    static bool Unmarshalling(Parcel& parcel, std::unordered_map<T, P>& val)
+    {
+        uint32_t size = 0;
+        if (!Unmarshalling(parcel, size)) {
+            return false;
+        }
+        val.clear();
+        for (uint32_t i = 0; i < size; ++i) {
+            T key;
+            P value;
+            if (!Unmarshalling(parcel, key) || !Unmarshalling(parcel, value)) {
+                return false;
+            }
+            val.emplace(key, value);
+        }
+        return true;
+    }
+
+    static bool Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val);
+    static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val);
 
     // reloaded marshalling & unmarshalling function for std::vector
     template<typename T>

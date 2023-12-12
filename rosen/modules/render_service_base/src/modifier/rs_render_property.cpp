@@ -39,8 +39,8 @@ void RSRenderPropertyBase::OnChange() const
 bool RSRenderPropertyBase::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val)
 {
     if (val == nullptr) {
-        ROSEN_LOGE("RSRenderPropertyBase::Marshalling: the value of the property is a null pointer!");
-        return false;
+        parcel.WriteUint16(static_cast<int16_t>(RSModifierType::INVALID));
+        return true;
     }
     RSRenderPropertyType type = val->GetPropertyType();
     if (!(parcel.WriteInt16(static_cast<int16_t>(type)))) {
@@ -124,6 +124,10 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
         return false;
     }
     RSRenderPropertyType type = static_cast<RSRenderPropertyType>(typeId);
+    if (type == RSRenderPropertyType::INVALID) {
+        val.reset();
+        return true;
+    }
     PropertyId id = 0;
     if (!parcel.ReadUint64(id)) {
         return false;

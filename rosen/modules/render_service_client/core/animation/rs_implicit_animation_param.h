@@ -18,6 +18,7 @@
 
 #include <functional>
 #include <memory>
+#include <vector>
 
 #include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_animation_timing_protocol.h"
@@ -25,8 +26,7 @@
 
 namespace OHOS {
 namespace Rosen {
-enum class ImplicitAnimationParamType { NONE, CURVE, KEYFRAME, PATH, SPRING, INTERPOLATING_SPRING, TRANSITION, CANCEL, };
-
+enum class ImplicitAnimationParamType { NONE, CURVE, KEYFRAME, PATH, SPRING, INTERPOLATING_SPRING, TRANSITION, CANCEL };
 class RSAnimation;
 class RSPropertyBase;
 class RSMotionPathOption;
@@ -67,7 +67,7 @@ public:
     void SyncProperties();
 
 private:
-    std::vector<const std::shared_ptr<RSPropertyBase>> pendingSyncList_;
+    std::vector<std::shared_ptr<RSPropertyBase>> pendingSyncList_;
 };
 
 class RSImplicitCurveAnimationParam : public RSImplicitAnimationParam {
