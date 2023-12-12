@@ -36,6 +36,7 @@
 #include "text_converter.h"
 #include "word_breaker.h"
 #include "symbol_engine/hm_symbol_run.h"
+#include "utils/system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -64,6 +65,7 @@ namespace TextEngine {
 #define POINTY2 2
 #define POINTY4 4
 #define POINTY6 6
+const bool G_IS_HMSYMBOL_ENABLE = Drawing::SystemProperties::GetHMSymbolEnable();
 
 std::shared_ptr<TextSpan> TextSpan::MakeEmpty()
 {
@@ -182,7 +184,7 @@ void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, cons
     }
 
     PaintShadow(canvas, offsetX, offsetY, xs.shadows);
-    if (xs.isSymbolGlyph) {
+    if (xs.isSymbolGlyph && G_IS_HMSYMBOL_ENABLE) {
         std::pair<double, double> offset(offsetX, offsetY);
         HMSymbolRun::DrawSymbol(canvas, textBlob_, offset, paint, xs);
     } else {

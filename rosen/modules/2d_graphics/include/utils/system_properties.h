@@ -31,6 +31,8 @@ public:
         return rsVulkanEnabled_;
     }
 
+    static bool GetHMSymbolEnable();
+
 private:
     static const bool aceVulkanEnabled_;
     static const bool rsVulkanEnabled_;
