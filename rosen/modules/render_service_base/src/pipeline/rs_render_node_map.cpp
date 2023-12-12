@@ -173,6 +173,11 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
     });
 
     EraseIf(displayNodeMap_, [pid](const auto& pair) -> bool {
+        if (ExtractPid(pair.first) != pid && pair.second) {
+            ROSEN_LOGI("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %{public}llu",
+                (unsigned long long)pid);
+            pair.second->FilterModifiersByPid(pid);
+        }
         return ExtractPid(pair.first) == pid;
     });
 
