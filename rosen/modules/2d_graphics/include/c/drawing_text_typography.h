@@ -150,8 +150,11 @@ enum OH_Drawing_FontStyle {
 
 /**
  * @brief Enumerates text decoration style.
+ * 
+ * @since 11
+ * @version 1.0
  */
-enum OH_Drawing_TextDecorationStyle {
+typedef enum {
     /** Solid style */
     TEXT_DECORATION_STYLE_SOLID,
     /** Double style */
@@ -162,48 +165,60 @@ enum OH_Drawing_TextDecorationStyle {
     TEXT_DECORATION_STYLE_DASHED,
     /** Wavy style */
     TEXT_DECORATION_STYLE_WAVY,
-};
+} OH_Drawing_TextDecorationStyle;
 
 /**
  * @brief Enumerates ellipsis modal.
+ * 
+ * @since 11
+ * @version 1.0
  */
-enum OH_Drawing_EllipsisModal {
+typedef enum {
     /** Head modal */
     ELLIPSIS_MODAL_HEAD = 0,
     /** Middle modal */
     ELLIPSIS_MODAL_MIDDLE = 1,
     /** Tail modal */
     ELLIPSIS_MODAL_TAIL = 2,
-};
+} OH_Drawing_EllipsisModal;
 
 /**
  * @brief Enumerates break strategy.
+ * 
+ * @since 11
+ * @version 1.0
  */
-enum OH_Drawing_BreakStrategy {
+typedef enum {
     /** Greedy strategy */
     BREAK_STRATEGY_GREEDY = 0,
     /** Quality strategy */
     BREAK_STRATEGY_HIGH_QUALITY = 1,
     /** Balanced strategy */
     BREAK_STRATEGY_BALANCED = 2,
-};
+} OH_Drawing_BreakStrategy;
 
 /**
  * @brief Enumerates word break type.
+ * 
+ * @since 11
+ * @version 1.0
  */
-enum OH_Drawing_WordBreakType {
+typedef enum {
     /** Normal type */
     WORD_BREAK_TYPE_NORMAL = 0,
     /** Break All type */
     WORD_BREAK_TYPE_BREAK_ALL = 1,
     /** Break Word type */
     WORD_BREAK_TYPE_BREAK_WORD = 2,
-};
+} OH_Drawing_WordBreakType;
 
 /**
  * @brief Enumerates rect height style.
+ * 
+ * @since 11
+ * @version 1.0
  */
-enum OH_Drawing_RectHeightStyle {
+typedef enum {
     /** Tight style */
     RECT_HEIGHT_STYLE_TIGHT,
     /** Max style */
@@ -216,17 +231,20 @@ enum OH_Drawing_RectHeightStyle {
     RECT_HEIGHT_STYLE_INCLUDELINESPACEBOTTOM,
     /** Struct style */
     RECT_HEIGHT_STYLE_STRUCT,
-};
+} OH_Drawing_RectHeightStyle;
 
 /**
  * @brief Enumerates rect Width style.
+ * 
+ * @since 11
+ * @version 1.0
  */
-enum OH_Drawing_RectWidthStyle {
+typedef enum {
     /** Tight style */
     RECT_WIDTH_STYLE_TIGHT,
     /** Max style */
     RECT_WIDTH_STYLE_MAX,
-};
+} OH_Drawing_RectWidthStyle;
 
 /**
  * @brief Defines the rect of a textbox, including the left, right, top and bottom.
@@ -260,13 +278,16 @@ typedef struct {
 
 /**
  * @brief Enumerates affinity.
+ * 
+ * @since 11
+ * @version 1.0
  */
-enum OH_Drawing_Affinity {
+typedef enum {
     /** upstream affinity */
     AFFINITY_UPSTREAM,
     /** downstream affinity */
     AFFINITY_DOWNSTREAM,
-};
+} OH_Drawing_Affinity;
 
 /**
  * @brief Defines the position and affinity of typography, including the position and affinity.
