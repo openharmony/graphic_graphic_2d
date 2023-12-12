@@ -1719,6 +1719,13 @@ sk_sp<SkImage> RSRenderNode::GetCompletedImage(RSPaintFilterCanvas& canvas, uint
             RS_LOGE("invalid grBackendTexture_");
             return nullptr;
         }
+#ifdef RS_ENABLE_VK
+        if (RSSystemProperties::GetRsVulkanEnabled()) {
+            if (!cacheCompletedSurface_ || !cacheCompletedCleanupHelper_) {
+                return nullptr;
+            }
+        }
+#endif
         sk_sp<SkImage> image = nullptr;
 #ifdef RS_ENABLE_GL
         if (!OHOS::Rosen::RSSystemProperties::GetRsVulkanEnabled()) {
@@ -2363,8 +2370,18 @@ void RSRenderNode::ClearCacheSurface(bool isClearCompletedCacheSurface)
 {
     std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
     cacheSurface_ = nullptr;
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetRsVulkanEnabled()) {
+        cacheCleanupHelper_ = nullptr;
+    }
+#endif
     if (isClearCompletedCacheSurface) {
         cacheCompletedSurface_ = nullptr;
+#ifdef RS_ENABLE_VK
+        if (RSSystemProperties::GetRsVulkanEnabled()) {
+            cacheCompletedCleanupHelper_ = nullptr;
+        }
+#endif
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
         isTextureValid_ = false;
 #endif
