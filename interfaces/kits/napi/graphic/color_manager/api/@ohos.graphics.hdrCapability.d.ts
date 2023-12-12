@@ -30,7 +30,7 @@ declare namespace hdrCapability {
    * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
    * @since 11
    */
-   enum HDRFormat {
+  enum HDRFormat {
     /**
      * Not support HDR.
      *
