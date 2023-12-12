@@ -26,6 +26,17 @@
 
 namespace OHOS {
 namespace Rosen {
+const char* RSFilterCacheManager::GetCacheState() const
+{
+    if (cachedFilteredSnapshot_ == nullptr) {
+        return "Reuse filtered image";
+    } else if (cachedSnapshot_ == nullptr) {
+        return "Reuse snapshot, regenerate filtered image";
+    } else {
+        return "No cache";
+    }
+}
+
 #define CHECK_CACHE_PROCESS_STATUS                                       \
     do {                                                                 \
         if (cacheProcessStatus_.load() == CacheProcessStatus::WAITING) { \
@@ -311,6 +322,7 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
 #endif
         return;
     }
+    RS_TRACE_NAME_FMT("RSFilterCacheManager::DrawFilter status: %s", GetCacheState());
     CheckCachedImages(canvas);
     if (!IsCacheValid()) {
         TakeSnapshot(canvas, filter, src, needSnapshotOutset);
@@ -391,6 +403,7 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
 #endif
         return nullptr;
     }
+    RS_TRACE_NAME_FMT("RSFilterCacheManager::GeneratedCachedEffectData status: %s", GetCacheState());
     CheckCachedImages(canvas);
     if (!IsCacheValid()) {
         TakeSnapshot(canvas, filter, src);
