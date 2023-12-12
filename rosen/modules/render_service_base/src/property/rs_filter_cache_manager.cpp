@@ -112,6 +112,7 @@ void RSFilterCacheManager::UpdateCacheStateWithDirtyRegion()
         ROSEN_LOGD("RSFilterCacheManager::UpdateCacheStateWithDirtyRegion Delaying cache "
                    "invalidation for %{public}d frames.",
             cacheUpdateInterval_);
+        pendingPurge_ = true;
     } else {
         InvalidateCache();
     }
@@ -449,6 +450,7 @@ void RSFilterCacheManager::TakeSnapshot(
     cacheUpdateInterval_ =
         isLargeArea && filter->CanSkipFrame() ? RSSystemProperties::GetFilterCacheUpdateInterval() : 0;
     cachedFilterHash_ = 0;
+    pendingPurge_ = false;
 }
 #else
 void RSFilterCacheManager::TakeSnapshot(
@@ -754,12 +756,12 @@ std::tuple<Drawing::RectI, Drawing::RectI> RSFilterCacheManager::ValidateParams(
 
 inline void RSFilterCacheManager::CompactCache(bool shouldClearFilteredCache)
 {
-    if (shouldClearFilteredCache) {
-        cachedFilteredSnapshot_.reset();
-    } else {
-        task_->Reset();
-        cachedSnapshot_.reset();
+    if (pendingPurge_) {
+        InvalidateCache();
+        return;
     }
+    InvalidateCache(
+        shouldClearFilteredCache ? CacheType::CACHE_TYPE_FILTERED_SNAPSHOT : CacheType::CACHE_TYPE_SNAPSHOT);
 }
 } // namespace Rosen
 } // namespace OHOS
