@@ -692,7 +692,7 @@ void RSSurfaceRenderNode::NotifyUIBufferAvailable()
     {
         std::lock_guard<std::mutex> lock(mutexUI_);
         if (callbackFromUI_) {
-            ROSEN_LOGD("RSSurfaceRenderNode::NotifyUIBufferAvailable nodeId = %{public}" PRIu64, GetId());
+            ROSEN_LOGI("RSSurfaceRenderNode::NotifyUIBufferAvailable nodeId = %{public}" PRIu64, GetId());
             callbackFromUI_->OnBufferAvailable();
 #ifdef OHOS_PLATFORM
             if (IsAppWindow()) {
