@@ -264,7 +264,8 @@ void RSMainThread::Init()
         SKResourceManager::Instance().ReleaseResource();
     };
 #if defined(ROSEN_OHOS) && defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_VK)
-    if (GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN || GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         std::function<void*(VkImage, VkDeviceMemory)> createCleanup = [] (VkImage image, VkDeviceMemory memory) -> void* {
             return new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(), image, memory);
         };
@@ -291,8 +292,7 @@ void RSMainThread::Init()
             }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-            if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-                RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
 #if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
                 RSUploadTextureThread::Instance().PostTask(uploadTextureBarrierTask_);
 #endif
@@ -325,8 +325,7 @@ void RSMainThread::Init()
         renderEngine_->Init();
     }
 #ifdef RS_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         int cacheLimitsTimes = 3;
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_RENDER_CONTEXT
@@ -361,9 +360,9 @@ void RSMainThread::Init()
         } else {
             gpuContext->SetResourceCacheLimits(DEFAULT_SKIA_CACHE_COUNT, DEFAULT_SKIA_CACHE_SIZE);
         }
-#endif
+#endif // USE_ROSEN_DRAWING
     }
-#endif
+#endif // RS_ENABLE_GL
     RSInnovation::OpenInnovationSo();
 #if defined(RS_ENABLE_DRIVEN_RENDER)
     RSDrivenRenderManager::InitInstance();
@@ -373,8 +372,7 @@ void RSMainThread::Init()
     RSRcdRenderManager::InitInstance();
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
 #if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
         uploadTextureBarrierTask_ = [this]() {
             auto renderContext = GetRenderEngine()->GetRenderContext().get();
@@ -1269,8 +1267,7 @@ void RSMainThread::WaitUtilDrivenRenderFinished()
 #if defined(RS_ENABLE_PARALLEL_UPLOAD) && defined(RS_ENABLE_GL)
 void RSMainThread::WaitUntilUploadTextureTaskFinished()
 {
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
         return;
     }
     if (!isUniRender_) {
@@ -1281,7 +1278,7 @@ void RSMainThread::WaitUntilUploadTextureTaskFinished()
         std::unique_lock<std::mutex> lock(uploadTextureMutex_);
         //upload texture maximum waiting time is 100ms
         //otherwise main thread upload texture
-        static const uint32_t WAIT_FOR_UPLOAD_FINISH_TIMEOUT = 100; 
+        static const uint32_t WAIT_FOR_UPLOAD_FINISH_TIMEOUT = 100;
         uploadTextureTaskCond_.wait_until(lock, std::chrono::system_clock::now() +
             std::chrono::milliseconds(WAIT_FOR_UPLOAD_FINISH_TIMEOUT), [this]() {
                  return uploadTextureFinishedCount_ > 0; });

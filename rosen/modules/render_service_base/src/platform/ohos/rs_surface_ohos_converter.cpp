@@ -54,8 +54,7 @@ sptr<Surface> RSSurfaceConverter::ConvertToOhosSurface(std::shared_ptr<RSSurface
 #endif
 
 #if defined(ACE_ENABLE_GL)
-    if (Rosen::RSSystemProperties::GetGpuApiType() != Rosen::GpuApiType::VULKAN &&
-        Rosen::RSSystemProperties::GetGpuApiType() != Rosen::GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         auto derivedPtr = std::static_pointer_cast<RSSurfaceOhosGl>(surface); // gpu render
         return derivedPtr->GetSurface();
     }

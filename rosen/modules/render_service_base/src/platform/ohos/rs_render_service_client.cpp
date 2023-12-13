@@ -143,8 +143,7 @@ std::shared_ptr<RSSurface> RSRenderServiceClient::CreateRSSurface(const sptr<Sur
 #endif
 
 #if defined (ACE_ENABLE_GL)
-    if (Rosen::RSSystemProperties::GetGpuApiType() != Rosen::GpuApiType::VULKAN &&
-        Rosen::RSSystemProperties::GetGpuApiType() != Rosen::GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == Rosen::GpuApiType::OPENGL) {
         return std::make_shared<RSSurfaceOhosGl>(surface); // GPU render
     }
 #endif

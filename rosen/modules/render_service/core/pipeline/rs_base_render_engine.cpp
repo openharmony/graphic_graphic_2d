@@ -95,9 +95,14 @@ void RSBaseRenderEngine::Init(bool independentContext)
 #endif // RS_ENABLE_VK
 #else
 #if defined(RS_ENABLE_VK)
-    skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext(independentContext);
-    vkImageManager_ = std::make_shared<RSVkImageManager>();
-    renderContext_->SetUpGpuContext(skContext_);
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        skContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext(independentContext);
+        vkImageManager_ = std::make_shared<RSVkImageManager>();
+        renderContext_->SetUpGpuContext(skContext_);
+    } else {
+        renderContext_->SetUpGpuContext();
+    }
 #else
     renderContext_->SetUpGpuContext();
 #endif
@@ -135,8 +140,7 @@ void RSBaseRenderEngine::ResetCurrentContext()
         return;
     }
 #if (defined RS_ENABLE_GL)
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         renderContext_->ShareMakeCurrentNoSurface(EGL_NO_CONTEXT);
     }
 #endif
@@ -206,20 +210,20 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer recordingContext is null!");
         return nullptr;
     }
-#endif
+#endif // RS_ENABLE_GL
 #if defined(RS_ENABLE_VK)
     if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && renderContext_->GetGrContext() == nullptr) {
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer GrContext is null!");
         return nullptr;
     }
-#endif
+#endif // RS_ENABLE_VK
 #else
     if (canvas.getGrContext() == nullptr) {
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer GrContext is null!");
         return nullptr;
     }
-#endif
+#endif // NEW_SKIA
 #else
 #if defined(RS_ENABLE_GL)
     if (canvas.GetGPUContext() == nullptr) {
@@ -232,7 +236,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
         return nullptr;
     }
 #endif
-#endif
+#endif // USE_ROSEN_DRAWING
     auto eglTextureId = eglImageManager_->MapEglImageFromSurfaceBuffer(buffer, acquireFence, threadIndex);
     if (eglTextureId == 0) {
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer MapEglImageFromSurfaceBuffer return invalid texture ID");
@@ -270,8 +274,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
 #endif
 #ifdef NEW_SKIA
 #if defined(RS_ENABLE_GL)
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         return SkImage::MakeFromTexture(canvas.recordingContext(), backendTexture,
             surfaceOrigin, colorType, kPremul_SkAlphaType, skColorSpace);
     }
@@ -316,8 +319,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
 #endif
 
 #if defined(RS_ENABLE_GL)
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         externalTextureInfo.SetIsMipMapped(false);
         externalTextureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
         externalTextureInfo.SetID(eglTextureId);
@@ -401,8 +403,8 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const std::share
 #endif
 #else
 #ifdef RS_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR && renderContext_ != nullptr) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL &&
+        renderContext_ != nullptr) {
         rsSurface->SetRenderContext(renderContext_.get());
     }
 #endif
@@ -444,8 +446,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
 #else
     std::shared_ptr<RSSurfaceOhos> rsSurface = nullptr;
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         if (forceCPU) {
             rsSurface = std::make_shared<RSSurfaceOhosRaster>(targetSurface);
         } else {
@@ -837,14 +838,13 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         canvas.DrawImageRect(*image, params.srcRect, params.dstRect,
             Drawing::SamplingOptions(), Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
         canvas.DetachBrush();
-#endif
+#endif // USE_ROSEN_DRAWING
         RS_OPTIONAL_TRACE_END();
     }
-#endif
+#endif // RS_ENABLE_VK
 
 #ifdef RS_ENABLE_GL // RS_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
         return;
     }
     auto image = CreateEglImageFromBuffer(canvas, params.buffer, params.acquireFence, params.threadIndex,
@@ -887,8 +887,8 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         params.paint.SetShaderEffect(imageShader);
         ColorSpaceConvertor(imageShader, params);
     }
-#endif
-#endif
+#endif // USE_ROSEN_DRAWING
+#endif // USE_VIDEO_PROCESSING_ENGINE
 
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
@@ -907,7 +907,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 #else
     canvas.drawRect(params.dstRect, &(params.paint));
 #endif // USE_VIDEO_PROCESSING_ENGINE
-#endif
+#endif // NEW_SKIA
 #else
     canvas.AttachBrush(params.paint);
     auto drawingSamplingOptions = RSSystemProperties::IsPhoneType()
@@ -916,7 +916,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     canvas.DrawImageRect(*image.get(), params.srcRect, params.dstRect, drawingSamplingOptions,
         Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     canvas.DetachBrush();
-#endif
+#endif // USE_ROSEN_DRAWING
     RS_OPTIONAL_TRACE_END();
 #endif // RS_ENABLE_GL
 }

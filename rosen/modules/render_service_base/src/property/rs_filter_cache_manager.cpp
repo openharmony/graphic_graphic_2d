@@ -172,10 +172,16 @@ bool RSFilterCacheManager::RSFilterCacheTask::Render()
     auto src = SkRect::MakeSize(SkSize::Make(surfaceSize_));
     auto dst = SkRect::MakeSize(SkSize::Make(surfaceSize_));
 #else
+    Drawing::TextureOrigin surfaceOrigin = Drawing::TextureOrigin::TOP_LEFT;
 #ifdef RS_ENABLE_VK
-    auto surfaceOrigin = Drawing::TextureOrigin::TOP_LEFT;
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        surfaceOrigin = Drawing::TextureOrigin::TOP_LEFT;
+    } else {
+        surfaceOrigin = Drawing::TextureOrigin::BOTTOM_LEFT;
+    }
 #else
-    auto surfaceOrigin = Drawing::TextureOrigin::BOTTOM_LEFT;
+    surfaceOrigin = Drawing::TextureOrigin::BOTTOM_LEFT;
 #endif
     Drawing::BitmapFormat bitmapFormat = { Drawing::ColorType::COLORTYPE_RGBA_8888,
         Drawing::AlphaType::ALPHATYPE_PREMUL };

@@ -20,7 +20,9 @@
 #include <memory>
 
 #include "pipeline/rs_canvas_render_node.h"
+#ifdef USE_ROSEN_DRAWING
 #include "recording/recording_canvas.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {

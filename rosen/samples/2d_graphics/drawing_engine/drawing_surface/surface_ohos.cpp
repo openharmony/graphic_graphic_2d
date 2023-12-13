@@ -48,8 +48,7 @@ std::shared_ptr<SurfaceBase> SurfaceOhos::CreateSurface(sptr<Surface> surface)
             break;
         case RenderBackendType::GLES:
 #ifdef ACE_ENABLE_GL
-            if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-                RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
                 LOGI("SurfaceOhos::CreateSurface with gles backend");
                 producer = std::make_shared<SurfaceOhosGl>(surface);
             }

@@ -39,7 +39,7 @@ void BackendTexture::SetTextureInfo(const TextureInfo& textureInfo)
     textureInfo_ = textureInfo;
 }
 
-const TextureInfo BackendTexture::GetTextureInfo() const
+const TextureInfo& BackendTexture::GetTextureInfo() const
 {
     return textureInfo_;
 }

@@ -212,8 +212,7 @@ RSUniRenderVisitor::RSUniRenderVisitor(std::shared_ptr<RSPaintFilterCanvas> canv
 #if defined(RS_ENABLE_PARALLEL_RENDER) && (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK))
     parallelRenderVisitorIndex_ = surfaceIndex;
 #if defined(RS_ENABLE_GL)
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         canvas_ = canvas;
     }
 #endif
@@ -1028,8 +1027,7 @@ void RSUniRenderVisitor::CollectAppNodeForHwc(std::shared_ptr<RSSurfaceRenderNod
 
     if (isParallel_ && !isUIFirst_) {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
-        if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-            RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
             RSParallelRenderManager::Instance()->AddAppWindowNode(parallelRenderVisitorIndex_, surfaceNode);
         }
 #endif
@@ -2278,8 +2276,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         node.GetId(), node.GetChildrenCount());
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
     bool isNeedCalcCost = false;
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         isNeedCalcCost = node.GetSurfaceChangedRects().size() > 0;
     }
 #endif
@@ -2518,32 +2515,35 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
 
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_OLD_VK)
-        if (isParallel_ &&!isPartialRenderEnabled_) {
-            auto parallelRenderManager = RSParallelRenderManager::Instance();
-            vulkan::VulkanWindow::InitializeVulkan(
-                parallelRenderManager->GetParallelThreadNumber());
-            RS_OPTIONAL_TRACE_BEGIN("RSUniRender::VK::WaitFence");
-            vulkan::VulkanWindow::WaitForSharedFence();
-            vulkan::VulkanWindow::ResetSharedFence();
-            RS_OPTIONAL_TRACE_END();
-            parallelRenderManager->CopyVisitorAndPackTask(*this, node);
-            parallelRenderManager->InitDisplayNodeAndRequestFrame(renderEngine_, screenInfo_);
-            parallelRenderManager->LoadBalanceAndNotify(TaskType::PROCESS_TASK);
-            parallelRenderManager->WaitProcessEnd();
-            parallelRenderManager->CommitSurfaceNum(node.GetChildrenCount());
-            vulkan::VulkanWindow::PresentAll();
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+            if (isParallel_ &&!isPartialRenderEnabled_) {
+                auto parallelRenderManager = RSParallelRenderManager::Instance();
+                vulkan::VulkanWindow::InitializeVulkan(
+                    parallelRenderManager->GetParallelThreadNumber());
+                RS_OPTIONAL_TRACE_BEGIN("RSUniRender::VK::WaitFence");
+                vulkan::VulkanWindow::WaitForSharedFence();
+                vulkan::VulkanWindow::ResetSharedFence();
+                RS_OPTIONAL_TRACE_END();
+                parallelRenderManager->CopyVisitorAndPackTask(*this, node);
+                parallelRenderManager->InitDisplayNodeAndRequestFrame(renderEngine_, screenInfo_);
+                parallelRenderManager->LoadBalanceAndNotify(TaskType::PROCESS_TASK);
+                parallelRenderManager->WaitProcessEnd();
+                parallelRenderManager->CommitSurfaceNum(node.GetChildrenCount());
+                vulkan::VulkanWindow::PresentAll();
 
-            RS_OPTIONAL_TRACE_BEGIN("RSUniRender:WaitUtilUniRenderFinished");
-            RSMainThread::Instance()->WaitUtilUniRenderFinished();
-            RS_OPTIONAL_TRACE_END();
+                RS_OPTIONAL_TRACE_BEGIN("RSUniRender:WaitUtilUniRenderFinished");
+                RSMainThread::Instance()->WaitUtilUniRenderFinished();
+                RS_OPTIONAL_TRACE_END();
 
-            parallelRenderManager->ProcessParallelDisplaySurface(*this);
-            processor_->PostProcess();
+                parallelRenderManager->ProcessParallelDisplaySurface(*this);
+                processor_->PostProcess();
 
-            parallelRenderManager->ReleaseBuffer();
+                parallelRenderManager->ReleaseBuffer();
 
-            isParallel_ = false;
-            return;
+                isParallel_ = false;
+                return;
+            }
         }
 #endif
 
@@ -2782,8 +2782,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
         }
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
-        if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-            RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
             if ((isParallel_ && !isUIFirst_ && ((rects.size() > 0) || !isPartialRenderEnabled_)) && isCalcCostEnable_) {
                 auto parallelRenderManager = RSParallelRenderManager::Instance();
                 parallelRenderManager->CopyCalcCostVisitorAndPackTask(*this, node, isNeedCalcCost,
@@ -3021,8 +3020,7 @@ void RSUniRenderVisitor::UpdateHardwareEnabledInfoBeforeCreateLayer()
     }
     if (isParallel_ && !isUIFirst_) {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
-        if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-            RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
             std::vector<std::shared_ptr<RSSurfaceRenderNode>>().swap(appWindowNodesInZOrder_);
             auto subThreadNum = RSParallelRenderManager::Instance()->GetParallelThreadNumber();
             auto appWindowNodesMap = RSParallelRenderManager::Instance()->GetAppWindowNodes();
@@ -4727,8 +4725,7 @@ bool RSUniRenderVisitor::AdaptiveSubRenderThreadMode(bool doParallel)
 void RSUniRenderVisitor::ParallelRenderEnableHardwareComposer(RSSurfaceRenderNode& node)
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined (RS_ENABLE_GL)
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         if (isParallel_ && !isUIFirst_) {
             const auto& property = node.GetRenderProperties();
             auto dstRect = node.GetDstRect();
@@ -5052,7 +5049,7 @@ void RSUniRenderVisitor::tryCapture(float width, float height)
     }
     recordingCanvas_ = std::make_unique<Drawing::RecordingCanvas>(width, height);
     RS_TRACE_NAME("RSUniRender:Recording begin");
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
     recordingCanvas_->SetGrRecordingContext(renderContext->GetSharedDrGPUContext());
 #endif

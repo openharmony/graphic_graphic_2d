@@ -468,8 +468,7 @@ sk_sp<SkSurface> RSSurfaceCaptureTask::CreateSurface(const std::unique_ptr<Media
     SkImageInfo info = SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(),
         kRGBA_8888_SkColorType, kPremul_SkAlphaType);
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
 #if defined(NEW_RENDER_CONTEXT)
         auto drawingContext = RSMainThread::Instance()->GetRenderEngine()->GetDrawingContext();
         if (drawingContext == nullptr) {
@@ -503,8 +502,7 @@ sk_sp<SkSurface> RSSurfaceCaptureTask::CreateSurface(const std::unique_ptr<Media
 #ifndef USE_ROSEN_DRAWING
 void DmaMem::ReleaseGLMemory()
 {
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
         return;
     }
     if (texId_ != 0U) {
@@ -529,8 +527,7 @@ void DmaMem::ReleaseGLMemory()
 #ifndef USE_ROSEN_DRAWING
 sptr<SurfaceBuffer> DmaMem::DmaMemAlloc(SkImageInfo &dstInfo, const std::unique_ptr<Media::PixelMap>& pixelmap)
 {
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
         return nullptr;
     }
 #if defined(_WIN32) || defined(_APPLE) || defined(A_PLATFORM) || defined(IOS_PLATFORM)
@@ -569,8 +566,7 @@ sptr<SurfaceBuffer> DmaMem::DmaMemAlloc(SkImageInfo &dstInfo, const std::unique_
 #ifndef USE_ROSEN_DRAWING
 sk_sp<SkSurface> DmaMem::GetSkSurfaceFromSurfaceBuffer(sptr<SurfaceBuffer> surfaceBuffer)
 {
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
         return nullptr;
     }
     if (surfaceBuffer == nullptr) {
@@ -759,27 +755,32 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTask::CreateSurface(const std:
     Drawing::ImageInfo info = Drawing::ImageInfo{pixelmap->GetWidth(), pixelmap->GetHeight(),
         Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL};
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
 #if defined(NEW_RENDER_CONTEXT)
-    auto drawingContext = RSMainThread::Instance()->GetRenderEngine()->GetDrawingContext();
-    if (drawingContext == nullptr) {
-        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
-        return nullptr;
-    }
-    drawingContext->SetUpDrawingContext();
-    return Drawing::Surface::MakeRenderTarget(drawingContext->GetDrawingContext, fasle, info);
+        auto drawingContext = RSMainThread::Instance()->GetRenderEngine()->GetDrawingContext();
+        if (drawingContext == nullptr) {
+            RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
+            return nullptr;
+        }
+        drawingContext->SetUpDrawingContext();
+        return Drawing::Surface::MakeRenderTarget(drawingContext->GetDrawingContext, fasle, info);
 #else
-    auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
-    if (renderContext == nullptr) {
-        RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
-        return nullptr;
-    }
-    renderContext->SetUpGpuContext();
-    return Drawing::Surface::MakeRenderTarget(renderContext->GetDrGPUContext(), false, info);
+        auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
+        if (renderContext == nullptr) {
+            RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
+            return nullptr;
+        }
+        renderContext->SetUpGpuContext(nullptr);
+        return Drawing::Surface::MakeRenderTarget(renderContext->GetDrGPUContext(), false, info);
 #endif
+    }
 #endif
 #ifdef RS_ENABLE_VK
-    return Drawing::Surface::MakeRenderTarget(
-        RSMainThread::Instance()->GetRenderEngine()->GetSkContext().get(), false, info);
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR)
+        return Drawing::Surface::MakeRenderTarget(
+            RSMainThread::Instance()->GetRenderEngine()->GetSkContext().get(), false, info);
+    }
 #endif
     return Drawing::Surface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
 }

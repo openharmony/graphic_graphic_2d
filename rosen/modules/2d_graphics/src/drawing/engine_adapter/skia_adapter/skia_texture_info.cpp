@@ -121,7 +121,15 @@ void SkiaTextureInfo::ConvertToVKTexture(const GrBackendTexture& backendTexture,
 GrBackendTexture SkiaTextureInfo::ConvertToGrBackendTexture(const TextureInfo& info)
 {
 #ifdef RS_ENABLE_VK
-    return ConvertToGrBackendVKTexture(info);
+    if (GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
+        GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+        return ConvertToGrBackendVKTexture(info);
+    } else {
+        GrGLTextureInfo grGLTextureInfo = { info.GetTarget(), info.GetID(), info.GetFormat() };
+        GrBackendTexture backendTexture(info.GetWidth(), info.GetHeight(),
+            static_cast<GrMipMapped>(info.GetIsMipMapped()), grGLTextureInfo);
+        return backendTexture;
+    }
 #else
     GrGLTextureInfo grGLTextureInfo = { info.GetTarget(), info.GetID(), info.GetFormat() };
     GrBackendTexture backendTexture(info.GetWidth(), info.GetHeight(),
