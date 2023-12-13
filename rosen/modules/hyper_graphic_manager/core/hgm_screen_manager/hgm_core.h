@@ -94,6 +94,11 @@ public:
             (maxTE_ == VSYNC_MAX_REFRESHRATE);
     }
 
+    bool IsLTPOSwitchOn() const
+    {
+        return ltpoEnabled_;
+    }
+
     uint32_t GetAlignRate() const
     {
         return alignRate_;

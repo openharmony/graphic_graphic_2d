@@ -382,5 +382,10 @@ void RSUIDirector::PostTask(const std::function<void()>& task)
         return;
     }
 }
+
+int32_t RSUIDirector::GetCurrentRefreshRateMode()
+{
+    return RSFrameRatePolicy::GetInstance()->GetRefreshRateMode();
+}
 } // namespace Rosen
 } // namespace OHOS

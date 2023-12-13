@@ -37,7 +37,13 @@ HgmConfigCallbackManager::HgmConfigCallbackManager()
 HgmConfigCallbackManager::~HgmConfigCallbackManager() noexcept
 {
     animDynamicCfgCallbacks_.clear();
+    refreshRateModeCallbacks_.clear();
     instance_ = nullptr;
+}
+
+PidToRefreshRateModeCallback HgmConfigCallbackManager::GetRefreshRateModeCallbacks() const
+{
+    return refreshRateModeCallbacks_;
 }
 
 void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
@@ -68,6 +74,21 @@ void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
     callback->OnHgmConfigChanged(data);
 }
 
+void HgmConfigCallbackManager::RegisterHgmRefreshRateModeChangeCallback(
+    pid_t pid, const sptr<RSIHgmConfigChangeCallback>& callback)
+{
+    if (callback == nullptr) {
+        HGM_LOGE("HgmRefreshRateModeCallbackManager %{public}s : callback is null.", __func__);
+        return;
+    }
+    std::lock_guard<std::mutex> lock(mtx_);
+    refreshRateModeCallbacks_[pid] = callback;
+    HGM_LOGD("HgmRefreshRateModeCallbackManager %{public}s : add a remote callback succeed.", __func__);
+
+    int32_t currentRefreshRateMode = HgmCore::Instance().GetCurrentRefreshRateMode();
+    callback->OnHgmRefreshRateModeChanged(currentRefreshRateMode);
+}
+
 void HgmConfigCallbackManager::UnRegisterHgmConfigChangeCallback(pid_t pid)
 {
     std::lock_guard<std::mutex> lock(mtx_);
@@ -77,6 +98,14 @@ void HgmConfigCallbackManager::UnRegisterHgmConfigChangeCallback(pid_t pid)
         return;
     }
     HGM_LOGD("HgmConfigCallbackManager %{public}s : initialization or do not find callback(pid = %d)",
+        __func__, static_cast<int>(pid));
+
+    if (refreshRateModeCallbacks_.find(pid) != refreshRateModeCallbacks_.end()) {
+        refreshRateModeCallbacks_.erase(pid);
+        HGM_LOGD("HgmRefreshRateModeCallbackManager %{public}s : remove a remote callback succeed.", __func__);
+        return;
+    }
+    HGM_LOGD("HgmRefreshRateModeCallbackManager %{public}s : initialization or do not find callback(pid = %d)",
         __func__, static_cast<int>(pid));
 }
 } // namespace OHOS::Rosen

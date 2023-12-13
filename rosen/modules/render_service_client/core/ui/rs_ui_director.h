@@ -65,6 +65,8 @@ public:
 
     static void PostFrameRateTask(const std::function<void()>& task);
 
+    int32_t GetCurrentRefreshRateMode();
+
 private:
     void AttachSurface();
     static void RecvMessages();

@@ -28,6 +28,9 @@ public:
 
     int GetPreferredFps(const std::string& scene, float speed);
 
+    void SetRefreshRateMode(int32_t refreshRateMode);
+    int32_t GetRefreshRateMode();
+
 private:
     RSFrameRatePolicy();
     ~RSFrameRatePolicy();
@@ -40,6 +43,9 @@ private:
     float ppi_ = 1.0f;
     float xDpi_ = 1.0f;
     float yDpi_ = 1.0f;
+
+    void HgmRefreshRateModeChangeCallback(int32_t refreshRateMode);
+    int32_t currentRefreshRateMode_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

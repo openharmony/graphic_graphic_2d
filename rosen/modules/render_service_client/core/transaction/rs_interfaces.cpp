@@ -387,6 +387,11 @@ int32_t RSInterfaces::RegisterHgmConfigChangeCallback(const HgmConfigChangeCallb
     return renderServiceClient_->RegisterHgmConfigChangeCallback(callback);
 }
 
+int32_t RSInterfaces::RegisterHgmRefreshRateModeChangeCallback(const HgmRefreshRateModeChangeCallback& callback)
+{
+    return renderServiceClient_->RegisterHgmRefreshRateModeChangeCallback(callback);
+}
+
 void RSInterfaces::SetAppWindowNum(uint32_t num)
 {
     renderServiceClient_->SetAppWindowNum(num);

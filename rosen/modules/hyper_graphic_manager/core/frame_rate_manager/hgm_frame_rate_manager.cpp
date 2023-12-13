@@ -24,7 +24,7 @@
 #include "rs_trace.h"
 #include "sandbox_utils.h"
 #include "frame_rate_report.h"
-
+#include "hgm_config_callback_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -41,26 +41,28 @@ namespace {
 void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
     sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator)
 {
-    UpdateVSyncMode(rsController, appController);
-    controller_ =
-        std::make_shared<HgmVSyncGeneratorController>(rsController, appController, vsyncGenerator);
-}
-
-void HgmFrameRateManager::UpdateVSyncMode(sptr<VSyncController> rsController, sptr<VSyncController> appController)
-{
     HgmCore::Instance().RegisterRefreshRateModeChangeCallback([rsController, appController](int32_t mode) {
-        if (mode == HGM_REFRESHRATE_MODE_AUTO) {
-            rsController->SetPhaseOffset(0);
-            appController->SetPhaseOffset(0);
-            CreateVSyncGenerator()->SetVSyncMode(VSYNC_MODE_LTPO);
-        } else {
-            if (RSUniRenderJudgement::IsUniRender()) {
-                rsController->SetPhaseOffset(UNI_RENDER_VSYNC_OFFSET);
-                appController->SetPhaseOffset(UNI_RENDER_VSYNC_OFFSET);
+        if (HgmCore::Instance().IsLTPOSwitchOn()) {
+            if (mode == HGM_REFRESHRATE_MODE_AUTO) {
+                rsController->SetPhaseOffset(0);
+                appController->SetPhaseOffset(0);
+                CreateVSyncGenerator()->SetVSyncMode(VSYNC_MODE_LTPO);
+            } else {
+                if (RSUniRenderJudgement::IsUniRender()) {
+                    rsController->SetPhaseOffset(UNI_RENDER_VSYNC_OFFSET);
+                    appController->SetPhaseOffset(UNI_RENDER_VSYNC_OFFSET);
+                }
+                CreateVSyncGenerator()->SetVSyncMode(VSYNC_MODE_LTPS);
             }
-            CreateVSyncGenerator()->SetVSyncMode(VSYNC_MODE_LTPS);
+        }
+
+        auto callbacks = HgmConfigCallbackManager::GetInstance()->GetRefreshRateModeCallbacks();
+        for (const auto& [_, callback] : callbacks) {
+            callback->OnHgmRefreshRateModeChanged(mode);
         }
     });
+    controller_ =
+        std::make_shared<HgmVSyncGeneratorController>(rsController, appController, vsyncGenerator);
 }
 
 void HgmFrameRateManager::UniProcessData(ScreenId screenId, uint64_t timestamp,

@@ -29,6 +29,7 @@ public:
     virtual ~RSHgmConfigChangeCallbackProxy() noexcept = default;
 
     void OnHgmConfigChanged(std::shared_ptr<RSHgmConfigData> configData) override;
+    void OnHgmRefreshRateModeChanged(int32_t refreshRateMode) override;
 
 private:
     static inline BrokerDelegator<RSHgmConfigChangeCallbackProxy> delegator_;
