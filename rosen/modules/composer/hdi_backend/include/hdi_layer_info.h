@@ -127,11 +127,13 @@ public:
 
     void SetVisibleRegions(const std::vector<GraphicIRect> &visibleRegions)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         visibleRegions_ = visibleRegions;
     }
 
     void SetDirtyRegions(const std::vector<GraphicIRect> &dirtyRegions)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         dirtyRegions_ = dirtyRegions;
     }
 
@@ -270,11 +272,13 @@ public:
 
     const std::vector<GraphicIRect> &GetVisibleRegions()
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         return visibleRegions_;
     }
 
     const std::vector<GraphicIRect> &GetDirtyRegions()
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         return dirtyRegions_;
     }
 
@@ -360,6 +364,7 @@ public:
 
     void CopyLayerInfo(const std::shared_ptr<HdiLayerInfo> &layerInfo)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         zOrder_ = layerInfo->GetZorder();
         layerRect_ = layerInfo->GetLayerSize();
         boundRect_ = layerInfo->GetBoundSize();
@@ -387,6 +392,7 @@ public:
 
     void Dump(std::string &result) const
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         if (TransformTypeStrs.find(transformType_) != TransformTypeStrs.end() &&
             CompositionTypeStrs.find(compositionType_) != CompositionTypeStrs.end() &&
             BlendTypeStrs.find(blendType_) != BlendTypeStrs.end()) {
@@ -479,6 +485,7 @@ private:
     sptr<SurfaceBuffer> pbuffer_ = nullptr;
     bool preMulti_ = false;
     LayerMask layerMask_ = LayerMask::LAYER_MASK_NORMAL;
+    mutable std::mutex mutex_;
 };
 } // namespace Rosen
 } // namespace OHOS
