@@ -2539,7 +2539,7 @@ uint32_t RSRenderNode::GetCacheSurfaceThreadIndex() const
 }
 bool RSRenderNode::QuerySubAssignable(bool isRotation) const
 {
-    return !hasFilter_ && !hasAbilityComponent_ && !isRotation && !hasHardwareNode_;
+    return !childHasFilter_ && !hasFilter_ && !hasAbilityComponent_ && !isRotation && !hasHardwareNode_;
 }
 uint32_t RSRenderNode::GetCompletedSurfaceThreadIndex() const
 {
