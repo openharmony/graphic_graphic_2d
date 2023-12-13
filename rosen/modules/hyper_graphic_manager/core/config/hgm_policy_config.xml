@@ -104,5 +104,15 @@
             <SpeedThresholds name="2" min="46" max="77" preferred_fps="90"/>
             <SpeedThresholds name="3" min="0" max="46" preferred_fps="60"/>
         </DynamicSettings>
+        <DynamicSettings name="scrollable_motion_scene">
+            <SpeedThresholds name="1" min="77" max="-1" preferred_fps="120"/>
+            <SpeedThresholds name="2" min="46" max="77" preferred_fps="90"/>
+            <SpeedThresholds name="3" min="0" max="46" preferred_fps="60"/>
+        </DynamicSettings>
+        <DynamicSettings name="scrollable_multi_task_scene">
+            <SpeedThresholds name="1" min="77" max="-1" preferred_fps="120"/>
+            <SpeedThresholds name="2" min="46" max="77" preferred_fps="90"/>
+            <SpeedThresholds name="3" min="0" max="46" preferred_fps="60"/>
+        </DynamicSettings>
     </Params>
 </HgmConfig>
