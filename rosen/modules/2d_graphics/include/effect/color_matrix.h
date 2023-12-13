@@ -69,6 +69,10 @@ public:
      */
     void SetSaturation(scalar sat);
 
+    scalar* GetArray() {
+        return array_;
+    }
+
 private:
     scalar array_[MATRIX_SIZE] = { 0 };
 };

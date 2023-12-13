@@ -37,9 +37,11 @@ public:
 
     virtual void InitWithBlendMode(ColorQuad c, BlendMode mode) = 0;
     virtual void InitWithColorMatrix(const ColorMatrix& m) = 0;
+    virtual void InitWithColorFloat(const float f[20]) = 0;
     virtual void InitWithLinearToSrgbGamma() = 0;
     virtual void InitWithSrgbGammaToLinear() = 0;
     virtual void InitWithCompose(const ColorFilter& f1, const ColorFilter& f2) = 0;
+    virtual void InitWithCompose(const float f1[MATRIX_SIZE], const float f2[MATRIX_SIZE]) = 0;
     virtual void Compose(const ColorFilter& f) = 0;
     virtual void InitWithLuma() = 0;
     virtual std::shared_ptr<Data> Serialize() const = 0;

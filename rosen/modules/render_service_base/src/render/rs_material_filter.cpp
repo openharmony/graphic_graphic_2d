@@ -173,13 +173,9 @@ std::shared_ptr<Drawing::ColorFilter> RSMaterialFilter::GetColorFilter(float sat
     sk_sp<SkColorFilter> filterCompose = SkColorFilters::Compose(satFilter, brightnessFilter);
 #else
     Drawing::ColorMatrix bm;
-    bm.SetArray(brightnessMat);
-    std::shared_ptr<Drawing::ColorFilter> brightnessFilter = Drawing::ColorFilter::CreateMatrixColorFilter(bm);
-    Drawing::ColorMatrix cm;
     cm.SetSaturation(sat);
-    std::shared_ptr<Drawing::ColorFilter> satFilter = Drawing::ColorFilter::CreateMatrixColorFilter(cm);
     std::shared_ptr<Drawing::ColorFilter> filterCompose =
-        Drawing::ColorFilter::CreateComposeColorFilter(*satFilter, *brightnessFilter);
+        Drawing::ColorFilter::CreateComposeColorFilter(cm.GetArray(), brightnessMat);
 #endif
     return filterCompose;
 }
@@ -201,10 +197,7 @@ sk_sp<SkImageFilter> RSMaterialFilter::CreateMaterialFilter(float radius, float 
 std::shared_ptr<Drawing::ImageFilter> RSMaterialFilter::CreateMaterialFilter(float radius, float sat, float brightness)
 {
     colorFilter_ = GetColorFilter(sat, brightness);
-    std::shared_ptr<Drawing::ImageFilter> blurFilter =
-        Drawing::ImageFilter::CreateBlurImageFilter(radius, radius, Drawing::TileMode::CLAMP, nullptr);
-    
-    return Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter_, blurFilter);
+    return Drawing::ImageFilter::CreateColorBlurImageFilter(*colorFilter_, radius, radius);
 }
 #endif
 

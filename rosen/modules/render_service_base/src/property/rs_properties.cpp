@@ -2005,9 +2005,7 @@ void RSProperties::GenerateColorFilter()
         filter = SkColorFilters::Matrix(matrix);
         colorFilter_ = filter->makeComposed(colorFilter_);
 #else
-        Drawing::ColorMatrix colorMatrix;
-        colorMatrix.SetArray(matrix);
-        filter = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -2025,9 +2023,7 @@ void RSProperties::GenerateColorFilter()
         filter = SkColorFilters::Matrix(matrix);
         colorFilter_ = filter->makeComposed(colorFilter_);
 #else
-        Drawing::ColorMatrix colorMatrix;
-        colorMatrix.SetArray(matrix);
-        filter = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -2046,9 +2042,7 @@ void RSProperties::GenerateColorFilter()
         filter = SkColorFilters::Matrix(matrix);
         colorFilter_ = filter->makeComposed(colorFilter_);
 #else
-        Drawing::ColorMatrix colorMatrix;
-        colorMatrix.SetArray(matrix);
-        filter = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -2069,9 +2063,7 @@ void RSProperties::GenerateColorFilter()
         filter = SkColorFilters::Matrix(matrix);
         colorFilter_ = filter->makeComposed(colorFilter_);
 #else
-        Drawing::ColorMatrix colorMatrix;
-        colorMatrix.SetArray(matrix);
-        filter = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -2097,9 +2089,7 @@ void RSProperties::GenerateColorFilter()
         filter = SkColorFilters::Matrix(matrix);
         colorFilter_ = filter->makeComposed(colorFilter_);
 #else
-        Drawing::ColorMatrix colorMatrix;
-        colorMatrix.SetArray(matrix);
-        filter = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -2122,9 +2112,7 @@ void RSProperties::GenerateColorFilter()
         filter = SkColorFilters::Matrix(matrix);
         colorFilter_ = filter->makeComposed(colorFilter_);
 #else
-        Drawing::ColorMatrix colorMatrix;
-        colorMatrix.SetArray(matrix);
-        filter = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -2164,9 +2152,7 @@ void RSProperties::GenerateColorFilter()
         filter = SkColorFilters::Matrix(matrix);
         colorFilter_ = filter->makeComposed(colorFilter_);
 #else
-        Drawing::ColorMatrix colorMatrix;
-        colorMatrix.SetArray(matrix);
-        filter = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }

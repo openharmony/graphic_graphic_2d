@@ -53,6 +53,9 @@ public:
      */
     static std::shared_ptr<ImageFilter> CreateColorFilterImageFilter(const ColorFilter& cf,
         std::shared_ptr<ImageFilter> input);
+    
+    static std::shared_ptr<ImageFilter> CreateColorBlurImageFilter(const ColorFilter& cf,
+        scalar sigmaX, scalar sigmaY);
     /*
      * @brief        Create a filter that offsets the input filter by the given vector.
      * @param dx     The x offset in local space that the image is shifted.
@@ -98,10 +101,13 @@ public:
     ImageFilter(FilterType t, scalar x, scalar y, std::shared_ptr<ImageFilter> input) noexcept;
     ImageFilter(FilterType t, scalar x, scalar y, TileMode mode, std::shared_ptr<ImageFilter> input) noexcept;
     ImageFilter(FilterType t, const ColorFilter& cf, std::shared_ptr<ImageFilter> input) noexcept;
+    ImageFilter(FilterType t, const ColorFilter& cf, scalar x, scalar y) noexcept;
     ImageFilter(FilterType t, const std::vector<scalar>& coefficients, bool enforcePMColor,
         std::shared_ptr<ImageFilter> background, std::shared_ptr<ImageFilter> foreground) noexcept;
     ImageFilter(FilterType t, std::shared_ptr<ImageFilter> f1, std::shared_ptr<ImageFilter> f2) noexcept;
     ImageFilter(FilterType t) noexcept;
+    
+    void InitWithColorBlur(const ColorFilter& cf, scalar x, scalar y);
 
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);

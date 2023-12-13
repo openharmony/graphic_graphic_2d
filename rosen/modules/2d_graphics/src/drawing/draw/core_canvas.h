@@ -376,6 +376,7 @@ protected:
 
 private:
     std::shared_ptr<CoreCanvasImpl> impl_;
+    std::shared_ptr<GPUContext> gpuContext_;
 };
 } // namespace Drawing
 } // namespace Rosen

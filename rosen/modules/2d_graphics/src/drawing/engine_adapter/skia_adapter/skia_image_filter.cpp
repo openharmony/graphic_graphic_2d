@@ -88,6 +88,13 @@ void SkiaImageFilter::InitWithOffset(scalar dx, scalar dy, const std::shared_ptr
     filter_ = SkImageFilters::Offset(dx, dy, input);
 }
 
+void SkiaImageFilter::InitWithColorBlur(const ColorFilter& colorFilter, scalar sigmaX, scalar sigmaY)
+{
+    auto skColorFilterImpl = colorFilter.GetImpl<SkiaColorFilter>();
+    filter_ = SkImageFilters::ColorFilter(
+        skColorFilterImpl->GetColorFilter(), SkImageFilters::Blur(sigmaX, sigmaY, SkTileMode::kClamp, nullptr));
+}
+
 void SkiaImageFilter::InitWithArithmetic(const std::vector<scalar>& coefficients,
     bool enforcePMColor, const std::shared_ptr<ImageFilter> f1, const std::shared_ptr<ImageFilter> f2)
 {

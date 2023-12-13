@@ -232,9 +232,7 @@ static const std::shared_ptr<Drawing::ColorFilter>& InvertColorMat()
         -0.599, -1.175, 0.772,  1.0, 0.0,
         0.0,    0.0,    0.0,    1.0, 0.0
     };
-    Drawing::ColorMatrix colorMatrix;
-    colorMatrix.SetArray(colorMatrixArray);
-    static auto invertColorMat = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+    static auto invertColorMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return invertColorMat;
 }
 #endif
@@ -260,9 +258,7 @@ static const std::shared_ptr<Drawing::ColorFilter>& ProtanomalyMat()
         0.217,  -0.217, 1.0, 0.0, 0.0,
         0.0,    0.0,    0.0, 1.0, 0.0
     };
-    Drawing::ColorMatrix colorMatrix;
-    colorMatrix.SetArray(colorMatrixArray);
-    static auto protanomalyMat = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+    static auto protanomalyMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return protanomalyMat;
 }
 #endif
@@ -288,9 +284,7 @@ static const std::shared_ptr<Drawing::ColorFilter>& DeuteranomalyMat()
         -0.258, 0.258, 1.0, 0.0, 0.0,
         0.0,    0.0,   0.0, 1.0, 0.0
     };
-    Drawing::ColorMatrix colorMatrix;
-    colorMatrix.SetArray(colorMatrixArray);
-    static auto deuteranomalyMat = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+    static auto deuteranomalyMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return deuteranomalyMat;
 }
 #endif
@@ -316,9 +310,7 @@ static const std::shared_ptr<Drawing::ColorFilter>& TritanomalyMat()
         0.0, 0.105,  0.895, 0.0, 0.0,
         0.0, 0.0,    0.0,   1.0, 0.0
     };
-    Drawing::ColorMatrix colorMatrix;
-    colorMatrix.SetArray(colorMatrixArray);
-    static auto tritanomalyMat = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+    static auto tritanomalyMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return tritanomalyMat;
 }
 #endif
@@ -344,9 +336,7 @@ static const std::shared_ptr<Drawing::ColorFilter>& InvertProtanomalyMat()
         -0.516, -1.258, 0.772,  1.0, 0.0,
         0.0,    0.0,    0.0,    1.0, 0.0
     };
-    Drawing::ColorMatrix colorMatrix;
-    colorMatrix.SetArray(colorMatrixArray);
-    static auto invertProtanomalyMat = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+    static auto invertProtanomalyMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return invertProtanomalyMat;
 }
 #endif
@@ -372,9 +362,7 @@ static const std::shared_ptr<Drawing::ColorFilter>& InvertDeuteranomalyMat()
         -0.434, -1.341, 0.772,  1.0, 0.0,
         0.0,    0.0,    0.0,    1.0, 0.0
     };
-    Drawing::ColorMatrix colorMatrix;
-    colorMatrix.SetArray(colorMatrixArray);
-    static auto invertDeuteranomalyMat = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+    static auto invertDeuteranomalyMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return invertDeuteranomalyMat;
 }
 #endif
@@ -400,9 +388,7 @@ static const std::shared_ptr<Drawing::ColorFilter>& InvertTritanomalyMat()
         -0.598, 0.118,  -0.521, 1.0, 0.0,
         0.0,    0.0,    0.0,    1.0, 0.0
     };
-    Drawing::ColorMatrix colorMatrix;
-    colorMatrix.SetArray(colorMatrixArray);
-    static auto invertTritanomalyMat = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+    static auto invertTritanomalyMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return invertTritanomalyMat;
 }
 #endif
