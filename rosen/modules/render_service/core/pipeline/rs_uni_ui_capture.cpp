@@ -79,16 +79,9 @@ std::shared_ptr<Media::PixelMap> RSUniUICapture::TakeLocalCapture()
     }
     auto canvas = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
 #endif
-    if (!node->IsOnTheTree()) {
-        visitor->SetPaintFilterCanvas(canvas);
-        node->ApplyModifiers();
-        node->Prepare(visitor);
-        node->Process(visitor);
-    } else {
-        PostTaskToRSRecord(recordingCanvas, node, visitor);
-        auto drawCallList = recordingCanvas->GetDrawCmdList();
-        drawCallList->Playback(*canvas);
-    }
+    PostTaskToRSRecord(recordingCanvas, node, visitor);
+    auto drawCallList = recordingCanvas->GetDrawCmdList();
+    drawCallList->Playback(*canvas);
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
     sk_sp<SkImage> img(skSurface.get()->makeImageSnapshot());
     if (!img) {
@@ -258,6 +251,10 @@ void RSUniUICapture::PostTaskToRSRecord(std::shared_ptr<Drawing::RecordingCanvas
 {
     std::function<void()> recordingDrawCall = [canvas, node, visitor]() -> void {
         visitor->SetCanvas(canvas);
+        if (!node->IsOnTheTree()) {
+            node->ApplyModifiers();
+            node->Prepare(visitor);
+        }
         node->Process(visitor);
     };
     RSMainThread::Instance()->PostSyncTask(recordingDrawCall);
