@@ -148,8 +148,7 @@ void RSFilterSubThread::CreateShareEglContext()
         return;
     }
 #ifdef RS_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
         return;
     }
     eglShareContext_ = renderContext_->CreateShareContext();
@@ -167,8 +166,7 @@ void RSFilterSubThread::CreateShareEglContext()
 void RSFilterSubThread::DestroyShareEglContext()
 {
 #ifdef RS_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
         return;
     }
     if (renderContext_ != nullptr) {
@@ -238,8 +236,7 @@ sk_sp<GrContext> RSFilterSubThread::CreateShareGrContext()
 {
     RS_TRACE_NAME("CreateShareGrContext");
 #ifdef RS_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         CreateShareEglContext();
         const GrGLInterface* grGlInterface = GrGLCreateNativeInterface();
         sk_sp<const GrGLInterface> glInterface(grGlInterface);
@@ -289,27 +286,33 @@ sk_sp<GrContext> RSFilterSubThread::CreateShareGrContext()
 std::shared_ptr<Drawing::GPUContext> RSFilterSubThread::CreateShareGrContext()
 {
     RS_TRACE_NAME("CreateShareGrContext");
-    CreateShareEglContext();
     auto gpuContext = std::make_shared<Drawing::GPUContext>();
-    Drawing::GPUContextOptions options;
-    auto handler = std::make_shared<MemoryHandler>();
-    auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-    auto size = glesVersion ? strlen(glesVersion) : 0;
-    handler->ConfigureContext(&options, glesVersion, size, SHADER_CACHE_DIR, true);
-
 #ifdef RS_ENABLE_GL
-    if (!gpuContext->BuildFromGL(options)) {
-        RS_LOGE("nullptr gpuContext is null");
-        return nullptr;
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        CreateShareEglContext();
+        Drawing::GPUContextOptions options;
+        auto handler = std::make_shared<MemoryHandler>();
+        auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+        auto size = glesVersion ? strlen(glesVersion) : 0;
+        handler->ConfigureContext(&options, glesVersion, size, SHADER_CACHE_DIR, true);
+        if (!gpuContext->BuildFromGL(options)) {
+            RS_LOGE("nullptr gpuContext is null");
+            return nullptr;
+        }
+        return gpuContext;
     }
 #endif
 #ifdef RS_ENABLE_VK
-    if (!gpuContext->BuildFromVK(RsVulkanContext::GetSingleton().GetGrVkBackendContext())) {
-        RS_LOGE("nullptr gpuContext is null");
-        return nullptr;
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (!gpuContext->BuildFromVK(RsVulkanContext::GetSingleton().GetGrVkBackendContext())) {
+            RS_LOGE("nullptr gpuContext is null");
+            return nullptr;
+        }
+        return gpuContext;
     }
 #endif
-    return gpuContext;
+    return nullptr;
 }
 #endif
 

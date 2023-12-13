@@ -227,7 +227,7 @@ public:
 
     bool IsValid() const;
     void SetTextureInfo(const TextureInfo& textureInfo);
-    const TextureInfo GetTextureInfo() const;
+    const TextureInfo& GetTextureInfo() const;
 
     template<typename T>
     const std::shared_ptr<T> GetImpl() const

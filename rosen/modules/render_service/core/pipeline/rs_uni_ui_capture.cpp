@@ -555,11 +555,19 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithUni(RSSurfaceR
     canvas_->Restore();
 #endif
     if (node.GetBuffer() != nullptr) {
+#ifndef USE_ROSEN_DRAWING
         if (auto recordingCanvas = static_cast<RSRecordingCanvas*>(canvas_->GetRecordingCanvas())) {
             auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
             auto buffer = node.GetBuffer();
             RSSurfaceBufferInfo rsSurfaceBufferInfo(buffer, params.dstRect.left(), params.dstRect.top(),
                 params.dstRect.width(), params.dstRect.height());
+#else
+        if (auto recordingCanvas = static_cast<Drawing::RecordingCanvas*>(canvas_->GetRecordingCanvas())) {
+            auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
+            auto buffer = node.GetBuffer();
+            DrawingSurfaceBufferInfo rsSurfaceBufferInfo(buffer, params.dstRect.GetLeft(), params.dstRect.GetTop(),
+                params.dstRect.GetWidth(), params.dstRect.GetHeight());
+#endif //USE_ROSEN_DRAWING
             recordingCanvas->DrawSurfaceBuffer(rsSurfaceBufferInfo);
         } else {
             auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);

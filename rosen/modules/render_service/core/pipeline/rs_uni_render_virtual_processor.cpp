@@ -121,12 +121,12 @@ void RSUniRenderVirtualProcessor::CanvasRotation(ScreenRotation screenRotation, 
 #else
     if (screenRotation == ScreenRotation::ROTATION_90) {
         canvas_->Translate(width / 2.0f, height / 2.0f);
-        canvas_->Rotate(90); // 90 degrees
+        canvas_->Rotate(90, 0, 0); // 90 degrees
     } else if (screenRotation == ScreenRotation::ROTATION_180) {
         canvas_->Rotate(180, width / 2.0f, height / 2.0f); // 180 degrees
     } else if (screenRotation == ScreenRotation::ROTATION_270) {
         canvas_->Translate(width / 2.0f, height / 2.0f);
-        canvas_->Rotate(270); // 270 degrees
+        canvas_->Rotate(270, 0, 0); // 270 degrees
     }
 #endif
 }

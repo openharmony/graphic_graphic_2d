@@ -1482,8 +1482,7 @@ void DrawSurfaceBufferOpItem::Playback(Canvas* canvas, const Rect* rect)
 void DrawSurfaceBufferOpItem::Clear()
 {
 #ifdef RS_ENABLE_GL
-    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (SystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         if (texId_ != 0U) {
             glDeleteTextures(1, &texId_);
         }
@@ -1532,8 +1531,7 @@ void DrawSurfaceBufferOpItem::Draw(Canvas* canvas)
 #endif
 
 #ifdef RS_ENABLE_GL
-    if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (SystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
         return;
     }
     EGLint attrs[] = {

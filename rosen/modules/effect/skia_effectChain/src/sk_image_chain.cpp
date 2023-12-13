@@ -74,8 +74,7 @@ bool SKImageChain::CreateCPUCanvas()
 bool SKImageChain::CreateGPUCanvas()
 {
 #ifdef ACE_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
         LOGI("GPU rendering is not supported.");
         return false;
     }

@@ -334,7 +334,7 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
         if (!surface_) {
             isGpuSurface_ = false;
             surface_ = Drawing::Surface::MakeRaster(info);
-            recordingCanvas_ = std::make_shared<RSRecordingCanvas>(width, height);
+            recordingCanvas_ = std::make_shared<Drawing::RecordingCanvas>(width, height);
             canvas_ = std::make_unique<RSPaintFilterCanvas>(recordingCanvas_.get());
             return surface_ != nullptr;
         }

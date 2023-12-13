@@ -50,8 +50,7 @@ sk_sp<SkSurface> DrawingContext::AcquireSurface(const std::shared_ptr<RSRenderSu
 bool DrawingContext::SetUpDrawingContext()
 {
 #if defined(RS_ENABLE_GL)
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
         return false;
     }
     if (grContext_ != nullptr) {
@@ -112,6 +111,9 @@ GrContext* DrawingContext::GetDrawingContext() const
 bool DrawingContext::SetUpDrawingContext()
 {
 #if defined(RS_ENABLE_GL)
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
+        return false;
+    }
     if (gpuContext_ != nullptr) {
         LOGD("gpuContext_ has already initialized");
         return true;

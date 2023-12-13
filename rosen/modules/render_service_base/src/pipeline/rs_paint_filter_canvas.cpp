@@ -941,6 +941,11 @@ bool RSPaintFilterCanvas::OnFilter() const
     return alphaStack_.top() > 0.f;
 }
 
+Drawing::Canvas* RSPaintFilterCanvas::GetRecordingCanvas() const
+{
+    return recordingState_ ? canvas_ : nullptr;
+}
+
 #endif // USE_ROSEN_DRAWING
 
 bool RSPaintFilterCanvas::GetRecordingState() const

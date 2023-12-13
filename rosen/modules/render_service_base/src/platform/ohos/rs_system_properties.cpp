@@ -33,7 +33,7 @@ constexpr int DEFAULT_UNI_PARTIAL_RENDER_ENABLED_VALUE = 4;
 constexpr int DEFAULT_CORRECTION_MODE_VALUE = 999;
 
 #if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
-static GpuApiType GpuApiType()
+static GpuApiType SystemGpuApiType()
 {
     if (!((system::GetParameter("const.gpu.vendor", "0").compare("higpu.v200") == 0) &&
           (system::GetParameter("const.build.product", "0").compare("ALN") == 0))) {
@@ -52,7 +52,7 @@ static GpuApiType GpuApiType()
 #endif
 
 #if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
-const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType();
+const GpuApiType RSSystemProperties::systemGpuApiType_ = SystemGpuApiType();
 #elif defined (ACE_ENABLE_GL) || defined (RS_ENABLE_GL)
 const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
 #else

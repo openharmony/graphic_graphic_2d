@@ -111,6 +111,7 @@ void MemoryManager::ReleaseAllGpuResource(GrContext* grContext, GrGpuResourceTag
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!grContext) {
         RS_LOGE("ReleaseGpuResByTag fail, grContext is nullptr");
+        return;
     }
     RS_TRACE_NAME_FMT("ReleaseAllGpuResource [Pid:%d Tid:%d Nid:%d Funcid:%d]",
         tag.fPid, tag.fTid, tag.fWid, tag.fFid);
@@ -163,6 +164,7 @@ void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, GrGpuResource
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!grContext) {
         RS_LOGE("ReleaseGpuResByTag fail, grContext is nullptr");
+        return;
     }
     RS_TRACE_NAME_FMT("ReleaseUnlockGpuResource [Pid:%d Tid:%d Nid:%d Funcid:%d]",
         tag.fPid, tag.fTid, tag.fWid, tag.fFid);
@@ -175,6 +177,7 @@ void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, Dr
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!gpuContext) {
         RS_LOGE("ReleaseGpuResByTag fail, gpuContext is nullptr");
+        return;
     }
     RS_TRACE_NAME_FMT("ReleaseUnlockGpuResource [Pid:%d Tid:%d Nid:%d Funcid:%d]",
         tag.fPid, tag.fTid, tag.fWid, tag.fFid);
@@ -237,6 +240,7 @@ void MemoryManager::ReleaseUnlockGpuResource(GrContext* grContext, bool scratchR
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!grContext) {
         RS_LOGE("ReleaseGpuResByTag fail, grContext is nullptr");
+        return;
     }
     RS_TRACE_NAME_FMT("ReleaseUnlockGpuResource scratchResourcesOnly:%d", scratchResourcesOnly);
     grContext->purgeUnlockedResources(scratchResourcesOnly);
@@ -248,6 +252,7 @@ void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, bo
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!gpuContext) {
         RS_LOGE("ReleaseGpuResByTag fail, gpuContext is nullptr");
+        return;
     }
     RS_TRACE_NAME_FMT("ReleaseUnlockGpuResource scratchResourcesOnly:%d", scratchResourcesOnly);
     gpuContext->PurgeUnlockedResources(scratchResourcesOnly);
@@ -265,6 +270,7 @@ void MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(GrContext* grContext)
 #if defined (RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!grContext) {
         RS_LOGE("ReleaseUnlockAndSafeCacheGpuResource fail, grContext is nullptr");
+        return;
     }
     RS_TRACE_NAME_FMT("ReleaseUnlockAndSafeCacheGpuResource");
     grContext->purgeUnlockAndSafeCacheGpuResources();
@@ -276,6 +282,7 @@ void MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(Drawing::GPUContext* gp
 #if defined (RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!gpuContext) {
         RS_LOGE("ReleaseUnlockAndSafeCacheGpuResource fail, gpuContext is nullptr");
+        return;
     }
     RS_TRACE_NAME_FMT("ReleaseUnlockAndSafeCacheGpuResource");
     gpuContext->PurgeUnlockAndSafeCacheGpuResources();
@@ -692,6 +699,9 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUConte
     }
     /* GPU */
 #ifdef RS_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
+        return;
+    }
     std::string gpuInfo;
     // total
     DumpGpuCache(log, gpuContext, nullptr, gpuInfo);
@@ -723,9 +733,9 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUConte
     gpuContext->DumpGpuStats(stat);
 
     log.AppendFormat("%s\n", stat.c_str());
-#endif
+#endif // RS_ENABLE_GL
 }
-#endif
+#endif // USE_ROSEN_DRAWING
 
 void MemoryManager::DumpMallocStat(std::string& log)
 {

@@ -38,8 +38,7 @@ CanvasContext* CanvasContext::Create()
 #endif
         case RenderBackendType::GLES:
 #ifdef RS_ENABLE_GL
-            if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-                RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
                 std::cout << "CanvasContext::Create with gles backend" << std::endl;
                 return new CanvasContext(std::make_unique<GLESRenderBackend>());
             }

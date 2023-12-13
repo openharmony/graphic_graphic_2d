@@ -453,8 +453,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             (void)eglTextureId;
             (void)bufferId;
 #if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
-            if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-                RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
                 auto eglImageCache = uniRenderEngine_->GetEglImageManager()->CreateImageCacheFromBuffer(params.buffer,
                     params.acquireFence);
                 if (eglImageCache == nullptr) {
@@ -475,8 +474,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
             (void)colorType;
             (void)backendTexturePtr;
 #if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
-            if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-                RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
                 auto pixelFmt = params.buffer->GetFormat();
                 if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
                     colorType = kBGRA_8888_SkColorType;
@@ -531,6 +529,9 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                     SkColorSpace::MakeSRGB(),
                     NativeBufferUtils::DeleteVkImage,
                     imageCache->RefCleanupHelper());
+            } else {
+                image = SkImage::MakeFromTexture(canvas->getGrContext(), backendTexture,
+                    kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
             }
 #endif
 #else
@@ -598,46 +599,53 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #endif // USE_VIDEO_PROCESSING_ENGINE
 #endif
 #else // USE_ROSEN_DRAWING
+            std::shared_ptr<Drawing::Image> image = nullptr;
 #if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
-            Drawing::ColorType colorType = (params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
-                Drawing::ColorType::COLORTYPE_BGRA_8888 : Drawing::ColorType::COLORTYPE_RGBA_8888;
-            Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+                Drawing::ColorType colorType = (params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
+                    Drawing::ColorType::COLORTYPE_BGRA_8888 : Drawing::ColorType::COLORTYPE_RGBA_8888;
+                Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
 
-            Drawing::TextureInfo externalTextureInfo;
-            externalTextureInfo.SetWidth(params.buffer->GetSurfaceBufferWidth());
-            externalTextureInfo.SetHeight(params.buffer->GetSurfaceBufferHeight());
-            externalTextureInfo.SetIsMipMapped(false);
-            externalTextureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
-            externalTextureInfo.SetID(eglTextureId);
-            externalTextureInfo.SetFormat(GL_RGBA8);
+                Drawing::TextureInfo externalTextureInfo;
+                externalTextureInfo.SetWidth(params.buffer->GetSurfaceBufferWidth());
+                externalTextureInfo.SetHeight(params.buffer->GetSurfaceBufferHeight());
+                externalTextureInfo.SetIsMipMapped(false);
+                externalTextureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
+                externalTextureInfo.SetID(eglTextureId);
+                externalTextureInfo.SetFormat(GL_RGBA8);
 
-            auto image = std::make_shared<Drawing::Image>();
-            if (!image->BuildFromTexture(*canvas->GetGPUContext(), externalTextureInfo,
-                Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, drawingColorSpace)) {
-                RS_LOGE("RSHardwareThread::Redraw: image BuildFromTexture failed");
-                return;
+                image = std::make_shared<Drawing::Image>();
+                if (!image->BuildFromTexture(*canvas->GetGPUContext(), externalTextureInfo,
+                    Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, drawingColorSpace)) {
+                    RS_LOGE("RSHardwareThread::Redraw: image BuildFromTexture failed");
+                    return;
+                }
             }
-#elif defined RS_ENABLE_VK
-            auto imageCache = uniRenderEngine_->GetVkImageManager()->CreateImageCacheFromBuffer(
-                params.buffer, params.acquireFence);
-            if (!imageCache) {
-                continue;
-            }
-            auto bufferId = params.buffer->GetSeqNum();
-            imageCacheSeqsVK[bufferId] = imageCache;
-            auto& backendTexture = imageCache->GetBackendTexture();
+#endif
+#ifdef RS_ENABLE_VK
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                auto imageCache = uniRenderEngine_->GetVkImageManager()->CreateImageCacheFromBuffer(
+                    params.buffer, params.acquireFence);
+                if (!imageCache) {
+                    continue;
+                }
+                auto bufferId = params.buffer->GetSeqNum();
+                imageCacheSeqsVK[bufferId] = imageCache;
+                auto& backendTexture = imageCache->GetBackendTexture();
 
-            Drawing::ColorType colorType = (params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
-                Drawing::ColorType::COLORTYPE_BGRA_8888 : Drawing::ColorType::COLORTYPE_RGBA_8888;
-            Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
+                Drawing::ColorType colorType = (params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
+                    Drawing::ColorType::COLORTYPE_BGRA_8888 : Drawing::ColorType::COLORTYPE_RGBA_8888;
+                Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
 
-            auto image = std::make_shared<Drawing::Image>();
-            if (!image->BuildFromTexture(*canvas->GetGPUContext(), backendTexture.GetTextureInfo(),
-                Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr,
-                NativeBufferUtils::DeleteVkImage,
-                imageCache->RefCleanupHelper())) {
-                RS_LOGE("RSHardwareThread::Redraw: image BuildFromTexture failed");
-                return;
+                image = std::make_shared<Drawing::Image>();
+                if (!image->BuildFromTexture(*canvas->GetGPUContext(), backendTexture.GetTextureInfo(),
+                    Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr,
+                    NativeBufferUtils::DeleteVkImage,
+                    imageCache->RefCleanupHelper())) {
+                    RS_LOGE("RSHardwareThread::Redraw: image BuildFromTexture failed");
+                    return;
+                }
             }
 #endif
             canvas->AttachBrush(params.paint);

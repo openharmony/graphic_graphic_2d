@@ -282,6 +282,7 @@ public:
     };
     CanvasStatus GetCanvasStatus() const;
     void SetCanvasStatus(const CanvasStatus& status);
+    Drawing::Canvas* GetRecordingCanvas() const;
 #endif
     bool GetRecordingState() const;
     void SetRecordingState(bool flag);

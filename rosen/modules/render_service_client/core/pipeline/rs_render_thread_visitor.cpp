@@ -428,8 +428,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     }
 
 #if defined(ACE_ENABLE_GL)
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
 #if defined(NEW_RENDER_CONTEXT)
         std::shared_ptr<RenderContextBase> rc = RSRenderThread::Instance().GetRenderContext();
         std::shared_ptr<DrawingContext> dc = RSRenderThread::Instance().GetDrawingContext();

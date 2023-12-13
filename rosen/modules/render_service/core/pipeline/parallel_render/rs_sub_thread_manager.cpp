@@ -77,8 +77,7 @@ void RSSubThreadManager::StartFilterThread(RenderContext* context)
 void RSSubThreadManager::StartColorPickerThread(RenderContext* context)
 {
 #if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
         return;
     }
     if (!RSSystemProperties::GetColorPickerPartialEnabled() || !RSUniRenderJudgement::IsUniRender()) {
