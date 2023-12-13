@@ -128,6 +128,7 @@ using GraphicPixelFormat = enum {
     GRAPHIC_PIXEL_FMT_YCBCR_P010 = 35,              /**< YCBCR420 semi-planar 10bit packed format */
     GRAPHIC_PIXEL_FMT_YCRCB_P010 = 36,              /**< YCRCB420 semi-planar 10bit packed format */
     GRAPHIC_PIXEL_FMT_RAW10 = 37,                   /**< Raw 10bit packed format */
+    GRAPHIC_PIXEL_FMT_BLOB = 38,                    /**< BLOB format */
     GRAPHIC_PIXEL_FMT_VENDER_MASK = 0X7FFF0000,     /**< vendor mask format */
     GRAPHIC_PIXEL_FMT_BUTT = 0X7FFFFFFF             /**< Invalid pixel format */
 };
