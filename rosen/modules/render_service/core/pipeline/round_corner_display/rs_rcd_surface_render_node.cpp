@@ -57,7 +57,11 @@ bool RSRcdSurfaceRenderNode::CreateSurface(sptr<IBufferConsumerListener> listene
         RS_LOGD("RSRcdSurfaceRenderNode::CreateSurface already created, return");
         return true;
     }
-    consumer_ = IConsumerSurface::Create("RCDSurfaceNode");
+    if (IsTopSurface()) {
+        consumer_ = IConsumerSurface::Create("RCDTopSurfaceNode");
+    } else {
+        consumer_ = IConsumerSurface::Create("RCDBottomSurfaceNode");
+    }
     if (consumer_ == nullptr) {
         RS_LOGE("RSRcdSurfaceRenderNode::CreateSurface get consumer surface fail");
         return false;
