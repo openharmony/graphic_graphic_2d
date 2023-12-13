@@ -75,6 +75,15 @@ RSParallelSubThread::~RSParallelSubThread()
     RS_LOGI("~RSParallelSubThread():%{public}d", threadIndex_);
 }
 
+void RSParallelSubThread::MainLoopHandlePrepareTask()
+{
+    RS_TRACE_BEGIN("SubThreadCostPrepare[" + std::to_string(threadIndex_) + "]");
+    StartPrepare();
+    Prepare();
+    RSParallelRenderManager::Instance()->SubMainThreadNotify(threadIndex_);
+    RS_TRACE_END();
+}
+
 void RSParallelSubThread::MainLoop()
 {
     InitSubThread();
@@ -93,11 +102,7 @@ void RSParallelSubThread::MainLoop()
         RSParallelRenderManager::Instance()->CommitSurfaceNum(50);
         switch (RSParallelRenderManager::Instance()->GetTaskType()) {
             case TaskType::PREPARE_TASK: {
-                RS_TRACE_BEGIN("SubThreadCostPrepare[" + std::to_string(threadIndex_) + "]");
-                StartPrepare();
-                Prepare();
-                RSParallelRenderManager::Instance()->SubMainThreadNotify(threadIndex_);
-                RS_TRACE_END();
+                MainLoopHandlePrepareTask();
                 break;
             }
             case TaskType::CALC_COST_TASK: {

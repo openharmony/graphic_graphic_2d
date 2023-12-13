@@ -1281,7 +1281,7 @@ void RSMainThread::WaitUntilUploadTextureTaskFinished()
         std::unique_lock<std::mutex> lock(uploadTextureMutex_);
         //upload texture maximum waiting time is 100ms
         //otherwise main thread upload texture
-        static const uint32_t WAIT_FOR_UPLOAD_FINISH_TIMEOUT = 100; 
+        static const uint32_t WAIT_FOR_UPLOAD_FINISH_TIMEOUT = 100;
         uploadTextureTaskCond_.wait_until(lock, std::chrono::system_clock::now() +
             std::chrono::milliseconds(WAIT_FOR_UPLOAD_FINISH_TIMEOUT), [this]() {
                  return uploadTextureFinishedCount_ > 0; });
@@ -1405,6 +1405,18 @@ void RSMainThread::ColorPickerRequestVsyncIfNeed()
     }
 }
 
+void RSMainThread::WaitUntilUploadTextureTaskFinishedForGL()
+{
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
+        WaitUntilUploadTextureTaskFinished();
+#endif
+    }
+#endif
+}
+
 void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
     UpdateUIFirstSwitch();
@@ -1442,14 +1454,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
                     node->MarkCurrentFrameHardwareEnabled();
                 }
             }
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-            if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-                RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-                WaitUntilUploadTextureTaskFinished();
-#endif
-            }
-#endif
+            WaitUntilUploadTextureTaskFinishedForGL();
             return;
         }
     }

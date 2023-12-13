@@ -553,6 +553,7 @@ ohos_unittest("RSUniRenderVirtualProcessorTest") {
 ## Build RSBaseRenderEngineUnitTest
 ohos_unittest("RSBaseRenderEngineUnitTest") {
   module_out_path = module_output_path
+  include_dirs = [ "$graphic_2d_root/frameworks/surface/include" ]
   sources = [ "rs_base_render_engine_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [

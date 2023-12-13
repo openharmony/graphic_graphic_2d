@@ -3034,7 +3034,8 @@ void RSUniRenderVisitor::UpdateHardwareEnabledInfoBeforeCreateLayer()
             std::vector<std::shared_ptr<RSSurfaceRenderNode>> appWindowNodes;
             for (uint32_t i = 0; i < subThreadNum; i++) {
                 appWindowNodes = appWindowNodesMap[i];
-                appWindowNodesInZOrder_.insert(appWindowNodesInZOrder_.end(), appWindowNodes.begin(), appWindowNodes.end());
+                appWindowNodesInZOrder_.insert(appWindowNodesInZOrder_.end(),
+                    appWindowNodes.begin(), appWindowNodes.end());
             }
         }
 #endif

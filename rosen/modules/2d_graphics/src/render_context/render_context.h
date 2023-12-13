@@ -229,6 +229,11 @@ private:
     std::mutex shareContextMutex_;
 
     sk_sp<SkColorSpace> ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut) const;
+#ifndef USE_ROSEN_DRAWING
+#ifdef RS_ENABLE_GL
+    void InitGrContextOptions(GrContextOptions &options);
+#endif
+#endif
 };
 
 class RenderContextFactory {

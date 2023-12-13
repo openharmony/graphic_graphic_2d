@@ -194,11 +194,13 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info
         }
 
         skiaImage_ = SkImage::MakeFromTexture(grContext_.get(), backendTexture,
-            SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin), SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
+            SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
+            SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
             SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace, deleteFunc, cleanupHelper);
     } else {
         skiaImage_ = SkImage::MakeFromTexture(grContext_.get(),  SkiaTextureInfo::ConvertToGrBackendTexture(info),
-            SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin), SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
+            SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
+            SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
             SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace);
     }
 #else

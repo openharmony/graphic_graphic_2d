@@ -306,6 +306,22 @@ void RenderContext::AbandonContext()
     grContext_->purgeUnlockAndSafeCacheGpuResources();
 }
 #endif
+
+#ifdef RS_ENABLE_GL
+void RenderContext::InitGrContextOptions(GrContextOptions &options)
+{
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
+        return;
+    }
+    options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
+    options.fPreferExternalImagesOverES3 = true;
+    options.fDisableDistanceFieldPaths = true;
+
+    // Advanced Filter
+    options.fProcessName = "render_service";
+}
+#endif
+
 bool RenderContext::SetUpGrContext(sk_sp<GrDirectContext> skContext)
 {
     if (grContext_ != nullptr) {
@@ -323,13 +339,7 @@ bool RenderContext::SetUpGrContext(sk_sp<GrDirectContext> skContext)
         }
 
         GrContextOptions options;
-        options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
-        options.fPreferExternalImagesOverES3 = true;
-        options.fDisableDistanceFieldPaths = true;
-
-        // Advanced Filter
-        options.fProcessName = "render_service";
-
+        InitGrContextOptions(options);
         mHandler_ = std::make_shared<MemoryHandler>();
         auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
         auto size = glesVersion ? strlen(glesVersion) : 0;

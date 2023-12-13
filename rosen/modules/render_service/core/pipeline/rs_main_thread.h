@@ -316,6 +316,7 @@ private:
     RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& curRegion,
         const Occlusion::Region& visibleRegion);
     void PrintCurrentStatus();
+    void WaitUntilUploadTextureTaskFinishedForGL();
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;

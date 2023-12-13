@@ -15,6 +15,7 @@
 
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #ifdef ROSEN_OHOS
 #include "render_context/render_context.h"
 #endif
@@ -33,7 +34,12 @@ RSOffscreenRenderThread::RSOffscreenRenderThread()
 #ifdef ROSEN_OHOS
     PostTask([this]() {
         renderContext_ = std::make_shared<RenderContext>();
-        renderContext_->InitializeEglContext();
+#ifdef RS_ENABLE_GL
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+            renderContext_->InitializeEglContext();
+        }
+#endif
+
 #ifndef USE_ROSEN_DRAWING
         renderContext_->SetUpGrContext(nullptr);
 #else
