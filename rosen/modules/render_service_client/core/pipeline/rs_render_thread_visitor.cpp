@@ -839,12 +839,14 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     canvas_->save();
     auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     canvas_->concat(geoPtr->GetMatrix());
+    RSPropertiesPainter::DrawOutline(node.GetRenderProperties(), *canvas_);
     RSPropertiesPainter::DrawBorder(node.GetRenderProperties(), *canvas_);
     canvas_->restore();
 #else
     canvas_->Save();
     auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     canvas_->ConcatMatrix(geoPtr->GetMatrix());
+    RSPropertiesPainter::DrawOutline(node.GetRenderProperties(), *canvas_);
     RSPropertiesPainter::DrawBorder(node.GetRenderProperties(), *canvas_);
     canvas_->Restore();
 #endif

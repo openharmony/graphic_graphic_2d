@@ -49,6 +49,8 @@ public:
         const RRect* rrect = nullptr, bool isAbsCoordinate = true, bool radiusInclude = true);
     static void DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect = nullptr);
     static int GetAndResetBlurCnt();
+    static void GetOutlineDirtyRect(RectI& dirtyOutline,
+        const RSProperties& properties, const bool& isAbsCoordinate = true);
 #ifndef USE_ROSEN_DRAWING
     static bool PickColor(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& skPath,
         SkMatrix& matrix, SkIRect& deviceClipBounds, RSColor& colorPicked);
@@ -73,6 +75,7 @@ public:
 #ifndef USE_ROSEN_DRAWING
     static void Clip(SkCanvas& canvas, RectF rect, bool isAntiAlias = true);
     static void DrawBorder(const RSProperties& properties, SkCanvas& canvas);
+    static void DrawOutline(const RSProperties& properties, SkCanvas& canvas);
     static void DrawLight(const RSProperties& properties, SkCanvas& canvas);
     static void DrawFrame(const RSProperties& properties, RSPaintFilterCanvas& canvas, DrawCmdListPtr& drawCmdList);
     static void DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas, FilterType filterType,
@@ -102,6 +105,7 @@ public:
 #else // USE_ROSEN_DRAWING
     static void Clip(Drawing::Canvas& canvas, RectF rect, bool isAntiAlias = true);
     static void DrawBorder(const RSProperties& properties, Drawing::Canvas& canvas);
+    static void DrawOutline(const RSProperties& properties, Drawing::Canvas& canvas);
     static void DrawLight(const RSProperties& properties, Drawing::Canvas& canvas);
     static void DrawFrame(
         const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::DrawCmdListPtr& drawCmdList);
@@ -140,11 +144,10 @@ public:
 private:
     static void ApplyBackgroundEffectFallback(const RSProperties& properties, RSPaintFilterCanvas& canvas);
     static void TransformGradientBlurDirection(uint8_t& direction, const uint8_t directionBias);
-    static RRect GetRRectForDrawingBorder(const RRect& rr, const std::shared_ptr<RSBorder>& border,
-                                          const Vector4f& outset, const bool& isFirstLayerBorder);
-    static RRect GetInnerRRectForDrawingBorder(const RSProperties& properties,
-                                               const std::shared_ptr<RSBorder>& border,
-                                               const Vector4f& innerOutset, const bool& isFirstLayerBorder);
+    static RRect GetRRectForDrawingBorder(const RSProperties& properties, const std::shared_ptr<RSBorder>& border,
+        const bool& isOutline);
+    static RRect GetInnerRRectForDrawingBorder(const RSProperties& properties, const std::shared_ptr<RSBorder>& border,
+        const bool& isOutline);
 #ifndef USE_ROSEN_DRAWING
     static void DrawColorfulShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
     static void DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
@@ -183,8 +186,7 @@ private:
         const float greyCoef1, const float greyCoef2);
 
     static void DrawBorderBase(const RSProperties& properties, SkCanvas& canvas,
-                               const std::shared_ptr<RSBorder>& border, Vector4f& outset,
-                               Vector4f& innerOutset, const bool isFirstLayerBorder);
+        const std::shared_ptr<RSBorder>& border, const bool& isOutline);
     static const std::shared_ptr<SkRuntimeShaderBuilder>& GetPhongShaderBuilder();
 #else // USE_ROSEN_DRAWING
     static void DrawColorfulShadowInner(
@@ -229,8 +231,7 @@ private:
         const std::shared_ptr<Drawing::Image>& image, const float greyCoef1, const float greyCoef2);
 
     static void DrawBorderBase(const RSProperties& properties, Drawing::Canvas& canvas,
-                               const std::shared_ptr<RSBorder>& border, Vector4f& outset,
-                               Vector4f& innerOutset, const bool isFirstLayerBorder);
+        const std::shared_ptr<RSBorder>& border, const bool& isOutline);
     static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetPhongShaderBuilder();
 #endif // USE_ROSEN_DRAWING
     inline static int g_blurCnt = 0;

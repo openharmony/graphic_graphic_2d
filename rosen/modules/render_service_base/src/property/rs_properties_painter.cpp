@@ -2412,26 +2412,25 @@ void RSPropertiesPainter::DrawFrame(
 }
 #endif
 
-RRect RSPropertiesPainter::GetRRectForDrawingBorder(const RRect& rr, const std::shared_ptr<RSBorder>& border,
-                                                    const Vector4f& outset, const bool& isFirstLayerBorder)
+RRect RSPropertiesPainter::GetRRectForDrawingBorder(const RSProperties& properties,
+    const std::shared_ptr<RSBorder>& border, const bool& isOutline)
 {
     if (!border) {
         return RRect();
     }
 
-    return isFirstLayerBorder ? rr : RRect(rr.rect_.MakeOutset(outset), border->GetRadiusFour());
+    return isOutline ?
+        RRect(properties.GetRRect().rect_.MakeOutset(border->GetWidthFour()), border->GetRadiusFour()) :
+        properties.GetRRect();
 }
 
 RRect RSPropertiesPainter::GetInnerRRectForDrawingBorder(const RSProperties& properties,
-                                                         const std::shared_ptr<RSBorder>& border,
-                                                         const Vector4f& innerOutset, const bool& isFirstLayerBorder)
+    const std::shared_ptr<RSBorder>& border, const bool& isOutline)
 {
     if (!border) {
         return RRect();
     }
-    auto innerRRect = properties.GetInnerRRect();
-    return isFirstLayerBorder ? innerRRect :
-        RRect(innerRRect.rect_.MakeOutset(innerOutset), border->GetRadiusFour() - border->GetWidthFour());
+    return isOutline ? properties.GetRRect() : properties.GetInnerRRect();
 }
 
 #ifndef USE_ROSEN_DRAWING
@@ -2724,38 +2723,34 @@ void RSPropertiesPainter::DrawBorderLight(const RSProperties& properties, Drawin
 
 #ifndef USE_ROSEN_DRAWING
 void RSPropertiesPainter::DrawBorderBase(const RSProperties& properties, SkCanvas& canvas,
-                                         const std::shared_ptr<RSBorder>& border, Vector4f& outset,
-                                         Vector4f& innerOutset, const bool isFirstLayerBorder)
+    const std::shared_ptr<RSBorder>& border, const bool& isOutline)
 #else
 void RSPropertiesPainter::DrawBorderBase(const RSProperties& properties, Drawing::Canvas& canvas,
-                                         const std::shared_ptr<RSBorder>& border, Vector4f& outset,
-                                         Vector4f& innerOutset, const bool isFirstLayerBorder)
+    const std::shared_ptr<RSBorder>& border, const bool& isOutline)
 #endif
 {
     if (!border || !border->HasBorder()) {
         return;
     }
 
-    if (!isFirstLayerBorder) {
-        outset = outset + border->GetWidthFour();
-    }
 #ifndef USE_ROSEN_DRAWING
     SkPaint paint;
     paint.setAntiAlias(true);
     if (border->ApplyFillStyle(paint)) {
         auto skRRect = RRect2SkRRect(GetRRectForDrawingBorder(
-            properties.GetRRect(), border, outset, isFirstLayerBorder));
+            properties, border, isOutline));
         auto innerSkRRect = RRect2SkRRect(GetInnerRRectForDrawingBorder(
-            properties, border, innerOutset, isFirstLayerBorder));
+            properties, border, isOutline));
         canvas.drawDRRect(skRRect, innerSkRRect, paint);
     } else {
-        bool isZero = isFirstLayerBorder ? properties.GetCornerRadius().IsZero() : border->GetRadiusFour().IsZero();
+        bool isZero = isOutline ? border->GetRadiusFour().IsZero() : properties.GetCornerRadius().IsZero();
         if (isZero && border->ApplyFourLine(paint)) {
-            RectF rectf = properties.GetBoundsRect();
-            border->PaintFourLine(canvas, paint, rectf.MakeOutset(outset));
+            RectF rectf = isOutline ?
+                properties.GetBoundsRect().MakeOutset(border->GetWidthFour()) : properties.GetBoundsRect();
+            border->PaintFourLine(canvas, paint, rectf);
         } else if (border->ApplyPathStyle(paint)) {
             auto borderWidth = border->GetWidth();
-            RRect rrect = GetRRectForDrawingBorder(properties.GetRRect(), border, outset, isFirstLayerBorder);
+            RRect rrect = GetRRectForDrawingBorder(properties, border, isOutline);
             rrect.rect_.width_ -= borderWidth;
             rrect.rect_.height_ -= borderWidth;
             rrect.rect_.Move(borderWidth / PARAM_DOUBLE, borderWidth / PARAM_DOUBLE);
@@ -2765,10 +2760,10 @@ void RSPropertiesPainter::DrawBorderBase(const RSProperties& properties, Drawing
         } else {
             SkAutoCanvasRestore acr(&canvas, true);
             auto rrect = RRect2SkRRect(GetRRectForDrawingBorder(
-                properties.GetRRect(), border, outset, isFirstLayerBorder));
+                properties, border, isOutline));
             canvas.clipRRect(rrect, true);
             auto innerSkRRect = RRect2SkRRect(GetInnerRRectForDrawingBorder(
-                properties, border, innerOutset, isFirstLayerBorder));
+                properties, border, isOutline));
             canvas.clipRRect(innerSkRRect, SkClipOp::kDifference, true);
             paint.setStyle(SkPaint::Style::kStroke_Style);
             SkPoint center = { innerSkRRect.rect().centerX(), innerSkRRect.rect().centerY() };
@@ -2785,20 +2780,21 @@ void RSPropertiesPainter::DrawBorderBase(const RSProperties& properties, Drawing
     pen.SetAntiAlias(true);
     if (border->ApplyFillStyle(brush)) {
         auto roundRect = RRect2DrawingRRect(GetRRectForDrawingBorder(
-            properties.GetRRect(), border, outset, isFirstLayerBorder));
+            properties, border, isOutline));
         auto innerRoundRect = RRect2DrawingRRect(GetInnerRRectForDrawingBorder(
-            properties, border, innerOutset, isFirstLayerBorder));
+            properties, border, isOutline));
         canvas.AttachBrush(brush);
         canvas.DrawNestedRoundRect(roundRect, innerRoundRect);
         canvas.DetachBrush();
     } else {
-        bool isZero = isFirstLayerBorder ? properties.GetCornerRadius().IsZero() : border->GetRadiusFour().IsZero();
+        bool isZero = isOutline ? properties.GetCornerRadius().IsZero() : border->GetRadiusFour().IsZero();
         if (isZero && border->ApplyFourLine(pen)) {
-            RectF rectf = properties.GetBoundsRect();
-            border->PaintFourLine(canvas, pen, rectf.MakeOutset(outset));
+            RectF rectf = isOutline ?
+                properties.GetBoundsRect().MakeOutset(border->GetWidthFour()) : properties.GetBoundsRect();
+            border->PaintFourLine(canvas, pen, rectf);
         } else if (border->ApplyPathStyle(pen)) {
             auto borderWidth = border->GetWidth();
-            RRect rrect = GetRRectForDrawingBorder(properties.GetRRect(), border, outset, isFirstLayerBorder);
+            RRect rrect = GetRRectForDrawingBorder(properties, border, isOutline);
             rrect.rect_.width_ -= borderWidth;
             rrect.rect_.height_ -= borderWidth;
             rrect.rect_.Move(borderWidth / PARAM_DOUBLE, borderWidth / PARAM_DOUBLE);
@@ -2810,10 +2806,10 @@ void RSPropertiesPainter::DrawBorderBase(const RSProperties& properties, Drawing
         } else {
             Drawing::AutoCanvasRestore acr(canvas, true);
             auto rrect = RRect2DrawingRRect(GetRRectForDrawingBorder(
-                properties.GetRRect(), border, outset, isFirstLayerBorder));
+                properties, border, isOutline));
             canvas.ClipRoundRect(rrect, Drawing::ClipOp::INTERSECT, true);
             auto innerRoundRect = RRect2DrawingRRect(GetInnerRRectForDrawingBorder(
-                properties, border, innerOutset, isFirstLayerBorder));
+                properties, border, isOutline));
             canvas.ClipRoundRect(innerRoundRect, Drawing::ClipOp::DIFFERENCE, true);
             Drawing::scalar centerX = innerRoundRect.GetRect().GetLeft() + innerRoundRect.GetRect().GetWidth() / 2;
             Drawing::scalar centerY = innerRoundRect.GetRect().GetTop() + innerRoundRect.GetRect().GetHeight() / 2;
@@ -2825,8 +2821,6 @@ void RSPropertiesPainter::DrawBorderBase(const RSProperties& properties, Drawing
         }
     }
 #endif
-
-    innerOutset = innerOutset + border->GetWidthFour();
 }
 
 #ifndef USE_ROSEN_DRAWING
@@ -2835,15 +2829,49 @@ void RSPropertiesPainter::DrawBorder(const RSProperties& properties, SkCanvas& c
 void RSPropertiesPainter::DrawBorder(const RSProperties& properties, Drawing::Canvas& canvas)
 #endif
 {
-    Vector4f outset, innerOutset;
-    auto innerBorder = properties.GetBorder();
-    if (innerBorder && innerBorder->HasBorder()) {
-        DrawBorderBase(properties, canvas, innerBorder, outset, innerOutset, true);
+    auto border = properties.GetBorder();
+    if (border && border->HasBorder()) {
+        DrawBorderBase(properties, canvas, border, false);
+    }
+}
+
+void RSPropertiesPainter::GetOutlineDirtyRect(RectI& dirtyOutline,
+    const RSProperties& properties, const bool& isAbsCoordinate)
+{
+    auto border = properties.GetOutline();
+    if (!border || !border->HasBorder()) {
+        return;
     }
 
-    auto outerBorder = properties.GetOuterBorder();
-    if (outerBorder && outerBorder->HasBorder()) {
-        DrawBorderBase(properties, canvas, outerBorder, outset, innerOutset, false);
+    auto geoPtr = properties.GetBoundsGeometry();
+#ifndef USE_ROSEN_DRAWING
+    SkMatrix matrix = (geoPtr && isAbsCoordinate) ? geoPtr->GetAbsMatrix() : SkMatrix::I();
+    auto skRect = Rect2SkRect(GetRRectForDrawingBorder(properties, border, true).rect_);
+    matrix.MapRect(&skRect);
+    dirtyOutline.left_ = skRect.left();
+    dirtyOutline.top_ = drawingRect.top();
+    dirtyOutline.width_ = drawingRect.width();
+    dirtyOutline.height_ = drawingRect.height();
+#else
+    Drawing::Matrix matrix = (geoPtr && isAbsCoordinate) ? geoPtr->GetAbsMatrix() : Drawing::Matrix();
+    auto drawingRect = Rect2DrawingRect(GetRRectForDrawingBorder(properties, border, true).rect_);
+    matrix.MapRect(drawingRect, drawingRect);
+    dirtyOutline.left_ = drawingRect.GetLeft();
+    dirtyOutline.top_ = drawingRect.GetTop();
+    dirtyOutline.width_ = drawingRect.GetWidth();
+    dirtyOutline.height_ = drawingRect.GetHeight();
+#endif
+}
+
+#ifndef USE_ROSEN_DRAWING
+void RSPropertiesPainter::DrawOutline(const RSProperties& properties, SkCanvas& canvas)
+#else
+void RSPropertiesPainter::DrawOutline(const RSProperties& properties, Drawing::Canvas& canvas)
+#endif
+{
+    auto outline = properties.GetOutline();
+    if (outline && outline->HasBorder()) {
+        DrawBorderBase(properties, canvas, outline, true);
     }
 }
 

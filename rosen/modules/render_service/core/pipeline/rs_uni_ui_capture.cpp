@@ -536,6 +536,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithUni(RSSurfaceR
     RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
     if (isSelfDrawingSurface) {
         RSPropertiesPainter::DrawShadow(property, *canvas_, &absClipRRect);
+        RSPropertiesPainter::DrawOutline(property, *canvas_);
     }
 #ifndef USE_ROSEN_DRAWING
     canvas_->save();

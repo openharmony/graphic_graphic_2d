@@ -43,6 +43,7 @@ enum DirtyRegionType {
     REMOVE_CHILD_RECT,
     RENDER_PROPERTIES_RECT,
     CANVAS_NODE_SKIP_RECT,
+    OUTLINE_RECT,
     TYPE_AMOUNT
 };
 
@@ -55,6 +56,7 @@ const std::map<DirtyRegionType, std::string> DIRTY_REGION_TYPE_MAP {
     { DirtyRegionType::REMOVE_CHILD_RECT, "REMOVE_CHILD_RECT" },
     { DirtyRegionType::RENDER_PROPERTIES_RECT, "RENDER_PROPERTIES_RECT" },
     { DirtyRegionType::CANVAS_NODE_SKIP_RECT, "CANVAS_NODE_SKIP_RECT" },
+    { DirtyRegionType::OUTLINE_RECT, "OUTLINE_RECT" },
 };
 
 class RSB_EXPORT RSDirtyRegionManager final {

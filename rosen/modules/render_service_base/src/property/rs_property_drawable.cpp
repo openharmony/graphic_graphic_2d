@@ -121,10 +121,10 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::PARTICLE, RSPropertyDrawableSlot::PARTICLE_EFFECT },
     { RSModifierType::SHADOW_IS_FILLED, RSPropertyDrawableSlot::INVALID },
     { RSModifierType::COLOR_BLEND_MODE, RSPropertyDrawableSlot::SAVE_LAYER_CONTENT },
-    { RSModifierType::OUTER_BORDER_COLOR, RSPropertyDrawableSlot::OUTER_BORDER },
-    { RSModifierType::OUTER_BORDER_WIDTH, RSPropertyDrawableSlot::OUTER_BORDER },
-    { RSModifierType::OUTER_BORDER_STYLE, RSPropertyDrawableSlot::OUTER_BORDER },
-    { RSModifierType::OUTER_BORDER_RADIUS, RSPropertyDrawableSlot::OUTER_BORDER },
+    { RSModifierType::OUTLINE_COLOR, RSPropertyDrawableSlot::OUTLINE },
+    { RSModifierType::OUTLINE_WIDTH, RSPropertyDrawableSlot::OUTLINE },
+    { RSModifierType::OUTLINE_STYLE, RSPropertyDrawableSlot::OUTLINE },
+    { RSModifierType::OUTLINE_RADIUS, RSPropertyDrawableSlot::OUTLINE },
     { RSModifierType::USE_SHADOW_BATCHING, RSPropertyDrawableSlot::INVALID },
     { RSModifierType::LIGHT_INTENSITY, RSPropertyDrawableSlot::POINT_LIGHT },
     { RSModifierType::LIGHT_POSITION, RSPropertyDrawableSlot::POINT_LIGHT },
@@ -156,7 +156,7 @@ static const std::array<RSPropertyDrawable::DrawableGenerator, RSPropertyDrawabl
     CustomModifierAdapter<RSModifierType::TRANSITION>,           // TRANSITION,
     CustomModifierAdapter<RSModifierType::ENV_FOREGROUND_COLOR>, // ENV_FOREGROUND_COLOR
     RSShadowDrawable::Generate,                                  // SHADOW,
-    RSBorderDrawable::GenerateOuter,                             // OUTER_BORDER,
+    RSOutlineDrawable::Generate,                                 // OUTLINE,
 
     // BG properties in Bounds Clip
     nullptr,                                                              // SAVE_LAYER_BACKGROUND
@@ -230,8 +230,8 @@ std::unordered_set<RSPropertyDrawableSlot> RSPropertyDrawable::GenerateDirtySlot
             dirtySlots.emplace(RSPropertyDrawableSlot::BORDER);
         }
 
-        if (properties.GetOuterBorder() != nullptr) {
-            dirtySlots.emplace(RSPropertyDrawableSlot::OUTER_BORDER);
+        if (properties.GetOutline() != nullptr) {
+            dirtySlots.emplace(RSPropertyDrawableSlot::OUTLINE);
         }
         // PLANNING: add other slots: ClipToFrame, ColorFilter
     }
@@ -241,8 +241,8 @@ std::unordered_set<RSPropertyDrawableSlot> RSPropertyDrawable::GenerateDirtySlot
             dirtySlots.emplace(RSPropertyDrawableSlot::BORDER);
         }
 
-        if (properties.GetOuterBorder() != nullptr) {
-            dirtySlots.emplace(RSPropertyDrawableSlot::OUTER_BORDER);
+        if (properties.GetOutline() != nullptr) {
+            dirtySlots.emplace(RSPropertyDrawableSlot::OUTLINE);
         }
     }
 
@@ -273,8 +273,8 @@ std::unordered_set<RSPropertyDrawableSlot> RSPropertyDrawable::GenerateDirtySlot
         if (properties.GetBorder() != nullptr) {
             dirtySlots.emplace(RSPropertyDrawableSlot::BORDER);
         }
-        if (properties.GetOuterBorder() != nullptr) {
-            dirtySlots.emplace(RSPropertyDrawableSlot::OUTER_BORDER);
+        if (properties.GetOutline() != nullptr) {
+            dirtySlots.emplace(RSPropertyDrawableSlot::OUTLINE);
         }
         // PLANNING: add other slots: ClipToFrame, ColorFilter
     }
@@ -284,8 +284,8 @@ std::unordered_set<RSPropertyDrawableSlot> RSPropertyDrawable::GenerateDirtySlot
             dirtySlots.emplace(RSPropertyDrawableSlot::BORDER);
         }
 
-        if (properties.GetOuterBorder() != nullptr) {
-            dirtySlots.emplace(RSPropertyDrawableSlot::OUTER_BORDER);
+        if (properties.GetOutline() != nullptr) {
+            dirtySlots.emplace(RSPropertyDrawableSlot::OUTLINE);
         }
     }
 

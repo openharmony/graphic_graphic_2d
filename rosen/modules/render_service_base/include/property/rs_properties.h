@@ -186,15 +186,15 @@ public:
     Vector4f GetBorderWidth() const;
     Vector4<uint32_t> GetBorderStyle() const;
     const std::shared_ptr<RSBorder>& GetBorder() const;
-    void SetOuterBorderColor(Vector4<Color> color);
-    void SetOuterBorderWidth(Vector4f width);
-    void SetOuterBorderStyle(Vector4<uint32_t> style);
-    void SetOuterBorderRadius(Vector4f radius);
-    Vector4<Color> GetOuterBorderColor() const;
-    Vector4f GetOuterBorderWidth() const;
-    Vector4<uint32_t> GetOuterBorderStyle() const;
-    Vector4f GetOuterBorderRadius() const;
-    const std::shared_ptr<RSBorder>& GetOuterBorder() const;
+    void SetOutlineColor(Vector4<Color> color);
+    void SetOutlineWidth(Vector4f width);
+    void SetOutlineStyle(Vector4<uint32_t> style);
+    void SetOutlineRadius(Vector4f radius);
+    Vector4<Color> GetOutlineColor() const;
+    Vector4f GetOutlineWidth() const;
+    Vector4<uint32_t> GetOutlineStyle() const;
+    Vector4f GetOutlineRadius() const;
+    const std::shared_ptr<RSBorder>& GetOutline() const;
 
     // filter properties
     void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
@@ -401,7 +401,7 @@ private:
     std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
     std::shared_ptr<RSBorder> border_ = nullptr;
-    std::shared_ptr<RSBorder> outerBorder_ = nullptr;
+    std::shared_ptr<RSBorder> outline_ = nullptr;
     std::shared_ptr<RSPath> clipPath_ = nullptr;
     std::optional<Vector4f> cornerRadius_;
     std::optional<Decoration> decoration_;

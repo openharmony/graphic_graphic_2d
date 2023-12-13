@@ -93,10 +93,10 @@ enum class RSModifierType : int16_t {
     COLOR_BLEND,                   // 66
     PARTICLE,                      // 67
     SHADOW_IS_FILLED,              // 68
-    OUTER_BORDER_COLOR,            // 69
-    OUTER_BORDER_WIDTH,            // 70
-    OUTER_BORDER_STYLE,            // 71
-    OUTER_BORDER_RADIUS,           // 72
+    OUTLINE_COLOR,                 // 69
+    OUTLINE_WIDTH,                 // 70
+    OUTLINE_STYLE,                 // 71
+    OUTLINE_RADIUS,                // 72
     USE_SHADOW_BATCHING,           // 73
     GREY_COEF1,                    // 74
     GREY_COEF2,                    // 75

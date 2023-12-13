@@ -245,6 +245,10 @@ public:
     void SetOuterBorderWidth(const Vector4f& width);
     void SetOuterBorderStyle(const Vector4<BorderStyle>& style);
     void SetOuterBorderRadius(const Vector4f& radius);
+    void SetOutlineColor(const Vector4<Color>& color);
+    void SetOutlineWidth(const Vector4f& width);
+    void SetOutlineStyle(const Vector4<BorderStyle>& style);
+    void SetOutlineRadius(const Vector4f& radius);
 
     void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
     void SetFilter(const std::shared_ptr<RSFilter>& filter);

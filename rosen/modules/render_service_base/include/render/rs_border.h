@@ -46,6 +46,7 @@ enum class BorderStyle : uint32_t {
     NONE
 };
 
+// also used for Outline
 class RSBorder final {
 public:
     RSBorder() = default;
@@ -112,7 +113,7 @@ private:
     std::vector<float> widths_;
     std::vector<BorderStyle> styles_;
 
-    // only be used by outerBorder, innerBorder(border_) uses corner radius.
+    // only be used by outline, innerBorder(border_) uses corner radius.
     Vector4f radius_;
 };
 } // namespace Rosen

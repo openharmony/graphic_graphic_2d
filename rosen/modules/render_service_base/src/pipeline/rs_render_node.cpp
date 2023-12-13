@@ -962,6 +962,15 @@ void RSRenderNode::UpdateDirtyRegion(
             }
         }
 
+        auto outline = GetRenderProperties().GetOutline();
+        RectI outlineRect;
+        if (outline && outline->HasBorder()) {
+            RSPropertiesPainter::GetOutlineDirtyRect(outlineRect, GetRenderProperties());
+            if (!outlineRect.IsEmpty()) {
+                dirtyRect = dirtyRect.JoinRect(outlineRect);
+            }
+        }
+
         if (GetRenderProperties().pixelStretch_) {
             auto stretchDirtyRect = GetRenderProperties().GetPixelStretchDirtyRect();
             dirtyRect = dirtyRect.JoinRect(stretchDirtyRect);
@@ -989,6 +998,8 @@ void RSRenderNode::UpdateDirtyRegion(
                     GetId(), GetType(), DirtyRegionType::PREPARE_CLIP_RECT, clipRect.value_or(RectI()));
                 dirtyManager.UpdateDirtyRegionInfoForDfx(
                     GetId(), GetType(), DirtyRegionType::RENDER_PROPERTIES_RECT, rectFromRenderProperties);
+                dirtyManager.UpdateDirtyRegionInfoForDfx(
+                    GetId(), GetType(), DirtyRegionType::OUTLINE_RECT, outlineRect);
             }
         }
     }

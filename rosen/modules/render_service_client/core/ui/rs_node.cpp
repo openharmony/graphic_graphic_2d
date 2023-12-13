@@ -949,28 +949,48 @@ void RSNode::SetBorderStyle(const Vector4<BorderStyle>& style)
 
 void RSNode::SetOuterBorderColor(const Vector4<Color>& color)
 {
-    SetProperty<RSOuterBorderColorModifier, RSAnimatableProperty<Vector4<Color>>>(
-        RSModifierType::OUTER_BORDER_COLOR, color);
+    SetOutlineColor(color);
 }
 
 void RSNode::SetOuterBorderWidth(const Vector4f& width)
 {
-    SetProperty<RSOuterBorderWidthModifier, RSAnimatableProperty<Vector4f>>(
-        RSModifierType::OUTER_BORDER_WIDTH, width);
+    SetOutlineWidth(width);
 }
 
 void RSNode::SetOuterBorderStyle(const Vector4<BorderStyle>& style)
 {
-    Vector4<uint32_t> styles(static_cast<uint32_t>(style.x_), static_cast<uint32_t>(style.y_),
-                             static_cast<uint32_t>(style.z_), static_cast<uint32_t>(style.w_));
-    SetProperty<RSOuterBorderStyleModifier, RSProperty<Vector4<uint32_t>>>(
-        RSModifierType::OUTER_BORDER_STYLE, styles);
+    SetOutlineStyle(style);
 }
 
 void RSNode::SetOuterBorderRadius(const Vector4f& radius)
 {
-    SetProperty<RSOuterBorderRadiusModifier, RSAnimatableProperty<Vector4f>>(
-        RSModifierType::OUTER_BORDER_RADIUS, radius);
+    SetOutlineRadius(radius);
+}
+
+void RSNode::SetOutlineColor(const Vector4<Color>& color)
+{
+    SetProperty<RSOutlineColorModifier, RSAnimatableProperty<Vector4<Color>>>(
+        RSModifierType::OUTLINE_COLOR, color);
+}
+
+void RSNode::SetOutlineWidth(const Vector4f& width)
+{
+    SetProperty<RSOutlineWidthModifier, RSAnimatableProperty<Vector4f>>(
+        RSModifierType::OUTLINE_WIDTH, width);
+}
+
+void RSNode::SetOutlineStyle(const Vector4<BorderStyle>& style)
+{
+    Vector4<uint32_t> styles(static_cast<uint32_t>(style.x_), static_cast<uint32_t>(style.y_),
+                             static_cast<uint32_t>(style.z_), static_cast<uint32_t>(style.w_));
+    SetProperty<RSOutlineStyleModifier, RSProperty<Vector4<uint32_t>>>(
+        RSModifierType::OUTLINE_STYLE, styles);
+}
+
+void RSNode::SetOutlineRadius(const Vector4f& radius)
+{
+    SetProperty<RSOutlineRadiusModifier, RSAnimatableProperty<Vector4f>>(
+        RSModifierType::OUTLINE_RADIUS, radius);
 }
 
 void RSNode::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter)
