@@ -568,6 +568,15 @@ bool RSSystemProperties::GetASTCEnabled()
     return isASTCEnabled;
 }
 
+// GetCachedBlurPartialRenderEnabled Option On: no need to expand blur dirtyregion if blur has background cache
+bool RSSystemProperties::GetCachedBlurPartialRenderEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.cachedblurpartialrender.enabled", "1");
+    int changed = 0;
+    const char *type = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(type, 1) != 0;
+}
+
 bool RSSystemProperties::GetImageGpuResourceCacheEnable(int width, int height)
 {
     static bool cacheEnable =

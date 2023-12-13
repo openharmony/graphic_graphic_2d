@@ -1379,19 +1379,34 @@ void RSSurfaceRenderNode::SetOpaqueRegionBaseInfo(const RectI& screeninfo, const
 // [planning] Remove this after skia is upgraded, the clipRegion is supported
 void RSSurfaceRenderNode::ResetChildrenFilterRects()
 {
+    childrenFilterNodes_.clear();
     childrenFilterRects_.clear();
+    childrenFilterRectsCacheValid_.clear();
 }
 
-void RSSurfaceRenderNode::UpdateChildrenFilterRects(const RectI& rect)
+void RSSurfaceRenderNode::UpdateChildrenFilterRects(std::shared_ptr<RSRenderNode> filternode,
+    const RectI& rect, bool cacheValid)
 {
     if (!rect.IsEmpty()) {
+        childrenFilterNodes_.emplace_back(filternode);
         childrenFilterRects_.emplace_back(rect);
+        childrenFilterRectsCacheValid_.emplace_back(cacheValid);
     }
 }
 
 const std::vector<RectI>& RSSurfaceRenderNode::GetChildrenNeedFilterRects() const
 {
     return childrenFilterRects_;
+}
+
+const std::vector<bool>& RSSurfaceRenderNode::GetChildrenNeedFilterRectsCacheValid() const
+{
+    return childrenFilterRectsCacheValid_;
+}
+
+const std::vector<std::shared_ptr<RSRenderNode>>& RSSurfaceRenderNode::GetChildrenFilterNodes() const
+{
+    return childrenFilterNodes_;
 }
 
 // manage abilities' nodeid info

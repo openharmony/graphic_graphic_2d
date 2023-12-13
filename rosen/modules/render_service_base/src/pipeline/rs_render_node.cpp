@@ -1007,6 +1007,16 @@ void RSRenderNode::UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parent
     }
 }
 
+bool RSRenderNode::IsBackgroundFilterCacheValid() const
+{
+    auto& manager = GetRenderProperties().GetFilterCacheManager(false);
+    if (manager == nullptr) {
+        return false;
+    }
+    bool backgroundFilterCacheValid = manager->IsCacheValid();
+    return backgroundFilterCacheValid;
+}
+
 void RSRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground) const
 {
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
