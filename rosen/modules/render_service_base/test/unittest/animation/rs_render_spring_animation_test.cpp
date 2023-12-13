@@ -34,6 +34,7 @@ public:
     static constexpr uint64_t ANIMATION_ID = 12345;
     static constexpr uint64_t PROPERTY_ID = 54321;
     static constexpr uint64_t PROPERTY_ID_2 = 54322;
+    static constexpr uint64_t PROPERTY_ID_3 = 0;
 };
 
 void RSRenderSpringAnimationTest::SetUpTestCase() {}
@@ -296,7 +297,7 @@ HWTEST_F(RSRenderSpringAnimationTest, OnInitialize001, TestSize.Level1)
  */
 HWTEST_F(RSRenderSpringAnimationTest, SetInitialVelocity001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest OnInitialize001 start";
+    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest SetInitialVelocity001 start";
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
@@ -313,6 +314,30 @@ HWTEST_F(RSRenderSpringAnimationTest, SetInitialVelocity001, TestSize.Level1)
     auto velocity1 = std::make_shared<RSRenderPropertyBase>();
     renderSpringAnimationMock->SetInitialVelocity(velocity1);
     GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest SetInitialVelocity001 end";
+}
+
+/**
+ * @tc.name: OnAnimate001
+ * @tc.desc: Verify the OnAnimate
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, OnAnimate001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest OnAnimate001 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderSpringAnimationMock =
+        std::make_shared<RSRenderSpringAnimationMock>(ANIMATION_ID, PROPERTY_ID_3, property, property1, property2);
+    float response = 0.5f;
+    float dampingRatio = 0.5f;
+    float blendDuration = 1.0f;
+    renderSpringAnimationMock->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimationMock != nullptr);
+    float fraction = 0.1f;
+    renderSpringAnimationMock->OnAnimate(fraction);
+    EXPECT_EQ(false, renderSpringAnimationMock->IsCalculateAniamtionValue());
+    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest OnAnimate001 end";
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -72,8 +72,8 @@ void RSRenderParticleEffectorTest::SetUp()
     Range<float> blueRandom = Range<float>(0.1f, 1.f);
     Range<float> alphaRandom = Range<float>(0.1f, 1.f);
     std::vector<std::shared_ptr<ChangeInOverLife<Color>>> colorChangeOverLife = {};
-    RenderParticleColorParaType color =
-        RenderParticleColorParaType(colorVal, colorUpdator, redRandom, greenRandom, blueRandom, alphaRandom, colorChangeOverLife);
+    RenderParticleColorParaType color = RenderParticleColorParaType(
+        colorVal, colorUpdator, redRandom, greenRandom, blueRandom, alphaRandom, colorChangeOverLife);
     Range<float> opacityVal = Range<float>(0.5, 1);
     ParticleUpdator opacityUpdator = ParticleUpdator::CURVE;
     Range<float> opacityRandom;
@@ -83,7 +83,8 @@ void RSRenderParticleEffectorTest::SetUp()
     int endMillis = 3000;
     std::shared_ptr<RSInterpolator> interpolator = nullptr;
     auto change1 = std::make_shared<ChangeInOverLife<float>>(fromValue, toValue, startMillis, endMillis, interpolator);
-    auto change2 = std::make_shared<ChangeInOverLife<float>>(toValue, fromValue, endMillis + 4000, endMillis + 7000, interpolator);
+    auto change2 =
+        std::make_shared<ChangeInOverLife<float>>(toValue, fromValue, endMillis + 4000, endMillis + 7000, interpolator);
     std::vector<std::shared_ptr<ChangeInOverLife<float>>> opacityChangeOverLife;
     opacityChangeOverLife.push_back(change1);
     opacityChangeOverLife.push_back(change2);

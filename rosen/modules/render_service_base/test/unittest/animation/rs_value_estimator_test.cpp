@@ -62,6 +62,9 @@ HWTEST_F(RSValueEstimatorTest, EstimateTest001, TestSize.Level1)
     auto filter4 = curveValueEstimator->Estimate(0.1f, startValue, endValue2);
     EXPECT_TRUE(filter4 != nullptr);
 
+    auto endValue3 = RSFilter::CreateMaterialFilter(1, 0.1f);
+    auto filter5 = curveValueEstimator->Estimate(0.1f, nullptr, endValue3);
+    EXPECT_TRUE(filter5 != nullptr);
     GTEST_LOG_(INFO) << "RSValueEstimatorTest EstimateTest001 end";
 }
 
