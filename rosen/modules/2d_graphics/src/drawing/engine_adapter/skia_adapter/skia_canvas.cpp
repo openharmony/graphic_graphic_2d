@@ -905,7 +905,7 @@ void SkiaCanvas::ClipRoundRect(const Rect& rect, std::vector<Point>& pts, bool d
         return;
     }
     SkRRect rRect;
-    rRect.setRectRadii(SkRect::MakeLTRB(rect.GetLeft(), rect.GetTop(), recr.GetRight(), rect.GetBottom()),
+    rRect.setRectRadii(SkRect::MakeLTRB(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()),
         reinterpret_cast<const SkVector *>(pts.data()));
     skCanvas_->clipRRect(rRect, doAntiAlias);
 }

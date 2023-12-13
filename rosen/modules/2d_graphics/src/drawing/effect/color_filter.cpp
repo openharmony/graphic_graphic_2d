@@ -46,7 +46,8 @@ ColorFilter::ColorFilter(FilterType t, ColorFilter& f1, ColorFilter& f2) noexcep
     impl_->InitWithCompose(f1, f2);
 }
 
-ColorFilter::ColorFilter(FilterType t, const float f1[MATRIX_SIZE], const float f2[MATRIX_SIZE]) noexcept : ColorFilter()
+ColorFilter::ColorFilter(FilterType t, const float f1[MATRIX_SIZE],
+    const float f2[MATRIX_SIZE]) noexcept : ColorFilter()
 {
     type_ = t;
     impl_->InitWithCompose(f1, f2);
