@@ -1079,7 +1079,7 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeHorizontalMeanBl
         {
             half4 sum = vec4(0.0);
             half div = 0;
-            for (half x = -30.0; x < 30.0; x += 1.0) {
+            for (half x = -50.0; x < 50.0; x += 1.0) {
                 if (x > radius) {
                     break;
                 }
@@ -1131,7 +1131,7 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeVerticalMeanBlur
         {
             half4 sum = vec4(0.0);
             half div = 0;
-            for (half y = -30.0; y < 30.0; y += 1.0) {
+            for (half y = -50.0; y < 50.0; y += 1.0) {
                 if (y > radius) {
                     break;
                 }
@@ -1367,7 +1367,7 @@ void RSPropertiesPainter::DrawLinearGradientBlur(Drawing::Surface* surface, RSPa
         return;
     }
 
-    if (RSSystemProperties::GetMaskLinearBlurEnabled()) {
+    if (RSSystemProperties::GetMaskLinearBlurEnabled() && para->useMaskAlgorithm) {
         // use faster LinearGradientBlur if valid
         RS_OPTIONAL_TRACE_NAME("DrawLinearGradientBlur_mask");
         if (para->LinearGradientBlurFilter_ == nullptr) {
