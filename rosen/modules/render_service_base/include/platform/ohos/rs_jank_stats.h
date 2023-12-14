@@ -42,8 +42,12 @@ struct JankFrames {
     bool isReportEventJankFrame_ = false;
     bool isUpdateJankFrame_ = false;
     bool isFirstFrame_ = false;
+    bool isFrameRateRecorded_ = false;
+    bool isAnimationEnded_ = false;
+    bool isDisplayAnimator_ = false;
     int64_t setTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t startTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t endTimeSteady_ = TIMESTAMP_INITIAL;
     int32_t seqMissedFrames_ = 0;
     int32_t totalFrames_ = 0;
     int32_t totalMissedFrames_ = 0;
@@ -86,8 +90,8 @@ public:
     void SetAppFirstFrame(pid_t appPid);
 
 private:
-    RSJankStats() {};
-    ~RSJankStats() {};
+    RSJankStats() = default;
+    ~RSJankStats() = default;
     DISALLOW_COPY_AND_MOVE(RSJankStats);
 
     void UpdateEndTime();
@@ -98,10 +102,11 @@ private:
     void ReportEventJankFrame(const JankFrames& jankFrames) const;
     void ReportEventFirstFrame();
     void ReportEventFirstFrameByPid(pid_t appPid) const;
+    void HandleImplicitAnimationEndInAdvance(JankFrames& jankFrames);
     void RecordJankFrameInit();
     void RecordJankFrame();
     void RecordJankFrameSingle(int64_t missedFrames, JankFrameRecordStats& recordStats);
-    void RecordAnimationDynamicFrameRate(const JankFrames& jankFrames) const;
+    void RecordAnimationDynamicFrameRate(JankFrames& jankFrames);
     void SetAnimationTraceBegin(const JankFrames& jankFrames);
     void SetAnimationTraceEnd(const JankFrames& jankFrames);
     void CheckAnimationTraceTimeout();
@@ -140,8 +145,7 @@ private:
     std::map<int32_t, AnimationTraceStats> animationAsyncTraces_;
     std::map<int64_t, TraceIdRemainderStats> traceIdRemainder_;
     std::map<std::pair<int64_t, std::string>, JankFrames> animateJankFrames_;
-    std::mutex animateJankFramesMutex_;
-    std::mutex firstFrameAppPidsMutex_;
+    std::mutex mutex_;
 
     enum JankRangeType : size_t {
         JANK_FRAME_6_FREQ = 0,
