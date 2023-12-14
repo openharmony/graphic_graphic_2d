@@ -133,8 +133,13 @@ bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 }
 }
 
-void DoScreenRcdTask(std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo)
+void DoScreenRcdTask(std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo,
+    ScreenInfo& screenInfo_)
 {
+    if (screenInfo_.state != ScreenState::HDI_OUTPUT_ENABLE) {
+        RS_LOGD("DoScreenRcdTask is not at HDI_OUPUT mode");
+        return;
+    }
     if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
         RSSingleton<RoundCornerDisplay>::GetInstance().RunHardwareTask(
             [&processor, &rcdInfo]() {
@@ -2515,9 +2520,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             }
             if (needCreateDisplayNodeLayer || forceUpdateFlag_) {
                 processor_->ProcessDisplaySurface(node);
-                if (screenInfo_.state == ScreenState::HDI_OUTPUT_ENABLE) {
-                    DoScreenRcdTask(processor_, rcdInfo_);
-                }
+                DoScreenRcdTask(processor_, rcdInfo_, screenInfo_);
                 processor_->PostProcess(&node);
             }
             return;
@@ -2923,9 +2926,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     }
 #endif
 
-    if (screenInfo_.state == ScreenState::HDI_OUTPUT_ENABLE) {
-        DoScreenRcdTask(processor_, rcdInfo_);
-    }
+    DoScreenRcdTask(processor_, rcdInfo_, screenInfo_);
 
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExcute()) {
         RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode: hardwareThread task has too many to excute");
@@ -4834,9 +4835,7 @@ bool RSUniRenderVisitor::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> r
             processor_->ProcessSurface(*node);
         }
     }
-    if (screenInfo_.state == ScreenState::HDI_OUTPUT_ENABLE) {
-        DoScreenRcdTask(processor_, rcdInfo_);
-    }
+    DoScreenRcdTask(processor_, rcdInfo_, screenInfo_);
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExcute()) {
         RS_LOGW("RSUniRenderVisitor::DoDirectComposition: hardwareThread task has too many to excute");
     }
