@@ -2303,7 +2303,7 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
     if ((timestamp_ - lastCleanCacheTimestamp_) / REFRESH_PERIOD > CLEAN_CACHE_FREQ) {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
         RS_LOGD("RSMainThread: clear cpu cache pid:%{public}d", remotePid);
-        if (IsRenderedProcess(remotePid)) {
+        if (!IsResidentProcess(remotePid)) {
             ClearMemoryCache(true);
         }
         lastCleanCacheTimestamp_ = timestamp_;
@@ -2311,20 +2311,9 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
     }
 }
 
-bool RSMainThread::IsRenderedProcess(pid_t pid) const
+bool RSMainThread::IsResidentProcess(pid_t pid) const
 {
-    bool isRenderProcess = false;
-    auto task = [&isRenderProcess, pid](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
-        if (!surfaceNode) {
-            return;
-        }
-        if (ExtractPid(surfaceNode->GetId()) == pid) {
-            isRenderProcess = true;
-            return;
-        }
-    };
-    context_->GetNodeMap().TraverseSurfaceNodes(task);
-    return isRenderProcess;
+    return pid == ExtractPid(context_->GetNodeMap().GetEntryViewNodeId());
 }
 
 void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString)
