@@ -831,6 +831,9 @@ void RSSurfaceCaptureVisitor::SetSurface(Drawing::Surface* surface)
 
 void RSSurfaceCaptureVisitor::ProcessChildren(RSRenderNode &node)
 {
+    if (DrawBlurInCache(node)) {
+        return;
+    }
     for (auto& child : node.GetSortedChildren()) {
         child->Process(shared_from_this());
     }
@@ -1325,25 +1328,11 @@ void RSSurfaceCaptureVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         return;
     }
 
-    node.ProcessRenderBeforeChildren(*canvas_);
-    if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
-        auto canvasDrawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>();
-#ifndef USE_ROSEN_DRAWING
-        SkBitmap bitmap = canvasDrawingNode->GetBitmap();
-#ifndef NEW_SKIA
-        canvas_->drawBitmap(bitmap, 0, 0);
-#else
-        canvas_->drawImage(bitmap.asImage(), 0, 0);
-#endif
-#else
-        Drawing::Bitmap bitmap = canvasDrawingNode->GetBitmap();
-        canvas_->DrawBitmap(bitmap, 0, 0);
-#endif
-    } else {
-        node.ProcessRenderContents(*canvas_);
+    if (node.GetCacheType() != CacheType::NONE) {
+        ProcessCacheFilterRects(node);
     }
-    ProcessChildren(node);
-    node.ProcessRenderAfterChildren(*canvas_);
+
+    DrawChildRenderNode(node);
 }
 
 #ifndef USE_ROSEN_DRAWING
@@ -1537,5 +1526,91 @@ void RSSurfaceCaptureVisitor::DrawSpherize(RSRenderNode& node)
     node.ProcessTransitionAfterChildren(*canvas_);
 }
 
+void RSSurfaceCaptureVisitor::DrawChildRenderNode(RSRenderNode& node)
+{
+    if (!canvas_) {
+        RS_LOGE("RSSurfaceCaptureVisitor::ProcessCanvasRenderNode, canvas is nullptr");
+        return;
+    }
+    CacheType cacheType = node.GetCacheType();
+    switch (cacheType) {
+        case CacheType::NONE: {
+            node.ProcessRenderBeforeChildren(*canvas_);
+            if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+                auto canvasDrawingNode = node.ReinterpretCastTo<RSCanvasDrawingRenderNode>();
+#ifndef USE_ROSEN_DRAWING
+                SkBitmap bitmap = canvasDrawingNode->GetBitmap();
+#ifndef NEW_SKIA
+                canvas_->drawBitmap(bitmap, 0, 0);
+#else
+                canvas_->drawImage(bitmap.asImage(), 0, 0);
+#endif
+#else
+                Drawing::Bitmap bitmap = canvasDrawingNode->GetBitmap();
+                canvas_->DrawBitmap(bitmap, 0, 0);
+#endif
+            } else {
+                node.ProcessRenderContents(*canvas_);
+            }
+            ProcessChildren(node);
+            node.ProcessRenderAfterChildren(*canvas_);
+            break;
+        }
+        case CacheType::CONTENT: {
+            node.ProcessRenderBeforeChildren(*canvas_);
+            node.DrawCacheSurface(*canvas_, UNI_MAIN_THREAD_INDEX, false);
+            node.ProcessRenderAfterChildren(*canvas_);
+            break;
+        }
+        case CacheType::ANIMATE_PROPERTY: {
+            node.ProcessTransitionBeforeChildren(*canvas_);
+            node.DrawCacheSurface(*canvas_, UNI_MAIN_THREAD_INDEX, false);
+            node.ProcessTransitionAfterChildren(*canvas_);
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+void RSSurfaceCaptureVisitor::ProcessCacheFilterRects(RSRenderNode& node)
+{
+    std::unordered_map<NodeId, std::unordered_set<NodeId>> cacheFilterRectsMap = {};
+    node.GetFilterRectsInCache(cacheFilterRectsMap);
+    if (cacheFilterRectsMap[node.GetId()].empty()) {
+        return;
+    }
+    curCacheFilterRects_ = cacheFilterRectsMap[node.GetId()];
+    RS_TRACE_NAME_FMT("Draw cache with blur [%llu]", node.GetId());
+#ifndef USE_ROSEN_DRAWING
+    SkAutoCanvasRestore arc(canvas_.get(), true);
+#else
+    Drawing::AutoCanvasRestore arc(*canvas_, true);
+#endif
+    auto nodeType = node.GetCacheType();
+    node.SetCacheType(CacheType::NONE);
+    DrawChildRenderNode(node);
+    node.SetCacheType(nodeType);
+    curCacheFilterRects_ = {};
+}
+
+bool RSSurfaceCaptureVisitor::DrawBlurInCache(RSRenderNode& node)
+{
+    if (LIKELY(curCacheFilterRects_.empty())) {
+        return false;
+    }
+    if (curCacheFilterRects_.count(node.GetId())) {
+        // draw filter before drawing cachedSurface
+        curCacheFilterRects_.erase(node.GetId());
+        if (curCacheFilterRects_.empty() || !node.ChildHasFilter()) {
+            // no filter to draw, return
+            return true;
+        }
+    } else if (!node.ChildHasFilter()) {
+        // no filter to draw, return
+        return true;
+    }
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS
