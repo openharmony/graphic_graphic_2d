@@ -1565,7 +1565,7 @@ void RSMainThread::CallbackDrawContextStatusToWMS()
         if (lastDrawStatusMap_.find(dynamicNodeId) == lastDrawStatusMap_.end()) {
             drawStatusVec.emplace_back(std::make_pair(dynamicNodeId,
                 WINDOW_LAYER_INFO_TYPE::WINDOW_LAYER_DYNAMIC_STATUS));
-            RS_LOGD("%{public}s nodeId[%{public}" PRIu64 "] status[%{public}d]",
+            RS_OPTIONAL_TRACE_NAME_FMT("%s nodeId[%" PRIu64 "] status[%d]",
                 __func__, dynamicNodeId, WINDOW_LAYER_INFO_TYPE::WINDOW_LAYER_DYNAMIC_STATUS);
         }
         lastDrawStatusMap_[dynamicNodeId] = timestamp_;
@@ -1575,7 +1575,7 @@ void RSMainThread::CallbackDrawContextStatusToWMS()
         if (timestamp_ - drawStatusIter->second > MAX_DYNAMIC_STATUS_TIME) {
             drawStatusVec.emplace_back(std::make_pair(drawStatusIter->first,
                 WINDOW_LAYER_INFO_TYPE::WINDOW_LAYER_STATIC_STATUS));
-            RS_LOGD("%{public}s nodeId[%{public}" PRIu64 "] status[%{public}d]",
+            RS_OPTIONAL_TRACE_NAME_FMT("%s nodeId[%" PRIu64 "] status[%d]",
                 __func__, drawStatusIter->first, WINDOW_LAYER_INFO_TYPE::WINDOW_LAYER_STATIC_STATUS);
             auto tmpIter = drawStatusIter++;
             lastDrawStatusMap_.erase(tmpIter);
