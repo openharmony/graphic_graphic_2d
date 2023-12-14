@@ -143,8 +143,7 @@ std::shared_ptr<RSSurface> RSRenderServiceClient::CreateRSSurface(const sptr<Sur
 #endif
 
 #if defined (ACE_ENABLE_GL)
-    if (Rosen::RSSystemProperties::GetGpuApiType() != Rosen::GpuApiType::VULKAN &&
-        Rosen::RSSystemProperties::GetGpuApiType() != Rosen::GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == Rosen::GpuApiType::OPENGL) {
         return std::make_shared<RSSurfaceOhosGl>(surface); // GPU render
     }
 #endif
@@ -918,6 +917,10 @@ public:
         }
     }
 
+    void OnHgmRefreshRateModeChanged(int32_t refreshRateMode) override
+    {
+    }
+
 private:
     HgmConfigChangeCallback cb_;
 };
@@ -931,6 +934,39 @@ int32_t RSRenderServiceClient::RegisterHgmConfigChangeCallback(const HgmConfigCh
     }
     sptr<CustomHgmConfigChangeCallback> cb = new CustomHgmConfigChangeCallback(callback);
     return renderService->RegisterHgmConfigChangeCallback(cb);
+}
+
+class CustomHgmRefreshRateModeChangeCallback : public RSHgmConfigChangeCallbackStub
+{
+public:
+    explicit CustomHgmRefreshRateModeChangeCallback(const HgmRefreshRateModeChangeCallback& callback) : cb_(callback) {}
+    ~CustomHgmRefreshRateModeChangeCallback() override {};
+
+    void OnHgmRefreshRateModeChanged(int32_t refreshRateMode) override
+    {
+        if (cb_ != nullptr) {
+            cb_(refreshRateMode);
+        }
+    }
+
+    void OnHgmConfigChanged(std::shared_ptr<RSHgmConfigData> configData) override
+    {
+    }
+
+private:
+    HgmRefreshRateModeChangeCallback cb_;
+};
+
+int32_t RSRenderServiceClient::RegisterHgmRefreshRateModeChangeCallback(
+    const HgmRefreshRateModeChangeCallback& callback)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RegisterHgmRefreshRateModeChangeCallback renderService == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    sptr<CustomHgmRefreshRateModeChangeCallback> cb = new CustomHgmRefreshRateModeChangeCallback(callback);
+    return renderService->RegisterHgmRefreshRateModeChangeCallback(cb);
 }
 
 void RSRenderServiceClient::SetAppWindowNum(uint32_t num)

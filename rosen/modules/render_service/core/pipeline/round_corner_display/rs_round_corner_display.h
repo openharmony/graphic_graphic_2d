@@ -51,6 +51,12 @@ enum ShowTopResourceType {
     TOP_HIDDEN
 };
 
+enum RoundCornerSurfaceType {
+    // choose type and then choose resource for harden or RS
+    TOP_SURFACE = 0,
+    BOTTOM_SURFACE
+};
+
 class RoundCornerDisplay {
 public:
     RoundCornerDisplay();
@@ -65,9 +71,16 @@ public:
     // update curOrientation_ and lastOrientation_
     void UpdateOrientationStatus(ScreenRotation orientation);
 
-    void DrawRoundCorner(std::shared_ptr<RSPaintFilterCanvas>& canvas);
+    void DrawRoundCorner(RSPaintFilterCanvas* canvas);
 
-    void DrawRoundCorner(std::unique_ptr<RSPaintFilterCanvas>& canvas);
+    void DrawTopRoundCorner(RSPaintFilterCanvas* canvas);
+
+    void DrawBottomRoundCorner(RSPaintFilterCanvas* canvas);
+
+    bool IsSupportHardware() const
+    {
+        return supportHardware_;
+    }
 
     void RunHardwareTask(const std::function<void()>& task)
     {
@@ -186,6 +199,8 @@ private:
     bool GetTopSurfaceSource();
 
     bool GetBottomSurfaceSource();
+
+    void DrawOneRoundCorner(RSPaintFilterCanvas* canvas, int surfaceType);
 
     // update resource
     void UpdateParameter(std::map<std::string, bool> &updateFlag);

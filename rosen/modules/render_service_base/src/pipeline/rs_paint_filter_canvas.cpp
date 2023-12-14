@@ -728,7 +728,14 @@ void RSPaintFilterCanvasBase::SaveLayer(const SaveLayerOps& saveLayerRec)
     }
 #else
     if (canvas_ != nullptr) {
-        canvas_->SaveLayer(saveLayerRec);
+        Brush brush;
+        if (saveLayerRec.GetBrush() != nullptr) {
+            brush = *saveLayerRec.GetBrush();
+            OnFilterWithBrush(brush);
+        }
+        SaveLayerOps slo(saveLayerRec.GetBounds(), &brush,
+            saveLayerRec.GetImageFilter(), saveLayerRec.GetSaveLayerFlags());
+        canvas_->SaveLayer(slo);
     }
 #endif
 }
@@ -939,6 +946,11 @@ CoreCanvas& RSPaintFilterCanvas::AttachBrush(const Brush& brush)
 bool RSPaintFilterCanvas::OnFilter() const
 {
     return alphaStack_.top() > 0.f;
+}
+
+Drawing::Canvas* RSPaintFilterCanvas::GetRecordingCanvas() const
+{
+    return recordingState_ ? canvas_ : nullptr;
 }
 
 #endif // USE_ROSEN_DRAWING

@@ -133,8 +133,13 @@ bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 }
 }
 
-void DoScreenRcdTask(std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo)
+void DoScreenRcdTask(std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo,
+    ScreenInfo& screenInfo_)
 {
+    if (screenInfo_.state != ScreenState::HDI_OUTPUT_ENABLE) {
+        RS_LOGD("DoScreenRcdTask is not at HDI_OUPUT mode");
+        return;
+    }
     if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
         RSSingleton<RoundCornerDisplay>::GetInstance().RunHardwareTask(
             [&processor, &rcdInfo]() {
@@ -154,30 +159,11 @@ constexpr uint32_t PARALLEL_RENDER_MINIMUM_RENDER_NODE_NUMBER = 50;
 RSUniRenderVisitor::RSUniRenderVisitor()
     : curSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>())
 {
+    PartialRenderOptionInit();
     auto mainThread = RSMainThread::Instance();
     renderEngine_ = mainThread->GetRenderEngine();
-    partialRenderType_ = RSSystemProperties::GetUniPartialRenderEnabled();
     quickSkipPrepareType_ = RSSystemParameters::GetQuickSkipPrepareType();
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    auto screenNum = screenManager->GetAllScreenIds().size();
-    isPartialRenderEnabled_ = (screenNum <= 1) && (partialRenderType_ != PartialRenderType::DISABLED) &&
-        mainThread->IsSingleDisplay();
-    dirtyRegionDebugType_ = RSSystemProperties::GetDirtyRegionDebugType();
-    surfaceRegionDebugType_ = RSSystemProperties::GetSurfaceRegionDfxType();
-    isRegionDebugEnabled_ = (dirtyRegionDebugType_ != DirtyRegionDebugType::DISABLED) ||
-        (surfaceRegionDebugType_ != SurfaceRegionDebugType::DISABLED);
-    isVisibleRegionDfxEnabled_ = (surfaceRegionDebugType_ == SurfaceRegionDebugType::VISIBLE_REGION);
-    isOpaqueRegionDfxEnabled_ = (surfaceRegionDebugType_ == SurfaceRegionDebugType::OPAQUE_REGION);
-    isTargetDirtyRegionDfxEnabled_ = RSSystemProperties::GetTargetDirtyRegionDfxEnabled(dfxTargetSurfaceNames_) &&
-        (surfaceRegionDebugType_ == SurfaceRegionDebugType::DISABLED);
-    isDirtyRegionDfxEnabled_ = !isTargetDirtyRegionDfxEnabled_ &&
-        (dirtyRegionDebugType_ == DirtyRegionDebugType::EGL_DAMAGE);
-    isDisplayDirtyDfxEnabled_ = !isTargetDirtyRegionDfxEnabled_ &&
-        (dirtyRegionDebugType_ == DirtyRegionDebugType::DISPLAY_DIRTY);
-    isCanvasNodeSkipDfxEnabled_ = (dirtyRegionDebugType_ == DirtyRegionDebugType::CANVAS_NODE_SKIP_RECT);
     isOcclusionEnabled_ = RSSystemProperties::GetOcclusionEnabled();
-    isOpDropped_ = isPartialRenderEnabled_ &&
-        (partialRenderType_ != PartialRenderType::SET_DAMAGE) && !isRegionDebugEnabled_;
     isQuickSkipPreparationEnabled_ = (quickSkipPrepareType_ != QuickSkipPrepareType::DISABLED);
     isDrawingCacheEnabled_ = RSSystemParameters::GetDrawingCacheEnabled();
     RSTagTracker::UpdateReleaseResourceEnabled(RSSystemProperties::GetReleaseResourceEnabled());
@@ -206,14 +192,38 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     isPhone_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
 }
 
+void RSUniRenderVisitor::PartialRenderOptionInit()
+{
+    partialRenderType_ = RSSystemProperties::GetUniPartialRenderEnabled();
+    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    auto screenNum = screenManager->GetAllScreenIds().size();
+    isPartialRenderEnabled_ = (screenNum <= 1) && (partialRenderType_ != PartialRenderType::DISABLED) &&
+        RSMainThread::Instance()->IsSingleDisplay();
+    dirtyRegionDebugType_ = RSSystemProperties::GetDirtyRegionDebugType();
+    surfaceRegionDebugType_ = RSSystemProperties::GetSurfaceRegionDfxType();
+    isRegionDebugEnabled_ = (dirtyRegionDebugType_ != DirtyRegionDebugType::DISABLED) ||
+        (surfaceRegionDebugType_ != SurfaceRegionDebugType::DISABLED);
+    isVisibleRegionDfxEnabled_ = (surfaceRegionDebugType_ == SurfaceRegionDebugType::VISIBLE_REGION);
+    isOpaqueRegionDfxEnabled_ = (surfaceRegionDebugType_ == SurfaceRegionDebugType::OPAQUE_REGION);
+    isTargetDirtyRegionDfxEnabled_ = RSSystemProperties::GetTargetDirtyRegionDfxEnabled(dfxTargetSurfaceNames_) &&
+        (surfaceRegionDebugType_ == SurfaceRegionDebugType::DISABLED);
+    isDirtyRegionDfxEnabled_ = !isTargetDirtyRegionDfxEnabled_ &&
+        (dirtyRegionDebugType_ == DirtyRegionDebugType::EGL_DAMAGE);
+    isDisplayDirtyDfxEnabled_ = !isTargetDirtyRegionDfxEnabled_ &&
+        (dirtyRegionDebugType_ == DirtyRegionDebugType::DISPLAY_DIRTY);
+    isCanvasNodeSkipDfxEnabled_ = (dirtyRegionDebugType_ == DirtyRegionDebugType::CANVAS_NODE_SKIP_RECT);
+    isOpDropped_ = isPartialRenderEnabled_ &&
+        (partialRenderType_ != PartialRenderType::SET_DAMAGE) && !isRegionDebugEnabled_;
+    isCacheBlurPartialRenderEnabled_ = RSSystemProperties::GetCachedBlurPartialRenderEnabled();
+}
+
 RSUniRenderVisitor::RSUniRenderVisitor(std::shared_ptr<RSPaintFilterCanvas> canvas, uint32_t surfaceIndex)
     : RSUniRenderVisitor()
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK))
     parallelRenderVisitorIndex_ = surfaceIndex;
 #if defined(RS_ENABLE_GL)
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         canvas_ = canvas;
     }
 #endif
@@ -334,7 +344,8 @@ void RSUniRenderVisitor::UpdateStaticCacheSubTree(const std::shared_ptr<RSRender
         if (child->GetRenderProperties().NeedFilter()) {
             UpdateForegroundFilterCacheWithDirty(*child, *curSurfaceDirtyManager_);
             if (curSurfaceNode_ && curSurfaceNode_->GetId() == child->GetInstanceRootNodeId()) {
-                curSurfaceNode_->UpdateChildrenFilterRects(child->GetOldDirtyInSurface());
+                curSurfaceNode_->UpdateChildrenFilterRects(child, child->GetOldDirtyInSurface(),
+                    child->IsBackgroundFilterCacheValid());
             }
         }
         UpdateStaticCacheSubTree(child, child->GetSortedChildren());
@@ -357,7 +368,8 @@ void RSUniRenderVisitor::PrepareEffectNodeIfCacheReuse(const std::shared_ptr<RSR
     if (effectNode->GetRenderProperties().NeedFilter()) {
         UpdateForegroundFilterCacheWithDirty(*effectNode, *curSurfaceDirtyManager_);
         if (curSurfaceNode_ && curSurfaceNode_->GetId() == effectNode->GetInstanceRootNodeId()) {
-            curSurfaceNode_->UpdateChildrenFilterRects(effectNode->GetOldDirtyInSurface());
+            curSurfaceNode_->UpdateChildrenFilterRects(effectNode, effectNode->GetOldDirtyInSurface(),
+                effectNode->IsBackgroundFilterCacheValid());
         }
     }
     UpdateStaticCacheSubTree(effectNode, effectNode->GetSortedChildren());
@@ -1028,8 +1040,7 @@ void RSUniRenderVisitor::CollectAppNodeForHwc(std::shared_ptr<RSSurfaceRenderNod
 
     if (isParallel_ && !isUIFirst_) {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
-        if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-            RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
             RSParallelRenderManager::Instance()->AddAppWindowNode(parallelRenderVisitorIndex_, surfaceNode);
         }
 #endif
@@ -1657,7 +1668,8 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
                 DirtyRegionType::FILTER_RECT, node.GetOldDirtyInSurface());
         }
         if (curSurfaceNode_) {
-            curSurfaceNode_->UpdateChildrenFilterRects(node.GetOldDirtyInSurface());
+            curSurfaceNode_->UpdateChildrenFilterRects(node.shared_from_this(), node.GetOldDirtyInSurface(),
+                node.IsBackgroundFilterCacheValid());
             curSurfaceNode_->UpdateFilterNodes(node.shared_from_this());
         }
         UpdateForegroundFilterCacheWithDirty(node, *dirtyManager);
@@ -1706,7 +1718,8 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
                 DirtyRegionType::FILTER_RECT, node.GetOldDirtyInSurface());
         }
         if (curSurfaceNode_) {
-            curSurfaceNode_->UpdateChildrenFilterRects(node.GetOldDirtyInSurface());
+            curSurfaceNode_->UpdateChildrenFilterRects(node.shared_from_this(), node.GetOldDirtyInSurface(),
+                node.IsBackgroundFilterCacheValid());
             curSurfaceNode_->UpdateFilterNodes(node.shared_from_this());
         }
         UpdateForegroundFilterCacheWithDirty(node, *curSurfaceDirtyManager_);
@@ -2278,8 +2291,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         node.GetId(), node.GetChildrenCount());
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
     bool isNeedCalcCost = false;
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         isNeedCalcCost = node.GetSurfaceChangedRects().size() > 0;
     }
 #endif
@@ -2367,12 +2379,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 return;
             }
 #ifndef USE_ROSEN_DRAWING
-#if defined RS_ENABLE_GL
-            if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-                RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-                glFinish();
-            }
-#endif
             sk_sp<SkImage> cacheImageProcessed = GetCacheImageFromMirrorNode(mirrorNode);
             if (cacheImageProcessed && !displayHasSkipSurface_[mirrorNode->GetScreenId()] &&
                 !displayHasSecSurface_[mirrorNode->GetScreenId()] && screenInfo_.filteredAppSet.empty()) {
@@ -2413,9 +2419,6 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 canvas_->restoreToCount(saveCount);
             }
 #else
-#if defined RS_ENABLE_GL
-            glFinish();
-#endif
             std::shared_ptr<Drawing::Image> cacheImageProcessed = GetCacheImageFromMirrorNode(mirrorNode);
             if (cacheImageProcessed && !displayHasSkipSurface_[mirrorNode->GetScreenId()] &&
                 !displayHasSecSurface_[mirrorNode->GetScreenId()] && screenInfo_.filteredAppSet.empty()) {
@@ -2517,6 +2520,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             }
             if (needCreateDisplayNodeLayer || forceUpdateFlag_) {
                 processor_->ProcessDisplaySurface(node);
+                DoScreenRcdTask(processor_, rcdInfo_, screenInfo_);
                 processor_->PostProcess(&node);
             }
             return;
@@ -2524,32 +2528,35 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
 
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_OLD_VK)
-        if (isParallel_ &&!isPartialRenderEnabled_) {
-            auto parallelRenderManager = RSParallelRenderManager::Instance();
-            vulkan::VulkanWindow::InitializeVulkan(
-                parallelRenderManager->GetParallelThreadNumber());
-            RS_OPTIONAL_TRACE_BEGIN("RSUniRender::VK::WaitFence");
-            vulkan::VulkanWindow::WaitForSharedFence();
-            vulkan::VulkanWindow::ResetSharedFence();
-            RS_OPTIONAL_TRACE_END();
-            parallelRenderManager->CopyVisitorAndPackTask(*this, node);
-            parallelRenderManager->InitDisplayNodeAndRequestFrame(renderEngine_, screenInfo_);
-            parallelRenderManager->LoadBalanceAndNotify(TaskType::PROCESS_TASK);
-            parallelRenderManager->WaitProcessEnd();
-            parallelRenderManager->CommitSurfaceNum(node.GetChildrenCount());
-            vulkan::VulkanWindow::PresentAll();
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+            if (isParallel_ &&!isPartialRenderEnabled_) {
+                auto parallelRenderManager = RSParallelRenderManager::Instance();
+                vulkan::VulkanWindow::InitializeVulkan(
+                    parallelRenderManager->GetParallelThreadNumber());
+                RS_OPTIONAL_TRACE_BEGIN("RSUniRender::VK::WaitFence");
+                vulkan::VulkanWindow::WaitForSharedFence();
+                vulkan::VulkanWindow::ResetSharedFence();
+                RS_OPTIONAL_TRACE_END();
+                parallelRenderManager->CopyVisitorAndPackTask(*this, node);
+                parallelRenderManager->InitDisplayNodeAndRequestFrame(renderEngine_, screenInfo_);
+                parallelRenderManager->LoadBalanceAndNotify(TaskType::PROCESS_TASK);
+                parallelRenderManager->WaitProcessEnd();
+                parallelRenderManager->CommitSurfaceNum(node.GetChildrenCount());
+                vulkan::VulkanWindow::PresentAll();
 
-            RS_OPTIONAL_TRACE_BEGIN("RSUniRender:WaitUtilUniRenderFinished");
-            RSMainThread::Instance()->WaitUtilUniRenderFinished();
-            RS_OPTIONAL_TRACE_END();
+                RS_OPTIONAL_TRACE_BEGIN("RSUniRender:WaitUtilUniRenderFinished");
+                RSMainThread::Instance()->WaitUtilUniRenderFinished();
+                RS_OPTIONAL_TRACE_END();
 
-            parallelRenderManager->ProcessParallelDisplaySurface(*this);
-            processor_->PostProcess();
+                parallelRenderManager->ProcessParallelDisplaySurface(*this);
+                processor_->PostProcess();
 
-            parallelRenderManager->ReleaseBuffer();
+                parallelRenderManager->ReleaseBuffer();
 
-            isParallel_ = false;
-            return;
+                isParallel_ = false;
+                return;
+            }
         }
 #endif
 
@@ -2788,8 +2795,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #endif
         }
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
-        if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-            RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
             if ((isParallel_ && !isUIFirst_ && ((rects.size() > 0) || !isPartialRenderEnabled_)) && isCalcCostEnable_) {
                 auto parallelRenderManager = RSParallelRenderManager::Instance();
                 parallelRenderManager->CopyCalcCostVisitorAndPackTask(*this, node, isNeedCalcCost,
@@ -2877,8 +2883,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         endCapture();
 #endif
         if ((screenInfo_.state == ScreenState::HDI_OUTPUT_ENABLE) &&
-            RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
-            RSSingleton<RoundCornerDisplay>::GetInstance().DrawRoundCorner(canvas_);
+            RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable() &&
+            (!RSSingleton<RoundCornerDisplay>::GetInstance().IsSupportHardware())) {
+            RSSingleton<RoundCornerDisplay>::GetInstance().DrawRoundCorner(canvas_.get());
         }
         auto mainThread = RSMainThread::Instance();
         if (!mainThread->GetClearMemoryFinished()) {
@@ -2919,9 +2926,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     }
 #endif
 
-    if (screenInfo_.state == ScreenState::HDI_OUTPUT_ENABLE) {
-        DoScreenRcdTask(processor_, rcdInfo_);
-    }
+    DoScreenRcdTask(processor_, rcdInfo_, screenInfo_);
 
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExcute()) {
         RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode: hardwareThread task has too many to excute");
@@ -3026,8 +3031,7 @@ void RSUniRenderVisitor::UpdateHardwareEnabledInfoBeforeCreateLayer()
     }
     if (isParallel_ && !isUIFirst_) {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
-        if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-            RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
             std::vector<std::shared_ptr<RSSurfaceRenderNode>>().swap(appWindowNodesInZOrder_);
             auto subThreadNum = RSParallelRenderManager::Instance()->GetParallelThreadNumber();
             auto appWindowNodesMap = RSParallelRenderManager::Instance()->GetAppWindowNodes();
@@ -3436,6 +3440,42 @@ void RSUniRenderVisitor::CalcDirtyRegionForFilterNode(const RectI& filterRect,
     }
 }
 
+void RSUniRenderVisitor::CalcChildFilterNodeDirtyRegion(std::shared_ptr<RSSurfaceRenderNode>& currentSurfaceNode,
+    std::shared_ptr<RSDisplayRenderNode>& displayNode)
+{
+    if (currentSurfaceNode == nullptr || displayNode == nullptr) {
+        return;
+    }
+    auto filterRects = currentSurfaceNode->GetChildrenNeedFilterRects();
+    auto filterNodes = currentSurfaceNode->GetChildrenFilterNodes();
+    if (currentSurfaceNode->IsAppWindow() && !filterRects.empty()) {
+        needFilter_ = needFilter_ || !currentSurfaceNode->IsStaticCached();
+        for (size_t i = 0; i < filterNodes.size(); i++) {
+            auto filterRectsCacheValidNow = filterNodes[i]->IsBackgroundFilterCacheValid();
+            // if child filter node has filter cache, no need to be added into dirtyregion
+            // only support background filter cache valid and no pixelstretch node now
+            if (isCacheBlurPartialRenderEnabled_ && filterRectsCacheValidNow &&
+                !filterNodes[i]->GetRenderProperties().GetPixelStretch().has_value()) {
+                continue;
+            }
+            CalcDirtyRegionForFilterNode(filterRects[i], currentSurfaceNode, displayNode);
+        }
+    }
+}
+
+void RSUniRenderVisitor::CalcSurfaceFilterNodeDirtyRegion(std::shared_ptr<RSSurfaceRenderNode>& currentSurfaceNode,
+    std::shared_ptr<RSDisplayRenderNode>& displayNode)
+{
+    if (currentSurfaceNode == nullptr || displayNode == nullptr) {
+        return;
+    }
+    if (currentSurfaceNode->GetRenderProperties().NeedFilter()) {
+        needFilter_ = needFilter_ || !currentSurfaceNode->IsStaticCached();
+        CalcDirtyRegionForFilterNode(
+            currentSurfaceNode->GetOldDirtyInSurface(), currentSurfaceNode, displayNode);
+    }
+}
+
 void RSUniRenderVisitor::CalcDirtyFilterRegion(std::shared_ptr<RSDisplayRenderNode>& displayNode)
 {
     if (displayNode == nullptr || displayNode->GetDirtyManager() == nullptr) {
@@ -3456,20 +3496,10 @@ void RSUniRenderVisitor::CalcDirtyFilterRegion(std::shared_ptr<RSDisplayRenderNo
             continue;
         }
         // child node (component) has filter
-        auto filterRects = currentSurfaceNode->GetChildrenNeedFilterRects();
-        if (currentSurfaceNode->IsAppWindow() && !filterRects.empty()) {
-            needFilter_ = needFilter_ || !currentSurfaceNode->IsStaticCached();
-            for (auto& filterRect : filterRects) {
-                CalcDirtyRegionForFilterNode(
-                    filterRect, currentSurfaceNode, displayNode);
-            }
-        }
+        CalcChildFilterNodeDirtyRegion(currentSurfaceNode, displayNode);
+
         // surfaceNode self has filter
-        if (currentSurfaceNode->GetRenderProperties().NeedFilter()) {
-            needFilter_ = needFilter_ || !currentSurfaceNode->IsStaticCached();
-            CalcDirtyRegionForFilterNode(
-                currentSurfaceNode->GetOldDirtyInSurface(), currentSurfaceNode, displayNode);
-        }
+        CalcSurfaceFilterNodeDirtyRegion(currentSurfaceNode, displayNode);
     }
 }
 
@@ -4482,9 +4512,9 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     processedCanvasNodeInCurrentSurface_++;
     if (!node.ShouldPaint() ||
 #ifndef USE_ROSEN_DRAWING
-        (canvas_ && canvas_->getDeviceClipBounds().isEmpty())) {
+        (canvas_ && canvas_->getDeviceClipBounds().isEmpty() && hardwareEnabledNodes_.empty())) {
 #else
-        (canvas_ && canvas_->GetDeviceClipBounds().IsEmpty())) {
+        (canvas_ && canvas_->GetDeviceClipBounds().IsEmpty() && hardwareEnabledNodes_.empty())) {
 #endif
         return;
     }
@@ -4733,8 +4763,7 @@ bool RSUniRenderVisitor::AdaptiveSubRenderThreadMode(bool doParallel)
 void RSUniRenderVisitor::ParallelRenderEnableHardwareComposer(RSSurfaceRenderNode& node)
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined (RS_ENABLE_GL)
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         if (isParallel_ && !isUIFirst_) {
             const auto& property = node.GetRenderProperties();
             auto dstRect = node.GetDstRect();
@@ -4807,10 +4836,10 @@ bool RSUniRenderVisitor::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> r
             processor_->ProcessSurface(*node);
         }
     }
+    DoScreenRcdTask(processor_, rcdInfo_, screenInfo_);
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExcute()) {
         RS_LOGW("RSUniRenderVisitor::DoDirectComposition: hardwareThread task has too many to excute");
     }
-    DoScreenRcdTask(processor_, rcdInfo_);
     processor_->PostProcess(displayNode.get());
     RS_LOGD("RSUniRenderVisitor::DoDirectComposition end");
     return true;
@@ -5056,7 +5085,7 @@ void RSUniRenderVisitor::tryCapture(float width, float height)
     }
     recordingCanvas_ = std::make_unique<Drawing::RecordingCanvas>(width, height);
     RS_TRACE_NAME("RSUniRender:Recording begin");
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
     recordingCanvas_->SetGrRecordingContext(renderContext->GetSharedDrGPUContext());
 #endif

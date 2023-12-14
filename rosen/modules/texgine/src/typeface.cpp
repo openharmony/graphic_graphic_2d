@@ -93,7 +93,9 @@ bool Typeface::ParseCmap(const std::shared_ptr<CmapParser> &parser)
     scope.Finish();
     ScopedTrace scope2("Typeface::ParseCmap");
 #endif
-    auto retval = parser->Parse(hb_blob_get_data(hblob_, nullptr), hb_blob_get_length(hblob_));
+    const char* data = hb_blob_get_data(hblob_, nullptr);
+    unsigned int length = hb_blob_get_length(hblob_);
+    auto retval = parser->Parse(data, length);
     return retval == 0;
 }
 

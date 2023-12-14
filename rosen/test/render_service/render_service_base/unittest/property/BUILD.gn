@@ -21,6 +21,7 @@ ohos_unittest("RSRenderServiceBasePropertyTest") {
   module_out_path = module_output_path
 
   sources = [
+    "rs_point_light_manager_test.cpp",
     "rs_properties_painter_test.cpp",
     "rs_properties_test.cpp",
     "rs_property_trace_test.cpp",

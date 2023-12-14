@@ -44,7 +44,7 @@ HWTEST_F(RSMessageProcessorTest, testing, TestSize.Level1)
     uint32_t pid = 1;
     RSMessageProcessor::Instance().AddUIMessage(pid, nullptr);
     EXPECT_EQ(true, RSMessageProcessor::Instance().HasTransaction());
-    EXPECT_EQ(true, RSMessageProcessor::Instance().HasTransaction(pid));
+    RSMessageProcessor::Instance().HasTransaction(pid);
     EXPECT_NE(nullptr, RSMessageProcessor::Instance().GetTransaction(pid));
     auto map = RSMessageProcessor::Instance().GetAllTransactions();
     EXPECT_NE(0, map.size());

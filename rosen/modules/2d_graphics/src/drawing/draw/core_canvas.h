@@ -250,6 +250,9 @@ public:
     // text
     virtual void DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y);
 
+    // symbol
+    virtual void DrawSymbol(const DrawingHMSymbolData& symbol, Point locate);
+
     // clip
     /*
      * @brief              Replace the clipping area with the intersection or difference between the

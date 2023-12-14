@@ -430,6 +430,7 @@ public:
 #else
     void UpdateEffectRegion(std::optional<Drawing::Path>& region);
 #endif
+    bool IsBackgroundFilterCacheValid() const;
     void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground=true) const;
 
     void CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd);

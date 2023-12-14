@@ -78,9 +78,9 @@ void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& nod
     }
 
     auto surfaceNodePtr = node.ReinterpretCastTo<RSRcdSurfaceRenderNode>();
-    if (!node.IsSurfaceCreated()) {
+    if (surfaceNodePtr == nullptr || (!node.IsSurfaceCreated())) {
         sptr<IBufferConsumerListener> listener = new RSRcdRenderListener(surfaceNodePtr);
-        if (!node.CreateSurface(listener)) {
+        if (listener == nullptr || (!node.CreateSurface(listener))) {
             RS_LOGE("RSRcdRenderVisitor::RenderExpandedFrame CreateSurface failed");
             return;
         }
@@ -92,7 +92,7 @@ void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& nod
         return;
     }
 
-    if (!node.PrepareHardwareResourceBuffer(layerInfo)) {
+    if (layerInfo == nullptr || (!node.PrepareHardwareResourceBuffer(layerInfo))) {
         RS_LOGE("PrepareHardwareResourceBuffer is wrong");
         return;
     }

@@ -99,17 +99,64 @@ void TexgineCanvas::DrawTextBlob(
 #endif
 }
 
+#ifndef USE_ROSEN_DRAWING
 void TexgineCanvas::DrawSymbol(const HMSymbolData &symbol, SkPoint locate, const TexginePaint &paint)
+#else
+void TexgineCanvas::DrawSymbol(const RSHMSymbolData &symbol, RSPoint locate, const TexginePaint &paint)
+#endif
 {
     if (canvas_ == nullptr) {
         return;
     }
+#ifndef USE_ROSEN_DRAWING
     canvas_->drawSymbol(symbol, locate, paint.GetPaint());
+#else
+    if (paint.GetStyle() == TexginePaint::Style::FILL) {
+        canvas_->AttachBrush(paint.GetBrush());
+        canvas_->DrawSymbol(symbol, locate);
+        canvas_->DetachBrush();
+    } else if (paint.GetStyle() == TexginePaint::Style::STROKE) {
+        canvas_->AttachPen(paint.GetPen());
+        canvas_->DrawSymbol(symbol, locate);
+        canvas_->DetachPen();
+    } else {
+        canvas_->AttachBrush(paint.GetBrush());
+        canvas_->AttachPen(paint.GetPen());
+        canvas_->DrawSymbol(symbol, locate);
+        canvas_->DetachBrush();
+        canvas_->DetachPen();
+    }
+#endif
 }
 
+#ifndef USE_ROSEN_DRAWING
 void TexgineCanvas::DrawPath(const SkPath &path, const TexginePaint &paint)
+#else
+void TexgineCanvas::DrawPath(const RSPath &path, const TexginePaint &paint)
+#endif
 {
+    if (canvas_ == nullptr) {
+        return;
+    }
+#ifndef USE_ROSEN_DRAWING
     canvas_->drawPath(path, paint.GetPaint());
+#else
+    if (paint.GetStyle() == TexginePaint::Style::FILL) {
+        canvas_->AttachBrush(paint.GetBrush());
+        canvas_->DrawPath(path);
+        canvas_->DetachBrush();
+    } else if (paint.GetStyle() == TexginePaint::Style::STROKE) {
+        canvas_->AttachPen(paint.GetPen());
+        canvas_->DrawPath(path);
+        canvas_->DetachPen();
+    } else {
+        canvas_->AttachBrush(paint.GetBrush());
+        canvas_->AttachPen(paint.GetPen());
+        canvas_->DrawPath(path);
+        canvas_->DetachBrush();
+        canvas_->DetachPen();
+    }
+#endif
 }
 
 void TexgineCanvas::Clear(uint32_t color) const

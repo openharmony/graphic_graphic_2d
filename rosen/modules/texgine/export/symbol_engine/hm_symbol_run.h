@@ -16,13 +16,14 @@
 #ifndef ROSEN_MODULES_TEXGINE_EXPORT_SYMBOL_ENGINE_HM_SYMBOL_RUN_H
 #define ROSEN_MODULES_TEXGINE_EXPORT_SYMBOL_ENGINE_HM_SYMBOL_RUN_H
 
-#pragma once
 #include <iostream>
 #include <string>
 #include <vector>
 #include <utility>
 
+#ifndef USE_ROSEN_DRAWING
 #include <include/core/SkHMSymbol.h>
+#endif
 
 #include "hm_symbol_txt.h"
 #include "texgine/text_style.h"
@@ -38,15 +39,21 @@ public:
     HMSymbolRun() {}
     ~HMSymbolRun() {}
 
+#ifndef USE_ROSEN_DRAWING
     static SymbolLayers GetSymbolLayers(const SkGlyphID& glyphId, const HMSymbolTxt& symbolText);
 
     static void SetSymbolRenderColor(const SymbolRenderingStrategy& renderMode, const std::vector<SColor>& colors,
         SymbolLayers& symbolInfo);
+#else
+    static RSSymbolLayers GetSymbolLayers(const uint16_t& glyphId, const HMSymbolTxt& symbolText);
+
+    static void SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMode, const std::vector<RSSColor>& colors,
+        RSSymbolLayers& symbolInfo);
+#endif
 
     static void DrawSymbol(TexgineCanvas &canvas, const std::shared_ptr<TexgineTextBlob> &blob,
         const std::pair<double, double>& offset, const TexginePaint &paint, const TextStyle &style);
 };
-
 }
 }
 }

@@ -51,12 +51,20 @@ public:
     /*
      * @brief Draws symbol at point, using clip, SkMatrix, and paint.
      */
+#ifndef USE_ROSEN_DRAWING
     void DrawSymbol(const HMSymbolData &symbol, SkPoint locate, const TexginePaint &paint);
+#else
+    void DrawSymbol(const RSHMSymbolData &symbol, RSPoint locate, const TexginePaint &paint);
+#endif
 
     /*
      * @brief Draws Path , using SkPath path and SkPaint paint.
      */
+#ifndef USE_ROSEN_DRAWING
     void DrawPath(const SkPath &path, const TexginePaint &paint);
+#else
+    void DrawPath(const RSPath &path, const TexginePaint &paint);
+#endif
 
     /*
      * @brief Fills clip with color color using SkBlendMode::kSrc.

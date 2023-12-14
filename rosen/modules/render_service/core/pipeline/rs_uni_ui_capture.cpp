@@ -79,16 +79,9 @@ std::shared_ptr<Media::PixelMap> RSUniUICapture::TakeLocalCapture()
     }
     auto canvas = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
 #endif
-    if (!node->IsOnTheTree()) {
-        visitor->SetPaintFilterCanvas(canvas);
-        node->ApplyModifiers();
-        node->Prepare(visitor);
-        node->Process(visitor);
-    } else {
-        PostTaskToRSRecord(recordingCanvas, node, visitor);
-        auto drawCallList = recordingCanvas->GetDrawCmdList();
-        drawCallList->Playback(*canvas);
-    }
+    PostTaskToRSRecord(recordingCanvas, node, visitor);
+    auto drawCallList = recordingCanvas->GetDrawCmdList();
+    drawCallList->Playback(*canvas);
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && defined(RS_ENABLE_EGLIMAGE)
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> img(skSurface.get()->makeImageSnapshot());
@@ -279,6 +272,10 @@ void RSUniUICapture::PostTaskToRSRecord(std::shared_ptr<Drawing::RecordingCanvas
 {
     std::function<void()> recordingDrawCall = [canvas, node, visitor]() -> void {
         visitor->SetCanvas(canvas);
+        if (!node->IsOnTheTree()) {
+            node->ApplyModifiers();
+            node->Prepare(visitor);
+        }
         node->Process(visitor);
     };
     RSMainThread::Instance()->PostSyncTask(recordingDrawCall);
@@ -555,11 +552,19 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithUni(RSSurfaceR
     canvas_->Restore();
 #endif
     if (node.GetBuffer() != nullptr) {
+#ifndef USE_ROSEN_DRAWING
         if (auto recordingCanvas = static_cast<RSRecordingCanvas*>(canvas_->GetRecordingCanvas())) {
             auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
             auto buffer = node.GetBuffer();
             RSSurfaceBufferInfo rsSurfaceBufferInfo(buffer, params.dstRect.left(), params.dstRect.top(),
                 params.dstRect.width(), params.dstRect.height());
+#else
+        if (auto recordingCanvas = static_cast<Drawing::RecordingCanvas*>(canvas_->GetRecordingCanvas())) {
+            auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
+            auto buffer = node.GetBuffer();
+            DrawingSurfaceBufferInfo rsSurfaceBufferInfo(buffer, params.dstRect.GetLeft(), params.dstRect.GetTop(),
+                params.dstRect.GetWidth(), params.dstRect.GetHeight());
+#endif //USE_ROSEN_DRAWING
             recordingCanvas->DrawSurfaceBuffer(rsSurfaceBufferInfo);
         } else {
             auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);

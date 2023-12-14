@@ -28,6 +28,8 @@
 #include "text/font_mgr.h"
 #include "text/font_style.h"
 #include "text/font_style_set.h"
+#include "text/hm_symbol.h"
+#include "text/hm_symbol_config_ohos.h"
 #include "text/typeface.h"
 
 namespace RSDrawing = OHOS::Rosen::Drawing;
@@ -60,5 +62,13 @@ using RSScalar = RSDrawing::scalar;
 using RSTextBlob = RSDrawing::TextBlob;
 using RSTextBlobBuilder = RSDrawing::TextBlobBuilder;
 using RSTypeface = RSDrawing::Typeface;
+using RSSColor = RSDrawing::DrawingSColor;
+using RSRenderGroup = RSDrawing::DrawingRenderGroup;
+using RSSymbolLayers = RSDrawing::DrawingSymbolLayers;
+using RSSymbolLayersGroups = RSDrawing::DrawingSymbolLayersGroups;
+using RSSymbolRenderingStrategy = RSDrawing::DrawingSymbolRenderingStrategy;
+using RSEffectStrategy = RSDrawing::DrawingEffectStrategy;
+using RSHMSymbolData = RSDrawing::DrawingHMSymbolData;
+using RSHmSymbolConfig_OHOS = RSDrawing::HmSymbolConfigOhos;
 
 #endif // ROSEN_MODULES_TEXGINE_SRC_TEXGINE_DRAWING_DRAWING_H

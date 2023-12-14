@@ -278,7 +278,7 @@ void TypographyImpl::Layout(double maxWidth)
         shaper.SetIndents(indents_);
         lineMetrics_ = shaper.DoShape(spans_, typographyStyle_, fontProviders_, maxWidth_);
         if (lineMetrics_.size() == 0) {
-            LOGEX_FUNC_LINE(ERROR) << "Shape failed";
+            LOGEX_FUNC_LINE_DEBUG() << "Shape failed";
             return;
         }
 
@@ -373,8 +373,7 @@ void TypographyImpl::DoLayout()
         double offsetX = 0;
         for (auto &vs : lineMetrics_[i].lineSpans) {
             vs.AdjustOffsetY(yOffsets_[i]);
-            offsetX += HALF(vs.GetTextStyle().letterSpacing);
-            vs.AdjustOffsetX(offsetX);
+            vs.AdjustOffsetX(offsetX + HALF(vs.GetTextStyle().letterSpacing));
             offsetX += vs.GetWidth();
 
             lineMetrics_[i].width = offsetX;
@@ -559,7 +558,7 @@ std::vector<TextRect> TypographyImpl::GetTextRectsByBoundary(Boundary boundary, 
     TextRectWidthStyle widthStyle) const
 {
     if (boundary.leftIndex > boundary.rightIndex || boundary.leftIndex < 0 || boundary.rightIndex < 0) {
-        LOGEX_FUNC_LINE(ERROR) << "the box range is error";
+        LOGEX_FUNC_LINE_DEBUG() << "the box range is error";
         return {};
     }
     std::vector<TextRect> totalBoxes;

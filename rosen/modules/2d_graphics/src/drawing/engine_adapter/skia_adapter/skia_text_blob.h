@@ -16,6 +16,7 @@
 #ifndef SKIA_TEXT_BLOB_H
 #define SKIA_TEXT_BLOB_H
 
+#include <cstdint>
 #include <memory>
 
 #include "include/core/SkTextBlob.h"
@@ -48,6 +49,8 @@ public:
     std::shared_ptr<Data> Serialize() const override;
 
     static std::shared_ptr<TextBlob> Deserialize(const void* data, size_t size);
+    static void GetDrawingGlyphIDforTextBlob(const TextBlob* blob, std::vector<uint16_t>& glyphIds);
+    static Path GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* blob);
 
     std::shared_ptr<Rect> Bounds() const override;
 

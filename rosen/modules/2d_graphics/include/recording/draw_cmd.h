@@ -131,6 +131,7 @@ public:
         IMAGE_RECT_OPITEM,
         PICTURE_OPITEM,
         TEXT_BLOB_OPITEM,
+        SYMBOL_OPITEM,
         CLIP_RECT_OPITEM,
         CLIP_IRECT_OPITEM,
         CLIP_ROUND_RECT_OPITEM,
@@ -801,6 +802,27 @@ private:
     scalar x_;
     scalar y_;
     std::shared_ptr<TextBlob> textBlob_;
+};
+
+class DrawSymbolOpItem : public DrawOpItem {
+public:
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle(const SymbolOpHandle& symbolHandle, Point locate) : OpItem(DrawOpItem::SYMBOL_OPITEM),
+            symbolHandle(symbolHandle), locate(locate) {}
+        ~ConstructorHandle() override = default;
+        SymbolOpHandle symbolHandle;
+        Point locate;
+    };
+    DrawSymbolOpItem(const CmdList& cmdList, ConstructorHandle* handle);
+    ~DrawSymbolOpItem() override = default;
+
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const CmdList& cmdList, void* handle);
+    void Playback(Canvas* canvas, const Rect* rect) override;
+private:
+    static void MergeDrawingPath(
+        Drawing::Path& multPath, Drawing::DrawingRenderGroup& group, std::vector<Drawing::Path>& pathLayers);
+    DrawingHMSymbolData symbol_;
+    Point locate_;
 };
 
 class ClipRectOpItem : public DrawOpItem {

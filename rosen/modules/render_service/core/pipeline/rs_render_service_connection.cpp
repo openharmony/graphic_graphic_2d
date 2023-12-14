@@ -1010,6 +1010,19 @@ int32_t RSRenderServiceConnection::RegisterHgmConfigChangeCallback(sptr<RSIHgmCo
     return StatusCode::SUCCESS;
 }
 
+int32_t RSRenderServiceConnection::RegisterHgmRefreshRateModeChangeCallback(
+    sptr<RSIHgmConfigChangeCallback> callback)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!callback) {
+        RS_LOGD("RSRenderServiceConnection::RegisterHgmRefreshRateModeChangeCallback: callback is nullptr");
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+
+    HgmConfigCallbackManager::GetInstance()->RegisterHgmRefreshRateModeChangeCallback(remotePid_, callback);
+    return StatusCode::SUCCESS;
+}
+
 void RSRenderServiceConnection::SetAppWindowNum(uint32_t num)
 {
     auto task = [this, num]() -> void {

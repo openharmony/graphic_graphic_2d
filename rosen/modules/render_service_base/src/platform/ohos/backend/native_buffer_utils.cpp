@@ -225,8 +225,14 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
     GrBackendRenderTarget backend_render_target(width, height, 0, image_info);
     SkSurfaceProps props(0, SkPixelGeometry::kUnknown_SkPixelGeometry);
 
+    SkColorType colorType = kRGBA_8888_SkColorType;
+
+    if (nbFormatProps.format == VK_FORMAT_A2B10G10R10_UNORM_PACK32) {
+        colorType = kRGBA_1010102_SkColorType;
+    }
+
     nativeSurface.skSurface = SkSurface::MakeFromBackendRenderTarget(
-        skContext.get(), backend_render_target, kTopLeft_GrSurfaceOrigin, kRGBA_8888_SkColorType,
+        skContext.get(), backend_render_target, kTopLeft_GrSurfaceOrigin, colorType,
         SkColorSpace::MakeSRGB(), &props, DeleteVkImage, new VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
         image, memory));
 #else

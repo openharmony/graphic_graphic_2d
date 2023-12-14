@@ -229,8 +229,7 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
 #endif
 #else
 #if defined(RS_ENABLE_GL) && !defined(ROSEN_PREVIEW)
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         if (renderContext_ == nullptr) {
             renderContext_ = new RenderContext();
             ROSEN_LOGD("Create RenderContext");

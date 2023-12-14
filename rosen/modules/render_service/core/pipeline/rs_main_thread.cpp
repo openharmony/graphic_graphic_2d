@@ -264,7 +264,8 @@ void RSMainThread::Init()
         SKResourceManager::Instance().ReleaseResource();
     };
 #if defined(ROSEN_OHOS) && defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_VK)
-    if (GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN || GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         std::function<void*(VkImage, VkDeviceMemory)> createCleanup = [] (VkImage image, VkDeviceMemory memory) -> void* {
             return new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(), image, memory);
         };
@@ -291,8 +292,7 @@ void RSMainThread::Init()
             }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-            if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-                RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
 #if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
                 RSUploadTextureThread::Instance().PostTask(uploadTextureBarrierTask_);
 #endif
@@ -325,8 +325,7 @@ void RSMainThread::Init()
         renderEngine_->Init();
     }
 #ifdef RS_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         int cacheLimitsTimes = 3;
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_RENDER_CONTEXT
@@ -361,9 +360,9 @@ void RSMainThread::Init()
         } else {
             gpuContext->SetResourceCacheLimits(DEFAULT_SKIA_CACHE_COUNT, DEFAULT_SKIA_CACHE_SIZE);
         }
-#endif
+#endif // USE_ROSEN_DRAWING
     }
-#endif
+#endif // RS_ENABLE_GL
     RSInnovation::OpenInnovationSo();
 #if defined(RS_ENABLE_DRIVEN_RENDER)
     RSDrivenRenderManager::InitInstance();
@@ -373,8 +372,7 @@ void RSMainThread::Init()
     RSRcdRenderManager::InitInstance();
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
 #if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
         uploadTextureBarrierTask_ = [this]() {
             auto renderContext = GetRenderEngine()->GetRenderContext().get();
@@ -1269,8 +1267,7 @@ void RSMainThread::WaitUtilDrivenRenderFinished()
 #if defined(RS_ENABLE_PARALLEL_UPLOAD) && defined(RS_ENABLE_GL)
 void RSMainThread::WaitUntilUploadTextureTaskFinished()
 {
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
         return;
     }
     if (!isUniRender_) {
@@ -1573,7 +1570,7 @@ void RSMainThread::CallbackDrawContextStatusToWMS()
         if (lastDrawStatusMap_.find(dynamicNodeId) == lastDrawStatusMap_.end()) {
             drawStatusVec.emplace_back(std::make_pair(dynamicNodeId,
                 WINDOW_LAYER_INFO_TYPE::WINDOW_LAYER_DYNAMIC_STATUS));
-            RS_LOGD("%{public}s nodeId[%{public}" PRIu64 "] status[%{public}d]",
+            RS_OPTIONAL_TRACE_NAME_FMT("%s nodeId[%" PRIu64 "] status[%d]",
                 __func__, dynamicNodeId, WINDOW_LAYER_INFO_TYPE::WINDOW_LAYER_DYNAMIC_STATUS);
         }
         lastDrawStatusMap_[dynamicNodeId] = timestamp_;
@@ -1583,7 +1580,7 @@ void RSMainThread::CallbackDrawContextStatusToWMS()
         if (timestamp_ - drawStatusIter->second > MAX_DYNAMIC_STATUS_TIME) {
             drawStatusVec.emplace_back(std::make_pair(drawStatusIter->first,
                 WINDOW_LAYER_INFO_TYPE::WINDOW_LAYER_STATIC_STATUS));
-            RS_LOGD("%{public}s nodeId[%{public}" PRIu64 "] status[%{public}d]",
+            RS_OPTIONAL_TRACE_NAME_FMT("%s nodeId[%" PRIu64 "] status[%d]",
                 __func__, drawStatusIter->first, WINDOW_LAYER_INFO_TYPE::WINDOW_LAYER_STATIC_STATUS);
             auto tmpIter = drawStatusIter++;
             lastDrawStatusMap_.erase(tmpIter);

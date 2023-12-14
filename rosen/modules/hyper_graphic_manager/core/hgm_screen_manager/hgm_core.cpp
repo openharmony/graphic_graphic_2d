@@ -286,7 +286,7 @@ int32_t HgmCore::SetRefreshRateMode(RefreshRateMode refreshRateMode)
         return HGM_ERROR;
     }
 
-    if (ltpoEnabled_ && refreshRateModeChangeCallback_) {
+    if (refreshRateModeChangeCallback_) {
         refreshRateModeChangeCallback_(refreshRateMode);
     }
     return EXEC_SUCCESS;

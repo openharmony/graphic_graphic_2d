@@ -96,6 +96,7 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     SET_ROTATION_CACHE_ENABLED,
     SET_TP_FEATURE_CONFIG,
     SET_VIRTUAL_SCREEN_USING_STATUS,
+    REFRESH_RATE_MODE_CHANGE_CALLBACK,
 };
 } // namespace Rosen
 } // namespace OHOS

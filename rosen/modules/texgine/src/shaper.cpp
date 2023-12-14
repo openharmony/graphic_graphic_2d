@@ -177,7 +177,7 @@ std::vector<LineMetrics> Shaper::DoShapeBeforeEllipsis(std::vector<VariantSpan> 
     BidiProcesser bp;
     auto newSpans = bp.ProcessBidiText(spans, tstyle.direction);
     if (newSpans.empty()) {
-        LOGEX_FUNC_LINE(ERROR) << "Process BidiText failed";
+        LOGEX_FUNC_LINE_DEBUG() << "Process BidiText failed";
         return {};
     }
 
@@ -311,7 +311,8 @@ void Shaper::ConsiderTailEllipsis(const TypographyStyle &style, const std::share
     double lastLineWidth = lastLine.GetAllSpanWidth();
     params.widthLimit -= lastLine.indent;
     if (params.maxLines < lineMetrics_.size()) {
-        if (params.ellipsisWidth > 0 && lastLineWidth + params.ellipsisWidth < params.widthLimit) {
+        if (params.ellipsisWidth > 0 && lastLineWidth + params.ellipsisWidth < params.widthLimit &&
+            style.wordBreakType == WordBreakType::BREAK_ALL) {
             lastLine.lineSpans.push_back(lineMetrics_[params.maxLines].lineSpans.front());
             lastLineWidth = lastLine.GetAllSpanWidth();
         }

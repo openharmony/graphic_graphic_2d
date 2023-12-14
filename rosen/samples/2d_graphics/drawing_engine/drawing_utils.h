@@ -51,8 +51,7 @@ public:
 #endif
 
 #if defined(ACE_ENABLE_GL)
-        if (Rosen::RSSystemProperties::GetGpuApiType() != Rosen::GpuApiType::VULKAN &&
-            Rosen::RSSystemProperties::GetGpuApiType() != Rosen::GpuApiType::DDGR) {
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
             return RenderBackendType::GLES;
         }
 #endif

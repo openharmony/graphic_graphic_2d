@@ -303,6 +303,112 @@ CmdListHandle CmdListHelper::AddChildToCmdList(CmdList& cmdList, const std::shar
     return childHandle;
 }
 
+SymbolOpHandle CmdListHelper::AddSymbolToCmdList(CmdList& cmdList, const DrawingHMSymbolData& symbol)
+{
+    auto symbolLayersHandle = AddSymbolLayersToCmdList(cmdList, symbol.symbolInfo_);
+    auto pathHandle = AddPathToCmdList(cmdList, symbol.path_);
+    return { symbolLayersHandle, pathHandle };
+}
+
+DrawingHMSymbolData CmdListHelper::GetSymbolFromCmdList(const CmdList& cmdList,
+    const SymbolOpHandle& symbolHandle)
+{
+    DrawingHMSymbolData symbol;
+
+    symbol.symbolInfo_ = GetSymbolLayersFromCmdList(cmdList, symbolHandle.symbolLayerHandle);
+
+    auto path = GetPathFromCmdList(cmdList, symbolHandle.pathHandle);
+    if (path != nullptr) {
+        symbol.path_ = *path;
+    }
+
+    return symbol;
+}
+
+SymbolLayersHandle CmdListHelper::AddSymbolLayersToCmdList(CmdList& cmdList, const DrawingSymbolLayers& symbolLayers)
+{
+    auto layers = symbolLayers.layers;
+    std::vector<std::pair<uint32_t, size_t>> handleVector1;
+    for (size_t i = 0; i < layers.size(); i++) {
+        handleVector1.push_back(AddVectorToCmdList(cmdList, layers.at(i)));
+    }
+    std::pair<uint32_t, size_t> layersHandle = AddVectorToCmdList(cmdList, handleVector1);
+
+    auto groups = symbolLayers.renderGroups;
+    std::vector<RenderGroupHandle> handleVector2;
+    for (size_t i = 0; i < groups.size(); i++) {
+        handleVector2.push_back(AddRenderGroupToCmdList(cmdList, groups.at(i)));
+    }
+    std::pair<uint32_t, size_t> groupsHandle = AddVectorToCmdList(cmdList, handleVector2);
+
+    return { symbolLayers.symbolGlyphId, layersHandle, groupsHandle };
+}
+
+DrawingSymbolLayers CmdListHelper::GetSymbolLayersFromCmdList(const CmdList& cmdList,
+    const SymbolLayersHandle& symbolLayersHandle)
+{
+    DrawingSymbolLayers symbolLayers;
+    symbolLayers.symbolGlyphId = symbolLayersHandle.id;
+
+    auto handleVector1 = GetVectorFromCmdList<std::pair<uint32_t, size_t>>(cmdList, symbolLayersHandle.layers);
+    std::vector<std::vector<size_t>> layers;
+    for (size_t i = 0; i < handleVector1.size(); i++) {
+        layers.push_back(GetVectorFromCmdList<size_t>(cmdList, handleVector1.at(i)));
+    }
+    symbolLayers.layers = layers;
+
+    auto handleVector2 = GetVectorFromCmdList<RenderGroupHandle>(cmdList, symbolLayersHandle.groups);
+    std::vector<DrawingRenderGroup> renderGroups;
+    for (size_t i = 0; i < handleVector2.size(); i++) {
+        renderGroups.push_back(GetRenderGroupFromCmdList(cmdList, handleVector2.at(i)));
+    }
+    symbolLayers.renderGroups = renderGroups;
+
+    return symbolLayers;
+}
+
+RenderGroupHandle CmdListHelper::AddRenderGroupToCmdList(CmdList& cmdList, const DrawingRenderGroup& group)
+{
+    auto infos = group.groupInfos;
+    std::vector<GroupInfoHandle> handleVector;
+    for (size_t i = 0; i < infos.size(); i++) {
+        handleVector.push_back(AddGroupInfoToCmdList(cmdList, infos.at(i)));
+    }
+    std::pair<uint32_t, size_t> groupInfosHandle = AddVectorToCmdList(cmdList, handleVector);
+    return { groupInfosHandle, group.color };
+}
+
+DrawingRenderGroup CmdListHelper::GetRenderGroupFromCmdList(const CmdList& cmdList,
+    const RenderGroupHandle& renderGroupHandle)
+{
+    DrawingRenderGroup group;
+    group.color = renderGroupHandle.color;
+
+    auto handleVector = GetVectorFromCmdList<GroupInfoHandle>(cmdList, renderGroupHandle.infos);
+    std::vector<DrawingGroupInfo> groupInfos;
+    for (size_t i = 0; i < handleVector.size(); i++) {
+        groupInfos.push_back(GetGroupInfoFromCmdList(cmdList, handleVector.at(i)));
+    }
+    group.groupInfos = groupInfos;
+
+    return group;
+}
+
+GroupInfoHandle CmdListHelper::AddGroupInfoToCmdList(CmdList& cmdList, const DrawingGroupInfo& groupInfo)
+{
+    std::pair<uint32_t, size_t> layerIndexes = AddVectorToCmdList(cmdList, groupInfo.layerIndexes);
+    std::pair<uint32_t, size_t> maskIndexes = AddVectorToCmdList(cmdList, groupInfo.maskIndexes);
+    return { layerIndexes, maskIndexes };
+}
+
+DrawingGroupInfo CmdListHelper::GetGroupInfoFromCmdList(const CmdList& cmdList, const GroupInfoHandle& groupInfoHandle)
+{
+    DrawingGroupInfo groupInfo;
+    groupInfo.layerIndexes = GetVectorFromCmdList<size_t>(cmdList, groupInfoHandle.vec1);
+    groupInfo.maskIndexes = GetVectorFromCmdList<size_t>(cmdList, groupInfoHandle.vec2);
+    return groupInfo;
+}
+
 OpDataHandle CmdListHelper::AddTextBlobToCmdList(CmdList& cmdList, const TextBlob* textBlob)
 {
     if (!textBlob) {

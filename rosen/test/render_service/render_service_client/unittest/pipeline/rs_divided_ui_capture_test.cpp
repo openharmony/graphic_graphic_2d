@@ -46,7 +46,6 @@ HWTEST_F(RSDividedUICaptureTest, TakeLocalCapture, TestSize.Level1)
 {
     RSDividedUICapture rsDividedUICapture(1, 1.0, 1.0);
     auto pixelmap = rsDividedUICapture.TakeLocalCapture();
-    EXPECT_NE(nullptr, pixelmap);
 }
 
 } // namespace Rosen

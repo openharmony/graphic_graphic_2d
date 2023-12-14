@@ -842,6 +842,28 @@ void SkiaCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const scalar
     }
 }
 
+void SkiaCanvas::DrawSymbol(const DrawingHMSymbolData& symbol, Point locate)
+{
+    if (!skCanvas_) {
+        LOGE("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return;
+    }
+
+    HMSymbolData skSymbol;
+    if (!ConvertToHMSymbolData(symbol, skSymbol)) {
+        LOGE("ConvertToHMSymbolData failed, return on line %{public}d", __LINE__);
+        return;
+    }
+
+    SkPoint skLocate = SkPoint::Make(locate.GetX(), locate.GetY());
+
+    SortedPaints& paints = skiaPaint_.GetSortedPaints();
+    for (int i = 0; i < paints.count_; i++) {
+        SkPaint* paint = paints.paints_[i];
+        skCanvas_->drawSymbol(skSymbol, skLocate, *paint);
+    }
+}
+
 void SkiaCanvas::ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias)
 {
     if (!skCanvas_) {
@@ -1113,6 +1135,41 @@ void SkiaCanvas::RoundRectCastToSkRRect(const RoundRect& roundRect, SkRRect& skR
     radii[SkRRect::kLowerLeft_Corner] = { p.GetX(), p.GetY() };
 
     skRRect.setRectRadii(outer, radii);
+}
+
+bool SkiaCanvas::ConvertToHMSymbolData(const DrawingHMSymbolData& symbol, HMSymbolData& skSymbol)
+{
+    Path path = symbol.path_;
+    auto skPathImpl = path.GetImpl<SkiaPath>();
+    if (skPathImpl == nullptr) {
+        return false;
+    }
+    skSymbol.path_ = skPathImpl->GetPath();
+
+    skSymbol.symbolInfo_.symbolGlyphId = symbol.symbolInfo_.symbolGlyphId;
+    skSymbol.symbolInfo_.layers = symbol.symbolInfo_.layers;
+
+    std::vector<RenderGroup> groups;
+    auto drawingGroup = symbol.symbolInfo_.renderGroups;
+    for (size_t i = 0; i < drawingGroup.size(); i++) {
+        RenderGroup group;
+        group.color.a = drawingGroup.at(i).color.a;
+        group.color.r = drawingGroup.at(i).color.r;
+        group.color.g = drawingGroup.at(i).color.g;
+        group.color.b = drawingGroup.at(i).color.b;
+        auto drawingGroupInfos = drawingGroup.at(i).groupInfos;
+        std::vector<GroupInfo> infos;
+        for (size_t j = 0; j < drawingGroupInfos.size(); j++) {
+            GroupInfo info;
+            info.layerIndexes = drawingGroupInfos.at(j).layerIndexes;
+            info.maskIndexes = drawingGroupInfos.at(j).maskIndexes;
+            infos.push_back(info);
+        }
+        group.groupInfos = infos;
+        groups.push_back(group);
+    }
+    skSymbol.symbolInfo_.renderGroups = groups;
+    return true;
 }
 } // namespace Drawing
 } // namespace Rosen

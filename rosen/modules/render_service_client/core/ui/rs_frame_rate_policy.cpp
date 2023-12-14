@@ -56,6 +56,13 @@ void RSFrameRatePolicy::RegisterHgmConfigChangeCallback()
     if (RSInterfaces::GetInstance().RegisterHgmConfigChangeCallback(callback) != NO_ERROR) {
         ROSEN_LOGE("RegisterHgmConfigChangeCallback failed");
     }
+
+    auto refreshRateModeChangeCallback = std::bind(&RSFrameRatePolicy::HgmRefreshRateModeChangeCallback, this,
+        std::placeholders::_1);
+    if (RSInterfaces::GetInstance().RegisterHgmRefreshRateModeChangeCallback(
+        refreshRateModeChangeCallback) != NO_ERROR) {
+        ROSEN_LOGE("RegisterHgmRefreshRateModeChangeCallback failed");
+    }
 }
 
 void RSFrameRatePolicy::HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData> configData)
@@ -86,6 +93,21 @@ void RSFrameRatePolicy::HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData>
         xDpi_ = xDpi;
         yDpi_ = yDpi;
     });
+}
+
+void RSFrameRatePolicy::HgmRefreshRateModeChangeCallback(int32_t refreshRateMode)
+{
+    SetRefreshRateMode(refreshRateMode);
+}
+
+void RSFrameRatePolicy::SetRefreshRateMode(int32_t refreshRateMode)
+{
+    currentRefreshRateMode_ = refreshRateMode;
+}
+
+int32_t RSFrameRatePolicy::GetRefreshRateMode()
+{
+    return currentRefreshRateMode_;
 }
 
 int RSFrameRatePolicy::GetPreferredFps(const std::string& scene, float speed)

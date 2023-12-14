@@ -45,5 +45,25 @@ void RSHgmConfigChangeCallbackProxy::OnHgmConfigChanged(std::shared_ptr<RSHgmCon
         ROSEN_LOGE("RSHgmConfigChangeCallbackProxy::OnHgmConfigChanged error = %d", err);
     }
 }
+
+void RSHgmConfigChangeCallbackProxy::OnHgmRefreshRateModeChanged(int32_t refreshRateMode)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIHgmConfigChangeCallback::GetDescriptor())) {
+        return;
+    }
+
+    option.SetFlags(MessageOption::TF_ASYNC);
+    data.WriteInt32(refreshRateMode);
+    uint32_t code =
+        static_cast<uint32_t>(RSIHgmConfigChangeCallbackInterfaceCode::ON_HGM_REFRESH_RATE_MODE_CHANGED);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSHgmRefreshRateModeChangeCallbackProxy::OnHgmRefreshRateModeChanged error = %d", err);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

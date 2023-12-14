@@ -18,6 +18,7 @@
 
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -74,6 +75,7 @@ public:
 
     void Clear()
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         fontStyleSetCache_.clear();
     }
 
@@ -89,6 +91,7 @@ private:
     std::vector<std::shared_ptr<IFontProvider>> providers_ = {};
 
     mutable std::map<std::string, std::shared_ptr<VariantFontStyleSet>> fontStyleSetCache_ = {};
+    mutable std::mutex mutex_;
 };
 } // namespace TextEngine
 } // namespace Rosen

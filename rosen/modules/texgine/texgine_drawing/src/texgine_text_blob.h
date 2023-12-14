@@ -48,9 +48,15 @@ public:
     void SetTextBlob(const std::shared_ptr<RSTextBlob> textBlob);
 #endif
 
+#ifndef USE_ROSEN_DRAWING
     void GetGlyphIDs(std::vector<SkGlyphID>& glyphIds);
 
     SkPath GetPathbyGlyphID(const SkGlyphID& glyphId);
+#else
+    void GetGlyphIDs(std::vector<uint16_t>& glyphIds);
+
+    RSPath GetPathbyGlyphID(const uint16_t& glyphId);
+#endif
 
 private:
 #ifndef USE_ROSEN_DRAWING

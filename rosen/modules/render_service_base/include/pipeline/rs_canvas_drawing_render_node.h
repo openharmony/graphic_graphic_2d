@@ -20,6 +20,9 @@
 #include <memory>
 
 #include "pipeline/rs_canvas_render_node.h"
+#ifdef USE_ROSEN_DRAWING
+#include "recording/recording_canvas.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -83,15 +86,16 @@ private:
     sk_sp<SkSurface> skSurface_;
     std::mutex imageMutex_;
     sk_sp<SkImage> skImage_;
+    std::shared_ptr<RSRecordingCanvas> recordingCanvas_;
 #else
     std::shared_ptr<Drawing::Surface> surface_;
     std::shared_ptr<Drawing::Image> image_;
+    std::shared_ptr<Drawing::RecordingCanvas> recordingCanvas_;
 #endif
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool isGpuSurface_ = true;
 #endif
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
-    std::shared_ptr<RSRecordingCanvas> recordingCanvas_;
 #ifndef USE_ROSEN_DRAWING
     ThreadInfo curThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(sk_sp<SkSurface>)>() };
     ThreadInfo preThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(sk_sp<SkSurface>)>() };

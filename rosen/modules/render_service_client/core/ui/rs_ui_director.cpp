@@ -140,8 +140,7 @@ void RSUIDirector::GoBackground()
             }
         });
 #ifdef ACE_ENABLE_GL
-        if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-            RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
             RSRenderThread::Instance().PostTask([this]() {
                 auto renderContext = RSRenderThread::Instance().GetRenderContext();
                 if (renderContext != nullptr) {
@@ -387,6 +386,11 @@ void RSUIDirector::PostTask(const std::function<void()>& task)
         taskRunner(task);
         return;
     }
+}
+
+int32_t RSUIDirector::GetCurrentRefreshRateMode()
+{
+    return RSFrameRatePolicy::GetInstance()->GetRefreshRateMode();
 }
 } // namespace Rosen
 } // namespace OHOS

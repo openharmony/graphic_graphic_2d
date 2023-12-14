@@ -334,7 +334,7 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
         if (!surface_) {
             isGpuSurface_ = false;
             surface_ = Drawing::Surface::MakeRaster(info);
-            recordingCanvas_ = std::make_shared<RSRecordingCanvas>(width, height);
+            recordingCanvas_ = std::make_shared<Drawing::RecordingCanvas>(width, height);
             canvas_ = std::make_unique<RSPaintFilterCanvas>(recordingCanvas_.get());
             return surface_ != nullptr;
         }
@@ -368,6 +368,7 @@ void RSCanvasDrawingRenderNode::ApplyDrawCmdModifier(RSModifierContext& context,
 #ifndef USE_ROSEN_DRAWING
 SkBitmap RSCanvasDrawingRenderNode::GetBitmap(const uint32_t tid)
 {
+    RS_LOGD("RSCanvasDrawingRenderNode::GetBitmap");
     SkBitmap bitmap;
     std::lock_guard<std::mutex> lock(drawingMutex_);
     if (!skImage_) {
@@ -387,6 +388,7 @@ SkBitmap RSCanvasDrawingRenderNode::GetBitmap(const uint32_t tid)
 bool RSCanvasDrawingRenderNode::GetPixelmap(
     const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect, const uint32_t tid)
 {
+    RS_LOGD("RSCanvasDrawingRenderNode::GetPixelmap");
     std::lock_guard<std::mutex> lock(drawingMutex_);
     if (!pixelmap || !rect) {
         RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: pixelmap or rect is nullptr");

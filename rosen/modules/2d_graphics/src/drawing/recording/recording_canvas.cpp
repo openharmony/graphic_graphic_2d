@@ -305,6 +305,13 @@ void RecordingCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const s
         cmdList_->AddOp<DrawTextBlobOpItem::ConstructorHandle>(textBlobHandle, x, y);
     }
 }
+
+void RecordingCanvas::DrawSymbol(const DrawingHMSymbolData& symbol, Point locate)
+{
+    auto symbolHandle = CmdListHelper::AddSymbolToCmdList(*cmdList_, symbol);
+    cmdList_->AddOp<DrawSymbolOpItem::ConstructorHandle>(symbolHandle, locate);
+}
+
 #ifdef ROSEN_OHOS
 void RecordingCanvas::DrawSurfaceBuffer(const DrawingSurfaceBufferInfo& surfaceBufferInfo)
 {

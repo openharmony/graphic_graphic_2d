@@ -36,7 +36,6 @@ namespace TextEngine {
         }
         return true;
     }
-
 }
 }
 }

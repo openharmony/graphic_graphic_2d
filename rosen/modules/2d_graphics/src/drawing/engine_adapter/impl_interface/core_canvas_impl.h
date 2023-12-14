@@ -34,6 +34,7 @@
 #endif
 #include "image/image.h"
 #include "image/picture.h"
+#include "text/hm_symbol.h"
 #include "text/text.h"
 #include "text/text_blob.h"
 #include "utils/matrix.h"
@@ -124,6 +125,9 @@ public:
 
     // text
     virtual void DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y) = 0;
+
+    // symbol
+    virtual void DrawSymbol(const DrawingHMSymbolData& symbol, Point locate) = 0;
 
     // clip
     virtual void ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias = false) = 0;

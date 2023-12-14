@@ -380,40 +380,44 @@ bool RenderContext::SetUpGrContext(sk_sp<GrDirectContext> skContext)
     return false;
 }
 #else
-#ifdef RS_ENABLE_VK
 bool RenderContext::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext)
-#else
-bool RenderContext::SetUpGpuContext()
-#endif
 {
     if (drGPUContext_ != nullptr) {
         LOGD("Drawing GPUContext has already created!!");
         return true;
     }
 #ifdef RS_ENABLE_GL
-    mHandler_ = std::make_shared<MemoryHandler>();
-    auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-    if (isUniRenderMode_) {
-        cacheDir_ = UNIRENDER_CACHE_DIR;
-    }
-    Drawing::GPUContextOptions options;
-    auto size = glesVersion ? strlen(glesVersion) : 0;
-    mHandler_->ConfigureContext(&options, glesVersion, size, cacheDir_, isUniRenderMode_);
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        mHandler_ = std::make_shared<MemoryHandler>();
+        auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+        if (isUniRenderMode_) {
+            cacheDir_ = UNIRENDER_CACHE_DIR;
+        }
+        Drawing::GPUContextOptions options;
+        auto size = glesVersion ? strlen(glesVersion) : 0;
+        mHandler_->ConfigureContext(&options, glesVersion, size, cacheDir_, isUniRenderMode_);
 
-    auto drGPUContext = std::make_shared<Drawing::GPUContext>();
-    if (!drGPUContext->BuildFromGL(options)) {
-        LOGE("SetUpGrContext drGPUContext is null");
-        return false;
+        auto drGPUContext = std::make_shared<Drawing::GPUContext>();
+        if (!drGPUContext->BuildFromGL(options)) {
+            LOGE("SetUpGrContext drGPUContext is null");
+            return false;
+        }
+        drGPUContext_ = std::move(drGPUContext);
+        return true;
     }
 #endif
 #ifdef RS_ENABLE_VK
-    if (drawingContext == nullptr) {
-        drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (drawingContext == nullptr) {
+            drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
+        }
+        std::shared_ptr<Drawing::GPUContext> drGPUContext(drawingContext);
+        drGPUContext_ = std::move(drGPUContext);
+        return true;
     }
-    std::shared_ptr<Drawing::GPUContext> drGPUContext(drawingContext);
 #endif
-    drGPUContext_ = std::move(drGPUContext);
-    return true;
+    return false;
 }
 #endif
 
@@ -459,11 +463,7 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
 #else
 std::shared_ptr<Drawing::Surface> RenderContext::AcquireSurface(int width, int height)
 {
-#ifdef RS_ENABLE_VK
     if (!SetUpGpuContext(nullptr)) {
-#else
-    if (!SetUpGpuContext()) {
-#endif
         LOGE("GrContext is not ready!!!");
         return nullptr;
     }

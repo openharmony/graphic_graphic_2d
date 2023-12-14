@@ -18,6 +18,7 @@
 
 #include "include/core/SkBitmap.h"
 #include "include/core/SkCanvas.h"
+#include "include/core/SkHMSymbol.h"
 #include "include/core/SkImage.h"
 #include "include/core/SkMatrix.h"
 #include "include/core/SkPaint.h"
@@ -117,6 +118,9 @@ public:
     // text
     void DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y) override;
 
+    // symbol
+    void DrawSymbol(const DrawingHMSymbolData& symbol, Point locate) override;
+
     // clip
     void ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias) override;
     void ClipIRect(const RectI& rect, ClipOp op = ClipOp::INTERSECT) override;
@@ -156,6 +160,7 @@ public:
 
 private:
     void RoundRectCastToSkRRect(const RoundRect& roundRect, SkRRect& skRRect) const;
+    bool ConvertToHMSymbolData(const DrawingHMSymbolData& symbol, HMSymbolData& skSymbol);
     std::shared_ptr<SkCanvas> skiaCanvas_;
     SkCanvas* skCanvas_;
     SkiaPaint skiaPaint_;
