@@ -34,6 +34,8 @@ namespace {
 static sk_sp<SkColorSpace> ColorSpaceToSkColorSpace(ColorSpace colorSpace)
 {
     switch (colorSpace) {
+        case ColorSpace::DISPLAY_P3:
+            return SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
         case ColorSpace::LINEAR_SRGB:
             return SkColorSpace::MakeSRGBLinear();
         case ColorSpace::SRGB:
