@@ -39,7 +39,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSSyncTask;
-
+static std::mutex ipcMutex_;
 class RSIRenderServiceConnection : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
