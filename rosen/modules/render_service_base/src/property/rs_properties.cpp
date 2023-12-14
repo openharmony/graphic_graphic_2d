@@ -731,7 +731,6 @@ void RSProperties::SetAlpha(float alpha)
         alphaNeedApply_ = true;
     }
     SetDirty();
-    contentDirty_ = true;
 }
 
 float RSProperties::GetAlpha() const
