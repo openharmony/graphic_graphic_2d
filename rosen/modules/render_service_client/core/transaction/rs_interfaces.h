@@ -195,6 +195,14 @@ public:
 
     void ReportJankStats();
 
+    void NotifyLightFactorStatus(bool isSafe);
+
+    void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
+
+    void NotifyRefreshRateEvent(const EventInfo& eventInfo);
+
+    void NotifyTouchEvent(int32_t touchStatus);
+
     void ReportEventResponse(DataBaseRs info);
 
     void ReportEventComplete(DataBaseRs info);

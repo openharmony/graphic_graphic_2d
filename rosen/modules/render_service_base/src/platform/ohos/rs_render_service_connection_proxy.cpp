@@ -1826,6 +1826,99 @@ void RSRenderServiceConnectionProxy::SetHardwareEnabled(NodeId id, bool isEnable
     }
 }
 
+void RSRenderServiceConnectionProxy::NotifyLightFactorStatus(bool isSafe)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    if (!data.WriteBool(isSafe)) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_LIGHT_FACTOR_STATUS);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::NotifyLightFactorStatus: Send Request err.");
+    }
+}
+
+void RSRenderServiceConnectionProxy::NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    if (!data.WriteUint32(listSize)) {
+        return;
+    }
+    for (auto pkg : packageList) {
+        if (!data.WriteString(pkg)) {
+            return;
+        }
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::NotifyPackageEvent: Send Request err.");
+    }
+}
+
+void RSRenderServiceConnectionProxy::NotifyRefreshRateEvent(const EventInfo& eventInfo)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    if (!data.WriteString(eventInfo.eventName)) {
+        return;
+    }
+    if (!data.WriteBool(eventInfo.eventStatus)) {
+        return;
+    }
+    if (!data.WriteUint32(eventInfo.minRefreshRate)) {
+        return;
+    }
+    if (!data.WriteUint32(eventInfo.maxRefreshRate)) {
+        return;
+    }
+    if (!data.WriteString(eventInfo.description)) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_REFRESH_RATE_EVENT);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::NotifyRefreshRateEvent: Send Request err.");
+    }
+}
+
+void RSRenderServiceConnectionProxy::NotifyTouchEvent(int32_t touchStatus)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    if (!data.WriteUint32(touchStatus)) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_TOUCH_EVENT);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::NotifyTouchEvent: Send Request err.");
+    }
+}
+
 void RSRenderServiceConnectionProxy::SetCacheEnabledForRotation(bool isEnabled)
 {
     MessageParcel data;

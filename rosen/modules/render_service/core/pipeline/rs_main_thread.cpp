@@ -403,8 +403,7 @@ void RSMainThread::Init()
     delegate->SetRepaintCallback([]() { RSMainThread::Instance()->RequestNextVSync(); });
     RSOverdrawController::GetInstance().SetDelegate(delegate);
 
-    frameRateMgr_ = std::make_unique<HgmFrameRateManager>();
-    frameRateMgr_->Init(rsVSyncController_, appVSyncController_, vsyncGenerator_);
+    frameRateMgr_ = OHOS::Rosen::HgmCore::Instance().GetFrameRateMgr();
     frameRateMgr_->SetForceUpdateCallback([](bool idleTimerExpired, bool forceUpdate) {
         RSMainThread::Instance()->PostTask([idleTimerExpired, forceUpdate]() {
             RS_TRACE_NAME_FMT("RSMainThread::TimerExpiredCallback Run idleTimerExpiredFlag: %s  forceUpdateFlag: %s",
@@ -414,6 +413,7 @@ void RSMainThread::Init()
             RSMainThread::Instance()->RequestNextVSync();
         });
     });
+    frameRateMgr_->Init(rsVSyncController_, appVSyncController_, vsyncGenerator_);
     SubscribeAppState();
     PrintCurrentStatus();
 }
@@ -1374,8 +1374,13 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         RS_TRACE_NAME_FMT("RSMainThread::ProcessHgmFrameRate pendingRefreshRate: %d", *pendingRefreshRate);
     }
 
-    auto appFrameLinkers = GetContext().GetFrameRateLinkerMap().Get();
-    frameRateMgr_->UniProcessData(0, timestamp, rsFrameRateLinker_, appFrameLinkers, idleTimerExpiredFlag_);
+    // hgm warning: use IsLtpo instead after GetDisplaySupportedModes ready
+    if (frameRateMgr_->GetCurScreenStrategyId().find("LTPO") == std::string::npos) {
+        frameRateMgr_->UniProcessDataForLtps(idleTimerExpiredFlag_);
+    } else {
+        auto appFrameLinkers = GetContext().GetFrameRateLinkerMap().Get();
+        frameRateMgr_->UniProcessDataForLtpo(timestamp, rsFrameRateLinker_, appFrameLinkers, idleTimerExpiredFlag_);
+    }
 }
 
 bool RSMainThread::GetParallelCompositionEnabled()

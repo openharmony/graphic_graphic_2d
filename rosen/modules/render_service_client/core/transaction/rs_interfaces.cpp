@@ -447,6 +447,26 @@ void RSInterfaces::EnableCacheForRotation()
     renderServiceClient_->SetCacheEnabledForRotation(true);
 }
 
+void RSInterfaces::NotifyLightFactorStatus(bool isSafe)
+{
+    renderServiceClient_->NotifyLightFactorStatus(isSafe);
+}
+
+void RSInterfaces::NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
+{
+    renderServiceClient_->NotifyPackageEvent(listSize, packageList);
+}
+
+void RSInterfaces::NotifyRefreshRateEvent(const EventInfo& eventInfo)
+{
+    renderServiceClient_->NotifyRefreshRateEvent(eventInfo);
+}
+
+void RSInterfaces::NotifyTouchEvent(int32_t touchStatus)
+{
+    renderServiceClient_->NotifyTouchEvent(touchStatus);
+}
+
 void RSInterfaces::DisableCacheForRotation()
 {
     renderServiceClient_->SetCacheEnabledForRotation(false);

@@ -209,6 +209,14 @@ public:
 
     virtual void ReportJankStats() = 0;
 
+    virtual void NotifyLightFactorStatus(bool isSafe) = 0;
+
+    virtual void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) = 0;
+
+    virtual void NotifyRefreshRateEvent(const EventInfo& eventInfo) = 0;
+
+    virtual void NotifyTouchEvent(int32_t touchStatus) = 0;
+
     virtual void ReportEventResponse(DataBaseRs info) = 0;
 
     virtual void ReportEventComplete(DataBaseRs info) = 0;

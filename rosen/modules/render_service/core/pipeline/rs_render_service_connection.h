@@ -30,6 +30,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class HgmFrameRateManager;
 class RSRenderServiceConnection : public RSRenderServiceConnectionStub {
 public:
     RSRenderServiceConnection(
@@ -219,8 +220,15 @@ private:
 
     void SetHardwareEnabled(NodeId id, bool isEnabled) override;
 
-    void SetCacheEnabledForRotation(bool isEnabled) override;
+    void NotifyLightFactorStatus(bool isSafe) override;
 
+    void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) override;
+
+    void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
+
+    void NotifyTouchEvent(int32_t touchStatus) override;
+
+    void SetCacheEnabledForRotation(bool isEnabled) override;
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config) override;
 #endif

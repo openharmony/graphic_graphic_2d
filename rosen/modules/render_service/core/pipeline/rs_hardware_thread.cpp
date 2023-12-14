@@ -26,6 +26,7 @@
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_uni_render_engine.h"
 #include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "hgm_frame_rate_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "screen_manager/rs_screen_manager.h"
@@ -248,11 +249,12 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
     }
 
     auto screenManager = CreateOrGetScreenManager();
-    ScreenId id = screenManager->GetDefaultScreenId();
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+    ScreenId id = RSMainThread::Instance()->GetFrameRateMgr()->GetCurScreenId();
     if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id)) {
         RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers SetScreenRefreshRate: %d", refreshRate);
-        RS_LOGD("RSHardwareThread::CommitAndReleaseLayers SetScreenRefreshRate = %{public}d", refreshRate);
+        RS_LOGI("RSHardwareThread::CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d",
+            static_cast<int>(id), refreshRate);
         int32_t status = hgmCore.SetScreenRefreshRate(id, 0, refreshRate);
         if (status < EXEC_SUCCESS) {
             RS_LOGE("RSHardwareThread: failed to set refreshRate %{public}d, screenId %{public}llu", refreshRate, id);

@@ -417,6 +417,22 @@ void RSRenderServiceClient::ReportEventJankFrame(DataBaseRs info)
 {
 }
 
+void RSRenderServiceClient::NotifyLightFactorStatus(bool isSafe)
+{
+}
+
+void RSRenderServiceClient::NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
+{
+}
+
+void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
+{
+}
+
+void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus)
+{
+}
+
 void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled)
 {
 }

@@ -18,6 +18,7 @@
 #include "common/rs_background_thread.h"
 #include "hgm_core.h"
 #include "hgm_command.h"
+#include "hgm_frame_rate_manager.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
@@ -127,6 +128,11 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
         [this]() {
             RS_TRACE_NAME_FMT("ClearTransactionDataPidInfo %d", remotePid_);
             mainThread_->ClearTransactionDataPidInfo(remotePid_);
+        }).wait();
+    mainThread_->ScheduleTask(
+        [this]() {
+            RS_TRACE_NAME_FMT("CleanHgmEvent %d", remotePid_);
+            mainThread_->GetFrameRateMgr()->CleanVote(remotePid_);
         }).wait();
     mainThread_->ScheduleTask(
         [this]() {
@@ -342,8 +348,8 @@ ScreenId RSRenderServiceConnection::CreateVirtualScreen(
         name, width, height, surface, mirrorId, flags, filteredAppVector);
     virtualScreenIds_.insert(newVirtualScreenId);
     if (surface != nullptr) {
-        auto& hgmCore = HgmCore::Instance();
-        hgmCore.StartScreenScene(SceneType::SCREEN_RECORD);
+        EventInfo event = { "VOTER_VIRTUALDISPLAY", ADD_VOTE, OLED_60_HZ, OLED_60_HZ, name };
+        NotifyRefreshRateEvent(event);
     }
     return newVirtualScreenId;
 }
@@ -359,9 +365,8 @@ void RSRenderServiceConnection::RemoveVirtualScreen(ScreenId id)
     std::lock_guard<std::mutex> lock(mutex_);
     screenManager_->RemoveVirtualScreen(id);
     virtualScreenIds_.erase(id);
-    auto& hgmCore = HgmCore::Instance();
-    hgmCore.StopScreenScene(SceneType::SCREEN_RECORD);
-    hgmCore.SetModeBySettingConfig();
+    EventInfo event = { "VOTER_VIRTUALDISPLAY", REMOVE_VOTE };
+    NotifyRefreshRateEvent(event);
 }
 
 int32_t RSRenderServiceConnection::SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback)
@@ -476,6 +481,8 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
         RSHardwareThread::Instance().ScheduleTask(
             [=]() { screenManager_->SetScreenPowerStatus(id, status); }).wait();
+
+        OHOS::Rosen::HgmCore::Instance().NotifyScreenPowerStatus(id, status);
     } else {
         mainThread_->ScheduleTask(
             [=]() { screenManager_->SetScreenPowerStatus(id, status); }).wait();
@@ -1063,6 +1070,26 @@ void RSRenderServiceConnection::ReportJankStats()
     mainThread_->PostTask(task);
 }
 
+void RSRenderServiceConnection::NotifyLightFactorStatus(bool isSafe)
+{
+    mainThread_->GetFrameRateMgr()->HandleLightFactorStatus(isSafe);
+}
+
+void RSRenderServiceConnection::NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
+{
+    mainThread_->GetFrameRateMgr()->HandlePackageEvent(listSize, packageList);
+}
+
+void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInfo)
+{
+    mainThread_->GetFrameRateMgr()->HandleRefreshRateEvent(remotePid_, eventInfo);
+}
+
+void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus)
+{
+    mainThread_->GetFrameRateMgr()->HandleTouchEvent(touchStatus);
+}
+
 void RSRenderServiceConnection::ReportEventResponse(DataBaseRs info)
 {
     auto task = [this, info]() -> void {
@@ -1121,13 +1148,11 @@ void RSRenderServiceConnection::SetTpFeatureConfig(int32_t feature, const char* 
 void RSRenderServiceConnection::SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus)
 {
     if (isVirtualScreenUsingStatus) {
-        auto& hgmCore = HgmCore::Instance();
-        hgmCore.StartScreenScene(SceneType::SCREEN_RECORD);
-        hgmCore.SetModeBySettingConfig();
+        EventInfo event = { "VOTER_VIRTUALDISPLAY", ADD_VOTE, OLED_60_HZ, OLED_60_HZ };
+        NotifyRefreshRateEvent(event);
     } else {
-        auto& hgmCore = HgmCore::Instance();
-        hgmCore.StopScreenScene(SceneType::SCREEN_RECORD);
-        hgmCore.SetModeBySettingConfig();
+        EventInfo event = { "VOTER_VIRTUALDISPLAY", REMOVE_VOTE };
+        NotifyRefreshRateEvent(event);
     }
     return;
 }
