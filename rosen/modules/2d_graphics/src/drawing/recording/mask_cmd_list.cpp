@@ -39,7 +39,7 @@ std::shared_ptr<MaskCmdList> MaskCmdList::CreateFromData(const CmdListData& data
     return cmdList;
 }
 
-bool MaskCmdList::Playback(Path& path, Brush& brush) const
+bool MaskCmdList::Playback(std::shared_ptr<Path>& path, Brush& brush) const
 {
     uint32_t offset = 0;
     MaskPlayer player(path, brush, *this);
@@ -68,7 +68,7 @@ std::unordered_map<uint32_t, MaskPlayer::MaskPlaybackFunc> MaskPlayer::opPlaybac
     { MaskOpItem::MASK_PATH_OPITEM,           MaskPathOpItem::Playback },
 };
 
-MaskPlayer::MaskPlayer(Path& path, Brush& brush, const CmdList& cmdList)
+MaskPlayer::MaskPlayer(std::shared_ptr<Path>& path, Brush& brush, const CmdList& cmdList)
     : path_(path), brush_(brush), cmdList_(cmdList) {}
 
 bool MaskPlayer::Playback(uint32_t type, const void* opItem)
@@ -101,15 +101,15 @@ void MaskBrushOpItem::Playback(MaskPlayer& player, const void* opItem)
 
 void MaskBrushOpItem::Playback(Brush& brush, const CmdList& cmdList) const
 {
-    auto colorSpace = CmdListHelper::GetFromCmdList<ColorSpaceCmdList, ColorSpace>(
+    auto colorSpace = CmdListHelper::GetColorSpaceFromCmdList(
         cmdList, brushHandle_.colorSpaceHandle);
-    auto shaderEffect = CmdListHelper::GetFromCmdList<ShaderEffectCmdList, ShaderEffect>(
+    auto shaderEffect = CmdListHelper::GetShaderEffectFromCmdList(
         cmdList, brushHandle_.shaderEffectHandle);
-    auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
+    auto colorFilter = CmdListHelper::GetColorFilterFromCmdList(
         cmdList, brushHandle_.colorFilterHandle);
-    auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
+    auto imageFilter = CmdListHelper::GetImageFilterFromCmdList(
         cmdList, brushHandle_.imageFilterHandle);
-    auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
+    auto maskFilter = CmdListHelper::GetMaskFilterFromCmdList(
         cmdList, brushHandle_.maskFilterHandle);
 
     Filter filter;
@@ -128,7 +128,7 @@ void MaskBrushOpItem::Playback(Brush& brush, const CmdList& cmdList) const
     brush.SetFilter(filter);
 }
 
-MaskPathOpItem::MaskPathOpItem(const CmdListHandle& pathHandle)
+MaskPathOpItem::MaskPathOpItem(const OpDataHandle& pathHandle)
     : MaskOpItem(MASK_PATH_OPITEM), pathHandle_(pathHandle) {}
 
 void MaskPathOpItem::Playback(MaskPlayer& player, const void* opItem)
@@ -139,11 +139,10 @@ void MaskPathOpItem::Playback(MaskPlayer& player, const void* opItem)
     }
 }
 
-void MaskPathOpItem::Playback(Path& path, const CmdList& cmdList) const
+void MaskPathOpItem::Playback(std::shared_ptr<Path>& path, const CmdList& cmdList) const
 {
-    auto readPath = CmdListHelper::GetFromCmdList<PathCmdList, Path>(
-        cmdList, pathHandle_);
-    path = *readPath;
+    auto readPath = CmdListHelper::GetPathFromCmdList(cmdList, pathHandle_);
+    path = readPath;
 }
 } // namespace Drawing
 } // namespace Rosen

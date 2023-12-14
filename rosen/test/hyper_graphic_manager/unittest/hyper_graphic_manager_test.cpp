@@ -529,5 +529,18 @@ HWTEST_F(HyperGraphicManagerTest, RefreshBundleName, Function | SmallTest | Leve
         }
     }
 }
+
+/**
+ * @tc.name: GetIdealPeriod
+ * @tc.desc: Test GetIdealPeriod
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, GetIdealPeriod, Function | SmallTest | Level2)
+{
+    auto &instance = HgmCore::Instance();
+    EXPECT_EQ(instance.GetIdealPeriod(30), 0);
+    EXPECT_EQ(instance.GetIdealPeriod(60), 16666666);
+}
 } // namespace Rosen
 } // namespace OHOS

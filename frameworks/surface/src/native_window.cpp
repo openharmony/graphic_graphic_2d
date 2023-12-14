@@ -39,6 +39,7 @@ OHNativeWindow* CreateNativeWindowFromSurface(void* pSurface)
     OHNativeWindow* nativeWindow = new OHNativeWindow();
     nativeWindow->surface =
                 *reinterpret_cast<OHOS::sptr<OHOS::Surface> *>(pSurface);
+    BLOGE_CHECK_AND_RETURN_RET(nativeWindow->surface != nullptr, nullptr, "window surface is null");
     nativeWindow->config.width = nativeWindow->surface->GetDefaultWidth();
     nativeWindow->config.height = nativeWindow->surface->GetDefaultHeight();
     nativeWindow->config.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA;
@@ -74,6 +75,21 @@ OHNativeWindowBuffer* CreateNativeWindowBufferFromSurfaceBuffer(void* pSurfaceBu
     NativeObjectReference(nwBuffer);
     return nwBuffer;
 }
+
+OHNativeWindowBuffer* CreateNativeWindowBufferFromNativeBuffer(OH_NativeBuffer* nativeBuffer)
+{
+    if (nativeBuffer == nullptr) {
+        BLOGE("parameter error, please check input parameter");
+        return nullptr;
+    }
+    OHNativeWindowBuffer *nwBuffer = new OHNativeWindowBuffer();
+    OHOS::sptr<OHOS::SurfaceBuffer> surfaceBuffer(reinterpret_cast<OHOS::SurfaceBuffer *>(nativeBuffer));
+    nwBuffer->sfbuffer = surfaceBuffer;
+
+    NativeObjectReference(nwBuffer);
+    return nwBuffer;
+}
+
 void DestroyNativeWindowBuffer(OHNativeWindowBuffer* buffer)
 {
     if (buffer == nullptr) {
@@ -92,6 +108,7 @@ int32_t NativeWindowRequestBuffer(OHNativeWindow *window,
     }
     OHOS::sptr<OHOS::SurfaceBuffer> sfbuffer;
     OHOS::sptr<OHOS::SyncFence> releaseFence = OHOS::SyncFence::INVALID_FENCE;
+    BLOGE_CHECK_AND_RETURN_RET(window->surface != nullptr, SURFACE_ERROR_ERROR, "window surface is null");
     int32_t ret = window->surface->RequestBuffer(sfbuffer, releaseFence, window->config);
     if (ret != OHOS::GSError::GSERROR_OK || sfbuffer == nullptr) {
         BLOGE("API failed, please check RequestBuffer function ret:%{public}d, Queue Id:%{public}" PRIu64,
@@ -150,7 +167,34 @@ int32_t NativeWindowFlushBuffer(OHNativeWindow *window, OHNativeWindowBuffer *bu
     OHOS::sptr<OHOS::SyncFence> acquireFence = new OHOS::SyncFence(fenceFd);
     window->surface->FlushBuffer(buffer->sfbuffer, acquireFence, config);
 
+    for (auto &[seqNum, buf] : window->bufferCache_) {
+        if (buf == buffer) {
+            window->lastBufferSeqNum = seqNum;
+            break;
+        }
+    }
+
     return OHOS::GSERROR_OK;
+}
+
+int32_t GetLastFlushedBuffer(OHNativeWindow *window, OHNativeWindowBuffer **buffer)
+{
+    if (window == nullptr || buffer == nullptr) {
+        BLOGE("parameter error, please check input parameter");
+        return OHOS::GSERROR_INVALID_ARGUMENTS;
+    }
+
+    if (window->bufferCache_.find(window->lastBufferSeqNum) != window->bufferCache_.end()) {
+        if (window->bufferCache_[window->lastBufferSeqNum]->sfbuffer->GetUsage() & BUFFER_USAGE_PROTECTED) {
+            BLOGE("Not allowed to obtain protect surface buffer");
+            return OHOS::GSERROR_NO_PERMISSION;
+        }
+        *buffer = window->bufferCache_[window->lastBufferSeqNum];
+        BLOGD("The last flushed buffer seqNum is %{public}u", window->lastBufferSeqNum);
+        return OHOS::GSERROR_OK;
+    }
+
+    return OHOS::GSERROR_NO_BUFFER;
 }
 
 int32_t NativeWindowCancelBuffer(OHNativeWindow *window, OHNativeWindowBuffer *buffer)
@@ -159,7 +203,7 @@ int32_t NativeWindowCancelBuffer(OHNativeWindow *window, OHNativeWindowBuffer *b
         BLOGE("parameter error, please check input parameter");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
-
+    BLOGE_CHECK_AND_RETURN_RET(window->surface != nullptr, SURFACE_ERROR_ERROR, "window surface is null");
     window->surface->CancelBuffer(buffer->sfbuffer);
     return OHOS::GSERROR_OK;
 }
@@ -389,9 +433,11 @@ NativeWindowBuffer::NativeWindowBuffer() : NativeWindowMagic(NATIVE_OBJECT_MAGIC
 WEAK_ALIAS(CreateNativeWindowFromSurface, OH_NativeWindow_CreateNativeWindow);
 WEAK_ALIAS(DestoryNativeWindow, OH_NativeWindow_DestroyNativeWindow);
 WEAK_ALIAS(CreateNativeWindowBufferFromSurfaceBuffer, OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer);
+WEAK_ALIAS(CreateNativeWindowBufferFromNativeBuffer, OH_NativeWindow_CreateNativeWindowBufferFromNativeBuffer);
 WEAK_ALIAS(DestroyNativeWindowBuffer, OH_NativeWindow_DestroyNativeWindowBuffer);
 WEAK_ALIAS(NativeWindowRequestBuffer, OH_NativeWindow_NativeWindowRequestBuffer);
 WEAK_ALIAS(NativeWindowFlushBuffer, OH_NativeWindow_NativeWindowFlushBuffer);
+WEAK_ALIAS(GetLastFlushedBuffer, OH_NativeWindow_GetLastFlushedBuffer);
 WEAK_ALIAS(NativeWindowCancelBuffer, OH_NativeWindow_NativeWindowAbortBuffer);
 WEAK_ALIAS(NativeWindowHandleOpt, OH_NativeWindow_NativeWindowHandleOpt);
 WEAK_ALIAS(GetBufferHandleFromNative, OH_NativeWindow_GetBufferHandleFromNative);

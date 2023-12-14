@@ -126,6 +126,7 @@ public:
 
 protected:
     virtual bool OnFilter() const = 0;
+    virtual bool OnFilterWithBrush(Drawing::Brush& brush) const = 0;
     Drawing::Canvas* canvas_ = nullptr;
 };
 #endif // USE_ROSEN_DRAWING
@@ -181,7 +182,7 @@ public:
 #ifndef USE_ROSEN_DRAWING
     SaveStatus Save(SaveType type = kALL);
 #else
-    SaveStatus SaveAllStatus();
+    SaveStatus SaveAllStatus(SaveType type = kALL);
 #endif
     SaveStatus GetSaveStatus() const;
     void RestoreStatus(const SaveStatus& status);
@@ -189,22 +190,34 @@ public:
 #ifndef USE_ROSEN_DRAWING
     SkSurface* GetSurface() const;
 #else
-    Drawing::Surface* GetSurface() const;
+    Drawing::Surface* GetSurface() const override;
 #endif
 
     // high contrast
     void SetHighContrast(bool enabled);
+#ifndef USE_ROSEN_DRAWING
     bool isHighContrastEnabled() const;
+#else
+    bool isHighContrastEnabled() const override;
+#endif
 
+#ifndef USE_ROSEN_DRAWING
     enum CacheType : uint8_t {
         UNDEFINED, // do not change current cache status
         ENABLED,   // explicitly enable cache
         DISABLED,  // explicitly disable cache
         OFFSCREEN, // offscreen rendering
     };
+#else
+    using CacheType = Drawing::CacheType;
+#endif
     // cache
     void SetCacheType(CacheType type);
+#ifndef USE_ROSEN_DRAWING
     CacheType GetCacheType() const;
+#else
+    Drawing::CacheType GetCacheType() const override;
+#endif
 
     // visible rect
 #ifndef USE_ROSEN_DRAWING
@@ -248,6 +261,7 @@ public:
     };
     CanvasStatus GetCanvasStatus() const;
     void SetCanvasStatus(const CanvasStatus& status);
+    SkCanvas* GetRecordingCanvas() const;
 #else
     // effect cache data relate
     struct CachedEffectData {
@@ -268,10 +282,10 @@ public:
     };
     CanvasStatus GetCanvasStatus() const;
     void SetCanvasStatus(const CanvasStatus& status);
+    Drawing::Canvas* GetRecordingCanvas() const;
 #endif
     bool GetRecordingState() const;
     void SetRecordingState(bool flag);
-    SkCanvas* GetRecordingCanvas() const;
 
 protected:
     using Env = struct {
@@ -283,9 +297,23 @@ protected:
     void onDrawPicture(const SkPicture* picture, const SkMatrix* matrix, const SkPaint* paint) override;
     SkCanvas::SaveLayerStrategy getSaveLayerStrategy(const SaveLayerRec& rec) override;
 #else
-    std::stack<float> GetAlphaStack();
-    std::stack<Env> GetEnvStack();
+    const std::stack<float>& GetAlphaStack();
+    const std::stack<Env>& GetEnvStack();
     bool OnFilter() const override;
+    inline bool OnFilterWithBrush(Drawing::Brush& brush) const override
+    {
+        float alpha = alphaStack_.top();
+        // foreground color and foreground color strategy identification
+        if (brush.GetColor().CastToColorQuad() == 0x00000001) {
+            brush.SetColor(envStack_.top().envForegroundColor_.AsArgbInt());
+        }
+
+        // use alphaStack_.top() to multiply alpha
+        if (alpha < 1 && alpha > 0) {
+            brush.SetAlpha(brush.GetAlpha() * alpha);
+        }
+        return alpha > 0.f;
+    }
 #endif
 
 private:
@@ -298,7 +326,7 @@ private:
     std::stack<Env> envStack_;
 
     std::atomic_bool isHighContrastEnabled_ { false };
-    CacheType cacheType_ { UNDEFINED };
+    CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
 #ifndef USE_ROSEN_DRAWING
     SkRect visibleRect_ = SkRect::MakeEmpty();
 #else
@@ -308,25 +336,6 @@ private:
     bool isParallelCanvas_ = false;
     bool disableFilterCache_ = false;
     bool recordingState_ = false;
-};
-
-// This class extends RSPaintFilterCanvas to also create a color filter for the paint.
-class RSB_EXPORT RSColorFilterCanvas : public RSPaintFilterCanvas {
-public:
-    explicit RSColorFilterCanvas(RSPaintFilterCanvas* canvas);
-    ~RSColorFilterCanvas() override = default;
-
-#ifdef USE_ROSEN_DRAWING
-    CoreCanvas& AttachPen(const Drawing::Pen& pen) override;
-    CoreCanvas& AttachBrush(const Drawing::Brush& brush) override;
-#endif
-
-protected:
-#ifndef USE_ROSEN_DRAWING
-    bool onFilter(SkPaint& paint) const override;
-#else
-    bool onFilter() const;
-#endif
 };
 
 // Helper class similar to SkAutoCanvasRestore, but also restores alpha and/or env

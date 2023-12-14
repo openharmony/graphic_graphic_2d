@@ -31,10 +31,7 @@ CacheData::CacheData (const size_t maxKeySize, const size_t maxValueSize,
     maxTotalSize_(maxTotalSize),
     cacheDir_(fileName) {}
 
-CacheData::~CacheData()
-{
-    LOGE("CacheData: destroying CacheData");
-}
+CacheData::~CacheData() {}
 
 void CacheData::ReadFromFile()
 {
@@ -197,7 +194,7 @@ size_t CacheData::Get(const void *key, const size_t keySize, void *value, const 
     ShaderPointer fakeShaderPointer(fakeDataPointer, nullptr);
     auto index = std::lower_bound(shaderPointers_.begin(), shaderPointers_.end(), fakeShaderPointer);
     if (index == shaderPointers_.end() || fakeShaderPointer < *index) {
-        LOGE("abandon, because no key is found");
+        LOGD("abandon, because no key is found");
         return 0;
     }
     std::shared_ptr <DataPointer> valuePointer(index->GetValuePointer());

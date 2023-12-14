@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 #include <hilog/log.h>
 
+#include "platform/common/rs_system_properties.h"
 #include "render_context.h"
 
 using namespace testing::ext;
@@ -43,6 +44,11 @@ void RenderContextTest::TearDown() {}
 HWTEST_F(RenderContextTest, CreateEGLSurfaceTest001, Function | SmallTest | Level2)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     // start CreateEGLSurfaceTest001 test
     RenderContext renderContext;
     EGLSurface eglSurface = renderContext.CreateEGLSurface(nullptr);
@@ -58,6 +64,11 @@ HWTEST_F(RenderContextTest, CreateEGLSurfaceTest001, Function | SmallTest | Leve
 HWTEST_F(RenderContextTest, CreateEGLSurfaceTest002, Function | SmallTest | Level2)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     // start CreateEGLSurfaceTest002 test
     RenderContext renderContext;
     renderContext.InitializeEglContext();
@@ -74,9 +85,18 @@ HWTEST_F(RenderContextTest, CreateEGLSurfaceTest002, Function | SmallTest | Leve
 HWTEST_F(RenderContextTest, SetUpGrContextTest, Function | SmallTest | Level2)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     // start SetUpGrContextTest test
     RenderContext renderContext;
-    bool grContext = renderContext.SetUpGrContext();
+#ifndef USE_ROSEN_DRAWING
+    bool grContext = renderContext.SetUpGrContext(nullptr);
+#else
+    bool grContext = renderContext.SetUpGpuContext();
+#endif
     EXPECT_EQ(grContext, false);
 #endif
 }
@@ -89,6 +109,11 @@ HWTEST_F(RenderContextTest, SetUpGrContextTest, Function | SmallTest | Level2)
 HWTEST_F(RenderContextTest, AcquireSurfaceTest, Function | SmallTest | Level2)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     // start AcquireSurfaceTest test
     RenderContext renderContext;
     auto surface = renderContext.AcquireSurface(0, 0);
@@ -104,6 +129,11 @@ HWTEST_F(RenderContextTest, AcquireSurfaceTest, Function | SmallTest | Level2)
 HWTEST_F(RenderContextTest, QueryEglBufferAgeTest001, Function | SmallTest | Level2)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     // start QueryEglBufferAgeTest001 test
     RenderContext renderContext;
     EGLint bufferAge = renderContext.QueryEglBufferAge();
@@ -119,6 +149,11 @@ HWTEST_F(RenderContextTest, QueryEglBufferAgeTest001, Function | SmallTest | Lev
 HWTEST_F(RenderContextTest, QueryEglBufferAgeTest002, Function | SmallTest | Level2)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     // start QueryEglBufferAgeTest002 test
     RenderContext renderContext;
     EGLint bufferAge = renderContext.QueryEglBufferAge();
@@ -134,6 +169,11 @@ HWTEST_F(RenderContextTest, QueryEglBufferAgeTest002, Function | SmallTest | Lev
 HWTEST_F(RenderContextTest, ClearRedundantResourcesTest001, Level1)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     // start ClearRedundantResourcesTest001 test
     RenderContext renderContext;
     renderContext.InitializeEglContext();
@@ -149,6 +189,11 @@ HWTEST_F(RenderContextTest, ClearRedundantResourcesTest001, Level1)
 HWTEST_F(RenderContextTest, DamageFrameTest001, Level1)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     // start DamageFrameTest001 test
     RenderContext renderContext;
     renderContext.InitializeEglContext();
@@ -164,10 +209,55 @@ HWTEST_F(RenderContextTest, DamageFrameTest001, Level1)
 HWTEST_F(RenderContextTest, MakeSelfCurrentTest001, Level1)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     // start MakeSelfCurrentTest001 test
     RenderContext renderContext;
     renderContext.InitializeEglContext();
     renderContext.MakeSelfCurrent();
+#endif
+}
+
+/**
+ * @tc.name: ColorSpaceTest001
+ * @tc.desc: Verify the SetColorSpaceTest and GetColorSpaceTest of RenderContextTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, ColorSpaceTest001, Level1)
+{
+#ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
+    // start ColorSpaceTest001 test
+    RenderContext renderContext;
+    renderContext.SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    ASSERT_EQ(renderContext.GetColorSpace(), GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+#endif
+}
+
+/**
+ * @tc.name: PixelFormatTest001
+ * @tc.desc: Verify the SetPixelFormatTest and GetPixelFormat of RenderContextTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, PixelFormatTest001, Level1)
+{
+#ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
+    // start PixelFormatTest001 test
+    RenderContext renderContext;
+    renderContext.SetPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
+    ASSERT_EQ(renderContext.GetPixelFormat(), GRAPHIC_PIXEL_FMT_RGBA_1010102);
 #endif
 }
 } // namespace OHOS::Rosen

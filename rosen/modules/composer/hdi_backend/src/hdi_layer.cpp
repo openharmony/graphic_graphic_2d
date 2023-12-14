@@ -348,6 +348,20 @@ int32_t HdiLayer::SetLayerPreMulti()
     return ret;
 }
 
+int32_t HdiLayer::SetLayerColor()
+{
+    if (doLayerInfoCompare_ && layerInfo_->GetLayerColor().r == prevLayerInfo_->GetLayerColor().r
+    && layerInfo_->GetLayerColor().g == prevLayerInfo_->GetLayerColor().g
+    && layerInfo_->GetLayerColor().b == prevLayerInfo_->GetLayerColor().b
+    && layerInfo_->GetLayerColor().a == prevLayerInfo_->GetLayerColor().a) {
+        return GRAPHIC_DISPLAY_SUCCESS;
+    }
+
+    // because hdi interface func is not implemented, delete CheckRet to avoid excessive print of log
+    device_->SetLayerColor(screenId_, layerId_, layerInfo_->GetLayerColor());
+    return GRAPHIC_DISPLAY_SUCCESS;
+}
+
 int32_t HdiLayer::SetLayerColorTransform()
 {
     const std::vector<float>& curMatrix = layerInfo_->GetColorTransform();
@@ -521,6 +535,8 @@ int32_t HdiLayer::SetHdiLayerInfo()
     CheckRet(ret, "SetLayerZorder");
     ret = SetLayerPreMulti();
     CheckRet(ret, "SetLayerPreMulti");
+    ret = SetLayerColor();
+    CheckRet(ret, "SetLayerColor");
     // This method may not be supported, the return value is not check here
     (void)SetLayerColorTransform();
     ret = SetLayerColorDataSpace();

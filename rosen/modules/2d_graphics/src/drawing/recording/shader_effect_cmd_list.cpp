@@ -109,7 +109,7 @@ std::shared_ptr<ShaderEffect> CreateBlendShaderOpItem::Playback(const CmdList& c
     return ShaderEffect::CreateBlendShader(*dst, *src, mode_);
 }
 
-CreateImageShaderOpItem::CreateImageShaderOpItem(const ImageHandle& image, TileMode tileX, TileMode tileY,
+CreateImageShaderOpItem::CreateImageShaderOpItem(const OpDataHandle& image, TileMode tileX, TileMode tileY,
     const SamplingOptions& sampling, const Matrix& matrix) : ShaderEffectOpItem(CREATE_IMAGE_SHADER),
     image_(image), tileX_(tileX), tileY_(tileY), samplingOptions_(sampling), matrix_(matrix) {}
 
@@ -123,7 +123,7 @@ std::shared_ptr<ShaderEffect> CreateImageShaderOpItem::Playback(const CmdList& c
     return ShaderEffect::CreateImageShader(*image, tileX_, tileY_, samplingOptions_, matrix_);
 }
 
-CreatePictureShaderOpItem::CreatePictureShaderOpItem(const ImageHandle& picture, TileMode tileX, TileMode tileY,
+CreatePictureShaderOpItem::CreatePictureShaderOpItem(const OpDataHandle& picture, TileMode tileX, TileMode tileY,
     FilterMode mode, const Matrix& matrix, const Rect& rect) : ShaderEffectOpItem(CREATE_PICTURE_SHADER),
     picture_(picture), tileX_(tileX), tileY_(tileY), filterMode_(mode), matrix_(matrix), rect_(rect) {}
 
@@ -164,29 +164,30 @@ std::shared_ptr<ShaderEffect> CreateRadialGradientOpItem::Playback(const CmdList
 }
 
 CreateTwoPointConicalOpItem::CreateTwoPointConicalOpItem(const Point& startPt, scalar startRadius, const Point& endPt,
-    scalar endRadius, const std::pair<uint32_t, size_t>& colors, const std::pair<uint32_t, size_t>& pos, TileMode mode)
+    scalar endRadius, const std::pair<uint32_t, size_t>& colors, const std::pair<uint32_t, size_t>& pos, TileMode mode,
+    const Matrix *matrix)
     : ShaderEffectOpItem(CREATE_TWO_POINT_CONICAL), startPt_(startPt), startRadius_(startRadius), endPt_(endPt),
-    endRadius_(endRadius), colors_(colors), pos_(pos), mode_(mode) {}
+    endRadius_(endRadius), colors_(colors), pos_(pos), mode_(mode), matrix_(matrix) {}
 
 std::shared_ptr<ShaderEffect> CreateTwoPointConicalOpItem::Playback(const CmdList& cmdList) const
 {
     auto colors = CmdListHelper::GetVectorFromCmdList<ColorQuad>(cmdList, colors_);
     auto pos = CmdListHelper::GetVectorFromCmdList<scalar>(cmdList, pos_);
 
-    return ShaderEffect::CreateTwoPointConical(startPt_, startRadius_, endPt_, endRadius_, colors, pos, mode_);
+    return ShaderEffect::CreateTwoPointConical(startPt_, startRadius_, endPt_, endRadius_, colors, pos, mode_, matrix_);
 }
 
 CreateSweepGradientOpItem::CreateSweepGradientOpItem(const Point& centerPt, const std::pair<uint32_t, size_t>& colors,
-    const std::pair<uint32_t, size_t>& pos, TileMode mode, scalar startAngle, scalar endAngle)
+    const std::pair<uint32_t, size_t>& pos, TileMode mode, scalar startAngle, scalar endAngle, const Matrix *matrix)
     : ShaderEffectOpItem(CREATE_SWEEP_GRADIENT), centerPt_(centerPt), colors_(colors),
-    pos_(pos), mode_(mode), startAngle_(startAngle), endAngle_(endAngle) {}
+    pos_(pos), mode_(mode), startAngle_(startAngle), endAngle_(endAngle), matrix_(matrix) {}
 
 std::shared_ptr<ShaderEffect> CreateSweepGradientOpItem::Playback(const CmdList& cmdList) const
 {
     auto colors = CmdListHelper::GetVectorFromCmdList<ColorQuad>(cmdList, colors_);
     auto pos = CmdListHelper::GetVectorFromCmdList<scalar>(cmdList, pos_);
 
-    return ShaderEffect::CreateSweepGradient(centerPt_, colors, pos, mode_, startAngle_, endAngle_);
+    return ShaderEffect::CreateSweepGradient(centerPt_, colors, pos, mode_, startAngle_, endAngle_, matrix_);
 }
 } // namespace Drawing
 } // namespace Rosen

@@ -92,6 +92,7 @@ template("render_service_client_source_set") {
       "core/ui/rs_canvas_node.cpp",
       "core/ui/rs_display_node.cpp",
       "core/ui/rs_effect_node.cpp",
+      "core/ui/rs_frame_rate_linker.cpp",
       "core/ui/rs_frame_rate_policy.cpp",
       "core/ui/rs_node.cpp",
       "core/ui/rs_proxy_node.cpp",
@@ -215,22 +216,23 @@ render_service_client_source_set("render_service_client_src_static") {
   is_static_lib = true
 }
 
+config("render_service_client_link_config") {
+  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
+    ldflags = [
+      "-Wl,--lto-O2",
+      "-Wl,-mllvm",
+      "-Wl,-wholeprogramdevirt-check=fallback",
+      "-Wl,-Bsymbolic",
+    ]
+  }
+}
+
 ohos_shared_library("librender_service_client") {
   public_deps = [ ":render_service_client_src" ]
   innerapi_tags = [ "platformsdk" ]
 
-  ldflags = []
-
-  if (is_ohos && enhanced_opt) {
-    ldflags += [ "-Wl,-Bsymbolic" ]
-  }
-
-  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64") &&
-      enhanced_opt) {
-    ldflags += [
-      "-Wl,-mllvm",
-      "-Wl,-wholeprogramdevirt-check=fallback",
-    ]
+  if (enhanced_opt) {
+    configs = [ ":render_service_client_link_config" ]
   }
 
   part_name = "graphic_2d"

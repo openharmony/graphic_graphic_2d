@@ -86,27 +86,27 @@ std::shared_ptr<RecordingShaderEffect> RecordingShaderEffect::CreateRadialGradie
 
 std::shared_ptr<RecordingShaderEffect> RecordingShaderEffect::CreateTwoPointConical(
     const Point& startPt, scalar startRadius, const Point& endPt, scalar endRadius,
-    const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode)
+    const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix)
 {
     auto shaderEffect = std::make_shared<RecordingShaderEffect>();
     auto colorsData = CmdListHelper::AddVectorToCmdList<ColorQuad>(*shaderEffect->GetCmdList(), colors);
     auto posData = CmdListHelper::AddVectorToCmdList<scalar>(*shaderEffect->GetCmdList(), pos);
 
     shaderEffect->GetCmdList()->AddOp<CreateTwoPointConicalOpItem>(
-        startPt, startRadius, endPt, endRadius, colorsData, posData, mode);
+        startPt, startRadius, endPt, endRadius, colorsData, posData, mode, matrix);
     return shaderEffect;
 }
 
 std::shared_ptr<RecordingShaderEffect> RecordingShaderEffect::CreateSweepGradient(
     const Point& centerPt, const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos,
-    TileMode mode, scalar startAngle, scalar endAngle)
+    TileMode mode, scalar startAngle, scalar endAngle, const Matrix *matrix)
 {
     auto shaderEffect = std::make_shared<RecordingShaderEffect>();
     auto colorsData = CmdListHelper::AddVectorToCmdList<ColorQuad>(*shaderEffect->GetCmdList(), colors);
     auto posData = CmdListHelper::AddVectorToCmdList<scalar>(*shaderEffect->GetCmdList(), pos);
 
     shaderEffect->GetCmdList()->AddOp<CreateSweepGradientOpItem>(
-        centerPt, colorsData, posData, mode, startAngle, endAngle);
+        centerPt, colorsData, posData, mode, startAngle, endAngle, matrix);
     return shaderEffect;
 }
 } // namespace Drawing

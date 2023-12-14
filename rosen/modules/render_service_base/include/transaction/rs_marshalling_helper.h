@@ -45,6 +45,14 @@ class SkTextBlob;
 class SkVertices;
 class SkTypeface;
 class SkBitmap;
+struct SkPoint;
+class HMSymbol;
+class HMSymbolData;
+struct GroupInfo;
+struct RenderGroup;
+struct SymbolLayers;
+struct SColor;
+struct SymbolLayersGroups;
 
 #ifdef NEW_SKIA
 struct SkSamplingOptions;
@@ -66,11 +74,13 @@ class DrawCmdList;
 class OpItem;
 #else
 class RSExtendImageObject;
+class RSExtendImageBaseOj;
 namespace Drawing {
 class DrawCmdList;
 class MaskCmdList;
 class Data;
 class Image;
+class Bitmap;
 }
 #endif
 class RSFilter;
@@ -150,6 +160,84 @@ public:
         return false;
     }
 
+    template<typename T>
+    static bool MarshallingVec(Parcel& parcel, const std::vector<T>& val)
+    {
+        int size = val.size();
+        Marshalling(parcel, size);
+        for (int i = 0; i < size; i++) {
+            if (!Marshalling(parcel, val[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    template<typename T>
+    static bool UnmarshallingVec(Parcel& parcel, std::vector<T>& val)
+    {
+        int size = 0;
+        Unmarshalling(parcel, size);
+        if (size < 0) {
+            return false;
+        }
+        val.clear();
+        for (int i = 0; i < size; i++) {
+            T tmp;
+            if (!Unmarshalling(parcel, tmp)) {
+                return false;
+            }
+            val.push_back(tmp);
+        }
+        return true;
+    }
+
+    template<typename T>
+    static bool MarshallingVec2(Parcel& parcel, const std::vector<std::vector<T>>& val)
+    {
+        int size = val.size();
+        Marshalling(parcel, size);
+        for (int i = 0; i < size; i++) {
+            if (!MarshallingVec(parcel, val[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    template<typename T>
+    static bool UnmarshallingVec2(Parcel& parcel, std::vector<std::vector<T>>& val)
+    {
+        int size = 0;
+        Unmarshalling(parcel, size);
+        if (size < 0) {
+            return false;
+        }
+        val.clear();
+        for (int i = 0; i < size; i++) {
+            std::vector<T> tmp;
+            if (!UnmarshallingVec(parcel, tmp)) {
+                return false;
+            }
+            val.push_back(tmp);
+        }
+        return true;
+    }
+
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const GroupInfo& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, GroupInfo& val);
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const RenderGroup& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, RenderGroup& val);
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const SymbolLayers& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, SymbolLayers& val);
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const SymbolLayersGroups& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, SymbolLayersGroups& val);
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const HMSymbolData& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, HMSymbolData& val);
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const SkPoint& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, SkPoint& val);
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const SColor& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, SColor& val);
 #ifndef USE_ROSEN_DRAWING
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const sk_sp<SkImage>& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, sk_sp<SkImage>& val);
@@ -158,6 +246,9 @@ public:
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::Image>& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Image>& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Image>& val, void*& imagepixelAddr);
+    static RSB_EXPORT bool UnmarshallingNoLazyGeneratedImage(Parcel& parcel,
+    std::shared_ptr<Drawing::Image>& val, void*& imagepixelAddr);
+    static RSB_EXPORT bool ReadColorSpaceFromParcel(Parcel& parcel, std::shared_ptr<Drawing::ColorSpace>& colorSpace);
 #endif
 
     // reloaded marshalling & unmarshalling function for types
@@ -194,6 +285,7 @@ public:
     static bool SkipSkImage(Parcel& parcel);
 #else
     DECLARE_FUNCTION_OVERLOAD(Drawing::Matrix)
+    DECLARE_FUNCTION_OVERLOAD(Drawing::Bitmap)
     static bool SkipData(Parcel& parcel);
     static bool SkipImage(Parcel& parcel);
 #endif
@@ -216,6 +308,7 @@ public:
 #else
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Drawing::DrawCmdList>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSExtendImageObject>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSExtendImageBaseOj>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Drawing::MaskCmdList>)
 #endif
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Media::PixelMap>)
@@ -353,10 +446,10 @@ public:
 #endif
     static void BeginNoSharedMem(std::thread::id tid);
     static void EndNoSharedMem();
-    static bool GetUseSharedMem();
+    static bool GetUseSharedMem(std::thread::id tid);
 private:
     static bool WriteToParcel(Parcel& parcel, const void* data, size_t size);
-    static const void* ReadFromParcel(Parcel& parcel, size_t size);
+    static const void* ReadFromParcel(Parcel& parcel, size_t size, bool& isMalloc);
     static bool SkipFromParcel(Parcel& parcel, size_t size);
 #ifndef USE_ROSEN_DRAWING
     static sk_sp<SkData> SerializeTypeface(SkTypeface* tf, void* ctx);

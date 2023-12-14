@@ -23,20 +23,38 @@
 #include "surface_type.h"
 #include "surface_frame.h"
 #include "surface_frame_ohos.h"
+#include "draw/canvas.h"
+
+#ifdef USE_ROSEN_DRAWING
+#include "engine_adapter/skia_adapter/skia_surface.h"
+#ifdef ENABLE_DDGR_OPTIMIZE
+#include "engine_adapter/ddgr_adapter/ddgr_surface.h"
+#endif
+#endif
 
 namespace OHOS {
 namespace Rosen {
 class SurfaceFrameOhosVulkan : public SurfaceFrameOhos {
 public:
+#ifndef USE_ROSEN_DRAWING
     SurfaceFrameOhosVulkan(sk_sp<SkSurface> surface, int32_t width, int32_t height);
+#else
+    SurfaceFrameOhosVulkan(std::shared_ptr<Drawing::Surface> surface, int32_t width, int32_t height);
+#endif
     ~SurfaceFrameOhosVulkan() override;
     void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height) override {};
     void SetColorSpace(GraphicColorGamut colorSpace) override;
     GraphicColorGamut GetColorSpace() const override;
-    SkCanvas* GetCanvas();
-    sk_sp<SkSurface> GetSurface();
+#ifdef USE_ROSEN_DRAWING
+    Drawing::Canvas* GetCanvas();
+    Drawing::Surface* GetSurface();
+#endif
 private:
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> surface_;
+#else
+    std::shared_ptr<Drawing::Surface> surface_;
+#endif
     GraphicColorGamut colorSpace_;
 };
 } // namespace Rosen

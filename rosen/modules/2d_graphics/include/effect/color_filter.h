@@ -40,6 +40,9 @@ public:
         LUMA,
     };
 
+    // Color matrix is a 4x5 float type matrix.
+    constexpr static int MATRIX_SIZE = 20;
+
     static std::shared_ptr<ColorFilter> CreateBlendModeColorFilter(ColorQuad c, BlendMode mode);
     static std::shared_ptr<ColorFilter> CreateComposeColorFilter(ColorFilter& f1, ColorFilter& f2);
     static std::shared_ptr<ColorFilter> CreateMatrixColorFilter(const ColorMatrix& m);
@@ -74,6 +77,9 @@ public:
     ColorFilter(FilterType t, const ColorMatrix& m) noexcept;
     ColorFilter(FilterType t, ColorFilter& f1, ColorFilter& f2) noexcept;
     ColorFilter(FilterType t) noexcept;
+    std::shared_ptr<Data> Serialize() const;
+    bool Deserialize(std::shared_ptr<Data> data);
+    bool AsAColorMatrix(scalar matrix[MATRIX_SIZE]) const;
 
 protected:
     ColorFilter() noexcept;

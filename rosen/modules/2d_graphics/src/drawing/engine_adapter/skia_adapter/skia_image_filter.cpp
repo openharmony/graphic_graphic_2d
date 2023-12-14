@@ -14,9 +14,11 @@
  */
 
 #include "skia_image_filter.h"
+#include "skia_helper.h"
 
 #include "include/effects/SkImageFilters.h"
 #include "include/core/SkTileMode.h"
+#include "src/core/SkImageFilter_Base.h"
 
 #if !defined(USE_CANVASKIT0310_SKIA) && !defined(NEW_SKIA)
 #include "include/effects/SkBlurImageFilter.h"
@@ -26,6 +28,7 @@
 
 #include "effect/color_filter.h"
 #include "effect/image_filter.h"
+#include "utils/data.h"
 #include "utils/log.h"
 
 namespace OHOS {
@@ -127,6 +130,36 @@ void SkiaImageFilter::SetSkImageFilter(const sk_sp<SkImageFilter>& filter)
 {
     filter_ = filter;
 }
+
+std::shared_ptr<Data> SkiaImageFilter::Serialize() const
+{
+#ifdef ROSEN_OHOS
+    if (filter_ == nullptr) {
+        LOGE("SkiaImageFilter::Serialize, filter_ is nullptr!");
+        return nullptr;
+    }
+
+    return SkiaHelper::FlattenableSerialize(filter_.get());
+#else
+    return nullptr;
+#endif
+}
+
+bool SkiaImageFilter::Deserialize(std::shared_ptr<Data> data)
+{
+#ifdef ROSEN_OHOS
+    if (data == nullptr) {
+        LOGE("SkiaImageFilter::Deserialize, data is invalid!");
+        return false;
+    }
+
+    filter_ = SkiaHelper::FlattenableDeserialize<SkImageFilter_Base>(data);
+    return true;
+#else
+    return false;
+#endif
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

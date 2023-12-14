@@ -59,12 +59,6 @@ enum class PartialRenderType {
     SET_DAMAGE_AND_DROP_OP_NOT_VISIBLEDIRTY     // 4, drop draw_op if node is not in visible dirty region (unirender)
 };
 
-enum class ReleaseGpuResourceType {
-    DISABLED = 0,                            // 0, disable releaseGpuResource
-    WINDOW_HIDDEN,                           // 1, release window GpuResource when it Exit or GoBackGround
-    WINDOW_HIDDEN_AND_LAUCHER,               // 2, release window and launcher GpuResource when it Exit or GoBackGround
-};
-
 enum class DumpSurfaceType {
     DISABLED = 0,
     SINGLESURFACE,
@@ -94,6 +88,12 @@ enum class HgmRefreshRateModes {
     SET_RATE_MODE_HIGH = 3
 };
 
+enum class GpuApiType {
+    OPENGL = 0,
+    VULKAN,
+    DDGR,
+};
+
 using OnSystemPropertyChanged = void(*)(const char*, const char*, void*);
 
 class RSB_EXPORT RSSystemProperties final {
@@ -105,7 +105,7 @@ public:
     static bool IsSceneBoardEnabled();
     static int GetDumpFrameNum();
     static void SetRecordingDisenabled();
-    static bool GetRecordingEnabled();
+    static int GetRecordingEnabled();
 
     static bool GetUniRenderEnabled();
     static bool GetRenderNodeTraceEnabled();
@@ -127,7 +127,8 @@ public:
     static bool GetDumpLayersEnabled();
     static bool GetHardwareComposerEnabled();
     static bool GetAFBCEnabled();
-    static ReleaseGpuResourceType GetReleaseGpuResourceEnabled();
+    static bool GetReleaseResourceEnabled();
+    static bool GetRSScreenRoundCornerEnable();
 
     static void SetDrawTextAsBitmap(bool flag);
     static bool GetDrawTextAsBitmap();
@@ -145,6 +146,8 @@ public:
     static int GetFilterCacheUpdateInterval();
     static int GetFilterCacheSizeThreshold();
     static bool GetFilterPartialRenderEnabled();
+    static bool GetColorPickerPartialEnabled();
+    static bool GetMaskLinearBlurEnabled();
     static bool GetKawaseEnabled();
     static float GetKawaseRandomColorFactor();
     static bool GetRandomColorEnabled();
@@ -161,8 +164,10 @@ public:
     static bool GetUIFirstEnabled();
     static bool GetDebugTraceEnabled();
     static bool FindNodeInTargetList(std::string node);
+    static bool IsFoldScreenFlag();
     static bool GetCacheCmdEnabled();
     static bool GetASTCEnabled();
+    static bool GetCachedBlurPartialRenderEnabled();
     static bool GetImageGpuResourceCacheEnable(int width, int height);
 #if defined (ENABLE_DDGR_OPTIMIZE)
     static bool GetDDGRIntegrateEnable();
@@ -171,12 +176,24 @@ public:
     static bool IsPhoneType();
     static bool GetSyncTransactionEnabled();
     static int GetSyncTransactionWaitDelay();
+    static bool GetUseShadowBatchingEnabled();
+    static bool GetSingleFrameComposerEnabled();
+    static bool GetSingleFrameComposerCanvasNodeEnabled();
+    static bool GetSubSurfaceEnabled();
+    static bool GetSecurityPermissionCheckEnabled();
+
+    static inline GpuApiType GetGpuApiType()
+    {
+        return RSSystemProperties::systemGpuApiType_;
+    }
+
 private:
     RSSystemProperties() = default;
 
     static inline bool isUniRenderEnabled_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
     inline static bool cacheEnabledForRotation_ = false;
+    static const GpuApiType systemGpuApiType_;
 };
 
 } // namespace Rosen

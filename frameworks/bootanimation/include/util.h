@@ -91,6 +91,8 @@ public:
     std::string custPicZipPath = {};
     std::string custSoundsPath = {};
     std::string custVideoPath = {};
+    int32_t rotateScreenId = -1;
+    int32_t rotateDegree = 0;
 };
 using ImageStructVec = std::vector<std::shared_ptr<ImageStruct>>;
 int64_t GetNowTime();

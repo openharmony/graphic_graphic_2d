@@ -22,25 +22,15 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-VariantSpan::VariantSpan(const std::shared_ptr<TextSpan> &ts) noexcept(true): ts_(ts)
-{
-}
+VariantSpan::VariantSpan(const std::shared_ptr<TextSpan> &ts) noexcept(true): ts_(ts) {}
 
-VariantSpan::VariantSpan(const std::shared_ptr<AnySpan> &as) noexcept(true): as_(as)
-{
-}
+VariantSpan::VariantSpan(const std::shared_ptr<AnySpan> &as) noexcept(true): as_(as) {}
 
-VariantSpan::VariantSpan(std::shared_ptr<TextSpan> &&ts) noexcept(true): ts_(std::move(ts))
-{
-}
+VariantSpan::VariantSpan(std::shared_ptr<TextSpan> &&ts) noexcept(true): ts_(std::move(ts)) {}
 
-VariantSpan::VariantSpan(std::shared_ptr<AnySpan> &&as) noexcept(true): as_(std::move(as))
-{
-}
+VariantSpan::VariantSpan(std::shared_ptr<AnySpan> &&as) noexcept(true): as_(std::move(as)) {}
 
-VariantSpan::VariantSpan(std::nullptr_t) noexcept(true)
-{
-}
+VariantSpan::VariantSpan(std::nullptr_t) noexcept(true) {}
 
 VariantSpan::operator bool() const noexcept(false)
 {

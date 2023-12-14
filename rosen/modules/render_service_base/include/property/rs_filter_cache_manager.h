@@ -16,7 +16,7 @@
 #ifndef RENDER_SERVICE_BASE_PROPERTY_RS_FILTER_CACHE_MANAGER_H
 #define RENDER_SERVICE_BASE_PROPERTY_RS_FILTER_CACHE_MANAGER_H
 
-#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include <condition_variable>
 #include <mutex>
 
@@ -52,6 +52,7 @@ class RSDrawingFilter;
 // Warn: Using filter cache in multi-thread environment may cause GPU memory leak or invalid textures.
 class RSFilterCacheManager final {
 public:
+    static bool SoloTaskPrepare;
     RSFilterCacheManager() = default;
     ~RSFilterCacheManager() = default;
     RSFilterCacheManager(const RSFilterCacheManager&) = delete;
@@ -86,7 +87,7 @@ public:
     // regenerate the cache or reuse the existing cache.
     // Note: If srcRect or dstRect is empty, we'll use the DeviceClipRect as the corresponding rect.
     void DrawFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
-        const std::optional<Drawing::RectI>& srcRect = std::nullopt,
+        const bool needSnapshotOutset = true, const std::optional<Drawing::RectI>& srcRect = std::nullopt,
         const std::optional<Drawing::RectI>& dstRect = std::nullopt);
 
     // This function is similar to DrawFilter(), but instead of drawing anything on the canvas, it simply returns the
@@ -101,7 +102,7 @@ public:
         CACHE_TYPE_NONE              = 0,
         CACHE_TYPE_SNAPSHOT          = 1,
         CACHE_TYPE_FILTERED_SNAPSHOT = 2,
-        CACHE_TYPE_BOTH              = 3,
+        CACHE_TYPE_BOTH              = CACHE_TYPE_SNAPSHOT | CACHE_TYPE_FILTERED_SNAPSHOT,
     };
 
     // Call this function to manually invalidate the cache. The next time DrawFilter() is called, it will regenerate the
@@ -118,6 +119,7 @@ private:
     class RSFilterCacheTask : public RSFilter::RSFilterTask {
     public:
         static const bool FilterPartialRenderEnabled;
+        bool isTaskTooLong = false;
         RSFilterCacheTask() = default;
         virtual ~RSFilterCacheTask() = default;
 #ifndef USE_ROSEN_DRAWING
@@ -149,7 +151,7 @@ private:
 
         GrBackendTexture GetResultTexture() const
         {
-            return resultBackendTexture_;
+            return cacheCompletedBackendTexture_;
         }
 #else
         void InitTask(std::shared_ptr<RSDrawingFilter> filter,
@@ -157,30 +159,32 @@ private:
         {
             filter_ = filter;
             cachedSnapshot_ = cachedSnapshot;
-            cacheBackendTexture_ = cachedSnapshot_->cachedImage_->getBackendTexture(false);
+            cacheBackendTexture_ = cachedSnapshot_->cachedImage_->GetBackendTexture(false, nullptr);
             surfaceSize_ = size;
         }
 
         Drawing::BackendTexture GetResultTexture() const
         {
-            return resultBackendTexture_;
+            return cacheCompletedBackendTexture_;
         }
 #endif
 
         void Reset()
         {
             cachedSnapshot_.reset();
-            filter_ = nullptr;
         }
 
         void ResetGrContext()
         {
-            std::unique_lock<std::mutex> lock(parallelRenderMutex_);
+#ifndef USE_ROSEN_DRAWING
             if (cacheSurface_ != nullptr) {
                 GrDirectContext* grContext_ = cacheSurface_->recordingContext()->asDirectContext();
                 cacheSurface_ = nullptr;
                 grContext_->freeGpuResources();
             }
+#else
+// Drawing is not supported
+#endif
         }
 
         bool WaitTaskFinished();
@@ -195,26 +199,44 @@ private:
             return handler_;
         }
 
+        bool IsCompleted()
+        {
+            return isCompleted_;
+        }
+
+        void SetCompleted(bool val)
+        {
+            isCompleted_ = val;
+        }
+
+        void SawpTexture()
+        {
+            std::unique_lock<std::mutex> lock(grBackendTextureMutex_);
+            std::swap(resultBackendTexture_, cacheCompletedBackendTexture_);
+        }
+
     private:
 #ifndef USE_ROSEN_DRAWING
         sk_sp<SkSurface> cacheSurface_ = nullptr;
         GrBackendTexture cacheBackendTexture_;
         GrBackendTexture resultBackendTexture_;
         SkISize surfaceSize_;
-        std::shared_ptr<RSSkiaFilter> filter_ = nullptr;
+        std::weak_ptr<RSSkiaFilter> filter_;
+        GrBackendTexture cacheCompletedBackendTexture_;
 #else
         std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
         Drawing::BackendTexture cacheBackendTexture_;
         Drawing::BackendTexture resultBackendTexture_;
         Drawing::RectI surfaceSize_;
-        std::shared_ptr<RSDrawingFilter> filter_ = nullptr;
+        std::weak_ptr<RSDrawingFilter> filter_;
+        Drawing::BackendTexture cacheCompletedBackendTexture_;
 #endif
         std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
         std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshot_ = nullptr;
-        std::mutex parallelRenderMutex_;
+        std::mutex grBackendTextureMutex_;
         std::condition_variable cvParallelRender_;
         std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_ = nullptr;
-        bool isFirstInit = false;
+        bool isCompleted_ = false;
     };
 
 #ifndef USE_ROSEN_DRAWING
@@ -228,7 +250,7 @@ private:
         const std::optional<SkIRect>& srcRect, const std::optional<SkIRect>& dstRect);
 #else
     void TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
-        const Drawing::RectI& srcRect, const bool needSnapshotOutset);
+        const Drawing::RectI& srcRect, const bool needSnapshotOutset = true);
     void GenerateFilteredSnapshot(
         RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect);
     void DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect) const;
@@ -252,6 +274,8 @@ private:
     uint32_t cachedFilterHash_ = 0;
     // Cache age, used to determine if we can delay the cache update.
     int cacheUpdateInterval_ = 0;
+    // Whether we need to purge the cache after this frame.
+    bool pendingPurge_ = false;
     // Region of the cached image, used to determine if we need to invalidate the cache.
     RectI snapshotRegion_; // Note: in device coordinate.
 

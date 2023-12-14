@@ -54,7 +54,9 @@ public:
     int GetLineCount() const override;
     void SetIndents(const std::vector<float> &indents) override;
     void Layout(double maxWidth) override;
+
     void Paint(TexgineCanvas &canvas, double offsetX, double offsetY) override;
+
     std::vector<TextRect> GetTextRectsByBoundary(Boundary boundary,
                                                  TextRectHeightStyle heightStyle,
                                                  TextRectWidthStyle widthStyle) const override;
@@ -79,7 +81,6 @@ private:
     void ComputeWordBoundary() const;
     void ComputeSpans(int lineIndex, double baseline, const CalcResult &calcResult,
         std::vector<TextRect> &lineBoxes) const;
-    void ProcessHardBreak();
     std::vector<TextRect> GenTextRects(std::shared_ptr<TextSpan> &ts, double offsetX, double offsetY) const;
 
     TypographyStyle typographyStyle_;
@@ -96,10 +97,12 @@ private:
     std::vector<double> lineMaxCoveredDescent_;
     double maxWidth_ = 0.0;
     double maxLineWidth_ = 0.0;
+    float descent_ = 0.0;
     double height_ = 0.0;
     std::vector<double> yOffsets_ = {};
     double maxIntrinsicWidth_ = 0.0;
     double minIntrinsicWidth_ = 0.0;
+    std::vector<float> indents_;
 };
 } // namespace TextEngine
 } // namespace Rosen

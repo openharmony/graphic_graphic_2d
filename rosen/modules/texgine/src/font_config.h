@@ -19,7 +19,6 @@
 #include <json/json.h>
 #include <string>
 #include <vector>
-#include <include/core/SkString.h>
 
 namespace OHOS {
 namespace Rosen {

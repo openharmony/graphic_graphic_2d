@@ -54,9 +54,9 @@ void Pen::SetColor(int c)
     brush_.SetColor(c);
 }
 
-void Pen::SetARGB(int r, int g, int b, int a)
+void Pen::SetARGB(int a, int r, int g, int b)
 {
-    return brush_.SetARGB(r, g, b, a);
+    return brush_.SetARGB(a, r, g, b);
 }
 
 Color4f Pen::GetColor4f()
@@ -77,6 +77,11 @@ void Pen::SetColor(const Color4f& cf, std::shared_ptr<ColorSpace> s)
 uint32_t Pen::GetAlpha() const
 {
     return brush_.GetAlpha();
+}
+
+scalar Pen::GetAlphaF() const
+{
+    return brush_.GetAlphaF();
 }
 
 void Pen::SetAlpha(uint32_t a)

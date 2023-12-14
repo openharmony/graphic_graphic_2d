@@ -18,10 +18,16 @@
 #include <sstream>
 #include <string>
 
-#include "EGL/egl.h"
 #include "rs_trace.h"
 #include "window.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
+#ifdef RS_ENABLE_GL
+#include "EGL/egl.h"
+#endif
 
 #include "memory/rs_tag_tracker.h"
 
@@ -284,83 +290,131 @@ EGLSurface RenderContext::CreateEGLSurface(EGLNativeWindowType eglNativeWindow)
     return surface;
 }
 
-void RenderContext::SetColorSpace(GraphicColorGamut colorSpace)
-{
-    colorSpace_ = colorSpace;
-}
-
 #ifndef USE_ROSEN_DRAWING
-bool RenderContext::SetUpGrContext()
+#ifdef RS_ENABLE_VK
+void RenderContext::AbandonContext()
+{
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return;
+    }
+    if (grContext_ == nullptr) {
+        LOGD("grContext is nullptr.");
+        return;
+    }
+    grContext_->flushAndSubmit(true);
+    grContext_->purgeUnlockAndSafeCacheGpuResources();
+}
+#endif
+bool RenderContext::SetUpGrContext(sk_sp<GrDirectContext> skContext)
 {
     if (grContext_ != nullptr) {
         LOGD("grContext has already created!!");
         return true;
     }
+#ifdef RS_ENABLE_GL
+    (void)skContext;
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        sk_sp<const GrGLInterface> glInterface(GrGLCreateNativeInterface());
+        if (glInterface.get() == nullptr) {
+            LOGE("SetUpGrContext failed to make native interface");
+            return false;
+        }
 
-    sk_sp<const GrGLInterface> glInterface(GrGLCreateNativeInterface());
-    if (glInterface.get() == nullptr) {
-        LOGE("SetUpGrContext failed to make native interface");
-        return false;
-    }
+        GrContextOptions options;
+        options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
+        options.fPreferExternalImagesOverES3 = true;
+        options.fDisableDistanceFieldPaths = true;
 
-    GrContextOptions options;
-    options.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
-    options.fPreferExternalImagesOverES3 = true;
-    options.fDisableDistanceFieldPaths = true;
+        // Advanced Filter
+        options.fProcessName = "render_service";
 
-    // Advanced Filter
-    options.fProcessName = "render_service";
-
-    mHandler_ = std::make_shared<MemoryHandler>();
-    auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-    auto size = glesVersion ? strlen(glesVersion) : 0;
-    if (isUniRenderMode_) {
-        cacheDir_ = UNIRENDER_CACHE_DIR;
-    }
-    mHandler_->ConfigureContext(&options, glesVersion, size, cacheDir_, isUniRenderMode_);
+        mHandler_ = std::make_shared<MemoryHandler>();
+        auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+        auto size = glesVersion ? strlen(glesVersion) : 0;
+        if (isUniRenderMode_) {
+            cacheDir_ = UNIRENDER_CACHE_DIR;
+        }
+        mHandler_->ConfigureContext(&options, glesVersion, size, cacheDir_, isUniRenderMode_);
 
 #if defined(NEW_SKIA)
-    sk_sp<GrDirectContext> grContext(GrDirectContext::MakeGL(std::move(glInterface), options));
+        sk_sp<GrDirectContext> grContext(GrDirectContext::MakeGL(std::move(glInterface), options));
 #else
-    sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface), options));
+        sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface), options));
 #endif
-    if (grContext == nullptr) {
-        LOGE("SetUpGrContext grContext is null");
-        return false;
+        if (grContext == nullptr) {
+            LOGE("SetUpGrContext grContext is null");
+            return false;
+        }
+        grContext_ = std::move(grContext);
+        return true;
     }
-    grContext_ = std::move(grContext);
-    return true;
+#endif
+
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (skContext == nullptr) {
+            skContext = RsVulkanContext::GetSingleton().CreateSkContext();
+        }
+        sk_sp<GrDirectContext> grContext(skContext);
+        if (grContext == nullptr) {
+            LOGE("SetUpGrContext grContext is null");
+            return false;
+        }
+        grContext_ = std::move(grContext);
+        return true;
+    }
+#endif
+    return false;
 }
 #else
-bool RenderContext::SetUpGpuContext()
+bool RenderContext::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext)
 {
     if (drGPUContext_ != nullptr) {
         LOGD("Drawing GPUContext has already created!!");
         return true;
     }
-    mHandler_ = std::make_shared<MemoryHandler>();
-    auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-    if (isUniRenderMode_) {
-        cacheDir_ = UNIRENDER_CACHE_DIR;
-    }
-    Drawing::GPUContextOptions options;
-    auto size = glesVersion ? strlen(glesVersion) : 0;
-    mHandler_->ConfigureContext(&options, glesVersion, size, cacheDir_, isUniRenderMode_);
+#ifdef RS_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        mHandler_ = std::make_shared<MemoryHandler>();
+        auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+        if (isUniRenderMode_) {
+            cacheDir_ = UNIRENDER_CACHE_DIR;
+        }
+        Drawing::GPUContextOptions options;
+        auto size = glesVersion ? strlen(glesVersion) : 0;
+        mHandler_->ConfigureContext(&options, glesVersion, size, cacheDir_, isUniRenderMode_);
 
-    auto drGPUContext = std::make_shared<Drawing::GPUContext>();
-    if (!drGPUContext->BuildFromGL(options)) {
-        LOGE("SetUpGrContext drGPUContext is null");
-        return false;
+        auto drGPUContext = std::make_shared<Drawing::GPUContext>();
+        if (!drGPUContext->BuildFromGL(options)) {
+            LOGE("SetUpGrContext drGPUContext is null");
+            return false;
+        }
+        drGPUContext_ = std::move(drGPUContext);
+        return true;
     }
-    drGPUContext_ = std::move(drGPUContext);
-    return true;
+#endif
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (drawingContext == nullptr) {
+            drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
+        }
+        std::shared_ptr<Drawing::GPUContext> drGPUContext(drawingContext);
+        drGPUContext_ = std::move(drGPUContext);
+        return true;
+    }
+#endif
+    return false;
 }
 #endif
 
 #ifndef USE_ROSEN_DRAWING
 sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
 {
-    if (!SetUpGrContext()) {
+    if (!SetUpGrContext(nullptr)) {
         LOGE("GrContext is not ready!!!");
         return nullptr;
     }
@@ -368,8 +422,12 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
     GrGLFramebufferInfo framebufferInfo;
     framebufferInfo.fFBOID = 0;
     framebufferInfo.fFormat = GL_RGBA8;
-
     SkColorType colorType = kRGBA_8888_SkColorType;
+
+    if (pixelFormat_ == GRAPHIC_PIXEL_FMT_RGBA_1010102) {
+        framebufferInfo.fFormat = GL_RGB10_A2;
+        colorType = kRGBA_1010102_SkColorType;
+    }
 
     GrBackendRenderTarget backendRenderTarget(width, height, 0, 8, framebufferInfo);
 #if defined(NEW_SKIA)
@@ -378,27 +436,7 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
     SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
 #endif
 
-    sk_sp<SkColorSpace> skColorSpace = nullptr;
-
-    switch (colorSpace_) {
-        // [planning] in order to stay consistant with the colorspace used before, we disabled
-        // GRAPHIC_COLOR_GAMUT_SRGB to let the branch to default, then skColorSpace is set to nullptr
-        case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
-#if defined(NEW_SKIA)
-            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
-#else
-            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDCIP3);
-#endif
-            break;
-        case GRAPHIC_COLOR_GAMUT_ADOBE_RGB:
-            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kAdobeRGB);
-            break;
-        case GRAPHIC_COLOR_GAMUT_BT2020:
-            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kRec2020);
-            break;
-        default:
-            break;
-    }
+    sk_sp<SkColorSpace> skColorSpace = ConvertColorGamutToSkColorSpace(colorSpace_);
 
     RSTagTracker tagTracker(GetGrContext(), RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
 
@@ -415,7 +453,7 @@ sk_sp<SkSurface> RenderContext::AcquireSurface(int width, int height)
 #else
 std::shared_ptr<Drawing::Surface> RenderContext::AcquireSurface(int width, int height)
 {
-    if (!SetUpGpuContext()) {
+    if (!SetUpGpuContext(nullptr)) {
         LOGE("GrContext is not ready!!!");
         return nullptr;
     }
@@ -440,6 +478,8 @@ std::shared_ptr<Drawing::Surface> RenderContext::AcquireSurface(int width, int h
         default:
             break;
     }
+
+    RSTagTracker tagTracker(GetDrGPUContext(), RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
 
     struct Drawing::FrameBuffer bufferInfo;
     bufferInfo.width = width;
@@ -564,6 +604,32 @@ void RenderContext::ClearRedundantResources()
         drGPUContext_->PerformDeferredCleanup(std::chrono::seconds(10));
     }
 #endif
+}
+
+sk_sp<SkColorSpace> RenderContext::ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut) const
+{
+    sk_sp<SkColorSpace> skColorSpace = nullptr;
+    switch (colorGamut) {
+        // [planning] in order to stay consistant with the colorspace used before, we disabled
+        // GRAPHIC_COLOR_GAMUT_SRGB to let the branch to default, then skColorSpace is set to nullptr
+        case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
+#if defined(NEW_SKIA)
+            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
+#else
+            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDCIP3);
+#endif
+            break;
+        case GRAPHIC_COLOR_GAMUT_ADOBE_RGB:
+            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kAdobeRGB);
+            break;
+        case GRAPHIC_COLOR_GAMUT_BT2020:
+            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kRec2020);
+            break;
+        default:
+            break;
+    }
+
+    return skColorSpace;
 }
 
 RenderContextFactory& RenderContextFactory::GetInstance()

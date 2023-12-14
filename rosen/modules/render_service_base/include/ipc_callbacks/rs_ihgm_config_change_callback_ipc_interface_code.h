@@ -22,6 +22,7 @@ namespace OHOS {
 namespace Rosen {
 enum class RSIHgmConfigChangeCallbackInterfaceCode : CodeUnderlyingType {
     ON_HGM_CONFIG_CHANGED,
+    ON_HGM_REFRESH_RATE_MODE_CHANGED,
 };
 } // namespace Rosen
 } // namespace OHOS

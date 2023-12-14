@@ -17,6 +17,7 @@
 
 #include "skia_color_filter.h"
 #include "skia_color_space.h"
+#include "skia_convert_utils.h"
 #include "skia_image_filter.h"
 #include "skia_mask_filter.h"
 #include "skia_path.h"
@@ -57,7 +58,7 @@ void SkiaPaint::ApplyPenToStroke(const Pen& pen)
     ApplyPenToStrokeCore(pen, *strokeData);
 }
 
-void SkiaPaint::BrushToSkPaint(const Brush& brush, SkPaint& paint) const
+void SkiaPaint::BrushToSkPaint(const Brush& brush, SkPaint& paint)
 {
     auto cs = brush.GetColorSpace();
     if (cs != nullptr) {
@@ -87,7 +88,7 @@ void SkiaPaint::BrushToSkPaint(const Brush& brush, SkPaint& paint) const
     paint.setStyle(SkPaint::kFill_Style);
 }
 
-void SkiaPaint::PenToSkPaint(const Pen& pen, SkPaint& paint) const
+void SkiaPaint::PenToSkPaint(const Pen& pen, SkPaint& paint)
 {
     auto cs = pen.GetColorSpace();
     if (cs != nullptr) {
@@ -376,7 +377,7 @@ void SkiaPaint::ApplyStrokeCoreToSkPaint(const SkStyleStrokeCore& strokeCore, Sk
     }
 }
 
-void SkiaPaint::ApplyFilter(SkPaint& paint, const Filter& filter) const
+void SkiaPaint::ApplyFilter(SkPaint& paint, const Filter& filter)
 {
     auto c = filter.GetColorFilter();
     if (c != nullptr) {
@@ -400,6 +401,38 @@ void SkiaPaint::ApplyFilter(SkPaint& paint, const Filter& filter) const
         sk_sp<SkMaskFilter> maskFilter = (skMaskFilterImpl != nullptr) ? skMaskFilterImpl->GetMaskFilter() : nullptr;
         paint.setMaskFilter(maskFilter);
     }
+}
+
+bool SkiaPaint::CanComputeFastBounds(const Brush& brush)
+{
+    SkPaint skPaint;
+    BrushToSkPaint(brush, skPaint);
+    return skPaint.canComputeFastBounds();
+}
+
+const Rect& SkiaPaint::ComputeFastBounds(const Brush& brush, const Rect& orig, Rect* storage)
+{
+    if (storage == nullptr) {
+        return orig;
+    }
+    SkPaint skPaint;
+    BrushToSkPaint(brush, skPaint);
+    SkRect skOrig, skStorage;
+    SkiaConvertUtils::DrawingRectCastToSkRect(orig, skOrig);
+    SkiaConvertUtils::DrawingRectCastToSkRect(*storage, skStorage);
+    const SkRect& skRect = skPaint.computeFastBounds(skOrig, &skStorage);
+    SkiaConvertUtils::SkRectCastToDrawingRect(skStorage, *storage);
+    if (&skRect == &skOrig) {
+        return orig;
+    }
+    return *storage;
+}
+
+bool SkiaPaint::AsBlendMode(const Brush& brush)
+{
+    SkPaint skPaint;
+    BrushToSkPaint(brush, skPaint);
+    return skPaint.asBlendMode().has_value();
 }
 } // namespace Drawing
 } // namespace Rosen

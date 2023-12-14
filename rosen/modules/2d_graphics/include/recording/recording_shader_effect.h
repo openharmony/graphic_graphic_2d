@@ -99,7 +99,7 @@ public:
      */
     static std::shared_ptr<RecordingShaderEffect> CreateTwoPointConical(const Point& startPt, scalar startRadius,
         const Point& endPt, scalar endRadius, const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos,
-        TileMode mode);
+        TileMode mode, const Matrix *matrix);
     /*
      * @brief             Creates a CreateSweepGradientOpItem to add to the ShaderEffectCmdList.
      * @param centerPt    The center point for the sweep.
@@ -112,7 +112,7 @@ public:
      */
     static std::shared_ptr<RecordingShaderEffect> CreateSweepGradient(const Point& centerPt,
         const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode, scalar startAngle,
-        scalar endAngle);
+        scalar endAngle, const Matrix *matrix);
 
     RecordingShaderEffect() noexcept;
     ~RecordingShaderEffect() override = default;

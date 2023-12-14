@@ -229,16 +229,18 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
 #endif
 #else
 #if defined(RS_ENABLE_GL) && !defined(ROSEN_PREVIEW)
-    if (renderContext_ == nullptr) {
-        renderContext_ = new RenderContext();
-        ROSEN_LOGD("Create RenderContext");
-        RS_TRACE_NAME("InitializeEglContext");
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        if (renderContext_ == nullptr) {
+            renderContext_ = new RenderContext();
+            ROSEN_LOGD("Create RenderContext");
+            RS_TRACE_NAME("InitializeEglContext");
 #ifdef ROSEN_OHOS
-        renderContext_->InitializeEglContext(); // init egl context on RT
-        if (!cacheDir_.empty()) {
-            renderContext_->SetCacheDir(cacheDir_);
-        }
+            renderContext_->InitializeEglContext(); // init egl context on RT
+            if (!cacheDir_.empty()) {
+                renderContext_->SetCacheDir(cacheDir_);
+            }
 #endif
+        }
     }
 #endif
 #endif
@@ -435,7 +437,7 @@ void RSRenderThread::Render()
     }
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::Render");
     if (RsFrameReport::GetInstance().GetEnable()) {
-        RsFrameReport::GetInstance().RenderStart();
+        RsFrameReport::GetInstance().RenderStart(timestamp_);
     }
     std::unique_lock<std::mutex> lock(mutex_);
     const auto& rootNode = context_->GetGlobalRootRenderNode();

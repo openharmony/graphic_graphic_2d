@@ -81,12 +81,8 @@ public:
 
     bool IsEqual(const RSImage& other) const;
 #ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
     void CanvasDrawImage(RSPaintFilterCanvas& canvas, const SkRect& rect, const SkSamplingOptions& samplingOptions,
         const SkPaint& paint, bool isBackground = false);
-#else
-    void CanvasDrawImage(RSPaintFilterCanvas& canvas, const SkRect& rect, const SkPaint& paint, bool isBackground = false);
-#endif
 #else
     void CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect,
         const Drawing::SamplingOptions& samplingOptions, bool isBackground = false);
@@ -105,8 +101,12 @@ public:
 #else
     void SetCompressData(const std::shared_ptr<Drawing::Data> data, uint32_t id, int width, int height);
 #endif
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#ifndef USE_ROSEN_DRAWING
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK))
     void SetCompressData(const sk_sp<SkData> compressData);
+#endif
+#else
+    void SetCompressData(const std::shared_ptr<Drawing::Data> compressData);
 #endif
 
     void SetNodeId(NodeId nodeId);
@@ -142,11 +142,8 @@ private:
 #ifndef USE_ROSEN_DRAWING
     void ApplyCanvasClip(RSPaintFilterCanvas& canvas);
     void UploadGpu(RSPaintFilterCanvas& canvas);
-#ifdef NEW_SKIA
-    void DrawImageRepeatRect(const SkSamplingOptions& samplingOptions, const SkPaint& paint, RSPaintFilterCanvas& canvas);
-#else
-    void DrawImageRepeatRect(const SkPaint& paint, RSPaintFilterCanvas& canvas);
-#endif
+    void DrawImageRepeatRect(const SkSamplingOptions& samplingOptions, const SkPaint& paint,
+        RSPaintFilterCanvas& canvas);
 #else
     void ApplyCanvasClip(Drawing::Canvas& canvas);
     void UploadGpu(Drawing::Canvas& canvas);

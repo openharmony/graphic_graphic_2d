@@ -94,6 +94,38 @@ constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001401, "Bufferqu
 
 #define BLOGN_FAILURE_ID_API(id, api, ret) \
     BLOGN_FAILURE_ID(id, #api " failed, then %{public}s", GSErrorStr(ret).c_str())
+
+#define BLOGE_CHECK_AND_RETURN_RET(cond, ret, fmt, ...)  \
+    do {                                                 \
+        if (!(cond)) {                                   \
+            BLOGE(fmt, ##__VA_ARGS__);                   \
+            return ret;                                  \
+        }                                                \
+    } while (0)
+
+#define BLOGE_CHECK_AND_RETURN(cond, fmt, ...)           \
+    do {                                                 \
+        if (!(cond)) {                                   \
+            BLOGE(fmt, ##__VA_ARGS__);                   \
+            return;                                      \
+        }                                                \
+    } while (0)
+
+#define BLOGE_CHECK_AND_BREAK(cond, fmt, ...)            \
+    if (1) {                                             \
+        if (!(cond)) {                                   \
+            BLOGE(fmt, ##__VA_ARGS__);                   \
+            break;                                       \
+        }                                                \
+    } else void (0)
+
+#define BLOGE_CHECK_AND_CONTINUE(cond)                   \
+    if (1) {                                             \
+        if (!(cond)) {                                   \
+            BLOGE("%{public}s, check failed!", #cond);   \
+            continue;                                    \
+        }                                                \
+    } else void (0)
 } // namespace OHOS
 
 #endif // FRAMEWORKS_SURFACE_INCLUDE_BUFFER_LOG_H

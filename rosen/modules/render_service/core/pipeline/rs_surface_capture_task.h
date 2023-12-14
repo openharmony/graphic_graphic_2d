@@ -48,8 +48,11 @@
 
 namespace OHOS {
 namespace Rosen {
+#ifndef USE_ROSEN_DRAWING
 bool CopyDataToPixelMap(sk_sp<SkImage> img, const std::unique_ptr<Media::PixelMap>& pixelmap);
-
+#else
+bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_ptr<Media::PixelMap>& pixelmap);
+#endif
 class RSSurfaceCaptureVisitor : public RSNodeVisitor {
     public:
         RSSurfaceCaptureVisitor(float scaleX, float scaleY, bool isUniRender);
@@ -105,6 +108,10 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
         void DrawWatermarkIfNeed(RSDisplayRenderNode& node);
         void FindHardwareEnabledNodes();
         void AdjustZOrderAndDrawSurfaceNode();
+        // Reuse DrawSpherize function in RSUniRenderVisitor.
+        // Since the surfaceCache has been updated by the main screen drawing,
+        // the updated surfaceCache can be reused directly without reupdating.
+        void DrawSpherize(RSRenderNode& node);
         std::unique_ptr<RSPaintFilterCanvas> canvas_ = nullptr;
         bool isDisplayNode_ = false;
         float scaleX_ = 1.0f;

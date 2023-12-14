@@ -17,9 +17,6 @@
 #ifndef USE_GRAPHIC_TEXT_GINE
 #include "rosen_text/ui/font_collection.h"
 #else
-
-#include <map>
-
 #include "rosen_text/font_collection.h"
 #ifndef USE_TEXGINE
 #include "adapter/txt/font_collection.h"
@@ -27,6 +24,11 @@
 #include "texgine/font_collection.h"
 #endif
 #endif
+#include "utils/object_mgr.h"
+
+using namespace OHOS::Rosen::Drawing;
+
+static std::shared_ptr<ObjectMgr> objectMgr = ObjectMgr::GetInstance();
 
 template<typename T1, typename T2>
 inline T1* ConvertToFontCollection(T2* ptr)
@@ -37,18 +39,28 @@ inline T1* ConvertToFontCollection(T2* ptr)
 OH_Drawing_FontCollection* OH_Drawing_CreateFontCollection(void)
 {
 #ifndef USE_GRAPHIC_TEXT_GINE
-    return (OH_Drawing_FontCollection*)new rosen::FontCollection;
+    OH_Drawing_FontCollection* fc = (OH_Drawing_FontCollection*)new rosen::FontCollection;
 #else
 #ifndef USE_TEXGINE
-    return (OH_Drawing_FontCollection*)new OHOS::Rosen::AdapterTxt::FontCollection;
+    OH_Drawing_FontCollection* fc = (OH_Drawing_FontCollection*)new OHOS::Rosen::AdapterTxt::FontCollection;
 #else
-    return (OH_Drawing_FontCollection*)new OHOS::Rosen::AdapterTextEngine::FontCollection;
+    OH_Drawing_FontCollection* fc = (OH_Drawing_FontCollection*)new OHOS::Rosen::AdapterTextEngine::FontCollection;
 #endif
 #endif
+    objectMgr->AddObject(fc);
+    return fc;
 }
 
 void OH_Drawing_DestroyFontCollection(OH_Drawing_FontCollection* fontCollection)
 {
+    if (!fontCollection) {
+        return;
+    }
+
+    if (!objectMgr->RemoveObject(fontCollection)) {
+        return;
+    }
+
 #ifndef USE_GRAPHIC_TEXT_GINE
     delete ConvertToFontCollection<rosen::FontCollection>(fontCollection);
 #else

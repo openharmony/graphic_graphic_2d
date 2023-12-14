@@ -31,29 +31,35 @@ class PixelMap;
 }
 namespace Rosen {
 namespace Drawing {
+class DrawOpItem;
 class CmdListHelper {
 public:
     CmdListHelper() = default;
     ~CmdListHelper() = default;
 
-    static ImageHandle AddImageToCmdList(CmdList& cmdList, const Image& image);
-    static ImageHandle AddImageToCmdList(CmdList& cmdList, const std::shared_ptr<Image>& image);
-    static std::shared_ptr<Image> GetImageFromCmdList(const CmdList& cmdList, const ImageHandle& imageHandle);
-    static VerticesHandle AddVerticesToCmdList(CmdList& cmdList, const Vertices& vertices);
+    static OpDataHandle AddImageToCmdList(CmdList& cmdList, const Image& image);
+    static OpDataHandle AddImageToCmdList(CmdList& cmdList, const std::shared_ptr<Image>& image);
+    static std::shared_ptr<Image> GetImageFromCmdList(const CmdList& cmdList, const OpDataHandle& imageHandle);
+    static OpDataHandle AddVerticesToCmdList(CmdList& cmdList, const Vertices& vertices);
     static std::shared_ptr<Vertices> GetVerticesFromCmdList(const CmdList& cmdList,
-        const VerticesHandle& verticesHandle);
+        const OpDataHandle& opDataHandle);
     static ImageHandle AddBitmapToCmdList(CmdList& cmdList, const Bitmap& bitmap);
     static std::shared_ptr<Bitmap> GetBitmapFromCmdList(const CmdList& cmdList, const ImageHandle& bitmapHandle);
-    static ImageHandle AddPixelMapToCmdList(CmdList& cmdList, const std::shared_ptr<Media::PixelMap>& pixelMap);
+    static OpDataHandle AddPixelMapToCmdList(CmdList& cmdList, const std::shared_ptr<Media::PixelMap>& pixelMap);
     static std::shared_ptr<Media::PixelMap> GetPixelMapFromCmdList(
-        const CmdList& cmdList, const ImageHandle& pixelMapHandle);
-    static ImageHandle AddImageObjectToCmdList(CmdList& cmdList, const std::shared_ptr<ExtendImageObject>& object);
+        const CmdList& cmdList, const OpDataHandle& pixelMapHandle);
+    static OpDataHandle DRAWING_API AddImageObjectToCmdList(
+        CmdList& cmdList, const std::shared_ptr<ExtendImageObject>& object);
     static std::shared_ptr<ExtendImageObject> GetImageObjectFromCmdList(
-        const CmdList& cmdList, const ImageHandle& objectHandle);
-    static ImageHandle AddPictureToCmdList(CmdList& cmdList, const Picture& picture);
-    static std::shared_ptr<Picture> GetPictureFromCmdList(const CmdList& cmdList, const ImageHandle& pictureHandle);
-    static ImageHandle AddCompressDataToCmdList(CmdList& cmdList, const std::shared_ptr<Data>& data);
-    static std::shared_ptr<Data> GetCompressDataFromCmdList(const CmdList& cmdList, const ImageHandle& imageHandle);
+        const CmdList& cmdList, const OpDataHandle& objectHandle);
+    static OpDataHandle DRAWING_API AddImageBaseOjToCmdList(
+        CmdList& cmdList, const std::shared_ptr<ExtendImageBaseOj>& object);
+    static std::shared_ptr<ExtendImageBaseOj> GetImageBaseOjFromCmdList(
+        const CmdList& cmdList, const OpDataHandle& objectHandle);
+    static OpDataHandle AddPictureToCmdList(CmdList& cmdList, const Picture& picture);
+    static std::shared_ptr<Picture> GetPictureFromCmdList(const CmdList& cmdList, const OpDataHandle& pictureHandle);
+    static OpDataHandle AddCompressDataToCmdList(CmdList& cmdList, const std::shared_ptr<Data>& data);
+    static std::shared_ptr<Data> GetCompressDataFromCmdList(const CmdList& cmdList, const OpDataHandle& imageHandle);
 
     template<typename RecordingType, typename CommonType>
     static CmdListHandle AddRecordedToCmdList(CmdList& cmdList, const CommonType& recorded)
@@ -183,11 +189,46 @@ public:
         return childCmdList;
     }
 
-    static ImageHandle AddTextBlobToCmdList(CmdList& cmdList, const TextBlob* textBlob);
-    static std::shared_ptr<TextBlob> GetTextBlobFromCmdList(const CmdList& cmdList, const ImageHandle& textBlobHandle);
+    static OpDataHandle AddTextBlobToCmdList(CmdList& cmdList, const TextBlob* textBlob);
+    static std::shared_ptr<TextBlob> GetTextBlobFromCmdList(const CmdList& cmdList, const OpDataHandle& textBlobHandle);
 
-    static ImageHandle AddDataToCmdList(CmdList& cmdList, const Data* data);
-    static std::shared_ptr<Data> GetDataFromCmdList(const CmdList& cmdList, const ImageHandle& imageHandle);
+    static OpDataHandle AddDataToCmdList(CmdList& cmdList, const Data* data);
+    static std::shared_ptr<Data> GetDataFromCmdList(const CmdList& cmdList, const OpDataHandle& imageHandle);
+
+    static OpDataHandle AddPathToCmdList(CmdList& cmdList, const Path& path);
+    static std::shared_ptr<Path> GetPathFromCmdList(const CmdList& cmdList, const OpDataHandle& pathHandle);
+
+    static OpDataHandle AddColorSpaceToCmdList(CmdList& cmdList, const std::shared_ptr<ColorSpace> colorSpace);
+    static std::shared_ptr<ColorSpace> GetColorSpaceFromCmdList(const CmdList& cmdList,
+        const OpDataHandle& imageHandle);
+
+    static FlattenableHandle AddShaderEffectToCmdList(CmdList& cmdList, std::shared_ptr<ShaderEffect> shaderEffect);
+    static std::shared_ptr<ShaderEffect> GetShaderEffectFromCmdList(const CmdList& cmdList,
+        const FlattenableHandle& shaderEffectHandle);
+
+    static FlattenableHandle AddPathEffectToCmdList(CmdList& cmdList, std::shared_ptr<PathEffect> pathEffect);
+    static std::shared_ptr<PathEffect> GetPathEffectFromCmdList(const CmdList& cmdList,
+        const FlattenableHandle& pathEffectHandle);
+
+    static FlattenableHandle AddMaskFilterToCmdList(CmdList& cmdList, std::shared_ptr<MaskFilter> maskFilter);
+    static std::shared_ptr<MaskFilter> GetMaskFilterFromCmdList(const CmdList& cmdList,
+        const FlattenableHandle& maskFilterHandle);
+
+    static FlattenableHandle AddColorFilterToCmdList(CmdList& cmdList, std::shared_ptr<ColorFilter> colorFilter);
+    static std::shared_ptr<ColorFilter> GetColorFilterFromCmdList(const CmdList& cmdList,
+        const FlattenableHandle& colorFilterHandle);
+
+    static FlattenableHandle AddImageFilterToCmdList(CmdList& cmdList, std::shared_ptr<ImageFilter> imageFilter);
+    static std::shared_ptr<ImageFilter> GetImageFilterFromCmdList(const CmdList& cmdList,
+        const FlattenableHandle& imageFilterHandle);
+
+    static std::vector<std::shared_ptr<DrawOpItem>> GetDrawOpItemsFromHandle(
+        const CmdList& cmdList, const CmdListHandle& handle);
+#ifdef ROSEN_OHOS
+    static uint32_t AddSurfaceBufferToCmdList(CmdList& cmdList, const sptr<SurfaceBuffer>& imageFilter);
+    static sptr<SurfaceBuffer> GetSurfaceBufferFromCmdList(
+        const CmdList& cmdList, uint32_t imageFilterHandle);
+#endif
 };
 } // namespace Drawing
 } // namespace Rosen

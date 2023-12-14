@@ -44,7 +44,7 @@ public:
         BLUR,
     };
 
-    static std::shared_ptr<MaskFilter> CreateBlurMaskFilter(BlurType blurType, scalar sigma);
+    static std::shared_ptr<MaskFilter> CreateBlurMaskFilter(BlurType blurType, scalar sigma, bool respectCTM = true);
 
     virtual ~MaskFilter() = default;
     FilterType GetType() const;
@@ -59,8 +59,11 @@ public:
         return impl_->DowncastingTo<T>();
     }
 
-    MaskFilter(FilterType t, BlurType blurType, scalar sigma) noexcept;
+    MaskFilter(FilterType t, BlurType blurType, scalar sigma, bool respectCTM = true) noexcept;
+    MaskFilter(FilterType t) noexcept;
 
+    std::shared_ptr<Data> Serialize() const;
+    bool Deserialize(std::shared_ptr<Data> data);
 protected:
     MaskFilter() noexcept;
 

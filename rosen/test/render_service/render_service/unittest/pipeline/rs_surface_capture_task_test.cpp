@@ -30,6 +30,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_uni_render_engine.h"
+#include "platform/common/rs_system_properties.h"
 
 using namespace testing::ext;
 
@@ -45,7 +46,11 @@ namespace {
     constexpr uint32_t DEFAULT_CANVAS_WIDTH = 800;
     constexpr uint32_t DEFAULT_CANVAS_HEIGHT = 600;
     constexpr float DEFAULT_CANVAS_SCALE = 1.0f;
+#ifndef USE_ROSEN_DRAWING
     std::shared_ptr<SkCanvas> skCanvas_;
+#else
+    std::shared_ptr<Drawing::Canvas> drawingCanvas_;
+#endif
     std::shared_ptr<RSSurfaceCaptureVisitor> visitor_;
 }
 
@@ -96,7 +101,12 @@ public:
 
     static std::shared_ptr<RSSurfaceNode> CreateSurface(std::string surfaceNodeName = "DefaultSurfaceNode");
     static void InitRenderContext();
+#ifndef USE_ROSEN_DRAWING
     static void FillSurface(std::shared_ptr<RSSurfaceNode> surfaceNode, const SkColor color = SK_ColorWHITE);
+#else
+    static void FillSurface(std::shared_ptr<RSSurfaceNode> surfaceNode,
+        const Drawing::Color color = Drawing::Color::COLOR_WHITE);
+#endif
 
     static RSInterfaces* rsInterfaces_;
     static RenderContext* renderContext_;
@@ -120,8 +130,13 @@ void RSSurfaceCaptureTaskTest::SetUp()
     if (visitor_ == nullptr) {
         return;
     }
+#ifndef USE_ROSEN_DRAWING
     skCanvas_ = std::make_shared<SkCanvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     visitor_->canvas_ = std::make_unique<RSPaintFilterCanvas>(skCanvas_.get());
+#else
+    drawingCanvas_ = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    visitor_->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas_.get());
+#endif
     visitor_->renderEngine_ = std::make_shared<RSUniRenderEngine>();
     visitor_->renderEngine_->Init();
 }
@@ -183,6 +198,11 @@ std::shared_ptr<RSSurfaceNode> RSSurfaceCaptureTaskTest::CreateSurface(std::stri
 void RSSurfaceCaptureTaskTest::InitRenderContext()
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     if (renderContext_ == nullptr) {
         HiLog::Info(LOG_LABEL, "%s: init renderContext_", __func__);
         renderContext_ = RenderContextFactory::GetInstance().CreateEngine();
@@ -191,7 +211,11 @@ void RSSurfaceCaptureTaskTest::InitRenderContext()
 #endif // ACE_ENABLE_GL
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSSurfaceCaptureTaskTest::FillSurface(std::shared_ptr<RSSurfaceNode> surfaceNode, const SkColor color)
+#else
+void RSSurfaceCaptureTaskTest::FillSurface(std::shared_ptr<RSSurfaceNode> surfaceNode, const Drawing::Color color)
+#endif
 {
     Vector4f bounds = { 0.0f, 0.0f, DEFAULT_BOUNDS_WIDTH, DEFAULT_BOUNDS_HEIGHT};
     surfaceNode->SetBounds(bounds); // x, y, w, h
@@ -201,19 +225,30 @@ void RSSurfaceCaptureTaskTest::FillSurface(std::shared_ptr<RSSurfaceNode> surfac
         return;
     }
 #ifdef ACE_ENABLE_GL
-    HiLog::Info(LOG_LABEL, "ACE_ENABLE_GL");
-    InitRenderContext();
-    rsSurface->SetRenderContext(renderContext_);
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        HiLog::Info(LOG_LABEL, "ACE_ENABLE_GL");
+        InitRenderContext();
+        rsSurface->SetRenderContext(renderContext_);
+    }
 #endif // ACE_ENABLE_GL
     auto frame = rsSurface->RequestFrame(DEFAULT_BOUNDS_WIDTH, DEFAULT_BOUNDS_HEIGHT);
     std::unique_ptr<RSSurfaceFrame> framePtr = std::move(frame);
     auto canvas = framePtr->GetCanvas();
-
+#ifndef USE_ROSEN_DRAWING
     auto skRect = SkRect::MakeXYWH(0.0f, 0.0f, DEFAULT_BOUNDS_WIDTH, DEFAULT_BOUNDS_HEIGHT);
     SkPaint paint;
     paint.setStyle(SkPaint::kFill_Style);
     paint.setColor(color);
     canvas->drawRect(skRect, paint);
+#else
+    auto rect = Drawing::Rect(0.0f, 0.0f, DEFAULT_BOUNDS_WIDTH, DEFAULT_BOUNDS_HEIGHT);
+    Drawing::Brush brush;
+    brush.SetColor(color);
+    canvas->AttachBrush(brush);
+    canvas->DrawRect(rect);
+    canvas->DetachBrush();
+#endif
     framePtr->SetDamageRegion(0.0f, 0.0f, DEFAULT_BOUNDS_WIDTH, DEFAULT_BOUNDS_HEIGHT);
     auto framePtr1 = std::move(framePtr);
     rsSurface->FlushFrame(framePtr1);
@@ -546,7 +581,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessSurfaceRenderNode002, Function | Small
     ASSERT_NE(nullptr, visitor);
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode node(config);
-    node.renderProperties_.SetAlpha(0.0f);
+    node.GetMutableRenderProperties().SetAlpha(0.0f);
     visitor->ProcessSurfaceRenderNode(node);
 }
 
@@ -561,10 +596,15 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessSurfaceRenderNode004, Function | Small
     ASSERT_NE(nullptr, visitor_);
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode node(config);
-    node.renderProperties_.SetAlpha(0.0f);
+    node.GetMutableRenderProperties().SetAlpha(0.0f);
     visitor_->IsDisplayNode(true);
+#ifndef USE_ROSEN_DRAWING
     SkCanvas skCanvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     visitor_->canvas_ = std::make_unique<RSPaintFilterCanvas>(&skCanvas);
+#else
+    Drawing::Canvas drawingCanvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    visitor_->canvas_ = std::make_unique<RSPaintFilterCanvas>(&drawingCanvas);
+#endif
     visitor_->ProcessSurfaceRenderNodeWithoutUni(node);
 }
 
@@ -579,10 +619,15 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessSurfaceRenderNode005, Function | Small
     ASSERT_NE(nullptr, visitor_);
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode node(config);
-    node.renderProperties_.SetAlpha(0.0f);
+    node.GetMutableRenderProperties().SetAlpha(0.0f);
     visitor_->IsDisplayNode(true);
+#ifndef USE_ROSEN_DRAWING
     SkCanvas skCanvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     visitor_->canvas_ = std::make_unique<RSPaintFilterCanvas>(&skCanvas);
+#else
+    Drawing::Canvas drawingCanvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    visitor_->canvas_ = std::make_unique<RSPaintFilterCanvas>(&drawingCanvas);
+#endif
     visitor_->ProcessSurfaceRenderNodeWithoutUni(node);
 }
 
@@ -610,8 +655,8 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessRootRenderNode002, Function | SmallTes
 {
     ASSERT_NE(nullptr, visitor_);
     RSRootRenderNode node(0);
-    node.renderProperties_.SetVisible(true);
-    node.renderProperties_.SetAlpha(DEFAULT_CANVAS_SCALE);
+    node.GetMutableRenderProperties().SetVisible(true);
+    node.GetMutableRenderProperties().SetAlpha(DEFAULT_CANVAS_SCALE);
     visitor_->ProcessRootRenderNode(node);
     visitor_->ProcessCanvasRenderNode(node);
 }
@@ -626,8 +671,8 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessRootRenderNode003, Function | SmallTes
 {
     ASSERT_NE(nullptr, visitor_);
     RSRootRenderNode node(0);
-    node.renderProperties_.SetVisible(true);
-    node.renderProperties_.SetAlpha(DEFAULT_CANVAS_SCALE);
+    node.GetMutableRenderProperties().SetVisible(true);
+    node.GetMutableRenderProperties().SetAlpha(DEFAULT_CANVAS_SCALE);
     visitor_->canvas_ = nullptr;
     visitor_->ProcessRootRenderNode(node);
     visitor_->ProcessCanvasRenderNode(node);
@@ -643,8 +688,8 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessRootRenderNode004, Function | SmallTes
 {
     ASSERT_NE(nullptr, visitor_);
     RSRootRenderNode node(0);
-    node.renderProperties_.SetVisible(true);
-    node.renderProperties_.SetAlpha(.0f);
+    node.GetMutableRenderProperties().SetVisible(true);
+    node.GetMutableRenderProperties().SetAlpha(.0f);
     visitor_->ProcessRootRenderNode(node);
     visitor_->ProcessCanvasRenderNode(node);
 }
@@ -710,7 +755,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CaptureSurfaceInDisplayWithUni001, Function |
 {
     bool isUnirender = RSUniRenderJudgement::IsUniRender();
     ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNode();    
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     surfaceNode->SetSecurityLayer(false);
     if (!isUnirender) {
         visitor_->CaptureSingleSurfaceNodeWithUni(*surfaceNode);
@@ -746,8 +791,13 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessEffectRenderNode, Function | SmallTest
     ASSERT_NE(nullptr, visitor_);
     NodeId id = 0;
     RSEffectRenderNode node(id);
+#ifndef USE_ROSEN_DRAWING
     SkCanvas skCanvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     visitor_->canvas_ = std::make_unique<RSPaintFilterCanvas>(&skCanvas);
+#else
+    Drawing::Canvas drawingCanvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    visitor_->canvas_ = std::make_unique<RSPaintFilterCanvas>(&drawingCanvas);
+#endif
     visitor_->ProcessEffectRenderNode(node);
 }
 

@@ -77,6 +77,8 @@ HWTEST_F(RSSurfaceOhosVulkanTest, ClearBuffer002, TestSize.Level1)
 {
     RSSurfaceOhosVulkan rsSurface(IConsumerSurface::Create());
 #ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         int32_t width = 1;
         int32_t height = 1;
         uint64_t uiTimestamp = 1;
@@ -110,11 +112,14 @@ HWTEST_F(RSSurfaceOhosVulkanTest, ResetBufferAge002, TestSize.Level1)
     RSSurfaceOhosVulkan rsSurface(IConsumerSurface::Create());
     rsSurface = std::make_shared<RSSurfaceOhosVulkan>(targetSurface);
 #ifdef RS_ENABLE_VK
-    rsSurface.SetRenderContext(renderContext);
-    int32_t width = 1;
-    int32_t height = 1;
-    uint64_t uiTimestamp = 1;
-    rsSurface.RequestFrame(width, height, uiTimestamp);
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        rsSurface.SetRenderContext(renderContext);
+        int32_t width = 1;
+        int32_t height = 1;
+        uint64_t uiTimestamp = 1;
+        rsSurface.RequestFrame(width, height, uiTimestamp);
+    }
 #endif
     rsSurface.ResetBufferAge();
 }

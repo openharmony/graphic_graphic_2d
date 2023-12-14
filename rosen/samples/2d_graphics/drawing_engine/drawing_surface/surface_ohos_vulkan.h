@@ -21,6 +21,8 @@
 #include "window.h"
 #include "surface_ohos.h"
 #include "surface_frame_ohos_vulkan.h"
+#include "rs_surface_ohos_vulkan.h"
+#include "native_buffer_utils.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -35,12 +37,35 @@ public:
     }
 
     std::unique_ptr<SurfaceFrame> RequestFrame(int32_t width, int32_t height) override;
+    std::unique_ptr<SurfaceFrame> NativeRequestFrame(int32_t width, int32_t height) override;
     bool FlushFrame(std::unique_ptr<SurfaceFrame>& frame) override;
-    SkCanvas* GetCanvas(std::unique_ptr<SurfaceFrame>& frame) override;
+    bool NativeFlushFrame(std::unique_ptr<SurfaceFrame>& frame) override;
+    SkCanvas* GetSkCanvas(std::unique_ptr<SurfaceFrame>& frame) override;
+    int32_t RequestNativeWindowBuffer(NativeWindowBuffer** nativeWindowBuffer,
+        int32_t width, int32_t height, int& fenceFd);
+
+    void CreateVkSemaphore(
+        VkSemaphore* semaphore, const RsVulkanContext& vkContext, NativeBufferUtils::NativeSurfaceInfo& nativeSurface);
+#ifdef USE_ROSEN_DRAWING
+    Drawing::Canvas* GetCanvas(std::unique_ptr<SurfaceFrame>& frame) override;
+#endif
 private:
+#ifdef ENABLE_DDGR_OPTIMIZE
+    std::shared_ptr<DDGR::DDGRCanvasInterface> ddgrCanvas_;
+#endif
     std::unique_ptr<SurfaceFrameOhosVulkan> frame_;
     struct NativeWindow *mNativeWindow_ = nullptr;
-    vulkan::VulkanWindow *mVulkanWIndow_ = nullptr;
+    vulkan::VulkanWindow *mVulkanWindow_ = nullptr;
+#ifdef ENABLE_NATIVE_BUFFER
+    std::list<NativeWindowBuffer*> surfaceList_;
+    std::unordered_map<NativeWindowBuffer*, NativeBufferUtils::NativeSurfaceInfo> surfaceMap_;
+    std::shared_ptr<Drawing::GPUContext> drContext_;
+#endif
+#ifndef USE_ROSEN_DRAWING
+    sk_sp<SkSurface> surface_ = nullptr;
+#else
+    std::shared_ptr<Drawing::Surface> surface_ = nullptr;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

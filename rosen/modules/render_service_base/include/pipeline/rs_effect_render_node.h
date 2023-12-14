@@ -49,9 +49,9 @@ protected:
 
 private:
 #ifndef USE_ROSEN_DRAWING
-    std::optional<SkPath> effectRegion_ = std::nullopt;
+    std::optional<SkIRect> effectRegion_ = std::nullopt;
 #else
-    std::optional<Drawing::Path> effectRegion_ = std::nullopt;
+    std::optional<Drawing::RectI> effectRegion_ = std::nullopt;
 #endif
     friend class RSEffectDataGenerateDrawable;
 };

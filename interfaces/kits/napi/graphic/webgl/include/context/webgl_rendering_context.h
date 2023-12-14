@@ -20,7 +20,6 @@
 #include "webgl_rendering_context_overloads.h"
 #include "webgl_rendering_context_base_impl.h"
 #include "napi/n_exporter.h"
-#include "util/object_source.h"
 
 namespace OHOS {
 namespace Rosen {

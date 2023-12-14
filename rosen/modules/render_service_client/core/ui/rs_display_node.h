@@ -40,6 +40,9 @@ public:
 
     static SharedPtr Create(const RSDisplayNodeConfig& displayNodeConfig);
 
+    bool Marshalling(Parcel& parcel) const;
+    static SharedPtr Unmarshalling(Parcel& parcel);
+
     void SetScreenId(uint64_t screenId);
 
     void SetDisplayOffset(int32_t offsetX, int32_t offsetY);
@@ -56,12 +59,15 @@ public:
 
     void SetBootAnimation(bool isBootAnimation);
     bool GetBootAnimation() const;
+
 protected:
     explicit RSDisplayNode(const RSDisplayNodeConfig& config);
+    RSDisplayNode(const RSDisplayNodeConfig& config, NodeId id);
     RSDisplayNode(const RSDisplayNode&) = delete;
     RSDisplayNode(const RSDisplayNode&&) = delete;
     RSDisplayNode& operator=(const RSDisplayNode&) = delete;
     RSDisplayNode& operator=(const RSDisplayNode&&) = delete;
+    void OnBoundsSizeChanged() const override;
 
 private:
     uint64_t screenId_;

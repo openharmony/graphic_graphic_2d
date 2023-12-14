@@ -33,12 +33,6 @@ namespace OHOS {
 namespace Rosen {
 namespace Impl {
 using namespace std;
-#define SET_ERROR(error)                             \
-    do {                                             \
-        LOGE("WebGL2 error code %{public}u", error); \
-        SetError(error);                             \
-    } while (0)
-
 napi_value WebGL2RenderingContextImpl::GetParameter(napi_env env, GLenum pname)
 {
     switch (pname) {
@@ -342,7 +336,7 @@ napi_value WebGL2RenderingContextImpl::GetFrameBufferAttachmentParameter(
     return HandleFrameBufferPname(env, target, attachment, pname, attachmentObject);
 }
 
-void WebGL2RenderingContextImpl::DoObjectDelete(int type, WebGLObject *obj)
+void WebGL2RenderingContextImpl::DoObjectDelete(int32_t type, WebGLObject *obj)
 {
     WebGLRenderingContextBaseImpl::DoObjectDelete(type, obj);
     if (type == WebGLObject::WEBGL_OBJECT_BUFFER) {

@@ -24,6 +24,7 @@ if (enable_text_gine) {
       "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
       "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
       "//third_party/bounds_checking_function/include/",
+      "$rosen_root/modules/texgine/texgine_drawing/src",
     ]
   }
 
@@ -77,6 +78,13 @@ if (enable_text_gine) {
       "adapter/texgine/typography_create.cpp",
     ]
 
+    if (defined(use_rosen_drawing) && use_rosen_drawing) {
+      defines += [ "USE_ROSEN_DRAWING" ]
+      if (ace_enable_gpu) {
+        defines += [ "ACE_ENABLE_GPU" ]
+      }
+    }
+
     deps = [ "$graphic_2d_root/rosen/modules/texgine:libtexgine_source" ]
 
     part_name = "graphic_2d"
@@ -114,6 +122,13 @@ if (enable_text_gine) {
     platform = current_os
     if (platform == "mingw") {
       platform = "windows"
+    }
+
+    if (defined(use_rosen_drawing) && use_rosen_drawing) {
+      defines += [ "USE_ROSEN_DRAWING" ]
+      if (ace_enable_gpu) {
+        defines += [ "ACE_ENABLE_GPU" ]
+      }
     }
 
     deps = [ "$skia_root_new:skia_$platform" ]

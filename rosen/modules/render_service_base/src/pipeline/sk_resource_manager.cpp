@@ -25,6 +25,7 @@ SKResourceManager& SKResourceManager::Instance()
     return instance;
 }
 
+#ifndef USE_ROSEN_DRAWING
 void SKResourceManager::HoldResource(sk_sp<SkImage> img)
 {
 #ifdef ROSEN_OHOS
@@ -40,11 +41,31 @@ void SKResourceManager::HoldResource(sk_sp<SkImage> img)
     skImages_[tid].push_back(img);
 #endif
 }
+#else
+void SKResourceManager::HoldResource(const std::shared_ptr<Drawing::Image> &img)
+{
+#ifdef ROSEN_OHOS
+    auto tid = gettid();
+    if (!RSTaskDispatcher::GetInstance().HasRegisteredTask(tid)) {
+        return;
+    }
+    std::scoped_lock<std::recursive_mutex> lock(mutex_);
+    if (std::any_of(images_[tid].cbegin(), images_[tid].cend(),
+        [&img](const std::shared_ptr<Drawing::Image>& image) {
+            return image.get() == img.get();
+        })) {
+        return;
+    }
+    images_[tid].push_back(img);
+#endif
+}
+#endif
 
 void SKResourceManager::ReleaseResource()
 {
 #ifdef ROSEN_OHOS
     std::scoped_lock<std::recursive_mutex> lock(mutex_);
+#ifndef USE_ROSEN_DRAWING
     for (auto& skImages : skImages_) {
         if (skImages.second.size() > 0) {
             RSTaskDispatcher::GetInstance().PostTask(skImages.first, [this]() {
@@ -66,6 +87,29 @@ void SKResourceManager::ReleaseResource()
             });
         }
     }
+#else
+    for (auto& images : images_) {
+        if (images.second.size() > 0) {
+            RSTaskDispatcher::GetInstance().PostTask(images.first, [this]() {
+                auto tid = gettid();
+                std::scoped_lock<std::recursive_mutex> lock(mutex_);
+                size_t size = images_[tid].size();
+                while (size-- > 0) {
+                    auto image = images_[tid].front();
+                    images_[tid].pop_front();
+                    if (image == nullptr) {
+                        continue;
+                    }
+                    if (image.use_count() == 1) {
+                        image = nullptr;
+                    } else {
+                        images_[tid].push_back(image);
+                    }
+                }
+            });
+        }
+    }
+#endif
 #endif
 }
 } // OHOS::Rosen

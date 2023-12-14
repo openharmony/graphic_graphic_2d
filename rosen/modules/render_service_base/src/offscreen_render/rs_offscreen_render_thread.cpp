@@ -15,6 +15,9 @@
 
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "platform/common/rs_log.h"
+#ifdef ROSEN_OHOS
+#include "render_context/render_context.h"
+#endif
 
 namespace OHOS::Rosen {
 RSOffscreenRenderThread& RSOffscreenRenderThread::Instance()
@@ -27,6 +30,21 @@ RSOffscreenRenderThread::RSOffscreenRenderThread()
 {
     runner_ = AppExecFwk::EventRunner::Create("RSOffscreenRender");
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+#ifdef ROSEN_OHOS
+    PostTask([this]() {
+        renderContext_ = std::make_shared<RenderContext>();
+        renderContext_->InitializeEglContext();
+#ifndef USE_ROSEN_DRAWING
+        renderContext_->SetUpGrContext(nullptr);
+#else
+#ifdef RS_ENABLE_VK
+        renderContext_->SetUpGpuContext(nullptr);
+#else
+        renderContext_->SetUpGpuContext();
+#endif
+#endif // USE_ROSEN_DRAWING
+    });
+#endif
 }
 
 void RSOffscreenRenderThread::PostTask(const std::function<void()>& task)
@@ -35,4 +53,32 @@ void RSOffscreenRenderThread::PostTask(const std::function<void()>& task)
         handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
 }
+
+#ifdef ROSEN_OHOS
+const std::shared_ptr<RenderContext>& RSOffscreenRenderThread::GetRenderContext()
+{
+    return renderContext_;
+}
+
+void RSOffscreenRenderThread::CleanGrResource()
+{
+    PostTask([this]() {
+#ifndef USE_ROSEN_DRAWING
+        auto grContext = renderContext_->GetGrContext();
+#else
+        auto grContext = renderContext_->GetDrGPUContext();
+#endif
+        if (grContext == nullptr) {
+            RS_LOGE("RSOffscreenRenderThread::grContext is nullptr");
+            return;
+        }
+#ifndef USE_ROSEN_DRAWING
+        grContext->freeGpuResources();
+#else
+        grContext->FreeGpuResources();
+#endif
+        RS_LOGI("RSOffscreenRenderThread::CleanGrResource() finished");
+    });
+}
+#endif
 }

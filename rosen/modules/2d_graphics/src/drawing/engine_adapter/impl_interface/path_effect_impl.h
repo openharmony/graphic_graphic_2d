@@ -27,6 +27,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+class Data;
 class PathEffect;
 enum class PathDashStyle;
 class PathEffectImpl : public BaseImpl {
@@ -40,6 +41,8 @@ public:
     virtual void InitWithDiscrete(scalar segLength, scalar dev, uint32_t seedAssist) = 0;
     virtual void InitWithSum(const PathEffect& e1, const PathEffect& e2) = 0;
     virtual void InitWithCompose(const PathEffect& e1, const PathEffect& e2) = 0;
+    virtual std::shared_ptr<Data> Serialize() const = 0;
+    virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -22,6 +22,14 @@ namespace Rosen {
 namespace Drawing {
 Matrix::Matrix() : matrixImplPtr(ImplFactory::CreateMatrixImpl()) {}
 
+Matrix::Matrix(const Matrix& other) : matrixImplPtr(ImplFactory::CreateMatrixImpl(other)) {}
+
+Matrix& Matrix::operator=(const Matrix& matrix)
+{
+    matrixImplPtr->Clone(matrix);
+    return *this;
+}
+
 void Matrix::Rotate(scalar degree, scalar px, scalar py)
 {
     matrixImplPtr->Rotate(degree, px, py);
@@ -37,9 +45,29 @@ void Matrix::Scale(scalar sx, scalar sy, scalar px, scalar py)
     matrixImplPtr->Scale(sx, sy, px, py);
 }
 
+void Matrix::SetScale(scalar sx, scalar sy)
+{
+    matrixImplPtr->SetScale(sx, sy);
+}
+
+void Matrix::SetScaleTranslate(scalar sx, scalar sy, scalar dx, scalar dy)
+{
+    matrixImplPtr->SetScaleTranslate(sx, sy, dx, dy);
+}
+
 void Matrix::PreRotate(scalar degree)
 {
     matrixImplPtr->PreRotate(degree);
+}
+
+void Matrix::PostRotate(scalar degree)
+{
+    matrixImplPtr->PostRotate(degree);
+}
+
+void Matrix::PostRotate(scalar degree, scalar px, scalar py)
+{
+    matrixImplPtr->PostRotate(degree, px, py);
 }
 
 void Matrix::PreTranslate(scalar dx, scalar dy)
@@ -47,14 +75,44 @@ void Matrix::PreTranslate(scalar dx, scalar dy)
     matrixImplPtr->PreTranslate(dx, dy);
 }
 
+void Matrix::PostTranslate(scalar dx, scalar dy)
+{
+    matrixImplPtr->PostTranslate(dx, dy);
+}
+
 void Matrix::PreScale(scalar sx, scalar sy)
 {
     matrixImplPtr->PreScale(sx, sy);
 }
 
+void Matrix::PostScale(scalar sx, scalar sy)
+{
+    matrixImplPtr->PostScale(sx, sy);
+}
+
+void Matrix::PostScale(scalar sx, scalar sy, scalar px, scalar py)
+{
+    matrixImplPtr->PostScale(sx, sy, px, py);
+}
+
 void Matrix::PreConcat(const Matrix& other)
 {
     matrixImplPtr->PreConcat(other);
+}
+
+void Matrix::PreConcat(const Matrix44& matrix44)
+{
+    matrixImplPtr->PreConcat(matrix44);
+}
+
+void Matrix::PostConcat(const Matrix& other)
+{
+    matrixImplPtr->PostConcat(other);
+}
+
+void Matrix::PostConcat(const Matrix44& matrix44)
+{
+    matrixImplPtr->PostConcat(matrix44);
 }
 
 bool Matrix::Invert(Matrix& inverse) const
@@ -102,6 +160,31 @@ scalar Matrix::Get(int index) const
 void Matrix::GetAll(Buffer& buffer) const
 {
     matrixImplPtr->GetAll(buffer);
+}
+
+void Matrix::SetAll(Buffer& buffer)
+{
+    matrixImplPtr->SetAll(buffer);
+}
+
+bool Matrix::IsIdentity() const
+{
+    return matrixImplPtr->IsIdentity();
+}
+
+void Matrix::PreRotate(scalar degree, scalar px, scalar py)
+{
+    matrixImplPtr->PreRotate(degree, px, py);
+}
+
+void Matrix::PreScale(scalar sx, scalar sy, scalar px, scalar py)
+{
+    matrixImplPtr->PreScale(sx, sy, px, py);
+}
+
+void Matrix::Reset()
+{
+    matrixImplPtr->Reset();
 }
 } // namespace Drawing
 } // namespace Rosen

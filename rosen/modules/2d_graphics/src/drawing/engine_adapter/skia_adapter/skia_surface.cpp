@@ -15,19 +15,20 @@
 
 #include "skia_surface.h"
 
-#ifdef ACE_ENABLE_GPU
-#include "include/gpu/GrBackendSurface.h"
-#endif
+#include "include/gpu/GrBackendSemaphore.h"
 
 #include "draw/surface.h"
 #include "utils/log.h"
-#include "skia_image.h"
+
 #include "skia_bitmap.h"
 #include "skia_canvas.h"
 #ifdef ACE_ENABLE_GPU
 #include "skia_gpu_context.h"
-#include "skia_image_info.h"
 #endif
+#include "skia_image.h"
+#include "skia_image_info.h"
+#include "skia_texture_info.h"
+#include "utils/system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -128,48 +129,102 @@ bool SkiaSurface::Bind(const FrameBuffer& frameBuffer)
     return true;
 }
 
-bool SkiaSurface::MakeRenderTarget(GPUContext& gpuContext, bool Budgeted, const ImageInfo& imageInfo)
+#ifdef RS_ENABLE_VK
+std::shared_ptr<Surface> SkiaSurface::MakeFromBackendRenderTarget(GPUContext* gpuContext, TextureInfo& info,
+    TextureOrigin origin, void (*deleteVkImage)(void *), void* cleanHelper)
 {
-    auto grContext = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
-    if (grContext == nullptr) {
-        LOGE("SkiaSurface Make from imageInfo failed: grContext is nullptr");
-        return false;
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return nullptr;
+    }
+    sk_sp<GrDirectContext> grContext = nullptr;
+    if (gpuContext) {
+        std::shared_ptr<SkiaGPUContext> skiaGpuContext = gpuContext->GetImpl<SkiaGPUContext>();
+        if (skiaGpuContext) {
+            grContext = skiaGpuContext->GetGrContext();
+        }
+    }
+    GrVkImageInfo image_info;
+    SkiaTextureInfo::ConvertToGrBackendTexture(info).getVkImageInfo(&image_info);
+    GrBackendRenderTarget backendRenderTarget(info.GetWidth(), info.GetHeight(), 0, image_info);
+    SkSurfaceProps surfaceProps(0, SkPixelGeometry::kUnknown_SkPixelGeometry);
+
+    sk_sp<SkSurface> skSurface =
+        SkSurface::MakeFromBackendRenderTarget(grContext.get(),
+        backendRenderTarget, SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
+        kRGBA_8888_SkColorType, SkColorSpace::MakeSRGB(), &surfaceProps, deleteVkImage, cleanHelper);
+    if (skSurface == nullptr) {
+        LOGE("skSurface nullptr");
+        return nullptr;
     }
 
-    auto skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
-    skSurface_ = SkSurface::MakeRenderTarget(grContext.get(), static_cast<SkBudgeted>(Budgeted), skImageInfo);
-    if (skSurface_ == nullptr) {
-        LOGE("SkiaSurface Make from imageInfo failed: skSurface is nullptr");
-        return false;
-    }
-    return true;
-}
-
-bool SkiaSurface::MakeRasterN32Premul(int32_t width, int32_t height)
-{
-    if (width == 0 || height == 0) {
-        LOGE("SkiaSurface MakeRasterN32Premul failed: width or height is 0");
-        return false;
-    }
-
-    skSurface_ = SkSurface::MakeRasterN32Premul(width, height);
-    if (skSurface_ == nullptr) {
-        LOGE("SkiaSurface MakeRasterN32Premul failed: skSurface is nullptr");
-        return false;
-    }
-    return true;
+    std::shared_ptr<Surface> surface = std::make_shared<Surface>();
+    surface->GetImpl<SkiaSurface>()->SetSkSurface(skSurface);
+    return surface;
 }
 #endif
-bool SkiaSurface::MakeRaster(const ImageInfo& imageInfo)
+
+std::shared_ptr<Surface> SkiaSurface::MakeRenderTarget(GPUContext* gpuContext,
+    bool budgeted, const ImageInfo& imageInfo)
 {
-    auto skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
-    skSurface_ = SkSurface::MakeRaster(skImageInfo);
-    if (skSurface_ == nullptr) {
-        LOGE("SkiaSurface make from imageInfo failed: skSurface is nullptr");
-        return false;
+    sk_sp<GrDirectContext> grContext = nullptr;
+    if (gpuContext) {
+        std::shared_ptr<SkiaGPUContext> skiaGpuContext = gpuContext->GetImpl<SkiaGPUContext>();
+        if (skiaGpuContext) {
+            grContext = skiaGpuContext->GetGrContext();
+        }
     }
-    return true;
+    SkImageInfo skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    sk_sp<SkSurface> skSurface =
+        SkSurface::MakeRenderTarget(grContext.get(), static_cast<SkBudgeted>(budgeted), skImageInfo);
+    if (skSurface == nullptr) {
+        LOGE("skSurface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    std::shared_ptr<Surface> surface = std::make_shared<Surface>();
+    surface->GetImpl<SkiaSurface>()->SetSkSurface(skSurface);
+    return surface;
 }
+#endif
+
+std::shared_ptr<Surface> SkiaSurface::MakeRaster(const ImageInfo& imageInfo)
+{
+    SkImageInfo skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    sk_sp<SkSurface> skSurface = SkSurface::MakeRaster(skImageInfo);
+    if (skSurface == nullptr) {
+        LOGE("skSurface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    std::shared_ptr<Surface> surface = std::make_shared<Surface>();
+    surface->GetImpl<SkiaSurface>()->SetSkSurface(skSurface);
+    return surface;
+}
+
+std::shared_ptr<Surface> SkiaSurface::MakeRasterDirect(const ImageInfo& imageInfo, void* pixels, size_t rowBytes)
+{
+    SkImageInfo skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    sk_sp<SkSurface> skSurface = SkSurface::MakeRasterDirect(skImageInfo, pixels, rowBytes);
+    if (skSurface == nullptr) {
+        LOGE("skSurface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    std::shared_ptr<Surface> surface = std::make_shared<Surface>();
+    surface->GetImpl<SkiaSurface>()->SetSkSurface(skSurface);
+    return surface;
+}
+
+std::shared_ptr<Surface> SkiaSurface::MakeRasterN32Premul(int32_t width, int32_t height)
+{
+    sk_sp<SkSurface> skSurface = SkSurface::MakeRasterN32Premul(width, height);
+    if (skSurface == nullptr) {
+        LOGE("skSurface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    std::shared_ptr<Surface> surface = std::make_shared<Surface>();
+    surface->GetImpl<SkiaSurface>()->SetSkSurface(skSurface);
+    return surface;
+}
+
 std::shared_ptr<Canvas> SkiaSurface::GetCanvas() const
 {
     if (skSurface_ == nullptr || skSurface_->getCanvas() == nullptr) {
@@ -219,6 +274,31 @@ std::shared_ptr<Image> SkiaSurface::GetImageSnapshot(const RectI& bounds) const
     return image;
 }
 
+BackendTexture SkiaSurface::GetBackendTexture() const
+{
+    if (skSurface_ == nullptr) {
+        LOGE("skSurface is nullptr");
+        return {};
+    }
+
+    GrBackendTexture grBackendTexture =
+        skSurface_->getBackendTexture(SkSurface::BackendHandleAccess::kFlushRead_BackendHandleAccess);
+    auto backendTexture = BackendTexture(true);
+#ifdef RS_ENABLE_VK
+    if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        TextureInfo info;
+        SkiaTextureInfo::ConvertToVKTexture(grBackendTexture, info);
+        backendTexture.SetTextureInfo(info);
+    } else {
+        backendTexture.SetTextureInfo(SkiaTextureInfo::ConvertToTextureInfo(grBackendTexture));
+    }
+#else
+    backendTexture.SetTextureInfo(SkiaTextureInfo::ConvertToTextureInfo(grBackendTexture));
+#endif
+    return backendTexture;
+}
+
 std::shared_ptr<Surface> SkiaSurface::MakeSurface(int width, int height) const
 {
     if (skSurface_ == nullptr) {
@@ -241,6 +321,11 @@ void SkiaSurface::SetSkSurface(const sk_sp<SkSurface>& skSurface)
     skSurface_ = skSurface;
 }
 
+sk_sp<SkSurface> SkiaSurface::GetSkSurface() const
+{
+    return skSurface_;
+}
+
 void SkiaSurface::FlushAndSubmit(bool syncCpu)
 {
     if (skSurface_ == nullptr) {
@@ -250,6 +335,69 @@ void SkiaSurface::FlushAndSubmit(bool syncCpu)
 
     skSurface_->flushAndSubmit(syncCpu);
 }
+
+void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
+{
+    if (skSurface_ == nullptr) {
+        LOGE("skSurface is nullptr");
+        return;
+    }
+    if (drawingflushInfo != nullptr) {
+        GrFlushInfo flushInfo;
+        flushInfo.fNumSemaphores = drawingflushInfo->numSemaphores;
+        flushInfo.fSignalSemaphores = static_cast<GrBackendSemaphore*>(drawingflushInfo->backendSemaphore);
+        skSurface_->flush(drawingflushInfo->backendSurfaceAccess == false ?
+            SkSurface::BackendSurfaceAccess::kNoAccess : SkSurface::BackendSurfaceAccess::kPresent, flushInfo);
+        return;
+    }
+    skSurface_->flush();
+}
+
+#ifdef RS_ENABLE_VK
+void SkiaSurface::Wait(int32_t time, const VkSemaphore& semaphore)
+{
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return;
+    }
+
+    if (skSurface_ == nullptr) {
+        LOGE("skSurface is nullptr");
+        return;
+    }
+    GrBackendSemaphore backendSemaphore;
+    backendSemaphore.initVulkan(semaphore);
+    skSurface_->wait(time, &backendSemaphore);
+}
+
+void SkiaSurface::SetDrawingArea(const std::vector<RectI>& rects)
+{
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return;
+    }
+    if (skSurface_ == nullptr) {
+        LOGE("skSurface is nullptr");
+        return;
+    }
+    std::vector<SkIRect> skIRects;
+    for (auto &rect : rects) {
+        SkIRect skIRect = {rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()};
+        skIRects.push_back(skIRect);
+    }
+    skSurface_->setDrawingArea(skIRects);
+}
+
+void SkiaSurface::ClearDrawingArea()
+{
+    if (skSurface_ == nullptr) {
+        LOGE("skSurface is nullptr");
+        return;
+    }
+    skSurface_->clearDrawingArea();
+}
+#endif
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

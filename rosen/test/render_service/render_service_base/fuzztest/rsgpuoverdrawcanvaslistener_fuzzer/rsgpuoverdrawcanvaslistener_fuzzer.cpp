@@ -54,6 +54,7 @@ T GetData()
     return object;
 }
 
+#ifndef USE_ROSEN_DRAWING
 void RSGpuOverdrawCanvasListenerFuzzTest0(RSGPUOverdrawCanvasListener& inListener)
 {
     uint32_t inColor1 = GetData<uint32_t>();
@@ -152,6 +153,13 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     RSGpuOverdrawCanvasListenerFuzzTest1(nowListener);
     return true;
 }
+
+#else
+bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
+{
+    return true;
+}
+#endif
 } // namespace OHOS
 
 /* Fuzzer entry point */

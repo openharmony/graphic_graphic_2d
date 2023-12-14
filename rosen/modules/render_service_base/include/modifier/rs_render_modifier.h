@@ -21,7 +21,6 @@
 #include "parcel.h"
 #include "rs_modifier_type.h"
 
-#include "animation/rs_render_particle.h"
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
 #include "memory/rs_dfx_string.h"
@@ -41,6 +40,7 @@ namespace Rosen {
 class RSProperties;
 class RSPaintFilterCanvas;
 class RSRenderNode;
+class RSRenderParticleVector;
 
 class RSModifierContext {
 public:
@@ -61,11 +61,12 @@ public:
 
     virtual void Apply(RSModifierContext& context) const = 0;
 
+#ifndef USE_ROSEN_DRAWING
     virtual void DumpPicture(DfxString& info) const
     {
         return;
     }
-
+#endif
     virtual PropertyId GetPropertyId() = 0;
     virtual std::shared_ptr<RSRenderPropertyBase> GetProperty() = 0;
     virtual RSModifierType GetType() = 0;
@@ -73,6 +74,16 @@ public:
 
     virtual bool Marshalling(Parcel& parcel) = 0;
     [[nodiscard]] static RSRenderModifier* Unmarshalling(Parcel& parcel);
+
+    virtual uint64_t GetDrawCmdListId() const
+    {
+        return 0;
+    }
+    virtual void SetSingleFrameModifier(bool value) { (void)value; }
+    virtual bool GetSingleFrameModifier() const
+    {
+        return false;
+    }
 };
 
 class RSB_EXPORT RSGeometryTransRenderModifier : public RSRenderModifier {
@@ -138,6 +149,7 @@ public:
         return property_->GetId();
     }
 
+#ifndef USE_ROSEN_DRAWING
     void DumpPicture(DfxString& info) const override
     {
         if (!property_) {
@@ -148,6 +160,7 @@ public:
         }
         property_->Get()->DumpPicture(info);
     }
+#endif
 
     std::shared_ptr<RSRenderPropertyBase> GetProperty() override
     {
@@ -166,6 +179,24 @@ public:
         }
     }
 
+    uint64_t GetDrawCmdListId() const override
+    {
+#ifndef USE_ROSEN_DRAWING
+        DrawCmdListPtr drawCmd = property_->Get();
+#else
+        Drawing::DrawCmdListPtr drawCmd = property_->Get();
+#endif
+        return reinterpret_cast<uint64_t>(drawCmd.get());
+    }
+    void SetSingleFrameModifier(bool value) override
+    {
+        isSingleFrameModifier_ = value;
+    }
+    bool GetSingleFrameModifier() const override
+    {
+        return isSingleFrameModifier_;
+    }
+
     // functions that are dedicated to driven render [start]
     RectF GetCmdsClipRect() const;
     void ApplyForDrivenContent(RSModifierContext& context) const;
@@ -177,38 +208,7 @@ protected:
 #else
     std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> property_;
 #endif
-};
-
-class RSB_EXPORT RSParticleRenderModifier : public RSRenderModifier {
-public:
-    RSParticleRenderModifier(
-        const std::shared_ptr<RSRenderProperty<RSRenderParticleVector>>& property)
-        : property_(property ? property
-                             : std::make_shared<RSRenderProperty<RSRenderParticleVector>>())
-    {
-        property_->SetModifierType(RSModifierType::PARTICLE);
-    }
-    ~RSParticleRenderModifier() override = default;
-    void Apply(RSModifierContext& context) const override;
-
-    PropertyId GetPropertyId() override
-    {
-        return property_->GetId();
-    }
-
-    std::shared_ptr<RSRenderPropertyBase> GetProperty() override
-    {
-        return property_;
-    }
-
-    void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
-    bool Marshalling(Parcel& parcel) override;
-
-    RSModifierType GetType() override
-    {
-        return RSModifierType::PARTICLE;
-    }
-    std::shared_ptr<RSRenderProperty<RSRenderParticleVector>> property_;
+    bool isSingleFrameModifier_ = false;
 };
 
 class RSAnimatableRenderModifier : public RSRenderModifier {
@@ -344,6 +344,8 @@ public:
 
 #define DECLARE_NOANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, MODIFIER_TIER) \
     DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, Add, MODIFIER_TIER, ZERO)
+
+DECLARE_NOANIMATABLE_MODIFIER(Particles, RSRenderParticleVector, PARTICLE, Foreground)
 
 #include "modifier/rs_modifiers_def.in"
 

@@ -190,7 +190,8 @@ int main()
     bool stopSignal = true;
 
     while (hasRunningAnimation) {
-        hasRunningAnimation = rsUiDirector->RunningCustomAnimation(startNum);
+        hasRunningAnimation = rsUiDirector->FlushAnimation(startNum);
+        rsUiDirector->FlushModifier();
         rsUiDirector->SendMessages();
         std::cout << "the current translate is " << nodeModifier->GetTranslate().data_[0] << ", "
                   << nodeModifier->GetTranslate().data_[1] << endl;

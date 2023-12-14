@@ -30,6 +30,20 @@ class RosenImageWrapper;
 using TransColorProc = bool (*)(const uint8_t *in, uint32_t inCount, uint32_t *out, uint32_t outCount);
 using CustomFreePixelMap = void (*)(void *addr, void *context, uint32_t size);
 
+typedef struct {
+    float scaleX;
+    float scaleY;
+    float rotateD;
+    float cropLeft;
+    float cropTop;
+    float cropWidth;
+    float cropHeight;
+    float translateX;
+    float translateY;
+    bool flipX;
+    bool flipY;
+} TransformData;
+
 struct InitializationOptions {
     Size size;
     PixelFormat pixelFormat = PixelFormat::UNKNOWN;
@@ -133,6 +147,11 @@ public:
         return 0;
     }
 
+    NATIVEEXPORT int32_t GetRowStride() const
+    {
+        return rowStride_;
+    }
+
     NATIVEEXPORT bool Marshalling(Parcel &data) const override;
     NATIVEEXPORT static PixelMap *Unmarshalling(Parcel &data);
     NATIVEEXPORT bool EncodeTlv(std::vector<uint8_t> &buff) const;
@@ -148,6 +167,35 @@ public:
     }
     // -------[inner api for ImageSource/ImagePacker codec] it will get a colorspace object pointer----end-------
 #endif
+
+    NATIVEEXPORT bool IsAstc()
+    {
+        return isAstc_;
+    }
+
+    NATIVEEXPORT void SetAstc(bool isAstc)
+    {
+        isAstc_ = isAstc;
+    }
+
+    NATIVEEXPORT void GetAstcRealSize(Size &size)
+    {
+        size = astcrealSize_;
+    }
+    NATIVEEXPORT void SetAstcRealSize(Size size)
+    {
+        astcrealSize_ = size;
+    }
+
+    NATIVEEXPORT void GetTransformData(TransformData &transformData)
+    {
+        transformData = transformData_;
+    }
+
+    NATIVEEXPORT void SetTransformData(TransformData transformData)
+    {
+        transformData_ = transformData;
+    }
 
 private:
     static constexpr uint8_t TLV_VARINT_BITS = 7;
@@ -227,6 +275,7 @@ private:
     // this info SHOULD be the final info for decoded pixelmap, not the original image info
     ImageInfo imageInfo_;
     int32_t rowDataSize_ = 0;
+    int32_t rowStride_ = 0;
     int32_t pixelBytes_ = 0;
     TransColorProc colorProc_ = nullptr;
     void *context_ = nullptr;
@@ -235,6 +284,9 @@ private:
     uint32_t pixelsSize_ = 0;
     bool editable_ = false;
     bool useSourceAsResponse_ = false;
+    bool isAstc_ = false;
+    TransformData transformData_ = {1, 1, 0, 0, 0, 0, 0, 0, 0, false, false};
+    Size astcrealSize_;
 
     // only used by rosen backend
     std::shared_ptr<RosenImageWrapper> rosenImageWrapper_;

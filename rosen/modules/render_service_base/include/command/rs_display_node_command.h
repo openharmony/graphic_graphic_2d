@@ -31,6 +31,7 @@ enum RSDisplayNodeCommandType : uint16_t {
     DISPLAY_NODE_SET_DISPLAY_MODE,
     DISPLAY_NODE_SET_SCREEN_ROTATION,
     DISPLAY_NODE_SET_BOOT_ANIMATION,
+    DISPLAY_NODE_SET_ROG_SIZE,
 };
 
 class RSB_EXPORT DisplayNodeCommandHelper {
@@ -42,6 +43,7 @@ public:
     static void SetDisplayMode(RSContext&, NodeId, const RSDisplayNodeConfig&);
     static void SetScreenRotation(RSContext&, NodeId, const ScreenRotation&);
     static void SetBootAnimation(RSContext& context, NodeId nodeId, bool isBootAnimation);
+    static void SetRogSize(RSContext&, NodeId, uint32_t, uint32_t);
 };
 
 ADD_COMMAND(RSDisplayNodeCreate,
@@ -62,6 +64,9 @@ ADD_COMMAND(RSDisplayNodeSetScreenRotation,
 ADD_COMMAND(RSDisplayNodeSetBootAnimation,
     ARG(DISPLAY_NODE, DISPLAY_NODE_SET_BOOT_ANIMATION, DisplayNodeCommandHelper::SetBootAnimation,
     NodeId, bool))
+ADD_COMMAND(RSDisplayNodeSetRogSize,
+    ARG(DISPLAY_NODE, DISPLAY_NODE_SET_ROG_SIZE, DisplayNodeCommandHelper::SetRogSize,
+    NodeId, uint32_t, uint32_t))
 } // namespace Rosen
 } // namespace OHOS
 

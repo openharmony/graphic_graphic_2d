@@ -41,10 +41,13 @@ bool RenderBackendUtils::RenderBackendUtils::IsValidFrame(const std::shared_ptr<
         return false;
     }
 #ifdef RS_ENABLE_VK
-    VulkanState* vulkanState = frame->vulkanState;
-    if (vulkanState == nullptr) {
-        LOGE("VulkanState is nullptr");
-        return false;
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        VulkanState* vulkanState = frame->vulkanState;
+        if (vulkanState == nullptr) {
+            LOGE("VulkanState is nullptr");
+            return false;
+        }
     }
 #endif
     return true;

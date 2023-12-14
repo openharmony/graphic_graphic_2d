@@ -42,6 +42,7 @@ void RSGPUOverdrawCanvasListenerTest::TearDownTestCase() {}
 void RSGPUOverdrawCanvasListenerTest::SetUp() {}
 void RSGPUOverdrawCanvasListenerTest::TearDown() {}
 
+#ifndef USE_ROSEN_DRAWING
 /**
  * @tc.name: Create001
  * @tc.desc: test
@@ -255,5 +256,129 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawPicture001, TestSize.Level1)
     listener->onDrawPicture(picture, matrix, paint);
     delete listener;
 }
+
+#else
+/**
+ * @tc.name: Create001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:#I8K89C
+ */
+HWTEST_F(RSGPUOverdrawCanvasListenerTest, Create001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    auto listener = new RSGPUOverdrawCanvasListener(canvas);
+    delete listener;
+}
+
+/**
+ * @tc.name: onDrawRect
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:#I8K89C
+ */
+HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawRect001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    Drawing::Rect rect;
+    auto listener = new RSGPUOverdrawCanvasListener(canvas);
+    listener->DrawRect(rect);
+    delete listener;
+}
+
+/**
+ * @tc.name: onDrawOval
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:#I8K89C
+ */
+HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawOval001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    Drawing::Rect rect;
+    auto listener = new RSGPUOverdrawCanvasListener(canvas);
+    listener->DrawOval(rect);
+    delete listener;
+}
+
+/**
+ * @tc.name: onDrawArc
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:#I8K89C
+ */
+HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawArc001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    Drawing::Rect rect;
+    Drawing::scalar startAngle = 0.0;
+    Drawing::scalar sweepAngle = 0.0;
+    auto listener = new RSGPUOverdrawCanvasListener(canvas);
+    listener->DrawArc(rect, startAngle, sweepAngle);
+    delete listener;
+}
+
+/**
+ * @tc.name: onDrawArc
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:#I8K89C
+ */
+HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawArc002, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    Drawing::Rect rect;
+    Drawing::scalar startAngle = 0.0;
+    Drawing::scalar sweepAngle = 0.0;
+    auto listener = new RSGPUOverdrawCanvasListener(canvas);
+    listener->DrawArc(rect, startAngle, sweepAngle);
+    delete listener;
+}
+
+/**
+ * @tc.name: onDrawPath
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:#I8K89C
+ */
+HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawPath001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    Drawing::Path path;
+    auto listener = new RSGPUOverdrawCanvasListener(canvas);
+    listener->DrawPath(path);
+    delete listener;
+}
+
+/**
+ * @tc.name: onDrawRegion
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:#I8K89C
+ */
+HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawRegion001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    Drawing::Region region;
+    auto listener = new RSGPUOverdrawCanvasListener(canvas);
+    listener->DrawRegion(region);
+    delete listener;
+}
+
+/**
+ * @tc.name: onDrawPicture
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:#I8K89C
+ */
+HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawPicture001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    Drawing::Picture picture;
+    auto listener = new RSGPUOverdrawCanvasListener(canvas);
+    listener->DrawPicture(picture);
+    delete listener;
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

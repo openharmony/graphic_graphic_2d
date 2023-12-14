@@ -586,7 +586,10 @@ GSError BufferQueue::AllocBuffer(sptr<SurfaceBuffer> &buffer,
     sptr<SurfaceBuffer> bufferImpl = new SurfaceBufferImpl();
     uint32_t sequence = bufferImpl->GetSeqNum();
 
-    GSError ret = bufferImpl->Alloc(config);
+    BufferRequestConfig updateConfig = config;
+    updateConfig.usage |= defaultUsage;
+
+    GSError ret = bufferImpl->Alloc(updateConfig);
     if (ret != GSERROR_OK) {
         BLOGN_FAILURE_ID_API(sequence, Alloc, ret);
         return ret;
@@ -599,6 +602,13 @@ GSError BufferQueue::AllocBuffer(sptr<SurfaceBuffer> &buffer,
         .config = config,
         .fence = SyncFence::INVALID_FENCE,
     };
+
+    if (config.usage & BUFFER_USAGE_PROTECTED) {
+        BLOGD("handle usage is BUFFER_USAGE_PROTECTED, do not Map/UnMap");
+        bufferQueueCache_[sequence] = ele;
+        buffer = bufferImpl;
+        return ret;
+    }
 
     ret = bufferImpl->Map();
     if (ret == GSERROR_OK) {
@@ -631,14 +641,13 @@ uint32_t BufferQueue::GetQueueSize()
     return queueSize_;
 }
 
-void BufferQueue::DeleteBuffers(int32_t count)
+void BufferQueue::DeleteBuffersLocked(int32_t count)
 {
     ScopedBytrace func(__func__);
     if (count <= 0) {
         return;
     }
 
-    std::lock_guard<std::mutex> lockGuard(mutex_);
     while (!freeList_.empty()) {
         DeleteBufferInCache(freeList_.front());
         freeList_.pop_front();
@@ -699,7 +708,7 @@ GSError BufferQueue::AttachBuffer(sptr<SurfaceBuffer> &buffer)
     if (usedSize >= queueSize) {
         int32_t freeSize = static_cast<int32_t>(dirtyList_.size() + freeList_.size());
         if (freeSize >= usedSize - queueSize + 1) {
-            DeleteBuffers(usedSize - queueSize + 1);
+            DeleteBuffersLocked(usedSize - queueSize + 1);
             bufferQueueCache_[sequence] = ele;
             BLOGN_SUCCESS_ID(sequence, "release");
             return GSERROR_OK;
@@ -766,7 +775,8 @@ GSError BufferQueue::SetQueueSize(uint32_t queueSize)
         return GSERROR_INVALID_ARGUMENTS;
     }
 
-    DeleteBuffers(queueSize_ - queueSize);
+    std::lock_guard<std::mutex> lockGuard(mutex_);
+    DeleteBuffersLocked(queueSize_ - queueSize);
 
     // if increase the queue size, try to wakeup the blocked thread
     if (queueSize > queueSize_) {
@@ -872,13 +882,13 @@ int32_t BufferQueue::GetDefaultHeight()
     return defaultHeight;
 }
 
-GSError BufferQueue::SetDefaultUsage(uint32_t usage)
+GSError BufferQueue::SetDefaultUsage(uint64_t usage)
 {
     defaultUsage = usage;
     return GSERROR_OK;
 }
 
-uint32_t BufferQueue::GetDefaultUsage()
+uint64_t BufferQueue::GetDefaultUsage()
 {
     return defaultUsage;
 }

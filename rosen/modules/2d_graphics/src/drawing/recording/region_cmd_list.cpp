@@ -78,12 +78,12 @@ void SetRectOpItem::Playback(Region& region) const
     region.SetRect(rectI_);
 }
 
-SetPathOpItem::SetPathOpItem(const CmdListHandle& path, const CmdListHandle& region)
+SetPathOpItem::SetPathOpItem(const OpDataHandle& path, const CmdListHandle& region)
     : RegionOpItem(SETPATH_OPITEM), path_(path), region_(region) {}
 
 void SetPathOpItem::Playback(Region& region, const CmdList& cmdList) const
 {
-    auto path = CmdListHelper::GetFromCmdList<PathCmdList, Path>(cmdList, path_);
+    auto path = CmdListHelper::GetPathFromCmdList(cmdList, path_);
     auto clip = CmdListHelper::GetFromCmdList<RegionCmdList, Region>(cmdList, region_);
     if (path == nullptr || clip == nullptr) {
         return;

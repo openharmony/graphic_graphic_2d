@@ -55,6 +55,14 @@ public:
     void ClearBuffer() override;
     void ClearAllBuffer() override;
     void ResetBufferAge() override;
+    void SetColorSpace(GraphicColorGamut colorSpace) override
+    {
+    }
+
+    GraphicColorGamut GetColorSpace() const override
+    {
+        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    }
 
 private:
     void YInvert(void *addr, int32_t width, int32_t height);

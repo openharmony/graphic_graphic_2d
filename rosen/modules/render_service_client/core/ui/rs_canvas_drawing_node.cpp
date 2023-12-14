@@ -165,7 +165,7 @@ bool RSCanvasDrawingNode::GetBitmap(Drawing::Bitmap& bitmap,
             RS_LOGE("RSCanvasDrawingNode::GetBitmap RenderNodeType != RSRenderNodeType::CANVAS_DRAWING_NODE");
             return false;
         }
-        auto getBitmapTask = [&node, &bitmap]() { node->GetBitmap(bitmap); };
+        auto getBitmapTask = [&node, &bitmap]() { bitmap = node->GetBitmap(); };
         RSRenderThread::Instance().PostSyncTask(getBitmapTask);
         if (bitmap.IsValid()) {
             return false;
@@ -223,9 +223,8 @@ bool RSCanvasDrawingNode::GetPixelmap(const std::shared_ptr<Media::PixelMap> pix
     } else {
         Drawing::Bitmap bitmap;
         Drawing::ImageInfo imageInfo(pixelmap->GetWidth(), pixelmap->GetHeight(),
-            COLORTYPE_RGBA_8888, ALPHATYPE_PREMUL);
-        bitmap.Build(imageInfo);
-        bitmap.SetPixels(static_cast<uint8_t*>(pixelmap->GetWritablePixels()));
+            Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL);
+        bitmap.InstallPixels(imageInfo, static_cast<uint8_t*>(pixelmap->GetWritablePixels()), pixelmap->GetRowBytes());
 
         Drawing::Canvas canvas;
         canvas.Bind(bitmap);

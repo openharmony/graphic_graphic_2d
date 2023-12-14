@@ -40,25 +40,22 @@ public:
 
     void Translate(scalar dx, scalar dy, scalar dz) override;
     void Scale(scalar sx, scalar sy, scalar sz) override;
+    void PreTranslate(scalar dx, scalar dy, scalar dz) override;
+    void PostTranslate(scalar dx, scalar dy, scalar dz) override;
+    void PreScale(scalar sx, scalar sy, scalar sz) override;
     void Multiply(const Matrix44& a, const Matrix44& b) override;
-    void SetMatrix44(const std::array<scalar, MATRIX44_SIZE>& buffer) override;
+    void SetCol(int column, scalar x, scalar y, scalar z, scalar w) override;
+    void SetMatrix44ColMajor(const std::array<scalar, MATRIX44_SIZE>& buffer) override;
+    void SetMatrix44RowMajor(const std::array<scalar, MATRIX44_SIZE>& buffer) override;
     Matrix ConvertToMatrix() override;
 
     /*
      * @brief  Export Skia member variables for use by the adaptation layer.
      */
-#ifdef NEW_SKIA
     const SkM44& GetSkMatrix44() const;
-#else
-    const SkMatrix44& GetSkMatrix44() const;
-#endif
 
 private:
-#ifdef NEW_SKIA
     SkM44 skMatrix44_;
-#else
-    SkMatrix44 skMatrix44_;
-#endif
 };
 } // namespace Drawing
 } // namespace Rosen

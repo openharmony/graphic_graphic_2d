@@ -16,12 +16,32 @@
 #ifndef RECORDING_CANVAS_H
 #define RECORDING_CANVAS_H
 
+#include <optional>
+#include <stack>
+
 #include "draw/canvas.h"
 #include "recording/adaptive_image_helper.h"
 #include "recording/draw_cmd_list.h"
+#ifdef ROSEN_OHOS
+#include "surface_buffer.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
+#ifdef ROSEN_OHOS
+struct DrawingSurfaceBufferInfo {
+    DrawingSurfaceBufferInfo() = default;
+    DrawingSurfaceBufferInfo(
+        const sptr<SurfaceBuffer>& surfaceBuffer, int offSetX, int offSetY, int width, int height)
+        : surfaceBuffer_(surfaceBuffer), offSetX_(offSetX), offSetY_(offSetY), width_(width), height_(height)
+    {}
+    sptr<SurfaceBuffer> surfaceBuffer_ = nullptr;
+    int offSetX_ = 0;
+    int offSetY_ = 0;
+    int width_ = 0;
+    int height_ = 0;
+};
+#endif
 namespace Drawing {
 /*
  * @brief  RecordingCanvas is an empty canvas, which does not act on any surface,
@@ -39,6 +59,18 @@ public:
     {
         return DrawingType::RECORDING;
     }
+
+    void SetGrRecordingContext(std::shared_ptr<GPUContext> gpuContext)
+    {
+        gpuContext_ = gpuContext;
+    }
+
+    std::shared_ptr<GPUContext> GetGPUContext() const override
+    {
+        return gpuContext_;
+    }
+
+    void Clear() const;
 
     void DrawPoint(const Point& point) override;
     void DrawPoints(PointMode mode, size_t count, const Point pts[]) override;
@@ -110,9 +142,23 @@ public:
     CoreCanvas& DetachPen() override;
     CoreCanvas& DetachBrush() override;
 
+    void SetIsCustomTextType(bool isCustomTextType);
+    bool IsCustomTextType() const;
+#ifdef ROSEN_OHOS
+    void DrawSurfaceBuffer(const DrawingSurfaceBufferInfo& surfaceBufferInfo);
+#endif
 private:
+    enum SaveOpState {
+        LazySaveOp,
+        RealSaveOp
+    };
+    void CheckForLazySave();
+    bool isCustomTextType_ = false;
+    std::optional<Brush> customTextBrush_ = std::nullopt;
+    std::optional<Pen> customTextPen_ = std::nullopt;
     std::shared_ptr<DrawCmdList> cmdList_ = nullptr;
-    int saveCount_ = 0;
+    std::stack<SaveOpState> saveOpStateStack_;
+    std::shared_ptr<GPUContext> gpuContext_ = nullptr;
 };
 } // namespace Drawing
 } // namespace Rosen

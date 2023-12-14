@@ -13,8 +13,14 @@
  * limitations under the License.
  */
 
+#include <cstdint>
 #include <scoped_bytrace.h>
 #include "hdi_output.h"
+#include "metadata_helper.h"
+#include "vsync_generator.h"
+#include "vsync_sampler.h"
+
+using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
 
 #define CHECK_DEVICE_NULL(device)                                   \
     do {                                                            \
@@ -348,6 +354,33 @@ bool HdiOutput::CheckAndUpdateClientBufferCahce(sptr<SurfaceBuffer> buffer, uint
     return false;
 }
 
+void HdiOutput::SetBufferColorSpace(sptr<SurfaceBuffer>& buffer, const std::vector<LayerPtr>& layers) const
+{
+    CM_ColorSpaceType targetColorSpace = CM_DISPLAY_SRGB;
+    for (auto& layer : layers) {
+        auto buffer = layer->GetLayerInfo()->GetBuffer();
+        if (buffer == nullptr) {
+            HLOGW("HdiOutput::SetBufferColorSpace The buffer of layer is nullptr");
+            continue;
+        }
+
+        CM_ColorSpaceInfo colorSpaceInfo;
+        if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
+            HLOGW("HdiOutput::SetBufferColorSpace Get color space from surface buffer failed");
+            continue;
+        }
+
+        if (colorSpaceInfo.primaries != COLORPRIMARIES_SRGB) {
+            targetColorSpace = CM_DISPLAY_P3_SRGB;
+            break;
+        }
+    }
+
+    if (MetadataHelper::SetColorSpaceType(buffer, targetColorSpace) != GSERROR_OK) {
+        HLOGE("HdiOutput::SetBufferColorSpace set metadata to buffer failed");
+    }
+}
+
 int32_t HdiOutput::FlushScreen(std::vector<LayerPtr> &compClientLayers)
 {
     auto fbEntry = GetFramebuffer();
@@ -375,6 +408,8 @@ int32_t HdiOutput::FlushScreen(std::vector<LayerPtr> &compClientLayers)
     } else {
         bufferCached = CheckAndUpdateClientBufferCahce(currFrameBuffer_, index);
     }
+
+    SetBufferColorSpace(currFrameBuffer_, compClientLayers);
 
     CHECK_DEVICE_NULL(device_);
     int32_t ret = device_->SetScreenClientDamage(screenId_, outputDamages_);
@@ -491,13 +526,18 @@ int32_t HdiOutput::StartVSyncSampler()
         return GRAPHIC_DISPLAY_SUCCESS;
     }
     HLOGD("Enable Screen Vsync");
-    int32_t ret = device_->SetScreenVsyncEnabled(screenId_, true);
-    if (ret == GRAPHIC_DISPLAY_SUCCESS) {
-        sampler_->BeginSample();
-    } else {
-        HLOGE("Enable Screen Vsync failed");
+    sampler_->SetScreenVsyncEnabledInRSMainThread(true);
+    sampler_->BeginSample();
+    return GRAPHIC_DISPLAY_SUCCESS;
+}
+
+void HdiOutput::SetPendingPeriod(int64_t period)
+{
+    if (sampler_ == nullptr) {
+        sampler_ = CreateVSyncSampler();
     }
-    return ret;
+    sampler_->SetPendingPeriod(period);
+    StartVSyncSampler();
 }
 
 void HdiOutput::Dump(std::string &result) const
@@ -526,6 +566,8 @@ void HdiOutput::Dump(std::string &result) const
         result += "FrameBufferSurface\n";
         fbSurface_->Dump(result);
     }
+    CreateVSyncGenerator()->Dump(result);
+    CreateVSyncSampler()->Dump(result);
 }
 
 void HdiOutput::DumpFps(std::string &result, const std::string &arg) const

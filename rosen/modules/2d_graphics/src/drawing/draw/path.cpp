@@ -70,6 +70,11 @@ void Path::ArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction, sc
     impl_->ArcTo(rx, ry, angle, direction, endX, endY);
 }
 
+void Path::ArcTo(scalar x1, scalar y1, scalar x2, scalar y2, scalar radius)
+{
+    impl_->ArcTo(x1, y1, x2, y2, radius);
+}
+
 void Path::CubicTo(scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y, scalar endPtX, scalar endPtY)
 {
     impl_->CubicTo(ctrlPt1X, ctrlPt1Y, ctrlPt2X, ctrlPt2Y, endPtX, endPtY);
@@ -233,6 +238,16 @@ scalar Path::GetLength(bool forceClosed) const
 bool Path::GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed) const
 {
     return impl_->GetPositionAndTangent(distance, position, tangent, forceClosed);
+}
+
+std::shared_ptr<Data> Path::Serialize() const
+{
+    return impl_->Serialize();
+}
+
+bool Path::Deserialize(std::shared_ptr<Data> data)
+{
+    return impl_->Deserialize(data);
 }
 
 } // namespace Drawing

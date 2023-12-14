@@ -177,7 +177,11 @@ bool RSCanvasNodeCommandFuzzTest(const uint8_t* data, size_t size)
     // test
     RSContext context;
     RSCanvasNodeCommandHelper::Create(context, static_cast<NodeId>(id));
+#ifndef USE_ROSEN_DRAWING
     std::shared_ptr<DrawCmdList> drawCmds;
+#else
+    std::shared_ptr<Drawing::DrawCmdList> drawCmds;
+#endif
     RSCanvasNodeCommandHelper::UpdateRecording(context, static_cast<NodeId>(id), drawCmds, static_cast<uint16_t>(type));
     RSCanvasNodeCommandHelper::ClearRecording(context, static_cast<NodeId>(id));
     

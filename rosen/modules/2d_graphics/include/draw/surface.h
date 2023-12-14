@@ -38,6 +38,12 @@ struct FrameBuffer {
 };
 #endif
 
+struct FlushInfo {
+    bool backendSurfaceAccess = false;
+    size_t numSemaphores = 0;
+    void *backendSemaphore = nullptr;
+};
+
 class DRAWING_API Surface {
 public:
     Surface();
@@ -61,28 +67,45 @@ public:
      * @param info  FrameBuffer object info.
      */
     bool Bind(const FrameBuffer& frameBuffer);
-    
-    /*
-     * @brief              Create Surface from gpuContext and imageInfo.
-     * @param gpuContext   GPU texture.
-     * @param Budgeted     Texture count.
-     * @param imageInfo    image Info.
-     */
-    bool MakeRenderTarget(GPUContext& gpuContext, bool Budgeted, const ImageInfo& imageInfo);
 
-    /*
-     * @brief              Create Surface using width and height.
-     * @param width        pixel column count.
-     * @param height       pixel row count.
-     */
-    bool MakeRasterN32Premul(int32_t width, int32_t height);
+#ifdef RS_ENABLE_VK
+    static std::shared_ptr<Surface> MakeFromBackendRenderTarget(GPUContext* gpuContext, TextureInfo& info,
+        TextureOrigin origin, void (*deleteVkImage)(void *), void* cleanHelper);
 #endif
 
     /*
-     * @brief              Create Surface using imageinfo.
-     * @param imageInfo    image info.
+     * @brief              Create Surface from gpuContext and imageInfo.
+     * @param gpuContext   GPU texture.
+     * @param budgeted     Texture count.
+     * @param imageInfo    image Info.
+     * @return             A shared point to Surface.
      */
-    bool MakeRaster(const ImageInfo& imageInfo);
+    static std::shared_ptr<Surface> MakeRenderTarget(GPUContext* gpuContext, bool budgeted, const ImageInfo& imageInfo);
+#endif
+
+    /*
+     * @brief              Allocates raster Surface.
+     * @param imageInfo    image info.
+     * @return             A shared point to Surface.
+     */
+    static std::shared_ptr<Surface> MakeRaster(const ImageInfo& imageInfo);
+
+    /*
+     * @brief              Allocates raster direct Surface.
+     * @param imageInfo    image info.
+     * @param pixels       Pointer to destination pixels buffer.
+     * @param rowBytes     Interval from one Surface row to the next.
+     * @return             A shared point to Surface.
+     */
+    static std::shared_ptr<Surface> MakeRasterDirect(const ImageInfo& imageInfo, void* pixels, size_t rowBytes);
+
+    /*
+     * @brief          Create Surface using width and height.
+     * @param width    Pixel column count.
+     * @param height   Pixel row count.
+     * @return         A shared point to Surface.
+     */
+    static std::shared_ptr<Surface> MakeRasterN32Premul(int32_t width, int32_t height);
 
     /*
      * @brief   Gets Canvas that draws into Surface.
@@ -115,15 +138,31 @@ public:
     ImageInfo GetImageInfo();
 
     /*
+     * @brief   Gets BackendTexture of Surface
+     */
+    BackendTexture GetBackendTexture() const;
+
+    /*
      * @brief   Call to ensure all reads/writes of surface have been issue to the underlying 3D API.
      */
     void FlushAndSubmit(bool syncCpu = false);
+
+    /*
+     * @brief   Call to ensure all reads/writes of surface have been issue to the underlying 3D API.
+     */
+    void Flush(FlushInfo *drawingflushInfo = nullptr);
 
     template<typename T>
     const std::shared_ptr<T> GetImpl() const
     {
         return impl_->DowncastingTo<T>();
     }
+
+#ifdef RS_ENABLE_VK
+    void Wait(int32_t time, const VkSemaphore& semaphore);
+    void SetDrawingArea(const std::vector<RectI>& rects);
+    void ClearDrawingArea();
+#endif
 
 private:
     std::shared_ptr<SurfaceImpl> impl_;

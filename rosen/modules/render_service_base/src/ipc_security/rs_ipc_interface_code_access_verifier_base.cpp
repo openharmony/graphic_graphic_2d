@@ -29,6 +29,7 @@ const std::unordered_map<PermissionType, std::string> PERMISSION_MAP {
     { PermissionType::RUNNING_STATE_OBSERVER, "ohos.permission.RUNNING_STATE_OBSERVER" },
     { PermissionType::START_ABILITIES_FROM_BACKGROUND, "ohos.permission.START_ABILITIES_FROM_BACKGROUND" },
     { PermissionType::CHANGE_ABILITY_ENABLED_STATE, "ohos.permission.CHANGE_ABILITY_ENABLED_STATE" },
+    { PermissionType::UPDATE_CONFIGURATION, "ohos.permission.UPDATE_CONFIGURATION" },
 };
 
 bool RSInterfaceCodeAccessVerifierBase::IsInterfaceCodeAccessible(CodeUnderlyingType code)
@@ -79,6 +80,10 @@ bool RSInterfaceCodeAccessVerifierBase::CheckHapPermission(
 
 bool RSInterfaceCodeAccessVerifierBase::CheckPermission(CodeUnderlyingType code) const
 {
+    bool securityPermissionCheckEnabled =  RSSystemProperties::GetSecurityPermissionCheckEnabled();
+    if (!securityPermissionCheckEnabled) {
+        return true;
+    }
     std::vector<std::string> permissions = GetPermissions(code);
     bool hasPermission = true;
     auto tokenType = GetTokenType();
@@ -99,10 +104,10 @@ bool RSInterfaceCodeAccessVerifierBase::CheckPermission(CodeUnderlyingType code)
         }
         if (!hasPermission) {
             RS_LOGE("%{public}d ipc interface code access denied: HAS NO PERMISSION", code);
-            return true; // will return hasPermission after defining Permissions for APIs
+            return false;
         }
     }
-    return hasPermission;
+    return true;
 }
 
 std::string RSInterfaceCodeAccessVerifierBase::PermissionEnumToString(PermissionType permission) const

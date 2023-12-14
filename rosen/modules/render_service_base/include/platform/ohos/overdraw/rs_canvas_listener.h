@@ -88,7 +88,7 @@ protected:
     virtual void DrawShadow(const Drawing::Path& path, const Drawing::Point3& planeParams,
         const Drawing::Point3& devLightPos, Drawing::scalar lightRadius,
         Drawing::Color ambientColor, Drawing::Color spotColor, Drawing::ShadowFlags flag) {};
-    virtual void DrawRegion(const Drawing::Region& region);
+    virtual void DrawRegion(const Drawing::Region& region) {};
 
     // image
     virtual void DrawBitmap(const Drawing::Bitmap& bitmap, const Drawing::scalar px, const Drawing::scalar py) {};

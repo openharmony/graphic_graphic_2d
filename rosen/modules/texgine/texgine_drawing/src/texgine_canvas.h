@@ -18,7 +18,11 @@
 
 #include <memory>
 
+#ifndef USE_ROSEN_DRAWING
 #include <include/core/SkCanvas.h>
+#else
+#include "drawing.h"
+#endif
 
 #include "texgine_rect.h"
 #include "texgine_paint.h"
@@ -45,6 +49,16 @@ public:
     void DrawTextBlob(const std::shared_ptr<TexgineTextBlob> &blob, float x, float y, const TexginePaint &paint);
 
     /*
+     * @brief Draws symbol at point, using clip, SkMatrix, and paint.
+     */
+    void DrawSymbol(const HMSymbolData &symbol, SkPoint locate, const TexginePaint &paint);
+
+    /*
+     * @brief Draws Path , using SkPath path and SkPaint paint.
+     */
+    void DrawPath(const SkPath &path, const TexginePaint &paint);
+
+    /*
      * @brief Fills clip with color color using SkBlendMode::kSrc.
      *        This has the effect of replacing all pixels contained by clip with color.
      * @param color unpremultiplied ARGB
@@ -64,7 +78,11 @@ public:
     /*
      * @brief Returns the pointer of SkCanvas what user sets to TexgineCanvas
      */
+#ifndef USE_ROSEN_DRAWING
     SkCanvas *GetCanvas() const;
+#else
+    RSCanvas *GetCanvas() const;
+#endif
 
     /*
      * @brief Removes changes to SkMatrix and clip since SkCanvas state was
@@ -75,10 +93,18 @@ public:
     /*
      * @brief Sets SkCanvas to TexgineCanvas what user want
      */
+#ifndef USE_ROSEN_DRAWING
     void SetCanvas(SkCanvas *canvas);
+#else
+    void SetCanvas(RSCanvas *canvas);
+#endif
 
 private:
+#ifndef USE_ROSEN_DRAWING
     SkCanvas *canvas_ = nullptr;
+#else
+    RSCanvas *canvas_ = nullptr;
+#endif
 };
 } // namespace TextEngine
 } // namespace Rosen

@@ -16,6 +16,7 @@
 #include "utils/data.h"
 
 #include "impl_factory.h"
+#include "static_factory.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -32,6 +33,11 @@ bool Data::BuildWithCopy(const void* data, size_t length)
     return impl_->BuildWithCopy(data, length);
 }
 
+bool Data::BuildWithProc(const void* ptr, size_t length, DataReleaseProc proc, void* ctx)
+{
+    return impl_->BuildWithProc(ptr, length, proc, ctx);
+}
+
 bool Data::BuildWithoutCopy(const void* data, size_t length)
 {
     return impl_->BuildWithoutCopy(data, length);
@@ -42,6 +48,11 @@ bool Data::BuildUninitialized(size_t length)
     return impl_->BuildUninitialized(length);
 }
 
+bool Data::BuildEmpty()
+{
+    return impl_->BuildEmpty();
+}
+
 size_t Data::GetSize() const
 {
     return impl_->GetSize();
@@ -50,6 +61,11 @@ size_t Data::GetSize() const
 const void* Data::GetData() const
 {
     return impl_->GetData();
+}
+
+std::shared_ptr<Data> Data::MakeFromFileName(const char path[])
+{
+    return StaticFactory::MakeDataFromFileName(path);
 }
 
 void* Data::WritableData()

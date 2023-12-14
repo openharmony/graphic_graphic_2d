@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#ifndef USE_ROSEN_DRAWING
 #include <gtest/gtest.h>
 #include <include/core/SkTextBlob.h>
 
@@ -125,3 +126,4 @@ HWTEST_F(RSRecordingCanvasTest, RSRecordingCanvas002, TestSize.Level1)
 }
 } // namespace Rosen
 } // namespace OHOS
+#endif

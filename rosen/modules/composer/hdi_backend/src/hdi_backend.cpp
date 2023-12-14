@@ -18,6 +18,8 @@
 
 #include <scoped_bytrace.h>
 #include "surface_buffer.h"
+#include "hitrace_meter.h"
+#include "sync_fence_tracker.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -87,6 +89,15 @@ RosenError HdiBackend::RegHwcDeadListener(OnHwcDeadCallback func, void* data)
     return ROSEN_ERROR_OK;
 }
 
+void HdiBackend::SetPendingPeriod(const OutputPtr &output, int64_t period)
+{
+    if (output == nullptr) {
+        HLOGE("output is nullptr.");
+        return;
+    }
+    output->SetPendingPeriod(period);
+}
+
 int32_t HdiBackend::PrepareCompleteIfNeed(const OutputPtr &output, bool needFlush)
 {
     std::vector<LayerPtr> compClientLayers;
@@ -139,6 +150,11 @@ void HdiBackend::Repaint(const OutputPtr &output)
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("commit failed, ret is %{public}d", ret);
         // return
+    }
+
+    if (IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP)) {
+        static SyncFenceTracker presentFenceThread("Present Fence");
+        presentFenceThread.TrackFence(fbFence);
     }
 
     ret = output->UpdateInfosAfterCommit(fbFence);

@@ -202,6 +202,15 @@ public:
             std::to_string(width_) + ", " + std::to_string(height_) + ")";
     }
 
+    // outset: left, top, right, bottom
+    RectT<T> MakeOutset(Vector4<T> outset) const
+    {
+        return RectT(left_ - outset.x_,
+                     top_ - outset.y_,
+                     width_ + outset.x_ + outset.z_,
+                     height_ + outset.y_ + outset.w_);
+    }
+
     #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const
     {

@@ -41,7 +41,7 @@ namespace OHOS {
 namespace Rosen {
 class MSKPSrc {
 public:
-    explicit MSKPSrc(std::string path);
+    explicit MSKPSrc(const std::string& path);
 
     bool Draw(SkCanvas* c) const;
     bool NextFrame();
@@ -62,14 +62,14 @@ public:
     bool IterateFrame(int &curLoop, int &frame);
     bool ReplayMSKP(SkCanvas *skiaCanvas);
     void ReplaySKP(SkCanvas *skiaCanvas);
-    bool PlayBackByFrame(SkCanvas *skiaCanvas, bool isDumpPictures = false);
+    bool PlayBackByFrame(Drawing::Canvas* canvas, bool isDumpPictures = false);
     bool PlayBackByOpItem(SkCanvas *skiaCanvas, bool isMoreOps = true);
     void UpdateParameters(bool notNeeded);
     void UpdateParametersFromDCLCommand(const DCLCommand& dclCommand);
     void PrintDurationTime(const std::string &description, std::chrono::time_point<std::chrono::system_clock> start);
     void Start() override {};
     void Stop() override {};
-    void Test(SkCanvas *canvas, int width, int height) override;
+    void Test(Drawing::Canvas* canvas, int width, int height) override;
     void Output() override;
     int LoadDrawCmdList(const std::string& dclFile);
     std::string GetRealPathStr(const std::string& filePath);
@@ -79,15 +79,18 @@ private:
     friend class DCLCommand;
     const static size_t recordingParcelMaxCapcity_ = 234 * 1000 * 1024;
     inline const static std::string dclFileDir_ = "/data/";
-    DrawCmdList* dcl_ = nullptr;
+    std::shared_ptr<Drawing::DrawCmdList> dcl_ = nullptr;
     IterateType iterateType_ = IterateType::ITERATE_FRAME;
     int beginFrame_ = 0;
     int endFrame_ = 100;
+    int curFrameNo_ = beginFrame_;
     int loop_ = 1;
     double opItemStep_ = 4;
     std::string inputFilePath_ = "/data/lkx/";
     std::string outputFilePath_ = "/data/lkx/";
     SkiaRecording skiaRecording;
+    SkCanvas* orgSkiaCanvas_ = nullptr;
+    SkCanvas* skiaCanvas_ = nullptr;
     std::unique_ptr<MSKPSrc> mskpPtr;
     sk_sp<SkPicture> skpPtr;
 };

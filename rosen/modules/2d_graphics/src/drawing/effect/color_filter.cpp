@@ -104,6 +104,22 @@ std::shared_ptr<ColorFilter> ColorFilter::CreateLumaColorFilter()
 {
     return std::make_shared<ColorFilter>(ColorFilter::FilterType::LUMA);
 }
+
+std::shared_ptr<Data> ColorFilter::Serialize() const
+{
+    return impl_->Serialize();
+}
+
+bool ColorFilter::Deserialize(std::shared_ptr<Data> data)
+{
+    return impl_->Deserialize(data);
+}
+
+bool ColorFilter::AsAColorMatrix(scalar matrix[MATRIX_SIZE]) const
+{
+    return impl_->AsAColorMatrix(matrix);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

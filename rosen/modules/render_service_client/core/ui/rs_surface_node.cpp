@@ -42,6 +42,9 @@ namespace OHOS {
 namespace Rosen {
 RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfaceNodeConfig, bool isWindow)
 {
+    if (!isWindow) {
+        return Create(surfaceNodeConfig, RSSurfaceNodeType::SELF_DRAWING_NODE, isWindow);
+    }
     return Create(surfaceNodeConfig, RSSurfaceNodeType::DEFAULT, isWindow);
 }
 
@@ -63,14 +66,11 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         .bundleName = node->bundleName_,
         .additionalData = surfaceNodeConfig.additionalData,
     };
-    if (!isWindow) {
-        config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
-    } else {
-        config.nodeType = type;
-    }
+    config.nodeType = type;
 
-    RS_LOGD("RSSurfaceNode::Create name:%{public}s bundleName: %{public}s type: %{public}hhu",
-        config.name.c_str(), config.bundleName.c_str(), config.nodeType);
+    RS_LOGD("RSSurfaceNode::Create name:%{public}s bundleName: %{public}s type: %{public}hhu "
+        "isWindow %{public}d %{public}d ", config.name.c_str(), config.bundleName.c_str(),
+        config.nodeType, isWindow, node->IsRenderServiceNode());
 
     if (!node->CreateNodeAndSurface(config)) {
         ROSEN_LOGE("RSSurfaceNode::Create, create node and surface failed");
@@ -80,7 +80,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
     node->SetClipToFrame(true);
     // create node in RT (only when in divided render and isRenderServiceNode_ == false)
     if (!node->IsRenderServiceNode()) {
-        std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreate>(node->GetId());
+        std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreate>(node->GetId(), config.nodeType);
         transactionProxy->AddCommand(command, isWindow);
 
         command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(node->GetId());
@@ -90,6 +90,14 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(node->GetId(), true);
         transactionProxy->AddCommand(command, isWindow);
         node->SetFrameGravity(Gravity::RESIZE);
+
+#if defined(USE_SURFACE_TEXTURE) && defined(ROSEN_ANDROID)
+        RSSurfaceExtConfig config = {
+            .type = RSSurfaceExtType::SURFACE_TEXTURE,
+            .additionalData = nullptr,
+        };
+        node->CreateSurfaceExt(config);
+#endif
     }
 
     if (node->GetName().find("battery_panel") != std::string::npos ||
@@ -124,7 +132,7 @@ void RSSurfaceNode::CreateNodeInRenderThread()
 
     // create node in RT (only when in divided render and isRenderServiceNode_ == false)
     if (!IsRenderServiceNode()) {
-        command = std::make_unique<RSSurfaceNodeCreate>(GetId());
+        command = std::make_unique<RSSurfaceNodeCreate>(GetId(), RSSurfaceNodeType::ABILITY_COMPONENT_NODE);
         transactionProxy->AddCommand(command, false);
 
         command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(GetId());
@@ -192,6 +200,15 @@ void RSSurfaceNode::OnBoundsSizeChanged() const
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
+#ifdef ROSEN_CROSS_PLATFORM
+    if (!IsRenderServiceNode()) {
+        std::unique_ptr<RSCommand> commandRt = std::make_unique<RSSurfaceNodeUpdateSurfaceDefaultSize>(
+            GetId(), bounds.z_, bounds.w_);
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(commandRt, false);
+        }
+    }
+#endif
     std::lock_guard<std::mutex> lock(mutex_);
     if (boundsChangedCallback_) {
         boundsChangedCallback_(bounds);
@@ -252,7 +269,6 @@ bool RSSurfaceNode::GetFingerprint() const
     return hasFingerprint_;
 }
 
-#ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceNode::SetColorSpace(GraphicColorGamut colorSpace)
 {
     colorSpace_ = colorSpace;
@@ -263,7 +279,6 @@ void RSSurfaceNode::SetColorSpace(GraphicColorGamut colorSpace)
         transactionProxy->AddCommand(command, true);
     }
 }
-#endif
 
 void RSSurfaceNode::SetAbilityBGAlpha(uint8_t alpha)
 {
@@ -507,7 +522,7 @@ RSSurfaceNode::~RSSurfaceNode()
     // Command sent only in divided render
     if (!IsRenderServiceNode()) {
         std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeDestroy>(GetId());
-        transactionProxy->AddCommand(command, true, FollowType::FOLLOW_TO_PARENT, GetId());
+        transactionProxy->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, GetId());
         return;
     }
 }
@@ -551,9 +566,81 @@ void RSSurfaceNode::SetBootAnimation(bool isBootAnimation)
     ROSEN_LOGD("RSSurfaceNode::SetBootAnimation, surfaceNodeId:[%" PRIu64 "] isBootAnimation:%s",
         GetId(), isBootAnimation ? "true" : "false");
 }
+
 bool RSSurfaceNode::GetBootAnimation() const
 {
     return isBootAnimation_;
+}
+
+#ifdef USE_SURFACE_TEXTURE
+void RSSurfaceNode::CreateSurfaceExt(const RSSurfaceExtConfig& config)
+{
+    auto texture = surface_->GetSurfaceExt(config);
+    if (texture == nullptr) {
+        texture = surface_->CreateSurfaceExt(config);
+    }
+    ROSEN_LOGD("RSSurfaceNode::CreateSurfaceExt %{public}" PRIu64 " type %{public}u %{public}p",
+        GetId(), config.type, texture.get());
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeCreateSurfaceExt>(GetId(), (uint64_t)(texture.get()));
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, false);
+    }
+}
+
+void RSSurfaceNode::SetSurfaceTexture(const RSSurfaceExtConfig& config)
+{
+    CreateSurfaceExt(config);
+}
+
+void RSSurfaceNode::MarkUiFrameAvailable(bool available)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetIsNotifyUIBufferAvailable>(GetId(), available);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, false);
+    }
+}
+
+void RSSurfaceNode::SetSurfaceTextureAttachCallBack(const RSSurfaceTextureAttachCallBack& attachCallback)
+{
+    RSSurfaceTextureConfig config = {
+        .type = RSSurfaceExtType::SURFACE_TEXTURE,
+    };
+    auto texture = surface_->GetSurfaceExt(config);
+    if (texture) {
+        texture->SetAttachCallback(attachCallback);
+    }
+}
+
+void RSSurfaceNode::SetSurfaceTextureUpdateCallBack(const RSSurfaceTextureUpdateCallBack& updateCallback)
+{
+    RSSurfaceTextureConfig config = {
+        .type = RSSurfaceExtType::SURFACE_TEXTURE,
+        .additionalData = nullptr
+    };
+    auto texture = surface_->GetSurfaceExt(config);
+    if (texture) {
+        texture->SetUpdateCallback(updateCallback);
+    }
+}
+#endif
+
+void RSSurfaceNode::SetForeground(bool isForeground)
+{
+    ROSEN_LOGD("RSSurfaceNode::SetForeground, surfaceNodeId:[%" PRIu64 "] isForeground:%s",
+        GetId(), isForeground ? "true" : "false");
+    std::unique_ptr<RSCommand> commandRS =
+        std::make_unique<RSSurfaceNodeSetForeground>(GetId(), isForeground);
+    std::unique_ptr<RSCommand> commandRT =
+        std::make_unique<RSSurfaceNodeSetForeground>(GetId(), isForeground);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(commandRS, true);
+        transactionProxy->AddCommand(commandRT, false);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

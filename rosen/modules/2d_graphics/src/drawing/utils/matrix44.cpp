@@ -32,6 +32,21 @@ void Matrix44::Scale(scalar sx, scalar sy, scalar sz)
     impl_->Scale(sx, sy, sz);
 }
 
+void Matrix44::PreTranslate(scalar dx, scalar dy, scalar dz)
+{
+    impl_->PreTranslate(dx, dy, dz);
+}
+
+void Matrix44::PostTranslate(scalar dx, scalar dy, scalar dz)
+{
+    impl_->PostTranslate(dx, dy, dz);
+}
+
+void Matrix44::PreScale(scalar sx, scalar sy, scalar sz)
+{
+    impl_->PreScale(sx, sy, sz);
+}
+
 Matrix44 Matrix44::operator*(const Matrix44& other)
 {
     impl_->Multiply(*this, other);
@@ -43,10 +58,21 @@ Matrix44::operator Matrix() const
     return impl_->ConvertToMatrix();
 }
 
-void Matrix44::SetMatrix44(const Buffer& buffer)
+void Matrix44::SetMatrix44ColMajor(const Buffer& buffer)
 {
-    impl_->SetMatrix44(buffer);
+    impl_->SetMatrix44ColMajor(buffer);
 }
+
+void Matrix44::SetMatrix44RowMajor(const Buffer& buffer)
+{
+    impl_->SetMatrix44RowMajor(buffer);
+}
+
+void Matrix44::SetCol(int column, scalar x, scalar y, scalar z, scalar w)
+{
+    impl_->SetCol(column, x, y, z, w);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

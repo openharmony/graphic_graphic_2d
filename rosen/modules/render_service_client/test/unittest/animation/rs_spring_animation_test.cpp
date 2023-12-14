@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #include "rs_animation_base_test.h"
 #include "rs_animation_test_utils.h"
 
+#include "animation/rs_interpolating_spring_animation.h"
 #include "animation/rs_spring_animation.h"
 
 using namespace testing;
@@ -263,6 +264,68 @@ HWTEST_F(RSSpringAnimationTest, SetIsCustomTest002, TestSize.Level1)
     EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::SPRING);
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSSpringAnimationTest SetIsCustomTest002 end";
+}
+
+/**
+ * @tc.name: SetZeroThreshold001
+ * @tc.desc: Verify the SetZeroThreshold of SpringAnimationTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, SetZeroThreshold001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest SetZeroThreshold001 start";
+    /**
+     * @tc.steps: step1. init SetIsCustom
+     */
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto modifier = std::make_shared<RSBoundsModifier>(property);
+    canvasNode->AddModifier(modifier);
+    rsUiDirector->SendMessages();
+    sleep(DELAY_TIME_ONE);
+    auto startProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
+    auto springAnimation = std::make_shared<RSSpringAnimation>(property, startProperty, endProperty);
+    springAnimation->SetZeroThreshold(0.1f);
+    /**
+     * @tc.steps: step2. start SetIsCustom test
+     */
+    EXPECT_FALSE(springAnimation == nullptr);
+    EXPECT_FALSE(springAnimation->IsStarted());
+    springAnimation->Start(canvasNode);
+    EXPECT_TRUE(springAnimation->IsRunning());
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest SetZeroThreshold001 end";
+}
+
+/**
+ * @tc.name: SetZeroThreshold002
+ * @tc.desc: Verify the SetZeroThreshold of RSInterpolatingSpringAnimation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, SetZeroThreshold002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest SetZeroThreshold002 start";
+    /**
+     * @tc.steps: step1. init SetIsCustom
+     */
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto modifier = std::make_shared<RSBoundsModifier>(property);
+    canvasNode->AddModifier(modifier);
+    rsUiDirector->SendMessages();
+    sleep(DELAY_TIME_ONE);
+    auto startProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
+    auto springAnimation = std::make_shared<RSInterpolatingSpringAnimation>(property, startProperty, endProperty);
+    springAnimation->SetZeroThreshold(0.1f);
+    /**
+     * @tc.steps: step2. start SetIsCustom test
+     */
+    EXPECT_FALSE(springAnimation == nullptr);
+    EXPECT_FALSE(springAnimation->IsStarted());
+    springAnimation->Start(canvasNode);
+    EXPECT_TRUE(springAnimation->IsRunning());
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest SetZeroThreshold002 end";
 }
 } // namespace Rosen
 } // namespace OHOS

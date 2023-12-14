@@ -140,5 +140,10 @@ void RSVirtualScreenProcessor::ProcessDrivenSurface(RSDrivenSurfaceRenderNode& n
 {
     RS_LOGI("RSVirtualScreenProcessor::ProcessDrivenSurface() is not supported.");
 }
+
+void RSVirtualScreenProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)
+{
+    RS_LOGI("RSVirtualScreenProcessor::ProcessRcdSurface() is not supported.");
+}
 } // namespace Rosen
 } // namespace OHOS

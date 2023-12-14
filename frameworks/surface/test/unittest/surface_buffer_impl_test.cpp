@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,11 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <securec.h>
 #include <gtest/gtest.h>
 #include <surface.h>
 #include <surface_buffer_impl.h>
 #include <buffer_manager.h>
 #include <buffer_utils.h>
+#include <metadata_helper.h>
 
 using namespace testing;
 using namespace testing::ext;
@@ -152,5 +154,67 @@ HWTEST_F(SurfaceBufferImplTest, Create001, Function | MediumTest | Level2)
 {
     sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
     ASSERT_NE(buffer, nullptr);
+}
+
+/*
+* Function: Set/Get/List/Erase Metadata
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. new SurfaceBufferImpl and Alloc
+*                  2. call Set Metadata interface
+*                  3. call Get Metadata interface
+*                  4. check ret
+*                  5. call List Metadata keys interface
+*                  6. check ret
+*                  7. call Erase Metadata key interface
+*                  8. call List Metadata keys interface again
+*                  9. check ret
+*/
+HWTEST_F(SurfaceBufferImplTest, Metadata001, Function | MediumTest | Level2)
+{
+    using namespace HDI::Display::Graphic::Common::V1_0;
+
+    sptr<SurfaceBuffer> sbi = new SurfaceBufferImpl(0);
+    const auto &bm = BufferManager::GetInstance();
+    auto sret = bm->Alloc(requestConfig, sbi);
+    ASSERT_EQ(sret, OHOS::GSERROR_OK);
+
+    uint32_t metadataKey = 2;
+
+    uint32_t setMetadata = 4260097;
+    std::vector<uint8_t> setData;
+    ASSERT_EQ(MetadataHelper::ConvertMetadataToVec(setMetadata, setData), OHOS::GSERROR_OK);
+    sret = sbi->SetMetadata(metadataKey, setData);
+    ASSERT_TRUE(sret == OHOS::GSERROR_OK || GSErrorStr(sret) == "<500 api call failed>with low error <Not supported>");
+
+    std::vector<uint8_t> getData;
+    sret = sbi->GetMetadata(metadataKey, getData);
+    ASSERT_TRUE(sret == OHOS::GSERROR_OK || GSErrorStr(sret) == "<500 api call failed>with low error <Not supported>");
+
+    if (sret == OHOS::GSERROR_OK) {
+        uint32_t getMetadata;
+        ASSERT_EQ(MetadataHelper::ConvertVecToMetadata(getData, getMetadata), OHOS::GSERROR_OK);
+        ASSERT_EQ(setMetadata, getMetadata);
+    }
+
+    std::vector<uint32_t> keys;
+
+    sret = sbi->ListMetadataKeys(keys);
+    ASSERT_TRUE(sret == OHOS::GSERROR_OK || GSErrorStr(sret) == "<500 api call failed>with low error <Not supported>");
+    if (sret == OHOS::GSERROR_OK) {
+        ASSERT_EQ(sret, OHOS::GSERROR_OK);
+        ASSERT_EQ(keys.size(), 1);
+        ASSERT_EQ(keys[0], metadataKey);
+    }
+
+    sret = sbi->EraseMetadataKey(metadataKey);
+    ASSERT_TRUE(sret == OHOS::GSERROR_OK || GSErrorStr(sret) == "<500 api call failed>with low error <Not supported>");
+
+    sret = sbi->ListMetadataKeys(keys);
+    ASSERT_TRUE(sret == OHOS::GSERROR_OK || GSErrorStr(sret) == "<500 api call failed>with low error <Not supported>");
+    if (sret == OHOS::GSERROR_OK) {
+        ASSERT_EQ(keys.size(), 0);
+    }
 }
 }

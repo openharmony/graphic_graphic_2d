@@ -25,12 +25,16 @@
       ],
       "adapted_system_type": [ "standard" ],
       "features": [
+        "graphic_2d_feature_product",
+        "graphic_2d_feature_enable_pgo",
+        "graphic_2d_feature_pgo_path",
         "graphic_2d_feature_bootanimation_enable",
         "graphic_2d_feature_ace_enable_gpu",
         "graphic_2d_feature_rs_enable_eglimage",
         "graphic_2d_feature_color_gamut_enable",
         "graphic_2d_feature_use_texgine",
         "graphic_2d_feature_rs_enable_uni_render",
+        "graphic_2d_feature_use_video_processing_engine",
         "graphic_2d_feature_wuji_enable",
         "graphic_2d_feature_enable_afbc",
         "graphic_2d_feature_freemem_enable",
@@ -69,7 +73,10 @@
           "accessibility",
           "frame_aware_sched",
           "memmgr",
-          "memmgr_plugin" 
+          "memmgr_plugin",
+          "sensor",
+          "qos_manager",
+          "video_processing_engine"
         ],
         "third_party": [
           "flutter",
@@ -103,7 +110,6 @@
             "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain:skeffectchain",
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
-            "//foundation/graphic/graphic_2d/frameworks/surfaceimage:libnative_image",
             "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text:rosen_text",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
             "//foundation/graphic/graphic_2d/rosen/modules/texgine:libtexgine",
@@ -134,7 +140,6 @@
                 "external_window.h",
                 "native_buffer.h",
                 "native_buffer_inner.h",
-                "native_image.h",
                 "ibuffer_consumer_listener.h",
                 "ibuffer_producer.h",
                 "iconsumer_surface.h",
@@ -165,6 +170,16 @@
                 "vsync_receiver.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/composer"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/frameworks/surfaceimage:libnative_image",
+            "header": {
+              "header_files": [
+                "native_image.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/surface"
             }
           },
           {
@@ -332,6 +347,7 @@
                 "ifont_provider.h",
                 "system_font_provider.h",
                 "text_style.h",
+                "theme_font_provider.h",
                 "typography_builder.h",
                 "typography_style.h",
                 "typography_types.h",

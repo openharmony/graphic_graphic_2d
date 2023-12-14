@@ -15,6 +15,7 @@
 
 #include "common/rs_upload_texture_thread.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #if defined(RS_ENABLE_UNI_RENDER) && defined(RS_ENABLE_GL)
 #include "render_context/render_context.h"
 #endif
@@ -40,6 +41,13 @@ void RSUploadTextureThread::PostTask(const std::function<void()>& task)
     }
 }
 
+void RSUploadTextureThread::PostSyncTask(const std::function<void()>& task)
+{
+    if (handler_) {
+        handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
+}
+
 void RSUploadTextureThread::PostTask(const std::function<void()>& task, const std::string& name)
 {
     if (handler_) {
@@ -58,6 +66,10 @@ void RSUploadTextureThread::RemoveTask(const std::string& name)
 #ifndef USE_ROSEN_DRAWING
 void RSUploadTextureThread::InitRenderContext(RenderContext* context)
 {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return;
+    }
     renderContext_ = context;
     PostTask([this]() {
         grContext_ = CreateShareGrContext();
@@ -66,6 +78,10 @@ void RSUploadTextureThread::InitRenderContext(RenderContext* context)
 
 void RSUploadTextureThread::CreateShareEglContext()
 {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return;
+    }
     if (renderContext_ == nullptr) {
         RS_LOGE("renderContext_ is nullptr.");
         return;
@@ -83,11 +99,19 @@ void RSUploadTextureThread::CreateShareEglContext()
 
 sk_sp<GrDirectContext> RSUploadTextureThread::GetShareGrContext() const
 {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return nullptr;
+    }
     return grContext_;
 }
 
 sk_sp<GrDirectContext> RSUploadTextureThread::CreateShareGrContext()
 {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return nullptr;
+    }
     RS_TRACE_NAME("CreateShareGrContext");
     CreateShareEglContext();
     const GrGLInterface* glGlInterface = GrGLCreateNativeInterface();
@@ -118,6 +142,10 @@ sk_sp<GrDirectContext> RSUploadTextureThread::CreateShareGrContext()
 
 void RSUploadTextureThread::CleanGrResource()
 {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return;
+    }
     PostTask([this]() {
         RS_TRACE_NAME("ResetGrContext release resource");
         if (grContext_ == nullptr) {

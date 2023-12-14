@@ -14,10 +14,11 @@
  */
 
 #include "skia_color_space.h"
-
+#include "skia_data.h"
 #include "skia_image.h"
 
 #include "image/image.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -91,6 +92,36 @@ sk_sp<SkColorSpace> SkiaColorSpace::GetColorSpace() const
 {
     return colorSpace_;
 }
+
+sk_sp<SkColorSpace> SkiaColorSpace::GetSkColorSpace() const
+{
+    return colorSpace_;
+}
+
+std::shared_ptr<Data> SkiaColorSpace::Serialize() const
+{
+    if (colorSpace_ == nullptr) {
+        LOGE("SkiaColorSpace::Serialize, colorSpace_ is nullptr!");
+        return nullptr;
+    }
+
+    auto skData = colorSpace_->serialize();
+    std::shared_ptr<Data> data = std::make_shared<Data>();
+    data->GetImpl<SkiaData>()->SetSkData(skData);
+    return data;
+}
+
+bool SkiaColorSpace::Deserialize(std::shared_ptr<Data> data)
+{
+    if (data == nullptr) {
+        LOGE("SkiaColorSpace::Deserialize, data is invalid!");
+        return false;
+    }
+
+    colorSpace_ = SkColorSpace::Deserialize(data->GetData(), data->GetSize());
+    return true;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

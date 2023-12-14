@@ -132,11 +132,13 @@ bool RSRenderServiceConnectHub::Connect()
         }
     }
 
+    mutex_.lock();
     if (token_ == nullptr) {
         token_ = new IRemoteStub<RSIConnectionToken>();
     }
-
     sptr<RSIRenderServiceConnection> conn = renderService->CreateConnection(token_);
+    mutex_.unlock();
+
     if (conn == nullptr) {
         ROSEN_LOGE("RSRenderServiceConnectHub::Connect, failed to CreateConnection to render service.");
         return false;
@@ -146,7 +148,7 @@ bool RSRenderServiceConnectHub::Connect()
         std::lock_guard<std::mutex> lock(mutex_);
         renderService_ = renderService;
         conn_ = conn;
-    
+
         if (onConnectCallback_) {
             onConnectCallback_(conn_);
         }
@@ -160,6 +162,9 @@ void RSRenderServiceConnectHub::ConnectDied()
     mutex_.lock();
     RS_LOGI("RSRenderServiceConnectHub::ConnectDied lock pid: %{public}d", getpid());
     renderService_ = nullptr;
+    if (conn_) {
+        conn_->RunOnRemoteDiedCallback();
+    }
     conn_ = nullptr;
     deathRecipient_ = nullptr;
     token_ = nullptr;

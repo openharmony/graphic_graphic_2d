@@ -18,15 +18,34 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
+#ifndef USE_ROSEN_DRAWING
 sk_sp<SkTextBlob> TexgineTextBlob::GetTextBlob() const
+#else
+std::shared_ptr<RSTextBlob> TexgineTextBlob::GetTextBlob() const
+#endif
 {
     return textBlob_;
 }
 
+#ifndef USE_ROSEN_DRAWING
 void TexgineTextBlob::SetTextBlob(const sk_sp<SkTextBlob> textBlob)
+#else
+void TexgineTextBlob::SetTextBlob(const std::shared_ptr<RSTextBlob> textBlob)
+#endif
 {
     textBlob_ = textBlob;
 }
+
+void TexgineTextBlob::GetGlyphIDs(std::vector<SkGlyphID>& glyphIds)
+{
+    GetGlyphIDforTextBlob(textBlob_.get(), glyphIds);
+}
+
+SkPath TexgineTextBlob::GetPathbyGlyphID(const SkGlyphID& glyphId)
+{
+    return GetPathforTextBlob(glyphId, textBlob_.get());
+}
+
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS

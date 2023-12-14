@@ -22,7 +22,11 @@ using namespace testing;
 using namespace testing::ext;
 
 struct MockVars {
+#ifndef USE_ROSEN_DRAWING
     std::shared_ptr<SkPath> skPath_ = std::make_shared<SkPath>();
+#else
+    std::shared_ptr<RSPath> skPath_ = std::make_shared<RSPath>();
+#endif
 };
 
 namespace {
@@ -64,7 +68,11 @@ HWTEST_F(TexginePathTest, SetAndGet, TestSize.Level1)
 HWTEST_F(TexginePathTest, MoveTo, TestSize.Level1)
 {
     std::shared_ptr<TexginePath> tp = std::make_shared<TexginePath>();
+#ifndef USE_ROSEN_DRAWING
     std::shared_ptr<SkPath> sp = nullptr;
+#else
+    std::shared_ptr<RSPath> sp = nullptr;
+#endif
     TexginePoint p = {0.0, 0.0};
     EXPECT_NO_THROW({
         tp->MoveTo(p);
@@ -81,7 +89,11 @@ HWTEST_F(TexginePathTest, MoveTo, TestSize.Level1)
 HWTEST_F(TexginePathTest, QuadTo, TestSize.Level1)
 {
     std::shared_ptr<TexginePath> tp = std::make_shared<TexginePath>();
+#ifndef USE_ROSEN_DRAWING
     std::shared_ptr<SkPath> sp = nullptr;
+#else
+    std::shared_ptr<RSPath> sp = nullptr;
+#endif
     TexginePoint p1 = {0.0, 0.0};
     TexginePoint p2 = {0.0, 0.0};
     EXPECT_NO_THROW({
@@ -99,7 +111,11 @@ HWTEST_F(TexginePathTest, QuadTo, TestSize.Level1)
 HWTEST_F(TexginePathTest, LineTo, TestSize.Level1)
 {
     std::shared_ptr<TexginePath> tp = std::make_shared<TexginePath>();
+#ifndef USE_ROSEN_DRAWING
     std::shared_ptr<SkPath> sp = nullptr;
+#else
+    std::shared_ptr<RSPath> sp = nullptr;
+#endif
     TexginePoint p = {0.0, 0.0};
     EXPECT_NO_THROW({
         tp->LineTo(p);

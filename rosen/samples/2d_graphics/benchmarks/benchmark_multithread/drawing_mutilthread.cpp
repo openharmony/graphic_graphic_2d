@@ -23,7 +23,7 @@ void DrawingMultithread::Start()
 void DrawingMultithread::Stop()
 {
 }
-void DrawingMultithread::Test(SkCanvas* canvas, int width, int height)
+void DrawingMultithread::Test(Drawing::Canvas* canvas, int width, int height)
 {
 }
 

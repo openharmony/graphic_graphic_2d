@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "platform/drawing/rs_surface_converter.h"
 #if defined(NEW_RENDER_CONTEXT)
 #include "render_backend/ohos/rs_render_surface_ohos.h"
@@ -45,12 +46,21 @@ sptr<Surface> RSSurfaceConverter::ConvertToOhosSurface(std::shared_ptr<RSSurface
         return nullptr;
     }
 #if defined(ACE_ENABLE_VK)
-    auto derivedPtr = std::static_pointer_cast<RSSurfaceOhosVulkan>(surface); // gpu render
-#elif defined(ACE_ENABLE_GL)
-    auto derivedPtr = std::static_pointer_cast<RSSurfaceOhosGl>(surface); // gpu render
-#else
-    auto derivedPtr = std::static_pointer_cast<RSSurfaceOhosRaster>(surface); // cpu render
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        auto derivedPtr = std::static_pointer_cast<RSSurfaceOhosVulkan>(surface); // gpu render
+        return derivedPtr->GetSurface();
+    }
 #endif
+
+#if defined(ACE_ENABLE_GL)
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        auto derivedPtr = std::static_pointer_cast<RSSurfaceOhosGl>(surface); // gpu render
+        return derivedPtr->GetSurface();
+    }
+#endif
+
+    auto derivedPtr = std::static_pointer_cast<RSSurfaceOhosRaster>(surface); // cpu render
     return derivedPtr->GetSurface();
 }
 #endif

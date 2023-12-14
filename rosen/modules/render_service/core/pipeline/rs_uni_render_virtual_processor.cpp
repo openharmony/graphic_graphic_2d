@@ -42,12 +42,14 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
         isExpand_ = false;
     }
 
-    boundsWidth_ = node.GetRenderProperties().GetBoundsWidth();
-    boundsHeight_ = node.GetRenderProperties().GetBoundsHeight();
+    auto screenManager = CreateOrGetScreenManager();
+    auto mirrorScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
+    canvasRotation_ = screenManager->GetCanvasRotation(node.GetScreenId());
+    mirrorWidth_ = static_cast<float>(mirrorScreenInfo.width);
+    mirrorHeight_ = static_cast<float>(mirrorScreenInfo.height);
 
     renderFrameConfig_.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA;
 
-    auto screenManager = CreateOrGetScreenManager();
     producerSurface_ = screenManager->GetProducerSurface(node.GetScreenId());
     if (producerSurface_ == nullptr) {
         RS_LOGE("RSUniRenderVirtualProcessor::Init for Screen(id %{public}" PRIu64 "): ProducerSurface is null!",
@@ -64,10 +66,14 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
     }
     auto mirrorNode = node.GetMirrorSource().lock();
     isPhone_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
+    if (mirrorNode) {
+        mainScreenRotation_ = mirrorNode->GetScreenRotation();
+        RS_LOGD("RSUniRenderVirtualProcessor::Init, Screen(id %{public}" PRIu64 "), Rotation: %d", node.GetScreenId(),
+            static_cast<uint32_t>(mainScreenRotation_));
+    }
     if (mirrorNode && node.IsFirstTimeToProcessor()) {
-        auto rotation = mirrorNode->GetScreenRotation();
         if (isPhone_) {
-            node.setFirstTimeScreenRotation(rotation);
+            node.setFirstTimeScreenRotation(mainScreenRotation_);
         } else {
             auto boundsGeoPtr = (mirrorNode->GetRenderProperties().GetBoundsGeometry());
             if (boundsGeoPtr != nullptr) {
@@ -75,34 +81,54 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
                 node.SetInitMatrix(boundsGeoPtr->GetMatrix());
             }
         }
-        RS_LOGD("RSUniRenderVirtualProcessor::Init, Screen(id %{public}" PRIu64 "), Rotation: %d", node.GetScreenId(),
-            static_cast<uint32_t>(rotation));
     }
-    if (mirrorNode && isPhone_) {
-        if (node.getFirstTimeScreenRotation() == ScreenRotation::ROTATION_90) {
-            canvas_->rotate(90, renderFrameConfig_.height / 2.0f, renderFrameConfig_.height / 2.0f); // 90 degrees
-            canvas_->translate(0, renderFrameConfig_.height - renderFrameConfig_.width);
-        } else if (node.getFirstTimeScreenRotation() == ScreenRotation::ROTATION_180) {
-            canvas_->rotate(180, renderFrameConfig_.width / 2.0f, renderFrameConfig_.height / 2.0f); // 180 degrees
-        } else if (node.getFirstTimeScreenRotation() == ScreenRotation::ROTATION_270) {
-            canvas_->rotate(270, renderFrameConfig_.height / 2.0f, renderFrameConfig_.height / 2.0f); // 270 degrees
-        }
-    } else {
 #ifndef USE_ROSEN_DRAWING
-    SkMatrix invertMatrix;
-    if (node.GetInitMatrix().invert(&invertMatrix)) {
-        screenTransformMatrix_.postConcat(invertMatrix);
+    if (mirrorNode && isPhone_) {
+        CanvasRotation(node.getFirstTimeScreenRotation(), renderFrameConfig_.width, renderFrameConfig_.height);
+    } else {
+        SkMatrix invertMatrix;
+        if (node.GetInitMatrix().invert(&invertMatrix)) {
+            screenTransformMatrix_.postConcat(invertMatrix);
+        }
+        canvas_->concat(screenTransformMatrix_);
     }
-    canvas_->concat(screenTransformMatrix_);
 #else
-    Drawing::Matrix invertMatrix;
-    if (node.GetInitMatrix().Invert(invertMatrix)) {
-        screenTransformMatrix_ = screenTransformMatrix_ * invertMatrix;
+    if (mirrorNode && isPhone_) {
+        CanvasRotation(node.getFirstTimeScreenRotation(), renderFrameConfig_.width, renderFrameConfig_.height);
+    } else {
+        Drawing::Matrix invertMatrix;
+        if (node.GetInitMatrix().Invert(invertMatrix)) {
+            screenTransformMatrix_ = screenTransformMatrix_ * invertMatrix;
+        }
+        canvas_->ConcatMatrix(screenTransformMatrix_);
     }
-    canvas_->ConcatMatrix(screenTransformMatrix_);
 #endif
-    }
     return true;
+}
+
+void RSUniRenderVirtualProcessor::CanvasRotation(ScreenRotation screenRotation, float width, float height)
+{
+#ifndef USE_ROSEN_DRAWING
+    if (screenRotation == ScreenRotation::ROTATION_90) {
+        canvas_->translate(width / 2.0f, height / 2.0f);
+        canvas_->rotate(90); // 90 degrees
+    } else if (screenRotation == ScreenRotation::ROTATION_180) {
+        canvas_->rotate(180, width / 2.0f, height / 2.0f); // 180 degrees
+    } else if (screenRotation == ScreenRotation::ROTATION_270) {
+        canvas_->translate(width / 2.0f, height / 2.0f);
+        canvas_->rotate(270); // 270 degrees
+    }
+#else
+    if (screenRotation == ScreenRotation::ROTATION_90) {
+        canvas_->Translate(width / 2.0f, height / 2.0f);
+        canvas_->Rotate(90, 0, 0); // 90 degrees
+    } else if (screenRotation == ScreenRotation::ROTATION_180) {
+        canvas_->Rotate(180, width / 2.0f, height / 2.0f); // 180 degrees
+    } else if (screenRotation == ScreenRotation::ROTATION_270) {
+        canvas_->Translate(width / 2.0f, height / 2.0f);
+        canvas_->Rotate(270, 0, 0); // 270 degrees
+    }
+#endif
 }
 
 void RSUniRenderVirtualProcessor::PostProcess(RSDisplayRenderNode* node)
@@ -134,14 +160,26 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
             return;
         }
 
+        const auto& property = node.GetRenderProperties();
+        auto geoPtr = (property.GetBoundsGeometry());
+        if (geoPtr) {
+#ifndef USE_ROSEN_DRAWING
+            canvas_->setMatrix(geoPtr->GetAbsMatrix());
+#else
+            canvas_->SetMatrix(geoPtr->GetAbsMatrix());
+#endif
+        }
+
+#ifndef USE_ROSEN_DRAWING
         canvas_->save();
         canvas_->clear(SK_ColorBLACK);
-#ifndef USE_ROSEN_DRAWING
         SkMatrix invertMatrix;
         if (screenTransformMatrix_.invert(&invertMatrix)) {
             canvas_->concat(invertMatrix);
         }
 #else
+        canvas_->Save();
+        canvas_->Clear(Drawing::Color::COLOR_BLACK);
         Drawing::Matrix invertMatrix;
         if (screenTransformMatrix_.Invert(invertMatrix)) {
             canvas_->ConcatMatrix(invertMatrix);
@@ -149,32 +187,96 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
 #endif
         auto params = RSUniRenderUtil::CreateBufferDrawParam(node, forceCPU_);
         auto screenManager = CreateOrGetScreenManager();
-        auto mainScreenInfo = screenManager->QueryScreenInfo(screenManager->GetDefaultScreenId());
+        auto mainScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
         float mainWidth = static_cast<float>(mainScreenInfo.width);
         float mainHeight = static_cast<float>(mainScreenInfo.height);
+        if ((RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0) || canvasRotation_) {
+            std::swap(mainWidth, mainHeight);
+            if (canvasRotation_) {
+                CanvasRotation(mainScreenRotation_, mirrorWidth_, mirrorHeight_);
+            }
+        }
+        
         // If the width and height not match the main screen, calculate the dstRect.
-        if (mainWidth != boundsWidth_ || mainHeight != boundsHeight_) {
+        if (mainWidth != mirrorWidth_ || mainHeight != mirrorHeight_) {
+#ifndef USE_ROSEN_DRAWING
             SkRect mirrorDstRect;
-            if ((boundsHeight_ / boundsWidth_) < (mainHeight / mainWidth)) {
-                float mirrorScale = boundsHeight_ / mainHeight;
-                mirrorDstRect = SkRect::MakeXYWH((boundsWidth_ - (mirrorScale * mainWidth)) / 2, 0, // 2 for calc X
-                    mirrorScale * mainWidth, boundsHeight_);
-            } else if ((boundsHeight_ / boundsWidth_) > (mainHeight / mainWidth)) {
-                float mirrorScale = boundsWidth_ / mainWidth;
-                mirrorDstRect = SkRect::MakeXYWH(0, (boundsHeight_ - (mirrorScale * mainHeight)) / 2, // 2 for calc Y
-                    boundsWidth_, mirrorScale * mainHeight);
+            if ((mirrorHeight_ / mirrorWidth_) < (mainHeight / mainWidth)) {
+                float mirrorScale = mirrorHeight_ / mainHeight;
+                if (canvasRotation_) {
+                    mirrorDstRect = SkRect::MakeXYWH(-(mirrorHeight_ / 2.0f),
+                        -(mirrorWidth_ / 2.0f) + ((mirrorWidth_ - (mirrorScale * mainWidth)) / 2.0f),
+                        mirrorHeight_, mirrorScale * mainWidth);
+                } else {
+                    mirrorDstRect = SkRect::MakeXYWH((mirrorWidth_ - (mirrorScale * mainWidth)) / 2.0f, 0,
+                        mirrorScale * mainWidth, mirrorHeight_);
+                }
+            } else if ((mirrorHeight_ / mirrorWidth_) > (mainHeight / mainWidth)) {
+                float mirrorScale = mirrorWidth_ / mainWidth;
+                if (canvasRotation_) {
+                    mirrorDstRect = SkRect::MakeXYWH(-(mirrorHeight_ / 2.0f) +
+                        ((mirrorHeight_ - (mirrorScale * mainHeight)) / 2.0f), -(mirrorWidth_ / 2.0f),
+                        mirrorScale * mainHeight, mirrorWidth_);
+                } else {
+                    mirrorDstRect = SkRect::MakeXYWH(0,
+                        (mirrorHeight_ - (mirrorScale * mainHeight)) / 2.0f,
+                        mirrorWidth_, mirrorScale * mainHeight);
+                }
             }
             params.dstRect = mirrorDstRect;
+#else
+            Drawing::Rect mirrorDstRect;
+            if ((mirrorHeight_ / mirrorWidth_) < (mainHeight / mainWidth)) {
+                float mirrorScale = mirrorHeight_ / mainHeight;
+                if (canvasRotation_) {
+                    mirrorDstRect = Drawing::Rect(-(mirrorHeight_ / 2.0f),
+                        -(mirrorWidth_ / 2.0f) + ((mirrorWidth_ - (mirrorScale * mainWidth)) / 2.0f),
+                        mirrorHeight_, mirrorScale * mainWidth);
+                } else {
+                    mirrorDstRect = Drawing::Rect((mirrorWidth_ - (mirrorScale * mainWidth)) / 2.0f, 0,
+                        mirrorScale * mainWidth + mirrorWidth_ - (mirrorScale * mainWidth) / 2.0f, mirrorHeight_);
+                }
+            } else if ((mirrorHeight_ / mirrorWidth_) > (mainHeight / mainWidth)) {
+                float mirrorScale = mirrorWidth_ / mainWidth;
+                if (canvasRotation_) {
+                    mirrorDstRect = Drawing::Rect(-(mirrorHeight_ / 2.0f) +
+                        ((mirrorHeight_ - (mirrorScale * mainHeight)) / 2.0f), -(mirrorWidth_ / 2.0f),
+                        mirrorScale * mainHeight, mirrorWidth_);
+                } else {
+                    mirrorDstRect = Drawing::Rect(0, (mirrorHeight_ - (mirrorScale * mainHeight)) / 2.0f,
+                        mirrorWidth_, mirrorScale * mainHeight + (mirrorHeight_ - (mirrorScale * mainHeight)) / 2.0f);
+                }
+            }
+            params.dstRect = mirrorDstRect;
+#endif
+        } else {
+            if (canvasRotation_) {
+#ifndef USE_ROSEN_DRAWING
+                canvas_->translate(-(mirrorHeight_ / 2.0f), -(mirrorWidth_ / 2.0f));
+#else
+                canvas_->Translate(-(mirrorHeight_ / 2.0f), -(mirrorWidth_ / 2.0f));
+#endif
+            }
+            
         }
 
         renderEngine_->DrawDisplayNodeWithParams(*canvas_, node, params);
+#ifndef USE_ROSEN_DRAWING
         canvas_->restore();
+#else
+        canvas_->Restore();
+#endif
     }
 }
 
 void RSUniRenderVirtualProcessor::ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node)
 {
     RS_LOGI("RSUniRenderVirtualProcessor::ProcessDrivenSurface() is not supported.");
+}
+
+void RSUniRenderVirtualProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)
+{
+    RS_LOGI("RSUniRenderVirtualProcessor::ProcessRcdSurface() is not supported.");
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -19,20 +19,25 @@ module_output_path = "graphic_2d/rosen/modules/render_service_client"
 
 ohos_unittest("RSAnimationTest") {
   module_out_path = module_output_path
-
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
   sources = [
     "rs_animation_base_test.cpp",
+    "rs_animation_callback_test.cpp",
     "rs_animation_group_test.cpp",
     "rs_animation_supplement_test.cpp",
     "rs_animation_test.cpp",
     "rs_animation_timing_curve_test.cpp",
     "rs_curve_animation_test.cpp",
+    "rs_implicit_animator_test.cpp",
     "rs_keyframe_animation_test.cpp",
     "rs_motion_path_option_test.cpp",
     "rs_node_animate_supplement_test.cpp",
     "rs_path_animation_test.cpp",
     "rs_showing_properties_freezer_test.cpp",
     "rs_spring_animation_test.cpp",
+    "rs_transition_effect_test.cpp",
     "rs_transition_test.cpp",
   ]
 

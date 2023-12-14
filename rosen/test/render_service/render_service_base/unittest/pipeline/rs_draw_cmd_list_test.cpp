@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#ifndef USE_ROSEN_DRAWING
 #include <gtest/gtest.h>
 
 #include "pipeline/rs_draw_cmd.h"
@@ -117,7 +118,7 @@ HWTEST_F(DrawCmdListTest, PlayBackForRecord002, TestSize.Level1)
     bool antiAlias = false;
     list.AddOp(std::make_unique<RoundRectOpItem>(rrect, paint));
     list.AddOp(std::make_unique<ClipRectOpItem>(rect, SkClipOp::kDifference, antiAlias));
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
     list.CheckClipRect(rect);
     list.ReplaceDrivenCmds();
 #endif
@@ -129,3 +130,4 @@ HWTEST_F(DrawCmdListTest, PlayBackForRecord002, TestSize.Level1)
 }
 } // namespace Rosen
 } // namespace OHOS
+#endif

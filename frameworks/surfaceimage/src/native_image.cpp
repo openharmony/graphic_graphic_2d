@@ -17,12 +17,14 @@
 #include "surface.h"
 #include "surface_image.h"
 #include "window.h"
+#include "surface_utils.h"
 
 using namespace OHOS;
 
 struct OH_NativeImage {
     OHOS::sptr<OHOS::SurfaceImage> consumer;
     OHOS::sptr<OHOS::IBufferProducer> producer;
+    OHOS::sptr<OHOS::Surface> pSurface = nullptr;
     struct NativeWindow* nativeWindow = nullptr;
 };
 
@@ -46,9 +48,11 @@ OHNativeWindow* OH_NativeImage_AcquireNativeWindow(OH_NativeImage* image)
     }
 
     if (image->nativeWindow == nullptr) {
-        sptr<OHOS::IBufferProducer> producer = image->producer;
-        sptr<OHOS::Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
-        image->nativeWindow = CreateNativeWindowFromSurface(&pSurface);
+        if (image->pSurface == nullptr) {
+            image->pSurface = Surface::CreateSurfaceAsProducer(image->producer);
+        }
+        BLOGE_CHECK_AND_RETURN_RET(image->pSurface != nullptr, nullptr, "pSurface is null");
+        image->nativeWindow = CreateNativeWindowFromSurface(&(image->pSurface));
     }
 
     return image->nativeWindow;
@@ -99,13 +103,52 @@ int32_t OH_NativeImage_GetTransformMatrix(OH_NativeImage* image, float matrix[16
     return image->consumer->GetTransformMatrix(matrix);
 }
 
+int32_t OH_NativeImage_GetSurfaceId(OH_NativeImage* image, uint64_t* surfaceId)
+{
+    if (image == nullptr || surfaceId == nullptr || image->consumer == nullptr) {
+        BLOGE("parameter error, please check input parameter");
+        return SURFACE_ERROR_ERROR;
+    }
+    *surfaceId = image->consumer->GetUniqueId();
+
+    if (image->pSurface == nullptr) {
+        image->pSurface = Surface::CreateSurfaceAsProducer(image->producer);
+    }
+    BLOGE_CHECK_AND_RETURN_RET(image->pSurface != nullptr, SURFACE_ERROR_ERROR, "pSurface is null");
+    SurfaceUtils* utils = SurfaceUtils::GetInstance();
+    utils->Add(*surfaceId, image->pSurface);
+    return SURFACE_ERROR_OK;
+}
+
+int32_t OH_NativeImage_SetOnFrameAvailableListener(OH_NativeImage* image, OH_OnFrameAvailableListener listener)
+{
+    if (image == nullptr || image->consumer == nullptr) {
+        BLOGE("parameter error, please check input parameter");
+        return SURFACE_ERROR_ERROR;
+    }
+    return image->consumer->SetOnBufferAvailableListener(listener.context, listener.onFrameAvailable);
+}
+
+int32_t OH_NativeImage_UnsetOnFrameAvailableListener(OH_NativeImage* image)
+{
+    if (image == nullptr || image->consumer == nullptr) {
+        BLOGE("parameter error, please check input parameter");
+        return SURFACE_ERROR_ERROR;
+    }
+    return image->consumer->UnsetOnBufferAvailableListener();
+}
+
 void OH_NativeImage_Destroy(OH_NativeImage** image)
 {
     if (image == nullptr || *image == nullptr) {
         BLOGE("parameter error, please check input parameter");
         return;
     }
-
+    if ((*image)->consumer != nullptr) {
+        (void)(*image)->consumer->UnsetOnBufferAvailableListener();
+    }
+    SurfaceUtils* utils = SurfaceUtils::GetInstance();
+    utils->Remove((*image)->consumer->GetUniqueId());
     if ((*image)->nativeWindow != nullptr) {
         DestoryNativeWindow((*image)->nativeWindow);
         (*image)->nativeWindow = nullptr;

@@ -29,29 +29,11 @@ void DrawingSinglethread::Stop()
     std::cout << "DrawingSinglethread::Stop-" << std::endl;
 }
 
-void DrawingSinglethread::Test(SkCanvas* canvas, int width, int height)
+void DrawingSinglethread::Test(Drawing::Canvas* canvas, int width, int height)
 {
-    std::cout << "DrawingSinglethread::Test+" << std::endl;
-    SkBitmap bitmap;
-    bitmap.allocN32Pixels(width, height);
+    std::cout << "DrawingSinglethread::Test bypass+" << std::endl;
 
-    SkCanvas skiaCanvas(bitmap);
-
-    SkPaint paint;
-    paint.setAntiAlias(true);
-    paint.setColor(0xFF9A67BE);
-    paint.setStrokeWidth(20); // storke width
-    skiaCanvas.skew(1, 0); // skew in direction x and y
-    skiaCanvas.drawLine(32, 96,32, 160, paint); // point position
-    skiaCanvas.skew(-2, 0); // skew in direction x and y
-    skiaCanvas.drawLine(288, 96, 288, 160, paint); // point position
-
-#ifdef NEW_SKIA
-    canvas->drawImage(bitmap.asImage(), 0, 0);
-#else
-    canvas->drawBitmap(bitmap, 0, 0);
-#endif
-    std::cout << "DrawingSinglethread::Test-" << std::endl;
+    std::cout << "DrawingSinglethread::Test bypass-" << std::endl;
 }
 
 void DrawingSinglethread::Output()

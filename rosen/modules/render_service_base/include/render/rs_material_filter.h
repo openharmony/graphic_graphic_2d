@@ -34,6 +34,7 @@
 #include "effect/color_matrix.h"
 #include "effect/image_filter.h"
 #endif
+#include "property/rs_color_picker_cache_task.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -76,7 +77,6 @@ public:
     ~RSMaterialFilter() override;
     std::shared_ptr<RSFilter> TransformFilter(float fraction) const;
     bool IsValid() const override;
-    bool IsPartialValid() const override;
 #ifndef USE_ROSEN_DRAWING
     void PreProcess(sk_sp<SkImage> image) override;
 #else
@@ -109,6 +109,7 @@ public:
     bool IsNearEqual(
         const std::shared_ptr<RSFilter>& other, float threshold = std::numeric_limits<float>::epsilon()) const override;
     bool IsNearZero(float threshold = std::numeric_limits<float>::epsilon()) const override;
+    void ReleaseColorPicker();
 
 private:
     BLUR_COLOR_MODE colorMode_;
@@ -122,15 +123,18 @@ private:
     sk_sp<SkImageFilter> CreateMaterialStyle(MATERIAL_BLUR_STYLE style, float dipScale, float ratio);
     sk_sp<SkImageFilter> CreateMaterialFilter(float radius, float sat, float brightness);
 #else
+    std::shared_ptr<Drawing::ColorFilter> GetColorFilter(float sat, float brightness);
     std::shared_ptr<Drawing::ImageFilter> CreateMaterialStyle(MATERIAL_BLUR_STYLE style, float dipScale, float ratio);
     std::shared_ptr<Drawing::ImageFilter> CreateMaterialFilter(float radius, float sat, float brightness);
 #endif
     static float RadiusVp2Sigma(float radiusVp, float dipScale);
 
 #ifndef USE_ROSEN_DRAWING
-    bool useKawase_ = false;
-#endif
     sk_sp<SkColorFilter> colorFilter_;
+#else
+    std::shared_ptr<Drawing::ColorFilter> colorFilter_;
+#endif
+    std::shared_ptr<RSColorPickerCacheTask> colorPickerTask_;
     friend class RSMarshallingHelper;
 };
 } // namespace Rosen

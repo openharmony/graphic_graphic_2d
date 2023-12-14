@@ -15,6 +15,7 @@
 
 #include "recording/draw_cmd.h"
 
+#include "platform/common/rs_system_properties.h"
 #include "recording/cmd_list_helper.h"
 #include "recording/draw_cmd_list.h"
 #include "recording/mem_allocator.h"
@@ -38,93 +39,153 @@
 #include "effect/shader_effect.h"
 #include "utils/scalar.h"
 #include "utils/log.h"
+#include "utils/system_properties.h"
+#include "draw/surface.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-std::unordered_map<uint32_t, CanvasPlayer::PlaybackFunc> CanvasPlayer::opPlaybackFuncLUT_ = {
-    { DrawOpItem::POINT_OPITEM,             DrawPointOpItem::Playback },
-    { DrawOpItem::POINTS_OPITEM,            DrawPointsOpItem::Playback },
-    { DrawOpItem::LINE_OPITEM,              DrawLineOpItem::Playback },
-    { DrawOpItem::RECT_OPITEM,              DrawRectOpItem::Playback },
-    { DrawOpItem::ROUND_RECT_OPITEM,        DrawRoundRectOpItem::Playback },
-    { DrawOpItem::NESTED_ROUND_RECT_OPITEM, DrawNestedRoundRectOpItem::Playback },
-    { DrawOpItem::ARC_OPITEM,               DrawArcOpItem::Playback },
-    { DrawOpItem::PIE_OPITEM,               DrawPieOpItem::Playback },
-    { DrawOpItem::OVAL_OPITEM,              DrawOvalOpItem::Playback },
-    { DrawOpItem::CIRCLE_OPITEM,            DrawCircleOpItem::Playback },
-    { DrawOpItem::PATH_OPITEM,              DrawPathOpItem::Playback },
-    { DrawOpItem::BACKGROUND_OPITEM,        DrawBackgroundOpItem::Playback },
-    { DrawOpItem::SHADOW_OPITEM,            DrawShadowOpItem::Playback },
-    { DrawOpItem::COLOR_OPITEM,             DrawColorOpItem::Playback },
-    { DrawOpItem::IMAGE_NINE_OPITEM,        DrawImageNineOpItem::Playback },
-    { DrawOpItem::IMAGE_ANNOTATION_OPITEM,  DrawAnnotationOpItem::Playback },
-    { DrawOpItem::IMAGE_LATTICE_OPITEM,     DrawImageLatticeOpItem::Playback },
-    { DrawOpItem::BITMAP_OPITEM,            DrawBitmapOpItem::Playback },
-    { DrawOpItem::IMAGE_OPITEM,             DrawImageOpItem::Playback },
-    { DrawOpItem::IMAGE_RECT_OPITEM,        DrawImageRectOpItem::Playback },
-    { DrawOpItem::PICTURE_OPITEM,           DrawPictureOpItem::Playback },
-    { DrawOpItem::TEXT_BLOB_OPITEM,         DrawTextBlobOpItem::Playback },
-    { DrawOpItem::CLIP_RECT_OPITEM,         ClipRectOpItem::Playback },
-    { DrawOpItem::CLIP_IRECT_OPITEM,        ClipIRectOpItem::Playback },
-    { DrawOpItem::CLIP_ROUND_RECT_OPITEM,   ClipRoundRectOpItem::Playback },
-    { DrawOpItem::CLIP_PATH_OPITEM,         ClipPathOpItem::Playback },
-    { DrawOpItem::CLIP_REGION_OPITEM,       ClipRegionOpItem::Playback },
-    { DrawOpItem::SET_MATRIX_OPITEM,        SetMatrixOpItem::Playback },
-    { DrawOpItem::RESET_MATRIX_OPITEM,      ResetMatrixOpItem::Playback },
-    { DrawOpItem::CONCAT_MATRIX_OPITEM,     ConcatMatrixOpItem::Playback },
-    { DrawOpItem::TRANSLATE_OPITEM,         TranslateOpItem::Playback },
-    { DrawOpItem::SCALE_OPITEM,             ScaleOpItem::Playback },
-    { DrawOpItem::ROTATE_OPITEM,            RotateOpItem::Playback },
-    { DrawOpItem::SHEAR_OPITEM,             ShearOpItem::Playback },
-    { DrawOpItem::FLUSH_OPITEM,             FlushOpItem::Playback },
-    { DrawOpItem::CLEAR_OPITEM,             ClearOpItem::Playback },
-    { DrawOpItem::SAVE_OPITEM,              SaveOpItem::Playback },
-    { DrawOpItem::SAVE_LAYER_OPITEM,        SaveLayerOpItem::Playback },
-    { DrawOpItem::RESTORE_OPITEM,           RestoreOpItem::Playback },
-    { DrawOpItem::DISCARD_OPITEM,           DiscardOpItem::Playback },
-    { DrawOpItem::ATTACH_PEN_OPITEM,        AttachPenOpItem::Playback },
-    { DrawOpItem::ATTACH_BRUSH_OPITEM,      AttachBrushOpItem::Playback },
-    { DrawOpItem::DETACH_PEN_OPITEM,        DetachPenOpItem::Playback },
-    { DrawOpItem::DETACH_BRUSH_OPITEM,      DetachBrushOpItem::Playback },
-    { DrawOpItem::CLIP_ADAPTIVE_ROUND_RECT_OPITEM, ClipAdaptiveRoundRectOpItem::Playback},
-    { DrawOpItem::ADAPTIVE_IMAGE_OPITEM,    DrawAdaptiveImageOpItem::Playback},
-    { DrawOpItem::ADAPTIVE_PIXELMAP_OPITEM, DrawAdaptivePixelMapOpItem::Playback},
-    { DrawOpItem::EXTEND_PIXELMAP_OPITEM,   DrawExtendPixelMapOpItem::Playback},
-    { DrawOpItem::IMAGE_WITH_PARM_OPITEM,   DrawImageWithParmOpItem::Playback},
-    { DrawOpItem::REGION_OPITEM,            DrawRegionOpItem::Playback },
-    { DrawOpItem::PATCH_OPITEM,             DrawPatchOpItem::Playback },
-    { DrawOpItem::EDGEAAQUAD_OPITEM, DrawEdgeAAQuadOpItem::Playback },
-    { DrawOpItem::VERTICES_OPITEM,          DrawVerticesOpItem::Playback },
-};
-
-CanvasPlayer::CanvasPlayer(Canvas& canvas, const CmdList& cmdList, const Rect& rect)
-    : canvas_(canvas), cmdList_(cmdList), rect_(rect) {}
-
-bool CanvasPlayer::Playback(uint32_t type, void* opItem)
+namespace {
+void BrushHandleToBrush(const BrushHandle& brushHandle, const CmdList& cmdList, Brush& brush)
 {
-    if (type == DrawOpItem::OPITEM_HEAD) {
-        return true;
+    brush.SetBlendMode(brushHandle.mode);
+    brush.SetAntiAlias(brushHandle.isAntiAlias);
+
+    if (brushHandle.colorSpaceHandle.size) {
+        auto colorSpace = CmdListHelper::GetColorSpaceFromCmdList(cmdList, brushHandle.colorSpaceHandle);
+        const Color4f color4f = { brushHandle.color.GetRedF(), brushHandle.color.GetGreenF(),
+                                  brushHandle.color.GetBlueF(), brushHandle.color.GetAlphaF() };
+        brush.SetColor(color4f, colorSpace);
+    } else {
+        brush.SetColor(brushHandle.color);
     }
 
-    auto it = opPlaybackFuncLUT_.find(type);
-    if (it == opPlaybackFuncLUT_.end() || it->second == nullptr) {
+    if (brushHandle.shaderEffectHandle.size) {
+        auto shaderEffect = CmdListHelper::GetShaderEffectFromCmdList(cmdList, brushHandle.shaderEffectHandle);
+        brush.SetShaderEffect(shaderEffect);
+    }
+
+    Filter filter;
+    bool hasFilter = false;
+    if (brushHandle.colorFilterHandle.size) {
+        auto colorFilter = CmdListHelper::GetColorFilterFromCmdList(cmdList, brushHandle.colorFilterHandle);
+        filter.SetColorFilter(colorFilter);
+        hasFilter = true;
+    }
+    if (brushHandle.imageFilterHandle.size) {
+        auto imageFilter = CmdListHelper::GetImageFilterFromCmdList(cmdList, brushHandle.imageFilterHandle);
+        filter.SetImageFilter(imageFilter);
+        hasFilter = true;
+    }
+    if (brushHandle.maskFilterHandle.size) {
+        auto maskFilter = CmdListHelper::GetMaskFilterFromCmdList(cmdList, brushHandle.maskFilterHandle);
+        filter.SetMaskFilter(maskFilter);
+        hasFilter = true;
+    }
+
+    if (hasFilter) {
+        filter.SetFilterQuality(brushHandle.filterQuality);
+        brush.SetFilter(filter);
+    }
+}
+
+void PenHandleToPen(const PenHandle& penHandle, const CmdList& cmdList, Pen& pen)
+{
+    pen.SetWidth(penHandle.width);
+    pen.SetMiterLimit(penHandle.miterLimit);
+    pen.SetCapStyle(penHandle.capStyle);
+    pen.SetJoinStyle(penHandle.joinStyle);
+    pen.SetBlendMode(penHandle.mode);
+    pen.SetAntiAlias(penHandle.isAntiAlias);
+
+    if (penHandle.colorSpaceHandle.size) {
+        auto colorSpace = CmdListHelper::GetColorSpaceFromCmdList(cmdList, penHandle.colorSpaceHandle);
+        const Color4f color4f = { penHandle.color.GetRedF(), penHandle.color.GetGreenF(),
+                                  penHandle.color.GetBlueF(), penHandle.color.GetAlphaF() };
+        pen.SetColor(color4f, colorSpace);
+    } else {
+        pen.SetColor(penHandle.color);
+    }
+
+    if (penHandle.shaderEffectHandle.size) {
+        auto shaderEffect = CmdListHelper::GetShaderEffectFromCmdList(cmdList, penHandle.shaderEffectHandle);
+        pen.SetShaderEffect(shaderEffect);
+    }
+
+    if (penHandle.pathEffectHandle.size) {
+        auto pathEffect = CmdListHelper::GetPathEffectFromCmdList(cmdList, penHandle.pathEffectHandle);
+        pen.SetPathEffect(pathEffect);
+    }
+
+    Filter filter;
+    bool hasFilter = false;
+    if (penHandle.colorFilterHandle.size) {
+        auto colorFilter = CmdListHelper::GetColorFilterFromCmdList(cmdList, penHandle.colorFilterHandle);
+        filter.SetColorFilter(colorFilter);
+        hasFilter = true;
+    }
+    if (penHandle.imageFilterHandle.size) {
+        auto imageFilter = CmdListHelper::GetImageFilterFromCmdList(cmdList, penHandle.imageFilterHandle);
+        filter.SetImageFilter(imageFilter);
+        hasFilter = true;
+    }
+    if (penHandle.maskFilterHandle.size) {
+        auto maskFilter = CmdListHelper::GetMaskFilterFromCmdList(cmdList, penHandle.maskFilterHandle);
+        filter.SetMaskFilter(maskFilter);
+        hasFilter = true;
+    }
+
+    if (hasFilter) {
+        filter.SetFilterQuality(penHandle.filterQuality);
+        pen.SetFilter(filter);
+    }
+}
+}
+
+GenerateCachedOpItemPlayer::GenerateCachedOpItemPlayer(CmdList &cmdList, Canvas* canvas, const Rect* rect)
+    : canvas_(canvas), rect_(rect), cmdList_(cmdList) {}
+
+bool GenerateCachedOpItemPlayer::GenerateCachedOpItem(uint32_t type, void* handle)
+{
+    if (handle == nullptr) {
         return false;
     }
 
-    auto func = it->second;
-    (*func)(*this, opItem);
+    if (type == DrawOpItem::TEXT_BLOB_OPITEM) {
+        auto* op = static_cast<DrawTextBlobOpItem::ConstructorHandle*>(handle);
+        return op->GenerateCachedOpItem(cmdList_, canvas_,
+            static_cast<AttachPenOpItem::ConstructorHandle*>(penOpHandle_),
+            static_cast<AttachBrushOpItem::ConstructorHandle*>(brushOpHandle_));
+    }
 
-    return true;
+    if (type == DrawOpItem::ATTACH_PEN_OPITEM) {
+        penOpHandle_ = handle;
+    } else if (type == DrawOpItem::ATTACH_BRUSH_OPITEM) {
+        brushOpHandle_ = handle;
+    } else if (type == DrawOpItem::DETACH_PEN_OPITEM) {
+        penOpHandle_ = nullptr;
+    } else if (type == DrawOpItem::DETACH_BRUSH_OPITEM) {
+        brushOpHandle_ = nullptr;
+    }
+    return false;
 }
 
 std::unordered_map<uint32_t, UnmarshallingPlayer::UnmarshallingFunc> UnmarshallingPlayer::opUnmarshallingFuncLUT_ = {
+    { DrawOpItem::CMD_LIST_OPITEM,          DrawCmdListOpItem::Unmarshalling },
+    { DrawOpItem::POINT_OPITEM,             DrawPointOpItem::Unmarshalling },
     { DrawOpItem::POINTS_OPITEM,            DrawPointsOpItem::Unmarshalling },
+    { DrawOpItem::LINE_OPITEM,              DrawLineOpItem::Unmarshalling },
+    { DrawOpItem::RECT_OPITEM,              DrawRectOpItem::Unmarshalling },
     { DrawOpItem::ROUND_RECT_OPITEM,        DrawRoundRectOpItem::Unmarshalling },
     { DrawOpItem::NESTED_ROUND_RECT_OPITEM, DrawNestedRoundRectOpItem::Unmarshalling },
+    { DrawOpItem::ARC_OPITEM,               DrawArcOpItem::Unmarshalling },
+    { DrawOpItem::PIE_OPITEM,               DrawPieOpItem::Unmarshalling },
+    { DrawOpItem::OVAL_OPITEM,              DrawOvalOpItem::Unmarshalling },
+    { DrawOpItem::CIRCLE_OPITEM,            DrawCircleOpItem::Unmarshalling },
     { DrawOpItem::PATH_OPITEM,              DrawPathOpItem::Unmarshalling },
     { DrawOpItem::BACKGROUND_OPITEM,        DrawBackgroundOpItem::Unmarshalling },
     { DrawOpItem::SHADOW_OPITEM,            DrawShadowOpItem::Unmarshalling },
+    { DrawOpItem::COLOR_OPITEM,             DrawColorOpItem::Unmarshalling },
     { DrawOpItem::IMAGE_NINE_OPITEM,        DrawImageNineOpItem::Unmarshalling },
     { DrawOpItem::IMAGE_ANNOTATION_OPITEM,  DrawAnnotationOpItem::Unmarshalling },
     { DrawOpItem::IMAGE_LATTICE_OPITEM,     DrawImageLatticeOpItem::Unmarshalling },
@@ -133,1917 +194,1413 @@ std::unordered_map<uint32_t, UnmarshallingPlayer::UnmarshallingFunc> Unmarshalli
     { DrawOpItem::IMAGE_RECT_OPITEM,        DrawImageRectOpItem::Unmarshalling },
     { DrawOpItem::PICTURE_OPITEM,           DrawPictureOpItem::Unmarshalling },
     { DrawOpItem::TEXT_BLOB_OPITEM,         DrawTextBlobOpItem::Unmarshalling },
+    { DrawOpItem::CLIP_RECT_OPITEM,         ClipRectOpItem::Unmarshalling },
+    { DrawOpItem::CLIP_IRECT_OPITEM,        ClipIRectOpItem::Unmarshalling },
     { DrawOpItem::CLIP_ROUND_RECT_OPITEM,   ClipRoundRectOpItem::Unmarshalling },
     { DrawOpItem::CLIP_PATH_OPITEM,         ClipPathOpItem::Unmarshalling },
     { DrawOpItem::CLIP_REGION_OPITEM,       ClipRegionOpItem::Unmarshalling },
+    { DrawOpItem::SET_MATRIX_OPITEM,        SetMatrixOpItem::Unmarshalling },
+    { DrawOpItem::RESET_MATRIX_OPITEM,      ResetMatrixOpItem::Unmarshalling },
+    { DrawOpItem::CONCAT_MATRIX_OPITEM,     ConcatMatrixOpItem::Unmarshalling },
+    { DrawOpItem::TRANSLATE_OPITEM,         TranslateOpItem::Unmarshalling },
+    { DrawOpItem::SCALE_OPITEM,             ScaleOpItem::Unmarshalling },
+    { DrawOpItem::ROTATE_OPITEM,            RotateOpItem::Unmarshalling },
+    { DrawOpItem::SHEAR_OPITEM,             ShearOpItem::Unmarshalling },
+    { DrawOpItem::FLUSH_OPITEM,             FlushOpItem::Unmarshalling },
+    { DrawOpItem::CLEAR_OPITEM,             ClearOpItem::Unmarshalling },
+    { DrawOpItem::SAVE_OPITEM,              SaveOpItem::Unmarshalling },
     { DrawOpItem::SAVE_LAYER_OPITEM,        SaveLayerOpItem::Unmarshalling },
+    { DrawOpItem::RESTORE_OPITEM,           RestoreOpItem::Unmarshalling },
+    { DrawOpItem::DISCARD_OPITEM,           DiscardOpItem::Unmarshalling },
     { DrawOpItem::ATTACH_PEN_OPITEM,        AttachPenOpItem::Unmarshalling },
     { DrawOpItem::ATTACH_BRUSH_OPITEM,      AttachBrushOpItem::Unmarshalling },
+    { DrawOpItem::DETACH_PEN_OPITEM,        DetachPenOpItem::Unmarshalling },
+    { DrawOpItem::DETACH_BRUSH_OPITEM,      DetachBrushOpItem::Unmarshalling },
     { DrawOpItem::CLIP_ADAPTIVE_ROUND_RECT_OPITEM, ClipAdaptiveRoundRectOpItem::Unmarshalling},
     { DrawOpItem::ADAPTIVE_IMAGE_OPITEM,    DrawAdaptiveImageOpItem::Unmarshalling},
     { DrawOpItem::ADAPTIVE_PIXELMAP_OPITEM, DrawAdaptivePixelMapOpItem::Unmarshalling},
+    { DrawOpItem::IMAGE_WITH_PARM_OPITEM,   DrawImageWithParmOpItem::Unmarshalling},
+    { DrawOpItem::PIXELMAP_WITH_PARM_OPITEM, DrawPixelMapWithParmOpItem::Unmarshalling},
+    { DrawOpItem::PIXELMAP_RECT_OPITEM,     DrawPixelMapRectOpItem::Unmarshalling},
     { DrawOpItem::REGION_OPITEM,            DrawRegionOpItem::Unmarshalling },
     { DrawOpItem::PATCH_OPITEM,             DrawPatchOpItem::Unmarshalling },
     { DrawOpItem::EDGEAAQUAD_OPITEM, DrawEdgeAAQuadOpItem::Unmarshalling },
     { DrawOpItem::VERTICES_OPITEM,          DrawVerticesOpItem::Unmarshalling },
+#ifdef ROSEN_OHOS
+    { DrawOpItem::SURFACEBUFFER_OPITEM,          DrawSurfaceBufferOpItem::Unmarshalling },
+#endif
 };
 
-UnmarshallingPlayer::UnmarshallingPlayer(const CmdList& cmdList)
-    : cmdList_(cmdList) {}
+UnmarshallingPlayer::UnmarshallingPlayer(const CmdList& cmdList) : cmdList_(cmdList) {}
 
-bool UnmarshallingPlayer::Unmarshalling(uint32_t type, void* opItem)
+std::shared_ptr<DrawOpItem> UnmarshallingPlayer::Unmarshalling(uint32_t type, void* handle)
 {
     if (type == DrawOpItem::OPITEM_HEAD) {
-        return true;
+        return nullptr;
     }
 
     auto it = opUnmarshallingFuncLUT_.find(type);
     if (it == opUnmarshallingFuncLUT_.end() || it->second == nullptr) {
-        return false;
+        return nullptr;
     }
 
     auto func = it->second;
-    (*func)(this->cmdList_, opItem);
+    return (*func)(this->cmdList_, handle);
+}
 
+DrawCmdListOpItem::DrawCmdListOpItem(const CmdList& cmdList, DrawCmdListOpItem::ConstructorHandle* handle)
+    : DrawOpItem(CMD_LIST_OPITEM)
+{
+    opItems_ = CmdListHelper::GetDrawOpItemsFromHandle(cmdList, handle->handle);
+}
+
+std::shared_ptr<DrawOpItem> DrawCmdListOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawCmdListOpItem>(cmdList, static_cast<DrawCmdListOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawCmdListOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    for (auto op : opItems_) {
+        op->Playback(canvas, rect);
+    }
+}
+
+/* DrawPointOpItem */
+DrawPointOpItem::DrawPointOpItem(DrawPointOpItem::ConstructorHandle* handle)
+    : DrawOpItem(POINT_OPITEM), point_(handle->point) {}
+
+std::shared_ptr<DrawOpItem> DrawPointOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawPointOpItem>(static_cast<DrawPointOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawPointOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    canvas->DrawPoint(point_);
+}
+
+/* DrawPointsOpItem */
+DrawPointsOpItem::DrawPointsOpItem(const CmdList& cmdList, DrawPointsOpItem::ConstructorHandle* handle)
+    : DrawOpItem(POINTS_OPITEM), mode_(handle->mode)
+{
+    pts_ = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, handle->pts);
+}
+
+std::shared_ptr<DrawOpItem> DrawPointsOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawPointsOpItem>(cmdList, static_cast<DrawPointsOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawPointsOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    canvas->DrawPoints(mode_, pts_.size(), pts_.data());
+}
+
+/* DrawLineOpItem */
+DrawLineOpItem::DrawLineOpItem(DrawLineOpItem::ConstructorHandle* handle)
+    : DrawOpItem(LINE_OPITEM), startPt_(handle->startPt), endPt_(handle->endPt) {}
+
+std::shared_ptr<DrawOpItem> DrawLineOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawLineOpItem>(static_cast<DrawLineOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawLineOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    canvas->DrawLine(startPt_, endPt_);
+}
+
+/* DrawRectOpItem */
+DrawRectOpItem::DrawRectOpItem(DrawRectOpItem::ConstructorHandle* handle)
+    : DrawOpItem(RECT_OPITEM), rect_(handle->rect) {}
+
+std::shared_ptr<DrawOpItem> DrawRectOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawRectOpItem>(static_cast<DrawRectOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawRectOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    canvas->DrawRect(rect_);
+}
+
+/* DrawRoundRectOpItem */
+DrawRoundRectOpItem::DrawRoundRectOpItem(DrawRoundRectOpItem::ConstructorHandle* handle)
+    : DrawOpItem(ROUND_RECT_OPITEM), rrect_(handle->rrect) {}
+
+std::shared_ptr<DrawOpItem> DrawRoundRectOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawRoundRectOpItem>(static_cast<DrawRoundRectOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawRoundRectOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    canvas->DrawRoundRect(rrect_);
+}
+
+/* DrawNestedRoundRectOpItem */
+DrawNestedRoundRectOpItem::DrawNestedRoundRectOpItem(DrawNestedRoundRectOpItem::ConstructorHandle* handle)
+    : DrawOpItem(NESTED_ROUND_RECT_OPITEM), outerRRect_(handle->outerRRect), innerRRect_(handle->innerRRect) {}
+
+std::shared_ptr<DrawOpItem> DrawNestedRoundRectOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawNestedRoundRectOpItem>(
+        static_cast<DrawNestedRoundRectOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawNestedRoundRectOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    canvas->DrawNestedRoundRect(outerRRect_, innerRRect_);
+}
+
+/* DrawArcOpItem */
+DrawArcOpItem::DrawArcOpItem(DrawArcOpItem::ConstructorHandle* handle)
+    : DrawOpItem(ARC_OPITEM), rect_(handle->rect), startAngle_(handle->startAngle), sweepAngle_(handle->sweepAngle) {}
+
+std::shared_ptr<DrawOpItem> DrawArcOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawArcOpItem>(static_cast<DrawArcOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawArcOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    canvas->DrawArc(rect_, startAngle_, sweepAngle_);
+}
+
+/* DrawPieOpItem */
+DrawPieOpItem::DrawPieOpItem(DrawPieOpItem::ConstructorHandle* handle)
+    : DrawOpItem(PIE_OPITEM), rect_(handle->rect), startAngle_(handle->startAngle), sweepAngle_(handle->sweepAngle) {}
+
+std::shared_ptr<DrawOpItem> DrawPieOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawPieOpItem>(static_cast<DrawPieOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawPieOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    canvas->DrawPie(rect_, startAngle_, sweepAngle_);
+}
+
+/* DrawOvalOpItem */
+DrawOvalOpItem::DrawOvalOpItem(DrawOvalOpItem::ConstructorHandle* handle)
+    : DrawOpItem(OVAL_OPITEM), rect_(handle->rect) {}
+
+std::shared_ptr<DrawOpItem> DrawOvalOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawOvalOpItem>(static_cast<DrawOvalOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawOvalOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    canvas->DrawOval(rect_);
+}
+
+/* DrawCircleOpItem */
+DrawCircleOpItem::DrawCircleOpItem(DrawCircleOpItem::ConstructorHandle* handle)
+    : DrawOpItem(CIRCLE_OPITEM), centerPt_(handle->centerPt), radius_(handle->radius) {}
+
+std::shared_ptr<DrawOpItem> DrawCircleOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawCircleOpItem>(static_cast<DrawCircleOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawCircleOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    canvas->DrawCircle(centerPt_, radius_);
+}
+
+/* DrawPathOpItem */
+DrawPathOpItem::DrawPathOpItem(const CmdList& cmdList, DrawPathOpItem::ConstructorHandle* handle)
+    : DrawOpItem(PATH_OPITEM)
+{
+    path_ = CmdListHelper::GetPathFromCmdList(cmdList, handle->path);
+}
+
+std::shared_ptr<DrawOpItem> DrawPathOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawPathOpItem>(cmdList, static_cast<DrawPathOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawPathOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (path_ == nullptr) {
+        LOGE("DrawPathOpItem path is null!");
+        return;
+    }
+    canvas->DrawPath(*path_);
+}
+
+/* DrawBackgroundOpItem */
+DrawBackgroundOpItem::DrawBackgroundOpItem(const CmdList& cmdList, DrawBackgroundOpItem::ConstructorHandle* handle)
+    : DrawOpItem(BACKGROUND_OPITEM)
+{
+    BrushHandleToBrush(handle->brushHandle, cmdList, brush_);
+}
+
+std::shared_ptr<DrawOpItem> DrawBackgroundOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawBackgroundOpItem>(
+        cmdList, static_cast<DrawBackgroundOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawBackgroundOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    canvas->DrawBackground(brush_);
+}
+
+/* DrawShadowOpItem */
+DrawShadowOpItem::DrawShadowOpItem(const CmdList& cmdList, DrawShadowOpItem::ConstructorHandle* handle)
+    : DrawOpItem(SHADOW_OPITEM), planeParams_(handle->planeParams), devLightPos_(handle->devLightPos),
+    lightRadius_(handle->lightRadius), ambientColor_(handle->ambientColor),
+    spotColor_(handle->spotColor), flag_(handle->flag)
+{
+    path_ = CmdListHelper::GetPathFromCmdList(cmdList, handle->path);
+}
+
+std::shared_ptr<DrawOpItem> DrawShadowOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawShadowOpItem>(cmdList, static_cast<DrawShadowOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawShadowOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (path_ == nullptr) {
+        LOGE("DrawShadowOpItem path is null!");
+        return;
+    }
+    canvas->DrawShadow(*path_, planeParams_, devLightPos_, lightRadius_,
+                       ambientColor_, spotColor_, flag_);
+}
+
+/* DrawRegionOpItem */
+DrawRegionOpItem::DrawRegionOpItem(const CmdList& cmdList, DrawRegionOpItem::ConstructorHandle* handle)
+    : DrawOpItem(REGION_OPITEM)
+{
+    region_ = CmdListHelper::GetFromCmdList<RegionCmdList, Region>(cmdList, handle->region);
+}
+
+std::shared_ptr<DrawOpItem> DrawRegionOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawRegionOpItem>(cmdList, static_cast<DrawRegionOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawRegionOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (region_ == nullptr) {
+        LOGE("DrawRegionOpItem region is nullptr!");
+        return;
+    }
+    canvas->DrawRegion(*region_);
+}
+
+/* DrawPatchOpItem */
+DrawPatchOpItem::DrawPatchOpItem(const CmdList& cmdList, DrawPatchOpItem::ConstructorHandle* handle)
+    : DrawOpItem(PATCH_OPITEM), mode_(handle->mode)
+{
+    cubics_ = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, handle->cubics);
+    colors_ = CmdListHelper::GetVectorFromCmdList<ColorQuad>(cmdList, handle->colors);
+    texCoords_ = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, handle->texCoords);
+}
+
+std::shared_ptr<DrawOpItem> DrawPatchOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawPatchOpItem>(cmdList, static_cast<DrawPatchOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawPatchOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    canvas->DrawPatch(cubics_.empty() ? nullptr : cubics_.data(),
+                      colors_.empty() ? nullptr : colors_.data(),
+                      texCoords_.empty() ? nullptr : texCoords_.data(),
+                      mode_);
+}
+
+/* DrawEdgeAAQuadOpItem */
+DrawEdgeAAQuadOpItem::DrawEdgeAAQuadOpItem(const CmdList& cmdList, DrawEdgeAAQuadOpItem::ConstructorHandle* handle)
+    : DrawOpItem(EDGEAAQUAD_OPITEM), rect_(handle->rect),  aaFlags_(handle->aaFlags),
+    color_(handle->color), mode_(handle->mode)
+{
+    clipQuad_ = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, handle->clipQuad);
+}
+
+std::shared_ptr<DrawOpItem> DrawEdgeAAQuadOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawEdgeAAQuadOpItem>(
+        cmdList, static_cast<DrawEdgeAAQuadOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawEdgeAAQuadOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    canvas->DrawEdgeAAQuad(rect_, clipQuad_.empty() ? nullptr : clipQuad_.data(), aaFlags_, color_, mode_);
+}
+
+/* DrawVerticesOpItem */
+DrawVerticesOpItem::DrawVerticesOpItem(const CmdList& cmdList, DrawVerticesOpItem::ConstructorHandle* handle)
+    : DrawOpItem(VERTICES_OPITEM), mode_(handle->mode)
+{
+    vertices_ = CmdListHelper::GetVerticesFromCmdList(cmdList, handle->vertices);
+}
+
+std::shared_ptr<DrawOpItem> DrawVerticesOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawVerticesOpItem>(cmdList, static_cast<DrawVerticesOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawVerticesOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (vertices_ == nullptr) {
+        LOGE("DrawVerticesOpItem vertices is null");
+        return;
+    }
+    canvas->DrawVertices(*vertices_, mode_);
+}
+
+/* DrawColorOpItem */
+DrawColorOpItem::DrawColorOpItem(DrawColorOpItem::ConstructorHandle* handle)
+    : DrawOpItem(COLOR_OPITEM), color_(handle->color), mode_(handle->mode) {}
+
+std::shared_ptr<DrawOpItem> DrawColorOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawColorOpItem>(static_cast<DrawColorOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawColorOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    canvas->DrawColor(color_, mode_);
+}
+
+/* DrawImageNineOpItem */
+DrawImageNineOpItem::DrawImageNineOpItem(const CmdList& cmdList, DrawImageNineOpItem::ConstructorHandle* handle)
+    : DrawOpItem(IMAGE_NINE_OPITEM), center_(handle->center), dst_(handle->dst), filter_(handle->filter),
+    hasBrush_(handle->hasBrush)
+{
+    image_ = CmdListHelper::GetImageFromCmdList(cmdList, handle->image);
+    if (hasBrush_) {
+        BrushHandleToBrush(handle->brushHandle, cmdList, brush_);
+    }
+}
+
+std::shared_ptr<DrawOpItem> DrawImageNineOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawImageNineOpItem>(cmdList, static_cast<DrawImageNineOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawImageNineOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (image_ == nullptr) {
+        LOGE("DrawImageNineOpItem image is null");
+        return;
+    }
+    Brush* brushPtr = hasBrush_ ? &brush_ : nullptr;
+    canvas->DrawImageNine(image_.get(), center_, dst_, filter_, brushPtr);
+}
+
+/* DrawAnnotationOpItem */
+DrawAnnotationOpItem::DrawAnnotationOpItem(const CmdList& cmdList, DrawAnnotationOpItem::ConstructorHandle* handle)
+    : DrawOpItem(IMAGE_ANNOTATION_OPITEM), rect_(handle->rect), key_(handle->key)
+{
+    data_ = CmdListHelper::GetDataFromCmdList(cmdList, handle->data);
+}
+
+std::shared_ptr<DrawOpItem> DrawAnnotationOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawAnnotationOpItem>(
+        cmdList, static_cast<DrawAnnotationOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawAnnotationOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (data_ == nullptr) {
+        LOGE("DrawAnnotationOpItem data is null");
+        return;
+    }
+    canvas->DrawAnnotation(rect_, key_, data_.get());
+}
+
+/* DrawImageLatticeOpItem */
+DrawImageLatticeOpItem::DrawImageLatticeOpItem(
+    const CmdList& cmdList, DrawImageLatticeOpItem::ConstructorHandle* handle)
+    : DrawOpItem(IMAGE_LATTICE_OPITEM), lattice_(handle->lattice), dst_(handle->dst), filter_(handle->filter),
+    hasBrush_(handle->hasBrush)
+{
+    image_ = CmdListHelper::GetImageFromCmdList(cmdList, handle->image);
+    if (hasBrush_) {
+        BrushHandleToBrush(handle->brushHandle, cmdList, brush_);
+    }
+}
+
+std::shared_ptr<DrawOpItem> DrawImageLatticeOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawImageLatticeOpItem>(
+        cmdList, static_cast<DrawImageLatticeOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawImageLatticeOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (image_ == nullptr) {
+        LOGE("DrawImageNineOpItem image is null");
+        return;
+    }
+    Brush* brushPtr = hasBrush_ ? &brush_ : nullptr;
+    canvas->DrawImageLattice(image_.get(), lattice_, dst_, filter_, brushPtr);
+}
+
+/* DrawBitmapOpItem */
+DrawBitmapOpItem::DrawBitmapOpItem(const CmdList& cmdList, DrawBitmapOpItem::ConstructorHandle* handle)
+    : DrawOpItem(BITMAP_OPITEM), px_(handle->px), py_(handle->py)
+{
+    bitmap_ = CmdListHelper::GetBitmapFromCmdList(cmdList, handle->bitmap);
+}
+
+std::shared_ptr<DrawOpItem> DrawBitmapOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawBitmapOpItem>(cmdList, static_cast<DrawBitmapOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawBitmapOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (bitmap_ == nullptr) {
+        LOGE("DrawBitmapOpItem bitmap is null");
+        return;
+    }
+    canvas->DrawBitmap(*bitmap_, px_, py_);
+}
+
+/* DrawImageOpItem */
+DrawImageOpItem::DrawImageOpItem(const CmdList& cmdList, DrawImageOpItem::ConstructorHandle* handle)
+    : DrawOpItem(IMAGE_OPITEM), px_(handle->px), py_(handle->py), samplingOptions_(handle->samplingOptions)
+{
+    image_ = CmdListHelper::GetImageFromCmdList(cmdList, handle->image);
+}
+
+std::shared_ptr<DrawOpItem> DrawImageOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawImageOpItem>(cmdList, static_cast<DrawImageOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawImageOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (image_ == nullptr) {
+        LOGE("DrawImageOpItem image is null");
+        return;
+    }
+    canvas->DrawImage(*image_, px_, py_, samplingOptions_);
+}
+
+/* DrawImageRectOpItem */
+DrawImageRectOpItem::DrawImageRectOpItem(const CmdList& cmdList, DrawImageRectOpItem::ConstructorHandle* handle)
+    : DrawOpItem(IMAGE_RECT_OPITEM), src_(handle->src), dst_(handle->dst), sampling_(handle->sampling),
+    constraint_(handle->constraint)
+{
+    image_ = CmdListHelper::GetImageFromCmdList(cmdList, handle->image);
+}
+
+std::shared_ptr<DrawOpItem> DrawImageRectOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawImageRectOpItem>(cmdList, static_cast<DrawImageRectOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawImageRectOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (image_ == nullptr) {
+        LOGE("DrawImageRectOpItem image is null");
+        return;
+    }
+    canvas->DrawImageRect(*image_, src_, dst_, sampling_, constraint_);
+}
+
+/* DrawPictureOpItem */
+DrawPictureOpItem::DrawPictureOpItem(const CmdList& cmdList, DrawPictureOpItem::ConstructorHandle* handle)
+    : DrawOpItem(PICTURE_OPITEM)
+{
+    picture_ = CmdListHelper::GetPictureFromCmdList(cmdList, handle->picture);
+}
+
+std::shared_ptr<DrawOpItem> DrawPictureOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawPictureOpItem>(cmdList, static_cast<DrawPictureOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawPictureOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (picture_ == nullptr) {
+        LOGE("DrawPictureOpItem picture is null");
+        return;
+    }
+    canvas->DrawPicture(*picture_);
+}
+
+/* DrawTextBlobOpItem */
+DrawTextBlobOpItem::DrawTextBlobOpItem(const CmdList& cmdList, DrawTextBlobOpItem::ConstructorHandle* handle)
+    : DrawOpItem(TEXT_BLOB_OPITEM), x_(handle->x), y_(handle->y)
+{
+    textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList, handle->textBlob);
+}
+
+std::shared_ptr<DrawOpItem> DrawTextBlobOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawTextBlobOpItem>(cmdList, static_cast<DrawTextBlobOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawTextBlobOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (textBlob_ == nullptr) {
+        LOGE("DrawTextBlobOpItem textBlob is null");
+        return;
+    }
+    canvas->DrawTextBlob(textBlob_.get(), x_, y_);
+}
+
+bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(std::shared_ptr<CmdList> cacheCmdList,
+    const TextBlob* textBlob, Canvas* canvas, std::optional<Brush> brush, std::optional<Pen> pen)
+{
+    if (!textBlob) {
+        LOGE("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return false;
+    }
+
+    auto bounds = textBlob->Bounds();
+    if (!bounds || !bounds->IsValid()) {
+        return false;
+    }
+    bounds->Offset(x, y);
+
+    // create CPU raster surface
+    Drawing::ImageInfo offscreenInfo { bounds->GetWidth(), bounds->GetHeight(),
+        Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL, nullptr};
+    std::shared_ptr<Surface> offscreenSurface = Surface::MakeRaster(offscreenInfo);
+    if (offscreenSurface == nullptr) {
+        return false;
+    }
+    auto offscreenCanvas = offscreenSurface->GetCanvas();
+    if (offscreenCanvas == nullptr) {
+        return false;
+    }
+    if (bounds->GetLeft() != 0 || bounds->GetTop() != 0) {
+        offscreenCanvas->Translate(-bounds->GetLeft(), -bounds->GetTop());
+    }
+
+    //OffscreenCanvas used once, detach is unnecessary, FakeBrush/Pen avoid affecting ImageRectOp, attach is necessary.
+    if (brush.has_value()) {
+        offscreenCanvas->AttachBrush(brush.value());
+    }
+    if (pen.has_value()) {
+        offscreenCanvas->AttachPen(pen.value());
+    }
+    offscreenCanvas->DrawTextBlob(textBlob, x, y);
+    if (brush.has_value()) {
+        Brush fakeBrush;
+        fakeBrush.SetAntiAlias(true);
+        canvas->AttachBrush(fakeBrush);
+    }
+    if (pen.has_value()) {
+        Pen fakePen;
+        fakePen.SetAntiAlias(true);
+        canvas->AttachPen(fakePen);
+    }
+
+    std::shared_ptr<Image> image = offscreenSurface->GetImageSnapshot();
+    Drawing::Rect src(0, 0, image->GetWidth(), image->GetHeight());
+    Drawing::Rect dst(bounds->GetLeft(), bounds->GetTop(), bounds->GetRight(), bounds->GetBottom());
+    SamplingOptions sampling;
+    auto imageHandle = CmdListHelper::AddImageToCmdList(*cacheCmdList, image);
+    cacheCmdList->AddOp<DrawImageRectOpItem::ConstructorHandle>(
+        imageHandle, src, dst, sampling, SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     return true;
 }
 
-/* OpItem */
-DrawPointOpItem::DrawPointOpItem(const Point& point) : DrawOpItem(POINT_OPITEM), point_(point) {}
-
-void DrawPointOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawPointOpItem*>(opItem);
-        op->Playback(player.canvas_);
-    }
-}
-
-void DrawPointOpItem::Playback(Canvas& canvas)
-{
-    canvas.DrawPoint(point_);
-}
-
-DrawPointsOpItem::DrawPointsOpItem(PointMode mode, const std::pair<uint32_t, size_t> pts)
-    : DrawOpItem(POINTS_OPITEM), mode_(mode), pts_(pts) {}
-
-void DrawPointsOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawPointsOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
-}
-
-void DrawPointsOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
-{
-    auto pts = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, pts_);
-    if (canvas) {
-        canvas->DrawPoints(mode_, pts.size(), pts.data());
-    } else {
-        playbackTask_ = [this, pts](Canvas& canvas) {
-            canvas.DrawPoints(mode_, pts.size(), pts.data());
-        };
-    }
-}
-
-void DrawPointsOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawPointsOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_);
-    }
-}
-
-void DrawPointsOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
-{
-    if (playbackTask_) {
-        playbackTask_(canvas);
-    } else {
-        Unmarshalling(cmdList, &canvas);
-    }
-}
-
-DrawLineOpItem::DrawLineOpItem(const Point& startPt, const Point& endPt) : DrawOpItem(LINE_OPITEM),
-    startPt_(startPt), endPt_(endPt) {}
-
-void DrawLineOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawLineOpItem*>(opItem);
-        op->Playback(player.canvas_);
-    }
-}
-
-void DrawLineOpItem::Playback(Canvas& canvas)
-{
-    canvas.DrawLine(startPt_, endPt_);
-}
-
-DrawRectOpItem::DrawRectOpItem(const Rect& rect) : DrawOpItem(RECT_OPITEM), rect_(rect) {}
-
-void DrawRectOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawRectOpItem*>(opItem);
-        op->Playback(player.canvas_);
-    }
-}
-
-void DrawRectOpItem::Playback(Canvas& canvas)
-{
-    canvas.DrawRect(rect_);
-}
-
-DrawRoundRectOpItem::DrawRoundRectOpItem(std::pair<uint32_t, size_t> radiusXYData, const Rect& rect)
-    : DrawOpItem(ROUND_RECT_OPITEM), radiusXYData_(radiusXYData), rect_(rect) {}
-
-void DrawRoundRectOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawRoundRectOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
-}
-
-void DrawRoundRectOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
-{
-    auto radiusXYData = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, radiusXYData_);
-    RoundRect roundRect(rect_, radiusXYData);
-
-    if (canvas) {
-        canvas->DrawRoundRect(roundRect);
-    } else {
-        playbackTask_ = [roundRect](Canvas& canvas) {
-            canvas.DrawRoundRect(roundRect);
-        };
-    }
-}
-
-void DrawRoundRectOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawRoundRectOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_);
-    }
-}
-
-void DrawRoundRectOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
-{
-    if (playbackTask_) {
-        playbackTask_(canvas);
-    } else {
-        Unmarshalling(cmdList, &canvas);
-    }
-}
-
-DrawNestedRoundRectOpItem::DrawNestedRoundRectOpItem(const std::pair<uint32_t, size_t> outerRadiusXYData,
-    const Rect& outerRect, const std::pair<uint32_t, size_t> innerRadiusXYData, const Rect& innerRect)
-    : DrawOpItem(NESTED_ROUND_RECT_OPITEM), outerRadiusXYData_(outerRadiusXYData),
-    innerRadiusXYData_(innerRadiusXYData), outerRect_(outerRect), innerRect_(innerRect) {}
-
-void DrawNestedRoundRectOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawNestedRoundRectOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
-}
-
-void DrawNestedRoundRectOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
-{
-    auto outerRadiusXYData = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, outerRadiusXYData_);
-    RoundRect outerRect(outerRect_, outerRadiusXYData);
-    auto innerRadiusXYData = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, innerRadiusXYData_);
-    RoundRect innerRect(innerRect_, innerRadiusXYData);
-
-    if (canvas) {
-        canvas->DrawNestedRoundRect(outerRect, innerRect);
-    } else {
-        playbackTask_ = [this, outerRect, innerRect](Canvas& canvas) {
-            canvas.DrawNestedRoundRect(outerRect, innerRect);
-        };
-    }
-}
-
-void DrawNestedRoundRectOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawNestedRoundRectOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_);
-    }
-}
-
-void DrawNestedRoundRectOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
-{
-    if (playbackTask_) {
-        playbackTask_(canvas);
-    } else {
-        Unmarshalling(cmdList, &canvas);
-    }
-}
-
-DrawArcOpItem::DrawArcOpItem(const Rect& rect, scalar startAngle, scalar sweepAngle)
-    : DrawOpItem(ARC_OPITEM), rect_(rect), startAngle_(startAngle), sweepAngle_(sweepAngle) {}
-
-void DrawArcOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawArcOpItem*>(opItem);
-        op->Playback(player.canvas_);
-    }
-}
-
-void DrawArcOpItem::Playback(Canvas& canvas)
-{
-    canvas.DrawArc(rect_, startAngle_, sweepAngle_);
-}
-
-DrawPieOpItem::DrawPieOpItem(const Rect& rect, scalar startAngle, scalar sweepAngle)
-    : DrawOpItem(PIE_OPITEM), rect_(rect), startAngle_(startAngle), sweepAngle_(sweepAngle) {}
-
-void DrawPieOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawPieOpItem*>(opItem);
-        op->Playback(player.canvas_);
-    }
-}
-
-void DrawPieOpItem::Playback(Canvas& canvas)
-{
-    canvas.DrawPie(rect_, startAngle_, sweepAngle_);
-}
-
-DrawOvalOpItem::DrawOvalOpItem(const Rect& rect) : DrawOpItem(OVAL_OPITEM), rect_(rect) {}
-
-void DrawOvalOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawOvalOpItem*>(opItem);
-        op->Playback(player.canvas_);
-    }
-}
-
-void DrawOvalOpItem::Playback(Canvas& canvas)
-{
-    canvas.DrawOval(rect_);
-}
-
-DrawCircleOpItem::DrawCircleOpItem(const Point& centerPt, scalar radius)
-    : DrawOpItem(CIRCLE_OPITEM), centerPt_(centerPt), radius_(radius) {}
-
-void DrawCircleOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawCircleOpItem*>(opItem);
-        op->Playback(player.canvas_);
-    }
-}
-
-void DrawCircleOpItem::Playback(Canvas& canvas)
-{
-    canvas.DrawCircle(centerPt_, radius_);
-}
-
-DrawPathOpItem::DrawPathOpItem(const CmdListHandle& path) : DrawOpItem(PATH_OPITEM), path_(path) {}
-
-void DrawPathOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawPathOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
-}
-
-void DrawPathOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
-{
-    auto path = CmdListHelper::GetFromCmdList<PathCmdList, Path>(cmdList, path_);
-    if (path == nullptr) {
-        LOGE("path is nullptr!");
-        return;
-    }
-
-    if (canvas) {
-        canvas->DrawPath(*path);
-    } else {
-        playbackTask_ = [this, path](Canvas& canvas) {
-            canvas.DrawPath(*path);
-        };
-    }
-}
-
-void DrawPathOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawPathOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_);
-    }
-}
-
-void DrawPathOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
-{
-    if (playbackTask_) {
-        playbackTask_(canvas);
-    } else {
-        Unmarshalling(cmdList, &canvas);
-    }
-}
-
-DrawBackgroundOpItem::DrawBackgroundOpItem(const BrushHandle& brushHandle)
-    : DrawOpItem(BACKGROUND_OPITEM), brushHandle_(brushHandle) {}
-
-void DrawBackgroundOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawBackgroundOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
-}
-
-void DrawBackgroundOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
-{
-    auto colorSpace = CmdListHelper::GetFromCmdList<ColorSpaceCmdList, ColorSpace>(
-        cmdList, brushHandle_.colorSpaceHandle);
-    auto shaderEffect = CmdListHelper::GetFromCmdList<ShaderEffectCmdList, ShaderEffect>(
-        cmdList, brushHandle_.shaderEffectHandle);
-    auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
-        cmdList, brushHandle_.colorFilterHandle);
-    auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
-        cmdList, brushHandle_.imageFilterHandle);
-    auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
-        cmdList, brushHandle_.maskFilterHandle);
-
-    Filter filter;
-    filter.SetColorFilter(colorFilter);
-    filter.SetImageFilter(imageFilter);
-    filter.SetMaskFilter(maskFilter);
-    filter.SetFilterQuality(brushHandle_.filterQuality);
-
-    const Color4f color4f = { brushHandle_.color.GetRedF(), brushHandle_.color.GetGreenF(),
-        brushHandle_.color.GetBlueF(), brushHandle_.color.GetAlphaF() };
-
-    Brush brush;
-    brush.SetColor(color4f, colorSpace);
-    brush.SetShaderEffect(shaderEffect);
-    brush.SetBlendMode(brushHandle_.mode);
-    brush.SetAntiAlias(brushHandle_.isAntiAlias);
-    brush.SetFilter(filter);
-
-    if (canvas) {
-        canvas->DrawBackground(brush);
-    } else {
-        playbackTask_ = [this, brush](Canvas& canvas) {
-            canvas.DrawBackground(brush);
-        };
-    }
-}
-
-void DrawBackgroundOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawBackgroundOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_);
-    }
-}
-
-void DrawBackgroundOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
-{
-    if (playbackTask_) {
-        playbackTask_(canvas);
-    } else {
-        Unmarshalling(cmdList, &canvas);
-    }
-}
-
-DrawShadowOpItem::DrawShadowOpItem(const CmdListHandle& path, const Point3& planeParams, const Point3& devLightPos,
-    scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag)
-    : DrawOpItem(SHADOW_OPITEM), path_(path), planeParams_(planeParams), devLightPos_(devLightPos),
-    lightRadius_(lightRadius), ambientColor_(ambientColor), spotColor_(spotColor), flag_(flag) {}
-
-void DrawShadowOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawShadowOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
-}
-
-void DrawShadowOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
-{
-    auto path = CmdListHelper::GetFromCmdList<PathCmdList, Path>(cmdList, path_);
-    if (path == nullptr) {
-        LOGE("path is nullptr!");
-        return;
-    }
-
-    if (canvas) {
-        canvas->DrawShadow(*path, planeParams_, devLightPos_, lightRadius_,
-                           ambientColor_, spotColor_, flag_);
-    } else {
-        playbackTask_ = [this, path](Canvas& canvas) {
-            canvas.DrawShadow(*path, planeParams_, devLightPos_, lightRadius_,
-                              ambientColor_, spotColor_, flag_);
-        };
-    }
-}
-
-void DrawShadowOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawShadowOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_);
-    }
-}
-
-void DrawShadowOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
-{
-    if (playbackTask_) {
-        playbackTask_(canvas);
-    } else {
-        Unmarshalling(cmdList, &canvas);
-    }
-}
-
-DrawRegionOpItem::DrawRegionOpItem(const CmdListHandle& region) : DrawOpItem(REGION_OPITEM), region_(region) {}
-
-void DrawRegionOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawRegionOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
-}
-
-void DrawRegionOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
-{
-    auto region = CmdListHelper::GetFromCmdList<RegionCmdList, Region>(cmdList, region_);
-    if (region == nullptr) {
-        LOGE("region is nullptr!");
-        return;
-    }
-
-    if (canvas) {
-        canvas->DrawRegion(*region);
-    } else {
-        playbackTask_ = [this, region](Canvas& canvas) {
-            canvas.DrawRegion(*region);
-        };
-    }
-}
-
-void DrawRegionOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawRegionOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_);
-    }
-}
-
-void DrawRegionOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
-{
-    if (playbackTask_) {
-        playbackTask_(canvas);
-    } else {
-        Unmarshalling(cmdList, &canvas);
-    }
-}
-
-DrawPatchOpItem::DrawPatchOpItem(const std::pair<uint32_t, size_t> cubics, const std::pair<uint32_t, size_t> colors,
-    const std::pair<uint32_t, size_t> texCoords, BlendMode mode)
-    : DrawOpItem(PATCH_OPITEM), cubics_(cubics), colors_(colors), texCoords_(texCoords), mode_(mode) {}
-
-void DrawPatchOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawPatchOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
-}
-
-void DrawPatchOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
-{
-    auto cubics = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, cubics_);
-    auto colors = CmdListHelper::GetVectorFromCmdList<ColorQuad>(cmdList, colors_);
-    auto texCoords = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, texCoords_);
-
-    if (canvas) {
-        canvas->DrawPatch(cubics.empty() ? nullptr : cubics.data(),
-                          colors.empty() ? nullptr : colors.data(),
-                          texCoords.empty() ? nullptr : texCoords.data(),
-                          mode_);
-    } else {
-        playbackTask_ = [this, cubics, colors, texCoords](Canvas& canvas) {
-            canvas.DrawPatch(cubics.empty() ? nullptr : cubics.data(),
-                             colors.empty() ? nullptr : colors.data(),
-                             texCoords.empty() ? nullptr : texCoords.data(),
-                             mode_);
-        };
-    }
-}
-
-void DrawPatchOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawPatchOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_);
-    }
-}
-
-void DrawPatchOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
-{
-    if (playbackTask_) {
-        playbackTask_(canvas);
-    } else {
-        Unmarshalling(cmdList, &canvas);
-    }
-}
-
-DrawEdgeAAQuadOpItem::DrawEdgeAAQuadOpItem(const Rect& rect,
-    const std::pair<uint32_t, size_t> clipQuad, QuadAAFlags aaFlags, ColorQuad color, BlendMode mode)
-    : DrawOpItem(EDGEAAQUAD_OPITEM), rect_(rect), clipQuad_(clipQuad),
-    aaFlags_(aaFlags), color_(color), mode_(mode) {}
-
-void DrawEdgeAAQuadOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawEdgeAAQuadOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
-}
-
-void DrawEdgeAAQuadOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
-{
-    auto clip = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, clipQuad_);
-
-    if (canvas) {
-        canvas->DrawEdgeAAQuad(rect_, clip.empty() ? nullptr : clip.data(), aaFlags_, color_, mode_);
-    } else {
-        playbackTask_ = [this, clip](Canvas& canvas) {
-            canvas.DrawEdgeAAQuad(rect_, clip.empty() ? nullptr : clip.data(), aaFlags_, color_, mode_);
-        };
-    }
-}
-
-void DrawEdgeAAQuadOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawEdgeAAQuadOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_);
-    }
-}
-
-void DrawEdgeAAQuadOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
-{
-    if (playbackTask_) {
-        playbackTask_(canvas);
-    } else {
-        Unmarshalling(cmdList, &canvas);
-    }
-}
-
-DrawVerticesOpItem::DrawVerticesOpItem(const VerticesHandle& vertices, BlendMode mode)
-    : DrawOpItem(VERTICES_OPITEM), vertices_(vertices), mode_(mode) {}
-
-void DrawVerticesOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawVerticesOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
-}
-
-void DrawVerticesOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
-{
-    auto vertices = CmdListHelper::GetVerticesFromCmdList(cmdList, vertices_);
-    if (vertices == nullptr) {
-        return;
-    }
-
-    if (canvas) {
-        canvas->DrawVertices(*vertices, mode_);
-    } else {
-        playbackTask_ = [this, vertices](Canvas& canvas) {
-            canvas.DrawVertices(*vertices, mode_);
-        };
-    }
-}
-
-void DrawVerticesOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawVerticesOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_);
-    }
-}
-
-void DrawVerticesOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
-{
-    if (playbackTask_) {
-        playbackTask_(canvas);
-    } else {
-        Unmarshalling(cmdList, &canvas);
-    }
-}
-
-DrawColorOpItem::DrawColorOpItem(ColorQuad color, BlendMode mode) : DrawOpItem(COLOR_OPITEM),
-    color_(color), mode_(mode) {}
-
-void DrawColorOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawColorOpItem*>(opItem);
-        op->Playback(player.canvas_);
-    }
-}
-
-void DrawColorOpItem::Playback(Canvas& canvas)
-{
-    canvas.DrawColor(color_, mode_);
-}
-
-DrawImageNineOpItem::DrawImageNineOpItem(const ImageHandle& image, const RectI& center, const Rect& dst,
-    FilterMode filter, const BrushHandle& brushHandle, bool hasBrush) : DrawOpItem(IMAGE_NINE_OPITEM),
-    image_(std::move(image)), center_(center), dst_(dst), filter_(filter),
-    brushHandle_(brushHandle), hasBrush_(hasBrush) {}
-
-void DrawImageNineOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawImageNineOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
-}
-
-void DrawImageNineOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
-{
-    auto image = CmdListHelper::GetImageFromCmdList(cmdList, image_);
-    if (image == nullptr) {
-        return;
-    }
-
-    std::shared_ptr<Brush> brush = nullptr;
-    if (hasBrush_) {
-        auto colorSpace = CmdListHelper::GetFromCmdList<ColorSpaceCmdList, ColorSpace>(
-            cmdList, brushHandle_.colorSpaceHandle);
-        auto shaderEffect = CmdListHelper::GetFromCmdList<ShaderEffectCmdList, ShaderEffect>(
-            cmdList, brushHandle_.shaderEffectHandle);
-        auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
-            cmdList, brushHandle_.colorFilterHandle);
-        auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
-            cmdList, brushHandle_.imageFilterHandle);
-        auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
-            cmdList, brushHandle_.maskFilterHandle);
-
-        Filter filter;
-        filter.SetColorFilter(colorFilter);
-        filter.SetImageFilter(imageFilter);
-        filter.SetMaskFilter(maskFilter);
-        filter.SetFilterQuality(brushHandle_.filterQuality);
-
-        const Color4f color4f = { brushHandle_.color.GetRedF(), brushHandle_.color.GetGreenF(),
-            brushHandle_.color.GetBlueF(), brushHandle_.color.GetAlphaF() };
-
-        brush = std::make_shared<Brush>();
-        brush->SetColor(color4f, colorSpace);
-        brush->SetShaderEffect(shaderEffect);
-        brush->SetBlendMode(brushHandle_.mode);
-        brush->SetAntiAlias(brushHandle_.isAntiAlias);
-        brush->SetFilter(filter);
-    }
-
-    if (canvas) {
-        canvas->DrawImageNine(image.get(), center_, dst_, filter_, brush.get());
-    } else {
-        playbackTask_ = [this, image, brush](Canvas& canvas) {
-            canvas.DrawImageNine(image.get(), center_, dst_, filter_, brush.get());
-        };
-    }
-}
-
-void DrawImageNineOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawImageNineOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_);
-    }
-}
-
-void DrawImageNineOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
-{
-    if (playbackTask_) {
-        playbackTask_(canvas);
-    } else {
-        Unmarshalling(cmdList, &canvas);
-    }
-}
-
-DrawAnnotationOpItem::DrawAnnotationOpItem(const Rect& rect, const char* key, const ImageHandle& data)
-    : DrawOpItem(IMAGE_ANNOTATION_OPITEM),
-    rect_(rect), key_(key), data_(data) {}
-
-void DrawAnnotationOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawAnnotationOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
-}
-
-void DrawAnnotationOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
-{
-    auto data = CmdListHelper::GetDataFromCmdList(cmdList, data_);
-    if (data == nullptr) {
-        return;
-    }
-
-    if (canvas) {
-        canvas->DrawAnnotation(rect_, key_, data.get());
-    } else {
-        playbackTask_ = [this, data](Canvas& canvas) {
-            canvas.DrawAnnotation(rect_, key_, data.get());
-        };
-    }
-}
-
-void DrawAnnotationOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawAnnotationOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_);
-    }
-}
-
-void DrawAnnotationOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
-{
-    if (playbackTask_) {
-        playbackTask_(canvas);
-    } else {
-        Unmarshalling(cmdList, &canvas);
-    }
-}
-
-DrawImageLatticeOpItem::DrawImageLatticeOpItem(const ImageHandle& image, const Lattice& lattice, const Rect& dst,
-    FilterMode filter, const BrushHandle& brushHandle, bool hasBrush) : DrawOpItem(IMAGE_LATTICE_OPITEM),
-    image_(std::move(image)), lattice_(lattice), dst_(dst), filter_(filter),
-    brushHandle_(brushHandle), hasBrush_(hasBrush) {}
-
-void DrawImageLatticeOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawImageLatticeOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
-}
-
-void DrawImageLatticeOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
-{
-    auto image = CmdListHelper::GetImageFromCmdList(cmdList, image_);
-    if (image == nullptr) {
-        return;
-    }
-
-    std::shared_ptr<Brush> brush = nullptr;
-    if (hasBrush_) {
-        auto colorSpace = CmdListHelper::GetFromCmdList<ColorSpaceCmdList, ColorSpace>(
-            cmdList, brushHandle_.colorSpaceHandle);
-        auto shaderEffect = CmdListHelper::GetFromCmdList<ShaderEffectCmdList, ShaderEffect>(
-            cmdList, brushHandle_.shaderEffectHandle);
-        auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
-            cmdList, brushHandle_.colorFilterHandle);
-        auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
-            cmdList, brushHandle_.imageFilterHandle);
-        auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
-            cmdList, brushHandle_.maskFilterHandle);
-
-        Filter filter;
-        filter.SetColorFilter(colorFilter);
-        filter.SetImageFilter(imageFilter);
-        filter.SetMaskFilter(maskFilter);
-        filter.SetFilterQuality(brushHandle_.filterQuality);
-
-        const Color4f color4f = { brushHandle_.color.GetRedF(), brushHandle_.color.GetGreenF(),
-            brushHandle_.color.GetBlueF(), brushHandle_.color.GetAlphaF() };
-
-        brush = std::make_shared<Brush>();
-        brush->SetColor(color4f, colorSpace);
-        brush->SetShaderEffect(shaderEffect);
-        brush->SetBlendMode(brushHandle_.mode);
-        brush->SetAntiAlias(brushHandle_.isAntiAlias);
-        brush->SetFilter(filter);
-    }
-
-    if (canvas) {
-        canvas->DrawImageLattice(image.get(), lattice_, dst_, filter_, brush.get());
-    } else {
-        playbackTask_ = [this, image, brush](Canvas& canvas) {
-            canvas.DrawImageLattice(image.get(), lattice_, dst_, filter_, brush.get());
-        };
-    }
-}
-
-void DrawImageLatticeOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawImageLatticeOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_);
-    }
-}
-
-void DrawImageLatticeOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
-{
-    if (playbackTask_) {
-        playbackTask_(canvas);
-    } else {
-        Unmarshalling(cmdList, &canvas);
-    }
-}
-
-DrawBitmapOpItem::DrawBitmapOpItem(const ImageHandle& bitmap, scalar px, scalar py)
-    : DrawOpItem(BITMAP_OPITEM), bitmap_(bitmap), px_(px), py_(py) {}
-
-void DrawBitmapOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawBitmapOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
-}
-
-void DrawBitmapOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
-{
-    auto bitmap = CmdListHelper::GetBitmapFromCmdList(cmdList, bitmap_);
-    if (bitmap == nullptr) {
-        return;
-    }
-
-    if (canvas) {
-        canvas->DrawBitmap(*bitmap, px_, py_);
-    } else {
-        playbackTask_ = [this, bitmap](Canvas& canvas) {
-            canvas.DrawBitmap(*bitmap, px_, py_);
-        };
-    }
-}
-
-void DrawBitmapOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawBitmapOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_);
-    }
-}
-
-void DrawBitmapOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
-{
-    if (playbackTask_) {
-        playbackTask_(canvas);
-    } else {
-        Unmarshalling(cmdList, &canvas);
-    }
-}
-
-DrawImageOpItem::DrawImageOpItem(const ImageHandle& image, scalar px, scalar py,
-    const SamplingOptions& samplingOptions) : DrawOpItem(IMAGE_OPITEM),
-    image_(std::move(image)), px_(px), py_(py), samplingOptions_(samplingOptions) {}
-
-void DrawImageOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawImageOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
-}
-
-void DrawImageOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
-{
-    auto image = CmdListHelper::GetImageFromCmdList(cmdList, image_);
-    if (image == nullptr) {
-        return;
-    }
-
-    if (canvas) {
-        canvas->DrawImage(*image, px_, py_, samplingOptions_);
-    } else {
-        playbackTask_ = [this, image](Canvas& canvas) {
-            canvas.DrawImage(*image, px_, py_, samplingOptions_);
-        };
-    }
-}
-
-void DrawImageOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawImageOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_);
-    }
-}
-
-void DrawImageOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
-{
-    if (playbackTask_) {
-        playbackTask_(canvas);
-    } else {
-        Unmarshalling(cmdList, &canvas);
-    }
-}
-
-DrawImageRectOpItem::DrawImageRectOpItem(const ImageHandle& image, const Rect& src, const Rect& dst,
-    const SamplingOptions& sampling, SrcRectConstraint constraint) : DrawOpItem(IMAGE_RECT_OPITEM),
-    image_(image), src_(src), dst_(dst), sampling_(sampling), constraint_(constraint) {}
-
-void DrawImageRectOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawImageRectOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
-}
-
-void DrawImageRectOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
-{
-    auto image = CmdListHelper::GetImageFromCmdList(cmdList, image_);
-    if (image == nullptr) {
-        return;
-    }
-
-    if (canvas) {
-        canvas->DrawImageRect(*image, src_, dst_, sampling_, constraint_);
-    } else {
-        playbackTask_ = [this, image](Canvas& canvas) {
-            canvas.DrawImageRect(*image, src_, dst_, sampling_, constraint_);
-        };
-    }
-}
-
-void DrawImageRectOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawImageRectOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_);
-    }
-}
-
-void DrawImageRectOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
-{
-    if (playbackTask_) {
-        playbackTask_(canvas);
-    } else {
-        Unmarshalling(cmdList, &canvas);
-    }
-}
-
-DrawPictureOpItem::DrawPictureOpItem(const ImageHandle& picture) : DrawOpItem(PICTURE_OPITEM), picture_(picture) {}
-
-void DrawPictureOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawPictureOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
-}
-
-void DrawPictureOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
-{
-    auto picture = CmdListHelper::GetPictureFromCmdList(cmdList, picture_);
-    if (picture == nullptr) {
-        return;
-    }
-
-    if (canvas) {
-        canvas->DrawPicture(*picture);
-    } else {
-        playbackTask_ = [this, picture](Canvas& canvas) {
-            canvas.DrawPicture(*picture);
-        };
-    }
-}
-
-void DrawPictureOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawPictureOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_);
-    }
-}
-
-void DrawPictureOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
-{
-    if (playbackTask_) {
-        playbackTask_(canvas);
-    } else {
-        Unmarshalling(cmdList, &canvas);
-    }
-}
-
-DrawTextBlobOpItem::DrawTextBlobOpItem(const ImageHandle& textBlob, const scalar x, const scalar y)
-    : DrawOpItem(TEXT_BLOB_OPITEM), textBlob_(textBlob), x_(x), y_(y) {}
-
-void DrawTextBlobOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawTextBlobOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
-}
-
-void DrawTextBlobOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
-{
-    std::shared_ptr<TextBlob> textBlob = CmdListHelper::GetTextBlobFromCmdList(cmdList, textBlob_);
-    if (!textBlob) {
+bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(CmdList& cmdList, Canvas* canvas,
+    AttachPenOpItem::ConstructorHandle* penOpHandle, AttachBrushOpItem::ConstructorHandle* brushOpHandle)
+{
+    std::shared_ptr<TextBlob> textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList, textBlob);
+    if (!textBlob_) {
         LOGE("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return false;
+    }
+
+    auto bounds = textBlob_->Bounds();
+    if (!bounds || !bounds->IsValid()) {
+        return false;
+    }
+    bounds->Offset(x, y);
+
+    std::shared_ptr<Surface> offscreenSurface = nullptr;
+
+    if (auto surface = canvas != nullptr ? canvas->GetSurface() : nullptr) {
+        // create GPU accelerated surface if possible
+        offscreenSurface = surface->MakeSurface(bounds->GetWidth(), bounds->GetHeight());
+    } else {
+        // create CPU raster surface
+        Drawing::ImageInfo offscreenInfo { bounds->GetWidth(), bounds->GetHeight(),
+            Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL, nullptr};
+        offscreenSurface = Surface::MakeRaster(offscreenInfo);
+    }
+    if (offscreenSurface == nullptr) {
+        return false;
+    }
+
+    Canvas* offscreenCanvas = offscreenSurface->GetCanvas().get();
+
+    // align draw op to [0, 0]
+    if (bounds->GetLeft() != 0 || bounds->GetTop() != 0) {
+        offscreenCanvas->Translate(-bounds->GetLeft(), -bounds->GetTop());
+    }
+
+    if (penOpHandle) {
+        AttachPenOpItem::Unmarshalling(cmdList, penOpHandle)->Playback(offscreenCanvas, nullptr);
+    }
+
+    if (brushOpHandle) {
+        AttachBrushOpItem::Unmarshalling(cmdList, brushOpHandle)->Playback(offscreenCanvas, nullptr);
+    }
+
+    offscreenCanvas->DrawTextBlob(textBlob_.get(), x, y);
+
+    std::shared_ptr<Image> image = offscreenSurface->GetImageSnapshot();
+    Drawing::Rect src(0, 0, image->GetWidth(), image->GetHeight());
+    Drawing::Rect dst(bounds->GetLeft(), bounds->GetTop(),
+        bounds->GetLeft() + image->GetWidth(), bounds->GetTop() + image->GetHeight());
+    SamplingOptions sampling;
+    auto imageHandle = CmdListHelper::AddImageToCmdList(cmdList, image);
+    cmdList.AddOp<DrawImageRectOpItem::ConstructorHandle>(imageHandle, src, dst, sampling,
+        SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    return true;
+}
+
+std::shared_ptr<ImageSnapshotOpItem> DrawTextBlobOpItem::GenerateCachedOpItem(Canvas* canvas,
+    AttachPenOpItem* penOpItem, AttachBrushOpItem* brushOpItem)
+{
+    if (!textBlob_) {
+        LOGE("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+
+    auto bounds = textBlob_->Bounds();
+    if (!bounds || !bounds->IsValid()) {
+        return nullptr;
+    }
+    bounds->Offset(x_, y_);
+
+    std::shared_ptr<Surface> offscreenSurface = nullptr;
+
+    if (auto surface = canvas != nullptr ? canvas->GetSurface() : nullptr) {
+        // create GPU accelerated surface if possible
+        offscreenSurface = surface->MakeSurface(bounds->GetWidth(), bounds->GetHeight());
+    } else {
+        // create CPU raster surface
+        Drawing::ImageInfo offscreenInfo { bounds->GetWidth(), bounds->GetHeight(),
+            Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL, nullptr};
+        offscreenSurface = Surface::MakeRaster(offscreenInfo);
+    }
+    if (offscreenSurface == nullptr) {
+        return nullptr;
+    }
+
+    Canvas* offscreenCanvas = offscreenSurface->GetCanvas().get();
+
+    // align draw op to [0, 0]
+    if (bounds->GetLeft() != 0 || bounds->GetTop() != 0) {
+        offscreenCanvas->Translate(-bounds->GetLeft(), -bounds->GetTop());
+    }
+
+    if (penOpItem) {
+        penOpItem->Playback(offscreenCanvas, nullptr);
+    }
+
+    if (brushOpItem) {
+        brushOpItem->Playback(offscreenCanvas, nullptr);
+    }
+
+    offscreenCanvas->DrawTextBlob(textBlob_.get(), x_, y_);
+
+    std::shared_ptr<Image> image = offscreenSurface->GetImageSnapshot();
+    Drawing::Rect src(0, 0, image->GetWidth(), image->GetHeight());
+    Drawing::Rect dst(bounds->GetLeft(), bounds->GetTop(), bounds->GetRight(), bounds->GetBottom());
+    SamplingOptions sampling;
+    return std::make_shared<ImageSnapshotOpItem>(image, src, dst, sampling,
+        SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+}
+
+/* ClipRectOpItem */
+ClipRectOpItem::ClipRectOpItem(ClipRectOpItem::ConstructorHandle* handle)
+    : DrawOpItem(CLIP_RECT_OPITEM), rect_(handle->rect), clipOp_(handle->clipOp), doAntiAlias_(handle->doAntiAlias) {}
+
+std::shared_ptr<DrawOpItem> ClipRectOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<ClipRectOpItem>(static_cast<ClipRectOpItem::ConstructorHandle*>(handle));
+}
+
+void ClipRectOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    canvas->ClipRect(rect_, clipOp_, doAntiAlias_);
+}
+
+/* ClipIRectOpItem */
+ClipIRectOpItem::ClipIRectOpItem(ClipIRectOpItem::ConstructorHandle* handle)
+    : DrawOpItem(CLIP_IRECT_OPITEM), rect_(handle->rect), clipOp_(handle->clipOp) {}
+
+std::shared_ptr<DrawOpItem> ClipIRectOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<ClipIRectOpItem>(static_cast<ClipIRectOpItem::ConstructorHandle*>(handle));
+}
+
+void ClipIRectOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    canvas->ClipIRect(rect_, clipOp_);
+}
+
+/* ClipRoundRectOpItem */
+ClipRoundRectOpItem::ClipRoundRectOpItem(ClipRoundRectOpItem::ConstructorHandle* handle)
+    : DrawOpItem(CLIP_ROUND_RECT_OPITEM), rrect_(handle->rrect), clipOp_(handle->clipOp),
+    doAntiAlias_(handle->doAntiAlias) {}
+
+std::shared_ptr<DrawOpItem> ClipRoundRectOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<ClipRoundRectOpItem>(static_cast<ClipRoundRectOpItem::ConstructorHandle*>(handle));
+}
+
+void ClipRoundRectOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    canvas->ClipRoundRect(rrect_, clipOp_, doAntiAlias_);
+}
+
+/* ClipPathOpItem */
+ClipPathOpItem::ClipPathOpItem(const CmdList& cmdList, ClipPathOpItem::ConstructorHandle* handle)
+    : DrawOpItem(CLIP_PATH_OPITEM), clipOp_(handle->clipOp), doAntiAlias_(handle->doAntiAlias)
+{
+    path_ = CmdListHelper::GetPathFromCmdList(cmdList, handle->path);
+}
+
+std::shared_ptr<DrawOpItem> ClipPathOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<ClipPathOpItem>(cmdList, static_cast<ClipPathOpItem::ConstructorHandle*>(handle));
+}
+
+void ClipPathOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (path_ == nullptr) {
+        LOGE("ClipPathOpItem path is null!");
         return;
     }
-
-    if (canvas) {
-        canvas->DrawTextBlob(textBlob.get(), x_, y_);
-    } else {
-        playbackTask_ = [this, textBlob](Canvas& canvas) {
-            canvas.DrawTextBlob(textBlob.get(), x_, y_);
-        };
-    }
+    canvas->ClipPath(*path_, clipOp_, doAntiAlias_);
 }
 
-void DrawTextBlobOpItem::Playback(CanvasPlayer& player, void* opItem)
+/* ClipRegionOpItem */
+ClipRegionOpItem::ClipRegionOpItem(const CmdList& cmdList, ClipRegionOpItem::ConstructorHandle* handle)
+    : DrawOpItem(CLIP_REGION_OPITEM), clipOp_(handle->clipOp)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawTextBlobOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_);
-    }
+    region_ = CmdListHelper::GetFromCmdList<RegionCmdList, Region>(cmdList, handle->region);
 }
 
-void DrawTextBlobOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
+std::shared_ptr<DrawOpItem> ClipRegionOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    if (playbackTask_) {
-        playbackTask_(canvas);
-    } else {
-        Unmarshalling(cmdList, &canvas);
-    }
+    return std::make_shared<ClipRegionOpItem>(cmdList, static_cast<ClipRegionOpItem::ConstructorHandle*>(handle));
 }
 
-ClipRectOpItem::ClipRectOpItem(const Rect& rect, ClipOp op, bool doAntiAlias)
-    : DrawOpItem(CLIP_RECT_OPITEM), rect_(rect), clipOp_(op), doAntiAlias_(doAntiAlias) {}
-
-void ClipRectOpItem::Playback(CanvasPlayer& player, void* opItem)
+void ClipRegionOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<ClipRectOpItem*>(opItem);
-        op->Playback(player.canvas_);
-    }
-}
-
-void ClipRectOpItem::Playback(Canvas& canvas)
-{
-    canvas.ClipRect(rect_, clipOp_, doAntiAlias_);
-}
-
-ClipIRectOpItem::ClipIRectOpItem(const RectI& rect, ClipOp op)
-    : DrawOpItem(CLIP_IRECT_OPITEM), rect_(rect), clipOp_(op) {}
-
-void ClipIRectOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<ClipIRectOpItem*>(opItem);
-        op->Playback(player.canvas_);
-    }
-}
-
-void ClipIRectOpItem::Playback(Canvas& canvas)
-{
-    canvas.ClipIRect(rect_, clipOp_);
-}
-
-ClipRoundRectOpItem::ClipRoundRectOpItem(std::pair<uint32_t, size_t> radiusXYData, const Rect& rect, ClipOp op,
-    bool doAntiAlias) : DrawOpItem(CLIP_ROUND_RECT_OPITEM), radiusXYData_(radiusXYData), rect_(rect), clipOp_(op),
-    doAntiAlias_(doAntiAlias) {}
-
-void ClipRoundRectOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<ClipRoundRectOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
-}
-
-void ClipRoundRectOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
-{
-    auto radiusXYData = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, radiusXYData_);
-    RoundRect roundRect(rect_, radiusXYData);
-
-    if (canvas) {
-        canvas->ClipRoundRect(roundRect, clipOp_, doAntiAlias_);
-    } else {
-        playbackTask_ = [this, roundRect](Canvas& canvas) {
-            canvas.ClipRoundRect(roundRect, clipOp_, doAntiAlias_);
-        };
-    }
-}
-
-void ClipRoundRectOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<ClipRoundRectOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_);
-    }
-}
-
-void ClipRoundRectOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
-{
-    if (playbackTask_) {
-        playbackTask_(canvas);
-    } else {
-        Unmarshalling(cmdList, &canvas);
-    }
-}
-
-ClipPathOpItem::ClipPathOpItem(const CmdListHandle& path, ClipOp clipOp, bool doAntiAlias)
-    : DrawOpItem(CLIP_PATH_OPITEM), path_(path), clipOp_(clipOp), doAntiAlias_(doAntiAlias) {}
-
-void ClipPathOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<ClipPathOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
-}
-
-void ClipPathOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
-{
-    auto path = CmdListHelper::GetFromCmdList<PathCmdList, Path>(cmdList, path_);
-    if (path == nullptr) {
-        LOGE("path is nullptr!");
+    if (region_ == nullptr) {
+        LOGE("ClipRegionOpItem region is null!");
         return;
     }
-
-    if (canvas) {
-        canvas->ClipPath(*path, clipOp_, doAntiAlias_);
-    } else {
-        playbackTask_ = [this, path](Canvas& canvas) {
-            canvas.ClipPath(*path, clipOp_, doAntiAlias_);
-        };
-    }
+    canvas->ClipRegion(*region_, clipOp_);
 }
 
-void ClipPathOpItem::Playback(CanvasPlayer& player, void* opItem)
+/* SetMatrixOpItem */
+SetMatrixOpItem::SetMatrixOpItem(SetMatrixOpItem::ConstructorHandle* handle) : DrawOpItem(SET_MATRIX_OPITEM)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<ClipPathOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_);
-    }
+    matrix_.SetAll(handle->matrixBuffer);
 }
 
-void ClipPathOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
+std::shared_ptr<DrawOpItem> SetMatrixOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    if (playbackTask_) {
-        playbackTask_(canvas);
-    } else {
-        Unmarshalling(cmdList, &canvas);
-    }
+    return std::make_shared<SetMatrixOpItem>(static_cast<SetMatrixOpItem::ConstructorHandle*>(handle));
 }
 
-ClipRegionOpItem::ClipRegionOpItem(const CmdListHandle& region, ClipOp clipOp)
-    : DrawOpItem(CLIP_REGION_OPITEM), region_(region), clipOp_(clipOp) {}
-
-void ClipRegionOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+void SetMatrixOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<ClipRegionOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    canvas->SetMatrix(matrix_);
 }
 
-void ClipRegionOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
-{
-    auto region = CmdListHelper::GetFromCmdList<RegionCmdList, Region>(cmdList, region_);
-    if (region == nullptr) {
-        LOGE("region is nullptr!");
-        return;
-    }
-
-    if (canvas) {
-        canvas->ClipRegion(*region, clipOp_);
-    } else {
-        playbackTask_ = [this, region](Canvas& canvas) {
-            canvas.ClipRegion(*region, clipOp_);
-        };
-    }
-}
-
-void ClipRegionOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<ClipRegionOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_);
-    }
-}
-
-void ClipRegionOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
-{
-    if (playbackTask_) {
-        playbackTask_(canvas);
-    } else {
-        Unmarshalling(cmdList, &canvas);
-    }
-}
-
-SetMatrixOpItem::SetMatrixOpItem(const Matrix& matrix) : DrawOpItem(SET_MATRIX_OPITEM)
-{
-    matrix.GetAll(matrixBuffer_);
-}
-
-void SetMatrixOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<SetMatrixOpItem*>(opItem);
-        op->Playback(player.canvas_);
-    }
-}
-
-void SetMatrixOpItem::Playback(Canvas& canvas)
-{
-    Matrix matrix;
-    for (uint32_t i = 0; i < matrixBuffer_.size(); i++) {
-        matrix.Set(static_cast<Matrix::Index>(i), matrixBuffer_[i]);
-    }
-
-    canvas.SetMatrix(matrix);
-}
-
+/* ResetMatrixOpItem */
 ResetMatrixOpItem::ResetMatrixOpItem() : DrawOpItem(RESET_MATRIX_OPITEM) {}
 
-void ResetMatrixOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<DrawOpItem> ResetMatrixOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<ResetMatrixOpItem*>(opItem);
-        op->Playback(player.canvas_);
-    }
+    return std::make_shared<ResetMatrixOpItem>();
 }
 
-void ResetMatrixOpItem::Playback(Canvas& canvas)
+void ResetMatrixOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
-    canvas.ResetMatrix();
+    canvas->ResetMatrix();
 }
 
-ConcatMatrixOpItem::ConcatMatrixOpItem(const Matrix& matrix) : DrawOpItem(CONCAT_MATRIX_OPITEM)
+/* ConcatMatrixOpItem */
+ConcatMatrixOpItem::ConcatMatrixOpItem(ConcatMatrixOpItem::ConstructorHandle* handle) : DrawOpItem(CONCAT_MATRIX_OPITEM)
 {
-    matrix.GetAll(matrixBuffer_);
+    matrix_.SetAll(handle->matrixBuffer);
 }
 
-void ConcatMatrixOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<DrawOpItem> ConcatMatrixOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<ConcatMatrixOpItem*>(opItem);
-        op->Playback(player.canvas_);
-    }
+    return std::make_shared<ConcatMatrixOpItem>(static_cast<ConcatMatrixOpItem::ConstructorHandle*>(handle));
 }
 
-void ConcatMatrixOpItem::Playback(Canvas& canvas)
+void ConcatMatrixOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
-    Matrix matrix;
-    for (uint32_t i = 0; i < matrixBuffer_.size(); i++) {
-        matrix.Set(static_cast<Matrix::Index>(i), matrixBuffer_[i]);
-    }
-
-    canvas.ConcatMatrix(matrix);
+    canvas->ConcatMatrix(matrix_);
 }
 
-TranslateOpItem::TranslateOpItem(scalar dx, scalar dy) : DrawOpItem(TRANSLATE_OPITEM), dx_(dx), dy_(dy) {}
+/* TranslateOpItem */
+TranslateOpItem::TranslateOpItem(TranslateOpItem::ConstructorHandle* handle)
+    : DrawOpItem(TRANSLATE_OPITEM), dx_(handle->dx), dy_(handle->dy) {}
 
-void TranslateOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<DrawOpItem> TranslateOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<TranslateOpItem*>(opItem);
-        op->Playback(player.canvas_);
-    }
+    return std::make_shared<TranslateOpItem>(static_cast<TranslateOpItem::ConstructorHandle*>(handle));
 }
 
-void TranslateOpItem::Playback(Canvas& canvas)
+void TranslateOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
-    canvas.Translate(dx_, dy_);
+    canvas->Translate(dx_, dy_);
 }
 
-ScaleOpItem::ScaleOpItem(scalar sx, scalar sy) : DrawOpItem(SCALE_OPITEM), sx_(sx), sy_(sy) {}
+/* ScaleOpItem */
+ScaleOpItem::ScaleOpItem(ScaleOpItem::ConstructorHandle* handle)
+    : DrawOpItem(SCALE_OPITEM), sx_(handle->sx), sy_(handle->sy) {}
 
-void ScaleOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<DrawOpItem> ScaleOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<ScaleOpItem*>(opItem);
-        op->Playback(player.canvas_);
-    }
+    return std::make_shared<ScaleOpItem>(static_cast<ScaleOpItem::ConstructorHandle*>(handle));
 }
 
-void ScaleOpItem::Playback(Canvas& canvas)
+void ScaleOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
-    canvas.Scale(sx_, sy_);
+    canvas->Scale(sx_, sy_);
 }
 
-RotateOpItem::RotateOpItem(scalar deg, scalar sx, scalar sy) : DrawOpItem(ROTATE_OPITEM), deg_(deg), sx_(sx), sy_(sy) {}
+/* RotateOpItem */
+RotateOpItem::RotateOpItem(RotateOpItem::ConstructorHandle* handle)
+    : DrawOpItem(ROTATE_OPITEM), deg_(handle->deg), sx_(handle->sx), sy_(handle->sy) {}
 
-void RotateOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<DrawOpItem> RotateOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<RotateOpItem*>(opItem);
-        op->Playback(player.canvas_);
-    }
+    return std::make_shared<RotateOpItem>(static_cast<RotateOpItem::ConstructorHandle*>(handle));
 }
 
-void RotateOpItem::Playback(Canvas& canvas)
+void RotateOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
-    canvas.Rotate(deg_, sx_, sy_);
+    canvas->Rotate(deg_, sx_, sy_);
 }
 
-ShearOpItem::ShearOpItem(scalar sx, scalar sy) : DrawOpItem(SHEAR_OPITEM), sx_(sx), sy_(sy) {}
+/* ShearOpItem */
+ShearOpItem::ShearOpItem(ShearOpItem::ConstructorHandle* handle)
+    : DrawOpItem(SHEAR_OPITEM), sx_(handle->sx), sy_(handle->sy) {}
 
-void ShearOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<DrawOpItem> ShearOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<ShearOpItem*>(opItem);
-        op->Playback(player.canvas_);
-    }
+    return std::make_shared<ShearOpItem>(static_cast<ShearOpItem::ConstructorHandle*>(handle));
 }
 
-void ShearOpItem::Playback(Canvas& canvas)
+void ShearOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
-    canvas.Shear(sx_, sy_);
+    canvas->Shear(sx_, sy_);
 }
 
+/* FlushOpItem */
 FlushOpItem::FlushOpItem() : DrawOpItem(FLUSH_OPITEM) {}
 
-void FlushOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<DrawOpItem> FlushOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<FlushOpItem*>(opItem);
-        op->Playback(player.canvas_);
-    }
+    return std::make_shared<FlushOpItem>();
 }
 
-void FlushOpItem::Playback(Canvas& canvas)
+void FlushOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
-    canvas.Flush();
+    canvas->Flush();
 }
 
-ClearOpItem::ClearOpItem(ColorQuad color) : DrawOpItem(CLEAR_OPITEM), color_(color) {}
+/* ClearOpItem */
+ClearOpItem::ClearOpItem(ClearOpItem::ConstructorHandle* handle)
+    : DrawOpItem(CLEAR_OPITEM), color_(handle->color) {}
 
-void ClearOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<DrawOpItem> ClearOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<ClearOpItem*>(opItem);
-        op->Playback(player.canvas_);
-    }
+    return std::make_shared<ClearOpItem>(static_cast<ClearOpItem::ConstructorHandle*>(handle));
 }
 
-void ClearOpItem::Playback(Canvas& canvas)
+void ClearOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
-    canvas.Clear(color_);
+    canvas->Clear(color_);
 }
 
+/* SaveOpItem */
 SaveOpItem::SaveOpItem() : DrawOpItem(SAVE_OPITEM) {}
 
-void SaveOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<DrawOpItem> SaveOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<SaveOpItem*>(opItem);
-        op->Playback(player.canvas_);
-    }
+    return std::make_shared<SaveOpItem>();
 }
 
-void SaveOpItem::Playback(Canvas& canvas)
+void SaveOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
-    canvas.Save();
+    canvas->Save();
 }
 
-SaveLayerOpItem::SaveLayerOpItem(const Rect& rect, bool hasBrush, const BrushHandle& brushHandle,
-    const CmdListHandle& imageFilter, uint32_t saveLayerFlags) : DrawOpItem(SAVE_LAYER_OPITEM),
-    rect_(rect), hasBrush_(hasBrush), brushHandle_(brushHandle), imageFilter_(imageFilter),
-    saveLayerFlags_(saveLayerFlags) {}
-
-void SaveLayerOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+/* SaveLayerOpItem */
+SaveLayerOpItem::SaveLayerOpItem(const CmdList& cmdList, SaveLayerOpItem::ConstructorHandle* handle)
+    : DrawOpItem(SAVE_LAYER_OPITEM), rect_(handle->rect), saveLayerFlags_(handle->saveLayerFlags),
+    hasBrush_(handle->hasBrush)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<SaveLayerOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
-}
-
-void SaveLayerOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
-{
-    std::shared_ptr<Brush> brush = nullptr;
     if (hasBrush_) {
-        auto colorSpace = CmdListHelper::GetFromCmdList<ColorSpaceCmdList, ColorSpace>(
-            cmdList, brushHandle_.colorSpaceHandle);
-        auto shaderEffect = CmdListHelper::GetFromCmdList<ShaderEffectCmdList, ShaderEffect>(
-            cmdList, brushHandle_.shaderEffectHandle);
-        auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
-            cmdList, brushHandle_.colorFilterHandle);
-        auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
-            cmdList, brushHandle_.imageFilterHandle);
-        auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
-            cmdList, brushHandle_.maskFilterHandle);
-
-        Filter filter;
-        filter.SetColorFilter(colorFilter);
-        filter.SetImageFilter(imageFilter);
-        filter.SetMaskFilter(maskFilter);
-        filter.SetFilterQuality(brushHandle_.filterQuality);
-
-        const Color4f color4f = { brushHandle_.color.GetRedF(), brushHandle_.color.GetGreenF(),
-            brushHandle_.color.GetBlueF(), brushHandle_.color.GetAlphaF() };
-
-        brush = std::make_shared<Brush>();
-        brush->SetColor(color4f, colorSpace);
-        brush->SetShaderEffect(shaderEffect);
-        brush->SetBlendMode(brushHandle_.mode);
-        brush->SetAntiAlias(brushHandle_.isAntiAlias);
-        brush->SetFilter(filter);
+        BrushHandleToBrush(handle->brushHandle, cmdList, brush_);
     }
 
-    auto saveImageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(cmdList, imageFilter_);
-
-    if (canvas) {
-        const Rect* rectPtr = nullptr;
-        if (rect_.IsValid()) {
-            rectPtr = &rect_;
-        }
-        SaveLayerOps slo(rectPtr, brush.get(), saveImageFilter.get(), saveLayerFlags_);
-        canvas->SaveLayer(slo);
-    } else {
-        playbackTask_ = [this, brush, saveImageFilter](Canvas& canvas) {
-            const Rect* rectPtr = nullptr;
-            if (rect_.IsValid()) {
-                rectPtr = &rect_;
-            }
-            SaveLayerOps slo(rectPtr, brush.get(), saveImageFilter.get(), saveLayerFlags_);
-            canvas.SaveLayer(slo);
-        };
-    }
+    imageFilter_ = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(cmdList, handle->imageFilter);
 }
 
-void SaveLayerOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<DrawOpItem> SaveLayerOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<SaveLayerOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_);
-    }
+    return std::make_shared<SaveLayerOpItem>(cmdList, static_cast<SaveLayerOpItem::ConstructorHandle*>(handle));
 }
 
-void SaveLayerOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
+void SaveLayerOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
-    if (playbackTask_) {
-        playbackTask_(canvas);
-    } else {
-        Unmarshalling(cmdList, &canvas);
+    const Rect* rectPtr = nullptr;
+    if (rect_.IsValid()) {
+        rectPtr = &rect_;
     }
+    Brush* brushPtr = hasBrush_ ? &brush_ : nullptr;
+    SaveLayerOps slo(rectPtr, brushPtr, imageFilter_.get(), saveLayerFlags_);
+    canvas->SaveLayer(slo);
 }
 
+/* RestoreOpItem */
 RestoreOpItem::RestoreOpItem() : DrawOpItem(RESTORE_OPITEM) {}
 
-void RestoreOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<DrawOpItem> RestoreOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<RestoreOpItem*>(opItem);
-        op->Playback(player.canvas_);
-    }
+    return std::make_shared<RestoreOpItem>();
 }
 
-void RestoreOpItem::Playback(Canvas& canvas)
+void RestoreOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
-    canvas.Restore();
+    canvas->Restore();
 }
 
+/* DiscardOpItem */
 DiscardOpItem::DiscardOpItem() : DrawOpItem(DISCARD_OPITEM) {}
 
-void DiscardOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<DrawOpItem> DiscardOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DiscardOpItem*>(opItem);
-        op->Playback(player.canvas_);
-    }
+    return std::make_shared<DiscardOpItem>();
 }
 
-void DiscardOpItem::Playback(Canvas& canvas)
+void DiscardOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
-    canvas.Discard();
+    canvas->Discard();
 }
 
-AttachPenOpItem::AttachPenOpItem(const PenHandle& penHandle) : DrawOpItem(ATTACH_PEN_OPITEM), penHandle_(penHandle) {}
-
-void AttachPenOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+/* AttachPenOpItem */
+AttachPenOpItem::AttachPenOpItem(const CmdList& cmdList, AttachPenOpItem::ConstructorHandle* handle)
+    : DrawOpItem(ATTACH_PEN_OPITEM)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<AttachPenOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    PenHandleToPen(handle->penHandle, cmdList, pen_);
 }
 
-void AttachPenOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
+std::shared_ptr<DrawOpItem> AttachPenOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    auto pathEffect = CmdListHelper::GetFromCmdList<PathEffectCmdList, PathEffect>(
-        cmdList, penHandle_.pathEffectHandle);
-    auto colorSpace = CmdListHelper::GetFromCmdList<ColorSpaceCmdList, ColorSpace>(
-        cmdList, penHandle_.colorSpaceHandle);
-    auto shaderEffect = CmdListHelper::GetFromCmdList<ShaderEffectCmdList, ShaderEffect>(
-        cmdList, penHandle_.shaderEffectHandle);
-    auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
-        cmdList, penHandle_.colorFilterHandle);
-    auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
-        cmdList, penHandle_.imageFilterHandle);
-    auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
-        cmdList, penHandle_.maskFilterHandle);
-
-    Filter filter;
-    filter.SetColorFilter(colorFilter);
-    filter.SetImageFilter(imageFilter);
-    filter.SetMaskFilter(maskFilter);
-    filter.SetFilterQuality(penHandle_.filterQuality);
-
-    const Color4f color4f = { penHandle_.color.GetRedF(), penHandle_.color.GetGreenF(),
-        penHandle_.color.GetBlueF(), penHandle_.color.GetAlphaF() };
-    Pen pen;
-    pen.SetPathEffect(pathEffect);
-    pen.SetColor(color4f, colorSpace);
-    pen.SetShaderEffect(shaderEffect);
-    pen.SetWidth(penHandle_.width);
-    pen.SetMiterLimit(penHandle_.miterLimit);
-    pen.SetCapStyle(penHandle_.capStyle);
-    pen.SetJoinStyle(penHandle_.joinStyle);
-    pen.SetColor(penHandle_.color);
-    pen.SetBlendMode(penHandle_.mode);
-    pen.SetAntiAlias(penHandle_.isAntiAlias);
-    pen.SetFilter(filter);
-
-    if (canvas) {
-        canvas->AttachPen(pen);
-    } else {
-        playbackTask_ = [this, pen](Canvas& canvas) {
-            canvas.AttachPen(pen);
-        };
-    }
+    return std::make_shared<AttachPenOpItem>(cmdList, static_cast<AttachPenOpItem::ConstructorHandle*>(handle));
 }
 
-void AttachPenOpItem::Playback(CanvasPlayer& player, void* opItem)
+void AttachPenOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<AttachPenOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_);
-    }
+    canvas->AttachPen(pen_);
 }
 
-void AttachPenOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
+/* AttachBrushOpItem */
+AttachBrushOpItem::AttachBrushOpItem(const CmdList& cmdList, AttachBrushOpItem::ConstructorHandle* handle)
+    : DrawOpItem(ATTACH_BRUSH_OPITEM)
 {
-    if (playbackTask_) {
-        playbackTask_(canvas);
-    } else {
-        Unmarshalling(cmdList, &canvas);
-    }
+    BrushHandleToBrush(handle->brushHandle, cmdList, brush_);
 }
 
-AttachBrushOpItem::AttachBrushOpItem(const BrushHandle& brushHandle)
-    : DrawOpItem(ATTACH_BRUSH_OPITEM), brushHandle_(brushHandle) {}
-
-void AttachBrushOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<DrawOpItem> AttachBrushOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<AttachBrushOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    return std::make_shared<AttachBrushOpItem>(cmdList, static_cast<AttachBrushOpItem::ConstructorHandle*>(handle));
 }
 
-void AttachBrushOpItem::Unmarshalling(const CmdList& cmdList, Canvas* canvas)
+void AttachBrushOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
-    auto colorSpace = CmdListHelper::GetFromCmdList<ColorSpaceCmdList, ColorSpace>(
-        cmdList, brushHandle_.colorSpaceHandle);
-    auto shaderEffect = CmdListHelper::GetFromCmdList<ShaderEffectCmdList, ShaderEffect>(
-        cmdList, brushHandle_.shaderEffectHandle);
-    auto colorFilter = CmdListHelper::GetFromCmdList<ColorFilterCmdList, ColorFilter>(
-        cmdList, brushHandle_.colorFilterHandle);
-    auto imageFilter = CmdListHelper::GetFromCmdList<ImageFilterCmdList, ImageFilter>(
-        cmdList, brushHandle_.imageFilterHandle);
-    auto maskFilter = CmdListHelper::GetFromCmdList<MaskFilterCmdList, MaskFilter>(
-        cmdList, brushHandle_.maskFilterHandle);
-
-    Filter filter;
-    filter.SetColorFilter(colorFilter);
-    filter.SetImageFilter(imageFilter);
-    filter.SetMaskFilter(maskFilter);
-    filter.SetFilterQuality(brushHandle_.filterQuality);
-
-    const Color4f color4f = { brushHandle_.color.GetRedF(), brushHandle_.color.GetGreenF(),
-        brushHandle_.color.GetBlueF(), brushHandle_.color.GetAlphaF() };
-    Brush brush;
-    brush.SetColor(color4f, colorSpace);
-    brush.SetShaderEffect(shaderEffect);
-    brush.SetBlendMode(brushHandle_.mode);
-    brush.SetAntiAlias(brushHandle_.isAntiAlias);
-    brush.SetFilter(filter);
-
-    if (canvas) {
-        canvas->AttachBrush(brush);
-    } else {
-        playbackTask_ = [this, brush](Canvas& canvas) {
-            canvas.AttachBrush(brush);
-        };
-    }
+    canvas->AttachBrush(brush_);
 }
 
-void AttachBrushOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<AttachBrushOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_);
-    }
-}
-
-void AttachBrushOpItem::Playback(Canvas& canvas, const CmdList& cmdList)
-{
-    if (playbackTask_) {
-        playbackTask_(canvas);
-    } else {
-        Unmarshalling(cmdList, &canvas);
-    }
-}
-
+/* DetachPenOpItem */
 DetachPenOpItem::DetachPenOpItem() : DrawOpItem(DETACH_PEN_OPITEM) {}
 
-void DetachPenOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<DrawOpItem> DetachPenOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DetachPenOpItem*>(opItem);
-        op->Playback(player.canvas_);
-    }
+    return std::make_shared<DetachPenOpItem>();
 }
 
-void DetachPenOpItem::Playback(Canvas& canvas)
+void DetachPenOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
-    canvas.DetachPen();
+    canvas->DetachPen();
 }
 
+/* DetachBrushOpItem */
 DetachBrushOpItem::DetachBrushOpItem() : DrawOpItem(DETACH_BRUSH_OPITEM) {}
 
-void DetachBrushOpItem::Playback(CanvasPlayer& player, void* opItem)
+std::shared_ptr<DrawOpItem> DetachBrushOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DetachBrushOpItem*>(opItem);
-        op->Playback(player.canvas_);
-    }
+    return std::make_shared<DetachBrushOpItem>();
 }
 
-void DetachBrushOpItem::Playback(Canvas& canvas)
+void DetachBrushOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
-    canvas.DetachBrush();
+    canvas->DetachBrush();
 }
 
-ClipAdaptiveRoundRectOpItem::ClipAdaptiveRoundRectOpItem(const std::pair<uint32_t, size_t>& radiusData)
-    : DrawOpItem(CLIP_ADAPTIVE_ROUND_RECT_OPITEM), radiusData_(radiusData) {}
-
-void ClipAdaptiveRoundRectOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+/* ClipAdaptiveRoundRectOpItem */
+ClipAdaptiveRoundRectOpItem::ClipAdaptiveRoundRectOpItem(
+    const CmdList& cmdList, ClipAdaptiveRoundRectOpItem::ConstructorHandle* handle)
+    : DrawOpItem(CLIP_ADAPTIVE_ROUND_RECT_OPITEM)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<ClipAdaptiveRoundRectOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
+    radiusData_ = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, handle->radiusData);
 }
 
-void ClipAdaptiveRoundRectOpItem::Unmarshalling(const CmdList& cmdList)
+std::shared_ptr<DrawOpItem> ClipAdaptiveRoundRectOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    auto radius = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, radiusData_);
-
-    playbackTask_ = [this, radius](Canvas& canvas, const Rect& rect) {
-        auto roundRect = RoundRect(rect, radius);
-        canvas.ClipRoundRect(roundRect, ClipOp::INTERSECT, true);
-    };
+    return std::make_shared<ClipAdaptiveRoundRectOpItem>(
+        cmdList, static_cast<ClipAdaptiveRoundRectOpItem::ConstructorHandle*>(handle));
 }
 
-void ClipAdaptiveRoundRectOpItem::Playback(CanvasPlayer& player, void* opItem)
+void ClipAdaptiveRoundRectOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<ClipAdaptiveRoundRectOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_, player.rect_);
-    }
+    auto roundRect = RoundRect(*rect, radiusData_);
+    canvas->ClipRoundRect(roundRect, ClipOp::INTERSECT, true);
 }
 
-void ClipAdaptiveRoundRectOpItem::Playback(Canvas& canvas, const CmdList& cmdList, const Rect& rect)
+/* DrawAdaptiveImageOpItem */
+DrawAdaptiveImageOpItem::DrawAdaptiveImageOpItem(
+    const CmdList& cmdList, DrawAdaptiveImageOpItem::ConstructorHandle* handle) : DrawOpItem(ADAPTIVE_IMAGE_OPITEM),
+    rsImageInfo_(handle->rsImageInfo), sampling_(handle->sampling), isImage_(handle->isImage)
 {
-    if (playbackTask_) {
-        playbackTask_(canvas, rect);
+    if (isImage_) {
+        image_ = CmdListHelper::GetImageFromCmdList(cmdList, handle->image);
     } else {
-        auto radius = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, radiusData_);
-        auto roundRect = RoundRect(rect, radius);
-        canvas.ClipRoundRect(roundRect, ClipOp::INTERSECT, true);
+        data_ = CmdListHelper::GetCompressDataFromCmdList(cmdList, handle->image);
     }
 }
 
-DrawAdaptiveImageOpItem::DrawAdaptiveImageOpItem(const ImageHandle& image, const AdaptiveImageInfo& rsImageInfo,
-    const SamplingOptions& sampling, const bool isImage) : DrawOpItem(ADAPTIVE_IMAGE_OPITEM),
-    image_(image), rsImageInfo_(rsImageInfo), sampling_(sampling), isImage_(isImage) {}
-
-void DrawAdaptiveImageOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
+std::shared_ptr<DrawOpItem> DrawAdaptiveImageOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawAdaptiveImageOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
+    return std::make_shared<DrawAdaptiveImageOpItem>(
+        cmdList, static_cast<DrawAdaptiveImageOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawAdaptiveImageOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (isImage_ && image_ != nullptr) {
+        AdaptiveImageHelper::DrawImage(*canvas, *rect, image_, rsImageInfo_, sampling_);
+        return;
+    }
+    if (!isImage_ && data_ != nullptr) {
+        AdaptiveImageHelper::DrawImage(*canvas, *rect, data_, rsImageInfo_, sampling_);
     }
 }
 
-void DrawAdaptiveImageOpItem::Unmarshalling(const CmdList& cmdList)
+/* DrawAdaptivePixelMapOpItem */
+DrawAdaptivePixelMapOpItem::DrawAdaptivePixelMapOpItem(
+    const CmdList& cmdList, DrawAdaptivePixelMapOpItem::ConstructorHandle* handle)
+    : DrawOpItem(ADAPTIVE_PIXELMAP_OPITEM), imageInfo_(handle->imageInfo), smapling_(handle->smapling)
 {
-    if (isImage_) {
-        auto image = CmdListHelper::GetImageFromCmdList(cmdList, image_);
-        if (image == nullptr) {
-        LOGE("image is nullptr!");
+    pixelMap_ = CmdListHelper::GetPixelMapFromCmdList(cmdList, handle->pixelMap);
+}
+
+std::shared_ptr<DrawOpItem> DrawAdaptivePixelMapOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawAdaptivePixelMapOpItem>(
+        cmdList, static_cast<DrawAdaptivePixelMapOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawAdaptivePixelMapOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (pixelMap_ == nullptr) {
+        LOGE("DrawAdaptivePixelMapOpItem pixelMap is null!");
+        return;
+    }
+    AdaptiveImageHelper::DrawPixelMap(*canvas, *rect, pixelMap_, imageInfo_, smapling_);
+}
+
+/* DrawImageWithParmOpItem */
+DrawImageWithParmOpItem::DrawImageWithParmOpItem(
+    const CmdList& cmdList, DrawImageWithParmOpItem::ConstructorHandle* handle)
+    : DrawOpItem(IMAGE_WITH_PARM_OPITEM), sampling_(handle->sampling)
+{
+    objectHandle_ = CmdListHelper::GetImageObjectFromCmdList(cmdList, handle->objectHandle);
+}
+
+std::shared_ptr<DrawOpItem> DrawImageWithParmOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawImageWithParmOpItem>(
+        cmdList, static_cast<DrawImageWithParmOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawImageWithParmOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (objectHandle_ == nullptr) {
+        LOGE("DrawImageWithParmOpItem objectHandle is nullptr!");
+        return;
+    }
+    objectHandle_->Playback(*canvas, *rect, sampling_, false);
+}
+
+/* DrawPixelMapWithParmOpItem */
+DrawPixelMapWithParmOpItem::DrawPixelMapWithParmOpItem(
+    const CmdList& cmdList, DrawPixelMapWithParmOpItem::ConstructorHandle* handle)
+    : DrawOpItem(PIXELMAP_WITH_PARM_OPITEM), sampling_(handle->sampling)
+{
+    objectHandle_ = CmdListHelper::GetImageObjectFromCmdList(cmdList, handle->objectHandle);
+}
+
+std::shared_ptr<DrawOpItem> DrawPixelMapWithParmOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawPixelMapWithParmOpItem>(
+        cmdList, static_cast<DrawPixelMapWithParmOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawPixelMapWithParmOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (objectHandle_ == nullptr) {
+        LOGE("DrawPixelMapWithParmOpItem objectHandle is nullptr!");
+        return;
+    }
+    objectHandle_->Playback(*canvas, *rect, sampling_, false);
+}
+
+/* DrawPixelMapRectOpItem */
+DrawPixelMapRectOpItem::DrawPixelMapRectOpItem(
+    const CmdList& cmdList, DrawPixelMapRectOpItem::ConstructorHandle* handle)
+    : DrawOpItem(PIXELMAP_RECT_OPITEM), sampling_(handle->sampling)
+{
+    objectHandle_ = CmdListHelper::GetImageBaseOjFromCmdList(cmdList, handle->objectHandle);
+}
+
+std::shared_ptr<DrawOpItem> DrawPixelMapRectOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawPixelMapRectOpItem>(
+        cmdList, static_cast<DrawPixelMapRectOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawPixelMapRectOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (objectHandle_ == nullptr) {
+        LOGE("DrawPixelMapWithParmOpItem objectHandle is nullptr!");
+        return;
+    }
+    objectHandle_->Playback(*canvas, *rect, sampling_);
+}
+
+ImageSnapshotOpItem::ImageSnapshotOpItem(std::shared_ptr<Image> image, const Rect& src, const Rect& dst,
+    const SamplingOptions& sampling, SrcRectConstraint constraint)
+    : DrawOpItem(IMAGE_SNAPSHOT_OPITEM),
+    image_(image),
+    src_(src),
+    dst_(dst),
+    sampling_(sampling),
+    constraint_(constraint)
+{
+}
+
+void ImageSnapshotOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (image_ == nullptr) {
+        return;
+    }
+    canvas->DrawImageRect(*image_, src_, dst_, sampling_, constraint_);
+}
+#ifdef ROSEN_OHOS
+DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(const CmdList& cmdList,
+    DrawSurfaceBufferOpItem::ConstructorHandle* handle)
+    : DrawOpItem(SURFACEBUFFER_OPITEM), surfaceBufferInfo_(nullptr, handle->surfaceBufferInfo.offSetX_,
+    handle->surfaceBufferInfo.offSetY_, handle->surfaceBufferInfo.width_, handle->surfaceBufferInfo.height_)
+{
+    surfaceBufferInfo_.surfaceBuffer_ = CmdListHelper::GetSurfaceBufferFromCmdList(cmdList, handle->surfaceBufferId);
+}
+
+DrawSurfaceBufferOpItem::~DrawSurfaceBufferOpItem()
+{
+    Clear();
+}
+
+std::shared_ptr<DrawOpItem> DrawSurfaceBufferOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawSurfaceBufferOpItem>(cmdList,
+        static_cast<DrawSurfaceBufferOpItem::ConstructorHandle*>(handle));
+}
+
+#ifdef RS_ENABLE_VK
+std::function<Drawing::BackendTexture(NativeWindowBuffer* buffer, int width, int height)>
+    DrawSurfaceBufferOpItem::makeBackendTextureFromNativeBuffer = nullptr;
+std::function<void(void* context)> DrawSurfaceBufferOpItem::deleteVkImage = nullptr;
+std::function<void*(VkImage image, VkDeviceMemory memory)> DrawSurfaceBufferOpItem::vulkanCleanupHelper = nullptr;
+void DrawSurfaceBufferOpItem::SetBaseCallback(
+    std::function<Drawing::BackendTexture(NativeWindowBuffer* buffer, int width, int height)> makeBackendTexture,
+    std::function<void(void* context)> deleteImage,
+    std::function<void*(VkImage image, VkDeviceMemory memory)> helper)
+{
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return;
+    }
+
+    DrawSurfaceBufferOpItem::makeBackendTextureFromNativeBuffer = makeBackendTexture;
+    DrawSurfaceBufferOpItem::deleteVkImage = deleteImage;
+    DrawSurfaceBufferOpItem::vulkanCleanupHelper = helper;
+}
+#endif
+
+void DrawSurfaceBufferOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    Clear();
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    if (surfaceBufferInfo_.surfaceBuffer_ == nullptr) {
+        LOGE("SurfaceBufferOpItem::Draw surfaceBuffer_ is nullptr");
+        return;
+    }
+    nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&(surfaceBufferInfo_.surfaceBuffer_));
+    if (!nativeWindowBuffer_) {
+        LOGE("create nativeWindowBuffer_ fail.");
+        return;
+    }
+#endif
+    Draw(canvas);
+}
+
+void DrawSurfaceBufferOpItem::Clear()
+{
+#ifdef RS_ENABLE_GL
+    if (SystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        if (texId_ != 0U) {
+            glDeleteTextures(1, &texId_);
+        }
+        if (eglImage_ != EGL_NO_IMAGE_KHR) {
+            auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+            eglDestroyImageKHR(disp, eglImage_);
+        }
+    }
+#endif
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    if (nativeWindowBuffer_ != nullptr) {
+        DestroyNativeWindowBuffer(nativeWindowBuffer_);
+        nativeWindowBuffer_ = nullptr;
+    }
+#endif
+}
+
+void DrawSurfaceBufferOpItem::Draw(Canvas* canvas)
+{
+#ifdef RS_ENABLE_VK
+    if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (!DrawSurfaceBufferOpItem::makeBackendTextureFromNativeBuffer ||
+            !DrawSurfaceBufferOpItem::deleteVkImage ||
+            !DrawSurfaceBufferOpItem::vulkanCleanupHelper ||
+            !canvas) {
             return;
         }
-        playbackTask_ = [this, image](Canvas& canvas, const Rect& rect) {
-            AdaptiveImageHelper::DrawImage(canvas, rect, image, rsImageInfo_, sampling_);
+        auto backendTexture = DrawSurfaceBufferOpItem::makeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
+            surfaceBufferInfo_.width_, surfaceBufferInfo_.height_);
+        Drawing::BitmapFormat bitmapFormat = { Drawing::ColorType::COLORTYPE_RGBA_8888,
+            Drawing::AlphaType::ALPHATYPE_PREMUL };
+        auto ptr = [](void* context) {
+            DrawSurfaceBufferOpItem::deleteVkImage(context);
         };
-        return;
-    }
-    auto data = CmdListHelper::GetCompressDataFromCmdList(cmdList, image_);
-    if (data == nullptr) {
-        LOGE("compress data is nullptr!");
-        return;
-    }
-
-    playbackTask_ = [this, data](Canvas& canvas, const Rect& rect) {
-        AdaptiveImageHelper::DrawImage(canvas, rect, data, rsImageInfo_, sampling_);
-    };
-}
-
-void DrawAdaptiveImageOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawAdaptiveImageOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_, player.rect_);
-    }
-}
-
-void DrawAdaptiveImageOpItem::Playback(Canvas& canvas, const CmdList& cmdList, const Rect& rect)
-{
-    if (playbackTask_) {
-        playbackTask_(canvas, rect);
-        return;
-    }
-
-    if (isImage_) {
-        auto image = CmdListHelper::GetImageFromCmdList(cmdList, image_);
-        if (image == nullptr) {
-        LOGE("image is nullptr!");
+        auto image = std::make_shared<Drawing::Image>();
+        auto vkTextureInfo = backendTexture.GetTextureInfo().GetVKTextureInfo();
+        if (!vkTextureInfo && !image->BuildFromTexture(*canvas->GetGPUContext(), backendTexture.GetTextureInfo(),
+            Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, ptr,
+            DrawSurfaceBufferOpItem::vulkanCleanupHelper(vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory))) {
+            LOGE("DrawSurfaceBufferOpItem::Draw: image BuildFromTexture failed");
             return;
         }
-        AdaptiveImageHelper::DrawImage(canvas, rect, image, rsImageInfo_, sampling_);
+        canvas->DrawImage(*image, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, Drawing::SamplingOptions());
+    }
+#endif
+
+#ifdef RS_ENABLE_GL
+    if (SystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
         return;
     }
-    auto data = CmdListHelper::GetCompressDataFromCmdList(cmdList, image_);
-    if (data == nullptr) {
-        LOGE("compress data is nullptr!");
-        return;
-    }
-
-    AdaptiveImageHelper::DrawImage(canvas, rect, data, rsImageInfo_, sampling_);
-}
-
-DrawAdaptivePixelMapOpItem::DrawAdaptivePixelMapOpItem(const ImageHandle& pixelMap, const AdaptiveImageInfo& imageInfo,
-    const SamplingOptions& smapling) : DrawOpItem(ADAPTIVE_PIXELMAP_OPITEM), pixelMap_(pixelMap),
-    imageInfo_(imageInfo), smapling_(smapling) {}
-
-void DrawAdaptivePixelMapOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawAdaptivePixelMapOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
-}
-
-void DrawAdaptivePixelMapOpItem::Unmarshalling(const CmdList& cmdList)
-{
-    auto pixelMap = CmdListHelper::GetPixelMapFromCmdList(cmdList, pixelMap_);
-    if (pixelMap == nullptr) {
-        LOGE("pixelMap is nullptr!");
-        return;
-    }
-
-    playbackTask_ = [this, pixelMap](Canvas& canvas, const Rect& rect) {
-        AdaptiveImageHelper::DrawPixelMap(canvas, rect, pixelMap, imageInfo_, smapling_);
+    EGLint attrs[] = {
+        EGL_IMAGE_PRESERVED,
+        EGL_TRUE,
+        EGL_NONE,
     };
-}
 
-void DrawAdaptivePixelMapOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawAdaptivePixelMapOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_, player.rect_);
-    }
-}
-
-void DrawAdaptivePixelMapOpItem::Playback(Canvas& canvas, const CmdList& cmdList, const Rect& rect)
-{
-    if (playbackTask_) {
-        playbackTask_(canvas, rect);
+    auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    eglImage_ = eglCreateImageKHR(disp, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_OHOS, nativeWindowBuffer_, attrs);
+    if (eglImage_ == EGL_NO_IMAGE_KHR) {
+        DestroyNativeWindowBuffer(nativeWindowBuffer_);
+        LOGE("%{public}s create egl image fail %{public}d", __func__, eglGetError());
         return;
     }
 
-    auto pixelMap = CmdListHelper::GetPixelMapFromCmdList(cmdList, pixelMap_);
-    if (pixelMap == nullptr) {
-        LOGE("pixelMap is nullptr!");
+    // save
+    GLuint originTexture;
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, reinterpret_cast<GLint *>(&originTexture));
+    GLint minFilter;
+    glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, &minFilter);
+    GLint magFilter;
+    glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, &magFilter);
+    GLint wrapS;
+    glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, &wrapS);
+    GLint wrapT;
+    glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, &wrapT);
+
+    // Create texture object
+    texId_ = 0;
+    glGenTextures(1, &texId_);
+    glBindTexture(GL_TEXTURE_2D, texId_);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, static_cast<GLeglImageOES>(eglImage_));
+
+    // restore
+    glBindTexture(GL_TEXTURE_2D, originTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
+
+    GrGLTextureInfo textureInfo = { GL_TEXTURE_2D, texId_, GL_RGBA8_OES };
+
+    GrBackendTexture backendTexture(
+        surfaceBufferInfo_.width_, surfaceBufferInfo_.height_, GrMipMapped::kNo, textureInfo);
+
+    Drawing::TextureInfo externalTextureInfo;
+                externalTextureInfo.SetWidth(surfaceBufferInfo_.width_);
+                externalTextureInfo.SetHeight(surfaceBufferInfo_.height_);
+                externalTextureInfo.SetIsMipMapped(false);
+                externalTextureInfo.SetTarget(GL_TEXTURE_2D);
+                externalTextureInfo.SetID(texId_);
+                externalTextureInfo.SetFormat(GL_RGBA8_OES);
+    Drawing::BitmapFormat bitmapFormat = { Drawing::ColorType::COLORTYPE_RGBA_8888,
+        Drawing::AlphaType::ALPHATYPE_PREMUL };
+    auto newImage = std::make_shared<Drawing::Image>();
+    if (!newImage->BuildFromTexture(*canvas->GetGPUContext(), externalTextureInfo,
+        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr)) {
+        LOGD("RSFilterCacheManager::Render: cacheCanvas is null");
         return;
     }
-
-    AdaptiveImageHelper::DrawPixelMap(canvas, rect, pixelMap, imageInfo_, smapling_);
+    canvas->DrawImage(*newImage, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, Drawing::SamplingOptions());
+#endif // RS_ENABLE_GL
 }
-
-DrawImageWithParmOpItem::DrawImageWithParmOpItem(const ImageHandle& objectHandle, const SamplingOptions& sampling)
-    : DrawOpItem(IMAGE_WITH_PARM_OPITEM), objectHandle_(objectHandle), sampling_(sampling) {}
-
-void DrawImageWithParmOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawImageWithParmOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
-}
-
-void DrawImageWithParmOpItem::Unmarshalling(const CmdList& cmdList)
-{
-    auto extendObject = CmdListHelper::GetImageObjectFromCmdList(cmdList, objectHandle_);
-    if (extendObject == nullptr) {
-        LOGE("extendObject is nullptr!");
-        return;
-    }
-
-    playbackTask_ = [this, extendObject](Canvas& canvas, const Rect& rect) {
-        extendObject->Playback(canvas, rect, sampling_, false);
-    };
-}
-
-void DrawImageWithParmOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<const DrawImageWithParmOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_, player.rect_);
-    }
-}
-
-void DrawImageWithParmOpItem::Playback(Canvas& canvas, const CmdList& cmdList, const Rect& rect) const
-{
-    if (playbackTask_) {
-        playbackTask_(canvas, rect);
-        return;
-    }
-
-    auto extendObject = CmdListHelper::GetImageObjectFromCmdList(cmdList, objectHandle_);
-    if (extendObject == nullptr) {
-        LOGE("extendObject is nullptr!");
-        return;
-    }
-    extendObject->Playback(canvas, rect, sampling_, false);
-}
-
-DrawExtendPixelMapOpItem::DrawExtendPixelMapOpItem(const ImageHandle& objectHandle, const SamplingOptions& sampling)
-    : DrawOpItem(EXTEND_PIXELMAP_OPITEM), objectHandle_(objectHandle), sampling_(sampling) {}
-
-void DrawExtendPixelMapOpItem::Unmarshalling(const CmdList& cmdList, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<DrawExtendPixelMapOpItem*>(opItem);
-        op->Unmarshalling(cmdList);
-    }
-}
-
-void DrawExtendPixelMapOpItem::Unmarshalling(const CmdList& cmdList)
-{
-    auto extendObject = CmdListHelper::GetImageObjectFromCmdList(cmdList, objectHandle_);
-    if (extendObject == nullptr) {
-        LOGE("extendObject is nullptr!");
-        return;
-    }
-
-    playbackTask_ = [this, extendObject](Canvas& canvas, const Rect& rect) {
-        extendObject->Playback(canvas, rect, sampling_, false);
-    };
-}
-
-
-void DrawExtendPixelMapOpItem::Playback(CanvasPlayer& player, void* opItem)
-{
-    if (opItem != nullptr) {
-        auto* op = static_cast<const DrawExtendPixelMapOpItem*>(opItem);
-        op->Playback(player.canvas_, player.cmdList_, player.rect_);
-    }
-}
-
-void DrawExtendPixelMapOpItem::Playback(Canvas& canvas, const CmdList& cmdList, const Rect& rect) const
-{
-    if (playbackTask_) {
-        playbackTask_(canvas, rect);
-        return;
-    }
-
-    auto extendObject = CmdListHelper::GetImageObjectFromCmdList(cmdList, objectHandle_);
-    if (extendObject == nullptr) {
-        LOGE("extendObject is nullptr!");
-        return;
-    }
-    extendObject->Playback(canvas, rect, sampling_, false);
-}
+#endif
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

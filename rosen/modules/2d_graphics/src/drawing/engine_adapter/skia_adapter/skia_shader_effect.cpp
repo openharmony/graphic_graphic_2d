@@ -14,12 +14,14 @@
  */
 
 #include "skia_shader_effect.h"
+#include "skia_helper.h"
 
 #include <vector>
 
 #include "include/core/SkMatrix.h"
 #include "include/core/SkTileMode.h"
 #include "include/effects/SkGradientShader.h"
+#include "src/shaders/SkShaderBase.h"
 #if defined(USE_CANVASKIT0310_SKIA) || defined(NEW_SKIA)
 #include "include/core/SkSamplingOptions.h"
 #endif
@@ -32,6 +34,8 @@
 #include "image/image.h"
 #include "image/picture.h"
 #include "utils/matrix.h"
+#include "utils/data.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -147,7 +151,8 @@ void SkiaShaderEffect::InitWithRadialGradient(const Point& centerPt, scalar radi
 }
 
 void SkiaShaderEffect::InitWithTwoPointConical(const Point& startPt, scalar startRadius, const Point& endPt,
-    scalar endRadius, const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode)
+    scalar endRadius, const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode,
+    const Matrix *matrix)
 {
     SkPoint start;
     SkPoint end;
@@ -164,12 +169,17 @@ void SkiaShaderEffect::InitWithTwoPointConical(const Point& startPt, scalar star
         c.emplace_back(colors[i]);
         p.emplace_back(pos[i]);
     }
+    const SkMatrix *skMatrix = nullptr;
+    if (matrix != nullptr) {
+        skMatrix = &matrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix();
+    }
+
     shader_ = SkGradientShader::MakeTwoPointConical(
-        start, startRadius, end, endRadius, &c[0], &p[0], count, static_cast<SkTileMode>(mode));
+        start, startRadius, end, endRadius, &c[0], &p[0], count, static_cast<SkTileMode>(mode), 0, skMatrix);
 }
 
 void SkiaShaderEffect::InitWithSweepGradient(const Point& centerPt, const std::vector<ColorQuad>& colors,
-    const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle)
+    const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle, const Matrix *matrix)
 {
     size_t count = (colors.size() == pos.size()) ? colors.size() : 0;
     if (count == 0) {
@@ -181,8 +191,12 @@ void SkiaShaderEffect::InitWithSweepGradient(const Point& centerPt, const std::v
         c.emplace_back(colors[i]);
         p.emplace_back(pos[i]);
     }
+    const SkMatrix *skMatrix = nullptr;
+    if (matrix != nullptr) {
+        skMatrix = &matrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix();
+    }
     shader_ = SkGradientShader::MakeSweep(centerPt.GetX(), centerPt.GetY(), &c[0], &p[0], count,
-        static_cast<SkTileMode>(mode), startAngle, endAngle, 0, nullptr);
+        static_cast<SkTileMode>(mode), startAngle, endAngle, 0, skMatrix);
 }
 
 sk_sp<SkShader> SkiaShaderEffect::GetShader() const
@@ -194,6 +208,36 @@ void SkiaShaderEffect::SetSkShader(const sk_sp<SkShader>& skShader)
 {
     shader_ = skShader;
 }
+
+std::shared_ptr<Data> SkiaShaderEffect::Serialize() const
+{
+#ifdef ROSEN_OHOS
+    if (shader_ == nullptr) {
+        LOGE("SkiaShaderEffect::Serialize, shader_ is nullptr!");
+        return nullptr;
+    }
+
+    return SkiaHelper::FlattenableSerialize(shader_.get());
+#else
+    return nullptr;
+#endif
+}
+
+bool SkiaShaderEffect::Deserialize(std::shared_ptr<Data> data)
+{
+#ifdef ROSEN_OHOS
+    if (data == nullptr) {
+        LOGE("SkiaShaderEffect::Deserialize, data is invalid!");
+        return false;
+    }
+
+    shader_ = SkiaHelper::FlattenableDeserialize<SkShaderBase>(data);
+    return true;
+#else
+    return false;
+#endif
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

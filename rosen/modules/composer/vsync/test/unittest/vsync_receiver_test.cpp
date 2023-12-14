@@ -66,6 +66,31 @@ void vsyncReceiverTest::TearDownTestCase()
 
 namespace {
 /*
+* Function: BeforeInit001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestNextVSync Before Init
+                   2. call SetVSyncRate Before Init
+                   3. call GetVSyncPeriodAndLastTimeStamp Before Init
+ */
+HWTEST_F(vsyncReceiverTest, BeforeInit001, Function | MediumTest| Level3)
+{
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = OnVSync,
+    };
+    ASSERT_EQ(vsyncReceiverTest::vsyncReceiver->RequestNextVSync(fcb), VSYNC_ERROR_API_FAILED);
+    ASSERT_EQ(vsyncReceiverTest::vsyncReceiver->SetVSyncRate(fcb, 0), VSYNC_ERROR_API_FAILED);
+
+    int64_t period;
+    int64_t timeStamp;
+    auto& rsClient = RSInterfaces::GetInstance();
+    auto rsReceiver = rsClient.CreateVSyncReceiver("vsyncReceiverTest");
+    ASSERT_EQ(rsReceiver->GetVSyncPeriodAndLastTimeStamp(period, timeStamp), VSYNC_ERROR_API_FAILED);
+}
+
+/*
 * Function: Init001
 * Type: Function
 * Rank: Important(2)
@@ -74,6 +99,7 @@ namespace {
  */
 HWTEST_F(vsyncReceiverTest, Init001, Function | MediumTest| Level3)
 {
+    ASSERT_EQ(vsyncReceiverTest::vsyncReceiver->Init(), VSYNC_ERROR_OK);
     ASSERT_EQ(vsyncReceiverTest::vsyncReceiver->Init(), VSYNC_ERROR_OK);
 }
 
@@ -152,6 +178,7 @@ HWTEST_F(vsyncReceiverTest, GetVSyncPeriodAndLastTimeStamp001, Function | Medium
     int64_t period;
     int64_t timeStamp;
     ASSERT_EQ(rsReceiver->GetVSyncPeriodAndLastTimeStamp(period, timeStamp), VSYNC_ERROR_OK);
+    ASSERT_EQ(rsReceiver->GetVSyncPeriodAndLastTimeStamp(period, timeStamp, true), VSYNC_ERROR_API_FAILED);
     ASSERT_NE(period, 0);
     ASSERT_NE(timeStamp, 0);
 }

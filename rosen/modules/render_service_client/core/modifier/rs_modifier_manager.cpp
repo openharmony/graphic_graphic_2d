@@ -66,6 +66,11 @@ void RSModifierManager::RemoveAnimation(AnimationId keyId)
     animations_.erase(animationItr);
 }
 
+bool RSModifierManager::HasUIAnimation()
+{
+    return !animations_.empty();
+}
+
 bool RSModifierManager::Animate(int64_t time)
 {
     RS_TRACE_NAME("RunningCustomAnimation num:[" + std::to_string(animations_.size()) + "]");
@@ -109,6 +114,39 @@ void RSModifierManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnimat
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), command);
 
     animation->Detach();
+}
+
+void RSModifierManager::RegisterSpringAnimation(PropertyId propertyId, AnimationId animId)
+{
+    springAnimations_[propertyId] = animId;
+}
+
+void RSModifierManager::UnregisterSpringAnimation(PropertyId propertyId, AnimationId animId)
+{
+    auto it = springAnimations_.find(propertyId);
+    if (it != springAnimations_.end() && it->second == animId) {
+        springAnimations_.erase(it);
+    }
+}
+
+std::shared_ptr<RSRenderAnimation> RSModifierManager::QuerySpringAnimation(PropertyId propertyId)
+{
+    auto it = springAnimations_.find(propertyId);
+    if (it == springAnimations_.end() || it->second == 0) {
+        ROSEN_LOGI("RSModifierManager::QuerySpringAnimation: there is no spring animation on the current property.");
+        return nullptr;
+    }
+    return GetAnimation(it->second);
+}
+
+const std::shared_ptr<RSRenderAnimation> RSModifierManager::GetAnimation(AnimationId id) const
+{
+    auto animationItr = animations_.find(id);
+    if (animationItr == animations_.end()) {
+        ROSEN_LOGE("RSModifierManager::GetAnimation, animation [%{public}" PRIu64 "] not found", id);
+        return nullptr;
+    }
+    return animationItr->second.lock();
 }
 } // namespace Rosen
 } // namespace OHOS

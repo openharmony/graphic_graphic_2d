@@ -49,6 +49,9 @@ public:
      */
     void SetColorFilter(const sk_sp<SkColorFilter>& filter);
 
+    std::shared_ptr<Data> Serialize() const override;
+    bool Deserialize(std::shared_ptr<Data> data) override;
+    bool AsAColorMatrix(scalar matrix[MATRIX_SIZE]) const override;
 private:
     sk_sp<SkColorFilter> filter_;
 };

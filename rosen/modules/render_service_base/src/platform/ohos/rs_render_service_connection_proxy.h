@@ -42,13 +42,15 @@ public:
     sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) override;
 
     virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,
-                                                         const sptr<VSyncIConnectionToken>& token) override;
+                                                         const sptr<VSyncIConnectionToken>& token,
+                                                         uint64_t id = 0) override;
 
     int32_t SetFocusAppInfo(
         int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
         uint64_t focusNodeId) override;
 
     ScreenId GetDefaultScreenId() override;
+    ScreenId GetActiveScreenId() override;
 
     std::vector<ScreenId> GetAllScreenIds() override;
 
@@ -59,7 +61,8 @@ public:
         uint32_t height,
         sptr<Surface> surface,
         ScreenId mirrorId = 0,
-        int32_t flags = 0) override;
+        int32_t flags = 0,
+        std::vector<NodeId> filteredAppVector = {}) override;
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
 
@@ -72,6 +75,8 @@ public:
     void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate) override;
 
     void SetRefreshRateMode(int32_t refreshRateMode) override;
+
+    void SyncFrameRateRange(const FrameRateRange& range) override;
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) override;
 
@@ -122,9 +127,27 @@ public:
 
     int32_t SetScreenCorrection(ScreenId id, ScreenRotation screenRotation) override;
 
+    bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) override;
+
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) override;
 
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) override;
+
+    int32_t GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat) override;
+
+    int32_t SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat) override;
+
+    int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) override;
+
+    int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat) override;
+
+    int32_t SetScreenHDRFormat(ScreenId id, int32_t modeIdx) override;
+
+    int32_t GetScreenSupportedColorSpaces(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces) override;
+
+    int32_t GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace) override;
+
+    int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) override;
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType) override;
 
@@ -147,9 +170,15 @@ public:
 
     int32_t RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
+    int32_t RegisterHgmRefreshRateModeChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
+
     void SetAppWindowNum(uint32_t num) override;
 
+    bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes) override;
+
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) override;
+
+    int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height) override;
 
     void ReportJankStats() override;
 
@@ -163,9 +192,14 @@ public:
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
+    void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) override;
+
+    void RunOnRemoteDiedCallback() override;
+
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config) override;
 #endif
+    void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);
@@ -176,6 +210,7 @@ private:
 
     pid_t pid_ = GetRealPid();
     uint32_t transactionDataIndex_ = 0;
+    OnRemoteDiedCallback OnRemoteDiedCallback_;
 };
 } // namespace Rosen
 } // namespace OHOS

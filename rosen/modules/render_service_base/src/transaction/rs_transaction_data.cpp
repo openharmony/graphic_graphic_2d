@@ -15,6 +15,7 @@
 
 #include "transaction/rs_transaction_data.h"
 
+#include "command/rs_canvas_node_command.h"
 #include "command/rs_command.h"
 #include "command/rs_command_factory.h"
 #include "platform/common/rs_log.h"
@@ -89,6 +90,18 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
     return success;
 }
 
+void RSTransactionData::ProcessBySingleFrameComposer(RSContext& context)
+{
+    std::unique_lock<std::mutex> lock(commandMutex_);
+    for (auto& [nodeId, followType, command] : payload_) {
+        if (command != nullptr &&
+            command->GetType() == RSCommandType::CANVAS_NODE &&
+            command->GetSubType() == RSCanvasNodeCommandType::CANVAS_NODE_UPDATE_RECORDING) {
+            command->Process(context);
+        }
+    }
+}
+
 void RSTransactionData::Process(RSContext& context)
 {
     std::unique_lock<std::mutex> lock(commandMutex_);
@@ -109,13 +122,17 @@ void RSTransactionData::Clear()
 void RSTransactionData::AddCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType)
 {
     std::unique_lock<std::mutex> lock(commandMutex_);
-    payload_.emplace_back(nodeId, followType, std::move(command));
+    if (command) {
+        payload_.emplace_back(nodeId, followType, std::move(command));
+    }
 }
 
 void RSTransactionData::AddCommand(std::unique_ptr<RSCommand>&& command, NodeId nodeId, FollowType followType)
 {
     std::unique_lock<std::mutex> lock(commandMutex_);
-    payload_.emplace_back(nodeId, followType, std::move(command));
+    if (command) {
+        payload_.emplace_back(nodeId, followType, std::move(command));
+    }
 }
 
 bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)

@@ -152,17 +152,17 @@ void FontParser::ProcessPostTable(const struct PostTable* postTable, FontParser:
     }
 }
 
-int FontParser::ParseCmapTable(sk_sp<SkTypeface> typeface, FontParser::FontDescriptor& fontDescriptor)
+int FontParser::ParseCmapTable(std::shared_ptr<TexgineTypeface> typeface, FontParser::FontDescriptor& fontDescriptor)
 {
     auto tag = HB_TAG('c', 'm', 'a', 'p');
-    auto size = typeface->getTableSize(tag);
+    auto size = typeface->GetTableSize(tag);
     if (size <= 0) {
         LOGSO_FUNC_LINE(ERROR) << "haven't cmap";
         return FAILED;
     }
     std::unique_ptr<char[]> tableData = nullptr;
     tableData = std::make_unique<char[]>(size);
-    auto retTableData = typeface->getTableData(tag, 0, size, tableData.get());
+    auto retTableData = typeface->GetTableData(tag, 0, size, tableData.get());
     if (size != retTableData) {
         LOGSO_FUNC_LINE(ERROR) <<"get table data failed size: " << size << ", ret: " << retTableData;
         return FAILED;
@@ -183,17 +183,17 @@ int FontParser::ParseCmapTable(sk_sp<SkTypeface> typeface, FontParser::FontDescr
     return SUCCESSED;
 }
 
-int FontParser::ParseNameTable(sk_sp<SkTypeface> typeface, FontParser::FontDescriptor& fontDescriptor)
+int FontParser::ParseNameTable(std::shared_ptr<TexgineTypeface> typeface, FontParser::FontDescriptor& fontDescriptor)
 {
     auto tag = HB_TAG('n', 'a', 'm', 'e');
-    auto size = typeface->getTableSize(tag);
+    auto size = typeface->GetTableSize(tag);
     if (size <= 0) {
         LOGSO_FUNC_LINE(ERROR) << "haven't name";
         return FAILED;
     }
     std::unique_ptr<char[]> tableData = nullptr;
     tableData = std::make_unique<char[]>(size);
-    auto retTableData = typeface->getTableData(tag, 0, size, tableData.get());
+    auto retTableData = typeface->GetTableData(tag, 0, size, tableData.get());
     if (size != retTableData) {
         LOGSO_FUNC_LINE(ERROR) <<"get table data failed size: " << size << ", ret: " << retTableData;
         return FAILED;
@@ -218,17 +218,17 @@ int FontParser::ParseNameTable(sk_sp<SkTypeface> typeface, FontParser::FontDescr
     return SUCCESSED;
 }
 
-int FontParser::ParsePostTable(sk_sp<SkTypeface> typeface, FontParser::FontDescriptor& fontDescriptor)
+int FontParser::ParsePostTable(std::shared_ptr<TexgineTypeface> typeface, FontParser::FontDescriptor& fontDescriptor)
 {
     auto tag = HB_TAG('p', 'o', 's', 't');
-    auto size = typeface->getTableSize(tag);
+    auto size = typeface->GetTableSize(tag);
     if (size <= 0) {
         LOGSO_FUNC_LINE(ERROR) << "haven't post";
         return FAILED;
     }
     std::unique_ptr<char[]> tableData = nullptr;
     tableData = std::make_unique<char[]>(size);
-    auto retTableData = typeface->getTableData(tag, 0, size, tableData.get());
+    auto retTableData = typeface->GetTableData(tag, 0, size, tableData.get());
     if (size != retTableData) {
         LOGSO_FUNC_LINE(ERROR) <<"get table data failed size: " << size << ", ret: " << retTableData;
         return FAILED;
@@ -249,7 +249,7 @@ int FontParser::ParsePostTable(sk_sp<SkTypeface> typeface, FontParser::FontDescr
     return SUCCESSED;
 }
 
-int FontParser::ParseTable(sk_sp<SkTypeface> typeface, FontParser::FontDescriptor& fontDescriptor)
+int FontParser::ParseTable(std::shared_ptr<TexgineTypeface> typeface, FontParser::FontDescriptor& fontDescriptor)
 {
     if (ParseCmapTable(typeface, fontDescriptor) != SUCCESSED) {
         LOGSO_FUNC_LINE(ERROR) << "parse cmap failed";
@@ -273,14 +273,18 @@ int FontParser::SetFontDescriptor()
         FontParser::FontDescriptor fontDescriptor;
         fontDescriptor.path = fontSet_[i];
         const char* path = fontSet_[i].c_str();
-        auto typeface = SkTypeface::MakeFromFile(path);
+        auto typeface = TexgineTypeface::MakeFromFile(path);
         if (typeface == nullptr) {
             LOGSO_FUNC_LINE(ERROR) << "typeface is nullptr, can not parse: " << fontDescriptor.path;
             continue;
         }
-        auto fontStyle = typeface->fontStyle();
-        fontDescriptor.weight = fontStyle.weight();
-        fontDescriptor.width = fontStyle.width();
+        auto fontStyle = typeface->GetFontStyle();
+        if (fontStyle == nullptr) {
+            LOGSO_FUNC_LINE(ERROR) << "fontStyle is nullptr, can not parse: " << fontDescriptor.path;
+            continue;
+        }
+        fontDescriptor.weight = fontStyle->GetWeight();
+        fontDescriptor.width = fontStyle->GetWidth();
         if (ParseTable(typeface, fontDescriptor) !=  SUCCESSED) {
             LOGSO_FUNC_LINE(ERROR) << "parse table failed";
             return FAILED;

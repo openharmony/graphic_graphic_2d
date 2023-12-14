@@ -38,37 +38,65 @@ void OH_Drawing_PathDestroy(OH_Drawing_Path* cPath)
 
 void OH_Drawing_PathMoveTo(OH_Drawing_Path* cPath, float x, float y)
 {
-    CastToPath(cPath)->MoveTo(x, y);
+    Path* path = CastToPath(cPath);
+    if (path == nullptr) {
+        return;
+    }
+    path->MoveTo(x, y);
 }
 
 void OH_Drawing_PathLineTo(OH_Drawing_Path* cPath, float x, float y)
 {
-    CastToPath(cPath)->LineTo(x, y);
+    Path* path = CastToPath(cPath);
+    if (path == nullptr) {
+        return;
+    }
+    path->LineTo(x, y);
 }
 
 void OH_Drawing_PathArcTo(
     OH_Drawing_Path* cPath, float x1, float y1, float x2, float y2, float startDeg, float sweepDeg)
 {
-    CastToPath(cPath)->ArcTo(x1, y1, x2, y2, startDeg, sweepDeg);
+    Path* path = CastToPath(cPath);
+    if (path == nullptr) {
+        return;
+    }
+    path->ArcTo(x1, y1, x2, y2, startDeg, sweepDeg);
 }
 
 void OH_Drawing_PathQuadTo(OH_Drawing_Path* cPath, float ctrlX, float ctrlY, float endX, float endY)
 {
-    CastToPath(cPath)->QuadTo(ctrlX, ctrlY, endX, endY);
+    Path* path = CastToPath(cPath);
+    if (path == nullptr) {
+        return;
+    }
+    path->QuadTo(ctrlX, ctrlY, endX, endY);
 }
 
 void OH_Drawing_PathCubicTo(
     OH_Drawing_Path* cPath, float ctrlX1, float ctrlY1, float ctrlX2, float ctrlY2, float endX, float endY)
 {
-    CastToPath(cPath)->CubicTo(ctrlX1, ctrlY1, ctrlX2, ctrlY2, endX, endY);
+    Path* path = CastToPath(cPath);
+    if (path == nullptr) {
+        return;
+    }
+    path->CubicTo(ctrlX1, ctrlY1, ctrlX2, ctrlY2, endX, endY);
 }
 
 void OH_Drawing_PathClose(OH_Drawing_Path* cPath)
 {
-    CastToPath(cPath)->Close();
+    Path* path = CastToPath(cPath);
+    if (path == nullptr) {
+        return;
+    }
+    path->Close();
 }
 
 void OH_Drawing_PathReset(OH_Drawing_Path* cPath)
 {
-    CastToPath(cPath)->Reset();
+    Path* path = CastToPath(cPath);
+    if (path == nullptr) {
+        return;
+    }
+    path->Reset();
 }

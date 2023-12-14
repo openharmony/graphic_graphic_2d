@@ -39,6 +39,12 @@ int RSHgmConfigChangeCallbackStub::OnRemoteRequest(
             OnHgmConfigChanged(configData);
             break;
         }
+        case static_cast<uint32_t>(RSIHgmConfigChangeCallbackInterfaceCode::
+                                   ON_HGM_REFRESH_RATE_MODE_CHANGED): {
+            int32_t refreshRateMode = data.ReadInt32();
+            OnHgmRefreshRateModeChanged(refreshRateMode);
+            break;
+        }
         default: {
             ret = IPCObjectStub::OnRemoteRequest(code, data, reply, option);
             break;

@@ -102,8 +102,8 @@ public:
     GSError SetDefaultWidthAndHeight(int32_t width, int32_t height);
     int32_t GetDefaultWidth();
     int32_t GetDefaultHeight();
-    GSError SetDefaultUsage(uint32_t usage);
-    uint32_t GetDefaultUsage();
+    GSError SetDefaultUsage(uint64_t usage);
+    uint64_t GetDefaultUsage();
 
     GSError CleanCache();
     GSError GoBackground();
@@ -144,7 +144,7 @@ private:
     void DumpToFile(uint32_t sequence);
 
     uint32_t GetUsedSize();
-    void DeleteBuffers(int32_t count);
+    void DeleteBuffersLocked(int32_t count);
 
     GSError PopFromFreeList(sptr<SurfaceBuffer>& buffer, const BufferRequestConfig &config);
     GSError PopFromDirtyList(sptr<SurfaceBuffer>& buffer);
@@ -158,7 +158,7 @@ private:
 
     int32_t defaultWidth = 0;
     int32_t defaultHeight = 0;
-    uint32_t defaultUsage = 0;
+    uint64_t defaultUsage = 0;
     uint32_t queueSize_ = SURFACE_DEFAULT_QUEUE_SIZE;
     GraphicTransformType transform_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     std::string name_;

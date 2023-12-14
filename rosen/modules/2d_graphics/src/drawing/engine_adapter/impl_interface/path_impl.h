@@ -29,6 +29,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+class Data;
 class Path;
 enum class PathDirection;
 enum class PathFillType;
@@ -49,6 +50,7 @@ public:
     virtual void LineTo(scalar x, scalar y) = 0;
     virtual void ArcTo(scalar pt1X, scalar pt1Y, scalar pt2X, scalar pt2Y, scalar startAngle, scalar sweepAngle) = 0;
     virtual void ArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction, scalar endX, scalar endY) = 0;
+    virtual void ArcTo(scalar x1, scalar y1, scalar x2, scalar y2, scalar radius) = 0;
     virtual void CubicTo(
         scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y, scalar endPtX, scalar endPtY) = 0;
     virtual void QuadTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endPtY) = 0;
@@ -88,6 +90,8 @@ public:
 
     virtual scalar GetLength(bool forceClosed) const = 0;
     virtual bool GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed) const = 0;
+    virtual std::shared_ptr<Data> Serialize() const = 0;
+    virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

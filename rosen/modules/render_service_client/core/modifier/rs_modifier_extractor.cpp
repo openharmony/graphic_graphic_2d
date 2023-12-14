@@ -20,12 +20,14 @@
 #include "modifier/rs_property_modifier.h"
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_node_map.h"
+#include "property/rs_properties_def.h"
 #include "ui/rs_node.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
 RSModifierExtractor::RSModifierExtractor(NodeId id) : id_(id) {}
-
+constexpr uint32_t DEBUG_MODIFIER_SIZE = 20;
 #define GET_PROPERTY_FROM_MODIFIERS(T, propertyType, defaultValue, operator)                                        \
     do {                                                                                                            \
         auto node = RSNodeMap::Instance().GetNode<RSNode>(id_);                                                     \
@@ -40,6 +42,9 @@ RSModifierExtractor::RSModifierExtractor(NodeId id) : id_(id) {}
             return std::static_pointer_cast<RSProperty<T>>(iter->second->GetProperty())->Get();                     \
         }                                                                                                           \
         T value = defaultValue;                                                                                     \
+        if (node->modifiers_.size() > DEBUG_MODIFIER_SIZE) {                                                        \
+            ROSEN_LOGD("RSModifierExtractor modifier size is %{public}zu", node->modifiers_.size());                \
+        }                                                                                                           \
         for (auto& [_, modifier] : node->modifiers_) {                                                              \
             if (modifier->GetModifierType() == RSModifierType::propertyType) {                                      \
                 value operator std::static_pointer_cast<RSProperty<T>>(modifier->GetProperty())->Get();             \
@@ -189,6 +194,27 @@ Vector4<uint32_t> RSModifierExtractor::GetBorderStyle() const
         Vector4<uint32_t>, BORDER_STYLE, Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::NONE)), =);
 }
 
+Vector4<Color> RSModifierExtractor::GetOuterBorderColor() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(Vector4<Color>, OUTER_BORDER_COLOR, Vector4<Color>(RgbPalette::Transparent()), =);
+}
+
+Vector4f RSModifierExtractor::GetOuterBorderWidth() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(Vector4f, OUTER_BORDER_WIDTH, Vector4f(0.f), =);
+}
+
+Vector4<uint32_t> RSModifierExtractor::GetOuterBorderStyle() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(
+        Vector4<uint32_t>, OUTER_BORDER_STYLE, Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::NONE)), =);
+}
+
+Vector4f RSModifierExtractor::GetOuterBorderRadius() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(Vector4f, OUTER_BORDER_RADIUS, Vector4f(0.f), =);
+}
+
 std::shared_ptr<RSFilter> RSModifierExtractor::GetBackgroundFilter() const
 {
     GET_PROPERTY_FROM_MODIFIERS(std::shared_ptr<RSFilter>, BACKGROUND_FILTER, nullptr, =);
@@ -244,6 +270,11 @@ bool RSModifierExtractor::GetShadowIsFilled() const
     GET_PROPERTY_FROM_MODIFIERS(bool, SHADOW_IS_FILLED, false, =);
 }
 
+int RSModifierExtractor::GetShadowColorStrategy() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(int, SHADOW_COLOR_STRATEGY, SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE, =);
+}
+
 Gravity RSModifierExtractor::GetFrameGravity() const
 {
     GET_PROPERTY_FROM_MODIFIERS(Gravity, FRAME_GRAVITY, Gravity::DEFAULT, =);
@@ -282,6 +313,31 @@ float RSModifierExtractor::GetSpherizeDegree() const
 float RSModifierExtractor::GetLightUpEffectDegree() const
 {
     GET_PROPERTY_FROM_MODIFIERS(float, LIGHT_UP_EFFECT, 0.f, =);
+}
+
+float RSModifierExtractor::GetLightIntensity() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, LIGHT_INTENSITY, 0.f, =);
+}
+
+Vector4f RSModifierExtractor::GetLightPosition() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(Vector4f, LIGHT_POSITION, Vector4f(0.f), =);
+}
+
+float RSModifierExtractor::GetIlluminatedBorderWidth() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, ILLUMINATED_BORDER_WIDTH, 0.f, =);
+}
+
+int RSModifierExtractor::GetIlluminatedType() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(int, ILLUMINATED_TYPE, 0, =);
+}
+
+float RSModifierExtractor::GetBloom() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(float, BLOOM, 0.f, =);
 }
 
 std::string RSModifierExtractor::Dump() const

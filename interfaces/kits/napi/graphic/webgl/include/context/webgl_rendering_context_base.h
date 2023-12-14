@@ -449,7 +449,7 @@ public:
     static napi_value GetDrawingBufferWidth(napi_env env, napi_callback_info info);
     static napi_value GetDrawingBufferHeight(napi_env env, napi_callback_info info);
     static void GetRenderingContextBasePropertyDesc(std::vector<napi_property_descriptor> &props);
-    static void SetError(napi_env env, napi_value thisVar, GLenum error, std::string func, int line);
+    static void SetError(napi_env env, napi_value thisVar, GLenum error, std::string func, int32_t line);
 };
 } // namespace Rosen
 } // namespace OHOS

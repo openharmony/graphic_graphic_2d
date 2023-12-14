@@ -21,8 +21,8 @@
 
 #include "common/rs_macros.h"
 #include "effect/color_space.h"
-#include "utils/drawing_macros.h"
 #include "utils/scalar.h"
+#include "utils/drawing_macros.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -34,7 +34,9 @@ enum ColorType {
     COLORTYPE_ARGB_4444,
     COLORTYPE_RGBA_8888,
     COLORTYPE_BGRA_8888,
+    COLORTYPE_RGBA_F16,
     COLORTYPE_N32,
+    COLORTYPE_RGBA_1010102,
 };
 
 enum AlphaType {
@@ -53,11 +55,8 @@ struct Color4f {
 };
 
 typedef uint32_t ColorQuad;
-#ifndef USE_ROSEN_DRAWING
-class RS_EXPORT Color {
-#else
+
 class DRAWING_API Color {
-#endif
 public:
     constexpr static ColorQuad COLOR_TRANSPARENT = 0;
     constexpr static ColorQuad COLOR_BLACK = 0xFF000000;
@@ -74,7 +73,7 @@ public:
 
     constexpr static uint8_t RGB_MAX = 255;
     // Return color value from component values.
-    static inline ColorQuad ColorQuadSetARGB(uint32_t r, uint32_t g, uint32_t b, uint32_t a)
+    static inline ColorQuad ColorQuadSetARGB(uint32_t a, uint32_t r, uint32_t g, uint32_t b)
     {
         return ((a & 0xffu) << 24) | ((r & 0xffu) << 16) | ((g & 0xffu) << 8) | ((b & 0xffu) << 0);
     }
@@ -134,15 +133,13 @@ public:
     void SetRgbF(scalar r, scalar g, scalar b, scalar a = 1.0);
 
     void SetColorQuad(uint32_t c);
-    ColorQuad CastToColorQuad() const;
+    inline ColorQuad CastToColorQuad() const
+    {
+        return ((alpha_ & 0xffu) << 24) | ((red_ & 0xffu) << 16) | ((green_ & 0xffu) << 8) | ((blue_ & 0xffu) << 0);
+    }
 
-#ifndef USE_ROSEN_DRAWING
-    RS_EXPORT friend bool operator==(const Color& c1, const Color& c2);
-    RS_EXPORT friend bool operator!=(const Color& c1, const Color& c2);
-#else
     friend DRAWING_API bool operator==(const Color& c1, const Color& c2);
     friend DRAWING_API bool operator!=(const Color& c1, const Color& c2);
-#endif
 
 private:
     uint32_t alpha_;

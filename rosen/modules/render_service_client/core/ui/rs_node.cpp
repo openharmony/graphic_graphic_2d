@@ -31,8 +31,11 @@
 #include "command/rs_base_node_command.h"
 #include "command/rs_node_command.h"
 #include "common/rs_color.h"
+#include "common/rs_common_def.h"
 #include "common/rs_obj_geometry.h"
+#include "common/rs_vector4.h"
 #include "modifier/rs_modifier.h"
+#include "modifier/rs_property.h"
 #include "modifier/rs_property_modifier.h"
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
@@ -215,7 +218,8 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::AnimateWithCurrentOptions(
         ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
         return {};
     }
-    auto finishCallbackType = timingSensitive ? FinishCallbackType::TIME_SENSITIVE : FinishCallbackType::TIME_SENSITIVE;
+    auto finishCallbackType =
+        timingSensitive ? FinishCallbackType::TIME_SENSITIVE : FinishCallbackType::TIME_INSENSITIVE;
     // re-use the current options and replace the finish callback
     auto animationFinishCallback = std::make_shared<AnimationFinishCallback>(finishCallback, finishCallbackType);
     implicitAnimator->OpenImplicitAnimation(std::move(animationFinishCallback));
@@ -749,7 +753,7 @@ void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams, cons
         uiAnimation->SetFinishCallback(std::make_shared<AnimationFinishCallback>(finishCallback));
     }
     auto animation =
-        std::make_shared<RSRenderParticleAnimation>(animationId, propertyId, particlesRenderParams);
+        std::make_shared<RSRenderParticleAnimation>(animationId, propertyId, std::move(particlesRenderParams));
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateParticle>(GetId(), animation);
     auto transactionProxy = RSTransactionProxy::GetInstance();
@@ -868,18 +872,13 @@ void RSNode::SetBgImagePositionY(float positionY)
         RSModifierType::BG_IMAGE_POSITION_Y, positionY);
 }
 
-void RSNode::SetColorBlendMode(const RSColorBlendModeType blendMode)
-{
-    SetProperty<RSColorBlendModeModifier, RSProperty<int>>(
-        RSModifierType::COLOR_BLENDMODE, static_cast<int>(blendMode));
-}
-
-// border
+// set inner border color
 void RSNode::SetBorderColor(uint32_t colorValue)
 {
     SetBorderColor(colorValue, colorValue, colorValue, colorValue);
 }
 
+// set inner border color
 void RSNode::SetBorderColor(uint32_t left, uint32_t top, uint32_t right, uint32_t bottom)
 {
     Vector4<Color> color(Color::FromArgbInt(left), Color::FromArgbInt(top),
@@ -887,32 +886,38 @@ void RSNode::SetBorderColor(uint32_t left, uint32_t top, uint32_t right, uint32_
     SetBorderColor(color);
 }
 
+// set inner border color
 void RSNode::SetBorderColor(const Vector4<Color>& color)
 {
     SetProperty<RSBorderColorModifier, RSAnimatableProperty<Vector4<Color>>>(RSModifierType::BORDER_COLOR, color);
 }
 
+// set inner border width
 void RSNode::SetBorderWidth(float width)
 {
     SetBorderWidth(width, width, width, width);
 }
 
+// set inner border width
 void RSNode::SetBorderWidth(float left, float top, float right, float bottom)
 {
     Vector4f width(left, top, right, bottom);
     SetBorderWidth(width);
 }
 
+// set inner border width
 void RSNode::SetBorderWidth(const Vector4f& width)
 {
     SetProperty<RSBorderWidthModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::BORDER_WIDTH, width);
 }
 
+// set inner border style
 void RSNode::SetBorderStyle(uint32_t styleValue)
 {
     SetBorderStyle(styleValue, styleValue, styleValue, styleValue);
 }
 
+// set inner border style
 void RSNode::SetBorderStyle(uint32_t left, uint32_t top, uint32_t right, uint32_t bottom)
 {
     Vector4<BorderStyle> style(static_cast<BorderStyle>(left), static_cast<BorderStyle>(top),
@@ -920,11 +925,38 @@ void RSNode::SetBorderStyle(uint32_t left, uint32_t top, uint32_t right, uint32_
     SetBorderStyle(style);
 }
 
+// set inner border style
 void RSNode::SetBorderStyle(const Vector4<BorderStyle>& style)
 {
     Vector4<uint32_t> styles(static_cast<uint32_t>(style.x_), static_cast<uint32_t>(style.y_),
                              static_cast<uint32_t>(style.z_), static_cast<uint32_t>(style.w_));
     SetProperty<RSBorderStyleModifier, RSProperty<Vector4<uint32_t>>>(RSModifierType::BORDER_STYLE, styles);
+}
+
+void RSNode::SetOuterBorderColor(const Vector4<Color>& color)
+{
+    SetProperty<RSOuterBorderColorModifier, RSAnimatableProperty<Vector4<Color>>>(
+        RSModifierType::OUTER_BORDER_COLOR, color);
+}
+
+void RSNode::SetOuterBorderWidth(const Vector4f& width)
+{
+    SetProperty<RSOuterBorderWidthModifier, RSAnimatableProperty<Vector4f>>(
+        RSModifierType::OUTER_BORDER_WIDTH, width);
+}
+
+void RSNode::SetOuterBorderStyle(const Vector4<BorderStyle>& style)
+{
+    Vector4<uint32_t> styles(static_cast<uint32_t>(style.x_), static_cast<uint32_t>(style.y_),
+                             static_cast<uint32_t>(style.z_), static_cast<uint32_t>(style.w_));
+    SetProperty<RSOuterBorderStyleModifier, RSProperty<Vector4<uint32_t>>>(
+        RSModifierType::OUTER_BORDER_STYLE, styles);
+}
+
+void RSNode::SetOuterBorderRadius(const Vector4f& radius)
+{
+    SetProperty<RSOuterBorderRadiusModifier, RSAnimatableProperty<Vector4f>>(
+        RSModifierType::OUTER_BORDER_RADIUS, radius);
 }
 
 void RSNode::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter)
@@ -953,6 +985,18 @@ void RSNode::SetDynamicLightUpDegree(const float lightUpDegree)
 {
     SetProperty<RSDynamicLightUpDegreeModifier,
         RSAnimatableProperty<float>>(RSModifierType::DYNAMIC_LIGHT_UP_DEGREE, lightUpDegree);
+}
+
+void RSNode::SetGreyCoef1(const float greyCoef1)
+{
+    SetProperty<RSGreyCoef1Modifier,
+        RSAnimatableProperty<float>>(RSModifierType::GREY_COEF1, greyCoef1);
+}
+
+void RSNode::SetGreyCoef2(const float greyCoef2)
+{
+    SetProperty<RSGreyCoef2Modifier,
+        RSAnimatableProperty<float>>(RSModifierType::GREY_COEF2, greyCoef2);
 }
 
 void RSNode::SetCompositingFilter(const std::shared_ptr<RSFilter>& compositingFilter) {}
@@ -1009,6 +1053,12 @@ void RSNode::SetShadowIsFilled(bool shadowIsFilled)
     SetProperty<RSShadowIsFilledModifier, RSProperty<bool>>(RSModifierType::SHADOW_IS_FILLED, shadowIsFilled);
 }
 
+void RSNode::SetShadowColorStrategy(int shadowColorStrategy)
+{
+    SetProperty<RSShadowColorStrategyModifier, RSProperty<int>>(
+        RSModifierType::SHADOW_COLOR_STRATEGY, shadowColorStrategy);
+}
+
 void RSNode::SetFrameGravity(Gravity gravity)
 {
     ROSEN_LOGI("RSNode::SetFrameGravity, gravity = %{public}d", gravity);
@@ -1054,6 +1104,17 @@ void RSNode::SetMask(const std::shared_ptr<RSMask>& mask)
 void RSNode::SetUseEffect(bool useEffect)
 {
     SetProperty<RSUseEffectModifier, RSProperty<bool>>(RSModifierType::USE_EFFECT, useEffect);
+}
+
+void RSNode::SetUseShadowBatching(bool useShadowBatching)
+{
+    SetProperty<RSUseShadowBatchingModifier, RSProperty<bool>>(RSModifierType::USE_SHADOW_BATCHING, useShadowBatching);
+}
+
+void RSNode::SetColorBlendMode(RSColorBlendModeType blendMode)
+{
+    SetProperty<RSColorBlendModeModifier, RSProperty<int>>(
+        RSModifierType::COLOR_BLEND_MODE, static_cast<int>(blendMode));
 }
 
 void RSNode::SetPixelStretch(const Vector4f& stretchSize)
@@ -1384,10 +1445,54 @@ void RSNode::MarkNodeGroup(bool isNodeGroup, bool isForced)
     }
 }
 
+void RSNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer)
+{
+    if (isNodeSingleFrameComposer_ != isNodeSingleFrameComposer) {
+        isNodeSingleFrameComposer_ = isNodeSingleFrameComposer;
+        std::unique_ptr<RSCommand> command =
+            std::make_unique<RSMarkNodeSingleFrameComposer>(GetId(), isNodeSingleFrameComposer, GetRealPid());
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, IsRenderServiceNode());
+        }
+    }
+}
 
 void RSNode::SetGrayScale(float grayScale)
 {
     SetProperty<RSGrayScaleModifier, RSAnimatableProperty<float>>(RSModifierType::GRAY_SCALE, grayScale);
+}
+
+void RSNode::SetLightIntensity(float lightIntensity)
+{
+    SetProperty<RSLightIntensityModifier, RSAnimatableProperty<float>>(RSModifierType::LIGHT_INTENSITY, lightIntensity);
+}
+
+void RSNode::SetLightPosition(float positionX, float positionY, float positionZ)
+{
+    SetLightPosition(Vector4f(positionX, positionY, positionZ, 0.f));
+}
+
+void RSNode::SetLightPosition(const Vector4f& lightPosition)
+{
+    SetProperty<RSLightPositionModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::LIGHT_POSITION, lightPosition);
+}
+
+void RSNode::SetIlluminatedBorderWidth(float illuminatedBorderWidth)
+{
+    SetProperty<RSIlluminatedBorderWidthModifier, RSAnimatableProperty<float>>(
+        RSModifierType::ILLUMINATED_BORDER_WIDTH, illuminatedBorderWidth);
+}
+
+void RSNode::SetIlluminatedType(uint32_t illuminatedType)
+{
+    SetProperty<RSIlluminatedTypeModifier, RSProperty<int>>(
+        RSModifierType::ILLUMINATED_TYPE, illuminatedType);
+}
+
+void RSNode::SetBloom(float bloomIntensity)
+{
+    SetProperty<RSBloomModifier, RSAnimatableProperty<float>>(RSModifierType::BLOOM, bloomIntensity);
 }
 
 void RSNode::SetBrightness(float brightness)
@@ -1415,6 +1520,11 @@ void RSNode::SetInvert(float invert)
     SetProperty<RSInvertModifier, RSAnimatableProperty<float>>(RSModifierType::INVERT, invert);
 }
 
+void RSNode::SetAiInvert(const Vector4f& aiInvert)
+{
+    SetProperty<RSAiInvertModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::AIINVERT, aiInvert);
+}
+
 void RSNode::SetHueRotate(float hueRotate)
 {
     SetProperty<RSHueRotateModifier, RSAnimatableProperty<float>>(RSModifierType::HUE_ROTATE, hueRotate);
@@ -1434,6 +1544,12 @@ void RSNode::AddFRCSceneInfo(const std::string& scene, float speed)
         return;
     }
     UpdateUIFrameRateRange(range);
+}
+
+int32_t RSNode::CalcExpectedFrameRate(const std::string& scene, float speed)
+{
+    auto preferredFps = RSFrameRatePolicy::GetInstance()->GetPreferredFps(scene, speed);
+    return preferredFps;
 }
 
 void RSNode::UpdateUIFrameRateRange(const FrameRateRange& range)

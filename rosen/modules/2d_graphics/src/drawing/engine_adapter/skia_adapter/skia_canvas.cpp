@@ -85,8 +85,8 @@ Matrix SkiaCanvas::GetTotalMatrix() const
     auto skMatrix = skCanvas_->getTotalMatrix();
     Matrix matrix;
     matrix.SetMatrix(skMatrix.getScaleX(), skMatrix.getSkewX(), skMatrix.getTranslateX(),
-        skMatrix.getSkewX(), skMatrix.getScaleY(), skMatrix.getTranslateY(),
-        skMatrix.getPerspX(), skMatrix.getPerspY(), 1);
+        skMatrix.getSkewY(), skMatrix.getScaleY(), skMatrix.getTranslateY(),
+        skMatrix.getPerspX(), skMatrix.getPerspY(), skMatrix.get(SkMatrix::kMPersp2));
     return matrix;
 }
 
@@ -186,16 +186,15 @@ void SkiaCanvas::DrawPoints(PointMode mode, size_t count, const Point pts[])
         return;
     }
 
-    std::vector<SkPoint> skPts(count);
+    SkPoint skPts[count];
     for (size_t i = 0; i < count; ++i) {
-        skPts[i].fX = pts[i].GetX();
-        skPts[i].fY = pts[i].GetY();
+        skPts[i] = {pts[i].GetX(), pts[i].GetY()};
     }
 
     SortedPaints& paints = skiaPaint_.GetSortedPaints();
     for (int i = 0; i < paints.count_; i++) {
         SkPaint* paint = paints.paints_[i];
-        skCanvas_->drawPoints(static_cast<SkCanvas::PointMode>(mode), count, skPts.data(), *paint);
+        skCanvas_->drawPoints(static_cast<SkCanvas::PointMode>(mode), count, skPts, *paint);
     }
 }
 
@@ -340,7 +339,7 @@ void SkiaCanvas::DrawBackground(const Brush& brush)
         return;
     }
     SkPaint paint;
-    skiaPaint_.BrushToSkPaint(brush, paint);
+    SkiaPaint::BrushToSkPaint(brush, paint);
     skCanvas_->drawPaint(paint);
 }
 
@@ -489,6 +488,10 @@ void SkiaCanvas::DrawImageNine(const Image* image, const RectI& center, const Re
     sk_sp<SkImage> img = nullptr;
     if (skImageImpl != nullptr) {
         img = skImageImpl->GetImage();
+        if (img == nullptr) {
+            LOGE("img is null, return on line %{public}d", __LINE__);
+            return;
+        }
     }
 
     SkIRect skCenter = SkIRect::MakeLTRB(center.GetLeft(), center.GetTop(),
@@ -500,7 +503,7 @@ void SkiaCanvas::DrawImageNine(const Image* image, const RectI& center, const Re
     std::unique_ptr<SkPaint> paint = nullptr;
     if (brush != nullptr) {
         paint = std::make_unique<SkPaint>();
-        skiaPaint_.BrushToSkPaint(*brush, *paint);
+        SkiaPaint::BrushToSkPaint(*brush, *paint);
     }
     skCanvas_->drawImageNine(img.get(), skCenter, skDst, skFilterMode, paint.get());
 }
@@ -528,6 +531,10 @@ void SkiaCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, co
     sk_sp<SkImage> img = nullptr;
     if (skImageImpl != nullptr) {
         img = skImageImpl->GetImage();
+        if (img == nullptr) {
+            LOGE("img is null, return on line %{public}d", __LINE__);
+            return;
+        }
     }
     const SkCanvas::Lattice::RectType skRectType =
         static_cast<const SkCanvas::Lattice::RectType>(lattice.fRectTypes);
@@ -550,7 +557,7 @@ void SkiaCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, co
     std::unique_ptr<SkPaint> paint = nullptr;
     if (brush != nullptr) {
         paint = std::make_unique<SkPaint>();
-        skiaPaint_.BrushToSkPaint(*brush, *paint);
+        SkiaPaint::BrushToSkPaint(*brush, *paint);
     }
 
     skCanvas_->drawImageLattice(img.get(), skLattice, skDst, skFilterMode, paint.get());
@@ -677,6 +684,10 @@ void SkiaCanvas::DrawImage(const Image& image, const scalar px, const scalar py,
     auto skImageImpl = image.GetImpl<SkiaImage>();
     if (skImageImpl != nullptr) {
         img = skImageImpl->GetImage();
+        if (img == nullptr) {
+            LOGE("img is null, return on line %{public}d", __LINE__);
+            return;
+        }
     }
 
     SortedPaints& paints = skiaPaint_.GetSortedPaints();
@@ -709,6 +720,10 @@ void SkiaCanvas::DrawImageRect(
     auto skImageImpl = image.GetImpl<SkiaImage>();
     if (skImageImpl != nullptr) {
         img = skImageImpl->GetImage();
+        if (img == nullptr) {
+            LOGE("img is null, return on line %{public}d", __LINE__);
+            return;
+        }
     }
 
     SkRect srcRect = SkRect::MakeLTRB(src.GetLeft(), src.GetTop(), src.GetRight(), src.GetBottom());
@@ -745,6 +760,10 @@ void SkiaCanvas::DrawImageRect(const Image& image, const Rect& dst, const Sampli
     auto skImageImpl = image.GetImpl<SkiaImage>();
     if (skImageImpl != nullptr) {
         img = skImageImpl->GetImage();
+        if (img == nullptr) {
+            LOGE("img is null, return on line %{public}d", __LINE__);
+            return;
+        }
     }
 
     SkRect dstRect = SkRect::MakeLTRB(dst.GetLeft(), dst.GetTop(), dst.GetRight(), dst.GetBottom());
@@ -892,6 +911,15 @@ bool SkiaCanvas::IsClipEmpty()
     return skCanvas_->isClipEmpty();
 }
 
+bool SkiaCanvas::IsClipRect()
+{
+    if (!skCanvas_) {
+        LOGE("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return false;
+    }
+    return skCanvas_->isClipRect();
+}
+
 bool SkiaCanvas::QuickReject(const Rect& rect)
 {
     if (!skCanvas_) {
@@ -1014,7 +1042,7 @@ void SkiaCanvas::SaveLayer(const SaveLayerOps& saveLayerOps)
     auto brush = saveLayerOps.GetBrush();
     if (brush != nullptr) {
         paint = std::make_unique<SkPaint>();
-        skiaPaint_.BrushToSkPaint(*brush, *paint);
+        SkiaPaint::BrushToSkPaint(*brush, *paint);
     }
     sk_sp<SkImageFilter> skImageFilter = nullptr;
     auto imageFilter = saveLayerOps.GetImageFilter();

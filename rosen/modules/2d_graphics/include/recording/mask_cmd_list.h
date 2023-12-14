@@ -43,7 +43,7 @@ public:
     /*
      * @brief  Calls the corresponding operations of all opitems in MaskCmdList to the mask.
      */
-    bool Playback(Path& path, Brush& brush) const;
+    bool Playback(std::shared_ptr<Path>& path, Brush& brush) const;
 };
 
 /* OpItem */
@@ -53,7 +53,7 @@ public:
  */
 class MaskPlayer {
 public:
-    MaskPlayer(Path& path, Brush& brush, const CmdList& cmdList);
+    MaskPlayer(std::shared_ptr<Path>& path, Brush& brush, const CmdList& cmdList);
     ~MaskPlayer() = default;
 
     /*
@@ -62,7 +62,7 @@ public:
      */
     bool Playback(uint32_t type, const void* opItem);
 
-    Path& path_;
+    std::shared_ptr<Path>& path_;
     Brush& brush_;
     const CmdList& cmdList_;
 
@@ -97,14 +97,14 @@ private:
 
 class MaskPathOpItem : public MaskOpItem {
 public:
-    explicit MaskPathOpItem(const CmdListHandle& pathHandle);
+    explicit MaskPathOpItem(const OpDataHandle& pathHandle);
     ~MaskPathOpItem() = default;
 
     static void Playback(MaskPlayer& player, const void* opItem);
 
-    void Playback(Path& path, const CmdList& cmdList) const;
+    void Playback(std::shared_ptr<Path>& path, const CmdList& cmdList) const;
 private:
-    CmdListHandle pathHandle_;
+    OpDataHandle pathHandle_;
 };
 } // namespace Drawing
 } // namespace Rosen

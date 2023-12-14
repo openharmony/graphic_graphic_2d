@@ -43,10 +43,21 @@ void VSyncGeneratorTest::TearDownTestCase()
 
 class VSyncGeneratorTestCallback : public VSyncGenerator::Callback {
 public:
-    void OnVSyncEvent(int64_t now, int64_t period) override;
+    void OnVSyncEvent(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode) override;
+    void OnPhaseOffsetChanged(int64_t phaseOffset) override;
+    void OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates) override;
 };
 
-void VSyncGeneratorTestCallback::OnVSyncEvent(int64_t now, int64_t period)
+void VSyncGeneratorTestCallback::OnVSyncEvent(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode)
+{
+}
+
+void VSyncGeneratorTestCallback::OnPhaseOffsetChanged(int64_t phaseOffset)
+{
+}
+
+void VSyncGeneratorTestCallback::OnConnsRefreshRateChanged(
+    const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates)
 {
 }
 
@@ -76,6 +87,21 @@ HWTEST_F(VSyncGeneratorTest, UpdateMode002, Function | MediumTest| Level0)
 }
 
 /*
+* Function: UpdateMode003
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call UpdateMode
+ */
+HWTEST_F(VSyncGeneratorTest, UpdateMode003, Function | MediumTest| Level0)
+{
+    VSyncGeneratorTest::vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
+    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->UpdateMode(0, 0, 0), VSYNC_ERROR_NOT_SUPPORT);
+    // 25000000 is period, refreshRate is 40hz，for JudgeRefreshRateLocked test
+    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->UpdateMode(25000000, 0, 0), VSYNC_ERROR_OK);
+}
+
+/*
 * Function: AddListener001
 * Type: Function
 * Rank: Important(2)
@@ -98,6 +124,21 @@ HWTEST_F(VSyncGeneratorTest, AddListener001, Function | MediumTest| Level0)
 HWTEST_F(VSyncGeneratorTest, AddListener002, Function | MediumTest| Level0)
 {
     ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->AddListener(2, nullptr), VSYNC_ERROR_INVALID_ARGUMENTS);
+}
+
+/*
+* Function: AddListener003
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call AddListener
+ */
+HWTEST_F(VSyncGeneratorTest, AddListener003, Function | MediumTest| Level0)
+{
+    VSyncGeneratorTest::vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
+    VSyncGeneratorTest::vsyncGenerator_->UpdateMode(2, 0, 0);
+    sptr<VSyncGeneratorTestCallback> callback = new VSyncGeneratorTestCallback;
+    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->AddListener(2, callback), VSYNC_ERROR_OK);
 }
 
 /*

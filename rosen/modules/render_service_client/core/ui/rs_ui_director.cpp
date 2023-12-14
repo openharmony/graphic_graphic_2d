@@ -56,6 +56,8 @@ namespace OHOS {
 namespace Rosen {
 static std::unordered_map<RSUIDirector*, TaskRunner> g_uiTaskRunners;
 static std::mutex g_uiTaskRunnersVisitorMutex;
+std::function<void()> RSUIDirector::requestVsyncCallback_ = nullptr;
+static std::mutex g_vsyncCallbackMutex;
 
 std::shared_ptr<RSUIDirector> RSUIDirector::Create()
 {
@@ -138,19 +140,21 @@ void RSUIDirector::GoBackground()
             }
         });
 #ifdef ACE_ENABLE_GL
-        RSRenderThread::Instance().PostTask([this]() {
-            auto renderContext = RSRenderThread::Instance().GetRenderContext();
-            if (renderContext != nullptr) {
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+            RSRenderThread::Instance().PostTask([this]() {
+                auto renderContext = RSRenderThread::Instance().GetRenderContext();
+                if (renderContext != nullptr) {
 #ifndef ROSEN_CROSS_PLATFORM
 #if defined(NEW_RENDER_CONTEXT)
-                auto drawingContext = RSRenderThread::Instance().GetDrawingContext();
-                MemoryHandler::ClearRedundantResources(drawingContext->GetDrawingContext());
+                    auto drawingContext = RSRenderThread::Instance().GetDrawingContext();
+                    MemoryHandler::ClearRedundantResources(drawingContext->GetDrawingContext());
 #else
-                renderContext->ClearRedundantResources();
+                    renderContext->ClearRedundantResources();
 #endif
 #endif
-            }
-        });
+                }
+            });
+        }
 #endif
     }
 }
@@ -231,6 +235,12 @@ void RSUIDirector::SetAppFreeze(bool isAppFreeze)
     }
 }
 
+void RSUIDirector::SetRequestVsyncCallback(const std::function<void()>& callback)
+{
+    std::unique_lock<std::mutex> lock(g_vsyncCallbackMutex);
+    requestVsyncCallback_ = callback;
+}
+
 void RSUIDirector::SetTimeStamp(uint64_t timeStamp, const std::string& abilityName)
 {
     timeStamp_ = timeStamp;
@@ -242,15 +252,23 @@ void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
     cacheDir_ = cacheFilePath;
 }
 
-bool RSUIDirector::RunningCustomAnimation(uint64_t timeStamp)
+bool RSUIDirector::FlushAnimation(uint64_t timeStamp)
 {
     bool hasRunningAnimation = false;
     auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+    if (modifierManager != nullptr) {
+        hasRunningAnimation = modifierManager->Animate(timeStamp);
+    }
+    return hasRunningAnimation;
+}
+
+void RSUIDirector::FlushModifier()
+{
+    auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
     if (modifierManager == nullptr) {
-        return hasRunningAnimation;
+        return;
     }
 
-    hasRunningAnimation = modifierManager->Animate(timeStamp);
     modifierManager->Draw();
     {
         auto node = surfaceNode_.lock();
@@ -264,7 +282,15 @@ bool RSUIDirector::RunningCustomAnimation(uint64_t timeStamp)
 
     // post animation finish callback(s) to task queue
     RSUIDirector::RecvMessages();
-    return hasRunningAnimation;
+}
+
+bool RSUIDirector::HasUIAnimation()
+{
+    auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+    if (modifierManager != nullptr) {
+        return modifierManager->HasUIAnimation();
+    }
+    return false;
 }
 
 void RSUIDirector::SetUITaskRunner(const TaskRunner& uiTaskRunner)
@@ -306,7 +332,12 @@ void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds)
     PostTask([cmds]() {
         ROSEN_LOGD("RSUIDirector::ProcessMessages success");
         RSUIDirector::ProcessMessages(cmds);
-        RSTransaction::FlushImplicitTransaction();
+        std::unique_lock<std::mutex> lock(g_vsyncCallbackMutex);
+        if (requestVsyncCallback_ != nullptr) {
+            requestVsyncCallback_();
+        } else {
+            RSTransaction::FlushImplicitTransaction();
+        }
     });
 }
 
@@ -355,6 +386,11 @@ void RSUIDirector::PostTask(const std::function<void()>& task)
         taskRunner(task);
         return;
     }
+}
+
+int32_t RSUIDirector::GetCurrentRefreshRateMode()
+{
+    return RSFrameRatePolicy::GetInstance()->GetRefreshRateMode();
 }
 } // namespace Rosen
 } // namespace OHOS

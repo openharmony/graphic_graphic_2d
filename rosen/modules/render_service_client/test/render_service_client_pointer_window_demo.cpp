@@ -28,6 +28,7 @@
 
 #include "transaction/rs_transaction.h"
 #include "ui/rs_surface_node.h"
+#include "transaction/rs_interfaces.h"
 
 using namespace OHOS;
 using namespace OHOS::Rosen;
@@ -39,6 +40,7 @@ constexpr uint32_t POINTER_WINDOW_INIT_SIZE = 64;
 std::shared_ptr<RSSurfaceNode> surfaceNode;
 uint64_t screenId = 0;
 
+namespace {
 void Resize(std::shared_ptr<RSSurfaceNode> surfaceNode, int32_t width, int32_t height)
 {
     width = (width / POINTER_WINDOW_INIT_SIZE + 1) * POINTER_WINDOW_INIT_SIZE;
@@ -135,14 +137,21 @@ void InitSurfaceStyle(std::shared_ptr<RSSurfaceNode> surfaceNode)
     ohosSurface->FlushBuffer(buffer, -1, flushConfig);
 }
 
-void InitSurface()
+bool InitSurface()
 {
+    std::cout << "InitSurface" << std::endl;
     DisplayId displayId = DisplayManager::GetInstance().GetDefaultDisplayId();
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.SurfaceNodeName = "pointer window";
     RSSurfaceNodeType surfaceNodeType = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    std::cout << "RSSurfaceNode::Create" <<std::endl;
     surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, surfaceNodeType);
 
+    if (!surfaceNode) {
+        return false;
+    }
+
+    std::cout << "SetFrameGravity" <<std::endl;
     surfaceNode->SetFrameGravity(Gravity::RESIZE_ASPECT_FILL);
     surfaceNode->SetPositionZ(RSSurfaceNode::POINTER_WINDOW_POSITION_Z);
     int width = (POINTER_WIDTH / POINTER_WINDOW_INIT_SIZE + 1) * POINTER_WINDOW_INIT_SIZE;
@@ -154,16 +163,31 @@ void InitSurface()
     // DisplayManager::GetInstance().AddSurfaceNodeToDisplay(displayId, surfaceNode);
 
     // Attach RSSurfaceNode to RSDisplayNode through the AttachToDisplay interface of RSSurfaceNode
+    std::cout << "GetDisplayById: " << std::endl;
     screenId = DisplayManager::GetInstance().GetDisplayById(displayId)->GetId();
     std::cout << "ScreenId: " << screenId << std::endl;
     surfaceNode->AttachToDisplay(screenId);
 
+    std::cout << "RSTranscation::FlushImplicitTransaction" << std::endl;
     RSTransaction::FlushImplicitTransaction();
     sleep(SLEEP_TIME);
+    return true;
+}
+
+bool isRemote = true;
+
+void PrintCallback()
+{
+    std::cout << "OnRemoteDied Callback" << std::endl;
+    isRemote = false;
+}
 }
 
 int main()
 {
+    OnRemoteDiedCallback callback = PrintCallback;
+    RSInterfaces::GetInstance().SetOnRemoteDiedCallback(callback);
+
     std::cout << "rs pointer window demo start!" << std::endl;
     std::cout << "rs pointer window demo stage 1 Init" << std::endl;
     InitSurface();
@@ -201,17 +225,24 @@ int main()
     RSTransaction::FlushImplicitTransaction();
     sleep(SLEEP_TIME);
 
-    // MoveTo
-    std::cout << "rs pointer window demo stage 7 MoveTo" << std::endl;
-    MoveTo(surfaceNode, 0, 0);
-    RSTransaction::FlushImplicitTransaction();
-    sleep(SLEEP_TIME);
-    MoveTo(surfaceNode, 100, 160);
-    RSTransaction::FlushImplicitTransaction();
-    sleep(SLEEP_TIME);
-    MoveTo(surfaceNode, 320, 640);
-    RSTransaction::FlushImplicitTransaction();
-    sleep(SLEEP_TIME);
+    std::cout << "rs pointer window demo stage MoveTo" << std::endl;
+    while (isRemote) {
+    // while (true) {
+        // MoveTo
+        MoveTo(surfaceNode, 0, 0);
+        RSTransaction::FlushImplicitTransaction();
+        sleep(SLEEP_TIME);
+        MoveTo(surfaceNode, 100, 160);
+        RSTransaction::FlushImplicitTransaction();
+        sleep(SLEEP_TIME);
+        MoveTo(surfaceNode, 320, 640);
+        RSTransaction::FlushImplicitTransaction();
+        sleep(SLEEP_TIME);
+        while (!isRemote) {
+            std::cout << "ReInitSurface" << std::endl;
+            isRemote = InitSurface();
+        }
+    }
 
     std::cout << "rs pointer window demo end!" << std::endl;
     return 0;

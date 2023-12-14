@@ -26,13 +26,38 @@
 
 namespace OHOS {
 namespace Rosen {
-
 constexpr int DEFAULT_CACHE_WIDTH = 1344;
 constexpr int DEFAULT_CACHE_HEIGHT = 2772;
 constexpr int DEFAULT_PARTIAL_RENDER_ENABLED_VALUE = 2;
 constexpr int DEFAULT_UNI_PARTIAL_RENDER_ENABLED_VALUE = 4;
-constexpr int DEFAULT_GPU_RESOURCE_ENABLED_VALUE = 2;
 constexpr int DEFAULT_CORRECTION_MODE_VALUE = 999;
+
+#if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
+static GpuApiType SystemGpuApiType()
+{
+    if (!((system::GetParameter("const.gpu.vendor", "0").compare("higpu.v200") == 0) &&
+          (system::GetParameter("const.build.product", "0").compare("ALN") == 0))) {
+        return GpuApiType::OPENGL;
+    }
+
+    if (std::atoi(system::GetParameter(
+        "persist.sys.graphic.GpuApitype", "-1").c_str()) == (-1)) { // -1 is invalid type
+        return GpuApiType::VULKAN;
+    }
+    if (std::atoi(system::GetParameter("persist.sys.graphic.GpuApitype", "0").c_str()) == 0) {
+        return GpuApiType::OPENGL;
+    }
+    return GpuApiType::VULKAN;
+}
+#endif
+
+#if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
+const GpuApiType RSSystemProperties::systemGpuApiType_ = SystemGpuApiType();
+#elif defined (ACE_ENABLE_GL) || defined (RS_ENABLE_GL)
+const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
+#else
+const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::VULKAN;
+#endif
 
 int ConvertToInt(const char *originValue, int defaultValue)
 {
@@ -65,18 +90,18 @@ bool RSSystemProperties::IsSceneBoardEnabled()
 // used by clients
 int RSSystemProperties::GetDumpFrameNum()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.recording.frameNum", "0");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.recording.frameNum", "0");
     int changed = 0;
     const char *num = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(num, 0);
 }
 
-bool RSSystemProperties::GetRecordingEnabled()
+int RSSystemProperties::GetRecordingEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.recording.enabled", "0");
     int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 0) != 0;
+    const char *num = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(num, 0);
 }
 
 
@@ -88,7 +113,7 @@ void RSSystemProperties::SetRecordingDisenabled()
 
 std::string RSSystemProperties::GetRecordingFile()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.dumpfile.path", "");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.dumpfile.path", "");
     int changed = 0;
     const char *file = CachedParameterGetChanged(g_Handle, &changed);
     return file == nullptr ? "" : file;
@@ -120,6 +145,12 @@ bool RSSystemProperties::GetRenderNodeTraceEnabled()
     return isNeedTrace;
 }
 
+bool RSSystemProperties::GetRSScreenRoundCornerEnable()
+{
+    static bool isNeedScreenRCD = system::GetParameter("persist.rosen.screenroundcornerrcd.enabled", "1") != "0";
+    return isNeedScreenRCD;
+}
+
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.dirtyregiondebug.enabled", "0");
@@ -139,23 +170,17 @@ PartialRenderType RSSystemProperties::GetPartialRenderEnabled()
 PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
 {
     int changed = 0;
-#if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_VK)
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.partialrender.enabled", "0");
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return static_cast<PartialRenderType>(ConvertToInt(enable, 0));
-#else
     static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.partialrender.enabled", "4");
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<PartialRenderType>(ConvertToInt(enable, DEFAULT_UNI_PARTIAL_RENDER_ENABLED_VALUE));
-#endif
 }
 
-ReleaseGpuResourceType RSSystemProperties::GetReleaseGpuResourceEnabled()
+bool RSSystemProperties::GetReleaseResourceEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("persist.release.gpuresource.enabled", "2");
+    static CachedHandle g_Handle = CachedParameterCreate("persist.release.gpuresource.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return static_cast<ReleaseGpuResourceType>(ConvertToInt(enable, DEFAULT_GPU_RESOURCE_ENABLED_VALUE));
+    return ConvertToInt(enable, 1) != 0;
 }
 
 bool RSSystemProperties::GetOcclusionEnabled()
@@ -171,6 +196,13 @@ bool RSSystemProperties::GetHardwareComposerEnabled()
     static bool hardwareComposerEnabled = system::GetParameter(
         "persist.rosen.hardwarecomposer.enabled", "1") != "0";
     return hardwareComposerEnabled;
+}
+
+bool RSSystemProperties::GetUseShadowBatchingEnabled()
+{
+    static bool useShadowBatching =
+        std::atoi((system::GetParameter("persist.useShadowBatching.enabled", "1")).c_str()) != 0;
+    return useShadowBatching;
 }
 
 bool RSSystemProperties::GetAFBCEnabled()
@@ -322,7 +354,7 @@ HgmRefreshRates RSSystemProperties::GetHgmRefreshRatesEnabled()
 void RSSystemProperties::SetHgmRefreshRateModesEnabled(std::string param)
 {
     system::SetParameter("persist.rosen.sethgmrefreshratemode.enabled", param);
-    RS_LOGD("RSSystemProperties::SetHgmRefreshRateModesEnabled set to %{public}s", param.c_str());
+    RS_LOGI("RSSystemProperties::SetHgmRefreshRateModesEnabled set to %{public}s", param.c_str());
 }
 
 HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
@@ -404,6 +436,24 @@ bool RSSystemProperties::GetFilterPartialRenderEnabled()
     // which means that it is unenabled.
     static bool enabled =
         std::atoi((system::GetParameter("persist.sys.graphic.filterPartialRenderEnabled", "0")).c_str()) != 0;
+    return enabled;
+}
+
+bool RSSystemProperties::GetColorPickerPartialEnabled()
+{
+    // Determine whether the color picker partial render should be enabled. The default value is 0,
+    // which means that it is unenabled.
+    static bool enabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.colorPickerPartialEnabled", "1")).c_str()) != 0;
+    return enabled;
+}
+
+bool RSSystemProperties::GetMaskLinearBlurEnabled()
+{
+    // Determine whether the mask LinearBlur render should be enabled. The default value is 0,
+    // which means that it is unenabled.
+    static bool enabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.maskLinearBlurEnabled", "1")).c_str()) != 0;
     return enabled;
 }
 
@@ -498,6 +548,12 @@ bool RSSystemProperties::FindNodeInTargetList(std::string node)
     return res;
 }
 
+bool RSSystemProperties::IsFoldScreenFlag()
+{
+    static bool isFoldScreenFlag = system::GetParameter("const.window.foldscreen.type", "") != "";
+    return isFoldScreenFlag;
+}
+
 bool RSSystemProperties::GetCacheCmdEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.cacheCmd.enabled", "1");
@@ -510,6 +566,15 @@ bool RSSystemProperties::GetASTCEnabled()
 {
     static bool isASTCEnabled = std::atoi((system::GetParameter("persist.rosen.astc.enabled", "0")).c_str()) != 0;
     return isASTCEnabled;
+}
+
+// GetCachedBlurPartialRenderEnabled Option On: no need to expand blur dirtyregion if blur has background cache
+bool RSSystemProperties::GetCachedBlurPartialRenderEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.cachedblurpartialrender.enabled", "1");
+    int changed = 0;
+    const char *type = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(type, 1) != 0;
 }
 
 bool RSSystemProperties::GetImageGpuResourceCacheEnable(int width, int height)
@@ -558,7 +623,8 @@ bool RSSystemProperties::GetSnapshotWithDMAEnabled()
 {
     static bool isSupportDma = system::GetParameter("const.product.devicetype", "pc") == "phone" ||
         system::GetParameter("const.product.devicetype", "pc") == "tablet" ||
-        system::GetParameter("const.product.devicetype", "pc") == "pc";
+        system::GetParameter("const.product.devicetype", "pc") == "pc" ||
+        system::GetParameter("const.product.devicetype", "pc") == "2in1";
     return isSupportDma && system::GetBoolParameter("rosen.snapshotDma.enabled", true);
 }
 
@@ -578,8 +644,35 @@ bool RSSystemProperties::GetSyncTransactionEnabled()
 int RSSystemProperties::GetSyncTransactionWaitDelay()
 {
     static int syncTransactionWaitDelay =
-        std::atoi((system::GetParameter("persist.sys.graphic.syncTransactionWaitDelay", "100")).c_str());
+        std::atoi((system::GetParameter("persist.sys.graphic.syncTransactionWaitDelay", "500")).c_str());
     return syncTransactionWaitDelay;
+}
+
+bool RSSystemProperties::GetSingleFrameComposerEnabled()
+{
+    static bool singleFrameComposerEnabled =
+        (std::atoi((system::GetParameter("persist.sys.graphic.singleFrameComposer", "0")).c_str()) != 0);
+    return singleFrameComposerEnabled;
+}
+
+bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
+{
+    static bool singleFrameComposerCanvasNodeEnabled =
+        (std::atoi((system::GetParameter("persist.sys.graphic.singleFrameComposerCanvasNode", "0")).c_str()) != 0);
+    return singleFrameComposerCanvasNodeEnabled;
+}
+
+bool RSSystemProperties::GetSubSurfaceEnabled()
+{
+    static bool subSurfaceEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.subSurface", "0")).c_str());
+    return subSurfaceEnabled;
+}
+bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
+{
+    static bool openSecurityPermissionCheck =
+        std::atoi((system::GetParameter("persist.sys.graphic.openSecurityPermissionCheck", "0")).c_str()) != 0;
+    return openSecurityPermissionCheck;
 }
 } // namespace Rosen
 } // namespace OHOS

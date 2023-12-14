@@ -18,6 +18,7 @@
 
 #include "include/core/SkSurface.h"
 
+#include "draw/surface.h"
 #include "impl_interface/surface_impl.h"
 
 namespace OHOS {
@@ -39,18 +40,30 @@ public:
 #ifdef ACE_ENABLE_GPU
     bool Bind(const Image& image) override;
     bool Bind(const FrameBuffer& frameBuffer) override;
-    bool MakeRenderTarget(GPUContext& gpuContext, bool Budgeted, const ImageInfo& imageInfo) override;
-    bool MakeRasterN32Premul(int32_t width, int32_t height) override;
+#ifdef RS_ENABLE_VK
+    static std::shared_ptr<Surface> MakeFromBackendRenderTarget(GPUContext* gpuContext, TextureInfo& info,
+        TextureOrigin origin, void (*deleteVkImage)(void *), void* cleanHelper);
 #endif
+    static std::shared_ptr<Surface> MakeRenderTarget(GPUContext* gpuContext, bool budgeted, const ImageInfo& imageInfo);
+#endif
+    static std::shared_ptr<Surface> MakeRaster(const ImageInfo& imageInfo);
+    static std::shared_ptr<Surface> MakeRasterDirect(const ImageInfo& imageInfo, void* pixels, size_t rowBytes);
+    static std::shared_ptr<Surface> MakeRasterN32Premul(int32_t width, int32_t height);
 
-    bool MakeRaster(const ImageInfo& imageInfo) override;
     std::shared_ptr<Canvas> GetCanvas() const override;
     std::shared_ptr<Image> GetImageSnapshot() const override;
     std::shared_ptr<Image> GetImageSnapshot(const RectI& bounds) const override;
     std::shared_ptr<Surface> MakeSurface(int width, int height) const override;
+    BackendTexture GetBackendTexture() const override;
     void SetSkSurface(const sk_sp<SkSurface>& skSurface);
     void FlushAndSubmit(bool syncCpu) override;
-
+    void Flush(FlushInfo *drawingflushInfo = nullptr) override;
+#ifdef RS_ENABLE_VK
+    void Wait(int32_t time, const VkSemaphore& semaphore) override;
+    void SetDrawingArea(const std::vector<RectI>& rects) override;
+    void ClearDrawingArea() override;
+#endif
+    sk_sp<SkSurface> GetSkSurface() const;
 private:
     sk_sp<SkSurface> skSurface_ = nullptr;
     sk_sp<SkImage> skImage_ = nullptr;

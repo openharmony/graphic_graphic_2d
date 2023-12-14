@@ -189,8 +189,11 @@ ohos_unittest("surface_buffer_impl_test") {
 
   deps = [ ":surface_test_common" ]
 
+  public_deps = [ "$graphic_2d_root/utils:libgraphic_utils" ]
+
   external_deps = [
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
     "hilog:libhilog",
   ]
 }
@@ -226,6 +229,23 @@ ohos_unittest("native_window_test") {
     "hilog:libhilog",
   ]
 }
+
+## UnitTest metadata_helper_test {{{
+ohos_unittest("metadata_helper_test") {
+  module_out_path = module_out_path
+
+  sources = [ "metadata_helper_test.cpp" ]
+
+  deps = [ ":surface_test_common" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
+    "hilog:libhilog",
+  ]
+}
+
+## UnitTest producer_surface_test }}}
 
 ## UnitTest native_window_test }}}
 

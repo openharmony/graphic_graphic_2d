@@ -67,9 +67,7 @@ public:
 private:
     float blurRadiusX_;
     float blurRadiusY_;
-#ifndef USE_ROSEN_DRAWING
     bool useKawase_ = false;
-#endif
 };
 } // namespace Rosen
 } // namespace OHOS

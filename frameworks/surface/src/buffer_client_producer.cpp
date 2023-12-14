@@ -74,7 +74,11 @@ GSError BufferClientProducer::RequestBuffer(const BufferRequestConfig &config, s
     WriteRequestConfig(arguments, config);
 
     SEND_REQUEST(BUFFER_PRODUCER_REQUEST_BUFFER, arguments, reply, option);
-    CHECK_RETVAL_WITH_SEQ(reply, retval.sequence);
+    int32_t retCode = reply.ReadInt32();
+    if (retCode != GSERROR_OK) {
+        BLOGND("Remote return %{public}d", retCode);
+        return (GSError)retCode;
+    }
 
     GSError ret = ReadSurfaceBufferImpl(reply, retval.sequence, retval.buffer);
     if (ret != GSERROR_OK) {

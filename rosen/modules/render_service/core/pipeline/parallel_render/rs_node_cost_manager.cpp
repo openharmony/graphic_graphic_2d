@@ -73,6 +73,10 @@ bool RSNodeCostManager::IsSkipProcessing(RSSurfaceRenderNode& node) const
 void RSNodeCostManager::CalcBaseRenderNodeCost(RSBaseRenderNode& node)
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
+        return;
+    }
+
     for (auto& child : node.GetChildren()) {
         switch (child->GetType()) {
             case RSRenderNodeType::SURFACE_NODE: {
@@ -103,6 +107,9 @@ void RSNodeCostManager::CalcBaseRenderNodeCost(RSBaseRenderNode& node)
 void RSNodeCostManager::CalcCanvasRenderNodeCost(RSCanvasRenderNode& node)
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
+        return;
+    }
     if (!node.ShouldPaint()) {
         return;
     }
@@ -127,6 +134,9 @@ void RSNodeCostManager::CalcCanvasRenderNodeCost(RSCanvasRenderNode& node)
 void RSNodeCostManager::CalcSurfaceRenderNodeCost(RSSurfaceRenderNode& node)
 {
 #if defined(RS_ENABLE_PARALLEL_RENDER) && defined(RS_ENABLE_GL)
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
+        return;
+    }
     if (IsSkipProcessing(node)) {
         RS_TRACE_NAME(node.GetName() + " QuickReject Skip");
         return;

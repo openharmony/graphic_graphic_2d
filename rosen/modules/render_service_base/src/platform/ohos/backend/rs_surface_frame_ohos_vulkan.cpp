@@ -14,38 +14,89 @@
  */
 
 #include "rs_surface_frame_ohos_vulkan.h"
+#include "rs_trace.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
 
+#ifndef USE_ROSEN_DRAWING
 RSSurfaceFrameOhosVulkan::RSSurfaceFrameOhosVulkan(sk_sp<SkSurface> surface, int32_t width,
     int32_t height, int32_t bufferAge)
+#else
+RSSurfaceFrameOhosVulkan::RSSurfaceFrameOhosVulkan(std::shared_ptr<Drawing::Surface> surface, int32_t width,
+    int32_t height, int32_t bufferAge)
+#endif
     : surface_(surface), width_(width), height_(height), bufferAge_(bufferAge)
-{
-}
-
-RSSurfaceFrameOhosVulkan::RSSurfaceFrameOhosVulkan(sk_sp<SkSurface> surface, int32_t width, int32_t height)
-    : surface_(surface), width_(width), height_(height)
 {
 }
 
 void RSSurfaceFrameOhosVulkan::SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height)
 {
-    ROSEN_LOGE("RSSurfaceFrameOhosVulkan::SetDamageRegion");
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return;
+    }
+    RS_TRACE_FUNC();
+#ifndef USE_ROSEN_DRAWING
+    std::vector<SkIRect> skIRects;
+    SkIRect skIRect = {left, top, width, height};
+    skIRects.push_back(skIRect);
+    surface_->setDrawingArea(skIRects);
+#else
+    std::vector<Drawing::RectI> rects;
+    Drawing::RectI rect = {left, top, width, height};
+    rects.push_back(rect);
+    surface_->SetDrawingArea(rects);
+#endif
+#endif
 }
 
 void RSSurfaceFrameOhosVulkan::SetDamageRegion(const std::vector<RectI>& rects)
 {
-    ROSEN_LOGE("RSSurfaceFrameOhosVulkan::SetDamageRegion");
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return;
+    }
+    RS_TRACE_FUNC();
+#ifndef USE_ROSEN_DRAWING
+    std::vector<SkIRect> skIRects;
+    for (auto &rect : rects) {
+        SkIRect skIRect = {rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()};
+        skIRects.push_back(skIRect);
+    }
+    surface_->setDrawingArea(skIRects);
+#else
+    std::vector<Drawing::RectI> iRects;
+    for (auto &rect : rects) {
+        Drawing::RectI iRect = {rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()};
+        iRects.push_back(iRect);
+    }
+    surface_->SetDrawingArea(iRects);
+#endif
+#endif
 }
 
+#ifndef USE_ROSEN_DRAWING
 SkCanvas* RSSurfaceFrameOhosVulkan::GetCanvas()
 {
     return surface_ != nullptr ? surface_->getCanvas() : nullptr;
 }
+#else
+Drawing::Canvas* RSSurfaceFrameOhosVulkan::GetCanvas()
+{
+    return surface_ != nullptr ? surface_->GetCanvas().get() : nullptr;
+}
+#endif
 
+#ifndef USE_ROSEN_DRAWING
 sk_sp<SkSurface> RSSurfaceFrameOhosVulkan::GetSurface()
+#else
+std::shared_ptr<Drawing::Surface> RSSurfaceFrameOhosVulkan::GetSurface()
+#endif
 {
     return surface_;
 }

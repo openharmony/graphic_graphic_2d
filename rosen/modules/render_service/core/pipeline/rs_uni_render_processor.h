@@ -32,11 +32,13 @@ public:
     void ProcessSurface(RSSurfaceRenderNode& node) override;
     void ProcessDisplaySurface(RSDisplayRenderNode& node) override;
     void ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node) override;
+    void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) override;
     void PostProcess(RSDisplayRenderNode* node) override;
 private:
     std::unique_ptr<RSUniRenderComposerAdapter> uniComposerAdapter_;
     std::vector<LayerInfoPtr> layers_;
     size_t layerNum = 0;
+    bool isPhone_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

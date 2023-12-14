@@ -24,6 +24,7 @@ ohos_fuzztest("RSSurfaceOhosFuzzTest") {
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
   ]
   deps = [ "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base" ]
   cflags = [

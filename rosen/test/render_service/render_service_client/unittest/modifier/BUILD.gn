@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//build/ohos.gni")
 import("//build/test.gni")
 
 module_output_path = "graphic/rosen_engine/render_service_client/modifier"
@@ -42,6 +43,10 @@ ohos_unittest("RSRenderServiceClientModifierTest") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:render_service_client_src",
     "//third_party/googletest:gtest_main",
   ]
+
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
 
   subsystem_name = "graphic"
   external_deps = [

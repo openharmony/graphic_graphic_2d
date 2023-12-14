@@ -16,10 +16,12 @@
 #ifndef RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_H
 #define RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_H
 
-#include <list>
-#include <map>
-#include <unordered_set>
-#include <utility>
+#ifdef USE_ROSEN_DRAWING
+#include <bitset>
+#endif
+#include <memory>
+#include <set>
+#include <vector>
 
 #include "modifier/rs_render_modifier.h"
 
@@ -27,14 +29,12 @@ namespace OHOS::Rosen {
 class RSPaintFilterCanvas;
 class RSProperties;
 class RSPropertyDrawableGenerateContext;
-class RSRenderModifier;
 class RSRenderNode;
 
 namespace Slot {
 // NOTE: MUST update DrawableGeneratorLut in rs_property_drawable.cpp when new slots are added
 enum RSPropertyDrawableSlot : uint8_t {
     INVALID = 0,
-
     SAVE_ALL,
 
     // Bounds Geometry
@@ -44,10 +44,11 @@ enum RSPropertyDrawableSlot : uint8_t {
     TRANSITION,
     ENV_FOREGROUND_COLOR,
     SHADOW,
+    OUTER_BORDER,
 
-    // In Bounds Clip
+    // BG properties in Bounds Clip
     SAVE_LAYER_BACKGROUND,
-    SAVE_BOUNDS,
+    BG_SAVE_BOUNDS,
     CLIP_TO_BOUNDS,
     BACKGROUND_COLOR,
     BACKGROUND_SHADER,
@@ -57,46 +58,60 @@ enum RSPropertyDrawableSlot : uint8_t {
     BACKGROUND_STYLE,
     DYNAMIC_LIGHT_UP,
     ENV_FOREGROUND_COLOR_STRATEGY,
-    EXTRA_RESTORE_BOUNDS,
-    SAVE_LAYER_CONTENT,
+    BG_RESTORE_BOUNDS,
 
     // Frame Geometry
+    SAVE_LAYER_CONTENT,
     SAVE_FRAME,
     FRAME_OFFSET,
     CLIP_TO_FRAME,
     CONTENT_STYLE,
     CHILDREN,
     FOREGROUND_STYLE,
-    COLOR_FILTER,
     RESTORE_FRAME,
+    RESTORE_CONTENT,
 
-    // In Bounds clip (again)
-    EXTRA_SAVE_BOUNDS,
-    EXTRA_CLIP_TO_BOUNDS,
+    // FG properties in Bounds clip
+    FG_SAVE_BOUNDS,
+    FG_CLIP_TO_BOUNDS,
+    BINARIZATION,
+    COLOR_FILTER,
     LIGHT_UP_EFFECT,
     FOREGROUND_FILTER,
     LINEAR_GRADIENT_BLUR_FILTER,
+    FOREGROUND_COLOR,
+    FG_RESTORE_BOUNDS,
+    RESTORE_BACKGROUND,
+
+    // No clip (unless ClipToBounds is set)
+    POINT_LIGHT,
     BORDER,
     OVERLAY,
-    FOREGROUND_COLOR,
     PARTICLE_EFFECT,
-    RESTORE_BOUNDS,
-
-    // Without clip
     PIXEL_STRETCH,
+
     RESTORE_ALL,
-    MAX,
+
+    // Annotations: Please remember to update this when new slots are added.
+    // NOTE: MAX and *_END enums are using the one-past-the-end style.
+    BG_PROPERTIES_BEGIN      = BACKGROUND_COLOR,
+    BG_PROPERTIES_END        = ENV_FOREGROUND_COLOR_STRATEGY + 1,
+    CONTENT_PROPERTIES_BEGIN = FRAME_OFFSET,
+    CONTENT_PROPERTIES_END   = FOREGROUND_STYLE + 1,
+    FG_PROPERTIES_BEGIN      = BINARIZATION,
+    FG_PROPERTIES_END        = FOREGROUND_COLOR + 1,
+    MAX                      = RESTORE_ALL + 1,
 };
 
 enum DrawableVecStatus : uint8_t {
-    CLIP_BOUNDS            = 1 << 0,
-    BOUNDS_PROPERTY_BEFORE = 1 << 1,
-    BOUNDS_PROPERTY_AFTER  = 1 << 2,
-    CLIP_FRAME             = 1 << 3,
-    FRAME_PROPERTY         = 1 << 4,
-    HAS_CHILDREN           = 1 << 5,
-    BOUNDS_MASK            = CLIP_BOUNDS | BOUNDS_PROPERTY_BEFORE | BOUNDS_PROPERTY_AFTER,
-    FRAME_MASK             = CLIP_FRAME | FRAME_PROPERTY | HAS_CHILDREN,
+    CLIP_BOUNDS        = 1 << 0,
+    BG_BOUNDS_PROPERTY = 1 << 1,
+    FG_BOUNDS_PROPERTY = 1 << 2,
+    CLIP_FRAME         = 1 << 3,
+    FRAME_PROPERTY     = 1 << 4,
+    HAS_CHILDREN       = 1 << 5,
+    BOUNDS_MASK        = CLIP_BOUNDS | BG_BOUNDS_PROPERTY | FG_BOUNDS_PROPERTY,
+    FRAME_MASK         = CLIP_FRAME | FRAME_PROPERTY | HAS_CHILDREN,
 };
 } // namespace Slot
 
@@ -123,20 +138,21 @@ public:
 
     // Generator Utilities
     static void InitializeSaveRestore(const RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec);
-    static std::set<Slot::RSPropertyDrawableSlot> GenerateDirtySlots(
+#ifndef USE_ROSEN_DRAWING
+    static std::unordered_set<Slot::RSPropertyDrawableSlot> GenerateDirtySlots(
         const RSProperties& properties, const std::unordered_set<RSModifierType>& dirtyTypes);
+#else
+    static std::unordered_set<Slot::RSPropertyDrawableSlot> GenerateDirtySlots(
+        const RSProperties& properties,
+        std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>& dirtyTypes);
+#endif
     static bool UpdateDrawableVec(const RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec,
-        std::set<Slot::RSPropertyDrawableSlot>& dirtySlots);
+        std::unordered_set<Slot::RSPropertyDrawableSlot>& dirtySlots);
     static void UpdateSaveRestore(
         RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec, uint8_t& drawableVecStatus);
 
 private:
-    static inline uint8_t CalculateDrawableVecStatus(
-        RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec);
-    static void OptimizeBoundsSaveRestore(
-        RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec, uint8_t flags);
-    static void OptimizeFrameSaveRestore(
-        RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec, uint8_t flags);
+    static void UpdateSaveLayerSlots(const RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec);
 };
 
 class RSPropertyDrawableGenerateContext {

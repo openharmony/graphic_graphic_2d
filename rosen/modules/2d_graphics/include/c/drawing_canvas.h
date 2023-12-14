@@ -165,6 +165,77 @@ void OH_Drawing_CanvasDrawLine(OH_Drawing_Canvas*, float x1, float y1, float x2,
 void OH_Drawing_CanvasDrawPath(OH_Drawing_Canvas*, const OH_Drawing_Path*);
 
 /**
+ * @brief Draws a bitmap.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param OH_Drawing_Bitmap Indicates the pointer to an <b>OH_Drawing_Bitmap</b> object.
+ * @param left Indicates the left position of the <b>OH_Drawing_Bitmap</b>.
+ * @param top Indicates the top position of the <b>OH_Drawing_Bitmap</b>.
+ * @since 11
+ * @version 1.0
+ */
+void OH_Drawing_CanvasDrawBitmap(OH_Drawing_Canvas*, const OH_Drawing_Bitmap*, float left, float top);
+
+/**
+ * @brief Enumerates clip op.
+ * 
+ * @since 11
+ * @version 1.0
+ */
+typedef enum {
+    /**
+     * Clip with difference.
+     */
+    DIFFERENCE,
+    /**
+     * Clip with intersection.
+     */
+    INTERSECT,
+} OH_Drawing_CanvasClipOp;
+
+/**
+ * @brief Clip a rect.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param left Indicates the left position of the rect.
+ * @param top Indicates the top position of the rect.
+ * @param right Indicates the right position of the rect.
+ * @param bottom Indicates the bottom position of the rect.
+ * @param clipOp Indicates the operation to apply to clip.
+ * @param doAntiAlias Indicates whether clip operation requires anti-aliased.
+ * @since 11
+ * @version 1.0
+ */
+void OH_Drawing_CanvasClipRect(OH_Drawing_Canvas*, float left, float top, float right, float bottom,
+    OH_Drawing_CanvasClipOp clipOp, bool doAntiAlias);
+
+/**
+ * @brief Translates by dx along the x-axis and dy along the y-axis.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param dx Indicates the distance to translate on x-axis.
+ * @param dy Indicates the distance to translate on y-axis.
+ * @since 11
+ * @version 1.0
+ */
+void OH_Drawing_CanvasTranslate(OH_Drawing_Canvas*, float dx, float dy);
+
+/**
+ * @brief Scales by sx on the x-axis and sy on the y-axis.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param sx Indicates the amount to scale on x-axis.
+ * @param sy Indicates the amount to scale on y-axis.
+ * @since 11
+ * @version 1.0
+ */
+void OH_Drawing_CanvasScale(OH_Drawing_Canvas*, float sx, float sy);
+
+/**
  * @brief Clears a canvas by using a specified color.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing

@@ -36,12 +36,16 @@ public:
 
     bool BuildFromMalloc(const void* data, size_t length) override;
     bool BuildWithCopy(const void* data, size_t length) override;
+    bool BuildWithProc(const void* ptr, size_t length, DataReleaseProc proc, void* ctx) override;
     bool BuildWithoutCopy(const void* data, size_t length) override;
     bool BuildUninitialized(size_t length) override;
+    bool BuildEmpty() override;
 
     void* WritableData() override;
     size_t GetSize() const override;
     const void* GetData() const override;
+
+    static std::shared_ptr<Data> MakeFromFileName(const char path[]);
 
     /*
      * @brief  Export Skia member variables for use by the adaptation layer.

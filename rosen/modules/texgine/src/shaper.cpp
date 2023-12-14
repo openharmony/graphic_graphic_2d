@@ -63,6 +63,11 @@ double Shaper::GetMaxIntrinsicWidth() const
     return maxIntrinsicWidth_;
 }
 
+void Shaper::SetIndents(const std::vector<float> &indents)
+{
+    indents_ = indents;
+}
+
 std::vector<LineMetrics> Shaper::CreateEllipsisSpan(const TypographyStyle &ys, const TextStyle &textStyle,
     const std::shared_ptr<FontProviders> &fontProviders)
 {
@@ -70,13 +75,9 @@ std::vector<LineMetrics> Shaper::CreateEllipsisSpan(const TypographyStyle &ys, c
         return {};
     }
 
-    TextStyle xs;
-    xs.fontSize = textStyle.fontSize;
-    xs.fontFamilies = textStyle.fontFamilies;
-
     std::vector<VariantSpan> spans = {TextSpan::MakeFromText(ys.ellipsis)};
     for (auto &span : spans) {
-        span.SetTextStyle(xs);
+        span.SetTextStyle(textStyle);
     }
     auto ys2 = ys;
     ys2.wordBreakType = WordBreakType::BREAK_ALL;
@@ -112,9 +113,11 @@ void Shaper::ConsiderEllipsis(const TypographyStyle &tstyle,
     if (maxLines == 1) { // single line
         switch (tstyle.ellipsisModal) {
             case EllipsisModal::HEAD:
+                params.widthLimit -= lineMetrics_.front().indent;
                 ConsiderHeadEllipsis(tstyle, fontProviders, params);
                 break;
             case EllipsisModal::MIDDLE:
+                params.widthLimit -= lineMetrics_.front().indent;
                 ConsiderMiddleEllipsis(tstyle, fontProviders, params);
                 break;
             case EllipsisModal::TAIL:
@@ -164,6 +167,7 @@ std::vector<LineMetrics> Shaper::DoShapeBeforeEllipsis(std::vector<VariantSpan> 
 {
     TextBreaker tb;
     tb.SetWidthLimit(widthLimit);
+    tb.SetIndents(indents_);
     auto ret = tb.WordBreak(spans, tstyle, fontProviders);
     if (ret) {
         LOGEX_FUNC_LINE(ERROR) << "word break failed";
@@ -173,12 +177,12 @@ std::vector<LineMetrics> Shaper::DoShapeBeforeEllipsis(std::vector<VariantSpan> 
     BidiProcesser bp;
     auto newSpans = bp.ProcessBidiText(spans, tstyle.direction);
     if (newSpans.empty()) {
-        LOGEX_FUNC_LINE(ERROR) << "Process BidiText failed";
+        LOGEX_FUNC_LINE_DEBUG() << "Process BidiText failed";
         return {};
     }
 
     LineBreaker lb;
-    return lb.BreakLines(newSpans, tstyle, widthLimit);
+    return lb.BreakLines(newSpans, tstyle, widthLimit, indents_);
 }
 
 std::vector<LineMetrics> Shaper::DoShape(std::vector<VariantSpan> spans, const TypographyStyle &tstyle,
@@ -222,7 +226,9 @@ void Shaper::ConsiderHeadEllipsis(const TypographyStyle &ys, const std::shared_p
     double lastLineWidth = lastLine.GetAllSpanWidth();
     if (params.maxLines < lineMetrics_.size()) {
         if (params.ellipsisWidth > 0) {
-            while (lastLineWidth + params.ellipsisWidth < params.widthLimit) {
+            // lineMetrics_.size() - 2 is the index of second to last
+            while (!lineMetrics_[lineMetrics_.size() - 2].lineSpans.empty() &&
+                lastLineWidth + params.ellipsisWidth < params.widthLimit) {
                 // lineMetrics_.size() - 2 is the index of second to last
                 auto lastSpan = lineMetrics_[lineMetrics_.size() - 2].lineSpans.back();
                 // lineMetrics_.size() - 2 is the index of second to last
@@ -267,15 +273,46 @@ void Shaper::ConsiderHeadEllipsis(const TypographyStyle &ys, const std::shared_p
     }
 }
 
-void Shaper::ConsiderTailEllipsis(const TypographyStyle &ys, const std::shared_ptr<FontProviders> &fontProviders,
+void Shaper::ConsiderLastLine(const TypographyStyle &style, const std::shared_ptr<FontProviders> &fontProviders,
+    EllipsisParams params, const bool isErase)
+{
+    // maxLines - 1 is the index of last LineMetrics
+    auto &lastLine = params.maxLines < lineMetrics_.size() ? lineMetrics_[params.maxLines - 1] : lineMetrics_.back();
+    double lastLineWidth = lastLine.GetAllSpanWidth();
+    bool isExceed = (static_cast<int>(lastLineWidth + params.ellipsisWidth) > static_cast<int>(params.widthLimit));
+    if (isExceed) {
+        while ((!lastLine.lineSpans.empty()) && isExceed) {
+            auto lastSpan = lastLine.lineSpans.back();
+            lastLine.lineSpans.pop_back();
+            double exceedWidth = lastLineWidth + params.ellipsisWidth - params.widthLimit;
+            std::vector<LineMetrics> partlySpan = CreatePartlySpan(true, style, fontProviders, lastSpan, exceedWidth);
+            if (!partlySpan.empty()) {
+                std::vector<VariantSpan> partlyLineSpans = partlySpan.front().lineSpans;
+                lastLine.lineSpans.insert(lastLine.lineSpans.end(), partlyLineSpans.begin(),
+                    partlyLineSpans.end());
+            }
+            lastLineWidth = lastLine.GetAllSpanWidth();
+            isExceed = (static_cast<int>(lastLineWidth + params.ellipsisWidth) > static_cast<int>(params.widthLimit));
+        }
+        lastLine.lineSpans.insert(lastLine.lineSpans.end(), params.ellipsisSpans.begin(),
+            params.ellipsisSpans.end());
+    } else if (isErase) {
+        lastLine.lineSpans.insert(lastLine.lineSpans.end(), params.ellipsisSpans.begin(),
+            params.ellipsisSpans.end());
+    }
+}
+
+void Shaper::ConsiderTailEllipsis(const TypographyStyle &style, const std::shared_ptr<FontProviders> &fontProviders,
     EllipsisParams params)
 {
     bool isErase = false;
     // maxLines - 1 is the index of last LineMetrics
     auto &lastLine = params.maxLines < lineMetrics_.size() ? lineMetrics_[params.maxLines - 1] : lineMetrics_.back();
     double lastLineWidth = lastLine.GetAllSpanWidth();
+    params.widthLimit -= lastLine.indent;
     if (params.maxLines < lineMetrics_.size()) {
-        if (params.ellipsisWidth > 0 && lastLineWidth + params.ellipsisWidth < params.widthLimit) {
+        if (params.ellipsisWidth > 0 && lastLineWidth + params.ellipsisWidth < params.widthLimit &&
+            style.wordBreakType == WordBreakType::BREAK_ALL) {
             lastLine.lineSpans.push_back(lineMetrics_[params.maxLines].lineSpans.front());
             lastLineWidth = lastLine.GetAllSpanWidth();
         }
@@ -298,21 +335,7 @@ void Shaper::ConsiderTailEllipsis(const TypographyStyle &ys, const std::shared_p
                 params.ellipsisSpans.end());
         }
     } else {
-        if (lastLineWidth + params.ellipsisWidth > params.widthLimit) {
-            double exceedWidth = lastLineWidth + params.ellipsisWidth - params.widthLimit;
-            auto lastSpan = lastLine.lineSpans.back();
-            lastLine.lineSpans.pop_back();
-            std::vector<LineMetrics> partlySpan = CreatePartlySpan(true, ys, fontProviders, lastSpan, exceedWidth);
-            if (!partlySpan.empty()) {
-                std::vector<VariantSpan> partlyLineSpans = partlySpan.front().lineSpans;
-                lastLine.lineSpans.insert(lastLine.lineSpans.end(), partlyLineSpans.begin(), partlyLineSpans.end());
-            }
-            lastLine.lineSpans.insert(lastLine.lineSpans.end(), params.ellipsisSpans.begin(),
-                params.ellipsisSpans.end());
-        } else if (isErase) {
-            lastLine.lineSpans.insert(lastLine.lineSpans.end(), params.ellipsisSpans.begin(),
-                params.ellipsisSpans.end());
-        }
+        ConsiderLastLine(style, fontProviders, params, isErase);
     }
 }
 
@@ -324,21 +347,25 @@ std::vector<LineMetrics> Shaper::CreatePartlySpan(const bool cutRight, const Typ
         return {};
     }
 
-    int startIndex = textSpan->cgs_.GetRange().start;
-    int endIndex = textSpan->cgs_.GetRange().end - 1;  // end - 1 is the index of end
+    size_t startIndex = static_cast<size_t>(textSpan->cgs_.GetRange().start);
+    size_t endIndex = static_cast<size_t>(textSpan->cgs_.GetRange().end);
     double deletedWidth = 0.0;
-    while (endIndex >= startIndex && deletedWidth < exceedWidth) {
+    while (startIndex < endIndex) {
+        if (deletedWidth >= exceedWidth) {
+            break;
+        }
         if (cutRight) {
-            deletedWidth += textSpan->cgs_.GetCharWidth(endIndex);
             endIndex--;
+            deletedWidth += textSpan->cgs_.GetCharWidth(endIndex);
         } else {
             deletedWidth += textSpan->cgs_.GetCharWidth(startIndex);
             startIndex++;
         }
     }
 
-    if (endIndex >= startIndex) {
-        std::vector<uint16_t> chars = textSpan->cgs_.GetCharsToU16(startIndex, endIndex, cutRight);
+    if (startIndex < endIndex) {
+        // endIndex - 1 is the index of end
+        std::vector<uint16_t> chars = textSpan->cgs_.GetCharsToU16(startIndex, endIndex - 1, SpacesModel::NORMAL);
         VariantSpan partlySpan(TextSpan::MakeFromText(chars));
         partlySpan.SetTextStyle(span.GetTextStyle());
         std::vector<VariantSpan> spans = {partlySpan};
@@ -400,7 +427,7 @@ void Shaper::SplitJointLeftSpans(const EllipsisParams &params, const size_t left
     }
 
     // 0 means the first index of the array,true means handles spaces at the end of the left index of the array
-    std::vector<uint16_t> leftGroups = textSpan->cgs_.GetCharsToU16(0, leftIndex, true);
+    std::vector<uint16_t> leftGroups = textSpan->cgs_.GetCharsToU16(0, leftIndex, SpacesModel::NORMAL);
     VariantSpan leftSpan(TextSpan::MakeFromText(leftGroups));
     leftSpan.SetTextStyle(span.GetTextStyle());
     std::vector<VariantSpan> leftVariantSpans = {leftSpan};
@@ -418,7 +445,7 @@ void Shaper::SplitJointRightSpans(const EllipsisParams &params, const size_t rig
     }
     size_t maxIndex = textSpan->cgs_.GetSize();
     // maxIndex - 1 means last index of the array,false means handles spaces at the end of the right index of the array
-    std::vector<uint16_t> rightGroups = textSpan->cgs_.GetCharsToU16(rightIndex, maxIndex - 1, false);
+    std::vector<uint16_t> rightGroups = textSpan->cgs_.GetCharsToU16(rightIndex, maxIndex - 1, SpacesModel::NORMAL);
     VariantSpan rightSpan(TextSpan::MakeFromText(rightGroups));
     rightSpan.SetTextStyle(span.GetTextStyle());
     std::vector<VariantSpan> rightVariantSpans = {rightSpan};

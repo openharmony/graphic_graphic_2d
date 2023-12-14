@@ -20,10 +20,9 @@
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
 #include "include/core/SkSurface.h"
-#if defined(NEW_SKIA)
 #include "include/gpu/GrDirectContext.h"
-#else
-#include "include/gpu/GrContext.h"
+#ifdef RS_ENABLE_VK
+#include"include/gpu/vk/GrVkBackendContext.h"
 #endif
 #include "pipeline/parallel_render/rs_render_task.h"
 #include "render_context/render_context.h"
@@ -54,11 +53,7 @@ private:
     void CreateShareEglContext();
     void DestroyShareEglContext();
 #ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
     sk_sp<GrDirectContext> CreateShareGrContext();
-#else
-    sk_sp<GrContext> CreateShareGrContext();
-#endif
 #else
     std::shared_ptr<Drawing::GPUContext> CreateShareGrContext();
 #endif
@@ -67,13 +62,11 @@ private:
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     RenderContext *renderContext_ = nullptr;
+#ifdef RS_ENABLE_GL
     EGLContext eglShareContext_ = EGL_NO_CONTEXT;
-#ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
-    sk_sp<GrDirectContext> grContext_ = nullptr;
-#else
-    sk_sp<GrContext> grContext_ = nullptr;
 #endif
+#ifndef USE_ROSEN_DRAWING
+    sk_sp<GrDirectContext> grContext_ = nullptr;
 #else
     std::shared_ptr<Drawing::GPUContext> grContext_ = nullptr;
 #endif
