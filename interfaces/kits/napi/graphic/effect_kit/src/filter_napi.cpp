@@ -146,6 +146,8 @@ napi_value FilterNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("grayscale", Grayscale),
         DECLARE_NAPI_FUNCTION("getPixelMap", GetPixelMap),
         DECLARE_NAPI_FUNCTION("getPixelMapAsync", GetPixelMapAsync),
+        DECLARE_NAPI_FUNCTION("getEffectPixelMap", GetPixelMapAsync),
+        DECLARE_NAPI_FUNCTION("getEffectPixelMapSync", GetPixelMap),
     };
     napi_property_descriptor static_prop[] = {
         DECLARE_NAPI_STATIC_FUNCTION("createEffect", CreateEffect),
@@ -344,7 +346,7 @@ void FilterNapi::GetPixelMapAsyncExecute(napi_env env, void* data)
     }
 }
 
-static void GetPixelMapAsyncErrorCompelte(napi_env env, napi_status status, void* data)
+static void GetPixelMapAsyncErrorComplete(napi_env env, napi_status status, void* data)
 {
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
@@ -393,7 +395,7 @@ napi_value FilterNapi::GetPixelMapAsync(napi_env env, napi_callback_info info)
 
     if (ctx->errorMsg != nullptr) {
         IMG_CREATE_CREATE_ASYNC_WORK(env, status, "GetPixelMapAsyncError", [](napi_env env, void* data) {},
-            GetPixelMapAsyncErrorCompelte, ctx, ctx->work);
+            GetPixelMapAsyncErrorComplete, ctx, ctx->work);
     } else {
         IMG_CREATE_CREATE_ASYNC_WORK(env, status, "GetPixelMapAsync", GetPixelMapAsyncExecute,
             GetPixelMapAsyncComplete, ctx, ctx->work);
