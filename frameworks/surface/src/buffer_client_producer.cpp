@@ -99,7 +99,7 @@ GSError BufferClientProducer::RequestBuffer(const BufferRequestConfig &config, s
 }
 
 GSError BufferClientProducer::GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
-                                  sptr<SyncFence>& fence, float matrix[16])
+    sptr<SyncFence>& fence, float matrix[16])
 {
     DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
 

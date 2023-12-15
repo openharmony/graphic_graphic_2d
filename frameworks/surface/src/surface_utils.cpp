@@ -71,6 +71,7 @@ SurfaceError SurfaceUtils::Remove(uint64_t uniqueId)
 
 std::array<float, 16> SurfaceUtils::MatrixProduct(const std::array<float, 16>& lMat, const std::array<float, 16>& rMat)
 {
+    // Product matrix 4 * 4 = 16
     return std::array<float, 16> {lMat[0] * rMat[0] + lMat[4] * rMat[1] + lMat[8] * rMat[2] + lMat[12] * rMat[3],
                                   lMat[1] * rMat[0] + lMat[5] * rMat[1] + lMat[9] * rMat[2] + lMat[13] * rMat[3],
                                   lMat[2] * rMat[0] + lMat[6] * rMat[1] + lMat[10] * rMat[2] + lMat[14] * rMat[3],
@@ -92,7 +93,8 @@ std::array<float, 16> SurfaceUtils::MatrixProduct(const std::array<float, 16>& l
                                   lMat[3] * rMat[12] + lMat[7] * rMat[13] + lMat[11] * rMat[14] + lMat[15] * rMat[15]};
 }
 
-void SurfaceUtils::ComputeTransformMatrix(float matrix[16], sptr<SurfaceBuffer>& buffer, GraphicTransformType& transform, Rect& crop)
+void SurfaceUtils::ComputeTransformMatrix(float matrix[16],
+    sptr<SurfaceBuffer>& buffer, GraphicTransformType& transform, Rect& crop)
 {
     const std::array<float, TRANSFORM_MATRIX_ELE_COUNT> rotate90 = {0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1};
     std::array<float, TRANSFORM_MATRIX_ELE_COUNT> transformMatrix = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
@@ -105,11 +107,11 @@ void SurfaceUtils::ComputeTransformMatrix(float matrix[16], sptr<SurfaceBuffer>&
     }
     float bufferWidth = buffer->GetWidth();
     float bufferHeight = buffer->GetHeight();
-    if (crop.w < bufferWidth) {
+    if (crop.w < bufferWidth && bufferWidth != 0) {
         tx = (float(crop.x) / bufferWidth);
         sx = (float(crop.w) / bufferWidth);
     }
-    if (crop.h < bufferHeight) {
+    if (crop.h < bufferHeight && bufferHeight != 0) {
         ty = (float(bufferHeight - crop.y) / bufferHeight);
         sy = (float(crop.h) / bufferHeight);
     }

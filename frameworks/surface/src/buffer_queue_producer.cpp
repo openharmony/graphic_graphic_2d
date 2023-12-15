@@ -155,7 +155,8 @@ int32_t BufferQueueProducer::FlushBufferRemote(MessageParcel &arguments, Message
     return 0;
 }
 
-int32_t BufferQueueProducer::GetLastFlushedBufferRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+int32_t BufferQueueProducer::GetLastFlushedBufferRemote(MessageParcel &arguments,
+    MessageParcel &reply, MessageOption &option)
 {
     sptr<SurfaceBuffer> buffer;
     sptr<SyncFence> fence;
@@ -405,7 +406,8 @@ GSError BufferQueueProducer::FlushBuffer(uint32_t sequence, const sptr<BufferExt
     return bufferQueue_->FlushBuffer(sequence, bedata, fence, config);
 }
 
-GSError BufferQueueProducer::GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence, float matrix[16])
+GSError BufferQueueProducer::GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
+    sptr<SyncFence>& fence, float matrix[16])
 {
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
