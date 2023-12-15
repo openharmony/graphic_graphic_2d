@@ -228,7 +228,6 @@ int64_t SurfaceImage::GetTimeStamp()
 SurfaceError SurfaceImage::GetTransformMatrix(float matrix[16])
 {
     std::lock_guard<std::mutex> lockGuard(opMutex_);
-    matrix = currentTransformMatrix_;
     auto ret = memcpy_s(matrix, sizeof(currentTransformMatrix_),
                         currentTransformMatrix_, sizeof(currentTransformMatrix_));
     if (ret != EOK) {
