@@ -40,7 +40,8 @@ public:
     using SharedPtr = std::shared_ptr<RSCanvasRenderNode>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::CANVAS_NODE;
 
-    explicit RSCanvasRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {});
+    explicit RSCanvasRenderNode(NodeId id,
+        const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
     virtual ~RSCanvasRenderNode();
 
 #ifndef USE_ROSEN_DRAWING

@@ -61,8 +61,8 @@ enum RSSurfaceNodeCommandType : uint16_t {
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
 public:
-    static void Create(RSContext& context,
-        NodeId nodeId, RSSurfaceNodeType surfaceNodeType = RSSurfaceNodeType::DEFAULT);
+    static void Create(RSContext& context, NodeId nodeId,
+        RSSurfaceNodeType surfaceNodeType = RSSurfaceNodeType::DEFAULT, bool isTextureExportNode = false);
 #ifndef USE_ROSEN_DRAWING
     static void SetContextMatrix(RSContext& context, NodeId nodeId, const std::optional<SkMatrix>& matrix);
 #else
@@ -98,7 +98,7 @@ public:
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate,
-    ARG(SURFACE_NODE, SURFACE_NODE_CREATE, SurfaceNodeCommandHelper::Create, NodeId, RSSurfaceNodeType))
+    ARG(SURFACE_NODE, SURFACE_NODE_CREATE, SurfaceNodeCommandHelper::Create, NodeId, RSSurfaceNodeType, bool))
 #ifndef USE_ROSEN_DRAWING
 ADD_COMMAND(
     RSSurfaceNodeSetContextMatrix, ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_MATRIX,

@@ -24,7 +24,8 @@
 
 namespace OHOS {
 namespace Rosen {
-RSEffectRenderNode::RSEffectRenderNode(NodeId id, const std::weak_ptr<RSContext>& context) : RSRenderNode(id, context)
+RSEffectRenderNode::RSEffectRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
+    : RSRenderNode(id, context, isTextureExportNode)
 {
     MemoryInfo info = { sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE };
     MemoryTrack::Instance().AddNodeRecord(id, info);

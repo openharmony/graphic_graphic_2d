@@ -72,6 +72,6 @@ HWTEST_F(RSCanvasNodeCommandTest, Create001, TestSize.Level1)
 {
     RSContext context;
     NodeId targetId = static_cast<NodeId>(-1);
-    RSCanvasNodeCommandHelper::Create(context, targetId);
+    RSCanvasNodeCommandHelper::Create(context, targetId, false);
 }
 } // namespace OHOS::Rosen

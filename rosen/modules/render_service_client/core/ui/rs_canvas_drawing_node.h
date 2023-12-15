@@ -38,7 +38,7 @@ public:
     }
 
     ~RSCanvasDrawingNode() override;
-    static SharedPtr Create(bool isRenderServiceNode = false);
+    static SharedPtr Create(bool isRenderServiceNode = false, bool isTextureExportNode = false);
 #ifndef USE_ROSEN_DRAWING
     bool GetBitmap(SkBitmap& bitmap, std::shared_ptr<DrawCmdList> drawCmdList = nullptr, const SkRect* rect = nullptr);
     bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap,
@@ -51,7 +51,7 @@ public:
 #endif
 
 protected:
-    RSCanvasDrawingNode(bool isRenderServiceNode);
+    RSCanvasDrawingNode(bool isRenderServiceNode, bool isTextureExportNode = false);
     RSCanvasDrawingNode(const RSCanvasDrawingNode&) = delete;
     RSCanvasDrawingNode(const RSCanvasDrawingNode&&) = delete;
     RSCanvasDrawingNode& operator=(const RSCanvasDrawingNode&) = delete;

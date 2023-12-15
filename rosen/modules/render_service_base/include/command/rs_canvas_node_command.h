@@ -41,7 +41,7 @@ class DrawCmdList;
 
 class RSB_EXPORT RSCanvasNodeCommandHelper {
 public:
-    static void Create(RSContext& context, NodeId id);
+    static void Create(RSContext& context, NodeId id, bool isTextureExportNode = false);
 #ifndef USE_ROSEN_DRAWING
     static void UpdateRecording(
         RSContext& context, NodeId id, std::shared_ptr<DrawCmdList> drawCmds, uint16_t modifierType);
@@ -60,7 +60,7 @@ private:
 #endif
 };
 
-ADD_COMMAND(RSCanvasNodeCreate, ARG(CANVAS_NODE, CANVAS_NODE_CREATE, RSCanvasNodeCommandHelper::Create, NodeId))
+ADD_COMMAND(RSCanvasNodeCreate, ARG(CANVAS_NODE, CANVAS_NODE_CREATE, RSCanvasNodeCommandHelper::Create, NodeId, bool))
 #ifndef USE_ROSEN_DRAWING
 ADD_COMMAND(RSCanvasNodeUpdateRecording,
     ARG(CANVAS_NODE, CANVAS_NODE_UPDATE_RECORDING, RSCanvasNodeCommandHelper::UpdateRecording, NodeId,

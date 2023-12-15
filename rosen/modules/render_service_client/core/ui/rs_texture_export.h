@@ -12,19 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_TEXTURE_EXPORT_H
+#define RENDER_SERVICE_CLIENT_CORE_UI_RS_TEXTURE_EXPORT_H
 
-#include "command/rs_canvas_drawing_node_command.h"
-
-#include "pipeline/rs_canvas_drawing_render_node.h"
+#include "ui/rs_ui_director.h"
+#include "ui/rs_node.h"
 
 namespace OHOS {
 namespace Rosen {
 
-void RSCanvasDrawingNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextureExportNode)
-{
-    auto node = std::make_shared<RSCanvasDrawingRenderNode>(id, context.weak_from_this(), isTextureExportNode);
-    context.GetMutableNodeMap().RegisterRenderNode(node);
-}
-
+class RSC_EXPORT RSTextureExport {
+public:
+    RSTextureExport();
+    ~RSTextureExport();
+    bool DoTextureExport(std::shared_ptr<RSNode> rootNode, SurfaceId surfaceId);
+private:
+    std::shared_ptr<RSUIDirector> rsUiDirector_;
+};
 } // namespace Rosen
 } // namespace OHOS
+
+#endif // RENDER_SERVICE_CLIENT_CORE_UI_RS_TEXTURE_EXPORT_H

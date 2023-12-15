@@ -28,11 +28,11 @@ enum RSCanvasDrawingNodeCommandType : uint16_t {
 
 class RSB_EXPORT RSCanvasDrawingNodeCommandHelper {
 public:
-    static void Create(RSContext& context, NodeId id);
+    static void Create(RSContext& context, NodeId id, bool isTextureExportNode = false);
 };
 
 ADD_COMMAND(RSCanvasDrawingNodeCreate,
-    ARG(CANVAS_DRAWING_NODE, CANVAS_DRAWING_NODE_CREATE, RSCanvasDrawingNodeCommandHelper::Create, NodeId))
+    ARG(CANVAS_DRAWING_NODE, CANVAS_DRAWING_NODE_CREATE, RSCanvasDrawingNodeCommandHelper::Create, NodeId, bool))
 
 } // namespace Rosen
 } // namespace OHOS

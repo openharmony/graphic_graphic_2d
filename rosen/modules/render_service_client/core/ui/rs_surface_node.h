@@ -44,6 +44,8 @@ namespace Rosen {
 struct RSSurfaceNodeConfig {
     std::string SurfaceNodeName = "SurfaceNode";
     void* additionalData = nullptr;
+    bool isTextureExportNode = false;
+    SurfaceId surfaceId = 0;
 };
 
 class RSC_EXPORT RSSurfaceNode : public RSNode {
@@ -151,7 +153,7 @@ private:
     void CreateSurfaceExt(const RSSurfaceExtConfig& config);
 #endif
     bool CreateNode(const RSSurfaceRenderNodeConfig& config);
-    bool CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config);
+    bool CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, SurfaceId surfaceId = 0);
     void OnBoundsSizeChanged() const override;
     std::pair<std::string, std::string> SplitSurfaceNodeName(std::string surfaceNodeName);
 #ifdef NEW_RENDER_CONTEXT

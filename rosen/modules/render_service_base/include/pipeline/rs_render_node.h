@@ -75,8 +75,9 @@ public:
         return Type;
     }
 
-    explicit RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {});
-    explicit RSRenderNode(NodeId id, bool isOnTheTree, const std::weak_ptr<RSContext>& context = {});
+    explicit RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
+    explicit RSRenderNode(NodeId id, bool isOnTheTree, const std::weak_ptr<RSContext>& context = {},
+        bool isTextureExportNode = false);
     RSRenderNode(const RSRenderNode&) = delete;
     RSRenderNode(const RSRenderNode&&) = delete;
     RSRenderNode& operator=(const RSRenderNode&) = delete;
@@ -142,6 +143,8 @@ public:
     virtual void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID);
     bool IsOnTheTree() const;
+
+    bool GetIsTextureExportNode() const;
 
     // return children and disappeared children, not guaranteed to be sorted by z-index
     const std::list<SharedPtr>& GetChildren(bool inSubThread = false);
@@ -671,6 +674,8 @@ private:
     float boundsHeight_ = 0.0f;
     bool hasCacheableAnim_ = false;
     bool geometryChangeNotPerceived_ = false;
+
+    bool isTextureExportNode_ = false;
 
     std::atomic_bool isUsedBySubThread_ = false;
     bool lastIsNeedAssignToSubThread_ = false;

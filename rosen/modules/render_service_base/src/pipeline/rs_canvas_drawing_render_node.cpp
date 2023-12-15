@@ -34,8 +34,8 @@
 #include "rs_trace.h"
 namespace OHOS {
 namespace Rosen {
-RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(NodeId id, const std::weak_ptr<RSContext>& context)
-    : RSCanvasRenderNode(id, context)
+RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(NodeId id, const std::weak_ptr<RSContext>& context,
+    bool isTextureExportNode) : RSCanvasRenderNode(id, context, isTextureExportNode)
 {}
 
 RSCanvasDrawingRenderNode::~RSCanvasDrawingRenderNode()

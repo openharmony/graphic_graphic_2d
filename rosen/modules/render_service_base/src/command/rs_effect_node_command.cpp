@@ -21,9 +21,9 @@
 namespace OHOS {
 namespace Rosen {
 
-void EffectNodeCommandHelper::Create(RSContext& context, NodeId id)
+void EffectNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextureExportNode)
 {
-    auto node = std::make_shared<RSEffectRenderNode>(id, context.weak_from_this());
+    auto node = std::make_shared<RSEffectRenderNode>(id, context.weak_from_this(), isTextureExportNode);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 

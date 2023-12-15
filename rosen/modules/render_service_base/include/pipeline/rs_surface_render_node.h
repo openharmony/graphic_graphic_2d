@@ -64,8 +64,10 @@ public:
         return Type;
     }
 
-    explicit RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {});
-    explicit RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
+    explicit RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
+        bool isTextureExportNode = false);
+    explicit RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config,
+        const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
     ~RSSurfaceRenderNode() override;
 
     void PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas);
