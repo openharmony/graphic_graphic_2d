@@ -38,6 +38,10 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_proxy_node.h"
 
+#ifndef ROSEN_CROSS_PLATFORM
+#include "surface_utils.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfaceNodeConfig, bool isWindow)
@@ -72,7 +76,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         "isWindow %{public}d %{public}d ", config.name.c_str(), config.bundleName.c_str(),
         config.nodeType, isWindow, node->IsRenderServiceNode());
 
-    if (!node->CreateNodeAndSurface(config)) {
+    if (!node->CreateNodeAndSurface(config, surfaceNodeConfig.surfaceId)) {
         ROSEN_LOGE("RSSurfaceNode::Create, create node and surface failed");
         return nullptr;
     }
@@ -80,16 +84,23 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
     node->SetClipToFrame(true);
     // create node in RT (only when in divided render and isRenderServiceNode_ == false)
     if (!node->IsRenderServiceNode()) {
-        std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreate>(node->GetId(), config.nodeType);
-        transactionProxy->AddCommand(command, isWindow);
+        std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreate>(node->GetId(),
+            config.nodeType, surfaceNodeConfig.isTextureExportNode);
+        if (surfaceNodeConfig.isTextureExportNode) {
+            transactionProxy->AddCommand(command, false);
+        } else {
+            transactionProxy->AddCommand(command, isWindow);
+        }
+        
+        if (!surfaceNodeConfig.isTextureExportNode) {
+            command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(node->GetId());
+            transactionProxy->AddCommand(command, isWindow);
 
-        command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(node->GetId());
-        transactionProxy->AddCommand(command, isWindow);
-
-        RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
-        command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(node->GetId(), true);
-        transactionProxy->AddCommand(command, isWindow);
-        node->SetFrameGravity(Gravity::RESIZE);
+            RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
+            command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(node->GetId(), true);
+            transactionProxy->AddCommand(command, isWindow);
+            node->SetFrameGravity(Gravity::RESIZE);
+        }
 
 #if defined(USE_SURFACE_TEXTURE) && defined(ROSEN_ANDROID)
         RSSurfaceExtConfig config = {
@@ -132,7 +143,7 @@ void RSSurfaceNode::CreateNodeInRenderThread()
 
     // create node in RT (only when in divided render and isRenderServiceNode_ == false)
     if (!IsRenderServiceNode()) {
-        command = std::make_unique<RSSurfaceNodeCreate>(GetId(), RSSurfaceNodeType::ABILITY_COMPONENT_NODE);
+        command = std::make_unique<RSSurfaceNodeCreate>(GetId(), RSSurfaceNodeType::ABILITY_COMPONENT_NODE, false);
         transactionProxy->AddCommand(command, false);
 
         command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(GetId());
@@ -400,10 +411,27 @@ bool RSSurfaceNode::CreateNode(const RSSurfaceRenderNodeConfig& config)
         CreateNode(config);
 }
 
-bool RSSurfaceNode::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config)
+bool RSSurfaceNode::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, SurfaceId surfaceId)
 {
-    surface_ = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient())->
+    if (surfaceId == 0) {
+        surface_ = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient())->
         CreateNodeAndSurface(config);
+    } else {
+#ifndef ROSEN_CROSS_PLATFORM
+        sptr<Surface> surface = SurfaceUtils::GetInstance()->GetSurface(surfaceId);
+        if (surface == nullptr) {
+            ROSEN_LOGE("RSSurfaceNode::CreateNodeAndSurface nodeId is %llu cannot find surface by surfaceId %llu",
+                GetId(), surfaceId);
+            return false;
+        }
+        surface_ = std::static_pointer_cast<RSRenderServiceClient>(
+            RSIRenderClient::CreateRenderServiceClient())->CreateRSSurface(surface);
+        if (surface_ == nullptr) {
+            ROSEN_LOGE("RSSurfaceNode::CreateNodeAndSurface nodeId is %llu creat RSSurface fail", GetId());
+            return false;
+        }
+#endif
+    }
     return (surface_ != nullptr);
 }
 
@@ -481,7 +509,7 @@ std::pair<std::string, std::string> RSSurfaceNode::SplitSurfaceNodeName(std::str
 }
 
 RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode)
-    : RSNode(isRenderServiceNode)
+    : RSNode(isRenderServiceNode, config.isTextureExportNode)
 {
     auto result = SplitSurfaceNodeName(config.SurfaceNodeName);
     bundleName_ = result.first;
@@ -489,7 +517,7 @@ RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderSer
 }
 
 RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode, NodeId id)
-    : RSNode(isRenderServiceNode, id)
+    : RSNode(isRenderServiceNode, id, config.isTextureExportNode)
 {
     auto result = SplitSurfaceNodeName(config.SurfaceNodeName);
     bundleName_ = result.first;

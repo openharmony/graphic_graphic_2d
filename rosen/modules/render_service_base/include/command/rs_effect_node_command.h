@@ -28,10 +28,10 @@ enum RSEffectNodeCommandType : uint16_t {
 
 class RSB_EXPORT EffectNodeCommandHelper {
 public:
-    static void Create(RSContext& context, NodeId id);
+    static void Create(RSContext& context, NodeId id, bool isTextureExportNode = false);
 };
 
-ADD_COMMAND(RSEffectNodeCreate, ARG(EFFECT_NODE, EFFECT_NODE_CREATE, EffectNodeCommandHelper::Create, NodeId))
+ADD_COMMAND(RSEffectNodeCreate, ARG(EFFECT_NODE, EFFECT_NODE_CREATE, EffectNodeCommandHelper::Create, NodeId, bool))
 
 } // namespace Rosen
 } // namespace OHOS

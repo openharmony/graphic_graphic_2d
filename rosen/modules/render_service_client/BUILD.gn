@@ -99,6 +99,7 @@ template("render_service_client_source_set") {
       "core/ui/rs_root_node.cpp",
       "core/ui/rs_surface_extractor.cpp",
       "core/ui/rs_surface_node.cpp",
+      "core/ui/rs_texture_export.cpp",
       "core/ui/rs_ui_director.cpp",
       "core/ui/rs_ui_share_context.cpp",
     ]

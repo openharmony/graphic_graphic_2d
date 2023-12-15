@@ -167,14 +167,21 @@ const std::set<RSModifierType> BASIC_GEOTRANSFROM_ANIMATION_TYPE = {
 };
 }
 
-RSRenderNode::RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context) : id_(id), context_(context)
+RSRenderNode::RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
+    : id_(id), context_(context), isTextureExportNode_(isTextureExportNode)
 {
     isSubSurfaceEnabled_ = RSSystemProperties::GetSubSurfaceEnabled();
 }
-RSRenderNode::RSRenderNode(NodeId id, bool isOnTheTree, const std::weak_ptr<RSContext>& context)
-    : isOnTheTree_(isOnTheTree), id_(id), context_(context)
+RSRenderNode::RSRenderNode(NodeId id, bool isOnTheTree, const std::weak_ptr<RSContext>& context,
+    bool isTextureExportNode) 
+    : isOnTheTree_(isOnTheTree), id_(id), context_(context),isTextureExportNode_(isTextureExportNode)
 {
     isSubSurfaceEnabled_ = RSSystemProperties::GetSubSurfaceEnabled();
+}
+
+bool RSRenderNode::GetIsTextureExportNode() const
+{
+    return isTextureExportNode_;
 }
 
 void RSRenderNode::AddChild(SharedPtr child, int index)

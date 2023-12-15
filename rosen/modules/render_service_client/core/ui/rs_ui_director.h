@@ -34,10 +34,11 @@ public:
     static std::shared_ptr<RSUIDirector> Create();
 
     ~RSUIDirector();
-    void GoBackground();
-    void GoForeground();
+    void GoBackground(bool isTextureExport = false);
+    void GoForeground(bool isTextureExport = false);
     void Init(bool shouldCreateRenderThread = true);
-    void Destroy();
+    void StartTextureExport();
+    void Destroy(bool isTextureExport = false);
     void SetRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode);
     void SetAbilityBGAlpha(uint8_t alpha);
     /**

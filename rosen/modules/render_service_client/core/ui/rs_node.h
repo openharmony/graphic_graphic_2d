@@ -353,10 +353,11 @@ public:
 
     void SetOutOfParent(OutOfParentType outOfParent);
 protected:
-    explicit RSNode(bool isRenderServiceNode);
-    explicit RSNode(bool isRenderServiceNode, NodeId id);
+    explicit RSNode(bool isRenderServiceNode, bool isTextureExportNode = false);
+    explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false);
 
     bool isRenderServiceNode_;
+    bool isTextureExportNode_ = false;
     bool skipDestroyCommandInDestructor_ = false;
 
     bool drawContentLast_ = false;

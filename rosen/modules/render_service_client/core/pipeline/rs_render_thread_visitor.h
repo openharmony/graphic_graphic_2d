@@ -85,6 +85,7 @@ private:
 #endif
     // Reset and update children node's info like outOfParent and isRemoveChild
     void ResetAndPrepareChildrenNode(RSRenderNode& node, std::shared_ptr<RSBaseRenderNode> nodeParent);
+    void ProcessSurfaceViewInRT(RSSurfaceRenderNode& node);
 
     bool UpdateAnimatePropertyCacheSurface(RSRenderNode& node);
 

@@ -78,15 +78,16 @@ bool IsPathAnimatableModifier(const RSModifierType& type)
 }
 }
 
-RSNode::RSNode(bool isRenderServiceNode, NodeId id)
-    : isRenderServiceNode_(isRenderServiceNode), id_(id), stagingPropertiesExtractor_(id), showingPropertiesFreezer_(id)
+RSNode::RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode)
+    : isRenderServiceNode_(isRenderServiceNode), isTextureExportNode_(isTextureExportNode),
+    id_(id), stagingPropertiesExtractor_(id), showingPropertiesFreezer_(id)
 {
     InitUniRenderEnabled();
     UpdateImplicitAnimator();
 }
 
-RSNode::RSNode(bool isRenderServiceNode) : RSNode(isRenderServiceNode, GenerateId())
-{}
+RSNode::RSNode(bool isRenderServiceNode, bool isTextureExportNode)
+    : RSNode(isRenderServiceNode, GenerateId(), isTextureExportNode) {}
 
 RSNode::~RSNode()
 {
@@ -1612,7 +1613,7 @@ bool RSNode::IsUniRenderEnabled() const
 
 bool RSNode::IsRenderServiceNode() const
 {
-    return g_isUniRenderEnabled || isRenderServiceNode_;
+    return (g_isUniRenderEnabled || isRenderServiceNode_) && (!isTextureExportNode_);
 }
 
 void RSNode::AddChild(SharedPtr child, int index)

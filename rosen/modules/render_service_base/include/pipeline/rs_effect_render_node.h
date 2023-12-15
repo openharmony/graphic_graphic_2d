@@ -31,7 +31,8 @@ public:
         return Type;
     }
 
-    explicit RSEffectRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {});
+    explicit RSEffectRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
+        bool isTextureExportNode = false);
     ~RSEffectRenderNode() override;
 
     void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas) override;
