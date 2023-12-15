@@ -39,7 +39,25 @@ public:
 void RSB_EXPORT RSLogOutput(RSLog::Tag tag, RSLog::Level level, const char* format, ...);
 } // namespace Rosen
 } // namespace OHOS
+#if defined RUNTIME_MODE_RELEASE
+#define ROSEN_LOGI(format, ...)
+#define ROSEN_LOGD(format, ...)
+#define ROSEN_LOGE(format, ...) \
+    OHOS::HiviewDFX::HiLog::Error(LABEL_ROSEN, format, ##__VA_ARGS__)
+#define ROSEN_LOGW(format, ...) \
+    OHOS::HiviewDFX::HiLog::Warn(LABEL_ROSEN, format, ##__VA_ARGS__)
+#define ROSEN_LOGF(format, ...) \
+    OHOS::HiviewDFX::HiLog::Fatal(LABEL_ROSEN, format, ##__VA_ARGS__)
 
+#define RS_LOGI(format, ...)
+#define RS_LOGD(format, ...)
+#define RS_LOGE(format, ...) \
+    OHOS::HiviewDFX::HiLog::Error(LABEL_RS, format, ##__VA_ARGS__)
+#define RS_LOGW(format, ...) \
+    OHOS::HiviewDFX::HiLog::Warn(LABEL_RS, format, ##__VA_ARGS__)
+#define RS_LOGF(format, ...) \
+    OHOS::HiviewDFX::HiLog::Fatal(LABEL_RS, format, ##__VA_ARGS__)
+#else
 #define ROSEN_LOGI(format, ...) \
     OHOS::HiviewDFX::HiLog::Info(LABEL_ROSEN, format, ##__VA_ARGS__)
 #define ROSEN_LOGD(format, ...) \
@@ -61,5 +79,5 @@ void RSB_EXPORT RSLogOutput(RSLog::Tag tag, RSLog::Level level, const char* form
     OHOS::HiviewDFX::HiLog::Warn(LABEL_RS, format, ##__VA_ARGS__)
 #define RS_LOGF(format, ...) \
     OHOS::HiviewDFX::HiLog::Fatal(LABEL_RS, format, ##__VA_ARGS__)
-
+#endif
 #endif // RENDER_SERVICE_BASE_CORE_COMMON_RS_LOG_H

@@ -33,6 +33,9 @@ if (rosen_cross_platform) {
     "ROSEN_DISABLE_DEBUGLOG",
     "ROSEN_TRACE_DISABLE",
   ]
+  if (runtime_mode == "release") {
+    rs_common_define += [ "RUNTIME_MODE_RELEASE" ]
+  }
 }
 
 if (is_emulator) {
