@@ -42,6 +42,7 @@ std::shared_ptr<NativeVkImageRes> NativeVkImageRes::Create(sptr<OHOS::SurfaceBuf
         width, height);
 #ifndef USE_ROSEN_DRAWING
     if (!backendTexture.isValid()) {
+        DestroyNativeWindowBuffer(nativeWindowBuffer);
         return nullptr;
     }
     GrVkImageInfo imageInfo;
@@ -54,6 +55,7 @@ std::shared_ptr<NativeVkImageRes> NativeVkImageRes::Create(sptr<OHOS::SurfaceBuf
             imageInfo.fImage, imageInfo.fAlloc.fMemory));
 #else
     if (!backendTexture.IsValid() || !backendTexture.GetTextureInfo().GetVKTextureInfo()) {
+        DestroyNativeWindowBuffer(nativeWindowBuffer);
         return nullptr;
     }
     return std::make_unique<NativeVkImageRes>(
