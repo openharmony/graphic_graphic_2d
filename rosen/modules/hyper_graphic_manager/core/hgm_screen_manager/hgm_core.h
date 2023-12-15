@@ -179,7 +179,7 @@ private:
     bool ltpoEnabled_ = false;
     uint32_t maxTE_ = 0;
     uint32_t alignRate_ = 0;
-    int32_t pipelineOffsetPulseNum_ = 0;
+    int32_t pipelineOffsetPulseNum_ = 8;
     RefreshRateModeChangeCallback refreshRateModeChangeCallback_ = nullptr;
 };
 } // namespace OHOS::Rosen

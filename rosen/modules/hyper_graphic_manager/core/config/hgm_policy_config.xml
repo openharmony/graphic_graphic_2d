@@ -45,7 +45,7 @@
         <Setting name="switch" value="1"/>
         <Setting name="maxTE" value="360"/>
         <Setting name="alignRate" value="120"/>
-        <Setting name="pipelineOffsetNum" value="8"/>
+        <Setting name="pipelineOffsetPulseNum" value="8"/>
     </Params>
 
     <!-- bundle name black_list to be applied on mode 2 -->
