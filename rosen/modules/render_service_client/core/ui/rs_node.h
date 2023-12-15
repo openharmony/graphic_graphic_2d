@@ -352,6 +352,8 @@ public:
     int32_t CalcExpectedFrameRate(const std::string& scene, float speed);
 
     void SetOutOfParent(OutOfParentType outOfParent);
+    using BoundsChangedCallback = std::function<void (const Rosen::Vector4f&)>;
+    virtual void SetBoundsChangedCallback(BoundsChangedCallback callback){};
 protected:
     explicit RSNode(bool isRenderServiceNode, bool isTextureExportNode = false);
     explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false);

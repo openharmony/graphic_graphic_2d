@@ -167,5 +167,21 @@ void RSCanvasNode::SetFreeze(bool isFreeze)
         transactionProxy->AddCommand(command, true);
     }
 }
+
+void RSCanvasNode::OnBoundsSizeChanged() const
+{
+    auto bounds = GetStagingProperties().GetBounds();
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (boundsChangedCallback_) {
+        boundsChangedCallback_(bounds);
+    }
+}
+
+void RSCanvasNode::SetBoundsChangedCallback(BoundsChangedCallback callback)
+{
+  std::lock_guard<std::mutex> lock(mutex_);
+  boundsChangedCallback_ = callback;
+}
+
 } // namespace Rosen
 } // namespace OHOS
