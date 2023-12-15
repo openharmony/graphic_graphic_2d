@@ -1109,24 +1109,9 @@ void SkiaCanvas::Discard()
     skCanvas_->discard();
 }
 
-void SkiaCanvas::AttachPen(const Pen& pen)
+void SkiaCanvas::AttachPaint(const Paint& paint)
 {
-    skiaPaint_.ApplyPenToStroke(pen);
-}
-
-void SkiaCanvas::AttachBrush(const Brush& brush)
-{
-    skiaPaint_.ApplyBrushToFill(brush);
-}
-
-void SkiaCanvas::DetachPen()
-{
-    skiaPaint_.DisableStroke();
-}
-
-void SkiaCanvas::DetachBrush()
-{
-    skiaPaint_.DisableFill();
+    skiaPaint_.ApplyPaint(paint);
 }
 
 void SkiaCanvas::RoundRectCastToSkRRect(const RoundRect& roundRect, SkRRect& skRRect) const

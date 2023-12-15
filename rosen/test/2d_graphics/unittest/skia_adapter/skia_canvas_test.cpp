@@ -62,13 +62,14 @@ HWTEST_F(SkiaCanvasTest, Bind001, TestSize.Level1)
 HWTEST_F(SkiaCanvasTest, DrawPoint001, TestSize.Level1)
 {
     Point point;
-    Pen pen;
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
     SkiaCanvas skiaCanvas;
-    skiaCanvas.AttachPen(pen);
+    skiaCanvas.AttachPaint(paint);
     skiaCanvas.DrawPoint(point);
 
     skiaCanvas.ImportSkCanvas(nullptr);
-    skiaCanvas.AttachPen(pen);
+    skiaCanvas.AttachPaint(paint);
     skiaCanvas.DrawPoint(point);
 }
 
@@ -82,9 +83,10 @@ HWTEST_F(SkiaCanvasTest, DrawLine001, TestSize.Level1)
 {
     Point startPt;
     Point endPt;
-    Pen pen;
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
     SkiaCanvas skiaCanvas;
-    skiaCanvas.AttachPen(pen);
+    skiaCanvas.AttachPaint(paint);
     skiaCanvas.DrawLine(startPt, endPt);
 
     skiaCanvas.ImportSkCanvas(nullptr);
@@ -100,9 +102,10 @@ HWTEST_F(SkiaCanvasTest, DrawLine001, TestSize.Level1)
 HWTEST_F(SkiaCanvasTest, DrawRect001, TestSize.Level1)
 {
     Rect rect;
-    Pen pen;
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
     SkiaCanvas skiaCanvas;
-    skiaCanvas.AttachPen(pen);
+    skiaCanvas.AttachPaint(paint);
     skiaCanvas.DrawRect(rect);
 
     skiaCanvas.ImportSkCanvas(nullptr);
@@ -118,9 +121,10 @@ HWTEST_F(SkiaCanvasTest, DrawRect001, TestSize.Level1)
 HWTEST_F(SkiaCanvasTest, DrawRoundRect001, TestSize.Level1)
 {
     RoundRect roundRect;
-    Pen pen;
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
     SkiaCanvas skiaCanvas;
-    skiaCanvas.AttachPen(pen);
+    skiaCanvas.AttachPaint(paint);
     skiaCanvas.DrawRoundRect(roundRect);
 
     skiaCanvas.ImportSkCanvas(nullptr);
@@ -137,9 +141,10 @@ HWTEST_F(SkiaCanvasTest, DrawNestedRoundRect001, TestSize.Level1)
 {
     RoundRect outer;
     RoundRect inner;
-    Pen pen;
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
     SkiaCanvas skiaCanvas;
-    skiaCanvas.AttachPen(pen);
+    skiaCanvas.AttachPaint(paint);
     skiaCanvas.DrawNestedRoundRect(outer, inner);
 
     skiaCanvas.ImportSkCanvas(nullptr);
@@ -157,9 +162,10 @@ HWTEST_F(SkiaCanvasTest, DrawArc001, TestSize.Level1)
     Rect oval;
     scalar startAngle = 30.0f;
     scalar sweepAngle = 45.0f;
-    Pen pen;
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
     SkiaCanvas skiaCanvas;
-    skiaCanvas.AttachPen(pen);
+    skiaCanvas.AttachPaint(paint);
     skiaCanvas.DrawArc(oval, startAngle, sweepAngle);
 
     skiaCanvas.ImportSkCanvas(nullptr);
@@ -177,9 +183,10 @@ HWTEST_F(SkiaCanvasTest, DrawPie001, TestSize.Level1)
     Rect oval;
     scalar startAngle = 45.0f;
     scalar sweepAngle = 60.0f;
-    Pen pen;
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
     SkiaCanvas skiaCanvas;
-    skiaCanvas.AttachPen(pen);
+    skiaCanvas.AttachPaint(paint);
     skiaCanvas.DrawPie(oval, startAngle, sweepAngle);
 
     skiaCanvas.ImportSkCanvas(nullptr);
@@ -195,9 +202,10 @@ HWTEST_F(SkiaCanvasTest, DrawPie001, TestSize.Level1)
 HWTEST_F(SkiaCanvasTest, DrawOval001, TestSize.Level1)
 {
     Rect oval;
-    Pen pen;
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
     SkiaCanvas skiaCanvas;
-    skiaCanvas.AttachPen(pen);
+    skiaCanvas.AttachPaint(paint);
     skiaCanvas.DrawOval(oval);
 
     skiaCanvas.ImportSkCanvas(nullptr);
@@ -214,9 +222,10 @@ HWTEST_F(SkiaCanvasTest, DrawCircle001, TestSize.Level1)
 {
     Point centerPt;
     scalar radius = 20.0f;
-    Pen pen;
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
     SkiaCanvas skiaCanvas;
-    skiaCanvas.AttachPen(pen);
+    skiaCanvas.AttachPaint(paint);
     skiaCanvas.DrawCircle(centerPt, radius);
 
     skiaCanvas.ImportSkCanvas(nullptr);
@@ -232,9 +241,10 @@ HWTEST_F(SkiaCanvasTest, DrawCircle001, TestSize.Level1)
 HWTEST_F(SkiaCanvasTest, DrawPath001, TestSize.Level1)
 {
     Path path;
-    Pen pen;
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
     SkiaCanvas skiaCanvas;
-    skiaCanvas.AttachPen(pen);
+    skiaCanvas.AttachPaint(paint);
     skiaCanvas.DrawPath(path);
 
     skiaCanvas.ImportSkCanvas(nullptr);
@@ -288,9 +298,10 @@ HWTEST_F(SkiaCanvasTest, DrawBitmap001, TestSize.Level1)
     Bitmap bitmap;
     scalar px = 60.0f;
     scalar py = 30.0f;
-    Pen pen;
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
     SkiaCanvas skiaCanvas;
-    skiaCanvas.AttachPen(pen);
+    skiaCanvas.AttachPaint(paint);
     skiaCanvas.DrawBitmap(bitmap, px, py);
 
     skiaCanvas.ImportSkCanvas(nullptr);
@@ -309,9 +320,10 @@ HWTEST_F(SkiaCanvasTest, DrawImage001, TestSize.Level1)
     scalar px = 30.0f;
     scalar py = 65.0f;
     SamplingOptions sampling;
-    Pen pen;
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
     SkiaCanvas skiaCanvas;
-    skiaCanvas.AttachPen(pen);
+    skiaCanvas.AttachPaint(paint);
     skiaCanvas.DrawImage(image, px, py, sampling);
 
     skiaCanvas.ImportSkCanvas(nullptr);
@@ -330,9 +342,10 @@ HWTEST_F(SkiaCanvasTest, DrawImageRect001, TestSize.Level1)
     Rect src;
     Rect dst;
     SamplingOptions sampling;
-    Pen pen;
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
     SkiaCanvas skiaCanvas;
-    skiaCanvas.AttachPen(pen);
+    skiaCanvas.AttachPaint(paint);
     skiaCanvas.DrawImageRect(image, src, dst, sampling, SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
 
     skiaCanvas.ImportSkCanvas(nullptr);
@@ -350,9 +363,10 @@ HWTEST_F(SkiaCanvasTest, DrawImageRect002, TestSize.Level1)
     Image image;
     Rect dst;
     SamplingOptions sampling;
-    Pen pen;
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
     SkiaCanvas skiaCanvas;
-    skiaCanvas.AttachPen(pen);
+    skiaCanvas.AttachPaint(paint);
     skiaCanvas.DrawImageRect(image, dst, sampling);
 
     skiaCanvas.ImportSkCanvas(nullptr);
@@ -400,9 +414,10 @@ HWTEST_F(SkiaCanvasTest, ClipRoundRect001, TestSize.Level2)
 HWTEST_F(SkiaCanvasTest, ClipPath001, TestSize.Level1)
 {
     Path path;
-    Pen pen;
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
     SkiaCanvas skiaCanvas;
-    skiaCanvas.AttachPen(pen);
+    skiaCanvas.AttachPaint(paint);
     skiaCanvas.ClipPath(path, ClipOp::DIFFERENCE, false);
 
     skiaCanvas.ImportSkCanvas(nullptr);
@@ -418,9 +433,10 @@ HWTEST_F(SkiaCanvasTest, ClipPath001, TestSize.Level1)
 HWTEST_F(SkiaCanvasTest, SetMatrix001, TestSize.Level1)
 {
     Matrix matrix;
-    Pen pen;
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
     SkiaCanvas skiaCanvas;
-    skiaCanvas.AttachPen(pen);
+    skiaCanvas.AttachPaint(paint);
     skiaCanvas.SetMatrix(matrix);
 
     skiaCanvas.ImportSkCanvas(nullptr);
@@ -453,9 +469,10 @@ HWTEST_F(SkiaCanvasTest, ResetMatrix001, TestSize.Level2)
 HWTEST_F(SkiaCanvasTest, ConcatMatrix001, TestSize.Level1)
 {
     Matrix matrix;
-    Pen pen;
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
     SkiaCanvas skiaCanvas;
-    skiaCanvas.AttachPen(pen);
+    skiaCanvas.AttachPaint(paint);
     skiaCanvas.ConcatMatrix(matrix);
 
     skiaCanvas.ImportSkCanvas(nullptr);

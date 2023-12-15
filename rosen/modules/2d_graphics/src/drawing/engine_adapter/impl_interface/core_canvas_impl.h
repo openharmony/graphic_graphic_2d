@@ -157,12 +157,7 @@ public:
     virtual void Discard() = 0;
 
     // paint
-    virtual void AttachPen(const Pen& pen) = 0;
-    virtual void AttachBrush(const Brush& brush) = 0;
     virtual void AttachPaint(const Paint& paint) = 0;
-    virtual void DetachPen() = 0;
-    virtual void DetachBrush() = 0;
-    virtual void DetachPaint() = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

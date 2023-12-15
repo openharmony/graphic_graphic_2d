@@ -62,7 +62,7 @@ public:
 
     void SetFilter(const Filter& filter);
     const Filter& GetFilter() const;
-    bool HasFilter() const;
+    bool HasFilter() const { return hasFilter_; }
 
     void SetShaderEffect(std::shared_ptr<ShaderEffect> e);
     std::shared_ptr<ShaderEffect> GetShaderEffect() const;

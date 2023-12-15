@@ -22,6 +22,7 @@
 #include "draw/canvas.h"
 #include "recording/adaptive_image_helper.h"
 #include "recording/draw_cmd_list.h"
+#include "recording/recording_handle.h"
 #ifdef ROSEN_OHOS
 #include "surface_buffer.h"
 #endif
@@ -138,26 +139,27 @@ public:
     void DrawPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap,
         const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& smapling);
 
-    CoreCanvas& AttachPen(const Pen& pen) override;
-    CoreCanvas& AttachBrush(const Brush& brush) override;
-    CoreCanvas& DetachPen() override;
-    CoreCanvas& DetachBrush() override;
-
     void SetIsCustomTextType(bool isCustomTextType);
     bool IsCustomTextType() const;
 #ifdef ROSEN_OHOS
     void DrawSurfaceBuffer(const DrawingSurfaceBufferInfo& surfaceBufferInfo);
 #endif
+protected:
+    static void GenerateHandleFromPaint(CmdList& cmdList, const Paint& paint, PaintHandle& paintHandle);
+    std::shared_ptr<DrawCmdList> cmdList_ = nullptr;
 private:
+    template<typename T, typename... Args>
+    void AddOp(Args&&... args);
+
     enum SaveOpState {
         LazySaveOp,
         RealSaveOp
     };
     void CheckForLazySave();
+    void GenerateCachedOpForTextblob(const TextBlob* blob, const scalar x, const scalar y);
     bool isCustomTextType_ = false;
     std::optional<Brush> customTextBrush_ = std::nullopt;
     std::optional<Pen> customTextPen_ = std::nullopt;
-    std::shared_ptr<DrawCmdList> cmdList_ = nullptr;
     std::stack<SaveOpState> saveOpStateStack_;
     std::shared_ptr<GPUContext> gpuContext_ = nullptr;
 };

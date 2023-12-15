@@ -98,7 +98,7 @@ private:
     Color color_ = Color::COLOR_BLACK;
     BlendMode blendMode_ = BlendMode::SRC_OVER;
     PaintStyle style_ = PaintStyle::PAINT_NONE;
-    scalar width_ = 0;
+    scalar width_ = 0.0f;
     scalar miterLimit_ = DEFAULT_MITER_VAL; // the same as default val of skia
     Pen::JoinStyle join_ = Pen::JoinStyle::DEFAULT_JOIN;
     Pen::CapStyle cap_ = Pen::CapStyle::DEFAULT_CAP;

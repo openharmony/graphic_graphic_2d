@@ -818,7 +818,7 @@ CoreCanvas& RSPaintFilterCanvasBase::AttachBrush(const Brush& brush)
     return *this;
 }
 
-CoreCanvas& RSPaintFilterCanvasBase::AttachPaint(const Paint& paint)
+CoreCanvas& RSPaintFilterCanvasBase::AttachPaint(const Drawing::Paint& paint)
 {
 #ifdef ENABLE_RECORDING_DCL
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
@@ -991,7 +991,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachBrush(const Brush& brush)
     return *this;
 }
 
-CoreCanvas& RSPaintFilterCanvas::AttachPaint(const Paint& paint)
+CoreCanvas& RSPaintFilterCanvas::AttachPaint(const Drawing::Paint& paint)
 {
     if (canvas_ == nullptr) {
         return *this;

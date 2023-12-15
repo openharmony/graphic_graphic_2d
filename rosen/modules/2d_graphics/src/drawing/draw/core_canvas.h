@@ -377,8 +377,11 @@ public:
 
 protected:
     CoreCanvas(int32_t width, int32_t height);
+    Paint paintBrush_;
+    Paint paintPen_;
 
 private:
+    void AttachPaint();
     std::shared_ptr<CoreCanvasImpl> impl_;
 #ifdef ACE_ENABLE_GPU
     std::shared_ptr<GPUContext> gpuContext_;

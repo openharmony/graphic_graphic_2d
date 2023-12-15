@@ -21,7 +21,7 @@
 #undef private
 #include "draw/brush.h"
 #include "draw/color.h"
-#include "draw/pen.h"
+#include "draw/paint.h"
 #include "effect/color_space.h"
 #include "effect/filter.h"
 #include "effect/mask_filter.h"
@@ -48,6 +48,35 @@ void SkiaPaintTest::SetUp() {}
 void SkiaPaintTest::TearDown() {}
 
 /**
+ * @tc.name: ApplyPaint001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.author:
+ */
+HWTEST_F(SkiaPaintTest, ApplyPaint001, TestSize.Level1)
+{
+    Paint paint;
+    SkiaPaint skiaPaint;
+    skiaPaint.ApplyPaint(paint);
+    EXPECT_TRUE(skiaPaint.paintInUse_ == 0);
+}
+
+/**
+ * @tc.name: ApplyPaint002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.author:
+ */
+HWTEST_F(SkiaPaintTest, ApplyPaint002, TestSize.Level1)
+{
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
+    SkiaPaint skiaPaint;
+    skiaPaint.ApplyPaint(paint);
+    EXPECT_TRUE(skiaPaint.paintInUse_ != 0);
+}
+
+/**
  * @tc.name: BrushToSkPaint001
  * @tc.desc:
  * @tc.type: FUNC
@@ -56,45 +85,10 @@ void SkiaPaintTest::TearDown() {}
 HWTEST_F(SkiaPaintTest, BrushToSkPaint001, TestSize.Level1)
 {
     Brush brush;
+    brush.SetAntiAlias(true);
     SkPaint skPaint;
-    SkiaPaint skiaPaint;
-    skiaPaint.BrushToSkPaint(brush, skPaint);
-    EXPECT_TRUE(skiaPaint.stroke_.paintData_.strokeCore_ != nullptr);
-}
-
-/**
- * @tc.name: BrushToSkPaint002
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.author:
- */
-HWTEST_F(SkiaPaintTest, BrushToSkPaint002, TestSize.Level1)
-{
-    Brush brush;
-    SkPaint skPaint;
-    SkiaPaint skiaPaint;
-    Color4f color4f;
-    std::shared_ptr<ColorSpace> colorSpace = ColorSpace::CreateSRGB();
-    brush.SetColor(color4f, colorSpace);
-    skiaPaint.BrushToSkPaint(brush, skPaint);
-    EXPECT_TRUE(skiaPaint.stroke_.paintData_.strokeCore_ != nullptr);
-}
-
-/**
- * @tc.name: BrushToSkPaint003
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.author:
- */
-HWTEST_F(SkiaPaintTest, BrushToSkPaint003, TestSize.Level1)
-{
-    Brush brush;
-    SkPaint skPaint;
-    SkiaPaint skiaPaint;
-    std::shared_ptr<ShaderEffect> shaderEffect = ShaderEffect::CreateColorShader(20);
-    brush.SetShaderEffect(shaderEffect);
-    skiaPaint.BrushToSkPaint(brush, skPaint);
-    EXPECT_TRUE(skiaPaint.stroke_.paintData_.strokeCore_ != nullptr);
+    SkiaPaint::BrushToSkPaint(brush, skPaint);
+    EXPECT_TRUE(skPaint.isAntiAlias());
 }
 
 /**
@@ -106,117 +100,25 @@ HWTEST_F(SkiaPaintTest, BrushToSkPaint003, TestSize.Level1)
 HWTEST_F(SkiaPaintTest, PenToSkPaint001, TestSize.Level1)
 {
     Pen pen;
-    SkPaint paint;
-    SkiaPaint skiaPaint;
-    skiaPaint.PenToSkPaint(pen, paint);
-    EXPECT_TRUE(skiaPaint.stroke_.paintData_.strokeCore_ != nullptr);
+    pen.SetAntiAlias(true);
+    SkPaint skPaint;
+    SkiaPaint::PenToSkPaint(pen, skPaint);
+    EXPECT_TRUE(skPaint.isAntiAlias());
 }
 
 /**
- * @tc.name: PenToSkPaint002
+ * @tc.name: PaintToSkPaint001
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.author:
  */
-HWTEST_F(SkiaPaintTest, PenToSkPaint002, TestSize.Level1)
+HWTEST_F(SkiaPaintTest, PaintToSkPaint001, TestSize.Level1)
 {
-    Pen pen;
-    SkPaint paint;
-    SkiaPaint skiaPaint;
-    Color4f color4f;
-    std::shared_ptr<ColorSpace> colorSpace = ColorSpace::CreateSRGB();
-    pen.SetColor(color4f, colorSpace);
-    skiaPaint.PenToSkPaint(pen, paint);
-    EXPECT_TRUE(skiaPaint.stroke_.paintData_.strokeCore_ != nullptr);
-}
-
-/**
- * @tc.name: PenToSkPaint003
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.author:
- */
-HWTEST_F(SkiaPaintTest, PenToSkPaint003, TestSize.Level1)
-{
-    Pen pen;
-    SkPaint paint;
-    SkiaPaint skiaPaint;
-    pen.SetCapStyle(Pen::CapStyle::FLAT_CAP);
-    skiaPaint.PenToSkPaint(pen, paint);
-    pen.SetCapStyle(Pen::CapStyle::SQUARE_CAP);
-    skiaPaint.PenToSkPaint(pen, paint);
-    pen.SetCapStyle(Pen::CapStyle::ROUND_CAP);
-    skiaPaint.PenToSkPaint(pen, paint);
-    EXPECT_TRUE(skiaPaint.stroke_.paintData_.strokeCore_ != nullptr);
-}
-
-/**
- * @tc.name: PenToSkPaint004
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.author:
- */
-HWTEST_F(SkiaPaintTest, PenToSkPaint004, TestSize.Level1)
-{
-    Pen pen;
-    SkPaint paint;
-    SkiaPaint skiaPaint;
-    pen.SetJoinStyle(Pen::JoinStyle::BEVEL_JOIN);
-    skiaPaint.PenToSkPaint(pen, paint);
-    pen.SetJoinStyle(Pen::JoinStyle::MITER_JOIN);
-    skiaPaint.PenToSkPaint(pen, paint);
-    pen.SetJoinStyle(Pen::JoinStyle::ROUND_JOIN);
-    skiaPaint.PenToSkPaint(pen, paint);
-    EXPECT_TRUE(skiaPaint.stroke_.paintData_.strokeCore_ != nullptr);
-}
-
-/**
- * @tc.name: PenToSkPaint005
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.author:
- */
-HWTEST_F(SkiaPaintTest, PenToSkPaint005, TestSize.Level1)
-{
-    Pen pen;
-    SkPaint paint;
-    SkiaPaint skiaPaint;
-    skiaPaint.PenToSkPaint(pen, paint);
-    EXPECT_TRUE(skiaPaint.stroke_.paintData_.strokeCore_ != nullptr);
-}
-
-/**
- * @tc.name: PenToSkPaint006
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.author:
- */
-HWTEST_F(SkiaPaintTest, PenToSkPaint006, TestSize.Level1)
-{
-    Pen pen;
-    SkPaint paint;
-    SkiaPaint skiaPaint;
-    std::shared_ptr<ShaderEffect> shaderEffect = ShaderEffect::CreateColorShader(25);
-    pen.SetShaderEffect(shaderEffect);
-    skiaPaint.PenToSkPaint(pen, paint);
-    EXPECT_TRUE(skiaPaint.stroke_.paintData_.strokeCore_ != nullptr);
-}
-
-/**
- * @tc.name: PenToSkPaint007
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.author:
- */
-HWTEST_F(SkiaPaintTest, PenToSkPaint007, TestSize.Level1)
-{
-    Pen pen;
-    SkPaint paint;
-    SkiaPaint skiaPaint;
-    std::shared_ptr<PathEffect> pathEffect = PathEffect::CreateCornerPathEffect(25.0f);
-    pen.SetPathEffect(pathEffect);
-    skiaPaint.PenToSkPaint(pen, paint);
-    EXPECT_TRUE(skiaPaint.stroke_.paintData_.strokeCore_ != nullptr);
+    Paint paint;
+    paint.SetAntiAlias(true);
+    SkPaint skPaint;
+    SkiaPaint::PaintToSkPaint(paint, skPaint);
+    EXPECT_TRUE(skPaint.isAntiAlias());
 }
 
 /**
@@ -227,121 +129,13 @@ HWTEST_F(SkiaPaintTest, PenToSkPaint007, TestSize.Level1)
  */
 HWTEST_F(SkiaPaintTest, GetSortedPaints001, TestSize.Level1)
 {
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL);
     SkiaPaint skiaPaint;
+    skiaPaint.ApplyPaint(paint);
     skiaPaint.GetSortedPaints();
-    EXPECT_TRUE(skiaPaint.stroke_.paintData_.strokeCore_ != nullptr);
+    EXPECT_TRUE(skiaPaint.paintInUse_ == 0);
 }
-
-/**
- * @tc.name: GetSortedPaints002
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.author:
- */
-HWTEST_F(SkiaPaintTest, GetSortedPaints002, TestSize.Level1)
-{
-    Pen pen;
-    Brush brush;
-    SkiaPaint skiaPaint;
-    skiaPaint.SetStrokeFirst(true);
-    skiaPaint.ApplyPenToStroke(pen);
-    skiaPaint.ApplyBrushToFill(brush);
-    skiaPaint.GetSortedPaints();
-    EXPECT_TRUE(skiaPaint.stroke_.paintData_.strokeCore_ != nullptr);
-}
-
-/**
- * @tc.name: GetSortedPaints003
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.author:
- */
-HWTEST_F(SkiaPaintTest, GetSortedPaints003, TestSize.Level1)
-{
-    Pen pen;
-    SkiaPaint skiaPaint;
-    skiaPaint.SetStrokeFirst(true);
-    skiaPaint.ApplyPenToStroke(pen);
-    skiaPaint.GetSortedPaints();
-    EXPECT_TRUE(skiaPaint.stroke_.paintData_.strokeCore_ != nullptr);
-}
-
-/**
- * @tc.name: GetSortedPaints004
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.author:
- */
-HWTEST_F(SkiaPaintTest, GetSortedPaints004, TestSize.Level1)
-{
-    Brush brush;
-    SkiaPaint skiaPaint;
-    skiaPaint.SetStrokeFirst(true);
-    skiaPaint.ApplyBrushToFill(brush);
-    skiaPaint.GetSortedPaints();
-    EXPECT_TRUE(skiaPaint.stroke_.paintData_.strokeCore_ != nullptr);
-}
-
-/**
- * @tc.name: ApplyFilter001
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.author:
- */
-HWTEST_F(SkiaPaintTest, ApplyFilter001, TestSize.Level1)
-{
-    Brush brush;
-    SkPaint paint;
-    SkiaPaint skiaPaint;
-    skiaPaint.BrushToSkPaint(brush, paint);
-    EXPECT_TRUE(skiaPaint.stroke_.paintData_.strokeCore_ != nullptr);
-}
-
-/**
- * @tc.name: ApplyFilter002
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.author:
- */
-HWTEST_F(SkiaPaintTest, ApplyFilter002, TestSize.Level1)
-{
-    Brush brush;
-    SkPaint paint;
-    Filter filter;
-    SkiaPaint skiaPaint;
-    filter.SetFilterQuality(Filter::FilterQuality::LOW);
-    brush.SetFilter(filter);
-    skiaPaint.BrushToSkPaint(brush, paint);
-    filter.SetFilterQuality(Filter::FilterQuality::MEDIUM);
-    brush.SetFilter(filter);
-    skiaPaint.BrushToSkPaint(brush, paint);
-    filter.SetFilterQuality(Filter::FilterQuality::HIGH);
-    brush.SetFilter(filter);
-    skiaPaint.BrushToSkPaint(brush, paint);
-    filter.SetFilterQuality(Filter::FilterQuality::NONE);
-    brush.SetFilter(filter);
-    skiaPaint.BrushToSkPaint(brush, paint);
-    EXPECT_TRUE(skiaPaint.stroke_.paintData_.strokeCore_ != nullptr);
-}
-
-/**
- * @tc.name: ApplyFilter003
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.author:
- */
-HWTEST_F(SkiaPaintTest, ApplyFilter003, TestSize.Level1)
-{
-    Brush brush;
-    SkPaint paint;
-    Filter filter;
-    SkiaPaint skiaPaint;
-    std::shared_ptr<MaskFilter> maskFilter = MaskFilter::CreateBlurMaskFilter(BlurType::INNER, 20.0f);
-    filter.SetMaskFilter(maskFilter);
-    skiaPaint.BrushToSkPaint(brush, paint);
-    EXPECT_TRUE(skiaPaint.stroke_.paintData_.strokeCore_ != nullptr);
-}
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

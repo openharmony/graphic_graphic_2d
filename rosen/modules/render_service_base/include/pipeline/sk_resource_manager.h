@@ -24,7 +24,7 @@
 #ifndef USE_ROSEN_DRAWING
 #include <include/core/SkImage.h>
 #else
-#include "image/image.h"
+#include "utils/resource_holder.h"
 #endif
 
 #include "common/rs_macros.h"
@@ -47,7 +47,7 @@ private:
 #ifndef USE_ROSEN_DRAWING
     std::map<pid_t, std::list<sk_sp<SkImage>>> skImages_;
 #else
-    std::map<pid_t, std::set<std::shared_ptr<Drawing::Image>>> images_;
+    std::map<pid_t, std::shared_ptr<Drawing::ResourceHolder>> images_;
 #endif
 };
 } // OHOS::Rosen

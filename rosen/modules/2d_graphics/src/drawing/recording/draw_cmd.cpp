@@ -89,55 +89,60 @@ void BrushHandleToBrush(const BrushHandle& brushHandle, const CmdList& cmdList, 
     }
 }
 
-void PenHandleToPen(const PenHandle& penHandle, const CmdList& cmdList, Pen& pen)
+void GeneratePaintFromHandle(const PaintHandle& paintHandle, const CmdList& cmdList, Paint& paint)
 {
-    pen.SetWidth(penHandle.width);
-    pen.SetMiterLimit(penHandle.miterLimit);
-    pen.SetCapStyle(penHandle.capStyle);
-    pen.SetJoinStyle(penHandle.joinStyle);
-    pen.SetBlendMode(penHandle.mode);
-    pen.SetAntiAlias(penHandle.isAntiAlias);
+    paint.SetBlendMode(paintHandle.mode);
+    paint.SetAntiAlias(paintHandle.isAntiAlias);
+    paint.SetStyle(paintHandle.style);
 
-    if (penHandle.colorSpaceHandle.size) {
-        auto colorSpace = CmdListHelper::GetColorSpaceFromCmdList(cmdList, penHandle.colorSpaceHandle);
-        const Color4f color4f = { penHandle.color.GetRedF(), penHandle.color.GetGreenF(),
-                                  penHandle.color.GetBlueF(), penHandle.color.GetAlphaF() };
-        pen.SetColor(color4f, colorSpace);
+    if (paintHandle.colorSpaceHandle.size) {
+        auto colorSpace = CmdListHelper::GetColorSpaceFromCmdList(cmdList, paintHandle.colorSpaceHandle);
+        const Color4f color4f = { paintHandle.color.GetRedF(), paintHandle.color.GetGreenF(),
+                                  paintHandle.color.GetBlueF(), paintHandle.color.GetAlphaF() };
+        paint.SetColor(color4f, colorSpace);
     } else {
-        pen.SetColor(penHandle.color);
+        paint.SetColor(paintHandle.color);
     }
 
-    if (penHandle.shaderEffectHandle.size) {
-        auto shaderEffect = CmdListHelper::GetShaderEffectFromCmdList(cmdList, penHandle.shaderEffectHandle);
-        pen.SetShaderEffect(shaderEffect);
-    }
-
-    if (penHandle.pathEffectHandle.size) {
-        auto pathEffect = CmdListHelper::GetPathEffectFromCmdList(cmdList, penHandle.pathEffectHandle);
-        pen.SetPathEffect(pathEffect);
+    if (paintHandle.shaderEffectHandle.size) {
+        auto shaderEffect = CmdListHelper::GetShaderEffectFromCmdList(cmdList, paintHandle.shaderEffectHandle);
+        paint.SetShaderEffect(shaderEffect);
     }
 
     Filter filter;
     bool hasFilter = false;
-    if (penHandle.colorFilterHandle.size) {
-        auto colorFilter = CmdListHelper::GetColorFilterFromCmdList(cmdList, penHandle.colorFilterHandle);
+    if (paintHandle.colorFilterHandle.size) {
+        auto colorFilter = CmdListHelper::GetColorFilterFromCmdList(cmdList, paintHandle.colorFilterHandle);
         filter.SetColorFilter(colorFilter);
         hasFilter = true;
     }
-    if (penHandle.imageFilterHandle.size) {
-        auto imageFilter = CmdListHelper::GetImageFilterFromCmdList(cmdList, penHandle.imageFilterHandle);
+    if (paintHandle.imageFilterHandle.size) {
+        auto imageFilter = CmdListHelper::GetImageFilterFromCmdList(cmdList, paintHandle.imageFilterHandle);
         filter.SetImageFilter(imageFilter);
         hasFilter = true;
     }
-    if (penHandle.maskFilterHandle.size) {
-        auto maskFilter = CmdListHelper::GetMaskFilterFromCmdList(cmdList, penHandle.maskFilterHandle);
+    if (paintHandle.maskFilterHandle.size) {
+        auto maskFilter = CmdListHelper::GetMaskFilterFromCmdList(cmdList, paintHandle.maskFilterHandle);
         filter.SetMaskFilter(maskFilter);
         hasFilter = true;
     }
 
     if (hasFilter) {
-        filter.SetFilterQuality(penHandle.filterQuality);
-        pen.SetFilter(filter);
+        filter.SetFilterQuality(paintHandle.filterQuality);
+        paint.SetFilter(filter);
+    }
+
+    if (!paint.HasStrokeStyle()) {
+        return;
+    }
+
+    paint.SetWidth(paintHandle.width);
+    paint.SetMiterLimit(paintHandle.miterLimit);
+    paint.SetCapStyle(paintHandle.capStyle);
+    paint.SetJoinStyle(paintHandle.joinStyle);
+    if (paintHandle.pathEffectHandle.size) {
+        auto pathEffect = CmdListHelper::GetPathEffectFromCmdList(cmdList, paintHandle.pathEffectHandle);
+        paint.SetPathEffect(pathEffect);
     }
 }
 }
@@ -153,19 +158,7 @@ bool GenerateCachedOpItemPlayer::GenerateCachedOpItem(uint32_t type, void* handl
 
     if (type == DrawOpItem::TEXT_BLOB_OPITEM) {
         auto* op = static_cast<DrawTextBlobOpItem::ConstructorHandle*>(handle);
-        return op->GenerateCachedOpItem(cmdList_, canvas_,
-            static_cast<AttachPenOpItem::ConstructorHandle*>(penOpHandle_),
-            static_cast<AttachBrushOpItem::ConstructorHandle*>(brushOpHandle_));
-    }
-
-    if (type == DrawOpItem::ATTACH_PEN_OPITEM) {
-        penOpHandle_ = handle;
-    } else if (type == DrawOpItem::ATTACH_BRUSH_OPITEM) {
-        brushOpHandle_ = handle;
-    } else if (type == DrawOpItem::DETACH_PEN_OPITEM) {
-        penOpHandle_ = nullptr;
-    } else if (type == DrawOpItem::DETACH_BRUSH_OPITEM) {
-        brushOpHandle_ = nullptr;
+        return op->GenerateCachedOpItem(cmdList_, canvas_);
     }
     return false;
 }
@@ -213,10 +206,6 @@ std::unordered_map<uint32_t, UnmarshallingPlayer::UnmarshallingFunc> Unmarshalli
     { DrawOpItem::SAVE_LAYER_OPITEM,        SaveLayerOpItem::Unmarshalling },
     { DrawOpItem::RESTORE_OPITEM,           RestoreOpItem::Unmarshalling },
     { DrawOpItem::DISCARD_OPITEM,           DiscardOpItem::Unmarshalling },
-    { DrawOpItem::ATTACH_PEN_OPITEM,        AttachPenOpItem::Unmarshalling },
-    { DrawOpItem::ATTACH_BRUSH_OPITEM,      AttachBrushOpItem::Unmarshalling },
-    { DrawOpItem::DETACH_PEN_OPITEM,        DetachPenOpItem::Unmarshalling },
-    { DrawOpItem::DETACH_BRUSH_OPITEM,      DetachBrushOpItem::Unmarshalling },
     { DrawOpItem::CLIP_ADAPTIVE_ROUND_RECT_OPITEM, ClipAdaptiveRoundRectOpItem::Unmarshalling},
     { DrawOpItem::ADAPTIVE_IMAGE_OPITEM,    DrawAdaptiveImageOpItem::Unmarshalling},
     { DrawOpItem::ADAPTIVE_PIXELMAP_OPITEM, DrawAdaptivePixelMapOpItem::Unmarshalling},
@@ -267,23 +256,31 @@ void DrawCmdListOpItem::Playback(Canvas* canvas, const Rect* rect)
     }
 }
 
+/* DrawWithPaintOpItem */
+DrawWithPaintOpItem::DrawWithPaintOpItem(const CmdList& cmdList, const PaintHandle& paintHandle, uint32_t type)
+    : DrawOpItem(type)
+{
+    GeneratePaintFromHandle(paintHandle, cmdList, paint_);
+}
+
 /* DrawPointOpItem */
-DrawPointOpItem::DrawPointOpItem(DrawPointOpItem::ConstructorHandle* handle)
-    : DrawOpItem(POINT_OPITEM), point_(handle->point) {}
+DrawPointOpItem::DrawPointOpItem(const CmdList& cmdList, DrawPointOpItem::ConstructorHandle* handle)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, POINT_OPITEM), point_(handle->point) {}
 
 std::shared_ptr<DrawOpItem> DrawPointOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawPointOpItem>(static_cast<DrawPointOpItem::ConstructorHandle*>(handle));
+    return std::make_shared<DrawPointOpItem>(cmdList, static_cast<DrawPointOpItem::ConstructorHandle*>(handle));
 }
 
 void DrawPointOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
+    canvas->AttachPaint(paint_);
     canvas->DrawPoint(point_);
 }
 
 /* DrawPointsOpItem */
 DrawPointsOpItem::DrawPointsOpItem(const CmdList& cmdList, DrawPointsOpItem::ConstructorHandle* handle)
-    : DrawOpItem(POINTS_OPITEM), mode_(handle->mode)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, POINTS_OPITEM), mode_(handle->mode)
 {
     pts_ = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, handle->pts);
 }
@@ -295,125 +292,140 @@ std::shared_ptr<DrawOpItem> DrawPointsOpItem::Unmarshalling(const CmdList& cmdLi
 
 void DrawPointsOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
+    canvas->AttachPaint(paint_);
     canvas->DrawPoints(mode_, pts_.size(), pts_.data());
 }
 
 /* DrawLineOpItem */
-DrawLineOpItem::DrawLineOpItem(DrawLineOpItem::ConstructorHandle* handle)
-    : DrawOpItem(LINE_OPITEM), startPt_(handle->startPt), endPt_(handle->endPt) {}
+DrawLineOpItem::DrawLineOpItem(const CmdList& cmdList, DrawLineOpItem::ConstructorHandle* handle)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, LINE_OPITEM),
+      startPt_(handle->startPt), endPt_(handle->endPt) {}
 
 std::shared_ptr<DrawOpItem> DrawLineOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawLineOpItem>(static_cast<DrawLineOpItem::ConstructorHandle*>(handle));
+    return std::make_shared<DrawLineOpItem>(cmdList, static_cast<DrawLineOpItem::ConstructorHandle*>(handle));
 }
 
 void DrawLineOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
+    canvas->AttachPaint(paint_);
     canvas->DrawLine(startPt_, endPt_);
 }
 
 /* DrawRectOpItem */
-DrawRectOpItem::DrawRectOpItem(DrawRectOpItem::ConstructorHandle* handle)
-    : DrawOpItem(RECT_OPITEM), rect_(handle->rect) {}
+DrawRectOpItem::DrawRectOpItem(const CmdList& cmdList, DrawRectOpItem::ConstructorHandle* handle)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, RECT_OPITEM), rect_(handle->rect) {}
 
 std::shared_ptr<DrawOpItem> DrawRectOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawRectOpItem>(static_cast<DrawRectOpItem::ConstructorHandle*>(handle));
+    return std::make_shared<DrawRectOpItem>(cmdList, static_cast<DrawRectOpItem::ConstructorHandle*>(handle));
 }
 
 void DrawRectOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
+    canvas->AttachPaint(paint_);
     canvas->DrawRect(rect_);
 }
 
 /* DrawRoundRectOpItem */
-DrawRoundRectOpItem::DrawRoundRectOpItem(DrawRoundRectOpItem::ConstructorHandle* handle)
-    : DrawOpItem(ROUND_RECT_OPITEM), rrect_(handle->rrect) {}
+DrawRoundRectOpItem::DrawRoundRectOpItem(const CmdList& cmdList, DrawRoundRectOpItem::ConstructorHandle* handle)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, ROUND_RECT_OPITEM), rrect_(handle->rrect) {}
 
 std::shared_ptr<DrawOpItem> DrawRoundRectOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawRoundRectOpItem>(static_cast<DrawRoundRectOpItem::ConstructorHandle*>(handle));
+    return std::make_shared<DrawRoundRectOpItem>(cmdList, static_cast<DrawRoundRectOpItem::ConstructorHandle*>(handle));
 }
 
 void DrawRoundRectOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
+    canvas->AttachPaint(paint_);
     canvas->DrawRoundRect(rrect_);
 }
 
 /* DrawNestedRoundRectOpItem */
-DrawNestedRoundRectOpItem::DrawNestedRoundRectOpItem(DrawNestedRoundRectOpItem::ConstructorHandle* handle)
-    : DrawOpItem(NESTED_ROUND_RECT_OPITEM), outerRRect_(handle->outerRRect), innerRRect_(handle->innerRRect) {}
+DrawNestedRoundRectOpItem::DrawNestedRoundRectOpItem(
+    const CmdList& cmdList, DrawNestedRoundRectOpItem::ConstructorHandle* handle)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, NESTED_ROUND_RECT_OPITEM),
+      outerRRect_(handle->outerRRect), innerRRect_(handle->innerRRect) {}
 
 std::shared_ptr<DrawOpItem> DrawNestedRoundRectOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
     return std::make_shared<DrawNestedRoundRectOpItem>(
-        static_cast<DrawNestedRoundRectOpItem::ConstructorHandle*>(handle));
+        cmdList, static_cast<DrawNestedRoundRectOpItem::ConstructorHandle*>(handle));
 }
 
 void DrawNestedRoundRectOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
+    canvas->AttachPaint(paint_);
     canvas->DrawNestedRoundRect(outerRRect_, innerRRect_);
 }
 
 /* DrawArcOpItem */
-DrawArcOpItem::DrawArcOpItem(DrawArcOpItem::ConstructorHandle* handle)
-    : DrawOpItem(ARC_OPITEM), rect_(handle->rect), startAngle_(handle->startAngle), sweepAngle_(handle->sweepAngle) {}
+DrawArcOpItem::DrawArcOpItem(const CmdList& cmdList, DrawArcOpItem::ConstructorHandle* handle)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, ARC_OPITEM), rect_(handle->rect),
+      startAngle_(handle->startAngle), sweepAngle_(handle->sweepAngle) {}
 
 std::shared_ptr<DrawOpItem> DrawArcOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawArcOpItem>(static_cast<DrawArcOpItem::ConstructorHandle*>(handle));
+    return std::make_shared<DrawArcOpItem>(cmdList, static_cast<DrawArcOpItem::ConstructorHandle*>(handle));
 }
 
 void DrawArcOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
+    canvas->AttachPaint(paint_);
     canvas->DrawArc(rect_, startAngle_, sweepAngle_);
 }
 
 /* DrawPieOpItem */
-DrawPieOpItem::DrawPieOpItem(DrawPieOpItem::ConstructorHandle* handle)
-    : DrawOpItem(PIE_OPITEM), rect_(handle->rect), startAngle_(handle->startAngle), sweepAngle_(handle->sweepAngle) {}
+DrawPieOpItem::DrawPieOpItem(const CmdList& cmdList, DrawPieOpItem::ConstructorHandle* handle)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, PIE_OPITEM), rect_(handle->rect),
+      startAngle_(handle->startAngle), sweepAngle_(handle->sweepAngle) {}
 
 std::shared_ptr<DrawOpItem> DrawPieOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawPieOpItem>(static_cast<DrawPieOpItem::ConstructorHandle*>(handle));
+    return std::make_shared<DrawPieOpItem>(cmdList, static_cast<DrawPieOpItem::ConstructorHandle*>(handle));
 }
 
 void DrawPieOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
+    canvas->AttachPaint(paint_);
     canvas->DrawPie(rect_, startAngle_, sweepAngle_);
 }
 
 /* DrawOvalOpItem */
-DrawOvalOpItem::DrawOvalOpItem(DrawOvalOpItem::ConstructorHandle* handle)
-    : DrawOpItem(OVAL_OPITEM), rect_(handle->rect) {}
+DrawOvalOpItem::DrawOvalOpItem(const CmdList& cmdList, DrawOvalOpItem::ConstructorHandle* handle)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, OVAL_OPITEM), rect_(handle->rect) {}
 
 std::shared_ptr<DrawOpItem> DrawOvalOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawOvalOpItem>(static_cast<DrawOvalOpItem::ConstructorHandle*>(handle));
+    return std::make_shared<DrawOvalOpItem>(cmdList, static_cast<DrawOvalOpItem::ConstructorHandle*>(handle));
 }
 
 void DrawOvalOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
+    canvas->AttachPaint(paint_);
     canvas->DrawOval(rect_);
 }
 
 /* DrawCircleOpItem */
-DrawCircleOpItem::DrawCircleOpItem(DrawCircleOpItem::ConstructorHandle* handle)
-    : DrawOpItem(CIRCLE_OPITEM), centerPt_(handle->centerPt), radius_(handle->radius) {}
+DrawCircleOpItem::DrawCircleOpItem(const CmdList& cmdList, DrawCircleOpItem::ConstructorHandle* handle)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, CIRCLE_OPITEM),
+      centerPt_(handle->centerPt), radius_(handle->radius) {}
 
 std::shared_ptr<DrawOpItem> DrawCircleOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    return std::make_shared<DrawCircleOpItem>(static_cast<DrawCircleOpItem::ConstructorHandle*>(handle));
+    return std::make_shared<DrawCircleOpItem>(cmdList, static_cast<DrawCircleOpItem::ConstructorHandle*>(handle));
 }
 
 void DrawCircleOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
+    canvas->AttachPaint(paint_);
     canvas->DrawCircle(centerPt_, radius_);
 }
 
 /* DrawPathOpItem */
 DrawPathOpItem::DrawPathOpItem(const CmdList& cmdList, DrawPathOpItem::ConstructorHandle* handle)
-    : DrawOpItem(PATH_OPITEM)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, PATH_OPITEM)
 {
     path_ = CmdListHelper::GetPathFromCmdList(cmdList, handle->path);
 }
@@ -429,6 +441,7 @@ void DrawPathOpItem::Playback(Canvas* canvas, const Rect* rect)
         LOGE("DrawPathOpItem path is null!");
         return;
     }
+    canvas->AttachPaint(paint_);
     canvas->DrawPath(*path_);
 }
 
@@ -476,7 +489,7 @@ void DrawShadowOpItem::Playback(Canvas* canvas, const Rect* rect)
 
 /* DrawRegionOpItem */
 DrawRegionOpItem::DrawRegionOpItem(const CmdList& cmdList, DrawRegionOpItem::ConstructorHandle* handle)
-    : DrawOpItem(REGION_OPITEM)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, REGION_OPITEM)
 {
     region_ = CmdListHelper::GetFromCmdList<RegionCmdList, Region>(cmdList, handle->region);
 }
@@ -492,12 +505,13 @@ void DrawRegionOpItem::Playback(Canvas* canvas, const Rect* rect)
         LOGE("DrawRegionOpItem region is nullptr!");
         return;
     }
+    canvas->AttachPaint(paint_);
     canvas->DrawRegion(*region_);
 }
 
 /* DrawPatchOpItem */
 DrawPatchOpItem::DrawPatchOpItem(const CmdList& cmdList, DrawPatchOpItem::ConstructorHandle* handle)
-    : DrawOpItem(PATCH_OPITEM), mode_(handle->mode)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, PATCH_OPITEM), mode_(handle->mode)
 {
     cubics_ = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, handle->cubics);
     colors_ = CmdListHelper::GetVectorFromCmdList<ColorQuad>(cmdList, handle->colors);
@@ -511,6 +525,7 @@ std::shared_ptr<DrawOpItem> DrawPatchOpItem::Unmarshalling(const CmdList& cmdLis
 
 void DrawPatchOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
+    canvas->AttachPaint(paint_);
     canvas->DrawPatch(cubics_.empty() ? nullptr : cubics_.data(),
                       colors_.empty() ? nullptr : colors_.data(),
                       texCoords_.empty() ? nullptr : texCoords_.data(),
@@ -538,7 +553,7 @@ void DrawEdgeAAQuadOpItem::Playback(Canvas* canvas, const Rect* rect)
 
 /* DrawVerticesOpItem */
 DrawVerticesOpItem::DrawVerticesOpItem(const CmdList& cmdList, DrawVerticesOpItem::ConstructorHandle* handle)
-    : DrawOpItem(VERTICES_OPITEM), mode_(handle->mode)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, VERTICES_OPITEM), mode_(handle->mode)
 {
     vertices_ = CmdListHelper::GetVerticesFromCmdList(cmdList, handle->vertices);
 }
@@ -554,6 +569,7 @@ void DrawVerticesOpItem::Playback(Canvas* canvas, const Rect* rect)
         LOGE("DrawVerticesOpItem vertices is null");
         return;
     }
+    canvas->AttachPaint(paint_);
     canvas->DrawVertices(*vertices_, mode_);
 }
 
@@ -649,7 +665,7 @@ void DrawImageLatticeOpItem::Playback(Canvas* canvas, const Rect* rect)
 
 /* DrawBitmapOpItem */
 DrawBitmapOpItem::DrawBitmapOpItem(const CmdList& cmdList, DrawBitmapOpItem::ConstructorHandle* handle)
-    : DrawOpItem(BITMAP_OPITEM), px_(handle->px), py_(handle->py)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, BITMAP_OPITEM), px_(handle->px), py_(handle->py)
 {
     bitmap_ = CmdListHelper::GetBitmapFromCmdList(cmdList, handle->bitmap);
 }
@@ -665,12 +681,14 @@ void DrawBitmapOpItem::Playback(Canvas* canvas, const Rect* rect)
         LOGE("DrawBitmapOpItem bitmap is null");
         return;
     }
+    canvas->AttachPaint(paint_);
     canvas->DrawBitmap(*bitmap_, px_, py_);
 }
 
 /* DrawImageOpItem */
 DrawImageOpItem::DrawImageOpItem(const CmdList& cmdList, DrawImageOpItem::ConstructorHandle* handle)
-    : DrawOpItem(IMAGE_OPITEM), px_(handle->px), py_(handle->py), samplingOptions_(handle->samplingOptions)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, IMAGE_OPITEM), px_(handle->px), py_(handle->py),
+      samplingOptions_(handle->samplingOptions)
 {
     image_ = CmdListHelper::GetImageFromCmdList(cmdList, handle->image);
 }
@@ -686,13 +704,14 @@ void DrawImageOpItem::Playback(Canvas* canvas, const Rect* rect)
         LOGE("DrawImageOpItem image is null");
         return;
     }
+    canvas->AttachPaint(paint_);
     canvas->DrawImage(*image_, px_, py_, samplingOptions_);
 }
 
 /* DrawImageRectOpItem */
 DrawImageRectOpItem::DrawImageRectOpItem(const CmdList& cmdList, DrawImageRectOpItem::ConstructorHandle* handle)
-    : DrawOpItem(IMAGE_RECT_OPITEM), src_(handle->src), dst_(handle->dst), sampling_(handle->sampling),
-    constraint_(handle->constraint)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, IMAGE_RECT_OPITEM), src_(handle->src), dst_(handle->dst),
+      sampling_(handle->sampling), constraint_(handle->constraint)
 {
     image_ = CmdListHelper::GetImageFromCmdList(cmdList, handle->image);
 }
@@ -708,6 +727,7 @@ void DrawImageRectOpItem::Playback(Canvas* canvas, const Rect* rect)
         LOGE("DrawImageRectOpItem image is null");
         return;
     }
+    canvas->AttachPaint(paint_);
     canvas->DrawImageRect(*image_, src_, dst_, sampling_, constraint_);
 }
 
@@ -734,7 +754,7 @@ void DrawPictureOpItem::Playback(Canvas* canvas, const Rect* rect)
 
 /* DrawTextBlobOpItem */
 DrawTextBlobOpItem::DrawTextBlobOpItem(const CmdList& cmdList, DrawTextBlobOpItem::ConstructorHandle* handle)
-    : DrawOpItem(TEXT_BLOB_OPITEM), x_(handle->x), y_(handle->y)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, TEXT_BLOB_OPITEM), x_(handle->x), y_(handle->y)
 {
     textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList, handle->textBlob);
 }
@@ -750,11 +770,12 @@ void DrawTextBlobOpItem::Playback(Canvas* canvas, const Rect* rect)
         LOGE("DrawTextBlobOpItem textBlob is null");
         return;
     }
+    canvas->AttachPaint(paint_);
     canvas->DrawTextBlob(textBlob_.get(), x_, y_);
 }
 
-bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(std::shared_ptr<CmdList> cacheCmdList,
-    const TextBlob* textBlob, Canvas* canvas, std::optional<Brush> brush, std::optional<Pen> pen)
+bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(
+    CmdList& cmdList, const TextBlob* textBlob, scalar x, scalar y, Paint& p)
 {
     if (!textBlob) {
         LOGE("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
@@ -783,37 +804,24 @@ bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(std::shared_ptr
     }
 
     //OffscreenCanvas used once, detach is unnecessary, FakeBrush/Pen avoid affecting ImageRectOp, attach is necessary.
-    if (brush.has_value()) {
-        offscreenCanvas->AttachBrush(brush.value());
-    }
-    if (pen.has_value()) {
-        offscreenCanvas->AttachPen(pen.value());
-    }
+    offscreenCanvas->AttachPaint(p);
     offscreenCanvas->DrawTextBlob(textBlob, x, y);
-    if (brush.has_value()) {
-        Brush fakeBrush;
-        fakeBrush.SetAntiAlias(true);
-        canvas->AttachBrush(fakeBrush);
-    }
-    if (pen.has_value()) {
-        Pen fakePen;
-        fakePen.SetAntiAlias(true);
-        canvas->AttachPen(fakePen);
-    }
 
     std::shared_ptr<Image> image = offscreenSurface->GetImageSnapshot();
     Drawing::Rect src(0, 0, image->GetWidth(), image->GetHeight());
     Drawing::Rect dst(bounds->GetLeft(), bounds->GetTop(),
         bounds->GetLeft() + image->GetWidth(), bounds->GetTop()+ image->GetHeight());
     SamplingOptions sampling;
-    auto imageHandle = CmdListHelper::AddImageToCmdList(*cacheCmdList, image);
-    cacheCmdList->AddOp<DrawImageRectOpItem::ConstructorHandle>(
-        imageHandle, src, dst, sampling, SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    auto imageHandle = CmdListHelper::AddImageToCmdList(cmdList, image);
+    PaintHandle fakePaintHandle;
+    fakePaintHandle.isAntiAlias = true;
+    fakePaintHandle.style = Paint::PaintStyle::PAINT_FILL;
+    cmdList.AddOp<DrawImageRectOpItem::ConstructorHandle>(
+        imageHandle, src, dst, sampling, SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT, fakePaintHandle);
     return true;
 }
 
-bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(CmdList& cmdList, Canvas* canvas,
-    AttachPenOpItem::ConstructorHandle* penOpHandle, AttachBrushOpItem::ConstructorHandle* brushOpHandle)
+bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(CmdList& cmdList, Canvas* canvas)
 {
     std::shared_ptr<TextBlob> textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList, textBlob);
     if (!textBlob_) {
@@ -849,14 +857,9 @@ bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(CmdList& cmdLis
         offscreenCanvas->Translate(-bounds->GetLeft(), -bounds->GetTop());
     }
 
-    if (penOpHandle) {
-        AttachPenOpItem::Unmarshalling(cmdList, penOpHandle)->Playback(offscreenCanvas, nullptr);
-    }
-
-    if (brushOpHandle) {
-        AttachBrushOpItem::Unmarshalling(cmdList, brushOpHandle)->Playback(offscreenCanvas, nullptr);
-    }
-
+    Paint p;
+    GeneratePaintFromHandle(paintHandle, cmdList, p);
+    offscreenCanvas->AttachPaint(p);
     offscreenCanvas->DrawTextBlob(textBlob_.get(), x, y);
 
     std::shared_ptr<Image> image = offscreenSurface->GetImageSnapshot();
@@ -865,13 +868,15 @@ bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(CmdList& cmdLis
         bounds->GetLeft() + image->GetWidth(), bounds->GetTop() + image->GetHeight());
     SamplingOptions sampling;
     auto imageHandle = CmdListHelper::AddImageToCmdList(cmdList, image);
+    PaintHandle fakePaintHandle;
+    fakePaintHandle.isAntiAlias = true;
+    fakePaintHandle.style = Paint::PaintStyle::PAINT_FILL;
     cmdList.AddOp<DrawImageRectOpItem::ConstructorHandle>(imageHandle, src, dst, sampling,
-        SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+        SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT, fakePaintHandle);
     return true;
 }
 
-std::shared_ptr<ImageSnapshotOpItem> DrawTextBlobOpItem::GenerateCachedOpItem(Canvas* canvas,
-    AttachPenOpItem* penOpItem, AttachBrushOpItem* brushOpItem)
+std::shared_ptr<ImageSnapshotOpItem> DrawTextBlobOpItem::GenerateCachedOpItem(Canvas* canvas)
 {
     if (!textBlob_) {
         LOGE("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
@@ -906,27 +911,17 @@ std::shared_ptr<ImageSnapshotOpItem> DrawTextBlobOpItem::GenerateCachedOpItem(Ca
         offscreenCanvas->Translate(-bounds->GetLeft(), -bounds->GetTop());
     }
 
-    if (penOpItem) {
-        penOpItem->Playback(offscreenCanvas, nullptr);
-    }
-
-    if (brushOpItem) {
-        brushOpItem->Playback(offscreenCanvas, nullptr);
-    }
-
-    offscreenCanvas->DrawTextBlob(textBlob_.get(), x_, y_);
+    Playback(offscreenCanvas, nullptr);
 
     std::shared_ptr<Image> image = offscreenSurface->GetImageSnapshot();
     Drawing::Rect src(0, 0, image->GetWidth(), image->GetHeight());
     Drawing::Rect dst(bounds->GetLeft(), bounds->GetTop(), bounds->GetRight(), bounds->GetBottom());
-    SamplingOptions sampling;
-    return std::make_shared<ImageSnapshotOpItem>(image, src, dst, sampling,
-        SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    return std::make_shared<ImageSnapshotOpItem>(image, src, dst);
 }
 
 /* DrawSymbolOpItem */
 DrawSymbolOpItem::DrawSymbolOpItem(const CmdList& cmdList, DrawSymbolOpItem::ConstructorHandle* handle)
-    : DrawOpItem(SYMBOL_OPITEM), locate_(handle->locate)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, SYMBOL_OPITEM), locate_(handle->locate)
 {
     symbol_ = CmdListHelper::GetSymbolFromCmdList(cmdList, handle->symbolHandle);
 }
@@ -953,6 +948,7 @@ void DrawSymbolOpItem::Playback(Canvas* canvas, const Rect* rect)
     DrawingHMSymbol::PathOutlineDecompose(path, paths);
     std::vector<Drawing::Path> pathLayers;
     DrawingHMSymbol::MultilayerPath(symbol_.symbolInfo_.layers, paths, pathLayers);
+    canvas->AttachPaint(paint_);
 
     // draw path
     std::vector<Drawing::DrawingRenderGroup> groups = symbol_.symbolInfo_.renderGroups;
@@ -1272,66 +1268,6 @@ void DiscardOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->Discard();
 }
 
-/* AttachPenOpItem */
-AttachPenOpItem::AttachPenOpItem(const CmdList& cmdList, AttachPenOpItem::ConstructorHandle* handle)
-    : DrawOpItem(ATTACH_PEN_OPITEM)
-{
-    PenHandleToPen(handle->penHandle, cmdList, pen_);
-}
-
-std::shared_ptr<DrawOpItem> AttachPenOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
-{
-    return std::make_shared<AttachPenOpItem>(cmdList, static_cast<AttachPenOpItem::ConstructorHandle*>(handle));
-}
-
-void AttachPenOpItem::Playback(Canvas* canvas, const Rect* rect)
-{
-    canvas->AttachPen(pen_);
-}
-
-/* AttachBrushOpItem */
-AttachBrushOpItem::AttachBrushOpItem(const CmdList& cmdList, AttachBrushOpItem::ConstructorHandle* handle)
-    : DrawOpItem(ATTACH_BRUSH_OPITEM)
-{
-    BrushHandleToBrush(handle->brushHandle, cmdList, brush_);
-}
-
-std::shared_ptr<DrawOpItem> AttachBrushOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
-{
-    return std::make_shared<AttachBrushOpItem>(cmdList, static_cast<AttachBrushOpItem::ConstructorHandle*>(handle));
-}
-
-void AttachBrushOpItem::Playback(Canvas* canvas, const Rect* rect)
-{
-    canvas->AttachBrush(brush_);
-}
-
-/* DetachPenOpItem */
-DetachPenOpItem::DetachPenOpItem() : DrawOpItem(DETACH_PEN_OPITEM) {}
-
-std::shared_ptr<DrawOpItem> DetachPenOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
-{
-    return std::make_shared<DetachPenOpItem>();
-}
-
-void DetachPenOpItem::Playback(Canvas* canvas, const Rect* rect)
-{
-    canvas->DetachPen();
-}
-
-/* DetachBrushOpItem */
-DetachBrushOpItem::DetachBrushOpItem() : DrawOpItem(DETACH_BRUSH_OPITEM) {}
-
-std::shared_ptr<DrawOpItem> DetachBrushOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
-{
-    return std::make_shared<DetachBrushOpItem>();
-}
-
-void DetachBrushOpItem::Playback(Canvas* canvas, const Rect* rect)
-{
-    canvas->DetachBrush();
-}
-
 /* ClipAdaptiveRoundRectOpItem */
 ClipAdaptiveRoundRectOpItem::ClipAdaptiveRoundRectOpItem(
     const CmdList& cmdList, ClipAdaptiveRoundRectOpItem::ConstructorHandle* handle)
@@ -1353,8 +1289,9 @@ void ClipAdaptiveRoundRectOpItem::Playback(Canvas* canvas, const Rect* rect)
 
 /* DrawAdaptiveImageOpItem */
 DrawAdaptiveImageOpItem::DrawAdaptiveImageOpItem(
-    const CmdList& cmdList, DrawAdaptiveImageOpItem::ConstructorHandle* handle) : DrawOpItem(ADAPTIVE_IMAGE_OPITEM),
-    rsImageInfo_(handle->rsImageInfo), sampling_(handle->sampling), isImage_(handle->isImage)
+    const CmdList& cmdList, DrawAdaptiveImageOpItem::ConstructorHandle* handle)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, ADAPTIVE_IMAGE_OPITEM),
+      rsImageInfo_(handle->rsImageInfo), sampling_(handle->sampling), isImage_(handle->isImage)
 {
     if (isImage_) {
         image_ = CmdListHelper::GetImageFromCmdList(cmdList, handle->image);
@@ -1372,10 +1309,12 @@ std::shared_ptr<DrawOpItem> DrawAdaptiveImageOpItem::Unmarshalling(const CmdList
 void DrawAdaptiveImageOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (isImage_ && image_ != nullptr) {
+        canvas->AttachPaint(paint_);
         AdaptiveImageHelper::DrawImage(*canvas, *rect, image_, rsImageInfo_, sampling_);
         return;
     }
     if (!isImage_ && data_ != nullptr) {
+        canvas->AttachPaint(paint_);
         AdaptiveImageHelper::DrawImage(*canvas, *rect, data_, rsImageInfo_, sampling_);
     }
 }
@@ -1383,7 +1322,8 @@ void DrawAdaptiveImageOpItem::Playback(Canvas* canvas, const Rect* rect)
 /* DrawAdaptivePixelMapOpItem */
 DrawAdaptivePixelMapOpItem::DrawAdaptivePixelMapOpItem(
     const CmdList& cmdList, DrawAdaptivePixelMapOpItem::ConstructorHandle* handle)
-    : DrawOpItem(ADAPTIVE_PIXELMAP_OPITEM), imageInfo_(handle->imageInfo), smapling_(handle->smapling)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, ADAPTIVE_PIXELMAP_OPITEM),
+      imageInfo_(handle->imageInfo), smapling_(handle->smapling)
 {
     pixelMap_ = CmdListHelper::GetPixelMapFromCmdList(cmdList, handle->pixelMap);
 }
@@ -1400,13 +1340,14 @@ void DrawAdaptivePixelMapOpItem::Playback(Canvas* canvas, const Rect* rect)
         LOGE("DrawAdaptivePixelMapOpItem pixelMap is null!");
         return;
     }
+    canvas->AttachPaint(paint_);
     AdaptiveImageHelper::DrawPixelMap(*canvas, *rect, pixelMap_, imageInfo_, smapling_);
 }
 
 /* DrawImageWithParmOpItem */
 DrawImageWithParmOpItem::DrawImageWithParmOpItem(
     const CmdList& cmdList, DrawImageWithParmOpItem::ConstructorHandle* handle)
-    : DrawOpItem(IMAGE_WITH_PARM_OPITEM), sampling_(handle->sampling)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, IMAGE_WITH_PARM_OPITEM), sampling_(handle->sampling)
 {
     objectHandle_ = CmdListHelper::GetImageObjectFromCmdList(cmdList, handle->objectHandle);
 }
@@ -1423,13 +1364,14 @@ void DrawImageWithParmOpItem::Playback(Canvas* canvas, const Rect* rect)
         LOGE("DrawImageWithParmOpItem objectHandle is nullptr!");
         return;
     }
+    canvas->AttachPaint(paint_);
     objectHandle_->Playback(*canvas, *rect, sampling_, false);
 }
 
 /* DrawPixelMapWithParmOpItem */
 DrawPixelMapWithParmOpItem::DrawPixelMapWithParmOpItem(
     const CmdList& cmdList, DrawPixelMapWithParmOpItem::ConstructorHandle* handle)
-    : DrawOpItem(PIXELMAP_WITH_PARM_OPITEM), sampling_(handle->sampling)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, PIXELMAP_WITH_PARM_OPITEM), sampling_(handle->sampling)
 {
     objectHandle_ = CmdListHelper::GetImageObjectFromCmdList(cmdList, handle->objectHandle);
 }
@@ -1446,13 +1388,14 @@ void DrawPixelMapWithParmOpItem::Playback(Canvas* canvas, const Rect* rect)
         LOGE("DrawPixelMapWithParmOpItem objectHandle is nullptr!");
         return;
     }
+    canvas->AttachPaint(paint_);
     objectHandle_->Playback(*canvas, *rect, sampling_, false);
 }
 
 /* DrawPixelMapRectOpItem */
 DrawPixelMapRectOpItem::DrawPixelMapRectOpItem(
     const CmdList& cmdList, DrawPixelMapRectOpItem::ConstructorHandle* handle)
-    : DrawOpItem(PIXELMAP_RECT_OPITEM), sampling_(handle->sampling)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, PIXELMAP_RECT_OPITEM), sampling_(handle->sampling)
 {
     objectHandle_ = CmdListHelper::GetImageBaseOjFromCmdList(cmdList, handle->objectHandle);
 }
@@ -1469,18 +1412,15 @@ void DrawPixelMapRectOpItem::Playback(Canvas* canvas, const Rect* rect)
         LOGE("DrawPixelMapWithParmOpItem objectHandle is nullptr!");
         return;
     }
+    canvas->AttachPaint(paint_);
     objectHandle_->Playback(*canvas, *rect, sampling_);
 }
 
-ImageSnapshotOpItem::ImageSnapshotOpItem(std::shared_ptr<Image> image, const Rect& src, const Rect& dst,
-    const SamplingOptions& sampling, SrcRectConstraint constraint)
-    : DrawOpItem(IMAGE_SNAPSHOT_OPITEM),
-    image_(image),
-    src_(src),
-    dst_(dst),
-    sampling_(sampling),
-    constraint_(constraint)
+ImageSnapshotOpItem::ImageSnapshotOpItem(std::shared_ptr<Image> image, const Rect& src, const Rect& dst)
+    : DrawOpItem(IMAGE_SNAPSHOT_OPITEM), image_(image), src_(src), dst_(dst)
 {
+    paint_.SetAntiAlias(true);
+    paint_.SetStyle(Paint::PaintStyle::PAINT_FILL);
 }
 
 void ImageSnapshotOpItem::Playback(Canvas* canvas, const Rect* rect)
@@ -1488,13 +1428,15 @@ void ImageSnapshotOpItem::Playback(Canvas* canvas, const Rect* rect)
     if (image_ == nullptr) {
         return;
     }
-    canvas->DrawImageRect(*image_, src_, dst_, sampling_, constraint_);
+    canvas->AttachPaint(paint_);
+    canvas->DrawImageRect(*image_, src_, dst_, sampling_, SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
 }
 #ifdef ROSEN_OHOS
 DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(const CmdList& cmdList,
     DrawSurfaceBufferOpItem::ConstructorHandle* handle)
-    : DrawOpItem(SURFACEBUFFER_OPITEM), surfaceBufferInfo_(nullptr, handle->surfaceBufferInfo.offSetX_,
-    handle->surfaceBufferInfo.offSetY_, handle->surfaceBufferInfo.width_, handle->surfaceBufferInfo.height_)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, SURFACEBUFFER_OPITEM),
+      surfaceBufferInfo_(nullptr, handle->surfaceBufferInfo.offSetX_, handle->surfaceBufferInfo.offSetY_,
+                         handle->surfaceBufferInfo.width_, handle->surfaceBufferInfo.height_)
 {
     surfaceBufferInfo_.surfaceBuffer_ = CmdListHelper::GetSurfaceBufferFromCmdList(cmdList, handle->surfaceBufferId);
 }
@@ -1545,6 +1487,7 @@ void DrawSurfaceBufferOpItem::Playback(Canvas* canvas, const Rect* rect)
         return;
     }
 #endif
+    canvas->AttachPaint(paint_);
     Draw(canvas);
 }
 

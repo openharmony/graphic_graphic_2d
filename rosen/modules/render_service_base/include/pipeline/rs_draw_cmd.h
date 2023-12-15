@@ -1699,11 +1699,10 @@ public:
     bool Marshalling(Parcel &parcel) const;
     static RSExtendImageObject *Unmarshalling(Parcel &parcel);
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
-    std::shared_ptr<Drawing::Image> GetDrawingImageFromSurfaceBuffer(
-        Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer) const;
+    bool GetDrawingImageFromSurfaceBuffer(Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer);
 #endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    std::shared_ptr<Drawing::Image> MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer);
+    bool MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer);
 #endif
 protected:
     std::shared_ptr<RSImage> rsImage_;
@@ -1720,6 +1719,7 @@ private:
     mutable Drawing::BackendTexture backendTexture_ = {};
     mutable NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper_ = nullptr;
 #endif
+    std::shared_ptr<Drawing::Image> image_;
 };
 
 class RSB_EXPORT RSExtendImageBaseOj : public Drawing::ExtendImageBaseOj {

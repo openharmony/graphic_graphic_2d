@@ -50,11 +50,13 @@ void SKResourceManager::HoldResource(const std::shared_ptr<Drawing::Image> &img)
         return;
     }
     std::scoped_lock<std::recursive_mutex> lock(mutex_);
-    std::set<std::shared_ptr<Drawing::Image>>& imageSet = images_[tid];
-    if (imageSet.find(img) != imageSet.end()) {
-        return;
+    if (images_.find(tid) != images_.end()) {
+        images_[tid]->HoldResource(img);
+    } else {
+        std::shared_ptr<Drawing::ResourceHolder> holder = std::make_shared<Drawing::ResourceHolder>();
+        holder->HoldResource(img);
+        images_.emplace(tid, holder);
     }
-    imageSet.insert(img);
 #endif
 }
 #endif
@@ -87,20 +89,11 @@ void SKResourceManager::ReleaseResource()
     }
 #else
     for (auto& images : images_) {
-        if (images.second.size() > 0) {
+        if (!images.second->IsEmpty()) {
             RSTaskDispatcher::GetInstance().PostTask(images.first, [this]() {
                 auto tid = gettid();
                 std::scoped_lock<std::recursive_mutex> lock(mutex_);
-                std::set<std::shared_ptr<Drawing::Image>>& imageSet = images_[tid];
-                auto iter = imageSet.begin();
-                while (iter != imageSet.end()) {
-                    if (iter->use_count() == 1) {
-                        auto tmp = iter++;
-                        imageSet.erase(tmp);
-                    } else {
-                        iter++;
-                    }
-                }
+                images_[tid]->ReleaseResource();
             });
         }
     }

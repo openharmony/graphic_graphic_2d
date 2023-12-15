@@ -313,6 +313,7 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect)
             }
         }
     }
+    canvas.DetachPaint();
 }
 
 void DrawCmdList::GenerateCache(Canvas* canvas, const Rect* rect)
@@ -356,40 +357,19 @@ void DrawCmdList::GenerateCacheInRenderService(Canvas* canvas, const Rect* rect)
         return;
     }
 
-    DrawOpItem* brushOp = nullptr;
-    DrawOpItem* penOp = nullptr;
-
     for (int i = 0; i < unmarshalledOpItems_.size(); ++i) {
         auto opItem = unmarshalledOpItems_[i];
         if (!opItem) {
             continue;
         }
         uint32_t type = opItem->GetType();
-        switch (type) {
-            case DrawOpItem::ATTACH_PEN_OPITEM:
-                penOp = opItem.get();
-                break;
-            case DrawOpItem::ATTACH_BRUSH_OPITEM:
-                brushOp = opItem.get();
-                break;
-            case DrawOpItem::DETACH_PEN_OPITEM:
-                penOp = nullptr;
-                break;
-            case DrawOpItem::DETACH_BRUSH_OPITEM:
-                brushOp = nullptr;
-                break;
-            case DrawOpItem::TEXT_BLOB_OPITEM: {
-                DrawTextBlobOpItem* textBlobOp = static_cast<DrawTextBlobOpItem*>(opItem.get());
-                auto replaceCache = textBlobOp->GenerateCachedOpItem(
-                    canvas, static_cast<AttachPenOpItem*>(penOp), static_cast<AttachBrushOpItem*>(brushOp));
-                if (replaceCache) {
-                    opReplacedByDrivenRender_.emplace_back(i, unmarshalledOpItems_[i]);
-                    unmarshalledOpItems_[i] = replaceCache;
-                }
-                break;
+        if (type == DrawOpItem::TEXT_BLOB_OPITEM) {
+            DrawTextBlobOpItem* textBlobOp = static_cast<DrawTextBlobOpItem*>(opItem.get());
+            auto replaceCache = textBlobOp->GenerateCachedOpItem(canvas);
+            if (replaceCache) {
+                opReplacedByDrivenRender_.emplace_back(i, unmarshalledOpItems_[i]);
+                unmarshalledOpItems_[i] = replaceCache;
             }
-            default:
-                break;
         }
     }
 

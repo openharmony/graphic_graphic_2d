@@ -24,6 +24,7 @@
 #include "recording/op_item.h"
 #include "recording/mem_allocator.h"
 #include "recording/adaptive_image_helper.h"
+#include "recording/recording_handle.h"
 #include "utils/drawing_macros.h"
 #ifdef ROSEN_OHOS
 #include "surface_buffer.h"
@@ -35,57 +36,6 @@ class PixelMap;
 }
 namespace Rosen {
 namespace Drawing {
-struct ImageHandle {
-    uint32_t offset;
-    size_t size;
-    int32_t width;
-    int32_t height;
-    ColorType colorType;
-    AlphaType alphaType;
-};
-
-struct OpDataHandle {
-    uint32_t offset;
-    size_t size;
-};
-
-struct FlattenableHandle {
-    uint32_t offset;
-    size_t size;
-    uint32_t type;
-};
-
-struct CmdListHandle {
-    uint32_t type;
-    uint32_t offset;
-    size_t size;
-    uint32_t imageOffset;
-    size_t imageSize;
-    uint32_t bitmapOffset;
-    size_t bitmapSize;
-};
-
-struct GroupInfoHandle {
-    std::pair<uint32_t, size_t> vec1;
-    std::pair<uint32_t, size_t> vec2;
-};
-
-struct RenderGroupHandle {
-    std::pair<uint32_t, size_t> infos;
-    DrawingSColor color;
-};
-
-struct SymbolLayersHandle {
-    uint32_t id;
-    std::pair<uint32_t, size_t> layers;
-    std::pair<uint32_t, size_t> groups;
-};
-
-struct SymbolOpHandle {
-    SymbolLayersHandle symbolLayerHandle;
-    OpDataHandle pathHandle;
-};
-
 using CmdListData = std::pair<const void*, size_t>;
 
 class DRAWING_API ExtendImageObject {

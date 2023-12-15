@@ -227,6 +227,9 @@ public:
     void DrawPixelMapRect(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::Rect& src,
         const Drawing::Rect& dst, const Drawing::SamplingOptions& sampling,
         Drawing::SrcRectConstraint constraint = Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+private:
+    template<typename T, typename... Args>
+    void AddOp(Args&&... args);
 };
 } // namespace Rosen
 } // namespace OHOS

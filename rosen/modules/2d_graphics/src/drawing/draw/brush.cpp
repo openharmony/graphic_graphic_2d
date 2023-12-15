@@ -113,11 +113,6 @@ const Filter& Brush::GetFilter() const
     return filter_;
 }
 
-bool Brush::HasFilter() const
-{
-    return hasFilter_;
-}
-
 void Brush::SetShaderEffect(std::shared_ptr<ShaderEffect> e)
 {
     shaderEffect_ = e;
