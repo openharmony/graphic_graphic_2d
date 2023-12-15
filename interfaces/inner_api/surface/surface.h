@@ -51,8 +51,6 @@ public:
                                   sptr<SyncFence>& fence, BufferRequestConfig &config) = 0;
     virtual GSError FlushBuffer(sptr<SurfaceBuffer>& buffer,
                                 const sptr<SyncFence>& fence, BufferFlushConfig &config) = 0;
-    virtual GSError GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
-                                  sptr<SyncFence>& fence, float matrix[16]) = 0;
     virtual GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
                                   int64_t &timestamp, Rect &damage) = 0;
     virtual GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence) = 0;
@@ -122,6 +120,8 @@ public:
                                 BufferFlushConfigWithDamages &config) = 0;
     virtual GSError UnRegisterReleaseListener() = 0;
     virtual GSError SetWptrNativeWindowToPSurface(void* nativeWindow) = 0;
+    virtual GSError GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
+                                sptr<SyncFence>& fence, float matrix[16]) = 0;
 protected:
     Surface() = default;
 };

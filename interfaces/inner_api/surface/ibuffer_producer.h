@@ -45,9 +45,6 @@ public:
     virtual GSError FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
                                 const sptr<SyncFence>& fence, BufferFlushConfigWithDamages &config) = 0;
 
-    virtual GSError GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
-                                  sptr<SyncFence>& fence, float matrix[16]) = 0;
-
     virtual GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) = 0;
     virtual GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) = 0;
 
@@ -83,6 +80,8 @@ public:
 
     virtual sptr<NativeSurface> GetNativeSurface() = 0;
     virtual GSError UnRegisterReleaseListener() = 0;
+    virtual GSError GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
+                                        sptr<SyncFence>& fence, float matrix[16]) = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"surf.IBufferProducer");
 
