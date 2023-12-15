@@ -82,7 +82,7 @@ std::shared_ptr<Media::PixelMap> RSUniUICapture::TakeLocalCapture()
     PostTaskToRSRecord(recordingCanvas, node, visitor);
     auto drawCallList = recordingCanvas->GetDrawCmdList();
     drawCallList->Playback(*canvas);
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && defined(RS_ENABLE_EGLIMAGE)
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> img(skSurface.get()->makeImageSnapshot());
 #else
@@ -194,7 +194,7 @@ sk_sp<SkSurface> RSUniUICapture::CreateSurface(const std::shared_ptr<Media::Pixe
     }
     SkImageInfo info = SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(),
         kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && defined(RS_ENABLE_EGLIMAGE)
 #if defined(NEW_RENDER_CONTEXT)
     auto drawingContext = RSOffscreenRenderThread::Instance().GetRenderContext();
     if (drawingContext == nullptr) {

@@ -15,6 +15,7 @@
 
 #include "common/rs_background_thread.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #if defined(RS_ENABLE_UNI_RENDER)
 #ifdef RS_ENABLE_GL
 #include "render_context/render_context.h"

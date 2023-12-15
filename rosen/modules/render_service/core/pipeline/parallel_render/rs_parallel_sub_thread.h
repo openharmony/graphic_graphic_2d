@@ -80,6 +80,7 @@ public:
 
 private:
     void MainLoop();
+    void MainLoopHandlePrepareTask();
     void StartRender();
     void InitSubThread();
     void Render();
