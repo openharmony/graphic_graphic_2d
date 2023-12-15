@@ -1864,8 +1864,13 @@ void RSPropertiesPainter::DrawBackgroundImageAsEffect(const RSProperties& proper
     if (auto& cacheManager = properties.GetFilterCacheManager(false);
         cacheManager != nullptr && !canvas.GetDisableFilterCache() && cacheManager->IsCacheValid()) {
         // no need to validate parameters, the caller already do it
+#ifndef USE_ROSEN_DRAWING
         canvas.clipRect(RSPropertiesPainter::Rect2SkRect(boundsRect));
         auto filter = std::static_pointer_cast<RSSkiaFilter>(properties.GetBackgroundFilter());
+#else
+        canvas.ClipRect(RSPropertiesPainter::Rect2DrawingRect(boundsRect));
+        auto filter = std::static_pointer_cast<RSDrawingFilter>(properties.GetBackgroundFilter());
+#endif
         // extract cache data from cacheManager
         auto&& data = cacheManager->GeneratedCachedEffectData(canvas, filter);
         canvas.SetEffectData(data);
@@ -1879,16 +1884,29 @@ void RSPropertiesPainter::DrawBackgroundImageAsEffect(const RSProperties& proper
         return;
     }
     // create offscreen surface with same size as current surface (PLANNING: use bounds size instead)
+#ifndef USE_ROSEN_DRAWING
     auto offscreenSurface = surface->makeSurface(surface->width(), surface->height());
+#else
+    auto offscreenSurface = surface->MakeSurface(canvas.GetWidth(), canvas.GetHeight());
+#endif
     auto offscreenCanvas = std::make_shared<RSPaintFilterCanvas>(offscreenSurface.get());
     // copy matrix and other properties to offscreen canvas
+#ifndef USE_ROSEN_DRAWING
     offscreenCanvas->setMatrix(canvas.getTotalMatrix());
+#else
+    offscreenCanvas->SetMatrix(canvas.GetTotalMatrix());
+#endif
     offscreenCanvas->CopyConfiguration(canvas);
     // draw background onto offscreen canvas
     RSPropertiesPainter::DrawBackground(properties, *offscreenCanvas);
     // generate effect data
+#ifndef USE_ROSEN_DRAWING
     RSPropertiesPainter::DrawBackgroundEffect(
         properties, *offscreenCanvas, SkIRect::MakeWH(boundsRect.GetWidth(), boundsRect.GetHeight()));
+#else
+    RSPropertiesPainter::DrawBackgroundEffect(
+        properties, *offscreenCanvas, Drawing::RectI(0, 0, boundsRect.GetWidth(), boundsRect.GetHeight()));
+#endif
     // extract effect data from offscreen canvas and set to canvas
     canvas.SetEffectData(offscreenCanvas->GetEffectData());
 }

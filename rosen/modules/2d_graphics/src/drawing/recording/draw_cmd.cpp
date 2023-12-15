@@ -803,11 +803,12 @@ bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(std::shared_ptr
 
     std::shared_ptr<Image> image = offscreenSurface->GetImageSnapshot();
     Drawing::Rect src(0, 0, image->GetWidth(), image->GetHeight());
-    Drawing::Rect dst(bounds->GetLeft(), bounds->GetTop(), bounds->GetRight(), bounds->GetBottom());
+    Drawing::Rect dst(bounds->GetLeft(), bounds->GetTop(),
+        bounds->GetLeft() + image->GetWidth(), bounds->GetTop()+ image->GetHeight());
     SamplingOptions sampling;
     auto imageHandle = CmdListHelper::AddImageToCmdList(*cacheCmdList, image);
     cacheCmdList->AddOp<DrawImageRectOpItem::ConstructorHandle>(
-        imageHandle, src, dst, sampling, SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+        imageHandle, src, dst, sampling, SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
     return true;
 }
 
