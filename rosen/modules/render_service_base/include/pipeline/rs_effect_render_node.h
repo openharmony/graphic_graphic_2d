@@ -39,10 +39,16 @@ public:
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 #ifndef USE_ROSEN_DRAWING
+    std::optional<SkPath> InitializeEffectRegion() const;
     void SetEffectRegion(const std::optional<SkPath>& region);
 #else
+    std::optional<Drawing::Path> InitializeEffectRegion() const;
     void SetEffectRegion(const std::optional<Drawing::Path>& region);
 #endif
+
+    void UpdateFilterCacheManagerWithCacheRegion(
+        RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect = std::nullopt) const override;
+    void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = true) const override;
 
 protected:
     RectI GetFilterRect() const override;
@@ -50,6 +56,7 @@ protected:
 private:
 #ifndef USE_ROSEN_DRAWING
     std::optional<SkIRect> effectRegion_ = std::nullopt;
+    void UpdateEffectRegion(const std::optional<SkIRect>& region);
 #else
     std::optional<Drawing::RectI> effectRegion_ = std::nullopt;
 #endif

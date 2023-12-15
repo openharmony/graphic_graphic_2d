@@ -190,11 +190,7 @@ void RSRenderThreadVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
     }
     auto effectRegion = effectRegion_;
 
-#ifndef USE_ROSEN_DRAWING
-    effectRegion_ = SkPath();
-#else
-    effectRegion_ = Drawing::Path();
-#endif
+    effectRegion_ = node.InitializeEffectRegion();
     bool dirtyFlag = dirtyFlag_;
     auto nodeParent = node.GetParent().lock();
     dirtyFlag_ = node.Update(*curDirtyManager_, nodeParent, dirtyFlag_);

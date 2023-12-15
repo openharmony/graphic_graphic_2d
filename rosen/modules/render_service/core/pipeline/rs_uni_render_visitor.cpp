@@ -359,11 +359,7 @@ void RSUniRenderVisitor::PrepareEffectNodeIfCacheReuse(const std::shared_ptr<RSR
         return;
     }
     auto effectRegion = effectRegion_;
-#ifndef USE_ROSEN_DRAWING
-    effectRegion_ = SkPath();
-#else
-    effectRegion_ = Drawing::Path();
-#endif
+    effectRegion_ = effectNode->InitializeEffectRegion();
     effectNode->Update(*curSurfaceDirtyManager_, cacheRootNode, dirtyFlag_, prepareClipRect_);
     if (effectNode->GetRenderProperties().NeedFilter()) {
         UpdateForegroundFilterCacheWithDirty(*effectNode, *curSurfaceDirtyManager_);
@@ -1691,12 +1687,7 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
     RectI prepareClipRect = prepareClipRect_;
     auto effectRegion = effectRegion_;
 
-#ifndef USE_ROSEN_DRAWING
-    effectRegion_ = SkPath();
-#else
-    effectRegion_ = Drawing::Path();
-#endif
-
+    effectRegion_ = node.InitializeEffectRegion();
     auto parentNode = node.GetParent().lock();
     dirtyFlag_ = node.Update(*curSurfaceDirtyManager_, parentNode, dirtyFlag_, prepareClipRect_);
 

@@ -1854,6 +1854,45 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     filter->PostProcess(canvas);
 }
 
+void RSPropertiesPainter::DrawBackgroundImageAsEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas)
+{
+    RS_TRACE_FUNC();
+    auto boundsRect = properties.GetBoundsRect();
+
+    // Optional use cacheManager to draw filter, cache is valid, skip drawing background image
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    if (auto& cacheManager = properties.GetFilterCacheManager(false);
+        cacheManager != nullptr && !canvas.GetDisableFilterCache() && cacheManager->IsCacheValid()) {
+        // no need to validate parameters, the caller already do it
+        canvas.clipRect(RSPropertiesPainter::Rect2SkRect(boundsRect));
+        auto filter = std::static_pointer_cast<RSSkiaFilter>(properties.GetBackgroundFilter());
+        // extract cache data from cacheManager
+        auto&& data = cacheManager->GeneratedCachedEffectData(canvas, filter);
+        canvas.SetEffectData(data);
+        return;
+    }
+#endif
+
+    auto surface = canvas.GetSurface();
+    if (!surface) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawBackgroundImageAsEffect surface null");
+        return;
+    }
+    // create offscreen surface with same size as current surface (PLANNING: use bounds size instead)
+    auto offscreenSurface = surface->makeSurface(surface->width(), surface->height());
+    auto offscreenCanvas = std::make_shared<RSPaintFilterCanvas>(offscreenSurface.get());
+    // copy matrix and other properties to offscreen canvas
+    offscreenCanvas->setMatrix(canvas.getTotalMatrix());
+    offscreenCanvas->CopyConfiguration(canvas);
+    // draw background onto offscreen canvas
+    RSPropertiesPainter::DrawBackground(properties, *offscreenCanvas);
+    // generate effect data
+    RSPropertiesPainter::DrawBackgroundEffect(
+        properties, *offscreenCanvas, SkIRect::MakeWH(boundsRect.GetWidth(), boundsRect.GetHeight()));
+    // extract effect data from offscreen canvas and set to canvas
+    canvas.SetEffectData(offscreenCanvas->GetEffectData());
+}
+
 #ifndef USE_ROSEN_DRAWING
 void RSPropertiesPainter::DrawBackgroundEffect(
     const RSProperties& properties, RSPaintFilterCanvas& canvas, const SkIRect& rect)
@@ -1945,6 +1984,7 @@ void RSPropertiesPainter::DrawBackgroundEffect(
 
 void RSPropertiesPainter::ApplyBackgroundEffectFallback(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
+    RS_TRACE_FUNC();
     auto parentNode = properties.backref_.lock();
     while (parentNode && !parentNode->IsInstanceOf<RSEffectRenderNode>()) {
         parentNode = parentNode->GetParent().lock();
@@ -1971,7 +2011,7 @@ void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, 
         ApplyBackgroundEffectFallback(properties, canvas);
         return;
     }
-    RS_TRACE_NAME("ApplyBackgroundEffect");
+    RS_TRACE_FUNC();
 #ifndef USE_ROSEN_DRAWING
     SkAutoCanvasRestore acr(&canvas, true);
     if (RSSystemProperties::GetPropertyDrawableEnable()) {

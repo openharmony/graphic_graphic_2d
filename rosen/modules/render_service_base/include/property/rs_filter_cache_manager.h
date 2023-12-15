@@ -265,6 +265,8 @@ private:
     // To reduce memory usage, clear one of the cached images.
     inline void CompactCache(bool shouldClearFilteredCache);
 
+    const char* GetCacheState() const;
+
     // We keep both the snapshot and filtered snapshot in the cache, and clear unneeded one in next frame.
     // Note: rect in cachedSnapshot_ and cachedFilteredSnapshot_ is in device coordinate.
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshot_ = nullptr;

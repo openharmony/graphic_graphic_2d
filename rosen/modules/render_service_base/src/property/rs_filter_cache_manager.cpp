@@ -26,6 +26,17 @@
 
 namespace OHOS {
 namespace Rosen {
+const char* RSFilterCacheManager::GetCacheState() const
+{
+    if (cachedFilteredSnapshot_ == nullptr) {
+        return "Reuse filtered image";
+    } else if (cachedSnapshot_ == nullptr) {
+        return "Reuse snapshot, regenerate filtered image";
+    } else {
+        return "No cache";
+    }
+}
+
 #define CHECK_CACHE_PROCESS_STATUS                                       \
     do {                                                                 \
         if (cacheProcessStatus_.load() == CacheProcessStatus::WAITING) { \
@@ -311,6 +322,7 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
 #endif
         return;
     }
+    RS_TRACE_NAME_FMT("RSFilterCacheManager::DrawFilter status: %s", GetCacheState());
     CheckCachedImages(canvas);
     if (!IsCacheValid()) {
         TakeSnapshot(canvas, filter, src, needSnapshotOutset);
@@ -391,6 +403,7 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
 #endif
         return nullptr;
     }
+    RS_TRACE_NAME_FMT("RSFilterCacheManager::GeneratedCachedEffectData status: %s", GetCacheState());
     CheckCachedImages(canvas);
     if (!IsCacheValid()) {
         TakeSnapshot(canvas, filter, src);
@@ -695,9 +708,11 @@ inline static bool IsCacheInvalid(const RSPaintFilterCanvas::CachedEffectData& c
 void RSFilterCacheManager::CheckCachedImages(RSPaintFilterCanvas& canvas)
 {
     if (cachedSnapshot_ != nullptr && IsCacheInvalid(*cachedSnapshot_, canvas)) {
+        ROSEN_LOGE("RSFilterCacheManager::CheckCachedImages cachedSnapshot_ is invalid");
         cachedSnapshot_.reset();
     }
     if (cachedFilteredSnapshot_ != nullptr && IsCacheInvalid(*cachedFilteredSnapshot_, canvas)) {
+        ROSEN_LOGE("RSFilterCacheManager::CheckCachedImages cachedFilteredSnapshot_ is invalid");
         cachedFilteredSnapshot_.reset();
     }
 }
@@ -725,8 +740,7 @@ std::tuple<SkIRect, SkIRect> RSFilterCacheManager::ValidateParams(
         snapshotRegion_.GetTop() > dst.y() || snapshotRegion_.GetBottom() < dst.bottom()) {
         // dst region is out of snapshot region, cache is invalid.
         // It should already be checked by UpdateCacheStateWithFilterRegion in prepare phase, we should never be here.
-        ROSEN_LOGD("RSFilterCacheManager::ValidateParams Cache expired. Reason: dst region is out of snapshot region.");
-        InvalidateCache();
+        ROSEN_LOGE("RSFilterCacheManager::ValidateParams Cache expired. Reason: dst region is out of snapshot region.");
     }
     return { src, dst };
 }

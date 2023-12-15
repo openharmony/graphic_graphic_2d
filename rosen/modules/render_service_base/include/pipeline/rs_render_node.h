@@ -258,7 +258,7 @@ public:
 
     // update parent's children rect including childRect and itself
     void UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parentNode) const;
-    void UpdateFilterCacheManagerWithCacheRegion(
+    virtual void UpdateFilterCacheManagerWithCacheRegion(
         RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect = std::nullopt) const;
 
     void SetStaticCached(bool isStaticCached);
@@ -431,7 +431,7 @@ public:
     void UpdateEffectRegion(std::optional<Drawing::Path>& region);
 #endif
     bool IsBackgroundFilterCacheValid() const;
-    void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground=true) const;
+    virtual void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = true) const;
 
     void CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd);
     bool IsForcedDrawInGroup() const;

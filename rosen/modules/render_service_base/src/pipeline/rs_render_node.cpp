@@ -1336,10 +1336,10 @@ bool RSRenderNode::ApplyModifiers()
         (dirtyTypes_.test(static_cast<size_t>(RSModifierType::BACKGROUND_COLOR)) ||
         dirtyTypes_.test(static_cast<size_t>(RSModifierType::BG_IMAGE)))) {
 #endif
-        manager->UpdateCacheStateWithDirtyRegion();
+        manager->InvalidateCache();
     }
     if (auto& manager = GetRenderProperties().GetFilterCacheManager(true)) {
-        manager->UpdateCacheStateWithDirtyRegion();
+        manager->InvalidateCache();
     }
 
     if (RSSystemProperties::GetPropertyDrawableEnable()) {
