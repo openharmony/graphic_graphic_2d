@@ -22,6 +22,7 @@
 #include "texgine/utils/exlog.h"
 #include "texgine_string.h"
 #include "texgine_font.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -32,10 +33,11 @@ namespace TextEngine {
 #define FIRST_PRIORITY 10000
 #define SECOND_PRIORITY 100
 #define MULTIPLE 100
-
+#define SUPPORTFILE 1
 FontCollection::FontCollection(std::vector<std::shared_ptr<VariantFontStyleSet>> &&fontStyleSets)
     : fontStyleSets_(fontStyleSets)
 {
+    FillDefaultItalicSupportFile();
 }
 
 void FontCollection::SortTypeface(FontStyles &style) const
@@ -86,6 +88,16 @@ void FontCollection::SortTypeface(FontStyles &style) const
     }
 }
 
+void FontCollection::FillDefaultItalicSupportFile()
+{
+    supportScript_.insert(std::make_pair("Latn", SUPPORTFILE)); // Latn means Latin Language
+    supportScript_.insert(std::make_pair("Zyyy", SUPPORTFILE)); // Zyyy means department of mathematics
+}
+
+int FontCollection::DetectionScript(std::string script) const
+{
+    return supportScript_.find(script)->second;
+}
 std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch, FontStyles &style,
     const std::string &script, const std::string &locale) const
 {
@@ -118,6 +130,7 @@ std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch,
     auto typeface = FindThemeTypeface(style);
     if (typeface) {
         typeface->ComputeFakery(style.GetWeight());
+        typeface->ComputeFakeryItalic(style.GetFontStyle());
     }
     if (typeface == nullptr) {
         typeface = FindFallBackTypeface(ch, style, script, locale);
@@ -125,9 +138,7 @@ std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch,
     if (typeface == nullptr) {
         typeface = GetTypefaceForFontStyles(style, script, locale);
     }
-    if (typeface) {
-        typeface->ComputeFakeryItalic(style.GetFontStyle());
-    }
+
     return typeface;
 }
 
@@ -217,28 +228,36 @@ std::shared_ptr<Typeface> FontCollection::FindFallBackTypeface(const uint32_t &c
     if (fm == nullptr) {
         return nullptr;
     }
-
+    TexgineFontStyle tfs = style.ToTexgineFontStyle();
     if (style.GetFontStyle()) {
-        typefaceCache_.clear();
-        TexgineFontStyle tfs = style.ToTexgineFontStyle();
-        std::shared_ptr<TexgineTypeface> fallbackTypeface = fm->MatchFamilyStyleCharacter("", tfs,
-            bcp47.data(), bcp47.size(), ch);
-        if (fallbackTypeface == nullptr || fallbackTypeface->GetTypeface() == nullptr) {
-            return nullptr;
+        std::shared_ptr<TexgineTypeface> fallbackTypeface = nullptr;
+        std::shared_ptr<Typeface> typeface = nullptr;
+        if (DetectionScript(script) == SUPPORTFILE) {
+            fallbackTypeface = fm->MatchFamilyStyle("", tfs);
+            if (fallbackTypeface == nullptr || fallbackTypeface->GetTypeface() == nullptr) {
+                LOGE("No have fallbackTypeface from matchFamilyStyle");
+                return nullptr;
+            }
+            typeface = std::make_shared<Typeface>(fallbackTypeface);
+            typeface->ComputeFakeryItalic(false); // false means value method for obtaining italics
+        } else {
+            fallbackTypeface = fm->MatchFamilyStyleCharacter("", tfs, bcp47.data(), bcp47.size(), ch);
+            if (fallbackTypeface == nullptr || fallbackTypeface->GetTypeface() == nullptr) {
+                LOGE("No have fallbackTypeface from matchFamilyStyleCharacter");
+                return nullptr;
+            }
+            typeface = std::make_shared<Typeface>(fallbackTypeface);
+            typeface->ComputeFakeryItalic(true); // true means text offset produces italic method
         }
-        fallbackTypeface->InputOriginalStyle(true); // true means record italic style
-        auto typeface = std::make_shared<Typeface>(fallbackTypeface);
+
         return typeface;
     }
-
-    TexgineFontStyle tfs = style.ToTexgineFontStyle();
     std::shared_ptr<TexgineTypeface> fallbackTypeface = fm->MatchFamilyStyleCharacter("", tfs,
         bcp47.data(), bcp47.size(), ch);
     if (fallbackTypeface == nullptr || fallbackTypeface->GetTypeface() == nullptr) {
         return nullptr;
     }
     auto typeface = std::make_shared<Typeface>(fallbackTypeface);
-    fallbackCache_[key] = typeface;
     return typeface;
 }
 

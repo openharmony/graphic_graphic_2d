@@ -38,6 +38,7 @@ public:
                                                 int32_t character) = 0;
     virtual FontStyleSet* MatchFamily(const char familyName[]) const = 0;
 
+    virtual Typeface* MatchFamilyStyle(const char familyName[], const FontStyle& fontStyle) const = 0;
 protected:
     FontMgrImpl() noexcept = default;
 };
