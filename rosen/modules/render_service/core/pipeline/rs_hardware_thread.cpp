@@ -476,16 +476,15 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #ifndef USE_ROSEN_DRAWING
             SkColorType colorType = kRGBA_8888_SkColorType;
             std::shared_ptr<GrBackendTexture> backendTexturePtr = nullptr;
-            (void)colorType;
+            auto pixelFmt = params.buffer->GetFormat();
+            if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
+                colorType = kBGRA_8888_SkColorType;
+            } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
+                colorType = kRGBA_1010102_SkColorType;
+            }
             (void)backendTexturePtr;
 #if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
             if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-                auto pixelFmt = params.buffer->GetFormat();
-                if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
-                    colorType = kBGRA_8888_SkColorType;
-                } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
-                    colorType = kRGBA_1010102_SkColorType;
-                }
                 auto glType = GL_RGBA8;
                 if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
                     glType = GL_RGB10_A2;
@@ -523,20 +522,18 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                     return;
                 }
 
-                SkColorType colorType = (params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
-                    kBGRA_8888_SkColorType : kRGBA_8888_SkColorType;
                 image = SkImage::MakeFromTexture(
                     canvas->recordingContext(),
                     backendTexture,
                     kTopLeft_GrSurfaceOrigin,
                     colorType,
                     kPremul_SkAlphaType,
-                    SkColorSpace::MakeSRGB(),
+                    skColorSpace,
                     NativeBufferUtils::DeleteVkImage,
                     imageCache->RefCleanupHelper());
             } else {
                 image = SkImage::MakeFromTexture(canvas->getGrContext(), backendTexture,
-                    kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
+                    kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, skColorSpace);
             }
 #endif
 #else
