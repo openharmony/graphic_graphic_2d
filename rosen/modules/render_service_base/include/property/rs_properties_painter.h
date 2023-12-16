@@ -119,6 +119,8 @@ public:
     static void DrawSpherize(const RSProperties& properties, RSPaintFilterCanvas& canvas,
         const std::shared_ptr<Drawing::Surface>& spherizeSurface);
     // EffectView and useEffect
+    static void DrawBackgroundImageAsEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
+    // EffectView and useEffect
     static void DrawBackgroundEffect(
         const RSProperties& properties, RSPaintFilterCanvas& canvas, const Drawing::RectI& rect);
     static std::shared_ptr<Drawing::ShaderEffect> MakeDynamicLightUpShader(
