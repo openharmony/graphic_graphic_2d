@@ -268,9 +268,14 @@ BackendTexture SkiaImage::GetBackendTexture(bool flushPendingGrContextIO, Textur
     auto backendTexture = BackendTexture(true);
     SetGrBackendTexture(skBackendTexture);
 #ifdef RS_ENABLE_VK
-    TextureInfo info;
-    SkiaTextureInfo::ConvertToVKTexture(skBackendTexture, info);
-    backendTexture.SetTextureInfo(info);
+    if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        TextureInfo info;
+        SkiaTextureInfo::ConvertToVKTexture(skBackendTexture, info);
+        backendTexture.SetTextureInfo(info);
+    } else {
+        backendTexture.SetTextureInfo(SkiaTextureInfo::ConvertToTextureInfo(skBackendTexture));
+    }
 #else
     backendTexture.SetTextureInfo(SkiaTextureInfo::ConvertToTextureInfo(skBackendTexture));
 #endif

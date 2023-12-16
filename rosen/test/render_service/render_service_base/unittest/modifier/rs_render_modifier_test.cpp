@@ -56,7 +56,11 @@ void RSRenderModifierTest::TearDown() {}
  */
 HWTEST_F(RSRenderModifierTest, RSGeometryTransRenderModifier, TestSize.Level1)
 {
+#ifndef USE_ROSEN_DRAWING
     auto prop = std::make_shared<RSRenderProperty<SkMatrix>>();
+#else
+    auto prop = std::make_shared<RSRenderProperty<Drawing::Matrix>>();
+#endif
     auto modifier = std::make_shared<RSGeometryTransRenderModifier>(prop);
     RSProperties properties;
     RSModifierContext context(properties);
