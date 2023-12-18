@@ -81,6 +81,7 @@ public:
         const std::shared_ptr<RSNode>& target, const std::shared_ptr<RSPropertyBase>& property);
 
 private:
+    void EndImplicitAnimation();
     void BeginImplicitCurveAnimation();
     void BeginImplicitSpringAnimation();
     void BeginImplicitInterpolatingSpringAnimation();
