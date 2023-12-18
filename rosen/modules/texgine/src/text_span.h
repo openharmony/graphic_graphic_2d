@@ -60,7 +60,7 @@ public:
         u16vect_.insert(u16vect_.end(), textSpan.u16vect_.begin(), textSpan.u16vect_.end());
     }
 
-    TexgineFontMetrics tmetrics_;
+    std::shared_ptr<TexgineFontMetrics> tmetrics_ = std::make_shared<TexgineFontMetrics>();
     bool rtl_ = false;
     std::shared_ptr<Typeface> typeface_ = nullptr;
 

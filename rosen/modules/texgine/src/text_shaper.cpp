@@ -101,7 +101,7 @@ int TextShaper::Shape(const VariantSpan &span, const TypographyStyle &ys,
     TexgineFont font;
     PartFontPropertySet(font, ts);
     font.SetSize(xs.fontSize);
-    font.GetMetrics(&ts->tmetrics_);
+    font.GetMetrics(ts->tmetrics_);
 
     auto blob = GenerateTextBlob(font, ts->cgs_, ts->width_, ts->glyphWidths_);
     if (blob == nullptr) {

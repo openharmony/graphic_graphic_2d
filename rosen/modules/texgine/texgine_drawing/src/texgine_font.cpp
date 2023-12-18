@@ -56,7 +56,7 @@ void TexgineFont::SetSize(float textSize)
 #endif
 }
 
-float TexgineFont::GetMetrics(TexgineFontMetrics *metrics) const
+float TexgineFont::GetMetrics(std::shared_ptr<TexgineFontMetrics> metrics) const
 {
     if (metrics == nullptr) {
         return 0;

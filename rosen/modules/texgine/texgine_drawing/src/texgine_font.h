@@ -64,7 +64,7 @@ public:
     /*
      * @brief Get metrics of the font
      */
-    float GetMetrics(TexgineFontMetrics *metrics) const;
+    float GetMetrics(std::shared_ptr<TexgineFontMetrics> metrics) const;
 
     /*
      * @brief Get metrics of the font
