@@ -48,29 +48,29 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(const uint16_t& glyphId, const HMSym
         return symbolInfo;
     }
 
-    symbolInfo.layers = symbolInfoOrign->layers;
-#ifndef USE_ROSEN_DRAWING
-    symbolInfo.renderGroups = symbolInfoOrign->renderModeGroups[SymbolRenderingStrategy::SINGLE];
-#else
-    symbolInfo.renderGroups = symbolInfoOrign->renderModeGroups[RSSymbolRenderingStrategy::SINGLE];
-#endif
-    symbolInfo.symbolGlyphId = symbolInfoOrign->symbolGlyphId;
-
 #ifndef USE_ROSEN_DRAWING
     SymbolRenderingStrategy renderMode = symbolText.GetRenderMode();
 #else
     RSSymbolRenderingStrategy renderMode = symbolText.GetRenderMode();
 #endif
-    if (symbolInfoOrign->renderModeGroups.find(renderMode) != symbolInfoOrign->renderModeGroups.end()) {
-        symbolInfo.renderGroups = symbolInfoOrign->renderModeGroups[renderMode];
+    if (symbolInfoOrign->renderModeGroups.find(renderMode) == symbolInfoOrign->renderModeGroups.end()) {
 #ifndef USE_ROSEN_DRAWING
-        std::vector<SColor> colorList = symbolText.GetRenderColor();
+        renderMode = SymbolRenderingStrategy::SINGLE;
 #else
-        std::vector<RSSColor> colorList = symbolText.GetRenderColor();
+        renderMode = RSSymbolRenderingStrategy::SINGLE;
 #endif
-        if (!colorList.empty()) {
-            SetSymbolRenderColor(renderMode, colorList, symbolInfo);
-        }
+    }
+
+    symbolInfo.layers = symbolInfoOrign->layers;
+    symbolInfo.renderGroups = symbolInfoOrign->renderModeGroups[renderMode];
+    symbolInfo.symbolGlyphId = symbolInfoOrign->symbolGlyphId;
+#ifndef USE_ROSEN_DRAWING
+    std::vector<SColor> colorList = symbolText.GetRenderColor();
+#else
+    std::vector<RSSColor> colorList = symbolText.GetRenderColor();
+#endif
+    if (!colorList.empty()) {
+        SetSymbolRenderColor(renderMode, colorList, symbolInfo);
     }
     return symbolInfo;
 }
