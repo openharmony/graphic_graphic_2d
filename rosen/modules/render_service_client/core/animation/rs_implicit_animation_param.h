@@ -26,7 +26,16 @@
 
 namespace OHOS {
 namespace Rosen {
-enum class ImplicitAnimationParamType { NONE, CURVE, KEYFRAME, PATH, SPRING, INTERPOLATING_SPRING, TRANSITION, CANCEL };
+enum class ImplicitAnimationParamType {
+    INVALID,
+    CURVE,
+    KEYFRAME,
+    PATH,
+    SPRING,
+    INTERPOLATING_SPRING,
+    TRANSITION,
+    CANCEL
+};
 class RSAnimation;
 class RSPropertyBase;
 class RSMotionPathOption;
@@ -35,13 +44,14 @@ class RSTransitionEffect;
 
 class RSImplicitAnimationParam {
 public:
+    RSImplicitAnimationParam() = default;
     virtual ~RSImplicitAnimationParam() = default;
     ImplicitAnimationParamType GetType() const;
 
 protected:
-    explicit RSImplicitAnimationParam(const RSAnimationTimingProtocol& timingProtocol, ImplicitAnimationParamType type);
+    RSImplicitAnimationParam(const RSAnimationTimingProtocol& timingProtocol, ImplicitAnimationParamType type);
     void ApplyTimingProtocol(const std::shared_ptr<RSAnimation>& animation) const;
-    ImplicitAnimationParamType animationType_ { ImplicitAnimationParamType::NONE };
+    ImplicitAnimationParamType animationType_ { ImplicitAnimationParamType::INVALID };
 
 private:
     RSAnimationTimingProtocol timingProtocol_;

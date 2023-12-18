@@ -205,7 +205,8 @@ void RSImplicitAnimator::EndImplicitKeyFrameAnimation()
 
 bool RSImplicitAnimator::NeedImplicitAnimation()
 {
-    return !implicitAnimationDisabled_ && !implicitAnimationParams_.empty();
+    return !implicitAnimationDisabled_ && !implicitAnimationParams_.empty() &&
+           implicitAnimationParams_.top()->GetType() != ImplicitAnimationParamType::INVALID;
 }
 
 void RSImplicitAnimator::BeginImplicitCurveAnimation()
@@ -473,9 +474,13 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
         }
         case ImplicitAnimationParamType::CANCEL: {
             // Create animation with CANCEL type will cancel all running animations of the target.
+            // Note: To avoid current ImplicitAnimation Param changing the behavior of the callbacks, we need to add an
+            // isolation layer
+            implicitAnimationParams_.push(std::make_shared<RSImplicitAnimationParam>());
             property->SetValue(endValue);                         // force set ui value
             property->UpdateOnAllAnimationFinish();               // force sync RS value and cancel all RS animations
             target->CancelAnimationByProperty(property->GetId()); // remove all ui animation
+            implicitAnimations_.pop();                            // restore implicit animation param
             return;
         }
         default:
