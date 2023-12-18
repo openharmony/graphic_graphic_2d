@@ -305,9 +305,19 @@ void RSNode::RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation)
 
 void RSNode::CancelAnimationByProperty(const PropertyId& id)
 {
-    std::unique_lock<std::mutex> lock(animationMutex_);
     animatingPropertyNum_.erase(id);
-    EraseIf(animations_, [id](const auto& pair) { return (pair.second && (pair.second->GetPropertyId() == id)); });
+    std::vector<std::shared_ptr<RSAnimation>> toBeRemoved;
+    {
+        std::unique_lock<std::mutex> lock(animationMutex_);
+        EraseIf(animations_, [id, &toBeRemoved](const auto& pair) {
+            if (pair.second && (pair.second->GetPropertyId() == id)) {
+                toBeRemoved.emplace_back(pair.second);
+                return true;
+            }
+            return false;
+        });
+    }
+    toBeRemoved.clear();
 }
 
 const RSModifierExtractor& RSNode::GetStagingProperties() const
