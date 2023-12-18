@@ -1945,6 +1945,7 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
     if (isUniRender_) {
         MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);
         RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
+        RemoveTask(CLEAR_GPU_CACHE);
     }
     mainLoop_();
     auto screenManager_ = CreateOrGetScreenManager();
