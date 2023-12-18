@@ -28,12 +28,12 @@ namespace OHOS {
 namespace Rosen {
 const char* RSFilterCacheManager::GetCacheState() const
 {
-    if (cachedFilteredSnapshot_ == nullptr) {
-        return "Reuse filtered image";
-    } else if (cachedSnapshot_ == nullptr) {
-        return "Reuse snapshot, regenerate filtered image";
+    if (cachedFilteredSnapshot_ != nullptr) {
+        return "Filtered image found in cache. Reusing cached result.";
+    } else if (cachedSnapshot_ != nullptr) {
+        return "Snapshot found in cache. Generating filtered image using cached data.";
     } else {
-        return "No cache";
+        return "No valid cache found.";
     }
 }
 

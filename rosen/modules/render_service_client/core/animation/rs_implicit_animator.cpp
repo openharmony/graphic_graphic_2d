@@ -35,14 +35,15 @@ int RSImplicitAnimator::OpenImplicitAnimation(const RSAnimationTimingProtocol& t
         std::move(repeatCallback) });
     implicitAnimations_.push({});
     keyframeAnimations_.push({});
-    if (timingProtocol.GetDuration() <= 0) {
-        // Special case: if duration is 0, we need to cancel existing implicit animations
-        BeginImplicitCancelAnimation();
-        return static_cast<int>(globalImplicitParams_.size()) - 1;
-    }
     switch (timingCurve.type_) {
         case RSAnimationTimingCurve::CurveType::INTERPOLATING:
-            BeginImplicitCurveAnimation();
+            if (timingProtocol.GetDuration() <= 0) {
+                // Special case: if duration is 0, we need to cancel existing implicit animations
+                BeginImplicitCancelAnimation();
+            } else {
+                // Begin default curve animation
+                BeginImplicitCurveAnimation();
+            }
             break;
         case RSAnimationTimingCurve::CurveType::SPRING:
             BeginImplicitSpringAnimation();
@@ -96,7 +97,7 @@ void RSImplicitAnimator::CloseImplicitAnimationInner()
     globalImplicitParams_.pop();
     implicitAnimations_.pop();
     keyframeAnimations_.pop();
-    implicitAnimationParams_.pop();
+    EndImplicitAnimation();
 }
 
 std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnimation()
@@ -213,6 +214,20 @@ void RSImplicitAnimator::BeginImplicitCurveAnimation()
     [[maybe_unused]] const auto& [protocol, curve, unused, unused_repeatCallback] = globalImplicitParams_.top();
     auto curveAnimationParam = std::make_shared<RSImplicitCurveAnimationParam>(protocol, curve);
     PushImplicitParam(curveAnimationParam);
+}
+
+void RSImplicitAnimator::EndImplicitAnimation()
+{
+    if (implicitAnimationParams_.empty() ||
+        (implicitAnimationParams_.top()->GetType() != ImplicitAnimationParamType::CANCEL &&
+        implicitAnimationParams_.top()->GetType() != ImplicitAnimationParamType::CURVE &&
+        implicitAnimationParams_.top()->GetType() != ImplicitAnimationParamType::SPRING &&
+        implicitAnimationParams_.top()->GetType() != ImplicitAnimationParamType::INTERPOLATING_SPRING)) {
+        ROSEN_LOGE("Failed to end implicit animation, need to begin implicit animation firstly!");
+        return;
+    }
+
+    PopImplicitParam();
 }
 
 void RSImplicitAnimator::BeginImplicitPathAnimation(const std::shared_ptr<RSMotionPathOption>& motionPathOption)

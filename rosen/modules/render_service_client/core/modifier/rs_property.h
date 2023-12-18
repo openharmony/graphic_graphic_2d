@@ -386,7 +386,7 @@ public:
         }
     }
 
-    void RequestCancelAnimation() const
+    void RequestCancelAnimation()
     {
         auto node = RSProperty<T>::target_.lock();
         if (node == nullptr) {
