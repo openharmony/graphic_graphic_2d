@@ -116,11 +116,12 @@ void LineBreaker::DoBreakLines(std::vector<struct ScoredSpan> &scoredSpans, cons
             << ", prev.postBreak: " << scoredSpans[is.prev].postBreak;
         if (scoredSpans[i].span.IsHardBreak()) {
             is.prev = static_cast<int>(i - 1);
-            index++;
+            index = 0;
         }
 
         if (FLOATING_GT(is.preBreak - scoredSpans[is.prev].postBreak, newWidthLimit)) {
             is.prev = static_cast<int>(i - 1);
+            index++;
             LOGEX_FUNC_LINE_DEBUG() << "  -> [" << is.prev
                 << "]: prev.postBreak: " << scoredSpans[is.prev].postBreak;
         }
@@ -220,7 +221,7 @@ std::vector<LineMetrics> LineBreaker::GenerateLineMetrics(const double widthLimi
         for (; prev < next; prev++) {
             vss.push_back(spans[prev]);
             if (spans[prev].IsHardBreak()) {
-                index++;
+                index = 0;
             }
         }
         double indent = GetIndent(widthLimit, index, indents);
@@ -229,6 +230,7 @@ std::vector<LineMetrics> LineBreaker::GenerateLineMetrics(const double widthLimi
             .indent = indent,
         });
         prev = next;
+        index++;
     }
 
     return lineMetrics;
