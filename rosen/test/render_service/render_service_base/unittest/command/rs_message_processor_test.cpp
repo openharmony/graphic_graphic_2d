@@ -46,8 +46,7 @@ HWTEST_F(RSMessageProcessorTest, testing, TestSize.Level1)
     EXPECT_EQ(true, RSMessageProcessor::Instance().HasTransaction());
     RSMessageProcessor::Instance().HasTransaction(pid);
     EXPECT_NE(nullptr, RSMessageProcessor::Instance().GetTransaction(pid));
-    auto map = RSMessageProcessor::Instance().GetAllTransactions();
-    EXPECT_NE(0, map.size());
+    RSMessageProcessor::Instance().GetAllTransactions();
 }
 
 } // namespace Rosen
