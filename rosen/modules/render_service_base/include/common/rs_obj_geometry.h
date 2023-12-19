@@ -262,6 +262,11 @@ public:
     {
         return width_ <= 0 && height_ <= 0;
     }
+    void Round()
+    {
+        x_ = std::floor(x_);
+        y_ = std::floor(y_);
+    }
     RSObjGeometry& operator=(const RSObjGeometry& geo)
     {
         if (&geo != this) {

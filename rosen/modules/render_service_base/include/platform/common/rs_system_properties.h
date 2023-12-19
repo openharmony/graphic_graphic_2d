@@ -174,6 +174,7 @@ public:
 #endif
     static bool GetSnapshotWithDMAEnabled();
     static bool IsPhoneType();
+    static bool IsPcType();
     static bool GetSyncTransactionEnabled();
     static int GetSyncTransactionWaitDelay();
     static bool GetUseShadowBatchingEnabled();
