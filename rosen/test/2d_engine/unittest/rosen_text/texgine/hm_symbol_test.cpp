@@ -35,8 +35,8 @@ HWTEST_F(OHHmSymbolTest, OHHmSymbolTest001, TestSize.Level1)
     TextStyle style;
     TextEngine::TextStyle textStyle;
     style.isSymbolGlyph = true;
-    textStyle = AdapterTxtEngine::convert(style);
-    EXPECT_EQ(textStyle.isSymbolGlyph, true); 
+    textStyle = AdapterTextEngine::Convert(style);
+    EXPECT_EQ(textStyle.isSymbolGlyph, true);
 }
 
 /*
@@ -50,13 +50,15 @@ HWTEST_F(OHHmSymbolTest, OHHmSymbolTest002, TestSize.Level1)
     style.isSymbolGlyph = true;
     TextEngine::TextStyle textStyle;
     style.symbol.SetRenderMode(0); // this 0 is single
-    textStyle = AdapterTextEngine::Conver(style);
+    textStyle = AdapterTextEngine::Convert(style);
     EXPECT_EQ(textStyle.symbol.renderMode_, SymbolRenderingStrategy::SINGLE);
+
     style.symbol.SetRenderMode(2); // this 2 is multiple opacity
-    textStyle = AdapterTextEngine::Conver(style);
+    textStyle = AdapterTextEngine::Convert(style);
     EXPECT_EQ(textStyle.symbol.renderMode_, SymbolRenderingStrategy::MULTIPLE_OPACITY);
+
     style.symbol.SetRenderMode(1); // this 1 is multiple color
-    textStyle = AdapterTextEngine::Conver(style);
+    textStyle = AdapterTextEngine::Convert(style);
     EXPECT_EQ(textStyle.symbol.renderMode_, SymbolRenderingStrategy::MULTIPLE_COLOR);
 }
 
@@ -69,13 +71,13 @@ HWTEST_F(OHHmSymbolTest, OHHmSymbolTest003, TestSize.Level1)
 {
     TextEngine::TexgineCanvas canvas;
     std::shared_ptr<SkCanvas> skCanvas = std::make_shared<SkCanvas>();
-    std::shared_ptr<textEngine::TexgineTextBlob> blob = nullpter;
+    std::shared_ptr<TextEngine::TexgineTextBlob> blob = nullptr;
     TextEngine::TextStyle textStyle;
     textStyle.isSymbolGlyph = true;
     canvas.SetCanvas(skCanvas.get());
     std::pair<double, double> offset;
     TextEngine::TexginePaint paint;
-    TextEngine::HMSymbolRun::DrawSymbol(canvas, blob, offset, textStyle);
+    TextEngine::HMSymbolRun::DrawSymbol(canvas, blob, offset, paint, textStyle);
 }
 
 /*
