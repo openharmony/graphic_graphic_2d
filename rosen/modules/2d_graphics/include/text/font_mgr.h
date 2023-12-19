@@ -90,13 +90,6 @@ public:
         return fontMgrImpl_->DowncastingTo<T>();
     }
 
-    /* @brief             Find the corresponding font based on the style and font name
-     * @param familyName  The name of the font you want to apply
-     * @param fontStyle   The font style you want to achieve
-     * @return            Returns the corresponding font
-     */
-    Typeface* MatchFamilyStyle(const char familyName[], const FontStyle& fontStyle) const;
-
 private:
     std::shared_ptr<FontMgrImpl> fontMgrImpl_;
 };

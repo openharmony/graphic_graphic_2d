@@ -48,7 +48,6 @@ public:
                                         int32_t character) override;
     FontStyleSet* MatchFamily(const char familyName[]) const override;
 
-    Typeface* MatchFamilyStyle(const char familyName[], const FontStyle& fontStyle) const override;
 private:
     sk_sp<SkFontMgr> skFontMgr_;
 };

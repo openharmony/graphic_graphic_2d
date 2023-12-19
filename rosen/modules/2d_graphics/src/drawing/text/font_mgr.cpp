@@ -67,14 +67,6 @@ FontStyleSet* FontMgr::MatchFamily(const char familyName[]) const
     }
     return nullptr;
 }
-
-Typeface* FontMgr::MatchFamilyStyle(const char familyName[], const FontStyle& fontStyle) const
-{
-    if (fontMgrImpl_) {
-        return fontMgrImpl_->MatchFamilyStyle(familyName, fontStyle);
-    }
-    return nullptr;
-}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

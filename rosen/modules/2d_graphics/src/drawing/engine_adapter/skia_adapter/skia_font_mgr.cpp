@@ -92,19 +92,6 @@ FontStyleSet* SkiaFontMgr::MatchFamily(const char familyName[]) const
     std::shared_ptr<FontStyleSetImpl> fontStyleSetImpl = std::make_shared<SkiaFontStyleSet>(skFontStyleSet);
     return new FontStyleSet(fontStyleSetImpl);
 }
-
-Typeface* SkiaFontMgr::MatchFamilyStyle(const char familyName[], const FontStyle& fontStyle) const
-{
-    SkFontStyle skFontStyle;
-    SkiaConvertUtils::DrawingFontStyleCastToSkFontStyle(fontStyle, skFontStyle);
-    SkTypeface* skTypeface =
-        skFontMgr_->matchFamilyStyle(familyName, skFontStyle);
-    if (!skTypeface) {
-        return nullptr;
-    }
-    std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(sk_sp(skTypeface));
-    return new Typeface(typefaceImpl);
-}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

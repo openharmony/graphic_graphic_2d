@@ -90,44 +90,6 @@ std::shared_ptr<TexgineFontStyleSet> TexgineFontManager::MatchFamily(const std::
 #endif
     return std::make_shared<TexgineFontStyleSet>(set);
 }
-
-std::shared_ptr<TexgineTypeface> TexgineFontManager::MatchFamilyStyle(const std::string &familyName,
-    const TexgineFontStyle &style)
-{
-#ifndef USE_ROSEN_DRAWING
-    if (fontMgr_ == nullptr) {
-        return nullptr;
-    }
-    SkTypeface* skTyepface = nullptr;
-    if (familyName != "") {
-        skTyepface = fontMgr_->matchFamilyStyle(familyName.c_str(), *style.GetFontStyle());
-    } else {
-        // nullptr means default generalfamilyName
-        skTyepface = fontMgr_->matchFamilyStyle(nullptr, *style.GetFontStyle());
-    }
-
-    if (!skTyepface) {
-        return nullptr;
-    }
-    auto typeface = sk_sp<SkTypeface>(skTyepface);
-#else
-    if (fontMgr_ == nullptr) {
-        return nullptr;
-    }
-    RSTypeface* rsTypeface = nullptr;
-    if (familyName != "") {
-        rsTypeface = fontMgr_->MatchFamilyStyle(familyName.c_str(), *style.GetFontStyle());
-    } else {
-        rsTypeface = fontMgr_->MatchFamilyStyle(nullptr, *style.GetFontStyle());
-    }
-
-    if (!skTyepface) {
-        return nullptr;
-    }
-    std::shared_ptr<RSTypeface> typeface(rsTypeface);
-#endif
-    return std::make_shared<TexgineTypeface>(typeface);
-}
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS

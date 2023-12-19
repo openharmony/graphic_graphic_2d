@@ -73,9 +73,6 @@ public:
      */
     std::shared_ptr<TexgineFontStyleSet> MatchFamily(const std::string &familyName);
 
-    std::shared_ptr<TexgineTypeface> MatchFamilyStyle(const std::string &familyName,
-        const TexgineFontStyle &style);
-
 private:
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkFontMgr> fontMgr_;

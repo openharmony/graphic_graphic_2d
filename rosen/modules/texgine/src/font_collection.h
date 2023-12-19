@@ -44,10 +44,10 @@ public:
         const std::string &script, const std::string &locale) const;
 
     void DisableFallback();
-    int DetectionScript(std::string script) const;
+
 private:
     void SortTypeface(FontStyles &style) const;
-    void FillDefaultItalicSupportFile();
+
 private:
     bool enableFallback_ = true;
     std::vector<std::shared_ptr<VariantFontStyleSet>> fontStyleSets_;
@@ -73,7 +73,6 @@ private:
             return script < rhs.script || locale < rhs.locale || fs < rhs.fs;
         }
     };
-    std::map<std::string, int> supportScript_;
     static inline std::map<struct FallbackCacheKey, std::shared_ptr<Typeface>> fallbackCache_;
 };
 } // namespace TextEngine
