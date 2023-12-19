@@ -82,16 +82,9 @@ std::shared_ptr<Media::PixelMap> RSDividedUICapture::TakeLocalCapture()
     }
     auto canvas = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
 #endif
-    if (!node->IsOnTheTree()) {
-        visitor->SetPaintFilterCanvas(canvas);
-        node->ApplyModifiers();
-        node->Prepare(visitor);
-        node->Process(visitor);
-    } else {
-        PostTaskToRTRecord(recordingCanvas, node, visitor);
-        auto drawCallList = recordingCanvas->GetDrawCmdList();
-        drawCallList->Playback(*canvas);
-    }
+    PostTaskToRTRecord(recordingCanvas, node, visitor);
+    auto drawCallList = recordingCanvas->GetDrawCmdList();
+    drawCallList->Playback(*canvas);
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> img(skSurface.get()->makeImageSnapshot());
@@ -288,6 +281,10 @@ void RSDividedUICapture::PostTaskToRTRecord(std::shared_ptr<Drawing::RecordingCa
 {
     std::function<void()> recordingDrawCall = [canvas, node, visitor]() -> void {
         visitor->SetCanvas(canvas);
+        if (!node->IsOnTheTree()) {
+            node->ApplyModifiers();
+            node->Prepare(visitor);
+        }
         node->Process(visitor);
     };
     RSRenderThread::Instance().PostSyncTask(recordingDrawCall);
@@ -441,7 +438,7 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessSurfaceRenderNode(RSS
     }
     std::shared_ptr<RSOffscreenRenderCallback> callback = std::make_shared<RSOffscreenRenderCallback>();
     auto renderServiceClient = std::make_unique<RSRenderServiceClient>();
-    renderServiceClient->TakeSurfaceCapture(node.GetId(), callback, scaleX_, scaleY_);
+    renderServiceClient->TakeSurfaceCapture(node.GetId(), callback, scaleX_, scaleY_, SurfaceCaptureType::UICAPTURE);
     std::shared_ptr<Media::PixelMap> pixelMap = callback->GetResult(2000);
     if (pixelMap == nullptr) {
         ROSEN_LOGE("RSDividedUICaptureVisitor::TakeLocalCapture failed to get pixelmap, return nullptr!");
