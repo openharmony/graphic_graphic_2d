@@ -64,6 +64,7 @@ public:
     uint64_t id_ = 0;
     uint32_t vsyncPulseFreq_ = 1;
     int64_t referencePulseCount_ = 0;
+    uint32_t refreshRate_ = 0;
 private:
     VsyncError CleanAllLocked();
     class VSyncConnectionDeathRecipient : public IRemoteObject::DeathRecipient {
@@ -141,6 +142,7 @@ private:
     std::vector<std::pair<uint64_t, uint32_t>> changingConnsRefreshRates_; // std::pair<id, refresh rate>
     VSyncMode vsyncMode_ = VSYNC_MODE_LTPS; // default LTPS
     std::mutex changingConnsRefreshRatesMtx_;
+    uint32_t generatorRefreshRate_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
