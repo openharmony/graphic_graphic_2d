@@ -242,10 +242,10 @@ public:
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #ifndef USE_ROSEN_DRAWING
     static sk_sp<SkColorSpace> ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut);
-    void ColorSpaceConvertor(sk_sp<SkShader> &inputShader, BufferDrawParam& params);
+    static void ColorSpaceConvertor(sk_sp<SkShader> &inputShader, BufferDrawParam& params);
 #else
     static std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToDrawingColorSpace(GraphicColorGamut colorGamut);
-    void ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader, BufferDrawParam& params);
+    static void ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader, BufferDrawParam& params);
 #endif
 #endif
 protected:
@@ -288,9 +288,9 @@ private:
 #endif
     using SurfaceId = uint64_t;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    bool SetColorSpaceConverterDisplayParameter(
+    static bool SetColorSpaceConverterDisplayParameter(
         const BufferDrawParam& params, Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter);
-    bool ConvertColorGamutToSpaceInfo(const GraphicColorGamut& colorGamut,
+    static bool ConvertColorGamutToSpaceInfo(const GraphicColorGamut& colorGamut,
         HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo);
     std::shared_ptr<Media::VideoProcessingEngine::ColorSpaceConverterDisplay> colorSpaceConverterDisplay_ = nullptr;
 #endif

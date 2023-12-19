@@ -354,18 +354,23 @@ bool HdiOutput::CheckAndUpdateClientBufferCahce(sptr<SurfaceBuffer> buffer, uint
     return false;
 }
 
-void HdiOutput::SetBufferColorSpace(sptr<SurfaceBuffer>& buffer, const std::vector<LayerPtr>& layers) const
+void HdiOutput::SetBufferColorSpace(sptr<SurfaceBuffer>& buffer, const std::vector<LayerPtr>& layers)
 {
+    if (buffer == nullptr) {
+        HLOGE("HdiOutput::SetBufferColorSpace null buffer");
+        return;
+    }
+
     CM_ColorSpaceType targetColorSpace = CM_DISPLAY_SRGB;
     for (auto& layer : layers) {
-        auto buffer = layer->GetLayerInfo()->GetBuffer();
-        if (buffer == nullptr) {
+        auto layerBuffer = layer->GetLayerInfo()->GetBuffer();
+        if (layerBuffer == nullptr) {
             HLOGW("HdiOutput::SetBufferColorSpace The buffer of layer is nullptr");
             continue;
         }
 
         CM_ColorSpaceInfo colorSpaceInfo;
-        if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
+        if (MetadataHelper::GetColorSpaceInfo(layerBuffer, colorSpaceInfo) != GSERROR_OK) {
             HLOGW("HdiOutput::SetBufferColorSpace Get color space from surface buffer failed");
             continue;
         }

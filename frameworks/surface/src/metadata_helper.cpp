@@ -46,6 +46,11 @@ GSError MetadataHelper::ConvertColorSpaceInfoToType(const CM_ColorSpaceInfo& col
 
 GSError MetadataHelper::SetColorSpaceInfo(sptr<SurfaceBuffer>& buffer, const CM_ColorSpaceInfo& colorSpaceInfo)
 {
+    if (buffer == nullptr) {
+        BLOGW("MetadataHelper::SetColorSpaceInfo null buffer");
+        return GSERROR_NO_BUFFER;
+    }
+
     std::vector<uint8_t> colorSpaceInfoVec;
     auto ret = ConvertMetadataToVec(colorSpaceInfo, colorSpaceInfoVec);
     if (ret != GSERROR_OK) {
@@ -57,6 +62,11 @@ GSError MetadataHelper::SetColorSpaceInfo(sptr<SurfaceBuffer>& buffer, const CM_
 
 GSError MetadataHelper::GetColorSpaceInfo(const sptr<SurfaceBuffer>& buffer, CM_ColorSpaceInfo& colorSpaceInfo)
 {
+    if (buffer == nullptr) {
+        BLOGW("MetadataHelper::GetColorSpaceInfo null buffer");
+        return GSERROR_NO_BUFFER;
+    }
+
     std::vector<uint8_t> colorSpaceInfoVec;
     auto ret = buffer->GetMetadata(ATTRKEY_COLORSPACE_INFO, colorSpaceInfoVec);
     if (ret != GSERROR_OK) {
@@ -68,6 +78,11 @@ GSError MetadataHelper::GetColorSpaceInfo(const sptr<SurfaceBuffer>& buffer, CM_
 
 GSError MetadataHelper::SetColorSpaceType(sptr<SurfaceBuffer>& buffer, const CM_ColorSpaceType& colorSpaceType)
 {
+    if (buffer == nullptr) {
+        BLOGW("MetadataHelper::SetColorSpaceType null buffer");
+        return GSERROR_NO_BUFFER;
+    }
+
     CM_ColorSpaceInfo colorSpaceInfo;
     auto ret = ConvertColorSpaceTypeToInfo(colorSpaceType, colorSpaceInfo);
     if (ret != GSERROR_OK) {
@@ -79,6 +94,11 @@ GSError MetadataHelper::SetColorSpaceType(sptr<SurfaceBuffer>& buffer, const CM_
 
 GSError MetadataHelper::GetColorSpaceType(const sptr<SurfaceBuffer>& buffer, CM_ColorSpaceType& colorSpaceType)
 {
+    if (buffer == nullptr) {
+        BLOGW("MetadataHelper::GetColorSpaceType null buffer");
+        return GSERROR_NO_BUFFER;
+    }
+
     CM_ColorSpaceInfo colorSpaceInfo;
     auto ret = GetColorSpaceInfo(buffer, colorSpaceInfo);
     if (ret != GSERROR_OK) {
@@ -90,6 +110,11 @@ GSError MetadataHelper::GetColorSpaceType(const sptr<SurfaceBuffer>& buffer, CM_
 
 GSError MetadataHelper::SetHDRMetadataType(sptr<SurfaceBuffer>& buffer, const CM_HDR_Metadata_Type& hdrMetadataType)
 {
+    if (buffer == nullptr) {
+        BLOGW("MetadataHelper::SetHDRMetadataType null buffer");
+        return GSERROR_NO_BUFFER;
+    }
+
     std::vector<uint8_t> hdrMetadataTypeVec;
     auto ret = ConvertMetadataToVec(hdrMetadataType, hdrMetadataTypeVec);
     if (ret != GSERROR_OK) {
@@ -101,6 +126,11 @@ GSError MetadataHelper::SetHDRMetadataType(sptr<SurfaceBuffer>& buffer, const CM
 
 GSError MetadataHelper::GetHDRMetadataType(const sptr<SurfaceBuffer>& buffer, CM_HDR_Metadata_Type& hdrMetadataType)
 {
+    if (buffer == nullptr) {
+        BLOGW("MetadataHelper::GetHDRMetadataType null buffer");
+        return GSERROR_NO_BUFFER;
+    }
+
     std::vector<uint8_t> hdrMetadataTypeVec;
     auto ret = buffer->GetMetadata(ATTRKEY_HDR_METADATA_TYPE, hdrMetadataTypeVec);
     if (ret != GSERROR_OK) {
@@ -113,6 +143,11 @@ GSError MetadataHelper::GetHDRMetadataType(const sptr<SurfaceBuffer>& buffer, CM
 GSError MetadataHelper::SetHDRStaticMetadata(sptr<SurfaceBuffer>& buffer,
     const HdrStaticMetadata& hdrStaticMetadata)
 {
+    if (buffer == nullptr) {
+        BLOGW("MetadataHelper::SetHDRStaticMetadata null buffer");
+        return GSERROR_NO_BUFFER;
+    }
+
     std::vector<uint8_t> hdrStaticMetadataVec;
     auto ret = ConvertMetadataToVec(hdrStaticMetadata, hdrStaticMetadataVec);
     if (ret != GSERROR_OK) {
@@ -125,6 +160,11 @@ GSError MetadataHelper::SetHDRStaticMetadata(sptr<SurfaceBuffer>& buffer,
 GSError MetadataHelper::GetHDRStaticMetadata(const sptr<SurfaceBuffer>& buffer,
     HdrStaticMetadata& hdrStaticMetadata)
 {
+    if (buffer == nullptr) {
+        BLOGW("MetadataHelper::GetHDRStaticMetadata null buffer");
+        return GSERROR_NO_BUFFER;
+    }
+
     std::vector<uint8_t> hdrStaticMetadataVec;
     auto ret = buffer->GetMetadata(ATTRKEY_HDR_STATIC_METADATA, hdrStaticMetadataVec);
     if (ret != GSERROR_OK) {
@@ -137,24 +177,44 @@ GSError MetadataHelper::GetHDRStaticMetadata(const sptr<SurfaceBuffer>& buffer,
 GSError MetadataHelper::SetHDRDynamicMetadata(sptr<SurfaceBuffer>& buffer,
     const std::vector<uint8_t>& hdrDynamicMetadata)
 {
+    if (buffer == nullptr) {
+        BLOGW("MetadataHelper::SetHDRDynamicMetadata null buffer");
+        return GSERROR_NO_BUFFER;
+    }
+
     return buffer->SetMetadata(ATTRKEY_HDR_DYNAMIC_METADATA, hdrDynamicMetadata);
 }
 
 GSError MetadataHelper::GetHDRDynamicMetadata(const sptr<SurfaceBuffer>& buffer,
     std::vector<uint8_t>& hdrDynamicMetadata)
 {
+    if (buffer == nullptr) {
+        BLOGW("MetadataHelper::GetHDRDynamicMetadata null buffer");
+        return GSERROR_NO_BUFFER;
+    }
+
     return buffer->GetMetadata(ATTRKEY_HDR_DYNAMIC_METADATA, hdrDynamicMetadata);
 }
 
 GSError MetadataHelper::SetHDRStaticMetadata(sptr<SurfaceBuffer>& buffer,
     const std::vector<uint8_t>& hdrStaticMetadata)
 {
+    if (buffer == nullptr) {
+        BLOGW("MetadataHelper::SetHDRStaticMetadata null buffer");
+        return GSERROR_NO_BUFFER;
+    }
+
     return buffer->SetMetadata(ATTRKEY_HDR_STATIC_METADATA, hdrStaticMetadata);
 }
 
 GSError MetadataHelper::GetHDRStaticMetadata(const sptr<SurfaceBuffer>& buffer,
     std::vector<uint8_t>& hdrStaticMetadata)
 {
+    if (buffer == nullptr) {
+        BLOGW("MetadataHelper::GetHDRStaticMetadata null buffer");
+        return GSERROR_NO_BUFFER;
+    }
+
     return buffer->GetMetadata(ATTRKEY_HDR_STATIC_METADATA, hdrStaticMetadata);
 }
 } // namespace OHOS

@@ -625,7 +625,7 @@ void RenderContext::ClearRedundantResources()
 #endif
 }
 
-sk_sp<SkColorSpace> RenderContext::ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut) const
+sk_sp<SkColorSpace> RenderContext::ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut)
 {
     sk_sp<SkColorSpace> skColorSpace = nullptr;
     switch (colorGamut) {

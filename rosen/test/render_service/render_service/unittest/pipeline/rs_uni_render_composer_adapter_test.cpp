@@ -1147,7 +1147,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace001, TestSize.Level2
 
     nodePtr->SetBuffer(buffer, SyncFence::INVALID_FENCE, Rect(), 0);
 
-    composerAdapter_->SetBufferColorSpace(*nodePtr);
+    RSUniRenderComposerAdapter::SetBufferColorSpace(*nodePtr);
 
     CM_ColorSpaceType colorSpaceType;
     ret = MetadataHelper::GetColorSpaceType(buffer, colorSpaceType);
