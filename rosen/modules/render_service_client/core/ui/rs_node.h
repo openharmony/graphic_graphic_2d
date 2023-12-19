@@ -388,6 +388,7 @@ private:
     bool HasPropertyAnimation(const PropertyId& id);
     void FallbackAnimationsToRoot();
     void AddAnimationInner(const std::shared_ptr<RSAnimation>& animation);
+    void FinishAnimationByProperty(const PropertyId& id);
     void RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void CancelAnimationByProperty(const PropertyId& id);
     const std::shared_ptr<RSModifier> GetModifier(const PropertyId& propertyId);

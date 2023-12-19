@@ -474,13 +474,13 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
         }
         case ImplicitAnimationParamType::CANCEL: {
             // Create animation with CANCEL type will cancel all running animations of the target.
-            // Note: To avoid current ImplicitAnimation Param changing the behavior of the callbacks, we need to add an
-            // isolation layer
-            implicitAnimationParams_.push(std::make_shared<RSImplicitAnimationParam>());
             property->SetValue(endValue);                         // force set ui value
             property->UpdateOnAllAnimationFinish();               // force sync RS value and cancel all RS animations
+            // Note: The callbacks of the canceled animations will be executed within the current implicit animation
+            // context, consistent with previous behavior. However, this may cause issues and may be changed in the
+            // future.
             target->CancelAnimationByProperty(property->GetId()); // remove all ui animation
-            implicitAnimations_.pop();                            // restore implicit animation param
+            return;
             return;
         }
         default:
