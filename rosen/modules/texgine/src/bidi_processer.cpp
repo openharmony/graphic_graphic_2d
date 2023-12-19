@@ -104,7 +104,9 @@ std::vector<NewSpanInfo> BidiProcesser::DoBidiProcess(const CharGroups &cgs, con
         nsi.cgs = ic;
         nsis.push_back(nsi);
     }
-    std::reverse(nsis.begin(), nsis.end());
+    if (dir == TextDirection::RTL) {
+        std::reverse(nsis.begin(), nsis.end());
+    }
     return nsis;
 }
 } // namespace TextEngine
