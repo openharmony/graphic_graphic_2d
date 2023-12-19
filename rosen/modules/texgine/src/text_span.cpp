@@ -69,7 +69,7 @@ namespace TextEngine {
 #ifdef BUILD_NON_SDK_VER
 const bool G_IS_HMSYMBOL_ENABLE = Drawing::SystemProperties::GetHMSymbolEnable();
 #else
-const bool G_IS_HMSYMBOL_ENABLE = false;
+const bool G_IS_HMSYMBOL_ENABLE = true;
 #endif
 
 std::shared_ptr<TextSpan> TextSpan::MakeEmpty()
