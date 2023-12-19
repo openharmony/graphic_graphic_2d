@@ -84,6 +84,7 @@ void VSyncTest::SetUp()
     rsDistributor = new VSyncDistributor(rsController, "rsController");
 
     samplerThread = std::thread(std::bind(&VSyncTest::ThreadMain));
+    samplerThread.join();
 }
 
 void VSyncTest::TearDown()
