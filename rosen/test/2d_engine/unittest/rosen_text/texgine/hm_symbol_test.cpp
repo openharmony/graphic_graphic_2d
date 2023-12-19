@@ -27,7 +27,7 @@ class OHHmSymbolTest : public testing::Test {};
 
 /*
  * @tc.name: OHHmSymbolTest001
- * @tc.desc: test for symbol SetRenderMode
+ * @tc.desc: test for font isSymbolGlyph
  * @tc.type: FUNC
  */
 HWTEST_F(OHHmSymbolTest, OHHmSymbolTest001, TestSize.Level1)
@@ -41,7 +41,7 @@ HWTEST_F(OHHmSymbolTest, OHHmSymbolTest001, TestSize.Level1)
 
 /*
  * @tc.name: OHHmSymbolTest002
- * @tc.desc: test for font isSymbolGlyph
+ * @tc.desc: test for symbol SetRenderMode
  * @tc.type: FUNC
  */
 HWTEST_F(OHHmSymbolTest, OHHmSymbolTest002, TestSize.Level1)
@@ -62,7 +62,7 @@ HWTEST_F(OHHmSymbolTest, OHHmSymbolTest002, TestSize.Level1)
 
 /*
  * @tc.name: OHHmSymbolTest003
- * @tc.desc: test for font isSymbolGlyph
+ * @tc.desc: test for DrawSymbol
  * @tc.type: FUNC
  */
 HWTEST_F(OHHmSymbolTest, OHHmSymbolTest003, TestSize.Level1)
@@ -80,7 +80,7 @@ HWTEST_F(OHHmSymbolTest, OHHmSymbolTest003, TestSize.Level1)
 
 /*
  * @tc.name: OHHmSymbolTest004
- * @tc.desc: test for font isSymbolGlyph
+ * @tc.desc: test for symbol GetSymbolLayers
  * @tc.type: FUNC
  */
 HWTEST_F(OHHmSymbolTest, OHHmSymbolTest004, TestSize.Level1)
