@@ -81,6 +81,8 @@ void RSComposerAdapterTest::CreateComposerAdapterWithScreenInfo(uint32_t width, 
     auto info = screenManager_->QueryScreenInfo(screenId_);
     info.width = width;
     info.height = height;
+    info.phyWidth = width;
+    info.phyHeight = height;
     info.colorGamut = colorGamut;
     info.state = state;
     info.rotation = rotation;
