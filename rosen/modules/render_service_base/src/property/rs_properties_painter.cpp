@@ -29,6 +29,7 @@
 
 #ifdef USE_ROSEN_DRAWING
 #include <cstdint>
+#include <algorithm>
 
 #include "draw/canvas.h"
 #include "draw/clip.h"
@@ -1367,7 +1368,7 @@ void RSPropertiesPainter::DrawLinearGradientBlur(Drawing::Surface* surface, RSPa
         return;
     }
 
-    if (RSSystemProperties::GetMaskLinearBlurEnabled() && para->useMaskAlgorithm) {
+    if (RSSystemProperties::GetMaskLinearBlurEnabled() && para->useMaskAlgorithm_) {
         // use faster LinearGradientBlur if valid
         RS_OPTIONAL_TRACE_NAME("DrawLinearGradientBlur_mask");
         if (para->LinearGradientBlurFilter_ == nullptr) {
@@ -1384,7 +1385,9 @@ void RSPropertiesPainter::DrawLinearGradientBlur(Drawing::Surface* surface, RSPa
     } else {
         // use original LinearGradientBlur
         RS_OPTIONAL_TRACE_NAME("DrawLinearGradientBlur_original");
-        float radius = para->blurRadius_ / 2;
+        float radius = para->blurRadius_ - para->originalBase_;
+        radius = std::clamp(radius, 0.0f, 100.0f);  // 100.0 represents largest blur radius
+        radius = radius / 2;
         DrawHorizontalLinearGradientBlur(surface, canvas, radius, alphaGradientShader, clipIPadding);
         DrawVerticalLinearGradientBlur(surface, canvas, radius, alphaGradientShader, clipIPadding);
         DrawHorizontalLinearGradientBlur(surface, canvas, radius, alphaGradientShader, clipIPadding);
