@@ -855,12 +855,12 @@ int32_t RSScreen::GetScreenSupportedColorSpaces(std::vector<GraphicCM_ColorSpace
 {
     colorSpaces.clear();
     if (IsVirtual()) {
-        std::transform(supportedVirtualColorGamuts_.begin(), supportedVirtualColorGamuts_.end(), colorSpaces.end(), 
+        std::transform(supportedVirtualColorGamuts_.begin(), supportedVirtualColorGamuts_.end(), colorSpaces.end(),
                        [](ScreenColorGamut item) -> GraphicCM_ColorSpaceType {
                            return RS_TO_COMMON_COLOR_SPACE_TYPE_MAP[static_cast<GraphicColorGamut>(item)];
                        });
     } else {
-        std::transform(supportedPhysicalColorGamuts_.begin(), supportedPhysicalColorGamuts_.end(), colorSpaces.end(), 
+        std::transform(supportedPhysicalColorGamuts_.begin(), supportedPhysicalColorGamuts_.end(), colorSpaces.end(),
                        [](ScreenColorGamut item) -> GraphicCM_ColorSpaceType {
                            return RS_TO_COMMON_COLOR_SPACE_TYPE_MAP[static_cast<GraphicColorGamut>(item)];
                        });
