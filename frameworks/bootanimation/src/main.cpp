@@ -43,12 +43,9 @@ int main(int argc, const char *argv[])
         return 0;
     }
 
-    Rosen::RSScreenModeInfo modeinfo = interface.GetScreenActiveMode(defaultId);
-    int screenWidth = modeinfo.GetScreenWidth();
-    int screenHeight = modeinfo.GetScreenHeight();
-
+    auto display = dms.GetDisplayByScreen(defaultId);
     BootAnimation bootAnimation;
-    bootAnimation.Run(defaultId, screenWidth, screenHeight);
+    bootAnimation.Run(defaultId, display->GetWidth(), display->GetHeight());
 
     LOGI("main exit");
     return 0;
