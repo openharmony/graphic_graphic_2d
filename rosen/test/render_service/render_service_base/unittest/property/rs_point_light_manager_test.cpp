@@ -52,8 +52,6 @@ HWTEST_F(RSPointLightManagerTest, PrepareLight, TestSize.Level1)
     instance->RegisterIlluminated(rsRenderNode);
     instance->AddDirtyLightSource(rsRenderNode);
     instance->AddDirtyIlluminated(rsRenderNode);
-
-    instance->PrepareLight();
 }
 }
 }
