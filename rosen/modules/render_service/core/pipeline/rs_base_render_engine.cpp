@@ -598,8 +598,8 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
         return;
     }
 
-    std::shared_ptr<Drawing::ShaderEffect> outputShader;
-    auto convRet = colorSpaceConverterDisplay_->Process(inputShader, outputShader, parameter);
+    sk_sp<SkShader> outputShader;
+    auto convRet = colorSpaceConverterDisplay_->Process(inputShader->ExportSkShader(), outputShader, parameter);
     if (convRet != Media::VideoProcessingEngine::VPE_ALGO_ERR_OK) {
         RS_LOGE("RSBaseRenderEngine::ColorSpaceConvertor colorSpaceConverterDisplay failed with %{public}u.", convRet);
         RS_OPTIONAL_TRACE_END();
@@ -610,7 +610,9 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
         RS_OPTIONAL_TRACE_END();
         return;
     }
-    params.paint.SetShaderEffect(outputShader);
+    std::shared_ptr<Drawing::ShaderEffect> drawingEffect = std::make_shared<Drawing::ShaderEffect>();
+    drawingEffect->SetSkShader(outputShader);
+    params.paint.SetShaderEffect(drawingEffect);
     RS_OPTIONAL_TRACE_END();
 }
 #endif
