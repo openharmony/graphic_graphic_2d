@@ -104,7 +104,6 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyl
         }
         GenNewBoundryByHardBreak(cgs, boundaries);
         GenNewBoundryByTypeface(cgs, boundaries);
-        GenNewBoundryByQuote(cgs, boundaries);
 
         preBreak_ = 0;
         postBreak_ = 0;
@@ -181,7 +180,7 @@ void TextBreaker::GenNewBoundryByTypeface(CharGroups cgs, std::vector<Boundary> 
             }
 
             newBoundary.push_back({newStart, newEnd});
-            newStart = newEnd;
+            newStart = newEnd++;
             typeface = cg->typeface;
         }
 
