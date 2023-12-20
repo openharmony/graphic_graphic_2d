@@ -2038,11 +2038,28 @@ void RSUniRenderVisitor::ProcessShadowFirst(RSRenderNode& node, bool inSubThread
     }
 }
 
+void RSUniRenderVisitor::CheckSkipRepeatShadow(RSRenderNode& node, const bool resetStatus)
+{
+    // In normal process, if shadow has drawn in drawCacheWithBlur, no need to draw again in children node
+    // not comming from drawCacheWithBlur and updateCacheProcess, child has shadow,skip draw shadow child later
+    if (!drawCacheWithBlur_ && !notRunCheckAndSetNodeCacheType_ && !allCacheFilterRects_[node.GetId()].empty() &&
+        node.ChildHasFilter() && updateCacheProcessCnt_ == 0) {
+        if (resetStatus) {
+            RS_TRACE_NAME("status reset");
+            noNeedTodrawShadowAgain_ = false;
+            return;
+        }
+        noNeedTodrawShadowAgain_ = true;
+    }
+}
+
 void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
 {
     if (DrawBlurInCache(node) || node.GetChildrenCount() == 0) {
         return;
     }
+
+    CheckSkipRepeatShadow(node, false);
 
     if (isSubThread_) {
         node.SetIsUsedBySubThread(true);
@@ -2056,9 +2073,19 @@ void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
     } else {
         ProcessShadowFirst(node, isSubThread_);
         for (auto& child : node.GetSortedChildren()) {
+            // skip shadow drawing in updateCacheProcess，it will draw in drawCacheWithBlur
+            // and skip shadow repeat drawing in normal process
+            if (!drawCacheWithBlur_ && node.GetRenderProperties().GetShadowColorStrategy() !=
+                SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE &&
+                (updateCacheProcessCnt_ != 0 || noNeedTodrawShadowAgain_)) {
+                RS_TRACE_NAME("skip draw shadow and text repeatly");
+                break;
+            }
             ProcessChildInner(node, child);
         }
     }
+
+    CheckSkipRepeatShadow(node, true);
 }
 
 void RSUniRenderVisitor::ProcessChildrenForScreenRecordingOptimization(
@@ -3686,6 +3713,8 @@ void RSUniRenderVisitor::CheckAndSetNodeCacheType(RSRenderNode& node)
                 RSUniRenderUtil::ClearCacheSurface(node, threadIndex_);
             }
         }
+        // label this frame not run CheckAndSetNodeCacheType, means not run drawCacheWithBlur
+        notRunCheckAndSetNodeCacheType_ = true;
     }
 }
 
@@ -3763,7 +3792,10 @@ bool RSUniRenderVisitor::UpdateCacheSurface(RSRenderNode& node)
         node.SetDrawingCacheRootId(node.GetId());
     }
     node.ProcessRenderContents(*canvas_);
+    // Set a count to label the ProcessChildren in updateCacheProcess
+    updateCacheProcessCnt_++;
     ProcessChildren(node);
+    updateCacheProcessCnt_--;
 
     if (cacheType == CacheType::ANIMATE_PROPERTY) {
         if (node.GetRenderProperties().IsShadowValid()
@@ -4432,8 +4464,11 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMapWithBlur(RSRenderNode& node)
     node.SetCacheType(CacheType::NONE);
     bool isOpDropped = isOpDropped_;
     isOpDropped_ = false;
+    // Label the ProcessChildren in drawCacheWithBlur
+    drawCacheWithBlur_ = true;
     DrawChildRenderNode(node);
     isOpDropped_ = isOpDropped;
+    drawCacheWithBlur_ = false;
     node.SetCacheType(nodeType);
     curCacheFilterRects_.pop();
 }
@@ -4618,6 +4653,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
     }
     CheckAndSetNodeCacheType(node);
     DrawChildCanvasRenderNode(node);
+    notRunCheckAndSetNodeCacheType_ = false;
     isTextNeedCached_ = false;
     canvas_->SetCacheType(preType);
 #ifndef USE_ROSEN_DRAWING

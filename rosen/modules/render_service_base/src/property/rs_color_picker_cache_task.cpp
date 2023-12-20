@@ -132,7 +132,7 @@ bool RSColorPickerCacheTask::GpuScaleImage(std::shared_ptr<RSPaintFilterCanvas> 
     SkSamplingOptions linear(SkFilterMode::kLinear, SkMipmapMode::kNone);
     SkRuntimeShaderBuilder effectBulider(effect);
     SkImageInfo pcInfo;
-    auto matrix = SkMatrix::Scale(1.0, 1.0);
+    SkMatrix matrix;
     if (threadImage->width() * threadImage->height() < 10000) { // 10000 = 100 * 100 pixels
         pcInfo = SkImageInfo::MakeN32Premul(10, 10); // 10 * 10 pixels
         matrix = SkMatrix::Scale(10.0 / threadImage->width(), 10.0 / threadImage->height()); // 10.0 pixels

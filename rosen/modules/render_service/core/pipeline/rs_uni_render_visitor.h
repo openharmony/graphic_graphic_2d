@@ -73,6 +73,7 @@ public:
     bool GenerateNodeContentCache(RSRenderNode& node);
     bool InitNodeCache(RSRenderNode& node);
     void CopyVisitorInfos(std::shared_ptr<RSUniRenderVisitor> visitor);
+    void CheckSkipRepeatShadow(RSRenderNode& node, const bool resetStatus);
     void SetProcessorRenderEngine(std::shared_ptr<RSBaseRenderEngine> renderEngine)
     {
         renderEngine_ = renderEngine;
@@ -480,6 +481,10 @@ private:
     bool curContentDirty_ = false;
     bool isPhone_ = false;
     bool isCacheBlurPartialRenderEnabled_ = false;
+    bool drawCacheWithBlur_ = false;
+    bool noNeedTodrawShadowAgain_ = false;
+    bool notRunCheckAndSetNodeCacheType_ = false;
+    int updateCacheProcessCnt_ = 0;
 
     NodeId firstVisitedCache_ = INVALID_NODEID;
     std::unordered_set<NodeId> visitedCacheNodeIds_ = {};
