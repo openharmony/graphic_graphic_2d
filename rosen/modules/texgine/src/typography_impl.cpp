@@ -269,14 +269,21 @@ void TypographyImpl::Layout(double maxWidth)
         LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "TypographyImpl::Layout");
         LOGEX_FUNC_LINE_DEBUG() << "Layout maxWidth: " << maxWidth << ", spans.size(): " << spans_.size();
         maxWidth_ = floor(maxWidth);
-        if (spans_.empty()) {
+        auto isEmptySpans = spans_.empty();
+        if (isEmptySpans) {
             LOGEX_FUNC_LINE(ERROR) << "Empty spans";
-            return;
+            std::vector<uint16_t> text{u'\n'};
+            VariantSpan vs = TextSpan::MakeFromText(text);
+            vs.SetTextStyle(typographyStyle_.ConvertToTextStyle());
+            spans_.push_back(vs);
         }
 
         Shaper shaper;
         shaper.SetIndents(indents_);
         lineMetrics_ = shaper.DoShape(spans_, typographyStyle_, fontProviders_, maxWidth_);
+        if (isEmptySpans) {
+            lineMetrics_.pop_back();
+        }
         if (lineMetrics_.size() == 0) {
             LOGEX_FUNC_LINE_DEBUG() << "Shape failed";
             return;
