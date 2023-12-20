@@ -15,6 +15,7 @@
 
 #include "rs_render_service_connection_proxy.h"
 
+#include <algorithm>
 #include <message_option.h>
 #include <message_parcel.h>
 #include <vector>
@@ -1281,9 +1282,8 @@ int32_t RSRenderServiceConnectionProxy::GetScreenSupportedHDRFormats(
         hdrFormats.clear();
         std::vector<uint32_t> hdrFormatsRecv;
         reply.ReadUInt32Vector(&hdrFormatsRecv);
-        for (auto i : hdrFormatsRecv) {
-            hdrFormats.push_back(static_cast<ScreenHDRFormat>(i));
-        }
+        std::transform(hdrFormatsRecv.begin(), hdrFormatsRecv.end(), hdrFormats.end(),
+                       [](uint32_t i) -> ScreenHDRFormat {return static_cast<ScreenHDRFormat>(i);});
     }
     return result;
 }
@@ -1351,9 +1351,8 @@ int32_t RSRenderServiceConnectionProxy::GetScreenSupportedColorSpaces(
         colorSpaces.clear();
         std::vector<uint32_t> colorSpacesRecv;
         reply.ReadUInt32Vector(&colorSpacesRecv);
-        for (auto i : colorSpacesRecv) {
-            colorSpaces.push_back(static_cast<GraphicCM_ColorSpaceType>(i));
-        }
+        std::transform(colorSpacesRecv.begin(), colorSpacesRecv.end(), colorSpaces.end(),
+                       [](uint32_t i) -> GraphicCM_ColorSpaceType {return static_cast<GraphicCM_ColorSpaceType>(i);});
     }
     return result;
 }

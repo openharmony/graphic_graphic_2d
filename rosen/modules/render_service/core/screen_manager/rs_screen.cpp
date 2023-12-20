@@ -15,6 +15,7 @@
 
 #include "rs_screen.h"
 
+#include <algorithm>
 #include <cinttypes>
 
 #include "platform/common/rs_log.h"
@@ -132,9 +133,8 @@ void RSScreen::PhysicalScreenInit() noexcept
         RS_LOGE("RSScreen %{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetHDRCapabilityInfos.",
             __func__, id_);
     }
-    for (auto item : hdrCapability_.formats) {
-        supportedPhysicalHDRFormats_.emplace_back(HDI_HDR_FORMAT_TO_RS_MAP[item]);
-    }
+    std::transform(hdrCapability_.formats.begin(), hdrCapability_.formats.end(), supportedPhysicalHDRFormats_.end(),
+                   [](GraphicHDRFormat item) -> ScreenHDRFormat {return HDI_HDR_FORMAT_TO_RS_MAP[item];});
     auto status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
     if (hdiScreen_->SetScreenPowerStatus(status) < 0) {
         RS_LOGE("RSScreen %{public}s: RSScreen(id %{public}" PRIu64 ") failed to SetScreenPowerStatus.",
@@ -855,13 +855,15 @@ int32_t RSScreen::GetScreenSupportedColorSpaces(std::vector<GraphicCM_ColorSpace
 {
     colorSpaces.clear();
     if (IsVirtual()) {
-        for (auto item : supportedVirtualColorGamuts_) {
-            colorSpaces.emplace_back(RS_TO_COMMON_COLOR_SPACE_TYPE_MAP[static_cast<GraphicColorGamut>(item)]);
-        }
+        std::transform(supportedVirtualColorGamuts_.begin(), supportedVirtualColorGamuts_.end(), colorSpaces.end(), 
+                       [](ScreenColorGamut item) -> GraphicCM_ColorSpaceType {
+                           return RS_TO_COMMON_COLOR_SPACE_TYPE_MAP[static_cast<GraphicColorGamut>(item)];
+                       });
     } else {
-        for (auto item : supportedPhysicalColorGamuts_) {
-            colorSpaces.emplace_back(RS_TO_COMMON_COLOR_SPACE_TYPE_MAP[static_cast<GraphicColorGamut>(item)]);
-        }
+        std::transform(supportedPhysicalColorGamuts_.begin(), supportedPhysicalColorGamuts_.end(), colorSpaces.end(), 
+                       [](ScreenColorGamut item) -> GraphicCM_ColorSpaceType {
+                           return RS_TO_COMMON_COLOR_SPACE_TYPE_MAP[static_cast<GraphicColorGamut>(item)];
+                       });
     }
     if (colorSpaces.size() == 0) {
         return StatusCode::HDI_ERROR;
@@ -884,7 +886,7 @@ int32_t RSScreen::SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace)
         return StatusCode::INVALID_ARGUMENTS;
     }
     ScreenColorGamut dstColorGamut = static_cast<ScreenColorGamut>(iter->second);
-    int32_t curIdx = 0;
+    int32_t curIdx;
     if (IsVirtual()) {
         auto it = std::find(supportedVirtualColorGamuts_.begin(), supportedVirtualColorGamuts_.end(), dstColorGamut);
         if (it == supportedVirtualColorGamuts_.end()) {

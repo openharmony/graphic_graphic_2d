@@ -1031,8 +1031,8 @@ ScreenInfo RSScreenManager::QueryScreenInfo(ScreenId id) const
         info.state = ScreenState::PRODUCER_SURFACE_ENABLE;
     }
     info.skipFrameInterval = screen->GetScreenSkipFrameInterval();
-    ret = screen->GetPixelFormat(info.pixelFormat);
-    ret = screen->GetScreenHDRFormat(info.hdrFormat);
+    screen->GetPixelFormat(info.pixelFormat);
+    screen->GetScreenHDRFormat(info.hdrFormat);
     info.filteredAppSet = screen->GetFilteredAppSet();
     return info;
 }
