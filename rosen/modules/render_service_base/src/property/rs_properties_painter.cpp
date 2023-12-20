@@ -670,6 +670,8 @@ bool RSPropertiesPainter::PickColor(const RSProperties& properties, RSPaintFilte
     int deviceClipBoundsH = skSurface->height();
     if (!colorPickerTask->GetDeviceSize(deviceWidth, deviceHeight)) {
         colorPickerTask->SetDeviceSize(deviceClipBoundsW, deviceClipBoundsH);
+        deviceWidth = deviceClipBoundsW;
+        deviceHeight = deviceClipBoundsH;
     }
     int32_t fLeft = std::clamp(int(matrix.getTranslateX()), 0, deviceWidth - 1);
     int32_t fTop = std::clamp(int(matrix.getTranslateY()), 0, deviceHeight - 1);
@@ -725,6 +727,8 @@ bool RSPropertiesPainter::PickColor(const RSProperties& properties, RSPaintFilte
     int deviceClipBoundsH = imageSnapshot->GetHeight();
     if (!colorPickerTask->GetDeviceSize(deviceWidth, deviceHeight)) {
         colorPickerTask->SetDeviceSize(deviceClipBoundsW, deviceClipBoundsH);
+        deviceWidth = deviceClipBoundsW;
+        deviceHeight = deviceClipBoundsH;
     }
     int32_t fLeft = std::clamp(int(matrix.Get(Drawing::Matrix::Index::TRANS_X)), 0, deviceWidth - 1);
     int32_t fTop = std::clamp(int(matrix.Get(Drawing::Matrix::Index::TRANS_Y)), 0, deviceHeight - 1);
