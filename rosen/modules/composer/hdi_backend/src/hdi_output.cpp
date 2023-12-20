@@ -363,7 +363,13 @@ void HdiOutput::SetBufferColorSpace(sptr<SurfaceBuffer>& buffer, const std::vect
 
     CM_ColorSpaceType targetColorSpace = CM_DISPLAY_SRGB;
     for (auto& layer : layers) {
-        auto layerBuffer = layer->GetLayerInfo()->GetBuffer();
+        auto layerInfo = layer->GetLayerInfo();
+        if (layerInfo == nullptr) {
+            HLOGW("HdiOutput::SetBufferColorSpace The info of layer is nullptr");
+            continue;
+        }
+
+        auto layerBuffer = layerInfo->GetBuffer();
         if (layerBuffer == nullptr) {
             HLOGW("HdiOutput::SetBufferColorSpace The buffer of layer is nullptr");
             continue;
