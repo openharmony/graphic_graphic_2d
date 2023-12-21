@@ -15,6 +15,7 @@
 
 #include "rs_frame_rate_policy.h"
 
+#include <mutex>
 #include <unordered_map>
 
 #include "platform/common/rs_log.h"
@@ -32,6 +33,7 @@ struct AnimDynamicAttribute {
 };
 static std::unordered_map<std::string, std::unordered_map<std::string,
     AnimDynamicAttribute>> animAttributes;
+std::mutex g_animAttributesMutex;
 }
 
 RSFrameRatePolicy* RSFrameRatePolicy::GetInstance()
@@ -84,6 +86,7 @@ void RSFrameRatePolicy::HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData>
             if (item.animType.empty() || item.animName.empty()) {
                 return;
             }
+            std::lock_guard<std::mutex> lock(g_animAttributesMutex);
             animAttributes[item.animType][item.animName] = {item.minSpeed, item.maxSpeed, item.preferredFps};
             ROSEN_LOGD("RSFrameRatePolicy: config item type = %s, name = %s, minSpeed = %d, maxSpeed = %d, \
                 preferredFps = %d", item.animType.c_str(), item.animName.c_str(), static_cast<int>(item.minSpeed),
@@ -112,6 +115,7 @@ int32_t RSFrameRatePolicy::GetRefreshRateMode()
 
 int RSFrameRatePolicy::GetPreferredFps(const std::string& scene, float speed)
 {
+    std::lock_guard<std::mutex> lock(g_animAttributesMutex);
     if (animAttributes.count(scene) == 0 || ppi_ == 0) {
         return 0;
     }
