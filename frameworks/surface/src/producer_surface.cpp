@@ -167,6 +167,13 @@ GSError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer, const sptr<Syn
     return ret;
 }
 
+GSError ProducerSurface::GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
+                                  sptr<SyncFence>& fence, float matrix[16])
+{
+    auto ret = producer_->GetLastFlushedBuffer(buffer, fence, matrix);
+    return ret;
+}
+
 GSError ProducerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
                                        int64_t &timestamp, Rect &damage)
 {

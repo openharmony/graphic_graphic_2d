@@ -487,7 +487,10 @@ HWTEST_F(NativeWindowTest, GetLastFlushedBuffer001, Function | MediumTest | Leve
     ret = OH_NativeWindow_NativeWindowFlushBuffer(nativeWindow, nativeWindowBuffer, fenceFd, *region);
     ASSERT_EQ(ret, GSERROR_OK);
     NativeWindowBuffer *lastFlushedBuffer;
-    ASSERT_EQ(OH_NativeWindow_GetLastFlushedBuffer(nativeWindow, &lastFlushedBuffer), OHOS::GSERROR_OK);
+    int lastFlushedFenceFd;
+    float matrix[16];
+    ASSERT_EQ(OH_NativeWindow_GetLastFlushedBuffer(nativeWindow, &lastFlushedBuffer, &lastFlushedFenceFd, matrix),
+        OHOS::GSERROR_OK);
     BufferHandle *lastFlushedHanlde = OH_NativeWindow_GetBufferHandleFromNative(lastFlushedBuffer);
     ASSERT_EQ(bufferHanlde->virAddr, lastFlushedHanlde->virAddr);
 }
@@ -524,7 +527,10 @@ HWTEST_F(NativeWindowTest, GetLastFlushedBuffer002, Function | MediumTest | Leve
     ret = OH_NativeWindow_NativeWindowFlushBuffer(nativeWindow, nativeWindowBuffer, fenceFd, *region);
     ASSERT_EQ(ret, GSERROR_OK);
     NativeWindowBuffer* lastFlushedBuffer;
-    ASSERT_EQ(OH_NativeWindow_GetLastFlushedBuffer(nativeWindow, &lastFlushedBuffer), OHOS::GSERROR_NO_PERMISSION);
+    int lastFlushedFenceFd;
+    float matrix[16];
+    ASSERT_EQ(OH_NativeWindow_GetLastFlushedBuffer(nativeWindow, &lastFlushedBuffer, &lastFlushedFenceFd, matrix),
+        OHOS::GSERROR_NO_PERMISSION);
 }
 /*
 * Function: OH_NativeWindow_NativeWindowAbortBuffer

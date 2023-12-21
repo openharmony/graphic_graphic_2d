@@ -30,6 +30,7 @@
 #include "surface_buffer_impl.h"
 #include "sync_fence.h"
 #include "sync_fence_tracker.h"
+#include "surface_utils.h"
 
 namespace OHOS {
 namespace {
@@ -418,6 +419,29 @@ GSError BufferQueue::FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> 
     return sret;
 }
 
+GSError BufferQueue::GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence, float matrix[16])
+{
+    if (bufferQueueCache_.find(lastFlusedSequence_) == bufferQueueCache_.end()) {
+        BLOGN_FAILURE_ID(lastFlusedSequence_, "not found in cache");
+        return GSERROR_NO_ENTRY;
+    }
+    auto &state = bufferQueueCache_[lastFlusedSequence_].state;
+    if (state == BUFFER_STATE_REQUESTED) {
+        BLOGN_FAILURE_ID(lastFlusedSequence_, "invalid state %{public}d", state);
+        return GSERROR_NO_ENTRY;
+    }
+    if (bufferQueueCache_[lastFlusedSequence_].buffer->GetUsage() & BUFFER_USAGE_PROTECTED) {
+        BLOGE("Not allowed to obtain protect surface buffer");
+        return OHOS::GSERROR_NO_PERMISSION;
+    }
+    buffer = bufferQueueCache_[lastFlusedSequence_].buffer;
+    fence = lastFlusedFence_;
+    Rect damage = {};
+    auto utils = SurfaceUtils::GetInstance();
+    utils->ComputeTransformMatrix(matrix, buffer, lastFlushedTransform_, damage);
+    return GSERROR_OK;
+}
+
 void BufferQueue::DumpToFile(uint32_t sequence)
 {
     if (access("/data/bq_dump", F_OK) == -1) {
@@ -467,6 +491,9 @@ GSError BufferQueue::DoFlushBuffer(uint32_t sequence, const sptr<BufferExtraData
     bufferQueueCache_[sequence].buffer->SetExtraData(bedata);
     bufferQueueCache_[sequence].fence = fence;
     bufferQueueCache_[sequence].damages = config.damages;
+    lastFlusedSequence_ = sequence;
+    lastFlusedFence_ = fence;
+    lastFlushedTransform_ = transform_;
 
     uint64_t usage = static_cast<uint32_t>(bufferQueueCache_[sequence].config.usage);
     if (usage & BUFFER_USAGE_CPU_WRITE) {

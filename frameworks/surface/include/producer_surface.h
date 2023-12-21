@@ -55,6 +55,8 @@ public:
                           sptr<SyncFence>& fence, BufferRequestConfig &config) override;
     GSError FlushBuffer(sptr<SurfaceBuffer>& buffer,
                         const sptr<SyncFence>& fence, BufferFlushConfig &config) override;
+    GSError GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
+                                  sptr<SyncFence>& fence, float matrix[16]) override;
     GSError FlushBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence,
                         BufferFlushConfigWithDamages &config) override;
     GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,

@@ -121,6 +121,8 @@ public:
     virtual GSError FlushBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence,
                                 BufferFlushConfigWithDamages &config) = 0;
     virtual GSError SetWptrNativeWindowToPSurface(void* nativeWindow) = 0;
+    virtual GSError GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
+                                sptr<SyncFence>& fence, float matrix[16]) = 0;
 protected:
     IConsumerSurface() = default;
 };

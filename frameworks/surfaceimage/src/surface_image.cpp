@@ -20,6 +20,7 @@
 
 #include "securec.h"
 #include "sandbox_utils.h"
+#include "surface_utils.h"
 
 #include <atomic>
 #include <sync_fence.h>
@@ -82,29 +83,6 @@ SurfaceError SurfaceImage::SetDefaultSize(int32_t width, int32_t height)
     return ConsumerSurface::SetDefaultWidthAndHeight(width, height);
 }
 
-std::array<float, 16> SurfaceImage::MatrixProduct(const std::array<float, 16>& lMat, const std::array<float, 16>& rMat)
-{
-    return std::array<float, 16> {lMat[0] * rMat[0] + lMat[4] * rMat[1] + lMat[8] * rMat[2] + lMat[12] * rMat[3],
-                                  lMat[1] * rMat[0] + lMat[5] * rMat[1] + lMat[9] * rMat[2] + lMat[13] * rMat[3],
-                                  lMat[2] * rMat[0] + lMat[6] * rMat[1] + lMat[10] * rMat[2] + lMat[14] * rMat[3],
-                                  lMat[3] * rMat[0] + lMat[7] * rMat[1] + lMat[11] * rMat[2] + lMat[15] * rMat[3],
-
-                                  lMat[0] * rMat[4] + lMat[4] * rMat[5] + lMat[8] * rMat[6] + lMat[12] * rMat[7],
-                                  lMat[1] * rMat[4] + lMat[5] * rMat[5] + lMat[9] * rMat[6] + lMat[13] * rMat[7],
-                                  lMat[2] * rMat[4] + lMat[6] * rMat[5] + lMat[10] * rMat[6] + lMat[14] * rMat[7],
-                                  lMat[3] * rMat[4] + lMat[7] * rMat[5] + lMat[11] * rMat[6] + lMat[15] * rMat[7],
-
-                                  lMat[0] * rMat[8] + lMat[4] * rMat[9] + lMat[8] * rMat[10] + lMat[12] * rMat[11],
-                                  lMat[1] * rMat[8] + lMat[5] * rMat[9] + lMat[9] * rMat[10] + lMat[13] * rMat[11],
-                                  lMat[2] * rMat[8] + lMat[6] * rMat[9] + lMat[10] * rMat[10] + lMat[14] * rMat[11],
-                                  lMat[3] * rMat[8] + lMat[7] * rMat[9] + lMat[11] * rMat[10] + lMat[15] * rMat[11],
-
-                                  lMat[0] * rMat[12] + lMat[4] * rMat[13] + lMat[8] * rMat[14] + lMat[12] * rMat[15],
-                                  lMat[1] * rMat[12] + lMat[5] * rMat[13] + lMat[9] * rMat[14] + lMat[13] * rMat[15],
-                                  lMat[2] * rMat[12] + lMat[6] * rMat[13] + lMat[10] * rMat[14] + lMat[14] * rMat[15],
-                                  lMat[3] * rMat[12] + lMat[7] * rMat[13] + lMat[11] * rMat[14] + lMat[15] * rMat[15]};
-}
-
 void SurfaceImage::UpdateSurfaceInfo(uint32_t seqNum, sptr<SurfaceBuffer> buffer, int32_t fence,
                                      int64_t timestamp, Rect damage)
 {
@@ -114,38 +92,6 @@ void SurfaceImage::UpdateSurfaceInfo(uint32_t seqNum, sptr<SurfaceBuffer> buffer
     currentTimeStamp_ = timestamp;
     currentCrop_ = damage;
     currentTransformType_ = ConsumerSurface::GetTransform();
-}
-
-void SurfaceImage::ComputeTransformMatrix()
-{
-    static const std::array<float, 16> rotate90 = {0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1};
-
-    std::array<float, TRANSFORM_MATRIX_ELE_COUNT> transformMatrix = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
-    float tx = 0.f;
-    float ty = 0.f;
-    float sx = 1.f;
-    float sy = 1.f;
-    if (currentTransformType_ == GraphicTransformType::GRAPHIC_ROTATE_90) {
-        transformMatrix = MatrixProduct(transformMatrix, rotate90);
-    }
-    float bufferWidth = currentSurfaceBuffer_->GetWidth();
-    float bufferHeight = currentSurfaceBuffer_->GetHeight();
-    if (currentCrop_.w < bufferWidth) {
-        tx = (float(currentCrop_.x) / bufferWidth);
-        sx = (float(currentCrop_.w) / bufferWidth);
-    }
-    if (currentCrop_.h < bufferHeight) {
-        ty = (float(bufferHeight - currentCrop_.y) / bufferHeight);
-        sy = (float(currentCrop_.h) / bufferHeight);
-    }
-    static const std::array<float, 16> cropMatrix = {sx, 0, 0, 0, 0, sy, 0, 0, 0, 0, 1, 0, tx, ty, 0, 1};
-    transformMatrix = MatrixProduct(cropMatrix, transformMatrix);
-
-    auto ret = memcpy_s(currentTransformMatrix_.data(), sizeof(transformMatrix),
-                        transformMatrix.data(), sizeof(transformMatrix));
-    if (ret != EOK) {
-        BLOGE("ComputeTransformMatrix: transformMatrix memcpy_s failed");
-    }
 }
 
 SurfaceError SurfaceImage::UpdateSurfaceImage()
@@ -202,7 +148,9 @@ SurfaceError SurfaceImage::UpdateSurfaceImage()
         }
     }
     UpdateSurfaceInfo(seqNum, buffer, fence, timestamp, damage);
-    ComputeTransformMatrix();
+    auto utils = SurfaceUtils::GetInstance();
+    utils->ComputeTransformMatrix(currentTransformMatrix_, currentSurfaceBuffer_,
+        currentTransformType_, currentCrop_);
 
     ret = WaitOnFence();
     return ret;
@@ -281,7 +229,7 @@ SurfaceError SurfaceImage::GetTransformMatrix(float matrix[16])
 {
     std::lock_guard<std::mutex> lockGuard(opMutex_);
     auto ret = memcpy_s(matrix, sizeof(currentTransformMatrix_),
-                        currentTransformMatrix_.data(), sizeof(currentTransformMatrix_));
+                        currentTransformMatrix_, sizeof(currentTransformMatrix_));
     if (ret != EOK) {
         BLOGE("GetTransformMatrix: currentTransformMatrix_ memcpy_s failed");
         return SURFACE_ERROR_ERROR;

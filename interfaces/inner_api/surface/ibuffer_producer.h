@@ -80,6 +80,8 @@ public:
 
     virtual sptr<NativeSurface> GetNativeSurface() = 0;
     virtual GSError UnRegisterReleaseListener() = 0;
+    virtual GSError GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
+                                        sptr<SyncFence>& fence, float matrix[16]) = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"surf.IBufferProducer");
 
@@ -110,6 +112,7 @@ protected:
         BUFFER_PRODUCER_GO_BACKGROUND = 22,
         BUFFER_PRODUCER_GET_PRESENT_TIMESTAMP = 23,
         BUFFER_PRODUCER_UNREGISTER_RELEASE_LISTENER = 24,
+        BUFFER_PRODUCER_GET_LAST_FLUSHED_BUFFER = 25,
     };
 };
 } // namespace OHOS

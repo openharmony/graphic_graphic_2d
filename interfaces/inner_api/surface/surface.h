@@ -120,6 +120,8 @@ public:
                                 BufferFlushConfigWithDamages &config) = 0;
     virtual GSError UnRegisterReleaseListener() = 0;
     virtual GSError SetWptrNativeWindowToPSurface(void* nativeWindow) = 0;
+    virtual GSError GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
+                                sptr<SyncFence>& fence, float matrix[16]) = 0;
 protected:
     Surface() = default;
 };

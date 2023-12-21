@@ -76,6 +76,8 @@ public:
     GSError DoFlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
                           const sptr<SyncFence>& fence, const BufferFlushConfigWithDamages &config);
 
+    GSError GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence, float matrix[16]);
+
     GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
                           int64_t &timestamp, std::vector<Rect> &damages);
     GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence);
@@ -161,6 +163,7 @@ private:
     uint64_t defaultUsage = 0;
     uint32_t queueSize_ = SURFACE_DEFAULT_QUEUE_SIZE;
     GraphicTransformType transform_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    GraphicTransformType lastFlushedTransform_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     std::string name_;
     std::list<uint32_t> freeList_;
     std::list<uint32_t> dirtyList_;
@@ -184,6 +187,8 @@ private:
     std::atomic_bool isValidStatus_ = true;
     std::atomic_bool producerCacheClean_ = false;
     const bool isLocalRender_;
+    uint32_t lastFlusedSequence_;
+    sptr<SyncFence> lastFlusedFence_;
 };
 }; // namespace OHOS
 

@@ -59,6 +59,7 @@ BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue>& bufferQueue)
     memberFuncMap_[BUFFER_PRODUCER_GET_PRESENT_TIMESTAMP] = &BufferQueueProducer::GetPresentTimestampRemote;
     memberFuncMap_[BUFFER_PRODUCER_UNREGISTER_RELEASE_LISTENER] =
         &BufferQueueProducer::UnRegisterReleaseListenerRemote;
+    memberFuncMap_[BUFFER_PRODUCER_GET_LAST_FLUSHED_BUFFER] = &BufferQueueProducer::GetLastFlushedBufferRemote;
 }
 
 BufferQueueProducer::~BufferQueueProducer()
@@ -151,6 +152,24 @@ int32_t BufferQueueProducer::FlushBufferRemote(MessageParcel &arguments, Message
     GSError sret = FlushBuffer(sequence, bedataimpl, fence, config);
 
     reply.WriteInt32(sret);
+    return 0;
+}
+
+int32_t BufferQueueProducer::GetLastFlushedBufferRemote(MessageParcel &arguments,
+    MessageParcel &reply, MessageOption &option)
+{
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> fence;
+    float matrix[16];
+    GSError sret = GetLastFlushedBuffer(buffer, fence, matrix);
+    reply.WriteInt32(sret);
+    if (sret == GSERROR_OK) {
+        uint32_t sequence = buffer->GetSeqNum();
+        WriteSurfaceBufferImpl(reply, sequence, buffer);
+        fence->WriteToMessageParcel(reply);
+        std::vector<float> writeMatrixVector(matrix, matrix + sizeof(matrix) / sizeof(float));
+        reply.WriteFloatVector(writeMatrixVector);
+    }
     return 0;
 }
 
@@ -385,6 +404,15 @@ GSError BufferQueueProducer::FlushBuffer(uint32_t sequence, const sptr<BufferExt
         return GSERROR_INVALID_ARGUMENTS;
     }
     return bufferQueue_->FlushBuffer(sequence, bedata, fence, config);
+}
+
+GSError BufferQueueProducer::GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
+    sptr<SyncFence>& fence, float matrix[16])
+{
+    if (bufferQueue_ == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return bufferQueue_->GetLastFlushedBuffer(buffer, fence, matrix);
 }
 
 GSError BufferQueueProducer::AttachBuffer(sptr<SurfaceBuffer>& buffer)

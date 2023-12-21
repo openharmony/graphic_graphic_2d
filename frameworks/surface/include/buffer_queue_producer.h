@@ -44,6 +44,9 @@ public:
 
     GSError FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
                         const sptr<SyncFence>& fence, BufferFlushConfigWithDamages &config) override;
+
+    GSError GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence, float matrix[16]) override;
+
     GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) override;
 
     GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) override;
@@ -112,6 +115,7 @@ private:
     int32_t SetTunnelHandleRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t GoBackgroundRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t GetPresentTimestampRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
+    int32_t GetLastFlushedBufferRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
 
     using BufferQueueProducerFunc = int32_t (BufferQueueProducer::*)(MessageParcel &arguments,
         MessageParcel &reply, MessageOption &option);

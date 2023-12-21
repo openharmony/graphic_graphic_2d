@@ -80,14 +80,11 @@ protected:
                                int64_t &timestamp, Rect &damage) override;
     SurfaceError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fence) override;
 
-    void ComputeTransformMatrix();
-
 private:
     SurfaceError ValidateEglState();
     EGLImageKHR CreateEGLImage(EGLDisplay disp, const sptr<SurfaceBuffer>& buffer);
     SurfaceError WaitReleaseEGLSync(EGLDisplay disp);
     SurfaceError WaitOnFence();
-    std::array<float, 16> MatrixProduct(const std::array<float, 16>& lMat, const std::array<float, 16>& rMat);
     void UpdateSurfaceInfo(uint32_t seqNum, sptr<SurfaceBuffer> buffer, int32_t fence,
                            int64_t timestamp, Rect damage);
 
@@ -108,7 +105,7 @@ private:
     int64_t currentTimeStamp_;
     Rect currentCrop_ = {};
     GraphicTransformType currentTransformType_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
-    std::array<float, TRANSFORM_MATRIX_ELE_COUNT> currentTransformMatrix_ {};
+    float currentTransformMatrix_[TRANSFORM_MATRIX_ELE_COUNT];
 };
 
 class SurfaceImageListener : public IBufferConsumerListener {

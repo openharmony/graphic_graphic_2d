@@ -110,6 +110,12 @@ GSError ConsumerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer, const sptr<Syn
     return GSERROR_NOT_SUPPORT;
 }
 
+GSError ConsumerSurface::GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
+    sptr<SyncFence>& fence, float matrix[16])
+{
+    return GSERROR_NOT_SUPPORT;
+}
+
 GSError ConsumerSurface::AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
                                        int64_t &timestamp, Rect &damage)
 {
