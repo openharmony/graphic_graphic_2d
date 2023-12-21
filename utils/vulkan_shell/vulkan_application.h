@@ -49,7 +49,7 @@ public:
     std::unique_ptr<RSVulkanDevice> AcquireFirstCompatibleLogicalDevice() const;
 
 private:
-    RSVulkanProcTable& vk;
+    RSVulkanProcTable& vk_;
     RSVulkanHandle<VkInstance> instance_;
     uint32_t apiVersion_;
     std::unique_ptr<RSVulkanDebugReport> debugReport_;

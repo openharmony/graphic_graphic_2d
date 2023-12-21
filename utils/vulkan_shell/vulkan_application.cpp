@@ -27,9 +27,9 @@ namespace OHOS::Rosen::vulkan {
 
 RSVulkanApplication::RSVulkanApplication(RSVulkanProcTable& procVk, const std::string& applicationName,
     std::vector<std::string> enabledExtensions, uint32_t applicationVersion, uint32_t apiVersion)
-    : vk(procVk), apiVersion_(apiVersion), valid_(false)
+    : vk_(procVk), apiVersion_(apiVersion), valid_(false)
 {
-    std::vector<VkExtensionProperties> supportedExtensions = GetSupportedInstanceExtensions(vk);
+    std::vector<VkExtensionProperties> supportedExtensions = GetSupportedInstanceExtensions(vk_);
     bool enableInstanceDebugging =
         IsDebuggingEnabled() && ExtensionSupported(supportedExtensions, RSVulkanDebugReport::DebugExtensionName());
     if (enableInstanceDebugging) {
@@ -42,7 +42,7 @@ RSVulkanApplication::RSVulkanApplication(RSVulkanProcTable& procVk, const std::s
         extensions[i] = enabledExtensions[i].c_str();
     }
 
-    const std::vector<std::string> enabledLayers = InstanceLayersToEnable(vk);
+    const std::vector<std::string> enabledLayers = InstanceLayersToEnable(vk_);
 
     const char* layers[enabledLayers.size()];
 
@@ -73,23 +73,23 @@ RSVulkanApplication::RSVulkanApplication(RSVulkanProcTable& procVk, const std::s
 
     VkInstance instance = VK_NULL_HANDLE;
 
-    if (VK_CALL_LOG_ERROR(vk.CreateInstance(&createInfo, nullptr, &instance)) != VK_SUCCESS) {
+    if (VK_CALL_LOG_ERROR(vk_.CreateInstance(&createInfo, nullptr, &instance)) != VK_SUCCESS) {
         LOGE("Could not create application instance.");
         return;
     }
 
-    if (!vk.SetupInstanceProcAddresses(instance)) {
+    if (!vk_.SetupInstanceProcAddresses(instance)) {
         LOGE("Could not setup instance proc addresses.");
         return;
     }
 
     instance_ = { instance, [this](VkInstance i) {
         LOGE("Destroying Vulkan instance");
-        vk.DestroyInstance(i, nullptr);
+        vk_.DestroyInstance(i, nullptr);
     } };
 
     if (enableInstanceDebugging) {
-        auto debug_report = std::make_unique<RSVulkanDebugReport>(vk, instance_);
+        auto debug_report = std::make_unique<RSVulkanDebugReport>(vk_, instance_);
         if (!debug_report->IsValid()) {
             LOGE("Vulkan debugging was enabled but could not be setup for this instance.");
         } else {
@@ -130,7 +130,7 @@ std::vector<VkPhysicalDevice> RSVulkanApplication::GetPhysicalDevices() const
     }
 
     uint32_t deviceCount = 0;
-    if (VK_CALL_LOG_ERROR(vk.EnumeratePhysicalDevices(instance_, &deviceCount, nullptr)) != VK_SUCCESS) {
+    if (VK_CALL_LOG_ERROR(vk_.EnumeratePhysicalDevices(instance_, &deviceCount, nullptr)) != VK_SUCCESS) {
         LOGE("Could not enumerate physical device.");
         return {};
     }
@@ -145,7 +145,7 @@ std::vector<VkPhysicalDevice> RSVulkanApplication::GetPhysicalDevices() const
 
     physical_devices.resize(deviceCount);
 
-    if (VK_CALL_LOG_ERROR(vk.EnumeratePhysicalDevices(instance_, &deviceCount, physical_devices.data())) !=
+    if (VK_CALL_LOG_ERROR(vk_.EnumeratePhysicalDevices(instance_, &deviceCount, physical_devices.data())) !=
         VK_SUCCESS) {
         LOGE("Could not enumerate physical device.");
         return {};
@@ -157,7 +157,7 @@ std::vector<VkPhysicalDevice> RSVulkanApplication::GetPhysicalDevices() const
 std::unique_ptr<RSVulkanDevice> RSVulkanApplication::AcquireFirstCompatibleLogicalDevice() const
 {
     for (auto device_handle : GetPhysicalDevices()) {
-        auto logical_device = std::make_unique<RSVulkanDevice>(vk, device_handle);
+        auto logical_device = std::make_unique<RSVulkanDevice>(vk_, device_handle);
         if (logical_device->IsValid()) {
             return logical_device;
         }

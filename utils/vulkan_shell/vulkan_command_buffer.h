@@ -44,7 +44,7 @@ public:
         const VkImageMemoryBarrier* imageMemoryBarriers) const;
 
 private:
-    const RSVulkanProcTable& vk;
+    const RSVulkanProcTable& vk_;
     const RSVulkanHandle<VkDevice>& device_;
     const RSVulkanHandle<VkCommandPool>& commandPool_;
     RSVulkanHandle<VkCommandBuffer> handle_;

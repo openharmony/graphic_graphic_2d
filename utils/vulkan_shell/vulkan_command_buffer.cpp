@@ -22,7 +22,7 @@ namespace OHOS::Rosen::vulkan {
 
 RSVulkanCommandBuffer::RSVulkanCommandBuffer(
     const RSVulkanProcTable& procVk, const RSVulkanHandle<VkDevice>& device, const RSVulkanHandle<VkCommandPool>& pool)
-    : vk(procVk), device_(device), commandPool_(pool), valid_(false)
+    : vk_(procVk), device_(device), commandPool_(pool), valid_(false)
 {
     const VkCommandBufferAllocateInfo allocateInfo = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -34,13 +34,13 @@ RSVulkanCommandBuffer::RSVulkanCommandBuffer(
 
     VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
 
-    if (VK_CALL_LOG_ERROR(vk.AllocateCommandBuffers(device_, &allocateInfo, &commandBuffer)) != VK_SUCCESS) {
+    if (VK_CALL_LOG_ERROR(vk_.AllocateCommandBuffers(device_, &allocateInfo, &commandBuffer)) != VK_SUCCESS) {
         LOGE("Could not allocate command buffers.");
         return;
     }
 
     auto bufferCollect = [this](VkCommandBuffer commandBuffer) {
-        vk.FreeCommandBuffers(device_, commandPool_, 1, &commandBuffer); 
+        vk_.FreeCommandBuffers(device_, commandPool_, 1, &commandBuffer);
     };
 
     handle_ = { commandBuffer, bufferCollect };
@@ -68,12 +68,12 @@ bool RSVulkanCommandBuffer::Begin() const
         .flags = 0,
         .pInheritanceInfo = nullptr,
     };
-    return VK_CALL_LOG_ERROR(vk.BeginCommandBuffer(handle_, &commandBufferBeginInfo)) == VK_SUCCESS;
+    return VK_CALL_LOG_ERROR(vk_.BeginCommandBuffer(handle_, &commandBufferBeginInfo)) == VK_SUCCESS;
 }
 
 bool RSVulkanCommandBuffer::End() const
 {
-    return VK_CALL_LOG_ERROR(vk.EndCommandBuffer(handle_)) == VK_SUCCESS;
+    return VK_CALL_LOG_ERROR(vk_.EndCommandBuffer(handle_)) == VK_SUCCESS;
 }
 
 bool RSVulkanCommandBuffer::InsertPipelineBarrier(VkPipelineStageFlagBits srcStageFlags,
@@ -82,7 +82,7 @@ bool RSVulkanCommandBuffer::InsertPipelineBarrier(VkPipelineStageFlagBits srcSta
     const VkBufferMemoryBarrier* bufferMemoryBarriers, uint32_t imageMemoryBarrierCount,
     const VkImageMemoryBarrier* imageMemoryBarriers) const
 {
-    vk.CmdPipelineBarrier(handle_, srcStageFlags, destStageFlags, dependencyFlags, memoryBarrierCount, memoryBarriers,
+    vk_.CmdPipelineBarrier(handle_, srcStageFlags, destStageFlags, dependencyFlags, memoryBarrierCount, memoryBarriers,
         bufferMemoryBarrierCount, bufferMemoryBarriers, imageMemoryBarrierCount, imageMemoryBarriers);
     return true;
 }

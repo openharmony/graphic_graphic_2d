@@ -66,7 +66,7 @@ public:
     }
 
 private:
-    const RSVulkanProcTable& vk;
+    const RSVulkanProcTable& vk_;
     const RSVulkanHandle<VkDevice>& device_;
     static const size_t SEMAPHORE_SIZE = 2;
     static const size_t FENCE_SIZE = 2;
