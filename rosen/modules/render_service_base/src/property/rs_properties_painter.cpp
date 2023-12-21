@@ -2568,7 +2568,6 @@ void RSPropertiesPainter::DrawLightInner(const RSProperties& properties, SkCanva
     const std::unordered_set<std::shared_ptr<RSLightSource>>& lightSources,
     const std::shared_ptr<RSObjAbsGeometry>& geoPtr)
 {
-    const auto& contentAbsRect = geoPtr->GetAbsRect();
     auto iter = lightSources.begin();
     auto cnt = 0;
     SkM44 lightPositionMatrix;
@@ -2576,13 +2575,10 @@ void RSPropertiesPainter::DrawLightInner(const RSProperties& properties, SkCanva
     SkV4 lightIntensityV4;
     constexpr int MAX_LIGHT_SOUCES = 4;
     while (iter != lightSources.end() && cnt < MAX_LIGHT_SOUCES) {
-        const auto& lightPosition = (*iter)->GetAbsLightPosition();
+        auto lightPos = RSPointLightManager::Instance()->CalculateLightPosForIlluminated((*iter), geoPtr);
         auto lightIntensity = (*iter)->GetLightIntensity();
-        auto lightPosX = lightPosition[0] - contentAbsRect.left_;
-        auto lightPosY = lightPosition[1] - contentAbsRect.top_;
-        auto lightPosZ = lightPosition[2];
-        auto lightPositionV4 = SkV4 { lightPosX, lightPosY, lightPosZ, 0 };
-        auto viewPosV4 = SkV4 { lightPosX, lightPosY, lightPosZ, 0 };
+        auto lightPositionV4 = SkV4 { lightPos.x_, lightPos.y_, lightPos.z_, lightPos.w_ };
+        auto viewPosV4 = SkV4 { lightPos.x_, lightPos.y_, lightPos.z_, lightPos.w_ };
         lightIntensityV4[cnt] = lightIntensity;
         lightPositionMatrix.setCol(cnt, lightPositionV4);
         viewPosMatrix.setCol(cnt, viewPosV4);
@@ -2610,7 +2606,6 @@ void RSPropertiesPainter::DrawLightInner(const RSProperties& properties, Drawing
     const std::unordered_set<std::shared_ptr<RSLightSource>>& lightSources,
     const std::shared_ptr<RSObjAbsGeometry>& geoPtr)
 {
-    const auto& contentAbsRect = geoPtr->GetAbsRect();
     auto iter = lightSources.begin();
     auto cnt = 0;
     Drawing::Matrix44 lightPositionMatrix;
@@ -2618,14 +2613,11 @@ void RSPropertiesPainter::DrawLightInner(const RSProperties& properties, Drawing
     Vector4f lightIntensityV4;
     constexpr int MAX_LIGHT_SOUCES = 4;
     while (iter != lightSources.end() && cnt < MAX_LIGHT_SOUCES) {
-        const auto& lightPosition = (*iter)->GetAbsLightPosition();
+        auto lightPos = RSPointLightManager::Instance()->CalculateLightPosForIlluminated((*iter), geoPtr);
         auto lightIntensity = (*iter)->GetLightIntensity();
-        auto lightPosX = lightPosition[0] - contentAbsRect.left_;
-        auto lightPosY = lightPosition[1] - contentAbsRect.top_;
-        auto lightPosZ = lightPosition[2];
         lightIntensityV4[cnt] = lightIntensity;
-        lightPositionMatrix.SetCol(cnt, lightPosX, lightPosY, lightPosZ, 0);
-        viewPosMatrix.SetCol(cnt, lightPosX, lightPosY, lightPosZ, 0);
+        lightPositionMatrix.SetCol(cnt, lightPos.x_, lightPos.y_, lightPos.z_, lightPos.w_);
+        viewPosMatrix.SetCol(cnt, lightPos.x_, lightPos.y_, lightPos.z_, lightPos.w_);
         iter++;
         cnt++;
     }
