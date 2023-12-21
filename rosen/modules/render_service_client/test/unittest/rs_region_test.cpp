@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -89,7 +89,7 @@ HWTEST_F(RSRegionTest, OperatorAnd, Function | SmallTest | Level2)
     Occlusion::Region resgion2 { rect2 };
     Occlusion::Region resAnd = resgion1.And(resgion2);
 
-    Occlusion::Rect res {50, 50, 100, 100};
+    Occlusion::Rect res {0, 50, 100, 100};
     EXPECT_EQ(resAnd.GetSize(), 1);
     EXPECT_EQ(resAnd.GetBound(), res);
 }
