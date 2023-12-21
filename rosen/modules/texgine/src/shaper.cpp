@@ -36,6 +36,8 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 #define MAXWIDTH 1e9
+#define TEXTOVERFLOWER 1
+
 namespace {
 void DumpLineMetrics(const std::vector<LineMetrics> &lineMetrics)
 {
@@ -95,7 +97,12 @@ void Shaper::ConsiderEllipsis(const TypographyStyle &tstyle,
     }
 
     if (lineMetrics_.size() <= maxLines) {
-        return;
+        if (tstyle.ellipsis.length() && tstyle.maxLines == std::numeric_limits<size_t>::max() &&
+            lineMetrics_.size() > 1) {
+            maxLines = TEXTOVERFLOWER;
+        } else {
+            return;
+        }
     }
 
     auto &textStyle = lineMetrics_.back().lineSpans.back().GetTextStyle();
