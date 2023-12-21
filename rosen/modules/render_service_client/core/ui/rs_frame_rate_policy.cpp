@@ -88,8 +88,9 @@ void RSFrameRatePolicy::HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData>
             }
             std::lock_guard<std::mutex> lock(g_animAttributesMutex);
             animAttributes[item.animType][item.animName] = {item.minSpeed, item.maxSpeed, item.preferredFps};
-            ROSEN_LOGD("RSFrameRatePolicy: config item type = %s, name = %s, minSpeed = %d, maxSpeed = %d, \
-                preferredFps = %d", item.animType.c_str(), item.animName.c_str(), static_cast<int>(item.minSpeed),
+            ROSEN_LOGD("RSFrameRatePolicy: config item type = %{public}s, name = %{public}s, "\
+                "minSpeed = %{public}d, maxSpeed = %{public}d, preferredFps = %{public}d",
+                item.animType.c_str(), item.animName.c_str(), static_cast<int>(item.minSpeed),
                 static_cast<int>(item.maxSpeed), static_cast<int>(item.preferredFps));
         }
         ppi_ = ppi;

@@ -15,6 +15,7 @@
 
 #include "hgm_frame_rate_manager.h"
 
+#include <algorithm>
 #include "common/rs_optional_trace.h"
 #include "common/rs_thread_handler.h"
 #include "pipeline/rs_uni_render_judgement.h"
@@ -187,8 +188,11 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
         controllerRateChanged = true;
         frameRateChanged = true;
     }
+
+    auto& hgmCore = HgmCore::Instance();
+    auto screenCurrentRefreshRate = hgmCore.GetScreenCurrentRefreshRate(hgmCore.GetActiveScreenId());
     RS_TRACE_NAME_FMT("CollectFrameRateChange refreshRate: %d, rsFrameRate: %d, finalRange = (%d, %d, %d)",
-        currRefreshRate_, rsFrameRate, finalRange.min_, finalRange.max_, finalRange.preferred_);
+        screenCurrentRefreshRate, rsFrameRate, finalRange.min_, finalRange.max_, finalRange.preferred_);
     RS_TRACE_INT("PreferredFrameRate", static_cast<int>(finalRange.preferred_));
 
     for (auto linker : appFrameRateLinkers) {
@@ -357,13 +361,14 @@ int32_t HgmFrameRateManager::CalModifierPreferred(const HgmModifierProfile &hgmM
         SpeedTransType::TRANS_PIXEL_TO_MM, hgmModifierProfile.xSpeed, hgmModifierProfile.ySpeed, hgmScreen);
     auto mixSpeed = sqrt(xSpeed * xSpeed + ySpeed * ySpeed);
 
-    auto dynamicSetting = configData->GetAnimationDynamicSetting(curScreenStrategyId_,
-                                                                 std::to_string(curRefreshRateMode_),
-                                                                 hgmModifierProfile.hgmModifierType);
-    for (const auto &iter: dynamicSetting) {
-        if (mixSpeed >= iter.second.min && (mixSpeed < iter.second.max || iter.second.max == -1)) {
-            return iter.second.preferred_fps;
-        }
+    auto dynamicSetting = configData->GetAnimationDynamicSetting(
+        curScreenStrategyId_, std::to_string(curRefreshRateMode_), hgmModifierProfile.hgmModifierType);
+    auto iter = std::find_if(dynamicSetting.begin(), dynamicSetting.end(),
+        [&mixSpeed](auto iter) {
+            return mixSpeed >= iter.second.min && (mixSpeed < iter.second.max || iter.second.max == -1);
+        });
+    if (iter != dynamicSetting.end()) {
+        return iter->second.preferred_fps;
     }
     return HGM_ERROR;
 }
