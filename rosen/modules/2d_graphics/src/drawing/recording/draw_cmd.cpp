@@ -955,27 +955,38 @@ void DrawSymbolOpItem::Playback(Canvas* canvas, const Rect* rect)
         return;
     }
 
-    Drawing::Path path(symbol_.path_);
+    Path path(symbol_.path_);
 
     // 1.0 move path
     path.Offset(locate_.GetX(), locate_.GetY());
 
     // 2.0 split path
-    std::vector<Drawing::Path> paths;
+    std::vector<Path> paths;
     DrawingHMSymbol::PathOutlineDecompose(path, paths);
-    std::vector<Drawing::Path> pathLayers;
+    std::vector<Path> pathLayers;
     DrawingHMSymbol::MultilayerPath(symbol_.symbolInfo_.layers, paths, pathLayers);
-    canvas->AttachPaint(paint_);
+
+    // 3.0 set paint
+    Paint paintCopy = paint_;
+    paintCopy.SetAntiAlias(true);
+    paintCopy.SetStyle(Paint::PaintStyle::PAINT_FILL_STROKE);
+    paintCopy.SetWidth(0.0f);
+    paintCopy.SetJoinStyle(Pen::JoinStyle::ROUND_JOIN);
 
     // draw path
-    std::vector<Drawing::DrawingRenderGroup> groups = symbol_.symbolInfo_.renderGroups;
+    std::vector<DrawingRenderGroup> groups = symbol_.symbolInfo_.renderGroups;
     LOGD("SymbolOpItem::Draw RenderGroup size %{public}d", static_cast<int>(groups.size()));
     if (groups.size() == 0) {
+        canvas->AttachPaint(paintCopy);
         canvas->DrawPath(path);
     }
     for (auto group : groups) {
-        Drawing::Path multPath;
+        Path multPath;
         MergeDrawingPath(multPath, group, pathLayers);
+        // color
+        paintCopy.SetColor(Color::ColorQuadSetARGB(0xFF, group.color.r, group.color.g, group.color.b));
+        paintCopy.SetAlphaF(group.color.a);
+        canvas->AttachPaint(paintCopy);
         canvas->DrawPath(multPath);
     }
 }

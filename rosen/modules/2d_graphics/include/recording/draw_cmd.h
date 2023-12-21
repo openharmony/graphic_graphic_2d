@@ -764,7 +764,7 @@ public:
     void Playback(Canvas* canvas, const Rect* rect) override;
 private:
     static void MergeDrawingPath(
-        Drawing::Path& multPath, Drawing::DrawingRenderGroup& group, std::vector<Drawing::Path>& pathLayers);
+        Path& multPath, DrawingRenderGroup& group, std::vector<Path>& pathLayers);
     DrawingHMSymbolData symbol_;
     Point locate_;
 };
