@@ -85,6 +85,9 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
 #ifndef USE_ROSEN_DRAWING
     if (mirrorNode && isPhone_) {
         CanvasRotation(node.getFirstTimeScreenRotation(), renderFrameConfig_.width, renderFrameConfig_.height);
+        if (node.getFirstTimeScreenRotation() != ScreenRotation::ROTATION_0) {
+            canvas_->translate(-(renderFrameConfig_.height / 2.0f), -(renderFrameConfig_.width / 2.0f));
+        }
     } else {
         SkMatrix invertMatrix;
         if (node.GetInitMatrix().invert(&invertMatrix)) {
@@ -96,11 +99,7 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
     if (mirrorNode && isPhone_) {
         CanvasRotation(node.getFirstTimeScreenRotation(), renderFrameConfig_.width, renderFrameConfig_.height);
         if (node.getFirstTimeScreenRotation() != ScreenRotation::ROTATION_0) {
-#ifndef USE_ROSEN_DRAWING
-            canvas_->translate(-(renderFrameConfig_.height / 2.0f), -(renderFrameConfig_.width / 2.0f));
-#else
             canvas_->Translate(-(renderFrameConfig_.height / 2.0f), -(renderFrameConfig_.width / 2.0f));
-#endif
         }
     } else {
         Drawing::Matrix invertMatrix;
