@@ -46,6 +46,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_proxy_render_node.h"
+#include "pipeline/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_listener.h"
@@ -2049,18 +2050,19 @@ void RSUniRenderVisitor::DrawTargetSurfaceVisibleRegionForDFX(RSDisplayRenderNod
     }
 }
 
-void RSUniRenderVisitor::DrawCurrentRefreshRate(uint32_t currentRefreshRate)
+void RSUniRenderVisitor::DrawCurrentRefreshRate(uint32_t currentRefreshRate, uint32_t realtimeRefreshRate)
 {
+    std::string info = std::to_string(currentRefreshRate) + " " + std::to_string(realtimeRefreshRate);
+    auto color = currentRefreshRate <= 60 ? SK_ColorRED : SK_ColorGREEN;
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkTypeface> tf = SkTypeface::MakeFromName("HarmonyOS Sans SC", SkFontStyle::Normal());
     SkFont font;
     font.setSize(100);  // 100:Scalar of setting font size
     font.setTypeface(tf);
-    std::string info = std::to_string(currentRefreshRate);
     sk_sp<SkTextBlob> textBlob = SkTextBlob::MakeFromString(info.c_str(), font);
 
     SkPaint paint;
-    paint.setColor(SK_ColorGREEN);
+    paint.setColor(color);
     paint.setAntiAlias(true);
     canvas_->drawTextBlob(
         textBlob, 100.f, 200.f, paint);  // 100.f:Scalar x of drawing TextBlob; 200.f:Scalar y of drawing TextBlob
@@ -2069,11 +2071,10 @@ void RSUniRenderVisitor::DrawCurrentRefreshRate(uint32_t currentRefreshRate)
     Drawing::Font font;
     font.SetSize(100);  // 100:Scalar of setting font size
     font.SetTypeface(tf);
-    std::string info = std::to_string(currentRefreshRate);
     std::shared_ptr<Drawing::TextBlob> textBlob = Drawing::TextBlob::MakeFromString(info.c_str(), font);
 
     Drawing::Brush brush;
-    brush.SetColor(SK_ColorGREEN);
+    brush.SetColor(color);
     brush.SetAntiAlias(true);
     canvas_->AttachBrush(brush);
     canvas_->DrawTextBlob(
@@ -3049,11 +3050,15 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         }
 #endif
 
-        if (RSSystemParameters::GetShowRefreshRateEnabled()) {
+        if (RSRealtimeRefreshRateManager::Instance().GetShowRefreshRateEnabled()) {
             RS_TRACE_BEGIN("RSUniRender::DrawCurrentRefreshRate");
             uint32_t currentRefreshRate =
                 OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(node.GetScreenId());
-            DrawCurrentRefreshRate(currentRefreshRate);
+            uint32_t realtimeRefreshRate = RSRealtimeRefreshRateManager::Instance().GetRealtimeRefreshRate();
+            if (realtimeRefreshRate > currentRefreshRate) {
+                realtimeRefreshRate = currentRefreshRate;
+            }
+            DrawCurrentRefreshRate(currentRefreshRate, realtimeRefreshRate);
             RS_TRACE_END();
         }
 

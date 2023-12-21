@@ -176,6 +176,15 @@ std::vector<int32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(Scree
     return {};
 }
 
+bool RSRenderServiceClient::GetShowRefreshRateEnabled()
+{
+    return false;
+}
+    
+void RSRenderServiceClient::SetShowRefreshRateEnabled(bool enable)
+{
+}
+
 int32_t RSRenderServiceClient::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     return {};
