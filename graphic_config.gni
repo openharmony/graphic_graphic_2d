@@ -31,6 +31,7 @@ declare_args() {
   graphic_2d_feature_enable_opengl = true
   graphic_2d_feature_enable_filter_cache = true
   graphic_2d_feature_parallel_upload_enable = false
+  graphic_2d_feature_enable_ddgr_opinc = false
   enable_text_gine = true
   use_texgine = true
   use_video_processing_engine = false
@@ -69,6 +70,9 @@ if (graphic_2d_feature_ace_enable_gpu) {
       "ACE_ENABLE_VK",
       "RS_ENABLE_VK",
     ]
+    if (graphic_2d_feature_enable_ddgr_opinc) {
+      gpu_defines += [ "DDGR_ENABLE_FEATURE_OPINC" ]
+    }
   }
   if (graphic_2d_feature_enable_opengl) {
     gpu_defines += [

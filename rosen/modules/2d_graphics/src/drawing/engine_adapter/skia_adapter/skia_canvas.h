@@ -104,6 +104,13 @@ public:
     // color
     void DrawColor(ColorQuad color, BlendMode mode) override;
 
+    // opinc_begin
+    bool BeginOpRecording(const Rect* bound = nullptr, bool isDynamic = false) override;
+    Drawing::OpListHandle EndOpRecording() override;
+    void DrawOpList(Drawing::OpListHandle handle) override;
+    int CanDrawOpList(Drawing::OpListHandle handle) override;
+    // opinc_end
+
     // image
     void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py) override;
     void DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py) override;

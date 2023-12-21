@@ -350,6 +350,18 @@ public:
         return isCacheSurfaceNeedUpdate_;
     }
 
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    bool IsOnTreeDirty();
+    void SetDirtyByOnTree();
+    Vector4f GetOptionBufferBound() const;
+    void SetOpincRectOutParent(bool outFlag);
+    bool IsOpincInsideOf(Vector2f& sR, Vector2f& pR) const;
+    Vector2f GetOpincBufferSize() const;
+#ifdef USE_ROSEN_DRAWING
+    Drawing::Rect GetOpincBufferBound() const;
+#endif
+#endif
+
     int GetShadowRectOffsetX() const;
     int GetShadowRectOffsetY() const;
 
@@ -443,6 +455,9 @@ public:
     bool HasCacheableAnim() const { return hasCacheableAnim_; }
     enum NodeGroupType {
         NONE = 0,
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+        GROUPED_BY_AUTO,
+#endif
         GROUPED_BY_ANIM,
         GROUPED_BY_UI,
         GROUPED_BY_USER,
@@ -501,12 +516,24 @@ public:
         isCalcPreferredFps_ = isCalcPreferredFps;
     }
 
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    class RSAutoCache;
+    const std::shared_ptr<RSAutoCache>& GetAutoCache();
+    RectI lastBoundRect_ = {0, 0, 0, 0};
+    RectF lastFrameRect_ = {0, 0, 0, 0};
+    int rectChangeCount_ = 0;
+    bool isOpincRectOutParent_ = false;
+#endif
+
     const std::shared_ptr<RSRenderContent> GetRenderContent() const;
 protected:
     virtual void OnApplyModifiers() {}
 
     enum class NodeDirty {
         CLEAN = 0,
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+        ON_TREE_DIRTY,
+#endif
         DIRTY,
     };
     void SetClean();
@@ -598,6 +625,9 @@ private:
     // bounds and frame modifiers must be unique
     std::shared_ptr<RSRenderModifier> boundsModifier_;
     std::shared_ptr<RSRenderModifier> frameModifier_;
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    std::shared_ptr<RSAutoCache> autoCache_;
+#endif
 
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> GetCompletedImage(RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst);

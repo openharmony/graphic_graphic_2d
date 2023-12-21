@@ -142,6 +142,13 @@ void DrawCmdList::SetHeight(int32_t height)
     height_ = height;
 }
 
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+size_t DrawCmdList::GetSize() const
+{
+    return opIncItemCnt_;
+}
+#endif
+
 bool DrawCmdList::IsEmpty() const
 {
     uint32_t offset = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
@@ -170,6 +177,37 @@ std::string DrawCmdList::GetOpsWithDesc() const
     return desc;
 }
 
+bool DrawCmdList::IsCmdListOpitem(uint32_t& type)
+{
+    if (type == DrawOpItem::CMD_LIST_OPITEM) {
+        unmarshalledOpItems_.clear();
+        return true;
+    }
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    if (type > DrawOpItem::OPINC_COUNT_OPITEM_START && type < DrawOpItem::OPINC_COUNT_OPITEM_END) {
+        opIncItemCnt_++;
+    }
+#endif
+    return false;
+}
+
+void DrawCmdList::UnmarshallingOpsReset()
+{
+    unmarshalledOpItems_.clear();
+    lastOpGenSize_ = 0;
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    opIncItemCnt_ = 0;
+#endif
+}
+
+void DrawCmdList::UnmarshallingOpsEnd()
+{
+    lastOpGenSize_ = opAllocator_.GetSize();
+    if ((int)imageAllocator_.GetSize() > 0) {
+        imageAllocator_.ClearData();
+    }
+}
+
 void DrawCmdList::UnmarshallingOps()
 {
     uint32_t offset = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
@@ -178,9 +216,7 @@ void DrawCmdList::UnmarshallingOps()
     }
 
     UnmarshallingPlayer player = { *this };
-    unmarshalledOpItems_.clear();
-    lastOpGenSize_ = 0;
-
+    UnmarshallingOpsReset();
     uint32_t opReplaceIndex = 0;
     do {
         void* itemPtr = opAllocator_.OffsetToAddr(offset);
@@ -190,8 +226,7 @@ void DrawCmdList::UnmarshallingOps()
             break;
         }
         uint32_t type = curOpItemPtr->GetType();
-        if (type == DrawOpItem::CMD_LIST_OPITEM) {
-            unmarshalledOpItems_.clear();
+        if (IsCmdListOpitem(type)) {
             return;
         }
         auto op = player.Unmarshalling(type, itemPtr);
@@ -224,11 +259,7 @@ void DrawCmdList::UnmarshallingOps()
             break;
         }
     } while (offset != 0);
-    lastOpGenSize_ = opAllocator_.GetSize();
-
-    if ((int)imageAllocator_.GetSize() > 0) {
-        imageAllocator_.ClearData();
-    }
+    UnmarshallingOpsEnd();
 }
 
 std::vector<std::shared_ptr<DrawOpItem>> DrawCmdList::UnmarshallingCmdList()
