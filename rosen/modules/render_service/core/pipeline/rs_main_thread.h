@@ -124,6 +124,11 @@ public:
         return mainThreadId_;
     }
 
+    bool CheckIsHardwareEnabledBufferUpdated() const
+    {
+        return isHardwareEnabledBufferUpdated_;
+    }
+
     /* Judge if rootnode has to be prepared based on it corresponding process is active
      * If its pid is in activeProcessPids_ set, return true
      */

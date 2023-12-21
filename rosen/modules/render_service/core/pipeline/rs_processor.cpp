@@ -38,7 +38,7 @@ constexpr int32_t PERF_LEVEL_2_REQUESTED_CODE = 10014;
 constexpr int32_t PERF_LEVEL_3_REQUESTED_CODE = 10015;
 constexpr int64_t PERF_TIME_OUT = 950;
 constexpr uint32_t PERF_LEVEL_INTERVAL = 10;
-constexpr uint32_t PERF_LAYER_START_NUM = 7;
+constexpr uint32_t PERF_LAYER_START_NUM = 12;
 #ifdef FRAME_AWARE_TRACE
 constexpr uint32_t FRAME_TRACE_LAYER_NUM_1 = 11;
 constexpr uint32_t FRAME_TRACE_LAYER_NUM_2 = 13;
