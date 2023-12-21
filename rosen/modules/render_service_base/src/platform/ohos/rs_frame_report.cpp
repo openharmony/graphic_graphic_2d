@@ -81,7 +81,7 @@ void RsFrameReport::CloseLibrary()
     }
     frameSchedHandle_ = nullptr;
     frameSchedSoLoaded_ = false;
-    ROSEN_LOGE("RsFrameReport:[CloseLibrary]libframe_ui_intf.so close success!\n");
+    ROSEN_LOGI("RsFrameReport:[CloseLibrary]libframe_ui_intf.so close success!\n");
 }
 
 void *RsFrameReport::LoadSymbol(const char *symName)
