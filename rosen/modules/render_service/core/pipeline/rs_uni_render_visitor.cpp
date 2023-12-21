@@ -2384,12 +2384,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 }
                 SkPaint paint;
                 paint.setAntiAlias(true);
-#ifdef NEW_SKIA
-                canvas_->drawImage(cacheImageProcessed, 0, 0, SkSamplingOptions(), &paint);
-#else
-                paint.setFilterQuality(SkFilterQuality::kLow_SkFilterQuality);
-                canvas_->drawImage(cacheImageProcessed, 0, 0, &paint);
-#endif
+                canvas_->drawImage(cacheImageProcessed, 0, 0,
+                    SkSamplingOptions(SkCubicResampler { 1 / 3.0f, 1 / 3.0f }), &paint); // 1/3.0f is Mitchell sampling
                 canvas_->restore();
                 bool parallelComposition = RSMainThread::Instance()->GetParallelCompositionEnabled();
                 if (!parallelComposition) {
@@ -2425,7 +2421,8 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 Drawing::Brush brush;
                 brush.SetAntiAlias(true);
                 canvas_->AttachBrush(brush);
-                canvas_->DrawImage(*cacheImageProcessed, 0, 0, Drawing::SamplingOptions());
+                canvas_->DrawImage(*cacheImageProcessed, 0, 0,
+                    Drawing::SamplingOptions(Drawing::CubicResampler::Mitchell()));
                 canvas_->DetachBrush();
                 canvas_->Restore();
                 bool parallelComposition = RSMainThread::Instance()->GetParallelCompositionEnabled();
