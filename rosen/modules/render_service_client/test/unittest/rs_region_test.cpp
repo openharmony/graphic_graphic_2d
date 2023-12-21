@@ -83,13 +83,17 @@ HWTEST_F(RSRegionTest, OperatorOr, Function | SmallTest | Level2)
  */
 HWTEST_F(RSRegionTest, OperatorAnd, Function | SmallTest | Level2)
 {
+    int x = 0;
+    int left = 50;
+    int y = 50;
+    int height = 100;
     Occlusion::Rect rect1 { 0, 0, 100, 100 };
     Occlusion::Region resgion1 { rect1 };
     Occlusion::Rect rect2 { 50, 50, 150, 150 };
     Occlusion::Region resgion2 { rect2 };
     Occlusion::Region resAnd = resgion1.And(resgion2);
 
-    Occlusion::Rect res {50, 50, 100, 100};
+    Occlusion::Rect res {x, y, left, height};
     EXPECT_EQ(resAnd.GetSize(), 1);
     EXPECT_EQ(resAnd.GetBound(), res);
 }
