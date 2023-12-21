@@ -154,6 +154,41 @@ static napi_value GetScreenSupportedRefreshRates(napi_env env, napi_callback_inf
     return returnRates;
 }
 
+static napi_value GetShowRefreshRateEnabled(napi_env env, napi_callback_info info)
+{
+    int32_t enable = static_cast<int32_t>(interfaces.GetShowRefreshRateEnabled());
+
+    napi_value returnRate = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, enable, &returnRate));
+    return returnRate;
+}
+
+static napi_value SetShowRefreshRateEnabled(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+
+    size_t argc = 1;
+    napi_value arg[argc];
+    napi_get_cb_info(env, info, &argc, arg, nullptr, nullptr);
+
+    napi_valuetype valueType;
+    status = napi_typeof(env, arg[0], &valueType);
+    if (status != napi_ok) {
+        napi_throw_error(env, NULL, "Napi SetShowRefreshRateEnable failed to get argument");
+    }
+    if (valueType != napi_boolean) {
+        napi_throw_error(env, NULL, "Napi SetShowRefreshRateEnable wrong argument type");
+    }
+
+    bool enable;
+    napi_get_value_bool(env, arg[0], &enable);
+    interfaces.SetShowRefreshRateEnabled(enable);
+
+    napi_value napiValue = nullptr;
+    NAPI_CALL(env, napi_create_int32(env, EXEC_SUCCESS, &napiValue));
+    return napiValue;
+}
+
 EXTERN_C_START
 static napi_value HgmInit(napi_env env, napi_value exports)
 {
@@ -162,6 +197,8 @@ static napi_value HgmInit(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getScreenCurrentRefreshRate", GetScreenCurrentRefreshRate),
         DECLARE_NAPI_FUNCTION("getScreenSupportedRefreshRates", GetScreenSupportedRefreshRates),
         DECLARE_NAPI_FUNCTION("getCurrentRefreshRateMode", GetCurrentRefreshRateMode),
+        DECLARE_NAPI_FUNCTION("getShowRefreshRateEnabled", GetShowRefreshRateEnabled),
+        DECLARE_NAPI_FUNCTION("setShowRefreshRateEnabled", SetShowRefreshRateEnabled),
     };
     NAPI_CALL(env, napi_define_properties(env, exports, sizeof(desc) / sizeof(napi_property_descriptor), desc));
 

@@ -2628,7 +2628,7 @@ HWTEST_F(RSUniRenderVisitorTest, DrawCurrentRefreshRate001, TestSize.Level2)
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
 
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->DrawCurrentRefreshRate(0);
+    rsUniRenderVisitor->DrawCurrentRefreshRate(0, 0);
 }
 
 

@@ -113,6 +113,10 @@ public:
 
     std::vector<int32_t> GetScreenSupportedRefreshRates(ScreenId id);
 
+    bool GetShowRefreshRateEnabled();
+    
+    void SetShowRefreshRateEnabled(bool enable);
+    
     std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id);
 
     RSScreenCapability GetScreenCapability(ScreenId id);

@@ -199,7 +199,7 @@ private:
     void DrawAllSurfaceOpaqueRegionForDFX(RSDisplayRenderNode& node);
     void DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderNode& node);
     void DrawTargetSurfaceVisibleRegionForDFX(RSDisplayRenderNode& node);
-    void DrawCurrentRefreshRate(uint32_t currentRefreshRate);
+    void DrawCurrentRefreshRate(uint32_t currentRefreshRate, uint32_t realtimeRefreshRate);
     // check if surface name is in dfx target list
     inline bool CheckIfSurfaceTargetedForDFX(std::string nodeName)
     {

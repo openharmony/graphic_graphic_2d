@@ -153,6 +153,10 @@ public:
 
     std::vector<int32_t> GetScreenSupportedRefreshRates(ScreenId id);
 
+    bool GetShowRefreshRateEnabled();
+    
+    void SetShowRefreshRateEnabled(bool enable);
+
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);

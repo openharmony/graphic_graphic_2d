@@ -156,6 +156,16 @@ std::vector<int32_t> RSInterfaces::GetScreenSupportedRefreshRates(ScreenId id)
     return renderServiceClient_->GetScreenSupportedRefreshRates(id);
 }
 
+bool RSInterfaces::GetShowRefreshRateEnabled()
+{
+    return renderServiceClient_->GetShowRefreshRateEnabled();
+}
+    
+void RSInterfaces::SetShowRefreshRateEnabled(bool enable)
+{
+    return renderServiceClient_->SetShowRefreshRateEnabled(enable);
+}
+
 bool RSInterfaces::TakeSurfaceCaptureForUI(
     std::shared_ptr<RSNode> node, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
 {
