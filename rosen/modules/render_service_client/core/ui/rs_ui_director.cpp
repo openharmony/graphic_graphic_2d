@@ -90,7 +90,6 @@ void RSUIDirector::Init(bool shouldCreateRenderThread)
     if (auto rsApplicationAgent = RSApplicationAgentImpl::Instance()) {
         rsApplicationAgent->RegisterRSApplicationAgent();
     }
-    RSFrameRatePolicy::GetInstance()->RegisterHgmConfigChangeCallback();
 
     GoForeground();
 }
@@ -311,6 +310,10 @@ void RSUIDirector::SetUITaskRunner(const TaskRunner& uiTaskRunner)
 {
     std::unique_lock<std::mutex> lock(g_uiTaskRunnersVisitorMutex);
     g_uiTaskRunners[this] = uiTaskRunner;
+    if (!isHgmConfigChangeCallbackReg_) {
+        RSFrameRatePolicy::GetInstance()->RegisterHgmConfigChangeCallback();
+        isHgmConfigChangeCallbackReg_ = true;
+    }
 }
 
 void RSUIDirector::SendMessages()
