@@ -609,6 +609,11 @@ void RSSurfaceNode::CreateSurfaceExt(const RSSurfaceExtConfig& config)
     if (texture == nullptr) {
         texture = surface_->CreateSurfaceExt(config);
     }
+    if (texture == nullptr) {
+        ROSEN_LOGE("RSSurfaceNode::CreateSurfaceExt failed %{public}" PRIu64 " type %{public}u",
+        GetId(), config.type);
+        return;
+    }
     ROSEN_LOGD("RSSurfaceNode::CreateSurfaceExt %{public}" PRIu64 " type %{public}u %{public}p",
         GetId(), config.type, texture.get());
     std::unique_ptr<RSCommand> command =
