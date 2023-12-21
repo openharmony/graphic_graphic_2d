@@ -88,6 +88,7 @@ private:
     void ProcessSurfaceViewInRT(RSSurfaceRenderNode& node);
 
     bool UpdateAnimatePropertyCacheSurface(RSRenderNode& node);
+    void ProcessShadowFirst(RSRenderNode& node);
 
     std::shared_ptr<RSDirtyRegionManager> curDirtyManager_;
     bool isRenderForced_ = false;
