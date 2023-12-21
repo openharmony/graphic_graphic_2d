@@ -84,10 +84,10 @@ public:
     bool ApplyFourLine(SkPaint& paint) const;
     bool ApplyLineStyle(SkPaint& paint, int borderIdx, float length) const;
     void PaintFourLine(SkCanvas& canvas, SkPaint& paint, RectF rect) const;
-    void PaintTopPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) const;
-    void PaintRightPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) const;
-    void PaintBottomPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) const;
-    void PaintLeftPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) const;
+    void PaintTopPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect, SkPoint& innerRectCenter) const;
+    void PaintRightPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect, SkPoint& innerRectCenter) const;
+    void PaintBottomPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect, SkPoint& innerRectCenter) const;
+    void PaintLeftPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect, SkPoint& innerRectCenter) const;
 #else
     bool ApplyFillStyle(Drawing::Brush& brush) const;
     bool ApplyPathStyle(Drawing::Pen& pen) const;
@@ -95,10 +95,14 @@ public:
     bool ApplyLineStyle(Drawing::Pen& pen, int borderIdx, float length) const;
 
     void PaintFourLine(Drawing::Canvas& canvas, Drawing::Pen& pen, RectF rect) const;
-    void PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect) const;
-    void PaintRightPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect) const;
-    void PaintBottomPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect) const;
-    void PaintLeftPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect) const;
+    void PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect,
+        Drawing::Point& innerRectCenter) const;
+    void PaintRightPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect,
+        Drawing::Point& innerRectCenter) const;
+    void PaintBottomPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect,
+        Drawing::Point& innerRectCenter) const;
+    void PaintLeftPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect,
+        Drawing::Point& innerRectCenter) const;
 #endif
 
 private:

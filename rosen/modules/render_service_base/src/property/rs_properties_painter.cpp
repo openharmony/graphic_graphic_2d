@@ -2771,10 +2771,11 @@ void RSPropertiesPainter::DrawBorderBase(const RSProperties& properties, Drawing
                 properties, border, innerOutset, isFirstLayerBorder));
             canvas.clipRRect(innerSkRRect, SkClipOp::kDifference, true);
             paint.setStyle(SkPaint::Style::kStroke_Style);
-            border->PaintTopPath(canvas, paint, rrect);
-            border->PaintRightPath(canvas, paint, rrect);
-            border->PaintBottomPath(canvas, paint, rrect);
-            border->PaintLeftPath(canvas, paint, rrect);
+            SkPoint center = { innerSkRRect.rect().centerX(), innerSkRRect.rect().centerY() };
+            border->PaintTopPath(canvas, paint, rrect, center);
+            border->PaintRightPath(canvas, paint, rrect, center);
+            border->PaintBottomPath(canvas, paint, rrect, center);
+            border->PaintLeftPath(canvas, paint, rrect, center);
         }
     }
 #else
@@ -2814,10 +2815,13 @@ void RSPropertiesPainter::DrawBorderBase(const RSProperties& properties, Drawing
             auto innerRoundRect = RRect2DrawingRRect(GetInnerRRectForDrawingBorder(
                 properties, border, innerOutset, isFirstLayerBorder));
             canvas.ClipRoundRect(innerRoundRect, Drawing::ClipOp::DIFFERENCE, true);
-            border->PaintTopPath(canvas, pen, rrect);
-            border->PaintRightPath(canvas, pen, rrect);
-            border->PaintBottomPath(canvas, pen, rrect);
-            border->PaintLeftPath(canvas, pen, rrect);
+            Drawing::scalar centerX = innerRoundRect.GetRect().GetLeft() + innerRoundRect.GetRect().GetWidth() / 2;
+            Drawing::scalar centerY = innerRoundRect.GetRect().GetTop() + innerRoundRect.GetRect().GetHeight() / 2;
+            Drawing::Point center = { centerX, centerY };
+            border->PaintTopPath(canvas, pen, rrect, center);
+            border->PaintRightPath(canvas, pen, rrect, center);
+            border->PaintBottomPath(canvas, pen, rrect, center);
+            border->PaintLeftPath(canvas, pen, rrect, center);
         }
     }
 #endif

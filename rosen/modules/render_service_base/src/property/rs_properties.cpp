@@ -1483,9 +1483,14 @@ RRect RSProperties::GetInnerRRect() const
         rect.top_ += border_->GetWidth(RSBorder::TOP);
         rect.width_ -= border_->GetWidth(RSBorder::LEFT) + border_->GetWidth(RSBorder::RIGHT);
         rect.height_ -= border_->GetWidth(RSBorder::TOP) + border_->GetWidth(RSBorder::BOTTOM);
-        cornerRadius = cornerRadius - GetBorderWidth();
     }
     RRect rrect = RRect(rect, cornerRadius);
+    if (border_) {
+        rrect.radius_[0] -= { border_->GetWidth(RSBorder::LEFT), border_->GetWidth(RSBorder::TOP) };
+        rrect.radius_[1] -= { border_->GetWidth(RSBorder::RIGHT), border_->GetWidth(RSBorder::TOP) };
+        rrect.radius_[2] -= { border_->GetWidth(RSBorder::RIGHT), border_->GetWidth(RSBorder::BOTTOM) };
+        rrect.radius_[3] -= { border_->GetWidth(RSBorder::LEFT), border_->GetWidth(RSBorder::BOTTOM) };
+    }
     return rrect;
 }
 

@@ -359,32 +359,36 @@ void RSBorderFourLineRoundCornerDrawable::Draw(RSRenderNode& node, RSPaintFilter
     auto& properties = node.GetMutableRenderProperties();
     canvas.clipRRect(rrect_, true);
     canvas.clipRRect(innerRrect_, SkClipOp::kDifference, true);
+    SkPoint center = { innerRrect_.rect().centerX(), innerRrect_.rect().centerY() };
     if (isFirstLayerBorder_) {
-        properties.GetBorder()->PaintTopPath(canvas, paint_, rrect_);
-        properties.GetBorder()->PaintRightPath(canvas, paint_, rrect_);
-        properties.GetBorder()->PaintBottomPath(canvas, paint_, rrect_);
-        properties.GetBorder()->PaintLeftPath(canvas, paint_, rrect_);
+        properties.GetBorder()->PaintTopPath(canvas, paint_, rrect_, center);
+        properties.GetBorder()->PaintRightPath(canvas, paint_, rrect_, center);
+        properties.GetBorder()->PaintBottomPath(canvas, paint_, rrect_, center);
+        properties.GetBorder()->PaintLeftPath(canvas, paint_, rrect_, center);
     } else {
-        properties.GetOuterBorder()->PaintTopPath(canvas, paint_, rrect_);
-        properties.GetOuterBorder()->PaintRightPath(canvas, paint_, rrect_);
-        properties.GetOuterBorder()->PaintBottomPath(canvas, paint_, rrect_);
-        properties.GetOuterBorder()->PaintLeftPath(canvas, paint_, rrect_);
+        properties.GetOuterBorder()->PaintTopPath(canvas, paint_, rrect_, center);
+        properties.GetOuterBorder()->PaintRightPath(canvas, paint_, rrect_, center);
+        properties.GetOuterBorder()->PaintBottomPath(canvas, paint_, rrect_, center);
+        properties.GetOuterBorder()->PaintLeftPath(canvas, paint_, rrect_, center);
     }
 #else
     Drawing::AutoCanvasRestore acr(canvas, true);
     auto& properties = node.GetMutableRenderProperties();
     canvas.ClipRoundRect(rrect_,Drawing::ClipOp::INTERSECT, true);
     canvas.ClipRoundRect(innerRrect_, Drawing::ClipOp::DIFFERENCE, true);
+    Drawing::scalar centerX = innerRrect_.GetRect().GetLeft() + innerRrect_.GetRect().GetWidth() / 2;
+    Drawing::scalar centerY = innerRrect_.GetRect().GetTop() + innerRrect_.GetRect().GetHeight() / 2;
+    Drawing::Point center = { centerX, centerY };
     if (isFirstLayerBorder_) {
-        properties.GetBorder()->PaintTopPath(canvas, pen_, rrect_);
-        properties.GetBorder()->PaintRightPath(canvas, pen_, rrect_);
-        properties.GetBorder()->PaintBottomPath(canvas, pen_, rrect_);
-        properties.GetBorder()->PaintLeftPath(canvas, pen_, rrect_);
+        properties.GetBorder()->PaintTopPath(canvas, pen_, rrect_, center);
+        properties.GetBorder()->PaintRightPath(canvas, pen_, rrect_, center);
+        properties.GetBorder()->PaintBottomPath(canvas, pen_, rrect_, center);
+        properties.GetBorder()->PaintLeftPath(canvas, pen_, rrect_, center);
     } else {
-        properties.GetOuterBorder()->PaintTopPath(canvas, pen_, rrect_);
-        properties.GetOuterBorder()->PaintRightPath(canvas, pen_, rrect_);
-        properties.GetOuterBorder()->PaintBottomPath(canvas, pen_, rrect_);
-        properties.GetOuterBorder()->PaintLeftPath(canvas, pen_, rrect_);
+        properties.GetOuterBorder()->PaintTopPath(canvas, pen_, rrect_, center);
+        properties.GetOuterBorder()->PaintRightPath(canvas, pen_, rrect_, center);
+        properties.GetOuterBorder()->PaintBottomPath(canvas, pen_, rrect_, center);
+        properties.GetOuterBorder()->PaintLeftPath(canvas, pen_, rrect_, center);
     }
 #endif
 }
