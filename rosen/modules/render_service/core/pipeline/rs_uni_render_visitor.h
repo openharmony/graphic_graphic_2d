@@ -222,6 +222,15 @@ private:
     void CalcDirtyRegionForFilterNode(const RectI& filterRect,
         std::shared_ptr<RSSurfaceRenderNode>& currentSurfaceNode,
         std::shared_ptr<RSDisplayRenderNode>& displayNode);
+
+    // remove functions below when dirty region is enabled for foldable device
+    void UpdateHardwareNodeStatusBasedOnFilterRegion(RSDisplayRenderNode& displayNode);
+    void UpdateHardwareNodeStatusBasedOnFilter(std::shared_ptr<RSSurfaceRenderNode>& node,
+        std::vector<std::shared_ptr<RSSurfaceRenderNode>>& prevHwcEnabledNodes);
+    void UpdateHardwareEnableList(std::vector<RectI>& filterRects,
+        std::vector<std::shared_ptr<RSSurfaceRenderNode>>& validHwcNodes);
+    // remove functions above when dirty region is enabled for foldable device
+
     void CalcDirtyFilterRegion(std::shared_ptr<RSDisplayRenderNode>& node);
     /* Disable visible hwc surface if it intersects with filter region
      * Save rest validNodes in prevHwcEnabledNodes
