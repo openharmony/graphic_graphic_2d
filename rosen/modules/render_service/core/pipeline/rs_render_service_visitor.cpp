@@ -206,7 +206,7 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         ProcessChildren(node);
     }
     for (auto& [_, funcs] : foregroundSurfaces_) {
-        for (auto& func : funcs) {
+        for (const auto& func : funcs) {
             func();
         }
     }
