@@ -105,8 +105,8 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSDisplayRenderNode& no
     info.dstRect = GraphicIRect {
         0,
         0,
-        static_cast<int32_t>(static_cast<float>(screenInfo_.GetRotatedPhyWidth()) * mirrorAdaptiveCoefficient_),
-        static_cast<int32_t>(static_cast<float>(screenInfo_.GetRotatedPhyHeight()) * mirrorAdaptiveCoefficient_)
+        static_cast<int32_t>(static_cast<float>(screenInfo_.GetRotatedPhyWidth())),
+        static_cast<int32_t>(static_cast<float>(screenInfo_.GetRotatedPhyHeight()))
     };
     info.boundRect = info.dstRect;
     info.visibleRect = GraphicIRect {info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h};
@@ -505,13 +505,13 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& no
     info.srcRect = GraphicIRect {srcRect.left_, srcRect.top_, srcRect.width_, srcRect.height_};
     info.dstRect = GraphicIRect {
         static_cast<int32_t>(static_cast<float>(dstRect.left_) *
-            screenInfo_.GetRogWidthRatio() * mirrorAdaptiveCoefficient_),
+            screenInfo_.GetRogWidthRatio()),
         static_cast<int32_t>(static_cast<float>(dstRect.top_) *
-            screenInfo_.GetRogHeightRatio() * mirrorAdaptiveCoefficient_),
+            screenInfo_.GetRogHeightRatio()),
         static_cast<int32_t>(static_cast<float>(dstRect.width_) *
-            screenInfo_.GetRogWidthRatio() * mirrorAdaptiveCoefficient_),
+            screenInfo_.GetRogWidthRatio()),
         static_cast<int32_t>(static_cast<float>(dstRect.height_) *
-            screenInfo_.GetRogHeightRatio() * mirrorAdaptiveCoefficient_)
+            screenInfo_.GetRogHeightRatio())
     };
     info.zOrder = static_cast<int32_t>(node.GetGlobalZOrder());
     info.alpha.enGlobalAlpha = true;
@@ -525,8 +525,8 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& no
     info.needClient = GetComposerInfoNeedClient(info, node);
     DealWithNodeGravity(node, info);
 
-    info.dstRect.x -= static_cast<int32_t>(static_cast<float>(offsetX_) * mirrorAdaptiveCoefficient_);
-    info.dstRect.y -= static_cast<int32_t>(static_cast<float>(offsetY_) * mirrorAdaptiveCoefficient_);
+    info.dstRect.x -= static_cast<int32_t>(static_cast<float>(offsetX_));
+    info.dstRect.y -= static_cast<int32_t>(static_cast<float>(offsetY_));
     info.visibleRect = info.dstRect;
     auto totalMatrix = node.GetTotalMatrix();
 #ifndef USE_ROSEN_DRAWING
