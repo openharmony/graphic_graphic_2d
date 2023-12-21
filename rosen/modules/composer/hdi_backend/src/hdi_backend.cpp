@@ -143,7 +143,7 @@ void HdiBackend::Repaint(const OutputPtr &output)
 
     ret = output->UpdateInfosAfterCommit(fbFence);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-        return;
+        HLOGE("UpdateInfosAfterCommit failed, ret is %{public}d", ret);
     }
 
     ret = output->ReleaseFramebuffer(fbFence);
