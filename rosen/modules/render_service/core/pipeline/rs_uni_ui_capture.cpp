@@ -40,6 +40,12 @@ namespace Rosen {
 const int FAKE_WIDTH = 10; // When the width and height of the node are not set, use the fake width
 const int FAKE_HEIGHT = 10; // When the width and height of the node are not set, use the fake height
 
+RSUniUICapture::RSUniUICapture(NodeId nodeId, float scaleX, float scaleY)
+    : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY)
+{
+    isUniRender_ = RSUniRenderJudgement::IsUniRender();
+}
+
 std::shared_ptr<Media::PixelMap> RSUniUICapture::TakeLocalCapture()
 {
     if (ROSEN_EQ(scaleX_, 0.f) || ROSEN_EQ(scaleY_, 0.f) || scaleX_ < 0.f || scaleY_ < 0.f) {
@@ -82,6 +88,9 @@ std::shared_ptr<Media::PixelMap> RSUniUICapture::TakeLocalCapture()
     PostTaskToRSRecord(recordingCanvas, node, visitor);
     auto drawCallList = recordingCanvas->GetDrawCmdList();
     drawCallList->Playback(*canvas);
+    if (!isUniRender_) {
+        return pixelmap;
+    }
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && defined(RS_ENABLE_EGLIMAGE)
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> img(skSurface.get()->makeImageSnapshot());
@@ -194,6 +203,9 @@ sk_sp<SkSurface> RSUniUICapture::CreateSurface(const std::shared_ptr<Media::Pixe
     }
     SkImageInfo info = SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(),
         kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+    if (!isUniRender_) {
+        return SkSurface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
+    }
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && defined(RS_ENABLE_EGLIMAGE)
 #if defined(NEW_RENDER_CONTEXT)
     auto drawingContext = RSOffscreenRenderThread::Instance().GetRenderContext();
