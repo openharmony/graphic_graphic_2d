@@ -392,6 +392,9 @@ void DrawingEngineSample::OnHotPlugEvent(const std::shared_ptr<HdiOutput> &outpu
      * Currently, IPC communication cannot be nested. Therefore, Vblank registration can be
      * initiated only after the initialization of the device is complete.
      */
+    if (output_ != nullptr) {
+        return;
+    }
     output_ = output;
     deviceConnected_ = connected;
 
