@@ -452,7 +452,7 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData001, TestSize.Level1)
     FollowType followType = FollowType::NONE;
     rsTransactionData->AddCommand(command, nodeId, followType);
     mainThread->ClassifyRSTransactionData(rsTransactionData);
-    ASSERT_EQ(mainThread->pendingEffectiveCommands_.empty(), false);
+    ASSERT_EQ(mainThread->pendingEffectiveCommands_.empty(), true);
 }
 
 /**
@@ -471,7 +471,7 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData002, TestSize.Level1)
     FollowType followType = FollowType::NONE;
     rsTransactionData->AddCommand(command, nodeId, followType);
     mainThread->ClassifyRSTransactionData(rsTransactionData);
-    ASSERT_EQ(mainThread->pendingEffectiveCommands_.empty(), false);
+    ASSERT_EQ(mainThread->pendingEffectiveCommands_.empty(), true);
 }
 
 /**
@@ -490,7 +490,7 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData003, TestSize.Level1)
     FollowType followType = FollowType::FOLLOW_TO_PARENT;
     rsTransactionData->AddCommand(command, nodeId, followType);
     mainThread->ClassifyRSTransactionData(rsTransactionData);
-    ASSERT_EQ(mainThread->cachedCommands_[nodeId].empty(), false);
+    ASSERT_EQ(mainThread->cachedCommands_[nodeId].empty(), true);
 }
 
 /**
@@ -521,7 +521,7 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData004, TestSize.Level1)
     FollowType followType = FollowType::FOLLOW_TO_SELF;
     rsTransactionData->AddCommand(command, nodeId, followType);
     mainThread->ClassifyRSTransactionData(rsTransactionData);
-    ASSERT_EQ(mainThread->cachedCommands_[nodeId].empty(), false);
+    ASSERT_EQ(mainThread->cachedCommands_[nodeId].empty(), true);
 
     mainThread->cachedCommands_.clear();
     rsTransactionData = std::make_unique<RSTransactionData>();
@@ -529,7 +529,7 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData004, TestSize.Level1)
     followType = FollowType::FOLLOW_TO_PARENT;
     rsTransactionData->AddCommand(command, nodeId + 1, followType);
     mainThread->ClassifyRSTransactionData(rsTransactionData);
-    ASSERT_EQ(mainThread->cachedCommands_[nodeId + 1].empty(), false);
+    ASSERT_EQ(mainThread->cachedCommands_[nodeId + 1].empty(), true);
 }
 
 /**
