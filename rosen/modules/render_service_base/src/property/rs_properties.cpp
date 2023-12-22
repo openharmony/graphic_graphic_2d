@@ -1081,6 +1081,7 @@ void RSProperties::SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradi
     if (para && para->blurRadius_ > 0.f) {
         isDrawn_ = true;
     }
+    filterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
 }
@@ -1142,6 +1143,11 @@ const std::shared_ptr<RSFilter>& RSProperties::GetBackgroundFilter() const
 const std::shared_ptr<RSLinearGradientBlurPara>& RSProperties::GetLinearGradientBlurPara() const
 {
     return linearGradientBlurPara_;
+}
+
+bool RSProperties::IsLinearGradientBlurValid() const
+{
+    return ROSEN_GNE(linearGradientBlurPara_->blurRadius_, 0.0);
 }
 
 const std::optional<float>& RSProperties::GetDynamicLightUpRate() const
@@ -2768,8 +2774,11 @@ void RSProperties::OnApplyModifiers()
         if (filter_ != nullptr && !filter_->IsValid()) {
             filter_.reset();
         }
+        if (linearGradientBlurPara_ != nullptr && !IsLinearGradientBlurValid()) {
+            linearGradientBlurPara_.reset();
+        }
         needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
-                        IsDynamicLightUpValid() || IsGreyAdjustmenValid() ||
+                        IsDynamicLightUpValid() || IsGreyAdjustmenValid() || linearGradientBlurPara_ != nullptr ||
                         GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
         CreateFilterCacheManagerIfNeed();
