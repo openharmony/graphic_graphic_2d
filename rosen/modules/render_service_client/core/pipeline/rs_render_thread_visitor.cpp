@@ -782,23 +782,23 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.SetContextMatrix(contextMatrix);
     node.SetContextAlpha(canvas_->GetAlpha());
 
-    if (node.GetIsTextureExportNode()) {
-        // TODO: deal with surfaceNode in same render
-        ProcessSurfaceViewInRT(node);
-        return;
-    }
-
     // PLANNING: This is a temporary modification. Animation for surfaceView should not be triggered in RenderService.
     // We plan to refactor code here.
     node.SetContextBounds(node.GetRenderProperties().GetBounds());
 #ifdef USE_SURFACE_TEXTURE
-    if (node.GetSurfaceNodeType() == RSSurfaceNodeType::SURFACE_TEXTURE_NODE) {
+    if (node.GetIsTextureExportNode()) {
+        ProcessSurfaceViewInRT(node);
+    } else if (node.GetSurfaceNodeType() == RSSurfaceNodeType::SURFACE_TEXTURE_NODE) {
         ProcessTextureSurfaceRenderNode(node);
     } else {
         ProcessOtherSurfaceRenderNode(node);
     }
 #else
-    ProcessOtherSurfaceRenderNode(node);
+    if (node.GetIsTextureExportNode()) {
+        ProcessSurfaceViewInRT(node);
+    } else {
+        ProcessOtherSurfaceRenderNode(node);
+    }
 #endif
 
     // 1. add this node to parent's children list

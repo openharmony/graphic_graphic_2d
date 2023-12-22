@@ -21,9 +21,11 @@
 namespace OHOS {
 namespace Rosen {
 
-RSTextureExport::RSTextureExport()
+RSTextureExport::RSTextureExport(std::shared_ptr<RSNode> rootNode, SurfaceId surfaceId)
 {
     rsUiDirector_ = RSUIDirector::Create();
+    rootNode_ = rootNode;
+    surfaceId_ = surfaceId;
 }
 
 RSTextureExport::~RSTextureExport()
@@ -31,26 +33,44 @@ RSTextureExport::~RSTextureExport()
     rsUiDirector_->Destroy(true);
 }
 
-bool RSTextureExport::DoTextureExport(std::shared_ptr<RSNode> rootNode, SurfaceId surfaceId)
-{   
+bool RSTextureExport::DoTextureExport()
+{
+    if (rootNode_->GetParent() || !rootNode_->IsTextureExportNode()) {
+        RS_LOGE("RSTextureExport::DoTextureExport rootNode must not on the tree or rootNode is not textureExportNode");
+        return false;
+    }
     rsUiDirector_->StartTextureExport();
-    std::shared_ptr<RSNode> virtualRootNode = RSRootNode::Create(false, true);
+    if (rootNode_->GetType() != RSUINodeType::ROOT_NODE) {
+        virtualRootNode_ = RSRootNode::Create(false, true);
+        auto bounds = rootNode_->GetStagingProperties().GetBounds();
+        virtualRootNode_->SetBounds({bounds.x_, bounds.y_, bounds.z_, bounds.w_});
+    }
     RSSurfaceNodeConfig config = {
         .SurfaceNodeName = "textureExportSurfaceNode",
         .additionalData = nullptr,
         .isTextureExportNode = true,
-        .surfaceId = surfaceId
+        .surfaceId = surfaceId_
     };
-    std::shared_ptr<RSSurfaceNode> virtualSurfaceNode = RSSurfaceNode::Create(config, false);
-    if (!virtualSurfaceNode) {
+    virtualSurfaceNode_ = RSSurfaceNode::Create(config, false);
+    if (!virtualSurfaceNode_) {
         ROSEN_LOGE("RSTextureExport::DoTextureExport create surfaceNode failed");
         return false;
     }
-    rsUiDirector_->SetRoot(virtualRootNode->GetId());
-    rsUiDirector_->SetRSSurfaceNode(virtualSurfaceNode);
-    virtualRootNode->AddChild(rootNode);
+    if (rootNode_->GetType() == RSUINodeType::ROOT_NODE) {
+        rsUiDirector_->SetRoot(rootNode_->GetId());
+    } else {
+        rsUiDirector_->SetRoot(virtualRootNode_->GetId());
+        virtualRootNode_->AddChild(rootNode_);
+    }
+    rsUiDirector_->SetRSSurfaceNode(virtualSurfaceNode_);
     rsUiDirector_->GoForeground(true);
     return true;
+}
+
+void RSTextureExport::StopTextureExport()
+{
+    rsUiDirector_->Destroy(true);
+    rootNode_->RemoveFromTree();
 }
 
 } // namespace Rosen

@@ -141,6 +141,9 @@ void RSUIDirector::GoBackground(bool isTextureExport)
         if (surfaceNode) {
             surfaceNode->MarkUIHidden(true);
         }
+        if (isTextureExport) {
+            return;
+        }
         // clean bufferQueue cache
         RSRenderThread::Instance().PostTask([surfaceNode]() {
             if (surfaceNode != nullptr) {
@@ -182,7 +185,7 @@ void RSUIDirector::Destroy(bool isTextureExport)
         }
         root_ = 0;
     }
-    GoBackground();
+    GoBackground(isTextureExport);
     std::unique_lock<std::mutex> lock(g_uiTaskRunnersVisitorMutex);
     g_uiTaskRunners.erase(this);
 }
