@@ -65,6 +65,7 @@ RSRenderServiceConnectHub::~RSRenderServiceConnectHub()
 
 sptr<RSIRenderServiceConnection> RSRenderServiceConnectHub::GetRenderService()
 {
+    std::lock_guard<std::mutex> lock(ipcMutex_);
     auto connHub = RSRenderServiceConnectHub::GetInstance();
     return connHub == nullptr ? nullptr : connHub->GetRenderServiceConnection();
 }

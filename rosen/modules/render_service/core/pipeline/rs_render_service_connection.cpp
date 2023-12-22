@@ -122,6 +122,7 @@ RSRenderServiceConnection::RSConnectionDeathRecipient::RSConnectionDeathRecipien
 
 void RSRenderServiceConnection::RSConnectionDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& token)
 {
+    std::lock_guard<std::mutex> lock(ipcMutex_);
     auto tokenSptr = token.promote();
     if (tokenSptr == nullptr) {
         RS_LOGW("RSConnectionDeathRecipient::OnRemoteDied: can't promote remote object.");
