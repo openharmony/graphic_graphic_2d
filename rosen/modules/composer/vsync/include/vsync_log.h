@@ -24,7 +24,7 @@ namespace {
 constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001400, "Vsync" };
 }
 
-#ifdef __aarch64__
+#if defined(__aarch64__) || (defined(__riscv) && __riscv_xlen == 64)
 #define VPUBI64  "%{public}ld"
 #define VPUBSize "%{public}lu"
 #define VPUBU64  "%{public}lu"
