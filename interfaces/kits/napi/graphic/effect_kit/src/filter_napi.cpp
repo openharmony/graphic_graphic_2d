@@ -331,15 +331,20 @@ void FilterNapi::GetPixelMapAsyncExecute(napi_env env, void* data)
 {
     auto ctx = static_cast<FilterAsyncContext*>(data);
 
-    std::shared_lock<std::shared_mutex> lock(filterNapiManagerMutex);
-    auto manager = filterNapiManager.find(ctx->filterNapi);
-    if (manager == filterNapiManager.end()) {
-        ctx->status = ERROR;
-        napi_create_string_utf8(env, "FilterNapi filterNapi not found in manager", NAPI_AUTO_LENGTH, &(ctx->errorMsg));
-        return;
+    bool managerFlag = false;
+    {
+        std::shared_lock<std::shared_mutex> lock(filterNapiManagerMutex);
+        auto manager = filterNapiManager.find(ctx->filterNapi);
+        if (manager == filterNapiManager.end()) {
+            ctx->status = ERROR;
+            napi_create_string_utf8(env, "FilterNapi filterNapi not found in manager",
+                NAPI_AUTO_LENGTH, &(ctx->errorMsg));
+            return;
+        }
+        managerFlag = (*manager).second.load();
     }
     
-    if (!(*manager).second.load()) {
+    if (!managerFlag) {
         std::lock_guard<std::mutex> lock2(getPixelMapAsyncExecuteMutex_);
         ctx->filterNapi->Render(ctx->forceCPU);
         ctx->dstPixelMap_ = ctx->filterNapi->GetDstPixelMap();
