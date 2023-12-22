@@ -51,7 +51,7 @@ void RsFrameReport::Init()
         ROSEN_LOGE("RsFrameReport:[Init] dlopen libframe_ui_intf.so failed!");
         return;
     }
-    ROSEN_LOGD("RsFrameReport:[Init] dlopen libframe_ui_intf.so success!");
+    ROSEN_LOGI("RsFrameReport:[Init] dlopen libframe_ui_intf.so success!");
     initFunc_ = (InitFunc)LoadSymbol("Init");
     if (initFunc_ != nullptr) {
         initFunc_();
@@ -69,6 +69,7 @@ bool RsFrameReport::LoadLibrary()
         }
         frameSchedSoLoaded_ = true;
     }
+    ROSEN_LOGI("RsFrameReport:[LoadLibrary] load library success!");
     return true;
 }
 
@@ -80,7 +81,7 @@ void RsFrameReport::CloseLibrary()
     }
     frameSchedHandle_ = nullptr;
     frameSchedSoLoaded_ = false;
-    ROSEN_LOGD("RsFrameReport:[CloseLibrary]libframe_ui_intf.so close success!\n");
+    ROSEN_LOGI("RsFrameReport:[CloseLibrary]libframe_ui_intf.so close success!\n");
 }
 
 void *RsFrameReport::LoadSymbol(const char *symName)
@@ -103,7 +104,9 @@ int RsFrameReport::GetEnable()
     if (!frameSchedSoLoaded_) {
         return 0;
     }
-    frameGetEnableFunc_ = (FrameGetEnableFunc)LoadSymbol("GetSenseSchedEnable");
+    if (frameGetEnableFunc_ == nullptr) {
+        frameGetEnableFunc_ = (FrameGetEnableFunc)LoadSymbol("GetSenseSchedEnable");
+    }
     if (frameGetEnableFunc_ != nullptr) {
         return frameGetEnableFunc_();
     } else {
