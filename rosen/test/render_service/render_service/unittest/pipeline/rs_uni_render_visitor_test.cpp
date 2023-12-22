@@ -2711,7 +2711,6 @@ HWTEST_F(RSUniRenderVisitorTest, GetCacheImageFromMirrorNode001, TestSize.Level2
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     ASSERT_EQ(rsUniRenderVisitor->GetCacheImageFromMirrorNode(rsDisplayRenderNode), nullptr);
-
 }
 
 /**
@@ -2738,7 +2737,6 @@ HWTEST_F(RSUniRenderVisitorTest, DrawSurfaceLayer001, TestSize.Level2)
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->DrawSurfaceLayer(displayNode, subThreadNodes);
-
 }
 
 /**

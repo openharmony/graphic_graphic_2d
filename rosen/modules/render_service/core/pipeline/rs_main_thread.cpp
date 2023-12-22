@@ -1646,7 +1646,7 @@ RSVisibleLevel RSMainThread::GetRegionVisibleLevel(const Occlusion::Region& curR
         return RSVisibleLevel::RS_INVISIBLE;
     } else if (visibleRegion.Area() == curRegion.Area()) {
         return RSVisibleLevel::RS_ALL_VISIBLE;
-    } else if (visibleRegion.Area() < (curRegion.Area() >> VISIBLEAREARATIO_FORQOS)) {
+    } else if (visibleRegion.Area() < (static_cast<uint>(curRegion.Area()) >> VISIBLEAREARATIO_FORQOS)) {
         return RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE;
     }
     return RSVisibleLevel::RS_SEMI_NONDEFAULT_VISIBLE;

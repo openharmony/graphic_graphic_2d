@@ -1601,7 +1601,10 @@ bool RSSurfaceRenderNode::IsCurFrameStatic(DeviceType deviceType)
 bool RSSurfaceRenderNode::IsVisibleDirtyEmpty(DeviceType deviceType)
 {
     bool isStaticUnderVisibleRegion = false;
-    if (dirtyManager_ == nullptr || !dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty()) {
+    if (dirtyManager_ == nullptr) {
+        return false;
+    }
+    if (!dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty()) {
         if (deviceType == DeviceType::PHONE) {
             return false;
         }
