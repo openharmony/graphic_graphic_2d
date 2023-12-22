@@ -754,7 +754,7 @@ HWTEST_F(RectTest, RectIIntersect002, TestSize.Level1)
 {
     RectI rectI1;
     RectI rectI2;
-    EXPECT_TRUE(rectI2.Intersect(rectI1));
+    EXPECT_FALSE(rectI2.Intersect(rectI1));
 }
 
 /**
@@ -793,7 +793,7 @@ HWTEST_F(RectTest, RectIJoin002, TestSize.Level1)
 {
     RectI rectI1;
     RectI rectI2;
-    EXPECT_TRUE(rectI2.Join(rectI1));
+    EXPECT_FALSE(rectI2.Join(rectI1));
 }
 
 /**
