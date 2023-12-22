@@ -174,6 +174,10 @@ void MeasurerImpl::SeekTypeface(std::list<struct MeasuringRun> &runs)
         std::shared_ptr<Typeface> lastTypeface = nullptr;
         while (utf16Index < runsit->end) {
             U16_NEXT(text_.data(), utf16Index, runsit->end, cp);
+            if (lastTypeface && lastTypeface->Has(cp)) {
+                LOGCEX_DEBUG() << " cached";
+                continue;
+            }
             if (runsit->typeface) {
                 LOGCEX_DEBUG() << " new";
                 auto next = runsit;

@@ -31,19 +31,18 @@ namespace Rosen {
 namespace TextEngine {
 #define DOUBLE 2
 
-void TextShaper::PartFontPropertySet(TexgineFont& font, std::shared_ptr<TextSpan> ts)
+void TextShaper::PartFontPropertySet(TexgineFont& font, const CharGroup &cg) const
 {
     font.SetEdging(TexgineFont::FontEdging::ANTIALIAS);
     font.SetSubpixel(true);
     font.SetHinting(TexgineFont::TexgineFontHinting::SLIGHT);
-    if (ts->cgs_.Get(0).typeface->Get()->DetectRawInformation() ||
-        ts->cgs_.Get(0).typeface->DetectionItalic()) {
+    if (cg.typeface->Get()->DetectRawInformation() || cg.typeface->DetectionItalic()) {
         font.SetSkewX();
     }
-    if (ts->cgs_.Get(0).typeface->DetectionFakeBold()) {
+    if (cg.typeface->DetectionFakeBold()) {
         font.SetBold();
     }
-    font.SetTypeface(ts->cgs_.Get(0).typeface->Get());
+    font.SetTypeface(cg.typeface->Get());
 }
 
 int TextShaper::FilterTextSpan(std::shared_ptr<TextSpan> ts)
@@ -99,7 +98,6 @@ int TextShaper::Shape(const VariantSpan &span, const TypographyStyle &ys,
     }
 
     TexgineFont font;
-    PartFontPropertySet(font, ts);
     font.SetSize(xs.fontSize);
     font.GetMetrics(ts->tmetrics_);
 
@@ -154,18 +152,20 @@ int TextShaper::DoShape(std::shared_ptr<TextSpan> &span, const TextStyle &xs,
     return 0;
 }
 
-std::shared_ptr<TexgineTextBlob> TextShaper::GenerateTextBlob(const TexgineFont &font, const CharGroups &cgs,
+std::shared_ptr<TexgineTextBlob> TextShaper::GenerateTextBlob(TexgineFont &font, const CharGroups &cgs,
     double &spanWidth, std::vector<double> &glyphWidths) const
 {
     TexgineTextBlobBuilder builder;
-    const auto& runBuffer = builder.AllocRunPos(font, cgs.GetNumberOfGlyph());
-
     auto offset = 0.0;
-    auto index = 0;
     for (const auto &cg : cgs) {
+        PartFontPropertySet(font, cg);
+
         glyphWidths.push_back(cg.GetWidth());
         auto drawingOffset = offset;
         offset += cg.GetWidth();
+
+        const auto& runBuffer = builder.AllocRunPos(font, cg.glyphs.size());
+        auto index = 0;
         for (const auto &[cp, ax, ay, ox, oy] : cg.glyphs) {
             runBuffer.glyphs[index] = cp;
             runBuffer.pos[index * DOUBLE] = drawingOffset + ox;
