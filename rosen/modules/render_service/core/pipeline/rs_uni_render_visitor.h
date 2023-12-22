@@ -444,6 +444,7 @@ private:
     // check each surface could be reused per frame
     // currently available to uiFirst
     bool isCachedSurfaceReuse_ = false;
+    uint32_t effectNodeNum_ = 0;
 
     bool isDirtyRegionAlignedEnable_ = false;
     std::shared_ptr<std::mutex> surfaceNodePrepareMutex_;

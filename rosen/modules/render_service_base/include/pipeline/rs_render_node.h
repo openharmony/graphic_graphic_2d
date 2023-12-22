@@ -266,6 +266,11 @@ public:
 
     void SetStaticCached(bool isStaticCached);
     bool IsStaticCached() const;
+    // store prev surface subtree's must-renewed info that need prepare
+    virtual void StoreMustRenewedInfo();
+    bool HasMustRenewedInfo() const;
+    // collect all subnodes using effect
+    void SetUseEffectNodes(uint32_t val);
 
     bool NeedInitCacheSurface() const;
     bool NeedInitCacheCompletedSurface() const;
@@ -559,6 +564,7 @@ protected:
     bool IsSelfDrawingNode() const;
     bool isOnTheTree_ = false;
     NodeId drawingCacheRootId_ = INVALID_NODEID;
+    bool mustRenewedInfo_ = false;
 
 #ifndef USE_ROSEN_DRAWING
     std::unordered_set<RSModifierType> dirtyTypes_;
@@ -663,6 +669,7 @@ private:
     // since cache preparation optimization would skip child's dirtyFlag(geoDirty) update
     // it should be recorded and update if marked dirty again
     bool cacheGeoPreparationDelay_ = false;
+    uint32_t effectNodeNum_ = 0;
 
     std::unordered_set<NodeId> curCacheFilterRects_ = {};
     std::unordered_set<NodeId> visitedCacheRoots_ = {};

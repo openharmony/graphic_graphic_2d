@@ -744,6 +744,7 @@ public:
 
     // if a surfacenode's dstrect is empty, its subnodes' prepare stage can be skipped
     bool ShouldPrepareSubnodes();
+    void StoreMustRenewedInfo() override;
 
     void SetNodeCost(int32_t cost)
     {

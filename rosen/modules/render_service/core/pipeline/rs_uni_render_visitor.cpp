@@ -440,9 +440,11 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
     curAlpha_ *= node.GetRenderProperties().GetAlpha();
     node.SetGlobalAlpha(curAlpha_);
     auto children = node.GetSortedChildren();
-    // check curSurfaceDirtyManager_ for UpdateStaticCacheSubTree calls
-    if ((isCachedSurfaceReuse_ || !UpdateCacheChangeStatus(node)) && curSurfaceDirtyManager_ != nullptr) {
-        RS_OPTIONAL_TRACE_NAME_FMT("UpdateCacheChangeStatus quick skip node %llu, isCachedSurfaceReuse_ %d",
+    // check curSurfaceDirtyManager_ for SubTree updates
+    if (curSurfaceDirtyManager_ != nullptr && isCachedSurfaceReuse_ && !node.HasMustRenewedInfo()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("CachedSurfaceReuse node %llu quickSkip subtree", node.GetId());
+    } else if (curSurfaceDirtyManager_ != nullptr && (isCachedSurfaceReuse_ || !UpdateCacheChangeStatus(node))) {
+        RS_OPTIONAL_TRACE_NAME_FMT("UpdateCacheChangeStatus node %llu simply update subtree, isCachedSurfaceReuse_ %d",
             node.GetId(), isCachedSurfaceReuse_);
         UpdateStaticCacheSubTree(node.ReinterpretCastTo<RSRenderNode>(), children);
     } else {
@@ -545,7 +547,7 @@ bool RSUniRenderVisitor::UpdateCacheChangeStatus(RSRenderNode& node)
     if (node.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
         // if firstVisitedCache_ valid, upper cache should be updated so sub cache shouldn't skip
         // [planning] static subcache could be skip and reuse
-        if (isPhone_ && (quickSkipPrepareType_ >= QuickSkipPrepareType::STATIC_CACHE) &&
+        if ((quickSkipPrepareType_ >= QuickSkipPrepareType::STATIC_CACHE) &&
             (firstVisitedCache_ == INVALID_NODEID) && IsDrawingCacheStatic(node)) {
             return false;
         }
@@ -1088,6 +1090,8 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeBeforeUpdate(RSSurfaceRe
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
         node.SetFilterCacheFullyCovered(false);
         node.ResetFilterNodes();
+        effectNodeNum_ = 0;
+        node.SetUseEffectNodes(0);
         node.SetSurfaceCacheContentStatic(
             RSMainThread::Instance()->CheckIfInstanceOnlySurfaceBasicGeoTransform(node.GetId()));
         // [planning] check if it is not reset recursively
@@ -1164,6 +1168,7 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeAfterUpdate(RSSurfaceRen
     }
     if (node.IsMainWindowType()) {
         isCachedSurfaceReuse_ = false;
+        node.SetUseEffectNodes(effectNodeNum_);
         bool hasFilter = node.IsTransparent() && properties.NeedFilter();
         bool hasHardwareNode = !node.GetChildHardwareEnabledNodes().empty();
         bool hasAbilityComponent = !node.GetAbilityNodeIds().empty();
@@ -1270,6 +1275,8 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         PrepareSubSurfaceNodes(node);
         return;
     }
+    // Attension: Updateinfo before info reset
+    node.StoreMustRenewedInfo();
     node.SetHasSharedTransitionNode(false);
     // reset HasSecurityLayer
     node.SetHasSecurityLayer(false);
@@ -1759,6 +1766,9 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     PrepareChildren(node);
     // attention: accumulate direct parent's childrenRect
     node.UpdateParentChildrenRect(logicParentNode_.lock());
+    if (node.GetRenderProperties().GetUseEffect()) {
+        effectNodeNum_++;
+    }
     node.UpdateEffectRegion(effectRegion_);
     if (property.NeedFilter()) {
         // filterRects_ is used in RSUniRenderVisitor::CalcDirtyFilterRegion
