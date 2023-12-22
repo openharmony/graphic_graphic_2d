@@ -26,6 +26,15 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+void WaitAcquireFence(const sptr<SyncFence>& acquireFence)
+{
+    if (acquireFence == nullptr) {
+        return;
+    }
+    acquireFence->Wait(3000); // 3000ms
+}
+}
 
 NativeVkImageRes::~NativeVkImageRes()
 {
@@ -95,14 +104,6 @@ std::shared_ptr<NativeVkImageRes> RSVkImageManager::CreateImageCacheFromBuffer(s
         return nullptr;
     }
     return imageCache;
-}
-
-void RSVkImageManager::WaitAcquireFence(const sptr<SyncFence>& acquireFence)
-{
-    if (acquireFence == nullptr) {
-        return;
-    }
-    acquireFence->Wait(3000); // 3000ms
 }
 
 std::shared_ptr<NativeVkImageRes> RSVkImageManager::NewImageCacheFromBuffer(
