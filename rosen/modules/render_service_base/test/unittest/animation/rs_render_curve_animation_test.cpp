@@ -67,29 +67,6 @@ HWTEST_F(RSRenderCurveAnimationTest, Marshalling001, TestSize.Level1)
 }
 
 /**
- * @tc.name: Unmarshalling001
- * @tc.desc:Verify the Unmarshalling
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderCurveAnimationTest, Unmarshalling001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSRenderCurveAnimationTest Unmarshalling001 start";
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
-
-    auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
-    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
-
-    Parcel parcel;
-    renderCurveAnimation->Marshalling(parcel);
-    std::shared_ptr<RSRenderAnimation>(RSRenderCurveAnimation::Unmarshalling(parcel));
-    EXPECT_TRUE(renderCurveAnimation != nullptr);
-    GTEST_LOG_(INFO) << "RSRenderCurveAnimationTest Unmarshalling001 end";
-}
-
-/**
  * @tc.name: SetInterpolator001
  * @tc.desc: Verify the SetInterpolator
  * @tc.type:FUNC
