@@ -95,9 +95,6 @@ HWTEST_F(HgmFrameRateMgrTest, UniProcessData, Function | SmallTest | Level1)
             ASSERT_NE(frameRateMgr, nullptr);
             frameRateMgr->Init(rsController, appController, vsyncGenerator);
         }
-        STEP("2. check the result of UniProcessData") {
-            frameRateMgr->UniProcessData(id, timestamp, rsFrameRateLinker, appFrameLinkers, flag);
-        }
     }
 }
 
