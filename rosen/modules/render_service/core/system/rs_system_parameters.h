@@ -41,6 +41,8 @@ public:
     static bool GetDrawingCacheEnabledDfx();
     static bool GetShowRefreshRateEnabled();
     static QuickSkipPrepareType GetQuickSkipPrepareType();
+    static bool GetVSyncControlEnabled();
+    static bool GetSystemAnimatedScenesEnabled();
     static bool GetFilterCacheOcculusionEnabled();
     static bool GetSkipCanvasNodeOutofScreenEnabled();
 };

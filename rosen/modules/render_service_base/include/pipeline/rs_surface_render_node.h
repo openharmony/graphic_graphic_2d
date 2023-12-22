@@ -425,6 +425,11 @@ public:
         isOcclusionVisibleWithoutFilter_ = visible;
     }
 
+    void SetOcclusionInSpecificScenes(bool isOcclusionInSpecificScenes)
+    {
+        isOcclusionInSpecificScenes_ = isOcclusionInSpecificScenes;
+    }
+
     const Occlusion::Region& GetVisibleRegion() const
     {
         return visibleRegion_;
@@ -461,7 +466,8 @@ public:
         VisibleData& visibleVec,
         std::map<uint32_t, RSVisibleLevel>& pidVisMap,
         bool needSetVisibleRegion = true,
-        RSVisibleLevel visibleLevel = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL);
+        RSVisibleLevel visibleLevel = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL,
+        int32_t systemAnimatedScenesCnt = 0);
 
     const Occlusion::Region& GetVisibleDirtyRegion() const
     {
@@ -1015,6 +1021,7 @@ private:
     Occlusion::Region alignedVisibleDirtyRegion_;
     bool isOcclusionVisible_ = true;
     bool isOcclusionVisibleWithoutFilter_ = true;
+    bool isOcclusionInSpecificScenes_ = false;
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
     std::shared_ptr<RSDirtyRegionManager> cacheSurfaceDirtyManager_ = nullptr;
     RectI dstRect_;
