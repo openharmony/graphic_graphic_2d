@@ -1234,15 +1234,6 @@ void SurfaceBufferOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
                 kPremul_SkAlphaType, SkColorSpace::MakeSRGB(), NativeBufferUtils::DeleteVkImage,
                 new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
                     imageInfo.fImage, imageInfo.fAlloc.fMemory));
-            if (canvas.GetRecordingState()) {
-                if (!skImage_) {
-                    return;
-                }
-                auto cpuImage = skImage_->makeRasterImage();
-                auto samplingOptions = SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
-                canvas.drawImage(cpuImage, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, samplingOptions);
-                return;
-            }
             auto samplingOptions = SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
             canvas.drawImage(skImage_, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, samplingOptions);
         } else {

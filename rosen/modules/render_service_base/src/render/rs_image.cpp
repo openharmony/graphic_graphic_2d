@@ -105,8 +105,10 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
             canvas.Save();
             RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas);
         }
-        canvas.DrawImageRect(*image_, src_, dst_, samplingOptions,
-            Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+        if (image_) {
+            canvas.DrawImageRect(*image_, src_, dst_, samplingOptions,
+                Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+        }
         if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
             canvas.Restore();
         }
@@ -295,7 +297,7 @@ static Drawing::CompressedType PixelFormatToCompressedType(Media::PixelFormat pi
 
 void RSImage::UploadGpu(Drawing::Canvas& canvas)
 {
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (compressData_) {
         auto cache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, gettid());
         std::lock_guard<std::mutex> lock(mutex_);
@@ -389,9 +391,24 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
 #endif
 #else
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK))
-    if (pixelMap_ != nullptr && image_ == nullptr) {
-        ConvertPixelMapToDrawingImage();
+#if defined(RS_ENABLE_GL)
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+#if !defined(RS_ENABLE_PARALLEL_UPLOAD) || !defined(RS_ENABLE_UNI_RENDER)
+        if (pixelMap_ != nullptr && image_ == nullptr) {
+            ConvertPixelMapToDrawingImage();
+        }
+#endif
     }
+#endif // RS_ENABLE_GL
+
+#if defined(RS_ENABLE_VK)
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (pixelMap_ != nullptr && image_ == nullptr) {
+            ConvertPixelMapToDrawingImage();
+        }
+    }
+#endif // RS_ENABLE_VK
 #else
     ConvertPixelMapToDrawingImage();
 #endif
@@ -429,8 +446,10 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
                 canvas.Save();
                 RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas);
             }
-            canvas.DrawImageRect(*image_, src_, dst_, samplingOptions,
-                Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+            if (image_) {
+                canvas.DrawImageRect(*image_, src_, dst_, samplingOptions,
+                    Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+            }
             if (isAstc) {
                 canvas.Restore();
             }

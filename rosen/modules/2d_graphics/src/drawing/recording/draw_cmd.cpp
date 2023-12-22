@@ -1553,6 +1553,10 @@ void DrawSurfaceBufferOpItem::Draw(Canvas* canvas)
         }
         auto backendTexture = DrawSurfaceBufferOpItem::makeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
             surfaceBufferInfo_.width_, surfaceBufferInfo_.height_);
+        if (!backendTexture.IsValid()) {
+            LOGE("DrawSurfaceBufferOpItem::Draw backendTexture is not valid");
+            return;
+        }
         Drawing::BitmapFormat bitmapFormat = { Drawing::ColorType::COLORTYPE_RGBA_8888,
             Drawing::AlphaType::ALPHATYPE_PREMUL };
         auto ptr = [](void* context) {
@@ -1566,7 +1570,8 @@ void DrawSurfaceBufferOpItem::Draw(Canvas* canvas)
             LOGE("DrawSurfaceBufferOpItem::Draw: image BuildFromTexture failed");
             return;
         }
-        canvas->DrawImage(*image, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, Drawing::SamplingOptions());
+        auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
+        canvas->DrawImage(*image, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, samplingOptions);
     }
 #endif
 
