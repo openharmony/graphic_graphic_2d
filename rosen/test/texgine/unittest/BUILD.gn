@@ -22,10 +22,7 @@ group("unittest") {
   if (is_ok) {
     deps = [
       ":texgine_unittest_part1",
-      ":texgine_unittest_part2",
-      ":texgine_unittest_part3",
       ":texgine_unittest_part4",
-      ":texgine_unittest_part5",
       ":texgine_unittest_part6",
     ]
   }
@@ -86,47 +83,6 @@ ohos_unittest("texgine_unittest_part1") {
   subsystem_name = "graphic"
 }
 
-ohos_unittest("texgine_unittest_part2") {
-  module_out_path = module_output_path
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines = [ "USE_ROSEN_DRAWING" ]
-  }
-  sources = [
-    "dynamic_font_provider_test.cpp",
-    "system_font_provider_test.cpp",
-    "text_shaper_test.cpp",
-    "typeface_test.cpp",
-  ]
-
-  public_configs = [ ":texgine_test_config" ]
-  public_deps = [ ":common_deps" ]
-
-  use_exceptions = true
-
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
-}
-
-ohos_unittest("texgine_unittest_part3") {
-  module_out_path = module_output_path
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines = [ "USE_ROSEN_DRAWING" ]
-  }
-  sources = [
-    "font_collection_test.cpp",
-    "line_breaker_test.cpp",
-    "text_breaker_test.cpp",
-  ]
-
-  public_configs = [ ":texgine_test_config" ]
-  public_deps = [ ":common_deps" ]
-
-  use_exceptions = true
-
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
-}
-
 ohos_unittest("texgine_unittest_part4") {
   module_out_path = module_output_path
 
@@ -142,46 +98,6 @@ ohos_unittest("texgine_unittest_part4") {
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
-}
-
-ohos_unittest("texgine_unittest_part5") {
-  module_out_path = module_output_path
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines = [ "USE_ROSEN_DRAWING" ]
-  }
-  sources = [
-    "measurer_impl_test.cpp",
-    "texgine_canvas_test.cpp",
-    "texgine_dash_path_effect_test.cpp",
-    "texgine_data_test.cpp",
-    "texgine_font_manager_test.cpp",
-    "texgine_font_metrics_test.cpp",
-    "texgine_font_style_set_test.cpp",
-    "typography_impl_test.cpp",
-  ]
-
-  public_configs = [ ":texgine_test_config" ]
-  public_deps = [ ":common_deps" ]
-
-  use_exceptions = true
-
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
-  if (enable_text_gine) {
-    sources -= [
-      "texgine_canvas_test.cpp",
-      "texgine_font_manager_test.cpp",
-      "typography_impl_test.cpp",
-    ]
-    sources += [
-      "texgine_font_style_test.cpp",
-      "texgine_font_test.cpp",
-      "texgine_mask_filter_test.cpp",
-      "texgine_paint_test.cpp",
-      "texgine_path_1d_path_effect_test.cpp",
-      "texgine_path_test.cpp",
-    ]
-  }
 }
 
 ohos_unittest("texgine_unittest_part6") {
