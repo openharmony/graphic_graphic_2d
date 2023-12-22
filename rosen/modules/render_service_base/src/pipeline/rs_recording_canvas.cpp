@@ -172,7 +172,7 @@ void RSRecordingCanvas::DrawPixelMapWithParm(const std::shared_ptr<Media::PixelM
     AddOp(std::move(op));
 }
 
-void RSRecordingCanvas::drawImageNine(
+void RSRecordingCanvas::DrawImageNine(
     const std::shared_ptr<Media::PixelMap>& pixelmap, const SkIRect& center, const SkRect& dst,
     SkFilterMode filter, const SkPaint* paint)
 {

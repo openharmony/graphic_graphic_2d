@@ -102,7 +102,7 @@ public:
     void DrawPixelMapWithParm(
         const std::shared_ptr<Media::PixelMap>& pixelmap,
         const Rosen::RsImageInfo& rsImageInfo, const SkSamplingOptions& samplingOptions, const SkPaint& paint);
-    void drawImageNine(const std::shared_ptr<Media::PixelMap>& pixelmap, const SkIRect& center,
+    void DrawImageNine(const std::shared_ptr<Media::PixelMap>& pixelmap, const SkIRect& center,
         const SkRect& dst, SkFilterMode filter, const SkPaint* paint);
 #else
     GrContext* getGrContext() override;
