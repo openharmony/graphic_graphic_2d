@@ -104,6 +104,7 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyl
         }
         GenNewBoundryByHardBreak(cgs, boundaries);
         GenNewBoundryByTypeface(cgs, boundaries);
+        GenNewBoundryByQuote(cgs, boundaries);
 
         preBreak_ = 0;
         postBreak_ = 0;
