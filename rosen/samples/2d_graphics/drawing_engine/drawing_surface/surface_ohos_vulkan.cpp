@@ -74,8 +74,8 @@ std::unique_ptr<SurfaceFrame> SurfaceOhosVulkan::RequestFrame(int32_t width, int
     }
 
     if (mVulkanWindow_ == nullptr) {
-        auto vulkan_surface_ohos = std::make_unique<vulkan::VulkanNativeSurfaceOHOS>(mNativeWindow_);
-        mVulkanWindow_ = new vulkan::VulkanWindow(std::move(vulkan_surface_ohos));
+        auto vulkan_surface_ohos = std::make_unique<vulkan::RSVulkanNativeSurfaceOHOS>(mNativeWindow_);
+        mVulkanWindow_ = new vulkan::RSVulkanWindow(std::move(vulkan_surface_ohos));
     }
 
     surface_ = std::make_shared<Drawing::Surface>();
