@@ -73,6 +73,8 @@ void RSUniRenderComposerAdapterTest::SetUp()
     auto info = screenManager_->QueryScreenInfo(screenId_);
     info.width = width;
     info.height = height;
+    info.phyWidth = width;
+    info.phyHeight = height;
     info.colorGamut = colorGamut;
     info.state = state;
     info.rotation = rotation;
@@ -617,8 +619,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerCrop001, TestSize.Level1)
     surfaceNode->SetDstRect(dstRect);
     LayerInfoPtr layer = composerAdapter_->CreateLayer(*surfaceNode);
     ASSERT_NE(layer, nullptr);
-    composerAdapter_->screenInfo_.width = DEFAULT_CANVAS_WIDTH;
-    composerAdapter_->screenInfo_.height = DEFAULT_CANVAS_HEIGHT;
+    composerAdapter_->screenInfo_.phyWidth = DEFAULT_CANVAS_WIDTH;
+    composerAdapter_->screenInfo_.phyHeight = DEFAULT_CANVAS_HEIGHT;
     composerAdapter_->LayerCrop(layer);
 }
 
@@ -637,8 +639,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerCrop002, TestSize.Level1)
     surfaceNode->SetDstRect(dstRect);
     auto layer = composerAdapter_->CreateLayer(*surfaceNode);
     ASSERT_NE(layer, nullptr);
-    composerAdapter_->screenInfo_.width = DEFAULT_CANVAS_WIDTH_1K;
-    composerAdapter_->screenInfo_.height = DEFAULT_CANVAS_HEIGHT_1K;
+    composerAdapter_->screenInfo_.phyWidth = DEFAULT_CANVAS_WIDTH_1K;
+    composerAdapter_->screenInfo_.phyHeight = DEFAULT_CANVAS_HEIGHT_1K;
     composerAdapter_->LayerCrop(layer);
 }
 
@@ -759,8 +761,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, IsOutOfScreenRegion004, TestSize.Level1
     info.buffer->SetSurfaceBufferHeight(DEFAULT_CANVAS_HEIGHT);
     info.dstRect.x = DEFAULT_CANVAS_WIDTH_1K;
     info.dstRect.y = DEFAULT_CANVAS_HEIGHT_1K;
-    composerAdapter_->screenInfo_.width = DEFAULT_CANVAS_WIDTH;
-    composerAdapter_->screenInfo_.height = DEFAULT_CANVAS_HEIGHT;
+    composerAdapter_->screenInfo_.phyWidth = DEFAULT_CANVAS_WIDTH;
+    composerAdapter_->screenInfo_.phyHeight = DEFAULT_CANVAS_HEIGHT;
     ASSERT_EQ(true, composerAdapter_->IsOutOfScreenRegion(info));
 }
 
@@ -780,8 +782,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, IsOutOfScreenRegion005, TestSize.Level1
     info.buffer->SetSurfaceBufferHeight(DEFAULT_CANVAS_HEIGHT);
     info.dstRect.x = DEFAULT_CANVAS_WIDTH;
     info.dstRect.y = DEFAULT_CANVAS_HEIGHT_1K;
-    composerAdapter_->screenInfo_.width = DEFAULT_CANVAS_WIDTH_1K;
-    composerAdapter_->screenInfo_.height = DEFAULT_CANVAS_HEIGHT;
+    composerAdapter_->screenInfo_.phyWidth = DEFAULT_CANVAS_WIDTH_1K;
+    composerAdapter_->screenInfo_.phyHeight = DEFAULT_CANVAS_HEIGHT;
     ASSERT_EQ(true, composerAdapter_->IsOutOfScreenRegion(info));
 }
 
@@ -802,8 +804,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, IsOutOfScreenRegion006, TestSize.Level1
     info.dstRect.x = DEFAULT_CANVAS_WIDTH;
     info.dstRect.y = 0;
     info.dstRect.h = 0;
-    composerAdapter_->screenInfo_.width = DEFAULT_CANVAS_WIDTH;
-    composerAdapter_->screenInfo_.height = DEFAULT_CANVAS_HEIGHT;
+    composerAdapter_->screenInfo_.phyWidth = DEFAULT_CANVAS_WIDTH;
+    composerAdapter_->screenInfo_.phyHeight = DEFAULT_CANVAS_HEIGHT;
     ASSERT_EQ(true, composerAdapter_->IsOutOfScreenRegion(info));
 }
 
@@ -820,8 +822,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CreateBufferLayer001, TestSize.Level1)
     RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH_1K, DEFAULT_CANVAS_HEIGHT_1K};
     surfaceNode->SetSrcRect(dstRect);
     surfaceNode->SetDstRect(dstRect);
-    composerAdapter_->screenInfo_.width = DEFAULT_CANVAS_WIDTH;
-    composerAdapter_->screenInfo_.height = DEFAULT_CANVAS_HEIGHT;
+    composerAdapter_->screenInfo_.phyWidth = DEFAULT_CANVAS_WIDTH;
+    composerAdapter_->screenInfo_.phyHeight = DEFAULT_CANVAS_HEIGHT;
     ASSERT_NE(nullptr, composerAdapter_->CreateBufferLayer(*surfaceNode));
 }
 
@@ -838,8 +840,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CreateBufferLayer002, TestSize.Level1)
     RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(dstRect);
     surfaceNode->SetDstRect(dstRect);
-    composerAdapter_->screenInfo_.width = DEFAULT_CANVAS_WIDTH_1K;
-    composerAdapter_->screenInfo_.height = DEFAULT_CANVAS_HEIGHT_1K;
+    composerAdapter_->screenInfo_.phyWidth = DEFAULT_CANVAS_WIDTH_1K;
+    composerAdapter_->screenInfo_.phyHeight = DEFAULT_CANVAS_HEIGHT_1K;
     composerAdapter_->output_ = nullptr;
     ASSERT_EQ(nullptr, composerAdapter_->CreateBufferLayer(*surfaceNode));
 }
@@ -857,8 +859,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CreateBufferLayer003, TestSize.Level1)
     RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(dstRect);
     surfaceNode->SetDstRect(dstRect);
-    composerAdapter_->screenInfo_.width = DEFAULT_CANVAS_WIDTH_1K;
-    composerAdapter_->screenInfo_.height = DEFAULT_CANVAS_HEIGHT_1K;
+    composerAdapter_->screenInfo_.phyWidth = DEFAULT_CANVAS_WIDTH_1K;
+    composerAdapter_->screenInfo_.phyHeight = DEFAULT_CANVAS_HEIGHT_1K;
     ASSERT_NE(nullptr, composerAdapter_->CreateBufferLayer(*surfaceNode));
 }
 
@@ -875,8 +877,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer001, TestSize.Level1)
     RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(dstRect);
     surfaceNode->SetDstRect(dstRect);
-    composerAdapter_->screenInfo_.width = DEFAULT_CANVAS_WIDTH_1K;
-    composerAdapter_->screenInfo_.height = DEFAULT_CANVAS_HEIGHT_1K;
+    composerAdapter_->screenInfo_.phyWidth = DEFAULT_CANVAS_WIDTH_1K;
+    composerAdapter_->screenInfo_.phyHeight = DEFAULT_CANVAS_HEIGHT_1K;
     surfaceNode->consumer_ = nullptr;
     ASSERT_EQ(nullptr, composerAdapter_->CreateLayer(*surfaceNode));
 }
@@ -894,8 +896,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetLayerSize001, TestSize.Level1)
     RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(dstRect);
     surfaceNode->SetDstRect(dstRect);
-    composerAdapter_->screenInfo_.width = DEFAULT_CANVAS_WIDTH_1K;
-    composerAdapter_->screenInfo_.height = DEFAULT_CANVAS_HEIGHT_1K;
+    composerAdapter_->screenInfo_.phyWidth = DEFAULT_CANVAS_WIDTH_1K;
+    composerAdapter_->screenInfo_.phyHeight = DEFAULT_CANVAS_HEIGHT_1K;
     auto layer = composerAdapter_->CreateLayer(*surfaceNode);
     ASSERT_NE(layer, nullptr);
     surfaceNode->consumer_ = nullptr;
@@ -971,8 +973,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerCrop003, TestSize.Level2)
 
     layer->layerRect_ = {0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     layer->cropRect_ = {0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
-    composerAdapter_->screenInfo_.width = DEFAULT_CANVAS_WIDTH * 0.5;
-    composerAdapter_->screenInfo_.height = DEFAULT_CANVAS_HEIGHT * 0.5;
+    composerAdapter_->screenInfo_.phyWidth = DEFAULT_CANVAS_WIDTH * 0.5;
+    composerAdapter_->screenInfo_.phyHeight = DEFAULT_CANVAS_HEIGHT * 0.5;
     
     composerAdapter_->LayerCrop(layer);
     ASSERT_EQ(layer->layerRect_.w, DEFAULT_CANVAS_WIDTH * 0.5);

@@ -286,11 +286,11 @@ void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
     if ((width == 0 || height == 0) ||
         (width == width_ && height == height_) ||
         (width > phyWidth_ || height > phyHeight_)) {
-        RS_LOGW("RSScreen:%{public}s: width: %{public}d, height: %{public}d.", __func__, width, height);
+        RS_LOGD("RSScreen:%{public}s: width: %{public}d, height: %{public}d.", __func__, width, height);
         return;
     }
-    width_ = static_cast<int32_t>(width);
-    height_ = static_cast<int32_t>(height);
+    width_ = width;
+    height_ = height;
     RS_LOGI("RSScreen %{public}s: RSScreen(id %{public}" PRIu64 "), width: %{public}d,"
         " height: %{public}d, phywidth: %{public}d, phyHeight: %{public}d.",
 	    __func__, id_, width_, height_, phyWidth_, phyHeight_);
@@ -303,8 +303,8 @@ void RSScreen::SetResolution(uint32_t width, uint32_t height)
         RS_LOGW("RSScreen %{public}s: physical screen not support SetResolution.", __func__);
         return;
     }
-    width_ = static_cast<int32_t>(width);
-    height_ = static_cast<int32_t>(height);
+    width_ = width;
+    height_ = height;
 }
 
 int32_t RSScreen::GetActiveModePosByModeId(int32_t modeId) const
@@ -594,8 +594,8 @@ void RSScreen::ResizeVirtualScreen(uint32_t width, uint32_t height)
         RS_LOGW("RSScreen %{public}s: physical screen not support ResizeVirtualScreen.", __func__);
         return;
     }
-    width_ = static_cast<int32_t>(width);
-    height_ = static_cast<int32_t>(height);
+    width_ = width;
+    height_ = height;
 }
 
 void RSScreen::SetScreenBacklight(uint32_t level)
