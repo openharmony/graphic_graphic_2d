@@ -183,3 +183,4 @@ HWTEST_F(BufferManagerTest, FlushBufferAfterUnmap001, Function | MediumTest | Le
     ASSERT_NE(handle, nullptr);
     ASSERT_EQ(handle->virAddr, nullptr);
 }
+}
