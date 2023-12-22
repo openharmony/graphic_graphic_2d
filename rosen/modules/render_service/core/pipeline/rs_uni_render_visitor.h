@@ -506,9 +506,9 @@ private:
     mutable std::mutex copyVisitorInfosMutex_;
     bool resetRotate_ = false;
 #ifndef USE_ROSEN_DRAWING
-    std::optional<SkPath> effectRegion_ = std::nullopt;
+    std::optional<SkIRect> effectRegion_ = std::nullopt;
 #else
-    std::optional<Drawing::Path> effectRegion_ = std::nullopt;
+    std::optional<Drawing::RectI> effectRegion_ = std::nullopt;
 #endif
     bool curDirty_ = false;
     bool curContentDirty_ = false;

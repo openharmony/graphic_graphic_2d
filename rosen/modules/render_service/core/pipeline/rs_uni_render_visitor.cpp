@@ -361,18 +361,6 @@ void RSUniRenderVisitor::UpdateStaticCacheSubTree(const std::shared_ptr<RSRender
         }
         if (child->GetRenderProperties().GetUseEffect()) {
             child->UpdateEffectRegion(effectRegion_);
-            if (effectRegion_) {
-#ifndef USE_ROSEN_DRAWING
-                auto rect = effectRegion_->getBounds();
-                RS_OPTIONAL_TRACE_NAME_FMT("UpdateStaticCacheSubTree node %llu UpdateEffectRegion(l,t,w,h)"
-                    " [%f,%f,%f,%f]", child->GetId(), rect.left(), rect.top(), rect.width(), rect.height());
-#else
-                auto rect = effectRegion_->GetBounds();
-                RS_OPTIONAL_TRACE_NAME_FMT("UpdateStaticCacheSubTree node %llu UpdateEffectRegion(l,t,w,h)"
-                    " [%f,%f,%f,%f]", child->GetId(), rect.GetLeft(), rect.GetTop(),
-                    rect.GetWidth(), rect.GetHeight());
-#endif
-            }
         }
         UpdateStaticCacheSubTreeFilter(child);
         UpdateStaticCacheSubTree(child, child->GetSortedChildren());
@@ -402,18 +390,6 @@ void RSUniRenderVisitor::PrepareEffectNodeIfCacheReuse(const std::shared_ptr<RSR
     }
     UpdateStaticCacheSubTree(effectNode, effectNode->GetSortedChildren());
     effectNode->SetEffectRegion(effectRegion_);
-    if (effectRegion_) {
-#ifndef USE_ROSEN_DRAWING
-        auto regionRect = effectRegion_->getBounds();
-        RS_OPTIONAL_TRACE_NAME_FMT("PrepareEffectNodeIfCacheReuse node %llu SetEffectRegion(l,t,w,h) [%f,%f,%f,%f]",
-            effectNode->GetId(), regionRect.left(), regionRect.top(), regionRect.width(), regionRect.height());
-#else
-        auto regionRect = effectRegion_->GetBounds();
-        RS_OPTIONAL_TRACE_NAME_FMT("PrepareEffectNodeIfCacheReuse node %llu SetEffectRegion(l,t,w,h) [%f,%f,%f,%f]",
-            effectNode->GetId(), regionRect.GetLeft(), regionRect.GetTop(),
-            regionRect.GetWidth(), regionRect.GetHeight());
-#endif
-    }
     effectRegion_ = effectRegion;
 }
 

@@ -108,10 +108,10 @@ private:
     std::vector<NodeId> childSurfaceNodeIds_;
 #ifndef USE_ROSEN_DRAWING
     SkMatrix parentSurfaceNodeMatrix_;
-    std::optional<SkPath> effectRegion_ = std::nullopt;
+    std::optional<SkIRect> effectRegion_ = std::nullopt;
 #else
     Drawing::Matrix parentSurfaceNodeMatrix_;
-    std::optional<Drawing::Path> effectRegion_ = std::nullopt;
+    std::optional<Drawing::RectI> effectRegion_ = std::nullopt;
 #endif // USE_ROSEN_DRAWING
 
     std::map<NodeId, std::function<void(float, float, float, float)>> surfaceCallbacks_;

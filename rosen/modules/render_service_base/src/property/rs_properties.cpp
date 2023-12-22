@@ -2580,6 +2580,11 @@ std::string RSProperties::Dump() const
         dumpInfo.append(", IsVisible[false]");
     }
 
+    // UseEffect
+    if (GetUseEffect()) {
+        dumpInfo.append(", GetUseEffect[true]");
+    }
+
     // Gray Scale
     ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
     if (ret != EOK) {

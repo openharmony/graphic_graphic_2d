@@ -1418,9 +1418,9 @@ void RSRenderNode::UpdateDrawableVec()
 }
 
 #ifndef USE_ROSEN_DRAWING
-void RSRenderNode::UpdateEffectRegion(std::optional<SkPath>& region)
+void RSRenderNode::UpdateEffectRegion(std::optional<SkIRect>& region)
 #else
-void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::Path>& region)
+void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::RectI>& region)
 #endif
 {
     if (!region.has_value()) {
@@ -1430,34 +1430,12 @@ void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::Path>& region)
     if (!property.GetUseEffect()) {
         return;
     }
-    auto& effectPath = region.value();
-    auto geoPtr = (property.GetBoundsGeometry());
-    if (!geoPtr) {
-        return;
-    }
 
+    auto absRect = property.GetBoundsGeometry()->GetAbsRect();
 #ifndef USE_ROSEN_DRAWING
-    SkPath clipPath;
-    if (property.GetClipBounds() != nullptr) {
-        clipPath = property.GetClipBounds()->GetSkiaPath();
-    } else {
-        auto rrect = RSPropertiesPainter::RRect2SkRRect(property.GetRRect());
-        clipPath.addRRect(rrect);
-    }
-
-    // accumulate children clip path, with matrix
-    effectPath.addPath(clipPath, geoPtr->GetAbsMatrix());
+    region->join(SkIRect::MakeXYWH(absRect.GetLeft(), absRect.GetTop(), absRect.GetWidth(), absRect.GetHeight()));
 #else
-    Drawing::Path clipPath;
-    if (property.GetClipBounds() != nullptr) {
-        clipPath = property.GetClipBounds()->GetDrawingPath();
-    } else {
-        auto rrect = RSPropertiesPainter::RRect2DrawingRRect(property.GetRRect());
-        clipPath.AddRoundRect(rrect);
-    }
-
-    // accumulate children clip path, with matrix
-    effectPath.AddPath(clipPath, geoPtr->GetAbsMatrix());
+    region->Join(Drawing::RectI(absRect.GetLeft(), absRect.GetTop(), absRect.GetRight(), absRect.GetBottom()));
 #endif
 }
 
