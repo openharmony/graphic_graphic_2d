@@ -1635,6 +1635,10 @@ bool RSBaseRenderUtil::WriteToPng(const std::string &filename, const WriteToPngP
         RS_LOGI("RSBaseRenderUtil::WriteToPng filename is empty");
         return false;
     }
+    if (param.data == nullptr) {
+        RS_LOGE("RSBaseRenderUtil::WriteToPng input data is nullptr");
+        return false;
+    }
     RS_LOGI("RSBaseRenderUtil::WriteToPng filename = %{public}s", filename.c_str());
     png_structp pngStruct = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
     if (pngStruct == nullptr) {
