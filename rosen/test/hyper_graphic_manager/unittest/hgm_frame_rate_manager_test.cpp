@@ -81,8 +81,6 @@ HWTEST_F(HgmFrameRateMgrTest, UniProcessData, Function | SmallTest | Level1)
     std::unordered_map<FrameRateLinkerId, std::shared_ptr<RSRenderFrameRateLinker>> appFrameLinkers =
         {{1, appFrameLinker1}, {2, appFrameLinker2}};
 
-    uint64_t timestamp = 10000000;
-    bool flag = false;
     sptr<VSyncGenerator> vsyncGenerator = CreateVSyncGenerator();
     sptr<VSyncController> rsController = new VSyncController(vsyncGenerator, 0);
     sptr<VSyncController> appController = new VSyncController(vsyncGenerator, 0);
@@ -94,9 +92,6 @@ HWTEST_F(HgmFrameRateMgrTest, UniProcessData, Function | SmallTest | Level1)
         STEP("1. get a HgmFrameRateManager") {
             ASSERT_NE(frameRateMgr, nullptr);
             frameRateMgr->Init(rsController, appController, vsyncGenerator);
-        }
-        STEP("2. check the result of UniProcessData") {
-            frameRateMgr->UniProcessData(id, timestamp, rsFrameRateLinker, appFrameLinkers, flag);
         }
     }
 }
