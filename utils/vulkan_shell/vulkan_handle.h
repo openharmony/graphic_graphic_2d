@@ -21,7 +21,6 @@
 #include "vulkan_interface.h"
 
 namespace OHOS::Rosen::vulkan {
-
 template<class T>
 class RSVulkanHandle {
 public:
