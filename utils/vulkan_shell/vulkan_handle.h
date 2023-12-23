@@ -80,8 +80,8 @@ public:
     }
 
 private:
-    Handle vkHandle_;
-    Disposer vkDisposer_;
+    Handle vkHandle_ = nullptr;
+    Disposer vkDisposer_ = nullptr;
 
     void DisposeIfNecessary()
     {
