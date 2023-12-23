@@ -44,6 +44,11 @@ public:
     void DrawRect(const TexgineRect &rect, const TexginePaint &paint) const;
 
     /*
+     * @brief Draws SkRRect rect using SkPaint paint.
+     */
+    void DrawRRect(const TexgineRect &rect, const TexginePaint &paint) const;
+
+    /*
      * @brief Draws SkTextBlob blob at (x, y), using clip, SkMatrix, and SkPaint paint.
      */
     void DrawTextBlob(const std::shared_ptr<TexgineTextBlob> &blob, float x, float y, const TexginePaint &paint);

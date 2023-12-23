@@ -58,6 +58,7 @@ using RSPathDashStyle = RSDrawing::PathDashStyle;
 using RSRecordingPathEffect = RSDrawing::PathEffect;
 using RSRecordingMaskFilter = RSDrawing::MaskFilter;
 using RSRect = RSDrawing::Rect;
+using RSRoundRect = RSDrawing::RoundRect;
 using RSScalar = RSDrawing::scalar;
 using RSTextBlob = RSDrawing::TextBlob;
 using RSTextBlobBuilder = RSDrawing::TextBlobBuilder;
