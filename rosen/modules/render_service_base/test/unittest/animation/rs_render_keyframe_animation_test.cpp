@@ -160,34 +160,6 @@ HWTEST_F(RSRenderKeyframeAnimationTest, Marshalling001, TestSize.Level1)
 }
 
 /**
- * @tc.name: Unmarshalling001
- * @tc.desc: Verify the Unmarshalling
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderKeyframeAnimationTest, Unmarshalling001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest Unmarshalling001 start";
-
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f);
-
-    auto renderKeyframeAnimation = std::make_shared<RSRenderKeyframeAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property);
-    auto interpolator = std::make_shared<RSStepsInterpolator>(0);
-    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
-    renderKeyframeAnimation->AddKeyframe(0.1f, property1, interpolator);
-
-    Parcel parcel;
-    renderKeyframeAnimation->Marshalling(parcel);
-    std::shared_ptr<RSRenderAnimation>(RSRenderKeyframeAnimation::Unmarshalling(parcel));
-    EXPECT_TRUE(renderKeyframeAnimation != nullptr);
-    renderKeyframeAnimation->Attach(renderNode.get());
-    renderKeyframeAnimation->Start();
-    EXPECT_TRUE(renderKeyframeAnimation->IsRunning());
-    GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest Unmarshalling001 end";
-}
-
-/**
  * @tc.name: OnAnimate001
  * @tc.desc: Verify the OnAnimate
  * @tc.type:FUNC

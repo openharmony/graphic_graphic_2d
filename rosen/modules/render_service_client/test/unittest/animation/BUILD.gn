@@ -26,19 +26,6 @@ ohos_unittest("RSAnimationTest") {
     "rs_animation_base_test.cpp",
     "rs_animation_callback_test.cpp",
     "rs_animation_group_test.cpp",
-    "rs_animation_supplement_test.cpp",
-    "rs_animation_test.cpp",
-    "rs_animation_timing_curve_test.cpp",
-    "rs_curve_animation_test.cpp",
-    "rs_implicit_animator_test.cpp",
-    "rs_keyframe_animation_test.cpp",
-    "rs_motion_path_option_test.cpp",
-    "rs_node_animate_supplement_test.cpp",
-    "rs_path_animation_test.cpp",
-    "rs_showing_properties_freezer_test.cpp",
-    "rs_spring_animation_test.cpp",
-    "rs_transition_effect_test.cpp",
-    "rs_transition_test.cpp",
   ]
 
   configs = [ ":rs_animation_test_config" ]

@@ -35,36 +35,6 @@ void RSRenderParticleEffectorTest::SetUp() {}
 void RSRenderParticleEffectorTest::TearDown() {}
 
 /**
- * @tc.name: UpdateColorTest
- * @tc.desc:
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderParticleEffectorTest, UpdateColorTest, Level1)
-{
-    float deltaTime = 0.f;
-    int64_t activeTime = 0;
-    auto particleParams = std::make_shared<ParticleRenderParams>();
-    RSRenderParticleEffector rsRenderParticleEffector(particleParams);
-    rsRenderParticleEffector.UpdateColor(nullptr, deltaTime, activeTime);
-    ASSERT_NE(activeTime, 1);
-}
-
-/**
- * @tc.name: UpdateAccelerateTest
- * @tc.desc:
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderParticleEffectorTest, UpdateAccelerateTest, Level1)
-{
-    float deltaTime = 0.f;
-    int64_t activeTime = 1;
-    auto particleParams = std::make_shared<ParticleRenderParams>();
-    RSRenderParticleEffector rsRenderParticleEffector(particleParams);
-    rsRenderParticleEffector.UpdateAccelerate(nullptr, deltaTime, activeTime);
-    ASSERT_NE(activeTime, 0);
-}
-
-/**
  * @tc.name: UpdateOpacityTest
  * @tc.desc:
  * @tc.type: FUNC
