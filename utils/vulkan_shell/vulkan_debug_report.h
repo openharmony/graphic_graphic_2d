@@ -35,7 +35,7 @@ public:
 private:
     const RSVulkanProcTable& vk;
     const RSVulkanHandle<VkInstance>& application_;
-    RSVulkanHandle<VkDebugReportCallbackEXT> handle_;
+    RSVulkanHandle<VkDebugReportCallbackEXT> handle_ = VK_NULL_HANDLE;
     bool valid_ = false;
 };
 
