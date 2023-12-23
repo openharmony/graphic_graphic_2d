@@ -1658,7 +1658,7 @@ void RSNode::AddChild(SharedPtr child, int index)
         return;
     }
     NodeId childId = child->GetId();
-    if (child->parent_ != 0) {
+    if (child->parent_ != 0 && !child->isTextureExportNode_) {
         child->RemoveFromTree();
     }
 
