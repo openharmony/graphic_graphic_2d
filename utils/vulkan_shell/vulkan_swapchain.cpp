@@ -257,7 +257,7 @@ bool RSVulkanSwapchain::CreateSwapchainImages(
     for (const VkImage& image : images) {
         // Populate the backbuffer.
         auto backbuffer = std::make_unique<RSVulkanBackbuffer>(vk, device_.GetHandle(), device_.GetCommandPool());
-        if (!backbuffer->IsValid()) {
+        if (!backbuffer || !backbuffer->IsValid()) {
             return false;
         }
 
@@ -284,10 +284,10 @@ bool RSVulkanSwapchain::CreateSwapchainImages(
     }
 
     if (backbuffers_.size() != images_.size()) {
-        LOGE("backbuffers_.size() != images_.size()");
+        LOGI("backbuffers_.size() != images_.size()");
     }
     if (images_.size() != surfaces_.size()) {
-        LOGE("images_.size() != surfaces_.size()");
+        LOGI("images_.size() != surfaces_.size()");
     }
 
     return true;
