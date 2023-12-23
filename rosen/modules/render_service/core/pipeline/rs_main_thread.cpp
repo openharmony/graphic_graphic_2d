@@ -2366,7 +2366,7 @@ void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::str
         grContext->flushAndSubmit(true);
     } else if (type == "uihidden") {
         grContext->flush();
-        grContext->purgeUnlockedResources(true);
+        grContext->purgeUnlockAndSafeCacheGpuResources();
         grContext->flushAndSubmit(true);
     } else if (type == "shader") {
 #ifdef NEW_RENDER_CONTEXT
