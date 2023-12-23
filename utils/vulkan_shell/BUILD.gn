@@ -1,0 +1,110 @@
+#
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+if (graphic_2d_feature_enable_vulkan) {
+  config("vulkan_shell_config") {
+    visibility = [ ":*" ]
+
+    include_dirs = [
+      "vulkan_application.h",
+      "vulkan_backbuffer.h",
+      "vulkan_command_buffer.h",
+      "vulkan_debug_report.h",
+      "vulkan_device.h",
+      "vulkan_handle.h",
+      "vulkan_hilog.h",
+      "vulkan_image.h",
+      "vulkan_interface.h",
+      "vulkan_native_surface.h",
+      "vulkan_native_surface_ohos.h",
+      "vulkan_proc_table.h",
+      "vulkan_provider.h",
+      "vulkan_surface.h",
+      "vulkan_swapchain.h",
+      "vulkan_utilities.h",
+      "vulkan_window.h",
+    ]
+
+    cflags = [
+      "-Wall",
+      "-Wno-unused-function",
+      "-Wno-unused-variable",
+      "-Wno-missing-braces",
+      "-Wno-unused-private-field",
+      "-Werror",
+      "-g3",
+    ]
+  }
+
+  config("vulkan_shell_public_config") {
+    include_dirs = [
+      "$graphic_2d_root/frameworks/surface/include",
+      "$graphic_2d_root/rosen/modules/2d_graphics/include",
+      "$graphic_2d_root/interfaces/inner_api/surface",
+      "//third_party/skia",
+    ]
+
+    cflags = [ "-Wno-error=deprecated-declarations" ]
+
+    defines = [
+      "VK_USE_PLATFORM_OHOS",
+      "NDEBUG",
+    ]
+  }
+
+  ohos_shared_library("vulkan_shell") {
+    sources = [
+      "vulkan_application.cpp",
+      "vulkan_backbuffer.cpp",
+      "vulkan_command_buffer.cpp",
+      "vulkan_debug_report.cpp",
+      "vulkan_device.cpp",
+      "vulkan_image.cpp",
+      "vulkan_interface.cpp",
+      "vulkan_native_surface_ohos.cpp",
+      "vulkan_proc_table.cpp",
+      "vulkan_surface.cpp",
+      "vulkan_swapchain.cpp",
+      "vulkan_utilities.cpp",
+      "vulkan_window.cpp",
+    ]
+
+    if (graphic_2d_feature_enable_vulkan) {
+      defines = [ "RS_ENABLE_VK" ]
+    }
+
+    configs = [ ":vulkan_shell_config" ]
+
+    public_configs = [ ":vulkan_shell_public_config" ]
+
+    external_deps = [
+      "c_utils:utils",
+      "hilog:libhilog",
+    ]
+
+    public_deps = [
+      "$graphic_2d_root:libsurface",
+      "$graphic_2d_root/frameworks/vulkan_layers:vulkan_swapchain_layer",
+      "//third_party/skia:skia_ohos",
+      "//third_party/vulkan-headers:vulkan_headers",
+    ]
+
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
+}
