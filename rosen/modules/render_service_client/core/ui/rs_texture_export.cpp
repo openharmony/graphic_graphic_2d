@@ -35,15 +35,17 @@ RSTextureExport::~RSTextureExport()
 
 bool RSTextureExport::DoTextureExport()
 {
-    if (rootNode_->GetParent() || !rootNode_->IsTextureExportNode()) {
-        RS_LOGE("RSTextureExport::DoTextureExport rootNode must not on the tree or rootNode is not textureExportNode");
+    if (!rootNode_->IsTextureExportNode()) {
+        RS_LOGE("RSTextureExport::DoTextureExport rootNode is not textureExportNode");
         return false;
     }
     rsUiDirector_->StartTextureExport();
     if (rootNode_->GetType() != RSUINodeType::ROOT_NODE) {
         virtualRootNode_ = RSRootNode::Create(false, true);
         auto bounds = rootNode_->GetStagingProperties().GetBounds();
-        virtualRootNode_->SetBounds({bounds.x_, bounds.y_, bounds.z_, bounds.w_});
+        virtualRootNode_->SetBounds({-bounds.x_, -bounds.y_, bounds.z_, bounds.w_});
+        auto frame = rootNode_->GetStagingProperties().GetFrame();
+        virtualRootNode_->SetFrame({-frame.x_, -frame.y_, frame.z_, frame.w_});
     }
     RSSurfaceNodeConfig config = {
         .SurfaceNodeName = "textureExportSurfaceNode",

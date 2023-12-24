@@ -71,7 +71,7 @@ void RSRootNode::SetEnableRender(bool flag) const
 
 void RSRootNode::OnBoundsSizeChanged() const
 {
-    if (IsUniRenderEnabled()) {
+    if (IsUniRenderEnabled() && !isTextureExportNode_) {
         return;
     }
     // Planning: we should use frame size instead of bounds size to calculate the surface size.

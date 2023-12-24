@@ -76,7 +76,7 @@ void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool is
         return;
     }
 
-    if (renderThreadClient_ != nullptr && !isRenderServiceCommand) {
+    if (!isRenderServiceCommand) {
         AddCommonCommand(command);
         return;
     }
