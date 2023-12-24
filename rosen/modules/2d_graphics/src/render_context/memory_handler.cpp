@@ -59,8 +59,10 @@ void MemoryHandler::ClearRedundantResources(GrContext* grContext)
 void MemoryHandler::ClearRedundantResources(Drawing::GPUContext* gpuContext)
 {
     if (gpuContext != nullptr) {
-        LOGD("Drawing is not supported");
+        LOGD("gpuContext clear redundant resources");
         gpuContext->Flush();
+        // GPU resources that haven't been used in the past 10 seconds
+        gpuContext->PerformDeferredCleanup(std::chrono::seconds(10));
     }
 }
 #endif

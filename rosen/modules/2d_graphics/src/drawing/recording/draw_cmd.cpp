@@ -1558,12 +1558,16 @@ void DrawSurfaceBufferOpItem::Draw(Canvas* canvas)
         auto ptr = [](void* context) {
             DrawSurfaceBufferOpItem::deleteVkImage(context);
         };
+        if (!canvas->GetGPUContext()) {
+            LOGE("DrawSurfaceBufferOpItem::Draw gpu context is nullptr");
+            return;
+        }
         auto image = std::make_shared<Drawing::Image>();
         auto vkTextureInfo = backendTexture.GetTextureInfo().GetVKTextureInfo();
         if (!vkTextureInfo || !image->BuildFromTexture(*canvas->GetGPUContext(), backendTexture.GetTextureInfo(),
             Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, ptr,
             DrawSurfaceBufferOpItem::vulkanCleanupHelper(vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory))) {
-            LOGE("DrawSurfaceBufferOpItem::Draw: image BuildFromTexture failed");
+            LOGE("DrawSurfaceBufferOpItem::Draw image BuildFromTexture failed");
             return;
         }
         canvas->DrawImage(*image, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, Drawing::SamplingOptions());

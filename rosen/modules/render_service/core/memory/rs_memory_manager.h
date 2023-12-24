@@ -16,11 +16,7 @@
 #include <vector>
 
 #ifndef USE_ROSEN_DRAWING
-#if defined(NEW_SKIA)
 #include "include/gpu/GrDirectContext.h"
-#else
-#include "include/gpu/GrContext.h"
-#endif
 #else
 #include "image/gpu_context.h"
 #endif
@@ -35,7 +31,6 @@ namespace OHOS::Rosen {
 class MemoryManager {
 public:
 #ifndef USE_ROSEN_DRAWING
-#if defined(NEW_SKIA)
     static void DumpMemoryUsage(DfxString& log, const GrDirectContext* grContext, std::string& type);
     static void DumpPidMemory(DfxString& log, int pid, const GrDirectContext* grContext);
     static void DumpDrawingGpuMemory(DfxString& log, const GrDirectContext* grContext);
@@ -52,23 +47,6 @@ public:
     static void ReleaseUnlockGpuResource(GrDirectContext* grContext, bool scratchResourcesOnly = true);
     static void ReleaseUnlockAndSafeCacheGpuResource(GrDirectContext* grContext);
     static float GetAppGpuMemoryInMB(GrDirectContext* grContext);
-#else
-    static void DumpMemoryUsage(DfxString& log, const GrContext* grContext, std::string& type);
-    static void DumpPidMemory(DfxString& log, int pid, const GrContext* grContext);
-    static MemoryGraphic CountSubMemory(int pid, const GrContext* grContext);
-    static void DumpDrawingGpuMemory(DfxString& log, const GrContext* grContext);
-    // Count memory for hidumper
-    static MemoryGraphic CountPidMemory(int pid, const GrContext* grContext);
-    static void CountMemory(std::vector<pid_t> pids, const GrContext* grContext, std::vector<MemoryGraphic>& mems);
-    static void ReleaseUnlockGpuResource(GrContext* grContext, GrGpuResourceTag& tag);
-    static void ReleaseUnlockGpuResource(GrContext* grContext, NodeId surfaceNodeId);
-    static void ReleaseUnlockGpuResource(GrContext* grContext, pid_t pid);
-    static void ReleaseAllGpuResource(GrContext* grContext, GrGpuResourceTag& tag);
-    static void ReleaseAllGpuResource(GrContext* grContext, pid_t pid);
-    static void ReleaseUnlockGpuResource(GrContext* grContext, bool scratchResourcesOnly = true);
-    static void ReleaseUnlockAndSafeCacheGpuResource(GrContext* grContext);
-    static float GetAppGpuMemoryInMB(GrContext* grContext);
-#endif
 #else
     static void DumpMemoryUsage(DfxString& log, const Drawing::GPUContext* gpuContext, std::string& type);
     static void DumpPidMemory(DfxString& log, int pid, const Drawing::GPUContext* gpuContext);
@@ -93,14 +71,9 @@ private:
     static void DumpRenderServiceMemory(DfxString& log);
     static void DumpDrawingCpuMemory(DfxString& log);
 #ifndef USE_ROSEN_DRAWING
-#if defined(NEW_SKIA)
     static void DumpAllGpuInfo(DfxString& log, const GrDirectContext* grContext);
     static void DumpGpuCache(
         DfxString& log, const GrDirectContext* grContext, GrGpuResourceTag* tag, std::string& name);
-#else
-    static void DumpGpuCache(DfxString& log, const GrContext* grContext, GrGpuResourceTag* tag, std::string& name);
-    static void DumpAllGpuInfo(DfxString& log, const GrContext* grContext);
-#endif
 #else
     static void DumpGpuCache(DfxString& log, const Drawing::GPUContext* gpuContext,
         Drawing::GPUResourceTag* tag, std::string& name);

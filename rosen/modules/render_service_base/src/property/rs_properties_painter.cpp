@@ -34,6 +34,7 @@
 #include "draw/canvas.h"
 #include "draw/clip.h"
 #include "drawing/draw/core_canvas.h"
+#include "effect/runtime_blender_builder.h"
 #include "effect/runtime_effect.h"
 #include "effect/runtime_shader_builder.h"
 #include "recording/recording_path.h"
@@ -609,7 +610,7 @@ void RSPropertiesPainter::GetDarkColor(RSColor& color)
     float R = float(color.GetRed()) / maxColorRange;
     float G = float(color.GetGreen()) / maxColorRange;
     float B = float(color.GetBlue()) / maxColorRange;
-    
+
     float X = 0.4124 * R + 0.3576 * G + 0.1805 * B;
     float Y = 0.2126 * R + 0.7152 * G + 0.0722 * B;
     float Z = 0.0193 * R + 0.1192 * G + 0.9505 * B;
@@ -718,13 +719,8 @@ bool RSPropertiesPainter::PickColor(const RSProperties& properties, RSPaintFilte
     colorPickerTask->SetIsShadow(true);
     int deviceWidth = 0;
     int deviceHeight = 0;
-    auto imageSnapshot = drSurface->GetImageSnapshot();
-    if (imageSnapshot == nullptr) {
-        ROSEN_LOGE("RSPropertiesPainter::PickColor image is null");
-        return false;
-    }
-    int deviceClipBoundsW = imageSnapshot->GetWidth();
-    int deviceClipBoundsH = imageSnapshot->GetHeight();
+    int deviceClipBoundsW = drSurface->Width();
+    int deviceClipBoundsH = drSurface->Height();
     if (!colorPickerTask->GetDeviceSize(deviceWidth, deviceHeight)) {
         colorPickerTask->SetDeviceSize(deviceClipBoundsW, deviceClipBoundsH);
         deviceWidth = deviceClipBoundsW;
@@ -1492,7 +1488,7 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeMeanBlurShader(
             if (abs(gradientShader.eval(coord).a) < 0.001) {
                 return srcImageShader.eval(coord);
             }
-            
+
             if (abs(gradientShader.eval(coord).a) > 0.999) {
                 return blurImageShader.eval(coord);
             }
@@ -2209,6 +2205,15 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
     auto boundsGeo = (properties.GetBoundsGeometry());
     if (boundsGeo && !boundsGeo->IsEmpty()) {
         auto transMat = canvas.GetTotalMatrix();
+        /* transMat.getSkewY() is the sin of the rotation angle(sin0 = 0,sin90 =1 sin180 = 0,sin270 = -1),
+            if transMat.getSkewY() is not 0 or -1 or 1,the rotation angle is not a multiple of 90,not Stretch*/
+        auto skewY = transMat.Get(Drawing::Matrix::SKEW_Y);
+        if (ROSEN_EQ(skewY, 0.f) || ROSEN_EQ(skewY, 1.f) ||
+            ROSEN_EQ(skewY, -1.f)) {
+        } else {
+            ROSEN_LOGD("rotate degree is not 0 or 90 or 180 or 270,return.");
+            return;
+        }
         rotateMat.SetScale(transMat.Get(Drawing::Matrix::SCALE_X), transMat.Get(Drawing::Matrix::SCALE_Y));
         rotateMat.Set(Drawing::Matrix::SKEW_X, transMat.Get(Drawing::Matrix::SKEW_X));
         rotateMat.Set(Drawing::Matrix::SKEW_Y, transMat.Get(Drawing::Matrix::SKEW_Y));
@@ -3154,7 +3159,9 @@ void RSPropertiesPainter::DrawSpherize(const RSProperties& properties, RSPaintFi
     if (spherizeSurface == nullptr) {
         return;
     }
-
+    if (spherizeSurface->Width() == 0 || spherizeSurface->Height() == 0) {
+        return;
+    }
     Drawing::AutoCanvasRestore acr(canvas, true);
     float canvasWidth = properties.GetBoundsRect().GetWidth();
     float canvasHeight = properties.GetBoundsRect().GetHeight();
@@ -3611,23 +3618,10 @@ void RSPropertiesPainter::DrawDynamicLightUp(const RSProperties& properties, RSP
         canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
     }
 
-    auto clipBounds = canvas.GetDeviceClipBounds();
-    auto image = surface->GetImageSnapshot(clipBounds);
-    if (image == nullptr) {
-        ROSEN_LOGE("RSPropertiesPainter::DrawDynamicLightUp image is null");
-        return;
-    }
-    Drawing::Matrix scaleMat;
-    auto imageShader = Drawing::ShaderEffect::CreateImageShader(
-        *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP,
-        Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), scaleMat);
-    auto shader = MakeDynamicLightUpShader(
-        properties.GetDynamicLightUpRate().value() * canvas.GetAlpha(),
-        properties.GetDynamicLightUpDegree().value() * canvas.GetAlpha(), imageShader);
+    auto blender = MakeDynamicLightUpBlender(properties.GetDynamicLightUpRate().value() * canvas.GetAlpha(),
+        properties.GetDynamicLightUpDegree().value() * canvas.GetAlpha());
     Drawing::Brush brush;
-    brush.SetShaderEffect(shader);
-    canvas.ResetMatrix();
-    canvas.Translate(clipBounds.GetLeft(), clipBounds.GetTop());
+    brush.SetBlender(blender);
     canvas.DrawBackground(brush);
 #endif
 }
@@ -3636,8 +3630,8 @@ void RSPropertiesPainter::DrawDynamicLightUp(const RSProperties& properties, RSP
 sk_sp<SkBlender> RSPropertiesPainter::MakeDynamicLightUpBlender(
     float dynamicLightUpRate, float dynamicLightUpDeg)
 #else
-std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeDynamicLightUpShader(
-    float dynamicLightUpRate, float dynamicLightUpDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader)
+std::shared_ptr<Drawing::Blender> RSPropertiesPainter::MakeDynamicLightUpBlender(
+    float dynamicLightUpRate, float dynamicLightUpDeg)
 #endif
 {
 #ifndef USE_ROSEN_DRAWING
@@ -3670,27 +3664,24 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeDynamicLightUpSh
         uniform half dynamicLightUpDeg;
         uniform shader imageShader;
 
-        half4 main(float2 coord) {
-            vec3 c = vec3(imageShader.eval(coord).r * 255,
-                imageShader.eval(coord).g * 255, imageShader.eval(coord).b * 255);
-            float x = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
-            float y = (0 - dynamicLightUpRate) * x + dynamicLightUpDeg * 255;
-            float R = clamp((c.r + y) / 255, 0.0, 1.0);
-            float G = clamp((c.g + y) / 255, 0.0, 1.0);
-            float B = clamp((c.b + y) / 255, 0.0, 1.0);
+        vec4 main(vec4 src, vec4 dst) {
+            float x = 0.299 * dst.r + 0.587 * dst.g + 0.114 * dst.b;
+            float y = (0 - dynamicLightUpRate) * x + dynamicLightUpDeg;
+            float R = clamp((dst.r + y), 0.0, 1.0);
+            float G = clamp((dst.g + y), 0.0, 1.0);
+            float B = clamp((dst.b + y), 0.0, 1.0);
             return vec4(R, G, B, 1.0);
         }
     )";
-    std::shared_ptr<Drawing::RuntimeEffect> effect = Drawing::RuntimeEffect::CreateForShader(prog);
+    std::shared_ptr<Drawing::RuntimeEffect> effect = Drawing::RuntimeEffect::CreateForBlender(prog);
     if (!effect) {
-        ROSEN_LOGE("MakeDynamicLightUpShader::RuntimeShader effect error\n");
+        ROSEN_LOGE("MakeDynamicLightUpBlender::MakeDynamicLightUpBlender effect error!\n");
         return nullptr;
     }
-    std::shared_ptr<Drawing::RuntimeShaderBuilder> builder = std::make_shared<Drawing::RuntimeShaderBuilder>(effect);
-    builder->SetChild("imageShader", imageShader);
+    std::shared_ptr<Drawing::RuntimeBlenderBuilder> builder = std::make_shared<Drawing::RuntimeBlenderBuilder>(effect);
     builder->SetUniform("dynamicLightUpRate", dynamicLightUpRate);
     builder->SetUniform("dynamicLightUpDeg", dynamicLightUpDeg);
-    return builder->MakeShader(nullptr, false);
+    return builder->MakeBlender();
 #endif
 }
 
@@ -3738,7 +3729,7 @@ void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFi
 #else
                 brush.SetColor(color.AsArgbInt());
                 canvas.AttachBrush(brush);
-                canvas.DrawCircle(Drawing::Point(position.x_, position.y_), radius);
+                canvas.DrawCircle(Drawing::Point(position.x_, position.y_), radius * scale);
                 canvas.DetachBrush();
 #endif
             } else {

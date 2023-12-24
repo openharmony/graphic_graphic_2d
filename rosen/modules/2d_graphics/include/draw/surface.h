@@ -33,6 +33,7 @@ struct FrameBuffer {
     int height;
     int FBOID;
     int Format;
+    ColorType colorType;
     std::shared_ptr<GPUContext> gpuContext;
     std::shared_ptr<ColorSpace> colorSpace;
 };
@@ -42,6 +43,12 @@ struct FlushInfo {
     bool backendSurfaceAccess = false;
     size_t numSemaphores = 0;
     void *backendSemaphore = nullptr;
+};
+
+enum class BackendAccess {
+    FLUSH_READ,
+    FLUSH_WRITE,
+    DISCARD_WRITE
 };
 
 class DRAWING_API Surface {
@@ -140,7 +147,7 @@ public:
     /*
      * @brief   Gets BackendTexture of Surface
      */
-    BackendTexture GetBackendTexture() const;
+    BackendTexture GetBackendTexture(BackendAccess access = BackendAccess::FLUSH_READ) const;
 
     /*
      * @brief   Call to ensure all reads/writes of surface have been issue to the underlying 3D API.
@@ -151,6 +158,9 @@ public:
      * @brief   Call to ensure all reads/writes of surface have been issue to the underlying 3D API.
      */
     void Flush(FlushInfo *drawingflushInfo = nullptr);
+
+    int Width() const;
+    int Height() const;
 
     template<typename T>
     T* GetImpl() const

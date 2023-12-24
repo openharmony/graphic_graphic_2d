@@ -151,6 +151,7 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::SetCanvas(std::shared_ptr<Dr
 #else
     canvas_ = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     canvas_->Scale(scaleX_, scaleY_);
+    canvas_->SetRecordingState(true);
 #endif
 }
 

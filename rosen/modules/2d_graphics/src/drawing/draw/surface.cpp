@@ -87,9 +87,9 @@ std::shared_ptr<Image> Surface::GetImageSnapshot() const
     return impl_->GetImageSnapshot();
 }
 
-BackendTexture Surface::GetBackendTexture() const
+BackendTexture Surface::GetBackendTexture(BackendAccess access) const
 {
-    return impl_->GetBackendTexture();
+    return impl_->GetBackendTexture(access);
 }
 
 std::shared_ptr<Image> Surface::GetImageSnapshot(const RectI& bounds) const
@@ -165,9 +165,17 @@ void Surface::ClearDrawingArea()
     }
     impl_->ClearDrawingArea();
 }
-
-
 #endif
+
+int Surface::Width() const
+{
+    return impl_->Width();
+}
+
+int Surface::Height() const
+{
+    return impl_->Height();
+}
 
 } // namespace Drawing
 } // namespace Rosen

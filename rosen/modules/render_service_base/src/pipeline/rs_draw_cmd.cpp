@@ -2638,6 +2638,10 @@ bool RSExtendImageObject::GetDrawingImageFromSurfaceBuffer(Drawing::Canvas& canv
 
     Drawing::BitmapFormat bitmapFormat = {
         Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    if (!canvas.GetGPUContext()) {
+        RS_LOGE("GetDrawingImageFromSurfaceBuffer gpu context is nullptr");
+        return false;
+    }
     if (!image_) {
         image_ = std::make_shared<Drawing::Image>();
     }

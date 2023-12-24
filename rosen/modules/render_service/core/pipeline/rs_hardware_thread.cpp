@@ -499,7 +499,6 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                     params.buffer->GetSurfaceBufferHeight(), GrMipMapped::kNo, grExternalTextureInfo);
             }
 #endif
-#ifdef NEW_SKIA
             sk_sp<SkImage> image = nullptr;
             (void)image;
 #if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
@@ -539,17 +538,11 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                     kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, skColorSpace);
             }
 #endif
-#else
-            auto image = SkImage::MakeFromTexture(canvas->getGrContext(), backendTexture,
-                kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
-#endif
             if (image == nullptr) {
                 RS_LOGE("RSHardwareThread::DrawImage: image is nullptr!");
                 return;
             }
-
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-#ifndef USE_ROSEN_DRAWING
             SkMatrix matrix;
             auto sx = params.dstRect.width() / params.srcRect.width();
             auto sy = params.dstRect.height() / params.srcRect.height();
@@ -566,28 +559,8 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 
                 uniRenderEngine_->ColorSpaceConvertor(imageShader, params);
             }
-#else
-            Drawing::Matrix matrix;
-            auto sx = params.dstRect.GetWidth() / params.srcRect.GetWidth();
-            auto sy = params.dstRect.GetHeight() / params.srcRect.GetHeight();
-            matrix.SetScaleTranslate(sx, sy, params.dstRect.GetLeft(), params.dstRect.GetTop());
-            auto imageShader = Drawing::ShaderEffect::CreateImageShader(
-                *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, Drawing::SamplingOptions(), matrix);
-            if (imageShader == nullptr) {
-                RS_LOGE("RSHardwareThread::DrawImage imageShader is nullptr.");
-            } else {
-                params.paint.SetShaderEffect(imageShader);
-                params.targetColorGamut = colorGamut;
-
-                auto screenManager = CreateOrGetScreenManager();
-                params.screenBrightnessNits = screenManager->GetScreenBrightnessNits(screenId);
-
-                uniRenderEngine_->ColorSpaceConvertor(imageShader, params);
-            }
-#endif
 #endif
 
-#ifdef NEW_SKIA
             RS_TRACE_NAME_FMT("DrawImage(GPU) seqNum: %d", bufferId);
 #ifndef USE_VIDEO_PROCESSING_ENGINE
             canvas->drawImageRect(image, params.srcRect, params.dstRect, SkSamplingOptions(),
@@ -595,14 +568,6 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #else
             canvas->drawRect(params.dstRect, (params.paint));
 #endif // USE_VIDEO_PROCESSING_ENGINE
-#else
-            RS_TRACE_NAME_FMT("DrawImage(GPU) seqNum: %d", bufferId);
-#ifndef USE_VIDEO_PROCESSING_ENGINE
-            canvas->drawImageRect(image, params.srcRect, params.dstRect, &(params.paint));
-#else
-            canvas->drawRect(params.dstRect, &(params.paint));
-#endif // USE_VIDEO_PROCESSING_ENGINE
-#endif
 #else // USE_ROSEN_DRAWING
             std::shared_ptr<Drawing::Image> image = nullptr;
             Drawing::ColorType colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
@@ -656,10 +621,38 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                 }
             }
 #endif
+            if (image == nullptr) {
+                RS_LOGE("RSHardwareThread::DrawImage: image is nullptr!");
+                return;
+            }
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+            Drawing::Matrix matrix;
+            auto sx = params.dstRect.GetWidth() / params.srcRect.GetWidth();
+            auto sy = params.dstRect.GetHeight() / params.srcRect.GetHeight();
+            matrix.SetScaleTranslate(sx, sy, params.dstRect.GetLeft(), params.dstRect.GetTop());
+            auto imageShader = Drawing::ShaderEffect::CreateImageShader(
+                *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, Drawing::SamplingOptions(), matrix);
+            if (imageShader == nullptr) {
+                RS_LOGE("RSHardwareThread::DrawImage imageShader is nullptr.");
+            } else {
+                params.paint.SetShaderEffect(imageShader);
+                params.targetColorGamut = colorGamut;
+
+                auto screenManager = CreateOrGetScreenManager();
+                params.screenBrightnessNits = screenManager->GetScreenBrightnessNits(screenId);
+
+                uniRenderEngine_->ColorSpaceConvertor(imageShader, params);
+            }
+#endif
+
             canvas->AttachBrush(params.paint);
             RS_TRACE_NAME_FMT("DrawImage(GPU) seqNum: %d", bufferId);
+#ifndef USE_VIDEO_PROCESSING_ENGINE
             canvas->DrawImageRect(*image, params.srcRect, params.dstRect,
                 Drawing::SamplingOptions(), Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+#else
+            canvas->DrawRect(params.dstRect);
+#endif
             canvas->DetachBrush();
 #endif // USE_ROSEN_DRAWING
         } else {

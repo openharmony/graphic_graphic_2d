@@ -229,6 +229,11 @@ void SkiaMatrix::Reset()
 {
     skMatrix_.reset();
 }
+
+bool SkiaMatrix::GetMinMaxScales(scalar scaleFactors[2])
+{
+    return skMatrix_.getMinMaxScales(scaleFactors);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

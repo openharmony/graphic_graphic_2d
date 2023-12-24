@@ -110,6 +110,11 @@ std::unique_ptr<ShaderEffectImpl> ImplFactory::CreateShaderEffectImpl()
     return EngineImplFactory::CreateShaderEffect();
 }
 
+std::unique_ptr<BlenderImpl> ImplFactory::CreateBlenderImpl()
+{
+    return EngineImplFactory::CreateBlender();
+}
+
 std::unique_ptr<RuntimeEffectImpl> ImplFactory::CreateRuntimeEffectImpl()
 {
     return EngineImplFactory::CreateRuntimeEffect();
@@ -119,6 +124,12 @@ std::unique_ptr<RuntimeShaderBuilderImpl> ImplFactory::CreateRuntimeShaderBuilde
     std::shared_ptr<RuntimeEffect> runtimeEffect)
 {
     return EngineImplFactory::CreateRuntimeShaderBuilder(runtimeEffect);
+}
+
+std::unique_ptr<RuntimeBlenderBuilderImpl> ImplFactory::CreateRuntimeBlenderBuilderImpl(
+    std::shared_ptr<RuntimeEffect> runtimeEffect)
+{
+    return EngineImplFactory::CreateRuntimeBlenderBuilder(runtimeEffect);
 }
 
 std::unique_ptr<SurfaceImpl> ImplFactory::CreateSurfaceImpl()

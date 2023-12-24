@@ -96,8 +96,10 @@ void RSSurfaceRenderNode::UpdateSrcRect(const RSPaintFilterCanvas& canvas, const
     const RSProperties& properties = GetRenderProperties();
     int left = std::clamp<int>(localClipRect.GetLeft(), 0, properties.GetBoundsWidth());
     int top = std::clamp<int>(localClipRect.GetTop(), 0, properties.GetBoundsHeight());
-    int width = std::clamp<int>(localClipRect.GetWidth(), 0, properties.GetBoundsWidth() - left);
-    int height = std::clamp<int>(localClipRect.GetHeight(), 0, properties.GetBoundsHeight() - top);
+    int width = std::clamp<int>(std::ceil(localClipRect.GetWidth()), 0,
+        std::ceil(properties.GetBoundsWidth() - left));
+    int height = std::clamp<int>(std::ceil(localClipRect.GetHeight()), 0,
+        std::ceil(properties.GetBoundsHeight() - top));
     RectI srcRect = {left, top, width, height};
     SetSrcRect(srcRect);
 }

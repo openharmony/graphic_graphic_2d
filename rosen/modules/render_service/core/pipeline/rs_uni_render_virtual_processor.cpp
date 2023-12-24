@@ -104,7 +104,7 @@ bool RSUniRenderVirtualProcessor::Init(RSDisplayRenderNode& node, int32_t offset
     } else {
         Drawing::Matrix invertMatrix;
         if (node.GetInitMatrix().Invert(invertMatrix)) {
-            screenTransformMatrix_ = screenTransformMatrix_ * invertMatrix;
+            screenTransformMatrix_.PostConcat(invertMatrix);
         }
         canvas_->ConcatMatrix(screenTransformMatrix_);
     }
@@ -240,8 +240,8 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
             } else if ((mirrorHeight_ / mirrorWidth_) > (mainHeight / mainWidth)) {
                 float mirrorScale = mirrorWidth_ / mainWidth;
                 if (canvasRotation_) {
-                    mirrorDstRect = SkRect::MakeXYWH(-(mirrorHeight_ / 2.0f) +
-                        ((mirrorHeight_ - (mirrorScale * mainHeight)) / 2.0f), -(mirrorWidth_ / 2.0f),
+                    mirrorDstRect = SkRect::MakeXYWH((mirrorHeight_ / 2.0f) -
+                        ((mirrorScale * mainHeight) / 2.0f), -(mirrorWidth_ / 2.0f),
                         mirrorScale * mainHeight, mirrorWidth_);
                 } else {
                     mirrorDstRect = SkRect::MakeXYWH(0,
@@ -276,14 +276,12 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
             } else if ((mirrorHeight_ / mirrorWidth_) > (mainHeight / mainWidth)) {
                 float mirrorScale = mirrorWidth_ / mainWidth;
                 if (canvasRotation_) {
-                    mirrorDstRect = Drawing::Rect(-(mirrorHeight_ / 2.0f) +
-                        ((mirrorHeight_ - (mirrorScale * mainHeight)) / 2.0f), -(mirrorWidth_ / 2.0f),
-                        mirrorScale * mainHeight - (mirrorHeight_ / 2.0f) +
-                        ((mirrorHeight_ - (mirrorScale * mainHeight)) / 2.0f), mirrorWidth_ - (mirrorWidth_ / 2.0f));
+                    mirrorDstRect = Drawing::Rect((mirrorHeight_ / 2.0f) - ((mirrorScale * mainHeight) / 2.0f),
+                        -(mirrorWidth_ / 2.0f), (mirrorHeight_ / 2.0f) + ((mirrorScale * mainHeight) / 2.0f),
+                        (mirrorWidth_ / 2.0f));
                 } else {
                     mirrorDstRect = Drawing::Rect(0, (mirrorHeight_ - (mirrorScale * mainHeight)) / 2.0f,
-                        mirrorWidth_,
-                        mirrorScale * mainHeight + (mirrorHeight_ - (mirrorScale * mainHeight)));
+                        mirrorWidth_, (mirrorHeight_ + (mirrorScale * mainHeight)) / 2.0);
                 }
             }
             params.dstRect = mirrorDstRect;

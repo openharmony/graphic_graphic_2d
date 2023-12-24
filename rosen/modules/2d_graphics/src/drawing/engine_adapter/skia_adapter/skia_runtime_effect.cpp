@@ -41,6 +41,12 @@ void SkiaRuntimeEffect::InitForShader(const std::string& sl)
     skRuntimeEffect_ = effect;
 }
 
+void SkiaRuntimeEffect::InitForBlender(const std::string& sl)
+{
+    auto [effect, err] = SkRuntimeEffect::MakeForBlender(SkString(sl.c_str()));
+    skRuntimeEffect_ = effect;
+}
+
 std::shared_ptr<ShaderEffect> SkiaRuntimeEffect::MakeShader(std::shared_ptr<Data> uniforms,
     std::shared_ptr<ShaderEffect> children[], size_t childCount, const Matrix* localMatrix,
     bool isOpaque)

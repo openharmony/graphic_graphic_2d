@@ -1961,8 +1961,7 @@ void RSRenderNode::UpdateBackendTexture()
     cacheBackendTexture_
         = cacheSurface_->getBackendTexture(SkSurface::BackendHandleAccess::kFlushRead_BackendHandleAccess);
 #else
-    auto image = cacheSurface_->GetImageSnapshot();
-    cacheBackendTexture_ = image->GetBackendTexture(false, nullptr);
+    cacheBackendTexture_ = cacheSurface_->GetBackendTexture();
 #endif
 }
 #endif

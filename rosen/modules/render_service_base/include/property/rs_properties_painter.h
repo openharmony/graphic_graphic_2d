@@ -129,8 +129,8 @@ public:
     // EffectView and useEffect
     static void DrawBackgroundEffect(
         const RSProperties& properties, RSPaintFilterCanvas& canvas, const Drawing::RectI& rect);
-    static std::shared_ptr<Drawing::ShaderEffect> MakeDynamicLightUpShader(
-        float dynamicLightUpRate, float dynamicLightUpDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader);
+    static std::shared_ptr<Drawing::Blender> MakeDynamicLightUpBlender(
+        float dynamicLightUpRate, float dynamicLightUpDeg);
     static std::shared_ptr<Drawing::Image> DrawGreyAdjustment(Drawing::Canvas& canvas,
         const std::shared_ptr<Drawing::Image>& image, const float greyCoef1, const float greyCoef2);
 #endif // USE_ROSEN_DRAWING

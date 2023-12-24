@@ -285,9 +285,11 @@ public:
     }
 #else
     std::shared_ptr<Drawing::Image> GetCacheImgForCapture() {
+        std::unique_lock<std::mutex> lock(mtx_);
         return cacheImgForCapture_;
     }
     void SetCacheImgForCapture(std::shared_ptr<Drawing::Image> cacheImgForCapture) {
+        std::unique_lock<std::mutex> lock(mtx_);
         cacheImgForCapture_ = cacheImgForCapture;
     }
 #endif

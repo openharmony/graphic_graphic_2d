@@ -658,7 +658,7 @@ void RSShadowBaseDrawable::ClipShadowPath(RSRenderNode& node, RSPaintFilterCanva
 void RSShadowBaseDrawable::ClipShadowPath(RSRenderNode& node, RSPaintFilterCanvas& canvas, Drawing::Path& path)
 {
     const RSProperties& properties = node.GetRenderProperties();
-    if (properties.GetShadowPath() && !properties.GetShadowPath()->GetDrawingPath().IsValid()) {
+    if (properties.GetShadowPath() && properties.GetShadowPath()->GetDrawingPath().IsValid()) {
         path = properties.GetShadowPath()->GetDrawingPath();
         if (!properties.GetShadowIsFilled()) {
             canvas.ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
@@ -787,6 +787,7 @@ void RSHardwareAccelerationShadowDrawable::Draw(RSRenderNode& node, RSPaintFilte
     Drawing::Path path;
     ClipShadowPath(node, canvas, path);
     path.Offset(offsetX_, offsetY_);
+    RSAutoCanvasRestore rst(&canvas);
     auto matrix = canvas.GetTotalMatrix();
     matrix.Set(Drawing::Matrix::TRANS_X, std::ceil(matrix.Get(Drawing::Matrix::TRANS_X)));
     matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));

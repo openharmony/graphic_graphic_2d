@@ -26,6 +26,7 @@ Brush::Brush() noexcept
       filter_(),
       colorSpace_(nullptr),
       shaderEffect_(nullptr),
+      blender_(nullptr),
       antiAlias_(false)
 {}
 
@@ -35,6 +36,7 @@ Brush::Brush(const Color& c) noexcept
       filter_(),
       colorSpace_(nullptr),
       shaderEffect_(nullptr),
+      blender_(nullptr),
       antiAlias_(false)
 {}
 
@@ -44,11 +46,13 @@ Brush::Brush(int rgba) noexcept
       filter_(),
       colorSpace_(nullptr),
       shaderEffect_(nullptr),
+      blender_(nullptr),
       antiAlias_(false)
 {}
 
 Brush::Brush(std::shared_ptr<ShaderEffect> e) noexcept
-    : color_(), blendMode_(BlendMode::SRC_OVER), filter_(), colorSpace_(nullptr), shaderEffect_(e), antiAlias_(false)
+    : color_(), blendMode_(BlendMode::SRC_OVER), filter_(), colorSpace_(nullptr), shaderEffect_(e), blender_(nullptr),
+    antiAlias_(false)
 {}
 
 const Color& Brush::GetColor() const
@@ -123,6 +127,11 @@ std::shared_ptr<ShaderEffect> Brush::GetShaderEffect() const
     return shaderEffect_;
 }
 
+void Brush::SetBlender(std::shared_ptr<Blender> blender)
+{
+    blender_ = blender;
+}
+
 bool Brush::IsAntiAlias() const
 {
     return antiAlias_;
@@ -156,13 +165,13 @@ bool Brush::AsBlendMode()
 bool operator==(const Brush& b1, const Brush& b2)
 {
     return b1.color_ == b2.color_ && b1.blendMode_ == b2.blendMode_ && b1.shaderEffect_ == b2.shaderEffect_ &&
-        b1.colorSpace_ == b2.colorSpace_ && b1.filter_ == b2.filter_ && b1.antiAlias_ == b2.antiAlias_;
+        b1.blender_ == b2.blender_ && b1.colorSpace_ == b2.colorSpace_ && b1.filter_ == b2.filter_ &&
+        b1.antiAlias_ == b2.antiAlias_;
 }
 
 bool operator!=(const Brush& b1, const Brush& b2)
 {
-    return b1.color_ != b2.color_ || b1.blendMode_ == b2.blendMode_ || b1.shaderEffect_ != b2.shaderEffect_ ||
-        b1.colorSpace_ == b2.colorSpace_ || b1.filter_ != b2.filter_ || b1.antiAlias_ == b2.antiAlias_;
+    return !(b1 == b2);
 }
 } // namespace Drawing
 } // namespace Rosen

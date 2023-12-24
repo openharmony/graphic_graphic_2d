@@ -1215,9 +1215,10 @@ void RSMainThread::ClearMemoryCache(bool deeply)
         }
         RS_LOGD("Clear memory cache");
         RS_TRACE_NAME_FMT("Clear memory cache");
+        SKResourceManager::Instance().ReleaseResource();
         grContext->Flush();
         SkGraphics::PurgeAllCaches(); // clear cpu cache
-        if (deeply) {
+        if (deeply || this->deviceType_ != DeviceType::PHONE) {
             MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
         } else {
             MemoryManager::ReleaseUnlockGpuResource(grContext);

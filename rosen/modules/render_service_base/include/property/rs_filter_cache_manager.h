@@ -183,7 +183,11 @@ private:
                 grContext_->freeGpuResources();
             }
 #else
-// Drawing is not supported
+            if (cacheSurface_ != nullptr) {
+                std::shared_ptr<Drawing::GPUContext> gpuContext_ = cacheSurface_->GetCanvas()->GetGPUContext();
+                cacheSurface_ = nullptr;
+                gpuContext_->FreeGpuResources();
+            }
 #endif
         }
 

@@ -63,7 +63,7 @@ std::shared_ptr<NativeVkImageRes> NativeVkImageRes::Create(sptr<OHOS::SurfaceBuf
         new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
             imageInfo.fImage, imageInfo.fAlloc.fMemory));
 #else
-    if (!backendTexture.IsValid() || !backendTexture.GetTextureInfo().GetVKTextureInfo()) {
+    if (!backendTexture.IsValid()) {
         DestroyNativeWindowBuffer(nativeWindowBuffer);
         return nullptr;
     }

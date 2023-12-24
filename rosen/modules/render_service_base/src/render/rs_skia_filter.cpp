@@ -45,7 +45,6 @@ Drawing::Brush RSDrawingFilter::GetBrush() const
 {
     Drawing::Brush brush;
     brush.SetAntiAlias(true);
-    brush.SetBlendMode(Drawing::BlendMode::SRC_OVER);
     Drawing::Filter filter;
     filter.SetImageFilter(imageFilter_);
     brush.SetFilter(filter);

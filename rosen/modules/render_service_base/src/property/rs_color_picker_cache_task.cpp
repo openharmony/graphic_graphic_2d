@@ -414,7 +414,13 @@ void RSColorPickerCacheTask::ResetGrContext()
         }
     }
 #else
-    // Drawing is not supported
+    if (cacheSurface_ != nullptr) {
+        std::shared_ptr<Drawing::GPUContext> gpuContext = cacheSurface_->GetCanvas()->GetGPUContext();
+        if (gpuContext != nullptr) {
+            cacheSurface_ = nullptr;
+            gpuContext->FreeGpuResources();
+        }
+    }
 #endif
 }
 
