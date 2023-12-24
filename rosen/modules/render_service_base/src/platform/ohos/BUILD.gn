@@ -35,6 +35,12 @@ config("export_config") {
 }
 
 ohos_source_set("rosen_ohos_sources") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   public_configs = [ ":export_config" ]
 
   defines = [ "ROSEN_OHOS" ]

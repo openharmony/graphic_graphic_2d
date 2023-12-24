@@ -37,6 +37,13 @@ if (!is_mingw && !is_mac && !is_cross_platform) {
   }
 
   ohos_static_library("particle_cxx_cppdeps") {
+    branch_protector_ret = "pac_ret"
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+      blocklist = "./rs_base_blocklist.txt"
+    }
     part_name = "graphic_2d"
     subsystem_name = "graphic"
     defines += [ "RUST_CXX_NO_EXCEPTIONS" ]
@@ -49,6 +56,13 @@ if (!is_mingw && !is_mac && !is_cross_platform) {
 }
 
 ohos_source_set("render_service_base_src") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "./rs_base_blocklist.txt"
+  }
   defines = []
   defines += gpu_defines
   defines += [ "MODULE_RSB" ]
@@ -397,6 +411,16 @@ config("render_service_base_link_config") {
 }
 
 ohos_shared_library("librender_service_base") {
+  branch_protector_ret = "pac_ret"
+  if (!is_mingw && !is_win && !is_linux) {
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+      blocklist = "./rs_base_blocklist.txt"
+    }
+  }
+
   all_dependent_configs = [ ":render_service_base_all_deps_config" ]
 
   if (enhanced_opt) {
@@ -419,6 +443,13 @@ ohos_shared_library("librender_service_base") {
 }
 
 ohos_source_set("librender_service_base_static") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "./rs_base_blocklist.txt"
+  }
   all_dependent_configs = [ ":render_service_base_all_deps_config" ]
   deps = [ "$rosen_root/modules/platform:eventhandler" ]
   public_deps = [

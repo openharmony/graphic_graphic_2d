@@ -28,6 +28,12 @@ config("render_service_link_config") {
 
 ## Build librender_service.so
 ohos_shared_library("librender_service") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   if (enhanced_opt) {
     configs = [ ":render_service_link_config" ]
   }
@@ -300,6 +306,12 @@ ohos_shared_library("librender_service") {
 
 ## Build render_service.bin
 ohos_executable("render_service") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   sources = [ "core/main.cpp" ]
 
   include_dirs = [
