@@ -1729,6 +1729,15 @@ void RSNode::RemoveChild(SharedPtr child)
     transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
 }
 
+void RSNode::RemoveChildByNodeId(NodeId childId)
+{
+    if (auto childPtr = RSNodeMap::Instance().GetNode(childId)) {
+        RemoveChild(childPtr);
+    } else {
+        ROSEN_LOGE("RSNode::RemoveChildByNodeId, childId not found");
+    }
+}
+
 void RSNode::AddCrossParentChild(SharedPtr child, int index)
 {
     // AddCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens),
@@ -1830,6 +1839,19 @@ void RSNode::ClearChildren()
     auto nodeId = GetHierarchyCommandNodeId();
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeClearChild>(nodeId);
     transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), nodeId);
+}
+
+const std::optional<NodeId> RSNode::GetChildIdByIndex(int index) const
+{
+    int childrenTotal = static_cast<int>(children_.size());
+    if (childrenTotal <= 0 || index < -1 || index >= childrenTotal) {
+        ROSEN_LOGE("RSNode::GetChildIdByIndex, index out of bound");
+        return std::nullopt;
+    }
+    if (index == -1) {
+        index = childrenTotal - 1;
+    }
+    return children_.at(index);
 }
 
 void RSNode::SetParent(NodeId parentId)

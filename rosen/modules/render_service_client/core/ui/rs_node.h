@@ -15,6 +15,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_NODE_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_NODE_H
 
+#include <optional>
 #include <unordered_map>
 
 #include "animation/rs_animation_timing_curve.h"
@@ -79,12 +80,15 @@ public:
     virtual void AddChild(SharedPtr child, int index = -1);
     void MoveChild(SharedPtr child, int index);
     virtual void RemoveChild(SharedPtr child);
+    void RemoveChildByNodeId(NodeId childId);
     void RemoveFromTree();
     virtual void ClearChildren();
     const std::vector<NodeId>& GetChildren() const
     {
         return children_;
     }
+    // ONLY support index in [0, childrenTotal) or index = -1, otherwise return std::nullopt
+    const std::optional<NodeId> GetChildIdByIndex(int index) const;
 
     // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
     void AddCrossParentChild(SharedPtr child, int index);
