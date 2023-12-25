@@ -215,6 +215,76 @@ ohos_source_set("render_service_base_src") {
     "src/screen_manager/rs_virtual_screen_resolution.cpp",
   ]
 
+  if (is_cross_platform) {
+    sources -= [
+      #command
+      "src/command/rs_display_node_command.cpp",
+
+      #common
+      "src/common/rs_occlusion_region.cpp",
+      "src/common/rs_occlusion_region_helper.cpp",
+      "src/common/rs_thread_handler_generic.cpp",
+      "src/common/rs_thread_looper_generic.cpp",
+      "src/common/rs_thread_looper_impl.cpp",
+
+      #ipc_callbacks
+      "src/ipc_callbacks/buffer_available_callback_ipc_interface_code_access_verifier.cpp",
+      "src/ipc_callbacks/buffer_available_callback_proxy.cpp",
+      "src/ipc_callbacks/buffer_available_callback_stub.cpp",
+      "src/ipc_callbacks/buffer_clear_callback_ipc_interface_code_access_verifier.cpp",
+      "src/ipc_callbacks/buffer_clear_callback_proxy.cpp",
+      "src/ipc_callbacks/buffer_clear_callback_stub.cpp",
+      "src/ipc_callbacks/hgm_config_change_callback_proxy.cpp",
+      "src/ipc_callbacks/hgm_config_change_callback_stub.cpp",
+      "src/ipc_callbacks/rs_ihgm_config_change_callback_ipc_interface_code_access_verifier.cpp",
+      "src/ipc_callbacks/rs_iocclusion_change_callback_ipc_interface_code_access_verifier.cpp",
+      "src/ipc_callbacks/rs_isurface_occlusion_change_callback_ipc_interface_code_access_verifier.cpp",
+      "src/ipc_callbacks/rs_occlusion_change_callback_proxy.cpp",
+      "src/ipc_callbacks/rs_occlusion_change_callback_stub.cpp",
+      "src/ipc_callbacks/rs_surface_occlusion_change_callback_proxy.cpp",
+      "src/ipc_callbacks/rs_surface_occlusion_change_callback_stub.cpp",
+      "src/ipc_callbacks/screen_change_callback_ipc_interface_code_access_verifier.cpp",
+      "src/ipc_callbacks/screen_change_callback_proxy.cpp",
+      "src/ipc_callbacks/screen_change_callback_stub.cpp",
+      "src/ipc_callbacks/surface_capture_callback_ipc_interface_code_access_verifier.cpp",
+      "src/ipc_callbacks/surface_capture_callback_proxy.cpp",
+      "src/ipc_callbacks/surface_capture_callback_stub.cpp",
+
+      #ipc_security
+      "src/ipc_security/rs_ipc_interface_code_access_verifier_base.cpp",
+
+      #memory
+      "src/memory/rs_memory_graphic.cpp",
+      "src/memory/rs_memory_track.cpp",
+      "src/memory/rs_tag_tracker.cpp",
+
+      #pipeline
+
+      "src/pipeline/rs_display_render_node.cpp",
+      "src/pipeline/rs_occlusion_config.cpp",
+      "src/pipeline/rs_uni_render_judgement.cpp",
+      "src/pipeline/sk_resource_manager.cpp",
+
+      #property
+      "src/property/rs_property_drawable.cpp",
+      "src/property/rs_property_drawable_bounds_geometry.cpp",
+      "src/property/rs_property_drawable_frame_geometry.cpp",
+      "src/property/rs_property_drawable_utilities.cpp",
+
+      #transaction
+      "src/transaction/rs_hgm_config_data.cpp",
+      "src/transaction/rs_occlusion_data.cpp",
+
+      #screen_manager
+      "src/screen_manager/rs_screen_capability.cpp",
+      "src/screen_manager/rs_screen_data.cpp",
+      "src/screen_manager/rs_screen_hdr_capability.cpp",
+      "src/screen_manager/rs_screen_mode_info.cpp",
+      "src/screen_manager/rs_screen_props.cpp",
+      "src/screen_manager/rs_virtual_screen_resolution.cpp",
+    ]
+  }
+
   cflags = [
     "-Wall",
     "-Wno-pointer-arith",

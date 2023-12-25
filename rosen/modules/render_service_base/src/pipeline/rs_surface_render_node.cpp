@@ -51,8 +51,10 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(
       nodeType_(config.nodeType), dirtyManager_(std::make_shared<RSDirtyRegionManager>()),
       cacheSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>())
 {
+#ifndef ROSEN_ARKUI_X
     MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(config.id, info);
+#endif
 }
 
 RSSurfaceRenderNode::RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContext>& context)
@@ -64,7 +66,9 @@ RSSurfaceRenderNode::~RSSurfaceRenderNode()
 #ifdef USE_SURFACE_TEXTURE
     SetSurfaceTexture(nullptr);
 #endif
+#ifndef ROSEN_ARKUI_X
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
+#endif
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
@@ -545,7 +549,7 @@ void RSSurfaceRenderNode::UpdateSurfaceDefaultSize(float width, float height)
 #endif
 }
 
-#ifndef ROSEN_CROSS_PLATFORM
+#ifndef ROSEN_ARKUI_X
 GraphicBlendType RSSurfaceRenderNode::GetBlendType()
 {
     return blendType_;

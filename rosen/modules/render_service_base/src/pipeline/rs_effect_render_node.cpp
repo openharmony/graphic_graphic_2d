@@ -26,13 +26,17 @@ namespace OHOS {
 namespace Rosen {
 RSEffectRenderNode::RSEffectRenderNode(NodeId id, const std::weak_ptr<RSContext>& context) : RSRenderNode(id, context)
 {
+#ifndef ROSEN_ARKUI_X
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
+#endif
 }
 
 RSEffectRenderNode::~RSEffectRenderNode()
 {
+#ifndef ROSEN_ARKUI_X
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
+#endif
 }
 
 void RSEffectRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)

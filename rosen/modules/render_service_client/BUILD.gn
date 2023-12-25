@@ -102,6 +102,11 @@ template("render_service_client_source_set") {
       "core/ui/rs_ui_share_context.cpp",
     ]
 
+    if (rosen_cross_platform) {
+      #ui
+      sources -= [ "core/ui/rs_display_node.cpp" ]
+    }
+
     if (defined(graphic_2d_ext_configs.vendor_root)) {
       sources += graphic_2d_ext_configs.librender_service_client_ext_sources
       sources -= graphic_2d_ext_configs.librender_service_client_ext_sources_del

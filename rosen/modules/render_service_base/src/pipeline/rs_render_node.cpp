@@ -1000,8 +1000,10 @@ bool RSRenderNode::ApplyModifiers()
 
     if (RSSystemProperties::GetPropertyDrawableEnable()) {
         // Generate drawable
+#ifndef ROSEN_ARKUI_X
         RSPropertyDrawableGenerateContext drawableContext(*this);
         RSPropertyDrawable::UpdateDrawableVec(drawableContext, propertyDrawablesVec_, drawableVecStatus_, dirtyTypes_);
+#endif
     }
 #endif
 

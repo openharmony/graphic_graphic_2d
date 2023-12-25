@@ -59,10 +59,6 @@ template("graphics2d_source_set") {
       defines += [ "USE_TEXGINE" ]
     }
 
-    if (is_arkui_x) {
-      defines += [ "CROSS_PLATFORM" ]
-    }
-
     sources = [
       "$drawing_src_dir/c/drawing_bitmap.cpp",
       "$drawing_src_dir/c/drawing_brush.cpp",
@@ -162,6 +158,25 @@ template("graphics2d_source_set") {
       "$drawing_src_dir/utils/vertices.cpp",
     ]
 
+    if (is_arkui_x) {
+      defines += [ "CROSS_PLATFORM" ]
+
+      #not needed for arkuix on current version,may need next version
+      sources -= [
+        "$drawing_src_dir/c/drawing_bitmap.cpp",
+        "$drawing_src_dir/c/drawing_brush.cpp",
+        "$drawing_src_dir/c/drawing_canvas.cpp",
+        "$drawing_src_dir/c/drawing_color.cpp",
+        "$drawing_src_dir/c/drawing_font_collection.cpp",
+        "$drawing_src_dir/c/drawing_path.cpp",
+        "$drawing_src_dir/c/drawing_pen.cpp",
+        "$drawing_src_dir/c/drawing_text_typography.cpp",
+        "$drawing_src_dir/engine_adapter/skia_adapter/platform/skia_font_mgr_ohos.cpp",
+        "$drawing_src_dir/engine_adapter/skia_adapter/platform/skia_font_style_set_ohos.cpp",
+        "$drawing_src_dir/engine_adapter/skia_adapter/platform/skia_typeface_ohos.cpp",
+        "$drawing_src_dir/engine_adapter/skia_adapter/rs_skia_memory_tracer.cpp",
+      ]
+    }
     if (ace_enable_gpu) {
       sources += [
         "$drawing_src_dir/engine_adapter/skia_adapter/skia_gpu_context.cpp",
@@ -409,6 +424,7 @@ if (enable_text_gine) {
     if (platform == "mingw") {
       platform = "windows"
     }
+
     deps = [ ":2d_graphics_source_$platform" ]
     public_deps = [ "//third_party/bounds_checking_function:libsec_static" ]
     defines += [ "USE_GRAPHIC_TEXT_GINE" ]
