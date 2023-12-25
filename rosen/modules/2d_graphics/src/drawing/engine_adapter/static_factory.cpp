@@ -57,14 +57,27 @@ std::shared_ptr<Typeface> StaticFactory::MakeFromName(const char familyName[], F
 
 #ifdef ACE_ENABLE_GPU
 #ifdef RS_ENABLE_VK
-std::shared_ptr<Surface> StaticFactory::MakeFromBackendRenderTarget(GPUContext* gpuContext, TextureInfo& info,
-    TextureOrigin origin, void (*deleteVkImage)(void *), void* cleanHelper)
+std::shared_ptr<Surface> StaticFactory::MakeFromBackendRenderTarget(GPUContext* gpuContext, const TextureInfo& info,
+    TextureOrigin origin, ColorType colorType, std::shared_ptr<ColorSpace> colorSpace,
+    void (*deleteVkImage)(void *), void* cleanHelper)
 {
     if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
         SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return nullptr;
     }
-    return EngineStaticFactory::MakeFromBackendRenderTarget(gpuContext, info, origin, deleteVkImage, cleanHelper);
+    return EngineStaticFactory::MakeFromBackendRenderTarget(gpuContext, info, origin,
+        colorType, colorSpace, deleteVkImage, cleanHelper);
+}
+std::shared_ptr<Surface> StaticFactory::MakeFromBackendTexture(GPUContext* gpuContext, const TextureInfo& info,
+    TextureOrigin origin, int sampleCnt, ColorType colorType,
+    std::shared_ptr<ColorSpace> colorSpace, void (*deleteVkImage)(void *), void* cleanHelper)
+{
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return nullptr;
+    }
+    return EngineStaticFactory::MakeFromBackendTexture(gpuContext, info, origin, sampleCnt, colorType,
+        colorSpace, deleteVkImage, cleanHelper);
 }
 #endif
 std::shared_ptr<Surface> StaticFactory::MakeRenderTarget(GPUContext* gpuContext,

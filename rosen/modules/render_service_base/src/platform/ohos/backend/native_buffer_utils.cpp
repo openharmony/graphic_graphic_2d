@@ -247,10 +247,17 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
     vkTextureInfo->levelCount = 1;
     texture_info.SetVKTextureInfo(vkTextureInfo);
     
+    Drawing::ColorType colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
+    if (nbFormatProps.format == VK_FORMAT_A2B10G10R10_UNORM_PACK32) {
+        colorType = Drawing::ColorType::COLORTYPE_RGBA_1010102;
+    }
+
     nativeSurface.drawingSurface = Drawing::Surface::MakeFromBackendRenderTarget(
         skContext.get(),
         texture_info,
         Drawing::TextureOrigin::TOP_LEFT,
+        colorType,
+        nullptr,
         DeleteVkImage,
         new VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
             image, memory));

@@ -77,6 +77,16 @@ void GPUContextOptions::SetPersistentCache(PersistentCache* persistentCache)
     persistentCache_ = persistentCache;
 }
 
+void GPUContextOptions::SetAllowPathMaskCaching(bool allowPathMaskCaching)
+{
+    allowPathMaskCaching_ = allowPathMaskCaching;
+}
+
+bool GPUContextOptions::GetAllowPathMaskCaching() const
+{
+    return allowPathMaskCaching_;
+}
+
 void GPUContext::GetResourceCacheUsage(int* resourceCount, size_t* resourceBytes) const
 {
     impl_->GetResourceCacheUsage(resourceCount, resourceBytes);
