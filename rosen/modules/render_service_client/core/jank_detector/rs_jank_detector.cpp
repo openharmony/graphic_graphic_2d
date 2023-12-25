@@ -20,12 +20,14 @@
 #include "base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include/hisysevent.h"
 #include "sandbox_utils.h"
 #endif
+#include "platform/common/rs_log.h"
 
 #ifdef _WIN32
 #define getuid() 0
 #endif
 
-namespace {
+namespace OHOS {
+namespace Rosen {
 struct FrameMsg {
     uint64_t totalTime = 0;
     uint64_t uiDrawTime = 0;
@@ -50,12 +52,11 @@ void DrawEventReport(FrameMsg& frameMsg, std::string stringId)
         "UID", uid,
         "ABILITY_NAME", frameMsg.abilityName,
         "MSG", msg);
+    RS_LOGI("%{public}s PID:%{public}d, UID:%{public}u, ABILITY_NAME:%{public}s, MSG:%{public}s",
+        stringId.c_str(), pid, uid, frameMsg.abilityName.c_str(), msg.c_str());
 #endif
 }
-}
 
-namespace OHOS {
-namespace Rosen {
 uint64_t RSJankDetector::GetSysTimeNs()
 {
     auto now = std::chrono::steady_clock::now().time_since_epoch();
