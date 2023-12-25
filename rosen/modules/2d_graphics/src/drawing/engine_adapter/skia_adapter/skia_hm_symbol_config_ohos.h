@@ -26,7 +26,7 @@ namespace Drawing {
 
 class SkiaHmSymbolConfigOhos {
 public:
-    static DrawingSymbolLayersGroups* GetSymbolLayersGroups(uint32_t glyphId);
+    static std::shared_ptr<DrawingSymbolLayersGroups> GetSymbolLayersGroups(uint32_t glyphId);
 
 private:
     static DrawingAnimationSetting ConvertToDrawingAnimationSetting(AnimationSetting setting);

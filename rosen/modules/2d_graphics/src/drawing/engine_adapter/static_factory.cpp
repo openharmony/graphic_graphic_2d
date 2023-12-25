@@ -146,7 +146,7 @@ Path StaticFactory::GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* 
     return EngineStaticFactory::GetDrawingPathforTextBlob(glyphId, blob);
 }
 
-DrawingSymbolLayersGroups* StaticFactory::GetSymbolLayersGroups(uint32_t glyphId)
+std::shared_ptr<DrawingSymbolLayersGroups> StaticFactory::GetSymbolLayersGroups(uint32_t glyphId)
 {
     return EngineStaticFactory::GetSymbolLayersGroups(glyphId);
 }
