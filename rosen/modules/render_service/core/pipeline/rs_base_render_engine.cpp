@@ -835,7 +835,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         canvas.drawImageRect(image, params.srcRect, params.dstRect,
             SkSamplingOptions(), &(params.paint), SkCanvas::kStrict_SrcRectConstraint);
 #else
-        std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = Drawing::ColorType::CreateSRGB();
+        std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = Drawing::ColorSpace::CreateSRGB();
 #ifdef USE_VIDEO_PROCESSING_ENGINE
         drawingColorSpace = ConvertColorGamutToDrawingColorSpace(params.targetColorGamut);
 #endif
