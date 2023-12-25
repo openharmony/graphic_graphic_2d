@@ -22,6 +22,17 @@ namespace Rosen {
 namespace Drawing {
 Region::Region() : impl_(ImplFactory::CreateRegionImpl()) {}
 
+Region::Region(const Region& other) : Region()
+{
+    impl_->Clone(other);
+}
+
+Region& Region::operator=(const Region& other)
+{
+    impl_->Clone(other);
+    return *this;
+}
+
 bool Region::SetRect(const RectI& rectI)
 {
     return impl_->SetRect(rectI);

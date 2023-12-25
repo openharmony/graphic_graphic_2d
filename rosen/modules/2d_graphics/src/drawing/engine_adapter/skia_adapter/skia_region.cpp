@@ -93,6 +93,16 @@ bool SkiaRegion::Op(const Region& region, RegionOp op)
     return skRegion_->op(*skRegion, static_cast<SkRegion::Op>(op));
 }
 
+void SkiaRegion::Clone(const Region& other)
+{
+    auto skRegion = other.GetImpl<SkiaRegion>()->GetSkRegion();
+    if (skRegion == nullptr) {
+        LOGE("SkiaRegion::Clone, skRegion is nullptr");
+        return;
+    }
+    *skRegion_ = *skRegion;
+}
+
 std::shared_ptr<SkRegion> SkiaRegion::GetSkRegion() const
 {
     return skRegion_;

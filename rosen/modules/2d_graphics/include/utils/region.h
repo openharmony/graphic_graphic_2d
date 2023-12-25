@@ -33,6 +33,8 @@ enum class RegionOp {
 class DRAWING_API Region {
 public:
     Region();
+    Region(const Region& other);
+    Region& operator=(const Region& other);
     virtual ~Region() = default;
 
     virtual DrawingType GetDrawingType() const
