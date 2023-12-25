@@ -30,7 +30,7 @@ declare_args() {
   graphic_2d_feature_enable_flutter_vulkan = false
   graphic_2d_feature_enable_opengl = true
   graphic_2d_feature_enable_filter_cache = true
-  graphic_2d_feature_parallel_upload_enable = false
+  graphic_2d_feature_parallel_upload_enable = true
   graphic_2d_feature_enable_ddgr_opinc = false
   enable_text_gine = true
   use_texgine = true
@@ -65,7 +65,6 @@ if (graphic_2d_feature_ace_enable_gpu) {
     gpu_defines += [ "RS_ENABLE_OLD_VK" ]
   }
   if (graphic_2d_feature_enable_vulkan) {
-    rs_enable_parallel_upload = false
     gpu_defines += [
       "ACE_ENABLE_VK",
       "RS_ENABLE_VK",
@@ -79,12 +78,6 @@ if (graphic_2d_feature_ace_enable_gpu) {
       "ACE_ENABLE_GL",
       "RS_ENABLE_GL",
     ]
-    if (graphic_2d_feature_parallel_upload_enable) {
-      rs_enable_parallel_upload = true
-      gpu_defines += [ "RS_ENABLE_PARALLEL_UPLOAD" ]
-    } else {
-      rs_enable_parallel_upload = false
-    }
   }
   if (graphic_2d_feature_enable_recording_dcl) {
     rs_enable_recording_dcl = true
@@ -118,6 +111,14 @@ if (graphic_2d_feature_ace_enable_gpu) {
   surface_enable_gpu = false
   libgl = []
   libvulkan = []
+}
+
+if (graphic_2d_feature_parallel_upload_enable &&
+    graphic_2d_feature_rs_enable_uni_render) {
+  rs_enable_parallel_upload = true
+  gpu_defines += [ "RS_ENABLE_PARALLEL_UPLOAD" ]
+} else {
+  rs_enable_parallel_upload = false
 }
 
 if (graphic_2d_feature_rs_enable_eglimage || current_os == "android") {

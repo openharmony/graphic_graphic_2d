@@ -213,6 +213,22 @@ ohos_shared_library("librender_service") {
     defines += [ "NEW_RENDER_CONTEXT" ]
   }
 
+  if (defined(rs_enable_parallel_upload) && rs_enable_parallel_upload) {
+    sources += [
+      "core/pipeline/parallel_render/resource/rs_upload_resource_thread.cpp",
+    ]
+    include_dirs += [ "$graphic_2d_root/rosen/modules/render_service/core/pipeline/parallel_render/resource" ]
+    if (defined(use_rosen_drawing) && use_rosen_drawing) {
+      sources += [
+        "core/pipeline/parallel_render/resource/rs_resource_helper_drawing.cpp",
+      ]
+    } else {
+      sources += [
+        "core/pipeline/parallel_render/resource/rs_resource_helper_skia.cpp",
+      ]
+    }
+  }
+
   if (rs_enable_gpu) {
     if (graphic_2d_feature_enable_flutter_vulkan) {
       include_dirs += [ "//third_party/flutter/engine/flutter/vulkan" ]

@@ -577,6 +577,12 @@ bool RSSystemProperties::GetCachedBlurPartialRenderEnabled()
     return ConvertToInt(type, 1) != 0;
 }
 
+bool RSSystemProperties::GetParallelUploadTexture()
+{
+    static bool enable = std::atoi((system::GetParameter("rosen.parallelUpload,enabled", "1")).c_str()) != 0;
+    return enable;
+}
+
 bool RSSystemProperties::GetImageGpuResourceCacheEnable(int width, int height)
 {
     static bool cacheEnable =

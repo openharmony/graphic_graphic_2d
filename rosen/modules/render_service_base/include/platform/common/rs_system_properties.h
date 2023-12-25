@@ -192,7 +192,8 @@ public:
     static bool GetSingleFrameComposerCanvasNodeEnabled();
     static bool GetSubSurfaceEnabled();
     static bool GetSecurityPermissionCheckEnabled();
-
+    static bool GetParallelUploadTexture();
+    
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     static DdgrOpincType GetDdgrOpincType();
     static bool IsDdgrOpincEnable();

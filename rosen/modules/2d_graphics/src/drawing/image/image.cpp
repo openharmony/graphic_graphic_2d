@@ -15,9 +15,13 @@
 
 #include "image/image.h"
 
+#include "engine_adapter/skia_adapter/skia_gpu_context.h"
+#include "image/gpu_context.h"
 #include "impl_factory.h"
 #include "skia_adapter/skia_image.h"
 #include "static_factory.h"
+#include "src/core/SkImagePriv.h"
+#include "src/image/SkImage_Base.h"
 #include "utils/system_properties.h"
 
 namespace OHOS {
@@ -231,6 +235,16 @@ const sk_sp<SkImage> Image::ExportSkImage()
     return GetImpl<SkiaImage>()->GetImage();
 }
 
+bool Image::pinAsTexture(GPUContext& context)
+{
+    auto image = ExportSkImage().get();
+    auto skGpuContext = context.GetImpl<SkiaGPUContext>();
+    if (skGpuContext == nullptr) {
+        return false;
+    }
+    auto skContext = skGpuContext->GetGrContext().get();
+    return image != nullptr && skContext != nullptr && SkImage_pinAsTexture(image, skContext);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

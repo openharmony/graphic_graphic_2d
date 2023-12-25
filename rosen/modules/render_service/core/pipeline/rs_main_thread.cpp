@@ -38,7 +38,7 @@
 #include "command/rs_message_processor.h"
 #include "common/rs_background_thread.h"
 #ifdef RS_ENABLE_PARALLEL_UPLOAD
-#include "common/rs_upload_texture_thread.h"
+#include "rs_upload_resource_thread.h"
 #endif
 #include "delegate/rs_functional_delegate.h"
 #include "memory/rs_memory_manager.h"
@@ -215,6 +215,18 @@ public:
     }
 };
 #endif
+static inline void WaitUntilUploadTextureTaskFinished(bool isUniRender)
+{
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_PARALLEL_UPLOAD)
+#if defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
+    if (isUniRender) {
+        RSUploadResourceThread::Instance().OnProcessBegin();
+    }
+    return;
+#endif
+#endif
+}
+
 RSMainThread* RSMainThread::Instance()
 {
     static RSMainThread instance;
@@ -262,6 +274,9 @@ void RSMainThread::Init()
         SetRSEventDetectorLoopFinishTag();
         rsEventManager_.UpdateParam();
         SKResourceManager::Instance().ReleaseResource();
+#ifdef RS_ENABLE_PARALLEL_UPLOAD
+        RSUploadResourceThread::Instance().OnRenderEnd();
+#endif
     };
 #if defined(ROSEN_OHOS) && defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_VK)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
@@ -290,14 +305,6 @@ void RSMainThread::Init()
                 std::lock_guard<std::mutex> lock(unmarshalMutex_);
                 ++unmarshalFinishedCount_;
             }
-
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-            if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-                RSUploadTextureThread::Instance().PostTask(uploadTextureBarrierTask_);
-#endif
-            }
-#endif
             unmarshalTaskCond_.notify_all();
         };
         RSUnmarshalThread::Instance().Start();
@@ -371,19 +378,10 @@ void RSMainThread::Init()
 
     RSRcdRenderManager::InitInstance();
 
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-        uploadTextureBarrierTask_ = [this]() {
-            auto renderContext = GetRenderEngine()->GetRenderContext().get();
-            uploadTextureFence = eglCreateSyncKHR(renderContext->GetEGLDisplay(), EGL_SYNC_FENCE_KHR, nullptr);
-            {
-                std::lock_guard<std::mutex> lock(uploadTextureMutex_);
-                ++uploadTextureFinishedCount_;
-            }
-            uploadTextureTaskCond_.notify_all();
-        };
-        RSUploadTextureThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext().get());
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_PARALLEL_UPLOAD)
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+#if defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
+        RSUploadResourceThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext().get());
 #endif
     }
 #endif
@@ -1265,41 +1263,6 @@ void RSMainThread::WaitUtilDrivenRenderFinished()
 #endif
 }
 
-#if defined(RS_ENABLE_PARALLEL_UPLOAD) && defined(RS_ENABLE_GL)
-void RSMainThread::WaitUntilUploadTextureTaskFinished()
-{
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
-        return;
-    }
-    if (!isUniRender_) {
-        return;
-    }
-    RS_OPTIONAL_TRACE_BEGIN("RSMainThread::WaitUntilUploadTextureTaskFinished");
-    {
-        std::unique_lock<std::mutex> lock(uploadTextureMutex_);
-        //upload texture maximum waiting time is 100ms
-        //otherwise main thread upload texture
-        static const uint32_t WAIT_FOR_UPLOAD_FINISH_TIMEOUT = 100;
-        uploadTextureTaskCond_.wait_until(lock, std::chrono::system_clock::now() +
-            std::chrono::milliseconds(WAIT_FOR_UPLOAD_FINISH_TIMEOUT), [this]() {
-                 return uploadTextureFinishedCount_ > 0; });
-        --uploadTextureFinishedCount_;
-    }
-    if (uploadTextureFence != EGL_NO_SYNC_KHR) {
-        auto diplayID = GetRenderEngine()->GetRenderContext().get()->GetEGLDisplay();
-        EGLint waitStatus = eglWaitSyncKHR(diplayID, uploadTextureFence, 0);
-        if (waitStatus == EGL_FALSE) {
-            ROSEN_LOGE("eglClientWaitSyncKHR error 0x%{public}x", eglGetError());
-        } else if (waitStatus == EGL_TIMEOUT_EXPIRED_KHR) {
-            ROSEN_LOGE("create eglClientWaitSyncKHR timeout");
-        }
-        eglDestroySyncKHR(diplayID, uploadTextureFence);
-    }
-    uploadTextureFence = EGL_NO_SYNC_KHR;
-    RS_OPTIONAL_TRACE_END();
-}
-#endif
-
 void RSMainThread::WaitUntilUnmarshallingTaskFinished()
 {
     if (!isUniRender_) {
@@ -1410,14 +1373,9 @@ void RSMainThread::ColorPickerRequestVsyncIfNeed()
 
 void RSMainThread::WaitUntilUploadTextureTaskFinishedForGL()
 {
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-        WaitUntilUploadTextureTaskFinished();
-#endif
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        WaitUntilUploadTextureTaskFinished(isUniRender_);
     }
-#endif
 }
 
 void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
@@ -1482,25 +1440,15 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
                 RS_LOGD("RSMainThread::Render multi-threads parallel composition end.");
                 isDirty_ = false;
                 PerfForBlurIfNeeded();
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-                if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-                    RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-                    WaitUntilUploadTextureTaskFinished();
-#endif
+                if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+                    WaitUntilUploadTextureTaskFinished(isUniRender_);
                 }
-#endif
                 return;
             }
         }
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-        if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-            RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-            WaitUntilUploadTextureTaskFinished();
-#endif
+        if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+            WaitUntilUploadTextureTaskFinished(isUniRender_);
         }
-#endif
         if (IsUIFirstOn()) {
             auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
                 rootNode->GetSortedChildren().front());
@@ -1513,15 +1461,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             RSUniRenderUtil::CacheSubThreadNodes(subThreadNodes_, subThreadNodes);
         }
         rootNode->Process(uniVisitor);
-    } else {
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-        if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-            RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-            WaitUntilUploadTextureTaskFinished();
-#endif
-        }
-#endif
+    } else if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+            WaitUntilUploadTextureTaskFinished(isUniRender_);
     }
     isDirty_ = false;
     forceUpdateUniRenderFlag_ = false;
@@ -1532,14 +1473,9 @@ void RSMainThread::Render()
 {
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (rootNode == nullptr) {
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-        if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-            RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-            WaitUntilUploadTextureTaskFinished();
-#endif
+        if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+            WaitUntilUploadTextureTaskFinished(isUniRender_);
         }
-#endif
         RS_LOGE("RSMainThread::Render GetGlobalRootRenderNode fail");
         return;
     }
