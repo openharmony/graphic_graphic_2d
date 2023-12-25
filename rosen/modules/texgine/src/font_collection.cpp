@@ -38,6 +38,7 @@ FontCollection::FontCollection(std::vector<std::shared_ptr<VariantFontStyleSet>>
     : fontStyleSets_(fontStyleSets)
 {
     FillDefaultItalicSupportFile();
+    FillDefaultChinesePointUnicode();
 }
 
 void FontCollection::SortTypeface(FontStyles &style) const
@@ -93,14 +94,31 @@ void FontCollection::FillDefaultItalicSupportFile()
     supportScript_.insert(std::make_pair("Latn", SUPPORTFILE)); // Latn means Latin Language
     supportScript_.insert(std::make_pair("Zyyy", SUPPORTFILE)); // Zyyy means department of mathematics
 }
+void FontCollection::FillDefaultChinesePointUnicode()
+{
+    chinesePointUnicode_.insert(std::make_pair(0xFF0C, SUPPORTFILE));
+    chinesePointUnicode_.insert(std::make_pair(0x3002, SUPPORTFILE)); 
+    chinesePointUnicode_.insert(std::make_pair(0xFF01, SUPPORTFILE)); 
+    chinesePointUnicode_.insert(std::make_pair(0xFF1B, SUPPORTFILE)); 
+    chinesePointUnicode_.insert(std::make_pair(0x3001, SUPPORTFILE)); 
+}
 
 int FontCollection::DetectionScript(std::string script) const
 {
     return supportScript_.find(script)->second;
 }
+int FontCollection::DetectChinesePointUnicode(uint32_t ch) const
+{
+    return chinesePointUnicode_.find(ch)->second;
+}
 std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch, FontStyles &style,
     const std::string &script, const std::string &locale) const
 {
+    std::string newScript(script);
+    LOGE("----Ziruo FontCollection::GetTypefaceForChar [begin], ch = %d", ch);
+    if (DetectChinesePointUnicode(ch) == SUPPORTFILE) {
+        newScript = "Hani";
+    }
     SortTypeface(style);
     auto fs = std::make_shared<TexgineFontStyle>();
     *fs = style.ToTexgineFontStyle();
