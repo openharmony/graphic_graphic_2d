@@ -56,6 +56,7 @@
 #include "platform/ohos/overdraw/rs_cpu_overdraw_canvas_listener.h"
 #include "platform/ohos/overdraw/rs_gpu_overdraw_canvas_listener.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
+#include "surface_utils.h"
 #endif
 
 namespace OHOS {
@@ -746,7 +747,45 @@ void RSRenderThreadVisitor::ProcessEffectRenderNode(RSEffectRenderNode& node)
 
 void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
 {
-    // TODO: deal with surfaceNode in same render
+#ifdef ROSEN_OHOS
+    const auto& property = node.GetRenderProperties();
+    sptr<Surface> surface = SurfaceUtils::GetInstance()->GetSurface(node.GetSurfaceId());
+    if (surface == nullptr) {
+        RS_LOGE("RSRenderThreadVisitor::ProcessSurfaceViewInRT nodeId is %llu cannot find surface by surfaceId %llu",
+            node.GetId(), node.GetSurfaceId());
+        return;
+    }
+    sptr<SurfaceBuffer> surfaceBuffer;
+    // a 4 * 4 idetity matrix
+    float matrix[16] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    };
+    sptr<SyncFence> fence;
+    int ret = surface->GetLastFlushedBuffer(surfaceBuffer, fence, matrix);
+    if (ret != OHOS::GSERROR_OK || surfaceBuffer == nullptr) {
+        RS_LOGE("RSRenderThreadVisitor::ProcessSurfaceViewInRT: GetLastFlushedBuffer failed, err: %{public}d", ret);
+        return;
+    }
+    if (fence != nullptr) {
+        fence->Wait(3000); // wait at most 3000ms
+    }
+#ifndef USE_ROSEN_DRAWING
+    recordingCanvas_ = std::make_shared<RSRecordingCanvas>(property.GetBoundsWidth(), property.GetBoundsHeight());
+    RSSurfaceBufferInfo rsSurfaceBufferInfo(surfaceBuffer, property.GetBoundsPositionX(), property.GetBoundsPositionY(),
+        property.GetBoundsWidth(), property.GetBoundsHeight());
+#else
+    recordingCanvas_ = std::make_shared<Drawing::RecordingCanvas>(property.GetBoundsWidth(),
+        property.GetBoundsHeight());
+    DrawingSurfaceBufferInfo rsSurfaceBufferInfo(surfaceBuffer, property.GetBoundsPositionX(),
+        property.GetBoundsPositionY(), property.GetBoundsWidth(), property.GetBoundsHeight());
+#endif //USE_ROSEN_DRAWING
+    recordingCanvas_->DrawSurfaceBuffer(rsSurfaceBufferInfo);
+    auto drawCmdList = recordingCanvas_->GetDrawCmdList();
+    drawCmdList->Playback(*canvas_);
+#endif
 }
 
 void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
