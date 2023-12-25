@@ -94,23 +94,26 @@ void FontCollection::FillDefaultItalicSupportFile()
     supportScript_.insert(std::make_pair("Latn", SUPPORTFILE)); // Latn means Latin Language
     supportScript_.insert(std::make_pair("Zyyy", SUPPORTFILE)); // Zyyy means department of mathematics
 }
+
 void FontCollection::FillDefaultChinesePointUnicode()
 {
-    chinesePointUnicode_.insert(std::make_pair(0xFF0C, SUPPORTFILE));
-    chinesePointUnicode_.insert(std::make_pair(0x3002, SUPPORTFILE)); 
-    chinesePointUnicode_.insert(std::make_pair(0xFF01, SUPPORTFILE)); 
-    chinesePointUnicode_.insert(std::make_pair(0xFF1B, SUPPORTFILE)); 
-    chinesePointUnicode_.insert(std::make_pair(0x3001, SUPPORTFILE)); 
+    chinesePointUnicode_.insert(std::make_pair(0xFF0C, SUPPORTFILE)); // 0xFF0C is ，
+    chinesePointUnicode_.insert(std::make_pair(0x3002, SUPPORTFILE)); // 0x3002 is 。
+    chinesePointUnicode_.insert(std::make_pair(0xFF01, SUPPORTFILE)); // 0xFF01 is ！
+    chinesePointUnicode_.insert(std::make_pair(0xFF1B, SUPPORTFILE)); // 0xFF1B is ；
+    chinesePointUnicode_.insert(std::make_pair(0x3001, SUPPORTFILE)); // 0x3001 is 、
 }
 
 int FontCollection::DetectionScript(std::string script) const
 {
     return supportScript_.find(script)->second;
 }
+
 int FontCollection::DetectChinesePointUnicode(uint32_t ch) const
 {
     return chinesePointUnicode_.find(ch)->second;
 }
+
 std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch, FontStyles &style,
     const std::string &script, const std::string &locale) const
 {
