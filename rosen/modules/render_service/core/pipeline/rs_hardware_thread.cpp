@@ -201,9 +201,11 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     }
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     uint32_t rate = hgmCore.GetPendingScreenRefreshRate();
+    uint32_t currentRate = hgmCore.GetScreenCurrentRefreshRate(hgmCore.GetActiveScreenId());
     uint64_t currTimestamp = hgmCore.GetCurrentTimestamp();
-    RSTaskMessage::RSTask task = [this, output = output, layers = layers, rate = rate, timestamp = currTimestamp]() {
-        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %d, now: %lu", rate, timestamp);
+    RSTaskMessage::RSTask task = [this, output = output, layers = layers, rate = rate,
+        currentRate = currentRate, timestamp = currTimestamp]() {
+        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %d, now: %lu", currentRate, timestamp);
         ExecuteSwitchRefreshRate(rate);
         PerformSetActiveMode(output);
         AddRefreshRateCount();
@@ -254,7 +256,6 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     ScreenId id = RSMainThread::Instance()->GetFrameRateMgr()->GetCurScreenId();
     if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id)) {
-        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers SetScreenRefreshRate: %d", refreshRate);
         RS_LOGI("RSHardwareThread::CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d",
             static_cast<int>(id), refreshRate);
         int32_t status = hgmCore.SetScreenRefreshRate(id, 0, refreshRate);
@@ -284,7 +285,8 @@ void RSHardwareThread::PerformSetActiveMode(OutputPtr output)
         return;
     }
 
-    RS_TRACE_NAME("RSHardwareThread::PerformSetActiveMode setting active mode");
+    RS_TRACE_NAME_FMT("RSHardwareThread::PerformSetActiveMode setting active mode. rate: %d",
+        hgmCore.GetScreenCurrentRefreshRate(screenManager->GetDefaultScreenId()));
     for (auto mapIter = modeMap->begin(); mapIter != modeMap->end(); ++mapIter) {
         ScreenId id = mapIter->first;
         int32_t modeId = mapIter->second;
