@@ -523,7 +523,11 @@ public:
 protected:
     void UpdateOnAllAnimationFinish() override
     {
-        RSProperty<T>::UpdateToRender(RSProperty<T>::stagingValue_, UPDATE_TYPE_FORCE_OVERWRITE);
+        if (RSProperty<T>::isCustom_) {
+            UpdateExtendedAnimatableProperty(RSProperty<T>::stagingValue_, false);
+        } else {
+            RSProperty<T>::UpdateToRender(RSProperty<T>::stagingValue_, UPDATE_TYPE_FORCE_OVERWRITE);
+        }
     }
 
     void UpdateExtendedAnimatableProperty(const T& value, bool isDelta)
