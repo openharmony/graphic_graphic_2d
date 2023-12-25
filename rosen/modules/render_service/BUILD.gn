@@ -85,6 +85,7 @@ ohos_shared_library("librender_service") {
     "core/pipeline/rs_processor.cpp",
     "core/pipeline/rs_processor_factory.cpp",
     "core/pipeline/rs_qos_thread.cpp",
+    "core/pipeline/rs_realtime_refresh_rate_manager.cpp",
     "core/pipeline/rs_render_engine.cpp",
     "core/pipeline/rs_render_service.cpp",
     "core/pipeline/rs_render_service_connection.cpp",
@@ -190,8 +191,9 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
 
-  if (rs_enable_recording_dcl) {
-    dep +=
+  if (rs_enable_recording_dcl && defined(use_rosen_drawing) &&
+      use_rosen_drawing) {
+    deps +=
         [ "$graphic_2d_root/rosen/samples/2d_graphics:drawing_engine_sample" ]
   }
 

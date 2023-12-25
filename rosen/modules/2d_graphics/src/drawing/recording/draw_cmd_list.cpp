@@ -327,6 +327,9 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect)
                 auto op = player.Unmarshalling(type, itemPtr);
                 if (op) {
                     unmarshalledOpItems_.emplace_back(op);
+                    if (op->GetType() == DrawOpItem::SYMBOL_OPITEM) {
+                        op->SetSymbol();
+                    }
                     op->Playback(&canvas, &tmpRect);
                 }
                 offset = curOpItemPtr->GetNextOpItemOffset();
@@ -336,6 +339,9 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect)
     } else {
         for (auto op : unmarshalledOpItems_) {
             if (op) {
+                if (op->GetType() == DrawOpItem::SYMBOL_OPITEM) {
+                        op->SetSymbol();
+                }
                 op->Playback(&canvas, &tmpRect);
             }
         }

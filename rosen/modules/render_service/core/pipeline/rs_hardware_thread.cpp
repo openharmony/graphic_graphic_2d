@@ -31,6 +31,7 @@
 #include "platform/common/rs_system_properties.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "common/rs_singleton.h"
+#include "rs_realtime_refresh_rate_manager.h"
 #include "rs_trace.h"
 #include "common/rs_optional_trace.h"
 #include "hdi_backend.h"
@@ -723,6 +724,7 @@ void RSHardwareThread::AddRefreshRateCount()
     if (!success) {
         iter->second++;
     }
+    RSRealtimeRefreshRateManager::Instance().CountRealtimeFrame();
 }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE

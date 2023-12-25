@@ -1646,7 +1646,7 @@ RSVisibleLevel RSMainThread::GetRegionVisibleLevel(const Occlusion::Region& curR
         return RSVisibleLevel::RS_INVISIBLE;
     } else if (visibleRegion.Area() == curRegion.Area()) {
         return RSVisibleLevel::RS_ALL_VISIBLE;
-    } else if (visibleRegion.Area() < (curRegion.Area() >> VISIBLEAREARATIO_FORQOS)) {
+    } else if (visibleRegion.Area() < (static_cast<uint>(curRegion.Area()) >> VISIBLEAREARATIO_FORQOS)) {
         return RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE;
     }
     return RSVisibleLevel::RS_SEMI_NONDEFAULT_VISIBLE;
@@ -1662,7 +1662,7 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
     bool filterCacheOcclusionEnabled = RSSystemParameters::GetFilterCacheOcculusionEnabled();
     for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
         auto curSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-        if (curSurface == nullptr || curSurface->GetDstRect().IsEmpty() || curSurface->IsLeashWindow()) {
+        if (curSurface == nullptr || curSurface->IsLeashWindow()) {
             continue;
         }
         Occlusion::Rect occlusionRect = curSurface->GetSurfaceOcclusionRect(isUniRender_);
@@ -1691,7 +1691,7 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
         accumulatedRegion = {};
         for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
             auto curSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-            if (curSurface == nullptr || curSurface->GetDstRect().IsEmpty() || curSurface->IsLeashWindow()) {
+            if (curSurface == nullptr || curSurface->IsLeashWindow()) {
                 continue;
             }
             Occlusion::Rect occlusionRect = curSurface->GetSurfaceOcclusionRect(isUniRender_);
@@ -2366,7 +2366,7 @@ void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::str
         grContext->flushAndSubmit(true);
     } else if (type == "uihidden") {
         grContext->flush();
-        grContext->purgeUnlockedResources(true);
+        grContext->purgeUnlockAndSafeCacheGpuResources();
         grContext->flushAndSubmit(true);
     } else if (type == "shader") {
 #ifdef NEW_RENDER_CONTEXT

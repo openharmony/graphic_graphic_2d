@@ -39,7 +39,7 @@ public:
     bool FlushFrame(std::unique_ptr<SurfaceFrame>& frame) override;
     bool NativeFlushFrame(std::unique_ptr<SurfaceFrame>& frame) override;
     SkCanvas* GetSkCanvas(std::unique_ptr<SurfaceFrame>& frame) override;
-#ifdef USR_ROSEN_DRAWING
+#ifdef USE_ROSEN_DRAWING
     Drawing::Canvas* GetCanvas(std::unique_ptr<SurfaceFrame>& frame) override;
 #endif
 private:

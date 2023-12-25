@@ -296,7 +296,6 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
                 canvas_->Translate(-(mirrorHeight_ / 2.0f), -(mirrorWidth_ / 2.0f));
 #endif
             }
-            
         }
 
         renderEngine_->DrawDisplayNodeWithParams(*canvas_, node, params);

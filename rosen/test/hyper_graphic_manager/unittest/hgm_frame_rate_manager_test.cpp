@@ -146,6 +146,5 @@ HWTEST_F(HgmFrameRateMgrTest, HgmOneShotTimerTest, Function | SmallTest | Level2
         }
     }
 }
-
 } // namespace Rosen
 } // namespace OHOS

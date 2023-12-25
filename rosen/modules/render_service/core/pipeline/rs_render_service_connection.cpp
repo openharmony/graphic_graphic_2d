@@ -22,6 +22,7 @@
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
+#include "pipeline/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_render_frame_rate_linker_map.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_render_service_listener.h"
@@ -454,6 +455,16 @@ std::vector<int32_t> RSRenderServiceConnection::GetScreenSupportedRefreshRates(S
     auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
     std::vector<int32_t> rates = hgmCore.GetScreenComponentRefreshRates(id);
     return rates;
+}
+
+bool RSRenderServiceConnection::GetShowRefreshRateEnabled()
+{
+    return RSRealtimeRefreshRateManager::Instance().GetShowRefreshRateEnabled();
+}
+    
+void RSRenderServiceConnection::SetShowRefreshRateEnabled(bool enable)
+{
+    return RSRealtimeRefreshRateManager::Instance().SetShowRefreshRateEnabled(enable);
 }
 
 int32_t RSRenderServiceConnection::GetCurrentRefreshRateMode()

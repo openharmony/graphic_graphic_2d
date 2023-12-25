@@ -63,8 +63,8 @@ private:
     sk_sp<GrContext> grContext_ = nullptr;
 #endif
     SkSurface* skSurface_ = nullptr;
-#ifdef ENABLE_DDGR_OPTIMIZE
     Drawing::Surface* drSurface_ = nullptr;
+#ifdef ENABLE_DDGR_OPTIMIZE
     std::shared_ptr<DDGR::Surface> dSurface_ = nullptr;
 #endif
 };

@@ -57,6 +57,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_BOOT_ANIMATION,
     SURFACE_NODE_CREATE_SURFACE_EXT,
     SURFACE_NODE_SET_FOREGROUND,
+    SURFACE_NODE_SET_SURFACE_ID,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -95,6 +96,7 @@ public:
     static void CreateSurfaceExt(RSContext& context, NodeId id, uint64_t surfaceExt);
 #endif
     static void SetForeground(RSContext& context, NodeId nodeId, bool isForeground);
+    static void SetSurfaceId(RSContext& context, NodeId nodeId, SurfaceId surfaceId);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate,
@@ -155,6 +157,8 @@ ADD_COMMAND(RSSurfaceNodeDetachToDisplay,
     ARG(SURFACE_NODE, SURFACE_NODE_DETACH_TO_DISPLAY, SurfaceNodeCommandHelper::DetachToDisplay, NodeId, uint64_t))
 ADD_COMMAND(RSSurfaceNodeSetColorSpace,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_COLOR_SPACE, SurfaceNodeCommandHelper::SetColorSpace, NodeId, GraphicColorGamut))
+ADD_COMMAND(RSurfaceNodeSetSurfaceId,
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_SURFACE_ID, SurfaceNodeCommandHelper::SetSurfaceId, NodeId, SurfaceId))
 
 #ifdef USE_SURFACE_TEXTURE
 ADD_COMMAND(RSSurfaceNodeCreateSurfaceExt,

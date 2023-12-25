@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -44,6 +44,26 @@ static const Pen& CastToPen(const OH_Drawing_Pen& cPen)
 static const Bitmap& CastToBitmap(const OH_Drawing_Bitmap& cBitmap)
 {
     return reinterpret_cast<const Bitmap&>(cBitmap);
+}
+
+static const Rect& CastToRect(const OH_Drawing_Rect& cRect)
+{
+    return reinterpret_cast<const Rect&>(cRect);
+}
+
+static const Point& CastToPoint(const OH_Drawing_Point& cPoint)
+{
+    return reinterpret_cast<const Point&>(cPoint);
+}
+
+static const RoundRect& CastToRoundRect(const OH_Drawing_RoundRect& cRoundRect)
+{
+    return reinterpret_cast<const RoundRect&>(cRoundRect);
+}
+
+static const TextBlob* CastToTextBlob(const OH_Drawing_TextBlob* cTextBlob)
+{
+    return reinterpret_cast<const TextBlob*>(cTextBlob);
 }
 
 OH_Drawing_Canvas* OH_Drawing_CanvasCreate()
@@ -128,6 +148,24 @@ void OH_Drawing_CanvasRestore(OH_Drawing_Canvas* cCanvas)
     canvas->Restore();
 }
 
+uint32_t OH_Drawing_CanvasGetSaveCount(OH_Drawing_Canvas* cCanvas)
+{
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return 0;
+    }
+    return canvas->GetSaveCount();
+}
+
+void OH_Drawing_CanvasRestoreToCount(OH_Drawing_Canvas* cCanvas, uint32_t saveCount)
+{
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->RestoreToCount(saveCount);
+}
+
 void OH_Drawing_CanvasDrawLine(OH_Drawing_Canvas* cCanvas, float x1, float y1, float x2, float y2)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
@@ -163,6 +201,79 @@ void OH_Drawing_CanvasDrawBitmap(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Bi
     canvas->DrawBitmap(CastToBitmap(*cBitmap), left, top);
 }
 
+void OH_Drawing_CanvasDrawRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect* cRect)
+{
+    if (cRect == nullptr) {
+        return;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->DrawRect(CastToRect(*cRect));
+}
+
+void OH_Drawing_CanvasDrawCircle(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Point* cPoint, float radius)
+{
+    if (cPoint == nullptr) {
+        return;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->DrawCircle(CastToPoint(*cPoint), radius);
+}
+
+void OH_Drawing_CanvasDrawOval(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect* cRect)
+{
+    if (cRect == nullptr) {
+        return;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->DrawOval(CastToRect(*cRect));
+}
+
+void OH_Drawing_CanvasDrawArc(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect* cRect,
+    float startAngle, float sweepAngle)
+{
+    if (cRect == nullptr) {
+        return;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->DrawArc(CastToRect(*cRect), startAngle, sweepAngle);
+}
+
+void OH_Drawing_CanvasDrawRoundRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing_RoundRect* cRoundRect)
+{
+    if (cRoundRect == nullptr) {
+        return;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->DrawRoundRect(CastToRoundRect(*cRoundRect));
+}
+
+void OH_Drawing_CanvasDrawTextBlob(OH_Drawing_Canvas* cCanvas, const OH_Drawing_TextBlob* cTextBlob, float x, float y)
+{
+    if (cTextBlob == nullptr) {
+        return;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->DrawTextBlob(CastToTextBlob(cTextBlob), x, y);
+}
+
 static ClipOp CClipOpCastToClipOp(OH_Drawing_CanvasClipOp cClipOp)
 {
     ClipOp clipOp = ClipOp::INTERSECT;
@@ -179,15 +290,39 @@ static ClipOp CClipOpCastToClipOp(OH_Drawing_CanvasClipOp cClipOp)
     return clipOp;
 }
 
-void OH_Drawing_CanvasClipRect(OH_Drawing_Canvas* cCanvas, float left, float top, float right, float bottom,
+void OH_Drawing_CanvasClipRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect* cRect,
     OH_Drawing_CanvasClipOp cClipOp, bool doAntiAlias)
+{
+    if (cRect == nullptr) {
+        return;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->ClipRect(CastToRect(*cRect), CClipOpCastToClipOp(cClipOp), doAntiAlias);
+}
+
+void OH_Drawing_CanvasClipPath(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Path* cPath,
+    OH_Drawing_CanvasClipOp cClipOp, bool doAntiAlias)
+{
+    if (cPath == nullptr) {
+        return;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+    canvas->ClipPath(CastToPath(*cPath), CClipOpCastToClipOp(cClipOp), doAntiAlias);
+}
+
+void OH_Drawing_CanvasRotate(OH_Drawing_Canvas* cCanvas, float degrees, float px, float py)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr) {
         return;
     }
-    Rect rect{left, top, right, bottom};
-    canvas->ClipRect(rect, CClipOpCastToClipOp(cClipOp), doAntiAlias);
+    canvas->Rotate(degrees, px, py);
 }
 
 void OH_Drawing_CanvasTranslate(OH_Drawing_Canvas* cCanvas, float dx, float dy)

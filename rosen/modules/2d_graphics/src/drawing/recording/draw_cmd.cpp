@@ -948,6 +948,138 @@ std::shared_ptr<DrawOpItem> DrawSymbolOpItem::Unmarshalling(const CmdList& cmdLi
     return std::make_shared<DrawSymbolOpItem>(cmdList, static_cast<DrawSymbolOpItem::ConstructorHandle*>(handle));
 }
 
+void DrawSymbolOpItem::SetSymbol()
+{
+    LOGD("SymbolOpItem::SetSymbol GlyphId %{public}d", static_cast<int>(symbol_.symbolInfo_.symbolGlyphId));
+    if (symbol_.symbolInfo_.effect == DrawingEffectStrategy::SCALE) {
+        if (!startAnimation_) {
+            InitialScale();
+        }
+        SetScale(0); // scale animation only has one element
+    } else if (symbol_.symbolInfo_.effect == DrawingEffectStrategy::HIERARCHICAL) {
+        if (!startAnimation_) {
+            InitialVariableColor();
+        }
+        for (size_t i = 0; i < animation_.size(); i++) {
+            SetVariableColor(i);
+        }
+    }
+}
+
+void DrawSymbolOpItem::InitialScale()
+{
+    DrawSymbolAnimation animation;
+    animation.startValue = 0; // 0 means scale start value
+    animation.curValue = 0; // 0 means scale current value
+    animation.endValue = 0.5; // 0.5 means scale end value
+    animation.speedValue = 0.05; // 0.05 means scale change step
+    animation.number = 0; // 0 means number of times that the animation to be played
+    animation_.push_back(animation);
+    startAnimation_ = true;
+}
+
+void DrawSymbolOpItem::InitialVariableColor()
+{
+    LOGD("SetSymbol groups %{public}d", static_cast<int>(symbol_.symbolInfo_.renderGroups.size()));
+    uint32_t startTimes = 10 * symbol_.symbolInfo_.renderGroups.size() - 10; // 10 means frame intervals
+    for (size_t j = 0; j < symbol_.symbolInfo_.renderGroups.size(); j++) {
+        DrawSymbolAnimation animation;
+        animation.startValue = 0.4; // 0.4 means alpha start value
+        animation.curValue = 0.4; // 0.4 means alpha current value
+        animation.endValue = 1; // 1 means alpha end value
+        animation.speedValue = 0.08; // 0.08 means alpha change step
+        animation.number = 0; // 0 means number of times that the animation to be played
+        animation.startCount = startTimes - j * 10; // 10 means frame intervals
+        animation.count = 0; // 0 means the initial value of the frame
+        animation_.push_back(animation);
+        symbol_.symbolInfo_.renderGroups[j].color.a = animation.startValue;
+    }
+    startAnimation_ = true;
+}
+
+void DrawSymbolOpItem::SetScale(size_t index)
+{
+    if (animation_.size() < index || animation_[index].number >= number_) {
+        LOGD("SymbolOpItem::symbol scale animation is false!");
+        return;
+    }
+    DrawSymbolAnimation animation = animation_[index];
+    if (animation.number >= number_ || animation.startValue == animation.endValue) {
+        return;
+    }
+    if (animation.number == 0) {
+        LOGD("SymbolOpItem::symbol scale animation is start!");
+    }
+
+    if (abs(animation.curValue - animation.endValue) < animation.speedValue) {
+        double temp = animation.startValue;
+        animation.startValue = animation.endValue;
+        animation.endValue = temp;
+        animation.number++;
+    }
+    if (animation.number == number_) {
+        LOGD("SymbolOpItem::symbol scale animation is end!");
+        return;
+    }
+    if (animation.endValue > animation.startValue) {
+        animation.curValue = animation.curValue + animation.speedValue;
+    } else {
+        animation.curValue = animation.curValue - animation.speedValue;
+    }
+    animation_[index] = animation;
+}
+
+void DrawSymbolOpItem::SetVariableColor(size_t index)
+{
+    if (animation_.size() < index || animation_[index].number >= number_) {
+        return;
+    }
+
+    animation_[index].count++;
+    DrawSymbolAnimation animation = animation_[index];
+    if (animation.startValue == animation.endValue ||
+        animation.count < animation.startCount) {
+        return;
+    }
+
+    if (abs(animation.curValue - animation.endValue) < animation.speedValue) {
+        double stemp = animation.startValue;
+        animation.startValue = animation.endValue;
+        animation.endValue = stemp;
+        animation.number++;
+    }
+    if (animation.endValue > animation.startValue) {
+        animation.curValue = animation.curValue + animation.speedValue;
+    } else {
+        animation.curValue = animation.curValue - animation.speedValue;
+    }
+    UpdataVariableColor(animation.curValue, index);
+    animation_[index] = animation;
+}
+
+void DrawSymbolOpItem::UpdateScale(const double cur, Path& path)
+{
+    LOGD("SymbolOpItem::animation cur %{public}f", static_cast<float>(cur));
+    //set symbol
+    Rect rect = path.GetBounds();
+    float y = static_cast<float>(rect.GetWidth()) / 2;
+    float x = static_cast<float>(rect.GetHeight()) / 2;
+    Matrix matrix;
+    matrix.Translate(-x, -y);
+    path.Transform(matrix);
+    Matrix matrix1;
+    matrix1.SetScale(1.0f + cur, 1.0f+ cur);
+    path.Transform(matrix1);
+    Matrix matrix2;
+    matrix2.Translate(x, y);
+    path.Transform(matrix2);
+}
+
+void DrawSymbolOpItem::UpdataVariableColor(const double cur, size_t index)
+{
+    symbol_.symbolInfo_.renderGroups[index].color.a = fmin(1, fmax(0, cur));
+}
+
 void DrawSymbolOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (!canvas) {
@@ -956,6 +1088,11 @@ void DrawSymbolOpItem::Playback(Canvas* canvas, const Rect* rect)
     }
 
     Path path(symbol_.path_);
+
+    if (startAnimation_ && symbol_.symbolInfo_.effect == DrawingEffectStrategy::SCALE &&
+            !animation_.empty()) {
+        UpdateScale(animation_[0].curValue, path);
+    }
 
     // 1.0 move path
     path.Offset(locate_.GetX(), locate_.GetY());
@@ -995,24 +1132,24 @@ void DrawSymbolOpItem::MergeDrawingPath(
     Drawing::Path& multPath, Drawing::DrawingRenderGroup& group, std::vector<Drawing::Path>& pathLayers)
 {
     for (auto groupInfo : group.groupInfos) {
-        Drawing::Path pathStemp;
+        Drawing::Path pathTemp;
         for (auto k : groupInfo.layerIndexes) {
             if (k >= pathLayers.size()) {
                 continue;
             }
-            pathStemp.AddPath(pathLayers[k]);
+            pathTemp.AddPath(pathLayers[k]);
         }
         for (size_t h : groupInfo.maskIndexes) {
             if (h >= pathLayers.size()) {
                 continue;
             }
             Drawing::Path outPath;
-            auto isOk = outPath.Op(pathStemp, pathLayers[h], Drawing::PathOp::DIFFERENCE);
+            auto isOk = outPath.Op(pathTemp, pathLayers[h], Drawing::PathOp::DIFFERENCE);
             if (isOk) {
-                pathStemp = outPath;
+                pathTemp = outPath;
             }
         }
-        multPath.AddPath(pathStemp);
+        multPath.AddPath(pathTemp);
     }
 }
 

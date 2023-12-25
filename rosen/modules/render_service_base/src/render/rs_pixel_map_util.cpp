@@ -185,7 +185,14 @@ sk_sp<SkImage> RSPixelMapUtil::ExtractSkImage(std::shared_ptr<Media::PixelMap> p
     pixelMap->GetImageInfo(imageInfo);
     auto skImageInfo = MakeSkImageInfo(imageInfo);
     SkPixmap skPixmap(skImageInfo, reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
-    return SkImage::MakeFromRaster(skPixmap, PixelMapReleaseProc, new PixelMapReleaseContext(pixelMap));
+    PixelMapReleaseContext* releaseContext = new PixelMapReleaseContext(pixelMap);
+    auto skImage = SkImage::MakeFromRaster(skPixmap, PixelMapReleaseProc, releaseContext);
+    if (!skImage) {
+        RS_LOGE("RSPixelMapUtil::ExtractSkImage fail");
+        delete releaseContext;
+        releaseContext = nullptr;
+    }
+    return skImage;
 }
 #else
 std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(

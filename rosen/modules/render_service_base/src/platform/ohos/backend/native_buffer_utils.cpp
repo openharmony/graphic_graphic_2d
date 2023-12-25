@@ -101,7 +101,6 @@ bool AllocateDeviceMemory(const RsVulkanContext& vkContext, VkDeviceMemory* memo
     physicalDeviceMemProps.pNext = nullptr;
 
     uint32_t foundTypeIndex = 0;
-    uint32_t foundHeapIndex = 0;
     VkDevice device = vkContext.GetDevice();
     VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
     vkContext.vkGetPhysicalDeviceMemoryProperties2(physicalDevice, &physicalDeviceMemProps);
@@ -113,7 +112,6 @@ bool AllocateDeviceMemory(const RsVulkanContext& vkContext, VkDeviceMemory* memo
             uint32_t supportedFlags = pdmp.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
             if (supportedFlags == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
                 foundTypeIndex = i;
-                foundHeapIndex = pdmp.memoryTypes[i].heapIndex;
                 found = true;
                 break;
             }

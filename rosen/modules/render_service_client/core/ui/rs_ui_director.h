@@ -95,6 +95,7 @@ private:
     int surfaceHeight_ = 0;
     std::string cacheDir_;
     static std::function<void()> requestVsyncCallback_;
+    bool isHgmConfigChangeCallbackReg_ = false;
 
     friend class RSApplicationAgentImpl;
     friend class RSRenderThread;

@@ -2562,6 +2562,22 @@ bool RSRenderNode::GetCacheGeoPreparationDelay() const
 {
     return cacheGeoPreparationDelay_;
 }
+
+void RSRenderNode::StoreMustRenewedInfo()
+{
+    mustRenewedInfo_ = hasHardwareNode_ || hasFilter_ || effectNodeNum_ > 0;
+}
+
+bool RSRenderNode::HasMustRenewedInfo() const
+{
+    return mustRenewedInfo_;
+}
+
+void RSRenderNode::SetUseEffectNodes(uint32_t val)
+{
+    effectNodeNum_ = val;
+}
+
 void RSRenderNode::SetVisitedCacheRootIds(const std::unordered_set<NodeId>& visitedNodes)
 {
     visitedCacheRoots_ = visitedNodes;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,6 +29,16 @@ static Brush* CastToBrush(OH_Drawing_Brush* cBrush)
 static const Brush& CastToBrush(const OH_Drawing_Brush& cBrush)
 {
     return reinterpret_cast<const Brush&>(cBrush);
+}
+
+static ShaderEffect* CastToShaderEffect(OH_Drawing_ShaderEffect* cShaderEffect)
+{
+    return reinterpret_cast<ShaderEffect*>(cShaderEffect);
+}
+
+static const Filter& CastToFilter(const OH_Drawing_Filter& cFilter)
+{
+    return reinterpret_cast<const Filter&>(cFilter);
 }
 
 OH_Drawing_Brush* OH_Drawing_BrushCreate()
@@ -73,4 +83,42 @@ void OH_Drawing_BrushSetColor(OH_Drawing_Brush* cBrush, uint32_t color)
         return;
     }
     brush->SetColor(color);
+}
+
+uint8_t OH_Drawing_BrushGetAlpha(const OH_Drawing_Brush* cBrush)
+{
+    if (cBrush == nullptr) {
+        return 0;
+    }
+    return CastToBrush(*cBrush).GetAlpha();
+}
+
+void OH_Drawing_BrushSetAlpha(OH_Drawing_Brush* cBrush, uint8_t alpha)
+{
+    Brush* brush = CastToBrush(cBrush);
+    if (brush == nullptr) {
+        return;
+    }
+    brush->SetAlpha(alpha);
+}
+
+void OH_Drawing_BrushSetShaderEffect(OH_Drawing_Brush* cBrush, OH_Drawing_ShaderEffect* cShaderEffect)
+{
+    Brush* brush = CastToBrush(cBrush);
+    if (brush == nullptr) {
+        return;
+    }
+    brush->SetShaderEffect(std::shared_ptr<ShaderEffect>{CastToShaderEffect(cShaderEffect), [](auto p) {}});
+}
+
+void OH_Drawing_BrushSetFilter(OH_Drawing_Brush* cBrush, OH_Drawing_Filter* cFilter)
+{
+    if (cFilter == nullptr) {
+        return;
+    }
+    Brush* brush = CastToBrush(cBrush);
+    if (brush == nullptr) {
+        return;
+    }
+    brush->SetFilter(CastToFilter(*cFilter));
 }

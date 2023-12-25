@@ -49,6 +49,7 @@ DrawingSymbolLayersGroups* SkiaHmSymbolConfigOhos::GetSymbolLayersGroups(uint32_
         }
         auto key = static_cast<DrawingSymbolRenderingStrategy>(iter->first);
         drawingRenderModeGroups[key] = drawingRenderGroups;
+        iter++;
     }
 
     drawingGroups.animationSettings = drawingSettings;

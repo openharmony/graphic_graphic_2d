@@ -177,13 +177,26 @@ void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, cons
 #else
     paint.SetAlpha(MAXALPHA);
 #endif
-    paint.SetColor(xs.color);
     if (xs.background.has_value()) {
         auto rect = TexgineRect::MakeXYWH(offsetX, offsetY + *tmetrics_->fAscent_, width_,
             *tmetrics_->fDescent_ - *tmetrics_->fAscent_);
         canvas.DrawRect(rect, xs.background.value());
     }
 
+    if (xs.backgroundRect.color != 0) {
+        paint.SetColor(xs.backgroundRect.color);
+        double ltRadius = xs.backgroundRect.leftTopRadius;
+        double rtRadius = xs.backgroundRect.rightTopRadius;
+        double rbRadius = xs.backgroundRect.rightBottomRadius;
+        double lbRadius = xs.backgroundRect.leftBottomRadius;
+        const SkVector fRadii[4] = {{ltRadius, ltRadius}, {rtRadius, rtRadius}, {rbRadius, rbRadius},
+            {lbRadius, lbRadius}};
+        auto rect = TexgineRect::MakeRRect(offsetX, offsetY + *tmetrics_->fAscent_, width_,
+            *tmetrics_->fDescent_ - *tmetrics_->fAscent_, fRadii);
+        canvas.DrawRRect(rect, paint);
+    }
+
+    paint.SetColor(xs.color);
     if (xs.foreground.has_value()) {
         paint = xs.foreground.value();
     }

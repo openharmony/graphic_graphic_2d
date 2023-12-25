@@ -71,7 +71,7 @@ Drawing::Canvas* VulkanRenderBackend::AcquireDrCanvas(std::unique_ptr<SurfaceFra
 {
     auto vulkan_frame = reinterpret_cast<SurfaceFrameOhosVulkan*>(frame.get());
     drSurface_ = vulkan_frame->GetSurface();
-    return nullptr;
+    return vulkan_frame->GetCanvas();
 }
 }
 }

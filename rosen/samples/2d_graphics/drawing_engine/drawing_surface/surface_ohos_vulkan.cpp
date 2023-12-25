@@ -24,7 +24,7 @@
 #include "window.h"
 
 
-#ifdef ENABLE_NATIVE_BUFFER
+#ifdef ENABLE_NATIVEBUFFER
 #include "SkColor.h"
 #include "native_buffer_inner.h"
 #include "native_window.h"
@@ -63,6 +63,27 @@ SurfaceOhosVulkan::~SurfaceOhosVulkan()
     }
 }
 
+void SurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height)
+{
+    uint64_t bufferUsage = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE |
+        BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA;
+    NativeWindowHandleOpt(mNativeWindow_, SET_FORMAT, GRAPHIC_PIXEL_FMT_RGBA_8888);
+#ifdef RS_ENABLE_AFBC
+    if (RSSystemProperties::GetAFBCEnabled()) {
+        int32_t format = 0;
+        NativeWindowHandleOpt(mNativeWindow_, GET_FORMAT, &format);
+        if (format == GRAPHIC_PIXEL_FMT_RGBA_8888) {
+            bufferUsage =
+                (BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA);
+        }
+    }
+#endif
+
+    NativeWindowHandleOpt(mNativeWindow_, SET_USAGE, bufferUsage);
+    NativeWindowHandleOpt(mNativeWindow_, SET_BUFFER_GEOMETRY, width, height);
+    NativeWindowHandleOpt(mNativeWindow_, SET_COLOR_GAMUT, colorSpace_);
+}
+
 std::unique_ptr<SurfaceFrame> SurfaceOhosVulkan::RequestFrame(int32_t width, int32_t height)
 {
     if (mNativeWindow_ == nullptr) {
@@ -74,8 +95,8 @@ std::unique_ptr<SurfaceFrame> SurfaceOhosVulkan::RequestFrame(int32_t width, int
     }
 
     if (mVulkanWindow_ == nullptr) {
-        auto vulkan_surface_ohos = std::make_unique<vulkan::VulkanNativeSurfaceOHOS>(mNativeWindow_);
-        mVulkanWindow_ = new vulkan::VulkanWindow(std::move(vulkan_surface_ohos));
+        auto vulkan_surface_ohos = std::make_unique<vulkan::RSVulkanNativeSurfaceOHOS>(mNativeWindow_);
+        mVulkanWindow_ = new vulkan::RSVulkanWindow(std::move(vulkan_surface_ohos));
     }
 
     surface_ = std::make_shared<Drawing::Surface>();
@@ -95,7 +116,7 @@ std::unique_ptr<SurfaceFrame> SurfaceOhosVulkan::RequestFrame(int32_t width, int
     surface_->GetImpl<Drawing::DDGRSurface>()->SetGrContext(mVulkanWindow_->GetDDGRContext());
 #else // ENABLE_DDGR_OPTIMIZE
     sk_sp<SkSurface> skSurface = mVulkanWindow_->AcquireSurface();
-    surface->GetImpl<Drawing::SkiaSurface>()->ImportSkSurface(skSurface);
+    surface_->GetImpl<Drawing::SkiaSurface>()->SetSkSurface(skSurface);
 #endif // ENABLE_DDGR_OPTIMIZE
 
     frame_ = std::make_unique<SurfaceFrameOhosVulkan>(surface_, width, height);
@@ -131,9 +152,7 @@ void SurfaceOhosVulkan::CreateVkSemaphore(
 int32_t SurfaceOhosVulkan::RequestNativeWindowBuffer(
     NativeWindowBuffer** nativeWindowBuffer, int32_t width, int32_t height, int& fenceFd)
 {
-    NativeWindowHandleOpt(mNativeWindow_, SET_BUFFER_GEOMETRY, width, height);
-    NativeWindowHandleOpt(mNativeWindow_, SET_COLOR_GAMUT, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
-
+    SetNativeWindowInfo(width, height);
     struct timespec curTime = {0, 0};
     clock_gettime(CLOCK_MONOTONIC, &curTime);
     // 1000000000 is used for transfer second to nsec
@@ -165,14 +184,14 @@ std::unique_ptr<SurfaceFrame> SurfaceOhosVulkan::NativeRequestFrame(int32_t widt
 
     NativeWindowBuffer* nativeWindowBuffer = nullptr;
     int fenceFd = -1;
-    if (RequestNativeWindowBuffer(&nativeWindowBuffer, width, height, fenceFd, useAFBC) != OHOS::GSERROR_OK) {
+    if (RequestNativeWindowBuffer(&nativeWindowBuffer, width, height, fenceFd) != OHOS::GSERROR_OK) {
         return nullptr;
     }
 
     surfaceList_.emplace_back(nativeWindowBuffer);
     NativeBufferUtils::NativeSurfaceInfo& nativeSurface = surfaceMap_[nativeWindowBuffer];
 
-#ifndef USR_ROSEN_DRAWING
+#ifndef USE_ROSEN_DRAWING
     if (nativeSurface.skSurface == nullptr) {
 #else
     if (nativeSurface.drawingSurface == nullptr) {
@@ -185,12 +204,16 @@ std::unique_ptr<SurfaceFrame> SurfaceOhosVulkan::NativeRequestFrame(int32_t widt
             return nullptr;
         }
 
+#ifndef USE_ROSEN_DRAWING
         if (!nativeSurface.skSurface) {
+#else
+        if (!nativeSurface.drawingSurface) {
+#endif
             LOGE("RSSurfaceOhosVulkan: skSurface is null, return");
             surfaceList_.pop_back();
             return nullptr;
         } else {
-            LOGI("RSSurfaceOhosVulkan: skSurface create success %{public}zu", mSurfaceMap.size());
+            LOGI("RSSurfaceOhosVulkan: skSurface create success %{public}zu", surfaceMap_.size());
         }
     }
 
@@ -201,9 +224,13 @@ std::unique_ptr<SurfaceFrame> SurfaceOhosVulkan::NativeRequestFrame(int32_t widt
             auto& vkContext = RsVulkanContext::GetSingleton();
             VkSemaphore semaphore;
             CreateVkSemaphore(&semaphore, vkContext, nativeSurface);
+#ifndef USE_ROSEN_DRAWING
             GrBackendSemaphore backendSemaphore;
             backendSemaphore.initVulkan(semaphore);
             nativeSurface.skSurface->wait(1, &backendSemaphore);
+#else
+            nativeSurface.drawingSurface->Wait(1, semaphore);
+#endif
         }
     }
     frame_ = std::make_unique<SurfaceFrameOhosVulkan>(nativeSurface.drawingSurface, width, height);
@@ -283,8 +310,8 @@ bool SurfaceOhosVulkan::NativeFlushFrame(std::unique_ptr<SurfaceFrame> &frame)
     drawingFlushInfo.backendSurfaceAccess = true;
     drawingFlushInfo.numSemaphores = 1;
     drawingFlushInfo.backendSemaphore = static_cast<void*>(&backendSemaphore);
-    surface.drawingSurface->flush(&drawingFlushInfo);
-    drContext_->submit();
+    surface.drawingSurface->Flush(&drawingFlushInfo);
+    drContext_->Submit();
 #endif
 
     int fenceFd = -1;
@@ -312,6 +339,14 @@ bool SurfaceOhosVulkan::NativeFlushFrame(std::unique_ptr<SurfaceFrame> &frame)
 }
 
 Drawing::Canvas* SurfaceOhosVulkan::GetCanvas(std::unique_ptr<SurfaceFrame>& frame)
+{
+    if (drawingProxy_ == nullptr) {
+        LOGE("drawingProxy_ is nullptr, can not GetCanvas");
+        return nullptr;
+    }
+    return drawingProxy_->AcquireDrCanvas(frame);
+}
+SkCanvas* SurfaceOhosVulkan::GetSkCanvas(std::unique_ptr<SurfaceFrame>& frame)
 {
     if (drawingProxy_ == nullptr) {
         LOGE("drawingProxy_ is nullptr, can not GetCanvas");

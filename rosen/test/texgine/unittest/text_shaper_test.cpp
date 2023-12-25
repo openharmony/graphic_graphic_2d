@@ -222,7 +222,8 @@ HWTEST_F(TextShaperTest, GenerateTextBlob1, TestSize.Level1)
     double spanWidth = 0.0;
     std::vector<double> glyphWidths;
     TextShaper shaper;
-    ASSERT_EXCEPTION(ExceptionType::API_FAILED, shaper.GenerateTextBlob({},
+    TexgineFont font;
+    ASSERT_EXCEPTION(ExceptionType::API_FAILED, shaper.GenerateTextBlob(font,
         CharGroups::CreateEmpty(), spanWidth, glyphWidths));
 }
 
@@ -237,7 +238,8 @@ HWTEST_F(TextShaperTest, GenerateTextBlob2, TestSize.Level1)
         double spanWidth = 0.0;
         std::vector<double> glyphWidths;
         TextShaper shaper;
-        shaper.GenerateTextBlob({}, cgs1_, spanWidth, glyphWidths);
+        TexgineFont font;
+        shaper.GenerateTextBlob(font, cgs1_, spanWidth, glyphWidths);
         ASSERT_EQ(spanWidth, 2);
         // 2.0 is glyph width
         ASSERT_EQ(glyphWidths, (std::vector<double>{2.0}));
@@ -259,7 +261,8 @@ HWTEST_F(TextShaperTest, GenerateTextBlob3, TestSize.Level1)
         double spanWidth = 0.0;
         std::vector<double> glyphWidths;
         TextShaper shaper;
-        shaper.GenerateTextBlob({}, cgs2_, spanWidth, glyphWidths);
+        TexgineFont font;
+        shaper.GenerateTextBlob(font, cgs2_, spanWidth, glyphWidths);
         ASSERT_EQ(spanWidth, 2);
         ASSERT_EQ(glyphWidths, (std::vector<double>{1.0, 1.0}));
         ASSERT_EQ(g_tsMockvars.catchedBufferPos, (std::vector<float>{0.1, -0.1, 1.2, -0.2}));

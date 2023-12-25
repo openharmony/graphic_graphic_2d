@@ -16,6 +16,7 @@
 #ifndef DRAWING_UTILS_H
 #define DRAWING_UTILS_H
 #include <hilog/log.h>
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {

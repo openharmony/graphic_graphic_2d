@@ -1317,6 +1317,20 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
     }
 }
 
+void RSNode::DoFlushModifier()
+{
+    if (modifiers_.empty()) {
+        return;
+    }
+    for (const auto& [_, modifier] : modifiers_) {
+        std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
+        }
+    }
+}
+
 void RSNode::RemoveModifier(const std::shared_ptr<RSModifier> modifier)
 {
     if (!modifier) {
@@ -1644,7 +1658,7 @@ void RSNode::AddChild(SharedPtr child, int index)
         return;
     }
     NodeId childId = child->GetId();
-    if (child->parent_ != 0) {
+    if (child->parent_ != 0 && !child->isTextureExportNode_) {
         child->RemoveFromTree();
     }
 

@@ -433,6 +433,28 @@ std::vector<int32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(Scree
     return renderService->GetScreenSupportedRefreshRates(id);
 }
 
+bool RSRenderServiceClient::GetShowRefreshRateEnabled()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
+        return false;
+    }
+
+    return renderService->GetShowRefreshRateEnabled();
+}
+    
+void RSRenderServiceClient::SetShowRefreshRateEnabled(bool enable)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
+        return;
+    }
+
+    return renderService->SetShowRefreshRateEnabled(enable);
+}
+
 int32_t RSRenderServiceClient::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

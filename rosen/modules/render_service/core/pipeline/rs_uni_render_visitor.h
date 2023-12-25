@@ -199,7 +199,7 @@ private:
     void DrawAllSurfaceOpaqueRegionForDFX(RSDisplayRenderNode& node);
     void DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderNode& node);
     void DrawTargetSurfaceVisibleRegionForDFX(RSDisplayRenderNode& node);
-    void DrawCurrentRefreshRate(uint32_t currentRefreshRate);
+    void DrawCurrentRefreshRate(uint32_t currentRefreshRate, uint32_t realtimeRefreshRate);
     // check if surface name is in dfx target list
     inline bool CheckIfSurfaceTargetedForDFX(std::string nodeName)
     {
@@ -444,6 +444,7 @@ private:
     // check each surface could be reused per frame
     // currently available to uiFirst
     bool isCachedSurfaceReuse_ = false;
+    uint32_t effectNodeNum_ = 0;
 
     bool isDirtyRegionAlignedEnable_ = false;
     std::shared_ptr<std::mutex> surfaceNodePrepareMutex_;
@@ -525,13 +526,11 @@ private:
     std::stack<std::unordered_set<NodeId>> curCacheFilterRects_ = {};
     bool forceUpdateFlag_ = false;
 #ifdef ENABLE_RECORDING_DCL
-#ifndef USE_ROSEN_DRAWING
     void tryCapture(float width, float height);
     void endCapture() const;
+#ifndef USE_ROSEN_DRAWING
     std::shared_ptr<RSRecordingCanvas> recordingCanvas_;
 #else
-    void tryCapture(float width, float height);
-    void endCapture() const;
     std::shared_ptr<Drawing::RecordingCanvas> recordingCanvas_;
 #endif
 #endif

@@ -110,7 +110,7 @@ public:
     RSEffectStrategy effectStrategy_ = RSEffectStrategy::NONE;
 #endif
 };
-}
-}
-}
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS
 #endif

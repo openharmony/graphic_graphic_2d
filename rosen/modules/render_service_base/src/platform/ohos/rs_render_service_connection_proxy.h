@@ -84,6 +84,10 @@ public:
 
     std::vector<int32_t> GetScreenSupportedRefreshRates(ScreenId id) override;
 
+    bool GetShowRefreshRateEnabled() override;
+    
+    void SetShowRefreshRateEnabled(bool enable) override;
+
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;

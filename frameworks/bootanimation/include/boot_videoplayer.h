@@ -24,6 +24,7 @@
 #include "event_handler.h"
 #ifdef PLAYER_FRAMEWORK_ENABLE
 #include "player.h"
+#include "audio_stream_info.h"
 #endif
 
 namespace OHOS {
@@ -44,6 +45,7 @@ public:
     }
     bool PlayVideo();
     void StopVideo();
+    void SetVideoSound();
 private:
 #ifdef PLAYER_FRAMEWORK_ENABLE
     std::shared_ptr<Media::Player> mediaPlayer_;

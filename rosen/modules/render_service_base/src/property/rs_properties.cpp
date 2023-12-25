@@ -1081,6 +1081,7 @@ void RSProperties::SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradi
     if (para && para->blurRadius_ > 0.f) {
         isDrawn_ = true;
     }
+    filterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
 }
@@ -1142,6 +1143,11 @@ const std::shared_ptr<RSFilter>& RSProperties::GetBackgroundFilter() const
 const std::shared_ptr<RSLinearGradientBlurPara>& RSProperties::GetLinearGradientBlurPara() const
 {
     return linearGradientBlurPara_;
+}
+
+bool RSProperties::IsLinearGradientBlurValid() const
+{
+    return ROSEN_GNE(linearGradientBlurPara_->blurRadius_, 0.0);
 }
 
 const std::optional<float>& RSProperties::GetDynamicLightUpRate() const
@@ -1880,10 +1886,33 @@ float RSProperties::GetIlluminatedBorderWidth() const
 
 void RSProperties::CalculateAbsLightPosition()
 {
-    auto absRect = boundsGeo_->GetAbsRect();
-    auto lightPosition = lightSourcePtr_->GetLightPosition();
-    lightSourcePtr_->SetAbsLightPosition(Vector4f(
-        lightPosition.x_ + absRect.left_, lightPosition.y_ + absRect.top_, lightPosition.z_, lightPosition.w_));
+    auto lightSourceAbsRect = boundsGeo_->GetAbsRect();
+    auto rotation = RSPointLightManager::Instance()->GetScreenRotation();
+    Vector4f lightAbsPosition = Vector4f();
+    auto lightPos = lightSourcePtr_->GetLightPosition();
+    switch (rotation) {
+        case ScreenRotation::ROTATION_0:
+            lightAbsPosition.x_ = static_cast<int>(lightSourceAbsRect.GetLeft() + lightPos.x_);
+            lightAbsPosition.y_ = static_cast<int>(lightSourceAbsRect.GetTop() + lightPos.y_);
+            break;
+        case ScreenRotation::ROTATION_90:
+            lightAbsPosition.x_ = static_cast<int>(lightSourceAbsRect.GetBottom() - lightPos.x_);
+            lightAbsPosition.y_ = static_cast<int>(lightSourceAbsRect.GetLeft() + lightPos.y_);
+            break;
+        case ScreenRotation::ROTATION_180:
+            lightAbsPosition.x_ = static_cast<int>(lightSourceAbsRect.GetRight() - lightPos.x_);
+            lightAbsPosition.y_ = static_cast<int>(lightSourceAbsRect.GetBottom() - lightPos.y_);
+            break;
+        case ScreenRotation::ROTATION_270:
+            lightAbsPosition.x_ = static_cast<int>(lightSourceAbsRect.GetTop() + lightPos.x_);
+            lightAbsPosition.y_ = static_cast<int>(lightSourceAbsRect.GetRight() - lightPos.y_);
+            break;
+        default:
+            break;
+    }
+    lightAbsPosition.z_ = lightPos.z_;
+    lightAbsPosition.w_ = lightPos.w_;
+    lightSourcePtr_->SetAbsLightPosition(lightAbsPosition);
 }
 
 const std::shared_ptr<RSLightSource>& RSProperties::GetLightSource() const
@@ -2768,8 +2797,11 @@ void RSProperties::OnApplyModifiers()
         if (filter_ != nullptr && !filter_->IsValid()) {
             filter_.reset();
         }
+        if (linearGradientBlurPara_ != nullptr && !IsLinearGradientBlurValid()) {
+            linearGradientBlurPara_.reset();
+        }
         needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
-                        IsDynamicLightUpValid() || IsGreyAdjustmenValid() ||
+                        IsDynamicLightUpValid() || IsGreyAdjustmenValid() || linearGradientBlurPara_ != nullptr ||
                         GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
         CreateFilterCacheManagerIfNeed();

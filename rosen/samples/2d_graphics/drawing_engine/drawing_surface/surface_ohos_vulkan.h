@@ -23,6 +23,7 @@
 #include "surface_frame_ohos_vulkan.h"
 #include "rs_surface_ohos_vulkan.h"
 #include "native_buffer_utils.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -50,13 +51,14 @@ public:
     Drawing::Canvas* GetCanvas(std::unique_ptr<SurfaceFrame>& frame) override;
 #endif
 private:
+    void SetNativeWindowInfo(int32_t width, int32_t height);
 #ifdef ENABLE_DDGR_OPTIMIZE
     std::shared_ptr<DDGR::DDGRCanvasInterface> ddgrCanvas_;
 #endif
     std::unique_ptr<SurfaceFrameOhosVulkan> frame_;
     struct NativeWindow *mNativeWindow_ = nullptr;
-    vulkan::VulkanWindow *mVulkanWindow_ = nullptr;
-#ifdef ENABLE_NATIVE_BUFFER
+    vulkan::RSVulkanWindow *mVulkanWindow_ = nullptr;
+#ifdef ENABLE_NATIVEBUFFER
     std::list<NativeWindowBuffer*> surfaceList_;
     std::unordered_map<NativeWindowBuffer*, NativeBufferUtils::NativeSurfaceInfo> surfaceMap_;
     std::shared_ptr<Drawing::GPUContext> drContext_;

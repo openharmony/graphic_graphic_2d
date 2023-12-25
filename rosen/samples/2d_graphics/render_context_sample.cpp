@@ -224,7 +224,7 @@ SurfaceError RenderContextSample::ProduceDrawingBuffer(uint32_t width, uint32_t 
 
     renderContext->MakeCurrent(eglSurface);
 
-    SkCanvas* canvas = renderContext->AcquireCanvas(width, height);
+    SkCanvas* canvas = renderContext->AcquireSkCanvas(width, height);
 
     canvas->clear(SkColorSetARGB(0x20, 0x20, 0x20, 0xFF));
     SkPaint paint;
@@ -308,7 +308,7 @@ void RenderContextSample::Draw()
         std::vector<GraphicIRect> outputDamages;
         outputDamages.emplace_back(damageRect);
         output_->SetOutputDamages(outputDamages);
-        
+
         backend_->Repaint(output_);
         for (auto layerI : layers) {
             int32_t releaseFence = -1;

@@ -50,13 +50,13 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(const uint16_t& glyphId, const HMSym
 
 #ifndef USE_ROSEN_DRAWING
     SymbolRenderingStrategy renderMode = symbolText.GetRenderMode();
-#else
-    RSSymbolRenderingStrategy renderMode = symbolText.GetRenderMode();
-#endif
+    EffectStrategy effectMode = symbolText.GetEffectStrategy();
     if (symbolInfoOrign->renderModeGroups.find(renderMode) == symbolInfoOrign->renderModeGroups.end()) {
-#ifndef USE_ROSEN_DRAWING
         renderMode = SymbolRenderingStrategy::SINGLE;
 #else
+    RSSymbolRenderingStrategy renderMode = symbolText.GetRenderMode();
+    RSEffectStrategy effectMode = symbolText.GetEffectStrategy();
+    if (symbolInfoOrign->renderModeGroups.find(renderMode) == symbolInfoOrign->renderModeGroups.end()) {
         renderMode = RSSymbolRenderingStrategy::SINGLE;
 #endif
     }
@@ -64,6 +64,8 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(const uint16_t& glyphId, const HMSym
     symbolInfo.layers = symbolInfoOrign->layers;
     symbolInfo.renderGroups = symbolInfoOrign->renderModeGroups[renderMode];
     symbolInfo.symbolGlyphId = symbolInfoOrign->symbolGlyphId;
+    symbolInfo.effect = effectMode;
+
 #ifndef USE_ROSEN_DRAWING
     std::vector<SColor> colorList = symbolText.GetRenderColor();
 #else
@@ -72,7 +74,48 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(const uint16_t& glyphId, const HMSym
     if (!colorList.empty()) {
         SetSymbolRenderColor(renderMode, colorList, symbolInfo);
     }
+
+#ifndef USE_ROSEN_DRAWING
+    if (effectMode == EffectStrategy::HIERARCHICAL) {
+#else
+    if (effectMode == RSEffectStrategy::HIERARCHICAL) {
+#endif
+        SetGroupsByEffect(glyphId, effectMode, symbolInfo.renderGroups);
+    }
     return symbolInfo;
+}
+
+#ifndef USE_ROSEN_DRAWING
+void HMSymbolRun::SetGroupsByEffect(const uint32_t glyphId, const EffectStrategy effectStrategy,
+    std::vector<RenderGroup>& renderGroups)
+#else
+void HMSymbolRun::SetGroupsByEffect(const uint32_t glyphId, const RSEffectStrategy effectStrategy,
+    std::vector<RSRenderGroup>& renderGroups)
+#endif
+{
+#ifndef USE_ROSEN_DRAWING
+    AnimationSetting animationSetting;
+#else
+    RSAnimationSetting animationSetting;
+#endif
+    if (GetAnimationGroups(glyphId, effectStrategy, animationSetting)) {
+#ifndef USE_ROSEN_DRAWING
+        std::vector<RenderGroup> newRenderGroups;
+        RenderGroup group;
+#else
+        std::vector<RSRenderGroup> newRenderGroups;
+        RSRenderGroup group;
+#endif
+        for (size_t i = 0, j = 0; i < animationSetting.groupSettings.size(); i++) {
+            if (j < renderGroups.size()) {
+                group = renderGroups[j];
+                j++;
+            }
+            group.groupInfos = animationSetting.groupSettings[i].groupInfos;
+            newRenderGroups.push_back(group);
+        }
+        renderGroups = newRenderGroups;
+    }
 }
 
 #ifndef USE_ROSEN_DRAWING
@@ -163,6 +206,67 @@ void HMSymbolRun::DrawSymbol(TexgineCanvas &canvas, const std::shared_ptr<Texgin
         canvas.DrawTextBlob(blob, offset.first, offset.second, paint);
     }
 }
+
+#ifndef USE_ROSEN_DRAWING
+bool HMSymbolRun::GetAnimationGroups(const uint32_t glyohId, const EffectStrategy effectStrategy,
+    AnimationSetting& animationOut)
+{
+    SymbolLayersGroups* symbolInfoOrigin = HmSymbolConfig_OHOS::getInstance()->getSymbolLayersGroups(glyohId);
+    std::vector<AnimationSetting> animationSettings = symbolInfoOrigin->animationSettings;
+
+    AnimationType animationType = AnimationType::INVALID_ANIMATION_TYPE;
+    AnimationSubType animationSubType = AnimationSubType::INVALID_ANIMATION_SUB_TYPE;
+    uint32_t animationMode = 1;
+    if (effectStrategy == EffectStrategy::SCALE) {
+        animationType = AnimationType::SCALE_EFFECT;
+        animationSubType = AnimationSubType::UNIT;
+    }
+
+    if (effectStrategy == EffectStrategy::HIERARCHICAL) {
+        animationType = AnimationType::VARIABLE_COLOR;
+        animationSubType = AnimationSubType::VARIABLE_3_GROUP;
+    }
+    for (size_t i = 0; i < animationSettings.size(); i++) {
+        if (animationType == animationSettings[i].animationType &&
+            animationSubType == animationSettings[i].animationSubType &&
+            animationMode == animationSettings[i].animationMode) {
+                animationOut = animationSettings[i];
+                return true;
+            }
+    }
+    return false;
 }
+#else
+bool HMSymbolRun::GetAnimationGroups(const uint32_t glyohId, const RSEffectStrategy effectStrategy,
+    RSAnimationSetting& animationOut)
+{
+    RSSymbolLayersGroups* symbolInfoOrigin = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(glyohId);
+    std::vector<RSAnimationSetting> animationSettings = symbolInfoOrigin->animationSettings;
+
+    RSAnimationType animationType = RSAnimationType::INVALID_ANIMATION_TYPE;
+    RSAnimationSubType animationSubType = RSAnimationSubType::INVALID_ANIMATION_SUB_TYPE;
+    uint32_t animationMode = 1;
+    if (effectStrategy == RSEffectStrategy::SCALE) {
+        animationType = RSAnimationType::SCALE_EFFECT;
+        animationSubType = RSAnimationSubType::UNIT;
+    }
+
+    if (effectStrategy == RSEffectStrategy::HIERARCHICAL) {
+        animationType = RSAnimationType::VARIABLE_COLOR;
+        animationSubType = RSAnimationSubType::VARIABLE_3_GROUP;
+    }
+
+    for (size_t i = 0; i < animationSettings.size(); i++) {
+        if (animationType == animationSettings[i].animationType &&
+            animationSubType == animationSettings[i].animationSubType &&
+            animationMode == animationSettings[i].animationMode) {
+                animationOut = animationSettings[i];
+                return true;
+            }
+    }
+    return false;
 }
-}
+#endif
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS

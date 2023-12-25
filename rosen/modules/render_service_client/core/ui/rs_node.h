@@ -354,6 +354,10 @@ public:
     void SetOutOfParent(OutOfParentType outOfParent);
     using BoundsChangedCallback = std::function<void (const Rosen::Vector4f&)>;
     virtual void SetBoundsChangedCallback(BoundsChangedCallback callback){};
+    bool IsTextureExportNode() const
+    {
+        return isTextureExportNode_;
+    }
 protected:
     explicit RSNode(bool isRenderServiceNode, bool isTextureExportNode = false);
     explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false);
@@ -371,6 +375,8 @@ protected:
     {
         return false;
     }
+
+    void DoFlushModifier();
 
     std::vector<PropertyId> GetModifierIds() const;
     bool isCustomTextType_ = false;
