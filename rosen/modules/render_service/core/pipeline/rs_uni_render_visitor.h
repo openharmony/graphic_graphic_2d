@@ -264,6 +264,7 @@ private:
     void DrawChildRenderNode(RSRenderNode& node);
     void DrawChildCanvasRenderNode(RSRenderNode& node);
 
+    void RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node);
     void CheckColorSpace(RSSurfaceRenderNode& node);
     void HandleColorGamuts(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
     void CheckPixelFormat(RSSurfaceRenderNode& node);
@@ -387,6 +388,7 @@ private:
     bool isSecurityDisplay_ = false;
 
     bool hasFingerprint_ = false;
+    bool mirrorAutoRotate_ = false;
 
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
 
