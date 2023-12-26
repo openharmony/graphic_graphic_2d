@@ -117,10 +117,6 @@ int FontCollection::DetectChinesePointUnicode(uint32_t ch) const
 std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch, FontStyles &style,
     const std::string &script, const std::string &locale) const
 {
-    std::string newScript(script);
-    if (DetectChinesePointUnicode(ch) == SUPPORTFILE && style.GetFontStyle()) {
-        newScript = "Hani";
-    }
     SortTypeface(style);
     auto fs = std::make_shared<TexgineFontStyle>();
     *fs = style.ToTexgineFontStyle();
@@ -252,7 +248,7 @@ std::shared_ptr<Typeface> FontCollection::FindFallBackTypeface(const uint32_t &c
     if (style.GetFontStyle()) {
         std::shared_ptr<TexgineTypeface> fallbackTypeface = nullptr;
         std::shared_ptr<Typeface> typeface = nullptr;
-        if (DetectionScript(script) == SUPPORTFILE) {
+        if (DetectionScript(script) == SUPPORTFILE && DetectChinesePointUnicode(ch) != SUPPORTFILE) {
             fallbackTypeface = fm->MatchFamilyStyle("", tfs);
             if (fallbackTypeface == nullptr || fallbackTypeface->GetTypeface() == nullptr) {
                 LOGE("No have fallbackTypeface from matchFamilyStyle");
