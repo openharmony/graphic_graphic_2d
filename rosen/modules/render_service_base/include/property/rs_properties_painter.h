@@ -125,8 +125,8 @@ public:
     // functions that are dedicated to driven render [end]
     static void DrawSpherize(const RSProperties& properties, RSPaintFilterCanvas& canvas,
         const std::shared_ptr<Drawing::Surface>& spherizeSurface);
-    static std::shared_ptr<Drawing::ShaderEffect> MakeDynamicLightUpShader(
-        float dynamicLightUpRate, float dynamicLightUpDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader);
+    static std::shared_ptr<Drawing::Blender> MakeDynamicLightUpBlender(
+        float dynamicLightUpRate, float dynamicLightUpDeg);
     static std::shared_ptr<Drawing::Image> DrawGreyAdjustment(Drawing::Canvas& canvas,
         const std::shared_ptr<Drawing::Image>& image, const float greyCoef1, const float greyCoef2);
 #endif // USE_ROSEN_DRAWING
@@ -144,6 +144,7 @@ private:
         const bool& isOutline);
     static RRect GetInnerRRectForDrawingBorder(const RSProperties& properties, const std::shared_ptr<RSBorder>& border,
         const bool& isOutline);
+    static void ClipVisibleCanvas(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 #ifndef USE_ROSEN_DRAWING
     static void DrawColorfulShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
     static void DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);

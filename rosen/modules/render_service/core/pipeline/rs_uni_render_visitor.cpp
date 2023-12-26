@@ -381,6 +381,8 @@ void RSUniRenderVisitor::PrepareEffectNodeIfCacheReuse(const std::shared_ptr<RSR
     auto effectRegion = effectRegion_;
     effectRegion_ = effectNode->InitializeEffectRegion();
     effectNode->Update(*curSurfaceDirtyManager_, cacheRootNode, dirtyFlag_, prepareClipRect_);
+    UpdateStaticCacheSubTree(effectNode, effectNode->GetSortedChildren());
+    effectNode->SetEffectRegion(effectRegion_);
     if (effectNode->GetRenderProperties().NeedFilter()) {
         UpdateForegroundFilterCacheWithDirty(*effectNode, *curSurfaceDirtyManager_);
         if (curSurfaceNode_ && curSurfaceNode_->GetId() == effectNode->GetInstanceRootNodeId()) {
@@ -388,8 +390,10 @@ void RSUniRenderVisitor::PrepareEffectNodeIfCacheReuse(const std::shared_ptr<RSR
                 effectNode->IsBackgroundFilterCacheValid());
         }
     }
-    UpdateStaticCacheSubTree(effectNode, effectNode->GetSortedChildren());
-    effectNode->SetEffectRegion(effectRegion_);
+    if (!effectNode->IsBackgroundFilterCacheValid()) {
+        RS_OPTIONAL_TRACE_NAME("InvalidateFilterCacheRect by EffectRenderNode");
+        curSurfaceDirtyManager_->InvalidateFilterCacheRect();
+    }
     effectRegion_ = effectRegion;
 }
 
@@ -1820,6 +1824,11 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
             curSurfaceNode_->UpdateFilterNodes(node.shared_from_this());
         }
         UpdateForegroundFilterCacheWithDirty(node, *curSurfaceDirtyManager_);
+    }
+
+    if (!node.IsBackgroundFilterCacheValid()) {
+        RS_OPTIONAL_TRACE_NAME("InvalidateFilterCacheRect by EffectRenderNode");
+        curSurfaceDirtyManager_->InvalidateFilterCacheRect();
     }
 
     effectRegion_ = effectRegion;

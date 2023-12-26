@@ -1896,11 +1896,15 @@ void RSPropertiesPainter::DrawBackgroundEffect(
         return;
     }
 
+    auto& matrix = properties.GetBoundsGeometry()->GetAbsMatrix();
+    auto boundsRect = Rect2DrawingRect(properties.GetBoundsRect()).RoundOut();
 #ifndef USE_ROSEN_DRAWING
-    auto bounds = Rect2SkRect(properties.GetBoundsRect()).roundOut();
+    auto bounds = matrix.mapRect(boundsRect).roundOut();
     auto filter = std::static_pointer_cast<RSSkiaFilter>(RSFilter);
 #else
-    auto bounds = Rect2DrawingRect(properties.GetBoundsRect()).RoundOut();
+    Drawing::Rect dst;
+    matrix.MapRect(dst, boundsRect);
+    auto bounds = dst.RoundOut();
     auto filter = std::static_pointer_cast<RSDrawingFilter>(RSFilter);
 #endif
 
@@ -1982,19 +1986,9 @@ void RSPropertiesPainter::ApplyBackgroundEffectFallback(const RSProperties& prop
     DrawFilter(properties, canvas, FilterType::BACKGROUND_FILTER, std::nullopt, filter);
 }
 
-void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas)
+void RSPropertiesPainter::ClipVisibleCanvas(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
-    const auto& effectData = canvas.GetEffectData();
-    if (effectData == nullptr || effectData->cachedImage_ == nullptr
-        || !RSSystemProperties::GetEffectMergeEnabled()) {
-        // no effectData available, draw background filter in fallback method
-        ROSEN_LOGD("RSPropertiesPainter::ApplyBackgroundEffect: effectData null, try fallback method.");
-        ApplyBackgroundEffectFallback(properties, canvas);
-        return;
-    }
-    RS_TRACE_FUNC();
 #ifndef USE_ROSEN_DRAWING
-    SkAutoCanvasRestore acr(&canvas, true);
     if (RSSystemProperties::GetPropertyDrawableEnable()) {
         // do nothing
     } else if (properties.GetClipBounds() != nullptr) {
@@ -2007,16 +2001,7 @@ void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, 
     if (!visibleIRect.isEmpty()) {
         canvas.clipIRect(visibleIRect);
     }
-
-    SkPaint defaultPaint;
-    // dstRect: canvas clip region
-    auto dstRect = SkRect::Make(canvas.getDeviceClipBounds());
-    // srcRect: map dstRect onto cache coordinate
-    auto srcRect = dstRect.makeOffset(-effectData->cachedRect_.left(), -effectData->cachedRect_.top());
-    canvas.drawImageRect(effectData->cachedImage_, srcRect, dstRect, SkSamplingOptions(), &defaultPaint,
-        SkCanvas::kFast_SrcRectConstraint);
 #else
-    Drawing::AutoCanvasRestore acr(canvas, true);
     if (RSSystemProperties::GetPropertyDrawableEnable()) {
         // do nothing
     } else if (properties.GetClipBounds() != nullptr) {
@@ -2033,7 +2018,33 @@ void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, 
     if (!visibleIRect.IsEmpty()) {
         canvas.ClipIRect(visibleIRect, Drawing::ClipOp::INTERSECT);
     }
+#endif
+}
 
+void RSPropertiesPainter::ApplyBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas)
+{
+    const auto& effectData = canvas.GetEffectData();
+    if (effectData == nullptr || effectData->cachedImage_ == nullptr
+        || !RSSystemProperties::GetEffectMergeEnabled()) {
+        // no effectData available, draw background filter in fallback method
+        ROSEN_LOGD("RSPropertiesPainter::ApplyBackgroundEffect: effectData null, try fallback method.");
+        ApplyBackgroundEffectFallback(properties, canvas);
+        return;
+    }
+    RS_TRACE_FUNC();
+#ifndef USE_ROSEN_DRAWING
+    SkAutoCanvasRestore acr(&canvas, true);
+    ClipVisibleCanvas(properties, canvas);
+    SkPaint defaultPaint;
+    // dstRect: canvas clip region
+    auto dstRect = SkRect::Make(canvas.getDeviceClipBounds());
+    // srcRect: map dstRect onto cache coordinate
+    auto srcRect = dstRect.makeOffset(-effectData->cachedRect_.left(), -effectData->cachedRect_.top());
+    canvas.drawImageRect(effectData->cachedImage_, srcRect, dstRect, SkSamplingOptions(), &defaultPaint,
+        SkCanvas::kFast_SrcRectConstraint);
+#else
+    Drawing::AutoCanvasRestore acr(canvas, true);
+    ClipVisibleCanvas(properties, canvas);
     Drawing::Brush brush;
     canvas.AttachBrush(brush);
     // dstRect: canvas clip region
