@@ -38,6 +38,7 @@ config("export_config") {
     "$src_dir",
     "$drawing_src_dir",
     "$drawing_src_dir/engine_adapter",
+    "$graphic_2d_root/utils/color_manager/export",
     "$rosen_root/modules/render_service_base/include",
     "$rosen_root/modules/texgine/texgine_drawing/src",
     "$rosen_root/modules/2d_engine/rosen_text/export",

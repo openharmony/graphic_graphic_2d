@@ -308,6 +308,7 @@ ohos_executable("render_service") {
     "core",
     "//commonlibrary/c_utils/base/include",
     "$graphic_2d_root/frameworks/surface/include",
+    "$graphic_2d_root/utils/color_manager/export",
   ]
 
   deps = [
