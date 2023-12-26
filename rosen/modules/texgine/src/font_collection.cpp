@@ -118,7 +118,7 @@ std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch,
     const std::string &script, const std::string &locale) const
 {
     std::string newScript(script);
-    if (DetectChinesePointUnicode(ch) == SUPPORTFILE) {
+    if (DetectChinesePointUnicode(ch) == SUPPORTFILE && style.GetFontStyle()) {
         newScript = "Hani";
     }
     SortTypeface(style);
