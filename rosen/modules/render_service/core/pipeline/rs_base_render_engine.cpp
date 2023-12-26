@@ -861,9 +861,14 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     auto sx = params.dstRect.width() / params.srcRect.width();
     auto sy = params.dstRect.height() / params.srcRect.height();
     matrix.setScaleTranslate(sx, sy, params.dstRect.x(), params.dstRect.y());
-    auto samplingOptions = RSSystemProperties::IsPhoneType()
-                            ? SkSamplingOptions()
-                            : SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
+    SkSamplingOptions samplingOptions;
+    if (!RSSystemProperties::GetUniRenderEnabled()) {
+        samplingOptions = SkSamplingOptions();
+    } else {
+        samplingOptions = RSSystemProperties::IsPhoneType()
+                              ? SkSamplingOptions()
+                              : SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
+    }
     sk_sp<SkShader> imageShader = image->makeShader(samplingOptions, matrix);
     if (imageShader == nullptr) {
         RS_LOGE("RSBaseRenderEngine::DrawImage imageShader is nullptr.");
@@ -876,9 +881,14 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     auto sx = params.dstRect.GetWidth() / params.srcRect.GetWidth();
     auto sy = params.dstRect.GetHeight() / params.srcRect.GetHeight();
     matrix.SetScaleTranslate(sx, sy, params.dstRect.GetLeft(), params.dstRect.GetTop());
-    auto samplingOptions = RSSystemProperties::IsPhoneType()
-                            ? Drawing::SamplingOptions()
-                            : Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
+    Drawing::SamplingOptions samplingOptions;
+    if (!RSSystemProperties::GetUniRenderEnabled()) {
+        samplingOptions = Drawing::SamplingOptions();
+    } else {
+        samplingOptions = RSSystemProperties::IsPhoneType()
+                              ? Drawing::SamplingOptions()
+                              : Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
+    }
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(
         *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, matrix);
     if (imageShader == nullptr) {
@@ -893,9 +903,14 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_SKIA
 #ifndef USE_VIDEO_PROCESSING_ENGINE
-    auto samplingOptions = RSSystemProperties::IsPhoneType()
-                               ? SkSamplingOptions()
-                               : SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
+    SkSamplingOptions samplingOptions;
+    if (!RSSystemProperties::GetUniRenderEnabled()) {
+        samplingOptions = SkSamplingOptions();
+    } else {
+        samplingOptions = RSSystemProperties::IsPhoneType()
+                              ? SkSamplingOptions()
+                              : SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
+    }
     canvas.drawImageRect(
         image, params.srcRect, params.dstRect, samplingOptions, &(params.paint), SkCanvas::kStrict_SrcRectConstraint);
 #else
@@ -910,9 +925,14 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 #endif // NEW_SKIA
 #else
     canvas.AttachBrush(params.paint);
-    auto drawingSamplingOptions = RSSystemProperties::IsPhoneType()
-                               ? Drawing::SamplingOptions()
-                               : Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
+    Drawing::SamplingOptions drawingSamplingOptions;
+    if (!RSSystemProperties::GetUniRenderEnabled()) {
+        drawingSamplingOptions = Drawing::SamplingOptions();
+    } else {
+        drawingSamplingOptions = RSSystemProperties::IsPhoneType()
+                              ? Drawing::SamplingOptions()
+                              : Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
+    }
     canvas.DrawImageRect(*image.get(), params.srcRect, params.dstRect, drawingSamplingOptions,
         Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     canvas.DetachBrush();
