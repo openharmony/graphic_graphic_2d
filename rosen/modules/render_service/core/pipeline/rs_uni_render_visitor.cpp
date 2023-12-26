@@ -179,6 +179,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     RSTagTracker::UpdateReleaseResourceEnabled(RSSystemProperties::GetReleaseResourceEnabled());
     isScreenRotationAnimating_ = RSSystemProperties::GetCacheEnabledForRotation();
     isSubSurfaceEnabled_ = RSSystemProperties::GetSubSurfaceEnabled();
+    isSkipCanvasNodeOutOfScreen_ = RSSystemParameters::GetSkipCanvasNodeOutofScreenEnabled();
 #if defined(RS_ENABLE_DRIVEN_RENDER)
     if (RSDrivenRenderManager::GetInstance().GetDrivenRenderEnabled()) {
         drivenInfo_ = std::make_unique<DrivenInfo>();
@@ -200,6 +201,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
 #endif
     isUIFirst_ = RSMainThread::Instance()->IsUIFirstOn();
     isPhone_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
+    isPc_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PC;
 }
 
 void RSUniRenderVisitor::PartialRenderOptionInit()
@@ -4867,6 +4869,10 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 #endif
         return;
     }
+    if (isPc_ && isSkipCanvasNodeOutOfScreen_ && !isSubNodeOfSurfaceInProcess_ &&
+        IsOutOfScreenRegion(node.GetRenderProperties().GetBoundsGeometry()->GetAbsRect())) {
+        return;
+    }
     node.MarkNodeSingleFrameComposer(isNodeSingleFrameComposer_);
 #ifdef RS_ENABLE_EGLQUERYSURFACE
     if ((isOpDropped_ && (curSurfaceNode_ != nullptr)) || isCanvasNodeSkipDfxEnabled_) {
@@ -5600,6 +5606,25 @@ bool RSUniRenderVisitor::CheckIfNeedResetRotate()
     int angle = RSUniRenderUtil::GetRotationFromMatrix(canvas_->GetTotalMatrix());
 #endif
     return angle != 0 && angle % ROTATION_90 == 0;
+}
+
+bool RSUniRenderVisitor::IsOutOfScreenRegion(RectI rect)
+{
+    int32_t boundWidth = static_cast<int32_t>(screenInfo_.width);
+    int32_t boundHeight = static_cast<int32_t>(screenInfo_.height);
+    ScreenRotation rotation = screenInfo_.rotation;
+    if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
+        std::swap(boundWidth, boundHeight);
+    }
+
+    if (rect.GetRight() <= 0 ||
+        rect.GetLeft() >= boundWidth ||
+        rect.GetBottom() <= 0 ||
+        rect.GetTop() >= boundHeight) {
+        return true;
+    }
+
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

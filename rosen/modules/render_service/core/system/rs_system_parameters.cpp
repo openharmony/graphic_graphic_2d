@@ -74,5 +74,13 @@ bool RSSystemParameters::GetFilterCacheOcculusionEnabled()
         std::atoi((system::GetParameter("persist.sys.graphic.filterCacheOcclusionEnabled", "1")).c_str()) != 0;
     return filterCacheOcclusionEnabled;
 }
+
+bool RSSystemParameters::GetSkipCanvasNodeOutofScreenEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.skipCanvasNodeOutofScreen.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -170,6 +170,8 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
     visitor->SetSubThreadConfig(threadIndex_);
     visitor->SetFocusedNodeId(RSMainThread::Instance()->GetFocusNodeId(),
         RSMainThread::Instance()->GetFocusLeashWindowId());
+    auto screenManager = CreateOrGetScreenManager();
+    visitor->SetScreenInfo(screenManager->QueryScreenInfo(screenManager->GetDefaultScreenId()));
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     while (threadTask->GetTaskSize() > 0) {
         auto task = threadTask->GetNextRenderTask();
