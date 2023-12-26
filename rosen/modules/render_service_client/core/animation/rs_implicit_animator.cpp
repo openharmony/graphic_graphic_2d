@@ -35,6 +35,7 @@ int RSImplicitAnimator::OpenImplicitAnimation(const RSAnimationTimingProtocol& t
         std::move(repeatCallback) });
     implicitAnimations_.push({});
     keyframeAnimations_.push({});
+    durationKeyframeParams_.push({ false, 0, 0 });
     switch (timingCurve.type_) {
         case RSAnimationTimingCurve::CurveType::INTERPOLATING:
             if (timingProtocol.GetDuration() <= 0) {
@@ -97,6 +98,7 @@ void RSImplicitAnimator::CloseImplicitAnimationInner()
     globalImplicitParams_.pop();
     implicitAnimations_.pop();
     keyframeAnimations_.pop();
+    durationKeyframeParams_.pop();
     EndImplicitAnimation();
 }
 
@@ -140,14 +142,17 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
                    "animation.");
         CreateEmptyAnimation();
     }
-
     std::vector<std::shared_ptr<RSAnimation>> resultAnimations;
+    [[maybe_unused]] auto& [isDurationKeyframe, totalDuration, currentDuration] = durationKeyframeParams_.top();
     for (const auto& [animationInfo, keyframeAnimation] : currentKeyframeAnimations) {
         auto target = RSNodeMap::Instance().GetNode<RSNode>(animationInfo.first);
         if (target == nullptr) {
             ROSEN_LOGE("Failed to start implicit keyframe animation[%{public}" PRIu64 "], target is null!",
                 keyframeAnimation->GetId());
             continue;
+        }
+        if (isDurationKeyframe) {
+            keyframeAnimation->SetDuration(totalDuration);
         }
         // this will actually create the RSRenderKeyframeAnimation
         target->AddAnimation(keyframeAnimation);
@@ -159,7 +164,6 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
         animation->SetFinishCallback(finishCallback);
         resultAnimations.emplace_back(animation);
     }
-
     CloseImplicitAnimationInner();
     return resultAnimations;
 }
@@ -177,7 +181,8 @@ void RSImplicitAnimator::BeginImplicitKeyFrameAnimation(float fraction, const RS
     }
 
     [[maybe_unused]] const auto& [protocol, unused_curve, unused, unused_repeatCallback] = globalImplicitParams_.top();
-    auto keyframeAnimationParam = std::make_shared<RSImplicitKeyframeAnimationParam>(protocol, timingCurve, fraction);
+    auto keyframeAnimationParam =
+        std::make_shared<RSImplicitKeyframeAnimationParam>(protocol, timingCurve, fraction, 0);
     PushImplicitParam(keyframeAnimationParam);
 }
 
@@ -199,6 +204,40 @@ void RSImplicitAnimator::EndImplicitKeyFrameAnimation()
         return;
     }
 
+    PopImplicitParam();
+}
+
+void RSImplicitAnimator::BeginImplicitDurationKeyFrameAnimation(int duration, const RSAnimationTimingCurve& timingCurve)
+{
+    if (globalImplicitParams_.empty()) {
+        ROSEN_LOGE("Failed to begin keyframe implicit animation, need to open implicit animation firstly!");
+        return;
+    }
+
+    if (timingCurve.type_ != RSAnimationTimingCurve::CurveType::INTERPOLATING) {
+        ROSEN_LOGE("Wrong type of timing curve!");
+        return;
+    }
+
+    [[maybe_unused]] auto& [isDurationKeyframe, totalDuration, currentDuration] = durationKeyframeParams_.top();
+    isDurationKeyframe = true;
+    currentDuration = duration;
+    [[maybe_unused]] const auto& [protocol, unused_curve, unused, unused_repeatCallback] = globalImplicitParams_.top();
+    auto keyframeAnimationParam =
+        std::make_shared<RSImplicitKeyframeAnimationParam>(protocol, timingCurve, 0, duration);
+    PushImplicitParam(keyframeAnimationParam);
+}
+
+void RSImplicitAnimator::EndImplicitDurationKeyFrameAnimation()
+{
+    if (implicitAnimationParams_.empty() ||
+        implicitAnimationParams_.top()->GetType() != ImplicitAnimationParamType::KEYFRAME) {
+        ROSEN_LOGE("Failed to end keyframe implicit animation, need to begin keyframe implicit animation firstly!");
+        return;
+    }
+    [[maybe_unused]] auto& [isDurationKeyframe, totalDuration, currentDuration] = durationKeyframeParams_.top();
+    totalDuration += currentDuration;
+    currentDuration = 0;
     PopImplicitParam();
 }
 
@@ -412,12 +451,18 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
             auto keyframeImplicitParam = static_cast<RSImplicitKeyframeAnimationParam*>(params.get());
             auto& keyframeAnimations = keyframeAnimations_.top();
             auto keyframeIter = keyframeAnimations.find({ target->GetId(), property->GetId() });
+            [[maybe_unused]] auto& [isDurationKeyframe, totalDuration, unused] = durationKeyframeParams_.top();
             SetPropertyValue(property, endValue);
             if (keyframeIter == keyframeAnimations.end()) {
-                animation = keyframeImplicitParam->CreateAnimation(property, startValue, endValue);
+                animation = keyframeImplicitParam->CreateAnimation(property, isDurationKeyframe, totalDuration,
+                    startValue, endValue);
                 keyframeAnimations[{ target->GetId(), property->GetId() }] = animation;
             } else {
-                keyframeImplicitParam->AddKeyframe(keyframeIter->second, startValue, endValue);
+                if (isDurationKeyframe) {
+                    keyframeImplicitParam->AddKeyframe(keyframeIter->second, totalDuration, startValue, endValue);
+                } else {
+                    keyframeImplicitParam->AddKeyframe(keyframeIter->second, startValue, endValue);
+                }
             }
             if (animation == nullptr) {
                 ROSEN_LOGE("Failed to create animation!");

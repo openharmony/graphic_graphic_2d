@@ -497,7 +497,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest007, TestSize.Level1)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(100);
     auto keyframeParam = std::make_shared<RSImplicitKeyframeAnimationParam>(
-        protocol, RSAnimationTimingCurve::LINEAR, 0.1f);
+        protocol, RSAnimationTimingCurve::LINEAR, 0.1f, 0);
     EXPECT_TRUE(keyframeParam != nullptr);
     std::shared_ptr<RSAnimation> animation;
     Vector4f startData(0.f, 1.f, 2.f, 3.f);

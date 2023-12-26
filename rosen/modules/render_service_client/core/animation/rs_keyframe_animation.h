@@ -42,6 +42,11 @@ public:
     void AddKeyFrames(const
         std::vector<std::tuple<float, std::shared_ptr<RSPropertyBase>, RSAnimationTimingCurve>>& keyframes);
 
+    void AddKeyFrame(int startDuration, int endDuration, const std::shared_ptr<RSPropertyBase>& value,
+        const RSAnimationTimingCurve& timingCurve);
+
+    void SetDurationKeyframe(bool isDuration);
+
 protected:
     void OnStart() override;
 
@@ -53,6 +58,10 @@ private:
     void StartUIAnimation(const std::shared_ptr<RSRenderKeyframeAnimation>& animation);
 
     std::vector<std::tuple<float, std::shared_ptr<RSPropertyBase>, RSAnimationTimingCurve>> keyframes_;
+
+    std::vector<std::tuple<int, int, std::shared_ptr<RSPropertyBase>, RSAnimationTimingCurve>> durationKeyframes_;
+
+    bool isDurationKeyframe_ { false };
 
     friend class RSImplicitKeyframeAnimationParam;
 };

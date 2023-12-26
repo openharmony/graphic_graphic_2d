@@ -60,6 +60,9 @@ public:
     void BeginImplicitKeyFrameAnimation(float fraction);
     void EndImplicitKeyFrameAnimation();
 
+    void BeginImplicitDurationKeyFrameAnimation(int duration, const RSAnimationTimingCurve& timingCurve);
+    void EndImplicitDurationKeyFrameAnimation();
+
     void BeginImplicitTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn);
     void EndImplicitTransition();
 
@@ -103,6 +106,7 @@ private:
     std::stack<std::shared_ptr<RSImplicitAnimationParam>> implicitAnimationParams_;
     std::stack<std::vector<std::pair<std::shared_ptr<RSAnimation>, NodeId>>> implicitAnimations_;
     std::stack<std::map<std::pair<NodeId, PropertyId>, std::shared_ptr<RSAnimation>>> keyframeAnimations_;
+    std::stack<std::tuple<bool, int, int>> durationKeyframeParams_;
 
     bool implicitAnimationDisabled_ { false };
     friend class RSNode;

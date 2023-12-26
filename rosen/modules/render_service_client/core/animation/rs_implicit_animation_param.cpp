@@ -146,16 +146,23 @@ std::shared_ptr<RSAnimation> RSImplicitCurveAnimationParam::CreateAnimation(std:
 }
 
 RSImplicitKeyframeAnimationParam::RSImplicitKeyframeAnimationParam(
-    const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve, float fraction)
+    const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
+    float fraction, int duration)
     : RSImplicitAnimationParam(timingProtocol, ImplicitAnimationParamType::KEYFRAME), timingCurve_(timingCurve),
-      fraction_(fraction)
+      fraction_(fraction), duration_(duration)
 {}
 
-std::shared_ptr<RSAnimation> RSImplicitKeyframeAnimationParam::CreateAnimation(std::shared_ptr<RSPropertyBase> property,
+std::shared_ptr<RSAnimation> RSImplicitKeyframeAnimationParam::CreateAnimation(
+    std::shared_ptr<RSPropertyBase> property, const bool& isCreateDurationKeyframe, const int& startDuration,
     const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const
 {
     auto keyFrameAnimation = std::make_shared<RSKeyframeAnimation>(property);
-    keyFrameAnimation->AddKeyFrame(fraction_, endValue, timingCurve_);
+    keyFrameAnimation->SetDurationKeyframe(isCreateDurationKeyframe);
+    if (isCreateDurationKeyframe) {
+        keyFrameAnimation->AddKeyFrame(startDuration, startDuration + duration_, endValue, timingCurve_);
+    } else {
+        keyFrameAnimation->AddKeyFrame(fraction_, endValue, timingCurve_);
+    }
     keyFrameAnimation->SetOriginValue(startValue);
     keyFrameAnimation->SetIsCustom(property->GetIsCustom());
     ApplyTimingProtocol(keyFrameAnimation);
@@ -172,6 +179,19 @@ void RSImplicitKeyframeAnimationParam::AddKeyframe(std::shared_ptr<RSAnimation>&
     auto keyframeAnimation = std::static_pointer_cast<RSKeyframeAnimation>(animation);
     if (keyframeAnimation != nullptr) {
         keyframeAnimation->AddKeyFrame(fraction_, endValue, timingCurve_);
+    }
+}
+
+void RSImplicitKeyframeAnimationParam::AddKeyframe(std::shared_ptr<RSAnimation>& animation, const int startDuration,
+    const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const
+{
+    if (animation == nullptr) {
+        return;
+    }
+
+    auto keyframeAnimation = std::static_pointer_cast<RSKeyframeAnimation>(animation);
+    if (keyframeAnimation != nullptr) {
+        keyframeAnimation->AddKeyFrame(startDuration, startDuration + duration_, endValue, timingCurve_);
     }
 }
 

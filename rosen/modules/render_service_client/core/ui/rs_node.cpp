@@ -166,6 +166,20 @@ void RSNode::AddKeyFrame(float fraction, const PropertyCallback& propertyCallbac
     implicitAnimator->EndImplicitKeyFrameAnimation();
 }
 
+void RSNode::AddDurationKeyFrame(
+    int duration, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback)
+{
+    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+    if (implicitAnimator == nullptr) {
+        ROSEN_LOGE("Failed to add keyframe, implicit animator is null!");
+        return;
+    }
+
+    implicitAnimator->BeginImplicitDurationKeyFrameAnimation(duration, timingCurve);
+    propertyCallback();
+    implicitAnimator->EndImplicitDurationKeyFrameAnimation();
+}
+
 bool RSNode::IsImplicitAnimationOpen()
 {
     auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
