@@ -160,7 +160,7 @@ public:
     // state
     virtual void Flush() = 0;
     virtual void Clear(ColorQuad color) = 0;
-    virtual void Save() = 0;
+    virtual uint32_t Save() = 0;
     virtual void SaveLayer(const SaveLayerOps& saveLayerOption) = 0;
     virtual void Restore() = 0;
     virtual uint32_t  GetSaveCount() const = 0;

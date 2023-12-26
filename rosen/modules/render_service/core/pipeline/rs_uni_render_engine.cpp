@@ -66,8 +66,7 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
         canvas.restore();
         canvas.restoreToCount(saveCount);
 #else
-        auto saveCount = canvas.GetSaveCount();
-        canvas.Save();
+        auto saveCount = canvas.Save();
         auto dstRect = layer->GetLayerSize();
         Drawing::Rect clipRect = Drawing::Rect(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y),
             static_cast<float>(dstRect.w) + static_cast<float>(dstRect.x),

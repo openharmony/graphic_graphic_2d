@@ -752,18 +752,21 @@ void RSPaintFilterCanvasBase::Clear(ColorQuad color)
 #endif
 }
 
-void RSPaintFilterCanvasBase::Save()
+uint32_t RSPaintFilterCanvasBase::Save()
 {
 #ifdef ENABLE_RECORDING_DCL
+    uint32_t count = 0U;
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
-            (*iter)->Save();
+            count = (*iter)->Save();
         }
     }
+    return count;
 #else
     if (canvas_ != nullptr) {
-        canvas_->Save();
+        return canvas_->Save();
     }
+    return 0;
 #endif
 }
 

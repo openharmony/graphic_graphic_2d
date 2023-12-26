@@ -33,7 +33,7 @@ struct FrameBuffer {
     int height;
     int FBOID;
     int Format;
-    ColorType colorType;
+    ColorType colorType = Drawing::COLORTYPE_RGBA_8888;
     std::shared_ptr<GPUContext> gpuContext;
     std::shared_ptr<ColorSpace> colorSpace;
 };

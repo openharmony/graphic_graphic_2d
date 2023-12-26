@@ -2353,8 +2353,7 @@ void RSUniRenderVisitor::ProcessParallelDisplayRenderNode(RSDisplayRenderNode& n
 #ifndef USE_ROSEN_DRAWING
     int saveCount = canvas_->save();
 #else
-    int saveCount = canvas_->GetSaveCount();
-    canvas_->Save();
+    int saveCount = canvas_->Save();
 #endif
     canvas_->SetHighContrast(renderEngine_->IsHighContrastEnabled());
     auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
@@ -2671,8 +2670,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 canvas_->Restore();
                 bool parallelComposition = RSMainThread::Instance()->GetParallelCompositionEnabled();
                 if (!parallelComposition) {
-                    auto saveCount = canvas_->GetSaveCount();
-                    canvas_->Save();
+                    auto saveCount = canvas_->Save();
                     ProcessChildrenForScreenRecordingOptimization(
                         *mirrorNode, mirrorNode->GetRootIdOfCaptureWindow());
                     canvas_->RestoreToCount(saveCount);
@@ -2681,8 +2679,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 DrawWatermarkIfNeed(*mirrorNode, true);
             } else {
                 mirrorNode->SetCacheImgForCapture(nullptr);
-                auto saveCount = canvas_->GetSaveCount();
-                canvas_->Save();
+                auto saveCount = canvas_->Save();
                 ScaleMirrorIfNeed(node);
                 PrepareOffscreenRender(*mirrorNode);
                 ProcessChildren(*mirrorNode);
@@ -2855,8 +2852,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 #ifndef USE_ROSEN_DRAWING
             saveCountBeforeClip = canvas_->save();
 #else
-            saveCountBeforeClip = canvas_->GetSaveCount();
-            canvas_->Save();
+            saveCountBeforeClip = canvas_->Save();
 #endif
         }
 #endif
@@ -3012,8 +3008,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             SwitchColorFilterDrawing(saveCount);
             canvas_->restoreToCount(saveCount);
 #else
-            int saveCount = canvas_->GetSaveCount();
-            canvas_->Save();
+            int saveCount = canvas_->Save();
             canvas_->SetHighContrast(renderEngine_->IsHighContrastEnabled());
             auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
             if (geoPtr != nullptr) {
@@ -4672,8 +4667,7 @@ void RSUniRenderVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     ProcessCanvasRenderNode(node);
     canvas_->restoreToCount(saveCount);
 #else
-    int saveCount = canvas_->GetSaveCount();
-    canvas_->Save();
+    int saveCount = canvas_->Save();
     ProcessCanvasRenderNode(node);
     canvas_->RestoreToCount(saveCount);
 #endif

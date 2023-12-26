@@ -128,7 +128,7 @@ public:
 
     void Flush() override;
     void Clear(ColorQuad color) override;
-    void Save() override;
+    uint32_t Save() override;
     void SaveLayer(const SaveLayerOps& saveLayerOps) override;
     void Restore() override;
     uint32_t GetSaveCount() const override;

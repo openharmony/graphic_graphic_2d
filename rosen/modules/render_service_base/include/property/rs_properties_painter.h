@@ -233,6 +233,14 @@ private:
     static void DrawBorderBase(const RSProperties& properties, Drawing::Canvas& canvas,
         const std::shared_ptr<RSBorder>& border, const bool& isOutline);
     static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetPhongShaderBuilder();
+
+    static std::shared_ptr<Drawing::RuntimeEffect> horizontalMeanBlurShaderEffect_;
+    static std::shared_ptr<Drawing::RuntimeEffect> verticalMeanBlurShaderEffect_;
+    static std::shared_ptr<Drawing::RuntimeEffect> meanBlurShaderEffect_;
+    static std::shared_ptr<Drawing::RuntimeEffect> greyAdjustEffect_;
+    static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;
+    static std::shared_ptr<Drawing::RuntimeEffect> lightUpEffectShaderEffect_;
+    static std::shared_ptr<Drawing::RuntimeEffect> dynamicLightUpBlenderEffect_;
 #endif // USE_ROSEN_DRAWING
     inline static int g_blurCnt = 0;
 };
