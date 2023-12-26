@@ -42,7 +42,7 @@ struct FrameBuffer {
 struct FlushInfo {
     bool backendSurfaceAccess = false;
     size_t numSemaphores = 0;
-    void* signalSemaphores = nullptr;
+    void* backendSemaphore = nullptr;
     void (*finishedProc)(void* finishedContext) = nullptr;
     void* finishedContext = nullptr;
     void (*submittedProc)(void* finishedContext, bool success) = nullptr;

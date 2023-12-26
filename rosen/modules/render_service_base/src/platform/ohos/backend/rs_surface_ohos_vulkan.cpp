@@ -294,7 +294,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     Drawing::FlushInfo drawingFlushInfo;
     drawingFlushInfo.backendSurfaceAccess = true;
     drawingFlushInfo.numSemaphores = 1;
-    drawingFlushInfo.signalSemaphores = static_cast<void*>(&backendSemaphore);
+    drawingFlushInfo.backendSemaphore = static_cast<void*>(&backendSemaphore);
     surface.drawingSurface->Flush(&drawingFlushInfo);
     mSkContext->Submit();
 #endif

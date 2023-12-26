@@ -283,9 +283,9 @@ typedef enum {
     BLEND_MODE_SCREEN,
     /** multiply or screen, depending on destination. */
     BLEND_MODE_OVERLAY,
-    /** rc = s + d - max(s*da, d*sa), ra = kSrcOver. */
+    /** rc = s + d - max(s*da, d*sa), ra = s + (1-sa)*d. */
     BLEND_MODE_DARKEN,
-    /** rc = s + d - min(s*da, d*sa), ra = kSrcOver. */
+    /** rc = s + d - min(s*da, d*sa), ra = s + (1-sa)*d. */
     BLEND_MODE_LIGHTEN,
     /** brighten destination to reflect source. */
     BLEND_MODE_COLOR_DODGE,
@@ -295,16 +295,16 @@ typedef enum {
     BLEND_MODE_HARD_LIGHT,
     /** lighten or darken, depending on source. */
     BLEND_MODE_SOFT_LIGHT,
-    /** rc = s + d - 2*(min(s*da, d*sa)), ra = kSrcOver. */
+    /** rc = s + d - 2*(min(s*da, d*sa)), ra = s + (1-sa)*d. */
     BLEND_MODE_DIFFERENCE,
-    /** rc = s + d - two(s*d), ra = kSrcOver. */
+    /** rc = s + d - two(s*d), ra = s + (1-sa)*d. */
     BLEND_MODE_EXCLUSION,
     /** r = s*(1-da) + d*(1-sa) + s*d. */
     BLEND_MODE_MULTIPLY,
     /** hue of source with saturation and luminosity of destination. */
     BLEND_MODE_HUE,
     /** saturation of source with hue and luminosity of destination. */
-    BLEND_MODE_STATURATION,
+    BLEND_MODE_SATURATION,
     /** hue and saturation of source with luminosity of destination. */
     BLEND_MODE_COLOR,
     /** luminosity of source with hue and saturation of destination. */

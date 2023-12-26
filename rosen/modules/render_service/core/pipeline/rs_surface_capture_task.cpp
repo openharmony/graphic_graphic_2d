@@ -251,7 +251,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
     if (RSSystemProperties::GetSnapshotWithDMAEnabled()) {
         surface->FlushAndSubmit(true);
         Drawing::BackendTexture backendTexture = surface->GetBackendTexture();
-        if (!backendTexture.isValid()) {
+        if (!backendTexture.IsValid()) {
             RS_LOGE("RSSurfaceCaptureTask: SkiaSurface bind Image failed: BackendTexture is invalid");
             return false;
         }

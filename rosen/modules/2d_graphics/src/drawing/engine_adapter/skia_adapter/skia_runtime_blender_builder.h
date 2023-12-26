@@ -28,7 +28,7 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
 
     SkiaRuntimeBlenderBuilder() noexcept = default;
-    SkiaRuntimeBlenderBuilder(std::shared_ptr<RuntimeEffect>) noexcept;
+    explicit SkiaRuntimeBlenderBuilder(std::shared_ptr<RuntimeEffect>) noexcept;
     ~SkiaRuntimeBlenderBuilder() override {};
 
     AdapterType GetType() const override

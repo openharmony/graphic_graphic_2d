@@ -411,7 +411,7 @@ void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
     if (drawingflushInfo != nullptr) {
         GrFlushInfo flushInfo;
         flushInfo.fNumSemaphores = drawingflushInfo->numSemaphores;
-        flushInfo.fSignalSemaphores = static_cast<GrBackendSemaphore*>(drawingflushInfo->signalSemaphores);
+        flushInfo.fSignalSemaphores = static_cast<GrBackendSemaphore*>(drawingflushInfo->backendSemaphore);
         flushInfo.fFinishedProc = drawingflushInfo->finishedProc;
         flushInfo.fFinishedContext = static_cast<GrGpuFinishedContext>(drawingflushInfo->finishedContext);
         flushInfo.fSubmittedProc = drawingflushInfo->submittedProc;
