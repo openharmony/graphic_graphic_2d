@@ -139,8 +139,9 @@ public:
 
     int32_t SetScreenChangeCallback(const ScreenChangeCallback& callback);
 
+#ifndef ROSEN_ARKUI_X
     void SetScreenActiveMode(ScreenId id, uint32_t modeId);
-
+#endif // !ROSEN_ARKUI_X
     void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate);
 
     void SetRefreshRateMode(int32_t refreshRateMode);
@@ -157,6 +158,7 @@ public:
     
     void SetShowRefreshRateEnabled(bool enable);
 
+#ifndef ROSEN_ARKUI_X
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
@@ -174,7 +176,9 @@ public:
     RSScreenData GetScreenData(ScreenId id);
 
     MemoryGraphic GetMemoryGraphic(int pid);
+
     std::vector<MemoryGraphic> GetMemoryGraphics();
+#endif // !ROSEN_ARKUI_X
     bool GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize);
 
     int32_t GetScreenBacklight(ScreenId id);
