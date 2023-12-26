@@ -19,16 +19,7 @@ namespace OHOS {
 namespace Rosen {
 
 const std::unordered_map<PermissionType, std::string> PERMISSION_MAP {
-    { PermissionType::ACCESS_MCP_AUTHORIZATION, "ohos.permission.ACCESS_MCP_AUTHORIZATION" },
-    { PermissionType::PREPARE_APP_TERMINATE, "ohos.permission.PREPARE_APP_TERMINATE" },
-    { PermissionType::FILE_GUARD_MANAGER, "ohos.permission.FILE_GUARD_MANAGER" },
-    { PermissionType::SET_FILE_GUARD_POLICY, "ohos.permission.SET_FILE_GUARD_POLICY" },
-    { PermissionType::APP_TRACKING_CONSENT, "ohos.permission.APP_TRACKING_CONSENT" },
     { PermissionType::CAPTURE_SCREEN, "ohos.permission.CAPTURE_SCREEN" },
-    { PermissionType::GET_RUNNING_INFO, "ohos.permission.GET_RUNNING_INFO" },
-    { PermissionType::RUNNING_STATE_OBSERVER, "ohos.permission.RUNNING_STATE_OBSERVER" },
-    { PermissionType::START_ABILITIES_FROM_BACKGROUND, "ohos.permission.START_ABILITIES_FROM_BACKGROUND" },
-    { PermissionType::CHANGE_ABILITY_ENABLED_STATE, "ohos.permission.CHANGE_ABILITY_ENABLED_STATE" },
     { PermissionType::UPDATE_CONFIGURATION, "ohos.permission.UPDATE_CONFIGURATION" },
 };
 

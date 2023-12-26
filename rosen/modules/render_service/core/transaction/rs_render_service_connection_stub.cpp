@@ -112,19 +112,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
 #ifdef ENABLE_IPC_SECURITY_ACCESS_COUNTER
-    if (!securityManager_.IsAccessTimesRestricted(code, securityUtils_.GetCodeAccessCounter(code))) {
-        RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access codeID=%{public}u by "
-                "pid=%{public}d with accessTimes = %{public}d.",
-            code, GetCallingPid(), securityUtils_.GetCodeAccessCounter(code));
+    auto accessCount = securityUtils_.GetCodeAccessCounter(code);
+    if (!securityManager_.IsAccessTimesRestricted(code, accessCount)) {
+        RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest This Function[ID=%{public}u] invoke times:%{public}d"
+            "by pid[%{public}d]", code, accessCount, GetCallingPid());
         return ERR_INVALID_STATE;
     }
-#endif
-    if (!securityManager_.IsInterfaceCodeAccessible(code)) {
-        RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access codeID=%{public}u.", code);
-        return ERR_INVALID_STATE;
-    }
-#ifdef ENABLE_IPC_SECURITY_ACCESS_COUNTER
-    securityUtils_.IncreaseAccessCounter(code);
 #endif
     int ret = ERR_NONE;
     switch (code) {
@@ -355,6 +348,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_STATE;
                 break;
             }
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access SET_REFRESH_RATE_MODE");
+                return ERR_INVALID_STATE;
+            }
             int32_t mode = data.ReadInt32();
             SetRefreshRateMode(mode);
             break;
@@ -465,6 +462,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             float scaleX = data.ReadFloat();
             float scaleY = data.ReadFloat();
             SurfaceCaptureType surfaceCaptureType = static_cast<SurfaceCaptureType>(data.ReadUint8());
+            if (RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id)->GetType() ==
+                RSRenderNodeType::DISPLAY_NODE && !securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access TAKE_SURFACE_CAPTURE");
+                return ERR_INVALID_STATE;
+            }
             TakeSurfaceCapture(id, cb, scaleX, scaleY, surfaceCaptureType);
             break;
         }
@@ -793,6 +795,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_NULL_OBJECT;
                 break;
             }
+#ifdef ENABLE_IPC_SECURITY_ACCESS_COUNTER
+            securityUtils_.IncreaseAccessCounter(code);
+#endif
             reply.WriteRemoteObject(conn->AsObject());
             break;
         }
