@@ -1446,6 +1446,7 @@ bool RSRenderNode::ApplyModifiers()
 
 void RSRenderNode::UpdateDrawableVec()
 {
+#ifndef ROSEN_ARKUI_X
     // Collect dirty slots
     auto dirtySlots = RSPropertyDrawable::GenerateDirtySlots(GetRenderProperties(), dirtyTypes_);
     RSPropertyDrawableGenerateContext drawableContext(*this);
@@ -1461,6 +1462,7 @@ void RSRenderNode::UpdateDrawableVec()
         RSPropertyDrawable::UpdateSaveRestore(drawableContext, renderContent_->propertyDrawablesVec_,
             drawableVecStatus_);
     }
+#endif
 }
 
 #ifndef USE_ROSEN_DRAWING

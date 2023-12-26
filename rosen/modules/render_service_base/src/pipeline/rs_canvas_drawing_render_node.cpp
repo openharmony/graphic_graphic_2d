@@ -175,7 +175,9 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
     if (!recordingCanvas_) {
         skImage_ = skSurface_->makeImageSnapshot();
         if (skImage_) {
+#ifndef ROSEN_ARKUI_X
             SKResourceManager::Instance().HoldResource(skImage_);
+#endif
         }
     } else {
         auto cmds = recordingCanvas_->GetDrawCmdList();

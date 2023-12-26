@@ -43,11 +43,13 @@ const char* RSFilterCacheManager::GetCacheState() const
             return false;                                                \
         }                                                                \
     } while (false)
-
+#ifndef ROSEN_ARKUI_X
 const bool RSFilterCacheManager::RSFilterCacheTask::FilterPartialRenderEnabled =
     RSSystemProperties::GetFilterPartialRenderEnabled() && RSUniRenderJudgement::IsUniRender();
+#else
+const bool RSFilterCacheManager::RSFilterCacheTask::FilterPartialRenderEnabled = false;
+#endif
 bool RSFilterCacheManager::SoloTaskPrepare = true;
-
 inline static bool IsLargeArea(int width, int height)
 {
     // Use configurable threshold to determine if the area is large, and apply different cache policy.

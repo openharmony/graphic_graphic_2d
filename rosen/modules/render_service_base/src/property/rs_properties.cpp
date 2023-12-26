@@ -143,8 +143,12 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
 // Only enable filter cache when uni-render is enabled and filter cache is enabled
 
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#ifndef ROSEN_ARKUI_X
 const bool RSProperties::FilterCacheEnabled =
     RSSystemProperties::GetFilterCacheEnabled() && RSUniRenderJudgement::IsUniRender();
+#else
+const bool RSProperties::FilterCacheEnabled = false;
+#endif
 #endif
 
 RSProperties::RSProperties()

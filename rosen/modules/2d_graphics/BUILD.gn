@@ -66,10 +66,6 @@ template("graphics2d_source_set") {
       defines += [ "USE_TEXGINE" ]
     }
 
-    if (is_arkui_x) {
-      defines += [ "CROSS_PLATFORM" ]
-    }
-
     public_deps = []
     external_deps = []
     sources = [
@@ -210,6 +206,22 @@ template("graphics2d_source_set") {
       sources += [ "$drawing_src_dir/utils/system_properties.cpp" ]
     }
 
+    if (is_arkui_x) {
+      defines += [ "CROSS_PLATFORM" ]
+
+      #not needed for arkuix on current version,may need next version
+      sources -= [
+        "$drawing_src_dir/c/drawing_bitmap.cpp",
+        "$drawing_src_dir/c/drawing_brush.cpp",
+        "$drawing_src_dir/c/drawing_canvas.cpp",
+        "$drawing_src_dir/c/drawing_color.cpp",
+        "$drawing_src_dir/c/drawing_font_collection.cpp",
+        "$drawing_src_dir/c/drawing_path.cpp",
+        "$drawing_src_dir/c/drawing_pen.cpp",
+        "$drawing_src_dir/c/drawing_text_typography.cpp",
+        "$drawing_src_dir/engine_adapter/skia_adapter/rs_skia_memory_tracer.cpp",
+      ]
+    }
     if (ace_enable_gpu) {
       sources += [
         "$drawing_src_dir/engine_adapter/skia_adapter/skia_gpu_context.cpp",
