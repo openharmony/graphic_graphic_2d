@@ -127,6 +127,10 @@ if (defined(use_rosen_drawing) && use_rosen_drawing) {
 
     deps = []
 
+    if (is_cross_platform) {
+      public_deps += [ "foundation/appframework/icu_data:static_icudata" ]
+    }
+
     innerapi_tags = [ "platformsdk" ]
     part_name = "graphic_2d"
     subsystem_name = "graphic"
