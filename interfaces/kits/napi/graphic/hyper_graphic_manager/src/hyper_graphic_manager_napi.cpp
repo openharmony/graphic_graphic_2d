@@ -58,46 +58,6 @@ static napi_value SetRefreshRateMode(napi_env env, napi_callback_info info)
     return napiValue;
 }
 
-static napi_value GetScreenCurrentRefreshRate(napi_env env, napi_callback_info info)
-{
-    napi_status status;
-
-    size_t argc = 1;
-    napi_value arg[argc];
-    napi_get_cb_info(env, info, &argc, arg, nullptr, nullptr);
-
-    //get the screenId
-    napi_valuetype valueType;
-    status = napi_typeof(env, arg[0], &valueType);
-    if (status != napi_ok) {
-        napi_throw_error(env, NULL, "Napi GetScreenCurrentRefreshRate failed to get argument");
-    }
-    if (valueType != napi_number) {
-        napi_throw_error(env, NULL, "Napi GetScreenCurrentRefreshRate wrong argument type");
-    }
-
-    int32_t screen = 0;
-    ScreenId id = 0;
-    napi_get_value_int32(env, arg[0], &screen);
-    if (screen < 0) {
-        napi_throw_error(env, NULL, "Napi GetScreenCurrentRefreshRate illegal screenId");
-    } else {
-        id = static_cast<ScreenId>(screen);
-    }
-
-    uint32_t currentRate = interfaces.GetScreenCurrentRefreshRate(id);
-    int32_t returnInt = 0;
-    if (currentRate > static_cast<uint32_t>(OLED_MAX_HZ)) {
-        napi_throw_error(env, NULL, "Napi GetScreenCurrentRefreshRate got a rate too above maximal value");
-    } else {
-        returnInt = static_cast<int32_t>(currentRate);
-    }
-
-    napi_value returnRate = nullptr;
-    napi_create_int32(env, returnInt, &returnRate);
-    return returnRate;
-}
-
 static napi_value GetCurrentRefreshRateMode(napi_env env, napi_callback_info info)
 {
     int32_t defaultRateMode = 0;
@@ -139,13 +99,13 @@ static napi_value GetScreenSupportedRefreshRates(napi_env env, napi_callback_inf
     napi_value returnRates = nullptr;
     NAPI_CALL(env, napi_create_array(env, &returnRates));
     if (currentRates.size() > static_cast<size_t>(OLED_MAX_HZ)) {
-        napi_throw_error(env, NULL, "Napi GetScreenCurrentRefreshRate got a vector too large");
+        napi_throw_error(env, NULL, "Napi GetScreenSupportedRefreshRates got a vector too large");
     }
     int numSupportedRates = static_cast<int>(currentRates.size());
     std::vector<napi_value> napiVector(numSupportedRates, nullptr);
     for (int index = 0; index < numSupportedRates; ++index) {
         if (currentRates[index] > OLED_MAX_HZ) {
-            napi_throw_error(env, NULL, "Napi GetScreenCurrentRefreshRate got a rate too above maximal value");
+            napi_throw_error(env, NULL, "Napi GetScreenSupportedRefreshRates got a rate too above maximal value");
         }
         NAPI_CALL(env, napi_create_int32(env, currentRates[index], &napiVector[index]));
         NAPI_CALL(env, napi_set_element(env, returnRates, index, napiVector[index]));
@@ -194,7 +154,6 @@ static napi_value HgmInit(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc[] = {
         DECLARE_NAPI_FUNCTION("setRefreshRateMode", SetRefreshRateMode),
-        DECLARE_NAPI_FUNCTION("getScreenCurrentRefreshRate", GetScreenCurrentRefreshRate),
         DECLARE_NAPI_FUNCTION("getScreenSupportedRefreshRates", GetScreenSupportedRefreshRates),
         DECLARE_NAPI_FUNCTION("getCurrentRefreshRateMode", GetCurrentRefreshRateMode),
         DECLARE_NAPI_FUNCTION("getShowRefreshRateEnabled", GetShowRefreshRateEnabled),
