@@ -98,7 +98,8 @@ public:
         if (!width || !height) {
             return false;
         }
-        if ((width & (width - 1)) || (height & (height - 1))) {
+        if ((static_cast<uint32_t>(width) & static_cast<uint32_t>(width - 1)) ||
+            (static_cast<uint32_t>(height) & static_cast<uint32_t>(height - 1))) {
             return true;
         }
         return false;

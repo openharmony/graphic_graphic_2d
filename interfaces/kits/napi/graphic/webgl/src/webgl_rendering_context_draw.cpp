@@ -316,11 +316,11 @@ napi_value WebGLRenderingContextBaseImpl::ReadPixels(napi_env env, const PixelsA
         return NVal::CreateNull(env).val_;
     }
     uint64_t size = static_cast<uint64_t>(buffer->GetBufferSize());
-    if (size < offset) {
+    if (size < static_cast<uint64_t>(offset)) {
         SET_ERROR(WebGLRenderingContextBase::INVALID_VALUE);
         return NVal::CreateNull(env).val_;
     }
-    size = size - offset;
+    size = size - static_cast<uint64_t>(offset);
     GLenum result = CheckReadPixelsArg(env, arg, size);
     if (!result) {
         SET_ERROR(result);
@@ -647,7 +647,8 @@ napi_value WebGLRenderingContextBaseImpl::CompressedTexSubImage2D(
         }
         bufferData.DumpBuffer(bufferData.GetBufferDataType());
         data = reinterpret_cast<void*>(bufferData.GetBuffer() + srcOffset * bufferData.GetBufferDataSize());
-        length = srcLengthOverride == 0 ? static_cast<GLsizei>(bufferData.GetBufferLength()) : srcLengthOverride;
+        length = srcLengthOverride == 0 ?
+            static_cast<GLsizei>(bufferData.GetBufferLength()) : static_cast<GLsizei>(srcLengthOverride);
     }
     bool succ = CheckCompressedTexSubImage2D(env, imgArg, length);
     if (!succ) {
@@ -821,7 +822,8 @@ GLenum WebGLRenderingContextBaseImpl::CheckTexFuncDimensions(const TexImageArg& 
     }
     switch (imgArg.target) {
         case GL_TEXTURE_2D:
-            if (imgArg.width > (maxTextureSize_ >> imgArg.level) || imgArg.height > (maxTextureSize_ >> imgArg.level)) {
+            if (static_cast<GLuint>(imgArg.width) > (static_cast<GLuint>(maxTextureSize_) >> imgArg.level) ||
+                static_cast<GLuint>(imgArg.height) > (static_cast<GLuint>(maxTextureSize_) >> imgArg.level)) {
                 return WebGLRenderingContextBase::INVALID_VALUE;
             }
             break;
@@ -834,7 +836,8 @@ GLenum WebGLRenderingContextBaseImpl::CheckTexFuncDimensions(const TexImageArg& 
             if (imgArg.func != IMAGE_TEX_SUB_IMAGE_2D && imgArg.width != imgArg.height) {
                 return WebGLRenderingContextBase::INVALID_VALUE;
             }
-            if (imgArg.width > (maxCubeMapTextureSize_ >> imgArg.level)) {
+            if (static_cast<uint32_t>(imgArg.width) > (static_cast<uint32_t>(maxCubeMapTextureSize_) >>
+                static_cast<uint32_t>(imgArg.level))) {
                 return WebGLRenderingContextBase::INVALID_VALUE;
             }
             break;
@@ -876,8 +879,8 @@ GLenum WebGLRenderingContextBaseImpl::CheckCompressedTexDimensions(const TexImag
         case GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG:
         case GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG:
         case GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG: {
-            widthValid = (imgArg.width & (imgArg.width - 1)) == 0;
-            heightValid = (imgArg.height & (imgArg.height - 1)) == 0;
+            widthValid = (static_cast<uint32_t>(imgArg.width) & static_cast<uint32_t>(imgArg.width - 1)) == 0;
+            heightValid = (static_cast<uint32_t>(imgArg.height) & static_cast<uint32_t>(imgArg.height - 1)) == 0;
             break;
         }
         default:
@@ -902,7 +905,7 @@ GLenum WebGLRenderingContextBaseImpl::CheckCompressedTexData(const TexImageArg& 
             int32_t numBlocksAcross = (imgArg.width + kBlockWidth - 1) / kBlockWidth;
             int32_t numBlocksDown = (imgArg.height + kBlockHeight - 1) / kBlockHeight;
             int32_t numBlocks = numBlocksAcross * numBlocksDown;
-            bytesRequired = numBlocks * kBlockSize;
+            bytesRequired = static_cast<size_t>(numBlocks * kBlockSize);
             break;
         }
         case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
@@ -913,7 +916,7 @@ GLenum WebGLRenderingContextBaseImpl::CheckCompressedTexData(const TexImageArg& 
             int32_t numBlocksAcross = (imgArg.width + kBlockWidth - 1) / kBlockWidth;
             int32_t numBlocksDown = (imgArg.height + kBlockHeight - 1) / kBlockHeight;
             int32_t numBlocks = numBlocksAcross * numBlocksDown;
-            bytesRequired = numBlocks * kBlockSize;
+            bytesRequired = static_cast<size_t>(numBlocks * kBlockSize);
             break;
         }
         case GL_ETC1_RGB8_OES: { // 3 kBlockWidth -1, 4 kBlockWidth, 8 kBlockSize
@@ -1079,7 +1082,7 @@ GLenum WebGLRenderingContextBaseImpl::CheckDrawElements(
     if (count < 0 || offset < 0) {
         return WebGLRenderingContextBase::INVALID_VALUE;
     }
-    if ((offset % size) != 0) {
+    if ((offset % static_cast<int64_t>(size)) != 0) {
         return WebGLRenderingContextBase::INVALID_VALUE;
     }
     WebGLBuffer* webGLBuffer =
@@ -1089,7 +1092,7 @@ GLenum WebGLRenderingContextBaseImpl::CheckDrawElements(
     }
 
     // check count
-    if (size * count > webGLBuffer->GetBufferSize()) {
+    if (size * count > static_cast<uint32_t>(webGLBuffer->GetBufferSize())) {
         LOGE("WebGL drawElements Insufficient buffer size %{public}d", count);
         return WebGLRenderingContextBase::INVALID_OPERATION;
     }

@@ -436,7 +436,7 @@ bool WebGLRenderingContextBaseImpl::AddObject(napi_env env, uint64_t key, napi_v
 template<class T>
 napi_value WebGLRenderingContextBaseImpl::GetNapiValue(napi_env env, uint64_t key)
 {
-    if (T::objectType > WebGLObject::WEBGL_OBJECT_MAX) {
+    if (T::objectType < 0 || T::objectType > WebGLObject::WEBGL_OBJECT_MAX) {
         return nullptr;
     }
     auto it = objects_[T::objectType].find(key);
@@ -468,7 +468,7 @@ napi_value WebGLRenderingContextBaseImpl::GetObject(napi_env env, uint64_t key)
 template<class T>
 void WebGLRenderingContextBaseImpl::DeleteObject(napi_env env, uint64_t key)
 {
-    if (T::objectType > WebGLObject::WEBGL_OBJECT_MAX) {
+    if (T::objectType < 0 || T::objectType > WebGLObject::WEBGL_OBJECT_MAX) {
         return;
     }
     auto it = objects_[T::objectType].find(key);

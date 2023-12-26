@@ -47,10 +47,10 @@ void WebGL2RenderingContextImpl::Init()
     samplerUnits_.resize(max);
 
     glGetIntegerv(GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS, &max);
-    maxBoundTransformFeedbackBufferIndex_ = max;
+    maxBoundTransformFeedbackBufferIndex_ = static_cast<GLuint>(max);
     glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &max);
-    maxBoundUniformBufferIndex_ = max;
-    LOGD("WebGL2 Init maxBoundTransformFeedbackBufferIndex_ %{public}d, maxBoundUniformBufferIndex_ %{public}d"
+    maxBoundUniformBufferIndex_ = static_cast<GLuint>(max);
+    LOGD("WebGL2 Init maxBoundTransformFeedbackBufferIndex_ %{public}u, maxBoundUniformBufferIndex_ %{public}u"
         "maxSamplerUnit_ %{public}d",
         maxBoundTransformFeedbackBufferIndex_, maxBoundUniformBufferIndex_, max);
 }
@@ -1338,8 +1338,8 @@ napi_value WebGL2RenderingContextImpl::CopyBufferSubData(
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "writeBuffer is nullptr or size is 0");
         return NVal::CreateNull(env).val_;
     }
-    if (readOffset + size > readBuffer->GetBufferSize() ||
-        writeOffset + size > writeBuffer->GetBufferSize()) {
+    if (readOffset + size > static_cast<int64_t>(readBuffer->GetBufferSize()) ||
+        writeOffset + size > static_cast<int64_t>(writeBuffer->GetBufferSize())) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "readOffset or writeOffset size error");
         return NVal::CreateNull(env).val_;
     }
@@ -1376,7 +1376,7 @@ napi_value WebGL2RenderingContextImpl::GetBufferSubData(
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "no buffer");
         return NVal::CreateNull(env).val_;
     }
-    if (offset + bufferData.GetBufferLength() > writeBuffer->GetBufferSize()) {
+    if (static_cast<size_t>(offset) + bufferData.GetBufferLength() > writeBuffer->GetBufferSize()) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "check buffer size failed");
         return NVal::CreateNull(env).val_;
     }
@@ -1412,7 +1412,7 @@ napi_value WebGL2RenderingContextImpl::FrameBufferTextureLayer(
         SET_ERROR(WebGLRenderingContextBase::INVALID_VALUE);
         return NVal::CreateNull(env).val_;
     }
-    textureId = webGlTexture->GetTexture();
+    textureId = static_cast<int32_t>(webGlTexture->GetTexture());
     glFramebufferTextureLayer(target, attachment, textureId, layer.level, layer.layer);
     LOGD("WebGL frameBufferTextureLayer texture %{public}d result %{public}u", textureId, GetError_());
 
