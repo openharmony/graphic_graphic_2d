@@ -74,7 +74,7 @@ void HelloComposer::Run(const std::vector<std::string> &runArgs)
     sleep(1);
     std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner = OHOS::AppExecFwk::EventRunner::Create(false);
     mainThreadHandler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
-    g_receiver = new VSyncReceiver(vsyncConnection, mainThreadHandler_);
+    g_receiver = new VSyncReceiver(vsyncConnection, nullptr, mainThreadHandler_);
     g_receiver->Init();
     mainThreadHandler_->PostTask(std::bind(&HelloComposer::RequestSync, this));
     runner->Run();
@@ -473,6 +473,7 @@ void HelloComposer::DoPrepareCompleted(sptr<Surface> surface, const struct Prepa
             clientCount++;
         }
     }
+    LOGI("clientCount: %{public}d", clientCount);
 
     auto addr = static_cast<uint8_t *>(fbBuffer->GetVirAddr());
     if (hasClient) {
