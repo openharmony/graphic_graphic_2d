@@ -96,8 +96,10 @@ void RSSurfaceRenderNode::UpdateSrcRect(const RSPaintFilterCanvas& canvas, const
     const RSProperties& properties = GetRenderProperties();
     int left = std::clamp<int>(localClipRect.GetLeft(), 0, properties.GetBoundsWidth());
     int top = std::clamp<int>(localClipRect.GetTop(), 0, properties.GetBoundsHeight());
-    int width = std::clamp<int>(localClipRect.GetWidth(), 0, properties.GetBoundsWidth() - left);
-    int height = std::clamp<int>(localClipRect.GetHeight(), 0, properties.GetBoundsHeight() - top);
+    int width = std::clamp<int>(std::ceil(localClipRect.GetWidth()), 0,
+        std::ceil(properties.GetBoundsWidth() - left));
+    int height = std::clamp<int>(std::ceil(localClipRect.GetHeight()), 0,
+        std::ceil(properties.GetBoundsHeight() - top));
     RectI srcRect = {left, top, width, height};
     SetSrcRect(srcRect);
 }
@@ -111,6 +113,11 @@ bool RSSurfaceRenderNode::ShouldPrepareSubnodes()
         return false;
     }
     return true;
+}
+
+void RSSurfaceRenderNode::StoreMustRenewedInfo()
+{
+    mustRenewedInfo_ = RSRenderNode::HasMustRenewedInfo() || hasSecurityLayer_ || hasSkipLayer_;
 }
 
 std::string RSSurfaceRenderNode::DirtyRegionDump() const
@@ -360,6 +367,7 @@ void RSSurfaceRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanv
     const RectF absBounds = {0, 0, property.GetBoundsWidth(), property.GetBoundsHeight()};
     RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
     RSPropertiesPainter::DrawShadow(property, canvas, &absClipRRect);
+    RSPropertiesPainter::DrawOutline(property, canvas);
 
 #ifndef USE_ROSEN_DRAWING
     if (!property.GetCornerRadius().IsZero()) {
@@ -412,6 +420,7 @@ void RSSurfaceRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanva
         auto geoPtr = (property.GetBoundsGeometry());
         canvas.concat(geoPtr->GetMatrix());
     }
+    RSPropertiesPainter::DrawOutline(property, canvas);
     RSPropertiesPainter::DrawBorder(property, canvas);
     canvas.restore();
 #else
@@ -420,6 +429,7 @@ void RSSurfaceRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanva
         auto geoPtr = (property.GetBoundsGeometry());
         canvas.ConcatMatrix(geoPtr->GetMatrix());
     }
+    RSPropertiesPainter::DrawOutline(property, canvas);
     RSPropertiesPainter::DrawBorder(property, canvas);
     canvas.Restore();
 #endif
@@ -1601,7 +1611,10 @@ bool RSSurfaceRenderNode::IsCurFrameStatic(DeviceType deviceType)
 bool RSSurfaceRenderNode::IsVisibleDirtyEmpty(DeviceType deviceType)
 {
     bool isStaticUnderVisibleRegion = false;
-    if (dirtyManager_ == nullptr || !dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty()) {
+    if (dirtyManager_ == nullptr) {
+        return false;
+    }
+    if (!dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty()) {
         if (deviceType == DeviceType::PHONE) {
             return false;
         }

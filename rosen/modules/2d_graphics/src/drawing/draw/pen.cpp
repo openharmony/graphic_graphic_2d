@@ -202,8 +202,7 @@ bool operator==(const Pen& p1, const Pen& p2)
 
 bool operator!=(const Pen& p1, const Pen& p2)
 {
-    return p1.width_ != p2.width_ || p1.miterLimit_ != p2.miterLimit_ || p1.join_ != p2.join_ || p1.cap_ != p2.cap_ ||
-        p1.pathEffect_ != p2.pathEffect_ || p1.brush_ != p2.brush_;
+    return !(p1 == p2);
 }
 } // namespace Drawing
 } // namespace Rosen

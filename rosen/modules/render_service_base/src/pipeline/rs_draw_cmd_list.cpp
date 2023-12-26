@@ -155,6 +155,9 @@ void DrawCmdList::Playback(RSPaintFilterCanvas& canvas, const SkRect* rect)
         if (it == nullptr) {
             continue;
         }
+        if (it->GetType() == RSOpType::HM_SYMBOL_OPITEM) {
+            it->SetSymbol();
+        }
         it->Draw(canvas, rect);
     }
 }
@@ -235,7 +238,7 @@ void DrawCmdList::UpdateNodeIdToPicture(NodeId nodeId)
     }
     for (size_t i = 0; i < imageIndexs_.size(); i++) {
         auto index = imageIndexs_[i];
-        if (index > ops_.size()) {
+        if (index > ops_.size() - 1) {
             RS_LOGW("DrawCmdList::UpdateNodeIdToPicture index[%{public}d] error", index);
             continue;
         }

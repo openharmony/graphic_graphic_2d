@@ -47,8 +47,38 @@ ohos_unittest("2d_engine_rosen_text_texgine_test") {
   subsystem_name = "graphic"
 }
 
+ohos_unittest("hm_symbol_test") {
+  module_out_path = module_output_path
+  if (use_texgine) {
+    sources = [ "hm_symbol_test.cpp" ]
+  }
+
+  include_dirs = [
+    "$rosen_2d_engine_root/rosen_text/adapter/texgine",
+    "$rosen_2d_engine_root/rosen_text/export",
+    "$rosen_2d_engine_root/rosen_text/export/rosen_text",
+    "$rosen_root/modules/render_service_base/include",
+    "//third_party/googletest/googletest/include",
+  ]
+
+  deps = [
+    "$rosen_root/modules/2d_graphics:2d_graphics",
+    "$rosen_root/modules/texgine:libtexgine",
+    "$rosen_root/modules/texgine/texgine_drawing:libtexgine_drawing",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  defines = [ "USE_GRAPHIC_TEXT_GINE" ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
 group("unittest") {
   testonly = true
 
-  deps = [ ":2d_engine_rosen_text_texgine_test" ]
+  deps = [
+    ":2d_engine_rosen_text_texgine_test",
+    ":hm_symbol_test",
+  ]
 }

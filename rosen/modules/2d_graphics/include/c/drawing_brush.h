@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -109,6 +109,50 @@ uint32_t OH_Drawing_BrushGetColor(const OH_Drawing_Brush*);
  * @version 1.0
  */
 void OH_Drawing_BrushSetColor(OH_Drawing_Brush*, uint32_t color);
+
+/**
+ * @brief Obtains the alpha of a brush. The alpha is used by the brush to fill in a shape.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Brush Indicates the pointer to an <b>OH_Drawing_Brush</b> object.
+ * @return Returns a 8-bit variable that describes the alpha.
+ * @since 11
+ * @version 1.0
+ */
+uint8_t OH_Drawing_BrushGetAlpha(const OH_Drawing_Brush*);
+
+/**
+ * @brief Sets the alpha for a brush. The alpha will be used by the brush to fill in a shape.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Brush Indicates the pointer to an <b>OH_Drawing_Brush</b> object.
+ * @param alpha Indicates the alpha to set, which is a 8-bit variable.
+ * @since 11
+ * @version 1.0
+ */
+void OH_Drawing_BrushSetAlpha(OH_Drawing_Brush*, uint8_t alpha);
+
+/**
+ * @brief Sets the shaderEffect for a brush.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Brush Indicates the pointer to an <b>OH_Drawing_Brush</b> object.
+ * @param OH_Drawing_ShaderEffect Indicates the pointer to an <b>OH_Drawing_ShaderEffect</b> object.
+ * @since 11
+ * @version 1.0
+ */
+void OH_Drawing_BrushSetShaderEffect(OH_Drawing_Brush*, OH_Drawing_ShaderEffect*);
+
+/**
+ * @brief Sets the filter for a brush.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Brush Indicates the pointer to an <b>OH_Drawing_Brush</b> object.
+ * @param OH_Drawing_Filter Indicates the pointer to an <b>OH_Drawing_Filter</b> object.
+ * @since 11
+ * @version 1.0
+ */
+void OH_Drawing_BrushSetFilter(OH_Drawing_Brush*, OH_Drawing_Filter*);
 
 #ifdef __cplusplus
 }

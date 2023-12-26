@@ -33,6 +33,7 @@
 #include "xml_parser.h"
 
 namespace OHOS::Rosen {
+class HgmFrameRateManager;
 using RefreshRateModeChangeCallback = std::function<void(int32_t)>;
 class HgmCore final {
 public:
@@ -63,9 +64,9 @@ public:
         return activeScreenId_;
     }
 
-    std::shared_ptr<ParsedConfigData> GetParsedConfigData() const
+    std::shared_ptr<PolicyConfigData> GetPolicyConfigData() const
     {
-        return mParsedConfigData_;
+        return mPolicyConfigData_;
     }
 
     void SetPendingScreenRefreshRate(uint32_t rate)
@@ -120,6 +121,8 @@ public:
     static int32_t SetRateAndResolution(ScreenId id, int32_t sceneId, int32_t rate, int32_t width, int32_t height);
     int32_t SetRefreshRateMode(RefreshRateMode refreshRateMode);
 
+    void NotifyScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
+
     // screen interface
     int32_t AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize);
     int32_t RemoveScreen(ScreenId id);
@@ -133,10 +136,7 @@ public:
     std::vector<int32_t> GetScreenComponentRefreshRates(ScreenId id);
     std::unique_ptr<std::unordered_map<ScreenId, int32_t>> GetModesToApply();
     void SetActiveScreenId(ScreenId id);
-    void StartScreenScene(SceneType sceceType);
-    void StopScreenScene(SceneType sceceType);
-    int32_t GetScenePreferred() const;
-    int32_t SetModeBySettingConfig();
+    std::shared_ptr<HgmFrameRateManager> GetFrameRateMgr() { return hgmFrameRateMgr_; };
 
     // for LTPO
     void SetLtpoConfig();
@@ -153,13 +153,13 @@ private:
     bool Init();
     int32_t InitXmlConfig();
     int32_t SetCustomRateMode(RefreshRateMode mode);
-    int32_t RequestBundlePermission(int32_t rate);
 
     bool isEnabled_ = true;
     bool isInit_ = false;
-    static constexpr char CONFIG_FILE[] = "/system/etc/graphic/hgm_policy_config.xml";
+    static constexpr char CONFIG_FILE_SYSTEM[] = "/system/etc/graphic/hgm_policy_config.xml";
+    static constexpr char CONFIG_FILE_PRODUCT[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
     std::unique_ptr<XMLParser> mParser_;
-    std::shared_ptr<ParsedConfigData> mParsedConfigData_ = nullptr;
+    std::shared_ptr<PolicyConfigData> mPolicyConfigData_ = nullptr;
 
     RefreshRateMode customFrameRateMode_ = HGM_REFRESHRATE_MODE_AUTO;
     std::vector<ScreenId> screenIds_;
@@ -172,6 +172,7 @@ private:
     std::string currentBundleName_;
     ScreenId activeScreenId_ = INVALID_SCREEN_ID;
     std::unordered_set<SceneType> screenSceneSet_;
+    std::shared_ptr<HgmFrameRateManager> hgmFrameRateMgr_ = nullptr;
 
     // for LTPO
     uint32_t pendingScreenRefreshRate_ = 0;

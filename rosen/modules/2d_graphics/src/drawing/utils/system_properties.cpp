@@ -40,6 +40,13 @@ static GpuApiType SystemGpuApiType()
 }
 #endif
 
+bool SystemProperties::GetHMSymbolEnable()
+{
+    static bool isHMSymbolEnable =
+        (std::atoi(system::GetParameter("persist.sys.graphic.hmsymbolenable", "1").c_str()) != 0);
+    return isHMSymbolEnable;
+}
+
 #if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
 const GpuApiType SystemProperties::systemGpuApiType_ = SystemGpuApiType();
 #elif defined (ACE_ENABLE_GL) || defined (RS_ENABLE_GL)

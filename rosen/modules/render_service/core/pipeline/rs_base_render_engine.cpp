@@ -226,16 +226,19 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
 #endif // NEW_SKIA
 #else
 #if defined(RS_ENABLE_GL)
-    if (canvas.GetGPUContext() == nullptr) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR && canvas.GetGPUContext() == nullptr) {
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer GrContext is null!");
         return nullptr;
     }
-#elif defined(RS_ENABLE_VK)
-    if (renderContext_->GetDrGPUContext() == nullptr) {
+#endif // RS_ENABLE_GL
+#if defined(RS_ENABLE_VK)
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR && renderContext_->GetDrGPUContext() == nullptr) {
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer GrContext is null!");
         return nullptr;
     }
-#endif
+#endif // RS_ENABLE_VK
 #endif // USE_ROSEN_DRAWING
     auto eglTextureId = eglImageManager_->MapEglImageFromSurfaceBuffer(buffer, acquireFence, threadIndex);
     if (eglTextureId == 0) {
@@ -339,8 +342,8 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
 #endif
 
 #if defined(RS_ENABLE_VK)
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR &&
+    if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) &&
         !image->BuildFromTexture(*renderContext_->GetDrGPUContext(), externalTextureInfo,
         surfaceOrigin, bitmapFormat, drawingColorSpace, nullptr, nullptr)) {
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer image BuildFromTexture failed");
@@ -832,7 +835,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         canvas.drawImageRect(image, params.srcRect, params.dstRect,
             SkSamplingOptions(), &(params.paint), SkCanvas::kStrict_SrcRectConstraint);
 #else
-        std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = Drawing::ColorType::CreateSRGB();
+        std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = Drawing::ColorSpace::CreateSRGB();
 #ifdef USE_VIDEO_PROCESSING_ENGINE
         drawingColorSpace = ConvertColorGamutToDrawingColorSpace(params.targetColorGamut);
 #endif
@@ -915,7 +918,6 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 #endif // USE_VIDEO_PROCESSING_ENGINE
 
 #ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
 #ifndef USE_VIDEO_PROCESSING_ENGINE
     auto samplingOptions = RSSystemProperties::IsPhoneType()
                                ? SkSamplingOptions()
@@ -926,19 +928,16 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     canvas.drawRect(params.dstRect, (params.paint));
 #endif // USE_VIDEO_PROCESSING_ENGINE
 #else
-#ifndef USE_VIDEO_PROCESSING_ENGINE
-    canvas.drawImageRect(image, params.srcRect, params.dstRect, &(params.paint));
-#else
-    canvas.drawRect(params.dstRect, &(params.paint));
-#endif // USE_VIDEO_PROCESSING_ENGINE
-#endif // NEW_SKIA
-#else
     canvas.AttachBrush(params.paint);
+#ifndef USE_VIDEO_PROCESSING_ENGINE
     auto drawingSamplingOptions = RSSystemProperties::IsPhoneType()
                                ? Drawing::SamplingOptions()
                                : Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
     canvas.DrawImageRect(*image.get(), params.srcRect, params.dstRect, drawingSamplingOptions,
         Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+#else
+    canvas.DrawRect(params.dstRect);
+#endif
     canvas.DetachBrush();
 #endif // USE_ROSEN_DRAWING
     RS_OPTIONAL_TRACE_END();

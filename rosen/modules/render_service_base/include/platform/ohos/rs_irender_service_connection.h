@@ -104,6 +104,10 @@ public:
 
     virtual std::vector<int32_t> GetScreenSupportedRefreshRates(ScreenId id) = 0;
 
+    virtual bool GetShowRefreshRateEnabled() = 0;
+    
+    virtual void SetShowRefreshRateEnabled(bool enable) = 0;
+
     virtual int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
 
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
@@ -208,6 +212,14 @@ public:
     virtual int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height) = 0;
 
     virtual void ReportJankStats() = 0;
+
+    virtual void NotifyLightFactorStatus(bool isSafe) = 0;
+
+    virtual void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) = 0;
+
+    virtual void NotifyRefreshRateEvent(const EventInfo& eventInfo) = 0;
+
+    virtual void NotifyTouchEvent(int32_t touchStatus) = 0;
 
     virtual void ReportEventResponse(DataBaseRs info) = 0;
 

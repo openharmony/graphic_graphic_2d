@@ -253,7 +253,7 @@ void AdaptiveImageHelper::DrawImageRepeatRect(Canvas& canvas, const Rect& rect, 
     }
     auto image = std::make_shared<Image>();
     if (!image->BuildFromCompressed(*canvas.GetGPUContext(), data, static_cast<int>(rsImageInfo.width),
-        static_cast<int>(rsImageInfo.height), CompressedType::ASTC)) {
+        static_cast<int>(rsImageInfo.height), CompressedType::ASTC_RGBA8_4x4)) {
         LOGE("AdaptiveImageHelper::DrawImageRepeatRect, image is nullptr.");
         return;
     }

@@ -31,6 +31,8 @@ public:
         return SystemProperties::systemGpuApiType_;
     }
 
+    static bool GetHMSymbolEnable();
+
 private:
     static const GpuApiType systemGpuApiType_;
 };

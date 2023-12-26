@@ -47,7 +47,7 @@ int32_t HgmVSyncGeneratorController::GetAppOffset(const uint32_t controllerRate)
 }
 
 void HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controllerRate,
-                                                      std::vector<std::pair<FrameRateLinkerId, uint32_t>> appData)
+    const std::vector<std::pair<FrameRateLinkerId, uint32_t>>& appData)
 {
     int32_t pulseNum = GetAppOffset(controllerRate);
 

@@ -1241,6 +1241,65 @@ HWTEST_F(RSInterfacesTest, RegisterHgmConfigChangeCallback_Test, Function | Smal
 }
 
 /*
+ * @tc.name: NotifyLightFactorStatus001
+ * @tc.desc: Notify light factor status to hgm
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, NotifyLightFactorStatus001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    bool isSafe = false;
+    rsInterfaces->NotifyLightFactorStatus(isSafe);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
+ * @tc.name: NotifyPackageEvent001
+ * @tc.desc: Notify current package list to hgm
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, NotifyPackageEvent001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::vector<std::string> packageList;
+    packageList.push_back("NotifyPackageEvent001");
+    packageList.push_back("NotifyPackageEvent002");
+    uint32_t listSize = packageList.size();
+    rsInterfaces->NotifyPackageEvent(listSize, packageList);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
+ * @tc.name: NotifyRefreshRateEvent001
+ * @tc.desc: Notify refreshRate event to hgm to modify screen refreshRate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, NotifyRefreshRateEvent001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    EventInfo eventInfo = { "VOTER_IDLE", true, 1, 1000 };
+    rsInterfaces->NotifyRefreshRateEvent(eventInfo);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
+ * @tc.name: NotifyTouchEvent001
+ * @tc.desc: Notify touch event to hgm
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, NotifyTouchEvent001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    int32_t touchStatus = 0;
+    rsInterfaces->NotifyTouchEvent(touchStatus);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
  * @tc.name: RegisterSurfaceOcclusionChangeCallback001
  * @tc.desc: RegisterOcclusionChangeCallback interface test.
  * @tc.type: FUNC

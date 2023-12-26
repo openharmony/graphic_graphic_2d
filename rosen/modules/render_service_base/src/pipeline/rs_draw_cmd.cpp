@@ -366,30 +366,161 @@ SymbolOpItem::SymbolOpItem(const HMSymbolData& symbol, SkPoint locate, const SkP
 static void MergePath(SkPath& multPath, RenderGroup& group, std::vector<SkPath>& pathLayers)
 {
     for (auto groupInfo : group.groupInfos) {
-        SkPath pathStemp;
+        SkPath pathTemp;
         for (auto k : groupInfo.layerIndexes) {
             if (k >= pathLayers.size()) {
                 continue;
             }
-            pathStemp.addPath(pathLayers[k]);
+            pathTemp.addPath(pathLayers[k]);
         }
         for (size_t h : groupInfo.maskIndexes) {
             if (h >= pathLayers.size()) {
                 continue;
             }
             SkPath outPath;
-            auto isOk = Op(pathStemp, pathLayers[h], SkPathOp::kDifference_SkPathOp, &outPath);
+            auto isOk = Op(pathTemp, pathLayers[h], SkPathOp::kDifference_SkPathOp, &outPath);
             if (isOk) {
-                pathStemp = outPath;
+                pathTemp = outPath;
             }
         }
-        multPath.addPath(pathStemp);
+        multPath.addPath(pathTemp);
     }
+}
+
+void SymbolOpItem::SetSymbol()
+{
+    ROSEN_LOGE("SymbolOpItem::SetSymbol GlyphId %{public}d", static_cast<int>(symbol_.symbolInfo_.symbolGlyphId));
+    if (symbol_.symbolInfo_.effect == EffectStrategy::SCALE) {
+        if (!startAnimation_) {
+            InitialScale();
+        }
+        SetScale(0); // scale animation only has one element
+    } else if (symbol_.symbolInfo_.effect == EffectStrategy::HIERARCHICAL) {
+        if (!startAnimation_) {
+            InitialVariableColor();
+        }
+        for (size_t i = 0; i < animation_.size(); i++) {
+            SetVariableColor(i);
+        }
+    }
+}
+
+void SymbolOpItem::InitialScale()
+{
+    SymbolAnimation animation;
+    animation.startValue = 0; // 0 means scale start value
+    animation.curValue = 0; // 0 means scale current value
+    animation.endValue = 0.5; // 0.5 means scale end value
+    animation.speedValue = 0.05; // 0.05 means scale change step
+    animation.number = 0; // 0 means number of times that the animation to be played
+    animation_.push_back(animation);
+    startAnimation_ = true;
+}
+
+void SymbolOpItem::InitialVariableColor()
+{
+    ROSEN_LOGE("SetSymbol groups %{public}d", static_cast<int>(symbol_.symbolInfo_.renderGroups.size()));
+    uint32_t startTimes = 10 * symbol_.symbolInfo_.renderGroups.size() - 10; // 10 means frame intervals
+    for (size_t j = 0; j < symbol_.symbolInfo_.renderGroups.size(); j++) {
+        SymbolAnimation animation;
+        animation.startValue = 0.4; // 0.4 means alpha start value
+        animation.curValue = 0.4; // 0.4 means alpha current value
+        animation.endValue = 1; // 1 means alpha end value
+        animation.speedValue = 0.08; // 0.08 means alpha change step
+        animation.number = 0; // 0 means number of times that the animation to be played
+        animation.startCount = startTimes - j * 10; // 10 means frame intervals
+        animation.count = 0; // 0 means the initial value of the frame
+        animation_.push_back(animation);
+        symbol_.symbolInfo_.renderGroups[j].color.a = animation.startValue;
+    }
+    startAnimation_ = true;
+}
+
+void SymbolOpItem::SetScale(size_t index)
+{
+    if (animation_.size() < index || animation_[index].number >= number_) {
+        ROSEN_LOGE("SymbolOpItem::symbol scale animation is false!");
+        return;
+    }
+    SymbolAnimation animation = animation_[index];
+    if (animation.number >= number_ || animation.startValue == animation.endValue) {
+        return;
+    }
+    if (animation.number == 0) {
+        ROSEN_LOGE("SymbolOpItem::symbol scale animation is start!");
+    }
+
+    if (abs(animation.curValue - animation.endValue) < animation.speedValue) {
+        double temp = animation.startValue;
+        animation.startValue = animation.endValue;
+        animation.endValue = temp;
+        animation.number++;
+    }
+    if (animation.number == number_) {
+        ROSEN_LOGE("SymbolOpItem::symbol scale animation is end!");
+        return;
+    }
+    if (animation.endValue > animation.startValue) {
+        animation.curValue = animation.curValue + animation.speedValue;
+    } else {
+        animation.curValue = animation.curValue - animation.speedValue;
+    }
+    animation_[index] = animation;
+}
+
+void SymbolOpItem::SetVariableColor(size_t index)
+{
+    if (animation_.size() < index || animation_[index].number >= number_) {
+        return;
+    }
+
+    animation_[index].count++;
+    SymbolAnimation animation = animation_[index];
+    if (animation.startValue == animation.endValue ||
+        animation.count < animation.startCount) {
+        return;
+    }
+
+    if (abs(animation.curValue - animation.endValue) < animation.speedValue) {
+        double stemp = animation.startValue;
+        animation.startValue = animation.endValue;
+        animation.endValue = stemp;
+        animation.number++;
+    }
+    if (animation.endValue > animation.startValue) {
+        animation.curValue = animation.curValue + animation.speedValue;
+    } else {
+        animation.curValue = animation.curValue - animation.speedValue;
+    }
+    UpdataVariableColor(animation.curValue, index);
+    animation_[index] = animation;
+}
+
+void SymbolOpItem::UpdateScale(const double cur, SkPath& path)
+{
+    ROSEN_LOGE("SymbolOpItem::animation cur %{public}f", static_cast<float>(cur));
+    //set symbol
+    SkRect rect = path.getBounds();
+    float y = (rect.fTop - rect.fBottom) / 2;
+    float x = (rect.fRight - rect.fLeft) / 2;
+    path.transform(SkMatrix::Translate(-x, -y));
+    path.transform(SkMatrix::Scale(1.0f + cur, 1.0f+ cur));
+    path.transform(SkMatrix::Translate(x, y));
+}
+
+void SymbolOpItem::UpdataVariableColor(const double cur, size_t index)
+{
+    symbol_.symbolInfo_.renderGroups[index].color.a = fmin(1, fmax(0, cur));
 }
 
 void SymbolOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 {
     SkPath path(symbol_.path_);
+
+    if (startAnimation_ && symbol_.symbolInfo_.effect == EffectStrategy::SCALE &&
+            !animation_.empty()) {
+        UpdateScale(animation_[0].curValue, path);
+    }
 
     // 1.0 move path
     path.offset(locate_.x(), locate_.y());
@@ -873,7 +1004,7 @@ ImageWithParmOpItem::~ImageWithParmOpItem()
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         RSTaskDispatcher::GetInstance().PostTask(tid_, [nativeWindowBuffer = nativeWindowBuffer_,
-            cleanupHelper = cleanupHelper_]() {
+            cleanupHelper = cleanUpHelper_]() {
             if (nativeWindowBuffer) {
                 DestroyNativeWindowBuffer(nativeWindowBuffer);
             }
@@ -987,7 +1118,7 @@ sk_sp<SkImage> ImageWithParmOpItem::GetSkImageFromSurfaceBuffer(SkCanvas& canvas
             if (backendTexture_.isValid()) {
                 GrVkImageInfo imageInfo;
                 backendTexture_.getVkImageInfo(&imageInfo);
-                cleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+                cleanUpHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
                     imageInfo.fImage, imageInfo.fAlloc.fMemory);
             } else {
                 return nullptr;
@@ -1000,7 +1131,7 @@ sk_sp<SkImage> ImageWithParmOpItem::GetSkImageFromSurfaceBuffer(SkCanvas& canvas
         auto skImage = SkImage::MakeFromTexture(
             canvas.recordingContext(), backendTexture_, kTopLeft_GrSurfaceOrigin,
             GetSkColorTypeFromVkFormat(imageInfo.fFormat), kPremul_SkAlphaType, SkColorSpace::MakeSRGB(),
-            NativeBufferUtils::DeleteVkImage, cleanupHelper_->Ref());
+            NativeBufferUtils::DeleteVkImage, cleanUpHelper_->Ref());
         return skImage;
     }
 #endif
@@ -1234,15 +1365,6 @@ void SurfaceBufferOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
                 kPremul_SkAlphaType, SkColorSpace::MakeSRGB(), NativeBufferUtils::DeleteVkImage,
                 new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
                     imageInfo.fImage, imageInfo.fAlloc.fMemory));
-            if (canvas.GetRecordingState()) {
-                if (!skImage_) {
-                    return;
-                }
-                auto cpuImage = skImage_->makeRasterImage();
-                auto samplingOptions = SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
-                canvas.drawImage(cpuImage, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, samplingOptions);
-                return;
-            }
             auto samplingOptions = SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
             canvas.drawImage(skImage_, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, samplingOptions);
         } else {
@@ -2487,6 +2609,10 @@ constexpr int32_t CORNER_SIZE = 4;
 #ifdef RS_ENABLE_VK
 Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
 {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return Drawing::COLORTYPE_RGBA_8888;
+    }
     switch (vkFormat) {
         case VK_FORMAT_R8G8B8A8_UNORM:
             return Drawing::COLORTYPE_RGBA_8888;
@@ -2634,6 +2760,10 @@ bool RSExtendImageObject::GetDrawingImageFromSurfaceBuffer(Drawing::Canvas& canv
 
     Drawing::BitmapFormat bitmapFormat = {
         Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    if (!canvas.GetGPUContext()) {
+        RS_LOGE("GetDrawingImageFromSurfaceBuffer gpu context is nullptr");
+        return false;
+    }
     if (!image_) {
         image_ = std::make_shared<Drawing::Image>();
     }
@@ -2720,7 +2850,7 @@ RSExtendImageObject::~RSExtendImageObject()
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         RSTaskDispatcher::GetInstance().PostTask(tid_, [nativeWindowBuffer = nativeWindowBuffer_,
-            cleanupHelper = cleanupHelper_]() {
+            cleanupHelper = cleanUpHelper_]() {
             if (nativeWindowBuffer != nullptr) {
                 DestroyNativeWindowBuffer(nativeWindowBuffer);
             }

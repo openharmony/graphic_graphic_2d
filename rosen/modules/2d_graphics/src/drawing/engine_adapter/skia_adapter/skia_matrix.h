@@ -79,6 +79,8 @@ public:
     void PreScale(scalar sx, scalar sy, scalar px, scalar py) override;
     void Reset() override;
 
+    bool GetMinMaxScales(scalar scaleFactors[2]) override;
+
 private:
     SkMatrix skMatrix_;
 };

@@ -23,11 +23,16 @@ namespace Rosen {
 
 class RSC_EXPORT RSTextureExport {
 public:
-    RSTextureExport();
+    RSTextureExport(std::shared_ptr<RSNode> rootNode, SurfaceId surfaceId);
     ~RSTextureExport();
-    bool DoTextureExport(std::shared_ptr<RSNode> rootNode, SurfaceId surfaceId);
+    bool DoTextureExport();
+    void StopTextureExport();
 private:
     std::shared_ptr<RSUIDirector> rsUiDirector_;
+    std::shared_ptr<RSNode> rootNode_;
+    SurfaceId surfaceId_;
+    std::shared_ptr<RSSurfaceNode> virtualSurfaceNode_;
+    std::shared_ptr<RSNode> virtualRootNode_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -84,6 +84,10 @@ public:
 
     std::vector<int32_t> GetScreenSupportedRefreshRates(ScreenId id) override;
 
+    bool GetShowRefreshRateEnabled() override;
+    
+    void SetShowRefreshRateEnabled(bool enable) override;
+
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
@@ -181,6 +185,14 @@ public:
     int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height) override;
 
     void ReportJankStats() override;
+
+    void NotifyLightFactorStatus(bool isSafe) override;
+
+    void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) override;
+
+    void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
+
+    void NotifyTouchEvent(int32_t touchStatus) override;
 
     void ReportEventResponse(DataBaseRs info) override;
 

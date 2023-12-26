@@ -59,6 +59,16 @@ struct RS_EXPORT TextShadow {
     bool HasShadow() const;
 };
 
+struct RS_EXPORT RectStyle {
+    uint32_t color = 0;
+    double leftTopRadius = 0.0;
+    double rightTopRadius = 0.0;
+    double rightBottomRadius = 0.0;
+    double leftBottomRadius = 0.0;
+    bool operator ==(const RectStyle& rhs) const;
+    bool operator !=(const RectStyle& rhs) const;
+};
+
 struct TextStyle {
     Drawing::Color color = Drawing::Color::COLOR_WHITE;
     TextDecoration decoration = TextDecoration::NONE;
@@ -90,6 +100,7 @@ struct TextStyle {
     // if Pen and SkPaint are setting, use pen first
     std::vector<TextShadow> shadows;
     FontFeatures fontFeatures;
+    RectStyle backgroundRect = {0, 0.0, 0.0, 0.0, 0.0};
 
     bool operator ==(const TextStyle &rhs) const;
 

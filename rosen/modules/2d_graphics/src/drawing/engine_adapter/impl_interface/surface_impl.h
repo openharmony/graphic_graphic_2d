@@ -35,6 +35,7 @@ struct FrameBuffer;
 class ImageInfo;
 class GPUContext;
 #endif
+enum class BackendAccess;
 
 class SurfaceImpl : public BaseImpl {
 public:
@@ -50,7 +51,7 @@ public:
     virtual std::shared_ptr<Image> GetImageSnapshot() const = 0;
     virtual std::shared_ptr<Image> GetImageSnapshot(const RectI& bounds) const = 0;
     virtual std::shared_ptr<Surface> MakeSurface(int width, int height) const = 0;
-    virtual BackendTexture GetBackendTexture() const = 0;
+    virtual BackendTexture GetBackendTexture(BackendAccess access) const = 0;
     virtual void FlushAndSubmit(bool syncCpu) = 0;
     virtual void Flush(FlushInfo *drawingflushInfo = nullptr) = 0;
 #ifdef RS_ENABLE_VK
@@ -58,6 +59,8 @@ public:
     virtual void SetDrawingArea(const std::vector<RectI>& rects) = 0;
     virtual void ClearDrawingArea() = 0;
 #endif
+    virtual int Width() const = 0;
+    virtual int Height() const = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

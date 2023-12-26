@@ -230,6 +230,10 @@ private:
 #ifdef RS_ENABLE_GL
     void InitGrContextOptions(GrContextOptions &options);
 #endif
+#else
+#ifdef RS_ENABLE_GL
+    void InitGrContextOptions(Drawing::GPUContextOptions &options);
+#endif
 #endif
 };
 

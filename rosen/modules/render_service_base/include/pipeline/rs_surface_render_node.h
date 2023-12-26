@@ -744,6 +744,7 @@ public:
 
     // if a surfacenode's dstrect is empty, its subnodes' prepare stage can be skipped
     bool ShouldPrepareSubnodes();
+    void StoreMustRenewedInfo() override;
 
     void SetNodeCost(int32_t cost)
     {
@@ -896,6 +897,16 @@ public:
         isForeground_ = isForeground;
     }
 
+    void SetSurfaceId(SurfaceId surfaceId)
+    {
+        surfaceId_ = surfaceId;
+    }
+
+    SurfaceId GetSurfaceId() const
+    {
+        return surfaceId_;
+    }
+
     bool GetIsForeground() const
     {
         return isForeground_;
@@ -961,6 +972,7 @@ private:
     float positionZ_ = 0.0f;
     bool zOrderChanged_ = false;
     bool qosPidCal_ = false;
+    SurfaceId surfaceId_ = 0;
 
     std::string name_;
     std::string bundleName_;

@@ -167,15 +167,15 @@ public:
     static VKAPI_ATTR VkResult HookedVkQueueSignalReleaseImageOHOS(VkQueue queue, uint32_t waitSemaphoreCount,
         const VkSemaphore* pWaitSemaphores, VkImage image, int32_t* pNativeFenceFd);
 #ifndef USE_ROSEN_DRAWING
-    sk_sp<GrDirectContext> GetHardWareGrContext()
+    sk_sp<GrDirectContext> GetHardWareGrContext() const
 #else
-    std::shared_ptr<Drawing::GPUContext> GetHardWareGrContext()
+    std::shared_ptr<Drawing::GPUContext> GetHardWareGrContext() const
 #endif
     {
         return hcontext_;
     }
 
-    VkQueue GetHardwareQueue()
+    VkQueue GetHardwareQueue() const
     {
         return hbackendContext_.fQueue;
     }

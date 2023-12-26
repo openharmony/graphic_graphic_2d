@@ -132,6 +132,13 @@ ohos_unittest("RSUniRenderProcessorTest") {
   ]
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSRenderServiceVisitorTest
@@ -262,6 +269,13 @@ ohos_unittest("RSSurfaceCaptureTaskTest") {
   defines += gpu_defines
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
   }
 }
 
@@ -621,6 +635,13 @@ ohos_unittest("RSRenderEngineTest") {
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSNodeCostManagerTest
@@ -722,6 +743,13 @@ ohos_unittest("RSUniRenderEngineTest") {
   defines += gpu_defines
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
   }
 }
 

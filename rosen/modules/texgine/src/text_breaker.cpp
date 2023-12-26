@@ -181,7 +181,7 @@ void TextBreaker::GenNewBoundryByTypeface(CharGroups cgs, std::vector<Boundary> 
             }
 
             newBoundary.push_back({newStart, newEnd});
-            newStart = newEnd;
+            newStart = newEnd++;
             typeface = cg->typeface;
         }
 

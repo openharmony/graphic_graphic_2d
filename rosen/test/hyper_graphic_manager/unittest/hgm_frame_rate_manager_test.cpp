@@ -45,12 +45,12 @@ void HgmFrameRateMgrTest::SetUp() {}
 void HgmFrameRateMgrTest::TearDown() {}
 
 /**
- * @tc.name: UniProcessData
- * @tc.desc: Verify the result of UniProcessData function
+ * @tc.name: UniProcessDataForLtpo
+ * @tc.desc: Verify the result of UniProcessDataForLtpo function
  * @tc.type: FUNC
  * @tc.require: I7DMS1
  */
-HWTEST_F(HgmFrameRateMgrTest, UniProcessData, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, UniProcessDataForLtpo, Function | SmallTest | Level1)
 {
     auto &instance = HgmCore::Instance();
     ScreenId id = 8;
@@ -95,8 +95,25 @@ HWTEST_F(HgmFrameRateMgrTest, UniProcessData, Function | SmallTest | Level1)
             ASSERT_NE(frameRateMgr, nullptr);
             frameRateMgr->Init(rsController, appController, vsyncGenerator);
         }
-        STEP("2. check the result of UniProcessData") {
-            frameRateMgr->UniProcessData(id, timestamp, rsFrameRateLinker, appFrameLinkers, flag);
+        STEP("2. check the result of UniProcessDataForLtpo") {
+            frameRateMgr->UniProcessDataForLtpo(timestamp, rsFrameRateLinker, appFrameLinkers, flag);
+        }
+    }
+}
+
+/**
+ * @tc.name: UniProcessDataForLtps
+ * @tc.desc: Verify the result of UniProcessDataForLtps function
+ * @tc.type: FUNC
+ * @tc.require: I7DMS1
+ */
+HWTEST_F(HgmFrameRateMgrTest, UniProcessDataForLtps, Function | SmallTest | Level1)
+{
+    bool flag = false;
+    std::unique_ptr<HgmFrameRateManager> frameRateMgr = std::make_unique<HgmFrameRateManager>();
+    PART("CaseDescription") {
+        STEP("1. check the result of UniProcessDataForLtps") {
+            frameRateMgr->UniProcessDataForLtps(flag);
         }
     }
 }
@@ -129,6 +146,5 @@ HWTEST_F(HgmFrameRateMgrTest, HgmOneShotTimerTest, Function | SmallTest | Level2
         }
     }
 }
-
 } // namespace Rosen
 } // namespace OHOS

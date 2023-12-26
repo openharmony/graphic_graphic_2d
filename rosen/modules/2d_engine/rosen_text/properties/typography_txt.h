@@ -55,6 +55,9 @@ public:
         double dy) override;
     TypographyProperties::Range<size_t> GetWordBoundary(size_t offset) override;
     size_t GetLineCount() override;
+    double GetLineHeight(int lineNumber) override;
+    double GetLineWidth(int lineNumber) override;
+
 private:
     std::unique_ptr<txt::Paragraph> paragraphTxt_;
 };

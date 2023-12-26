@@ -76,6 +76,19 @@ bool TextShadow::HasShadow() const
     return offset.GetX() != 0 || offset.GetY() != 0 || fabs(blurRadius) >= DBL_EPSILON;
 }
 
+bool RectStyle::operator ==(const RectStyle& rhs) const
+{
+    return color == rhs.color && leftTopRadius == rhs.leftTopRadius &&
+        rightTopRadius == rhs.rightTopRadius &&
+        rightBottomRadius == rhs.rightBottomRadius &&
+        leftBottomRadius == rhs.leftBottomRadius;
+}
+
+bool RectStyle::operator !=(const RectStyle& rhs) const
+{
+    return !(*this == rhs);
+}
+
 bool TextStyle::operator ==(const TextStyle& rhs) const
 {
     return color == rhs.color &&
@@ -103,6 +116,7 @@ bool TextStyle::operator ==(const TextStyle& rhs) const
         backgroundBrush == rhs.backgroundBrush &&
         backgroundPen == rhs.backgroundPen &&
 #endif
+        backgroundRect == rhs.backgroundRect &&
         shadows == rhs.shadows &&
         fontFeatures == rhs.fontFeatures;
 }

@@ -113,6 +113,10 @@ public:
 
     std::vector<int32_t> GetScreenSupportedRefreshRates(ScreenId id);
 
+    bool GetShowRefreshRateEnabled();
+    
+    void SetShowRefreshRateEnabled(bool enable);
+    
     std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id);
 
     RSScreenCapability GetScreenCapability(ScreenId id);
@@ -194,6 +198,14 @@ public:
     int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height);
 
     void ReportJankStats();
+
+    void NotifyLightFactorStatus(bool isSafe);
+
+    void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
+
+    void NotifyRefreshRateEvent(const EventInfo& eventInfo);
+
+    void NotifyTouchEvent(int32_t touchStatus);
 
     void ReportEventResponse(DataBaseRs info);
 

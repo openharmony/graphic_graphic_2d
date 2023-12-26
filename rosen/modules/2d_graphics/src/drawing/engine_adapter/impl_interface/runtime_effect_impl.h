@@ -20,6 +20,7 @@
 
 #include "base_impl.h"
 
+#include "effect/blender.h"
 #include "effect/shader_effect.h"
 #include "utils/data.h"
 #include "utils/matrix.h"
@@ -35,6 +36,7 @@ public:
 
     virtual void InitForShader(const std::string& sl, const RuntimeEffectOptions& options) = 0;
     virtual void InitForShader(const std::string& sl) = 0;
+    virtual void InitForBlender(const std::string& sl) = 0;
     virtual std::shared_ptr<ShaderEffect> MakeShader(std::shared_ptr<Data> uniforms,
         std::shared_ptr<ShaderEffect> children[], size_t childCount, const Matrix* localMatrix,
         bool isOpaque) = 0;

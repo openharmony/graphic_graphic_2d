@@ -47,7 +47,7 @@ void RSSurfaceFrameOhosVulkan::SetDamageRegion(int32_t left, int32_t top, int32_
     surface_->setDrawingArea(skIRects);
 #else
     std::vector<Drawing::RectI> rects;
-    Drawing::RectI rect = {left, top, width, height};
+    Drawing::RectI rect = {left, top, left + width, top + height};
     rects.push_back(rect);
     surface_->SetDrawingArea(rects);
 #endif

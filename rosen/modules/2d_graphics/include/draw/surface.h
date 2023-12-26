@@ -33,6 +33,7 @@ struct FrameBuffer {
     int height;
     int FBOID;
     int Format;
+    ColorType colorType;
     std::shared_ptr<GPUContext> gpuContext;
     std::shared_ptr<ColorSpace> colorSpace;
 };
@@ -41,7 +42,17 @@ struct FrameBuffer {
 struct FlushInfo {
     bool backendSurfaceAccess = false;
     size_t numSemaphores = 0;
-    void *backendSemaphore = nullptr;
+    void* signalSemaphores = nullptr;
+    void (*finishedProc)(void* finishedContext) = nullptr;
+    void* finishedContext = nullptr;
+    void (*submittedProc)(void* finishedContext, bool success) = nullptr;
+    void* submittedContext = nullptr;
+};
+
+enum class BackendAccess {
+    FLUSH_READ,
+    FLUSH_WRITE,
+    DISCARD_WRITE
 };
 
 class DRAWING_API Surface {
@@ -69,8 +80,12 @@ public:
     bool Bind(const FrameBuffer& frameBuffer);
 
 #ifdef RS_ENABLE_VK
-    static std::shared_ptr<Surface> MakeFromBackendRenderTarget(GPUContext* gpuContext, TextureInfo& info,
-        TextureOrigin origin, void (*deleteVkImage)(void *), void* cleanHelper);
+    static std::shared_ptr<Surface> MakeFromBackendRenderTarget(GPUContext* gpuContext, const TextureInfo& info,
+        TextureOrigin origin, ColorType colorType, std::shared_ptr<ColorSpace> colorSpace,
+        void (*deleteVkImage)(void *), void* cleanHelper);
+    static std::shared_ptr<Surface> MakeFromBackendTexture(GPUContext* gpuContext, const TextureInfo& info,
+        TextureOrigin origin, int sampleCnt, ColorType colorType,
+        std::shared_ptr<ColorSpace> colorSpace, void (*deleteVkImage)(void *), void* cleanHelper);
 #endif
 
     /*
@@ -140,7 +155,7 @@ public:
     /*
      * @brief   Gets BackendTexture of Surface
      */
-    BackendTexture GetBackendTexture() const;
+    BackendTexture GetBackendTexture(BackendAccess access = BackendAccess::FLUSH_READ) const;
 
     /*
      * @brief   Call to ensure all reads/writes of surface have been issue to the underlying 3D API.
@@ -151,6 +166,9 @@ public:
      * @brief   Call to ensure all reads/writes of surface have been issue to the underlying 3D API.
      */
     void Flush(FlushInfo *drawingflushInfo = nullptr);
+
+    int Width() const;
+    int Height() const;
 
     template<typename T>
     T* GetImpl() const

@@ -156,6 +156,16 @@ std::vector<int32_t> RSInterfaces::GetScreenSupportedRefreshRates(ScreenId id)
     return renderServiceClient_->GetScreenSupportedRefreshRates(id);
 }
 
+bool RSInterfaces::GetShowRefreshRateEnabled()
+{
+    return renderServiceClient_->GetShowRefreshRateEnabled();
+}
+    
+void RSInterfaces::SetShowRefreshRateEnabled(bool enable)
+{
+    return renderServiceClient_->SetShowRefreshRateEnabled(enable);
+}
+
 bool RSInterfaces::TakeSurfaceCaptureForUI(
     std::shared_ptr<RSNode> node, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
 {
@@ -200,6 +210,8 @@ RSVirtualScreenResolution RSInterfaces::GetVirtualScreenResolution(ScreenId id)
 
 void RSInterfaces::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
+    RS_LOGI("RSInterfaces::SetScreenPowerStatus: ScreenId: %{public}" PRIu64 ", ScreenPowerStatus: %{public}u", id,
+        static_cast<uint32_t>(status));
     renderServiceClient_->SetScreenPowerStatus(id, status);
 }
 
@@ -253,6 +265,7 @@ int32_t RSInterfaces::GetScreenBacklight(ScreenId id)
 
 void RSInterfaces::SetScreenBacklight(ScreenId id, uint32_t level)
 {
+    RS_LOGI("RSInterfaces::SetScreenBacklight: ScreenId: %{public}" PRIu64 ", level: %{public}u", id, level);
     renderServiceClient_->SetScreenBacklight(id, level);
 }
 
@@ -445,6 +458,26 @@ void RSInterfaces::ReportEventJankFrame(DataBaseRs info)
 void RSInterfaces::EnableCacheForRotation()
 {
     renderServiceClient_->SetCacheEnabledForRotation(true);
+}
+
+void RSInterfaces::NotifyLightFactorStatus(bool isSafe)
+{
+    renderServiceClient_->NotifyLightFactorStatus(isSafe);
+}
+
+void RSInterfaces::NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
+{
+    renderServiceClient_->NotifyPackageEvent(listSize, packageList);
+}
+
+void RSInterfaces::NotifyRefreshRateEvent(const EventInfo& eventInfo)
+{
+    renderServiceClient_->NotifyRefreshRateEvent(eventInfo);
+}
+
+void RSInterfaces::NotifyTouchEvent(int32_t touchStatus)
+{
+    renderServiceClient_->NotifyTouchEvent(touchStatus);
 }
 
 void RSInterfaces::DisableCacheForRotation()

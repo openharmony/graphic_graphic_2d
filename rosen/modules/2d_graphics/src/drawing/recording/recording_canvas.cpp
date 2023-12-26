@@ -331,11 +331,13 @@ void RecordingCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const s
         return;
     }
 
+#ifdef ROSEN_OHOS
     if (IsCustomTextType()) {
         LOGD("RecordingCanvas::DrawTextBlob replace drawOpItem with cached one");
         GenerateCachedOpForTextblob(blob, x, y);
         return;
     }
+#endif
     auto textBlobHandle = CmdListHelper::AddTextBlobToCmdList(*cmdList_, blob);
     AddOp<DrawTextBlobOpItem::ConstructorHandle>(textBlobHandle, x, y);
 }
@@ -375,6 +377,14 @@ void RecordingCanvas::ClipRoundRect(const RoundRect& roundRect, ClipOp op, bool 
     CheckForLazySave();
     cmdList_->AddOp<ClipRoundRectOpItem::ConstructorHandle>(roundRect, op, doAntiAlias);
     Canvas::ClipRoundRect(roundRect, op, doAntiAlias);
+}
+
+void RecordingCanvas::ClipRoundRect(const Rect& rect, std::vector<Point>& pts, bool doAntiAlias)
+{
+    CheckForLazySave();
+    RoundRect roundRect = RoundRect(rect, pts);
+    cmdList_->AddOp<ClipRoundRectOpItem::ConstructorHandle>(roundRect, ClipOp::INTERSECT, doAntiAlias);
+    Canvas::ClipRoundRect(roundRect, ClipOp::INTERSECT, doAntiAlias);
 }
 
 void RecordingCanvas::ClipPath(const Path& path, ClipOp op, bool doAntiAlias)

@@ -114,6 +114,7 @@ public:
     void ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias) override;
     void ClipIRect(const RectI& rect, ClipOp op = ClipOp::INTERSECT) override;
     void ClipRoundRect(const RoundRect& roundRect, ClipOp op, bool doAntiAlias) override;
+    void ClipRoundRect(const Rect& rect, std::vector<Point>& pts, bool doAntiAlias) override;
     void ClipPath(const Path& path, ClipOp op, bool doAntiAlias) override;
     void ClipRegion(const Region& region, ClipOp op = ClipOp::INTERSECT) override;
 

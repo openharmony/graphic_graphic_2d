@@ -489,7 +489,7 @@ int DrawingDCL::LoadDrawCmdList(const std::string& dclFile)
     }
     std::cout << "messageParcel GetDataSize() = " << messageParcel.GetDataSize() << std::endl;
 
-    RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());1
+    RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
     RSMarshallingHelper::Unmarshalling(messageParcel, dcl_);
     RSMarshallingHelper::EndNoSharedMem();
     if (dcl_ == nullptr) {

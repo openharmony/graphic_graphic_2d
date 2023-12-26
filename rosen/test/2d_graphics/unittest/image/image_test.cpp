@@ -241,7 +241,7 @@ HWTEST_F(ImageTest, BuildFromCompressedTest001, TestSize.Level1)
     const std::shared_ptr<Data> data = nullptr;
     std::unique_ptr<Image> image = std::make_unique<Image>();
     ASSERT_TRUE(image != nullptr);
-    image->BuildFromCompressed(gpuContext, data, 15, 15, CompressedType::ASTC);
+    image->BuildFromCompressed(gpuContext, data, 15, 15, CompressedType::ASTC_RGBA8_4x4);
 }
 
 /**
@@ -257,7 +257,7 @@ HWTEST_F(ImageTest, BuildFromCompressedTest002, TestSize.Level1)
     ASSERT_TRUE(data != nullptr);
     std::unique_ptr<Image> image = std::make_unique<Image>();
     ASSERT_TRUE(image != nullptr);
-    image->BuildFromCompressed(gpuContext, data, 15, 15, CompressedType::ASTC);
+    image->BuildFromCompressed(gpuContext, data, 15, 15, CompressedType::ASTC_RGBA8_4x4);
 }
 
 /**
@@ -273,7 +273,7 @@ HWTEST_F(ImageTest, BuildFromCompressedTest003, TestSize.Level1)
     ASSERT_TRUE(data != nullptr);
     std::unique_ptr<Image> image = std::make_unique<Image>();
     ASSERT_TRUE(image != nullptr);
-    image->BuildFromCompressed(gpuContext, data, 15, 15, CompressedType::ETC1);
+    image->BuildFromCompressed(gpuContext, data, 15, 15, CompressedType::ETC2_RGB8_UNORM);
 }
 
 /**

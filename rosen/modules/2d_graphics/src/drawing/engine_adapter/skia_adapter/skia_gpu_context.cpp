@@ -73,16 +73,10 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
     }
 
     GrContextOptions grOptions;
-#ifndef USE_GRAPHIC_TEXT_GINE
     grOptions.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
-#else
-#if GR_TEST_UTILS
-    grOptions.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
-#endif
-#endif
     grOptions.fPreferExternalImagesOverES3 = true;
     grOptions.fDisableDistanceFieldPaths = true;
-    grOptions.fAllowPathMaskCaching = true;
+    grOptions.fAllowPathMaskCaching = options.GetAllowPathMaskCaching();
     grOptions.fPersistentCache = skiaPersistentCache_.get();
 #ifdef NEW_SKIA
     grContext_ = GrDirectContext::MakeGL(std::move(glInterface), grOptions);

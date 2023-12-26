@@ -195,17 +195,13 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
     if (!skImage_) {
         return;
     }
-#ifdef NEW_SKIA
     auto samplingOptions = SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
     if (canvas.GetRecordingState()) {
         auto cpuImage = skImage_->makeRasterImage();
-        canvas.drawImage(cpuImage,0.f, 0.f, samplingOptions, nullptr);
+        canvas.drawImage(cpuImage, 0.f, 0.f, samplingOptions, nullptr);
         return;
     }
     canvas.drawImage(skImage_, 0.f, 0.f, samplingOptions, nullptr);
-#else
-    canvas.drawImage(skImage_, 0.f, 0.f, nullptr);
-#endif
 }
 
 #else // USE_ROSEN_DRAWING
@@ -219,51 +215,24 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
     }
 
     if (IsNeedResetSurface(width, height)) {
+#if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
         if (preThreadInfo_.second && surface_) {
             preThreadInfo_.second(std::move(surface_));
         }
-        if (!ResetSurface(width, height, canvas)) {
-            return;
-        }
         preThreadInfo_ = curThreadInfo_;
-    } else if ((isGpuSurface_) && (preThreadInfo_.first != curThreadInfo_.first)) {
-        auto preMatrix = canvas_->GetTotalMatrix();
-        auto preSurface = surface_;
+#endif
         if (!ResetSurface(width, height, canvas)) {
             return;
         }
 #if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
-        auto image = preSurface->GetImageSnapshot();
-        if (!image) {
+    } else if ((isGpuSurface_) && (preThreadInfo_.first != curThreadInfo_.first)) {
+        if (!ResetSurfaceWithTexture(width, height, canvas)) {
             return;
         }
-        Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
-        auto sharedBackendTexture = image->GetBackendTexture(false, &origin);
-        if (!sharedBackendTexture.IsValid()) {
-            RS_LOGE("RSCanvasDrawingRenderNode::ProcessRenderContents sharedBackendTexture is nullptr");
-            return;
-        }
-        auto newImage = std::make_shared<Drawing::Image>();
-        Drawing::BitmapFormat info = Drawing::BitmapFormat { Drawing::COLORTYPE_RGBA_8888,
-            Drawing::ALPHATYPE_PREMUL };
-        bool ret = newImage->BuildFromTexture(*canvas.GetGPUContext(), sharedBackendTexture.GetTextureInfo(),
-            origin, info, nullptr);
-        if (!ret) {
-            RS_LOGE("RSCanvasDrawingRenderNode::ProcessRenderContents BuildFromTexture failed");
-            return;
-        }
-        canvas_->DrawImage(*newImage, 0.f, 0.f, Drawing::SamplingOptions());
-#else
-        if (auto image = preSurface->GetImageSnapshot()) {
-            canvas_->DrawImage(*image, 0.f, 0.f, Drawing::SamplingOptions());
-        }
-#endif
-        if (preThreadInfo_.second && preSurface) {
-            preThreadInfo_.second(std::move(preSurface));
-        }
-        preThreadInfo_ = curThreadInfo_;
-        canvas_->SetMatrix(preMatrix);
     }
+#else
+    }
+#endif
 
     RSModifierContext context = { GetMutableRenderProperties(), canvas_.get() };
     ApplyDrawCmdModifier(context, RSModifierType::CONTENT_STYLE);
@@ -274,12 +243,40 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
         GetRenderProperties().GetFrameGravity(), GetRenderProperties().GetFrameRect(), width, height, mat)) {
         canvas.ConcatMatrix(mat);
     }
-    auto image_ = surface_->GetImageSnapshot();
-    if (image_) {
-        SKResourceManager::Instance().HoldResource(image_);
+    if (!recordingCanvas_) {
+        image_ = surface_->GetImageSnapshot();
+        if (image_) {
+            SKResourceManager::Instance().HoldResource(image_);
+        }
+    } else {
+        auto cmds = recordingCanvas_->GetDrawCmdList();
+        recordingCanvas_ = std::make_shared<Drawing::RecordingCanvas>(width, height);
+        canvas_ = std::make_unique<RSPaintFilterCanvas>(recordingCanvas_.get());
+        RSBackgroundThread::Instance().PostTask([cmds, this]() {
+            cmds->Playback(*surface_->GetCanvas());
+            auto image = surface_->GetImageSnapshot();
+            if (image) {
+                SKResourceManager::Instance().HoldResource(image);
+            }
+            std::lock_guard<std::mutex> lock(imageMutex_);
+            image_ = image;
+        });
+    }
+    std::lock_guard<std::mutex> lock(imageMutex_);
+    if (!image_) {
+        return;
     }
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
-    canvas.DrawImage(*image_, 0.f, 0.f, samplingOptions);
+    Drawing::Paint paint;
+    paint.SetStyle(Drawing::Paint::PaintStyle::PAINT_FILL);
+    canvas.AttachPaint(paint);
+    if (canvas.GetRecordingState()) {
+        auto cpuImage = image_->MakeRasterImage();
+        canvas.DrawImage(*cpuImage, 0.f, 0.f, samplingOptions);
+    } else {
+        canvas.DrawImage(*image_, 0.f, 0.f, samplingOptions);
+    }
+    canvas.DetachPaint();
 }
 #endif
 
@@ -334,9 +331,6 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
         if (!surface_) {
             isGpuSurface_ = false;
             surface_ = Drawing::Surface::MakeRaster(info);
-            recordingCanvas_ = std::make_shared<Drawing::RecordingCanvas>(width, height);
-            canvas_ = std::make_unique<RSPaintFilterCanvas>(recordingCanvas_.get());
-            return surface_ != nullptr;
         }
     }
 #else
@@ -429,7 +423,7 @@ Drawing::Bitmap RSCanvasDrawingRenderNode::GetBitmap(const uint64_t tid)
         RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: image_ is nullptr");
         return bitmap;
     }
-    if (RSSystemProperties::GetUniRenderEnabled() && GetTid() != tid) {
+    if (GetTid() != tid) {
         RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: image_ used by multi threads");
         return bitmap;
     }
@@ -459,7 +453,7 @@ bool RSCanvasDrawingRenderNode::GetPixelmap(
         return false;
     }
     
-    if (RSSystemProperties::GetUniRenderEnabled() && GetTid() != tid) {
+    if (GetTid() != tid) {
         RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: surface used by multi threads");
         return false;
     }

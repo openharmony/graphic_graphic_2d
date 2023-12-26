@@ -43,6 +43,7 @@ enum class DirtyRegionDebugType {
     REMOVE_CHILD_RECT,
     RENDER_PROPERTIES_RECT,
     CANVAS_NODE_SKIP_RECT,
+    OUTLINE_RECT,
 };
 
 enum class SurfaceRegionDebugType {
@@ -93,6 +94,15 @@ enum class GpuApiType {
     VULKAN,
     DDGR,
 };
+
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+enum class DdgrOpincType {
+    DDGR_OPINC_NONE = 0,
+    DDGR_AUTOCACHE,
+    DDGR_RENDERCACHE,
+    DDGR_OPINCUPDATE,
+};
+#endif
 
 using OnSystemPropertyChanged = void(*)(const char*, const char*, void*);
 
@@ -183,6 +193,12 @@ public:
     static bool GetSubSurfaceEnabled();
     static bool GetSecurityPermissionCheckEnabled();
 
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    static DdgrOpincType GetDdgrOpincType();
+    static bool IsDdgrOpincEnable();
+    static bool GetAutoCacheDebugEnabled();
+#endif
+
     static inline GpuApiType GetGpuApiType()
     {
         return RSSystemProperties::systemGpuApiType_;
@@ -195,6 +211,9 @@ private:
     inline static bool isDrawTextAsBitmap_ = false;
     inline static bool cacheEnabledForRotation_ = false;
     static const GpuApiType systemGpuApiType_;
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    static const DdgrOpincType ddgrOpincType_;
+#endif
 };
 
 } // namespace Rosen

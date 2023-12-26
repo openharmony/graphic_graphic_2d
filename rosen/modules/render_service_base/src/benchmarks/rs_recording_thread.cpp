@@ -221,16 +221,14 @@ void RSRecordingThread::FinishRecordingOneFrameTask(RecordingMode modeSubThread)
             RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
 #ifndef USE_ROSEN_DRAWING
             drawCmdListVec_[curFrameIndex]->Marshalling(*messageParcel);
+#else
+            RSMarshallingHelper::Marshalling(*messageParcel, drawCmdListVec_[curFrameIndex]);
 #endif
             RSMarshallingHelper::EndNoSharedMem();
-#ifndef USE_ROSEN_DRAWING
             opsDescription = drawCmdListVec_[curFrameIndex]-> GetOpsWithDesc();
-#endif
         } else if (modeSubThread == RecordingMode::LOW_SPEED_RECORDING) {
             messageParcel = messageParcelVec_[curFrameIndex];
-#ifndef USE_ROSEN_DRAWING
             opsDescription = opsDescriptionVec_[curFrameIndex];
-#endif
         }
         OHOS::Rosen::Benchmarks::WriteMessageParcelToFile(messageParcel, opsDescription, curFrameIndex, fileDir_);
     }
@@ -256,16 +254,11 @@ void RSRecordingThread::FinishRecordingOneFrame()
     }
     auto modeSubThread = mode_;
     mode_ = RecordingMode::STOP_RECORDING;
-#ifdef RS_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-        RSTaskMessage::RSTask task = [this, modeSubThread]() {
-            FinishRecordingOneFrameTask(modeSubThread);
-        };
-        PostTask(task);
-    } else {
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    RSTaskMessage::RSTask task = [this, modeSubThread]() {
         FinishRecordingOneFrameTask(modeSubThread);
-    }
+    };
+    PostTask(task);
 #else
     FinishRecordingOneFrameTask(modeSubThread);
 #endif
@@ -298,6 +291,7 @@ void RSRecordingThread::RecordingToFile(const std::shared_ptr<Drawing::DrawCmdLi
         RSMarshallingHelper::Marshalling(*messageParcel, drawCmdList);
         RSMarshallingHelper::EndNoSharedMem();
         opsDescriptionVec_.push_back(drawCmdList->GetOpsWithDesc());
+        messageParcelVec_.push_back(messageParcel);
 #endif
     }
 

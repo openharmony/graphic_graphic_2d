@@ -235,6 +235,9 @@ void TypographyImpl::ComputeWordBoundary() const
             wb.SetLocale(icu::Locale::createFromName(span.GetTextStyle().locale.c_str()));
             wb.SetRange(0, ts->u16vect_.size());
             auto boundaries = wb.GetBoundary(ts->u16vect_, true);
+            if (boundaries.empty()) {
+                continue;
+            }
             for (const auto &[left, right] : boundaries) {
                 boundariesCache_.emplace_back(left + offset, right + offset);
             }
@@ -259,6 +262,24 @@ Boundary TypographyImpl::GetWordBoundaryByIndex(size_t index) const
     return {right, right};
 }
 
+double TypographyImpl::GetLineHeight(int lineNumber)
+{
+    if (lineNumber >= 0 && lineNumber < lineMetrics_.size()) {
+        return lineMetrics_[lineNumber].GetMaxHeight();
+    } else {
+        return 0.0;
+    }
+}
+
+double TypographyImpl::GetLineWidth(int lineNumber)
+{
+    if (lineNumber >= 0 && lineNumber < lineMetrics_.size()) {
+        return lineMetrics_[lineNumber].width;
+    } else {
+        return 0.0;
+    }
+}
+
 void TypographyImpl::Layout(double maxWidth)
 {
     boundariesCache_ = {};
@@ -269,14 +290,21 @@ void TypographyImpl::Layout(double maxWidth)
         LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "TypographyImpl::Layout");
         LOGEX_FUNC_LINE_DEBUG() << "Layout maxWidth: " << maxWidth << ", spans.size(): " << spans_.size();
         maxWidth_ = floor(maxWidth);
-        if (spans_.empty()) {
+        auto isEmptySpans = spans_.empty();
+        if (isEmptySpans) {
             LOGEX_FUNC_LINE(ERROR) << "Empty spans";
-            return;
+            std::vector<uint16_t> text{u'\n'};
+            VariantSpan vs = TextSpan::MakeFromText(text);
+            vs.SetTextStyle(typographyStyle_.ConvertToTextStyle());
+            spans_.push_back(vs);
         }
 
         Shaper shaper;
         shaper.SetIndents(indents_);
         lineMetrics_ = shaper.DoShape(spans_, typographyStyle_, fontProviders_, maxWidth_);
+        if (isEmptySpans) {
+            lineMetrics_.pop_back();
+        }
         if (lineMetrics_.size() == 0) {
             LOGEX_FUNC_LINE_DEBUG() << "Shape failed";
             return;

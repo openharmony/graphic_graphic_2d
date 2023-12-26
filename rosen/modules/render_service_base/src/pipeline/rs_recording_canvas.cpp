@@ -171,6 +171,15 @@ void RSRecordingCanvas::DrawPixelMapWithParm(const std::shared_ptr<Media::PixelM
     AddOp(std::move(op));
 }
 
+void RSRecordingCanvas::drawImageNine(
+    const std::shared_ptr<Media::PixelMap>& pixelmap, const SkIRect& center, const SkRect& dst,
+    SkFilterMode filter, const SkPaint* paint)
+{
+    RS_DRAWOP_TRACE_FUNC();
+    std::unique_ptr<OpItem> op = std::make_unique<PixelmapNineOpItem>(pixelmap, center, dst, filter, paint);
+    AddOp(std::move(op));
+}
+
 void RSRecordingCanvas::DrawImageLatticeAsBitmap(
     const SkImage* image, const SkCanvas::Lattice& lattice, const SkRect& dst, const SkPaint* paint)
 {

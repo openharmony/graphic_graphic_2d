@@ -34,6 +34,7 @@ public:
     HgmConfigCallbackManager &operator=(const HgmConfigCallbackManager &) = delete;
 
     void RegisterHgmConfigChangeCallback(pid_t pid, const sptr<RSIHgmConfigChangeCallback>& callback);
+    void SyncHgmConfigChangeCallback();
     void UnRegisterHgmConfigChangeCallback(pid_t pid);
 
     void RegisterHgmRefreshRateModeChangeCallback(pid_t pid, const sptr<RSIHgmConfigChangeCallback>& callback);

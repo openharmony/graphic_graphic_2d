@@ -17,8 +17,9 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
-#include "common/rs_vector4.h"
 #include "pipeline/rs_render_node.h"
+#include "property/rs_properties_def.h"
+#include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -115,20 +116,63 @@ void RSPointLightManager::CheckIlluminated(
         return;
     }
     auto lightSourcePtr = lightSourceNode->GetRenderProperties().GetLightSource();
-    RectI effectAbsRect = geoPtr->GetAbsRect();
+    RectI illuminatedAbsRect = geoPtr->GetAbsRect();
     int radius = static_cast<int>(lightSourcePtr->GetLightRadius());
-    effectAbsRect.SetAll(effectAbsRect.left_ - radius, effectAbsRect.top_ - radius, effectAbsRect.width_ + TWO * radius,
-        effectAbsRect.height_ + TWO * radius);
+    auto illuminatedRange = RectI(illuminatedAbsRect.left_ - radius, illuminatedAbsRect.top_ - radius,
+        illuminatedAbsRect.width_ + TWO * radius, illuminatedAbsRect.height_ + TWO * radius);
     const auto& lightSourceAbsPosition = lightSourcePtr->GetAbsLightPosition();
     auto lightAbsPositionX = static_cast<int>(lightSourceAbsPosition[0]);
     auto lightAbsPositionY = static_cast<int>(lightSourceAbsPosition[1]);
+    auto rotation = GetScreenRotation();
+    auto inIlluminatedRange = false;
+    if (rotation == ScreenRotation::ROTATION_0 || rotation == ScreenRotation::ROTATION_180) {
+        inIlluminatedRange = illuminatedRange.Intersect(lightAbsPositionX, lightAbsPositionY);
+    } else if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
+        inIlluminatedRange = illuminatedRange.Intersect(lightAbsPositionY, lightAbsPositionX);
+    }
     auto illuminatedRootNodeId = illuminatedNode->GetInstanceRootNodeId();
     auto lightSourceRootNodeId = lightSourceNode->GetInstanceRootNodeId();
-    if (effectAbsRect.Intersect(lightAbsPositionX, lightAbsPositionY) &&
-        illuminatedRootNodeId == lightSourceRootNodeId) {
+    if (inIlluminatedRange && illuminatedRootNodeId == lightSourceRootNodeId) {
         illuminatedNode->GetRenderProperties().GetIlluminated()->AddLightSource(lightSourcePtr);
         illuminatedNode->SetDirty();
     }
 }
+
+Vector4f RSPointLightManager::CalculateLightPosForIlluminated(
+    const std::shared_ptr<RSLightSource>& lightSourcePtr, const std::shared_ptr<RSObjAbsGeometry>& illuminatedGeoPtr)
+{
+    if (!illuminatedGeoPtr || !lightSourcePtr) {
+        return Vector4f();
+    }
+    Vector4f lightPos;
+    auto illuminatedAbsRect = illuminatedGeoPtr->GetAbsRect();
+    auto lightSourceAbsPosition = lightSourcePtr->GetAbsLightPosition();
+    auto lightPosition = lightSourcePtr->GetLightPosition();
+    auto rotation = GetScreenRotation();
+    switch (rotation) {
+        case ScreenRotation::ROTATION_0:
+            lightPos.x_ = lightSourceAbsPosition.x_ - illuminatedAbsRect.GetLeft();
+            lightPos.y_ = lightSourceAbsPosition.y_ - illuminatedAbsRect.GetTop();
+            break;
+        case ScreenRotation::ROTATION_90:
+            lightPos.x_ = illuminatedAbsRect.GetBottom() - lightSourceAbsPosition.x_;
+            lightPos.y_ = lightSourceAbsPosition.y_ - illuminatedAbsRect.GetLeft();
+            break;
+        case ScreenRotation::ROTATION_180:
+            lightPos.x_ = illuminatedAbsRect.GetRight() - lightSourceAbsPosition.x_;
+            lightPos.y_ = illuminatedAbsRect.GetBottom() - lightSourceAbsPosition.y_;
+            break;
+        case ScreenRotation::ROTATION_270:
+            lightPos.x_ = lightSourceAbsPosition.x_ - illuminatedAbsRect.GetTop();
+            lightPos.y_ = illuminatedAbsRect.GetRight() - lightSourceAbsPosition.y_;
+            break;
+        default:
+            break;
+    }
+    lightPos.z_ = lightPosition.z_;
+    lightPos.w_ = lightPosition.w_;
+    return lightPos;
+}
+
 } // namespace Rosen
 } // namespace OHOS

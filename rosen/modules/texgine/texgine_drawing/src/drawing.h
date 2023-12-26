@@ -58,6 +58,7 @@ using RSPathDashStyle = RSDrawing::PathDashStyle;
 using RSRecordingPathEffect = RSDrawing::PathEffect;
 using RSRecordingMaskFilter = RSDrawing::MaskFilter;
 using RSRect = RSDrawing::Rect;
+using RSRoundRect = RSDrawing::RoundRect;
 using RSScalar = RSDrawing::scalar;
 using RSTextBlob = RSDrawing::TextBlob;
 using RSTextBlobBuilder = RSDrawing::TextBlobBuilder;
@@ -70,5 +71,8 @@ using RSSymbolRenderingStrategy = RSDrawing::DrawingSymbolRenderingStrategy;
 using RSEffectStrategy = RSDrawing::DrawingEffectStrategy;
 using RSHMSymbolData = RSDrawing::DrawingHMSymbolData;
 using RSHmSymbolConfig_OHOS = RSDrawing::HmSymbolConfigOhos;
+using RSAnimationSetting = RSDrawing::DrawingAnimationSetting;
+using RSAnimationType = RSDrawing::DrawingAnimationType;
+using RSAnimationSubType = RSDrawing::DrawingAnimationSubType;
 
 #endif // ROSEN_MODULES_TEXGINE_SRC_TEXGINE_DRAWING_DRAWING_H

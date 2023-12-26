@@ -152,7 +152,7 @@ class RSBaseRenderEngine {
 public:
     RSBaseRenderEngine();
     virtual ~RSBaseRenderEngine() noexcept;
-    void Init(bool indenpent = false);
+    void Init(bool independentContext = false);
     RSBaseRenderEngine(const RSBaseRenderEngine&) = delete;
     void operator=(const RSBaseRenderEngine&) = delete;
 
@@ -226,14 +226,14 @@ public:
     }
 #endif // RS_ENABLE_EGLIMAGE
 #ifdef RS_ENABLE_VK
-    const std::shared_ptr<RSVkImageManager>& GetVkImageManager()
+    const std::shared_ptr<RSVkImageManager>& GetVkImageManager() const
     {
         return vkImageManager_;
     }
 #ifndef USE_ROSEN_DRAWING
-    const sk_sp<GrDirectContext> GetSkContext()
+    const sk_sp<GrDirectContext> GetSkContext() const
 #else
-    const std::shared_ptr<Drawing::GPUContext> GetSkContext()
+    const std::shared_ptr<Drawing::GPUContext> GetSkContext() const
 #endif
     {
         return skContext_;

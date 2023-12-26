@@ -15,6 +15,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_NODE_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_NODE_H
 
+#include <optional>
 #include <unordered_map>
 
 #include "animation/rs_animation_timing_curve.h"
@@ -79,12 +80,15 @@ public:
     virtual void AddChild(SharedPtr child, int index = -1);
     void MoveChild(SharedPtr child, int index);
     virtual void RemoveChild(SharedPtr child);
+    void RemoveChildByNodeId(NodeId childId);
     void RemoveFromTree();
     virtual void ClearChildren();
     const std::vector<NodeId>& GetChildren() const
     {
         return children_;
     }
+    // ONLY support index in [0, childrenTotal) or index = -1, otherwise return std::nullopt
+    const std::optional<NodeId> GetChildIdByIndex(int index) const;
 
     // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
     void AddCrossParentChild(SharedPtr child, int index);
@@ -245,6 +249,10 @@ public:
     void SetOuterBorderWidth(const Vector4f& width);
     void SetOuterBorderStyle(const Vector4<BorderStyle>& style);
     void SetOuterBorderRadius(const Vector4f& radius);
+    void SetOutlineColor(const Vector4<Color>& color);
+    void SetOutlineWidth(const Vector4f& width);
+    void SetOutlineStyle(const Vector4<BorderStyle>& style);
+    void SetOutlineRadius(const Vector4f& radius);
 
     void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
@@ -354,6 +362,10 @@ public:
     void SetOutOfParent(OutOfParentType outOfParent);
     using BoundsChangedCallback = std::function<void (const Rosen::Vector4f&)>;
     virtual void SetBoundsChangedCallback(BoundsChangedCallback callback){};
+    bool IsTextureExportNode() const
+    {
+        return isTextureExportNode_;
+    }
 protected:
     explicit RSNode(bool isRenderServiceNode, bool isTextureExportNode = false);
     explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false);
@@ -371,6 +383,8 @@ protected:
     {
         return false;
     }
+
+    void DoFlushModifier();
 
     std::vector<PropertyId> GetModifierIds() const;
     bool isCustomTextType_ = false;

@@ -132,7 +132,7 @@ RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, NodeId nodeId, RSTag
     if (!g_releaseResourceEnabled_) {
         return;
     }
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     Drawing::GPUResourceTag tag(ExtractPid(nodeId), 0, nodeId, tagType);
     gpuContext_->SetCurrentGpuResourceTag(tag);
 #endif

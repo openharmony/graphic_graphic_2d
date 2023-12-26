@@ -123,6 +123,7 @@ TextEngine::TextStyle Convert(const TextStyle &style)
         .wordSpacing = style.wordSpacing,
         .foreground = foreground,
         .background = background,
+        .backgroundRect = Convert(style.backgroundRect),
         .isSymbolGlyph = style.isSymbolGlyph,
     };
     if (style.isSymbolGlyph) {
@@ -383,6 +384,12 @@ TextEngine::EllipsisModal Convert(const EllipsisModal &ellipsisModal)
         default:
             return TextEngine::EllipsisModal::TAIL;
     }
+}
+
+TextEngine::RectStyle Convert(const RectStyle &rectStyle)
+{
+    return { rectStyle.color, rectStyle.leftTopRadius, rectStyle.rightTopRadius,
+        rectStyle.rightBottomRadius, rectStyle.leftBottomRadius };
 }
 } // namespace AdapterTextEngine
 } // namespace Rosen

@@ -194,25 +194,25 @@ Vector4<uint32_t> RSModifierExtractor::GetBorderStyle() const
         Vector4<uint32_t>, BORDER_STYLE, Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::NONE)), =);
 }
 
-Vector4<Color> RSModifierExtractor::GetOuterBorderColor() const
+Vector4<Color> RSModifierExtractor::GetOutlineColor() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(Vector4<Color>, OUTER_BORDER_COLOR, Vector4<Color>(RgbPalette::Transparent()), =);
+    GET_PROPERTY_FROM_MODIFIERS(Vector4<Color>, OUTLINE_COLOR, Vector4<Color>(RgbPalette::Transparent()), =);
 }
 
-Vector4f RSModifierExtractor::GetOuterBorderWidth() const
+Vector4f RSModifierExtractor::GetOutlineWidth() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(Vector4f, OUTER_BORDER_WIDTH, Vector4f(0.f), =);
+    GET_PROPERTY_FROM_MODIFIERS(Vector4f, OUTLINE_WIDTH, Vector4f(0.f), =);
 }
 
-Vector4<uint32_t> RSModifierExtractor::GetOuterBorderStyle() const
+Vector4<uint32_t> RSModifierExtractor::GetOutlineStyle() const
 {
     GET_PROPERTY_FROM_MODIFIERS(
-        Vector4<uint32_t>, OUTER_BORDER_STYLE, Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::NONE)), =);
+        Vector4<uint32_t>, OUTLINE_STYLE, Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::NONE)), =);
 }
 
-Vector4f RSModifierExtractor::GetOuterBorderRadius() const
+Vector4f RSModifierExtractor::GetOutlineRadius() const
 {
-    GET_PROPERTY_FROM_MODIFIERS(Vector4f, OUTER_BORDER_RADIUS, Vector4f(0.f), =);
+    GET_PROPERTY_FROM_MODIFIERS(Vector4f, OUTLINE_RADIUS, Vector4f(0.f), =);
 }
 
 std::shared_ptr<RSFilter> RSModifierExtractor::GetBackgroundFilter() const

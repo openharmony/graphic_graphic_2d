@@ -15,6 +15,7 @@
 
 #include "skia_paint.h"
 
+#include "skia_blender.h"
 #include "skia_color_filter.h"
 #include "skia_color_space.h"
 #include "skia_convert_utils.h"
@@ -50,6 +51,12 @@ void SkiaPaint::BrushToSkPaint(const Brush& brush, SkPaint& paint)
         auto skShaderImpl = s->GetImpl<SkiaShaderEffect>();
         sk_sp<SkShader> skShader = (skShaderImpl != nullptr) ? skShaderImpl->GetShader() : nullptr;
         paint.setShader(skShader);
+    }
+
+    if (brush.GetBlender() != nullptr) {
+        auto skBlenderImpl = brush.GetBlender()->GetImpl<SkiaBlender>();
+        sk_sp<SkBlender> skBlender = (skBlenderImpl != nullptr) ? skBlenderImpl->GetBlender() : nullptr;
+        paint.setBlender(skBlender);
     }
 
     auto filter = brush.GetFilter();

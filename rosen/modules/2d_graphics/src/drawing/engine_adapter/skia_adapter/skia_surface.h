@@ -41,8 +41,12 @@ public:
     bool Bind(const Image& image) override;
     bool Bind(const FrameBuffer& frameBuffer) override;
 #ifdef RS_ENABLE_VK
-    static std::shared_ptr<Surface> MakeFromBackendRenderTarget(GPUContext* gpuContext, TextureInfo& info,
-        TextureOrigin origin, void (*deleteVkImage)(void *), void* cleanHelper);
+    static std::shared_ptr<Surface> MakeFromBackendRenderTarget(GPUContext* gpuContext, const TextureInfo& info,
+        TextureOrigin origin, ColorType colorType, std::shared_ptr<ColorSpace> colorSpace,
+        void (*deleteVkImage)(void *), void* cleanHelper);
+    static std::shared_ptr<Surface> MakeFromBackendTexture(GPUContext* gpuContext, const TextureInfo& info,
+        TextureOrigin origin, int sampleCnt, ColorType colorType,
+        std::shared_ptr<ColorSpace> colorSpace, void (*deleteVkImage)(void *), void* cleanHelper);
 #endif
     static std::shared_ptr<Surface> MakeRenderTarget(GPUContext* gpuContext, bool budgeted, const ImageInfo& imageInfo);
 #endif
@@ -54,7 +58,7 @@ public:
     std::shared_ptr<Image> GetImageSnapshot() const override;
     std::shared_ptr<Image> GetImageSnapshot(const RectI& bounds) const override;
     std::shared_ptr<Surface> MakeSurface(int width, int height) const override;
-    BackendTexture GetBackendTexture() const override;
+    BackendTexture GetBackendTexture(BackendAccess access) const override;
     void SetSkSurface(const sk_sp<SkSurface>& skSurface);
     void FlushAndSubmit(bool syncCpu) override;
     void Flush(FlushInfo *drawingflushInfo = nullptr) override;
@@ -64,6 +68,8 @@ public:
     void ClearDrawingArea() override;
 #endif
     sk_sp<SkSurface> GetSkSurface() const;
+    int Width() const override;
+    int Height() const override;
 private:
     sk_sp<SkSurface> skSurface_ = nullptr;
     sk_sp<SkImage> skImage_ = nullptr;

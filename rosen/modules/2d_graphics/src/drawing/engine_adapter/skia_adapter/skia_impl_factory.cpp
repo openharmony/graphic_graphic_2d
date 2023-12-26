@@ -16,6 +16,7 @@
 #include "skia_impl_factory.h"
 
 #include "skia_adapter/skia_bitmap.h"
+#include "skia_adapter/skia_blender.h"
 #include "skia_adapter/skia_pixmap.h"
 #include "skia_adapter/skia_camera.h"
 #include "skia_adapter/skia_canvas.h"
@@ -39,6 +40,7 @@
 #include "skia_adapter/skia_region.h"
 #include "skia_adapter/skia_resourece_holder.h"
 #include "skia_adapter/skia_shader_effect.h"
+#include "skia_adapter/skia_runtime_blender_builder.h"
 #include "skia_adapter/skia_runtime_effect.h"
 #include "skia_adapter/skia_runtime_shader_builder.h"
 #include "skia_adapter/skia_surface.h"
@@ -138,6 +140,11 @@ std::unique_ptr<ShaderEffectImpl> SkiaImplFactory::CreateShaderEffect()
     return std::make_unique<SkiaShaderEffect>();
 }
 
+std::unique_ptr<BlenderImpl> SkiaImplFactory::CreateBlender()
+{
+    return std::make_unique<SkiaBlender>();
+}
+
 std::unique_ptr<RuntimeEffectImpl> SkiaImplFactory::CreateRuntimeEffect()
 {
     return std::make_unique<SkiaRuntimeEffect>();
@@ -149,10 +156,23 @@ std::unique_ptr<RuntimeShaderBuilderImpl> SkiaImplFactory::CreateRuntimeShaderBu
     return std::make_unique<SkiaRuntimeShaderBuilder>(runtimeEffect);
 }
 
+std::unique_ptr<RuntimeBlenderBuilderImpl> SkiaImplFactory::CreateRuntimeBlenderBuilder(
+    std::shared_ptr<RuntimeEffect> runtimeEffect)
+{
+    return std::make_unique<SkiaRuntimeBlenderBuilder>(runtimeEffect);
+}
+
 std::unique_ptr<SurfaceImpl> SkiaImplFactory::CreateSurface()
 {
     return std::make_unique<SkiaSurface>();
 }
+
+// opinc_begin
+std::unique_ptr<OpListHandleImpl> SkiaImplFactory::CreateOplistHandle()
+{
+    return nullptr;
+}
+// opinc_end
 
 std::unique_ptr<PathEffectImpl> SkiaImplFactory::CreatePathEffect()
 {

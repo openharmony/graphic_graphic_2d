@@ -49,9 +49,42 @@ public:
     explicit DrawOpItem(uint32_t type) : OpItem(type) {}
     ~DrawOpItem() override = default;
 
+    // If update this item, notify feature of opinc {DDGR_ENABLE_FEATURE_OPINC}
     enum Type : uint32_t {
         OPITEM_HEAD,
-        CMD_LIST_OPITEM,
+
+        // NO-REAL-DRAW opItem
+        ATTACH_PEN_OPITEM,
+        ATTACH_BRUSH_OPITEM,
+        DETACH_PEN_OPITEM,
+        DETACH_BRUSH_OPITEM,
+        CLEAR_OPITEM,
+        DISCARD_OPITEM,
+        SHEAR_OPITEM,
+        FLUSH_OPITEM,
+        SAVE_OPITEM,
+        SAVE_LAYER_OPITEM,
+        RESTORE_OPITEM,
+
+        // NO-REAL-DRAW opItem, POS-CHANGE opItem
+        OPINC_COUNT_OPITEM_START,
+
+        SYMBOL_OPITEM,
+        CLIP_RECT_OPITEM,
+        CLIP_IRECT_OPITEM,
+        CLIP_ROUND_RECT_OPITEM,
+        CLIP_PATH_OPITEM,
+        CLIP_REGION_OPITEM,
+        CLIP_ADAPTIVE_ROUND_RECT_OPITEM,
+        SET_MATRIX_OPITEM,
+        RESET_MATRIX_OPITEM,
+        CONCAT_MATRIX_OPITEM,
+        TRANSLATE_OPITEM,
+        SCALE_OPITEM,
+        ROTATE_OPITEM,
+
+        REAL_DRAW_OPITEM_START, // used by skipnode feature
+
         POINT_OPITEM,
         POINTS_OPITEM,
         LINE_OPITEM,
@@ -74,30 +107,6 @@ public:
         IMAGE_RECT_OPITEM,
         PICTURE_OPITEM,
         TEXT_BLOB_OPITEM,
-        SYMBOL_OPITEM,
-        CLIP_RECT_OPITEM,
-        CLIP_IRECT_OPITEM,
-        CLIP_ROUND_RECT_OPITEM,
-        CLIP_PATH_OPITEM,
-        CLIP_REGION_OPITEM,
-        SET_MATRIX_OPITEM,
-        RESET_MATRIX_OPITEM,
-        CONCAT_MATRIX_OPITEM,
-        TRANSLATE_OPITEM,
-        SCALE_OPITEM,
-        ROTATE_OPITEM,
-        SHEAR_OPITEM,
-        FLUSH_OPITEM,
-        CLEAR_OPITEM,
-        SAVE_OPITEM,
-        SAVE_LAYER_OPITEM,
-        RESTORE_OPITEM,
-        DISCARD_OPITEM,
-        ATTACH_PEN_OPITEM,
-        ATTACH_BRUSH_OPITEM,
-        DETACH_PEN_OPITEM,
-        DETACH_BRUSH_OPITEM,
-        CLIP_ADAPTIVE_ROUND_RECT_OPITEM,
         ADAPTIVE_IMAGE_OPITEM,
         ADAPTIVE_PIXELMAP_OPITEM,
         IMAGE_WITH_PARM_OPITEM,
@@ -108,10 +117,18 @@ public:
         EDGEAAQUAD_OPITEM,
         VERTICES_OPITEM,
         IMAGE_SNAPSHOT_OPITEM,
+
+        OPINC_COUNT_OPITEM_END, // used by opinc feature
+
+        CMD_LIST_OPITEM,
         SURFACEBUFFER_OPITEM,
+
+        REAL_DRAW_OPITEM_END, // used by skipnode feature
     };
 
     virtual void Playback(Canvas* canvas, const Rect* rect) = 0;
+
+    virtual void SetSymbol() {}
 };
 
 class UnmarshallingPlayer {
@@ -134,7 +151,7 @@ public:
     ~GenerateCachedOpItemPlayer() = default;
 
     bool GenerateCachedOpItem(uint32_t type, void* handle);
-    
+
     Canvas* canvas_ = nullptr;
     const Rect* rect_;
     CmdList& cmdList_;
@@ -683,9 +700,9 @@ class DrawImageRectOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
         ConstructorHandle(const OpDataHandle& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling,
-            SrcRectConstraint constraint, const PaintHandle& paintHandle)
+            SrcRectConstraint constraint, const PaintHandle& paintHandle, bool isForeground = false)
             : OpItem(DrawOpItem::IMAGE_RECT_OPITEM), image(image), src(src), dst(dst),
-              sampling(sampling), constraint(constraint), paintHandle(paintHandle) {}
+              sampling(sampling), constraint(constraint), paintHandle(paintHandle), isForeground(isForeground) {}
         ~ConstructorHandle() override = default;
         OpDataHandle image;
         Rect src;
@@ -693,6 +710,7 @@ public:
         SamplingOptions sampling;
         SrcRectConstraint constraint;
         PaintHandle paintHandle;
+        bool isForeground;
     };
     DrawImageRectOpItem(const CmdList& cmdList, ConstructorHandle* handle);
     ~DrawImageRectOpItem() override = default;
@@ -705,6 +723,7 @@ private:
     SamplingOptions sampling_;
     SrcRectConstraint constraint_;
     std::shared_ptr<Image> image_;
+    bool isForeground_ = false;
 };
 
 class DrawPictureOpItem : public DrawOpItem {
@@ -749,6 +768,18 @@ private:
     std::shared_ptr<TextBlob> textBlob_;
 };
 
+using DrawSymbolAnimation = struct DrawSymbolAnimation {
+    // all animation need
+    double startValue = 0;
+    double curValue = 0;
+    double endValue = 1;
+    double speedValue = 0.01;
+    uint32_t number = 0; // animate times when reach the destination
+    // hierarchy animation need
+    uint32_t startCount = 0; // animate from this frame
+    uint32_t count = 0; // number of frames
+};
+
 class DrawSymbolOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
@@ -764,11 +795,29 @@ public:
 
     static std::shared_ptr<DrawOpItem> Unmarshalling(const CmdList& cmdList, void* handle);
     void Playback(Canvas* canvas, const Rect* rect) override;
+
+    void SetSymbol() override;
+
+    void InitialScale();
+
+    void InitialVariableColor();
+
+    void SetScale(size_t index);
+
+    void SetVariableColor(size_t index);
+
+    static void UpdateScale(const double cur, Path& path);
+
+    void UpdataVariableColor(const double cur, size_t index);
 private:
     static void MergeDrawingPath(
-        Drawing::Path& multPath, Drawing::DrawingRenderGroup& group, std::vector<Drawing::Path>& pathLayers);
+        Path& multPath, DrawingRenderGroup& group, std::vector<Path>& pathLayers);
     DrawingHMSymbolData symbol_;
     Point locate_;
+
+    std::vector<DrawSymbolAnimation> animation_;
+    uint32_t number_ = 2; // one animation means a back and forth
+    bool startAnimation_ = false; // update animation_ if true
 };
 
 class ClipRectOpItem : public DrawOpItem {
@@ -836,7 +885,7 @@ class ClipPathOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
         ConstructorHandle(const OpDataHandle& path, ClipOp clipOp, bool doAntiAlias)
-            : OpItem(DrawOpItem::PATH_OPITEM), path(path), clipOp(clipOp), doAntiAlias(doAntiAlias) {}
+            : OpItem(DrawOpItem::CLIP_PATH_OPITEM), path(path), clipOp(clipOp), doAntiAlias(doAntiAlias) {}
         ~ConstructorHandle() override = default;
         OpDataHandle path;
         ClipOp clipOp;

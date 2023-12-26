@@ -28,6 +28,11 @@
 #include "include/core/SkBitmap.h"
 #include "draw/canvas.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "surface_ohos_vulkan.h"
+#endif
+
 using namespace OHOS;
 using namespace OHOS::Rosen;
 
@@ -392,6 +397,9 @@ void DrawingEngineSample::OnHotPlugEvent(const std::shared_ptr<HdiOutput> &outpu
      * Currently, IPC communication cannot be nested. Therefore, Vblank registration can be
      * initiated only after the initialization of the device is complete.
      */
+    if (output_ != nullptr) {
+        return;
+    }
     output_ = output;
     deviceConnected_ = connected;
 

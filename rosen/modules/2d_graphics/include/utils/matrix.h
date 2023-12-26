@@ -194,6 +194,8 @@ public:
     void PreRotate(scalar degree, scalar px, scalar py);
     void PreScale(scalar sx, scalar sy, scalar px, scalar py);
     void Reset();
+
+    bool GetMinMaxScales(scalar scaleFactors[2]);
 private:
     std::shared_ptr<MatrixImpl> matrixImplPtr;
 };

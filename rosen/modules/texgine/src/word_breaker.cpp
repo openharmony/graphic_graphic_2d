@@ -44,23 +44,23 @@ std::vector<Boundary> WordBreaker::GetBoundary(const std::vector<uint16_t> &u16s
 
     if (wbi == nullptr) {
         LOGEX_FUNC_LINE(ERROR) << "create BreakIterator failed";
-        throw TEXGINE_EXCEPTION(API_FAILED);
+        return {};
     }
 
     // > U_ZERO_ERROR: error, < U_ZERO_ERROR: warning
     if (status > U_ZERO_ERROR) {
         LOGEX_FUNC_LINE(ERROR) << "status is error";
-        throw TEXGINE_EXCEPTION(API_FAILED);
+        return {};
     }
 
     if (endIndex_ <= startIndex_) {
         LOGEX_FUNC_LINE(ERROR) << "endIndex_ <= startIndex_";
-        throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
+        return {};
     }
 
     if (endIndex_ > u16str.size()) {
         LOGEX_FUNC_LINE(ERROR) << "endIndex_ > u16str.size()";
-        throw TEXGINE_EXCEPTION(INVALID_ARGUMENT);
+        return {};
     }
 
     auto u16Data = u16str.data();

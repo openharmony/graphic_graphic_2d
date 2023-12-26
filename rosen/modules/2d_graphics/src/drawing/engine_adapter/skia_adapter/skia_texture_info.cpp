@@ -23,15 +23,14 @@ namespace Drawing {
 #ifdef RS_ENABLE_VK
 GrBackendTexture SkiaTextureInfo::ConvertToGrBackendVKTexture(const TextureInfo& info)
 {
-    auto vkInfo = info.GetVKTextureInfo();
     GrVkImageInfo imageInfo;
-
     if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
         SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         GrBackendTexture backendTexture(0, 0, imageInfo);
         return backendTexture;
     }
 
+    auto vkInfo = info.GetVKTextureInfo();
     if (!vkInfo) {
         GrBackendTexture backendTexture(info.GetWidth(), info.GetHeight(), imageInfo);
         return backendTexture;

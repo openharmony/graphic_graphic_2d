@@ -27,10 +27,10 @@ public:
         const TypographyStyle &ys, const std::shared_ptr<FontProviders> &fontProviders);
     static int DoShape(std::shared_ptr<TextSpan> &span, const TextStyle &xs, const TypographyStyle &ys,
         const std::shared_ptr<FontProviders> &fontProviders);
-    std::shared_ptr<TexgineTextBlob> GenerateTextBlob(const TexgineFont &font, const CharGroups &cgs,
+    std::shared_ptr<TexgineTextBlob> GenerateTextBlob(TexgineFont &font, const CharGroups &cgs,
         double &spanWidth, std::vector<double> &glyphWidths) const;
     int FilterTextSpan(std::shared_ptr<TextSpan> ts);
-    void PartFontPropertySet(TexgineFont& font, std::shared_ptr<TextSpan> ts);
+    void PartFontPropertySet(TexgineFont& font, const CharGroup &cg) const;
 };
 } // namespace TextEngine
 } // namespace Rosen

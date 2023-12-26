@@ -47,6 +47,9 @@ static sk_sp<SkColorSpace> ColorSpaceToSkColorSpace(ColorSpace colorSpace)
 static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(ColorSpace colorSpace)
 {
     switch (colorSpace) {
+        case ColorSpace::DISPLAY_P3:
+            return Drawing::ColorSpace::CreateRGB(
+                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
         case ColorSpace::LINEAR_SRGB:
             return Drawing::ColorSpace::CreateSRGBLinear();
         case ColorSpace::SRGB:
@@ -182,7 +185,14 @@ sk_sp<SkImage> RSPixelMapUtil::ExtractSkImage(std::shared_ptr<Media::PixelMap> p
     pixelMap->GetImageInfo(imageInfo);
     auto skImageInfo = MakeSkImageInfo(imageInfo);
     SkPixmap skPixmap(skImageInfo, reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
-    return SkImage::MakeFromRaster(skPixmap, PixelMapReleaseProc, new PixelMapReleaseContext(pixelMap));
+    PixelMapReleaseContext* releaseContext = new PixelMapReleaseContext(pixelMap);
+    auto skImage = SkImage::MakeFromRaster(skPixmap, PixelMapReleaseProc, releaseContext);
+    if (!skImage) {
+        RS_LOGE("RSPixelMapUtil::ExtractSkImage fail");
+        delete releaseContext;
+        releaseContext = nullptr;
+    }
+    return skImage;
 }
 #else
 std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
@@ -195,8 +205,8 @@ std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
     pixelMap->GetImageInfo(imageInfo);
     Drawing::ImageInfo drawingImageInfo { imageInfo.size.width, imageInfo.size.height,
         PixelFormatToDrawingColorType(imageInfo.pixelFormat),
-	AlphaTypeToDrawingAlphaType(imageInfo.alphaType),
-	ColorSpaceToDrawingColorSpace(imageInfo.colorSpace) };
+    AlphaTypeToDrawingAlphaType(imageInfo.alphaType),
+    ColorSpaceToDrawingColorSpace(imageInfo.colorSpace) };
     Drawing::Pixmap imagePixmap(drawingImageInfo, reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
     return Drawing::Image::MakeFromRaster(imagePixmap, PixelMapReleaseProc, new PixelMapReleaseContext(pixelMap));
 }
@@ -258,6 +268,16 @@ void RSPixelMapUtil::TransformDataSetForAstc(std::shared_ptr<Media::PixelMap> pi
 {
     TransformData transformData;
     pixelMap->GetTransformData(transformData);
+    Size realSize;
+    pixelMap->GetAstcRealSize(realSize);
+    dst.SetLeft(dst.GetLeft() - (realSize.width - src.GetRight()) / HALF_F);
+    dst.SetTop(dst.GetTop() - (realSize.height - src.GetBottom()) / HALF_F);
+    dst.SetRight(dst.GetRight() + (realSize.width - src.GetRight()) / HALF_F);
+    dst.SetBottom(dst.GetBottom() + (realSize.height - src.GetBottom()) / HALF_F);
+    if (transformData.scaleX != 0 && transformData.scaleY != 0) {
+        src.SetRight(src.GetRight() / abs(transformData.scaleX));
+        src.SetBottom(src.GetBottom() / abs(transformData.scaleY));
+    }
     Drawing::Matrix matrix;
     matrix.PostScale(transformData.scaleX, transformData.scaleY, dst.GetLeft() / HALF_F + dst.GetRight() / HALF_F,
                      dst.GetTop() / HALF_F + dst.GetBottom() / HALF_F);
@@ -272,27 +292,26 @@ void RSPixelMapUtil::TransformDataSetForAstc(std::shared_ptr<Media::PixelMap> pi
                          dst.GetTop() / HALF_F + dst.GetBottom() / HALF_F);
     }
     canvas.ConcatMatrix(matrix);
-
-    //crop
-    if (transformData.cropLeft >= 0 && transformData.cropTop >= 0 &&
-        transformData.cropWidth >= 0 && transformData.cropHeight >= 0) {
+    if (transformData.cropLeft >= 0 && transformData.cropTop >= 0 && transformData.cropWidth > 0 &&
+        transformData.cropHeight > 0 && transformData.cropLeft + transformData.cropWidth <= realSize.width &&
+        transformData.cropTop + transformData.cropHeight <= realSize.height) {
         float rightMinus = src.GetRight() - transformData.cropLeft - transformData.cropWidth;
         float bottomMinus = src.GetBottom() - transformData.cropTop - transformData.cropHeight;
         src.SetLeft(src.GetLeft() + transformData.cropLeft);
         src.SetTop(src.GetTop() + transformData.cropTop);
         src.SetRight(src.GetRight() - rightMinus);
         src.SetBottom(src.GetBottom() - bottomMinus);
-        dst.SetLeft(dst.GetLeft() + (transformData.cropLeft + rightMinus) / HALF_F);
-        dst.SetTop(dst.GetTop() + (transformData.cropTop + bottomMinus) / HALF_F);
-        dst.SetRight(dst.GetRight() - (transformData.cropLeft + rightMinus) / HALF_F);
-        dst.SetBottom(dst.GetBottom() - (transformData.cropTop + bottomMinus) / HALF_F);
+        dst.SetLeft(dst.GetLeft() + (realSize.width - transformData.cropWidth) / HALF_F);
+        dst.SetTop(dst.GetTop() + (realSize.height - transformData.cropHeight) / HALF_F);
+        dst.SetRight(dst.GetRight() - (realSize.width - transformData.cropWidth) / HALF_F);
+        dst.SetBottom(dst.GetBottom() - (realSize.height - transformData.cropHeight) / HALF_F);
     }
-
-    //translate
-    dst.SetLeft(dst.GetLeft() + transformData.translateX / HALF_F);
-    dst.SetTop(dst.GetTop() + transformData.translateY / HALF_F);
-    dst.SetRight(dst.GetRight() + transformData.translateX / HALF_F);
-    dst.SetBottom(dst.GetBottom() + transformData.translateY / HALF_F);
+    if (transformData.scaleX != 0 && transformData.scaleY != 0) {
+        dst.SetLeft(dst.GetLeft() + transformData.translateX / HALF_F / abs(transformData.scaleX));
+        dst.SetTop(dst.GetTop() + transformData.translateY / HALF_F / abs(transformData.scaleY));
+        dst.SetRight(dst.GetRight() + transformData.translateX / HALF_F / abs(transformData.scaleX));
+        dst.SetBottom(dst.GetBottom() + transformData.translateY / HALF_F / abs(transformData.scaleY));
+    }
 }
 #endif
 } // namespace Rosen

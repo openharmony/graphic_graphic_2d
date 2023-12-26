@@ -111,4 +111,14 @@ size_t Typography::GetLineCount()
 {
     return typography_->GetLineCount();
 }
+
+double Typography::GetLineHeight(int lineNumber)
+{
+    return typography_->GetLineHeight();
+}
+
+double Typography::GetLineWidth(int lineNumber)
+{
+    return typography_->GetLineWidth();
+}
 } // namespace rosen

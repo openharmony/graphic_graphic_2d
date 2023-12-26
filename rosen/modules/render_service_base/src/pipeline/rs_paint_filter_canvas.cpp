@@ -33,7 +33,7 @@ RSPaintFilterCanvasBase::RSPaintFilterCanvasBase(Drawing::Canvas* canvas)
     : Canvas(canvas->GetWidth(), canvas->GetHeight()), canvas_(canvas)
 {
 #ifdef ENABLE_RECORDING_DCL
-    thie->AddCanvas(canvas);
+    this->AddCanvas(canvas);
 #endif
 }
 
@@ -231,6 +231,7 @@ void RSPaintFilterCanvasBase::DrawPath(const Path& path)
 
 void RSPaintFilterCanvasBase::DrawBackground(const Brush& brush)
 {
+    Brush b(brush);
 #ifdef ENABLE_RECORDING_DCL
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilterWithBrush(b)) {
@@ -238,7 +239,6 @@ void RSPaintFilterCanvasBase::DrawBackground(const Brush& brush)
         }
     }
 #else
-    Brush b(brush);
     if (canvas_ != nullptr && OnFilterWithBrush(b)) {
         canvas_->DrawBackground(b);
     }
@@ -337,6 +337,39 @@ void RSPaintFilterCanvasBase::DrawVertices(const Drawing::Vertices& vertices, Dr
     }
 #endif
 }
+
+// opinc_begin
+bool RSPaintFilterCanvasBase::BeginOpRecording(const Drawing::Rect* bound, bool isDynamic)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        return canvas_->BeginOpRecording(bound, isDynamic);
+    }
+    return false;
+}
+
+Drawing::OpListHandle RSPaintFilterCanvasBase::EndOpRecording()
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        return canvas_->EndOpRecording();
+    }
+    return {};
+}
+
+void RSPaintFilterCanvasBase::DrawOpList(Drawing::OpListHandle handle)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawOpList(handle);
+    }
+}
+
+int RSPaintFilterCanvasBase::CanDrawOpList(Drawing::OpListHandle handle)
+{
+    if (canvas_ != nullptr && OnFilter()) {
+        return canvas_->CanDrawOpList(handle);
+    }
+    return -1;
+}
+// opinc_end
 
 void RSPaintFilterCanvasBase::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
 {
@@ -823,7 +856,7 @@ CoreCanvas& RSPaintFilterCanvasBase::AttachPaint(const Drawing::Paint& paint)
 #ifdef ENABLE_RECORDING_DCL
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
-            (*iter)->AttachPaint(brush);
+            (*iter)->AttachPaint(paint);
         }
     }
 #else
@@ -1143,13 +1176,13 @@ Color RSPaintFilterCanvas::GetEnvForegroundColor() const
     return envStack_.top().envForegroundColor_;
 }
 #else
-RSColor RSPaintFilterCanvas::GetEnvForegroundColor() const
+Drawing::ColorQuad RSPaintFilterCanvas::GetEnvForegroundColor() const
 {
     // sanity check, stack should not be empty
     if (envStack_.empty()) {
-        return RSColor { 0xFF000000 }; // 0xFF000000 is default value -- black
+        return Drawing::Color::COLOR_BLACK; // 0xFF000000 is default value -- black
     }
-    return envStack_.top().envForegroundColor_;
+    return envStack_.top().envForegroundColor_.AsArgbInt();
 }
 #endif
 

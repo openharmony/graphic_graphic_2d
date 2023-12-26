@@ -17,6 +17,7 @@
 #define SKIA_IMPLFACTORY_H
 
 #include "impl_interface/bitmap_impl.h"
+#include "impl_interface/blender_impl.h"
 #include "impl_interface/pixmap_impl.h"
 #include "impl_interface/camera_impl.h"
 #include "impl_interface/color_filter_impl.h"
@@ -39,6 +40,7 @@
 #include "impl_interface/region_impl.h"
 #include "impl_interface/resource_holder_impl.h"
 #include "impl_interface/shader_effect_impl.h"
+#include "impl_interface/runtime_blender_builder_impl.h"
 #include "impl_interface/runtime_effect_impl.h"
 #include "impl_interface/runtime_shader_builder_impl.h"
 #include "impl_interface/surface_impl.h"
@@ -71,10 +73,16 @@ public:
     static std::unique_ptr<MaskFilterImpl> CreateMaskFilter();
     static std::unique_ptr<ImageFilterImpl> CreateImageFilter();
     static std::unique_ptr<ShaderEffectImpl> CreateShaderEffect();
+    static std::unique_ptr<BlenderImpl> CreateBlender();
     static std::unique_ptr<RuntimeEffectImpl> CreateRuntimeEffect();
     static std::unique_ptr<RuntimeShaderBuilderImpl> CreateRuntimeShaderBuilder(
         std::shared_ptr<RuntimeEffect> runtimeEffect);
+    static std::unique_ptr<RuntimeBlenderBuilderImpl> CreateRuntimeBlenderBuilder(
+        std::shared_ptr<RuntimeEffect> runtimeEffect);
     static std::unique_ptr<SurfaceImpl> CreateSurface();
+    // opinc_begin
+    static std::unique_ptr<OpListHandleImpl> CreateOplistHandle();
+    // opinc_end
     static std::unique_ptr<PathEffectImpl> CreatePathEffect();
     static std::unique_ptr<ColorSpaceImpl> CreateColorSpace();
     static std::unique_ptr<MatrixImpl> CreateMatrix();

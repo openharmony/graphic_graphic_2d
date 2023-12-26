@@ -83,9 +83,9 @@ private:
     bool ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas);
 #endif
 
+    std::mutex imageMutex_;
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkSurface> skSurface_;
-    std::mutex imageMutex_;
     sk_sp<SkImage> skImage_;
     std::shared_ptr<RSRecordingCanvas> recordingCanvas_;
 #else

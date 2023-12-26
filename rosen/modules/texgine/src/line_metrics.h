@@ -38,6 +38,17 @@ struct LineMetrics {
         }
         return allSpanWidth;
     }
+
+    double GetMaxHeight() const
+    {
+        double maxHeight = 0.0;
+        for (const auto &span : lineSpans) {
+            if (span.GetHeight() > maxHeight) {
+                maxHeight = span.GetHeight();
+            }
+        }
+        return maxHeight;
+    }
 };
 } // namespace TextEngine
 } // namespace Rosen

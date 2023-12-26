@@ -205,6 +205,14 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SymbolLayers& val)
         RS_LOGE("[%{public}s] failed SymbolLayers renderGroups_", __func__);
         return false;
     }
+    if (!Marshalling(parcel, val.effect)) {
+        RS_LOGE("[%{public}s] failed SymbolLayers effect", __func__);
+        return false;
+    }
+    if (!Marshalling(parcel, val.animationSetting)) {
+        RS_LOGE("[%{public}s] failed SymbolLayers animationSetting", __func__);
+        return false;
+    }
     return true;
 }
 
@@ -220,6 +228,14 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SymbolLayers& val)
     }
     if (!UnmarshallingVec(parcel, val.renderGroups)) {
         RS_LOGE("[%{public}s] failed SymbolLayers renderGroups_", __func__);
+        return false;
+    }
+    if (!Unmarshalling(parcel, val.effect)) {
+        RS_LOGE("[%{public}s] failed SymbolLayers effect", __func__);
+        return false;
+    }
+    if (!Unmarshalling(parcel, val.animationSetting)) {
+        RS_LOGE("[%{public}s] failed SymbolLayers animationSetting", __func__);
         return false;
     }
     return true;
@@ -346,6 +362,74 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SColor& val)
         Unmarshalling(parcel, val.g) &&
         Unmarshalling(parcel, val.b);
     return isok;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const GroupSetting& val)
+{
+    if (!MarshallingVec(parcel, val.groupInfos)) {
+        RS_LOGE("[%{public}s] failed GroupSetting groupInfos_", __func__);
+        return false;
+    }
+    if (!Marshalling(parcel, val.animationIndex)) {
+        RS_LOGE("[%{public}s] failed GroupSetting animationIndex", __func__);
+        return false;
+    }
+    return true;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, GroupSetting& val)
+{
+    if (!UnmarshallingVec(parcel, val.groupInfos)) {
+        RS_LOGE("[%{public}s] failed GroupSetting groupInfos_", __func__);
+        return false;
+    }
+    if (!Unmarshalling(parcel, val.animationIndex)) {
+        RS_LOGE("[%{public}s] failed GroupSetting animationIndex", __func__);
+        return false;
+    }
+    return true;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const AnimationSetting& val)
+{
+    if (!Marshalling(parcel, val.animationType)) {
+        RS_LOGE("[%{public}s] failed AnimationSetting animationType", __func__);
+        return false;
+    }
+    if (!Marshalling(parcel, val.animationSubType)) {
+        RS_LOGE("[%{public}s] failed AnimationSetting animationSubType", __func__);
+        return false;
+    }
+    if (!Marshalling(parcel, val.animationMode)) {
+        RS_LOGE("[%{public}s] failed AnimationSetting animationMode", __func__);
+        return false;
+    }
+    if (!MarshallingVec(parcel, val.groupSettings)) {
+        RS_LOGE("[%{public}s] failed AnimationSetting animationMode", __func__);
+        return false;
+    }
+    return true;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, AnimationSetting& val)
+{
+    if (!Unmarshalling(parcel, val.animationType)) {
+        RS_LOGE("[%{public}s] failed AnimationSetting animationType", __func__);
+        return false;
+    }
+    if (!Unmarshalling(parcel, val.animationSubType)) {
+        RS_LOGE("[%{public}s] failed AnimationSetting animationSubType", __func__);
+        return false;
+    }
+    if (!Unmarshalling(parcel, val.animationMode)) {
+        RS_LOGE("[%{public}s] failed AnimationSetting animationMode", __func__);
+        return false;
+    }
+    if (!UnmarshallingVec(parcel, val.groupSettings)) {
+        RS_LOGE("[%{public}s] failed AnimationSetting animationMode", __func__);
+        return false;
+    }
+    return true;
 }
 #endif
 

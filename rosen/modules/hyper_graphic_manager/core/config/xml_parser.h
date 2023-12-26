@@ -39,28 +39,27 @@ public:
         Destroy();
     }
 
-    std::unique_ptr<ParsedConfigData> GetParsedData()
+    std::unique_ptr<PolicyConfigData> GetParsedData()
     {
         return std::move(mParsedData_);
     }
-
-    int32_t ParseComponentData();
 
 private:
     static int32_t GetHgmXmlNodeAsInt(xmlNode &node);
     bool ParseInternal(xmlNode &node);
     int32_t ParseParam(xmlNode &node);
     int32_t ParseParams(xmlNode &node);
-    int32_t ParseSetting(xmlNode &node, std::unordered_map<std::string, std::string> &config);
-    int32_t ParserAnimationDynamicSetting(xmlNode &node, DynamicSetting& dynamicSetting);
-    int32_t ParseStrat(xmlNode &node);
+    int32_t ParseStrategyConfig(xmlNode &node);
+    int32_t ParseScreenConfig(xmlNode &node);
+    int32_t ParseSimplex(xmlNode &node, std::unordered_map<std::string, std::string> &config,
+                         std::string valueName = "value", std::string keyName = "name");
+    int32_t ParserDynamicSetting(xmlNode &node, PolicyConfigData::DynamicSettingMap &dynamicSettingMap);
+    int32_t ParseSceneList(xmlNode &node, PolicyConfigData::SceneConfigMap &sceneList);
     std::string ExtractPropertyValue(const std::string &propName, xmlNode &node);
     static bool IsNumber(const std::string &str);
 
     xmlDoc *xmlDocument_;
-    static constexpr char CONFIG_CCM[] = "etc/graphic/hgm_policy_config.xml";
-    std::unordered_map<std::string, int> hgmXmlLabel_;
-    std::unique_ptr<ParsedConfigData> mParsedData_ = nullptr;
+    std::unique_ptr<PolicyConfigData> mParsedData_ = nullptr;
 };
 } // namespace OHOS::Rosen
 #endif // HGM_XML_PARSER_H

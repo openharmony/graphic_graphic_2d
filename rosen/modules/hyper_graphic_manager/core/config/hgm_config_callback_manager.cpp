@@ -16,6 +16,7 @@
 #include "hgm_config_callback_manager.h"
 
 #include "hgm_core.h"
+#include "hgm_frame_rate_manager.h"
 #include "hgm_log.h"
 
 namespace OHOS::Rosen {
@@ -59,10 +60,14 @@ void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
 
     auto& hgmCore = HgmCore::Instance();
     auto data = std::make_shared<RSHgmConfigData>();
-    for (auto& [animType, dynamicSettingMap] : hgmCore.GetParsedConfigData()->aceSceneDynamicSetting_) {
-        for (auto& [animName, dynamicSetting] : dynamicSettingMap) {
+
+    auto screenType = hgmCore.GetFrameRateMgr()->GetCurScreenStrategyId();
+    auto screenSetting = std::to_string(hgmCore.GetCurrentRefreshRateMode());
+    auto dynamicSettingMap = hgmCore.GetPolicyConfigData()->GetAceSceneDynamicSettingMap(screenType, screenSetting);
+    for (auto& [animType, dynamicSetting] : dynamicSettingMap) {
+        for (auto& [animName, dynamicConfig] : dynamicSetting) {
             data->AddAnimDynamicItem({
-                animType, animName, dynamicSetting.min, dynamicSetting.max, dynamicSetting.preferred_fps});
+                animType, animName, dynamicConfig.min, dynamicConfig.max, dynamicConfig.preferred_fps});
         }
     }
     auto screen = hgmCore.GetActiveScreen();
@@ -72,6 +77,36 @@ void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
         data->SetYDpi(screen->GetYDpi());
     }
     callback->OnHgmConfigChanged(data);
+}
+
+void HgmConfigCallbackManager::SyncHgmConfigChangeCallback()
+{
+    if (animDynamicCfgCallbacks_.empty()) {
+        return;
+    }
+
+    auto& hgmCore = HgmCore::Instance();
+    auto data = std::make_shared<RSHgmConfigData>();
+
+    auto screenType = hgmCore.GetFrameRateMgr()->GetCurScreenStrategyId();
+    auto screenSetting = std::to_string(hgmCore.GetCurrentRefreshRateMode());
+    auto dynamicSettingMap = hgmCore.GetPolicyConfigData()->GetAceSceneDynamicSettingMap(screenType, screenSetting);
+    for (auto& [animType, dynamicSetting] : dynamicSettingMap) {
+        for (auto& [animName, dynamicConfig] : dynamicSetting) {
+            data->AddAnimDynamicItem({
+                animType, animName, dynamicConfig.min, dynamicConfig.max, dynamicConfig.preferred_fps});
+        }
+    }
+    auto screen = hgmCore.GetActiveScreen();
+    if (screen != nullptr) {
+        data->SetPpi(screen->GetPpi());
+        data->SetXDpi(screen->GetXDpi());
+        data->SetYDpi(screen->GetYDpi());
+    }
+
+    for (auto& callback : animDynamicCfgCallbacks_) {
+        callback.second->OnHgmConfigChanged(data);
+    }
 }
 
 void HgmConfigCallbackManager::RegisterHgmRefreshRateModeChangeCallback(

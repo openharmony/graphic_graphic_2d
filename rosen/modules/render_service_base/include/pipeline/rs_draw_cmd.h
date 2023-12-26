@@ -220,6 +220,8 @@ public:
         return false;
     }
     virtual void SetNodeId(NodeId id) {}
+
+    virtual void SetSymbol() {}
 };
 
 class OpItemWithPaint : public OpItem {
@@ -392,7 +394,7 @@ private:
 #endif
 #ifdef RS_ENABLE_VK
     mutable GrBackendTexture backendTexture_ = {};
-    mutable NativeBufferUtils::VulkanCleanupHelper* cleanupHelper_ = nullptr;
+    mutable NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper_ = nullptr;
 #endif
     mutable OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
     mutable pid_t tid_ = 0;
@@ -814,6 +816,18 @@ private:
     float y_;
 };
 
+using SymbolAnimation = struct SymbolAnimation {
+    // all animation need
+    double startValue = 0;
+    double curValue = 0;
+    double endValue = 1;
+    double speedValue = 0.01;
+    uint32_t number = 0; // animate times when reach the destination
+    // hierarchy animation need
+    uint32_t startCount = 0; // animate from this frame
+    uint32_t count = 0; // number of frames
+};
+
 class SymbolOpItem : public OpItemWithPaint {
 public:
     SymbolOpItem(const HMSymbolData& symbol, SkPoint locate, const SkPaint& paint);
@@ -847,12 +861,29 @@ public:
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static OpItem* Unmarshalling(Parcel& parcel);
 
+    void SetSymbol() override;
+
+    void InitialScale();
+
+    void InitialVariableColor();
+
+    void SetScale(size_t index);
+
+    void SetVariableColor(size_t index);
+
+    static void UpdateScale(const double cur, SkPath& path);
+
+    void UpdataVariableColor(const double cur, size_t index);
+
 private:
     HMSymbolData symbol_;
     SkPoint locate_;
     SkPaint paint_;
 
     NodeId nodeId_;
+    std::vector<SymbolAnimation> animation_;
+    uint32_t number_ = 2; // one animation means a back and forth
+    bool startAnimation_ = false; // update animation_ if true
 };
 
 class BitmapOpItem : public OpItemWithRSImage {
@@ -1079,7 +1110,7 @@ public:
         const SkFilterMode filter, const SkPaint* paint);
     ~PixelmapNineOpItem() override {}
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
-    
+
     std::string GetTypeWithDesc() const override
     {
         std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";

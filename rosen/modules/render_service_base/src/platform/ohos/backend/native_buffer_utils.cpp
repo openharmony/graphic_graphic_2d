@@ -101,7 +101,6 @@ bool AllocateDeviceMemory(const RsVulkanContext& vkContext, VkDeviceMemory* memo
     physicalDeviceMemProps.pNext = nullptr;
 
     uint32_t foundTypeIndex = 0;
-    uint32_t foundHeapIndex = 0;
     VkDevice device = vkContext.GetDevice();
     VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
     vkContext.vkGetPhysicalDeviceMemoryProperties2(physicalDevice, &physicalDeviceMemProps);
@@ -113,7 +112,6 @@ bool AllocateDeviceMemory(const RsVulkanContext& vkContext, VkDeviceMemory* memo
             uint32_t supportedFlags = pdmp.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
             if (supportedFlags == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
                 foundTypeIndex = i;
-                foundHeapIndex = pdmp.memoryTypes[i].heapIndex;
                 found = true;
                 break;
             }
@@ -249,10 +247,17 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
     vkTextureInfo->levelCount = 1;
     texture_info.SetVKTextureInfo(vkTextureInfo);
     
+    Drawing::ColorType colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
+    if (nbFormatProps.format == VK_FORMAT_A2B10G10R10_UNORM_PACK32) {
+        colorType = Drawing::ColorType::COLORTYPE_RGBA_1010102;
+    }
+
     nativeSurface.drawingSurface = Drawing::Surface::MakeFromBackendRenderTarget(
         skContext.get(),
         texture_info,
         Drawing::TextureOrigin::TOP_LEFT,
+        colorType,
+        nullptr,
         DeleteVkImage,
         new VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
             image, memory));

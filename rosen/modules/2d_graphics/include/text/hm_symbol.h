@@ -95,10 +95,19 @@ struct DrawingRenderGroup {
     DrawingSColor color;
 };
 
+enum DrawingEffectStrategy {
+    INVALID_EFFECT_STRATEGY = 0,
+    NONE = 1,
+    SCALE = 2,
+    HIERARCHICAL = 3,
+};
+
 struct DrawingSymbolLayers {
     uint32_t symbolGlyphId;
     std::vector<std::vector<size_t>> layers;
     std::vector<DrawingRenderGroup> renderGroups;
+    DrawingEffectStrategy effect;
+    DrawingAnimationSetting animationSetting;
 };
 
 enum DrawingSymbolRenderingStrategy {
@@ -106,13 +115,6 @@ enum DrawingSymbolRenderingStrategy {
     SINGLE = 1,
     MULTIPLE_COLOR = 2,
     MULTIPLE_OPACITY = 3,
-};
-
-enum DrawingEffectStrategy {
-    INVALID_EFFECT_STRATEGY = 0,
-    NONE = 1,
-    SCALE = 2,
-    HIERARCHICAL = 3,
 };
 
 struct DrawingSymbolLayersGroups {

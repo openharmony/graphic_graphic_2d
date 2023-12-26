@@ -226,5 +226,12 @@ void SurfaceNodeCommandHelper::SetForeground(RSContext& context, NodeId nodeId, 
         node->SetForeground(isForeground);
     }
 }
+
+void SurfaceNodeCommandHelper::SetSurfaceId(RSContext& context, NodeId nodeId, SurfaceId surfaceId)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetSurfaceId(surfaceId);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

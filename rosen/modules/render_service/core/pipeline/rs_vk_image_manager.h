@@ -99,7 +99,6 @@ public:
         const sptr<SyncFence>& acquireFence);
 
 private:
-    void WaitAcquireFence(const sptr<SyncFence>& acquireFence);
     std::shared_ptr<NativeVkImageRes> NewImageCacheFromBuffer(
         const sptr<OHOS::SurfaceBuffer>& buffer, uint32_t threadIndex);
 

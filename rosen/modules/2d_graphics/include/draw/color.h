@@ -70,6 +70,7 @@ public:
     constexpr static ColorQuad COLOR_YELLOW = 0xFFFFFF00;
     constexpr static ColorQuad COLOR_CYAN = 0xFF00FFFF;
     constexpr static ColorQuad COLOR_MAGENTA = 0xFFFF00FF;
+    constexpr static ColorQuad COLOR_FOREGROUND = 0x00000001;
 
     constexpr static uint8_t RGB_MAX = 255;
     // Return color value from component values.

@@ -26,10 +26,12 @@
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_uni_render_engine.h"
 #include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "hgm_frame_rate_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "common/rs_singleton.h"
+#include "rs_realtime_refresh_rate_manager.h"
 #include "rs_trace.h"
 #include "common/rs_optional_trace.h"
 #include "hdi_backend.h"
@@ -199,9 +201,11 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     }
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     uint32_t rate = hgmCore.GetPendingScreenRefreshRate();
+    uint32_t currentRate = hgmCore.GetScreenCurrentRefreshRate(hgmCore.GetActiveScreenId());
     uint64_t currTimestamp = hgmCore.GetCurrentTimestamp();
-    RSTaskMessage::RSTask task = [this, output = output, layers = layers, rate = rate, timestamp = currTimestamp]() {
-        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %d, now: %lu", rate, timestamp);
+    RSTaskMessage::RSTask task = [this, output = output, layers = layers, rate = rate,
+        currentRate = currentRate, timestamp = currTimestamp]() {
+        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %d, now: %lu", currentRate, timestamp);
         ExecuteSwitchRefreshRate(rate);
         PerformSetActiveMode(output);
         AddRefreshRateCount();
@@ -249,14 +253,14 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
     }
 
     auto screenManager = CreateOrGetScreenManager();
-    ScreenId id = screenManager->GetDefaultScreenId();
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+    ScreenId id = RSMainThread::Instance()->GetFrameRateMgr()->GetCurScreenId();
     if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id)) {
-        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers SetScreenRefreshRate: %d", refreshRate);
-        RS_LOGD("RSHardwareThread::CommitAndReleaseLayers SetScreenRefreshRate = %{public}d", refreshRate);
+        RS_LOGI("RSHardwareThread::CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d",
+            static_cast<int>(id), refreshRate);
         int32_t status = hgmCore.SetScreenRefreshRate(id, 0, refreshRate);
         if (status < EXEC_SUCCESS) {
-            RS_LOGE("RSHardwareThread: failed to set refreshRate %{public}d, screenId %{public}llu", refreshRate, id);
+            RS_LOGD("RSHardwareThread: failed to set refreshRate %{public}d, screenId %{public}llu", refreshRate, id);
         }
     }
 }
@@ -281,7 +285,8 @@ void RSHardwareThread::PerformSetActiveMode(OutputPtr output)
         return;
     }
 
-    RS_TRACE_NAME("RSHardwareThread::PerformSetActiveMode setting active mode");
+    RS_TRACE_NAME_FMT("RSHardwareThread::PerformSetActiveMode setting active mode. rate: %d",
+        hgmCore.GetScreenCurrentRefreshRate(screenManager->GetDefaultScreenId()));
     for (auto mapIter = modeMap->begin(); mapIter != modeMap->end(); ++mapIter) {
         ScreenId id = mapIter->first;
         int32_t modeId = mapIter->second;
@@ -496,7 +501,6 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                     params.buffer->GetSurfaceBufferHeight(), GrMipMapped::kNo, grExternalTextureInfo);
             }
 #endif
-#ifdef NEW_SKIA
             sk_sp<SkImage> image = nullptr;
             (void)image;
 #if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
@@ -536,17 +540,11 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                     kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, skColorSpace);
             }
 #endif
-#else
-            auto image = SkImage::MakeFromTexture(canvas->getGrContext(), backendTexture,
-                kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
-#endif
             if (image == nullptr) {
                 RS_LOGE("RSHardwareThread::DrawImage: image is nullptr!");
                 return;
             }
-
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-#ifndef USE_ROSEN_DRAWING
             SkMatrix matrix;
             auto sx = params.dstRect.width() / params.srcRect.width();
             auto sy = params.dstRect.height() / params.srcRect.height();
@@ -561,26 +559,8 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 
                 uniRenderEngine_->ColorSpaceConvertor(imageShader, params);
             }
-#else
-            Drawing::Matrix matrix;
-            auto sx = params.dstRect.GetWidth() / params.srcRect.GetWidth();
-            auto sy = params.dstRect.GetHeight() / params.srcRect.GetHeight();
-            matrix.SetScaleTranslate(sx, sy, params.dstRect.GetLeft(), params.dstRect.GetTop());
-            auto imageShader = Drawing::ShaderEffect::CreateImageShader(
-                *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, Drawing::SamplingOptions(), matrix);
-            if (imageShader == nullptr) {
-                RS_LOGE("RSHardwareThread::DrawImage imageShader is nullptr.");
-            } else {
-                params.paint.SetShaderEffect(imageShader);
-                params.targetColorGamut = colorGamut;
-                params.screenBrightnessNits = screenManager->GetScreenBrightnessNits(screenId);
-
-                uniRenderEngine_->ColorSpaceConvertor(imageShader, params);
-            }
-#endif
 #endif
 
-#ifdef NEW_SKIA
             RS_TRACE_NAME_FMT("DrawImage(GPU) seqNum: %d", bufferId);
 #ifndef USE_VIDEO_PROCESSING_ENGINE
             canvas->drawImageRect(image, params.srcRect, params.dstRect, SkSamplingOptions(),
@@ -588,14 +568,6 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #else
             canvas->drawRect(params.dstRect, (params.paint));
 #endif // USE_VIDEO_PROCESSING_ENGINE
-#else
-            RS_TRACE_NAME_FMT("DrawImage(GPU) seqNum: %d", bufferId);
-#ifndef USE_VIDEO_PROCESSING_ENGINE
-            canvas->drawImageRect(image, params.srcRect, params.dstRect, &(params.paint));
-#else
-            canvas->drawRect(params.dstRect, &(params.paint));
-#endif // USE_VIDEO_PROCESSING_ENGINE
-#endif
 #else // USE_ROSEN_DRAWING
             std::shared_ptr<Drawing::Image> image = nullptr;
             Drawing::ColorType colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
@@ -649,10 +621,38 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                 }
             }
 #endif
+            if (image == nullptr) {
+                RS_LOGE("RSHardwareThread::DrawImage: image is nullptr!");
+                return;
+            }
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+            Drawing::Matrix matrix;
+            auto sx = params.dstRect.GetWidth() / params.srcRect.GetWidth();
+            auto sy = params.dstRect.GetHeight() / params.srcRect.GetHeight();
+            matrix.SetScaleTranslate(sx, sy, params.dstRect.GetLeft(), params.dstRect.GetTop());
+            auto imageShader = Drawing::ShaderEffect::CreateImageShader(
+                *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, Drawing::SamplingOptions(), matrix);
+            if (imageShader == nullptr) {
+                RS_LOGE("RSHardwareThread::DrawImage imageShader is nullptr.");
+            } else {
+                params.paint.SetShaderEffect(imageShader);
+                params.targetColorGamut = colorGamut;
+
+                auto screenManager = CreateOrGetScreenManager();
+                params.screenBrightnessNits = screenManager->GetScreenBrightnessNits(screenId);
+
+                uniRenderEngine_->ColorSpaceConvertor(imageShader, params);
+            }
+#endif
+
             canvas->AttachBrush(params.paint);
             RS_TRACE_NAME_FMT("DrawImage(GPU) seqNum: %d", bufferId);
+#ifndef USE_VIDEO_PROCESSING_ENGINE
             canvas->DrawImageRect(*image, params.srcRect, params.dstRect,
                 Drawing::SamplingOptions(), Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+#else
+            canvas->DrawRect(params.dstRect);
+#endif
             canvas->DetachBrush();
 #endif // USE_ROSEN_DRAWING
         } else {
@@ -678,10 +678,15 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     renderFrame->Flush();
 #ifdef RS_ENABLE_EGLIMAGE
 #ifdef RS_ENABLE_VK
-    imageCacheSeqsVK.clear();
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        imageCacheSeqsVK.clear();
+    }
 #endif
 #ifdef RS_ENABLE_GL
-    imageCacheSeqs.clear();
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        imageCacheSeqs.clear();
+    }
 #endif
 #endif
     RS_LOGD("RsDebug RSHardwareThread::Redraw flush frame buffer end");
@@ -712,6 +717,7 @@ void RSHardwareThread::AddRefreshRateCount()
     if (!success) {
         iter->second++;
     }
+    RSRealtimeRefreshRateManager::Instance().CountRealtimeFrame();
 }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE

@@ -403,8 +403,7 @@ void RSMainThread::Init()
     delegate->SetRepaintCallback([]() { RSMainThread::Instance()->RequestNextVSync(); });
     RSOverdrawController::GetInstance().SetDelegate(delegate);
 
-    frameRateMgr_ = std::make_unique<HgmFrameRateManager>();
-    frameRateMgr_->Init(rsVSyncController_, appVSyncController_, vsyncGenerator_);
+    frameRateMgr_ = OHOS::Rosen::HgmCore::Instance().GetFrameRateMgr();
     frameRateMgr_->SetForceUpdateCallback([](bool idleTimerExpired, bool forceUpdate) {
         RSMainThread::Instance()->PostTask([idleTimerExpired, forceUpdate]() {
             RS_TRACE_NAME_FMT("RSMainThread::TimerExpiredCallback Run idleTimerExpiredFlag: %s  forceUpdateFlag: %s",
@@ -414,6 +413,7 @@ void RSMainThread::Init()
             RSMainThread::Instance()->RequestNextVSync();
         });
     });
+    frameRateMgr_->Init(rsVSyncController_, appVSyncController_, vsyncGenerator_);
     SubscribeAppState();
     PrintCurrentStatus();
 }
@@ -1215,9 +1215,10 @@ void RSMainThread::ClearMemoryCache(bool deeply)
         }
         RS_LOGD("Clear memory cache");
         RS_TRACE_NAME_FMT("Clear memory cache");
+        SKResourceManager::Instance().ReleaseResource();
         grContext->Flush();
         SkGraphics::PurgeAllCaches(); // clear cpu cache
-        if (deeply) {
+        if (deeply || this->deviceType_ != DeviceType::PHONE) {
             MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
         } else {
             MemoryManager::ReleaseUnlockGpuResource(grContext);
@@ -1374,8 +1375,13 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         RS_TRACE_NAME_FMT("RSMainThread::ProcessHgmFrameRate pendingRefreshRate: %d", *pendingRefreshRate);
     }
 
-    auto appFrameLinkers = GetContext().GetFrameRateLinkerMap().Get();
-    frameRateMgr_->UniProcessData(0, timestamp, rsFrameRateLinker_, appFrameLinkers, idleTimerExpiredFlag_);
+    // hgm warning: use IsLtpo instead after GetDisplaySupportedModes ready
+    if (frameRateMgr_->GetCurScreenStrategyId().find("LTPO") == std::string::npos) {
+        frameRateMgr_->UniProcessDataForLtps(idleTimerExpiredFlag_);
+    } else {
+        auto appFrameLinkers = GetContext().GetFrameRateLinkerMap().Get();
+        frameRateMgr_->UniProcessDataForLtpo(timestamp, rsFrameRateLinker_, appFrameLinkers, idleTimerExpiredFlag_);
+    }
 }
 
 bool RSMainThread::GetParallelCompositionEnabled()
@@ -1641,7 +1647,7 @@ RSVisibleLevel RSMainThread::GetRegionVisibleLevel(const Occlusion::Region& curR
         return RSVisibleLevel::RS_INVISIBLE;
     } else if (visibleRegion.Area() == curRegion.Area()) {
         return RSVisibleLevel::RS_ALL_VISIBLE;
-    } else if (visibleRegion.Area() < (curRegion.Area() >> VISIBLEAREARATIO_FORQOS)) {
+    } else if (visibleRegion.Area() < (static_cast<uint>(curRegion.Area()) >> VISIBLEAREARATIO_FORQOS)) {
         return RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE;
     }
     return RSVisibleLevel::RS_SEMI_NONDEFAULT_VISIBLE;
@@ -1657,7 +1663,7 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
     bool filterCacheOcclusionEnabled = RSSystemParameters::GetFilterCacheOcculusionEnabled();
     for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
         auto curSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-        if (curSurface == nullptr || curSurface->GetDstRect().IsEmpty() || curSurface->IsLeashWindow()) {
+        if (curSurface == nullptr || curSurface->IsLeashWindow()) {
             continue;
         }
         Occlusion::Rect occlusionRect = curSurface->GetSurfaceOcclusionRect(isUniRender_);
@@ -1686,7 +1692,7 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
         accumulatedRegion = {};
         for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
             auto curSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-            if (curSurface == nullptr || curSurface->GetDstRect().IsEmpty() || curSurface->IsLeashWindow()) {
+            if (curSurface == nullptr || curSurface->IsLeashWindow()) {
                 continue;
             }
             Occlusion::Rect occlusionRect = curSurface->GetSurfaceOcclusionRect(isUniRender_);
@@ -1945,7 +1951,6 @@ void RSMainThread::OnVsync(uint64_t timestamp, void* data)
     if (isUniRender_) {
         MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);
         RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
-        RemoveTask(CLEAR_GPU_CACHE);
     }
     mainLoop_();
     auto screenManager_ = CreateOrGetScreenManager();
@@ -2362,7 +2367,7 @@ void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::str
         grContext->flushAndSubmit(true);
     } else if (type == "uihidden") {
         grContext->flush();
-        grContext->purgeUnlockedResources(true);
+        grContext->purgeUnlockAndSafeCacheGpuResources();
         grContext->flushAndSubmit(true);
     } else if (type == "shader") {
 #ifdef NEW_RENDER_CONTEXT

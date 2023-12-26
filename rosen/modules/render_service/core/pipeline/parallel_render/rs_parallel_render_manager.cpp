@@ -319,7 +319,11 @@ void RSParallelRenderManager::WaitCompositionEnd()
 bool RSParallelRenderManager::DrawImageMergeFuncForRosenDrawing(RSPaintFilterCanvas& canvas,
     std::shared_ptr<Drawing::Image> texture)
 {
-    Drawing::TextureOrigin origin = Drawing::TextureOrigin::TOP_LEFT;
+    if (canvas.GetGPUContext() == nullptr) {
+        return false;
+    }
+
+    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
     auto sharedBackendTexture = texture->GetBackendTexture(false, &origin);
     if (!sharedBackendTexture.IsValid()) {
         RS_LOGE("Texture of subThread does not has GPU backend");
@@ -328,9 +332,6 @@ bool RSParallelRenderManager::DrawImageMergeFuncForRosenDrawing(RSPaintFilterCan
     auto newImage = std::make_shared<Drawing::Image>();
     if (newImage == nullptr) {
         RS_LOGE("Texture of subThread create Drawing image fail");
-        return false;
-    }
-    if (canvas.GetGPUContext() == nullptr) {
         return false;
     }
     Drawing::BitmapFormat fmt =
@@ -361,7 +362,6 @@ void RSParallelRenderManager::DrawImageMergeFunc(RSPaintFilterCanvas& canvas)
                 continue;
             }
 #ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
             if (renderContext_ == nullptr) {
                 RS_LOGE("RS main thread render context is nullptr");
                 continue;
@@ -387,9 +387,6 @@ void RSParallelRenderManager::DrawImageMergeFunc(RSPaintFilterCanvas& canvas)
             }
             canvas.drawImage(sharedTexture, 0, 0);
 #else
-            canvas.drawImage(texture, 0, 0);
-#endif
-#else
             if (!DrawImageMergeFuncForRosenDrawing(canvas, texture)) {
                 continue;
             }
@@ -400,12 +397,13 @@ void RSParallelRenderManager::DrawImageMergeFunc(RSPaintFilterCanvas& canvas)
             auto clearTransparentColorSurfaceIndex = i + 1;
             ClearSelfDrawingSurface(canvas, clearTransparentColorSurfaceIndex);
 #ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
             sharedTexture.reset();
             sharedTexture = nullptr;
             texture.reset();
             texture = nullptr;
-#endif
+#else
+            texture.reset();
+            texture = nullptr;
 #endif
         }
     }

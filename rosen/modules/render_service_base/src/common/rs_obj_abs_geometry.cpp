@@ -374,9 +374,9 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
         }
         // Rotate
         if (trans_->pivotZ_ != 0.f) {
-            camera.Translate(sin(trans_->rotationY_ * DEGREE_TO_RADIAN) * trans_->pivotZ_,
-                sin(trans_->rotationX_ * DEGREE_TO_RADIAN) * trans_->pivotZ_,
-                (cos(trans_->rotationX_ * DEGREE_TO_RADIAN) + cos(trans_->rotationY_ * DEGREE_TO_RADIAN)) *
+            camera.Translate(-sin(trans_->rotationY_ * DEGREE_TO_RADIAN) * trans_->pivotZ_,
+                -sin(trans_->rotationX_ * DEGREE_TO_RADIAN) * trans_->pivotZ_,
+                (1 - cos(trans_->rotationX_ * DEGREE_TO_RADIAN) * cos(trans_->rotationY_ * DEGREE_TO_RADIAN)) *
                     trans_->pivotZ_);
         }
         camera.RotateXDegrees(-trans_->rotationX_);

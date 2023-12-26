@@ -18,6 +18,7 @@
 
 #include "include/effects/SkRuntimeEffect.h"
 
+#include "effect/blender.h"
 #include "effect/shader_effect.h"
 #include "impl_interface/runtime_effect_impl.h"
 #include "utils/data.h"
@@ -40,6 +41,7 @@ public:
 
     void InitForShader(const std::string& sl, const RuntimeEffectOptions& options) override;
     void InitForShader(const std::string& sl) override;
+    void InitForBlender(const std::string& sl) override;
     std::shared_ptr<ShaderEffect> MakeShader(std::shared_ptr<Data> uniforms,
         std::shared_ptr<ShaderEffect> children[], size_t childCount,
         const Matrix* localMatrix, bool isOpaque) override;

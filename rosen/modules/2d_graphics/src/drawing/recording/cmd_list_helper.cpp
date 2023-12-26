@@ -341,7 +341,7 @@ SymbolLayersHandle CmdListHelper::AddSymbolLayersToCmdList(CmdList& cmdList, con
     }
     std::pair<uint32_t, size_t> groupsHandle = AddVectorToCmdList(cmdList, handleVector2);
 
-    return { symbolLayers.symbolGlyphId, layersHandle, groupsHandle };
+    return { symbolLayers.symbolGlyphId, layersHandle, groupsHandle, static_cast<int32_t>(symbolLayers.effect)};
 }
 
 DrawingSymbolLayers CmdListHelper::GetSymbolLayersFromCmdList(const CmdList& cmdList,
@@ -363,6 +363,8 @@ DrawingSymbolLayers CmdListHelper::GetSymbolLayersFromCmdList(const CmdList& cmd
         renderGroups.push_back(GetRenderGroupFromCmdList(cmdList, handleVector2.at(i)));
     }
     symbolLayers.renderGroups = renderGroups;
+
+    symbolLayers.effect = static_cast<DrawingEffectStrategy>(symbolLayersHandle.effect);
 
     return symbolLayers;
 }

@@ -91,6 +91,8 @@ public:
     virtual std::vector<TextRect> GetTextRectsOfPlaceholders() = 0;
     virtual IndexAndAffinity GetGlyphIndexByCoordinate(double x, double y) = 0;
     virtual Boundary GetWordBoundaryByIndex(size_t index) = 0;
+    virtual double GetLineHeight(int lineNumber) = 0;
+    virtual double GetLineWidth(int lineNumber) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

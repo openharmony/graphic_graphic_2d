@@ -37,6 +37,7 @@
 #include "platform/drawing/rs_surface.h"
 #endif
 #include "rs_irender_client.h"
+#include "variable_frame_rate/rs_variable_frame_rate.h"
 #include "screen_manager/rs_screen_capability.h"
 #include "screen_manager/rs_screen_data.h"
 #include "screen_manager/rs_screen_hdr_capability.h"
@@ -152,6 +153,10 @@ public:
 
     std::vector<int32_t> GetScreenSupportedRefreshRates(ScreenId id);
 
+    bool GetShowRefreshRateEnabled();
+    
+    void SetShowRefreshRateEnabled(bool enable);
+
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
@@ -250,6 +255,14 @@ public:
     int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height);
 
     void ReportJankStats();
+
+    void NotifyLightFactorStatus(bool isSafe);
+
+    void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
+
+    void NotifyRefreshRateEvent(const EventInfo& eventInfo);
+
+    void NotifyTouchEvent(int32_t touchStatus);
 
     void ReportEventResponse(DataBaseRs info);
 

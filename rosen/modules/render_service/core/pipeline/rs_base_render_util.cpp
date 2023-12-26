@@ -1350,10 +1350,8 @@ void RSBaseRenderUtil::FlipMatrix(GraphicTransformType transform, BufferDrawPara
     camera3D.ApplyToMatrix(flip);
     const float half = 0.5f;
     flip.PreTranslate(-half * params.dstRect.GetWidth(), -half * params.dstRect.GetHeight());
-    Drawing::Matrix tmpMatrix;
-    tmpMatrix.Translate(half * params.dstRect.GetWidth(), half * params.dstRect.GetHeight());
-    flip = tmpMatrix * flip;
-    params.matrix = params.matrix * flip;
+    flip.PostTranslate(half * params.dstRect.GetWidth(), half * params.dstRect.GetHeight());
+    params.matrix.PreConcat(flip);
 #endif
 }
 
@@ -1440,9 +1438,9 @@ bool RSBaseRenderUtil::CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, s
         return false;
     }
 
-    Drawing::BitmapFormat format { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
-    bitmap.Build(buffer->GetWidth(), buffer->GetHeight(), format);
-    bitmap.SetPixels(newBuffer.data());
+    Drawing::ImageInfo imageInfo(buffer->GetWidth(), buffer->GetHeight(),
+        Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    bitmap.InstallPixels(imageInfo, newBuffer.data(), buffer->GetWidth() * 4);
     return true;
 }
 #endif

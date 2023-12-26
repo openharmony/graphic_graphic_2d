@@ -121,7 +121,7 @@ std::shared_ptr<TexgineTypeface> TexgineFontManager::MatchFamilyStyle(const std:
         rsTypeface = fontMgr_->MatchFamilyStyle(nullptr, *style.GetFontStyle());
     }
 
-    if (!skTyepface) {
+    if (!rsTypeface) {
         return nullptr;
     }
     std::shared_ptr<RSTypeface> typeface(rsTypeface);

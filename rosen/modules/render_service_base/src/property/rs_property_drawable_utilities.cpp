@@ -130,7 +130,7 @@ void RSAlphaOffscreenDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& can
 #else
     auto rect = RSPropertiesPainter::Rect2DrawingRect(node.GetRenderProperties().GetBoundsRect());
     Drawing::Brush brush;
-    brush.SetAlphaF(std::clamp(alpha_, 0.f, 1.f) * UINT8_MAX);
+    brush.SetAlpha(std::clamp(alpha_, 0.f, 1.f) * UINT8_MAX);
     Drawing::SaveLayerOps slr(&rect, &brush);
     canvas.SaveLayer(slr);
 #endif
