@@ -51,6 +51,8 @@ public:
     std::vector<TextRect> GetTextRectsOfPlaceholders() override;
     IndexAndAffinity GetGlyphIndexByCoordinate(double x, double y) override;
     Boundary GetWordBoundaryByIndex(size_t index) override;
+    double GetLineHeight(int lineNumber) override;
+    double GetLineWidth(int lineNumber) override;
 
 private:
     std::unique_ptr<txt::Paragraph> paragraph_ = nullptr;
