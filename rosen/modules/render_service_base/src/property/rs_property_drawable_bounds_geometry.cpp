@@ -35,6 +35,7 @@
 #include "property/rs_properties_def.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_skia_filter.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace {
 constexpr int PARAM_DOUBLE = 2;
@@ -990,12 +991,8 @@ bool RSEffectDataGenerateDrawable::Update(const RSPropertyDrawableGenerateContex
 void RSEffectDataGenerateDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 {
     if (auto effectNode = node.ReinterpretCastTo<RSEffectRenderNode>()) {
-        if (auto& region = effectNode->effectRegion_) {
-#ifndef USE_ROSEN_DRAWING
-            RSPropertiesPainter::DrawBackgroundEffect(node.GetRenderProperties(), canvas, *region);
-#else
-            RSPropertiesPainter::DrawBackgroundEffect(node.GetRenderProperties(), canvas, *region);
-#endif
+        if (effectNode->GetNeedFilter() && RSSystemProperties::GetEffectMergeEnabled()) {
+            RSPropertiesPainter::DrawBackgroundEffect(node.GetRenderProperties(), canvas);
         }
     }
 }

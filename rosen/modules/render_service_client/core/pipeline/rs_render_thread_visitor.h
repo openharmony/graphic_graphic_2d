@@ -109,11 +109,11 @@ private:
     std::vector<NodeId> childSurfaceNodeIds_;
 #ifndef USE_ROSEN_DRAWING
     SkMatrix parentSurfaceNodeMatrix_;
-    std::optional<SkPath> effectRegion_ = std::nullopt;
+    std::optional<SkIRect> effectRegion_ = std::nullopt;
     std::shared_ptr<RSRecordingCanvas> recordingCanvas_;
 #else
     Drawing::Matrix parentSurfaceNodeMatrix_;
-    std::optional<Drawing::Path> effectRegion_ = std::nullopt;
+    std::optional<Drawing::RectI> effectRegion_ = std::nullopt;
     std::shared_ptr<Drawing::RecordingCanvas> recordingCanvas_;
 #endif // USE_ROSEN_DRAWING
 

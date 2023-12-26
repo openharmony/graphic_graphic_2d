@@ -705,5 +705,13 @@ bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
         std::atoi((system::GetParameter("persist.sys.graphic.openSecurityPermissionCheck", "0")).c_str()) != 0;
     return openSecurityPermissionCheck;
 }
+
+bool RSSystemProperties::GetEffectMergeEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.effectMergeEnabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
 } // namespace Rosen
 } // namespace OHOS

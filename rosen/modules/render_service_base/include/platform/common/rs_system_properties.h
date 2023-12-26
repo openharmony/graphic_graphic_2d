@@ -199,6 +199,8 @@ public:
     static bool GetAutoCacheDebugEnabled();
 #endif
 
+    static bool GetEffectMergeEnabled();
+
     static inline GpuApiType GetGpuApiType()
     {
         return RSSystemProperties::systemGpuApiType_;

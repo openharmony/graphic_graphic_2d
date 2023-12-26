@@ -95,9 +95,6 @@ public:
     // functions that are dedicated to driven render [end]
     static void DrawSpherize(const RSProperties& properties, RSPaintFilterCanvas& canvas,
         const sk_sp<SkSurface>& spherizeSurface);
-    // EffectView and useEffect
-    static void DrawBackgroundImageAsEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
-    static void DrawBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas, const SkIRect& rect);
     static sk_sp<SkBlender> MakeDynamicLightUpBlender(
         float dynamicLightUpRate, float dynamicLightUpDeg);
     static sk_sp<SkImage> DrawGreyAdjustment(SkCanvas& canvas, const sk_sp<SkImage>& image,
@@ -128,16 +125,15 @@ public:
     // functions that are dedicated to driven render [end]
     static void DrawSpherize(const RSProperties& properties, RSPaintFilterCanvas& canvas,
         const std::shared_ptr<Drawing::Surface>& spherizeSurface);
-    // EffectView and useEffect
-    static void DrawBackgroundImageAsEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
-    // EffectView and useEffect
-    static void DrawBackgroundEffect(
-        const RSProperties& properties, RSPaintFilterCanvas& canvas, const Drawing::RectI& rect);
     static std::shared_ptr<Drawing::Blender> MakeDynamicLightUpBlender(
         float dynamicLightUpRate, float dynamicLightUpDeg);
     static std::shared_ptr<Drawing::Image> DrawGreyAdjustment(Drawing::Canvas& canvas,
         const std::shared_ptr<Drawing::Image>& image, const float greyCoef1, const float greyCoef2);
 #endif // USE_ROSEN_DRAWING
+
+    // EffectView and useEffect
+    static void DrawBackgroundImageAsEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
+    static void DrawBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 
     static const bool BLUR_ENABLED;
 
@@ -148,6 +144,7 @@ private:
         const bool& isOutline);
     static RRect GetInnerRRectForDrawingBorder(const RSProperties& properties, const std::shared_ptr<RSBorder>& border,
         const bool& isOutline);
+    static void ClipVisibleCanvas(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 #ifndef USE_ROSEN_DRAWING
     static void DrawColorfulShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
     static void DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);

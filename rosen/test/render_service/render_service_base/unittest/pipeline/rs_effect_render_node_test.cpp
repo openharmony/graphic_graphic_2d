@@ -82,9 +82,9 @@ HWTEST_F(RSEffectRenderNodeTest, GetFilterRect, TestSize.Level1)
     std::weak_ptr<RSContext> context;
     RSEffectRenderNode rsEffectRenderNode(nodeId, context);
 #ifndef USE_ROSEN_DRAWING
-    SkPath path;
+    SkIRect path;
 #else
-    Drawing::Path path;
+    Drawing::RectI path;
 #endif
     rsEffectRenderNode.SetEffectRegion(path);
     rsEffectRenderNode.GetFilterRect();
