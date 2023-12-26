@@ -207,7 +207,7 @@ void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
     SetMetaDataInfoToLayer(layer, info, surface);
 }
 
-void RSUniRenderComposerAdapter::SetBufferColorSpace(RSDisplayRenderNode& node) const
+void RSUniRenderComposerAdapter::SetBufferColorSpace(RSDisplayRenderNode& node)
 {
     sptr<SurfaceBuffer> buffer = node.GetBuffer();
     if (buffer == nullptr) {

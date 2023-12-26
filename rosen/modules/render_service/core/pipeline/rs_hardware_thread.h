@@ -64,8 +64,8 @@ private:
     void ExecuteSwitchRefreshRate(uint32_t rate);
     void AddRefreshRateCount();
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    GraphicColorGamut ComputeTargetColorGamut(const std::vector<LayerInfoPtr>& layers);
-    GraphicPixelFormat ComputeTargetPixelFormat(const std::vector<LayerInfoPtr>& layers);
+    static GraphicColorGamut ComputeTargetColorGamut(const std::vector<LayerInfoPtr>& layers);
+    static GraphicPixelFormat ComputeTargetPixelFormat(const std::vector<LayerInfoPtr>& layers);
 #endif
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;

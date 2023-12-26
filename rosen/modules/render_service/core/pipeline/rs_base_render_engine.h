@@ -288,9 +288,9 @@ private:
 #endif
     using SurfaceId = uint64_t;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    bool SetColorSpaceConverterDisplayParameter(
+    static bool SetColorSpaceConverterDisplayParameter(
         const BufferDrawParam& params, Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter);
-    bool ConvertColorGamutToSpaceInfo(const GraphicColorGamut& colorGamut,
+    static bool ConvertColorGamutToSpaceInfo(const GraphicColorGamut& colorGamut,
         HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo);
     std::shared_ptr<Media::VideoProcessingEngine::ColorSpaceConverterDisplay> colorSpaceConverterDisplay_ = nullptr;
 #endif
