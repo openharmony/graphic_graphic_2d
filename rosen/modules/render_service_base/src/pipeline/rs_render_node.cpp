@@ -37,9 +37,6 @@
 #include "property/rs_property_trace.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-#include "rs_auto_cache.h"
-#endif
 
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSurface.h"
@@ -710,39 +707,14 @@ void RSRenderNode::SetDirty()
 {
     // Sometimes dirtyStatus_ were not correctly reset, we use dirtyTypes_ to determine if we should add to active list
 #ifndef USE_ROSEN_DRAWING
-    bool dirtyEmpty = dirtyTypes_.empty();
+    if (dirtyStatus_ == NodeDirty::CLEAN || dirtyTypes_.empty()) {
 #else
-    bool dirtyEmpty = dirtyTypes_.none();
-#endif
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    if (dirtyStatus_ < NodeDirty::DIRTY || dirtyEmpty) {
-#else
-    if (dirtyStatus_ == NodeDirty::CLEAN || dirtyEmpty) {
+    if (dirtyStatus_ == NodeDirty::CLEAN || dirtyTypes_.none()) {
 #endif
         AddActiveNode();
         dirtyStatus_ = NodeDirty::DIRTY;
     }
 }
-
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-void RSRenderNode::SetDirtyByOnTree()
-{
-#ifndef USE_ROSEN_DRAWING
-    bool dirtyEmpty = dirtyTypes_.empty();
-#else
-    bool dirtyEmpty = dirtyTypes_.none();
-#endif
-    if (dirtyStatus_ < NodeDirty::ON_TREE_DIRTY || dirtyEmpty) {
-        AddActiveNode();
-        dirtyStatus_ = NodeDirty::ON_TREE_DIRTY;
-    }
-}
-
-bool RSRenderNode::IsOnTreeDirty()
-{
-    return dirtyStatus_ == NodeDirty::ON_TREE_DIRTY && !renderProperties_.IsDirty();
-}
-#endif
 
 void RSRenderNode::SetClean()
 {
@@ -1791,43 +1763,6 @@ Vector2f RSRenderNode::GetOptionalBufferSize() const
     return { vector4f.z_, vector4f.w_ };
 }
 
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-Vector4f RSRenderNode::GetOptionBufferBound() const
-{
-    const auto& modifier = boundsModifier_ ? boundsModifier_ : frameModifier_;
-    if (!modifier) {
-        return {0.0f, 0.0f, 0.0f, 0.0f};
-    }
-    auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(modifier->GetProperty());
-    // bounds vector4f: x y z w -> left top width height
-    return renderProperty->Get();
-}
-
-Vector2f RSRenderNode::GetOpincBufferSize() const
-{
-    auto vector4f = GetOptionBufferBound();
-    return {vector4f.x_ + vector4f.z_, vector4f.y_ + vector4f.w_};
-}
-
-#ifdef USE_ROSEN_DRAWING
-Drawing::Rect RSRenderNode::GetOpincBufferBound() const
-{
-    auto vector4f = GetOptionBufferBound();
-    return {vector4f.x_, vector4f.y_, vector4f.x_ + vector4f.z_, vector4f.y_ + vector4f.w_};
-}
-#endif
-
-void RSRenderNode::SetOpincRectOutParent(bool outFlag)
-{
-    isOpincRectOutParent_ = outFlag;
-}
-
-bool RSRenderNode::IsOpincInsideOf(Vector2f& sR, Vector2f& pR) const
-{
-    return (sR.x_ <= pR.x_ && sR.y_ <= pR.y_);
-}
-#endif
-
 #ifndef USE_ROSEN_DRAWING
 void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst)
 {
@@ -2147,11 +2082,7 @@ void RSRenderNode::CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd)
 
 bool RSRenderNode::IsForcedDrawInGroup() const
 {
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    return nodeGroupType_ == NodeGroupType::GROUPED_BY_USER || nodeGroupType_ == NodeGroupType::GROUPED_BY_AUTO;
-#else
     return nodeGroupType_ == NodeGroupType::GROUPED_BY_USER;
-#endif
 }
 
 bool RSRenderNode::IsSuggestedDrawInGroup() const
@@ -2170,13 +2101,7 @@ void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup)
             }
         } else {
             nodeGroupType_ = isNodeGroup ? type : NodeGroupType::NONE;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-            if (nodeGroupType_ != NodeGroupType::GROUPED_BY_AUTO) {
-                SetDirty();
-            }
-#else
             SetDirty();
-#endif
         }
     }
 }
@@ -2196,26 +2121,12 @@ void RSRenderNode::CheckDrawingCacheType()
 {
     if (nodeGroupType_ == NodeGroupType::NONE) {
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    } else if (IsForcedDrawInGroup()) {
-#else
     } else if (nodeGroupType_ == NodeGroupType::GROUPED_BY_USER) {
-#endif
         SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
     } else {
         SetDrawingCacheType(RSDrawingCacheType::TARGETED_CACHE);
     }
 }
-
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-const std::shared_ptr<RSRenderNode::RSAutoCache>& RSRenderNode::GetAutoCache()
-{
-    if (autoCache_ == nullptr) {
-        autoCache_ = std::make_shared<RSRenderNode::RSAutoCache>(*this);
-    }
-    return autoCache_;
-}
-#endif
 
 void RSRenderNode::ResetFilterRectsInCache(const std::unordered_set<NodeId>& curRects)
 {
@@ -2318,11 +2229,7 @@ void RSRenderNode::OnTreeStateChanged()
         isFullChildrenListValid_ = false;
         ClearFullChildrenListIfNeeded();
     } else {
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-        SetDirtyByOnTree();
-#else
         SetDirty();
-#endif
     }
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (!isOnTheTree_) {

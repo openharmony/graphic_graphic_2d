@@ -207,28 +207,6 @@ void CoreCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, co
     impl_->DrawImageLattice(image, lattice, dst, filter, brush);
 }
 
-// opinc_begin
-bool CoreCanvas::BeginOpRecording(const Rect* bound, bool isDynamic)
-{
-    return impl_->BeginOpRecording(bound, isDynamic);
-}
-
-Drawing::OpListHandle CoreCanvas::EndOpRecording()
-{
-    return impl_->EndOpRecording();
-}
-
-void CoreCanvas::DrawOpList(Drawing::OpListHandle handle)
-{
-    impl_->DrawOpList(handle);
-}
-
-int CoreCanvas::CanDrawOpList(Drawing::OpListHandle handle)
-{
-    return impl_->CanDrawOpList(handle);
-}
-// opinc_end
-
 void CoreCanvas::DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py)
 {
     AttachPaint();
