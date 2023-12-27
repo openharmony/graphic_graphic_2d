@@ -336,12 +336,7 @@ void RSUniRenderVisitor::UpdateStaticCacheSubTree(const std::shared_ptr<RSRender
         UpdateStaticCacheSubTreeSetState(child);
         // set flag for surface node whose children contain shared transition node
         if (child->GetSharedTransitionParam().has_value() && curSurfaceNode_) {
-            curSurfaceNode_->SetHasSharedTransitionNode(true);
-            auto leashNode =
-                RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(curSurfaceNode_->GetParent().lock());
-            if (leashNode && leashNode->GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
-                leashNode->SetHasSharedTransitionNode(true);
-            }
+            SetHasSharedTransitionNode(*curSurfaceNode_, true);
         }
         // [planning] pay attention to outofparent case
         if (auto surfaceNode = child->ReinterpretCastTo<RSSurfaceRenderNode>()) {
@@ -1277,7 +1272,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
     // Attension: Updateinfo before info reset
     node.StoreMustRenewedInfo();
-    node.SetHasSharedTransitionNode(false);
+    SetHasSharedTransitionNode(node, false);
     // reset HasSecurityLayer
     node.SetHasSecurityLayer(false);
     node.SetHasSkipLayer(false);
@@ -5240,11 +5235,7 @@ void RSUniRenderVisitor::PrepareSharedTransitionNode(RSBaseRenderNode& node)
 {
     // set flag for surface node whose children contain shared transition node
     if (curSurfaceNode_) {
-        curSurfaceNode_->SetHasSharedTransitionNode(true);
-        auto leashNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(curSurfaceNode_->GetParent().lock());
-        if (leashNode && leashNode->GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
-            leashNode->SetHasSharedTransitionNode(true);
-        }
+        SetHasSharedTransitionNode(*curSurfaceNode_, true);
     }
 
     // Sanity check done by caller, transitionParam should always has value.
@@ -5467,6 +5458,21 @@ void RSUniRenderVisitor::ScaleMirrorIfNeed(RSDisplayRenderNode& node)
         canvas_->Translate(startX, startY);
         canvas_->Scale(mirrorScale, mirrorScale);
 #endif
+    }
+}
+
+void RSUniRenderVisitor::SetHasSharedTransitionNode(RSSurfaceRenderNode& surfaceNode, bool hasSharedTransitionNode)
+{
+    // only allow change hasSharedTransitionNode in leash window's child
+    if (surfaceNode.GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
+        return;
+    }
+    surfaceNode.SetHasSharedTransitionNode(hasSharedTransitionNode);
+    // sync the change to parent leash window
+    auto leashNode =
+        RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surfaceNode.GetParent().lock());
+    if (leashNode && leashNode->GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
+        leashNode->SetHasSharedTransitionNode(hasSharedTransitionNode);
     }
 }
 

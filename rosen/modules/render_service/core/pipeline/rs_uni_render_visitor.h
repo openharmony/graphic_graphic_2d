@@ -542,6 +542,9 @@ private:
 #else
     std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
 #endif
+
+    void SetHasSharedTransitionNode(RSSurfaceRenderNode& surfaceNode, bool hasSharedTransitionNode);
+
     // attention: please synchronize the change of RSUniRenderVisitor::ProcessChildren to this func
     void ProcessChildrenForScreenRecordingOptimization(RSDisplayRenderNode& node, NodeId rootIdOfCaptureWindow);
     NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);
