@@ -28,6 +28,8 @@ namespace TextEngine {
 #define INVALID_TEXT_LENGTH (-1)
 #define SUCCESSED 0
 #define FAILED 1
+#define POLL_MECHANISM 4999
+#define POLL_NUM 1000
 constexpr static uint8_t FIRST_BYTE = 24;
 constexpr static uint8_t SECOND_BYTE = 16;
 constexpr static uint8_t THIRD_BYTE = 8;
@@ -102,6 +104,15 @@ const std::vector<Boundary> &MeasurerImpl::GetWordBoundary() const
     return boundaries_;
 }
 
+void MeasurerImpl::UpdateCache()
+{
+    auto iter = cache_.begin();
+    LOGE("Performance |  清空了一部分Key POLL_MECHANISM =%d POLL_NUM=%d",POLL_MECHANISM,POLL_NUM);
+    for(size_t index = 0; index < POLL_NUM; index++) {
+        cache_.erase(iter++);
+    }
+}
+
 int MeasurerImpl::Measure(CharGroups &cgs)
 {
 #ifdef LOGGER_ENABLE_SCOPE
@@ -126,11 +137,16 @@ int MeasurerImpl::Measure(CharGroups &cgs)
         if (it != cache_.end()) {
             cgs = it->second.cgs.Clone();
             boundaries_ = it->second.boundaries;
+            LOGE("Performance |采纳了缓存Key detectionName_=%s cgs.GetTypefaceName()=%s",detectionName_.c_str(),cgs.GetTypefaceName().c_str());
             if (detectionName_ != cgs.GetTypefaceName()) {
-                cache_.clear();
-            } else {
-                return SUCCESSED;
+                LOGE("Performance |  删除了对应Key");
+                cache_.erase(key);
+            } 
+            else if(cache_.size() > POLL_MECHANISM){
+                LOGE("Performance |  map过大,删除");
+                UpdateCache();
             }
+            return SUCCESSED;
         }
     }
 
@@ -149,7 +165,6 @@ int MeasurerImpl::Measure(CharGroups &cgs)
 
     if (fontFeatures_ == nullptr || fontFeatures_->GetFeatures().size() == 0) {
         if (cgs.CheckCodePoint()) {
-            detectionName_ = cgs.GetTypefaceName();
             struct MeasurerCacheVal value = {cgs.Clone(), boundaries_};
             std::lock_guard<std::mutex> lock(mutex_);
             cache_[key] = value;

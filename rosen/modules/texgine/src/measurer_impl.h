@@ -141,11 +141,12 @@ private:
         std::shared_ptr<TextEngine::Typeface> typeface);
     void DoCgsByCluster(std::map<uint32_t, TextEngine::CharGroup> &cgsByCluster);
     void HbDestroy(hb_buffer_t* hbuffer, hb_font_t* hfont, hb_face_t* hface, hb_unicode_funcs_t* icuGetUnicodeFuncs);
+    void UpdateCache();
 
     static inline std::mutex mutex_;
     static inline std::map<struct MeasurerCacheKey, struct MeasurerCacheVal> cache_;
     std::vector<Boundary> boundaries_ = {};
-    std::string detectionName_;
+    std::string defaultFallbackName_ = "HarmonyOS Sans SC";
 };
 
 hb_blob_t* HbFaceReferenceTableTypeface(hb_face_t* face, hb_tag_t tag, void* context);
