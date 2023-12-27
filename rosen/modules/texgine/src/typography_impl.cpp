@@ -812,9 +812,12 @@ void TypographyImpl::ApplyAlignment()
         }
 
         size_t spanIndex = 0;
+        line.ComputeLineHeightAndY();
         for (auto &span : line.lineSpans) {
             span.AdjustOffsetX(typographyOffsetX + spanGapWidth * spanIndex);
             span.SetJustifyGap(spanIndex > 0 && isJustify ? spanGapWidth : 0.0);
+            span.SetLineHeight(line.lineHeight);
+            span.SetLineY(line.lineY);
             spanIndex++;
         }
         line.indent = typographyOffsetX;

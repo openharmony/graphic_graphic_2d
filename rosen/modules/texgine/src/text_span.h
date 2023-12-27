@@ -72,6 +72,9 @@ public:
     double preBreak_ = 0.0;
     double postBreak_ = 0.0;
     double width_ = 0.0;
+    double lineHeight_ = 0.0;
+    double lineY_ = 0.0;
+    double absLineY_ = 0.0;
 
 private:
     friend class TextBreaker;

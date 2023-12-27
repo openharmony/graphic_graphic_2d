@@ -200,8 +200,7 @@ void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, cons
         }
         const SkVector fRadii[4] = {{ltRadius, ltRadius}, {rtRadius, rtRadius}, {rbRadius, rbRadius},
             {lbRadius, lbRadius}};
-        auto rect = TexgineRect::MakeRRect(offsetX, offsetY + *tmetrics_->fAscent_, width_,
-            *tmetrics_->fDescent_ - *tmetrics_->fAscent_, fRadii);
+        auto rect = TexgineRect::MakeRRect(offsetX, absLineY_, width_, lineHeight_, fRadii);
         canvas.DrawRRect(rect, paint);
     }
 

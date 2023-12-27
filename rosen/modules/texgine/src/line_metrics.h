@@ -27,6 +27,8 @@ struct LineMetrics {
     std::vector<VariantSpan> lineSpans;
     double width = 0.0;
     double indent = 0.0;
+    double lineHeight = 0.0;
+    double lineY = 0.0;
 
     void AddSpanAndUpdateMetrics(const VariantSpan &span);
 
@@ -48,6 +50,25 @@ struct LineMetrics {
             }
         }
         return maxHeight;
+    }
+
+    void ComputeLineHeightAndY()
+    {
+        if (lineSpans.size() == 0) {
+            lineHeight = 0.0;
+            lineY = 0.0;
+        } else if (lineHeight == 0.0 || lineY == 0.0) {
+            lineHeight = 0.0;
+            lineY = INT_MAX;
+            for (const auto &span : lineSpans) {
+                lineHeight = std::max(lineHeight, span.GetHeight());
+                if (auto textSpan = span.TryToTextSpan(); textSpan != nullptr) {
+                    lineY = std::min(lineY, span.GetOffsetY() + *(textSpan->tmetrics_->fAscent_));
+                } else {
+                    lineY = std::min(lineY, span.GetOffsetY());
+                }
+            }
+        }
     }
 };
 } // namespace TextEngine

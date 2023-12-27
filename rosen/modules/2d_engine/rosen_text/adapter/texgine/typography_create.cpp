@@ -92,6 +92,7 @@ public:
 
     void Paint(TextEngine::TexgineCanvas &canvas, double offsetX, double offsetY) override
     {
+        PaintBackgroundRect(canvas, offsetX, offsetY);
     }
 
 private:
