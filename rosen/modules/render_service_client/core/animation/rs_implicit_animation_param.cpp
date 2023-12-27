@@ -96,11 +96,12 @@ void RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask(
     RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap&& propertiesMap, bool isRenderService)
 {
     // create task and execute it in RS
-    auto task = std::make_shared<RSNodeGetShowingPropertiesAndCancelAnimation>(1e10, std::move(propertiesMap));
+    auto task = std::make_shared<RSNodeGetShowingPropertiesAndCancelAnimation>(1e8, std::move(propertiesMap));
     RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(task, isRenderService);
 
     // Test if the task is executed successfully
     if (!task || !task->IsSuccess()) {
+        ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to execute task.");
         return;
     }
 
@@ -109,14 +110,17 @@ void RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask(
         const auto& [nodeId, propertyId] = key;
         auto node = RSNodeMap::Instance().GetNode(nodeId);
         if (node == nullptr) {
+            ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to get target node.");
             continue;
         }
         auto modifier = node->GetModifier(propertyId);
         if (modifier == nullptr) {
+            ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to get target modifier.");
             continue;
         }
         auto property = modifier->GetProperty();
         if (property == nullptr) {
+            ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to get target property.");
             continue;
         }
         node->CancelAnimationByProperty(propertyId);
