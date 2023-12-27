@@ -584,10 +584,16 @@ void TypographyImpl::Paint(TexgineCanvas &canvas, double offsetX, double offsetY
         bool rightRound = false;
         for (auto &span : metric.lineSpans) {
             if (span.HasBackgroundRect()) {
+                int styleId = span.GetTextStyle().styleId;
+                // index - 1 is previous index, -1 is the invalid styleId
+                int preStyleId = index == 0 ? -1 : metric.lineSpans[index - 1].GetTextStyle().styleId;
+                // spanCount - 1 is the last span index, index + 1 is next span index, -1 is the invalid styleId
+                int nextStyleId = index == spanCount - 1 ? -1 : metric.lineSpans[index + 1].GetTextStyle().styleId;
                 // index - preIndex > 1 means the left span has no background rect
-                leftRound = (preIndex < 0 || index - preIndex > 1);
+                leftRound = (preIndex < 0 || index - preIndex > 1 || preStyleId != styleId);
                 // spanCount - 1 is the last span index, index + 1 is next span index
-                rightRound = (index == spanCount - 1 || !metric.lineSpans[index + 1].HasBackgroundRect());
+                rightRound = (index == spanCount - 1 || !metric.lineSpans[index + 1].HasBackgroundRect() ||
+                    nextStyleId != styleId);
                 preIndex = index;
             }
             if (leftRound && rightRound) {

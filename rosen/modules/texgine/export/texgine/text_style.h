@@ -142,6 +142,7 @@ struct TextStyle {
     std::optional<TexginePaint> background = std::nullopt;
     std::vector<TextShadow> shadows;
     RectStyle backgroundRect = {0, 0.0, 0.0, 0.0, 0.0};
+    int styleId = 0;
     // Implements the equality operator.
     bool operator ==(TextStyle const& rhs) const;
 

@@ -117,6 +117,7 @@ txt::TextStyle Convert(const TextStyle &style)
     textStyle.backgroundRect = { style.backgroundRect.color, style.backgroundRect.leftTopRadius,
         style.backgroundRect.rightTopRadius, style.backgroundRect.rightBottomRadius,
         style.backgroundRect.leftBottomRadius };
+    textStyle.styleId = style.styleId;
 #ifndef USE_ROSEN_DRAWING
     textStyle.has_background = style.background.has_value();
     textStyle.background = style.background.value_or(SkPaint());

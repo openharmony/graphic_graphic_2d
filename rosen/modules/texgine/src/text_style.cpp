@@ -67,6 +67,7 @@ bool TextStyle::operator ==(TextStyle const &rhs) const
            foreground == rhs.foreground &&
            background == rhs.background &&
            backgroundRect == rhs.backgroundRect &&
+           styleId == rhs.styleId &&
            isSymbolGlyph == rhs.isSymbolGlyph &&
            symbol == rhs.symbol;
 }
