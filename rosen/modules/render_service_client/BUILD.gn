@@ -31,6 +31,13 @@ config("render_service_client_config") {
 
 template("render_service_client_source_set") {
   ohos_source_set(target_name) {
+    branch_protector_ret = "pac_ret"
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+      blocklist = "./rs_client_blocklist.txt"
+    }
     defines = []
     defines += gpu_defines
     defines += [ "MODULE_RSC" ]
@@ -234,6 +241,13 @@ config("render_service_client_link_config") {
 }
 
 ohos_shared_library("librender_service_client") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "./rs_client_blocklist.txt"
+  }
   public_deps = [ ":render_service_client_src" ]
   innerapi_tags = [ "platformsdk" ]
 
@@ -246,6 +260,13 @@ ohos_shared_library("librender_service_client") {
 }
 
 ohos_source_set("librender_service_client_static") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "./rs_client_blocklist.txt"
+  }
   public_deps = [ ":render_service_client_src_static" ]
   deps = [ "$rosen_root/modules/platform:eventhandler" ]
   part_name = "graphic_2d"
