@@ -82,6 +82,11 @@ private:
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas);
 #endif
+#ifndef USE_ROSEN_DRAWING
+    void ProcessCPURenderInBackgroundThread(std::shared_ptr<DrawCmdList> cmds);
+#else
+    void ProcessCPURenderInBackgroundThread(std::shared_ptr<Drawing::DrawCmdList> cmds);
+#endif
 
     std::mutex imageMutex_;
 #ifndef USE_ROSEN_DRAWING

@@ -280,6 +280,10 @@ void RSMainThread::Init()
         RSMainThread::Instance()->PostTask(task);
     };
     context_->SetTaskRunner(taskDispatchFunc);
+    context_->SetVsyncRequestFunc([]() {
+        RSMainThread::Instance()->RequestNextVSync();
+        RSMainThread::Instance()->SetDirtyFlag();
+    });
     RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), taskDispatchFunc);
     RsFrameReport::GetInstance().Init();
     if (isUniRender_) {
