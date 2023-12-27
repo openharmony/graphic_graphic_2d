@@ -117,6 +117,7 @@ bool TextStyle::operator ==(const TextStyle& rhs) const
         backgroundPen == rhs.backgroundPen &&
 #endif
         backgroundRect == rhs.backgroundRect &&
+        styleId == rhs.styleId &&
         shadows == rhs.shadows &&
         fontFeatures == rhs.fontFeatures;
 }

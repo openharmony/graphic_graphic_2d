@@ -168,7 +168,8 @@ bool TextSpan::IsRTL() const
     return rtl_;
 }
 
-void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, const TextStyle &xs)
+void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, const TextStyle &xs,
+    const RoundRectType &rType)
 {
     TexginePaint paint;
     paint.SetAntiAlias(true);
@@ -185,14 +186,21 @@ void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, cons
 
     if (xs.backgroundRect.color != 0) {
         paint.SetColor(xs.backgroundRect.color);
-        double ltRadius = xs.backgroundRect.leftTopRadius;
-        double rtRadius = xs.backgroundRect.rightTopRadius;
-        double rbRadius = xs.backgroundRect.rightBottomRadius;
-        double lbRadius = xs.backgroundRect.leftBottomRadius;
+        double ltRadius = 0.0;
+        double rtRadius = 0.0;
+        double rbRadius = 0.0;
+        double lbRadius = 0.0;
+        if (rType == RoundRectType::ALL || rType == RoundRectType::LEFT_ONLY) {
+            ltRadius = xs.backgroundRect.leftTopRadius;
+            lbRadius = xs.backgroundRect.leftBottomRadius;
+        }
+        if (rType == RoundRectType::ALL || rType == RoundRectType::RIGHT_ONLY) {
+            rtRadius = xs.backgroundRect.rightTopRadius;
+            rbRadius = xs.backgroundRect.rightBottomRadius;
+        }
         const SkVector fRadii[4] = {{ltRadius, ltRadius}, {rtRadius, rtRadius}, {rbRadius, rbRadius},
             {lbRadius, lbRadius}};
-        auto rect = TexgineRect::MakeRRect(offsetX, offsetY + *tmetrics_->fAscent_, width_,
-            *tmetrics_->fDescent_ - *tmetrics_->fAscent_, fRadii);
+        auto rect = TexgineRect::MakeRRect(offsetX, absLineY_, width_, lineHeight_, fRadii);
         canvas.DrawRRect(rect, paint);
     }
 
@@ -208,7 +216,7 @@ void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, cons
     } else {
         canvas.DrawTextBlob(textBlob_, offsetX, offsetY, paint);
     }
-    
+
     PaintDecoration(canvas, offsetX, offsetY, xs);
 }
 

@@ -577,8 +577,36 @@ void TypographyImpl::UpadateAnySpanMetrics(std::shared_ptr<AnySpan> &span, doubl
 void TypographyImpl::Paint(TexgineCanvas &canvas, double offsetX, double offsetY)
 {
     for (auto &metric : lineMetrics_) {
+        int spanCount = metric.lineSpans.size();
+        int index = 0;
+        int preIndex = -1; // Init preIndex to -1
+        bool leftRound = false;
+        bool rightRound = false;
         for (auto &span : metric.lineSpans) {
+            if (span.HasBackgroundRect()) {
+                int styleId = span.GetTextStyle().styleId;
+                // index - 1 is previous index, -1 is the invalid styleId
+                int preStyleId = index == 0 ? -1 : metric.lineSpans[index - 1].GetTextStyle().styleId;
+                // spanCount - 1 is the last span index, index + 1 is next span index, -1 is the invalid styleId
+                int nextStyleId = index == spanCount - 1 ? -1 : metric.lineSpans[index + 1].GetTextStyle().styleId;
+                // index - preIndex > 1 means the left span has no background rect
+                leftRound = (preIndex < 0 || index - preIndex > 1 || preStyleId != styleId);
+                // spanCount - 1 is the last span index, index + 1 is next span index
+                rightRound = (index == spanCount - 1 || !metric.lineSpans[index + 1].HasBackgroundRect() ||
+                    nextStyleId != styleId);
+                preIndex = index;
+            }
+            if (leftRound && rightRound) {
+                span.SetRoundRectType(RoundRectType::ALL);
+            } else if (leftRound) {
+                span.SetRoundRectType(RoundRectType::LEFT_ONLY);
+            } else if (rightRound) {
+                span.SetRoundRectType(RoundRectType::RIGHT_ONLY);
+            } else {
+                span.SetRoundRectType(RoundRectType::NONE);
+            }
             span.Paint(canvas, offsetX + span.GetOffsetX(), offsetY + span.GetOffsetY());
+            index++;
         }
     }
 }
@@ -790,9 +818,12 @@ void TypographyImpl::ApplyAlignment()
         }
 
         size_t spanIndex = 0;
+        line.ComputeLineHeightAndY();
         for (auto &span : line.lineSpans) {
             span.AdjustOffsetX(typographyOffsetX + spanGapWidth * spanIndex);
             span.SetJustifyGap(spanIndex > 0 && isJustify ? spanGapWidth : 0.0);
+            span.SetLineHeight(line.lineHeight);
+            span.SetLineY(line.lineY);
             spanIndex++;
         }
         line.indent = typographyOffsetX;

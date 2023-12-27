@@ -50,7 +50,7 @@ public:
 
     void PaintDecoration(TexgineCanvas &canvas, double offsetX, double offsetY, const TextStyle &xs);
     void PaintDecorationStyle(TexgineCanvas &canvas, double left, double right, double y, const TextStyle &xs);
-    void Paint(TexgineCanvas &canvas, double offsetX, double offsetY, const TextStyle &xs);
+    void Paint(TexgineCanvas &canvas, double offsetX, double offsetY, const TextStyle &xs, const RoundRectType &rType);
     void PaintShadow(TexgineCanvas &canvas, double offsetX, double offsetY, const std::vector<TextShadow> &shadows);
 
     std::shared_ptr<TextSpan> CloneWithCharGroups(CharGroups const &cgs);
@@ -72,6 +72,9 @@ public:
     double preBreak_ = 0.0;
     double postBreak_ = 0.0;
     double width_ = 0.0;
+    double lineHeight_ = 0.0;
+    double lineY_ = 0.0;
+    double absLineY_ = 0.0;
 
 private:
     friend class TextBreaker;

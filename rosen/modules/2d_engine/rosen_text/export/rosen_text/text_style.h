@@ -101,6 +101,7 @@ struct TextStyle {
     std::vector<TextShadow> shadows;
     FontFeatures fontFeatures;
     RectStyle backgroundRect = {0, 0.0, 0.0, 0.0, 0.0};
+    int styleId = 0;
 
     bool operator ==(const TextStyle &rhs) const;
 

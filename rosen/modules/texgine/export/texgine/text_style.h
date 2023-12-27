@@ -104,6 +104,13 @@ struct RectStyle {
     }
 };
 
+enum class RoundRectType {
+    NONE,
+    LEFT_ONLY,
+    RIGHT_ONLY,
+    ALL,
+};
+
 /*
  * @brief TextStyle is a collection of parameters that control how text is displayed,
  *        including parameters for fonts, decorations, and text.
@@ -135,6 +142,7 @@ struct TextStyle {
     std::optional<TexginePaint> background = std::nullopt;
     std::vector<TextShadow> shadows;
     RectStyle backgroundRect = {0, 0.0, 0.0, 0.0, 0.0};
+    int styleId = 0;
     // Implements the equality operator.
     bool operator ==(TextStyle const& rhs) const;
 

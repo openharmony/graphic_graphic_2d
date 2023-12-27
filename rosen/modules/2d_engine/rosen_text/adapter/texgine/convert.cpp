@@ -124,6 +124,7 @@ TextEngine::TextStyle Convert(const TextStyle &style)
         .foreground = foreground,
         .background = background,
         .backgroundRect = Convert(style.backgroundRect),
+        .styleId = style.styleId,
         .isSymbolGlyph = style.isSymbolGlyph,
     };
     if (style.isSymbolGlyph) {

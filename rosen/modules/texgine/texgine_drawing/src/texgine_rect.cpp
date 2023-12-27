@@ -84,7 +84,7 @@ TexgineRect TexgineRect::MakeRRect(float x, float y, float w, float h, const SkV
     RSPoint rightTop(skRadii[1].x(), skRadii[1].y()); // skRadii[1] is rightTop corner
     RSPoint rightBottom(skRadii[2].x(), skRadii[2].y()); // skRadii[2] is rightBottom corner
     RSPoint leftBottom(skRadii[3].x(), skRadii[3].y()); // skRadii[3] is leftBottom corner
-    std::vector<RSPoint> radiusXY = { leftTop, rightTop, leftBottom, rightBottom };
+    std::vector<RSPoint> radiusXY = { leftTop, rightTop, rightBottom, leftBottom };
     rect->SetRRect(RSRoundRect { rsRect, radiusXY });
 #endif
     return *rect;

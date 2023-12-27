@@ -256,11 +256,15 @@ void VariantSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY) n
 {
     CheckPointer();
     if (as_) {
+        as_->SetTextStyle(xs_);
+        as_->SetRoundRectType(roundRectType_);
+        as_->SetAbsLineY(offsetY - offsetY_ + GetLineY());
         as_->Paint(canvas, offsetX, offsetY);
     }
 
     if (ts_) {
-        ts_->Paint(canvas, offsetX, offsetY, xs_);
+        ts_->absLineY_ = offsetY - offsetY_ + GetLineY();
+        ts_->Paint(canvas, offsetX, offsetY, xs_, roundRectType_);
     }
 }
 
@@ -307,6 +311,69 @@ void VariantSpan::CheckPointer(bool nullable) const noexcept(false)
     if (as_ != nullptr && ts_ != nullptr) {
         throw TEXGINE_EXCEPTION(ERROR_STATUS);
     }
+}
+
+bool VariantSpan::HasBackgroundRect() const noexcept(true)
+{
+    return xs_.backgroundRect.color != 0;
+}
+
+RoundRectType VariantSpan::GetRoundRectType() const noexcept(true)
+{
+    return roundRectType_;
+}
+
+void VariantSpan::SetRoundRectType(RoundRectType type) noexcept(true)
+{
+    roundRectType_ = type;
+}
+
+void VariantSpan::SetLineHeight(double lineHeight) noexcept(true)
+{
+    CheckPointer();
+    if (as_) {
+        as_->SetLineHeight(lineHeight);
+    }
+
+    if (ts_) {
+        ts_->lineHeight_ = lineHeight;
+    }
+}
+
+double VariantSpan::GetLineHeight() const noexcept(true)
+{
+    double lineHeight = 0.0;
+    CheckPointer();
+    if (as_) {
+        lineHeight = as_->GetLineHeight();
+    } else if (ts_) {
+        lineHeight = ts_->lineHeight_;
+    }
+    return lineHeight;
+}
+
+void VariantSpan::SetLineY(double lineY) noexcept(true)
+{
+    CheckPointer();
+    if (as_) {
+        as_->SetLineY(lineY);
+    }
+
+    if (ts_) {
+        ts_->lineY_ = lineY;
+    }
+}
+
+double VariantSpan::GetLineY() const noexcept(true)
+{
+    double lineY = 0.0;
+    CheckPointer();
+    if (as_) {
+        lineY = as_->GetLineY();
+    } else if (ts_) {
+        lineY = ts_->lineY_;
+    }
+    return lineY;
 }
 } // namespace TextEngine
 } // namespace Rosen
