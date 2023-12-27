@@ -36,7 +36,7 @@ namespace TextEngine {
 #define CN_LEFT_QUOTE 0x201C
 #define CN_RIGHT_QUOTE 0x201D
 #define EN_QUOTE 0x22
-#define EXISTING_CRITICAL_VALUE 2700
+#define EXISTING_CRITICAL_VALUE 50000
 #define CUSTOM_MAX_WIDTH_LIMIT 1e9
 
 void TextBreaker::SetWidthLimit(const double widthLimit)
