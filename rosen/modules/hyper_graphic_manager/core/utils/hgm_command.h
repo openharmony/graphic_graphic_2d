@@ -24,6 +24,8 @@
 
 namespace OHOS::Rosen {
 
+constexpr int UNI_APP_PID = -1;
+
 enum OledRefreshRate {
     OLED_NULL_HZ = 0,
     OLED_MIN_HZ = 1,
