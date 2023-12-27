@@ -122,7 +122,7 @@ SurfaceError SurfaceImage::UpdateSurfaceImage()
     }
 
     uint32_t seqNum = buffer->GetSeqNum();
-    BLOGI("seqNum %{public}d", seqNum);
+    BLOGD("seqNum %{public}d", seqNum);
     EGLImageKHR img = imageCacheSeqs_[seqNum].eglImage_;
     glBindTexture(textureTarget_, textureId_);
     glEGLImageTargetTexture2DOES(textureTarget_, static_cast<GLeglImageOES>(img));
@@ -395,7 +395,7 @@ SurfaceImageListener::~SurfaceImageListener()
 
 void SurfaceImageListener::OnBufferAvailable()
 {
-    BLOGE("SurfaceImageListener::OnBufferAvailable");
+    BLOGD("SurfaceImageListener::OnBufferAvailable");
     auto surfaceImage = surfaceImage_.promote();
     if (surfaceImage == nullptr) {
         BLOGE("surfaceImage promote failed");
