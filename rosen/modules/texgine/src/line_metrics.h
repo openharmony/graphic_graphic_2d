@@ -23,6 +23,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
+#define MAX_INT_VALUE 0x7FFFFFFF
+
 struct LineMetrics {
     std::vector<VariantSpan> lineSpans;
     double width = 0.0;
@@ -59,7 +61,7 @@ struct LineMetrics {
             lineY = 0.0;
         } else if (lineHeight == 0.0 || lineY == 0.0) {
             lineHeight = 0.0;
-            lineY = INT_MAX;
+            lineY = MAX_INT_VALUE;
             for (const auto &span : lineSpans) {
                 lineHeight = std::max(lineHeight, span.GetHeight());
                 if (auto textSpan = span.TryToTextSpan(); textSpan != nullptr) {
