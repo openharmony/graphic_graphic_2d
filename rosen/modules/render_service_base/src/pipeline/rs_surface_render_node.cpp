@@ -838,7 +838,6 @@ void RSSurfaceRenderNode::AccumulateOcclusionRegion(Occlusion::Region& accumulat
     // transparent layer.
     if (GetAnimateState() || IsParentLeashWindowInScale()) {
         SetTreatedAsTransparent(true);
-        ResetAnimateState();
         return;
     }
 

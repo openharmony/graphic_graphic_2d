@@ -3470,7 +3470,7 @@ void RSUniRenderVisitor::CalcDirtyDisplayRegion(std::shared_ptr<RSDisplayRenderN
 
         RectI lastFrameSurfacePos = node->GetLastFrameSurfacePos(surfaceNode->GetId());
         RectI currentFrameSurfacePos = node->GetCurrentFrameSurfacePos(surfaceNode->GetId());
-        if (lastFrameSurfacePos != currentFrameSurfacePos) {
+        if (surfaceNode->GetAnimateState() || lastFrameSurfacePos != currentFrameSurfacePos) {
             RS_LOGD("CalcDirtyDisplayRegion merge surface pos changed %{public}s lastFrameRect %{public}s"
                 " currentFrameRect %{public}s", surfaceNode->GetName().c_str(), lastFrameSurfacePos.ToString().c_str(),
                 currentFrameSurfacePos.ToString().c_str());
