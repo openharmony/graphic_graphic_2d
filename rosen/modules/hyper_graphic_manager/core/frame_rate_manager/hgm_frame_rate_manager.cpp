@@ -142,6 +142,7 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
         if (currRefreshRate_ != hgmCore.GetPendingScreenRefreshRate()) {
             forceUpdateCallback_(false, true);
+            FrameRateReport();
         }
     }
 }
@@ -172,7 +173,17 @@ void HgmFrameRateManager::UniProcessDataForLtps(bool idleTimerExpired)
     pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
     if (currRefreshRate_ != hgmCore.GetPendingScreenRefreshRate()) {
         forceUpdateCallback_(false, true);
+        FrameRateReport();
     }
+}
+
+void HgmFrameRateManager::FrameRateReport()
+{
+    std::unordered_map<pid_t, uint32_t> rates;
+    rates[GetRealPid()] = currRefreshRate_;
+    auto alignRate = HgmCore::Instance().GetAlignRate();
+    rates[UNI_APP_PID] = (alignRate == 0) ? currRefreshRate_ : alignRate;
+    FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRates(rates);
 }
 
 bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
@@ -218,6 +229,7 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp)
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
         if (currRefreshRate_ != HgmCore::Instance().GetPendingScreenRefreshRate()) {
             forceUpdateCallback_(false, true);
+            FrameRateReport();
         }
     };
 
@@ -513,6 +525,7 @@ void HgmFrameRateManager::HandleRefreshRateMode(RefreshRateMode refreshRateMode)
     curRefreshRateMode_ = refreshRateMode;
     SyncAppVote();
     HgmCore::Instance().SetLtpoConfig();
+    FrameRateReport();
     HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback();
 }
 
@@ -547,6 +560,7 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
 
     SyncAppVote();
     hgmCore.SetLtpoConfig();
+    FrameRateReport();
     HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback();
 
     // hgm warning: use !isLtpo_ instead after GetDisplaySupportedModes ready

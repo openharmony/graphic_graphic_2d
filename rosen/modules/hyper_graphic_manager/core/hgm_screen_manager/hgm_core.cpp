@@ -238,6 +238,10 @@ int32_t HgmCore::SetRefreshRateMode(RefreshRateMode refreshRateMode)
 void HgmCore::NotifyScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
     hgmFrameRateMgr_->HandleScreenPowerStatus(id, status);
+
+    if (refreshRateModeChangeCallback_ != nullptr) {
+        refreshRateModeChangeCallback_(customFrameRateMode_);
+    }
 }
 
 int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize)
