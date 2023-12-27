@@ -206,9 +206,7 @@ int TexgineCanvas::Save() const
 #ifndef USE_ROSEN_DRAWING
     return canvas_->save();
 #else
-    int count = canvas_->GetSaveCount();
-    canvas_->Save();
-    return count;
+    return canvas_->Save();
 #endif
 }
 

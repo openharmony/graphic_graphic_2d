@@ -39,8 +39,7 @@ void RSSaveDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
 #ifndef USE_ROSEN_DRAWING
     *content_ = canvas.save();
 #else
-    *content_ = canvas.GetSaveCount();
-    canvas.Save();
+    *content_ = canvas.Save();
 #endif
 }
 

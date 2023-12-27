@@ -114,7 +114,7 @@ void RSSurfaceFrameOhosRaster::CreateSurface()
     skSurface_ = SkSurface::MakeRasterDirect(info, addr, buffer_->GetStride());
 #else
     Drawing::Bitmap bitmap;
-    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE};
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL};
     bitmap.Build(buffer_->GetWidth(), buffer_->GetHeight(), format);
     bitmap.SetPixels(addr);
     surface_ = std::make_shared<Drawing::Surface>();

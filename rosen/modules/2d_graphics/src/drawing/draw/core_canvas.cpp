@@ -366,9 +366,9 @@ void CoreCanvas::Clear(ColorQuad color)
     impl_->Clear(color);
 }
 
-void CoreCanvas::Save()
+uint32_t CoreCanvas::Save()
 {
-    impl_->Save();
+    return impl_->Save();
 }
 
 void CoreCanvas::SaveLayer(const SaveLayerOps& saveLayerOps)

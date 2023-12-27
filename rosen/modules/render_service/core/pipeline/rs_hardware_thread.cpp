@@ -425,9 +425,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         auto params = RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
         canvas->concat(params.matrix);
 #else
-        auto saveCount = canvas->GetSaveCount();
-
-        canvas->Save();
+        auto saveCount = canvas->Save();
         auto dstRect = layer->GetLayerSize();
         Drawing::Rect clipRect = Drawing::Rect(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y),
             static_cast<float>(dstRect.w) + static_cast<float>(dstRect.x),

@@ -663,8 +663,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithoutUni(RSSurfa
         if (node.GetId() != nodeId_) {
             canvas_->ConcatMatrix(translateMatrix);
         }
-        const auto saveCnt = canvas_->GetSaveCount();
-        canvas_->Save();
+        const auto saveCnt = canvas_->Save();
         ProcessChildren(node);
         canvas_->RestoreToCount(saveCnt);
         if (node.GetBuffer() != nullptr) {

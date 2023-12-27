@@ -1077,13 +1077,13 @@ void SkiaCanvas::Clear(ColorQuad color)
     skCanvas_->clear(color);
 }
 
-void SkiaCanvas::Save()
+uint32_t SkiaCanvas::Save()
 {
     if (!skCanvas_) {
         LOGE("skCanvas_ is null, return on line %{public}d", __LINE__);
-        return;
+        return 0;
     }
-    skCanvas_->save();
+    return static_cast<uint32_t>(skCanvas_->save());
 }
 
 void SkiaCanvas::SaveLayer(const SaveLayerOps& saveLayerOps)

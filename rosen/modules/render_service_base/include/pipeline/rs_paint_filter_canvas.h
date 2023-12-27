@@ -122,7 +122,7 @@ public:
 
     void Flush() override;
     void Clear(Drawing::ColorQuad color) override;
-    void Save() override;
+    uint32_t Save() override;
     void SaveLayer(const Drawing::SaveLayerOps& saveLayerOps) override;
     void Restore() override;
     void Discard() override;
