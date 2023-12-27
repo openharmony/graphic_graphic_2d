@@ -29,7 +29,7 @@
 #define RS_TRACE_INT(name, value) CountTrace(HITRACE_TAG_GRAPHIC_AGP, name, value)
 #define RS_TRACE_FUNC() RS_TRACE_NAME(__func__)
 
-#elif defined ROSEN_ANDROID
+#elif defined(ROSEN_ANDROID) && !defined(RUNTIME_MODE_RELEASE)
 #include "rs_trace_crossplatform.h"
 #else
 
