@@ -115,7 +115,9 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
         std::lock_guard<std::mutex> lock(mutex_);
         skImage_ = skSurface_->makeImageSnapshot();
         if (skImage_) {
+#ifndef ROSEN_ARKUI_X
             SKResourceManager::Instance().HoldResource(skImage_);
+#endif
         }
     }
 #ifdef NEW_SKIA

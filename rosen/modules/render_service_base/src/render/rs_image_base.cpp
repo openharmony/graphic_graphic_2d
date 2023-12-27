@@ -109,7 +109,9 @@ void RSImageBase::SetImage(const std::shared_ptr<Drawing::Image> image)
     isDrawn_ = false;
     image_ = image;
     if (image_) {
+#ifndef ROSEN_ARKUI_X
     SKResourceManager::Instance().HoldResource(image);
+#endif
 #ifndef USE_ROSEN_DRAWING
         srcRect_.SetAll(0.0, 0.0, image_->width(), image_->height());
         GenUniqueId(image_->uniqueID());
@@ -129,7 +131,9 @@ void RSImageBase::SetDmaImage(const std::shared_ptr<Drawing::Image> image)
 {
     isDrawn_ = false;
     image_ = image;
+#ifndef ROSEN_ARKUI_X
     SKResourceManager::Instance().HoldResource(image);
+#endif
 }
 #endif
 
@@ -167,10 +171,14 @@ void RSImageBase::UpdateNodeIdToPicture(NodeId nodeId)
         return;
     }
     if (pixelMap_) {
+#ifndef ROSEN_ARKUI_X
         MemoryTrack::Instance().UpdatePictureInfo(pixelMap_->GetPixels(), nodeId, ExtractPid(nodeId));
+#endif
     }
     if (image_ || imagePixelAddr_) {
+#ifndef ROSEN_ARKUI_X
         MemoryTrack::Instance().UpdatePictureInfo(imagePixelAddr_, nodeId, ExtractPid(nodeId));
+#endif
     }
 }
 
@@ -381,7 +389,9 @@ void RSImageBase::ConvertPixelMapToSkImage()
         if (!image_) {
             image_ = RSPixelMapUtil::ExtractSkImage(pixelMap_);
             if (image_) {
+#ifndef ROSEN_ARKUI_X
                 SKResourceManager::Instance().HoldResource(image_);
+#endif
             }
             if (!pixelMap_->IsEditable()) {
 #if defined(ROSEN_OHOS)

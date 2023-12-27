@@ -115,11 +115,12 @@ bool RSInterfaces::TakeSurfaceCapture(NodeId id,
     return renderServiceClient_->TakeSurfaceCapture(id, callback, scaleX, scaleY);
 }
 
+#ifndef ROSEN_ARKUI_X
 void RSInterfaces::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
     renderServiceClient_->SetScreenActiveMode(id, modeId);
 }
-
+#endif // !ROSEN_ARKUI_X
 void RSInterfaces::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
 {
     renderServiceClient_->SetScreenRefreshRate(id, sceneId, rate);
@@ -167,17 +168,19 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(
     }
 }
 
+#ifndef ROSEN_ARKUI_X
 int32_t RSInterfaces::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     return renderServiceClient_->SetVirtualScreenResolution(id, width, height);
 }
-
+#endif // !ROSEN_ARKUI_X
 bool RSInterfaces::SetVirtualMirrorScreenBufferRotation(ScreenId id, bool bufferRotation)
 {
     RS_LOGD("RSInterfaces::SetVirtualMirrorScreenBufferRotation is not supported.");
     return true;
 }
 
+#ifndef ROSEN_ARKUI_X
 RSVirtualScreenResolution RSInterfaces::GetVirtualScreenResolution(ScreenId id)
 {
     return renderServiceClient_->GetVirtualScreenResolution(id);
@@ -187,7 +190,7 @@ void RSInterfaces::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
     renderServiceClient_->SetScreenPowerStatus(id, status);
 }
-
+#endif // !ROSEN_ARKUI_X
 bool RSInterfaces::TakeSurfaceCaptureForUIWithoutUni(NodeId id,
     std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
 {
@@ -206,6 +209,7 @@ bool RSInterfaces::TakeSurfaceCaptureForUIWithoutUni(NodeId id,
     return true;
 }
 
+#ifndef ROSEN_ARKUI_X
 RSScreenModeInfo RSInterfaces::GetScreenActiveMode(ScreenId id)
 {
     return renderServiceClient_->GetScreenActiveMode(id);
@@ -230,7 +234,7 @@ RSScreenData RSInterfaces::GetScreenData(ScreenId id)
 {
     return renderServiceClient_->GetScreenData(id);
 }
-
+#endif // !ROSEN_ARKUI_X
 int32_t RSInterfaces::GetScreenBacklight(ScreenId id)
 {
     return renderServiceClient_->GetScreenBacklight(id);
@@ -323,6 +327,7 @@ void RSInterfaces::ShowWatermark(const std::shared_ptr<Media::PixelMap> &waterma
     renderServiceClient_->ShowWatermark(watermarkImg, isShow);
 }
 
+#ifndef ROSEN_ARKUI_X
 MemoryGraphic RSInterfaces::GetMemoryGraphic(int pid)
 {
     return renderServiceClient_->GetMemoryGraphic(pid);
@@ -332,7 +337,7 @@ std::vector<MemoryGraphic> RSInterfaces::GetMemoryGraphics()
 {
     return renderServiceClient_->GetMemoryGraphics();
 }
-
+#endif // !ROSEN_ARKUI_X
 bool RSInterfaces::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
 {
     return renderServiceClient_->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
