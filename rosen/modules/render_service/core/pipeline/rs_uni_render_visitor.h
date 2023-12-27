@@ -559,6 +559,7 @@ private:
     void ProcessChildrenForScreenRecordingOptimization(RSDisplayRenderNode& node, NodeId rootIdOfCaptureWindow);
     NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);
     bool CheckIfNeedResetRotate();
+    void UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node);
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -505,10 +505,15 @@ void RSUniRenderUtil::ReleaseColorPickerResource(std::shared_ptr<RSRenderNode>& 
 
 bool RSUniRenderUtil::IsNodeAssignSubThread(std::shared_ptr<RSSurfaceRenderNode> node, bool isDisplayRotation)
 {
-    bool rotationCache = RSSystemProperties::GetCacheEnabledForRotation();
-    bool isNeedAssignToSubThread = !rotationCache && node->IsLeashWindow()
-        && (node->IsScale() || ROSEN_EQ(node->GetGlobalAlpha(), 0.0f))
-        && !node->HasFilter();
+    bool isNeedAssignToSubThread = false;
+    if (node->IsLeashWindow()) {
+        isNeedAssignToSubThread = (node->IsScale() || ROSEN_EQ(node->GetGlobalAlpha(), 0.0f)) && !node->HasFilter();
+        std::string logInfo = "[ " + node->GetName() + ", " + std::to_string(node->GetId()) + " ]"
+            + "( " + std::to_string(static_cast<uint32_t>(node->GetCacheSurfaceProcessedStatus())) + ", "
+            + std::to_string(node->HasFilter()) + ", " + std::to_string(node->IsScale()) + ", "
+            + std::to_string(isNeedAssignToSubThread) + " )";
+        RS_TRACE_NAME("assign info: " + logInfo);
+    }
     std::string surfaceName = node->GetName();
     bool needFilter = surfaceName == ENTRY_VIEW || surfaceName == WALLPAPER_VIEW ||
         surfaceName == SYSUI_STATUS_BAR || surfaceName == SCREENLOCK_WINDOW ||

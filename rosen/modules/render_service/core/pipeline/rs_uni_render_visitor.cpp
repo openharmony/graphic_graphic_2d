@@ -1414,15 +1414,7 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     if (node.GetDstRectChanged() || (node.GetDirtyManager() && node.GetDirtyManager()->IsCurrentFrameDirty())) {
         dirtySurfaceNodeMap_.emplace(node.GetId(), node.ReinterpretCastTo<RSSurfaceRenderNode>());
     }
-    if (node.IsLeashWindow()) {
-        // scale
-        auto absRect = geoPtr->GetAbsRect();
-        int boundsWidth = ceil(property.GetBoundsWidth());
-        int boundsHeight = ceil(property.GetBoundsHeight());
-        bool isScale = (std::min(absRect.GetWidth(), absRect.GetHeight()) != std::min(boundsWidth, boundsHeight))
-            || (std::max(absRect.GetWidth(), absRect.GetHeight()) != std::max(boundsWidth, boundsHeight));
-        node.SetIsScale(isScale);
-    }
+    UpdateSurfaceRenderNodeScale(node);
 #if defined(RS_ENABLE_DRIVEN_RENDER)
     if (drivenInfo_ && isLeashWindowNode) {
         drivenInfo_->isPrepareLeashWinSubTree = false;
@@ -1457,6 +1449,47 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
         }
     }
 #endif
+}
+
+void RSUniRenderVisitor::UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node)
+{
+    if (!node.IsLeashWindow()) {
+        return;
+    }
+    auto& property = node.GetMutableRenderProperties();
+    auto geoPtr = (property.GetBoundsGeometry());
+    if (geoPtr == nullptr) {
+        return;
+    }
+    auto absMatrix = geoPtr->GetAbsMatrix();
+    bool isScale = false;
+    bool getMinMaxScales = false;
+#ifndef USE_ROSEN_DRAWING
+    // skScaleFactors[0]-minimum scaling factor, skScaleFactors[1]-maximum scaling factor
+    SkScalar skScaleFactors[2];
+    getMinMaxScales = absMatrix.getMinMaxScales(skScaleFactors);
+    if (getMinMaxScales) {
+        isScale = !ROSEN_EQ(skScaleFactors[0], 1.f) || !ROSEN_EQ(skScaleFactors[1], 1.f);
+    }
+#else
+    // scaleFactors[0]-minimum scaling factor, scaleFactors[1]-maximum scaling factor
+    Drawing::scalar scaleFactors[2];
+    getMinMaxScales = absMatrix.GetMinMaxScales(scaleFactors);
+    if (getMinMaxScales) {
+        isScale = !ROSEN_EQ(scaleFactors[0], 1.f) || !ROSEN_EQ(scaleFactors[1], 1.f);
+    }
+#endif
+    if (!getMinMaxScales) {
+        RS_LOGI("getMinMaxScales fail, node:%{public}s %{public}" PRIu64 "", node.GetName().c_str(), node.GetId());
+        auto dstRect = node.GetDstRect();
+        float dstRectWidth = dstRect.GetWidth();
+        float dstRectHeight = dstRect.GetHeight();
+        float boundsWidth = property.GetBoundsWidth();
+        float boundsHeight = property.GetBoundsHeight();
+        isScale = !ROSEN_EQ(std::min(dstRectWidth, dstRectHeight), std::min(boundsWidth, boundsHeight))
+            || !ROSEN_EQ(std::max(dstRectWidth, dstRectHeight), std::max(boundsWidth, boundsHeight));
+    }
+    node.SetIsScale(isScale);
 }
 
 void RSUniRenderVisitor::PrepareProxyRenderNode(RSProxyRenderNode& node)
