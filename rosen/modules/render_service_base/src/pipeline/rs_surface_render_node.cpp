@@ -266,6 +266,14 @@ void RSSurfaceRenderNode::CollectSurface(
     }
 }
 
+void RSSurfaceRenderNode::CollectSurfaceForUIFirstSwitch(uint32_t& leashWindowCount, uint32_t minNodeNum)
+{
+    if (IsLeashWindow() || IsStartingWindow()) {
+        leashWindowCount++;
+    }
+    return;
+}
+
 void RSSurfaceRenderNode::ClearChildrenCache()
 {
     for (auto& child : GetChildren()) {

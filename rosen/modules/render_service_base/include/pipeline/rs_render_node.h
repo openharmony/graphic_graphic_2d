@@ -103,6 +103,7 @@ public:
                                 std::vector<RSRenderNode::SharedPtr>& vec,
                                 bool isUniRender,
                                 bool onlyFirstLevel);
+    virtual void CollectSurfaceForUIFirstSwitch(uint32_t& leashWindowCount, uint32_t minNodeNum);
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor);
     bool IsDirty() const;

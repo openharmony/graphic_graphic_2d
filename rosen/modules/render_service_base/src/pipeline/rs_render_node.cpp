@@ -759,6 +759,16 @@ void RSRenderNode::CollectSurface(
     }
 }
 
+void RSRenderNode::CollectSurfaceForUIFirstSwitch(uint32_t& leashWindowCount, uint32_t minNodeNum)
+{
+    for (auto& child : GetSortedChildren()) {
+        child->CollectSurfaceForUIFirstSwitch(leashWindowCount, minNodeNum);
+        if (leashWindowCount >= minNodeNum) {
+            return;
+        }
+    }
+}
+
 void RSRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
     if (!visitor) {

@@ -2863,22 +2863,9 @@ void RSMainThread::UpdateUIFirstSwitch()
         auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
             rootNode->GetSortedChildren().front());
         if (displayNode) {
-            uint32_t childrenLeashWindowCount = 0;
-            bool isUIFirstMiniWindowNumSatisfied = false;
-            std::vector<RSBaseRenderNode::SharedPtr> curAllSurfacesVec;
-            displayNode->CollectSurface(displayNode, curAllSurfacesVec, true, true);
-            for (auto it = curAllSurfacesVec.begin(); it != curAllSurfacesVec.end(); it++) {
-                if (auto surfaceNode = (*it)->ReinterpretCastTo<RSSurfaceRenderNode>()) {
-                    if (surfaceNode->IsLeashWindow()) {
-                        childrenLeashWindowCount++;
-                    }
-                }
-                if (childrenLeashWindowCount >= UIFIRST_MINIMUM_NODE_NUMBER) {
-                    isUIFirstMiniWindowNumSatisfied = true;
-                    break;
-                }
-            }
-            isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled() && isUIFirstMiniWindowNumSatisfied;
+            uint32_t LeashWindowCount = 0;
+            displayNode->CollectSurfaceForUIFirstSwitch(LeashWindowCount, UIFIRST_MINIMUM_NODE_NUMBER);
+            isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled() && LeashWindowCount >=  UIFIRST_MINIMUM_NODE_NUMBER;
         }
     }
 }
