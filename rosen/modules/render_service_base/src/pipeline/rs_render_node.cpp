@@ -92,6 +92,7 @@ void SetVkImageInfo(std::shared_ptr<OHOS::Rosen::Drawing::VKTextureInfo> vkImage
     vkImageInfo->imageUsageFlags = imageInfo.usage;
     vkImageInfo->levelCount = imageInfo.mipLevels;
     vkImageInfo->currentQueueFamily = VK_QUEUE_FAMILY_EXTERNAL;
+    vkImageInfo->ycbcrConversionInfo = {};
     vkImageInfo->sharingMode = imageInfo.sharingMode;
 }
 #endif
