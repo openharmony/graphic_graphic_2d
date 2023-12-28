@@ -39,8 +39,8 @@ if (!is_mingw && !is_mac && !is_cross_platform) {
   ohos_static_library("particle_cxx_cppdeps") {
     branch_protector_ret = "pac_ret"
     sanitize = {
-      cfi = true
-      cfi_cross_dso = true
+      cfi = false
+      cfi_cross_dso = false
       debug = false
       blocklist = "./rs_base_blocklist.txt"
     }
@@ -58,8 +58,8 @@ if (!is_mingw && !is_mac && !is_cross_platform) {
 ohos_source_set("render_service_base_src") {
   branch_protector_ret = "pac_ret"
   sanitize = {
-    cfi = true
-    cfi_cross_dso = true
+    cfi = false
+    cfi_cross_dso = false
     debug = false
     blocklist = "./rs_base_blocklist.txt"
   }
@@ -484,8 +484,8 @@ ohos_shared_library("librender_service_base") {
   branch_protector_ret = "pac_ret"
   if (!is_mingw && !is_win && !is_linux) {
     sanitize = {
-      cfi = true
-      cfi_cross_dso = true
+      cfi = false
+      cfi_cross_dso = false
       debug = false
       blocklist = "./rs_base_blocklist.txt"
     }
@@ -515,8 +515,8 @@ ohos_shared_library("librender_service_base") {
 ohos_source_set("librender_service_base_static") {
   branch_protector_ret = "pac_ret"
   sanitize = {
-    cfi = true
-    cfi_cross_dso = true
+    cfi = false
+    cfi_cross_dso = false
     debug = false
     blocklist = "./rs_base_blocklist.txt"
   }

@@ -27,8 +27,8 @@ config("export_config") {
 ohos_static_library("librender_backend") {
   branch_protector_ret = "pac_ret"
   sanitize = {
-    cfi = true
-    cfi_cross_dso = true
+    cfi = false
+    cfi_cross_dso = false
     debug = false
   }
   public_configs = [ ":export_config" ]

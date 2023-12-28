@@ -33,8 +33,8 @@ template("render_service_client_source_set") {
   ohos_source_set(target_name) {
     branch_protector_ret = "pac_ret"
     sanitize = {
-      cfi = true
-      cfi_cross_dso = true
+      cfi = false
+      cfi_cross_dso = false
       debug = false
       blocklist = "./rs_client_blocklist.txt"
     }
@@ -243,8 +243,8 @@ config("render_service_client_link_config") {
 ohos_shared_library("librender_service_client") {
   branch_protector_ret = "pac_ret"
   sanitize = {
-    cfi = true
-    cfi_cross_dso = true
+    cfi = false
+    cfi_cross_dso = false
     debug = false
     blocklist = "./rs_client_blocklist.txt"
   }
@@ -262,8 +262,8 @@ ohos_shared_library("librender_service_client") {
 ohos_source_set("librender_service_client_static") {
   branch_protector_ret = "pac_ret"
   sanitize = {
-    cfi = true
-    cfi_cross_dso = true
+    cfi = false
+    cfi_cross_dso = false
     debug = false
     blocklist = "./rs_client_blocklist.txt"
   }
