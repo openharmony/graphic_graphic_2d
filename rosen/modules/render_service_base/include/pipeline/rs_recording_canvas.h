@@ -37,7 +37,7 @@
 #include "surface_buffer.h"
 #endif
 
-#include "include/core/SkHMSymbol.h"
+#include "include/core/HMSymbol.h"
 
 namespace OHOS {
 namespace Media {

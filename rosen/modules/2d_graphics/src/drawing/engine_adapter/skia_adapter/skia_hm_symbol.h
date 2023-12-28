@@ -18,7 +18,7 @@
 
 #include <vector>
 
-#include "include/core/SkHMSymbol.h"
+#include "include/core/HMSymbol.h"
 
 #include "draw/path.h"
 #include "text/hm_symbol.h"

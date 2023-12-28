@@ -22,7 +22,7 @@
 #include <utility>
 
 #ifndef USE_ROSEN_DRAWING
-#include <include/core/SkHMSymbol.h>
+#include <include/core/HMSymbol.h>
 #endif
 
 #include "hm_symbol_txt.h"

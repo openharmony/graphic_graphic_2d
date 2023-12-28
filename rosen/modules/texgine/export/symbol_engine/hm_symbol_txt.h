@@ -20,7 +20,7 @@
 #include <vector>
 
 #ifndef USE_ROSEN_DRAWING
-#include <include/core/SkHMSymbol.h>
+#include <include/core/HMSymbol.h>
 #else
 #include "drawing.h"
 #endif

@@ -44,7 +44,7 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(const uint16_t& glyphId, const HMSym
 #else
     std::shared_ptr<RSSymbolLayersGroups> symbolInfoOrign = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(symbolId);
 #endif
-    if (symbolInfoOrign == nullptr) {
+    if (symbolInfoOrign == nullptr || symbolInfoOrign->symbolGlyphId == 0) {
         return symbolInfo;
     }
 
@@ -62,8 +62,10 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(const uint16_t& glyphId, const HMSym
     }
 
     symbolInfo.layers = symbolInfoOrign->layers;
-    symbolInfo.renderGroups = symbolInfoOrign->renderModeGroups[renderMode];
-    symbolInfo.symbolGlyphId = symbolInfoOrign->symbolGlyphId;
+    if (symbolInfoOrign->renderModeGroups.find(renderMode) != symbolInfoOrign->renderModeGroups.end()) {
+        symbolInfo.renderGroups = symbolInfoOrign->renderModeGroups[renderMode];
+        symbolInfo.symbolGlyphId = symbolInfoOrign->symbolGlyphId;
+    }
     symbolInfo.effect = effectMode;
 
 #ifndef USE_ROSEN_DRAWING
@@ -80,6 +82,7 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(const uint16_t& glyphId, const HMSym
 #else
     if (effectMode == RSEffectStrategy::HIERARCHICAL) {
 #endif
+        symbolInfo.symbolGlyphId = symbolInfoOrign->symbolGlyphId;
         SetGroupsByEffect(glyphId, effectMode, symbolInfo.renderGroups);
     }
     return symbolInfo;
@@ -114,7 +117,9 @@ void HMSymbolRun::SetGroupsByEffect(const uint32_t glyphId, const RSEffectStrate
             group.groupInfos = animationSetting.groupSettings[i].groupInfos;
             newRenderGroups.push_back(group);
         }
-        renderGroups = newRenderGroups;
+        if (!newRenderGroups.empty()) {
+            renderGroups = newRenderGroups;
+        }
     }
 }
 

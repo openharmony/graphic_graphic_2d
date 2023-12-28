@@ -42,7 +42,7 @@
 #include "src/core/SkReadBuffer.h"
 #include "src/core/SkWriteBuffer.h"
 #include "src/image/SkImage_Base.h"
-#include "include/core/SkHMSymbol.h"
+#include "include/core/HMSymbol.h"
 #else
 #include "recording/recording_shader_effect.h"
 #include "recording/recording_path.h"

@@ -21,7 +21,7 @@
 #include "draw/color.h"
 
 #ifndef USE_ROSEN_DRAWING
-#include "include/core/SkHMSymbol.h"
+#include "include/core/HMSymbol.h"
 #else
 #include "text/hm_symbol.h"
 #endif

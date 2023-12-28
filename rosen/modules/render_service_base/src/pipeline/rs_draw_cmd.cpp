@@ -389,7 +389,7 @@ static void MergePath(SkPath& multPath, RenderGroup& group, std::vector<SkPath>&
 
 void SymbolOpItem::SetSymbol()
 {
-    ROSEN_LOGE("SymbolOpItem::SetSymbol GlyphId %{public}d", static_cast<int>(symbol_.symbolInfo_.symbolGlyphId));
+    ROSEN_LOGD("SymbolOpItem::SetSymbol GlyphId %{public}d", static_cast<int>(symbol_.symbolInfo_.symbolGlyphId));
     if (symbol_.symbolInfo_.effect == EffectStrategy::SCALE) {
         if (!startAnimation_) {
             InitialScale();
@@ -419,7 +419,7 @@ void SymbolOpItem::InitialScale()
 
 void SymbolOpItem::InitialVariableColor()
 {
-    ROSEN_LOGE("SetSymbol groups %{public}d", static_cast<int>(symbol_.symbolInfo_.renderGroups.size()));
+    ROSEN_LOGD("SetSymbol groups %{public}d", static_cast<int>(symbol_.symbolInfo_.renderGroups.size()));
     uint32_t startTimes = 10 * symbol_.symbolInfo_.renderGroups.size() - 10; // 10 means frame intervals
     for (size_t j = 0; j < symbol_.symbolInfo_.renderGroups.size(); j++) {
         SymbolAnimation animation;
@@ -498,7 +498,7 @@ void SymbolOpItem::SetVariableColor(size_t index)
 
 void SymbolOpItem::UpdateScale(const double cur, SkPath& path)
 {
-    ROSEN_LOGE("SymbolOpItem::animation cur %{public}f", static_cast<float>(cur));
+    ROSEN_LOGD("SymbolOpItem::animation cur %{public}f", static_cast<float>(cur));
     //set symbol
     SkRect rect = path.getBounds();
     float y = (rect.fTop - rect.fBottom) / 2;

@@ -66,7 +66,7 @@
 #include "src/core/SkWriteBuffer.h"
 #include "src/image/SkImage_Base.h"
 
-#include "include/core/SkHMSymbol.h"
+#include "include/core/HMSymbol.h"
 
 #include "pipeline/rs_draw_cmd_list.h"
 #ifdef NEW_SKIA

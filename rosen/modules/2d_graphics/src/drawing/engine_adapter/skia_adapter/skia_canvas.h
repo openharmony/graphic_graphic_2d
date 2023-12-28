@@ -18,7 +18,7 @@
 
 #include "include/core/SkBitmap.h"
 #include "include/core/SkCanvas.h"
-#include "include/core/SkHMSymbol.h"
+#include "include/core/HMSymbol.h"
 #include "include/core/SkImage.h"
 #include "include/core/SkMatrix.h"
 #include "include/core/SkPaint.h"

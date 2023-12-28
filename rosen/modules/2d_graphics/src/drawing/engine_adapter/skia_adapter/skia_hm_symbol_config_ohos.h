@@ -16,7 +16,7 @@
 #ifndef SKIA_HM_SYMBOL_CONFIG_OHOS_H
 #define SKIA_HM_SYMBOL_CONFIG_OHOS_H
 
-#include "include/core/SkHMSymbol.h"
+#include "include/core/HMSymbol.h"
 
 #include "text/hm_symbol.h"
 
