@@ -92,7 +92,7 @@ private:
         FontStyles style;
         std::string locale = "";
         bool rtl = false;
-        uint32_t size = 16.0; // default TextStyle fontSize_
+        double size = 16.0; // default TextStyle fontSize_
         size_t startIndex = 0;
         size_t endIndex = 0;
         double letterSpacing = 0;

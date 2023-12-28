@@ -38,7 +38,7 @@ void Measurer::SetRTL(bool rtl)
     rtl_ = rtl;
 }
 
-void Measurer::SetSize(uint32_t size)
+void Measurer::SetSize(double size)
 {
     size_ = size;
 }
