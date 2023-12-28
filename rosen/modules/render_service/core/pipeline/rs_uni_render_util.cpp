@@ -561,7 +561,16 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
             ROSEN_LOGE("RSUniRenderUtil::AssignWindowNodes nullptr found in sortedChildren, this should not happen");
             continue;
         }
-        if (IsNodeAssignSubThread(node, isRotation)) {
+
+        // release color picker resource when thread-switching between RS and subthread
+        bool lastIsNeedAssignToSubThread = node->GetLastIsNeedAssignToSubThread();
+        bool isNodeAssignSubThread = IsNodeAssignSubThread(node, isRotation);
+        if (isNodeAssignSubThread != lastIsNeedAssignToSubThread) {
+            auto renderNode = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(node);
+            ReleaseColorPickerResource(renderNode);
+            node->SetLastIsNeedAssignToSubThread(isNodeAssignSubThread);
+        }
+        if (isNodeAssignSubThread) {
             AssignSubThreadNode(subThreadNodes, node);
         } else {
             AssignMainThreadNode(mainThreadNodes, node);
