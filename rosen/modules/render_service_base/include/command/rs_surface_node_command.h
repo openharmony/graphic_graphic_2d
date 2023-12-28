@@ -93,7 +93,7 @@ public:
     static void DetachToDisplay(RSContext& context, NodeId nodeId, uint64_t screenId);
     static void SetBootAnimation(RSContext& context, NodeId nodeId, bool isBootAnimation);
 #ifdef USE_SURFACE_TEXTURE
-    static void CreateSurfaceExt(RSContext& context, NodeId id, uint64_t surfaceExt);
+    static void CreateSurfaceExt(RSContext& context, NodeId id, const std::shared_ptr<RSSurfaceTexture>& surfaceExt);
 #endif
     static void SetForeground(RSContext& context, NodeId nodeId, bool isForeground);
     static void SetSurfaceId(RSContext& context, NodeId nodeId, SurfaceId surfaceId);
@@ -163,7 +163,7 @@ ADD_COMMAND(RSurfaceNodeSetSurfaceId,
 #ifdef USE_SURFACE_TEXTURE
 ADD_COMMAND(RSSurfaceNodeCreateSurfaceExt,
     ARG(SURFACE_NODE, SURFACE_NODE_CREATE_SURFACE_EXT,
-    SurfaceNodeCommandHelper::CreateSurfaceExt, NodeId, uint64_t))
+    SurfaceNodeCommandHelper::CreateSurfaceExt, NodeId, std::shared_ptr<RSSurfaceTexture>))
 #endif
 ADD_COMMAND(RSSurfaceNodeSetForeground,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_FOREGROUND, SurfaceNodeCommandHelper::SetForeground, NodeId, bool))

@@ -92,7 +92,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         } else {
             transactionProxy->AddCommand(command, isWindow);
         }
-        
+
         if (!surfaceNodeConfig.isTextureExportNode) {
             command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(node->GetId());
             transactionProxy->AddCommand(command, isWindow);
@@ -418,7 +418,7 @@ std::shared_ptr<RSSurfaceNode> RSSurfaceNode::Unmarshalling(Parcel& parcel)
 void RSSurfaceNode::SetSurfaceIdToRenderNode()
 {
 #ifndef ROSEN_CROSS_PLATFORM
-    auto surface = GetSurface(); 
+    auto surface = GetSurface();
     if (surface) {
         std::unique_ptr<RSCommand> command = std::make_unique<RSurfaceNodeSetSurfaceId>(GetId(),
             surface->GetUniqueId());
@@ -655,7 +655,7 @@ void RSSurfaceNode::CreateSurfaceExt(const RSSurfaceExtConfig& config)
     ROSEN_LOGD("RSSurfaceNode::CreateSurfaceExt %{public}" PRIu64 " type %{public}u %{public}p",
         GetId(), config.type, texture.get());
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSSurfaceNodeCreateSurfaceExt>(GetId(), (uint64_t)(texture.get()));
+        std::make_unique<RSSurfaceNodeCreateSurfaceExt>(GetId(), texture);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, false);
