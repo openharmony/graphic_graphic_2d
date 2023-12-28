@@ -323,6 +323,11 @@ void CmdList::CopyObjectTo(CmdList& other) const
     other.imageBaseOjVec_ = imageBaseOjVec_;
 }
 
+uint32_t CmdList::GetOpCnt() const
+{
+    return opCnt_;
+}
+
 #ifdef ROSEN_OHOS
 uint32_t CmdList::AddSurfaceBuffer(const sptr<SurfaceBuffer>& surfaceBuffer)
 {

@@ -99,6 +99,7 @@ public:
             }
         }
         lastOpItemOffset_.emplace(offset);
+        opCnt_++;
     }
 
     /*
@@ -194,6 +195,11 @@ public:
      */
     void CopyObjectTo(CmdList& other) const;
 
+    /*
+     * @brief  return recording op count.
+     */
+    uint32_t GetOpCnt() const;
+
     CmdList(CmdList&&) = delete;
     CmdList(const CmdList&) = delete;
     CmdList& operator=(CmdList&&) = delete;
@@ -229,6 +235,7 @@ protected:
     std::mutex mutex_;
     std::map<uint32_t, std::shared_ptr<Image>> imageMap_;
     std::vector<std::pair<uint32_t, OpDataHandle>> imageHandleVec_;
+    uint32_t opCnt_ = 0;
 
 #ifdef SUPPORT_OHOS_PIXMAP
     std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVec_;

@@ -99,6 +99,7 @@ void DrawCmdList::ClearOp()
     unmarshalledOpItems_.clear();
     lastOpGenSize_ = 0;
     lastOpItemOffset_ = std::nullopt;
+    opCnt_ = 0;
 }
 
 std::shared_ptr<DrawCmdList> DrawCmdList::CreateFromData(const CmdListData& data, bool isCopy)
