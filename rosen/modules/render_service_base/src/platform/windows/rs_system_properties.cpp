@@ -314,7 +314,7 @@ int RSSystemProperties::GetSyncTransactionWaitDelay()
 
 bool RSSystemProperties::GetUseShadowBatchingEnabled()
 {
-    return false;
+    return true;
 }
 
 bool RSSystemProperties::GetSingleFrameComposerEnabled()
