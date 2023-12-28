@@ -195,12 +195,12 @@ void SurfaceNodeCommandHelper::DetachToDisplay(RSContext& context, NodeId nodeId
 }
 
 #ifdef USE_SURFACE_TEXTURE
-void SurfaceNodeCommandHelper::CreateSurfaceExt(RSContext& context, NodeId id, uint64_t texturePointer)
+void SurfaceNodeCommandHelper::CreateSurfaceExt(RSContext& context, NodeId id,
+    const std::shared_ptr<RSSurfaceTexture>& surfaceExt)
 {
     auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
     if (node != nullptr) {
-        RSSurfaceTexture *texture = (RSSurfaceTexture *)texturePointer;
-        node->SetSurfaceTexture(texture->shared_from_this());
+        node->SetSurfaceTexture(surfaceExt);
     }
 }
 #endif
