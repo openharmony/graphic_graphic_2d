@@ -258,7 +258,10 @@ GLuint RSEglImageManager::CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuf
     }
     imageCache->SetThreadIndex(threadIndex);
     auto textureId = imageCache->TextureId();
-    imageCacheSeqs_[bufferId] = std::move(imageCache);
+    {
+        std::lock_guard<std::mutex> lock(opMutex_);
+        imageCacheSeqs_[bufferId] = std::move(imageCache);
+    }
     cacheQueue_.push(bufferId);
     return textureId;
 }
@@ -281,17 +284,20 @@ GLuint RSEglImageManager::MapEglImageFromSurfaceBuffer(const sptr<OHOS::SurfaceB
     const sptr<SyncFence>& acquireFence, uint32_t threadIndex)
 {
     WaitAcquireFence(acquireFence);
-    std::lock_guard<std::mutex> lock(opMutex_);
     auto bufferId = buffer->GetSeqNum();
     RS_OPTIONAL_TRACE_NAME_FMT("MapEglImage seqNum: %d", bufferId);
     RS_LOGD("RSEglImageManager::MapEglImageFromSurfaceBuffer: %{public}d", bufferId);
-    if (imageCacheSeqs_.count(bufferId) == 0 || imageCacheSeqs_[bufferId] == nullptr) {
-        // cache not found, create it.
-        return CreateImageCacheFromBuffer(buffer, threadIndex);
-    } else {
-        const auto& imageCache = imageCacheSeqs_[bufferId];
-        return imageCache->TextureId();
+    bool isImageCacheNotFound = false;
+    {
+        std::lock_guard<std::mutex> lock(opMutex_);
+        isImageCacheNotFound = imageCacheSeqs_.count(bufferId) == 0 || imageCacheSeqs_[bufferId] == nullptr;
+        if (!isImageCacheNotFound) {
+            const auto& imageCache = imageCacheSeqs_[bufferId];
+            return imageCache->TextureId();
+        }
     }
+    // cache not found, create it.
+    return CreateImageCacheFromBuffer(buffer, threadIndex);
 }
 
 void RSEglImageManager::ShrinkCachesIfNeeded(bool isForUniRedraw)
@@ -320,13 +326,15 @@ void RSEglImageManager::UnMapEglImageFromSurfaceBuffer(int32_t seqNum)
         }
     }
     auto func = [this, seqNum]() {
+        std::unique_ptr<ImageCacheSeq> imageCacheSeq;
         {
             std::lock_guard<std::mutex> lock(opMutex_);
             if (imageCacheSeqs_.count(seqNum) == 0) {
                 return;
             }
-            (void)imageCacheSeqs_.erase(seqNum);
+            imageCacheSeq = std::move(imageCacheSeqs_[seqNum]);
         }
+        imageCacheSeq.release();
         RS_OPTIONAL_TRACE_NAME_FMT("UnmapEglImage seqNum: %d", seqNum);
         RS_LOGD("RSEglImageManager::UnMapEglImageFromSurfaceBuffer: %{public}d", seqNum);
     };
