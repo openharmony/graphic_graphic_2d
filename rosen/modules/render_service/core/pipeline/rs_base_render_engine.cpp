@@ -233,8 +233,8 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
     }
 #endif // RS_ENABLE_GL
 #if defined(RS_ENABLE_VK)
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR && renderContext_->GetDrGPUContext() == nullptr) {
+    if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && renderContext_->GetDrGPUContext() == nullptr) {
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer GrContext is null!");
         return nullptr;
     }
