@@ -958,6 +958,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         if (surfaceNode == nullptr) {
             return;
         }
+        surfaceNode->ResetAnimateState();
         // Reset BasicGeoTrans info at the beginning of cmd process
         if (surfaceNode->IsMainWindowType() || surfaceNode->IsLeashWindow()) {
             surfaceNode->ResetIsOnlyBasicGeoTransfrom();
@@ -1552,6 +1553,7 @@ bool RSMainThread::CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces,
     if (curSurface->IsFocusedNode(focusNodeId_)) {
         needProcess = true;
         if (!curSurface->HasContainerWindow() && !curSurface->IsTransparent() &&
+            !curSurface->HasWindowCorner() &&
             !curSurface->GetAnimateState() && // when node animating (i.e. 3d animation), the region cannot be trusted
             curSurface->GetName().find("hisearch") == std::string::npos) {
             occlusionSurfaces.insert(curSurface->GetDstRect());
@@ -1563,6 +1565,7 @@ bool RSMainThread::CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces,
         if (insertSuccess) {
             needProcess = true;
             if (curSurface->IsTransparent() ||
+                curSurface->HasWindowCorner() ||
                 curSurface->GetAnimateState() || // when node animating(i.e. 3d animation), the region cannot be trusted
                 curSurface->GetName().find("hisearch") != std::string::npos) {
                 auto iter = std::find_if(occlusionSurfaces.begin(), occlusionSurfaces.end(),

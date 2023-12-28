@@ -925,6 +925,14 @@ public:
     }
     bool GetHasSharedTransitionNode() const;
     void SetHasSharedTransitionNode(bool hasSharedTransitionNode);
+
+    bool HasWindowCorner()
+    {
+        Vector4f cornerRadius;
+        Vector4f::Max(GetWindowCornerRadius(), GetGlobalCornerRadius(), cornerRadius);
+        return !cornerRadius.IsZero();
+    }
+
 private:
     void OnResetParent() override;
     void ClearChildrenCache();
