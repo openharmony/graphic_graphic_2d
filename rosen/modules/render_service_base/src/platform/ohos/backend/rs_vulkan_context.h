@@ -16,7 +16,9 @@
 #ifndef RS_VULKAN_CONTEXT_H
 #define RS_VULKAN_CONTEXT_H
 
+#include <memory>
 #include <mutex>
+#include <string>
 #include "include/gpu/vk/GrVkExtensions.h"
 #include "vulkan/vulkan_core.h"
 
@@ -25,6 +27,8 @@
 #include "vulkan/vulkan.h"
 #include "include/gpu/vk/GrVkBackendContext.h"
 #include "include/gpu/GrDirectContext.h"
+#include "render_context/memory_handler.h"
+
 #ifdef USE_ROSEN_DRAWING
 #include "image/gpu_context.h"
 #endif
@@ -70,6 +74,12 @@ public:
 
     bool IsValid() const;
     GrVkGetProc CreateSkiaGetProc() const;
+    const std::string& GetShaderCacheDir() const {
+        return UNIRENDER_CACHE_DIR;
+    }
+    const std::shared_ptr<MemoryHandler> GetMemoryHandler() const {
+        return mHandler_;
+    }
 
 #define DEFINE_FUNC(name) Func<PFN_vk##name> vk##name
 
@@ -153,6 +163,10 @@ public:
         return backendContext_;
     }
 
+    inline const std::string GetVulkanVersion() const {
+        return std::to_string(VK_API_VERSION_1_2);
+    }
+
 #ifndef USE_ROSEN_DRAWING
     sk_sp<GrDirectContext> CreateSkContext(bool independentContext = false);
     sk_sp<GrDirectContext> GetSkContext();
@@ -223,6 +237,8 @@ private:
 #else
     std::shared_ptr<Drawing::GPUContext> CreateNewDrawingContext();
 #endif
+    std::shared_ptr<MemoryHandler> mHandler_ = nullptr;
+    const std::string UNIRENDER_CACHE_DIR = "/data/service/el0/render_service";
 };
 
 } // namespace Rosen

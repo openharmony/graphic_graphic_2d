@@ -396,6 +396,8 @@ bool RenderContext::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawing
         if (drawingContext == nullptr) {
             drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
         }
+        mHandler_ = RsVulkanContext::GetSingleton().GetMemoryHandler();
+        SetCacheDir(RsVulkanContext::GetSingleton().GetShaderCacheDir());
         std::shared_ptr<Drawing::GPUContext> drGPUContext(drawingContext);
         drGPUContext_ = std::move(drGPUContext);
         return true;

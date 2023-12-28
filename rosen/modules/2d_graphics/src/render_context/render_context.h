@@ -169,12 +169,20 @@ public:
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     std::string GetShaderCacheSize() const
     {
-        return mHandler_->QuerryShader();
+        if (mHandler_) {
+            return mHandler_->QuerryShader();
+        }
+        RS_LOGD("No shader Cache");
+        return "";
     }
 
     std::string CleanAllShaderCache() const
     {
-        return mHandler_->ClearShader();
+        if (mHandler_) {
+            return mHandler_->ClearShader();
+        }
+        RS_LOGD("No shader Cache");
+        return "";
     }
 #endif
     EGLContext CreateShareContext();

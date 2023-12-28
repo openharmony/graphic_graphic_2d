@@ -452,7 +452,12 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanContext::CreateDrawingContext(bool 
     }
 
     drawingContext_ = std::make_shared<Drawing::GPUContext>();
-    drawingContext_->BuildFromVK(backendContext_);
+    Drawing::GPUContextOptions options;
+    mHandler_ = std::make_shared<MemoryHandler>();
+    std::string vulkanVersion = std::to_string(VK_API_VERSION_1_2);
+    auto size = vulkanVersion.size();
+    mHandler_->ConfigureContext(&options, vulkanVersion.c_str(), size, UNIRENDER_CACHE_DIR, true);
+    drawingContext_->BuildFromVK(backendContext_, options);
     int maxResources = 0;
     size_t maxResourcesSize = 0;
     int cacheLimitsTimes = CACHE_LIMITS_TIMES;

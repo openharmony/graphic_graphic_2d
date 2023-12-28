@@ -96,6 +96,25 @@ bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context)
     grContext_ = GrDirectContext::MakeVulkan(context);
     return grContext_ != nullptr ? true : false;
 }
+
+bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options)
+{
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return false;
+    }
+    if (options.GetPersistentCache() != nullptr) {
+        skiaPersistentCache_ = std::make_shared<SkiaPersistentCache>(options.GetPersistentCache());
+    }
+    GrContextOptions grOptions;
+    grOptions.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
+    grOptions.fPreferExternalImagesOverES3 = true;
+    grOptions.fDisableDistanceFieldPaths = true;
+    grOptions.fAllowPathMaskCaching = options.GetAllowPathMaskCaching();
+    grOptions.fPersistentCache = skiaPersistentCache_.get();
+    grContext_ = GrDirectContext::MakeVulkan(context, grOptions);
+    return grContext_ != nullptr ? true : false;
+}
 #endif
 
 void SkiaGPUContext::Flush()

@@ -305,7 +305,12 @@ std::shared_ptr<Drawing::GPUContext> RSFilterSubThread::CreateShareGrContext()
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        if (!gpuContext->BuildFromVK(RsVulkanContext::GetSingleton().GetGrVkBackendContext())) {
+        Drawing::GPUContextOptions options;
+        auto handler = std::make_shared<MemoryHandler>();
+        std::string vulkanVersion = RsVulkanContext::GetSingleton().GetVulkanVersion();
+        auto size = vulkanVersion.size();
+        handler->ConfigureContext(&options, vulkanVersion.c_str(), size, SHADER_CACHE_DIR, true);
+        if (!gpuContext->BuildFromVK(RsVulkanContext::GetSingleton().GetGrVkBackendContext(), options)) {
             RS_LOGE("nullptr gpuContext is null");
             return nullptr;
         }

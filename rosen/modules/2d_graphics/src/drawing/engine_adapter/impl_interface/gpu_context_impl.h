@@ -38,6 +38,7 @@ public:
     virtual bool BuildFromGL(const GPUContextOptions& options) = 0;
 #ifdef RS_ENABLE_VK
     virtual bool BuildFromVK(const GrVkBackendContext& context) = 0;
+    virtual bool BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options) = 0;
 #endif
     virtual void Flush() = 0;
     virtual void FlushAndSubmit(bool syncCpu) = 0;

@@ -40,6 +40,15 @@ bool GPUContext::BuildFromVK(const GrVkBackendContext& context)
     }
     return impl_->BuildFromVK(context);
 }
+
+bool GPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options)
+{
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return false;
+    }
+    return impl_->BuildFromVK(context, options);
+}
 #endif
 
 void GPUContext::GetResourceCacheLimits(int* maxResource, size_t* maxResourceBytes) const

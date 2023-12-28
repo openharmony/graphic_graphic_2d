@@ -111,6 +111,7 @@ public:
      */
 #ifdef RS_ENABLE_VK
     bool BuildFromVK(const GrVkBackendContext& context);
+    bool BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options);
 #endif
 
     /*
