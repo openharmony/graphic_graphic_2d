@@ -479,12 +479,16 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
         }
         case ImplicitAnimationParamType::CANCEL: {
             // Create animation with CANCEL type will cancel all running animations of the target.
-            property->SetValue(endValue);                         // force set ui value
-            property->UpdateOnAllAnimationFinish();               // force sync RS value and cancel all RS animations
-            // Note: The callbacks of the canceled animations will be executed within the current implicit animation
-            // context, consistent with previous behavior. However, this may cause issues and may be changed in the
-            // future.
-            target->CancelAnimationByProperty(property->GetId()); // remove all ui animation
+            // Note: We should use CancelAnimationByProperty to remove the animation, but it will cause the callbacks of
+            // cancelled animations to be called immediately (in the current context), which may cause a crash or timing
+            // issue. So, we have to use FinishAnimationByProperty here, even though it will create unnecessary IPC.
+            target->FinishAnimationByProperty(property->GetId()); // finish all ui animation
+            property->SetValue(endValue);                         // update set ui value
+            if (property->GetIsCustom()) {
+                property->UpdateCustomAnimation(); // force sync RS value for custom property
+            } else {
+                property->UpdateOnAllAnimationFinish(); // force sync RS value for native property
+            }
             return;
         }
         default:
