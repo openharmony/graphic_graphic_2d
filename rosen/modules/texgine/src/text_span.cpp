@@ -201,9 +201,11 @@ void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, cons
         const SkVector fRadii[4] = {{ltRadius, ltRadius}, {rtRadius, rtRadius}, {rbRadius, rbRadius},
             {lbRadius, lbRadius}};
         auto rect = TexgineRect::MakeRRect(offsetX, absLineY_, width_, lineHeight_, fRadii);
+        paint.SetAntiAlias(false);
         canvas.DrawRRect(rect, paint);
     }
 
+    paint.SetAntiAlias(true);
     paint.SetColor(xs.color);
     if (xs.foreground.has_value()) {
         paint = xs.foreground.value();
