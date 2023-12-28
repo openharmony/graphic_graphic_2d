@@ -294,6 +294,28 @@ void RSSurfaceNode::SetColorSpace(GraphicColorGamut colorSpace)
     }
 }
 
+void RSSurfaceNode::CreateTextExportRenderNodeInRT()
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreate>(GetId(),
+        RSSurfaceNodeType::SELF_DRAWING_NODE, true);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy == nullptr) {
+        return;
+    }
+    transactionProxy->AddCommand(command, false);
+}
+
+void RSSurfaceNode::SetIsTextureExportNode(bool isTextureExportNode)
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetIsTextureExportNode>(GetId(),
+        isTextureExportNode);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy == nullptr) {
+        return;
+    }
+    transactionProxy->AddCommand(command, false);
+}
+
 void RSSurfaceNode::SetTextureExport(bool isTextureExportNode)
 {
     if (isTextureExportNode == isTextureExportNode_) {
@@ -301,16 +323,12 @@ void RSSurfaceNode::SetTextureExport(bool isTextureExportNode)
     }
     isTextureExportNode_ = isTextureExportNode;
     if (!isTextureExportNode_) {
+        SetIsTextureExportNode(isTextureExportNode);
         DoFlushModifier();
         return;
     }
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreate>(GetId(),
-        RSSurfaceNodeType::SELF_DRAWING_NODE, isTextureExportNode);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy == nullptr) {
-        return;
-    }
-    transactionProxy->AddCommand(command, !isTextureExportNode);
+    CreateTextExportRenderNodeInRT();
+    SetIsTextureExportNode(isTextureExportNode);
     SetSurfaceIdToRenderNode();
     DoFlushModifier();
 }

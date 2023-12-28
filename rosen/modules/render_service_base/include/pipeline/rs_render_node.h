@@ -521,6 +521,11 @@ public:
         isCalcPreferredFps_ = isCalcPreferredFps;
     }
 
+    void SetIsTextureExportNode(bool isTextureExportNode)
+    {
+        isTextureExportNode_ = isTextureExportNode;
+    }
+
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     class RSAutoCache;
     const std::shared_ptr<RSAutoCache>& GetAutoCache();

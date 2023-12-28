@@ -52,6 +52,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_CONTAINER_WINDOW,
     SURFACE_NODE_SET_ANIMATION_FINISHED,
     SURFACE_NODE_MARK_UIHIDDEN,
+    SURFACE_NODE_SET_IS_TEXTURE_EXPORT_NODE,
     SURFACE_NODE_ATTACH_TO_DISPLAY,
     SURFACE_NODE_DETACH_TO_DISPLAY,
     SURFACE_NODE_SET_BOOT_ANIMATION,
@@ -83,6 +84,7 @@ public:
     static void ConnectToNodeInRenderService(RSContext& context, NodeId id);
     static void SetCallbackForRenderThreadRefresh(RSContext& context, NodeId id, bool isRefresh);
     static void SetContextBounds(RSContext& context, NodeId id, Vector4f bounds);
+    static void SetIsTextureExportNode(RSContext& context, NodeId id, bool isTextureExportNode);
     static void SetAbilityBGAlpha(RSContext& context, NodeId id, uint8_t alpha);
     static void SetIsNotifyUIBufferAvailable(RSContext& context, NodeId nodeId, bool available);
     static void MarkUIHidden(RSContext& context, NodeId nodeId, bool isHidden);
@@ -143,6 +145,9 @@ ADD_COMMAND(RSSurfaceNodeSetIsNotifyUIBufferAvailable,
     SurfaceNodeCommandHelper::SetIsNotifyUIBufferAvailable, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeMarkUIHidden,
     ARG(SURFACE_NODE, SURFACE_NODE_MARK_UIHIDDEN, SurfaceNodeCommandHelper::MarkUIHidden, NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeSetIsTextureExportNode,
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_IS_TEXTURE_EXPORT_NODE,
+    SurfaceNodeCommandHelper::SetIsTextureExportNode, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSurfaceNodeType,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_SURFACE_NODE_TYPE,
     SurfaceNodeCommandHelper::SetSurfaceNodeType, NodeId, uint8_t))
