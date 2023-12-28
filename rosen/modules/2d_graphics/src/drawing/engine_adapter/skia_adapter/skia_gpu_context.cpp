@@ -94,7 +94,7 @@ bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context)
         return false;
     }
     grContext_ = GrDirectContext::MakeVulkan(context);
-    return grContext_ != nullptr ? true : false;
+    return grContext_ != nullptr;
 }
 
 bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options)
@@ -113,7 +113,7 @@ bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUCon
     grOptions.fAllowPathMaskCaching = options.GetAllowPathMaskCaching();
     grOptions.fPersistentCache = skiaPersistentCache_.get();
     grContext_ = GrDirectContext::MakeVulkan(context, grOptions);
-    return grContext_ != nullptr ? true : false;
+    return grContext_ != nullptr;
 }
 #endif
 

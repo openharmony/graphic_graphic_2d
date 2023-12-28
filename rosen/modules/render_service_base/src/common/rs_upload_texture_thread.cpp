@@ -129,8 +129,7 @@ sk_sp<GrDirectContext> RSUploadTextureThread::CreateShareGrContext()
     auto handler = std::make_shared<MemoryHandler>();
     auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
     auto size = glesVersion ? strlen(glesVersion) : 0;
-    /* /data/service/el0/render_service is shader cache dir */
-    handler->ConfigureContext(&options, glesVersion, size, "/data/service/el0/render_service", true);
+    handler->ConfigureContext(&options, glesVersion, size);
 
     sk_sp<GrDirectContext> grContext = GrDirectContext::MakeGL(std::move(glInterface), options);
     if (grContext == nullptr) {

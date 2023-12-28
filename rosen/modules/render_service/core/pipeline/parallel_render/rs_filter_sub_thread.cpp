@@ -44,8 +44,6 @@ namespace {
 const uint32_t RS_SUB_QOS_LEVEL = 7;
 constexpr const char* RS_BUNDLE_NAME = "render_service";
 #endif
-// "/data/service/el0/render_service" is shader cache dir
-const std::string SHADER_CACHE_DIR = "/data/service/el0/render_service";
 } // namespace
 RSFilterSubThread::~RSFilterSubThread()
 {
@@ -253,7 +251,7 @@ sk_sp<GrContext> RSFilterSubThread::CreateShareGrContext()
         auto handler = std::make_shared<MemoryHandler>();
         auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
         auto size = glesVersion ? strlen(glesVersion) : 0;
-        handler->ConfigureContext(&options, glesVersion, size, SHADER_CACHE_DIR, true);
+        handler->ConfigureContext(&options, glesVersion, size);
 
 #ifdef NEW_SKIA
         sk_sp<GrDirectContext> grContext = GrDirectContext::MakeGL(std::move(glInterface), options);
@@ -294,7 +292,7 @@ std::shared_ptr<Drawing::GPUContext> RSFilterSubThread::CreateShareGrContext()
         auto handler = std::make_shared<MemoryHandler>();
         auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
         auto size = glesVersion ? strlen(glesVersion) : 0;
-        handler->ConfigureContext(&options, glesVersion, size, SHADER_CACHE_DIR, true);
+        handler->ConfigureContext(&options, glesVersion, size);
         if (!gpuContext->BuildFromGL(options)) {
             RS_LOGE("nullptr gpuContext is null");
             return nullptr;
@@ -309,7 +307,7 @@ std::shared_ptr<Drawing::GPUContext> RSFilterSubThread::CreateShareGrContext()
         auto handler = std::make_shared<MemoryHandler>();
         std::string vulkanVersion = RsVulkanContext::GetSingleton().GetVulkanVersion();
         auto size = vulkanVersion.size();
-        handler->ConfigureContext(&options, vulkanVersion.c_str(), size, SHADER_CACHE_DIR, true);
+        handler->ConfigureContext(&options, vulkanVersion.c_str(), size);
         if (!gpuContext->BuildFromVK(RsVulkanContext::GetSingleton().GetGrVkBackendContext(), options)) {
             RS_LOGE("nullptr gpuContext is null");
             return nullptr;

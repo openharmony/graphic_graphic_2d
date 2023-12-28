@@ -74,11 +74,9 @@ public:
 
     bool IsValid() const;
     GrVkGetProc CreateSkiaGetProc() const;
-    const std::string& GetShaderCacheDir() const {
-        return UNIRENDER_CACHE_DIR;
-    }
-    const std::shared_ptr<MemoryHandler> GetMemoryHandler() const {
-        return mHandler_;
+    const std::shared_ptr<MemoryHandler> GetMemoryHandler() const
+    {
+        return memHandler_;
     }
 
 #define DEFINE_FUNC(name) Func<PFN_vk##name> vk##name
@@ -163,7 +161,8 @@ public:
         return backendContext_;
     }
 
-    inline const std::string GetVulkanVersion() const {
+    inline const std::string GetVulkanVersion() const
+    {
         return std::to_string(VK_API_VERSION_1_2);
     }
 
@@ -237,8 +236,7 @@ private:
 #else
     std::shared_ptr<Drawing::GPUContext> CreateNewDrawingContext();
 #endif
-    std::shared_ptr<MemoryHandler> mHandler_ = nullptr;
-    const std::string UNIRENDER_CACHE_DIR = "/data/service/el0/render_service";
+    std::shared_ptr<MemoryHandler> memHandler_;
 };
 
 } // namespace Rosen

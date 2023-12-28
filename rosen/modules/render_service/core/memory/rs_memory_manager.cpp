@@ -628,10 +628,7 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUConte
         return;
     }
     /* GPU */
-#ifdef RS_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
-        return;
-    }
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     std::string gpuInfo;
     // total
     DumpGpuCache(log, gpuContext, nullptr, gpuInfo);
@@ -663,7 +660,7 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUConte
     gpuContext->DumpGpuStats(stat);
 
     log.AppendFormat("%s\n", stat.c_str());
-#endif // RS_ENABLE_GL
+#endif
 }
 #endif // USE_ROSEN_DRAWING
 
