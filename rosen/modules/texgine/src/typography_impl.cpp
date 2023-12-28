@@ -577,11 +577,6 @@ void TypographyImpl::UpadateAnySpanMetrics(std::shared_ptr<AnySpan> &span, doubl
 void TypographyImpl::Paint(TexgineCanvas &canvas, double offsetX, double offsetY)
 {
     for (auto &metric : lineMetrics_) {
-        for (auto &span : metric.lineSpans) {
-            span.GetTextStyle().backgroundRect = {0xFFFF00FF, 20, 20, 20, 20};
-        }
-    }
-    for (auto &metric : lineMetrics_) {
         int spanCount = metric.lineSpans.size();
         int index = 0;
         int preIndex = -1; // Init preIndex to -1
