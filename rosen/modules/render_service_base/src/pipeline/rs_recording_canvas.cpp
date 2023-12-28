@@ -485,6 +485,7 @@ bool RSRecordingCanvas::IsCustomTextType() const
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "recording/cmd_list_helper.h"
+#include "render/rs_pixel_map_util.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -508,6 +509,13 @@ void ExtendRecordingCanvas::DrawExtendPixelMap(const std::shared_ptr<Media::Pixe
     auto objectHandle =
         Drawing::CmdListHelper::AddImageObjectToCmdList(*Drawing::RecordingCanvas::GetCmdList(), object);
     Drawing::RecordingCanvas::GetDrawCmdList()->AddOp<Drawing::DrawExtendPixelMapOpItem>(objectHandle, sampling);
+}
+
+void ExtendRecordingCanvas::DrawImageNine2(const std::shared_ptr<Media::PixelMap>& pixelmap,
+    const Drawing::RectI& center, const Drawing::Rect& dst, Drawing::FilterMode filter, const Drawing::Brush* brush)
+{
+    auto image = RSPixelMapUtil::ExtractDrawingImage(pixelmap);
+    Drawing::RecordingCanvas::DrawImageNine(image.get(), center, dst, filter, brush);
 }
 } // namespace Rosen
 } // namespace OHOS

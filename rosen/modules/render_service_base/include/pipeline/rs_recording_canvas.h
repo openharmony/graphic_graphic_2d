@@ -221,6 +221,8 @@ public:
         const Drawing::AdaptiveImageInfo& rsImageInfo, const Drawing::SamplingOptions& sampling);
     void DrawExtendPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap,
         const Drawing::AdaptiveImageInfo& rsImageInfo, const Drawing::SamplingOptions& sampling);
+    void DrawImageNine2(const std::shared_ptr<Media::PixelMap>& pixelmap, const Drawing::RectI& center,
+        const Drawing::Rect& dst, Drawing::FilterMode filter, const Drawing::Brush* brush);
 };
 } // namespace Rosen
 } // namespace OHOS
