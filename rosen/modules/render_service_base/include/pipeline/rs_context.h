@@ -83,6 +83,16 @@ public:
         purgeType_ = purgeType;
     }
 
+    void SetVsyncRequestFunc(const std::function<void()>& taskRunner)
+    {
+        vsyncRequestFunc_ = taskRunner;
+    }
+
+    void RequestVsync() const
+    {
+        vsyncRequestFunc_();
+    }
+
     void SetTaskRunner(const std::function<void(const std::function<void()>&, bool)>& taskRunner)
     {
         taskRunner_ = taskRunner;
@@ -104,6 +114,7 @@ private:
     uint64_t transactionTimestamp_ = 0;
     uint64_t currentTimestamp_ = 0;
     std::function<void(const std::function<void()>&, bool)> taskRunner_;
+    std::function<void()> vsyncRequestFunc_;
     // Collect all active Nodes sorted by root node id in this frame.
     std::unordered_map<NodeId, std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>>> activeNodesInRoot_;
 
