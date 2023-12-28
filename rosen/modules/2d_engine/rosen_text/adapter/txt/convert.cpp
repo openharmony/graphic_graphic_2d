@@ -134,6 +134,7 @@ txt::TextStyle Convert(const TextStyle &style)
     textStyle.foreground_brush = style.foregroundBrush.value_or(RSBrush());
 #endif
 
+    textStyle.isSymbolGlyph = style.isSymbolGlyph;
     for (const auto &[color, offset, radius] : style.shadows) {
         auto shadowColor = SkColorSetARGB(color.GetAlpha(), color.GetRed(), color.GetGreen(), color.GetBlue());
 #ifndef USE_ROSEN_DRAWING

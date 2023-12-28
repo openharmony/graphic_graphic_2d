@@ -31,6 +31,7 @@ public:
     void AppendText(const std::u16string& text) override;
     void AppendPlaceholder(const PlaceholderSpan& span) override;
     std::unique_ptr<Typography> CreateTypography() override;
+    void AppendSymbol(const uint32_t& symbolId) override;
 
 private:
     std::unique_ptr<txt::ParagraphBuilder> builder_ = nullptr;

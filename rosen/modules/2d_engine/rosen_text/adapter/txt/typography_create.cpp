@@ -51,6 +51,11 @@ void TypographyCreate::AppendText(const std::u16string& text)
     builder_->AddText(text);
 }
 
+void TypographyCreate::AppendSymbol(const uint32_t& symbolId)
+{
+    builder_->AddSymbol(symbolId);
+}
+
 void TypographyCreate::AppendPlaceholder(const PlaceholderSpan& span)
 {
     auto txtPlaceholderRun = Convert(span);
