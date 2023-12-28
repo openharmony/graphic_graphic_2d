@@ -1145,11 +1145,22 @@ void RSBackgroundDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
     bool antiAlias = RSPropertiesPainter::GetBgAntiAlias() || !properties.GetCornerRadius().IsZero();
 #ifndef USE_ROSEN_DRAWING
     paint_.setAntiAlias(antiAlias);
-    canvas.drawRRect(RSPropertiesPainter::RRect2SkRRect(properties.GetRRect()), paint_);
+    // use drawrrect to avoid texture update in phone screen rotation scene.
+    if (RSSystemProperties::IsPhoneType()) {
+        canvas.drawRRect(RSPropertiesPainter::RRect2SkRRect(properties.GetRRect()), paint_);
+    } else {
+        canvas.drawRect(RSPropertiesPainter::Rect2SkRect(properties.GetBoundsRect()), paint_);
+    }
+
 #else
     brush_.SetAntiAlias(antiAlias);
     canvas.AttachBrush(brush_);
-    canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetRRect()));
+    // use drawrrect to avoid texture update in phone screen rotation scene
+    if (RSSystemProperties::IsPhoneType()) {
+        canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetRRect()));
+    } else {
+        canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
+    }
     canvas.DetachBrush();
 #endif
 }
