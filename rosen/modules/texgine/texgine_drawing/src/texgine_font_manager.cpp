@@ -70,11 +70,12 @@ std::shared_ptr<TexgineTypeface> TexgineFontManager::MatchFamilyStyleCharacter(c
 #ifndef USE_ROSEN_DRAWING
     auto tf = fontMgr_->matchFamilyStyleCharacter(familyName.c_str(),
         *style.GetFontStyle(), bcp47, bcp47Count, character);
+    return std::make_shared<TexgineTypeface>(tf);
 #else
     RSTypeface* tf = fontMgr_->MatchFamilyStyleCharacter(familyName.c_str(),
         *style.GetFontStyle(), bcp47, bcp47Count, character);
+    return std::make_shared<TexgineTypeface>(std::shared_ptr<RSTypeface>(tf));
 #endif
-    return std::make_shared<TexgineTypeface>(tf);
 }
 
 std::shared_ptr<TexgineFontStyleSet> TexgineFontManager::MatchFamily(const std::string &familyName)
