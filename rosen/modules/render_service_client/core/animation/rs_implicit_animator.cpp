@@ -108,14 +108,21 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
     }
 
     const auto& finishCallback = std::get<const std::shared_ptr<AnimationFinishCallback>>(globalImplicitParams_.top());
-    auto& currentAnimations = implicitAnimations_.top();
-    auto& currentKeyframeAnimations = keyframeAnimations_.top();
 
     // Special case: if implicit animation param type is CANCEL, we need to cancel all implicit animations
     if (implicitAnimationParams_.top()->GetType() == ImplicitAnimationParamType::CANCEL) {
         std::static_pointer_cast<RSImplicitCancelAnimationParam>(implicitAnimationParams_.top())->SyncProperties();
+        if (finishCallback.use_count() == 1) {
+            ROSEN_LOGW("RSImplicitAnimator::CloseImplicitAnimation Should not use finish callback when CANCELLING "
+                "animation, timing cannot be guaranteed.");
+            RSUIDirector::PostTask([finishCallback]() { finishCallback->Execute(); });
+        }
+        CloseImplicitAnimationInner();
+        return {};
     }
 
+    auto& currentAnimations = implicitAnimations_.top();
+    auto& currentKeyframeAnimations = keyframeAnimations_.top();
     // if no implicit animation created by current implicit animation param, we need to take care of finish callback
     if (currentAnimations.empty() && currentKeyframeAnimations.empty()) {
         // If finish callback either 1. is null or 2. is referenced by any animation or implicitly parameters, we don't
@@ -124,10 +131,9 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
             CloseImplicitAnimationInner();
             return {};
         }
-        // we are the only one who holds the finish callback, if the callback is NOT timing sensitive, or if implicit
-        // animation param type is CANCEL, we need to execute it asynchronously, in order to avoid timing issues.
-        if (finishCallback->finishCallbackType_ == FinishCallbackType::TIME_INSENSITIVE ||
-            implicitAnimationParams_.top()->GetType() == ImplicitAnimationParamType::CANCEL) {
+        // we are the only one who holds the finish callback, if the callback is NOT timing sensitive, we need to
+        // execute it asynchronously, in order to avoid timing issues.
+        if (finishCallback->finishCallbackType_ == FinishCallbackType::TIME_INSENSITIVE) {
             ROSEN_LOGD("RSImplicitAnimator::CloseImplicitAnimation, No implicit animations created, execute finish "
                        "callback asynchronously");
             RSUIDirector::PostTask([finishCallback]() { finishCallback->Execute(); });
@@ -472,14 +478,23 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
             return;
         }
         case ImplicitAnimationParamType::CANCEL: {
-            // Create animation with CANCEL type will cancel all running animations of the target.
-            property->SetValue(endValue);                         // force set ui value
-            property->UpdateOnAllAnimationFinish();               // force sync RS value and cancel all RS animations
-            // Note: The callbacks of the canceled animations will be executed within the current implicit animation
-            // context, consistent with previous behavior. However, this may cause issues and may be changed in the
-            // future.
-            target->CancelAnimationByProperty(property->GetId()); // remove all ui animation
-            return;
+            // Create animation with CANCEL type will cancel all running animations of the given property and target.
+
+            // Note: We are currently in the process of refactoring and accidentally changed the order of animation
+            // callbacks. Originally, the order was OnChange before OnFinish, but we mistakenly changed it to OnFinish
+            // before OnChange. This change has caused some issues, and we need to revert it back to the original order.
+            // However, before fixing this, we discovered that there are some changes in arkui that rely on this 'bug'.
+            // If we change it back to the original order, it will break the list swipe animation. Therefore, we need
+            // to carefully consider the implications of this change before proceeding.
+            if (property->GetIsCustom()) {
+                property->SetValue(endValue);                         // update set ui value
+                property->UpdateCustomAnimation();                    // force sync RS value for custom property
+                target->CancelAnimationByProperty(property->GetId()); // finish all ui animation
+            } else {
+                target->FinishAnimationByProperty(property->GetId()); // finish all ui animation
+                property->SetValue(endValue);                         // update set ui value
+                property->UpdateOnAllAnimationFinish();               // force sync RS value for native property
+            }
             return;
         }
         default:

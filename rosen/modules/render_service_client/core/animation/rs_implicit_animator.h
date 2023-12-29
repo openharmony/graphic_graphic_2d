@@ -88,7 +88,7 @@ private:
     void BeginImplicitCancelAnimation();
 
     void CloseImplicitAnimationInner();
-    
+
     void PushImplicitParam(const std::shared_ptr<RSImplicitAnimationParam>& implicitParam);
     void PopImplicitParam();
     void CreateEmptyAnimation();

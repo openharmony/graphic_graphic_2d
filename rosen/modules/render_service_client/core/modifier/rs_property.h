@@ -146,6 +146,7 @@ protected:
     float GetThresholdByModifierType() const;
 
     virtual void UpdateOnAllAnimationFinish() {}
+    virtual void UpdateCustomAnimation() {}
 
     virtual void AddPathAnimation() {}
 
@@ -523,10 +524,13 @@ public:
 protected:
     void UpdateOnAllAnimationFinish() override
     {
+        RSProperty<T>::UpdateToRender(RSProperty<T>::stagingValue_, UPDATE_TYPE_FORCE_OVERWRITE);
+    }
+
+    void UpdateCustomAnimation() override
+    {
         if (RSProperty<T>::isCustom_) {
             UpdateExtendedAnimatableProperty(RSProperty<T>::stagingValue_, false);
-        } else {
-            RSProperty<T>::UpdateToRender(RSProperty<T>::stagingValue_, UPDATE_TYPE_FORCE_OVERWRITE);
         }
     }
 
