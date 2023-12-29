@@ -59,6 +59,11 @@
 #include "surface_utils.h"
 #endif
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 RSRenderThreadVisitor::RSRenderThreadVisitor()
@@ -438,16 +443,26 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         rsSurface->SetColorSpace(surfaceNodeColorSpace);
     }
 
-#if defined(ACE_ENABLE_GL)
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+#if defined(ACE_ENABLE_GL) || defined (ACE_ENABLE_VK)
 #if defined(NEW_RENDER_CONTEXT)
-        std::shared_ptr<RenderContextBase> rc = RSRenderThread::Instance().GetRenderContext();
-        std::shared_ptr<DrawingContext> dc = RSRenderThread::Instance().GetDrawingContext();
-        rsSurface->SetDrawingContext(dc);
+    std::shared_ptr<RenderContextBase> rc = RSRenderThread::Instance().GetRenderContext();
+    std::shared_ptr<DrawingContext> dc = RSRenderThread::Instance().GetDrawingContext();
+    rsSurface->SetDrawingContext(dc);
 #else
-        RenderContext* rc = RSRenderThread::Instance().GetRenderContext();
+    RenderContext* rc = RSRenderThread::Instance().GetRenderContext();
 #endif
-        rsSurface->SetRenderContext(rc);
+    rsSurface->SetRenderContext(rc);
+#endif
+
+#ifdef ACE_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        auto skContext = RsVulkanContext::GetSingleton().CreateDrawingContext(true);
+        if (skContext == nullptr) {
+            ROSEN_LOGE("RSRenderThreadVisitor::ProcessRootRenderNode CreateDrawingContext is null");
+            return;
+        }
+        std::static_pointer_cast<RSSurfaceOhosVulkan>(rsSurface)->SetSkContext(skContext);
     }
 #endif
     uiTimestamp_ = RSRenderThread::Instance().GetUITimestamp();
