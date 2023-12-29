@@ -478,16 +478,22 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
             return;
         }
         case ImplicitAnimationParamType::CANCEL: {
-            // Create animation with CANCEL type will cancel all running animations of the target.
-            // Note: We should use CancelAnimationByProperty to remove the animation, but it will cause the callbacks of
-            // cancelled animations to be called immediately (in the current context), which may cause a crash or timing
-            // issue. So, we have to use FinishAnimationByProperty here, even though it will create unnecessary IPC.
-            target->FinishAnimationByProperty(property->GetId()); // finish all ui animation
-            property->SetValue(endValue);                         // update set ui value
+            // Create animation with CANCEL type will cancel all running animations of the given property and target.
+
+            // Note: We are currently in the process of refactoring and accidentally changed the order of animation
+            // callbacks. Originally, the order was OnChange before OnFinish, but we mistakenly changed it to OnFinish
+            // before OnChange. This change has caused some issues, and we need to revert it back to the original order.
+            // However, before fixing this, we discovered that there are some changes in arkui that rely on this 'bug'.
+            // If we change it back to the original order, it will break the list swipe animation. Therefore, we need
+            // to carefully consider the implications of this change before proceeding.
             if (property->GetIsCustom()) {
-                property->UpdateCustomAnimation(); // force sync RS value for custom property
+                property->SetValue(endValue);                         // update set ui value
+                property->UpdateCustomAnimation();                    // force sync RS value for custom property
+                target->CancelAnimationByProperty(property->GetId()); // finish all ui animation
             } else {
-                property->UpdateOnAllAnimationFinish(); // force sync RS value for native property
+                target->FinishAnimationByProperty(property->GetId()); // finish all ui animation
+                property->SetValue(endValue);                         // update set ui value
+                property->UpdateOnAllAnimationFinish();               // force sync RS value for native property
             }
             return;
         }
