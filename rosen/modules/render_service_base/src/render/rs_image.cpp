@@ -78,6 +78,9 @@ void RSImage::CanvasDrawImage(RSPaintFilterCanvas& canvas, const SkRect& rect, c
             recordingCanvas->drawImageRect(image_, src_, dst_, SkSamplingOptions(),
                 &paint, SkCanvas::kFast_SrcRectConstraint);
         } else {
+            if (!isBackground) {
+                ApplyCanvasClip(canvas);
+            }
             canvas.drawImageRect(image_, src_, dst_, samplingOptions, &paint, SkCanvas::kFast_SrcRectConstraint);
         }
         if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
@@ -106,6 +109,9 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
             RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas);
         }
         if (image_) {
+            if (!isBackground) {
+                ApplyCanvasClip(canvas);
+            }
             canvas.DrawImageRect(*image_, src_, dst_, samplingOptions,
                 Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
         }
