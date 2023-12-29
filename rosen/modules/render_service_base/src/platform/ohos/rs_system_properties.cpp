@@ -675,30 +675,6 @@ bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
     return singleFrameComposerCanvasNodeEnabled;
 }
 
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-const DdgrOpincType RSSystemProperties::ddgrOpincType_ =
-    static_cast<DdgrOpincType>(std::atoi((system::GetParameter("persist.ddgr.opinctype", "1")).c_str()));
-
-DdgrOpincType RSSystemProperties::GetDdgrOpincType()
-{
-    return ddgrOpincType_;
-}
-
-bool RSSystemProperties::IsDdgrOpincEnable()
-{
-    return GetDdgrOpincType() == DdgrOpincType::DDGR_AUTOCACHE ||
-        GetDdgrOpincType() == DdgrOpincType::DDGR_RENDERCACHE ||
-        GetDdgrOpincType() == DdgrOpincType::DDGR_OPINCUPDATE;
-}
-
-bool RSSystemProperties::GetAutoCacheDebugEnabled()
-{
-    static bool autocacheDebug =
-        system::GetBoolParameter("persist.ddgr.rendercache.debug.enabled", false);
-    return autocacheDebug;
-}
-#endif
-
 bool RSSystemProperties::GetSubSurfaceEnabled()
 {
     static bool subSurfaceEnabled =

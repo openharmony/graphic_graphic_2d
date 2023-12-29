@@ -53,9 +53,6 @@ public:
      * @brief         Unmarshalling Draw Ops Param from contiguous buffers
      */
     void UnmarshallingOps();
-    bool IsCmdListOpitem(uint32_t& type);
-    void UnmarshallingOpsReset();
-    void UnmarshallingOpsEnd();
 
     /*
      * @brief         Draw cmd is empty or not.
@@ -88,10 +85,6 @@ public:
      */
     void SetHeight(int32_t height);
 
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    size_t GetSize() const;
-#endif
-
     void GenerateCache(Canvas* canvas = nullptr, const Rect* rect = nullptr);
 
     void GenerateCacheInRenderService(Canvas* canvas, const Rect* rect);
@@ -120,9 +113,6 @@ private:
     size_t lastOpGenSize_ = 0;
     int32_t width_;
     int32_t height_;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    int opIncItemCnt_ = 0;
-#endif
     std::vector<std::pair<uint32_t, uint32_t>> replacedOpList_;
     std::vector<std::pair<uint32_t, std::shared_ptr<DrawOpItem>>> opReplacedByDrivenRender_;
     bool isCached_ = false;

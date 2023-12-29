@@ -235,13 +235,6 @@ public:
     virtual void DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
         FilterMode filter, const Brush* brush = nullptr);
 
-    // opinc_begin
-    virtual bool BeginOpRecording(const Rect* bound = nullptr, bool isDynamic = false);
-    virtual Drawing::OpListHandle EndOpRecording();
-    virtual void DrawOpList(Drawing::OpListHandle handle);
-    virtual int CanDrawOpList(Drawing::OpListHandle handle);
-    // opinc_end
-
     // image
     virtual void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py);
     virtual void DrawBitmap(Media::PixelMap& pixelMap, const scalar px, const scalar py);
