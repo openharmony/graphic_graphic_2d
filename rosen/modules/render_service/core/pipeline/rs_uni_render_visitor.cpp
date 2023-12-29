@@ -2343,7 +2343,12 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode ScreenManager is nullptr");
         return;
     }
-    RSPointLightManager::Instance()->SetScreenRotation(node.GetScreenRotation());
+    constexpr int ROTATION_NUM = 4;
+    auto screenRotation = node.GetScreenRotation();
+    if (RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0) {
+        screenRotation = static_cast<ScreenRotation>((static_cast<int>(screenRotation) + 1) % ROTATION_NUM);
+    }
+    RSPointLightManager::Instance()->SetScreenRotation(screenRotation);
     screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
     isSecurityDisplay_ = node.GetSecurityDisplay();
     auto mirrorNode = node.GetMirrorSource().lock();
