@@ -204,6 +204,10 @@ public:
      */
     virtual Boundary GetWordBoundaryByIndex(size_t index) const = 0;
 
+    virtual double GetLineHeight(int lineNumber) const = 0;
+
+    virtual double GetLineWidth(int lineNumber) const = 0;
+
 private:
     friend void ReportMemoryUsage(const std::string& member, const Typography& that, const bool needThis);
 };

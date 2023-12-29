@@ -33,6 +33,8 @@
 #include <stdlib.h>
 #include <sys/syscall.h>
 #define GET_TID() syscall(SYS_thread_selfid)
+#elif defined(BUILD_SDK_ANDROID)
+#define GET_TID() gettid()
 #else
 #ifdef __gnu_linux__
 #include <sys/types.h>

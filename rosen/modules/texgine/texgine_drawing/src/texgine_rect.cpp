@@ -78,7 +78,7 @@ TexgineRect TexgineRect::MakeRRect(float x, float y, float w, float h, const SkV
     SkRRect skRRect;
     skRRect.setRectRadii(skRect, skRadii);
     rect->SetRRect(skRRect);
-else
+#else
     RSRect rsRect = { x, y, x + w, y + h };
     RSPoint leftTop = { skRadii[0], skRadii[0] }; // skRadii[0] is leftTop corner
     RSPoint rightTop = { skRadii[1], skRadii[1] }; // skRadii[1] is rightTop corner
