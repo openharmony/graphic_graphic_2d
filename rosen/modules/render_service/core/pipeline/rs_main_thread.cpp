@@ -2356,7 +2356,7 @@ void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::str
         gpuContext->FlushAndSubmit(true);
     } else if (type == "uihidden") {
         gpuContext->Flush();
-        gpuContext->PurgeUnlockedResources(true);
+        gpuContext->PurgeUnlockAndSafeCacheGpuResources();
         gpuContext->FlushAndSubmit(true);
     } else if (type == "shader") {
 #ifdef NEW_RENDER_CONTEXT
