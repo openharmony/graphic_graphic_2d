@@ -21,6 +21,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
+#define LIMIT_DATA 10000
 void WordBreaker::SetLocale(const icu::Locale &locale)
 {
     locale_ = locale;
@@ -68,6 +69,12 @@ std::vector<Boundary> WordBreaker::GetBoundary(const std::vector<uint16_t> &u16s
     wbi->setText(ustr);
 
     std::vector<Boundary> boundaries;
+    if (u16str.size() > LIMIT_DATA) {
+        boundaries.emplace_back(wbi->first(), u16str.size());
+        delete wbi;
+        wbi = nullptr;
+        return boundaries;
+    }
     auto beg = wbi->first();
     for (auto end = wbi->next(); end != wbi->DONE; end = wbi->next()) {
         boundaries.emplace_back(beg, end);
