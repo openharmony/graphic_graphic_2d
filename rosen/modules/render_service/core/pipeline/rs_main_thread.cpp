@@ -638,7 +638,8 @@ bool RSMainThread::CheckParallelSubThreadNodesStatus()
     RS_OPTIONAL_TRACE_FUNC();
     cacheCmdSkippedInfo_.clear();
     cacheCmdSkippedNodes_.clear();
-    if (subThreadNodes_.empty()) {
+    if (subThreadNodes_.empty() &&
+        (deviceType_ == DeviceType::PHONE || (LeashWindowCount_ > 0 && isUiFirstOn_ == false))) {
         RSSubThreadManager::Instance()->ResetSubThreadGrContext();
         return false;
     }
@@ -2811,9 +2812,9 @@ void RSMainThread::UpdateUIFirstSwitch()
         auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
             rootNode->GetSortedChildren().front());
         if (displayNode) {
-            uint32_t LeashWindowCount = 0;
-            displayNode->CollectSurfaceForUIFirstSwitch(LeashWindowCount, UIFIRST_MINIMUM_NODE_NUMBER);
-            isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled() && LeashWindowCount >=  UIFIRST_MINIMUM_NODE_NUMBER;
+            LeashWindowCount_ = 0;
+            displayNode->CollectSurfaceForUIFirstSwitch(LeashWindowCount_, UIFIRST_MINIMUM_NODE_NUMBER);
+            isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled() && LeashWindowCount_ >= UIFIRST_MINIMUM_NODE_NUMBER;
         }
     }
 }
