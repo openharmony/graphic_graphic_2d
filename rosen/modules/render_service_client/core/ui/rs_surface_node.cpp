@@ -566,7 +566,7 @@ void RSSurfaceNode::CreateSurfaceExt(const RSSurfaceExtConfig& config)
     ROSEN_LOGD("RSSurfaceNode::CreateSurfaceExt %{public}" PRIu64 " type %{public}u %{public}p",
         GetId(), config.type, texture.get());
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSSurfaceNodeCreateSurfaceExt>(GetId(), (uint64_t)(texture.get()));
+        std::make_unique<RSSurfaceNodeCreateSurfaceExt>(GetId(), texture);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, false);

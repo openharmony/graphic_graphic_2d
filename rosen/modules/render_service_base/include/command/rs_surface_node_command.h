@@ -19,6 +19,7 @@
 #include "command/rs_command_templates.h"
 #include "common/rs_macros.h"
 #include "common/rs_vector4.h"
+#include "platform/common/rs_surface_ext.h"
 #include "surface_type.h"
 
 #ifndef USE_ROSEN_DRAWING
@@ -88,7 +89,7 @@ public:
     static void AttachToDisplay(RSContext& context, NodeId nodeId, uint64_t screenId);
     static void DetachToDisplay(RSContext& context, NodeId nodeId, uint64_t screenId);
 #ifdef USE_SURFACE_TEXTURE
-    static void CreateSurfaceExt(RSContext& context, NodeId id, uint64_t surfaceExt);
+    static void CreateSurfaceExt(RSContext& context, NodeId id, const std::shared_ptr<RSSurfaceTexture>& surfaceExt);
 #endif
 };
 
@@ -151,7 +152,7 @@ ADD_COMMAND(RSSurfaceNodeSetColorSpace,
 #ifdef USE_SURFACE_TEXTURE
 ADD_COMMAND(RSSurfaceNodeCreateSurfaceExt,
     ARG(SURFACE_NODE, SURFACE_NODE_CREATE_SURFACE_EXT,
-    SurfaceNodeCommandHelper::CreateSurfaceExt, NodeId, uint64_t))
+    SurfaceNodeCommandHelper::CreateSurfaceExt, NodeId, std::shared_ptr<RSSurfaceTexture>))
 #endif
 } // namespace Rosen
 } // namespace OHOS
