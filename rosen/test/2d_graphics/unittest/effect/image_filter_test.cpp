@@ -133,7 +133,7 @@ HWTEST_F(ImageFilterTest, ImageFilterCreateTest001, TestSize.Level1)
 HWTEST_F(ImageFilterTest, ImageFilterCreateTest002, TestSize.Level1)
 {
     auto colorFilter = ColorFilter::CreateBlendModeColorFilter(11, OHOS::Rosen::Drawing::BlendMode::CLEAR);
-    auto imageFilter = std::make_shared<ImageFilter>(ImageFilter::FilterType::COLOR, *colorFilter, nullptr);
+    auto imageFilter = std::make_shared<ImageFilter>(ImageFilter::FilterType::COLOR_FILTER, *colorFilter, nullptr);
     ASSERT_TRUE(imageFilter != nullptr);
 }
 

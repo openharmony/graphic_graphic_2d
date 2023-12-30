@@ -99,7 +99,7 @@ ShaderEffect::ShaderEffectType ShaderEffect::GetType() const
 
 std::shared_ptr<ShaderEffect> ShaderEffect::CreateColorShader(ColorQuad color)
 {
-    return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::COLOR, color);
+    return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::COLOR_EFFECT, color);
 }
 
 std::shared_ptr<ShaderEffect> ShaderEffect::CreateBlendShader(ShaderEffect& dst, ShaderEffect& src, BlendMode mode)

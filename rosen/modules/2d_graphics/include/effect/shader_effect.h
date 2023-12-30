@@ -34,7 +34,7 @@ class DRAWING_API ShaderEffect {
 public:
     enum class ShaderEffectType {
         NO_TYPE,
-        COLOR,
+        COLOR_EFFECT,
         BLEND,
         IMAGE,
         PICTURE,
