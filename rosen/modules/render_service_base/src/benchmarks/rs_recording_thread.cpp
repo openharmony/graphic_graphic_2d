@@ -75,8 +75,7 @@ sk_sp<GrContext> RSRecordingThread::CreateShareGrContext()
         auto handler = std::make_shared<MemoryHandler>();
         auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
         auto size = glesVersion ? strlen(glesVersion) : 0;
-        /* /data/service/el0/render_service is shader cache dir*/
-        handler->ConfigureContext(&options, glesVersion, size, "/data/service/el0/render_service", true);
+        handler->ConfigureContext(&options, glesVersion, size);
 
 #ifdef NEW_SKIA
         sk_sp<GrDirectContext> grContext = GrDirectContext::MakeGL(std::move(glInterface), options);
@@ -117,7 +116,7 @@ std::shared_ptr<Drawing::GPUContext> RSRecordingThread::CreateShareGrContext()
         auto handler = std::make_shared<MemoryHandler>();
         auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
         auto size = glesVersion ? strlen(glesVersion) : 0;
-        handler->ConfigureContext(&options, glesVersion, size, "/data/service/el0/render_service", true);
+        handler->ConfigureContext(&options, glesVersion, size);
         if (!gpuContext->BuildFromGL(options)) {
             RS_LOGE("nullptr gpuContext is null");
             return nullptr;
@@ -128,7 +127,12 @@ std::shared_ptr<Drawing::GPUContext> RSRecordingThread::CreateShareGrContext()
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        if (!gpuContext->BuildFromVK(RsVulkanContext::GetSingleton().GetGrVkBackendContext())) {
+        Drawing::GPUContextOptions options;
+        auto handler = std::make_shared<MemoryHandler>();
+        std::string vulkanVersion = RsVulkanContext::GetSingleton().GetVulkanVersion();
+        auto size = vulkanVersion.size();
+        handler->ConfigureContext(&options, vulkanVersion.c_str(), size);
+        if (!gpuContext->BuildFromVK(RsVulkanContext::GetSingleton().GetGrVkBackendContext(), options)) {
             RS_LOGE("nullptr gpuContext is null");
             return nullptr;
         }

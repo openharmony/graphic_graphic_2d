@@ -468,7 +468,7 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection>& conne
 
 VsyncError VSyncDistributor::SetVSyncRate(int32_t rate, const sptr<VSyncConnection>& connection)
 {
-    if (rate <= 0 || connection == nullptr) {
+    if (rate < -1 || connection == nullptr) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     std::lock_guard<std::mutex> locker(mutex_);

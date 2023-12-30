@@ -398,7 +398,7 @@ HWTEST_F(RSRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
 HWTEST_F(RSRenderNodeTest, OnlyBasicGeoTransfromTest01, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    ASSERT_EQ(node.IsOnlyBasicGeoTransfrom(), true);
+    ASSERT_EQ(node.IsOnlyBasicGeoTransform(), true);
 }
 
 /**
@@ -412,7 +412,7 @@ HWTEST_F(RSRenderNodeTest, OnlyBasicGeoTransfromTest02, TestSize.Level1)
     RSRenderNode node(id, context);
     node.SetContentDirty();
     ASSERT_EQ(node.IsContentDirty(), true);
-    ASSERT_EQ(node.IsOnlyBasicGeoTransfrom(), false);
+    ASSERT_EQ(node.IsOnlyBasicGeoTransform(), false);
 }
 
 /**
@@ -425,9 +425,9 @@ HWTEST_F(RSRenderNodeTest, OnlyBasicGeoTransfromTest03, TestSize.Level1)
 {
     RSRenderNode node(id, context);
     node.SetContentDirty();
-    ASSERT_EQ(node.IsOnlyBasicGeoTransfrom(), false);
-    node.ResetIsOnlyBasicGeoTransfrom();
-    ASSERT_EQ(node.IsOnlyBasicGeoTransfrom(), true);
+    ASSERT_EQ(node.IsOnlyBasicGeoTransform(), false);
+    node.ResetIsOnlyBasicGeoTransform();
+    ASSERT_EQ(node.IsOnlyBasicGeoTransform(), true);
 }
 } // namespace Rosen
 } // namespace OHOS

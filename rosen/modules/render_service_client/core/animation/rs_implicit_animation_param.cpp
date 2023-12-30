@@ -96,11 +96,12 @@ void RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask(
     RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap&& propertiesMap, bool isRenderService)
 {
     // create task and execute it in RS
-    auto task = std::make_shared<RSNodeGetShowingPropertiesAndCancelAnimation>(1e10, std::move(propertiesMap));
+    auto task = std::make_shared<RSNodeGetShowingPropertiesAndCancelAnimation>(1e8, std::move(propertiesMap));
     RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(task, isRenderService);
 
     // Test if the task is executed successfully
     if (!task || !task->IsSuccess()) {
+        ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to execute task.");
         return;
     }
 
@@ -109,14 +110,17 @@ void RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask(
         const auto& [nodeId, propertyId] = key;
         auto node = RSNodeMap::Instance().GetNode(nodeId);
         if (node == nullptr) {
+            ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to get target node.");
             continue;
         }
         auto modifier = node->GetModifier(propertyId);
         if (modifier == nullptr) {
+            ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to get target modifier.");
             continue;
         }
         auto property = modifier->GetProperty();
         if (property == nullptr) {
+            ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to get target property.");
             continue;
         }
         node->CancelAnimationByProperty(propertyId);
@@ -146,16 +150,23 @@ std::shared_ptr<RSAnimation> RSImplicitCurveAnimationParam::CreateAnimation(std:
 }
 
 RSImplicitKeyframeAnimationParam::RSImplicitKeyframeAnimationParam(
-    const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve, float fraction)
+    const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
+    float fraction, int duration)
     : RSImplicitAnimationParam(timingProtocol, ImplicitAnimationParamType::KEYFRAME), timingCurve_(timingCurve),
-      fraction_(fraction)
+      fraction_(fraction), duration_(duration)
 {}
 
-std::shared_ptr<RSAnimation> RSImplicitKeyframeAnimationParam::CreateAnimation(std::shared_ptr<RSPropertyBase> property,
+std::shared_ptr<RSAnimation> RSImplicitKeyframeAnimationParam::CreateAnimation(
+    std::shared_ptr<RSPropertyBase> property, const bool& isCreateDurationKeyframe, const int& startDuration,
     const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const
 {
     auto keyFrameAnimation = std::make_shared<RSKeyframeAnimation>(property);
-    keyFrameAnimation->AddKeyFrame(fraction_, endValue, timingCurve_);
+    keyFrameAnimation->SetDurationKeyframe(isCreateDurationKeyframe);
+    if (isCreateDurationKeyframe) {
+        keyFrameAnimation->AddKeyFrame(startDuration, startDuration + duration_, endValue, timingCurve_);
+    } else {
+        keyFrameAnimation->AddKeyFrame(fraction_, endValue, timingCurve_);
+    }
     keyFrameAnimation->SetOriginValue(startValue);
     keyFrameAnimation->SetIsCustom(property->GetIsCustom());
     ApplyTimingProtocol(keyFrameAnimation);
@@ -172,6 +183,19 @@ void RSImplicitKeyframeAnimationParam::AddKeyframe(std::shared_ptr<RSAnimation>&
     auto keyframeAnimation = std::static_pointer_cast<RSKeyframeAnimation>(animation);
     if (keyframeAnimation != nullptr) {
         keyframeAnimation->AddKeyFrame(fraction_, endValue, timingCurve_);
+    }
+}
+
+void RSImplicitKeyframeAnimationParam::AddKeyframe(std::shared_ptr<RSAnimation>& animation, const int startDuration,
+    const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const
+{
+    if (animation == nullptr) {
+        return;
+    }
+
+    auto keyframeAnimation = std::static_pointer_cast<RSKeyframeAnimation>(animation);
+    if (keyframeAnimation != nullptr) {
+        keyframeAnimation->AddKeyFrame(startDuration, startDuration + duration_, endValue, timingCurve_);
     }
 }
 

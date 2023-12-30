@@ -1746,9 +1746,9 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     }
 
     auto filter = std::static_pointer_cast<RSSkiaFilter>(RSFilter);
-    if (properties.IsGreyAdjustmenValid()) {
+    if (properties.IsGreyAdjustmentValid()) {
         // Set grey coef to filter
-        filter->SetGreyCoef(properties.GetGreyCoef1(), properties.GetGreyCoef2(), properties.IsGreyAdjustmenValid());
+        filter->SetGreyCoef(properties.GetGreyCoef1(), properties.GetGreyCoef2(), properties.IsGreyAdjustmentValid());
     }
     auto skSurface = canvas.GetSurface();
     if (skSurface == nullptr) {

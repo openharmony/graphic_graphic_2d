@@ -17,6 +17,7 @@
 #include <memory>
 
 #include "pixel_map.h"
+#include "platform/common/rs_log.h"
 #ifndef USE_ROSEN_DRAWING
 #include "include/core/SkImage.h"
 #else
@@ -208,7 +209,14 @@ std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
         AlphaTypeToDrawingAlphaType(imageInfo.alphaType),
         ColorSpaceToDrawingColorSpace(imageInfo.colorSpace) };
     Drawing::Pixmap imagePixmap(drawingImageInfo, reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
-    return Drawing::Image::MakeFromRaster(imagePixmap, PixelMapReleaseProc, new PixelMapReleaseContext(pixelMap));
+    PixelMapReleaseContext* releaseContext = new PixelMapReleaseContext(pixelMap);
+    auto image = Drawing::Image::MakeFromRaster(imagePixmap, PixelMapReleaseProc, releaseContext);
+    if (!image) {
+        RS_LOGE("RSPixelMapUtil::ExtractDrawingImage fail");
+        delete releaseContext;
+        releaseContext = nullptr;
+    }
+    return image;
 }
 
 #endif

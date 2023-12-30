@@ -132,9 +132,6 @@ public:
     float GetTranslateX() const;
     float GetTranslateY() const;
     float GetTranslateZ() const;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    bool GetOpincPropDirty() const;
-#endif
 
     void SetScale(Vector2f scale);
     void SetScaleX(float sx);
@@ -292,7 +289,7 @@ public:
     float GetLightUpEffect() const;
     bool IsLightUpEffectValid() const;
     bool IsDynamicLightUpValid() const;
-    bool IsGreyAdjustmenValid() const;
+    bool IsGreyAdjustmentValid() const;
 
     // Image effect properties
     void SetGrayScale(const std::optional<float>& grayScale);
@@ -348,6 +345,9 @@ public:
     RRect GetInnerRRect() const;
     RectF GetFrameRect() const;
 
+    bool GetHaveEffectRegion() const;
+    void SetHaveEffectRegion(bool hasEffectRegion);
+
     void OnApplyModifiers();
 
 private:
@@ -376,9 +376,6 @@ private:
     bool contentDirty_ = false;
     bool isDrawn_ = false;
     bool alphaNeedApply_ = false;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    bool isOpincPropDirty_ = false;
-#endif
 
     bool hasBounds_ = false;
     bool useEffect_ = false;
@@ -456,6 +453,7 @@ private:
 #else
     std::shared_ptr<Drawing::ColorFilter> colorFilter_ = nullptr;
 #endif
+    bool haveEffectRegion_ = false;
 
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void CreateFilterCacheManagerIfNeed();
@@ -472,9 +470,9 @@ private:
     friend class RSCanvasRenderNode;
     friend class RSColorfulShadowDrawable;
     friend class RSEffectDataGenerateDrawable;
+    friend class RSModifierDrawable;
     friend class RSPropertiesPainter;
     friend class RSRenderNode;
-    friend class RSRenderNodeMap;
 };
 } // namespace Rosen
 } // namespace OHOS

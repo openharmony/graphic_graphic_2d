@@ -37,9 +37,6 @@
 #include "property/rs_property_trace.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-#include "rs_auto_cache.h"
-#endif
 
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSurface.h"
@@ -182,7 +179,26 @@ OHOS::Rosen::Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t
 
 namespace OHOS {
 namespace Rosen {
-using Slot::RSPropertyDrawableSlot;
+void RSRenderNode::OnRegister()
+{
+    renderContent_->type_ = GetType();
+    renderContent_->renderProperties_.backref_ = weak_from_this();
+}
+
+bool RSRenderNode::IsPureContainer() const
+{
+    auto& drawCmdModifiers_ = renderContent_->drawCmdModifiers_;
+    return (drawCmdModifiers_.empty() && !GetRenderProperties().isDrawn_ && !GetRenderProperties().alphaNeedApply_);
+}
+
+bool RSRenderNode::IsContentNode() const
+{
+    auto& drawCmdModifiers_ = renderContent_->drawCmdModifiers_;
+    return ((drawCmdModifiers_.size() == 1 && drawCmdModifiers_.count(RSModifierType::CONTENT_STYLE)) ||
+               drawCmdModifiers_.empty()) &&
+           !GetRenderProperties().isDrawn_;
+}
+
 namespace {
 const std::set<RSModifierType> GROUPABLE_ANIMATION_TYPE = {
     RSModifierType::ALPHA,
@@ -201,7 +217,7 @@ const std::unordered_set<RSModifierType> ANIMATION_MODIFIER_TYPE  = {
     RSModifierType::ROTATION,
     RSModifierType::FRAME,
 };
-const std::set<RSModifierType> BASIC_GEOTRANSFROM_ANIMATION_TYPE = {
+const std::set<RSModifierType> BASIC_GEOTRANSFORM_ANIMATION_TYPE = {
     RSModifierType::TRANSLATE,
     RSModifierType::SCALE,
 };
@@ -209,15 +225,11 @@ const std::set<RSModifierType> BASIC_GEOTRANSFROM_ANIMATION_TYPE = {
 
 RSRenderNode::RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
     : id_(id), context_(context), isTextureExportNode_(isTextureExportNode)
-{
-    isSubSurfaceEnabled_ = RSSystemProperties::GetSubSurfaceEnabled();
-}
-RSRenderNode::RSRenderNode(NodeId id, bool isOnTheTree, const std::weak_ptr<RSContext>& context,
-    bool isTextureExportNode) 
-    : isOnTheTree_(isOnTheTree), id_(id), context_(context),isTextureExportNode_(isTextureExportNode)
-{
-    isSubSurfaceEnabled_ = RSSystemProperties::GetSubSurfaceEnabled();
-}
+{}
+RSRenderNode::RSRenderNode(
+    NodeId id, bool isOnTheTree, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
+    : isOnTheTree_(isOnTheTree), id_(id), context_(context), isTextureExportNode_(isTextureExportNode)
+{}
 
 bool RSRenderNode::GetIsTextureExportNode() const
 {
@@ -688,12 +700,12 @@ void RSRenderNode::DumpNodeType(std::string& out) const
     }
 }
 
-void RSRenderNode::ResetIsOnlyBasicGeoTransfrom()
+void RSRenderNode::ResetIsOnlyBasicGeoTransform()
 {
     isOnlyBasicGeoTransform_ = true;
 }
 
-bool RSRenderNode::IsOnlyBasicGeoTransfrom() const
+bool RSRenderNode::IsOnlyBasicGeoTransform() const
 {
     return isOnlyBasicGeoTransform_;
 }
@@ -710,39 +722,14 @@ void RSRenderNode::SetDirty()
 {
     // Sometimes dirtyStatus_ were not correctly reset, we use dirtyTypes_ to determine if we should add to active list
 #ifndef USE_ROSEN_DRAWING
-    bool dirtyEmpty = dirtyTypes_.empty();
+    if (dirtyStatus_ == NodeDirty::CLEAN || dirtyTypes_.empty()) {
 #else
-    bool dirtyEmpty = dirtyTypes_.none();
-#endif
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    if (dirtyStatus_ < NodeDirty::DIRTY || dirtyEmpty) {
-#else
-    if (dirtyStatus_ == NodeDirty::CLEAN || dirtyEmpty) {
+    if (dirtyStatus_ == NodeDirty::CLEAN || dirtyTypes_.none()) {
 #endif
         AddActiveNode();
         dirtyStatus_ = NodeDirty::DIRTY;
     }
 }
-
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-void RSRenderNode::SetDirtyByOnTree()
-{
-#ifndef USE_ROSEN_DRAWING
-    bool dirtyEmpty = dirtyTypes_.empty();
-#else
-    bool dirtyEmpty = dirtyTypes_.none();
-#endif
-    if (dirtyStatus_ < NodeDirty::ON_TREE_DIRTY || dirtyEmpty) {
-        AddActiveNode();
-        dirtyStatus_ = NodeDirty::ON_TREE_DIRTY;
-    }
-}
-
-bool RSRenderNode::IsOnTreeDirty()
-{
-    return dirtyStatus_ == NodeDirty::ON_TREE_DIRTY && !renderProperties_.IsDirty();
-}
-#endif
 
 void RSRenderNode::SetClean()
 {
@@ -938,9 +925,9 @@ bool RSRenderNode::Update(
     auto parentProperties = parent ? &parent->GetRenderProperties() : nullptr;
     bool dirty = GetMutableRenderProperties().UpdateGeometry(parentProperties, parentDirty, offset,
         GetContextClipRegion());
-    if ((IsDirty() || dirty) && drawCmdModifiers_.count(RSModifierType::GEOMETRYTRANS)) {
+    if ((IsDirty() || dirty) && renderContent_->drawCmdModifiers_.count(RSModifierType::GEOMETRYTRANS)) {
         RSModifierContext context = { GetMutableRenderProperties() };
-        for (auto& modifier : drawCmdModifiers_[RSModifierType::GEOMETRYTRANS]) {
+        for (auto& modifier : renderContent_->drawCmdModifiers_[RSModifierType::GEOMETRYTRANS]) {
             modifier->Apply(context);
         }
     }
@@ -1141,7 +1128,7 @@ void RSRenderNode::RenderTraceDebug() const
 void RSRenderNode::ApplyBoundsGeometry(RSPaintFilterCanvas& canvas)
 {
     if (RSSystemProperties::GetPropertyDrawableEnable()) {
-        IterateOnDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::BOUNDS_MATRIX, canvas);
+        DrawPropertyDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::BOUNDS_MATRIX, canvas);
         return;
     }
 #ifndef USE_ROSEN_DRAWING
@@ -1162,7 +1149,7 @@ void RSRenderNode::ApplyBoundsGeometry(RSPaintFilterCanvas& canvas)
 void RSRenderNode::ApplyAlpha(RSPaintFilterCanvas& canvas)
 {
     if (RSSystemProperties::GetPropertyDrawableEnable()) {
-        IterateOnDrawableRange(RSPropertyDrawableSlot::ALPHA, RSPropertyDrawableSlot::ALPHA, canvas);
+        DrawPropertyDrawable(RSPropertyDrawableSlot::ALPHA, canvas);
         return;
     }
     auto alpha = GetRenderProperties().GetAlpha();
@@ -1187,7 +1174,7 @@ void RSRenderNode::ApplyAlpha(RSPaintFilterCanvas& canvas)
 void RSRenderNode::ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas)
 {
     if (RSSystemProperties::GetPropertyDrawableEnable()) {
-        IterateOnDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::MASK, canvas);
+        DrawPropertyDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::MASK, canvas);
         return;
     }
     ApplyBoundsGeometry(canvas);
@@ -1203,7 +1190,7 @@ void RSRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 void RSRenderNode::ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas)
 {
     if (RSSystemProperties::GetPropertyDrawableEnable()) {
-        IterateOnDrawableRange(RSPropertyDrawableSlot::RESTORE_ALL, RSPropertyDrawableSlot::RESTORE_ALL, canvas);
+        DrawPropertyDrawable(RSPropertyDrawableSlot::RESTORE_ALL, canvas);
         return;
     }
     canvas.RestoreStatus(renderNodeSaveCount_);
@@ -1212,7 +1199,7 @@ void RSRenderNode::ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas)
 void RSRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
 {
     if (RSSystemProperties::GetPropertyDrawableEnable()) {
-        IterateOnDrawableRange(RSPropertyDrawableSlot::RESTORE_ALL, RSPropertyDrawableSlot::RESTORE_ALL, canvas);
+        DrawPropertyDrawable(RSPropertyDrawableSlot::RESTORE_ALL, canvas);
         return;
     }
     canvas.RestoreStatus(renderNodeSaveCount_);
@@ -1237,7 +1224,7 @@ void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier
         modifiers_.emplace(modifier->GetPropertyId(), modifier);
     } else {
         modifier->SetSingleFrameModifier(false);
-        drawCmdModifiers_[modifier->GetType()].emplace_back(modifier);
+        renderContent_->drawCmdModifiers_[modifier->GetType()].emplace_back(modifier);
     }
     modifier->GetProperty()->Attach(shared_from_this());
     SetDirty();
@@ -1275,7 +1262,7 @@ void RSRenderNode::RemoveModifierInternal(const PropertyId& id)
         modifiers_.erase(it);
         return;
     }
-    for (auto& [type, modifiers] : drawCmdModifiers_) {
+    for (auto& [type, modifiers] : renderContent_->drawCmdModifiers_) {
         modifiers.remove_if([id](const auto& modifier) -> bool {
             return modifier ? modifier->GetPropertyId() == id : true;
         });
@@ -1304,7 +1291,7 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
 void RSRenderNode::DumpNodeInfo(DfxString& log)
 {
 #ifndef USE_ROSEN_DRAWING
-    for (auto& [type, modifiers] : drawCmdModifiers_) {
+    for (const auto& [type, modifiers] : renderContent_->drawCmdModifiers_) {
         for (auto modifier : modifiers) {
             modifier->DumpPicture(log);
         }
@@ -1408,7 +1395,7 @@ bool RSRenderNode::ApplyModifiers()
         if (isCalcPreferredFps_ && HasAnimation() && ANIMATION_MODIFIER_TYPE.count(modifier->GetType())) {
             animationModifiers.push_back(modifier);
         }
-        if (!BASIC_GEOTRANSFROM_ANIMATION_TYPE.count(modifier->GetType())) {
+        if (!BASIC_GEOTRANSFORM_ANIMATION_TYPE.count(modifier->GetType())) {
             isOnlyBasicGeoTransform_ = false;
         }
     }
@@ -1459,18 +1446,17 @@ void RSRenderNode::UpdateDrawableVec()
 #ifndef ROSEN_ARKUI_X
     // Collect dirty slots
     auto dirtySlots = RSPropertyDrawable::GenerateDirtySlots(GetRenderProperties(), dirtyTypes_);
-    RSPropertyDrawableGenerateContext drawableContext(*this);
     // initialize necessary save/clip/restore
     if (drawableVecStatus_ == 0) {
-        RSPropertyDrawable::InitializeSaveRestore(drawableContext, renderContent_->propertyDrawablesVec_);
+        RSPropertyDrawable::InitializeSaveRestore(*renderContent_, renderContent_->propertyDrawablesVec_);
     }
     // Update or regenerate drawable
-    bool drawableChanged = RSPropertyDrawable::UpdateDrawableVec(drawableContext,
-        renderContent_->propertyDrawablesVec_, dirtySlots);
+    bool drawableChanged =
+        RSPropertyDrawable::UpdateDrawableVec(*renderContent_, renderContent_->propertyDrawablesVec_, dirtySlots);
     // if 1. first initialized or 2. any drawables changed, update save/clip/restore
     if (drawableChanged || drawableVecStatus_ == 0) {
-        RSPropertyDrawable::UpdateSaveRestore(drawableContext, renderContent_->propertyDrawablesVec_,
-            drawableVecStatus_);
+        RSPropertyDrawable::UpdateSaveRestore(
+            *renderContent_, renderContent_->propertyDrawablesVec_, drawableVecStatus_);
     }
 #endif
 }
@@ -1502,7 +1488,7 @@ std::shared_ptr<RSRenderModifier> RSRenderNode::GetModifier(const PropertyId& id
     if (modifiers_.count(id)) {
         return modifiers_[id];
     }
-    for (auto& [type, modifiers] : drawCmdModifiers_) {
+    for (const auto& [type, modifiers] : renderContent_->drawCmdModifiers_) {
         auto it = std::find_if(modifiers.begin(), modifiers.end(),
             [id](const auto& modifier) -> bool { return modifier->GetPropertyId() == id; });
         if (it != modifiers.end()) {
@@ -1518,7 +1504,7 @@ void RSRenderNode::FilterModifiersByPid(pid_t pid)
     EraseIf(modifiers_, [pid](const auto& pair) -> bool { return ExtractPid(pair.first) == pid; });
 
     // remove all modifiers added by given pid (by matching higher 32 bits of node id)
-    for (auto& [type, modifiers] : drawCmdModifiers_) {
+    for (auto& [type, modifiers] : renderContent_->drawCmdModifiers_) {
         modifiers.remove_if(
             [pid](const auto& it) -> bool { return ExtractPid(it->GetPropertyId()) == pid; });
     }
@@ -1790,43 +1776,6 @@ Vector2f RSRenderNode::GetOptionalBufferSize() const
     // bounds vector4f: x y z w -> left top width height
     return { vector4f.z_, vector4f.w_ };
 }
-
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-Vector4f RSRenderNode::GetOptionBufferBound() const
-{
-    const auto& modifier = boundsModifier_ ? boundsModifier_ : frameModifier_;
-    if (!modifier) {
-        return {0.0f, 0.0f, 0.0f, 0.0f};
-    }
-    auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(modifier->GetProperty());
-    // bounds vector4f: x y z w -> left top width height
-    return renderProperty->Get();
-}
-
-Vector2f RSRenderNode::GetOpincBufferSize() const
-{
-    auto vector4f = GetOptionBufferBound();
-    return {vector4f.x_ + vector4f.z_, vector4f.y_ + vector4f.w_};
-}
-
-#ifdef USE_ROSEN_DRAWING
-Drawing::Rect RSRenderNode::GetOpincBufferBound() const
-{
-    auto vector4f = GetOptionBufferBound();
-    return {vector4f.x_, vector4f.y_, vector4f.x_ + vector4f.z_, vector4f.y_ + vector4f.w_};
-}
-#endif
-
-void RSRenderNode::SetOpincRectOutParent(bool outFlag)
-{
-    isOpincRectOutParent_ = outFlag;
-}
-
-bool RSRenderNode::IsOpincInsideOf(Vector2f& sR, Vector2f& pR) const
-{
-    return (sR.x_ <= pR.x_ && sR.y_ <= pR.y_);
-}
-#endif
 
 #ifndef USE_ROSEN_DRAWING
 void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst)
@@ -2147,11 +2096,7 @@ void RSRenderNode::CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd)
 
 bool RSRenderNode::IsForcedDrawInGroup() const
 {
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    return nodeGroupType_ == NodeGroupType::GROUPED_BY_USER || nodeGroupType_ == NodeGroupType::GROUPED_BY_AUTO;
-#else
     return nodeGroupType_ == NodeGroupType::GROUPED_BY_USER;
-#endif
 }
 
 bool RSRenderNode::IsSuggestedDrawInGroup() const
@@ -2170,13 +2115,7 @@ void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup)
             }
         } else {
             nodeGroupType_ = isNodeGroup ? type : NodeGroupType::NONE;
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-            if (nodeGroupType_ != NodeGroupType::GROUPED_BY_AUTO) {
-                SetDirty();
-            }
-#else
             SetDirty();
-#endif
         }
     }
 }
@@ -2196,26 +2135,12 @@ void RSRenderNode::CheckDrawingCacheType()
 {
     if (nodeGroupType_ == NodeGroupType::NONE) {
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    } else if (IsForcedDrawInGroup()) {
-#else
     } else if (nodeGroupType_ == NodeGroupType::GROUPED_BY_USER) {
-#endif
         SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
     } else {
         SetDrawingCacheType(RSDrawingCacheType::TARGETED_CACHE);
     }
 }
-
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-const std::shared_ptr<RSRenderNode::RSAutoCache>& RSRenderNode::GetAutoCache()
-{
-    if (autoCache_ == nullptr) {
-        autoCache_ = std::make_shared<RSRenderNode::RSAutoCache>(*this);
-    }
-    return autoCache_;
-}
-#endif
 
 void RSRenderNode::ResetFilterRectsInCache(const std::unordered_set<NodeId>& curRects)
 {
@@ -2259,7 +2184,7 @@ void RSRenderNode::UpdateFullScreenFilterCacheRect(
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     auto& manager = renderProperties.GetFilterCacheManager(isForeground);
     // Record node's cache area if it has valid filter cache
-    // If there are any invalid caches under full screen cache filter, the occlusion shoud be invalidated
+    // If there are any invalid caches under full screen cache filter, the occlusion should be invalidated
     if (!manager->IsCacheValid() && dirtyManager.IsCacheableFilterRectEmpty()) {
         dirtyManager.InvalidateFilterCacheRect();
     } else if (ROSEN_EQ(GetGlobalAlpha(), 1.0f) && ROSEN_EQ(renderProperties.GetCornerRadius().x_, 0.0f) &&
@@ -2318,11 +2243,7 @@ void RSRenderNode::OnTreeStateChanged()
         isFullChildrenListValid_ = false;
         ClearFullChildrenListIfNeeded();
     } else {
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-        SetDirtyByOnTree();
-#else
         SetDirty();
-#endif
     }
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (!isOnTheTree_) {
@@ -2905,12 +2826,6 @@ bool RSRenderNode::GetLastIsNeedAssignToSubThread() const
 void RSRenderNode::SetLastIsNeedAssignToSubThread(bool lastIsNeedAssignToSubThread)
 {
     lastIsNeedAssignToSubThread_ = lastIsNeedAssignToSubThread;
-}
-
-void RSRenderNode::IterateOnDrawableRange(
-    RSPropertyDrawableSlot begin, RSPropertyDrawableSlot end, RSPaintFilterCanvas& canvas)
-{
-    renderContent_->IterateOnDrawableRange(begin, end, canvas, *this);
 }
 } // namespace Rosen
 } // namespace OHOS

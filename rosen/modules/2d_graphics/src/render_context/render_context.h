@@ -167,15 +167,9 @@ public:
         isUniRenderMode_ = isUni;
     }
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    std::string GetShaderCacheSize() const
-    {
-        return mHandler_->QuerryShader();
-    }
+    std::string GetShaderCacheSize() const;
 
-    std::string CleanAllShaderCache() const
-    {
-        return mHandler_->ClearShader();
-    }
+    std::string CleanAllShaderCache() const;
 #endif
     EGLContext CreateShareContext();
 #ifdef ROSEN_IOS

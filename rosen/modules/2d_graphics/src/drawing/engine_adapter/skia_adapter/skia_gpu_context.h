@@ -56,6 +56,7 @@ public:
 
 #ifdef RS_ENABLE_VK
     bool BuildFromVK(const GrVkBackendContext& context) override;
+    bool BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options) override;
 #endif
 
     void Flush() override;

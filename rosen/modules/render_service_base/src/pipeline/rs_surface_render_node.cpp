@@ -251,7 +251,7 @@ void RSSurfaceRenderNode::CollectSurface(
 #endif
     }
 
-    if (GetSubSurfaceEnabled()) {
+    if (isSubSurfaceEnabled_) {
         if (onlyFirstLevel) {
             return;
         }

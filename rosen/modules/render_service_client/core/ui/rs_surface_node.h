@@ -158,6 +158,8 @@ private:
     void OnBoundsSizeChanged() const override;
     // this function is only used in texture export
     void SetSurfaceIdToRenderNode();
+    void CreateTextExportRenderNodeInRT();
+    void SetIsTextureExportNode(bool isTextureExportNode);
     std::pair<std::string, std::string> SplitSurfaceNodeName(std::string surfaceNodeName);
 #ifdef NEW_RENDER_CONTEXT
     std::shared_ptr<RSRenderSurface> surface_;

@@ -93,8 +93,7 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
         return false;
     }
     renderNodeMap_.emplace(id, nodePtr);
-    // setup node backref
-    nodePtr->GetMutableRenderProperties().backref_ = nodePtr;
+    nodePtr->OnRegister();
     if (nodePtr->GetType() == RSRenderNodeType::SURFACE_NODE) {
         auto surfaceNode = nodePtr->ReinterpretCastTo<RSSurfaceRenderNode>();
         surfaceNodeMap_.emplace(id, surfaceNode);

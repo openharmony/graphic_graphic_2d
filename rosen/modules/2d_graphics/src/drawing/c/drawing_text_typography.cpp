@@ -698,6 +698,18 @@ int OH_Drawing_GetTextDirectionFromTextBox(OH_Drawing_TextBox* textbox, int inde
 #endif
 }
 
+size_t OH_Drawing_GetSizeOfTextBox(OH_Drawing_TextBox* textbox)
+{
+#ifndef USE_GRAPHIC_TEXT_GINE
+    std::vector<TypographyProperties::TextBox>* textboxVector =
+        ConvertToOriginalText<std::vector<TypographyProperties::TextBox>>(textbox);
+    return textboxVector->size();
+#else
+    std::vector<TextRect>* textboxVector = ConvertToOriginalText<std::vector<TextRect>>(textbox);
+    return textboxVector->size();
+#endif
+}
+
 OH_Drawing_PositionAndAffinity* OH_Drawing_TypographyGetGlyphPositionAtCoordinate(OH_Drawing_Typography* typography,
     double dx, double dy)
 {

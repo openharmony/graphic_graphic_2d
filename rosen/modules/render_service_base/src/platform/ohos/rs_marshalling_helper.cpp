@@ -2207,12 +2207,12 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
         }
     }
 
-    std::vector<std::shared_ptr<Drawing::ExtendImageBaseOj>> objectBaseVec;
-    uint32_t objectBaseSize = val->GetAllBaseOj(objectBaseVec);
+    std::vector<std::shared_ptr<Drawing::ExtendImageBaseObj>> objectBaseVec;
+    uint32_t objectBaseSize = val->GetAllBaseObj(objectBaseVec);
     ret &= parcel.WriteUint32(objectBaseSize);
     if (objectBaseSize > 0) {
         for (const auto& objectBase : objectBaseVec) {
-            auto rsBaseObject = std::static_pointer_cast<RSExtendImageBaseOj>(objectBase);
+            auto rsBaseObject = std::static_pointer_cast<RSExtendImageBaseObj>(objectBase);
             ret &= RSMarshallingHelper::Marshalling(parcel, rsBaseObject);
             if (!ret) {
                 ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList imageBase");
@@ -2337,9 +2337,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 
     uint32_t objectBaseSize = parcel.ReadUint32();
     if (objectBaseSize > 0) {
-        std::vector<std::shared_ptr<Drawing::ExtendImageBaseOj>> ObjectBaseVec;
+        std::vector<std::shared_ptr<Drawing::ExtendImageBaseObj>> ObjectBaseVec;
         for (uint32_t i = 0; i < objectBaseSize; i++) {
-            std::shared_ptr<RSExtendImageBaseOj> objectBase;
+            std::shared_ptr<RSExtendImageBaseObj> objectBase;
             ret &= RSMarshallingHelper::Unmarshalling(parcel, objectBase);
             if (!ret) {
                 ROSEN_LOGE(
@@ -2348,7 +2348,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
             }
             ObjectBaseVec.emplace_back(objectBase);
         }
-        val->SetupBaseOj(ObjectBaseVec);
+        val->SetupBaseObj(ObjectBaseVec);
     }
 
 #ifdef ROSEN_OHOS
@@ -2401,28 +2401,28 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSExtend
     return true;
 }
 
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSExtendImageBaseOj>& val)
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSExtendImageBaseObj>& val)
 {
     if (!val) {
         return parcel.WriteInt32(-1);
     }
     if (!(parcel.WriteInt32(1) && val->Marshalling(parcel))) {
-        ROSEN_LOGE("failed RSMarshallingHelper::Marshalling ImageBaseOj");
+        ROSEN_LOGE("failed RSMarshallingHelper::Marshalling ImageBaseObj");
         return false;
     }
 
     return true;
 }
 
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSExtendImageBaseOj>& val)
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSExtendImageBaseObj>& val)
 {
     if (parcel.ReadInt32() == -1) {
         val = nullptr;
         return true;
     }
-    val.reset(RSExtendImageBaseOj::Unmarshalling(parcel));
+    val.reset(RSExtendImageBaseObj::Unmarshalling(parcel));
     if (val == nullptr) {
-        ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling ImageBaseOj");
+        ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling ImageBaseObj");
         return false;
     }
 

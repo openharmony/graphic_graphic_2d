@@ -169,7 +169,7 @@ public:
     virtual Rect GetLocalClipBounds() const;
 
     /*
-     * @brief  Gets bounds of clip in device corrdinates.
+     * @brief  Gets bounds of clip in device coordinates.
      */
     virtual RectI GetDeviceClipBounds() const;
 
@@ -234,13 +234,6 @@ public:
     virtual void DrawAnnotation(const Rect& rect, const char* key, const Data* data);
     virtual void DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
         FilterMode filter, const Brush* brush = nullptr);
-
-    // opinc_begin
-    virtual bool BeginOpRecording(const Rect* bound = nullptr, bool isDynamic = false);
-    virtual Drawing::OpListHandle EndOpRecording();
-    virtual void DrawOpList(Drawing::OpListHandle handle);
-    virtual int CanDrawOpList(Drawing::OpListHandle handle);
-    // opinc_end
 
     // image
     virtual void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py);

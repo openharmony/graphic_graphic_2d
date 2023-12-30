@@ -110,6 +110,7 @@ enum RSOpType : uint16_t {
     SURFACEBUFFER_OPITEM,
     SCALE_OPITEM,
     HM_SYMBOL_OPITEM,
+    DRAW_FUNC_OPITEM,
 };
 namespace {
     std::string GetOpTypeString(RSOpType type)
@@ -161,10 +162,10 @@ namespace {
             GETOPTYPESTRING(SURFACEBUFFER_OPITEM);
             GETOPTYPESTRING(SCALE_OPITEM);
             GETOPTYPESTRING(HM_SYMBOL_OPITEM);
+            GETOPTYPESTRING(DRAW_FUNC_OPITEM);
             default:
-                break;
+                return "";
         }
-        return "";
     }
 #undef GETOPTYPESTRING
 }
@@ -227,7 +228,7 @@ public:
 class OpItemWithPaint : public OpItem {
 public:
     explicit OpItemWithPaint(size_t size) : OpItem(size) {}
-    ~OpItemWithPaint() override {}
+    ~OpItemWithPaint() override = default;
 
     std::unique_ptr<OpItem> GenerateCachedOpItem(const RSPaintFilterCanvas* canvas, const SkRect* rect) const override;
 
@@ -255,7 +256,7 @@ public:
     }
     explicit OpItemWithRSImage(size_t size) : OpItemWithPaint(size) {}
 #endif
-    ~OpItemWithRSImage() override {}
+    ~OpItemWithRSImage() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
     void SetNodeId(NodeId id) override;
     bool IsImageOp() const override
@@ -273,7 +274,7 @@ private:
 class RectOpItem : public OpItemWithPaint {
 public:
     RectOpItem(SkRect rect, const SkPaint& paint);
-    ~RectOpItem() override {}
+    ~RectOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -300,7 +301,7 @@ private:
 class RoundRectOpItem : public OpItemWithPaint {
 public:
     RoundRectOpItem(const SkRRect& rrect, const SkPaint& paint);
-    ~RoundRectOpItem() override {}
+    ~RoundRectOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -408,7 +409,7 @@ private:
 class DRRectOpItem : public OpItemWithPaint {
 public:
     DRRectOpItem(const SkRRect& outer, const SkRRect& inner, const SkPaint& paint);
-    ~DRRectOpItem() override {}
+    ~DRRectOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -439,7 +440,7 @@ private:
 class OvalOpItem : public OpItemWithPaint {
 public:
     OvalOpItem(SkRect rect, const SkPaint& paint);
-    ~OvalOpItem() override {}
+    ~OvalOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -466,7 +467,7 @@ private:
 class RegionOpItem : public OpItemWithPaint {
 public:
     RegionOpItem(SkRegion region, const SkPaint& paint);
-    ~RegionOpItem() override {}
+    ~RegionOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -493,7 +494,7 @@ private:
 class ArcOpItem : public OpItemWithPaint {
 public:
     ArcOpItem(const SkRect& rect, float startAngle, float sweepAngle, bool useCenter, const SkPaint& paint);
-    ~ArcOpItem() override {}
+    ~ArcOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -526,7 +527,7 @@ private:
 class SaveOpItem : public OpItem {
 public:
     SaveOpItem();
-    ~SaveOpItem() override {}
+    ~SaveOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -547,7 +548,7 @@ public:
 class RestoreOpItem : public OpItem {
 public:
     RestoreOpItem();
-    ~RestoreOpItem() override {}
+    ~RestoreOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -568,7 +569,7 @@ public:
 class FlushOpItem : public OpItem {
 public:
     FlushOpItem();
-    ~FlushOpItem() override {}
+    ~FlushOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -593,7 +594,7 @@ public:
 #else
     MatrixOpItem(const SkMatrix& matrix);
 #endif
-    ~MatrixOpItem() override {}
+    ~MatrixOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -626,7 +627,7 @@ private:
 class ClipRectOpItem : public OpItem {
 public:
     ClipRectOpItem(const SkRect& rect, SkClipOp op, bool doAA);
-    ~ClipRectOpItem() override {}
+    ~ClipRectOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -664,7 +665,7 @@ private:
 class ClipRRectOpItem : public OpItem {
 public:
     ClipRRectOpItem(const SkRRect& rrect, SkClipOp op, bool doAA);
-    ~ClipRRectOpItem() override {}
+    ~ClipRRectOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -695,7 +696,7 @@ private:
 class ClipRegionOpItem : public OpItem {
 public:
     ClipRegionOpItem(const SkRegion& region, SkClipOp op);
-    ~ClipRegionOpItem() override {}
+    ~ClipRegionOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -724,7 +725,7 @@ private:
 class TranslateOpItem : public OpItem {
 public:
     TranslateOpItem(float distanceX, float distanceY);
-    ~TranslateOpItem() override {}
+    ~TranslateOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -752,7 +753,7 @@ private:
 class ScaleOpItem : public OpItem {
 public:
     ScaleOpItem(float scaleX, float scaleY);
-    ~ScaleOpItem() override {}
+    ~ScaleOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -777,10 +778,33 @@ private:
     float scaleY_ = 1.0f;
 };
 
+class DrawFuncOpItem : public OpItem {
+public:
+    using DrawFunc = std::function<void(RSPaintFilterCanvas& canvas, const SkRect*)>;
+    DrawFuncOpItem(DrawFunc&& func);
+    ~DrawFuncOpItem() override = default;
+    void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        desc += "}, \n";
+        return desc;
+    }
+
+    RSOpType GetType() const override
+    {
+        return RSOpType::DRAW_FUNC_OPITEM;
+    }
+
+private:
+    DrawFunc func_;
+};
+
 class TextBlobOpItem : public OpItemWithPaint {
 public:
     TextBlobOpItem(const sk_sp<SkTextBlob> textBlob, float x, float y, const SkPaint& paint);
-    ~TextBlobOpItem() override {}
+    ~TextBlobOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
     std::optional<SkRect> GetCacheBounds() const override
     {
@@ -896,7 +920,7 @@ public:
     BitmapOpItem(const sk_sp<SkImage> bitmapInfo, float left, float top, const SkPaint* paint);
     BitmapOpItem(std::shared_ptr<RSImageBase> rsImage, const SkPaint& paint);
 #endif
-    ~BitmapOpItem() override {}
+    ~BitmapOpItem() override = default;
 
     std::string GetTypeWithDesc() const override
     {
@@ -930,7 +954,7 @@ public:
     ColorFilterBitmapOpItem(const sk_sp<SkImage> bitmapInfo, float left, float top, const SkPaint* paint);
     ColorFilterBitmapOpItem(std::shared_ptr<RSImageBase> rsImage, const SkPaint& paint);
 #endif
-    ~ColorFilterBitmapOpItem() override {}
+    ~ColorFilterBitmapOpItem() override = default;
 
     std::string GetTypeWithDesc() const override
     {
@@ -962,7 +986,7 @@ public:
         const sk_sp<SkImage> bitmapInfo, const SkRect* rectSrc, const SkRect& rectDst, const SkPaint* paint);
     BitmapRectOpItem(std::shared_ptr<RSImageBase> rsImage, const SkPaint& paint);
 #endif
-    ~BitmapRectOpItem() override {}
+    ~BitmapRectOpItem() override = default;
 
     std::string GetTypeWithDesc() const override
     {
@@ -997,7 +1021,7 @@ public:
     PixelMapOpItem(const std::shared_ptr<Media::PixelMap>& pixelmap, float left, float top, const SkPaint* paint);
     PixelMapOpItem(std::shared_ptr<RSImageBase> rsImage, const SkPaint& paint);
 #endif
-    ~PixelMapOpItem() override {}
+    ~PixelMapOpItem() override = default;
 
     std::string GetTypeWithDesc() const override
     {
@@ -1033,7 +1057,7 @@ public:
         const std::shared_ptr<Media::PixelMap>& pixelmap, const SkRect& src, const SkRect& dst, const SkPaint* paint);
     PixelMapRectOpItem(std::shared_ptr<RSImageBase> rsImage, const SkPaint& paint);
 #endif
-    ~PixelMapRectOpItem() override {}
+    ~PixelMapRectOpItem() override = default;
 
     std::string GetTypeWithDesc() const override
     {
@@ -1066,7 +1090,7 @@ public:
     BitmapNineOpItem(
         const sk_sp<SkImage> bitmapInfo, const SkIRect& center, const SkRect& rectDst, const SkPaint* paint);
 #endif
-    ~BitmapNineOpItem() override {}
+    ~BitmapNineOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1108,7 +1132,7 @@ public:
         const SkRect& rectDst, const SkFilterMode filter, const SkPaint* paint);
     PixelmapNineOpItem(const std::shared_ptr<RSImageBase> rsImage, const SkIRect& center, const SkRect& rectDst,
         const SkFilterMode filter, const SkPaint* paint);
-    ~PixelmapNineOpItem() override {}
+    ~PixelmapNineOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1136,7 +1160,7 @@ private:
 class AdaptiveRRectOpItem : public OpItemWithPaint {
 public:
     AdaptiveRRectOpItem(float radius, const SkPaint& paint);
-    ~AdaptiveRRectOpItem() override {}
+    ~AdaptiveRRectOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1164,7 +1188,7 @@ private:
 class AdaptiveRRectScaleOpItem : public OpItemWithPaint {
 public:
     AdaptiveRRectScaleOpItem(float radiusRatio, const SkPaint& paint);
-    ~AdaptiveRRectScaleOpItem() override {}
+    ~AdaptiveRRectScaleOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1192,7 +1216,7 @@ private:
 class ClipAdaptiveRRectOpItem : public OpItem {
 public:
     ClipAdaptiveRRectOpItem(const SkVector radius[]);
-    ~ClipAdaptiveRRectOpItem() override {}
+    ~ClipAdaptiveRRectOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1223,7 +1247,7 @@ private:
 class ClipOutsetRectOpItem : public OpItem {
 public:
     ClipOutsetRectOpItem(float dx, float dy);
-    ~ClipOutsetRectOpItem() override {}
+    ~ClipOutsetRectOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1251,7 +1275,7 @@ private:
 class PathOpItem : public OpItemWithPaint {
 public:
     PathOpItem(const SkPath& path, const SkPaint& paint);
-    ~PathOpItem() override {}
+    ~PathOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1278,7 +1302,7 @@ private:
 class ClipPathOpItem : public OpItem {
 public:
     ClipPathOpItem(const SkPath& path, SkClipOp clipOp, bool doAA);
-    ~ClipPathOpItem() override {}
+    ~ClipPathOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1309,7 +1333,7 @@ private:
 class PaintOpItem : public OpItemWithPaint {
 public:
     PaintOpItem(const SkPaint& paint);
-    ~PaintOpItem() override {}
+    ~PaintOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1335,7 +1359,7 @@ public:
 #else
     ConcatOpItem(const SkMatrix& matrix);
 #endif
-    ~ConcatOpItem() override {}
+    ~ConcatOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1368,7 +1392,7 @@ private:
 class SaveLayerOpItem : public OpItemWithPaint {
 public:
     SaveLayerOpItem(const SkCanvas::SaveLayerRec& rec);
-    ~SaveLayerOpItem() override {}
+    ~SaveLayerOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1417,7 +1441,7 @@ private:
 class DrawableOpItem : public OpItem {
 public:
     DrawableOpItem(SkDrawable* drawable, const SkMatrix* matrix);
-    ~DrawableOpItem() override {}
+    ~DrawableOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1450,7 +1474,7 @@ private:
 class PictureOpItem : public OpItemWithPaint {
 public:
     PictureOpItem(const sk_sp<SkPicture> picture, const SkMatrix* matrix, const SkPaint* paint);
-    ~PictureOpItem() override {}
+    ~PictureOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1567,7 +1591,7 @@ private:
 class ShadowRecOpItem : public OpItem {
 public:
     ShadowRecOpItem(const SkPath& path, const SkDrawShadowRec& rec);
-    ~ShadowRecOpItem() override {}
+    ~ShadowRecOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1596,7 +1620,7 @@ private:
 class MultiplyAlphaOpItem : public OpItem {
 public:
     MultiplyAlphaOpItem(float alpha);
-    ~MultiplyAlphaOpItem() override {}
+    ~MultiplyAlphaOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1622,7 +1646,7 @@ private:
 class SaveAlphaOpItem : public OpItem {
 public:
     SaveAlphaOpItem();
-    ~SaveAlphaOpItem() override {}
+    ~SaveAlphaOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1643,7 +1667,7 @@ public:
 class RestoreAlphaOpItem : public OpItem {
 public:
     RestoreAlphaOpItem();
-    ~RestoreAlphaOpItem() override {}
+    ~RestoreAlphaOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1753,16 +1777,16 @@ private:
     std::shared_ptr<Drawing::Image> image_;
 };
 
-class RSB_EXPORT RSExtendImageBaseOj : public Drawing::ExtendImageBaseOj {
+class RSB_EXPORT RSExtendImageBaseObj : public Drawing::ExtendImageBaseObj {
 public:
-    RSExtendImageBaseOj() = default;
-    RSExtendImageBaseOj(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::Rect& src,
+    RSExtendImageBaseObj() = default;
+    RSExtendImageBaseObj(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::Rect& src,
         const Drawing::Rect& dst);
-    ~RSExtendImageBaseOj() override = default;
+    ~RSExtendImageBaseObj() override = default;
     void Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect,
         const Drawing::SamplingOptions& sampling) override;
     bool Marshalling(Parcel &parcel) const;
-    static RSExtendImageBaseOj *Unmarshalling(Parcel &parcel);
+    static RSExtendImageBaseObj *Unmarshalling(Parcel &parcel);
 protected:
     std::shared_ptr<RSImageBase> rsImage_;
 };

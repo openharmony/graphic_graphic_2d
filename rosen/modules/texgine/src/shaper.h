@@ -77,7 +77,8 @@ private:
         const EllipsisParams &params, const std::vector<VariantSpan> &spans);
     void ConsiderMiddleEllipsis(const TypographyStyle &style, const std::shared_ptr<FontProviders> &fontProviders,
         EllipsisParams params);
-
+    void SetEllipsisProperty(std::vector<VariantSpan> &ellipsisSpans,
+        std::vector<LineMetrics> &ellipsisMertics, double &ellipsisWidth);
     std::vector<LineMetrics> lineMetrics_;
     bool didExceedMaxLines_ = false;
     double maxIntrinsicWidth_ = 0.0;

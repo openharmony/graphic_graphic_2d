@@ -155,22 +155,20 @@ void RSUIDirector::GoBackground(bool isTextureExport)
                 rsSurface->ClearBuffer();
             }
         });
-#ifdef ACE_ENABLE_GL
-        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-            RSRenderThread::Instance().PostTask([this]() {
-                auto renderContext = RSRenderThread::Instance().GetRenderContext();
-                if (renderContext != nullptr) {
+#if defined(ACE_ENABLE_GL) || defined(ACE_ENABLE_VK)
+        RSRenderThread::Instance().PostTask([this]() {
+            auto renderContext = RSRenderThread::Instance().GetRenderContext();
+            if (renderContext != nullptr) {
 #ifndef ROSEN_CROSS_PLATFORM
 #if defined(NEW_RENDER_CONTEXT)
-                    auto drawingContext = RSRenderThread::Instance().GetDrawingContext();
-                    MemoryHandler::ClearRedundantResources(drawingContext->GetDrawingContext());
+                auto drawingContext = RSRenderThread::Instance().GetDrawingContext();
+                MemoryHandler::ClearRedundantResources(drawingContext->GetDrawingContext());
 #else
-                    renderContext->ClearRedundantResources();
+                renderContext->ClearRedundantResources();
 #endif
 #endif
-                }
-            });
-        }
+            }
+        });
 #endif
     }
 }

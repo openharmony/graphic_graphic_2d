@@ -657,6 +657,48 @@ sk_sp<SkColorSpace> RenderContext::ConvertColorGamutToSkColorSpace(GraphicColorG
     return skColorSpace;
 }
 
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+std::string RenderContext::GetShaderCacheSize() const
+{
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (RsVulkanContext::GetSingleton().GetMemoryHandler()) {
+            return RsVulkanContext::GetSingleton().GetMemoryHandler()->QuerryShader();
+        }
+    }
+#else
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        if (mHandler_) {
+            return mHandler_->QuerryShader();
+        }
+    }
+#endif
+    LOGE("GetShaderCacheSize no shader cache");
+    return "";
+}
+
+std::string RenderContext::CleanAllShaderCache() const
+{
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (RsVulkanContext::GetSingleton().GetMemoryHandler()) {
+            return RsVulkanContext::GetSingleton().GetMemoryHandler()->ClearShader();
+        }
+    }
+#else
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        if (mHandler_) {
+            return mHandler_->ClearShader();
+        }
+    }
+#endif
+    LOGE("CleanAllShaderCache no shader cache");
+    return "";
+}
+#endif
+
 RenderContextFactory& RenderContextFactory::GetInstance()
 {
     static RenderContextFactory rf;

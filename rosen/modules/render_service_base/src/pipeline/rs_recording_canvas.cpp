@@ -16,10 +16,11 @@
 #ifndef USE_ROSEN_DRAWING
 #include "pipeline/rs_recording_canvas.h"
 
+#include "rs_trace.h"
+
 #include "pipeline/rs_draw_cmd.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
-#include "rs_trace.h"
 
 #define RS_DRAWOP_TRACE_FUNC() \
     if (RSSystemProperties::GetDrawOpTraceEnabled()) { \
@@ -33,7 +34,7 @@ RSRecordingCanvas::RSRecordingCanvas(int width, int height) : SkCanvasVirtualEnf
     drawCmdList_ = std::make_shared<DrawCmdList>(width, height);
 }
 
-RSRecordingCanvas::~RSRecordingCanvas() {}
+RSRecordingCanvas::~RSRecordingCanvas() = default;
 
 std::shared_ptr<DrawCmdList> RSRecordingCanvas::GetDrawCmdList() const
 {
@@ -476,6 +477,12 @@ bool RSRecordingCanvas::IsCustomTextType() const
 {
     return isCustomTextType_;
 }
+void RSRecordingCanvas::DrawFunc(drawFunc&& func)
+{
+    RS_DRAWOP_TRACE_FUNC();
+    std::unique_ptr<OpItem> op = std::make_unique<DrawFuncOpItem>(std::move(func));
+    AddOp(std::move(op));
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -512,10 +519,15 @@ void ExtendRecordingCanvas::DrawPixelMapRect(const std::shared_ptr<Media::PixelM
     const Drawing::Rect& dst, const Drawing::SamplingOptions& sampling,
     Drawing::SrcRectConstraint constraint)
 {
-    auto object = std::make_shared<RSExtendImageBaseOj>(pixelMap, src, dst);
+    auto object = std::make_shared<RSExtendImageBaseObj>(pixelMap, src, dst);
     auto objectHandle =
-        Drawing::CmdListHelper::AddImageBaseOjToCmdList(*Drawing::RecordingCanvas::GetDrawCmdList(), object);
+        Drawing::CmdListHelper::AddImageBaseObjToCmdList(*Drawing::RecordingCanvas::GetDrawCmdList(), object);
     AddOp<Drawing::DrawPixelMapRectOpItem::ConstructorHandle>(objectHandle, sampling);
+}
+
+void ExtendRecordingCanvas::DrawFunc(OHOS::Rosen::Drawing::DrawFuncOpItem::DrawFunc&& func)
+{
+    cmdList_->AddOp<Drawing::DrawFuncOpItem::ConstructorHandle>(std::move(func));
 }
 
 template<typename T, typename... Args>

@@ -14,15 +14,11 @@
  */
 
 #include "pipeline/rs_render_content.h"
+#include "pipeline/rs_recording_canvas.h"
 
 namespace OHOS {
 namespace Rosen {
-RSRenderContent::RSRenderContent()
-{
-    if (RSSystemProperties::GetPropertyDrawableEnable()) {
-        propertyDrawablesVec_.resize(Slot::RSPropertyDrawableSlot::MAX);
-    }
-}
+RSRenderContent::RSRenderContent() = default;
 
 RSProperties& RSRenderContent::GetMutableRenderProperties()
 {
@@ -34,21 +30,50 @@ const RSProperties& RSRenderContent::GetRenderProperties() const
     return renderProperties_;
 }
 
-const RSPropertyDrawable::DrawableVec& RSRenderContent::GetPropertyDrawableVec() const
+void RSRenderContent::DrawPropertyDrawable(RSPropertyDrawableSlot index, RSPaintFilterCanvas& canvas) const
 {
-    return propertyDrawablesVec_;
+    auto& drawablePtr = propertyDrawablesVec_[static_cast<size_t>(index)];
+    if (!drawablePtr) {
+        return;
+    }
+#ifndef USE_ROSEN_DRAWING
+    if (auto recordingCanvas = static_cast<RSRecordingCanvas*>(canvas.GetRecordingCanvas())) {
+        auto drawFunc = [sharedPtr = shared_from_this(), slot](RSPaintFilterCanvas& canvas,
+                            const const SkRect* rect) -> void { sharedPtr->DrawPropertyDrawable(slot, canvas); };
+        recordingCanvas->DrawFunc(std::move(drawFunc));
+        return;
+    }
+#else
+    // PLANNING: need to implement
+#endif
+    drawablePtr->Draw(*this, canvas);
 }
 
-void RSRenderContent::IterateOnDrawableRange(Slot::RSPropertyDrawableSlot begin, Slot::RSPropertyDrawableSlot end,
-    RSPaintFilterCanvas& canvas, RSRenderNode& node) 
+void RSRenderContent::DrawPropertyDrawableRange(
+    RSPropertyDrawableSlot begin, RSPropertyDrawableSlot end, RSPaintFilterCanvas& canvas) const
 {
-    for (uint16_t index = begin; index <= end; index++) {
-        auto& drawablePtr = propertyDrawablesVec_[index];
-        if (drawablePtr) {
-            drawablePtr->Draw(node, canvas);
+#ifndef USE_ROSEN_DRAWING
+    if (auto recordingCanvas = static_cast<RSRecordingCanvas*>(canvas.GetRecordingCanvas())) {
+        auto drawFunc = [sharedPtr = shared_from_this(), begin, end](
+                            RSPaintFilterCanvas& canvas, const const SkRect* rect) -> void {
+            sharedPtr->DrawPropertyDrawableRange(begin, end, canvas);
+        };
+        recordingCanvas->DrawFunc(std::move(drawFunc));
+        return;
+    }
+#else
+    // PLANNING: need to implement
+#endif
+    for (auto index = static_cast<size_t>(begin); index <= static_cast<size_t>(end); index++) {
+        if (auto& drawablePtr = propertyDrawablesVec_[index]) {
+            drawablePtr->Draw(*this, canvas);
         }
     }
 }
 
+RSRenderNodeType RSRenderContent::GetType() const
+{
+    return type_;
+}
 } // namespace Rosen
 } // namespace OHOS

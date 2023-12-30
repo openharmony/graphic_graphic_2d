@@ -57,11 +57,58 @@ void RSRenderKeyframeAnimation::AddKeyframes(const std::vector<std::tuple<float,
     keyframes_ = keyframes;
 }
 
+void RSRenderKeyframeAnimation::AddKeyframe(int startDuration, int endDuration,
+    const std::shared_ptr<RSRenderPropertyBase>& value, const std::shared_ptr<RSInterpolator>& interpolator)
+{
+    if (startDuration > endDuration) {
+        ROSEN_LOGE("Failed to add key frame, startDuration larger than endDuration!");
+        return;
+    }
+
+    if (IsStarted()) {
+        ROSEN_LOGE("Failed to add key frame, animation has started!");
+        return;
+    }
+
+    if (GetDuration() <= 0) {
+        ROSEN_LOGE("Failed to add key frame, total duration is 0!");
+        return;
+    }
+
+    durationKeyframes_.push_back(
+        { startDuration / (float)GetDuration(), endDuration / (float)GetDuration(), value, interpolator });
+}
+
+void RSRenderKeyframeAnimation::SetDurationKeyframe(bool isDuration)
+{
+    isDurationKeyframe_ = isDuration;
+}
+
 bool RSRenderKeyframeAnimation::Marshalling(Parcel& parcel) const
 {
     if (!RSRenderPropertyAnimation::Marshalling(parcel)) {
         ROSEN_LOGE("RSRenderKeyframeAnimation::Marshalling, RenderPropertyAnimation failed");
         return false;
+    }
+    if (!parcel.WriteBool(isDurationKeyframe_)) {
+        ROSEN_LOGE("RSRenderKeyframeAnimation::Marshalling, isDurationKeyframe_ failed");
+        return false;
+    }
+    if (isDurationKeyframe_) {
+        uint32_t size = durationKeyframes_.size();
+        if (!parcel.WriteUint32(size)) {
+            ROSEN_LOGE("RSRenderKeyframeAnimation::Marshalling, Write durationkeyframe size failed");
+            return false;
+        }
+        for (const auto& [startFraction, endFraction, property, interpolator] : durationKeyframes_) {
+            if (!(parcel.WriteFloat(startFraction) && parcel.WriteFloat(endFraction) &&
+                    RSRenderPropertyBase::Marshalling(parcel, property) &&
+                    interpolator != nullptr && interpolator->Marshalling(parcel))) {
+                ROSEN_LOGE("RSRenderKeyframeAnimation::Marshalling, Write durationkeyframe value failed");
+                return false;
+            }
+        }
+        return true;
     }
     uint32_t size = keyframes_.size();
     if (!parcel.WriteUint32(size)) {
@@ -95,6 +142,10 @@ bool RSRenderKeyframeAnimation::ParseParam(Parcel& parcel)
         ROSEN_LOGE("RSRenderKeyframeAnimation::ParseParam, RenderPropertyAnimation fail");
         return false;
     }
+    if (!parcel.ReadBool(isDurationKeyframe_)) {
+        ROSEN_LOGE("RSRenderKeyframeAnimation::ParseParam, Parse isDurationKeyframe fail");
+        return false;
+    }
     uint32_t size = 0;
     if (!parcel.ReadUint32(size)) {
         ROSEN_LOGE("RSRenderKeyframeAnimation::ParseParam, Parse Keyframes size fail");
@@ -104,8 +155,26 @@ bool RSRenderKeyframeAnimation::ParseParam(Parcel& parcel)
         ROSEN_LOGE("RSRenderKeyframeAnimation::ParseParam, Keyframes size number is too large.");
         return false;
     }
-    float tupValue0 = 0;
     keyframes_.clear();
+    durationKeyframes_.clear();
+    if (isDurationKeyframe_) {
+        float startFraction = 0;
+        float endFraction = 0;
+        for (uint32_t i = 0; i < size; i++) {
+            if (!(parcel.ReadFloat(startFraction)) || !(parcel.ReadFloat(endFraction))) {
+                ROSEN_LOGE("RSRenderKeyframeAnimation::ParseParam, Unmarshalling duration value failed");
+                return false;
+            }
+            std::shared_ptr<RSRenderPropertyBase> tupValue1;
+            if (!RSRenderPropertyBase::Unmarshalling(parcel, tupValue1)) {
+                return false;
+            }
+            std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
+            durationKeyframes_.emplace_back(std::make_tuple(startFraction, endFraction, tupValue1, interpolator));
+        }
+        return true;
+    }
+    float tupValue0 = 0;
     for (uint32_t i = 0; i < size; i++) {
         if (!(parcel.ReadFloat(tupValue0))) {
             ROSEN_LOGE("RSRenderKeyframeAnimation::ParseParam, Unmarshalling value failed");
@@ -123,7 +192,7 @@ bool RSRenderKeyframeAnimation::ParseParam(Parcel& parcel)
 
 void RSRenderKeyframeAnimation::OnAnimate(float fraction)
 {
-    if (keyframes_.empty()) {
+    if (keyframes_.empty() && durationKeyframes_.empty()) {
         ROSEN_LOGE("Failed to animate key frame, keyframes is empty!");
         return;
     }
@@ -139,7 +208,11 @@ void RSRenderKeyframeAnimation::InitValueEstimator()
     if (valueEstimator_ == nullptr) {
         valueEstimator_ = property_->CreateRSValueEstimator(RSValueEstimatorType::KEYFRAME_VALUE_ESTIMATOR);
     }
-    valueEstimator_->InitKeyframeAnimationValue(property_, keyframes_, lastValue_);
+    if (isDurationKeyframe_) {
+        valueEstimator_->InitDurationKeyframeAnimationValue(property_, durationKeyframes_, lastValue_);
+    } else {
+        valueEstimator_->InitKeyframeAnimationValue(property_, keyframes_, lastValue_);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

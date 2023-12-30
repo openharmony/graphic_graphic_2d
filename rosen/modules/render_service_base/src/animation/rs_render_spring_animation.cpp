@@ -160,7 +160,6 @@ void RSRenderSpringAnimation::OnAnimate(float fraction)
     prevMappedTime_ = mappedTime;
     SetAnimationValue(displacement);
 
-    prevMappedTime_ = mappedTime;
     if (GetNeedLogicallyFinishCallback() && (animationFraction_.GetRemainingRepeatCount() == 1)) {
         auto velocity = CalculateVelocity(mappedTime);
         auto zeroValue = startValue_ - startValue_;

@@ -144,7 +144,7 @@ public:
     {
         return !ROSEN_EQ(intensity_, 0.f);
     }
-    float GetPreLigthIntensity() const
+    float GetPreLightIntensity() const
     {
         return preIntensity_;
     }

@@ -382,9 +382,9 @@ namespace OHOS {
 
         RSImplicitAnimatorMap::Instance().GetAnimator(animatorId);
         auto testKeyframeParam = std::make_shared<RSImplicitKeyframeAnimationParam>(timingProtocol,
-            RSAnimationTimingCurve::DEFAULT, fraction);
+            RSAnimationTimingCurve::DEFAULT, fraction, 0);
         testKeyframeParam->GetType();
-        testKeyframeParam->CreateAnimation(firstProperty, secondProperty, thirdProperty);
+        testKeyframeParam->CreateAnimation(firstProperty, false, 0, secondProperty, thirdProperty);
         auto testtPathParam = std::make_shared<RSImplicitPathAnimationParam>(timingProtocol,
             RSAnimationTimingCurve::DEFAULT, motionPathOption);
         testtPathParam->GetType();

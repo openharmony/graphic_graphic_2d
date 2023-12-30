@@ -35,6 +35,7 @@ int RSImplicitAnimator::OpenImplicitAnimation(const RSAnimationTimingProtocol& t
         std::move(repeatCallback) });
     implicitAnimations_.push({});
     keyframeAnimations_.push({});
+    durationKeyframeParams_.push({ false, 0, 0 });
     switch (timingCurve.type_) {
         case RSAnimationTimingCurve::CurveType::INTERPOLATING:
             if (timingProtocol.GetDuration() <= 0) {
@@ -97,6 +98,7 @@ void RSImplicitAnimator::CloseImplicitAnimationInner()
     globalImplicitParams_.pop();
     implicitAnimations_.pop();
     keyframeAnimations_.pop();
+    durationKeyframeParams_.pop();
     EndImplicitAnimation();
 }
 
@@ -108,14 +110,21 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
     }
 
     const auto& finishCallback = std::get<const std::shared_ptr<AnimationFinishCallback>>(globalImplicitParams_.top());
-    auto& currentAnimations = implicitAnimations_.top();
-    auto& currentKeyframeAnimations = keyframeAnimations_.top();
 
     // Special case: if implicit animation param type is CANCEL, we need to cancel all implicit animations
     if (implicitAnimationParams_.top()->GetType() == ImplicitAnimationParamType::CANCEL) {
         std::static_pointer_cast<RSImplicitCancelAnimationParam>(implicitAnimationParams_.top())->SyncProperties();
+        if (finishCallback.use_count() == 1) {
+            ROSEN_LOGW("RSImplicitAnimator::CloseImplicitAnimation Should not use finish callback when CANCELLING "
+                "animation, timing cannot be guaranteed.");
+            RSUIDirector::PostTask([finishCallback]() { finishCallback->Execute(); });
+        }
+        CloseImplicitAnimationInner();
+        return {};
     }
 
+    auto& currentAnimations = implicitAnimations_.top();
+    auto& currentKeyframeAnimations = keyframeAnimations_.top();
     // if no implicit animation created by current implicit animation param, we need to take care of finish callback
     if (currentAnimations.empty() && currentKeyframeAnimations.empty()) {
         // If finish callback either 1. is null or 2. is referenced by any animation or implicitly parameters, we don't
@@ -124,10 +133,9 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
             CloseImplicitAnimationInner();
             return {};
         }
-        // we are the only one who holds the finish callback, if the callback is NOT timing sensitive, or if implicit
-        // animation param type is CANCEL, we need to execute it asynchronously, in order to avoid timing issues.
-        if (finishCallback->finishCallbackType_ == FinishCallbackType::TIME_INSENSITIVE ||
-            implicitAnimationParams_.top()->GetType() == ImplicitAnimationParamType::CANCEL) {
+        // we are the only one who holds the finish callback, if the callback is NOT timing sensitive, we need to
+        // execute it asynchronously, in order to avoid timing issues.
+        if (finishCallback->finishCallbackType_ == FinishCallbackType::TIME_INSENSITIVE) {
             ROSEN_LOGD("RSImplicitAnimator::CloseImplicitAnimation, No implicit animations created, execute finish "
                        "callback asynchronously");
             RSUIDirector::PostTask([finishCallback]() { finishCallback->Execute(); });
@@ -140,14 +148,17 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
                    "animation.");
         CreateEmptyAnimation();
     }
-
     std::vector<std::shared_ptr<RSAnimation>> resultAnimations;
+    [[maybe_unused]] auto& [isDurationKeyframe, totalDuration, currentDuration] = durationKeyframeParams_.top();
     for (const auto& [animationInfo, keyframeAnimation] : currentKeyframeAnimations) {
         auto target = RSNodeMap::Instance().GetNode<RSNode>(animationInfo.first);
         if (target == nullptr) {
             ROSEN_LOGE("Failed to start implicit keyframe animation[%{public}" PRIu64 "], target is null!",
                 keyframeAnimation->GetId());
             continue;
+        }
+        if (isDurationKeyframe) {
+            keyframeAnimation->SetDuration(totalDuration);
         }
         // this will actually create the RSRenderKeyframeAnimation
         target->AddAnimation(keyframeAnimation);
@@ -159,7 +170,6 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
         animation->SetFinishCallback(finishCallback);
         resultAnimations.emplace_back(animation);
     }
-
     CloseImplicitAnimationInner();
     return resultAnimations;
 }
@@ -177,7 +187,8 @@ void RSImplicitAnimator::BeginImplicitKeyFrameAnimation(float fraction, const RS
     }
 
     [[maybe_unused]] const auto& [protocol, unused_curve, unused, unused_repeatCallback] = globalImplicitParams_.top();
-    auto keyframeAnimationParam = std::make_shared<RSImplicitKeyframeAnimationParam>(protocol, timingCurve, fraction);
+    auto keyframeAnimationParam =
+        std::make_shared<RSImplicitKeyframeAnimationParam>(protocol, timingCurve, fraction, 0);
     PushImplicitParam(keyframeAnimationParam);
 }
 
@@ -199,6 +210,40 @@ void RSImplicitAnimator::EndImplicitKeyFrameAnimation()
         return;
     }
 
+    PopImplicitParam();
+}
+
+void RSImplicitAnimator::BeginImplicitDurationKeyFrameAnimation(int duration, const RSAnimationTimingCurve& timingCurve)
+{
+    if (globalImplicitParams_.empty()) {
+        ROSEN_LOGE("Failed to begin keyframe implicit animation, need to open implicit animation firstly!");
+        return;
+    }
+
+    if (timingCurve.type_ != RSAnimationTimingCurve::CurveType::INTERPOLATING) {
+        ROSEN_LOGE("Wrong type of timing curve!");
+        return;
+    }
+
+    [[maybe_unused]] auto& [isDurationKeyframe, totalDuration, currentDuration] = durationKeyframeParams_.top();
+    isDurationKeyframe = true;
+    currentDuration = duration;
+    [[maybe_unused]] const auto& [protocol, unused_curve, unused, unused_repeatCallback] = globalImplicitParams_.top();
+    auto keyframeAnimationParam =
+        std::make_shared<RSImplicitKeyframeAnimationParam>(protocol, timingCurve, 0, duration);
+    PushImplicitParam(keyframeAnimationParam);
+}
+
+void RSImplicitAnimator::EndImplicitDurationKeyFrameAnimation()
+{
+    if (implicitAnimationParams_.empty() ||
+        implicitAnimationParams_.top()->GetType() != ImplicitAnimationParamType::KEYFRAME) {
+        ROSEN_LOGE("Failed to end keyframe implicit animation, need to begin keyframe implicit animation firstly!");
+        return;
+    }
+    [[maybe_unused]] auto& [isDurationKeyframe, totalDuration, currentDuration] = durationKeyframeParams_.top();
+    totalDuration += currentDuration;
+    currentDuration = 0;
     PopImplicitParam();
 }
 
@@ -412,12 +457,18 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
             auto keyframeImplicitParam = static_cast<RSImplicitKeyframeAnimationParam*>(params.get());
             auto& keyframeAnimations = keyframeAnimations_.top();
             auto keyframeIter = keyframeAnimations.find({ target->GetId(), property->GetId() });
+            [[maybe_unused]] auto& [isDurationKeyframe, totalDuration, unused] = durationKeyframeParams_.top();
             SetPropertyValue(property, endValue);
             if (keyframeIter == keyframeAnimations.end()) {
-                animation = keyframeImplicitParam->CreateAnimation(property, startValue, endValue);
+                animation = keyframeImplicitParam->CreateAnimation(property, isDurationKeyframe, totalDuration,
+                    startValue, endValue);
                 keyframeAnimations[{ target->GetId(), property->GetId() }] = animation;
             } else {
-                keyframeImplicitParam->AddKeyframe(keyframeIter->second, startValue, endValue);
+                if (isDurationKeyframe) {
+                    keyframeImplicitParam->AddKeyframe(keyframeIter->second, totalDuration, startValue, endValue);
+                } else {
+                    keyframeImplicitParam->AddKeyframe(keyframeIter->second, startValue, endValue);
+                }
             }
             if (animation == nullptr) {
                 ROSEN_LOGE("Failed to create animation!");
@@ -472,14 +523,23 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
             return;
         }
         case ImplicitAnimationParamType::CANCEL: {
-            // Create animation with CANCEL type will cancel all running animations of the target.
-            property->SetValue(endValue);                         // force set ui value
-            property->UpdateOnAllAnimationFinish();               // force sync RS value and cancel all RS animations
-            // Note: The callbacks of the canceled animations will be executed within the current implicit animation
-            // context, consistent with previous behavior. However, this may cause issues and may be changed in the
-            // future.
-            target->CancelAnimationByProperty(property->GetId()); // remove all ui animation
-            return;
+            // Create animation with CANCEL type will cancel all running animations of the given property and target.
+
+            // Note: We are currently in the process of refactoring and accidentally changed the order of animation
+            // callbacks. Originally, the order was OnChange before OnFinish, but we mistakenly changed it to OnFinish
+            // before OnChange. This change has caused some issues, and we need to revert it back to the original order.
+            // However, before fixing this, we discovered that there are some changes in arkui that rely on this 'bug'.
+            // If we change it back to the original order, it will break the list swipe animation. Therefore, we need
+            // to carefully consider the implications of this change before proceeding.
+            if (property->GetIsCustom()) {
+                property->SetValue(endValue);                         // update set ui value
+                property->UpdateCustomAnimation();                    // force sync RS value for custom property
+                target->CancelAnimationByProperty(property->GetId()); // finish all ui animation
+            } else {
+                target->FinishAnimationByProperty(property->GetId()); // finish all ui animation
+                property->SetValue(endValue);                         // update set ui value
+                property->UpdateOnAllAnimationFinish();               // force sync RS value for native property
+            }
             return;
         }
         default:

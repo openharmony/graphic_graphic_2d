@@ -47,19 +47,11 @@ public:
     void SetEffectRegion(const std::optional<Drawing::RectI>& effectRegion);
 #endif
 
-    bool GetNeedFilter() const { return needFilter_; }
-
 protected:
     RectI GetFilterRect() const override;
     void UpdateFilterCacheManagerWithCacheRegion(
         RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect) const override;
     void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground) const override;
-
-private:
-    bool needFilter_ = false;
-    void UpdateNeedFilter(bool needFilter);
-    
-    friend class RSEffectDataGenerateDrawable;
 };
 } // namespace Rosen
 } // namespace OHOS

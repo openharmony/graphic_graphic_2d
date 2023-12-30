@@ -155,6 +155,7 @@
     { "name": "OH_Drawing_GetTopFromTextBox" },
     { "name": "OH_Drawing_GetBottomFromTextBox" },
     { "name": "OH_Drawing_GetTextDirectionFromTextBox" },
+    { "name": "OH_Drawing_GetSizeOfTextBox" },
     { "name": "OH_Drawing_TypographyGetGlyphPositionAtCoordinate" },
     { "name": "OH_Drawing_TypographyGetGlyphPositionAtCoordinateWithCluster" },
     { "name": "OH_Drawing_GetPositionFromPositionAndAffinity" },

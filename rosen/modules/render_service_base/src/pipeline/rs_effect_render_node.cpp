@@ -66,7 +66,7 @@ void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
     // 1. No child with useEffect(true) (needFilter_ == false)
     // 2. Background filter is null
     // 3. Canvas is offscreen
-    if (!needFilter_ || properties.GetBackgroundFilter() == nullptr ||
+    if (!properties.GetHaveEffectRegion() || properties.GetBackgroundFilter() == nullptr ||
         !RSSystemProperties::GetEffectMergeEnabled() ||
         canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::OFFSCREEN) {
         canvas.SetEffectData(nullptr);
@@ -84,7 +84,7 @@ void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
 
 RectI RSEffectRenderNode::GetFilterRect() const
 {
-    if (!needFilter_) {
+    if (!GetRenderProperties().GetHaveEffectRegion()) {
         return {};
     }
     return RSRenderNode::GetFilterRect();
@@ -95,7 +95,7 @@ void RSEffectRenderNode::SetEffectRegion(const std::optional<SkIRect>& effectReg
 {
     if (!effectRegion.has_value() || effectRegion->isEmpty()) {
         ROSEN_LOGD("RSEffectRenderNode::SetEffectRegion: no effect region.");
-        UpdateNeedFilter(false);
+        GetMutableRenderProperties().SetHaveEffectRegion(false);
         return;
     }
 
@@ -104,17 +104,17 @@ void RSEffectRenderNode::SetEffectRegion(const std::optional<SkIRect>& effectReg
     if (!SkIRect::Intersects(*effectRegion,
         SkIRect::MakeLTRB(absRect.GetLeft(), absRect.GetTop(), absRect.GetRight(), absRect.GetBottom()))) {
         ROSEN_LOGD("RSEffectRenderNode::SetEffectRegion: effect region is not in node.");
-        UpdateNeedFilter(false);
+        GetMutableRenderProperties().SetHaveEffectRegion(false);
         return;
     }
-    UpdateNeedFilter(true);
+    GetMutableRenderProperties().SetHaveEffectRegion(true);
 }
 #else
 void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::RectI>& effectRegion)
 {
     if (!effectRegion.has_value() || !effectRegion->IsValid()) {
         ROSEN_LOGD("RSEffectRenderNode::SetEffectRegion: no effect region.");
-        UpdateNeedFilter(false);
+        GetMutableRenderProperties().SetHaveEffectRegion(false);
         return;
     }
 
@@ -124,22 +124,12 @@ void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::RectI>& ef
     if (!effectRect.Intersect(
         Drawing::RectI(absRect.GetLeft(), absRect.GetTop(), absRect.GetRight(), absRect.GetBottom()))) {
         ROSEN_LOGD("RSEffectRenderNode::SetEffectRegion: no valid effect region.");
-        UpdateNeedFilter(false);
+        GetMutableRenderProperties().SetHaveEffectRegion(false);
         return;
     }
-    UpdateNeedFilter(true);
+    GetMutableRenderProperties().SetHaveEffectRegion(true);
 }
 #endif
-
-void RSEffectRenderNode::UpdateNeedFilter(bool needFilter)
-{
-    // clear cache if new region is null or outside current region
-    if (auto& manager = GetRenderProperties().GetFilterCacheManager(false);
-        manager && manager->IsCacheValid() && needFilter == false) {
-        manager->UpdateCacheStateWithFilterRegion();
-    }
-    needFilter_ = needFilter;
-}
 
 void RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion(
     RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect) const

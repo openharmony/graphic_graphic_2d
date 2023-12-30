@@ -58,7 +58,7 @@ static const size_t GR_CACHE_MAX_BYTE_SIZE = 96 * (1 << 20);
 static const int32_t CACHE_LIMITS_TIMES = 3;
 
 RsVulkanContext::RsVulkanContext()
-    : handle_(nullptr), acquiredMandatoryProcAddresses_(false)
+    : handle_(nullptr), acquiredMandatoryProcAddresses_(false), memHandler_(nullptr)
 {
     acquiredMandatoryProcAddresses_ = OpenLibraryHandle() && SetupLoaderProcAddresses();
     CreateInstance();
@@ -452,7 +452,12 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanContext::CreateDrawingContext(bool 
     }
 
     drawingContext_ = std::make_shared<Drawing::GPUContext>();
-    drawingContext_->BuildFromVK(backendContext_);
+    Drawing::GPUContextOptions options;
+    memHandler_ = std::make_shared<MemoryHandler>();
+    std::string vkVersion = std::to_string(VK_API_VERSION_1_2);
+    auto size = vkVersion.size();
+    memHandler_->ConfigureContext(&options, vkVersion.c_str(), size);
+    drawingContext_->BuildFromVK(backendContext_, options);
     int maxResources = 0;
     size_t maxResourcesSize = 0;
     int cacheLimitsTimes = CACHE_LIMITS_TIMES;
@@ -490,7 +495,12 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanContext::CreateNewDrawingContext()
 {
     CreateSkiaBackendContext(&hbackendContext_, true);
     drawingContext_ = std::make_shared<Drawing::GPUContext>();
-    drawingContext_->BuildFromVK(hbackendContext_);
+    Drawing::GPUContextOptions options;
+    memHandler_ = std::make_shared<MemoryHandler>();
+    std::string vkVersion = std::to_string(VK_API_VERSION_1_2);
+    auto size = vkVersion.size();
+    memHandler_->ConfigureContext(&options, vkVersion.c_str(), size);
+    drawingContext_->BuildFromVK(backendContext_, options);
     int maxResources = 0;
     size_t maxResourcesSize = 0;
     int cacheLimitsTimes = CACHE_LIMITS_TIMES;

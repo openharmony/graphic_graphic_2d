@@ -52,6 +52,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_CONTAINER_WINDOW,
     SURFACE_NODE_SET_ANIMATION_FINISHED,
     SURFACE_NODE_MARK_UIHIDDEN,
+    SURFACE_NODE_SET_IS_TEXTURE_EXPORT_NODE,
     SURFACE_NODE_ATTACH_TO_DISPLAY,
     SURFACE_NODE_DETACH_TO_DISPLAY,
     SURFACE_NODE_SET_BOOT_ANIMATION,
@@ -83,6 +84,7 @@ public:
     static void ConnectToNodeInRenderService(RSContext& context, NodeId id);
     static void SetCallbackForRenderThreadRefresh(RSContext& context, NodeId id, bool isRefresh);
     static void SetContextBounds(RSContext& context, NodeId id, Vector4f bounds);
+    static void SetIsTextureExportNode(RSContext& context, NodeId id, bool isTextureExportNode);
     static void SetAbilityBGAlpha(RSContext& context, NodeId id, uint8_t alpha);
     static void SetIsNotifyUIBufferAvailable(RSContext& context, NodeId nodeId, bool available);
     static void MarkUIHidden(RSContext& context, NodeId nodeId, bool isHidden);
@@ -93,7 +95,7 @@ public:
     static void DetachToDisplay(RSContext& context, NodeId nodeId, uint64_t screenId);
     static void SetBootAnimation(RSContext& context, NodeId nodeId, bool isBootAnimation);
 #ifdef USE_SURFACE_TEXTURE
-    static void CreateSurfaceExt(RSContext& context, NodeId id, uint64_t surfaceExt);
+    static void CreateSurfaceExt(RSContext& context, NodeId id, const std::shared_ptr<RSSurfaceTexture>& surfaceExt);
 #endif
     static void SetForeground(RSContext& context, NodeId nodeId, bool isForeground);
     static void SetSurfaceId(RSContext& context, NodeId nodeId, SurfaceId surfaceId);
@@ -143,6 +145,9 @@ ADD_COMMAND(RSSurfaceNodeSetIsNotifyUIBufferAvailable,
     SurfaceNodeCommandHelper::SetIsNotifyUIBufferAvailable, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeMarkUIHidden,
     ARG(SURFACE_NODE, SURFACE_NODE_MARK_UIHIDDEN, SurfaceNodeCommandHelper::MarkUIHidden, NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeSetIsTextureExportNode,
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_IS_TEXTURE_EXPORT_NODE,
+    SurfaceNodeCommandHelper::SetIsTextureExportNode, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSurfaceNodeType,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_SURFACE_NODE_TYPE,
     SurfaceNodeCommandHelper::SetSurfaceNodeType, NodeId, uint8_t))
@@ -163,7 +168,7 @@ ADD_COMMAND(RSurfaceNodeSetSurfaceId,
 #ifdef USE_SURFACE_TEXTURE
 ADD_COMMAND(RSSurfaceNodeCreateSurfaceExt,
     ARG(SURFACE_NODE, SURFACE_NODE_CREATE_SURFACE_EXT,
-    SurfaceNodeCommandHelper::CreateSurfaceExt, NodeId, uint64_t))
+    SurfaceNodeCommandHelper::CreateSurfaceExt, NodeId, std::shared_ptr<RSSurfaceTexture>))
 #endif
 ADD_COMMAND(RSSurfaceNodeSetForeground,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_FOREGROUND, SurfaceNodeCommandHelper::SetForeground, NodeId, bool))

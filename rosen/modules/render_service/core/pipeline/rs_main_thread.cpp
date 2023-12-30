@@ -356,8 +356,13 @@ void RSMainThread::Init()
             grContext->setResourceCacheLimits(DEFAULT_SKIA_CACHE_COUNT, DEFAULT_SKIA_CACHE_SIZE);
         }
 #else
+#ifdef NEW_RENDER_CONTEXT
+        auto gpuContext = isUniRender_? uniRenderEngine_->GetDrawingContext()->GetDrawingContext() :
+            renderEngine_->GetDrawingContext()->GetDrawingContext();
+#else
         auto gpuContext = isUniRender_? uniRenderEngine_->GetRenderContext()->GetDrGPUContext() :
             renderEngine_->GetRenderContext()->GetDrGPUContext();
+#endif
         if (gpuContext == nullptr) {
             RS_LOGE("RSMainThread::Init gpuContext is nullptr!");
             return;
@@ -633,7 +638,8 @@ bool RSMainThread::CheckParallelSubThreadNodesStatus()
     RS_OPTIONAL_TRACE_FUNC();
     cacheCmdSkippedInfo_.clear();
     cacheCmdSkippedNodes_.clear();
-    if (subThreadNodes_.empty()) {
+    if (subThreadNodes_.empty() &&
+        (deviceType_ == DeviceType::PHONE || (LeashWindowCount_ > 0 && isUiFirstOn_ == false))) {
         RSSubThreadManager::Instance()->ResetSubThreadGrContext();
         return false;
     }
@@ -961,7 +967,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         surfaceNode->ResetAnimateState();
         // Reset BasicGeoTrans info at the beginning of cmd process
         if (surfaceNode->IsMainWindowType() || surfaceNode->IsLeashWindow()) {
-            surfaceNode->ResetIsOnlyBasicGeoTransfrom();
+            surfaceNode->ResetIsOnlyBasicGeoTransform();
         }
         if (surfaceNode->IsHardwareEnabledType()
             && CheckSubThreadNodeStatusIsDoing(surfaceNode->GetInstanceRootNodeId())) {
@@ -2356,7 +2362,7 @@ void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::str
         gpuContext->FlushAndSubmit(true);
     } else if (type == "uihidden") {
         gpuContext->Flush();
-        gpuContext->PurgeUnlockedResources(true);
+        gpuContext->PurgeUnlockAndSafeCacheGpuResources();
         gpuContext->FlushAndSubmit(true);
     } else if (type == "shader") {
 #ifdef NEW_RENDER_CONTEXT
@@ -2670,7 +2676,7 @@ bool RSMainThread::CheckIfInstanceOnlySurfaceBasicGeoTransform(NodeId instanceNo
                 continue;
             }
             // filter active nodes except instance surface itself
-            if (id != instanceNodeId || !subNode->IsOnlyBasicGeoTransfrom()) {
+            if (id != instanceNodeId || !subNode->IsOnlyBasicGeoTransform()) {
                 return false;
             }
         }
@@ -2806,9 +2812,9 @@ void RSMainThread::UpdateUIFirstSwitch()
         auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
             rootNode->GetSortedChildren().front());
         if (displayNode) {
-            uint32_t LeashWindowCount = 0;
-            displayNode->CollectSurfaceForUIFirstSwitch(LeashWindowCount, UIFIRST_MINIMUM_NODE_NUMBER);
-            isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled() && LeashWindowCount >=  UIFIRST_MINIMUM_NODE_NUMBER;
+            LeashWindowCount_ = 0;
+            displayNode->CollectSurfaceForUIFirstSwitch(LeashWindowCount_, UIFIRST_MINIMUM_NODE_NUMBER);
+            isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled() && LeashWindowCount_ >= UIFIRST_MINIMUM_NODE_NUMBER;
         }
     }
 }

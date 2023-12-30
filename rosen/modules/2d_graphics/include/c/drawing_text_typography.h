@@ -761,6 +761,17 @@ float OH_Drawing_GetBottomFromTextBox(OH_Drawing_TextBox*, int);
 int OH_Drawing_GetTextDirectionFromTextBox(OH_Drawing_TextBox*, int);
 
 /**
+ * @brief Gets size of textbox.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TextBox Indicates the pointer to an <b>OH_Drawing_TextBox</b> object.
+ * @return Returns size of textbox.
+ * @since 11
+ * @version 1.0
+ */
+size_t OH_Drawing_GetSizeOfTextBox(OH_Drawing_TextBox*);
+
+/**
  * @brief Gets the glyphposition at coordinate.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing

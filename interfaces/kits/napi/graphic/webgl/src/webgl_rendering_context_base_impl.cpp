@@ -131,7 +131,7 @@ napi_value WebGLRenderingContextBaseImpl::ActiveTexture(napi_env env, GLenum tex
 
 napi_value WebGLRenderingContextBaseImpl::BindTexture(napi_env env, GLenum target, napi_value textureRef)
 {
-    int32_t texture = WebGLTexture::DEFAULT_TEXTURE;
+    uint32_t texture = WebGLTexture::DEFAULT_TEXTURE;
     WebGLTexture* webGlTexture = WebGLTexture::GetObjectInstance(env, textureRef);
     if (webGlTexture != nullptr) {
         texture = webGlTexture->GetTexture();
@@ -151,7 +151,8 @@ napi_value WebGLRenderingContextBaseImpl::BindTexture(napi_env env, GLenum targe
         SET_ERROR(WebGLRenderingContextBase::INVALID_OPERATION);
         return NVal::CreateNull(env).val_;
     }
-    if (boundTexture_[index][activeTextureIndex_] && boundTexture_[index][activeTextureIndex_] != texture) {
+    if (boundTexture_[index][activeTextureIndex_] && boundTexture_[index][activeTextureIndex_] !=
+        static_cast<uint32_t>(texture)) {
         LOGD("WebGL bindTexture has been bound to textureId %{public}u", boundTexture_[index][activeTextureIndex_]);
     }
     boundTexture_[index][activeTextureIndex_] = texture;
@@ -469,7 +470,7 @@ napi_value WebGLRenderingContextBaseImpl::DeleteBuffer(napi_env env, napi_value 
     DeleteObject<WebGLBuffer>(env, buffer);
     glDeleteBuffers(1, &buffer);
     LOGD("WebGL deleteBuffer bufferId %{public}u %{public}p result %{public}u", buffer, webGlBuffer, GetError_());
-    for (int32_t i = 0; i < BoundBufferType::BUFFER_MAX; i++) {
+    for (uint32_t i = 0; i < BoundBufferType::BUFFER_MAX; i++) {
         if (boundBufferIds_[i] == buffer) {
             boundBufferIds_[i] = 0;
         }
@@ -904,7 +905,7 @@ napi_value WebGLRenderingContextBaseImpl::FrameBufferTexture2D(
     int32_t textureId = WebGLTexture::DEFAULT_TEXTURE;
     WebGLTexture* webGlTexture = WebGLTexture::GetObjectInstance(env, texture);
     if (webGlTexture != nullptr) {
-        textureId = webGlTexture->GetTexture();
+        textureId = static_cast<int32_t>(webGlTexture->GetTexture());
     }
     frameBuffer->AddAttachment(target, attachment, static_cast<GLuint>(textureId), textureTarget, level);
 
@@ -1799,13 +1800,13 @@ void WebGLRenderingContextBaseImpl::HandleUniformMatrixInfo(
 {
     switch (info->dimension) {
         case WebGLArg::MATRIX_2X2_REQUIRE_MIN_SIZE:
-            glUniformMatrix2fv(location, count >> 2, transpose, srcData); // 2 matrix
+            glUniformMatrix2fv(location, count / 4, transpose, srcData); // 4 is 2x2
             break;
         case WebGLArg::MATRIX_3X3_REQUIRE_MIN_SIZE:
-            glUniformMatrix3fv(location, count >> 3, transpose, srcData); // 3 matrix
+            glUniformMatrix3fv(location, count / 8, transpose, srcData); // 8 is 2x2x2
             break;
         case WebGLArg::MATRIX_4X4_REQUIRE_MIN_SIZE:
-            glUniformMatrix4fv(location, count >> 4, transpose, srcData); // 4 matrix
+            glUniformMatrix4fv(location, count / 16, transpose, srcData); // 16 is 2x2x2x2
             break;
         case WebGLArg::MATRIX_3X2_REQUIRE_MIN_SIZE:
             glUniformMatrix3x2fv(location, count / 6, transpose, srcData); // 6 matrix
@@ -2339,7 +2340,8 @@ bool WebGLRenderingContextBaseImpl::CheckAttachment(napi_env env, GLenum attachm
     if (!CheckGLenum(attachment, glSupport, {})) {
         if (IsHighWebGL()) {
             if (attachment < WebGLRenderingContextBase::COLOR_ATTACHMENT0 ||
-                attachment > WebGLRenderingContextBase::COLOR_ATTACHMENT0 + GetMaxColorAttachments()) {
+                attachment > WebGLRenderingContextBase::COLOR_ATTACHMENT0 +
+                static_cast<GLenum>(GetMaxColorAttachments())) {
                 return false;
             }
         }
@@ -2775,7 +2777,8 @@ GLenum WebGLRenderingContextBaseImpl::CheckVertexAttribPointer(napi_env env, con
     }
 
     uint32_t typeSize = WebGLArg::GetWebGLDataSize(vertexInfo.type);
-    if ((vertexInfo.stride & (typeSize - 1)) || (vertexInfo.offset & (typeSize - 1))) {
+    if ((static_cast<uint32_t>(vertexInfo.stride) & static_cast<uint32_t>(typeSize - 1)) ||
+        (static_cast<uint32_t>(vertexInfo.offset) & static_cast<uint32_t>(typeSize - 1))) {
         return WebGLRenderingContextBase::INVALID_OPERATION;
     }
     return WebGLRenderingContextBase::NO_ERROR;

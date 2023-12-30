@@ -78,7 +78,7 @@ class DrawCmdList;
 class OpItem;
 #else
 class RSExtendImageObject;
-class RSExtendImageBaseOj;
+class RSExtendImageBaseObj;
 namespace Drawing {
 class DrawCmdList;
 class MaskCmdList;
@@ -317,7 +317,7 @@ public:
 #else
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Drawing::DrawCmdList>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSExtendImageObject>)
-    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSExtendImageBaseOj>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSExtendImageBaseObj>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Drawing::MaskCmdList>)
 #endif
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Media::PixelMap>)

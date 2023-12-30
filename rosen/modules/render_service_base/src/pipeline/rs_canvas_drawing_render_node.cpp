@@ -377,7 +377,7 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
     Drawing::ImageInfo info =
         Drawing::ImageInfo{ width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
 
-#if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     auto gpuContext = canvas.GetGPUContext();
     isGpuSurface_ = true;
     if (gpuContext == nullptr) {
@@ -537,8 +537,8 @@ bool RSCanvasDrawingRenderNode::GetPixelmap(
 
 bool RSCanvasDrawingRenderNode::GetSizeFromDrawCmdModifiers(int& width, int& height)
 {
-    auto it = drawCmdModifiers_.find(RSModifierType::CONTENT_STYLE);
-    if (it == drawCmdModifiers_.end() || it->second.empty()) {
+    auto it = GetDrawCmdModifiers().find(RSModifierType::CONTENT_STYLE);
+    if (it == GetDrawCmdModifiers().end() || it->second.empty()) {
         return false;
     }
     for (const auto& modifier : it->second) {
@@ -596,7 +596,7 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType type)
     if (!IsOnTheTree()) {
         ClearOp();
     }
-    for (auto drawCmdModifier : drawCmdModifiers_) {
+    for (auto& drawCmdModifier : GetDrawCmdModifiers()) {
         if (drawCmdModifier.second.empty()) {
             continue;
         }

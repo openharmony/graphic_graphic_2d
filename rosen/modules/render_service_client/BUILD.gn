@@ -25,6 +25,8 @@ config("render_service_client_config") {
     "$graphic_2d_root/interfaces/inner_api/composer",
     "//drivers/peripheral/display/interfaces/include",
     "//drivers/peripheral/base",
+    "$graphic_2d_root/frameworks/surface/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics",
   ]
   defines = rs_common_define
 }
@@ -162,8 +164,10 @@ template("render_service_client_source_set") {
       }
     }
     if (rosen_is_ohos) {
-      public_deps +=
-          [ "$graphic_2d_root/rosen/modules/frame_analyzer:libframe_analyzer" ]
+      public_deps += [
+        "$graphic_2d_root:libsurface",
+        "$graphic_2d_root/rosen/modules/frame_analyzer:libframe_analyzer",
+      ]
       external_deps = [
         "c_utils:utils",
         "hisysevent:libhisysevent",
