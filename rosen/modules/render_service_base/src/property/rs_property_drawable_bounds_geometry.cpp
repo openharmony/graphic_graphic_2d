@@ -1142,11 +1142,27 @@ RSPropertyDrawable::DrawablePtr RSPixelStretchDrawable::Generate(const RSRenderC
 // Background
 void RSBackgroundDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
+    auto& properties = content.GetRenderProperties();
+    bool antiAlias = RSPropertiesPainter::GetBgAntiAlias() || !properties.GetCornerRadius().IsZero();
 #ifndef USE_ROSEN_DRAWING
-    canvas.drawRRect(RSPropertiesPainter::RRect2SkRRect(content.GetRenderProperties().GetRRect()), paint_);
+    SkPaint paint = paint_;
+    paint.setAntiAlias(antiAlias);
+    // use drawrrect to avoid texture update in phone screen rotation scene.
+    if (RSSystemProperties::IsPhoneType()) {
+        canvas.drawRRect(RSPropertiesPainter::RRect2SkRRect(properties.GetRRect()), paint);
+    } else {
+        canvas.drawRect(RSPropertiesPainter::Rect2SkRect(properties.GetBoundsRect()), paint);
+    }
 #else
-    canvas.AttachBrush(brush_);
-    canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(content.GetRenderProperties().GetRRect()));
+    Drawing::Brush brush = brush_;
+    brush.SetAntiAlias(antiAlias);
+    canvas.AttachBrush(brush);
+    // use drawrrect to avoid texture update in phone screen rotation scene
+    if (RSSystemProperties::IsPhoneType()) {
+        canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetRRect()));
+    } else {
+        canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
+    }
     canvas.DetachBrush();
 #endif
 }

@@ -297,6 +297,11 @@ bool RSSystemProperties::GetImageGpuResourceCacheEnable(int width, int height)
     return false;
 }
 
+bool RSSystemProperties::IsPhoneType()
+{
+    return false;
+}
+
 bool RSSystemProperties::IsPcType()
 {
     return false;
