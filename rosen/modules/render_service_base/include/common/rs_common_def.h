@@ -173,6 +173,7 @@ struct RSSurfaceRenderNodeConfig {
     std::string bundleName = "";
     RSSurfaceNodeType nodeType = RSSurfaceNodeType::DEFAULT;
     void* additionalData = nullptr;
+    bool isTextureExportNode = false;
 };
 
 // types for RSSurfaceExt

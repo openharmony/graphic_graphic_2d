@@ -421,7 +421,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     if (!IsValidRootRenderNode(node)) {
         return;
     }
-
+    drawCmdListVector_.clear();
     curDirtyManager_ = node.GetDirtyManager();
 
     auto surfaceNodeColorSpace = ptr->GetColorSpace();
@@ -788,18 +788,19 @@ void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
         fence->Wait(3000); // wait at most 3000ms
     }
 #ifndef USE_ROSEN_DRAWING
-    recordingCanvas_ = std::make_shared<RSRecordingCanvas>(property.GetBoundsWidth(), property.GetBoundsHeight());
+    auto recordingCanvas = std::make_shared<RSRecordingCanvas>(property.GetBoundsWidth(), property.GetBoundsHeight());
     RSSurfaceBufferInfo rsSurfaceBufferInfo(surfaceBuffer, property.GetBoundsPositionX(), property.GetBoundsPositionY(),
         property.GetBoundsWidth(), property.GetBoundsHeight());
 #else
-    recordingCanvas_ = std::make_shared<Drawing::RecordingCanvas>(property.GetBoundsWidth(),
+    auto recordingCanvas = std::make_shared<Drawing::RecordingCanvas>(property.GetBoundsWidth(),
         property.GetBoundsHeight());
     DrawingSurfaceBufferInfo rsSurfaceBufferInfo(surfaceBuffer, property.GetBoundsPositionX(),
         property.GetBoundsPositionY(), property.GetBoundsWidth(), property.GetBoundsHeight());
 #endif //USE_ROSEN_DRAWING
-    recordingCanvas_->DrawSurfaceBuffer(rsSurfaceBufferInfo);
-    auto drawCmdList = recordingCanvas_->GetDrawCmdList();
+    recordingCanvas->DrawSurfaceBuffer(rsSurfaceBufferInfo);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
     drawCmdList->Playback(*canvas_);
+    drawCmdListVector_.emplace_back(drawCmdList);
 #endif
 }
 

@@ -43,6 +43,11 @@ void RSRenderServiceListener::OnBufferAvailable()
             " UI buffer available", node->GetId());
         node->NotifyUIBufferAvailable();
     }
+    if (node->GetIsTextureExportNode()) {
+        RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable id = %{public}" PRIu64 " Notify"
+            " RT buffer available", node->GetId());
+        node->NotifyRTBufferAvailable(node->GetIsTextureExportNode());
+    }
     RSMainThread::Instance()->RequestNextVSync();
 }
 

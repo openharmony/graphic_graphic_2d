@@ -68,6 +68,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         .id = node->GetId(),
         .name = node->name_,
         .bundleName = node->bundleName_,
+        .isTextureExportNode = surfaceNodeConfig.isTextureExportNode,
         .additionalData = surfaceNodeConfig.additionalData,
     };
     config.nodeType = type;
@@ -83,6 +84,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
 
     node->SetClipToFrame(true);
     // create node in RT (only when in divided render and isRenderServiceNode_ == false)
+    // create node in RT if is TextureExport node
     if (!node->IsRenderServiceNode()) {
         std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreate>(node->GetId(),
             config.nodeType, surfaceNodeConfig.isTextureExportNode);
@@ -93,15 +95,13 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
             transactionProxy->AddCommand(command, isWindow);
         }
 
-        if (!surfaceNodeConfig.isTextureExportNode) {
-            command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(node->GetId());
-            transactionProxy->AddCommand(command, isWindow);
+        command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(node->GetId());
+        transactionProxy->AddCommand(command, isWindow);
 
-            RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
-            command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(node->GetId(), true);
-            transactionProxy->AddCommand(command, isWindow);
-            node->SetFrameGravity(Gravity::RESIZE);
-        }
+        RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
+        command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(node->GetId(), true);
+        transactionProxy->AddCommand(command, isWindow);
+        node->SetFrameGravity(Gravity::RESIZE);
 
 #if defined(USE_SURFACE_TEXTURE) && defined(ROSEN_ANDROID)
         if (type == RSSurfaceNodeType::SURFACE_TEXTURE_NODE) {
@@ -314,6 +314,8 @@ void RSSurfaceNode::SetIsTextureExportNode(bool isTextureExportNode)
         return;
     }
     transactionProxy->AddCommand(command, false);
+    // need to reset isTextureExport sign in renderService
+    transactionProxy->AddCommand(command, true);
 }
 
 void RSSurfaceNode::SetTextureExport(bool isTextureExportNode)

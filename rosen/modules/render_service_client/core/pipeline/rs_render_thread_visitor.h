@@ -22,7 +22,6 @@
 
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_recording_canvas.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
 
@@ -110,11 +109,11 @@ private:
 #ifndef USE_ROSEN_DRAWING
     SkMatrix parentSurfaceNodeMatrix_;
     std::optional<SkIRect> effectRegion_ = std::nullopt;
-    std::shared_ptr<RSRecordingCanvas> recordingCanvas_;
+    std::vector<std::shared_ptr<DrawCmdList>> drawCmdListVector_;
 #else
     Drawing::Matrix parentSurfaceNodeMatrix_;
     std::optional<Drawing::RectI> effectRegion_ = std::nullopt;
-    std::shared_ptr<Drawing::RecordingCanvas> recordingCanvas_;
+    std::vector<std::shared_ptr<Drawing::DrawCmdList>> drawCmdListVector_;
 #endif // USE_ROSEN_DRAWING
 
     std::map<NodeId, std::function<void(float, float, float, float)>> surfaceCallbacks_;

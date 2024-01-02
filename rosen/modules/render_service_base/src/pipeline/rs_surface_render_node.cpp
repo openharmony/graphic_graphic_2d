@@ -48,8 +48,8 @@
 namespace OHOS {
 namespace Rosen {
 RSSurfaceRenderNode::RSSurfaceRenderNode(
-    const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
-    : RSRenderNode(config.id, context, isTextureExportNode), RSSurfaceHandler(config.id), name_(config.name),
+    const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context)
+    : RSRenderNode(config.id, context, config.isTextureExportNode), RSSurfaceHandler(config.id), name_(config.name),
       bundleName_(config.bundleName), nodeType_(config.nodeType),
       dirtyManager_(std::make_shared<RSDirtyRegionManager>()),
       cacheSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>())
@@ -60,8 +60,9 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(
 #endif
 }
 
-RSSurfaceRenderNode::RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isSameLayerRender)
-    : RSSurfaceRenderNode(RSSurfaceRenderNodeConfig { id, "SurfaceNode" }, context, isSameLayerRender)
+RSSurfaceRenderNode::RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
+    : RSSurfaceRenderNode(RSSurfaceRenderNodeConfig { .id = id, .name = "SurfaceNode",
+    .isTextureExportNode = isTextureExportNode}, context)
 {}
 
 RSSurfaceRenderNode::~RSSurfaceRenderNode()
@@ -664,7 +665,7 @@ void RSSurfaceRenderNode::ConnectToNodeInRenderService()
                 if (node == nullptr) {
                     return;
                 }
-                node->NotifyRTBufferAvailable();
+                node->NotifyRTBufferAvailable(node->GetIsTextureExportNode());
             }, true);
         renderServiceClient->RegisterBufferClearListener(
             GetId(), [weakThis = weak_from_this()]() {
@@ -677,16 +678,18 @@ void RSSurfaceRenderNode::ConnectToNodeInRenderService()
     }
 }
 
-void RSSurfaceRenderNode::NotifyRTBufferAvailable()
+void RSSurfaceRenderNode::NotifyRTBufferAvailable(bool isTextureExportNode)
 {
     // In RS, "isNotifyRTBufferAvailable_ = true" means buffer is ready and need to trigger ipc callback.
     // In RT, "isNotifyRTBufferAvailable_ = true" means RT know that RS have had available buffer
     // and ready to trigger "callbackForRenderThreadRefresh_" to "clip" on parent surface.
-    isNotifyRTBufferAvailablePre_ = isNotifyRTBufferAvailable_;
-    if (isNotifyRTBufferAvailable_) {
-        return;
+    if (!isTextureExportNode) {
+        isNotifyRTBufferAvailablePre_ = isNotifyRTBufferAvailable_;
+        if (isNotifyRTBufferAvailable_) {
+            return;
+        }
+        isNotifyRTBufferAvailable_ = true;
     }
-    isNotifyRTBufferAvailable_ = true;
 
     if (isRefresh_) {
         ROSEN_LOGI("RSSurfaceRenderNode::NotifyRTBufferAvailable nodeId = %{public}" PRIu64 " RenderThread", GetId());

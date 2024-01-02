@@ -66,8 +66,7 @@ public:
 
     explicit RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
         bool isTextureExportNode = false);
-    explicit RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config,
-        const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
+    explicit RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
     ~RSSurfaceRenderNode() override;
 
     void PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas);
@@ -564,7 +563,7 @@ public:
     // Only SurfaceNode in RT calls "ConnectToNodeInRenderService" to send callback method to RS
     void ConnectToNodeInRenderService();
 
-    void NotifyRTBufferAvailable();
+    void NotifyRTBufferAvailable(bool isTextureExportNode = false);
     bool IsNotifyRTBufferAvailable() const;
     bool IsNotifyRTBufferAvailablePre() const;
 
