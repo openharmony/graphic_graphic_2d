@@ -2802,13 +2802,15 @@ const uint32_t UIFIRST_MINIMUM_NODE_NUMBER = 4; // minimum window number(4) for 
 
 void RSMainThread::UpdateUIFirstSwitch()
 {
+    auto screenManager_ = CreateOrGetScreenManager();
+    uint32_t actualScreensNum = screenManager_->GetActualScreensNum();
     if (deviceType_ == DeviceType::PHONE) {
-        isUiFirstOn_ = (RSSystemProperties::GetUIFirstEnabled() && IsSingleDisplay());
+        isUiFirstOn_ = (RSSystemProperties::GetUIFirstEnabled() && actualScreensNum == 1);
         return;
     }
     isUiFirstOn_ = false;
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
-    if (rootNode && IsSingleDisplay()) {
+    if (rootNode && actualScreensNum == 1) {
         auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
             rootNode->GetSortedChildren().front());
         if (displayNode) {
