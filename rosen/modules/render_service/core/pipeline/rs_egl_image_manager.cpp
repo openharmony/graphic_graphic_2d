@@ -334,7 +334,7 @@ void RSEglImageManager::UnMapEglImageFromSurfaceBuffer(int32_t seqNum)
             }
             imageCacheSeq = std::move(imageCacheSeqs_[seqNum]);
         }
-        imageCacheSeq.release();
+        imageCacheSeq.reset();
         RS_OPTIONAL_TRACE_NAME_FMT("UnmapEglImage seqNum: %d", seqNum);
         RS_LOGD("RSEglImageManager::UnMapEglImageFromSurfaceBuffer: %{public}d", seqNum);
     };
