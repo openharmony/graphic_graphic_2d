@@ -87,10 +87,6 @@ public:
 
     void GenerateCache(Canvas* canvas = nullptr, const Rect* rect = nullptr);
 
-    void GenerateCacheInRenderService(Canvas* canvas, const Rect* rect);
-
-    void ClearCache();
-
     bool GetIsCache();
 
     void SetIsCache(bool isCached);
@@ -104,6 +100,11 @@ public:
     void SetReplacedOpList(std::vector<std::pair<uint32_t, uint32_t>> replacedOpList);
 
     std::vector<std::shared_ptr<DrawOpItem>> UnmarshallingCmdList();
+
+private:
+    void GenerateCacheInRenderService(Canvas* canvas, const Rect* rect);
+
+    void ClearCache();
 
     void AddOpToCmdList(std::shared_ptr<DrawCmdList> cmdList);
 

@@ -89,6 +89,7 @@ DrawCmdList::DrawCmdList(int32_t width, int32_t height) : width_(width), height_
 
 void DrawCmdList::ClearOp()
 {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     opAllocator_.ClearData();
     opAllocator_.Add(&width_, sizeof(int32_t));
     opAllocator_.Add(&height_, sizeof(int32_t));
@@ -259,6 +260,7 @@ std::vector<std::shared_ptr<DrawOpItem>> DrawCmdList::UnmarshallingCmdList()
 
 void DrawCmdList::Playback(Canvas& canvas, const Rect* rect)
 {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (canvas.GetDrawingType() == DrawingType::RECORDING) {
         AddOpToCmdList(static_cast<RecordingCanvas&>(canvas).GetDrawCmdList());
         return;
@@ -322,6 +324,7 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect)
 void DrawCmdList::GenerateCache(Canvas* canvas, const Rect* rect)
 {
 #ifdef ROSEN_OHOS
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     uint32_t offset = 2 * sizeof(int32_t);
     if (opAllocator_.GetSize() <= offset) {
         return;
@@ -437,7 +440,6 @@ void DrawCmdList::AddOpToCmdList(std::shared_ptr<DrawCmdList> cmdList)
     size_t size = opAllocator_.GetSize() - offset;
     auto imageData = GetAllImageData();
     auto bitmapData = GetAllBitmapData();
-    std::lock_guard<std::mutex> lock(cmdList->mutex_);
     cmdList->opAllocator_.Add(addr, size);
     if (imageData.first != nullptr && imageData.second != 0) {
         cmdList->imageAllocator_.Add(imageData.first, imageData.second);

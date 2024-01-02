@@ -501,8 +501,9 @@ void ExtendRecordingCanvas::DrawImageWithParm(
     const Drawing::AdaptiveImageInfo& rsImageInfo, const Drawing::SamplingOptions& sampling)
 {
     auto object = std::make_shared<RSExtendImageObject>(image, data, rsImageInfo);
+    auto drawCallList = Drawing::RecordingCanvas::GetDrawCmdList();
     auto objectHandle =
-        Drawing::CmdListHelper::AddImageObjectToCmdList(*Drawing::RecordingCanvas::GetDrawCmdList(), object);
+        Drawing::CmdListHelper::AddImageObjectToCmdList(*drawCallList, object);
     AddOp<Drawing::DrawImageWithParmOpItem::ConstructorHandle>(objectHandle, sampling);
 }
 
@@ -510,8 +511,9 @@ void ExtendRecordingCanvas::DrawPixelMapWithParm(const std::shared_ptr<Media::Pi
     const Drawing::AdaptiveImageInfo& rsImageInfo, const Drawing::SamplingOptions& sampling)
 {
     auto object = std::make_shared<RSExtendImageObject>(pixelMap, rsImageInfo);
+    auto drawCallList = Drawing::RecordingCanvas::GetDrawCmdList();
     auto objectHandle =
-        Drawing::CmdListHelper::AddImageObjectToCmdList(*Drawing::RecordingCanvas::GetDrawCmdList(), object);
+        Drawing::CmdListHelper::AddImageObjectToCmdList(*drawCallList, object);
     AddOp<Drawing::DrawPixelMapWithParmOpItem::ConstructorHandle>(objectHandle, sampling);
 }
 
@@ -520,8 +522,9 @@ void ExtendRecordingCanvas::DrawPixelMapRect(const std::shared_ptr<Media::PixelM
     Drawing::SrcRectConstraint constraint)
 {
     auto object = std::make_shared<RSExtendImageBaseObj>(pixelMap, src, dst);
+    auto drawCallList = Drawing::RecordingCanvas::GetDrawCmdList();
     auto objectHandle =
-        Drawing::CmdListHelper::AddImageBaseObjToCmdList(*Drawing::RecordingCanvas::GetDrawCmdList(), object);
+        Drawing::CmdListHelper::AddImageBaseObjToCmdList(*drawCallList, object);
     AddOp<Drawing::DrawPixelMapRectOpItem::ConstructorHandle>(objectHandle, sampling);
 }
 
