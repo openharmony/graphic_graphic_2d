@@ -2962,6 +2962,23 @@ RSExtendImageBaseObj *RSExtendImageBaseObj::Unmarshalling(Parcel &parcel)
     }
     return object;
 }
+
+void RSExtendDrawFuncObj::Playback(Drawing::Canvas* canvas, const Drawing::Rect* rect)
+{
+    if (drawFunc_) {
+        drawFunc_(canvas, rect);
+    }
+}
+
+bool RSExtendDrawFuncObj::Marshalling(Parcel &parcel) const
+{
+    return false;
+}
+
+RSExtendDrawFuncObj *RSExtendDrawFuncObj::Unmarshalling(Parcel &parcel)
+{
+    return nullptr;
+}
 } // namespace Rosen
 } // namespace OHOS
 #endif // USE_ROSEN_DRAWING

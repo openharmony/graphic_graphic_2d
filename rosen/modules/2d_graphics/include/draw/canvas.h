@@ -30,7 +30,6 @@ public:
     Canvas() {}
     Canvas(int32_t width, int32_t height) : CoreCanvas(width, height) {}
 
-
     void AddCanvas(Canvas* canvas)
     {
         if (canvas != nullptr) {
@@ -58,6 +57,7 @@ public:
             this->Restore();
         }
     }
+
 protected:
     std::vector<Canvas*> pCanvasList_;
 };

@@ -62,6 +62,11 @@ public:
     static OpDataHandle AddCompressDataToCmdList(CmdList& cmdList, const std::shared_ptr<Data>& data);
     static std::shared_ptr<Data> GetCompressDataFromCmdList(const CmdList& cmdList, const OpDataHandle& imageHandle);
 
+    static OpDataHandle DRAWING_API AddDrawFuncObjToCmdList(
+        CmdList& cmdList, const std::shared_ptr<ExtendDrawFuncObj>& object);
+    static std::shared_ptr<ExtendDrawFuncObj> GetDrawFuncObjFromCmdList(
+        const CmdList& cmdList, const OpDataHandle& objectHandle);
+
     template<typename RecordingType, typename CommonType>
     static CmdListHandle AddRecordedToCmdList(CmdList& cmdList, const CommonType& recorded)
     {

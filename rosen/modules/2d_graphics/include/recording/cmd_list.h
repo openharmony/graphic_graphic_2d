@@ -55,6 +55,12 @@ public:
     virtual void SetNodeId(NodeId id) {};
 };
 
+class DRAWING_API ExtendDrawFuncObj {
+public:
+    virtual ~ExtendDrawFuncObj () = default;
+    virtual void Playback(Canvas* canvas, const Rect* rect) = 0;
+};
+
 class DRAWING_API CmdList {
 public:
     enum Type : uint32_t {
@@ -193,6 +199,16 @@ public:
      */
     uint32_t SetupBaseObj(const std::vector<std::shared_ptr<ExtendImageBaseObj>>& objectList);
 
+     /*
+     * @brief  return DrawFuncObj index, negative is error.
+     */
+    uint32_t AddDrawFuncOjb(const std::shared_ptr<ExtendDrawFuncObj>& object);
+
+    /*
+     * @brief  get DrawFuncObj by index.
+     */
+    std::shared_ptr<ExtendDrawFuncObj> GetDrawFuncObj(uint32_t id);
+
     /*
      * @brief  copy object vec to another CmdList.
      */
@@ -252,6 +268,8 @@ protected:
     std::vector<sptr<SurfaceBuffer>> surfaceBufferVec_;
     std::mutex surfaceBufferMutex_;
 #endif
+    std::vector<std::shared_ptr<ExtendDrawFuncObj>> drawFuncObjVec_;
+    std::mutex drawFuncObjMutex_;
 };
 } // namespace Drawing
 } // namespace Rosen

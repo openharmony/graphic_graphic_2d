@@ -347,6 +347,22 @@ uint32_t CmdList::SetupSurfaceBuffer(const std::vector<sptr<SurfaceBuffer>>& obj
     return static_cast<uint32_t>(surfaceBufferVec_.size());
 }
 #endif
+
+uint32_t CmdList::AddDrawFuncOjb(const std::shared_ptr<ExtendDrawFuncObj> &object)
+{
+    std::lock_guard<std::mutex> lock(drawFuncObjMutex_);
+    drawFuncObjVec_.emplace_back(object);
+    return static_cast<uint32_t>(drawFuncObjVec_.size()) - 1;
+}
+
+std::shared_ptr<ExtendDrawFuncObj> CmdList::GetDrawFuncObj(uint32_t id)
+{
+    std::lock_guard<std::mutex> lock(drawFuncObjMutex_);
+    if (id >= drawFuncObjVec_.size()) {
+        return nullptr;
+    }
+    return drawFuncObjVec_[id];
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
