@@ -24,7 +24,7 @@ namespace {
 constexpr ::OHOS::HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001401, "Bufferqueue" };
 }
 
-#ifdef __aarch64__
+#if defined(__aarch64__) || (defined(__riscv) && __riscv_xlen == 64)
 #define BPUBI64  "%{public}ld"
 #define BPUBSize "%{public}lu"
 #define BPUBU64  "%{public}lu"

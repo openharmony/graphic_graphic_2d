@@ -24,7 +24,7 @@
 
 namespace OHOS {
 namespace {
-#ifndef __aarch64__
+#if !defined(__aarch64__) && !(defined(__riscv) && __riscv_xlen == 64)
     constexpr const char *DEBUG_LAYERS_LIB_DIR = "/system/lib/";
 #else
     constexpr const char *DEBUG_LAYERS_LIB_DIR = "/system/lib64/";

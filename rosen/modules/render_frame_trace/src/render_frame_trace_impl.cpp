@@ -19,7 +19,7 @@
 
 namespace FRAME_TRACE {
 
-#ifdef __aarch64__
+#if defined(__aarch64__) || (defined(__riscv) && __riscv_xlen == 64)
 const char* g_frameTraceSoPath = "/system/lib64/libframe_trace_intf.z.so";
 #else
 const char* g_frameTraceSoPath = "/system/lib/libframe_trace_intf.z.so";

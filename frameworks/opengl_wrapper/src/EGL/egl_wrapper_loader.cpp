@@ -26,7 +26,7 @@
 using namespace OHOS;
 namespace OHOS {
 namespace {
-#ifdef __aarch64__
+#if defined(__aarch64__) || (defined(__riscv) && __riscv_xlen == 64)
     constexpr const char *VENDOR_LIB_PATH = "/vendor/lib64/chipsetsdk/";
     constexpr const char *SYSTEM_LIB_PATH = "/system/lib64/";
 #else
