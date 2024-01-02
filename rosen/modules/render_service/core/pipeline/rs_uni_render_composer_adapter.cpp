@@ -318,10 +318,17 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const
             info.srcRect.w = (bufferWidth / scale - (boundsWidth - info.srcRect.w)) * scale;
             info.srcRect.h = (bufferHeight / scale - (boundsHeight - info.srcRect.h)) * scale;
         } else {
-            info.srcRect.x = info.srcRect.x * xScale;
-            info.srcRect.y = info.srcRect.y * yScale;
-            info.srcRect.w = std::min(static_cast<int32_t>(info.srcRect.w * xScale), bufferWidth);
-            info.srcRect.h = std::min(static_cast<int32_t>(info.srcRect.h * yScale), bufferHeight);
+            if (property.GetBoundsGeometry()->GetAbsRect() == node.GetDstRect()) {
+                // If the SurfaceRenderNode is completely in the DisplayRenderNode,
+                // we do not need to crop the buffer.
+                info.srcRect.w = bufferWidth;
+                info.srcRect.h = bufferHeight;
+            } else {
+                info.srcRect.x = info.srcRect.x * xScale;
+                info.srcRect.y = info.srcRect.y * yScale;
+                info.srcRect.w = std::min(static_cast<int32_t>(info.srcRect.w * xScale), bufferWidth);
+                info.srcRect.h = std::min(static_cast<int32_t>(info.srcRect.h * yScale), bufferHeight);
+            }
         }
     }
     RS_LOGD("RsDebug RSUniRenderComposerAdapter::GetComposerInfoSrcRect surfaceNode id:%{public}" PRIu64 ","\
