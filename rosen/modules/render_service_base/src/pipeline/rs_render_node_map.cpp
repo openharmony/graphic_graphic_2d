@@ -81,9 +81,6 @@ static bool IsResidentProcess(const std::shared_ptr<RSSurfaceRenderNode> surface
 
 bool RSRenderNodeMap::IsResidentProcessNode(NodeId id) const
 {
-    if (!RSSystemProperties::GetAnimationCacheEnabled()) {
-        return false;
-    }
     auto nodePid = ExtractPid(id);
     return std::any_of(residentSurfaceNodeMap_.begin(), residentSurfaceNodeMap_.end(),
         [nodePid](const auto& pair) -> bool { return ExtractPid(pair.first) == nodePid; });
@@ -96,8 +93,7 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
         return false;
     }
     renderNodeMap_.emplace(id, nodePtr);
-    // setup node backref
-    nodePtr->GetMutableRenderProperties().backref_ = nodePtr;
+    nodePtr->OnRegister();
     if (nodePtr->GetType() == RSRenderNodeType::SURFACE_NODE) {
         auto surfaceNode = nodePtr->ReinterpretCastTo<RSSurfaceRenderNode>();
         surfaceNodeMap_.emplace(id, surfaceNode);

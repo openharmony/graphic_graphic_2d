@@ -88,19 +88,25 @@ private:
 class RSImplicitKeyframeAnimationParam : public RSImplicitAnimationParam {
 public:
     RSImplicitKeyframeAnimationParam(
-        const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve, float fraction);
+        const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
+        float fraction, int duration);
 
     ~RSImplicitKeyframeAnimationParam() override = default;
 
-    std::shared_ptr<RSAnimation> CreateAnimation(std::shared_ptr<RSPropertyBase> property,
+    std::shared_ptr<RSAnimation> CreateAnimation(
+        std::shared_ptr<RSPropertyBase> property, const bool& isCreateDurationKeyframe, const int& startDuration,
         const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const;
 
     void AddKeyframe(std::shared_ptr<RSAnimation>& animation, const std::shared_ptr<RSPropertyBase>& startValue,
         const std::shared_ptr<RSPropertyBase>& endValue) const;
 
+    void AddKeyframe(std::shared_ptr<RSAnimation>& animation, const int startDuration,
+        const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const;
+
 private:
     RSAnimationTimingCurve timingCurve_;
     float fraction_;
+    int duration_;
 };
 
 class RSImplicitPathAnimationParam : public RSImplicitAnimationParam {

@@ -56,6 +56,12 @@
 #include "platform/ohos/overdraw/rs_cpu_overdraw_canvas_listener.h"
 #include "platform/ohos/overdraw/rs_gpu_overdraw_canvas_listener.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
+#include "surface_utils.h"
+#endif
+
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #endif
 
 namespace OHOS {
@@ -384,8 +390,22 @@ void RSRenderThreadVisitor::UpdateDirtyAndSetEGLDamageRegion(std::unique_ptr<RSS
     RS_TRACE_END();
 }
 
+void RSRenderThreadVisitor::ProcessShadowFirst(RSRenderNode& node)
+{
+    if (RSSystemProperties::GetUseShadowBatchingEnabled()
+        && (node.GetRenderProperties().GetUseShadowBatching())) {
+        auto& children = node.GetSortedChildren();
+        for (auto& child : children) {
+            if (auto node = child->ReinterpretCastTo<RSCanvasRenderNode>()) {
+                node->ProcessShadowBatching(*canvas_);
+            }
+        }
+    }
+}
+
 void RSRenderThreadVisitor::ProcessChildren(RSRenderNode& node)
 {
+    ProcessShadowFirst(node);
     for (auto& child : node.GetSortedChildren()) {
         child->Process(shared_from_this());
     }
@@ -423,16 +443,26 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         rsSurface->SetColorSpace(surfaceNodeColorSpace);
     }
 
-#if defined(ACE_ENABLE_GL)
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+#if defined(ACE_ENABLE_GL) || defined (ACE_ENABLE_VK)
 #if defined(NEW_RENDER_CONTEXT)
-        std::shared_ptr<RenderContextBase> rc = RSRenderThread::Instance().GetRenderContext();
-        std::shared_ptr<DrawingContext> dc = RSRenderThread::Instance().GetDrawingContext();
-        rsSurface->SetDrawingContext(dc);
+    std::shared_ptr<RenderContextBase> rc = RSRenderThread::Instance().GetRenderContext();
+    std::shared_ptr<DrawingContext> dc = RSRenderThread::Instance().GetDrawingContext();
+    rsSurface->SetDrawingContext(dc);
 #else
-        RenderContext* rc = RSRenderThread::Instance().GetRenderContext();
+    RenderContext* rc = RSRenderThread::Instance().GetRenderContext();
 #endif
-        rsSurface->SetRenderContext(rc);
+    rsSurface->SetRenderContext(rc);
+#endif
+
+#ifdef ACE_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        auto skContext = RsVulkanContext::GetSingleton().CreateDrawingContext(true);
+        if (skContext == nullptr) {
+            ROSEN_LOGE("RSRenderThreadVisitor::ProcessRootRenderNode CreateDrawingContext is null");
+            return;
+        }
+        std::static_pointer_cast<RSSurfaceOhosVulkan>(rsSurface)->SetSkContext(skContext);
     }
 #endif
     uiTimestamp_ = RSRenderThread::Instance().GetUITimestamp();
@@ -732,7 +762,45 @@ void RSRenderThreadVisitor::ProcessEffectRenderNode(RSEffectRenderNode& node)
 
 void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
 {
-    // TODO: deal with surfaceNode in same render
+#ifdef ROSEN_OHOS
+    const auto& property = node.GetRenderProperties();
+    sptr<Surface> surface = SurfaceUtils::GetInstance()->GetSurface(node.GetSurfaceId());
+    if (surface == nullptr) {
+        RS_LOGE("RSRenderThreadVisitor::ProcessSurfaceViewInRT nodeId is %llu cannot find surface by surfaceId %llu",
+            node.GetId(), node.GetSurfaceId());
+        return;
+    }
+    sptr<SurfaceBuffer> surfaceBuffer;
+    // a 4 * 4 idetity matrix
+    float matrix[16] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    };
+    sptr<SyncFence> fence;
+    int ret = surface->GetLastFlushedBuffer(surfaceBuffer, fence, matrix);
+    if (ret != OHOS::GSERROR_OK || surfaceBuffer == nullptr) {
+        RS_LOGE("RSRenderThreadVisitor::ProcessSurfaceViewInRT: GetLastFlushedBuffer failed, err: %{public}d", ret);
+        return;
+    }
+    if (fence != nullptr) {
+        fence->Wait(3000); // wait at most 3000ms
+    }
+#ifndef USE_ROSEN_DRAWING
+    recordingCanvas_ = std::make_shared<RSRecordingCanvas>(property.GetBoundsWidth(), property.GetBoundsHeight());
+    RSSurfaceBufferInfo rsSurfaceBufferInfo(surfaceBuffer, property.GetBoundsPositionX(), property.GetBoundsPositionY(),
+        property.GetBoundsWidth(), property.GetBoundsHeight());
+#else
+    recordingCanvas_ = std::make_shared<Drawing::RecordingCanvas>(property.GetBoundsWidth(),
+        property.GetBoundsHeight());
+    DrawingSurfaceBufferInfo rsSurfaceBufferInfo(surfaceBuffer, property.GetBoundsPositionX(),
+        property.GetBoundsPositionY(), property.GetBoundsWidth(), property.GetBoundsHeight());
+#endif //USE_ROSEN_DRAWING
+    recordingCanvas_->DrawSurfaceBuffer(rsSurfaceBufferInfo);
+    auto drawCmdList = recordingCanvas_->GetDrawCmdList();
+    drawCmdList->Playback(*canvas_);
+#endif
 }
 
 void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
@@ -768,23 +836,23 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.SetContextMatrix(contextMatrix);
     node.SetContextAlpha(canvas_->GetAlpha());
 
-    if (node.GetIsTextureExportNode()) {
-        // TODO: deal with surfaceNode in same render
-        ProcessSurfaceViewInRT(node);
-        return;
-    }
-
     // PLANNING: This is a temporary modification. Animation for surfaceView should not be triggered in RenderService.
     // We plan to refactor code here.
     node.SetContextBounds(node.GetRenderProperties().GetBounds());
 #ifdef USE_SURFACE_TEXTURE
-    if (node.GetSurfaceNodeType() == RSSurfaceNodeType::SURFACE_TEXTURE_NODE) {
+    if (node.GetIsTextureExportNode()) {
+        ProcessSurfaceViewInRT(node);
+    } else if (node.GetSurfaceNodeType() == RSSurfaceNodeType::SURFACE_TEXTURE_NODE) {
         ProcessTextureSurfaceRenderNode(node);
     } else {
         ProcessOtherSurfaceRenderNode(node);
     }
 #else
-    ProcessOtherSurfaceRenderNode(node);
+    if (node.GetIsTextureExportNode()) {
+        ProcessSurfaceViewInRT(node);
+    } else {
+        ProcessOtherSurfaceRenderNode(node);
+    }
 #endif
 
     // 1. add this node to parent's children list
@@ -825,12 +893,14 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     canvas_->save();
     auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     canvas_->concat(geoPtr->GetMatrix());
+    RSPropertiesPainter::DrawOutline(node.GetRenderProperties(), *canvas_);
     RSPropertiesPainter::DrawBorder(node.GetRenderProperties(), *canvas_);
     canvas_->restore();
 #else
     canvas_->Save();
     auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     canvas_->ConcatMatrix(geoPtr->GetMatrix());
+    RSPropertiesPainter::DrawOutline(node.GetRenderProperties(), *canvas_);
     RSPropertiesPainter::DrawBorder(node.GetRenderProperties(), *canvas_);
     canvas_->Restore();
 #endif

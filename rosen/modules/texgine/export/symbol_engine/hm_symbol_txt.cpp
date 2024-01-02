@@ -36,6 +36,6 @@ namespace TextEngine {
         }
         return true;
     }
-}
-}
-}
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS

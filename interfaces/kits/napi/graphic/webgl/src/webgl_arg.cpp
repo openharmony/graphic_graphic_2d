@@ -876,7 +876,7 @@ void VertexAttribArg::Dump(const std::string &info) const
 bool UniformExtInfo::GetUniformExtInfo(napi_env env, const NFuncArg& funcArg, int32_t start)
 {
     bool succ = false;
-    if (start + 1 > funcArg.GetMaxArgc()) {
+    if (start + 1 > static_cast<int32_t>(funcArg.GetMaxArgc())) {
         LOGE("funcArg.GetMaxArgc : %{public}zu", funcArg.GetMaxArgc());
         return false;
     }

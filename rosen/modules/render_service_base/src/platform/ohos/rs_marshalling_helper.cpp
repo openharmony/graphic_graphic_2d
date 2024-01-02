@@ -66,7 +66,7 @@
 #include "src/core/SkWriteBuffer.h"
 #include "src/image/SkImage_Base.h"
 
-#include "include/core/SkHMSymbol.h"
+#include "include/core/HMSymbol.h"
 
 #include "pipeline/rs_draw_cmd_list.h"
 #ifdef NEW_SKIA
@@ -205,6 +205,14 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SymbolLayers& val)
         RS_LOGE("[%{public}s] failed SymbolLayers renderGroups_", __func__);
         return false;
     }
+    if (!Marshalling(parcel, val.effect)) {
+        RS_LOGE("[%{public}s] failed SymbolLayers effect", __func__);
+        return false;
+    }
+    if (!Marshalling(parcel, val.animationSetting)) {
+        RS_LOGE("[%{public}s] failed SymbolLayers animationSetting", __func__);
+        return false;
+    }
     return true;
 }
 
@@ -220,6 +228,14 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SymbolLayers& val)
     }
     if (!UnmarshallingVec(parcel, val.renderGroups)) {
         RS_LOGE("[%{public}s] failed SymbolLayers renderGroups_", __func__);
+        return false;
+    }
+    if (!Unmarshalling(parcel, val.effect)) {
+        RS_LOGE("[%{public}s] failed SymbolLayers effect", __func__);
+        return false;
+    }
+    if (!Unmarshalling(parcel, val.animationSetting)) {
+        RS_LOGE("[%{public}s] failed SymbolLayers animationSetting", __func__);
         return false;
     }
     return true;
@@ -346,6 +362,74 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SColor& val)
         Unmarshalling(parcel, val.g) &&
         Unmarshalling(parcel, val.b);
     return isok;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const GroupSetting& val)
+{
+    if (!MarshallingVec(parcel, val.groupInfos)) {
+        RS_LOGE("[%{public}s] failed GroupSetting groupInfos_", __func__);
+        return false;
+    }
+    if (!Marshalling(parcel, val.animationIndex)) {
+        RS_LOGE("[%{public}s] failed GroupSetting animationIndex", __func__);
+        return false;
+    }
+    return true;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, GroupSetting& val)
+{
+    if (!UnmarshallingVec(parcel, val.groupInfos)) {
+        RS_LOGE("[%{public}s] failed GroupSetting groupInfos_", __func__);
+        return false;
+    }
+    if (!Unmarshalling(parcel, val.animationIndex)) {
+        RS_LOGE("[%{public}s] failed GroupSetting animationIndex", __func__);
+        return false;
+    }
+    return true;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const AnimationSetting& val)
+{
+    if (!Marshalling(parcel, val.animationType)) {
+        RS_LOGE("[%{public}s] failed AnimationSetting animationType", __func__);
+        return false;
+    }
+    if (!Marshalling(parcel, val.animationSubType)) {
+        RS_LOGE("[%{public}s] failed AnimationSetting animationSubType", __func__);
+        return false;
+    }
+    if (!Marshalling(parcel, val.animationMode)) {
+        RS_LOGE("[%{public}s] failed AnimationSetting animationMode", __func__);
+        return false;
+    }
+    if (!MarshallingVec(parcel, val.groupSettings)) {
+        RS_LOGE("[%{public}s] failed AnimationSetting animationMode", __func__);
+        return false;
+    }
+    return true;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, AnimationSetting& val)
+{
+    if (!Unmarshalling(parcel, val.animationType)) {
+        RS_LOGE("[%{public}s] failed AnimationSetting animationType", __func__);
+        return false;
+    }
+    if (!Unmarshalling(parcel, val.animationSubType)) {
+        RS_LOGE("[%{public}s] failed AnimationSetting animationSubType", __func__);
+        return false;
+    }
+    if (!Unmarshalling(parcel, val.animationMode)) {
+        RS_LOGE("[%{public}s] failed AnimationSetting animationMode", __func__);
+        return false;
+    }
+    if (!UnmarshallingVec(parcel, val.groupSettings)) {
+        RS_LOGE("[%{public}s] failed AnimationSetting animationMode", __func__);
+        return false;
+    }
+    return true;
 }
 #endif
 
@@ -2123,12 +2207,12 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
         }
     }
 
-    std::vector<std::shared_ptr<Drawing::ExtendImageBaseOj>> objectBaseVec;
-    uint32_t objectBaseSize = val->GetAllBaseOj(objectBaseVec);
+    std::vector<std::shared_ptr<Drawing::ExtendImageBaseObj>> objectBaseVec;
+    uint32_t objectBaseSize = val->GetAllBaseObj(objectBaseVec);
     ret &= parcel.WriteUint32(objectBaseSize);
     if (objectBaseSize > 0) {
         for (const auto& objectBase : objectBaseVec) {
-            auto rsBaseObject = std::static_pointer_cast<RSExtendImageBaseOj>(objectBase);
+            auto rsBaseObject = std::static_pointer_cast<RSExtendImageBaseObj>(objectBase);
             ret &= RSMarshallingHelper::Marshalling(parcel, rsBaseObject);
             if (!ret) {
                 ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList imageBase");
@@ -2253,9 +2337,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 
     uint32_t objectBaseSize = parcel.ReadUint32();
     if (objectBaseSize > 0) {
-        std::vector<std::shared_ptr<Drawing::ExtendImageBaseOj>> ObjectBaseVec;
+        std::vector<std::shared_ptr<Drawing::ExtendImageBaseObj>> ObjectBaseVec;
         for (uint32_t i = 0; i < objectBaseSize; i++) {
-            std::shared_ptr<RSExtendImageBaseOj> objectBase;
+            std::shared_ptr<RSExtendImageBaseObj> objectBase;
             ret &= RSMarshallingHelper::Unmarshalling(parcel, objectBase);
             if (!ret) {
                 ROSEN_LOGE(
@@ -2264,7 +2348,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
             }
             ObjectBaseVec.emplace_back(objectBase);
         }
-        val->SetupBaseOj(ObjectBaseVec);
+        val->SetupBaseObj(ObjectBaseVec);
     }
 
 #ifdef ROSEN_OHOS
@@ -2317,28 +2401,28 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSExtend
     return true;
 }
 
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSExtendImageBaseOj>& val)
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSExtendImageBaseObj>& val)
 {
     if (!val) {
         return parcel.WriteInt32(-1);
     }
     if (!(parcel.WriteInt32(1) && val->Marshalling(parcel))) {
-        ROSEN_LOGE("failed RSMarshallingHelper::Marshalling ImageBaseOj");
+        ROSEN_LOGE("failed RSMarshallingHelper::Marshalling ImageBaseObj");
         return false;
     }
 
     return true;
 }
 
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSExtendImageBaseOj>& val)
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSExtendImageBaseObj>& val)
 {
     if (parcel.ReadInt32() == -1) {
         val = nullptr;
         return true;
     }
-    val.reset(RSExtendImageBaseOj::Unmarshalling(parcel));
+    val.reset(RSExtendImageBaseObj::Unmarshalling(parcel));
     if (val == nullptr) {
-        ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling ImageBaseOj");
+        ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling ImageBaseObj");
         return false;
     }
 

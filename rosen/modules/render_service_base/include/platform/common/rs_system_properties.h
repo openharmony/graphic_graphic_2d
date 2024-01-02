@@ -43,6 +43,7 @@ enum class DirtyRegionDebugType {
     REMOVE_CHILD_RECT,
     RENDER_PROPERTIES_RECT,
     CANVAS_NODE_SKIP_RECT,
+    OUTLINE_RECT,
 };
 
 enum class SurfaceRegionDebugType {
@@ -182,6 +183,8 @@ public:
     static bool GetSingleFrameComposerCanvasNodeEnabled();
     static bool GetSubSurfaceEnabled();
     static bool GetSecurityPermissionCheckEnabled();
+    static bool GetParallelUploadTexture();
+    static bool GetEffectMergeEnabled();
 
     static inline GpuApiType GetGpuApiType()
     {

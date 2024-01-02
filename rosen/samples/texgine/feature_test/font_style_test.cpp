@@ -89,6 +89,13 @@ struct FontStyleTestData {
             }),
         }
     },
+    {
+        .text = "圆角矩形背景",
+        .style = {
+            .fontSize = 32,
+            .backgroundRect = {0xFF8080FF, 20.0, 20.0, 20.0, 20.0},
+        }
+    }
 };
 
 class FontStyleTest : public TestFeature {

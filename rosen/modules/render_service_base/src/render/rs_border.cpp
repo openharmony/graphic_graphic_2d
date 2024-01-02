@@ -376,9 +376,11 @@ void RSBorder::PaintFourLine(Drawing::Canvas& canvas, Drawing::Pen& pen, RectF r
 }
 
 #ifndef USE_ROSEN_DRAWING
-void RSBorder::PaintTopPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) const
+void RSBorder::PaintTopPath(
+    SkCanvas& canvas, SkPaint& paint, const SkRRect& rrect, const SkPoint& innerRectCenter) const
 #else
-void RSBorder::PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect) const
+void RSBorder::PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
+    const Drawing::Point& innerRectCenter) const
 #endif
 {
 #ifndef USE_ROSEN_DRAWING
@@ -419,6 +421,7 @@ void RSBorder::PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing:
         SkPath topBorder;
         paint.setStrokeWidth(std::max(std::max(leftW, topW), std::max(rightW, bottomW)));
         SkAutoCanvasRestore acr(&canvas, true);
+        canvas.clipRect({ offsetX, offsetY, offsetX + width, innerRectCenter.y() });
 #else
         ApplyLineStyle(pen, RSBorder::TOP, width);
         auto rectStart = Drawing::Rect(x, y, x + tlX * 2.0f, y + tlY * 2.0f);
@@ -426,6 +429,7 @@ void RSBorder::PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing:
         Drawing::Path topBorder;
         pen.SetWidth(std::max(std::max(leftW, topW), std::max(rightW, bottomW)));
         Drawing::AutoCanvasRestore acr(canvas, true);
+        canvas.ClipRect({ offsetX, offsetY, offsetX + width, innerRectCenter.GetY() });
 #endif
         if ((style == BorderStyle::SOLID) || (ROSEN_EQ(tlX, 0.f) && !ROSEN_EQ(leftW, 0.f))) {
 #ifndef USE_ROSEN_DRAWING
@@ -478,27 +482,37 @@ void RSBorder::PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing:
         }
 #ifndef USE_ROSEN_DRAWING
         if (style == BorderStyle::SOLID) {
+            paint.setStyle(SkPaint::Style::kStrokeAndFill_Style);
             canvas.drawRect(topBorder.getBounds(), paint);
         } else {
             canvas.drawPath(topBorder, paint);
         }
 #else
         canvas.AttachPen(pen);
-        canvas.DrawPath(topBorder);
+        if (style == BorderStyle::SOLID) {
+            Drawing::Brush brush;
+            canvas.AttachBrush(brush);
+            canvas.DrawRect(topBorder.GetBounds());
+            canvas.DetachBrush();
+        } else {
+            canvas.DrawPath(topBorder);
+        }
         canvas.DetachPen();
 #endif
     }
 }
 
 #ifndef USE_ROSEN_DRAWING
-void RSBorder::PaintRightPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) const
+void RSBorder::PaintRightPath(
+    SkCanvas& canvas, SkPaint& paint, const SkRRect& rrect, const SkPoint& innerRectCenter) const
 {
     float offsetX = rrect.rect().x();
     float offsetY = rrect.rect().y();
     float width = rrect.rect().width();
     float height = rrect.rect().height();
 #else
-void RSBorder::PaintRightPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect) const
+void RSBorder::PaintRightPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
+    const Drawing::Point& innerRectCenter) const
 {
     float offsetX = rrect.GetRect().GetLeft();
     float offsetY = rrect.GetRect().GetTop();
@@ -537,6 +551,7 @@ void RSBorder::PaintRightPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawin
         SkPath rightBorder;
         paint.setStrokeWidth(std::max(std::max(leftW, topW), std::max(rightW, bottomW)));
         SkAutoCanvasRestore acr(&canvas, true);
+        canvas.clipRect({ innerRectCenter.x(), offsetY, offsetX + width, offsetY + height });
 #else
         ApplyLineStyle(pen, RSBorder::RIGHT, height);
         auto rectStart = Drawing::Rect(x + w - trX * 2.0f, y, x + w, y + trY * 2.0f);
@@ -544,6 +559,7 @@ void RSBorder::PaintRightPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawin
         Drawing::Path rightBorder;
         pen.SetWidth(std::max(std::max(leftW, topW), std::max(rightW, bottomW)));
         Drawing::AutoCanvasRestore acr(canvas, true);
+        canvas.ClipRect({ innerRectCenter.GetX(), offsetY, offsetX + width, offsetY + height });
 #endif
         if ((style == BorderStyle::SOLID) || (ROSEN_EQ(trX, 0.f) && !ROSEN_EQ(topW, 0.f))) {
 #ifndef USE_ROSEN_DRAWING
@@ -596,27 +612,37 @@ void RSBorder::PaintRightPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawin
         }
 #ifndef USE_ROSEN_DRAWING
         if (style == BorderStyle::SOLID) {
+            paint.setStyle(SkPaint::Style::kStrokeAndFill_Style);
             canvas.drawRect(rightBorder.getBounds(), paint);
         } else {
             canvas.drawPath(rightBorder, paint);
         }
 #else
         canvas.AttachPen(pen);
-        canvas.DrawPath(rightBorder);
+        if (style == BorderStyle::SOLID) {
+            Drawing::Brush brush;
+            canvas.AttachBrush(brush);
+            canvas.DrawRect(rightBorder.GetBounds());
+            canvas.DetachBrush();
+        } else {
+            canvas.DrawPath(rightBorder);
+        }
         canvas.DetachPen();
 #endif
     }
 }
 
 #ifndef USE_ROSEN_DRAWING
-void RSBorder::PaintBottomPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) const
+void RSBorder::PaintBottomPath(
+    SkCanvas& canvas, SkPaint& paint, const SkRRect& rrect, const SkPoint& innerRectCenter) const
 {
     float offsetX = rrect.rect().x();
     float offsetY = rrect.rect().y();
     float width = rrect.rect().width();
     float height = rrect.rect().height();
 #else
-void RSBorder::PaintBottomPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect) const
+void RSBorder::PaintBottomPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
+    const Drawing::Point& innerRectCenter) const
 {
     float offsetX = rrect.GetRect().GetLeft();
     float offsetY = rrect.GetRect().GetTop();
@@ -657,6 +683,7 @@ void RSBorder::PaintBottomPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawi
             paint.setStrokeWidth(std::max(std::max(leftW, topW), std::max(rightW, bottomW)));
         }
         SkAutoCanvasRestore acr(&canvas, true);
+        canvas.clipRect({ offsetX, innerRectCenter.y(), offsetX + width, offsetY + height });
 #else
         ApplyLineStyle(pen, RSBorder::BOTTOM, width);
         auto rectStart = Drawing::Rect(x + w - brX * 2.0f, y + h - brY * 2.0f, x + w, y + h);
@@ -666,6 +693,7 @@ void RSBorder::PaintBottomPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawi
             pen.SetWidth(std::max(std::max(leftW, topW), std::max(rightW, bottomW)));
         }
         Drawing::AutoCanvasRestore acr(canvas, true);
+        canvas.ClipRect({ offsetX, innerRectCenter.GetY(), offsetX + width, offsetY + height });
 #endif
         if ((style == BorderStyle::SOLID) || (ROSEN_EQ(brX, 0.f) && !ROSEN_EQ(rightW, 0.f))) {
 #ifndef USE_ROSEN_DRAWING
@@ -718,26 +746,36 @@ void RSBorder::PaintBottomPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawi
         }
 #ifndef USE_ROSEN_DRAWING
         if (style == BorderStyle::SOLID) {
+            paint.setStyle(SkPaint::Style::kStrokeAndFill_Style);
             canvas.drawRect(bottomBorder.getBounds(), paint);
         } else {
             canvas.drawPath(bottomBorder, paint);
         }
 #else
         canvas.AttachPen(pen);
-        canvas.DrawPath(bottomBorder);
+        if (style == BorderStyle::SOLID) {
+            Drawing::Brush brush;
+            canvas.AttachBrush(brush);
+            canvas.DrawRect(bottomBorder.GetBounds());
+            canvas.DetachBrush();
+        } else {
+            canvas.DrawPath(bottomBorder);
+        }
         canvas.DetachPen();
 #endif
     }
 }
 
 #ifndef USE_ROSEN_DRAWING
-void RSBorder::PaintLeftPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) const
+void RSBorder::PaintLeftPath(
+    SkCanvas& canvas, SkPaint& paint, const SkRRect& rrect, const SkPoint& innerRectCenter) const
 {
     float offsetX = rrect.rect().x();
     float offsetY = rrect.rect().y();
     float height = rrect.rect().height();
 #else
-void RSBorder::PaintLeftPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect) const
+void RSBorder::PaintLeftPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
+    const Drawing::Point& innerRectCenter) const
 {
     float offsetX = rrect.GetRect().GetLeft();
     float offsetY = rrect.GetRect().GetTop();
@@ -774,6 +812,7 @@ void RSBorder::PaintLeftPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing
             paint.setStrokeWidth(std::max(std::max(leftW, topW), std::max(rightW, bottomW)));
         }
         SkAutoCanvasRestore acr(&canvas, true);
+        canvas.clipRect({ offsetX, offsetY, innerRectCenter.x(), offsetY + height });
 #else
         ApplyLineStyle(pen, RSBorder::LEFT, height);
         auto rectStart = Drawing::Rect(x, y + h - blY * 2.0f, x + blX * 2.0f, y + h);
@@ -783,6 +822,7 @@ void RSBorder::PaintLeftPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing
             pen.SetWidth(std::max(std::max(leftW, topW), std::max(rightW, bottomW)));
         }
         Drawing::AutoCanvasRestore acr(canvas, true);
+        canvas.ClipRect({ offsetX, offsetY, innerRectCenter.GetX(), offsetY + height });
 #endif
         if ((style == BorderStyle::SOLID) || (ROSEN_EQ(blX, 0.f) && !ROSEN_EQ(bottomW, 0.f))) {
 #ifndef USE_ROSEN_DRAWING
@@ -836,13 +876,21 @@ void RSBorder::PaintLeftPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing
         }
 #ifndef USE_ROSEN_DRAWING
         if (style == BorderStyle::SOLID) {
+            paint.setStyle(SkPaint::Style::kStrokeAndFill_Style);
             canvas.drawRect(leftBorder.getBounds(), paint);
         } else {
             canvas.drawPath(leftBorder, paint);
         }
 #else
         canvas.AttachPen(pen);
-        canvas.DrawPath(leftBorder);
+        if (style == BorderStyle::SOLID) {
+            Drawing::Brush brush;
+            canvas.AttachBrush(brush);
+            canvas.DrawRect(leftBorder.GetBounds());
+            canvas.DetachBrush();
+        } else {
+            canvas.DrawPath(leftBorder);
+        }
         canvas.DetachPen();
 #endif
     }

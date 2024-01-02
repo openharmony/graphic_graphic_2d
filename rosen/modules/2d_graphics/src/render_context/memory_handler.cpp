@@ -34,6 +34,7 @@ void MemoryHandler::ConfigureContext(GrContextOptions* context, const char* iden
 void MemoryHandler::ConfigureContext(Drawing::GPUContextOptions* context, const char* identity,
     const size_t size, const std::string& cacheFilePath, bool isUni)
 {
+    context->SetAllowPathMaskCaching(true);
     auto& cache = ShaderCache::Instance();
     cache.SetFilePath(cacheFilePath);
     cache.InitShaderCache(identity, size, isUni);
@@ -59,8 +60,10 @@ void MemoryHandler::ClearRedundantResources(GrContext* grContext)
 void MemoryHandler::ClearRedundantResources(Drawing::GPUContext* gpuContext)
 {
     if (gpuContext != nullptr) {
-        LOGD("Drawing is not supported");
+        LOGD("gpuContext clear redundant resources");
         gpuContext->Flush();
+        // GPU resources that haven't been used in the past 10 seconds
+        gpuContext->PerformDeferredCleanup(std::chrono::seconds(10));
     }
 }
 #endif

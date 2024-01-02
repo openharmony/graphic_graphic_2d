@@ -72,6 +72,32 @@ void TexgineCanvas::DrawRect(const TexgineRect &rect, const TexginePaint &paint)
 #endif
 }
 
+void TexgineCanvas::DrawRRect(const TexgineRect &rect, const TexginePaint &paint) const
+{
+    if (canvas_ == nullptr || rect.GetRRect() == nullptr) {
+        return;
+    }
+#ifndef USE_ROSEN_DRAWING
+    canvas_->drawRRect(*rect.GetRRect(), paint.GetPaint());
+#else
+    if (paint.GetStyle() == TexginePaint::Style::FILL) {
+        canvas_->AttachBrush(paint.GetBrush());
+        canvas_->DrawRoundRect(*rect.GetRRect());
+        canvas_->DetachBrush();
+    } else if (paint.GetStyle() == TexginePaint::Style::STROKE) {
+        canvas_->AttachPen(paint.GetPen());
+        canvas_->DrawRoundRect(*rect.GetRRect());
+        canvas_->DetachPen();
+    } else {
+        canvas_->AttachBrush(paint.GetBrush());
+        canvas_->AttachPen(paint.GetPen());
+        canvas_->DrawRoundRect(*rect.GetRRect());
+        canvas_->DetachBrush();
+        canvas_->DetachPen();
+    }
+#endif
+}
+
 void TexgineCanvas::DrawTextBlob(
     const std::shared_ptr<TexgineTextBlob> &blob, float x, float y, const TexginePaint &paint)
 {
@@ -180,9 +206,7 @@ int TexgineCanvas::Save() const
 #ifndef USE_ROSEN_DRAWING
     return canvas_->save();
 #else
-    int count = canvas_->GetSaveCount();
-    canvas_->Save();
-    return count;
+    return canvas_->Save();
 #endif
 }
 

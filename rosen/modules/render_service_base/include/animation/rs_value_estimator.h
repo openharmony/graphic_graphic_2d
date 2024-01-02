@@ -61,6 +61,11 @@ public:
         std::vector<std::tuple<float, std::shared_ptr<RSRenderPropertyBase>,
         std::shared_ptr<RSInterpolator>>>& keyframes,
         const std::shared_ptr<RSRenderPropertyBase>& lastValue) {}
+    
+    virtual void InitDurationKeyframeAnimationValue(const std::shared_ptr<RSRenderPropertyBase>& property,
+        std::vector<std::tuple<float, float, std::shared_ptr<RSRenderPropertyBase>,
+        std::shared_ptr<RSInterpolator>>>& keyframes,
+        const std::shared_ptr<RSRenderPropertyBase>& lastValue) {}
 
     virtual void UpdateAnimationValue(const float fraction, const bool isAdditive) = 0;
 };
@@ -149,6 +154,26 @@ public:
         }
     }
 
+    void InitDurationKeyframeAnimationValue(const std::shared_ptr<RSRenderPropertyBase>& property,
+        std::vector<std::tuple<float, float, std::shared_ptr<RSRenderPropertyBase>,
+        std::shared_ptr<RSInterpolator>>>& keyframes,
+        const std::shared_ptr<RSRenderPropertyBase>& lastValue) override
+    {
+        auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(property);
+        auto animatableLastValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(lastValue);
+        if (animatableProperty && animatableLastValue) {
+            property_ = animatableProperty;
+            lastValue_ = animatableLastValue->Get();
+        }
+        for (const auto& keyframe : keyframes) {
+            auto keyframeValue = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(std::get<2>(keyframe));
+            if (keyframeValue != nullptr) {
+                durationKeyframes_.push_back(
+                    { std::get<0>(keyframe), std::get<1>(keyframe), keyframeValue->Get(), std::get<3>(keyframe) });
+            }
+        }
+    }
+
     void UpdateAnimationValue(const float fraction, const bool isAdditive) override
     {
         auto animationValue = GetAnimationValue(fraction, isAdditive);
@@ -159,6 +184,32 @@ public:
 
     T GetAnimationValue(const float fraction, const bool isAdditive)
     {
+        if (!(durationKeyframes_.empty())) {
+            auto preKeyframeValue = std::get<2>(durationKeyframes_.front());
+            for (const auto& keyframe : durationKeyframes_) {
+                float startFraction = std::get<0>(keyframe);
+                float endFraction = std::get<1>(keyframe);
+                auto keyframeValue = std::get<2>(keyframe);
+                auto keyframeInterpolator = std::get<3>(keyframe);
+                if (fraction < startFraction) {
+                    break;
+                }
+                if ((fraction > startFraction) && (fraction <= endFraction)) {
+                    float intervalFraction = (fraction - startFraction) / (endFraction - startFraction);
+                    auto interpolationValue = RSValueEstimator::Estimate(
+                        keyframeInterpolator->Interpolate(intervalFraction), preKeyframeValue, keyframeValue);
+                    auto animationValue = interpolationValue;
+                    if (isAdditive && property_ != nullptr) {
+                        animationValue = property_->Get() + interpolationValue - lastValue_;
+                    }
+                    lastValue_ = interpolationValue;
+                    preKeyframeValue = animationValue;
+                    continue;
+                }
+                preKeyframeValue = keyframeValue;
+            }
+            return preKeyframeValue;
+        }
         float preKeyframeFraction = std::get<0>(keyframes_.front());
         auto preKeyframeValue = std::get<1>(keyframes_.front());
         for (const auto& keyframe : keyframes_) {
@@ -190,6 +241,7 @@ public:
 
 private:
     std::vector<std::tuple<float, T, std::shared_ptr<RSInterpolator>>> keyframes_;
+    std::vector<std::tuple<float, float, T, std::shared_ptr<RSInterpolator>>> durationKeyframes_;
     T lastValue_ {};
     std::shared_ptr<RSRenderAnimatableProperty<T>> property_;
 };

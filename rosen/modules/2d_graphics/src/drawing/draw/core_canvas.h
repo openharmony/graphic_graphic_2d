@@ -169,7 +169,7 @@ public:
     virtual Rect GetLocalClipBounds() const;
 
     /*
-     * @brief  Gets bounds of clip in device corrdinates.
+     * @brief  Gets bounds of clip in device coordinates.
      */
     virtual RectI GetDeviceClipBounds() const;
 
@@ -337,7 +337,11 @@ public:
     // state
     virtual void Flush();
     virtual void Clear(ColorQuad color);
-    virtual void Save();
+
+    /*
+     * @brief               Saves Matrix and clipping area, return the number of saved states.
+     */
+    virtual uint32_t Save();
 
     /*
      * @brief               Saves Matrix and clipping area, and allocates Surface for subsequent drawing.

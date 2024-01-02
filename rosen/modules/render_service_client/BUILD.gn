@@ -25,12 +25,21 @@ config("render_service_client_config") {
     "$graphic_2d_root/interfaces/inner_api/composer",
     "//drivers/peripheral/display/interfaces/include",
     "//drivers/peripheral/base",
+    "$graphic_2d_root/frameworks/surface/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics",
   ]
   defines = rs_common_define
 }
 
 template("render_service_client_source_set") {
   ohos_source_set(target_name) {
+    branch_protector_ret = "pac_ret"
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+      blocklist = "./rs_client_blocklist.txt"
+    }
     defines = []
     defines += gpu_defines
     defines += [ "MODULE_RSC" ]
@@ -104,6 +113,11 @@ template("render_service_client_source_set") {
       "core/ui/rs_ui_share_context.cpp",
     ]
 
+    if (is_cross_platform) {
+      #ui
+      sources -= [ "core/ui/rs_display_node.cpp" ]
+    }
+
     if (defined(graphic_2d_ext_configs.vendor_root)) {
       sources += graphic_2d_ext_configs.librender_service_client_ext_sources
       sources -= graphic_2d_ext_configs.librender_service_client_ext_sources_del
@@ -150,8 +164,10 @@ template("render_service_client_source_set") {
       }
     }
     if (rosen_is_ohos) {
-      public_deps +=
-          [ "$graphic_2d_root/rosen/modules/frame_analyzer:libframe_analyzer" ]
+      public_deps += [
+        "$graphic_2d_root:libsurface",
+        "$graphic_2d_root/rosen/modules/frame_analyzer:libframe_analyzer",
+      ]
       external_deps = [
         "c_utils:utils",
         "hisysevent:libhisysevent",
@@ -229,6 +245,13 @@ config("render_service_client_link_config") {
 }
 
 ohos_shared_library("librender_service_client") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "./rs_client_blocklist.txt"
+  }
   public_deps = [ ":render_service_client_src" ]
   innerapi_tags = [ "platformsdk" ]
 
@@ -241,6 +264,13 @@ ohos_shared_library("librender_service_client") {
 }
 
 ohos_source_set("librender_service_client_static") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "./rs_client_blocklist.txt"
+  }
   public_deps = [ ":render_service_client_src_static" ]
   deps = [ "$rosen_root/modules/platform:eventhandler" ]
   part_name = "graphic_2d"

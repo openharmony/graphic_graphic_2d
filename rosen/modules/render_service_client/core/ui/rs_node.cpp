@@ -166,6 +166,20 @@ void RSNode::AddKeyFrame(float fraction, const PropertyCallback& propertyCallbac
     implicitAnimator->EndImplicitKeyFrameAnimation();
 }
 
+void RSNode::AddDurationKeyFrame(
+    int duration, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback)
+{
+    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+    if (implicitAnimator == nullptr) {
+        ROSEN_LOGE("Failed to add keyframe, implicit animator is null!");
+        return;
+    }
+
+    implicitAnimator->BeginImplicitDurationKeyFrameAnimation(duration, timingCurve);
+    propertyCallback();
+    implicitAnimator->EndImplicitDurationKeyFrameAnimation();
+}
+
 bool RSNode::IsImplicitAnimationOpen()
 {
     auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
@@ -317,7 +331,13 @@ void RSNode::CancelAnimationByProperty(const PropertyId& id)
     animatingPropertyNum_.erase(id);
     std::vector<std::shared_ptr<RSAnimation>> toBeRemoved;
     {
-        std::unique_lock<std::mutex> lock(animationMutex_);
+        std::unique_lock<std::mutex> lock(animationMutex_, std::defer_lock);
+        if (!lock.try_lock()) {
+            // The Arkui component has logic to cancel animation within the callback of another animation. However, this
+            // approach may cause a deadlock. Although it is a dirty workaround, it currently works as intended.
+            FinishAnimationByProperty(id);
+            return;
+        }
         EraseIf(animations_, [id, &toBeRemoved](const auto& pair) {
             if (pair.second && (pair.second->GetPropertyId() == id)) {
                 toBeRemoved.emplace_back(pair.second);
@@ -326,6 +346,8 @@ void RSNode::CancelAnimationByProperty(const PropertyId& id)
             return false;
         });
     }
+    // Destroy the cancelled animations outside the lock, since destroying them may trigger OnFinish callbacks, and
+    // callbacks may add/remove other animations, doing this with the lock would cause a deadlock.
     toBeRemoved.clear();
 }
 
@@ -949,28 +971,48 @@ void RSNode::SetBorderStyle(const Vector4<BorderStyle>& style)
 
 void RSNode::SetOuterBorderColor(const Vector4<Color>& color)
 {
-    SetProperty<RSOuterBorderColorModifier, RSAnimatableProperty<Vector4<Color>>>(
-        RSModifierType::OUTER_BORDER_COLOR, color);
+    SetOutlineColor(color);
 }
 
 void RSNode::SetOuterBorderWidth(const Vector4f& width)
 {
-    SetProperty<RSOuterBorderWidthModifier, RSAnimatableProperty<Vector4f>>(
-        RSModifierType::OUTER_BORDER_WIDTH, width);
+    SetOutlineWidth(width);
 }
 
 void RSNode::SetOuterBorderStyle(const Vector4<BorderStyle>& style)
 {
-    Vector4<uint32_t> styles(static_cast<uint32_t>(style.x_), static_cast<uint32_t>(style.y_),
-                             static_cast<uint32_t>(style.z_), static_cast<uint32_t>(style.w_));
-    SetProperty<RSOuterBorderStyleModifier, RSProperty<Vector4<uint32_t>>>(
-        RSModifierType::OUTER_BORDER_STYLE, styles);
+    SetOutlineStyle(style);
 }
 
 void RSNode::SetOuterBorderRadius(const Vector4f& radius)
 {
-    SetProperty<RSOuterBorderRadiusModifier, RSAnimatableProperty<Vector4f>>(
-        RSModifierType::OUTER_BORDER_RADIUS, radius);
+    SetOutlineRadius(radius);
+}
+
+void RSNode::SetOutlineColor(const Vector4<Color>& color)
+{
+    SetProperty<RSOutlineColorModifier, RSAnimatableProperty<Vector4<Color>>>(
+        RSModifierType::OUTLINE_COLOR, color);
+}
+
+void RSNode::SetOutlineWidth(const Vector4f& width)
+{
+    SetProperty<RSOutlineWidthModifier, RSAnimatableProperty<Vector4f>>(
+        RSModifierType::OUTLINE_WIDTH, width);
+}
+
+void RSNode::SetOutlineStyle(const Vector4<BorderStyle>& style)
+{
+    Vector4<uint32_t> styles(static_cast<uint32_t>(style.x_), static_cast<uint32_t>(style.y_),
+                             static_cast<uint32_t>(style.z_), static_cast<uint32_t>(style.w_));
+    SetProperty<RSOutlineStyleModifier, RSProperty<Vector4<uint32_t>>>(
+        RSModifierType::OUTLINE_STYLE, styles);
+}
+
+void RSNode::SetOutlineRadius(const Vector4f& radius)
+{
+    SetProperty<RSOutlineRadiusModifier, RSAnimatableProperty<Vector4f>>(
+        RSModifierType::OUTLINE_RADIUS, radius);
 }
 
 void RSNode::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter)
@@ -1317,6 +1359,20 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
     }
 }
 
+void RSNode::DoFlushModifier()
+{
+    if (modifiers_.empty()) {
+        return;
+    }
+    for (const auto& [_, modifier] : modifiers_) {
+        std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
+        }
+    }
+}
+
 void RSNode::RemoveModifier(const std::shared_ptr<RSModifier> modifier)
 {
     if (!modifier) {
@@ -1644,7 +1700,7 @@ void RSNode::AddChild(SharedPtr child, int index)
         return;
     }
     NodeId childId = child->GetId();
-    if (child->parent_ != 0) {
+    if (child->parent_ != 0 && !child->isTextureExportNode_) {
         child->RemoveFromTree();
     }
 
@@ -1713,6 +1769,15 @@ void RSNode::RemoveChild(SharedPtr child)
     childId = child->GetHierarchyCommandNodeId();
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeRemoveChild>(id_, childId);
     transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
+}
+
+void RSNode::RemoveChildByNodeId(NodeId childId)
+{
+    if (auto childPtr = RSNodeMap::Instance().GetNode(childId)) {
+        RemoveChild(childPtr);
+    } else {
+        ROSEN_LOGE("RSNode::RemoveChildByNodeId, childId not found");
+    }
 }
 
 void RSNode::AddCrossParentChild(SharedPtr child, int index)
@@ -1816,6 +1881,19 @@ void RSNode::ClearChildren()
     auto nodeId = GetHierarchyCommandNodeId();
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeClearChild>(nodeId);
     transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), nodeId);
+}
+
+const std::optional<NodeId> RSNode::GetChildIdByIndex(int index) const
+{
+    int childrenTotal = static_cast<int>(children_.size());
+    if (childrenTotal <= 0 || index < -1 || index >= childrenTotal) {
+        ROSEN_LOGE("RSNode::GetChildIdByIndex, index out of bound");
+        return std::nullopt;
+    }
+    if (index == -1) {
+        index = childrenTotal - 1;
+    }
+    return children_.at(index);
 }
 
 void RSNode::SetParent(NodeId parentId)

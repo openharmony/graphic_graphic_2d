@@ -99,6 +99,7 @@ void DrawCmdList::ClearOp()
     unmarshalledOpItems_.clear();
     lastOpGenSize_ = 0;
     lastOpItemOffset_ = std::nullopt;
+    opCnt_ = 0;
 }
 
 std::shared_ptr<DrawCmdList> DrawCmdList::CreateFromData(const CmdListData& data, bool isCopy)
@@ -296,6 +297,9 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect)
                 auto op = player.Unmarshalling(type, itemPtr);
                 if (op) {
                     unmarshalledOpItems_.emplace_back(op);
+                    if (op->GetType() == DrawOpItem::SYMBOL_OPITEM) {
+                        op->SetSymbol();
+                    }
                     op->Playback(&canvas, &tmpRect);
                 }
                 offset = curOpItemPtr->GetNextOpItemOffset();
@@ -305,6 +309,9 @@ void DrawCmdList::Playback(Canvas& canvas, const Rect* rect)
     } else {
         for (auto op : unmarshalledOpItems_) {
             if (op) {
+                if (op->GetType() == DrawOpItem::SYMBOL_OPITEM) {
+                        op->SetSymbol();
+                }
                 op->Playback(&canvas, &tmpRect);
             }
         }
@@ -426,7 +433,7 @@ void DrawCmdList::AddOpToCmdList(std::shared_ptr<DrawCmdList> cmdList)
 #ifdef SUPPORT_OHOS_PIXMAP
     imageObjectVec_.swap(cmdList->imageObjectVec_);
 #endif
-    imageBaseOjVec_.swap(cmdList->imageBaseOjVec_);
+    imageBaseObjVec_.swap(cmdList->imageBaseObjVec_);
     size_t size = opAllocator_.GetSize() - offset;
     auto imageData = GetAllImageData();
     auto bitmapData = GetAllBitmapData();

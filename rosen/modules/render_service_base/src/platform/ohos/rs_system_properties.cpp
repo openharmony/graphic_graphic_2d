@@ -208,9 +208,10 @@ bool RSSystemProperties::GetUseShadowBatchingEnabled()
 bool RSSystemProperties::GetAFBCEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.afbc.enabled", "1");
+    static const bool isBra = (system::GetParameter("const.build.product", "0").compare("BRA") == 0);
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 1) != 0;
+    return ConvertToInt(enable, 1) != 0 && !isBra;
 }
 
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
@@ -571,10 +572,16 @@ bool RSSystemProperties::GetASTCEnabled()
 // GetCachedBlurPartialRenderEnabled Option On: no need to expand blur dirtyregion if blur has background cache
 bool RSSystemProperties::GetCachedBlurPartialRenderEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.cachedblurpartialrender.enabled", "1");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.cachedblurpartialrender.enabled", "0");
     int changed = 0;
     const char *type = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(type, 1) != 0;
+}
+
+bool RSSystemProperties::GetParallelUploadTexture()
+{
+    static bool enable = std::atoi((system::GetParameter("rosen.parallelUpload,enabled", "1")).c_str()) != 0;
+    return enable;
 }
 
 bool RSSystemProperties::GetImageGpuResourceCacheEnable(int width, int height)
@@ -680,6 +687,14 @@ bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
     static bool openSecurityPermissionCheck =
         std::atoi((system::GetParameter("persist.sys.graphic.openSecurityPermissionCheck", "0")).c_str()) != 0;
     return openSecurityPermissionCheck;
+}
+
+bool RSSystemProperties::GetEffectMergeEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.effectMergeEnabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
 }
 } // namespace Rosen
 } // namespace OHOS

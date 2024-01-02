@@ -33,7 +33,7 @@ RSPaintFilterCanvasBase::RSPaintFilterCanvasBase(Drawing::Canvas* canvas)
     : Canvas(canvas->GetWidth(), canvas->GetHeight()), canvas_(canvas)
 {
 #ifdef ENABLE_RECORDING_DCL
-    thie->AddCanvas(canvas);
+    this->AddCanvas(canvas);
 #endif
 }
 
@@ -231,6 +231,7 @@ void RSPaintFilterCanvasBase::DrawPath(const Path& path)
 
 void RSPaintFilterCanvasBase::DrawBackground(const Brush& brush)
 {
+    Brush b(brush);
 #ifdef ENABLE_RECORDING_DCL
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilterWithBrush(b)) {
@@ -238,7 +239,6 @@ void RSPaintFilterCanvasBase::DrawBackground(const Brush& brush)
         }
     }
 #else
-    Brush b(brush);
     if (canvas_ != nullptr && OnFilterWithBrush(b)) {
         canvas_->DrawBackground(b);
     }
@@ -719,18 +719,21 @@ void RSPaintFilterCanvasBase::Clear(ColorQuad color)
 #endif
 }
 
-void RSPaintFilterCanvasBase::Save()
+uint32_t RSPaintFilterCanvasBase::Save()
 {
 #ifdef ENABLE_RECORDING_DCL
+    uint32_t count = 0U;
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
-            (*iter)->Save();
+            count = (*iter)->Save();
         }
     }
+    return count;
 #else
     if (canvas_ != nullptr) {
-        canvas_->Save();
+        return canvas_->Save();
     }
+    return 0;
 #endif
 }
 
@@ -823,7 +826,7 @@ CoreCanvas& RSPaintFilterCanvasBase::AttachPaint(const Drawing::Paint& paint)
 #ifdef ENABLE_RECORDING_DCL
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
-            (*iter)->AttachPaint(brush);
+            (*iter)->AttachPaint(paint);
         }
     }
 #else

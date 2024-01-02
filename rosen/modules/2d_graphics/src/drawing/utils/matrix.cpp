@@ -186,6 +186,11 @@ void Matrix::Reset()
 {
     matrixImplPtr->Reset();
 }
+
+bool Matrix::GetMinMaxScales(scalar scaleFactors[2])
+{
+    return matrixImplPtr->GetMinMaxScales(scaleFactors);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

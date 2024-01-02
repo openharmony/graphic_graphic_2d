@@ -24,22 +24,21 @@
 #include "src/image/SkImage_Base.h"
 
 namespace OHOS::Rosen {
-void RSFrameGeometryDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
+void RSFrameGeometryDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
 #ifndef USE_ROSEN_DRAWING
-    canvas.translate(node.GetRenderProperties().GetFrameOffsetX(), node.GetRenderProperties().GetFrameOffsetY());
+    canvas.translate(content.GetRenderProperties().GetFrameOffsetX(), content.GetRenderProperties().GetFrameOffsetY());
 #else
-    canvas.Translate(node.GetRenderProperties().GetFrameOffsetX(), node.GetRenderProperties().GetFrameOffsetY());
+    canvas.Translate(content.GetRenderProperties().GetFrameOffsetX(), content.GetRenderProperties().GetFrameOffsetY());
 #endif
 }
-RSPropertyDrawable::DrawablePtr RSFrameGeometryDrawable::Generate(const RSPropertyDrawableGenerateContext& context)
+RSPropertyDrawable::DrawablePtr RSFrameGeometryDrawable::Generate(const RSRenderContent& content)
 {
     return std::make_unique<RSFrameGeometryDrawable>();
 }
 
-void RSColorFilterDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
+void RSColorFilterDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
-    // if useEffect defined, use color filter from parent EffectView.
 #ifndef USE_ROSEN_DRAWING
     auto skSurface = canvas.GetSurface();
     if (skSurface == nullptr) {
@@ -59,8 +58,6 @@ void RSColorFilterDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas
     canvas.drawImageRect(imageSnapshot, SkRect::Make(clipBounds), options, &paint_);
 
 #else
-    canvas.ClipRoundRect(RSPropertiesPainter::RRect2DrawingRRect(node.GetMutableRenderProperties().GetRRect()),
-        Drawing::ClipOp::INTERSECT, true);
     auto drSurface = canvas.GetSurface();
     if (drSurface == nullptr) {
         ROSEN_LOGE("RSColorFilterDrawable::Draw drSurface is null");
@@ -84,9 +81,9 @@ void RSColorFilterDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas
 #endif
 }
 
-std::unique_ptr<RSPropertyDrawable> RSColorFilterDrawable::Generate(const RSPropertyDrawableGenerateContext& context)
+RSPropertyDrawable::DrawablePtr RSColorFilterDrawable::Generate(const RSRenderContent& content)
 {
-    auto& colorFilter = context.properties_.GetColorFilter();
+    auto& colorFilter = content.GetRenderProperties().GetColorFilter();
     if (colorFilter == nullptr) {
         return nullptr;
     }
@@ -105,9 +102,9 @@ std::unique_ptr<RSPropertyDrawable> RSColorFilterDrawable::Generate(const RSProp
 #endif
 }
 
-bool RSColorFilterDrawable::Update(const RSPropertyDrawableGenerateContext& context)
+bool RSColorFilterDrawable::Update(const RSRenderContent& content)
 {
-    auto& colorFilter = context.properties_.GetColorFilter();
+    auto& colorFilter = content.GetRenderProperties().GetColorFilter();
     if (colorFilter == nullptr) {
         return false;
     }
@@ -121,18 +118,18 @@ bool RSColorFilterDrawable::Update(const RSPropertyDrawableGenerateContext& cont
     return true;
 }
 
-RSPropertyDrawable::DrawablePtr RSClipFrameDrawable::Generate(const RSPropertyDrawableGenerateContext& context)
+RSPropertyDrawable::DrawablePtr RSClipFrameDrawable::Generate(const RSRenderContent& content)
 {
     // PLANNING: cache frame rect, and update when frame rect changed
-    return context.properties_.GetClipToFrame() ? std::make_unique<RSClipFrameDrawable>() : nullptr;
+    return content.GetRenderProperties().GetClipToFrame() ? std::make_unique<RSClipFrameDrawable>() : nullptr;
 }
 
-void RSClipFrameDrawable::Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas)
+void RSClipFrameDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
 #ifndef USE_ROSEN_DRAWING
-    canvas.clipRect(RSPropertiesPainter::Rect2SkRect(node.GetRenderProperties().GetFrameRect()));
+    canvas.clipRect(RSPropertiesPainter::Rect2SkRect(content.GetRenderProperties().GetFrameRect()));
 #else
-    canvas.ClipRect(RSPropertiesPainter::Rect2DrawingRect(node.GetRenderProperties().GetFrameRect()),
+    canvas.ClipRect(RSPropertiesPainter::Rect2DrawingRect(content.GetRenderProperties().GetFrameRect()),
         Drawing::ClipOp::INTERSECT, false);
 #endif
 }

@@ -18,7 +18,6 @@
 
 #ifndef USE_ROSEN_DRAWING
 
-#include "common/rs_macros.h"
 #include "include/core/SkBitmap.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkCanvasVirtualEnforcer.h"
@@ -27,9 +26,12 @@
 #include "include/core/SkPath.h"
 #include "include/core/SkRect.h"
 #include "include/utils/SkNoDrawCanvas.h"
+
+#include "common/rs_macros.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "property/rs_properties_def.h"
 #include "render/rs_image.h"
+
 #ifdef NEW_SKIA
 #include "src/core/SkVerticesPriv.h"
 #endif
@@ -37,7 +39,7 @@
 #include "surface_buffer.h"
 #endif
 
-#include "include/core/SkHMSymbol.h"
+#include "include/core/HMSymbol.h"
 
 namespace OHOS {
 namespace Media {
@@ -104,6 +106,10 @@ public:
     void DrawPixelMapWithParm(
         const std::shared_ptr<Media::PixelMap>& pixelmap,
         const Rosen::RsImageInfo& rsImageInfo, const SkSamplingOptions& samplingOptions, const SkPaint& paint);
+    void drawImageNine(const std::shared_ptr<Media::PixelMap>& pixelmap, const SkIRect& center,
+        const SkRect& dst, SkFilterMode filter, const SkPaint* paint);
+    using drawFunc = std::function<void(RSPaintFilterCanvas& canvas, const SkRect*)>;
+    void DrawFunc(drawFunc&& func);
 #else
     GrContext* getGrContext() override;
     void SetGrContext(GrContext* grContext);
@@ -113,8 +119,6 @@ public:
     void onDrawBitmapLattice(const SkBitmap& bm, const SkCanvas::Lattice& lattice, const SkRect& dst,
         const SkPaint* paint) override;
     void onDrawBitmapNine(const SkBitmap& bm, const SkIRect& center, const SkRect& dst, const SkPaint* paint) override;
-    void drawImageNine(const std::shared_ptr<Media::PixelMap>& pixelmap, const SkIRect& center,
-        const SkRect& dst, SkFilterMode filter, const SkPaint* paint);
     void onDrawBitmapRect(const SkBitmap& bm, const SkRect* src, const SkRect& dst,
         const SkPaint* paint, SrcRectConstraint constraint) override;
     void onDrawImage(const SkImage* img, SkScalar x, SkScalar y, const SkPaint* paint)override;
@@ -227,6 +231,8 @@ public:
     void DrawPixelMapRect(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::Rect& src,
         const Drawing::Rect& dst, const Drawing::SamplingOptions& sampling,
         Drawing::SrcRectConstraint constraint = Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    void DrawFunc(OHOS::Rosen::Drawing::DrawFuncOpItem::DrawFunc&& func);
+
 private:
     template<typename T, typename... Args>
     void AddOp(Args&&... args);

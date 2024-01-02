@@ -30,6 +30,11 @@
 namespace OHOS {
 namespace Rosen {
 class RSPaintFilterCanvas;
+#ifndef USE_ROSEN_DRAWING
+class RSSkiaFilter;
+#else
+class RSDrawingFilter;
+#endif
 enum class FilterType {
     BACKGROUND_FILTER,
     FOREGROUND_FILTER,
@@ -44,6 +49,8 @@ public:
         const RRect* rrect = nullptr, bool isAbsCoordinate = true, bool radiusInclude = true);
     static void DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect = nullptr);
     static int GetAndResetBlurCnt();
+    static void GetOutlineDirtyRect(RectI& dirtyOutline,
+        const RSProperties& properties, const bool& isAbsCoordinate = true);
 #ifndef USE_ROSEN_DRAWING
     static bool PickColor(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& skPath,
         SkMatrix& matrix, SkIRect& deviceClipBounds, RSColor& colorPicked);
@@ -68,6 +75,7 @@ public:
 #ifndef USE_ROSEN_DRAWING
     static void Clip(SkCanvas& canvas, RectF rect, bool isAntiAlias = true);
     static void DrawBorder(const RSProperties& properties, SkCanvas& canvas);
+    static void DrawOutline(const RSProperties& properties, SkCanvas& canvas);
     static void DrawLight(const RSProperties& properties, SkCanvas& canvas);
     static void DrawFrame(const RSProperties& properties, RSPaintFilterCanvas& canvas, DrawCmdListPtr& drawCmdList);
     static void DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas, FilterType filterType,
@@ -87,15 +95,14 @@ public:
     // functions that are dedicated to driven render [end]
     static void DrawSpherize(const RSProperties& properties, RSPaintFilterCanvas& canvas,
         const sk_sp<SkSurface>& spherizeSurface);
-    // EffectView and useEffect
-    static void DrawBackgroundImageAsEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
-    static void DrawBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas, const SkIRect& rect);
     static sk_sp<SkBlender> MakeDynamicLightUpBlender(
         float dynamicLightUpRate, float dynamicLightUpDeg);
-    static void DrawGreyAdjustment(const RSProperties& properties, RSPaintFilterCanvas& canvas);
+    static sk_sp<SkImage> DrawGreyAdjustment(SkCanvas& canvas, const sk_sp<SkImage>& image,
+        const float greyCoef1, const float greyCoef2);
 #else // USE_ROSEN_DRAWING
     static void Clip(Drawing::Canvas& canvas, RectF rect, bool isAntiAlias = true);
     static void DrawBorder(const RSProperties& properties, Drawing::Canvas& canvas);
+    static void DrawOutline(const RSProperties& properties, Drawing::Canvas& canvas);
     static void DrawLight(const RSProperties& properties, Drawing::Canvas& canvas);
     static void DrawFrame(
         const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::DrawCmdListPtr& drawCmdList);
@@ -118,26 +125,26 @@ public:
     // functions that are dedicated to driven render [end]
     static void DrawSpherize(const RSProperties& properties, RSPaintFilterCanvas& canvas,
         const std::shared_ptr<Drawing::Surface>& spherizeSurface);
+    static std::shared_ptr<Drawing::Blender> MakeDynamicLightUpBlender(
+        float dynamicLightUpRate, float dynamicLightUpDeg);
+    static std::shared_ptr<Drawing::Image> DrawGreyAdjustment(Drawing::Canvas& canvas,
+        const std::shared_ptr<Drawing::Image>& image, const float greyCoef1, const float greyCoef2);
+#endif // USE_ROSEN_DRAWING
+
     // EffectView and useEffect
     static void DrawBackgroundImageAsEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
-    // EffectView and useEffect
-    static void DrawBackgroundEffect(
-        const RSProperties& properties, RSPaintFilterCanvas& canvas, const Drawing::RectI& rect);
-    static std::shared_ptr<Drawing::ShaderEffect> MakeDynamicLightUpShader(
-        float dynamicLightUpRate, float dynamicLightUpDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader);
-    static void DrawGreyAdjustment(const RSProperties& properties, RSPaintFilterCanvas& canvas);
-#endif // USE_ROSEN_DRAWING
+    static void DrawBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 
     static const bool BLUR_ENABLED;
 
 private:
     static void ApplyBackgroundEffectFallback(const RSProperties& properties, RSPaintFilterCanvas& canvas);
     static void TransformGradientBlurDirection(uint8_t& direction, const uint8_t directionBias);
-    static RRect GetRRectForDrawingBorder(const RRect& rr, const std::shared_ptr<RSBorder>& border,
-                                          const Vector4f& outset, const bool& isFirstLayerBorder);
-    static RRect GetInnerRRectForDrawingBorder(const RSProperties& properties,
-                                               const std::shared_ptr<RSBorder>& border,
-                                               const Vector4f& innerOutset, const bool& isFirstLayerBorder);
+    static RRect GetRRectForDrawingBorder(const RSProperties& properties, const std::shared_ptr<RSBorder>& border,
+        const bool& isOutline);
+    static RRect GetInnerRRectForDrawingBorder(const RSProperties& properties, const std::shared_ptr<RSBorder>& border,
+        const bool& isOutline);
+    static void ClipVisibleCanvas(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 #ifndef USE_ROSEN_DRAWING
     static void DrawColorfulShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
     static void DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, SkPath& path);
@@ -172,11 +179,11 @@ private:
         std::shared_ptr<RSSkiaFilter>& blurFilter, sk_sp<SkShader> alphaGradientShader, const SkIRect& clipIPadding);
     static sk_sp<SkShader> MakeMeanBlurShader(sk_sp<SkShader> srcImageShader,
         sk_sp<SkShader> blurImageShader, sk_sp<SkShader> gradientShader);
-    static sk_sp<SkShader> MakeGreyAdjustmentShader(const float coef1, const float coef2, sk_sp<SkShader> imageShader);
+    static sk_sp<SkImage> MakeGreyAdjustmentImage(SkCanvas& canvas, const sk_sp<SkImage>& image,
+        const float greyCoef1, const float greyCoef2);
 
     static void DrawBorderBase(const RSProperties& properties, SkCanvas& canvas,
-                               const std::shared_ptr<RSBorder>& border, Vector4f& outset,
-                               Vector4f& innerOutset, const bool isFirstLayerBorder);
+        const std::shared_ptr<RSBorder>& border, const bool& isOutline);
     static const std::shared_ptr<SkRuntimeShaderBuilder>& GetPhongShaderBuilder();
 #else // USE_ROSEN_DRAWING
     static void DrawColorfulShadowInner(
@@ -217,13 +224,20 @@ private:
     static std::shared_ptr<Drawing::ShaderEffect> MakeMeanBlurShader(
         std::shared_ptr<Drawing::ShaderEffect> srcImageShader, std::shared_ptr<Drawing::ShaderEffect> blurImageShader,
         std::shared_ptr<Drawing::ShaderEffect> gradientShader);
-    static std::shared_ptr<Drawing::ShaderEffect> MakeGreyAdjustmentShader(const float coef1, const float coef2,
-        std::shared_ptr<Drawing::ShaderEffect> imageShader);
+    static std::shared_ptr<Drawing::Image> MakeGreyAdjustmentImage(Drawing::Canvas& canvas,
+        const std::shared_ptr<Drawing::Image>& image, const float greyCoef1, const float greyCoef2);
 
     static void DrawBorderBase(const RSProperties& properties, Drawing::Canvas& canvas,
-                               const std::shared_ptr<RSBorder>& border, Vector4f& outset,
-                               Vector4f& innerOutset, const bool isFirstLayerBorder);
+        const std::shared_ptr<RSBorder>& border, const bool& isOutline);
     static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetPhongShaderBuilder();
+
+    static std::shared_ptr<Drawing::RuntimeEffect> horizontalMeanBlurShaderEffect_;
+    static std::shared_ptr<Drawing::RuntimeEffect> verticalMeanBlurShaderEffect_;
+    static std::shared_ptr<Drawing::RuntimeEffect> meanBlurShaderEffect_;
+    static std::shared_ptr<Drawing::RuntimeEffect> greyAdjustEffect_;
+    static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;
+    static std::shared_ptr<Drawing::RuntimeEffect> lightUpEffectShaderEffect_;
+    static std::shared_ptr<Drawing::RuntimeEffect> dynamicLightUpBlenderEffect_;
 #endif // USE_ROSEN_DRAWING
     inline static int g_blurCnt = 0;
 };

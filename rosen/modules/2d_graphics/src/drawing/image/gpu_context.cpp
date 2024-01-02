@@ -40,6 +40,15 @@ bool GPUContext::BuildFromVK(const GrVkBackendContext& context)
     }
     return impl_->BuildFromVK(context);
 }
+
+bool GPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options)
+{
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return false;
+    }
+    return impl_->BuildFromVK(context, options);
+}
 #endif
 
 void GPUContext::GetResourceCacheLimits(int* maxResource, size_t* maxResourceBytes) const
@@ -75,6 +84,16 @@ void GPUContext::PerformDeferredCleanup(std::chrono::milliseconds msNotUsed)
 void GPUContextOptions::SetPersistentCache(PersistentCache* persistentCache)
 {
     persistentCache_ = persistentCache;
+}
+
+void GPUContextOptions::SetAllowPathMaskCaching(bool allowPathMaskCaching)
+{
+    allowPathMaskCaching_ = allowPathMaskCaching;
+}
+
+bool GPUContextOptions::GetAllowPathMaskCaching() const
+{
+    return allowPathMaskCaching_;
 }
 
 void GPUContext::GetResourceCacheUsage(int* resourceCount, size_t* resourceBytes) const

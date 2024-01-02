@@ -51,7 +51,7 @@ ImageFilter::ImageFilter(FilterType t, const ColorFilter& cf, scalar x, scalar y
 
 void ImageFilter::InitWithColorBlur(const ColorFilter& cf, scalar x, scalar y)
 {
-    type_ = ImageFilter::FilterType::COLOR;
+    type_ = ImageFilter::FilterType::COLOR_FILTER;
     impl_->InitWithColorBlur(cf, x, y);
 }
 
@@ -92,13 +92,13 @@ std::shared_ptr<ImageFilter> ImageFilter::CreateBlurImageFilter(scalar sigmaX, s
 std::shared_ptr<ImageFilter> ImageFilter::CreateColorFilterImageFilter(
     const ColorFilter& cf, std::shared_ptr<ImageFilter> input)
 {
-    return std::make_shared<ImageFilter>(ImageFilter::FilterType::COLOR, cf, input);
+    return std::make_shared<ImageFilter>(ImageFilter::FilterType::COLOR_FILTER, cf, input);
 }
 
 std::shared_ptr<ImageFilter> ImageFilter::CreateColorBlurImageFilter(const ColorFilter& cf,
     scalar sigmaX, scalar sigmaY)
 {
-    return std::make_shared<ImageFilter>(ImageFilter::FilterType::COLOR, cf, sigmaX, sigmaY);
+    return std::make_shared<ImageFilter>(ImageFilter::FilterType::COLOR_FILTER, cf, sigmaX, sigmaY);
 }
 
 std::shared_ptr<ImageFilter> ImageFilter::CreateOffsetImageFilter(

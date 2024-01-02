@@ -65,7 +65,7 @@ HWTEST_F(RecordingShaderEffectTest, CreateColorShader002, TestSize.Level1)
     EXPECT_TRUE(shaderEffectCmdList != nullptr);
     auto shaderEffect = shaderEffectCmdList->Playback();
     EXPECT_TRUE(shaderEffect != nullptr);
-    EXPECT_EQ(shaderEffect->GetType(), ShaderEffect::ShaderEffectType::COLOR);
+    EXPECT_EQ(shaderEffect->GetType(), ShaderEffect::ShaderEffectType::COLOR_EFFECT);
 
     auto newCmdList = ShaderEffectCmdList::CreateFromData(shaderEffectCmdList->GetData(), true);
     EXPECT_TRUE(newCmdList != nullptr);

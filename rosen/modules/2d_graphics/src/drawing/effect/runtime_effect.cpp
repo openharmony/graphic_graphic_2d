@@ -30,6 +30,11 @@ RuntimeEffect::RuntimeEffect(const std::string& sl) noexcept : RuntimeEffect()
     impl_->InitForShader(sl);
 }
 
+RuntimeEffect::RuntimeEffect(const std::string& sl, bool isBlender) noexcept : RuntimeEffect()
+{
+    impl_->InitForBlender(sl);
+}
+
 RuntimeEffect::RuntimeEffect() noexcept : impl_(ImplFactory::CreateRuntimeEffectImpl())
 {}
 
@@ -42,6 +47,11 @@ std::shared_ptr<RuntimeEffect> RuntimeEffect::CreateForShader(const std::string&
 std::shared_ptr<RuntimeEffect> RuntimeEffect::CreateForShader(const std::string& sl)
 {
     return std::make_shared<RuntimeEffect>(sl);
+}
+
+std::shared_ptr<RuntimeEffect> RuntimeEffect::CreateForBlender(const std::string& sl)
+{
+    return std::make_shared<RuntimeEffect>(sl, true);
 }
 
 std::shared_ptr<ShaderEffect> RuntimeEffect::MakeShader(std::shared_ptr<Data> uniforms,

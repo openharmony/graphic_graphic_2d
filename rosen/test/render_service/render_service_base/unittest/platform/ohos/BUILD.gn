@@ -68,13 +68,8 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
     "//commonlibrary/c_utils/base:utils",
     "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
   ]
-  if (defined(use_new_skia) && use_new_skia) {
-    deps += [ "//third_party/skia:skia_ohos" ]
-    public_deps += [ "//third_party/skia:skia_ohos" ]
-  } else {
-    deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
-    public_deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
-  }
+  deps += [ "//third_party/skia:skia_ohos" ]
+  public_deps += [ "//third_party/skia:skia_ohos" ]
 
   if (ace_enable_gpu) {
     include_dirs += [ "//third_party/openssl/include" ]

@@ -58,6 +58,7 @@ DEFINE_CONVERT_FUNC(TextDecorationStyle,          TextEngine::TextDecorationStyl
 DEFINE_CONVERT_FUNC(TextDecoration,               TextEngine::TextDecoration);
 DEFINE_CONVERT_FUNC(PlaceholderVerticalAlignment, TextEngine::AnySpanAlignment);
 DEFINE_CONVERT_FUNC(EllipsisModal,                TextEngine::EllipsisModal);
+DEFINE_CONVERT_FUNC(RectStyle,                    TextEngine::RectStyle);
 
 #undef DEFINE_CONVERT_FUNC
 } // namespace AdapterTextEngine

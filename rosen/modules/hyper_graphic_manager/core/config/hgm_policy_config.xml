@@ -13,106 +13,120 @@
     limitations under the License.
 -->
 <HgmConfig version="1.0" xmlns:xi="http://www.w3.org/2001/XInclude">
-    <!-- enable or disable hgm -->
-    <Param name="general_config_enable" value="1"/>
 
-    <!-- defalut refreshmode given to settings application -->
     <Param name="default_refreshrate_mode" value="3"/>
 
-    <!-- stategies to be applied for scenario -->
-    <Params name="detailed_strategies">
-        <Strat name="1" isDynamic="0" min="120" max="120"/>
-        <Strat name="2" isDynamic="0" min="90" max="90"/>
-        <Strat name="3" isDynamic="0" min="60" max="60"/>
-        <Strat name="5" isDynamic="1" min="1" max="120"/>
-        <Strat name="6" isDynamic="1" min="1" max="90"/>
-        <Strat name="7" isDynamic="1" min="1" max="60"/>
-        <Strat name="21" isDynamic="1" min="90" max="120"/>
-        <Strat name="31" isDynamic="1" min="60" max="120"/>
-        <Strat name="32" isDynamic="1" min="60" max="90"/>
+    <Params name="refresh_rate_4settings">
+        <Setting name="-1" value="1"/>
+        <Setting name="60" value="1"/>
+        <Setting name="90" value="1"/>
+        <Setting name="120" value="1"/>
     </Params>
 
-    <!-- stategies for setting application -->
-    <Params name="customer_setting_config">
-        <Setting name="-1" value="5"/><!-- auto refreshrate, range from 1hz to 120hz -->
-        <Setting name="1" value="3"/><!-- low refreshrate 60hz locked -->
-        <Setting name="2" value="2"/><!-- mid refreshrate 90hz locked -->
-        <Setting name="3" value="1"/><!-- high refreshrate 120hz locked -->
+    <Params name="refreshRate_strategy_config">
+        <Strategy name="1" min="30" max="30" dynamicMode="0"/>
+        <Strategy name="2" min="30" max="120" dynamicMode="0"/>
+        <Strategy name="3" min="30" max="120" dynamicMode="1"/>
+        <Strategy name="4" min="60" max="60" dynamicMode="0"/>
+        <Strategy name="5" min="60" max="90" dynamicMode="0"/>
+        <Strategy name="6" min="60" max="120" dynamicMode="0"/>
+        <Strategy name="7" min="60" max="90" dynamicMode="1"/>
+        <Strategy name="8" min="60" max="120" dynamicMode="1"/>
+        <Strategy name="9" min="90" max="90" dynamicMode="0"/>
+        <Strategy name="10" min="90" max="120" dynamicMode="0"/>
+        <Strategy name="11" min="90" max="120" dynamicMode="1"/>
+        <Strategy name="12" min="120" max="120" dynamicMode="0"/>
     </Params>
 
-    <!-- stategies for LTPO -->
-    <Params name="LTPO_config">
-        <Setting name="switch" value="1"/>
-        <Setting name="maxTE" value="360"/>
-        <Setting name="alignRate" value="120"/>
-        <Setting name="pipelineOffsetPulseNum" value="8"/>
+    <Params name="refreshRate_virtual_display_config" switch="1">
     </Params>
 
-    <!-- bundle name black_list to be applied on mode 2 -->
-    <Params name="bundle_name_black_list" value="2">
-        <Setting name="blackBundle2"/>
-        <Setting name="blackBundle2"/>
+    <Params name="screen_strategy_config">
+        <Strategy name="screen0_LTPO" type="LTPO-DEFAULT"/>
+        <Strategy name="screen0_LTPS" type="LTPS-DEFAULT"/>
+        <Strategy name="screen5_LTPO" type="LTPO-DEFAULT"/>
+        <Strategy name="screen5_LTPS" type="LTPS-DEFAULT"/>
     </Params>
 
-    <!-- stategies for animation, need to review later -->
-    <Params name="animation_dynamic_settings">
-        <Setting name="animation_zoom" value="21"/>
-        <Setting name="animation_trans" value="21"/>
-        <Setting name="animation_ui" value="21"/>
-        <Setting name="animation_others" value="21"/>
+    <Params name="screen_config" type="LTPO-DEFAULT">
+        <Setting id="-1" strategy="6">
+            <Category name="LTPO_config">
+                <Ltpo name="switch" value="1"/>
+                <Ltpo name="maxTE" value="360"/>
+                <Ltpo name="alignRate" value="120"/>
+                <Ltpo name="pipelineOffsetPulseNum" value="8"/>
+            </Category>
+
+            <Category name="property_animation_dynamic_settings">
+                <DynamicSettings name="translate">
+                    <SpeedThresholds name="1" min="77" max="-1" preferred_fps="120"/>
+                    <SpeedThresholds name="2" min="46" max="77" preferred_fps="90"/>
+                    <SpeedThresholds name="3" min="0" max="46" preferred_fps="60"/>
+                </DynamicSettings>
+                <DynamicSettings name="scale">
+                    <SpeedThresholds name="1" min="154" max="-1" preferred_fps="120"/>
+                    <SpeedThresholds name="2" min="92" max="154" preferred_fps="90"/>
+                    <SpeedThresholds name="3" min="0" max="92" preferred_fps="60"/>
+                </DynamicSettings>
+                <DynamicSettings name="rotation">
+                    <SpeedThresholds name="1" min="0" max="-1" preferred_fps="120"/>
+                </DynamicSettings>
+            </Category>
+
+            <Category name="ace_scene_dynamic_settings">
+                <DynamicSettings name="refresh_drag_scene">
+                    <SpeedThresholds name="1" min="77" max="-1" preferred_fps="120"/>
+                    <SpeedThresholds name="2" min="46" max="77" preferred_fps="90"/>
+                    <SpeedThresholds name="3" min="0" max="46" preferred_fps="60"/>
+                </DynamicSettings>
+                <DynamicSettings name="swiper_drag_scene">
+                    <SpeedThresholds name="1" min="77" max="-1" preferred_fps="120"/>
+                    <SpeedThresholds name="2" min="46" max="77" preferred_fps="90"/>
+                    <SpeedThresholds name="3" min="0" max="46" preferred_fps="60"/>
+                </DynamicSettings>
+                <DynamicSettings name="scrollable_drag_scene">
+                    <SpeedThresholds name="1" min="77" max="-1" preferred_fps="120"/>
+                    <SpeedThresholds name="2" min="46" max="77" preferred_fps="90"/>
+                    <SpeedThresholds name="3" min="0" max="46" preferred_fps="60"/>
+                </DynamicSettings>
+                <DynamicSettings name="scrollBar_drag_scene">
+                    <SpeedThresholds name="1" min="77" max="-1" preferred_fps="120"/>
+                    <SpeedThresholds name="2" min="46" max="77" preferred_fps="90"/>
+                    <SpeedThresholds name="3" min="0" max="46" preferred_fps="60"/>
+                </DynamicSettings>
+                <DynamicSettings name="split_drag_scene">
+                    <SpeedThresholds name="1" min="77" max="-1" preferred_fps="120"/>
+                    <SpeedThresholds name="2" min="46" max="77" preferred_fps="90"/>
+                    <SpeedThresholds name="3" min="0" max="46" preferred_fps="60"/>
+                </DynamicSettings>
+                <DynamicSettings name="scrollable_motion_scene">
+                    <SpeedThresholds name="1" min="77" max="-1" preferred_fps="120"/>
+                    <SpeedThresholds name="2" min="46" max="77" preferred_fps="90"/>
+                    <SpeedThresholds name="3" min="0" max="46" preferred_fps="60"/>
+                </DynamicSettings>
+                <DynamicSettings name="scrollable_multi_task_scene">
+                    <SpeedThresholds name="1" min="77" max="-1" preferred_fps="120"/>
+                    <SpeedThresholds name="2" min="46" max="77" preferred_fps="90"/>
+                    <SpeedThresholds name="3" min="0" max="46" preferred_fps="60"/>
+                </DynamicSettings>
+            </Category>
+        </Setting>
+        <Setting id="1" strategy="4">
+        </Setting>
+        <Setting id="2" strategy="9">
+        </Setting>
+        <Setting id="3" strategy="12">
+        </Setting>
     </Params>
 
-    <Params name="property_animation_dynamic_settings">
-        <DynamicSettings name="translate">
-            <SpeedThresholds name="1" min="77" max="-1" preferred_fps="120"/>
-            <SpeedThresholds name="2" min="46" max="77" preferred_fps="90"/>
-            <SpeedThresholds name="3" min="0" max="46" preferred_fps="60"/>
-        </DynamicSettings>
-        <DynamicSettings name="scale">
-            <SpeedThresholds name="1" min="154" max="-1" preferred_fps="120"/>
-            <SpeedThresholds name="2" min="92" max="154" preferred_fps="90"/>
-            <SpeedThresholds name="3" min="0" max="92" preferred_fps="60"/>
-        </DynamicSettings>
-        <DynamicSettings name="rotation">
-            <SpeedThresholds name="1" min="0" max="-1" preferred_fps="120"/>
-        </DynamicSettings>
-    </Params>
-
-    <Params name="ace_scene_dynamic_settings">
-        <DynamicSettings name="refresh_drag_scene">
-            <SpeedThresholds name="1" min="77" max="-1" preferred_fps="120"/>
-            <SpeedThresholds name="2" min="46" max="77" preferred_fps="90"/>
-            <SpeedThresholds name="3" min="0" max="46" preferred_fps="60"/>
-        </DynamicSettings>
-        <DynamicSettings name="swiper_drag_scene">
-            <SpeedThresholds name="1" min="77" max="-1" preferred_fps="120"/>
-            <SpeedThresholds name="2" min="46" max="77" preferred_fps="90"/>
-            <SpeedThresholds name="3" min="0" max="46" preferred_fps="60"/>
-        </DynamicSettings>
-        <DynamicSettings name="scrollable_drag_scene">
-            <SpeedThresholds name="1" min="77" max="-1" preferred_fps="120"/>
-            <SpeedThresholds name="2" min="46" max="77" preferred_fps="90"/>
-            <SpeedThresholds name="3" min="0" max="46" preferred_fps="60"/>
-        </DynamicSettings>
-        <DynamicSettings name="scrollBar_drag_scene">
-            <SpeedThresholds name="1" min="77" max="-1" preferred_fps="120"/>
-            <SpeedThresholds name="2" min="46" max="77" preferred_fps="90"/>
-            <SpeedThresholds name="3" min="0" max="46" preferred_fps="60"/>
-        </DynamicSettings>
-        <DynamicSettings name="split_drag_scene">
-            <SpeedThresholds name="1" min="77" max="-1" preferred_fps="120"/>
-            <SpeedThresholds name="2" min="46" max="77" preferred_fps="90"/>
-            <SpeedThresholds name="3" min="0" max="46" preferred_fps="60"/>
-        </DynamicSettings>
-        <DynamicSettings name="scrollable_motion_scene">
-            <SpeedThresholds name="1" min="77" max="-1" preferred_fps="120"/>
-            <SpeedThresholds name="2" min="46" max="77" preferred_fps="90"/>
-            <SpeedThresholds name="3" min="0" max="46" preferred_fps="60"/>
-        </DynamicSettings>
-        <DynamicSettings name="scrollable_multi_task_scene">
-            <SpeedThresholds name="1" min="77" max="-1" preferred_fps="120"/>
-            <SpeedThresholds name="2" min="46" max="77" preferred_fps="90"/>
-            <SpeedThresholds name="3" min="0" max="46" preferred_fps="60"/>
-        </DynamicSettings>
+    <Params name="screen_config" type="LTPS-DEFAULT">
+        <Setting id="-1" strategy="8">
+        </Setting>
+        <Setting id="1" strategy="4">
+        </Setting>
+        <Setting id="2" strategy="9">
+        </Setting>
+        <Setting id="3" strategy="12">
+        </Setting>
     </Params>
 </HgmConfig>

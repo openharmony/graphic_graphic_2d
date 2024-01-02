@@ -27,7 +27,7 @@ class HmSymbolConfigOhosImpl;
 
 class DRAWING_API HmSymbolConfigOhos {
 public:
-    static DrawingSymbolLayersGroups* GetSymbolLayersGroups(uint32_t glyphId);
+    static std::shared_ptr<DrawingSymbolLayersGroups> GetSymbolLayersGroups(uint32_t glyphId);
 };
 
 } // namespace Drawing

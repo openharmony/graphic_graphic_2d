@@ -25,16 +25,7 @@
 namespace OHOS {
 namespace Rosen {
 enum class PermissionType : CodeUnderlyingType {
-    ACCESS_MCP_AUTHORIZATION,
-    PREPARE_APP_TERMINATE,
-    FILE_GUARD_MANAGER,
-    SET_FILE_GUARD_POLICY,
-    APP_TRACKING_CONSENT,
     CAPTURE_SCREEN,
-    GET_RUNNING_INFO,
-    RUNNING_STATE_OBSERVER,
-    START_ABILITIES_FROM_BACKGROUND,
-    CHANGE_ABILITY_ENABLED_STATE,
     UPDATE_CONFIGURATION,
 };
 extern const std::unordered_map<PermissionType, std::string> PERMISSION_MAP;

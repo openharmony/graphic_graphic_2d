@@ -19,6 +19,7 @@
 #include <unordered_map>
 #include <functional>
 #include <stack>
+#include <utility>
 
 #include "draw/canvas.h"
 #include "draw/paint.h"
@@ -105,9 +106,12 @@ public:
         VERTICES_OPITEM,
         IMAGE_SNAPSHOT_OPITEM,
         SURFACEBUFFER_OPITEM,
+        DRAW_FUNC_OPITEM,
     };
 
     virtual void Playback(Canvas* canvas, const Rect* rect) = 0;
+
+    virtual void SetSymbol() {}
 };
 
 class UnmarshallingPlayer {
@@ -747,6 +751,18 @@ private:
     std::shared_ptr<TextBlob> textBlob_;
 };
 
+using DrawSymbolAnimation = struct DrawSymbolAnimation {
+    // all animation need
+    double startValue = 0;
+    double curValue = 0;
+    double endValue = 1;
+    double speedValue = 0.01;
+    uint32_t number = 0; // animate times when reach the destination
+    // hierarchy animation need
+    uint32_t startCount = 0; // animate from this frame
+    uint32_t count = 0; // number of frames
+};
+
 class DrawSymbolOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
@@ -762,11 +778,29 @@ public:
 
     static std::shared_ptr<DrawOpItem> Unmarshalling(const CmdList& cmdList, void* handle);
     void Playback(Canvas* canvas, const Rect* rect) override;
+
+    void SetSymbol() override;
+
+    void InitialScale();
+
+    void InitialVariableColor();
+
+    void SetScale(size_t index);
+
+    void SetVariableColor(size_t index);
+
+    static void UpdateScale(const double cur, Path& path);
+
+    void UpdataVariableColor(const double cur, size_t index);
 private:
     static void MergeDrawingPath(
-        Drawing::Path& multPath, Drawing::DrawingRenderGroup& group, std::vector<Drawing::Path>& pathLayers);
+        Path& multPath, DrawingRenderGroup& group, std::vector<Path>& pathLayers);
     DrawingHMSymbolData symbol_;
     Point locate_;
+
+    std::vector<DrawSymbolAnimation> animation_;
+    uint32_t number_ = 2; // one animation means a back and forth
+    bool startAnimation_ = false; // update animation_ if true
 };
 
 class ClipRectOpItem : public DrawOpItem {
@@ -1210,8 +1244,28 @@ public:
     void Playback(Canvas* canvas, const Rect* rect) override;
 private:
     SamplingOptions sampling_;
-    std::shared_ptr<ExtendImageBaseOj> objectHandle_;
+    std::shared_ptr<ExtendImageBaseObj> objectHandle_;
 };
+
+class DrawFuncOpItem : public DrawOpItem {
+public:
+    using DrawFunc = std::function<void(Canvas* canvas, const Rect* rect)>;
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle(DrawFunc func)
+            : OpItem(DrawOpItem::DRAW_FUNC_OPITEM), func_(std::move(func))
+        {}
+        ~ConstructorHandle() override = default;
+        DrawFunc func_;
+    };
+    DrawFuncOpItem(ConstructorHandle* handle);
+    ~DrawFuncOpItem() override = default;
+
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const CmdList& cmdList, void* handle);
+    void Playback(Canvas* canvas, const Rect* rect) override;
+private:
+    DrawFunc func_;
+};
+
 #ifdef ROSEN_OHOS
 class DrawSurfaceBufferOpItem : public DrawWithPaintOpItem {
 public:

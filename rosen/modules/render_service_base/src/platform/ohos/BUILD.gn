@@ -35,6 +35,12 @@ config("export_config") {
 }
 
 ohos_source_set("rosen_ohos_sources") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   public_configs = [ ":export_config" ]
 
   defines = [ "ROSEN_OHOS" ]
@@ -120,11 +126,7 @@ ohos_source_set("rosen_ohos_sources") {
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/utils:sync_fence",
   ]
-  if (defined(use_new_skia) && use_new_skia) {
-    public_deps += [ "//third_party/skia:skia_ohos" ]
-  } else {
-    public_deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
-  }
+  public_deps += [ "//third_party/skia:skia_ohos" ]
 
   if (defined(use_new_render_context) && use_new_render_context) {
     defines += [ "NEW_RENDER_CONTEXT" ]
@@ -136,15 +138,8 @@ ohos_source_set("rosen_ohos_sources") {
       "$graphic_2d_root/frameworks/surface/include",
       "$graphic_2d_root/interfaces/inner_api/common",
     ]
-    if (defined(use_new_skia) && use_new_skia) {
-      include_dirs += [ "//third_party/skia" ]
-    } else {
-      include_dirs += [ "//third_party/flutter/skia" ]
-    }
+    include_dirs += [ "//third_party/skia" ]
 
-    if (graphic_2d_feature_enable_flutter_vulkan) {
-      include_dirs += [ "//third_party/flutter/engine/flutter/vulkan" ]
-    }
     public_deps += [
       "$graphic_2d_root:libgl",
       "$graphic_2d_root:libvulkan",

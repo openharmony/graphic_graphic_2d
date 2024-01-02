@@ -40,6 +40,12 @@ namespace Rosen {
 const int FAKE_WIDTH = 10; // When the width and height of the node are not set, use the fake width
 const int FAKE_HEIGHT = 10; // When the width and height of the node are not set, use the fake height
 
+RSUniUICapture::RSUniUICapture(NodeId nodeId, float scaleX, float scaleY)
+    : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY)
+{
+    isUniRender_ = RSUniRenderJudgement::IsUniRender();
+}
+
 std::shared_ptr<Media::PixelMap> RSUniUICapture::TakeLocalCapture()
 {
     if (ROSEN_EQ(scaleX_, 0.f) || ROSEN_EQ(scaleY_, 0.f) || scaleX_ < 0.f || scaleY_ < 0.f) {
@@ -63,7 +69,7 @@ std::shared_ptr<Media::PixelMap> RSUniUICapture::TakeLocalCapture()
         RS_LOGE("RSUniUICapture::TakeLocalCapture: pixelmap == nullptr!");
         return nullptr;
     }
-    RS_LOGD("RSUniUICapture::TakeLocalCapture: PixelMap: (%{public}d, %{public}d)", pixelmap->GetWidth(),
+    RS_LOGI("RSUniUICapture::TakeLocalCapture: PixelMap: (%{public}d, %{public}d)", pixelmap->GetWidth(),
         pixelmap->GetHeight());
 #ifndef USE_ROSEN_DRAWING
     auto skSurface = CreateSurface(pixelmap);
@@ -81,7 +87,11 @@ std::shared_ptr<Media::PixelMap> RSUniUICapture::TakeLocalCapture()
 #endif
     PostTaskToRSRecord(recordingCanvas, node, visitor);
     auto drawCallList = recordingCanvas->GetDrawCmdList();
+    RS_LOGI("RSUniUICapture::TakeLocalCapture: drawCallList size is %{public}d", drawCallList->GetOpCnt());
     drawCallList->Playback(*canvas);
+    if (!isUniRender_) {
+        return pixelmap;
+    }
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && defined(RS_ENABLE_EGLIMAGE)
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> img(skSurface.get()->makeImageSnapshot());
@@ -194,6 +204,9 @@ sk_sp<SkSurface> RSUniUICapture::CreateSurface(const std::shared_ptr<Media::Pixe
     }
     SkImageInfo info = SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(),
         kRGBA_8888_SkColorType, kPremul_SkAlphaType);
+    if (!isUniRender_) {
+        return SkSurface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
+    }
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && defined(RS_ENABLE_EGLIMAGE)
 #if defined(NEW_RENDER_CONTEXT)
     auto drawingContext = RSOffscreenRenderThread::Instance().GetRenderContext();
@@ -229,6 +242,9 @@ std::shared_ptr<Drawing::Surface> RSUniUICapture::CreateSurface(
 
     Drawing::ImageInfo info = Drawing::ImageInfo{pixelmap->GetWidth(), pixelmap->GetHeight(),
         Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL};
+    if (!isUniRender_) {
+        return Drawing::Surface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
+    }
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && defined(RS_ENABLE_EGLIMAGE)
     auto renderContext = RSOffscreenRenderThread::Instance().GetRenderContext();
     if (renderContext == nullptr) {
@@ -521,6 +537,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithUni(RSSurfaceR
     RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
     if (isSelfDrawingSurface) {
         RSPropertiesPainter::DrawShadow(property, *canvas_, &absClipRRect);
+        RSPropertiesPainter::DrawOutline(property, *canvas_);
     }
 #ifndef USE_ROSEN_DRAWING
     canvas_->save();
@@ -647,8 +664,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithoutUni(RSSurfa
         if (node.GetId() != nodeId_) {
             canvas_->ConcatMatrix(translateMatrix);
         }
-        const auto saveCnt = canvas_->GetSaveCount();
-        canvas_->Save();
+        const auto saveCnt = canvas_->Save();
         ProcessChildren(node);
         canvas_->RestoreToCount(saveCnt);
         if (node.GetBuffer() != nullptr) {

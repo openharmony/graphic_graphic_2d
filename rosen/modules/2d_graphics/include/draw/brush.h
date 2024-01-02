@@ -18,6 +18,7 @@
 
 #include "draw/color.h"
 #include "effect/color_space.h"
+#include "effect/blender.h"
 #include "effect/filter.h"
 #include "effect/shader_effect.h"
 #include "utils/drawing_macros.h"
@@ -67,6 +68,9 @@ public:
     void SetShaderEffect(std::shared_ptr<ShaderEffect> e);
     std::shared_ptr<ShaderEffect> GetShaderEffect() const;
 
+    void SetBlender(std::shared_ptr<Blender> blender);
+    std::shared_ptr<Blender> GetBlender() const { return blender_; }
+
     bool IsAntiAlias() const;
     void SetAntiAlias(bool aa);
 
@@ -85,6 +89,7 @@ private:
     Filter filter_;
     std::shared_ptr<ColorSpace> colorSpace_;
     std::shared_ptr<ShaderEffect> shaderEffect_;
+    std::shared_ptr<Blender> blender_;
 
     bool antiAlias_;
     bool hasFilter_ = false;

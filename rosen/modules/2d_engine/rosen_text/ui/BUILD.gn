@@ -50,8 +50,6 @@ if (!enable_text_gine) {
   ohos_source_set("rosen_text_ui") {
     configs = [
       ":rosen_text_ui_config",
-      "$ace_flutter_engine_root:flutter_config",
-      "$ace_flutter_engine_root/icu:icu_config_$current_os",
       ":rosen_text_config",
     ]
     sources = [
@@ -71,7 +69,6 @@ if (!enable_text_gine) {
     deps = [
       "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
       "//third_party/bounds_checking_function:libsec_static",
-      "//third_party/flutter/build/libtxt:thirdparty_lib_txt_$current_os",
     ]
     part_name = "graphic_2d"
     subsystem_name = "graphic"

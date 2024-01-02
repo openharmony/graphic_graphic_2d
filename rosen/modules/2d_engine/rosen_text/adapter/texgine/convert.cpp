@@ -77,6 +77,13 @@ TextEngine::TextStyle Convert(const TextStyle &style)
 #else
     if (style.foregroundBrush.has_value() || style.foregroundPen.has_value()) {
         foreground = TextEngine::TexginePaint();
+        if (style.foregroundBrush.has_value() && style.foregroundPen.has_value()) {
+            foreground.value().SetStyle(TextEngine::TexginePaint::Style::STROKEANDFILL);
+        } else if (style.foregroundBrush.has_value()) {
+            foreground.value().SetStyle(TextEngine::TexginePaint::Style::FILL);
+        } else if (style.foregroundPen.has_value()) {
+            foreground.value().SetStyle(TextEngine::TexginePaint::Style::STROKE);
+        }
         if (style.foregroundBrush.has_value()) {
             foreground.value().SetBrush(style.foregroundBrush.value());
         }
@@ -123,6 +130,8 @@ TextEngine::TextStyle Convert(const TextStyle &style)
         .wordSpacing = style.wordSpacing,
         .foreground = foreground,
         .background = background,
+        .backgroundRect = Convert(style.backgroundRect),
+        .styleId = style.styleId,
         .isSymbolGlyph = style.isSymbolGlyph,
     };
     if (style.isSymbolGlyph) {
@@ -383,6 +392,12 @@ TextEngine::EllipsisModal Convert(const EllipsisModal &ellipsisModal)
         default:
             return TextEngine::EllipsisModal::TAIL;
     }
+}
+
+TextEngine::RectStyle Convert(const RectStyle &rectStyle)
+{
+    return { rectStyle.color, rectStyle.leftTopRadius, rectStyle.rightTopRadius,
+        rectStyle.rightBottomRadius, rectStyle.leftBottomRadius };
 }
 } // namespace AdapterTextEngine
 } // namespace Rosen

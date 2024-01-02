@@ -34,20 +34,11 @@ ohos_unittest("2d_engine_rosen_text_prop_test") {
     "$rosen_root/modules/2d_graphics/src",
   ]
 
-  if (defined(use_new_skia) && use_new_skia) {
-    include_dirs += [
-      "//third_party/skia/third_party/externals/harfbuzz/src",
-      "//third_party/skia",
-      "//third_party/flutter/txt/src",
-    ]
-    defines = [ "NEW_SKIA" ]
-  } else {
-    include_dirs += [
-      "//third_party/flutter/skia/third_party/externals/harfbuzz/src",
-      "//third_party/flutter/skia",
-      "//third_party/flutter/engine/flutter/third_party/txt/src",
-    ]
-  }
+  include_dirs += [
+    "//third_party/skia/third_party/externals/harfbuzz/src",
+    "//third_party/skia",
+  ]
+  defines = [ "NEW_SKIA" ]
 
   if (enable_text_gine) {
     include_dirs -= [ "$rosen_2d_engine_root/rosen_text/properties" ]
@@ -55,10 +46,6 @@ ohos_unittest("2d_engine_rosen_text_prop_test") {
       "$rosen_2d_engine_root/rosen_text/adapter",
       "$rosen_2d_engine_root/rosen_text/export",
       "$rosen_root/modules/render_service_base/include",
-      "//third_party/flutter/engine/flutter/third_party/txt/src",
-      "//third_party/flutter/skia/third_party/externals/harfbuzz/src",
-      "//third_party/flutter/skia",
-      "//third_party/flutter/engine",
     ]
     defines += [ "USE_GRAPHIC_TEXT_GINE" ]
   }
@@ -66,9 +53,6 @@ ohos_unittest("2d_engine_rosen_text_prop_test") {
   deps = [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
 
   external_deps = [ "hilog:libhilog" ]
-
-  public_deps =
-      [ "//third_party/flutter/build/libtxt:thirdparty_lib_txt_$current_os" ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

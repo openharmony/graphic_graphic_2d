@@ -76,6 +76,16 @@ public:
     double GetJustifyGap() const noexcept(true);
     void SetJustifyGap(double justifyGap) noexcept(true);
 
+    bool HasBackgroundRect() const noexcept(true);
+    RoundRectType GetRoundRectType() const noexcept(true);
+    void SetRoundRectType(RoundRectType type) noexcept(true);
+
+    void SetLineHeight(double lineHeight) noexcept(true);
+    double GetLineHeight() const noexcept(true);
+
+    void SetLineY(double lineY) noexcept(true);
+    double GetLineY() const noexcept(true);
+
     operator bool() const noexcept(false);
     bool operator ==(std::nullptr_t) const noexcept(false);
     bool operator ==(const VariantSpan &rhs) const noexcept(false);
@@ -92,6 +102,7 @@ private:
     double offsetY_ = 0;
     double justifyGap_ = 0;
     TextStyle xs_;
+    RoundRectType roundRectType_ = RoundRectType::NONE;
 };
 } // namespace TextEngine
 } // namespace Rosen

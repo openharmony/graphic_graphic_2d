@@ -1023,7 +1023,6 @@ GSError BufferQueue::GetScalingMode(uint32_t sequence, ScalingMode &scalingMode)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
     if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
-        BLOGN_FAILURE_ID(sequence, "not find in cache");
         return GSERROR_NO_ENTRY;
     }
     scalingMode = bufferQueueCache_.at(sequence).scalingMode;
@@ -1077,7 +1076,6 @@ GSError BufferQueue::QueryMetaDataType(uint32_t sequence, HDRMetaDataType &type)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
     if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
-        BLOGN_FAILURE_ID(sequence, "not find in cache");
         return GSERROR_NO_ENTRY;
     }
     type = bufferQueueCache_.at(sequence).hdrMetaDataType;
@@ -1088,7 +1086,6 @@ GSError BufferQueue::GetMetaData(uint32_t sequence, std::vector<GraphicHDRMetaDa
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
     if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
-        BLOGN_FAILURE_ID(sequence, "not find in cache");
         return GSERROR_NO_ENTRY;
     }
     metaData.clear();

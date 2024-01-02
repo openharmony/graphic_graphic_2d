@@ -176,6 +176,15 @@ std::vector<int32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(Scree
     return {};
 }
 
+bool RSRenderServiceClient::GetShowRefreshRateEnabled()
+{
+    return false;
+}
+    
+void RSRenderServiceClient::SetShowRefreshRateEnabled(bool enable)
+{
+}
+
 int32_t RSRenderServiceClient::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     return {};
@@ -418,6 +427,22 @@ void RSRenderServiceClient::ReportEventJankFrame(DataBaseRs info)
 }
 
 void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled)
+{
+}
+
+void RSRenderServiceClient::NotifyLightFactorStatus(bool isSafe)
+{
+}
+
+void RSRenderServiceClient::NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
+{
+}
+
+void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
+{
+}
+
+void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus)
 {
 }
 

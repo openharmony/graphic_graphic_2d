@@ -18,6 +18,7 @@
 
 #include "drawing/engine_adapter/impl_interface/runtime_effect_impl.h"
 
+#include "effect/blender.h"
 #include "effect/shader_effect.h"
 #include "utils/data.h"
 #include "utils/matrix.h"
@@ -36,9 +37,11 @@ public:
     static std::shared_ptr<RuntimeEffect> CreateForShader(const std::string& sl,
         const RuntimeEffectOptions&);
     static std::shared_ptr<RuntimeEffect> CreateForShader(const std::string& sl);
+    static std::shared_ptr<RuntimeEffect> CreateForBlender(const std::string& sl);
 
-    RuntimeEffect(const std::string& sl, const RuntimeEffectOptions&) noexcept;
     explicit RuntimeEffect(const std::string& sl) noexcept;
+    RuntimeEffect(const std::string& sl, const RuntimeEffectOptions&) noexcept;
+    RuntimeEffect(const std::string& sl, bool isBlender) noexcept;
     std::shared_ptr<ShaderEffect> MakeShader(std::shared_ptr<Data> uniforms,
                                              std::shared_ptr<ShaderEffect> children[],
                                              size_t childCount, const Matrix* localMatrix,

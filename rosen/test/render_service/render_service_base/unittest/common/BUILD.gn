@@ -31,9 +31,6 @@ ohos_unittest("RSRenderServiceBaseCommonTest") {
     "rs_thread_looper_generic_test.cpp",
     "rs_thread_looper_impl_test.cpp",
   ]
-  if (defined(rs_enable_parallel_upload) && rs_enable_parallel_upload) {
-    sources += [ "rs_upload_texture_thread_test.cpp" ]
-  }
 
   configs = [
     ":common_test",
@@ -57,13 +54,8 @@ ohos_unittest("RSRenderServiceBaseCommonTest") {
     "../../../../../modules/render_service_base:render_service_base_src",
     "//third_party/googletest:gtest_main",
   ]
-  if (defined(use_new_skia) && use_new_skia) {
-    deps += [ "//third_party/skia:skia_ohos" ]
-    include_dirs += [ "//third_party/skia/src" ]
-  } else {
-    deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
-    include_dirs += [ "//third_party/flutter/skia/src" ]
-  }
+  deps += [ "//third_party/skia:skia_ohos" ]
+  include_dirs += [ "//third_party/skia/src" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",

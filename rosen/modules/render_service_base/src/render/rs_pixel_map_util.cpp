@@ -17,6 +17,7 @@
 #include <memory>
 
 #include "pixel_map.h"
+#include "platform/common/rs_log.h"
 #ifndef USE_ROSEN_DRAWING
 #include "include/core/SkImage.h"
 #else
@@ -185,7 +186,14 @@ sk_sp<SkImage> RSPixelMapUtil::ExtractSkImage(std::shared_ptr<Media::PixelMap> p
     pixelMap->GetImageInfo(imageInfo);
     auto skImageInfo = MakeSkImageInfo(imageInfo);
     SkPixmap skPixmap(skImageInfo, reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
-    return SkImage::MakeFromRaster(skPixmap, PixelMapReleaseProc, new PixelMapReleaseContext(pixelMap));
+    PixelMapReleaseContext* releaseContext = new PixelMapReleaseContext(pixelMap);
+    auto skImage = SkImage::MakeFromRaster(skPixmap, PixelMapReleaseProc, releaseContext);
+    if (!skImage) {
+        RS_LOGE("RSPixelMapUtil::ExtractSkImage fail");
+        delete releaseContext;
+        releaseContext = nullptr;
+    }
+    return skImage;
 }
 #else
 std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
@@ -198,10 +206,17 @@ std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
     pixelMap->GetImageInfo(imageInfo);
     Drawing::ImageInfo drawingImageInfo { imageInfo.size.width, imageInfo.size.height,
         PixelFormatToDrawingColorType(imageInfo.pixelFormat),
-	AlphaTypeToDrawingAlphaType(imageInfo.alphaType),
-	ColorSpaceToDrawingColorSpace(imageInfo.colorSpace) };
+        AlphaTypeToDrawingAlphaType(imageInfo.alphaType),
+        ColorSpaceToDrawingColorSpace(imageInfo.colorSpace) };
     Drawing::Pixmap imagePixmap(drawingImageInfo, reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
-    return Drawing::Image::MakeFromRaster(imagePixmap, PixelMapReleaseProc, new PixelMapReleaseContext(pixelMap));
+    PixelMapReleaseContext* releaseContext = new PixelMapReleaseContext(pixelMap);
+    auto image = Drawing::Image::MakeFromRaster(imagePixmap, PixelMapReleaseProc, releaseContext);
+    if (!image) {
+        RS_LOGE("RSPixelMapUtil::ExtractDrawingImage fail");
+        delete releaseContext;
+        releaseContext = nullptr;
+    }
+    return image;
 }
 
 #endif

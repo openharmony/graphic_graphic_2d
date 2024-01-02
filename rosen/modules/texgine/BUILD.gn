@@ -145,16 +145,17 @@ ohos_source_set("libtexgine_source") {
       ]
 
       public_deps +=
-          [ "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform" ]
+          [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
     } else {
       sources -= [ "src/utils/trace_ohos.cpp" ]
       if (platform == "mac") {
         defines += [ "BUILD_SDK_MAC" ]
-        public_deps += [ "$graphic_2d_root/rosen/build/flutter/harfbuzz:rosen_libharfbuzz_$platform" ]
-      } else {
         public_deps += [
-          "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform",
+          "$graphic_2d_root/rosen/build/harfbuzz:rosen_libharfbuzz_$platform",
         ]
+      } else {
+        public_deps +=
+            [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
       }
     }
   }

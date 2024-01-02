@@ -43,11 +43,13 @@ const char* RSFilterCacheManager::GetCacheState() const
             return false;                                                \
         }                                                                \
     } while (false)
-
+#ifndef ROSEN_ARKUI_X
 const bool RSFilterCacheManager::RSFilterCacheTask::FilterPartialRenderEnabled =
     RSSystemProperties::GetFilterPartialRenderEnabled() && RSUniRenderJudgement::IsUniRender();
+#else
+const bool RSFilterCacheManager::RSFilterCacheTask::FilterPartialRenderEnabled = false;
+#endif
 bool RSFilterCacheManager::SoloTaskPrepare = true;
-
 inline static bool IsLargeArea(int width, int height)
 {
     // Use configurable threshold to determine if the area is large, and apply different cache policy.
@@ -229,8 +231,7 @@ bool RSFilterCacheManager::RSFilterCacheTask::Render()
         resultBackendTexture_ =
             cacheSurface_->getBackendTexture(SkSurface::BackendHandleAccess::kFlushRead_BackendHandleAccess);
 #else
-        auto snapShot = cacheSurface_->GetImageSnapshot();
-        resultBackendTexture_ = snapShot->GetBackendTexture(false, nullptr);
+        resultBackendTexture_ = cacheSurface_->GetBackendTexture();
 #endif
     }
     CHECK_CACHE_PROCESS_STATUS;
@@ -515,6 +516,7 @@ void RSFilterCacheManager::TakeSnapshot(
     cacheUpdateInterval_ =
         isLargeArea && filter->CanSkipFrame() ? RSSystemProperties::GetFilterCacheUpdateInterval() : 0;
     cachedFilterHash_ = 0;
+    pendingPurge_ = false;
 }
 #endif
 
@@ -577,6 +579,12 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
         ROSEN_LOGD("GenerateFilteredSnapshot cache image resource(width:%{public}d, height:%{public}d).",
             filteredSnapshot->GetWidth(), filteredSnapshot->GetHeight());
         as_IB(filteredSnapshot->ExportSkImage().get())->hintCacheGpuResource();
+    }
+    if (RSSystemProperties::GetRecordingEnabled()) {
+        if (filteredSnapshot->IsTextureBacked()) {
+            RS_LOGI("RSFilterCacheManager::GenerateFilteredSnapshot cachedImage from texture to raster image");
+            filteredSnapshot = filteredSnapshot->MakeRasterImage();
+        }
     }
 #endif
     cachedFilteredSnapshot_ =

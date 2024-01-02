@@ -168,10 +168,10 @@ private:
 
     // TRANSFORM_FEEDBACK_BUFFER
     std::map<GLint, GLuint> boundIndexedTransformFeedbackBuffers_ {};
-    GLint maxBoundTransformFeedbackBufferIndex_ { 0 };
+    GLuint maxBoundTransformFeedbackBufferIndex_ { 0 };
     // UNIFORM_BUFFER
     std::map<GLint, GLuint> boundIndexedUniformBuffers_ {};
-    GLint maxBoundUniformBufferIndex_ { 0 };
+    GLuint maxBoundUniformBufferIndex_ { 0 };
 
     std::vector<GLuint> samplerUnits_ {};
     GLuint maxSamplerUnit_ {};

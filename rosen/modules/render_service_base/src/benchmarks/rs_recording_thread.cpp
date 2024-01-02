@@ -75,8 +75,7 @@ sk_sp<GrContext> RSRecordingThread::CreateShareGrContext()
         auto handler = std::make_shared<MemoryHandler>();
         auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
         auto size = glesVersion ? strlen(glesVersion) : 0;
-        /* /data/service/el0/render_service is shader cache dir*/
-        handler->ConfigureContext(&options, glesVersion, size, "/data/service/el0/render_service", true);
+        handler->ConfigureContext(&options, glesVersion, size);
 
 #ifdef NEW_SKIA
         sk_sp<GrDirectContext> grContext = GrDirectContext::MakeGL(std::move(glInterface), options);
@@ -117,7 +116,7 @@ std::shared_ptr<Drawing::GPUContext> RSRecordingThread::CreateShareGrContext()
         auto handler = std::make_shared<MemoryHandler>();
         auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
         auto size = glesVersion ? strlen(glesVersion) : 0;
-        handler->ConfigureContext(&options, glesVersion, size, "/data/service/el0/render_service", true);
+        handler->ConfigureContext(&options, glesVersion, size);
         if (!gpuContext->BuildFromGL(options)) {
             RS_LOGE("nullptr gpuContext is null");
             return nullptr;
@@ -128,7 +127,12 @@ std::shared_ptr<Drawing::GPUContext> RSRecordingThread::CreateShareGrContext()
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        if (!gpuContext->BuildFromVK(RsVulkanContext::GetSingleton().GetGrVkBackendContext())) {
+        Drawing::GPUContextOptions options;
+        auto handler = std::make_shared<MemoryHandler>();
+        std::string vulkanVersion = RsVulkanContext::GetSingleton().GetVulkanVersion();
+        auto size = vulkanVersion.size();
+        handler->ConfigureContext(&options, vulkanVersion.c_str(), size);
+        if (!gpuContext->BuildFromVK(RsVulkanContext::GetSingleton().GetGrVkBackendContext(), options)) {
             RS_LOGE("nullptr gpuContext is null");
             return nullptr;
         }
@@ -221,16 +225,14 @@ void RSRecordingThread::FinishRecordingOneFrameTask(RecordingMode modeSubThread)
             RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
 #ifndef USE_ROSEN_DRAWING
             drawCmdListVec_[curFrameIndex]->Marshalling(*messageParcel);
+#else
+            RSMarshallingHelper::Marshalling(*messageParcel, drawCmdListVec_[curFrameIndex]);
 #endif
             RSMarshallingHelper::EndNoSharedMem();
-#ifndef USE_ROSEN_DRAWING
             opsDescription = drawCmdListVec_[curFrameIndex]-> GetOpsWithDesc();
-#endif
         } else if (modeSubThread == RecordingMode::LOW_SPEED_RECORDING) {
             messageParcel = messageParcelVec_[curFrameIndex];
-#ifndef USE_ROSEN_DRAWING
             opsDescription = opsDescriptionVec_[curFrameIndex];
-#endif
         }
         OHOS::Rosen::Benchmarks::WriteMessageParcelToFile(messageParcel, opsDescription, curFrameIndex, fileDir_);
     }
@@ -256,16 +258,11 @@ void RSRecordingThread::FinishRecordingOneFrame()
     }
     auto modeSubThread = mode_;
     mode_ = RecordingMode::STOP_RECORDING;
-#ifdef RS_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-        RSTaskMessage::RSTask task = [this, modeSubThread]() {
-            FinishRecordingOneFrameTask(modeSubThread);
-        };
-        PostTask(task);
-    } else {
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    RSTaskMessage::RSTask task = [this, modeSubThread]() {
         FinishRecordingOneFrameTask(modeSubThread);
-    }
+    };
+    PostTask(task);
 #else
     FinishRecordingOneFrameTask(modeSubThread);
 #endif
@@ -298,6 +295,7 @@ void RSRecordingThread::RecordingToFile(const std::shared_ptr<Drawing::DrawCmdLi
         RSMarshallingHelper::Marshalling(*messageParcel, drawCmdList);
         RSMarshallingHelper::EndNoSharedMem();
         opsDescriptionVec_.push_back(drawCmdList->GetOpsWithDesc());
+        messageParcelVec_.push_back(messageParcel);
 #endif
     }
 

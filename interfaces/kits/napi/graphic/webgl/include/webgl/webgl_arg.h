@@ -231,9 +231,11 @@ struct TexImageArg {
     GLsizei height;
     GLsizei border;
     GLsizei depth;
+
     TexImageArg()
         : func(0), target(0), level(0), internalFormat(0),
         format(0), type(0), width(0), height(0), border(0), depth(0) {}
+
     TexImageArg(const TexImageArg& arg)
     {
         func = arg.func;
@@ -247,6 +249,7 @@ struct TexImageArg {
         border = arg.border;
         depth = arg.depth;
     }
+
     TexImageArg(
         GLenum target, GLint level, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum type)
     {
@@ -257,6 +260,9 @@ struct TexImageArg {
         this->width = width;
         this->height = height;
         this->depth = depth;
+        this->border = 0;
+        this->func = 0;
+        this->format = 0;
     }
     virtual void Dump(const std::string& info) const;
 };

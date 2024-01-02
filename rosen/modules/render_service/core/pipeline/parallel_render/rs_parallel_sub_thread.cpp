@@ -304,8 +304,7 @@ void RSParallelSubThread::Render()
                 RSPaintFilterCanvas::CacheType::ENABLED : RSPaintFilterCanvas::CacheType::DISABLED);
         }
 #else
-        auto saveCount = canvas_->GetSaveCount();
-        canvas_->Save();
+        auto saveCount = canvas_->Save();
         if (RSMainThread::Instance()->GetRenderEngine()) {
             canvas_->SetHighContrast(RSMainThread::Instance()->GetRenderEngine()->IsHighContrastEnabled());
         }

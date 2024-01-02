@@ -21,7 +21,7 @@
 #include "draw/color.h"
 
 #ifndef USE_ROSEN_DRAWING
-#include "include/core/SkHMSymbol.h"
+#include "include/core/HMSymbol.h"
 #else
 #include "text/hm_symbol.h"
 #endif
@@ -29,9 +29,9 @@
 #define EFFECT_NONE 0
 #define EFFECT_SCALE 1
 #define EFFECT_HIERARCHICAL 2
-#define RENDER_SINGLE 1
+#define RENDER_SINGLE 0
+#define RENDER_MULTIPLE_COLOR 1
 #define RENDER_MULTIPLE_OPACITY 2
-#define RENDER_MULTIPLE_COLOR 3
 
 namespace OHOS {
 namespace Rosen {

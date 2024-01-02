@@ -433,6 +433,28 @@ std::vector<int32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(Scree
     return renderService->GetScreenSupportedRefreshRates(id);
 }
 
+bool RSRenderServiceClient::GetShowRefreshRateEnabled()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
+        return false;
+    }
+
+    return renderService->GetShowRefreshRateEnabled();
+}
+    
+void RSRenderServiceClient::SetShowRefreshRateEnabled(bool enable)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
+        return;
+    }
+
+    return renderService->SetShowRefreshRateEnabled(enable);
+}
+
 int32_t RSRenderServiceClient::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -1044,6 +1066,38 @@ void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled)
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->SetHardwareEnabled(id, isEnabled);
+    }
+}
+
+void RSRenderServiceClient::NotifyLightFactorStatus(bool isSafe)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->NotifyLightFactorStatus(isSafe);
+    }
+}
+
+void RSRenderServiceClient::NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->NotifyPackageEvent(listSize, packageList);
+    }
+}
+
+void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->NotifyRefreshRateEvent(eventInfo);
+    }
+}
+
+void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->NotifyTouchEvent(touchStatus);
     }
 }
 

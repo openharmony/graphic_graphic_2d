@@ -33,7 +33,7 @@ public:
 
     static int32_t GetAppOffset(const uint32_t controllerRate);
     void ChangeGeneratorRate(const uint32_t controllerRate,
-                             std::vector<std::pair<FrameRateLinkerId, uint32_t>> appData);
+                             const std::vector<std::pair<FrameRateLinkerId, uint32_t>>& appData);
     uint32_t GetCurrentRate() const;
     int64_t GetCurrentOffset() const;
 private:

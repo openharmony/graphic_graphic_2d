@@ -310,6 +310,9 @@ int64_t VSyncGenerator::ComputeListenerNextVSyncTimeStamp(const Listener& listen
 
     // 3 / 5 and 1 / 10 are just empirical value
     int64_t threshold = refreshRateIsChanged_ ? (1 * period_ / 10) : (3 * period_ / 5);
+    if (!refreshRateIsChanged_ && period_ > 8000000 && period_ < 8500000) { // between 8000000(8ms) and 8500000(8.5ms)
+        threshold = 4 * period_ / 5; // 4 / 5 is an empirical value
+    }
     // 3 / 5 just empirical value
     if (((vsyncMode_ == VSYNC_MODE_LTPS) && (nextTime - listener.lastTime_ < (3 * period_ / 5))) ||
         ((vsyncMode_ == VSYNC_MODE_LTPO) && (nextTime - listener.lastTime_ < threshold))) {

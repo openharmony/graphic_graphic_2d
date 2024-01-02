@@ -84,7 +84,7 @@ SkCanvas* SurfaceOhosGl::GetSkCanvas(std::unique_ptr<SurfaceFrame>& frame)
     return drawingProxy_->AcquireSkCanvas(frame);
 }
 
-#ifdef USR_ROSEN_DRAWING
+#ifdef USE_ROSEN_DRAWING
 Drawing::Canvas* SurfaceOhosGl::GetCanvas(std::unique_ptr<SurfaceFrame>& frame)
 {
     if (drawingProxy_ == nullptr) {

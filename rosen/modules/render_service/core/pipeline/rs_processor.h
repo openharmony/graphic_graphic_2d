@@ -49,6 +49,7 @@ public:
     virtual void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) = 0;
     void SetSecurityDisplay(bool isSecurityDisplay);
     void SetDisplayHasSecSurface(bool displayHasSecSurface);
+    void MirrorScenePerf();
 
 #ifndef USE_ROSEN_DRAWING
     const SkMatrix& GetScreenTransformMatrix() const
@@ -85,6 +86,7 @@ protected:
     BufferRequestConfig renderFrameConfig_ {};
     bool isSecurityDisplay_ = false;
     bool displayHasSecSurface_ = false;
+    static bool needDisableMultiLayersPerf_;
 };
 } // namespace Rosen
 } // namespace OHOS

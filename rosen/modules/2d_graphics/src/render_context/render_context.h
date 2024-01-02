@@ -167,15 +167,9 @@ public:
         isUniRenderMode_ = isUni;
     }
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    std::string GetShaderCacheSize() const
-    {
-        return mHandler_->QuerryShader();
-    }
+    std::string GetShaderCacheSize() const;
 
-    std::string CleanAllShaderCache() const
-    {
-        return mHandler_->ClearShader();
-    }
+    std::string CleanAllShaderCache() const;
 #endif
     EGLContext CreateShareContext();
 #ifdef ROSEN_IOS
@@ -225,10 +219,14 @@ private:
     std::shared_ptr<MemoryHandler> mHandler_;
     std::mutex shareContextMutex_;
 
-    sk_sp<SkColorSpace> ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut) const;
+    static sk_sp<SkColorSpace> ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut);
 #ifndef USE_ROSEN_DRAWING
 #ifdef RS_ENABLE_GL
     void InitGrContextOptions(GrContextOptions &options);
+#endif
+#else
+#ifdef RS_ENABLE_GL
+    void InitGrContextOptions(Drawing::GPUContextOptions &options);
 #endif
 #endif
 };

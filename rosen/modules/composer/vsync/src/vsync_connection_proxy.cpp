@@ -54,7 +54,7 @@ VsyncError VSyncConnectionProxy::GetReceiveFd(int32_t &fd)
 
 VsyncError VSyncConnectionProxy::SetVSyncRate(int32_t rate)
 {
-    if (rate <= 0) {
+    if (rate < -1) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     MessageOption opt;

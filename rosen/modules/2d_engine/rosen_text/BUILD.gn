@@ -133,8 +133,6 @@ if (enable_text_gine) {
 
     deps = [ "$skia_root_new:skia_$platform" ]
 
-    deps += [ "$ace_flutter_engine_root/libtxt:thirdparty_lib_txt_$platform" ]
-
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }

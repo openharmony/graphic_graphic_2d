@@ -183,15 +183,15 @@ public:
     Vector4f GetBorderWidth() const;
     Vector4<uint32_t> GetBorderStyle() const;
     const std::shared_ptr<RSBorder>& GetBorder() const;
-    void SetOuterBorderColor(Vector4<Color> color);
-    void SetOuterBorderWidth(Vector4f width);
-    void SetOuterBorderStyle(Vector4<uint32_t> style);
-    void SetOuterBorderRadius(Vector4f radius);
-    Vector4<Color> GetOuterBorderColor() const;
-    Vector4f GetOuterBorderWidth() const;
-    Vector4<uint32_t> GetOuterBorderStyle() const;
-    Vector4f GetOuterBorderRadius() const;
-    const std::shared_ptr<RSBorder>& GetOuterBorder() const;
+    void SetOutlineColor(Vector4<Color> color);
+    void SetOutlineWidth(Vector4f width);
+    void SetOutlineStyle(Vector4<uint32_t> style);
+    void SetOutlineRadius(Vector4f radius);
+    Vector4<Color> GetOutlineColor() const;
+    Vector4f GetOutlineWidth() const;
+    Vector4<uint32_t> GetOutlineStyle() const;
+    Vector4f GetOutlineRadius() const;
+    const std::shared_ptr<RSBorder>& GetOutline() const;
 
     // filter properties
     void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
@@ -203,6 +203,7 @@ public:
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
     const std::shared_ptr<RSFilter>& GetBackgroundFilter() const;
     const std::shared_ptr<RSLinearGradientBlurPara>& GetLinearGradientBlurPara() const;
+    void IfLinearGradientBlurInvalid();
     const std::shared_ptr<RSFilter>& GetFilter() const;
     bool NeedFilter() const;
 
@@ -288,7 +289,7 @@ public:
     float GetLightUpEffect() const;
     bool IsLightUpEffectValid() const;
     bool IsDynamicLightUpValid() const;
-    bool IsGreyAdjustmenValid() const;
+    bool IsGreyAdjustmentValid() const;
 
     // Image effect properties
     void SetGrayScale(const std::optional<float>& grayScale);
@@ -344,6 +345,9 @@ public:
     RRect GetInnerRRect() const;
     RectF GetFrameRect() const;
 
+    bool GetHaveEffectRegion() const;
+    void SetHaveEffectRegion(bool hasEffectRegion);
+
     void OnApplyModifiers();
 
 private:
@@ -395,7 +399,7 @@ private:
     std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
     std::shared_ptr<RSBorder> border_ = nullptr;
-    std::shared_ptr<RSBorder> outerBorder_ = nullptr;
+    std::shared_ptr<RSBorder> outline_ = nullptr;
     std::shared_ptr<RSPath> clipPath_ = nullptr;
     std::optional<Vector4f> cornerRadius_;
     std::optional<Decoration> decoration_;
@@ -449,6 +453,7 @@ private:
 #else
     std::shared_ptr<Drawing::ColorFilter> colorFilter_ = nullptr;
 #endif
+    bool haveEffectRegion_ = false;
 
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void CreateFilterCacheManagerIfNeed();
@@ -465,9 +470,9 @@ private:
     friend class RSCanvasRenderNode;
     friend class RSColorfulShadowDrawable;
     friend class RSEffectDataGenerateDrawable;
+    friend class RSModifierDrawable;
     friend class RSPropertiesPainter;
     friend class RSRenderNode;
-    friend class RSRenderNodeMap;
 };
 } // namespace Rosen
 } // namespace OHOS

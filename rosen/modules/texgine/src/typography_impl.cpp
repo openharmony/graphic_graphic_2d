@@ -235,6 +235,9 @@ void TypographyImpl::ComputeWordBoundary() const
             wb.SetLocale(icu::Locale::createFromName(span.GetTextStyle().locale.c_str()));
             wb.SetRange(0, ts->u16vect_.size());
             auto boundaries = wb.GetBoundary(ts->u16vect_, true);
+            if (boundaries.empty()) {
+                continue;
+            }
             for (const auto &[left, right] : boundaries) {
                 boundariesCache_.emplace_back(left + offset, right + offset);
             }
@@ -259,6 +262,24 @@ Boundary TypographyImpl::GetWordBoundaryByIndex(size_t index) const
     return {right, right};
 }
 
+double TypographyImpl::GetLineHeight(int lineNumber)
+{
+    if (lineNumber >= 0 && lineNumber < lineMetrics_.size()) {
+        return lineMetrics_[lineNumber].GetMaxHeight();
+    } else {
+        return 0.0;
+    }
+}
+
+double TypographyImpl::GetLineWidth(int lineNumber)
+{
+    if (lineNumber >= 0 && lineNumber < lineMetrics_.size()) {
+        return lineMetrics_[lineNumber].width;
+    } else {
+        return 0.0;
+    }
+}
+
 void TypographyImpl::Layout(double maxWidth)
 {
     boundariesCache_ = {};
@@ -269,14 +290,21 @@ void TypographyImpl::Layout(double maxWidth)
         LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "TypographyImpl::Layout");
         LOGEX_FUNC_LINE_DEBUG() << "Layout maxWidth: " << maxWidth << ", spans.size(): " << spans_.size();
         maxWidth_ = floor(maxWidth);
-        if (spans_.empty()) {
+        auto isEmptySpans = spans_.empty();
+        if (isEmptySpans) {
             LOGEX_FUNC_LINE(ERROR) << "Empty spans";
-            return;
+            std::vector<uint16_t> text{u'\n'};
+            VariantSpan vs = TextSpan::MakeFromText(text);
+            vs.SetTextStyle(typographyStyle_.ConvertToTextStyle());
+            spans_.push_back(vs);
         }
 
         Shaper shaper;
         shaper.SetIndents(indents_);
         lineMetrics_ = shaper.DoShape(spans_, typographyStyle_, fontProviders_, maxWidth_);
+        if (isEmptySpans) {
+            lineMetrics_.pop_back();
+        }
         if (lineMetrics_.size() == 0) {
             LOGEX_FUNC_LINE_DEBUG() << "Shape failed";
             return;
@@ -549,8 +577,36 @@ void TypographyImpl::UpadateAnySpanMetrics(std::shared_ptr<AnySpan> &span, doubl
 void TypographyImpl::Paint(TexgineCanvas &canvas, double offsetX, double offsetY)
 {
     for (auto &metric : lineMetrics_) {
+        int spanCount = metric.lineSpans.size();
+        int index = 0;
+        int preIndex = -1; // Init preIndex to -1
+        bool leftRound = false;
+        bool rightRound = false;
         for (auto &span : metric.lineSpans) {
+            if (span.HasBackgroundRect()) {
+                int styleId = span.GetTextStyle().styleId;
+                // index - 1 is previous index, -1 is the invalid styleId
+                int preStyleId = index == 0 ? -1 : metric.lineSpans[index - 1].GetTextStyle().styleId;
+                // spanCount - 1 is the last span index, index + 1 is next span index, -1 is the invalid styleId
+                int nextStyleId = index == spanCount - 1 ? -1 : metric.lineSpans[index + 1].GetTextStyle().styleId;
+                // index - preIndex > 1 means the left span has no background rect
+                leftRound = (preIndex < 0 || index - preIndex > 1 || preStyleId != styleId);
+                // spanCount - 1 is the last span index, index + 1 is next span index
+                rightRound = (index == spanCount - 1 || !metric.lineSpans[index + 1].HasBackgroundRect() ||
+                    nextStyleId != styleId);
+                preIndex = index;
+            }
+            if (leftRound && rightRound) {
+                span.SetRoundRectType(RoundRectType::ALL);
+            } else if (leftRound) {
+                span.SetRoundRectType(RoundRectType::LEFT_ONLY);
+            } else if (rightRound) {
+                span.SetRoundRectType(RoundRectType::RIGHT_ONLY);
+            } else {
+                span.SetRoundRectType(RoundRectType::NONE);
+            }
             span.Paint(canvas, offsetX + span.GetOffsetX(), offsetY + span.GetOffsetY());
+            index++;
         }
     }
 }
@@ -762,9 +818,12 @@ void TypographyImpl::ApplyAlignment()
         }
 
         size_t spanIndex = 0;
+        line.ComputeLineHeightAndY();
         for (auto &span : line.lineSpans) {
             span.AdjustOffsetX(typographyOffsetX + spanGapWidth * spanIndex);
             span.SetJustifyGap(spanIndex > 0 && isJustify ? spanGapWidth : 0.0);
+            span.SetLineHeight(line.lineHeight);
+            span.SetLineY(line.lineY);
             spanIndex++;
         }
         line.indent = typographyOffsetX;

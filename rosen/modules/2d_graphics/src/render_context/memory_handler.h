@@ -35,10 +35,10 @@ class MemoryHandler {
 public:
 #ifndef USE_ROSEN_DRAWING
     static void ConfigureContext(GrContextOptions* context, const char* identity, const size_t size,
-        const std::string& cacheFilePath, bool isUni);
+        const std::string& cacheFilePath = mUniRenderCacheDir, bool isUni = true);
 #else
     static void ConfigureContext(Drawing::GPUContextOptions* context, const char* identity, const size_t size,
-        const std::string& cacheFilePath, bool isUni);
+        const std::string& cacheFilePath = mUniRenderCacheDir, bool isUni = true);
 #endif
     MemoryHandler() = default;
 #ifndef USE_ROSEN_DRAWING
@@ -52,6 +52,8 @@ public:
 #endif
     static std::string QuerryShader();
     static std::string ClearShader();
+private:
+    inline static const std::string mUniRenderCacheDir = "/data/service/el0/render_service";
 };
 }   // namespace Rosen
 }   // namespace OHOS

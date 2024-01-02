@@ -20,9 +20,10 @@
 #include <vector>
 
 #include "rosen_text/properties/font_collection_txt_base.h"
-#include "txt/asset_font_manager.h"
-#include "txt/font_collection.h"
+#include "text/font_mgr.h"
 #include "utils/drawing_macros.h"
+
+using RSFontMgr = OHOS::Rosen::Drawing::FontMgr;
 
 namespace rosen {
 class DRAWING_API FontCollectionTxt : public FontCollectionTxtBase {

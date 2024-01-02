@@ -40,29 +40,18 @@ public:
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 #ifndef USE_ROSEN_DRAWING
-    std::optional<SkPath> InitializeEffectRegion() const;
-    void SetEffectRegion(const std::optional<SkPath>& region);
+    std::optional<SkIRect> InitializeEffectRegion() const { return SkIRect::MakeEmpty(); }
+    void SetEffectRegion(const std::optional<SkIRect>& effectRegion);
 #else
-    std::optional<Drawing::Path> InitializeEffectRegion() const;
-    void SetEffectRegion(const std::optional<Drawing::Path>& region);
+    std::optional<Drawing::RectI> InitializeEffectRegion() const { return Drawing::RectI(); }
+    void SetEffectRegion(const std::optional<Drawing::RectI>& effectRegion);
 #endif
-
-    void UpdateFilterCacheManagerWithCacheRegion(
-        RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect = std::nullopt) const override;
-    void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground = true) const override;
 
 protected:
     RectI GetFilterRect() const override;
-
-private:
-#ifndef USE_ROSEN_DRAWING
-    std::optional<SkIRect> effectRegion_ = std::nullopt;
-    void UpdateEffectRegion(const std::optional<SkIRect>& region);
-#else
-    std::optional<Drawing::RectI> effectRegion_ = std::nullopt;
-    void UpdateEffectRegion(const std::optional<Drawing::RectI>& region);
-#endif
-    friend class RSEffectDataGenerateDrawable;
+    void UpdateFilterCacheManagerWithCacheRegion(
+        RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect) const override;
+    void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground) const override;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -17,17 +17,17 @@
 
 #include "platform/common/rs_system_properties.h"
 #include "recording/cmd_list_helper.h"
+#include "recording/color_filter_cmd_list.h"
+#include "recording/color_space_cmd_list.h"
 #include "recording/draw_cmd_list.h"
+#include "recording/image_filter_cmd_list.h"
+#include "recording/mask_filter_cmd_list.h"
 #include "recording/mem_allocator.h"
 #include "recording/op_item.h"
 #include "recording/path_cmd_list.h"
-#include "recording/color_filter_cmd_list.h"
-#include "recording/color_space_cmd_list.h"
-#include "recording/image_filter_cmd_list.h"
-#include "recording/mask_filter_cmd_list.h"
 #include "recording/path_effect_cmd_list.h"
-#include "recording/shader_effect_cmd_list.h"
 #include "recording/region_cmd_list.h"
+#include "recording/shader_effect_cmd_list.h"
 
 #include "draw/brush.h"
 #include "draw/path.h"
@@ -214,11 +214,12 @@ std::unordered_map<uint32_t, UnmarshallingPlayer::UnmarshallingFunc> Unmarshalli
     { DrawOpItem::PIXELMAP_RECT_OPITEM,     DrawPixelMapRectOpItem::Unmarshalling},
     { DrawOpItem::REGION_OPITEM,            DrawRegionOpItem::Unmarshalling },
     { DrawOpItem::PATCH_OPITEM,             DrawPatchOpItem::Unmarshalling },
-    { DrawOpItem::EDGEAAQUAD_OPITEM, DrawEdgeAAQuadOpItem::Unmarshalling },
+    { DrawOpItem::EDGEAAQUAD_OPITEM,        DrawEdgeAAQuadOpItem::Unmarshalling },
     { DrawOpItem::VERTICES_OPITEM,          DrawVerticesOpItem::Unmarshalling },
 #ifdef ROSEN_OHOS
-    { DrawOpItem::SURFACEBUFFER_OPITEM,          DrawSurfaceBufferOpItem::Unmarshalling },
+    { DrawOpItem::SURFACEBUFFER_OPITEM,     DrawSurfaceBufferOpItem::Unmarshalling },
 #endif
+    { DrawOpItem::DRAW_FUNC_OPITEM,         DrawFuncOpItem::Unmarshalling },
 };
 
 UnmarshallingPlayer::UnmarshallingPlayer(const CmdList& cmdList) : cmdList_(cmdList) {}
@@ -948,6 +949,138 @@ std::shared_ptr<DrawOpItem> DrawSymbolOpItem::Unmarshalling(const CmdList& cmdLi
     return std::make_shared<DrawSymbolOpItem>(cmdList, static_cast<DrawSymbolOpItem::ConstructorHandle*>(handle));
 }
 
+void DrawSymbolOpItem::SetSymbol()
+{
+    LOGD("SymbolOpItem::SetSymbol GlyphId %{public}d", static_cast<int>(symbol_.symbolInfo_.symbolGlyphId));
+    if (symbol_.symbolInfo_.effect == DrawingEffectStrategy::SCALE) {
+        if (!startAnimation_) {
+            InitialScale();
+        }
+        SetScale(0); // scale animation only has one element
+    } else if (symbol_.symbolInfo_.effect == DrawingEffectStrategy::HIERARCHICAL) {
+        if (!startAnimation_) {
+            InitialVariableColor();
+        }
+        for (size_t i = 0; i < animation_.size(); i++) {
+            SetVariableColor(i);
+        }
+    }
+}
+
+void DrawSymbolOpItem::InitialScale()
+{
+    DrawSymbolAnimation animation;
+    animation.startValue = 0; // 0 means scale start value
+    animation.curValue = 0; // 0 means scale current value
+    animation.endValue = 0.5; // 0.5 means scale end value
+    animation.speedValue = 0.05; // 0.05 means scale change step
+    animation.number = 0; // 0 means number of times that the animation to be played
+    animation_.push_back(animation);
+    startAnimation_ = true;
+}
+
+void DrawSymbolOpItem::InitialVariableColor()
+{
+    LOGD("SetSymbol groups %{public}d", static_cast<int>(symbol_.symbolInfo_.renderGroups.size()));
+    uint32_t startTimes = 10 * symbol_.symbolInfo_.renderGroups.size() - 10; // 10 means frame intervals
+    for (size_t j = 0; j < symbol_.symbolInfo_.renderGroups.size(); j++) {
+        DrawSymbolAnimation animation;
+        animation.startValue = 0.4; // 0.4 means alpha start value
+        animation.curValue = 0.4; // 0.4 means alpha current value
+        animation.endValue = 1; // 1 means alpha end value
+        animation.speedValue = 0.08; // 0.08 means alpha change step
+        animation.number = 0; // 0 means number of times that the animation to be played
+        animation.startCount = startTimes - j * 10; // 10 means frame intervals
+        animation.count = 0; // 0 means the initial value of the frame
+        animation_.push_back(animation);
+        symbol_.symbolInfo_.renderGroups[j].color.a = animation.startValue;
+    }
+    startAnimation_ = true;
+}
+
+void DrawSymbolOpItem::SetScale(size_t index)
+{
+    if (animation_.size() < index || animation_[index].number >= number_) {
+        LOGD("SymbolOpItem::symbol scale animation is false!");
+        return;
+    }
+    DrawSymbolAnimation animation = animation_[index];
+    if (animation.number >= number_ || animation.startValue == animation.endValue) {
+        return;
+    }
+    if (animation.number == 0) {
+        LOGD("SymbolOpItem::symbol scale animation is start!");
+    }
+
+    if (abs(animation.curValue - animation.endValue) < animation.speedValue) {
+        double temp = animation.startValue;
+        animation.startValue = animation.endValue;
+        animation.endValue = temp;
+        animation.number++;
+    }
+    if (animation.number == number_) {
+        LOGD("SymbolOpItem::symbol scale animation is end!");
+        return;
+    }
+    if (animation.endValue > animation.startValue) {
+        animation.curValue = animation.curValue + animation.speedValue;
+    } else {
+        animation.curValue = animation.curValue - animation.speedValue;
+    }
+    animation_[index] = animation;
+}
+
+void DrawSymbolOpItem::SetVariableColor(size_t index)
+{
+    if (animation_.size() < index || animation_[index].number >= number_) {
+        return;
+    }
+
+    animation_[index].count++;
+    DrawSymbolAnimation animation = animation_[index];
+    if (animation.startValue == animation.endValue ||
+        animation.count < animation.startCount) {
+        return;
+    }
+
+    if (abs(animation.curValue - animation.endValue) < animation.speedValue) {
+        double stemp = animation.startValue;
+        animation.startValue = animation.endValue;
+        animation.endValue = stemp;
+        animation.number++;
+    }
+    if (animation.endValue > animation.startValue) {
+        animation.curValue = animation.curValue + animation.speedValue;
+    } else {
+        animation.curValue = animation.curValue - animation.speedValue;
+    }
+    UpdataVariableColor(animation.curValue, index);
+    animation_[index] = animation;
+}
+
+void DrawSymbolOpItem::UpdateScale(const double cur, Path& path)
+{
+    LOGD("SymbolOpItem::animation cur %{public}f", static_cast<float>(cur));
+    //set symbol
+    Rect rect = path.GetBounds();
+    float y = static_cast<float>(rect.GetWidth()) / 2;
+    float x = static_cast<float>(rect.GetHeight()) / 2;
+    Matrix matrix;
+    matrix.Translate(-x, -y);
+    path.Transform(matrix);
+    Matrix matrix1;
+    matrix1.SetScale(1.0f + cur, 1.0f+ cur);
+    path.Transform(matrix1);
+    Matrix matrix2;
+    matrix2.Translate(x, y);
+    path.Transform(matrix2);
+}
+
+void DrawSymbolOpItem::UpdataVariableColor(const double cur, size_t index)
+{
+    symbol_.symbolInfo_.renderGroups[index].color.a = fmin(1, fmax(0, cur));
+}
+
 void DrawSymbolOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (!canvas) {
@@ -955,27 +1088,43 @@ void DrawSymbolOpItem::Playback(Canvas* canvas, const Rect* rect)
         return;
     }
 
-    Drawing::Path path(symbol_.path_);
+    Path path(symbol_.path_);
+
+    if (startAnimation_ && symbol_.symbolInfo_.effect == DrawingEffectStrategy::SCALE &&
+            !animation_.empty()) {
+        UpdateScale(animation_[0].curValue, path);
+    }
 
     // 1.0 move path
     path.Offset(locate_.GetX(), locate_.GetY());
 
     // 2.0 split path
-    std::vector<Drawing::Path> paths;
+    std::vector<Path> paths;
     DrawingHMSymbol::PathOutlineDecompose(path, paths);
-    std::vector<Drawing::Path> pathLayers;
+    std::vector<Path> pathLayers;
     DrawingHMSymbol::MultilayerPath(symbol_.symbolInfo_.layers, paths, pathLayers);
-    canvas->AttachPaint(paint_);
+
+    // 3.0 set paint
+    Paint paintCopy = paint_;
+    paintCopy.SetAntiAlias(true);
+    paintCopy.SetStyle(Paint::PaintStyle::PAINT_FILL_STROKE);
+    paintCopy.SetWidth(0.0f);
+    paintCopy.SetJoinStyle(Pen::JoinStyle::ROUND_JOIN);
 
     // draw path
-    std::vector<Drawing::DrawingRenderGroup> groups = symbol_.symbolInfo_.renderGroups;
+    std::vector<DrawingRenderGroup> groups = symbol_.symbolInfo_.renderGroups;
     LOGD("SymbolOpItem::Draw RenderGroup size %{public}d", static_cast<int>(groups.size()));
     if (groups.size() == 0) {
+        canvas->AttachPaint(paintCopy);
         canvas->DrawPath(path);
     }
     for (auto group : groups) {
-        Drawing::Path multPath;
+        Path multPath;
         MergeDrawingPath(multPath, group, pathLayers);
+        // color
+        paintCopy.SetColor(Color::ColorQuadSetARGB(0xFF, group.color.r, group.color.g, group.color.b));
+        paintCopy.SetAlphaF(group.color.a);
+        canvas->AttachPaint(paintCopy);
         canvas->DrawPath(multPath);
     }
 }
@@ -984,24 +1133,24 @@ void DrawSymbolOpItem::MergeDrawingPath(
     Drawing::Path& multPath, Drawing::DrawingRenderGroup& group, std::vector<Drawing::Path>& pathLayers)
 {
     for (auto groupInfo : group.groupInfos) {
-        Drawing::Path pathStemp;
+        Drawing::Path pathTemp;
         for (auto k : groupInfo.layerIndexes) {
             if (k >= pathLayers.size()) {
                 continue;
             }
-            pathStemp.AddPath(pathLayers[k]);
+            pathTemp.AddPath(pathLayers[k]);
         }
         for (size_t h : groupInfo.maskIndexes) {
             if (h >= pathLayers.size()) {
                 continue;
             }
             Drawing::Path outPath;
-            auto isOk = outPath.Op(pathStemp, pathLayers[h], Drawing::PathOp::DIFFERENCE);
+            auto isOk = outPath.Op(pathTemp, pathLayers[h], Drawing::PathOp::DIFFERENCE);
             if (isOk) {
-                pathStemp = outPath;
+                pathTemp = outPath;
             }
         }
-        multPath.AddPath(pathStemp);
+        multPath.AddPath(pathTemp);
     }
 }
 
@@ -1414,7 +1563,7 @@ DrawPixelMapRectOpItem::DrawPixelMapRectOpItem(
     const CmdList& cmdList, DrawPixelMapRectOpItem::ConstructorHandle* handle)
     : DrawWithPaintOpItem(cmdList, handle->paintHandle, PIXELMAP_RECT_OPITEM), sampling_(handle->sampling)
 {
-    objectHandle_ = CmdListHelper::GetImageBaseOjFromCmdList(cmdList, handle->objectHandle);
+    objectHandle_ = CmdListHelper::GetImageBaseObjFromCmdList(cmdList, handle->objectHandle);
 }
 
 std::shared_ptr<DrawOpItem> DrawPixelMapRectOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
@@ -1448,6 +1597,29 @@ void ImageSnapshotOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->AttachPaint(paint_);
     canvas->DrawImageRect(*image_, src_, dst_, sampling_, SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
 }
+
+/* DrawFuncOpItem */
+DrawFuncOpItem::DrawFuncOpItem(DrawFuncOpItem::ConstructorHandle* handle)
+    : DrawOpItem(DRAW_FUNC_OPITEM), func_(handle->func_)
+{}
+
+std::shared_ptr<DrawOpItem> DrawFuncOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+{
+    auto constructorHandle = static_cast<DrawFuncOpItem::ConstructorHandle*>(handle);
+    if (constructorHandle == nullptr || constructorHandle->func_ == nullptr) {
+        return nullptr;
+    }
+    return std::make_shared<DrawFuncOpItem>(constructorHandle);
+}
+
+void DrawFuncOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (func_ == nullptr) {
+        return;
+    }
+    func_(canvas, rect);
+}
+
 #ifdef ROSEN_OHOS
 DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(const CmdList& cmdList,
     DrawSurfaceBufferOpItem::ConstructorHandle* handle)
@@ -1542,20 +1714,29 @@ void DrawSurfaceBufferOpItem::Draw(Canvas* canvas)
         }
         auto backendTexture = DrawSurfaceBufferOpItem::makeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
             surfaceBufferInfo_.width_, surfaceBufferInfo_.height_);
+        if (!backendTexture.IsValid()) {
+            LOGE("DrawSurfaceBufferOpItem::Draw backendTexture is not valid");
+            return;
+        }
         Drawing::BitmapFormat bitmapFormat = { Drawing::ColorType::COLORTYPE_RGBA_8888,
             Drawing::AlphaType::ALPHATYPE_PREMUL };
         auto ptr = [](void* context) {
             DrawSurfaceBufferOpItem::deleteVkImage(context);
         };
+        if (!canvas->GetGPUContext()) {
+            LOGE("DrawSurfaceBufferOpItem::Draw gpu context is nullptr");
+            return;
+        }
         auto image = std::make_shared<Drawing::Image>();
         auto vkTextureInfo = backendTexture.GetTextureInfo().GetVKTextureInfo();
         if (!vkTextureInfo || !image->BuildFromTexture(*canvas->GetGPUContext(), backendTexture.GetTextureInfo(),
             Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, ptr,
             DrawSurfaceBufferOpItem::vulkanCleanupHelper(vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory))) {
-            LOGE("DrawSurfaceBufferOpItem::Draw: image BuildFromTexture failed");
+            LOGE("DrawSurfaceBufferOpItem::Draw image BuildFromTexture failed");
             return;
         }
-        canvas->DrawImage(*image, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, Drawing::SamplingOptions());
+        auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
+        canvas->DrawImage(*image, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, samplingOptions);
     }
 #endif
 

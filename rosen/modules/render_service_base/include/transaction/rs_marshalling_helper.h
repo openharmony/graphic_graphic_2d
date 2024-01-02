@@ -55,6 +55,8 @@ struct RenderGroup;
 struct SymbolLayers;
 struct SColor;
 struct SymbolLayersGroups;
+struct GroupSetting;
+struct AnimationSetting;
 
 #ifdef NEW_SKIA
 struct SkSamplingOptions;
@@ -76,7 +78,7 @@ class DrawCmdList;
 class OpItem;
 #else
 class RSExtendImageObject;
-class RSExtendImageBaseOj;
+class RSExtendImageBaseObj;
 namespace Drawing {
 class DrawCmdList;
 class MaskCmdList;
@@ -245,6 +247,10 @@ public:
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, SkPoint& val);
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const SColor& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, SColor& val);
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const GroupSetting& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, GroupSetting& val);
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const AnimationSetting& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, AnimationSetting& val);
 #else
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::Image>& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Image>& val);
@@ -311,7 +317,7 @@ public:
 #else
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Drawing::DrawCmdList>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSExtendImageObject>)
-    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSExtendImageBaseOj>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSExtendImageBaseObj>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Drawing::MaskCmdList>)
 #endif
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Media::PixelMap>)

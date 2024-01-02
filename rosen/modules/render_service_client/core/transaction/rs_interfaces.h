@@ -81,25 +81,28 @@ public:
     bool TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f);
 
+#ifndef ROSEN_ARKUI_X
     void SetScreenActiveMode(ScreenId id, uint32_t modeId);
 
     MemoryGraphic GetMemoryGraphic(int pid);
 
     std::vector<MemoryGraphic> GetMemoryGraphics();
-
+#endif // !ROSEN_ARKUI_X
     bool GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize);
 
+#ifndef ROSEN_ARKUI_X
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
-
+#endif // !ROSEN_ARKUI_X
     bool SetVirtualMirrorScreenBufferRotation(ScreenId id, bool bufferRotation);
 
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation);
-
+#ifndef ROSEN_ARKUI_X
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
 
     RSScreenModeInfo GetScreenActiveMode(ScreenId id);
+#endif // !ROSEN_ARKUI_X
 
     void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate);
 
@@ -113,6 +116,11 @@ public:
 
     std::vector<int32_t> GetScreenSupportedRefreshRates(ScreenId id);
 
+    bool GetShowRefreshRateEnabled();
+    
+    void SetShowRefreshRateEnabled(bool enable);
+
+#ifndef ROSEN_ARKUI_X
     std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id);
 
     RSScreenCapability GetScreenCapability(ScreenId id);
@@ -120,7 +128,7 @@ public:
     ScreenPowerStatus GetScreenPowerStatus(ScreenId id);
 
     RSScreenData GetScreenData(ScreenId id);
-
+#endif // !ROSEN_ARKUI_X
     int32_t GetScreenBacklight(ScreenId id);
 
     void SetScreenBacklight(ScreenId id, uint32_t level);
@@ -194,6 +202,14 @@ public:
     int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height);
 
     void ReportJankStats();
+
+    void NotifyLightFactorStatus(bool isSafe);
+
+    void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
+
+    void NotifyRefreshRateEvent(const EventInfo& eventInfo);
+
+    void NotifyTouchEvent(int32_t touchStatus);
 
     void ReportEventResponse(DataBaseRs info);
 

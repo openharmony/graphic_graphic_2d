@@ -169,26 +169,47 @@ void RSBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<
 #ifndef USE_ROSEN_DRAWING
     auto paint = GetPaint();
 #ifdef NEW_SKIA
+    sk_sp<SkImage> greyImage = image;
+    if (isGreyCoefValid_) {
+        greyImage = RSPropertiesPainter::DrawGreyAdjustment(canvas, image, greyCoef1_, greyCoef2_);
+    }
+    if (greyImage == nullptr) {
+        greyImage = image;
+    }
     // if kawase blur failed, use gauss blur
     KawaseParameter param = KawaseParameter(src, dst, blurRadiusX_, nullptr, paint.getAlphaf());
-    if (useKawase_ && KawaseBlurFilter::GetKawaseBlurFilter()->ApplyKawaseBlur(canvas, image, param)) {
+    if (useKawase_ && KawaseBlurFilter::GetKawaseBlurFilter()->ApplyKawaseBlur(canvas, greyImage, param)) {
         return;
     }
-    canvas.drawImageRect(image.get(), src, dst, SkSamplingOptions(), &paint, SkCanvas::kStrict_SrcRectConstraint);
+    canvas.drawImageRect(greyImage.get(), src, dst, SkSamplingOptions(), &paint, SkCanvas::kStrict_SrcRectConstraint);
 #else
-    canvas.drawImageRect(image.get(), src, dst, &paint);
+    canvas.drawImageRect(greyImage.get(), src, dst, &paint);
 #endif
 #else
     auto brush = GetBrush();
+    std::shared_ptr<Drawing::Image> greyImage = image;
+    if (isGreyCoefValid_) {
+        greyImage = RSPropertiesPainter::DrawGreyAdjustment(canvas, image, greyCoef1_, greyCoef2_);
+    }
+    if (greyImage == nullptr) {
+        greyImage = image;
+    }
     // if kawase blur failed, use gauss blur
     KawaseParameter param = KawaseParameter(src, dst, blurRadiusX_, nullptr, brush.GetColor().GetAlphaF());
-    if (useKawase_ && KawaseBlurFilter::GetKawaseBlurFilter()->ApplyKawaseBlur(canvas, image, param)) {
+    if (useKawase_ && KawaseBlurFilter::GetKawaseBlurFilter()->ApplyKawaseBlur(canvas, greyImage, param)) {
         return;
     }
     canvas.AttachBrush(brush);
-    canvas.DrawImageRect(*image, src, dst, Drawing::SamplingOptions());
+    canvas.DrawImageRect(*greyImage, src, dst, Drawing::SamplingOptions());
     canvas.DetachBrush();
 #endif
+}
+
+void RSBlurFilter::SetGreyCoef(float greyCoef1, float greyCoef2, bool isGreyCoefValid)
+{
+    greyCoef1_ = greyCoef1;
+    greyCoef2_ = greyCoef2;
+    isGreyCoefValid_ = isGreyCoefValid;
 }
 
 bool RSBlurFilter::CanSkipFrame() const

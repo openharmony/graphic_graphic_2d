@@ -85,6 +85,7 @@ GLint WebGLTexture::GetMaxTextureLevelForTarget(GLenum target, bool highWebGL)
             if (!highWebGL) {
                 break;
             }
+            [[fallthrough]];
         case GL_TEXTURE_2D: {
             if (maxTextureLevel != 0) {
                 return maxTextureLevel;
@@ -164,17 +165,17 @@ const TextureLevelInfo* WebGLTexture::GetTextureLevel(GLenum target, GLint level
     int32_t index = -1;
     switch (target_) {
         case GL_TEXTURE_CUBE_MAP:
-            index = target - GL_TEXTURE_CUBE_MAP_POSITIVE_X;
+            index = static_cast<int32_t>(target - GL_TEXTURE_CUBE_MAP_POSITIVE_X);
             break;
         case GL_TEXTURE_2D_ARRAY:
         case GL_TEXTURE_2D:
         case GL_TEXTURE_3D:
-            index = target - target_;
+            index = static_cast<int32_t>(target - target_);
             break;
         default:
             break;
     }
-    if (index < 0 || index >= static_cast<GLint>(textureLevelInfos_.size())) {
+    if (index < 0 || index >= static_cast<int32_t>(textureLevelInfos_.size())) {
         return nullptr;
     }
     return textureLevelInfos_[index].GetTextureLevel(level);
@@ -217,9 +218,9 @@ bool WebGLTexture::SetTexStorageInfo(const TexStorageArg* arg)
                 levelInfo->valid = true;
                 levelInfo->Dump("SetTexStorageInfo", arg->target, level);
             }
-            levelWidth = std::max(1, levelWidth >> 1);
-            levelHeight = std::max(1, levelHeight >> 1);
-            levelDepth = std::max(1, levelDepth >> 1);
+            levelWidth = std::max(1, levelWidth / 2); // 2 is half the width
+            levelHeight = std::max(1, levelHeight / 2); // 2 is half the height
+            levelDepth = std::max(1, levelDepth / 2); // 2 is half the depth
         }
     }
     immutable_ = true;

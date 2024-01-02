@@ -37,7 +37,9 @@
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_director.h"
-
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
 #ifdef OHOS_RSS_CLIENT
 #include "res_sched_client.h"
 #include "res_type.h"
@@ -52,7 +54,10 @@
 #include "frame_collector.h"
 #include "render_frame_trace.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
-
+#if defined(ROSEN_OHOS) && defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_VK)
+#include "include/recording/draw_cmd.h"
+#include "platform/ohos/backend/native_buffer_utils.h"
+#endif
 #ifdef ACCESSIBILITY_ENABLE
 #include "accessibility_config.h"
 #include "platform/common/rs_accessibility.h"
@@ -115,7 +120,19 @@ RSRenderThread::RSRenderThread()
         jankDetector_->CalculateSkippedFrame(renderStartTimeStamp, jankDetector_->GetSysTimeNs());
         RS_TRACE_END();
     };
-
+#if defined(ROSEN_OHOS) && defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_VK)
+    if (RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+        std::function<void*(VkImage, VkDeviceMemory)> createCleanup =
+            [] (VkImage image, VkDeviceMemory memory) -> void* {
+            return new OHOS::Rosen::NativeBufferUtils::VulkanCleanupHelper(
+                RsVulkanContext::GetSingleton(), image, memory);
+        };
+        Drawing::DrawSurfaceBufferOpItem::SetBaseCallback(
+            OHOS::Rosen::NativeBufferUtils::MakeBackendTextureFromNativeBuffer,
+            OHOS::Rosen::NativeBufferUtils::DeleteVkImage, createCleanup);
+    }
+#endif
     context_ = std::make_shared<RSContext>();
     jankDetector_ = std::make_shared<RSJankDetector>();
 #ifdef ACCESSIBILITY_ENABLE
@@ -228,19 +245,27 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
     }
 #endif
 #else
-#if defined(RS_ENABLE_GL) && !defined(ROSEN_PREVIEW)
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-        if (renderContext_ == nullptr) {
-            renderContext_ = new RenderContext();
-            ROSEN_LOGD("Create RenderContext");
-            RS_TRACE_NAME("InitializeEglContext");
+#if (defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && !defined(ROSEN_PREVIEW)
+    if (renderContext_ == nullptr) {
+        renderContext_ = new RenderContext();
+        ROSEN_LOGD("Create RenderContext");
 #ifdef ROSEN_OHOS
+#ifdef RS_ENABLE_GL
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+            RS_TRACE_NAME("InitializeEglContext");
             renderContext_->InitializeEglContext(); // init egl context on RT
             if (!cacheDir_.empty()) {
                 renderContext_->SetCacheDir(cacheDir_);
             }
-#endif
         }
+#endif
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        renderContext_->SetUpGpuContext(nullptr);
+    }
+#endif
+#endif
     }
 #endif
 #endif

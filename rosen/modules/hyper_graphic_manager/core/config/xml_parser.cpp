@@ -20,18 +20,15 @@
 namespace OHOS::Rosen {
 int32_t XMLParser::LoadConfiguration(const char* fileDir)
 {
-    if (!xmlDocument_) {
-        HGM_LOGI("XMLParser opening xml file");
-        xmlDocument_ = xmlReadFile(fileDir, nullptr, 0);
-    }
-
+    HGM_LOGI("XMLParser opening xml file");
+    xmlDocument_ = xmlReadFile(fileDir, nullptr, 0);
     if (!xmlDocument_) {
         HGM_LOGE("XMLParser xmlReadFile failed");
         return XML_FILE_LOAD_FAIL;
     }
 
     if (!mParsedData_) {
-        mParsedData_ = std::make_unique<ParsedConfigData>();
+        mParsedData_ = std::make_unique<PolicyConfigData>();
     }
 
     return EXEC_SUCCESS;
@@ -65,33 +62,6 @@ void XMLParser::Destroy()
     }
 }
 
-int32_t XMLParser::ParseComponentData()
-{
-    CfgFiles *cfgFiles = GetCfgFiles(CONFIG_CCM);
-    if (cfgFiles == nullptr) {
-        HGM_LOGE("XMLParser no ccm component found, exit");
-        return XML_FILE_LOAD_FAIL;
-    }
-
-    for (int32_t i = MAX_CFG_POLICY_DIRS_CNT - 1; i >= 0; i--) {
-        Destroy();
-        if (cfgFiles->paths[i] && *(cfgFiles->paths[i]) != '\0') {
-            HGM_LOGD("XMLParser hgm ccm_config file path:%{public}s", cfgFiles->paths[i]);
-            if (LoadConfiguration(cfgFiles->paths[i]) != EXEC_SUCCESS) {
-                HGM_LOGE("XMLParser failed to load this xml document from ccm");
-                continue;
-            }
-            if (Parse() != EXEC_SUCCESS) {
-                HGM_LOGE("XMLParser failed to parse this xml document from ccm");
-                continue;
-            }
-        }
-    }
-
-    Destroy();
-    return EXEC_SUCCESS;
-}
-
 int32_t XMLParser::GetHgmXmlNodeAsInt(xmlNode &node)
 {
     if (!xmlStrcmp(node.name, reinterpret_cast<const xmlChar*>("Param"))) {
@@ -122,10 +92,10 @@ bool XMLParser::ParseInternal(xmlNode &node)
         if (parseSuccess != EXEC_SUCCESS) {
             return false;
         }
-
-        if (GetHgmXmlNodeAsInt(*currNode) == HGM_XML_PARAM) {
+        int xmlParamType = GetHgmXmlNodeAsInt(*currNode);
+        if (xmlParamType == HGM_XML_PARAM) {
             parseSuccess = ParseParam(*currNode);
-        } else if (GetHgmXmlNodeAsInt(*currNode) == HGM_XML_PARAMS) {
+        } else if (xmlParamType == HGM_XML_PARAMS) {
             parseSuccess = ParseParams(*currNode);
         }
     }
@@ -145,16 +115,11 @@ int32_t XMLParser::ParseParam(xmlNode &node)
         HGM_LOGD("XMLParser parsing default_refreshrate_mode");
         std::string mode = ExtractPropertyValue("value", node);
         mParsedData_->defaultRefreshRateMode_ = mode;
+
+        HGM_LOGI("HgmXMLParser ParseParam default_refreshrate_mode %{public}s",
+                 mParsedData_->defaultRefreshRateMode_.c_str());
     }
 
-    if (paraName == "general_config_enable") {
-        HGM_LOGD("XMLParser parsing general_config_enable");
-        std::string parsed = ExtractPropertyValue("value", node);
-        mParsedData_->isDynamicFrameRateEnable_ = parsed;
-    }
-
-    HGM_LOGD("XMLParser parsing general_config_enable finish: %{public}s",
-        mParsedData_->isDynamicFrameRateEnable_.c_str());
     return EXEC_SUCCESS;
 }
 
@@ -170,99 +135,173 @@ int32_t XMLParser::ParseParams(xmlNode &node)
         return HGM_ERROR;
     }
 
-    int32_t setResult = 0;
-    if (paraName == "detailed_strategies") {
-        setResult = ParseStrat(node);
-    } else if (paraName == "customer_setting_config") {
-        setResult = ParseSetting(node, mParsedData_->customerSettingConfig_);
-    } else if (paraName == "bundle_name_black_list") {
-        setResult = ParseSetting(node, mParsedData_->bundle_black_list_);
-    } else if (paraName == "animation_dynamic_settings") {
-        setResult = ParseSetting(node, mParsedData_->animationDynamicStrats_);
-    } else if (paraName == "property_animation_dynamic_settings") {
-        setResult = ParserAnimationDynamicSetting(node, mParsedData_->dynamicSetting_);
-    } else if (paraName == "ace_scene_dynamic_settings") {
-        setResult = ParserAnimationDynamicSetting(node, mParsedData_->aceSceneDynamicSetting_);
-    } else if (paraName == "refresh_rate_4settings") {
-        setResult = ParseSetting(node, mParsedData_->refreshRateForSettings_);
-    } else if (paraName == "LTPO_config") {
-        setResult = ParseSetting(node, mParsedData_->ltpoConfig_);
+    int32_t setResult = EXEC_SUCCESS;
+    if (paraName == "refresh_rate_4settings") {
+        setResult = ParseSimplex(node, mParsedData_->refreshRateForSettings_);
+    } else if (paraName == "refreshRate_strategy_config") {
+        setResult = ParseStrategyConfig(node);
+    } else if (paraName == "refreshRate_virtual_display_config") {
+        if (ExtractPropertyValue("switch", node) == "1") {
+            setResult = ParseSimplex(node, mParsedData_->virtualDisplayConfigs_, "strategy");
+            mParsedData_->virtualDisplaySwitch_ = true;
+        } else {
+            mParsedData_->virtualDisplayConfigs_.clear();
+            mParsedData_->virtualDisplaySwitch_ = false;
+        }
+    } else if (paraName == "screen_strategy_config") {
+        setResult = ParseSimplex(node, mParsedData_->screenStrategyConfigs_, "type");
+    } else if (paraName == "screen_config") {
+        setResult = ParseScreenConfig(node);
     } else {
-        HGM_LOGE("XMLParser unknown node name encountered");
+        setResult = 0;
     }
 
     if (setResult != EXEC_SUCCESS) {
-        HGM_LOGI("XMLParser failed to parse a node");
+        HGM_LOGI("XMLParser failed to ParseParams %{public}s", paraName.c_str());
     }
     return EXEC_SUCCESS;
 }
 
-int32_t XMLParser::ParseStrat(xmlNode &node)
+int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
 {
+    HGM_LOGD("XMLParser parsing strategyConfig");
     xmlNode *currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {
-        HGM_LOGD("XMLParser stop parsing strats, no children nodes");
-        return HGM_ERROR;
-    }
-    if (!mParsedData_) {
-        HGM_LOGE("XMLParser mParsedData_ is not initialized");
+        HGM_LOGD("XMLParser stop parsing strategyConfig, no children nodes");
         return HGM_ERROR;
     }
 
+    // re-parse
+    mParsedData_->strategyConfigs_.clear();
     currNode = currNode->xmlChildrenNode;
     for (; currNode; currNode = currNode->next) {
         if (currNode->type != XML_ELEMENT_NODE) {
             continue;
         }
 
-        ParsedConfigData::detailedStrat strat;
-        strat.name = ExtractPropertyValue("name", *currNode);
-        strat.isDynamic = ExtractPropertyValue("isDynamic", *currNode);
-        strat.min = ExtractPropertyValue("min", *currNode);
-        strat.max = ExtractPropertyValue("max", *currNode);
-        mParsedData_->detailedStrategies_[strat.name] = strat;
+        auto name = ExtractPropertyValue("name", *currNode);
+        auto min = ExtractPropertyValue("min", *currNode);
+        auto max = ExtractPropertyValue("max", *currNode);
+        auto dynamicMode = ExtractPropertyValue("dynamicMode", *currNode);
+        auto drawMin = ExtractPropertyValue("drawMin", *currNode);
+        auto drawMax = ExtractPropertyValue("drawMax", *currNode);
+        if (!IsNumber(min) || !IsNumber(max) || !IsNumber(dynamicMode)) {
+            return HGM_ERROR;
+        }
+
+        PolicyConfigData::StrategyConfig strategy;
+        strategy.min = std::stoi(min);
+        strategy.max = std::stoi(max);
+        strategy.dynamicMode = std::stoi(dynamicMode);
+        strategy.drawMin = IsNumber(drawMin) ? std::stoi(drawMin) : 0;
+        strategy.drawMax = IsNumber(drawMax) ? std::stoi(drawMax) : 0;
+
+        mParsedData_->strategyConfigs_[name] = strategy;
+        HGM_LOGI("HgmXMLParser ParseStrategyConfig name=%{public}s min=%{public}d drawMin=%{public}d",
+                 name.c_str(), mParsedData_->strategyConfigs_[name].min, mParsedData_->strategyConfigs_[name].drawMin);
     }
 
     return EXEC_SUCCESS;
 }
 
-int32_t XMLParser::ParseSetting(xmlNode &node, std::unordered_map<std::string, std::string> &config)
+int32_t XMLParser::ParseScreenConfig(xmlNode &node)
 {
-    HGM_LOGD("XMLParser parsing strats");
+    HGM_LOGD("XMLParser parsing screenConfig");
     xmlNode *currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {
-        HGM_LOGD("XMLParser stop parsing settings, no children nodes");
+        HGM_LOGD("XMLParser stop parsing screenConfig, no children nodes");
         return HGM_ERROR;
     }
-    currNode = currNode->xmlChildrenNode;
 
+    auto type = ExtractPropertyValue("type", *currNode);
+    PolicyConfigData::ScreenConfig screenConfig;
+    currNode = currNode->xmlChildrenNode;
+    for (; currNode; currNode = currNode->next) {
+        if (currNode->type != XML_ELEMENT_NODE) {
+            continue;
+        }
+        PolicyConfigData::ScreenSetting screenSetting;
+        auto id = ExtractPropertyValue("id", *currNode);
+        screenSetting.strategy = ExtractPropertyValue("strategy", *currNode);
+        for (xmlNode *thresholdNode = currNode->xmlChildrenNode; thresholdNode; thresholdNode = thresholdNode->next) {
+            if (thresholdNode->type != XML_ELEMENT_NODE) {
+                continue;
+            }
+            auto name = ExtractPropertyValue("name", *thresholdNode);
+            int32_t setResult = EXEC_SUCCESS;
+            if (name == "LTPO_config") {
+                setResult = ParseSimplex(*thresholdNode, screenSetting.ltpoConfig);
+            } else if (name == "property_animation_dynamic_settings") {
+                setResult = ParserDynamicSetting(*thresholdNode, screenSetting.animationDynamicSettings);
+            } else if (name == "ace_scene_dynamic_settings") {
+                setResult = ParserDynamicSetting(*thresholdNode, screenSetting.aceSceneDynamicSettings);
+            } else if (name == "scene_list") {
+                setResult = ParseSceneList(*thresholdNode, screenSetting.sceneList);
+            } else if (name == "app_list") {
+                setResult = ParseSimplex(*thresholdNode, screenSetting.appList, "strategy");
+            } else {
+                setResult = 0;
+            }
+
+            if (setResult != EXEC_SUCCESS) {
+                HGM_LOGI("XMLParser failed to ParseScreenConfig %{public}s", name.c_str());
+            }
+        }
+        screenConfig[id] = screenSetting;
+        HGM_LOGI("HgmXMLParser ParseScreenConfig id=%{public}s", id.c_str());
+    }
+    mParsedData_->screenConfigs_[type] = screenConfig;
+    return EXEC_SUCCESS;
+}
+
+int32_t XMLParser::ParseSimplex(xmlNode &node, std::unordered_map<std::string, std::string> &config,
+                                std::string valueName, std::string keyName)
+{
+    HGM_LOGD("XMLParser parsing simplex");
+    xmlNode *currNode = &node;
+    if (currNode->xmlChildrenNode == nullptr) {
+        HGM_LOGD("XMLParser stop parsing simplex, no children nodes");
+        return HGM_ERROR;
+    }
+
+    // re-parse
+    config.clear();
+    currNode = currNode->xmlChildrenNode;
     for (; currNode; currNode = currNode->next) {
         if (currNode->type != XML_ELEMENT_NODE) {
             continue;
         }
 
-        std::string name = "";
-        std::string value = "";
-        name = ExtractPropertyValue("name", *currNode);
-        value = ExtractPropertyValue("value", *currNode);
-        if (name.empty() || value.empty()) {
+        auto key = ExtractPropertyValue(keyName, *currNode);
+        auto value = ExtractPropertyValue(valueName, *currNode);
+        if (key.empty() || value.empty()) {
             return XML_PARSE_INTERNAL_FAIL;
         }
-        config[name] = value;
+        config[key] = value;
+
+        HGM_LOGI("HgmXMLParser ParseSimplex %{public}s=%{public}s %{public}s=%{public}s",
+                 keyName.c_str(), key.c_str(), valueName.c_str(), config[key].c_str());
     }
 
     return EXEC_SUCCESS;
 }
 
-int32_t XMLParser::ParserAnimationDynamicSetting(xmlNode &node, DynamicSetting& dynamicSetting)
+int32_t XMLParser::ParserDynamicSetting(xmlNode &node, PolicyConfigData::DynamicSettingMap &dynamicSettingMap)
 {
+    HGM_LOGD("XMLParser parsing dynamicSetting");
     xmlNode *currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {
+        HGM_LOGD("XMLParser stop parsing dynamicSetting, no children nodes");
         return HGM_ERROR;
     }
+
+    // re-parse
+    dynamicSettingMap.clear();
     currNode = currNode->xmlChildrenNode;
     for (; currNode; currNode = currNode->next) {
         auto dynamicSettingType = ExtractPropertyValue("name", *currNode);
+        PolicyConfigData::DynamicSetting dynamicSetting;
+        dynamicSettingMap[dynamicSettingType] = dynamicSetting;
         for (xmlNode *thresholdNode = currNode->xmlChildrenNode; thresholdNode; thresholdNode = thresholdNode->next) {
             if (thresholdNode->type != XML_ELEMENT_NODE) {
                 continue;
@@ -272,16 +311,48 @@ int32_t XMLParser::ParserAnimationDynamicSetting(xmlNode &node, DynamicSetting& 
             auto max = ExtractPropertyValue("max", *thresholdNode);
             auto preferred_fps = ExtractPropertyValue("preferred_fps", *thresholdNode);
             if (!IsNumber(min) || !IsNumber(max) || !IsNumber(preferred_fps)) {
-                dynamicSetting[dynamicSettingType].clear();
+                dynamicSettingMap[dynamicSettingType].clear();
                 break;
             }
-            AnimationDynamicSetting animDynamicSetting;
-            animDynamicSetting.min = std::stoi(ExtractPropertyValue("min", *thresholdNode));
-            animDynamicSetting.max = std::stoi(ExtractPropertyValue("max", *thresholdNode));
-            animDynamicSetting.preferred_fps = std::stoi(ExtractPropertyValue("preferred_fps", *thresholdNode));
-            dynamicSetting[dynamicSettingType][name] = animDynamicSetting;
+            PolicyConfigData::DynamicConfig dynamicConfig;
+            dynamicConfig.min = std::stoi(min);
+            dynamicConfig.max = std::stoi(max);
+            dynamicConfig.preferred_fps = std::stoi(preferred_fps);
+            dynamicSettingMap[dynamicSettingType][name] = dynamicConfig;
+
+            HGM_LOGI("HgmXMLParser ParserDynamicSetting dynamicType=%{public}s name=%{public}s min=%{public}d",
+                     dynamicSettingType.c_str(), name.c_str(), dynamicSettingMap[dynamicSettingType][name].min);
         }
     }
+    return EXEC_SUCCESS;
+}
+
+int32_t XMLParser::ParseSceneList(xmlNode &node, PolicyConfigData::SceneConfigMap &sceneList)
+{
+    HGM_LOGD("XMLParser parsing sceneList");
+    xmlNode *currNode = &node;
+    if (currNode->xmlChildrenNode == nullptr) {
+        HGM_LOGD("XMLParser stop parsing sceneList, no children nodes");
+        return HGM_ERROR;
+    }
+
+    // re-parse
+    sceneList.clear();
+    currNode = currNode->xmlChildrenNode;
+    for (; currNode; currNode = currNode->next) {
+        if (currNode->type != XML_ELEMENT_NODE) {
+            continue;
+        }
+        PolicyConfigData::SceneConfig sceneConfig;
+        auto name = ExtractPropertyValue("name", *currNode);
+        sceneConfig.strategy = ExtractPropertyValue("strategy", *currNode);
+        sceneConfig.priority = ExtractPropertyValue("priority", *currNode);
+
+        sceneList[name] = sceneConfig;
+        HGM_LOGI("HgmXMLParser ParseSceneList name=%{public}s strategy=%{public}s priority=%{public}s",
+                 name.c_str(), sceneList[name].strategy.c_str(), sceneList[name].priority.c_str());
+    }
+
     return EXEC_SUCCESS;
 }
 

@@ -251,6 +251,10 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
     if (RSSystemProperties::GetSnapshotWithDMAEnabled()) {
         surface->FlushAndSubmit(true);
         Drawing::BackendTexture backendTexture = surface->GetBackendTexture();
+        if (!backendTexture.IsValid()) {
+            RS_LOGE("RSSurfaceCaptureTask: SkiaSurface bind Image failed: BackendTexture is invalid");
+            return false;
+        }
         auto wrapper = std::make_shared<std::tuple<std::unique_ptr<Media::PixelMap>>>();
         std::get<0>(*wrapper) = std::move(pixelmap);
         auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>();
@@ -297,15 +301,8 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
             Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
             Drawing::BitmapFormat bitmapFormat =
                 Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-            bool ret = tmpImg->BuildFromTexture(*canvas->GetGPUContext(), backendTexture.GetTextureInfo(),
+            tmpImg->BuildFromTexture(*canvas->GetGPUContext(), backendTexture.GetTextureInfo(),
                 origin, bitmapFormat, nullptr);
-            if (!ret) {
-                RS_LOGE("RSSurfaceCaptureTask::Run sharedTexture is nullptr");
-                callback->OnSurfaceCapture(id, nullptr);
-                RSUniRenderUtil::ClearNodeCacheSurface(
-                    std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
-                return;
-            }
             canvas->DrawImage(*tmpImg, 0.f, 0.f, Drawing::SamplingOptions());
             surface->FlushAndSubmit(true);
             if (!CopyDataToPixelMap(tmpImg, pixelmap)) {
@@ -681,10 +678,6 @@ bool CopyDataToPixelMap(sk_sp<SkImage> img, const std::unique_ptr<Media::PixelMa
 bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_ptr<Media::PixelMap>& pixelmap)
 {
     auto size = pixelmap->GetRowBytes() * pixelmap->GetHeight();
-    if (size < 0) {
-        RS_LOGE("RSSurfaceCaptureTask::CopyDataToPixelMap pixelmap size is invalid");
-        return false;
-    }
 #ifdef ROSEN_OHOS
     int fd = AshmemCreate("RSSurfaceCapture Data", size);
     if (fd < 0) {
@@ -1008,6 +1001,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
     RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
     if (isSelfDrawingSurface) {
         RSPropertiesPainter::DrawShadow(property, *canvas_, &absClipRRect);
+        RSPropertiesPainter::DrawOutline(property, *canvas_);
     }
     canvas_->save();
     if (isSelfDrawingSurface && !property.GetCornerRadius().IsZero()) {
@@ -1064,7 +1058,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
     const auto& property = node.GetRenderProperties();
     auto geoPtr = (property.GetBoundsGeometry());
     if (!geoPtr) {
-        RS_LOGE("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni node:%" PRIu64 ", get geoPtr failed",
+        RS_LOGE("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni node:%{public}" PRIu64 ", get geoPtr failed",
             node.GetId());
         return;
     }
@@ -1099,6 +1093,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
     RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
     if (isSelfDrawingSurface) {
         RSPropertiesPainter::DrawShadow(property, *canvas_, &absClipRRect);
+        RSPropertiesPainter::DrawOutline(property, *canvas_);
     }
     canvas_->Save();
     if (isSelfDrawingSurface && !property.GetCornerRadius().IsZero()) {
@@ -1184,6 +1179,7 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
     const RectF absBounds = {0, 0, property.GetBoundsWidth(), property.GetBoundsHeight()};
     RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
     RSPropertiesPainter::DrawShadow(property, *canvas_, &absClipRRect);
+    RSPropertiesPainter::DrawOutline(property, *canvas_);
     if (!property.GetCornerRadius().IsZero()) {
         canvas_->clipRRect(RSPropertiesPainter::RRect2SkRRect(absClipRRect), true);
     } else {
@@ -1240,6 +1236,7 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
     const RectF absBounds = {0, 0, property.GetBoundsWidth(), property.GetBoundsHeight()};
     RRect absClipRRect = RRect(absBounds, property.GetCornerRadius());
     RSPropertiesPainter::DrawShadow(property, *canvas_, &absClipRRect);
+    RSPropertiesPainter::DrawOutline(property, *canvas_);
     if (!property.GetCornerRadius().IsZero()) {
         canvas_->ClipRoundRect(
             RSPropertiesPainter::RRect2DrawingRRect(absClipRRect), Drawing::ClipOp::INTERSECT, true);
@@ -1401,10 +1398,6 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni(RSSurfaceRender
         translateMatrix.PreTranslate(
             thisNodetranslateX - parentNodeTranslateX, thisNodetranslateY - parentNodeTranslateY);
     }
-    if (canvas_ == nullptr) {
-        RS_LOGE("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni: canvas_ is nullptr.");
-        return;
-    }
     if (node.GetSecurityLayer() || node.GetSkipLayer()) {
         RS_LOGD("RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni: \
             process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]) clear white since it is security layer.",
@@ -1417,8 +1410,7 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni(RSSurfaceRender
 
     if (node.GetChildrenCount() > 0) {
         canvas_->ConcatMatrix(translateMatrix);
-        const auto saveCnt = canvas_->GetSaveCount();
-        canvas_->Save();
+        const auto saveCnt = canvas_->Save();
         ProcessChildren(node);
         canvas_->RestoreToCount(saveCnt);
         if (node.GetBuffer() != nullptr) {
@@ -1434,7 +1426,6 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithoutUni(RSSurfaceRender
             auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, true, false, false, false);
             renderEngine_->DrawSurfaceNodeWithParams(*canvas_, node, params);
         }
-        canvas_->Restore();
     }
 }
 #endif

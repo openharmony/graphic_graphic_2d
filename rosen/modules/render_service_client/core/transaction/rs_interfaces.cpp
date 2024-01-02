@@ -121,11 +121,12 @@ bool RSInterfaces::TakeSurfaceCapture(NodeId id,
     return renderServiceClient_->TakeSurfaceCapture(id, callback, scaleX, scaleY);
 }
 
+#ifndef ROSEN_ARKUI_X
 void RSInterfaces::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
     renderServiceClient_->SetScreenActiveMode(id, modeId);
 }
-
+#endif // !ROSEN_ARKUI_X
 void RSInterfaces::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
 {
     renderServiceClient_->SetScreenRefreshRate(id, sceneId, rate);
@@ -156,6 +157,16 @@ std::vector<int32_t> RSInterfaces::GetScreenSupportedRefreshRates(ScreenId id)
     return renderServiceClient_->GetScreenSupportedRefreshRates(id);
 }
 
+bool RSInterfaces::GetShowRefreshRateEnabled()
+{
+    return renderServiceClient_->GetShowRefreshRateEnabled();
+}
+    
+void RSInterfaces::SetShowRefreshRateEnabled(bool enable)
+{
+    return renderServiceClient_->SetShowRefreshRateEnabled(enable);
+}
+
 bool RSInterfaces::TakeSurfaceCaptureForUI(
     std::shared_ptr<RSNode> node, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
 {
@@ -178,11 +189,12 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(
     }
 }
 
+#ifndef ROSEN_ARKUI_X
 int32_t RSInterfaces::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     return renderServiceClient_->SetVirtualScreenResolution(id, width, height);
 }
-
+#endif // !ROSEN_ARKUI_X
 bool RSInterfaces::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation)
 {
     return renderServiceClient_->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
@@ -193,6 +205,7 @@ bool RSInterfaces::SetVirtualMirrorScreenBufferRotation(ScreenId id, bool buffer
     return false;
 }
 
+#ifndef ROSEN_ARKUI_X
 RSVirtualScreenResolution RSInterfaces::GetVirtualScreenResolution(ScreenId id)
 {
     return renderServiceClient_->GetVirtualScreenResolution(id);
@@ -200,9 +213,11 @@ RSVirtualScreenResolution RSInterfaces::GetVirtualScreenResolution(ScreenId id)
 
 void RSInterfaces::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
+    RS_LOGI("RSInterfaces::SetScreenPowerStatus: ScreenId: %{public}" PRIu64 ", ScreenPowerStatus: %{public}u", id,
+        static_cast<uint32_t>(status));
     renderServiceClient_->SetScreenPowerStatus(id, status);
 }
-
+#endif // !ROSEN_ARKUI_X
 bool RSInterfaces::TakeSurfaceCaptureForUIWithoutUni(NodeId id,
     std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
 {
@@ -221,6 +236,7 @@ bool RSInterfaces::TakeSurfaceCaptureForUIWithoutUni(NodeId id,
     return true;
 }
 
+#ifndef ROSEN_ARKUI_X
 RSScreenModeInfo RSInterfaces::GetScreenActiveMode(ScreenId id)
 {
     return renderServiceClient_->GetScreenActiveMode(id);
@@ -245,7 +261,7 @@ RSScreenData RSInterfaces::GetScreenData(ScreenId id)
 {
     return renderServiceClient_->GetScreenData(id);
 }
-
+#endif // !ROSEN_ARKUI_X
 int32_t RSInterfaces::GetScreenBacklight(ScreenId id)
 {
     return renderServiceClient_->GetScreenBacklight(id);
@@ -253,6 +269,7 @@ int32_t RSInterfaces::GetScreenBacklight(ScreenId id)
 
 void RSInterfaces::SetScreenBacklight(ScreenId id, uint32_t level)
 {
+    RS_LOGI("RSInterfaces::SetScreenBacklight: ScreenId: %{public}" PRIu64 ", level: %{public}u", id, level);
     renderServiceClient_->SetScreenBacklight(id, level);
 }
 
@@ -407,6 +424,7 @@ int32_t RSInterfaces::ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t 
     return renderServiceClient_->ResizeVirtualScreen(id, width, height);
 }
 
+#ifndef ROSEN_ARKUI_X
 MemoryGraphic RSInterfaces::GetMemoryGraphic(int pid)
 {
     return renderServiceClient_->GetMemoryGraphic(pid);
@@ -416,7 +434,7 @@ std::vector<MemoryGraphic> RSInterfaces::GetMemoryGraphics()
 {
     return renderServiceClient_->GetMemoryGraphics();
 }
-
+#endif // !ROSEN_ARKUI_X
 bool RSInterfaces::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
 {
     return renderServiceClient_->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
@@ -445,6 +463,26 @@ void RSInterfaces::ReportEventJankFrame(DataBaseRs info)
 void RSInterfaces::EnableCacheForRotation()
 {
     renderServiceClient_->SetCacheEnabledForRotation(true);
+}
+
+void RSInterfaces::NotifyLightFactorStatus(bool isSafe)
+{
+    renderServiceClient_->NotifyLightFactorStatus(isSafe);
+}
+
+void RSInterfaces::NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
+{
+    renderServiceClient_->NotifyPackageEvent(listSize, packageList);
+}
+
+void RSInterfaces::NotifyRefreshRateEvent(const EventInfo& eventInfo)
+{
+    renderServiceClient_->NotifyRefreshRateEvent(eventInfo);
+}
+
+void RSInterfaces::NotifyTouchEvent(int32_t touchStatus)
+{
+    renderServiceClient_->NotifyTouchEvent(touchStatus);
 }
 
 void RSInterfaces::DisableCacheForRotation()

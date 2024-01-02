@@ -26,15 +26,19 @@ RSProxyRenderNode::RSProxyRenderNode(
     NodeId id, std::weak_ptr<RSSurfaceRenderNode> target, NodeId targetId, const std::weak_ptr<RSContext>& context)
     : RSRenderNode(id, context), target_(target), targetId_(targetId)
 {
+#ifndef ROSEN_ARKUI_X
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
+#endif
 }
 
 RSProxyRenderNode::~RSProxyRenderNode()
 {
     ROSEN_LOGD("RSProxyRenderNode::~RSProxyRenderNode, proxy id:%{public}" PRIu64 " target:%{public}" PRIu64,
         GetId(), targetId_);
+#ifndef ROSEN_ARKUI_X
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
+#endif
     CleanUp(true);
 }
 

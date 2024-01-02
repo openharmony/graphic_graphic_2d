@@ -476,9 +476,11 @@ void RecordingCanvas::Clear(ColorQuad color)
     cmdList_->AddOp<ClearOpItem::ConstructorHandle>(color);
 }
 
-void RecordingCanvas::Save()
+uint32_t RecordingCanvas::Save()
 {
+    uint32_t ret = static_cast<uint32_t>(saveOpStateStack_.size());
     saveOpStateStack_.push(LazySaveOp);
+    return ret;
 }
 
 void RecordingCanvas::SaveLayer(const SaveLayerOps& saveLayerOps)

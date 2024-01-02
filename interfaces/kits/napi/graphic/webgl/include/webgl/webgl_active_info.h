@@ -44,7 +44,7 @@ public:
         return WebGLObject::CreateObjectInstance<WebGLActiveInfo>(env, instance);
     }
 
-    void SetActiveName(GLchar* activename)
+    void SetActiveName(const GLchar* activename)
     {
         name_ = activename;
     }

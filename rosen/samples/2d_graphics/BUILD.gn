@@ -24,6 +24,7 @@ ohos_executable("drawing_engine_sample") {
     "-Wno-missing-field-initializers",
     "-Wno-unused-variable",
     "-Werror,-Wreturn-type",
+    "-Wno-error=deprecated-declarations",
   ]
 
   sources = [
@@ -41,18 +42,22 @@ ohos_executable("drawing_engine_sample") {
   ]
 
   if (ace_enable_gpu) {
-    sources += [
-      "drawing_engine/drawing_surface/surface_frame_ohos_gl.cpp",
-      "drawing_engine/drawing_surface/surface_frame_ohos_vulkan.cpp",
-      "drawing_engine/drawing_surface/surface_ohos_gl.cpp",
-      "drawing_engine/drawing_surface/surface_ohos_vulkan.cpp",
-      "drawing_engine/egl_manager.cpp",
-      "drawing_engine/gles_render_backend.cpp",
-      "drawing_engine/vulkan_render_backend.cpp",
-    ]
+    if (graphic_2d_feature_enable_vulkan) {
+      sources += [
+        "drawing_engine/drawing_surface/surface_frame_ohos_vulkan.cpp",
+        "drawing_engine/drawing_surface/surface_ohos_vulkan.cpp",
+        "drawing_engine/vulkan_render_backend.cpp",
+      ]
+    }
+    if (graphic_2d_feature_enable_opengl) {
+      sources += [
+        "drawing_engine/drawing_surface/surface_frame_ohos_gl.cpp",
+        "drawing_engine/drawing_surface/surface_ohos_gl.cpp",
+        "drawing_engine/egl_manager.cpp",
+        "drawing_engine/gles_render_backend.cpp",
+      ]
+    }
   }
-
-  configs = []
 
   include_dirs = [
     "include",
@@ -89,11 +94,7 @@ ohos_executable("drawing_engine_sample") {
     "$graphic_2d_root/utils:sync_fence",
   ]
 
-  if (defined(use_new_skia) && use_new_skia) {
-    deps += [ "//third_party/skia:skia_ohos" ]
-  } else {
-    deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
-  }
+  deps += [ "//third_party/skia:skia_ohos" ]
 
   public_deps = libgl
   defines = gpu_defines
@@ -103,12 +104,6 @@ ohos_executable("drawing_engine_sample") {
 
     deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
   }
-
-  #defines = [ "USE_CANVASKIT0310_SKIA" ]
-  #defines += gpu_defines
-  deps += [
-    #"//third_party/skia:skia",
-  ]
   if (graphic_2d_feature_enable_flutter_vulkan) {
     include_dirs += [ "//third_party/flutter/engine/flutter/vulkan" ]
   }

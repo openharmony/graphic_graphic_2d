@@ -301,6 +301,7 @@ public:
 
     void CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender, bool onlyFirstLevel) override;
+    void CollectSurfaceForUIFirstSwitch(uint32_t& leashWindowCount, uint32_t minNodeNum) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
@@ -744,6 +745,7 @@ public:
 
     // if a surfacenode's dstrect is empty, its subnodes' prepare stage can be skipped
     bool ShouldPrepareSubnodes();
+    void StoreMustRenewedInfo() override;
 
     void SetNodeCost(int32_t cost)
     {
@@ -896,6 +898,16 @@ public:
         isForeground_ = isForeground;
     }
 
+    void SetSurfaceId(SurfaceId surfaceId)
+    {
+        surfaceId_ = surfaceId;
+    }
+
+    SurfaceId GetSurfaceId() const
+    {
+        return surfaceId_;
+    }
+
     bool GetIsForeground() const
     {
         return isForeground_;
@@ -913,6 +925,14 @@ public:
     }
     bool GetHasSharedTransitionNode() const;
     void SetHasSharedTransitionNode(bool hasSharedTransitionNode);
+
+    bool HasWindowCorner()
+    {
+        Vector4f cornerRadius;
+        Vector4f::Max(GetWindowCornerRadius(), GetGlobalCornerRadius(), cornerRadius);
+        return !cornerRadius.IsZero();
+    }
+
 private:
     void OnResetParent() override;
     void ClearChildrenCache();
@@ -961,6 +981,7 @@ private:
     float positionZ_ = 0.0f;
     bool zOrderChanged_ = false;
     bool qosPidCal_ = false;
+    SurfaceId surfaceId_ = 0;
 
     std::string name_;
     std::string bundleName_;

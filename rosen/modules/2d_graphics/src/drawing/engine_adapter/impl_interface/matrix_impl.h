@@ -72,6 +72,8 @@ public:
     virtual void PreRotate(scalar degree, scalar px, scalar py) = 0;
     virtual void PreScale(scalar sx, scalar sy, scalar px, scalar py) = 0;
     virtual void Reset() = 0;
+
+    virtual bool GetMinMaxScales(scalar scaleFactors[2]) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

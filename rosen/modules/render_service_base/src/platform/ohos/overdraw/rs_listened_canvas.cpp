@@ -301,6 +301,14 @@ void RSListenedCanvas::DrawRegion(const Drawing::Region& region)
     }
 }
 
+void RSListenedCanvas::DrawTextBlob(const Drawing::TextBlob* blob, const Drawing::scalar x, const Drawing::scalar y)
+{
+    RSPaintFilterCanvas::DrawTextBlob(blob, x, y);
+    if (listener_ != nullptr) {
+        listener_->DrawTextBlob(blob, x, y);
+    }
+}
+
 void RSListenedCanvas::DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py)
 {
     RSPaintFilterCanvas::DrawBitmap(bitmap, px, py);

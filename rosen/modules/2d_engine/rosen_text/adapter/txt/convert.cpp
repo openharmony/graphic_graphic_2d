@@ -114,6 +114,10 @@ txt::TextStyle Convert(const TextStyle &style)
     textStyle.height = style.heightScale;
     textStyle.has_height_override = style.heightOnly;
     textStyle.locale = style.locale;
+    textStyle.backgroundRect = { style.backgroundRect.color, style.backgroundRect.leftTopRadius,
+        style.backgroundRect.rightTopRadius, style.backgroundRect.rightBottomRadius,
+        style.backgroundRect.leftBottomRadius };
+    textStyle.styleId = style.styleId;
 #ifndef USE_ROSEN_DRAWING
     textStyle.has_background = style.background.has_value();
     textStyle.background = style.background.value_or(SkPaint());
@@ -130,9 +134,9 @@ txt::TextStyle Convert(const TextStyle &style)
     textStyle.foreground_brush = style.foregroundBrush.value_or(RSBrush());
 #endif
 
+    textStyle.isSymbolGlyph = style.isSymbolGlyph;
     for (const auto &[color, offset, radius] : style.shadows) {
-        auto shadowColor = SkColorSetARGB(color.GetAlpha(), color.GetRed(),
-                                          color.GetGreen(), color.GetBlue());
+        auto shadowColor = SkColorSetARGB(color.GetAlpha(), color.GetRed(), color.GetGreen(), color.GetBlue());
 #ifndef USE_ROSEN_DRAWING
         auto shadowOffset = SkPoint::Make(offset.GetX(), offset.GetY());
 #else

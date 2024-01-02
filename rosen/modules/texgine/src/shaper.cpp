@@ -36,6 +36,8 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 #define MAXWIDTH 1e9
+#define TEXTOVERFLOWER 1
+
 namespace {
 void DumpLineMetrics(const std::vector<LineMetrics> &lineMetrics)
 {
@@ -85,6 +87,17 @@ std::vector<LineMetrics> Shaper::CreateEllipsisSpan(const TypographyStyle &ys, c
     return DoShapeBeforeEllipsis(spans, ys2, fontProviders, MAXWIDTH);
 }
 
+void Shaper::SetEllipsisProperty(std::vector<VariantSpan> &ellipsisSpans,
+    std::vector<LineMetrics> &ellipsisMertics, double &ellipsisWidth)
+{
+    for (auto &metric : ellipsisMertics) {
+        for (auto &es : metric.lineSpans) {
+            ellipsisWidth += es.GetWidth();
+            ellipsisSpans.push_back(es);
+        }
+    }
+}
+
 void Shaper::ConsiderEllipsis(const TypographyStyle &tstyle,
     const std::shared_ptr<FontProviders> &fontProviders, const double widthLimit)
 {
@@ -93,21 +106,25 @@ void Shaper::ConsiderEllipsis(const TypographyStyle &tstyle,
     if (maxLines < 0) {
         maxLines = 1;
     }
+    if (maxLines == 0) {
+        lineMetrics_.erase(lineMetrics_.begin(), lineMetrics_.end());
+        return;
+    }
 
     if (lineMetrics_.size() <= maxLines) {
-        return;
+        if (tstyle.ellipsis.length() && tstyle.maxLines == std::numeric_limits<size_t>::max() &&
+            lineMetrics_.size() > 1) {
+            maxLines = TEXTOVERFLOWER;
+        } else {
+            return;
+        }
     }
 
     auto &textStyle = lineMetrics_.back().lineSpans.back().GetTextStyle();
     std::vector<LineMetrics> ellipsisMertics = CreateEllipsisSpan(tstyle, textStyle, fontProviders);
     double ellipsisWidth = 0.0;
     std::vector<VariantSpan> ellipsisSpans;
-    for (auto &metric : ellipsisMertics) {
-        for (auto &es : metric.lineSpans) {
-            ellipsisWidth += es.GetWidth();
-            ellipsisSpans.push_back(es);
-        }
-    }
+    SetEllipsisProperty(ellipsisSpans, ellipsisMertics, ellipsisWidth);
 
     EllipsisParams params{ellipsisSpans, ellipsisWidth, maxLines, widthLimit};
     if (maxLines == 1) { // single line

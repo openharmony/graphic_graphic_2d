@@ -38,6 +38,7 @@ FontCollection::FontCollection(std::vector<std::shared_ptr<VariantFontStyleSet>>
     : fontStyleSets_(fontStyleSets)
 {
     FillDefaultItalicSupportFile();
+    FillDefaultChinesePointUnicode();
 }
 
 void FontCollection::SortTypeface(FontStyles &style) const
@@ -94,10 +95,34 @@ void FontCollection::FillDefaultItalicSupportFile()
     supportScript_.insert(std::make_pair("Zyyy", SUPPORTFILE)); // Zyyy means department of mathematics
 }
 
+void FontCollection::FillDefaultChinesePointUnicode()
+{
+    chinesePointUnicode_.insert(std::make_pair(0xFF0C, SUPPORTFILE)); // 0xFF0C is ，
+    chinesePointUnicode_.insert(std::make_pair(0x3002, SUPPORTFILE)); // 0x3002 is 。
+    chinesePointUnicode_.insert(std::make_pair(0xFF01, SUPPORTFILE)); // 0xFF01 is ！
+    chinesePointUnicode_.insert(std::make_pair(0xFF1B, SUPPORTFILE)); // 0xFF1B is ；
+    chinesePointUnicode_.insert(std::make_pair(0x3001, SUPPORTFILE)); // 0x3001 is 、
+    chinesePointUnicode_.insert(std::make_pair(0xFFE5, SUPPORTFILE)); // 0xFFE5 is ￥
+    chinesePointUnicode_.insert(std::make_pair(0xFF08, SUPPORTFILE)); // 0xFF08 is （
+    chinesePointUnicode_.insert(std::make_pair(0xFF09, SUPPORTFILE)); // 0xFF09 is ）
+    chinesePointUnicode_.insert(std::make_pair(0x300A, SUPPORTFILE)); // 0x300A is 《
+    chinesePointUnicode_.insert(std::make_pair(0x300B, SUPPORTFILE)); // 0x300B is 》
+    chinesePointUnicode_.insert(std::make_pair(0x3010, SUPPORTFILE)); // 0x3010 is 【
+    chinesePointUnicode_.insert(std::make_pair(0x3011, SUPPORTFILE)); // 0x3011 is 】
+    chinesePointUnicode_.insert(std::make_pair(0xFF1F, SUPPORTFILE)); // 0xFF1F is ？
+    chinesePointUnicode_.insert(std::make_pair(0xFF1A, SUPPORTFILE)); // 0xFF1A is ：
+}
+
 int FontCollection::DetectionScript(std::string script) const
 {
     return supportScript_.find(script)->second;
 }
+
+int FontCollection::DetectChinesePointUnicode(uint32_t ch) const
+{
+    return chinesePointUnicode_.find(ch)->second;
+}
+
 std::shared_ptr<Typeface> FontCollection::GetTypefaceForChar(const uint32_t &ch, FontStyles &style,
     const std::string &script, const std::string &locale) const
 {
@@ -232,7 +257,7 @@ std::shared_ptr<Typeface> FontCollection::FindFallBackTypeface(const uint32_t &c
     if (style.GetFontStyle()) {
         std::shared_ptr<TexgineTypeface> fallbackTypeface = nullptr;
         std::shared_ptr<Typeface> typeface = nullptr;
-        if (DetectionScript(script) == SUPPORTFILE) {
+        if (DetectionScript(script) == SUPPORTFILE && DetectChinesePointUnicode(ch) != SUPPORTFILE) {
             fallbackTypeface = fm->MatchFamilyStyle("", tfs);
             if (fallbackTypeface == nullptr || fallbackTypeface->GetTypeface() == nullptr) {
                 LOGE("No have fallbackTypeface from matchFamilyStyle");

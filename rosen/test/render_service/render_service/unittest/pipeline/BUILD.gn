@@ -132,6 +132,13 @@ ohos_unittest("RSUniRenderProcessorTest") {
   ]
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSRenderServiceVisitorTest
@@ -262,6 +269,13 @@ ohos_unittest("RSSurfaceCaptureTaskTest") {
   defines += gpu_defines
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
   }
 }
 
@@ -572,27 +586,16 @@ ohos_unittest("RSBaseRenderEngineUnitTest") {
 ohos_unittest("RSRoundCornerDisplayTest") {
   module_out_path = module_output_path
   sources = [ "rs_round_corner_display_test.cpp" ]
-  if (defined(use_new_skia) && use_new_skia) {
-    include_dirs = [
-      "//third_party/skia/src",
-      "//third_party/skia/include/core",
-    ]
-  } else {
-    include_dirs = [
-      "//third_party/flutter/skia/src",
-      "//third_party/flutter/skia/include/core",
-    ]
-  }
+  include_dirs = [
+    "//third_party/skia/src",
+    "//third_party/skia/include/core",
+  ]
 
   deps = [
     ":rs_test_common",
     "../../../../../modules/render_service_base:render_service_base_src",
   ]
-  if (defined(use_new_skia) && use_new_skia) {
-    deps += [ "//third_party/skia:skia_ohos" ]
-  } else {
-    deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
-  }
+  deps += [ "//third_party/skia:skia_ohos" ]
 
   external_deps = [
     "c_utils:utils",
@@ -620,6 +623,13 @@ ohos_unittest("RSRenderEngineTest") {
   defines += gpu_defines
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
   }
 }
 
@@ -722,6 +732,13 @@ ohos_unittest("RSUniRenderEngineTest") {
   defines += gpu_defines
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
   }
 }
 

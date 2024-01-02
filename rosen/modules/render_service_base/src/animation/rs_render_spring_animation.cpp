@@ -153,10 +153,13 @@ void RSRenderSpringAnimation::OnAnimate(float fraction)
     }
     auto mappedTime = fraction * GetDuration() * MILLISECOND_TO_SECOND;
     auto displacement = CalculateDisplacement(mappedTime) + endValue_;
-    SetAnimationValue(displacement);
 
     // keep the mapped time, this will be used to calculate instantaneous velocity
+    // update the time before calling SetAnimationValue, as SetAnimationValue may trigger velocity calculation
+    // if the time is not updated before these calculations, the velocity will be inaccurate
     prevMappedTime_ = mappedTime;
+    SetAnimationValue(displacement);
+
     if (GetNeedLogicallyFinishCallback() && (animationFraction_.GetRemainingRepeatCount() == 1)) {
         auto velocity = CalculateVelocity(mappedTime);
         auto zeroValue = startValue_ - startValue_;

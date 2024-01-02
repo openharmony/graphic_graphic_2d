@@ -233,8 +233,8 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
     }
 #endif // RS_ENABLE_GL
 #if defined(RS_ENABLE_VK)
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
-        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR && renderContext_->GetDrGPUContext() == nullptr) {
+    if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && renderContext_->GetDrGPUContext() == nullptr) {
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer GrContext is null!");
         return nullptr;
     }
@@ -835,7 +835,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         canvas.drawImageRect(image, params.srcRect, params.dstRect,
             SkSamplingOptions(), &(params.paint), SkCanvas::kStrict_SrcRectConstraint);
 #else
-        std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = Drawing::ColorType::CreateSRGB();
+        std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = Drawing::ColorSpace::CreateSRGB();
 #ifdef USE_VIDEO_PROCESSING_ENGINE
         drawingColorSpace = ConvertColorGamutToDrawingColorSpace(params.targetColorGamut);
 #endif
@@ -888,9 +888,14 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     auto sx = params.dstRect.width() / params.srcRect.width();
     auto sy = params.dstRect.height() / params.srcRect.height();
     matrix.setScaleTranslate(sx, sy, params.dstRect.x(), params.dstRect.y());
-    auto samplingOptions = RSSystemProperties::IsPhoneType()
-                            ? SkSamplingOptions()
-                            : SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
+    SkSamplingOptions samplingOptions;
+    if (!RSSystemProperties::GetUniRenderEnabled()) {
+        samplingOptions = SkSamplingOptions();
+    } else {
+        samplingOptions = RSSystemProperties::IsPhoneType()
+                              ? SkSamplingOptions()
+                              : SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
+    }
     sk_sp<SkShader> imageShader = image->makeShader(samplingOptions, matrix);
     if (imageShader == nullptr) {
         RS_LOGE("RSBaseRenderEngine::DrawImage imageShader is nullptr.");
@@ -903,9 +908,14 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     auto sx = params.dstRect.GetWidth() / params.srcRect.GetWidth();
     auto sy = params.dstRect.GetHeight() / params.srcRect.GetHeight();
     matrix.SetScaleTranslate(sx, sy, params.dstRect.GetLeft(), params.dstRect.GetTop());
-    auto samplingOptions = RSSystemProperties::IsPhoneType()
-                            ? Drawing::SamplingOptions()
-                            : Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
+    Drawing::SamplingOptions samplingOptions;
+    if (!RSSystemProperties::GetUniRenderEnabled()) {
+        samplingOptions = Drawing::SamplingOptions();
+    } else {
+        samplingOptions = RSSystemProperties::IsPhoneType()
+                              ? Drawing::SamplingOptions()
+                              : Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
+    }
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(
         *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, matrix);
     if (imageShader == nullptr) {
@@ -918,30 +928,36 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 #endif // USE_VIDEO_PROCESSING_ENGINE
 
 #ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
 #ifndef USE_VIDEO_PROCESSING_ENGINE
-    auto samplingOptions = RSSystemProperties::IsPhoneType()
-                               ? SkSamplingOptions()
-                               : SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
+    SkSamplingOptions samplingOptions;
+    if (!RSSystemProperties::GetUniRenderEnabled()) {
+        samplingOptions = SkSamplingOptions();
+    } else {
+        samplingOptions = RSSystemProperties::IsPhoneType()
+                              ? SkSamplingOptions()
+                              : SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
+    }
     canvas.drawImageRect(
         image, params.srcRect, params.dstRect, samplingOptions, &(params.paint), SkCanvas::kStrict_SrcRectConstraint);
 #else
     canvas.drawRect(params.dstRect, (params.paint));
 #endif // USE_VIDEO_PROCESSING_ENGINE
 #else
-#ifndef USE_VIDEO_PROCESSING_ENGINE
-    canvas.drawImageRect(image, params.srcRect, params.dstRect, &(params.paint));
-#else
-    canvas.drawRect(params.dstRect, &(params.paint));
-#endif // USE_VIDEO_PROCESSING_ENGINE
-#endif // NEW_SKIA
-#else
     canvas.AttachBrush(params.paint);
-    auto drawingSamplingOptions = RSSystemProperties::IsPhoneType()
-                               ? Drawing::SamplingOptions()
-                               : Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
+#ifndef USE_VIDEO_PROCESSING_ENGINE
+    Drawing::SamplingOptions drawingSamplingOptions;
+    if (!RSSystemProperties::GetUniRenderEnabled()) {
+        drawingSamplingOptions = Drawing::SamplingOptions();
+    } else {
+        drawingSamplingOptions = RSSystemProperties::IsPhoneType()
+                              ? Drawing::SamplingOptions()
+                              : Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
+    }
     canvas.DrawImageRect(*image.get(), params.srcRect, params.dstRect, drawingSamplingOptions,
         Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+#else
+    canvas.DrawRect(params.dstRect);
+#endif
     canvas.DetachBrush();
 #endif // USE_ROSEN_DRAWING
     RS_OPTIONAL_TRACE_END();

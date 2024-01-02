@@ -349,26 +349,47 @@ void RSMaterialFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_
 #ifndef USE_ROSEN_DRAWING
     auto paint = GetPaint();
 #ifdef NEW_SKIA
+    sk_sp<SkImage> greyImage = image;
+    if (isGreyCoefValid_) {
+        greyImage = RSPropertiesPainter::DrawGreyAdjustment(canvas, image, greyCoef1_, greyCoef2_);
+    }
+    if (greyImage == nullptr) {
+        greyImage = image;
+    }
     // if kawase blur failed, use gauss blur
     KawaseParameter param = KawaseParameter(src, dst, radius_, colorFilter_, paint.getAlphaf());
-    if (KAWASE_BLUR_ENABLED && KawaseBlurFilter::GetKawaseBlurFilter()->ApplyKawaseBlur(canvas, image, param)) {
+    if (KAWASE_BLUR_ENABLED && KawaseBlurFilter::GetKawaseBlurFilter()->ApplyKawaseBlur(canvas, greyImage, param)) {
         return;
     }
-    canvas.drawImageRect(image.get(), src, dst, SkSamplingOptions(), &paint, SkCanvas::kStrict_SrcRectConstraint);
+    canvas.drawImageRect(greyImage.get(), src, dst, SkSamplingOptions(), &paint, SkCanvas::kStrict_SrcRectConstraint);
 #else
-    canvas.drawImageRect(image.get(), src, dst, &paint);
+    canvas.drawImageRect(greyImage.get(), src, dst, &paint);
 #endif
 #else
     auto brush = GetBrush();
     // if kawase blur failed, use gauss blur
+    std::shared_ptr<Drawing::Image> greyImage = image;
+    if (isGreyCoefValid_) {
+        greyImage = RSPropertiesPainter::DrawGreyAdjustment(canvas, image, greyCoef1_, greyCoef2_);
+    }
+    if (greyImage == nullptr) {
+        greyImage = image;
+    }
     KawaseParameter param = KawaseParameter(src, dst, radius_, colorFilter_, brush.GetColor().GetAlphaF());
-    if (KAWASE_BLUR_ENABLED && KawaseBlurFilter::GetKawaseBlurFilter()->ApplyKawaseBlur(canvas, image, param)) {
+    if (KAWASE_BLUR_ENABLED && KawaseBlurFilter::GetKawaseBlurFilter()->ApplyKawaseBlur(canvas, greyImage, param)) {
         return;
     }
     canvas.AttachBrush(brush);
-    canvas.DrawImageRect(*image, src, dst, Drawing::SamplingOptions());
+    canvas.DrawImageRect(*greyImage, src, dst, Drawing::SamplingOptions());
     canvas.DetachBrush();
 #endif
+}
+
+void RSMaterialFilter::SetGreyCoef(float greyCoef1, float greyCoef2, bool isGreyCoefValid)
+{
+    greyCoef1_ = greyCoef1;
+    greyCoef2_ = greyCoef2;
+    isGreyCoefValid_ = isGreyCoefValid;
 }
 
 float RSMaterialFilter::GetRadius() const

@@ -30,7 +30,7 @@ public:
     enum class FilterType {
         NO_TYPE,
         BLUR,
-        COLOR,
+        COLOR_FILTER,
         OFFSET,
         ARITHMETIC,
         COMPOSE,

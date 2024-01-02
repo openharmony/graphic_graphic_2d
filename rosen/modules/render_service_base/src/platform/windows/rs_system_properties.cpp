@@ -314,7 +314,7 @@ int RSSystemProperties::GetSyncTransactionWaitDelay()
 
 bool RSSystemProperties::GetUseShadowBatchingEnabled()
 {
-    return false;
+    return true;
 }
 
 bool RSSystemProperties::GetSingleFrameComposerEnabled()
@@ -334,6 +334,11 @@ bool RSSystemProperties::GetSubSurfaceEnabled()
 bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
 {
     return false;
+}
+
+bool RSSystemProperties::GetEffectMergeEnabled()
+{
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

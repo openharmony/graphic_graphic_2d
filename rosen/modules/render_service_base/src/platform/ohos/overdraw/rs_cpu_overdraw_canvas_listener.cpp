@@ -317,6 +317,18 @@ void RSCPUOverdrawCanvasListener::DrawRegion(const Drawing::Region& region)
     // need know region path region
 }
 
+void RSCPUOverdrawCanvasListener::DrawTextBlob(
+    const Drawing::TextBlob* blob, const Drawing::scalar x, const Drawing::scalar y)
+{
+    if (blob == nullptr) {
+        return;
+    }
+
+    auto rect = blob->Bounds();
+    rect->Offset(x, y);
+    DrawRect(*rect);
+}
+
 void RSCPUOverdrawCanvasListener::DrawBitmap(
     const Drawing::Bitmap& bitmap, const Drawing::scalar px, const Drawing::scalar py)
 {

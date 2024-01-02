@@ -45,11 +45,7 @@ ohos_shared_library("effectkit") {
     "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
   ]
 
-  if (defined(use_new_skia) && use_new_skia) {
-    include_dirs += [ "//third_party/skia" ]
-  } else {
-    include_dirs += [ "//third_party/flutter/skia" ]
-  }
+  include_dirs += [ "//third_party/skia" ]
 
   configs = [
     ":graphic_napi_effect_kit_config",

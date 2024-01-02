@@ -42,6 +42,7 @@ public:
     static bool GetShowRefreshRateEnabled();
     static QuickSkipPrepareType GetQuickSkipPrepareType();
     static bool GetFilterCacheOcculusionEnabled();
+    static bool GetSkipCanvasNodeOutofScreenEnabled();
 };
 
 } // namespace Rosen

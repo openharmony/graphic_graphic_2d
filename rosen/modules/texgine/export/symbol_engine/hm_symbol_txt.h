@@ -20,7 +20,7 @@
 #include <vector>
 
 #ifndef USE_ROSEN_DRAWING
-#include <include/core/SkHMSymbol.h>
+#include <include/core/HMSymbol.h>
 #else
 #include "drawing.h"
 #endif
@@ -110,7 +110,7 @@ public:
     RSEffectStrategy effectStrategy_ = RSEffectStrategy::NONE;
 #endif
 };
-}
-}
-}
+} // namespace TextEngine
+} // namespace Rosen
+} // namespace OHOS
 #endif

@@ -41,8 +41,7 @@ namespace Rosen {
 
 class RSUniUICapture {
 public:
-    RSUniUICapture(NodeId nodeId, float scaleX, float scaleY)
-        : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY) {}
+    RSUniUICapture(NodeId nodeId, float scaleX, float scaleY);
     ~RSUniUICapture() = default;
 
     std::shared_ptr<Media::PixelMap> TakeLocalCapture();
@@ -110,6 +109,7 @@ private:
     NodeId nodeId_;
     float scaleX_;
     float scaleY_;
+    bool isUniRender_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

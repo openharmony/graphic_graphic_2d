@@ -22,6 +22,9 @@
 #include "ui/rs_node.h"
 #include "platform/common/rs_log.h"
 
+static constexpr int DURATION_MIN = 0;
+static constexpr int DURATION_VALUE_INDEX = 2;
+
 namespace OHOS {
 namespace Rosen {
 RSKeyframeAnimation::RSKeyframeAnimation(std::shared_ptr<RSPropertyBase> property) : RSPropertyAnimation(property)
@@ -51,8 +54,42 @@ void RSKeyframeAnimation::AddKeyFrames(
     keyframes_ = keyframes;
 }
 
+void RSKeyframeAnimation::AddKeyFrame(int startDuration, int endDuration,
+    const std::shared_ptr<RSPropertyBase>& value, const RSAnimationTimingCurve& timingCurve)
+{
+    if (startDuration > endDuration) {
+        return;
+    }
+
+    if (IsStarted()) {
+        return;
+    }
+
+    durationKeyframes_.push_back({ startDuration, endDuration, value, timingCurve });
+}
+
+void RSKeyframeAnimation::SetDurationKeyframe(bool isDuration)
+{
+    isDurationKeyframe_ = isDuration;
+}
+
 void RSKeyframeAnimation::InitInterpolationValue()
 {
+    if (isDurationKeyframe_) {
+        if (durationKeyframes_.empty()) {
+            return;
+        }
+
+        auto beginKeyframe = durationKeyframes_.front();
+        durationKeyframes_.insert(durationKeyframes_.begin(),
+            { DURATION_MIN, DURATION_MIN, GetOriginValue(), RSAnimationTimingCurve::LINEAR });
+
+        startValue_ = std::get<DURATION_VALUE_INDEX>(durationKeyframes_.front());
+        endValue_ = std::get<DURATION_VALUE_INDEX>(durationKeyframes_.back());
+        RSPropertyAnimation::InitInterpolationValue();
+        return;
+    }
+
     if (keyframes_.empty()) {
         return;
     }
@@ -95,17 +132,25 @@ void RSKeyframeAnimation::StartUIAnimation(const std::shared_ptr<RSRenderKeyfram
 void RSKeyframeAnimation::OnStart()
 {
     RSPropertyAnimation::OnStart();
-    if (keyframes_.empty()) {
+    if (keyframes_.empty() && durationKeyframes_.empty()) {
         ROSEN_LOGE("Failed to start keyframe animation, keyframes is null!");
         return;
     }
     auto animation = std::make_shared<RSRenderKeyframeAnimation>(GetId(), GetPropertyId(),
         originValue_->GetRenderProperty());
-    for (const auto& [fraction, value, curve] : keyframes_) {
-        animation->AddKeyframe(fraction, value->GetRenderProperty(), curve.GetInterpolator(GetDuration()));
-    }
+    animation->SetDurationKeyframe(isDurationKeyframe_);
     animation->SetAdditive(GetAdditive());
     UpdateParamToRenderAnimation(animation);
+    if (isDurationKeyframe_) {
+        for (const auto& [startDuration, endDuration, value, curve] : durationKeyframes_) {
+            animation->AddKeyframe(startDuration, endDuration, value->GetRenderProperty(),
+                curve.GetInterpolator(GetDuration()));
+        }
+    } else {
+        for (const auto& [fraction, value, curve] : keyframes_) {
+            animation->AddKeyframe(fraction, value->GetRenderProperty(), curve.GetInterpolator(GetDuration()));
+        }
+    }
     if (isCustom_) {
         animation->AttachRenderProperty(property_->GetRenderProperty());
         StartUIAnimation(animation);

@@ -167,6 +167,16 @@ Boundary Typography::GetWordBoundaryByIndex(size_t index)
     auto range = paragraph_->GetWordBoundary(index);
     return Convert(range);
 }
+
+double Typography::GetLineHeight(int lineNumber)
+{
+    return paragraph_->GetLineHeight(lineNumber);
+}
+
+double Typography::GetLineWidth(int lineNumber)
+{
+    return paragraph_->GetLineWidth(lineNumber);
+}
 } // namespace AdapterTxt
 } // namespace Rosen
 } // namespace OHOS

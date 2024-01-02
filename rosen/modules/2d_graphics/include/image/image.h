@@ -409,6 +409,7 @@ public:
 
     const sk_sp<SkImage> ExportSkImage();
 
+    bool pinAsTexture(GPUContext& context);
 private:
     std::shared_ptr<ImageImpl> imageImplPtr;
 };

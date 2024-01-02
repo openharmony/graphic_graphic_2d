@@ -152,7 +152,7 @@ class RSBaseRenderEngine {
 public:
     RSBaseRenderEngine();
     virtual ~RSBaseRenderEngine() noexcept;
-    void Init(bool indenpent = false);
+    void Init(bool independentContext = false);
     RSBaseRenderEngine(const RSBaseRenderEngine&) = delete;
     void operator=(const RSBaseRenderEngine&) = delete;
 
@@ -226,14 +226,14 @@ public:
     }
 #endif // RS_ENABLE_EGLIMAGE
 #ifdef RS_ENABLE_VK
-    const std::shared_ptr<RSVkImageManager>& GetVkImageManager()
+    const std::shared_ptr<RSVkImageManager>& GetVkImageManager() const
     {
         return vkImageManager_;
     }
 #ifndef USE_ROSEN_DRAWING
-    const sk_sp<GrDirectContext> GetSkContext()
+    const sk_sp<GrDirectContext> GetSkContext() const
 #else
-    const std::shared_ptr<Drawing::GPUContext> GetSkContext()
+    const std::shared_ptr<Drawing::GPUContext> GetSkContext() const
 #endif
     {
         return skContext_;
@@ -288,9 +288,9 @@ private:
 #endif
     using SurfaceId = uint64_t;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    bool SetColorSpaceConverterDisplayParameter(
+    static bool SetColorSpaceConverterDisplayParameter(
         const BufferDrawParam& params, Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter);
-    bool ConvertColorGamutToSpaceInfo(const GraphicColorGamut& colorGamut,
+    static bool ConvertColorGamutToSpaceInfo(const GraphicColorGamut& colorGamut,
         HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo);
     std::shared_ptr<Media::VideoProcessingEngine::ColorSpaceConverterDisplay> colorSpaceConverterDisplay_ = nullptr;
 #endif

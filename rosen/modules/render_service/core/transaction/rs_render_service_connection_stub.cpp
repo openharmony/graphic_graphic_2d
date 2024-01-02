@@ -19,6 +19,7 @@
 #include "sys_binder.h"
 
 #include "command/rs_command_factory.h"
+#include "hgm_frame_rate_manager.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_uni_render_judgement.h"
@@ -111,19 +112,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
 #ifdef ENABLE_IPC_SECURITY_ACCESS_COUNTER
-    if (!securityManager_.IsAccessTimesRestricted(code, securityUtils_.GetCodeAccessCounter(code))) {
-        RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access codeID=%{public}u by "
-                "pid=%{public}d with accessTimes = %{public}d.",
-            code, GetCallingPid(), securityUtils_.GetCodeAccessCounter(code));
+    auto accessCount = securityUtils_.GetCodeAccessCounter(code);
+    if (!securityManager_.IsAccessTimesRestricted(code, accessCount)) {
+        RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest This Function[ID=%{public}u] invoke times:%{public}d"
+            "by pid[%{public}d]", code, accessCount, GetCallingPid());
         return ERR_INVALID_STATE;
     }
-#endif
-    if (!securityManager_.IsInterfaceCodeAccessible(code)) {
-        RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access codeID=%{public}u.", code);
-        return ERR_INVALID_STATE;
-    }
-#ifdef ENABLE_IPC_SECURITY_ACCESS_COUNTER
-    securityUtils_.IncreaseAccessCounter(code);
 #endif
     int ret = ERR_NONE;
     switch (code) {
@@ -354,6 +348,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_STATE;
                 break;
             }
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access SET_REFRESH_RATE_MODE");
+                return ERR_INVALID_STATE;
+            }
             int32_t mode = data.ReadInt32();
             SetRefreshRateMode(mode);
             break;
@@ -405,6 +403,26 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SHOW_REFRESH_RATE_ENABLED): {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            bool enable = GetShowRefreshRateEnabled();
+            reply.WriteBool(enable);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED): {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            bool enable = data.ReadBool();
+            SetShowRefreshRateEnabled(enable);
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_RESOLUTION): {
             auto token = data.ReadInterfaceToken();
             if (token != RSIRenderServiceConnection::GetDescriptor()) {
@@ -444,6 +462,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             float scaleX = data.ReadFloat();
             float scaleY = data.ReadFloat();
             SurfaceCaptureType surfaceCaptureType = static_cast<SurfaceCaptureType>(data.ReadUint8());
+            if (RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id)->GetType() ==
+                RSRenderNodeType::DISPLAY_NODE && !securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access TAKE_SURFACE_CAPTURE");
+                return ERR_INVALID_STATE;
+            }
             TakeSurfaceCapture(id, cb, scaleX, scaleY, surfaceCaptureType);
             break;
         }
@@ -772,6 +795,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_NULL_OBJECT;
                 break;
             }
+#ifdef ENABLE_IPC_SECURITY_ACCESS_COUNTER
+            securityUtils_.IncreaseAccessCounter(code);
+#endif
             reply.WriteRemoteObject(conn->AsObject());
             break;
         }
@@ -1167,6 +1193,52 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             auto id = data.ReadUint64();
             auto isEnabled = data.ReadBool();
             SetHardwareEnabled(id, isEnabled);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_LIGHT_FACTOR_STATUS) : {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            auto isSafe = data.ReadBool();
+            NotifyLightFactorStatus(isSafe);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT) : {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            auto listSize = data.ReadUint32();
+            std::vector<std::string> packageList;
+            for (auto i = 0; i < listSize; i++) {
+                packageList.push_back(data.ReadString());
+            }
+            NotifyPackageEvent(listSize, packageList);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_REFRESH_RATE_EVENT) : {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            EventInfo eventInfo = {
+                data.ReadString(), data.ReadBool(), data.ReadUint32(), data.ReadUint32(), data.ReadString(),
+            };
+            NotifyRefreshRateEvent(eventInfo);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_TOUCH_EVENT) : {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            auto touchStatus = data.ReadInt32();
+            NotifyTouchEvent(touchStatus);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_HGM_CFG_CALLBACK) : {

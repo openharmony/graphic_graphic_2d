@@ -47,7 +47,8 @@ public:
     void GenNewBoundryByHardBreak(CharGroups cgs, std::vector<Boundary> &boundaries);
     void SetWidthLimit(const double widthLimit);
     void SetIndents(const std::vector<float> &indents);
-
+    void CreateNewBoundary(CharGroups &cgs, std::vector<Boundary> &boundaries,
+        const TypographyStyle &ys);
     double preBreak_ = 0;
     double postBreak_ = 0;
 

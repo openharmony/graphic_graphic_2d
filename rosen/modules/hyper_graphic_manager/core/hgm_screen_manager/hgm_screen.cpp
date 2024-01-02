@@ -142,11 +142,6 @@ bool HgmScreen::IfSwitchToRate(int32_t sceneId, uint32_t rate) const
         return ifSwitch;
     }
 
-    if (sceneId == 0 && (rate < minRefreshRateRange_ || rate > maxRefreshRateRange_)) {
-        HGM_LOGI("HgmScreen Set framerate to %{public}u is rejected, rate does not belong to range", rate);
-        return ifSwitch;
-    }
-
     ifSwitch = true;
     HGM_LOGI("HgmScreen Set framerate to %{public}u is accepted", rate);
     return ifSwitch;

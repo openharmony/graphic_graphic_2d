@@ -48,6 +48,16 @@ public:
     IndexAndAffinity GetGlyphIndexByCoordinate(double x, double y) override;
     Boundary GetWordBoundaryByIndex(size_t index) override;
 
+    double GetLineHeight(int lineNumber) override
+    {
+        return 0.0;
+    }
+    
+    double GetLineWidth(int lineNumber) override
+    {
+        return 0.0;
+    }
+
 private:
     std::shared_ptr<TextEngine::Typography> typography_ = nullptr;
 };

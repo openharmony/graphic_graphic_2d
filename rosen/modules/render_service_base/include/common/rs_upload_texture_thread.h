@@ -16,8 +16,11 @@
 #ifndef RS_UPLOAD_TEXTURE_THREAD_H
 #define RS_UPLOAD_TEXTURE_THREAD_H
 
-#include "event_handler.h"
+#include <condition_variable>
+#include <mutex>
+#include <vector>
 #include "common/rs_macros.h"
+#include "event_handler.h"
 #if defined(RS_ENABLE_UNI_RENDER) && defined(RS_ENABLE_GL)
 #ifndef USE_ROSEN_DRAWING
 #include "EGL/egl.h"
@@ -41,10 +44,18 @@ public:
     void RemoveTask(const std::string& name);
     void InitRenderContext(RenderContext* context);
 
+    void OnRenderEnd();
+    void OnProcessBegin();
+    int64_t GetFrameCount() const;
+    bool TaskIsValid(int64_t count);
+    bool IsEnable() const;
+    bool ImageSupportParallelUpload(int w, int h);
+
 #if defined(RS_ENABLE_UNI_RENDER) && defined(RS_ENABLE_GL)
 #ifndef USE_ROSEN_DRAWING
     sk_sp<GrDirectContext> GetShareGrContext() const;
     void CleanGrResource();
+    void ReleaseNotUsedPinnedViews();
 #endif
 #endif
 private:
@@ -55,8 +66,20 @@ private:
     RSUploadTextureThread& operator=(const RSUploadTextureThread&);
     RSUploadTextureThread& operator=(const RSUploadTextureThread&&);
 
+    void WaitUntilRenderEnd();
+
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
+
+    std::condition_variable uploadTaskCond_;
+    std::mutex uploadTaskMutex_;
+    bool enableTime_ = false;
+    std::atomic<int64_t> frameCount_{0};
+    bool uploadProperity_ = true;
+    bool isTargetPlatform_ = false;
+    static constexpr int CLEAN_VIEW_COUNT = 10;
+    static constexpr int IMG_WIDTH_MAX = 300;
+    static constexpr int IMG_HEIGHT_MAX = 300;
 #if defined(RS_ENABLE_UNI_RENDER) && defined(RS_ENABLE_GL)
 #ifndef USE_ROSEN_DRAWING
     sk_sp<GrDirectContext> CreateShareGrContext();

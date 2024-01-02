@@ -44,8 +44,8 @@ struct TypographyStyle {
     std::string locale;
 
     // multi-text
-    size_t maxLines = 1e9;
-    std::u16string ellipsis = u"\u2026";
+    size_t maxLines = std::numeric_limits<size_t>::max();
+    std::u16string ellipsis;
     BreakStrategy breakStrategy = BreakStrategy::GREEDY;
     WordBreakType wordBreakType = WordBreakType::BREAK_WORD;
     TextAlign align = TextAlign::START;

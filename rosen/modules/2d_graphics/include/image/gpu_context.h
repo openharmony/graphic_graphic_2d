@@ -86,8 +86,12 @@ public:
      */
     void SetPersistentCache(PersistentCache* persistentCache);
 
+    void SetAllowPathMaskCaching(bool allowPathMaskCaching);
+    bool GetAllowPathMaskCaching() const;
+
 private:
     PersistentCache* persistentCache_ = nullptr;
+    bool allowPathMaskCaching_ = true;
 };
 
 class DRAWING_API GPUContext {
@@ -107,6 +111,7 @@ public:
      */
 #ifdef RS_ENABLE_VK
     bool BuildFromVK(const GrVkBackendContext& context);
+    bool BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options);
 #endif
 
     /*

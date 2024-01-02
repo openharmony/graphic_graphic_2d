@@ -148,12 +148,7 @@ void RSMask::SetMaskPath(const SkPath& path)
 #else
 void RSMask::SetMaskPath(const Drawing::Path& path)
 {
-    if (path.GetDrawingType() == Drawing::DrawingType::RECORDING) {
-        maskPath_ = std::make_shared<Drawing::RecordingPath>();
-        maskPath_->AddPath(path);
-    } else {
-        maskPath_ = std::make_shared<Drawing::Path>(path);
-    }
+    maskPath_ = std::make_shared<Drawing::Path>(path);
 }
 #endif
 

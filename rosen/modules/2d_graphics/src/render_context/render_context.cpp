@@ -507,6 +507,12 @@ std::shared_ptr<Drawing::Surface> RenderContext::AcquireSurface(int width, int h
     bufferInfo.Format = GL_RGBA8;
     bufferInfo.gpuContext = drGPUContext_;
     bufferInfo.colorSpace = colorSpace;
+    bufferInfo.colorType = Drawing::COLORTYPE_RGBA_8888;
+
+    if (pixelFormat_ == GRAPHIC_PIXEL_FMT_RGBA_1010102) {
+        bufferInfo.Format = GL_RGB10_A2;
+        bufferInfo.colorType = Drawing::COLORTYPE_RGBA_1010102;
+    }
 
     surface_ = std::make_shared<Drawing::Surface>();
     if (!surface_->Bind(bufferInfo)) {
@@ -625,7 +631,7 @@ void RenderContext::ClearRedundantResources()
 #endif
 }
 
-sk_sp<SkColorSpace> RenderContext::ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut) const
+sk_sp<SkColorSpace> RenderContext::ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut)
 {
     sk_sp<SkColorSpace> skColorSpace = nullptr;
     switch (colorGamut) {
@@ -650,6 +656,48 @@ sk_sp<SkColorSpace> RenderContext::ConvertColorGamutToSkColorSpace(GraphicColorG
 
     return skColorSpace;
 }
+
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+std::string RenderContext::GetShaderCacheSize() const
+{
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (RsVulkanContext::GetSingleton().GetMemoryHandler()) {
+            return RsVulkanContext::GetSingleton().GetMemoryHandler()->QuerryShader();
+        }
+    }
+#else
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        if (mHandler_) {
+            return mHandler_->QuerryShader();
+        }
+    }
+#endif
+    LOGE("GetShaderCacheSize no shader cache");
+    return "";
+}
+
+std::string RenderContext::CleanAllShaderCache() const
+{
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (RsVulkanContext::GetSingleton().GetMemoryHandler()) {
+            return RsVulkanContext::GetSingleton().GetMemoryHandler()->ClearShader();
+        }
+    }
+#else
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        if (mHandler_) {
+            return mHandler_->ClearShader();
+        }
+    }
+#endif
+    LOGE("CleanAllShaderCache no shader cache");
+    return "";
+}
+#endif
 
 RenderContextFactory& RenderContextFactory::GetInstance()
 {

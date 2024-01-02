@@ -36,6 +36,7 @@
 #include "text_converter.h"
 #include "word_breaker.h"
 #include "symbol_engine/hm_symbol_run.h"
+#include "utils/system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -64,6 +65,12 @@ namespace TextEngine {
 #define POINTY2 2
 #define POINTY4 4
 #define POINTY6 6
+
+#ifdef BUILD_NON_SDK_VER
+const bool G_IS_HMSYMBOL_ENABLE = Drawing::SystemProperties::GetHMSymbolEnable();
+#else
+const bool G_IS_HMSYMBOL_ENABLE = true;
+#endif
 
 std::shared_ptr<TextSpan> TextSpan::MakeEmpty()
 {
@@ -161,7 +168,8 @@ bool TextSpan::IsRTL() const
     return rtl_;
 }
 
-void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, const TextStyle &xs)
+void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, const TextStyle &xs,
+    const RoundRectType &rType)
 {
     TexginePaint paint;
     paint.SetAntiAlias(true);
@@ -170,25 +178,47 @@ void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, cons
 #else
     paint.SetAlpha(MAXALPHA);
 #endif
-    paint.SetColor(xs.color);
     if (xs.background.has_value()) {
         auto rect = TexgineRect::MakeXYWH(offsetX, offsetY + *tmetrics_->fAscent_, width_,
             *tmetrics_->fDescent_ - *tmetrics_->fAscent_);
         canvas.DrawRect(rect, xs.background.value());
     }
 
+    if (xs.backgroundRect.color != 0) {
+        paint.SetColor(xs.backgroundRect.color);
+        double ltRadius = 0.0;
+        double rtRadius = 0.0;
+        double rbRadius = 0.0;
+        double lbRadius = 0.0;
+        if (rType == RoundRectType::ALL || rType == RoundRectType::LEFT_ONLY) {
+            ltRadius = xs.backgroundRect.leftTopRadius;
+            lbRadius = xs.backgroundRect.leftBottomRadius;
+        }
+        if (rType == RoundRectType::ALL || rType == RoundRectType::RIGHT_ONLY) {
+            rtRadius = xs.backgroundRect.rightTopRadius;
+            rbRadius = xs.backgroundRect.rightBottomRadius;
+        }
+        const SkVector fRadii[4] = {{ltRadius, ltRadius}, {rtRadius, rtRadius}, {rbRadius, rbRadius},
+            {lbRadius, lbRadius}};
+        auto rect = TexgineRect::MakeRRect(offsetX, absLineY_, width_, lineHeight_, fRadii);
+        paint.SetAntiAlias(false);
+        canvas.DrawRRect(rect, paint);
+    }
+
+    paint.SetAntiAlias(true);
+    paint.SetColor(xs.color);
     if (xs.foreground.has_value()) {
         paint = xs.foreground.value();
     }
 
     PaintShadow(canvas, offsetX, offsetY, xs.shadows);
-    if (xs.isSymbolGlyph) {
+    if (xs.isSymbolGlyph && G_IS_HMSYMBOL_ENABLE) {
         std::pair<double, double> offset(offsetX, offsetY);
         HMSymbolRun::DrawSymbol(canvas, textBlob_, offset, paint, xs);
     } else {
         canvas.DrawTextBlob(textBlob_, offsetX, offsetY, paint);
     }
-    
+
     PaintDecoration(canvas, offsetX, offsetY, xs);
 }
 

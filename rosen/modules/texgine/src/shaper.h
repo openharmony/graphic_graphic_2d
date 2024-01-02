@@ -111,6 +111,8 @@ private:
         struct SpanPosition &spanPos, const TypographyStyle &style,
         const std::shared_ptr<FontProviders> &fontProviders);
 
+    void SetEllipsisProperty(std::vector<VariantSpan> &ellipsisSpans,
+        std::vector<LineMetrics> &ellipsisMertics, double &ellipsisWidth);
     std::vector<LineMetrics> lineMetrics_;
     bool didExceedMaxLines_ = false;
     double maxIntrinsicWidth_ = 0.0;

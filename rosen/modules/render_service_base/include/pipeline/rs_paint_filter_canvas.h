@@ -115,7 +115,7 @@ public:
 
     void Flush() override;
     void Clear(Drawing::ColorQuad color) override;
-    void Save() override;
+    uint32_t Save() override;
     void SaveLayer(const Drawing::SaveLayerOps& saveLayerOps) override;
     void Restore() override;
     void Discard() override;
@@ -183,13 +183,13 @@ public:
         kCanvas = 0x1,
         kAlpha  = 0x2,
         kEnv    = 0x4,
-        kALL    = kCanvas | kAlpha | kEnv,
+        kAll    = kCanvas | kAlpha | kEnv,
     };
 
 #ifndef USE_ROSEN_DRAWING
-    SaveStatus Save(SaveType type = kALL);
+    SaveStatus Save(SaveType type = kAll);
 #else
-    SaveStatus SaveAllStatus(SaveType type = kALL);
+    SaveStatus SaveAllStatus(SaveType type = kAll);
 #endif
     SaveStatus GetSaveStatus() const;
     void RestoreStatus(const SaveStatus& status);
@@ -358,23 +358,23 @@ public:
     */
 #ifndef USE_ROSEN_DRAWING
     RSAutoCanvasRestore(
-        RSPaintFilterCanvas* canvas, RSPaintFilterCanvas::SaveType type = RSPaintFilterCanvas::SaveType::kALL)
+        RSPaintFilterCanvas* canvas, RSPaintFilterCanvas::SaveType type = RSPaintFilterCanvas::SaveType::kAll)
         : canvas_(canvas), saveCount_(canvas ? canvas->Save(type) : RSPaintFilterCanvas::SaveStatus())
     {}
 #else
     RSAutoCanvasRestore(
-        RSPaintFilterCanvas* canvas, RSPaintFilterCanvas::SaveType type = RSPaintFilterCanvas::SaveType::kALL)
+        RSPaintFilterCanvas* canvas, RSPaintFilterCanvas::SaveType type = RSPaintFilterCanvas::SaveType::kAll)
         : canvas_(canvas), saveCount_(canvas ? canvas->SaveAllStatus() : RSPaintFilterCanvas::SaveStatus())
     {}
 #endif
 
     /** Allow RSAutoCanvasRestore to be used with std::unique_ptr and std::shared_ptr */
     RSAutoCanvasRestore(const std::unique_ptr<RSPaintFilterCanvas>& canvas,
-        RSPaintFilterCanvas::SaveType type = RSPaintFilterCanvas::SaveType::kALL)
+        RSPaintFilterCanvas::SaveType type = RSPaintFilterCanvas::SaveType::kAll)
         : RSAutoCanvasRestore(canvas.get(), type)
     {}
     RSAutoCanvasRestore(const std::shared_ptr<RSPaintFilterCanvas>& canvas,
-        RSPaintFilterCanvas::SaveType type = RSPaintFilterCanvas::SaveType::kALL)
+        RSPaintFilterCanvas::SaveType type = RSPaintFilterCanvas::SaveType::kAll)
         : RSAutoCanvasRestore(canvas.get(), type)
     {}
 
