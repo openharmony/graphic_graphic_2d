@@ -1167,12 +1167,8 @@ RSPaintFilterCanvas::SaveStatus RSPaintFilterCanvas::Save(SaveType type)
 #else
 RSPaintFilterCanvas::SaveStatus RSPaintFilterCanvas::SaveAllStatus(SaveType type)
 {
-    // simultaneously save canvas and alpha
-    int canvasSaveCount = GetSaveCount();
-    if (RSPaintFilterCanvas::kCanvas & type) {
-        Save();
-    }
-    return { canvasSaveCount,
+    // save and return status on demand
+    return { (RSPaintFilterCanvas::kCanvas & type) ? Save() : GetSaveCount(),
         (RSPaintFilterCanvas::kAlpha & type) ? SaveAlpha() : GetAlphaSaveCount(),
         (RSPaintFilterCanvas::kEnv & type) ? SaveEnv() : GetEnvSaveCount() };
 }
@@ -1283,9 +1279,7 @@ std::optional<Drawing::Rect> RSPaintFilterCanvas::GetLocalClipBounds(const Drawi
     const Drawing::RectI* clipRect)
 {
     // if clipRect is explicitly specified, use it as the device clip bounds
-    auto tmpRect = (clipRect != nullptr) ? *clipRect : canvas.GetDeviceClipBounds();
-    Drawing::Rect bounds(static_cast<scalar>(tmpRect.GetLeft()), static_cast<scalar>(tmpRect.GetTop()),
-        static_cast<scalar>(tmpRect.GetRight()), static_cast<scalar>(tmpRect.GetBottom()));
+    Drawing::Rect bounds = Rect((clipRect != nullptr) ? *clipRect : canvas.GetDeviceClipBounds());
 
     if (!bounds.IsValid()) {
         return std::nullopt;

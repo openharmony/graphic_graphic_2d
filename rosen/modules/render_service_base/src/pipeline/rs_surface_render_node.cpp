@@ -298,10 +298,8 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (grContext_ && !IsOnTheTree()) {
         if (auto context = GetContext().lock()) {
-#ifndef USE_ROSEN_DRAWING
             RS_TRACE_NAME_FMT("need purgeUnlockedResources this SurfaceNode isn't on the tree Id:%" PRIu64 " Name:%s",
                 GetId(), GetName().c_str());
-#endif
             if (IsLeashWindow()) {
                 context->MarkNeedPurge(RSContext::PurgeType::GENTLY);
             }
