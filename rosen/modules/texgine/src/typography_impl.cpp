@@ -37,6 +37,7 @@ namespace TextEngine {
 #define MAXWIDTH 1e9
 #define HALF(a) ((a) / 2)
 #define MINDEV 1e-3
+#define MAX_INT_VALUE 0x7FFFFFFF
 #define SUCCESSED 0
 #define FAILED 1
 
@@ -369,7 +370,8 @@ int TypographyImpl::UpdateMetrics()
             }
         }
 
-        height_ += ceil(lineMaxCoveredAscent_.back() + lineMaxCoveredDescent_.back());
+        lineMetrics_[i].height = ceil(lineMaxCoveredAscent_.back() + lineMaxCoveredDescent_.back());
+        height_ += lineMetrics_[i].height;
         baselines_.push_back(height_ - lineMaxCoveredDescent_.back());
         yOffset += ceil(lineMaxCoveredAscent_.back() + prevMaxDescent);
         yOffsets_.push_back(yOffset);
@@ -399,12 +401,18 @@ void TypographyImpl::DoLayout()
 
     for (auto i = 0; i < static_cast<int>(lineMetrics_.size()); i++) {
         double offsetX = 0;
+        lineMetrics_[i].lineY = lineMetrics_[i].lineSpans.size() == 0 ? 0.0 : MAX_INT_VALUE;
         for (auto &vs : lineMetrics_[i].lineSpans) {
             vs.AdjustOffsetY(yOffsets_[i]);
             vs.AdjustOffsetX(offsetX + HALF(vs.GetTextStyle().letterSpacing));
             offsetX += vs.GetWidth();
-
             lineMetrics_[i].width = offsetX;
+            if (auto textSpan = vs.TryToTextSpan(); textSpan != nullptr) {
+                lineMetrics_[i].lineY = std::fmin(lineMetrics_[i].lineY,
+                    vs.GetOffsetY() + *(textSpan->tmetrics_->fAscent_));
+            } else {
+                lineMetrics_[i].lineY = std::fmin(lineMetrics_[i].lineY, vs.GetOffsetY());
+            }
         }
         maxLineWidth_ = std::max(maxLineWidth_, lineMetrics_[i].width);
     }
@@ -818,11 +826,10 @@ void TypographyImpl::ApplyAlignment()
         }
 
         size_t spanIndex = 0;
-        line.ComputeLineHeightAndY();
         for (auto &span : line.lineSpans) {
             span.AdjustOffsetX(typographyOffsetX + spanGapWidth * spanIndex);
             span.SetJustifyGap(spanIndex > 0 && isJustify ? spanGapWidth : 0.0);
-            span.SetLineHeight(line.lineHeight);
+            span.SetLineHeight(line.height);
             span.SetLineY(line.lineY);
             spanIndex++;
         }

@@ -90,7 +90,7 @@ public:
         }
 
         TexginePaint paint;
-        paint.SetAntiAlias(true);
+        paint.SetAntiAlias(false);
 #ifndef USE_GRAPHIC_TEXT_GINE
         paint.SetARGB(MAXRGB, MAXRGB, 0, 0);
 #else

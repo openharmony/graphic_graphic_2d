@@ -315,7 +315,7 @@ void VariantSpan::CheckPointer(bool nullable) const noexcept(false)
 
 bool VariantSpan::HasBackgroundRect() const noexcept(true)
 {
-    return xs_.backgroundRect.color != 0;
+    return xs_.backgroundRect.color != 0 && GetWidth() > 0;
 }
 
 RoundRectType VariantSpan::GetRoundRectType() const noexcept(true)
