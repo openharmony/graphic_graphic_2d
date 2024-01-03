@@ -17,6 +17,9 @@
 
 #include "c/drawing_brush.h"
 #include "c/drawing_color.h"
+#include "c/drawing_filter.h"
+#include "c/drawing_mask_filter.h"
+#include "c/drawing_rect.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -63,6 +66,9 @@ HWTEST_F(NativeDrawingBrushTest, NativeDrawingBrushTest_brush002, TestSize.Level
     EXPECT_EQ(OH_Drawing_BrushIsAntiAlias(brush1), false);
     OH_Drawing_BrushSetColor(brush1, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0x00, 0x00));
     EXPECT_EQ(OH_Drawing_BrushGetColor(brush1), 0xFFFF0000);
+    constexpr uint8_t alpha = 128;
+    OH_Drawing_BrushSetAlpha(brush1, alpha);
+    EXPECT_EQ(OH_Drawing_BrushGetAlpha(brush1), alpha);
 }
 } // namespace Drawing
 } // namespace Rosen
