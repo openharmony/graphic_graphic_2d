@@ -892,9 +892,13 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     if (!RSSystemProperties::GetUniRenderEnabled()) {
         samplingOptions = SkSamplingOptions();
     } else {
-        samplingOptions = RSSystemProperties::IsPhoneType()
-                              ? SkSamplingOptions()
-                              : SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
+        if (params.isMirror) {
+            samplingOptions = SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kNearest);
+        } else {
+            samplingOptions = RSSystemProperties::IsPhoneType()
+                                ? SkSamplingOptions()
+                                : SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
+        }
     }
     sk_sp<SkShader> imageShader = image->makeShader(samplingOptions, matrix);
     if (imageShader == nullptr) {
@@ -912,9 +916,13 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     if (!RSSystemProperties::GetUniRenderEnabled()) {
         samplingOptions = Drawing::SamplingOptions();
     } else {
-        samplingOptions = RSSystemProperties::IsPhoneType()
-                              ? Drawing::SamplingOptions()
-                              : Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
+        if (params.isMirror) {
+            samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
+        } else {
+            samplingOptions = RSSystemProperties::IsPhoneType()
+                                ? Drawing::SamplingOptions()
+                                : Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
+        }
     }
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(
         *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, matrix);

@@ -2447,15 +2447,16 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             mirrorNode->GetScreenRotation() == ScreenRotation::ROTATION_270) {
             mirrorAutoRotate_ = true;
         }
-        ScaleMirrorIfNeed(node);
 #ifndef USE_ROSEN_DRAWING
         canvas_->save();
 #else
         canvas_->Save();
 #endif
+        ScaleMirrorIfNeed(node);
         RotateMirrorCanvasIfNeed(node);
         bool forceCPU = false;
         auto params = RSUniRenderUtil::CreateBufferDrawParam(*mirrorNode, forceCPU);
+        params.isMirror = true;
         renderEngine_->DrawDisplayNodeWithParams(*canvas_, *mirrorNode, params);
 #ifndef USE_ROSEN_DRAWING
         canvas_->restore();
