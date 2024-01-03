@@ -44,7 +44,9 @@ void DrawCmdTest::TearDown() {}
  */
 HWTEST_F(DrawCmdTest, DrawCmdList001, TestSize.Level1)
 {
-    auto drawCmdList = std::make_shared<DrawCmdList>(10, 20);
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    drawCmdList->SetWidth(10);
+    drawCmdList->SetHeight(20);
     drawCmdList->AddOp<ClearOpItem::ConstructorHandle>(Color::COLOR_BLACK);
     auto cmdData = drawCmdList->GetData();
 
@@ -64,7 +66,7 @@ HWTEST_F(DrawCmdTest, DrawCmdList001, TestSize.Level1)
     auto imageData = drawCmdList->GetAllImageData();
     std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVec;
     drawCmdList->GetAllPixelMap(pixelMapVec);
-    auto cmdList = std::make_shared<CmdList>(cmdData);
+    auto cmdList = DrawCmdList::CreateFromData(cmdData, false);
     cmdList->SetUpImageData(imageData.first, imageData.second);
     cmdList->SetupPixelMap(pixelMapVec);
     auto pixelMap = cmdList->GetPixelMap(0);
