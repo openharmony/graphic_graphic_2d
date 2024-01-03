@@ -216,6 +216,7 @@ Drawing::Canvas* GLESRenderBackend::AcquireDrCanvas(std::unique_ptr<SurfaceFrame
     bufferInfo.height = height;
     bufferInfo.FBOID = 0;
     bufferInfo.Format = GL_RGBA8;
+    bufferInfo.colorType = Drawing::COLORTYPE_RGBA_8888;
     bufferInfo.gpuContext = drGPUContext_;
     bufferInfo.colorSpace = colorSpace;
 
