@@ -25,6 +25,9 @@
 
 #include "impl_interface/gpu_context_impl.h"
 #include "image/gpu_context.h"
+#ifdef RS_ENABLE_VK
+#include "include/core/SkExecutor.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -55,6 +58,7 @@ public:
     bool BuildFromGL(const GPUContextOptions& options) override;
 
 #ifdef RS_ENABLE_VK
+    static std::unique_ptr<SkExecutor> threadPool;
     bool BuildFromVK(const GrVkBackendContext& context) override;
     bool BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options) override;
 #endif
