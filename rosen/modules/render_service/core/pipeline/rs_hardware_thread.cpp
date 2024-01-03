@@ -568,13 +568,8 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #endif // USE_VIDEO_PROCESSING_ENGINE
 #else // USE_ROSEN_DRAWING
             std::shared_ptr<Drawing::Image> image = nullptr;
-            Drawing::ColorType colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
-            auto pixelFmt = params.buffer->GetFormat();
-            if (pixelFmt == GRAPHIC_PIXEL_FMT_BGRA_8888) {
-                colorType = Drawing::ColorType::COLORTYPE_BGRA_8888;
-            } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
-                colorType = Drawing::ColorType::COLORTYPE_RGBA_1010102;
-            }
+            Drawing::ColorType colorType = (params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ?
+                Drawing::ColorType::COLORTYPE_BGRA_8888 : Drawing::ColorType::COLORTYPE_RGBA_8888;
 #if defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)
             if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
                 Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
