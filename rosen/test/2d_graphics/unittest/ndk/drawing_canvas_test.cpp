@@ -19,17 +19,17 @@
 #include "c/drawing_brush.h"
 #include "c/drawing_canvas.h"
 #include "c/drawing_color.h"
+#include "c/drawing_color_filter.h"
+#include "c/drawing_filter.h"
+#include "c/drawing_font.h"
+#include "c/drawing_mask_filter.h"
 #include "c/drawing_path.h"
 #include "c/drawing_pen.h"
+#include "c/drawing_point.h"
 #include "c/drawing_rect.h"
 #include "c/drawing_round_rect.h"
-#include "c/drawing_point.h"
 #include "c/drawing_shader_effect.h"
-#include "c/drawing_filter.h"
-#include "c/drawing_mask_filter.h"
-#include "c/drawing_color_filter.h"
 #include "c/drawing_text_blob.h"
-#include "c/drawing_font.h"
 #include "c/drawing_typeface.h"
 
 using namespace testing;
@@ -431,6 +431,7 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawTextBlob, TestSize
     OH_Drawing_FontSetTypeface(font, typeSurface);
     auto *builder = OH_Drawing_TextBlobBuilderCreate();
     const OH_Drawing_RunBuffer* runBuffer = OH_Drawing_TextBlobBuilderAllocRunPos(builder, font, 9, nullptr);
+    ASSERT_NE(runBuffer, nullptr);
     runBuffer->glyphs[0] = 65;
     runBuffer->pos[0] = 0;
     runBuffer->pos[1] = 0;
