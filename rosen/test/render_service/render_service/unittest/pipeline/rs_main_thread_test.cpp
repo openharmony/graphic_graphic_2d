@@ -233,48 +233,51 @@ HWTEST_F(RSMainThreadTest, CalcOcclusion, TestSize.Level1)
 }
 
 /**
- * @tc.name: CheckQosVisChanged001
- * @tc.desc: Test RSMainThreadTest.CheckQosVisChanged, pidVisMap is empty
+ * @tc.name: CheckSurfaceVisChanged001
+ * @tc.desc: Test RSMainThreadTest.CheckSurfaceVisChanged, pidVisMap is empty
  * @tc.type: FUNC
  * @tc.require: issueI60QXK
  */
-HWTEST_F(RSMainThreadTest, CheckQosVisChanged001, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, CheckSurfaceVisChanged001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     std::map<uint32_t, RSVisibleLevel> pidVisMap;
-    auto isVisibleChanged = mainThread->CheckQosVisChanged(pidVisMap);
+    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+    auto isVisibleChanged = mainThread->CheckSurfaceVisChanged(pidVisMap, curAllSurfaces);
     ASSERT_EQ(false, isVisibleChanged);
 }
 
 /**
- * @tc.name: CheckQosVisChanged002
- * @tc.desc: Test RSMainThreadTest.CheckQosVisChanged, pidVisMap is not empty
+ * @tc.name: CheckSurfaceVisChanged002
+ * @tc.desc: Test RSMainThreadTest.CheckSurfaceVisChanged, pidVisMap is not empty
  * @tc.type: FUNC
  * @tc.require: issueI60QXK
  */
-HWTEST_F(RSMainThreadTest, CheckQosVisChanged002, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, CheckSurfaceVisChanged002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     std::map<uint32_t, RSVisibleLevel> pidVisMap;
     pidVisMap[0] = RSVisibleLevel::RS_ALL_VISIBLE;
     mainThread->lastPidVisMap_[0] = RSVisibleLevel::RS_INVISIBLE;
-    auto isVisibleChanged = mainThread->CheckQosVisChanged(pidVisMap);
+    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+    auto isVisibleChanged = mainThread->CheckSurfaceVisChanged(pidVisMap, curAllSurfaces);
     ASSERT_EQ(true, isVisibleChanged);
 }
 
 /**
- * @tc.name: CheckQosVisChanged003
- * @tc.desc: Test RSMainThreadTest.CheckQosVisChanged, pidVisMap is not empty, lastPidVisMap_ equals to pidVisMap
+ * @tc.name: CheckSurfaceVisChanged003
+ * @tc.desc: Test RSMainThreadTest.CheckSurfaceVisChanged, pidVisMap is not empty, lastPidVisMap_ equals to pidVisMap
  * @tc.type: FUNC
  * @tc.require: issueI60QXK
  */
-HWTEST_F(RSMainThreadTest, CheckQosVisChanged003, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, CheckSurfaceVisChanged003, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     std::map<uint32_t, RSVisibleLevel> pidVisMap;
     pidVisMap[0] = RSVisibleLevel::RS_ALL_VISIBLE;
     mainThread->lastPidVisMap_[0] = RSVisibleLevel::RS_ALL_VISIBLE;
-    auto isVisibleChanged = mainThread->CheckQosVisChanged(pidVisMap);
+    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+    auto isVisibleChanged = mainThread->CheckSurfaceVisChanged(pidVisMap, curAllSurfaces);
     ASSERT_EQ(false, isVisibleChanged);
 }
 

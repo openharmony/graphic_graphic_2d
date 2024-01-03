@@ -77,6 +77,7 @@ constexpr uint32_t PHONE_MAX_APP_WINDOW_NUM = 1;
 constexpr uint32_t CACHE_MAX_UPDATE_TIME = 2;
 constexpr int ROTATION_90 = 90;
 constexpr int ROTATION_270 = 270;
+constexpr float EPSILON_SCALE = 0.00001f;
 static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 static const std::string BIGFLODER_BUNDLE_NAME = "SCBDesktop2";
@@ -1413,31 +1414,41 @@ void RSUniRenderVisitor::UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node)
     }
     auto absMatrix = geoPtr->GetAbsMatrix();
     bool isScale = false;
-    bool getMinMaxScales = false;
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
 #ifndef USE_ROSEN_DRAWING
-    // skScaleFactors[0]-minimum scaling factor, skScaleFactors[1]-maximum scaling factor
-    SkScalar skScaleFactors[2];
-    getMinMaxScales = absMatrix.getMinMaxScales(skScaleFactors);
-    if (getMinMaxScales) {
-        isScale = !ROSEN_EQ(skScaleFactors[0], 1.f) || !ROSEN_EQ(skScaleFactors[1], 1.f);
-    }
+        isScale = (!ROSEN_EQ(absMatrix.getScaleX(), 1.f, EPSILON_SCALE) ||
+            !ROSEN_EQ(absMatrix.getScaleY(), 1.f, EPSILON_SCALE));
 #else
-    // scaleFactors[0]-minimum scaling factor, scaleFactors[1]-maximum scaling factor
-    Drawing::scalar scaleFactors[2];
-    getMinMaxScales = absMatrix.GetMinMaxScales(scaleFactors);
-    if (getMinMaxScales) {
-        isScale = !ROSEN_EQ(scaleFactors[0], 1.f) || !ROSEN_EQ(scaleFactors[1], 1.f);
-    }
+        isScale = (!ROSEN_EQ(absMatrix.Get(Drawing::Matrix::SCALE_X), 1.f, EPSILON_SCALE) ||
+            !ROSEN_EQ(absMatrix.Get(Drawing::Matrix::SCALE_Y), 1.f, EPSILON_SCALE));
 #endif
-    if (!getMinMaxScales) {
-        RS_LOGI("getMinMaxScales fail, node:%{public}s %{public}" PRIu64 "", node.GetName().c_str(), node.GetId());
-        auto dstRect = node.GetDstRect();
-        float dstRectWidth = dstRect.GetWidth();
-        float dstRectHeight = dstRect.GetHeight();
-        float boundsWidth = property.GetBoundsWidth();
-        float boundsHeight = property.GetBoundsHeight();
-        isScale = !ROSEN_EQ(std::min(dstRectWidth, dstRectHeight), std::min(boundsWidth, boundsHeight))
-            || !ROSEN_EQ(std::max(dstRectWidth, dstRectHeight), std::max(boundsWidth, boundsHeight));
+    } else {
+        bool getMinMaxScales = false;
+#ifndef USE_ROSEN_DRAWING
+        // skScaleFactors[0]-minimum scaling factor, skScaleFactors[1]-maximum scaling factor
+        SkScalar skScaleFactors[2];
+        getMinMaxScales = absMatrix.getMinMaxScales(skScaleFactors);
+        if (getMinMaxScales) {
+            isScale = !ROSEN_EQ(skScaleFactors[0], 1.f) || !ROSEN_EQ(skScaleFactors[1], 1.f);
+        }
+#else
+        // scaleFactors[0]-minimum scaling factor, scaleFactors[1]-maximum scaling factor
+        Drawing::scalar scaleFactors[2];
+        getMinMaxScales = absMatrix.GetMinMaxScales(scaleFactors);
+        if (getMinMaxScales) {
+            isScale = !ROSEN_EQ(scaleFactors[0], 1.f) || !ROSEN_EQ(scaleFactors[1], 1.f);
+        }
+#endif
+        if (!getMinMaxScales) {
+            RS_LOGI("getMinMaxScales fail, node:%{public}s %{public}" PRIu64 "", node.GetName().c_str(), node.GetId());
+            auto dstRect = node.GetDstRect();
+            float dstRectWidth = dstRect.GetWidth();
+            float dstRectHeight = dstRect.GetHeight();
+            float boundsWidth = property.GetBoundsWidth();
+            float boundsHeight = property.GetBoundsHeight();
+            isScale = !ROSEN_EQ(std::min(dstRectWidth, dstRectHeight), std::min(boundsWidth, boundsHeight))
+                || !ROSEN_EQ(std::max(dstRectWidth, dstRectHeight), std::max(boundsWidth, boundsHeight));
+        }
     }
     node.SetIsScale(isScale);
 }
