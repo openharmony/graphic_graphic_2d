@@ -78,6 +78,7 @@ struct BufferDrawParam {
     GraphicColorGamut targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 
     bool useCPU = false;
+    bool isMirror = false;
     bool setColorFilter = true;
     std::vector<GraphicHDRMetaData> metaDatas = {}; // static meta datas for HDR10
     GraphicHDRMetaDataSet metaDataSet; // dynamic meta datas for HDR10+, HDR VIVID
