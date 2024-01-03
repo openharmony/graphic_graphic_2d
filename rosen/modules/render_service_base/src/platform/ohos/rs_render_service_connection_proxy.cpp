@@ -1325,7 +1325,7 @@ int32_t RSRenderServiceConnectionProxy::GetScreenSupportedHDRFormats(
         hdrFormats.clear();
         std::vector<uint32_t> hdrFormatsRecv;
         reply.ReadUInt32Vector(&hdrFormatsRecv);
-        std::transform(hdrFormatsRecv.begin(), hdrFormatsRecv.end(), hdrFormats.end(),
+        std::transform(hdrFormatsRecv.begin(), hdrFormatsRecv.end(), back_inserter(hdrFormats),
                        [](uint32_t i) -> ScreenHDRFormat {return static_cast<ScreenHDRFormat>(i);});
     }
     return result;
@@ -1394,7 +1394,7 @@ int32_t RSRenderServiceConnectionProxy::GetScreenSupportedColorSpaces(
         colorSpaces.clear();
         std::vector<uint32_t> colorSpacesRecv;
         reply.ReadUInt32Vector(&colorSpacesRecv);
-        std::transform(colorSpacesRecv.begin(), colorSpacesRecv.end(), colorSpaces.end(),
+        std::transform(colorSpacesRecv.begin(), colorSpacesRecv.end(), back_inserter(colorSpaces),
                        [](uint32_t i) -> GraphicCM_ColorSpaceType {return static_cast<GraphicCM_ColorSpaceType>(i);});
     }
     return result;
