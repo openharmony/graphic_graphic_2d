@@ -334,6 +334,8 @@ public:
 
     void SetColorBlendMode(int colorBlendMode);
     int GetColorBlendMode() const;
+    void SetColorBlendApplyType(int colorBlendApplyType);
+    int GetColorBlendApplyType() const;
 
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     const std::unique_ptr<RSFilterCacheManager>& GetFilterCacheManager(bool isForeground) const;
@@ -382,6 +384,7 @@ private:
     bool useShadowBatching_ = false;
 
     int colorBlendMode_ = 0;
+    int colorBlendApplyType_ = 0;
 
     Gravity frameGravity_ = Gravity::DEFAULT;
 

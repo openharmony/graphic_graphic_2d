@@ -33,6 +33,7 @@
 #include "common/rs_color.h"
 #include "common/rs_common_def.h"
 #include "common/rs_obj_geometry.h"
+#include "common/rs_optional_trace.h"
 #include "common/rs_vector4.h"
 #include "modifier/rs_modifier.h"
 #include "modifier/rs_property.h"
@@ -1170,10 +1171,19 @@ void RSNode::SetUseShadowBatching(bool useShadowBatching)
     SetProperty<RSUseShadowBatchingModifier, RSProperty<bool>>(RSModifierType::USE_SHADOW_BATCHING, useShadowBatching);
 }
 
-void RSNode::SetColorBlendMode(RSColorBlendModeType blendMode)
+void RSNode::SetColorBlendMode(RSColorBlendMode colorBlendMode)
 {
+    RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] SetColorBlendMode:%d", GetId(), static_cast<int>(colorBlendMode));
     SetProperty<RSColorBlendModeModifier, RSProperty<int>>(
-        RSModifierType::COLOR_BLEND_MODE, static_cast<int>(blendMode));
+        RSModifierType::COLOR_BLEND_MODE, static_cast<int>(colorBlendMode));
+}
+
+void RSNode::SetColorBlendApplyType(RSColorBlendApplyType colorBlendApplyType)
+{
+    RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] SetColorBlendApplyType:%d", GetId(),
+        static_cast<int>(colorBlendApplyType));
+    SetProperty<RSColorBlendApplyTypeModifier, RSProperty<int>>(
+        RSModifierType::COLOR_BLEND_APPLY_TYPE, static_cast<int>(colorBlendApplyType));
 }
 
 void RSNode::SetPixelStretch(const Vector4f& stretchSize)
@@ -1601,12 +1611,6 @@ void RSNode::SetAiInvert(const Vector4f& aiInvert)
 void RSNode::SetHueRotate(float hueRotate)
 {
     SetProperty<RSHueRotateModifier, RSAnimatableProperty<float>>(RSModifierType::HUE_ROTATE, hueRotate);
-}
-
-void RSNode::SetColorBlend(uint32_t colorValue)
-{
-    auto colorBlend = Color::FromArgbInt(colorValue);
-    SetProperty<RSColorBlendModifier, RSAnimatableProperty<Color>>(RSModifierType::COLOR_BLEND, colorBlend);
 }
 
 void RSNode::AddFRCSceneInfo(const std::string& scene, float speed)

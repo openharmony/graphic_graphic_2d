@@ -21,6 +21,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
+#include "common/rs_optional_trace.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_point_light_manager.h"
@@ -109,34 +110,34 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetPixelStretch({}); },               // PIXEL_STRETCH,            53
     [](RSProperties* prop) { prop->SetPixelStretchPercent({}); },        // PIXEL_STRETCH_PERCENT,    54
     [](RSProperties* prop) { prop->SetUseEffect(false); },               // USE_EFFECT,               55
-    [](RSProperties* prop) { prop->SetColorBlendMode(
-        static_cast<int>(RSColorBlendModeType::NONE)); },                // COLOR_BLENDMODE,          56
-    [](RSProperties* prop) { prop->ResetSandBox(); },                    // SANDBOX,                  57
-    [](RSProperties* prop) { prop->SetGrayScale({}); },                  // GRAY_SCALE,               58
-    [](RSProperties* prop) { prop->SetBrightness({}); },                 // BRIGHTNESS,               59
-    [](RSProperties* prop) { prop->SetContrast({}); },                   // CONTRAST,                 60
-    [](RSProperties* prop) { prop->SetSaturate({}); },                   // SATURATE,                 61
-    [](RSProperties* prop) { prop->SetSepia({}); },                      // SEPIA,                    62
-    [](RSProperties* prop) { prop->SetInvert({}); },                     // INVERT,                   63
-    [](RSProperties* prop) { prop->SetAiInvert({}); },                   // AIINVERT,                 64
-    [](RSProperties* prop) { prop->SetHueRotate({}); },                  // HUE_ROTATE,               65
-    [](RSProperties* prop) { prop->SetColorBlend({}); },                 // COLOR_BLEND,              66
-    [](RSProperties* prop) { prop->SetParticles({}); },                  // PARTICLE,                 67
-    [](RSProperties* prop) { prop->SetShadowIsFilled(false); },          // SHADOW_IS_FILLED,         68
-    [](RSProperties* prop) { prop->SetOutlineColor(RSColor()); },        // OUTLINE_COLOR,            69
-    [](RSProperties* prop) { prop->SetOutlineWidth(0.f); },              // OUTLINE_WIDTH,            70
+    [](RSProperties* prop) { prop->SetColorBlendMode(0); },              // COLOR_BLENDMODE,          56
+    [](RSProperties* prop) { prop->SetColorBlendApplyType(0); },         // COLOR_BLENDAPPLY_TYPE,    57
+    [](RSProperties* prop) { prop->ResetSandBox(); },                    // SANDBOX,                  58
+    [](RSProperties* prop) { prop->SetGrayScale({}); },                  // GRAY_SCALE,               59
+    [](RSProperties* prop) { prop->SetBrightness({}); },                 // BRIGHTNESS,               60
+    [](RSProperties* prop) { prop->SetContrast({}); },                   // CONTRAST,                 61
+    [](RSProperties* prop) { prop->SetSaturate({}); },                   // SATURATE,                 62
+    [](RSProperties* prop) { prop->SetSepia({}); },                      // SEPIA,                    63
+    [](RSProperties* prop) { prop->SetInvert({}); },                     // INVERT,                   64
+    [](RSProperties* prop) { prop->SetAiInvert({}); },                   // AIINVERT,                 65
+    [](RSProperties* prop) { prop->SetHueRotate({}); },                  // HUE_ROTATE,               66
+    [](RSProperties* prop) { prop->SetColorBlend({}); },                 // COLOR_BLEND,              67
+    [](RSProperties* prop) { prop->SetParticles({}); },                  // PARTICLE,                 68
+    [](RSProperties* prop) { prop->SetShadowIsFilled(false); },          // SHADOW_IS_FILLED,         69
+    [](RSProperties* prop) { prop->SetOutlineColor(RSColor()); },        // OUTLINE_COLOR,            70
+    [](RSProperties* prop) { prop->SetOutlineWidth(0.f); },              // OUTLINE_WIDTH,            71
     [](RSProperties* prop) {
         prop->SetOutlineStyle(BORDER_TYPE_NONE);
-    },                                                                   // OUTLINE_STYLE,            71
-    [](RSProperties* prop) { prop->SetOutlineRadius(0.f); },             // OUTLINE_RADIUS,           72
-    [](RSProperties* prop) { prop->SetUseShadowBatching(false); },       // USE_SHADOW_BATCHING,      73
-    [](RSProperties* prop) { prop->SetGreyCoef1(0.f); },                 // GREY_COEF1,               74
-    [](RSProperties* prop) { prop->SetGreyCoef2(0.f); },                 // GREY_COEF2,               75
-    [](RSProperties* prop) { prop->SetLightIntensity(-1.f); },           // LIGHT_INTENSITY           76
-    [](RSProperties* prop) { prop->SetLightPosition({}); },              // LIGHT_POSITION            77
-    [](RSProperties* prop) { prop->SetIlluminatedBorderWidth({}); },     // ILLUMINATED_BORDER_WIDTH  78
-    [](RSProperties* prop) { prop->SetIlluminatedType(-1); },            // ILLUMINATED_TYPE          79
-    [](RSProperties* prop) { prop->SetBloom({}); },                      // BLOOM                     80
+    },                                                                   // OUTLINE_STYLE,            72
+    [](RSProperties* prop) { prop->SetOutlineRadius(0.f); },             // OUTLINE_RADIUS,           73
+    [](RSProperties* prop) { prop->SetUseShadowBatching(false); },       // USE_SHADOW_BATCHING,      74
+    [](RSProperties* prop) { prop->SetGreyCoef1(0.f); },                 // GREY_COEF1,               75
+    [](RSProperties* prop) { prop->SetGreyCoef2(0.f); },                 // GREY_COEF2,               76
+    [](RSProperties* prop) { prop->SetLightIntensity(-1.f); },           // LIGHT_INTENSITY           77
+    [](RSProperties* prop) { prop->SetLightPosition({}); },              // LIGHT_POSITION            78
+    [](RSProperties* prop) { prop->SetIlluminatedBorderWidth({}); },     // ILLUMINATED_BORDER_WIDTH  79
+    [](RSProperties* prop) { prop->SetIlluminatedType(-1); },            // ILLUMINATED_TYPE          80
+    [](RSProperties* prop) { prop->SetBloom({}); },                      // BLOOM                     81
 };
 } // namespace
 
@@ -2241,7 +2242,17 @@ std::string RSProperties::Dump() const
         sprintf_s(buffer, UINT8_MAX, ", PositionZ[%.1f]", GetPositionZ()) != -1) {
         dumpInfo.append(buffer);
     }
-
+    
+    // blendmode
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for blendmode, ret=" + std::to_string(ret);
+    }
+    if (!ROSEN_EQ(GetColorBlendMode(), 0) &&
+        sprintf_s(buffer, UINT8_MAX, ", skblendmode[%d], blendType[%d]", 
+        GetColorBlendMode() - 1, GetColorBlendApplyType()) != -1) {
+        dumpInfo.append(buffer);
+    }
     // Pivot
     std::unique_ptr<Transform> defaultTrans = std::make_unique<Transform>();
     ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
@@ -2825,7 +2836,8 @@ void RSProperties::CalculateFrameOffset()
 void RSProperties::SetColorBlendMode(int colorBlendMode)
 {
     colorBlendMode_ = colorBlendMode;
-    if (colorBlendMode_ != static_cast<int>(RSColorBlendModeType::NONE)) {
+    RS_OPTIONAL_TRACE_NAME_FMT("set colorBlendMode:%d", colorBlendMode_);
+    if (colorBlendMode_ != static_cast<int>(RSColorBlendMode::DEFAULT)) {
         isDrawn_ = true;
     }
     SetDirty();
@@ -2835,6 +2847,19 @@ void RSProperties::SetColorBlendMode(int colorBlendMode)
 int RSProperties::GetColorBlendMode() const
 {
     return colorBlendMode_;
+}
+
+void RSProperties::SetColorBlendApplyType(int colorBlendApplyType)
+{
+    colorBlendApplyType_ = colorBlendApplyType;
+    RS_OPTIONAL_TRACE_NAME_FMT("set colorBlendApplyType:%d", colorBlendApplyType);
+    SetDirty();
+    contentDirty_ = true;
+}
+
+int RSProperties::GetColorBlendApplyType() const
+{
+    return colorBlendApplyType_;
 }
 
 const std::shared_ptr<RSColorPickerCacheTask>& RSProperties::GetColorPickerCacheTaskShadow() const

@@ -45,8 +45,8 @@ constexpr PropertyId ANONYMOUS_MODIFIER_ID = 0;
 static inline SkBlendMode ConvertToSkBlendMode(int blendMode)
 {
     static const std::unordered_map<int, SkBlendMode> skBlendModeLUT = {
-        {static_cast<int>(RSColorBlendModeType::DST_IN), SkBlendMode::kDstIn},
-        {static_cast<int>(RSColorBlendModeType::SRC_IN), SkBlendMode::kSrcIn}
+        {static_cast<int>(RSColorBlendMode::DST_IN), SkBlendMode::kDstIn},
+        {static_cast<int>(RSColorBlendMode::SRC_IN), SkBlendMode::kSrcIn}
     };
 
     auto iter = skBlendModeLUT.find(blendMode);
@@ -61,8 +61,8 @@ static inline SkBlendMode ConvertToSkBlendMode(int blendMode)
 static inline Drawing::BlendMode ConvertToBlendMode(int blendMode)
 {
     static const std::unordered_map<int, Drawing::BlendMode> blendModeLUT = {
-        {static_cast<int>(RSColorBlendModeType::DST_IN), Drawing::BlendMode::DST_IN},
-        {static_cast<int>(RSColorBlendModeType::SRC_IN), Drawing::BlendMode::SRC_IN}
+        {static_cast<int>(RSColorBlendMode::DST_IN), Drawing::BlendMode::DST_IN},
+        {static_cast<int>(RSColorBlendMode::SRC_IN), Drawing::BlendMode::SRC_IN}
     };
 
     auto iter = blendModeLUT.find(blendMode);
@@ -77,7 +77,7 @@ static inline Drawing::BlendMode ConvertToBlendMode(int blendMode)
 
 static inline void EnableColorBlendModeFilterLayer(RSPaintFilterCanvas& canvas, int& colorBlendMode)
 {
-    if (colorBlendMode != static_cast<int>(RSColorBlendModeType::NONE)) {
+    if (colorBlendMode != static_cast<int>(RSColorBlendMode::DEFAULT)) {
 #ifndef USE_ROSEN_DRAWING
         canvas.saveLayer(nullptr, nullptr);
 #else
@@ -90,7 +90,7 @@ static inline void EnableColorBlendModeFilterLayer(RSPaintFilterCanvas& canvas, 
 
 static inline void EnableColorBlendModeMaskLayer(RSPaintFilterCanvas& canvas, int& colorBlendMode)
 {
-    if (colorBlendMode != static_cast<int>(RSColorBlendModeType::NONE)) {
+    if (colorBlendMode != static_cast<int>(RSColorBlendMode::DEFAULT)) {
 #ifndef USE_ROSEN_DRAWING
         SkBlendMode skBlendMode = ConvertToSkBlendMode(colorBlendMode);
         SkPaint maskPaint;
@@ -237,7 +237,7 @@ void RSCanvasRenderNode::PropertyDrawableRender(RSPaintFilterCanvas& canvas)
         DrawPropertyDrawableRange(
             RSPropertyDrawableSlot::TRANSITION, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR, canvas);
         DrawPropertyDrawableRange(
-            RSPropertyDrawableSlot::SAVE_LAYER_BACKGROUND, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
+            RSPropertyDrawableSlot::BLEND_MODE, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
     } else {
         DrawPropertyDrawableRange(RSPropertyDrawableSlot::TRANSITION, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
     }
@@ -336,7 +336,7 @@ void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas
 
     canvas.RestoreStatus(canvasNodeSaveCount_);
     int colorBlendMode = GetRenderProperties().GetColorBlendMode();
-    if (colorBlendMode != static_cast<int>(RSColorBlendModeType::NONE)) {
+    if (colorBlendMode != static_cast<int>(RSColorBlendMode::DEFAULT)) {
         canvas.RestoreAlpha();
 #ifndef USE_ROSEN_DRAWING
         canvas.restore();

@@ -44,8 +44,8 @@ enum class RSPropertyDrawableSlot : uint8_t {
     ENV_FOREGROUND_COLOR,
     SHADOW,
 
+    BLEND_MODE,
     // BG properties in Bounds Clip
-    SAVE_LAYER_BACKGROUND,
     BG_SAVE_BOUNDS,
     CLIP_TO_BOUNDS,
     BACKGROUND_COLOR,
@@ -59,7 +59,6 @@ enum class RSPropertyDrawableSlot : uint8_t {
     BG_RESTORE_BOUNDS,
 
     // Frame Geometry
-    SAVE_LAYER_CONTENT,
     SAVE_FRAME,
     FRAME_OFFSET,
     CLIP_TO_FRAME,
@@ -67,7 +66,6 @@ enum class RSPropertyDrawableSlot : uint8_t {
     CHILDREN,
     FOREGROUND_STYLE,
     RESTORE_FRAME,
-    RESTORE_CONTENT,
 
     // FG properties in Bounds clip
     FG_SAVE_BOUNDS,
@@ -79,8 +77,8 @@ enum class RSPropertyDrawableSlot : uint8_t {
     LINEAR_GRADIENT_BLUR_FILTER,
     FOREGROUND_COLOR,
     FG_RESTORE_BOUNDS,
-    RESTORE_BACKGROUND,
 
+    RESTORE_BLEND_MODE,
     // No clip (unless ClipToBounds is set)
     POINT_LIGHT,
     BORDER,
