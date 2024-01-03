@@ -181,12 +181,12 @@ void Paint::SetFilter(const Filter& filter)
     hasFilter_ = true;
 }
 
-void Paint::SetShaderEffect(std::shared_ptr<ShaderEffect>& e)
+void Paint::SetShaderEffect(std::shared_ptr<ShaderEffect> e)
 {
     shaderEffect_ = e;
 }
 
-void Paint::SetPathEffect(std::shared_ptr<PathEffect>& e)
+void Paint::SetPathEffect(std::shared_ptr<PathEffect> e)
 {
     pathEffect_ = e;
 }

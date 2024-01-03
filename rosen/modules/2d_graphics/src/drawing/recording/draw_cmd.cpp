@@ -766,6 +766,22 @@ void DrawPictureOpItem::Playback(Canvas* canvas, const Rect* rect)
 }
 
 /* DrawTextBlobOpItem */
+void SimplifyPaint(ColorQuad colorQuad, Paint& paint)
+{
+    Color color{colorQuad};
+    paint.SetColor(color);
+    paint.SetShaderEffect(nullptr);
+    if (paint.HasFilter()) {
+        Filter filter = paint.GetFilter();
+        if (filter.GetColorFilter() != nullptr) {
+            filter.SetColorFilter(nullptr);
+            paint.SetFilter(filter);
+        }
+    }
+    paint.SetWidth(1.04); // 1.04 is empirical value
+    paint.SetJoinStyle(Pen::JoinStyle::ROUND_JOIN);
+}
+
 DrawTextBlobOpItem::DrawTextBlobOpItem(const CmdList& cmdList, DrawTextBlobOpItem::ConstructorHandle* handle)
     : DrawWithPaintOpItem(cmdList, handle->paintHandle, TEXT_BLOB_OPITEM), x_(handle->x), y_(handle->y)
 {
@@ -783,8 +799,33 @@ void DrawTextBlobOpItem::Playback(Canvas* canvas, const Rect* rect)
         LOGE("DrawTextBlobOpItem textBlob is null");
         return;
     }
-    canvas->AttachPaint(paint_);
-    canvas->DrawTextBlob(textBlob_.get(), x_, y_);
+    if (canvas->isHighContrastEnabled()) {
+        LOGD("DrawTextBlobOpItem::Playback highContrastEnabled, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        ColorQuad colorQuad = paint_.GetColor().CastToColorQuad();
+        if (Color::ColorQuadGetA(colorQuad) == 0) {
+            canvas->AttachPaint(paint_);
+            canvas->DrawTextBlob(textBlob_.get(), x_, y_);
+            return;
+        }
+        uint32_t channelSum = Color::ColorQuadGetR(colorQuad) + Color::ColorQuadGetG(colorQuad) +
+            Color::ColorQuadGetB(colorQuad);
+        bool flag = channelSum < 594; // 594 is empirical value
+
+        Paint outlinePaint(paint_);
+        SimplifyPaint(flag ? Color::COLOR_WHITE : Color::COLOR_BLACK, outlinePaint);
+        outlinePaint.SetStyle(Paint::PAINT_FILL_STROKE);
+        canvas->AttachPaint(outlinePaint);
+        canvas->DrawTextBlob(textBlob_.get(), x_, y_);
+
+        Paint innerPaint(paint_);
+        SimplifyPaint(flag ? Color::COLOR_BLACK : Color::COLOR_WHITE, innerPaint);
+        innerPaint.SetStyle(Paint::PAINT_FILL);
+        canvas->AttachPaint(innerPaint);
+        canvas->DrawTextBlob(textBlob_.get(), x_, y_);
+    } else {
+        canvas->AttachPaint(paint_);
+        canvas->DrawTextBlob(textBlob_.get(), x_, y_);
+    }
 }
 
 bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(

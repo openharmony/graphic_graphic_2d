@@ -74,14 +74,14 @@ public:
     BlendMode GetBlendMode() const { return blendMode_; }
 
     void SetFilter(const Filter& filter);
-    const Filter& GetFilter() const { return filter_; }
+    Filter GetFilter() const { return filter_; }
     bool HasFilter() const { return hasFilter_; }
 
-    void SetShaderEffect(std::shared_ptr<ShaderEffect>& e);
-    const std::shared_ptr<ShaderEffect>& GetShaderEffect() const { return shaderEffect_; }
+    void SetShaderEffect(std::shared_ptr<ShaderEffect> e);
+    const std::shared_ptr<ShaderEffect> GetShaderEffect() const { return shaderEffect_; }
 
-    void SetPathEffect(std::shared_ptr<PathEffect>& e);
-    const std::shared_ptr<PathEffect>& GetPathEffect() const { return pathEffect_; }
+    void SetPathEffect(std::shared_ptr<PathEffect> e);
+    const std::shared_ptr<PathEffect> GetPathEffect() const { return pathEffect_; }
 
     void SetAntiAlias(bool aa);
     bool IsAntiAlias() const { return antiAlias_; }
