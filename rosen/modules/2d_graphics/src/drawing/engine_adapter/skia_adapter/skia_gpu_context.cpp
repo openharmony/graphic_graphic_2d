@@ -87,13 +87,16 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
 }
 
 #ifdef RS_ENABLE_VK
+std::unique_ptr<SkExecutor> SkiaGPUContext::threadPool = SkExecutor::MakeFIFOThreadPool(4); // 4 threads async task
 bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context)
 {
     if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
         SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return false;
     }
-    grContext_ = GrDirectContext::MakeVulkan(context);
+    GrContextOptions grOptions;
+    grOptions.fExecutor = threadPool.get();
+    grContext_ = GrDirectContext::MakeVulkan(context, grOptions);
     return grContext_ != nullptr;
 }
 
@@ -112,6 +115,7 @@ bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUCon
     grOptions.fDisableDistanceFieldPaths = true;
     grOptions.fAllowPathMaskCaching = options.GetAllowPathMaskCaching();
     grOptions.fPersistentCache = skiaPersistentCache_.get();
+    grOptions.fExecutor = threadPool.get();
     grContext_ = GrDirectContext::MakeVulkan(context, grOptions);
     return grContext_ != nullptr;
 }
