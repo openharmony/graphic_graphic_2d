@@ -21,6 +21,7 @@
 #include <mutex>
 #include <set>
 
+#include "rs_trace.h"
 #include "animation/rs_render_animation.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "modifier/rs_modifier_type.h"
@@ -2218,7 +2219,8 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(
         if (manager->IsCacheValid() && !filterRect.IsInsideOf(manager->GetCachedImageRegion())) {
             manager->UpdateCacheStateWithFilterRegion();
             if (auto context = GetContext().lock()) {
-                context->MarkNeedPurge(RSContext::PurgeType::STRONGLY);
+                RS_TRACE_NAME_FMT("background filter of node Id:%" PRIu64 " is invalid", GetId());
+                context->MarkNeedPurge(ClearMemoryMoment::FILTER_INVALID, RSContext::PurgeType::STRONGLY);
             }
         }
         UpdateFullScreenFilterCacheRect(dirtyManager, false);
@@ -2229,7 +2231,8 @@ void RSRenderNode::UpdateFilterCacheManagerWithCacheRegion(
         if (manager->IsCacheValid() && !filterRect.IsInsideOf(manager->GetCachedImageRegion())) {
             manager->UpdateCacheStateWithFilterRegion();
             if (auto context = GetContext().lock()) {
-                context->MarkNeedPurge(RSContext::PurgeType::STRONGLY);
+                RS_TRACE_NAME_FMT("foreground filter of node Id:%" PRIu64 " is invalid", GetId());
+                context->MarkNeedPurge(ClearMemoryMoment::FILTER_INVALID, RSContext::PurgeType::STRONGLY);
             }
         }
         UpdateFullScreenFilterCacheRect(dirtyManager, true);

@@ -94,7 +94,7 @@ public:
     void RsEventParamDump(std::string& dumpString);
     bool IsUIFirstOn() const;
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
-    void ClearMemoryCache(bool deeply = false);
+    void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false);
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
@@ -230,6 +230,22 @@ public:
     bool GetClearMemDeeply() const
     {
         return clearMemDeeply_;
+    }
+
+    ClearMemoryMoment GetClearMoment() const
+    {
+        if (!context_) {
+            return ClearMemoryMoment::NO_CLEAR;
+        }
+        return context_->clearMoment_;
+    }
+
+    void SetClearMoment(ClearMemoryMoment moment)
+    {
+        if (!context_) {
+            return;
+        }
+        context_->clearMoment_ = moment;
     }
 
     void SubscribeAppState();

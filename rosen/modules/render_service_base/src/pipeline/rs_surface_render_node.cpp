@@ -301,11 +301,13 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
         if (auto context = GetContext().lock()) {
             RS_TRACE_NAME_FMT("need purgeUnlockedResources this SurfaceNode isn't on the tree Id:%" PRIu64 " Name:%s",
                 GetId(), GetName().c_str());
+            RS_LOGD("need purgeUnlockedResources this SurfaceNode isn't on the tree Id:%" PRIu64 " Name:%s",
+                GetId(), GetName().c_str());
             if (IsLeashWindow()) {
-                context->MarkNeedPurge(RSContext::PurgeType::GENTLY);
+                context->MarkNeedPurge(ClearMemoryMoment::COMMON_SURFACE_NODE_HIDE, RSContext::PurgeType::GENTLY);
             }
             if (GetName().substr(0, 3) == "SCB") {
-                context->MarkNeedPurge(RSContext::PurgeType::STRONGLY);
+                context->MarkNeedPurge(ClearMemoryMoment::SCENEBOARD_SURFACE_NODE_HIDE, RSContext::PurgeType::STRONGLY);
             }
         }
     }

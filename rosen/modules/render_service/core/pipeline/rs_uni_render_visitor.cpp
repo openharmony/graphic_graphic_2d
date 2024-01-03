@@ -3087,7 +3087,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     }
     auto mainThread = RSMainThread::Instance();
     if (!mainThread->GetClearMemoryFinished()) {
-        mainThread->ClearMemoryCache(mainThread->GetClearMemDeeply());
+        mainThread->ClearMemoryCache(mainThread->GetClearMoment(), mainThread->GetClearMemDeeply());
     }
     RS_LOGD("RSUniRenderVisitor::ProcessDisplayRenderNode end");
 }

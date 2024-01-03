@@ -553,10 +553,10 @@ void RSMainThread::ProcessCommand()
     }
     switch(context_->purgeType_) {
         case RSContext::PurgeType::GENTLY:
-            ClearMemoryCache(false);
+            ClearMemoryCache(context_->clearMoment_, false);
             break;
         case RSContext::PurgeType::STRONGLY:
-            ClearMemoryCache(true);
+            ClearMemoryCache(context_->clearMoment_, true);
             break;
         default:
             break;
@@ -1189,14 +1189,15 @@ uint32_t RSMainThread::GetRefreshRate() const
     return OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(screenManager->GetDefaultScreenId());
 }
 
-void RSMainThread::ClearMemoryCache(bool deeply)
+void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply)
 {
     if (!RSSystemProperties::GetReleaseResourceEnabled()) {
         return;
     }
     this->clearMemoryFinished_ = false;
     this->clearMemDeeply_ = this->clearMemDeeply_ || deeply;
-    PostTask([this, deeply]() {
+    this->SetClearMoment(moment);
+    PostTask([this, moment, deeply]() {
 #ifndef USE_ROSEN_DRAWING
 #ifdef NEW_RENDER_CONTEXT
         auto grContext = GetRenderEngine()->GetDrawingContext()->GetDrawingContext();
@@ -1206,8 +1207,8 @@ void RSMainThread::ClearMemoryCache(bool deeply)
         if (!grContext) {
             return;
         }
-        RS_LOGD("Clear memory cache");
-        RS_TRACE_NAME_FMT("Clear memory cache");
+        RS_LOGD("Clear memory cache %{public}d", this->GetClearMoment());
+        RS_TRACE_NAME_FMT("Clear memory cache, cause the moment [%d] happen", this->GetClearMoment());
         SKResourceManager::Instance().ReleaseResource();
         grContext->flush();
         SkGraphics::PurgeAllCaches(); // clear cpu cache
@@ -1222,8 +1223,8 @@ void RSMainThread::ClearMemoryCache(bool deeply)
         if (!grContext) {
             return;
         }
-        RS_LOGD("Clear memory cache");
-        RS_TRACE_NAME_FMT("Clear memory cache");
+        RS_LOGD("Clear memory cache %{public}d", this->GetClearMoment());
+        RS_TRACE_NAME_FMT("Clear memory cache, cause the moment [%d] happen", this->GetClearMoment());
         SKResourceManager::Instance().ReleaseResource();
         grContext->Flush();
         SkGraphics::PurgeAllCaches(); // clear cpu cache
@@ -1236,8 +1237,9 @@ void RSMainThread::ClearMemoryCache(bool deeply)
 #endif
         this->clearMemoryFinished_ = true;
         this->clearMemDeeply_ = false;
+        this->SetClearMoment(ClearMemoryMoment::NO_CLEAR);
     },
-    CLEAR_GPU_CACHE, (this->deviceType_ == DeviceType::PHONE ? 3000 : 1000) / GetRefreshRate());
+    CLEAR_GPU_CACHE, (this->deviceType_ == DeviceType::PHONE ? 8000 : 1000) / GetRefreshRate());
 }
 
 void RSMainThread::WaitUtilUniRenderFinished()
@@ -2264,7 +2266,7 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
         RS_LOGD("RSMainThread: clear cpu cache pid:%{public}d", remotePid);
         if (!IsResidentProcess(remotePid)) {
-            ClearMemoryCache(true);
+            ClearMemoryCache(ClearMemoryMoment::PROCESS_EXIT, true);
         }
         lastCleanCacheTimestamp_ = timestamp_;
 #endif

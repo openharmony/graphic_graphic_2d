@@ -41,4 +41,10 @@ void RSContext::AddActiveNode(const std::shared_ptr<RSRenderNode>& node)
     auto rootNodeId = node->GetInstanceRootNodeId();
     activeNodesInRoot_[rootNodeId].emplace(node->GetId(), node);
 }
+
+void RSContext::MarkNeedPurge(ClearMemoryMoment moment, PurgeType purgeType)
+{
+    clearMoment_ = moment;
+    purgeType_ = purgeType;
+}
 } // namespace OHOS::Rosen
