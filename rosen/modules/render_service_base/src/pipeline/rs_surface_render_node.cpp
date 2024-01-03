@@ -1034,7 +1034,7 @@ void RSSurfaceRenderNode::UpdateFilterNodes(const std::shared_ptr<RSRenderNode>&
     if (nodePtr == nullptr) {
         return;
     }
-    filterNodes_.emplace(nodePtr->GetId(), nodePtr);
+    filterNodes_.emplace_back(nodePtr);
 }
 
 void RSSurfaceRenderNode::UpdateDrawingCacheNodes(const std::shared_ptr<RSRenderNode>& nodePtr)
@@ -1069,7 +1069,7 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusWithVisible(bool visible)
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (!visible && !filterNodes_.empty() && !isOcclusionVisibleWithoutFilter_) {
         for (auto& node : filterNodes_) {
-            node.second->GetMutableRenderProperties().ClearFilterCache();
+            node->GetMutableRenderProperties().ClearFilterCache();
         }
     }
 #endif
@@ -1081,16 +1081,14 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
         return;
     }
     // traversal filter nodes including app window
-    EraseIf(filterNodes_, [this, &clipRect](const auto& pair) {
-        auto& node = pair.second;
+    for (auto node : filterNodes_) {
         if (node == nullptr || !node->IsOnTheTree() || !node->GetRenderProperties().NeedFilter()) {
-            return true;
+            continue;
         }
         node->UpdateFilterCacheWithDirty(*dirtyManager_, false);
         node->UpdateFilterCacheWithDirty(*dirtyManager_, true);
         node->UpdateFilterCacheManagerWithCacheRegion(*dirtyManager_, clipRect);
-        return false;
-    });
+    }
     SetFilterCacheFullyCovered(false);
     if (IsTransparent() && dirtyManager_->IfCacheableFilterRectFullyCover(GetOldDirtyInSurface())) {
         SetFilterCacheFullyCovered(true);
