@@ -78,7 +78,7 @@ bool RSSystemParameters::GetVSyncControlEnabled()
 bool RSSystemParameters::GetSystemAnimatedScenesEnabled()
 {
     static bool systemAnimatedScenesEnabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.systemAnimatedScenesEnabled", "0")).c_str()) != 0;
+        std::atoi((system::GetParameter("persist.sys.graphic.systemAnimatedScenesEnabled", "1")).c_str()) != 0;
     return systemAnimatedScenesEnabled;
 }
 
