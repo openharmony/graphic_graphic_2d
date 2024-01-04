@@ -75,6 +75,8 @@ namespace OHOS {
 
         // get data
         OH_NativeBuffer_Config config = GetData<OH_NativeBuffer_Config>();
+        config.width = 1920; // 1920 pixels
+        config.height = 1080; // 1080 pixels
         OH_NativeBuffer_Config checkConfig = GetData<OH_NativeBuffer_Config>();
         void *virAddr = static_cast<void*>(GetStringFromData(STR_LEN).data());
 
@@ -86,6 +88,7 @@ namespace OHOS {
         OH_NativeBuffer_Unreference(buffer);
         OH_NativeBuffer_Map(buffer, &virAddr);
         OH_NativeBuffer_Unmap(buffer);
+        OH_NativeBuffer_Unreference(buffer);
 
         return true;
     }
