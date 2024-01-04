@@ -122,7 +122,8 @@ constexpr int32_t VISIBLEAREARATIO_FORQOS = 3;
 constexpr uint64_t PERF_PERIOD = 250000000;
 constexpr uint64_t CLEAN_CACHE_FREQ = 60;
 constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
-constexpr uint64_t PERF_PERIOD_BLUR = 80000000;
+constexpr uint64_t PERF_PERIOD_BLUR = 1000000000;
+constexpr uint64_t PERF_PERIOD_BLUR_TIMEOUT = 80000000;
 constexpr uint64_t MAX_DYNAMIC_STATUS_TIME = 5000000000;
 constexpr uint64_t PERF_PERIOD_MULTI_WINDOW = 80000000;
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
@@ -1458,7 +1459,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             if (uniVisitor->ParallelComposition(rootNode)) {
                 RS_LOGD("RSMainThread::Render multi-threads parallel composition end.");
                 isDirty_ = false;
-                PerfForBlurIfNeeded();
                 if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
                     WaitUntilUploadTextureTaskFinished(isUniRender_);
                 }
@@ -2595,17 +2595,28 @@ void RSMainThread::ForceRefreshForUni()
 
 void RSMainThread::PerfForBlurIfNeeded()
 {
+    handler_->RemoveTask("PerfForBlurIfNeeded");
+    static uint64_t prePerfTimestamp = 0;
     static int preBlurCnt = 0;
+    auto task = [this]() {
+        if (timestamp_ - prePerfTimestamp > PERF_PERIOD_BLUR_TIMEOUT && preBlurCnt != 0) {
+            PerfRequest(BLUR_CNT_TO_BLUR_CODE.at(preBlurCnt), false);
+            prePerfTimestamp = 0;
+            preBlurCnt = 0;
+        }
+    };
+    // delay 100ms
+    handler_->PostTask(task, "PerfForBlurIfNeeded", 100);
     int blurCnt = RSPropertiesPainter::GetAndResetBlurCnt();
     // clamp blurCnt to 0~3.
     blurCnt = std::clamp<int>(blurCnt, 0, 3);
-    if (blurCnt > preBlurCnt && preBlurCnt != 0) {
+    if ((blurCnt > preBlurCnt || blurCnt == 0) && preBlurCnt != 0) {
         PerfRequest(BLUR_CNT_TO_BLUR_CODE.at(preBlurCnt), false);
+        preBlurCnt = 0;
     }
     if (blurCnt == 0) {
         return;
     }
-    static uint64_t prePerfTimestamp = 0;
     if (timestamp_ - prePerfTimestamp > PERF_PERIOD_BLUR || blurCnt > preBlurCnt) {
         PerfRequest(BLUR_CNT_TO_BLUR_CODE.at(blurCnt), true);
         prePerfTimestamp = timestamp_;
