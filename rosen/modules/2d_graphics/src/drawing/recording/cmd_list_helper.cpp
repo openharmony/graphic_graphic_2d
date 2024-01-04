@@ -175,24 +175,14 @@ std::shared_ptr<Media::PixelMap> CmdListHelper::GetPixelMapFromCmdList(
 
 OpDataHandle CmdListHelper::AddImageObjectToCmdList(CmdList& cmdList, const std::shared_ptr<ExtendImageObject>& object)
 {
-#ifdef SUPPORT_OHOS_PIXMAP
     auto index = cmdList.AddImageObject(object);
     return { index };
-#else
-    LOGE("Not support drawing ExtendImageObject");
-    return { 0 };
-#endif
 }
 
 std::shared_ptr<ExtendImageObject> CmdListHelper::GetImageObjectFromCmdList(
     const CmdList& cmdList, const OpDataHandle& objectHandle)
 {
-#ifdef SUPPORT_OHOS_PIXMAP
     return (const_cast<CmdList&>(cmdList)).GetImageObject(objectHandle.offset);
-#else
-    LOGE("Not support drawing ExtendImageObject");
-    return nullptr;
-#endif
 }
 
 OpDataHandle CmdListHelper::AddImageBaseOjToCmdList(CmdList& cmdList, const std::shared_ptr<ExtendImageBaseOj>& object)

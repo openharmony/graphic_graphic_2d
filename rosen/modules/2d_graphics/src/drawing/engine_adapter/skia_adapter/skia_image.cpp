@@ -15,11 +15,9 @@
 
 #include "skia_image.h"
 
-#ifdef ROSEN_OHOS
 #include "src/core/SkAutoMalloc.h"
 #include "src/core/SkReadBuffer.h"
 #include "src/core/SkWriteBuffer.h"
-#endif
 #include "src/image/SkImage_Base.h"
 
 #include "draw/surface.h"
@@ -497,7 +495,6 @@ sk_sp<GrContext> SkiaImage::GetGrContext() const
 
 std::shared_ptr<Data> SkiaImage::Serialize() const
 {
-#ifdef ROSEN_OHOS
     if (skiaImage_ == nullptr) {
         LOGE("SkiaImage::Serialize, SkImage is nullptr!");
         return nullptr;
@@ -554,14 +551,10 @@ std::shared_ptr<Data> SkiaImage::Serialize() const
         writer.writeToMemory(data->WritableData());
         return data;
     }
-#else
-    return nullptr;
-#endif
 }
 
 bool SkiaImage::Deserialize(std::shared_ptr<Data> data)
 {
-#ifdef ROSEN_OHOS
     if (data == nullptr) {
         LOGE("SkiaImage::Deserialize, data is invalid!");
         return false;
@@ -604,9 +597,6 @@ bool SkiaImage::Deserialize(std::shared_ptr<Data> data)
         skiaImage_ = SkImage::MakeRasterData(imageInfo, skData, rb);
         return true;
     }
-#else
-    return false;
-#endif
 }
 } // namespace Drawing
 } // namespace Rosen
