@@ -2701,16 +2701,17 @@ bool RSMainThread::IsDrawingGroupChanged(RSRenderNode& cacheRootNode) const
 {
     auto iter = context_->activeNodesInRoot_.find(cacheRootNode.GetInstanceRootNodeId());
     if (iter != context_->activeNodesInRoot_.end()) {
-        const std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>>& activeNodeIds = iter->second;
+        const auto& activeNodeIds = iter->second;
         // do not need to check cacheroot node itself
         // in case of tree change, parent node would set content dirty and reject before
         auto cacheRootId = cacheRootNode.GetId();
         auto groupNodeIds = cacheRootNode.GetVisitedCacheRootIds();
         for (auto [id, subNode] : activeNodeIds) {
-            if (subNode == nullptr || id == cacheRootId) {
+            auto node = subNode.lock();
+            if (node == nullptr || id == cacheRootId) {
                 continue;
             }
-            if (groupNodeIds.find(subNode->GetDrawingCacheRootId()) != groupNodeIds.end()) {
+            if (groupNodeIds.find(node->GetDrawingCacheRootId()) != groupNodeIds.end()) {
                 return true;
             }
         }
@@ -2726,13 +2727,14 @@ bool RSMainThread::CheckIfInstanceOnlySurfaceBasicGeoTransform(NodeId instanceNo
     }
     auto iter = context_->activeNodesInRoot_.find(instanceNodeId);
     if (iter != context_->activeNodesInRoot_.end()) {
-        const std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>>& activeNodeIds = iter->second;
+        const auto& activeNodeIds = iter->second;
         for (auto [id, subNode] : activeNodeIds) {
-            if (subNode == nullptr) {
+            auto node = subNode.lock();
+            if (node == nullptr) {
                 continue;
             }
             // filter active nodes except instance surface itself
-            if (id != instanceNodeId || !subNode->IsOnlyBasicGeoTransform()) {
+            if (id != instanceNodeId || !node->IsOnlyBasicGeoTransform()) {
                 return false;
             }
         }
@@ -2764,12 +2766,16 @@ void RSMainThread::ApplyModifiers()
         RSSystemProperties::GetPropertyDrawableEnable() ? "TRUE" : "FALSE");
     for (const auto& [root, nodeSet] : context_->activeNodesInRoot_) {
         for (const auto& [id, nodePtr] : nodeSet) {
-            bool isZOrderChanged = nodePtr->ApplyModifiers();
-            rsCurrRange_.Merge(CalcAnimateFrameRateRange(nodePtr));
+            auto ptr = nodePtr.lock();
+            if (ptr == nullptr) {
+                continue;
+            }
+            bool isZOrderChanged = ptr->ApplyModifiers();
+            rsCurrRange_.Merge(CalcAnimateFrameRateRange(ptr));
             if (!isZOrderChanged) {
                 continue;
             }
-            if (auto parent = nodePtr->GetParent().lock()) {
+            if (auto parent = ptr->GetParent().lock()) {
                 parent->isChildrenSorted_ = false;
             }
         }
