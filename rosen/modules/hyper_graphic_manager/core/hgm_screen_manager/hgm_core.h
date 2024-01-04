@@ -156,7 +156,6 @@ private:
 
     bool isEnabled_ = true;
     bool isInit_ = false;
-    static constexpr char CONFIG_FILE_SYSTEM[] = "/system/etc/graphic/hgm_policy_config.xml";
     static constexpr char CONFIG_FILE_PRODUCT[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
     std::unique_ptr<XMLParser> mParser_;
     std::shared_ptr<PolicyConfigData> mPolicyConfigData_ = nullptr;

@@ -87,10 +87,3 @@ ohos_shared_library("libhyper_graphic_manager") {
     external_deps += [ "hilog:libhilog" ]
   }
 }
-
-ohos_prebuilt_etc("hgm_policy_config.xml") {
-  source = "core/config/hgm_policy_config.xml"
-  relative_install_dir = "graphic"
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
-}

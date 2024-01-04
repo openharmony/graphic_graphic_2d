@@ -63,13 +63,17 @@ void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
 
     auto screenType = hgmCore.GetFrameRateMgr()->GetCurScreenStrategyId();
     auto screenSetting = std::to_string(hgmCore.GetCurrentRefreshRateMode());
-    auto dynamicSettingMap = hgmCore.GetPolicyConfigData()->GetAceSceneDynamicSettingMap(screenType, screenSetting);
-    for (auto& [animType, dynamicSetting] : dynamicSettingMap) {
-        for (auto& [animName, dynamicConfig] : dynamicSetting) {
-            data->AddAnimDynamicItem({
-                animType, animName, dynamicConfig.min, dynamicConfig.max, dynamicConfig.preferred_fps});
+    auto configData = hgmCore.GetPolicyConfigData();
+    if (configData != nullptr) {
+        auto dynamicSettingMap = configData->GetAceSceneDynamicSettingMap(screenType, screenSetting);
+        for (auto& [animType, dynamicSetting] : dynamicSettingMap) {
+            for (auto& [animName, dynamicConfig] : dynamicSetting) {
+                data->AddAnimDynamicItem({
+                    animType, animName, dynamicConfig.min, dynamicConfig.max, dynamicConfig.preferred_fps});
+            }
         }
     }
+
     auto screen = hgmCore.GetActiveScreen();
     if (screen != nullptr) {
         data->SetPpi(screen->GetPpi());
@@ -90,13 +94,17 @@ void HgmConfigCallbackManager::SyncHgmConfigChangeCallback()
 
     auto screenType = hgmCore.GetFrameRateMgr()->GetCurScreenStrategyId();
     auto screenSetting = std::to_string(hgmCore.GetCurrentRefreshRateMode());
-    auto dynamicSettingMap = hgmCore.GetPolicyConfigData()->GetAceSceneDynamicSettingMap(screenType, screenSetting);
-    for (auto& [animType, dynamicSetting] : dynamicSettingMap) {
-        for (auto& [animName, dynamicConfig] : dynamicSetting) {
-            data->AddAnimDynamicItem({
-                animType, animName, dynamicConfig.min, dynamicConfig.max, dynamicConfig.preferred_fps});
+    auto configData = hgmCore.GetPolicyConfigData();
+    if (configData != nullptr) {
+        auto dynamicSettingMap = configData->GetAceSceneDynamicSettingMap(screenType, screenSetting);
+        for (auto& [animType, dynamicSetting] : dynamicSettingMap) {
+            for (auto& [animName, dynamicConfig] : dynamicSetting) {
+                data->AddAnimDynamicItem({
+                    animType, animName, dynamicConfig.min, dynamicConfig.max, dynamicConfig.preferred_fps});
+            }
         }
     }
+
     auto screen = hgmCore.GetActiveScreen();
     if (screen != nullptr) {
         data->SetPpi(screen->GetPpi());
