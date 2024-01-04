@@ -217,8 +217,6 @@ public:
 
     virtual int32_t GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace) const = 0;
 
-    virtual uint32_t GetActualScreensNum() const = 0;
-
     virtual int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) = 0;
 
     virtual void HandlePostureData(const SensorEvent * const event) = 0;
@@ -339,8 +337,6 @@ public:
     int32_t GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode) const override;
 
     int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx) override;
-
-    uint32_t GetActualScreensNum() const override;
 
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode) override;
 
