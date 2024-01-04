@@ -102,7 +102,7 @@ bool CharGroups::IsValid() const
 
     if (range_.start > range_.end || range_.start < 0 ||  range_.end < 0 ||
         range_.end > static_cast<int>(pcgs_->size()) || range_.start > static_cast<int>(pcgs_->size())) {
-        throw TEXGINE_EXCEPTION(ERROR_STATUS);
+        return false;
     }
 
     return true;
@@ -493,6 +493,42 @@ bool CharGroups::JudgeOnlyHardBreak() const
         }
     }
     return onlyHardBreak;
+}
+
+int CharGroups::FindHardBreakPos() const
+{
+    if (!IsValid()) {
+        LOGEX_FUNC_LINE(ERROR) << "pcgs_ is null";
+        return -1;
+    }
+    int breakPos = -1;
+    for (auto i = range_.start; i < range_.end; i++) {
+        if (pcgs_->at(i).HasHardBreak()) {
+            breakPos = i;
+            break;
+        }
+    }
+    return breakPos;
+}
+
+std::vector<uint16_t> CharGroups::GetSubCharsToU16(const int start, const int end)
+{
+    if (!IsValid()) {
+        LOGEX_FUNC_LINE(ERROR) << "pcgs_ is null";
+        return {};
+    }
+    if ((start < range_.start) || (start >= range_.end) ||
+        (end < range_.start) || (end >= range_.end) || (start > end)) {
+        LOGEX_FUNC_LINE(ERROR) << "invalid parameter, start = " << start <<
+            " end = " << end << " range_.start = " << range_.start << " range_.end = " << range_.end;
+        return {};
+    }
+
+    std::vector<uint16_t> charData;
+    for (auto i = start; i <= end; i++) {
+        charData.insert(charData.end(), pcgs_->at(i).chars.begin(), pcgs_->at(i).chars.end());
+    }
+    return charData;
 }
 } // namespace TextEngine
 } // namespace Rosen
