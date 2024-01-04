@@ -466,7 +466,7 @@ public:
         std::map<uint32_t, RSVisibleLevel>& pidVisMap,
         bool needSetVisibleRegion = true,
         RSVisibleLevel visibleLevel = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL,
-        int32_t systemAnimatedScenesCnt = 0);
+        bool isSystemAnimatedScenes = false);
 
     const Occlusion::Region& GetVisibleDirtyRegion() const
     {

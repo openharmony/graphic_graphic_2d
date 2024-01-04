@@ -251,6 +251,10 @@ VsyncError VSyncDistributor::AddConnection(const sptr<VSyncConnection>& connecti
     ScopedBytrace func("Add VSyncConnection: " + connection->info_.name_);
     connections_.push_back(connection);
     connectionCounter_[proxyPid]++;
+    uint32_t tmpPid;
+    if (QosGetPidByName(connection->info_.name_, tmpPid) == VSYNC_ERROR_OK) {
+        connectionsMap_[tmpPid].push_back(connection);
+    }
     return VSYNC_ERROR_OK;
 }
 
@@ -270,6 +274,18 @@ VsyncError VSyncDistributor::RemoveConnection(const sptr<VSyncConnection>& conne
     connectionCounter_[proxyPid]--;
     if (connectionCounter_[proxyPid] == 0) {
         connectionCounter_.erase(proxyPid);
+    }
+    uint32_t tmpPid;
+    if (QosGetPidByName(connection->info_.name_, tmpPid) == VSYNC_ERROR_OK) {
+        auto iter = connectionsMap_.find(tmpPid);
+        if (iter == connectionsMap_.end()) {
+            return VSYNC_ERROR_OK;
+        }
+        auto connIter = find(iter->second.begin(), iter->second.end(), connection);
+        iter->second.erase(connIter);
+        if (iter->second.empty()) {
+            connectionsMap_.erase(iter);
+        }
     }
     return VSYNC_ERROR_OK;
 }
@@ -518,7 +534,7 @@ VsyncError VSyncDistributor::GetVSyncConnectionInfos(std::vector<ConnectionInfo>
 
 VsyncError VSyncDistributor::QosGetPidByName(const std::string& name, uint32_t& pid)
 {
-    if (name.find("WM") == std::string::npos) {
+    if (name.find("WM") == std::string::npos && name.find("NWeb") == std::string::npos) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     std::string::size_type pos = name.find("_");
@@ -532,22 +548,27 @@ VsyncError VSyncDistributor::QosGetPidByName(const std::string& name, uint32_t& 
 VsyncError VSyncDistributor::SetQosVSyncRate(uint32_t pid, int32_t rate)
 {
     std::lock_guard<std::mutex> locker(mutex_);
-    for (auto connection : connections_) {
+    auto iter = connectionsMap_.find(pid);
+    if (iter == connectionsMap_.end()) {
+        VLOGD("%{public}s:%{public}d pid[%{public}u] can not found", __func__, __LINE__, pid);
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
+    }
+    bool isNeedNotify = false;
+    for (auto connection : iter->second) {
         uint32_t tmpPid;
-        if (QosGetPidByName(connection->info_.name_, tmpPid) != VSYNC_ERROR_OK) {
+        if (QosGetPidByName(connection->info_.name_, tmpPid) != VSYNC_ERROR_OK || tmpPid != pid) {
             continue;
         }
-
-        if (tmpPid == pid) {
-            if (connection->highPriorityRate_ != rate) {
-                connection->highPriorityRate_ = rate;
-                connection->highPriorityState_ = true;
-                VLOGD("in, conn name:%{public}s, highPriorityRate:%{public}d", connection->info_.name_.c_str(),
-                    connection->highPriorityRate_);
-                con_.notify_all();
-            }
-            break;
+        if (connection->highPriorityRate_ != rate) {
+            connection->highPriorityRate_ = rate;
+            connection->highPriorityState_ = true;
+            VLOGD("in, conn name:%{public}s, highPriorityRate:%{public}d", connection->info_.name_.c_str(),
+                connection->highPriorityRate_);
+            isNeedNotify = true;
         }
+    }
+    if (isNeedNotify) {
+        con_.notify_all();
     }
     return VSYNC_ERROR_OK;
 }
