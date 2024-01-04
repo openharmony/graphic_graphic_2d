@@ -85,7 +85,7 @@ public:
     template<typename T, typename... Args>
     void AddOp(Args&&... args)
     {
-        std::lock_guard<std::mutex> lock(mutex_);
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
         T* op = opAllocator_.Allocate<T>(std::forward<Args>(args)...);
         if (op == nullptr) {
             return;
@@ -232,7 +232,7 @@ protected:
     MemAllocator imageAllocator_;
     MemAllocator bitmapAllocator_;
     std::optional<uint32_t> lastOpItemOffset_ = std::nullopt;
-    std::mutex mutex_;
+    std::recursive_mutex mutex_;
     std::map<uint32_t, std::shared_ptr<Image>> imageMap_;
     std::vector<std::pair<uint32_t, OpDataHandle>> imageHandleVec_;
     uint32_t opCnt_ = 0;

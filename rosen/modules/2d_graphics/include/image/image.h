@@ -234,14 +234,8 @@ public:
     void SetTextureInfo(const TextureInfo& textureInfo);
     const TextureInfo& GetTextureInfo() const;
 
-    template<typename T>
-    T* GetImpl() const
-    {
-        return imageImplPtr->DowncastingTo<T>();
-    }
 private:
     bool isValid_;
-    std::shared_ptr<ImageImpl> imageImplPtr;
     TextureInfo textureInfo_;
 };
 

@@ -28,10 +28,10 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 BackendTexture::BackendTexture() noexcept
-    : isValid_(false), imageImplPtr(ImplFactory::CreateImageImpl()) {}
+    : isValid_(false) {}
 
 BackendTexture::BackendTexture(bool isValid) noexcept
-    : isValid_(isValid), imageImplPtr(ImplFactory::CreateImageImpl()) {}
+    : isValid_(isValid) {}
 
 bool BackendTexture::IsValid() const
 {
