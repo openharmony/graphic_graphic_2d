@@ -834,6 +834,9 @@ public:
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static OpItem* Unmarshalling(Parcel& parcel);
 
+protected:
+    void DrawHighContrast(RSPaintFilterCanvas& canvas) const;
+
 private:
     sk_sp<SkTextBlob> textBlob_;
     float x_;
