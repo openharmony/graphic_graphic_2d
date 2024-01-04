@@ -1627,6 +1627,37 @@ bool RSBaseRenderUtil::WritePixelMapToPng(Media::PixelMap& pixelMap)
     return WriteToPng(filename, param);
 }
 
+bool RSBaseRenderUtil::WriteSurfaceBufferToPng(sptr<SurfaceBuffer>& buffer, uint64_t id)
+{
+    auto type = RSSystemProperties::GetDumpSurfaceType();
+    if (type != DumpSurfaceType::SURFACEBUFFER) {
+        return false;
+    }
+    if (!buffer) {
+        RS_LOGE("RSBaseRenderUtil::WriteSurfaceBufferToPng buffer is nullptr");
+        return false;
+    }
+
+    struct timeval now;
+    gettimeofday(&now, nullptr);
+    constexpr int secToUsec = 1000 * 1000;
+    int64_t nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
+    std::string filename = "/data/SurfaceBuffer_" + std::to_string(id) + "_" + std::to_string(nowVal) + ".png";
+    BufferHandle *bufferHandle = buffer->GetBufferHandle();
+    if (bufferHandle == nullptr) {
+        RS_LOGE("RSBaseRenderUtil::WriteSurfaceBufferToPng bufferHandle is nullptr");
+        return false;
+    }
+    WriteToPngParam param;
+    param.width = static_cast<uint32_t>(bufferHandle->width);
+    param.height = static_cast<uint32_t>(bufferHandle->height);
+    param.data = static_cast<uint8_t *>(buffer->GetVirAddr());
+    param.stride = static_cast<uint32_t>(bufferHandle->stride);
+    param.bitDepth = Detail::BITMAP_DEPTH;
+
+    return WriteToPng(filename, param);
+}
+
 bool RSBaseRenderUtil::WriteToPng(const std::string &filename, const WriteToPngParam &param)
 {
     if (filename.empty()) {

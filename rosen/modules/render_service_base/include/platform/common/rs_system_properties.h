@@ -65,6 +65,7 @@ enum class DumpSurfaceType {
     SINGLESURFACE,
     ALLSURFACES,
     PIXELMAP,
+    SURFACEBUFFER
 };
 
 enum class ParallelRenderingType {

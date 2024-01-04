@@ -155,6 +155,7 @@ public:
 
     static bool WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& node);
     static bool WriteCacheRenderNodeToPng(const RSRenderNode& node);
+    static bool WriteSurfaceBufferToPng(sptr<SurfaceBuffer>& buffer, uint64_t id = 0);
 
     static bool WritePixelMapToPng(Media::PixelMap& pixelMap);
     static void DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,
