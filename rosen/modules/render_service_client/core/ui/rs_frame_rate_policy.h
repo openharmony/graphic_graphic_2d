@@ -26,25 +26,19 @@ public:
 
     void RegisterHgmConfigChangeCallback();
 
-    int GetPreferredFps(const std::string& scene, float speed);
-
-    void SetRefreshRateMode(int32_t refreshRateMode);
+    int32_t GetPreferredFps(const std::string& scene, float speed);
     int32_t GetRefreshRateMode();
 
 private:
-    RSFrameRatePolicy();
+    RSFrameRatePolicy() = default;
     ~RSFrameRatePolicy();
-    RSFrameRatePolicy(const RSFrameRatePolicy&) = delete;
-    RSFrameRatePolicy(const RSFrameRatePolicy&&) = delete;
-    RSFrameRatePolicy &operator = (const RSFrameRatePolicy&) = delete;
-    RSFrameRatePolicy &operator = (const RSFrameRatePolicy&&) = delete;
 
     void HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData> configData);
+    void HgmRefreshRateModeChangeCallback(int32_t refreshRateMode);
+
     float ppi_ = 1.0f;
     float xDpi_ = 1.0f;
     float yDpi_ = 1.0f;
-
-    void HgmRefreshRateModeChangeCallback(int32_t refreshRateMode);
     int32_t currentRefreshRateMode_ = 0;
 };
 } // namespace Rosen

@@ -42,10 +42,6 @@ RSFrameRatePolicy* RSFrameRatePolicy::GetInstance()
     return &instance;
 }
 
-RSFrameRatePolicy::RSFrameRatePolicy()
-{
-}
-
 RSFrameRatePolicy::~RSFrameRatePolicy()
 {
     animAttributes.clear();
@@ -101,12 +97,9 @@ void RSFrameRatePolicy::HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData>
 
 void RSFrameRatePolicy::HgmRefreshRateModeChangeCallback(int32_t refreshRateMode)
 {
-    SetRefreshRateMode(refreshRateMode);
-}
-
-void RSFrameRatePolicy::SetRefreshRateMode(int32_t refreshRateMode)
-{
-    currentRefreshRateMode_ = refreshRateMode;
+    RSUIDirector::PostFrameRateTask([this, refreshRateMode]() {
+        currentRefreshRateMode_ = refreshRateMode;
+    });
 }
 
 int32_t RSFrameRatePolicy::GetRefreshRateMode()
@@ -114,7 +107,7 @@ int32_t RSFrameRatePolicy::GetRefreshRateMode()
     return currentRefreshRateMode_;
 }
 
-int RSFrameRatePolicy::GetPreferredFps(const std::string& scene, float speed)
+int32_t RSFrameRatePolicy::GetPreferredFps(const std::string& scene, float speed)
 {
     std::lock_guard<std::mutex> lock(g_animAttributesMutex);
     if (animAttributes.count(scene) == 0 || ppi_ == 0) {

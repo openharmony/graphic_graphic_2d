@@ -1300,6 +1300,20 @@ HWTEST_F(RSInterfacesTest, NotifyTouchEvent001, Function | SmallTest | Level2)
 }
 
 /*
+ * @tc.name: RegisterHgmRefreshRateModeChangeCallback Test
+ * @tc.desc: RegisterHgmRefreshRateModeChangeCallback Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, RegisterHgmRefreshRateModeChangeCallback_Test, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    HgmRefreshRateModeChangeCallback cb = [](int32_t refreshRateMode){};
+    int32_t ret = rsInterfaces->RegisterHgmRefreshRateModeChangeCallback(cb);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
  * @tc.name: RegisterSurfaceOcclusionChangeCallback001
  * @tc.desc: RegisterOcclusionChangeCallback interface test.
  * @tc.type: FUNC

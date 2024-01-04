@@ -18,6 +18,7 @@
 #include <refbase.h>
 
 #include "animation/rs_frame_rate_range.h"
+#include "animation/rs_render_animation.h"
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 
@@ -26,6 +27,7 @@ namespace Rosen {
 class RSB_EXPORT RSRenderDisplaySync : public std::enable_shared_from_this<RSRenderDisplaySync> {
 public:
     explicit RSRenderDisplaySync(NodeId id);
+    explicit RSRenderDisplaySync(std::weak_ptr<RSRenderAnimation> renderAnimation);
     ~RSRenderDisplaySync() = default;
 
     uint64_t GetId() const;
@@ -48,6 +50,7 @@ private:
     bool isSkipCountUpdate_ = false;
     std::tuple<bool, bool, bool> animateResult_;
     FrameRateRange expectedFrameRateRange_;
+    std::weak_ptr<RSRenderAnimation> renderAnimation_;
 };
 } // namespace Rosen
 } // namespace OHOS
