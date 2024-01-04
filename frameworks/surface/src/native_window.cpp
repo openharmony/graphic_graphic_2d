@@ -311,7 +311,7 @@ int32_t NativeWindowHandleOpt(OHNativeWindow *window, int code, ...)
 
 BufferHandle *GetBufferHandleFromNative(OHNativeWindowBuffer *buffer)
 {
-    if (buffer == nullptr) {
+    if (buffer == nullptr || buffer->sfbuffer == nullptr) {
         BLOGE("parameter error, please check input parameter");
         return nullptr;
     }
