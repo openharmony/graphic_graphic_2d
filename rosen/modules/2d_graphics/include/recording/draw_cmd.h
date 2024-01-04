@@ -749,6 +749,8 @@ private:
     scalar x_;
     scalar y_;
     std::shared_ptr<TextBlob> textBlob_;
+    std::shared_ptr<ImageSnapshotOpItem> cacheImage_;
+    bool callFromCacheFunc_ = false;
 };
 
 using DrawSymbolAnimation = struct DrawSymbolAnimation {
