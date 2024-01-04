@@ -233,9 +233,9 @@ protected:
 #ifdef SUPPORT_OHOS_PIXMAP
     std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVec_;
     std::mutex pixelMapMutex_;
+#endif
     std::vector<std::shared_ptr<ExtendImageObject>> imageObjectVec_;
     std::mutex imageObjectMutex_;
-#endif
     std::vector<std::shared_ptr<ExtendImageBaseOj>> imageBaseOjVec_;
     std::mutex imageBaseOjMutex_;
 #ifdef ROSEN_OHOS

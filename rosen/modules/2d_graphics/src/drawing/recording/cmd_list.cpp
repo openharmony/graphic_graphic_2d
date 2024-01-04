@@ -233,52 +233,36 @@ uint32_t CmdList::SetupPixelMap(const std::vector<std::shared_ptr<Media::PixelMa
 
 uint32_t CmdList::AddImageObject(const std::shared_ptr<ExtendImageObject>& object)
 {
-#ifdef SUPPORT_OHOS_PIXMAP
     std::lock_guard<std::mutex> lock(imageObjectMutex_);
     imageObjectVec_.emplace_back(object);
     return static_cast<uint32_t>(imageObjectVec_.size()) - 1;
-#else
-    return 0;
-#endif
 }
 
 std::shared_ptr<ExtendImageObject> CmdList::GetImageObject(uint32_t id)
 {
-#ifdef SUPPORT_OHOS_PIXMAP
     std::lock_guard<std::mutex> lock(imageObjectMutex_);
     if (id >= imageObjectVec_.size()) {
         return nullptr;
     }
     return imageObjectVec_[id];
-#else
-    return nullptr;
-#endif
 }
 
 uint32_t CmdList::GetAllObject(std::vector<std::shared_ptr<ExtendImageObject>>& objectList)
 {
-#ifdef SUPPORT_OHOS_PIXMAP
     std::lock_guard<std::mutex> lock(imageObjectMutex_);
     for (const auto &object : imageObjectVec_) {
         objectList.emplace_back(object);
     }
     return objectList.size();
-#else
-    return 0;
-#endif
 }
 
 uint32_t CmdList::SetupObject(const std::vector<std::shared_ptr<ExtendImageObject>>& objectList)
 {
-#ifdef SUPPORT_OHOS_PIXMAP
     std::lock_guard<std::mutex> lock(imageObjectMutex_);
     for (const auto &object : objectList) {
         imageObjectVec_.emplace_back(object);
     }
     return imageObjectVec_.size();
-#else
-    return 0;
-#endif
 }
 
 uint32_t CmdList::AddImageBaseOj(const std::shared_ptr<ExtendImageBaseOj>& object)
