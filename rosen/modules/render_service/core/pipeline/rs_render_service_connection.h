@@ -108,9 +108,9 @@ private:
     int32_t GetCurrentRefreshRateMode() override;
 
     std::vector<int32_t> GetScreenSupportedRefreshRates(ScreenId id) override;
-    
+
     bool GetShowRefreshRateEnabled() override;
-    
+
     void SetShowRefreshRateEnabled(bool enable) override;
 
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
@@ -145,7 +145,7 @@ private:
 
     void RegisterBufferAvailableListener(
         NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread) override;
-    
+
     void RegisterBufferClearListener(
         NodeId id, sptr<RSIBufferClearCallback> callback) override;
 
@@ -221,6 +221,8 @@ private:
     void ReportEventComplete(DataBaseRs info) override;
 
     void ReportEventJankFrame(DataBaseRs info) override;
+
+    void ReportGameStateData(GameStateData info) override;
 
     void SetHardwareEnabled(NodeId id, bool isEnabled) override;
 

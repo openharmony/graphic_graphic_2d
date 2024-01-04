@@ -34,6 +34,7 @@
 #include "rs_realtime_refresh_rate_manager.h"
 #include "rs_trace.h"
 #include "common/rs_optional_trace.h"
+#include "frame_report.h"
 #include "hdi_backend.h"
 #include "vsync_sampler.h"
 #include "parameters.h"
@@ -205,6 +206,14 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     uint64_t currTimestamp = hgmCore.GetCurrentTimestamp();
     RSTaskMessage::RSTask task = [this, output = output, layers = layers, rate = rate,
         currentRate = currentRate, timestamp = currTimestamp]() {
+        int64_t startTimeNs = 0;
+        int64_t endTimeNs = 0;
+
+        if (FrameReport::GetInstance().IsGameScene()) {
+            startTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count();
+        }
+
         RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %d, now: %lu", currentRate, timestamp);
         ExecuteSwitchRefreshRate(rate);
         PerformSetActiveMode(output);
@@ -215,6 +224,13 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         }
         auto layerMap = output->GetLayers();
         ReleaseLayers(output, layerMap);
+
+        if (FrameReport::GetInstance().IsGameScene()) {
+            endTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count();
+            FrameReport::GetInstance().SetLastSwapBufferTime(endTimeNs - startTimeNs);
+        }
+
         unExcuteTaskNum_--;
         if (unExcuteTaskNum_ <= HARDWARE_THREAD_TASK_NUM) {
             RSMainThread::Instance()->NotifyHardwareThreadCanExcuteTask();

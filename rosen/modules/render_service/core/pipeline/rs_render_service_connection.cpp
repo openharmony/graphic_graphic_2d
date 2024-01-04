@@ -16,6 +16,7 @@
 #include "rs_render_service_connection.h"
 
 #include "common/rs_background_thread.h"
+#include "frame_report.h"
 #include "hgm_core.h"
 #include "hgm_command.h"
 #include "hgm_frame_rate_manager.h"
@@ -461,7 +462,7 @@ bool RSRenderServiceConnection::GetShowRefreshRateEnabled()
 {
     return RSRealtimeRefreshRateManager::Instance().GetShowRefreshRateEnabled();
 }
-    
+
 void RSRenderServiceConnection::SetShowRefreshRateEnabled(bool enable)
 {
     return RSRealtimeRefreshRateManager::Instance().SetShowRefreshRateEnabled(enable);
@@ -1123,6 +1124,19 @@ void RSRenderServiceConnection::ReportEventJankFrame(DataBaseRs info)
         RSJankStats::GetInstance().SetReportEventJankFrame(info);
     };
     mainThread_->PostTask(task);
+}
+
+void RSRenderServiceConnection::ReportGameStateData(GameStateData info)
+{
+    RS_LOGD("RSRenderServiceConnection::ReportGameStateData = %{public}s, uid = %{public}d, state = %{public}d, "
+            "pid = %{public}d renderTid = %{public}d ",
+        info.bundleName.c_str(), info.uid, info.state, info.pid, info.renderTid);
+
+    if (info.state == 1) {
+        FrameReport::GetInstance().SetGameScene(true);
+    } else if (info.state == 0) {
+        FrameReport::GetInstance().SetGameScene(false);
+    }
 }
 
 void RSRenderServiceConnection::SetHardwareEnabled(NodeId id, bool isEnabled)

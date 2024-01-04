@@ -161,7 +161,7 @@ bool RSInterfaces::GetShowRefreshRateEnabled()
 {
     return renderServiceClient_->GetShowRefreshRateEnabled();
 }
-    
+
 void RSInterfaces::SetShowRefreshRateEnabled(bool enable)
 {
     return renderServiceClient_->SetShowRefreshRateEnabled(enable);
@@ -458,6 +458,11 @@ void RSInterfaces::ReportEventComplete(DataBaseRs info)
 void RSInterfaces::ReportEventJankFrame(DataBaseRs info)
 {
     renderServiceClient_->ReportEventJankFrame(info);
+}
+
+void RSInterfaces::ReportGameStateData(GameStateData info)
+{
+    renderServiceClient_->ReportGameStateData(info);
 }
 
 void RSInterfaces::EnableCacheForRotation()

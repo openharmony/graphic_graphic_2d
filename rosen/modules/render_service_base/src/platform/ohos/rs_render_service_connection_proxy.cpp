@@ -630,7 +630,7 @@ bool RSRenderServiceConnectionProxy::GetShowRefreshRateEnabled()
     bool enable = reply.ReadBool();
     return enable;
 }
-    
+
 void RSRenderServiceConnectionProxy::SetShowRefreshRateEnabled(bool enable)
 {
     MessageParcel data;
@@ -1841,6 +1841,33 @@ void RSRenderServiceConnectionProxy::ReportDataBaseRs(
     data.WriteString(info.sourceType);
     data.WriteString(info.note);
     option.SetFlags(MessageOption::TF_ASYNC);
+}
+
+void RSRenderServiceConnectionProxy::ReportGameStateDataRs(
+    MessageParcel& data, MessageParcel& reply, MessageOption& option, GameStateData info)
+{
+    data.WriteInt32(info.pid);
+    data.WriteInt32(info.uid);
+    data.WriteInt32(info.state);
+    data.WriteInt32(info.renderTid);
+    data.WriteString(info.bundleName);
+    option.SetFlags(MessageOption::TF_ASYNC);
+}
+
+void RSRenderServiceConnectionProxy::ReportGameStateData(GameStateData info)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    ReportGameStateDataRs(data, reply, option, info);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_GAMESTATE);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ReportGameStateData: Send Request err.");
+    }
 }
 
 void RSRenderServiceConnectionProxy::SetHardwareEnabled(NodeId id, bool isEnabled)

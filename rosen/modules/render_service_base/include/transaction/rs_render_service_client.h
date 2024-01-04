@@ -80,6 +80,14 @@ struct DataBaseRs {
     std::string note;
 };
 
+struct GameStateData {
+    int32_t pid = -1;
+    int32_t uid = 0;
+    int32_t state = 0;
+    int32_t renderTid = -1;
+    std::string bundleName;
+};
+
 class SurfaceCaptureCallback {
 public:
     SurfaceCaptureCallback() {}
@@ -155,7 +163,7 @@ public:
     std::vector<int32_t> GetScreenSupportedRefreshRates(ScreenId id);
 
     bool GetShowRefreshRateEnabled();
-    
+
     void SetShowRefreshRateEnabled(bool enable);
 
 #ifndef ROSEN_ARKUI_X
@@ -273,6 +281,8 @@ public:
     void ReportEventComplete(DataBaseRs info);
 
     void ReportEventJankFrame(DataBaseRs info);
+
+    void ReportGameStateData(GameStateData info);
 
     void SetHardwareEnabled(NodeId id, bool isEnabled);
 

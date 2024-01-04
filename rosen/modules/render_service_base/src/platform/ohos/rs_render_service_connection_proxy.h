@@ -85,7 +85,7 @@ public:
     std::vector<int32_t> GetScreenSupportedRefreshRates(ScreenId id) override;
 
     bool GetShowRefreshRateEnabled() override;
-    
+
     void SetShowRefreshRateEnabled(bool enable) override;
 
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
@@ -200,6 +200,8 @@ public:
 
     void ReportEventJankFrame(DataBaseRs info) override;
 
+    void ReportGameStateData(GameStateData info) override;
+
     void SetHardwareEnabled(NodeId id, bool isEnabled) override;
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
@@ -217,6 +219,8 @@ private:
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);
 
     void ReportDataBaseRs(MessageParcel& data, MessageParcel& reply, MessageOption& option, DataBaseRs info);
+
+    void ReportGameStateDataRs(MessageParcel& data, MessageParcel& reply, MessageOption& option, GameStateData info);
 
     static inline BrokerDelegator<RSRenderServiceConnectionProxy> delegator_;
 

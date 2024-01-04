@@ -23,6 +23,7 @@
 #include "buffer_manager.h"
 #include "buffer_producer_listener.h"
 #include "buffer_utils.h"
+#include "frame_report.h"
 #include "sync_fence.h"
 
 namespace OHOS {
@@ -109,6 +110,12 @@ int32_t BufferQueueProducer::RequestBufferRemote(MessageParcel &arguments, Messa
     RequestBufferReturnValue retval;
     sptr<BufferExtraData> bedataimpl = new BufferExtraDataImpl;
     BufferRequestConfig config = {};
+    int64_t startTimeNs = 0;
+    int64_t endTimeNs = 0;
+    if (Rosen::FrameReport::GetInstance().IsGameScene()) {
+        startTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
+    }
 
     ReadRequestConfig(arguments, config);
 
@@ -121,6 +128,13 @@ int32_t BufferQueueProducer::RequestBufferRemote(MessageParcel &arguments, Messa
         retval.fence->WriteToMessageParcel(reply);
         reply.WriteInt32Vector(retval.deletingBuffers);
     }
+
+    if (Rosen::FrameReport::GetInstance().IsGameScene()) {
+        endTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
+        Rosen::FrameReport::GetInstance().SetDequeueBufferTime(name_, (endTimeNs - startTimeNs));
+    }
+
     return 0;
 }
 
@@ -142,6 +156,13 @@ int32_t BufferQueueProducer::FlushBufferRemote(MessageParcel &arguments, Message
     uint32_t sequence;
     BufferFlushConfigWithDamages config;
     sptr<BufferExtraData> bedataimpl = new BufferExtraDataImpl;
+    int64_t startTimeNs = 0;
+    int64_t endTimeNs = 0;
+
+    if (Rosen::FrameReport::GetInstance().IsGameScene()) {
+        startTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
+    }
 
     sequence = arguments.ReadUint32();
     bedataimpl->ReadFromParcel(arguments);
@@ -152,6 +173,13 @@ int32_t BufferQueueProducer::FlushBufferRemote(MessageParcel &arguments, Message
     GSError sret = FlushBuffer(sequence, bedataimpl, fence, config);
 
     reply.WriteInt32(sret);
+
+    if (Rosen::FrameReport::GetInstance().IsGameScene()) {
+        endTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
+        Rosen::FrameReport::GetInstance().SetQueueBufferTime(name_, (endTimeNs - startTimeNs));
+    }
+
     return 0;
 }
 
