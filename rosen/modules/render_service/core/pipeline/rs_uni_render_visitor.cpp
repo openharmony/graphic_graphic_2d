@@ -317,6 +317,7 @@ void RSUniRenderVisitor::UpdateStaticCacheSubTree(const std::shared_ptr<RSRender
                 PrepareSurfaceRenderNode(*surfaceNode);
                 return;
             }
+            CollectSingleSurface(*surfaceNode, curDisplayNode_->GetCurAllSurfaces());
             UpdateSecurityAndSkipLayerRecord(*surfaceNode);
         } else if (auto effectNode = child->ReinterpretCastTo<RSEffectRenderNode>()) {
             // effectNode need to update effectRegion so effectNode and use-effect child should be updated
@@ -391,7 +392,8 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
     // check curSurfaceDirtyManager_ for SubTree updates
     if (curSurfaceDirtyManager_ != nullptr && isCachedSurfaceReuse_ && !node.HasMustRenewedInfo()) {
         RS_OPTIONAL_TRACE_NAME_FMT("CachedSurfaceReuse node %llu quickSkip subtree", node.GetId());
-    } else if (curSurfaceDirtyManager_ != nullptr && (isCachedSurfaceReuse_ || !UpdateCacheChangeStatus(node))) {
+    } else if (curSurfaceDirtyManager_ != nullptr && curDisplayNode_ != nullptr &&
+        (isCachedSurfaceReuse_ || !UpdateCacheChangeStatus(node))) {
         RS_OPTIONAL_TRACE_NAME_FMT("UpdateCacheChangeStatus node %llu simply update subtree, isCachedSurfaceReuse_ %d",
             node.GetId(), isCachedSurfaceReuse_);
         UpdateStaticCacheSubTree(node.ReinterpretCastTo<RSRenderNode>(), children);
@@ -744,6 +746,7 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     displayHasSkipSurface_.emplace(currentVisitDisplay_, false);
     hasCaptureWindow_.emplace(currentVisitDisplay_, false);
     dirtySurfaceNodeMap_.clear();
+    node.GetCurAllSurfaces().clear();
 
     RS_TRACE_NAME("RSUniRender:PrepareDisplay " + std::to_string(currentVisitDisplay_));
     curDisplayDirtyManager_ = node.GetDirtyManager();
@@ -814,9 +817,6 @@ void RSUniRenderVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     if (mirrorNode) {
         mirroredDisplays_.insert(mirrorNode->GetScreenId());
     }
-
-    node.GetCurAllSurfaces().clear();
-    node.CollectSurface(node.shared_from_this(), node.GetCurAllSurfaces(), true, false);
 
     HandleColorGamuts(node, screenManager);
     HandlePixelFormat(node, screenManager);
@@ -1203,6 +1203,8 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.SetAncestorDisplayNode(curDisplayNode_);
     CheckColorSpace(node);
     CheckPixelFormat(node);
+
+    CollectSingleSurface(node, curDisplayNode_->GetCurAllSurfaces());
 
     // stop traversal if node keeps static
     if (isQuickSkipPreparationEnabled_ && CheckIfSurfaceRenderNodeStatic(node)) {
@@ -5448,6 +5450,25 @@ void RSUniRenderVisitor::SetHasSharedTransitionNode(RSSurfaceRenderNode& surface
         RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surfaceNode.GetParent().lock());
     if (leashNode && leashNode->GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
         leashNode->SetHasSharedTransitionNode(hasSharedTransitionNode);
+    }
+}
+
+void RSUniRenderVisitor::CollectSingleSurface(RSSurfaceRenderNode& node, std::vector<RSBaseRenderNode::SharedPtr>& vec)
+{
+    if (node.IsStartingWindow() || node.IsLeashWindow()) {
+        vec.emplace_back(node.shared_from_this());
+        return;
+    }
+
+#ifndef ROSEN_CROSS_PLATFORM
+    auto& consumer = node.GetConsumer();
+    if (consumer != nullptr && consumer->GetTunnelHandle() != nullptr) {
+        return;
+    }
+#endif
+
+    if (node.ShouldPaint() && node.GetId() == node.GetInstanceRootNodeId()) {
+        vec.emplace_back(node.shared_from_this());
     }
 }
 
