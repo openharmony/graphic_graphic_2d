@@ -16,9 +16,11 @@
 #include "font_parser.h"
 
 #include <codecvt>
-#include <iconv.h>
 #include <iomanip>
 #include <securec.h>
+#ifdef BUILD_NON_SDK_VER
+#include <iconv.h>
+#endif
 
 #include "font_config.h"
 #include "texgine/utils/exlog.h"
@@ -66,25 +68,41 @@ void FontParser::GetStringFromNameId(FontParser::NameId nameId, const std::strin
     switch (nameId) {
         case FontParser::NameId::FONT_FAMILY: {
             if (fontDescriptor.fontFamily.size() == 0) {
+#ifdef BUILD_NON_SDK_VER
                 fontDescriptor.fontFamily = GbkToUtf8(nameString);
+#else
+                fontDescriptor.fontFamily = nameString;
+#endif
             }
             break;
         }
         case FontParser::NameId::FONT_SUBFAMILY: {
             if (fontDescriptor.fontSubfamily.size() == 0) {
+#ifdef BUILD_NON_SDK_VER
                 fontDescriptor.fontSubfamily = GbkToUtf8(nameString);
+#else
+                fontDescriptor.fontSubfamily = nameString;
+#endif
             }
             break;
         }
         case FontParser::NameId::FULL_NAME: {
             if (fontDescriptor.fullName.size() == 0) {
+#ifdef BUILD_NON_SDK_VER
                 fontDescriptor.fullName = GbkToUtf8(nameString);
+#else
+                fontDescriptor.fullName = nameString;
+#endif
             }
             break;
         }
         case FontParser::NameId::POSTSCRIPT_NAME: {
             if (fontDescriptor.postScriptName.size() == 0) {
+#ifdef BUILD_NON_SDK_VER
                 fontDescriptor.postScriptName = GbkToUtf8(nameString);
+#else
+                fontDescriptor.postScriptName = nameString;
+#endif
             }
             break;
         }
@@ -296,6 +314,7 @@ int FontParser::SetFontDescriptor()
     return SUCCESSED;
 }
 
+#ifdef BUILD_NON_SDK_VER
 std::string FontParser::GbkToUtf8(const std::string& gbkStr)
 {
     std::string utf8Str;
@@ -317,6 +336,7 @@ std::string FontParser::GbkToUtf8(const std::string& gbkStr)
     iconv_close(conv);
     return utf8Str;
 }
+#endif
 
 std::vector<FontParser::FontDescriptor> FontParser::GetVisibilityFonts()
 {
