@@ -31,7 +31,20 @@ namespace {
     constexpr float HALF_F = 2;
 }
 
-#ifdef USE_ROSEN_DRAWING
+#ifndef USE_ROSEN_DRAWING
+static sk_sp<SkColorSpace> ColorSpaceToSkColorSpace(ColorManger::ColorSpaceName ColorSpaceName)
+{
+    switch (ColorSpaceName) {
+        case ColorManger::ColorSpaceName::DISPLAY_P3:
+            return SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
+        case ColorManger::ColorSpaceName::LINEAR_SRGB:
+            return SkColorSpace::MakeSRGBLinear();
+        case ColorManger::ColorSpaceName::SRGB:
+        default:
+            return SkColorSpace::MakeSRGB();
+    }
+}
+#else
 static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(ColorSpace colorSpace)
 {
     switch (colorSpace) {
@@ -137,7 +150,7 @@ static SkImageInfo MakeSkImageInfo(const ImageInfo& imageInfo, std::shared_ptr<M
 {
     SkColorType ct = PixelFormatToSkColorType(imageInfo.pixelFormat);
     SkAlphaType at = AlphaTypeToSkAlphaType(imageInfo.alphaType);
-    sk_sp<SkColorSpace> cs = pixelMap->InnerGetGrColorSpace().ToSkColorSpace();
+    sk_sp<SkColorSpace> cs = ColorSpaceToSkColorSpace(pixelMap->InnerGetGrColorSpace().GetColorSpaceName());
     return SkImageInfo::Make(imageInfo.size.width, imageInfo.size.height, ct, at, cs);
 }
 #endif
