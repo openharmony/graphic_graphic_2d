@@ -1054,8 +1054,8 @@ private:
     bool isFilterCacheValidForOcclusion_ = false;
     bool isFilterCacheStatusChanged_ = false;
     bool isTreatedAsTransparent_ = false;
-    std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>>
-        filterNodes_; // valid filter nodes within, including itself
+    // valid filter nodes within, including itself
+    std::vector<std::shared_ptr<RSRenderNode>> filterNodes_;
     std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>> drawingCacheNodes_;
 
     struct OpaqueRegionBaseInfo

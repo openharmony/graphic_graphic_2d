@@ -915,7 +915,9 @@ void RSProperties::SetBorderWidth(Vector4f width)
         border_ = std::make_shared<RSBorder>();
     }
     border_->SetWidthFour(width);
-    isDrawn_ = true;
+    if (!width.IsZero()) {
+        isDrawn_ = true;
+    }
     SetDirty();
     contentDirty_ = true;
 }
@@ -926,7 +928,6 @@ void RSProperties::SetBorderStyle(Vector4<uint32_t> style)
         border_ = std::make_shared<RSBorder>();
     }
     border_->SetStyleFour(style);
-    isDrawn_ = true;
     SetDirty();
     contentDirty_ = true;
 }
@@ -970,7 +971,9 @@ void RSProperties::SetOutlineWidth(Vector4f width)
         outline_ = std::make_shared<RSBorder>();
     }
     outline_->SetWidthFour(width);
-    isDrawn_ = true;
+    if (!width.IsZero()) {
+        isDrawn_ = true;
+    }
     SetDirty();
     contentDirty_ = true;
 }
@@ -981,7 +984,6 @@ void RSProperties::SetOutlineStyle(Vector4<uint32_t> style)
         outline_ = std::make_shared<RSBorder>();
     }
     outline_->SetStyleFour(style);
-    isDrawn_ = true;
     SetDirty();
     contentDirty_ = true;
 }
