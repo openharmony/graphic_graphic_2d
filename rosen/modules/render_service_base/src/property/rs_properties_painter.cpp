@@ -3829,5 +3829,80 @@ void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFi
         }
     }
 }
+
+bool RSPropertiesPainter::CheckBlendParameters(int blendMode, int blendModeApplyType)
+{
+    if (blendMode == 0) {
+        // 0 means no blend
+        return false;
+    }
+    if (blendMode < 0 || blendMode > static_cast<int>(RSColorBlendMode::MAX)) {
+        ROSEN_LOGE("CheckBlendParameters: blendMode invalid, won't apply any blend mode");
+        return false;
+    }
+    if (blendModeApplyType < 0 || blendModeApplyType > static_cast<int>(RSColorBlendApplyType::MAX)) {
+        ROSEN_LOGE("CheckBlendParameters: blendModeApplyType invalid, won't apply any blend mode");
+        return false;
+    }
+    return true;
+}
+
+void RSPropertiesPainter::BeginBlendMode(RSPaintFilterCanvas& canvas, const RSProperties& properties)
+{
+    auto blendMode = properties.GetColorBlendMode();
+    int blendModeApplyType = properties.GetColorBlendApplyType();
+
+    if (!RSPropertiesPainter::CheckBlendParameters(blendMode, blendModeApplyType)) {
+        // no blend or param check failed
+        return;
+    }
+
+    // fast blend mode
+    if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::FAST)) {
+        canvas.SaveBlendMode();
+        canvas.SetBlendMode({ blendMode });
+        return;
+    }
+
+    // save layer mode
+#ifndef USE_ROSEN_DRAWING
+    SkPaint blendPaint_;
+    blendPaint_.setBlendMode(static_cast<SkBlendMode>(blendMode - 1)); // map blendMode to SkBlendMode
+    canvas.saveLayer(nullptr, &blendPaint_);
+#else
+    Drawing::Brush blendBrush_;
+    blendBrush_.SetBlendMode(static_cast<Drawing::BlendMode>(blendMode - 1)); // map blendMode to Drawing::BlendMode
+    Drawing::SaveLayerOps maskLayerRec(nullptr, &blendBrush_, nullptr, 0);
+    canvas.SaveLayer(maskLayerRec);
+#endif
+    canvas.SaveBlendMode();
+    canvas.SetBlendMode(std::nullopt);
+    canvas.SaveAlpha();
+    canvas.SetAlpha(1.0f);
+}
+
+void RSPropertiesPainter::EndBlendMode(RSPaintFilterCanvas& canvas, const RSProperties& properties)
+{
+    auto blendMode = properties.GetColorBlendMode();
+    int blendModeApplyType = properties.GetColorBlendApplyType();
+
+    if (!RSPropertiesPainter::CheckBlendParameters(blendMode, blendModeApplyType)) {
+        // no blend or param check failed
+        return;
+    }
+
+    if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::FAST)) {
+        canvas.RestoreBlendMode();
+    } else {
+        canvas.RestoreBlendMode();
+        canvas.RestoreAlpha();
+#ifndef USE_ROSEN_DRAWING
+        canvas.restore();
+#else
+        canvas.Restore();
+#endif
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

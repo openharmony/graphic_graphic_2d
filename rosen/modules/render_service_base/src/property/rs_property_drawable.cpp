@@ -199,16 +199,16 @@ static const std::array<RSPropertyDrawable::DrawableGenerator, static_cast<size_
     RSForegroundColorDrawable::Generate,          // FOREGROUND_COLOR,
     nullptr,                                      // FG_RESTORE_BOUNDS
 
-    nullptr,                                              // RESTORE_BLEND
     // No clip (unless ClipToBounds is set)
     RSPointLightDrawable::Generate,                       // POINT_LIGHT
     RSBorderDrawable::Generate,                           // BORDER,
-    RSOutlineDrawable::Generate,                                 // OUTLINE,
+    RSOutlineDrawable::Generate,                          // OUTLINE,
     CustomModifierAdapter<RSModifierType::OVERLAY_STYLE>, // OVERLAY
     RSParticleDrawable::Generate,                         // PARTICLE_EFFECT,
     RSPixelStretchDrawable::Generate,                     // PIXEL_STRETCH,
 
-    nullptr, // RESTORE_ALL,
+    BlendRestoreDrawableGenerate, // RESTORE_BLEND
+    nullptr,                      // RESTORE_ALL,
 };
 
 enum DrawableVecStatus : uint8_t {
@@ -305,6 +305,10 @@ std::unordered_set<RSPropertyDrawableSlot> RSPropertyDrawable::GenerateDirtySlot
             dirtySlots.emplace(RSPropertyDrawableSlot::OUTLINE);
         }
     }
+    if (dirtySlots.count(RSPropertyDrawableSlot::BLEND_MODE)) {
+        // BlendMode Restore should be regenerated with BlendMode
+        dirtySlots.emplace(RSPropertyDrawableSlot::RESTORE_BLEND_MODE);
+    }
 
     return dirtySlots;
 }
@@ -337,9 +341,6 @@ bool RSPropertyDrawable::UpdateDrawableVec(
     }
 
     // Step 2.2: post-generate hooks (PLANNING: refactor this into a separate function)
-    if (dirtySlots.count(RSPropertyDrawableSlot::BLEND_MODE)) {
-        UpdateSaveLayerSlots(content, drawableVec);
-    }
 
     // Temporary fix, change of clipToBounds should trigger UpdateSaveRestore
     if (!drawableSlotChanged && dirtySlots.count(RSPropertyDrawableSlot::CLIP_TO_BOUNDS)) {
@@ -514,16 +515,6 @@ void RSPropertyDrawable::UpdateSaveRestore(
         OptimizeFrameSaveRestore(content, drawableVec, drawableVecStatusNew);
     }
     drawableVecStatus = drawableVecStatusNew;
-}
-
-void RSPropertyDrawable::UpdateSaveLayerSlots(
-    const RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec)
-{
-    if (drawableVec[RSPropertyDrawableSlot::BLEND_MODE] == nullptr) {
-        drawableVec[RSPropertyDrawableSlot::RESTORE_BLEND_MODE] = nullptr;
-        return;
-    }
-    drawableVec[RSPropertyDrawableSlot::RESTORE_BLEND_MODE] = BlendRestoreDrawableGenerate(context);
 }
 
 } // namespace OHOS::Rosen

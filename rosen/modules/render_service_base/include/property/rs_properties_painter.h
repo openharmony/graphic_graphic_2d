@@ -72,6 +72,11 @@ public:
     static void DrawDynamicLightUp(const RSProperties& properties, RSPaintFilterCanvas& canvas);
     static void DrawParticle(const RSProperties& properties, RSPaintFilterCanvas& canvas);
 
+
+    static bool CheckBlendParameters(int blendMode, int blendModeApplyType);
+    static void BeginBlendMode(RSPaintFilterCanvas& canvas, const RSProperties& properties);
+    static void EndBlendMode(RSPaintFilterCanvas& canvas, const RSProperties& properties);
+
 #ifndef USE_ROSEN_DRAWING
     static void Clip(SkCanvas& canvas, RectF rect, bool isAntiAlias = true);
     static void DrawBorder(const RSProperties& properties, SkCanvas& canvas);

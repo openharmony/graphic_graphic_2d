@@ -69,9 +69,9 @@ enum class OutOfParentType {
 
 // color blend mode, see third_party/skia/include/core/SkBlendMode.h
 enum class RSColorBlendMode : int16_t {
-    DEFAULT = 0, // Note: The DEFAULT blend mode is different from SRC_OVER. When using it with
-                 // RSColorBlendApplyType::SAVE_LAYER, it does not create an offscreen buffer. However, when using it
-                 // with RSColorBlendApplyType::FAST, it does not modify the blend mode of subsequent content.
+    NONE = 0, // Note: The NONE blend mode is different from SRC_OVER. When using it with
+              // RSColorBlendApplyType::SAVE_LAYER, it does not create an offscreen buffer. However, when using it
+              // with RSColorBlendApplyType::FAST, it does not modify the blend mode of subsequent content.
 
     CLEAR,    // r = 0
     SRC,      // r = s
@@ -114,6 +114,7 @@ enum class RSColorBlendApplyType : int16_t {
 
     SAVE_LAYER,  // Apply blending by drawing the content onto an offscreen buffer and blend it when drawing it back to
                  // the screen
+    MAX = SAVE_LAYER
 };
 
 class Decoration final {

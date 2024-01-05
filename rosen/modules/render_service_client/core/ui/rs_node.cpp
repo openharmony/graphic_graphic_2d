@@ -33,7 +33,6 @@
 #include "common/rs_color.h"
 #include "common/rs_common_def.h"
 #include "common/rs_obj_geometry.h"
-#include "common/rs_optional_trace.h"
 #include "common/rs_vector4.h"
 #include "modifier/rs_modifier.h"
 #include "modifier/rs_property.h"
@@ -1611,6 +1610,12 @@ void RSNode::SetAiInvert(const Vector4f& aiInvert)
 void RSNode::SetHueRotate(float hueRotate)
 {
     SetProperty<RSHueRotateModifier, RSAnimatableProperty<float>>(RSModifierType::HUE_ROTATE, hueRotate);
+}
+
+void RSNode::SetColorBlend(uint32_t colorValue)
+{
+    auto colorBlend = Color::FromArgbInt(colorValue);
+    SetProperty<RSColorBlendModifier, RSAnimatableProperty<Color>>(RSModifierType::COLOR_BLEND, colorBlend);
 }
 
 void RSNode::AddFRCSceneInfo(const std::string& scene, float speed)

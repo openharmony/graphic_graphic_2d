@@ -476,19 +476,16 @@ public:
     bool Update(const RSRenderContent& content) override;
 };
 
-// blendmode save and restore
-std::unique_ptr<RSPropertyDrawable> BlendSaveDrawableGenerate(const RSPropertyDrawableGenerateContext& context);
-std::unique_ptr<RSPropertyDrawable> BlendRestoreDrawableGenerate(const RSPropertyDrawableGenerateContext& context);
+// blend mode save and restore
+std::unique_ptr<RSPropertyDrawable> BlendSaveDrawableGenerate(const RSRenderContent& context);
+std::unique_ptr<RSPropertyDrawable> BlendRestoreDrawableGenerate(const RSRenderContent& context);
 
 class RSBlendSaveLayerDrawable : public RSPropertyDrawable {
 public:
-#ifndef USE_ROSEN_DRAWING
-    explicit RSBlendSaveLayerDrawable(SkPaint&& blendPaint) : blendPaint_(std::move(blendPaint)) {}
-#else
-    explicit RSBlendSaveLayerDrawable(Drawing::Brush&& blendBrush) : blendBrush_(std::move(blendBrush)) {}
-#endif
+    explicit RSBlendSaveLayerDrawable(int blendMode);
     ~RSBlendSaveLayerDrawable() override = default;
-    void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
+    void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
+
 private:
 #ifndef USE_ROSEN_DRAWING
     SkPaint blendPaint_;
@@ -501,8 +498,8 @@ class RSBlendFastDrawable : public RSPropertyDrawable {
 public:
     explicit RSBlendFastDrawable(int blendMode) : blendMode_(blendMode) {}
     ~RSBlendFastDrawable() override = default;
-    static std::unique_ptr<RSPropertyDrawable> Generate(const RSPropertyDrawableGenerateContext& context);
-    void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
+    void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
+
 private:
     int blendMode_;
 };
@@ -511,14 +508,14 @@ class RSBlendSaveLayerRestoreDrawable : public RSPropertyDrawable {
 public:
     explicit RSBlendSaveLayerRestoreDrawable() = default;
     ~RSBlendSaveLayerRestoreDrawable() override = default;
-    void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
+    void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
 };
 
 class RSBlendFastRestoreDrawable : public RSPropertyDrawable {
 public:
     explicit RSBlendFastRestoreDrawable() = default;
     ~RSBlendFastRestoreDrawable() override = default;
-    void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) override;
+    void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_BOUNDS_GEOMETRY_H

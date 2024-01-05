@@ -21,7 +21,6 @@
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
-#include "common/rs_optional_trace.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_point_light_manager.h"
@@ -53,91 +52,88 @@ using ResetPropertyFunc = void (*)(RSProperties* prop);
 // Every modifier before RSModifierType::CUSTOM is property modifier, and it should have a ResetPropertyFunc
 // NOTE: alway add new resetter when adding new property modifier
 const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_propertyResetterLUT = {
-    nullptr,                                                             // INVALID,                  0
-    nullptr,                                                             // BOUNDS,                   1
-    nullptr,                                                             // FRAME,                    2
-    [](RSProperties* prop) { prop->SetPositionZ(0.f); },                 // POSITION_Z,               3
-    [](RSProperties* prop) { prop->SetPivot(Vector2f(0.5f, 0.5f)); },    // PIVOT,                    4
-    [](RSProperties* prop) { prop->SetPivotZ(0.f); },                    // PIVOT_Z,                  5
-    [](RSProperties* prop) { prop->SetQuaternion(Quaternion()); },       // QUATERNION,               6
-    [](RSProperties* prop) { prop->SetRotation(0.f); },                  // ROTATION,                 7
-    [](RSProperties* prop) { prop->SetRotationX(0.f); },                 // ROTATION_X,               8
-    [](RSProperties* prop) { prop->SetRotationY(0.f); },                 // ROTATION_Y,               9
-    [](RSProperties* prop) { prop->SetCameraDistance(0.f); },            // CAMERA_DISTANCE,          10
-    [](RSProperties* prop) { prop->SetScale(Vector2f(1.f, 1.f)); },      // SCALE,                    11
-    [](RSProperties* prop) { prop->SetTranslate(Vector2f(0.f, 0.f)); },  // TRANSLATE,                12
-    [](RSProperties* prop) { prop->SetTranslateZ(0.f); },                // TRANSLATE_Z,              13
-    [](RSProperties* prop) { prop->SetSublayerTransform({}); },          // SUBLAYER_TRANSFORM,       14
-    [](RSProperties* prop) { prop->SetCornerRadius(0.f); },              // CORNER_RADIUS,            15
-    [](RSProperties* prop) { prop->SetAlpha(1.f); },                     // ALPHA,                    16
-    [](RSProperties* prop) { prop->SetAlphaOffscreen(false); },          // ALPHA_OFFSCREEN,          17
-    [](RSProperties* prop) { prop->SetForegroundColor({}); },            // FOREGROUND_COLOR,         18
-    [](RSProperties* prop) { prop->SetBackgroundColor({}); },            // BACKGROUND_COLOR,         19
-    [](RSProperties* prop) { prop->SetBackgroundShader({}); },           // BACKGROUND_SHADER,        20
-    [](RSProperties* prop) { prop->SetBgImage({}); },                    // BG_IMAGE,                 21
-    [](RSProperties* prop) { prop->SetBgImageWidth(0.f); },              // BG_IMAGE_WIDTH,           22
-    [](RSProperties* prop) { prop->SetBgImageHeight(0.f); },             // BG_IMAGE_HEIGHT,          23
-    [](RSProperties* prop) { prop->SetBgImagePositionX(0.f); },          // BG_IMAGE_POSITION_X,      24
-    [](RSProperties* prop) { prop->SetBgImagePositionY(0.f); },          // BG_IMAGE_POSITION_Y,      25
-    nullptr,                                                             // SURFACE_BG_COLOR,         26
-    [](RSProperties* prop) { prop->SetBorderColor(RSColor()); },         // BORDER_COLOR,             27
-    [](RSProperties* prop) { prop->SetBorderWidth(0.f); },               // BORDER_WIDTH,             28
-    [](RSProperties* prop) { prop->SetBorderStyle(BORDER_TYPE_NONE); },  // BORDER_STYLE,             29
-    [](RSProperties* prop) { prop->SetFilter({}); },                     // FILTER,                   30
-    [](RSProperties* prop) { prop->SetBackgroundFilter({}); },           // BACKGROUND_FILTER,        31
-    [](RSProperties* prop) { prop->SetLinearGradientBlurPara({}); },     // LINEAR_GRADIENT_BLUR_PARA,32
-    [](RSProperties* prop) { prop->SetDynamicLightUpRate({}); },         // DYNAMIC_LIGHT_UP_RATE,    33
-    [](RSProperties* prop) { prop->SetDynamicLightUpDegree({}); },       // DYNAMIC_LIGHT_UP_DEGREE,  34
-    [](RSProperties* prop) { prop->SetFrameGravity(Gravity::DEFAULT); }, // FRAME_GRAVITY,            35
-    [](RSProperties* prop) { prop->SetClipRRect({}); },                  // CLIP_RRECT,               36
-    [](RSProperties* prop) { prop->SetClipBounds({}); },                 // CLIP_BOUNDS,              37
-    [](RSProperties* prop) { prop->SetClipToBounds(false); },            // CLIP_TO_BOUNDS,           38
-    [](RSProperties* prop) { prop->SetClipToFrame(false); },             // CLIP_TO_FRAME,            39
-    [](RSProperties* prop) { prop->SetVisible(true); },                  // VISIBLE,                  40
-    [](RSProperties* prop) { prop->SetShadowColor({}); },                // SHADOW_COLOR,             41
-    [](RSProperties* prop) { prop->SetShadowOffsetX(0.f); },             // SHADOW_OFFSET_X,          42
-    [](RSProperties* prop) { prop->SetShadowOffsetY(0.f); },             // SHADOW_OFFSET_Y,          43
-    [](RSProperties* prop) { prop->SetShadowAlpha(0.f); },               // SHADOW_ALPHA,             44
-    [](RSProperties* prop) { prop->SetShadowElevation(0.f); },           // SHADOW_ELEVATION,         45
-    [](RSProperties* prop) { prop->SetShadowRadius(0.f); },              // SHADOW_RADIUS,            46
-    [](RSProperties* prop) { prop->SetShadowPath({}); },                 // SHADOW_PATH,              47
-    [](RSProperties* prop) { prop->SetShadowMask(false); },              // SHADOW_MASK,              48
-    [](RSProperties* prop) { prop->SetShadowColorStrategy(               // ShadowColorStrategy,      49
-        SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE); },
-    [](RSProperties* prop) { prop->SetMask({}); },                       // MASK,                     50
-    [](RSProperties* prop) { prop->SetSpherize(0.f); },                  // SPHERIZE,                 51
-    [](RSProperties* prop) { prop->SetLightUpEffect(1.f); },             // LIGHT_UP_EFFECT,          52
-    [](RSProperties* prop) { prop->SetPixelStretch({}); },               // PIXEL_STRETCH,            53
-    [](RSProperties* prop) { prop->SetPixelStretchPercent({}); },        // PIXEL_STRETCH_PERCENT,    54
-    [](RSProperties* prop) { prop->SetUseEffect(false); },               // USE_EFFECT,               55
-    [](RSProperties* prop) { prop->SetColorBlendMode(0); },              // COLOR_BLENDMODE,          56
-    [](RSProperties* prop) { prop->SetColorBlendApplyType(0); },         // COLOR_BLENDAPPLY_TYPE,    57
-    [](RSProperties* prop) { prop->ResetSandBox(); },                    // SANDBOX,                  58
-    [](RSProperties* prop) { prop->SetGrayScale({}); },                  // GRAY_SCALE,               59
-    [](RSProperties* prop) { prop->SetBrightness({}); },                 // BRIGHTNESS,               60
-    [](RSProperties* prop) { prop->SetContrast({}); },                   // CONTRAST,                 61
-    [](RSProperties* prop) { prop->SetSaturate({}); },                   // SATURATE,                 62
-    [](RSProperties* prop) { prop->SetSepia({}); },                      // SEPIA,                    63
-    [](RSProperties* prop) { prop->SetInvert({}); },                     // INVERT,                   64
-    [](RSProperties* prop) { prop->SetAiInvert({}); },                   // AIINVERT,                 65
-    [](RSProperties* prop) { prop->SetHueRotate({}); },                  // HUE_ROTATE,               66
-    [](RSProperties* prop) { prop->SetColorBlend({}); },                 // COLOR_BLEND,              67
-    [](RSProperties* prop) { prop->SetParticles({}); },                  // PARTICLE,                 68
-    [](RSProperties* prop) { prop->SetShadowIsFilled(false); },          // SHADOW_IS_FILLED,         69
-    [](RSProperties* prop) { prop->SetOutlineColor(RSColor()); },        // OUTLINE_COLOR,            70
-    [](RSProperties* prop) { prop->SetOutlineWidth(0.f); },              // OUTLINE_WIDTH,            71
-    [](RSProperties* prop) {
-        prop->SetOutlineStyle(BORDER_TYPE_NONE);
-    },                                                                   // OUTLINE_STYLE,            72
-    [](RSProperties* prop) { prop->SetOutlineRadius(0.f); },             // OUTLINE_RADIUS,           73
-    [](RSProperties* prop) { prop->SetUseShadowBatching(false); },       // USE_SHADOW_BATCHING,      74
-    [](RSProperties* prop) { prop->SetGreyCoef1(0.f); },                 // GREY_COEF1,               75
-    [](RSProperties* prop) { prop->SetGreyCoef2(0.f); },                 // GREY_COEF2,               76
-    [](RSProperties* prop) { prop->SetLightIntensity(-1.f); },           // LIGHT_INTENSITY           77
-    [](RSProperties* prop) { prop->SetLightPosition({}); },              // LIGHT_POSITION            78
-    [](RSProperties* prop) { prop->SetIlluminatedBorderWidth({}); },     // ILLUMINATED_BORDER_WIDTH  79
-    [](RSProperties* prop) { prop->SetIlluminatedType(-1); },            // ILLUMINATED_TYPE          80
-    [](RSProperties* prop) { prop->SetBloom({}); },                      // BLOOM                     81
+    nullptr,                                                             // INVALID
+    nullptr,                                                             // BOUNDS
+    nullptr,                                                             // FRAME
+    [](RSProperties* prop) { prop->SetPositionZ(0.f); },                 // POSITION_Z
+    [](RSProperties* prop) { prop->SetPivot(Vector2f(0.5f, 0.5f)); },    // PIVOT
+    [](RSProperties* prop) { prop->SetPivotZ(0.f); },                    // PIVOT_Z
+    [](RSProperties* prop) { prop->SetQuaternion(Quaternion()); },       // QUATERNION
+    [](RSProperties* prop) { prop->SetRotation(0.f); },                  // ROTATION
+    [](RSProperties* prop) { prop->SetRotationX(0.f); },                 // ROTATION_X
+    [](RSProperties* prop) { prop->SetRotationY(0.f); },                 // ROTATION_Y
+    [](RSProperties* prop) { prop->SetCameraDistance(0.f); },            // CAMERA_DISTANCE
+    [](RSProperties* prop) { prop->SetScale(Vector2f(1.f, 1.f)); },      // SCALE
+    [](RSProperties* prop) { prop->SetTranslate(Vector2f(0.f, 0.f)); },  // TRANSLATE
+    [](RSProperties* prop) { prop->SetTranslateZ(0.f); },                // TRANSLATE_Z
+    [](RSProperties* prop) { prop->SetSublayerTransform({}); },          // SUBLAYER_TRANSFORM
+    [](RSProperties* prop) { prop->SetCornerRadius(0.f); },              // CORNER_RADIUS
+    [](RSProperties* prop) { prop->SetAlpha(1.f); },                     // ALPHA
+    [](RSProperties* prop) { prop->SetAlphaOffscreen(false); },          // ALPHA_OFFSCREEN
+    [](RSProperties* prop) { prop->SetForegroundColor({}); },            // FOREGROUND_COLOR
+    [](RSProperties* prop) { prop->SetBackgroundColor({}); },            // BACKGROUND_COLOR
+    [](RSProperties* prop) { prop->SetBackgroundShader({}); },           // BACKGROUND_SHADER
+    [](RSProperties* prop) { prop->SetBgImage({}); },                    // BG_IMAGE
+    [](RSProperties* prop) { prop->SetBgImageWidth(0.f); },              // BG_IMAGE_WIDTH
+    [](RSProperties* prop) { prop->SetBgImageHeight(0.f); },             // BG_IMAGE_HEIGHT
+    [](RSProperties* prop) { prop->SetBgImagePositionX(0.f); },          // BG_IMAGE_POSITION_X
+    [](RSProperties* prop) { prop->SetBgImagePositionY(0.f); },          // BG_IMAGE_POSITION_Y
+    nullptr,                                                             // SURFACE_BG_COLOR
+    [](RSProperties* prop) { prop->SetBorderColor(RSColor()); },         // BORDER_COLOR
+    [](RSProperties* prop) { prop->SetBorderWidth(0.f); },               // BORDER_WIDTH
+    [](RSProperties* prop) { prop->SetBorderStyle(BORDER_TYPE_NONE); },  // BORDER_STYLE
+    [](RSProperties* prop) { prop->SetFilter({}); },                     // FILTER
+    [](RSProperties* prop) { prop->SetBackgroundFilter({}); },           // BACKGROUND_FILTER
+    [](RSProperties* prop) { prop->SetLinearGradientBlurPara({}); },     // LINEAR_GRADIENT_BLUR_PARA
+    [](RSProperties* prop) { prop->SetDynamicLightUpRate({}); },         // DYNAMIC_LIGHT_UP_RATE
+    [](RSProperties* prop) { prop->SetDynamicLightUpDegree({}); },       // DYNAMIC_LIGHT_UP_DEGREE
+    [](RSProperties* prop) { prop->SetFrameGravity(Gravity::DEFAULT); }, // FRAME_GRAVITY
+    [](RSProperties* prop) { prop->SetClipRRect({}); },                  // CLIP_RRECT
+    [](RSProperties* prop) { prop->SetClipBounds({}); },                 // CLIP_BOUNDS
+    [](RSProperties* prop) { prop->SetClipToBounds(false); },            // CLIP_TO_BOUNDS
+    [](RSProperties* prop) { prop->SetClipToFrame(false); },             // CLIP_TO_FRAME
+    [](RSProperties* prop) { prop->SetVisible(true); },                  // VISIBLE
+    [](RSProperties* prop) { prop->SetShadowColor({}); },                // SHADOW_COLOR
+    [](RSProperties* prop) { prop->SetShadowOffsetX(0.f); },             // SHADOW_OFFSET_X
+    [](RSProperties* prop) { prop->SetShadowOffsetY(0.f); },             // SHADOW_OFFSET_Y
+    [](RSProperties* prop) { prop->SetShadowAlpha(0.f); },               // SHADOW_ALPHA
+    [](RSProperties* prop) { prop->SetShadowElevation(0.f); },           // SHADOW_ELEVATION
+    [](RSProperties* prop) { prop->SetShadowRadius(0.f); },              // SHADOW_RADIUS
+    [](RSProperties* prop) { prop->SetShadowPath({}); },                 // SHADOW_PATH
+    [](RSProperties* prop) { prop->SetShadowMask(false); },              // SHADOW_MASK
+    [](RSProperties* prop) { prop->SetShadowColorStrategy(0); },         // ShadowColorStrategy
+    [](RSProperties* prop) { prop->SetMask({}); },                       // MASK
+    [](RSProperties* prop) { prop->SetSpherize(0.f); },                  // SPHERIZE
+    [](RSProperties* prop) { prop->SetLightUpEffect(1.f); },             // LIGHT_UP_EFFECT
+    [](RSProperties* prop) { prop->SetPixelStretch({}); },               // PIXEL_STRETCH
+    [](RSProperties* prop) { prop->SetPixelStretchPercent({}); },        // PIXEL_STRETCH_PERCENT
+    [](RSProperties* prop) { prop->SetUseEffect(false); },               // USE_EFFECT
+    [](RSProperties* prop) { prop->SetColorBlendMode(0); },              // COLOR_BLENDMODE
+    [](RSProperties* prop) { prop->SetColorBlendApplyType(0); },         // COLOR_BLENDAPPLY_TYPE
+    [](RSProperties* prop) { prop->ResetSandBox(); },                    // SANDBOX
+    [](RSProperties* prop) { prop->SetGrayScale({}); },                  // GRAY_SCALE
+    [](RSProperties* prop) { prop->SetBrightness({}); },                 // BRIGHTNESS
+    [](RSProperties* prop) { prop->SetContrast({}); },                   // CONTRAST
+    [](RSProperties* prop) { prop->SetSaturate({}); },                   // SATURATE
+    [](RSProperties* prop) { prop->SetSepia({}); },                      // SEPIA
+    [](RSProperties* prop) { prop->SetInvert({}); },                     // INVERT
+    [](RSProperties* prop) { prop->SetAiInvert({}); },                   // AIINVERT
+    [](RSProperties* prop) { prop->SetHueRotate({}); },                  // HUE_ROTATE
+    [](RSProperties* prop) { prop->SetColorBlend({}); },                 // COLOR_BLEND
+    [](RSProperties* prop) { prop->SetParticles({}); },                  // PARTICLE
+    [](RSProperties* prop) { prop->SetShadowIsFilled(false); },          // SHADOW_IS_FILLED
+    [](RSProperties* prop) { prop->SetOutlineColor(RSColor()); },        // OUTLINE_COLOR
+    [](RSProperties* prop) { prop->SetOutlineWidth(0.f); },              // OUTLINE_WIDTH
+    [](RSProperties* prop) { prop->SetOutlineStyle(BORDER_TYPE_NONE); }, // OUTLINE_STYLE
+    [](RSProperties* prop) { prop->SetOutlineRadius(0.f); },             // OUTLINE_RADIUS
+    [](RSProperties* prop) { prop->SetUseShadowBatching(false); },       // USE_SHADOW_BATCHING
+    [](RSProperties* prop) { prop->SetGreyCoef1(0.f); },                 // GREY_COEF1
+    [](RSProperties* prop) { prop->SetGreyCoef2(0.f); },                 // GREY_COEF2
+    [](RSProperties* prop) { prop->SetLightIntensity(-1.f); },           // LIGHT_INTENSITY
+    [](RSProperties* prop) { prop->SetLightPosition({}); },              // LIGHT_POSITION
+    [](RSProperties* prop) { prop->SetIlluminatedBorderWidth({}); },     // ILLUMINATED_BORDER_WIDTH
+    [](RSProperties* prop) { prop->SetIlluminatedType(-1); },            // ILLUMINATED_TYPE
+    [](RSProperties* prop) { prop->SetBloom({}); },                      // BLOOM
 };
 } // namespace
 
@@ -2836,8 +2832,7 @@ void RSProperties::CalculateFrameOffset()
 void RSProperties::SetColorBlendMode(int colorBlendMode)
 {
     colorBlendMode_ = colorBlendMode;
-    RS_OPTIONAL_TRACE_NAME_FMT("set colorBlendMode:%d", colorBlendMode_);
-    if (colorBlendMode_ != static_cast<int>(RSColorBlendMode::DEFAULT)) {
+    if (colorBlendMode_ != static_cast<int>(RSColorBlendMode::NONE)) {
         isDrawn_ = true;
     }
     SetDirty();
@@ -2852,7 +2847,7 @@ int RSProperties::GetColorBlendMode() const
 void RSProperties::SetColorBlendApplyType(int colorBlendApplyType)
 {
     colorBlendApplyType_ = colorBlendApplyType;
-    RS_OPTIONAL_TRACE_NAME_FMT("set colorBlendApplyType:%d", colorBlendApplyType);
+    isDrawn_ = true;
     SetDirty();
     contentDirty_ = true;
 }
