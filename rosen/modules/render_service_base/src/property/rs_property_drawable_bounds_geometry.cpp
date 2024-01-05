@@ -1306,7 +1306,7 @@ RSBlendSaveLayerDrawable::RSBlendSaveLayerDrawable(int blendMode)
 #endif
 }
 
-void RSBlendSaveLayerDrawable::Draw(const RSRenderContent& node, RSPaintFilterCanvas& canvas) const
+void RSBlendSaveLayerDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
 #ifndef USE_ROSEN_DRAWING
     canvas.saveLayer(nullptr, &blendPaint_);
@@ -1320,14 +1320,14 @@ void RSBlendSaveLayerDrawable::Draw(const RSRenderContent& node, RSPaintFilterCa
     canvas.SetAlpha(1.0f);
 }
 
-void RSBlendFastDrawable::Draw(const RSRenderContent& node, RSPaintFilterCanvas& canvas) const
+void RSBlendFastDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
     canvas.SaveBlendMode();
     canvas.SetBlendMode({ blendMode_ });
 }
 
 
-void RSBlendSaveLayerRestoreDrawable::Draw(const RSRenderContent& node, RSPaintFilterCanvas& canvas) const
+void RSBlendSaveLayerRestoreDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
     canvas.RestoreBlendMode();
     canvas.RestoreAlpha();
@@ -1338,9 +1338,8 @@ void RSBlendSaveLayerRestoreDrawable::Draw(const RSRenderContent& node, RSPaintF
 #endif
 }
 
-void RSBlendFastRestoreDrawable::Draw(const RSRenderContent& node, RSPaintFilterCanvas& canvas) const
+void RSBlendFastRestoreDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] fast restore.", node.GetId());
     canvas.RestoreBlendMode();
 }
 

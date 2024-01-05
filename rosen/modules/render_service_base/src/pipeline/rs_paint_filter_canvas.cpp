@@ -1015,7 +1015,7 @@ CoreCanvas& RSPaintFilterCanvas::AttachBrush(const Brush& brush)
 
     // use blendModeStack_.top() to set blend mode
     if (auto& blendMode = blendModeStack_.top()) {
-        p.SetBlendMode(static_cast<Drawing::BlendMode>(*blendMode));
+        b.SetBlendMode(static_cast<Drawing::BlendMode>(*blendMode));
     }
 #ifdef ENABLE_RECORDING_DCL
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {

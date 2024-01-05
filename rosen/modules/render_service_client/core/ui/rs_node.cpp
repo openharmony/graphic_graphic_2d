@@ -1172,15 +1172,12 @@ void RSNode::SetUseShadowBatching(bool useShadowBatching)
 
 void RSNode::SetColorBlendMode(RSColorBlendMode colorBlendMode)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] SetColorBlendMode:%d", GetId(), static_cast<int>(colorBlendMode));
     SetProperty<RSColorBlendModeModifier, RSProperty<int>>(
         RSModifierType::COLOR_BLEND_MODE, static_cast<int>(colorBlendMode));
 }
 
 void RSNode::SetColorBlendApplyType(RSColorBlendApplyType colorBlendApplyType)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] SetColorBlendApplyType:%d", GetId(),
-        static_cast<int>(colorBlendApplyType));
     SetProperty<RSColorBlendApplyTypeModifier, RSProperty<int>>(
         RSModifierType::COLOR_BLEND_APPLY_TYPE, static_cast<int>(colorBlendApplyType));
 }
