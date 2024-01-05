@@ -16,7 +16,6 @@
 #include "frame_report.h"
 
 #include <hilog/log.h>
-#include <scoped_bytrace.h>
 #include <securec.h>
 
 #include "parameter.h"

@@ -51,7 +51,6 @@ ohos_static_library("frame_report") {
     defines += [ "AI_SCHED_ENABLE" ]
   }
 
-  deps = [ "..:scoped_bytrace" ]
   subsystem_name = "graphic"
   part_name = "graphic_2d"
 }
