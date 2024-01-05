@@ -1653,6 +1653,9 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
 #endif
     const auto& property = node.GetRenderProperties();
     auto geoPtr = (property.GetBoundsGeometry());
+    if (geoPtr == nullptr) {
+        return;
+    }
     // Dirty Region use abstract coordinate, property of node use relative coordinate
     // BoundsRect(if exists) is mapped to absRect_ of RSObjAbsGeometry.
     if (property.GetClipToBounds()) {
@@ -1676,6 +1679,11 @@ void RSUniRenderVisitor::PrepareCanvasRenderNode(RSCanvasRenderNode &node)
     }
 
     node.UpdateChildrenOutOfRectFlag(false);
+
+    if (isSkipCanvasNodeOutOfScreen_ && !isSubNodeOfSurfaceInPrepare_ && !node.HasSubSurface() &&
+        IsOutOfScreenRegion(geoPtr->GetAbsRect())) {
+        return;
+    }
 
     PrepareChildren(node);
     // attention: accumulate direct parent's childrenRect
@@ -4748,8 +4756,9 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 #endif
         return;
     }
-    if (isPc_ && isSkipCanvasNodeOutOfScreen_ && !isSubNodeOfSurfaceInProcess_ &&
-        IsOutOfScreenRegion(node.GetRenderProperties().GetBoundsGeometry()->GetAbsRect())) {
+    auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
+    if (isSkipCanvasNodeOutOfScreen_ && !isSubNodeOfSurfaceInProcess_ &&
+        geoPtr && IsOutOfScreenRegion(geoPtr->GetAbsRect())) {
         return;
     }
     node.MarkNodeSingleFrameComposer(isNodeSingleFrameComposer_);

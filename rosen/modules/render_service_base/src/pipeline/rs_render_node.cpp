@@ -475,6 +475,7 @@ void RSRenderNode::ClearChildren()
 
 void RSRenderNode::SetParent(WeakPtr parent)
 {
+    UpdateSubSurfaceCnt(parent.lock(), parent_.lock());
     parent_ = parent;
     if (isSubSurfaceEnabled_) {
         AddSubSurfaceNode(shared_from_this(), parent.lock());
@@ -493,6 +494,7 @@ void RSRenderNode::ResetParent()
         }
         parentNode->hasRemovedChild_ = true;
         parentNode->SetContentDirty();
+        UpdateSubSurfaceCnt(nullptr, parentNode);
     }
     parent_.reset();
     SetIsOnTheTree(false);
@@ -2596,6 +2598,26 @@ void RSRenderNode::SetVisitedCacheRootIds(const std::unordered_set<NodeId>& visi
 const std::unordered_set<NodeId>& RSRenderNode::GetVisitedCacheRootIds() const
 {
     return visitedCacheRoots_;
+}
+void RSRenderNode::UpdateSubSurfaceCnt(SharedPtr curParent, SharedPtr preParent)
+{
+    uint32_t subSurfaceCnt = GetType() == RSRenderNodeType::SURFACE_NODE ?
+        subSurfaceCnt_ + 1 : subSurfaceCnt_;
+    if (subSurfaceCnt == 0) {
+        return;
+    }
+    if (curParent) {
+        curParent->subSurfaceCnt_ += subSurfaceCnt;
+        UpdateSubSurfaceCnt(curParent->GetParent().lock(), nullptr);
+    }
+    if (preParent) {
+        preParent->subSurfaceCnt_ -= subSurfaceCnt;
+        UpdateSubSurfaceCnt(nullptr, preParent->GetParent().lock());
+    }
+}
+bool RSRenderNode::HasSubSurface() const
+{
+    return subSurfaceCnt_ > 0;
 }
 void RSRenderNode::SetDrawingCacheRootId(NodeId id)
 {
