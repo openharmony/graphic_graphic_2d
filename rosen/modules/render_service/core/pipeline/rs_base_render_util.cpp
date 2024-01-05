@@ -1512,7 +1512,7 @@ std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(Messag
 bool RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& node)
 {
     auto type = RSSystemProperties::GetDumpSurfaceType();
-    if (type == DumpSurfaceType::DISABLED || type == DumpSurfaceType::PIXELMAP) {
+    if (type != DumpSurfaceType::SINGLESURFACE && type != DumpSurfaceType::ALLSURFACES) {
         return false;
     }
     uint64_t id = static_cast<uint64_t>(RSSystemProperties::GetDumpSurfaceId());
@@ -1549,7 +1549,7 @@ bool RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& no
 bool RSBaseRenderUtil::WriteCacheRenderNodeToPng(const RSRenderNode& node)
 {
     auto type = RSSystemProperties::GetDumpSurfaceType();
-    if (type == DumpSurfaceType::DISABLED || type == DumpSurfaceType::PIXELMAP) {
+    if (type != DumpSurfaceType::SINGLESURFACE && type != DumpSurfaceType::ALLSURFACES) {
         return false;
     }
     uint64_t id = static_cast<uint64_t>(RSSystemProperties::GetDumpSurfaceId());
