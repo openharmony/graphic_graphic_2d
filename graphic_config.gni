@@ -19,7 +19,6 @@ declare_args() {
   graphic_2d_feature_ace_enable_gpu = true
   graphic_2d_feature_color_gamut_enable = false
   graphic_2d_feature_rs_enable_eglimage = false
-  graphic_2d_feature_use_video_processing_engine = false
   graphic_2d_feature_use_texgine = false
   graphic_2d_feature_rs_enable_uni_render = false
   graphic_2d_feature_wuji_enable = false
@@ -125,7 +124,6 @@ if (graphic_2d_feature_rs_enable_eglimage || current_os == "android") {
 }
 
 # use_texgine = graphic_2d_feature_use_texgine
-use_video_processing_engine = graphic_2d_feature_use_video_processing_engine
 
 if (graphic_2d_feature_rs_enable_uni_render) {
   rs_enable_driven_render = true
@@ -207,6 +205,11 @@ if (defined(global_parts_info) &&
 if (defined(global_parts_info) &&
     !defined(global_parts_info.multimedia_player_framework)) {
   player_framework_enable = false
+}
+
+if (defined(global_parts_info) &&
+    defined(global_parts_info.multimedia_video_processing_engine)) {
+  use_video_processing_engine = true
 }
 
 if (defined(global_parts_info) &&
