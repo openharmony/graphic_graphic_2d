@@ -63,8 +63,8 @@ public:
     std::vector<TextRect> GetTextRectsOfPlaceholders() const override;
     IndexAndAffinity GetGlyphIndexByCoordinate(double x, double y) const override;
     Boundary GetWordBoundaryByIndex(size_t index) const override;
-    double GetLineHeight(int lineNumber);
-    double GetLineWidth(int lineNumber);
+    double GetLineHeight(int lineNumber) const override;
+    double GetLineWidth(int lineNumber) const override;
 
 private:
     void ReportMemoryUsage(const std::string &member, bool needThis) const override;

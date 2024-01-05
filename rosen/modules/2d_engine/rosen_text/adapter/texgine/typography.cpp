@@ -197,6 +197,16 @@ Boundary Typography::GetWordBoundaryByIndex(size_t index)
     auto range = typography_->GetWordBoundaryByIndex(index);
     return Convert(range);
 }
+
+double Typography::GetLineHeight(int lineNumber)
+{
+    return typography_->GetLineHeight(lineNumber);
+}
+
+double Typography::GetLineWidth(int lineNumber)
+{
+    return typography_->GetLineWidth(lineNumber);
+}
 } // namespace AdapterTextEngine
 } // namespace Rosen
 } // namespace OHOS

@@ -14,6 +14,7 @@
  */
 
 #include "render/rs_pixel_map_util.h"
+#include "platform/common/rs_log.h"
 #include <memory>
 
 #include "pixel_map.h"

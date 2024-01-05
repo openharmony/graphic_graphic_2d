@@ -114,13 +114,13 @@ txt::TextStyle Convert(const TextStyle &style)
     textStyle.height = style.heightScale;
     textStyle.has_height_override = style.heightOnly;
     textStyle.locale = style.locale;
-    textStyle.backgroundRect = static_cast<txt::RectStyle>(style.backgroundRect);
 #ifndef USE_ROSEN_DRAWING
     textStyle.has_background = style.background.has_value();
     textStyle.background = style.background.value_or(SkPaint());
     textStyle.has_foreground = style.foreground.has_value();
     textStyle.foreground = style.foreground.value_or(SkPaint());
 #else
+    textStyle.backgroundRect = static_cast<txt::RectStyle>(style.backgroundRect);
     textStyle.has_background_pen = style.backgroundPen.has_value();
     textStyle.background_pen = style.backgroundPen.value_or(RSPen());
     textStyle.has_background_brush = style.backgroundBrush.has_value();
