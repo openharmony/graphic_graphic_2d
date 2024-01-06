@@ -4758,7 +4758,7 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         return;
     }
     auto geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
-    if (isSkipCanvasNodeOutOfScreen_ && !isSubNodeOfSurfaceInProcess_ &&
+    if (isSkipCanvasNodeOutOfScreen_ && !isSubNodeOfSurfaceInProcess_ && !node.HasSubSurface() &&
         geoPtr && IsOutOfScreenRegion(geoPtr->GetAbsRect())) {
         return;
     }
