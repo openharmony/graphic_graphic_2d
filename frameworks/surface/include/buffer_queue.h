@@ -157,6 +157,9 @@ private:
     void ClearLocked();
     bool CheckProducerCacheList();
     GSError SetProducerCacheCleanFlagLocked(bool flag);
+    void ListenerBufferReleasedCb(sptr<SurfaceBuffer> &buffer);
+    GSError CheckBufferQueueCache(uint32_t sequence);
+    GSError ReallocBuffer(const BufferRequestConfig &config, struct IBufferProducer::RequestBufferReturnValue &retval);
 
     int32_t defaultWidth = 0;
     int32_t defaultHeight = 0;
@@ -177,7 +180,8 @@ private:
     std::mutex producerListenerMutex_;
     const uint64_t uniqueId_;
     sptr<BufferManager> bufferManager_ = nullptr;
-    OnReleaseFunc onBufferRelease = nullptr;
+    OnReleaseFunc onBufferRelease_ = nullptr;
+    std::mutex onBufferReleaseMutex_;
     sptr<IProducerListener> producerListener_ = nullptr;
     OnDeleteBufferFunc onBufferDeleteForRSMainThread_;
     OnDeleteBufferFunc onBufferDeleteForRSHardwareThread_;

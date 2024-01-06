@@ -87,6 +87,30 @@ VSyncGenerator::~VSyncGenerator()
     }
 }
 
+void VSyncGenerator::ListenerVsyncEventCB(int64_t occurTimestamp, int64_t nextTimeStamp,
+    int64_t occurReferenceTime, bool isWakeup)
+{
+    std::vector<Listener> listeners;
+    {
+        std::unique_lock<std::mutex> locker(mutex_);
+        int64_t newOccurTimestamp = GetSysTimeNs();
+        if (isWakeup) {
+            UpdateWakeupDelay(newOccurTimestamp, nextTimeStamp);
+        }
+        if (vsyncMode_ == VSYNC_MODE_LTPO) {
+            listeners = GetListenerTimeoutedLTPO(occurTimestamp, occurReferenceTime);
+        } else {
+            listeners = GetListenerTimeouted(newOccurTimestamp, occurReferenceTime);
+        }
+    }
+    ScopedBytrace func("GenerateVsyncCount:" + std::to_string(listeners.size()) +
+        ", period:" + std::to_string(period_) + ", currRefreshRate_:" + std::to_string(currRefreshRate_) +
+        ", vsyncMode_:" + std::to_string(vsyncMode_));
+    for (uint32_t i = 0; i < listeners.size(); i++) {
+        listeners[i].callback_->OnVSyncEvent(listeners[i].lastTime_, period_, currRefreshRate_, vsyncMode_);
+    }
+}
+
 void VSyncGenerator::ThreadLoop()
 {
     // set thread priorty
@@ -96,7 +120,6 @@ void VSyncGenerator::ThreadLoop()
     int64_t nextTimeStamp = 0;
     int64_t occurReferenceTime = 0;
     while (vsyncThreadRunning_ == true) {
-        std::vector<Listener> listeners;
         {
             std::unique_lock<std::mutex> locker(mutex_);
             UpdateVSyncModeLocked();
@@ -133,25 +156,7 @@ void VSyncGenerator::ThreadLoop()
                 continue;
             }
         }
-        {
-            std::unique_lock<std::mutex> locker(mutex_);
-            int64_t newOccurTimestamp = GetSysTimeNs();
-            if (isWakeup) {
-                UpdateWakeupDelay(newOccurTimestamp, nextTimeStamp);
-            }
-            if (vsyncMode_ == VSYNC_MODE_LTPO) {
-                listeners = GetListenerTimeoutedLTPO(occurTimestamp, occurReferenceTime);
-            } else {
-                listeners = GetListenerTimeouted(newOccurTimestamp, occurReferenceTime);
-            }
-        }
-        ScopedBytrace func("GenerateVsyncCount:" + std::to_string(listeners.size()) +
-                           ", period:" + std::to_string(period_) +
-                           ", currRefreshRate_:" + std::to_string(currRefreshRate_) +
-                           ", vsyncMode_:" + std::to_string(vsyncMode_));
-        for (uint32_t i = 0; i < listeners.size(); i++) {
-            listeners[i].callback_->OnVSyncEvent(listeners[i].lastTime_, period_, currRefreshRate_, vsyncMode_);
-        }
+        ListenerVsyncEventCB(occurTimestamp, nextTimeStamp, occurReferenceTime, isWakeup);
     }
 }
 
