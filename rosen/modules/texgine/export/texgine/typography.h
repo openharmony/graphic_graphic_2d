@@ -23,6 +23,7 @@
 #include "texgine_font.h"
 #include "texgine_rect.h"
 #include "texgine/typography_types.h"
+#include "symbol_animation_config.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -203,6 +204,7 @@ public:
      * @return The struct of word boundary
      */
     virtual Boundary GetWordBoundaryByIndex(size_t index) const = 0;
+    virtual void SetAnimation(std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> animationFunc)= 0;
 
 private:
     friend void ReportMemoryUsage(const std::string& member, const Typography& that, const bool needThis);

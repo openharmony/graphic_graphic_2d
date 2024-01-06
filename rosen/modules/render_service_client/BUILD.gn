@@ -23,6 +23,8 @@ config("render_service_client_config") {
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/interfaces/inner_api/surface",
     "$graphic_2d_root/interfaces/inner_api/composer",
+    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text/",
+
     "//drivers/peripheral/display/interfaces/include",
     "//drivers/peripheral/base",
     "$graphic_2d_root/frameworks/surface/include",
@@ -68,6 +70,7 @@ template("render_service_client_source_set") {
       "core/animation/rs_path_animation.cpp",
       "core/animation/rs_property_animation.cpp",
       "core/animation/rs_spring_animation.cpp",
+      "core/animation/rs_symbol_animation.cpp",
       "core/animation/rs_transition.cpp",
       "core/animation/rs_transition_effect.cpp",
 

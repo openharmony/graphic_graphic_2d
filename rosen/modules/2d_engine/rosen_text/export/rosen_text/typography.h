@@ -25,6 +25,8 @@
 #include "utils/rect.h"
 
 #include "typography_types.h"
+#include "symbol_animation_config.h"
+
 
 namespace OHOS {
 namespace Rosen {
@@ -93,6 +95,8 @@ public:
     virtual Boundary GetWordBoundaryByIndex(size_t index) = 0;
     virtual double GetLineHeight(int lineNumber) = 0;
     virtual double GetLineWidth(int lineNumber) = 0;
+    virtual void SetAnimation(std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> animationFunc)= 0;
+
 };
 } // namespace Rosen
 } // namespace OHOS

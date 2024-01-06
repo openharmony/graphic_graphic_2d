@@ -25,11 +25,23 @@ if (enable_text_gine) {
       "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
       "//third_party/bounds_checking_function/include/",
       "$rosen_root/modules/texgine/texgine_drawing/src",
+      "$graphic_2d_root/rosen/modules",
+      "$graphic_2d_root/rosen/modules/render_service_client",
+      "$graphic_2d_root/rosen/modules/render_service_client/core",
+      "$graphic_2d_root/rosen/modules/render_service_base",
+      "$graphic_2d_root/rosen/modules/render_service_base/include",
+      "$graphic_2d_root/rosen/modules/platform/image_native",
     ]
   }
 
   defines = [ "USE_GRAPHIC_TEXT_GINE" ]
 
+  if (defined(external_deps)) {
+    external_deps += [ "hilog:libhilog" ]
+  } else {
+    external_deps = [ "hilog:libhilog" ]
+  }
+  
   ohos_shared_library("rosen_text") {
     include_dirs = [ "$graphic_2d_root/rosen/modules/2d_graphics/include" ]
     public_deps = [ ":rosen_text_inner" ]

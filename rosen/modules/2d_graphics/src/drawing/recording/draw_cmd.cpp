@@ -1006,13 +1006,7 @@ std::shared_ptr<DrawOpItem> DrawSymbolOpItem::Unmarshalling(const CmdList& cmdLi
 
 void DrawSymbolOpItem::SetSymbol()
 {
-    LOGD("SymbolOpItem::SetSymbol GlyphId %{public}d", static_cast<int>(symbol_.symbolInfo_.symbolGlyphId));
-    if (symbol_.symbolInfo_.effect == DrawingEffectStrategy::SCALE) {
-        if (!startAnimation_) {
-            InitialScale();
-        }
-        SetScale(0); // scale animation only has one element
-    } else if (symbol_.symbolInfo_.effect == DrawingEffectStrategy::HIERARCHICAL) {
+    if (symbol_.symbolInfo_.effect == DrawingEffectStrategy::HIERARCHICAL) {
         if (!startAnimation_) {
             InitialVariableColor();
         }
@@ -1145,10 +1139,10 @@ void DrawSymbolOpItem::Playback(Canvas* canvas, const Rect* rect)
 
     Path path(symbol_.path_);
 
-    if (startAnimation_ && symbol_.symbolInfo_.effect == DrawingEffectStrategy::SCALE &&
-            !animation_.empty()) {
-        UpdateScale(animation_[0].curValue, path);
-    }
+    // if (startAnimation_ && symbol_.symbolInfo_.effect == DrawingEffectStrategy::SCALE &&
+    //         !animation_.empty()) {
+    //     UpdateScale(animation_[0].curValue, path);
+    // }
 
     // 1.0 move path
     path.Offset(locate_.GetX(), locate_.GetY());

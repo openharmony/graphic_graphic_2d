@@ -42,6 +42,7 @@ config("libtexgine_public_config") {
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text"
   ]
 }
 
@@ -178,6 +179,8 @@ ohos_shared_library("libtexgine") {
     } else {
       deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_new" ]
     }
+    deps += [ "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client" ]
+
   }
   innerapi_tags = [ "platformsdk" ]
   part_name = "graphic_2d"

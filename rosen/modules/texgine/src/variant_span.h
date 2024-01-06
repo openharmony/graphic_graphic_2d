@@ -24,6 +24,8 @@
 #include "texgine/font_providers.h"
 #include "texgine/any_span.h"
 #include "text_span.h"
+#include "platform/common/rs_log.h"
+#include "symbol_animation_config.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -91,7 +93,16 @@ public:
     bool operator ==(const VariantSpan &rhs) const noexcept(false);
     bool operator !=(std::nullptr_t) const noexcept(false);
     bool operator !=(const VariantSpan &rhs) const noexcept(false);
+    void SetAnimation(std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)> animationFunc) {
+        if(animationFunc == nullptr){
+            RS_LOGE("HmSymbol variant_span.h null ");
 
+        }else{
+            ts_->SetAnimation(animationFunc);
+            RS_LOGD("HmSymbol variant_span.h success ");
+
+        }
+    }
 private:
     void CheckPointer(bool nullable = false) const noexcept(false);
 

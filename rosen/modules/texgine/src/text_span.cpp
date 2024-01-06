@@ -213,6 +213,20 @@ void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, cons
 
     PaintShadow(canvas, offsetX, offsetY, xs.shadows);
     if (xs.isSymbolGlyph && G_IS_HMSYMBOL_ENABLE) {
+        int effect = xs.symbol.GetEffectStrategy();
+        RS_LOGD(" HmSymbol text_span get spanSymbolAnimationConfig success %{public}d", effect);
+
+        auto spanSymbolAnimationConfig = std::make_shared<SymbolAnimationConfig>();
+        spanSymbolAnimationConfig->effectStrategy = SymbolAnimationEffectStrategy(xs.symbol.GetEffectStrategy());            
+        if(spanSymbolAnimationConfig->effectStrategy == SymbolAnimationEffectStrategy::SYMBOL_SCALE){
+
+            if (animationFunc_){
+                animationFunc_(spanSymbolAnimationConfig);
+            }else{
+                RS_LOGE(" HmSymbol text_span get animationFunc null");
+            }
+        }
+
         std::pair<double, double> offset(offsetX, offsetY);
         HMSymbolRun::DrawSymbol(canvas, textBlob_, offset, paint, xs);
     } else {

@@ -24,6 +24,8 @@
 #include "texgine_text_blob.h"
 #include "texgine/typography.h"
 #include "texgine/typography_style.h"
+#include "platform/common/rs_log.h"
+#include "symbol_animation_config.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -75,8 +77,20 @@ public:
     double lineHeight_ = 0.0;
     double lineY_ = 0.0;
     double absLineY_ = 0.0;
-
+    void SetAnimation(std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)> animationFunc) 
+    {   
+        if(!animationFunc) {
+            RS_LOGE(" HmSymbol text_span get SetAnimation failed");
+        }else{
+            animationFunc_ = animationFunc;
+            RS_LOGD(" HmSymbol text_span get SetAnimation success");
+        }
+    }
 private:
+
+    std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)> animationFunc_ =nullptr;
+
+
     friend class TextBreaker;
     friend class BidiProcesser;
     friend class ControllerForTest;
@@ -87,6 +101,9 @@ private:
     friend class TextShaper;
     friend class TextReverser;
     friend void ReportMemoryUsage(std::string const &member, TextSpan const &that, bool needThis);
+
+
+
 };
 } // namespace TextEngine
 } // namespace Rosen
