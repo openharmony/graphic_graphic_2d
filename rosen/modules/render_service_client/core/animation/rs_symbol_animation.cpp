@@ -35,9 +35,7 @@ RSSymbolAnimation::~RSSymbolAnimation()
 bool RSSymbolAnimation::SetSymbolAnimation(
     const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
 {
-    if (rsNode_) {
-        ROSEN_LOGD("HmSymbol RSSymbolAnimation::SetNode get ID rsnodeid = %{public}lu", rsNode_->GetId());
-    } else {
+    if (!rsNode_) {
         ROSEN_LOGE("HmSymbol RSSymbolAnimation::getNode :failed");
         return false;
     }
