@@ -2677,7 +2677,9 @@ bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedSc
             --systemAnimatedScenesCnt_;
         } else {
             if (systemAnimatedScenes == SystemAnimatedScenes::ENTER_TFS_WINDOW ||
-                systemAnimatedScenes == SystemAnimatedScenes::EXIT_TFU_WINDOW) {
+                systemAnimatedScenes == SystemAnimatedScenes::EXIT_TFU_WINDOW ||
+                systemAnimatedScenes == SystemAnimatedScenes::ENTER_WIND_CLEAR ||
+                systemAnimatedScenes == SystemAnimatedScenes::ENTER_WIND_RECOVER) {
                 ++threeFingerCnt_;
             }
             if (systemAnimatedScenes != SystemAnimatedScenes::APPEAR_MISSION_CENTER) {
