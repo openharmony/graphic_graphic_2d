@@ -101,6 +101,8 @@ public:
 
     std::vector<std::shared_ptr<DrawOpItem>> UnmarshallingCmdList();
 
+    void UpdateNodeIdToPicture(NodeId nodeId);
+
 private:
     void GenerateCacheInRenderService(Canvas* canvas, const Rect* rect);
 

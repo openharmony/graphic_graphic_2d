@@ -2705,6 +2705,13 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Media::PixelMap>&
     }
 }
 
+void RSExtendImageObject::SetNodeId(NodeId id)
+{
+    if (rsImage_) {
+        rsImage_->UpdateNodeIdToPicture(id);
+    }
+}
+
 void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect,
     const Drawing::SamplingOptions& sampling, bool isBackground)
 {
@@ -2930,6 +2937,13 @@ void RSExtendImageBaseObj::Playback(Drawing::Canvas& canvas, const Drawing::Rect
 {
     if (rsImage_) {
         rsImage_->DrawImage(canvas, sampling);
+    }
+}
+
+void RSExtendImageBaseObj::SetNodeId(NodeId id)
+{
+    if (rsImage_) {
+        rsImage_->UpdateNodeIdToPicture(id);
     }
 }
 

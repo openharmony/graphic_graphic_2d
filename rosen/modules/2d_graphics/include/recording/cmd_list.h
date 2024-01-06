@@ -37,12 +37,14 @@ class PixelMap;
 namespace Rosen {
 namespace Drawing {
 using CmdListData = std::pair<const void*, size_t>;
+using NodeId = uint64_t;
 
 class DRAWING_API ExtendImageObject {
 public:
     virtual ~ExtendImageObject() = default;
     virtual void Playback(Canvas& canvas, const Rect& rect,
         const SamplingOptions& sampling, bool isBackground = false) = 0;
+    virtual void SetNodeId(NodeId id) {};
 };
 
 class DRAWING_API ExtendImageBaseObj {
@@ -50,6 +52,7 @@ public:
     virtual ~ExtendImageBaseObj() = default;
     virtual void Playback(Canvas& canvas, const Rect& rect,
         const SamplingOptions& sampling) = 0;
+    virtual void SetNodeId(NodeId id) {};
 };
 
 class DRAWING_API CmdList {
@@ -169,7 +172,7 @@ public:
      * @brief  return real setup imageObject size.
      */
     uint32_t SetupObject(const std::vector<std::shared_ptr<ExtendImageObject>>& objectList);
-    
+
      /*
      * @brief  return imageBaseObj index, negative is error.
      */

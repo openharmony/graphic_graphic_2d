@@ -450,6 +450,24 @@ void DrawCmdList::AddOpToCmdList(std::shared_ptr<DrawCmdList> cmdList)
     }
 }
 
+void DrawCmdList::UpdateNodeIdToPicture(NodeId nodeId)
+{
+    if (unmarshalledOpItems_.size() == 0) {
+        return;
+    }
+    for (int i = 0; i < unmarshalledOpItems_.size(); ++i) {
+        auto opItem = unmarshalledOpItems_[i];
+        if (!opItem) {
+            continue;
+        }
+        if (opItem->GetType() == DrawOpItem::PIXELMAP_WITH_PARM_OPITEM ||
+            opItem->GetType() == DrawOpItem::IMAGE_WITH_PARM_OPITEM ||
+            opItem->GetType() == DrawOpItem::PIXELMAP_RECT_OPITEM) {
+            opItem->SetNodeId(nodeId);
+        }
+    }
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

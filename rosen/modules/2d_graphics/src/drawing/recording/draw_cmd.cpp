@@ -1589,6 +1589,15 @@ void DrawImageWithParmOpItem::Playback(Canvas* canvas, const Rect* rect)
     objectHandle_->Playback(*canvas, *rect, sampling_, false);
 }
 
+void DrawImageWithParmOpItem::SetNodeId(NodeId id)
+{
+    if (objectHandle_ == nullptr) {
+        LOGE("DrawImageWithParmOpItem objectHandle is nullptr!");
+        return;
+    }
+    objectHandle_->SetNodeId(id);
+}
+
 /* DrawPixelMapWithParmOpItem */
 DrawPixelMapWithParmOpItem::DrawPixelMapWithParmOpItem(
     const CmdList& cmdList, DrawPixelMapWithParmOpItem::ConstructorHandle* handle)
@@ -1613,6 +1622,15 @@ void DrawPixelMapWithParmOpItem::Playback(Canvas* canvas, const Rect* rect)
     objectHandle_->Playback(*canvas, *rect, sampling_, false);
 }
 
+void DrawPixelMapWithParmOpItem::SetNodeId(NodeId id)
+{
+    if (objectHandle_ == nullptr) {
+        LOGE("DrawPixelMapWithParmOpItem objectHandle is nullptr!");
+        return;
+    }
+    objectHandle_->SetNodeId(id);
+}
+
 /* DrawPixelMapRectOpItem */
 DrawPixelMapRectOpItem::DrawPixelMapRectOpItem(
     const CmdList& cmdList, DrawPixelMapRectOpItem::ConstructorHandle* handle)
@@ -1635,6 +1653,15 @@ void DrawPixelMapRectOpItem::Playback(Canvas* canvas, const Rect* rect)
     }
     canvas->AttachPaint(paint_);
     objectHandle_->Playback(*canvas, *rect, sampling_);
+}
+
+void DrawPixelMapRectOpItem::SetNodeId(NodeId id)
+{
+    if (objectHandle_ == nullptr) {
+        LOGE("DrawPixelMapRectOpItem objectHandle is nullptr!");
+        return;
+    }
+    objectHandle_->SetNodeId(id);
 }
 
 ImageSnapshotOpItem::ImageSnapshotOpItem(std::shared_ptr<Image> image, const Rect& src, const Rect& dst)
