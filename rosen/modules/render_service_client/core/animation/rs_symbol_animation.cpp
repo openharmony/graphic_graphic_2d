@@ -94,7 +94,7 @@ std::shared_ptr<RSAnimation> RSSymbolAnimation::ScaleSymbolAnimation(
     CreateOrSetModifierValue(scaleProperty_, scaleValue);
     CreateOrSetModifierValue(scaleEndProperty_, scaleValueEnd);
     Vector2f curNodePivot = rsNode->GetStagingProperties().GetPivot();
-    if (!isEqual(curNodePivot,CENTER_NODE_COORDINATE)){
+    if (!isEqual(curNodePivot, CENTER_NODE_COORDINATE)) {
         bool isCreate = CreateOrSetModifierValue(pivotProperty_, CENTER_NODE_COORDINATE);
         if (isCreate) {
             auto pivotModifier = std::make_shared<RSPivotModifier>(pivotProperty_);
@@ -110,9 +110,7 @@ std::shared_ptr<RSAnimation> RSSymbolAnimation::ScaleSymbolAnimation(
     keyframeAnimation->AddKeyFrame(0.75f, scaleProperty_, scaleCurve);
     keyframeAnimation->AddKeyFrame(1.f, scaleEndProperty_, scaleCurve);
     return keyframeAnimation;
-
 }
-
 
 RSAnimationTimingCurve RSSymbolAnimation::SetScaleSpringTimingCurve()
 {
