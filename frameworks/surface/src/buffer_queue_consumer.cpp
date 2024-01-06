@@ -47,10 +47,16 @@ GSError BufferQueueConsumer::ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sp
 
 GSError BufferQueueConsumer::AttachBuffer(sptr<SurfaceBuffer>& buffer)
 {
+    int32_t timeOut = 0;
+    return AttachBuffer(buffer, timeOut);
+}
+
+GSError BufferQueueConsumer::AttachBuffer(sptr<SurfaceBuffer>& buffer, int32_t timeOut)
+{
     if (bufferQueue_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
     }
-    return bufferQueue_->AttachBuffer(buffer);
+    return bufferQueue_->AttachBuffer(buffer, timeOut);
 }
 
 GSError BufferQueueConsumer::DetachBuffer(sptr<SurfaceBuffer>& buffer)
@@ -59,6 +65,15 @@ GSError BufferQueueConsumer::DetachBuffer(sptr<SurfaceBuffer>& buffer)
         return GSERROR_INVALID_ARGUMENTS;
     }
     return bufferQueue_->DetachBuffer(buffer);
+}
+
+GSError BufferQueueConsumer::RegisterSurfaceDelegator(sptr<IRemoteObject> client, sptr<Surface> cSurface)
+{
+    if (bufferQueue_ == nullptr) {
+        BLOGFE("RegisterSurfaceDelegator failed for nullptr bufferqueue.");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return bufferQueue_->RegisterSurfaceDelegator(client, cSurface);
 }
 
 bool BufferQueueConsumer::QueryIfBufferAvailable()
