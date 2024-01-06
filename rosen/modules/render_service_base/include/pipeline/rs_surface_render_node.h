@@ -933,6 +933,7 @@ public:
     {
         return ancestorDisplayNode_;
     }
+    bool QuerySubAssignable(bool isRotation);
     bool GetHasSharedTransitionNode() const;
     void SetHasSharedTransitionNode(bool hasSharedTransitionNode);
 

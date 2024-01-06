@@ -1771,6 +1771,24 @@ bool RSSurfaceRenderNode::GetNodeIsSingleFrameComposer() const
     return isNodeSingleFrameComposer_ || flag;
 }
 
+bool RSSurfaceRenderNode::QuerySubAssignable(bool isRotation)
+{
+    bool hasTransparentSurface = false;
+    if (IsLeashWindow()) {
+        for (auto &child : GetSortedChildren()) {
+            auto childSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+            if (childSurfaceNode && childSurfaceNode->IsTransparent()) {
+                hasTransparentSurface = true;
+                break;
+            }
+        }
+    } else {
+        hasTransparentSurface = IsTransparent();
+    }
+    return !(hasTransparentSurface && ChildHasFilter()) && !HasFilter() &&
+        !HasAbilityComponent() && !isRotation && !HasHardwareNode();
+}
+
 bool RSSurfaceRenderNode::GetHasSharedTransitionNode() const
 {
     return hasSharedTransitionNode_;
