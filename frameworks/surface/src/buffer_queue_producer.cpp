@@ -28,6 +28,7 @@
 
 namespace OHOS {
 BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue>& bufferQueue)
+    : producerSurfaceDeathRecipient_(new ProducerSurfaceDeathRecipient(this))
 {
     bufferQueue_ = bufferQueue;
     if (bufferQueue_ != nullptr) {
@@ -61,6 +62,7 @@ BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue>& bufferQueue)
     memberFuncMap_[BUFFER_PRODUCER_UNREGISTER_RELEASE_LISTENER] =
         &BufferQueueProducer::UnRegisterReleaseListenerRemote;
     memberFuncMap_[BUFFER_PRODUCER_GET_LAST_FLUSHED_BUFFER] = &BufferQueueProducer::GetLastFlushedBufferRemote;
+    memberFuncMap_[BUFFER_PRODUCER_REGISTER_DEATH_RECIPIENT] = &BufferQueueProducer::RegisterDeathRecipient;
 }
 
 BufferQueueProducer::~BufferQueueProducer()
@@ -397,6 +399,23 @@ int32_t BufferQueueProducer::GetPresentTimestampRemote(MessageParcel &arguments,
     return 0;
 }
 
+int32_t BufferQueueProducer::RegisterDeathRecipient(MessageParcel &arguments, MessageParcel &reply,
+                                                    MessageOption &option)
+{
+    token_ = arguments.ReadRemoteObject();
+    if (token_ == nullptr) {
+        reply.WriteInt32(GSERROR_INVALID_ARGUMENTS);
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    bool result = token_->AddDeathRecipient(producerSurfaceDeathRecipient_);
+    if (result) {
+        reply.WriteInt32(GSERROR_OK);
+    } else {
+        reply.WriteInt32(GSERROR_NO_ENTRY);
+    }
+    return 0;
+}
+
 GSError BufferQueueProducer::RequestBuffer(const BufferRequestConfig &config, sptr<BufferExtraData> &bedata,
                                            RequestBufferReturnValue &retval)
 {
@@ -674,5 +693,55 @@ sptr<NativeSurface> BufferQueueProducer::GetNativeSurface()
 {
     BLOGND("BufferQueueProducer::GetNativeSurface not support.");
     return nullptr;
+}
+
+GSError BufferQueueProducer::SendDeathRecipientObject()
+{
+    return GSERROR_OK;
+}
+
+void BufferQueueProducer::OnBufferProducerRemoteDied()
+{
+    if (bufferQueue_ == nullptr) {
+        BLOGNI("this bufferQueue_ is null");
+        return;
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (connectedPid_ == 0) {
+            BLOGNI("this bufferQueue has no connections");
+            return;
+        }
+        connectedPid_ = 0;
+    }
+    bufferQueue_->CleanCache();
+}
+
+BufferQueueProducer::ProducerSurfaceDeathRecipient::ProducerSurfaceDeathRecipient(
+    wptr<BufferQueueProducer> producer) : producer_(producer)
+{
+}
+
+void BufferQueueProducer::ProducerSurfaceDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remoteObject)
+{
+    auto remoteToken = remoteObject.promote();
+    if (remoteToken == nullptr) {
+        BLOGNW("can't promote remote object.");
+        return;
+    }
+
+    auto producer = producer_.promote();
+    if (producer == nullptr) {
+        BLOGNW("BufferQueueProducer was dead, do nothing.");
+        return;
+    }
+
+    if (producer->token_ != remoteToken) {
+        BLOGNI("token doesn't match, ignore it.");
+        return;
+    }
+    BLOGNW("remote object died.");
+    producer->OnBufferProducerRemoteDied();
 }
 }; // namespace OHOS
