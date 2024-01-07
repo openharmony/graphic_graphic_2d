@@ -1761,8 +1761,16 @@ void RSUniRenderVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
             curSurfaceDirtyManager_->UpdateDirtyRegionInfoForDfx(node.GetId(), RSRenderNodeType::CANVAS_NODE,
                 DirtyRegionType::FILTER_RECT, node.GetOldDirtyInSurface());
         }
-        if (curSurfaceNode_) {
-            curSurfaceNode_->UpdateChildrenFilterRects(node.shared_from_this(), node.GetOldDirtyInSurface(),
+#ifndef USE_ROSEN_DRAWING
+        if (curSurfaceNode_ && effectRegion_.has_value() && !effectRegion_->isEmpty()) {
+            RectI filterRect(effectRegion_->left(), effectRegion_->top(),
+                effectRegion_->width(), effectRegion_->height());
+#else
+        if (curSurfaceNode_ && effectRegion_.has_value() && !effectRegion_->IsEmpty()) {
+            RectI filterRect(effectRegion_->GetLeft(), effectRegion_->GetTop(),
+                effectRegion_->GetWidth(), effectRegion_->GetHeight());
+#endif
+            curSurfaceNode_->UpdateChildrenFilterRects(node.shared_from_this(), filterRect,
                 node.IsBackgroundFilterCacheValid());
             curSurfaceNode_->UpdateFilterNodes(node.shared_from_this());
         }
