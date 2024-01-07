@@ -715,10 +715,8 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& 
             node.GetId());
         return nullptr;
     }
-    std::string traceInfo;
-    AppendFormat(traceInfo, "CreateLayer:%s XYWH[%d %d %d %d]", node.GetName().c_str(),
+    RS_TRACE_NAME_FMT("CreateLayer:%s XYWH[%d %d %d %d]", node.GetName().c_str(),
         info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h);
-    RS_OPTIONAL_TRACE_BEGIN(traceInfo.c_str());
     RS_LOGD(
         "RsDebug RSUniRenderComposerAdapter::CreateBufferLayer surfaceNode id:%{public}" PRIu64 " name:[%{public}s]"
         " dst [%{public}d %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d] rawbuffer [%{public}d"
@@ -734,7 +732,6 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& 
     LayerRotate(layer, node);
     LayerCrop(layer);
     LayerScaleDown(layer, node);
-    RS_OPTIONAL_TRACE_END();
     return layer;
 }
 

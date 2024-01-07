@@ -4527,7 +4527,7 @@ void RSUniRenderVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 #endif
 
         // count processed canvas node
-        RS_OPTIONAL_TRACE_NAME_FMT("%s PureContainerNode/ProcessedNodes: %u/%u", node.GetName().c_str(),
+        RS_TRACE_NAME_FMT("%s PureContainerNode/ProcessedNodes: %u/%u", node.GetName().c_str(),
             processedPureContainerNode_, processedCanvasNodeInCurrentSurface_);
         processedCanvasNodeInCurrentSurface_ = 0; // reset
         processedPureContainerNode_ = 0;
