@@ -419,10 +419,13 @@ NativeWindow::~NativeWindow()
     for (auto &[seqNum, buffer] : bufferCache_) {
         NativeObjectUnreference(buffer);
     }
+    surface = nullptr;
+    bufferCache_.clear();
 }
 
 NativeWindowBuffer::~NativeWindowBuffer()
 {
+    sfbuffer = nullptr;
 }
 
 NativeWindowBuffer::NativeWindowBuffer() : NativeWindowMagic(NATIVE_OBJECT_MAGIC_WINDOW_BUFFER), sfbuffer(nullptr)
