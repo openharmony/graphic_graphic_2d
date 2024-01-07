@@ -818,6 +818,28 @@ Occlusion::Rect RSSurfaceRenderNode::GetSurfaceOcclusionRect(bool isUniRender)
     return occlusionRect;
 }
 
+bool RSSurfaceRenderNode::QueryIfAllHwcChildrenForceDisabledByFilter()
+{
+    std::shared_ptr<RSSurfaceRenderNode> appWindow;
+    for (auto& child : GetSortedChildren()) {
+        auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+        if (node && node->IsAppWindow()) {
+            appWindow = node;
+            break;
+        }
+    }
+    if (appWindow) {
+        auto hardwareEnabledNodes = appWindow->GetChildHardwareEnabledNodes();
+        for (auto& hardwareEnabledNode : hardwareEnabledNodes) {
+            auto hardwareEnabledNodePtr = hardwareEnabledNode.lock();
+            if (hardwareEnabledNodePtr && !hardwareEnabledNodePtr->IsHardwareForcedDisabledByFilter()) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 void RSSurfaceRenderNode::AccumulateOcclusionRegion(Occlusion::Region& accumulatedRegion,
     Occlusion::Region& curRegion,
     bool& hasFilterCacheOcclusion,
@@ -1786,7 +1808,7 @@ bool RSSurfaceRenderNode::QuerySubAssignable(bool isRotation)
         hasTransparentSurface = IsTransparent();
     }
     return !(hasTransparentSurface && ChildHasFilter()) && !HasFilter() &&
-        !HasAbilityComponent() && !isRotation && !HasHardwareNode();
+        !HasAbilityComponent() && !isRotation && QueryIfAllHwcChildrenForceDisabledByFilter();
 }
 
 bool RSSurfaceRenderNode::GetHasSharedTransitionNode() const

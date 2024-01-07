@@ -934,6 +934,7 @@ public:
         return ancestorDisplayNode_;
     }
     bool QuerySubAssignable(bool isRotation);
+    bool QueryIfAllHwcChildrenForceDisabledByFilter();
     bool GetHasSharedTransitionNode() const;
     void SetHasSharedTransitionNode(bool hasSharedTransitionNode);
 

@@ -989,6 +989,13 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 surfaceNode->SetContentDirty();
                 doDirectComposition_ = false;
             }
+            if (deviceType_ == DeviceType::PC && isUiFirstOn_ && surfaceNode->IsCurrentFrameBufferConsumed()
+                && surfaceNode->IsHardwareEnabledType() && surfaceNode->IsHardwareForcedDisabledByFilter()) {
+                    RS_OPTIONAL_TRACE_NAME(surfaceNode->GetName() +
+                        " SetContentDirty for UIFirst assigning to subthread");
+                    surfaceNode->SetContentDirty();
+                    doDirectComposition_ = false;
+                }
         }
 
         // still have buffer(s) to consume.
