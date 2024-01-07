@@ -1646,9 +1646,9 @@ bool RSSurfaceRenderNode::IsUIFirstSelfDrawCheck()
 
 bool RSSurfaceRenderNode::IsCurFrameStatic(DeviceType deviceType)
 {
-    bool isDirty = deviceType == DeviceType::PHONE ?
-        (dirtyManager_ == nullptr || !dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty()) :
-        (IsMainWindowType() && !surfaceCacheContentStatic_);
+    bool isDirty = deviceType == DeviceType::PC ?
+        (IsMainWindowType() && !surfaceCacheContentStatic_) :
+        (dirtyManager_ == nullptr || !dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty());
     if (isDirty) {
         return false;
     }
@@ -1679,7 +1679,7 @@ bool RSSurfaceRenderNode::IsVisibleDirtyEmpty(DeviceType deviceType)
         return false;
     }
     if (!dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty()) {
-        if (deviceType == DeviceType::PHONE) {
+        if (deviceType != DeviceType::PC) {
             return false;
         }
         // Visible dirty region optimization takes effecct only in PC or TABLET scenarios
@@ -1691,7 +1691,7 @@ bool RSSurfaceRenderNode::IsVisibleDirtyEmpty(DeviceType deviceType)
         isStaticUnderVisibleRegion = true;
     }
     if (IsMainWindowType()) {
-        if (deviceType != DeviceType::PHONE) {
+        if (deviceType == DeviceType::PC) {
             if (IsHistoryOccludedDirtyRegionNeedSubmit()) {
                 ClearHistoryUnSubmittedDirtyInfo();
                 return false;
