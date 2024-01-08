@@ -224,3 +224,7 @@ CALL_HOOK_API_RET(eglSwapBuffersWithDamageKHR, dpy, surface, rects, n_rects)
 /* EGL_KHR_partial_update */
 HOOK_API_ENTRY(EGLBoolean, eglSetDamageRegionKHR, EGLDisplay dpy, EGLSurface surface, EGLint *rects, EGLint n_rects)
 CALL_HOOK_API_RET(eglSetDamageRegionKHR, dpy, surface, rects, n_rects)
+
+/* EglDupNativeFenceFDANDOID */
+HOOK_API_ENTRY(EGLint, eglDupNativeFenceFDANDOID, EGLDisplay dpy, EGLSync sync)
+CALL_HOOK_API_RET(eglDupNativeFenceFDANDOID, dpy, sync)
