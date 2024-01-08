@@ -81,7 +81,7 @@ void RSClipBoundsDrawable::Draw(const RSRenderContent& content, RSPaintFilterCan
             RSPropertiesPainter::RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
     } else {
         canvas.ClipRect(
-            RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, false);
+            RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, true);
     }
 #endif
 }
