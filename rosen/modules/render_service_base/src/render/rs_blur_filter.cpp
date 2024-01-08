@@ -207,6 +207,10 @@ void RSBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<
 
 void RSBlurFilter::SetGreyCoef(float greyCoef1, float greyCoef2, bool isGreyCoefValid)
 {
+    if (!isGreyCoefValid) {
+        isGreyCoefValid_ = isGreyCoefValid;
+        return;
+    }
     greyCoef1_ = greyCoef1;
     greyCoef2_ = greyCoef2;
     isGreyCoefValid_ = isGreyCoefValid;
