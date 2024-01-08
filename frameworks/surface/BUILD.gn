@@ -73,6 +73,10 @@ ohos_shared_library("surface") {
     "src/surface_delegate.cpp",
     "src/surface_tunnel_handle.cpp",
     "src/surface_utils.cpp",
+    "src/transact_surface_delegator_proxy.cpp",
+    "src/transact_surface_delegator_stub.cpp",
+    "src/producer_surface_delegator.cpp",
+    "src/consumer_surface_delegator.cpp",
   ]
 
   configs = [ ":surface_config" ]

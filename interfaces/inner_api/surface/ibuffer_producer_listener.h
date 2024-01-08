@@ -17,6 +17,8 @@
 #define INTERFACES_INNERKITS_SURFACE_IBUFFER_PRODUCER_LISTENER_H
 
 #include "iremote_broker.h"
+#include "surface_buffer.h"
+
 namespace OHOS {
 class IProducerListener : public IRemoteBroker {
 public:
@@ -24,8 +26,10 @@ public:
     IProducerListener() = default;
     virtual ~IProducerListener() noexcept = default;
     virtual GSError OnBufferReleased() = 0;
+    virtual GSError OnBufferReleasedWithFence(const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence) = 0;
     enum {
         ON_BUFFER_RELEASED = 0,
+        ON_BUFFER_RELEASED_WITH_FENCE = 1,
     };
 };
 } // namespace OHOS
