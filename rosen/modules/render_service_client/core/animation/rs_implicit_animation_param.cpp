@@ -123,7 +123,7 @@ void RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask(
             ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to get target property.");
             continue;
         }
-        node->CancelAnimationByProperty(propertyId);
+        node->CancelAnimationByProperty(propertyId, !property->GetIsCustom());
         if (value != nullptr) {
             // successfully canceled RS animation and extract value, update ui value
             property->SetValueFromRender(value);
