@@ -1805,10 +1805,11 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         needSnapshotOutset ? clipIBounds.makeOutset(-1, -1) : clipIBounds);
 #else
     auto clipIBounds = canvas.GetDeviceClipBounds();
+    auto imageClipIBounds = clipIBounds;
     if (needSnapshotOutset) {
-        clipIBounds.MakeOutset(-1, -1);
+        imageClipIBounds.MakeOutset(-1, -1);
     }
-    auto imageSnapshot = surface->GetImageSnapshot(clipIBounds);
+    auto imageSnapshot = surface->GetImageSnapshot(imageClipIBounds);
 #endif
     if (imageSnapshot == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawFilter image null");
