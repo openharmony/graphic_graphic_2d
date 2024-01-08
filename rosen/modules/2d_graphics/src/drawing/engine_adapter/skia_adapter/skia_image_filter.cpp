@@ -142,7 +142,6 @@ std::shared_ptr<Data> SkiaImageFilter::Serialize() const
 {
 #ifdef ROSEN_OHOS
     if (filter_ == nullptr) {
-        LOGE("SkiaImageFilter::Serialize, filter_ is nullptr!");
         return nullptr;
     }
 
