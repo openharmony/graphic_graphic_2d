@@ -95,8 +95,7 @@ struct NativeSurfaceInfo {
 #else
         drawingSurface = nullptr;
 #endif
-        NativeObjectUnreference(window);
-        NativeObjectUnreference(nativeWindowBuffer);
+        NativeWindowCancelBuffer(window, nativeWindowBuffer);
     }
 };
 
