@@ -32,14 +32,14 @@ namespace {
 }
 
 #ifndef USE_ROSEN_DRAWING
-static sk_sp<SkColorSpace> ColorSpaceToSkColorSpace(ColorSpace colorSpace)
+static sk_sp<SkColorSpace> ColorSpaceToSkColorSpace(ColorManger::ColorSpaceName ColorSpaceName)
 {
-    switch (colorSpace) {
-        case ColorSpace::DISPLAY_P3:
+    switch (ColorSpaceName) {
+        case ColorManger::ColorSpaceName::DISPLAY_P3:
             return SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
-        case ColorSpace::LINEAR_SRGB:
+        case ColorManger::ColorSpaceName::LINEAR_SRGB:
             return SkColorSpace::MakeSRGBLinear();
-        case ColorSpace::SRGB:
+        case ColorManger::ColorSpaceName::SRGB:
         default:
             return SkColorSpace::MakeSRGB();
     }
@@ -146,11 +146,11 @@ static Drawing::AlphaType AlphaTypeToDrawingAlphaType(AlphaType alphaType)
 #endif
 
 #ifndef USE_ROSEN_DRAWING
-static SkImageInfo MakeSkImageInfo(const ImageInfo& imageInfo)
+static SkImageInfo MakeSkImageInfo(const ImageInfo& imageInfo, std::shared_ptr<Media::PixelMap> pixelMap)
 {
     SkColorType ct = PixelFormatToSkColorType(imageInfo.pixelFormat);
     SkAlphaType at = AlphaTypeToSkAlphaType(imageInfo.alphaType);
-    sk_sp<SkColorSpace> cs = ColorSpaceToSkColorSpace(imageInfo.colorSpace);
+    sk_sp<SkColorSpace> cs = ColorSpaceToSkColorSpace(pixelMap->InnerGetGrColorSpace().GetColorSpaceName());
     return SkImageInfo::Make(imageInfo.size.width, imageInfo.size.height, ct, at, cs);
 }
 #endif
@@ -184,7 +184,7 @@ sk_sp<SkImage> RSPixelMapUtil::ExtractSkImage(std::shared_ptr<Media::PixelMap> p
     }
     ImageInfo imageInfo;
     pixelMap->GetImageInfo(imageInfo);
-    auto skImageInfo = MakeSkImageInfo(imageInfo);
+    auto skImageInfo = MakeSkImageInfo(imageInfo, pixelMap);
     SkPixmap skPixmap(skImageInfo, reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
     PixelMapReleaseContext* releaseContext = new PixelMapReleaseContext(pixelMap);
     auto skImage = SkImage::MakeFromRaster(skPixmap, PixelMapReleaseProc, releaseContext);
