@@ -45,12 +45,12 @@ std::shared_ptr<RSFilter> RSValueEstimator::Estimate(
     }
 
     if (endValue == nullptr || !endValue->IsValid()) {
-        if (startValue->GetFilterType() == RSFilter::MATERIAL && fraction < 0.5f) {
+        if (startValue->GetFilterType() == RSFilter::MATERIAL) {
             auto material =
-                std::static_pointer_cast<RSMaterialFilter>(startValue)->TransformFilter(1.0f - fraction * 2);
+                std::static_pointer_cast<RSMaterialFilter>(startValue)->TransformFilter(1.0f - fraction);
             return material;
         }
-        return (fraction < 0.5f) ? startValue * (1.0f - fraction * 2) : endValue;
+        return startValue * (1.0f - fraction);
     }
 
     if (startValue->GetFilterType() == endValue->GetFilterType()) {

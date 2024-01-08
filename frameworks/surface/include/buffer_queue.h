@@ -161,8 +161,9 @@ private:
     GSError SetProducerCacheCleanFlagLocked(bool flag);
     GSError AttachBufferUpdateStatus(std::unique_lock<std::mutex> &lock, uint32_t sequence, int32_t timeOut);
     void AttachBufferUpdateBufferInfo(sptr<SurfaceBuffer>& buffer);
-    void ReportBufferRelesed(sptr<IProducerListener> listener, sptr<SurfaceBuffer>& buffer,
-        const sptr<SyncFence> &fence);
+    void ListenerBufferReleasedCb(sptr<SurfaceBuffer> &buffer, const sptr<SyncFence> &fence);
+    GSError CheckBufferQueueCache(uint32_t sequence);
+    GSError ReallocBuffer(const BufferRequestConfig &config, struct IBufferProducer::RequestBufferReturnValue &retval);
 
     int32_t defaultWidth = 0;
     int32_t defaultHeight = 0;
@@ -183,7 +184,8 @@ private:
     std::mutex producerListenerMutex_;
     const uint64_t uniqueId_;
     sptr<BufferManager> bufferManager_ = nullptr;
-    OnReleaseFunc onBufferRelease = nullptr;
+    OnReleaseFunc onBufferRelease_ = nullptr;
+    std::mutex onBufferReleaseMutex_;
     sptr<IProducerListener> producerListener_ = nullptr;
     OnDeleteBufferFunc onBufferDeleteForRSMainThread_;
     OnDeleteBufferFunc onBufferDeleteForRSHardwareThread_;

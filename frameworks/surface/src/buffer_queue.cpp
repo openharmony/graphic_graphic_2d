@@ -273,6 +273,27 @@ bool BufferQueue::CheckProducerCacheList()
     return true;
 }
 
+GSError BufferQueue::ReallocBuffer(const BufferRequestConfig &config,
+    struct IBufferProducer::RequestBufferReturnValue &retval)
+{
+    if (isShared_) {
+        BLOGN_FAILURE_RET(GSERROR_INVALID_ARGUMENTS);
+    }
+    DeleteBufferInCache(retval.sequence);
+
+    sptr<SurfaceBuffer> buffer = nullptr;
+    auto sret = AllocBuffer(buffer, config);
+    if (sret != GSERROR_OK) {
+        BLOGN_FAILURE("realloc failed");
+        return sret;
+    }
+
+    retval.buffer = buffer;
+    retval.sequence = buffer->GetSeqNum();
+    bufferQueueCache_[retval.sequence].config = config;
+    return GSERROR_OK;
+}
+
 GSError BufferQueue::ReuseBuffer(const BufferRequestConfig &config, sptr<BufferExtraData> &bedata,
     struct IBufferProducer::RequestBufferReturnValue &retval)
 {
@@ -287,21 +308,10 @@ GSError BufferQueue::ReuseBuffer(const BufferRequestConfig &config, sptr<BufferE
     bool needRealloc = (config != bufferQueueCache_[retval.sequence].config);
     // config, realloc
     if (needRealloc) {
-        if (isShared_) {
-            BLOGN_FAILURE_RET(GSERROR_INVALID_ARGUMENTS);
-        }
-        DeleteBufferInCache(retval.sequence);
-
-        sptr<SurfaceBuffer> buffer = nullptr;
-        auto sret = AllocBuffer(buffer, config);
+        auto sret = ReallocBuffer(config, retval);
         if (sret != GSERROR_OK) {
-            BLOGN_FAILURE("realloc failed");
             return sret;
         }
-
-        retval.buffer = buffer;
-        retval.sequence = buffer->GetSeqNum();
-        bufferQueueCache_[retval.sequence].config = config;
     }
 
     bufferQueueCache_[retval.sequence].state = BUFFER_STATE_REQUESTED;
@@ -365,6 +375,24 @@ GSError BufferQueue::CancelBuffer(uint32_t sequence, const sptr<BufferExtraData>
     return GSERROR_OK;
 }
 
+GSError BufferQueue::CheckBufferQueueCache(uint32_t sequence)
+{
+    std::lock_guard<std::mutex> lockGuard(mutex_);
+    if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
+        BLOGN_FAILURE_ID(sequence, "not found in cache");
+        return GSERROR_NO_ENTRY;
+    }
+
+    if (isShared_ == false) {
+        auto &state = bufferQueueCache_[sequence].state;
+        if (state != BUFFER_STATE_REQUESTED && state != BUFFER_STATE_ATTACHED) {
+            BLOGN_FAILURE_ID(sequence, "invalid state %{public}d", state);
+            return GSERROR_NO_ENTRY;
+        }
+    }
+    return GSERROR_OK;
+}
+
 GSError BufferQueue::FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
     const sptr<SyncFence>& fence, const BufferFlushConfigWithDamages &config)
 {
@@ -379,20 +407,9 @@ GSError BufferQueue::FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> 
         return sret;
     }
 
-    {
-        std::lock_guard<std::mutex> lockGuard(mutex_);
-        if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
-            BLOGN_FAILURE_ID(sequence, "not found in cache");
-            return GSERROR_NO_ENTRY;
-        }
-
-        if (isShared_ == false) {
-            auto &state = bufferQueueCache_[sequence].state;
-            if (state != BUFFER_STATE_REQUESTED && state != BUFFER_STATE_ATTACHED) {
-                BLOGN_FAILURE_ID(sequence, "invalid state %{public}d", state);
-                return GSERROR_NO_ENTRY;
-            }
-        }
+    sret = CheckBufferQueueCache(sequence);
+    if (sret != GSERROR_OK) {
+        return sret;
     }
 
     {
@@ -545,16 +562,34 @@ GSError BufferQueue::AcquireBuffer(sptr<SurfaceBuffer> &buffer,
     return ret;
 }
 
-void BufferQueue::ReportBufferRelesed(sptr<IProducerListener> listener, sptr<SurfaceBuffer>& buffer,
-    const sptr<SyncFence> &fence)
+void BufferQueue::ListenerBufferReleasedCb(sptr<SurfaceBuffer> &buffer, const sptr<SyncFence> &fence)
 {
-    uint32_t sequence = buffer->GetSeqNum();
-    if (listener->OnBufferReleased() != GSERROR_OK) {
-        BLOGN_FAILURE_ID(sequence, "ReportBufferRelesed failed, Queue id: %{public}" PRIu64, uniqueId_);
+    {
+        std::lock_guard<std::mutex> lockGuard(onBufferReleaseMutex_);
+        if (onBufferRelease_ != nullptr) {
+            ScopedBytrace func("OnBufferRelease_");
+            sptr<SurfaceBuffer> buf = buffer;
+            auto sret = onBufferRelease_(buf);
+            if (sret == GSERROR_OK) {   // need to check why directly return?
+                // We think that onBufferRelase is not used by anyone, so delete 'return sret' temporarily;
+            }
+        }
     }
 
-    if (listener->OnBufferReleasedWithFence(buffer, fence) != GSERROR_OK) {
-        BLOGN_FAILURE_ID(sequence, "OnBufferReleasedWithFence failed, Queue id: %{public}" PRIu64, uniqueId_);
+    sptr<IProducerListener> listener;
+    {
+        std::lock_guard<std::mutex> lockGuard(producerListenerMutex_);
+        listener = producerListener_;
+    }
+
+    if (listener != nullptr) {
+        ScopedBytrace func("onBufferReleasedForProducer");
+        if (listener->OnBufferReleased() != GSERROR_OK) {
+            BLOGN_FAILURE_ID(buffer->GetSeqNum(), "OnBufferReleased failed, Queue id: %{public}" PRIu64 "", uniqueId_);
+        }
+        if (listener->OnBufferReleasedWithFence(buffer, fence) != GSERROR_OK) {
+            BLOGN_FAILURE_ID(sequence, "OnBufferReleasedWithFence failed, Queue id: %{public}" PRIu64, uniqueId_);
+        }
     }
 }
 
@@ -596,26 +631,7 @@ GSError BufferQueue::ReleaseBuffer(sptr<SurfaceBuffer> &buffer, const sptr<SyncF
         waitReqCon_.notify_all();
         waitAttachCon_.notify_all();
     }
-
-    if (onBufferRelease != nullptr) {
-        ScopedBytrace func("OnBufferRelease");
-        sptr<SurfaceBuffer> buf = buffer;
-        auto sret = onBufferRelease(buf);
-        if (sret == GSERROR_OK) {   // need to check why directly return?
-            // We think that onBufferRelase is not used by anyone, so delete 'return sret' temporarily;
-        }
-    }
-
-    sptr<IProducerListener> listener;
-    {
-        std::lock_guard<std::mutex> lockGuard(producerListenerMutex_);
-        listener = producerListener_;
-    }
-
-    if (listener != nullptr) {
-        ScopedBytrace func("onBufferReleasedForProducer");
-        ReportBufferRelesed(listener, buffer, fence);
-    }
+    ListenerBufferReleasedCb(buffer, fence);
 
     return GSERROR_OK;
 }
@@ -917,7 +933,8 @@ GSError BufferQueue::UnregisterConsumerListener()
 
 GSError BufferQueue::RegisterReleaseListener(OnReleaseFunc func)
 {
-    onBufferRelease = func;
+    std::lock_guard<std::mutex> lockGuard(onBufferReleaseMutex_);
+    onBufferRelease_ = func;
     return GSERROR_OK;
 }
 
