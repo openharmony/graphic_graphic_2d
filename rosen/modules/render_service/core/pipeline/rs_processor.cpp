@@ -36,7 +36,7 @@ constexpr uint32_t PERF_LEVEL_0 = 0;
 constexpr uint32_t PERF_LEVEL_1 = 1;
 constexpr uint32_t PERF_LEVEL_2 = 2;
 constexpr int32_t PERF_LEVEL_1_REQUESTED_CODE = 10013;
-constexpr int32_t PERF_LEVEL_2_REQUESTED_CODE = 10015;
+constexpr int32_t PERF_LEVEL_2_REQUESTED_CODE = 10014;
 constexpr int32_t PERF_LEVEL_3_REQUESTED_CODE = 10015;
 constexpr int64_t PERF_TIME_OUT = 950;
 constexpr uint32_t PERF_LEVEL_INTERVAL = 10;
@@ -104,7 +104,7 @@ void RSProcessor::RequestPerf(uint32_t layerLevel, bool onOffTag)
             break;
         }
         default: {
-            PerfRequest(PERF_LEVEL_2_REQUESTED_CODE, onOffTag);
+            PerfRequest(PERF_LEVEL_3_REQUESTED_CODE, onOffTag);
             RS_LOGD("RsDebug RSProcessor::Perf: level3 %{public}d", onOffTag);
             break;
         }
