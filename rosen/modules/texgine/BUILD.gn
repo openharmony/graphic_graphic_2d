@@ -167,12 +167,6 @@ ohos_source_set("libtexgine_source") {
 ohos_shared_library("libtexgine") {
   public_deps = [ ":libtexgine_source" ]
 
-  if (defined(external_deps)) {
-    external_deps += [ "hilog:libhilog" ]
-  } else {
-    external_deps = [ "hilog:libhilog" ]
-  }
-
   platform = current_os
   if (platform == "mingw") {
     platform = "windows"

@@ -226,7 +226,6 @@ void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, cons
 void TextSpan::SymbolAnimation(const TextStyle &xs)
 {
     int effect = xs.symbol.GetEffectStrategy();
-    RS_LOGD(" HmSymbol text_span get spanSymbolAnimationConfig success %{public}d", effect);
 
     auto spanSymbolAnimationConfig = std::make_shared<SymbolAnimationConfig>();
     spanSymbolAnimationConfig->effectStrategy = SymbolAnimationEffectStrategy(
@@ -234,9 +233,7 @@ void TextSpan::SymbolAnimation(const TextStyle &xs)
     if (spanSymbolAnimationConfig->effectStrategy == SymbolAnimationEffectStrategy::SYMBOL_SCALE) {
         if (animationFunc_) {
             animationFunc_(spanSymbolAnimationConfig);
-        } else {
-            RS_LOGE(" HmSymbol text_span get animationFunc null");
-        }
+        } 
     }
 }
 

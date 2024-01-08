@@ -24,7 +24,6 @@
 #include "texgine_text_blob.h"
 #include "texgine/typography.h"
 #include "texgine/typography_style.h"
-#include "platform/common/rs_log.h"
 #include "symbol_animation_config.h"
 
 namespace OHOS {
@@ -82,11 +81,8 @@ public:
         std::function<bool(
             const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)> animationFunc)
     {
-        if (!animationFunc) {
-            RS_LOGE(" HmSymbol text_span get SetAnimation failed");
-        } else {
+        if (animationFunc) {
             animationFunc_ = animationFunc;
-            RS_LOGD(" HmSymbol text_span get SetAnimation success");
         }
     }
 private:

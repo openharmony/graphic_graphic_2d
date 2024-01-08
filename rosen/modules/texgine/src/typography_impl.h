@@ -23,7 +23,6 @@
 #include "texgine/typography.h"
 #include "texgine/typography_types.h"
 #include "symbol_animation_config.h"
-#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -72,11 +71,8 @@ public:
         std::function<bool(
             const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> animationFunc) override
     {
-        if (animationFunc == nullptr) {
-            RS_LOGE("HmSymbol typography_impl::SetAnimation null ");
-        } else {
+        if (animationFunc) {
             animationFunc_ = animationFunc;
-            RS_LOGD("HmSymbol typography_impl::SetAnimation success ");
         }
     }
 private:

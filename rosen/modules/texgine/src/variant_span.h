@@ -24,7 +24,6 @@
 #include "texgine/font_providers.h"
 #include "texgine/any_span.h"
 #include "text_span.h"
-#include "platform/common/rs_log.h"
 #include "symbol_animation_config.h"
 
 namespace OHOS {
@@ -96,11 +95,8 @@ public:
     void SetAnimation(std::function<bool(
         const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)> animationFunc)
     {
-        if (animationFunc == nullptr) {
-            RS_LOGE("HmSymbol variant_span.h null ");
-        } else {
+        if (animationFunc) {
             ts_->SetAnimation(animationFunc);
-            RS_LOGD("HmSymbol variant_span.h success");
         }
     }
 private:
