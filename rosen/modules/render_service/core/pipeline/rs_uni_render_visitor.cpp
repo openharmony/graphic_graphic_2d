@@ -2679,6 +2679,11 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 RS_LOGW("RSUniRenderVisitor::ProcessDisplayRenderNode: hardwareThread task has too many to excute");
             }
             if (!RSMainThread::Instance()->CheckIsHardwareEnabledBufferUpdated() && !forceUpdateFlag_) {
+                for (auto& surfaceNode: hardwareEnabledNodes_) {
+                    if (!surfaceNode->IsHardwareForcedDisabled()) {
+                        surfaceNode->MarkCurrentFrameHardwareEnabled();
+                    }
+                }
                 RS_TRACE_NAME("DisplayNodeSkip skip commit");
                 return;
             }
@@ -5102,6 +5107,11 @@ bool RSUniRenderVisitor::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> r
         RS_LOGW("RSUniRenderVisitor::DoDirectComposition: hardwareThread task has too many to excute");
     }
     if (!RSMainThread::Instance()->CheckIsHardwareEnabledBufferUpdated()) {
+        for (auto& surfaceNode: hardwareEnabledNodes_) {
+            if (!surfaceNode->IsHardwareForcedDisabled()) {
+                surfaceNode->MarkCurrentFrameHardwareEnabled();
+            }
+        }
         RS_TRACE_NAME("DoDirectComposition skip commit");
         return true;
     }
