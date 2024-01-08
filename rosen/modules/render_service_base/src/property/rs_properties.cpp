@@ -2245,7 +2245,7 @@ std::string RSProperties::Dump() const
         return "Failed to memset_s for blendmode, ret=" + std::to_string(ret);
     }
     if (!ROSEN_EQ(GetColorBlendMode(), 0) &&
-        sprintf_s(buffer, UINT8_MAX, ", skblendmode[%d], blendType[%d]", 
+        sprintf_s(buffer, UINT8_MAX, ", skblendmode[%d], blendType[%d]",
         GetColorBlendMode() - 1, GetColorBlendApplyType()) != -1) {
         dumpInfo.append(buffer);
     }

@@ -67,7 +67,7 @@ enum class OutOfParentType {
     UNKNOWN
 };
 
-// color blend mode, see third_party/skia/include/core/SkBlendMode.h
+// color blend mode, add NONE based on SkBlendMode
 enum class RSColorBlendMode : int16_t {
     NONE = 0, // Note: The NONE blend mode is different from SRC_OVER. When using it with
               // RSColorBlendApplyType::SAVE_LAYER, it does not create an offscreen buffer. However, when using it

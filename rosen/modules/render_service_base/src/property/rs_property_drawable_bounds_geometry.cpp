@@ -1266,17 +1266,14 @@ std::unique_ptr<RSPropertyDrawable> BlendSaveDrawableGenerate(const RSRenderCont
     auto& properties = content.GetRenderProperties();
     auto blendMode = properties.GetColorBlendMode();
     int blendModeApplyType = properties.GetColorBlendApplyType();
-
     if (!RSPropertiesPainter::CheckBlendParameters(blendMode, blendModeApplyType)) {
         // no blend or param check failed
         return nullptr;
     }
-
     if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::FAST)) {
         return std::make_unique<RSBlendFastDrawable>(blendMode);
-    } else {
-        return std::make_unique<RSBlendSaveLayerDrawable>(blendMode);
     }
+    return std::make_unique<RSBlendSaveLayerDrawable>(blendMode);
 }
 
 std::unique_ptr<RSPropertyDrawable> BlendRestoreDrawableGenerate(const RSRenderContent& content)
@@ -1284,17 +1281,14 @@ std::unique_ptr<RSPropertyDrawable> BlendRestoreDrawableGenerate(const RSRenderC
     auto& properties = content.GetRenderProperties();
     auto blendMode = properties.GetColorBlendMode();
     int blendModeApplyType = properties.GetColorBlendApplyType();
-
     if (!RSPropertiesPainter::CheckBlendParameters(blendMode, blendModeApplyType)) {
         // no blend or param check failed
         return nullptr;
     }
-
     if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::SAVE_LAYER)) {
         return std::make_unique<RSBlendSaveLayerRestoreDrawable>();
-    } else {
-        return std::make_unique<RSBlendFastRestoreDrawable>();
     }
+    return std::make_unique<RSBlendFastRestoreDrawable>();
 }
 
 RSBlendSaveLayerDrawable::RSBlendSaveLayerDrawable(int blendMode)

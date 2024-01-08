@@ -3903,6 +3903,5 @@ void RSPropertiesPainter::EndBlendMode(RSPaintFilterCanvas& canvas, const RSProp
 #endif
     }
 }
-
 } // namespace Rosen
 } // namespace OHOS
