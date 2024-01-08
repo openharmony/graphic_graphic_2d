@@ -48,6 +48,7 @@ public:
     GSError GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence, float matrix[16]) override;
 
     GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) override;
+    GSError AttachBuffer(sptr<SurfaceBuffer>& buffer, int32_t timeOut) override;
 
     GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) override;
 

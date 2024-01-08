@@ -181,12 +181,34 @@ GSError ConsumerSurface::ReleaseBuffer(sptr<SurfaceBuffer>& buffer, int32_t fenc
 
 GSError ConsumerSurface::AttachBuffer(sptr<SurfaceBuffer>& buffer)
 {
+    if (consumer_ == nullptr) {
+        BLOGFE("AttachBuffer failed for nullptr consumer.");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
     return consumer_->AttachBuffer(buffer);
+}
+
+GSError ConsumerSurface::AttachBuffer(sptr<SurfaceBuffer>& buffer, int32_t timeOut)
+{
+    if (consumer_ == nullptr) {
+        BLOGFE("AttachBuffer failed for nullptr consumer.");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return consumer_->AttachBuffer(buffer, timeOut);
 }
 
 GSError ConsumerSurface::DetachBuffer(sptr<SurfaceBuffer>& buffer)
 {
     return consumer_->DetachBuffer(buffer);
+}
+
+GSError ConsumerSurface::RegisterSurfaceDelegator(sptr<IRemoteObject> client)
+{
+    if (consumer_ == nullptr) {
+        BLOGFE("RegisterSurfaceDelegator failed for nullptr consumer.");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    return consumer_->RegisterSurfaceDelegator(client, this);
 }
 
 bool ConsumerSurface::QueryIfBufferAvailable()
@@ -265,6 +287,11 @@ GSError ConsumerSurface::RegisterConsumerListener(IBufferConsumerListenerClazz *
 GSError ConsumerSurface::RegisterReleaseListener(OnReleaseFunc func)
 {
     return consumer_->RegisterReleaseListener(func);
+}
+
+GSError ConsumerSurface::RegisterReleaseListener(OnReleaseFuncWithFence func)
+{
+    return GSERROR_NOT_SUPPORT;
 }
 
 GSError ConsumerSurface::UnRegisterReleaseListener()
