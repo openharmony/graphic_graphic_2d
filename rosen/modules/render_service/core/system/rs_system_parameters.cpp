@@ -96,5 +96,13 @@ bool RSSystemParameters::GetSkipCanvasNodeOutofScreenEnabled()
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
 }
+
+bool RSSystemParameters::GetDrawingEffectRegionEnabledDfx()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.drawingEffectRegionEnabledDfx", "0");
+    int changed = 0;
+    const char *enableDfx = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enableDfx, 0) != 0;
+}
 } // namespace Rosen
 } // namespace OHOS

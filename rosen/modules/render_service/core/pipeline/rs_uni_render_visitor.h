@@ -541,6 +541,13 @@ private:
     NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);
     bool CheckIfNeedResetRotate();
     void UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node);
+
+    // dfx for effect render node
+    void DrawEffectRenderNodeForDFX();
+    std::vector<RectI> nodesUseEffectFallbackForDfx_;
+    std::vector<RectI> nodesUseEffectForDfx_;
+    // pair<ApplyBackgroundEffectNodeList, ApplyBackgroundEffectFallbackNodeList>
+    std::unordered_map<NodeId, std::pair<std::vector<RectI>, std::vector<RectI>>> effectNodeMapForDfx_;
 };
 } // namespace Rosen
 } // namespace OHOS

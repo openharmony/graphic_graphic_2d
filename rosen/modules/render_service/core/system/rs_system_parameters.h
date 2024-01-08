@@ -46,6 +46,7 @@ public:
     static bool GetSystemAnimatedScenesEnabled();
     static bool GetFilterCacheOcculusionEnabled();
     static bool GetSkipCanvasNodeOutofScreenEnabled();
+    static bool GetDrawingEffectRegionEnabledDfx();
 };
 
 } // namespace Rosen

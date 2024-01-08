@@ -1924,14 +1924,24 @@ void RSPropertiesPainter::DrawBackgroundEffect(
 
     auto& matrix = properties.GetBoundsGeometry()->GetAbsMatrix();
 #ifndef USE_ROSEN_DRAWING
-    auto boundsRect = Rect2SkRect(properties.GetBoundsRect());
-    auto bounds = matrix.mapRect(boundsRect).roundOut();
+    SkIRect bounds;
+    if (properties.GetClipBounds() != nullptr) {
+        bounds = matrix.mapRect(properties.GetClipBounds()->GetSkiaPath().getBounds()).roundOut();
+    } else {
+        auto absRect = properties.GetBoundsGeometry()->GetAbsRect();
+        bounds = SkIRect::MakeLTRB(absRect.GetLeft(), absRect.GetTop(), absRect.GetRight(), absRect.GetBottom());
+    }
     auto filter = std::static_pointer_cast<RSSkiaFilter>(RSFilter);
 #else
-    auto boundsRect = Rect2DrawingRect(properties.GetBoundsRect());
-    Drawing::Rect dst;
-    matrix.MapRect(dst, boundsRect);
-    auto bounds = dst.RoundOut();
+    Drawing::RectI bounds;
+    if (properties.GetClipBounds() != nullptr) {
+        Drawing::Rect absRect;
+        matrix.MapRect(absRect, properties.GetClipBounds()->GetDrawingPath().GetBounds());
+        bounds = absRect.RoundOut();
+    } else {
+        auto absRect = properties.GetBoundsGeometry()->GetAbsRect();
+        bounds = Drawing::RectI(absRect.GetLeft(), absRect.GetTop(), absRect.GetRight(), absRect.GetBottom());
+    }
     auto filter = std::static_pointer_cast<RSDrawingFilter>(RSFilter);
 #endif
 
