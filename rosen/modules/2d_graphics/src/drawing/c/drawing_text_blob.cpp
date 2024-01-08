@@ -48,7 +48,7 @@ OH_Drawing_TextBlobBuilder* OH_Drawing_TextBlobBuilderCreate()
 const OH_Drawing_RunBuffer* OH_Drawing_TextBlobBuilderAllocRunPos(OH_Drawing_TextBlobBuilder* cTextBlobBuilder,
     const OH_Drawing_Font* cFont, int32_t count, const OH_Drawing_Rect* cRect)
 {
-    if (cFont == nullptr) {
+    if (cFont == nullptr || count < 0) {
         return nullptr;
     }
     TextBlobBuilder* textBlobBuilder = CastToTextBlobBuilder(cTextBlobBuilder);

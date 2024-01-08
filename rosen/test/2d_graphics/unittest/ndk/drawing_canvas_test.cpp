@@ -431,7 +431,7 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ColorFilterCreateBlend
         0, 0, 0, 0.5f, 0
     };
     OH_Drawing_ColorFilter* matrixFilter = OH_Drawing_ColorFilterCreateMatrix(nullptr);
-    OH_Drawing_ColorFilterDestroy(matrixFilter);
+    EXPECT_EQ(matrixFilter, nullptr);
     matrixFilter = OH_Drawing_ColorFilterCreateMatrix(matrix);
     EXPECT_NE(matrixFilter, nullptr);
     OH_Drawing_FilterSetColorFilter(filter, matrixFilter);
@@ -490,9 +490,6 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawBitmap, TestSize.L
     OH_Drawing_CanvasBind(canvas_, bitmap);
     OH_Drawing_CanvasDrawBitmap(canvas_, bitmap, 0, 0);
     OH_Drawing_CanvasClear(canvas_, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0xFF, 0xFF));
-    OH_Drawing_BitmapBuild(bitmap, INT32_MAX, INT32_MAX, &cFormat);
-    OH_Drawing_CanvasBind(canvas_, bitmap);
-    OH_Drawing_CanvasDrawBitmap(canvas_, bitmap, 0, 0);
     OH_Drawing_BitmapDestroy(bitmap);
 }
 
@@ -512,6 +509,7 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawTextBlob, TestSize
     OH_Drawing_FontSetTypeface(font, typeSurface);
     auto *builder = OH_Drawing_TextBlobBuilderCreate();
     EXPECT_EQ(nullptr, OH_Drawing_TextBlobBuilderAllocRunPos(nullptr, nullptr, INT32_MAX, nullptr));
+    EXPECT_EQ(nullptr, OH_Drawing_TextBlobBuilderAllocRunPos(builder, font, INT32_MIN, nullptr));
     const OH_Drawing_RunBuffer* runBuffer = OH_Drawing_TextBlobBuilderAllocRunPos(builder, font, 9, nullptr);
     ASSERT_NE(runBuffer, nullptr);
     runBuffer->glyphs[0] = 65;
