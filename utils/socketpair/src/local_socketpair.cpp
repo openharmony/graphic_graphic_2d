@@ -32,6 +32,8 @@ constexpr int32_t SOCKET_PAIR_SIZE = 2;
 constexpr int32_t INVALID_FD = -1;
 constexpr int32_t ERRNO_EAGAIN = -1;
 constexpr int32_t ERRNO_OTHER = -2;
+constexpr int32_t LEAK_FD_CNT = 200;
+static int32_t g_fdCnt = 0;
 }  // namespace
 
 LocalSocketPair::LocalSocketPair()
@@ -45,6 +47,9 @@ LocalSocketPair::~LocalSocketPair()
                  __func__, sendFd_, receiveFd_);
     CloseFd(sendFd_);
     CloseFd(receiveFd_);
+    if ((sendFd_ != INVALID_FD) || (receiveFd_ != INVALID_FD)) {
+        g_fdCnt--;
+    }
 }
 
 int32_t LocalSocketPair::CreateChannel(size_t sendSize, size_t receiveSize)
@@ -94,6 +99,10 @@ int32_t LocalSocketPair::CreateChannel(size_t sendSize, size_t receiveSize)
     receiveFd_ = socketPair[1];
     HiLog::Debug(LABEL, "%{public}s create socketpair success, receiveFd_ : %{public}d, sendFd_ : %{public}d", __func__,
                  receiveFd_, sendFd_);
+    g_fdCnt++;
+    if (g_fdCnt > LEAK_FD_CNT) {
+        HiLog::Warn(LABEL, "%{public}s fdCnt: %{public}d", __func__, g_fdCnt);
+    }
 
     return 0;
 }

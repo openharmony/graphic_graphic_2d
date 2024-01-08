@@ -105,7 +105,7 @@ private:
     int64_t currentTimeStamp_;
     Rect currentCrop_ = {};
     GraphicTransformType currentTransformType_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
-    float currentTransformMatrix_[TRANSFORM_MATRIX_ELE_COUNT];
+    float currentTransformMatrix_[TRANSFORM_MATRIX_ELE_COUNT] = {0.0};
 };
 
 class SurfaceImageListener : public IBufferConsumerListener {

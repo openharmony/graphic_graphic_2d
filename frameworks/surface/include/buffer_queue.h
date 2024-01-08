@@ -191,7 +191,7 @@ private:
     std::atomic_bool isValidStatus_ = true;
     std::atomic_bool producerCacheClean_ = false;
     const bool isLocalRender_;
-    uint32_t lastFlusedSequence_;
+    uint32_t lastFlusedSequence_ = 0;
     sptr<SyncFence> lastFlusedFence_;
 };
 }; // namespace OHOS
