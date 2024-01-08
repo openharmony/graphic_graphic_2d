@@ -56,7 +56,7 @@ public:
     void SetTimeStamp(uint64_t timeStamp, const std::string& abilityName);
     void SetCacheDir(const std::string& cacheFilePath);
 
-    bool FlushAnimation(uint64_t timeStamp);
+    bool FlushAnimation(uint64_t timeStamp, int64_t vsyncPeriod = 0);
     void FlushModifier();
     bool HasUIAnimation();
 

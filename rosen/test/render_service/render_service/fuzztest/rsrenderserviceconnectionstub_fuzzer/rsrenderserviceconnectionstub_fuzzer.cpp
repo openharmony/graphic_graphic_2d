@@ -686,6 +686,21 @@ bool DoRegisterHgmConfigChangeCallback(const uint8_t* data, size_t size)
     rsClient->RegisterHgmConfigChangeCallback(cb2);
     return true;
 }
+
+bool DoRegisterHgmRefreshRateModeChangeCallback(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    HgmRefreshRateModeChangeCallback cb = [](int32_t refreshRateMode) {};
+    rsClient->RegisterHgmRefreshRateModeChangeCallback(cb);
+    return true;
+}
 } // Rosen
 } // OHOS
 
@@ -725,5 +740,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoReportEventResponse(data, size);
     OHOS::Rosen::DoSetHardwareEnabled(data, size);
     OHOS::Rosen::DoRegisterHgmConfigChangeCallback(data, size);
+    OHOS::Rosen::DoRegisterHgmRefreshRateModeChangeCallback(data, size);
     return 0;
 }

@@ -46,22 +46,6 @@ void RSPropertyTraceTest::SetUp() {}
 void RSPropertyTraceTest::TearDown() {}
 
 /**
- * @tc.name: RSPropertyTraceTest001
- * @tc.desc: Verify the trace
- * @tc.type:FUNC
- */
-HWTEST_F(RSPropertyTraceTest, RSPropertyTraceTest001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSPropertyTraceTest RSPropertyTraceTest001 start";
-
-    RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
-    RSProperties properties;
-    RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(1000, properties);
-    
-    GTEST_LOG_(INFO) << "RSPropertyTraceTest RSPropertyTraceTest001 end";
-}
-
-/**
  * @tc.name: RSPropertyTraceTest002
  * @tc.desc: Verify the trace
  * @tc.type:FUNC

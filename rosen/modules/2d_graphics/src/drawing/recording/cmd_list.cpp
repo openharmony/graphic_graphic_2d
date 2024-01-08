@@ -44,7 +44,7 @@ CmdList::~CmdList()
 
 uint32_t CmdList::AddCmdListData(const CmdListData& data)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (!lastOpItemOffset_.has_value()) {
         void* op = opAllocator_.Allocate<OpItem>(OPITEM_HEAD);
         if (op == nullptr) {
@@ -78,7 +78,7 @@ bool CmdList::SetUpImageData(const void* data, size_t size)
 
 uint32_t CmdList::AddImageData(const void* data, size_t size)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     void* addr = imageAllocator_.Add(data, size);
     if (addr == nullptr) {
         LOGE("CmdList AddImageData failed!");
@@ -99,7 +99,7 @@ CmdListData CmdList::GetAllImageData() const
 
 OpDataHandle CmdList::AddImage(const Image& image)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     OpDataHandle ret = {0, 0};
     uint32_t uniqueId = image.GetUniqueID();
 
@@ -127,7 +127,7 @@ OpDataHandle CmdList::AddImage(const Image& image)
 
 std::shared_ptr<Image> CmdList::GetImage(const OpDataHandle& imageHandle)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     auto imageIt = imageMap_.find(imageHandle.offset);
     if (imageIt != imageMap_.end()) {
         return imageMap_[imageHandle.offset];
@@ -157,7 +157,7 @@ std::shared_ptr<Image> CmdList::GetImage(const OpDataHandle& imageHandle)
 
 uint32_t CmdList::AddBitmapData(const void* data, size_t size)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     void* addr = bitmapAllocator_.Add(data, size);
     if (addr == nullptr) {
         LOGE("CmdList AddImageData failed!");

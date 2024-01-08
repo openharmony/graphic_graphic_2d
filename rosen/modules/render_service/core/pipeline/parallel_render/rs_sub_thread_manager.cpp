@@ -171,6 +171,20 @@ float RSSubThreadManager::GetAppGpuMemoryInMB()
     return total;
 }
 
+void RSSubThreadManager::SubmitFilterSubThreadTask()
+{
+    if (filterThread) {
+        filterThread->FlushAndSubmit();
+    }
+}
+
+void RSSubThreadManager::SetFenceSubThread(sptr<SyncFence> fence)
+{
+    if (filterThread) {
+        filterThread->SetFence(fence);
+    }
+}
+
 void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRenderNode>& node,
     const std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes)
 {

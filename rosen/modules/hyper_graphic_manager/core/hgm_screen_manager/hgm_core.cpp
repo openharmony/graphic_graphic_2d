@@ -100,22 +100,12 @@ int32_t HgmCore::InitXmlConfig()
     if (!mParser_) {
         mParser_ = std::make_unique<XMLParser>();
     }
-    // first parse system xml
-    if (mParser_->LoadConfiguration(CONFIG_FILE_SYSTEM) != EXEC_SUCCESS) {
-        HGM_LOGE("HgmCore failed to load xml configuration file");
-        return XML_FILE_LOAD_FAIL;
-    }
-    if (mParser_->Parse() != EXEC_SUCCESS) {
-        HGM_LOGE("HgmCore failed to parse xml configuration");
-        return XML_GET_ROOT_FAIL;
-    }
 
-    // second parse product xml
     if (mParser_->LoadConfiguration(CONFIG_FILE_PRODUCT) != EXEC_SUCCESS) {
-        HGM_LOGW("HgmCore failed to load xml configuration file");
+        HGM_LOGW("HgmCore failed to load prod xml configuration file");
     }
     if (mParser_->Parse() != EXEC_SUCCESS) {
-        HGM_LOGW("HgmCore failed to parse xml configuration");
+        HGM_LOGW("HgmCore failed to parse prod xml configuration");
     }
 
     if (!mPolicyConfigData_) {

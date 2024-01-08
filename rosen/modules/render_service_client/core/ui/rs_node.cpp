@@ -326,7 +326,7 @@ void RSNode::FinishAnimationByProperty(const PropertyId& id)
     }
 }
 
-void RSNode::CancelAnimationByProperty(const PropertyId& id)
+void RSNode::CancelAnimationByProperty(const PropertyId& id, const bool needForceSync)
 {
     animatingPropertyNum_.erase(id);
     std::vector<std::shared_ptr<RSAnimation>> toBeRemoved;
@@ -349,6 +349,22 @@ void RSNode::CancelAnimationByProperty(const PropertyId& id)
     // Destroy the cancelled animations outside the lock, since destroying them may trigger OnFinish callbacks, and
     // callbacks may add/remove other animations, doing this with the lock would cause a deadlock.
     toBeRemoved.clear();
+
+    if (needForceSync) {
+        // Avoid animation on current property not cancelled in RS
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy == nullptr) {
+            ROSEN_LOGE("RSNode::CancelAnimationByProperty, failed to get RSTransactionProxy!");
+            return;
+        }
+
+        std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCancel>(id_, id);
+        transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
+        if (NeedForcedSendToRemote()) {
+            std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSAnimationCancel>(id_, id);
+            transactionProxy->AddCommand(commandForRemote, true, GetFollowType(), id_);
+        }
+    }
 }
 
 const RSModifierExtractor& RSNode::GetStagingProperties() const

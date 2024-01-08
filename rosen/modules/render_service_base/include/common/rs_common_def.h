@@ -151,6 +151,8 @@ enum class SystemAnimatedScenes : uint32_t {
     ENTER_APP_CENTER, // Enter the app center
     EXIT_APP_CENTER, // Exit the app center
     APPEAR_MISSION_CENTER, // A special case scenario that displays the mission center
+    ENTER_WIND_CLEAR, // Enter win+D in clear screen mode
+    ENTER_WIND_RECOVER, // Enter win+D in recover mode
     OTHERS, // 1.Default state 2.The state in which the animation ends
 };
 

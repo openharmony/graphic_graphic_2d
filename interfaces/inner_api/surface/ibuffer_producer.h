@@ -29,6 +29,13 @@
 
 namespace OHOS {
 class SyncFence;
+class IBufferProducerToken : public IRemoteBroker {
+public:
+    DECLARE_INTERFACE_DESCRIPTOR(u"surf.IBufferProducerToken");
+
+    IBufferProducerToken() = default;
+    virtual ~IBufferProducerToken() noexcept = default;
+};
 class IBufferProducer : public IRemoteBroker {
 public:
     struct RequestBufferReturnValue {
@@ -82,6 +89,7 @@ public:
     virtual GSError UnRegisterReleaseListener() = 0;
     virtual GSError GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
                                         sptr<SyncFence>& fence, float matrix[16]) = 0;
+    virtual GSError SendDeathRecipientObject() = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"surf.IBufferProducer");
 
@@ -113,6 +121,7 @@ protected:
         BUFFER_PRODUCER_GET_PRESENT_TIMESTAMP = 23,
         BUFFER_PRODUCER_UNREGISTER_RELEASE_LISTENER = 24,
         BUFFER_PRODUCER_GET_LAST_FLUSHED_BUFFER = 25,
+        BUFFER_PRODUCER_REGISTER_DEATH_RECIPIENT = 26,
     };
 };
 } // namespace OHOS

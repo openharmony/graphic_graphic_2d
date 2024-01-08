@@ -63,13 +63,17 @@ void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
 
     auto screenType = hgmCore.GetFrameRateMgr()->GetCurScreenStrategyId();
     auto screenSetting = std::to_string(hgmCore.GetCurrentRefreshRateMode());
-    auto dynamicSettingMap = hgmCore.GetPolicyConfigData()->GetAceSceneDynamicSettingMap(screenType, screenSetting);
-    for (auto& [animType, dynamicSetting] : dynamicSettingMap) {
-        for (auto& [animName, dynamicConfig] : dynamicSetting) {
-            data->AddAnimDynamicItem({
-                animType, animName, dynamicConfig.min, dynamicConfig.max, dynamicConfig.preferred_fps});
+    auto configData = hgmCore.GetPolicyConfigData();
+    if (configData != nullptr) {
+        auto dynamicSettingMap = configData->GetAceSceneDynamicSettingMap(screenType, screenSetting);
+        for (auto& [animType, dynamicSetting] : dynamicSettingMap) {
+            for (auto& [animName, dynamicConfig] : dynamicSetting) {
+                data->AddAnimDynamicItem({
+                    animType, animName, dynamicConfig.min, dynamicConfig.max, dynamicConfig.preferred_fps});
+            }
         }
     }
+
     auto screen = hgmCore.GetActiveScreen();
     if (screen != nullptr) {
         data->SetPpi(screen->GetPpi());
@@ -90,13 +94,17 @@ void HgmConfigCallbackManager::SyncHgmConfigChangeCallback()
 
     auto screenType = hgmCore.GetFrameRateMgr()->GetCurScreenStrategyId();
     auto screenSetting = std::to_string(hgmCore.GetCurrentRefreshRateMode());
-    auto dynamicSettingMap = hgmCore.GetPolicyConfigData()->GetAceSceneDynamicSettingMap(screenType, screenSetting);
-    for (auto& [animType, dynamicSetting] : dynamicSettingMap) {
-        for (auto& [animName, dynamicConfig] : dynamicSetting) {
-            data->AddAnimDynamicItem({
-                animType, animName, dynamicConfig.min, dynamicConfig.max, dynamicConfig.preferred_fps});
+    auto configData = hgmCore.GetPolicyConfigData();
+    if (configData != nullptr) {
+        auto dynamicSettingMap = configData->GetAceSceneDynamicSettingMap(screenType, screenSetting);
+        for (auto& [animType, dynamicSetting] : dynamicSettingMap) {
+            for (auto& [animName, dynamicConfig] : dynamicSetting) {
+                data->AddAnimDynamicItem({
+                    animType, animName, dynamicConfig.min, dynamicConfig.max, dynamicConfig.preferred_fps});
+            }
         }
     }
+
     auto screen = hgmCore.GetActiveScreen();
     if (screen != nullptr) {
         data->SetPpi(screen->GetPpi());
@@ -130,17 +138,11 @@ void HgmConfigCallbackManager::UnRegisterHgmConfigChangeCallback(pid_t pid)
     if (animDynamicCfgCallbacks_.find(pid) != animDynamicCfgCallbacks_.end()) {
         animDynamicCfgCallbacks_.erase(pid);
         HGM_LOGD("HgmConfigCallbackManager %{public}s : remove a remote callback succeed.", __func__);
-        return;
     }
-    HGM_LOGD("HgmConfigCallbackManager %{public}s : initialization or do not find callback(pid = %d)",
-        __func__, static_cast<int>(pid));
 
     if (refreshRateModeCallbacks_.find(pid) != refreshRateModeCallbacks_.end()) {
         refreshRateModeCallbacks_.erase(pid);
         HGM_LOGD("HgmRefreshRateModeCallbackManager %{public}s : remove a remote callback succeed.", __func__);
-        return;
     }
-    HGM_LOGD("HgmRefreshRateModeCallbackManager %{public}s : initialization or do not find callback(pid = %d)",
-        __func__, static_cast<int>(pid));
 }
 } // namespace OHOS::Rosen

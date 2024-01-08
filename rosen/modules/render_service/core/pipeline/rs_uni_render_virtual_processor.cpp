@@ -137,6 +137,77 @@ void RSUniRenderVirtualProcessor::CanvasRotation(ScreenRotation screenRotation, 
 #endif
 }
 
+void RSUniRenderVirtualProcessor::RotateMirrorCanvasIfNeed(RSDisplayRenderNode& node)
+{
+    auto rotation = node.GetScreenRotation();
+    if (RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0) {
+        if (rotation == ScreenRotation::ROTATION_270) {
+            rotation = ScreenRotation::ROTATION_0;
+        } else {
+            rotation = static_cast<ScreenRotation>(static_cast<int>(rotation) + 1);
+        }
+    }
+#ifndef USE_ROSEN_DRAWING
+    if (rotation != ScreenRotation::ROTATION_0) {
+        auto screenManager = CreateOrGetScreenManager();
+        auto mainScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
+        if (rotation == ScreenRotation::ROTATION_90) {
+            canvas_->rotate(90); // 90 degrees
+            canvas_->translate(0, -(static_cast<float>(mainScreenInfo.height)));
+        } else if (rotation == ScreenRotation::ROTATION_180) {
+            canvas_->rotate(180, static_cast<float>(mainScreenInfo.width) / 2, // 180 degrees, 2 is centre
+                static_cast<float>(mainScreenInfo.height) / 2); // 2 is centre
+        } else if (rotation == ScreenRotation::ROTATION_270) {
+            canvas_->rotate(270); // 270 degrees
+            canvas_->translate(-(static_cast<float>(mainScreenInfo.width)), 0);
+        }
+    }
+#else
+    if (rotation != ScreenRotation::ROTATION_0) {
+        auto screenManager = CreateOrGetScreenManager();
+        auto mainScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
+        if (rotation == ScreenRotation::ROTATION_90) {
+            canvas_->Rotate(90, 0, 0); // 90 degrees
+            canvas_->Translate(0, -(static_cast<float>(mainScreenInfo.height)));
+        } else if (rotation == ScreenRotation::ROTATION_180) {
+            canvas_->Rotate(180, static_cast<float>(mainScreenInfo.width) / 2, // 180 degrees, 2 is centre
+                static_cast<float>(mainScreenInfo.height) / 2); // 2 is centre
+        } else if (rotation == ScreenRotation::ROTATION_270) {
+            canvas_->Rotate(270, 0, 0); // 270 degrees
+            canvas_->Translate(-(static_cast<float>(mainScreenInfo.width)), 0);
+        }
+    }
+#endif
+}
+
+void RSUniRenderVirtualProcessor::ScaleMirrorIfNeed(RSDisplayRenderNode& node)
+{
+    if (mainWidth_ != mirrorWidth_ || mainHeight_ != mirrorHeight_) {
+#ifndef USE_ROSEN_DRAWING
+        canvas_->clear(SK_ColorBLACK);
+#else
+        canvas_->Clear(SK_ColorBLACK);
+#endif
+        float mirrorScale = 1.0f; // 1 for init scale
+        float startX = 0.0f;
+        float startY = 0.0f;
+        if ((mirrorHeight_ / mirrorWidth_) < (mainHeight_ / mainWidth_)) {
+            mirrorScale = mirrorHeight_ / mainHeight_;
+            startX = (mirrorWidth_ - (mirrorScale * mainWidth_)) / 2; // 2 for calc X
+        } else if ((mirrorHeight_ / mirrorWidth_) > (mainHeight_ / mainWidth_)) {
+            mirrorScale = mirrorWidth_ / mainWidth_;
+            startY = (mirrorHeight_ - (mirrorScale * mainHeight_)) / 2; // 2 for calc Y
+        }
+#ifndef USE_ROSEN_DRAWING
+        canvas_->translate(startX, startY);
+        canvas_->scale(mirrorScale, mirrorScale);
+#else
+        canvas_->Translate(startX, startY);
+        canvas_->Scale(mirrorScale, mirrorScale);
+#endif
+    }
+}
+
 void RSUniRenderVirtualProcessor::PostProcess(RSDisplayRenderNode* node)
 {
     if (producerSurface_ == nullptr) {
@@ -194,116 +265,20 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurface(RSDisplayRenderNode& nod
         auto params = RSUniRenderUtil::CreateBufferDrawParam(node, forceCPU_);
         auto screenManager = CreateOrGetScreenManager();
         auto mainScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
-        float mainWidth = static_cast<float>(mainScreenInfo.width);
-        float mainHeight = static_cast<float>(mainScreenInfo.height);
-        auto screenCorrection = screenManager->GetScreenCorrection(node.GetScreenId());
-        if ((RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0) || canvasRotation_) {
-            std::swap(mainWidth, mainHeight);
-            if (screenCorrection == ScreenRotation::ROTATION_270) {
-#ifndef USE_ROSEN_DRAWING
-                canvas_->rotate(-270, mirrorWidth_ / 2.0f, mirrorHeight_ / 2.0f);
-#else
-                canvas_->Rotate(-270, mirrorWidth_ / 2.0f, mirrorHeight_ / 2.0f);
-#endif
-            }
-            if (mainScreenRotation_ == ScreenRotation::ROTATION_180) {
-                std::swap(mainWidth, mainHeight);
-            }
-            if (canvasRotation_) {
-                CanvasRotation(mainScreenRotation_, mirrorWidth_, mirrorHeight_);
-            }
+        mainWidth_ = static_cast<float>(mainScreenInfo.width);
+        mainHeight_ = static_cast<float>(mainScreenInfo.height);
+        if ((RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0)) {
+            std::swap(mainWidth_, mainHeight_);
+        }
+        if (mainScreenRotation_ == ScreenRotation::ROTATION_90 ||
+            mainScreenRotation_ == ScreenRotation::ROTATION_270) {
+            std::swap(mainWidth_, mainHeight_);
         }
         
-        // If the width and height not match the main screen, calculate the dstRect.
-        if (mainWidth != mirrorWidth_ || mainHeight != mirrorHeight_) {
-#ifndef USE_ROSEN_DRAWING
-            SkRect mirrorDstRect;
-            if ((mirrorHeight_ / mirrorWidth_) < (mainHeight / mainWidth)) {
-                float mirrorScale = mirrorHeight_ / mainHeight;
-                float mainScale = mainHeight / mainWidth;
-                if (mainScreenRotation_ == ScreenRotation::ROTATION_90 ||
-                    mainScreenRotation_ == ScreenRotation::ROTATION_270) {
-                    if (screenCorrection == ScreenRotation::ROTATION_270) {
-                        mirrorDstRect = SkRect::MakeXYWH(-(mirrorHeight_ / 2.0f),
-                            -(mirrorScale * mainWidth * mainScale) / 2.0f,
-                            mirrorHeight_, mirrorScale * mainWidth * mainScale);
-                    } else {
-                        mirrorDstRect = SkRect::MakeXYWH(-(mirrorHeight_ / 2.0f),
-                            -(mirrorScale * mainWidth) / 2.0f,
-                            mirrorHeight_, mirrorScale * mainWidth);
-                    }
-                } else {
-                    if (screenCorrection == ScreenRotation::ROTATION_270) {
-                        mirrorDstRect = SkRect::MakeXYWH((mirrorWidth_ - (mirrorScale * mainScale * mainWidth)) / 2.0f,
-                            0, mirrorScale * mainScale * mainWidth, mirrorHeight_);
-                    } else {
-                        mirrorDstRect = SkRect::MakeXYWH((mirrorWidth_ - (mirrorScale * mainWidth)) / 2.0f, 0,
-                            mirrorScale * mainWidth, mirrorHeight_);
-                    }
-                }
-            } else if ((mirrorHeight_ / mirrorWidth_) > (mainHeight / mainWidth)) {
-                float mirrorScale = mirrorWidth_ / mainWidth;
-                if (mainScreenRotation_ == ScreenRotation::ROTATION_90 ||
-                    mainScreenRotation_ == ScreenRotation::ROTATION_270) {
-                    mirrorDstRect = SkRect::MakeXYWH((mirrorHeight_ / 2.0f) -
-                        ((mirrorScale * mainHeight) / 2.0f), -(mirrorWidth_ / 2.0f),
-                        mirrorScale * mainHeight, mirrorWidth_);
-                } else {
-                    mirrorDstRect = SkRect::MakeXYWH(0,
-                        (mirrorHeight_ - (mirrorScale * mainHeight)) / 2.0f,
-                        mirrorWidth_, mirrorScale * mainHeight);
-                }
-            }
-            params.dstRect = mirrorDstRect;
-#else
-            Drawing::Rect mirrorDstRect;
-            if ((mirrorHeight_ / mirrorWidth_) < (mainHeight / mainWidth)) {
-                float mirrorScale = mirrorHeight_ / mainHeight;
-                float mainScale = mainHeight / mainWidth;
-                if (mainScreenRotation_ == ScreenRotation::ROTATION_90 ||
-                    mainScreenRotation_ == ScreenRotation::ROTATION_270) {
-                    if (screenCorrection == ScreenRotation::ROTATION_270) {
-                        mirrorDstRect = Drawing::Rect(-(mirrorHeight_ / 2.0f),
-                            -(mirrorScale * mainWidth * mainScale) / 2.0f, mirrorHeight_ / 2.0f,
-                            (mirrorScale * mainWidth * mainScale) / 2.0f);
-                    } else {
-                        mirrorDstRect = Drawing::Rect(-(mirrorHeight_ / 2.0f), -(mirrorScale * mainWidth) / 2.0f,
-                            mirrorHeight_ / 2.0f, (mirrorScale * mainWidth) / 2.0f);
-                    }
-                } else {
-                    if (screenCorrection == ScreenRotation::ROTATION_270) {
-                        mirrorDstRect = Drawing::Rect((mirrorWidth_ - (mirrorScale * mainScale * mainWidth)) / 2.0f, 0,
-                            (mirrorWidth_ + (mirrorScale * mainScale * mainWidth)) / 2.0f, mirrorHeight_);
-                    } else {
-                        mirrorDstRect = Drawing::Rect((mirrorWidth_ - (mirrorScale * mainWidth)) / 2.0f, 0,
-                            (mirrorWidth_ + (mirrorScale * mainWidth)) / 2.0f, mirrorHeight_);
-                    }
-                }
-            } else if ((mirrorHeight_ / mirrorWidth_) > (mainHeight / mainWidth)) {
-                float mirrorScale = mirrorWidth_ / mainWidth;
-                if (mainScreenRotation_ == ScreenRotation::ROTATION_90 ||
-                    mainScreenRotation_ == ScreenRotation::ROTATION_270) {
-                    mirrorDstRect = Drawing::Rect((mirrorHeight_ / 2.0f) - ((mirrorScale * mainHeight) / 2.0f),
-                        -(mirrorWidth_ / 2.0f), (mirrorHeight_ / 2.0f) + ((mirrorScale * mainHeight) / 2.0f),
-                        (mirrorWidth_ / 2.0f));
-                } else {
-                    mirrorDstRect = Drawing::Rect(0, (mirrorHeight_ - (mirrorScale * mainHeight)) / 2.0f,
-                        mirrorWidth_, (mirrorHeight_ + (mirrorScale * mainHeight)) / 2.0);
-                }
-            }
-            params.dstRect = mirrorDstRect;
-#endif
-        } else {
-            if (mainScreenRotation_ == ScreenRotation::ROTATION_90 ||
-                mainScreenRotation_ == ScreenRotation::ROTATION_270) {
-#ifndef USE_ROSEN_DRAWING
-                canvas_->translate(-(mirrorHeight_ / 2.0f), -(mirrorWidth_ / 2.0f));
-#else
-                canvas_->Translate(-(mirrorHeight_ / 2.0f), -(mirrorWidth_ / 2.0f));
-#endif
-            }
+        ScaleMirrorIfNeed(node);
+        if ((RSSystemProperties::IsFoldScreenFlag() && node.GetScreenId() == 0) || canvasRotation_) {
+            RotateMirrorCanvasIfNeed(node);
         }
-
         renderEngine_->DrawDisplayNodeWithParams(*canvas_, node, params);
 #ifndef USE_ROSEN_DRAWING
         canvas_->restore();

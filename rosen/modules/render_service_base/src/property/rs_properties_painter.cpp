@@ -861,11 +861,10 @@ void RSPropertiesPainter::DrawShadowInner(
             return;
         }
         Drawing::Point3 planeParams = { 0.0f, 0.0f, properties.GetShadowElevation() };
-        Drawing::scalar centerX = path.GetBounds().GetLeft() + path.GetBounds().GetWidth() / 2;
-        Drawing::scalar centerY = path.GetBounds().GetTop() + path.GetBounds().GetHeight() / 2;
-        Drawing::Point3 lightPos = {
-            canvas.GetTotalMatrix().Get(Drawing::Matrix::TRANS_X) + centerX,
-            canvas.GetTotalMatrix().Get(Drawing::Matrix::TRANS_Y) + centerY, DEFAULT_LIGHT_HEIGHT };
+        std::vector<Drawing::Point> pt{{path.GetBounds().GetLeft() + path.GetBounds().GetWidth() / 2,
+            path.GetBounds().GetTop() + path.GetBounds().GetHeight() / 2}};
+        canvas.GetTotalMatrix().MapPoints(pt, pt, 1);
+        Drawing::Point3 lightPos = {pt[0].GetX(), pt[0].GetY(), DEFAULT_LIGHT_HEIGHT};
         Color ambientColor = Color::FromArgbInt(DEFAULT_AMBIENT_COLOR);
         ambientColor.MultiplyAlpha(canvas.GetAlpha());
         spotColor.MultiplyAlpha(canvas.GetAlpha());
@@ -1549,8 +1548,7 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeMeanBlurShader(
 }
 
 #ifndef USE_ROSEN_DRAWING
-sk_sp<SkImage> RSPropertiesPainter::MakeGreyAdjustmentImage(SkCanvas& canvas, const sk_sp<SkImage>& image,
-    const float greyCoef1, const float greyCoef2)
+sk_sp<SkRuntimeEffect> RSPropertiesPainter::MakeGreyAdjustmentEffect()
 {
     SkString GreyGradationString(R"(
         uniform shader imageShader;
@@ -1578,11 +1576,7 @@ sk_sp<SkImage> RSPropertiesPainter::MakeGreyAdjustmentImage(SkCanvas& canvas, co
 
         float calculateGreyAdjustY(float rgb) {
             float t_r = calculateT_y(rgb);
-            if (rgb < 127.5) {
-                return (rgb + coefficient1 * pow((1 - t_r), 3));
-            } else {
-                return (rgb - coefficient2 * pow((1 - t_r), 3));
-            }
+            return (rgb < 127.5) ? (rgb + coefficient1 * pow((1 - t_r), 3)) : (rgb - coefficient2 * pow((1 - t_r), 3));
         }
 
         half4 main(float2 coord) {
@@ -1598,18 +1592,18 @@ sk_sp<SkImage> RSPropertiesPainter::MakeGreyAdjustmentImage(SkCanvas& canvas, co
             return vec4(color, 1.0);
         }
     )");
-    auto [GreyAdjustEffect, GreyAdjustError] = SkRuntimeEffect::MakeForShader(GreyGradationString);
-    SkRuntimeShaderBuilder builder(GreyAdjustEffect);
-    auto imageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
-    builder.child("imageShader") = imageShader;
-    builder.uniform("coefficient1") = greyCoef1;
-    builder.uniform("coefficient2") = greyCoef2;
+    if (!greyAdjustEffect_) {
+        auto [greyAdjustEffect, greyAdjustError] = SkRuntimeEffect::MakeForShader(GreyGradationString);
+        if (!greyAdjustEffect) {
+            return nullptr;
+        }
+        greyAdjustEffect_ = std::move(greyAdjustEffect);
+    }
 
-    return builder.makeImage(canvas.recordingContext(), nullptr, image->imageInfo(), false);
+    return greyAdjustEffect_;
 }
 #else
-std::shared_ptr<Drawing::Image> RSPropertiesPainter::MakeGreyAdjustmentImage(Drawing::Canvas& canvas,
-    const std::shared_ptr<Drawing::Image>& image, const float greyCoef1, const float greyCoef2)
+std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::MakeGreyAdjustmentEffect()
 {
     static const std::string GreyGradationString(R"(
         uniform shader imageShader;
@@ -1637,11 +1631,7 @@ std::shared_ptr<Drawing::Image> RSPropertiesPainter::MakeGreyAdjustmentImage(Dra
 
         float calculateGreyAdjustY(float rgb) {
             float t_r = calculateT_y(rgb);
-            if (rgb < 127.5) {
-                return (rgb + coefficient1 * pow((1 - t_r), 3));
-            } else {
-                return (rgb - coefficient2 * pow((1 - t_r), 3));
-            }
+            return (rgb < 127.5) ? (rgb + coefficient1 * pow((1 - t_r), 3)) : (rgb - coefficient2 * pow((1 - t_r), 3));
         }
 
         half4 main(float2 coord) {
@@ -1657,23 +1647,16 @@ std::shared_ptr<Drawing::Image> RSPropertiesPainter::MakeGreyAdjustmentImage(Dra
             return vec4(color, 1.0);
         }
     )");
-    if (greyAdjustEffect_ == nullptr) {
-        greyAdjustEffect_ = Drawing::RuntimeEffect::CreateForShader(GreyGradationString);
-        if (greyAdjustEffect_ == nullptr) {
-            ROSEN_LOGE("MakeGreyAdjustmentShader::RuntimeShader effect error\n");
+    if (!greyAdjustEffect_) {
+        std::shared_ptr<Drawing::RuntimeEffect> greyAdjustEffect =
+            Drawing::RuntimeEffect::CreateForShader(GreyGradationString);
+        if (!greyAdjustEffect) {
             return nullptr;
         }
+        greyAdjustEffect_ = std::move(greyAdjustEffect);
     }
-    std::shared_ptr<Drawing::RuntimeShaderBuilder> builder =
-        std::make_shared<Drawing::RuntimeShaderBuilder>(greyAdjustEffect_);
-    Drawing::Matrix matrix;
-    auto imageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
-        Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), matrix);
-    builder->SetChild("imageShader", imageShader);
-    builder->SetUniform("coefficient1", greyCoef1);
-    builder->SetUniform("coefficient2", greyCoef2);
 
-    return builder->MakeImage(canvas.GetGPUContext().get(), nullptr, image->GetImageInfo(), false);
+    return greyAdjustEffect_;
 }
 #endif
 
@@ -1685,11 +1668,20 @@ sk_sp<SkImage> RSPropertiesPainter::DrawGreyAdjustment(SkCanvas& canvas, const s
         ROSEN_LOGE("RSPropertiesPainter::DrawGreyAdjustment image is null");
         return nullptr;
     }
-    RS_TRACE_NAME("RSPropertiesPainter::DrawGreyAdjustment");
-    RS_TRACE_NAME_FMT("greyCoef1 is: %f, greyCoef2 is: %f", greyCoef1, greyCoef2);
-    auto greyImage = MakeGreyAdjustmentImage(canvas, image, greyCoef1, greyCoef2);
+    RS_TRACE_NAME_FMT("RSPropertiesPainter::DrawGreyAdjustment, greyCoef1 is: %f, greyCoef2 is: %f",
+        greyCoef1, greyCoef2);
+    auto greyAdjustEffect = MakeGreyAdjustmentEffect();
+    if (!greyAdjustEffect) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawGreyAdjustment greyAdjustEffect is null");
+        return nullptr;
+    }
+    SkRuntimeShaderBuilder builder(greyAdjustEffect);
+    auto imageShader = image->makeShader(SkSamplingOptions(SkFilterMode::kLinear));
+    builder.child("imageShader") = imageShader;
+    builder.uniform("coefficient1") = greyCoef1;
+    builder.uniform("coefficient2") = greyCoef2;
 
-    return greyImage;
+    return builder.makeImage(canvas.recordingContext(), nullptr, image->imageInfo(), false);
 }
 #else
 std::shared_ptr<Drawing::Image> RSPropertiesPainter::DrawGreyAdjustment(Drawing::Canvas& canvas,
@@ -1699,11 +1691,22 @@ std::shared_ptr<Drawing::Image> RSPropertiesPainter::DrawGreyAdjustment(Drawing:
         ROSEN_LOGE("RSPropertiesPainter::DrawGreyAdjustment image is null");
         return nullptr;
     }
-    RS_TRACE_NAME("RSPropertiesPainter::DrawGreyAdjustment");
-    RS_TRACE_NAME_FMT("greyCoef1 is: %f, greyCoef2 is: %f", greyCoef1, greyCoef2);
-    std::shared_ptr<Drawing::Image> greyImage = MakeGreyAdjustmentImage(canvas, image, greyCoef1, greyCoef2);
-
-    return greyImage;
+    RS_TRACE_NAME_FMT("RSPropertiesPainter::DrawGreyAdjustment, greyCoef1 is: %f, greyCoef2 is: %f",
+        greyCoef1, greyCoef2);
+    auto greyAdjustEffect = MakeGreyAdjustmentEffect();
+    if (!greyAdjustEffect) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawGreyAdjustment greyAdjustEffect is null");
+        return nullptr;
+    }
+    std::shared_ptr<Drawing::RuntimeShaderBuilder> builder =
+        std::make_shared<Drawing::RuntimeShaderBuilder>(greyAdjustEffect);
+    Drawing::Matrix matrix;
+    auto imageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
+        Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), matrix);
+    builder->SetChild("imageShader", imageShader);
+    builder->SetUniform("coefficient1", greyCoef1);
+    builder->SetUniform("coefficient2", greyCoef2);
+    return builder->MakeImage(canvas.GetGPUContext().get(), nullptr, image->GetImageInfo(), false);
 }
 #endif
 
@@ -1746,10 +1749,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     }
 
     auto filter = std::static_pointer_cast<RSSkiaFilter>(RSFilter);
-    if (properties.IsGreyAdjustmentValid()) {
-        // Set grey coef to filter
-        filter->SetGreyCoef(properties.GetGreyCoef1(), properties.GetGreyCoef2(), properties.IsGreyAdjustmentValid());
-    }
+    filter->SetGreyCoef(properties.GetGreyCoef1(), properties.GetGreyCoef2(), properties.IsGreyAdjustmentValid());
     auto skSurface = canvas.GetSurface();
     if (skSurface == nullptr) {
         ROSEN_LOGD("RSPropertiesPainter::DrawFilter skSurface null");
@@ -1772,6 +1772,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     }
 
     auto filter = std::static_pointer_cast<RSDrawingFilter>(RSFilter);
+    filter->SetGreyCoef(properties.GetGreyCoef1(), properties.GetGreyCoef2(), properties.IsGreyAdjustmentValid());
     auto surface = canvas.GetSurface();
     if (surface == nullptr) {
         ROSEN_LOGD("RSPropertiesPainter::DrawFilter surface null");
@@ -1806,10 +1807,11 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         needSnapshotOutset ? clipIBounds.makeOutset(-1, -1) : clipIBounds);
 #else
     auto clipIBounds = canvas.GetDeviceClipBounds();
+    auto imageClipIBounds = clipIBounds;
     if (needSnapshotOutset) {
-        clipIBounds.MakeOutset(-1, -1);
+        imageClipIBounds.MakeOutset(-1, -1);
     }
-    auto imageSnapshot = surface->GetImageSnapshot(clipIBounds);
+    auto imageSnapshot = surface->GetImageSnapshot(imageClipIBounds);
 #endif
     if (imageSnapshot == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawFilter image null");

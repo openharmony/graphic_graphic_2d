@@ -269,6 +269,7 @@ public:
     bool HasMustRenewedInfo() const;
     // collect all subnodes using effect
     void SetUseEffectNodes(uint32_t val);
+    bool HasSubSurface() const;
 
     bool NeedInitCacheSurface() const;
     bool NeedInitCacheCompletedSurface() const;
@@ -397,7 +398,6 @@ public:
 
     bool HasAbilityComponent() const;
     void SetHasAbilityComponent(bool hasAbilityComponent);
-    bool QuerySubAssignable(bool isRotation) const;
 
     uint32_t GetCacheSurfaceThreadIndex() const;
 
@@ -523,6 +523,8 @@ protected:
         return context_;
     }
     virtual void OnTreeStateChanged();
+    // recursive update subSurfaceCnt
+    void UpdateSubSurfaceCnt(SharedPtr curParent, SharedPtr preParent);
 
     static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
     void AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& modifier);
@@ -649,6 +651,8 @@ private:
 
     std::unordered_set<NodeId> curCacheFilterRects_ = {};
     std::unordered_set<NodeId> visitedCacheRoots_ = {};
+    // collect subtree's surfaceNode including itself
+    uint32_t subSurfaceCnt_ = 0;
 
     mutable std::recursive_mutex surfaceMutex_;
     std::mutex mutex_;

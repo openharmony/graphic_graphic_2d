@@ -80,6 +80,22 @@ void SimplifyPaint(uint32_t color, SkPaint* paint)
     paint->setStrokeWidth(1.04); // 1.04 is empirical value
     paint->setStrokeJoin(SkPaint::kRound_Join);
 }
+
+bool GetOffScreenSurfaceAndCanvas(const RSPaintFilterCanvas& canvas,
+    sk_sp<SkSurface>& offScreenSurface, std::shared_ptr<RSPaintFilterCanvas>& offScreenCanvas)
+{
+    auto skSurface = canvas.GetSurface();
+    if (!skSurface) {
+        return false;
+    }
+    offScreenSurface = skSurface->makeSurface(skSurface->width(), skSurface->height());
+    if (!offScreenSurface) {
+        return false;
+    }
+    offScreenCanvas = std::make_shared<RSPaintFilterCanvas>(offScreenSurface.get());
+    offScreenCanvas->CopyConfiguration(canvas);
+    return true;
+}
 } // namespace
 
 OpItemTasks& OpItemTasks::Instance()
@@ -337,25 +353,41 @@ void TextBlobOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
     if (isHighContrastEnabled) {
         ROSEN_LOGD("TextBlobOpItem::Draw highContrastEnabled");
         uint32_t color = paint_.getColor();
-        if (SkColorGetA(color) == 0) {
+        if (SkColorGetA(color) == 0 || paint_.getMaskFilter()) {
             canvas.drawTextBlob(textBlob_, x_, y_, paint_);
             return;
         }
-        uint32_t channelSum = SkColorGetR(color) + SkColorGetG(color) + SkColorGetB(color);
-        bool flag = channelSum < 594; // 594 is empirical value
-
-        SkPaint outlinePaint(paint_);
-        SimplifyPaint(flag ? SK_ColorWHITE : SK_ColorBLACK, &outlinePaint);
-        outlinePaint.setStyle(SkPaint::kStrokeAndFill_Style);
-        canvas.drawTextBlob(textBlob_, x_, y_, outlinePaint);
-
-        SkPaint innerPaint(paint_);
-        SimplifyPaint(flag ? SK_ColorBLACK : SK_ColorWHITE, &innerPaint);
-        innerPaint.setStyle(SkPaint::kFill_Style);
-        canvas.drawTextBlob(textBlob_, x_, y_, innerPaint);
+        if (canvas.GetAlphaSaveCount() > 0 && canvas.GetAlpha() < 1.0f) {
+            sk_sp<SkSurface> offScreenSurface;
+            std::shared_ptr<RSPaintFilterCanvas> offScreenCanvas;
+            if (GetOffScreenSurfaceAndCanvas(canvas, offScreenSurface, offScreenCanvas)) {
+                DrawHighContrast(*offScreenCanvas);
+                offScreenCanvas->flush();
+                canvas.drawImage(offScreenSurface->makeImageSnapshot(), 0, 0, SkSamplingOptions());
+                return;
+            }
+        }
+        DrawHighContrast(canvas);
     } else {
         canvas.drawTextBlob(textBlob_, x_, y_, paint_);
     }
+}
+
+void TextBlobOpItem::DrawHighContrast(RSPaintFilterCanvas& canvas) const
+{
+    uint32_t color = paint_.getColor();
+    uint32_t channelSum = SkColorGetR(color) + SkColorGetG(color) + SkColorGetB(color);
+    bool flag = channelSum < 594; // 594 is empirical value
+
+    SkPaint outlinePaint(paint_);
+    SimplifyPaint(flag ? SK_ColorWHITE : SK_ColorBLACK, &outlinePaint);
+    outlinePaint.setStyle(SkPaint::kStrokeAndFill_Style);
+    canvas.drawTextBlob(textBlob_, x_, y_, outlinePaint);
+
+    SkPaint innerPaint(paint_);
+    SimplifyPaint(flag ? SK_ColorBLACK : SK_ColorWHITE, &innerPaint);
+    innerPaint.setStyle(SkPaint::kFill_Style);
+    canvas.drawTextBlob(textBlob_, x_, y_, innerPaint);
 }
 
 SymbolOpItem::SymbolOpItem(const HMSymbolData& symbol, SkPoint locate, const SkPaint& paint)
@@ -2673,6 +2705,13 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Media::PixelMap>&
     }
 }
 
+void RSExtendImageObject::SetNodeId(NodeId id)
+{
+    if (rsImage_) {
+        rsImage_->UpdateNodeIdToPicture(id);
+    }
+}
+
 void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect,
     const Drawing::SamplingOptions& sampling, bool isBackground)
 {
@@ -2898,6 +2937,13 @@ void RSExtendImageBaseObj::Playback(Drawing::Canvas& canvas, const Drawing::Rect
 {
     if (rsImage_) {
         rsImage_->DrawImage(canvas, sampling);
+    }
+}
+
+void RSExtendImageBaseObj::SetNodeId(NodeId id)
+{
+    if (rsImage_) {
+        rsImage_->UpdateNodeIdToPicture(id);
     }
 }
 

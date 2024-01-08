@@ -338,9 +338,9 @@ public:
 
     int32_t GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode) const override;
 
-    int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx) override;
-
     uint32_t GetActualScreensNum() const override;
+
+    int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx) override;
 
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode) override;
 

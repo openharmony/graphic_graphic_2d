@@ -285,7 +285,7 @@ std::shared_ptr<RSFilter> RSMaterialFilter::TransformFilter(float fraction) cons
 
 bool RSMaterialFilter::IsValid() const
 {
-    constexpr float epsilon = 0.05f;
+    constexpr float epsilon = 0.999f;
     return radius_ > epsilon;
 }
 
@@ -387,6 +387,10 @@ void RSMaterialFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_
 
 void RSMaterialFilter::SetGreyCoef(float greyCoef1, float greyCoef2, bool isGreyCoefValid)
 {
+    if (!isGreyCoefValid) {
+        isGreyCoefValid_ = isGreyCoefValid;
+        return;
+    }
     greyCoef1_ = greyCoef1;
     greyCoef2_ = greyCoef2;
     isGreyCoefValid_ = isGreyCoefValid;

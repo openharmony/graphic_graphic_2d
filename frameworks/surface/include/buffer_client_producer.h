@@ -75,11 +75,14 @@ public:
 
     sptr<NativeSurface> GetNativeSurface() override;
 
+    GSError SendDeathRecipientObject() override;
+
 private:
     static inline BrokerDelegator<BufferClientProducer> delegator_;
     std::string name_ = "not init";
     uint64_t uniqueId_ = 0;
     std::mutex mutex_;
+    sptr<IBufferProducerToken> token_;
 };
 }; // namespace OHOS
 

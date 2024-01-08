@@ -64,7 +64,7 @@ void ShaderCache::InitShaderCache(const char* identity, const size_t size, bool 
     auto loaded = cacheData_->Get(&key, sizeof(key), shaArray.data(), shaArray.size());
     if (!(loaded && std::equal(shaArray.begin(), shaArray.end(), idHash_.begin()))) {
         cacheData_->Clear();
-        LOGW("abandon, bad hash value, cleared for future regeneration");
+        LOGD("abandon, bad hash value, cleared for future regeneration");
     }
 
     LOGD("shadercache initiation success");

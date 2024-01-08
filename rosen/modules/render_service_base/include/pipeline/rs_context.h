@@ -122,7 +122,7 @@ private:
     std::function<void(const std::function<void()>&, bool)> taskRunner_;
     std::function<void()> vsyncRequestFunc_;
     // Collect all active Nodes sorted by root node id in this frame.
-    std::unordered_map<NodeId, std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>>> activeNodesInRoot_;
+    std::unordered_map<NodeId, std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>> activeNodesInRoot_;
 
     friend class RSRenderThread;
     friend class RSMainThread;

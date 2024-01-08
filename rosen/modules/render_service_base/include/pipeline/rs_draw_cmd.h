@@ -834,6 +834,9 @@ public:
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static OpItem* Unmarshalling(Parcel& parcel);
 
+protected:
+    void DrawHighContrast(RSPaintFilterCanvas& canvas) const;
+
 private:
     sk_sp<SkTextBlob> textBlob_;
     float x_;
@@ -1759,6 +1762,7 @@ public:
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     bool MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer);
 #endif
+    void SetNodeId(NodeId id) override;
 protected:
     std::shared_ptr<RSImage> rsImage_;
 private:
@@ -1787,6 +1791,7 @@ public:
         const Drawing::SamplingOptions& sampling) override;
     bool Marshalling(Parcel &parcel) const;
     static RSExtendImageBaseObj *Unmarshalling(Parcel &parcel);
+    void SetNodeId(NodeId id) override;
 protected:
     std::shared_ptr<RSImageBase> rsImage_;
 };

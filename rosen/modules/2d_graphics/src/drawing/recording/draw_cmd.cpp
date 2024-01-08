@@ -799,6 +799,18 @@ void DrawTextBlobOpItem::Playback(Canvas* canvas, const Rect* rect)
         LOGE("DrawTextBlobOpItem textBlob is null");
         return;
     }
+    Drawing::RectI globalClipBounds = canvas->GetDeviceClipBounds();
+    if (globalClipBounds.GetWidth() == 1 && !callFromCacheFunc_) {
+        // if the ClipBound's width == 1, the textblob will draw outside of the clip,
+        // this is a workround for this case
+        if (!cacheImage_) {
+            cacheImage_ = GenerateCachedOpItem(canvas);
+        }
+        if (cacheImage_) {
+            cacheImage_->Playback(canvas, rect);
+        }
+        return;
+    }
     if (canvas->isHighContrastEnabled()) {
         LOGD("DrawTextBlobOpItem::Playback highContrastEnabled, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         ColorQuad colorQuad = paint_.GetColor().CastToColorQuad();
@@ -970,7 +982,9 @@ std::shared_ptr<ImageSnapshotOpItem> DrawTextBlobOpItem::GenerateCachedOpItem(Ca
         offscreenCanvas->Translate(-bounds->GetLeft(), -bounds->GetTop());
     }
 
+    callFromCacheFunc_ = true;
     Playback(offscreenCanvas, nullptr);
+    callFromCacheFunc_ = false;
 
     std::shared_ptr<Image> image = offscreenSurface->GetImageSnapshot();
     Drawing::Rect src(0, 0, image->GetWidth(), image->GetHeight());
@@ -1575,6 +1589,15 @@ void DrawImageWithParmOpItem::Playback(Canvas* canvas, const Rect* rect)
     objectHandle_->Playback(*canvas, *rect, sampling_, false);
 }
 
+void DrawImageWithParmOpItem::SetNodeId(NodeId id)
+{
+    if (objectHandle_ == nullptr) {
+        LOGE("DrawImageWithParmOpItem objectHandle is nullptr!");
+        return;
+    }
+    objectHandle_->SetNodeId(id);
+}
+
 /* DrawPixelMapWithParmOpItem */
 DrawPixelMapWithParmOpItem::DrawPixelMapWithParmOpItem(
     const CmdList& cmdList, DrawPixelMapWithParmOpItem::ConstructorHandle* handle)
@@ -1599,6 +1622,15 @@ void DrawPixelMapWithParmOpItem::Playback(Canvas* canvas, const Rect* rect)
     objectHandle_->Playback(*canvas, *rect, sampling_, false);
 }
 
+void DrawPixelMapWithParmOpItem::SetNodeId(NodeId id)
+{
+    if (objectHandle_ == nullptr) {
+        LOGE("DrawPixelMapWithParmOpItem objectHandle is nullptr!");
+        return;
+    }
+    objectHandle_->SetNodeId(id);
+}
+
 /* DrawPixelMapRectOpItem */
 DrawPixelMapRectOpItem::DrawPixelMapRectOpItem(
     const CmdList& cmdList, DrawPixelMapRectOpItem::ConstructorHandle* handle)
@@ -1621,6 +1653,15 @@ void DrawPixelMapRectOpItem::Playback(Canvas* canvas, const Rect* rect)
     }
     canvas->AttachPaint(paint_);
     objectHandle_->Playback(*canvas, *rect, sampling_);
+}
+
+void DrawPixelMapRectOpItem::SetNodeId(NodeId id)
+{
+    if (objectHandle_ == nullptr) {
+        LOGE("DrawPixelMapRectOpItem objectHandle is nullptr!");
+        return;
+    }
+    objectHandle_->SetNodeId(id);
 }
 
 ImageSnapshotOpItem::ImageSnapshotOpItem(std::shared_ptr<Image> image, const Rect& src, const Rect& dst)

@@ -52,5 +52,19 @@ HWTEST_F(RSFrameRatePolicyTest, interface, TestSize.Level1)
     instance->GetPreferredFps(scene, speed);
 }
 
+/**
+ * @tc.name: interface
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSFrameRatePolicyTest, GetRefreshRateMode_Test, TestSize.Level1)
+{
+    auto instance = RSFrameRatePolicy::GetInstance();
+
+    instance->RegisterHgmConfigChangeCallback();
+
+    instance->GetRefreshRateMode();
+}
+
 } // namespace Rosen
 } // namespace OHOS

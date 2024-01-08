@@ -122,7 +122,8 @@ constexpr int32_t VISIBLEAREARATIO_FORQOS = 3;
 constexpr uint64_t PERF_PERIOD = 250000000;
 constexpr uint64_t CLEAN_CACHE_FREQ = 60;
 constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
-constexpr uint64_t PERF_PERIOD_BLUR = 80000000;
+constexpr uint64_t PERF_PERIOD_BLUR = 1000000000;
+constexpr uint64_t PERF_PERIOD_BLUR_TIMEOUT = 80000000;
 constexpr uint64_t MAX_DYNAMIC_STATUS_TIME = 5000000000;
 constexpr uint64_t MAX_SYSTEM_SCENE_STATUS_TIME = 800000000;
 constexpr uint64_t PERF_PERIOD_MULTI_WINDOW = 80000000;
@@ -273,6 +274,8 @@ void RSMainThread::Init()
         Render();
         InformHgmNodeInfo();
         ReleaseAllNodesBuffer();
+        auto subThreadManager = RSSubThreadManager::Instance();
+        subThreadManager->SubmitFilterSubThreadTask();
         SendCommands();
         context_->activeNodesInRoot_.clear();
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
@@ -296,6 +299,7 @@ void RSMainThread::Init()
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
     qosPidCal_ = deviceType_ == DeviceType::PC;
+    isFoldScreenDevice_ = system::GetParameter("const.window.foldscreen.type", "") == "true";
     auto taskDispatchFunc = [](const RSTaskDispatcher::RSTask& task, bool isSyncTask = false) {
         RSMainThread::Instance()->PostTask(task);
     };
@@ -987,6 +991,13 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 surfaceNode->SetContentDirty();
                 doDirectComposition_ = false;
             }
+            if (deviceType_ == DeviceType::PC && isUiFirstOn_ && surfaceNode->IsCurrentFrameBufferConsumed()
+                && surfaceNode->IsHardwareEnabledType() && surfaceNode->IsHardwareForcedDisabledByFilter()) {
+                    RS_OPTIONAL_TRACE_NAME(surfaceNode->GetName() +
+                        " SetContentDirty for UIFirst assigning to subthread");
+                    surfaceNode->SetContentDirty();
+                    doDirectComposition_ = false;
+                }
         }
 
         // still have buffer(s) to consume.
@@ -1459,7 +1470,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             if (uniVisitor->ParallelComposition(rootNode)) {
                 RS_LOGD("RSMainThread::Render multi-threads parallel composition end.");
                 isDirty_ = false;
-                PerfForBlurIfNeeded();
                 if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
                     WaitUntilUploadTextureTaskFinished(isUniRender_);
                 }
@@ -1781,7 +1791,7 @@ bool RSMainThread::CheckSurfaceVisChanged(std::map<uint32_t, RSVisibleLevel>& pi
             uint32_t tmpPid = ExtractPid(curSurface->GetId());
             pidVisMap[tmpPid] = RSVisibleLevel::RS_SYSTEM_ANIMATE_SCENE;
         }
-	isReduceVSyncBySystemAnimatedScenes_ = true;
+        isReduceVSyncBySystemAnimatedScenes_ = true;
     }
     bool isVisibleChanged = pidVisMap.size() != lastPidVisMap_.size();
     if (!isVisibleChanged) {
@@ -2618,17 +2628,28 @@ void RSMainThread::ForceRefreshForUni()
 
 void RSMainThread::PerfForBlurIfNeeded()
 {
+    handler_->RemoveTask("PerfForBlurIfNeeded");
+    static uint64_t prePerfTimestamp = 0;
     static int preBlurCnt = 0;
+    auto task = [this]() {
+        if (timestamp_ - prePerfTimestamp > PERF_PERIOD_BLUR_TIMEOUT && preBlurCnt != 0) {
+            PerfRequest(BLUR_CNT_TO_BLUR_CODE.at(preBlurCnt), false);
+            prePerfTimestamp = 0;
+            preBlurCnt = 0;
+        }
+    };
+    // delay 100ms
+    handler_->PostTask(task, "PerfForBlurIfNeeded", 100);
     int blurCnt = RSPropertiesPainter::GetAndResetBlurCnt();
     // clamp blurCnt to 0~3.
     blurCnt = std::clamp<int>(blurCnt, 0, 3);
-    if (blurCnt > preBlurCnt && preBlurCnt != 0) {
+    if ((blurCnt > preBlurCnt || blurCnt == 0) && preBlurCnt != 0) {
         PerfRequest(BLUR_CNT_TO_BLUR_CODE.at(preBlurCnt), false);
+        preBlurCnt = 0;
     }
     if (blurCnt == 0) {
         return;
     }
-    static uint64_t prePerfTimestamp = 0;
     if (timestamp_ - prePerfTimestamp > PERF_PERIOD_BLUR || blurCnt > preBlurCnt) {
         PerfRequest(BLUR_CNT_TO_BLUR_CODE.at(blurCnt), true);
         prePerfTimestamp = timestamp_;
@@ -2687,12 +2708,14 @@ bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedSc
             if (!threeFingerScenesList_.empty()) {
                 threeFingerScenesList_.pop_front();
             }
-	    if (!systemAnimatedScenesList_.empty()) {
+            if (!systemAnimatedScenesList_.empty()) {
                 systemAnimatedScenesList_.pop_front();
             }
         } else {
             if (systemAnimatedScenes == SystemAnimatedScenes::ENTER_TFS_WINDOW ||
-                systemAnimatedScenes == SystemAnimatedScenes::EXIT_TFU_WINDOW) {
+                systemAnimatedScenes == SystemAnimatedScenes::EXIT_TFU_WINDOW ||
+                systemAnimatedScenes == SystemAnimatedScenes::ENTER_WIND_CLEAR ||
+                systemAnimatedScenes == SystemAnimatedScenes::ENTER_WIND_RECOVER) {
                 threeFingerScenesList_.push_back(std::make_pair(systemAnimatedScenes, timestamp_));
             }
             if (systemAnimatedScenes != SystemAnimatedScenes::APPEAR_MISSION_CENTER) {
@@ -2727,16 +2750,17 @@ bool RSMainThread::IsDrawingGroupChanged(RSRenderNode& cacheRootNode) const
 {
     auto iter = context_->activeNodesInRoot_.find(cacheRootNode.GetInstanceRootNodeId());
     if (iter != context_->activeNodesInRoot_.end()) {
-        const std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>>& activeNodeIds = iter->second;
+        const auto& activeNodeIds = iter->second;
         // do not need to check cacheroot node itself
         // in case of tree change, parent node would set content dirty and reject before
         auto cacheRootId = cacheRootNode.GetId();
         auto groupNodeIds = cacheRootNode.GetVisitedCacheRootIds();
         for (auto [id, subNode] : activeNodeIds) {
-            if (subNode == nullptr || id == cacheRootId) {
+            auto node = subNode.lock();
+            if (node == nullptr || id == cacheRootId) {
                 continue;
             }
-            if (groupNodeIds.find(subNode->GetDrawingCacheRootId()) != groupNodeIds.end()) {
+            if (groupNodeIds.find(node->GetDrawingCacheRootId()) != groupNodeIds.end()) {
                 return true;
             }
         }
@@ -2744,26 +2768,18 @@ bool RSMainThread::IsDrawingGroupChanged(RSRenderNode& cacheRootNode) const
     return false;
 }
 
-bool RSMainThread::CheckIfInstanceOnlySurfaceBasicGeoTransform(NodeId instanceNodeId) const
+void RSMainThread::CheckAndUpdateInstanceContentStaticStatus(std::shared_ptr<RSSurfaceRenderNode> instanceNode) const
 {
-    if (instanceNodeId == INVALID_NODEID) {
-        RS_LOGE("CheckIfInstanceOnlySurfaceBasicGeoTransform instanceNodeId invalid.");
-        return false;
+    if (instanceNode == nullptr) {
+        RS_LOGE("CheckAndUpdateInstanceContentStaticStatus instanceNode invalid.");
+        return ;
     }
-    auto iter = context_->activeNodesInRoot_.find(instanceNodeId);
+    auto iter = context_->activeNodesInRoot_.find(instanceNode->GetId());
     if (iter != context_->activeNodesInRoot_.end()) {
-        const std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>>& activeNodeIds = iter->second;
-        for (auto [id, subNode] : activeNodeIds) {
-            if (subNode == nullptr) {
-                continue;
-            }
-            // filter active nodes except instance surface itself
-            if (id != instanceNodeId || !subNode->IsOnlyBasicGeoTransform()) {
-                return false;
-            }
-        }
+        instanceNode->UpdateSurfaceCacheContentStatic(iter->second);
+    } else {
+        instanceNode->UpdateSurfaceCacheContentStatic({});
     }
-    return true;
 }
 
 FrameRateRange RSMainThread::CalcAnimateFrameRateRange(std::shared_ptr<RSRenderNode> node)
@@ -2790,12 +2806,16 @@ void RSMainThread::ApplyModifiers()
         RSSystemProperties::GetPropertyDrawableEnable() ? "TRUE" : "FALSE");
     for (const auto& [root, nodeSet] : context_->activeNodesInRoot_) {
         for (const auto& [id, nodePtr] : nodeSet) {
-            bool isZOrderChanged = nodePtr->ApplyModifiers();
-            rsCurrRange_.Merge(CalcAnimateFrameRateRange(nodePtr));
+            auto ptr = nodePtr.lock();
+            if (ptr == nullptr) {
+                continue;
+            }
+            bool isZOrderChanged = ptr->ApplyModifiers();
+            rsCurrRange_.Merge(CalcAnimateFrameRateRange(ptr));
             if (!isZOrderChanged) {
                 continue;
             }
-            if (auto parent = nodePtr->GetParent().lock()) {
+            if (auto parent = ptr->GetParent().lock()) {
                 parent->isChildrenSorted_ = false;
             }
         }
@@ -2881,25 +2901,37 @@ void RSMainThread::UpdateRogSizeIfNeeded()
 }
 
 const uint32_t UIFIRST_MINIMUM_NODE_NUMBER = 4; // minimum window number(4) for enabling UIFirst
+const uint32_t FOLD_DEVICE_SCREEN_NUMBER = 2; // alt device has two screens
 
 void RSMainThread::UpdateUIFirstSwitch()
 {
+    const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
+    if (!rootNode) {
+        return;
+    }
+    auto sortedChildren = rootNode->GetSortedChildren();
+    if (sortedChildren.empty()) {
+        return;
+    }
+    auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(sortedChildren.front());
+    if (!displayNode) {
+        return;
+    }
     auto screenManager_ = CreateOrGetScreenManager();
     uint32_t actualScreensNum = screenManager_->GetActualScreensNum();
     if (deviceType_ == DeviceType::PHONE) {
-        isUiFirstOn_ = (RSSystemProperties::GetUIFirstEnabled() && actualScreensNum == 1);
+        if (isFoldScreenDevice_) {
+            isUiFirstOn_ = (RSSystemProperties::GetUIFirstEnabled() && actualScreensNum == FOLD_DEVICE_SCREEN_NUMBER);
+        } else {
+            isUiFirstOn_ = (RSSystemProperties::GetUIFirstEnabled() && actualScreensNum == 1);
+        }
         return;
     }
     isUiFirstOn_ = false;
-    const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
-    if (rootNode && actualScreensNum == 1) {
-        auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
-            rootNode->GetSortedChildren().front());
-        if (displayNode) {
-            LeashWindowCount_ = 0;
-            displayNode->CollectSurfaceForUIFirstSwitch(LeashWindowCount_, UIFIRST_MINIMUM_NODE_NUMBER);
-            isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled() && LeashWindowCount_ >= UIFIRST_MINIMUM_NODE_NUMBER;
-        }
+    if (IsSingleDisplay()) {
+        uint32_t LeashWindowCount = 0;
+        displayNode->CollectSurfaceForUIFirstSwitch(LeashWindowCount, UIFIRST_MINIMUM_NODE_NUMBER);
+        isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled() && LeashWindowCount >=  UIFIRST_MINIMUM_NODE_NUMBER;
     }
 }
 

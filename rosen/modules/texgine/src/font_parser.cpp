@@ -18,6 +18,9 @@
 #include <codecvt>
 #include <iomanip>
 #include <securec.h>
+#ifdef BUILD_NON_SDK_VER
+#include <iconv.h>
+#endif
 
 #include "font_config.h"
 #include "texgine/utils/exlog.h"
@@ -65,25 +68,41 @@ void FontParser::GetStringFromNameId(FontParser::NameId nameId, const std::strin
     switch (nameId) {
         case FontParser::NameId::FONT_FAMILY: {
             if (fontDescriptor.fontFamily.size() == 0) {
+#ifdef BUILD_NON_SDK_VER
+                fontDescriptor.fontFamily = GbkToUtf8(nameString);
+#else
                 fontDescriptor.fontFamily = nameString;
+#endif
             }
             break;
         }
         case FontParser::NameId::FONT_SUBFAMILY: {
             if (fontDescriptor.fontSubfamily.size() == 0) {
+#ifdef BUILD_NON_SDK_VER
+                fontDescriptor.fontSubfamily = GbkToUtf8(nameString);
+#else
                 fontDescriptor.fontSubfamily = nameString;
+#endif
             }
             break;
         }
         case FontParser::NameId::FULL_NAME: {
             if (fontDescriptor.fullName.size() == 0) {
+#ifdef BUILD_NON_SDK_VER
+                fontDescriptor.fullName = GbkToUtf8(nameString);
+#else
                 fontDescriptor.fullName = nameString;
+#endif
             }
             break;
         }
         case FontParser::NameId::POSTSCRIPT_NAME: {
             if (fontDescriptor.postScriptName.size() == 0) {
+#ifdef BUILD_NON_SDK_VER
+                fontDescriptor.postScriptName = GbkToUtf8(nameString);
+#else
                 fontDescriptor.postScriptName = nameString;
+#endif
             }
             break;
         }
@@ -294,6 +313,30 @@ int FontParser::SetFontDescriptor()
 
     return SUCCESSED;
 }
+
+#ifdef BUILD_NON_SDK_VER
+std::string FontParser::GbkToUtf8(const std::string& gbkStr)
+{
+    std::string utf8Str;
+    // UTF-8 and GBK is encoding format of string
+    iconv_t conv = iconv_open("UTF-8", "GBK");
+    if (conv == (iconv_t)-1) {
+        return utf8Str;
+    }
+    char* inBuf = const_cast<char*>(gbkStr.c_str());
+    size_t inBytesLeft = gbkStr.length();
+    size_t outBytesLeft = inBytesLeft * 2;
+    char* outBuf = new char[outBytesLeft];
+    char* outBufStart = outBuf;
+    size_t res = iconv(conv, &inBuf, &inBytesLeft, &outBuf, &outBytesLeft);
+    if (res != (size_t)-1) {
+        utf8Str.assign(outBufStart, outBuf - outBufStart);
+    }
+    delete[] outBufStart;
+    iconv_close(conv);
+    return utf8Str;
+}
+#endif
 
 std::vector<FontParser::FontDescriptor> FontParser::GetVisibilityFonts()
 {

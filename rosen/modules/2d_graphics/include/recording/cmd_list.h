@@ -37,12 +37,14 @@ class PixelMap;
 namespace Rosen {
 namespace Drawing {
 using CmdListData = std::pair<const void*, size_t>;
+using NodeId = uint64_t;
 
 class DRAWING_API ExtendImageObject {
 public:
     virtual ~ExtendImageObject() = default;
     virtual void Playback(Canvas& canvas, const Rect& rect,
         const SamplingOptions& sampling, bool isBackground = false) = 0;
+    virtual void SetNodeId(NodeId id) {};
 };
 
 class DRAWING_API ExtendImageBaseObj {
@@ -50,6 +52,7 @@ public:
     virtual ~ExtendImageBaseObj() = default;
     virtual void Playback(Canvas& canvas, const Rect& rect,
         const SamplingOptions& sampling) = 0;
+    virtual void SetNodeId(NodeId id) {};
 };
 
 class DRAWING_API CmdList {
@@ -85,7 +88,7 @@ public:
     template<typename T, typename... Args>
     void AddOp(Args&&... args)
     {
-        std::lock_guard<std::mutex> lock(mutex_);
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
         T* op = opAllocator_.Allocate<T>(std::forward<Args>(args)...);
         if (op == nullptr) {
             return;
@@ -169,7 +172,7 @@ public:
      * @brief  return real setup imageObject size.
      */
     uint32_t SetupObject(const std::vector<std::shared_ptr<ExtendImageObject>>& objectList);
-    
+
      /*
      * @brief  return imageBaseObj index, negative is error.
      */
@@ -232,7 +235,7 @@ protected:
     MemAllocator imageAllocator_;
     MemAllocator bitmapAllocator_;
     std::optional<uint32_t> lastOpItemOffset_ = std::nullopt;
-    std::mutex mutex_;
+    std::recursive_mutex mutex_;
     std::map<uint32_t, std::shared_ptr<Image>> imageMap_;
     std::vector<std::pair<uint32_t, OpDataHandle>> imageHandleVec_;
     uint32_t opCnt_ = 0;

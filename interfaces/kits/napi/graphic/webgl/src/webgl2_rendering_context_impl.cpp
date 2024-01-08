@@ -158,7 +158,7 @@ napi_value WebGL2RenderingContextImpl::BeginQuery(napi_env env, GLenum target, n
     webGlQuery->SetTarget(target);
 
     glBeginQuery(target, queryId);
-    LOGD("WebGL2 beginQuery %{public}u queryId %{public}u result %{public}u", queryId, GetError_());
+    LOGD("WebGL2 beginQuery queryId %{public}u result %{public}u", queryId, GetError_());
     return NVal::CreateNull(env).val_;
 }
 

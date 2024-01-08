@@ -1061,6 +1061,14 @@ void RSRenderServiceClient::ReportEventJankFrame(DataBaseRs info)
     }
 }
 
+void RSRenderServiceClient::ReportGameStateData(GameStateData info)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->ReportGameStateData(info);
+    }
+}
+
 void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

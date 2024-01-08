@@ -23,10 +23,12 @@
 #include "buffer_manager.h"
 #include "buffer_producer_listener.h"
 #include "buffer_utils.h"
+#include "frame_report.h"
 #include "sync_fence.h"
 
 namespace OHOS {
 BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue>& bufferQueue)
+    : producerSurfaceDeathRecipient_(new ProducerSurfaceDeathRecipient(this))
 {
     bufferQueue_ = bufferQueue;
     if (bufferQueue_ != nullptr) {
@@ -60,6 +62,7 @@ BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue>& bufferQueue)
     memberFuncMap_[BUFFER_PRODUCER_UNREGISTER_RELEASE_LISTENER] =
         &BufferQueueProducer::UnRegisterReleaseListenerRemote;
     memberFuncMap_[BUFFER_PRODUCER_GET_LAST_FLUSHED_BUFFER] = &BufferQueueProducer::GetLastFlushedBufferRemote;
+    memberFuncMap_[BUFFER_PRODUCER_REGISTER_DEATH_RECIPIENT] = &BufferQueueProducer::RegisterDeathRecipient;
 }
 
 BufferQueueProducer::~BufferQueueProducer()
@@ -109,6 +112,12 @@ int32_t BufferQueueProducer::RequestBufferRemote(MessageParcel &arguments, Messa
     RequestBufferReturnValue retval;
     sptr<BufferExtraData> bedataimpl = new BufferExtraDataImpl;
     BufferRequestConfig config = {};
+    int64_t startTimeNs = 0;
+    int64_t endTimeNs = 0;
+    if (Rosen::FrameReport::GetInstance().IsGameScene()) {
+        startTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
+    }
 
     ReadRequestConfig(arguments, config);
 
@@ -121,6 +130,13 @@ int32_t BufferQueueProducer::RequestBufferRemote(MessageParcel &arguments, Messa
         retval.fence->WriteToMessageParcel(reply);
         reply.WriteInt32Vector(retval.deletingBuffers);
     }
+
+    if (Rosen::FrameReport::GetInstance().IsGameScene()) {
+        endTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
+        Rosen::FrameReport::GetInstance().SetDequeueBufferTime(name_, (endTimeNs - startTimeNs));
+    }
+
     return 0;
 }
 
@@ -142,6 +158,13 @@ int32_t BufferQueueProducer::FlushBufferRemote(MessageParcel &arguments, Message
     uint32_t sequence;
     BufferFlushConfigWithDamages config;
     sptr<BufferExtraData> bedataimpl = new BufferExtraDataImpl;
+    int64_t startTimeNs = 0;
+    int64_t endTimeNs = 0;
+
+    if (Rosen::FrameReport::GetInstance().IsGameScene()) {
+        startTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
+    }
 
     sequence = arguments.ReadUint32();
     bedataimpl->ReadFromParcel(arguments);
@@ -152,6 +175,13 @@ int32_t BufferQueueProducer::FlushBufferRemote(MessageParcel &arguments, Message
     GSError sret = FlushBuffer(sequence, bedataimpl, fence, config);
 
     reply.WriteInt32(sret);
+
+    if (Rosen::FrameReport::GetInstance().IsGameScene()) {
+        endTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
+        Rosen::FrameReport::GetInstance().SetQueueBufferTime(name_, (endTimeNs - startTimeNs));
+    }
+
     return 0;
 }
 
@@ -365,6 +395,23 @@ int32_t BufferQueueProducer::GetPresentTimestampRemote(MessageParcel &arguments,
     reply.WriteInt32(sret);
     if (sret == GSERROR_OK) {
         reply.WriteInt64(time);
+    }
+    return 0;
+}
+
+int32_t BufferQueueProducer::RegisterDeathRecipient(MessageParcel &arguments, MessageParcel &reply,
+                                                    MessageOption &option)
+{
+    token_ = arguments.ReadRemoteObject();
+    if (token_ == nullptr) {
+        reply.WriteInt32(GSERROR_INVALID_ARGUMENTS);
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    bool result = token_->AddDeathRecipient(producerSurfaceDeathRecipient_);
+    if (result) {
+        reply.WriteInt32(GSERROR_OK);
+    } else {
+        reply.WriteInt32(GSERROR_NO_ENTRY);
     }
     return 0;
 }
@@ -646,5 +693,55 @@ sptr<NativeSurface> BufferQueueProducer::GetNativeSurface()
 {
     BLOGND("BufferQueueProducer::GetNativeSurface not support.");
     return nullptr;
+}
+
+GSError BufferQueueProducer::SendDeathRecipientObject()
+{
+    return GSERROR_OK;
+}
+
+void BufferQueueProducer::OnBufferProducerRemoteDied()
+{
+    if (bufferQueue_ == nullptr) {
+        BLOGNI("this bufferQueue_ is null");
+        return;
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (connectedPid_ == 0) {
+            BLOGNI("this bufferQueue has no connections");
+            return;
+        }
+        connectedPid_ = 0;
+    }
+    bufferQueue_->CleanCache();
+}
+
+BufferQueueProducer::ProducerSurfaceDeathRecipient::ProducerSurfaceDeathRecipient(
+    wptr<BufferQueueProducer> producer) : producer_(producer)
+{
+}
+
+void BufferQueueProducer::ProducerSurfaceDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remoteObject)
+{
+    auto remoteToken = remoteObject.promote();
+    if (remoteToken == nullptr) {
+        BLOGNW("can't promote remote object.");
+        return;
+    }
+
+    auto producer = producer_.promote();
+    if (producer == nullptr) {
+        BLOGNW("BufferQueueProducer was dead, do nothing.");
+        return;
+    }
+
+    if (producer->token_ != remoteToken) {
+        BLOGNI("token doesn't match, ignore it.");
+        return;
+    }
+    BLOGNW("remote object died.");
+    producer->OnBufferProducerRemoteDied();
 }
 }; // namespace OHOS

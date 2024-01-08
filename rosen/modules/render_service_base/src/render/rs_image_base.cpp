@@ -411,11 +411,6 @@ void RSImageBase::ConvertPixelMapToSkImage(bool paraUpload)
         }
         if (!image_) {
             image_ = RSPixelMapUtil::ExtractSkImage(pixelMap_);
-            if (image_) {
-#ifndef ROSEN_ARKUI_X
-                SKResourceManager::Instance().HoldResource(image_);
-#endif
-            }
             if (!pixelMap_->IsEditable()) {
 #if defined(ROSEN_OHOS)
                 RSImageCache::Instance().CacheRenderSkiaImageByPixelMapId(uniqueId_, image_, tid);
@@ -446,9 +441,6 @@ void RSImageBase::ConvertPixelMapToDrawingImage(bool paraUpload)
         }
         if (!image_) {
             image_ = RSPixelMapUtil::ExtractDrawingImage(pixelMap_);
-            if (image_) {
-                SKResourceManager::Instance().HoldResource(image_);
-            }
             if (!pixelMap_->IsEditable()) {
 #if defined(ROSEN_OHOS)
                 RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_, tid);

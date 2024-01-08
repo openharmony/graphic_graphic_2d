@@ -54,6 +54,10 @@ void RSModifierManager::AddAnimation(const std::shared_ptr<RSRenderAnimation>& a
         return;
     }
     animations_.emplace(key, animation);
+
+    std::shared_ptr<RSRenderDisplaySync> displaySync = std::make_shared<RSRenderDisplaySync>(animation);
+    displaySync->SetExpectedFrameRateRange(animation->GetFrameRateRange());
+    displaySyncs_.emplace(key, displaySync);
 }
 
 void RSModifierManager::RemoveAnimation(AnimationId keyId)
@@ -64,6 +68,7 @@ void RSModifierManager::RemoveAnimation(AnimationId keyId)
         return;
     }
     animations_.erase(animationItr);
+    displaySyncs_.erase(keyId);
 }
 
 bool RSModifierManager::HasUIAnimation()
@@ -71,7 +76,7 @@ bool RSModifierManager::HasUIAnimation()
     return !animations_.empty();
 }
 
-bool RSModifierManager::Animate(int64_t time)
+bool RSModifierManager::Animate(int64_t time, int64_t vsyncPeriod)
 {
     RS_TRACE_NAME("RunningCustomAnimation num:[" + std::to_string(animations_.size()) + "]");
     // process animation
@@ -79,12 +84,18 @@ bool RSModifierManager::Animate(int64_t time)
     uiRange_.Reset();
 
     // iterate and execute all animations, remove finished animations
-    EraseIf(animations_, [this, &hasRunningAnimation, time](auto& iter) -> bool {
+    EraseIf(animations_, [this, &hasRunningAnimation, time, vsyncPeriod](auto& iter) -> bool {
         auto animation = iter.second.lock();
         if (animation == nullptr) {
             return true;
         }
-        bool isFinished = animation->Animate(time);
+
+        bool isFinished = false;
+        AnimationId animId = animation->GetAnimationId();
+        if (!JudgeAnimateWhetherSkip(animId, time, vsyncPeriod)) {
+            isFinished = animation->Animate(time);
+        }
+
         if (isFinished) {
             OnAnimationFinished(animation);
         } else {
@@ -98,6 +109,21 @@ bool RSModifierManager::Animate(int64_t time)
     });
 
     return hasRunningAnimation;
+}
+
+bool RSModifierManager::JudgeAnimateWhetherSkip(AnimationId animId, int64_t time, int64_t vsyncPeriod)
+{
+    bool isSkip = false;
+    if (!displaySyncs_.count(animId)) {
+        return isSkip;
+    }
+
+    auto displaySync = displaySyncs_[animId];
+    if (displaySync) {
+        isSkip = displaySync->OnFrameSkip(time, vsyncPeriod, IsDisplaySyncEnabled());
+    }
+
+    return isSkip;
 }
 
 const FrameRateRange& RSModifierManager::GetUIFrameRateRange() const
@@ -147,6 +173,16 @@ const std::shared_ptr<RSRenderAnimation> RSModifierManager::GetAnimation(Animati
         return nullptr;
     }
     return animationItr->second.lock();
+}
+
+void RSModifierManager::SetDisplaySyncEnable(bool isDisplaySyncEnabled)
+{
+    isDisplaySyncEnabled_ = isDisplaySyncEnabled;
+}
+
+bool RSModifierManager::IsDisplaySyncEnabled() const
+{
+    return isDisplaySyncEnabled_;
 }
 } // namespace Rosen
 } // namespace OHOS

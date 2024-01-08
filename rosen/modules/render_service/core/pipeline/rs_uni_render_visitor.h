@@ -277,7 +277,9 @@ private:
      * mainwindow check if it has leashwindow parent
      * If so, check parent or check itself
      */
-    bool CheckIfUIFirstSurfaceContentReusable(std::shared_ptr<RSSurfaceRenderNode>& node);
+    bool CheckIfUIFirstSurfaceContentReusable(std::shared_ptr<RSSurfaceRenderNode>& node, bool& isAssigned);
+    // currently classify surface assigned subthread specific dirty case for preparation
+    void ClassifyUIFirstSurfaceDirtyStatus(RSSurfaceRenderNode& node);
 
     void PrepareTypesOfSurfaceRenderNodeBeforeUpdate(RSSurfaceRenderNode& node);
     void PrepareTypesOfSurfaceRenderNodeAfterUpdate(RSSurfaceRenderNode& node);
@@ -287,7 +289,7 @@ private:
     bool IsDrawingCacheStatic(RSRenderNode& node);
     // if cache root reuses, update its subtree
     // [attention] check curSurfaceDirtyManager_ before function calls
-    void UpdateStaticCacheSubTree(const std::shared_ptr<RSRenderNode>& cacheRootNode,
+    void UpdateSubTreeInCache(const std::shared_ptr<RSRenderNode>& cacheRootNode,
         const std::list<RSRenderNode::SharedPtr>& children);
     // set node cacheable animation after checking whold child tree
     void SetNodeCacheChangeStatus(RSRenderNode& node);
@@ -430,6 +432,7 @@ private:
     // currently available to uiFirst
     bool isCachedSurfaceReuse_ = false;
     uint32_t effectNodeNum_ = 0;
+    bool isSurfaceDirtyNodeLimited_ = false;
 
     bool isDirtyRegionAlignedEnable_ = false;
     std::shared_ptr<std::mutex> surfaceNodePrepareMutex_;
@@ -530,6 +533,8 @@ private:
 #endif
 
     void SetHasSharedTransitionNode(RSSurfaceRenderNode& surfaceNode, bool hasSharedTransitionNode);
+
+    void CollectSingleSurface(RSSurfaceRenderNode& node, std::vector<RSBaseRenderNode::SharedPtr>& vec);
 
     // attention: please synchronize the change of RSUniRenderVisitor::ProcessChildren to this func
     void ProcessChildrenForScreenRecordingOptimization(RSDisplayRenderNode& node, NodeId rootIdOfCaptureWindow);

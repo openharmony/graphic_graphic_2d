@@ -112,6 +112,7 @@ public:
     virtual void Playback(Canvas* canvas, const Rect* rect) = 0;
 
     virtual void SetSymbol() {}
+    virtual void SetNodeId(NodeId id) {}
 };
 
 class UnmarshallingPlayer {
@@ -134,7 +135,7 @@ public:
     ~GenerateCachedOpItemPlayer() = default;
 
     bool GenerateCachedOpItem(uint32_t type, void* handle);
-    
+
     Canvas* canvas_ = nullptr;
     const Rect* rect_;
     CmdList& cmdList_;
@@ -749,6 +750,8 @@ private:
     scalar x_;
     scalar y_;
     std::shared_ptr<TextBlob> textBlob_;
+    std::shared_ptr<ImageSnapshotOpItem> cacheImage_;
+    bool callFromCacheFunc_ = false;
 };
 
 using DrawSymbolAnimation = struct DrawSymbolAnimation {
@@ -1198,6 +1201,7 @@ public:
 
     static std::shared_ptr<DrawOpItem> Unmarshalling(const CmdList& cmdList, void* handle);
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void SetNodeId(NodeId id) override;
 private:
     SamplingOptions sampling_;
     std::shared_ptr<ExtendImageObject> objectHandle_;
@@ -1220,6 +1224,7 @@ public:
 
     static std::shared_ptr<DrawOpItem> Unmarshalling(const CmdList& cmdList, void* handle);
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void SetNodeId(NodeId id) override;
 private:
     SamplingOptions sampling_;
     std::shared_ptr<ExtendImageObject> objectHandle_;
@@ -1242,6 +1247,7 @@ public:
 
     static std::shared_ptr<DrawOpItem> Unmarshalling(const CmdList& cmdList, void* handle);
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void SetNodeId(NodeId id) override;
 private:
     SamplingOptions sampling_;
     std::shared_ptr<ExtendImageBaseObj> objectHandle_;

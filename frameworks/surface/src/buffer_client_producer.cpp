@@ -15,6 +15,7 @@
 
 #include "buffer_client_producer.h"
 
+#include <iremote_stub.h>
 #include "buffer_log.h"
 #include "buffer_manager.h"
 #include "buffer_utils.h"
@@ -485,5 +486,20 @@ sptr<NativeSurface> BufferClientProducer::GetNativeSurface()
 {
     BLOGND("BufferClientProducer::GetNativeSurface not support.");
     return nullptr;
+}
+
+GSError BufferClientProducer::SendDeathRecipientObject()
+{
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
+    token_ = new IRemoteStub<IBufferProducerToken>();
+    arguments.WriteRemoteObject(token_->AsObject());
+    SEND_REQUEST(BUFFER_PRODUCER_REGISTER_DEATH_RECIPIENT, arguments, reply, option);
+
+    int32_t ret = reply.ReadInt32();
+    if (ret != GSERROR_OK) {
+        BLOGN_FAILURE("Remote return %{public}d", ret);
+        return static_cast<GSError>(ret);
+    }
+    return GSERROR_OK;
 }
 }; // namespace OHOS

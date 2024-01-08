@@ -87,6 +87,9 @@ private:
     int ParsePostTable(std::shared_ptr<TexgineTypeface> typeface, FontDescriptor& fontDescriptor);
     int ParseTable(std::shared_ptr<TexgineTypeface> typeface, FontDescriptor& fontDescriptor);
     int SetFontDescriptor();
+#ifdef BUILD_NON_SDK_VER
+    static std::string GbkToUtf8(const std::string& gbkStr);
+#endif
 
     const char* data_;
     unsigned int length_;

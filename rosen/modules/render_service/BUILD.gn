@@ -175,6 +175,7 @@ ohos_shared_library("librender_service") {
     "//commonlibrary/c_utils/base/include",
     "//utils/system/safwk/native/include",
     "$graphic_2d_root/utils/log",
+    "$graphic_2d_root/utils/frame_report",
     "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
     "$memmgr_root/interface/innerkits/include",
     "$memmgr_root/services/memmgrservice/include/memory_level_manager",
@@ -195,6 +196,7 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
     "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/utils:frame_report",
   ]
 
   if (rs_enable_recording_dcl && defined(use_rosen_drawing) &&
@@ -331,6 +333,7 @@ ohos_executable("render_service") {
     "core",
     "//commonlibrary/c_utils/base/include",
     "$graphic_2d_root/frameworks/surface/include",
+    "$graphic_2d_root/utils/color_manager/export",
   ]
 
   deps = [

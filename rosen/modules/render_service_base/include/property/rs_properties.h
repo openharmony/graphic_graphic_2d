@@ -206,6 +206,9 @@ public:
     void IfLinearGradientBlurInvalid();
     const std::shared_ptr<RSFilter>& GetFilter() const;
     bool NeedFilter() const;
+    float GetGreyCoef1() const;
+    float GetGreyCoef2() const;
+    bool IsGreyAdjustmentValid() const;
 
     // shadow properties
     void SetShadowColor(Color color);
@@ -226,8 +229,6 @@ public:
     float GetShadowRadius() const;
     const std::optional<float>& GetDynamicLightUpRate() const;
     const std::optional<float>& GetDynamicLightUpDegree() const;
-    float GetGreyCoef1() const;
-    float GetGreyCoef2() const;
     std::shared_ptr<RSPath> GetShadowPath() const;
     bool GetShadowMask() const;
     bool GetShadowIsFilled() const;
@@ -289,7 +290,6 @@ public:
     float GetLightUpEffect() const;
     bool IsLightUpEffectValid() const;
     bool IsDynamicLightUpValid() const;
-    bool IsGreyAdjustmentValid() const;
 
     // Image effect properties
     void SetGrayScale(const std::optional<float>& grayScale);

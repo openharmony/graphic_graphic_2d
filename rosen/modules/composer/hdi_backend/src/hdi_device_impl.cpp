@@ -21,6 +21,7 @@
 #include <scoped_bytrace.h>
 #include <valarray>
 #include <securec.h>
+#include "v1_1/include/idisplay_composer_interface.h"
 
 #define CHECK_FUNC(composerSptr)                                     \
     do {                                                             \
@@ -34,7 +35,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 using namespace OHOS::HDI::Display::Composer::V1_0;
-using IDisplayComposerInterfaceSptr = sptr<IDisplayComposerInterface>;
+using IDisplayComposerInterfaceSptr = sptr<OHOS::HDI::Display::Composer::V1_1::IDisplayComposerInterface>;
 static IDisplayComposerInterfaceSptr g_composer;
 }
 
@@ -66,7 +67,7 @@ HdiDeviceImpl::~HdiDeviceImpl()
 RosenError HdiDeviceImpl::Init()
 {
     if (g_composer == nullptr) {
-        g_composer = IDisplayComposerInterface::Get();
+        g_composer = OHOS::HDI::Display::Composer::V1_1::IDisplayComposerInterface::Get();
         if (g_composer == nullptr) {
             HLOGE("IDisplayComposerInterface::Get return nullptr.");
             return ROSEN_ERROR_NOT_INIT;

@@ -117,7 +117,7 @@ public:
     std::vector<int32_t> GetScreenSupportedRefreshRates(ScreenId id);
 
     bool GetShowRefreshRateEnabled();
-    
+
     void SetShowRefreshRateEnabled(bool enable);
 
 #ifndef ROSEN_ARKUI_X
@@ -217,6 +217,8 @@ public:
 
     void ReportEventJankFrame(DataBaseRs info);
 
+    void ReportGameStateData(GameStateData info);
+    
     void EnableCacheForRotation();
 
     void DisableCacheForRotation();

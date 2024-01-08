@@ -23,21 +23,34 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr int32_t MAX_DIVISOR_NUM = 10;
-constexpr int32_t MIN_DIVISOR_FRAME_RATE = 30;
+constexpr int32_t MAX_DIVISOR_NUM = 15;
+constexpr int32_t MIN_DIVISOR_FRAME_RATE = 10;
 constexpr int32_t FRAME_RATE_THRESHOLD = 5;
 const std::vector<int32_t> SOURCE_FRAME_RATES = {30, 60, 72, 90, 120}; // sorted
 }
 
 RSRenderDisplaySync::RSRenderDisplaySync(NodeId id) : id_(id) {}
 
+RSRenderDisplaySync::RSRenderDisplaySync(std::weak_ptr<RSRenderAnimation> renderAnimation)
+    : renderAnimation_(renderAnimation) {}
+
 uint64_t RSRenderDisplaySync::GetId() const
 {
+    auto renderAnimation = renderAnimation_.lock();
+    if (renderAnimation) {
+        return renderAnimation->GetAnimationId();
+    }
+
     return id_;
 }
 
 void RSRenderDisplaySync::SetExpectedFrameRateRange(const FrameRateRange& range)
 {
+    auto renderAnimation = renderAnimation_.lock();
+    if (renderAnimation) {
+        renderAnimation->SetFrameRateRange(range);
+    }
+
     if (expectedFrameRateRange_ != range) {
         expectedFrameRateRange_ = range;
         isSkipCountUpdate_ = true;

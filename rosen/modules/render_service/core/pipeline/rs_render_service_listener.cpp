@@ -17,6 +17,7 @@
 
 #include "platform/common/rs_log.h"
 #include "pipeline/rs_main_thread.h"
+#include "frame_report.h"
 #include "sync_fence.h"
 
 namespace OHOS {
@@ -37,6 +38,13 @@ void RSRenderServiceListener::OnBufferAvailable()
     }
     RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%{public}" PRIu64, node->GetId());
     node->IncreaseAvailableBuffer();
+
+    if (FrameReport::GetInstance().IsGameScene()) {
+        std::string name = node->GetName();
+        FrameReport::GetInstance().SetPendingBufferNum(name, node->GetAvailableBufferCount());
+        FrameReport::GetInstance().Report(name);
+    }
+
     if (!node->IsNotifyUIBufferAvailable()) {
         // Only ipc for one time.
         RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable id = %{public}" PRIu64 " Notify"

@@ -180,7 +180,7 @@ bool RSRenderServiceClient::GetShowRefreshRateEnabled()
 {
     return false;
 }
-    
+
 void RSRenderServiceClient::SetShowRefreshRateEnabled(bool enable)
 {
 }
@@ -423,6 +423,10 @@ void RSRenderServiceClient::ReportEventComplete(DataBaseRs info)
 }
 
 void RSRenderServiceClient::ReportEventJankFrame(DataBaseRs info)
+{
+}
+
+void RSRenderServiceClient::ReportGameStateData(GameStateData info)
 {
 }
 

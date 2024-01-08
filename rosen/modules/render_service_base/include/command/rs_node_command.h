@@ -126,11 +126,7 @@ public:
         }
         modifier->Update(prop, isDelta);
         if (value) {
-#ifndef USE_ROSEN_DRAWING
             value->UpdateNodeIdToPicture(nodeId);
-#else
-            // Drawing need to be adapted furture
-#endif
         }
     }
 
