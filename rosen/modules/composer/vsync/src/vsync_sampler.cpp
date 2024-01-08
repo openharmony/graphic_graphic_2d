@@ -34,6 +34,7 @@ constexpr int64_t g_errorThreshold = 40000000000; // 200 usec squared
 constexpr int32_t INVAILD_TIMESTAMP = -1;
 constexpr uint32_t MINES_SAMPLE_NUMS = 3;
 constexpr uint32_t SAMPLES_INTERVAL_DIFF_NUMS = 2;
+constexpr int64_t MAX_IDLE_TIME_THRESHOLD = 900000000; // 900000000ns == 900ms
 }
 sptr<OHOS::Rosen::VSyncSampler> VSyncSampler::GetInstance() noexcept
 {
@@ -112,12 +113,6 @@ void VSyncSampler::SetScreenVsyncEnabledInRSMainThread(bool enabled)
 bool VSyncSampler::AddSample(int64_t timeStamp)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (numSamples_ == 0) {
-        phase_ = 0;
-        referenceTime_ = timeStamp;
-        CreateVSyncGenerator()->UpdateMode(0, phase_, referenceTime_);
-    }
-
     if (numSamples_ < MAX_SAMPLES - 1) {
         numSamples_++;
     } else {
@@ -127,6 +122,7 @@ bool VSyncSampler::AddSample(int64_t timeStamp)
     uint32_t index = (firstSampleIndex_ + numSamples_ - 1) % MAX_SAMPLES;
     samples_[index] = timeStamp;
 
+    UpdateReferenceTimeLocked();
     UpdateModeLocked();
 
     if (numResyncSamplesSincePresent_++ > MAX_SAMPLES_WITHOUT_PRESENT) {
@@ -145,10 +141,26 @@ bool VSyncSampler::AddSample(int64_t timeStamp)
     return !shouldDisableScreenVsync;
 }
 
+void VSyncSampler::UpdateReferenceTimeLocked()
+{
+    bool isFrameRateChanging = CreateVSyncGenerator()->GetFrameRateChaingStatus();
+    // update referenceTime at the first sample
+    if (!isFrameRateChanging && (numSamples_ == 1)) {
+        phase_ = 0;
+        referenceTime_ = samples_[firstSampleIndex_];
+        CreateVSyncGenerator()->UpdateMode(0, phase_, referenceTime_);
+    }
+    // check if the actual framerate is changed, at least 2 samples
+    if (isFrameRateChanging && (numSamples_ >= 2)) {
+        int64_t prevSample = samples_[(firstSampleIndex_ + numSamples_ - 2) % MAX_SAMPLES]; // at least 2 samples
+        int64_t latestSample = samples_[(firstSampleIndex_ + numSamples_ - 1) % MAX_SAMPLES];
+        CreateVSyncGenerator()->CheckAndUpdateRefereceTime(latestSample - prevSample, prevSample);
+    }
+}
 
 void VSyncSampler::UpdateModeLocked()
 {
-    if (numSamples_ >= MIN_SAMPLES_FOR_UPDATE) {
+    if (!CreateVSyncGenerator()->GetFrameRateChaingStatus() && (numSamples_ >= MIN_SAMPLES_FOR_UPDATE)) {
         int64_t sum = 0;
         int64_t min = INT64_MAX;
         int64_t max = 0;
@@ -202,6 +214,7 @@ void VSyncSampler::UpdateModeLocked()
         phase_ = int64_t(::atan2(deltaAvgY, deltaAvgX) / scale);
 
         modeUpdated_ = true;
+        referenceTime_ = samples_[firstSampleIndex_];
         CreateVSyncGenerator()->UpdateMode(period_, phase_, referenceTime_);
         pendingPeriod_ = period_;
     }
@@ -247,6 +260,13 @@ bool VSyncSampler::AddPresentFenceTime(int64_t timestamp)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     presentFenceTime_[presentFenceTimeOffset_] = timestamp;
+
+    int64_t prevFenceTimeStamp = presentFenceTime_[(presentFenceTimeOffset_ + NUM_PRESENT - 1) % NUM_PRESENT];
+    if ((prevFenceTimeStamp != INVAILD_TIMESTAMP) && (timestamp - prevFenceTimeStamp > MAX_IDLE_TIME_THRESHOLD)) {
+        ScopedBytrace trace("FirstCommitAfterIdle");
+        CreateVSyncGenerator()->ResetReferenceTimeOffset();
+    }
+
     presentFenceTimeOffset_ = (presentFenceTimeOffset_ + 1) % NUM_PRESENT;
     numResyncSamplesSincePresent_ = 0;
 
@@ -291,9 +311,6 @@ void VSyncSampler::SetPendingPeriod(int64_t period)
     }
     std::lock_guard<std::mutex> lock(mutex_);
     pendingPeriod_ = period;
-    if (!modeUpdated_) {
-        numSamples_ = 0;
-    }
 }
 
 void VSyncSampler::Dump(std::string &result)

@@ -319,6 +319,7 @@ void RSHardwareThread::PerformSetActiveMode(OutputPtr output)
         } else {
             auto pendingPeriod = hgmCore.GetIdealPeriod(hgmCore.GetScreenCurrentRefreshRate(id));
             hdiBackend_->SetPendingPeriod(output, pendingPeriod);
+            hdiBackend_->StartSample(output);
         }
     }
 }

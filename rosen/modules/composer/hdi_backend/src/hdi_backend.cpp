@@ -175,7 +175,7 @@ void HdiBackend::StartSample(const OutputPtr &output)
         HLOGE("output is nullptr.");
         return;
     }
-    output->StartVSyncSampler();
+    output->StartVSyncSampler(true); // force resample
 }
 
 void HdiBackend::ResetDevice()
