@@ -918,7 +918,7 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
         return;
     }
 
-    bool vis = region.GetSize() > 0;
+    bool vis = !region.IsEmpty();
     if (vis) {
         visibleVec.emplace_back(std::make_pair(GetId(), GetVisibleLevelForWMS(visibleLevel)));
     }

@@ -276,18 +276,18 @@ public:
     }
     bool IsEmpty() const
     {
-        return rects_.size() == 0;
+        return rects_.size() == 0 || bound_.IsEmpty();
     }
     std::string GetRegionInfo() const
     {
         std::string info;
-        if (rects_.size() > 0) {
+        if (IsEmpty()) {
+            info = "Region [Empty]";
+        } else {
             info = "Region " + std::to_string(rects_.size()) + ": ";
             for (auto& r : rects_) {
                 info.append(r.GetRectInfo());
             }
-        } else {
-            info = "Region [Empty]";
         }
         return info;
     }
