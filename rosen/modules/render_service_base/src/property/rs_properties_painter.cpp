@@ -2861,29 +2861,21 @@ void RSPropertiesPainter::DrawBorder(const RSProperties& properties, Drawing::Ca
 void RSPropertiesPainter::GetOutlineDirtyRect(RectI& dirtyOutline,
     const RSProperties& properties, const bool& isAbsCoordinate)
 {
-    auto border = properties.GetOutline();
-    if (!border || !border->HasBorder()) {
+    auto outline = properties.GetOutline();
+    if (!outline || !outline->HasBorder()) {
         return;
     }
 
-    auto geoPtr = properties.GetBoundsGeometry();
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix matrix = (geoPtr && isAbsCoordinate) ? geoPtr->GetAbsMatrix() : SkMatrix::I();
-    auto skRect = Rect2SkRect(GetRRectForDrawingBorder(properties, border, true).rect_);
-    matrix.MapRect(&skRect);
-    dirtyOutline.left_ = skRect.left();
-    dirtyOutline.top_ = drawingRect.top();
-    dirtyOutline.width_ = drawingRect.width();
-    dirtyOutline.height_ = drawingRect.height();
-#else
-    Drawing::Matrix matrix = (geoPtr && isAbsCoordinate) ? geoPtr->GetAbsMatrix() : Drawing::Matrix();
-    auto drawingRect = Rect2DrawingRect(GetRRectForDrawingBorder(properties, border, true).rect_);
-    matrix.MapRect(drawingRect, drawingRect);
-    dirtyOutline.left_ = drawingRect.GetLeft();
-    dirtyOutline.top_ = drawingRect.GetTop();
-    dirtyOutline.width_ = drawingRect.GetWidth();
-    dirtyOutline.height_ = drawingRect.GetHeight();
-#endif
+    auto width = outline->GetWidthFour();
+    auto dirtyRect = properties.GetDirtyRect();
+
+    auto scaledBounds = RectF(dirtyRect.left_ - width.x_, dirtyRect.top_ - width.y_,
+        dirtyRect.width_ + width.x_ + width.z_,
+        dirtyRect.height_ + width.y_ + width.w_);
+
+    auto scaledIBounds = RectI(std::floor(scaledBounds.left_), std::floor(scaledBounds.top_),
+        std::ceil(scaledBounds.width_) + 2, std::ceil(scaledBounds.height_) + 2);
+    dirtyOutline = dirtyRect.JoinRect(scaledIBounds);
 }
 
 #ifndef USE_ROSEN_DRAWING
