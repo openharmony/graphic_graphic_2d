@@ -14,7 +14,7 @@
  */
 
 #include "c/drawing_text_blob.h"
-
+#include "utils/log.h"
 #include <unordered_map>
 
 #include "text/text_blob_builder.h"
@@ -49,6 +49,7 @@ const OH_Drawing_RunBuffer* OH_Drawing_TextBlobBuilderAllocRunPos(OH_Drawing_Tex
     const OH_Drawing_Font* cFont, int32_t count, const OH_Drawing_Rect* cRect)
 {
     if (cFont == nullptr || count < 0) {
+        LOGE("cFont is nullptr or count < 0");
         return nullptr;
     }
     TextBlobBuilder* textBlobBuilder = CastToTextBlobBuilder(cTextBlobBuilder);
