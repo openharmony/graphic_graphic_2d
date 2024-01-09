@@ -249,6 +249,9 @@ public:
     void SetDisableFilterCache(bool disable);
     bool GetDisableFilterCache() const;
 
+    void SetRecordDrawable(bool enable);
+    bool GetRecordDrawable() const;
+
 #ifndef USE_ROSEN_DRAWING
     // effect cache data relate
     struct CachedEffectData {
@@ -344,6 +347,7 @@ private:
     bool isParallelCanvas_ = false;
     bool disableFilterCache_ = false;
     bool recordingState_ = false;
+    bool recordDrawable_ = false;
 };
 
 // Helper class similar to SkAutoCanvasRestore, but also restores alpha and/or env
