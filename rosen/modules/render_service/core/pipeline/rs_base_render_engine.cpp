@@ -173,15 +173,6 @@ bool RSBaseRenderEngine::NeedForceCPU(const std::vector<LayerInfoPtr>& layers)
             break;
         }
 #endif
-
-#ifndef USE_VIDEO_PROCESSING_ENGINE
-        GraphicColorGamut srcGamut = static_cast<GraphicColorGamut>(buffer->GetSurfaceBufferColorGamut());
-        GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-        if (srcGamut != dstGamut) {
-            forceCPU = true;
-            break;
-        }
-#endif
     }
 
     return forceCPU;
