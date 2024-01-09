@@ -317,6 +317,7 @@ ohos_source_set("render_service_base_src") {
     "-Wno-missing-field-initializers",
     "-Wno-c++11-narrowing",
     "-fvisibility=hidden",
+    "-DIMAGE_COLORSPACE_FLAG",
   ]
 
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
