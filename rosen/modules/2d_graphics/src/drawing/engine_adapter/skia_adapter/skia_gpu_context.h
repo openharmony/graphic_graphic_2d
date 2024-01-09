@@ -59,6 +59,7 @@ public:
 
 #ifdef RS_ENABLE_VK
     static std::unique_ptr<SkExecutor> threadPool;
+    void InitSkExecutor();
     bool BuildFromVK(const GrVkBackendContext& context) override;
     bool BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options) override;
 #endif
