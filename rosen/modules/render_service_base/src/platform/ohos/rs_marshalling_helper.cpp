@@ -1521,6 +1521,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSLinear
     GradientDirection direction = GradientDirection::NONE;
     bool success = Unmarshalling(parcel, blurRadius);
     uint32_t fractionStopsSize = parcel.ReadUint32();
+    if (fractionStopsSize > SIZE_UPPER_LIMIT) {
+        return false;
+    }
     for (size_t i = 0; i < fractionStopsSize; i++) {
         std::pair<float, float> fractionStop;
         float first = 0.0;
@@ -1657,6 +1660,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RenderParticleParaType<f
         success = success && Unmarshalling(parcel, randomStart) && Unmarshalling(parcel, randomEnd);
     } else if (updator == ParticleUpdator::CURVE) {
         uint32_t valChangeOverLifeSize = parcel.ReadUint32();
+        if (valChangeOverLifeSize > SIZE_UPPER_LIMIT) {
+            return false;
+        }
         for (size_t i = 0; i < valChangeOverLifeSize; i++) {
             float fromValue = 0.f;
             float toValue = 0.f;
@@ -1728,15 +1734,16 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RenderParticleColorParaT
                   Unmarshalling(parcel, alphaRandomStart) && Unmarshalling(parcel, alphaRandomEnd);
     } else if (updator == ParticleUpdator::CURVE) {
         uint32_t valChangeOverLifeSize = parcel.ReadUint32();
+        if (valChangeOverLifeSize > SIZE_UPPER_LIMIT) {
+            return false;
+        }
         for (size_t i = 0; i < valChangeOverLifeSize; i++) {
             Color fromValue = RSColor(0, 0, 0);
             Color toValue = RSColor(0, 0, 0);
             int startMillis = 0;
             int endMillis = 0;
-            success = success && Unmarshalling(parcel, fromValue);
-            success = success && Unmarshalling(parcel, toValue);
-            success = success && Unmarshalling(parcel, startMillis);
-            success = success && Unmarshalling(parcel, endMillis);
+            success = success && Unmarshalling(parcel, fromValue) && Unmarshalling(parcel, toValue) &&
+                      Unmarshalling(parcel, startMillis) && Unmarshalling(parcel, endMillis);
             std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
             auto change = std::make_shared<ChangeInOverLife<Color>>(
                 fromValue, toValue, startMillis, endMillis, std::move(interpolator));
@@ -1808,6 +1815,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::vector<std::shared_
     uint32_t size = parcel.ReadUint32();
     bool success = true;
     std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams;
+    if (size > PARTICLE_UPPER_LIMIT) {
+        return false;
+    }
     for (size_t i = 0; i < size; i++) {
         std::shared_ptr<ParticleRenderParams> particleRenderParams;
         success = success && Unmarshalling(parcel, particleRenderParams);
