@@ -333,8 +333,8 @@ void CharGroups::Merge(const CharGroups &right)
     }
 
     if (range_.end != right.range_.start) {
-        return;
         LOGEX_FUNC_LINE(ERROR) << "the right start not equal this end";
+        return;
     }
 
     range_.end += right.range_.end - right.range_.start;
