@@ -75,6 +75,11 @@ bool ReadCustomBootConfig(const std::string& path, BootCustomConfig& aniconfig)
         aniconfig.custVideoPath = custVideoPath->valuestring;
         LOGI("cust video path: %{public}s", aniconfig.custVideoPath.c_str());
     }
+    cJSON* custExtraVideoPath = cJSON_GetObjectItem(overallData, "cust.bootanimation.video.extra");
+    if (custExtraVideoPath != nullptr && custExtraVideoPath->valuestring != nullptr) {
+        aniconfig.custExtraVideoPath = custExtraVideoPath->valuestring;
+        LOGI("cust extra video path: %{public}s", aniconfig.custExtraVideoPath.c_str());
+    }
     cJSON* rotateScreenJson = cJSON_GetObjectItem(overallData, "cust.bootanimation.rotate.screenid");
     if (rotateScreenJson != nullptr && rotateScreenJson->valuestring != nullptr) {
         aniconfig.rotateScreenId = std::stoi(rotateScreenJson->valuestring);
