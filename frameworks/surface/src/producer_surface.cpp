@@ -238,12 +238,53 @@ GSError ProducerSurface::AttachBuffer(sptr<SurfaceBuffer>& buffer)
     return producer_->AttachBuffer(buffer);
 }
 
+GSError ProducerSurface::AttachBuffer(sptr<SurfaceBuffer>& buffer, int32_t timeOut)
+{
+    if (buffer == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
+    return producer_->AttachBuffer(buffer, timeOut);
+}
+
 GSError ProducerSurface::DetachBuffer(sptr<SurfaceBuffer>& buffer)
 {
     if (buffer == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
     }
     return producer_->DetachBuffer(buffer);
+}
+
+GSError ProducerSurface::RegisterSurfaceDelegator(sptr<IRemoteObject> client)
+{
+    if (client == nullptr) {
+        BLOGE("RegisterSurfaceDelegator failed for the delegator client is nullptr");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    sptr<ProducerSurfaceDelegator> surfaceDelegator = ProducerSurfaceDelegator::Create();
+    if (surfaceDelegator == nullptr) {
+        BLOGE("RegisterSurfaceDelegator failed for the surface delegator is nullptr");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    if (!surfaceDelegator->SetClient(client)) {
+        BLOGE("Set the surface delegator client failed");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
+    surfaceDelegator->SetSurface(this);
+    wpPSurfaceDelegator_ = surfaceDelegator;
+
+    auto releaseBufferCallBack = [this] (const sptr<SurfaceBuffer> &buffer,
+        const sptr<SyncFence> &fence) -> GSError {
+        auto surfaceDelegator = this->wpPSurfaceDelegator_.promote();
+        if (surfaceDelegator == nullptr) {
+            return GSERROR_INVALID_ARGUMENTS;
+        }
+        int error = surfaceDelegator->ReleaseBuffer(buffer, fence);
+        return static_cast<GSError>(error);
+    };
+    RegisterReleaseListener(releaseBufferCallBack);
+    return GSERROR_OK;
 }
 
 bool ProducerSurface::QueryIfBufferAvailable()
@@ -334,6 +375,16 @@ GSError ProducerSurface::RegisterReleaseListener(OnReleaseFunc func)
         return GSERROR_INVALID_ARGUMENTS;
     }
     listener_ = new BufferReleaseProducerListener(func);
+    return producer_->RegisterReleaseListener(listener_);
+}
+
+GSError ProducerSurface::RegisterReleaseListener(OnReleaseFuncWithFence funcWithFence)
+{
+    if (funcWithFence == nullptr) {
+        BLOGNE("OnReleaseFuncWithFence is nullptr, RegisterReleaseListener failed.");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    listener_ = new BufferReleaseProducerListener(nullptr, funcWithFence);
     return producer_->RegisterReleaseListener(listener_);
 }
 

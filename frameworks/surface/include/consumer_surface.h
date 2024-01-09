@@ -120,6 +120,9 @@ public:
 
     sptr<NativeSurface> GetNativeSurface() override;
     GSError SetWptrNativeWindowToPSurface(void* nativeWindow) override;
+    GSError AttachBuffer(sptr<SurfaceBuffer>& buffer, int32_t timeOut) override;
+    GSError RegisterSurfaceDelegator(sptr<IRemoteObject> client) override;
+    GSError RegisterReleaseListener(OnReleaseFuncWithFence func) override;
 
 private:
     std::map<std::string, std::string> userData_;

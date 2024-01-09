@@ -26,6 +26,7 @@
 #include "buffer_queue.h"
 #include "buffer_queue_consumer.h"
 #include "surface_buffer.h"
+#include "producer_surface_delegator.h"
 
 struct NativeWindow;
 namespace OHOS {
@@ -64,6 +65,7 @@ public:
     GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence) override;
 
     GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) override;
+    GSError AttachBuffer(sptr<SurfaceBuffer>& buffer, int32_t timeOut) override;
 
     GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) override;
 
@@ -87,6 +89,7 @@ public:
     GSError RegisterConsumerListener(sptr<IBufferConsumerListener>& listener) override;
     GSError RegisterConsumerListener(IBufferConsumerListenerClazz *listener) override;
     GSError RegisterReleaseListener(OnReleaseFunc func) override;
+    GSError RegisterReleaseListener(OnReleaseFuncWithFence func) override;
     GSError UnRegisterReleaseListener() override;
     GSError RegisterDeleteBufferListener(OnDeleteBufferFunc func, bool isForUniRedraw = false) override;
     GSError UnregisterConsumerListener() override;
@@ -122,6 +125,7 @@ public:
 
     sptr<NativeSurface> GetNativeSurface() override;
     GSError SetWptrNativeWindowToPSurface(void* nativeWindow) override;
+    virtual GSError RegisterSurfaceDelegator(sptr<IRemoteObject> client) override;
 private:
     bool IsRemote();
     void CleanAllLocked();
@@ -136,6 +140,7 @@ private:
     bool isDisconnected = true;
     sptr<IProducerListener> listener_;
     wptr<NativeWindow> wpNativeWindow_ = nullptr;
+    wptr<ProducerSurfaceDelegator> wpPSurfaceDelegator_ = nullptr;
 };
 } // namespace OHOS
 

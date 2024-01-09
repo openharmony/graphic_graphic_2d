@@ -169,6 +169,10 @@ check_ddgr_ext_file_args = [
   "--filename",
   rebase_path("//foundation/graphic/graphic_2d_ext/ddgr/ddgr_config.gni"),
 ]
+check_delegator_ext_file_args = [
+  "--filename",
+  rebase_path("//foundation/graphic/graphic_2d_ext/delegator/config.gni"),
+]
 if (exec_script(check_graphic_ext_file_script,
                 check_graphic_ext_file_args,
                 "string") == "True" && "${product_name}" == "ohcore") {
@@ -176,11 +180,22 @@ if (exec_script(check_graphic_ext_file_script,
     import("//foundation/graphic/graphic_2d_ext/ohcore/build/config.gni")
   }
 }
+
 if (exec_script(check_graphic_ext_file_script,
                 check_ddgr_ext_file_args,
                 "string") == "True") {
   ddgr_ext_configs = {
     import("//foundation/graphic/graphic_2d_ext/ddgr/ddgr_config.gni")
+  }
+}
+
+graphic_2d_delegator_configs = {
+}
+if (exec_script(check_graphic_ext_file_script,
+                check_delegator_ext_file_args,
+                "string") == "True") {
+  graphic_2d_delegator_configs = {
+    import("//foundation/graphic/graphic_2d_ext/delegator/config.gni")
   }
 }
 

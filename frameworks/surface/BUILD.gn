@@ -40,6 +40,11 @@ config("surface_public_config") {
     include_dirs += graphic_2d_ext_configs.libsurface_ext_include_dirs
   }
 
+  if (defined(graphic_2d_delegator_configs.vendor_root)) {
+    include_dirs +=
+        graphic_2d_delegator_configs.libsurface_ext_delegator_include_dirs
+  }
+
   defines = []
   if (ace_enable_gpu) {
     defines = [ "ACE_ENABLE_GPU" ]
@@ -65,14 +70,18 @@ ohos_shared_library("surface") {
     "src/buffer_queue_producer.cpp",
     "src/buffer_utils.cpp",
     "src/consumer_surface.cpp",
+    "src/consumer_surface_delegator.cpp",
     "src/metadata_helper.cpp",
     "src/native_buffer.cpp",
     "src/native_window.cpp",
     "src/producer_surface.cpp",
+    "src/producer_surface_delegator.cpp",
     "src/surface_buffer_impl.cpp",
     "src/surface_delegate.cpp",
     "src/surface_tunnel_handle.cpp",
     "src/surface_utils.cpp",
+    "src/transact_surface_delegator_proxy.cpp",
+    "src/transact_surface_delegator_stub.cpp",
   ]
 
   configs = [ ":surface_config" ]
@@ -119,6 +128,11 @@ ohos_shared_library("surface") {
     public_deps += [ "//foundation/graphic/graphic_2d_ext/ohcore/graphic_compat_layer:libgraphic_compat_layer" ]
 
     public_deps -= [ "//drivers/peripheral/display/hdi_service/gralloc/client:hdi_gralloc_client" ]
+  }
+
+  if (defined(graphic_2d_delegator_configs.vendor_root)) {
+    sources += graphic_2d_delegator_configs.libsurface_ext_delegator_sources
+    sources -= graphic_2d_delegator_configs.libsurface_ext_delegator_sources_del
   }
 
   innerapi_tags = [

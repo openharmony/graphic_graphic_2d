@@ -31,11 +31,45 @@ group("unittest") {
     ":native_buffer_test",
     ":native_image_test",
     ":native_window_test",
+    ":producer_surface_delegator_test",
     ":producer_surface_test",
     ":surface_buffer_impl_test",
     ":surface_utils_test",
+    ":transact_surface_delegator_stub_test",
   ]
 }
+
+## UnitTest producer_surface_delegator_test {{{
+ohos_unittest("producer_surface_delegator_test") {
+  module_out_path = module_out_path
+
+  sources = [ "producer_surface_delegator_test.cpp" ]
+
+  deps = [ ":surface_test_common" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+}
+
+## UnitTest producer_surface_delegator_test }}}
+
+## UnitTest transact_surface_delegator_stub_test {{{
+ohos_unittest("transact_surface_delegator_stub_test") {
+  module_out_path = module_out_path
+
+  sources = [ "transact_surface_delegator_stub_test.cpp" ]
+
+  deps = [ ":surface_test_common" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+}
+
+## UnitTest transact_surface_delegator_stub_test }}}
 
 ## UnitTest buffer_client_producer_remote_test {{{
 ohos_unittest("buffer_client_producer_remote_test") {
