@@ -157,6 +157,16 @@
           },
           {
             "type": "so",
+            "name": "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/drawing:drawing_napi_impl",
+            "header": {
+              "header_files": [
+                "canvas_napi/js_canvas.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/drawing"
+            }
+          },
+          {
+            "type": "so",
             "name": "//foundation/graphic/graphic_2d/frameworks/bootanimation/utils:libbootanimation_utils",
             "header": {
               "header_files": [

@@ -129,6 +129,19 @@ void SkiaFont::GetWidths(const uint16_t glyphs[], int count, scalar widths[], Re
     }
 }
 
+scalar SkiaFont::GetSize() const
+{
+    return skFont_.getSize();
+}
+
+std::shared_ptr<Typeface> SkiaFont::GetTypeface() const
+{
+    sk_sp<SkTypeface> skTypeface = sk_ref_sp(skFont_.getTypeface());
+    auto skiaTypeface = std::make_shared<SkiaTypeface>(skTypeface);
+    auto typeface = std::make_shared<Typeface>(skiaTypeface);
+    return typeface;
+}
+
 scalar SkiaFont::MeasureText(const void* text, size_t byteLength, TextEncoding encoding)
 {
     SkTextEncoding skEncoding = static_cast<SkTextEncoding>(encoding);
