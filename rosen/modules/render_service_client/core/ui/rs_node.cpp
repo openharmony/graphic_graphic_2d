@@ -450,6 +450,7 @@ bool RSNode::HasPropertyAnimation(const PropertyId& id)
 template<typename ModifierName, typename PropertyName, typename T>
 void RSNode::SetProperty(RSModifierType modifierType, T value)
 {
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex);
     auto iter = propertyModifiers_.find(modifierType);
     if (iter != propertyModifiers_.end()) {
         auto property = std::static_pointer_cast<PropertyName>(iter->second->GetProperty());
@@ -575,7 +576,10 @@ void RSNode::SetSandBox(std::optional<Vector2f> parentPosition)
         auto iter = propertyModifiers_.find(RSModifierType::SANDBOX);
         if (iter != propertyModifiers_.end()) {
             RemoveModifier(iter->second);
-            propertyModifiers_.erase(iter);
+            {
+                std::unique_lock<std::recursive_mutex> lock(propertyMutex);
+                propertyModifiers_.erase(iter);
+            }
         }
         return;
     }
@@ -1345,11 +1349,14 @@ void RSNode::MarkContentChanged(bool isChanged)
 
 void RSNode::ClearAllModifiers()
 {
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex);
     for (auto [id, modifier] : modifiers_) {
         if (modifier) {
             modifier->DetachFromNode();
         }
     }
+    modifiers_.clear();
+    propertyModifiers_.clear();
 }
 
 void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
@@ -1362,7 +1369,10 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
     }
     auto rsnode = std::static_pointer_cast<RSNode>(shared_from_this());
     modifier->AttachToNode(rsnode);
-    modifiers_.emplace(modifier->GetPropertyId(), modifier);
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex);
+        modifiers_.emplace(modifier->GetPropertyId(), modifier);
+    }
     if (modifier->GetModifierType() == RSModifierType::NODE_MODIFIER) {
         return;
     }
@@ -1380,6 +1390,7 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
 
 void RSNode::DoFlushModifier()
 {
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex);
     if (modifiers_.empty()) {
         return;
     }
@@ -1401,8 +1412,10 @@ void RSNode::RemoveModifier(const std::shared_ptr<RSModifier> modifier)
     if (iter == modifiers_.end()) {
         return;
     }
-
-    modifiers_.erase(iter);
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex);
+        modifiers_.erase(iter);
+    }
     modifier->DetachFromNode();
     std::unique_ptr<RSCommand> command = std::make_unique<RSRemoveModifier>(GetId(), modifier->GetPropertyId());
     auto transactionProxy = RSTransactionProxy::GetInstance();
@@ -1428,6 +1441,7 @@ const std::shared_ptr<RSModifier> RSNode::GetModifier(const PropertyId& property
 
 void RSNode::UpdateModifierMotionPathOption()
 {
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex);
     for (auto& [type, modifier] : propertyModifiers_) {
         if (IsPathAnimatableModifier(type)) {
             modifier->SetMotionPathOption(motionPathOption_);
@@ -1461,6 +1475,7 @@ std::vector<PropertyId> RSNode::GetModifierIds() const
 
 void RSNode::MarkAllExtendModifierDirty()
 {
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex);
     if (extendModifierIsDirty_) {
         return;
     }

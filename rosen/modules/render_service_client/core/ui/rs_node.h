@@ -441,6 +441,7 @@ private:
 
     FrameRateRange nodeRange_ = { 0, 0, 0 };
     std::mutex animationMutex_;
+    std::recursive_mutex propertyMutex;
 
     friend class RSUIDirector;
     friend class RSTransition;
