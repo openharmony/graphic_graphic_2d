@@ -424,6 +424,13 @@ void RSCanvasDrawingRenderNode::ApplyDrawCmdModifier(RSModifierContext& context,
     it->second.clear();
 }
 
+bool WriteSkImageToPixelmap(std::shared_ptr<Drawing::Image> image, Drawing::ImageInfo info,
+    std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect)
+{
+    return image->ReadPixels(
+        info, pixelmap->GetWritablePixels(), pixelmap->GetRowBytes(), rect->GetLeft(), rect->GetTop());
+}
+
 #ifndef USE_ROSEN_DRAWING
 SkBitmap RSCanvasDrawingRenderNode::GetBitmap(const uint32_t tid)
 {
@@ -444,8 +451,8 @@ SkBitmap RSCanvasDrawingRenderNode::GetBitmap(const uint32_t tid)
     return bitmap;
 }
 
-bool RSCanvasDrawingRenderNode::GetPixelmap(
-    const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect, const uint32_t tid)
+bool RSCanvasDrawingRenderNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect,
+    const uint32_t tid, std::shared_ptr<DrawCmdList> drawCmdList)
 {
     RS_LOGD("RSCanvasDrawingRenderNode::GetPixelmap");
     std::lock_guard<std::mutex> lock(drawingMutex_);
@@ -498,8 +505,8 @@ Drawing::Bitmap RSCanvasDrawingRenderNode::GetBitmap(const uint64_t tid)
     return bitmap;
 }
 
-bool RSCanvasDrawingRenderNode::GetPixelmap(
-    const std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect, const uint64_t tid)
+bool RSCanvasDrawingRenderNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect,
+    const uint64_t tid, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
 {
     std::lock_guard<std::mutex> lock(drawingMutex_);
     if (!pixelmap || !rect) {
@@ -523,11 +530,44 @@ bool RSCanvasDrawingRenderNode::GetPixelmap(
         return false;
     }
 
-    Drawing::BitmapFormat info =
-        Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-    auto bitmap = std::make_shared<Drawing::Bitmap>();
-    bitmap->Build(pixelmap->GetWidth(), pixelmap->GetHeight(), info);
-    if (!image->ReadPixels(*bitmap.get(), rect->GetLeft(), rect->GetTop())) {
+    Drawing::ImageInfo info = Drawing::ImageInfo{ image->GetWidth(), image->GetHeight(),
+        Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    if (!drawCmdList) {
+        if (!WriteSkImageToPixelmap(image, info, pixelmap, rect)) {
+            RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: readPixels failed");
+            return false;
+        }
+        return true;
+    }
+    std::shared_ptr<Drawing::Surface> surface;
+    std::unique_ptr<RSPaintFilterCanvas> canvas;
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    auto gpuContext = canvas_->GetGPUContext();
+    if (gpuContext == nullptr) {
+        if (!WriteSkImageToPixelmap(image, info, pixelmap, rect)) {
+            RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: readPixels failed");
+        }
+        return false;
+    } else {
+        surface = Drawing::Surface::MakeRenderTarget(gpuContext.get(), false, info);
+        if (!surface) {
+            if (!WriteSkImageToPixelmap(image, info, pixelmap, rect)) {
+                RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: readPixels failed");
+            }
+            return false;
+        }
+        canvas = std::make_unique<RSPaintFilterCanvas>(surface.get());
+    }
+#else
+    if (!WriteSkImageToPixelmap(image, info, pixelmap, rect)) {
+        RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: readPixels failed");
+    }
+    return false;
+#endif
+    canvas->DrawImage(*image, 0, 0, Drawing::SamplingOptions());
+    drawCmdList->Playback(*canvas, rect);
+    auto pixelmapImage = surface->GetImageSnapshot();
+    if (!WriteSkImageToPixelmap(pixelmapImage, info, pixelmap, rect)) {
         RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: readPixels failed");
         return false;
     }

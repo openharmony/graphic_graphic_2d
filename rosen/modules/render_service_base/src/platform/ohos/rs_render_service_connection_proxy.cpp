@@ -1513,11 +1513,11 @@ bool RSRenderServiceConnectionProxy::SetVirtualMirrorScreenCanvasRotation(Screen
 }
 
 #ifndef USE_ROSEN_DRAWING
-bool RSRenderServiceConnectionProxy::GetPixelmap(
-    NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect)
+bool RSRenderServiceConnectionProxy::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
+    const SkRect* rect, std::shared_ptr<DrawCmdList> drawCmdList)
 #else
-bool RSRenderServiceConnectionProxy::GetPixelmap(
-    NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect)
+bool RSRenderServiceConnectionProxy::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
+    const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
 #endif
 {
     MessageParcel data;
@@ -1530,13 +1530,14 @@ bool RSRenderServiceConnectionProxy::GetPixelmap(
     data.WriteUint64(id);
     data.WriteParcelable(pixelmap.get());
     RSMarshallingHelper::Marshalling(data, *rect);
+    RSMarshallingHelper::Marshalling(data, drawCmdList);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PIXELMAP);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return false;
     }
     bool result = reply.ReadBool();
-    if (!result) {
+    if (!result || !RSMarshallingHelper::Unmarshalling(reply, pixelmap)) {
         RS_LOGE("RSRenderServiceConnectionProxy::GetPixelmap: GetPixelmap failed");
         return false;
     }

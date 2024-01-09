@@ -989,8 +989,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             Drawing::Rect rect;
 #endif
             RSMarshallingHelper::Unmarshalling(data, rect);
-            bool result = GetPixelmap(id, pixelmap, &rect);
+            std::shared_ptr<Drawing::DrawCmdList> drawCmdList;
+            RSMarshallingHelper::Unmarshalling(data, drawCmdList);
+            bool result = GetPixelmap(id, pixelmap, &rect, drawCmdList);
             reply.WriteBool(result);
+            if (result) {
+                RSMarshallingHelper::Marshalling(reply, pixelmap);
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SKIP_FRAME_INTERVAL): {

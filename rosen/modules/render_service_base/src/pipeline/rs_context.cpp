@@ -42,6 +42,15 @@ void RSContext::AddActiveNode(const std::shared_ptr<RSRenderNode>& node)
     activeNodesInRoot_[rootNodeId].emplace(node->GetId(), node);
 }
 
+bool RSContext::HasActiveNode(const std::shared_ptr<RSRenderNode>& node)
+{
+    if (node == nullptr || node->GetId() == INVALID_NODEID) {
+        return false;
+    }
+    auto rootNodeId = node->GetInstanceRootNodeId();
+    return activeNodesInRoot_[rootNodeId].count(node->GetId()) > 0;
+}
+
 void RSContext::MarkNeedPurge(ClearMemoryMoment moment, PurgeType purgeType)
 {
     clearMoment_ = moment;

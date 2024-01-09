@@ -351,10 +351,11 @@ bool RSRenderServiceClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
 }
 
 #ifndef USE_ROSEN_DRAWING
-bool RSRenderServiceClient::GetPixelmap(NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect)
+bool RSRenderServiceClient::GetPixelmap(NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap,
+    const SkRect* rect, std::shared_ptr<DrawCmdList> drawCmdList)
 #else
-bool RSRenderServiceClient::GetPixelmap(
-    NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect)
+bool RSRenderServiceClient::GetPixelmap(NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap,
+    const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
 #endif
 {
     return {};

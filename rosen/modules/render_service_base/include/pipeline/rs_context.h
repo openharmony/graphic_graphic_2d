@@ -85,6 +85,7 @@ public:
     }
     // add node info after cmd data process
     void AddActiveNode(const std::shared_ptr<RSRenderNode>& node);
+    bool HasActiveNode(const std::shared_ptr<RSRenderNode>& node);
 
     void MarkNeedPurge(ClearMemoryMoment moment, PurgeType purgeType);
 
