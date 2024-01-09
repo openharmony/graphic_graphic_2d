@@ -264,7 +264,9 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
 #endif
 
     nativeSurface.image = image;
-    NativeObjectUnreference(nativeSurface.nativeWindowBuffer);
+    if (nativeSurface.nativeWindowBuffer != nullptr) {
+        NativeObjectUnreference(nativeSurface.nativeWindowBuffer);
+    }
     NativeObjectReference(nativeWindowBuffer);
     nativeSurface.nativeWindowBuffer = nativeWindowBuffer;
 

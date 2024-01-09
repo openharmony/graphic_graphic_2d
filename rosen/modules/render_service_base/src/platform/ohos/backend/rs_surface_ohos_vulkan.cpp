@@ -153,7 +153,9 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
         if (!NativeBufferUtils::MakeFromNativeWindowBuffer(
             mSkContext, nativeWindowBuffer, nativeSurface, width, height)) {
             ROSEN_LOGE("RSSurfaceOhosVulkan: MakeFromeNativeWindow failed");
+            mSurfaceList.pop_back();
             NativeWindowCancelBuffer(mNativeWindow, nativeWindowBuffer);
+            mSurfaceMap.erase(nativeWindowBuffer);
             return nullptr;
         }
 
