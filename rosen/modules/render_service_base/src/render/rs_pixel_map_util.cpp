@@ -32,28 +32,29 @@ namespace {
 }
 
 #ifndef USE_ROSEN_DRAWING
-static sk_sp<SkColorSpace> ColorSpaceToSkColorSpace(ColorManger::ColorSpaceName ColorSpaceName)
+static sk_sp<SkColorSpace> ColorSpaceToSkColorSpace(ColorManager::ColorSpaceName colorSpaceName)
 {
-    switch (ColorSpaceName) {
-        case ColorManger::ColorSpaceName::DISPLAY_P3:
+    switch (colorSpaceName) {
+        case ColorManager::ColorSpaceName::DISPLAY_P3:
             return SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
-        case ColorManger::ColorSpaceName::LINEAR_SRGB:
+        case ColorManager::ColorSpaceName::LINEAR_SRGB:
             return SkColorSpace::MakeSRGBLinear();
-        case ColorManger::ColorSpaceName::SRGB:
+        case ColorManager::ColorSpaceName::SRGB:
         default:
             return SkColorSpace::MakeSRGB();
     }
 }
 #else
-static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(ColorSpace colorSpace)
+static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(ColorManager::ColorSpaceName
+ colorSpaceName)
 {
-    switch (colorSpace) {
-        case ColorSpace::DISPLAY_P3:
+    switch (colorSpaceName) {
+        case ColorManager::ColorSpaceName::DISPLAY_P3:
             return Drawing::ColorSpace::CreateRGB(
                 Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
-        case ColorSpace::LINEAR_SRGB:
+        case ColorManager::ColorSpaceName::LINEAR_SRGB:
             return Drawing::ColorSpace::CreateSRGBLinear();
-        case ColorSpace::SRGB:
+        case ColorManager::ColorSpaceName::SRGB:
             return Drawing::ColorSpace::CreateSRGB();
         default:
             return Drawing::ColorSpace::CreateSRGB();
@@ -207,7 +208,7 @@ std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
     Drawing::ImageInfo drawingImageInfo { imageInfo.size.width, imageInfo.size.height,
         PixelFormatToDrawingColorType(imageInfo.pixelFormat),
         AlphaTypeToDrawingAlphaType(imageInfo.alphaType),
-        ColorSpaceToDrawingColorSpace(imageInfo.colorSpace) };
+        ColorSpaceToDrawingColorSpace(pixelMap->InnerGetGrColorSpace().GetColorSpaceName()) };
     Drawing::Pixmap imagePixmap(drawingImageInfo, reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
     PixelMapReleaseContext* releaseContext = new PixelMapReleaseContext(pixelMap);
     auto image = Drawing::Image::MakeFromRaster(imagePixmap, PixelMapReleaseProc, releaseContext);
