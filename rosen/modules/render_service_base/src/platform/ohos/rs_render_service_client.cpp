@@ -837,10 +837,11 @@ bool RSRenderServiceClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
 }
 
 #ifndef USE_ROSEN_DRAWING
-bool RSRenderServiceClient::GetPixelmap(NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect)
+bool RSRenderServiceClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
+    const SkRect* rect, std::shared_ptr<DrawCmdList> drawCmdList)
 #else
-bool RSRenderServiceClient::GetPixelmap(
-    NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect)
+bool RSRenderServiceClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
+    const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
 #endif
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -848,7 +849,7 @@ bool RSRenderServiceClient::GetPixelmap(
         ROSEN_LOGE("RSRenderServiceClient::GetPixelmap: renderService is nullptr");
         return false;
     }
-    return renderService->GetPixelmap(id, pixelmap, rect);
+    return renderService->GetPixelmap(id, pixelmap, rect, drawCmdList);
 }
 
 int32_t RSRenderServiceClient::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)
