@@ -2184,8 +2184,8 @@ RectI RSRenderNode::GetFilterRect() const
 void RSRenderNode::UpdateFullScreenFilterCacheRect(
     RSDirtyRegionManager& dirtyManager, bool isForeground) const
 {
-    auto& renderProperties = GetRenderProperties();
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    auto& renderProperties = GetRenderProperties();
     auto& manager = renderProperties.GetFilterCacheManager(isForeground);
     // Record node's cache area if it has valid filter cache
     // If there are any invalid caches under full screen cache filter, the occlusion should be invalidated
