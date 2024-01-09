@@ -154,10 +154,18 @@ public:
     // alpha related
     void MultiplyAlpha(float alpha);
     void SetAlpha(float alpha);
+#ifndef USE_ROSEN_DRAWING
     float GetAlpha() const;
+#else
+    float GetAlpha() const override;
+#endif
     int SaveAlpha();
     void RestoreAlpha();
+#ifndef USE_ROSEN_DRAWING
     int GetAlphaSaveCount() const;
+#else
+    int GetAlphaSaveCount() const override;
+#endif
     void RestoreAlphaToCount(int count);
 
     // env related

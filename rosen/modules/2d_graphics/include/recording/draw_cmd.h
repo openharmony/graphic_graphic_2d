@@ -746,6 +746,8 @@ public:
     void Playback(Canvas* canvas, const Rect* rect) override;
 
     std::shared_ptr<ImageSnapshotOpItem> GenerateCachedOpItem(Canvas* canvas);
+protected:
+    void DrawHighContrast(Canvas* canvas) const;
 private:
     scalar x_;
     scalar y_;

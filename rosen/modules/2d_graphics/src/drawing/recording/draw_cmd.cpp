@@ -145,6 +145,22 @@ void GeneratePaintFromHandle(const PaintHandle& paintHandle, const CmdList& cmdL
         paint.SetPathEffect(pathEffect);
     }
 }
+
+bool GetOffScreenSurfaceAndCanvas(const Canvas& canvas,
+    std::shared_ptr<Drawing::Surface>& offScreenSurface, std::shared_ptr<Canvas>& offScreenCanvas)
+{
+    auto surface = canvas.GetSurface();
+    if (!surface) {
+        return false;
+    }
+    offScreenSurface = surface->MakeSurface(surface->Width(), surface->Height());
+    if (!offScreenSurface) {
+        return false;
+    }
+    offScreenCanvas = offScreenSurface->GetCanvas();
+    return true;
+}
+
 }
 
 GenerateCachedOpItemPlayer::GenerateCachedOpItemPlayer(CmdList &cmdList, Canvas* canvas, const Rect* rect)
@@ -814,30 +830,52 @@ void DrawTextBlobOpItem::Playback(Canvas* canvas, const Rect* rect)
     if (canvas->isHighContrastEnabled()) {
         LOGD("DrawTextBlobOpItem::Playback highContrastEnabled, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         ColorQuad colorQuad = paint_.GetColor().CastToColorQuad();
-        if (Color::ColorQuadGetA(colorQuad) == 0) {
+        if (Color::ColorQuadGetA(colorQuad) == 0 || paint_.HasFilter()) {
             canvas->AttachPaint(paint_);
             canvas->DrawTextBlob(textBlob_.get(), x_, y_);
             return;
         }
-        uint32_t channelSum = Color::ColorQuadGetR(colorQuad) + Color::ColorQuadGetG(colorQuad) +
-            Color::ColorQuadGetB(colorQuad);
-        bool flag = channelSum < 594; // 594 is empirical value
-
-        Paint outlinePaint(paint_);
-        SimplifyPaint(flag ? Color::COLOR_WHITE : Color::COLOR_BLACK, outlinePaint);
-        outlinePaint.SetStyle(Paint::PAINT_FILL_STROKE);
-        canvas->AttachPaint(outlinePaint);
-        canvas->DrawTextBlob(textBlob_.get(), x_, y_);
-
-        Paint innerPaint(paint_);
-        SimplifyPaint(flag ? Color::COLOR_BLACK : Color::COLOR_WHITE, innerPaint);
-        innerPaint.SetStyle(Paint::PAINT_FILL);
-        canvas->AttachPaint(innerPaint);
-        canvas->DrawTextBlob(textBlob_.get(), x_, y_);
+        if (canvas->GetAlphaSaveCount() > 0 && canvas->GetAlpha() < 1.0f) {
+            std::shared_ptr<Drawing::Surface> offScreenSurface;
+            std::shared_ptr<Canvas> offScreenCanvas;
+            if (GetOffScreenSurfaceAndCanvas(*canvas, offScreenSurface, offScreenCanvas)) {
+                DrawHighContrast(offScreenCanvas.get());
+                offScreenCanvas->Flush();
+                Drawing::Brush paint;
+                paint.SetAntiAlias(true);
+                canvas->AttachBrush(paint);
+                Drawing::SamplingOptions sampling =
+                    Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
+                canvas->DrawImage(*offScreenSurface->GetImageSnapshot().get(), 0, 0, sampling);
+                canvas->DetachBrush();
+                return;
+            }
+        }
+        DrawHighContrast(canvas);
     } else {
         canvas->AttachPaint(paint_);
         canvas->DrawTextBlob(textBlob_.get(), x_, y_);
     }
+}
+
+void DrawTextBlobOpItem::DrawHighContrast(Canvas* canvas) const
+{
+    ColorQuad colorQuad = paint_.GetColor().CastToColorQuad();
+    uint32_t channelSum = Color::ColorQuadGetR(colorQuad) + Color::ColorQuadGetG(colorQuad) +
+        Color::ColorQuadGetB(colorQuad);
+    bool flag = channelSum < 594; // 594 is empirical value
+
+    Paint outlinePaint(paint_);
+    SimplifyPaint(flag ? Color::COLOR_WHITE : Color::COLOR_BLACK, outlinePaint);
+    outlinePaint.SetStyle(Paint::PAINT_FILL_STROKE);
+    canvas->AttachPaint(outlinePaint);
+    canvas->DrawTextBlob(textBlob_.get(), x_, y_);
+
+    Paint innerPaint(paint_);
+    SimplifyPaint(flag ? Color::COLOR_BLACK : Color::COLOR_WHITE, innerPaint);
+    innerPaint.SetStyle(Paint::PAINT_FILL);
+    canvas->AttachPaint(innerPaint);
+    canvas->DrawTextBlob(textBlob_.get(), x_, y_);
 }
 
 bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(

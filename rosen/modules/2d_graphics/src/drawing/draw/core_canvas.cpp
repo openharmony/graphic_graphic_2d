@@ -431,6 +431,16 @@ Drawing::Surface* CoreCanvas::GetSurface() const
     return nullptr;
 }
 
+float CoreCanvas::GetAlpha() const
+{
+    return 1.0f;
+}
+
+int CoreCanvas::GetAlphaSaveCount() const
+{
+    return 0;
+}
+
 void CoreCanvas::AttachPaint()
 {
     bool brushValid = paintBrush_.IsValid();

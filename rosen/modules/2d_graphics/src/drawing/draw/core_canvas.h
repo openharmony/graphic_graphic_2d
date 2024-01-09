@@ -373,6 +373,9 @@ public:
     virtual Drawing::CacheType GetCacheType() const;
     virtual Drawing::Surface* GetSurface() const;
 
+    virtual float GetAlpha() const;
+    virtual int GetAlphaSaveCount() const;
+
     template<typename T>
     T* GetImpl() const
     {
