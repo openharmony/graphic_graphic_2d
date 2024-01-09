@@ -55,8 +55,11 @@ ohos_fuzztest("RSRenderServiceConnectionStubFuzzTest") {
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "sensor:sensor_interface_native",
   ]
+
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
 
   cflags = [
     "-g",

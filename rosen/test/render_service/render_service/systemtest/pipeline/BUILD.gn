@@ -44,8 +44,10 @@ ohos_systemtest("RSBaseRenderEngineTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "sensor:sensor_interface_native",
   ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
   defines = []
   defines += gpu_defines
 }
@@ -58,8 +60,10 @@ ohos_systemtest("RSDropFrameProcessorSystemTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "sensor:sensor_interface_native",
   ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
   defines = []
   defines += gpu_defines
 }
@@ -72,8 +76,10 @@ ohos_systemtest("RSRenderServiceTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "sensor:sensor_interface_native",
   ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
   defines = []
   defines += gpu_defines
 }
