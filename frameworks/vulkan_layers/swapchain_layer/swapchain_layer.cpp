@@ -1275,7 +1275,6 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateDevice(VkPhysicalDevice gpu,
 
     LayerData* deviceLayerData = GetLayerDataPtr(GetDispatchKey(*pDevice));
     for (uint32_t i = 0; i < createInfo.enabledExtensionCount; i++) {
-        enabledExtensions.push_back(createInfo.ppEnabledExtensionNames[i]);
         auto extBit = GetExtensionBitFromName(createInfo.ppEnabledExtensionNames[i]);
         if (extBit != Extension::EXTENSION_UNKNOWN) {
             deviceLayerData->enabledExtensions.set(extBit);
