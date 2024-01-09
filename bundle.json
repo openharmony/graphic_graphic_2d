@@ -111,6 +111,7 @@
             "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain:skeffectchain",
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
+            "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv2",
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
             "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text:rosen_text",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
