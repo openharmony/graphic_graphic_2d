@@ -2787,8 +2787,13 @@ bool RSExtendImageObject::GetDrawingImageFromSurfaceBuffer(Drawing::Canvas& canv
     if (!image_) {
         image_ = std::make_shared<Drawing::Image>();
     }
+#ifndef ROSEN_EMULATOR
+    auto surfaceOrigin = Drawing::TextureOrigin::TOP_LEFT;
+#else
+    auto surfaceOrigin = Drawing::TextureOrigin::BOTTOM_LEFT;
+#endif
     if (!image_->BuildFromTexture(*(canvas.GetGPUContext()), externalTextureInfo,
-        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat,
+        surfaceOrigin, bitmapFormat,
         std::make_shared<Drawing::ColorSpace>(Drawing::ColorSpace::ColorSpaceType::SRGB))) {
         RS_LOGE("BuildFromTexture failed");
         return false;
