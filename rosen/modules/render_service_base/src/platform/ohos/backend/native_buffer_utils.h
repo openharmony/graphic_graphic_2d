@@ -86,7 +86,7 @@ struct NativeSurfaceInfo {
 #else
     std::shared_ptr<Drawing::Surface> drawingSurface = nullptr;
 #endif
-    uint32_t lastPresentedCount = -1;
+    int32_t lastPresentedCount = -1;
 
     ~NativeSurfaceInfo()
     {
