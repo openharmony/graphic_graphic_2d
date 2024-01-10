@@ -117,6 +117,14 @@ std::string BootAnimationConfig::GetBootVideoPath()
     return custConfig_.custVideoPath;
 }
 
+std::string BootAnimationConfig::GetBootExtraVideoPath()
+{
+    if (custConfig_.custExtraVideoPath.empty()) {
+        return GetBootVideoPath();
+    }
+    return custConfig_.custExtraVideoPath;
+}
+
 int32_t BootAnimationConfig::GetRotateScreenId()
 {
     return custConfig_.rotateScreenId;
