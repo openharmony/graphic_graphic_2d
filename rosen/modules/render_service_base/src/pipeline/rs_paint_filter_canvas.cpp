@@ -1439,5 +1439,15 @@ bool RSPaintFilterCanvas::GetDisableFilterCache() const
 {
     return disableFilterCache_;
 }
+
+void RSPaintFilterCanvas::SetRecordDrawable(bool enable)
+{
+    recordDrawable_ = enable;
+}
+
+bool RSPaintFilterCanvas::GetRecordDrawable() const
+{
+    return recordDrawable_;
+}
 } // namespace Rosen
 } // namespace OHOS

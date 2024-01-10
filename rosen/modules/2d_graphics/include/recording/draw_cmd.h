@@ -1257,21 +1257,20 @@ private:
 
 class DrawFuncOpItem : public DrawOpItem {
 public:
-    using DrawFunc = std::function<void(Canvas* canvas, const Rect* rect)>;
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(DrawFunc func)
-            : OpItem(DrawOpItem::DRAW_FUNC_OPITEM), func_(std::move(func))
+        ConstructorHandle(const OpDataHandle& objectHandle)
+            : OpItem(DrawOpItem::DRAW_FUNC_OPITEM), objectHandle(objectHandle)
         {}
         ~ConstructorHandle() override = default;
-        DrawFunc func_;
+        OpDataHandle objectHandle;
     };
-    DrawFuncOpItem(ConstructorHandle* handle);
+    DrawFuncOpItem(const CmdList& cmdList, ConstructorHandle* handle);
     ~DrawFuncOpItem() override = default;
 
     static std::shared_ptr<DrawOpItem> Unmarshalling(const CmdList& cmdList, void* handle);
     void Playback(Canvas* canvas, const Rect* rect) override;
 private:
-    DrawFunc func_;
+    std::shared_ptr<ExtendDrawFuncObj> objectHandle_;
 };
 
 #ifdef ROSEN_OHOS

@@ -145,17 +145,18 @@ public:
 #ifdef ROSEN_OHOS
     void DrawSurfaceBuffer(const DrawingSurfaceBufferInfo& surfaceBufferInfo);
 #endif
+
+    using DrawFunc = std::function<void(Drawing::Canvas* canvas, const Drawing::Rect* rect)>;
+
 protected:
     static void GenerateHandleFromPaint(CmdList& cmdList, const Paint& paint, PaintHandle& paintHandle);
     std::shared_ptr<DrawCmdList> cmdList_ = nullptr;
+
 private:
     template<typename T, typename... Args>
     void AddOp(Args&&... args);
 
-    enum SaveOpState {
-        LazySaveOp,
-        RealSaveOp
-    };
+    enum SaveOpState { LazySaveOp, RealSaveOp };
     void CheckForLazySave();
     void GenerateCachedOpForTextblob(const TextBlob* blob, const scalar x, const scalar y);
     bool isCustomTextType_ = false;

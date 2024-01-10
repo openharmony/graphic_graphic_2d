@@ -477,10 +477,10 @@ bool RSRecordingCanvas::IsCustomTextType() const
 {
     return isCustomTextType_;
 }
-void RSRecordingCanvas::DrawFunc(drawFunc&& func)
+void RSRecordingCanvas::DrawDrawFunc(DrawFunc && drawFunc)
 {
     RS_DRAWOP_TRACE_FUNC();
-    std::unique_ptr<OpItem> op = std::make_unique<DrawFuncOpItem>(std::move(func));
+    std::unique_ptr<OpItem> op = std::make_unique<DrawFuncOpItem>(std::move(drawFunc));
     AddOp(std::move(op));
 }
 } // namespace Rosen
@@ -528,9 +528,12 @@ void ExtendRecordingCanvas::DrawPixelMapRect(const std::shared_ptr<Media::PixelM
     AddOp<Drawing::DrawPixelMapRectOpItem::ConstructorHandle>(objectHandle, sampling);
 }
 
-void ExtendRecordingCanvas::DrawFunc(OHOS::Rosen::Drawing::DrawFuncOpItem::DrawFunc&& func)
+void ExtendRecordingCanvas::DrawDrawFunc(Drawing::RecordingCanvas::DrawFunc&& drawFunc)
 {
-    cmdList_->AddOp<Drawing::DrawFuncOpItem::ConstructorHandle>(std::move(func));
+    auto object = std::make_shared<RSExtendDrawFuncObj>(std::move(drawFunc));
+    auto objectHandle =
+        Drawing::CmdListHelper::AddDrawFuncObjToCmdList(*Drawing::RecordingCanvas::GetDrawCmdList(), object);
+    cmdList_->AddOp<Drawing::DrawFuncOpItem::ConstructorHandle>(objectHandle);
 }
 
 template<typename T, typename... Args>

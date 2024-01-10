@@ -108,8 +108,8 @@ public:
         const Rosen::RsImageInfo& rsImageInfo, const SkSamplingOptions& samplingOptions, const SkPaint& paint);
     void drawImageNine(const std::shared_ptr<Media::PixelMap>& pixelmap, const SkIRect& center,
         const SkRect& dst, SkFilterMode filter, const SkPaint* paint);
-    using drawFunc = std::function<void(RSPaintFilterCanvas& canvas, const SkRect*)>;
-    void DrawFunc(drawFunc&& func);
+    using DrawFunc  = std::function<void(RSPaintFilterCanvas& canvas, const SkRect*)>;
+    void DrawDrawFunc(DrawFunc && drawFunc);
 #else
     GrContext* getGrContext() override;
     void SetGrContext(GrContext* grContext);
@@ -212,8 +212,8 @@ private:
 } // namespace OHOS
 
 #else
-#include "recording/recording_canvas.h"
 #include "recording/draw_cmd.h"
+#include "recording/recording_canvas.h"
 
 namespace OHOS {
 namespace Media {
@@ -231,7 +231,7 @@ public:
     void DrawPixelMapRect(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::Rect& src,
         const Drawing::Rect& dst, const Drawing::SamplingOptions& sampling,
         Drawing::SrcRectConstraint constraint = Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
-    void DrawFunc(OHOS::Rosen::Drawing::DrawFuncOpItem::DrawFunc&& func);
+    void DrawDrawFunc(Drawing::RecordingCanvas::DrawFunc&& drawFunc);
 
 private:
     template<typename T, typename... Args>

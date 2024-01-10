@@ -1708,25 +1708,22 @@ void ImageSnapshotOpItem::Playback(Canvas* canvas, const Rect* rect)
 }
 
 /* DrawFuncOpItem */
-DrawFuncOpItem::DrawFuncOpItem(DrawFuncOpItem::ConstructorHandle* handle)
-    : DrawOpItem(DRAW_FUNC_OPITEM), func_(handle->func_)
-{}
+DrawFuncOpItem::DrawFuncOpItem(const CmdList& cmdList, DrawFuncOpItem::ConstructorHandle* handle)
+    : DrawOpItem(DRAW_FUNC_OPITEM)
+{
+    objectHandle_ = CmdListHelper::GetDrawFuncObjFromCmdList(cmdList, handle->objectHandle);
+}
 
 std::shared_ptr<DrawOpItem> DrawFuncOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
 {
-    auto constructorHandle = static_cast<DrawFuncOpItem::ConstructorHandle*>(handle);
-    if (constructorHandle == nullptr || constructorHandle->func_ == nullptr) {
-        return nullptr;
-    }
-    return std::make_shared<DrawFuncOpItem>(constructorHandle);
+    return std::make_shared<DrawFuncOpItem>(cmdList, static_cast<DrawFuncOpItem::ConstructorHandle*>(handle));
 }
 
 void DrawFuncOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
-    if (func_ == nullptr) {
-        return;
+    if (objectHandle_) {
+        objectHandle_->Playback(canvas, rect);
     }
-    func_(canvas, rect);
 }
 
 #ifdef ROSEN_OHOS
