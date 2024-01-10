@@ -14,7 +14,9 @@
  */
 
 #include "skia_gpu_context.h"
-
+#ifdef RS_ENABLE_VK
+#include <mutex>
+#endif
 #include "include/gpu/gl/GrGLInterface.h"
 #include "src/gpu/GrDirectContextPriv.h"
 #include "include/core/SkTypes.h"
@@ -87,13 +89,23 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
 }
 
 #ifdef RS_ENABLE_VK
-std::unique_ptr<SkExecutor> SkiaGPUContext::threadPool = SkExecutor::MakeFIFOThreadPool(4); // 4 threads async task
+std::unique_ptr<SkExecutor> SkiaGPUContext::threadPool = nullptr;
+void SkiaGPUContext::InitSkExecutor()
+{
+    static std::mutex mtx;
+    mtx.lock();
+    if (threadPool == nullptr) {
+        threadPool = SkExecutor::MakeFIFOThreadPool(2); // 2 threads async task
+    }
+    mtx.unlock();
+}
 bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context)
 {
     if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
         SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return false;
     }
+    InitSkExecutor();
     GrContextOptions grOptions;
     grOptions.fExecutor = threadPool.get();
     grContext_ = GrDirectContext::MakeVulkan(context, grOptions);
@@ -109,6 +121,7 @@ bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUCon
     if (options.GetPersistentCache() != nullptr) {
         skiaPersistentCache_ = std::make_shared<SkiaPersistentCache>(options.GetPersistentCache());
     }
+    InitSkExecutor();
     GrContextOptions grOptions;
     grOptions.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
     grOptions.fPreferExternalImagesOverES3 = true;
