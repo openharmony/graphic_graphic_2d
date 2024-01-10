@@ -560,7 +560,7 @@ ColorFilterMode RSBaseRenderEngine::GetColorFilterMode()
 
 void RSBaseRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
-    RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::DrawBuffer(CPU)");
+    RS_TRACE_NAME("RSBaseRenderEngine::DrawBuffer(CPU)");
 #ifndef USE_ROSEN_DRAWING
     SkBitmap bitmap;
 #else
@@ -570,7 +570,6 @@ void RSBaseRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam
     if (!RSBaseRenderUtil::ConvertBufferToBitmap(params.buffer, newBuffer, params.targetColorGamut, bitmap,
         params.metaDatas)) {
         RS_LOGE("RSDividedRenderUtil::DrawBuffer: create bitmap failed.");
-        RS_OPTIONAL_TRACE_END();
         return;
     }
 #ifndef USE_ROSEN_DRAWING
@@ -586,7 +585,6 @@ void RSBaseRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam
     canvas.DrawImageRect(drImage, params.srcRect, params.dstRect, Drawing::SamplingOptions(),
         Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
 #endif
-    RS_OPTIONAL_TRACE_END();
 }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
