@@ -34,7 +34,6 @@
         "graphic_2d_feature_color_gamut_enable",
         "graphic_2d_feature_use_texgine",
         "graphic_2d_feature_rs_enable_uni_render",
-        "graphic_2d_feature_use_video_processing_engine",
         "graphic_2d_feature_wuji_enable",
         "graphic_2d_feature_enable_afbc",
         "graphic_2d_feature_freemem_enable",
