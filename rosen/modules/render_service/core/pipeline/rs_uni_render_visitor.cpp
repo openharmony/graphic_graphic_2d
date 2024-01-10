@@ -1996,7 +1996,11 @@ void RSUniRenderVisitor::DrawEffectRenderNodeForDFX()
         if (!node) {
             continue;
         }
-        RectI absRect = node->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
+        auto geoPtr = node->GetRenderProperties().GetBoundsGeometry();
+        if (geoPtr == nullptr) {
+            continue;
+        }
+        RectI absRect = geoPtr->GetAbsRect();
         // draw effectNode
 #ifndef USE_ROSEN_DRAWING
         DrawDirtyRectForDFX(absRect, SK_ColorGREEN, SkPaint::kStroke_Style, strokeAlpha, strokeWidth);
@@ -4911,6 +4915,18 @@ void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 #else
             canvas_->SetMatrix(*sandboxMatrix);
 #endif
+        }
+    }
+    if (node.GetRenderProperties().GetUseEffect() && RSSystemParameters::GetDrawingEffectRegionEnabledDfx()) {
+        const auto& effectData = canvas_->GetEffectData();
+        auto geoPtr = node.GetRenderProperties().GetBoundsGeometry();
+        if (geoPtr != nullptr) {
+            if ((effectData == nullptr || effectData->cachedImage_ == nullptr) ||
+                !RSSystemProperties::GetEffectMergeEnabled()) {
+                nodesUseEffectFallbackForDfx_.emplace_back(geoPtr->GetAbsRect());
+            } else {
+                nodesUseEffectForDfx_.emplace_back(geoPtr->GetAbsRect());
+            }
         }
     }
     const auto& property = node.GetRenderProperties();
