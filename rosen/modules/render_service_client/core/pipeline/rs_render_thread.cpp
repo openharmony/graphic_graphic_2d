@@ -280,7 +280,7 @@ void RSRenderThread::RenderLoop()
     payload["uid"] = std::to_string(getuid());
     payload["pid"] = std::to_string(GetRealPid());
     ResourceSchedule::ResSchedClient::GetInstance().ReportData(
-        ResourceSchedule::ResType::RES_TYPE_REPORT_RENDER_THREAD, gettid(), payload);
+        ResourceSchedule::ResType::RES_TYPE_REPORT_RENDER_THREAD, getproctid(), payload);
 #endif
 #ifdef ROSEN_OHOS
     tid_ = gettid();
