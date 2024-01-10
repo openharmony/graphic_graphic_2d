@@ -382,6 +382,9 @@ int32_t HgmFrameRateManager::CalModifierPreferred(const HgmModifierProfile &hgmM
             return mixSpeed >= iter.second.min && (mixSpeed < iter.second.max || iter.second.max == -1);
         });
     if (iter != dynamicSetting.end()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("CalModifierPreferred: ModifierType: %s, speed: %f, rate: %d",
+            HGM_MODIFIER_TYPE_MAP.at(static_cast<int>(hgmModifierProfile.hgmModifierType)).c_str(),
+            mixSpeed, iter->second.preferred_fps);
         return iter->second.preferred_fps;
     }
     return HGM_ERROR;

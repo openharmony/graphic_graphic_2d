@@ -18,6 +18,7 @@
 #include <mutex>
 #include <unordered_map>
 
+#include "rs_trace.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_interfaces.h"
 #include "ui/rs_ui_director.h"
@@ -102,7 +103,7 @@ void RSFrameRatePolicy::HgmRefreshRateModeChangeCallback(int32_t refreshRateMode
     });
 }
 
-int32_t RSFrameRatePolicy::GetRefreshRateMode()
+int32_t RSFrameRatePolicy::GetRefreshRateMode() const
 {
     return currentRefreshRateMode_;
 }
@@ -120,6 +121,8 @@ int32_t RSFrameRatePolicy::GetPreferredFps(const std::string& scene, float speed
             pair.second.maxSpeed == -1);
     });
     if (iter != attributes.end()) {
+        RS_TRACE_NAME_FMT("GetPreferredFps: scene: %s, speed: %f, rate: %d",
+            scene.c_str(), speedMM, iter->second.preferredFps);
         return iter->second.preferredFps;
     }
     return 0;

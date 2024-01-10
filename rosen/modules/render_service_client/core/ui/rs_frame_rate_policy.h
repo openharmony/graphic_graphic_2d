@@ -27,7 +27,7 @@ public:
     void RegisterHgmConfigChangeCallback();
 
     int32_t GetPreferredFps(const std::string& scene, float speed);
-    int32_t GetRefreshRateMode();
+    int32_t GetRefreshRateMode() const;
 
 private:
     RSFrameRatePolicy() = default;
