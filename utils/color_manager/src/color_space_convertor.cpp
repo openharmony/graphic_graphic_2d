@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <algorithm>
+
 #include "color_space_convertor.h"
 
 namespace OHOS {
