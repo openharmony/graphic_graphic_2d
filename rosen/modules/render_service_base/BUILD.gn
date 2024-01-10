@@ -387,6 +387,7 @@ ohos_source_set("render_service_base_src") {
     "$rosen_root/modules/platform:ipc_core",
   ]
   external_deps = [ "hilog:libhilog" ]
+  external_deps = [ "hilog:libhilog", "image_framework:image_native" ]
 
   if (!is_mingw && !is_mac && !is_cross_platform) {
     defines += [ "ENABLE_RUST" ]
