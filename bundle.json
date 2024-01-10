@@ -94,8 +94,7 @@
           "jsoncpp",
           "egl",
           "opengles",
-          "vulkan-headers",
-          "vulkan-loader"
+          "vulkan-headers"
         ]
       },
       "build": {
