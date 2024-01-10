@@ -24,7 +24,6 @@
 #include "event_handler.h"
 #ifdef PLAYER_FRAMEWORK_ENABLE
 #include "player.h"
-#include "audio_stream_info.h"
 #endif
 
 namespace OHOS {

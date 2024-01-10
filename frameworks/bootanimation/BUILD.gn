@@ -85,7 +85,6 @@ ohos_executable("bootanimation") {
 
   if (player_framework_enable) {
     external_deps += [ "player_framework:media_client" ]
-    external_deps += [ "audio_framework:audio_client" ]
   }
 
   if (is_standard_system) {

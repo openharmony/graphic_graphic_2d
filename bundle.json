@@ -68,7 +68,6 @@
           "image_framework",
           "ipc",
           "player_framework",
-          "audio_framework",
           "resource_schedule_service",
           "soc_perf",
           "accessibility",
