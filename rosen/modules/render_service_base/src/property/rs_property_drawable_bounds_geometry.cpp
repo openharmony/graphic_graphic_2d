@@ -1260,27 +1260,81 @@ void RSBackgroundImageDrawable::Draw(const RSRenderContent& content, RSPaintFilt
 #endif
 }
 
-// ============================================================================
-// SaveLayerBackground
-void RSSaveLayerBackgroundDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
+// blend mode save and restore
+std::unique_ptr<RSPropertyDrawable> BlendSaveDrawableGenerate(const RSRenderContent& content)
+{
+    auto& properties = content.GetRenderProperties();
+    auto blendMode = properties.GetColorBlendMode();
+    int blendModeApplyType = properties.GetColorBlendApplyType();
+    if (blendMode == 0) {
+        // no blend
+        return nullptr;
+    }
+    if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::FAST)) {
+        return std::make_unique<RSBlendFastDrawable>(blendMode);
+    }
+    return std::make_unique<RSBlendSaveLayerDrawable>(blendMode);
+}
+
+std::unique_ptr<RSPropertyDrawable> BlendRestoreDrawableGenerate(const RSRenderContent& content)
+{
+    auto& properties = content.GetRenderProperties();
+    auto blendMode = properties.GetColorBlendMode();
+    int blendModeApplyType = properties.GetColorBlendApplyType();
+    if (blendMode == 0) {
+        // no blend
+        return nullptr;
+    }
+    if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::SAVE_LAYER)) {
+        return std::make_unique<RSBlendSaveLayerRestoreDrawable>();
+    }
+    return std::make_unique<RSBlendFastRestoreDrawable>();
+}
+
+RSBlendSaveLayerDrawable::RSBlendSaveLayerDrawable(int blendMode)
 {
 #ifndef USE_ROSEN_DRAWING
-    *content_ = canvas.saveLayer(nullptr, nullptr);
+    blendPaint_.setBlendMode(static_cast<SkBlendMode>(blendMode - 1)); // map blendMode to SkBlendMode
 #else
-    canvas.SaveLayer({ nullptr, nullptr });
-    *content_ = canvas.GetSaveCount() - 1;
+    blendBrush_.SetBlendMode(static_cast<Drawing::BlendMode>(blendMode - 1)); // map blendMode to Drawing::BlendMode
 #endif
 }
 
-// SaveLayerContent
-void RSSaveLayerContentDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
+void RSBlendSaveLayerDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
 #ifndef USE_ROSEN_DRAWING
-    *content_ = canvas.saveLayer(nullptr, &blendPaint_);
+    canvas.saveLayer(nullptr, &blendPaint_);
 #else
-    canvas.SaveLayer({ nullptr, &blendBrush_ });
-    *content_ = canvas.GetSaveCount() - 1;
+    Drawing::SaveLayerOps maskLayerRec(nullptr, &blendBrush_, nullptr, 0);
+    canvas.SaveLayer(maskLayerRec);
 #endif
+    canvas.SaveBlendMode();
+    canvas.SetBlendMode(std::nullopt);
+    canvas.SaveAlpha();
+    canvas.SetAlpha(1.0f);
+}
+
+void RSBlendFastDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
+{
+    canvas.SaveBlendMode();
+    canvas.SetBlendMode({ blendMode_ - 1 }); // map blendMode to SkBlendMode
+}
+
+
+void RSBlendSaveLayerRestoreDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
+{
+    canvas.RestoreBlendMode();
+    canvas.RestoreAlpha();
+#ifndef USE_ROSEN_DRAWING
+    canvas.restore();
+#else
+    canvas.Restore();
+#endif
+}
+
+void RSBlendFastRestoreDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
+{
+    canvas.RestoreBlendMode();
 }
 
 } // namespace OHOS::Rosen

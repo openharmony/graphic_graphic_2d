@@ -180,6 +180,11 @@ public:
     int GetEnvSaveCount() const;
     void RestoreEnvToCount(int count);
 
+    // blendmode related
+    int SaveBlendMode();
+    void SetBlendMode(std::optional<int> blendMode);
+    void RestoreBlendMode();
+
     // save/restore utils
     struct SaveStatus {
         int canvasSaveCount = -1;
@@ -315,6 +320,7 @@ protected:
 #else
     const std::stack<float>& GetAlphaStack();
     const std::stack<Env>& GetEnvStack();
+
     bool OnFilter() const override;
     inline bool OnFilterWithBrush(Drawing::Brush& brush) const override
     {
@@ -340,6 +346,7 @@ private:
 #endif
     std::stack<float> alphaStack_;
     std::stack<Env> envStack_;
+    std::stack<std::optional<int>> blendModeStack_;
 
     std::atomic_bool isHighContrastEnabled_ { false };
     CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };

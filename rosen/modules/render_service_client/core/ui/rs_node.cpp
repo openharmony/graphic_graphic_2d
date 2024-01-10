@@ -1186,10 +1186,16 @@ void RSNode::SetUseShadowBatching(bool useShadowBatching)
     SetProperty<RSUseShadowBatchingModifier, RSProperty<bool>>(RSModifierType::USE_SHADOW_BATCHING, useShadowBatching);
 }
 
-void RSNode::SetColorBlendMode(RSColorBlendModeType blendMode)
+void RSNode::SetColorBlendMode(RSColorBlendMode colorBlendMode)
 {
     SetProperty<RSColorBlendModeModifier, RSProperty<int>>(
-        RSModifierType::COLOR_BLEND_MODE, static_cast<int>(blendMode));
+        RSModifierType::COLOR_BLEND_MODE, static_cast<int>(colorBlendMode));
+}
+
+void RSNode::SetColorBlendApplyType(RSColorBlendApplyType colorBlendApplyType)
+{
+    SetProperty<RSColorBlendApplyTypeModifier, RSProperty<int>>(
+        RSModifierType::COLOR_BLEND_APPLY_TYPE, static_cast<int>(colorBlendApplyType));
 }
 
 void RSNode::SetPixelStretch(const Vector4f& stretchSize)

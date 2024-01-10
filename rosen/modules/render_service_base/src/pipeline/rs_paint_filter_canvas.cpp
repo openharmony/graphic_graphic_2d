@@ -891,14 +891,16 @@ RSPaintFilterCanvas::RSPaintFilterCanvas(SkCanvas* canvas, float alpha)
     : SkPaintFilterCanvas(canvas),
       alphaStack_({ std::clamp(alpha, 0.f, 1.f) }), // construct stack with given alpha
       // Temporary fix, this default color should be 0x000000FF, fix this after foreground color refactor
-      envStack_({ Env({ Color(0xFF000000) }) }) // construct stack with default foreground color
+      envStack_({ Env({ Color(0xFF000000) }) }), // construct stack with default foreground color
+      blendModeStack_({std::nullopt})
 {}
 
 RSPaintFilterCanvas::RSPaintFilterCanvas(SkSurface* skSurface, float alpha)
     : SkPaintFilterCanvas(skSurface ? skSurface->getCanvas() : nullptr), skSurface_(skSurface),
       alphaStack_({ std::clamp(alpha, 0.f, 1.f) }), // construct stack with given alpha
       // Temporary fix, this default color should be 0x000000FF, fix this after foreground color refactor
-      envStack_({ Env({ Color(0xFF000000) }) }) // construct stack with default foreground color
+      envStack_({ Env({ Color(0xFF000000) }) }), // construct stack with default foreground color
+      blendModeStack_({std::nullopt})
 {}
 
 SkSurface* RSPaintFilterCanvas::GetSurface() const
@@ -917,6 +919,12 @@ bool RSPaintFilterCanvas::onFilter(SkPaint& paint) const
     } else if (alphaStack_.top() <= 0.f) {
         return false;
     }
+
+    // use blendModeStack_.top() to set blend mode
+    if (auto& blendMode = blendModeStack_.top()) {
+        paint.SetBlendMode(static_cast<Drawing::BlendMode>(*blendMode));
+    }
+
     // use alphaStack_.top() to multiply alpha
     paint.setAlphaf(paint.getAlphaf() * alphaStack_.top());
     return true;
@@ -939,14 +947,16 @@ SkCanvas* RSPaintFilterCanvas::GetRecordingCanvas() const
 RSPaintFilterCanvas::RSPaintFilterCanvas(Drawing::Canvas* canvas, float alpha)
     : RSPaintFilterCanvasBase(canvas), alphaStack_({ std::clamp(alpha, 0.f, 1.f) }), // construct stack with given alpha
       // Temporary fix, this default color should be 0x000000FF, fix this after foreground color refactor
-      envStack_({ Env({ RSColor(0xFF000000) }) }) // construct stack with default foreground color
+      envStack_({ Env({ RSColor(0xFF000000) }) }), // construct stack with default foreground color
+      blendModeStack_({std::nullopt})
 {}
 
 RSPaintFilterCanvas::RSPaintFilterCanvas(Drawing::Surface* surface, float alpha)
     : RSPaintFilterCanvasBase(surface ? surface->GetCanvas().get() : nullptr), surface_(surface),
       alphaStack_({ std::clamp(alpha, 0.f, 1.f) }), // construct stack with given alpha
       // Temporary fix, this default color should be 0x000000FF, fix this after foreground color refactor
-      envStack_({ Env({ RSColor(0xFF000000) }) }) // construct stack with default foreground color
+      envStack_({ Env({ RSColor(0xFF000000) }) }), // construct stack with default foreground color
+      blendModeStack_({std::nullopt})
 {}
 
 Drawing::Surface* RSPaintFilterCanvas::GetSurface() const
@@ -968,6 +978,11 @@ CoreCanvas& RSPaintFilterCanvas::AttachPen(const Pen& pen)
     // use alphaStack_.top() to multiply alpha
     if (alphaStack_.top() < 1 && alphaStack_.top() > 0) {
         p.SetAlpha(p.GetAlpha() * alphaStack_.top());
+    }
+
+    // use blendModeStack_.top() to set blend mode
+    if (auto& blendMode = blendModeStack_.top()) {
+        p.SetBlendMode(static_cast<Drawing::BlendMode>(*blendMode));
     }
 
 #ifdef ENABLE_RECORDING_DCL
@@ -998,6 +1013,10 @@ CoreCanvas& RSPaintFilterCanvas::AttachBrush(const Brush& brush)
         b.SetAlpha(b.GetAlpha() * alphaStack_.top());
     }
 
+    // use blendModeStack_.top() to set blend mode
+    if (auto& blendMode = blendModeStack_.top()) {
+        b.SetBlendMode(static_cast<Drawing::BlendMode>(*blendMode));
+    }
 #ifdef ENABLE_RECORDING_DCL
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
@@ -1024,6 +1043,11 @@ CoreCanvas& RSPaintFilterCanvas::AttachPaint(const Drawing::Paint& paint)
     // use alphaStack_.top() to multiply alpha
     if (alphaStack_.top() < 1 && alphaStack_.top() > 0) {
         p.SetAlpha(p.GetAlpha() * alphaStack_.top());
+    }
+
+    // use blendModeStack_.top() to set blend mode
+    if (auto& blendMode = blendModeStack_.top()) {
+        p.SetBlendMode(static_cast<Drawing::BlendMode>(*blendMode));
     }
 
 #ifdef ENABLE_RECORDING_DCL
@@ -1110,6 +1134,24 @@ void RSPaintFilterCanvas::RestoreAlphaToCount(int count)
     for (int i = 0; i < n; ++i) {
         alphaStack_.pop();
     }
+}
+
+void RSPaintFilterCanvas::SetBlendMode(std::optional<int> blendMode)
+{
+    blendModeStack_.top() = blendMode;
+}
+
+int RSPaintFilterCanvas::SaveBlendMode()
+{
+    // make a copy of top of stack
+    blendModeStack_.push(blendModeStack_.top());
+    // return prev stack height
+    return blendModeStack_.size() - 1;
+}
+
+void RSPaintFilterCanvas::RestoreBlendMode()
+{
+    blendModeStack_.pop();
 }
 
 int RSPaintFilterCanvas::SaveEnv()
@@ -1318,16 +1360,6 @@ std::optional<Drawing::Rect> RSPaintFilterCanvas::GetLocalClipBounds(const Drawi
     Drawing::Rect dst;
     inverse.MapRect(dst, bounds);
     return dst;
-}
-
-const std::stack<float>& RSPaintFilterCanvas::GetAlphaStack()
-{
-    return alphaStack_;
-}
-
-const std::stack<RSPaintFilterCanvas::Env>& RSPaintFilterCanvas::GetEnvStack()
-{
-    return envStack_;
 }
 #endif
 
