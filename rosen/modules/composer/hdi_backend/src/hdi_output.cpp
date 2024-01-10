@@ -377,7 +377,7 @@ void HdiOutput::SetBufferColorSpace(sptr<SurfaceBuffer>& buffer, const std::vect
 
         CM_ColorSpaceInfo colorSpaceInfo;
         if (MetadataHelper::GetColorSpaceInfo(layerBuffer, colorSpaceInfo) != GSERROR_OK) {
-            HLOGD("HdiOutput::SetBufferColorSpace Get color space from surface buffer failed");
+            HLOGD("HdiOutput::SetBufferColorSpace Get color space failed");
             continue;
         }
 

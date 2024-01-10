@@ -656,7 +656,7 @@ void RSUniRenderVisitor::CheckColorSpace(RSSurfaceRenderNode& node)
         using namespace HDI::Display::Graphic::Common::V1_0;
         CM_ColorSpaceInfo colorSpaceInfo;
         if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
-            RS_LOGD("RSUniRenderVisitor::CheckColorSpace: get color space info from metadata failed.");
+            RS_LOGD("RSUniRenderVisitor::CheckColorSpace: get color space info failed.");
             return;
         }
 
