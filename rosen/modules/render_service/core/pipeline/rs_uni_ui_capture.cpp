@@ -589,6 +589,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithUni(RSSurfaceR
             auto buffer = node.GetBuffer();
             DrawingSurfaceBufferInfo rsSurfaceBufferInfo(buffer, params.dstRect.GetLeft(), params.dstRect.GetTop(),
                 params.dstRect.GetWidth(), params.dstRect.GetHeight());
+            recordingCanvas->ConcatMatrix(params.matrix);
 #endif //USE_ROSEN_DRAWING
             recordingCanvas->DrawSurfaceBuffer(rsSurfaceBufferInfo);
         } else {
