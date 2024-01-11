@@ -16,7 +16,6 @@
 #ifndef OHOS_ROSEN_JS_TEXT_BLOB_H
 #define OHOS_ROSEN_JS_TEXT_BLOB_H
 
-#include "hilog/log.h"
 #include <native_engine/native_engine.h>
 #include <native_engine/native_value.h>
 #include "text/text_blob.h"

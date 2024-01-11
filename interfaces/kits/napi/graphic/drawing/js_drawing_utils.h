@@ -17,7 +17,9 @@
 #define OHOS_JS_DRAWING_UTILS_H
 
 #include <map>
+#ifdef ROSEN_OHOS
 #include "hilog/log.h"
+#endif
 
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
@@ -264,6 +266,7 @@ napi_value NapiThrowError(napi_env env, DrawingError err);
 } // namespace Drawing
 } // namespace OHOS::Rosen
 
+#ifdef ROSEN_OHOS
 constexpr OHOS::HiviewDFX::HiLogLabel LABEL_ROSEN = {LOG_CORE, 0xD001400, "JsDrawing"};
 #define ROSEN_LOGI(format, ...) \
     OHOS::HiviewDFX::HiLog::Info(LABEL_ROSEN, format, ##__VA_ARGS__)
@@ -271,5 +274,10 @@ constexpr OHOS::HiviewDFX::HiLogLabel LABEL_ROSEN = {LOG_CORE, 0xD001400, "JsDra
     OHOS::HiviewDFX::HiLog::Debug(LABEL_ROSEN, format, ##__VA_ARGS__)
 #define ROSEN_LOGE(format, ...) \
     OHOS::HiviewDFX::HiLog::Error(LABEL_ROSEN, format, ##__VA_ARGS__)
+#else
+#define ROSEN_LOGI(format, ...)
+#define ROSEN_LOGD(format, ...)
+#define ROSEN_LOGE(format, ...)
+#endif
 
 #endif // OHOS_JS_DRAWING_UTILS_H

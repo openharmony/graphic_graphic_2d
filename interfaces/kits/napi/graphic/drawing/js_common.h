@@ -16,11 +16,8 @@
 #ifndef OHOS_ROSEN_JS_COMMON_H
 #define OHOS_ROSEN_JS_COMMON_H
 
-#include <memory>
-#include "hilog/log.h"
 #include <native_engine/native_engine.h>
 #include <native_engine/native_value.h>
-#include "utils/rect.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
