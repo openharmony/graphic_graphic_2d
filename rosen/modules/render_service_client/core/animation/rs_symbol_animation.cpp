@@ -72,10 +72,10 @@ bool RSSymbolAnimation::SetNoneAnimation(const std::shared_ptr<RSNode>& rsNode)
         ROSEN_LOGE("[%{public}s] No symbol rsNode to be animated \n", __func__);
         return false;
     }
-    const Vector2f& pivotNone1Value = {0.25f, 0.25f};
-    const Vector2f& pivotNone2Value = {0.5f, 0.5f};
+    const Vector2f pivotNone1Value = {0.25f, 0.25f};
+    const Vector2f pivotNone2Value = {0.5f, 0.5f};
     auto animation = NoneSymbolAnimation(rsNode, pivotNone1Value, pivotNone2Value);
-    if(!animation) {
+    if (!animation) {
         return false;
     }
     animation->Start(rsNode);
@@ -104,9 +104,9 @@ bool RSSymbolAnimation::SetScaleUnitAnimation(const std::shared_ptr<RSNode>& rsN
         ROSEN_LOGE("[%{public}s] No symbol rsNode to be animated \n", __func__);
         return false;
     }
-    const Vector2f& scaleValueBegin = {1.0f, 1.0f};
-    const Vector2f& scaleValue = {1.15f, 1.15f};
-    const Vector2f& scaleValueEnd = scaleValueBegin;
+    const Vector2f scaleValueBegin = {1.0f, 1.0f};
+    const Vector2f scaleValue = {1.15f, 1.15f};
+    const Vector2f scaleValueEnd = scaleValueBegin;
     auto animation = ScaleSymbolAnimation(rsNode, scaleValueBegin, scaleValue, scaleValueEnd);
     if (!animation) {
         return false;
