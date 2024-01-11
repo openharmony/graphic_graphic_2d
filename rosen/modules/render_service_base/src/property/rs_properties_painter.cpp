@@ -2757,16 +2757,11 @@ void RSPropertiesPainter::DrawBorderLight(const RSProperties& properties, Drawin
 #ifndef USE_ROSEN_DRAWING
 void RSPropertiesPainter::DrawBorderBase(const RSProperties& properties, SkCanvas& canvas,
     const std::shared_ptr<RSBorder>& border, const bool& isOutline)
-#else
-void RSPropertiesPainter::DrawBorderBase(const RSProperties& properties, Drawing::Canvas& canvas,
-    const std::shared_ptr<RSBorder>& border, const bool& isOutline)
-#endif
 {
     if (!border || !border->HasBorder()) {
         return;
     }
 
-#ifndef USE_ROSEN_DRAWING
     SkPaint paint;
     paint.setAntiAlias(true);
     if (border->ApplyFillStyle(paint)) {
@@ -2806,14 +2801,21 @@ void RSPropertiesPainter::DrawBorderBase(const RSProperties& properties, Drawing
             border->PaintLeftPath(canvas, paint, rrect, center);
         }
     }
+}
 #else
+void RSPropertiesPainter::DrawBorderBase(const RSProperties& properties, Drawing::Canvas& canvas,
+    const std::shared_ptr<RSBorder>& border, const bool& isOutline)
+{
+    if (!border || !border->HasBorder()) {
+        return;
+    }
+
     Drawing::Brush brush;
     Drawing::Pen pen;
     brush.SetAntiAlias(true);
     pen.SetAntiAlias(true);
     if (border->ApplyFillStyle(brush)) {
-        auto roundRect = RRect2DrawingRRect(GetRRectForDrawingBorder(
-            properties, border, isOutline));
+        auto roundRect = RRect2DrawingRRect(GetRRectForDrawingBorder(properties, border, isOutline));
         auto innerRoundRect = RRect2DrawingRRect(GetInnerRRectForDrawingBorder(
             properties, border, isOutline));
         canvas.AttachBrush(brush);
@@ -2838,8 +2840,7 @@ void RSPropertiesPainter::DrawBorderBase(const RSProperties& properties, Drawing
             canvas.DetachPen();
         } else {
             Drawing::AutoCanvasRestore acr(canvas, true);
-            auto rrect = RRect2DrawingRRect(GetRRectForDrawingBorder(
-                properties, border, isOutline));
+            auto rrect = RRect2DrawingRRect(GetRRectForDrawingBorder(properties, border, isOutline));
             canvas.ClipRoundRect(rrect, Drawing::ClipOp::INTERSECT, true);
             auto innerRoundRect = RRect2DrawingRRect(GetInnerRRectForDrawingBorder(
                 properties, border, isOutline));
@@ -2853,8 +2854,8 @@ void RSPropertiesPainter::DrawBorderBase(const RSProperties& properties, Drawing
             border->PaintLeftPath(canvas, pen, rrect, center);
         }
     }
-#endif
 }
+#endif
 
 #ifndef USE_ROSEN_DRAWING
 void RSPropertiesPainter::DrawBorder(const RSProperties& properties, SkCanvas& canvas)
@@ -2876,16 +2877,24 @@ void RSPropertiesPainter::GetOutlineDirtyRect(RectI& dirtyOutline,
         return;
     }
 
-    auto width = outline->GetWidthFour();
-    auto dirtyRect = properties.GetDirtyRect();
-
-    auto scaledBounds = RectF(dirtyRect.left_ - width.x_, dirtyRect.top_ - width.y_,
-        dirtyRect.width_ + width.x_ + width.z_,
-        dirtyRect.height_ + width.y_ + width.w_);
-
-    auto scaledIBounds = RectI(std::floor(scaledBounds.left_), std::floor(scaledBounds.top_),
-        std::ceil(scaledBounds.width_) + 2, std::ceil(scaledBounds.height_) + 2);
-    dirtyOutline = dirtyRect.JoinRect(scaledIBounds);
+    auto geoPtr = properties.GetBoundsGeometry();
+#ifndef USE_ROSEN_DRAWING
+    SkMatrix matrix = (geoPtr && isAbsCoordinate) ? geoPtr->GetAbsMatrix() : SkMatrix::I();
+    auto skRect = Rect2SkRect(GetRRectForDrawingBorder(properties, outline, true).rect_);
+    matrix.MapRect(&skRect);
+    dirtyOutline.left_ = std::floor(skRect.left());
+    dirtyOutline.top_ = std::floor(drawingRect.top());
+    dirtyOutline.width_ = std::ceil(drawingRect.width()) + 2;
+    dirtyOutline.height_ = std::ceil(drawingRect.height()) + 2;
+#else
+    Drawing::Matrix matrix = (geoPtr && isAbsCoordinate) ? geoPtr->GetAbsMatrix() : Drawing::Matrix();
+    auto drawingRect = Rect2DrawingRect(GetRRectForDrawingBorder(properties, outline, true).rect_);
+    matrix.MapRect(drawingRect, drawingRect);
+    dirtyOutline.left_ = std::floor(drawingRect.GetLeft());
+    dirtyOutline.top_ = std::floor(drawingRect.GetTop());
+    dirtyOutline.width_ = std::ceil(drawingRect.GetWidth()) + 2;
+    dirtyOutline.height_ = std::ceil(drawingRect.GetHeight()) + 2;
+#endif
 }
 
 #ifndef USE_ROSEN_DRAWING
