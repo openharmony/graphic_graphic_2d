@@ -2786,14 +2786,7 @@ RSRenderNode::NodeGroupType RSRenderNode::GetNodeGroupType()
 {
     return nodeGroupType_;
 }
-void RSRenderNode::UpdateUIFrameRateRange(const FrameRateRange& range)
-{
-    uiRange_.Merge(range);
-}
-const FrameRateRange& RSRenderNode::GetUIFrameRateRange() const
-{
-    return uiRange_;
-}
+
 void RSRenderNode::MarkNonGeometryChanged()
 {
     geometryChangeNotPerceived_ = true;

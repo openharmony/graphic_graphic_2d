@@ -20,7 +20,6 @@
 
 #include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_animation_timing_protocol.h"
-#include "animation/rs_frame_rate_range.h"
 #include "animation/rs_motion_path_option.h"
 #include "animation/rs_particle_params.h"
 #include "animation/rs_transition_effect.h"
@@ -357,10 +356,6 @@ public:
 
     void SetColorBlend(uint32_t colorValue);
 
-    void AddFRCSceneInfo(const std::string& scene, float speed);
-
-    void UpdateUIFrameRateRange(const FrameRateRange& range);
-
     int32_t CalcExpectedFrameRate(const std::string& scene, float speed);
 
     void SetOutOfParent(OutOfParentType outOfParent);
@@ -441,7 +436,6 @@ private:
     std::shared_ptr<RSImplicitAnimator> implicitAnimator_;
     std::shared_ptr<const RSTransitionEffect> transitionEffect_;
 
-    FrameRateRange nodeRange_ = { 0, 0, 0 };
     std::mutex animationMutex_;
     std::recursive_mutex propertyMutex;
 

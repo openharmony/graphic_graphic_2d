@@ -474,9 +474,6 @@ public:
         globalCornerRadius_ = globalCornerRadius;
     }
 
-    void UpdateUIFrameRateRange(const FrameRateRange& range);
-    const FrameRateRange& GetUIFrameRateRange() const;
-
     void ActivateDisplaySync();
     void InActivateDisplaySync();
     FrameRateRange CalcExpectedFrameRateRange(int32_t preferredFps);
@@ -696,8 +693,6 @@ private:
 
     std::atomic_bool isUsedBySubThread_ = false;
     bool lastIsNeedAssignToSubThread_ = false;
-
-    FrameRateRange uiRange_ = {0, 0, 0};
 
     int64_t lastTimestamp_ = -1;
     int64_t lastApplyTimestamp_ = -1;

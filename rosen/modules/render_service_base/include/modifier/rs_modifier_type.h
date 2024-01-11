@@ -135,6 +135,15 @@ enum class RSRenderPropertyType : int16_t {
     PROPERTY_SKMATRIX,
     PROPERTY_RRECT,
 };
+
+enum class RSPropertyUnit : int16_t {
+    UNKNOWN = 0,
+    PIXEL_POSITION,
+    PIXEL_SIZE,
+    RATIO_SCALE,
+    ANGLE_ROTATION,
+};
+
 } // namespace Rosen
 } // namespace OHOS
 

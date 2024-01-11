@@ -509,6 +509,11 @@ public:
         return implicitAnimator->CloseImplicitAnimation();
     }
 
+    void SetPropertyUnit(RSPropertyUnit unit)
+    {
+        propertyUnit_ = unit;
+    }
+
 protected:
     void UpdateOnAllAnimationFinish() override
     {
@@ -581,12 +586,12 @@ protected:
     {
         if (!RSProperty<T>::isCustom_) {
             return std::make_shared<RSRenderAnimatableProperty<T>>(
-                RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType());
+                RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType(), propertyUnit_);
         }
 
         if (renderProperty_ == nullptr) {
             renderProperty_ = std::make_shared<RSRenderAnimatableProperty<T>>(
-                RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType());
+                RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType(), propertyUnit_);
             auto weak = RSProperty<T>::weak_from_this();
             renderProperty_->SetUpdateUIPropertyFunc(
                 [weak](const std::shared_ptr<RSRenderPropertyBase>& renderProperty) {
@@ -623,6 +628,7 @@ protected:
     std::shared_ptr<RSMotionPathOption> motionPathOption_ {};
     std::function<void(T)> propertyChangeListener_;
     ThresholdType thresholdType_ { ThresholdType::DEFAULT };
+    RSPropertyUnit propertyUnit_ { RSPropertyUnit::UNKNOWN };
 
 private:
     RSRenderPropertyType GetPropertyType() const override

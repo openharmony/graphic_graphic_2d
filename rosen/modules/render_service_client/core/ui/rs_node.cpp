@@ -1646,29 +1646,10 @@ void RSNode::SetColorBlend(uint32_t colorValue)
     SetProperty<RSColorBlendModifier, RSAnimatableProperty<Color>>(RSModifierType::COLOR_BLEND, colorBlend);
 }
 
-void RSNode::AddFRCSceneInfo(const std::string& scene, float speed)
-{
-    int preferredFps = RSFrameRatePolicy::GetInstance()->GetPreferredFps(scene, speed);
-    FrameRateRange range = {0, RANGE_MAX_REFRESHRATE, preferredFps};
-    if (!range.IsValid()) {
-        return;
-    }
-    UpdateUIFrameRateRange(range);
-}
-
 int32_t RSNode::CalcExpectedFrameRate(const std::string& scene, float speed)
 {
     auto preferredFps = RSFrameRatePolicy::GetInstance()->GetPreferredFps(scene, speed);
     return preferredFps;
-}
-
-void RSNode::UpdateUIFrameRateRange(const FrameRateRange& range)
-{
-    std::unique_ptr<RSCommand> command = std::make_unique<RSUpdateUIFrameRateRange>(GetId(), range);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, IsRenderServiceNode());
-    }
 }
 
 void RSNode::SetOutOfParent(OutOfParentType outOfParent)

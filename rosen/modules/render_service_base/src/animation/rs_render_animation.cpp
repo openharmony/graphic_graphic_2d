@@ -280,6 +280,9 @@ bool RSRenderAnimation::Animate(int64_t time)
         OnInitialize(time);
     }
 
+    // calculate frame time interval in seconds
+    float frameInterval = (time - animationFraction_.GetLastFrameTime()) * 1.0f / NS_TO_S;
+
     // convert time to fraction
     auto [fraction, isInStartDelay, isFinished, isRepeatFinished] = animationFraction_.GetAnimationFraction(time);
     if (isInStartDelay) {
@@ -289,7 +292,10 @@ bool RSRenderAnimation::Animate(int64_t time)
         return false;
     }
 
+    RecordLastAnimateValue();
     OnAnimate(fraction);
+    UpdateAnimateVelocity(frameInterval);
+
     if (isRepeatFinished) {
         ProcessOnRepeatFinish();
     }
@@ -305,6 +311,11 @@ void RSRenderAnimation::SetStartTime(int64_t time)
 {
     animationFraction_.SetLastFrameTime(time);
     needUpdateStartTime_ = false;
+}
+
+const std::shared_ptr<RSRenderPropertyBase> RSRenderAnimation::GetAnimateVelocity() const
+{
+    return animateVelocity_;
 }
 } // namespace Rosen
 } // namespace OHOS
