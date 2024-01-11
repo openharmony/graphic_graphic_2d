@@ -36,13 +36,19 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    uint32_t threadNum_;
 };
 
 void RSParallelSubThreadTest::SetUpTestCase() {}
 void RSParallelSubThreadTest::TearDownTestCase() {}
-void RSParallelSubThreadTest::SetUp() {}
-void RSParallelSubThreadTest::TearDown() {}
-
+void RSParallelSubThreadTest::SetUp()
+{
+    threadNum_ = RSParallelRenderManager::Instance()->GetParallelThreadNumber();
+}
+void RSParallelSubThreadTest::TearDown()
+{
+    threadNum_ = 0;
+}
 
 /**
  * @tc.name: CreateResourceTest
@@ -186,6 +192,11 @@ HWTEST_F(RSParallelSubThreadTest, RenderTest, TestSize.Level1)
  */
 HWTEST_F(RSParallelSubThreadTest, FlushTest, TestSize.Level1)
 {
+    auto instance = RSParallelRenderManager::Instance();
+    ParallelStatus status = instance->GetParallelRenderingStatus();
+    ASSERT_EQ(ParallelStatus::OFF, status);
+    
+    instance->StartSubRenderThread(threadNum_, nullptr);
     auto curThread = std::make_unique<RSParallelSubThread>(nullptr, ParallelRenderType::FLUSH_ONE_BUFFER, 0);
 #ifndef USE_ROSEN_DRAWING
     curThread->skCanvas_ = nullptr;
