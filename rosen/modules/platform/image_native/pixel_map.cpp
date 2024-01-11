@@ -61,5 +61,17 @@ PixelMap *PixelMap::Unmarshalling(Parcel &data)
 {
     return nullptr;
 }
+
+#ifdef IMAGE_COLORSPACE_FLAG
+void PixelMap::InnerSetColorSpace(const OHOS::ColorManager::ColorSpace &grColorSpace)
+{
+    return;
+}
+
+OHOS::ColorManager::ColorSpace PixelMap::InnerGetColorSpace()
+{
+    return OHOS::ColorManager::ColorSpace(OHOS::ColorManager::ColorSpaceName::SRGB);
+}
+#endif
 } // namespace Media
 } // namespace OHOS
