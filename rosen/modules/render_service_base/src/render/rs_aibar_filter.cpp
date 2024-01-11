@@ -18,7 +18,6 @@
 
 #include "src/core/SkOpts.h"
 #include "common/rs_common_def.h"
-#include "common/rs_optional_trace.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -53,7 +52,6 @@ void RSAIBarFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr
     const Drawing::Rect& src, const Drawing::Rect& dst) const
 #endif
 {
-    RS_OPTIONAL_TRACE_NAME("RSAIBarFilter::DrawImageRect");
     std::vector<float> aiInvertCoef = GetAiInvertCoef();
     float radius = aiInvertCoef[5]; // aiInvertCoef[5] is filter_radius
 #ifndef USE_ROSEN_DRAWING
