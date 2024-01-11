@@ -199,6 +199,7 @@ public:
     SystemAnimatedScenes GetSystemAnimatedScenes();
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
     void SetIsCachedSurfaceUpdated(bool isCachedSurfaceUpdated);
+    pid_t GetDesktopPidForRotationScene() const;
     void SetForceUpdateUniRenderFlag(bool flag)
     {
         forceUpdateUniRenderFlag_ = flag;
@@ -471,6 +472,7 @@ private:
 
     std::shared_ptr<HgmFrameRateManager> frameRateMgr_ = nullptr;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;
+    pid_t desktopPidForRotationScene_ = 0;
     FrameRateRange rsCurrRange_;
 
     // UIFirst
