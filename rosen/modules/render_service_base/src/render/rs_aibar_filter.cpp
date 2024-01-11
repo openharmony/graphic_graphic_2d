@@ -125,7 +125,7 @@ bool RSAIBarFilter::IsAiInvertCoefValid(const std::vector<float>& aiInvertCoef)
         ROSEN_GE(aiInvertCoef[1], 0.0) && ROSEN_LE(aiInvertCoef[1], 1.0) && // aiInvertCoef[1] is high
         ROSEN_GE(aiInvertCoef[2], 0.0) && ROSEN_LE(aiInvertCoef[2], 1.0) && // aiInvertCoef[2] is threshold
         ROSEN_GE(aiInvertCoef[3], 0.0) && ROSEN_LE(aiInvertCoef[3], 1.0) && // aiInvertCoef[3] is opacity
-        ROSEN_GE(aiInvertCoef[4], 0.0) && ROSEN_LE(aiInvertCoef[4], 2.0) && // aiInvertCoef[4] is saturation, saturation<=2.0
+        ROSEN_GE(aiInvertCoef[4], 0.0) && ROSEN_LE(aiInvertCoef[4], 2.0) && // aiInvertCoef[4] is saturation <= 2.0
         ROSEN_GNE(aiInvertCoef[5], 0.0); // aiInvertCoef[5] is filter_radius
 }
 
