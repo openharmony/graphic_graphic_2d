@@ -1066,7 +1066,7 @@ private:
     bool isTreatedAsTransparent_ = false;
     // valid filter nodes within, including itself
     std::vector<std::shared_ptr<RSRenderNode>> filterNodes_;
-    std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>> drawingCacheNodes_;
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> drawingCacheNodes_;
 
     struct OpaqueRegionBaseInfo
     {
