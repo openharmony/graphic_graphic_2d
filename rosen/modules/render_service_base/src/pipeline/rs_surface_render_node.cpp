@@ -1068,7 +1068,7 @@ void RSSurfaceRenderNode::ResetDrawingCacheStatusIfNodeStatic(
 {
     // traversal drawing cache nodes including app window
     EraseIf(drawingCacheNodes_, [this, &allRects](const auto& pair) {
-        auto& node = pair.second;
+        auto node = pair.second.lock();
         if (node == nullptr || !node->IsOnTheTree()) {
             return true;
         }
