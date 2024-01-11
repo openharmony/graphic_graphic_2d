@@ -32,7 +32,7 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(const RSDisplayNodeConfig& displa
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
-    ROSEN_LOGD("RSDisplayNode::Create, id:%{public}" PRIu64, node->GetId());
+    ROSEN_LOGI("RSDisplayNode::Create, id:%{public}" PRIu64, node->GetId());
     return node;
 }
 

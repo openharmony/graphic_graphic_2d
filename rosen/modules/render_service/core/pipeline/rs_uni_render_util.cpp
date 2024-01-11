@@ -586,6 +586,7 @@ void RSUniRenderUtil::AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRe
         ROSEN_LOGW("RSUniRenderUtil::AssignMainThreadNode node is nullptr");
         return;
     }
+    RS_TRACE_NAME_FMT("AssignMainThread: %s", node->GetName().c_str());
     mainThreadNodes.emplace_back(node);
     bool changeThread = !node->IsMainThreadNode();
     node->SetIsMainThreadNode(true);
