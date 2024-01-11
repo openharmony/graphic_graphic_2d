@@ -105,7 +105,7 @@ std::shared_ptr<ColorFilter> ColorFilter::CreateComposeColorFilter(ColorFilter& 
 }
 
 std::shared_ptr<ColorFilter> ColorFilter::CreateComposeColorFilter(
-    const float f1[MATRIX_SIZE], const float f2[MATRIX_SIZE])
+    const float (&f1)[MATRIX_SIZE], const float (&f2)[MATRIX_SIZE])
 {
     return std::make_shared<ColorFilter>(ColorFilter::FilterType::COMPOSE, f1, f2);
 }
@@ -115,7 +115,7 @@ std::shared_ptr<ColorFilter> ColorFilter::CreateMatrixColorFilter(const ColorMat
     return std::make_shared<ColorFilter>(ColorFilter::FilterType::MATRIX, m);
 }
 
-std::shared_ptr<ColorFilter> ColorFilter::CreateFloatColorFilter(const float f[20])
+std::shared_ptr<ColorFilter> ColorFilter::CreateFloatColorFilter(const float (&f)[MATRIX_SIZE])
 {
     return std::make_shared<ColorFilter>(ColorFilter::FilterType::MATRIX, f);
 }

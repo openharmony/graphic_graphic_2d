@@ -174,8 +174,10 @@ std::shared_ptr<Drawing::ColorFilter> RSMaterialFilter::GetColorFilter(float sat
 #else
     Drawing::ColorMatrix cm;
     cm.SetSaturation(sat);
+    float cmArray[Drawing::ColorMatrix::MATRIX_SIZE];
+    cm.GetArray(cmArray);
     std::shared_ptr<Drawing::ColorFilter> filterCompose =
-        Drawing::ColorFilter::CreateComposeColorFilter(cm.GetArray(), brightnessMat);
+        Drawing::ColorFilter::CreateComposeColorFilter(cmArray, brightnessMat);
 #endif
     return filterCompose;
 }

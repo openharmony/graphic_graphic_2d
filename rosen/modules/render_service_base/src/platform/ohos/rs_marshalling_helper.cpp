@@ -2210,6 +2210,10 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
     std::vector<std::shared_ptr<Drawing::ExtendImageBaseObj>> objectBaseVec;
     uint32_t objectBaseSize = val->GetAllBaseObj(objectBaseVec);
     ret &= parcel.WriteUint32(objectBaseSize);
+    if (!ret) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList imageBase");
+        return ret;
+    }
     if (objectBaseSize > 0) {
         for (const auto& objectBase : objectBaseVec) {
             auto rsBaseObject = std::static_pointer_cast<RSExtendImageBaseObj>(objectBase);
@@ -2223,7 +2227,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
 #ifdef ROSEN_OHOS
     std::vector<sptr<SurfaceBuffer>> surfaceBufferVec;
     uint32_t surfaceBufferSize = val->GetAllSurfaceBuffer(surfaceBufferVec);
-    ret &= parcel.WriteUint32(surfaceBufferSize);
+    ret = parcel.WriteUint32(surfaceBufferSize);
     if (surfaceBufferSize > 0) {
         for (const auto& object : surfaceBufferVec) {
             if (!object) {
@@ -2259,7 +2263,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 
     uint32_t replacedOpListSize = parcel.ReadUint32();
     std::vector<std::pair<uint32_t, uint32_t>> replacedOpList;
-    for (auto i = 0; i < replacedOpListSize; ++i) {
+    for (uint32_t i = 0; i < replacedOpListSize; ++i) {
         auto regionPos = parcel.ReadUint32();
         auto replacePos = parcel.ReadUint32();
         replacedOpList.emplace_back(regionPos, replacePos);
@@ -2437,25 +2441,25 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
     auto cmdListData = val->GetData();
     bool ret = parcel.WriteInt32(cmdListData.second);
 
-    if (cmdListData.second == 0) {
+    if (cmdListData.second == 0 || !ret) {
         ROSEN_LOGW("unirender: RSMarshallingHelper::Marshalling Drawing::MaskCmdList, size is 0");
         return ret;
     }
 
-    ret &= RSMarshallingHelper::WriteToParcel(parcel, cmdListData.first, cmdListData.second);
+    ret = RSMarshallingHelper::WriteToParcel(parcel, cmdListData.first, cmdListData.second);
     if (!ret) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::MaskCmdList");
         return ret;
     }
 
     auto imageData = val->GetAllImageData();
-    ret &= parcel.WriteInt32(imageData.second);
+    ret = parcel.WriteInt32(imageData.second);
     if (!ret) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::MaskCmdList image size");
         return ret;
     }
     if (imageData.second > 0) {
-        ret &= RSMarshallingHelper::WriteToParcel(parcel, imageData.first, imageData.second);
+        ret = RSMarshallingHelper::WriteToParcel(parcel, imageData.first, imageData.second);
         if (!ret) {
             ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::MaskCmdList image");
             return ret;
