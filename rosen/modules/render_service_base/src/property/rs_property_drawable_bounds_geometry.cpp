@@ -811,10 +811,10 @@ void RSHardwareAccelerationShadowDrawable::Draw(const RSRenderContent& content, 
     matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
     canvas.SetMatrix(matrix);
     Drawing::Point3 planeParams = { 0.0f, 0.0f, shadowElevation_ };
-    Drawing::scalar centerX = path.GetBounds().GetLeft() + path.GetBounds().GetWidth() / 2;
-    Drawing::scalar centerY = path.GetBounds().GetTop() + path.GetBounds().GetHeight() / 2;
-    Drawing::Point3 lightPos = { canvas.GetTotalMatrix().Get(Drawing::Matrix::TRANS_X) + centerX,
-        canvas.GetTotalMatrix().Get(Drawing::Matrix::TRANS_Y) + centerY, DEFAULT_LIGHT_HEIGHT };
+    std::vector<Drawing::Point> pt{{path.GetBounds().GetLeft() + path.GetBounds().GetWidth() / 2,
+        path.GetBounds().GetTop() + path.GetBounds().GetHeight() / 2}};
+    canvas.GetTotalMatrix().MapPoints(pt, pt, 1);
+    Drawing::Point3 lightPos = {pt[0].GetX(), pt[0].GetY(), DEFAULT_LIGHT_HEIGHT};
     Color ambientColor = Color::FromArgbInt(DEFAULT_AMBIENT_COLOR);
     ambientColor.MultiplyAlpha(canvas.GetAlpha());
     Color spotColor = color_;
