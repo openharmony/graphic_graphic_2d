@@ -229,10 +229,8 @@ void TextSpan::SymbolAnimation(const TextStyle &xs)
     auto spanSymbolAnimationConfig = std::make_shared<SymbolAnimationConfig>();
     spanSymbolAnimationConfig->effectStrategy = SymbolAnimationEffectStrategy(
         xs.symbol.GetEffectStrategy());
-    if (spanSymbolAnimationConfig->effectStrategy == SymbolAnimationEffectStrategy::SYMBOL_SCALE) {
-        if (animationFunc_) {
-            animationFunc_(spanSymbolAnimationConfig);
-        }
+    if (animationFunc_) {
+        animationFunc_(spanSymbolAnimationConfig);
     }
 }
 
