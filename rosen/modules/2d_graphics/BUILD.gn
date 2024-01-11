@@ -226,6 +226,9 @@ template("graphics2d_source_set") {
 
       defines += [ "ACE_ENABLE_GPU" ]
     }
+    if (is_emulator) {
+      defines += [ "ROSEN_EMULATOR" ]
+    }
 
     include_dirs = [
       "include",
