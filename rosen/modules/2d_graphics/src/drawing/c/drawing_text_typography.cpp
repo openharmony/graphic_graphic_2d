@@ -402,7 +402,7 @@ static bool IsUtf8(const char* text)
     int len = strlen(text);
     int n;
     for (int i = 0; i < len; i++) {
-        int c = text[i];
+        uint32_t c = text[i];
         if (0x00 <= c && c <= 0x7F) { // 0x00 and 0x7F is the range of utf-8
             n = 0;
         } else if ((c & 0xE0) == 0xC0) { // 0xE0 and 0xC0 is the range of utf-8
@@ -581,14 +581,14 @@ float OH_Drawing_GetLeftFromTextBox(OH_Drawing_TextBox* textbox, int index)
 #ifndef USE_GRAPHIC_TEXT_GINE
     std::vector<TypographyProperties::TextBox>* textboxVector =
         ConvertToOriginalText<std::vector<TypographyProperties::TextBox>>(textbox);
-    if (index >= 0 && index < textboxVector->size()) {
+    if (index >= 0 && index < static_cast<int>(textboxVector->size())) {
         return (*textboxVector)[index].rect_.left_;
     } else {
         return 0.0;
     }
 #else
     std::vector<TextRect>* textboxVector = ConvertToOriginalText<std::vector<TextRect>>(textbox);
-    if (index >= 0 && index < textboxVector->size()) {
+    if (index >= 0 && index < static_cast<int>(textboxVector->size())) {
         return (*textboxVector)[index].rect.left_;
     } else {
         return 0.0;
@@ -601,14 +601,14 @@ float OH_Drawing_GetRightFromTextBox(OH_Drawing_TextBox* textbox, int index)
 #ifndef USE_GRAPHIC_TEXT_GINE
     std::vector<TypographyProperties::TextBox>* textboxVector =
         ConvertToOriginalText<std::vector<TypographyProperties::TextBox>>(textbox);
-    if (index >= 0 && index < textboxVector->size()) {
+    if (index >= 0 && index < static_cast<int>(textboxVector->size())) {
         return (*textboxVector)[index].rect_.right_;
     } else {
         return 0.0;
     }
 #else
     std::vector<TextRect>* textboxVector = ConvertToOriginalText<std::vector<TextRect>>(textbox);
-    if (index >= 0 && index < textboxVector->size()) {
+    if (index >= 0 && index < static_cast<int>(textboxVector->size())) {
         return (*textboxVector)[index].rect.right_;
     } else {
         return 0.0;
@@ -621,14 +621,14 @@ float OH_Drawing_GetTopFromTextBox(OH_Drawing_TextBox* textbox, int index)
 #ifndef USE_GRAPHIC_TEXT_GINE
     std::vector<TypographyProperties::TextBox>* textboxVector =
         ConvertToOriginalText<std::vector<TypographyProperties::TextBox>>(textbox);
-    if (index >= 0 && index < textboxVector->size()) {
+    if (index >= 0 && index < static_cast<int>(textboxVector->size())) {
         return (*textboxVector)[index].rect_.top_;
     } else {
         return 0.0;
     }
 #else
     std::vector<TextRect>* textboxVector = ConvertToOriginalText<std::vector<TextRect>>(textbox);
-    if (index >= 0 && index < textboxVector->size()) {
+    if (index >= 0 && index < static_cast<int>(textboxVector->size())) {
         return (*textboxVector)[index].rect.top_;
     } else {
         return 0.0;
@@ -641,14 +641,14 @@ float OH_Drawing_GetBottomFromTextBox(OH_Drawing_TextBox* textbox, int index)
 #ifndef USE_GRAPHIC_TEXT_GINE
     std::vector<TypographyProperties::TextBox>* textboxVector =
         ConvertToOriginalText<std::vector<TypographyProperties::TextBox>>(textbox);
-    if (index >= 0 && index < textboxVector->size()) {
+    if (index >= 0 && index < static_cast<int>(textboxVector->size())) {
         return (*textboxVector)[index].rect_.bottom_;
     } else {
         return 0.0;
     }
 #else
     std::vector<TextRect>* textboxVector = ConvertToOriginalText<std::vector<TextRect>>(textbox);
-    if (index >= 0 && index < textboxVector->size()) {
+    if (index >= 0 && index < static_cast<int>(textboxVector->size())) {
         return (*textboxVector)[index].rect.bottom_;
     } else {
         return 0.0;
@@ -661,7 +661,7 @@ int OH_Drawing_GetTextDirectionFromTextBox(OH_Drawing_TextBox* textbox, int inde
 #ifndef USE_GRAPHIC_TEXT_GINE
     std::vector<TypographyProperties::TextBox>* textboxVector =
         ConvertToOriginalText<std::vector<TypographyProperties::TextBox>>(textbox);
-    if (index >= 0 && index < textboxVector->size()) {
+    if (index >= 0 && index < static_cast<int>(textboxVector->size())) {
         TextDirection textDirection = (*textboxVector)[index].direction_;
         switch (textDirection) {
             case TextDirection::RTL: {
@@ -679,7 +679,7 @@ int OH_Drawing_GetTextDirectionFromTextBox(OH_Drawing_TextBox* textbox, int inde
     }
 #else
     std::vector<TextRect>* textboxVector = ConvertToOriginalText<std::vector<TextRect>>(textbox);
-    if (index >= 0 && index < textboxVector->size()) {
+    if (index >= 0 && index < static_cast<int>(textboxVector->size())) {
         TextDirection textDirection = (*textboxVector)[index].direction;
         switch (textDirection) {
             case TextDirection::RTL: {

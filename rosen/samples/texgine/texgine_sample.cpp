@@ -187,8 +187,8 @@ void OnDraw(RSCanvas &canvas)
         const auto &typographies = ptest->GetTypographies();
         y = Draw(texgineCanvas, typographies, option, y);
         canvas.Restore();
-        // 800 is the max width of all test
         canvas.AttachPen(testBorderPen);
+        // 800 is the max width of all test
         canvas.DrawRect(RSRect(0, yStart, 800, y));
         canvas.DetachPen();
         SkiaFramework::DrawString(canvas, ptest->GetTestName(), 0, yStart);

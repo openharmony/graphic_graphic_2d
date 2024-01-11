@@ -150,7 +150,7 @@ enum OH_Drawing_FontStyle {
 
 /**
  * @brief Enumerates placeholder vertical alignment.
- * 
+ *
  * @since 11
  * @version 1.0
  */
@@ -171,7 +171,7 @@ typedef enum {
 
 /**
  * @brief Defines the placeholder span.
- * 
+ *
  * @since 11
  * @version 1.0
  */
@@ -190,7 +190,7 @@ typedef struct {
 
 /**
  * @brief Enumerates text decoration style.
- * 
+ *
  * @since 11
  * @version 1.0
  */
@@ -209,7 +209,7 @@ typedef enum {
 
 /**
  * @brief Enumerates ellipsis modal.
- * 
+ *
  * @since 11
  * @version 1.0
  */
@@ -224,7 +224,7 @@ typedef enum {
 
 /**
  * @brief Enumerates break strategy.
- * 
+ *
  * @since 11
  * @version 1.0
  */
@@ -239,7 +239,7 @@ typedef enum {
 
 /**
  * @brief Enumerates word break type.
- * 
+ *
  * @since 11
  * @version 1.0
  */
@@ -254,7 +254,7 @@ typedef enum {
 
 /**
  * @brief Enumerates rect height style.
- * 
+ *
  * @since 11
  * @version 1.0
  */
@@ -275,7 +275,7 @@ typedef enum {
 
 /**
  * @brief Enumerates rect Width style.
- * 
+ *
  * @since 11
  * @version 1.0
  */
