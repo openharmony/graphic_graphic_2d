@@ -15,14 +15,14 @@
 
 #include "frame_report.h"
 
-#include <hilog/log.h>
+#include <dlfcn.h>
+#include <cstdio>
 #include <securec.h>
+#include <unistd.h>
+#include <hilog/log.h>
 
 #include "parameter.h"
 #include "parameters.h"
-#ifdef AI_SCHED_ENABLE
-#include <v1_0/ihwsched.h>
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -33,6 +33,12 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LOG_LABEL = { LOG_CORE, 0xD001404, 
 #define LOGW(...) (void)OHOS::HiviewDFX::HiLog::Warn(LOG_LABEL, __VA_ARGS__)
 #define LOGI(...) (void)OHOS::HiviewDFX::HiLog::Info(LOG_LABEL, __VA_ARGS__)
 #define LOGD(...) (void)OHOS::HiviewDFX::HiLog::Debug(LOG_LABEL, __VA_ARGS__)
+
+#if (defined(__aarch64__) || defined(__x86_64__))
+    const std::string FRAME_AWARE_SO_PATH = "/system/lib64/libframe_ui_intf.z.so";
+#else
+    const std::string FRAME_AWARE_SO_PATH = "/system/lib/libframe_ui_intf.z.so";
+#endif
 
 constexpr int SCHEDULE_MSG_BUFFER_SIZE = 48;
 constexpr int REPORT_BUFFER_SIZE = 256;
@@ -60,6 +66,16 @@ FrameReport::FrameReport()
     if (ret) {
         LOGW("WatchParameter failed");
     }
+    ret = LoadLibrary();
+    if (!ret) {
+        LOGE("dlopen libframe_ui_intf.so failed");
+        return;
+    }
+}
+
+FrameReport::~FrameReport()
+{
+    CloseLibrary();
 }
 
 void FrameReport::SwitchFunction(const char *key, const char *value, void *context)
@@ -179,6 +195,78 @@ void FrameReport::SetPendingBufferNum(std::string& name, int32_t pendingBufferNu
     pendingBufferNum_ = pendingBufferNum;
 }
 
+bool FrameReport::LoadLibrary()
+{
+    if (!schedSoLoaded_) {
+        schedHandle_ = dlopen(FRAME_AWARE_SO_PATH.c_str(), RTLD_LAZY);
+        if (schedHandle_ == nullptr) {
+            LOGE("dlopen libframe_ui_intf.so failed! error = %{public}s", dlerror());
+            return false;
+        }
+        schedSoLoaded_ = true;
+    }
+    LOGI("load library success!");
+    return true;
+}
+
+void FrameReport::CloseLibrary()
+{
+    if (schedHandle_ != nullptr) {
+        if (dlclose(schedHandle_) != 0) {
+            LOGE("libframe_ui_intf.so close failed!\n");
+            return;
+        }
+    }
+    schedHandle_ = nullptr;
+    schedSoLoaded_ = false;
+    LOGI("libframe_ui_intf.so close success!\n");
+}
+
+void* FrameReport::LoadSymbol(const char* symName)
+{
+    if (!schedSoLoaded_) {
+        LOGE("libframe_ui_intf.so not loaded.\n");
+        return nullptr;
+    }
+
+    void *funcSym = dlsym(schedHandle_, symName);
+    if (funcSym == nullptr) {
+        LOGE("Get %{public}s symbol failed: %{public}s\n", symName, dlerror());
+        return nullptr;
+    }
+    return funcSym;
+}
+
+int FrameReport::CurTime(int type, const std::string& message, int length)
+{
+    int ret = -1;
+    if (curTimeFunc_ == nullptr) {
+        curTimeFunc_ = LoadSymbol("CurTime");
+    }
+    if (curTimeFunc_ != nullptr) {
+        auto curTimeFunc = reinterpret_cast<int (*)(int, const std::string&, int)>(curTimeFunc_);
+        ret = curTimeFunc(type, message, length);
+    } else {
+        LOGE("load CurTime function failed!");
+    }
+    return ret;
+}
+
+int FrameReport::SchedMsg(int type, const std::string& message, int length)
+{
+    int ret = -1;
+    if (schedMsgFunc_ == nullptr) {
+        schedMsgFunc_ = LoadSymbol("SchedMsg");
+    }
+    if (schedMsgFunc_ != nullptr) {
+        auto schedMsgFunc = reinterpret_cast<int (*)(int, const std::string&, int)>(schedMsgFunc_);
+        ret = schedMsgFunc(type, message, length);
+    } else {
+        LOGE("load SchedMsg function failed!");
+    }
+    return ret;
+}
+
 void FrameReport::Report(std::string& name)
 {
     if (!IsReportBySurfaceName(name)) {
@@ -198,13 +286,8 @@ void FrameReport::Report(std::string& name)
     }
     std::string bfMsg(msg);
     LOGD("Report bfMsg %{public}s ", bfMsg.c_str());
-
 #ifdef AI_SCHED_ENABLE
-    OHOS::sptr<OHOS::HDI::Hwsched::V1_0::IHwsched> hwClient = OHOS::HDI::Hwsched::V1_0::IHwsched::Get();
-    if (hwClient == nullptr) {
-        return;
-    }
-    ret = hwClient->CurTime(1, bfMsg, bfMsg.size());
+    ret = CurTime(1, bfMsg, bfMsg.size());
     if (ret) {
         LOGW("hwsched sf time failed");
     } else {
@@ -223,13 +306,8 @@ void FrameReport::SendGameTargetFps(int32_t fps)
 
     std::string bfMsg(msg);
     LOGD("SendGameTargetFps bfMsg %{public}s ", bfMsg.c_str());
-
 #ifdef AI_SCHED_ENABLE
-    OHOS::sptr<OHOS::HDI::Hwsched::V1_0::IHwsched> hwClient = OHOS::HDI::Hwsched::V1_0::IHwsched::Get();
-    if (hwClient == nullptr) {
-        return;
-    }
-    ret = hwClient->SchedMsg(1, bfMsg, bfMsg.size());
+    ret = SchedMsg(1, bfMsg, bfMsg.size());
     if (ret) {
         LOGW("hwsched game fps failed");
     } else {
