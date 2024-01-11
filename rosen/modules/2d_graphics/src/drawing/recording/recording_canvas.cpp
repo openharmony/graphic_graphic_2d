@@ -591,16 +591,17 @@ void RecordingCanvas::CheckForLazySave()
 template<typename T, typename... Args>
 void RecordingCanvas::AddOp(Args&&... args)
 {
-    PaintHandle paintHandle;
     bool brushValid = paintBrush_.IsValid();
     bool penValid = paintPen_.IsValid();
     if (!brushValid && !penValid) {
+        PaintHandle paintHandle;
         paintHandle.isAntiAlias = true;
         paintHandle.style = Paint::PaintStyle::PAINT_FILL;
         cmdList_->AddOp<T>(std::forward<Args>(args)..., paintHandle);
         return;
     }
     if (brushValid && penValid && Paint::CanCombinePaint(paintBrush_, paintPen_)) {
+        PaintHandle paintHandle;
         paintPen_.SetStyle(Paint::PaintStyle::PAINT_FILL_STROKE);
         GenerateHandleFromPaint(*cmdList_, paintPen_, paintHandle);
         cmdList_->AddOp<T>(std::forward<Args>(args)..., paintHandle);
@@ -608,10 +609,12 @@ void RecordingCanvas::AddOp(Args&&... args)
         return;
     }
     if (brushValid) {
+        PaintHandle paintHandle;
         GenerateHandleFromPaint(*cmdList_, paintBrush_, paintHandle);
         cmdList_->AddOp<T>(std::forward<Args>(args)..., paintHandle);
     }
     if (penValid) {
+        PaintHandle paintHandle;
         GenerateHandleFromPaint(*cmdList_, paintPen_, paintHandle);
         cmdList_->AddOp<T>(std::forward<Args>(args)..., paintHandle);
     }

@@ -64,7 +64,7 @@ template("graphics2d_source_set") {
     }
 
     public_deps = []
-    external_deps = []
+    external_deps = [ "napi:ace_napi" ]
     sources = [
       "$drawing_src_dir/c/drawing_bitmap.cpp",
       "$drawing_src_dir/c/drawing_brush.cpp",
@@ -240,6 +240,7 @@ template("graphics2d_source_set") {
       "//third_party/skia/src/core",
       "//third_party/skia/src/ports",
       "$rosen_root/modules/texgine/texgine_drawing/src",
+      "$rosen_root/../interfaces/kits/napi/graphic/drawing/common_napi",
     ]
 
     configs = [ "//third_party/jsoncpp:jsoncpp_public_config" ]

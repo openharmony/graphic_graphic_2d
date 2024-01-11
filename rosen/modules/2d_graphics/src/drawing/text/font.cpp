@@ -86,6 +86,16 @@ void Font::GetWidths(const uint16_t glyphs[], int count, scalar widths[], Rect b
     fontImpl_->GetWidths(glyphs, count, widths, bounds);
 }
 
+scalar Font::GetSize() const
+{
+    return fontImpl_->GetSize();
+}
+
+std::shared_ptr<Typeface> Font::GetTypeface() const
+{
+    return fontImpl_->GetTypeface();
+}
+
 scalar Font::MeasureText(const void* text, size_t byteLength, TextEncoding encoding)
 {
     return fontImpl_->MeasureText(text, byteLength, encoding);

@@ -51,6 +51,8 @@ public:
     scalar GetMetrics(FontMetrics* metrics) const override;
     void GetWidths(const uint16_t glyphs[], int count, scalar widths[]) const override;
     void GetWidths(const uint16_t glyphs[], int count, scalar widths[], Rect bounds[]) const override;
+    scalar GetSize() const override;
+    std::shared_ptr<Typeface> GetTypeface() const override;
 
     scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding) override;
 

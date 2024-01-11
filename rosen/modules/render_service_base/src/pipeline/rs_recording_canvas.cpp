@@ -539,16 +539,17 @@ void ExtendRecordingCanvas::DrawDrawFunc(Drawing::RecordingCanvas::DrawFunc&& dr
 template<typename T, typename... Args>
 void ExtendRecordingCanvas::AddOp(Args&&... args)
 {
-    Drawing::PaintHandle paintHandle;
     bool brushValid = paintBrush_.IsValid();
     bool penValid = paintPen_.IsValid();
     if (!brushValid && !penValid) {
+        Drawing::PaintHandle paintHandle;
         paintHandle.isAntiAlias = true;
         paintHandle.style = Drawing::Paint::PaintStyle::PAINT_FILL;
         cmdList_->AddOp<T>(std::forward<Args>(args)..., paintHandle);
         return;
     }
     if (brushValid && penValid && Drawing::Paint::CanCombinePaint(paintBrush_, paintPen_)) {
+        Drawing::PaintHandle paintHandle;
         paintPen_.SetStyle(Drawing::Paint::PaintStyle::PAINT_FILL_STROKE);
         Drawing::RecordingCanvas::GenerateHandleFromPaint(*cmdList_, paintPen_, paintHandle);
         cmdList_->AddOp<T>(std::forward<Args>(args)..., paintHandle);
@@ -556,10 +557,12 @@ void ExtendRecordingCanvas::AddOp(Args&&... args)
         return;
     }
     if (brushValid) {
+        Drawing::PaintHandle paintHandle;
         Drawing::RecordingCanvas::GenerateHandleFromPaint(*cmdList_, paintBrush_, paintHandle);
         cmdList_->AddOp<T>(std::forward<Args>(args)..., paintHandle);
     }
     if (penValid) {
+        Drawing::PaintHandle paintHandle;
         Drawing::RecordingCanvas::GenerateHandleFromPaint(*cmdList_, paintPen_, paintHandle);
         cmdList_->AddOp<T>(std::forward<Args>(args)..., paintHandle);
     }
