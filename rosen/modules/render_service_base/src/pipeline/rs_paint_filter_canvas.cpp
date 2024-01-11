@@ -725,7 +725,10 @@ uint32_t RSPaintFilterCanvasBase::Save()
     uint32_t count = 0U;
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
-            count = (*iter)->Save();
+            auto c = (*iter)->Save();
+            if ((*iter) == canvas_) {
+                count = c;
+            }
         }
     }
     return count;
@@ -739,23 +742,24 @@ uint32_t RSPaintFilterCanvasBase::Save()
 
 void RSPaintFilterCanvasBase::SaveLayer(const SaveLayerOps& saveLayerRec)
 {
+    if (canvas_ == nullptr) {
+        return;
+    }
+    Brush brush;
+    if (saveLayerRec.GetBrush() != nullptr) {
+        brush = *saveLayerRec.GetBrush();
+        OnFilterWithBrush(brush);
+    }
+    SaveLayerOps slo(saveLayerRec.GetBounds(), &brush,
+        saveLayerRec.GetImageFilter(), saveLayerRec.GetSaveLayerFlags());
 #ifdef ENABLE_RECORDING_DCL
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
-            (*iter)->SaveLayer(saveLayerRec);
+            (*iter)->SaveLayer(slo);
         }
     }
 #else
-    if (canvas_ != nullptr) {
-        Brush brush;
-        if (saveLayerRec.GetBrush() != nullptr) {
-            brush = *saveLayerRec.GetBrush();
-            OnFilterWithBrush(brush);
-        }
-        SaveLayerOps slo(saveLayerRec.GetBounds(), &brush,
-            saveLayerRec.GetImageFilter(), saveLayerRec.GetSaveLayerFlags());
-        canvas_->SaveLayer(slo);
-    }
+    canvas_->SaveLayer(slo);
 #endif
 }
 

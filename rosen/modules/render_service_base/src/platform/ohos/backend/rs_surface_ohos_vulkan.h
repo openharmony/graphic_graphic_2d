@@ -73,7 +73,7 @@ private:
     int mHeight = -1;
     void SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC);
 #ifdef ENABLE_NATIVEBUFFER
-    uint32_t mPresentCount = 0;
+    int32_t mPresentCount = 0;
     std::list<NativeWindowBuffer*> mSurfaceList;
     std::unordered_map<NativeWindowBuffer*, NativeBufferUtils::NativeSurfaceInfo> mSurfaceMap;
 #ifndef USE_ROSEN_DRAWING
