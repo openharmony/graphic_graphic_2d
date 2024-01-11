@@ -317,7 +317,6 @@ ohos_source_set("render_service_base_src") {
     "-Wno-missing-field-initializers",
     "-Wno-c++11-narrowing",
     "-fvisibility=hidden",
-    "-DIMAGE_COLORSPACE_FLAG",
   ]
 
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
@@ -386,10 +385,7 @@ ohos_source_set("render_service_base_src") {
     "$rosen_root/modules/platform:hilog",
     "$rosen_root/modules/platform:ipc_core",
   ]
-  external_deps = [
-    "hilog:libhilog",
-    "image_framework:image_native",
-  ]
+  external_deps = [ "hilog:libhilog" ]
 
   if (!is_mingw && !is_mac && !is_cross_platform) {
     defines += [ "ENABLE_RUST" ]
