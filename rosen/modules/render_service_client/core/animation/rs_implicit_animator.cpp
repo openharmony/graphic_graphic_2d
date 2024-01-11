@@ -187,6 +187,10 @@ void RSImplicitAnimator::BeginImplicitKeyFrameAnimation(float fraction, const RS
     }
 
     [[maybe_unused]] const auto& [protocol, unused_curve, unused, unused_repeatCallback] = globalImplicitParams_.top();
+    if (protocol.GetDuration() <= 0) {
+        ROSEN_LOGE("Failed to begin keyframe implicit animation, total duration is 0!");
+        return;
+    }
     auto keyframeAnimationParam =
         std::make_shared<RSImplicitKeyframeAnimationParam>(protocol, timingCurve, fraction, 0);
     PushImplicitParam(keyframeAnimationParam);
@@ -225,10 +229,14 @@ void RSImplicitAnimator::BeginImplicitDurationKeyFrameAnimation(int duration, co
         return;
     }
 
+    [[maybe_unused]] const auto& [protocol, unused_curve, unused, unused_repeatCallback] = globalImplicitParams_.top();
+    if (protocol.GetDuration() <= 0) {
+        ROSEN_LOGE("Failed to begin duration keyframe implicit animation, total duration is 0!");
+        return;
+    }
     [[maybe_unused]] auto& [isDurationKeyframe, totalDuration, currentDuration] = durationKeyframeParams_.top();
     isDurationKeyframe = true;
     currentDuration = duration;
-    [[maybe_unused]] const auto& [protocol, unused_curve, unused, unused_repeatCallback] = globalImplicitParams_.top();
     auto keyframeAnimationParam =
         std::make_shared<RSImplicitKeyframeAnimationParam>(protocol, timingCurve, 0, duration);
     PushImplicitParam(keyframeAnimationParam);
@@ -285,6 +293,11 @@ void RSImplicitAnimator::BeginImplicitPathAnimation(const std::shared_ptr<RSMoti
     [[maybe_unused]] const auto& [protocol, curve, unused, unused_repeatCallback] = globalImplicitParams_.top();
     if (curve.type_ != RSAnimationTimingCurve::CurveType::INTERPOLATING) {
         ROSEN_LOGE("Wrong type of timing curve!");
+        return;
+    }
+
+    if (protocol.GetDuration() <= 0) {
+        ROSEN_LOGE("Failed to begin path implicit animation, total duration is 0!");
         return;
     }
     auto pathAnimationParam = std::make_shared<RSImplicitPathAnimationParam>(protocol, curve, motionPathOption);
