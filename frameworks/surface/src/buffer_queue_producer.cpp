@@ -72,7 +72,7 @@ BufferQueueProducer::~BufferQueueProducer()
 GSError BufferQueueProducer::CheckConnectLocked()
 {
     if (connectedPid_ == 0) {
-        BLOGNI("this BufferQueue has no connections");
+        BLOGND("this BufferQueue has no connections");
         return GSERROR_INVALID_OPERATING;
     }
 
