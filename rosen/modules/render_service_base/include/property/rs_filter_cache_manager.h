@@ -130,6 +130,7 @@ private:
         bool needClearSurface_ = false;
         std::atomic<bool> isTaskRelease_ = false;
         std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedFirstFilter_ = nullptr;
+        std::mutex grBackendTextureMutex_;
         RSFilterCacheTask() = default;
         virtual ~RSFilterCacheTask() = default;
 #ifndef USE_ROSEN_DRAWING

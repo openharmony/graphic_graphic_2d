@@ -232,11 +232,15 @@ bool RSFilterCacheManager::RSFilterCacheTask::Render()
     Drawing::BitmapFormat bitmapFormat = { Drawing::ColorType::COLORTYPE_RGBA_8888,
         Drawing::AlphaType::ALPHATYPE_PREMUL };
     auto threadImage = std::make_shared<Drawing::Image>();
-    if (!threadImage->BuildFromTexture(*cacheCanvas->GetGPUContext(), cacheBackendTexture_.GetTextureInfo(),
-            surfaceOrigin, bitmapFormat, nullptr)) {
-        SetStatus(CacheProcessStatus::WAITING);
-        ROSEN_LOGE("RSFilterCacheManager::Render: cacheCanvas is null");
-        return false;
+    CHECK_CACHE_PROCESS_STATUS;
+    {
+        std::unique_lock<std::mutex> lock(grBackendTextureMutex_);
+        if (!threadImage->BuildFromTexture(*cacheCanvas->GetGPUContext(), cacheBackendTexture_.GetTextureInfo(),
+                surfaceOrigin, bitmapFormat, nullptr)) {
+            SetStatus(CacheProcessStatus::WAITING);
+            ROSEN_LOGE("RSFilterCacheManager::Render: cacheCanvas is null");
+            return false;
+        }
     }
     auto src = Drawing::Rect(0, 0, snapshotSize_.GetWidth(), snapshotSize_.GetHeight());
     auto dst = Drawing::Rect(0, 0, dstRect_.GetWidth(), dstRect_.GetHeight());
@@ -737,6 +741,7 @@ void RSFilterCacheManager::ReleaseCacheOffTree()
 {
     RS_OPTIONAL_TRACE_FUNC();
     ROSEN_LOGD("RSFilterCacheManager::ReleaseCacheOffTree task_:%{public}p", task_.get());
+    std::unique_lock<std::mutex> lock(task_->grBackendTextureMutex_);
     cachedSnapshot_.reset();
     cachedFilteredSnapshot_.reset();
     newCache_ = false;
