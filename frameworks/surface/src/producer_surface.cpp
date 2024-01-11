@@ -62,7 +62,7 @@ ProducerSurface::~ProducerSurface()
     BLOGND("dtor, name:%{public}s, Queue Id:%{public}" PRIu64, name_.c_str(), queueId_);
     auto ret = Disconnect();
     if (ret != GSERROR_OK) {
-        BLOGNE("Disconnect failed, %{public}s", GSErrorStr(ret).c_str());
+        BLOGND("Disconnect failed, %{public}s", GSErrorStr(ret).c_str());
     }
 }
 

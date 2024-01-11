@@ -61,7 +61,7 @@ static bool IsLocalRender()
 BufferQueue::BufferQueue(const std::string &name, bool isShared)
     : name_(name), uniqueId_(GetUniqueIdImpl()), isShared_(isShared), isLocalRender_(IsLocalRender())
 {
-    BLOGNI("ctor, Queue id: %{public}" PRIu64 " isShared: %{public}d", uniqueId_, isShared);
+    BLOGND("ctor, Queue id: %{public}" PRIu64 " isShared: %{public}d", uniqueId_, isShared);
     bufferManager_ = BufferManager::GetInstance();
     if (isShared_ == true) {
         queueSize_ = 1;
@@ -70,7 +70,7 @@ BufferQueue::BufferQueue(const std::string &name, bool isShared)
 
 BufferQueue::~BufferQueue()
 {
-    BLOGNI("dtor, Queue id: %{public}" PRIu64, uniqueId_);
+    BLOGND("dtor, Queue id: %{public}" PRIu64, uniqueId_);
     for (auto &[id, _] : bufferQueueCache_) {
         if (onBufferDeleteForRSMainThread_ != nullptr) {
             onBufferDeleteForRSMainThread_(id);
@@ -355,7 +355,6 @@ GSError BufferQueue::CancelBuffer(uint32_t sequence, const sptr<BufferExtraData>
     std::lock_guard<std::mutex> lockGuard(mutex_);
 
     if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
-        BLOGN_FAILURE_ID(sequence, "not found in cache");
         return GSERROR_NO_ENTRY;
     }
 
@@ -1125,7 +1124,6 @@ GSError BufferQueue::SetMetaData(uint32_t sequence, const std::vector<GraphicHDR
         return GSERROR_INVALID_ARGUMENTS;
     }
     if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
-        BLOGN_FAILURE_ID(sequence, "not find in cache");
         return GSERROR_NO_ENTRY;
     }
     bufferQueueCache_[sequence].metaData.clear();
@@ -1150,7 +1148,6 @@ GSError BufferQueue::SetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey key
         return GSERROR_INVALID_ARGUMENTS;
     }
     if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
-        BLOGN_FAILURE_ID(sequence, "not find in cache");
         return GSERROR_NO_ENTRY;
     }
     bufferQueueCache_[sequence].metaDataSet.clear();
@@ -1186,7 +1183,6 @@ GSError BufferQueue::GetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey &ke
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
     if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
-        BLOGN_FAILURE_ID(sequence, "not find in cache");
         return GSERROR_NO_ENTRY;
     }
     metaData.clear();
@@ -1238,7 +1234,6 @@ GSError BufferQueue::SetPresentTimestamp(uint32_t sequence, const GraphicPresent
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
     if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
-        BLOGN_FAILURE_ID(sequence, "not find in cache");
         return GSERROR_NO_ENTRY;
     }
     bufferQueueCache_[sequence].presentTimestamp = timestamp;
@@ -1249,7 +1244,6 @@ GSError BufferQueue::GetPresentTimestamp(uint32_t sequence, GraphicPresentTimest
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
     if (bufferQueueCache_.find(sequence) == bufferQueueCache_.end()) {
-        BLOGN_FAILURE_ID(sequence, "not find in cache");
         return GSERROR_NO_ENTRY;
     }
     if (type != bufferQueueCache_.at(sequence).presentTimestamp.type) {

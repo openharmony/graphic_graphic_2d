@@ -57,7 +57,7 @@ OHNativeWindow* CreateNativeWindowFromSurface(void* pSurface)
 void DestoryNativeWindow(OHNativeWindow *window)
 {
     if (window == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+        BLOGD("parameter error, please check input parameter");
         return;
     }
     // unreference nativewindow object
