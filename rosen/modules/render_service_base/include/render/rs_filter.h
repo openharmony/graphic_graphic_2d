@@ -74,6 +74,7 @@ public:
         BLUR,
         MATERIAL,
         LIGHT_UP_EFFECT,
+        AIBAR,
     };
     FilterType GetFilterType() const
     {

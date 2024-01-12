@@ -298,16 +298,6 @@ public:
 };
 
 // ============================================================================
-// Binarization
-class RSBinarizationDrawable : public RSPropertyDrawable {
-public:
-    explicit RSBinarizationDrawable() = default;
-    ~RSBinarizationDrawable() override = default;
-    void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
-    static RSPropertyDrawable::DrawablePtr Generate(const RSRenderContent& content);
-};
-
-// ============================================================================
 // LightUpEffect
 class RSLightUpEffectDrawable : public RSPropertyDrawable {
 public:

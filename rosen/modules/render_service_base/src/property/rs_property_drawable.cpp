@@ -111,7 +111,7 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::MASK, RSPropertyDrawableSlot::MASK },
     { RSModifierType::SPHERIZE, RSPropertyDrawableSlot::INVALID },
     { RSModifierType::LIGHT_UP_EFFECT, RSPropertyDrawableSlot::LIGHT_UP_EFFECT },
-    { RSModifierType::AIINVERT, RSPropertyDrawableSlot::BINARIZATION },
+    { RSModifierType::AIINVERT, RSPropertyDrawableSlot::BACKGROUND_FILTER },
     { RSModifierType::PIXEL_STRETCH, RSPropertyDrawableSlot::PIXEL_STRETCH },
     { RSModifierType::PIXEL_STRETCH_PERCENT, RSPropertyDrawableSlot::PIXEL_STRETCH },
     { RSModifierType::USE_EFFECT, RSPropertyDrawableSlot::USE_EFFECT },
@@ -191,7 +191,6 @@ static const std::array<RSPropertyDrawable::DrawableGenerator, static_cast<size_
         // FG properties in Bounds clip
         nullptr,                                      // FG_SAVE_BOUNDS,
         nullptr,                                      // EXTRA_CLIP_TO_BOUNDS,
-        RSBinarizationDrawable::Generate,             // BINARIZATION,
         RSColorFilterDrawable::Generate,              // COLOR_FILTER,
         RSLightUpEffectDrawable::Generate,            // LIGHT_UP_EFFECT,
         RSForegroundFilterDrawable::Generate,         // FOREGROUND_FILTER,

@@ -14,6 +14,8 @@
  */
 
 #include "property/rs_filter_cache_manager.h"
+#include "rs_trace.h"
+#include "render/rs_filter.h"
 
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include "include/gpu/GrBackendSurface.h"
@@ -397,6 +399,9 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
         task_->cachedFirstFilter_ = cachedFilteredSnapshot_;
     }
     DrawCachedFilteredSnapshot(canvas, dst);
+    if (filter->GetFilterType() == RSFilter::AIBAR) {
+        shouldClearFilteredCache = false;
+    }
     task_->SetCompleted(false);
     // To reduce the memory consumption, we only keep either the cached snapshot or the filtered image.
     CompactCache(shouldClearFilteredCache);
@@ -490,9 +495,14 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas, const std::
     // by `hdc shell param set persist.sys.graphic.filterCacheUpdateInterval <interval>`, the default value is 1.
     // Update: we also considered the filter parameters, only enable skip-frame if the blur radius is large enough.
     // Note: the cache will be invalidated immediately if the cached region cannot fully cover the filter region.
-    bool isLargeArea = IsLargeArea(srcRect.width(), srcRect.height());
-    cacheUpdateInterval_ =
-        isLargeArea && filter->CanSkipFrame() ? RSSystemProperties::GetFilterCacheUpdateInterval() : 0;
+    if (filter->GetFilterType() == RSFilter::AIBAR) {
+        // when dirty region change, delay 5 frames to update
+        cacheUpdateInterval_ = 5;
+    } else {
+        bool isLargeArea = IsLargeArea(srcRect.width(), srcRect.height());
+        cacheUpdateInterval_ =
+            isLargeArea && filter->CanSkipFrame() ? RSSystemProperties::GetFilterCacheUpdateInterval() : 0;
+    }
     cachedFilterHash_ = 0;
     pendingPurge_ = false;
 }
@@ -534,9 +544,14 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas, const std::
     // by `hdc shell param set persist.sys.graphic.filterCacheUpdateInterval <interval>`, the default value is 1.
     // Update: we also considered the filter parameters, only enable skip-frame if the blur radius is large enough.
     // Note: the cache will be invalidated immediately if the cached region cannot fully cover the filter region.
-    bool isLargeArea = IsLargeArea(srcRect.GetWidth(), srcRect.GetHeight());
-    cacheUpdateInterval_ =
-        isLargeArea && filter->CanSkipFrame() ? RSSystemProperties::GetFilterCacheUpdateInterval() : 0;
+    if (filter->GetFilterType() == RSFilter::AIBAR) {
+        // when dirty region change, delay 5 frames to update
+        cacheUpdateInterval_ = 5;
+    } else {
+        bool isLargeArea = IsLargeArea(srcRect.GetWidth(), srcRect.GetHeight());
+        cacheUpdateInterval_ =
+            isLargeArea && filter->CanSkipFrame() ? RSSystemProperties::GetFilterCacheUpdateInterval() : 0;
+    }
     cachedFilterHash_ = 0;
     pendingPurge_ = false;
 }
@@ -871,7 +886,7 @@ std::tuple<Drawing::RectI, Drawing::RectI> RSFilterCacheManager::ValidateParams(
 
 inline void RSFilterCacheManager::CompactCache(bool shouldClearFilteredCache)
 {
-    if (pendingPurge_) {
+    if (pendingPurge_ && cacheUpdateInterval_ == 0) {
         InvalidateCache();
         return;
     }
