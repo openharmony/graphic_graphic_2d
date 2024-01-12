@@ -83,6 +83,7 @@ public:
     virtual VsyncError GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_t &timeStamp,
                                                         bool isThreadShared = false);
     int32_t GetFd() { return fd_; }
+    void CloseVsyncReceiverFd();
 private:
     VsyncError Destroy();
     sptr<IVSyncConnection> connection_;
