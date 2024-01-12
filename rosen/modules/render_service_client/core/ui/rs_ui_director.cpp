@@ -275,6 +275,9 @@ bool RSUIDirector::FlushAnimation(uint64_t timeStamp, int64_t vsyncPeriod)
     auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
     if (modifierManager != nullptr) {
         modifierManager->SetDisplaySyncEnable(GetCurrentRefreshRateMode() == -1);
+        modifierManager->SetFrameRateGetFunc([](const RSPropertyUnit unit, float velocity) -> int32_t {
+            return RSFrameRatePolicy::GetInstance()->GetExpectedFrameRate(unit, velocity);
+        });
         hasRunningAnimation = modifierManager->Animate(timeStamp, vsyncPeriod);
     }
     return hasRunningAnimation;
@@ -288,16 +291,6 @@ void RSUIDirector::FlushModifier()
     }
 
     modifierManager->Draw();
-    {
-        auto node = surfaceNode_.lock();
-        if (node) {
-            auto& range = modifierManager->GetUIFrameRateRange();
-            if (range.IsValid()) {
-                node->UpdateUIFrameRateRange(range);
-            }
-        }
-    }
-
     // post animation finish callback(s) to task queue
     RSUIDirector::RecvMessages();
 }
@@ -413,6 +406,19 @@ void RSUIDirector::PostTask(const std::function<void()>& task)
 int32_t RSUIDirector::GetCurrentRefreshRateMode()
 {
     return RSFrameRatePolicy::GetInstance()->GetRefreshRateMode();
+}
+
+int32_t RSUIDirector::GetAnimateExpectedRate() const
+{
+    int32_t animateRate = 0;
+    auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+    if (modifierManager != nullptr) {
+        auto& range = modifierManager->GetFrameRateRange();
+        if (range.IsValid()) {
+            animateRate = range.preferred_;
+        }
+    }
+    return animateRate;
 }
 } // namespace Rosen
 } // namespace OHOS

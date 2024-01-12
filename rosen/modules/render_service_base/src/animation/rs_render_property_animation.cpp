@@ -152,5 +152,25 @@ void RSRenderPropertyAnimation::OnRemoveOnCompletion()
 
     SetPropertyValue(backwardValue);
 }
+
+void RSRenderPropertyAnimation::RecordLastAnimateValue()
+{
+    animateVelocity_.reset();
+    lastAnimateValue_.reset();
+    if (property_ != nullptr) {
+        lastAnimateValue_ = property_->Clone();
+    }
+}
+
+void RSRenderPropertyAnimation::UpdateAnimateVelocity(float frameInterval)
+{
+    if (!lastAnimateValue_ || !property_ || ROSEN_EQ<float>(frameInterval, 0)) {
+        return;
+    }
+    if (property_->GetPropertyUnit() > RSPropertyUnit::UNKNOWN) {
+        auto currAnimateValue = property_->Clone();
+        animateVelocity_ = (currAnimateValue - lastAnimateValue_) * (1 / frameInterval);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

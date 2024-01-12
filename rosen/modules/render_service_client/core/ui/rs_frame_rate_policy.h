@@ -20,6 +20,8 @@
 
 namespace OHOS {
 namespace Rosen {
+enum class RSPropertyUnit : int16_t;
+
 class RSFrameRatePolicy {
 public:
     static RSFrameRatePolicy* GetInstance();
@@ -28,6 +30,7 @@ public:
 
     int32_t GetPreferredFps(const std::string& scene, float speed);
     int32_t GetRefreshRateMode() const;
+    int32_t GetExpectedFrameRate(const RSPropertyUnit unit, float velocity);
 
 private:
     RSFrameRatePolicy() = default;

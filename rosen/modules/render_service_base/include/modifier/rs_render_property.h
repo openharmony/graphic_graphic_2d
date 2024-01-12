@@ -80,6 +80,13 @@ protected:
         return RSRenderPropertyType::INVALID;
     }
 
+    virtual void SetPropertyUnit(RSPropertyUnit unit) {}
+
+    virtual RSPropertyUnit GetPropertyUnit() const
+    {
+        return RSPropertyUnit::UNKNOWN;
+    }
+
     virtual float ToFloat() const
     {
         return 1.f;
@@ -136,6 +143,7 @@ private:
         const std::shared_ptr<const RSRenderPropertyBase>& a, const std::shared_ptr<const RSRenderPropertyBase>& b);
     friend bool operator!=(
         const std::shared_ptr<const RSRenderPropertyBase>& a, const std::shared_ptr<const RSRenderPropertyBase>& b);
+    friend class RSAnimationRateDecider;
     friend class RSRenderPropertyAnimation;
     friend class RSMarshallingHelper;
     friend class RSValueEstimator;
@@ -207,13 +215,17 @@ public:
     RSRenderAnimatableProperty(const T& value, const PropertyId& id, const RSRenderPropertyType type)
         : RSRenderProperty<T>(value, id), type_(type)
     {}
+    RSRenderAnimatableProperty(const T& value, const PropertyId& id,
+        const RSRenderPropertyType type, const RSPropertyUnit unit)
+        : RSRenderProperty<T>(value, id), type_(type), unit_(unit)
+    {}
     virtual ~RSRenderAnimatableProperty() = default;
 
 protected:
     const std::shared_ptr<RSRenderPropertyBase> Clone() const override
     {
         return std::make_shared<RSRenderAnimatableProperty<T>>(
-            RSRenderProperty<T>::stagingValue_, RSRenderProperty<T>::id_, type_);
+            RSRenderProperty<T>::stagingValue_, RSRenderProperty<T>::id_, type_, unit_);
     }
 
     void SetValue(const std::shared_ptr<RSRenderPropertyBase>& value) override
@@ -232,6 +244,16 @@ protected:
     virtual RSRenderPropertyType GetPropertyType() const override
     {
         return type_;
+    }
+
+    void SetPropertyUnit(RSPropertyUnit unit) override
+    {
+        unit_ = unit;
+    }
+
+    RSPropertyUnit GetPropertyUnit() const override
+    {
+        return unit_;
     }
 
     float ToFloat() const override
@@ -261,6 +283,7 @@ protected:
 
 private:
     RSRenderPropertyType type_ = RSRenderPropertyType::INVALID;
+    RSPropertyUnit unit_ = RSPropertyUnit::UNKNOWN;
 
     std::shared_ptr<RSRenderPropertyBase> Add(const std::shared_ptr<const RSRenderPropertyBase>& value) override
     {

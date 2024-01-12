@@ -81,7 +81,7 @@ bool RSModifierManager::Animate(int64_t time, int64_t vsyncPeriod)
     RS_TRACE_NAME("RunningCustomAnimation num:[" + std::to_string(animations_.size()) + "]");
     // process animation
     bool hasRunningAnimation = false;
-    uiRange_.Reset();
+    rateDecider_.Reset();
 
     // iterate and execute all animations, remove finished animations
     EraseIf(animations_, [this, &hasRunningAnimation, time, vsyncPeriod](auto& iter) -> bool {
@@ -100,13 +100,12 @@ bool RSModifierManager::Animate(int64_t time, int64_t vsyncPeriod)
             OnAnimationFinished(animation);
         } else {
             hasRunningAnimation = animation->IsRunning() || hasRunningAnimation;
-            auto range = animation->GetFrameRateRange();
-            if (range.IsValid()) {
-                uiRange_.Merge(range);
-            }
+            rateDecider_.AddDecisionElement(animation->GetPropertyId(),
+                animation->GetAnimateVelocity(), animation->GetFrameRateRange());
         }
         return isFinished;
     });
+    rateDecider_.MakeDecision(frameRateGetFunc_);
 
     return hasRunningAnimation;
 }
@@ -126,9 +125,14 @@ bool RSModifierManager::JudgeAnimateWhetherSkip(AnimationId animId, int64_t time
     return isSkip;
 }
 
-const FrameRateRange& RSModifierManager::GetUIFrameRateRange() const
+void RSModifierManager::SetFrameRateGetFunc(const FrameRateGetFunc& func)
 {
-    return uiRange_;
+    frameRateGetFunc_ = func;
+}
+
+const FrameRateRange& RSModifierManager::GetFrameRateRange() const
+{
+    return rateDecider_.GetFrameRateRange();
 }
 
 void RSModifierManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnimation>& animation)

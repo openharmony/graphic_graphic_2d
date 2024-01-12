@@ -66,7 +66,6 @@ enum RSNodeCommandType : uint16_t {
     UNREGISTER_GEOMETRY_TRANSITION,
 
     MARK_NODE_GROUP,
-    UPDATE_UI_FRAME_RATE_RANGE,
     MARK_NODE_SINGLE_FRAME_COMPOSER,
 };
 
@@ -143,7 +142,6 @@ public:
 
     static void RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId);
     static void UnregisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId);
-    static void UpdateUIFrameRateRange(RSContext& context, NodeId nodeId, FrameRateRange range);
 };
 
 ADD_COMMAND(RSAddModifier,
@@ -251,8 +249,6 @@ ADD_COMMAND(RSRegisterGeometryTransitionNodePair,
     ARG(RS_NODE, REGISTER_GEOMETRY_TRANSITION, RSNodeCommandHelper::RegisterGeometryTransitionPair, NodeId, NodeId))
 ADD_COMMAND(RSUnregisterGeometryTransitionNodePair,
     ARG(RS_NODE, UNREGISTER_GEOMETRY_TRANSITION, RSNodeCommandHelper::UnregisterGeometryTransitionPair, NodeId, NodeId))
-ADD_COMMAND(RSUpdateUIFrameRateRange,
-    ARG(RS_NODE, UPDATE_UI_FRAME_RATE_RANGE, RSNodeCommandHelper::UpdateUIFrameRateRange, NodeId, FrameRateRange))
 } // namespace Rosen
 } // namespace OHOS
 

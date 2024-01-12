@@ -3446,17 +3446,6 @@ HWTEST_F(RSNodeTest, AnimateWithCurrentCallbackTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: AddFRCSceneInfo
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, AddFRCSceneInfoTest, TestSize.Level1)
-{
-    auto rootNode = RSCanvasNode::Create();
-    rootNode->AddFRCSceneInfo("translate", -1.0f);
-}
-
-/**
  * @tc.name: SetColorBlendMode
  * @tc.desc:
  * @tc.type:FUNC
