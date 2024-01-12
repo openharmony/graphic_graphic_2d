@@ -43,6 +43,9 @@ public:
     virtual ~RSSymbolAnimation();
 
     bool SetScaleUnitAnimation(const std::shared_ptr<RSNode>& rsNode);
+    bool SetNoneAnimation(const std::shared_ptr<RSNode>& rsNode);
+
+    // set symbol animation manager
     bool SetSymbolAnimation(
         const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
 
@@ -60,21 +63,24 @@ private:
         const Vector2f& scaleValueEnd = Vector2f{0.f, 0.f},
         const int delay = 0);
 
+    std::shared_ptr<RSAnimation> NoneSymbolAnimation(const std::shared_ptr<RSNode>& rsNode,
+        const Vector2f& pivotNone1Value, const Vector2f& pivotNone2Value);
+
     bool isEqual(const Vector2f val1, const Vector2f val2);
     RSAnimationTimingCurve SetScaleSpringTimingCurve();
 
     template<typename T>
     bool CreateOrSetModifierValue(std::shared_ptr<RSAnimatableProperty<T>>& property, const T& value);
 
-    RSAnimationTimingProtocol scaleProtocol_;
+    // scale symbol animation
     std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleStartProperty_;
     std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleProperty_;
     std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleEndProperty_;
     std::shared_ptr<RSAnimatableProperty<Vector2f>> pivotProperty_;
-    std::shared_ptr<RSAnimatableProperty<float>> alphaProperty_;
-    std::shared_ptr<RSAnimatableProperty<float>> alphaProperty1_;
-    std::shared_ptr<RSAnimatableProperty<float>> alphaProperty2_;
-    std::shared_ptr<RSAnimatableProperty<float>> alphaProperty3_;
+
+    // none symbol animation
+    std::shared_ptr<RSAnimatableProperty<Vector2f>> pivotNone1Property_;
+    std::shared_ptr<RSAnimatableProperty<Vector2f>> pivotNone2Property_;
 
 };
 } // namespace Rosen
