@@ -136,10 +136,19 @@ void RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion(
 {
     // We need to check cache validity by comparing the cached image region with the filter rect
     // PLANNING: the last != condition should be reconsidered
-    if (auto& manager = GetRenderProperties().GetFilterCacheManager(false);
-        manager != nullptr && manager->IsCacheValid() && manager->GetCachedImageRegion() != GetFilterRect()) {
+    auto& manager = GetRenderProperties().GetFilterCacheManager(false);
+    if (!manager) {
+        return;
+    }
+    if (manager->IsCacheValid() && manager->GetCachedImageRegion() != GetFilterRect()) {
         // If the cached image region is different from the filter rect, invalidate the cache
         manager->InvalidateCache();
+    }
+    // If the effectnode filter cache is invalid and there is no visited filter cache for occlusion
+    // Invalid this surface's filter cache occlusion
+    if (!manager->IsCacheValid() && IsVisitedFilterCacheEmpty()) {
+        ROSEN_LOGD("RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion: InvalidateFilterCacheRect.");
+        dirtyManager.InvalidateFilterCacheRect();
     }
 }
 
