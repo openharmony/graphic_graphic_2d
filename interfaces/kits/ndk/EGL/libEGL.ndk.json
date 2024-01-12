@@ -43,5 +43,5 @@
     { "name": "eglCreatePlatformWindowSurface" },
     { "name": "eglCreatePlatformPixmapSurface" },
     { "name": "eglWaitSync" },
-    { "name": "eglDupNativeFenceFDANDOID" }
+    { "name": "eglDupNativeFenceFDANDROID" }
 ]

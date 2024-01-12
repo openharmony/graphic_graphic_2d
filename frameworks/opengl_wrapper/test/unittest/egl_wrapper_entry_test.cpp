@@ -1188,11 +1188,11 @@ HWTEST_F(EglWrapperEntryTest, EglGetSyncAttribImpl003, Level2)
 }
 
 /**
- * @tc.name: EglDupNativeFenceFDANDOIDImpl001
+ * @tc.name: EglDupNativeFenceFDANDROIDImpl001
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(EglWrapperEntryTest, EglDupNativeFenceFDANDOIDImpl001, Level2)
+HWTEST_F(EglWrapperEntryTest, EglDupNativeFenceFDANDROIDImpl001, Level2)
 {
     EGLint majorVersion;
     EGLint minorVersion;
@@ -1203,7 +1203,7 @@ HWTEST_F(EglWrapperEntryTest, EglDupNativeFenceFDANDOIDImpl001, Level2)
     auto result = gWrapperHook.wrapper.eglCreateSync(dpy, 0, nullptr);
     ASSERT_EQ(EGL_NO_SYNC, result);
 
-    auto result1 = gWrapperHook.wrapper.eglDupNativeFenceFDANDOID(dpy, result);
+    auto result1 = gWrapperHook.wrapper.eglDupNativeFenceFDANDROID(dpy, result);
     ASSERT_EQ(EGL_NO_NATIVE_FENCE_FD_ANDROID, result1);
 }
 
