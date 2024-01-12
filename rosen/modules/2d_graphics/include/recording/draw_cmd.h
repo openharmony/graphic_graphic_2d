@@ -24,28 +24,14 @@
 #include "draw/canvas.h"
 #include "draw/paint.h"
 #include "recording/cmd_list.h"
-#include "recording/recording_canvas.h"
 
-#ifdef ROSEN_OHOS
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-#include "external_window.h"
-#include "window.h"
-#endif
-#ifdef RS_ENABLE_GL
-#include <GLES/gl.h>
-#include "EGL/egl.h"
-#include "EGL/eglext.h"
-#include "GLES2/gl2.h"
-#include "GLES2/gl2ext.h"
-#include "include/gpu/gl/GrGLTypes.h"
-#include "include/gpu/GrBackendSurface.h"
-#endif
-#endif
+#define REGISTER_UNMARSHALLING_FUNC(name, type, func) \
+    bool isRegistered##name = OHOS::Rosen::Drawing::UnmarshallingPlayer::RegisterUnmarshallingFunc(type, func)
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class DrawOpItem : public OpItem {
+class DRAWING_API DrawOpItem : public OpItem {
 public:
     explicit DrawOpItem(uint32_t type) : OpItem(type) {}
     ~DrawOpItem() override = default;
@@ -117,6 +103,9 @@ public:
 
 class UnmarshallingPlayer {
 public:
+    using UnmarshallingFunc = std::shared_ptr<DrawOpItem>(*)(const CmdList& cmdList, void* handle);
+    DRAWING_API static bool RegisterUnmarshallingFunc(uint32_t type, UnmarshallingFunc func);
+
     UnmarshallingPlayer(const CmdList& cmdList);
     ~UnmarshallingPlayer() = default;
 
@@ -124,7 +113,6 @@ public:
 
     const CmdList& cmdList_;
 
-    using UnmarshallingFunc = std::shared_ptr<DrawOpItem>(*)(const CmdList& cmdList, void* handle);
 private:
     static std::unordered_map<uint32_t, UnmarshallingFunc> opUnmarshallingFuncLUT_;
 };
@@ -141,7 +129,7 @@ public:
     CmdList& cmdList_;
 };
 
-class DrawWithPaintOpItem : public DrawOpItem {
+class DRAWING_API DrawWithPaintOpItem : public DrawOpItem {
 public:
     DrawWithPaintOpItem(const CmdList& cmdList, const PaintHandle& paintHandle, uint32_t type);
     ~DrawWithPaintOpItem() override = default;
@@ -161,22 +149,6 @@ private:
     Rect dst_;
     SamplingOptions sampling_;
     Paint paint_;
-};
-
-class DrawCmdListOpItem : public DrawOpItem {
-public:
-    struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const CmdListHandle& handle) : OpItem(DrawOpItem::CMD_LIST_OPITEM), handle(handle) {}
-        ~ConstructorHandle() override = default;
-        CmdListHandle handle;
-    };
-    DrawCmdListOpItem(const CmdList& cmdList, ConstructorHandle* handle);
-    ~DrawCmdListOpItem() override = default;
-
-    static std::shared_ptr<DrawOpItem> Unmarshalling(const CmdList& cmdList, void* handle);
-    void Playback(Canvas* canvas, const Rect* rect) override;
-private:
-    std::vector<std::shared_ptr<DrawOpItem>> opItems_;
 };
 
 class DrawPointOpItem : public DrawWithPaintOpItem {
@@ -447,10 +419,10 @@ private:
 class DrawRegionOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const CmdListHandle& region, const PaintHandle& paintHandle)
+        ConstructorHandle(const OpDataHandle& region, const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::REGION_OPITEM), region(region), paintHandle(paintHandle) {}
         ~ConstructorHandle() override = default;
-        CmdListHandle region;
+        OpDataHandle region;
         PaintHandle paintHandle;
     };
     DrawRegionOpItem(const CmdList& cmdList, ConstructorHandle* handle);
@@ -893,10 +865,10 @@ private:
 class ClipRegionOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const CmdListHandle& region, ClipOp clipOp = ClipOp::INTERSECT)
+        ConstructorHandle(const OpDataHandle& region, ClipOp clipOp = ClipOp::INTERSECT)
             : OpItem(DrawOpItem::CLIP_REGION_OPITEM), region(region), clipOp(clipOp) {}
         ~ConstructorHandle() override = default;
-        CmdListHandle region;
+        OpDataHandle region;
         ClipOp clipOp;
     };
     ClipRegionOpItem(const CmdList& cmdList, ConstructorHandle* handle);
@@ -1074,14 +1046,14 @@ class SaveLayerOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
         ConstructorHandle(const Rect& rect, bool hasBrush, const BrushHandle& brushHandle,
-            const CmdListHandle& imageFilter, uint32_t saveLayerFlags) : OpItem(DrawOpItem::SAVE_LAYER_OPITEM),
+            const FlattenableHandle& imageFilter, uint32_t saveLayerFlags) : OpItem(DrawOpItem::SAVE_LAYER_OPITEM),
             rect(rect), hasBrush(hasBrush), brushHandle(brushHandle), imageFilter(imageFilter),
             saveLayerFlags(saveLayerFlags) {}
         ~ConstructorHandle() override = default;
         Rect rect;
         bool hasBrush;
         BrushHandle brushHandle;
-        CmdListHandle imageFilter;
+        FlattenableHandle imageFilter;
         uint32_t saveLayerFlags;
     };
     SaveLayerOpItem(const CmdList& cmdList, ConstructorHandle* handle);
@@ -1185,141 +1157,6 @@ private:
     SamplingOptions smapling_;
     std::shared_ptr<Media::PixelMap> pixelMap_;
 };
-
-class DrawImageWithParmOpItem : public DrawWithPaintOpItem {
-public:
-    struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const OpDataHandle& objectHandle, const SamplingOptions& sampling,
-            const PaintHandle& paintHandle)
-            : OpItem(DrawOpItem::IMAGE_WITH_PARM_OPITEM), objectHandle(objectHandle), sampling(sampling),
-              paintHandle(paintHandle) {}
-        ~ConstructorHandle() override = default;
-        OpDataHandle objectHandle;
-        SamplingOptions sampling;
-        PaintHandle paintHandle;
-    };
-    DrawImageWithParmOpItem(const CmdList& cmdList, ConstructorHandle* handle);
-    ~DrawImageWithParmOpItem() override = default;
-
-    static std::shared_ptr<DrawOpItem> Unmarshalling(const CmdList& cmdList, void* handle);
-    void Playback(Canvas* canvas, const Rect* rect) override;
-    void SetNodeId(NodeId id) override;
-private:
-    SamplingOptions sampling_;
-    std::shared_ptr<ExtendImageObject> objectHandle_;
-};
-
-class DrawPixelMapWithParmOpItem : public DrawWithPaintOpItem {
-public:
-    struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const OpDataHandle& objectHandle, const SamplingOptions& sampling,
-            const PaintHandle& paintHandle)
-            : OpItem(DrawOpItem::PIXELMAP_WITH_PARM_OPITEM), objectHandle(objectHandle), sampling(sampling),
-              paintHandle(paintHandle) {}
-        ~ConstructorHandle() override = default;
-        OpDataHandle objectHandle;
-        SamplingOptions sampling;
-        PaintHandle paintHandle;
-    };
-    DrawPixelMapWithParmOpItem(const CmdList& cmdList, ConstructorHandle* handle);
-    ~DrawPixelMapWithParmOpItem() override = default;
-
-    static std::shared_ptr<DrawOpItem> Unmarshalling(const CmdList& cmdList, void* handle);
-    void Playback(Canvas* canvas, const Rect* rect) override;
-    void SetNodeId(NodeId id) override;
-private:
-    SamplingOptions sampling_;
-    std::shared_ptr<ExtendImageObject> objectHandle_;
-};
-
-class DrawPixelMapRectOpItem : public DrawWithPaintOpItem {
-public:
-    struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const OpDataHandle& objectHandle, const SamplingOptions& sampling,
-            const PaintHandle& paintHandle)
-            : OpItem(DrawOpItem::PIXELMAP_RECT_OPITEM), objectHandle(objectHandle), sampling(sampling),
-              paintHandle(paintHandle) {}
-        ~ConstructorHandle() override = default;
-        OpDataHandle objectHandle;
-        SamplingOptions sampling;
-        PaintHandle paintHandle;
-    };
-    DrawPixelMapRectOpItem(const CmdList& cmdList, ConstructorHandle* handle);
-    ~DrawPixelMapRectOpItem() override = default;
-
-    static std::shared_ptr<DrawOpItem> Unmarshalling(const CmdList& cmdList, void* handle);
-    void Playback(Canvas* canvas, const Rect* rect) override;
-    void SetNodeId(NodeId id) override;
-private:
-    SamplingOptions sampling_;
-    std::shared_ptr<ExtendImageBaseObj> objectHandle_;
-};
-
-class DrawFuncOpItem : public DrawOpItem {
-public:
-    struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const OpDataHandle& objectHandle)
-            : OpItem(DrawOpItem::DRAW_FUNC_OPITEM), objectHandle(objectHandle)
-        {}
-        ~ConstructorHandle() override = default;
-        OpDataHandle objectHandle;
-    };
-    DrawFuncOpItem(const CmdList& cmdList, ConstructorHandle* handle);
-    ~DrawFuncOpItem() override = default;
-
-    static std::shared_ptr<DrawOpItem> Unmarshalling(const CmdList& cmdList, void* handle);
-    void Playback(Canvas* canvas, const Rect* rect) override;
-private:
-    std::shared_ptr<ExtendDrawFuncObj> objectHandle_;
-};
-
-#ifdef ROSEN_OHOS
-class DrawSurfaceBufferOpItem : public DrawWithPaintOpItem {
-public:
-    struct ConstructorHandle : public OpItem {
-        ConstructorHandle(uint32_t surfaceBufferId, int offSetX, int offSetY, int width, int height,
-            const PaintHandle& paintHandle)
-            : OpItem(DrawOpItem::SURFACEBUFFER_OPITEM), surfaceBufferId(surfaceBufferId),
-            surfaceBufferInfo(nullptr, offSetX, offSetY, width, height), paintHandle(paintHandle) {}
-        ~ConstructorHandle() override = default;
-        uint32_t surfaceBufferId;
-        DrawingSurfaceBufferInfo surfaceBufferInfo;
-        PaintHandle paintHandle;
-    };
-
-    DrawSurfaceBufferOpItem(const CmdList& cmdList, ConstructorHandle* handle);
-    ~DrawSurfaceBufferOpItem();
-
-    static std::shared_ptr<DrawOpItem> Unmarshalling(const CmdList& cmdList, void* handle);
-    void Playback(Canvas* canvas, const Rect* rect) override;
-#ifdef RS_ENABLE_VK
-    static void SetBaseCallback(
-        std::function<Drawing::BackendTexture(NativeWindowBuffer* buffer, int width, int height)> makeBackendTexture,
-        std::function<void(void* context)> deleteImage,
-        std::function<void*(VkImage image, VkDeviceMemory memory)> helper);
-#endif
-
-private:
-    DrawingSurfaceBufferInfo surfaceBufferInfo_;
-    void Clear();
-    void Draw(Canvas* canvas);
-
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
-#endif
-#ifdef RS_ENABLE_VK
-    static std::function<Drawing::BackendTexture(NativeWindowBuffer* buffer, int width, int height)>
-        makeBackendTextureFromNativeBuffer;
-    static std::function<void(void* context)> deleteVkImage;
-    static std::function<void*(VkImage image, VkDeviceMemory memory)> vulkanCleanupHelper;
-#endif
-#ifdef RS_ENABLE_GL
-    EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
-    GLuint texId_ = 0;
-#endif
-};
-#endif
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

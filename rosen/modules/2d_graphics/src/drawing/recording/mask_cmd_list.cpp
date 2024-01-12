@@ -17,12 +17,6 @@
 
 #include "recording/cmd_list_helper.h"
 #include "utils/log.h"
-#include "recording/color_space_cmd_list.h"
-#include "recording/shader_effect_cmd_list.h"
-#include "recording/color_filter_cmd_list.h"
-#include "recording/image_filter_cmd_list.h"
-#include "recording/mask_filter_cmd_list.h"
-#include "recording/path_cmd_list.h"
 
 namespace OHOS {
 namespace Rosen {

@@ -95,6 +95,9 @@ public:
      * @brief   Get the adaptation layer instance, called in the adaptation layer.
      * @return  Adaptation Layer instance.
      */
+    std::shared_ptr<Data> Serialize() const;
+    bool Deserialize(std::shared_ptr<Data> data);
+
     template<typename T>
     T* GetImpl() const
     {

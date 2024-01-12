@@ -5457,7 +5457,7 @@ void RSUniRenderVisitor::tryCapture(float width, float height)
     if (!RSSystemProperties::GetRecordingEnabled()) {
         return;
     }
-    recordingCanvas_ = std::make_unique<Drawing::RecordingCanvas>(width, height);
+    recordingCanvas_ = std::make_unique<ExtendRecordingCanvas>(width, height);
     RS_TRACE_NAME("RSUniRender:Recording begin");
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();

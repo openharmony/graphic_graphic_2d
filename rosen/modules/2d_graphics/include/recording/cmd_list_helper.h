@@ -33,7 +33,7 @@ class PixelMap;
 namespace Rosen {
 namespace Drawing {
 class DrawOpItem;
-class CmdListHelper {
+class DRAWING_API CmdListHelper {
 public:
     CmdListHelper() = default;
     ~CmdListHelper() = default;
@@ -203,6 +203,9 @@ public:
 
     static OpDataHandle AddPathToCmdList(CmdList& cmdList, const Path& path);
     static std::shared_ptr<Path> GetPathFromCmdList(const CmdList& cmdList, const OpDataHandle& pathHandle);
+
+    static OpDataHandle AddRegionToCmdList(CmdList& cmdList, const Region& region);
+    static std::shared_ptr<Region> GetRegionFromCmdList(const CmdList& cmdList, const OpDataHandle& regionHandle);
 
     static OpDataHandle AddColorSpaceToCmdList(CmdList& cmdList, const std::shared_ptr<ColorSpace> colorSpace);
     static std::shared_ptr<ColorSpace> GetColorSpaceFromCmdList(const CmdList& cmdList,

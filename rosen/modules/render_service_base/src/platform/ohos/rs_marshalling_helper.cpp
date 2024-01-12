@@ -78,8 +78,6 @@
 #include "buffer_utils.h"
 #endif
 #include "recording/mask_cmd_list.h"
-#include "recording/recording_path.h"
-#include "recording/recording_shader_effect.h"
 #include "property/rs_properties_def.h"
 #endif
 

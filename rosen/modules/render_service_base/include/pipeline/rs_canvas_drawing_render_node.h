@@ -20,9 +20,7 @@
 #include <memory>
 
 #include "pipeline/rs_canvas_render_node.h"
-#ifdef USE_ROSEN_DRAWING
-#include "recording/recording_canvas.h"
-#endif
+#include "pipeline/rs_recording_canvas.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -96,7 +94,7 @@ private:
 #else
     std::shared_ptr<Drawing::Surface> surface_;
     std::shared_ptr<Drawing::Image> image_;
-    std::shared_ptr<Drawing::RecordingCanvas> recordingCanvas_;
+    std::shared_ptr<ExtendRecordingCanvas> recordingCanvas_;
 #endif
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool isGpuSurface_ = true;

@@ -66,7 +66,7 @@ HWTEST_F(RSUniUiCaptureTest, SetCanvasTest, TestSize.Level1)
 #ifndef USE_ROSEN_DRAWING
     std::shared_ptr<RSRecordingCanvas> canvas = nullptr;
 #else
-    std::shared_ptr<Drawing::RecordingCanvas> canvas = nullptr;
+    std::shared_ptr<ExtendRecordingCanvas> canvas = nullptr;
 #endif
     rsUniUICaptureVisitor.SetCanvas(canvas);
 }

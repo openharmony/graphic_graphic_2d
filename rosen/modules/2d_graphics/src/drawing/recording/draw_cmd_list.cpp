@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "recording/draw_cmd.h"
+#include "recording/recording_canvas.h"
 #include "utils/log.h"
 
 namespace OHOS {

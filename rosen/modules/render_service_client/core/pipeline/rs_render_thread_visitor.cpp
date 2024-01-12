@@ -792,7 +792,7 @@ void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
     RSSurfaceBufferInfo rsSurfaceBufferInfo(surfaceBuffer, property.GetBoundsPositionX(), property.GetBoundsPositionY(),
         property.GetBoundsWidth(), property.GetBoundsHeight());
 #else
-    auto recordingCanvas = std::make_shared<Drawing::RecordingCanvas>(property.GetBoundsWidth(),
+    auto recordingCanvas = std::make_shared<ExtendRecordingCanvas>(property.GetBoundsWidth(),
         property.GetBoundsHeight());
     DrawingSurfaceBufferInfo rsSurfaceBufferInfo(surfaceBuffer, property.GetBoundsPositionX(),
         property.GetBoundsPositionY(), property.GetBoundsWidth(), property.GetBoundsHeight());

@@ -18,6 +18,7 @@
 #include <dlfcn.h>
 #include <vector>
 #include "platform/common/rs_log.h"
+#include "render_context/memory_handler.h"
 #include "include/gpu/vk/GrVkExtensions.h"
 #include "unistd.h"
 #include "vulkan/vulkan_core.h"

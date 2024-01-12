@@ -279,7 +279,7 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
     } else {
         auto cmds = recordingCanvas_->GetDrawCmdList();
         if (!cmds->IsEmpty() && surface_) {
-            recordingCanvas_ = std::make_shared<Drawing::RecordingCanvas>(width, height);
+            recordingCanvas_ = std::make_shared<ExtendRecordingCanvas>(width, height);
             canvas_ = std::make_unique<RSPaintFilterCanvas>(recordingCanvas_.get());
             ProcessCPURenderInBackgroundThread(cmds);
         }
@@ -393,7 +393,7 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
                 RS_LOGE("RSCanvasDrawingRenderNode::ResetSurface surface is nullptr");
                 return false;
             }
-            recordingCanvas_ = std::make_shared<Drawing::RecordingCanvas>(width, height);
+            recordingCanvas_ = std::make_shared<ExtendRecordingCanvas>(width, height);
             canvas_ = std::make_unique<RSPaintFilterCanvas>(recordingCanvas_.get());
             return true;
         }

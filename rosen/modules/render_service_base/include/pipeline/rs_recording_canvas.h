@@ -212,8 +212,8 @@ private:
 } // namespace OHOS
 
 #else
-#include "recording/draw_cmd.h"
 #include "recording/recording_canvas.h"
+#include "pipeline/rs_draw_cmd.h"
 
 namespace OHOS {
 namespace Media {
@@ -232,7 +232,9 @@ public:
         const Drawing::Rect& dst, const Drawing::SamplingOptions& sampling,
         Drawing::SrcRectConstraint constraint = Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
     void DrawDrawFunc(Drawing::RecordingCanvas::DrawFunc&& drawFunc);
-
+#ifdef ROSEN_OHOS
+    void DrawSurfaceBuffer(const DrawingSurfaceBufferInfo& surfaceBufferInfo);
+#endif
 private:
     template<typename T, typename... Args>
     void AddOp(Args&&... args);

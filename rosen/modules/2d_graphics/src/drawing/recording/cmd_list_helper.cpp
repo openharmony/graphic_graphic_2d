@@ -18,15 +18,7 @@
 #ifdef SUPPORT_OHOS_PIXMAP
 #include "pixel_map.h"
 #endif
-#include "recording/color_filter_cmd_list.h"
-#include "recording/color_space_cmd_list.h"
 #include "recording/draw_cmd_list.h"
-#include "recording/image_filter_cmd_list.h"
-#include "recording/mask_filter_cmd_list.h"
-#include "recording/path_cmd_list.h"
-#include "recording/path_effect_cmd_list.h"
-#include "recording/region_cmd_list.h"
-#include "recording/shader_effect_cmd_list.h"
 #include "skia_adapter/skia_vertices.h"
 #include "skia_adapter/skia_image_filter.h"
 #include "skia_adapter/skia_mask_filter.h"
@@ -504,6 +496,41 @@ std::shared_ptr<Path> CmdListHelper::GetPathFromCmdList(const CmdList& cmdList,
     }
 
     return path;
+}
+
+OpDataHandle CmdListHelper::AddRegionToCmdList(CmdList& cmdList, const Region& region)
+{
+    auto data = region.Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGE("region is invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return { 0 };
+    }
+
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize() };
+}
+
+std::shared_ptr<Region> CmdListHelper::GetRegionFromCmdList(const CmdList& cmdList, const OpDataHandle& regionHandle)
+{
+    if (regionHandle.size == 0) {
+        return nullptr;
+    }
+
+    const void* ptr = cmdList.GetImageData(regionHandle.offset);
+    if (ptr == nullptr) {
+        LOGE("get region data failed!");
+        return nullptr;
+    }
+
+    auto regionData = std::make_shared<Data>();
+    regionData->BuildWithoutCopy(ptr, regionHandle.size);
+    auto region = std::make_shared<Region>();
+    if (region->Deserialize(regionData) == false) {
+        LOGE("region deserialize failed!");
+        return nullptr;
+    }
+
+    return region;
 }
 
 OpDataHandle CmdListHelper::AddColorSpaceToCmdList(CmdList& cmdList, const std::shared_ptr<ColorSpace> colorSpace)

@@ -62,7 +62,7 @@ std::shared_ptr<Media::PixelMap> RSUniUICapture::TakeLocalCapture()
 #ifndef USE_ROSEN_DRAWING
     auto recordingCanvas = std::make_shared<RSRecordingCanvas>(FAKE_WIDTH, FAKE_HEIGHT);
 #else
-    auto recordingCanvas = std::make_shared<Drawing::RecordingCanvas>(FAKE_WIDTH, FAKE_HEIGHT);
+    auto recordingCanvas = std::make_shared<ExtendRecordingCanvas>(FAKE_WIDTH, FAKE_HEIGHT);
 #endif
     std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMapByNode(node);
     if (pixelmap == nullptr) {
@@ -290,7 +290,7 @@ RSUniUICapture::RSUniUICaptureVisitor::RSUniUICaptureVisitor(NodeId nodeId, floa
 #ifndef USE_ROSEN_DRAWING
 void RSUniUICapture::PostTaskToRSRecord(std::shared_ptr<RSRecordingCanvas> canvas,
 #else
-void RSUniUICapture::PostTaskToRSRecord(std::shared_ptr<Drawing::RecordingCanvas> canvas,
+void RSUniUICapture::PostTaskToRSRecord(std::shared_ptr<ExtendRecordingCanvas> canvas,
 #endif
     std::shared_ptr<RSRenderNode> node, std::shared_ptr<RSUniUICaptureVisitor> visitor)
 {
@@ -333,7 +333,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::SetCanvas(std::shared_ptr<RSRecordin
     canvas_->SetRecordingState(true);
 }
 #else
-void RSUniUICapture::RSUniUICaptureVisitor::SetCanvas(std::shared_ptr<Drawing::RecordingCanvas> canvas)
+void RSUniUICapture::RSUniUICaptureVisitor::SetCanvas(std::shared_ptr<ExtendRecordingCanvas> canvas)
 {
     if (canvas == nullptr) {
         RS_LOGE("RSUniUICaptureVisitor::SetCanvas: canvas == nullptr");
@@ -584,7 +584,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithUni(RSSurfaceR
             RSSurfaceBufferInfo rsSurfaceBufferInfo(buffer, params.dstRect.left(), params.dstRect.top(),
                 params.dstRect.width(), params.dstRect.height());
 #else
-        if (auto recordingCanvas = static_cast<Drawing::RecordingCanvas*>(canvas_->GetRecordingCanvas())) {
+        if (auto recordingCanvas = static_cast<ExtendRecordingCanvas*>(canvas_->GetRecordingCanvas())) {
             auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
             auto buffer = node.GetBuffer();
             DrawingSurfaceBufferInfo rsSurfaceBufferInfo(buffer, params.dstRect.GetLeft(), params.dstRect.GetTop(),

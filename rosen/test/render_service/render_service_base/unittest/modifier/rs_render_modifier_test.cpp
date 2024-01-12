@@ -131,7 +131,7 @@ HWTEST_F(RSRenderModifierTest, DrawCmdListModifier001, TestSize.Level1)
     RSRecordingCanvas canvas(100, 100);
     canvas.translate(15.f, 15.f);
 #else
-    Drawing::RecordingCanvas canvas(100, 100);
+    ExtendRecordingCanvas canvas(100, 100);
     canvas.Translate(15.f, 15.f);
 #endif
 

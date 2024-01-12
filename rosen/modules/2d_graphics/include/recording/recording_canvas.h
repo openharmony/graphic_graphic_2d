@@ -29,20 +29,6 @@
 
 namespace OHOS {
 namespace Rosen {
-#ifdef ROSEN_OHOS
-struct DrawingSurfaceBufferInfo {
-    DrawingSurfaceBufferInfo() = default;
-    DrawingSurfaceBufferInfo(
-        const sptr<SurfaceBuffer>& surfaceBuffer, int offSetX, int offSetY, int width, int height)
-        : surfaceBuffer_(surfaceBuffer), offSetX_(offSetX), offSetY_(offSetY), width_(width), height_(height)
-    {}
-    sptr<SurfaceBuffer> surfaceBuffer_ = nullptr;
-    int offSetX_ = 0;
-    int offSetY_ = 0;
-    int width_ = 0;
-    int height_ = 0;
-};
-#endif
 namespace Drawing {
 /*
  * @brief  RecordingCanvas is an empty canvas, which does not act on any surface,
@@ -142,12 +128,8 @@ public:
 
     void SetIsCustomTextType(bool isCustomTextType);
     bool IsCustomTextType() const;
-#ifdef ROSEN_OHOS
-    void DrawSurfaceBuffer(const DrawingSurfaceBufferInfo& surfaceBufferInfo);
-#endif
 
     using DrawFunc = std::function<void(Drawing::Canvas* canvas, const Drawing::Rect* rect)>;
-
 protected:
     static void GenerateHandleFromPaint(CmdList& cmdList, const Paint& paint, PaintHandle& paintHandle);
     std::shared_ptr<DrawCmdList> cmdList_ = nullptr;

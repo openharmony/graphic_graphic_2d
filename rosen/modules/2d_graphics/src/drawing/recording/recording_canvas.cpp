@@ -18,14 +18,6 @@
 #include "recording/cmd_list_helper.h"
 #include "recording/draw_cmd.h"
 #include "recording/draw_cmd_list.h"
-#include "recording/recording_path.h"
-#include "recording/recording_color_filter.h"
-#include "recording/recording_color_space.h"
-#include "recording/recording_image_filter.h"
-#include "recording/recording_mask_filter.h"
-#include "recording/recording_path_effect.h"
-#include "recording/recording_shader_effect.h"
-#include "recording/recording_region.h"
 #include "draw/color.h"
 #include "effect/color_filter.h"
 #include "effect/color_space.h"
@@ -178,7 +170,7 @@ void RecordingCanvas::DrawShadow(const Path& path, const Point3& planeParams, co
 
 void RecordingCanvas::DrawRegion(const Region& region)
 {
-    auto regionHandle = CmdListHelper::AddRecordedToCmdList<RecordingRegion>(*cmdList_, region);
+    auto regionHandle = CmdListHelper::AddRegionToCmdList(*cmdList_, region);
     AddOp<DrawRegionOpItem::ConstructorHandle>(regionHandle);
 }
 
@@ -348,16 +340,6 @@ void RecordingCanvas::DrawSymbol(const DrawingHMSymbolData& symbol, Point locate
     AddOp<DrawSymbolOpItem::ConstructorHandle>(symbolHandle, locate);
 }
 
-#ifdef ROSEN_OHOS
-void RecordingCanvas::DrawSurfaceBuffer(const DrawingSurfaceBufferInfo& surfaceBufferInfo)
-{
-    AddOp<DrawSurfaceBufferOpItem::ConstructorHandle>(
-        CmdListHelper::AddSurfaceBufferToCmdList(*cmdList_, surfaceBufferInfo.surfaceBuffer_),
-        surfaceBufferInfo.offSetX_, surfaceBufferInfo.offSetY_,
-        surfaceBufferInfo.width_, surfaceBufferInfo.height_);
-}
-#endif
-
 void RecordingCanvas::ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias)
 {
     CheckForLazySave();
@@ -398,7 +380,7 @@ void RecordingCanvas::ClipPath(const Path& path, ClipOp op, bool doAntiAlias)
 void RecordingCanvas::ClipRegion(const Region& region, ClipOp op)
 {
     CheckForLazySave();
-    auto regionHandle = CmdListHelper::AddRecordedToCmdList<RecordingRegion>(*cmdList_, region);
+    auto regionHandle = CmdListHelper::AddRegionToCmdList(*cmdList_, region);
     cmdList_->AddOp<ClipRegionOpItem::ConstructorHandle>(regionHandle, op);
     Canvas::ClipRegion(region, op);
 }
@@ -508,7 +490,7 @@ void RecordingCanvas::SaveLayer(const SaveLayerOps& saveLayerOps)
             CmdListHelper::AddMaskFilterToCmdList(*cmdList_, filter.GetMaskFilter()),
         };
     }
-    CmdListHandle imageFilterHandle = CmdListHelper::AddRecordedToCmdList<RecordingImageFilter>(
+    FlattenableHandle imageFilterHandle = CmdListHelper::AddImageFilterToCmdList(
         *cmdList_, saveLayerOps.GetImageFilter());
 
     cmdList_->AddOp<SaveLayerOpItem::ConstructorHandle>(rect, hasBrush, brushHandle,

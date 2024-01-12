@@ -531,10 +531,21 @@ void ExtendRecordingCanvas::DrawPixelMapRect(const std::shared_ptr<Media::PixelM
 void ExtendRecordingCanvas::DrawDrawFunc(Drawing::RecordingCanvas::DrawFunc&& drawFunc)
 {
     auto object = std::make_shared<RSExtendDrawFuncObj>(std::move(drawFunc));
+    auto drawCallList = Drawing::RecordingCanvas::GetDrawCmdList();
     auto objectHandle =
-        Drawing::CmdListHelper::AddDrawFuncObjToCmdList(*Drawing::RecordingCanvas::GetDrawCmdList(), object);
+        Drawing::CmdListHelper::AddDrawFuncObjToCmdList(*drawCallList, object);
     cmdList_->AddOp<Drawing::DrawFuncOpItem::ConstructorHandle>(objectHandle);
 }
+
+#ifdef ROSEN_OHOS
+void ExtendRecordingCanvas::DrawSurfaceBuffer(const DrawingSurfaceBufferInfo& surfaceBufferInfo)
+{
+    AddOp<Drawing::DrawSurfaceBufferOpItem::ConstructorHandle>(
+        Drawing::CmdListHelper::AddSurfaceBufferToCmdList(*cmdList_, surfaceBufferInfo.surfaceBuffer_),
+        surfaceBufferInfo.offSetX_, surfaceBufferInfo.offSetY_,
+        surfaceBufferInfo.width_, surfaceBufferInfo.height_);
+}
+#endif
 
 template<typename T, typename... Args>
 void ExtendRecordingCanvas::AddOp(Args&&... args)

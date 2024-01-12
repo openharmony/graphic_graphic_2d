@@ -18,6 +18,7 @@
 #include "image/image.h"
 #include "recording/cmd_list_helper.h"
 #include "recording/draw_cmd.h"
+#include "recording/draw_cmd_list.h"
 
 using namespace testing;
 using namespace testing::ext;

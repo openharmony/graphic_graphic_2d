@@ -42,7 +42,7 @@ public:
 #ifndef USE_ROSEN_DRAWING
     SkCanvas* BeginRecording(int width, int height);
 #else
-    Drawing::RecordingCanvas* BeginRecording(int width, int height);
+    ExtendRecordingCanvas* BeginRecording(int width, int height);
 #endif
     bool IsRecording() const;
     void FinishRecording();
@@ -67,7 +67,7 @@ private:
 #ifndef USE_ROSEN_DRAWING
     SkCanvas* recordingCanvas_ = nullptr;
 #else
-    Drawing::RecordingCanvas* recordingCanvas_ = nullptr;
+    ExtendRecordingCanvas* recordingCanvas_ = nullptr;
 #endif
     bool recordingUpdated_ = false;
     mutable std::mutex mutex_;

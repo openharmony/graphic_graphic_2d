@@ -42,6 +42,8 @@ public:
     bool IsRect() const override;
     bool Op(const Region& region, RegionOp op) override;
     void Clone(const Region& other) override;
+    std::shared_ptr<Data> Serialize() const override;
+    bool Deserialize(std::shared_ptr<Data> data) override;
 
     /*
      * @brief   Export Skia member variables for use by the adaptation layer.

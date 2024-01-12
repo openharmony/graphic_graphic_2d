@@ -17,7 +17,10 @@
 
 #include "include/core/SkRegion.h"
 #include "include/core/SkRect.h"
+#include "src/core/SkReadBuffer.h"
+#include "src/core/SkWriteBuffer.h"
 
+#include "utils/data.h"
 #include "utils/region.h"
 #include "utils/log.h"
 #include "skia_path.h"
@@ -101,6 +104,28 @@ void SkiaRegion::Clone(const Region& other)
         return;
     }
     *skRegion_ = *skRegion;
+}
+
+std::shared_ptr<Data> SkiaRegion::Serialize() const
+{
+    SkBinaryWriteBuffer writer;
+    writer.writeRegion(*skRegion_);
+    size_t length = writer.bytesWritten();
+    std::shared_ptr<Data> data = std::make_shared<Data>();
+    data->BuildUninitialized(length);
+    writer.writeToMemory(data->WritableData());
+    return data;
+}
+
+bool SkiaRegion::Deserialize(std::shared_ptr<Data> data)
+{
+    if (data == nullptr) {
+        LOGE("SkiaRegion::Deserialize, data is invalid!");
+        return false;
+    }
+    SkReadBuffer reader(data->GetData(), data->GetSize());
+    reader.readRegion(skRegion_.get());
+    return true;
 }
 
 std::shared_ptr<SkRegion> SkiaRegion::GetSkRegion() const

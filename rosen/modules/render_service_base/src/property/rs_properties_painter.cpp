@@ -39,8 +39,6 @@
 #include "effect/runtime_blender_builder.h"
 #include "effect/runtime_effect.h"
 #include "effect/runtime_shader_builder.h"
-#include "recording/recording_path.h"
-#include "recording/recording_shader_effect.h"
 #include "utils/rect.h"
 #else
 #include "include/core/SkCanvas.h"

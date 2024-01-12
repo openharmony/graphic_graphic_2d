@@ -520,7 +520,7 @@ private:
 #ifndef USE_ROSEN_DRAWING
     std::shared_ptr<RSRecordingCanvas> recordingCanvas_;
 #else
-    std::shared_ptr<Drawing::RecordingCanvas> recordingCanvas_;
+    std::shared_ptr<ExtendRecordingCanvas> recordingCanvas_;
 #endif
 #endif
     bool isNodeSingleFrameComposer_ = false;
