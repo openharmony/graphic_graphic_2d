@@ -834,6 +834,8 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
             drawingColorType = Drawing::ColorType::COLORTYPE_BGRA_8888;
         } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
             drawingColorType = Drawing::ColorType::COLORTYPE_RGBA_1010102;
+        } else if (pixelFmt == GRAPHIC_PIXEL_FMT_RGB_565) {
+            drawingColorType = Drawing::ColorType::COLORTYPE_RGB_565;
         }
         Drawing::BitmapFormat bitmapFormat = { drawingColorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
 #ifndef ROSEN_EMULATOR
