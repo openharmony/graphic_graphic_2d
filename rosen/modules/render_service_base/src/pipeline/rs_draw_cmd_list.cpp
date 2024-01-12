@@ -153,6 +153,7 @@ void DrawCmdList::Playback(RSPaintFilterCanvas& canvas, const SkRect* rect)
 #endif
     for (auto& it : ops_) {
         if (it == nullptr) {
+            RS_LOGE("DrawCmdList::Playback ops is null");
             continue;
         }
         if (it->GetType() == RSOpType::HM_SYMBOL_OPITEM) {
