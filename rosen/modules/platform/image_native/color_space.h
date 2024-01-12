@@ -69,12 +69,12 @@ class ColorSpace {
 public:
     explicit ColorSpace(ColorSpaceName name)
     {
-        colorSpaceName = name;
+        mColorSpaceName = name;
     }
 
     ColorSpaceName GetColorSpaceName() const
     {
-        return colorSpaceName;
+        return mColorSpaceName;
     }
 
 private:
