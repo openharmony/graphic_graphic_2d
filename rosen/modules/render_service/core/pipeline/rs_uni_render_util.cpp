@@ -193,6 +193,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
 {
     BufferDrawParam params;
     params.threadIndex = threadIndex;
+    params.useBilinearInterpolation = node.NeedBilinearInterpolation();
 #ifdef RS_ENABLE_EGLIMAGE
     params.useCPU = forceCPU;
 #else // RS_ENABLE_EGLIMAGE
