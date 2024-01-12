@@ -1635,6 +1635,10 @@ void RSNode::SetAiInvert(const Vector4f& aiInvert)
     SetProperty<RSAiInvertModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::AIINVERT, aiInvert);
 }
 
+void RSNode::SetSystemBarEffect()
+{
+}
+
 void RSNode::SetHueRotate(float hueRotate)
 {
     SetProperty<RSHueRotateModifier, RSAnimatableProperty<float>>(RSModifierType::HUE_ROTATE, hueRotate);

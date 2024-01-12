@@ -353,6 +353,8 @@ public:
 
     void SetAiInvert(const Vector4f& aiInvert);
 
+    void SetSystemBarEffect();
+
     void SetHueRotate(float hueRotate);
 
     void SetColorBlend(uint32_t colorValue);
