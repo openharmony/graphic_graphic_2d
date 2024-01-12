@@ -24,6 +24,7 @@ enum ColorSpaceName : uint32_t {
     DCI_P3 = 2,
     DISPLAY_P3 = 3,
     SRGB = 4,
+    CUSTOM = 5,
     BT709 = 6,
     BT601_EBU = 7,
     BT601_SMPTE_C = 8,
@@ -62,12 +63,11 @@ enum ColorSpaceName : uint32_t {
     EXTENDED_SRGB = 34,
     LINEAR_EXTENDED_SRGB = 35,
     SMPTE_C = 36,
-    CUSTOM = 5,
 };
 
 class ColorSpace {
 public:
-    ColorSpace(ColorSpaceName name)
+    explicit ColorSpace(ColorSpaceName name)
     {
         colorSpaceName = name;
     }
@@ -78,7 +78,7 @@ public:
     }
 
 private:
-    ColorSpaceName colorSpaceName = ColorSpaceName::SRGB;
+    ColorSpaceName mColorSpaceName = ColorSpaceName::SRGB;
 };
 } // namespace ColorSpace
 } // namespace OHOS
