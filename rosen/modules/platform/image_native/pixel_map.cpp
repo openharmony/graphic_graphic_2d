@@ -68,7 +68,7 @@ void PixelMap::InnerSetColorSpace(const OHOS::ColorManager::ColorSpace &grColorS
     return;
 }
 
-OHOS::ColorManager::ColorSpace PixelMap::InnerGetColorSpace()
+OHOS::ColorManager::ColorSpace PixelMap::InnerGetGrColorSpace()
 {
     return OHOS::ColorManager::ColorSpace(OHOS::ColorManager::ColorSpaceName::SRGB);
 }
