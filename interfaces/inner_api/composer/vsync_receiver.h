@@ -83,6 +83,10 @@ public:
     virtual VsyncError GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_t &timeStamp,
                                                         bool isThreadShared = false);
     int32_t GetFd() { return fd_; }
+
+    /* transfer the FD to other process(want to use the FD),
+      the current process does not use the FD, so close FD, but not close vsync connection
+    */
     void CloseVsyncReceiverFd();
 private:
     VsyncError Destroy();
