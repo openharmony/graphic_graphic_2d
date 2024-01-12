@@ -2582,6 +2582,7 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
                 canvas_->Clear(Drawing::Color::COLOR_BLACK);
 #endif
                 processor_->PostProcess();
+                RS_LOGI("RSUniRenderVisitor::ProcessDisplayRenderNode, set canvas to black because of security layer.");
                 return;
             }
 #ifndef USE_ROSEN_DRAWING
