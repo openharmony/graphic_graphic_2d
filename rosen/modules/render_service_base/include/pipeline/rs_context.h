@@ -28,6 +28,7 @@ enum ClearMemoryMoment : uint32_t {
     PROCESS_EXIT,
     COMMON_SURFACE_NODE_HIDE,
     SCENEBOARD_SURFACE_NODE_HIDE,
+    LOW_MEMORY,
     NO_CLEAR,
 };
 

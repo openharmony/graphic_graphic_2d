@@ -2986,22 +2986,15 @@ void RSMainThread::HandleOnTrim(Memory::SystemMemoryLevel level)
     if (handler_) {
         handler_->PostTask(
             [level, this]() {
-#ifndef USE_ROSEN_DRAWING
-#ifdef NEW_RENDER_CONTEXT
-                auto grContext = GetRenderEngine()->GetDrawingContext()->GetDrawingContext();
-#else
-                auto grContext = GetRenderEngine()->GetRenderContext()->GetGrContext();
-#endif
-#else
-                auto grContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
-#endif
                 RS_LOGD("Enter level:%{public}d, OnTrim Success", level);
+                RS_TRACE_NAME_FMT("System is low memory, HandleOnTrim Enter level:%d", level);
                 switch (level) {
                     case Memory::SystemMemoryLevel::MEMORY_LEVEL_CRITICAL:
+                        ClearMemoryCache(ClearMemoryMoment::LOW_MEMORY, true);
+                        break;
                     case Memory::SystemMemoryLevel::MEMORY_LEVEL_LOW:
                     case Memory::SystemMemoryLevel::MEMORY_LEVEL_MODERATE:
                     case Memory::SystemMemoryLevel::MEMORY_LEVEL_PURGEABLE:
-                        MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
                         break;
                     default:
                         break;
