@@ -54,9 +54,9 @@ void RSAnimationManager::RemoveAnimation(AnimationId keyId)
 
 void RSAnimationManager::CancelAnimationByPropertyId(PropertyId id)
 {
-    EraseIf(animations_, [id](const auto& pair) {
+    EraseIf(animations_, [id, this](const auto& pair) {
         if (pair.second && (pair.second->GetPropertyId() == id)) {
-            pair.second->Detach();
+            OnAnimationFinished(pair.second);
             return true;
         }
         return false;
