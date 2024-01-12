@@ -3757,8 +3757,22 @@ void RSUniRenderVisitor::UpdateHardwareNodeStatusBasedOnFilter(std::shared_ptr<R
     // collect valid hwc surface which is not intersected with filterRects
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> curHwcEnabledNodes;
     for (auto subNode : node->GetChildHardwareEnabledNodes()) {
-        if (auto childNode = subNode.lock()) {
-            childNode->SetHardwareForcedDisabledStateByFilter(false);
+        auto childNode = subNode.lock();
+        if (!childNode) {
+            continue;
+        }
+        childNode->SetHardwareForcedDisabledStateByFilter(false);
+        bool isIntersected = false;
+        if (isPhone_) {
+            for (auto &hwcNode: curHwcEnabledNodes) {
+                if (childNode->GetDstRect().Intersect(hwcNode->GetDstRect())) {
+                    childNode->SetHardwareForcedDisabledStateByFilter(true);
+                    isIntersected = true;
+                    break;
+                }
+            }
+        }
+        if (!isPhone_ || !isIntersected) {
             curHwcEnabledNodes.emplace_back(childNode);
         }
     }
