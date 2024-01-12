@@ -75,8 +75,7 @@
           "memmgr_plugin",
           "sensor",
           "qos_manager",
-          "video_processing_engine",
-          "drivers_interface_hwsched"
+          "video_processing_engine"
         ],
         "third_party": [
           "flutter",

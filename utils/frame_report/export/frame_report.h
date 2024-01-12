@@ -44,7 +44,7 @@ public:
 
 private:
     FrameReport();
-    ~FrameReport() = default;
+    ~FrameReport();
 
     bool IsReportBySurfaceName(std::string& name);
     void CalculateGameFps(int64_t timestamp);
@@ -52,6 +52,12 @@ private:
     void GetTargetGameFps();
     void SendGameTargetFps(int32_t fps);
     int FindStage(const int fps) const;
+
+    bool LoadLibrary();
+    void CloseLibrary();
+    void* LoadSymbol(const char* symName);
+    int CurTime(int type, const std::string& message, int length);
+    int SchedMsg(int type, const std::string& message, int length);
 
     static void SwitchFunction(const char *key, const char *value, void *context);
 
@@ -69,6 +75,11 @@ private:
     int64_t gameLastTimeStamp_ = 0;
 
     bool gameScene_ = false;
+
+    void* curTimeFunc_ = nullptr;
+    void* schedMsgFunc_ = nullptr;
+    void* schedHandle_ = nullptr;
+    bool schedSoLoaded_ = false;
 };
 
 } // namespace Rosen
