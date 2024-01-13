@@ -1072,6 +1072,79 @@ void ImageWithParmOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) 
 }
 
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#ifdef (RS_ENABLE_GL)
+sk_sp<SkImage> ImageWithParmOpItem::GetSkImageFromSurfaceBufferGL(SkCanvas& canvas, SurfaceBuffer* surfaceBuffer) const
+{
+    EGLint attrs[] = {
+        EGL_IMAGE_PRESERVED,
+        EGL_TRUE,
+        EGL_NONE,
+    };
+
+    auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    if (eglImage_ == EGL_NO_IMAGE_KHR) {
+        eglImage_ = eglCreateImageKHR(disp, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_OHOS, nativeWindowBuffer_, attrs);
+        if (eglImage_ == EGL_NO_IMAGE_KHR) {
+            RS_LOGE("%{public}s create egl image fail %{public}d", __func__, eglGetError());
+            return nullptr;
+        }
+        tid_ = gettid();
+    }
+
+    // Create texture object
+    if (texId_ == 0U) {
+        glGenTextures(1, &texId_);
+        glBindTexture(GL_TEXTURE_2D, texId_);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, static_cast<GLeglImageOES>(eglImage_));
+    }
+
+    GrGLTextureInfo textureInfo = { GL_TEXTURE_2D, texId_, GL_RGBA8_OES };
+
+    GrBackendTexture backendTexture(
+        surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), GrMipMapped::kNo, textureInfo);
+#ifndef ROSEN_EMULATOR
+    auto surfaceOrigin = kTopLeft_GrSurfaceOrigin;
+#else
+    auto surfaceOrigin = kBottomLeft_GrSurfaceOrigin;
+#endif
+    auto skImage = SkImage::MakeFromTexture(canvas.recordingContext(), backendTexture, surfaceOrigin,
+        kRGBA_8888_SkColorType, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
+
+    return skImage;
+}
+#endif
+
+#ifdef (RS_ENABLE_VK)
+sk_sp<SkImage> ImageWithParmOpItem::GetSkImageFromSurfaceBufferVK(SkCanvas& canvas, SurfaceBuffer* surfaceBuffer) const
+{
+    if (!backendTexture_.isValid()) {
+        backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
+            surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight());
+        if (backendTexture_.isValid()) {
+            GrVkImageInfo imageInfo;
+            backendTexture_.getVkImageInfo(&imageInfo);
+            cleanUpHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+                imageInfo.fImage, imageInfo.fAlloc.fMemory);
+        } else {
+            return nullptr;
+        }
+        tid_ = gettid();
+    }
+
+    GrVkImageInfo imageInfo;
+    backendTexture_.getVkImageInfo(&imageInfo);
+    auto skImage = SkImage::MakeFromTexture(
+        canvas.recordingContext(), backendTexture_, kTopLeft_GrSurfaceOrigin,
+        GetSkColorTypeFromVkFormat(imageInfo.fFormat), kPremul_SkAlphaType, SkColorSpace::MakeSRGB(),
+        NativeBufferUtils::DeleteVkImage, cleanUpHelper_->Ref());
+    return skImage;
+}
+#endif
+
 #ifndef USE_ROSEN_DRAWING
 sk_sp<SkImage> ImageWithParmOpItem::GetSkImageFromSurfaceBuffer(SkCanvas& canvas, SurfaceBuffer* surfaceBuffer) const
 {
@@ -1090,77 +1163,14 @@ sk_sp<SkImage> ImageWithParmOpItem::GetSkImageFromSurfaceBuffer(SkCanvas& canvas
 #ifdef RS_ENABLE_GL
     if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
         RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-        EGLint attrs[] = {
-            EGL_IMAGE_PRESERVED,
-            EGL_TRUE,
-            EGL_NONE,
-        };
-
-        auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-        if (eglImage_ == EGL_NO_IMAGE_KHR) {
-            eglImage_ = eglCreateImageKHR(disp, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_OHOS, nativeWindowBuffer_, attrs);
-            if (eglImage_ == EGL_NO_IMAGE_KHR) {
-                RS_LOGE("%{public}s create egl image fail %{public}d", __func__, eglGetError());
-                return nullptr;
-            }
-            tid_ = gettid();
-        }
-
-        // Create texture object
-        if (texId_ == 0U) {
-            glGenTextures(1, &texId_);
-            glBindTexture(GL_TEXTURE_2D, texId_);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, static_cast<GLeglImageOES>(eglImage_));
-        }
-
-        GrGLTextureInfo textureInfo = { GL_TEXTURE_2D, texId_, GL_RGBA8_OES };
-
-        GrBackendTexture backendTexture(
-            surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), GrMipMapped::kNo, textureInfo);
-#ifndef ROSEN_EMULATOR
-    auto surfaceOrigin = kTopLeft_GrSurfaceOrigin;
-#else
-    auto surfaceOrigin = kBottomLeft_GrSurfaceOrigin;
-#endif
-#ifdef NEW_SKIA
-        auto skImage = SkImage::MakeFromTexture(canvas.recordingContext(), backendTexture, surfaceOrigin,
-            kRGBA_8888_SkColorType, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
-#else
-        auto skImage = SkImage::MakeFromTexture(canvas.getGrContext(), backendTexture, surfaceOrigin,
-            kRGBA_8888_SkColorType, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
-#endif
-        return skImage;
+        return GetSkImageFromSurfaceBufferGL(canvas, surfaceBuffer);
     }
 #endif
 
 #if defined(RS_ENABLE_VK)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        if (!backendTexture_.isValid()) {
-            backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
-                surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight());
-            if (backendTexture_.isValid()) {
-                GrVkImageInfo imageInfo;
-                backendTexture_.getVkImageInfo(&imageInfo);
-                cleanUpHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-                    imageInfo.fImage, imageInfo.fAlloc.fMemory);
-            } else {
-                return nullptr;
-            }
-            tid_ = gettid();
-        }
-
-        GrVkImageInfo imageInfo;
-        backendTexture_.getVkImageInfo(&imageInfo);
-        auto skImage = SkImage::MakeFromTexture(
-            canvas.recordingContext(), backendTexture_, kTopLeft_GrSurfaceOrigin,
-            GetSkColorTypeFromVkFormat(imageInfo.fFormat), kPremul_SkAlphaType, SkColorSpace::MakeSRGB(),
-            NativeBufferUtils::DeleteVkImage, cleanUpHelper_->Ref());
-        return skImage;
+        return GetSkImageFromSurfaceBufferVK(canvas, surfaceBuffer);
     }
 #endif
     return nullptr;

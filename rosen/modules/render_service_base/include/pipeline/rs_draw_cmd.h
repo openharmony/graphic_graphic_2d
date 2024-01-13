@@ -383,6 +383,11 @@ public:
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> GetSkImageFromSurfaceBuffer(SkCanvas& canvas, SurfaceBuffer* surfaceBuffer) const;
+#ifdef RS_ENABLE_GL
+    sk_sp<SkImage> GetSkImageFromSurfaceBufferGL(SkCanvas& canvas, SurfaceBuffer* surfaceBuffer) const;
+#elif defined(RS_ENABLE_VK)
+    sk_sp<SkImage> GetSkImageFromSurfaceBufferVK(SkCanvas& canvas, SurfaceBuffer* surfaceBuffer) const;
+#endif
 #endif
 #endif
 private:

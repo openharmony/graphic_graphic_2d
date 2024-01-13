@@ -184,7 +184,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
         nativeSurface.fence = std::make_unique<SyncFence>(fenceFd);
         auto status = nativeSurface.fence->GetStatus();
         if (status != SIGNALED) {
-            auto& vkContext = RsVulkanContext::GetSingleton();
+            auto const& vkContext = RsVulkanContext::GetSingleton();
             VkSemaphore semaphore;
             CreateVkSemaphore(&semaphore, vkContext, nativeSurface);
 #ifndef USE_ROSEN_DRAWING

@@ -180,7 +180,7 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
         return false;
     }
 
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto const& vkContext = RsVulkanContext::GetSingleton();
 
     VkDevice device = vkContext.GetDevice();
 
@@ -307,7 +307,7 @@ Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* n
         return {};
     }
 
-    auto& vkContext = RsVulkanContext::GetSingleton();
+    auto const& vkContext = RsVulkanContext::GetSingleton();
     VkDevice device = vkContext.GetDevice();
 
     VkNativeBufferFormatPropertiesOHOS nbFormatProps;
