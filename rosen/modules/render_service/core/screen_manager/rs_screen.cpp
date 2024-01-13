@@ -163,8 +163,13 @@ void RSScreen::PhysicalScreenInit() noexcept
         RS_LOGE("RSScreen %{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetScreenSupportedColorGamuts.",
             __func__, id_);
     } else {
+        int index = 0;
         for (auto item : supportedColorGamuts) {
             supportedPhysicalColorGamuts_.push_back(static_cast<ScreenColorGamut>(item));
+            if (item == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB) {
+                currentPhysicalColorGamutIdx_ = index;
+            }
+            ++index;
         }
     }
 }

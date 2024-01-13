@@ -1124,7 +1124,15 @@ void RSUniRenderVisitor::PrepareTypesOfSurfaceRenderNodeAfterUpdate(RSSurfaceRen
             curSurfaceNode_->UpdateFilterNodes(node.shared_from_this());
         }
     }
-    if (node.IsMainWindowType()) {
+    if (node.IsLeashWindow()) {
+        auto& children = node.GetSortedChildren();
+        for (auto& child : children) {
+            if (child->ChildHasFilter()) {
+                node.SetChildHasFilter(true);
+                break;
+            }
+        }
+    } else if (node.IsMainWindowType()) {
         isCachedSurfaceReuse_ = false;
         isSurfaceDirtyNodeLimited_ = false;
         node.SetUseEffectNodes(effectNodeNum_);
