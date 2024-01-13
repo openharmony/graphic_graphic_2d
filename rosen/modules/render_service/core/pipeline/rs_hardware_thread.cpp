@@ -286,7 +286,7 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
 
     auto screenManager = CreateOrGetScreenManager();
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
-    ScreenId id = RSMainThread::Instance()->GetFrameRateMgr()->GetCurScreenId();
+    ScreenId id = hgmCore.GetFrameRateMgr()->GetCurScreenId();
     if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id)) {
         RS_LOGI("RSHardwareThread::CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d",
             static_cast<int>(id), refreshRate);
