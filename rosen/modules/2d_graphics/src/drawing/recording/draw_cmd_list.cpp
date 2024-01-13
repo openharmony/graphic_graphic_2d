@@ -347,6 +347,12 @@ void DrawCmdList::GenerateCache(Canvas* canvas, const Rect* rect)
         bool replaceSuccess = player.GenerateCachedOpItem(curOpItemPtr->GetType(), itemPtr);
         if (replaceSuccess) {
             replacedOpList_.push_back({offset, lastOpItemOffset_.value()});
+            itemPtr = opAllocator_.OffsetToAddr(offset);
+            curOpItemPtr = static_cast<OpItem*>(itemPtr);
+            if (curOpItemPtr == nullptr) {
+                LOGE("DrawCmdList::GenerateCache failed, opItem is nullptr");
+                break;
+            }
         }
         offset = curOpItemPtr->GetNextOpItemOffset();
     } while (offset != 0 && offset < maxOffset);
