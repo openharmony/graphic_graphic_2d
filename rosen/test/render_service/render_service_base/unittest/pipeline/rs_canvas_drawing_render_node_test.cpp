@@ -132,8 +132,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, IsNeedResetSurfaceTest, TestSize.Level1)
     NodeId nodeId = 1;
     std::weak_ptr<RSContext> context;
     RSCanvasDrawingRenderNode rsCanvasDrawingRenderNode(nodeId, context);
-    int width = 0;
-    int height = 0;
-    rsCanvasDrawingRenderNode.IsNeedResetSurface(width, height);
+    rsCanvasDrawingRenderNode.IsNeedResetSurface();
 }
 } // namespace OHOS::Rosen

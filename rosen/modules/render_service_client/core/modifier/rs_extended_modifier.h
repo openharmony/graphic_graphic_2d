@@ -95,9 +95,9 @@ protected:
         Draw(ctx);
         auto drawCmdList = RSExtendedModifierHelper::FinishDrawing(ctx);
 #ifndef USE_ROSEN_DRAWING
-        bool isEmpty = drawCmdList == nullptr || drawCmdList->GetSize() == 0;
+        bool isEmpty = drawCmdList == nullptr;
 #else
-        bool isEmpty = drawCmdList == nullptr || drawCmdList->IsEmpty();
+        bool isEmpty = drawCmdList == nullptr;
 #endif
         if (lastDrawCmdListEmpty_ && isEmpty) {
             return;

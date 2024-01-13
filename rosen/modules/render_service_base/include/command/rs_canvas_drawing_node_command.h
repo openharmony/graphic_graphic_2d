@@ -24,15 +24,19 @@ namespace Rosen {
 
 enum RSCanvasDrawingNodeCommandType : uint16_t {
     CANVAS_DRAWING_NODE_CREATE,
+    CANVAS_DRAWING_NODE_RESET_SURFACE,
 };
 
 class RSB_EXPORT RSCanvasDrawingNodeCommandHelper {
 public:
     static void Create(RSContext& context, NodeId id, bool isTextureExportNode = false);
+    static void ResetSurface(RSContext& context, NodeId id);
 };
 
 ADD_COMMAND(RSCanvasDrawingNodeCreate,
     ARG(CANVAS_DRAWING_NODE, CANVAS_DRAWING_NODE_CREATE, RSCanvasDrawingNodeCommandHelper::Create, NodeId, bool))
+ADD_COMMAND(RSCanvasDrawingNodeResetSurface,
+    ARG(CANVAS_DRAWING_NODE, CANVAS_DRAWING_NODE_RESET_SURFACE, RSCanvasDrawingNodeCommandHelper::ResetSurface, NodeId))
 
 } // namespace Rosen
 } // namespace OHOS

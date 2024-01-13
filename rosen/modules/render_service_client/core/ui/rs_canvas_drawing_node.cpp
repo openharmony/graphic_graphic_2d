@@ -47,6 +47,17 @@ RSCanvasDrawingNode::SharedPtr RSCanvasDrawingNode::Create(bool isRenderServiceN
     return node;
 }
 
+bool RSCanvasDrawingNode::ResetSurface()
+{
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (!transactionProxy) {
+        return false;
+    }
+    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasDrawingNodeResetSurface>(GetId());
+    transactionProxy->AddCommand(command, IsRenderServiceNode());
+    return true;
+}
+
 #ifndef USE_ROSEN_DRAWING
 bool RSCanvasDrawingNode::GetBitmap(SkBitmap& bitmap, std::shared_ptr<DrawCmdList> drawCmdList, const SkRect* rect)
 {

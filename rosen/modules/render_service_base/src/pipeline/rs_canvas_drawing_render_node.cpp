@@ -144,7 +144,7 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
     if (!GetSizeFromDrawCmdModifiers(width, height)) {
         return;
     }
-    if (IsNeedResetSurface(width, height)) {
+    if (IsNeedResetSurface()) {
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
         if (preThreadInfo_.second && skSurface_) {
             preThreadInfo_.second(std::move(skSurface_));
@@ -242,7 +242,7 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
         return;
     }
 
-    if (IsNeedResetSurface(width, height)) {
+    if (IsNeedResetSurface()) {
 #if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
         if (preThreadInfo_.second && surface_) {
             preThreadInfo_.second(std::move(surface_));
@@ -600,7 +600,7 @@ bool RSCanvasDrawingRenderNode::GetSizeFromDrawCmdModifiers(int& width, int& hei
     return true;
 }
 
-bool RSCanvasDrawingRenderNode::IsNeedResetSurface(const int& width, const int& height) const
+bool RSCanvasDrawingRenderNode::IsNeedResetSurface() const
 {
 #ifndef USE_ROSEN_DRAWING
     if (!skSurface_) {
@@ -608,22 +608,8 @@ bool RSCanvasDrawingRenderNode::IsNeedResetSurface(const int& width, const int& 
     if (!surface_ || !surface_->GetCanvas()) {
 #endif
         return true;
-    } else {
-        // There is no need to reapply the buffer during the animation, only if the size of the DrawCmdList set by ArkUI
-        // changes. When the component sets the margin and padding properties, ArkUI does not set the DrawCmdList size,
-        // in which case the size of the SkSurface should be the same as the size of Render Properties Bounds. In other
-        // cases, ArkUI sets the DrawCmdList to the same size as the Render Properties Bounds.
-#ifndef USE_ROSEN_DRAWING
-        return (skSurface_->width() != width || skSurface_->height() != height) &&
-               (static_cast<int>(GetRenderProperties().GetBoundsWidth()) != skSurface_->width() ||
-                   static_cast<int>(GetRenderProperties().GetBoundsHeight()) != skSurface_->height());
-#else
-        auto canvas = surface_->GetCanvas();
-        return (canvas->GetWidth() != width || canvas->GetHeight() != height) &&
-            (static_cast<int>(GetRenderProperties().GetBoundsWidth()) != canvas->GetWidth() ||
-            static_cast<int>(GetRenderProperties().GetBoundsHeight()) != canvas->GetHeight());
-#endif
     }
+    return false;
 }
 
 void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType type)
@@ -664,6 +650,11 @@ void RSCanvasDrawingRenderNode::ClearOp()
 {
     std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
     drawCmdLists_.clear();
+}
+
+void RSCanvasDrawingRenderNode::ResetSurface()
+{
+    surface_ = nullptr;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -71,12 +71,13 @@ public:
 
     void AddDirtyType(RSModifierType type) override;
     void ClearOp();
+    void ResetSurface();
 
 private:
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
     bool ResetSurface(int width, int height, RSPaintFilterCanvas& canvas);
     bool GetSizeFromDrawCmdModifiers(int& width, int& height);
-    bool IsNeedResetSurface(const int& width, const int& height) const;
+    bool IsNeedResetSurface() const;
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas);
 #endif
