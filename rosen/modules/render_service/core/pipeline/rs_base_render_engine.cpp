@@ -880,7 +880,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         if (params.isMirror) {
             samplingOptions = SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kNearest);
         } else {
-            samplingOptions = RSSystemProperties::IsPhoneType()
+            samplingOptions = RSSystemProperties::IsPhoneType() && !params.useBilinearInterpolation
                                 ? SkSamplingOptions()
                                 : SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
         }
@@ -904,7 +904,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         if (params.isMirror) {
             samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
         } else {
-            samplingOptions = RSSystemProperties::IsPhoneType()
+            samplingOptions = RSSystemProperties::IsPhoneType() && !params.useBilinearInterpolation
                                 ? Drawing::SamplingOptions()
                                 : Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
         }
@@ -926,7 +926,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     if (!RSSystemProperties::GetUniRenderEnabled()) {
         samplingOptions = SkSamplingOptions();
     } else {
-        samplingOptions = RSSystemProperties::IsPhoneType()
+        samplingOptions = RSSystemProperties::IsPhoneType() && !params.useBilinearInterpolation
                               ? SkSamplingOptions()
                               : SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
     }

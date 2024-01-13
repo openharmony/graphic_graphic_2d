@@ -135,6 +135,12 @@ public:
         isHardwareEnabledNode_ = isEnabled;
     }
 
+    bool NeedBilinearInterpolation() const
+    {
+        return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_ &&
+            name_ == "SceneViewer Model0";
+    }
+
     void SetSubNodeShouldPaint()
     {
         hasSubNodeShouldPaint_ = true;
