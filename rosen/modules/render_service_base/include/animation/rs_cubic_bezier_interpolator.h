@@ -18,6 +18,7 @@
 
 #include "animation/rs_interpolator.h"
 #include <cinttypes>
+#include "common/rs_common_def.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -30,8 +31,9 @@ public:
 
     float Interpolate(float input) const override
     {
-        if (std::abs(input - 1.0f) <= 1e-6) {
-            return 1.0f;
+        constexpr float ONE = 1.0f;
+        if (ROSEN_EQ(input, ONE, 1e-6f)) {
+            return ONE;
         }
         return GetCubicBezierValue(SEARCH_STEP * BinarySearch(input), controlly1_, controlly2_);
     }
