@@ -151,7 +151,7 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSAIBarFilter::MakeBinarizationSh
         uniform half saturation;
         uniform shader imageShader;
 
-        const vec3 toLuminance = vec3(0.3086, 0.6094, 0.0820)
+        const vec3 toLuminance = vec3(0.3086, 0.6094, 0.0820);
 
         half4 main(float2 coord) {
             half3 c = imageShader.eval(coord).rgb;
