@@ -16,7 +16,6 @@
 #ifndef OHOS_ROSEN_JS_COLOR_FILTER_H
 #define OHOS_ROSEN_JS_COLOR_FILTER_H
 
-#include "hilog/log.h"
 #include <native_engine/native_engine.h>
 #include <native_engine/native_value.h>
 #include "effect/color_filter.h"

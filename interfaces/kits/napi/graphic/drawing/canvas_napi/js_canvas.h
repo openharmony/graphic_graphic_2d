@@ -16,23 +16,28 @@
 #ifndef OHOS_ROSEN_JS_CANVAS_H
 #define OHOS_ROSEN_JS_CANVAS_H
 
-#include "hilog/log.h"
 #include <native_engine/native_engine.h>
 #include <native_engine/native_value.h>
 
-#include "draw/canvas.h"
-#include "image/image.h"
-#include "draw/path.h"
-#include "text/text.h"
-#include "text/text_blob.h"
-#include "utils/point.h"
-#include "utils/sampling_options.h"
-#include "utils/rect.h"
-#include "pixel_map.h"
-#include "pixel_map_napi.h"
-
 namespace OHOS::Rosen {
 namespace Drawing {
+
+#ifndef DRAWING_API
+#ifdef _WIN32
+#define DRAWING_EXPORT __attribute__((dllexport))
+#define DRAWING_IMPORT __attribute__((dllimport))
+#else
+#define DRAWING_EXPORT __attribute__((visibility("default")))
+#define DRAWING_IMPORT __attribute__((visibility("default")))
+#endif
+#ifdef MODULE_DRAWING
+#define DRAWING_API DRAWING_EXPORT
+#else
+#define DRAWING_API DRAWING_IMPORT
+#endif
+#endif
+
+class Canvas;
 class JsCanvas final {
 public:
     explicit JsCanvas(Canvas* canvas, bool owned = false) : m_canvas(canvas), owned_(owned) {};
@@ -40,7 +45,7 @@ public:
 
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void *nativeObject, void *finalize);
-    static napi_value CreateJsCanvas(napi_env env, Canvas* canvas, float width, float height);
+    DRAWING_API static napi_value CreateJsCanvas(napi_env env, Canvas* canvas, float width, float height);
 
     static napi_value Init(napi_env env, napi_value exportObj);
 
@@ -58,7 +63,7 @@ public:
     static napi_value DetachBrush(napi_env env, napi_callback_info info);
 
     Canvas* GetCanvas();
-    void ResetCanvas();
+    DRAWING_API void ResetCanvas();
 
 private:
     napi_value OnDrawRect(napi_env env, napi_callback_info info);

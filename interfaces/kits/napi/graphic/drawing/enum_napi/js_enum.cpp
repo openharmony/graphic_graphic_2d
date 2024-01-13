@@ -23,6 +23,12 @@
 #include "../js_drawing_utils.h"
 #include "native_value.h"
 
+#ifdef WINDOWS_PLATFORM
+#ifdef DIFFERENCE
+#undef DIFFERENCE
+#endif
+#endif
+
 namespace OHOS::Rosen {
 namespace Drawing {
 struct JsEnumInt {
