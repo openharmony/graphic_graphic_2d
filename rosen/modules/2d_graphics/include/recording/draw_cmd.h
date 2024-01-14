@@ -770,7 +770,6 @@ using DrawSymbolAnimation = struct DrawSymbolAnimation {
     // hierarchy animation need
     long long startDuration = 0;
     std::chrono::milliseconds curTime; // frame timestamp
-
 };
 
 class DrawSymbolOpItem : public DrawWithPaintOpItem {
