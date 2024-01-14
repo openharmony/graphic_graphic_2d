@@ -375,7 +375,8 @@ bool RSUniRenderUtil::HandleSubThreadNode(RSSurfaceRenderNode& node, RSPaintFilt
 {
     if (node.IsMainThreadNode()) {
         return false;
-    } else if (!node.QueryIfAllHwcChildrenForceDisabledByFilter()) {
+    } else if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC &&
+        !node.QueryIfAllHwcChildrenForceDisabledByFilter()) {
         return false; // this node should do DSS composition in mainThread although it is assigned to subThread
     }
     if (!node.HasCachedTexture()) {
