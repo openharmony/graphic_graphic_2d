@@ -768,36 +768,6 @@ std::shared_ptr<ImageFilter> CmdListHelper::GetImageFilterFromCmdList(const CmdL
 
     return imageFilter;
 }
-
-std::vector<std::shared_ptr<DrawOpItem>> CmdListHelper::GetDrawOpItemsFromHandle(const CmdList& cmdList,
-    const CmdListHandle& handle)
-{
-    if (handle.size == 0) {
-        LOGE("handle.size == 0 !");
-        return {};
-    }
-
-    const void* data = cmdList.GetCmdListData(handle.offset);
-    if (data == nullptr) {
-        LOGE("cmdList offset is invalid!");
-        return {};
-    }
-
-    auto drawCmdList = DrawCmdList::CreateFromData({data, handle.size});
-    if (drawCmdList == nullptr) {
-        LOGE("create cmdList failed!");
-        return {};
-    }
-
-    if (handle.imageSize > 0 && cmdList.GetImageData(handle.imageOffset) != nullptr) {
-        if (!drawCmdList->SetUpImageData(cmdList.GetImageData(handle.imageOffset), handle.imageSize)) {
-            LOGE("set up image data failed!");
-            return {};
-        }
-    }
-
-    return drawCmdList->UnmarshallingCmdList();
-}
 #ifdef ROSEN_OHOS
 uint32_t CmdListHelper::AddSurfaceBufferToCmdList(CmdList& cmdList, const sptr<SurfaceBuffer>& surfaceBuffer)
 {

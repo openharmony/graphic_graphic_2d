@@ -31,42 +31,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-void RecordingCanvas::GenerateHandleFromPaint(CmdList& cmdList, const Paint& paint, PaintHandle& paintHandle)
-{
-    paintHandle.isAntiAlias = paint.IsAntiAlias();
-    paintHandle.style = paint.GetStyle();
-    paintHandle.color = paint.GetColor();
-    paintHandle.mode = paint.GetBlendMode();
-
-    if (paint.HasFilter()) {
-        const Filter& filter = paint.GetFilter();
-        paintHandle.filterQuality = filter.GetFilterQuality();
-        paintHandle.colorFilterHandle = CmdListHelper::AddColorFilterToCmdList(cmdList, filter.GetColorFilter());
-        paintHandle.imageFilterHandle = CmdListHelper::AddImageFilterToCmdList(cmdList, filter.GetImageFilter());
-        paintHandle.maskFilterHandle = CmdListHelper::AddMaskFilterToCmdList(cmdList, filter.GetMaskFilter());
-    }
-
-    if (paint.GetColorSpace()) {
-        paintHandle.colorSpaceHandle = CmdListHelper::AddColorSpaceToCmdList(cmdList, paint.GetColorSpace());
-    }
-
-    if (paint.GetShaderEffect()) {
-        paintHandle.shaderEffectHandle = CmdListHelper::AddShaderEffectToCmdList(cmdList, paint.GetShaderEffect());
-    }
-
-    if (!paint.HasStrokeStyle()) {
-        return;
-    }
-
-    paintHandle.width = paint.GetWidth();
-    paintHandle.miterLimit = paint.GetMiterLimit();
-    paintHandle.capStyle = paint.GetCapStyle();
-    paintHandle.joinStyle = paint.GetJoinStyle();
-    if (paint.GetPathEffect()) {
-        paintHandle.pathEffectHandle = CmdListHelper::AddPathEffectToCmdList(cmdList, paint.GetPathEffect());
-    }
-}
-
 RecordingCanvas::RecordingCanvas(int width, int height) : Canvas(width, height)
 {
     cmdList_ = std::make_shared<DrawCmdList>(width, height);
@@ -145,18 +109,8 @@ void RecordingCanvas::DrawPath(const Path& path)
 
 void RecordingCanvas::DrawBackground(const Brush& brush)
 {
-    Filter filter = brush.GetFilter();
-    BrushHandle brushHandle = {
-        brush.GetColor(),
-        brush.GetBlendMode(),
-        brush.IsAntiAlias(),
-        filter.GetFilterQuality(),
-        CmdListHelper::AddColorSpaceToCmdList(*cmdList_, brush.GetColorSpace()),
-        CmdListHelper::AddShaderEffectToCmdList(*cmdList_, brush.GetShaderEffect()),
-        CmdListHelper::AddColorFilterToCmdList(*cmdList_, filter.GetColorFilter()),
-        CmdListHelper::AddImageFilterToCmdList(*cmdList_, filter.GetImageFilter()),
-        CmdListHelper::AddMaskFilterToCmdList(*cmdList_, filter.GetMaskFilter()),
-    };
+    BrushHandle brushHandle;
+    DrawOpItem::BrushToBrushHandle(brush, *cmdList_, brushHandle);
     cmdList_->AddOp<DrawBackgroundOpItem::ConstructorHandle>(brushHandle);
 }
 
@@ -177,41 +131,13 @@ void RecordingCanvas::DrawRegion(const Region& region)
 void RecordingCanvas::DrawPatch(const Point cubics[12], const ColorQuad colors[4],
     const Point texCoords[4], BlendMode mode)
 {
-    const size_t cubicsCount = 12;
-    std::vector<Point> skiaCubics = {};
-    if (cubics != nullptr) {
-        skiaCubics = std::vector<Point>(cubics, cubics + cubicsCount);
-    }
-
-    const size_t colorsCount = 4;
-    std::vector<ColorQuad> skiaColors = {};
-    if (colors != nullptr) {
-        skiaColors = std::vector<ColorQuad>(colors, colors + colorsCount);
-    }
-
-    const size_t texCoordsCount = 4;
-    std::vector<Point> skiaTexCoords = {};
-    if (texCoords != nullptr) {
-        skiaTexCoords = std::vector<Point>(texCoords, texCoords + texCoordsCount);
-    }
-
-    auto cubicsData = CmdListHelper::AddVectorToCmdList<Point>(*cmdList_, skiaCubics);
-    auto colorsData = CmdListHelper::AddVectorToCmdList<ColorQuad>(*cmdList_, skiaColors);
-    auto texCoordsData = CmdListHelper::AddVectorToCmdList<Point>(*cmdList_, skiaTexCoords);
-    AddOp<DrawPatchOpItem::ConstructorHandle>(cubicsData, colorsData, texCoordsData, mode);
+    LOGE("RecordingCanvas::DrawPatch not support yet");
 }
 
 void RecordingCanvas::DrawEdgeAAQuad(const Rect& rect, const Point clip[4],
     QuadAAFlags aaFlags, ColorQuad color, BlendMode mode)
 {
-    const size_t clipCount = 4;
-    std::vector<Point> clipData = {};
-    if (clip != nullptr) {
-        clipData = std::vector<Point>(clip, clip + clipCount);
-    }
-
-    auto clipDataPtr = CmdListHelper::AddVectorToCmdList<Point>(*cmdList_, clipData);
-    cmdList_->AddOp<DrawEdgeAAQuadOpItem::ConstructorHandle>(rect, clipDataPtr, aaFlags, color, mode);
+    LOGE("RecordingCanvas::DrawEdgeAAQuad not support yet");
 }
 
 void RecordingCanvas::DrawVertices(const Vertices& vertices, BlendMode mode)
@@ -228,18 +154,7 @@ void RecordingCanvas::DrawImageNine(const Image* image, const RectI& center, con
     bool hasBrush = false;
     if (brush != nullptr) {
         hasBrush = true;
-        Filter filter = brush->GetFilter();
-        brushHandle = {
-            brush->GetColor(),
-            brush->GetBlendMode(),
-            brush->IsAntiAlias(),
-            filter.GetFilterQuality(),
-            CmdListHelper::AddColorSpaceToCmdList(*cmdList_, brush->GetColorSpace()),
-            CmdListHelper::AddShaderEffectToCmdList(*cmdList_, brush->GetShaderEffect()),
-            CmdListHelper::AddColorFilterToCmdList(*cmdList_, filter.GetColorFilter()),
-            CmdListHelper::AddImageFilterToCmdList(*cmdList_, filter.GetImageFilter()),
-            CmdListHelper::AddMaskFilterToCmdList(*cmdList_, filter.GetMaskFilter()),
-        };
+        DrawOpItem::BrushToBrushHandle(*brush, *cmdList_, brushHandle);
     }
 
     cmdList_->AddOp<DrawImageNineOpItem::ConstructorHandle>(
@@ -248,8 +163,7 @@ void RecordingCanvas::DrawImageNine(const Image* image, const RectI& center, con
 
 void RecordingCanvas::DrawAnnotation(const Rect& rect, const char* key, const Data* data)
 {
-    auto dataHandle = CmdListHelper::AddDataToCmdList(*cmdList_, data);
-    cmdList_->AddOp<DrawAnnotationOpItem::ConstructorHandle>(rect, key, dataHandle);
+    LOGE("RecordingCanvas::DrawAnnotation not support yet");
 }
 
 void RecordingCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
@@ -260,18 +174,7 @@ void RecordingCanvas::DrawImageLattice(const Image* image, const Lattice& lattic
     bool hasBrush = false;
     if (brush != nullptr) {
         hasBrush = true;
-        Filter filter = brush->GetFilter();
-        brushHandle = {
-            brush->GetColor(),
-            brush->GetBlendMode(),
-            brush->IsAntiAlias(),
-            filter.GetFilterQuality(),
-            CmdListHelper::AddColorSpaceToCmdList(*cmdList_, brush->GetColorSpace()),
-            CmdListHelper::AddShaderEffectToCmdList(*cmdList_, brush->GetShaderEffect()),
-            CmdListHelper::AddColorFilterToCmdList(*cmdList_, filter.GetColorFilter()),
-            CmdListHelper::AddImageFilterToCmdList(*cmdList_, filter.GetImageFilter()),
-            CmdListHelper::AddMaskFilterToCmdList(*cmdList_, filter.GetMaskFilter()),
-        };
+        DrawOpItem::BrushToBrushHandle(*brush, *cmdList_, brushHandle);
     }
 
     cmdList_->AddOp<DrawImageLatticeOpItem::ConstructorHandle>(
@@ -477,18 +380,7 @@ void RecordingCanvas::SaveLayer(const SaveLayerOps& saveLayerOps)
     const Brush* brush = saveLayerOps.GetBrush();
     if (brush != nullptr) {
         hasBrush = true;
-        Filter filter = brush->GetFilter();
-        brushHandle = {
-            brush->GetColor(),
-            brush->GetBlendMode(),
-            brush->IsAntiAlias(),
-            filter.GetFilterQuality(),
-            CmdListHelper::AddColorSpaceToCmdList(*cmdList_, brush->GetColorSpace()),
-            CmdListHelper::AddShaderEffectToCmdList(*cmdList_, brush->GetShaderEffect()),
-            CmdListHelper::AddColorFilterToCmdList(*cmdList_, filter.GetColorFilter()),
-            CmdListHelper::AddImageFilterToCmdList(*cmdList_, filter.GetImageFilter()),
-            CmdListHelper::AddMaskFilterToCmdList(*cmdList_, filter.GetMaskFilter()),
-        };
+        DrawOpItem::BrushToBrushHandle(*brush, *cmdList_, brushHandle);
     }
     FlattenableHandle imageFilterHandle = CmdListHelper::AddImageFilterToCmdList(
         *cmdList_, saveLayerOps.GetImageFilter());
@@ -530,25 +422,25 @@ void RecordingCanvas::ClipAdaptiveRoundRect(const std::vector<Point>& radius)
 }
 
 void RecordingCanvas::DrawImage(const std::shared_ptr<Image>& image, const std::shared_ptr<Data>& data,
-    const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& smapling)
+    const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& sampling)
 {
     OpDataHandle imageHandle;
     if (data != nullptr) {
         imageHandle = CmdListHelper::AddCompressDataToCmdList(*cmdList_, data);
-        AddOp<DrawAdaptiveImageOpItem::ConstructorHandle>(imageHandle, rsImageInfo, smapling, false);
+        AddOp<DrawAdaptiveImageOpItem::ConstructorHandle>(imageHandle, rsImageInfo, sampling, false);
         return;
     }
     if (image != nullptr) {
         imageHandle = CmdListHelper::AddImageToCmdList(*cmdList_, image);
-        AddOp<DrawAdaptiveImageOpItem::ConstructorHandle>(imageHandle, rsImageInfo, smapling, true);
+        AddOp<DrawAdaptiveImageOpItem::ConstructorHandle>(imageHandle, rsImageInfo, sampling, true);
     }
 }
 
 void RecordingCanvas::DrawPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap,
-    const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& smapling)
+    const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& sampling)
 {
     auto pixelmapHandle = CmdListHelper::AddPixelMapToCmdList(*cmdList_, pixelMap);
-    AddOp<DrawAdaptivePixelMapOpItem::ConstructorHandle>(pixelmapHandle, rsImageInfo, smapling);
+    AddOp<DrawAdaptivePixelMapOpItem::ConstructorHandle>(pixelmapHandle, rsImageInfo, sampling);
 }
 
 void RecordingCanvas::SetIsCustomTextType(bool isCustomTextType)
@@ -585,19 +477,19 @@ void RecordingCanvas::AddOp(Args&&... args)
     if (brushValid && penValid && Paint::CanCombinePaint(paintBrush_, paintPen_)) {
         PaintHandle paintHandle;
         paintPen_.SetStyle(Paint::PaintStyle::PAINT_FILL_STROKE);
-        GenerateHandleFromPaint(*cmdList_, paintPen_, paintHandle);
+        DrawOpItem::GenerateHandleFromPaint(*cmdList_, paintPen_, paintHandle);
         cmdList_->AddOp<T>(std::forward<Args>(args)..., paintHandle);
         paintPen_.SetStyle(Paint::PaintStyle::PAINT_STROKE);
         return;
     }
     if (brushValid) {
         PaintHandle paintHandle;
-        GenerateHandleFromPaint(*cmdList_, paintBrush_, paintHandle);
+        DrawOpItem::GenerateHandleFromPaint(*cmdList_, paintBrush_, paintHandle);
         cmdList_->AddOp<T>(std::forward<Args>(args)..., paintHandle);
     }
     if (penValid) {
         PaintHandle paintHandle;
-        GenerateHandleFromPaint(*cmdList_, paintPen_, paintHandle);
+        DrawOpItem::GenerateHandleFromPaint(*cmdList_, paintPen_, paintHandle);
         cmdList_->AddOp<T>(std::forward<Args>(args)..., paintHandle);
     }
 }

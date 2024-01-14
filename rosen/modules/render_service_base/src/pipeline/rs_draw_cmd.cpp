@@ -2636,6 +2636,7 @@ DrawFuncOpItem::DrawFuncOpItem(DrawFunc&& func)
 #include "platform/common/rs_log.h"
 #include "render/rs_pixel_map_util.h"
 #include "recording/cmd_list_helper.h"
+#include "recording/draw_cmd_list.h"
 #include "utils/system_properties.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "platform/common/rs_system_properties.h"
@@ -2988,16 +2989,27 @@ REGISTER_UNMARSHALLING_FUNC(
     DrawImageWithParm, DrawOpItem::IMAGE_WITH_PARM_OPITEM, DrawImageWithParmOpItem::Unmarshalling);
 
 DrawImageWithParmOpItem::DrawImageWithParmOpItem(
-    const CmdList& cmdList, DrawImageWithParmOpItem::ConstructorHandle* handle)
+    const DrawCmdList& cmdList, DrawImageWithParmOpItem::ConstructorHandle* handle)
     : DrawWithPaintOpItem(cmdList, handle->paintHandle, IMAGE_WITH_PARM_OPITEM), sampling_(handle->sampling)
 {
     objectHandle_ = CmdListHelper::GetImageObjectFromCmdList(cmdList, handle->objectHandle);
 }
 
-std::shared_ptr<DrawOpItem> DrawImageWithParmOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+DrawImageWithParmOpItem::DrawImageWithParmOpItem(const std::shared_ptr<Image>& image, const std::shared_ptr<Data>& data,
+    const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& sampling, const Paint& paint)
+    : DrawWithPaintOpItem(paint, IMAGE_WITH_PARM_OPITEM), sampling_(sampling)
+{
+    objectHandle_ = std::make_shared<RSExtendImageObject>(image, data, rsImageInfo);
+}
+
+std::shared_ptr<DrawOpItem> DrawImageWithParmOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
     return std::make_shared<DrawImageWithParmOpItem>(
         cmdList, static_cast<DrawImageWithParmOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawImageWithParmOpItem::Marshalling(DrawCmdList& cmdList)
+{
 }
 
 void DrawImageWithParmOpItem::Playback(Canvas* canvas, const Rect* rect)
@@ -3024,16 +3036,27 @@ REGISTER_UNMARSHALLING_FUNC(
     DrawPixelMapWithParm, DrawOpItem::PIXELMAP_WITH_PARM_OPITEM, DrawPixelMapWithParmOpItem::Unmarshalling);
 
 DrawPixelMapWithParmOpItem::DrawPixelMapWithParmOpItem(
-    const CmdList& cmdList, DrawPixelMapWithParmOpItem::ConstructorHandle* handle)
+    const DrawCmdList& cmdList, DrawPixelMapWithParmOpItem::ConstructorHandle* handle)
     : DrawWithPaintOpItem(cmdList, handle->paintHandle, PIXELMAP_WITH_PARM_OPITEM), sampling_(handle->sampling)
 {
     objectHandle_ = CmdListHelper::GetImageObjectFromCmdList(cmdList, handle->objectHandle);
 }
 
-std::shared_ptr<DrawOpItem> DrawPixelMapWithParmOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+DrawPixelMapWithParmOpItem::DrawPixelMapWithParmOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap,
+    const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& sampling, const Paint& paint)
+    : DrawWithPaintOpItem(paint, PIXELMAP_WITH_PARM_OPITEM), sampling_(sampling)
+{
+    objectHandle_ = std::make_shared<RSExtendImageObject>(pixelMap, rsImageInfo);
+}
+
+std::shared_ptr<DrawOpItem> DrawPixelMapWithParmOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
     return std::make_shared<DrawPixelMapWithParmOpItem>(
         cmdList, static_cast<DrawPixelMapWithParmOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawPixelMapWithParmOpItem::Marshalling(DrawCmdList& cmdList)
+{
 }
 
 void DrawPixelMapWithParmOpItem::Playback(Canvas* canvas, const Rect* rect)
@@ -3059,16 +3082,27 @@ void DrawPixelMapWithParmOpItem::SetNodeId(NodeId id)
 REGISTER_UNMARSHALLING_FUNC(DrawPixelMapRect, DrawOpItem::PIXELMAP_RECT_OPITEM, DrawPixelMapRectOpItem::Unmarshalling);
 
 DrawPixelMapRectOpItem::DrawPixelMapRectOpItem(
-    const CmdList& cmdList, DrawPixelMapRectOpItem::ConstructorHandle* handle)
+    const DrawCmdList& cmdList, DrawPixelMapRectOpItem::ConstructorHandle* handle)
     : DrawWithPaintOpItem(cmdList, handle->paintHandle, PIXELMAP_RECT_OPITEM), sampling_(handle->sampling)
 {
     objectHandle_ = CmdListHelper::GetImageBaseObjFromCmdList(cmdList, handle->objectHandle);
 }
 
-std::shared_ptr<DrawOpItem> DrawPixelMapRectOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+DrawPixelMapRectOpItem::DrawPixelMapRectOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap, const Rect& src,
+    const Rect& dst, const SamplingOptions& sampling, const Paint& paint)
+    : DrawWithPaintOpItem(paint, PIXELMAP_RECT_OPITEM), sampling_(sampling)
+{
+    objectHandle_ = std::make_shared<RSExtendImageBaseObj>(pixelMap, src, dst);
+}
+
+std::shared_ptr<DrawOpItem> DrawPixelMapRectOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
     return std::make_shared<DrawPixelMapRectOpItem>(
         cmdList, static_cast<DrawPixelMapRectOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawPixelMapRectOpItem::Marshalling(DrawCmdList& cmdList)
+{
 }
 
 void DrawPixelMapRectOpItem::Playback(Canvas* canvas, const Rect* rect)
@@ -3093,15 +3127,19 @@ void DrawPixelMapRectOpItem::SetNodeId(NodeId id)
 /* DrawFuncOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawFunc, DrawOpItem::DRAW_FUNC_OPITEM, DrawFuncOpItem::Unmarshalling);
 
-DrawFuncOpItem::DrawFuncOpItem(const CmdList& cmdList, DrawFuncOpItem::ConstructorHandle* handle)
+DrawFuncOpItem::DrawFuncOpItem(const DrawCmdList& cmdList, DrawFuncOpItem::ConstructorHandle* handle)
     : DrawOpItem(DRAW_FUNC_OPITEM)
 {
     objectHandle_ = CmdListHelper::GetDrawFuncObjFromCmdList(cmdList, handle->objectHandle);
 }
 
-std::shared_ptr<DrawOpItem> DrawFuncOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+std::shared_ptr<DrawOpItem> DrawFuncOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
     return std::make_shared<DrawFuncOpItem>(cmdList, static_cast<DrawFuncOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawFuncOpItem::Marshalling(DrawCmdList& cmdList)
+{
 }
 
 void DrawFuncOpItem::Playback(Canvas* canvas, const Rect* rect)
@@ -3116,7 +3154,7 @@ void DrawFuncOpItem::Playback(Canvas* canvas, const Rect* rect)
 REGISTER_UNMARSHALLING_FUNC(
     DrawSurfaceBuffer, DrawOpItem::SURFACEBUFFER_OPITEM, DrawSurfaceBufferOpItem::Unmarshalling);
 
-DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(const CmdList& cmdList,
+DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(const DrawCmdList& cmdList,
     DrawSurfaceBufferOpItem::ConstructorHandle* handle)
     : DrawWithPaintOpItem(cmdList, handle->paintHandle, SURFACEBUFFER_OPITEM),
       surfaceBufferInfo_(nullptr, handle->surfaceBufferInfo.offSetX_, handle->surfaceBufferInfo.offSetY_,
@@ -3130,10 +3168,14 @@ DrawSurfaceBufferOpItem::~DrawSurfaceBufferOpItem()
     Clear();
 }
 
-std::shared_ptr<DrawOpItem> DrawSurfaceBufferOpItem::Unmarshalling(const CmdList& cmdList, void* handle)
+std::shared_ptr<DrawOpItem> DrawSurfaceBufferOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
     return std::make_shared<DrawSurfaceBufferOpItem>(cmdList,
         static_cast<DrawSurfaceBufferOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawSurfaceBufferOpItem::Marshalling(DrawCmdList& cmdList)
+{
 }
 
 void DrawSurfaceBufferOpItem::Playback(Canvas* canvas, const Rect* rect)

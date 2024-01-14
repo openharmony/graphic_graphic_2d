@@ -122,16 +122,15 @@ public:
 
     void ClipAdaptiveRoundRect(const std::vector<Point>& radius);
     void DrawImage(const std::shared_ptr<Image>& image, const std::shared_ptr<Data>& data,
-        const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& smapling);
+        const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& sampling);
     void DrawPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap,
-        const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& smapling);
+        const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& sampling);
 
     void SetIsCustomTextType(bool isCustomTextType);
     bool IsCustomTextType() const;
 
     using DrawFunc = std::function<void(Drawing::Canvas* canvas, const Drawing::Rect* rect)>;
 protected:
-    static void GenerateHandleFromPaint(CmdList& cmdList, const Paint& paint, PaintHandle& paintHandle);
     std::shared_ptr<DrawCmdList> cmdList_ = nullptr;
 
 private:

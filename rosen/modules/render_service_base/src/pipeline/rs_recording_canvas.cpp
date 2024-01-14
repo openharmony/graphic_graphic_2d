@@ -562,19 +562,19 @@ void ExtendRecordingCanvas::AddOp(Args&&... args)
     if (brushValid && penValid && Drawing::Paint::CanCombinePaint(paintBrush_, paintPen_)) {
         Drawing::PaintHandle paintHandle;
         paintPen_.SetStyle(Drawing::Paint::PaintStyle::PAINT_FILL_STROKE);
-        Drawing::RecordingCanvas::GenerateHandleFromPaint(*cmdList_, paintPen_, paintHandle);
+        Drawing::DrawOpItem::GenerateHandleFromPaint(*cmdList_, paintPen_, paintHandle);
         cmdList_->AddOp<T>(std::forward<Args>(args)..., paintHandle);
         paintPen_.SetStyle(Drawing::Paint::PaintStyle::PAINT_STROKE);
         return;
     }
     if (brushValid) {
         Drawing::PaintHandle paintHandle;
-        Drawing::RecordingCanvas::GenerateHandleFromPaint(*cmdList_, paintBrush_, paintHandle);
+        Drawing::DrawOpItem::GenerateHandleFromPaint(*cmdList_, paintBrush_, paintHandle);
         cmdList_->AddOp<T>(std::forward<Args>(args)..., paintHandle);
     }
     if (penValid) {
         Drawing::PaintHandle paintHandle;
-        Drawing::RecordingCanvas::GenerateHandleFromPaint(*cmdList_, paintPen_, paintHandle);
+        Drawing::DrawOpItem::GenerateHandleFromPaint(*cmdList_, paintPen_, paintHandle);
         cmdList_->AddOp<T>(std::forward<Args>(args)..., paintHandle);
     }
 }

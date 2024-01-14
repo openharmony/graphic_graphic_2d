@@ -231,9 +231,6 @@ public:
     static std::shared_ptr<ImageFilter> GetImageFilterFromCmdList(const CmdList& cmdList,
         const FlattenableHandle& imageFilterHandle);
 
-    static std::vector<std::shared_ptr<DrawOpItem>> GetDrawOpItemsFromHandle(
-        const CmdList& cmdList, const CmdListHandle& handle);
-
     static SymbolOpHandle AddSymbolToCmdList(CmdList& cmdList, const DrawingHMSymbolData& symbol);
     static DrawingHMSymbolData GetSymbolFromCmdList(const CmdList& cmdList, const SymbolOpHandle& symbolHandle);
 

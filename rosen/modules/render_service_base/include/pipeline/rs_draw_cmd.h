@@ -1844,10 +1844,13 @@ public:
         SamplingOptions sampling;
         PaintHandle paintHandle;
     };
-    DrawImageWithParmOpItem(const CmdList& cmdList, ConstructorHandle* handle);
+    DrawImageWithParmOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    DrawImageWithParmOpItem(const std::shared_ptr<Image>& image, const std::shared_ptr<Data>& data,
+        const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& sampling, const Paint& paint);
     ~DrawImageWithParmOpItem() override = default;
 
-    static std::shared_ptr<DrawOpItem> Unmarshalling(const CmdList& cmdList, void* handle);
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
     void SetNodeId(NodeId id) override;
 private:
@@ -1867,10 +1870,13 @@ public:
         SamplingOptions sampling;
         PaintHandle paintHandle;
     };
-    DrawPixelMapWithParmOpItem(const CmdList& cmdList, ConstructorHandle* handle);
+    DrawPixelMapWithParmOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    DrawPixelMapWithParmOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap,
+        const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& sampling, const Paint& paint);
     ~DrawPixelMapWithParmOpItem() override = default;
 
-    static std::shared_ptr<DrawOpItem> Unmarshalling(const CmdList& cmdList, void* handle);
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
     void SetNodeId(NodeId id) override;
 private:
@@ -1890,10 +1896,13 @@ public:
         SamplingOptions sampling;
         PaintHandle paintHandle;
     };
-    DrawPixelMapRectOpItem(const CmdList& cmdList, ConstructorHandle* handle);
+    DrawPixelMapRectOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    DrawPixelMapRectOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap, const Rect& src, const Rect& dst,
+        const SamplingOptions& sampling, const Paint& paint);
     ~DrawPixelMapRectOpItem() override = default;
 
-    static std::shared_ptr<DrawOpItem> Unmarshalling(const CmdList& cmdList, void* handle);
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
     void SetNodeId(NodeId id) override;
 private:
@@ -1910,10 +1919,12 @@ public:
         ~ConstructorHandle() override = default;
         OpDataHandle objectHandle;
     };
-    DrawFuncOpItem(const CmdList& cmdList, ConstructorHandle* handle);
+    DrawFuncOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    explicit DrawFuncOpItem(RecordingCanvas::DrawFunc&& drawFunc);
     ~DrawFuncOpItem() override = default;
 
-    static std::shared_ptr<DrawOpItem> Unmarshalling(const CmdList& cmdList, void* handle);
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
 private:
     std::shared_ptr<ExtendDrawFuncObj> objectHandle_;
@@ -1933,12 +1944,14 @@ public:
         PaintHandle paintHandle;
     };
 
-    DrawSurfaceBufferOpItem(const CmdList& cmdList, ConstructorHandle* handle);
+    DrawSurfaceBufferOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    DrawSurfaceBufferOpItem(const DrawingSurfaceBufferInfo& surfaceBufferInfo, const Paint& paint)
+        : DrawWithPaintOpItem(paint, SURFACEBUFFER_OPITEM), surfaceBufferInfo_(surfaceBufferInfo) {}
     ~DrawSurfaceBufferOpItem();
 
-    static std::shared_ptr<DrawOpItem> Unmarshalling(const CmdList& cmdList, void* handle);
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
-
 private:
     mutable DrawingSurfaceBufferInfo surfaceBufferInfo_;
     void Clear();
