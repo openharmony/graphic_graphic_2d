@@ -20,6 +20,8 @@
 #include <functional>
 #include <stack>
 #include <utility>
+#include <ctime>
+#include <chrono>
 
 #include "draw/canvas.h"
 #include "draw/paint.h"
@@ -766,8 +768,9 @@ using DrawSymbolAnimation = struct DrawSymbolAnimation {
     double speedValue = 0.01;
     uint32_t number = 0; // animate times when reach the destination
     // hierarchy animation need
-    uint32_t startCount = 0; // animate from this frame
-    uint32_t count = 0; // number of frames
+    long long startDuration = 0;
+    std::chrono::milliseconds curTime; // frame timestamp
+
 };
 
 class DrawSymbolOpItem : public DrawWithPaintOpItem {

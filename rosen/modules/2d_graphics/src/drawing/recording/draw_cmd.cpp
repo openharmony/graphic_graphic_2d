@@ -1128,6 +1128,9 @@ void DrawSymbolOpItem::InitialScale()
     animation.endValue = 0.5; // 0.5 means scale end value
     animation.speedValue = 0.05; // 0.05 means scale change step
     animation.number = 0; // 0 means number of times that the animation to be played
+    animation.curTime = std::chrono::duration_cast<
+        std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()); //time ms
     animation_.push_back(animation);
     startAnimation_ = true;
 }
@@ -1135,7 +1138,12 @@ void DrawSymbolOpItem::InitialScale()
 void DrawSymbolOpItem::InitialVariableColor()
 {
     LOGD("SetSymbol groups %{public}d", static_cast<int>(symbol_.symbolInfo_.renderGroups.size()));
-    uint32_t startTimes = 10 * symbol_.symbolInfo_.renderGroups.size() - 10; // 10 means frame intervals
+
+    long long standStartDuration = 299;
+    std::chrono::milliseconds standStartTime = std::chrono::duration_cast<
+        std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch());
+
     for (size_t j = 0; j < symbol_.symbolInfo_.renderGroups.size(); j++) {
         DrawSymbolAnimation animation;
         animation.startValue = 0.4; // 0.4 means alpha start value
@@ -1143,8 +1151,8 @@ void DrawSymbolOpItem::InitialVariableColor()
         animation.endValue = 1; // 1 means alpha end value
         animation.speedValue = 0.08; // 0.08 means alpha change step
         animation.number = 0; // 0 means number of times that the animation to be played
-        animation.startCount = startTimes - j * 10; // 10 means frame intervals
-        animation.count = 0; // 0 means the initial value of the frame
+        animation.startDuration = standStartDuration - 100 * j;
+        animation.curTime = standStartTime; // 
         animation_.push_back(animation);
         symbol_.symbolInfo_.renderGroups[j].color.a = animation.startValue;
     }
@@ -1189,12 +1197,22 @@ void DrawSymbolOpItem::SetVariableColor(size_t index)
         return;
     }
 
-    animation_[index].count++;
     DrawSymbolAnimation animation = animation_[index];
+
+    auto curTime = std::chrono::duration_cast<
+        std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch());
+
+    long long duration = (curTime - animation.curTime).count(); // ms
+    animation.curTime = curTime;
+    animation.startDuration = animation.startDuration - duration;
     if (animation.startValue == animation.endValue ||
-        animation.count < animation.startCount) {
+        animation.startDuration > 0) {
         return;
     }
+    
+    // cal step
+    float calSpeed = 1.2 / 800 * duration; //800 and 1.2 is duration
 
     if (abs(animation.curValue - animation.endValue) < animation.speedValue) {
         double stemp = animation.startValue;
@@ -1202,11 +1220,13 @@ void DrawSymbolOpItem::SetVariableColor(size_t index)
         animation.endValue = stemp;
         animation.number++;
     }
+
     if (animation.endValue > animation.startValue) {
-        animation.curValue = animation.curValue + animation.speedValue;
+        animation.curValue = animation.curValue + calSpeed;
     } else {
-        animation.curValue = animation.curValue - animation.speedValue;
+        animation.curValue = animation.curValue - calSpeed;
     }
+
     UpdataVariableColor(animation.curValue, index);
     animation_[index] = animation;
 }
