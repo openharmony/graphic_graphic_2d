@@ -66,15 +66,9 @@ public:
     bool GetIsFilled() const;
     int GetColorStrategy() const;
 
-    bool GetHardwareAcceleration() const
-    {
-        return isHardwareAcceleration_;
-    }
     bool IsValid() const;
 
 private:
-    bool isHardwareAcceleration_ = false;
-
     Color color_ = Color::FromArgbInt(DEFAULT_SPOT_COLOR);
     float offsetX_ = DEFAULT_SHADOW_OFFSET_X;
     float offsetY_ = DEFAULT_SHADOW_OFFSET_Y;

@@ -363,10 +363,7 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
     skPath.offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
 
     SkRect shadowRect = skPath.getBounds();
-    if (properties.shadow_->GetHardwareAcceleration()) {
-        if (properties.GetShadowElevation() <= 0.f) {
-            return;
-        }
+    if (properties.GetShadowElevation() > 0.f) {
         float elevation = properties.GetShadowElevation() + DEFAULT_TRANSLATION_Z;
 
         float userTransRatio =
@@ -430,10 +427,7 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
     path.Offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
 
     Drawing::Rect shadowRect = path.GetBounds();
-    if (properties.shadow_->GetHardwareAcceleration()) {
-        if (properties.GetShadowElevation() <= 0.f) {
-            return;
-        }
+    if (properties.GetShadowElevation() > 0.f) {
         float elevation = properties.GetShadowElevation() + DEFAULT_TRANSLATION_Z;
 
         float userTransRatio =
@@ -590,7 +584,7 @@ void RSPropertiesPainter::DrawColorfulShadowInner(
 {
     // blurRadius calculation is based on the formula in Canvas::DrawShadow, 0.25f and 128.0f are constants
     const Drawing::scalar blurRadius =
-        properties.shadow_->GetHardwareAcceleration()
+        properties.GetShadowElevation() > 0.f
             ? 0.25f * properties.GetShadowElevation() * (1 + properties.GetShadowElevation() / 128.0f)
             : properties.GetShadowRadius();
 
@@ -799,10 +793,7 @@ void RSPropertiesPainter::DrawShadowInner(const RSProperties& properties, RSPain
         colorPicked = spotColor;
     }
 
-    if (properties.shadow_->GetHardwareAcceleration()) {
-        if (properties.GetShadowElevation() <= 0.f) {
-            return;
-        }
+    if (properties.GetShadowElevation() > 0.f) {
         SkPoint3 planeParams = { 0.0f, 0.0f, properties.GetShadowElevation() };
         SkPoint pt = { skPath.getBounds().centerX(), skPath.getBounds().centerY() };
         canvas.getTotalMatrix().mapPoints(&pt, 1);

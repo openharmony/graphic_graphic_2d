@@ -45,13 +45,11 @@ void RSShadow::SetAlpha(float alpha)
 
 void RSShadow::SetElevation(float elevation)
 {
-    isHardwareAcceleration_ = true;
     elevation_ = elevation;
 }
 
 void RSShadow::SetRadius(float radius)
 {
-    isHardwareAcceleration_ = false;
     radius_ = radius;
 }
 
@@ -127,11 +125,7 @@ int RSShadow::GetColorStrategy() const
 
 bool RSShadow::IsValid() const
 {
-    if (isHardwareAcceleration_) {
-        return GetAlpha() > 0.f;
-    } else {
-        return radius_ > 0.f;
-    }
+    return (GetElevation() > 0.f && GetAlpha() > 0.f) || (GetRadius() > 0.f);
 }
 
 } // namespace Rosen
