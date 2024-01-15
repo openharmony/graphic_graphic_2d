@@ -22,8 +22,27 @@
 extern "C" {
 #endif
 
+/**
+ * @brief Creates an <b>OH_Drawing_PathEffect</b> object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param intervals Indicates a array which contain an even number of entries.
+ * @param count Indicates the number of elements of the intervals array.
+ * @param phase Indicates the offset into the intervals array.
+ * @return Returns the pointer to the <b>OH_Drawing_PathEffect</b> object created.
+ * @since 11
+ * @version 1.0
+ */
 OH_Drawing_PathEffect* OH_Drawing_CreateDashPathEffect(float* intervals, int count, float phase);
 
+/**
+ * @brief Destroys an <b>OH_Drawing_PathEffect</b> object and reclaims the memory occupied by the object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_PathEffect Indicates the pointer to an <b>OH_Drawing_PathEffect</b> object.
+ * @since 11
+ * @version 1.0
+ */
 void OH_Drawing_PathEffectDestroy(OH_Drawing_PathEffect*);
 
 #ifdef __cplusplus
