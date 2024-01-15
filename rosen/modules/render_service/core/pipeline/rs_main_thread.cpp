@@ -122,6 +122,7 @@ constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
 constexpr uint64_t PERF_PERIOD_BLUR = 1000000000;
 constexpr uint64_t PERF_PERIOD_BLUR_TIMEOUT = 80000000;
 constexpr uint64_t MAX_DYNAMIC_STATUS_TIME = 5000000000;
+constexpr uint64_t MAX_SYSTEM_SCENE_STATUS_TIME = 800000000;
 constexpr uint64_t PERF_PERIOD_MULTI_WINDOW = 80000000;
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
@@ -131,7 +132,7 @@ constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
 constexpr int32_t SIMI_VISIBLE_RATE = 2;
 constexpr int32_t DEFAULT_RATE = 1;
 constexpr int32_t INVISBLE_WINDOW_RATE = INT32_MAX;
-constexpr int32_t SYSTEM_ANIMATED_SECNES_RATE = 3;
+constexpr int32_t SYSTEM_ANIMATED_SECNES_RATE = 2;
 constexpr uint32_t WAIT_FOR_MEM_MGR_SERVICE = 100;
 constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
@@ -1527,7 +1528,27 @@ void RSMainThread::Render()
         renderEngine_->ShrinkCachesIfNeeded();
     }
     CallbackDrawContextStatusToWMS();
+    CheckSystemSceneStatus();
     PerfForBlurIfNeeded();
+}
+
+void RSMainThread::CheckSystemSceneStatus()
+{
+    std::lock_guard<std::mutex> lock(systemAnimatedScenesMutex_);
+    while (!systemAnimatedScenesList_.empty()) {
+        if (timestamp_ - systemAnimatedScenesList_.front().second > MAX_SYSTEM_SCENE_STATUS_TIME) {
+            systemAnimatedScenesList_.pop_front();
+        } else {
+            break;
+        }
+    }
+    while (!threeFingerScenesList_.empty()) {
+        if (timestamp_ - threeFingerScenesList_.front().second > MAX_SYSTEM_SCENE_STATUS_TIME) {
+            threeFingerScenesList_.pop_front();
+        } else {
+            break;
+        }
+    }
 }
 
 void RSMainThread::CallbackDrawContextStatusToWMS()
@@ -1630,7 +1651,7 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
         if (curSurface == nullptr || curSurface->IsLeashWindow()) {
             continue;
         }
-        curSurface->SetOcclusionInSpecificScenes(deviceType_ == DeviceType::PC && threeFingerCnt_);
+        curSurface->SetOcclusionInSpecificScenes(deviceType_ == DeviceType::PC && !threeFingerScenesList_.empty());
         Occlusion::Rect occlusionRect = curSurface->GetSurfaceOcclusionRect(isUniRender_);
         curSurface->setQosCal(vsyncControlEnabled_);
         if (CheckSurfaceNeedProcess(occlusionSurfaces, curSurface)) {
@@ -1640,7 +1661,7 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
             RS_LOGD("%{public}s nodeId[%{public}" PRIu64 "] visibleLevel[%{public}d]",
                 __func__, curSurface->GetId(), visibleLevel);
             curSurface->SetVisibleRegionRecursive(subResult, curVisVec, pidVisMap, true, visibleLevel,
-                systemAnimatedScenesCnt_);
+                !systemAnimatedScenesList_.empty());
             curSurface->AccumulateOcclusionRegion(accumulatedRegion, curRegion, hasFilterCacheOcclusion, isUniRender_,
                 filterCacheOcclusionEnabled);
         } else {
@@ -1668,7 +1689,7 @@ void RSMainThread::CalcOcclusionImplementation(std::vector<RSBaseRenderNode::Sha
                 Occlusion::Region subResult = curRegion.Sub(accumulatedRegion);
                 RSVisibleLevel visibleLevel = GetRegionVisibleLevel(curRegion, subResult);
                 curSurface->SetVisibleRegionRecursive(subResult, curVisVec, pidVisMap, false, visibleLevel,
-                    systemAnimatedScenesCnt_);
+                    !systemAnimatedScenesList_.empty());
                 curSurface->AccumulateOcclusionRegion(accumulatedRegion, curRegion, hasFilterCacheOcclusion,
                     isUniRender_, false);
             } else {
@@ -1744,19 +1765,20 @@ void RSMainThread::CalcOcclusion()
             surface->CleanDirtyRegionUpdated();
         }
     }
-    if (!winDirty) {
+    if (!winDirty && !(systemAnimatedScenesList_.empty() && isReduceVSyncBySystemAnimatedScenes_)) {
         if (SurfaceOcclusionCallBackIfOnTreeStateChanged()) {
             SurfaceOcclusionCallback();
         }
         return;
     }
+    isReduceVSyncBySystemAnimatedScenes_ = false;
     CalcOcclusionImplementation(curAllSurfaces);
 }
 
 bool RSMainThread::CheckSurfaceVisChanged(std::map<uint32_t, RSVisibleLevel>& pidVisMap,
     std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces)
 {
-    if (systemAnimatedScenesCnt_ > 0) {
+    if (!systemAnimatedScenesList_.empty()) {
         pidVisMap.clear();
         for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
             auto curSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
@@ -1766,6 +1788,7 @@ bool RSMainThread::CheckSurfaceVisChanged(std::map<uint32_t, RSVisibleLevel>& pi
             uint32_t tmpPid = ExtractPid(curSurface->GetId());
             pidVisMap[tmpPid] = RSVisibleLevel::RS_SYSTEM_ANIMATE_SCENE;
         }
+        isReduceVSyncBySystemAnimatedScenes_ = true;
     }
     bool isVisibleChanged = pidVisMap.size() != lastPidVisMap_.size();
     if (!isVisibleChanged) {
@@ -2664,8 +2687,9 @@ void RSMainThread::SetAppWindowNum(uint32_t num)
 
 bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("%s systemAnimatedScenes[%u] systemAnimatedScenes_[%u]", __func__,
-        systemAnimatedScenes, systemAnimatedScenes_);
+    RS_OPTIONAL_TRACE_NAME_FMT("%s systemAnimatedScenes[%u] systemAnimatedScenes_[%u] threeFingerScenesListSize[%d] "
+        "systemAnimatedScenesListSize_[%d]", __func__, systemAnimatedScenes,
+        systemAnimatedScenes_, threeFingerScenesList_.size(), systemAnimatedScenesList_.size());
     if (systemAnimatedScenes < SystemAnimatedScenes::ENTER_MISSION_CENTER ||
             systemAnimatedScenes > SystemAnimatedScenes::OTHERS) {
         RS_LOGD("RSMainThread::SetSystemAnimatedScenes Out of range.");
@@ -2678,19 +2702,21 @@ bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedSc
     {
         std::lock_guard<std::mutex> lock(systemAnimatedScenesMutex_);
         if (systemAnimatedScenes == SystemAnimatedScenes::OTHERS) {
-            if (threeFingerCnt_ > 0) {
-                --threeFingerCnt_;
+            if (!threeFingerScenesList_.empty()) {
+                threeFingerScenesList_.pop_front();
             }
-            --systemAnimatedScenesCnt_;
+            if (!systemAnimatedScenesList_.empty()) {
+                systemAnimatedScenesList_.pop_front();
+            }
         } else {
             if (systemAnimatedScenes == SystemAnimatedScenes::ENTER_TFS_WINDOW ||
                 systemAnimatedScenes == SystemAnimatedScenes::EXIT_TFU_WINDOW ||
                 systemAnimatedScenes == SystemAnimatedScenes::ENTER_WIND_CLEAR ||
                 systemAnimatedScenes == SystemAnimatedScenes::ENTER_WIND_RECOVER) {
-                ++threeFingerCnt_;
+                threeFingerScenesList_.push_back(std::make_pair(systemAnimatedScenes, timestamp_));
             }
             if (systemAnimatedScenes != SystemAnimatedScenes::APPEAR_MISSION_CENTER) {
-                ++systemAnimatedScenesCnt_;
+                systemAnimatedScenesList_.push_back(std::make_pair(systemAnimatedScenes, timestamp_));
             }
         }
     }

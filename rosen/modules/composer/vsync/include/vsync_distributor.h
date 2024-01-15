@@ -134,6 +134,7 @@ private:
     std::mutex mutex_;
     std::condition_variable con_;
     std::vector<sptr<VSyncConnection> > connections_;
+    std::map<uint32_t, std::vector<sptr<VSyncConnection>>> connectionsMap_;
     VSyncEvent event_;
     bool vsyncEnabled_;
     std::string name_;
