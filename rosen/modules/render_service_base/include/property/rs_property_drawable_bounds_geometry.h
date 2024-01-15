@@ -349,17 +349,6 @@ public:
 };
 
 // ============================================================================
-// LinearGradientBlurFilter
-class RSLinearGradientBlurFilterDrawable : public RSPropertyDrawable {
-public:
-    explicit RSLinearGradientBlurFilterDrawable() = default;
-    ~RSLinearGradientBlurFilterDrawable() override = default;
-    void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
-    static RSPropertyDrawable::DrawablePtr Generate(const RSRenderContent& content);
-    bool Update(const RSRenderContent& content) override;
-};
-
-// ============================================================================
 // ForegroundColor
 class RSForegroundColorDrawable : public RSPropertyDrawable {
 public:

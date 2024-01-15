@@ -27,6 +27,7 @@
 #include "property/rs_properties_def.h"
 #include "render/rs_filter.h"
 #include "render/rs_material_filter.h"
+#include "render/rs_linear_gradient_blur_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -2783,6 +2784,10 @@ void RSProperties::OnApplyModifiers()
             filter_.reset();
         }
         IfLinearGradientBlurInvalid();
+        if (linearGradientBlurPara_) {
+            auto linearBlurFilter = std::make_shared<RSLinearGradientBlurFilter>(linearGradientBlurPara_);
+            filter_ = linearBlurFilter;
+        }
         needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
                         IsDynamicLightUpValid() || IsGreyAdjustmentValid() || linearGradientBlurPara_ != nullptr ||
                         GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;

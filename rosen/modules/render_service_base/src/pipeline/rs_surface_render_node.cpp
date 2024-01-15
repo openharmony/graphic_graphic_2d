@@ -422,7 +422,6 @@ void RSSurfaceRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanva
     }
     const auto& property = GetRenderProperties();
     RSPropertiesPainter::DrawFilter(property, canvas, FilterType::FOREGROUND_FILTER);
-    RSPropertiesPainter::DrawLinearGradientBlurFilter(property, canvas);
 #ifndef USE_ROSEN_DRAWING
     canvas.save();
     if (GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE) {

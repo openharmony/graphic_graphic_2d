@@ -917,7 +917,6 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
     }
     if (isSelfDrawingSurface) {
         RSPropertiesPainter::DrawFilter(property, *canvas_, FilterType::FOREGROUND_FILTER);
-        RSPropertiesPainter::DrawLinearGradientBlurFilter(property, *canvas_);
     }
 
     if (isSelfDrawingSurface) {
@@ -1011,7 +1010,6 @@ void RSSurfaceCaptureVisitor::CaptureSingleSurfaceNodeWithUni(RSSurfaceRenderNod
     }
     if (isSelfDrawingSurface) {
         RSPropertiesPainter::DrawFilter(property, *canvas_, FilterType::FOREGROUND_FILTER);
-        RSPropertiesPainter::DrawLinearGradientBlurFilter(property, *canvas_);
     }
 
     if (isSelfDrawingSurface) {
@@ -1084,7 +1082,6 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
 
     ProcessChildren(node);
     RSPropertiesPainter::DrawFilter(property, *canvas_, FilterType::FOREGROUND_FILTER);
-    RSPropertiesPainter::DrawLinearGradientBlurFilter(property, *canvas_);
 }
 #else
 void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode& node)
@@ -1143,7 +1140,6 @@ void RSSurfaceCaptureVisitor::CaptureSurfaceInDisplayWithUni(RSSurfaceRenderNode
 
     ProcessChildren(node);
     RSPropertiesPainter::DrawFilter(property, *canvas_, FilterType::FOREGROUND_FILTER);
-    RSPropertiesPainter::DrawLinearGradientBlurFilter(property, *canvas_);
 }
 #endif
 

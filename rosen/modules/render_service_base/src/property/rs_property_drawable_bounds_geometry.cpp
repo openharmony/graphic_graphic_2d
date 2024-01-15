@@ -1014,27 +1014,6 @@ void RSEffectDataApplyDrawable::Draw(const RSRenderContent& content, RSPaintFilt
 }
 
 // ============================================================================
-// LinearGradientBlurFilter
-RSPropertyDrawable::DrawablePtr RSLinearGradientBlurFilterDrawable::Generate(const RSRenderContent& content)
-{
-    const auto& para = content.GetRenderProperties().GetLinearGradientBlurPara();
-    if (para == nullptr || para->blurRadius_ <= 0) {
-        return nullptr;
-    }
-    return std::make_unique<RSLinearGradientBlurFilterDrawable>();
-}
-
-bool RSLinearGradientBlurFilterDrawable::Update(const RSRenderContent& content)
-{
-    return content.GetRenderProperties().GetLinearGradientBlurPara() != nullptr;
-}
-
-void RSLinearGradientBlurFilterDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
-{
-    RSPropertiesPainter::DrawLinearGradientBlurFilter(content.GetRenderProperties(), canvas);
-}
-
-// ============================================================================
 // ForegroundColor
 void RSForegroundColorDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {

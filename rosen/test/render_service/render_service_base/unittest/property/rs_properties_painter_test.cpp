@@ -426,13 +426,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawLinearGradientBlurFilter001, TestSize.Leve
     RSProperties properties;
     properties.SetLinearGradientBlurPara(linearGradientBlurPara);
 
-#ifndef USE_ROSEN_DRAWING
-    RSPropertiesPainter::DrawLinearGradientBlurFilter(
-        properties, canvas, SkRect::MakeXYWH(0.f, 0.f, 1.f, 1.f));
-#else
-    RSPropertiesPainter::DrawLinearGradientBlurFilter(
-        properties, canvas, Drawing::Rect(0.f, 0.f, 1.f, 1.f));
-#endif
+    RSPropertiesPainter::DrawFilter(properties, canvas, FilterType::FOREGROUND_FILTER);
 }
 
 /**

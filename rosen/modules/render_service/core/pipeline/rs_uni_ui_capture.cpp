@@ -599,7 +599,6 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithUni(RSSurfaceR
     }
     if (isSelfDrawingSurface) {
         RSPropertiesPainter::DrawFilter(property, *canvas_, FilterType::FOREGROUND_FILTER);
-        RSPropertiesPainter::DrawLinearGradientBlurFilter(property, *canvas_);
     }
 #ifndef USE_ROSEN_DRAWING
     canvas_->restore();
