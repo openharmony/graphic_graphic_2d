@@ -16,6 +16,27 @@
 #ifndef C_INCLUDE_DRAWING_PATH_EFFECT_H
 #define C_INCLUDE_DRAWING_PATH_EFFECT_H
 
+/**
+ * @addtogroup Drawing
+ * @{
+ *
+ * @brief Provides functions such as 2D graphics rendering, text drawing, and image display.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ *
+ * @since 11
+ * @version 1.0
+ */
+
+/**
+ * @file drawing_path_effect.h
+ *
+ * @brief Declares functions related to the <b>pathEffect</b> object in the drawing module.
+ *
+ * @since 11
+ * @version 1.0
+ */
+
 #include "drawing_types.h"
 
 #ifdef __cplusplus
