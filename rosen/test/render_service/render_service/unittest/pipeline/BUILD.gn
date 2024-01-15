@@ -93,6 +93,13 @@ ohos_unittest("RSVirtualScreenProcessorTest") {
   }
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSRenderServiceUnitTest
@@ -109,6 +116,13 @@ ohos_unittest("RSRenderServiceUnitTest") {
   }
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSUniRenderJudgementTest
@@ -122,6 +136,13 @@ ohos_unittest("RSUniRenderJudgementTest") {
   ]
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSUniRenderProcessorTest
@@ -167,6 +188,13 @@ ohos_unittest("RSRenderServiceVisitorTest") {
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSComposerAdapterTest
@@ -186,6 +214,13 @@ ohos_unittest("RSComposerAdapterTest") {
   }
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSRenderServiceListenerTest
@@ -202,6 +237,13 @@ ohos_unittest("RSRenderServiceListenerTest") {
   }
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSProcessorFactoryTest
@@ -218,6 +260,13 @@ ohos_unittest("RSProcessorFactoryTest") {
   }
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSPhysicalScreenProcessorTest
@@ -234,6 +283,13 @@ ohos_unittest("RSPhysicalScreenProcessorTest") {
   }
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSDropFrameProcessorTest
@@ -250,6 +306,13 @@ ohos_unittest("RSDropFrameProcessorTest") {
   }
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSBaseRenderUtilTest
@@ -268,6 +331,13 @@ ohos_unittest("RSBaseRenderUtilTest") {
   defines += gpu_defines
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
   }
 }
 
@@ -293,7 +363,6 @@ ohos_unittest("RSSurfaceCaptureTaskTest") {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
@@ -316,6 +385,13 @@ ohos_unittest("RSUniRenderComposerAdapterTest") {
   }
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSUniRenderUtilTest
@@ -334,6 +410,13 @@ ohos_unittest("RSUniRenderUtilTest") {
   defines += gpu_defines
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
   }
 }
 
@@ -358,6 +441,13 @@ ohos_unittest("RSUniRenderVisitorTest") {
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSUniUiCaptureTest
@@ -377,6 +467,13 @@ ohos_unittest("RSUniUiCaptureTest") {
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSQosThreadTest
@@ -391,6 +488,13 @@ ohos_unittest("RSQosThreadTest") {
   ]
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSHardwareThreadTest
@@ -410,6 +514,13 @@ ohos_unittest("RSHardwareThreadTest") {
   }
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSMainThreadTest
@@ -430,6 +541,13 @@ ohos_unittest("RSMainThreadTest") {
   }
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSEglImageManagerTest
@@ -450,6 +568,13 @@ ohos_unittest("RSEglImageManagerTest") {
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSParallelHardwareComposerTest
@@ -466,6 +591,13 @@ ohos_unittest("RSParallelHardwareComposerTest") {
   defines += gpu_defines
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
   }
 }
 
@@ -484,6 +616,13 @@ ohos_unittest("RSParallelPackVisitorTest") {
   }
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSParallelRenderManagerTest
@@ -503,6 +642,13 @@ ohos_unittest("RSParallelRenderManagerTest") {
   defines += gpu_defines
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
   }
 }
 
@@ -524,6 +670,13 @@ ohos_unittest("RSParallelSubThreadTest") {
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSParallelTaskManagerTest
@@ -540,6 +693,13 @@ ohos_unittest("RSParallelTaskManagerTest") {
   }
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSRenderTaskTest
@@ -553,6 +713,13 @@ ohos_unittest("RSRenderTaskTest") {
   ]
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSSubThreadManagerTest
@@ -566,6 +733,13 @@ ohos_unittest("RSSubThreadManagerTest") {
   ]
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSSubThreadTest
@@ -579,6 +753,13 @@ ohos_unittest("RSSubThreadTest") {
   ]
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSFilterSubThreadTest
@@ -592,6 +773,13 @@ ohos_unittest("RSFilterSubThreadTest") {
   ]
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSUniRenderVirtualProcessorTest
@@ -608,6 +796,13 @@ ohos_unittest("RSUniRenderVirtualProcessorTest") {
   }
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSBaseRenderEngineUnitTest
@@ -627,6 +822,12 @@ ohos_unittest("RSBaseRenderEngineUnitTest") {
   defines += gpu_defines
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
   }
 }
 
@@ -656,6 +857,12 @@ ohos_unittest("RSRoundCornerDisplayTest") {
   defines += gpu_defines
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
   }
 }
 
@@ -704,6 +911,12 @@ ohos_unittest("RSNodeCostManagerTest") {
   }
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSDrivenRenderManagerTest
@@ -724,6 +937,13 @@ ohos_unittest("RSDrivenRenderManagerTest") {
   }
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSDrivenRenderVisitorTest
@@ -743,6 +963,13 @@ ohos_unittest("RSDrivenRenderVisitorTest") {
   }
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSDrivenRenderExtTest
@@ -759,6 +986,13 @@ ohos_unittest("RSDrivenRenderExtTest") {
   }
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSDividedRenderUtilTest
@@ -777,6 +1011,13 @@ ohos_unittest("RSDividedRenderUtilTest") {
   defines += gpu_defines
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
   }
 }
 
@@ -820,6 +1061,13 @@ ohos_unittest("RSUnmarshalThreadTest") {
   ]
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build rs_test_common.a {{{
