@@ -362,6 +362,13 @@ public:
     int32_t CalcExpectedFrameRate(const std::string& scene, float speed);
 
     void SetOutOfParent(OutOfParentType outOfParent);
+
+    void SetFrameNodeInfo(int32_t id, std::string tag);
+
+    int32_t GetFrameNodeId();
+
+    std::string GetFrameNodeTag();
+
     using BoundsChangedCallback = std::function<void (const Rosen::Vector4f&)>;
     virtual void SetBoundsChangedCallback(BoundsChangedCallback callback){};
     bool IsTextureExportNode() const
@@ -396,6 +403,8 @@ private:
     static void InitUniRenderEnabled();
     NodeId id_;
     NodeId parent_ = 0;
+    int32_t frameNodeId_ = -1;
+    std::string frameNodeTag_;
     std::vector<NodeId> children_;
     void SetParent(NodeId parent);
     void RemoveChildById(NodeId childId);

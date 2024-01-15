@@ -42,6 +42,7 @@ public:
 
     [[nodiscard]] static RSTransactionData* Unmarshalling(Parcel& parcel);
     bool Marshalling(Parcel& parcel) const override;
+    void AlarmRsNodeLog() const;
 
     unsigned long GetCommandCount() const
     {
@@ -55,6 +56,7 @@ public:
 
     void Process(RSContext& context);
     void ProcessBySingleFrameComposer(RSContext& context);
+    static void AddAlarmLog(std::function<void(uint64_t, int, int)> func);
 
     void Clear();
 
@@ -174,6 +176,7 @@ private:
     bool isCached_ { false };
     int32_t syncTransactionCount_ { 0 };
     uint64_t syncId_ { 0 };
+    static std::function<void(uint64_t, int, int)> alarmLogFunc;
     mutable std::mutex commandMutex_;
 
     friend class RSTransactionProxy;
