@@ -298,16 +298,6 @@ public:
 };
 
 // ============================================================================
-// Binarization
-class RSBinarizationDrawable : public RSPropertyDrawable {
-public:
-    explicit RSBinarizationDrawable() = default;
-    ~RSBinarizationDrawable() override = default;
-    void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
-    static RSPropertyDrawable::DrawablePtr Generate(const RSRenderContent& content);
-};
-
-// ============================================================================
 // LightUpEffect
 class RSLightUpEffectDrawable : public RSPropertyDrawable {
 public:
@@ -476,37 +466,46 @@ public:
     bool Update(const RSRenderContent& content) override;
 };
 
-// ============================================================================
-// SaveLayerBackground
-class RSSaveLayerBackgroundDrawable : public RSPropertyDrawable {
-public:
-    explicit RSSaveLayerBackgroundDrawable(std::shared_ptr<int> content) : content_(std::move(content)) {}
-    ~RSSaveLayerBackgroundDrawable() override = default;
-    void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
-private:
-    std::shared_ptr<int> content_;
-};
+// blend mode save and restore
+std::unique_ptr<RSPropertyDrawable> BlendSaveDrawableGenerate(const RSRenderContent& context);
+std::unique_ptr<RSPropertyDrawable> BlendRestoreDrawableGenerate(const RSRenderContent& context);
 
-// SaveLayerContent
-class RSSaveLayerContentDrawable : public RSPropertyDrawable {
+class RSBlendSaveLayerDrawable : public RSPropertyDrawable {
 public:
-#ifndef USE_ROSEN_DRAWING
-    explicit RSSaveLayerContentDrawable(std::shared_ptr<int> content, SkPaint&& blendPaint)
-        : content_(std::move(content)), blendPaint_(std::move(blendPaint)) {}
-#else
-    explicit RSSaveLayerContentDrawable(std::shared_ptr<int> content, Drawing::Brush&& blendBrush)
-        : content_(std::move(content)), blendBrush_(std::move(blendBrush)) {}
-#endif
-    ~RSSaveLayerContentDrawable() override = default;
+    explicit RSBlendSaveLayerDrawable(int blendMode);
+    ~RSBlendSaveLayerDrawable() override = default;
     void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
 
 private:
-    std::shared_ptr<int> content_;
 #ifndef USE_ROSEN_DRAWING
     SkPaint blendPaint_;
 #else
     Drawing::Brush blendBrush_;
 #endif
+};
+
+class RSBlendFastDrawable : public RSPropertyDrawable {
+public:
+    explicit RSBlendFastDrawable(int blendMode) : blendMode_(blendMode) {}
+    ~RSBlendFastDrawable() override = default;
+    void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
+
+private:
+    int blendMode_;
+};
+
+class RSBlendSaveLayerRestoreDrawable : public RSPropertyDrawable {
+public:
+    explicit RSBlendSaveLayerRestoreDrawable() = default;
+    ~RSBlendSaveLayerRestoreDrawable() override = default;
+    void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
+};
+
+class RSBlendFastRestoreDrawable : public RSPropertyDrawable {
+public:
+    explicit RSBlendFastRestoreDrawable() = default;
+    ~RSBlendFastRestoreDrawable() override = default;
+    void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_BOUNDS_GEOMETRY_H

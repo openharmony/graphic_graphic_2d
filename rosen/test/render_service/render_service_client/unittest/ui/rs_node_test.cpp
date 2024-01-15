@@ -3446,17 +3446,6 @@ HWTEST_F(RSNodeTest, AnimateWithCurrentCallbackTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: AddFRCSceneInfo
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, AddFRCSceneInfoTest, TestSize.Level1)
-{
-    auto rootNode = RSCanvasNode::Create();
-    rootNode->AddFRCSceneInfo("translate", -1.0f);
-}
-
-/**
  * @tc.name: SetColorBlendMode
  * @tc.desc:
  * @tc.type:FUNC
@@ -3464,11 +3453,11 @@ HWTEST_F(RSNodeTest, AddFRCSceneInfoTest, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetColorBlendMode, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    RSColorBlendModeType blendModeType = RSColorBlendModeType::NONE;
+    RSColorBlendMode blendModeType = RSColorBlendMode::NONE;
     rsNode->SetColorBlendMode(blendModeType);
-    blendModeType = RSColorBlendModeType::DST_IN;
+    blendModeType = RSColorBlendMode::DST_IN;
     rsNode->SetColorBlendMode(blendModeType);
-    blendModeType = RSColorBlendModeType::SRC_IN;
+    blendModeType = RSColorBlendMode::SRC_IN;
     rsNode->SetColorBlendMode(blendModeType);
 }
 } // namespace OHOS::Rosen

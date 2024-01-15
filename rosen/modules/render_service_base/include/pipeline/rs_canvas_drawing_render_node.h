@@ -20,9 +20,7 @@
 #include <memory>
 
 #include "pipeline/rs_canvas_render_node.h"
-#ifdef USE_ROSEN_DRAWING
-#include "recording/recording_canvas.h"
-#endif
+#include "pipeline/rs_recording_canvas.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -53,12 +51,12 @@ public:
 
 #ifndef USE_ROSEN_DRAWING
     SkBitmap GetBitmap(const uint32_t tid = UNI_MAIN_THREAD_INDEX);
-    bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect,
-        const uint32_t tid = UNI_MAIN_THREAD_INDEX);
+    bool GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect,
+        const uint32_t tid = UNI_MAIN_THREAD_INDEX, std::shared_ptr<DrawCmdList> drawCmdList = nullptr);
 #else
     Drawing::Bitmap GetBitmap(const uint64_t tid = UINT32_MAX);
-    bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap,
-        const Drawing::Rect* rect, const uint64_t tid = UINT32_MAX);
+    bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect,
+        const uint64_t tid = UINT32_MAX, std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr);
 #endif
 
     void SetSurfaceClearFunc(ThreadInfo threadInfo)
@@ -73,12 +71,13 @@ public:
 
     void AddDirtyType(RSModifierType type) override;
     void ClearOp();
+    void ResetSurface();
 
 private:
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
     bool ResetSurface(int width, int height, RSPaintFilterCanvas& canvas);
     bool GetSizeFromDrawCmdModifiers(int& width, int& height);
-    bool IsNeedResetSurface(const int& width, const int& height) const;
+    bool IsNeedResetSurface() const;
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas);
 #endif
@@ -96,7 +95,7 @@ private:
 #else
     std::shared_ptr<Drawing::Surface> surface_;
     std::shared_ptr<Drawing::Image> image_;
-    std::shared_ptr<Drawing::RecordingCanvas> recordingCanvas_;
+    std::shared_ptr<ExtendRecordingCanvas> recordingCanvas_;
 #endif
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool isGpuSurface_ = true;

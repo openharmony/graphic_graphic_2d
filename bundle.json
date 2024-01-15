@@ -21,7 +21,8 @@
         "SystemCapability.Graphic.Graphic2D.NativeDrawing",
         "SystemCapability.Graphic.Graphic2D.WebGL",
         "SystemCapability.Graphic.Graphic2D.WebGL2",
-        "SystemCapability.Graphic.Vulkan"
+        "SystemCapability.Graphic.Vulkan",
+        "SystemCapability.Graphics.Drawing"
       ],
       "adapted_system_type": [ "standard" ],
       "features": [
@@ -34,7 +35,6 @@
         "graphic_2d_feature_color_gamut_enable",
         "graphic_2d_feature_use_texgine",
         "graphic_2d_feature_rs_enable_uni_render",
-        "graphic_2d_feature_use_video_processing_engine",
         "graphic_2d_feature_wuji_enable",
         "graphic_2d_feature_enable_afbc",
         "graphic_2d_feature_freemem_enable",
@@ -68,7 +68,6 @@
           "image_framework",
           "ipc",
           "player_framework",
-          "audio_framework",
           "resource_schedule_service",
           "soc_perf",
           "accessibility",
@@ -77,8 +76,7 @@
           "memmgr_plugin",
           "sensor",
           "qos_manager",
-          "video_processing_engine",
-          "drivers_interface_hwsched"
+          "video_processing_engine"
         ],
         "third_party": [
           "flutter",
@@ -94,8 +92,7 @@
           "jsoncpp",
           "egl",
           "opengles",
-          "vulkan-headers",
-          "vulkan-loader"
+          "vulkan-headers"
         ]
       },
       "build": {
@@ -111,6 +108,7 @@
             "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain:skeffectchain",
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
+            "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv2",
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
             "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/rosen_text:rosen_text",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
@@ -152,6 +150,16 @@
                 "window.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/surface"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/drawing:drawing_napi_impl",
+            "header": {
+              "header_files": [
+                "canvas_napi/js_canvas.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/drawing"
             }
           },
           {

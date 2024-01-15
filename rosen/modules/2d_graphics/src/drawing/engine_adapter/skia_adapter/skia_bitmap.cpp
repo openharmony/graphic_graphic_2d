@@ -178,6 +178,12 @@ Pixmap SkiaBitmap::GetPixmap() const
     return pixmap;
 }
 
+void SkiaBitmap::SetInfo(const ImageInfo& info)
+{
+    SkImageInfo skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(info);
+    skiaBitmap_.setInfo(skImageInfo);
+}
+
 bool SkiaBitmap::TryAllocPixels(const ImageInfo& info)
 {
     SkImageInfo skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(info);

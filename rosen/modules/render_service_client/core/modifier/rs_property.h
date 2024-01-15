@@ -428,26 +428,15 @@ public:
             return false;
         }
 
-        // we need to push a synchronous command to cancel animation, cause:
-        // case 1. some new animation have been added, but not flush to render side,
-        // resulting these animation not canceled in task
-        // case 2. the node or modifier has not yet been created on the render side, resulting in task failure
-        auto transactionProxy = RSTransactionProxy::GetInstance();
-        if (transactionProxy == nullptr) {
-            return false;
-        }
-
-        std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCancel>(node->GetId(), this->id_);
-        transactionProxy->AddCommand(command, node->IsRenderServiceNode(), node->GetFollowType(), node->GetId());
-        if (node->NeedForcedSendToRemote()) {
-            std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSAnimationCancel>(node->GetId(), this->id_);
-            transactionProxy->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
-        }
+        // We also need to send a command to cancel animation, cause:
+        // case 1. some new animations have been added, but not flushed to render side,
+        // resulting these animations not canceled in task.
+        // case 2. the node or modifier has not yet been created on the render side, resulting in task failure.
+        node->CancelAnimationByProperty(this->id_, !RSProperty<T>::isCustom_);
 
         if (!task->IsSuccess()) {
             // corresponding to case 2, as the new showing value is the same as staging value,
-            // need not to update the value, only need to clear animations in rs node.
-            node->CancelAnimationByProperty(this->id_);
+            // need not to update the value
             return true;
         }
 
@@ -456,7 +445,6 @@ public:
             return false;
         }
         RSProperty<T>::stagingValue_ = renderProperty->Get();
-        node->CancelAnimationByProperty(this->id_);
         return true;
     }
 
@@ -519,6 +507,11 @@ public:
         }
 
         return implicitAnimator->CloseImplicitAnimation();
+    }
+
+    void SetPropertyUnit(RSPropertyUnit unit)
+    {
+        propertyUnit_ = unit;
     }
 
 protected:
@@ -593,12 +586,12 @@ protected:
     {
         if (!RSProperty<T>::isCustom_) {
             return std::make_shared<RSRenderAnimatableProperty<T>>(
-                RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType());
+                RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType(), propertyUnit_);
         }
 
         if (renderProperty_ == nullptr) {
             renderProperty_ = std::make_shared<RSRenderAnimatableProperty<T>>(
-                RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType());
+                RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType(), propertyUnit_);
             auto weak = RSProperty<T>::weak_from_this();
             renderProperty_->SetUpdateUIPropertyFunc(
                 [weak](const std::shared_ptr<RSRenderPropertyBase>& renderProperty) {
@@ -635,6 +628,7 @@ protected:
     std::shared_ptr<RSMotionPathOption> motionPathOption_ {};
     std::function<void(T)> propertyChangeListener_;
     ThresholdType thresholdType_ { ThresholdType::DEFAULT };
+    RSPropertyUnit propertyUnit_ { RSPropertyUnit::UNKNOWN };
 
 private:
     RSRenderPropertyType GetPropertyType() const override

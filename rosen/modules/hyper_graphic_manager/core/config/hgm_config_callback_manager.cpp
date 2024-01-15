@@ -139,14 +139,10 @@ void HgmConfigCallbackManager::UnRegisterHgmConfigChangeCallback(pid_t pid)
         animDynamicCfgCallbacks_.erase(pid);
         HGM_LOGD("HgmConfigCallbackManager %{public}s : remove a remote callback succeed.", __func__);
     }
-    HGM_LOGD("HgmConfigCallbackManager %{public}s : initialization or do not find callback(pid = %d)",
-        __func__, static_cast<int>(pid));
 
     if (refreshRateModeCallbacks_.find(pid) != refreshRateModeCallbacks_.end()) {
         refreshRateModeCallbacks_.erase(pid);
         HGM_LOGD("HgmRefreshRateModeCallbackManager %{public}s : remove a remote callback succeed.", __func__);
     }
-    HGM_LOGD("HgmRefreshRateModeCallbackManager %{public}s : initialization or do not find callback(pid = %d)",
-        __func__, static_cast<int>(pid));
 }
 } // namespace OHOS::Rosen

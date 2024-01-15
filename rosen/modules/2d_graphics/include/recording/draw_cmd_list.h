@@ -25,8 +25,18 @@ namespace Drawing {
 class DrawOpItem;
 class DRAWING_API DrawCmdList : public CmdList {
 public:
-    DrawCmdList() = default;
-    DrawCmdList(int32_t width, int32_t height);
+    /*
+     * @brief   there are two mode for DrawCmdList to add new op, the mode is set when create and cannot be modified
+     * @param   IMMEDIATE   add op to continouns buffer immediately, overload will benifit from this
+     * @param   DEFERRED    add op to vector and then add to contiguous buffer if needed
+     */
+    enum class UnmarshalMode {
+        IMMEDIATE,
+        DEFERRED
+    };
+
+    DrawCmdList(UnmarshalMode mode = UnmarshalMode::IMMEDIATE);
+    DrawCmdList(int32_t width, int32_t height, UnmarshalMode mode = UnmarshalMode::IMMEDIATE);
     ~DrawCmdList() override = default;
 
     uint32_t GetType() const override
@@ -35,7 +45,44 @@ public:
     }
 
     /*
-     * @brief         Clear Draw Ops Param
+     * @brief   Add DrawOpItem to DrawCmdList, only can be used in IMMEDIATE mode
+     * @param   T   The name of DrawOpItem class
+     * @param   Args    Constructs arguments to the DrawOpItem
+     * @return  true if add success, false if not in IMMEDIATE mode or create op in contiguous buffer failed
+     */
+    template<typename T, typename... Args>
+    bool AddDrawOp(Args&&... args)
+    {
+        if (mode_ != UnmarshalMode::IMMEDIATE) {
+            return false;
+        }
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+        T* op = opAllocator_.Allocate<T>(std::forward<Args>(args)...);
+        if (op == nullptr) {
+            return false;
+        }
+
+        uint32_t offset = opAllocator_.AddrToOffset(op);
+        if (lastOpItemOffset_.has_value()) {
+            auto* lastOpItem = static_cast<OpItem*>(opAllocator_.OffsetToAddr(lastOpItemOffset_.value()));
+            if (lastOpItem != nullptr) {
+                lastOpItem->SetNextOpItemOffset(offset);
+            }
+        }
+        lastOpItemOffset_.emplace(offset);
+        opCnt_++;
+        return true;
+    }
+
+    /*
+     * @brief   Add DrawOpItem to DrawCmdList, only can be used in DEFERRED mode
+     * @param   drawOpItem  A real DrawOpItem instance
+     * @return  true if add success, false if not in DEFERRED mode
+     */
+    bool AddDrawOp(std::shared_ptr<DrawOpItem>&& drawOpItem);
+
+    /*
+     * @brief   Clear DrawOpItem in contiguous buffer, draw op vector, and other resource associated with draw op
      */
     void ClearOp();
 
@@ -49,6 +96,7 @@ public:
      */
     static std::shared_ptr<DrawCmdList> CreateFromData(const CmdListData& data, bool isCopy = false);
 
+    void MarshallingDrawOps();
     /*
      * @brief         Unmarshalling Draw Ops Param from contiguous buffers
      */
@@ -101,6 +149,8 @@ public:
 
     std::vector<std::shared_ptr<DrawOpItem>> UnmarshallingCmdList();
 
+    void UpdateNodeIdToPicture(NodeId nodeId);
+
 private:
     void GenerateCacheInRenderService(Canvas* canvas, const Rect* rect);
 
@@ -109,11 +159,12 @@ private:
     void AddOpToCmdList(std::shared_ptr<DrawCmdList> cmdList);
 
 private:
-    MemAllocator largeObjectAllocator_;
-    std::vector<std::shared_ptr<DrawOpItem>> unmarshalledOpItems_;
-    size_t lastOpGenSize_ = 0;
     int32_t width_;
     int32_t height_;
+    const UnmarshalMode mode_;
+    MemAllocator largeObjectAllocator_;
+    std::vector<std::shared_ptr<DrawOpItem>> drawOpItems_;
+    size_t lastOpGenSize_ = 0;
     std::vector<std::pair<uint32_t, uint32_t>> replacedOpList_;
     std::vector<std::pair<uint32_t, std::shared_ptr<DrawOpItem>>> opReplacedByDrivenRender_;
     bool isCached_ = false;

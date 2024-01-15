@@ -37,12 +37,14 @@ class PixelMap;
 namespace Rosen {
 namespace Drawing {
 using CmdListData = std::pair<const void*, size_t>;
+using NodeId = uint64_t;
 
 class DRAWING_API ExtendImageObject {
 public:
     virtual ~ExtendImageObject() = default;
     virtual void Playback(Canvas& canvas, const Rect& rect,
         const SamplingOptions& sampling, bool isBackground = false) = 0;
+    virtual void SetNodeId(NodeId id) {};
 };
 
 class DRAWING_API ExtendImageBaseObj {
@@ -50,6 +52,13 @@ public:
     virtual ~ExtendImageBaseObj() = default;
     virtual void Playback(Canvas& canvas, const Rect& rect,
         const SamplingOptions& sampling) = 0;
+    virtual void SetNodeId(NodeId id) {};
+};
+
+class DRAWING_API ExtendDrawFuncObj {
+public:
+    virtual ~ExtendDrawFuncObj () = default;
+    virtual void Playback(Canvas* canvas, const Rect* rect) = 0;
 };
 
 class DRAWING_API CmdList {
@@ -169,7 +178,7 @@ public:
      * @brief  return real setup imageObject size.
      */
     uint32_t SetupObject(const std::vector<std::shared_ptr<ExtendImageObject>>& objectList);
-    
+
      /*
      * @brief  return imageBaseObj index, negative is error.
      */
@@ -189,6 +198,16 @@ public:
      * @brief  return real setup imageBaseObj size.
      */
     uint32_t SetupBaseObj(const std::vector<std::shared_ptr<ExtendImageBaseObj>>& objectList);
+
+     /*
+     * @brief  return DrawFuncObj index, negative is error.
+     */
+    uint32_t AddDrawFuncOjb(const std::shared_ptr<ExtendDrawFuncObj>& object);
+
+    /*
+     * @brief  get DrawFuncObj by index.
+     */
+    std::shared_ptr<ExtendDrawFuncObj> GetDrawFuncObj(uint32_t id);
 
     /*
      * @brief  copy object vec to another CmdList.
@@ -249,6 +268,8 @@ protected:
     std::vector<sptr<SurfaceBuffer>> surfaceBufferVec_;
     std::mutex surfaceBufferMutex_;
 #endif
+    std::vector<std::shared_ptr<ExtendDrawFuncObj>> drawFuncObjVec_;
+    std::mutex drawFuncObjMutex_;
 };
 } // namespace Drawing
 } // namespace Rosen

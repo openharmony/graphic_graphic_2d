@@ -53,6 +53,22 @@
 namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
+
+#if defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_VK)
+Drawing::ColorType GetColorTypeFromBufferFormat(int32_t pixelFmt)
+{
+    switch (pixelFmt) {
+        case GRAPHIC_PIXEL_FMT_RGBA_8888:
+            return Drawing::ColorType::COLORTYPE_RGBA_8888;
+        case GRAPHIC_PIXEL_FMT_BGRA_8888 :
+            return Drawing::ColorType::COLORTYPE_BGRA_8888;
+        case GRAPHIC_PIXEL_FMT_RGB_565:
+            return Drawing::ColorType::COLORTYPE_RGB_565;
+        default:
+            return Drawing::ColorType::COLORTYPE_RGBA_8888;
+    }
+}
+#endif
 }
 
 RSHardwareThread& RSHardwareThread::Instance()
@@ -319,6 +335,7 @@ void RSHardwareThread::PerformSetActiveMode(OutputPtr output)
         } else {
             auto pendingPeriod = hgmCore.GetIdealPeriod(hgmCore.GetScreenCurrentRefreshRate(id));
             hdiBackend_->SetPendingPeriod(output, pendingPeriod);
+            hdiBackend_->StartSample(output);
         }
     }
 }
@@ -609,6 +626,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #ifdef RS_ENABLE_VK
             if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
                 RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                colorType = GetColorTypeFromBufferFormat(params.buffer->GetFormat());
                 auto imageCache = uniRenderEngine_->GetVkImageManager()->CreateImageCacheFromBuffer(
                     params.buffer, params.acquireFence);
                 if (!imageCache) {
@@ -743,7 +761,7 @@ GraphicColorGamut RSHardwareThread::ComputeTargetColorGamut(const std::vector<La
 
         CM_ColorSpaceInfo colorSpaceInfo;
         if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
-            RS_LOGW("RSHardwareThread::ComputeTargetColorGamut Get color space from surface buffer failed");
+            RS_LOGD("RSHardwareThread::ComputeTargetColorGamut Get color space failed");
             continue;
         }
 

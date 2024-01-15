@@ -20,7 +20,7 @@
 #include <set>
 #include <unordered_map>
 
-#include "animation/rs_frame_rate_range.h"
+#include "animation/rs_animation_rate_decider.h"
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "render_service_base/include/pipeline/rs_render_display_sync.h"
@@ -43,7 +43,9 @@ public:
     bool Animate(int64_t time, int64_t vsyncPeriod = 0);
     void Draw();
 
-    const FrameRateRange& GetUIFrameRateRange() const;
+    void SetFrameRateGetFunc(const FrameRateGetFunc& func);
+    const FrameRateRange& GetFrameRateRange() const;
+
     // spring animation related
     void RegisterSpringAnimation(PropertyId propertyId, AnimationId animId);
     void UnregisterSpringAnimation(PropertyId propertyId, AnimationId animId);
@@ -61,7 +63,8 @@ private:
     std::unordered_map<AnimationId, std::weak_ptr<RSRenderAnimation>> animations_;
     std::unordered_map<PropertyId, AnimationId> springAnimations_;
 
-    FrameRateRange uiRange_ = {0, 0, 0};
+    RSAnimationRateDecider rateDecider_;
+    FrameRateGetFunc frameRateGetFunc_;
 
     std::unordered_map<AnimationId, std::shared_ptr<RSRenderDisplaySync>> displaySyncs_;
     bool isDisplaySyncEnabled_ = false;

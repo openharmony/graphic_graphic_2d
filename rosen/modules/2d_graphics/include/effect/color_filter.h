@@ -46,9 +46,9 @@ public:
     static std::shared_ptr<ColorFilter> CreateBlendModeColorFilter(ColorQuad c, BlendMode mode);
     static std::shared_ptr<ColorFilter> CreateComposeColorFilter(ColorFilter& f1, ColorFilter& f2);
     static std::shared_ptr<ColorFilter> CreateComposeColorFilter(
-        const float f1[MATRIX_SIZE], const float f2[MATRIX_SIZE]);
+        const float (&f1)[MATRIX_SIZE], const float (&f2)[MATRIX_SIZE]);
     static std::shared_ptr<ColorFilter> CreateMatrixColorFilter(const ColorMatrix& m);
-    static std::shared_ptr<ColorFilter> CreateFloatColorFilter(const float f[MATRIX_SIZE]);
+    static std::shared_ptr<ColorFilter> CreateFloatColorFilter(const float (&f)[MATRIX_SIZE]);
     static std::shared_ptr<ColorFilter> CreateLinearToSrgbGamma();
     static std::shared_ptr<ColorFilter> CreateSrgbGammaToLinear();
     /*

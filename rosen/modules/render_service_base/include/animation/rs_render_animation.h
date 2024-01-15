@@ -158,6 +158,8 @@ public:
 
     void SetStartTime(int64_t);
 
+    const std::shared_ptr<RSRenderPropertyBase> GetAnimateVelocity() const;
+
 protected:
     explicit RSRenderAnimation(AnimationId id);
     RSRenderAnimation() = default;
@@ -179,12 +181,18 @@ protected:
 
     virtual void OnRemoveOnCompletion() {}
 
+    virtual void RecordLastAnimateValue() {}
+
+    virtual void UpdateAnimateVelocity(float frameInterval) {}
+
     void FinishOnCurrentPosition();
 
     RSAnimationFraction animationFraction_;
 
     // calculateAnimationValue_ is embedded modify for stat animate frame drop
     bool calculateAnimationValue_ { true };
+
+    std::shared_ptr<RSRenderPropertyBase> animateVelocity_;
 
 private:
     void ProcessFillModeOnStart(float startFraction);

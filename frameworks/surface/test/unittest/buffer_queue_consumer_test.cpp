@@ -18,6 +18,9 @@
 #include "buffer_consumer_listener.h"
 #include "buffer_extra_data_impl.h"
 #include "sync_fence.h"
+#include "consumer_surface.h"
+#include "producer_surface_delegator.h"
+#include "buffer_client_producer.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -36,6 +39,7 @@ public:
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
     };
+
     static inline BufferFlushConfigWithDamages flushConfig = {
         .damages = {
             {
@@ -48,7 +52,12 @@ public:
     static inline std::vector<Rect> damages = {};
     static inline sptr<BufferQueue> bq = nullptr;
     static inline sptr<BufferQueueConsumer> bqc = nullptr;
+    static inline sptr<BufferQueueConsumer> byt = nullptr;
     static inline sptr<BufferExtraData> bedata = nullptr;
+    static inline sptr<ProducerSurfaceDelegator> surfaceDelegator = nullptr;
+    static inline sptr<IConsumerSurface> csurface = nullptr;
+    static inline sptr<IBufferProducer> bufferProducer = nullptr;
+    static inline sptr<Surface> surface = nullptr;
 };
 
 void BufferQueueConsumerTest::SetUpTestCase()
@@ -59,6 +68,11 @@ void BufferQueueConsumerTest::SetUpTestCase()
     sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
     bqc->RegisterConsumerListener(listener);
     bedata = new BufferExtraDataImpl;
+    csurface = IConsumerSurface::Create();
+    surfaceDelegator = ProducerSurfaceDelegator::Create();
+
+    bufferProducer = csurface->GetProducer();
+    surface = Surface::CreateSurfaceAsProducer(bufferProducer);
 }
 
 void BufferQueueConsumerTest::TearDownTestCase()
@@ -68,13 +82,13 @@ void BufferQueueConsumerTest::TearDownTestCase()
 }
 
 /*
-* Function: AcquireBuffer and ReleaseBuffer
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call RequestBuffer and FlushBuffer
-*                  2. call AcquireBuffer and ReleaseBuffer
-*                  3. check ret
+ * Function: AcquireBuffer and ReleaseBuffer
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call RequestBuffer and FlushBuffer
+ *                  2. call AcquireBuffer and ReleaseBuffer
+ *                  3. check ret
  */
 HWTEST_F(BufferQueueConsumerTest, AcqRel001, Function | MediumTest | Level2)
 {
@@ -100,14 +114,14 @@ HWTEST_F(BufferQueueConsumerTest, AcqRel001, Function | MediumTest | Level2)
 }
 
 /*
-* Function: AcquireBuffer and ReleaseBuffer
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call RequestBuffer and FlushBuffer
-*                  2. call AcquireBuffer and ReleaseBuffer
-*                  3. call ReleaseBuffer again
-*                  4. check ret
+ * Function: AcquireBuffer and ReleaseBuffer
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call RequestBuffer and FlushBuffer
+ * 2. call AcquireBuffer and ReleaseBuffer
+ * 3. call ReleaseBuffer again
+ * 4. check ret
  */
 HWTEST_F(BufferQueueConsumerTest, AcqRel002, Function | MediumTest | Level2)
 {
@@ -131,5 +145,59 @@ HWTEST_F(BufferQueueConsumerTest, AcqRel002, Function | MediumTest | Level2)
 
     ret = bqc->ReleaseBuffer(buffer, releaseFence);
     ASSERT_NE(ret, OHOS::GSERROR_OK);
+
+    int32_t timeOut = 1;
+    ret = bqc->AttachBuffer(buffer, timeOut);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+}
+/*
+ * Function: AttachBuffer001
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. check bufferQueue_
+ *    2. call AttachBuffer
+ */
+HWTEST_F(BufferQueueConsumerTest, AttachBuffer001, Function | MediumTest | Level2)
+{
+    int32_t timeOut = 0;
+    IBufferProducer::RequestBufferReturnValue retval;
+    sptr<SurfaceBuffer> &buffer = retval.buffer;
+
+    sptr<BufferQueue> bufferqueue = nullptr;
+    auto bqcTmp = new BufferQueueConsumer(bufferqueue);
+
+    GSError ret = bqcTmp->AttachBuffer(buffer, timeOut);
+    ASSERT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
+}
+/* Function: RegisterSurfaceDelegator
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. check ret
+ *    2. call RegisterSurfaceDelegator
+ */
+HWTEST_F(BufferQueueConsumerTest, RegisterSurfaceDelegator001, Function | MediumTest | Level2)
+{
+    sptr<BufferQueue> bufferqueue = nullptr;
+    auto bqcTmp = new BufferQueueConsumer(bufferqueue);
+
+    sptr<ProducerSurfaceDelegator> surfaceDelegator = ProducerSurfaceDelegator::Create();
+    GSError ret = bqcTmp->RegisterSurfaceDelegator(surfaceDelegator->AsObject(), surface);
+    ASSERT_NE(ret, OHOS::GSERROR_OK);
+}
+
+HWTEST_F(BufferQueueConsumerTest, RegisterSurfaceDelegator002, Function | MediumTest | Level2)
+{
+    sptr<ProducerSurfaceDelegator> surfaceDelegator = ProducerSurfaceDelegator::Create();
+    GSError ret = bqc->RegisterSurfaceDelegator(surfaceDelegator->AsObject(), surface);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+}
+
+HWTEST_F(BufferQueueConsumerTest, RegisterSurfaceDelegator003, Function | MediumTest | Level2)
+{
+    sptr<ProducerSurfaceDelegator> surfaceDelegator = ProducerSurfaceDelegator::Create();
+    GSError ret = bqc->RegisterSurfaceDelegator(surfaceDelegator->AsObject(), nullptr);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
 }

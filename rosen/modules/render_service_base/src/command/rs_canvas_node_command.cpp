@@ -70,9 +70,7 @@ void RSCanvasNodeCommandHelper::UpdateRecording(
         if (!drawCmds) {
             return;
         }
-#ifndef USE_ROSEN_DRAWING
         drawCmds->UpdateNodeIdToPicture(id);
-#endif
     }
 }
 

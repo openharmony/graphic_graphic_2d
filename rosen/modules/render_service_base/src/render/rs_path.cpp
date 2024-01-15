@@ -21,7 +21,6 @@
 #include "include/core/SkPathMeasure.h"
 #include "include/utils/SkParsePath.h"
 #else
-#include "recording/recording_path.h"
 #include "draw/path.h"
 #include "utils/matrix.h"
 #include "utils/scalar.h"

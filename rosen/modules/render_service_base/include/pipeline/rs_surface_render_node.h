@@ -135,6 +135,12 @@ public:
         isHardwareEnabledNode_ = isEnabled;
     }
 
+    bool NeedBilinearInterpolation() const
+    {
+        return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_ &&
+            name_ == "SceneViewer Model0";
+    }
+
     void SetSubNodeShouldPaint()
     {
         hasSubNodeShouldPaint_ = true;
@@ -876,9 +882,14 @@ public:
         return surfaceCacheContentStatic_;
     }
 
-    void SetSurfaceCacheContentStatic(bool contentStatic)
+    void UpdateSurfaceCacheContentStatic(
+        const std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>& activeNodeIds);
+    // temperory limit situation:
+    // subtree no drawingcache and geodirty
+    // contentdirty 1 specifically for buffer update
+    bool IsContentDirtyNodeLimited() const
     {
-        surfaceCacheContentStatic_ = contentStatic;
+        return drawingCacheNodes_.empty() && dirtyGeoNodeNum_ == 0 && dirtyContentNodeNum_ <= 1;
     }
 
     size_t GetLastFrameChildrenCnt()
@@ -928,8 +939,11 @@ public:
     {
         return ancestorDisplayNode_;
     }
+    bool QuerySubAssignable(bool isRotation);
+    bool QueryIfAllHwcChildrenForceDisabledByFilter();
     bool GetHasSharedTransitionNode() const;
     void SetHasSharedTransitionNode(bool hasSharedTransitionNode);
+    Vector2f GetGravityTranslate(float imgWidth, float imgHeight);
 
     bool HasWindowCorner()
     {
@@ -1046,6 +1060,9 @@ private:
     std::vector<bool> childrenFilterRectsCacheValid_;
     std::vector<std::shared_ptr<RSRenderNode>> childrenFilterNodes_;
     std::unordered_set<NodeId> abilityNodeIds_;
+    size_t dirtyContentNodeNum_ = 0;
+    size_t dirtyGeoNodeNum_ = 0;
+    size_t dirtynodeNum_ = 0;
     // transparent region of the surface, floating window's container window is always treated as transparent
     Occlusion::Region transparentRegion_;
 
@@ -1056,7 +1073,7 @@ private:
     bool isTreatedAsTransparent_ = false;
     // valid filter nodes within, including itself
     std::vector<std::shared_ptr<RSRenderNode>> filterNodes_;
-    std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>> drawingCacheNodes_;
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> drawingCacheNodes_;
 
     struct OpaqueRegionBaseInfo
     {
@@ -1087,7 +1104,7 @@ private:
         }
     public:
         // temporary const value from ACE container_modal_constants.h, will be replaced by uniform interface
-        const static int CONTAINER_TITLE_HEIGHT = 37;   // container title height = 37 vp
+        const static int CONTAINER_TITLE_HEIGHT = 48;   // container title height = 48 vp
         const static int CONTENT_PADDING = 4;           // container <--> content distance 4 vp
         const static int CONTAINER_BORDER_WIDTH = 1;    // container border width 2 vp
         const static int CONTAINER_OUTER_RADIUS = 16;   // container outer radius 16 vp

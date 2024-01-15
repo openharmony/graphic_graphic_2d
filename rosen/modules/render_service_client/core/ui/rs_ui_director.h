@@ -67,6 +67,7 @@ public:
     static void PostFrameRateTask(const std::function<void()>& task);
 
     int32_t GetCurrentRefreshRateMode();
+    int32_t GetAnimateExpectedRate() const;
 
 private:
     void AttachSurface();

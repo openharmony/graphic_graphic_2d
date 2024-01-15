@@ -120,6 +120,18 @@ public:
     void GetWidths(const uint16_t glyphs[], int count, scalar widths[], Rect bounds[]) const;
 
     /*
+     * @brief         Returns text size in points.
+     * @return        The size of text.
+     */
+    scalar GetSize() const;
+
+    /*
+     * @brief         Returns Typeface if set, or nullptr.
+     * @return        Typeface if previously set, nullptr otherwise.
+     */
+    std::shared_ptr<Typeface> GetTypeface() const;
+
+    /*
      * @brief             Measure the width of text.
      * @param text        Character storage encoded with TextEncoding
      * @param byteLength  Length of character storage in bytes

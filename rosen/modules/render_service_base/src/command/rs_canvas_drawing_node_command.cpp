@@ -26,5 +26,12 @@ void RSCanvasDrawingNodeCommandHelper::Create(RSContext& context, NodeId id, boo
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 
+void RSCanvasDrawingNodeCommandHelper::ResetSurface(RSContext& context, NodeId id)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(id)) {
+        node->ResetSurface();
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

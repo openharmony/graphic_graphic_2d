@@ -33,7 +33,7 @@ class PixelMap;
 namespace Rosen {
 namespace Drawing {
 class DrawOpItem;
-class CmdListHelper {
+class DRAWING_API CmdListHelper {
 public:
     CmdListHelper() = default;
     ~CmdListHelper() = default;
@@ -61,6 +61,11 @@ public:
     static std::shared_ptr<Picture> GetPictureFromCmdList(const CmdList& cmdList, const OpDataHandle& pictureHandle);
     static OpDataHandle AddCompressDataToCmdList(CmdList& cmdList, const std::shared_ptr<Data>& data);
     static std::shared_ptr<Data> GetCompressDataFromCmdList(const CmdList& cmdList, const OpDataHandle& imageHandle);
+
+    static OpDataHandle DRAWING_API AddDrawFuncObjToCmdList(
+        CmdList& cmdList, const std::shared_ptr<ExtendDrawFuncObj>& object);
+    static std::shared_ptr<ExtendDrawFuncObj> GetDrawFuncObjFromCmdList(
+        const CmdList& cmdList, const OpDataHandle& objectHandle);
 
     template<typename RecordingType, typename CommonType>
     static CmdListHandle AddRecordedToCmdList(CmdList& cmdList, const CommonType& recorded)
@@ -199,6 +204,9 @@ public:
     static OpDataHandle AddPathToCmdList(CmdList& cmdList, const Path& path);
     static std::shared_ptr<Path> GetPathFromCmdList(const CmdList& cmdList, const OpDataHandle& pathHandle);
 
+    static OpDataHandle AddRegionToCmdList(CmdList& cmdList, const Region& region);
+    static std::shared_ptr<Region> GetRegionFromCmdList(const CmdList& cmdList, const OpDataHandle& regionHandle);
+
     static OpDataHandle AddColorSpaceToCmdList(CmdList& cmdList, const std::shared_ptr<ColorSpace> colorSpace);
     static std::shared_ptr<ColorSpace> GetColorSpaceFromCmdList(const CmdList& cmdList,
         const OpDataHandle& imageHandle);
@@ -222,9 +230,6 @@ public:
     static FlattenableHandle AddImageFilterToCmdList(CmdList& cmdList, std::shared_ptr<ImageFilter> imageFilter);
     static std::shared_ptr<ImageFilter> GetImageFilterFromCmdList(const CmdList& cmdList,
         const FlattenableHandle& imageFilterHandle);
-
-    static std::vector<std::shared_ptr<DrawOpItem>> GetDrawOpItemsFromHandle(
-        const CmdList& cmdList, const CmdListHandle& handle);
 
     static SymbolOpHandle AddSymbolToCmdList(CmdList& cmdList, const DrawingHMSymbolData& symbol);
     static DrawingHMSymbolData GetSymbolFromCmdList(const CmdList& cmdList, const SymbolOpHandle& symbolHandle);

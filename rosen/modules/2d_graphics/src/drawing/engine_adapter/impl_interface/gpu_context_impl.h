@@ -69,6 +69,10 @@ public:
     virtual void DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump) = 0;
 
     virtual void SetCurrentGpuResourceTag(const GPUResourceTag &tag) = 0;
+
+#ifdef RS_ENABLE_VK
+    virtual void StoreVkPipelineCacheData() = 0;
+#endif
 };
 } // namespace Drawing
 } // namespace Rosen

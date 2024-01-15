@@ -86,7 +86,7 @@ struct NativeSurfaceInfo {
 #else
     std::shared_ptr<Drawing::Surface> drawingSurface = nullptr;
 #endif
-    uint32_t lastPresentedCount = -1;
+    int32_t lastPresentedCount = -1;
 
     ~NativeSurfaceInfo()
     {
@@ -95,7 +95,14 @@ struct NativeSurfaceInfo {
 #else
         drawingSurface = nullptr;
 #endif
-        NativeWindowCancelBuffer(window, nativeWindowBuffer);
+        if (window != nullptr) {
+            NativeObjectUnreference(window);
+            window = nullptr;
+        }
+        if (nativeWindowBuffer != nullptr) {
+            NativeObjectUnreference(nativeWindowBuffer);
+            nativeWindowBuffer = nullptr;
+        }
     }
 };
 

@@ -261,7 +261,7 @@ void OH_Drawing_PenSetShaderEffect(OH_Drawing_Pen* cPen, OH_Drawing_ShaderEffect
     pen->SetShaderEffect(std::shared_ptr<ShaderEffect>{CastToShaderEffect(cShaderEffect), [](auto p) {}});
 }
 
-void OH_Drawing_BrushSetFilter(OH_Drawing_Pen* cPen, const OH_Drawing_Filter* cFilter)
+void OH_Drawing_PenSetFilter(OH_Drawing_Pen* cPen, OH_Drawing_Filter* cFilter)
 {
     if (cFilter == nullptr) {
         return;

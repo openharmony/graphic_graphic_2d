@@ -178,11 +178,9 @@ bool SkiaMatrix::MapRect(Rect& dst, const Rect& src) const
 {
     SkRect skSrc = SkRect::MakeXYWH(src.GetLeft(), src.GetTop(), src.GetWidth(), src.GetHeight());
     SkRect skDst;
-    if (skMatrix_.mapRect(&skDst, skSrc)) {
-        dst = Rect(skDst.fLeft, skDst.fTop, skDst.fRight, skDst.fBottom);
-        return true;
-    }
-    return false;
+    bool ret = skMatrix_.mapRect(&skDst, skSrc);
+    dst = Rect(skDst.fLeft, skDst.fTop, skDst.fRight, skDst.fBottom);
+    return ret;
 }
 
 void SkiaMatrix::Set(int index, scalar value)

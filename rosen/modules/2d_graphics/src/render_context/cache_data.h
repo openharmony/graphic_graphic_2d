@@ -28,6 +28,14 @@ namespace OHOS {
 namespace Rosen {
 class CacheData {
 public:
+    enum class ErrorCode {
+        NO_ERR = 0,
+        KEY_NOT_FOUND,
+        VALUE_SIZE_TOO_SAMLL,
+        VALUE_SIZE_OVER_MAX_SIZE,
+        COPY_FAILED
+    };
+
     CacheData(const size_t maxKeySize, const size_t maxValueSize,
         const size_t maxTotalSize, const std::string& fileName);
 
@@ -35,7 +43,8 @@ public:
 
     void Rewrite(const void *key, const size_t keySize, const void *value, const size_t valueSize);
 
-    size_t Get(const void *key, const size_t keySize, void *value, const size_t valueSize);
+    std::tuple<CacheData::ErrorCode, size_t> Get(const void *key, const size_t keySize,
+        void *value, const size_t valueSize);
 
     size_t SerializedSize() const;
 

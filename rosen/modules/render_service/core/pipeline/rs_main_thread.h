@@ -137,7 +137,7 @@ public:
     bool IsDrawingGroupChanged(RSRenderNode& cacheRootNode) const;
     // check if active instance only move or scale it's main window surface without rearrangement
     // instanceNodeId should be MainWindowType, or it cannot grep correct app's info
-    bool CheckIfInstanceOnlySurfaceBasicGeoTransform(NodeId instanceNodeId) const;
+    void CheckAndUpdateInstanceContentStaticStatus(std::shared_ptr<RSSurfaceRenderNode> instanceNode) const;
 
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app);
     void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
@@ -199,6 +199,7 @@ public:
     SystemAnimatedScenes GetSystemAnimatedScenes();
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
     void SetIsCachedSurfaceUpdated(bool isCachedSurfaceUpdated);
+    pid_t GetDesktopPidForRotationScene() const;
     void SetForceUpdateUniRenderFlag(bool flag)
     {
         forceUpdateUniRenderFlag_ = flag;
@@ -434,6 +435,7 @@ private:
     bool lastFrameHasFilter_ = false;
     bool vsyncControlEnabled_ = true;
     bool systemAnimatedScenesEnabled_ = false;
+    bool isFoldScreenDevice_ = false;
 
     bool colorPickerForceRequestVsync_ = false;
     std::atomic_bool noNeedToPostTask_ = false;
@@ -470,6 +472,7 @@ private:
 
     std::shared_ptr<HgmFrameRateManager> frameRateMgr_ = nullptr;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;
+    pid_t desktopPidForRotationScene_ = 0;
     FrameRateRange rsCurrRange_;
 
     // UIFirst

@@ -642,7 +642,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, AdjustZOrderAndDrawSurfaceNode001, Function |
     ASSERT_NE(nullptr, visitor_);
     RSSurfaceRenderNodeConfig config;
     auto node = std::make_shared<RSSurfaceRenderNode>(config);
-    visitor_->AdjustZOrderAndDrawSurfaceNode();
+    visitor_->AdjustZOrderAndDrawSurfaceNode(visitor_->hardwareEnabledNodes_);
 }
 
 /*

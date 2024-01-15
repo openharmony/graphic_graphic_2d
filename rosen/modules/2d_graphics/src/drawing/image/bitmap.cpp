@@ -147,6 +147,12 @@ void Bitmap::SetFormat(const BitmapFormat& format)
     format_.colorType = format.colorType;
 }
 
+void Bitmap::SetInfo(const ImageInfo& info)
+{
+    imageInfo_ = info;
+    bmpImplPtr->SetInfo(info);
+}
+
 ImageInfo Bitmap::GetImageInfo() const
 {
     return imageInfo_;

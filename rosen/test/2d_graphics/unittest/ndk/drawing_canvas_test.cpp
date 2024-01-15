@@ -74,6 +74,34 @@ void NativeDrawingCanvasTest::TearDown()
 }
 
 /*
+ * @tc.name: NativeDrawingCanvasTest_CanvasNULLPTR
+ * @tc.desc: test for OH_Drawing_CanvasBind.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_CanvasNULLPTR, TestSize.Level1)
+{
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
+    EXPECT_NE(bitmap, nullptr);
+    OH_Drawing_CanvasBind(nullptr, bitmap);
+    OH_Drawing_BitmapDestroy(bitmap);
+    OH_Drawing_CanvasAttachPen(canvas_, nullptr);
+    OH_Drawing_CanvasTranslate(canvas_, INT32_MIN, INT32_MIN);
+    OH_Drawing_CanvasTranslate(canvas_, INT32_MAX, INT32_MAX);
+    OH_Drawing_CanvasDrawLine(nullptr, 0, 0, 20, 20);
+    OH_Drawing_CanvasDrawLine(canvas_, 0, 0, INT32_MAX, INT32_MAX);
+    OH_Drawing_CanvasDrawLine(canvas_, 0, 0, INT32_MIN, INT32_MIN);
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_PathMoveTo(path, INT32_MAX, INT32_MIN);
+    OH_Drawing_PathMoveTo(nullptr, 9999, -1000);
+    OH_Drawing_PathClose(nullptr);
+    OH_Drawing_PathClose(path);
+    OH_Drawing_CanvasDrawPath(nullptr, path);
+    OH_Drawing_CanvasDrawPath(canvas_, nullptr);
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
  * @tc.name: NativeDrawingCanvasTest_CanvasBind
  * @tc.desc: test for OH_Drawing_CanvasBind.
  * @tc.type: FUNC
@@ -158,12 +186,20 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_SaveAndRestore, TestSi
 {
     OH_Drawing_Rect *rect = OH_Drawing_RectCreate(100, 200, 500, 300);
     EXPECT_NE(nullptr, rect);
+    OH_Drawing_CanvasSave(nullptr);
     OH_Drawing_CanvasSave(canvas_);
+    OH_Drawing_CanvasTranslate(nullptr, 100, 100);
     OH_Drawing_CanvasTranslate(canvas_, 100, 100);
+    OH_Drawing_CanvasDrawArc(nullptr, rect, 10, 200);
+    OH_Drawing_CanvasDrawArc(canvas_, nullptr, 10, 200);
     OH_Drawing_CanvasDrawArc(canvas_, rect, 10, 200);
+    OH_Drawing_CanvasRestore(nullptr);
     OH_Drawing_CanvasRestore(canvas_);
     OH_Drawing_CanvasTranslate(canvas_, 200, 200);
+    OH_Drawing_CanvasDrawOval(nullptr, rect);
+    OH_Drawing_CanvasDrawOval(canvas_, nullptr);
     OH_Drawing_CanvasDrawOval(canvas_, rect);
+    OH_Drawing_RectDestroy(nullptr);
     OH_Drawing_RectDestroy(rect);
 }
 
@@ -175,6 +211,9 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_SaveAndRestore, TestSi
  */
 HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_Clear, TestSize.Level1)
 {
+    OH_Drawing_CanvasClear(nullptr, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0x00, 0x00));
+    OH_Drawing_CanvasClear(canvas_, -100);
+    OH_Drawing_CanvasClear(canvas_, OH_Drawing_ColorSetArgb(INT32_MAX, INT32_MAX, INT32_MIN, INT32_MIN));
     OH_Drawing_CanvasClear(canvas_, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0x00, 0x00));
 }
 
@@ -196,14 +235,22 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_RestoreToCount, TestSi
     OH_Drawing_CanvasDrawRect(canvas_, rect);
     int count = OH_Drawing_CanvasGetSaveCount(canvas_);
     EXPECT_EQ(count, 4);
+    OH_Drawing_CanvasRestoreToCount(nullptr, count - 2);
     OH_Drawing_CanvasRestoreToCount(canvas_, count - 2);
     EXPECT_EQ(2, OH_Drawing_CanvasGetSaveCount(canvas_));
-    OH_Drawing_RoundRect *roundRect = OH_Drawing_RoundRectCreate(rect, 20, 20);
+    OH_Drawing_RoundRect *roundRect = OH_Drawing_RoundRectCreate(nullptr, 20, 20);
+    EXPECT_EQ(roundRect, nullptr);
+    roundRect = OH_Drawing_RoundRectCreate(rect, 20, 20);
+    EXPECT_NE(roundRect, nullptr);
+    OH_Drawing_CanvasDrawRoundRect(nullptr, roundRect);
+    OH_Drawing_CanvasDrawRoundRect(canvas_, nullptr);
     OH_Drawing_CanvasDrawRoundRect(canvas_, roundRect);
     OH_Drawing_CanvasRestoreToCount(canvas_, 1);
     OH_Drawing_CanvasDrawRect(canvas_, rect);
     OH_Drawing_RoundRectDestroy(roundRect);
     OH_Drawing_RectDestroy(rect);
+    OH_Drawing_RoundRectDestroy(nullptr);
+    OH_Drawing_RectDestroy(nullptr);
 }
 
 /*
@@ -217,7 +264,9 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_Scale, TestSize.Level1
     OH_Drawing_Rect *rect = OH_Drawing_RectCreate(10, 20, 60, 120);
     OH_Drawing_CanvasTranslate(canvas_, 20, 20);
     OH_Drawing_CanvasDrawRect(canvas_, rect);
+    OH_Drawing_CanvasScale(nullptr, 2, .5f);
     OH_Drawing_CanvasScale(canvas_, 2, .5f);
+    OH_Drawing_BrushSetColor(nullptr, 0xFF67C23A);
     OH_Drawing_BrushSetColor(brush_, 0xFF67C23A);
     OH_Drawing_CanvasDrawRect(canvas_, rect);
 }
@@ -231,12 +280,18 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_Scale, TestSize.Level1
 HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ClipRect, TestSize.Level1)
 {
     OH_Drawing_Rect *rect = OH_Drawing_RectCreate(0, 0, 90, 90);
+    OH_Drawing_CanvasRotate(nullptr, 10, 0, 0);
     OH_Drawing_CanvasRotate(canvas_, 10, 0, 0);
     OH_Drawing_Point *point = OH_Drawing_PointCreate(100, 60);
+    OH_Drawing_BrushSetAntiAlias(nullptr, true);
     OH_Drawing_BrushSetAntiAlias(brush_, true);
     for (auto alias : {false, true}) {
         OH_Drawing_CanvasSave(canvas_);
+        OH_Drawing_CanvasClipRect(nullptr, rect, OH_Drawing_CanvasClipOp::INTERSECT, alias);
+        OH_Drawing_CanvasClipRect(canvas_, nullptr, OH_Drawing_CanvasClipOp::INTERSECT, alias);
         OH_Drawing_CanvasClipRect(canvas_, rect, OH_Drawing_CanvasClipOp::INTERSECT, alias);
+        OH_Drawing_CanvasDrawCircle(canvas_, nullptr, 60);
+        OH_Drawing_CanvasDrawCircle(nullptr, point, 60);
         OH_Drawing_CanvasDrawCircle(canvas_, point, 60);
         OH_Drawing_CanvasRestore(canvas_);
         OH_Drawing_CanvasTranslate(canvas_, 80, 0);
@@ -258,7 +313,10 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ClipPath, TestSize.Lev
     OH_Drawing_PathLineTo(path, 200, 300);
     OH_Drawing_PathLineTo(path, 200, 400);
     OH_Drawing_PathLineTo(path, 100, 350);
+    OH_Drawing_PathClose(nullptr);
     OH_Drawing_PathClose(path);
+    OH_Drawing_CanvasClipPath(nullptr, path, OH_Drawing_CanvasClipOp::DIFFERENCE, true);
+    OH_Drawing_CanvasClipPath(canvas_, nullptr, OH_Drawing_CanvasClipOp::DIFFERENCE, true);
     OH_Drawing_CanvasClipPath(canvas_, path, OH_Drawing_CanvasClipOp::DIFFERENCE, true);
     OH_Drawing_Rect *rect = OH_Drawing_RectCreate(100, 300, 200, 400);
     OH_Drawing_CanvasDrawRect(canvas_, rect);
@@ -280,10 +338,13 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_LinearGradient, TestSi
     float pos[] = {0., 1.0};
     OH_Drawing_ShaderEffect* linearGradient = OH_Drawing_ShaderEffectCreateLinearGradient(startPt, endPt,
         color, pos, 2, OH_Drawing_TileMode::CLAMP);
+    OH_Drawing_BrushSetShaderEffect(nullptr, linearGradient);
+    OH_Drawing_BrushSetShaderEffect(brush_, nullptr);
     OH_Drawing_BrushSetShaderEffect(brush_, linearGradient);
     OH_Drawing_Rect *rect = OH_Drawing_RectCreate(200, 500, 300, 600);
     OH_Drawing_CanvasDrawRect(canvas_, rect);
     OH_Drawing_RectDestroy(rect);
+    OH_Drawing_ShaderEffectDestroy(nullptr);
     OH_Drawing_ShaderEffectDestroy(linearGradient);
     OH_Drawing_PointDestroy(startPt);
     OH_Drawing_PointDestroy(endPt);
@@ -300,8 +361,12 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_SweepGradient, TestSiz
     OH_Drawing_Point* centerPt = OH_Drawing_PointCreate(350, 450);
     uint32_t colors[] = {0xffff00ff, 0xff00ff00};
     float pos[] = {0., 1.0};
-    OH_Drawing_ShaderEffect* sweepGradient = OH_Drawing_ShaderEffectCreateSweepGradient(centerPt, colors,
+    OH_Drawing_ShaderEffect* sweepGradient = OH_Drawing_ShaderEffectCreateSweepGradient(nullptr, nullptr,
+        nullptr, -2, OH_Drawing_TileMode::MIRROR);
+    EXPECT_EQ(sweepGradient, nullptr);
+    sweepGradient = OH_Drawing_ShaderEffectCreateSweepGradient(centerPt, colors,
         pos, 2, OH_Drawing_TileMode::MIRROR);
+    EXPECT_NE(sweepGradient, nullptr);
     OH_Drawing_BrushSetShaderEffect(brush_, sweepGradient);
     OH_Drawing_Rect *rect = OH_Drawing_RectCreate(300, 400, 500, 500);
     OH_Drawing_CanvasDrawRect(canvas_, rect);
@@ -321,6 +386,8 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_MaskFilter, TestSize.L
     EXPECT_EQ(OH_Drawing_BrushGetColor(brush_), 0xFFFF0000);
     OH_Drawing_MaskFilter* maskFilter = OH_Drawing_MaskFilterCreateBlur(OH_Drawing_BlurType::NORMAL, 10, true);
     OH_Drawing_Filter* filter = OH_Drawing_FilterCreate();
+    OH_Drawing_FilterSetMaskFilter(nullptr, maskFilter);
+    OH_Drawing_FilterSetMaskFilter(filter, nullptr);
     OH_Drawing_FilterSetMaskFilter(filter, maskFilter);
     OH_Drawing_BrushSetFilter(brush_, filter);
     OH_Drawing_Rect *rect = OH_Drawing_RectCreate(200, 500, 300, 600);
@@ -342,7 +409,10 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ColorFilterCreateBlend
     OH_Drawing_ColorFilter* colorFilter = OH_Drawing_ColorFilterCreateBlendMode(0xff0000ff,
         OH_Drawing_BlendMode::BLEND_MODE_SRC);
     OH_Drawing_Filter* filter = OH_Drawing_FilterCreate();
+    OH_Drawing_FilterSetColorFilter(nullptr, colorFilter);
+    OH_Drawing_FilterSetColorFilter(filter, nullptr);
     OH_Drawing_FilterSetColorFilter(filter, colorFilter);
+    OH_Drawing_BrushSetFilter(brush_, nullptr);
     OH_Drawing_BrushSetFilter(brush_, filter);
     OH_Drawing_Rect *rect = OH_Drawing_RectCreate(0, 0, 100, 100);
     OH_Drawing_CanvasDrawRect(canvas_, rect);
@@ -360,7 +430,10 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ColorFilterCreateBlend
         0, 0, 1, 0, 0,
         0, 0, 0, 0.5f, 0
     };
-    OH_Drawing_ColorFilter* matrixFilter = OH_Drawing_ColorFilterCreateMatrix(matrix);
+    OH_Drawing_ColorFilter* matrixFilter = OH_Drawing_ColorFilterCreateMatrix(nullptr);
+    EXPECT_EQ(matrixFilter, nullptr);
+    matrixFilter = OH_Drawing_ColorFilterCreateMatrix(matrix);
+    EXPECT_NE(matrixFilter, nullptr);
     OH_Drawing_FilterSetColorFilter(filter, matrixFilter);
     OH_Drawing_CanvasTranslate(canvas_, 300, 300);
     OH_Drawing_CanvasDrawRect(canvas_, rect);
@@ -370,6 +443,7 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ColorFilterCreateBlend
     OH_Drawing_ColorFilterDestroy(matrixFilter);
     OH_Drawing_ColorFilterDestroy(linear);
     OH_Drawing_FilterDestroy(filter);
+    OH_Drawing_FilterDestroy(nullptr);
 }
 
 /*
@@ -383,7 +457,9 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ColorFilterCreateCompo
     EXPECT_EQ(OH_Drawing_BrushGetColor(brush_), 0xFFFF0000);
     OH_Drawing_ColorFilter* outerFilter = OH_Drawing_ColorFilterCreateLuma();
     OH_Drawing_ColorFilter* innerFilter = OH_Drawing_ColorFilterCreateSrgbGammaToLinear();
-    OH_Drawing_ColorFilter* compose = OH_Drawing_ColorFilterCreateCompose(outerFilter, innerFilter);
+    OH_Drawing_ColorFilter* compose = OH_Drawing_ColorFilterCreateCompose(nullptr, nullptr);
+    EXPECT_EQ(compose, nullptr);
+    compose = OH_Drawing_ColorFilterCreateCompose(outerFilter, innerFilter);
     EXPECT_NE(compose, nullptr);
     OH_Drawing_Filter* filter = OH_Drawing_FilterCreate();
     OH_Drawing_FilterSetColorFilter(filter, compose);
@@ -413,6 +489,8 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawBitmap, TestSize.L
     OH_Drawing_BitmapBuild(bitmap, width, height, &cFormat);
     OH_Drawing_CanvasBind(canvas_, bitmap);
     OH_Drawing_CanvasDrawBitmap(canvas_, bitmap, 0, 0);
+    OH_Drawing_CanvasClear(canvas_, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0xFF, 0xFF));
+    OH_Drawing_BitmapDestroy(bitmap);
 }
 
 /*
@@ -430,6 +508,8 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawTextBlob, TestSize
     OH_Drawing_Typeface *typeSurface = OH_Drawing_TypefaceCreateDefault();
     OH_Drawing_FontSetTypeface(font, typeSurface);
     auto *builder = OH_Drawing_TextBlobBuilderCreate();
+    EXPECT_EQ(nullptr, OH_Drawing_TextBlobBuilderAllocRunPos(nullptr, nullptr, INT32_MAX, nullptr));
+    EXPECT_EQ(nullptr, OH_Drawing_TextBlobBuilderAllocRunPos(builder, font, INT32_MIN, nullptr));
     const OH_Drawing_RunBuffer* runBuffer = OH_Drawing_TextBlobBuilderAllocRunPos(builder, font, 9, nullptr);
     ASSERT_NE(runBuffer, nullptr);
     runBuffer->glyphs[0] = 65;
@@ -465,6 +545,10 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawTextBlob, TestSize
     OH_Drawing_TextBlobBuilderDestroy(builder);
     OH_Drawing_FontDestroy(font);
     OH_Drawing_TypefaceDestroy(typeSurface);
+    OH_Drawing_TextBlobDestroy(nullptr);
+    OH_Drawing_TextBlobBuilderDestroy(nullptr);
+    OH_Drawing_FontDestroy(nullptr);
+    OH_Drawing_TypefaceDestroy(nullptr);
 }
 } // namespace Drawing
 } // namespace Rosen

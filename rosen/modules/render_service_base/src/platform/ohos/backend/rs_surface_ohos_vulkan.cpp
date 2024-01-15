@@ -45,8 +45,8 @@ RSSurfaceOhosVulkan::RSSurfaceOhosVulkan(const sptr<Surface>& producer) : RSSurf
 RSSurfaceOhosVulkan::~RSSurfaceOhosVulkan()
 {
 #ifdef ENABLE_NATIVEBUFFER
-    mSurfaceList.clear();
     mSurfaceMap.clear();
+    mSurfaceList.clear();
 #endif // ENABLE_NATIVEBUFFER
     DestoryNativeWindow(mNativeWindow);
     mNativeWindow = nullptr;
@@ -60,6 +60,9 @@ RSSurfaceOhosVulkan::~RSSurfaceOhosVulkan()
 void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC)
 {
     if (width != mWidth || height != mHeight) {
+        for (auto &[key, val] : mSurfaceMap) {
+            NativeWindowCancelBuffer(mNativeWindow, key);
+        }
         mSurfaceMap.clear();
     }
     NativeWindowHandleOpt(mNativeWindow, SET_FORMAT, pixelFormat_);
@@ -145,11 +148,14 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
 #else
     if (nativeSurface.drawingSurface == nullptr) {
 #endif
+        NativeObjectReference(mNativeWindow);
         nativeSurface.window = mNativeWindow;
         if (!NativeBufferUtils::MakeFromNativeWindowBuffer(
             mSkContext, nativeWindowBuffer, nativeSurface, width, height)) {
             ROSEN_LOGE("RSSurfaceOhosVulkan: MakeFromeNativeWindow failed");
+            mSurfaceList.pop_back();
             NativeWindowCancelBuffer(mNativeWindow, nativeWindowBuffer);
+            mSurfaceMap.erase(nativeWindowBuffer);
             return nullptr;
         }
 
@@ -160,6 +166,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
 #endif
             ROSEN_LOGE("RSSurfaceOhosVulkan: skSurface is null, return");
             mSurfaceList.pop_back();
+            NativeWindowCancelBuffer(mNativeWindow, nativeWindowBuffer);
             mSurfaceMap.erase(nativeWindowBuffer);
             return nullptr;
         } else {
@@ -177,7 +184,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
         nativeSurface.fence = std::make_unique<SyncFence>(fenceFd);
         auto status = nativeSurface.fence->GetStatus();
         if (status != SIGNALED) {
-            auto& vkContext = RsVulkanContext::GetSingleton();
+            auto const& vkContext = RsVulkanContext::GetSingleton();
             VkSemaphore semaphore;
             CreateVkSemaphore(&semaphore, vkContext, nativeSurface);
 #ifndef USE_ROSEN_DRAWING
@@ -342,6 +349,9 @@ void RSSurfaceOhosVulkan::SetColorSpace(GraphicColorGamut colorSpace)
 {
     if (colorSpace != colorSpace_) {
         colorSpace_ = colorSpace;
+        for (auto &[key, val] : mSurfaceMap) {
+            NativeWindowCancelBuffer(mNativeWindow, key);
+        }
         mSurfaceMap.clear();
     }
 }

@@ -27,7 +27,6 @@
 #include "vulkan/vulkan.h"
 #include "include/gpu/vk/GrVkBackendContext.h"
 #include "include/gpu/GrDirectContext.h"
-#include "render_context/memory_handler.h"
 
 #ifdef USE_ROSEN_DRAWING
 #include "image/gpu_context.h"
@@ -35,7 +34,7 @@
 
 namespace OHOS {
 namespace Rosen {
-
+class MemoryHandler;
 class RsVulkanContext {
 public:
     template <class T>

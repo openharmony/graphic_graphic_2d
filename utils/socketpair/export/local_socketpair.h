@@ -48,6 +48,7 @@ public:
 private:
     int32_t SendFdToBinder(MessageParcel &data, int32_t &fd);
     void CloseFd(int32_t &fd);
+    int32_t SetSockopt(size_t sendSize, size_t receiveSize, int32_t* socketPair, int32_t socketPairSize);
 
 private:
     int32_t sendFd_;

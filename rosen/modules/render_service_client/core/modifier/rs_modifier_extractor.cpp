@@ -34,6 +34,7 @@ constexpr uint32_t DEBUG_MODIFIER_SIZE = 20;
         if (!node) {                                                                                                \
             return defaultValue;                                                                                    \
         }                                                                                                           \
+        std::unique_lock<std::recursive_mutex> lock(node->propertyMutex);                                           \
         auto iter = node->propertyModifiers_.find(RSModifierType::propertyType);                                    \
         if (iter != node->propertyModifiers_.end()) {                                                               \
             if (!iter->second || !iter->second->GetProperty()) {                                                    \

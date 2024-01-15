@@ -48,6 +48,9 @@ sptr<Surface> Surface::CreateSurfaceAsProducer(sptr<IBufferProducer>& producer)
 ProducerSurface::ProducerSurface(sptr<IBufferProducer>& producer)
 {
     producer_ = producer;
+    if (producer_) {
+        producer_->SendDeathRecipientObject();
+    }
     BLOGND("ctor");
 }
 
@@ -59,7 +62,7 @@ ProducerSurface::~ProducerSurface()
     BLOGND("dtor, name:%{public}s, Queue Id:%{public}" PRIu64, name_.c_str(), queueId_);
     auto ret = Disconnect();
     if (ret != GSERROR_OK) {
-        BLOGNE("Disconnect failed, %{public}s", GSErrorStr(ret).c_str());
+        BLOGND("Disconnect failed, %{public}s", GSErrorStr(ret).c_str());
     }
 }
 
@@ -168,9 +171,9 @@ GSError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer, const sptr<Syn
 }
 
 GSError ProducerSurface::GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
-                                  sptr<SyncFence>& fence, float matrix[16])
+    sptr<SyncFence>& fence, float matrix[16], int32_t matrixSize)
 {
-    auto ret = producer_->GetLastFlushedBuffer(buffer, fence, matrix);
+    auto ret = producer_->GetLastFlushedBuffer(buffer, fence, matrix, matrixSize);
     return ret;
 }
 
@@ -235,12 +238,53 @@ GSError ProducerSurface::AttachBuffer(sptr<SurfaceBuffer>& buffer)
     return producer_->AttachBuffer(buffer);
 }
 
+GSError ProducerSurface::AttachBuffer(sptr<SurfaceBuffer>& buffer, int32_t timeOut)
+{
+    if (buffer == nullptr) {
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
+    return producer_->AttachBuffer(buffer, timeOut);
+}
+
 GSError ProducerSurface::DetachBuffer(sptr<SurfaceBuffer>& buffer)
 {
     if (buffer == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
     }
     return producer_->DetachBuffer(buffer);
+}
+
+GSError ProducerSurface::RegisterSurfaceDelegator(sptr<IRemoteObject> client)
+{
+    if (client == nullptr) {
+        BLOGE("RegisterSurfaceDelegator failed for the delegator client is nullptr");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    sptr<ProducerSurfaceDelegator> surfaceDelegator = ProducerSurfaceDelegator::Create();
+    if (surfaceDelegator == nullptr) {
+        BLOGE("RegisterSurfaceDelegator failed for the surface delegator is nullptr");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    if (!surfaceDelegator->SetClient(client)) {
+        BLOGE("Set the surface delegator client failed");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+
+    surfaceDelegator->SetSurface(this);
+    wpPSurfaceDelegator_ = surfaceDelegator;
+
+    auto releaseBufferCallBack = [this] (const sptr<SurfaceBuffer> &buffer,
+        const sptr<SyncFence> &fence) -> GSError {
+        auto surfaceDelegator = this->wpPSurfaceDelegator_.promote();
+        if (surfaceDelegator == nullptr) {
+            return GSERROR_INVALID_ARGUMENTS;
+        }
+        int error = surfaceDelegator->ReleaseBuffer(buffer, fence);
+        return static_cast<GSError>(error);
+    };
+    RegisterReleaseListener(releaseBufferCallBack);
+    return GSERROR_OK;
 }
 
 bool ProducerSurface::QueryIfBufferAvailable()
@@ -331,6 +375,16 @@ GSError ProducerSurface::RegisterReleaseListener(OnReleaseFunc func)
         return GSERROR_INVALID_ARGUMENTS;
     }
     listener_ = new BufferReleaseProducerListener(func);
+    return producer_->RegisterReleaseListener(listener_);
+}
+
+GSError ProducerSurface::RegisterReleaseListener(OnReleaseFuncWithFence funcWithFence)
+{
+    if (funcWithFence == nullptr) {
+        BLOGNE("OnReleaseFuncWithFence is nullptr, RegisterReleaseListener failed.");
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    listener_ = new BufferReleaseProducerListener(nullptr, funcWithFence);
     return producer_->RegisterReleaseListener(listener_);
 }
 

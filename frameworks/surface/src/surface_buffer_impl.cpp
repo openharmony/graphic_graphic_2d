@@ -553,7 +553,6 @@ GSError SurfaceBufferImpl::SetMetadata(uint32_t key, const std::vector<uint8_t>&
     if (dret == GRAPHIC_DISPLAY_SUCCESS) {
         return GSERROR_OK;
     }
-    BLOGW("Failed with %{public}d", dret);
     return GenerateError(GSERROR_API_FAILED, dret);
 }
 
@@ -576,7 +575,6 @@ GSError SurfaceBufferImpl::GetMetadata(uint32_t key, std::vector<uint8_t>& value
     if (dret == GRAPHIC_DISPLAY_SUCCESS) {
         return GSERROR_OK;
     }
-    BLOGW("Failed with %{public}d", dret);
     return GenerateError(GSERROR_API_FAILED, dret);
 }
 
@@ -597,7 +595,6 @@ GSError SurfaceBufferImpl::ListMetadataKeys(std::vector<uint32_t>& keys)
     if (dret == GRAPHIC_DISPLAY_SUCCESS) {
         return GSERROR_OK;
     }
-    BLOGW("Failed with %{public}d", dret);
     return GenerateError(GSERROR_API_FAILED, dret);
 }
 
@@ -620,7 +617,6 @@ GSError SurfaceBufferImpl::EraseMetadataKey(uint32_t key)
     if (dret == GRAPHIC_DISPLAY_SUCCESS) {
         return GSERROR_OK;
     }
-    BLOGW("Failed with %{public}d", dret);
     return GenerateError(GSERROR_API_FAILED, dret);
 }
 } // namespace OHOS

@@ -120,7 +120,7 @@ HWTEST_F(CacheDataTest, get_data_test_001, TestSize.Level1)
     /**
      * @tc.steps: step2. test the data grabbing function
      */
-    size_t sizeGet = cacheData->Get(nullptr, 1, nullptr, 1);
+    auto [errorCode, sizeGet] = cacheData->Get(nullptr, 1, nullptr, 1);
     EXPECT_EQ(0, sizeGet);
 #endif
 }
@@ -213,7 +213,7 @@ HWTEST_F(CacheDataTest, write_data_test_001, TestSize.Level1)
      */
     uint8_t *tempBuffer = new uint8_t[8]();
     cacheData->Rewrite(tempBuffer, 8, tempBuffer, 8);
-    int sizeGet = cacheData->Get(tempBuffer, 8, tempBuffer, 8);
+    auto [errorCode, sizeGet] = cacheData->Get(tempBuffer, 8, tempBuffer, 8);
     EXPECT_EQ(0, sizeGet);
     delete[] tempBuffer;
 #endif
@@ -253,7 +253,7 @@ HWTEST_F(CacheDataTest, clean_data_test_001, TestSize.Level1)
     cacheData->Rewrite(testKey2, 4, testValue, 4);
     cacheData->Rewrite(testKey3, 4, testValue, 4);
     cacheData->Rewrite(testKey4, 4, testValue, 4);
-    int sizeGet = cacheData->Get(testKey4, 4, tempBuffer, 4);
+    auto [errorCode, sizeGet] = cacheData->Get(testKey4, 4, tempBuffer, 4);
     EXPECT_EQ(4, sizeGet);
     delete[] tempBuffer;
 #endif
@@ -289,7 +289,7 @@ HWTEST_F(CacheDataTest, clean_data_test_002, TestSize.Level1)
     const char *testValue = "aVal";
     cacheData->Rewrite(testKey1, 4, testValue, 4);
     cacheData->Rewrite(testKey2, 4, testValue, 4);
-    int sizeGet = cacheData->Get(testKey2, 4, tempBuffer, 4);
+    auto [errorCode, sizeGet] = cacheData->Get(testKey2, 4, tempBuffer, 4);
     EXPECT_EQ(0, sizeGet);
     delete[] tempBuffer;
 #endif

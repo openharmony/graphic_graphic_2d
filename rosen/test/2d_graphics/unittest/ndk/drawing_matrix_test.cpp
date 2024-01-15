@@ -51,6 +51,7 @@ HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_SetMatrix, TestSize.Le
         0, -1, 0,
         0, 0, 1);
     OH_Drawing_MatrixDestroy(matrix);
+    OH_Drawing_MatrixDestroy(nullptr);
 }
 } // namespace Drawing
 } // namespace Rosen

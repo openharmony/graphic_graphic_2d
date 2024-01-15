@@ -54,9 +54,9 @@ SkCanvas* RSCanvasNode::BeginRecording(int width, int height)
     recordingCanvas_ = new RSRecordingCanvas(width, height);
     static_cast<RSRecordingCanvas*>(recordingCanvas_)->SetIsCustomTextType(isCustomTextType_);
 #else
-Drawing::RecordingCanvas* RSCanvasNode::BeginRecording(int width, int height)
+ExtendRecordingCanvas* RSCanvasNode::BeginRecording(int width, int height)
 {
-    recordingCanvas_ = new Drawing::RecordingCanvas(width, height);
+    recordingCanvas_ = new ExtendRecordingCanvas(width, height);
     recordingCanvas_->SetIsCustomTextType(isCustomTextType_);
 #endif
     auto transactionProxy = RSTransactionProxy::GetInstance();

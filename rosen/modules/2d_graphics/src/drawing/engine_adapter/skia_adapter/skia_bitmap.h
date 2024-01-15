@@ -60,6 +60,7 @@ public:
     bool IsValid() const override;
     bool IsEmpty() const override;
     Pixmap GetPixmap() const override;
+    void SetInfo(const ImageInfo& info) override;
     bool TryAllocPixels(const ImageInfo& info) override;
     void SetSkBitmap(const SkBitmap& skBitmap);
 

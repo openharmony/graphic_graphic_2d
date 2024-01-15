@@ -69,6 +69,7 @@ public:
     void Free();
     BitmapFormat GetFormat() const;
     void SetFormat(const BitmapFormat& format);
+    void SetInfo(const ImageInfo& info);
     ImageInfo GetImageInfo() const;
     Pixmap GetPixmap() const;
     bool TryAllocPixels(const ImageInfo& info);

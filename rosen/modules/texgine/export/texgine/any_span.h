@@ -111,7 +111,8 @@ public:
         }
         const SkVector fRadii[4] = {{ltRadius, ltRadius}, {rtRadius, rtRadius}, {rbRadius, rbRadius},
             {lbRadius, lbRadius}};
-        auto rect = TexgineRect::MakeRRect(offsetX, absLineY_, (float)GetWidth(), (float)lineHeight_, fRadii);
+        auto rect = TexgineRect::MakeRRect(offsetX, offsetY + topInGroup_, (float)GetWidth(),
+            bottomInGroup_ - topInGroup_, fRadii);
         canvas.DrawRRect(rect, paint);
     }
 
@@ -125,43 +126,43 @@ public:
         roundRectType_ = type;
     }
 
-    void SetLineHeight(const double lineHeight)
+    void SetTopInGroup(const double top)
     {
-        lineHeight_ = lineHeight;
+        topInGroup_ = top;
     }
 
-    double GetLineHeight() const
+    double GetTopInGroup() const
     {
-        return lineHeight_;
+        return topInGroup_;
     }
 
-    void SetLineY(const double lineY)
+    void SetBottomInGroup(const double bottom)
     {
-        lineY_ = lineY;
+        bottomInGroup_ = bottom;
     }
 
-    double GetLineY() const
+    double GetBottomInGroup() const
     {
-        return lineY_;
+        return bottomInGroup_;
     }
 
-    void SetAbsLineY(const double absLineY)
+    void SetMaxRoundRectRadius(const double radius)
     {
-        absLineY_ = absLineY;
+        maxRoundRectRadius_ = radius;
     }
 
-    double GetAbsLineY() const
+    double GetMaxRoundRectRadius() const
     {
-        return absLineY_;
+        return maxRoundRectRadius_;
     }
 
 private:
     friend void ReportMemoryUsage(const std::string& member, const AnySpan& that, const bool needThis);
     void ReportMemoryUsage(const std::string& member, const bool needThis) const override;
 
-    double lineHeight_ = 0.0;
-    double lineY_ = 0.0;
-    double absLineY_ = 0.0;
+    double topInGroup_ = 0.0;
+    double bottomInGroup_ = 0.0;
+    double maxRoundRectRadius_ = 0.0;
     TextStyle xs_;
     RoundRectType roundRectType_ = RoundRectType::NONE;
 };

@@ -47,7 +47,6 @@ ohos_static_library("frame_report") {
 
   if (defined(global_parts_info) &&
       defined(global_parts_info.hdf_drivers_interface_hwsched)) {
-    external_deps += [ "drivers_interface_hwsched:libhwsched_proxy_1.0" ]
     defines += [ "AI_SCHED_ENABLE" ]
   }
 

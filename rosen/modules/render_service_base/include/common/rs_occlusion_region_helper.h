@@ -41,7 +41,7 @@ public:
         : storage_(r.GetRegionRectsRef()), bound_(r.GetBoundRef()), lastRectRowBegin_(), end_(), cur_()
     {
         storage_.clear();
-        bound_ = Rect{INT_MAX, INT_MAX, INT_MIN, INT_MIN};
+        bound_ = Rect{INT_MAX, INT_MAX, INT_MIN, INT_MIN, false};
     }
     void Insert(const Rect &r); // insert a Rect into span
     void FlushVerticalSpan();

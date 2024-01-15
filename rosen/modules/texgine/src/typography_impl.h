@@ -22,6 +22,7 @@
 #include "line_metrics.h"
 #include "texgine/typography.h"
 #include "texgine/typography_types.h"
+#include "symbol_animation_config.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -66,7 +67,18 @@ public:
     double GetLineHeight(int lineNumber);
     double GetLineWidth(int lineNumber);
 
+    void SetAnimation(
+        std::function<bool(
+            const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc) override
+    {
+        if (animationFunc) {
+            animationFunc_ = animationFunc;
+        }
+    }
 private:
+
+    std::function<bool(const std::shared_ptr<SymbolAnimationConfig>&)> animationFunc_ = nullptr;
+
     void ReportMemoryUsage(const std::string &member, bool needThis) const override;
 
     int ComputeStrut();
@@ -85,6 +97,8 @@ private:
         std::vector<TextRect> &lineBoxes) const;
     std::vector<TextRect> GenTextRects(std::shared_ptr<TextSpan> &ts, double offsetX, double offsetY,
         double spanGapWidth) const;
+    void ComputeRoundRect(VariantSpan& span, int& index, int& preIndex, LineMetrics& metrics,
+        std::vector<VariantSpan>& groupSpans);
     TypographyStyle typographyStyle_;
     std::vector<VariantSpan> spans_;
     std::shared_ptr<FontProviders> fontProviders_;

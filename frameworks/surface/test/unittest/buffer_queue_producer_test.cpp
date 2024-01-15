@@ -18,6 +18,8 @@
 #include <buffer_queue_producer.h>
 #include "buffer_consumer_listener.h"
 #include "sync_fence.h"
+#include "consumer_surface.h"
+#include "producer_surface_delegator.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -226,5 +228,49 @@ HWTEST_F(BufferQueueProducerTest, ReqFlu002, Function | MediumTest | Level2)
     sptr<SyncFence> releaseFence = SyncFence::INVALID_FENCE;
     ret = bq->ReleaseBuffer(retval.buffer, releaseFence);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
+
+    int32_t timeOut = 1;
+    ret = bqp->AttachBuffer(retval.buffer, timeOut);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+}
+
+/*
+* Function: AttachBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call AttachBuffer
+* 4. check ret
+*/
+HWTEST_F(BufferQueueProducerTest, AttachBuffer001, Function | MediumTest | Level2)
+{
+    int32_t timeOut = 0;
+    IBufferProducer::RequestBufferReturnValue retVal;
+    sptr<SurfaceBuffer> &buffer = retVal.buffer;
+
+    sptr<BufferQueue> bufferQueue = nullptr;
+    auto bqpTmp = new BufferQueueProducer(bufferQueue);
+
+    GSError ret = bqpTmp->AttachBuffer(buffer, timeOut);
+    ASSERT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
+}
+
+/*
+* Function: AttachBufferRemote
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call AttachBufferRemote
+* 4. check ret
+*/
+HWTEST_F(BufferQueueProducerTest, AttachBufferRemote, Function | MediumTest | Level2)
+{
+    MessageParcel arguments;
+    arguments.WriteInt32(5);
+    MessageParcel reply;
+    reply.WriteInt32(6);
+    MessageOption option;
+    int32_t ret = bqp->AttachBufferRemote(arguments, reply, option);
+    ASSERT_EQ(ret, 0);
 }
 }

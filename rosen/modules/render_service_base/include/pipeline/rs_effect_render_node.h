@@ -46,12 +46,25 @@ public:
     std::optional<Drawing::RectI> InitializeEffectRegion() const { return Drawing::RectI(); }
     void SetEffectRegion(const std::optional<Drawing::RectI>& effectRegion);
 #endif
+    // record if there is filter cache for occlusion before this effect node
+    void SetVisitedFilterCacheStatus(bool isEmpty)
+    {
+        isVisitedOcclusionFilterCacheEmpty_ = isEmpty;
+    }
+
+    bool IsVisitedFilterCacheEmpty() const
+    {
+        return isVisitedOcclusionFilterCacheEmpty_;
+    }
 
 protected:
     RectI GetFilterRect() const override;
     void UpdateFilterCacheManagerWithCacheRegion(
         RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect) const override;
     void UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground) const override;
+
+private:
+    bool isVisitedOcclusionFilterCacheEmpty_ = true;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -91,7 +91,7 @@ private:
     static constexpr uint8_t ID_KEY = 0;
 
     static constexpr size_t MAX_KEY_SIZE = 1024;
-    static constexpr size_t MAX_VALUE_SIZE = MAX_KEY_SIZE * 512;
+    static constexpr size_t MAX_VALUE_SIZE = MAX_KEY_SIZE * 1024;
     static constexpr size_t MAX_TOTAL_SIZE = MAX_VALUE_SIZE * 4;
     static constexpr size_t MAX_UNIRENDER_SIZE = MAX_VALUE_SIZE * 10;
 };

@@ -20,18 +20,7 @@
 #ifdef USE_ROSEN_DRAWING
 #include "recording/mask_cmd_list.h"
 #include "recording/cmd_list_helper.h"
-#include "recording/color_space_cmd_list.h"
-#include "recording/color_filter_cmd_list.h"
-#include "recording/shader_effect_cmd_list.h"
-#include "recording/image_filter_cmd_list.h"
-#include "recording/mask_filter_cmd_list.h"
-#include "recording/recording_color_space.h"
 #include "effect/shader_effect.h"
-#include "recording/recording_color_filter.h"
-#include "recording/recording_image_filter.h"
-#include "recording/recording_mask_filter.h"
-#include "recording/recording_shader_effect.h"
-#include "recording/recording_path.h"
 #endif
 #include "platform/common/rs_log.h"
 

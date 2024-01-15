@@ -939,11 +939,11 @@ bool RSRenderServiceConnection::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
 }
 
 #ifndef USE_ROSEN_DRAWING
-bool RSRenderServiceConnection::GetPixelmap(
-    NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap, const SkRect* rect)
+bool RSRenderServiceConnection::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
+    const SkRect* rect, std::shared_ptr<DrawCmdList> drawCmdList)
 #else
-bool RSRenderServiceConnection::GetPixelmap(
-    NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect)
+bool RSRenderServiceConnection::GetPixelmap(NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap,
+    const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
 #endif
 {
     auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(id);
@@ -957,14 +957,14 @@ bool RSRenderServiceConnection::GetPixelmap(
     }
     bool result = false;
     auto tid = node->GetTid();
-    auto getPixelmapTask = [&node, &pixelmap, rect, &result, tid]() {
-        result = node->GetPixelmap(pixelmap, rect, tid);
+    auto getPixelmapTask = [&node, &pixelmap, rect, &result, tid, drawCmdList]() {
+        result = node->GetPixelmap(pixelmap, rect, tid, drawCmdList);
     };
     if (!node->IsOnTheTree()) {
         node->ClearOp();
     }
     if (tid == UINT32_MAX) {
-        if (!mainThread_->IsIdle()) {
+        if (!mainThread_->IsIdle() && mainThread_->GetContext().HasActiveNode(node)) {
             return false;
         }
         mainThread_->PostSyncTask(getPixelmapTask);

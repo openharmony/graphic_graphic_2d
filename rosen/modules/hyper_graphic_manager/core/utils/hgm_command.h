@@ -18,6 +18,7 @@
 
 #include <inttypes.h>
 #include <string>
+#include <unordered_map>
 
 #include "screen_manager/screen_types.h"
 #include "animation/rs_frame_rate_range.h"
@@ -25,6 +26,12 @@
 namespace OHOS::Rosen {
 
 constexpr int UNI_APP_PID = -1;
+
+const std::unordered_map<int, std::string> HGM_MODIFIER_TYPE_MAP = {
+    {0, "TRANSLATE"},
+    {1, "SCALE"},
+    {2, "ROTATION"}
+};
 
 enum OledRefreshRate {
     OLED_NULL_HZ = 0,

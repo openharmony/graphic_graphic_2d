@@ -17,6 +17,7 @@
 #define INTERFACES_INNERKITS_SURFACE_BUFFER_PRODUCER_LISTENER_H
 
 #include <refbase.h>
+#include "buffer_utils.h"
 #include "iremote_broker.h"
 #include "buffer_log.h"
 #include "surface_buffer.h"
@@ -24,6 +25,7 @@
 #include "iremote_proxy.h"
 #include "iremote_stub.h"
 #include "message_option.h"
+#include "sync_fence.h"
 
 namespace OHOS {
 class ProducerListenerProxy : public IRemoteProxy<IProducerListener> {
@@ -45,7 +47,30 @@ public:
             return GSERROR_BINDER;
         }
         return GSERROR_OK;
-    };
+    }
+
+    GSError OnBufferReleasedWithFence(const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence) override
+    {
+        MessageOption option;
+        MessageParcel arguments;
+        MessageParcel reply;
+        if (!arguments.WriteInterfaceToken(IProducerListener::GetDescriptor())) {
+            BLOGE("write interface token failed");
+            return GSERROR_BINDER;
+        }
+        WriteSurfaceBufferImpl(arguments, buffer->GetSeqNum(), buffer);
+        arguments.WriteBool(fence != nullptr);
+        if (fence != nullptr) {
+            fence->WriteToMessageParcel(arguments);
+        }
+        option.SetFlags(MessageOption::TF_ASYNC);
+        int32_t ret = Remote()->SendRequest(IProducerListener::ON_BUFFER_RELEASED_WITH_FENCE, arguments, reply, option);
+        if (ret != ERR_NONE) {
+            BLOGE("Send to request buffer release callback failed, ret = %{public}d", ret);
+            return GSERROR_BINDER;
+        }
+        return GSERROR_OK;
+    }
 private:
     static inline BrokerDelegator<ProducerListenerProxy> delegator_;
 };
@@ -70,18 +95,41 @@ public:
                 reply.WriteInt32(sret);
                 break;
             }
+            case ON_BUFFER_RELEASED_WITH_FENCE: {
+                auto sret = OnBufferReleasedWithFenceRemote(arguments);
+                reply.WriteInt32(sret);
+                break;
+            }
             default: {
                 ret = ERR_UNKNOWN_TRANSACTION;
                 break;
             }
         }
         return ret;
-    };
+    }
+private:
+    GSError OnBufferReleasedWithFenceRemote(MessageParcel& arguments)
+    {
+        sptr<SurfaceBuffer> buffer;
+        sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
+        uint32_t sequence = 0;
+        GSError ret = ReadSurfaceBufferImpl(arguments, sequence, buffer);
+        if (ret != GSERROR_OK) {
+            BLOGE("Read surface buffer impl failed, return %{public}d", ret);
+            return ret;
+        }
+        if (arguments.ReadBool()) {
+            fence = SyncFence::ReadFromMessageParcel(arguments);
+        }
+        ret = OnBufferReleasedWithFence(buffer, fence);
+        return ret;
+    }
 };
 
 class BufferReleaseProducerListener : public ProducerListenerStub {
 public:
-    explicit BufferReleaseProducerListener(OnReleaseFunc func): func_(func) {};
+    BufferReleaseProducerListener(OnReleaseFunc func = nullptr, OnReleaseFuncWithFence funcWithFence = nullptr)
+        : func_(func), funcWithFence_(funcWithFence) {};
     ~BufferReleaseProducerListener() override {};
     GSError OnBufferReleased() override
     {
@@ -91,8 +139,16 @@ public:
         }
         return GSERROR_INTERNAL;
     };
+    GSError OnBufferReleasedWithFence(const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence) override
+    {
+        if (funcWithFence_ != nullptr) {
+            return funcWithFence_(buffer, fence);
+        }
+        return GSERROR_INTERNAL;
+    }
 private:
     OnReleaseFunc func_;
+    OnReleaseFuncWithFence funcWithFence_;
 };
 } // namespace OHOS
 

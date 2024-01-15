@@ -54,10 +54,6 @@
 #include "frame_collector.h"
 #include "render_frame_trace.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
-#if defined(ROSEN_OHOS) && defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_VK)
-#include "include/recording/draw_cmd.h"
-#include "platform/ohos/backend/native_buffer_utils.h"
-#endif
 #ifdef ACCESSIBILITY_ENABLE
 #include "accessibility_config.h"
 #include "platform/common/rs_accessibility.h"
@@ -120,19 +116,6 @@ RSRenderThread::RSRenderThread()
         jankDetector_->CalculateSkippedFrame(renderStartTimeStamp, jankDetector_->GetSysTimeNs());
         RS_TRACE_END();
     };
-#if defined(ROSEN_OHOS) && defined(USE_ROSEN_DRAWING) && defined(RS_ENABLE_VK)
-    if (RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-        std::function<void*(VkImage, VkDeviceMemory)> createCleanup =
-            [] (VkImage image, VkDeviceMemory memory) -> void* {
-            return new OHOS::Rosen::NativeBufferUtils::VulkanCleanupHelper(
-                RsVulkanContext::GetSingleton(), image, memory);
-        };
-        Drawing::DrawSurfaceBufferOpItem::SetBaseCallback(
-            OHOS::Rosen::NativeBufferUtils::MakeBackendTextureFromNativeBuffer,
-            OHOS::Rosen::NativeBufferUtils::DeleteVkImage, createCleanup);
-    }
-#endif
     context_ = std::make_shared<RSContext>();
     jankDetector_ = std::make_shared<RSJankDetector>();
 #ifdef ACCESSIBILITY_ENABLE
@@ -280,7 +263,7 @@ void RSRenderThread::RenderLoop()
     payload["uid"] = std::to_string(getuid());
     payload["pid"] = std::to_string(GetRealPid());
     ResourceSchedule::ResSchedClient::GetInstance().ReportData(
-        ResourceSchedule::ResType::RES_TYPE_REPORT_RENDER_THREAD, gettid(), payload);
+        ResourceSchedule::ResType::RES_TYPE_REPORT_RENDER_THREAD, getproctid(), payload);
 #endif
 #ifdef ROSEN_OHOS
     tid_ = gettid();

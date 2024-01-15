@@ -44,10 +44,18 @@ ohos_systemtest("RSBaseRenderEngineTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "sensor:sensor_interface_native",
   ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSDropFrameProcessorSystemTest
@@ -58,10 +66,19 @@ ohos_systemtest("RSDropFrameProcessorSystemTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "sensor:sensor_interface_native",
   ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 ## Build RSRenderServiceTest
@@ -72,10 +89,19 @@ ohos_systemtest("RSRenderServiceTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "sensor:sensor_interface_native",
   ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
   defines = []
   defines += gpu_defines
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
 }
 
 if (graphic_2d_feature_rs_enable_uni_render) {
@@ -93,6 +119,13 @@ if (graphic_2d_feature_rs_enable_uni_render) {
     defines += gpu_defines
     if (defined(use_rosen_drawing) && use_rosen_drawing) {
       defines += [ "USE_ROSEN_DRAWING" ]
+    }
+    if (defined(use_video_processing_engine) && use_video_processing_engine) {
+      include_dirs = []
+      defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+      include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+      external_deps +=
+          [ "drivers_interface_display:display_commontype_idl_headers" ]
     }
   }
 }

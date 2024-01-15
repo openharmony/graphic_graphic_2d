@@ -14,7 +14,9 @@
  */
 
 #include "skia_gpu_context.h"
-
+#ifdef RS_ENABLE_VK
+#include <mutex>
+#endif
 #include "include/gpu/gl/GrGLInterface.h"
 #include "src/gpu/GrDirectContextPriv.h"
 #include "include/core/SkTypes.h"
@@ -34,7 +36,7 @@ sk_sp<SkData> SkiaPersistentCache::load(const SkData& key)
 {
     Data keyData;
     if (!cache_) {
-        LOGE("SkiaPersistentCache::load, failed! cache or key invalid");
+        LOGD("SkiaPersistentCache::load, failed! cache or key invalid");
         return nullptr;
     }
     auto skiaKeyDataImpl = keyData.GetImpl<SkiaData>();
@@ -42,7 +44,7 @@ sk_sp<SkData> SkiaPersistentCache::load(const SkData& key)
 
     auto retData = cache_->Load(keyData);
     if (retData == nullptr) {
-        LOGE("SkiaPersistentCache::load, failed! load data invalid");
+        LOGD("SkiaPersistentCache::load, failed! load data invalid");
         return nullptr;
     }
 
@@ -54,7 +56,7 @@ void SkiaPersistentCache::store(const SkData& key, const SkData& data)
     Data keyData;
     Data storeData;
     if (!cache_) {
-        LOGE("SkiaPersistentCache::store, failed! cache or {key,data} invalid");
+        LOGD("SkiaPersistentCache::store, failed! cache or {key,data} invalid");
         return;
     }
 
@@ -87,13 +89,23 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
 }
 
 #ifdef RS_ENABLE_VK
-std::unique_ptr<SkExecutor> SkiaGPUContext::threadPool = SkExecutor::MakeFIFOThreadPool(4); // 4 threads async task
+std::unique_ptr<SkExecutor> SkiaGPUContext::threadPool = nullptr;
+void SkiaGPUContext::InitSkExecutor()
+{
+    static std::mutex mtx;
+    mtx.lock();
+    if (threadPool == nullptr) {
+        threadPool = SkExecutor::MakeFIFOThreadPool(2); // 2 threads async task
+    }
+    mtx.unlock();
+}
 bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context)
 {
     if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
         SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return false;
     }
+    InitSkExecutor();
     GrContextOptions grOptions;
     grOptions.fExecutor = threadPool.get();
     grContext_ = GrDirectContext::MakeVulkan(context, grOptions);
@@ -109,6 +121,7 @@ bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUCon
     if (options.GetPersistentCache() != nullptr) {
         skiaPersistentCache_ = std::make_shared<SkiaPersistentCache>(options.GetPersistentCache());
     }
+    InitSkExecutor();
     GrContextOptions grOptions;
     grOptions.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
     grOptions.fPreferExternalImagesOverES3 = true;
@@ -308,6 +321,17 @@ void SkiaGPUContext::SetGrContext(const sk_sp<GrContext>& grContext)
 {
     grContext_ = grContext;
 }
+
+#ifdef RS_ENABLE_VK
+void SkiaGPUContext::StoreVkPipelineCacheData()
+{
+    if (!grContext_) {
+        LOGE("SkiaGPUContext::StoreVkPipelineCacheData, grContext_ is nullptr");
+        return;
+    }
+    grContext_->storeVkPipelineCacheData();
+}
+#endif
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

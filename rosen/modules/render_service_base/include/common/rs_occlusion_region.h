@@ -41,24 +41,24 @@ public:
     static Rect _s_invalid_rect_;
 
     Rect() : left_(0), top_(0), right_(0), bottom_(0) {}
-    Rect(int l, int t, int r, int b)
+    Rect(int l, int t, int r, int b, bool checkValue = true)
     {
         left_ = l;
         top_ = t;
         right_ = r;
         bottom_ = b;
-        if (IsEmpty() || CheckIfHasAbnormalValue()) {
+        if (checkValue && (IsEmpty() || CheckIfHasAbnormalValue())) {
             SetEmpty();
         }
     }
 
-    Rect(const RectI& r)
+    Rect(const RectI& r, bool checkValue = true)
     {
         left_ = r.left_;
         top_ = r.top_;
         right_ = r.GetRight();
         bottom_ = r.GetBottom();
-        if (IsEmpty() || CheckIfHasAbnormalValue()) {
+        if (checkValue && (IsEmpty() || CheckIfHasAbnormalValue())) {
             SetEmpty();
         }
     }
@@ -276,18 +276,18 @@ public:
     }
     bool IsEmpty() const
     {
-        return rects_.size() == 0;
+        return rects_.size() == 0 || bound_.IsEmpty();
     }
     std::string GetRegionInfo() const
     {
         std::string info;
-        if (rects_.size() > 0) {
+        if (IsEmpty()) {
+            info = "Region [Empty]";
+        } else {
             info = "Region " + std::to_string(rects_.size()) + ": ";
             for (auto& r : rects_) {
                 info.append(r.GetRectInfo());
             }
-        } else {
-            info = "Region [Empty]";
         }
         return info;
     }

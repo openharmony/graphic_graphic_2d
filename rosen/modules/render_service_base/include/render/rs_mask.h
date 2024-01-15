@@ -24,7 +24,6 @@
 #else
 #include "draw/brush.h"
 #include "draw/path.h"
-#include "recording/recording_path.h"
 #include "image/picture.h"
 #endif
 #if defined(NEW_SKIA)

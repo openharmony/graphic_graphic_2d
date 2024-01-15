@@ -81,7 +81,7 @@ void RSClipBoundsDrawable::Draw(const RSRenderContent& content, RSPaintFilterCan
             RSPropertiesPainter::RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
     } else {
         canvas.ClipRect(
-            RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, false);
+            RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, true);
     }
 #endif
 }
@@ -811,10 +811,10 @@ void RSHardwareAccelerationShadowDrawable::Draw(const RSRenderContent& content, 
     matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
     canvas.SetMatrix(matrix);
     Drawing::Point3 planeParams = { 0.0f, 0.0f, shadowElevation_ };
-    Drawing::scalar centerX = path.GetBounds().GetLeft() + path.GetBounds().GetWidth() / 2;
-    Drawing::scalar centerY = path.GetBounds().GetTop() + path.GetBounds().GetHeight() / 2;
-    Drawing::Point3 lightPos = { canvas.GetTotalMatrix().Get(Drawing::Matrix::TRANS_X) + centerX,
-        canvas.GetTotalMatrix().Get(Drawing::Matrix::TRANS_Y) + centerY, DEFAULT_LIGHT_HEIGHT };
+    std::vector<Drawing::Point> pt{{path.GetBounds().GetLeft() + path.GetBounds().GetWidth() / 2,
+        path.GetBounds().GetTop() + path.GetBounds().GetHeight() / 2}};
+    canvas.GetTotalMatrix().MapPoints(pt, pt, 1);
+    Drawing::Point3 lightPos = {pt[0].GetX(), pt[0].GetY(), DEFAULT_LIGHT_HEIGHT};
     Color ambientColor = Color::FromArgbInt(DEFAULT_AMBIENT_COLOR);
     ambientColor.MultiplyAlpha(canvas.GetAlpha());
     Color spotColor = color_;
@@ -909,22 +909,6 @@ RSPropertyDrawable::DrawablePtr RSLightUpEffectDrawable::Generate(const RSRender
 bool RSLightUpEffectDrawable::Update(const RSRenderContent& content)
 {
     return content.GetRenderProperties().IsLightUpEffectValid();
-}
-
-// ============================================================================
-// Binarization
-void RSBinarizationDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
-{
-    RSPropertiesPainter::DrawBinarizationShader(content.GetRenderProperties(), canvas);
-}
-
-RSPropertyDrawable::DrawablePtr RSBinarizationDrawable::Generate(const RSRenderContent& content)
-{
-    auto& aiInvert = content.GetRenderProperties().GetAiInvert();
-    if (!aiInvert.has_value()) {
-        return nullptr;
-    }
-    return std::make_unique<RSBinarizationDrawable>();
 }
 
 // ============================================================================
@@ -1260,27 +1244,81 @@ void RSBackgroundImageDrawable::Draw(const RSRenderContent& content, RSPaintFilt
 #endif
 }
 
-// ============================================================================
-// SaveLayerBackground
-void RSSaveLayerBackgroundDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
+// blend mode save and restore
+std::unique_ptr<RSPropertyDrawable> BlendSaveDrawableGenerate(const RSRenderContent& content)
+{
+    auto& properties = content.GetRenderProperties();
+    auto blendMode = properties.GetColorBlendMode();
+    int blendModeApplyType = properties.GetColorBlendApplyType();
+    if (blendMode == 0) {
+        // no blend
+        return nullptr;
+    }
+    if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::FAST)) {
+        return std::make_unique<RSBlendFastDrawable>(blendMode);
+    }
+    return std::make_unique<RSBlendSaveLayerDrawable>(blendMode);
+}
+
+std::unique_ptr<RSPropertyDrawable> BlendRestoreDrawableGenerate(const RSRenderContent& content)
+{
+    auto& properties = content.GetRenderProperties();
+    auto blendMode = properties.GetColorBlendMode();
+    int blendModeApplyType = properties.GetColorBlendApplyType();
+    if (blendMode == 0) {
+        // no blend
+        return nullptr;
+    }
+    if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::SAVE_LAYER)) {
+        return std::make_unique<RSBlendSaveLayerRestoreDrawable>();
+    }
+    return std::make_unique<RSBlendFastRestoreDrawable>();
+}
+
+RSBlendSaveLayerDrawable::RSBlendSaveLayerDrawable(int blendMode)
 {
 #ifndef USE_ROSEN_DRAWING
-    *content_ = canvas.saveLayer(nullptr, nullptr);
+    blendPaint_.setBlendMode(static_cast<SkBlendMode>(blendMode - 1)); // map blendMode to SkBlendMode
 #else
-    canvas.SaveLayer({ nullptr, nullptr });
-    *content_ = canvas.GetSaveCount() - 1;
+    blendBrush_.SetBlendMode(static_cast<Drawing::BlendMode>(blendMode - 1)); // map blendMode to Drawing::BlendMode
 #endif
 }
 
-// SaveLayerContent
-void RSSaveLayerContentDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
+void RSBlendSaveLayerDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
 #ifndef USE_ROSEN_DRAWING
-    *content_ = canvas.saveLayer(nullptr, &blendPaint_);
+    canvas.saveLayer(nullptr, &blendPaint_);
 #else
-    canvas.SaveLayer({ nullptr, &blendBrush_ });
-    *content_ = canvas.GetSaveCount() - 1;
+    Drawing::SaveLayerOps maskLayerRec(nullptr, &blendBrush_, nullptr, 0);
+    canvas.SaveLayer(maskLayerRec);
 #endif
+    canvas.SaveBlendMode();
+    canvas.SetBlendMode(std::nullopt);
+    canvas.SaveAlpha();
+    canvas.SetAlpha(1.0f);
+}
+
+void RSBlendFastDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
+{
+    canvas.SaveBlendMode();
+    canvas.SetBlendMode({ blendMode_ - 1 }); // map blendMode to SkBlendMode
+}
+
+
+void RSBlendSaveLayerRestoreDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
+{
+    canvas.RestoreBlendMode();
+    canvas.RestoreAlpha();
+#ifndef USE_ROSEN_DRAWING
+    canvas.restore();
+#else
+    canvas.Restore();
+#endif
+}
+
+void RSBlendFastRestoreDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
+{
+    canvas.RestoreBlendMode();
 }
 
 } // namespace OHOS::Rosen

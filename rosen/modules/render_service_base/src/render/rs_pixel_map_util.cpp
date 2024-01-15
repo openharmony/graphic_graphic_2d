@@ -32,28 +32,29 @@ namespace {
 }
 
 #ifndef USE_ROSEN_DRAWING
-static sk_sp<SkColorSpace> ColorSpaceToSkColorSpace(ColorSpace colorSpace)
+static sk_sp<SkColorSpace> ColorSpaceToSkColorSpace(ColorManager::ColorSpaceName colorSpaceName)
 {
-    switch (colorSpace) {
-        case ColorSpace::DISPLAY_P3:
+    switch (colorSpaceName) {
+        case ColorManager::ColorSpaceName::DISPLAY_P3:
             return SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
-        case ColorSpace::LINEAR_SRGB:
+        case ColorManager::ColorSpaceName::LINEAR_SRGB:
             return SkColorSpace::MakeSRGBLinear();
-        case ColorSpace::SRGB:
+        case ColorManager::ColorSpaceName::SRGB:
         default:
             return SkColorSpace::MakeSRGB();
     }
 }
 #else
-static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(ColorSpace colorSpace)
+static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(ColorManager::ColorSpaceName
+ colorSpaceName)
 {
-    switch (colorSpace) {
-        case ColorSpace::DISPLAY_P3:
+    switch (colorSpaceName) {
+        case ColorManager::ColorSpaceName::DISPLAY_P3:
             return Drawing::ColorSpace::CreateRGB(
                 Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
-        case ColorSpace::LINEAR_SRGB:
+        case ColorManager::ColorSpaceName::LINEAR_SRGB:
             return Drawing::ColorSpace::CreateSRGBLinear();
-        case ColorSpace::SRGB:
+        case ColorManager::ColorSpaceName::SRGB:
             return Drawing::ColorSpace::CreateSRGB();
         default:
             return Drawing::ColorSpace::CreateSRGB();
@@ -146,11 +147,11 @@ static Drawing::AlphaType AlphaTypeToDrawingAlphaType(AlphaType alphaType)
 #endif
 
 #ifndef USE_ROSEN_DRAWING
-static SkImageInfo MakeSkImageInfo(const ImageInfo& imageInfo)
+static SkImageInfo MakeSkImageInfo(const ImageInfo& imageInfo, std::shared_ptr<Media::PixelMap> pixelMap)
 {
     SkColorType ct = PixelFormatToSkColorType(imageInfo.pixelFormat);
     SkAlphaType at = AlphaTypeToSkAlphaType(imageInfo.alphaType);
-    sk_sp<SkColorSpace> cs = ColorSpaceToSkColorSpace(imageInfo.colorSpace);
+    sk_sp<SkColorSpace> cs = ColorSpaceToSkColorSpace(pixelMap->InnerGetGrColorSpace().GetColorSpaceName());
     return SkImageInfo::Make(imageInfo.size.width, imageInfo.size.height, ct, at, cs);
 }
 #endif
@@ -184,7 +185,7 @@ sk_sp<SkImage> RSPixelMapUtil::ExtractSkImage(std::shared_ptr<Media::PixelMap> p
     }
     ImageInfo imageInfo;
     pixelMap->GetImageInfo(imageInfo);
-    auto skImageInfo = MakeSkImageInfo(imageInfo);
+    auto skImageInfo = MakeSkImageInfo(imageInfo, pixelMap);
     SkPixmap skPixmap(skImageInfo, reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
     PixelMapReleaseContext* releaseContext = new PixelMapReleaseContext(pixelMap);
     auto skImage = SkImage::MakeFromRaster(skPixmap, PixelMapReleaseProc, releaseContext);
@@ -207,7 +208,7 @@ std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
     Drawing::ImageInfo drawingImageInfo { imageInfo.size.width, imageInfo.size.height,
         PixelFormatToDrawingColorType(imageInfo.pixelFormat),
         AlphaTypeToDrawingAlphaType(imageInfo.alphaType),
-        ColorSpaceToDrawingColorSpace(imageInfo.colorSpace) };
+        ColorSpaceToDrawingColorSpace(pixelMap->InnerGetGrColorSpace().GetColorSpaceName()) };
     Drawing::Pixmap imagePixmap(drawingImageInfo, reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
     PixelMapReleaseContext* releaseContext = new PixelMapReleaseContext(pixelMap);
     auto image = Drawing::Image::MakeFromRaster(imagePixmap, PixelMapReleaseProc, releaseContext);

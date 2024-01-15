@@ -67,8 +67,12 @@ void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
     }
 }
 
-std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old)
+std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callingPid)
 {
+    if (RSSystemProperties::GetCacheEnabledForRotation() &&
+        RSMainThread::Instance()->GetDesktopPidForRotationScene() != callingPid) {
+        return nullptr;
+    }
     auto dataSize = old.GetDataSize();
     if (dataSize <= MAX_DATA_SIZE_FOR_UNMARSHALLING_IN_PLACE && old.GetOffsetsSize() < FILE_DESCRIPTOR_LIMIT) {
         return nullptr;
@@ -111,11 +115,12 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old)
 int RSRenderServiceConnectionStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
+    pid_t callingPid = GetCallingPid();
 #ifdef ENABLE_IPC_SECURITY_ACCESS_COUNTER
     auto accessCount = securityUtils_.GetCodeAccessCounter(code);
     if (!securityManager_.IsAccessTimesRestricted(code, accessCount)) {
         RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest This Function[ID=%{public}u] invoke times:%{public}d"
-            "by pid[%{public}d]", code, accessCount, GetCallingPid());
+            "by pid[%{public}d]", code, accessCount, callingPid);
         return ERR_INVALID_STATE;
     }
 #endif
@@ -133,7 +138,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                     // in uni render mode, if parcel size over threshold,
                     // Unmarshalling task will be post to RSUnmarshalThread,
                     // copy the origin parcel to maintain the parcel lifetime
-                    parsedParcel = CopyParcelIfNeed(data);
+                    parsedParcel = CopyParcelIfNeed(data, callingPid);
                 }
                 if (parsedParcel == nullptr) {
                     // no need to copy or copy failed, use original parcel
@@ -989,8 +994,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             Drawing::Rect rect;
 #endif
             RSMarshallingHelper::Unmarshalling(data, rect);
-            bool result = GetPixelmap(id, pixelmap, &rect);
+            std::shared_ptr<Drawing::DrawCmdList> drawCmdList;
+            RSMarshallingHelper::Unmarshalling(data, drawCmdList);
+            bool result = GetPixelmap(id, pixelmap, &rect, drawCmdList);
             reply.WriteBool(result);
+            if (result) {
+                RSMarshallingHelper::Marshalling(reply, pixelmap);
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SKIP_FRAME_INTERVAL): {

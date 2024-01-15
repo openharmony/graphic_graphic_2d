@@ -101,6 +101,36 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegion, Function | SmallTest | Le
 }
 
 /*
+ * @tc.name: SrcRectScaleDown_001
+ * @tc.desc: default value
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(RSUniRenderUtilTest, SrcRectScaleDown_001, Function | SmallTest | Level2)
+{
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
+    BufferDrawParam params;
+    RSUniRenderUtil::SrcRectScaleDown(params, node);
+}
+
+/*
+ * @tc.name: SrcRectScaleDown_002
+ * @tc.desc: default value
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(RSUniRenderUtilTest, SrcRectScaleDown_002, Function | SmallTest | Level2)
+{
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
+    BufferDrawParam params;
+    RSUniRenderUtil::SrcRectScaleDown(params, node);
+}
+
+/*
  * @tc.name: CreateBufferDrawParam_001
  * @tc.desc:
  * @tc.type: FUNC
@@ -109,6 +139,22 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegion, Function | SmallTest | Le
 HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam_001, Function | SmallTest | Level2)
 {
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
+    bool forceCPU = false;
+    RSUniRenderUtil::CreateBufferDrawParam(node, forceCPU);
+}
+
+/*
+ * @tc.name: CreateBufferDrawParam_002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam_002, Function | SmallTest | Level2)
+{
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
     RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
     bool forceCPU = false;
     RSUniRenderUtil::CreateBufferDrawParam(node, forceCPU);
@@ -124,6 +170,23 @@ HWTEST_F(RSUniRenderUtilTest, CreateLayerBufferDrawParam_001, Function | SmallTe
 {
     bool forceCPU = false;
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
+}
+
+/*
+ * @tc.name: CreateLayerBufferDrawParam_002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderUtilTest, CreateLayerBufferDrawParam_002, Function | SmallTest | Level2)
+{
+    bool forceCPU = false;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto buffer = surfaceNode->GetBuffer();
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    layer->SetBuffer(buffer, surfaceNode->GetAcquireFence());
     RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
 }
 
@@ -159,6 +222,82 @@ HWTEST_F(RSUniRenderUtilTest, AlignedDirtyRegion_002, Function | SmallTest | Lev
     for (size_t i = 0; i < dirtyRegion.GetSize(); i++) {
         ASSERT_TRUE(dirtyRegion.GetRegionRects()[i] != alignedRegion.GetRegionRects()[i]);
     }
+}
+
+/*
+ * @tc.name: GetRotationFromMatrix
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderUtilTest, GetRotationFromMatrix, Function | SmallTest | Level2)
+{
+    int angle;
+#ifndef USE_ROSEN_DRAWING
+    SkMatrix matrix = SkMatrix::MakeAll(1, 0, 0, 0, 1, 0, 0, 0, 1);
+#else
+    Drawing::Matrix matrix = Drawing::Matrix();
+    matrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+#endif
+    angle = RSUniRenderUtil::GetRotationFromMatrix(matrix);
+    ASSERT_EQ(angle, 0);
+}
+
+/*
+ * @tc.name: GetRotationDegreeFromMatrix
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderUtilTest, GetRotationDegreeFromMatrix, Function | SmallTest | Level2)
+{
+    int angle;
+#ifndef USE_ROSEN_DRAWING
+    SkMatrix matrix = SkMatrix::MakeAll(1, 0, 0, 0, 1, 0, 0, 0, 1);
+#else
+    Drawing::Matrix matrix = Drawing::Matrix();
+    matrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+#endif
+    angle = RSUniRenderUtil::GetRotationDegreeFromMatrix(matrix);
+    ASSERT_EQ(angle, 0);
+}
+
+/*
+ * @tc.name: Is3DRotation_001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderUtilTest, Is3DRotation_001, Function | SmallTest | Level2)
+{
+    bool is3DRotation;
+#ifndef USE_ROSEN_DRAWING
+    SkMatrix matrix = SkMatrix::MakeAll(1, 0, 0, 0, 1, 0, 0, 0, 1);
+#else
+    Drawing::Matrix matrix = Drawing::Matrix();
+    matrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+#endif
+    is3DRotation = RSUniRenderUtil::Is3DRotation(matrix);
+    ASSERT_FALSE(is3DRotation);
+}
+
+/*
+ * @tc.name: Is3DRotation_002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderUtilTest, Is3DRotation_002, Function | SmallTest | Level2)
+{
+    bool is3DRotation;
+#ifndef USE_ROSEN_DRAWING
+    SkMatrix matrix = SkMatrix::MakeAll(-1, 0, 0, 0, -1, 0, 0, 0, 1);
+#else
+    Drawing::Matrix matrix = Drawing::Matrix();
+    matrix.SetMatrix(-1, 0, 0, 0, -1, 0, 0, 0, 1);
+#endif
+    is3DRotation = RSUniRenderUtil::Is3DRotation(matrix);
+    ASSERT_TRUE(is3DRotation);
 }
 
 /*
@@ -282,5 +421,37 @@ HWTEST_F(RSUniRenderUtilTest, AssignSubThreadNode, Function | SmallTest | Level2
     auto node = RSTestUtil::CreateSurfaceNode();
     RSUniRenderUtil::AssignSubThreadNode(subThreadNodes, node);
     ASSERT_EQ(1, subThreadNodes.size());
+}
+
+/*
+ * @tc.name: FloorTransXYInCanvasMatrix
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderUtilTest, FloorTransXYInCanvasMatrix, Function | SmallTest | Level2)
+{
+#ifndef USE_ROSEN_DRAWING
+    SkMatrix matrix = SkMatrix::MakeAll(1.0, 0.0, 0.1, 0.0, 1.0, 0.1, 0.0, 0.0, 1.0);
+    auto skCanvas = std::make_unique<SkCanvas>(10, 10);
+    auto canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
+    auto cachedEffectDataptr = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    RSPaintFilterCanvas::CanvasStatus status{0.0, matrix, cachedEffectDataptr};
+    canvas->SetCanvasStatus(status);
+    RSUniRenderUtil::FloorTransXYInCanvasMatrix(*canvas);
+    ASSERT_TRUE(canvas->GetTotalMatrix().getTanslateX() < 0.001);
+    ASSERT_TRUE(canvas->GetTotalMatrix().getTanslateY() < 0.001);
+#else
+    Drawing::Matrix matrix = Drawing::Matrix();
+    matrix.SetMatrix(1.0, 0.0, 0.1, 0.0, 1.0, 0.1, 0.0, 0.0, 1.0);
+    auto drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+    auto canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    auto cachedEffectDataptr = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    RSPaintFilterCanvas::CanvasStatus status{0.0, matrix, cachedEffectDataptr};
+    canvas->SetCanvasStatus(status);
+    RSUniRenderUtil::FloorTransXYInCanvasMatrix(*canvas);
+    ASSERT_TRUE(canvas->GetTotalMatrix().Get(Drawing::Matrix::TRANS_X) < 0.001);
+    ASSERT_TRUE(canvas->GetTotalMatrix().Get(Drawing::Matrix::TRANS_Y) < 0.001);
+#endif
 }
 } // namespace OHOS::Rosen

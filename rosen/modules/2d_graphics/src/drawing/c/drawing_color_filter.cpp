@@ -15,6 +15,7 @@
 
 #include "c/drawing_color_filter.h"
 
+#include "utils/log.h"
 #include "effect/color_filter.h"
 
 using namespace OHOS;
@@ -49,6 +50,10 @@ OH_Drawing_ColorFilter* OH_Drawing_ColorFilterCreateCompose(OH_Drawing_ColorFilt
 
 OH_Drawing_ColorFilter* OH_Drawing_ColorFilterCreateMatrix(const float matrix[20])
 {
+    if (matrix == nullptr) {
+        LOGE("matrix is nullptr");
+        return nullptr;
+    }
     return (OH_Drawing_ColorFilter*)new ColorFilter(ColorFilter::FilterType::MATRIX, matrix);
 }
 

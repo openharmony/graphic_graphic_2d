@@ -99,7 +99,8 @@ public:
      * @param imageFilter     Use this to filter the current layer as the new layer background, may be nullptr.
      * @param saveLayerFlags  How to allocate layer.
      */
-    SaveLayerOps(const Rect* bounds, const Brush* brush, const ImageFilter* imageFilter, uint32_t saveLayerFlags = 0)
+    SaveLayerOps(const Rect* bounds, const Brush* brush,
+        const std::shared_ptr<ImageFilter> imageFilter, uint32_t saveLayerFlags = 0)
         : bounds_(bounds), brush_(brush), imageFilter_(imageFilter), saveLayerFlags_(saveLayerFlags) {}
     ~SaveLayerOps() {}
 
@@ -122,7 +123,7 @@ public:
     /*
      * @brief  Gets the image filter of layer, may be nullptr.
      */
-    const ImageFilter* GetImageFilter() const
+    const std::shared_ptr<ImageFilter> GetImageFilter() const
     {
         return imageFilter_;
     }
@@ -138,7 +139,7 @@ public:
 private:
     const Rect* bounds_;
     const Brush* brush_;
-    const ImageFilter* imageFilter_;
+    const std::shared_ptr<ImageFilter> imageFilter_;
     uint32_t saveLayerFlags_;
 };
 
@@ -372,6 +373,9 @@ public:
     virtual bool isHighContrastEnabled() const;
     virtual Drawing::CacheType GetCacheType() const;
     virtual Drawing::Surface* GetSurface() const;
+
+    virtual float GetAlpha() const;
+    virtual int GetAlphaSaveCount() const;
 
     template<typename T>
     T* GetImpl() const

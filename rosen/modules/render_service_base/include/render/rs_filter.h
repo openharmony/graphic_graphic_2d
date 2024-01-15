@@ -46,8 +46,12 @@ public:
         virtual bool InitSurface(Drawing::GPUContext* grContext);
 #endif
         virtual bool Render();
+        virtual bool SaveFilteredImage();
+        virtual void SwapInit();
+        virtual bool SetDone();
     };
     static std::function<void(std::weak_ptr<RSFilter::RSFilterTask>)> postTask;
+    static std::function<void()> clearGpuContext;
 
     virtual ~RSFilter();
     RSFilter(const RSFilter&) = delete;
@@ -68,6 +72,7 @@ public:
         BLUR,
         MATERIAL,
         LIGHT_UP_EFFECT,
+        AIBAR,
     };
     FilterType GetFilterType() const
     {

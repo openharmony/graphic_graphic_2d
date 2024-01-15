@@ -200,11 +200,6 @@ bool RSInterfaces::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvas
     return renderServiceClient_->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
 }
 
-bool RSInterfaces::SetVirtualMirrorScreenBufferRotation(ScreenId id, bool bufferRotation)
-{
-    return false;
-}
-
 #ifndef ROSEN_ARKUI_X
 RSVirtualScreenResolution RSInterfaces::GetVirtualScreenResolution(ScreenId id)
 {

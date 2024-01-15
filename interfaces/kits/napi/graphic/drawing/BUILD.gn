@@ -1,0 +1,100 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/arkui/ace_engine/ace_config.gni")
+
+group("drawingnapi") {
+  deps = [
+    ":drawing_napi",
+    ":drawing_napi_impl",
+  ]
+}
+
+config("drawing_config") {
+  include_dirs = [ "../drawing" ]
+}
+
+config("local_drawing_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [
+    "../drawing",
+    "../../../../../../../multimedia/image_framework/interfaces/innerkits/include/",
+    "../../../../../rosen/modules/2d_graphics/include",
+    "../../../../../rosen/modules/2d_graphics/src/drawing/engine_adapter",
+  ]
+}
+
+ohos_shared_library("drawing_napi") {
+  sources = [ "drawing_module.cpp" ]
+
+  configs = [
+    ":drawing_config",
+    ":local_drawing_config",
+  ]
+
+  deps = [ ":drawing_napi_impl" ]
+
+  external_deps = [ "napi:ace_napi" ]
+
+  relative_install_dir = "module/graphics"
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
+ohos_shared_library("drawing_napi_impl") {
+  sources = [
+    "brush_napi/js_brush.cpp",
+    "canvas_napi/js_canvas.cpp",
+    "color_filter_napi/js_color_filter.cpp",
+    "enum_napi/js_enum.cpp",
+    "font_napi/js_font.cpp",
+    "font_napi/js_typeface.cpp",
+    "js_common.cpp",
+    "js_drawing_init.cpp",
+    "js_drawing_utils.cpp",
+    "path_napi/js_path.cpp",
+    "pen_napi/js_pen.cpp",
+    "text_blob_napi/js_text_blob.cpp",
+  ]
+
+  defines = []
+  configs = [ ":local_drawing_config" ]
+  public_configs = [ ":drawing_config" ]
+
+  deps = [ "../../../../../rosen/modules/2d_graphics:2d_graphics" ]
+
+  external_deps = [ "napi:ace_napi" ]
+
+  if (current_os == "ohos" || current_os == "ohos_ng") {
+    external_deps += [
+      "hilog:libhilog",
+      "image_framework:image_native",
+    ]
+    deps += [ "../../../../../utils:libgraphic_utils" ]
+    defines += [ "ROSEN_OHOS" ]
+  } else {
+    defines += [ "MODULE_DRAWING" ]
+  }
+
+  if (current_os == "mingw") {
+    defines += [ "WINDOWS_PLATFORM" ]
+  }
+
+  cflags_cc = [ "-std=c++17" ]
+
+  innerapi_tags = [ "platformsdk" ]
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}

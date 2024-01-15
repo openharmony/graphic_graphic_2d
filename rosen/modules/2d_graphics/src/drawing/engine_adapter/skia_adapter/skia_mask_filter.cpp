@@ -43,7 +43,6 @@ std::shared_ptr<Data> SkiaMaskFilter::Serialize() const
 {
 #ifdef ROSEN_OHOS
     if (filter_ == nullptr) {
-        LOGE("SkiaMaskFilter::Serialize, filter_ is nullptr!");
         return nullptr;
     }
 

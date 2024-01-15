@@ -18,15 +18,7 @@
 #ifdef SUPPORT_OHOS_PIXMAP
 #include "pixel_map.h"
 #endif
-#include "recording/color_filter_cmd_list.h"
-#include "recording/color_space_cmd_list.h"
 #include "recording/draw_cmd_list.h"
-#include "recording/image_filter_cmd_list.h"
-#include "recording/mask_filter_cmd_list.h"
-#include "recording/path_cmd_list.h"
-#include "recording/path_effect_cmd_list.h"
-#include "recording/region_cmd_list.h"
-#include "recording/shader_effect_cmd_list.h"
 #include "skia_adapter/skia_vertices.h"
 #include "skia_adapter/skia_image_filter.h"
 #include "skia_adapter/skia_mask_filter.h"
@@ -506,6 +498,41 @@ std::shared_ptr<Path> CmdListHelper::GetPathFromCmdList(const CmdList& cmdList,
     return path;
 }
 
+OpDataHandle CmdListHelper::AddRegionToCmdList(CmdList& cmdList, const Region& region)
+{
+    auto data = region.Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGE("region is invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return { 0 };
+    }
+
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize() };
+}
+
+std::shared_ptr<Region> CmdListHelper::GetRegionFromCmdList(const CmdList& cmdList, const OpDataHandle& regionHandle)
+{
+    if (regionHandle.size == 0) {
+        return nullptr;
+    }
+
+    const void* ptr = cmdList.GetImageData(regionHandle.offset);
+    if (ptr == nullptr) {
+        LOGE("get region data failed!");
+        return nullptr;
+    }
+
+    auto regionData = std::make_shared<Data>();
+    regionData->BuildWithoutCopy(ptr, regionHandle.size);
+    auto region = std::make_shared<Region>();
+    if (region->Deserialize(regionData) == false) {
+        LOGE("region deserialize failed!");
+        return nullptr;
+    }
+
+    return region;
+}
+
 OpDataHandle CmdListHelper::AddColorSpaceToCmdList(CmdList& cmdList, const std::shared_ptr<ColorSpace> colorSpace)
 {
     if (colorSpace == nullptr) {
@@ -633,7 +660,6 @@ FlattenableHandle CmdListHelper::AddMaskFilterToCmdList(CmdList& cmdList,
     MaskFilter::FilterType type = maskFilter->GetType();
     auto data = maskFilter->Serialize();
     if (data == nullptr || data->GetSize() == 0) {
-        LOGE("maskFilter is invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return { 0 };
     }
     auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
@@ -713,7 +739,6 @@ FlattenableHandle CmdListHelper::AddImageFilterToCmdList(CmdList& cmdList,
     ImageFilter::FilterType type = imageFilter->GetType();
     auto data = imageFilter->Serialize();
     if (data == nullptr || data->GetSize() == 0) {
-        LOGE("imageFilter is invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return { 0 };
     }
     auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
@@ -743,36 +768,6 @@ std::shared_ptr<ImageFilter> CmdListHelper::GetImageFilterFromCmdList(const CmdL
 
     return imageFilter;
 }
-
-std::vector<std::shared_ptr<DrawOpItem>> CmdListHelper::GetDrawOpItemsFromHandle(const CmdList& cmdList,
-    const CmdListHandle& handle)
-{
-    if (handle.size == 0) {
-        LOGE("handle.size == 0 !");
-        return {};
-    }
-
-    const void* data = cmdList.GetCmdListData(handle.offset);
-    if (data == nullptr) {
-        LOGE("cmdList offset is invalid!");
-        return {};
-    }
-
-    auto drawCmdList = DrawCmdList::CreateFromData({data, handle.size});
-    if (drawCmdList == nullptr) {
-        LOGE("create cmdList failed!");
-        return {};
-    }
-
-    if (handle.imageSize > 0 && cmdList.GetImageData(handle.imageOffset) != nullptr) {
-        if (!drawCmdList->SetUpImageData(cmdList.GetImageData(handle.imageOffset), handle.imageSize)) {
-            LOGE("set up image data failed!");
-            return {};
-        }
-    }
-
-    return drawCmdList->UnmarshallingCmdList();
-}
 #ifdef ROSEN_OHOS
 uint32_t CmdListHelper::AddSurfaceBufferToCmdList(CmdList& cmdList, const sptr<SurfaceBuffer>& surfaceBuffer)
 {
@@ -785,6 +780,18 @@ sptr<SurfaceBuffer> CmdListHelper::GetSurfaceBufferFromCmdList(
     return (const_cast<CmdList&>(cmdList)).GetSurfaceBuffer(surfaceBufferHandle);
 }
 #endif
+
+OpDataHandle CmdListHelper::AddDrawFuncObjToCmdList(CmdList &cmdList, const std::shared_ptr<ExtendDrawFuncObj> &object)
+{
+    auto index = cmdList.AddDrawFuncOjb(object);
+    return { index };
+}
+
+std::shared_ptr<ExtendDrawFuncObj> CmdListHelper::GetDrawFuncObjFromCmdList(
+    const CmdList& cmdList, const OpDataHandle& objectHandle)
+{
+    return (const_cast<CmdList&>(cmdList)).GetDrawFuncObj(objectHandle.offset);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -81,41 +81,42 @@ enum class RSModifierType : int16_t {
     PIXEL_STRETCH_PERCENT,         // 54
     USE_EFFECT,                    // 55
     COLOR_BLEND_MODE,              // 56
-    SANDBOX,                       // 57
-    GRAY_SCALE,                    // 58
-    BRIGHTNESS,                    // 59
-    CONTRAST,                      // 60
-    SATURATE,                      // 61
-    SEPIA,                         // 62
-    INVERT,                        // 63
-    AIINVERT,                      // 64
-    HUE_ROTATE,                    // 65
-    COLOR_BLEND,                   // 66
-    PARTICLE,                      // 67
-    SHADOW_IS_FILLED,              // 68
-    OUTLINE_COLOR,                 // 69
-    OUTLINE_WIDTH,                 // 70
-    OUTLINE_STYLE,                 // 71
-    OUTLINE_RADIUS,                // 72
-    USE_SHADOW_BATCHING,           // 73
-    GREY_COEF1,                    // 74
-    GREY_COEF2,                    // 75
-    LIGHT_INTENSITY,               // 76
-    LIGHT_POSITION,                // 77
-    ILLUMINATED_BORDER_WIDTH,      // 78
-    ILLUMINATED_TYPE,              // 79
-    BLOOM,                         // 80
-    CUSTOM,                        // 81
-    EXTENDED,                      // 82
-    TRANSITION,                    // 83
-    BACKGROUND_STYLE,              // 84
-    CONTENT_STYLE,                 // 85
-    FOREGROUND_STYLE,              // 86
-    OVERLAY_STYLE,                 // 87
-    NODE_MODIFIER,                 // 88
-    ENV_FOREGROUND_COLOR,          // 89
-    ENV_FOREGROUND_COLOR_STRATEGY, // 90
-    GEOMETRYTRANS,                 // 91
+    COLOR_BLEND_APPLY_TYPE,        // 57
+    SANDBOX,                       // 58
+    GRAY_SCALE,                    // 59
+    BRIGHTNESS,                    // 60
+    CONTRAST,                      // 61
+    SATURATE,                      // 62
+    SEPIA,                         // 63
+    INVERT,                        // 64
+    AIINVERT,                      // 65
+    HUE_ROTATE,                    // 66
+    COLOR_BLEND,                   // 67
+    PARTICLE,                      // 68
+    SHADOW_IS_FILLED,              // 69
+    OUTLINE_COLOR,                 // 70
+    OUTLINE_WIDTH,                 // 71
+    OUTLINE_STYLE,                 // 72
+    OUTLINE_RADIUS,                // 73
+    USE_SHADOW_BATCHING,           // 74
+    GREY_COEF1,                    // 75
+    GREY_COEF2,                    // 76
+    LIGHT_INTENSITY,               // 77
+    LIGHT_POSITION,                // 78
+    ILLUMINATED_BORDER_WIDTH,      // 79
+    ILLUMINATED_TYPE,              // 80
+    BLOOM,                         // 81
+    CUSTOM,                        // 82
+    EXTENDED,                      // 83
+    TRANSITION,                    // 84
+    BACKGROUND_STYLE,              // 85
+    CONTENT_STYLE,                 // 86
+    FOREGROUND_STYLE,              // 87
+    OVERLAY_STYLE,                 // 88
+    NODE_MODIFIER,                 // 89
+    ENV_FOREGROUND_COLOR,          // 90
+    ENV_FOREGROUND_COLOR_STRATEGY, // 91
+    GEOMETRYTRANS,                 // 92
 #ifdef USE_ROSEN_DRAWING
     MAX_RS_MODIFIER_TYPE,
 #endif
@@ -134,6 +135,15 @@ enum class RSRenderPropertyType : int16_t {
     PROPERTY_SKMATRIX,
     PROPERTY_RRECT,
 };
+
+enum class RSPropertyUnit : int16_t {
+    UNKNOWN = 0,
+    PIXEL_POSITION,
+    PIXEL_SIZE,
+    RATIO_SCALE,
+    ANGLE_ROTATION,
+};
+
 } // namespace Rosen
 } // namespace OHOS
 

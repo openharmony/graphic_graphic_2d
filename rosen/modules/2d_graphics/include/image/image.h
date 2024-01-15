@@ -188,20 +188,6 @@ public:
         return format_;
     }
 
-    TextureInfo& operator=(const TextureInfo& other)
-    {
-        width_ = other.width_;
-        height_ = other.height_;
-        isMipMapped_ = other.isMipMapped_;
-        target_ = other.target_;
-        id_ = other.id_;
-        format_ = other.format_;
-#ifdef RS_ENABLE_VK
-        vkTextureInfo_ = other.vkTextureInfo_;
-#endif
-        return *this;
-    }
-
 #ifdef RS_ENABLE_VK
     std::shared_ptr<VKTextureInfo> GetVKTextureInfo() const
     {
@@ -310,6 +296,8 @@ public:
     BackendTexture GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin* origin) const;
 
     bool IsValid(GPUContext* context) const;
+
+    bool pinAsTexture(GPUContext& context);
 #endif
 
     /*
@@ -403,7 +391,6 @@ public:
 
     const sk_sp<SkImage> ExportSkImage();
 
-    bool pinAsTexture(GPUContext& context);
 private:
     std::shared_ptr<ImageImpl> imageImplPtr;
 };

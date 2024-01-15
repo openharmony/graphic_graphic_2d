@@ -1341,6 +1341,22 @@ int32_t RSScreenManager::GetScreenSupportedMetaDataKeys(ScreenId id, std::vector
     return GetScreenSupportedMetaDataKeysLocked(id, keys);
 }
 
+uint32_t RSScreenManager::GetActualScreensNum() const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    uint32_t num = 0;
+    for (const auto &[id, screen] : screens_) {
+        if (!screen->IsVirtual()) {
+            num += 1;
+        } else {
+            if (screen->GetProducerSurface()) {
+                num += 1;
+            }
+        }
+    }
+    return num;
+}
+
 int32_t RSScreenManager::GetScreenColorGamut(ScreenId id, ScreenColorGamut &mode) const
 {
     std::lock_guard<std::mutex> lock(mutex_);

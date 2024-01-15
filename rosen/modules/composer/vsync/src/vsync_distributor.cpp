@@ -238,12 +238,12 @@ VsyncError VSyncDistributor::AddConnection(const sptr<VSyncConnection>& connecti
     }
 
     int32_t proxyPid = connection->proxyPid_;
+    std::lock_guard<std::mutex> locker(mutex_);
     if (connectionCounter_[proxyPid] > VSYNC_CONNECTION_MAX_SIZE) {
         VLOGE("You [%{public}d] have created too many vsync connection, please check!!!", proxyPid);
         return VSYNC_ERROR_API_FAILED;
     }
 
-    std::lock_guard<std::mutex> locker(mutex_);
     auto it = std::find(connections_.begin(), connections_.end(), connection);
     if (it != connections_.end()) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
@@ -403,7 +403,7 @@ void VSyncDistributor::CollectConnectionsLTPO(bool &waitForVSync, int64_t timest
                                               std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount)
 {
     for (uint32_t i = 0; i < connections_.size(); i++) {
-        if (!connections_[i]->triggerThisTime_) {
+        if (!connections_[i]->triggerThisTime_ && connections_[i]->rate_ <= 0) {
             continue;
         }
         waitForVSync = true;
@@ -425,7 +425,7 @@ void VSyncDistributor::PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &
         int64_t period = event_.period;
         if ((generatorRefreshRate_ > 0) && (conns[i]->refreshRate_ > 0) &&
             (generatorRefreshRate_ % conns[i]->refreshRate_ == 0)) {
-            period = event_.period * (generatorRefreshRate_ / conns[i]->refreshRate_);
+            period = event_.period * static_cast<int64_t>(generatorRefreshRate_ / conns[i]->refreshRate_);
         }
         int32_t ret = conns[i]->PostEvent(timestamp, period, event_.vsyncCount);
         VLOGD("Distributor name:%{public}s, connection name:%{public}s, ret:%{public}d",

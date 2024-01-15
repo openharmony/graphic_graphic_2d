@@ -318,8 +318,10 @@ void BootAnimation::PlayVideo()
         .userData_ = this,
         .callback_ = std::bind(&BootAnimation::CloseVideoPlayer, this),
     };
+    LOGI("PlayVideo setVideo screenId:%{public}d", (int32_t)defaultId_);
     bootVideoPlayer_ = std::make_shared<BootVideoPlayer>();
-    bootVideoPlayer_->SetVideoPath(animationConfig_.GetBootVideoPath());
+    bootVideoPlayer_->SetVideoPath(
+        defaultId_ == 0 ? animationConfig_.GetBootVideoPath() : animationConfig_.GetBootExtraVideoPath());
     bootVideoPlayer_->SetPlayerSurface(rsSurfaceNode_ ? rsSurfaceNode_->GetSurface() : nullptr);
     bootVideoPlayer_->SetCallback(&fcb_);
     if (!bootVideoPlayer_->PlayVideo()) {

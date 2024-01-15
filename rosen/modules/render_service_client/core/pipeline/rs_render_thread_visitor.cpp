@@ -457,7 +457,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 #ifdef ACE_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        auto skContext = RsVulkanContext::GetSingleton().CreateDrawingContext(true);
+        auto skContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
         if (skContext == nullptr) {
             ROSEN_LOGE("RSRenderThreadVisitor::ProcessRootRenderNode CreateDrawingContext is null");
             return;
@@ -792,7 +792,7 @@ void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
     RSSurfaceBufferInfo rsSurfaceBufferInfo(surfaceBuffer, property.GetBoundsPositionX(), property.GetBoundsPositionY(),
         property.GetBoundsWidth(), property.GetBoundsHeight());
 #else
-    auto recordingCanvas = std::make_shared<Drawing::RecordingCanvas>(property.GetBoundsWidth(),
+    auto recordingCanvas = std::make_shared<ExtendRecordingCanvas>(property.GetBoundsWidth(),
         property.GetBoundsHeight());
     DrawingSurfaceBufferInfo rsSurfaceBufferInfo(surfaceBuffer, property.GetBoundsPositionX(),
         property.GetBoundsPositionY(), property.GetBoundsWidth(), property.GetBoundsHeight());

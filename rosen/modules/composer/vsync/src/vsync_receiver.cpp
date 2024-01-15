@@ -179,6 +179,19 @@ VsyncError VSyncReceiver::GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_
     return VSYNC_ERROR_OK;
 }
 
+void VSyncReceiver::CloseVsyncReceiverFd()
+{
+    if (looper_ != nullptr) {
+        looper_->RemoveFileDescriptorListener(fd_);
+        VLOGI("%{public}s looper remove fd listener, fd=%{public}d", __func__, fd_);
+    }
+
+    if (fd_ > 0) {
+        close(fd_);
+        fd_ = INVALID_FD;
+    }
+}
+
 VsyncError VSyncReceiver::Destroy()
 {
     std::lock_guard<std::mutex> locker(initMutex_);

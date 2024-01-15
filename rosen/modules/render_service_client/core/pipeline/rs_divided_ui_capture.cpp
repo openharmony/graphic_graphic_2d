@@ -62,7 +62,7 @@ std::shared_ptr<Media::PixelMap> RSDividedUICapture::TakeLocalCapture()
 #ifndef USE_ROSEN_DRAWING
     auto recordingCanvas = std::make_shared<RSRecordingCanvas>(FAKE_WIDTH, FAKE_HEIGHT);
 #else
-    auto recordingCanvas = std::make_shared<Drawing::RecordingCanvas>(FAKE_WIDTH, FAKE_HEIGHT);
+    auto recordingCanvas = std::make_shared<ExtendRecordingCanvas>(FAKE_WIDTH, FAKE_HEIGHT);
 #endif
     std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMapByNode(node);
     if (pixelmap == nullptr) {
@@ -134,7 +134,7 @@ std::shared_ptr<Drawing::Surface> RSDividedUICapture::CreateSurface(
 #ifndef USE_ROSEN_DRAWING
 void RSDividedUICapture::RSDividedUICaptureVisitor::SetCanvas(std::shared_ptr<RSRecordingCanvas> canvas)
 #else
-void RSDividedUICapture::RSDividedUICaptureVisitor::SetCanvas(std::shared_ptr<Drawing::RecordingCanvas> canvas)
+void RSDividedUICapture::RSDividedUICaptureVisitor::SetCanvas(std::shared_ptr<ExtendRecordingCanvas> canvas)
 #endif
 {
     if (canvas == nullptr) {
@@ -173,7 +173,7 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::SetPaintFilterCanvas(std::sh
 void RSDividedUICapture::PostTaskToRTRecord(std::shared_ptr<RSRecordingCanvas> canvas,
     std::shared_ptr<RSRenderNode> node, std::shared_ptr<RSDividedUICaptureVisitor> visitor)
 #else
-void RSDividedUICapture::PostTaskToRTRecord(std::shared_ptr<Drawing::RecordingCanvas> canvas,
+void RSDividedUICapture::PostTaskToRTRecord(std::shared_ptr<ExtendRecordingCanvas> canvas,
     std::shared_ptr<RSRenderNode> node, std::shared_ptr<RSDividedUICaptureVisitor> visitor)
 #endif
 {

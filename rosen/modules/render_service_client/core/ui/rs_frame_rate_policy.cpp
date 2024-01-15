@@ -18,7 +18,9 @@
 #include <mutex>
 #include <unordered_map>
 
+#include "modifier/rs_modifier_type.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 #include "transaction/rs_interfaces.h"
 #include "ui/rs_ui_director.h"
 
@@ -102,7 +104,7 @@ void RSFrameRatePolicy::HgmRefreshRateModeChangeCallback(int32_t refreshRateMode
     });
 }
 
-int32_t RSFrameRatePolicy::GetRefreshRateMode()
+int32_t RSFrameRatePolicy::GetRefreshRateMode() const
 {
     return currentRefreshRateMode_;
 }
@@ -120,9 +122,26 @@ int32_t RSFrameRatePolicy::GetPreferredFps(const std::string& scene, float speed
             pair.second.maxSpeed == -1);
     });
     if (iter != attributes.end()) {
+        RS_TRACE_NAME_FMT("GetPreferredFps: scene: %s, speed: %f, rate: %d",
+            scene.c_str(), speedMM, iter->second.preferredFps);
         return iter->second.preferredFps;
     }
     return 0;
+}
+
+int32_t RSFrameRatePolicy::GetExpectedFrameRate(const RSPropertyUnit unit, float velocity)
+{
+    switch (unit) {
+        case RSPropertyUnit::PIXEL_POSITION:
+            return GetPreferredFps("translate", velocity);
+        case RSPropertyUnit::PIXEL_SIZE:
+        case RSPropertyUnit::RATIO_SCALE:
+            return GetPreferredFps("scale", velocity);
+        case RSPropertyUnit::ANGLE_ROTATION:
+            return GetPreferredFps("rotation", velocity);
+        default:
+            return 0;
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

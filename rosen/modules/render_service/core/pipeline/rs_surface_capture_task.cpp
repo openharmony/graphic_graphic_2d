@@ -721,7 +721,6 @@ void RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node
     }
 
     if (IsUniRender()) {
-        FindHardwareEnabledNodes();
         if (hasSecurityOrSkipLayer_) {
             RS_LOGD("RSSurfaceCaptureVisitor::ProcessDisplayRenderNode: \
                 process RSDisplayRenderNode(id:[%{public}" PRIu64 "]) Not using UniRender buffer.", node.GetId());
@@ -747,8 +746,10 @@ void RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node
             RS_LOGD("RSSurfaceCaptureVisitor::ProcessDisplayRenderNode: \
                 process RSDisplayRenderNode(id:[%{public}" PRIu64 "]) using UniRender buffer.", node.GetId());
 
+            FindHardwareEnabledNodes();
+
             if (hardwareEnabledNodes_.size() != 0) {
-                AdjustZOrderAndDrawSurfaceNode();
+                AdjustZOrderAndDrawSurfaceNode(hardwareEnabledNodes_);
             }
 
             auto params = RSUniRenderUtil::CreateBufferDrawParam(node, false);
@@ -766,6 +767,10 @@ void RSSurfaceCaptureVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode &node
             // execute "param set rosen.dumpsurfacetype.enabled 4 && setenforce 0 && param set rosen.afbc.enabled 0"
             RSBaseRenderUtil::WriteSurfaceBufferToPng(params.buffer);
             renderEngine_->DrawDisplayNodeWithParams(*canvas_, node, params);
+
+            if (hardwareEnabledTopNodes_.size() != 0) {
+                AdjustZOrderAndDrawSurfaceNode(hardwareEnabledTopNodes_);
+            }
         }
     } else {
         ProcessChildren(node);
@@ -802,12 +807,18 @@ void RSSurfaceCaptureVisitor::FindHardwareEnabledNodes()
             // execute "param set rosen.dumpsurfacetype.enabled 4 && setenforce 0 && param set rosen.afbc.enabled 0"
             auto buffer = surfaceNode->GetBuffer();
             RSBaseRenderUtil::WriteSurfaceBufferToPng(buffer, surfaceNode->GetId());
-            hardwareEnabledNodes_.emplace_back(surfaceNode);
+            if (surfaceNode->IsHardwareEnabledTopSurface()) {
+                // surfaceNode which should be drawn above displayNode like pointer window
+                hardwareEnabledTopNodes_.emplace_back(surfaceNode);
+            } else {
+                // surfaceNode which should be drawn below displayNode
+                hardwareEnabledNodes_.emplace_back(surfaceNode);
+            }
         }
     });
 }
 
-void RSSurfaceCaptureVisitor::AdjustZOrderAndDrawSurfaceNode()
+void RSSurfaceCaptureVisitor::AdjustZOrderAndDrawSurfaceNode(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodes)
 {
     if (!RSSystemProperties::GetHardwareComposerEnabled()) {
         RS_LOGW("RSSurfaceCaptureVisitor::AdjustZOrderAndDrawSurfaceNode: \
@@ -817,12 +828,12 @@ void RSSurfaceCaptureVisitor::AdjustZOrderAndDrawSurfaceNode()
 
     // sort the surfaceNodes by ZOrder
     std::stable_sort(
-        hardwareEnabledNodes_.begin(), hardwareEnabledNodes_.end(), [](const auto& first, const auto& second) -> bool {
+        nodes.begin(), nodes.end(), [](const auto& first, const auto& second) -> bool {
             return first->GetGlobalZOrder() < second->GetGlobalZOrder();
         });
 
-    // draw hardwareEnabledNodes
-    for (auto& surfaceNode : hardwareEnabledNodes_) {
+    // draw hardware-composition nodes
+    for (auto& surfaceNode : nodes) {
         if (surfaceNode->IsLastFrameHardwareEnabled() && surfaceNode->GetBuffer() != nullptr) {
 #ifndef USE_ROSEN_DRAWING
             RSAutoCanvasRestore acr(canvas_);

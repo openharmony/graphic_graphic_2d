@@ -17,7 +17,7 @@
 
 #include "pixel_map.h"
 #include "recording/recording_canvas.h"
-#include "recording/recording_path.h"
+#include "draw/path.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -215,7 +215,7 @@ HWTEST_F(RecordingCanvasTest, DrawPath001, TestSize.Level1)
 {
     auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 20);
     EXPECT_TRUE(recordingCanvas != nullptr);
-    RecordingPath path;
+    Path path;
     recordingCanvas->DrawPath(path);
     auto drawCmdList = recordingCanvas->GetDrawCmdList();
     EXPECT_TRUE(drawCmdList != nullptr);
@@ -251,7 +251,7 @@ HWTEST_F(RecordingCanvasTest, DrawShadow001, TestSize.Level1)
 {
     auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 20);
     EXPECT_TRUE(recordingCanvas != nullptr);
-    RecordingPath path;
+    Path path;
     Point3 planeParams(1.0f, 0.0f, 0.0f);
     Point3 devLightPos(1.0f, 1.0f, 1.0f);
     recordingCanvas->DrawShadow(
@@ -463,7 +463,7 @@ HWTEST_F(RecordingCanvasTest, ClipPath001, TestSize.Level1)
 {
     auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 20);
     EXPECT_TRUE(recordingCanvas != nullptr);
-    RecordingPath path;
+    Path path;
     recordingCanvas->ClipPath(path, ClipOp::DIFFERENCE, true);
     auto drawCmdList = recordingCanvas->GetDrawCmdList();
     EXPECT_TRUE(drawCmdList != nullptr);

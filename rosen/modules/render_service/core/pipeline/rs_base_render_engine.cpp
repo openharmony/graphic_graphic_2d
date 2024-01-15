@@ -173,15 +173,6 @@ bool RSBaseRenderEngine::NeedForceCPU(const std::vector<LayerInfoPtr>& layers)
             break;
         }
 #endif
-
-#ifndef USE_VIDEO_PROCESSING_ENGINE
-        GraphicColorGamut srcGamut = static_cast<GraphicColorGamut>(buffer->GetSurfaceBufferColorGamut());
-        GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-        if (srcGamut != dstGamut) {
-            forceCPU = true;
-            break;
-        }
-#endif
     }
 
     return forceCPU;
@@ -569,7 +560,7 @@ ColorFilterMode RSBaseRenderEngine::GetColorFilterMode()
 
 void RSBaseRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
-    RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::DrawBuffer(CPU)");
+    RS_TRACE_NAME("RSBaseRenderEngine::DrawBuffer(CPU)");
 #ifndef USE_ROSEN_DRAWING
     SkBitmap bitmap;
 #else
@@ -579,7 +570,6 @@ void RSBaseRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam
     if (!RSBaseRenderUtil::ConvertBufferToBitmap(params.buffer, newBuffer, params.targetColorGamut, bitmap,
         params.metaDatas)) {
         RS_LOGE("RSDividedRenderUtil::DrawBuffer: create bitmap failed.");
-        RS_OPTIONAL_TRACE_END();
         return;
     }
 #ifndef USE_ROSEN_DRAWING
@@ -595,7 +585,6 @@ void RSBaseRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam
     canvas.DrawImageRect(drImage, params.srcRect, params.dstRect, Drawing::SamplingOptions(),
         Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
 #endif
-    RS_OPTIONAL_TRACE_END();
 }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -637,7 +626,7 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
 
     GSError ret = MetadataHelper::GetColorSpaceInfo(params.buffer, parameter.inputColorSpace.colorSpaceInfo);
     if (ret != GSERROR_OK) {
-        RS_LOGE("RSBaseRenderEngine::ColorSpaceConvertor GetColorSpaceInfo failed with %{public}u.", ret);
+        RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor GetColorSpaceInfo failed with %{public}u.", ret);
         return false;
     }
 
@@ -648,7 +637,7 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
     CM_HDR_Metadata_Type hdrMetadataType = CM_METADATA_NONE;
     ret = MetadataHelper::GetHDRMetadataType(params.buffer, hdrMetadataType);
     if (ret != GSERROR_OK) {
-        RS_LOGW("RSBaseRenderEngine::ColorSpaceConvertor GetHDRMetadataType failed with %{public}u.", ret);
+        RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor GetHDRMetadataType failed with %{public}u.", ret);
     }
 
     parameter.inputColorSpace.metadataType = hdrMetadataType;
@@ -656,11 +645,11 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
 
     ret = MetadataHelper::GetHDRStaticMetadata(params.buffer, parameter.staticMetadata);
     if (ret != GSERROR_OK) {
-        RS_LOGW("RSBaseRenderEngine::ColorSpaceConvertor GetHDRStaticMetadata failed with %{public}u.", ret);
+        RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor GetHDRStaticMetadata failed with %{public}u.", ret);
     }
     ret = MetadataHelper::GetHDRDynamicMetadata(params.buffer, parameter.dynamicMetadata);
     if (ret != GSERROR_OK) {
-        RS_LOGW("RSBaseRenderEngine::ColorSpaceConvertor GetHDRDynamicMetadata failed with %{public}u.", ret);
+        RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor GetHDRDynamicMetadata failed with %{public}u.", ret);
     }
 
     // Set brightness to screen brightness when HDR Vivid, otherwise 500 nits
@@ -845,6 +834,8 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
             drawingColorType = Drawing::ColorType::COLORTYPE_BGRA_8888;
         } else if (pixelFmt == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFmt == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
             drawingColorType = Drawing::ColorType::COLORTYPE_RGBA_1010102;
+        } else if (pixelFmt == GRAPHIC_PIXEL_FMT_RGB_565) {
+            drawingColorType = Drawing::ColorType::COLORTYPE_RGB_565;
         }
         Drawing::BitmapFormat bitmapFormat = { drawingColorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
 #ifndef ROSEN_EMULATOR
@@ -889,7 +880,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         if (params.isMirror) {
             samplingOptions = SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kNearest);
         } else {
-            samplingOptions = RSSystemProperties::IsPhoneType()
+            samplingOptions = RSSystemProperties::IsPhoneType() && !params.useBilinearInterpolation
                                 ? SkSamplingOptions()
                                 : SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
         }
@@ -913,7 +904,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         if (params.isMirror) {
             samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
         } else {
-            samplingOptions = RSSystemProperties::IsPhoneType()
+            samplingOptions = RSSystemProperties::IsPhoneType() && !params.useBilinearInterpolation
                                 ? Drawing::SamplingOptions()
                                 : Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
         }
@@ -935,7 +926,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     if (!RSSystemProperties::GetUniRenderEnabled()) {
         samplingOptions = SkSamplingOptions();
     } else {
-        samplingOptions = RSSystemProperties::IsPhoneType()
+        samplingOptions = RSSystemProperties::IsPhoneType() && !params.useBilinearInterpolation
                               ? SkSamplingOptions()
                               : SkSamplingOptions(SkFilterMode::kLinear, SkMipmapMode::kLinear);
     }

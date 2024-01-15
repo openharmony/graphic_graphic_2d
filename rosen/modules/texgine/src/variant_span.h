@@ -24,6 +24,7 @@
 #include "texgine/font_providers.h"
 #include "texgine/any_span.h"
 #include "text_span.h"
+#include "symbol_animation_config.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -80,18 +81,30 @@ public:
     RoundRectType GetRoundRectType() const noexcept(true);
     void SetRoundRectType(RoundRectType type) noexcept(true);
 
-    void SetLineHeight(double lineHeight) noexcept(true);
-    double GetLineHeight() const noexcept(true);
+    void SetTopInGroup(double top) noexcept(true);
+    double GetTopInGroup() const noexcept(true);
 
-    void SetLineY(double lineY) noexcept(true);
-    double GetLineY() const noexcept(true);
+    void SetBottomInGroup(double bottom) noexcept(true);
+    double GetBottomInGroup() const noexcept(true);
+
+    void SetMaxRoundRectRadius(double radius) noexcept(true);
+    double GetMaxRoundRectRadius() const noexcept(true);
+
+    double GetTop() const noexcept(true);
+    double GetBottom() const noexcept(true);
 
     operator bool() const noexcept(false);
     bool operator ==(std::nullptr_t) const noexcept(false);
     bool operator ==(const VariantSpan &rhs) const noexcept(false);
     bool operator !=(std::nullptr_t) const noexcept(false);
     bool operator !=(const VariantSpan &rhs) const noexcept(false);
-
+    void SetAnimation(std::function<bool(
+        const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>& animationFunc)
+    {
+        if (animationFunc) {
+            ts_->SetAnimation(animationFunc);
+        }
+    }
 private:
     void CheckPointer(bool nullable = false) const noexcept(false);
 

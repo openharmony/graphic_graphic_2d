@@ -422,12 +422,8 @@ static void MergePath(SkPath& multPath, RenderGroup& group, std::vector<SkPath>&
 void SymbolOpItem::SetSymbol()
 {
     ROSEN_LOGD("SymbolOpItem::SetSymbol GlyphId %{public}d", static_cast<int>(symbol_.symbolInfo_.symbolGlyphId));
-    if (symbol_.symbolInfo_.effect == EffectStrategy::SCALE) {
-        if (!startAnimation_) {
-            InitialScale();
-        }
-        SetScale(0); // scale animation only has one element
-    } else if (symbol_.symbolInfo_.effect == EffectStrategy::HIERARCHICAL) {
+
+    if (symbol_.symbolInfo_.effect == EffectStrategy::HIERARCHICAL) {
         if (!startAnimation_) {
             InitialVariableColor();
         }
@@ -548,11 +544,6 @@ void SymbolOpItem::UpdataVariableColor(const double cur, size_t index)
 void SymbolOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect*) const
 {
     SkPath path(symbol_.path_);
-
-    if (startAnimation_ && symbol_.symbolInfo_.effect == EffectStrategy::SCALE &&
-            !animation_.empty()) {
-        UpdateScale(animation_[0].curValue, path);
-    }
 
     // 1.0 move path
     path.offset(locate_.x(), locate_.y());
@@ -1081,6 +1072,79 @@ void ImageWithParmOpItem::Draw(RSPaintFilterCanvas& canvas, const SkRect* rect) 
 }
 
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#ifdef (RS_ENABLE_GL)
+sk_sp<SkImage> ImageWithParmOpItem::GetSkImageFromSurfaceBufferGL(SkCanvas& canvas, SurfaceBuffer* surfaceBuffer) const
+{
+    EGLint attrs[] = {
+        EGL_IMAGE_PRESERVED,
+        EGL_TRUE,
+        EGL_NONE,
+    };
+
+    auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    if (eglImage_ == EGL_NO_IMAGE_KHR) {
+        eglImage_ = eglCreateImageKHR(disp, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_OHOS, nativeWindowBuffer_, attrs);
+        if (eglImage_ == EGL_NO_IMAGE_KHR) {
+            RS_LOGE("%{public}s create egl image fail %{public}d", __func__, eglGetError());
+            return nullptr;
+        }
+        tid_ = gettid();
+    }
+
+    // Create texture object
+    if (texId_ == 0U) {
+        glGenTextures(1, &texId_);
+        glBindTexture(GL_TEXTURE_2D, texId_);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, static_cast<GLeglImageOES>(eglImage_));
+    }
+
+    GrGLTextureInfo textureInfo = { GL_TEXTURE_2D, texId_, GL_RGBA8_OES };
+
+    GrBackendTexture backendTexture(
+        surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), GrMipMapped::kNo, textureInfo);
+#ifndef ROSEN_EMULATOR
+    auto surfaceOrigin = kTopLeft_GrSurfaceOrigin;
+#else
+    auto surfaceOrigin = kBottomLeft_GrSurfaceOrigin;
+#endif
+    auto skImage = SkImage::MakeFromTexture(canvas.recordingContext(), backendTexture, surfaceOrigin,
+        kRGBA_8888_SkColorType, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
+
+    return skImage;
+}
+#endif
+
+#ifdef (RS_ENABLE_VK)
+sk_sp<SkImage> ImageWithParmOpItem::GetSkImageFromSurfaceBufferVK(SkCanvas& canvas, SurfaceBuffer* surfaceBuffer) const
+{
+    if (!backendTexture_.isValid()) {
+        backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
+            surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight());
+        if (backendTexture_.isValid()) {
+            GrVkImageInfo imageInfo;
+            backendTexture_.getVkImageInfo(&imageInfo);
+            cleanUpHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+                imageInfo.fImage, imageInfo.fAlloc.fMemory);
+        } else {
+            return nullptr;
+        }
+        tid_ = gettid();
+    }
+
+    GrVkImageInfo imageInfo;
+    backendTexture_.getVkImageInfo(&imageInfo);
+    auto skImage = SkImage::MakeFromTexture(
+        canvas.recordingContext(), backendTexture_, kTopLeft_GrSurfaceOrigin,
+        GetSkColorTypeFromVkFormat(imageInfo.fFormat), kPremul_SkAlphaType, SkColorSpace::MakeSRGB(),
+        NativeBufferUtils::DeleteVkImage, cleanUpHelper_->Ref());
+    return skImage;
+}
+#endif
+
 #ifndef USE_ROSEN_DRAWING
 sk_sp<SkImage> ImageWithParmOpItem::GetSkImageFromSurfaceBuffer(SkCanvas& canvas, SurfaceBuffer* surfaceBuffer) const
 {
@@ -1099,77 +1163,14 @@ sk_sp<SkImage> ImageWithParmOpItem::GetSkImageFromSurfaceBuffer(SkCanvas& canvas
 #ifdef RS_ENABLE_GL
     if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
         RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
-        EGLint attrs[] = {
-            EGL_IMAGE_PRESERVED,
-            EGL_TRUE,
-            EGL_NONE,
-        };
-
-        auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-        if (eglImage_ == EGL_NO_IMAGE_KHR) {
-            eglImage_ = eglCreateImageKHR(disp, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_OHOS, nativeWindowBuffer_, attrs);
-            if (eglImage_ == EGL_NO_IMAGE_KHR) {
-                RS_LOGE("%{public}s create egl image fail %{public}d", __func__, eglGetError());
-                return nullptr;
-            }
-            tid_ = gettid();
-        }
-
-        // Create texture object
-        if (texId_ == 0U) {
-            glGenTextures(1, &texId_);
-            glBindTexture(GL_TEXTURE_2D, texId_);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, static_cast<GLeglImageOES>(eglImage_));
-        }
-
-        GrGLTextureInfo textureInfo = { GL_TEXTURE_2D, texId_, GL_RGBA8_OES };
-
-        GrBackendTexture backendTexture(
-            surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), GrMipMapped::kNo, textureInfo);
-#ifndef ROSEN_EMULATOR
-    auto surfaceOrigin = kTopLeft_GrSurfaceOrigin;
-#else
-    auto surfaceOrigin = kBottomLeft_GrSurfaceOrigin;
-#endif
-#ifdef NEW_SKIA
-        auto skImage = SkImage::MakeFromTexture(canvas.recordingContext(), backendTexture, surfaceOrigin,
-            kRGBA_8888_SkColorType, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
-#else
-        auto skImage = SkImage::MakeFromTexture(canvas.getGrContext(), backendTexture, surfaceOrigin,
-            kRGBA_8888_SkColorType, kPremul_SkAlphaType, SkColorSpace::MakeSRGB());
-#endif
-        return skImage;
+        return GetSkImageFromSurfaceBufferGL(canvas, surfaceBuffer);
     }
 #endif
 
 #if defined(RS_ENABLE_VK)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        if (!backendTexture_.isValid()) {
-            backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
-                surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight());
-            if (backendTexture_.isValid()) {
-                GrVkImageInfo imageInfo;
-                backendTexture_.getVkImageInfo(&imageInfo);
-                cleanUpHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-                    imageInfo.fImage, imageInfo.fAlloc.fMemory);
-            } else {
-                return nullptr;
-            }
-            tid_ = gettid();
-        }
-
-        GrVkImageInfo imageInfo;
-        backendTexture_.getVkImageInfo(&imageInfo);
-        auto skImage = SkImage::MakeFromTexture(
-            canvas.recordingContext(), backendTexture_, kTopLeft_GrSurfaceOrigin,
-            GetSkColorTypeFromVkFormat(imageInfo.fFormat), kPremul_SkAlphaType, SkColorSpace::MakeSRGB(),
-            NativeBufferUtils::DeleteVkImage, cleanUpHelper_->Ref());
-        return skImage;
+        return GetSkImageFromSurfaceBufferVK(canvas, surfaceBuffer);
     }
 #endif
     return nullptr;
@@ -2644,15 +2645,22 @@ DrawFuncOpItem::DrawFuncOpItem(DrawFunc&& func)
 #include "pipeline/rs_draw_cmd.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_pixel_map_util.h"
+#include "recording/cmd_list_helper.h"
+#include "recording/draw_cmd_list.h"
+#include "utils/system_properties.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "platform/common/rs_system_properties.h"
+#ifdef ROSEN_OHOS
+#include "native_window.h"
+#endif
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSemaphore.h"
-#include "native_window.h"
 #include "native_buffer_inner.h"
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
+
+#include "include/gpu/GrDirectContext.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -2702,6 +2710,13 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Media::PixelMap>&
         std::vector<Drawing::Point> radiusValue(imageInfo.radius, imageInfo.radius + CORNER_SIZE);
         rsImage_->SetRadius(radiusValue);
         rsImage_->SetScale(imageInfo.scale);
+    }
+}
+
+void RSExtendImageObject::SetNodeId(NodeId id)
+{
+    if (rsImage_) {
+        rsImage_->UpdateNodeIdToPicture(id);
     }
 }
 
@@ -2819,8 +2834,13 @@ bool RSExtendImageObject::GetDrawingImageFromSurfaceBuffer(Drawing::Canvas& canv
     if (!image_) {
         image_ = std::make_shared<Drawing::Image>();
     }
+#ifndef ROSEN_EMULATOR
+    auto surfaceOrigin = Drawing::TextureOrigin::TOP_LEFT;
+#else
+    auto surfaceOrigin = Drawing::TextureOrigin::BOTTOM_LEFT;
+#endif
     if (!image_->BuildFromTexture(*(canvas.GetGPUContext()), externalTextureInfo,
-        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat,
+        surfaceOrigin, bitmapFormat,
         std::make_shared<Drawing::ColorSpace>(Drawing::ColorSpace::ColorSpaceType::SRGB))) {
         RS_LOGE("BuildFromTexture failed");
         return false;
@@ -2933,6 +2953,13 @@ void RSExtendImageBaseObj::Playback(Drawing::Canvas& canvas, const Drawing::Rect
     }
 }
 
+void RSExtendImageBaseObj::SetNodeId(NodeId id)
+{
+    if (rsImage_) {
+        rsImage_->UpdateNodeIdToPicture(id);
+    }
+}
+
 bool RSExtendImageBaseObj::Marshalling(Parcel &parcel) const
 {
     bool ret = RSMarshallingHelper::Marshalling(parcel, rsImage_);
@@ -2947,6 +2974,388 @@ RSExtendImageBaseObj *RSExtendImageBaseObj::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
     return object;
+}
+
+void RSExtendDrawFuncObj::Playback(Drawing::Canvas* canvas, const Drawing::Rect* rect)
+{
+    if (drawFunc_) {
+        drawFunc_(canvas, rect);
+    }
+}
+
+bool RSExtendDrawFuncObj::Marshalling(Parcel &parcel) const
+{
+    return false;
+}
+
+RSExtendDrawFuncObj *RSExtendDrawFuncObj::Unmarshalling(Parcel &parcel)
+{
+    return nullptr;
+}
+
+namespace Drawing {
+/* DrawImageWithParmOpItem */
+REGISTER_UNMARSHALLING_FUNC(
+    DrawImageWithParm, DrawOpItem::IMAGE_WITH_PARM_OPITEM, DrawImageWithParmOpItem::Unmarshalling);
+
+DrawImageWithParmOpItem::DrawImageWithParmOpItem(
+    const DrawCmdList& cmdList, DrawImageWithParmOpItem::ConstructorHandle* handle)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, IMAGE_WITH_PARM_OPITEM), sampling_(handle->sampling)
+{
+    objectHandle_ = CmdListHelper::GetImageObjectFromCmdList(cmdList, handle->objectHandle);
+}
+
+DrawImageWithParmOpItem::DrawImageWithParmOpItem(const std::shared_ptr<Image>& image, const std::shared_ptr<Data>& data,
+    const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& sampling, const Paint& paint)
+    : DrawWithPaintOpItem(paint, IMAGE_WITH_PARM_OPITEM), sampling_(sampling)
+{
+    objectHandle_ = std::make_shared<RSExtendImageObject>(image, data, rsImageInfo);
+}
+
+std::shared_ptr<DrawOpItem> DrawImageWithParmOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawImageWithParmOpItem>(
+        cmdList, static_cast<DrawImageWithParmOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawImageWithParmOpItem::Marshalling(DrawCmdList& cmdList)
+{
+}
+
+void DrawImageWithParmOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (objectHandle_ == nullptr) {
+        LOGE("DrawImageWithParmOpItem objectHandle is nullptr!");
+        return;
+    }
+    canvas->AttachPaint(paint_);
+    objectHandle_->Playback(*canvas, *rect, sampling_, false);
+}
+
+void DrawImageWithParmOpItem::SetNodeId(NodeId id)
+{
+    if (objectHandle_ == nullptr) {
+        LOGE("DrawImageWithParmOpItem objectHandle is nullptr!");
+        return;
+    }
+    objectHandle_->SetNodeId(id);
+}
+
+/* DrawPixelMapWithParmOpItem */
+REGISTER_UNMARSHALLING_FUNC(
+    DrawPixelMapWithParm, DrawOpItem::PIXELMAP_WITH_PARM_OPITEM, DrawPixelMapWithParmOpItem::Unmarshalling);
+
+DrawPixelMapWithParmOpItem::DrawPixelMapWithParmOpItem(
+    const DrawCmdList& cmdList, DrawPixelMapWithParmOpItem::ConstructorHandle* handle)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, PIXELMAP_WITH_PARM_OPITEM), sampling_(handle->sampling)
+{
+    objectHandle_ = CmdListHelper::GetImageObjectFromCmdList(cmdList, handle->objectHandle);
+}
+
+DrawPixelMapWithParmOpItem::DrawPixelMapWithParmOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap,
+    const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& sampling, const Paint& paint)
+    : DrawWithPaintOpItem(paint, PIXELMAP_WITH_PARM_OPITEM), sampling_(sampling)
+{
+    objectHandle_ = std::make_shared<RSExtendImageObject>(pixelMap, rsImageInfo);
+}
+
+std::shared_ptr<DrawOpItem> DrawPixelMapWithParmOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawPixelMapWithParmOpItem>(
+        cmdList, static_cast<DrawPixelMapWithParmOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawPixelMapWithParmOpItem::Marshalling(DrawCmdList& cmdList)
+{
+}
+
+void DrawPixelMapWithParmOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (objectHandle_ == nullptr) {
+        LOGE("DrawPixelMapWithParmOpItem objectHandle is nullptr!");
+        return;
+    }
+    canvas->AttachPaint(paint_);
+    objectHandle_->Playback(*canvas, *rect, sampling_, false);
+}
+
+void DrawPixelMapWithParmOpItem::SetNodeId(NodeId id)
+{
+    if (objectHandle_ == nullptr) {
+        LOGE("DrawPixelMapWithParmOpItem objectHandle is nullptr!");
+        return;
+    }
+    objectHandle_->SetNodeId(id);
+}
+
+/* DrawPixelMapRectOpItem */
+REGISTER_UNMARSHALLING_FUNC(DrawPixelMapRect, DrawOpItem::PIXELMAP_RECT_OPITEM, DrawPixelMapRectOpItem::Unmarshalling);
+
+DrawPixelMapRectOpItem::DrawPixelMapRectOpItem(
+    const DrawCmdList& cmdList, DrawPixelMapRectOpItem::ConstructorHandle* handle)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, PIXELMAP_RECT_OPITEM), sampling_(handle->sampling)
+{
+    objectHandle_ = CmdListHelper::GetImageBaseObjFromCmdList(cmdList, handle->objectHandle);
+}
+
+DrawPixelMapRectOpItem::DrawPixelMapRectOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap, const Rect& src,
+    const Rect& dst, const SamplingOptions& sampling, const Paint& paint)
+    : DrawWithPaintOpItem(paint, PIXELMAP_RECT_OPITEM), sampling_(sampling)
+{
+    objectHandle_ = std::make_shared<RSExtendImageBaseObj>(pixelMap, src, dst);
+}
+
+std::shared_ptr<DrawOpItem> DrawPixelMapRectOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawPixelMapRectOpItem>(
+        cmdList, static_cast<DrawPixelMapRectOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawPixelMapRectOpItem::Marshalling(DrawCmdList& cmdList)
+{
+}
+
+void DrawPixelMapRectOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (objectHandle_ == nullptr) {
+        LOGE("DrawPixelMapRectOpItem objectHandle is nullptr!");
+        return;
+    }
+    canvas->AttachPaint(paint_);
+    objectHandle_->Playback(*canvas, *rect, sampling_);
+}
+
+void DrawPixelMapRectOpItem::SetNodeId(NodeId id)
+{
+    if (objectHandle_ == nullptr) {
+        LOGE("DrawPixelMapRectOpItem objectHandle is nullptr!");
+        return;
+    }
+    objectHandle_->SetNodeId(id);
+}
+
+/* DrawFuncOpItem */
+REGISTER_UNMARSHALLING_FUNC(DrawFunc, DrawOpItem::DRAW_FUNC_OPITEM, DrawFuncOpItem::Unmarshalling);
+
+DrawFuncOpItem::DrawFuncOpItem(const DrawCmdList& cmdList, DrawFuncOpItem::ConstructorHandle* handle)
+    : DrawOpItem(DRAW_FUNC_OPITEM)
+{
+    objectHandle_ = CmdListHelper::GetDrawFuncObjFromCmdList(cmdList, handle->objectHandle);
+}
+
+std::shared_ptr<DrawOpItem> DrawFuncOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawFuncOpItem>(cmdList, static_cast<DrawFuncOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawFuncOpItem::Marshalling(DrawCmdList& cmdList)
+{
+}
+
+void DrawFuncOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (objectHandle_) {
+        objectHandle_->Playback(canvas, rect);
+    }
+}
+
+#ifdef ROSEN_OHOS
+/* DrawSurfaceBufferOpItem */
+REGISTER_UNMARSHALLING_FUNC(
+    DrawSurfaceBuffer, DrawOpItem::SURFACEBUFFER_OPITEM, DrawSurfaceBufferOpItem::Unmarshalling);
+
+DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(const DrawCmdList& cmdList,
+    DrawSurfaceBufferOpItem::ConstructorHandle* handle)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, SURFACEBUFFER_OPITEM),
+      surfaceBufferInfo_(nullptr, handle->surfaceBufferInfo.offSetX_, handle->surfaceBufferInfo.offSetY_,
+                         handle->surfaceBufferInfo.width_, handle->surfaceBufferInfo.height_)
+{
+    surfaceBufferInfo_.surfaceBuffer_ = CmdListHelper::GetSurfaceBufferFromCmdList(cmdList, handle->surfaceBufferId);
+}
+
+DrawSurfaceBufferOpItem::~DrawSurfaceBufferOpItem()
+{
+    Clear();
+}
+
+std::shared_ptr<DrawOpItem> DrawSurfaceBufferOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawSurfaceBufferOpItem>(cmdList,
+        static_cast<DrawSurfaceBufferOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawSurfaceBufferOpItem::Marshalling(DrawCmdList& cmdList)
+{
+}
+
+void DrawSurfaceBufferOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    Clear();
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    if (surfaceBufferInfo_.surfaceBuffer_ == nullptr) {
+        LOGE("SurfaceBufferOpItem::Draw surfaceBuffer_ is nullptr");
+        return;
+    }
+    nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&(surfaceBufferInfo_.surfaceBuffer_));
+    if (!nativeWindowBuffer_) {
+        LOGE("create nativeWindowBuffer_ fail.");
+        return;
+    }
+#endif
+    canvas->AttachPaint(paint_);
+    Draw(canvas);
+}
+
+void DrawSurfaceBufferOpItem::Clear()
+{
+#ifdef RS_ENABLE_VK
+    image_ = nullptr;
+#endif
+#ifdef RS_ENABLE_GL
+    if (SystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        if (texId_ != 0U) {
+            glDeleteTextures(1, &texId_);
+        }
+        if (eglImage_ != EGL_NO_IMAGE_KHR) {
+            auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+            eglDestroyImageKHR(disp, eglImage_);
+        }
+    }
+#endif
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    if (nativeWindowBuffer_ != nullptr) {
+        DestroyNativeWindowBuffer(nativeWindowBuffer_);
+        nativeWindowBuffer_ = nullptr;
+    }
+#endif
+}
+
+void DrawSurfaceBufferOpItem::Draw(Canvas* canvas)
+{
+#ifdef RS_ENABLE_VK
+    if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        DrawWithVulkan(canvas);
+        return;
+    }
+#endif
+#ifdef RS_ENABLE_GL
+    if (SystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        DrawWithGles(canvas);
+        return;
+    }
+#endif
+}
+
+void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
+{
+#ifdef RS_ENABLE_VK
+    auto backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
+        surfaceBufferInfo_.width_, surfaceBufferInfo_.height_);
+    if (!backendTexture.IsValid()) {
+        LOGE("DrawSurfaceBufferOpItem::Draw backendTexture is not valid");
+        return;
+    }
+    if (!canvas->GetGPUContext()) {
+        LOGE("DrawSurfaceBufferOpItem::Draw gpu context is nullptr");
+        return;
+    }
+    Drawing::BitmapFormat bitmapFormat = { Drawing::ColorType::COLORTYPE_RGBA_8888,
+        Drawing::AlphaType::ALPHATYPE_PREMUL };
+    if (!image_) {
+        image_ = std::make_shared<Drawing::Image>();
+    }
+    auto vkTextureInfo = backendTexture.GetTextureInfo().GetVKTextureInfo();
+    if (!vkTextureInfo || !image_->BuildFromTexture(*canvas->GetGPUContext(), backendTexture.GetTextureInfo(),
+        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, NativeBufferUtils::DeleteVkImage,
+        new NativeBufferUtils::VulkanCleanupHelper(
+            RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory))) {
+        LOGE("DrawSurfaceBufferOpItem::Draw image BuildFromTexture failed");
+        return;
+    }
+    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
+    canvas->DrawImage(*image_, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, samplingOptions);
+#endif
+}
+
+void DrawSurfaceBufferOpItem::DrawWithGles(Canvas* canvas)
+{
+#ifdef RS_ENABLE_GL
+    if (!CreateEglTextureId()) {
+        return;
+    }
+    GrGLTextureInfo textureInfo = { GL_TEXTURE_EXTERNAL_OES, texId_, GL_RGBA8_OES };
+
+    GrBackendTexture backendTexture(
+        surfaceBufferInfo_.width_, surfaceBufferInfo_.height_, GrMipMapped::kNo, textureInfo);
+
+    Drawing::TextureInfo externalTextureInfo;
+    externalTextureInfo.SetWidth(surfaceBufferInfo_.width_);
+    externalTextureInfo.SetHeight(surfaceBufferInfo_.height_);
+    externalTextureInfo.SetIsMipMapped(false);
+    externalTextureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
+    externalTextureInfo.SetID(texId_);
+    externalTextureInfo.SetFormat(GL_RGBA8_OES);
+    Drawing::BitmapFormat bitmapFormat = { Drawing::ColorType::COLORTYPE_RGBA_8888,
+        Drawing::AlphaType::ALPHATYPE_PREMUL };
+    if (!canvas->GetGPUContext()) {
+        LOGE("DrawSurfaceBufferOpItem::Draw: gpu context is nullptr");
+        return;
+    }
+    auto newImage = std::make_shared<Drawing::Image>();
+    if (!newImage->BuildFromTexture(*canvas->GetGPUContext(), externalTextureInfo,
+        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr)) {
+        LOGE("DrawSurfaceBufferOpItem::Draw: image BuildFromTexture failed");
+        return;
+    }
+    canvas->DrawImage(*newImage, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, Drawing::SamplingOptions());
+#endif // RS_ENABLE_GL
+}
+
+bool DrawSurfaceBufferOpItem::CreateEglTextureId()
+{
+    EGLint attrs[] = { EGL_IMAGE_PRESERVED, EGL_TRUE, EGL_NONE };
+
+    auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    eglImage_ = eglCreateImageKHR(disp, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_OHOS, nativeWindowBuffer_, attrs);
+    if (eglImage_ == EGL_NO_IMAGE_KHR) {
+        DestroyNativeWindowBuffer(nativeWindowBuffer_);
+        LOGE("%{public}s create egl image fail %{public}d", __func__, eglGetError());
+        return false;
+    }
+
+    // save
+    GLuint originTexture;
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, reinterpret_cast<GLint *>(&originTexture));
+    GLint minFilter;
+    glGetTexParameteriv(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, &minFilter);
+    GLint magFilter;
+    glGetTexParameteriv(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, &magFilter);
+    GLint wrapS;
+    glGetTexParameteriv(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_S, &wrapS);
+    GLint wrapT;
+    glGetTexParameteriv(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, &wrapT);
+
+    // Create texture object
+    texId_ = 0;
+    glGenTextures(1, &texId_);
+    glBindTexture(GL_TEXTURE_EXTERNAL_OES, texId_);
+    glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glEGLImageTargetTexture2DOES(GL_TEXTURE_EXTERNAL_OES, static_cast<GLeglImageOES>(eglImage_));
+
+    // restore
+    glBindTexture(GL_TEXTURE_EXTERNAL_OES, originTexture);
+    glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, minFilter);
+    glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, magFilter);
+    glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_S, wrapS);
+    glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, wrapT);
+
+    return true;
+}
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

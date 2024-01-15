@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Huawei Device Co., Ltd.
+ * Copyright (C) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -61,5 +61,17 @@ PixelMap *PixelMap::Unmarshalling(Parcel &data)
 {
     return nullptr;
 }
+
+#ifdef IMAGE_COLORSPACE_FLAG
+void PixelMap::InnerSetColorSpace(const OHOS::ColorManager::ColorSpace &grColorSpace)
+{
+    return;
+}
+
+OHOS::ColorManager::ColorSpace PixelMap::InnerGetGrColorSpace()
+{
+    return OHOS::ColorManager::ColorSpace(OHOS::ColorManager::ColorSpaceName::SRGB);
+}
+#endif
 } // namespace Media
 } // namespace OHOS

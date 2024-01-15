@@ -67,6 +67,16 @@ bool Region::Op(const Region& region, RegionOp op)
 {
     return impl_->Op(region, op);
 }
+
+std::shared_ptr<Data> Region::Serialize() const
+{
+    return impl_->Serialize();
+}
+
+bool Region::Deserialize(std::shared_ptr<Data> data)
+{
+    return impl_->Deserialize(data);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

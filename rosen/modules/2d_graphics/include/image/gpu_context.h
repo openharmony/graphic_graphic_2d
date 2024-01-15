@@ -213,6 +213,13 @@ public:
     void SetCurrentGpuResourceTag(const GPUResourceTag &tag);
 
     /*
+     * @brief                   Store vulkan pipeline cache
+    */
+#ifdef RS_ENABLE_VK
+    void StoreVkPipelineCacheData();
+#endif
+
+    /*
      * @brief   Get the adaptation layer instance, called in the adaptation layer.
      * @return  Adaptation Layer instance.
      */

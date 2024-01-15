@@ -24,6 +24,7 @@
 #include "memory/rs_tag_tracker.h"
 #include "rs_trace.h"
 
+#include "common/rs_optional_trace.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -75,8 +76,11 @@ void RSFilterSubThread::Start()
         grContext_ = CreateShareGrContext();
     });
     RSFilter::postTask = [this](std::weak_ptr<RSFilter::RSFilterTask> task) {
-        PostTask([this, task]() { RenderCache(task); });
+        filterTaskList_.emplace_back(task);
+        RS_TRACE_NAME_FMT("postTask:%zu", filterTaskList_.size());
     };
+
+    RSFilter::clearGpuContext = [this]() { ResetGrContext(); };
 }
 
 void RSFilterSubThread::StartColorPicker()
@@ -175,28 +179,92 @@ void RSFilterSubThread::DestroyShareEglContext()
 #endif
 }
 
-void RSFilterSubThread::RenderCache(std::weak_ptr<RSFilter::RSFilterTask> filterTask)
+void RSFilterSubThread::RenderCache(std::vector<std::weak_ptr<RSFilter::RSFilterTask>>& filterTaskList)
 {
-    RS_TRACE_NAME("RenderCache");
-    auto task = filterTask.lock();
-    if (!task) {
-        RS_LOGE("task is null");
-        return;
-    }
+    RS_TRACE_NAME_FMT("RSFilterSubThread::RenderCache:%zu", filterTaskList.size());
     if (grContext_ == nullptr) {
         grContext_ = CreateShareGrContext();
     }
+    if (fence_->Wait(SYNC_TIME_OUT) < 0) {
+        RS_LOGE("RSFilterSubThread::RenderCache: fence time out");
+        filterTaskList.clear();
+        isWorking_.store(false);
+        return;
+    }
     if (grContext_ == nullptr) {
-        RS_LOGE("grContext is null");
+        RS_LOGE("RSFilterSubThread::RenderCache: grContext is null");
+        filterTaskList.clear();
+        isWorking_.store(false);
         return;
     }
-    if (!task->InitSurface(grContext_.get())) {
-        RS_LOGE("InitSurface failed");
+    for (auto& task : filterTaskList) {
+        auto workTask = task.lock();
+        if (!workTask) {
+            RS_LOGE("RSFilterSubThread::RenderCache: Render task is null");
+            continue;
+        }
+        if (!workTask->InitSurface(grContext_.get())) {
+            RS_LOGE("RSFilterSubThread::RenderCache: InitSurface failed");
+            continue;
+        }
+        if (!workTask->Render()) {
+            RS_LOGE("RSFilterSubThread::RenderCache: Render failed");
+            continue;
+        }
+    }
+#ifndef USE_ROSEN_DRAWING
+    grContext_->flushAndSubmit(true);
+#else
+    grContext_->FlushAndSubmit(true);
+#endif
+    for (auto& task : filterTaskList) {
+        auto workTask = task.lock();
+        if (!workTask) {
+            RS_LOGE("RSFilterSubThread::RenderCache, SaveFilteredImage task is null");
+            continue;
+        }
+        if (!workTask->SaveFilteredImage()) {
+            RS_LOGE("RSFilterSubThread::RenderCache, SaveFilteredImage failed");
+            continue;
+        }
+        if (!workTask->SetDone()) {
+            RS_LOGE("RSFilterSubThread::RenderCache, SetDone failed");
+            continue;
+        }
+    }
+    filterTaskList.clear();
+    isWorking_.store(false);
+}
+
+void RSFilterSubThread::FlushAndSubmit()
+{
+    RS_TRACE_NAME_FMT("RSFilterSubThread::FlushAndSubmit():isWorking_:%d TaskList size:%zu",
+        isWorking_.load(), filterReadyTaskList_.size());
+
+    if (filterTaskList_.empty()) {
         return;
     }
-    if (!task->Render()) {
-        RS_LOGE("Render failed");
+
+    if (isWorking_.load()) {
+        return;
     }
+
+    filterTaskList_.swap(filterReadyTaskList_);
+    for (auto& task : filterReadyTaskList_) {
+        auto initTask = task.lock();
+        if (!initTask) {
+            RS_LOGE("RSFilterSubThread::FlushAndSubmit:SwapInit task is null");
+            continue;
+        }
+        initTask->SwapInit();
+    }
+    isWorking_.store(true);
+    PostTask([this]() { RenderCache(filterReadyTaskList_); });
+}
+
+void RSFilterSubThread::SetFence(sptr<SyncFence> fence)
+{
+    fence_ = fence;
 }
 
 void RSFilterSubThread::ColorPickerRenderCache(std::weak_ptr<RSColorPickerCacheTask> colorPickerTask)
@@ -326,8 +394,10 @@ void RSFilterSubThread::ResetGrContext()
         return;
     }
 #ifndef USE_ROSEN_DRAWING
+    grContext_->flushAndSubmit(true);
     grContext_->freeGpuResources();
 #else
+    grContext_->FlushAndSubmit(true);
     grContext_->FreeGpuResources();
 #endif
 }

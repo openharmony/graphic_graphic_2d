@@ -36,6 +36,7 @@ CanvasContext* CanvasContext::Create()
                 return new CanvasContext(std::make_unique<VulkanRenderBackend>());
             }
 #endif
+            break;
         case RenderBackendType::GLES:
 #ifdef RS_ENABLE_GL
             if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
@@ -43,12 +44,14 @@ CanvasContext* CanvasContext::Create()
                 return new CanvasContext(std::make_unique<GLESRenderBackend>());
             }
 #endif
+            break;
         case RenderBackendType::SOFTWARE:
             std::cout << "CanvasContext::Create with software backend" << std::endl;
             return new CanvasContext(std::make_unique<SoftwareRenderBackend>());
         default:
             return nullptr;
     }
+    return nullptr;
 }
 
 CanvasContext::CanvasContext(std::unique_ptr<IRenderBackend> renderBackend)

@@ -58,11 +58,14 @@ public:
                                                        const ListenerPhaseOffsetData &listenerPhaseOffset,
                                                        uint32_t generatorRefreshRate) = 0;
     virtual int64_t GetVSyncPulse() = 0;
-    virtual int64_t GetReferenceTimeOffset() = 0;
     virtual VsyncError SetVSyncMode(VSyncMode vsyncMode) = 0;
     virtual VSyncMode GetVSyncMode() = 0;
     virtual VsyncError SetVSyncPhaseByPulseNum(int32_t phaseByPulseNum) = 0;
     virtual void Dump(std::string &result) = 0;
+    virtual bool GetFrameRateChaingStatus() = 0;
+    virtual VsyncError SetReferenceTimeOffset(int32_t phaseByPulseNum) = 0;
+    virtual VsyncError ResetReferenceTimeOffset() = 0;
+    virtual VsyncError CheckAndUpdateRefereceTime(int64_t hardwareVsyncInterval, int64_t referenceTime) = 0;
 };
 
 sptr<VSyncGenerator> CreateVSyncGenerator();
@@ -86,11 +89,14 @@ public:
                                                const ListenerPhaseOffsetData &listenerPhaseOffset,
                                                uint32_t generatorRefreshRate) override;
     int64_t GetVSyncPulse() override;
-    int64_t GetReferenceTimeOffset() override;
     VsyncError SetVSyncMode(VSyncMode vsyncMode) override;
     VSyncMode GetVSyncMode() override;
     VsyncError SetVSyncPhaseByPulseNum(int32_t phaseByPulseNum) override;
     void Dump(std::string &result) override;
+    bool GetFrameRateChaingStatus() override;
+    VsyncError SetReferenceTimeOffset(int32_t phaseByPulseNum) override;
+    VsyncError ResetReferenceTimeOffset() override;
+    VsyncError CheckAndUpdateRefereceTime(int64_t hardwareVsyncInterval, int64_t referenceTime) override;
 
 private:
     friend class OHOS::Rosen::VSyncGenerator;
@@ -117,6 +123,10 @@ private:
     bool UpdateChangeDataLocked(int64_t now, int64_t referenceTime, int64_t nextVSyncTime);
     void UpdateVSyncModeLocked();
     std::vector<Listener> GetListenerTimeoutedLTPO(int64_t now, int64_t referenceTime);
+    void ListenerVsyncEventCB(int64_t occurTimestamp, int64_t nextTimeStamp,
+        int64_t occurReferenceTime, bool isWakeup);
+    VsyncError UpdatePeriodLocked(int64_t period);
+    VsyncError UpdateReferenceTimeLocked(int64_t referenceTime);
 
     int64_t period_;
     int64_t phase_;
@@ -135,8 +145,8 @@ private:
     static sptr<OHOS::Rosen::VSyncGenerator> instance_;
     int64_t pulse_; // by ns
     uint32_t currRefreshRate_; // by Hz
-    int64_t referenceTimeOffset_; // ns
     int32_t referenceTimeOffsetPulseNum_;
+    int32_t defaultReferenceTimeOffsetPulseNum_;
     ListenerRefreshRateData changingRefreshRates_ = {};
     ListenerPhaseOffsetData changingPhaseOffset_ = {};
     uint32_t changingGeneratorRefreshRate_ = 0;
@@ -147,6 +157,7 @@ private:
     VSyncMode pendingVsyncMode_ = VSYNC_MODE_INVALID;
     std::vector<Listener> listenersRecord_;
     bool refreshRateIsChanged_ = false;
+    bool frameRateChanging_ = false;
 };
 } // impl
 } // namespace Rosen

@@ -28,9 +28,7 @@ namespace TextEngine {
 struct LineMetrics {
     std::vector<VariantSpan> lineSpans;
     double width = 0.0;
-    double height = 0.0;
     double indent = 0.0;
-    double lineY = 0.0;
 
     void AddSpanAndUpdateMetrics(const VariantSpan &span);
 

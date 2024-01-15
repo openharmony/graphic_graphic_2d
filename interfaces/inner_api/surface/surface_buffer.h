@@ -31,6 +31,7 @@ struct BufferWrapper;
 
 namespace OHOS {
 class MessageParcel;
+class SyncFence;
 class SurfaceBuffer : public RefBase {
 public:
     virtual BufferHandle *GetBufferHandle() const = 0;
@@ -105,6 +106,7 @@ protected:
 
 using OnReleaseFunc = std::function<GSError(sptr<SurfaceBuffer> &)>;
 using OnDeleteBufferFunc = std::function<void(int32_t)>;
+using OnReleaseFuncWithFence = std::function<GSError(const sptr<SurfaceBuffer>&, const sptr<SyncFence>&)>;
 } // namespace OHOS
 
 #endif // INTERFACES_INNERKITS_SURFACE_SURFACE_BUFFER_H

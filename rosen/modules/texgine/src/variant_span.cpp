@@ -258,12 +258,10 @@ void VariantSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY) n
     if (as_) {
         as_->SetTextStyle(xs_);
         as_->SetRoundRectType(roundRectType_);
-        as_->SetAbsLineY(offsetY - offsetY_ + GetLineY());
         as_->Paint(canvas, offsetX, offsetY);
     }
 
     if (ts_) {
-        ts_->absLineY_ = offsetY - offsetY_ + GetLineY();
         ts_->Paint(canvas, offsetX, offsetY, xs_, roundRectType_);
     }
 }
@@ -328,52 +326,96 @@ void VariantSpan::SetRoundRectType(RoundRectType type) noexcept(true)
     roundRectType_ = type;
 }
 
-void VariantSpan::SetLineHeight(double lineHeight) noexcept(true)
+void VariantSpan::SetTopInGroup(double top) noexcept(true)
 {
     CheckPointer();
     if (as_) {
-        as_->SetLineHeight(lineHeight);
+        as_->SetTopInGroup(top);
     }
 
     if (ts_) {
-        ts_->lineHeight_ = lineHeight;
+        ts_->topInGroup_ = top;
     }
 }
 
-double VariantSpan::GetLineHeight() const noexcept(true)
+double VariantSpan::GetTopInGroup() const noexcept(true)
 {
-    double lineHeight = 0.0;
+    double top = 0.0;
     CheckPointer();
     if (as_) {
-        lineHeight = as_->GetLineHeight();
+        top = as_->GetTopInGroup();
     } else if (ts_) {
-        lineHeight = ts_->lineHeight_;
+        top = ts_->topInGroup_;
     }
-    return lineHeight;
+    return top;
 }
 
-void VariantSpan::SetLineY(double lineY) noexcept(true)
+void VariantSpan::SetBottomInGroup(double bottom) noexcept(true)
 {
     CheckPointer();
     if (as_) {
-        as_->SetLineY(lineY);
+        as_->SetBottomInGroup(bottom);
     }
 
     if (ts_) {
-        ts_->lineY_ = lineY;
+        ts_->bottomInGroup_ = bottom;
     }
 }
 
-double VariantSpan::GetLineY() const noexcept(true)
+double VariantSpan::GetBottomInGroup() const noexcept(true)
 {
-    double lineY = 0.0;
+    double bottom = 0.0;
     CheckPointer();
     if (as_) {
-        lineY = as_->GetLineY();
+        bottom = as_->GetBottomInGroup();
     } else if (ts_) {
-        lineY = ts_->lineY_;
+        bottom = ts_->bottomInGroup_;
     }
-    return lineY;
+    return bottom;
+}
+
+void VariantSpan::SetMaxRoundRectRadius(double radius) noexcept(true)
+{
+    CheckPointer();
+    if (as_) {
+        as_->SetMaxRoundRectRadius(radius);
+    }
+
+    if (ts_) {
+        ts_->maxRoundRectRadius_ = radius;
+    }
+}
+
+double VariantSpan::GetMaxRoundRectRadius() const noexcept(true)
+{
+    double maxRoundRectRadius = 0.0;
+    CheckPointer();
+    if (as_) {
+        maxRoundRectRadius = as_->GetMaxRoundRectRadius();
+    } else if (ts_) {
+        maxRoundRectRadius = ts_->maxRoundRectRadius_;
+    }
+    return maxRoundRectRadius;
+}
+
+double VariantSpan::GetTop() const noexcept(true)
+{
+    double top = offsetY_;
+    if (ts_) {
+        top += *(ts_->tmetrics_->fAscent_);
+    }
+    return top;
+}
+
+double VariantSpan::GetBottom() const noexcept(true)
+{
+    double bottom = GetTop();
+    if (ts_) {
+        bottom += (*(ts_->tmetrics_->fDescent_) - *(ts_->tmetrics_->fAscent_));
+    } else if (as_) {
+        bottom += as_->GetHeight();
+    }
+    return bottom;
 }
 } // namespace TextEngine
 } // namespace Rosen

@@ -47,6 +47,17 @@ RSCanvasDrawingNode::SharedPtr RSCanvasDrawingNode::Create(bool isRenderServiceN
     return node;
 }
 
+bool RSCanvasDrawingNode::ResetSurface()
+{
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (!transactionProxy) {
+        return false;
+    }
+    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasDrawingNodeResetSurface>(GetId());
+    transactionProxy->AddCommand(command, IsRenderServiceNode());
+    return true;
+}
+
 #ifndef USE_ROSEN_DRAWING
 bool RSCanvasDrawingNode::GetBitmap(SkBitmap& bitmap, std::shared_ptr<DrawCmdList> drawCmdList, const SkRect* rect)
 {
@@ -89,7 +100,7 @@ bool RSCanvasDrawingNode::GetBitmap(SkBitmap& bitmap, std::shared_ptr<DrawCmdLis
 }
 
 bool RSCanvasDrawingNode::GetPixelmap(
-    const std::shared_ptr<Media::PixelMap> pixelmap, std::shared_ptr<DrawCmdList> drawCmdList, const SkRect* rect)
+    std::shared_ptr<Media::PixelMap> pixelmap, std::shared_ptr<DrawCmdList> drawCmdList, const SkRect* rect)
 {
     if (!pixelmap) {
         RS_LOGE("RSCanvasDrawingNode::GetPixelmap: pixelmap is nullptr");
@@ -102,7 +113,7 @@ bool RSCanvasDrawingNode::GetPixelmap(
             ROSEN_LOGE("RSCanvasDrawingNode::GetPixelmap: renderServiceClient is nullptr!");
             return false;
         }
-        bool ret = renderServiceClient->GetPixelmap(GetId(), pixelmap, rect);
+        bool ret = renderServiceClient->GetPixelmap(GetId(), pixelmap, rect, drawCmdList);
         if (!ret || !pixelmap) {
             ROSEN_LOGE("RSCanvasDrawingNode::GetPixelmap: GetPixelmap failed");
             return false;
@@ -119,23 +130,12 @@ bool RSCanvasDrawingNode::GetPixelmap(
             return false;
         }
         bool ret = false;
-        auto getPixelmapTask = [&node, &pixelmap, rect, &ret]() { ret = node->GetPixelmap(pixelmap, rect); };
+        auto getPixelmapTask = [&node, &pixelmap, rect, &ret, &drawCmdList]() { 
+            ret = node->GetPixelmap(pixelmap, rect, UINT32_MAX, drawCmdList); };
         RSRenderThread::Instance().PostSyncTask(getPixelmapTask);
         if (!ret || !pixelmap) {
             return false;
         }
-    }
-    if (drawCmdList == nullptr) {
-        RS_LOGD("RSCanvasDrawingNode::GetPixelmap: drawCmdList is nullptr");
-    } else {
-        SkBitmap skBitmap;
-        SkImageInfo skImageInfo =
-            SkImageInfo::Make(pixelmap->GetWidth(), pixelmap->GetHeight(), kRGBA_8888_SkColorType, kPremul_SkAlphaType);
-        skBitmap.installPixels(
-            skImageInfo, static_cast<uint8_t*>(pixelmap->GetWritablePixels()), pixelmap->GetRowBytes());
-        SkCanvas canvas(skBitmap);
-        canvas.translate(-rect->x(), -rect->y());
-        drawCmdList->Playback(canvas, rect);
     }
     return true;
 }
@@ -183,7 +183,7 @@ bool RSCanvasDrawingNode::GetBitmap(Drawing::Bitmap& bitmap,
     return true;
 }
 
-bool RSCanvasDrawingNode::GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap,
+bool RSCanvasDrawingNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap,
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList, const Drawing::Rect* rect)
 {
     if (!pixelmap) {
@@ -197,7 +197,7 @@ bool RSCanvasDrawingNode::GetPixelmap(const std::shared_ptr<Media::PixelMap> pix
             ROSEN_LOGE("RSCanvasDrawingNode::GetPixelmap: renderServiceClient is nullptr!");
             return false;
         }
-        bool ret = renderServiceClient->GetPixelmap(GetId(), pixelmap, rect);
+        bool ret = renderServiceClient->GetPixelmap(GetId(), pixelmap, rect, drawCmdList);
         if (!ret || !pixelmap) {
             ROSEN_LOGE("RSCanvasDrawingNode::GetPixelmap: GetPixelmap failed");
             return false;
@@ -214,24 +214,12 @@ bool RSCanvasDrawingNode::GetPixelmap(const std::shared_ptr<Media::PixelMap> pix
             return false;
         }
         bool ret = false;
-        auto getPixelmapTask = [&node, &pixelmap, rect, &ret]() { ret = node->GetPixelmap(pixelmap, rect); };
+        auto getPixelmapTask = [&node, &pixelmap, rect, &ret, &drawCmdList]() {
+            ret = node->GetPixelmap(pixelmap, rect); };
         RSRenderThread::Instance().PostSyncTask(getPixelmapTask);
         if (!ret || !pixelmap) {
             return false;
         }
-    }
-    if (drawCmdList == nullptr) {
-        RS_LOGD("RSCanvasDrawingNode::GetPixelmap: drawCmdList is nullptr");
-    } else {
-        Drawing::Bitmap bitmap;
-        Drawing::ImageInfo imageInfo(pixelmap->GetWidth(), pixelmap->GetHeight(),
-            Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL);
-        bitmap.InstallPixels(imageInfo, static_cast<uint8_t*>(pixelmap->GetWritablePixels()), pixelmap->GetRowBytes());
-
-        Drawing::Canvas canvas;
-        canvas.Bind(bitmap);
-        canvas.Translate(-rect->GetLeft(), -rect->GetTop());
-        drawCmdList->Playback(canvas, rect);
     }
     return true;
 }

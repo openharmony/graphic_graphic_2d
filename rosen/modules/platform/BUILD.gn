@@ -93,6 +93,7 @@ ohos_source_set("mock_image_native") {
   public_configs = [ ":image_native_config" ]
   sources = [ "image_native/pixel_map.cpp" ]
   deps = [ ":utils" ]
+  cflags = [ "-DIMAGE_COLORSPACE_FLAG" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

@@ -88,7 +88,13 @@ bool WriteStringToFile(const std::string& str, const std::string& filePath)
     if (filePath.empty()) {
         return false;
     }
-    int fd = open(filePath.c_str(), O_RDWR | O_CREAT, static_cast<mode_t>(0600));
+
+    char realPath[PATH_MAX] = {0};
+    if (realpath(filePath.c_str(), realPath) == nullptr) {
+        return false;
+    }
+
+    int fd = open(realPath, O_RDWR | O_CREAT, static_cast<mode_t>(0600));
     if (fd < 0) {
         std::cout << "FileUtils: fd open failed!" << std::endl;
         return false;

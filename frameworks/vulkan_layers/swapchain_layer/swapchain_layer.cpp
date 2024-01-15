@@ -1275,7 +1275,6 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateDevice(VkPhysicalDevice gpu,
 
     LayerData* deviceLayerData = GetLayerDataPtr(GetDispatchKey(*pDevice));
     for (uint32_t i = 0; i < createInfo.enabledExtensionCount; i++) {
-        enabledExtensions.push_back(createInfo.ppEnabledExtensionNames[i]);
         auto extBit = GetExtensionBitFromName(createInfo.ppEnabledExtensionNames[i]);
         if (extBit != Extension::EXTENSION_UNKNOWN) {
             deviceLayerData->enabledExtensions.set(extBit);
@@ -1402,15 +1401,6 @@ static inline PFN_vkVoidFunction GetGlobalProc(const char* name)
     if (name == nullptr) {
         return nullptr;
     }
-    if (strcmp("vkCreateInstance", name) == 0) {
-        return reinterpret_cast<PFN_vkVoidFunction>(CreateInstance);
-    }
-    if (strcmp("vkEnumerateInstanceExtensionProperties", name) == 0) {
-        return reinterpret_cast<PFN_vkVoidFunction>(EnumerateInstanceExtensionProperties);
-    }
-    if (strcmp("vkEnumerateInstanceLayerProperties", name) == 0) {
-        return reinterpret_cast<PFN_vkVoidFunction>(EnumerateInstanceLayerProperties);
-    }
     if (strcmp("vkEnumerateDeviceLayerProperties", name) == 0) {
         return reinterpret_cast<PFN_vkVoidFunction>(EnumerateDeviceLayerProperties);
     }
@@ -1502,9 +1492,6 @@ static inline PFN_vkVoidFunction LayerInterceptInstanceProc(
     if (name == nullptr) {
         return nullptr;
     }
-    if (strcmp("vkGetInstanceProcAddr", name) == 0) {
-        return reinterpret_cast<PFN_vkVoidFunction>(GetInstanceProcAddr);
-    }
     if (strcmp("vkDestroyInstance", name) == 0) {
         return reinterpret_cast<PFN_vkVoidFunction>(DestroyInstance);
     }
@@ -1571,6 +1558,19 @@ VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL GetInstanceProcAddr(VkInstance instance
 {
     if (funcName == nullptr) {
         return nullptr;
+    }
+
+    if (strcmp("vkGetInstanceProcAddr", funcName) == 0) {
+        return reinterpret_cast<PFN_vkVoidFunction>(GetInstanceProcAddr);
+    }
+    if (strcmp("vkCreateInstance", funcName) == 0) {
+        return reinterpret_cast<PFN_vkVoidFunction>(CreateInstance);
+    }
+    if (strcmp("vkEnumerateInstanceExtensionProperties", funcName) == 0) {
+        return reinterpret_cast<PFN_vkVoidFunction>(EnumerateInstanceExtensionProperties);
+    }
+    if (strcmp("vkEnumerateInstanceLayerProperties", funcName) == 0) {
+        return reinterpret_cast<PFN_vkVoidFunction>(EnumerateInstanceLayerProperties);
     }
 
     if (instance == VK_NULL_HANDLE) {

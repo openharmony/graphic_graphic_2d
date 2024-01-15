@@ -477,10 +477,10 @@ bool RSRecordingCanvas::IsCustomTextType() const
 {
     return isCustomTextType_;
 }
-void RSRecordingCanvas::DrawFunc(drawFunc&& func)
+void RSRecordingCanvas::DrawDrawFunc(DrawFunc && drawFunc)
 {
     RS_DRAWOP_TRACE_FUNC();
-    std::unique_ptr<OpItem> op = std::make_unique<DrawFuncOpItem>(std::move(func));
+    std::unique_ptr<OpItem> op = std::make_unique<DrawFuncOpItem>(std::move(drawFunc));
     AddOp(std::move(op));
 }
 } // namespace Rosen
@@ -528,36 +528,53 @@ void ExtendRecordingCanvas::DrawPixelMapRect(const std::shared_ptr<Media::PixelM
     AddOp<Drawing::DrawPixelMapRectOpItem::ConstructorHandle>(objectHandle, sampling);
 }
 
-void ExtendRecordingCanvas::DrawFunc(OHOS::Rosen::Drawing::DrawFuncOpItem::DrawFunc&& func)
+void ExtendRecordingCanvas::DrawDrawFunc(Drawing::RecordingCanvas::DrawFunc&& drawFunc)
 {
-    cmdList_->AddOp<Drawing::DrawFuncOpItem::ConstructorHandle>(std::move(func));
+    auto object = std::make_shared<RSExtendDrawFuncObj>(std::move(drawFunc));
+    auto drawCallList = Drawing::RecordingCanvas::GetDrawCmdList();
+    auto objectHandle =
+        Drawing::CmdListHelper::AddDrawFuncObjToCmdList(*drawCallList, object);
+    cmdList_->AddOp<Drawing::DrawFuncOpItem::ConstructorHandle>(objectHandle);
 }
+
+#ifdef ROSEN_OHOS
+void ExtendRecordingCanvas::DrawSurfaceBuffer(const DrawingSurfaceBufferInfo& surfaceBufferInfo)
+{
+    AddOp<Drawing::DrawSurfaceBufferOpItem::ConstructorHandle>(
+        Drawing::CmdListHelper::AddSurfaceBufferToCmdList(*cmdList_, surfaceBufferInfo.surfaceBuffer_),
+        surfaceBufferInfo.offSetX_, surfaceBufferInfo.offSetY_,
+        surfaceBufferInfo.width_, surfaceBufferInfo.height_);
+}
+#endif
 
 template<typename T, typename... Args>
 void ExtendRecordingCanvas::AddOp(Args&&... args)
 {
-    Drawing::PaintHandle paintHandle;
     bool brushValid = paintBrush_.IsValid();
     bool penValid = paintPen_.IsValid();
     if (!brushValid && !penValid) {
+        Drawing::PaintHandle paintHandle;
         paintHandle.isAntiAlias = true;
         paintHandle.style = Drawing::Paint::PaintStyle::PAINT_FILL;
         cmdList_->AddOp<T>(std::forward<Args>(args)..., paintHandle);
         return;
     }
     if (brushValid && penValid && Drawing::Paint::CanCombinePaint(paintBrush_, paintPen_)) {
+        Drawing::PaintHandle paintHandle;
         paintPen_.SetStyle(Drawing::Paint::PaintStyle::PAINT_FILL_STROKE);
-        Drawing::RecordingCanvas::GenerateHandleFromPaint(*cmdList_, paintPen_, paintHandle);
+        Drawing::DrawOpItem::GenerateHandleFromPaint(*cmdList_, paintPen_, paintHandle);
         cmdList_->AddOp<T>(std::forward<Args>(args)..., paintHandle);
         paintPen_.SetStyle(Drawing::Paint::PaintStyle::PAINT_STROKE);
         return;
     }
     if (brushValid) {
-        Drawing::RecordingCanvas::GenerateHandleFromPaint(*cmdList_, paintBrush_, paintHandle);
+        Drawing::PaintHandle paintHandle;
+        Drawing::DrawOpItem::GenerateHandleFromPaint(*cmdList_, paintBrush_, paintHandle);
         cmdList_->AddOp<T>(std::forward<Args>(args)..., paintHandle);
     }
     if (penValid) {
-        Drawing::RecordingCanvas::GenerateHandleFromPaint(*cmdList_, paintPen_, paintHandle);
+        Drawing::PaintHandle paintHandle;
+        Drawing::DrawOpItem::GenerateHandleFromPaint(*cmdList_, paintPen_, paintHandle);
         cmdList_->AddOp<T>(std::forward<Args>(args)..., paintHandle);
     }
 }

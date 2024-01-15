@@ -377,7 +377,7 @@ void HdiOutput::SetBufferColorSpace(sptr<SurfaceBuffer>& buffer, const std::vect
 
         CM_ColorSpaceInfo colorSpaceInfo;
         if (MetadataHelper::GetColorSpaceInfo(layerBuffer, colorSpaceInfo) != GSERROR_OK) {
-            HLOGW("HdiOutput::SetBufferColorSpace Get color space from surface buffer failed");
+            HLOGD("HdiOutput::SetBufferColorSpace Get color space failed");
             continue;
         }
 
@@ -525,14 +525,15 @@ std::map<LayerInfoPtr, sptr<SyncFence>> HdiOutput::GetLayersReleaseFence()
     return res;
 }
 
-int32_t HdiOutput::StartVSyncSampler()
+int32_t HdiOutput::StartVSyncSampler(bool forceReSample)
 {
+    ScopedBytrace func("HdiOutput::StartVSyncSampler, forceReSample:" + std::to_string(forceReSample));
     CHECK_DEVICE_NULL(device_);
     if (sampler_ == nullptr) {
         sampler_ = CreateVSyncSampler();
     }
     bool alreadyStartSample = sampler_->GetHardwareVSyncStatus();
-    if (alreadyStartSample) {
+    if (!forceReSample && alreadyStartSample) {
         HLOGD("Already Start Sample.");
         return GRAPHIC_DISPLAY_SUCCESS;
     }
@@ -548,7 +549,6 @@ void HdiOutput::SetPendingPeriod(int64_t period)
         sampler_ = CreateVSyncSampler();
     }
     sampler_->SetPendingPeriod(period);
-    StartVSyncSampler();
 }
 
 void HdiOutput::Dump(std::string &result) const

@@ -57,7 +57,7 @@ OHNativeWindow* CreateNativeWindowFromSurface(void* pSurface)
 void DestoryNativeWindow(OHNativeWindow *window)
 {
     if (window == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+        BLOGD("parameter error, please check input parameter");
         return;
     }
     // unreference nativewindow object
@@ -207,91 +207,124 @@ int32_t NativeWindowCancelBuffer(OHNativeWindow *window, OHNativeWindowBuffer *b
     return OHOS::GSERROR_OK;
 }
 
+static void HandleNativeWindowSetUsage(OHNativeWindow *window, va_list args)
+{
+    uint64_t usage = va_arg(args, uint64_t);
+    window->config.usage = usage;
+}
+
+static void HandleNativeWindowSetBufferGeometry(OHNativeWindow *window, va_list args)
+{
+    int32_t width = va_arg(args, int32_t);
+    int32_t height = va_arg(args, int32_t);
+    window->config.height = height;
+    window->config.width = width;
+}
+
+static void HandleNativeWindowSetFormat(OHNativeWindow *window, va_list args)
+{
+    int32_t format = va_arg(args, int32_t);
+    window->config.format = format;
+}
+
+static void HandleNativeWindowSetStride(OHNativeWindow *window, va_list args)
+{
+    int32_t stride = va_arg(args, int32_t);
+    window->config.strideAlignment = stride;
+}
+
+static void HandleNativeWindowSetTimeout(OHNativeWindow *window, va_list args)
+{
+    int32_t timeout = va_arg(args, int32_t);
+    window->config.timeout = timeout;
+}
+
+static void HandleNativeWindowSetColorGamut(OHNativeWindow *window, va_list args)
+{
+    int32_t colorGamut = va_arg(args, int32_t);
+    window->config.colorGamut = static_cast<GraphicColorGamut>(colorGamut);
+}
+
+static void HandleNativeWindowSetTransform(OHNativeWindow *window, va_list args)
+{
+    int32_t transform = va_arg(args, int32_t);
+    window->config.transform = static_cast<GraphicTransformType>(transform);
+}
+
+static void HandleNativeWindowSetUiTimestamp(OHNativeWindow *window, va_list args)
+{
+    uint64_t uiTimestamp = va_arg(args, uint64_t);
+    window->uiTimestamp = static_cast<int64_t>(uiTimestamp);
+}
+
+static void HandleNativeWindowGetUsage(OHNativeWindow *window, va_list args)
+{
+    uint64_t *value = va_arg(args, uint64_t*);
+    uint64_t usage = window->config.usage;
+    *value = usage;
+}
+
+static void HandleNativeWindowGetBufferGeometry(OHNativeWindow *window, va_list args)
+{
+    int32_t *height = va_arg(args, int32_t*);
+    int32_t *width = va_arg(args, int32_t*);
+    *height = window->config.height;
+    *width = window->config.width;
+}
+
+static void HandleNativeWindowGetFormat(OHNativeWindow *window, va_list args)
+{
+    int32_t *format = va_arg(args, int32_t*);
+    *format = window->config.format;
+}
+
+static void HandleNativeWindowGetStride(OHNativeWindow *window, va_list args)
+{
+    int32_t *stride = va_arg(args, int32_t*);
+    *stride = window->config.strideAlignment;
+}
+
+static void HandleNativeWindowGetTimeout(OHNativeWindow *window, va_list args)
+{
+    int32_t *timeout = va_arg(args, int32_t*);
+    *timeout = window->config.timeout;
+}
+
+static void HandleNativeWindowGetColorGamut(OHNativeWindow *window, va_list args)
+{
+    int32_t *colorGamut = va_arg(args, int32_t*);
+    *colorGamut = static_cast<int32_t>(window->config.colorGamut);
+}
+
+static void HandleNativeWindowGetTransform(OHNativeWindow *window, va_list args)
+{
+    int32_t *transform = va_arg(args, int32_t*);
+    *transform = static_cast<int32_t>(window->config.transform);
+}
+
+static std::map<int, std::function<void(OHNativeWindow*, va_list)>> operationMap = {
+    {SET_USAGE, HandleNativeWindowSetUsage},
+    {SET_BUFFER_GEOMETRY, HandleNativeWindowSetBufferGeometry},
+    {SET_FORMAT, HandleNativeWindowSetFormat},
+    {SET_STRIDE, HandleNativeWindowSetStride},
+    {SET_TIMEOUT, HandleNativeWindowSetTimeout},
+    {SET_COLOR_GAMUT, HandleNativeWindowSetColorGamut},
+    {SET_TRANSFORM, HandleNativeWindowSetTransform},
+    {SET_UI_TIMESTAMP, HandleNativeWindowSetUiTimestamp},
+    {GET_USAGE, HandleNativeWindowGetUsage},
+    {GET_BUFFER_GEOMETRY, HandleNativeWindowGetBufferGeometry},
+    {GET_FORMAT, HandleNativeWindowGetFormat},
+    {GET_STRIDE, HandleNativeWindowGetStride},
+    {GET_TIMEOUT, HandleNativeWindowGetTimeout},
+    {GET_COLOR_GAMUT, HandleNativeWindowGetColorGamut},
+    {GET_TRANSFORM, HandleNativeWindowGetTransform},
+};
+
 static int32_t InternalHandleNativeWindowOpt(OHNativeWindow *window, int code, va_list args)
 {
-    switch (code) {
-        case SET_USAGE: {
-            uint64_t usage = va_arg(args, uint64_t);
-            window->config.usage = usage;
-            break;
-        }
-        case SET_BUFFER_GEOMETRY: {
-            int32_t width = va_arg(args, int32_t);
-            int32_t height = va_arg(args, int32_t);
-            window->config.height = height;
-            window->config.width = width;
-            break;
-        }
-        case SET_FORMAT: {
-            int32_t format = va_arg(args, int32_t);
-            window->config.format = format;
-            break;
-        }
-        case SET_STRIDE: {
-            int32_t stride = va_arg(args, int32_t);
-            window->config.strideAlignment = stride;
-            break;
-        }
-        case SET_TIMEOUT: {
-            int32_t timeout = va_arg(args, int32_t);
-            window->config.timeout = timeout;
-            break;
-        }
-        case SET_COLOR_GAMUT: {
-            int32_t colorGamut = va_arg(args, int32_t);
-            window->config.colorGamut = static_cast<GraphicColorGamut>(colorGamut);
-            break;
-        }
-        case SET_TRANSFORM : {
-            int32_t transform = va_arg(args, int32_t);
-            window->config.transform = static_cast<GraphicTransformType>(transform);
-            break;
-        }
-        case SET_UI_TIMESTAMP : {
-            uint64_t uiTimestamp = va_arg(args, uint64_t);
-            window->uiTimestamp = static_cast<int64_t>(uiTimestamp);
-            break;
-        }
-        case GET_USAGE: {
-            uint64_t *value = va_arg(args, uint64_t*);
-            uint64_t usage = window->config.usage;
-            *value = usage;
-            break;
-        }
-        case GET_BUFFER_GEOMETRY: {
-            int32_t *height = va_arg(args, int32_t*);
-            int32_t *width = va_arg(args, int32_t*);
-            *height = window->config.height;
-            *width = window->config.width;
-            break;
-        }
-        case GET_FORMAT: {
-            int32_t *format = va_arg(args, int32_t*);
-            *format = window->config.format;
-            break;
-        }
-        case GET_STRIDE: {
-            int32_t *stride = va_arg(args, int32_t*);
-            *stride = window->config.strideAlignment;
-            break;
-        }
-        case GET_TIMEOUT : {
-            int32_t *timeout = va_arg(args, int32_t*);
-            *timeout = window->config.timeout;
-            break;
-        }
-        case GET_COLOR_GAMUT: {
-            int32_t *colorGamut = va_arg(args, int32_t*);
-            *colorGamut = static_cast<int32_t>(window->config.colorGamut);
-            break;
-        }
-        case GET_TRANSFORM: {
-            int32_t *transform = va_arg(args, int32_t*);
-            *transform = static_cast<int32_t>(window->config.transform);
-            break;
-        }
-        default:
-            break;
+    auto it = operationMap.find(code);
+    if (it != operationMap.end()) {
+        it->second(window, args);
     }
     return OHOS::GSERROR_OK;
 }
@@ -419,10 +452,13 @@ NativeWindow::~NativeWindow()
     for (auto &[seqNum, buffer] : bufferCache_) {
         NativeObjectUnreference(buffer);
     }
+    surface = nullptr;
+    bufferCache_.clear();
 }
 
 NativeWindowBuffer::~NativeWindowBuffer()
 {
+    sfbuffer = nullptr;
 }
 
 NativeWindowBuffer::NativeWindowBuffer() : NativeWindowMagic(NATIVE_OBJECT_MAGIC_WINDOW_BUFFER), sfbuffer(nullptr)

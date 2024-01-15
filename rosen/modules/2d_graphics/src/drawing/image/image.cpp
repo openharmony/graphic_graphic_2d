@@ -122,6 +122,17 @@ bool Image::IsValid(GPUContext* context) const
 {
     return imageImplPtr->IsValid(context);
 }
+
+bool Image::pinAsTexture(GPUContext& context)
+{
+    auto image = ExportSkImage().get();
+    auto skGpuContext = context.GetImpl<SkiaGPUContext>();
+    if (skGpuContext == nullptr) {
+        return false;
+    }
+    auto skContext = skGpuContext->GetGrContext().get();
+    return image != nullptr && skContext != nullptr && SkImage_pinAsTexture(image, skContext);
+}
 #endif
 
 bool Image::AsLegacyBitmap(Bitmap& bitmap) const
@@ -233,17 +244,6 @@ bool Image::Deserialize(std::shared_ptr<Data> data)
 const sk_sp<SkImage> Image::ExportSkImage()
 {
     return GetImpl<SkiaImage>()->GetImage();
-}
-
-bool Image::pinAsTexture(GPUContext& context)
-{
-    auto image = ExportSkImage().get();
-    auto skGpuContext = context.GetImpl<SkiaGPUContext>();
-    if (skGpuContext == nullptr) {
-        return false;
-    }
-    auto skContext = skGpuContext->GetGrContext().get();
-    return image != nullptr && skContext != nullptr && SkImage_pinAsTexture(image, skContext);
 }
 } // namespace Drawing
 } // namespace Rosen

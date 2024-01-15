@@ -528,4 +528,24 @@ HWTEST_F(BufferClientProducerRemoteTest, GoBackground001, Function | MediumTest 
     GSError ret = bp->GoBackground();
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
 }
+
+/*
+* Function: AttachBuffer
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call AttachBuffer
+*/
+HWTEST_F(BufferClientProducerRemoteTest, AttachBuffer001, Function | MediumTest | Level2)
+{
+    GSError ret = bp->CleanCache();
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    ASSERT_NE(buffer, nullptr);
+    ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
+    int32_t timeOut = 1;
+    ret = bp->AttachBuffer(buffer, timeOut);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+}
 }
