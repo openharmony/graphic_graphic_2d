@@ -66,6 +66,21 @@ static const TextBlob* CastToTextBlob(const OH_Drawing_TextBlob* cTextBlob)
     return reinterpret_cast<const TextBlob*>(cTextBlob);
 }
 
+static const Matrix& CastToMatrix(const OH_Drawing_Matrix& cMatrix)
+{
+    return reinterpret_cast<const Matrix&>(cMatrix);
+}
+
+static const Image& CastToImage(const OH_Drawing_Image& cImage)
+{
+    return reinterpret_cast<const Image&>(cImage);
+}
+
+static const SamplingOptions& CastToSamplingOptions(const OH_Drawing_SamplingOptions& cSamplingOptions)
+{
+    return reinterpret_cast<const SamplingOptions&>(cSamplingOptions);
+}
+
 OH_Drawing_Canvas* OH_Drawing_CanvasCreate()
 {
     return (OH_Drawing_Canvas*)new Canvas;
@@ -457,4 +472,22 @@ void OH_Drawing_CanvasDrawShadow(OH_Drawing_Canvas* cCanvas, OH_Drawing_Path* cP
     canvas->DrawShadow(*reinterpret_cast<Path*>(cPath), *reinterpret_cast<Point3*>(planeParams),
         *reinterpret_cast<Point3*>(devLightPos), lightRadius, Color(ambientColor), Color(spotColor),
         CClipOpCastToClipOp(flag));
+}
+void OH_Drawing_CanvasSetMatrix(OH_Drawing_Canvas* cCanvas, OH_Drawing_Matrix* matrix)
+{
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr || matrix == nullptr) {
+        return;
+    }
+    canvas->SetMatrix(CastToMatrix(*matrix));
+}
+
+void OH_Drawing_CanvasDrawImageRect(OH_Drawing_Canvas* cCanvas, OH_Drawing_Image* cImage, OH_Drawing_Rect* dst,
+                                    OH_Drawing_SamplingOptions* cSampingOptions)
+{
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr || cImage == nullptr || dst == nullptr || cSampingOptions == nullptr) {
+        return;
+    }
+    canvas->DrawImageRect(CastToImage(*cImage), CastToRect(*dst), CastToSamplingOptions(*cSampingOptions));
 }

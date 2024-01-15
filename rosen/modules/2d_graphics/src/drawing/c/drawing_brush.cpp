@@ -122,3 +122,12 @@ void OH_Drawing_BrushSetFilter(OH_Drawing_Brush* cBrush, OH_Drawing_Filter* cFil
     }
     brush->SetFilter(CastToFilter(*cFilter));
 }
+
+void OH_Drawing_BrushSetBlendMode(OH_Drawing_Brush* cBrush, OH_Drawing_BlendMode cBlendMode)
+{
+    Brush* brush = CastToBrush(cBrush);
+    if (brush == nullptr) {
+        return;
+    }
+    brush->SetBlendMode(static_cast<BlendMode>(cBlendMode));
+}

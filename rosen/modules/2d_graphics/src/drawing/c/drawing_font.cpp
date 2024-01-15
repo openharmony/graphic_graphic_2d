@@ -85,3 +85,21 @@ void OH_Drawing_FontDestroy(OH_Drawing_Font* cFont)
 {
     delete CastToFont(cFont);
 }
+
+float OH_Drawing_FontGetMetrics(OH_Drawing_Font* cFont, OH_Drawing_Font_Metrics* cFontMetrics)
+{
+    float ret = -1;
+    Font* font = CastToFont(cFont);
+    if (cFont == nullptr || cFontMetrics == nullptr) {
+        return ret;
+    }
+    FontMetrics metrics;
+    ret = font->GetMetrics(&metrics);
+
+    cFontMetrics->top = metrics.fTop;
+    cFontMetrics->ascent = metrics.fAscent;
+    cFontMetrics->descent = metrics.fDescent;
+    cFontMetrics->leading = metrics.fLeading;
+    cFontMetrics->bottom = metrics.fBottom;
+    return ret;
+}

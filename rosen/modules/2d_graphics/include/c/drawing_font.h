@@ -118,6 +118,38 @@ void OH_Drawing_FontSetFakeBoldText(OH_Drawing_Font*, bool isFakeBoldText);
  */
 void OH_Drawing_FontDestroy(OH_Drawing_Font*);
 
+/**
+ * @brief Defines a run, supplies storage for the metrics of an SkFont.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef struct {
+    /** storage for top in font metrics */
+    float top;
+    /** storage for ascent in font metrics */
+    float ascent;
+    /** storage for descent in font metrics */
+    float descent;
+    /** storage for bottom in font metrics */
+    float bottom;
+    /** storage for leading in font metrics */
+    float leading;
+} OH_Drawing_Font_Metrics;
+
+/**
+ * @brief Obtains the metrics of a font.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @param OH_Drawing_Font_Metrics Indicates the pointer to an <b>OH_Drawing_Font_Metrics</b> object.
+ * @return Returns a float variable that recommended spacing between lines.
+ * Returns -1 if OH_Drawing_Font or OH_Drawing_Font_Metrics is nullptr.
+ * @since 12
+ * @version 1.0
+ */
+float OH_Drawing_FontGetMetrics(OH_Drawing_Font*, OH_Drawing_Font_Metrics*);
+
 #ifdef __cplusplus
 }
 #endif

@@ -21,7 +21,7 @@
  * @{
  *
  * @brief Provides functions such as 2D graphics rendering, text drawing, and image display.
- * 
+ *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  *
  * @since 8
@@ -64,7 +64,7 @@ OH_Drawing_Canvas* OH_Drawing_CanvasCreate(void);
 void OH_Drawing_CanvasDestroy(OH_Drawing_Canvas*);
 
 /**
- * @brief Binds a bitmap to a canvas so that the content drawn on the canvas 
+ * @brief Binds a bitmap to a canvas so that the content drawn on the canvas
  * is output to the bitmap (this process is called CPU rendering).
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -87,7 +87,7 @@ void OH_Drawing_CanvasBind(OH_Drawing_Canvas*, OH_Drawing_Bitmap*);
 void OH_Drawing_CanvasAttachPen(OH_Drawing_Canvas*, const OH_Drawing_Pen*);
 
 /**
- * @brief Detaches the pen from a canvas so that the canvas will not use the style 
+ * @brief Detaches the pen from a canvas so that the canvas will not use the style
  * and color of the pen to outline a shape.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -285,7 +285,7 @@ void OH_Drawing_CanvasDrawTextBlob(OH_Drawing_Canvas*, const OH_Drawing_TextBlob
 
 /**
  * @brief Enumerates clip op.
- * 
+ *
  * @since 11
  * @version 1.0
  */
@@ -476,6 +476,32 @@ typedef enum {
 void OH_Drawing_CanvasDrawShadow(OH_Drawing_Canvas*, OH_Drawing_Path*, OH_Drawing_Point3*,
     OH_Drawing_Point3*, float lightRadius, uint32_t ambientColor, uint32_t spotColor,
     OH_Drawing_CanvasShadowFlags flag);
+
+/**
+ * @brief Sets matrix of canvas.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_CanvasSetMatrix(OH_Drawing_Canvas*, OH_Drawing_Matrix*);
+
+/**
+ * @brief Draws the specified source rectangle of the image onto the canvas,
+ * scaled and translated to the destination rectangle.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param OH_Drawing_Image Indicates the pointer to an <b>OH_Drawing_Image</b> object.
+ * @param OH_Drawing_Rect Indicates the pointer to an <b>OH_Drawing_Rect</b> object.
+ * @param OH_Drawing_SamplingOptions Indicates the pointer to an <b>OH_Drawing_SamplingOptions</b> object.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_CanvasDrawImageRect(OH_Drawing_Canvas*, OH_Drawing_Image*,
+    OH_Drawing_Rect* dst, OH_Drawing_SamplingOptions*);
 
 #ifdef __cplusplus
 }

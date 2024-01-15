@@ -21,7 +21,7 @@
  * @{
  *
  * @brief Provides functions such as 2D graphics rendering, text drawing, and image display.
- * 
+ *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  *
  * @since 8
@@ -81,7 +81,7 @@ bool OH_Drawing_BrushIsAntiAlias(const OH_Drawing_Brush*);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Brush Indicates the pointer to an <b>OH_Drawing_Brush</b> object.
- * @param bool Specifies whether to enable anti-aliasing. The value <b>true</b> means 
+ * @param bool Specifies whether to enable anti-aliasing. The value <b>true</b> means
  *             to enable anti-aliasing, and <b>false</b> means the opposite.
  * @since 8
  * @version 1.0
@@ -153,6 +153,17 @@ void OH_Drawing_BrushSetShaderEffect(OH_Drawing_Brush*, OH_Drawing_ShaderEffect*
  * @version 1.0
  */
 void OH_Drawing_BrushSetFilter(OH_Drawing_Brush*, OH_Drawing_Filter*);
+
+/**
+ * @brief Sets a blender that implements the specified blendmode enum for a brush.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Pen Indicates the pointer to an <b>OH_Drawing_Brush</b> object.
+ * @param OH_Drawing_BlendMode Indicates the blend mode.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_BrushSetBlendMode(OH_Drawing_Brush*, OH_Drawing_BlendMode);
 
 #ifdef __cplusplus
 }

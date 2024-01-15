@@ -21,7 +21,7 @@
  * @{
  *
  * @brief Provides functions such as 2D graphics rendering, text drawing, and image display.
- * 
+ *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  *
  * @since 8
@@ -191,6 +191,22 @@ typedef struct OH_Drawing_Typeface OH_Drawing_Typeface;
 typedef struct OH_Drawing_TextBlob OH_Drawing_TextBlob;
 
 /**
+ * @brief Defines a image, which is used to describe a two dimensional array of pixels to draw.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef struct OH_Drawing_Image OH_Drawing_Image;
+
+/**
+ * @brief Defines a sampling options, which is used to describe the sampling mode.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef struct OH_Drawing_SamplingOptions OH_Drawing_SamplingOptions;
+
+/**
  * @brief Defines a textBlobBuilder, which is used to build the textBlob.
  *
  * @since 11
@@ -327,6 +343,23 @@ typedef enum {
     /** luminosity of source with hue and saturation of destination. */
     BLEND_MODE_LUMINOSITY,
 } OH_Drawing_BlendMode;
+
+/**
+ * @brief Defines image info struct.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef struct {
+    /** storage for width of image */
+    int32_t width;
+    /** storage for height of image */
+    int32_t height;
+    /** storage for color formats */
+    OH_Drawing_ColorFormat colorType;
+    /** storage for alpha formats */
+    OH_Drawing_AlphaFormat alphaType;
+} OH_Drawing_Image_Info;
 
 #ifdef __cplusplus
 }

@@ -272,3 +272,15 @@ void OH_Drawing_PenSetFilter(OH_Drawing_Pen* cPen, OH_Drawing_Filter* cFilter)
     }
     pen->SetFilter(CastToFilter(*cFilter));
 }
+
+void OH_Drawing_PenSetBlendMode(OH_Drawing_Pen* cPen, OH_Drawing_BlendMode cBlendMode)
+{
+    if (cPen == nullptr) {
+        return;
+    }
+    Pen* pen = CastToPen(cPen);
+    if (pen == nullptr) {
+        return;
+    }
+    pen->SetBlendMode(static_cast<BlendMode>(cBlendMode));
+}
