@@ -437,7 +437,8 @@ GSError BufferQueue::FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> 
     return sret;
 }
 
-GSError BufferQueue::GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence, float matrix[16])
+GSError BufferQueue::GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
+    sptr<SyncFence>& fence, float matrix[16], int32_t matrixSize)
 {
     if (bufferQueueCache_.find(lastFlusedSequence_) == bufferQueueCache_.end()) {
         BLOGN_FAILURE_ID(lastFlusedSequence_, "not found in cache");
@@ -456,7 +457,7 @@ GSError BufferQueue::GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer, sptr<Sync
     fence = lastFlusedFence_;
     Rect damage = {};
     auto utils = SurfaceUtils::GetInstance();
-    utils->ComputeTransformMatrix(matrix, buffer, lastFlushedTransform_, damage);
+    utils->ComputeTransformMatrix(matrix, matrixSize, buffer, lastFlushedTransform_, damage);
     return GSERROR_OK;
 }
 

@@ -88,7 +88,7 @@ public:
     virtual sptr<NativeSurface> GetNativeSurface() = 0;
     virtual GSError UnRegisterReleaseListener() = 0;
     virtual GSError GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
-                                        sptr<SyncFence>& fence, float matrix[16]) = 0;
+        sptr<SyncFence>& fence, float matrix[16], int32_t matrixSize) = 0;
     virtual GSError SendDeathRecipientObject() = 0;
     virtual GSError AttachBuffer(sptr<SurfaceBuffer>& buffer, int32_t timeOut) = 0;
 

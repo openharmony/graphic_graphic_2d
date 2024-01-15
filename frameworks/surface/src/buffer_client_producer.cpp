@@ -100,7 +100,7 @@ GSError BufferClientProducer::RequestBuffer(const BufferRequestConfig &config, s
 }
 
 GSError BufferClientProducer::GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
-    sptr<SyncFence>& fence, float matrix[16])
+    sptr<SyncFence>& fence, float matrix[16], int32_t matrixSize)
 {
     DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
 
@@ -120,7 +120,7 @@ GSError BufferClientProducer::GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
     fence = SyncFence::ReadFromMessageParcel(reply);
     std::vector<float> readMatrixVector;
     reply.ReadFloatVector(&readMatrixVector);
-    if (memcpy_s(matrix, readMatrixVector.size() * sizeof(float),
+    if (memcpy_s(matrix, matrixSize * sizeof(float),
         &readMatrixVector, readMatrixVector.size() * sizeof(float)) != EOK) {
         BLOGN_FAILURE("memcpy_s fail");
         return GSERROR_API_FAILED;
