@@ -87,6 +87,7 @@ bool RSModifierManager::Animate(int64_t time, int64_t vsyncPeriod)
     EraseIf(animations_, [this, &hasRunningAnimation, time, vsyncPeriod](auto& iter) -> bool {
         auto animation = iter.second.lock();
         if (animation == nullptr) {
+            displaySyncs_.erase(iter.first);
             return true;
         }
 
