@@ -77,7 +77,8 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateSweepGradient(const OH_Dra
         posVector.emplace_back(pos[i]);
     }
     return (OH_Drawing_ShaderEffect*)new ShaderEffect(ShaderEffect::ShaderEffectType::SWEEP_GRADIENT,
-        CastToPoint(*cCenterPt), colorsVector, posVector, static_cast<TileMode>(cTileMode), 0, 360, nullptr);
+        CastToPoint(*cCenterPt), colorsVector, posVector, static_cast<TileMode>(cTileMode), 0,
+        360, nullptr); // 360: endAngle
 }
 
 void OH_Drawing_ShaderEffectDestroy(OH_Drawing_ShaderEffect* cShaderEffect)
