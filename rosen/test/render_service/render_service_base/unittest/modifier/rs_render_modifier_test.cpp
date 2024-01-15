@@ -64,8 +64,7 @@ HWTEST_F(RSRenderModifierTest, RSGeometryTransRenderModifier, TestSize.Level1)
     auto modifier = std::make_shared<RSGeometryTransRenderModifier>(prop);
     RSProperties properties;
     RSModifierContext context(properties);
-    PropertyId id = 1;
-    auto rsRenderPropertyBase = std::make_shared<RSRenderPropertyBase>(id);
+    auto rsRenderPropertyBase = std::make_shared<RSRenderProperty<Drawing::Matrix>>();
     ASSERT_TRUE(modifier != nullptr);
     modifier->Apply(context);
     modifier->Update(rsRenderPropertyBase, false);
