@@ -22,6 +22,9 @@
 namespace OHOS {
 namespace Rosen {
 
+RSSymbolAnimation::RSSymbolAnimation()
+{}
+
 bool RSSymbolAnimation::SetSymbolAnimation(
     const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
 {
