@@ -91,6 +91,10 @@ bool RSRenderPropertyAnimation::ParseParam(Parcel& parcel)
     if (!RSRenderPropertyBase::Unmarshalling(parcel, originValue_)) {
         return false;
     }
+    if (originValue_ == nullptr) {
+        ROSEN_LOGE("RSRenderPropertyAnimation::ParseParam, originValue_ is nullptr!");
+        return false;
+    }
     lastValue_ = originValue_->Clone();
 
     return true;
