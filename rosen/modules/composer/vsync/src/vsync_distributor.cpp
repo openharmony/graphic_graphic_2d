@@ -238,12 +238,12 @@ VsyncError VSyncDistributor::AddConnection(const sptr<VSyncConnection>& connecti
     }
 
     int32_t proxyPid = connection->proxyPid_;
+    std::lock_guard<std::mutex> locker(mutex_);
     if (connectionCounter_[proxyPid] > VSYNC_CONNECTION_MAX_SIZE) {
         VLOGE("You [%{public}d] have created too many vsync connection, please check!!!", proxyPid);
         return VSYNC_ERROR_API_FAILED;
     }
 
-    std::lock_guard<std::mutex> locker(mutex_);
     auto it = std::find(connections_.begin(), connections_.end(), connection);
     if (it != connections_.end()) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
