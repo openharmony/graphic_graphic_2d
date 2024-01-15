@@ -730,8 +730,7 @@ std::shared_ptr<ColorFilter> CmdListHelper::GetColorFilterFromCmdList(const CmdL
     return colorFilter;
 }
 
-FlattenableHandle CmdListHelper::AddImageFilterToCmdList(CmdList& cmdList,
-    std::shared_ptr<ImageFilter> imageFilter)
+FlattenableHandle CmdListHelper::AddImageFilterToCmdList(CmdList& cmdList, const ImageFilter* imageFilter)
 {
     if (imageFilter == nullptr) {
         return { 0 };
@@ -743,6 +742,12 @@ FlattenableHandle CmdListHelper::AddImageFilterToCmdList(CmdList& cmdList,
     }
     auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
     return { offset, data->GetSize(), static_cast<uint32_t>(type) };
+}
+
+FlattenableHandle CmdListHelper::AddImageFilterToCmdList(CmdList& cmdList,
+    std::shared_ptr<ImageFilter> imageFilter)
+{
+    return AddImageFilterToCmdList(cmdList, imageFilter.get());
 }
 
 std::shared_ptr<ImageFilter> CmdListHelper::GetImageFilterFromCmdList(const CmdList& cmdList,

@@ -1917,7 +1917,6 @@ private:
 
 class DrawFuncOpItem : public DrawOpItem {
 public:
-    using DrawFunc = std::function<void(Canvas* canvas, const Rect* rect)>;
     struct ConstructorHandle : public OpItem {
         ConstructorHandle(const OpDataHandle& objectHandle)
             : OpItem(DrawOpItem::DRAW_FUNC_OPITEM), objectHandle(objectHandle) {}

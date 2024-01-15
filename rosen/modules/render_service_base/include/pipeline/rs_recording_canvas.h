@@ -222,7 +222,7 @@ class PixelMap;
 namespace Rosen {
 class RSB_EXPORT ExtendRecordingCanvas : public Drawing::RecordingCanvas {
 public:
-    ExtendRecordingCanvas(int width, int weight);
+    ExtendRecordingCanvas(int width, int weight, bool addDrawOpImmediate = true);
     ~ExtendRecordingCanvas() override = default;
     void DrawImageWithParm(const std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Data>& data,
         const Drawing::AdaptiveImageInfo& rsImageInfo, const Drawing::SamplingOptions& sampling);
@@ -237,7 +237,9 @@ public:
 #endif
 private:
     template<typename T, typename... Args>
-    void AddOp(Args&&... args);
+    void AddDrawOpImmediate(Args&&... args);
+    template<typename T, typename... Args>
+    void AddDrawOpDeferred(Args&&... args);
 };
 } // namespace Rosen
 } // namespace OHOS

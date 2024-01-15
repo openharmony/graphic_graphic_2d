@@ -62,7 +62,7 @@ std::shared_ptr<Media::PixelMap> RSUniUICapture::TakeLocalCapture()
 #ifndef USE_ROSEN_DRAWING
     auto recordingCanvas = std::make_shared<RSRecordingCanvas>(FAKE_WIDTH, FAKE_HEIGHT);
 #else
-    auto recordingCanvas = std::make_shared<ExtendRecordingCanvas>(FAKE_WIDTH, FAKE_HEIGHT);
+    auto recordingCanvas = std::make_shared<ExtendRecordingCanvas>(FAKE_WIDTH, FAKE_HEIGHT, false);
 #endif
     std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMapByNode(node);
     if (pixelmap == nullptr) {

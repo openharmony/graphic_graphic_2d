@@ -37,7 +37,7 @@ namespace Drawing {
  */
 class DRAWING_API RecordingCanvas : public Canvas {
 public:
-    RecordingCanvas(int width, int height);
+    RecordingCanvas(int width, int height, bool addDrawOpImmediate = true);
     ~RecordingCanvas() override = default;
 
     std::shared_ptr<DrawCmdList> GetDrawCmdList() const;
@@ -131,15 +131,19 @@ public:
 
     using DrawFunc = std::function<void(Drawing::Canvas* canvas, const Drawing::Rect* rect)>;
 protected:
+    bool addDrawOpImmediate_ = true;
     std::shared_ptr<DrawCmdList> cmdList_ = nullptr;
 
 private:
     template<typename T, typename... Args>
-    void AddOp(Args&&... args);
+    void AddDrawOpImmediate(Args&&... args);
+    template<typename T, typename... Args>
+    void AddDrawOpDeferred(Args&&... args);
 
     enum SaveOpState { LazySaveOp, RealSaveOp };
     void CheckForLazySave();
     void GenerateCachedOpForTextblob(const TextBlob* blob, const scalar x, const scalar y);
+    void GenerateCachedOpForTextblob(const TextBlob* blob, const scalar x, const scalar y, Paint& paint);
     bool isCustomTextType_ = false;
     std::optional<Brush> customTextBrush_ = std::nullopt;
     std::optional<Pen> customTextPen_ = std::nullopt;

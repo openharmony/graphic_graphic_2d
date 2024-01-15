@@ -227,6 +227,7 @@ public:
     static std::shared_ptr<ColorFilter> GetColorFilterFromCmdList(const CmdList& cmdList,
         const FlattenableHandle& colorFilterHandle);
 
+    static FlattenableHandle AddImageFilterToCmdList(CmdList& cmdList, const ImageFilter* imageFilter);
     static FlattenableHandle AddImageFilterToCmdList(CmdList& cmdList, std::shared_ptr<ImageFilter> imageFilter);
     static std::shared_ptr<ImageFilter> GetImageFilterFromCmdList(const CmdList& cmdList,
         const FlattenableHandle& imageFilterHandle);

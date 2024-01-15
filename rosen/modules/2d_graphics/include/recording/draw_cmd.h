@@ -148,20 +148,6 @@ protected:
     Paint paint_;
 };
 
-class ImageSnapshotOpItem : public DrawOpItem {
-public:
-    ImageSnapshotOpItem(std::shared_ptr<Image> image, const Rect& src, const Rect& dst);
-    ~ImageSnapshotOpItem() override = default;
-    void Marshalling(DrawCmdList& cmdList) override {}
-    void Playback(Canvas* canvas, const Rect* rect) override;
-private:
-    std::shared_ptr<Image> image_;
-    Rect src_;
-    Rect dst_;
-    SamplingOptions sampling_;
-    Paint paint_;
-};
-
 class DrawPointOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
@@ -749,14 +735,14 @@ public:
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
 
-    std::shared_ptr<ImageSnapshotOpItem> GenerateCachedOpItem(Canvas* canvas);
+    std::shared_ptr<DrawImageRectOpItem> GenerateCachedOpItem(Canvas* canvas);
 protected:
     void DrawHighContrast(Canvas* canvas) const;
 private:
     scalar x_;
     scalar y_;
     std::shared_ptr<TextBlob> textBlob_;
-    std::shared_ptr<ImageSnapshotOpItem> cacheImage_;
+    std::shared_ptr<DrawImageRectOpItem> cacheImage_;
     bool callFromCacheFunc_ = false;
 };
 
@@ -1126,16 +1112,18 @@ public:
         uint32_t saveLayerFlags;
     };
     SaveLayerOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
-    SaveLayerOpItem(const Rect& rect, const Brush* brush, const ImageFilter* imageFilter, uint32_t saveLayerFlags)
-        : DrawOpItem(DrawOpItem::SAVE_LAYER_OPITEM), rect_(rect), saveLayerFlags_(saveLayerFlags)
+    SaveLayerOpItem(const SaveLayerOps& saveLayerOps)
+        : DrawOpItem(DrawOpItem::SAVE_LAYER_OPITEM), saveLayerFlags_(saveLayerOps.GetSaveLayerFlags())
     {
-        if (brush) {
+        if (saveLayerOps.GetBounds() != nullptr) {
+            rect_ = *saveLayerOps.GetBounds();
+        }
+        const Brush* brush = saveLayerOps.GetBrush();
+        if (brush != nullptr) {
             hasBrush_ = true;
             brush_ = *brush;
         }
-        if (imageFilter) {
-            imageFilter_ = std::make_shared<ImageFilter>(*imageFilter);
-        }
+        imageFilter_ = saveLayerOps.GetImageFilter();
     }
     ~SaveLayerOpItem() override = default;
 
@@ -1143,9 +1131,9 @@ public:
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
 private:
-    Rect rect_;
     uint32_t saveLayerFlags_;
-    bool hasBrush_;
+    Rect rect_;
+    bool hasBrush_ = false;
     Brush brush_;
     std::shared_ptr<ImageFilter> imageFilter_;
 };
@@ -1185,7 +1173,7 @@ public:
         std::pair<uint32_t, size_t> radiusData;
     };
     ClipAdaptiveRoundRectOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
-    explicit ClipAdaptiveRoundRectOpItem(std::vector<Point>& radiusData)
+    explicit ClipAdaptiveRoundRectOpItem(const std::vector<Point>& radiusData)
         : DrawOpItem(DrawOpItem::CLIP_ADAPTIVE_ROUND_RECT_OPITEM),  radiusData_(radiusData) {}
     ~ClipAdaptiveRoundRectOpItem() override = default;
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);

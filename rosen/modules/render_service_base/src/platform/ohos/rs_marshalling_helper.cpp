@@ -2381,7 +2381,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         val->SetupSurfaceBuffer(surfaceBufferVec);
     }
 #endif
-    val->UnmarshallingOps();
+    val->UnmarshallingDrawOps();
     return ret;
 }
 

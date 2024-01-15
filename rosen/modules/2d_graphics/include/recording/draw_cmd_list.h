@@ -26,17 +26,32 @@ class DrawOpItem;
 class DRAWING_API DrawCmdList : public CmdList {
 public:
     /*
-     * @brief   there are two mode for DrawCmdList to add new op, the mode is set when create and cannot be modified
+     * @brief   there are two mode for DrawCmdList to add new op
      * @param   IMMEDIATE   add op to continouns buffer immediately, overload will benifit from this
      * @param   DEFERRED    add op to vector and then add to contiguous buffer if needed
+     * @detail  playback can get all op from continouns buffer in IMMEDIATE mode or vector int DEFERRED mode
      */
     enum class UnmarshalMode {
         IMMEDIATE,
         DEFERRED
     };
 
+    /*
+     * @brief   Creates a DrawCmdList with contiguous buffers.
+     * @param   data    A contiguous buffers.
+     * @detail  Called only by Unmarshalling-Thread, the default mode is DEFERRED since all DrawOp store in vector
+     */
+    static std::shared_ptr<DrawCmdList> CreateFromData(const CmdListData& data, bool isCopy = false);
+
+    /*
+     * @brief   Creates a DrawCmdList
+     */
     DrawCmdList(UnmarshalMode mode = UnmarshalMode::IMMEDIATE);
     DrawCmdList(int32_t width, int32_t height, UnmarshalMode mode = UnmarshalMode::IMMEDIATE);
+
+    /*
+     * @brief   Destroy a DrawCmdList
+     */
     ~DrawCmdList() override = default;
 
     uint32_t GetType() const override
@@ -86,24 +101,29 @@ public:
      */
     void ClearOp();
 
+    /*
+     * @brief   Get op vector size
+     */
     size_t GetOpItemSize() const;
 
+    /*
+     * @brief   for each op in vector, combine there desc together
+     */
     std::string GetOpsWithDesc() const;
 
     /*
-     * @brief       Creates a DrawCmdList with contiguous buffers.
-     * @param data  A contiguous buffers.
+     * @brief   Marshalling Draw Ops Param from vector to contiguous buffers.
      */
-    static std::shared_ptr<DrawCmdList> CreateFromData(const CmdListData& data, bool isCopy = false);
-
     void MarshallingDrawOps();
-    /*
-     * @brief         Unmarshalling Draw Ops Param from contiguous buffers
-     */
-    void UnmarshallingOps();
 
     /*
-     * @brief         Draw cmd is empty or not.
+     * @brief   Unmarshalling Draw Ops from contiguous buffers to vector
+     *          it is only called by Unmarshalling-Thread, the mode should be set to DEFERRED when create.
+     */
+    void UnmarshallingDrawOps();
+
+    /*
+     * @brief   Draw cmd is empty or not.
      */
     bool IsEmpty() const;
 
@@ -133,6 +153,13 @@ public:
      */
     void SetHeight(int32_t height);
 
+    /*
+     * @brief   Convert Textblob Op to Image Op, it is different for difference mode
+     *          IMMEDIATE: the Image Op will add to the end of buffer, and the mapped offset will be recorded in
+     *          replacedOpListForBuffer.
+     *          DEFERRED: the image Op will replace the Textblob op in vector, and the index-op_ptr will be recorded
+     *          in replacedOpListForVector.
+     */
     void GenerateCache(Canvas* canvas = nullptr, const Rect* rect = nullptr);
 
     bool GetIsCache();
@@ -147,26 +174,26 @@ public:
 
     void SetReplacedOpList(std::vector<std::pair<uint32_t, uint32_t>> replacedOpList);
 
-    std::vector<std::shared_ptr<DrawOpItem>> UnmarshallingCmdList();
-
     void UpdateNodeIdToPicture(NodeId nodeId);
 
 private:
-    void GenerateCacheInRenderService(Canvas* canvas, const Rect* rect);
-
     void ClearCache();
+    void GenerateCacheByVector(Canvas* canvas, const Rect* rect);
+    void GenerateCacheByBuffer(Canvas* canvas, const Rect* rect);
 
-    void AddOpToCmdList(std::shared_ptr<DrawCmdList> cmdList);
+    void PlaybackToDrawCmdList(std::shared_ptr<DrawCmdList> drawCmdList);
+    void PlaybackByVector(Canvas& canvas, const Rect* rect = nullptr);
+    void PlaybackByBuffer(Canvas& canvas, const Rect* rect = nullptr);
 
-private:
     int32_t width_;
     int32_t height_;
     const UnmarshalMode mode_;
-    MemAllocator largeObjectAllocator_;
+    const uint32_t offset_ = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
     std::vector<std::shared_ptr<DrawOpItem>> drawOpItems_;
+
     size_t lastOpGenSize_ = 0;
-    std::vector<std::pair<uint32_t, uint32_t>> replacedOpList_;
-    std::vector<std::pair<uint32_t, std::shared_ptr<DrawOpItem>>> opReplacedByDrivenRender_;
+    std::vector<std::pair<uint32_t, uint32_t>> replacedOpListForBuffer_;
+    std::vector<std::pair<int, std::shared_ptr<DrawOpItem>>> replacedOpListForVector_;
     bool isCached_ = false;
     bool cachedHighContrast_ = false;
 };

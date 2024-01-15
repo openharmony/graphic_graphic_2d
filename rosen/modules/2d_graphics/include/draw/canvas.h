@@ -30,6 +30,11 @@ public:
     Canvas() {}
     Canvas(int32_t width, int32_t height) : CoreCanvas(width, height) {}
 
+    virtual Canvas* GetRecordingCanvas() const
+    {
+        return nullptr;
+    }
+
     void AddCanvas(Canvas* canvas)
     {
         if (canvas != nullptr) {
