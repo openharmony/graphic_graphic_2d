@@ -171,9 +171,9 @@ GSError ProducerSurface::FlushBuffer(sptr<SurfaceBuffer>& buffer, const sptr<Syn
 }
 
 GSError ProducerSurface::GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
-    sptr<SyncFence>& fence, float matrix[16])
+    sptr<SyncFence>& fence, float matrix[16], int32_t matrixSize)
 {
-    auto ret = producer_->GetLastFlushedBuffer(buffer, fence, matrix);
+    auto ret = producer_->GetLastFlushedBuffer(buffer, fence, matrix, matrixSize);
     return ret;
 }
 

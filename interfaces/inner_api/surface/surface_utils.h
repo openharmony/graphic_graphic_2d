@@ -32,7 +32,7 @@ public:
     // remove surface by uniqueId.
     SurfaceError Remove(uint64_t uniqueId);
     // Compute transform matrix
-    void ComputeTransformMatrix(float matrix[16],
+    void ComputeTransformMatrix(float matrix[16], int32_t matrixSize,
         sptr<SurfaceBuffer>& buffer, GraphicTransformType& transform, Rect& crop);
 
 private:

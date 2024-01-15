@@ -41,7 +41,7 @@ public:
     GSError FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
                         const sptr<SyncFence>& fence, BufferFlushConfigWithDamages &config) override;
     GSError GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
-                                  sptr<SyncFence>& fence, float matrix[16]) override;
+        sptr<SyncFence>& fence, float matrix[16], int32_t matrixSize) override;
     uint32_t GetQueueSize() override;
     GSError SetQueueSize(uint32_t queueSize) override;
 
