@@ -706,6 +706,15 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+class RSC_EXPORT RSSystemBarEffectModifier : public RSBackgroundModifier {
+public:
+    explicit RSSystemBarEffectModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSSystemBarEffectModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
 class RSC_EXPORT RSHueRotateModifier : public RSForegroundModifier {
 public:
     explicit RSHueRotateModifier(const std::shared_ptr<RSPropertyBase>& property);

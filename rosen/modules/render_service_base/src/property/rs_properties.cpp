@@ -118,6 +118,7 @@ const std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::CUSTOM)> g_
     [](RSProperties* prop) { prop->SetSepia({}); },                      // SEPIA
     [](RSProperties* prop) { prop->SetInvert({}); },                     // INVERT
     [](RSProperties* prop) { prop->SetAiInvert({}); },                   // AIINVERT
+    [](RSProperties* prop) { prop->SetSystemBarEffect({}); },            // SYSTEMBAREFFECT
     [](RSProperties* prop) { prop->SetHueRotate({}); },                  // HUE_ROTATE
     [](RSProperties* prop) { prop->SetColorBlend({}); },                 // COLOR_BLEND
     [](RSProperties* prop) { prop->SetParticles({}); },                  // PARTICLE
@@ -1971,6 +1972,21 @@ const std::optional<Vector4f>& RSProperties::GetAiInvert() const
     return aiInvert_;
 }
 
+void RSProperties::SetSystemBarEffect(bool systemBarEffect)
+{
+    systemBarEffect_ = systemBarEffect;
+    colorFilterNeedUpdate_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+    isDrawn_ = true;
+}
+
+bool RSProperties::GetSystemBarEffect() const
+{
+    return systemBarEffect_;
+}
+
 void RSProperties::SetHueRotate(const std::optional<float>& hueRotate)
 {
     hueRotate_ = hueRotate;
@@ -2772,7 +2788,7 @@ void RSProperties::OnApplyModifiers()
         if (GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
             filterNeedUpdate_ = true;
         }
-        if (aiInvert_.has_value()) {
+        if (aiInvert_.has_value() || systemBarEffect_) {
             auto aiBarFilter = std::make_shared<RSAIBarFilter>();
             backgroundFilter_ = aiBarFilter;
         }
