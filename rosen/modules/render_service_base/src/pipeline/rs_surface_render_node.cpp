@@ -1498,7 +1498,8 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStatic(
             dirtyGeoNodeNum_++;
         }
     }
-    surfaceCacheContentStatic_ = surfaceCacheContentStatic_ && !(dirtyContentNodeNum_ == 0 || dirtyGeoNodeNum_ == 0);
+    // if mainwindow node only basicGeoTransform and no subnode dirty, it is marked as CacheContentStatic_
+    surfaceCacheContentStatic_ = surfaceCacheContentStatic_ && dirtyContentNodeNum_ == 0 && dirtyGeoNodeNum_ == 0;
 }
 
 const std::unordered_set<NodeId>& RSSurfaceRenderNode::GetAbilityNodeIds() const
