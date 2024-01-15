@@ -16,6 +16,8 @@
 #include "gtest/gtest.h"
 #include "pipeline/rs_divided_render_util.h"
 #include "pipeline/rs_uni_render_engine.h"
+#include "platform/common/rs_system_properties.h"
+#include "recording/recording_canvas.h"
 #include "rs_test_util.h"
 
 using namespace testing;
@@ -90,24 +92,54 @@ HWTEST(RSUniRenderEngineTest, DrawSurfaceNodeWithParams002, TestSize.Level1)
 HWTEST(RSUniRenderEngineTest, DrawLayers001, TestSize.Level1)
 {
     auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
+    // Resources for Vulkan and DDGR API
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        uniRenderEngine->Init();
+    }
+    std::unique_ptr<Drawing::RecordingCanvas> drawingRecordingCanvas = nullptr;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto buffer = surfaceNode->GetBuffer();
+    // End resources definition
 #ifndef USE_ROSEN_DRAWING
     std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
 #else
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    std::shared_ptr<RSPaintFilterCanvas> canvas = nullptr;
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    } else {
+        drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(10, 10);
+        drawingRecordingCanvas->SetGrRecordingContext(uniRenderEngine->GetRenderContext()->GetSharedDrGPUContext());
+        canvas = std::make_shared<RSPaintFilterCanvas>(std::move(drawingRecordingCanvas).get());
+    }
 #endif
     ASSERT_NE(canvas, nullptr);
     std::vector<LayerInfoPtr> layers;
-    layers.emplace_back(nullptr);
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        layers.emplace_back(nullptr);
+    }
     LayerInfoPtr layer1 = HdiLayerInfo::CreateHdiLayerInfo();
     layer1->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
-    layers.emplace_back(layer1);
+
     LayerInfoPtr layer2 = HdiLayerInfo::CreateHdiLayerInfo();
     layer2->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR);
-    layers.emplace_back(layer2);
+
     LayerInfoPtr layer3 = HdiLayerInfo::CreateHdiLayerInfo();
     layer3->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        layer1->SetBuffer(buffer, surfaceNode->GetAcquireFence());
+        layer2->SetBuffer(buffer, surfaceNode->GetAcquireFence());
+        layer3->SetBuffer(buffer, surfaceNode->GetAcquireFence());
+    }
+
+    layers.emplace_back(layer1);
+    layers.emplace_back(layer2);
     layers.emplace_back(layer3);
     uniRenderEngine->DrawLayers(*canvas, layers, false, 0.0f);
 }
@@ -121,17 +153,37 @@ HWTEST(RSUniRenderEngineTest, DrawLayers001, TestSize.Level1)
 HWTEST(RSUniRenderEngineTest, DrawHdiLayerWithParams001, TestSize.Level1)
 {
     auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
+    // Resources for Vulkan and DDGR API
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        uniRenderEngine->Init();
+    }
+    std::unique_ptr<Drawing::RecordingCanvas> drawingRecordingCanvas = nullptr;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    // End resources definition
 #ifndef USE_ROSEN_DRAWING
     std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
 #else
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    std::shared_ptr<RSPaintFilterCanvas> canvas = nullptr;
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    } else {
+        drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(10, 10);
+        drawingRecordingCanvas->SetGrRecordingContext(uniRenderEngine->GetRenderContext()->GetSharedDrGPUContext());
+        canvas = std::make_shared<RSPaintFilterCanvas>(std::move(drawingRecordingCanvas).get());
+    }
 #endif
     ASSERT_NE(canvas, nullptr);
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     BufferDrawParam param;
     param.useCPU = false;
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        param.buffer = surfaceNode->GetBuffer();
+    }
     uniRenderEngine->DrawHdiLayerWithParams(*canvas, layer, param);
 
     param.useCPU = true;

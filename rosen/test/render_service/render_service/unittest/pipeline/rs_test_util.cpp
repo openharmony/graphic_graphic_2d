@@ -50,6 +50,8 @@ std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNodeWithBuffer()
     ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
     auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*(rsSurfaceRenderNode.get()));
     surfaceHandler.SetBuffer(cbuffer, acquireFence, damage, timestamp);
+    auto drGPUContext = std::make_shared<Drawing::GPUContext>();
+    rsSurfaceRenderNode->SetDrawingGPUContext(drGPUContext.get());
     return rsSurfaceRenderNode;
 }
 }
