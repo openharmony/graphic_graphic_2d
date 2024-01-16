@@ -383,7 +383,7 @@ public:
 #else
     RSAutoCanvasRestore(
         RSPaintFilterCanvas* canvas, RSPaintFilterCanvas::SaveType type = RSPaintFilterCanvas::SaveType::kAll)
-        : canvas_(canvas), saveCount_(canvas ? canvas->SaveAllStatus() : RSPaintFilterCanvas::SaveStatus())
+        : canvas_(canvas), saveCount_(canvas ? canvas->SaveAllStatus(type) : RSPaintFilterCanvas::SaveStatus())
     {}
 #endif
 

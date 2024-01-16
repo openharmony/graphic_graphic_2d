@@ -75,7 +75,6 @@ enum class RSPropertyDrawableSlot : uint8_t {
     FOREGROUND_FILTER,
     LINEAR_GRADIENT_BLUR_FILTER,
     FOREGROUND_COLOR,
-    RESTORE_BLEND_MODE,
     FG_RESTORE_BOUNDS,
 
     // No clip (unless ClipToBounds is set)
@@ -86,6 +85,7 @@ enum class RSPropertyDrawableSlot : uint8_t {
     PARTICLE_EFFECT,
     PIXEL_STRETCH,
 
+    RESTORE_BLEND_MODE,
     RESTORE_ALL,
 
     // Annotations: Please remember to update this when new slots are added.
@@ -96,8 +96,6 @@ enum class RSPropertyDrawableSlot : uint8_t {
     CONTENT_PROPERTIES_END   = FOREGROUND_STYLE + 1,
     FG_PROPERTIES_BEGIN      = COLOR_FILTER,
     FG_PROPERTIES_END        = FOREGROUND_COLOR + 1,
-    NO_CLIP_PROPERTY_BEGIN   = POINT_LIGHT,
-    NO_CLIP_PROPERTY_END     = PIXEL_STRETCH + 1,
     MAX                      = RESTORE_ALL + 1,
 };
 
