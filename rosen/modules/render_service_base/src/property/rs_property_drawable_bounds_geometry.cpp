@@ -1285,9 +1285,13 @@ RSBlendSaveLayerDrawable::RSBlendSaveLayerDrawable(int blendMode)
 void RSBlendSaveLayerDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
 #ifndef USE_ROSEN_DRAWING
-    canvas.saveLayer(nullptr, &blendPaint_);
+    auto paint = blendPaint_;
+    paint.setAlphaf(canvas.GetAlpha());
+    canvas.saveLayer(nullptr, &paint);
 #else
-    Drawing::SaveLayerOps maskLayerRec(nullptr, &blendBrush_, nullptr, 0);
+    auto brush = blendBrush_;
+    brush.SetAlphaF(canvas.GetAlpha());
+    Drawing::SaveLayerOps maskLayerRec(nullptr, &brush, nullptr, 0);
     canvas.SaveLayer(maskLayerRec);
 #endif
     canvas.SaveBlendMode();

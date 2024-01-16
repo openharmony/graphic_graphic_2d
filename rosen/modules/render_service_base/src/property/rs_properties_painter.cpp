@@ -3680,10 +3680,12 @@ void RSPropertiesPainter::BeginBlendMode(RSPaintFilterCanvas& canvas, const RSPr
     // save layer mode
 #ifndef USE_ROSEN_DRAWING
     SkPaint blendPaint_;
+    blendPaint_.setAlphaf(canvas.GetAlpha());
     blendPaint_.setBlendMode(static_cast<SkBlendMode>(blendMode - 1)); // map blendMode to SkBlendMode
     canvas.saveLayer(nullptr, &blendPaint_);
 #else
     Drawing::Brush blendBrush_;
+    blendBrush_.SetAlphaF(canvas.GetAlpha());
     blendBrush_.SetBlendMode(static_cast<Drawing::BlendMode>(blendMode - 1)); // map blendMode to Drawing::BlendMode
     Drawing::SaveLayerOps maskLayerRec(nullptr, &blendBrush_, nullptr, 0);
     canvas.SaveLayer(maskLayerRec);
