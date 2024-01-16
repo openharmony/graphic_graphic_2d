@@ -1984,10 +1984,8 @@ void RSUniRenderVisitor::DrawEffectRenderNodeForDFX()
     if (effectNodeMapForDfx_.empty()) {
         return;
     }
-    const float fillAlpha = 0.2;
     const float strokeAlpha = 0.8;
     const int strokeWidth = 12;
-    const int fallbackStrokeWidth = 12;
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     for (const auto& effectNode : effectNodeMapForDfx_) {
         auto node = nodeMap.GetRenderNode<RSRenderNode>(effectNode.first);
@@ -2001,18 +1999,17 @@ void RSUniRenderVisitor::DrawEffectRenderNodeForDFX()
         RectI absRect = geoPtr->GetAbsRect();
         // draw effectNode
 #ifndef USE_ROSEN_DRAWING
-        DrawDirtyRectForDFX(absRect, SK_ColorGREEN, SkPaint::kStroke_Style, strokeAlpha, strokeWidth);
+        DrawDirtyRectForDFX(absRect, SK_ColorBLUE, SkPaint::kStroke_Style, strokeAlpha, strokeWidth);
 #else
-        DrawDirtyRectForDFX(absRect,
-            Drawing::Color::COLOR_GREEN, RSPaintStyle::STROKE, strokeAlpha, strokeWidth);
+        DrawDirtyRectForDFX(absRect, Drawing::Color::COLOR_BLUE, RSPaintStyle::STROKE, strokeAlpha, strokeWidth);
 #endif
         // draw useEffect nodes
         const auto& useEffectRects = effectNode.second.first;
         for (const auto& rect : useEffectRects) {
 #ifndef USE_ROSEN_DRAWING
-            DrawDirtyRectForDFX(rect, SK_ColorYELLOW, SkPaint::kFill_Style, fillAlpha);
+            DrawDirtyRectForDFX(rect, SK_ColorGREEN, SkPaint::kStroke_Style, strokeAlpha, strokeWidth);
 #else
-            DrawDirtyRectForDFX(rect, Drawing::Color::COLOR_YELLOW, RSPaintStyle::FILL, fillAlpha);
+            DrawDirtyRectForDFX(rect, Drawing::Color::COLOR_GREEN, RSPaintStyle::STROKE, strokeAlpha, strokeWidth);
 #endif
         }
 
@@ -2020,10 +2017,9 @@ void RSUniRenderVisitor::DrawEffectRenderNodeForDFX()
         const auto fallbackRects = effectNode.second.second;
         for (const auto& rect : fallbackRects) {
 #ifndef USE_ROSEN_DRAWING
-            DrawDirtyRectForDFX(rect, SK_ColorYELLOW, SkPaint::kStroke_Style, strokeAlpha, fallbackStrokeWidth);
+            DrawDirtyRectForDFX(rect, SK_ColorRED, SkPaint::kStroke_Style, strokeAlpha, strokeWidth);
 #else
-            DrawDirtyRectForDFX(rect, Drawing::Color::COLOR_RED,
-                RSPaintStyle::STROKE, strokeAlpha, fallbackStrokeWidth);
+            DrawDirtyRectForDFX(rect, Drawing::Color::COLOR_RED, RSPaintStyle::STROKE, strokeAlpha, strokeWidth);
 #endif
         }
     }
