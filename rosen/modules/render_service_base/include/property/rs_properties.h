@@ -341,6 +341,7 @@ public:
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     const std::unique_ptr<RSFilterCacheManager>& GetFilterCacheManager(bool isForeground) const;
     const std::shared_ptr<RSColorPickerCacheTask>& GetColorPickerCacheTaskShadow() const;
+    void ReleaseColorPickerTaskShadow() const;
     void ClearFilterCache();
 #endif
 

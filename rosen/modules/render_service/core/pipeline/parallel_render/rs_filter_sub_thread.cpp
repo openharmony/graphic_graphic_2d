@@ -113,6 +113,18 @@ void RSFilterSubThread::StartColorPicker()
         }
         PostTask([this, task]() { ColorPickerRenderCache(task); });
     };
+#ifndef USE_ROSEN_DRAWING
+#else
+#ifdef IS_OHOS
+    RSColorPickerCacheTask::saveImgAndSurToRelease =
+        [this](std::shared_ptr<Drawing::Image> && cacheImage, std::shared_ptr<Drawing::Surface> && cacheSurface,
+            std::shared_ptr<OHOS::AppExecFwk::EventHandler> && initHandler,
+            std::shared_ptr<OHOS::AppExecFwk::EventHandler> && colorPickerThreadhandler) {
+        SaveAndReleaseCacheResource(std::move(cacheImage), std::move(cacheSurface),
+            std::move(initHandler), std::move(colorPickerThreadhandler));
+    };
+#endif
+#endif
 }
 
 void RSFilterSubThread::PostTask(const std::function<void()>& task)
@@ -121,6 +133,74 @@ void RSFilterSubThread::PostTask(const std::function<void()>& task)
         handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
 }
+
+#ifndef USE_ROSEN_DRAWING
+#else
+void RSFilterSubThread::AddToReleaseQueue(std::shared_ptr<Drawing::Image> && cacheImage,
+    std::shared_ptr<Drawing::Surface> && cacheSurface,
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> && initHandler,
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> && colorPickerThreadhandler)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (tmpImageResources_.find(initHandler) != tmpImageResources_.end()) {
+        tmpImageResources_[initHandler].push(std::move(cacheImage));
+    } else {
+        std::queue<std::shared_ptr<Drawing::Image>> imageQueue;
+        imageQueue.push(std::move(cacheImage));
+        tmpImageResources_[initHandler] = imageQueue;
+    }
+    tmpSurfaceResources_.push(std::move(cacheSurface));
+}
+
+void RSFilterSubThread::ReleaseSurface()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    while (tmpSurfaceResources_.size() > 0) {
+        auto tmp = tmpSurfaceResources_.front();
+        tmpSurfaceResources_.pop();
+        if (tmp == nullptr) {
+            return;
+        }
+        tmp = nullptr;
+    }
+}
+
+void RSFilterSubThread::ReleaseImage(std::queue<std::shared_ptr<Drawing::Image>>& queue)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    while (queue.size() > 0) {
+        auto tmp = queue.front();
+        queue.pop();
+        if (tmp == nullptr) {
+            return;
+        }
+        tmp.reset();
+    }
+}
+
+void RSFilterSubThread::ReleaseImageAndSurfaces()
+{
+    for (auto& item : tmpImageResources_) {
+        auto& initHandler = item.first;
+        auto& imageQueue = item.second;
+        if (initHandler != nullptr) {
+            initHandler->PostTask(
+                [this, &imageQueue]() { ReleaseImage(imageQueue); }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        }
+    }
+    PostTask([this]() { ReleaseSurface(); });
+}
+
+void RSFilterSubThread::SaveAndReleaseCacheResource(std::shared_ptr<Drawing::Image> && cacheImage,
+    std::shared_ptr<Drawing::Surface> && cacheSurface,
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> && initHandler,
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> && colorPickerThreadhandler)
+{
+    AddToReleaseQueue(std::move(cacheImage), std::move(cacheSurface),
+        std::move(initHandler), std::move(colorPickerThreadhandler));
+    ReleaseImageAndSurfaces();
+}
+#endif
 
 void RSFilterSubThread::PostSyncTask(const std::function<void()>& task)
 {

@@ -51,9 +51,28 @@ public:
         std::shared_ptr<Drawing::Image> imageSnapshot);
 #endif
     static std::function<void(std::weak_ptr<RSColorPickerCacheTask>)> postColorPickerTask;
+#ifndef USE_ROSEN_DRAWING
+#else
+#ifdef IS_OHOS
+    static std::function<void(std::shared_ptr<Drawing::Image> &&,
+        std::shared_ptr<Drawing::Surface> &&,
+        std::shared_ptr<OHOS::AppExecFwk::EventHandler> &&,
+        std::shared_ptr<OHOS::AppExecFwk::EventHandler> &&)> saveImgAndSurToRelease;
+#endif
+#endif
 
     RSColorPickerCacheTask() = default;
-    ~RSColorPickerCacheTask() = default;
+    ~RSColorPickerCacheTask()
+    {
+    #ifdef IS_OHOS
+        waitRelease_ = true;
+        cacheProcessStatus_.store(CacheProcessStatus::WAITING);
+        if (imageSnapshotCache_ || cacheSurface_ || initHandler_ || handler_) {
+            RSColorPickerCacheTask::saveImgAndSurToRelease(std::move(imageSnapshotCache_), std::move(cacheSurface_),
+                std::move(initHandler_), std::move(handler_));
+        }
+    #endif
+    }
 #ifndef USE_ROSEN_DRAWING
     bool InitSurface(GrRecordingContext* grContext);
 #else
@@ -79,6 +98,9 @@ public:
 
     void Reset()
     {
+        if (!imageSnapshotCache_) {
+            return;
+        }
         imageSnapshotCache_.reset();
     }
 
@@ -103,9 +125,9 @@ public:
     {
         return handler_;
     }
-    std::shared_ptr<OHOS::AppExecFwk::EventHandler> GetMainHandler()
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> GetInitHandler()
     {
-        return mainHandler_;
+        return initHandler_;
     }
 #endif
     void CalculateColorAverage(RSColor& ColorCur);
@@ -161,7 +183,7 @@ private:
     std::optional<int> deviceHeight_;
 #ifdef IS_OHOS
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_ = nullptr;
-    std::shared_ptr<OHOS::AppExecFwk::EventHandler> mainHandler_ = nullptr;
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> initHandler_ = nullptr;
 #endif
 };
 } // namespace Rosen

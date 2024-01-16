@@ -2727,11 +2727,11 @@ void RSProperties::ClearFilterCache()
     }
     if (backgroundFilter_ != nullptr && (backgroundFilter_->GetFilterType() == RSFilter::MATERIAL)) {
         auto filter = std::static_pointer_cast<RSMaterialFilter>(backgroundFilter_);
-        filter->ReleaseColorPicker();
+        filter->ReleaseColorPickerFilter();
     }
     if (filter_ != nullptr && (filter_->GetFilterType() == RSFilter::MATERIAL)) {
         auto filter = std::static_pointer_cast<RSMaterialFilter>(filter_);
-        filter->ReleaseColorPicker();
+        filter->ReleaseColorPickerFilter();
     }
 }
 
@@ -2777,9 +2777,17 @@ void RSProperties::OnApplyModifiers()
             backgroundFilter_ = aiBarFilter;
         }
         if (backgroundFilter_ != nullptr && !backgroundFilter_->IsValid()) {
+            if (backgroundFilter_->GetFilterType() == RSFilter::MATERIAL) {
+                auto filter = std::static_pointer_cast<RSMaterialFilter>(backgroundFilter_);
+                filter->ReleaseColorPickerFilter();
+            }
             backgroundFilter_.reset();
         }
         if (filter_ != nullptr && !filter_->IsValid()) {
+            if (filter_->GetFilterType() == RSFilter::MATERIAL) {
+                auto filter = std::static_pointer_cast<RSMaterialFilter>(filter_);
+                filter->ReleaseColorPickerFilter();
+            }
             filter_.reset();
         }
         IfLinearGradientBlurInvalid();
@@ -2873,6 +2881,22 @@ int RSProperties::GetColorBlendApplyType() const
 const std::shared_ptr<RSColorPickerCacheTask>& RSProperties::GetColorPickerCacheTaskShadow() const
 {
     return colorPickerTaskShadow_;
+}
+
+void RSProperties::ReleaseColorPickerTaskShadow() const
+{
+    if (colorPickerTaskShadow_ == nullptr) {
+        return;
+    }
+    #ifdef IS_OHOS
+    auto initHandler = colorPickerTaskShadow_->GetInitHandler();
+        if (initHandler != nullptr) {
+            auto task = colorPickerTaskShadow_;
+            task->SetWaitRelease(true);
+            initHandler->PostTask(
+                [task]() { task->ReleaseColorPicker(); }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        }
+    #endif
 }
 
 bool RSProperties::GetHaveEffectRegion() const

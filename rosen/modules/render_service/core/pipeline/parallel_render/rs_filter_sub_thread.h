@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_CORE_PIPELINE_PARALLEL_RENDER_RS_FILTER_SUB_THREAD_H
 
 #include <cstdint>
+#include <queue>
 
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
@@ -46,6 +47,20 @@ public:
     void FlushAndSubmit();
     void SetFence(sptr<SyncFence> fence);
     void ColorPickerRenderCache(std::weak_ptr<RSColorPickerCacheTask> colorPickerTask);
+#ifndef USE_ROSEN_DRAWING
+#else
+    void AddToReleaseQueue(std::shared_ptr<Drawing::Image> && cacheImage,
+        std::shared_ptr<Drawing::Surface> && cacheSurface,
+        std::shared_ptr<OHOS::AppExecFwk::EventHandler> && initHandler,
+        std::shared_ptr<OHOS::AppExecFwk::EventHandler> && colorPickerThreadhandler);
+    void ReleaseImage(std::queue<std::shared_ptr<Drawing::Image>>& queue);
+    void ReleaseSurface();
+    void ReleaseImageAndSurfaces();
+    void SaveAndReleaseCacheResource(std::shared_ptr<Drawing::Image> && cacheImage,
+        std::shared_ptr<Drawing::Surface> && cacheSurface,
+        std::shared_ptr<OHOS::AppExecFwk::EventHandler> && initHandler,
+        std::shared_ptr<OHOS::AppExecFwk::EventHandler> && colorPickerThreadhandler);
+#endif
 
     void ResetGrContext();
     void DumpMem(DfxString& log);
@@ -72,6 +87,7 @@ private:
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     RenderContext* renderContext_ = nullptr;
+    std::mutex mutex_;
 #ifdef RS_ENABLE_GL
     EGLContext eglShareContext_ = EGL_NO_CONTEXT;
 #endif
@@ -83,6 +99,8 @@ private:
 #endif
 #else
     std::shared_ptr<Drawing::GPUContext> grContext_ = nullptr;
+    std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaceResources_;
+    std::map<std::shared_ptr<OHOS::AppExecFwk::EventHandler>, std::queue<std::shared_ptr<Drawing::Image>>> tmpImageResources_;
 #endif
 };
 } // namespace OHOS::Rosen

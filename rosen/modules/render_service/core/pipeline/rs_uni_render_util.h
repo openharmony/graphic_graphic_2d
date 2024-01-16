@@ -68,6 +68,7 @@ public:
     static bool Is3DRotation(Drawing::Matrix matrix);
 #endif
 
+    static void ReleaseColorPickerFilter(std::shared_ptr<RSFilter> RSFilter);
     static void ReleaseColorPickerResource(std::shared_ptr<RSRenderNode>& node);
     static void AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
         std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
