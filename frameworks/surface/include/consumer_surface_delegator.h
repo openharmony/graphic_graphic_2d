@@ -13,25 +13,29 @@
  * limitations under the License.
  */
 
-#ifndef CONSUMER_SURFACE_DELEGATOR
-#define CONSUMER_SURFACE_DELEGATOR
+#ifndef CONSUMER_SURFACE_DELEGATOR_H
+#define CONSUMER_SURFACE_DELEGATOR_H
 
 #include "transact_surface_delegator_stub.h"
 
 namespace OHOS {
+class BufferQueue;
 class ConsumerSurfaceDelegator : public TransactSurfaceDelegatorStub {
 public:
-    static sptr<ConsumerSurfaceDelegator> Create()
-    {
-        return sptr<ConsumerSurfaceDelegator> (new ConsumerSurfaceDelegator());
-    }
+    static sptr<ConsumerSurfaceDelegator> Create();
     ~ConsumerSurfaceDelegator() = default;
-    GSError DequeueBuffer();
-    GSError QueueBuffer();
-    GSError ReleaseBuffer();
+    GSError DequeueBuffer(const BufferRequestConfig& config, sptr<BufferExtraData>& bedata,
+                          struct IBufferProducer::RequestBufferReturnValue& retval);
+    GSError QueueBuffer(sptr<SurfaceBuffer>& buffer, int32_t fenceFd);
+    GSError ReleaseBuffer(int slot, int releaseFenceFd);
+    GSError CancelBuffer(sptr<SurfaceBuffer>& buffer);
+    GSError DetachBuffer(sptr<SurfaceBuffer>& buffer);
+    bool SetBufferQueue(BufferQueue* bufferQueue);
     int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
 private:
     ConsumerSurfaceDelegator() = default;
+    std::map<int32_t, sptr<SurfaceBuffer>> slotBufferMap_;
+    BufferQueue* bufferQueue_ = nullptr;
 };
 } // namespace OHOS
-#endif // CONSUMER_SURFACE_DELEGATOR
+#endif // CONSUMER_SURFACE_DELEGATOR_H

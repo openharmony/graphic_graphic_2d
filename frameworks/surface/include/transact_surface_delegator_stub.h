@@ -38,6 +38,7 @@ public:
 protected:
     TransactSurfaceDelegatorStub() = default;
     NativeHandleT *ReadNativeHandle(MessageParcel &input);
+    NativeHandleT *ReadNativeHandleWithoutVersion(MessageParcel &input);
     int32_t SendMessage(int32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     sptr<Surface> surface_ = nullptr;
 
