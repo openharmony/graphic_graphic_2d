@@ -64,8 +64,9 @@ public:
     virtual void Dump(std::string &result) = 0;
     virtual bool GetFrameRateChaingStatus() = 0;
     virtual VsyncError SetReferenceTimeOffset(int32_t phaseByPulseNum) = 0;
-    virtual VsyncError ResetReferenceTimeOffset() = 0;
     virtual VsyncError CheckAndUpdateRefereceTime(int64_t hardwareVsyncInterval, int64_t referenceTime) = 0;
+    virtual void SetPendingMode(int64_t period, int64_t timestamp) = 0;
+    virtual VsyncError StartRefresh() = 0;
 };
 
 sptr<VSyncGenerator> CreateVSyncGenerator();
@@ -95,8 +96,9 @@ public:
     void Dump(std::string &result) override;
     bool GetFrameRateChaingStatus() override;
     VsyncError SetReferenceTimeOffset(int32_t phaseByPulseNum) override;
-    VsyncError ResetReferenceTimeOffset() override;
     VsyncError CheckAndUpdateRefereceTime(int64_t hardwareVsyncInterval, int64_t referenceTime) override;
+    void SetPendingMode(int64_t period, int64_t timestamp) override;
+    VsyncError StartRefresh() override;
 
 private:
     friend class OHOS::Rosen::VSyncGenerator;
@@ -158,6 +160,9 @@ private:
     std::vector<Listener> listenersRecord_;
     bool refreshRateIsChanged_ = false;
     bool frameRateChanging_ = false;
+    int64_t pendingPeriod_ = 0;
+    int64_t pendingReferenceTime_ = 0;
+    bool startRefresh_ = false;
 };
 } // impl
 } // namespace Rosen

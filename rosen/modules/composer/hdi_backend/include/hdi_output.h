@@ -88,7 +88,7 @@ public:
     int32_t ReleaseFramebuffer(const sptr<SyncFence>& releaseFence);
     std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFence();
     int32_t StartVSyncSampler(bool forceReSample = false);
-    void SetPendingPeriod(int64_t period);
+    void SetPendingMode(int64_t period, int64_t timestamp);
 
 private:
     HdiDevice *device_ = nullptr;

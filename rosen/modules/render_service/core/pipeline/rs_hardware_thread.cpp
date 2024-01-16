@@ -232,7 +232,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
 
         RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %d, now: %lu", currentRate, timestamp);
         ExecuteSwitchRefreshRate(rate);
-        PerformSetActiveMode(output);
+        PerformSetActiveMode(output, timestamp);
         AddRefreshRateCount();
         output->SetLayerInfo(layers);
         if (output->IsDeviceValid()) {
@@ -297,7 +297,7 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
     }
 }
 
-void RSHardwareThread::PerformSetActiveMode(OutputPtr output)
+void RSHardwareThread::PerformSetActiveMode(OutputPtr output, uint64_t timestamp)
 {
     auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
     auto screenManager = CreateOrGetScreenManager();
@@ -334,7 +334,8 @@ void RSHardwareThread::PerformSetActiveMode(OutputPtr output)
             hdiBackend_->StartSample(output);
         } else {
             auto pendingPeriod = hgmCore.GetIdealPeriod(hgmCore.GetScreenCurrentRefreshRate(id));
-            hdiBackend_->SetPendingPeriod(output, pendingPeriod);
+            int64_t pendingTimestamp = static_cast<int64_t>(timestamp);
+            hdiBackend_->SetPendingMode(output, pendingPeriod, pendingTimestamp);
             hdiBackend_->StartSample(output);
         }
     }

@@ -194,10 +194,11 @@ void VSyncSampler::UpdateModeLocked()
         sum -= max;
 
         period_ = sum / (int64_t)(numSamples_ - MINES_SAMPLE_NUMS);
-
         if (period_ <= 0) {
             return;
         }
+
+        referenceTime_ = samples_[firstSampleIndex_];
 
         double scale = 2.0 * PI / period_;
         double deltaAvgX = 0;
@@ -214,7 +215,6 @@ void VSyncSampler::UpdateModeLocked()
         phase_ = int64_t(::atan2(deltaAvgY, deltaAvgX) / scale);
 
         modeUpdated_ = true;
-        referenceTime_ = samples_[firstSampleIndex_];
         CreateVSyncGenerator()->UpdateMode(period_, phase_, referenceTime_);
         pendingPeriod_ = period_;
     }
@@ -263,8 +263,9 @@ bool VSyncSampler::AddPresentFenceTime(int64_t timestamp)
 
     int64_t prevFenceTimeStamp = presentFenceTime_[(presentFenceTimeOffset_ + NUM_PRESENT - 1) % NUM_PRESENT];
     if ((prevFenceTimeStamp != INVAILD_TIMESTAMP) && (timestamp - prevFenceTimeStamp > MAX_IDLE_TIME_THRESHOLD)) {
-        ScopedBytrace trace("FirstCommitAfterIdle");
-        CreateVSyncGenerator()->ResetReferenceTimeOffset();
+        ScopedBytrace trace("StartRefreshAfterIdle");
+        CreateVSyncGenerator()->StartRefresh();
+        numSamples_ = 0;
     }
 
     presentFenceTimeOffset_ = (presentFenceTimeOffset_ + 1) % NUM_PRESENT;
@@ -305,7 +306,6 @@ int64_t VSyncSampler::GetHardwarePeriod() const
 
 void VSyncSampler::SetPendingPeriod(int64_t period)
 {
-    ScopedBytrace func("VSyncSampler::SetPendingPeriod pendingPeriod_ = " + std::to_string(period));
     if (period <= 0) {
         return;
     }

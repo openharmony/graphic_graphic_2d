@@ -60,7 +60,7 @@ private:
     void Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers, uint32_t screenId);
     void ReleaseLayers(OutputPtr output, const std::unordered_map<uint32_t, LayerPtr>& layerMap);
     void LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<IConsumerSurface>& surface) const;
-    void PerformSetActiveMode(OutputPtr output);
+    void PerformSetActiveMode(OutputPtr output, uint64_t timestamp);
     void ExecuteSwitchRefreshRate(uint32_t rate);
     void AddRefreshRateCount();
 #ifdef USE_VIDEO_PROCESSING_ENGINE
