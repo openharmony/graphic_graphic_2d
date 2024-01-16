@@ -952,7 +952,7 @@ const std::shared_ptr<RSBorder>& RSProperties::GetBorder() const
 void RSProperties::SetOutlineColor(Vector4<Color> color)
 {
     if (!outline_) {
-        outline_ = std::make_shared<RSBorder>();
+        outline_ = std::make_shared<RSBorder>(true);
     }
     outline_->SetColorFour(color);
     if (outline_->GetColor().GetAlpha() > 0) {
@@ -965,7 +965,7 @@ void RSProperties::SetOutlineColor(Vector4<Color> color)
 void RSProperties::SetOutlineWidth(Vector4f width)
 {
     if (!outline_) {
-        outline_ = std::make_shared<RSBorder>();
+        outline_ = std::make_shared<RSBorder>(true);
     }
     outline_->SetWidthFour(width);
     if (!width.IsZero()) {
@@ -978,7 +978,7 @@ void RSProperties::SetOutlineWidth(Vector4f width)
 void RSProperties::SetOutlineStyle(Vector4<uint32_t> style)
 {
     if (!outline_) {
-        outline_ = std::make_shared<RSBorder>();
+        outline_ = std::make_shared<RSBorder>(true);
     }
     outline_->SetStyleFour(style);
     SetDirty();
@@ -988,7 +988,7 @@ void RSProperties::SetOutlineStyle(Vector4<uint32_t> style)
 void RSProperties::SetOutlineRadius(Vector4f radius)
 {
     if (!outline_) {
-        outline_ = std::make_shared<RSBorder>();
+        outline_ = std::make_shared<RSBorder>(true);
     }
     outline_->SetRadiusFour(radius);
     isDrawn_ = true;

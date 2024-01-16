@@ -42,6 +42,14 @@ constexpr float SWEEP_ANGLE = 45.0f;
 constexpr float EXTEND = 1024.0f;
 } // namespace
 
+RSBorder::RSBorder(const bool& isOutline)
+{
+    if (isOutline) {
+        SetStyle(BorderStyle::SOLID);
+        SetColor(Color(0, 0, 0));
+    }
+}
+
 void RSBorder::SetColor(Color color)
 {
     colors_.clear();

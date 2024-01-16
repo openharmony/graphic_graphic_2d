@@ -50,6 +50,7 @@ enum class BorderStyle : uint32_t {
 class RSBorder final {
 public:
     RSBorder() = default;
+    RSBorder(const bool& isOutline);
     ~RSBorder() {}
 
     enum BorderType : int {
