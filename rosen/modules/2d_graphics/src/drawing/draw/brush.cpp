@@ -65,7 +65,7 @@ void Brush::SetColor(const Color& c)
     color_ = c;
 }
 
-void Brush::SetColor(int c)
+void Brush::SetColor(uint32_t c)
 {
     color_.SetColorQuad(c);
 }
