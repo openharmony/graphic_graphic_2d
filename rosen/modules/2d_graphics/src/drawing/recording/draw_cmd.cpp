@@ -1277,7 +1277,6 @@ void DrawSymbolOpItem::SetVariableColor(size_t index)
     animation.startDuration = animation.startDuration - duration;
     if (animation.startValue == animation.endValue ||
         animation.startDuration > 0) {
-        animation_[index] = animation;
         return;
     }
     
