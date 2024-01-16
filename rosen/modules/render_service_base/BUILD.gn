@@ -357,6 +357,8 @@ ohos_shared_library("librender_service_base") {
     ":render_service_base_src",
     "src/platform:platform",
   ]
+  
+  external_deps = [ "hilog:libhilog" ]
 
   if (defined(use_new_render_context) && use_new_render_context) {
     public_deps += [ "src/render_backend:librender_backend" ]
