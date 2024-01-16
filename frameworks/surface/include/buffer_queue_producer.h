@@ -44,7 +44,12 @@ public:
 
     GSError FlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
                         const sptr<SyncFence>& fence, BufferFlushConfigWithDamages &config) override;
+
+    GSError GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
+        float matrix[16], int32_t matrixSize) override;
+
     GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) override;
+    GSError AttachBuffer(sptr<SurfaceBuffer>& buffer, int32_t timeOut) override;
 
     GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) override;
 
@@ -83,6 +88,9 @@ public:
 
     sptr<NativeSurface> GetNativeSurface() override;
 
+    GSError SendDeathRecipientObject() override;
+    void OnBufferProducerRemoteDied();
+
 private:
     GSError CheckConnectLocked();
     GSError SetTunnelHandle(const sptr<SurfaceTunnelHandle> &handle);
@@ -112,10 +120,25 @@ private:
     int32_t SetTunnelHandleRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t GoBackgroundRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
     int32_t GetPresentTimestampRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
+    int32_t GetLastFlushedBufferRemote(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
+    int32_t RegisterDeathRecipient(MessageParcel &arguments, MessageParcel &reply, MessageOption &option);
 
     using BufferQueueProducerFunc = int32_t (BufferQueueProducer::*)(MessageParcel &arguments,
         MessageParcel &reply, MessageOption &option);
     std::map<uint32_t, BufferQueueProducerFunc> memberFuncMap_;
+
+    class ProducerSurfaceDeathRecipient : public IRemoteObject::DeathRecipient {
+    public:
+        explicit ProducerSurfaceDeathRecipient(wptr<BufferQueueProducer> producer);
+        virtual ~ProducerSurfaceDeathRecipient() = default;
+
+        void OnRemoteDied(const wptr<IRemoteObject>& remoteObject) override;
+    private:
+        wptr<BufferQueueProducer> producer_;
+        std::string name_ = "DeathRecipient";
+    };
+    sptr<ProducerSurfaceDeathRecipient> producerSurfaceDeathRecipient_ = nullptr;
+    sptr<IRemoteObject> token_;
 
     int32_t connectedPid_ = 0;
     sptr<BufferQueue> bufferQueue_ = nullptr;

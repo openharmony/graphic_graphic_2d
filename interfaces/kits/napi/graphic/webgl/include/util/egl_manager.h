@@ -81,8 +81,8 @@ private:
     EGLSurface currentSurface_;
     NativeWindow *eglWindow_ = nullptr;
     bool initialized_ = false;
-    int eglWidth_ = 0;
-    int eglHeight_ = 0;
+    int32_t eglWidth_ = 0;
+    int32_t eglHeight_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

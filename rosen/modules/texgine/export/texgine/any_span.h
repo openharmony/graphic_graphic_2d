@@ -24,6 +24,9 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
+#define MAXRGB 255
+#define MAXALPHA 255
+
 /*
  * @brief AnySpanAlignment is the alignment of the AnySpan in a Typography.
  */
@@ -74,15 +77,94 @@ public:
 
     /*
      * @brief This method will be called when the Typography is drawn.
-     * @param canvas  Canvas to be drawn.
+     * @param canvas Canvas to be drawn.
      * @param offsetx The Offset in x-asix of the starting point for drawing the AnySpan
      * @param offsety The Offset in y-asix of the starting point for drawing the AnySpan
      */
     virtual void Paint(TexgineCanvas& canvas, double offsetx, double offsety) = 0;
 
+    void PaintBackgroundRect(TexgineCanvas& canvas, double offsetX, double offsetY)
+    {
+        if (xs_.backgroundRect.color == 0) {
+            return;
+        }
+
+        TexginePaint paint;
+        paint.SetAntiAlias(false);
+#ifndef USE_GRAPHIC_TEXT_GINE
+        paint.SetARGB(MAXRGB, MAXRGB, 0, 0);
+#else
+        paint.SetAlpha(MAXALPHA);
+#endif
+        paint.SetColor(xs_.backgroundRect.color);
+        double ltRadius = 0.0;
+        double rtRadius = 0.0;
+        double rbRadius = 0.0;
+        double lbRadius = 0.0;
+        if (roundRectType_ == RoundRectType::ALL || roundRectType_ == RoundRectType::LEFT_ONLY) {
+            ltRadius = xs_.backgroundRect.leftTopRadius;
+            lbRadius = xs_.backgroundRect.leftBottomRadius;
+        }
+        if (roundRectType_ == RoundRectType::ALL || roundRectType_ == RoundRectType::RIGHT_ONLY) {
+            rtRadius = xs_.backgroundRect.rightTopRadius;
+            rbRadius = xs_.backgroundRect.rightBottomRadius;
+        }
+        const SkVector fRadii[4] = {{ltRadius, ltRadius}, {rtRadius, rtRadius}, {rbRadius, rbRadius},
+            {lbRadius, lbRadius}};
+        auto rect = TexgineRect::MakeRRect(offsetX, offsetY + topInGroup_, (float)GetWidth(),
+            bottomInGroup_ - topInGroup_, fRadii);
+        canvas.DrawRRect(rect, paint);
+    }
+
+    void SetTextStyle(const TextStyle& style)
+    {
+        xs_ = style;
+    }
+
+    void SetRoundRectType(const RoundRectType type)
+    {
+        roundRectType_ = type;
+    }
+
+    void SetTopInGroup(const double top)
+    {
+        topInGroup_ = top;
+    }
+
+    double GetTopInGroup() const
+    {
+        return topInGroup_;
+    }
+
+    void SetBottomInGroup(const double bottom)
+    {
+        bottomInGroup_ = bottom;
+    }
+
+    double GetBottomInGroup() const
+    {
+        return bottomInGroup_;
+    }
+
+    void SetMaxRoundRectRadius(const double radius)
+    {
+        maxRoundRectRadius_ = radius;
+    }
+
+    double GetMaxRoundRectRadius() const
+    {
+        return maxRoundRectRadius_;
+    }
+
 private:
     friend void ReportMemoryUsage(const std::string& member, const AnySpan& that, const bool needThis);
     void ReportMemoryUsage(const std::string& member, const bool needThis) const override;
+
+    double topInGroup_ = 0.0;
+    double bottomInGroup_ = 0.0;
+    double maxRoundRectRadius_ = 0.0;
+    TextStyle xs_;
+    RoundRectType roundRectType_ = RoundRectType::NONE;
 };
 } // namespace TextEngine
 } // namespace Rosen

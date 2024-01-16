@@ -30,6 +30,8 @@ enum class QuickSkipPrepareType {
     STATIC_PROCESS,         // 1, skip no-command process's preparation
     STATIC_APP_INSTANCE,    // 2, in case of dirty process, skip static app instance's preparation
     STATIC_CACHE,           // 3, in case of dirty instance, simplify static (drawing)cache's preparation
+    STATIC_CACHE_SURFACE,   // 4, in case of dirty instance, simplify surface's static cache's preparation
+    CONTENT_DIRTY_CACHE_SURFACE,  // 5, simplify dirty cache surface's subtree preparation
 };
 
 class RSB_EXPORT RSSystemParameters final {
@@ -38,8 +40,13 @@ public:
     static bool GetCalcCostEnabled();
     static bool GetDrawingCacheEnabled();
     static bool GetDrawingCacheEnabledDfx();
+    static bool GetShowRefreshRateEnabled();
     static QuickSkipPrepareType GetQuickSkipPrepareType();
+    static bool GetVSyncControlEnabled();
+    static bool GetSystemAnimatedScenesEnabled();
     static bool GetFilterCacheOcculusionEnabled();
+    static bool GetSkipCanvasNodeOutofScreenEnabled();
+    static bool GetDrawingEffectRegionEnabledDfx();
 };
 
 } // namespace Rosen

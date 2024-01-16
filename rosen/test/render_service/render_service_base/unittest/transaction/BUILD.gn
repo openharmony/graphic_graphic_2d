@@ -13,6 +13,7 @@
 
 import("//build/test.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic/rosen_engine/render_service_base/transaction"
 
@@ -36,6 +37,8 @@ ohos_unittest("RSRenderServiceBaseTransactionTest") {
 
   include_dirs = [
     "../../../../../../interfaces/inner_api/common",
+    "$graphic_2d_root/frameworks/surface/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
     "//foundation/graphic/graphic_2d/rosen/include",
     "//foundation/graphic/graphic_2d/rosen/test/include",
@@ -45,13 +48,8 @@ ohos_unittest("RSRenderServiceBaseTransactionTest") {
     "../../../../../modules/render_service_base:render_service_base_src",
     "//third_party/googletest:gtest_main",
   ]
-  if (defined(use_new_skia) && use_new_skia) {
-    deps += [ "//third_party/skia:skia_ohos" ]
-    include_dirs += [ "//third_party/skia/src" ]
-  } else {
-    deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
-    include_dirs += [ "//third_party/flutter/skia/src" ]
-  }
+  deps += [ "//third_party/skia:skia_ohos" ]
+  include_dirs += [ "//third_party/skia/src" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",

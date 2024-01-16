@@ -1188,6 +1188,26 @@ HWTEST_F(EglWrapperEntryTest, EglGetSyncAttribImpl003, Level2)
 }
 
 /**
+ * @tc.name: EglDupNativeFenceFDANDROIDImpl001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperEntryTest, EglDupNativeFenceFDANDROIDImpl001, Level2)
+{
+    EGLint majorVersion;
+    EGLint minorVersion;
+    EGLDisplay dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    EGLBoolean ret = eglInitialize(dpy, &majorVersion, &minorVersion);
+    ASSERT_EQ(ret, EGL_TRUE);
+
+    auto result = gWrapperHook.wrapper.eglCreateSync(dpy, 0, nullptr);
+    ASSERT_EQ(EGL_NO_SYNC, result);
+
+    auto result1 = gWrapperHook.wrapper.eglDupNativeFenceFDANDROID(dpy, result);
+    ASSERT_EQ(EGL_NO_NATIVE_FENCE_FD_ANDROID, result1);
+}
+
+/**
  * @tc.name: EglCreateImageImpl001
  * @tc.desc:
  * @tc.type: FUNC

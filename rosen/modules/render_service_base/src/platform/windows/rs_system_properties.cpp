@@ -19,14 +19,22 @@
 
 namespace OHOS {
 namespace Rosen {
+#if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
+const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
+#elif defined (ACE_ENABLE_GL) || defined (RS_ENABLE_GL)
+const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
+#else
+const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::VULKAN;
+#endif
+
 int RSSystemProperties::GetDumpFrameNum()
 {
     return 0;
 }
 
-bool RSSystemProperties::GetRecordingEnabled()
+int RSSystemProperties::GetRecordingEnabled()
 {
-    return false;
+    return 0;
 }
 
 bool RSSystemProperties::IsSceneBoardEnabled()
@@ -95,7 +103,7 @@ bool RSSystemProperties::GetHighContrastStatus()
 }
 
 #ifndef NEW_SKIA
-ReleaseGpuResourceType RSSystemProperties::GetReleaseGpuResourceEnabled()
+bool RSSystemProperties::GetReleaseResourceEnabled()
 {
     return {};
 }
@@ -204,12 +212,27 @@ bool RSSystemProperties::GetFilterPartialRenderEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetColorPickerPartialEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetMaskLinearBlurEnabled()
+{
+    return true;
+}
+
 bool RSSystemProperties::GetDebugTraceEnabled()
 {
     return false;
 }
 
 bool RSSystemProperties::FindNodeInTargetList(std::string node)
+{
+    return false;
+}
+
+bool RSSystemProperties::IsFoldScreenFlag()
 {
     return false;
 }
@@ -244,6 +267,13 @@ bool RSSystemProperties::GetBlurEnabled()
     return true;
 }
 
+const std::vector<float>& RSSystemProperties::GetAiInvertCoef()
+{
+    // Configure AiInvertCoef: Low, High, Threshold, Opacity, Saturation, Filter Radius.
+    std::vector<float> aiInvertCoef = {0.0, 1.0, 0.55, 0.4, 1.6, 45.0};
+    return aiInvertCoef;
+}
+
 bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultValue)
 {
     return {};
@@ -264,7 +294,22 @@ bool RSSystemProperties::GetASTCEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetCachedBlurPartialRenderEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetImageGpuResourceCacheEnable(int width, int height)
+{
+    return false;
+}
+
+bool RSSystemProperties::IsPhoneType()
+{
+    return false;
+}
+
+bool RSSystemProperties::IsPcType()
 {
     return false;
 }
@@ -277,6 +322,35 @@ bool RSSystemProperties::GetSyncTransactionEnabled()
 int RSSystemProperties::GetSyncTransactionWaitDelay()
 {
     return 0;
+}
+
+bool RSSystemProperties::GetUseShadowBatchingEnabled()
+{
+    return true;
+}
+
+bool RSSystemProperties::GetSingleFrameComposerEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetSubSurfaceEnabled()
+{
+    return false;
+}
+bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetEffectMergeEnabled()
+{
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

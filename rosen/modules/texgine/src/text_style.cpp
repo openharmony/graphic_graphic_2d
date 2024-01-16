@@ -59,13 +59,17 @@ bool TextStyle::operator ==(TextStyle const &rhs) const
            decorationStyle == rhs.decorationStyle &&
            decorationThicknessScale == rhs.decorationThicknessScale &&
            shadows == rhs.shadows &&
-           foreground == rhs.foreground &&
-           background == rhs.background &&
            fontWeight == rhs.fontWeight &&
            fontStyle == rhs.fontStyle &&
            fontFeature == rhs.fontFeature &&
            letterSpacing == rhs.letterSpacing &&
-           wordSpacing == rhs.wordSpacing;
+           wordSpacing == rhs.wordSpacing &&
+           foreground == rhs.foreground &&
+           background == rhs.background &&
+           backgroundRect == rhs.backgroundRect &&
+           styleId == rhs.styleId &&
+           isSymbolGlyph == rhs.isSymbolGlyph &&
+           symbol == rhs.symbol;
 }
 } // namespace TextEngine
 } // namespace Rosen

@@ -32,7 +32,7 @@ SkiaFont::SkiaFont(std::shared_ptr<Typeface> typeface, scalar size, scalar scale
         LOGE("typeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return;
     }
-    std::shared_ptr<SkiaTypeface> skiaTypeface = typeface->GetImpl<SkiaTypeface>();
+    auto skiaTypeface = typeface->GetImpl<SkiaTypeface>();
     if (!skiaTypeface) {
         skFont_ = SkFont(nullptr, size, scaleX, skewX);
         LOGE("skiaTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
@@ -62,7 +62,7 @@ void SkiaFont::SetTypeface(std::shared_ptr<Typeface> typeface)
         LOGE("typeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return;
     }
-    std::shared_ptr<SkiaTypeface> skiaTypeface = typeface->GetImpl<SkiaTypeface>();
+    auto skiaTypeface = typeface->GetImpl<SkiaTypeface>();
     if (!skiaTypeface) {
         LOGE("skiaTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return;
@@ -127,6 +127,19 @@ void SkiaFont::GetWidths(const uint16_t glyphs[], int count, scalar widths[], Re
     for (int idx = 0; idx < count; ++idx) {
         SkiaConvertUtils::SkRectCastToDrawingRect(skBounds[idx], bounds[idx]);
     }
+}
+
+scalar SkiaFont::GetSize() const
+{
+    return skFont_.getSize();
+}
+
+std::shared_ptr<Typeface> SkiaFont::GetTypeface() const
+{
+    sk_sp<SkTypeface> skTypeface = sk_ref_sp(skFont_.getTypeface());
+    auto skiaTypeface = std::make_shared<SkiaTypeface>(skTypeface);
+    auto typeface = std::make_shared<Typeface>(skiaTypeface);
+    return typeface;
 }
 
 scalar SkiaFont::MeasureText(const void* text, size_t byteLength, TextEncoding encoding)

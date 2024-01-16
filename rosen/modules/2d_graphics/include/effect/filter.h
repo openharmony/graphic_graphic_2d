@@ -54,6 +54,8 @@ public:
     FilterQuality GetFilterQuality() const;
     void SetFilterQuality(FilterQuality fq);
 
+    void Reset();
+
     friend bool operator==(const Filter& f1, const Filter& f2);
     friend bool operator!=(const Filter& f1, const Filter& f2);
 

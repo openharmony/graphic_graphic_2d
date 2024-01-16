@@ -63,7 +63,7 @@ void Builder::AnalyseFilters(cJSON* filters)
         cJSON* type = cJSON_GetObjectItem(item, "type");
         cJSON* name = cJSON_GetObjectItem(item, "name");
         cJSON* params = cJSON_GetObjectItem(item, "params");
-        if (type != nullptr && name != nullptr) {
+        if (type != nullptr && name != nullptr && type->valuestring != nullptr && name->valuestring != nullptr) {
             nameType_[name->valuestring] = type->valuestring;
             auto tempFilter = filterFactory->GetFilter(type->valuestring);
             if (tempFilter != nullptr) {
@@ -122,7 +122,7 @@ void Builder::ConnectPipeline(cJSON* connections)
         cJSON* to = cJSON_GetObjectItem(item, "to");
         std::shared_ptr<Filter> fFilter = nullptr;
         std::shared_ptr<Filter> tFilter = nullptr;
-        if (from != nullptr && to != nullptr) {
+        if (from != nullptr && to != nullptr && from->valuestring != nullptr && to->valuestring != nullptr) {
             auto itFrom = nameFilter_.find(from->valuestring);
             if (itFrom != nameFilter_.end()) {
                 fFilter = itFrom->second;

@@ -70,7 +70,7 @@ HWTEST_F(RSScreenHDRCapabilityTest, Unmarshalling001, TestSize.Level1)
  */
 HWTEST_F(RSScreenHDRCapabilityTest, marshallingAndUnmarshallling001, TestSize.Level1)
 {
-    std::vector<ScreenHDRFormat> formats = {ScreenHDRFormat::HDR10, ScreenHDRFormat::HDR_VIVID};
+    std::vector<ScreenHDRFormat> formats = {ScreenHDRFormat::VIDEO_HDR10, ScreenHDRFormat::VIDEO_HDR_VIVID};
     RSScreenHDRCapability rs(1.f, 1.f, 1.f, formats);
     Parcel parcel;
     auto bufferSize = parcel.GetMaxCapacity();

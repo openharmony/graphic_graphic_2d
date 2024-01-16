@@ -19,6 +19,7 @@
 #include <iomanip>
 #include <list>
 #include <queue>
+#include <mutex>
 
 #include <hb.h>
 #include <hb-icu.h>
@@ -83,7 +84,7 @@ public:
      * @param fontFeatures The output parameter. Will passed to harfbuzz
      * @param ff Font features user want
      */
-    void GenerateHBFeatures(std::vector<hb_feature_t> &fontFeatures, const FontFeatures *ff);
+    void GenerateHBFeatures(std::vector<hb_feature_t> &fontFeatures, const FontFeatures* ff);
 
 private:
     struct MeasurerCacheKey {
@@ -91,7 +92,7 @@ private:
         FontStyles style;
         std::string locale = "";
         bool rtl = false;
-        uint32_t size = 16.0; // default TextStyle fontSize_
+        double size = 16.0; // default TextStyle fontSize_
         size_t startIndex = 0;
         size_t endIndex = 0;
         double letterSpacing = 0;
@@ -134,18 +135,20 @@ private:
         std::vector<Boundary> boundaries = {};
     };
 
-    void DoSeekScript(std::list<struct MeasuringRun> &runs, hb_unicode_funcs_t *icuGetUnicodeFuncs);
+    void DoSeekScript(std::list<struct MeasuringRun> &runs, hb_unicode_funcs_t* icuGetUnicodeFuncs);
     int DoShape(CharGroups &cgs, MeasuringRun &run, size_t &index);
-    int GetGlyphs(CharGroups &cgs, MeasuringRun &run, size_t &index, hb_buffer_t *hbuffer,
+    int GetGlyphs(CharGroups &cgs, MeasuringRun &run, size_t &index, hb_buffer_t* hbuffer,
         std::shared_ptr<TextEngine::Typeface> typeface);
     void DoCgsByCluster(std::map<uint32_t, TextEngine::CharGroup> &cgsByCluster);
-
+    void HbDestroy(hb_buffer_t* hbuffer, hb_font_t* hfont, hb_face_t* hface, hb_unicode_funcs_t* icuGetUnicodeFuncs);
+    void UpdateCache();
+    void GetInitKey(struct MeasurerCacheKey &key);
+    static inline std::mutex mutex_;
     static inline std::map<struct MeasurerCacheKey, struct MeasurerCacheVal> cache_;
     std::vector<Boundary> boundaries_ = {};
-    std::string detectionName_;
 };
 
-hb_blob_t *HbFaceReferenceTableTypeface(hb_face_t *face, hb_tag_t tag, void *context);
+hb_blob_t* HbFaceReferenceTableTypeface(hb_face_t* face, hb_tag_t tag, void* context);
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS

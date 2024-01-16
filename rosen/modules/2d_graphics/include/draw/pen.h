@@ -31,12 +31,14 @@ public:
         MITER_JOIN,
         ROUND_JOIN,
         BEVEL_JOIN,
+        DEFAULT_JOIN = MITER_JOIN
     };
 
     enum class CapStyle {
         FLAT_CAP,
         SQUARE_CAP,
         ROUND_CAP,
+        DEFAULT_CAP = FLAT_CAP
     };
 
     Pen() noexcept;
@@ -48,13 +50,14 @@ public:
     Color GetColor() const;
     void SetColor(const Color& c);
     void SetColor(int c);
-    void SetARGB(int r, int g, int b, int a);
+    void SetARGB(int a, int r, int g, int b);
 
     Color4f GetColor4f();
     std::shared_ptr<ColorSpace> GetColorSpace() const;
     void SetColor(const Color4f& cf, std::shared_ptr<ColorSpace> s);
 
     uint32_t GetAlpha() const;
+    scalar GetAlphaF() const;
     void SetAlpha(uint32_t a);
     void SetAlphaF(scalar a);
 
@@ -81,14 +84,15 @@ public:
 
     void SetFilter(const Filter& filter);
     Filter GetFilter() const;
+    bool HasFilter() const;
 
     void SetShaderEffect(std::shared_ptr<ShaderEffect> e);
     std::shared_ptr<ShaderEffect> GetShaderEffect() const;
 
     void Reset();
 
-    friend bool operator==(const Pen& p1, const Pen& p2);
-    friend bool operator!=(const Pen& p1, const Pen& p2);
+    friend DRAWING_API bool operator==(const Pen& p1, const Pen& p2);
+    friend DRAWING_API bool operator!=(const Pen& p1, const Pen& p2);
 
 private:
     scalar width_;

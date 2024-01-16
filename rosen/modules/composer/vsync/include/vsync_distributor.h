@@ -44,7 +44,7 @@ class VSyncConnection : public VSyncConnectionStub {
 public:
 
     VSyncConnection(const sptr<VSyncDistributor>& distributor, std::string name,
-                    const sptr<IRemoteObject>& token = nullptr);
+                    const sptr<IRemoteObject>& token = nullptr, uint64_t id = 0);
     ~VSyncConnection();
 
     virtual VsyncError RequestNextVSync() override;
@@ -55,11 +55,16 @@ public:
 
     int32_t PostEvent(int64_t now, int64_t period, int64_t vsyncCount);
 
-    int32_t rate_;
+    int32_t rate_; // used for LTPS
     int32_t highPriorityRate_ = -1;
     bool highPriorityState_ = false;
     ConnectionInfo info_;
     int32_t proxyPid_;
+    bool triggerThisTime_ = false; // used for LTPO
+    uint64_t id_ = 0;
+    uint32_t vsyncPulseFreq_ = 1;
+    int64_t referencePulseCount_ = 0;
+    uint32_t refreshRate_ = 0;
 private:
     VsyncError CleanAllLocked();
     class VSyncConnectionDeathRecipient : public IRemoteObject::DeathRecipient {
@@ -105,28 +110,40 @@ private:
     // check, add more info
     struct VSyncEvent {
         int64_t timestamp;
-        int64_t vsyncCount;
+        int64_t vsyncCount; // used for LTPS
         int64_t period;
+        int64_t vsyncPulseCount; // used for LTPO
+        int32_t refreshRate;
     };
     void ThreadMain();
     void EnableVSync();
     void DisableVSync();
-    void OnVSyncEvent(int64_t now, int64_t period);
+    void OnVSyncEvent(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode);
     void CollectConnections(bool &waitForVSync, int64_t timestamp,
                             std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount);
     VsyncError QosGetPidByName(const std::string& name, uint32_t& pid);
     void PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &conns, int64_t timestamp);
+    void ChangeConnsRateLocked();
+    void CollectConnectionsLTPO(bool &waitForVSync, int64_t timestamp,
+                                std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount);
+    /* std::pair<id, refresh rate> */
+    void OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates);
 
     std::thread threadLoop_;
     sptr<VSyncController> controller_;
     std::mutex mutex_;
     std::condition_variable con_;
     std::vector<sptr<VSyncConnection> > connections_;
+    std::map<uint32_t, std::vector<sptr<VSyncConnection>>> connectionsMap_;
     VSyncEvent event_;
     bool vsyncEnabled_;
     std::string name_;
     bool vsyncThreadRunning_;
     std::unordered_map<int32_t, int32_t> connectionCounter_;
+    std::vector<std::pair<uint64_t, uint32_t>> changingConnsRefreshRates_; // std::pair<id, refresh rate>
+    VSyncMode vsyncMode_ = VSYNC_MODE_LTPS; // default LTPS
+    std::mutex changingConnsRefreshRatesMtx_;
+    uint32_t generatorRefreshRate_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

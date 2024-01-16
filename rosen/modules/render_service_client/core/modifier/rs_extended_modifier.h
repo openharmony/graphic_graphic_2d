@@ -95,9 +95,9 @@ protected:
         Draw(ctx);
         auto drawCmdList = RSExtendedModifierHelper::FinishDrawing(ctx);
 #ifndef USE_ROSEN_DRAWING
-        bool isEmpty = drawCmdList == nullptr || drawCmdList->GetSize() == 0;
+        bool isEmpty = drawCmdList == nullptr;
 #else
-        bool isEmpty = drawCmdList == nullptr || drawCmdList->IsEmpty();
+        bool isEmpty = drawCmdList == nullptr;
 #endif
         if (lastDrawCmdListEmpty_ && isEmpty) {
             return;
@@ -105,13 +105,13 @@ protected:
         lastDrawCmdListEmpty_ = isEmpty;
 
         std::unique_ptr<RSCommand> command = std::make_unique<RSUpdatePropertyDrawCmdList>(
-            node->GetId(), drawCmdList, property_->id_, false);
+            node->GetId(), drawCmdList, property_->id_, UPDATE_TYPE_OVERWRITE);
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
             transactionProxy->AddCommand(command, node->IsRenderServiceNode());
             if (node->NeedForcedSendToRemote()) {
                 std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSUpdatePropertyDrawCmdList>(
-                    node->GetId(), drawCmdList, property_->id_, false);
+                    node->GetId(), drawCmdList, property_->id_, UPDATE_TYPE_OVERWRITE);
                 transactionProxy->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
             }
         }
@@ -174,11 +174,11 @@ protected:
 #ifndef USE_ROSEN_DRAWING
         auto SkMatrix = GeometryEffect(canvasnode->GetPaintWidth(), canvasnode->GetPaintHeight());
         std::unique_ptr<RSCommand> command = std::make_unique<RSUpdatePropertySkMatrix>(
-            node->GetId(), SkMatrix, property_->id_, false);
+            node->GetId(), SkMatrix, property_->id_, UPDATE_TYPE_OVERWRITE);
 #else
         auto matrix = GeometryEffect(canvasnode->GetPaintWidth(), canvasnode->GetPaintHeight());
         std::unique_ptr<RSCommand> command = std::make_unique<RSUpdatePropertyDrawingMatrix>(
-            node->GetId(), matrix, property_->id_, false);
+            node->GetId(), matrix, property_->id_, UPDATE_TYPE_OVERWRITE);
 #endif
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
@@ -186,10 +186,10 @@ protected:
             if (node->NeedForcedSendToRemote()) {
 #ifndef USE_ROSEN_DRAWING
                 std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSUpdatePropertySkMatrix>(
-                    node->GetId(), SkMatrix, property_->id_, false);
+                    node->GetId(), SkMatrix, property_->id_, UPDATE_TYPE_OVERWRITE);
 #else
                 std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSUpdatePropertyDrawingMatrix>(
-                    node->GetId(), matrix, property_->id_, false);
+                    node->GetId(), matrix, property_->id_, UPDATE_TYPE_OVERWRITE);
 #endif
                 transactionProxy->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
             }

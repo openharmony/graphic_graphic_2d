@@ -18,6 +18,8 @@
 #include <consumer_surface.h>
 #include "buffer_consumer_listener.h"
 #include <native_window.h>
+#include "sync_fence.h"
+#include "producer_surface_delegator.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -47,6 +49,7 @@ public:
     static inline sptr<IConsumerSurface> csurf = nullptr;
     static inline sptr<IBufferProducer> producer = nullptr;
     static inline sptr<Surface> pSurface = nullptr;
+    static inline sptr<ProducerSurfaceDelegator> surfaceDelegator = nullptr;
 
     static inline GSError OnBufferRelease(sptr<SurfaceBuffer> &buffer)
     {
@@ -759,5 +762,41 @@ HWTEST_F(ProducerSurfaceTest, SetWptrNativeWindowToPSurface001, Function | Mediu
     struct NativeWindow nativeWindow;
     GSError ret = pSurface->SetWptrNativeWindowToPSurface(&nativeWindow);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
+}
+
+/*
+* Function: AttachBuffer
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. AttachBuffer and check ret
+* @tc.require: issueI7WYIY
+ */
+HWTEST_F(ProducerSurfaceTest, AttachBuffer001, Function | MediumTest | Level1)
+{
+    GSError ret = pSurface->CleanCache();
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    ASSERT_NE(buffer, nullptr);
+    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
+    int32_t timeOut = 5;
+    ret = pSurface->AttachBuffer(buffer, timeOut);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+}
+
+/*
+* Function: RegisterSurfaceDelegator000
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. RegisterSurfaceDelegator and check ret
+* @tc.require: issueI7WYIY
+ */
+HWTEST_F(ProducerSurfaceTest, RegisterSurfaceDelegator001, Function | MediumTest | Level1)
+{
+    GSError ret = pSurface->CleanCache();
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    ret = pSurface->RegisterSurfaceDelegator(nullptr);
+    ASSERT_EQ(ret, OHOS::GSERROR_INVALID_ARGUMENTS);
 }
 }

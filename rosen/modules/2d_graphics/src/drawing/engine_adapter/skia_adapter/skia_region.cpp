@@ -17,7 +17,10 @@
 
 #include "include/core/SkRegion.h"
 #include "include/core/SkRect.h"
+#include "src/core/SkReadBuffer.h"
+#include "src/core/SkWriteBuffer.h"
 
+#include "utils/data.h"
 #include "utils/region.h"
 #include "utils/log.h"
 #include "skia_path.h"
@@ -51,7 +54,7 @@ bool SkiaRegion::GetBoundaryPath(Path* path) const
     if (!path) {
         return skRegion_->getBoundaryPath(nullptr);
     }
-    std::shared_ptr<SkiaPath> skiaPath = path->GetImpl<SkiaPath>();
+    auto skiaPath = path->GetImpl<SkiaPath>();
     if (!skiaPath) {
         LOGE("SkiaRegion::GetBoundaryPath, skiaPath is nullptr");
         return skRegion_->getBoundaryPath(nullptr);
@@ -91,6 +94,38 @@ bool SkiaRegion::Op(const Region& region, RegionOp op)
         return false;
     }
     return skRegion_->op(*skRegion, static_cast<SkRegion::Op>(op));
+}
+
+void SkiaRegion::Clone(const Region& other)
+{
+    auto skRegion = other.GetImpl<SkiaRegion>()->GetSkRegion();
+    if (skRegion == nullptr) {
+        LOGE("SkiaRegion::Clone, skRegion is nullptr");
+        return;
+    }
+    *skRegion_ = *skRegion;
+}
+
+std::shared_ptr<Data> SkiaRegion::Serialize() const
+{
+    SkBinaryWriteBuffer writer;
+    writer.writeRegion(*skRegion_);
+    size_t length = writer.bytesWritten();
+    std::shared_ptr<Data> data = std::make_shared<Data>();
+    data->BuildUninitialized(length);
+    writer.writeToMemory(data->WritableData());
+    return data;
+}
+
+bool SkiaRegion::Deserialize(std::shared_ptr<Data> data)
+{
+    if (data == nullptr) {
+        LOGE("SkiaRegion::Deserialize, data is invalid!");
+        return false;
+    }
+    SkReadBuffer reader(data->GetData(), data->GetSize());
+    reader.readRegion(skRegion_.get());
+    return true;
 }
 
 std::shared_ptr<SkRegion> SkiaRegion::GetSkRegion() const

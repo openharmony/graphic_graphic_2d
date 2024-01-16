@@ -29,7 +29,15 @@ group("unittest") {
 ohos_unittest("RenderContextTest") {
   module_out_path = module_output_path
   sources = [ "render_context_test.cpp" ]
-  deps = [ ":render_context" ]
+  deps = [
+    ":render_context",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+  ]
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
+  include_dirs =
+      [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
 
   external_deps = [
     "c_utils:utils",
@@ -79,13 +87,10 @@ ohos_unittest("2d_graphics_shader_cache_test") {
     "$graphic_2d_root/rosen/modules/2d_engine",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
   ]
 
-  if (defined(use_new_skia) && use_new_skia) {
-    include_dirs += [ "//third_party/skia/" ]
-  } else {
-    include_dirs += [ "//third_party/flutter/skia/" ]
-  }
+  include_dirs += [ "//third_party/skia/" ]
 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",

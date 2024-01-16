@@ -40,6 +40,7 @@ enum RSCommandType : uint16_t {
     ANIMATION,
     // read showing properties (deprecated, will be removed later)
     RS_NODE_SYNCHRONOUS_READ_PROPERTY,
+    FRAME_RATE_LINKER,
 };
 
 // [attention]
@@ -90,14 +91,14 @@ public:
     {
         return timeoutNS_;
     }
-    inline bool GetResult() const
+    inline bool IsSuccess() const
     {
-        return result_;
+        return success_;
     }
 
 protected:
     uint64_t timeoutNS_ = 0;
-    bool result_ = false;
+    bool success_ = false;
 };
 
 } // namespace Rosen

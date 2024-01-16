@@ -48,7 +48,7 @@ HWTEST_F(SkiaImageTest, BuildFromBitmap001, TestSize.Level1)
     Bitmap bitmap;
     std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
     auto image = skiaImage->BuildFromBitmap(bitmap);
-    EXPECT_EQ(image, nullptr);
+    EXPECT_EQ(image, false);
 }
 
 /**
@@ -67,7 +67,7 @@ HWTEST_F(SkiaImageTest, BuildFromPicture001, TestSize.Level1)
     std::shared_ptr<ColorSpace> colorSpace = ColorSpace::CreateSRGB();
     std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
     auto image = skiaImage->BuildFromPicture(picture, dimensions, matrix, brush, bitDepth, colorSpace);
-    EXPECT_EQ(image, nullptr);
+    EXPECT_EQ(image, false);
 }
 
 } // namespace Drawing

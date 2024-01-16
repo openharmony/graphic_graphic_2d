@@ -17,10 +17,18 @@
 
 namespace OHOS {
 namespace Rosen {
+
+#ifndef USE_ROSEN_DRAWING
 SurfaceFrameOhosVulkan::SurfaceFrameOhosVulkan(sk_sp<SkSurface> surface, int32_t width, int32_t height)
     : SurfaceFrameOhos(width, height), surface_(surface), colorSpace_(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB)
 {
 }
+#else
+SurfaceFrameOhosVulkan::SurfaceFrameOhosVulkan(std::shared_ptr<Drawing::Surface> surface, int32_t width, int32_t height)
+    : SurfaceFrameOhos(width, height), surface_(surface), colorSpace_(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB)
+{
+}
+#endif
 
 SurfaceFrameOhosVulkan::~SurfaceFrameOhosVulkan()
 {
@@ -36,14 +44,16 @@ GraphicColorGamut SurfaceFrameOhosVulkan::GetColorSpace() const
     return colorSpace_;
 }
 
-SkCanvas* SurfaceFrameOhosVulkan::GetCanvas()
+#ifdef USE_ROSEN_DRAWING
+Drawing::Canvas* SurfaceFrameOhosVulkan::GetCanvas()
 {
-    return surface_ != nullptr ? surface_->GetCanvas() : nullptr;
+    return surface_ != nullptr ? surface_->GetCanvas().get() : nullptr;
 }
 
-sk_sp<SkSurface> SurfaceFrameOhosVulkan::GetSurface()
+Drawing::Surface* SurfaceFrameOhosVulkan::GetSurface()
 {
-    return surface_;
+    return surface_ != nullptr ? surface_.get() : nullptr;
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS

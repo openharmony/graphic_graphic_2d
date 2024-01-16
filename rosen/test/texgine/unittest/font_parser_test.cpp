@@ -92,6 +92,18 @@ HWTEST_F(FontParserTest, FontParserTest2, TestSize.Level1)
         EXPECT_EQ(visibilityFonts.size(), 0);
     }
 }
+
+/**
+ * @tc.name: FontConfigTest1
+ * @tc.desc: test font file parser
+ * @tc.type:FUNC
+ */
+HWTEST_F(FontParserTest, FontConfigTest1, TestSize.Level1)
+{
+    FontConfigJson fontConfigJson;
+    EXPECT_EQ(fontConfigJson.ParseFile(), 0);
+    fontConfigJson.Dump();
+}
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS

@@ -20,6 +20,7 @@
 #include "include/effects/SkRuntimeEffect.h"
 #endif
 
+#include "property/rs_properties_painter.h"
 #include "common/rs_macros.h"
 #include "render/rs_skia_filter.h"
 #include "render/rs_kawase_blur.h"
@@ -57,6 +58,7 @@ public:
     void DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const Drawing::Rect& src, const Drawing::Rect& dst) const override;
 #endif
+    void SetGreyCoef(float greyCoef1, float greyCoef2, bool isGreyCoefValid) override;
 
     bool CanSkipFrame() const override;
 
@@ -67,9 +69,10 @@ public:
 private:
     float blurRadiusX_;
     float blurRadiusY_;
-#ifndef USE_ROSEN_DRAWING
+    float greyCoef1_ = 0.f;
+    float greyCoef2_ = 0.f;
+    bool isGreyCoefValid_ = false;
     bool useKawase_ = false;
-#endif
 };
 } // namespace Rosen
 } // namespace OHOS

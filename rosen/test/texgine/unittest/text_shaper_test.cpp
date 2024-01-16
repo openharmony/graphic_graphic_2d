@@ -50,22 +50,12 @@ void InitTsMockVars(struct MockVars &&vars)
     g_tsMockvars = std::move(vars);
 }
 
-std::shared_ptr<TexgineTextBlobBuilder::RunBuffer> TexgineTextBlobBuilder::AllocRunPos(const TexgineFont& font,
-    int count)
-{
-    static std::shared_ptr<TexgineTextBlobBuilder::RunBuffer> buffer =
-        std::make_shared<TexgineTextBlobBuilder::RunBuffer>();
-    g_tsMockvars.catchedBufferGlyphs.resize(count);
-    g_tsMockvars.catchedBufferPos.resize(count * 2);
-    buffer->glyphs = g_tsMockvars.catchedBufferGlyphs.data();
-    buffer->pos = g_tsMockvars.catchedBufferPos.data();
-    return buffer;
-}
-
+#ifndef USE_ROSEN_DRAWING
 std::shared_ptr<TexgineTextBlob> TexgineTextBlobBuilder::Make()
 {
     return g_tsMockvars.retvalTextBlobBuilderMake;
 }
+#endif
 
 std::shared_ptr<FontCollection> FontProviders::GenerateFontCollection(
     const std::vector<std::string> &families) const noexcept(true)
@@ -232,7 +222,8 @@ HWTEST_F(TextShaperTest, GenerateTextBlob1, TestSize.Level1)
     double spanWidth = 0.0;
     std::vector<double> glyphWidths;
     TextShaper shaper;
-    ASSERT_EXCEPTION(ExceptionType::API_FAILED, shaper.GenerateTextBlob({},
+    TexgineFont font;
+    ASSERT_EXCEPTION(ExceptionType::API_FAILED, shaper.GenerateTextBlob(font,
         CharGroups::CreateEmpty(), spanWidth, glyphWidths));
 }
 
@@ -247,7 +238,8 @@ HWTEST_F(TextShaperTest, GenerateTextBlob2, TestSize.Level1)
         double spanWidth = 0.0;
         std::vector<double> glyphWidths;
         TextShaper shaper;
-        shaper.GenerateTextBlob({}, cgs1_, spanWidth, glyphWidths);
+        TexgineFont font;
+        shaper.GenerateTextBlob(font, cgs1_, spanWidth, glyphWidths);
         ASSERT_EQ(spanWidth, 2);
         // 2.0 is glyph width
         ASSERT_EQ(glyphWidths, (std::vector<double>{2.0}));
@@ -269,7 +261,8 @@ HWTEST_F(TextShaperTest, GenerateTextBlob3, TestSize.Level1)
         double spanWidth = 0.0;
         std::vector<double> glyphWidths;
         TextShaper shaper;
-        shaper.GenerateTextBlob({}, cgs2_, spanWidth, glyphWidths);
+        TexgineFont font;
+        shaper.GenerateTextBlob(font, cgs2_, spanWidth, glyphWidths);
         ASSERT_EQ(spanWidth, 2);
         ASSERT_EQ(glyphWidths, (std::vector<double>{1.0, 1.0}));
         ASSERT_EQ(g_tsMockvars.catchedBufferPos, (std::vector<float>{0.1, -0.1, 1.2, -0.2}));

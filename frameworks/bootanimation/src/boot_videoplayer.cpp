@@ -20,6 +20,10 @@
 #include "util.h"
 
 using namespace OHOS;
+#ifdef PLAYER_FRAMEWORK_ENABLE
+static const int CONTENT_TYPE_UNKNOWN = 0;
+static const int STREAM_USAGE_RINGTONE = 6;
+#endif
 
 void BootVideoPlayer::SetVideoPath(const std::string& path)
 {
@@ -74,14 +78,9 @@ bool BootVideoPlayer::PlayVideo()
         LOGE("PlayVideo SetVideoSurface fail, errorCode:%{public}d", ret);
         return false;
     }
-    bool bootSoundEnabled = BootAnimationUtils::GetBootAnimationSoundEnabled();
-    if (!bootSoundEnabled) {
-        ret = mediaPlayer_->SetVolume(0, 0);
-        if (ret !=  0) {
-            LOGE("PlayVideo SetVolume fail, errorCode:%{public}d", ret);
-            return false;
-        }
-    }
+
+    SetVideoSound();
+    
     ret = mediaPlayer_->Prepare();
     if (ret !=  0) {
         LOGE("PlayVideo Prepare fail, errorCode:%{public}d", ret);
@@ -98,18 +97,38 @@ bool BootVideoPlayer::PlayVideo()
 
 void BootVideoPlayer::StopVideo()
 {
-#ifdef PLAYER_FRAMEWORK_ENABLE
-    mediaPlayer_->Stop();
-#endif
+    LOGI("BootVideoPlayer StopVideo");
     vsyncCallbacks_(userData_);
+}
+
+void BootVideoPlayer::SetVideoSound()
+{
+#ifdef PLAYER_FRAMEWORK_ENABLE
+    LOGI("BootVideoPlayer SetVideoSound");
+    Media::Format format;
+    format.PutIntValue(Media::PlayerKeys::CONTENT_TYPE, CONTENT_TYPE_UNKNOWN);
+    format.PutIntValue(Media::PlayerKeys::STREAM_USAGE, STREAM_USAGE_RINGTONE);
+    format.PutIntValue(Media::PlayerKeys::RENDERER_FLAG, 0);
+    int ret = mediaPlayer_->SetParameter(format);
+    if (ret !=  0) {
+        LOGE("PlayVideo SetParameter fail, errorCode:%{public}d", ret);
+    }
+
+    bool bootSoundEnabled = BootAnimationUtils::GetBootAnimationSoundEnabled();
+    if (!bootSoundEnabled) {
+        ret = mediaPlayer_->SetVolume(0, 0);
+        if (ret !=  0) {
+            LOGE("PlayVideo SetVolume fail, errorCode:%{public}d", ret);
+        }
+    }
+#endif
 }
 
 #ifdef PLAYER_FRAMEWORK_ENABLE
 // PlayerCallback override
 void VideoPlayerCallback::OnError(int32_t errorCode, const std::string &errorMsg)
 {
-    std::string err = Media::MSErrorToString(static_cast<Media::MediaServiceErrCode>(errorCode));
-    LOGE("PlayerCallbackError received, errorCode:%{public}s", err.c_str());
+    LOGE("PlayerCallbackError received, errorMsg:%{public}s", errorMsg.c_str());
     boot_->StopVideo();
 }
 #endif

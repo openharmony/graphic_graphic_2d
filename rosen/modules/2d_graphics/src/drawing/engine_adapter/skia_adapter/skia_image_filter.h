@@ -38,6 +38,7 @@ public:
 
     void InitWithBlur(scalar sigmaX, scalar sigmaY, TileMode mode, const std::shared_ptr<ImageFilter> f) override;
     void InitWithColor(const ColorFilter& colorFilter, const std::shared_ptr<ImageFilter> f) override;
+    void InitWithColorBlur(const ColorFilter& colorFilter, scalar sigmaX, scalar sigmaY) override;
     void InitWithOffset(scalar dx, scalar dy, const std::shared_ptr<ImageFilter> f) override;
     void InitWithArithmetic(const std::vector<scalar>& coefficients, bool enforcePMColor,
         const std::shared_ptr<ImageFilter> f1, const std::shared_ptr<ImageFilter> f2) override;
@@ -48,6 +49,8 @@ public:
      */
     void SetSkImageFilter(const sk_sp<SkImageFilter>& filter);
 
+    std::shared_ptr<Data> Serialize() const override;
+    bool Deserialize(std::shared_ptr<Data> data) override;
 private:
     sk_sp<SkImageFilter> filter_;
 };

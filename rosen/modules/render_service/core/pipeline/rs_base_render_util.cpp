@@ -232,9 +232,7 @@ static const std::shared_ptr<Drawing::ColorFilter>& InvertColorMat()
         -0.599, -1.175, 0.772,  1.0, 0.0,
         0.0,    0.0,    0.0,    1.0, 0.0
     };
-    Drawing::ColorMatrix colorMatrix;
-    colorMatrix.SetArray(colorMatrixArray);
-    static auto invertColorMat = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+    static auto invertColorMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return invertColorMat;
 }
 #endif
@@ -260,9 +258,7 @@ static const std::shared_ptr<Drawing::ColorFilter>& ProtanomalyMat()
         0.217,  -0.217, 1.0, 0.0, 0.0,
         0.0,    0.0,    0.0, 1.0, 0.0
     };
-    Drawing::ColorMatrix colorMatrix;
-    colorMatrix.SetArray(colorMatrixArray);
-    static auto protanomalyMat = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+    static auto protanomalyMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return protanomalyMat;
 }
 #endif
@@ -288,9 +284,7 @@ static const std::shared_ptr<Drawing::ColorFilter>& DeuteranomalyMat()
         -0.258, 0.258, 1.0, 0.0, 0.0,
         0.0,    0.0,   0.0, 1.0, 0.0
     };
-    Drawing::ColorMatrix colorMatrix;
-    colorMatrix.SetArray(colorMatrixArray);
-    static auto deuteranomalyMat = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+    static auto deuteranomalyMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return deuteranomalyMat;
 }
 #endif
@@ -316,9 +310,7 @@ static const std::shared_ptr<Drawing::ColorFilter>& TritanomalyMat()
         0.0, 0.105,  0.895, 0.0, 0.0,
         0.0, 0.0,    0.0,   1.0, 0.0
     };
-    Drawing::ColorMatrix colorMatrix;
-    colorMatrix.SetArray(colorMatrixArray);
-    static auto tritanomalyMat = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+    static auto tritanomalyMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return tritanomalyMat;
 }
 #endif
@@ -339,14 +331,12 @@ static const sk_sp<SkColorFilter>& InvertProtanomalyMat()
 static const std::shared_ptr<Drawing::ColorFilter>& InvertProtanomalyMat()
 {
     static const Drawing::scalar colorMatrixArray[MATRIX_SIZE] = {
-        0.025,  -0.796, -0.228, 1.0, 0.0,
-        -0.334, -0.438, -0.228, 1.0, 0.0,
-        -0.382, -1.392, 0.772,  1.0, 0.0,
+        -0.109, -0.663, -0.228, 1.0, 0.0,
+        -0.468, -0.304, -0.228, 1.0, 0.0,
+        -0.516, -1.258, 0.772,  1.0, 0.0,
         0.0,    0.0,    0.0,    1.0, 0.0
     };
-    Drawing::ColorMatrix colorMatrix;
-    colorMatrix.SetArray(colorMatrixArray);
-    static auto invertProtanomalyMat = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+    static auto invertProtanomalyMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return invertProtanomalyMat;
 }
 #endif
@@ -367,14 +357,12 @@ static const sk_sp<SkColorFilter>& InvertDeuteranomalyMat()
 static const std::shared_ptr<Drawing::ColorFilter>& InvertDeuteranomalyMat()
 {
     static const Drawing::scalar colorMatrixArray[MATRIX_SIZE] = {
-        -0.31,  -0.462, -0.228, 1.0, 0.0,
-        -0.545, -0.227, -0.228, 1.0, 0.0,
-        -0.857, -0.917, 0.772,  1.0, 0.0,
+        0.113,  -0.885, -0.228, 1.0, 0.0,
+        -0.123, -0.649, -0.228, 1.0, 0.0,
+        -0.434, -1.341, 0.772,  1.0, 0.0,
         0.0,    0.0,    0.0,    1.0, 0.0
     };
-    Drawing::ColorMatrix colorMatrix;
-    colorMatrix.SetArray(colorMatrixArray);
-    static auto invertDeuteranomalyMat = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+    static auto invertDeuteranomalyMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return invertDeuteranomalyMat;
 }
 #endif
@@ -395,14 +383,12 @@ static const sk_sp<SkColorFilter>& InvertTritanomalyMat()
 static const std::shared_ptr<Drawing::ColorFilter>& InvertTritanomalyMat()
 {
     static const Drawing::scalar colorMatrixArray[MATRIX_SIZE] = {
-        0.401,  -1.98,  0.578, 1.0, 0.0,
-        -0.599, -0.796, 0.393, 1.0, 0.0,
-        -0.599, -1.07,  0.667, 1.0, 0.0,
-        0.0,    0.0,    0.0,   1.0, 0.0
+        0.402,  -0.792, -0.609, 1.0, 0.0,
+        -0.598, 0.392,  -0.794, 1.0, 0.0,
+        -0.598, 0.118,  -0.521, 1.0, 0.0,
+        0.0,    0.0,    0.0,    1.0, 0.0
     };
-    Drawing::ColorMatrix colorMatrix;
-    colorMatrix.SetArray(colorMatrixArray);
-    static auto invertTritanomalyMat = Drawing::ColorFilter::CreateMatrixColorFilter(colorMatrix);
+    static auto invertTritanomalyMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return invertTritanomalyMat;
 }
 #endif
@@ -976,8 +962,8 @@ bool RSBaseRenderUtil::IsForceClient()
     return (std::atoi((system::GetParameter("rosen.client_composition.enabled", "0")).c_str()) != 0);
 }
 
-BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(
-    const ScreenInfo& screenInfo, bool isPhysical)
+BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(const ScreenInfo& screenInfo, bool isPhysical,
+    GraphicColorGamut colorGamut, GraphicPixelFormat pixelFormat)
 {
     BufferRequestConfig config {};
     const auto width = isPhysical ? screenInfo.width : screenInfo.GetRotatedWidth();
@@ -985,7 +971,8 @@ BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(
     config.width = static_cast<int32_t>(width);
     config.height = static_cast<int32_t>(height);
     config.strideAlignment = 0x8; // default stride is 8 Bytes.
-    config.format = GRAPHIC_PIXEL_FMT_RGBA_8888;
+    config.colorGamut = isPhysical ? colorGamut : static_cast<GraphicColorGamut>(screenInfo.colorGamut);
+    config.format = isPhysical ? pixelFormat : screenInfo.pixelFormat;
     config.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB;
     config.timeout = 0;
     return config;
@@ -1363,10 +1350,8 @@ void RSBaseRenderUtil::FlipMatrix(GraphicTransformType transform, BufferDrawPara
     camera3D.ApplyToMatrix(flip);
     const float half = 0.5f;
     flip.PreTranslate(-half * params.dstRect.GetWidth(), -half * params.dstRect.GetHeight());
-    Drawing::Matrix tmpMatrix;
-    tmpMatrix.Translate(half * params.dstRect.GetWidth(), half * params.dstRect.GetHeight());
-    flip = tmpMatrix * flip;
-    params.matrix = params.matrix * flip;
+    flip.PostTranslate(half * params.dstRect.GetWidth(), half * params.dstRect.GetHeight());
+    params.matrix.PreConcat(flip);
 #endif
 }
 
@@ -1453,9 +1438,9 @@ bool RSBaseRenderUtil::CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, s
         return false;
     }
 
-    Drawing::BitmapFormat format { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
-    bitmap.Build(buffer->GetWidth(), buffer->GetHeight(), format);
-    bitmap.SetPixels(newBuffer.data());
+    Drawing::ImageInfo imageInfo(buffer->GetWidth(), buffer->GetHeight(),
+        Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    bitmap.InstallPixels(imageInfo, newBuffer.data(), buffer->GetWidth() * 4);
     return true;
 }
 #endif
@@ -1527,7 +1512,7 @@ std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(Messag
 bool RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& node)
 {
     auto type = RSSystemProperties::GetDumpSurfaceType();
-    if (type == DumpSurfaceType::DISABLED || type == DumpSurfaceType::PIXELMAP) {
+    if (type != DumpSurfaceType::SINGLESURFACE && type != DumpSurfaceType::ALLSURFACES) {
         return false;
     }
     uint64_t id = static_cast<uint64_t>(RSSystemProperties::GetDumpSurfaceId());
@@ -1564,7 +1549,7 @@ bool RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& no
 bool RSBaseRenderUtil::WriteCacheRenderNodeToPng(const RSRenderNode& node)
 {
     auto type = RSSystemProperties::GetDumpSurfaceType();
-    if (type == DumpSurfaceType::DISABLED || type == DumpSurfaceType::PIXELMAP) {
+    if (type != DumpSurfaceType::SINGLESURFACE && type != DumpSurfaceType::ALLSURFACES) {
         return false;
     }
     uint64_t id = static_cast<uint64_t>(RSSystemProperties::GetDumpSurfaceId());
@@ -1637,6 +1622,37 @@ bool RSBaseRenderUtil::WritePixelMapToPng(Media::PixelMap& pixelMap)
     param.height = static_cast<uint32_t>(pixelMap.GetHeight());
     param.data = pixelMap.GetPixels();
     param.stride = static_cast<uint32_t>(pixelMap.GetRowBytes());
+    param.bitDepth = Detail::BITMAP_DEPTH;
+
+    return WriteToPng(filename, param);
+}
+
+bool RSBaseRenderUtil::WriteSurfaceBufferToPng(sptr<SurfaceBuffer>& buffer, uint64_t id)
+{
+    auto type = RSSystemProperties::GetDumpSurfaceType();
+    if (type != DumpSurfaceType::SURFACEBUFFER) {
+        return false;
+    }
+    if (!buffer) {
+        RS_LOGE("RSBaseRenderUtil::WriteSurfaceBufferToPng buffer is nullptr");
+        return false;
+    }
+
+    struct timeval now;
+    gettimeofday(&now, nullptr);
+    constexpr int secToUsec = 1000 * 1000;
+    int64_t nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
+    std::string filename = "/data/SurfaceBuffer_" + std::to_string(id) + "_" + std::to_string(nowVal) + ".png";
+    BufferHandle *bufferHandle = buffer->GetBufferHandle();
+    if (bufferHandle == nullptr) {
+        RS_LOGE("RSBaseRenderUtil::WriteSurfaceBufferToPng bufferHandle is nullptr");
+        return false;
+    }
+    WriteToPngParam param;
+    param.width = static_cast<uint32_t>(bufferHandle->width);
+    param.height = static_cast<uint32_t>(bufferHandle->height);
+    param.data = static_cast<uint8_t *>(buffer->GetVirAddr());
+    param.stride = static_cast<uint32_t>(bufferHandle->stride);
     param.bitDepth = Detail::BITMAP_DEPTH;
 
     return WriteToPng(filename, param);

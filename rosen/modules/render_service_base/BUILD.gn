@@ -37,6 +37,13 @@ if (!is_mingw && !is_mac && !is_cross_platform) {
   }
 
   ohos_static_library("particle_cxx_cppdeps") {
+    branch_protector_ret = "pac_ret"
+    sanitize = {
+      cfi = false
+      cfi_cross_dso = false
+      debug = false
+      blocklist = "./rs_base_blocklist.txt"
+    }
     part_name = "graphic_2d"
     subsystem_name = "graphic"
     defines += [ "RUST_CXX_NO_EXCEPTIONS" ]
@@ -49,6 +56,13 @@ if (!is_mingw && !is_mac && !is_cross_platform) {
 }
 
 ohos_source_set("render_service_base_src") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = false
+    cfi_cross_dso = false
+    debug = false
+    blocklist = "./rs_base_blocklist.txt"
+  }
   defines = []
   defines += gpu_defines
   defines += [ "MODULE_RSB" ]
@@ -57,6 +71,7 @@ ohos_source_set("render_service_base_src") {
     #animation
     "src/animation/rs_animation_fraction.cpp",
     "src/animation/rs_animation_manager.cpp",
+    "src/animation/rs_animation_rate_decider.cpp",
     "src/animation/rs_animation_timing_protocol.cpp",
     "src/animation/rs_interpolator.cpp",
     "src/animation/rs_render_animation.cpp",
@@ -93,6 +108,7 @@ ohos_source_set("render_service_base_src") {
     "src/command/rs_command_factory.cpp",
     "src/command/rs_display_node_command.cpp",
     "src/command/rs_effect_node_command.cpp",
+    "src/command/rs_frame_rate_linker_command.cpp",
     "src/command/rs_node_command.cpp",
     "src/command/rs_node_showing_command.cpp",
     "src/command/rs_proxy_node_command.cpp",
@@ -164,9 +180,14 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_paint_filter_canvas.cpp",
     "src/pipeline/rs_proxy_render_node.cpp",
     "src/pipeline/rs_recording_canvas.cpp",
+    "src/pipeline/rs_render_content.cpp",
+    "src/pipeline/rs_render_display_sync.cpp",
+    "src/pipeline/rs_render_frame_rate_linker.cpp",
+    "src/pipeline/rs_render_frame_rate_linker_map.cpp",
     "src/pipeline/rs_render_node.cpp",
     "src/pipeline/rs_render_node_map.cpp",
     "src/pipeline/rs_root_render_node.cpp",
+    "src/pipeline/rs_single_frame_composer.cpp",
     "src/pipeline/rs_surface_handler.cpp",
     "src/pipeline/rs_surface_render_node.cpp",
     "src/pipeline/rs_task_dispatcher.cpp",
@@ -174,7 +195,9 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/sk_resource_manager.cpp",
 
     #property
+    "src/property/rs_color_picker_cache_task.cpp",
     "src/property/rs_filter_cache_manager.cpp",
+    "src/property/rs_point_light_manager.cpp",
     "src/property/rs_properties.cpp",
     "src/property/rs_properties_painter.cpp",
     "src/property/rs_property_drawable.cpp",
@@ -184,8 +207,11 @@ ohos_source_set("render_service_base_src") {
     "src/property/rs_property_trace.cpp",
 
     #render
+    "src/render/rs_aibar_filter.cpp",
     "src/render/rs_blur_filter.cpp",
     "src/render/rs_border.cpp",
+    "src/render/rs_color_extract.cpp",
+    "src/render/rs_color_picker.cpp",
     "src/render/rs_filter.cpp",
     "src/render/rs_image.cpp",
     "src/render/rs_image_base.cpp",
@@ -196,6 +222,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_material_filter.cpp",
     "src/render/rs_path.cpp",
     "src/render/rs_pixel_map_util.cpp",
+    "src/render/rs_resource_manager.cpp",
     "src/render/rs_shader.cpp",
     "src/render/rs_shadow.cpp",
     "src/render/rs_skia_filter.cpp",
@@ -215,6 +242,76 @@ ohos_source_set("render_service_base_src") {
     "src/screen_manager/rs_virtual_screen_resolution.cpp",
   ]
 
+  if (is_cross_platform) {
+    sources -= [
+      #command
+      "src/command/rs_display_node_command.cpp",
+
+      #common
+      "src/common/rs_occlusion_region.cpp",
+      "src/common/rs_occlusion_region_helper.cpp",
+      "src/common/rs_thread_handler_generic.cpp",
+      "src/common/rs_thread_looper_generic.cpp",
+      "src/common/rs_thread_looper_impl.cpp",
+
+      #ipc_callbacks
+      "src/ipc_callbacks/buffer_available_callback_ipc_interface_code_access_verifier.cpp",
+      "src/ipc_callbacks/buffer_available_callback_proxy.cpp",
+      "src/ipc_callbacks/buffer_available_callback_stub.cpp",
+      "src/ipc_callbacks/buffer_clear_callback_ipc_interface_code_access_verifier.cpp",
+      "src/ipc_callbacks/buffer_clear_callback_proxy.cpp",
+      "src/ipc_callbacks/buffer_clear_callback_stub.cpp",
+      "src/ipc_callbacks/hgm_config_change_callback_proxy.cpp",
+      "src/ipc_callbacks/hgm_config_change_callback_stub.cpp",
+      "src/ipc_callbacks/rs_ihgm_config_change_callback_ipc_interface_code_access_verifier.cpp",
+      "src/ipc_callbacks/rs_iocclusion_change_callback_ipc_interface_code_access_verifier.cpp",
+      "src/ipc_callbacks/rs_isurface_occlusion_change_callback_ipc_interface_code_access_verifier.cpp",
+      "src/ipc_callbacks/rs_occlusion_change_callback_proxy.cpp",
+      "src/ipc_callbacks/rs_occlusion_change_callback_stub.cpp",
+      "src/ipc_callbacks/rs_surface_occlusion_change_callback_proxy.cpp",
+      "src/ipc_callbacks/rs_surface_occlusion_change_callback_stub.cpp",
+      "src/ipc_callbacks/screen_change_callback_ipc_interface_code_access_verifier.cpp",
+      "src/ipc_callbacks/screen_change_callback_proxy.cpp",
+      "src/ipc_callbacks/screen_change_callback_stub.cpp",
+      "src/ipc_callbacks/surface_capture_callback_ipc_interface_code_access_verifier.cpp",
+      "src/ipc_callbacks/surface_capture_callback_proxy.cpp",
+      "src/ipc_callbacks/surface_capture_callback_stub.cpp",
+
+      #ipc_security
+      "src/ipc_security/rs_ipc_interface_code_access_verifier_base.cpp",
+
+      #memory
+      "src/memory/rs_memory_graphic.cpp",
+      "src/memory/rs_memory_track.cpp",
+      "src/memory/rs_tag_tracker.cpp",
+
+      #pipeline
+
+      "src/pipeline/rs_display_render_node.cpp",
+      "src/pipeline/rs_occlusion_config.cpp",
+      "src/pipeline/rs_uni_render_judgement.cpp",
+      "src/pipeline/sk_resource_manager.cpp",
+
+      #property
+      "src/property/rs_property_drawable.cpp",
+      "src/property/rs_property_drawable_bounds_geometry.cpp",
+      "src/property/rs_property_drawable_frame_geometry.cpp",
+      "src/property/rs_property_drawable_utilities.cpp",
+
+      #transaction
+      "src/transaction/rs_hgm_config_data.cpp",
+      "src/transaction/rs_occlusion_data.cpp",
+
+      #screen_manager
+      "src/screen_manager/rs_screen_capability.cpp",
+      "src/screen_manager/rs_screen_data.cpp",
+      "src/screen_manager/rs_screen_hdr_capability.cpp",
+      "src/screen_manager/rs_screen_mode_info.cpp",
+      "src/screen_manager/rs_screen_props.cpp",
+      "src/screen_manager/rs_virtual_screen_resolution.cpp",
+    ]
+  }
+
   cflags = [
     "-Wall",
     "-Wno-pointer-arith",
@@ -222,12 +319,27 @@ ohos_source_set("render_service_base_src") {
     "-Wno-missing-field-initializers",
     "-Wno-c++11-narrowing",
     "-fvisibility=hidden",
+    "-DIMAGE_COLORSPACE_FLAG",
   ]
 
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
     cflags += [ "-flto=thin" ]
     if (enhanced_opt) {
       cflags += [ "-fwhole-program-vtables" ]
+      if (graphic_2d_feature_enable_pgo &&
+          graphic_2d_feature_product != "default") {
+        cflags += [
+          "-fprofile-use=" + rebase_path(
+                  "${graphic_2d_feature_pgo_path}/librender_service_base.profdata",
+                  root_build_dir),
+          "-Wno-error=backend-plugin",
+          "-Wno-profile-instr-out-of-date",
+          "-Wno-profile-instr-unprofiled",
+        ]
+      }
+      if (graphic_2d_feature_product == "pc" && target_cpu == "arm64") {
+        cflags += [ "-moutline-atomics" ]
+      }
     }
   }
 
@@ -238,10 +350,6 @@ ohos_source_set("render_service_base_src") {
 
   public_configs = [ ":export_config" ]
   public_deps = [ "src/platform:platform" ]
-
-  if (rs_enable_parallel_upload) {
-    sources += [ "src/common/rs_upload_texture_thread.cpp" ]
-  }
 
   if (defined(use_new_render_context) && use_new_render_context) {
     public_deps += [ "src/render_backend:librender_backend" ]
@@ -259,6 +367,7 @@ ohos_source_set("render_service_base_src") {
   }
 
   if (current_os == "ohos") {
+    defines += [ "IS_OHOS" ]
     sources += [
       "src/benchmarks/file_utils.cpp",
       "src/benchmarks/rs_recording_thread.cpp",
@@ -269,14 +378,11 @@ ohos_source_set("render_service_base_src") {
     "$graphic_2d_root/frameworks/surface/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/utils/color_manager/export",
     "$graphic_2d_root/utils/log",
+    "$graphic_2d_root/interfaces/inner_api/surface",
   ]
-  if (defined(use_new_skia) && use_new_skia) {
-    include_dirs += [ "//third_party/skia/src" ]
-  } else {
-    include_dirs += [ "//third_party/flutter/skia/src" ]
-    sources -= [ "src/render/rs_kawase_blur.cpp" ]
-  }
+  include_dirs += [ "//third_party/skia/src" ]
   deps = [
     "$graphic_2d_root/utils/sandbox:sandbox_utils",
     "$rosen_root/modules/platform:hilog",
@@ -305,6 +411,11 @@ ohos_source_set("render_service_base_src") {
       "access_token:libtokenid_sdk",
       "ipc:ipc_core",
     ]
+  }
+
+  if (rosen_is_ohos && defined(enable_ipc_security_access_counter) &&
+      enable_ipc_security_access_counter) {
+    defines += [ "ENABLE_IPC_SECURITY_ACCESS_COUNTER" ]
   }
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
@@ -349,8 +460,33 @@ config("render_service_base_all_deps_config") {
   include_dirs = [ "include" ]
 }
 
+config("render_service_base_link_config") {
+  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
+    ldflags = [
+      "-Wl,--lto-O2",
+      "-Wl,-mllvm",
+      "-Wl,-wholeprogramdevirt-check=fallback",
+      "-Wl,-Bsymbolic",
+    ]
+  }
+}
+
 ohos_shared_library("librender_service_base") {
+  branch_protector_ret = "pac_ret"
+  if (!is_mingw && !is_win && !is_linux) {
+    sanitize = {
+      cfi = false
+      cfi_cross_dso = false
+      debug = false
+      blocklist = "./rs_base_blocklist.txt"
+    }
+  }
+
   all_dependent_configs = [ ":render_service_base_all_deps_config" ]
+
+  if (enhanced_opt) {
+    configs = [ ":render_service_base_link_config" ]
+  }
 
   deps = [ "$rosen_root/modules/platform:eventhandler" ]
   public_deps = [
@@ -364,26 +500,19 @@ ohos_shared_library("librender_service_base") {
     public_deps += [ "src/render_backend:librender_backend" ]
   }
 
-  ldflags = []
-
-  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64") &&
-      enhanced_opt) {
-    ldflags += [
-      "-Wl,-mllvm",
-      "-Wl,-wholeprogramdevirt-check=fallback",
-    ]
-  }
-
   innerapi_tags = [ "platformsdk_indirect" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
-
-  if (is_ohos && enhanced_opt) {
-    ldflags += [ "-Wl,-Bsymbolic" ]
-  }
 }
 
 ohos_source_set("librender_service_base_static") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = false
+    cfi_cross_dso = false
+    debug = false
+    blocklist = "./rs_base_blocklist.txt"
+  }
   all_dependent_configs = [ ":render_service_base_all_deps_config" ]
   deps = [ "$rosen_root/modules/platform:eventhandler" ]
   public_deps = [

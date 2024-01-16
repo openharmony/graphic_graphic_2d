@@ -99,12 +99,27 @@ void RSHardwareThreadTest::CreateComposerAdapterWithScreenInfo(uint32_t width, u
     auto info = screenManager_->QueryScreenInfo(screenId_);
     info.width = width;
     info.height = height;
+    info.phyWidth = width;
+    info.phyHeight = height;
     info.colorGamut = colorGamut;
     info.state = state;
     info.rotation = rotation;
     composerAdapter_ = std::make_unique<RSComposerAdapter>();
     composerAdapter_->Init(info, offsetX, offsetY, mirrorAdaptiveCoefficient, nullptr);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
+}
+
+/**
+ * @tc.name: ClearFrameBuffers001
+ * @tc.desc: Test RSHardwareThreadTest.ClearFrameBuffers
+ * @tc.type: FUNC
+ * @tc.require: issueI6R49K
+ */
+HWTEST_F(RSHardwareThreadTest, ClearFrameBuffers001, TestSize.Level1)
+{
+    auto& hardwareThread = RSHardwareThread::Instance();
+    GSError ret = hardwareThread.ClearFrameBuffers(HdiOutput::CreateHdiOutput(screenId_));
+    ASSERT_EQ(ret, GSERROR_OK);
 }
 
 /**
@@ -198,5 +213,20 @@ HWTEST_F(RSHardwareThreadTest, Start004, TestSize.Level1)
     ASSERT_EQ(ret, GSERROR_OK);
     sptr<SyncFence> releaseFence = SyncFence::INVALID_FENCE;
     hardwareThread.ReleaseBuffer(buffer, releaseFence, surfaceConsumer);
+}
+
+/**
+ * @tc.name: ClearFrameBuffers002
+ * @tc.desc: Test RSHardwareThreadTest.ClearFrameBuffers
+ * @tc.type: FUNC
+ * @tc.require: issueI6R49K
+ */
+HWTEST_F(RSHardwareThreadTest, ClearFrameBuffers002, TestSize.Level1)
+{
+    auto& hardwareThread = RSHardwareThread::Instance();
+    GSError ret = hardwareThread.ClearFrameBuffers(nullptr);
+    ASSERT_EQ(ret, GSERROR_INVALID_ARGUMENTS);
+    ret = hardwareThread.ClearFrameBuffers(HdiOutput::CreateHdiOutput(screenId_));
+    ASSERT_EQ(ret, GSERROR_OK);
 }
 } // namespace OHOS::Rosen

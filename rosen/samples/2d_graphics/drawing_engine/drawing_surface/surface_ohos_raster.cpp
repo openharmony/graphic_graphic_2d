@@ -31,6 +31,18 @@ SurfaceOhosRaster::~SurfaceOhosRaster()
     frame_ = nullptr;
 }
 
+
+std::unique_ptr<SurfaceFrame> SurfaceOhosRaster::NativeRequestFrame(int32_t width, int32_t height)
+{
+    return RequestFrame(width, height);
+}
+
+
+bool SurfaceOhosRaster::NativeFlushFrame(std::unique_ptr<SurfaceFrame>& frame)
+{
+    return FlushFrame(frame);
+}
+
 std::unique_ptr<SurfaceFrame> SurfaceOhosRaster::RequestFrame(int32_t width, int32_t height)
 {
     if (IsValid() == false) {
@@ -72,13 +84,13 @@ bool SurfaceOhosRaster::FlushFrame(std::unique_ptr<SurfaceFrame>& frame)
     return true;
 }
 
-SkCanvas* SurfaceOhosRaster::GetCanvas(std::unique_ptr<SurfaceFrame>& frame)
+SkCanvas* SurfaceOhosRaster::GetSkCanvas(std::unique_ptr<SurfaceFrame>& frame)
 {
     if (drawingProxy_ == nullptr) {
         LOGE("drawingProxy_ is nullptr, can not GetCanvas");
         return nullptr;
     }
-    return drawingProxy_->AcquireCanvas(frame);
+    return drawingProxy_->AcquireSkCanvas(frame);
 }
 } // namespace Rosen
 } // namespace OHOS

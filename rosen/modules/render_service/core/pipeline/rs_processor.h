@@ -31,6 +31,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSDrivenSurfaceRenderNode;
+class RSRcdSurfaceRenderNode;
 class RSProcessor {
 public:
     RSProcessor() = default;
@@ -45,8 +46,10 @@ public:
     virtual void ProcessDisplaySurface(RSDisplayRenderNode& node) = 0;
     virtual void ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node) = 0;
     virtual void PostProcess(RSDisplayRenderNode* node = nullptr) = 0;
+    virtual void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) = 0;
     void SetSecurityDisplay(bool isSecurityDisplay);
     void SetDisplayHasSecSurface(bool displayHasSecSurface);
+    void MirrorScenePerf();
 
 #ifndef USE_ROSEN_DRAWING
     const SkMatrix& GetScreenTransformMatrix() const
@@ -83,6 +86,7 @@ protected:
     BufferRequestConfig renderFrameConfig_ {};
     bool isSecurityDisplay_ = false;
     bool displayHasSecSurface_ = false;
+    static bool needDisableMultiLayersPerf_;
 };
 } // namespace Rosen
 } // namespace OHOS

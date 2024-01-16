@@ -510,33 +510,6 @@ HWTEST_F(RSAnimationTest, AnimationFinishCallbackTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: ImplicitAnimationParamTest001
- * @tc.desc: Verify the  implicit animation parameter
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(RSAnimationTest, ImplicitAnimationParamTest001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSAnimationTest ImplicitAnimationParamTest001 start";
-    /**
-     * @tc.steps: step1. init animation timing curve
-     */
-    RSAnimationTimingProtocol protocol;
-    std::unique_ptr<RSImplicitAnimationParam> animationParam =
-        std::make_unique<RSImplicitAnimationParam>(protocol);
-    RSAnimatableProperty<float> property(0.0f);
-    std::shared_ptr<RSAnimation> animation =
-        animationParam->CreateAnimation(property, 0, 100);
-    /**
-     * @tc.steps: step2. start  implicit animation test
-     */
-    ImplicitAnimationParamType patamType = animationParam->GetType();
-    EXPECT_TRUE(animation == nullptr);
-    EXPECT_TRUE(patamType == ImplicitAnimationParamType::NONE);
-}
-
-/**
  * @tc.name: ImplicitCurveAnimationParamTest001
  * @tc.desc: Verify the  implicit animation parameter
  * @tc.type: FUNC

@@ -43,10 +43,13 @@ public:
 
     void GenNewBoundryByTypeface(CharGroups cgs, std::vector<Boundary> &boundaries);
     void GenNewBoundryByQuote(CharGroups cgs, std::vector<Boundary> &boundaries);
-    void GenNewBoundryByWidth(CharGroups cgs, std::vector<Boundary> &boundaries);
+    void GenNewBoundryByWidth(CharGroups cgs, std::vector<Boundary> &boundaries,
+        const double& originWidthLimit, int& index);
     void GenNewBoundryByHardBreak(CharGroups cgs, std::vector<Boundary> &boundaries);
     void SetWidthLimit(const double widthLimit);
-
+    void SetIndents(const std::vector<float> &indents);
+    void CreateNewBoundary(CharGroups &cgs, std::vector<Boundary> &boundaries,
+        const TypographyStyle &ys, const double& originWidthLimit, int& index);
     double preBreak_ = 0;
     double postBreak_ = 0;
 
@@ -54,6 +57,7 @@ private:
     bool IsQuote(const uint16_t c);
     double widthLimit_ = 0;
     double currentWidth_ = 0;
+    std::vector<float> indents_;
 };
 } // namespace TextEngine
 } // namespace Rosen

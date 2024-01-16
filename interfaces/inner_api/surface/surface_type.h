@@ -55,7 +55,8 @@ using GraphicCompositionType = enum {
     GRAPHIC_COMPOSITION_DEVICE_CLEAR, /**< Device clear composition type, the device will clear the target region. */
     GRAPHIC_COMPOSITION_CLIENT_CLEAR, /**< Client clear composition type, the service will clear the target region. */
     GRAPHIC_COMPOSITION_TUNNEL,       /**< Tunnel composition type, used for tunnel. */
-    GRAPHIC_COMPOSITION_BUTT
+    GRAPHIC_COMPOSITION_BUTT,
+    GRAPHIC_COMPOSITION_SOLID_COLOR   /**< used for SetLayerColor. */
 };
 
 using GraphicLayerAlpha = struct {
@@ -86,44 +87,51 @@ using GraphicBlendType = enum {
     GRAPHIC_BLEND_BUTT              /**< Null operation */
 };
 
+/*
+ * @brief Enumeration values are indicated for external consistency.
+ */
 using GraphicPixelFormat = enum {
-    GRAPHIC_PIXEL_FMT_CLUT8 = 0,                 /**< CLUT8 format */
-    GRAPHIC_PIXEL_FMT_CLUT1,                     /**< CLUT1 format */
-    GRAPHIC_PIXEL_FMT_CLUT4,                     /**< CLUT4 format */
-    GRAPHIC_PIXEL_FMT_RGB_565,                   /**< RGB565 format */
-    GRAPHIC_PIXEL_FMT_RGBA_5658,                 /**< RGBA5658 format */
-    GRAPHIC_PIXEL_FMT_RGBX_4444,                 /**< RGBX4444 format */
-    GRAPHIC_PIXEL_FMT_RGBA_4444,                 /**< RGBA4444 format */
-    GRAPHIC_PIXEL_FMT_RGB_444,                   /**< RGB444 format */
-    GRAPHIC_PIXEL_FMT_RGBX_5551,                 /**< RGBX5551 format */
-    GRAPHIC_PIXEL_FMT_RGBA_5551,                 /**< RGBA5551 format */
-    GRAPHIC_PIXEL_FMT_RGB_555,                   /**< RGB555 format */
-    GRAPHIC_PIXEL_FMT_RGBX_8888,                 /**< RGBX8888 format */
-    GRAPHIC_PIXEL_FMT_RGBA_8888,                 /**< RGBA8888 format */
-    GRAPHIC_PIXEL_FMT_RGB_888,                   /**< RGB888 format */
-    GRAPHIC_PIXEL_FMT_BGR_565,                   /**< BGR565 format */
-    GRAPHIC_PIXEL_FMT_BGRX_4444,                 /**< BGRX4444 format */
-    GRAPHIC_PIXEL_FMT_BGRA_4444,                 /**< BGRA4444 format */
-    GRAPHIC_PIXEL_FMT_BGRX_5551,                 /**< BGRX5551 format */
-    GRAPHIC_PIXEL_FMT_BGRA_5551,                 /**< BGRA5551 format */
-    GRAPHIC_PIXEL_FMT_BGRX_8888,                 /**< BGRX8888 format */
-    GRAPHIC_PIXEL_FMT_BGRA_8888,                 /**< BGRA8888 format */
-    GRAPHIC_PIXEL_FMT_YUV_422_I,                 /**< YUV422 interleaved format */
-    GRAPHIC_PIXEL_FMT_YCBCR_422_SP,              /**< YCBCR422 semi-planar format */
-    GRAPHIC_PIXEL_FMT_YCRCB_422_SP,              /**< YCRCB422 semi-planar format */
-    GRAPHIC_PIXEL_FMT_YCBCR_420_SP,              /**< YCBCR420 semi-planar format */
-    GRAPHIC_PIXEL_FMT_YCRCB_420_SP,              /**< YCRCB420 semi-planar format */
-    GRAPHIC_PIXEL_FMT_YCBCR_422_P,               /**< YCBCR422 planar format */
-    GRAPHIC_PIXEL_FMT_YCRCB_422_P,               /**< YCRCB422 planar format */
-    GRAPHIC_PIXEL_FMT_YCBCR_420_P,               /**< YCBCR420 planar format */
-    GRAPHIC_PIXEL_FMT_YCRCB_420_P,               /**< YCRCB420 planar format */
-    GRAPHIC_PIXEL_FMT_YUYV_422_PKG,              /**< YUYV422 packed format */
-    GRAPHIC_PIXEL_FMT_UYVY_422_PKG,              /**< UYVY422 packed format */
-    GRAPHIC_PIXEL_FMT_YVYU_422_PKG,              /**< YVYU422 packed format */
-    GRAPHIC_PIXEL_FMT_VYUY_422_PKG,              /**< VYUY422 packed format */
-    GRAPHIC_PIXEL_FMT_RGBA_1010102,              /**< RGBA_1010102 packed format */
-    GRAPHIC_PIXEL_FMT_VENDER_MASK = 0X7FFF0000,  /**< vendor mask format */
-    GRAPHIC_PIXEL_FMT_BUTT = 0X7FFFFFFF          /**< Invalid pixel format */
+    GRAPHIC_PIXEL_FMT_CLUT8 = 0,                    /**< CLUT8 format */
+    GRAPHIC_PIXEL_FMT_CLUT1 = 1,                    /**< CLUT1 format */
+    GRAPHIC_PIXEL_FMT_CLUT4 = 2,                    /**< CLUT4 format */
+    GRAPHIC_PIXEL_FMT_RGB_565 = 3,                  /**< RGB565 format */
+    GRAPHIC_PIXEL_FMT_RGBA_5658 = 4,                /**< RGBA5658 format */
+    GRAPHIC_PIXEL_FMT_RGBX_4444 = 5,                /**< RGBX4444 format */
+    GRAPHIC_PIXEL_FMT_RGBA_4444 = 6,                /**< RGBA4444 format */
+    GRAPHIC_PIXEL_FMT_RGB_444 = 7,                  /**< RGB444 format */
+    GRAPHIC_PIXEL_FMT_RGBX_5551 = 8,                /**< RGBX5551 format */
+    GRAPHIC_PIXEL_FMT_RGBA_5551 = 9,                /**< RGBA5551 format */
+    GRAPHIC_PIXEL_FMT_RGB_555 = 10,                 /**< RGB555 format */
+    GRAPHIC_PIXEL_FMT_RGBX_8888 = 11,               /**< RGBX8888 format */
+    GRAPHIC_PIXEL_FMT_RGBA_8888 = 12,               /**< RGBA8888 format */
+    GRAPHIC_PIXEL_FMT_RGB_888 = 13,                 /**< RGB888 format */
+    GRAPHIC_PIXEL_FMT_BGR_565 = 14,                 /**< BGR565 format */
+    GRAPHIC_PIXEL_FMT_BGRX_4444 = 15,               /**< BGRX4444 format */
+    GRAPHIC_PIXEL_FMT_BGRA_4444 = 16,               /**< BGRA4444 format */
+    GRAPHIC_PIXEL_FMT_BGRX_5551 = 17,               /**< BGRX5551 format */
+    GRAPHIC_PIXEL_FMT_BGRA_5551 = 18,               /**< BGRA5551 format */
+    GRAPHIC_PIXEL_FMT_BGRX_8888 = 19,               /**< BGRX8888 format */
+    GRAPHIC_PIXEL_FMT_BGRA_8888 = 20,               /**< BGRA8888 format */
+    GRAPHIC_PIXEL_FMT_YUV_422_I = 21,               /**< YUV422 interleaved format */
+    GRAPHIC_PIXEL_FMT_YCBCR_422_SP = 22,            /**< YCBCR422 semi-planar format */
+    GRAPHIC_PIXEL_FMT_YCRCB_422_SP = 23,            /**< YCRCB422 semi-planar format */
+    GRAPHIC_PIXEL_FMT_YCBCR_420_SP = 24,            /**< YCBCR420 semi-planar format */
+    GRAPHIC_PIXEL_FMT_YCRCB_420_SP = 25,            /**< YCRCB420 semi-planar format */
+    GRAPHIC_PIXEL_FMT_YCBCR_422_P = 26,             /**< YCBCR422 planar format */
+    GRAPHIC_PIXEL_FMT_YCRCB_422_P = 27,             /**< YCRCB422 planar format */
+    GRAPHIC_PIXEL_FMT_YCBCR_420_P = 28,             /**< YCBCR420 planar format */
+    GRAPHIC_PIXEL_FMT_YCRCB_420_P = 29,             /**< YCRCB420 planar format */
+    GRAPHIC_PIXEL_FMT_YUYV_422_PKG = 30,            /**< YUYV422 packed format */
+    GRAPHIC_PIXEL_FMT_UYVY_422_PKG = 31,            /**< UYVY422 packed format */
+    GRAPHIC_PIXEL_FMT_YVYU_422_PKG = 32,            /**< YVYU422 packed format */
+    GRAPHIC_PIXEL_FMT_VYUY_422_PKG = 33,            /**< VYUY422 packed format */
+    GRAPHIC_PIXEL_FMT_RGBA_1010102 = 34,            /**< RGBA_1010102 packed format */
+    GRAPHIC_PIXEL_FMT_YCBCR_P010 = 35,              /**< YCBCR420 semi-planar 10bit packed format */
+    GRAPHIC_PIXEL_FMT_YCRCB_P010 = 36,              /**< YCRCB420 semi-planar 10bit packed format */
+    GRAPHIC_PIXEL_FMT_RAW10 = 37,                   /**< Raw 10bit packed format */
+    GRAPHIC_PIXEL_FMT_BLOB = 38,                    /**< BLOB format */
+    GRAPHIC_PIXEL_FMT_VENDER_MASK = 0X7FFF0000,     /**< vendor mask format */
+    GRAPHIC_PIXEL_FMT_BUTT = 0X7FFFFFFF             /**< Invalid pixel format */
 };
 
 using GraphicLayerType = enum {
@@ -290,6 +298,78 @@ using GraphicColorGamut = enum {
     GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020 = 10,     /**< Display BT2020 */
 };
 
+using GraphicCM_ColorSpaceType = enum {
+    GRAPHIC_CM_COLORSPACE_NONE,
+
+    /* COLORPRIMARIES_BT601_P | (TRANSFUNC_BT709 << 8) | (MATRIX_BT601_P << 16) | (RANGE_FULL << 21) */
+    GRAPHIC_CM_BT601_EBU_FULL      = 2 | (1 << 8) | (2 << 16) | (1 << 21),
+    /* COLORPRIMARIES_BT601_N | (TRANSFUNC_BT709 << 8) | (MATRIX_BT601_N << 16) | (RANGE_FULL << 21) */
+    GRAPHIC_CM_BT601_SMPTE_C_FULL  = 3 | (1 << 8) | (3 << 16) | (1 << 21),
+    /* COLORPRIMARIES_BT709   | (TRANSFUNC_BT709 << 8) | (MATRIX_BT709   << 16) | (RANGE_FULL << 21) */
+    GRAPHIC_CM_BT709_FULL          = 1 | (1 << 8) | (1 << 16) | (1 << 21),
+    /* COLORPRIMARIES_BT2020  | (TRANSFUNC_HLG   << 8) | (MATRIX_BT2020  << 16) | (RANGE_FULL << 21) */
+    GRAPHIC_CM_BT2020_HLG_FULL     = 4 | (5 << 8) | (4 << 16) | (1 << 21),
+    /* COLORPRIMARIES_BT2020  | (TRANSFUNC_PQ    << 8) | (MATRIX_BT2020  << 16) | (RANGE_FULL << 21) */
+    GRAPHIC_CM_BT2020_PQ_FULL      = 4 | (4 << 8) | (4 << 16) | (1 << 21),
+
+    /* COLORPRIMARIES_BT601_P | (TRANSFUNC_BT709 << 8) | (MATRIX_BT601_P << 16) | (RANGE_LIMITED << 21) */
+    GRAPHIC_CM_BT601_EBU_LIMIT     = 2 | (1 << 8) | (2 << 16) | (2 << 21),
+    /* COLORPRIMARIES_BT601_N | (TRANSFUNC_BT709 << 8) | (MATRIX_BT601_N << 16) | (RANGE_LIMITED << 21) */
+    GRAPHIC_CM_BT601_SMPTE_C_LIMIT = 3 | (1 << 8) | (3 << 16) | (2 << 21),
+    /* COLORPRIMARIES_BT709   | (TRANSFUNC_BT709 << 8) | (MATRIX_BT709   << 16) | (RANGE_LIMITED << 21) */
+    GRAPHIC_CM_BT709_LIMIT         = 1 | (1 << 8) | (1 << 16) | (2 << 21),
+    /* COLORPRIMARIES_BT2020  | (TRANSFUNC_HLG   << 8) | (MATRIX_BT2020  << 16) | (RANGE_LIMITED << 21) */
+    GRAPHIC_CM_BT2020_HLG_LIMIT    = 4 | (5 << 8) | (4 << 16) | (2 << 21),
+    /* COLORPRIMARIES_BT2020  | (TRANSFUNC_PQ    << 8) | (MATRIX_BT2020  << 16) | (RANGE_LIMITED << 21) */
+    GRAPHIC_CM_BT2020_PQ_LIMIT     = 4 | (4 << 8) | (4 << 16) | (2 << 21),
+
+    /* COLORPRIMARIES_SRGB     | (TRANSFUNC_SRGB     << 8) | (MATRIX_BT601_N  << 16) | (RANGE_FULL << 21) */
+    GRAPHIC_CM_SRGB_FULL           = 1 | (2 << 8) | (3 << 16) | (1 << 21),
+    /* COLORPRIMARIES_P3_D65   | (TRANSFUNC_SRGB     << 8) | (MATRIX_P3       << 16) | (RANGE_FULL << 21) */
+    GRAPHIC_CM_P3_FULL             = 6 | (2 << 8) | (3 << 16) | (1 << 21),
+    /* COLORPRIMARIES_P3_D65   | (TRANSFUNC_HLG      << 8) | (MATRIX_P3       << 16) | (RANGE_FULL << 21) */
+    GRAPHIC_CM_P3_HLG_FULL         = 6 | (5 << 8) | (3 << 16) | (1 << 21),
+    /* COLORPRIMARIES_P3_D65   | (TRANSFUNC_PQ       << 8) | (MATRIX_P3       << 16) | (RANGE_FULL << 21) */
+    GRAPHIC_CM_P3_PQ_FULL          = 6 | (4 << 8) | (3 << 16) | (1 << 21),
+    /* COLORPRIMARIES_ADOBERGB | (TRANSFUNC_ADOBERGB << 8) | (MATRIX_ADOBERGB << 16) | (RANGE_FULL << 21) */
+    GRAPHIC_CM_ADOBERGB_FULL       = 23 | (6 << 8) | (0 << 16) | (1 << 21),
+
+    /* COLORPRIMARIES_SRGB     | (TRANSFUNC_SRGB     << 8) | (MATRIX_BT601_N  << 16) | (RANGE_LIMITED << 21) */
+    GRAPHIC_CM_SRGB_LIMIT          = 1 | (2 << 8) | (3 << 16) | (2 << 21),
+    /* COLORPRIMARIES_P3_D65   | (TRANSFUNC_SRGB     << 8) | (MATRIX_P3       << 16) | (RANGE_LIMITED << 21) */
+    GRAPHIC_CM_P3_LIMIT            = 6 | (2 << 8) | (3 << 16) | (2 << 21),
+    /* COLORPRIMARIES_P3_D65   | (TRANSFUNC_HLG      << 8) | (MATRIX_P3       << 16) | (RANGE_LIMITED << 21) */
+    GRAPHIC_CM_P3_HLG_LIMIT        = 6 | (5 << 8) | (3 << 16) | (2 << 21),
+    /* COLORPRIMARIES_P3_D65   | (TRANSFUNC_PQ       << 8) | (MATRIX_P3       << 16) | (RANGE_LIMITED << 21) */
+    GRAPHIC_CM_P3_PQ_LIMIT         = 6 | (4 << 8) | (3 << 16) | (2 << 21),
+    /* COLORPRIMARIES_ADOBERGB | (TRANSFUNC_ADOBERGB << 8) | (MATRIX_ADOBERGB << 16) | (RANGE_LIMITED << 21) */
+    GRAPHIC_CM_ADOBERGB_LIMIT      = 23 | (6 << 8) | (0 << 16) | (2 << 21),
+
+    /* COLORPRIMARIES_SRGB   | (TRANSFUNC_LINEAR << 8) */
+    GRAPHIC_CM_LINEAR_SRGB         = 1 | (3 << 8),
+    /* equal to GRAPHIC_CM_LINEAR_SRGB */
+    GRAPHIC_CM_LINEAR_BT709        = 1 | (3 << 8),
+    /* COLORPRIMARIES_P3_D65 | (TRANSFUNC_LINEAR << 8) */
+    GRAPHIC_CM_LINEAR_P3           = 6 | (3 << 8),
+    /* COLORPRIMARIES_BT2020 | (TRANSFUNC_LINEAR << 8) */
+    GRAPHIC_CM_LINEAR_BT2020       = 4 | (3 << 8),
+
+    /* equal to GRAPHIC_CM_SRGB_FULL */
+    GRAPHIC_CM_DISPLAY_SRGB        = 1 | (2 << 8) | (3 << 16) | (1 << 21),
+    /* equal to GRAPHIC_CM_P3_FULL */
+    GRAPHIC_CM_DISPLAY_P3_SRGB     = 6 | (2 << 8) | (3 << 16) | (1 << 21),
+    /* equal to GRAPHIC_CM_P3_HLG_FULL */
+    GRAPHIC_CM_DISPLAY_P3_HLG      = 6 | (5 << 8) | (3 << 16) | (1 << 21),
+    /* equal to GRAPHIC_CM_P3_PQ_FULL */
+    GRAPHIC_CM_DISPLAY_P3_PQ       = 6 | (4 << 8) | (3 << 16) | (1 << 21),
+    /* COLORPRIMARIES_BT2020   | (TRANSFUNC_SRGB << 8)     | (MATRIX_BT2020 << 16)   | (RANGE_FULL << 21) */
+    GRAPHIC_CM_DISPLAY_BT2020_SRGB = 4 | (2 << 8) | (4 << 16) | (1 << 21),
+    /* equal to GRAPHIC_CM_BT2020_HLG_FULL */
+    GRAPHIC_CM_DISPLAY_BT2020_HLG  = 4 | (5 << 8) | (4 << 16) | (1 << 21),
+    /* equal to GRAPHIC_CM_BT2020_PQ_FULL */
+    GRAPHIC_CM_DISPLAY_BT2020_PQ   = 4 | (4 << 8) | (4 << 16) | (1 << 21)
+};
+
 using GraphicColorDataSpace = enum {
     GRAPHIC_COLOR_DATA_SPACE_UNKNOWN = 0,
     GRAPHIC_GAMUT_BT601 = 0x00000001,
@@ -316,12 +396,14 @@ using GraphicColorDataSpace = enum {
     GRAPHIC_PRESION_LIMITED = 0x00030000,
     GRAPHIC_PRESION_EXTENDED = 0x00040000,
     GRAPHIC_BT601_SMPTE170M_FULL = GRAPHIC_GAMUT_BT601 | GRAPHIC_TRANSFORM_FUNC_SMPTE_170M | GRAPHIC_PRECISION_FULL,
-    GRAPHIC_BT601_SMPTE170M_LIMITED = GRAPHIC_GAMUT_BT601 | GRAPHIC_TRANSFORM_FUNC_SMPTE_170M | GRAPHIC_PRESION_LIMITED,
+    GRAPHIC_BT601_SMPTE170M_LIMITED = GRAPHIC_GAMUT_BT601 | GRAPHIC_TRANSFORM_FUNC_SMPTE_170M |
+        GRAPHIC_PRESION_LIMITED,
     GRAPHIC_BT709_LINEAR_FULL = GRAPHIC_GAMUT_BT709 | GRAPHIC_TRANSFORM_FUNC_LINEAR | GRAPHIC_PRECISION_FULL,
     GRAPHIC_BT709_LINEAR_EXTENDED = GRAPHIC_GAMUT_BT709 | GRAPHIC_TRANSFORM_FUNC_LINEAR | GRAPHIC_PRESION_EXTENDED,
     GRAPHIC_BT709_SRGB_FULL = GRAPHIC_GAMUT_BT709 | GRAPHIC_TRANSFORM_FUNC_SRGB | GRAPHIC_PRECISION_FULL,
     GRAPHIC_BT709_SRGB_EXTENDED = GRAPHIC_GAMUT_BT709 | GRAPHIC_TRANSFORM_FUNC_SRGB | GRAPHIC_PRESION_EXTENDED,
-    GRAPHIC_BT709_SMPTE170M_LIMITED = GRAPHIC_GAMUT_BT709 | GRAPHIC_TRANSFORM_FUNC_SMPTE_170M | GRAPHIC_PRESION_LIMITED,
+    GRAPHIC_BT709_SMPTE170M_LIMITED = GRAPHIC_GAMUT_BT709 | GRAPHIC_TRANSFORM_FUNC_SMPTE_170M |
+        GRAPHIC_PRESION_LIMITED,
     GRAPHIC_DCI_P3_LINEAR_FULL = GRAPHIC_GAMUT_DCI_P3 | GRAPHIC_TRANSFORM_FUNC_LINEAR | GRAPHIC_PRECISION_FULL,
     GRAPHIC_DCI_P3_GAMMA26_FULL = GRAPHIC_GAMUT_DCI_P3 | GRAPHIC_TRANSFORM_FUNC_GM2_6 | GRAPHIC_PRECISION_FULL,
     GRAPHIC_DISPLAY_P3_LINEAR_FULL = GRAPHIC_GAMUT_DISPLAY_P3 | GRAPHIC_TRANSFORM_FUNC_LINEAR | GRAPHIC_PRECISION_FULL,

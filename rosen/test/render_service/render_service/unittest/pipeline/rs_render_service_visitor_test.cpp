@@ -326,8 +326,13 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareSurfaceRenderNode003, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
+#ifndef USE_ROSEN_DRAWING
     std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10); // width height
     rsRenderServiceVisitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
+#else
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+    rsRenderServiceVisitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+#endif
     rsRenderServiceVisitor.PrepareSurfaceRenderNode(rsSurfaceRenderNode);
 }
 
@@ -342,9 +347,14 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareSurfaceRenderNode004, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
+#ifndef USE_ROSEN_DRAWING
     std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10); // width height
     rsRenderServiceVisitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
-    rsSurfaceRenderNode.renderProperties_.SetAlpha(0.0f);
+#else
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+    rsRenderServiceVisitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+#endif
+    rsSurfaceRenderNode.GetMutableRenderProperties().SetAlpha(0.0f);
     rsRenderServiceVisitor.PrepareSurfaceRenderNode(rsSurfaceRenderNode);
 }
 
@@ -801,10 +811,10 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode002, TestSize.Level
 {
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSSurfaceRenderNodeConfig config;
-    RSSurfaceRenderNode rsSurfaceRenderNode(config);
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     rsRenderServiceVisitor.processor_ =
         RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
-    rsRenderServiceVisitor.ProcessSurfaceRenderNode(rsSurfaceRenderNode);
+    rsRenderServiceVisitor.ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
 }
 
 /**
@@ -817,12 +827,12 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode003, TestSize.Level
 {
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSSurfaceRenderNodeConfig config;
-    RSSurfaceRenderNode rsSurfaceRenderNode(config);
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     rsRenderServiceVisitor.processor_ =
         RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
     rsRenderServiceVisitor.isSecurityDisplay_ = true;
-    rsSurfaceRenderNode.SetSecurityLayer(true);
-    rsRenderServiceVisitor.ProcessSurfaceRenderNode(rsSurfaceRenderNode);
+    rsSurfaceRenderNode->SetSecurityLayer(true);
+    rsRenderServiceVisitor.ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
 }
 
 /**
@@ -835,11 +845,11 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode004, TestSize.Level
 {
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSSurfaceRenderNodeConfig config;
-    RSSurfaceRenderNode rsSurfaceRenderNode(config);
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     rsRenderServiceVisitor.processor_ =
         RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
-    rsSurfaceRenderNode.renderProperties_.SetAlpha(0.0f);
-    rsRenderServiceVisitor.ProcessSurfaceRenderNode(rsSurfaceRenderNode);
+    rsSurfaceRenderNode->GetMutableRenderProperties().SetAlpha(0.0f);
+    rsRenderServiceVisitor.ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
 }
 
 /**
@@ -852,12 +862,12 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode005, TestSize.Level
 {
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSSurfaceRenderNodeConfig config;
-    RSSurfaceRenderNode rsSurfaceRenderNode(config);
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     rsRenderServiceVisitor.processor_ =
         RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
-    rsSurfaceRenderNode.SetSkipLayer(true);
-    ASSERT_EQ(true, rsSurfaceRenderNode.GetSkipLayer());
-    rsRenderServiceVisitor.ProcessSurfaceRenderNode(rsSurfaceRenderNode);
+    rsSurfaceRenderNode->SetSkipLayer(true);
+    ASSERT_EQ(true, rsSurfaceRenderNode->GetSkipLayer());
+    rsRenderServiceVisitor.ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
 }
 
 /**

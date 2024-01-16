@@ -63,18 +63,11 @@ napi_value ColorSpaceTypeInit(napi_env env)
         CMLOGE("[NAPI]Failed to get object");
         return nullptr;
     }
-    napi_value valueUnknown = CreateJsValue(env, static_cast<int32_t>(ApiColorSpaceType::UNKNOWN));
-    napi_value valueAdobe_RGB_1998 = CreateJsValue(env, static_cast<int32_t>(ApiColorSpaceType::ADOBE_RGB_1998));
-    napi_value valueDCI_P3 = CreateJsValue(env, static_cast<int32_t>(ApiColorSpaceType::DCI_P3));
-    napi_value valueDisplay_P3 = CreateJsValue(env, static_cast<int32_t>(ApiColorSpaceType::DISPLAY_P3));
-    napi_value valueSrgb = CreateJsValue(env, static_cast<int32_t>(ApiColorSpaceType::SRGB));
-    napi_value valueCustom = CreateJsValue(env, static_cast<int32_t>(ApiColorSpaceType::CUSTOM));
-    napi_set_named_property(env, object, "UNKNOWN", valueUnknown);
-    napi_set_named_property(env, object, "ADOBE_RGB_1998", valueAdobe_RGB_1998);
-    napi_set_named_property(env, object, "DCI_P3", valueDCI_P3);
-    napi_set_named_property(env, object, "DISPLAY_P3", valueDisplay_P3);
-    napi_set_named_property(env, object, "SRGB", valueSrgb);
-    napi_set_named_property(env, object, "CUSTOM", valueCustom);
+
+    for (auto& [colorSpaceName, colorSpace] : STRING_TO_JS_MAP) {
+        napi_value value = CreateJsValue(env, static_cast<int32_t>(colorSpace));
+        napi_set_named_property(env, object, colorSpaceName.c_str(), value);
+    }
     return object;
 }
 

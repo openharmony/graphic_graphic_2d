@@ -30,7 +30,7 @@ namespace OHOS {
 #include "graphic_common_c.h"
 
 #ifdef __cplusplus
-static const std::map<GSError, std::string> GSErrorStrs = {
+const std::map<GSError, std::string> GSErrorStrs = {
     {GSERROR_OK,                    "<200 ok>"},
     {GSERROR_INVALID_ARGUMENTS,     "<400 invalid arguments>"},
     {GSERROR_NO_PERMISSION,         "<403 no permission>"},
@@ -56,7 +56,7 @@ static const std::map<GSError, std::string> GSErrorStrs = {
     {GSERROR_BINDER,                "<504 binder occur error>"},
 };
 
-static inline std::string LowErrorStrSpecial(GSError err)
+inline std::string LowErrorStrSpecial(GSError err)
 {
     if (err == LOWERROR_INVALID) {
         // int to string (in 1000)
@@ -74,7 +74,7 @@ static inline std::string LowErrorStrSpecial(GSError err)
 #define strerror_r(err, buf, len) strerror_s((buf), (len), (err))
 #endif
 
-static inline std::string LowErrorStr(GSError lowerr)
+inline std::string LowErrorStr(GSError lowerr)
 {
     std::string lowError = LowErrorStrSpecial(lowerr);
     if (lowError == "" && lowerr != 0) {
@@ -85,7 +85,7 @@ static inline std::string LowErrorStr(GSError lowerr)
     return lowError;
 }
 
-static inline std::string GSErrorStr(GSError err)
+inline std::string GSErrorStr(GSError err)
 {
     GSError diff = static_cast<GSError>(err % LOWERROR_MAX);
     auto it = GSErrorStrs.find(static_cast<GSError>(err - diff));
@@ -95,23 +95,23 @@ static inline std::string GSErrorStr(GSError err)
     return it->second + LowErrorStr(diff);
 }
 
-static inline std::string SurfaceErrorStr(GSError err)
+inline std::string SurfaceErrorStr(GSError err)
 {
     return GSErrorStr(err);
 }
 
-static inline std::ostream &operator <<(std::ostream &os, const GSError &err)
+inline std::ostream &operator <<(std::ostream &os, const GSError &err)
 {
     os << GSErrorStr(err);
     return os;
 }
 
-static inline bool operator ==(GSError a, GSError b)
+inline bool operator ==(GSError a, GSError b)
 {
     return static_cast<int32_t>(a) / LOWERROR_MAX == static_cast<int32_t>(b) / LOWERROR_MAX;
 }
 
-static inline bool operator !=(GSError a, GSError b)
+inline bool operator !=(GSError a, GSError b)
 {
     return static_cast<int32_t>(a) / LOWERROR_MAX != static_cast<int32_t>(b) / LOWERROR_MAX;
 }

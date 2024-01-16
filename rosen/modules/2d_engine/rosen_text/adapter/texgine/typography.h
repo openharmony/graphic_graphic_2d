@@ -19,6 +19,7 @@
 #include "rosen_text/typography.h"
 
 #include "texgine/typography.h"
+#include "rosen_text/symbol_animation_config.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -47,6 +48,24 @@ public:
     std::vector<TextRect> GetTextRectsOfPlaceholders() override;
     IndexAndAffinity GetGlyphIndexByCoordinate(double x, double y) override;
     Boundary GetWordBoundaryByIndex(size_t index) override;
+
+    double GetLineHeight(int lineNumber) override
+    {
+        return 0.0;
+    }
+    
+    double GetLineWidth(int lineNumber) override
+    {
+        return 0.0;
+    }
+
+    void SetAnimation(
+        std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc) override
+    {
+        if (animationFunc) {
+            typography_->SetAnimation(animationFunc);
+        }
+    }
 
 private:
     std::shared_ptr<TextEngine::Typography> typography_ = nullptr;

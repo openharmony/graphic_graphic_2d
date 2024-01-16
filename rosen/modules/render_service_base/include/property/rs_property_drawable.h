@@ -16,25 +16,24 @@
 #ifndef RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_H
 #define RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_H
 
-#include <list>
-#include <map>
-#include <unordered_set>
-#include <utility>
+#ifdef USE_ROSEN_DRAWING
+#include <bitset>
+#endif
+#include <memory>
+#include <set>
+#include <vector>
 
 #include "modifier/rs_render_modifier.h"
 
 namespace OHOS::Rosen {
 class RSPaintFilterCanvas;
 class RSProperties;
-class RSPropertyDrawableGenerateContext;
-class RSRenderModifier;
+class RSRenderContent;
 class RSRenderNode;
 
-namespace Slot {
 // NOTE: MUST update DrawableGeneratorLut in rs_property_drawable.cpp when new slots are added
-enum RSPropertyDrawableSlot : uint8_t {
+enum class RSPropertyDrawableSlot : uint8_t {
     INVALID = 0,
-
     SAVE_ALL,
 
     // Bounds Geometry
@@ -45,10 +44,10 @@ enum RSPropertyDrawableSlot : uint8_t {
     ENV_FOREGROUND_COLOR,
     SHADOW,
 
-    // In Bounds Clip
-    SAVE_LAYER_BACKGROUND,
-    SAVE_BOUNDS,
+    // BG properties in Bounds Clip
+    BG_SAVE_BOUNDS,
     CLIP_TO_BOUNDS,
+    BLEND_MODE,
     BACKGROUND_COLOR,
     BACKGROUND_SHADER,
     BACKGROUND_IMAGE,
@@ -57,8 +56,7 @@ enum RSPropertyDrawableSlot : uint8_t {
     BACKGROUND_STYLE,
     DYNAMIC_LIGHT_UP,
     ENV_FOREGROUND_COLOR_STRATEGY,
-    EXTRA_RESTORE_BOUNDS,
-    SAVE_LAYER_CONTENT,
+    BG_RESTORE_BOUNDS,
 
     // Frame Geometry
     SAVE_FRAME,
@@ -67,38 +65,41 @@ enum RSPropertyDrawableSlot : uint8_t {
     CONTENT_STYLE,
     CHILDREN,
     FOREGROUND_STYLE,
-    COLOR_FILTER,
     RESTORE_FRAME,
 
-    // In Bounds clip (again)
-    EXTRA_SAVE_BOUNDS,
-    EXTRA_CLIP_TO_BOUNDS,
+    // FG properties in Bounds clip
+    FG_SAVE_BOUNDS,
+    FG_CLIP_TO_BOUNDS,
+    COLOR_FILTER,
     LIGHT_UP_EFFECT,
     FOREGROUND_FILTER,
     LINEAR_GRADIENT_BLUR_FILTER,
-    BORDER,
-    OVERLAY,
     FOREGROUND_COLOR,
+    RESTORE_BLEND_MODE,
+    FG_RESTORE_BOUNDS,
+
+    // No clip (unless ClipToBounds is set)
+    POINT_LIGHT,
+    BORDER,
+    OUTLINE,
+    OVERLAY,
     PARTICLE_EFFECT,
-    RESTORE_BOUNDS,
-
-    // Without clip
     PIXEL_STRETCH,
-    RESTORE_ALL,
-    MAX,
-};
 
-enum DrawableVecStatus : uint8_t {
-    CLIP_BOUNDS            = 1 << 0,
-    BOUNDS_PROPERTY_BEFORE = 1 << 1,
-    BOUNDS_PROPERTY_AFTER  = 1 << 2,
-    CLIP_FRAME             = 1 << 3,
-    FRAME_PROPERTY         = 1 << 4,
-    HAS_CHILDREN           = 1 << 5,
-    BOUNDS_MASK            = CLIP_BOUNDS | BOUNDS_PROPERTY_BEFORE | BOUNDS_PROPERTY_AFTER,
-    FRAME_MASK             = CLIP_FRAME | FRAME_PROPERTY | HAS_CHILDREN,
+    RESTORE_ALL,
+
+    // Annotations: Please remember to update this when new slots are added.
+    // NOTE: MAX and *_END enums are using the one-past-the-end style.
+    BG_PROPERTIES_BEGIN      = BACKGROUND_COLOR,
+    BG_PROPERTIES_END        = ENV_FOREGROUND_COLOR_STRATEGY + 1,
+    CONTENT_PROPERTIES_BEGIN = FRAME_OFFSET,
+    CONTENT_PROPERTIES_END   = FOREGROUND_STYLE + 1,
+    FG_PROPERTIES_BEGIN      = COLOR_FILTER,
+    FG_PROPERTIES_END        = FOREGROUND_COLOR + 1,
+    NO_CLIP_PROPERTY_BEGIN   = POINT_LIGHT,
+    NO_CLIP_PROPERTY_END     = PIXEL_STRETCH + 1,
+    MAX                      = RESTORE_ALL + 1,
 };
-} // namespace Slot
 
 // Pure virtual base class
 class RSPropertyDrawable {
@@ -112,48 +113,29 @@ public:
     RSPropertyDrawable& operator=(const RSPropertyDrawable&) = delete;
     RSPropertyDrawable& operator=(const RSPropertyDrawable&&) = delete;
 
-    virtual void Draw(RSRenderNode& node, RSPaintFilterCanvas& canvas) = 0;
+    virtual void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const = 0;
     // return true if this drawable can be updated, default is false
-    virtual bool Update(const RSPropertyDrawableGenerateContext& context) { return false; };
+    virtual bool Update(const RSRenderContent& content) { return false; };
 
     // Aliases
     using DrawablePtr = std::unique_ptr<RSPropertyDrawable>;
-    using DrawableVec = std::vector<DrawablePtr>;
-    using DrawableGenerator = std::function<DrawablePtr(const RSPropertyDrawableGenerateContext&)>;
+    using DrawableVec = std::array<DrawablePtr, static_cast<size_t>(RSPropertyDrawableSlot::MAX)>;
+    using DrawableGenerator = std::function<DrawablePtr(const RSRenderContent&)>;
 
     // Generator Utilities
-    static void InitializeSaveRestore(const RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec);
-    static std::set<Slot::RSPropertyDrawableSlot> GenerateDirtySlots(
+    static void InitializeSaveRestore(const RSRenderContent& content, DrawableVec& drawableVec);
+#ifndef USE_ROSEN_DRAWING
+    static std::unordered_set<RSPropertyDrawableSlot> GenerateDirtySlots(
         const RSProperties& properties, const std::unordered_set<RSModifierType>& dirtyTypes);
-    static bool UpdateDrawableVec(const RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec,
-        std::set<Slot::RSPropertyDrawableSlot>& dirtySlots);
+#else
+    static std::unordered_set<RSPropertyDrawableSlot> GenerateDirtySlots(
+        const RSProperties& properties,
+        std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>& dirtyTypes);
+#endif
+    static bool UpdateDrawableVec(const RSRenderContent& content, DrawableVec& drawableVec,
+        std::unordered_set<RSPropertyDrawableSlot>& dirtySlots);
     static void UpdateSaveRestore(
-        RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec, uint8_t& drawableVecStatus);
-
-private:
-    static inline uint8_t CalculateDrawableVecStatus(
-        RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec);
-    static void OptimizeBoundsSaveRestore(
-        RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec, uint8_t flags);
-    static void OptimizeFrameSaveRestore(
-        RSPropertyDrawableGenerateContext& context, DrawableVec& drawableVec, uint8_t flags);
-};
-
-class RSPropertyDrawableGenerateContext {
-public:
-    explicit RSPropertyDrawableGenerateContext(RSRenderNode& node);
-    virtual ~RSPropertyDrawableGenerateContext() = default;
-
-    // disable copy and move
-    RSPropertyDrawableGenerateContext(const RSPropertyDrawableGenerateContext&) = delete;
-    RSPropertyDrawableGenerateContext(const RSPropertyDrawableGenerateContext&&) = delete;
-    RSPropertyDrawableGenerateContext& operator=(const RSPropertyDrawableGenerateContext&) = delete;
-    RSPropertyDrawableGenerateContext& operator=(const RSPropertyDrawableGenerateContext&&) = delete;
-
-    // member variable
-    const std::shared_ptr<RSRenderNode> node_;
-    const RSProperties& properties_;
-    bool hasChildren_;
+        RSRenderContent& content, DrawableVec& drawableVec, uint8_t& drawableVecStatus);
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PROPERTY_RS_PROPERTY_DRAWABLE_H

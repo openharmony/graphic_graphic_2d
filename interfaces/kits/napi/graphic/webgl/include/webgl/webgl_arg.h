@@ -231,9 +231,11 @@ struct TexImageArg {
     GLsizei height;
     GLsizei border;
     GLsizei depth;
+
     TexImageArg()
         : func(0), target(0), level(0), internalFormat(0),
         format(0), type(0), width(0), height(0), border(0), depth(0) {}
+
     TexImageArg(const TexImageArg& arg)
     {
         func = arg.func;
@@ -247,6 +249,7 @@ struct TexImageArg {
         border = arg.border;
         depth = arg.depth;
     }
+
     TexImageArg(
         GLenum target, GLint level, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLenum type)
     {
@@ -257,6 +260,9 @@ struct TexImageArg {
         this->width = width;
         this->height = height;
         this->depth = depth;
+        this->border = 0;
+        this->func = 0;
+        this->format = 0;
     }
     virtual void Dump(const std::string& info) const;
 };
@@ -362,7 +368,7 @@ struct UniformExtInfo {
     UniformExtInfo(GLuint dimension) : dimension(dimension), elemCount(dimension), srcOffset(0), srcLength(0) {}
     UniformExtInfo(GLuint dimension, GLuint real)
         : dimension(dimension), elemCount(real), srcOffset(0), srcLength(0) {}
-    bool GetUniformExtInfo(napi_env env, const NFuncArg& funcArg, int start);
+    bool GetUniformExtInfo(napi_env env, const NFuncArg& funcArg, int32_t start);
 };
 
 struct UniformTypeMap {
@@ -478,15 +484,13 @@ public:
 private:
     napi_env env_;
     bool GetWebGLArg(napi_value data, WebGLArgValue& args, const WebGLArgInfo& func);
-
-    std::vector<WebGLArgValue> values_ = {};
     WebGLArg(const WebGLArg&) = delete;
     WebGLArg& operator=(const WebGLArg&) = delete;
 };
 
 class WebGLCommBuffer {
 public:
-    const static int MAX_DUMP = 12;
+    const static int32_t MAX_DUMP = 12;
     WebGLCommBuffer(napi_env env) : env_(env) {}
     ~WebGLCommBuffer() {}
 
@@ -503,10 +507,6 @@ public:
     size_t GetBufferLength() const
     {
         return dataLen_;
-    }
-    size_t GetBufferDataCount() const
-    {
-        return dataLen_ / GetBufferDataSize();
     }
 protected:
     WebGLCommBuffer(const WebGLCommBuffer&) = delete;
@@ -544,6 +544,7 @@ private:
 
 class WebGLWriteBufferArg : public WebGLCommBuffer {
 public:
+    const static int32_t MAX_ALLOC_BUFFER_SIZE = 1024 * 1024;
     explicit WebGLWriteBufferArg(napi_env env) : WebGLCommBuffer(env) {}
     ~WebGLWriteBufferArg()
     {
@@ -554,6 +555,9 @@ public:
 
     uint8_t* AllocBuffer(uint32_t size)
     {
+        if (size > MAX_ALLOC_BUFFER_SIZE) {
+            return nullptr;
+        }
         if (data_ != nullptr) {
             delete[] data_;
             data_ = nullptr;
@@ -581,7 +585,7 @@ public:
     WebGLImageSource(napi_env env, int version, bool unpackFlipY, bool unpackPremultiplyAlpha)
         : webGLVersion_(version), env_(env), unpackFlipY_(unpackFlipY),
         unpackPremultiplyAlpha_(unpackPremultiplyAlpha) {}
-    ~WebGLImageSource() {};
+    ~WebGLImageSource();
 
     GLsizei GetWidth() const
     {
@@ -596,8 +600,8 @@ public:
         return imageOption_;
     }
 
-    WebGLReadBufferArg* GetWebGLReadBuffer();
-    GLvoid* GetImageSourceData();
+    WebGLReadBufferArg* GetWebGLReadBuffer() const;
+    GLvoid* GetImageSourceData() const;
     GLenum GenImageSource(const WebGLImageOption& opt, napi_value pixels, GLuint srcOffset);
     GLenum GenImageSource(const WebGLImageOption& opt, napi_value sourceImage);
 
@@ -643,7 +647,6 @@ private:
     GLuint srcOffset_ { 0 };
     WebGLImageOption imageOption_ {};
     std::vector<uint32_t> imageData_ {};
-    std::unique_ptr<OHOS::Media::ImageSource> imageSource_ { nullptr };
     std::unique_ptr<OHOS::Media::PixelMap> pixelMap_ { nullptr };
     std::unique_ptr<WebGLReadBufferArg> readBuffer_ { nullptr };
 

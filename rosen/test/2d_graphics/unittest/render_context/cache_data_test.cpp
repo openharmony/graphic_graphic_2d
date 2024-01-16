@@ -18,6 +18,7 @@
 #include <cerrno>
 
 #include <gtest/gtest.h>
+#include "platform/common/rs_system_properties.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -47,6 +48,11 @@ void CacheDataTest::TearDown() {}
 HWTEST_F(CacheDataTest, cachedata_init_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     GTEST_LOG_(INFO) << "CacheDataTest cachedata_init_test_001 start";
     /**
      * @tc.steps: step1. initialize a cachedata
@@ -69,6 +75,11 @@ HWTEST_F(CacheDataTest, cachedata_init_test_001, TestSize.Level1)
 HWTEST_F(CacheDataTest, serialized_size_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     GTEST_LOG_(INFO) << "CacheDataTest serialized_size_test_001 start";
     /**
      * @tc.steps: step1. initialize a cachedata
@@ -95,6 +106,11 @@ HWTEST_F(CacheDataTest, serialized_size_test_001, TestSize.Level1)
 HWTEST_F(CacheDataTest, get_data_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     GTEST_LOG_(INFO) << "CacheDataTest get_data_test_001 start";
     /**
      * @tc.steps: step1. initialize a cachedata
@@ -104,7 +120,7 @@ HWTEST_F(CacheDataTest, get_data_test_001, TestSize.Level1)
     /**
      * @tc.steps: step2. test the data grabbing function
      */
-    size_t sizeGet = cacheData->Get(nullptr, 1, nullptr, 1);
+    auto [errorCode, sizeGet] = cacheData->Get(nullptr, 1, nullptr, 1);
     EXPECT_EQ(0, sizeGet);
 #endif
 }
@@ -119,6 +135,11 @@ HWTEST_F(CacheDataTest, get_data_test_001, TestSize.Level1)
 HWTEST_F(CacheDataTest, serialization_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     GTEST_LOG_(INFO) << "CacheDataTest serialization_test_001 start";
     /**
      * @tc.steps: step1. initialize a cachedata
@@ -145,6 +166,11 @@ HWTEST_F(CacheDataTest, serialization_test_001, TestSize.Level1)
 HWTEST_F(CacheDataTest, deserialization_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     GTEST_LOG_(INFO) << "CacheDataTest deserialization_test_001 start";
     /**
      * @tc.steps: step1. initialize a cachedata
@@ -171,6 +197,11 @@ HWTEST_F(CacheDataTest, deserialization_test_001, TestSize.Level1)
 HWTEST_F(CacheDataTest, write_data_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     GTEST_LOG_(INFO) << "CacheDataTest write_data_test_001 start";
     /**
      * @tc.steps: step1. initialize a cachedata
@@ -182,7 +213,7 @@ HWTEST_F(CacheDataTest, write_data_test_001, TestSize.Level1)
      */
     uint8_t *tempBuffer = new uint8_t[8]();
     cacheData->Rewrite(tempBuffer, 8, tempBuffer, 8);
-    int sizeGet = cacheData->Get(tempBuffer, 8, tempBuffer, 8);
+    auto [errorCode, sizeGet] = cacheData->Get(tempBuffer, 8, tempBuffer, 8);
     EXPECT_EQ(0, sizeGet);
     delete[] tempBuffer;
 #endif
@@ -198,6 +229,11 @@ HWTEST_F(CacheDataTest, write_data_test_001, TestSize.Level1)
 HWTEST_F(CacheDataTest, clean_data_test_001, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     GTEST_LOG_(INFO) << "CacheDataTest clean_data_test_001 start";
     /**
      * @tc.steps: step1. initialize a cachedata
@@ -217,7 +253,7 @@ HWTEST_F(CacheDataTest, clean_data_test_001, TestSize.Level1)
     cacheData->Rewrite(testKey2, 4, testValue, 4);
     cacheData->Rewrite(testKey3, 4, testValue, 4);
     cacheData->Rewrite(testKey4, 4, testValue, 4);
-    int sizeGet = cacheData->Get(testKey4, 4, tempBuffer, 4);
+    auto [errorCode, sizeGet] = cacheData->Get(testKey4, 4, tempBuffer, 4);
     EXPECT_EQ(4, sizeGet);
     delete[] tempBuffer;
 #endif
@@ -233,6 +269,11 @@ HWTEST_F(CacheDataTest, clean_data_test_001, TestSize.Level1)
 HWTEST_F(CacheDataTest, clean_data_test_002, TestSize.Level1)
 {
 #ifdef ACE_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     GTEST_LOG_(INFO) << "CacheDataTest clean_data_test_002 start";
     /**
      * @tc.steps: step1. initialize a cachedata
@@ -248,7 +289,7 @@ HWTEST_F(CacheDataTest, clean_data_test_002, TestSize.Level1)
     const char *testValue = "aVal";
     cacheData->Rewrite(testKey1, 4, testValue, 4);
     cacheData->Rewrite(testKey2, 4, testValue, 4);
-    int sizeGet = cacheData->Get(testKey2, 4, tempBuffer, 4);
+    auto [errorCode, sizeGet] = cacheData->Get(testKey2, 4, tempBuffer, 4);
     EXPECT_EQ(0, sizeGet);
     delete[] tempBuffer;
 #endif

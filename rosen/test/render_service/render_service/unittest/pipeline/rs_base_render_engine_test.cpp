@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_render_engine.h"
+#include "recording/recording_canvas.h"
 #include "rs_test_util.h"
 
 using namespace testing;
@@ -129,15 +130,43 @@ HWTEST(RSBaseRenderEngineUnitTest, DrawDisplayNodeWithParams001, TestSize.Level1
     NodeId id = 0;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
-    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
-    ASSERT_NE(canvas, nullptr);
     BufferDrawParam param;
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    renderEngine->DrawDisplayNodeWithParams(*canvas, *node, param);
 
-    param.useCPU = true;
-    renderEngine->DrawDisplayNodeWithParams(*canvas, *node, param);
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+        param.buffer = surfaceNode->GetBuffer();
+
+        auto renderEngine = std::make_shared<RSRenderEngine>();
+        renderEngine->Init(true);
+    #ifndef USE_ROSEN_DRAWING
+        std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
+        std::shared_ptr<RSPaintFilterCanvas> recordingCanvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
+    #else
+        auto drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(10, 10);
+        drawingRecordingCanvas->SetGrRecordingContext(renderEngine->GetRenderContext()->GetSharedDrGPUContext());
+        auto recordingCanvas = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.get());
+    #endif
+        ASSERT_NE(recordingCanvas, nullptr);
+        renderEngine->DrawDisplayNodeWithParams(*recordingCanvas, *node, param);
+
+        param.useCPU = true;
+        renderEngine->DrawDisplayNodeWithParams(*recordingCanvas, *node, param);
+    } else {
+        auto renderEngine = std::make_shared<RSRenderEngine>();
+    #ifndef USE_ROSEN_DRAWING
+        std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
+        std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
+    #else
+        std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+        std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    #endif
+        ASSERT_NE(canvas, nullptr);
+        renderEngine->DrawDisplayNodeWithParams(*canvas, *node, param);
+
+        param.useCPU = true;
+        renderEngine->DrawDisplayNodeWithParams(*canvas, *node, param);
+    }
 }
 
 #ifdef RS_ENABLE_EGLIMAGE
@@ -149,21 +178,33 @@ HWTEST(RSBaseRenderEngineUnitTest, DrawDisplayNodeWithParams001, TestSize.Level1
  */
 HWTEST(RSBaseRenderEngineUnitTest, CreateEglImageFromBuffer001, TestSize.Level1)
 {
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    renderEngine->Init();
-    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
-    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
-    auto img = renderEngine->CreateEglImageFromBuffer(*canvas, nullptr, nullptr);
-    ASSERT_EQ(nullptr, img);
-#ifdef NEW_SKIA
-    [[maybe_unused]] auto grContext = canvas->recordingContext();
-#else
-    [[maybe_unused]] auto grContext = canvas->getGrContext();
-#endif
-    grContext = nullptr;
-    img = renderEngine->CreateEglImageFromBuffer(*canvas, node->GetBuffer(), nullptr);
-    ASSERT_EQ(nullptr, img);
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        auto renderEngine = std::make_shared<RSRenderEngine>();
+        renderEngine->Init();
+        auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    #ifndef USE_ROSEN_DRAWING
+        std::unique_ptr<SkCanvas> skCanvas = std::make_unique<SkCanvas>(10, 10);
+        std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(skCanvas.get());
+    #else
+        std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+        std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    #endif
+        auto img = renderEngine->CreateEglImageFromBuffer(*canvas, nullptr, nullptr);
+        ASSERT_EQ(nullptr, img);
+    #ifndef USE_ROSEN_DRAWING
+    #ifdef NEW_SKIA
+        [[maybe_unused]] auto grContext = canvas->recordingContext();
+    #else
+        [[maybe_unused]] auto grContext = canvas->getGrContext();
+    #endif
+    #else
+        [[maybe_unused]] auto grContext = canvas->GetGPUContext();
+    #endif
+        grContext = nullptr;
+        img = renderEngine->CreateEglImageFromBuffer(*canvas, node->GetBuffer(), nullptr);
+        ASSERT_EQ(nullptr, img);
+    }
 }
 
 /**

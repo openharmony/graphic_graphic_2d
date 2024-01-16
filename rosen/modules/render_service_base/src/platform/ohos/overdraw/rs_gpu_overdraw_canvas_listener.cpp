@@ -440,11 +440,8 @@ void RSGPUOverdrawCanvasListener::AttachPen(const Drawing::Pen& pen)
     if (overdrawPen_ == nullptr) {
         overdrawPen_ = std::make_shared<Drawing::Pen>();
 
-        Drawing::ColorMatrix cm;
-        cm.SetArray(overdrawColorMatix);
-
         Drawing::Filter filter;
-        filter.SetColorFilter(Drawing::ColorFilter::CreateMatrixColorFilter(cm));
+        filter.SetColorFilter(Drawing::ColorFilter::CreateFloatColorFilter(overdrawColorMatix));
         overdrawPen_->SetFilter(filter);
         overdrawPen_->SetBlendMode(Drawing::BlendMode::PLUS);
     }
@@ -460,11 +457,8 @@ void RSGPUOverdrawCanvasListener::AttachBrush(const Drawing::Brush& brush)
     if (overdrawBrush_ == nullptr) {
         overdrawBrush_ = std::make_shared<Drawing::Brush>();
 
-        Drawing::ColorMatrix cm;
-        cm.SetArray(overdrawColorMatix);
-
         Drawing::Filter filter;
-        filter.SetColorFilter(Drawing::ColorFilter::CreateMatrixColorFilter(cm));
+        filter.SetColorFilter(Drawing::ColorFilter::CreateFloatColorFilter(overdrawColorMatix));
         overdrawBrush_->SetFilter(filter);
         overdrawBrush_->SetBlendMode(Drawing::BlendMode::PLUS);
     }

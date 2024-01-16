@@ -18,17 +18,19 @@
 
 #include "include/core/SkGraphics.h"
 #include "include/core/SkTraceMemoryDump.h"
+#include "utils/drawing_macros.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class __attribute__((visibility("default"))) SkiaGraphics {
+class DRAWING_API SkiaGraphics {
 public:
     static size_t GetFontCacheUsed();
     static int GetFontCacheCountUsed();
     static void DumpMemoryStatistics(SkTraceMemoryDump* dump);
     static size_t GetResourceCacheTotalByteLimit();
     static size_t GetFontCacheLimit();
+    static void PurgeResourceCache();
 };
 }
 }

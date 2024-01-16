@@ -46,9 +46,11 @@ enum class BorderStyle : uint32_t {
     NONE
 };
 
+// also used for Outline
 class RSBorder final {
 public:
     RSBorder() = default;
+    RSBorder(const bool& isOutline);
     ~RSBorder() {}
 
     enum BorderType : int {
@@ -68,9 +70,11 @@ public:
     void SetColorFour(const Vector4<Color>& color);
     void SetWidthFour(const Vector4f& width);
     void SetStyleFour(const Vector4<uint32_t>& style);
+    void SetRadiusFour(const Vector4f& radius);
     Vector4<Color> GetColorFour() const;
     Vector4f GetWidthFour() const;
     Vector4<uint32_t> GetStyleFour() const;
+    Vector4f GetRadiusFour() const;
 
     bool HasBorder() const;
 
@@ -82,10 +86,10 @@ public:
     bool ApplyFourLine(SkPaint& paint) const;
     bool ApplyLineStyle(SkPaint& paint, int borderIdx, float length) const;
     void PaintFourLine(SkCanvas& canvas, SkPaint& paint, RectF rect) const;
-    void PaintTopPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) const;
-    void PaintRightPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) const;
-    void PaintBottomPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) const;
-    void PaintLeftPath(SkCanvas& canvas, SkPaint& paint, SkRRect& rrect) const;
+    void PaintTopPath(SkCanvas& canvas, SkPaint& paint, const SkRRect& rrect, const SkPoint& innerRectCenter) const;
+    void PaintRightPath(SkCanvas& canvas, SkPaint& paint, const SkRRect& rrect, const SkPoint& innerRectCenter) const;
+    void PaintBottomPath(SkCanvas& canvas, SkPaint& paint, const SkRRect& rrect, const SkPoint& innerRectCenter) const;
+    void PaintLeftPath(SkCanvas& canvas, SkPaint& paint, const SkRRect& rrect, const SkPoint& innerRectCenter) const;
 #else
     bool ApplyFillStyle(Drawing::Brush& brush) const;
     bool ApplyPathStyle(Drawing::Pen& pen) const;
@@ -93,10 +97,14 @@ public:
     bool ApplyLineStyle(Drawing::Pen& pen, int borderIdx, float length) const;
 
     void PaintFourLine(Drawing::Canvas& canvas, Drawing::Pen& pen, RectF rect) const;
-    void PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect) const;
-    void PaintRightPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect) const;
-    void PaintBottomPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect) const;
-    void PaintLeftPath(Drawing::Canvas& canvas, Drawing::Pen& pen, Drawing::RoundRect& rrect) const;
+    void PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
+        const Drawing::Point& innerRectCenter) const;
+    void PaintRightPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
+        const Drawing::Point& innerRectCenter) const;
+    void PaintBottomPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
+        const Drawing::Point& innerRectCenter) const;
+    void PaintLeftPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
+        const Drawing::Point& innerRectCenter) const;
 #endif
 
 private:
@@ -105,6 +113,9 @@ private:
     std::vector<Color> colors_;
     std::vector<float> widths_;
     std::vector<BorderStyle> styles_;
+
+    // only be used by outline, innerBorder(border_) uses corner radius.
+    Vector4f radius_;
 };
 } // namespace Rosen
 } // namespace OHOS

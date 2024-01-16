@@ -83,7 +83,12 @@ bool RSRenderSpringAnimation::Marshalling(Parcel& parcel) const
         return false;
     }
 
-    return true;
+    if (initialVelocity_) {
+        return RSMarshallingHelper::Marshalling(parcel, true) &&
+               RSMarshallingHelper::Marshalling(parcel, initialVelocity_);
+    }
+
+    return RSMarshallingHelper::Marshalling(parcel, false);
 }
 
 RSRenderSpringAnimation* RSRenderSpringAnimation::Unmarshalling(Parcel& parcel)
@@ -109,16 +114,22 @@ bool RSRenderSpringAnimation::ParseParam(Parcel& parcel)
         return false;
     }
 
+    auto haveInitialVelocity = false;
     if (!(RSMarshallingHelper::Unmarshalling(parcel, response_) &&
             RSMarshallingHelper::Unmarshalling(parcel, dampingRatio_) &&
             RSMarshallingHelper::Unmarshalling(parcel, blendDuration_) &&
             RSMarshallingHelper::Unmarshalling(parcel, needLogicallyFinishCallback_) &&
-            RSMarshallingHelper::Unmarshalling(parcel, zeroThreshold_))) {
+            RSMarshallingHelper::Unmarshalling(parcel, zeroThreshold_) &&
+            RSMarshallingHelper::Unmarshalling(parcel, haveInitialVelocity))) {
         return false;
     }
+
     // copy response to final response
     finalResponse_ = response_;
 
+    if (haveInitialVelocity) {
+        return RSMarshallingHelper::Unmarshalling(parcel, initialVelocity_);
+    }
     return true;
 }
 #endif
@@ -142,10 +153,13 @@ void RSRenderSpringAnimation::OnAnimate(float fraction)
     }
     auto mappedTime = fraction * GetDuration() * MILLISECOND_TO_SECOND;
     auto displacement = CalculateDisplacement(mappedTime) + endValue_;
-    SetAnimationValue(displacement);
 
     // keep the mapped time, this will be used to calculate instantaneous velocity
+    // update the time before calling SetAnimationValue, as SetAnimationValue may trigger velocity calculation
+    // if the time is not updated before these calculations, the velocity will be inaccurate
     prevMappedTime_ = mappedTime;
+    SetAnimationValue(displacement);
+
     if (GetNeedLogicallyFinishCallback() && (animationFraction_.GetRemainingRepeatCount() == 1)) {
         auto velocity = CalculateVelocity(mappedTime);
         auto zeroValue = startValue_ - startValue_;
@@ -171,7 +185,12 @@ void RSRenderSpringAnimation::OnAttach()
     auto propertyId = GetPropertyId();
     auto prevAnimation = target->GetAnimationManager().QuerySpringAnimation(propertyId);
     target->GetAnimationManager().RegisterSpringAnimation(propertyId, GetAnimationId());
+    // stop running the previous animation and inherit velocity from it
+    InheritSpringAnimation(prevAnimation);
+}
 
+void RSRenderSpringAnimation::InheritSpringAnimation(const std::shared_ptr<RSRenderAnimation>& prevAnimation)
+{
     // return if no other spring animation(s) running, or the other animation is finished
     // meanwhile, align run time for both spring animations, prepare for status inheritance
     if (prevAnimation == nullptr || prevAnimation->Animate(animationFraction_.GetLastFrameTime())) {
@@ -321,6 +340,16 @@ void RSRenderSpringAnimation::CallLogicallyFinishCallback() const
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(targetId, animationId, LOGICALLY_FINISHED);
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), std::move(command));
+}
+
+void RSRenderSpringAnimation::SetInitialVelocity(const std::shared_ptr<RSRenderPropertyBase>& velocity)
+{
+    if (!velocity) {
+        ROSEN_LOGE("RSRenderSpringAnimation::SetInitialVelocity: velocity is a nullptr.");
+        return;
+    }
+    // if inheritance happens, this velocity will be replace again
+    initialVelocity_ = velocity;
 }
 } // namespace Rosen
 } // namespace OHOS

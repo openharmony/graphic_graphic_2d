@@ -35,7 +35,7 @@ std::vector<VariantSpan> BidiProcesser::ProcessBidiText(const std::vector<Varian
     for (auto const &span : spans) {
         auto ts = span.TryToTextSpan();
         if (ts == nullptr) {
-            newSpans.push_back(span);
+            newSpans.emplace_back(span);
             continue;
         }
 
@@ -50,7 +50,7 @@ std::vector<VariantSpan> BidiProcesser::ProcessBidiText(const std::vector<Varian
                 spanWidth += cg.GetWidth();
             }
             vs.TryToTextSpan()->width_ = spanWidth;
-            newSpans.push_back(vs);
+            newSpans.emplace_back(vs);
         }
     }
 
@@ -102,7 +102,10 @@ std::vector<NewSpanInfo> BidiProcesser::DoBidiProcess(const CharGroups &cgs, con
         auto ic = cgs.GetIntersect(cc);
         LOGCEX_DEBUG() << "intersect at cgs" << ic.GetRange();
         nsi.cgs = ic;
-        nsis.push_back(nsi);
+        nsis.emplace_back(nsi);
+    }
+    if (dir == TextDirection::RTL) {
+        std::reverse(nsis.begin(), nsis.end());
     }
     return nsis;
 }

@@ -18,7 +18,11 @@
 
 #include <memory>
 
+#ifndef USE_ROSEN_DRAWING
 #include <include/core/SkFontMetrics.h>
+#else
+#include "drawing.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -26,6 +30,7 @@ namespace TextEngine {
 class TexgineFontMetrics {
 public:
     TexgineFontMetrics();
+#ifndef USE_ROSEN_DRAWING
     /*
      * @brief Returns SkFontMetrics
      */
@@ -35,7 +40,11 @@ public:
      * @brief Sets SkFontMetrics to TexgineFontMetrics
      */
     void SetFontMetrics(const std::shared_ptr<SkFontMetrics> metrics);
+#else
+    std::shared_ptr<RSFontMetrics> GetFontMetrics() const;
 
+    void SetFontMetrics(const std::shared_ptr<RSFontMetrics> metrics);
+#endif
     uint32_t *fFlags_ = nullptr;
     float *fTop_ = nullptr;
     float *fAscent_ = nullptr;
@@ -54,7 +63,11 @@ public:
     float *fStrikeoutPosition_ = nullptr;
 
 private:
+#ifndef USE_ROSEN_DRAWING
     std::shared_ptr<SkFontMetrics> fontMetrics_ = std::make_shared<SkFontMetrics>();
+#else
+    std::shared_ptr<RSFontMetrics> fontMetrics_ = std::make_shared<RSFontMetrics>();
+#endif
 };
 } // namespace TextEngine
 } // namespace Rosen

@@ -15,26 +15,21 @@
 
 #include "recording/cmd_list_helper.h"
 
-#include "include/core/SkSerialProcs.h"
-
 #ifdef SUPPORT_OHOS_PIXMAP
 #include "pixel_map.h"
 #endif
-#include "recording/color_filter_cmd_list.h"
-#include "recording/color_space_cmd_list.h"
 #include "recording/draw_cmd_list.h"
-#include "recording/image_filter_cmd_list.h"
-#include "recording/mask_filter_cmd_list.h"
-#include "recording/path_cmd_list.h"
-#include "recording/path_effect_cmd_list.h"
-#include "recording/region_cmd_list.h"
-#include "recording/shader_effect_cmd_list.h"
 #include "skia_adapter/skia_vertices.h"
+#include "skia_adapter/skia_image_filter.h"
+#include "skia_adapter/skia_mask_filter.h"
+#include "skia_adapter/skia_color_filter.h"
+#include "skia_adapter/skia_shader_effect.h"
+#include "skia_adapter/skia_path_effect.h"
+
 #include "utils/log.h"
 
+#include "skia_adapter/skia_path.h"
 #include "skia_adapter/skia_picture.h"
-#include "skia_adapter/skia_text_blob.h"
-#include "skia_adapter/skia_typeface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -52,25 +47,20 @@ static int ColorTypeToBytesPerPixel(ColorType colorType)
         case ColorType::COLORTYPE_BGRA_8888:
         case ColorType::COLORTYPE_N32:
             return 4;
+        case ColorType::COLORTYPE_RGBA_F16:
+            return 8;
         case ColorType::COLORTYPE_UNKNOWN:
         default:
             return 0;
     }
 }
 
-ImageHandle CmdListHelper::AddImageToCmdList(CmdList& cmdList, const Image& image)
+OpDataHandle CmdListHelper::AddImageToCmdList(CmdList& cmdList, const Image& image)
 {
-    auto data = image.Serialize();
-    if (data == nullptr || data->GetSize() == 0) {
-        LOGE("image is valid!");
-        return { 0 };
-    }
-
-    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
-    return { offset, data->GetSize() };
+    return cmdList.AddImage(image);
 }
 
-ImageHandle CmdListHelper::AddImageToCmdList(CmdList& cmdList, const std::shared_ptr<Image>& image)
+OpDataHandle CmdListHelper::AddImageToCmdList(CmdList& cmdList, const std::shared_ptr<Image>& image)
 {
     if (image == nullptr) {
         LOGE("image is nullptr!");
@@ -79,33 +69,14 @@ ImageHandle CmdListHelper::AddImageToCmdList(CmdList& cmdList, const std::shared
     return CmdListHelper::AddImageToCmdList(cmdList, *image);
 }
 
-std::shared_ptr<Image> CmdListHelper::GetImageFromCmdList(const CmdList& cmdList, const ImageHandle& imageHandle)
+std::shared_ptr<Image> CmdListHelper::GetImageFromCmdList(const CmdList& cmdList, const OpDataHandle& opDataHandle)
 {
-    const void* ptr = cmdList.GetImageData(imageHandle.offset);
-    if (imageHandle.size == 0 || ptr == nullptr) {
-        LOGE("get image data failed!");
-        return nullptr;
-    }
-
-    auto imageData = std::make_shared<Data>();
-    imageData->BuildWithoutCopy(ptr, imageHandle.size);
-    auto image = std::make_shared<Image>();
-    if (image->Deserialize(imageData) == false) {
-        LOGE("image deserialize failed!");
-        return nullptr;
-    }
-    return image;
+    return (const_cast<CmdList&>(cmdList)).GetImage(opDataHandle);
 }
 
-VerticesHandle CmdListHelper::AddVerticesToCmdList(CmdList& cmdList, const Vertices& vertices)
+OpDataHandle CmdListHelper::AddVerticesToCmdList(CmdList& cmdList, const Vertices& vertices)
 {
-    std::shared_ptr<SkiaVertices> skiaVertices = vertices.GetImpl<SkiaVertices>();
-    if (skiaVertices == nullptr) {
-        LOGE("skiaVertices nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
-        return { 0 };
-    }
-
-    auto data = skiaVertices->Serialize();
+    auto data = vertices.Serialize();
     if (data == nullptr || data->GetSize() == 0) {
         LOGE("vertices is valid!");
         return { 0 };
@@ -116,26 +87,22 @@ VerticesHandle CmdListHelper::AddVerticesToCmdList(CmdList& cmdList, const Verti
 }
 
 std::shared_ptr<Vertices> CmdListHelper::GetVerticesFromCmdList(
-    const CmdList& cmdList, const VerticesHandle& verticesHandle)
+    const CmdList& cmdList, const OpDataHandle& opDataHandle)
 {
-    const void* ptr = cmdList.GetImageData(verticesHandle.offset);
+    if (opDataHandle.size == 0) {
+        return nullptr;
+    }
 
-    if (verticesHandle.size == 0 || ptr == nullptr) {
+    const void* ptr = cmdList.GetImageData(opDataHandle.offset);
+    if (ptr == nullptr) {
         LOGE("get vertices data failed!");
         return nullptr;
     }
 
     auto verticesData = std::make_shared<Data>();
-    verticesData->BuildWithoutCopy(ptr, verticesHandle.size);
+    verticesData->BuildWithoutCopy(ptr, opDataHandle.size);
     auto vertices = std::make_shared<Vertices>();
-
-    std::shared_ptr<SkiaVertices> skiaVertices = vertices->GetImpl<SkiaVertices>();
-    if (skiaVertices == nullptr) {
-        LOGE("skiaVertices nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
-        return nullptr;
-    }
-
-    if (skiaVertices->Deserialize(verticesData) == false) {
+    if (vertices->Deserialize(verticesData) == false) {
         LOGE("vertices deserialize failed!");
         return nullptr;
     }
@@ -152,14 +119,18 @@ ImageHandle CmdListHelper::AddBitmapToCmdList(CmdList& cmdList, const Bitmap& bi
         return { 0 };
     }
 
-    auto offset = cmdList.AddImageData(bitmap.GetPixels(), bitmapSize);
+    auto offset = cmdList.AddBitmapData(bitmap.GetPixels(), bitmapSize);
     return { offset, bitmapSize, bitmap.GetWidth(), bitmap.GetHeight(), format.colorType, format.alphaType };
 }
 
 std::shared_ptr<Bitmap> CmdListHelper::GetBitmapFromCmdList(const CmdList& cmdList, const ImageHandle& bitmapHandle)
 {
-    const void* ptr = cmdList.GetImageData(bitmapHandle.offset);
-    if (bitmapHandle.size == 0 || ptr == nullptr) {
+    if (bitmapHandle.size == 0) {
+        return nullptr;
+    }
+
+    const void* ptr = cmdList.GetBitmapData(bitmapHandle.offset);
+    if (ptr == nullptr) {
         LOGE("get bitmap data failed!");
         return nullptr;
     }
@@ -167,12 +138,12 @@ std::shared_ptr<Bitmap> CmdListHelper::GetBitmapFromCmdList(const CmdList& cmdLi
     BitmapFormat format = { bitmapHandle.colorType, bitmapHandle.alphaType };
     auto bitmap = std::make_shared<Bitmap>();
     bitmap->Build(bitmapHandle.width, bitmapHandle.height, format);
-    bitmap->SetPixels(const_cast<void*>(cmdList.GetImageData(bitmapHandle.offset)));
+    bitmap->SetPixels(const_cast<void*>(cmdList.GetBitmapData(bitmapHandle.offset)));
 
     return bitmap;
 }
 
-ImageHandle CmdListHelper::AddPixelMapToCmdList(CmdList& cmdList, const std::shared_ptr<Media::PixelMap>& pixelMap)
+OpDataHandle CmdListHelper::AddPixelMapToCmdList(CmdList& cmdList, const std::shared_ptr<Media::PixelMap>& pixelMap)
 {
 #ifdef SUPPORT_OHOS_PIXMAP
     auto index = cmdList.AddPixelMap(pixelMap);
@@ -184,41 +155,44 @@ ImageHandle CmdListHelper::AddPixelMapToCmdList(CmdList& cmdList, const std::sha
 }
 
 std::shared_ptr<Media::PixelMap> CmdListHelper::GetPixelMapFromCmdList(
-    const CmdList& cmdList, const ImageHandle& pixelMapHandle)
+    const CmdList& cmdList, const OpDataHandle& pixelMapHandle)
 {
 #ifdef SUPPORT_OHOS_PIXMAP
-        return (const_cast<CmdList&>(cmdList)).GetPixelMap(pixelMapHandle.offset);
+    return (const_cast<CmdList&>(cmdList)).GetPixelMap(pixelMapHandle.offset);
 #else
     LOGE("Not support drawing Media::PixelMap");
     return nullptr;
 #endif
 }
 
-ImageHandle CmdListHelper::AddImageObjectToCmdList(CmdList& cmdList, const std::shared_ptr<ExtendImageObject>& object)
+OpDataHandle CmdListHelper::AddImageObjectToCmdList(CmdList& cmdList, const std::shared_ptr<ExtendImageObject>& object)
 {
-#ifdef SUPPORT_OHOS_PIXMAP
     auto index = cmdList.AddImageObject(object);
     return { index };
-#else
-    LOGE("Not support drawing ExtendImageObject");
-    return { 0 };
-#endif
 }
 
 std::shared_ptr<ExtendImageObject> CmdListHelper::GetImageObjectFromCmdList(
-    const CmdList& cmdList, const ImageHandle& objectHandle)
+    const CmdList& cmdList, const OpDataHandle& objectHandle)
 {
-#ifdef SUPPORT_OHOS_PIXMAP
     return (const_cast<CmdList&>(cmdList)).GetImageObject(objectHandle.offset);
-#else
-    LOGE("Not support drawing ExtendImageObject");
-    return nullptr;
-#endif
 }
 
-ImageHandle CmdListHelper::AddPictureToCmdList(CmdList& cmdList, const Picture& picture)
+OpDataHandle CmdListHelper::AddImageBaseObjToCmdList(
+    CmdList& cmdList, const std::shared_ptr<ExtendImageBaseObj>& object)
 {
-    auto data = picture.GetImpl<SkiaPicture>()->Serialize();
+    auto index = cmdList.AddImageBaseObj(object);
+    return { index };
+}
+
+std::shared_ptr<ExtendImageBaseObj> CmdListHelper::GetImageBaseObjFromCmdList(
+    const CmdList& cmdList, const OpDataHandle& objectHandle)
+{
+    return (const_cast<CmdList&>(cmdList)).GetImageBaseObj(objectHandle.offset);
+}
+
+OpDataHandle CmdListHelper::AddPictureToCmdList(CmdList& cmdList, const Picture& picture)
+{
+    auto data = picture.Serialize();
     if (data == nullptr || data->GetSize() == 0) {
         LOGE("picture is valid!");
         return { 0 };
@@ -228,8 +202,12 @@ ImageHandle CmdListHelper::AddPictureToCmdList(CmdList& cmdList, const Picture& 
     return { offset, data->GetSize() };
 }
 
-std::shared_ptr<Picture> CmdListHelper::GetPictureFromCmdList(const CmdList& cmdList, const ImageHandle& pictureHandle)
+std::shared_ptr<Picture> CmdListHelper::GetPictureFromCmdList(const CmdList& cmdList, const OpDataHandle& pictureHandle)
 {
+    if (pictureHandle.size == 0) {
+        return nullptr;
+    }
+
     const void* ptr = cmdList.GetImageData(pictureHandle.offset);
     if (ptr == nullptr) {
         LOGE("get picture data failed!");
@@ -239,14 +217,14 @@ std::shared_ptr<Picture> CmdListHelper::GetPictureFromCmdList(const CmdList& cmd
     auto pictureData = std::make_shared<Data>();
     pictureData->BuildWithoutCopy(ptr, pictureHandle.size);
     auto picture = std::make_shared<Picture>();
-    if (picture->GetImpl<SkiaPicture>()->Deserialize(pictureData) == false) {
+    if (picture->Deserialize(pictureData) == false) {
         LOGE("picture deserialize failed!");
         return nullptr;
     }
     return picture;
 }
 
-ImageHandle CmdListHelper::AddCompressDataToCmdList(CmdList& cmdList, const std::shared_ptr<Data>& data)
+OpDataHandle CmdListHelper::AddCompressDataToCmdList(CmdList& cmdList, const std::shared_ptr<Data>& data)
 {
     if (data == nullptr || data->GetSize() == 0) {
         LOGE("data is valid!");
@@ -257,10 +235,14 @@ ImageHandle CmdListHelper::AddCompressDataToCmdList(CmdList& cmdList, const std:
     return { offset, data->GetSize() };
 }
 
-std::shared_ptr<Data> CmdListHelper::GetCompressDataFromCmdList(const CmdList& cmdList, const ImageHandle& imageHandle)
+std::shared_ptr<Data> CmdListHelper::GetCompressDataFromCmdList(const CmdList& cmdList, const OpDataHandle& imageHandle)
 {
+    if (imageHandle.size == 0) {
+        return nullptr;
+    }
+
     const void* ptr = cmdList.GetImageData(imageHandle.offset);
-    if (imageHandle.size == 0 || ptr == nullptr) {
+    if (ptr == nullptr) {
         LOGE("get image data failed!");
         return nullptr;
     }
@@ -295,23 +277,130 @@ CmdListHandle CmdListHelper::AddChildToCmdList(CmdList& cmdList, const std::shar
         childHandle.imageSize = childImageData.second;
     }
 
+    auto childBitmapData = child->GetAllBitmapData();
+    if (childBitmapData.first != nullptr && childBitmapData.second != 0) {
+        childHandle.bitmapOffset = cmdList.AddBitmapData(childBitmapData.first, childBitmapData.second);
+        childHandle.bitmapSize = childBitmapData.second;
+    }
+
     return childHandle;
 }
 
-ImageHandle CmdListHelper::AddTextBlobToCmdList(CmdList& cmdList, const TextBlob* textBlob)
+SymbolOpHandle CmdListHelper::AddSymbolToCmdList(CmdList& cmdList, const DrawingHMSymbolData& symbol)
+{
+    auto symbolLayersHandle = AddSymbolLayersToCmdList(cmdList, symbol.symbolInfo_);
+    auto pathHandle = AddPathToCmdList(cmdList, symbol.path_);
+    return { symbolLayersHandle, pathHandle };
+}
+
+DrawingHMSymbolData CmdListHelper::GetSymbolFromCmdList(const CmdList& cmdList,
+    const SymbolOpHandle& symbolHandle)
+{
+    DrawingHMSymbolData symbol;
+
+    symbol.symbolInfo_ = GetSymbolLayersFromCmdList(cmdList, symbolHandle.symbolLayerHandle);
+
+    auto path = GetPathFromCmdList(cmdList, symbolHandle.pathHandle);
+    if (path != nullptr) {
+        symbol.path_ = *path;
+    }
+
+    return symbol;
+}
+
+SymbolLayersHandle CmdListHelper::AddSymbolLayersToCmdList(CmdList& cmdList, const DrawingSymbolLayers& symbolLayers)
+{
+    auto layers = symbolLayers.layers;
+    std::vector<std::pair<uint32_t, size_t>> handleVector1;
+    for (size_t i = 0; i < layers.size(); i++) {
+        handleVector1.push_back(AddVectorToCmdList(cmdList, layers.at(i)));
+    }
+    std::pair<uint32_t, size_t> layersHandle = AddVectorToCmdList(cmdList, handleVector1);
+
+    auto groups = symbolLayers.renderGroups;
+    std::vector<RenderGroupHandle> handleVector2;
+    for (size_t i = 0; i < groups.size(); i++) {
+        handleVector2.push_back(AddRenderGroupToCmdList(cmdList, groups.at(i)));
+    }
+    std::pair<uint32_t, size_t> groupsHandle = AddVectorToCmdList(cmdList, handleVector2);
+
+    return { symbolLayers.symbolGlyphId, layersHandle, groupsHandle, static_cast<int32_t>(symbolLayers.effect)};
+}
+
+DrawingSymbolLayers CmdListHelper::GetSymbolLayersFromCmdList(const CmdList& cmdList,
+    const SymbolLayersHandle& symbolLayersHandle)
+{
+    DrawingSymbolLayers symbolLayers;
+    symbolLayers.symbolGlyphId = symbolLayersHandle.id;
+
+    auto handleVector1 = GetVectorFromCmdList<std::pair<uint32_t, size_t>>(cmdList, symbolLayersHandle.layers);
+    std::vector<std::vector<size_t>> layers;
+    for (size_t i = 0; i < handleVector1.size(); i++) {
+        layers.push_back(GetVectorFromCmdList<size_t>(cmdList, handleVector1.at(i)));
+    }
+    symbolLayers.layers = layers;
+
+    auto handleVector2 = GetVectorFromCmdList<RenderGroupHandle>(cmdList, symbolLayersHandle.groups);
+    std::vector<DrawingRenderGroup> renderGroups;
+    for (size_t i = 0; i < handleVector2.size(); i++) {
+        renderGroups.push_back(GetRenderGroupFromCmdList(cmdList, handleVector2.at(i)));
+    }
+    symbolLayers.renderGroups = renderGroups;
+
+    symbolLayers.effect = static_cast<DrawingEffectStrategy>(symbolLayersHandle.effect);
+
+    return symbolLayers;
+}
+
+RenderGroupHandle CmdListHelper::AddRenderGroupToCmdList(CmdList& cmdList, const DrawingRenderGroup& group)
+{
+    auto infos = group.groupInfos;
+    std::vector<GroupInfoHandle> handleVector;
+    for (size_t i = 0; i < infos.size(); i++) {
+        handleVector.push_back(AddGroupInfoToCmdList(cmdList, infos.at(i)));
+    }
+    std::pair<uint32_t, size_t> groupInfosHandle = AddVectorToCmdList(cmdList, handleVector);
+    return { groupInfosHandle, group.color };
+}
+
+DrawingRenderGroup CmdListHelper::GetRenderGroupFromCmdList(const CmdList& cmdList,
+    const RenderGroupHandle& renderGroupHandle)
+{
+    DrawingRenderGroup group;
+    group.color = renderGroupHandle.color;
+
+    auto handleVector = GetVectorFromCmdList<GroupInfoHandle>(cmdList, renderGroupHandle.infos);
+    std::vector<DrawingGroupInfo> groupInfos;
+    for (size_t i = 0; i < handleVector.size(); i++) {
+        groupInfos.push_back(GetGroupInfoFromCmdList(cmdList, handleVector.at(i)));
+    }
+    group.groupInfos = groupInfos;
+
+    return group;
+}
+
+GroupInfoHandle CmdListHelper::AddGroupInfoToCmdList(CmdList& cmdList, const DrawingGroupInfo& groupInfo)
+{
+    std::pair<uint32_t, size_t> layerIndexes = AddVectorToCmdList(cmdList, groupInfo.layerIndexes);
+    std::pair<uint32_t, size_t> maskIndexes = AddVectorToCmdList(cmdList, groupInfo.maskIndexes);
+    return { layerIndexes, maskIndexes };
+}
+
+DrawingGroupInfo CmdListHelper::GetGroupInfoFromCmdList(const CmdList& cmdList, const GroupInfoHandle& groupInfoHandle)
+{
+    DrawingGroupInfo groupInfo;
+    groupInfo.layerIndexes = GetVectorFromCmdList<size_t>(cmdList, groupInfoHandle.vec1);
+    groupInfo.maskIndexes = GetVectorFromCmdList<size_t>(cmdList, groupInfoHandle.vec2);
+    return groupInfo;
+}
+
+OpDataHandle CmdListHelper::AddTextBlobToCmdList(CmdList& cmdList, const TextBlob* textBlob)
 {
     if (!textBlob) {
         LOGE("textBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return { 0 };
     }
-    std::shared_ptr<SkiaTextBlob> skiaTextBlob = textBlob->GetImpl<SkiaTextBlob>();
-    if (!skiaTextBlob) {
-        LOGE("skiaTextBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
-        return { 0 };
-    }
-    SkSerialProcs serialProcs;
-    serialProcs.fTypefaceProc = &SkiaTypeface::SerializeTypeface;
-    auto data = skiaTextBlob->Serialize(serialProcs);
+    auto data = textBlob->Serialize();
     if (!data || data->GetSize() == 0) {
         LOGE("textBlob serialize invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return { 0 };
@@ -322,8 +411,12 @@ ImageHandle CmdListHelper::AddTextBlobToCmdList(CmdList& cmdList, const TextBlob
 }
 
 std::shared_ptr<TextBlob> CmdListHelper::GetTextBlobFromCmdList(const CmdList& cmdList,
-    const ImageHandle& textBlobHandle)
+    const OpDataHandle& textBlobHandle)
 {
+    if (textBlobHandle.size == 0) {
+        return nullptr;
+    }
+
     const void* data = cmdList.GetImageData(textBlobHandle.offset);
     if (!data) {
         LOGE("textBlob data nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
@@ -332,12 +425,10 @@ std::shared_ptr<TextBlob> CmdListHelper::GetTextBlobFromCmdList(const CmdList& c
 
     auto textBlobData = std::make_shared<Data>();
     textBlobData->BuildWithoutCopy(data, textBlobHandle.size);
-    SkDeserialProcs deserialProcs;
-    deserialProcs.fTypefaceProc = &SkiaTypeface::DeserializeTypeface;
-    return SkiaTextBlob::Deserialize(textBlobData->GetData(), textBlobData->GetSize(), deserialProcs);
+    return TextBlob::Deserialize(textBlobData->GetData(), textBlobData->GetSize());
 }
 
-ImageHandle CmdListHelper::AddDataToCmdList(CmdList& cmdList, const Data* srcData)
+OpDataHandle CmdListHelper::AddDataToCmdList(CmdList& cmdList, const Data* srcData)
 {
     if (!srcData) {
         LOGE("data nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
@@ -354,10 +445,14 @@ ImageHandle CmdListHelper::AddDataToCmdList(CmdList& cmdList, const Data* srcDat
     return { offset, data->GetSize() };
 }
 
-std::shared_ptr<Data> CmdListHelper::GetDataFromCmdList(const CmdList& cmdList, const ImageHandle& imageHandle)
+std::shared_ptr<Data> CmdListHelper::GetDataFromCmdList(const CmdList& cmdList, const OpDataHandle& imageHandle)
 {
+    if (imageHandle.size == 0) {
+        return nullptr;
+    }
+
     const void* ptr = cmdList.GetImageData(imageHandle.offset);
-    if (imageHandle.size == 0 || ptr == nullptr) {
+    if (ptr == nullptr) {
         LOGE("get data failed!");
         return nullptr;
     }
@@ -365,6 +460,342 @@ std::shared_ptr<Data> CmdListHelper::GetDataFromCmdList(const CmdList& cmdList, 
     auto imageData = std::make_shared<Data>();
     imageData->BuildWithoutCopy(ptr, imageHandle.size);
     return imageData;
+}
+
+OpDataHandle CmdListHelper::AddPathToCmdList(CmdList& cmdList, const Path& path)
+{
+    auto data = path.Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGE("path is invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return { 0 };
+    }
+
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize() };
+}
+
+std::shared_ptr<Path> CmdListHelper::GetPathFromCmdList(const CmdList& cmdList,
+    const OpDataHandle& pathHandle)
+{
+    if (pathHandle.size == 0) {
+        return nullptr;
+    }
+
+    const void* ptr = cmdList.GetImageData(pathHandle.offset);
+    if (ptr == nullptr) {
+        LOGE("get path data failed!");
+        return nullptr;
+    }
+
+    auto pathData = std::make_shared<Data>();
+    pathData->BuildWithoutCopy(ptr, pathHandle.size);
+    auto path = std::make_shared<Path>();
+    if (path->Deserialize(pathData) == false) {
+        LOGE("path deserialize failed!");
+        return nullptr;
+    }
+
+    return path;
+}
+
+OpDataHandle CmdListHelper::AddRegionToCmdList(CmdList& cmdList, const Region& region)
+{
+    auto data = region.Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGE("region is invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return { 0 };
+    }
+
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize() };
+}
+
+std::shared_ptr<Region> CmdListHelper::GetRegionFromCmdList(const CmdList& cmdList, const OpDataHandle& regionHandle)
+{
+    if (regionHandle.size == 0) {
+        return nullptr;
+    }
+
+    const void* ptr = cmdList.GetImageData(regionHandle.offset);
+    if (ptr == nullptr) {
+        LOGE("get region data failed!");
+        return nullptr;
+    }
+
+    auto regionData = std::make_shared<Data>();
+    regionData->BuildWithoutCopy(ptr, regionHandle.size);
+    auto region = std::make_shared<Region>();
+    if (region->Deserialize(regionData) == false) {
+        LOGE("region deserialize failed!");
+        return nullptr;
+    }
+
+    return region;
+}
+
+OpDataHandle CmdListHelper::AddColorSpaceToCmdList(CmdList& cmdList, const std::shared_ptr<ColorSpace> colorSpace)
+{
+    if (colorSpace == nullptr) {
+        return { 0 };
+    }
+
+    auto data = colorSpace->Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGE("colorSpace is invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return { 0 };
+    }
+
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize() };
+}
+
+std::shared_ptr<ColorSpace> CmdListHelper::GetColorSpaceFromCmdList(const CmdList& cmdList,
+    const OpDataHandle& imageHandle)
+{
+    if (imageHandle.size == 0) {
+        return nullptr;
+    }
+
+    const void* ptr = cmdList.GetImageData(imageHandle.offset);
+    if (ptr == nullptr) {
+        return nullptr;
+    }
+    auto colorSpaceData = std::make_shared<Data>();
+    colorSpaceData->BuildWithoutCopy(ptr, imageHandle.size);
+    auto colorSpace = std::make_shared<ColorSpace>(ColorSpace::ColorSpaceType::REF_IMAGE);
+    if (colorSpace->Deserialize(colorSpaceData) == false) {
+        LOGE("colorSpace deserialize failed!");
+        return nullptr;
+    }
+
+    return colorSpace;
+}
+
+FlattenableHandle CmdListHelper::AddShaderEffectToCmdList(CmdList& cmdList,
+    std::shared_ptr<ShaderEffect> shaderEffect)
+{
+    if (shaderEffect == nullptr) {
+        return { 0 };
+    }
+    ShaderEffect::ShaderEffectType type = shaderEffect->GetType();
+    auto data = shaderEffect->Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGE("shaderEffect is invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return { 0 };
+    }
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize(), static_cast<uint32_t>(type) };
+}
+
+std::shared_ptr<ShaderEffect> CmdListHelper::GetShaderEffectFromCmdList(const CmdList& cmdList,
+    const FlattenableHandle& shaderEffectHandle)
+{
+    if (shaderEffectHandle.size == 0) {
+        return nullptr;
+    }
+
+    const void* ptr = cmdList.GetImageData(shaderEffectHandle.offset);
+    if (ptr == nullptr) {
+        return nullptr;
+    }
+
+    auto shaderEffectData = std::make_shared<Data>();
+    shaderEffectData->BuildWithoutCopy(ptr, shaderEffectHandle.size);
+    auto shaderEffect = std::make_shared<ShaderEffect>
+        (static_cast<ShaderEffect::ShaderEffectType>(shaderEffectHandle.type));
+    if (shaderEffect->Deserialize(shaderEffectData) == false) {
+        LOGE("shaderEffect deserialize failed!");
+        return nullptr;
+    }
+
+    return shaderEffect;
+}
+
+FlattenableHandle CmdListHelper::AddPathEffectToCmdList(CmdList& cmdList,
+    std::shared_ptr<PathEffect> pathEffect)
+{
+    if (pathEffect == nullptr) {
+        return { 0 };
+    }
+    PathEffect::PathEffectType type = pathEffect->GetType();
+    auto data = pathEffect->Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGE("pathEffect is invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return { 0 };
+    }
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize(), static_cast<uint32_t>(type) };
+}
+
+std::shared_ptr<PathEffect> CmdListHelper::GetPathEffectFromCmdList(const CmdList& cmdList,
+    const FlattenableHandle& pathEffectHandle)
+{
+    if (pathEffectHandle.size == 0) {
+        return nullptr;
+    }
+
+    const void* ptr = cmdList.GetImageData(pathEffectHandle.offset);
+    if (ptr == nullptr) {
+        return nullptr;
+    }
+
+    auto pathEffectData = std::make_shared<Data>();
+    pathEffectData->BuildWithoutCopy(ptr, pathEffectHandle.size);
+    auto pathEffect = std::make_shared<PathEffect>
+        (static_cast<PathEffect::PathEffectType>(pathEffectHandle.type));
+    if (pathEffect->Deserialize(pathEffectData) == false) {
+        LOGE("pathEffect deserialize failed!");
+        return nullptr;
+    }
+
+    return pathEffect;
+}
+
+FlattenableHandle CmdListHelper::AddMaskFilterToCmdList(CmdList& cmdList,
+    std::shared_ptr<MaskFilter> maskFilter)
+{
+    if (maskFilter == nullptr) {
+        return { 0 };
+    }
+    MaskFilter::FilterType type = maskFilter->GetType();
+    auto data = maskFilter->Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        return { 0 };
+    }
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize(), static_cast<uint32_t>(type) };
+}
+
+std::shared_ptr<MaskFilter> CmdListHelper::GetMaskFilterFromCmdList(const CmdList& cmdList,
+    const FlattenableHandle& maskFilterHandle)
+{
+    if (maskFilterHandle.size == 0) {
+        return nullptr;
+    }
+
+    const void* ptr = cmdList.GetImageData(maskFilterHandle.offset);
+    if (ptr == nullptr) {
+        return nullptr;
+    }
+
+    auto maskFilterData = std::make_shared<Data>();
+    maskFilterData->BuildWithoutCopy(ptr, maskFilterHandle.size);
+    auto maskFilter = std::make_shared<MaskFilter>
+        (static_cast<MaskFilter::FilterType>(maskFilterHandle.type));
+    if (maskFilter->Deserialize(maskFilterData) == false) {
+        LOGE("maskFilter deserialize failed!");
+        return nullptr;
+    }
+
+    return maskFilter;
+}
+
+FlattenableHandle CmdListHelper::AddColorFilterToCmdList(CmdList& cmdList,
+    std::shared_ptr<ColorFilter> colorFilter)
+{
+    if (colorFilter == nullptr) {
+        return { 0 };
+    }
+    ColorFilter::FilterType type = colorFilter->GetType();
+    auto data = colorFilter->Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGE("colorFilter is invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return { 0 };
+    }
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize(), static_cast<uint32_t>(type) };
+}
+
+std::shared_ptr<ColorFilter> CmdListHelper::GetColorFilterFromCmdList(const CmdList& cmdList,
+    const FlattenableHandle& colorFilterHandle)
+{
+    if (colorFilterHandle.size == 0) {
+        return nullptr;
+    }
+
+    const void* ptr = cmdList.GetImageData(colorFilterHandle.offset);
+    if (ptr == nullptr) {
+        return nullptr;
+    }
+
+    auto colorFilterData = std::make_shared<Data>();
+    colorFilterData->BuildWithoutCopy(ptr, colorFilterHandle.size);
+    auto colorFilter = std::make_shared<ColorFilter>
+        (static_cast<ColorFilter::FilterType>(colorFilterHandle.type));
+    if (colorFilter->Deserialize(colorFilterData) == false) {
+        LOGE("colorFilter deserialize failed!");
+        return nullptr;
+    }
+
+    return colorFilter;
+}
+
+FlattenableHandle CmdListHelper::AddImageFilterToCmdList(CmdList& cmdList, const ImageFilter* imageFilter)
+{
+    if (imageFilter == nullptr) {
+        return { 0 };
+    }
+    ImageFilter::FilterType type = imageFilter->GetType();
+    auto data = imageFilter->Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        return { 0 };
+    }
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize(), static_cast<uint32_t>(type) };
+}
+
+FlattenableHandle CmdListHelper::AddImageFilterToCmdList(CmdList& cmdList,
+    std::shared_ptr<ImageFilter> imageFilter)
+{
+    return AddImageFilterToCmdList(cmdList, imageFilter.get());
+}
+
+std::shared_ptr<ImageFilter> CmdListHelper::GetImageFilterFromCmdList(const CmdList& cmdList,
+    const FlattenableHandle& imageFilterHandle)
+{
+    if (imageFilterHandle.size == 0) {
+        return nullptr;
+    }
+
+    const void* ptr = cmdList.GetImageData(imageFilterHandle.offset);
+    if (ptr == nullptr) {
+        return nullptr;
+    }
+
+    auto imageFilterData = std::make_shared<Data>();
+    imageFilterData->BuildWithoutCopy(ptr, imageFilterHandle.size);
+    auto imageFilter = std::make_shared<ImageFilter>
+        (static_cast<ImageFilter::FilterType>(imageFilterHandle.type));
+    if (imageFilter->Deserialize(imageFilterData) == false) {
+        LOGE("imageFilter deserialize failed!");
+        return nullptr;
+    }
+
+    return imageFilter;
+}
+#ifdef ROSEN_OHOS
+uint32_t CmdListHelper::AddSurfaceBufferToCmdList(CmdList& cmdList, const sptr<SurfaceBuffer>& surfaceBuffer)
+{
+    return cmdList.AddSurfaceBuffer(surfaceBuffer);
+}
+
+sptr<SurfaceBuffer> CmdListHelper::GetSurfaceBufferFromCmdList(
+    const CmdList& cmdList, uint32_t surfaceBufferHandle)
+{
+    return (const_cast<CmdList&>(cmdList)).GetSurfaceBuffer(surfaceBufferHandle);
+}
+#endif
+
+OpDataHandle CmdListHelper::AddDrawFuncObjToCmdList(CmdList &cmdList, const std::shared_ptr<ExtendDrawFuncObj> &object)
+{
+    auto index = cmdList.AddDrawFuncOjb(object);
+    return { index };
+}
+
+std::shared_ptr<ExtendDrawFuncObj> CmdListHelper::GetDrawFuncObjFromCmdList(
+    const CmdList& cmdList, const OpDataHandle& objectHandle)
+{
+    return (const_cast<CmdList&>(cmdList)).GetDrawFuncObj(objectHandle.offset);
 }
 } // namespace Drawing
 } // namespace Rosen

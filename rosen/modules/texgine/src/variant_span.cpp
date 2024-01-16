@@ -22,25 +22,15 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-VariantSpan::VariantSpan(const std::shared_ptr<TextSpan> &ts) noexcept(true): ts_(ts)
-{
-}
+VariantSpan::VariantSpan(const std::shared_ptr<TextSpan> &ts) noexcept(true): ts_(ts) {}
 
-VariantSpan::VariantSpan(const std::shared_ptr<AnySpan> &as) noexcept(true): as_(as)
-{
-}
+VariantSpan::VariantSpan(const std::shared_ptr<AnySpan> &as) noexcept(true): as_(as) {}
 
-VariantSpan::VariantSpan(std::shared_ptr<TextSpan> &&ts) noexcept(true): ts_(std::move(ts))
-{
-}
+VariantSpan::VariantSpan(std::shared_ptr<TextSpan> &&ts) noexcept(true): ts_(std::move(ts)) {}
 
-VariantSpan::VariantSpan(std::shared_ptr<AnySpan> &&as) noexcept(true): as_(std::move(as))
-{
-}
+VariantSpan::VariantSpan(std::shared_ptr<AnySpan> &&as) noexcept(true): as_(std::move(as)) {}
 
-VariantSpan::VariantSpan(std::nullptr_t) noexcept(true)
-{
-}
+VariantSpan::VariantSpan(std::nullptr_t) noexcept(true) {}
 
 VariantSpan::operator bool() const noexcept(false)
 {
@@ -266,11 +256,13 @@ void VariantSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY) n
 {
     CheckPointer();
     if (as_) {
+        as_->SetTextStyle(xs_);
+        as_->SetRoundRectType(roundRectType_);
         as_->Paint(canvas, offsetX, offsetY);
     }
 
     if (ts_) {
-        ts_->Paint(canvas, offsetX, offsetY, xs_);
+        ts_->Paint(canvas, offsetX, offsetY, xs_, roundRectType_);
     }
 }
 
@@ -317,6 +309,113 @@ void VariantSpan::CheckPointer(bool nullable) const noexcept(false)
     if (as_ != nullptr && ts_ != nullptr) {
         throw TEXGINE_EXCEPTION(ERROR_STATUS);
     }
+}
+
+bool VariantSpan::HasBackgroundRect() const noexcept(true)
+{
+    return xs_.backgroundRect.color != 0 && GetWidth() > 0;
+}
+
+RoundRectType VariantSpan::GetRoundRectType() const noexcept(true)
+{
+    return roundRectType_;
+}
+
+void VariantSpan::SetRoundRectType(RoundRectType type) noexcept(true)
+{
+    roundRectType_ = type;
+}
+
+void VariantSpan::SetTopInGroup(double top) noexcept(true)
+{
+    CheckPointer();
+    if (as_) {
+        as_->SetTopInGroup(top);
+    }
+
+    if (ts_) {
+        ts_->topInGroup_ = top;
+    }
+}
+
+double VariantSpan::GetTopInGroup() const noexcept(true)
+{
+    double top = 0.0;
+    CheckPointer();
+    if (as_) {
+        top = as_->GetTopInGroup();
+    } else if (ts_) {
+        top = ts_->topInGroup_;
+    }
+    return top;
+}
+
+void VariantSpan::SetBottomInGroup(double bottom) noexcept(true)
+{
+    CheckPointer();
+    if (as_) {
+        as_->SetBottomInGroup(bottom);
+    }
+
+    if (ts_) {
+        ts_->bottomInGroup_ = bottom;
+    }
+}
+
+double VariantSpan::GetBottomInGroup() const noexcept(true)
+{
+    double bottom = 0.0;
+    CheckPointer();
+    if (as_) {
+        bottom = as_->GetBottomInGroup();
+    } else if (ts_) {
+        bottom = ts_->bottomInGroup_;
+    }
+    return bottom;
+}
+
+void VariantSpan::SetMaxRoundRectRadius(double radius) noexcept(true)
+{
+    CheckPointer();
+    if (as_) {
+        as_->SetMaxRoundRectRadius(radius);
+    }
+
+    if (ts_) {
+        ts_->maxRoundRectRadius_ = radius;
+    }
+}
+
+double VariantSpan::GetMaxRoundRectRadius() const noexcept(true)
+{
+    double maxRoundRectRadius = 0.0;
+    CheckPointer();
+    if (as_) {
+        maxRoundRectRadius = as_->GetMaxRoundRectRadius();
+    } else if (ts_) {
+        maxRoundRectRadius = ts_->maxRoundRectRadius_;
+    }
+    return maxRoundRectRadius;
+}
+
+double VariantSpan::GetTop() const noexcept(true)
+{
+    double top = offsetY_;
+    if (ts_) {
+        top += *(ts_->tmetrics_->fAscent_);
+    }
+    return top;
+}
+
+double VariantSpan::GetBottom() const noexcept(true)
+{
+    double bottom = GetTop();
+    if (ts_) {
+        bottom += (*(ts_->tmetrics_->fDescent_) - *(ts_->tmetrics_->fAscent_));
+    } else if (as_) {
+        bottom += as_->GetHeight();
+    }
+    return bottom;
 }
 } // namespace TextEngine
 } // namespace Rosen

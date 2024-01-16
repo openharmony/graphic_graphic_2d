@@ -15,6 +15,7 @@
 
 #include "render/rs_image_base.h"
 
+#include <unistd.h>
 #ifndef USE_ROSEN_DRAWING
 #include "include/core/SkImage.h"
 #include "src/core/SkImagePriv.h"
@@ -23,7 +24,7 @@
 #endif
 #include "common/rs_background_thread.h"
 #ifdef RS_ENABLE_PARALLEL_UPLOAD
-#include "common/rs_upload_texture_thread.h"
+#include "render/rs_resource_manager.h"
 #endif
 #include "common/rs_common_def.h"
 #include "platform/common/rs_log.h"
@@ -78,14 +79,25 @@ void RSImageBase::DrawImage(RSPaintFilterCanvas& canvas, const SkPaint& paint)
     ConvertPixelMapToSkImage();
     auto src = RSPropertiesPainter::Rect2SkRect(srcRect_);
     auto dst = RSPropertiesPainter::Rect2SkRect(dstRect_);
+    if (image_ == nullptr) {
+        RS_LOGE("RSImageBase::DrawImage image_ is nullptr");
+        return;
+    }
 #ifdef NEW_SKIA
-    canvas.drawImageRect(image_, src, dst, samplingOptions, &paint, SkCanvas::kStrict_SrcRectConstraint);
+    auto texture = image_->getBackendTexture(true);
+    auto image = SkImage::MakeFromTexture(canvas.recordingContext(), texture, kBottomLeft_GrSurfaceOrigin,
+        kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
+    if (image == nullptr) {
+        canvas.drawImageRect(image_, src, dst, samplingOptions, &paint, SkCanvas::kStrict_SrcRectConstraint);
+        return;
+    }
+    canvas.drawImageRect(image, src, dst, samplingOptions, &paint, SkCanvas::kStrict_SrcRectConstraint);
 #else
     canvas.drawImageRect(image_, src, dst, &paint);
 #endif
 }
 #else
-void RSImageBase::DrawImage(Drawing::Canvas& canvas, const Drawing::Brush& brush)
+void RSImageBase::DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions)
 {
     ConvertPixelMapToDrawingImage();
     auto src = RSPropertiesPainter::Rect2DrawingRect(srcRect_);
@@ -94,9 +106,7 @@ void RSImageBase::DrawImage(Drawing::Canvas& canvas, const Drawing::Brush& brush
         RS_LOGE("RSImageBase::DrawImage image_ is nullptr");
         return;
     }
-    canvas.AttachBrush(brush);
-    canvas.DrawImageRect(*image_, src, dst, Drawing::SamplingOptions());
-    canvas.DetachBrush();
+    canvas.DrawImageRect(*image_, src, dst, samplingOptions);
 }
 #endif
 
@@ -109,7 +119,9 @@ void RSImageBase::SetImage(const std::shared_ptr<Drawing::Image> image)
     isDrawn_ = false;
     image_ = image;
     if (image_) {
-    SKResourceManager::Instance().HoldResource(image);
+#ifndef ROSEN_ARKUI_X
+        SKResourceManager::Instance().HoldResource(image);
+#endif
 #ifndef USE_ROSEN_DRAWING
         srcRect_.SetAll(0.0, 0.0, image_->width(), image_->height());
         GenUniqueId(image_->uniqueID());
@@ -120,7 +132,7 @@ void RSImageBase::SetImage(const std::shared_ptr<Drawing::Image> image)
     }
 }
 
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifndef USE_ROSEN_DRAWING
 void RSImageBase::SetDmaImage(const sk_sp<SkImage> image)
 #else
@@ -129,7 +141,9 @@ void RSImageBase::SetDmaImage(const std::shared_ptr<Drawing::Image> image)
 {
     isDrawn_ = false;
     image_ = image;
+#ifndef ROSEN_ARKUI_X
     SKResourceManager::Instance().HoldResource(image);
+#endif
 }
 #endif
 
@@ -176,10 +190,14 @@ void RSImageBase::UpdateNodeIdToPicture(NodeId nodeId)
         return;
     }
     if (pixelMap_) {
+#ifndef ROSEN_ARKUI_X
         MemoryTrack::Instance().UpdatePictureInfo(pixelMap_->GetPixels(), nodeId, ExtractPid(nodeId));
+#endif
     }
     if (image_ || imagePixelAddr_) {
+#ifndef ROSEN_ARKUI_X
         MemoryTrack::Instance().UpdatePictureInfo(imagePixelAddr_, nodeId, ExtractPid(nodeId));
+#endif
     }
 }
 
@@ -377,51 +395,46 @@ RSImageBase* RSImageBase::Unmarshalling(Parcel& parcel)
 #endif
 
 #ifndef USE_ROSEN_DRAWING
-void RSImageBase::ConvertPixelMapToSkImage()
+void RSImageBase::ConvertPixelMapToSkImage(bool paraUpload)
 {
-    if (!image_ && pixelMap_) {
+#if defined(ROSEN_OHOS)
+    // paraUpload only enable in render_service or UnmarshalThread
+    pid_t tid = paraUpload ? getpid() : gettid();
+#endif
+    if (!image_ && pixelMap_ && !pixelMap_->IsAstc()) {
         if (!pixelMap_->IsEditable()) {
 #if defined(ROSEN_OHOS)
-            image_ = RSImageCache::Instance().GetRenderSkiaImageCacheByPixelMapId(uniqueId_, gettid());
+            image_ = RSImageCache::Instance().GetRenderSkiaImageCacheByPixelMapId(uniqueId_, tid);
 #else
             image_ = RSImageCache::Instance().GetRenderSkiaImageCacheByPixelMapId(uniqueId_);
 #endif
         }
         if (!image_) {
             image_ = RSPixelMapUtil::ExtractSkImage(pixelMap_);
-            if (image_) {
-                SKResourceManager::Instance().HoldResource(image_);
-            }
             if (!pixelMap_->IsEditable()) {
 #if defined(ROSEN_OHOS)
-                RSImageCache::Instance().CacheRenderSkiaImageByPixelMapId(uniqueId_, image_, gettid());
+                RSImageCache::Instance().CacheRenderSkiaImageByPixelMapId(uniqueId_, image_, tid);
 #else
                 RSImageCache::Instance().CacheRenderSkiaImageByPixelMapId(uniqueId_, image_);
 #endif
             }
+#ifdef RS_ENABLE_PARALLEL_UPLOAD
+            RSResourceManager::Instance().UploadTexture(paraUpload&renderServiceImage_, image_, pixelMap_, uniqueId_);
+#endif
         }
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL) && defined(RS_ENABLE_PARALLEL_UPLOAD)
-#if !defined(USE_ROSEN_DRAWING) && defined(NEW_SKIA) && defined(RS_ENABLE_UNI_RENDER)
-        auto image = image_;
-        auto pixelMap = pixelMap_;
-        std::function<void()> uploadTexturetask = [image, pixelMap]() -> void {
-            auto grContext = RSUploadTextureThread::Instance().GetShareGrContext().get();
-            if (grContext && image && pixelMap) {
-                SkImage_pinAsTexture(image.get(), grContext);
-            }
-        };
-        RSUploadTextureThread::Instance().PostTask(uploadTexturetask, std::to_string(uniqueId_));
-#endif
-#endif
     }
 }
 #else
-void RSImageBase::ConvertPixelMapToDrawingImage()
+void RSImageBase::ConvertPixelMapToDrawingImage(bool paraUpload)
 {
-    if (!image_ && pixelMap_) {
+#if defined(ROSEN_OHOS)
+    // paraUpload only enable in render_service or UnmarshalThread
+    pid_t tid = paraUpload ? getpid() : gettid();
+#endif
+    if (!image_ && pixelMap_ && !pixelMap_->IsAstc()) {
         if (!pixelMap_->IsEditable()) {
 #if defined(ROSEN_OHOS)
-            image_ = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, gettid());
+            image_ = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, tid);
 #else
             image_ = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_);
 #endif
@@ -430,11 +443,14 @@ void RSImageBase::ConvertPixelMapToDrawingImage()
             image_ = RSPixelMapUtil::ExtractDrawingImage(pixelMap_);
             if (!pixelMap_->IsEditable()) {
 #if defined(ROSEN_OHOS)
-                RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_, gettid());
+                RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_, tid);
 #else
                 RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image_);
 #endif
             }
+#ifdef RS_ENABLE_PARALLEL_UPLOAD
+            RSResourceManager::Instance().UploadTexture(paraUpload&renderServiceImage_, image_, pixelMap_, uniqueId_);
+#endif
         }
     }
 }

@@ -16,6 +16,8 @@
 #ifndef ROSEN_TEXT_ADAPTER_TEXGINE_FONT_COLLECTION_H
 #define ROSEN_TEXT_ADAPTER_TEXGINE_FONT_COLLECTION_H
 
+#include <mutex>
+
 #include "rosen_text/font_collection.h"
 
 #ifdef USE_GRAPHIC_TEXT_GINE
@@ -25,6 +27,8 @@ namespace Rosen {
 namespace TextEngine {
 class FontProviders;
 class DynamicFontProvider;
+class ThemeFontProvider;
+class SystemFontProvider;
 } // namespace TextEngine
 #ifdef USE_GRAPHIC_TEXT_GINE
 } // namespace Rosen
@@ -42,11 +46,15 @@ public:
     void DisableFallback() override;
     void DisableSystemFont() override;
     void LoadFont(const std::string &familyName, const uint8_t *data, size_t datalen) override;
+    void LoadThemeFont(const std::string &familyName, const uint8_t *data, size_t datalen) override;
 
 private:
     std::shared_ptr<TextEngine::FontProviders> fontProviders_ = nullptr;
     std::shared_ptr<TextEngine::DynamicFontProvider> dfprovider_ = nullptr;
+    std::shared_ptr<TextEngine::ThemeFontProvider> tfprovider_ = nullptr;
+    std::shared_ptr<TextEngine::SystemFontProvider> sysprovider_ = nullptr;
     bool disableSystemFont_ = false;
+    std::mutex mutex_;
 };
 } // namespace AdapterTextEngine
 } // namespace Rosen

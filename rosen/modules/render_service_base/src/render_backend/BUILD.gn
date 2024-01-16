@@ -25,6 +25,12 @@ config("export_config") {
 }
 
 ohos_static_library("librender_backend") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = false
+    cfi_cross_dso = false
+    debug = false
+  }
   public_configs = [ ":export_config" ]
 
   include_dirs = [
@@ -66,16 +72,7 @@ ohos_static_library("librender_backend") {
       "ohos/render_context_ohos_gl.cpp",
     ]
 
-    if (defined(use_new_skia) && use_new_skia) {
-      include_dirs += [ "//third_party/skia" ]
-    } else {
-      include_dirs += [ "//third_party/flutter/skia" ]
-    }
-
-    if (graphic_2d_feature_enable_vulkan) {
-      include_dirs += [ "//third_party/flutter/engine/flutter/vulkan" ]
-      sources += [ "ohos/render_context_ohos_vk.cpp" ]
-    }
+    include_dirs += [ "//third_party/skia" ]
 
     public_deps += [
       "$graphic_2d_root:libgl",
@@ -85,11 +82,7 @@ ohos_static_library("librender_backend") {
     ]
   }
 
-  if (defined(use_new_skia) && use_new_skia) {
-    public_deps += [ "//third_party/skia:skia_ohos" ]
-  } else {
-    public_deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
-  }
+  public_deps += [ "//third_party/skia:skia_ohos" ]
 
   external_deps = [
     "c_utils:utils",

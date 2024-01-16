@@ -54,7 +54,8 @@ double TextSpan::GetHeight() const
     return g_variantMockvars.tsHeight;
 }
 
-void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, const TextStyle &xs)
+void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, const TextStyle &xs,
+    const RoundRectType &rType)
 {
     g_variantMockvars.calledTimesPaint++;
     g_variantMockvars.catchedPaintCanvas = &canvas;

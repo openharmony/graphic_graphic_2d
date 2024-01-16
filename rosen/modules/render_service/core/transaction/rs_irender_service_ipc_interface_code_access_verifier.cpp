@@ -62,7 +62,7 @@ bool RSIRenderServiceInterfaceCodeAccessVerifier::IsAccessTimesVerificationPasse
         return true;
     }
     uint32_t restrictedTimes = accessRSIRenderServiceInterfaceTimesRestrictions_.at(interfaceName);
-    return times > restrictedTimes ? false : true;
+    return times < restrictedTimes;
 }
 #endif
 

@@ -25,7 +25,6 @@ config("bootanimation_config") {
     "${graphic_2d_root}/rosen/modules/render_service/core",
     "${graphic_2d_root}/rosen/modules/composer/hdi_backend/include",
     "//third_party/cJSON",
-    "//foundation/multimedia/player_framework/interfaces/inner_api/native",
   ]
 
   cflags = [
@@ -69,11 +68,7 @@ ohos_executable("bootanimation") {
     "//third_party/zlib:libz",
   ]
 
-  if (defined(use_new_skia) && use_new_skia) {
-    deps += [ "//third_party/skia:skia_ohos" ]
-  } else {
-    deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
-  }
+  deps += [ "//third_party/skia:skia_ohos" ]
 
   if (defined(use_new_render_context) && use_new_render_context) {
     deps += [ "$graphic_2d_root/rosen/modules/render_service_base/src/render_backend:librender_backend" ]

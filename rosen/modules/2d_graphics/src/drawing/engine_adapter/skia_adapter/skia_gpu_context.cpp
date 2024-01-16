@@ -14,7 +14,9 @@
  */
 
 #include "skia_gpu_context.h"
-
+#ifdef RS_ENABLE_VK
+#include <mutex>
+#endif
 #include "include/gpu/gl/GrGLInterface.h"
 #include "src/gpu/GrDirectContextPriv.h"
 #include "include/core/SkTypes.h"
@@ -23,6 +25,7 @@
 #include "utils/data.h"
 #include "utils/log.h"
 #include "skia_trace_memory_dump.h"
+#include "utils/system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -33,7 +36,7 @@ sk_sp<SkData> SkiaPersistentCache::load(const SkData& key)
 {
     Data keyData;
     if (!cache_) {
-        LOGE("SkiaPersistentCache::load, failed! cache or key invalid");
+        LOGD("SkiaPersistentCache::load, failed! cache or key invalid");
         return nullptr;
     }
     auto skiaKeyDataImpl = keyData.GetImpl<SkiaData>();
@@ -41,7 +44,7 @@ sk_sp<SkData> SkiaPersistentCache::load(const SkData& key)
 
     auto retData = cache_->Load(keyData);
     if (retData == nullptr) {
-        LOGE("SkiaPersistentCache::load, failed! load data invalid");
+        LOGD("SkiaPersistentCache::load, failed! load data invalid");
         return nullptr;
     }
 
@@ -53,7 +56,7 @@ void SkiaPersistentCache::store(const SkData& key, const SkData& data)
     Data keyData;
     Data storeData;
     if (!cache_) {
-        LOGE("SkiaPersistentCache::store, failed! cache or {key,data} invalid");
+        LOGD("SkiaPersistentCache::store, failed! cache or {key,data} invalid");
         return;
     }
 
@@ -72,16 +75,10 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
     }
 
     GrContextOptions grOptions;
-#ifndef USE_GRAPHIC_TEXT_GINE
     grOptions.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
-#else
-#if GR_TEST_UTILS
-    grOptions.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
-#endif
-#endif
     grOptions.fPreferExternalImagesOverES3 = true;
     grOptions.fDisableDistanceFieldPaths = true;
-    grOptions.fAllowPathMaskCaching = true;
+    grOptions.fAllowPathMaskCaching = options.GetAllowPathMaskCaching();
     grOptions.fPersistentCache = skiaPersistentCache_.get();
 #ifdef NEW_SKIA
     grContext_ = GrDirectContext::MakeGL(std::move(glInterface), grOptions);
@@ -90,6 +87,52 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
 #endif
     return grContext_ != nullptr ? true : false;
 }
+
+#ifdef RS_ENABLE_VK
+std::unique_ptr<SkExecutor> SkiaGPUContext::threadPool = nullptr;
+void SkiaGPUContext::InitSkExecutor()
+{
+    static std::mutex mtx;
+    mtx.lock();
+    if (threadPool == nullptr) {
+        threadPool = SkExecutor::MakeFIFOThreadPool(2); // 2 threads async task
+    }
+    mtx.unlock();
+}
+bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context)
+{
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return false;
+    }
+    InitSkExecutor();
+    GrContextOptions grOptions;
+    grOptions.fExecutor = threadPool.get();
+    grContext_ = GrDirectContext::MakeVulkan(context, grOptions);
+    return grContext_ != nullptr;
+}
+
+bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options)
+{
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return false;
+    }
+    if (options.GetPersistentCache() != nullptr) {
+        skiaPersistentCache_ = std::make_shared<SkiaPersistentCache>(options.GetPersistentCache());
+    }
+    InitSkExecutor();
+    GrContextOptions grOptions;
+    grOptions.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
+    grOptions.fPreferExternalImagesOverES3 = true;
+    grOptions.fDisableDistanceFieldPaths = true;
+    grOptions.fAllowPathMaskCaching = options.GetAllowPathMaskCaching();
+    grOptions.fPersistentCache = skiaPersistentCache_.get();
+    grOptions.fExecutor = threadPool.get();
+    grContext_ = GrDirectContext::MakeVulkan(context, grOptions);
+    return grContext_ != nullptr;
+}
+#endif
 
 void SkiaGPUContext::Flush()
 {
@@ -107,6 +150,15 @@ void SkiaGPUContext::FlushAndSubmit(bool syncCpu)
         return;
     }
     grContext_->flushAndSubmit(syncCpu);
+}
+
+void SkiaGPUContext::Submit()
+{
+    if (!grContext_) {
+        LOGE("SkiaGPUContext::Submit, grContext_ is nullptr");
+        return;
+    }
+    grContext_->submit();
 }
 
 void SkiaGPUContext::PerformDeferredCleanup(std::chrono::milliseconds msNotUsed)
@@ -183,7 +235,7 @@ void SkiaGPUContext::PurgeUnlockedResources(bool scratchResourcesOnly)
     grContext_->purgeUnlockedResources(scratchResourcesOnly);
 }
 
-void SkiaGPUContext::PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag tag)
+void SkiaGPUContext::PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag &tag)
 {
     if (!grContext_) {
         LOGE("SkiaGPUContext::PurgeUnlockedResourcesByTag, grContext_ is nullptr");
@@ -202,7 +254,7 @@ void SkiaGPUContext::PurgeUnlockAndSafeCacheGpuResources()
     grContext_->purgeUnlockAndSafeCacheGpuResources();
 }
 
-void SkiaGPUContext::ReleaseByTag(const GPUResourceTag tag)
+void SkiaGPUContext::ReleaseByTag(const GPUResourceTag &tag)
 {
     if (!grContext_) {
         LOGE("SkiaGPUContext::ReleaseByTag, grContext_ is nullptr");
@@ -212,7 +264,7 @@ void SkiaGPUContext::ReleaseByTag(const GPUResourceTag tag)
     grContext_->releaseByTag(grTag);
 }
 
-void SkiaGPUContext::DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag tag)
+void SkiaGPUContext::DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag)
 {
     if (!grContext_) {
         LOGE("SkiaGPUContext::DumpMemoryStatisticsByTag, grContext_ is nullptr");
@@ -243,7 +295,7 @@ void SkiaGPUContext::DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump)
     grContext_->dumpMemoryStatistics(skTraceMemoryDump);
 }
 
-void SkiaGPUContext::SetCurrentGpuResourceTag(const GPUResourceTag tag)
+void SkiaGPUContext::SetCurrentGpuResourceTag(const GPUResourceTag &tag)
 {
     if (!grContext_) {
         LOGE("SkiaGPUContext::ReleaseByTag, grContext_ is nullptr");
@@ -269,6 +321,17 @@ void SkiaGPUContext::SetGrContext(const sk_sp<GrContext>& grContext)
 {
     grContext_ = grContext;
 }
+
+#ifdef RS_ENABLE_VK
+void SkiaGPUContext::StoreVkPipelineCacheData()
+{
+    if (!grContext_) {
+        LOGE("SkiaGPUContext::StoreVkPipelineCacheData, grContext_ is nullptr");
+        return;
+    }
+    grContext_->storeVkPipelineCacheData();
+}
+#endif
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

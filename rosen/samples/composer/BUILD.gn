@@ -55,6 +55,7 @@ ohos_executable("hello_composer") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
   ]

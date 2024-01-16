@@ -20,17 +20,21 @@
 #include <cstdint>
 
 #include "impl_interface/typeface_impl.h"
+#include "utils/memory_stream.h"
 #include "text/font_style.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class Typeface {
+class DRAWING_API Typeface {
 public:
     explicit Typeface(std::shared_ptr<TypefaceImpl> typefaceImpl) noexcept;
     virtual ~Typeface() = default;
 
-    static std::shared_ptr<Typeface> MakeFromFile(const char path[]);
+    static std::shared_ptr<Typeface> MakeDefault();
+    static std::shared_ptr<Typeface> MakeFromFile(const char path[], int index = 0);
+    static std::shared_ptr<Typeface> MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index = 0);
+    static std::shared_ptr<Typeface> MakeFromName(const char familyName[], FontStyle fontStyle);
 
     /*
      * @brief   Get the familyName for this typeface.
@@ -73,8 +77,10 @@ public:
      */
     uint32_t GetUniqueID() const;
 
+    int32_t GetUnitsPerEm() const;
+
     template<typename T>
-    const std::shared_ptr<T> GetImpl() const
+    T* GetImpl() const
     {
         if (typefaceImpl_) {
             return typefaceImpl_->DowncastingTo<T>();

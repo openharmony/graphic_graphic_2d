@@ -79,6 +79,12 @@ HWTEST_F(HyperGraphicManagerTest, IsInit, Function | SmallTest | Level2)
         STEP("1. check if IsInit() is true") {
             bool init = instance.IsInit();
             STEP_ASSERT_EQ(init, true);
+            bool enabled = instance.IsEnabled();
+            STEP_ASSERT_EQ(enabled, true);
+            auto policyConfigData = instance.GetPolicyConfigData();
+            STEP_ASSERT_NE(policyConfigData, nullptr);
+            auto hgmFrameRateMgr_ = instance.GetFrameRateMgr();
+            STEP_ASSERT_NE(hgmFrameRateMgr_, nullptr);
         }
     }
 }
@@ -94,6 +100,7 @@ HWTEST_F(HyperGraphicManagerTest, AddScreen, Function | MediumTest | Level2)
     auto &instance = HgmCore::Instance();
     int sizeListBefore = 0;
     int sizeListAfter = 0;
+    int sizeScreenIds = 0;
 
     PART("EnvConditions") {
         STEP("get Instance") {
@@ -118,8 +125,13 @@ HWTEST_F(HyperGraphicManagerTest, AddScreen, Function | MediumTest | Level2)
             sizeListAfter = instance.GetScreenListSize();
         }
 
-        STEP("3. check screenList_ size") {
+        STEP("4. check screenList_ size") {
             STEP_ASSERT_EQ(sizeListAfter, sizeListBefore + 1);
+        }
+
+        STEP("5. mark screenIds Size") {
+            sizeScreenIds  = instance.GetScreenIds().size();
+            STEP_ASSERT_EQ(sizeScreenIds, sizeListAfter);
         }
     }
 }
@@ -141,7 +153,9 @@ HWTEST_F(HyperGraphicManagerTest, GetScreen, Function | SmallTest | Level2)
     PART("EnvConditions") {
         STEP("get Instance and call Init and add a screen") {
             auto addScreen = instance5.AddScreen(screenId, 0, screenSize);
+            instance5.SetActiveScreenId(screenId);
             STEP_ASSERT_GE(addScreen, 0);
+            STEP_ASSERT_GE(instance5.GetActiveScreenId(), screenId);
         }
     }
 
@@ -260,6 +274,7 @@ HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRate, Function | MediumTest | 
     int32_t height0 = 2772;
     uint32_t rate0 = 60;
     int32_t mode0 = 0;
+    int32_t timestamp = 1704038400; // 2024-01-01 00:00:00
 
     PART("EnvConditions") {
         STEP("get Instance") {
@@ -312,6 +327,21 @@ HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRate, Function | MediumTest | 
             screen = instance8.GetScreen(screenId);
             STEP_ASSERT_EQ(screen->GetActiveRefreshRate(), 120);
         }
+
+        STEP("9. check GetModesToApply") {
+            auto modeListToApply = instance8.GetModesToApply();
+            STEP_ASSERT_NE(modeListToApply->size(), 0);
+        }
+
+        STEP("10. check pendingScreenRefreshRate_") {
+            instance8.SetPendingScreenRefreshRate(rate0);
+            STEP_ASSERT_EQ(instance8.GetPendingScreenRefreshRate(), rate0);
+        }
+
+        STEP("11. check timestamp_") {
+            instance8.SetTimestamp(timestamp);
+            STEP_ASSERT_EQ(instance8.GetCurrentTimestamp(), timestamp);
+        }
     }
 }
 
@@ -352,7 +382,7 @@ HWTEST_F(HyperGraphicManagerTest, SetRefreshRateMode, Function | SmallTest | Lev
 
         STEP("3. set the refreshrate mode") {
             auto setMode2 = instance.SetRefreshRateMode(modeToSet);
-            STEP_ASSERT_EQ(setMode2, -1);
+            STEP_ASSERT_EQ(setMode2, 0);
         }
     }
 }
@@ -388,6 +418,19 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenTests, Function | MediumTest | Level2
     PART("Prepare") {
         STEP("screen tests") {
             sptr<HgmScreen> screen1 = new HgmScreen();
+            STEP_ASSERT_EQ(screen1->GetId(), 0);
+            STEP_ASSERT_EQ(screen1->GetActiveMode(), 0);
+            STEP_ASSERT_EQ(screen1->GetSupportedRates().size(), 0);
+            STEP_ASSERT_EQ(screen1->IsSupportRate(OLED_30_HZ), false);
+            STEP_ASSERT_EQ(screen1->GetActiveRefreshRateMode(), -1);
+            STEP_ASSERT_EQ(screen1->GetWidth(), 0);
+            STEP_ASSERT_EQ(screen1->GetHeight(), 0);
+            STEP_ASSERT_EQ(screen1->GetPhyWidth(), 0);
+            STEP_ASSERT_EQ(screen1->GetPhyHeight(), 0);
+            STEP_ASSERT_EQ(screen1->GetPpi(), 0);
+            STEP_ASSERT_EQ(screen1->GetXDpi(), 0);
+            STEP_ASSERT_EQ(screen1->GetYDpi(), 0);
+
             delete screen1;
             screen1 = nullptr;
             STEP_ASSERT_EQ(screen1, nullptr);
@@ -474,15 +517,13 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level2)
             int32_t setResult = instance.SetRefreshRateMode(HGM_REFRESHRATE_MODE_HIGH);
             setResult = instance.SetRefreshRateMode(HGM_REFRESHRATE_MODE_LOW);
             setResult = instance.SetRefreshRateMode(HGM_REFRESHRATE_MODE_HIGH);
-            setResult = instance.SetRefreshRateMode(HGM_REFRESHRATE_MODE_HIGH);
-            STEP_ASSERT_NE(setResult, 0);
+            STEP_ASSERT_EQ(setResult, 0);
         }
 
         STEP("2. set refresh rate via core") {
             int32_t setResult = instance.SetScreenRefreshRate(screenId3, 0, rate);
             setResult = instance.SetScreenRefreshRate(screenId2, 0, rate3);
             setResult = instance.SetScreenRefreshRate(screenId2, 0, rate2);
-            setResult = instance.SetRefreshRateMode(HGM_REFRESHRATE_MODE_HIGH);
             setResult = instance.SetRefreshRateMode(HGM_REFRESHRATE_MODE_HIGH);
             STEP_ASSERT_GE(setResult, -1);
         }
@@ -501,6 +542,8 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level2)
             STEP_ASSERT_EQ(getResult, 0);
             std::vector<uint32_t> getVResult = instance.GetScreenSupportedRefreshRates(screenId3);
             STEP_ASSERT_EQ(getVResult.size(), 0);
+            std::vector<uint32_t> screenComponentRefreshRates = instance.GetScreenSupportedRefreshRates(screenId3);
+            STEP_ASSERT_EQ(screenComponentRefreshRates.size(), 0);
         }
     }
 }
@@ -529,5 +572,64 @@ HWTEST_F(HyperGraphicManagerTest, RefreshBundleName, Function | SmallTest | Leve
         }
     }
 }
+
+/**
+ * @tc.name: GetIdealPeriod
+ * @tc.desc: Test GetIdealPeriod
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, GetIdealPeriod, Function | SmallTest | Level2)
+{
+    auto &instance = HgmCore::Instance();
+    EXPECT_EQ(instance.GetIdealPeriod(30), 0);
+    EXPECT_EQ(instance.GetIdealPeriod(60), 16666666);
+}
+
+/**
+ * @tc.name: GetLtpoEnabled
+ * @tc.desc: Test GetLtpoEnabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, GetLtpoEnabled, Function | SmallTest | Level2)
+{
+    auto &instance = HgmCore::Instance();
+    instance.SetLtpoEnabled(true);
+    instance.SetSupportedMaxTE(VSYNC_MAX_REFRESHRATE);
+    instance.SetRefreshRateMode(HGM_REFRESHRATE_MODE_AUTO);
+    EXPECT_EQ(instance.IsLTPOSwitchOn(), true);
+    EXPECT_EQ(instance.GetSupportedMaxTE(), VSYNC_MAX_REFRESHRATE);
+    EXPECT_EQ(instance.GetCurrentRefreshRateMode(), static_cast<int32_t>(HGM_REFRESHRATE_MODE_AUTO));
+    EXPECT_EQ(instance.GetLtpoEnabled(), true);
+}
+
+/**
+ * @tc.name: NotifyScreenPowerStatus
+ * @tc.desc: Test NotifyScreenPowerStatus
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, NotifyScreenPowerStatus, Function | SmallTest | Level2)
+{
+    ScreenId screenId = 8;
+    auto &instance = HgmCore::Instance();
+    instance.NotifyScreenPowerStatus(screenId, POWER_STATUS_ON);
+}
+
+
+/**
+ * @tc.name: RefreshRateModeChangeCallback
+ * @tc.desc: Test RefreshRateModeChangeCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, RefreshRateModeChangeCallback, Function | SmallTest | Level2)
+{
+    auto &instance = HgmCore::Instance();
+    instance.RegisterRefreshRateModeChangeCallback([](int32_t num) {return;});
+    EXPECT_NE(instance.GetRefreshRateModeChangeCallback(), nullptr);
+}
+
 } // namespace Rosen
 } // namespace OHOS

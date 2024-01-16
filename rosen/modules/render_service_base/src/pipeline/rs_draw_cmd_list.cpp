@@ -59,6 +59,7 @@ static std::unordered_map<RSOpType, OpUnmarshallingFunc> opUnmarshallingFuncLUT 
     { CLIP_REGION_OPITEM,          ClipRegionOpItem::Unmarshalling },
     { TRANSLATE_OPITEM,            TranslateOpItem::Unmarshalling },
     { TEXTBLOB_OPITEM,             TextBlobOpItem::Unmarshalling },
+    { HM_SYMBOL_OPITEM,            SymbolOpItem::Unmarshalling },
     { BITMAP_OPITEM,               BitmapOpItem::Unmarshalling },
     { COLOR_FILTER_BITMAP_OPITEM,  ColorFilterBitmapOpItem::Unmarshalling },
     { BITMAP_RECT_OPITEM,          BitmapRectOpItem::Unmarshalling },
@@ -152,7 +153,11 @@ void DrawCmdList::Playback(RSPaintFilterCanvas& canvas, const SkRect* rect)
 #endif
     for (auto& it : ops_) {
         if (it == nullptr) {
+            RS_LOGE("DrawCmdList::Playback ops is null");
             continue;
+        }
+        if (it->GetType() == RSOpType::HM_SYMBOL_OPITEM) {
+            it->SetSymbol();
         }
         it->Draw(canvas, rect);
     }
@@ -234,7 +239,7 @@ void DrawCmdList::UpdateNodeIdToPicture(NodeId nodeId)
     }
     for (size_t i = 0; i < imageIndexs_.size(); i++) {
         auto index = imageIndexs_[i];
-        if (index > ops_.size()) {
+        if (index > ops_.size() - 1) {
             RS_LOGW("DrawCmdList::UpdateNodeIdToPicture index[%{public}d] error", index);
             continue;
         }
@@ -286,7 +291,7 @@ bool DrawCmdList::Marshalling(Parcel& parcel) const
         return false;
     }
 
-    if (ops_.size() > 1000 && RSMarshallingHelper::GetUseSharedMem()) {  // OPsize > 1000
+    if (ops_.size() > 1000 && RSMarshallingHelper::GetUseSharedMem(std::this_thread::get_id())) {  // OPsize > 1000
         parcel.WriteUint32(1); // 1: use shared mem
         auto position = parcel.GetWritePosition();
         parcel.WriteUint32(0); // shmem count
@@ -466,7 +471,7 @@ void DrawCmdList::ClearCache()
 #endif
 }
 
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
 void DrawCmdList::CheckClipRect(SkRect& rect)
 {
     std::lock_guard<std::mutex> lock(mutex_);

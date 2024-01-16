@@ -16,8 +16,10 @@
 #ifndef FONT_STYLE_SET_H
 #define FONT_STYLE_SET_H
 
+#include <cstdint>
 #include <memory>
 
+#include "text/font_style.h"
 #include "text/typeface.h"
 
 namespace OHOS {
@@ -25,7 +27,7 @@ namespace Rosen {
 namespace Drawing {
 class FontStyleSetImpl;
 
-class FontStyleSet {
+class DRAWING_API FontStyleSet {
 public:
     explicit FontStyleSet(std::shared_ptr<FontStyleSetImpl> fontStyleSetImpl) noexcept;
     virtual ~FontStyleSet() = default;
@@ -38,10 +40,27 @@ public:
     Typeface* CreateTypeface(int index);
 
     /*
+     * @brief            Get font style for the specified typeface.
+     * @param index      The index of the typeface in this fontStyleSet.
+     * @param fontStyle  The font style returned to the caller.
+     * @param styleName  The style name returned to the caller.
+     */
+    void GetStyle(int32_t index, FontStyle* fontStyle, std::string* styleName);
+
+    /*
+     * @brief        Get the closest matching typeface.
+     * @param index  The font style to be matching.
+     * @return       A pointer to matched typeface.
+     */
+    Typeface* MatchStyle(const FontStyle& pattern);
+
+    /*
      * @brief   Get the count of typeface.
      * @return  The count of typeface in this font style set.
      */
     int Count();
+
+    static FontStyleSet* CreateEmpty();
 
 private:
     std::shared_ptr<FontStyleSetImpl> fontStyleSetImpl_;

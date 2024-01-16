@@ -38,12 +38,19 @@ config("libtexgine_public_config") {
     "export",
     "texgine_drawing",
     "//third_party/skia/third_party/externals/harfbuzz/src",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text",
   ]
 }
 
 ohos_source_set("libtexgine_source") {
   if (is_ok) {
     sources = [
+      "export/symbol_engine/hm_symbol_run.cpp",
+      "export/symbol_engine/hm_symbol_txt.cpp",
       "src/bidi_processer.cpp",
       "src/char_groups.cpp",
       "src/dynamic_file_font_provider.cpp",
@@ -76,6 +83,7 @@ ohos_source_set("libtexgine_source") {
       "src/text_shaper.cpp",
       "src/text_span.cpp",
       "src/text_style.cpp",
+      "src/theme_font_provider.cpp",
       "src/typeface.cpp",
       "src/typography_builder_impl.cpp",
       "src/typography_impl.cpp",
@@ -108,6 +116,12 @@ ohos_source_set("libtexgine_source") {
     ]
 
     defines = []
+    if (defined(use_rosen_drawing) && use_rosen_drawing) {
+      defines += [ "USE_ROSEN_DRAWING" ]
+      if (ace_enable_gpu) {
+        defines += [ "ACE_ENABLE_GPU" ]
+      }
+    }
     if (enable_text_gine) {
       defines += [ "USE_GRAPHIC_TEXT_GINE" ]
     }
@@ -132,16 +146,17 @@ ohos_source_set("libtexgine_source") {
       ]
 
       public_deps +=
-          [ "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform" ]
+          [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
     } else {
       sources -= [ "src/utils/trace_ohos.cpp" ]
       if (platform == "mac") {
         defines += [ "BUILD_SDK_MAC" ]
-        public_deps += [ "$graphic_2d_root/rosen/build/flutter/harfbuzz:rosen_libharfbuzz_$platform" ]
-      } else {
         public_deps += [
-          "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_$platform",
+          "$graphic_2d_root/rosen/build/harfbuzz:rosen_libharfbuzz_$platform",
         ]
+      } else {
+        public_deps +=
+            [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
       }
     }
   }
@@ -164,6 +179,7 @@ ohos_shared_library("libtexgine") {
     } else {
       deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_new" ]
     }
+    deps += [ "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client" ]
   }
   innerapi_tags = [ "platformsdk" ]
   part_name = "graphic_2d"

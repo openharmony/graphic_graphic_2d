@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -140,6 +140,28 @@ void OH_Drawing_CanvasSave(OH_Drawing_Canvas*);
 void OH_Drawing_CanvasRestore(OH_Drawing_Canvas*);
 
 /**
+ * @brief Gets the number of the canvas status (canvas matrix) saved in the stack.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @return Returns a 32-bit variable that describes the number of canvas status.
+ * @since 11
+ * @version 1.0
+ */
+uint32_t OH_Drawing_CanvasGetSaveCount(OH_Drawing_Canvas*);
+
+/**
+ * @brief Restores the specific number of the canvas status (canvas matrix) saved in the stack.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param saveCount Indicates the specific number of canvas status.
+ * @since 11
+ * @version 1.0
+ */
+void OH_Drawing_CanvasRestoreToCount(OH_Drawing_Canvas*, uint32_t saveCount);
+
+/**
  * @brief Draws a line segment.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -163,6 +185,172 @@ void OH_Drawing_CanvasDrawLine(OH_Drawing_Canvas*, float x1, float y1, float x2,
  * @version 1.0
  */
 void OH_Drawing_CanvasDrawPath(OH_Drawing_Canvas*, const OH_Drawing_Path*);
+
+/**
+ * @brief Draws a bitmap.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param OH_Drawing_Bitmap Indicates the pointer to an <b>OH_Drawing_Bitmap</b> object.
+ * @param left Indicates the left position of the <b>OH_Drawing_Bitmap</b>.
+ * @param top Indicates the top position of the <b>OH_Drawing_Bitmap</b>.
+ * @since 11
+ * @version 1.0
+ */
+void OH_Drawing_CanvasDrawBitmap(OH_Drawing_Canvas*, const OH_Drawing_Bitmap*, float left, float top);
+
+/**
+ * @brief Draws a rect.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param OH_Drawing_Rect Indicates the pointer to an <b>OH_Drawing_Rect</b> object.
+ * @since 11
+ * @version 1.0
+ */
+void OH_Drawing_CanvasDrawRect(OH_Drawing_Canvas*, const OH_Drawing_Rect*);
+
+/**
+ * @brief Draws a circle.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param OH_Drawing_Point Indicates the pointer to an <b>OH_Drawing_Point</b> object.
+ * @param radius Indicates the radius of the circle.
+ * @since 11
+ * @version 1.0
+ */
+void OH_Drawing_CanvasDrawCircle(OH_Drawing_Canvas*, const OH_Drawing_Point*, float radius);
+
+/**
+ * @brief Draws an oval.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param OH_Drawing_Rect Indicates the pointer to an <b>OH_Drawing_Rect</b> object.
+ * @since 11
+ * @version 1.0
+ */
+void OH_Drawing_CanvasDrawOval(OH_Drawing_Canvas*, const OH_Drawing_Rect*);
+
+/**
+ * @brief Draws an arc.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param OH_Drawing_Rect Indicates the pointer to an <b>OH_Drawing_Rect</b> object.
+ * @param startAngle Indicates the startAngle of the arc.
+ * @param sweepAngle Indicates the sweepAngle of the arc.
+ * @since 11
+ * @version 1.0
+ */
+void OH_Drawing_CanvasDrawArc(OH_Drawing_Canvas*, const OH_Drawing_Rect*, float startAngle, float sweepAngle);
+
+/**
+ * @brief Draws a roundrect.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param OH_Drawing_RoundRect Indicates the pointer to an <b>OH_Drawing_RoundRect</b> object.
+ * @since 11
+ * @version 1.0
+ */
+void OH_Drawing_CanvasDrawRoundRect(OH_Drawing_Canvas*, const OH_Drawing_RoundRect*);
+
+/**
+ * @brief Draws a textblob.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param OH_Drawing_TextBlob Indicates the pointer to an <b>OH_Drawing_TextBlob</b> object.
+ * @param x Indicates the horizontal offset applied to blob.
+ * @param y Indicates the vertical offset applied to blob.
+ * @since 11
+ * @version 1.0
+ */
+void OH_Drawing_CanvasDrawTextBlob(OH_Drawing_Canvas*, const OH_Drawing_TextBlob*, float x, float y);
+
+/**
+ * @brief Enumerates clip op.
+ * 
+ * @since 11
+ * @version 1.0
+ */
+typedef enum {
+    /**
+     * Clip with difference.
+     */
+    DIFFERENCE,
+    /**
+     * Clip with intersection.
+     */
+    INTERSECT,
+} OH_Drawing_CanvasClipOp;
+
+/**
+ * @brief Clip a rect.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param OH_Drawing_Rect Indicates the pointer to an <b>OH_Drawing_Rect</b> object.
+ * @param clipOp Indicates the operation to apply to clip.
+ * @param doAntiAlias Indicates whether clip operation requires anti-aliased.
+ * @since 11
+ * @version 1.0
+ */
+void OH_Drawing_CanvasClipRect(OH_Drawing_Canvas*, const OH_Drawing_Rect*,
+    OH_Drawing_CanvasClipOp clipOp, bool doAntiAlias);
+
+/**
+ * @brief Clip a path.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param OH_Drawing_Path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param clipOp Indicates the operation to apply to clip.
+ * @param doAntiAlias Indicates whether clip operation requires anti-aliased.
+ * @since 11
+ * @version 1.0
+ */
+void OH_Drawing_CanvasClipPath(OH_Drawing_Canvas*, const OH_Drawing_Path*,
+    OH_Drawing_CanvasClipOp clipOp, bool doAntiAlias);
+
+/**
+ * @brief Rotates by degrees. Positive degrees rotates clockwise.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param degrees Indicates the amount to rotate, in degrees.
+ * @param px Indicates the x-axis value of the point to rotate about.
+ * @param py Indicates the y-axis value of the point to rotate about.
+ * @since 11
+ * @version 1.0
+ */
+void OH_Drawing_CanvasRotate(OH_Drawing_Canvas*, float degrees, float px, float py);
+
+/**
+ * @brief Translates by dx along the x-axis and dy along the y-axis.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param dx Indicates the distance to translate on x-axis.
+ * @param dy Indicates the distance to translate on y-axis.
+ * @since 11
+ * @version 1.0
+ */
+void OH_Drawing_CanvasTranslate(OH_Drawing_Canvas*, float dx, float dy);
+
+/**
+ * @brief Scales by sx on the x-axis and sy on the y-axis.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param sx Indicates the amount to scale on x-axis.
+ * @param sy Indicates the amount to scale on y-axis.
+ * @since 11
+ * @version 1.0
+ */
+void OH_Drawing_CanvasScale(OH_Drawing_Canvas*, float sx, float sy);
 
 /**
  * @brief Clears a canvas by using a specified color.

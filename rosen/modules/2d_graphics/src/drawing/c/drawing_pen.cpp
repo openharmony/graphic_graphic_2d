@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,6 +29,16 @@ static Pen* CastToPen(OH_Drawing_Pen* cPen)
 static const Pen& CastToPen(const OH_Drawing_Pen& cPen)
 {
     return reinterpret_cast<const Pen&>(cPen);
+}
+
+static ShaderEffect* CastToShaderEffect(OH_Drawing_ShaderEffect* cShaderEffect)
+{
+    return reinterpret_cast<ShaderEffect*>(cShaderEffect);
+}
+
+static const Filter& CastToFilter(const OH_Drawing_Filter& cFilter)
+{
+    return reinterpret_cast<const Filter&>(cFilter);
 }
 
 static OH_Drawing_PenLineCapStyle CapCastToCCap(Pen::CapStyle cap)
@@ -119,46 +129,94 @@ void OH_Drawing_PenDestroy(OH_Drawing_Pen* cPen)
 
 bool OH_Drawing_PenIsAntiAlias(const OH_Drawing_Pen* cPen)
 {
+    if (cPen == nullptr) {
+        return false;
+    }
     return CastToPen(*cPen).IsAntiAlias();
 }
 
 void OH_Drawing_PenSetAntiAlias(OH_Drawing_Pen* cPen, bool aa)
 {
-    CastToPen(cPen)->SetAntiAlias(aa);
+    Pen* pen = CastToPen(cPen);
+    if (pen == nullptr) {
+        return;
+    }
+    pen->SetAntiAlias(aa);
 }
 
 uint32_t OH_Drawing_PenGetColor(const OH_Drawing_Pen* cPen)
 {
+    if (cPen == nullptr) {
+        return 0;
+    }
     return CastToPen(*cPen).GetColor().CastToColorQuad();
 }
 
 void OH_Drawing_PenSetColor(OH_Drawing_Pen* cPen, uint32_t color)
 {
-    CastToPen(cPen)->SetColor(color);
+    Pen* pen = CastToPen(cPen);
+    if (pen == nullptr) {
+        return;
+    }
+    pen->SetColor(color);
+}
+
+uint8_t OH_Drawing_PenGetAlpha(const OH_Drawing_Pen* cPen)
+{
+    if (cPen == nullptr) {
+        return 0;
+    }
+    return CastToPen(*cPen).GetAlpha();
+}
+
+void OH_Drawing_PenSetAlpha(OH_Drawing_Pen* cPen, uint8_t alpha)
+{
+    Pen* pen = CastToPen(cPen);
+    if (pen == nullptr) {
+        return;
+    }
+    pen->SetAlpha(alpha);
 }
 
 float OH_Drawing_PenGetWidth(const OH_Drawing_Pen* cPen)
 {
+    if (cPen == nullptr) {
+        return 0.f;
+    }
     return CastToPen(*cPen).GetWidth();
 }
 
 void OH_Drawing_PenSetWidth(OH_Drawing_Pen* cPen, float width)
 {
-    CastToPen(cPen)->SetWidth(width);
+    Pen* pen = CastToPen(cPen);
+    if (pen == nullptr) {
+        return;
+    }
+    pen->SetWidth(width);
 }
 
 float OH_Drawing_PenGetMiterLimit(const OH_Drawing_Pen* cPen)
 {
+    if (cPen == nullptr) {
+        return 0.f;
+    }
     return CastToPen(*cPen).GetMiterLimit();
 }
 
 void OH_Drawing_PenSetMiterLimit(OH_Drawing_Pen* cPen, float miter)
 {
-    CastToPen(cPen)->SetMiterLimit(miter);
+    Pen* pen = CastToPen(cPen);
+    if (pen == nullptr) {
+        return;
+    }
+    pen->SetMiterLimit(miter);
 }
 
 OH_Drawing_PenLineCapStyle OH_Drawing_PenGetCap(const OH_Drawing_Pen* cPen)
 {
+    if (cPen == nullptr) {
+        return LINE_FLAT_CAP;
+    }
     Pen::CapStyle cap = CastToPen(*cPen).GetCapStyle();
     OH_Drawing_PenLineCapStyle cCap = CapCastToCCap(cap);
     return cCap;
@@ -166,12 +224,19 @@ OH_Drawing_PenLineCapStyle OH_Drawing_PenGetCap(const OH_Drawing_Pen* cPen)
 
 void OH_Drawing_PenSetCap(OH_Drawing_Pen* cPen, OH_Drawing_PenLineCapStyle cCap)
 {
+    Pen* pen = CastToPen(cPen);
+    if (pen == nullptr) {
+        return;
+    }
     Pen::CapStyle cap = CCapCastToCap(cCap);
-    CastToPen(cPen)->SetCapStyle(cap);
+    pen->SetCapStyle(cap);
 }
 
 OH_Drawing_PenLineJoinStyle OH_Drawing_PenGetJoin(const OH_Drawing_Pen* cPen)
 {
+    if (cPen == nullptr) {
+        return LINE_MITER_JOIN;
+    }
     Pen::JoinStyle join = CastToPen(*cPen).GetJoinStyle();
     OH_Drawing_PenLineJoinStyle cJoin = JoinCastToCJoin(join);
     return cJoin;
@@ -179,6 +244,31 @@ OH_Drawing_PenLineJoinStyle OH_Drawing_PenGetJoin(const OH_Drawing_Pen* cPen)
 
 void OH_Drawing_PenSetJoin(OH_Drawing_Pen* cPen, OH_Drawing_PenLineJoinStyle cJoin)
 {
+    Pen* pen = CastToPen(cPen);
+    if (pen == nullptr) {
+        return;
+    }
     Pen::JoinStyle join = CJoinCastToJoin(cJoin);
-    CastToPen(cPen)->SetJoinStyle(join);
+    pen->SetJoinStyle(join);
+}
+
+void OH_Drawing_PenSetShaderEffect(OH_Drawing_Pen* cPen, OH_Drawing_ShaderEffect* cShaderEffect)
+{
+    Pen* pen = CastToPen(cPen);
+    if (pen == nullptr) {
+        return;
+    }
+    pen->SetShaderEffect(std::shared_ptr<ShaderEffect>{CastToShaderEffect(cShaderEffect), [](auto p) {}});
+}
+
+void OH_Drawing_PenSetFilter(OH_Drawing_Pen* cPen, OH_Drawing_Filter* cFilter)
+{
+    if (cFilter == nullptr) {
+        return;
+    }
+    Pen* pen = CastToPen(cPen);
+    if (pen == nullptr) {
+        return;
+    }
+    pen->SetFilter(CastToFilter(*cFilter));
 }

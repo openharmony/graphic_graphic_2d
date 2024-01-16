@@ -20,6 +20,9 @@
 
 #include "base_impl.h"
 #include "image/trace_memory_dump.h"
+#ifdef RS_ENABLE_VK
+#include "include/gpu/vk/GrVkBackendContext.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -33,9 +36,13 @@ public:
     ~GPUContextImpl() override {};
 
     virtual bool BuildFromGL(const GPUContextOptions& options) = 0;
-
+#ifdef RS_ENABLE_VK
+    virtual bool BuildFromVK(const GrVkBackendContext& context) = 0;
+    virtual bool BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options) = 0;
+#endif
     virtual void Flush() = 0;
     virtual void FlushAndSubmit(bool syncCpu) = 0;
+    virtual void Submit() = 0;
     virtual void PerformDeferredCleanup(std::chrono::milliseconds msNotUsed) = 0;
 
     virtual void GetResourceCacheLimits(int* maxResource, size_t* maxResourceBytes) const = 0;
@@ -51,17 +58,21 @@ public:
 
     virtual void PurgeUnlockedResources(bool scratchResourcesOnly) = 0;
 
-    virtual void PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag tag) = 0;
+    virtual void PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag &tag) = 0;
 
     virtual void PurgeUnlockAndSafeCacheGpuResources() = 0;
 
-    virtual void ReleaseByTag(const GPUResourceTag tag) = 0;
+    virtual void ReleaseByTag(const GPUResourceTag &tag) = 0;
 
-    virtual void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag tag) = 0;
+    virtual void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) = 0;
 
     virtual void DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump) = 0;
 
-    virtual void SetCurrentGpuResourceTag(const GPUResourceTag tag) = 0;
+    virtual void SetCurrentGpuResourceTag(const GPUResourceTag &tag) = 0;
+
+#ifdef RS_ENABLE_VK
+    virtual void StoreVkPipelineCacheData() = 0;
+#endif
 };
 } // namespace Drawing
 } // namespace Rosen

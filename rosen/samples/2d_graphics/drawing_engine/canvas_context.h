@@ -27,7 +27,8 @@ public:
     static CanvasContext* Create();
     virtual ~CanvasContext();
     void RenderFrame();
-    SkCanvas* AcquireCanvas(std::unique_ptr<SurfaceFrame>& frame);
+    SkCanvas* AcquireSkCanvas(std::unique_ptr<SurfaceFrame>& frame);
+    Drawing::Canvas* AcquireDrCanvas(std::unique_ptr<SurfaceFrame>& frame);
     void InitDrawContext();
     void MakeCurrent();
     void* CreateSurface(void* window);

@@ -26,6 +26,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
+#define DYNAMIC_FONT_WEIGHT 6
 std::unique_ptr<Typeface> Typeface::MakeFromFile(const std::string &filename)
 {
     auto st = TexgineTypeface::MakeFromFile(filename.c_str());
@@ -58,7 +59,7 @@ std::string Typeface::GetName()
 
 bool Typeface::ParseCmap(const std::shared_ptr<CmapParser> &parser)
 {
-    LOGEX_FUNC_LINE(DEBUG) << "Parse Cmap: " << GetName();
+    LOGEX_FUNC_LINE_DEBUG(DEBUG) << "Parse Cmap: " << GetName();
 #ifdef LOGGER_ENABLE_SCOPE
     ScopedTrace scope("Typeface::InitCmap");
 #endif
@@ -92,7 +93,9 @@ bool Typeface::ParseCmap(const std::shared_ptr<CmapParser> &parser)
     scope.Finish();
     ScopedTrace scope2("Typeface::ParseCmap");
 #endif
-    auto retval = parser->Parse(hb_blob_get_data(hblob_, nullptr), hb_blob_get_length(hblob_));
+    const char* data = hb_blob_get_data(hblob_, nullptr);
+    unsigned int length = hb_blob_get_length(hblob_);
+    auto retval = parser->Parse(data, length);
     return retval == 0;
 }
 
@@ -117,6 +120,27 @@ bool Typeface::Has(uint32_t ch)
     }
 
     return cmapParser_->GetGlyphId(ch) != CmapParser::INVALID_GLYPH_ID;
+}
+
+void Typeface::ComputeFakeryItalic(bool isItalic)
+{
+    isFakeItalic_ = isItalic;
+}
+
+bool Typeface::DetectionItalic()
+{
+    return isFakeItalic_;
+}
+
+void Typeface::ComputeFakery(int wantedWeight)
+{
+    bool isFakeBold = wantedWeight >= DYNAMIC_FONT_WEIGHT;
+    isFakeBold_ = isFakeBold;
+}
+
+bool Typeface::DetectionFakeBold()
+{
+    return isFakeBold_;
 }
 } // namespace TextEngine
 } // namespace Rosen

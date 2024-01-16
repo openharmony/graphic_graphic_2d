@@ -60,16 +60,23 @@ bool RSPaintFilterCanvasFuzzTest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
+#ifndef USE_ROSEN_DRAWING
     SkCanvas skCanvas;
     RSPaintFilterCanvas paintFilterCanvas(&skCanvas, GetData<float>());
+#else
+    Drawing::Canvas drCanvas;
+    RSPaintFilterCanvas paintFilterCanvas(&drCanvas, GetData<float>());
+#endif
     paintFilterCanvas.MultiplyAlpha(GetData<float>());
     paintFilterCanvas.RestoreAlphaToCount(GetData<int>());
 
     return true;
 }
 
+
 bool RSRecordingCanvasFuzzTest(const uint8_t* data, size_t size)
 {
+#ifndef USE_ROSEN_DRAWING
     if (data == nullptr) {
         return false;
     }
@@ -85,7 +92,7 @@ bool RSRecordingCanvasFuzzTest(const uint8_t* data, size_t size)
     recordingCanvas.DrawAdaptiveRRect(GetData<float>(), skPaint);
     recordingCanvas.DrawAdaptiveRRectScale(GetData<float>(), skPaint);
     recordingCanvas.MultiplyAlpha(GetData<float>());
-
+#endif
     return true;
 }
 

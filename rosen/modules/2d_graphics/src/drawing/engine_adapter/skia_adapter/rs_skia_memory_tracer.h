@@ -27,7 +27,7 @@ typedef std::pair<const char*, const char*> ResourcePair;
 class SkiaMemoryTracer : public SkTraceMemoryDump {
 public:
     SkiaMemoryTracer(const char* categoryKey, bool itemizeType);
-    SkiaMemoryTracer(std::vector<ResourcePair> resourceMap, bool itemizeType);
+    SkiaMemoryTracer(const std::vector<ResourcePair>& resourceMap, bool itemizeType);
     ~SkiaMemoryTracer() override {}
 
     void LogOutput(DfxString& log);

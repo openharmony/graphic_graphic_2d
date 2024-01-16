@@ -36,7 +36,8 @@ public:
     void SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height) override {};
     void Destroy() override {};
     void RenderFrame() override {};
-    SkCanvas* AcquireCanvas(std::unique_ptr<SurfaceFrame>& frame) override;
+    SkCanvas* AcquireSkCanvas(std::unique_ptr<SurfaceFrame>& frame) override;
+    Drawing::Canvas* AcquireDrCanvas(std::unique_ptr<SurfaceFrame>& frame) override {return nullptr;}
 protected:
     std::shared_ptr<SkCanvas> skCanvas_;
 };

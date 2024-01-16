@@ -56,6 +56,7 @@ void RSRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSu
     // draw shadow(should before canvas.clipRect in DrawWithParams()).
     const auto& property = node.GetRenderProperties();
     RSPropertiesPainter::DrawShadow(property, canvas, &params.clipRRect);
+    RSPropertiesPainter::DrawOutline(property, canvas);
 
     DrawWithParams(canvas, params, nodePreProcessFunc, nodePostProcessFunc);
 }

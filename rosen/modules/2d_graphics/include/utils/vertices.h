@@ -71,14 +71,15 @@ public:
      * @return  Adaptation Layer instance.
      */
     template<typename T>
-    const std::shared_ptr<T> GetImpl() const
+    T* GetImpl() const
     {
         if (verticesImplPtr_ == nullptr) {
             return nullptr;
         }
         return verticesImplPtr_->DowncastingTo<T>();
     }
-
+    std::shared_ptr<Data> Serialize() const;
+    bool Deserialize(std::shared_ptr<Data> data);
     class Builder {
     public:
         Builder(VertexMode mode, int vertexCount, int indexCount, uint32_t flags);

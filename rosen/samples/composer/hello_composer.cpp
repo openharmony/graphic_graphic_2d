@@ -74,7 +74,7 @@ void HelloComposer::Run(const std::vector<std::string> &runArgs)
     sleep(1);
     std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner = OHOS::AppExecFwk::EventRunner::Create(false);
     mainThreadHandler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
-    g_receiver = new VSyncReceiver(vsyncConnection, mainThreadHandler_);
+    g_receiver = new VSyncReceiver(vsyncConnection, nullptr, mainThreadHandler_);
     g_receiver->Init();
     mainThreadHandler_->PostTask(std::bind(&HelloComposer::RequestSync, this));
     runner->Run();
@@ -91,6 +91,8 @@ void HelloComposer::ParseArgs(const std::vector<std::string> &runArgs)
             testLayerRotate_ = true;
         } else if (arg == "--YUV") {
             YUVFormat_ = true;
+        } else if (arg == "--testLayerColor") {
+            testLayerColor_ = true;
         }
     }
 }
@@ -219,6 +221,10 @@ void HelloComposer::Sync(int64_t, void *data)
 void HelloComposer::SetRunArgs(const std::unique_ptr<LayerContext> &drawLayer) const
 {
     LayerType type = drawLayer->GetLayerType();
+    if (testLayerColor_) {
+        drawLayer->SetTestLayerColor(true);
+    }
+    
     if (type < LayerType::LAYER_EXTRA) {
         return;
     }
@@ -248,6 +254,7 @@ void HelloComposer::Draw()
         }
 
         for (auto &drawLayer : drawLayers) { // consumer
+            drawLayer->FillHDIBuffer();
             drawLayer->FillHDILayer();
             layerVec.emplace_back(drawLayer->GetHdiLayer());
         }
@@ -464,13 +471,11 @@ void HelloComposer::DoPrepareCompleted(sptr<Surface> surface, const struct Prepa
     sptr<SyncFence> tempFence = new SyncFence(releaseFence);
     tempFence->Wait(100); // 100 ms
 
-    uint32_t clientCount = 0;
     bool hasClient = false;
     const std::vector<LayerInfoPtr> &layers = param.layers;
     for (const LayerInfoPtr &layer : layers) {
         if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT) {
             hasClient = true;
-            clientCount++;
         }
     }
 

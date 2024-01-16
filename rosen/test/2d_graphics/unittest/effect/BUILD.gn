@@ -42,6 +42,10 @@ ohos_unittest("2d_graphics_effect_test") {
 
   external_deps = [ "hilog:libhilog" ]
 
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

@@ -22,6 +22,17 @@ namespace Rosen {
 namespace Drawing {
 Region::Region() : impl_(ImplFactory::CreateRegionImpl()) {}
 
+Region::Region(const Region& other) : Region()
+{
+    impl_->Clone(other);
+}
+
+Region& Region::operator=(const Region& other)
+{
+    impl_->Clone(other);
+    return *this;
+}
+
 bool Region::SetRect(const RectI& rectI)
 {
     return impl_->SetRect(rectI);
@@ -55,6 +66,16 @@ bool Region::IsRect() const
 bool Region::Op(const Region& region, RegionOp op)
 {
     return impl_->Op(region, op);
+}
+
+std::shared_ptr<Data> Region::Serialize() const
+{
+    return impl_->Serialize();
+}
+
+bool Region::Deserialize(std::shared_ptr<Data> data)
+{
+    return impl_->Deserialize(data);
 }
 } // namespace Drawing
 } // namespace Rosen

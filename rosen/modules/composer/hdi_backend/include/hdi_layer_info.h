@@ -21,6 +21,7 @@
 #include <surface.h>
 #include <sync_fence.h>
 #include "hdi_log.h"
+#include "hdi_display_type.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -49,6 +50,7 @@ static const std::map<GraphicCompositionType, std::string> CompositionTypeStrs =
     {GRAPHIC_COMPOSITION_CLIENT_CLEAR,       "5 <client clear composistion>"},
     {GRAPHIC_COMPOSITION_TUNNEL,             "6 <tunnel composistion>"},
     {GRAPHIC_COMPOSITION_BUTT,               "7 <uninitialized>"},
+    {GRAPHIC_COMPOSITION_SOLID_COLOR,        "8 <layercolor composition>"},
 };
 
 static const std::map<GraphicBlendType, std::string> BlendTypeStrs = {
@@ -125,11 +127,13 @@ public:
 
     void SetVisibleRegions(const std::vector<GraphicIRect> &visibleRegions)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         visibleRegions_ = visibleRegions;
     }
 
     void SetDirtyRegions(const std::vector<GraphicIRect> &dirtyRegions)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         dirtyRegions_ = dirtyRegions;
     }
 
@@ -166,6 +170,11 @@ public:
     void* GetLayerAdditionalInfo()
     {
         return additionalInfo_;
+    }
+
+    void SetLayerColor(GraphicLayerColor layerColor)
+    {
+        layerColor_ = layerColor;
     }
 
     void SetColorTransform(const std::vector<float> &matrix)
@@ -263,11 +272,13 @@ public:
 
     const std::vector<GraphicIRect> &GetVisibleRegions()
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         return visibleRegions_;
     }
 
     const std::vector<GraphicIRect> &GetDirtyRegions()
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         return dirtyRegions_;
     }
 
@@ -316,6 +327,11 @@ public:
         return colorSpace_;
     }
 
+    GraphicLayerColor GetLayerColor() const
+    {
+        return layerColor_;
+    }
+
     std::vector<GraphicHDRMetaData> &GetMetaData()
     {
         return metaData_;
@@ -348,6 +364,7 @@ public:
 
     void CopyLayerInfo(const std::shared_ptr<HdiLayerInfo> &layerInfo)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         zOrder_ = layerInfo->GetZorder();
         layerRect_ = layerInfo->GetLayerSize();
         boundRect_ = layerInfo->GetBoundSize();
@@ -362,6 +379,7 @@ public:
         blendType_ = layerInfo->GetBlendType();
         colorTransformMatrix_ = layerInfo->GetColorTransform();
         colorSpace_ = layerInfo->GetColorDataSpace();
+        layerColor_ = layerInfo->GetLayerColor();
         metaData_ = layerInfo->GetMetaData();
         metaDataSet_ = layerInfo->GetMetaDataSet();
         tunnelHandle_ = layerInfo->GetTunnelHandle();
@@ -374,6 +392,7 @@ public:
 
     void Dump(std::string &result) const
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         if (TransformTypeStrs.find(transformType_) != TransformTypeStrs.end() &&
             CompositionTypeStrs.find(compositionType_) != CompositionTypeStrs.end() &&
             BlendTypeStrs.find(blendType_) != BlendTypeStrs.end()) {
@@ -450,6 +469,7 @@ private:
     GraphicCompositionType compositionType_;
     GraphicBlendType blendType_;
     std::vector<float> colorTransformMatrix_;
+    GraphicLayerColor layerColor_;
     GraphicColorDataSpace colorSpace_ = GraphicColorDataSpace::GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
     std::vector<GraphicHDRMetaData> metaData_;
     GraphicHDRMetaDataSet metaDataSet_;
@@ -465,6 +485,7 @@ private:
     sptr<SurfaceBuffer> pbuffer_ = nullptr;
     bool preMulti_ = false;
     LayerMask layerMask_ = LayerMask::LAYER_MASK_NORMAL;
+    mutable std::mutex mutex_;
 };
 } // namespace Rosen
 } // namespace OHOS

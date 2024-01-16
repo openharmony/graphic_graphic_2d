@@ -18,6 +18,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include "drawing/draw/core_canvas.h"
 
@@ -29,9 +30,27 @@ public:
     Canvas() {}
     Canvas(int32_t width, int32_t height) : CoreCanvas(width, height) {}
 
+    virtual Canvas* GetRecordingCanvas() const
+    {
+        return nullptr;
+    }
+
+    void AddCanvas(Canvas* canvas)
+    {
+        if (canvas != nullptr) {
+            pCanvasList_.push_back(canvas);
+        }
+    }
+
+    void RemoveAll()
+    {
+        pCanvasList_.clear();
+    }
     // constructor adopt a raw canvas ptr, using for ArkUI, should remove after rosen modifier provide drawing Canvas.
     explicit Canvas(void* rawCanvas) : CoreCanvas(rawCanvas) {}
-    virtual ~Canvas() {};
+    virtual ~Canvas() {
+        RemoveAll();
+    }
 
     /*
      * @brief        Restores Canvas Matrix and clip value state to count.
@@ -43,6 +62,9 @@ public:
             this->Restore();
         }
     }
+
+protected:
+    std::vector<Canvas*> pCanvasList_;
 };
 
 class AutoCanvasRestore {

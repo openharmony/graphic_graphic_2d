@@ -28,11 +28,17 @@ class FontMgrImpl : public BaseImpl {
 public:
     ~FontMgrImpl() override = default;
 
+#ifndef USE_TEXGINE
+    virtual void LoadDynamicFont(const std::string& familyName, const uint8_t* data, size_t dataLength) = 0;
+    virtual void LoadThemeFont(const std::string& familyName, const std::string& themeName,
+        const uint8_t* data, size_t dataLength) = 0;
+#endif
     virtual Typeface* MatchFamilyStyleCharacter(const char familyName[], const FontStyle& fontStyle,
                                                 const char* bcp47[], int bcp47Count,
                                                 int32_t character) = 0;
     virtual FontStyleSet* MatchFamily(const char familyName[]) const = 0;
 
+    virtual Typeface* MatchFamilyStyle(const char familyName[], const FontStyle& fontStyle) const = 0;
 protected:
     FontMgrImpl() noexcept = default;
 };

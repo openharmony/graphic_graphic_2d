@@ -44,6 +44,7 @@ public:
     }
     bool PlayVideo();
     void StopVideo();
+    void SetVideoSound();
 private:
 #ifdef PLAYER_FRAMEWORK_ENABLE
     std::shared_ptr<Media::Player> mediaPlayer_;

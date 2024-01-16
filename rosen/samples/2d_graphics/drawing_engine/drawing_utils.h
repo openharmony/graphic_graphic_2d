@@ -16,6 +16,7 @@
 #ifndef DRAWING_UTILS_H
 #define DRAWING_UTILS_H
 #include <hilog/log.h>
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -44,13 +45,18 @@ public:
     static RenderBackendType GetRenderBackendType()
     {
 #if defined(ACE_ENABLE_VK)
-        RenderBackendType type = RenderBackendType::VULKAN;
-#elif defined(ACE_ENABLE_GL)
-        RenderBackendType type = RenderBackendType::GLES;
-#else
-        RenderBackendType type = RenderBackendType::SOFTWARE;
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+            return RenderBackendType::VULKAN;
+        }
 #endif
-        return type;
+
+#if defined(ACE_ENABLE_GL)
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+            return RenderBackendType::GLES;
+        }
+#endif
+        return RenderBackendType::SOFTWARE;
     }
 };
 }

@@ -120,6 +120,12 @@ public:
                                 BufferFlushConfigWithDamages &config) = 0;
     virtual GSError UnRegisterReleaseListener() = 0;
     virtual GSError SetWptrNativeWindowToPSurface(void* nativeWindow) = 0;
+    virtual GSError GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
+        sptr<SyncFence>& fence, float matrix[16], int32_t matrixSize = 16) = 0;
+    virtual GSError AttachBuffer(sptr<SurfaceBuffer>& buffer, int32_t timeOut) = 0;
+    virtual GSError RegisterSurfaceDelegator(sptr<IRemoteObject> client) = 0;
+    virtual GSError RegisterReleaseListener(OnReleaseFuncWithFence func) = 0;
+
 protected:
     Surface() = default;
 };

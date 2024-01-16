@@ -49,7 +49,7 @@ using MMIPE = MMI::PointerEvent;
 #define TRACE_COUNT(str, val) CountTrace(HITRACE_TAG_GRAPHIC_AGP, str, val)
 #define TRACE_SCOPE(str) HitraceScoped trace(HITRACE_TAG_GRAPHIC_AGP, str)
 
-struct RSData {
+struct TestData {
     std::shared_ptr<AppExecFwk::EventRunner> runner = nullptr;
     std::shared_ptr<VSyncReceiver> receiver = nullptr;
     std::shared_ptr<RSSurfaceNode> sNode = nullptr;
@@ -60,7 +60,7 @@ struct RSData {
     void RequestVsync();
 };
 
-void RSData::RequestVsync()
+void TestData::RequestVsync()
 {
     TRACE_COUNT("RequestVsync", 1);
     auto func = [this](int64_t ts, void *data) {
@@ -95,7 +95,7 @@ bool PointerFilter::OnInputEvent(std::shared_ptr<OHOS::MMI::PointerEvent> pointe
     std::lock_guard<std::mutex> lock(sf->propsMutex_);
 
     TRACE_BEGIN("HandleInputLocked");
-    auto &rsdata = *reinterpret_cast<struct RSData *>(sf->data_);
+    auto &rsdata = *reinterpret_cast<struct TestData *>(sf->data_);
     const auto &ids = pointerEvent->GetPointerIds();
 
     if (ids.size() == 1) {
@@ -122,7 +122,7 @@ void PointerFilter::ProcessSinglePointerEvent(const std::shared_ptr<OHOS::MMI::P
     const auto &y = firstPointer.GetDisplayY();
 
     if (action == MMIPE::POINTER_ACTION_DOWN) {
-        auto &rsdata = *reinterpret_cast<struct RSData*>(sf->data_);
+        auto &rsdata = *reinterpret_cast<struct TestData*>(sf->data_);
         // 400000 means 400 * 1000 is the discriminant time for consecutive clicks
         if (pointerEvent->GetActionTime() - rsdata.lastTime <= 400000) {
             sf->right_ = false;
@@ -164,17 +164,35 @@ void PointerFilter::ProcessSingleAction(const uint32_t action, int x, int y) con
         sf->x_ = x;
         sf->y_ = y;
 
+#ifndef USE_ROSEN_DRAWING
         sf->mat_ = SkMatrix::Translate(-sf->diffx_, -sf->diffy_).preConcat(sf->mat_);
         sf->diffx_ = sf->x_ - sf->downRX_;
         sf->diffy_ = sf->y_ - sf->downRY_;
         sf->mat_ = SkMatrix::Translate(sf->diffx_, sf->diffy_).preConcat(sf->mat_);
+#else
+        sf->mat_ = Drawing::Matrix();
+        sf->mat_.Translate(-sf->diffx_, -sf->diffy_);
+        sf->mat_.PreConcat(sf->mat_);
+        sf->diffx_ = sf->x_ - sf->downRX_;
+        sf->diffy_ = sf->y_ - sf->downRY_;
+        sf->mat_.Translate(sf->diffx_, sf->diffy_);
+        sf->mat_.PreConcat(sf->mat_);
+#endif
         sf->UpdateInvertMatrix();
     }
     if (sf->right_ && action == MMIPE::POINTER_ACTION_UP) {
         sf->dirty_ = true;
         sf->right_ = false;
+#ifndef USE_ROSEN_DRAWING
         sf->mat_ = SkMatrix::Translate(-sf->diffx_, -sf->diffy_).preConcat(sf->mat_);
         sf->mat_ = SkMatrix::Translate(x - sf->downRX_, y - sf->downRY_).preConcat(sf->mat_);
+#else
+        sf->mat_ = Drawing::Matrix();
+        sf->mat_.Translate(-sf->diffx_, -sf->diffy_);
+        sf->mat_.PreConcat(sf->mat_);
+        sf->mat_.Translate(x - sf->downRX_, y - sf->downRY_);
+        sf->mat_.PreConcat(sf->mat_);
+#endif
         sf->UpdateInvertMatrix();
         sf->diffx_ = sf->diffy_ = 0;
     }
@@ -206,6 +224,7 @@ void PointerFilter::ProcessPointerEvents(const std::shared_ptr<OHOS::MMI::Pointe
     if (action == MMIPE::POINTER_ACTION_MOVE || action == MMIPE::POINTER_ACTION_UP) {
         sf->dirty_ = true;
         auto scalediff = sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+#ifndef USE_ROSEN_DRAWING
         auto point = sf->invmat_.mapXY(sf->scalex_, sf->scaley_);
         sf->mat_ = sf->scaleMat_;
         sf->mat_ = sf->mat_.preConcat(SkMatrix::Translate(+point.x(), +point.y()));
@@ -213,6 +232,17 @@ void PointerFilter::ProcessPointerEvents(const std::shared_ptr<OHOS::MMI::Pointe
             1 : scalediff / sf->scalediff_.load();
         sf->mat_ = sf->mat_.preConcat(SkMatrix::Scale(scale, scale));
         sf->mat_ = sf->mat_.preConcat(SkMatrix::Translate(-point.x(), -point.y()));
+#else
+        double scale = 1.0;
+        double epsilon = 1e-10;
+        if (fabs(sf->scalediff_.load()) > epsilon) {
+            scale = (scalediff / sf->scalediff_.load()) == 0 ?
+                1 : scalediff / sf->scalediff_.load();
+        }
+        Drawing::Matrix scaleMatrix;
+        scaleMatrix.SetScale(scale, scale);
+        sf->mat_.PreConcat(scaleMatrix);
+#endif
         sf->UpdateInvertMatrix();
     }
 }
@@ -220,12 +250,12 @@ void PointerFilter::ProcessPointerEvents(const std::shared_ptr<OHOS::MMI::Pointe
 SkiaFramework::SkiaFramework()
 {
     UpdateTraceLabel();
-    data_ = new struct RSData();
+    data_ = new struct TestData();
 }
 
 SkiaFramework::~SkiaFramework()
 {
-    auto &rsdata = *reinterpret_cast<struct RSData *>(data_);
+    auto &rsdata = *reinterpret_cast<struct TestData *>(data_);
     rsdata.dNode->RemoveChild(rsdata.sNode);
     rsdata.sNode = nullptr;
     rsdata.dNode = nullptr;
@@ -233,7 +263,7 @@ SkiaFramework::~SkiaFramework()
     if (auto tp = RSTransactionProxy::GetInstance(); tp != nullptr) {
         tp->FlushImplicitTransaction();
     }
-    delete reinterpret_cast<struct RSData *>(data_);
+    delete reinterpret_cast<struct TestData *>(data_);
 }
 
 void SkiaFramework::SetDrawFunc(const DrawFunc &onDraw)
@@ -289,7 +319,7 @@ double SkiaFramework::GetWindowScale() const
 void SkiaFramework::Run()
 {
     TRACE_BEGIN("Run");
-    auto &rsdata = *reinterpret_cast<struct RSData *>(data_);
+    auto &rsdata = *reinterpret_cast<struct TestData *>(data_);
     // vsync
     rsdata.runner = AppExecFwk::EventRunner::Create(false);
     auto handler = std::make_shared<AppExecFwk::EventHandler>(rsdata.runner);
@@ -320,7 +350,13 @@ void SkiaFramework::Run()
     }
 
     PrepareVsyncFunc();
+#ifndef USE_ROSEN_DRAWING
     mat_ = mat_.preConcat(SkMatrix::Scale(windowScale_, windowScale_));
+#else
+    Drawing::Matrix scaleMatrix;
+    scaleMatrix.SetScale(windowScale_, windowScale_);
+    mat_.PreConcat(scaleMatrix);
+#endif
     rsdata.RequestVsync();
     TRACE_END();
     rsdata.runner->Run();
@@ -328,14 +364,14 @@ void SkiaFramework::Run()
 
 void SkiaFramework::PrepareVsyncFunc()
 {
-    auto &rsdata = *reinterpret_cast<struct RSData *>(data_);
+    auto &rsdata = *reinterpret_cast<struct TestData *>(data_);
     rsdata.onVsync = [this]() {
         if (dirty_ == false) {
             return;
         }
         dirty_ = false;
         TRACE_SCOPE("OnVsync");
-        auto &rsdata = *reinterpret_cast<struct RSData *>(data_);
+        auto &rsdata = *reinterpret_cast<struct TestData *>(data_);
         sptr<Surface> surface = rsdata.sNode->GetSurface();
         if (surface == nullptr) {
             return;
@@ -365,11 +401,19 @@ void SkiaFramework::PrepareVsyncFunc()
 
         auto addr = static_cast<uint8_t *>(buffer->GetVirAddr());
         LOGI("buffer width:%{public}d, height:%{public}d", buffer->GetWidth(), buffer->GetHeight());
+#ifndef USE_ROSEN_DRAWING
         SkBitmap bitmap;
+#else
+        Drawing::Bitmap bitmap;
+#endif
         ProcessBitmap(bitmap, buffer);
         constexpr uint32_t stride = 4;
         uint32_t addrSize = buffer->GetWidth() * buffer->GetHeight() * stride;
+#ifndef USE_ROSEN_DRAWING
         void* bitmapAddr = bitmap.getPixels();
+#else
+        void* bitmapAddr = bitmap.GetPixels();
+#endif
         if (auto res = memcpy_s(addr, addrSize, bitmapAddr, addrSize); res != EOK) {
             LOGI("memcpy_s failed");
         }
@@ -379,7 +423,7 @@ void SkiaFramework::PrepareVsyncFunc()
         LOGI("flushBuffer ret is: %{public}s", SurfaceErrorStr(ret).c_str());
     };
 }
-
+#ifndef USE_ROSEN_DRAWING
 void SkiaFramework::ProcessBitmap(SkBitmap &bitmap, const sptr<SurfaceBuffer> buffer)
 {
     auto imageInfo = SkImageInfo::Make(buffer->GetWidth(), buffer->GetHeight(), kRGBA_8888_SkColorType,
@@ -393,24 +437,47 @@ void SkiaFramework::ProcessBitmap(SkBitmap &bitmap, const sptr<SurfaceBuffer> bu
 
     canvas.clear(SK_ColorWHITE);
     canvas.setMatrix(mat_);
+#else
+void SkiaFramework::ProcessBitmap(Drawing::Bitmap &bitmap, const sptr<SurfaceBuffer> buffer)
+{
+    Drawing::BitmapFormat format = { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE};
+    bitmap.Build(buffer->GetWidth(), buffer->GetHeight(), format);
+    Drawing::Canvas canvas;
+    canvas.Bind(bitmap);
+    canvas.ResetMatrix();
+    canvas.Save();
+    canvas.Clear(SK_ColorWHITE);
+    canvas.SetMatrix(mat_);
+#endif
     DrawBefore(canvas);
     if (onDraw_) {
         TRACE_SCOPE("OnDraw");
         onDraw_(canvas);
     }
 
+#ifndef USE_ROSEN_DRAWING
     canvas.restore();
+#else
+    canvas.Restore();
+#endif
     DrawColorPicker(canvas, bitmap);
     DrawAfter(canvas);
 }
 
 void SkiaFramework::UpdateInvertMatrix()
 {
+#ifndef USE_ROSEN_DRAWING
     if (auto ret = mat_.invert(&invmat_); ret == false) {
         invmat_ = SkMatrix::I();
     }
+#else
+    if (auto ret = mat_.Invert(invmat_); ret == false) {
+        invmat_ = Drawing::Matrix();
+    }
+#endif
 }
 
+#ifndef USE_ROSEN_DRAWING
 void SkiaFramework::DrawString(SkCanvas &canvas, const std::string &str, double x, double y)
 {
     SkPaint textPaint;
@@ -423,7 +490,20 @@ void SkiaFramework::DrawString(SkCanvas &canvas, const std::string &str, double 
     font.setSize(16); // font size is 16
     canvas.drawString(str.c_str(), x, y, font, textPaint);
 }
+#else
+void SkiaFramework::DrawString(RSCanvas &canvas, const std::string &str, double x, double y)
+{
+    RSBrush textbrush;
+    textbrush.SetAntiAlias(true);
+    textbrush.SetColor(0xff0066ff); // color is 0xff0066ff
 
+    RSFont font;
+    font.SetTypeface(RSTypeface::MakeFromFile("/system/fonts/HarmonyOS_Sans_SC_Black.ttf"));
+    font.SetSize(16); // font size is 16
+}
+#endif
+
+#ifndef USE_ROSEN_DRAWING
 SkPoint3 SkiaFramework::MeasureString(const std::string &str)
 {
     SkFont font;
@@ -434,7 +514,9 @@ SkPoint3 SkiaFramework::MeasureString(const std::string &str)
     font.getMetrics(&metrics);
     return {width, -metrics.fAscent + metrics.fDescent, -metrics.fAscent};
 }
+#endif
 
+#ifndef USE_ROSEN_DRAWING
 void SkiaFramework::DrawBefore(SkCanvas &canvas)
 {
     TRACE_SCOPE("DrawBefore");
@@ -456,7 +538,30 @@ void SkiaFramework::DrawBefore(SkCanvas &canvas)
     font.setSize(16);   // font size is 16
     DrawPathAndString(canvas, font, paint, textPaint);
 }
+#else
+void SkiaFramework::DrawBefore(RSCanvas &canvas)
+{
+    TRACE_SCOPE("DrawBefore");
+    std::lock_guard<std::mutex> lock(propsMutex_);
+    Drawing::Pen paint;
+    paint.SetAntiAlias(true);
+    paint.SetColor(0x09000000);
+    paint.SetWidth(1);
+    Drawing::Pen paint2 = paint;
+    paint2.SetColor(0x22000000);
 
+    Drawing::Pen textPaint;
+    textPaint.SetAntiAlias(true);
+    textPaint.SetColor(0xff00007f);
+
+    RSFont font;
+    font.SetTypeface(RSTypeface::MakeFromFile("/system/fonts/HarmonyOS_Sans_SC_Black.ttf"));
+    font.SetSize(16);   // font size is 16
+    DrawPathAndString(canvas, font, paint, textPaint);
+}
+#endif
+
+#ifndef USE_ROSEN_DRAWING
 void SkiaFramework::DrawPathAndString(SkCanvas &canvas, SkFont &font, SkPaint &paint1, SkPaint &paint2)
 {
     auto rect = invmat_.mapRect(SkRect::MakeXYWH(0, 0, windowWidth_, windowHeight_));
@@ -500,7 +605,36 @@ void SkiaFramework::DrawPathAndString(SkCanvas &canvas, SkFont &font, SkPaint &p
     }
     canvas.drawPath(path2, paint3);
 }
+#else
+void SkiaFramework::DrawPathAndString(RSCanvas &canvas, RSFont &font, Drawing::Pen &paint1, Drawing::Pen &paint2)
+{
+    Drawing::Rect clipRect;
+    invmat_.MapRect(clipRect, Drawing::Rect(0, 0, windowWidth_, windowHeight_));
+    auto left = static_cast<int>(clipRect.GetLeft()) / 100 * 100; // Make it an integer multiple of 100
+    auto right = static_cast<int>(clipRect.GetRight());
+    auto top = static_cast<int>(clipRect.GetTop()) / 100 * 100; // Make it an integer multiple of 100
+    auto bottom = static_cast<int>(clipRect.GetBottom());
+    Drawing::Pen paint3 = paint1;
+    paint3.SetColor(0x22000000);
 
+    Drawing::Path path;
+    // Draw grids, 20 * 20 grids and 100 * 100 grids
+    for (int i = left; i <= right; i += 20) {
+        path.MoveTo(i, -1e9);
+        path.LineTo(i, 1e9);
+    }
+
+    for (int i = top; i <= bottom; i += 20) {   // 20 means draw 20 * 20 grids
+        path.MoveTo(-1e9, i);
+        path.LineTo(1e9, i);
+    }
+    canvas.AttachPen(paint3);
+    canvas.DrawPath(path);
+    canvas.DetachPen();
+}
+#endif
+
+#ifndef USE_ROSEN_DRAWING
 void SkiaFramework::DrawColorPicker(SkCanvas &canvas, SkBitmap &bitmap)
 {
     if (left_ == false) {
@@ -529,7 +663,31 @@ void SkiaFramework::DrawColorPicker(SkCanvas &canvas, SkBitmap &bitmap)
     canvas.drawString(ss.str().c_str(), x_, y_, font, paint2);
     canvas.drawString(ss.str().c_str(), x_, y_, font, paint);
 }
+#else
+void SkiaFramework::DrawColorPicker(RSCanvas &canvas, Drawing::Bitmap &bitmap)
+{
+    if (left_ == false) {
+        return;
+    }
 
+    TRACE_SCOPE("DrawColorPicker");
+    std::lock_guard<std::mutex> lock(propsMutex_);
+    RSFont font;
+    font.SetTypeface(RSTypeface::MakeFromFile("/system/fonts/HarmonyOS_Sans_SC_Black.ttf"));
+    font.SetSize(24);   // font size is 24
+
+    Drawing::Pen paint;
+    paint.SetAntiAlias(true);
+    Drawing::Pen paint2;
+    paint2.SetAntiAlias(true);
+    paint2.SetColor(SK_ColorBLACK);
+
+    auto color = bitmap.GetColor(x_, y_);
+    paint.SetColor(color);
+}
+#endif
+
+#ifndef USE_ROSEN_DRAWING
 void SkiaFramework::DrawAfter(SkCanvas &canvas)
 {
     if (left_ == false) {
@@ -571,3 +729,37 @@ void SkiaFramework::DrawAfter(SkCanvas &canvas)
 
     canvas.drawPath(path, paint);
 }
+#else
+void SkiaFramework::DrawAfter(RSCanvas &canvas)
+{
+    if (left_ == false) {
+        return;
+    }
+
+    TRACE_SCOPE("DrawAfter");
+    std::lock_guard<std::mutex> lock(propsMutex_);
+    Drawing::Pen paint;
+    paint.SetAntiAlias(true);
+    paint.SetColor(0x33000000);
+    paint.SetWidth(1);
+
+    Drawing::Pen textPaint;
+    textPaint.SetAntiAlias(true);
+    textPaint.SetColor(0xff0000ff);
+    textPaint.SetWidth(1);
+
+    RSFont font;
+    font.SetTypeface(RSTypeface::MakeFromFile("/system/fonts/HarmonyOS_Sans_SC_Black.ttf"));
+    font.SetSize(16);   // font size is 16
+
+    Drawing::Path path;
+    path.MoveTo(x_, 0);
+    path.LineTo(x_, 1e9);
+    path.MoveTo(0, y_);
+    path.LineTo(1e9, y_);
+
+    canvas.AttachPen(paint);
+    canvas.DrawPath(path);
+    canvas.DetachPen();
+}
+#endif

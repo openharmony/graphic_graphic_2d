@@ -45,13 +45,11 @@ void RSShadow::SetAlpha(float alpha)
 
 void RSShadow::SetElevation(float elevation)
 {
-    isHardwareAcceleration_ = true;
     elevation_ = elevation;
 }
 
 void RSShadow::SetRadius(float radius)
 {
-    isHardwareAcceleration_ = false;
     radius_ = radius;
 }
 
@@ -68,6 +66,11 @@ void RSShadow::SetMask(bool mask)
 void RSShadow::SetIsFilled(bool isFilled)
 {
     isFilled_ = isFilled;
+}
+
+void RSShadow::SetColorStrategy(int colorStrategy)
+{
+    colorStrategy_ = colorStrategy;
 }
 
 const Color& RSShadow::GetColor() const
@@ -115,13 +118,15 @@ bool RSShadow::GetIsFilled() const
     return isFilled_;
 }
 
+int RSShadow::GetColorStrategy() const
+{
+    return colorStrategy_;
+}
+
 bool RSShadow::IsValid() const
 {
-    if (isHardwareAcceleration_) {
-        return GetAlpha() > 0.f;
-    } else {
-        return radius_ > 0.f;
-    }
+    return (GetElevation() > 0.f && GetAlpha() > 0.f) || (GetRadius() > 0.f);
 }
+
 } // namespace Rosen
 } // namespace OHOS

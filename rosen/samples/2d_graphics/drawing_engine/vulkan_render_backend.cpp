@@ -16,6 +16,7 @@
 #include "vulkan_render_backend.h"
 #include <iostream>
 #include "drawing_utils.h"
+#include "skia_adapter/skia_surface.h"
 #include "surface_ohos_vulkan.h"
 
 namespace OHOS {
@@ -29,24 +30,48 @@ void VulkanRenderBackend::Destroy()
 
 void VulkanRenderBackend::RenderFrame()
 {
-    if (skSurface == nullptr) {
-        LOGE("skSurface is nullptr, can not RenderFrame");
+    if (drSurface_ == nullptr) {
+        LOGE("drSurface is nullptr, can not RenderFrame");
+        return;
+    }
+#ifdef ENABLE_DDGR_OPTIMIZE
+    dSurface_ = drSurface_->GetImpl<Drawing::DDGRSurface>()->ExportDDGRSurface();
+    // flush commands
+    if (dSurface_->GetCanvas() != nullptr) {
+        dSurface_->GetCanvas()->Flush();
+        std::cout << "VulkanRenderBackend DDGR RenderFrame flushing end" << std::endl;
+    } else {
+        std::cout << "ddgr canvas is nullptr!!!" << std::endl;
+    }
+#else
+    skSurface_ = drSurface_->GetImpl<Drawing::SkiaSurface>()->GetSkSurface().get();
+    if (skSurface_ == nullptr) {
+        std::cout << "skSurface is nullptr, can not RenderFrame" << std::endl;
         return;
     }
     // flush commands
     if (skSurface_->getCanvas() != nullptr) {
-        LOGD("VulkanRenderBackend::RenderFrame RenderFrame flushing");
         skSurface_->getCanvas()->flush();
+        std::cout << "VulkanRenderBackend skia RenderFrame flushing end" << std::endl;
     } else {
-        LOGW("canvas is nullptr!!!");
+        std::cout << "skia canvas is nullptr!!!" << std::endl;
     }
+#endif
 }
 
-SkCanvas* VulkanRenderBackend::AcquireCanvas(std::unique_ptr<SurfaceFrame>& frame)
+SkCanvas* VulkanRenderBackend::AcquireSkCanvas(std::unique_ptr<SurfaceFrame>& frame)
 {
     auto vulkan_frame = reinterpret_cast<SurfaceFrameOhosVulkan*>(frame.get());
-    skSurface_ = vulkan_frame->GetSurface();
+    drSurface_ = vulkan_frame->GetSurface();
+    skSurface_ = drSurface_->GetImpl<Drawing::SkiaSurface>()->GetSkSurface().get();
     return skSurface_->getCanvas();
+}
+
+Drawing::Canvas* VulkanRenderBackend::AcquireDrCanvas(std::unique_ptr<SurfaceFrame>& frame)
+{
+    auto vulkan_frame = reinterpret_cast<SurfaceFrameOhosVulkan*>(frame.get());
+    drSurface_ = vulkan_frame->GetSurface();
+    return vulkan_frame->GetCanvas();
 }
 }
 }

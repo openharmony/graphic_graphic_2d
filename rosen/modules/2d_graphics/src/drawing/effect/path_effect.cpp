@@ -61,6 +61,10 @@ PathEffect::PathEffect() noexcept
     : type_(PathEffect::PathEffectType::NO_TYPE), impl_(ImplFactory::CreatePathEffectImpl())
 {}
 
+PathEffect::PathEffect(PathEffectType t) noexcept
+    : type_(t), impl_(ImplFactory::CreatePathEffectImpl())
+{}
+
 PathEffect::PathEffectType PathEffect::GetType() const
 {
     return type_;
@@ -96,6 +100,17 @@ std::shared_ptr<PathEffect> PathEffect::CreateComposePathEffect(PathEffect& e1, 
 {
     return std::make_shared<PathEffect>(PathEffect::PathEffectType::COMPOSE, e1, e2);
 }
+
+std::shared_ptr<Data> PathEffect::Serialize() const
+{
+    return impl_->Serialize();
+}
+
+bool PathEffect::Deserialize(std::shared_ptr<Data> data)
+{
+    return impl_->Deserialize(data);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

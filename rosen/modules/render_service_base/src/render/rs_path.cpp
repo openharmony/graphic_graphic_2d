@@ -21,7 +21,6 @@
 #include "include/core/SkPathMeasure.h"
 #include "include/utils/SkParsePath.h"
 #else
-#include "recording/recording_path.h"
 #include "draw/path.h"
 #include "utils/matrix.h"
 #include "utils/scalar.h"
@@ -59,7 +58,7 @@ std::shared_ptr<RSPath> RSPath::CreateRSPath(const std::string& path)
     SkParsePath::FromSVGString(path.c_str(), &skAnimationPath);
     return RSPath::CreateRSPath(skAnimationPath);
 #else
-    Drawing::RecordingPath drAnimationPath;
+    Drawing::Path drAnimationPath;
     drAnimationPath.BuildFromSVGString(path);
     return RSPath::CreateRSPath(drAnimationPath);
 #endif
@@ -111,12 +110,7 @@ void RSPath::SetDrawingPath(const Drawing::Path& path)
     if (drPath_) {
         delete drPath_;
     }
-    if (path.GetDrawingType() == Drawing::DrawingType::RECORDING) {
-        drPath_ = new Drawing::RecordingPath();
-        drPath_->AddPath(path);
-    } else {
-        drPath_ = new Drawing::Path(path);
-    }
+    drPath_ = new Drawing::Path(path);
 }
 #endif
 
@@ -138,12 +132,7 @@ float RSPath::GetDistance() const
     SkPathMeasure pathMeasure(*skPath_, false);
     return pathMeasure.getLength();
 #else
-    if (drPath_->GetDrawingType() == Drawing::DrawingType::RECORDING) {
-        auto path = static_cast<Drawing::RecordingPath*>(drPath_)->GetCmdList()->Playback();
-        return path->GetLength(false);
-    } else {
-        return drPath_->GetLength(false);
-    }
+    return drPath_->GetLength(false);
 #endif
 }
 
@@ -165,13 +154,7 @@ bool RSPath::GetPosTan(float distance, Vector2f& pos, float& degrees) const
 #else
     Drawing::Point position;
     Drawing::Point tangent;
-    bool ret = false;
-    if (drPath_->GetDrawingType() == Drawing::DrawingType::RECORDING) {
-        auto path = static_cast<Drawing::RecordingPath*>(drPath_)->GetCmdList()->Playback();
-        ret = path->GetPositionAndTangent(distance, position, tangent, false);
-    } else {
-        ret = drPath_->GetPositionAndTangent(distance, position, tangent, false);
-    }
+    bool ret = drPath_->GetPositionAndTangent(distance, position, tangent, false);
     if (!ret) {
         ROSEN_LOGE("PathMeasure get failed");
         return false;
@@ -192,7 +175,7 @@ bool RSPath::GetPosTan(float distance, Vector4f& pos, float& degrees) const
 #ifndef USE_ROSEN_DRAWING
         ROSEN_LOGD("SkPathMeasure get failed");
 #else
-		ROSEN_LOGD("PathMeasure get failed");
+        ROSEN_LOGD("PathMeasure get failed");
 #endif
         return false;
     }

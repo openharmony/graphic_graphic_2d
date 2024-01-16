@@ -20,7 +20,8 @@
 
 #include "platform/common/rs_log.h"
 
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
+#if defined(RS_ENABLE_DRIVEN_RENDER)
 #include "pipeline/driven_render/rs_driven_surface_render_node.h"
 #endif
 
@@ -45,6 +46,7 @@ bool RSUniRenderProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int3
     // so we do not need to handle rotation in composer adapter any more,
     // just pass the buffer to composer straightly.
     screenInfo_.rotation = ScreenRotation::ROTATION_0;
+    isPhone_ = RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE;
     return uniComposerAdapter_->Init(screenInfo_, offsetX, offsetY, mirrorAdaptiveCoefficient_);
 }
 
@@ -68,7 +70,9 @@ void RSUniRenderProcessor::PostProcess(RSDisplayRenderNode* node)
         }
     }
     uniComposerAdapter_->CommitLayers(layers_);
-    MultiLayersPerf(layerNum);
+    if (!isPhone_) {
+        MultiLayersPerf(layerNum);
+    }
     RS_LOGD("RSUniRenderProcessor::PostProcess layers_:%{public}zu", layers_.size());
 }
 
@@ -110,7 +114,7 @@ void RSUniRenderProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
 
 void RSUniRenderProcessor::ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node)
 {
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
     auto layer = uniComposerAdapter_->CreateLayer(node);
     if (layer == nullptr) {
         RS_LOGE("RSUniRenderProcessor::ProcessDrivenSurface: failed to createLayer for node(id: %{public}" PRIu64 ")",
@@ -120,5 +124,17 @@ void RSUniRenderProcessor::ProcessDrivenSurface(RSDrivenSurfaceRenderNode& node)
     layers_.emplace_back(layer);
 #endif
 }
+
+void RSUniRenderProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)
+{
+    auto layer = uniComposerAdapter_->CreateLayer(node);
+    if (layer == nullptr) {
+        RS_LOGE("RSUniRenderProcessor::ProcessRcdSurface: failed to createLayer for node(id: %{public}" PRIu64 ")",
+            node.GetId());
+        return;
+    }
+    layers_.emplace_back(layer);
+}
+
 } // namespace Rosen
 } // namespace OHOS

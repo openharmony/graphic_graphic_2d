@@ -37,9 +37,14 @@ void DrawingProxy::InitDrawContext()
     canvasContext_->InitDrawContext();
 }
 
-SkCanvas* DrawingProxy::AcquireCanvas(std::unique_ptr<SurfaceFrame>& frame)
+SkCanvas* DrawingProxy::AcquireSkCanvas(std::unique_ptr<SurfaceFrame>& frame)
 {
-    return canvasContext_->AcquireCanvas(frame);
+    return canvasContext_->AcquireSkCanvas(frame);
+}
+
+Drawing::Canvas* DrawingProxy::AcquireDrCanvas(std::unique_ptr<SurfaceFrame>& frame)
+{
+    return canvasContext_->AcquireDrCanvas(frame);
 }
 
 void* DrawingProxy::CreateSurface(void* window)

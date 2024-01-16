@@ -68,4 +68,29 @@ HWTEST_F(RSColorTest, Operator001, TestSize.Level1)
     EXPECT_EQ(scaledColor.GetBlue(), scaledBlue);
     EXPECT_EQ(scaledColor.GetAlpha(), scaledAlpha);
 }
+
+/**
+ * @tc.name: IsNearEqual001
+ * @tc.desc: verify function IsNearEqual
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorTest, IsNearEqual001, TestSize.Level1)
+{
+    int16_t red = 10;
+    int16_t green = 11;
+    int16_t blue = 12;
+    int16_t alpha = 13;
+    RSColor color(red, green, blue, alpha);
+
+    int16_t threshold = 2;
+
+    int16_t red1 = 11;
+    RSColor ohterColor1(red1, green, blue, alpha);
+    EXPECT_TRUE(color.IsNearEqual(ohterColor1, threshold));
+
+    int16_t red2 = 15;
+    RSColor ohterColor2(red2, green, blue, alpha);
+    EXPECT_FALSE(color.IsNearEqual(ohterColor2, threshold));
+}
 } // namespace OHOS::Rosen

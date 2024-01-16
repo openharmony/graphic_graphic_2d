@@ -29,6 +29,9 @@ public:
     std::string GetSoundUrl();
     std::string GetCustomCfgFile();
     std::string GetBootVideoPath();
+    std::string GetBootExtraVideoPath();
+    int32_t GetRotateScreenId();
+    int32_t GetRotateDegree();
     void ParserCustomCfgFile();
     bool IsBootVideoEnabled();
 private:

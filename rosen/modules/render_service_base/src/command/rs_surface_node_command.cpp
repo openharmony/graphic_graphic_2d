@@ -18,6 +18,7 @@
 #include "common/rs_vector4.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_display_render_node.h"
+#include "platform/common/rs_log.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include "surface_type.h"
 #endif
@@ -25,11 +26,14 @@
 namespace OHOS {
 namespace Rosen {
 
-void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id)
+void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id, RSSurfaceNodeType type, bool isTextureExportNode)
 {
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context.weak_from_this());
-    auto& nodeMap = context.GetMutableNodeMap();
-    nodeMap.RegisterRenderNode(node);
+    if (!context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+        auto node = std::make_shared<RSSurfaceRenderNode>(id, context.weak_from_this(), isTextureExportNode);
+        node->SetSurfaceNodeType(type);
+        auto& nodeMap = context.GetMutableNodeMap();
+        nodeMap.RegisterRenderNode(node);   
+    }
 }
 
 #ifndef USE_ROSEN_DRAWING
@@ -71,6 +75,13 @@ void SurfaceNodeCommandHelper::SetSecurityLayer(RSContext& context, NodeId id, b
     }
 }
 
+void SurfaceNodeCommandHelper::SetIsTextureExportNode(RSContext& context, NodeId id, bool isTextureExportNode)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+        node->SetIsTextureExportNode(isTextureExportNode);
+    }
+}
+
 void SurfaceNodeCommandHelper::SetSkipLayer(RSContext& context, NodeId id, bool isSkipLayer)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
@@ -85,14 +96,12 @@ void SurfaceNodeCommandHelper::SetFingerprint(RSContext& context, NodeId id, boo
     }
 }
 
-#ifndef ROSEN_CROSS_PLATFORM
 void SurfaceNodeCommandHelper::SetColorSpace(RSContext& context, NodeId id, GraphicColorGamut colorSpace)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
         node->SetColorSpace(colorSpace);
     }
 }
-#endif
 
 void SurfaceNodeCommandHelper::UpdateSurfaceDefaultSize(RSContext& context, NodeId id, float width, float height)
 {
@@ -207,6 +216,31 @@ void SurfaceNodeCommandHelper::SetBootAnimation(RSContext& context, NodeId nodeI
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
         node->SetBootAnimation(isBootAnimation);
+    }
+}
+
+#ifdef USE_SURFACE_TEXTURE
+void SurfaceNodeCommandHelper::CreateSurfaceExt(RSContext& context, NodeId id,
+    const std::shared_ptr<RSSurfaceTexture>& surfaceExt)
+{
+    auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
+    if (node != nullptr) {
+        node->SetSurfaceTexture(surfaceExt);
+    }
+}
+#endif
+
+void SurfaceNodeCommandHelper::SetForeground(RSContext& context, NodeId nodeId, bool isForeground)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetForeground(isForeground);
+    }
+}
+
+void SurfaceNodeCommandHelper::SetSurfaceId(RSContext& context, NodeId nodeId, SurfaceId surfaceId)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetSurfaceId(surfaceId);
     }
 }
 } // namespace Rosen

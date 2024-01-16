@@ -26,6 +26,7 @@ ohos_unittest("RSRenderAnimationTest") {
     "rs_interpolator_test.cpp",
     "rs_node_showing_command_test.cpp",
     "rs_property_trace_test.cpp",
+    "rs_render_animation_test.cpp",
     "rs_render_curve_animation_test.cpp",
     "rs_render_interpolating_spring_animation_test.cpp",
     "rs_render_keyframe_animation_test.cpp",
@@ -36,6 +37,7 @@ ohos_unittest("RSRenderAnimationTest") {
     "rs_render_path_animation_test.cpp",
     "rs_render_spring_animation_test.cpp",
     "rs_render_transition_effect_test.cpp",
+    "rs_render_transition_test.cpp",
     "rs_spring_model_test.cpp",
     "rs_value_estimator_test.cpp",
   ]

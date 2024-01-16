@@ -35,6 +35,7 @@ public:
     void TearDown() override;
     static constexpr uint64_t ANIMATION_ID = 12345;
     static constexpr uint64_t PROPERTY_ID = 54321;
+    std::shared_ptr<ParticleRenderParams> params;
     std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams;
     std::shared_ptr<RSRenderParticleSystem> particleSystem_;
 };
@@ -62,9 +63,7 @@ void RSRenderParticleAnimationTest::SetUp()
     RenderParticleParaType<float> opacity;
     RenderParticleParaType<float> scale;
     RenderParticleParaType<float> spin;
-    std::shared_ptr<ParticleRenderParams> params =
-        std::make_shared<ParticleRenderParams>(emitterConfig, velocity, acceleration, color, opacity, scale, spin);
-    particlesRenderParams.push_back(params);
+    params = std::make_shared<ParticleRenderParams>(emitterConfig, velocity, acceleration, color, opacity, scale, spin);
 }
 void RSRenderParticleAnimationTest::TearDown() {}
 
@@ -76,13 +75,22 @@ void RSRenderParticleAnimationTest::TearDown() {}
 HWTEST_F(RSRenderParticleAnimationTest, Animate001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest Animate001 start";
-    auto renderParticleAnimation = std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    auto renderParticleAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    auto particleAnimate = renderParticleAnimation->Animate(NS_TO_S);
+    particlesRenderParams.push_back(params);
+    renderParticleAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
     particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams);
     EXPECT_TRUE(particleSystem_ != nullptr);
-    auto particleAnimate = renderParticleAnimation->Animate(NS_TO_S);
+    particleSystem_->CreateEmitter();
+    particleSystem_->Emit(NS_TO_S);
+    particleSystem_->UpdateParticle(NS_TO_S);
+    particleAnimate = renderParticleAnimation->Animate(NS_TO_S);
     EXPECT_TRUE(particleAnimate);
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest Animate001 end";
 }
+
 /**
  * @tc.name: Marshalling001
  * @tc.desc: Verify the Marshalling
@@ -92,7 +100,8 @@ HWTEST_F(RSRenderParticleAnimationTest, Marshalling001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest Marshalling001 start";
 
-    auto renderParticleAnimation = std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    auto renderParticleAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
 
     Parcel parcel;
     renderParticleAnimation->Marshalling(parcel);
@@ -109,7 +118,8 @@ HWTEST_F(RSRenderParticleAnimationTest, Unmarshalling001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest Unmarshalling001 start";
 
-    auto renderParticleAnimation = std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    auto renderParticleAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
 
     Parcel parcel;
     renderParticleAnimation->Marshalling(parcel);

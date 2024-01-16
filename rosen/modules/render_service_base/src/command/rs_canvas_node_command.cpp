@@ -20,10 +20,34 @@
 namespace OHOS {
 namespace Rosen {
 
-void RSCanvasNodeCommandHelper::Create(RSContext& context, NodeId id)
+void RSCanvasNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextureExportNode)
 {
-    auto node = std::make_shared<RSCanvasRenderNode>(id, context.weak_from_this());
+    auto node = std::make_shared<RSCanvasRenderNode>(id, context.weak_from_this(), isTextureExportNode);
     context.GetMutableNodeMap().RegisterRenderNode(node);
+}
+
+#ifndef USE_ROSEN_DRAWING
+bool RSCanvasNodeCommandHelper::AddCmdToSingleFrameComposer(std::shared_ptr<RSCanvasRenderNode> node,
+    std::shared_ptr<DrawCmdList> drawCmds, RSModifierType type)
+#else
+bool RSCanvasNodeCommandHelper::AddCmdToSingleFrameComposer(std::shared_ptr<RSCanvasRenderNode> node,
+    std::shared_ptr<Drawing::DrawCmdList> drawCmds, RSModifierType type)
+#endif
+{
+    if (node->GetNodeIsSingleFrameComposer()) {
+        if (RSSingleFrameComposer::IsShouldSingleFrameComposer()) {
+            node->UpdateRecording(drawCmds, type, true);
+        } else {
+            node->UpdateRecording(drawCmds, type);
+        }
+    } else {
+        if (RSSingleFrameComposer::IsShouldSingleFrameComposer()) {
+            return true;
+        } else {
+            node->UpdateRecording(drawCmds, type);
+        }
+    }
+    return false;
 }
 
 #ifndef USE_ROSEN_DRAWING
@@ -36,13 +60,17 @@ void RSCanvasNodeCommandHelper::UpdateRecording(
 {
     auto type = static_cast<RSModifierType>(modifierType);
     if (auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id)) {
-        node->UpdateRecording(drawCmds, type);
+        if (RSSystemProperties::GetSingleFrameComposerEnabled()) {
+            if (AddCmdToSingleFrameComposer(node, drawCmds, type)) {
+                return;
+            }
+        } else {
+            node->UpdateRecording(drawCmds, type);
+        }
         if (!drawCmds) {
             return;
         }
-#ifndef USE_ROSEN_DRAWING
         drawCmds->UpdateNodeIdToPicture(id);
-#endif
     }
 }
 

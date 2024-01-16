@@ -17,7 +17,7 @@
 
 namespace OHOS {
 namespace Rosen {
-AnimationCallback::AnimationCallback(const std::function<void()>& callback) : callback_(callback) {}
+AnimationCallback::AnimationCallback(const std::function<void()>&& callback) : callback_(std::move(callback)) {}
 
 AnimationCallback::~AnimationCallback()
 {
@@ -27,8 +27,8 @@ AnimationCallback::~AnimationCallback()
 }
 
 AnimationFinishCallback::AnimationFinishCallback(
-    const std::function<void()>& callback, Rosen::FinishCallbackType finishCallbackType)
-    : AnimationCallback(callback), finishCallbackType_(finishCallbackType)
+    std::function<void()> callback, Rosen::FinishCallbackType finishCallbackType)
+    : AnimationCallback(std::move(callback)), finishCallbackType_(finishCallbackType)
 {}
 
 void AnimationFinishCallback::Execute()

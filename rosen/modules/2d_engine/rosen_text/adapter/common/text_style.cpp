@@ -54,30 +54,16 @@ TextShadow::TextShadow()
 {
 }
 
-#ifndef USE_GRAPHIC_TEXT_GINE
-TextShadow::TextShadow(Drawing::Color color, Drawing::Point offset, double blurRadius)
-#else
 TextShadow::TextShadow(Drawing::Color shadowColor, Drawing::Point shadowOffset, double shadowBlurRadius)
-#endif
 {
-#ifndef USE_GRAPHIC_TEXT_GINE
-    color_ = color;
-    offset_ = offset;
-    blurRadius_ = blurRadius;
-#else
     color = shadowColor;
     offset = shadowOffset;
     blurRadius = shadowBlurRadius;
-#endif
 }
 
 bool TextShadow::operator ==(const TextShadow& rhs) const
 {
-#ifndef USE_GRAPHIC_TEXT_GINE
-    return color_ == rhs.color_ && offset_ == rhs.offset_ && blurRadius_ == rhs.blurRadius_;
-#else
     return color == rhs.color && offset == rhs.offset && blurRadius == rhs.blurRadius;
-#endif
 }
 
 bool TextShadow::operator !=(const TextShadow& rhs) const
@@ -87,37 +73,24 @@ bool TextShadow::operator !=(const TextShadow& rhs) const
 
 bool TextShadow::HasShadow() const
 {
-#ifndef USE_GRAPHIC_TEXT_GINE
-    return offset_.GetX() != 0 || offset_.GetY() != 0 || blurRadius_ != 0.0;
-#else
     return offset.GetX() != 0 || offset.GetY() != 0 || fabs(blurRadius) >= DBL_EPSILON;
-#endif
+}
+
+bool RectStyle::operator ==(const RectStyle& rhs) const
+{
+    return color == rhs.color && leftTopRadius == rhs.leftTopRadius &&
+        rightTopRadius == rhs.rightTopRadius &&
+        rightBottomRadius == rhs.rightBottomRadius &&
+        leftBottomRadius == rhs.leftBottomRadius;
+}
+
+bool RectStyle::operator !=(const RectStyle& rhs) const
+{
+    return !(*this == rhs);
 }
 
 bool TextStyle::operator ==(const TextStyle& rhs) const
 {
-#ifndef USE_GRAPHIC_TEXT_GINE
-    return color_ == rhs.color_ &&
-           decoration_ == rhs.decoration_ &&
-           decorationColor_ == rhs.decorationColor_ &&
-           decorationStyle_ == rhs.decorationStyle_ &&
-           decorationThicknessScale_ == rhs.decorationThicknessScale_ &&
-           fontWeight_ == rhs.fontWeight_ &&
-           fontStyle_ == rhs.fontStyle_ &&
-           baseline_ == rhs.baseline_ &&
-           fontFamilies_ == rhs.fontFamilies_ &&
-           fontSize_ == rhs.fontSize_ &&
-           letterSpacing_ == rhs.letterSpacing_ &&
-           wordSpacing_ == rhs.wordSpacing_ &&
-           heightScale_ == rhs.heightScale_ &&
-           halfLeading_ == rhs.halfLeading_ &&
-           heightOnly_ == rhs.heightOnly_ &&
-           locale_ == rhs.locale_ &&
-           background_ == rhs.background_ &&
-           foreground_ == rhs.foreground_ &&
-           shadows_ == rhs.shadows_ &&
-           fontFeatures_ == rhs.fontFeatures_;
-#else
     return color == rhs.color &&
         decoration == rhs.decoration &&
         decorationColor == rhs.decorationColor &&
@@ -134,11 +107,19 @@ bool TextStyle::operator ==(const TextStyle& rhs) const
         halfLeading == rhs.halfLeading &&
         heightOnly == rhs.heightOnly &&
         locale == rhs.locale &&
+#ifndef USE_ROSEN_DRAWING
         background == rhs.background &&
         foreground == rhs.foreground &&
+#else
+        foregroundBrush == rhs.foregroundBrush &&
+        foregroundPen == rhs.foregroundPen &&
+        backgroundBrush == rhs.backgroundBrush &&
+        backgroundPen == rhs.backgroundPen &&
+#endif
+        backgroundRect == rhs.backgroundRect &&
+        styleId == rhs.styleId &&
         shadows == rhs.shadows &&
         fontFeatures == rhs.fontFeatures;
-#endif
 }
 } // namespace Rosen
 } // namespace OHOS

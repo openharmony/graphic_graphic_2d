@@ -53,7 +53,8 @@ HWTEST_F(RSJankStatsTest, SetEndTimeTest, TestSize.Level1)
     auto& rsJankStats = RSJankStats::GetInstance();
     rsJankStats.SetEndTime();
     rsJankStats.SetStartTime();
-    rsJankStats.SetFirstFrame();
+    pid_t appPid = 1;
+    rsJankStats.SetAppFirstFrame(appPid);
     rsJankStats.SetEndTime();
 }
 

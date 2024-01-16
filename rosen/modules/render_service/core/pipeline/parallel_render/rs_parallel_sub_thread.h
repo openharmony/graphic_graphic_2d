@@ -24,11 +24,7 @@
 #include "EGL/eglext.h"
 #include "include/core/SkImage.h"
 #include "include/core/SkSurface.h"
-#if defined(NEW_SKIA)
 #include "include/gpu/GrDirectContext.h"
-#else
-#include "include/gpu/GrContext.h"
-#endif
 #include "pipeline/parallel_render/rs_render_task.h"
 #include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_display_render_node.h"
@@ -84,6 +80,7 @@ public:
 
 private:
     void MainLoop();
+    void MainLoopHandlePrepareTask();
     void StartRender();
     void InitSubThread();
     void Render();
@@ -98,26 +95,19 @@ private:
     void StartComposition();
     void Composition();
 #ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
     sk_sp<GrDirectContext> CreateShareGrContext();
-#else
-    sk_sp<GrContext> CreateShareGrContext();
-#endif
     void AcquireSubSkSurface(int width, int height);
 #else
     std::shared_ptr<Drawing::GPUContext> CreateShareGPUContext();
     void AcquireSubDrawingSurface(int width, int height);
+    bool FlushForRosenDrawing();
 #endif
 
     uint32_t threadIndex_;
     int surfaceWidth_ = 0;
     int surfaceHeight_ = 0;
 #ifndef USE_ROSEN_DRAWING
-#ifdef NEW_SKIA
     sk_sp<GrDirectContext> grContext_ = nullptr;
-#else
-    sk_sp<GrContext> grContext_ = nullptr;
-#endif
     sk_sp<SkSurface> skSurface_ = nullptr;
     SkCanvas *skCanvas_ = nullptr;
 #else

@@ -38,6 +38,16 @@ size_t NFuncArg::GetArgc(void) const
     return argc_;
 }
 
+void NFuncArg::SetMaxArgc(size_t maxArgc)
+{
+    maxArgc_ = maxArgc;
+}
+
+size_t NFuncArg::GetMaxArgc(void) const
+{
+    return maxArgc_;
+}
+
 napi_value NFuncArg::GetThisVar(void) const
 {
     return thisVar_;
@@ -73,7 +83,7 @@ bool NFuncArg::InitArgs(std::function<bool()> argcChecker)
     }
     SetArgc(argc);
     SetThisVar(thisVar);
-
+    SetMaxArgc(argc);
     return argcChecker();
 }
 
@@ -95,6 +105,7 @@ bool NFuncArg::InitArgs(size_t minArgc, size_t maxArgc)
         if (minArgc > realArgc || maxArgc < realArgc) {
             return false;
         }
+        SetMaxArgc(maxArgc);
         return true;
     });
 }

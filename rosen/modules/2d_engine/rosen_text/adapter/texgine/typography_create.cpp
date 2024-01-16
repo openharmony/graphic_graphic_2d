@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 std::unique_ptr<TypographyCreate> TypographyCreate::Create(const TypographyStyle& style,
-    std::shared_ptr<FontCollection> collection)
+    std::shared_ptr<OHOS::Rosen::FontCollection> collection)
 {
     return std::make_unique<AdapterTextEngine::TypographyCreate>(style, collection);
 }
@@ -51,6 +51,12 @@ void TypographyCreate::PopStyle()
 void TypographyCreate::AppendText(const std::u16string& text)
 {
     builder_->AppendSpan(text);
+}
+
+void TypographyCreate::AppendSymbol(const uint32_t& symbolId)
+{
+    std::vector<uint32_t> symbol = {symbolId};
+    builder_->AppendSpan(symbol);
 }
 
 class TextEnginePlaceholderRun : public TextEngine::AnySpan {
@@ -86,6 +92,7 @@ public:
 
     void Paint(TextEngine::TexgineCanvas &canvas, double offsetX, double offsetY) override
     {
+        PaintBackgroundRect(canvas, offsetX, offsetY);
     }
 
 private:

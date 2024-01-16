@@ -42,6 +42,19 @@ ImageFilter::ImageFilter(FilterType t, const ColorFilter& cf, std::shared_ptr<Im
     impl_->InitWithColor(cf, input);
 }
 
+ImageFilter::ImageFilter(FilterType t, const ColorFilter& cf, scalar x, scalar y) noexcept
+    : ImageFilter()
+{
+    type_ = t;
+    impl_->InitWithColorBlur(cf, x, y);
+}
+
+void ImageFilter::InitWithColorBlur(const ColorFilter& cf, scalar x, scalar y)
+{
+    type_ = ImageFilter::FilterType::COLOR_FILTER;
+    impl_->InitWithColorBlur(cf, x, y);
+}
+
 ImageFilter::ImageFilter(FilterType t, const std::vector<scalar>& coefficients, bool enforcePMColor,
     std::shared_ptr<ImageFilter> background, std::shared_ptr<ImageFilter> foreground) noexcept
     :ImageFilter()
@@ -56,6 +69,10 @@ ImageFilter::ImageFilter(FilterType t, std::shared_ptr<ImageFilter> f1, std::sha
     type_ = t;
     impl_->InitWithCompose(f1, f2);
 }
+
+ImageFilter::ImageFilter(FilterType t) noexcept
+    : type_(t), impl_(ImplFactory::CreateImageFilterImpl())
+{}
 
 ImageFilter::ImageFilter() noexcept
     : type_(ImageFilter::FilterType::NO_TYPE), impl_(ImplFactory::CreateImageFilterImpl())
@@ -75,7 +92,13 @@ std::shared_ptr<ImageFilter> ImageFilter::CreateBlurImageFilter(scalar sigmaX, s
 std::shared_ptr<ImageFilter> ImageFilter::CreateColorFilterImageFilter(
     const ColorFilter& cf, std::shared_ptr<ImageFilter> input)
 {
-    return std::make_shared<ImageFilter>(ImageFilter::FilterType::COLOR, cf, input);
+    return std::make_shared<ImageFilter>(ImageFilter::FilterType::COLOR_FILTER, cf, input);
+}
+
+std::shared_ptr<ImageFilter> ImageFilter::CreateColorBlurImageFilter(const ColorFilter& cf,
+    scalar sigmaX, scalar sigmaY)
+{
+    return std::make_shared<ImageFilter>(ImageFilter::FilterType::COLOR_FILTER, cf, sigmaX, sigmaY);
 }
 
 std::shared_ptr<ImageFilter> ImageFilter::CreateOffsetImageFilter(
@@ -96,6 +119,17 @@ std::shared_ptr<ImageFilter> ImageFilter::CreateComposeImageFilter(
 {
     return std::make_shared<ImageFilter>(ImageFilter::FilterType::COMPOSE, f1, f2);
 }
+
+std::shared_ptr<Data> ImageFilter::Serialize() const
+{
+    return impl_->Serialize();
+}
+
+bool ImageFilter::Deserialize(std::shared_ptr<Data> data)
+{
+    return impl_->Deserialize(data);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

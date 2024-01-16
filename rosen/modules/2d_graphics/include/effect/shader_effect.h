@@ -17,6 +17,7 @@
 #define SHADER_EFFECT_H
 
 #include "drawing/engine_adapter/impl_interface/shader_effect_impl.h"
+#include "include/core/SkShader.h"
 #include "utils/drawing_macros.h"
 
 namespace OHOS {
@@ -33,7 +34,7 @@ class DRAWING_API ShaderEffect {
 public:
     enum class ShaderEffectType {
         NO_TYPE,
-        COLOR,
+        COLOR_EFFECT,
         BLEND,
         IMAGE,
         PICTURE,
@@ -55,10 +56,10 @@ public:
         const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode);
     static std::shared_ptr<ShaderEffect> CreateTwoPointConical(const Point& startPt, scalar startRadius,
         const Point& endPt, scalar endRadius, const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos,
-        TileMode mode);
+        TileMode mode, const Matrix *matrix);
     static std::shared_ptr<ShaderEffect> CreateSweepGradient(const Point& centerPt,
         const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode, scalar startAngle,
-        scalar endAngle);
+        scalar endAngle, const Matrix *matrix);
 
     virtual ~ShaderEffect() = default;
     ShaderEffectType GetType() const;
@@ -68,7 +69,7 @@ public:
     }
 
     template<typename T>
-    const std::shared_ptr<T> GetImpl() const
+    T* GetImpl() const
     {
         return impl_->DowncastingTo<T>();
     }
@@ -84,13 +85,19 @@ public:
     ShaderEffect(ShaderEffectType t, const Point& centerPt, scalar radius, const std::vector<ColorQuad>& colors,
         const std::vector<scalar>& pos, TileMode mode) noexcept;
     ShaderEffect(ShaderEffectType t, const Point& startPt, scalar startRadius, const Point& endPt, scalar endRadius,
-        const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode) noexcept;
+        const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode,
+        const Matrix *matrix) noexcept;
     ShaderEffect(ShaderEffectType t, const Point& centerPt, const std::vector<ColorQuad>& colors,
-        const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle) noexcept;
-
-protected:
+        const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle,
+        const Matrix *matrix) noexcept;
+    ShaderEffect(ShaderEffectType t) noexcept;
     ShaderEffect() noexcept;
 
+    std::shared_ptr<Data> Serialize() const;
+    bool Deserialize(std::shared_ptr<Data> data);
+
+    const sk_sp<SkShader> ExportSkShader();
+    void SetSkShader(sk_sp<SkShader> shader);
 private:
     ShaderEffectType type_;
     std::shared_ptr<ShaderEffectImpl> impl_;

@@ -18,19 +18,24 @@
 
 #include "base_impl.h"
 #include "utils/rect.h"
-
+#ifdef RS_ENABLE_VK
+#include "vulkan/vulkan.h"
+#endif
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+class BackendTexture;
 class Bitmap;
 class Canvas;
 class Image;
 class Surface;
+struct FlushInfo;
 #ifdef ACE_ENABLE_GPU
 struct FrameBuffer;
 class ImageInfo;
 class GPUContext;
 #endif
+enum class BackendAccess;
 
 class SurfaceImpl : public BaseImpl {
 public:
@@ -41,16 +46,21 @@ public:
 #ifdef ACE_ENABLE_GPU
     virtual bool Bind(const Image& image) = 0;
     virtual bool Bind(const FrameBuffer& frameBuffer) = 0;
-    virtual bool MakeRenderTarget(GPUContext& gpuContext, bool Budgeted, const ImageInfo& imageInfo) = 0;
-    virtual bool MakeRasterN32Premul(int32_t width, int32_t height) = 0;
 #endif
-
-    virtual bool MakeRaster(const ImageInfo& imageInfo) = 0;
     virtual std::shared_ptr<Canvas> GetCanvas() const = 0;
     virtual std::shared_ptr<Image> GetImageSnapshot() const = 0;
     virtual std::shared_ptr<Image> GetImageSnapshot(const RectI& bounds) const = 0;
     virtual std::shared_ptr<Surface> MakeSurface(int width, int height) const = 0;
+    virtual BackendTexture GetBackendTexture(BackendAccess access) const = 0;
     virtual void FlushAndSubmit(bool syncCpu) = 0;
+    virtual void Flush(FlushInfo *drawingflushInfo = nullptr) = 0;
+#ifdef RS_ENABLE_VK
+    virtual void Wait(int32_t time, const VkSemaphore& semaphore) = 0;
+    virtual void SetDrawingArea(const std::vector<RectI>& rects) = 0;
+    virtual void ClearDrawingArea() = 0;
+#endif
+    virtual int Width() const = 0;
+    virtual int Height() const = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

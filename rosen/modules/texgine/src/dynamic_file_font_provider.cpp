@@ -31,7 +31,7 @@ std::shared_ptr<DynamicFileFontProvider> DynamicFileFontProvider::Create() noexc
 
 int DynamicFileFontProvider::LoadFont(const std::string &familyName, const std::string &path) noexcept(true)
 {
-    LOGEX_FUNC_LINE(DEBUG) << "loading font: '" << path << "'";
+    LOGEX_FUNC_LINE_DEBUG(DEBUG) << "loading font: '" << path << "'";
 #ifdef BUILD_NON_SDK_VER
     std::error_code ec;
     auto ret = StdFilesystemExists(path, ec);

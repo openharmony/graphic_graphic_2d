@@ -17,25 +17,40 @@
 #define ROSEN_RENDER_SERVICE_BASE_BENCHMARKS_RS_RECORDING_THREAD_H
 
 
+#include <cstdint>
+#include <sys/stat.h>
+#include "benchmarks/file_utils.h"
+#include "common/rs_common_def.h"
+#include "common/rs_macros.h"
+#include "event_handler.h"
+#include "EGL/egl.h"
+#include "EGL/eglext.h"
+#include "include/core/SkSurface.h"
+#if defined(NEW_SKIA)
+#include "include/gpu/GrDirectContext.h"
+#else
+#include "include/gpu/GrContext.h"
+#endif
 #ifndef USE_ROSEN_DRAWING
 #include "pipeline/rs_draw_cmd_list.h"
 #else
-#include "common/rs_common_def.h"
-#include "common/rs_macros.h"
 #include "recording/draw_cmd_list.h"
 #endif
-
-#include "message_parcel.h"
-#include <sys/stat.h>
-
-#include "event_handler.h"
+#include "render_context/render_context.h"
 
 namespace OHOS::Rosen {
 class RSB_EXPORT RSRecordingThread {
 public:
-    const static size_t RECORDING_PARCEL_MAX_CAPCITY = 234 * 1000 * 1024;
+    enum class RecordingMode {
+        STOP_RECORDING,
+        LOW_SPEED_RECORDING,
+        HIGH_SPPED_RECORDING,
+    };
 
-    static RSRecordingThread& Instance();
+    RSRecordingThread(RenderContext* context) : renderContext_(context){};
+    ~RSRecordingThread();
+    
+    static RSRecordingThread& Instance(RenderContext* context);
     void Start();
     bool IsIdle();
     void PostTask(const std::function<void()> & task);
@@ -52,19 +67,48 @@ public:
     }
     bool GetRecordingEnabled() const
     {
-        return isRecordingEnabled_;
+        return mode_ != RecordingMode::STOP_RECORDING;
     }
  
 private:
-    RSRecordingThread() = default;
-    ~RSRecordingThread() = default;
+    void CreateShareEglContext();
+    void DestroyShareEglContext();
+    void FinishRecordingOneFrameTask(RecordingMode mode);
+#ifndef USE_ROSEN_DRAWING
+#ifdef NEW_SKIA
+    sk_sp<GrDirectContext> CreateShareGrContext();
+#else
+    sk_sp<GrContext> CreateShareGrContext();
+#endif
+#else
+    std::shared_ptr<Drawing::GPUContext> CreateShareGrContext();
+#endif
 
-    std::vector<std::shared_ptr<MessageParcel>> messageParcelVec;
-    std::vector<std::string> opsDescriptionVec;
+    const static size_t RECORDING_PARCEL_CAPCITY = 234 * 1000 * 1024;
+    RenderContext *renderContext_ = nullptr;
+#ifdef RS_ENABLE_GL
+    EGLContext eglShareContext_ = EGL_NO_CONTEXT;
+#endif
+#ifndef USE_ROSEN_DRAWING
+#ifdef NEW_SKIA
+    sk_sp<GrDirectContext> grContext_ = nullptr;
+#else
+    sk_sp<GrContext> grContext_ = nullptr;
+#endif
+#else
+    std::shared_ptr<Drawing::GPUContext> grContext_ = nullptr;
+#endif
+    RecordingMode mode_ = RecordingMode::STOP_RECORDING;
+#ifndef USE_ROSEN_DRAWING
+    std::vector<std::shared_ptr<DrawCmdList>> drawCmdListVec_;
+#else
+    std::vector<std::shared_ptr<Drawing::DrawCmdList>> drawCmdListVec_;
+#endif
+    std::vector<std::shared_ptr<MessageParcel>> messageParcelVec_;
+    std::vector<std::string> opsDescriptionVec_;
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     std::string fileDir_ = "/data/";
-    bool isRecordingEnabled_ = false;
     int dumpFrameNum_ = 0;
     int curDumpFrame_ = 0;
 };

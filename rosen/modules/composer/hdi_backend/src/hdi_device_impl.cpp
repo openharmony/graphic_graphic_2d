@@ -21,6 +21,7 @@
 #include <scoped_bytrace.h>
 #include <valarray>
 #include <securec.h>
+#include "v1_1/include/idisplay_composer_interface.h"
 
 #define CHECK_FUNC(composerSptr)                                     \
     do {                                                             \
@@ -34,7 +35,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 using namespace OHOS::HDI::Display::Composer::V1_0;
-using IDisplayComposerInterfaceSptr = sptr<IDisplayComposerInterface>;
+using IDisplayComposerInterfaceSptr = sptr<OHOS::HDI::Display::Composer::V1_1::IDisplayComposerInterface>;
 static IDisplayComposerInterfaceSptr g_composer;
 }
 
@@ -66,7 +67,7 @@ HdiDeviceImpl::~HdiDeviceImpl()
 RosenError HdiDeviceImpl::Init()
 {
     if (g_composer == nullptr) {
-        g_composer = IDisplayComposerInterface::Get();
+        g_composer = OHOS::HDI::Display::Composer::V1_1::IDisplayComposerInterface::Get();
         if (g_composer == nullptr) {
             HLOGE("IDisplayComposerInterface::Get return nullptr.");
             return ROSEN_ERROR_NOT_INIT;
@@ -501,6 +502,21 @@ int32_t HdiDeviceImpl::SetLayerPreMulti(uint32_t screenId, uint32_t layerId, boo
 {
     CHECK_FUNC(g_composer);
     return g_composer->SetLayerPreMulti(screenId, layerId, isPreMulti);
+}
+
+int32_t HdiDeviceImpl::SetLayerColor(uint32_t screenId, uint32_t layerId, GraphicLayerColor layerColor)
+{
+    CHECK_FUNC(g_composer);
+    LayerColor color = {
+        .r = layerColor.r,
+        .g = layerColor.g,
+        .b = layerColor.b,
+        .a = layerColor.a
+    };
+
+    HLOGD("SetLayerColor screenId:%{public}u, layerId:%{public}u", screenId, layerId);
+
+    return g_composer->SetLayerColor(screenId, layerId, color);
 }
 
 int32_t HdiDeviceImpl::SetLayerColorTransform(uint32_t screenId, uint32_t layerId, const std::vector<float> &matrix)

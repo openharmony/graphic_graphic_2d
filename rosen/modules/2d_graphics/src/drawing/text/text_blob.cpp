@@ -46,6 +46,38 @@ std::shared_ptr<TextBlob> TextBlob::MakeFromRSXform(const void* text, size_t byt
 {
     return StaticFactory::MakeFromRSXform(text, byteLength, xform, font, encoding);
 }
+
+std::shared_ptr<Data> TextBlob::Serialize() const
+{
+    if (!textBlobImpl_) {
+        LOGE("textBlobImpl nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    return textBlobImpl_->Serialize();
+}
+
+std::shared_ptr<TextBlob> TextBlob::Deserialize(const void* data, size_t size)
+{
+    return StaticFactory::DeserializeTextBlob(data, size);
+}
+
+void TextBlob::GetDrawingGlyphIDforTextBlob(const TextBlob* blob, std::vector<uint16_t>& glyphIds)
+{
+    StaticFactory::GetDrawingGlyphIDforTextBlob(blob, glyphIds);
+}
+
+Path TextBlob::GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* blob)
+{
+    return StaticFactory::GetDrawingPathforTextBlob(glyphId, blob);
+}
+
+std::shared_ptr<Rect> TextBlob::Bounds() const
+{
+    if (textBlobImpl_) {
+        return textBlobImpl_->Bounds();
+    }
+    return nullptr;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

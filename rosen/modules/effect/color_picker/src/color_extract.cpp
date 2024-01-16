@@ -39,11 +39,18 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap)
         delete[] ptr;
     });
     colorVal_ = std::move(colorShared);
+    uint32_t realColorCnt = 0;
     for (int i = 0; i < pixmap->GetHeight(); i++) {
         for (int j = 0; j < pixmap->GetWidth(); j++) {
-            pixmap->GetARGB32Color(j, i, colorVal[i * pixmap->GetWidth() + j]);
+            uint32_t pixelColor;
+            pixmap->GetARGB32Color(j, i, pixelColor);
+            if (GetARGB32ColorA(pixelColor) != 0) {
+                colorVal[realColorCnt] = pixelColor;
+                realColorCnt++;
+            }
         }
     }
+    colorValLen_ = realColorCnt;
     grayMsd_ = CalcGrayMsd();
     contrastToWhite_ = CalcContrastToWhite();
     GetNFeatureColors(specifiedFeatureColorNum_);
@@ -68,11 +75,18 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap, double* coor
         delete[] ptr;
     });
     colorVal_ = std::move(colorShared);
+    uint32_t realColorCnt = 0;
     for (uint32_t i = top; i < bottom; i++) {
         for (uint32_t j = left; j < right; j++) {
-            pixmap->GetARGB32Color(j, i, colorVal[(i - top) * (right - left) + (j - left)]);
+            uint32_t pixelColor;
+            pixmap->GetARGB32Color(j, i, pixelColor);
+            if (GetARGB32ColorA(pixelColor) != 0) {
+                colorVal[realColorCnt] = pixelColor;
+                realColorCnt++;
+            }
         }
     }
+    colorValLen_ = realColorCnt;
     grayMsd_ = CalcGrayMsd();
     contrastToWhite_ = CalcContrastToWhite();
     GetNFeatureColors(specifiedFeatureColorNum_);
@@ -105,6 +119,10 @@ uint32_t ColorExtract::ModifyWordWidth(uint8_t color, int inWidth, int outWidth)
         newValue = color >> (inWidth - outWidth);
     }
     return newValue & ((1 << outWidth) - 1);
+}
+uint8_t ColorExtract::GetARGB32ColorA(unsigned int color)
+{
+    return (color >> ARGB_A_SHIFT) & ARGB_MASK;
 }
 
 uint8_t ColorExtract::GetARGB32ColorR(unsigned int color)

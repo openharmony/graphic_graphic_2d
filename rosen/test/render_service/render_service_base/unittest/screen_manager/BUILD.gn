@@ -43,13 +43,8 @@ ohos_unittest("RSRenderServiceBaseScreenMangerTest") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//third_party/googletest:gtest_main",
   ]
-  if (defined(use_new_skia) && use_new_skia) {
-    deps += [ "//third_party/skia:skia_ohos" ]
-    include_dirs += [ "//third_party/skia/src" ]
-  } else {
-    deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
-    include_dirs += [ "//third_party/flutter/skia/src" ]
-  }
+  deps += [ "//third_party/skia:skia_ohos" ]
+  include_dirs += [ "//third_party/skia/src" ]
   external_deps = [
     "c_utils:utils",
     "init:libbegetutil",

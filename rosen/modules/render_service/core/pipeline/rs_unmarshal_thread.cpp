@@ -54,13 +54,13 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel)
         return;
     }
     RSTaskMessage::RSTask task = [this, parcel = parcel]() {
-        auto transData = RSBaseRenderUtil::ParseTransactionData(*parcel);
-        if (!transData) {
-            return;
-        }
         if (RsFrameReport::GetInstance().GetEnable()) {
             RsFrameReport::GetInstance().SetFrameParam(
                 REQUEST_FRAME_AWARE_ID, REQUEST_FRAME_AWARE_LOAD, REQUEST_FRAME_AWARE_NUM, 0);
+        }
+        auto transData = RSBaseRenderUtil::ParseTransactionData(*parcel);
+        if (!transData) {
+            return;
         }
         std::lock_guard<std::mutex> lock(transactionDataMutex_);
         cachedTransactionDataMap_[transData->GetSendingPid()].emplace_back(std::move(transData));

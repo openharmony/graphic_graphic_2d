@@ -12,15 +12,107 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <atomic>
+#include <cstddef>
+#include <mutex>
+#include <shared_mutex>
+#include <unordered_map>
 #include "filter_napi.h"
+#include "effect_errors.h"
 #include "effect_utils.h"
+#include "js_native_api.h"
+#include "js_native_api_types.h"
+#include "node_api.h"
+#include "pixel_map.h"
 #include "sk_image_chain.h"
 #include "image_napi_utils.h"
 #include "sk_image_filter_factory.h"
+#include "napi/native_api.h"
+#include "napi/native_node_api.h"
+
+namespace {
+    constexpr uint32_t NUM_0 = 0;
+    constexpr uint32_t NUM_1 = 1;
+    constexpr uint32_t NUM_2 = 2;
+}
 
 namespace OHOS {
 namespace Rosen {
+struct FilterAsyncContext {
+    napi_env env;
+    napi_async_work work;
+    napi_deferred deferred; // promise
+    napi_ref callback;      // callback
+    uint32_t status;
+    napi_value this_;
+
+    // build error msg
+    napi_value errorMsg = nullptr;
+
+    // param
+    FilterNapi* filterNapi = nullptr;
+    bool forceCPU = false;
+    std::shared_ptr<Media::PixelMap> dstPixelMap_;
+};
+
+static std::shared_mutex filterNapiManagerMutex;
+static std::unordered_map<FilterNapi*, std::atomic_bool> filterNapiManager;
+
 static const std::string CLASS_NAME = "Filter";
+
+void BuildMsgOnError(napi_env env, const std::unique_ptr<FilterAsyncContext>& ctx,
+    bool assertion, const std::string& msg)
+{
+    if (!assertion) {
+        EFFECT_LOG_E("%{public}s", msg.c_str());
+        napi_create_string_utf8(env, msg.c_str(), NAPI_AUTO_LENGTH, &(ctx->errorMsg));
+    }
+}
+
+static void FilterAsyncCommonComplete(napi_env env, const FilterAsyncContext* ctx, const napi_value& valueParam)
+{
+    napi_value result[NUM_2] = {};
+    napi_get_undefined(env, &result[NUM_0]);
+    napi_get_undefined(env, &result[NUM_1]);
+
+    if (ctx->status == SUCCESS) {
+        result[0] = valueParam;
+    } else if (ctx->errorMsg != nullptr) {
+        result[1] = ctx->errorMsg;
+    } else {
+        napi_create_string_utf8(env, "FilterNapi Internal Error", NAPI_AUTO_LENGTH, &result[NUM_1]);
+    }
+
+    if (ctx->deferred) {
+        if (ctx->status == SUCCESS) {
+            napi_resolve_deferred(env, ctx->deferred, result[NUM_0]);
+        } else {
+            napi_reject_deferred(env, ctx->deferred, result[NUM_1]);
+        }
+    } else {
+        napi_value callback = nullptr;
+        napi_get_reference_value(env, ctx->callback, &callback);
+        napi_call_function(env, ctx->this_, callback, NUM_2, result, nullptr);
+        napi_delete_reference(env, ctx->callback);
+    }
+
+    napi_delete_async_work(env, ctx->work);
+
+    {
+        std::unique_lock<std::shared_mutex> lock(filterNapiManagerMutex);
+        auto manager = filterNapiManager.find(ctx->filterNapi);
+        if (manager != filterNapiManager.end()) {
+            if ((*manager).second.load()) {
+                delete ctx->filterNapi;
+            }
+            filterNapiManager.erase(manager);
+        }
+    }
+
+    delete ctx;
+    ctx = nullptr;
+}
+
 FilterNapi::FilterNapi() : env_(nullptr), wrapper_(nullptr) {}
 
 FilterNapi::~FilterNapi()
@@ -33,7 +125,14 @@ void FilterNapi::Destructor(napi_env env,
                             void* finalize_hint)
 {
     FilterNapi* obj = static_cast<FilterNapi *>(nativeObject);
-    delete obj;
+
+    std::shared_lock<std::shared_mutex> lock(filterNapiManagerMutex);
+    auto manager = filterNapiManager.find(obj);
+    if (manager == filterNapiManager.end()) {
+        delete obj;
+    } else {
+        (*manager).second.store(true);
+    }
 }
 
 thread_local napi_ref FilterNapi::sConstructor_ = nullptr;
@@ -46,6 +145,9 @@ napi_value FilterNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("brightness", Brightness),
         DECLARE_NAPI_FUNCTION("grayscale", Grayscale),
         DECLARE_NAPI_FUNCTION("getPixelMap", GetPixelMap),
+        DECLARE_NAPI_FUNCTION("getPixelMapAsync", GetPixelMapAsync),
+        DECLARE_NAPI_FUNCTION("getEffectPixelMap", GetPixelMapAsync),
+        DECLARE_NAPI_FUNCTION("getEffectPixelMapSync", GetPixelMap),
     };
     napi_property_descriptor static_prop[] = {
         DECLARE_NAPI_STATIC_FUNCTION("createEffect", CreateEffect),
@@ -209,6 +311,104 @@ napi_value FilterNapi::GetPixelMap(napi_env env, napi_callback_info info)
     }
     thisFilter->Render(forceCPU);
     return Media::PixelMapNapi::CreatePixelMap(env, thisFilter->GetDstPixelMap());
+}
+
+void FilterNapi::GetPixelMapAsyncComplete(napi_env env, napi_status status, void* data)
+{
+    auto ctx = static_cast<FilterAsyncContext*>(data);
+    napi_value value = nullptr;
+    if (ctx->dstPixelMap_ == nullptr) {
+        ctx->status = ERROR;
+        napi_create_string_utf8(env, "FilterNapi dst pixel map is null", NAPI_AUTO_LENGTH, &(ctx->errorMsg));
+    } else {
+        std::lock_guard<std::mutex> lock(getPixelMapAsyncCompleteMutex_);
+        value = Media::PixelMapNapi::CreatePixelMap(env, ctx->dstPixelMap_);
+    }
+    FilterAsyncCommonComplete(env, ctx, value);
+}
+
+void FilterNapi::GetPixelMapAsyncExecute(napi_env env, void* data)
+{
+    auto ctx = static_cast<FilterAsyncContext*>(data);
+
+    bool managerFlag = false;
+    {
+        std::shared_lock<std::shared_mutex> lock(filterNapiManagerMutex);
+        auto manager = filterNapiManager.find(ctx->filterNapi);
+        if (manager == filterNapiManager.end()) {
+            ctx->status = ERROR;
+            napi_create_string_utf8(env, "FilterNapi filterNapi not found in manager",
+                NAPI_AUTO_LENGTH, &(ctx->errorMsg));
+            return;
+        }
+        managerFlag = (*manager).second.load();
+    }
+    
+    if (!managerFlag) {
+        std::lock_guard<std::mutex> lock2(getPixelMapAsyncExecuteMutex_);
+        ctx->filterNapi->Render(ctx->forceCPU);
+        ctx->dstPixelMap_ = ctx->filterNapi->GetDstPixelMap();
+    }
+}
+
+static void GetPixelMapAsyncErrorComplete(napi_env env, napi_status status, void* data)
+{
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    auto ctx = static_cast<FilterAsyncContext*>(data);
+    ctx->status = ERROR;
+    FilterAsyncCommonComplete(env, ctx, result);
+}
+
+napi_value FilterNapi::GetPixelMapAsync(napi_env env, napi_callback_info info)
+{
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    
+    size_t argc = 1;
+    napi_value argv[1];
+    napi_status status;
+
+    std::unique_ptr<FilterAsyncContext> ctx = std::make_unique<FilterAsyncContext>();
+    IMG_JS_ARGS(env, info, status, argc, argv, ctx->this_);
+    BuildMsgOnError(env, ctx, IMG_IS_OK(status), "FilterNapi: GetPixelMapAsync parse input failed");
+
+    NAPI_CALL(env, napi_unwrap(env, ctx->this_, reinterpret_cast<void**>(&(ctx->filterNapi))));
+    BuildMsgOnError(env, ctx, (ctx->filterNapi != nullptr), "FilterNapi: GetPixelMapAsync filter is null");
+
+    if (Media::ImageNapiUtils::getType(env, argv[0]) == napi_boolean) {
+        if (!IMG_IS_OK(napi_get_value_bool(env, argv[0], &(ctx->forceCPU)))) {
+            EFFECT_LOG_I("FilterNapi: GetPixelMapAsync parse forceCPU failed");
+        }
+    }
+    ctx->forceCPU = true;
+
+    if (argc >= NUM_1) {
+        if (Media::ImageNapiUtils::getType(env, argv[argc - 1]) == napi_function) {
+            napi_create_reference(env, argv[argc - 1], 1, &(ctx->callback));
+        }
+    }
+
+    if (ctx->callback == nullptr) {
+        napi_create_promise(env, &(ctx->deferred), &result);
+    }
+
+    {
+        std::unique_lock<std::shared_mutex> lock(filterNapiManagerMutex);
+        filterNapiManager[ctx->filterNapi].store(false);
+    }
+
+    if (ctx->errorMsg != nullptr) {
+        IMG_CREATE_CREATE_ASYNC_WORK(env, status, "GetPixelMapAsyncError", [](napi_env env, void* data) {},
+            GetPixelMapAsyncErrorComplete, ctx, ctx->work);
+    } else {
+        IMG_CREATE_CREATE_ASYNC_WORK(env, status, "GetPixelMapAsync", GetPixelMapAsyncExecute,
+            GetPixelMapAsyncComplete, ctx, ctx->work);
+    }
+
+    IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status), nullptr,
+        EFFECT_LOG_E("FilterNapi: GetPixelMapAsync fail to create async work"));
+    return result;
 }
 
 napi_value FilterNapi::Blur(napi_env env, napi_callback_info info)

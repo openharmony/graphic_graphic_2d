@@ -22,6 +22,10 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#ifdef RS_ENABLE_VK
+#include "rs_vk_image_manager.h"
+#endif
+#include "include/gpu/GrDirectContext.h"
 #include "rs_base_render_util.h"
 
 #ifdef NEW_RENDER_CONTEXT
@@ -38,6 +42,9 @@
 #ifdef RS_ENABLE_EGLIMAGE
 #include "rs_egl_image_manager.h"
 #endif // RS_ENABLE_EGLIMAGE
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "colorspace_converter_display.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -145,7 +152,7 @@ class RSBaseRenderEngine {
 public:
     RSBaseRenderEngine();
     virtual ~RSBaseRenderEngine() noexcept;
-    void Init();
+    void Init(bool independentContext = false);
     RSBaseRenderEngine(const RSBaseRenderEngine&) = delete;
     void operator=(const RSBaseRenderEngine&) = delete;
 
@@ -210,12 +217,37 @@ public:
     }
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
 #endif
+    void ResetCurrentContext();
+
 #ifdef RS_ENABLE_EGLIMAGE
     const std::shared_ptr<RSEglImageManager>& GetEglImageManager()
     {
         return eglImageManager_;
     }
 #endif // RS_ENABLE_EGLIMAGE
+#ifdef RS_ENABLE_VK
+    const std::shared_ptr<RSVkImageManager>& GetVkImageManager() const
+    {
+        return vkImageManager_;
+    }
+#ifndef USE_ROSEN_DRAWING
+    const sk_sp<GrDirectContext> GetSkContext() const
+#else
+    const std::shared_ptr<Drawing::GPUContext> GetSkContext() const
+#endif
+    {
+        return skContext_;
+    }
+#endif
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#ifndef USE_ROSEN_DRAWING
+    static sk_sp<SkColorSpace> ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut);
+    void ColorSpaceConvertor(sk_sp<SkShader> &inputShader, BufferDrawParam& params);
+#else
+    static std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToDrawingColorSpace(GraphicColorGamut colorGamut);
+    void ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader, BufferDrawParam& params);
+#endif
+#endif
 protected:
     void RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw = false);
     void RegisterDeleteBufferListener(RSSurfaceHandler& handler);
@@ -227,11 +259,11 @@ private:
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
         const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
-        const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
+        const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB);
 #else
     std::shared_ptr<Drawing::Image> CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
         const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
-        const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
+        const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB);
 #endif
 
     static inline std::atomic_bool isHighContrastEnabled_ = false;
@@ -246,7 +278,22 @@ private:
 #ifdef RS_ENABLE_EGLIMAGE
     std::shared_ptr<RSEglImageManager> eglImageManager_ = nullptr;
 #endif // RS_ENABLE_EGLIMAGE
+#ifdef RS_ENABLE_VK
+#ifndef USE_ROSEN_DRAWING
+    sk_sp<GrDirectContext> skContext_ = nullptr;
+#else
+    std::shared_ptr<Drawing::GPUContext> skContext_ = nullptr;
+#endif
+    std::shared_ptr<RSVkImageManager> vkImageManager_ = nullptr;
+#endif
     using SurfaceId = uint64_t;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    static bool SetColorSpaceConverterDisplayParameter(
+        const BufferDrawParam& params, Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter);
+    static bool ConvertColorGamutToSpaceInfo(const GraphicColorGamut& colorGamut,
+        HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo);
+    std::shared_ptr<Media::VideoProcessingEngine::ColorSpaceConverterDisplay> colorSpaceConverterDisplay_ = nullptr;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

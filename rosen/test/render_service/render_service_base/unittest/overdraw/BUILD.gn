@@ -12,12 +12,16 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic/rosen_engine/render_service_client/pipeline"
 
 ohos_unittest("overdraw_test") {
   module_out_path = module_output_path
 
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
   sources = [
     "rs_cpu_overdraw_canvas_listener_test.cpp",
     "rs_gpu_overdraw_canvas_listener_test.cpp",
@@ -35,13 +39,11 @@ ohos_unittest("overdraw_test") {
     "//foundation/graphic/graphic_2d/utils/test_header:test_header",
     "//third_party/googletest:gmock",
   ]
-
-  external_deps = [ "hilog:libhilog" ]
-  if (defined(use_new_skia) && use_new_skia) {
-    deps += [ "//third_party/skia:skia_ohos" ]
-  } else {
-    deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    public_deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
   }
+  external_deps = [ "hilog:libhilog" ]
+  deps += [ "//third_party/skia:skia_ohos" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

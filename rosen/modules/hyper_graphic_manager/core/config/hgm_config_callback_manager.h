@@ -24,6 +24,7 @@
 #include "refbase.h"
 
 namespace OHOS::Rosen {
+using PidToRefreshRateModeCallback = std::unordered_map<pid_t, sptr<RSIHgmConfigChangeCallback>>;
 class HgmConfigCallbackManager : public RefBase {
 public:
     static sptr<HgmConfigCallbackManager> GetInstance() noexcept;
@@ -33,7 +34,11 @@ public:
     HgmConfigCallbackManager &operator=(const HgmConfigCallbackManager &) = delete;
 
     void RegisterHgmConfigChangeCallback(pid_t pid, const sptr<RSIHgmConfigChangeCallback>& callback);
+    void SyncHgmConfigChangeCallback();
     void UnRegisterHgmConfigChangeCallback(pid_t pid);
+
+    void RegisterHgmRefreshRateModeChangeCallback(pid_t pid, const sptr<RSIHgmConfigChangeCallback>& callback);
+    PidToRefreshRateModeCallback GetRefreshRateModeCallbacks() const;
 
 private:
     HgmConfigCallbackManager();
@@ -42,6 +47,7 @@ private:
     static std::once_flag createFlag_;
     static sptr<HgmConfigCallbackManager> instance_;
     std::unordered_map<pid_t, sptr<RSIHgmConfigChangeCallback>> animDynamicCfgCallbacks_;
+    PidToRefreshRateModeCallback refreshRateModeCallbacks_;
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CONFIG_CALLBACK_MANAGER_H

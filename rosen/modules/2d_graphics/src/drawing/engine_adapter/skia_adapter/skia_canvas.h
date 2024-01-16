@@ -18,6 +18,7 @@
 
 #include "include/core/SkBitmap.h"
 #include "include/core/SkCanvas.h"
+#include "include/core/HMSymbol.h"
 #include "include/core/SkImage.h"
 #include "include/core/SkMatrix.h"
 #include "include/core/SkPaint.h"
@@ -117,13 +118,18 @@ public:
     // text
     void DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y) override;
 
+    // symbol
+    void DrawSymbol(const DrawingHMSymbolData& symbol, Point locate) override;
+
     // clip
     void ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias) override;
     void ClipIRect(const RectI& rect, ClipOp op = ClipOp::INTERSECT) override;
     void ClipRoundRect(const RoundRect& roundRect, ClipOp op, bool doAntiAlias) override;
+    void ClipRoundRect(const Rect& rect, std::vector<Point>& pts, bool doAntiAlias) override;
     void ClipPath(const Path& path, ClipOp op, bool doAntiAlias) override;
     void ClipRegion(const Region& region, ClipOp op = ClipOp::INTERSECT) override;
     bool IsClipEmpty() override;
+    bool IsClipRect() override;
     bool QuickReject(const Rect& rect) override;
 
     // transform
@@ -138,23 +144,21 @@ public:
     // state
     void Flush() override;
     void Clear(ColorQuad color) override;
-    void Save() override;
+    uint32_t Save() override;
     void SaveLayer(const SaveLayerOps& saveLayerOps) override;
     void Restore() override;
     uint32_t GetSaveCount() const override;
     void Discard() override;
 
     // paint
-    void AttachPen(const Pen& pen) override;
-    void AttachBrush(const Brush& brush) override;
-    void DetachPen() override;
-    void DetachBrush() override;
+    void AttachPaint(const Paint& paint) override;
 
     SkCanvas* ExportSkCanvas() const;
     void ImportSkCanvas(SkCanvas* skCanvas);
 
 private:
     void RoundRectCastToSkRRect(const RoundRect& roundRect, SkRRect& skRRect) const;
+    bool ConvertToHMSymbolData(const DrawingHMSymbolData& symbol, HMSymbolData& skSymbol);
     std::shared_ptr<SkCanvas> skiaCanvas_;
     SkCanvas* skCanvas_;
     SkiaPaint skiaPaint_;

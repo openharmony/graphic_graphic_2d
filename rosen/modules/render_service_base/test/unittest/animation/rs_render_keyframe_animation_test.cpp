@@ -41,6 +41,19 @@ void RSRenderKeyframeAnimationTest::TearDownTestCase() {}
 void RSRenderKeyframeAnimationTest::SetUp() {}
 void RSRenderKeyframeAnimationTest::TearDown() {}
 
+class RSRenderKeyframeAnimationMock : public RSRenderKeyframeAnimation {
+public:
+    RSRenderKeyframeAnimationMock(
+        AnimationId id, const PropertyId& propertyId, const std::shared_ptr<RSRenderPropertyBase>& originValue)
+        : RSRenderKeyframeAnimation(id, propertyId, originValue)
+    {}
+    ~RSRenderKeyframeAnimationMock() {}
+    void OnAnimate(float fraction)
+    {
+        RSRenderKeyframeAnimation::OnAnimate(fraction);
+    }
+};
+
 /**
  * @tc.name: AddKeyframe001
  * @tc.desc: Verify the AddKeyframe
@@ -172,6 +185,29 @@ HWTEST_F(RSRenderKeyframeAnimationTest, Unmarshalling001, TestSize.Level1)
     renderKeyframeAnimation->Start();
     EXPECT_TRUE(renderKeyframeAnimation->IsRunning());
     GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest Unmarshalling001 end";
+}
+
+/**
+ * @tc.name: OnAnimate001
+ * @tc.desc: Verify the OnAnimate
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderKeyframeAnimationTest, OnAnimate001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest OnAnimate001 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f);
+
+    auto renderKeyframeAnimationMock =
+        std::make_shared<RSRenderKeyframeAnimationMock>(ANIMATION_ID, PROPERTY_ID, property);
+    float fraction = 0.1f;
+    renderKeyframeAnimationMock->OnAnimate(fraction);
+    EXPECT_TRUE(renderKeyframeAnimationMock != nullptr);
+    auto interpolator = std::make_shared<RSStepsInterpolator>(0);
+    renderKeyframeAnimationMock->AddKeyframe(2.0f, property1, interpolator);
+    renderKeyframeAnimationMock->OnAnimate(fraction);
+    EXPECT_TRUE(renderKeyframeAnimationMock != nullptr);
+    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest OnAnimate001 end";
 }
 } // namespace Rosen
 } // namespace OHOS

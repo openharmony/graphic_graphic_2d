@@ -23,6 +23,10 @@
 #include "txt/asset_font_manager.h"
 #endif
 
+#ifdef USE_ROSEN_DRAWING
+#include "text/font_mgr.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace AdapterTxt {
@@ -35,10 +39,15 @@ public:
     void DisableFallback() override;
     void DisableSystemFont() override;
     void LoadFont(const std::string &familyName, const uint8_t *data, size_t datalen) override;
+    void LoadThemeFont(const std::string &familyName, const uint8_t *data, size_t datalen) override;
 
 private:
     std::shared_ptr<txt::FontCollection> fontCollection_ = nullptr;
+#ifndef USE_ROSEN_DRAWING
     sk_sp<txt::DynamicFontManager> dfmanager_ = nullptr;
+#else
+    std::shared_ptr<Drawing::FontMgr> dfmanager_ = nullptr;
+#endif
     bool disableSystemFont_ = false;
 };
 } // namespace AdapterTxt

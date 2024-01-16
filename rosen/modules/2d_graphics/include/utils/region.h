@@ -33,6 +33,8 @@ enum class RegionOp {
 class DRAWING_API Region {
 public:
     Region();
+    Region(const Region& other);
+    Region& operator=(const Region& other);
     virtual ~Region() = default;
 
     virtual DrawingType GetDrawingType() const
@@ -93,8 +95,11 @@ public:
      * @brief   Get the adaptation layer instance, called in the adaptation layer.
      * @return  Adaptation Layer instance.
      */
+    std::shared_ptr<Data> Serialize() const;
+    bool Deserialize(std::shared_ptr<Data> data);
+
     template<typename T>
-    const std::shared_ptr<T> GetImpl() const
+    T* GetImpl() const
     {
         return impl_->DowncastingTo<T>();
     }

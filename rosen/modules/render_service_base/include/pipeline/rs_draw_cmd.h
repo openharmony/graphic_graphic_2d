@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_H
 
+#ifndef USE_ROSEN_DRAWING
 #ifdef ROSEN_OHOS
 #include <GLES/gl.h>
 
@@ -24,7 +25,6 @@
 #include "GLES2/gl2.h"
 #include "GLES2/gl2ext.h"
 #endif
-#ifndef USE_ROSEN_DRAWING
 #include "include/core/SkCanvas.h"
 #include "include/core/SkDrawable.h"
 #include "include/core/SkImage.h"
@@ -54,6 +54,11 @@
 #include "render/rs_image.h"
 #include "transaction/rs_marshalling_helper.h"
 #include <optional>
+
+#ifdef RS_ENABLE_VK
+#include "include/gpu/GrBackendSurface.h"
+#include "platform/ohos/backend/native_buffer_utils.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -104,6 +109,8 @@ enum RSOpType : uint16_t {
     RESTORE_ALPHA_OPITEM,
     SURFACEBUFFER_OPITEM,
     SCALE_OPITEM,
+    HM_SYMBOL_OPITEM,
+    DRAW_FUNC_OPITEM,
 };
 namespace {
     std::string GetOpTypeString(RSOpType type)
@@ -154,10 +161,11 @@ namespace {
             GETOPTYPESTRING(RESTORE_ALPHA_OPITEM);
             GETOPTYPESTRING(SURFACEBUFFER_OPITEM);
             GETOPTYPESTRING(SCALE_OPITEM);
+            GETOPTYPESTRING(HM_SYMBOL_OPITEM);
+            GETOPTYPESTRING(DRAW_FUNC_OPITEM);
             default:
-                break;
+                return "";
         }
-        return "";
     }
 #undef GETOPTYPESTRING
 }
@@ -213,12 +221,14 @@ public:
         return false;
     }
     virtual void SetNodeId(NodeId id) {}
+
+    virtual void SetSymbol() {}
 };
 
 class OpItemWithPaint : public OpItem {
 public:
     explicit OpItemWithPaint(size_t size) : OpItem(size) {}
-    ~OpItemWithPaint() override {}
+    ~OpItemWithPaint() override = default;
 
     std::unique_ptr<OpItem> GenerateCachedOpItem(const RSPaintFilterCanvas* canvas, const SkRect* rect) const override;
 
@@ -246,7 +256,7 @@ public:
     }
     explicit OpItemWithRSImage(size_t size) : OpItemWithPaint(size) {}
 #endif
-    ~OpItemWithRSImage() override {}
+    ~OpItemWithRSImage() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
     void SetNodeId(NodeId id) override;
     bool IsImageOp() const override
@@ -264,7 +274,7 @@ private:
 class RectOpItem : public OpItemWithPaint {
 public:
     RectOpItem(SkRect rect, const SkPaint& paint);
-    ~RectOpItem() override {}
+    ~RectOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -291,7 +301,7 @@ private:
 class RoundRectOpItem : public OpItemWithPaint {
 public:
     RoundRectOpItem(const SkRRect& rrect, const SkPaint& paint);
-    ~RoundRectOpItem() override {}
+    ~RoundRectOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -370,17 +380,28 @@ public:
 
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static OpItem* Unmarshalling(Parcel& parcel);
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> GetSkImageFromSurfaceBuffer(SkCanvas& canvas, SurfaceBuffer* surfaceBuffer) const;
+#ifdef RS_ENABLE_GL
+    sk_sp<SkImage> GetSkImageFromSurfaceBufferGL(SkCanvas& canvas, SurfaceBuffer* surfaceBuffer) const;
+#elif defined(RS_ENABLE_VK)
+    sk_sp<SkImage> GetSkImageFromSurfaceBufferVK(SkCanvas& canvas, SurfaceBuffer* surfaceBuffer) const;
+#endif
 #endif
 #endif
 private:
     std::shared_ptr<RSImage> rsImage_;
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifndef USE_ROSEN_DRAWING
+#ifdef RS_ENABLE_GL
     mutable EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
     mutable GLuint texId_ = 0;
+#endif
+#ifdef RS_ENABLE_VK
+    mutable GrBackendTexture backendTexture_ = {};
+    mutable NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper_ = nullptr;
+#endif
     mutable OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
     mutable pid_t tid_ = 0;
 #endif
@@ -393,7 +414,7 @@ private:
 class DRRectOpItem : public OpItemWithPaint {
 public:
     DRRectOpItem(const SkRRect& outer, const SkRRect& inner, const SkPaint& paint);
-    ~DRRectOpItem() override {}
+    ~DRRectOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -424,7 +445,7 @@ private:
 class OvalOpItem : public OpItemWithPaint {
 public:
     OvalOpItem(SkRect rect, const SkPaint& paint);
-    ~OvalOpItem() override {}
+    ~OvalOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -451,7 +472,7 @@ private:
 class RegionOpItem : public OpItemWithPaint {
 public:
     RegionOpItem(SkRegion region, const SkPaint& paint);
-    ~RegionOpItem() override {}
+    ~RegionOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -478,7 +499,7 @@ private:
 class ArcOpItem : public OpItemWithPaint {
 public:
     ArcOpItem(const SkRect& rect, float startAngle, float sweepAngle, bool useCenter, const SkPaint& paint);
-    ~ArcOpItem() override {}
+    ~ArcOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -511,7 +532,7 @@ private:
 class SaveOpItem : public OpItem {
 public:
     SaveOpItem();
-    ~SaveOpItem() override {}
+    ~SaveOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -532,7 +553,7 @@ public:
 class RestoreOpItem : public OpItem {
 public:
     RestoreOpItem();
-    ~RestoreOpItem() override {}
+    ~RestoreOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -553,7 +574,7 @@ public:
 class FlushOpItem : public OpItem {
 public:
     FlushOpItem();
-    ~FlushOpItem() override {}
+    ~FlushOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -578,7 +599,7 @@ public:
 #else
     MatrixOpItem(const SkMatrix& matrix);
 #endif
-    ~MatrixOpItem() override {}
+    ~MatrixOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -611,7 +632,7 @@ private:
 class ClipRectOpItem : public OpItem {
 public:
     ClipRectOpItem(const SkRect& rect, SkClipOp op, bool doAA);
-    ~ClipRectOpItem() override {}
+    ~ClipRectOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -649,7 +670,7 @@ private:
 class ClipRRectOpItem : public OpItem {
 public:
     ClipRRectOpItem(const SkRRect& rrect, SkClipOp op, bool doAA);
-    ~ClipRRectOpItem() override {}
+    ~ClipRRectOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -680,7 +701,7 @@ private:
 class ClipRegionOpItem : public OpItem {
 public:
     ClipRegionOpItem(const SkRegion& region, SkClipOp op);
-    ~ClipRegionOpItem() override {}
+    ~ClipRegionOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -709,7 +730,7 @@ private:
 class TranslateOpItem : public OpItem {
 public:
     TranslateOpItem(float distanceX, float distanceY);
-    ~TranslateOpItem() override {}
+    ~TranslateOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -737,7 +758,7 @@ private:
 class ScaleOpItem : public OpItem {
 public:
     ScaleOpItem(float scaleX, float scaleY);
-    ~ScaleOpItem() override {}
+    ~ScaleOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -762,10 +783,33 @@ private:
     float scaleY_ = 1.0f;
 };
 
+class DrawFuncOpItem : public OpItem {
+public:
+    using DrawFunc = std::function<void(RSPaintFilterCanvas& canvas, const SkRect*)>;
+    DrawFuncOpItem(DrawFunc&& func);
+    ~DrawFuncOpItem() override = default;
+    void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
+        desc += "}, \n";
+        return desc;
+    }
+
+    RSOpType GetType() const override
+    {
+        return RSOpType::DRAW_FUNC_OPITEM;
+    }
+
+private:
+    DrawFunc func_;
+};
+
 class TextBlobOpItem : public OpItemWithPaint {
 public:
     TextBlobOpItem(const sk_sp<SkTextBlob> textBlob, float x, float y, const SkPaint& paint);
-    ~TextBlobOpItem() override {}
+    ~TextBlobOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
     std::optional<SkRect> GetCacheBounds() const override
     {
@@ -795,10 +839,83 @@ public:
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static OpItem* Unmarshalling(Parcel& parcel);
 
+protected:
+    void DrawHighContrast(RSPaintFilterCanvas& canvas) const;
+
 private:
     sk_sp<SkTextBlob> textBlob_;
     float x_;
     float y_;
+};
+
+using SymbolAnimation = struct SymbolAnimation {
+    // all animation need
+    double startValue = 0;
+    double curValue = 0;
+    double endValue = 1;
+    double speedValue = 0.01;
+    uint32_t number = 0; // animate times when reach the destination
+    // hierarchy animation need
+    uint32_t startCount = 0; // animate from this frame
+    uint32_t count = 0; // number of frames
+};
+
+class SymbolOpItem : public OpItemWithPaint {
+public:
+    SymbolOpItem(const HMSymbolData& symbol, SkPoint locate, const SkPaint& paint);
+    ~SymbolOpItem() override {};
+    void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
+    std::optional<SkRect> GetCacheBounds() const override
+    {
+        return symbol_.path_.getBounds().makeOffset(locate_.x(), locate_.y());
+    }
+
+    std::string GetTypeWithDesc() const override
+    {
+        std::string desc = "{Optype: " + GetOpTypeString(GetType()) + ", Description: { ";
+        desc += "\tSymbolID = " + std::to_string(symbol_.symbolInfo_.symbolGlyphId) + "\n";
+        desc += "\tlocatex_ : " + std::to_string(locate_.x()) + "\n";
+        desc += "\tlocatey_ : " + std::to_string(locate_.y()) + "\n";
+        desc += "}, \n";
+        return desc;
+    }
+
+    RSOpType GetType() const override
+    {
+        return RSOpType::HM_SYMBOL_OPITEM;
+    }
+
+    void SetNodeId(NodeId id) override
+    {
+        nodeId_ = id;
+    }
+
+    bool Marshalling(Parcel& parcel) const override;
+    [[nodiscard]] static OpItem* Unmarshalling(Parcel& parcel);
+
+    void SetSymbol() override;
+
+    void InitialScale();
+
+    void InitialVariableColor();
+
+    void SetScale(size_t index);
+
+    void SetVariableColor(size_t index);
+
+    static void UpdateScale(const double cur, SkPath& path);
+
+    void UpdataVariableColor(const double cur, size_t index);
+
+private:
+    HMSymbolData symbol_;
+    SkPoint locate_;
+    SkPaint paint_;
+
+    NodeId nodeId_;
+    std::vector<SymbolAnimation> animation_;
+    uint32_t number_ = 2; // one animation means a back and forth
+    bool startAnimation_ = false; // update animation_ if true
 };
 
 class BitmapOpItem : public OpItemWithRSImage {
@@ -811,7 +928,7 @@ public:
     BitmapOpItem(const sk_sp<SkImage> bitmapInfo, float left, float top, const SkPaint* paint);
     BitmapOpItem(std::shared_ptr<RSImageBase> rsImage, const SkPaint& paint);
 #endif
-    ~BitmapOpItem() override {}
+    ~BitmapOpItem() override = default;
 
     std::string GetTypeWithDesc() const override
     {
@@ -845,7 +962,7 @@ public:
     ColorFilterBitmapOpItem(const sk_sp<SkImage> bitmapInfo, float left, float top, const SkPaint* paint);
     ColorFilterBitmapOpItem(std::shared_ptr<RSImageBase> rsImage, const SkPaint& paint);
 #endif
-    ~ColorFilterBitmapOpItem() override {}
+    ~ColorFilterBitmapOpItem() override = default;
 
     std::string GetTypeWithDesc() const override
     {
@@ -877,7 +994,7 @@ public:
         const sk_sp<SkImage> bitmapInfo, const SkRect* rectSrc, const SkRect& rectDst, const SkPaint* paint);
     BitmapRectOpItem(std::shared_ptr<RSImageBase> rsImage, const SkPaint& paint);
 #endif
-    ~BitmapRectOpItem() override {}
+    ~BitmapRectOpItem() override = default;
 
     std::string GetTypeWithDesc() const override
     {
@@ -912,7 +1029,7 @@ public:
     PixelMapOpItem(const std::shared_ptr<Media::PixelMap>& pixelmap, float left, float top, const SkPaint* paint);
     PixelMapOpItem(std::shared_ptr<RSImageBase> rsImage, const SkPaint& paint);
 #endif
-    ~PixelMapOpItem() override {}
+    ~PixelMapOpItem() override = default;
 
     std::string GetTypeWithDesc() const override
     {
@@ -948,7 +1065,7 @@ public:
         const std::shared_ptr<Media::PixelMap>& pixelmap, const SkRect& src, const SkRect& dst, const SkPaint* paint);
     PixelMapRectOpItem(std::shared_ptr<RSImageBase> rsImage, const SkPaint& paint);
 #endif
-    ~PixelMapRectOpItem() override {}
+    ~PixelMapRectOpItem() override = default;
 
     std::string GetTypeWithDesc() const override
     {
@@ -981,7 +1098,7 @@ public:
     BitmapNineOpItem(
         const sk_sp<SkImage> bitmapInfo, const SkIRect& center, const SkRect& rectDst, const SkPaint* paint);
 #endif
-    ~BitmapNineOpItem() override {}
+    ~BitmapNineOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1023,9 +1140,9 @@ public:
         const SkRect& rectDst, const SkFilterMode filter, const SkPaint* paint);
     PixelmapNineOpItem(const std::shared_ptr<RSImageBase> rsImage, const SkIRect& center, const SkRect& rectDst,
         const SkFilterMode filter, const SkPaint* paint);
-    ~PixelmapNineOpItem() override {}
+    ~PixelmapNineOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
-    
+
     std::string GetTypeWithDesc() const override
     {
         std::string desc = "{OpType: " + GetOpTypeString(GetType()) +", Description:{";
@@ -1051,7 +1168,7 @@ private:
 class AdaptiveRRectOpItem : public OpItemWithPaint {
 public:
     AdaptiveRRectOpItem(float radius, const SkPaint& paint);
-    ~AdaptiveRRectOpItem() override {}
+    ~AdaptiveRRectOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1079,7 +1196,7 @@ private:
 class AdaptiveRRectScaleOpItem : public OpItemWithPaint {
 public:
     AdaptiveRRectScaleOpItem(float radiusRatio, const SkPaint& paint);
-    ~AdaptiveRRectScaleOpItem() override {}
+    ~AdaptiveRRectScaleOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1107,7 +1224,7 @@ private:
 class ClipAdaptiveRRectOpItem : public OpItem {
 public:
     ClipAdaptiveRRectOpItem(const SkVector radius[]);
-    ~ClipAdaptiveRRectOpItem() override {}
+    ~ClipAdaptiveRRectOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1138,7 +1255,7 @@ private:
 class ClipOutsetRectOpItem : public OpItem {
 public:
     ClipOutsetRectOpItem(float dx, float dy);
-    ~ClipOutsetRectOpItem() override {}
+    ~ClipOutsetRectOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1166,7 +1283,7 @@ private:
 class PathOpItem : public OpItemWithPaint {
 public:
     PathOpItem(const SkPath& path, const SkPaint& paint);
-    ~PathOpItem() override {}
+    ~PathOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1193,7 +1310,7 @@ private:
 class ClipPathOpItem : public OpItem {
 public:
     ClipPathOpItem(const SkPath& path, SkClipOp clipOp, bool doAA);
-    ~ClipPathOpItem() override {}
+    ~ClipPathOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1224,7 +1341,7 @@ private:
 class PaintOpItem : public OpItemWithPaint {
 public:
     PaintOpItem(const SkPaint& paint);
-    ~PaintOpItem() override {}
+    ~PaintOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1250,7 +1367,7 @@ public:
 #else
     ConcatOpItem(const SkMatrix& matrix);
 #endif
-    ~ConcatOpItem() override {}
+    ~ConcatOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1283,7 +1400,7 @@ private:
 class SaveLayerOpItem : public OpItemWithPaint {
 public:
     SaveLayerOpItem(const SkCanvas::SaveLayerRec& rec);
-    ~SaveLayerOpItem() override {}
+    ~SaveLayerOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1332,7 +1449,7 @@ private:
 class DrawableOpItem : public OpItem {
 public:
     DrawableOpItem(SkDrawable* drawable, const SkMatrix* matrix);
-    ~DrawableOpItem() override {}
+    ~DrawableOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1365,7 +1482,7 @@ private:
 class PictureOpItem : public OpItemWithPaint {
 public:
     PictureOpItem(const sk_sp<SkPicture> picture, const SkMatrix* matrix, const SkPaint* paint);
-    ~PictureOpItem() override {}
+    ~PictureOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1482,7 +1599,7 @@ private:
 class ShadowRecOpItem : public OpItem {
 public:
     ShadowRecOpItem(const SkPath& path, const SkDrawShadowRec& rec);
-    ~ShadowRecOpItem() override {}
+    ~ShadowRecOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1511,7 +1628,7 @@ private:
 class MultiplyAlphaOpItem : public OpItem {
 public:
     MultiplyAlphaOpItem(float alpha);
-    ~MultiplyAlphaOpItem() override {}
+    ~MultiplyAlphaOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1537,7 +1654,7 @@ private:
 class SaveAlphaOpItem : public OpItem {
 public:
     SaveAlphaOpItem();
-    ~SaveAlphaOpItem() override {}
+    ~SaveAlphaOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1558,7 +1675,7 @@ public:
 class RestoreAlphaOpItem : public OpItem {
 public:
     RestoreAlphaOpItem();
-    ~RestoreAlphaOpItem() override {}
+    ~RestoreAlphaOpItem() override = default;
     void Draw(RSPaintFilterCanvas& canvas, const SkRect*) const override;
 
     std::string GetTypeWithDesc() const override
@@ -1602,10 +1719,15 @@ private:
     void Clear() const noexcept;
 
     mutable RSSurfaceBufferInfo surfaceBufferInfo_;
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    mutable OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
+#endif
+#ifdef RS_ENABLE_VK
+    mutable sk_sp<SkImage> skImage_ = nullptr;
+#endif
 #ifdef RS_ENABLE_GL
     mutable EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
     mutable GLuint texId_ = 0;
-    mutable OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
 #endif
 };
 #endif
@@ -1613,28 +1735,248 @@ private:
 } // namespace OHOS
 
 #else
-#include "render/rs_image.h"
-#include "recording/draw_cmd_list.h"
+#ifdef ROSEN_OHOS
+#include <GLES/gl.h>
+#include "EGL/egl.h"
+#include "EGL/eglext.h"
+#include "GLES2/gl2.h"
+#include "GLES2/gl2ext.h"
+#endif
+
 #include "recording/adaptive_image_helper.h"
-#include "draw/canvas.h"
-#include "parcel.h"
+#include "recording/draw_cmd.h"
+#include "recording/recording_canvas.h"
+#include "render/rs_image.h"
+
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#include "surface_buffer.h"
+#include "external_window.h"
+#endif
+#ifdef RS_ENABLE_VK
+#include "../../src/platform/ohos/backend/native_buffer_utils.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
+#ifdef ROSEN_OHOS
+struct DrawingSurfaceBufferInfo {
+    DrawingSurfaceBufferInfo() = default;
+    DrawingSurfaceBufferInfo(
+        const sptr<SurfaceBuffer>& surfaceBuffer, int offSetX, int offSetY, int width, int height)
+        : surfaceBuffer_(surfaceBuffer), offSetX_(offSetX), offSetY_(offSetY), width_(width), height_(height)
+    {}
+    sptr<SurfaceBuffer> surfaceBuffer_ = nullptr;
+    int offSetX_ = 0;
+    int offSetY_ = 0;
+    int width_ = 0;
+    int height_ = 0;
+};
+#endif
+
 class RSB_EXPORT RSExtendImageObject : public Drawing::ExtendImageObject {
 public:
     RSExtendImageObject() = default;
     RSExtendImageObject(const std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Data>& data,
         const Drawing::AdaptiveImageInfo& imageInfo);
     RSExtendImageObject(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::AdaptiveImageInfo& imageInfo);
-    ~RSExtendImageObject() override = default;
+    ~RSExtendImageObject() override;
     void Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect,
         const Drawing::SamplingOptions& sampling, bool isBackground = false) override;
     bool Marshalling(Parcel &parcel) const;
     static RSExtendImageObject *Unmarshalling(Parcel &parcel);
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
+    bool GetDrawingImageFromSurfaceBuffer(Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer);
+#endif
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    bool MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer);
+#endif
+    void SetNodeId(NodeId id) override;
 protected:
     std::shared_ptr<RSImage> rsImage_;
+private:
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#ifdef RS_ENABLE_GL
+    mutable EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
+    mutable GLuint texId_ = 0;
+#endif
+    mutable OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
+    mutable pid_t tid_ = 0;
+#endif
+#ifdef RS_ENABLE_VK
+    mutable Drawing::BackendTexture backendTexture_ = {};
+    mutable NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper_ = nullptr;
+#endif
+    std::shared_ptr<Drawing::Image> image_;
 };
+
+class RSB_EXPORT RSExtendImageBaseObj : public Drawing::ExtendImageBaseObj {
+public:
+    RSExtendImageBaseObj() = default;
+    RSExtendImageBaseObj(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::Rect& src,
+        const Drawing::Rect& dst);
+    ~RSExtendImageBaseObj() override = default;
+    void Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect,
+        const Drawing::SamplingOptions& sampling) override;
+    bool Marshalling(Parcel &parcel) const;
+    static RSExtendImageBaseObj *Unmarshalling(Parcel &parcel);
+    void SetNodeId(NodeId id) override;
+protected:
+    std::shared_ptr<RSImageBase> rsImage_;
+};
+
+class RSB_EXPORT RSExtendDrawFuncObj : public Drawing::ExtendDrawFuncObj {
+public:
+    explicit RSExtendDrawFuncObj(Drawing::RecordingCanvas::DrawFunc&& drawFunc) : drawFunc_(std::move(drawFunc)) {}
+    ~RSExtendDrawFuncObj() override = default;
+    void Playback(Drawing::Canvas* canvas, const Drawing::Rect* rect) override;
+    bool Marshalling(Parcel& parcel) const;
+    static RSExtendDrawFuncObj* Unmarshalling(Parcel& parcel);
+
+private:
+    Drawing::RecordingCanvas::DrawFunc drawFunc_;
+};
+
+namespace Drawing {
+class DrawImageWithParmOpItem : public DrawWithPaintOpItem {
+public:
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle(const OpDataHandle& objectHandle, const SamplingOptions& sampling,
+            const PaintHandle& paintHandle)
+            : OpItem(DrawOpItem::IMAGE_WITH_PARM_OPITEM), objectHandle(objectHandle), sampling(sampling),
+              paintHandle(paintHandle) {}
+        ~ConstructorHandle() override = default;
+        OpDataHandle objectHandle;
+        SamplingOptions sampling;
+        PaintHandle paintHandle;
+    };
+    DrawImageWithParmOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    DrawImageWithParmOpItem(const std::shared_ptr<Image>& image, const std::shared_ptr<Data>& data,
+        const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& sampling, const Paint& paint);
+    ~DrawImageWithParmOpItem() override = default;
+
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
+    void Playback(Canvas* canvas, const Rect* rect) override;
+    void SetNodeId(NodeId id) override;
+private:
+    SamplingOptions sampling_;
+    std::shared_ptr<ExtendImageObject> objectHandle_;
+};
+
+class DrawPixelMapWithParmOpItem : public DrawWithPaintOpItem {
+public:
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle(const OpDataHandle& objectHandle, const SamplingOptions& sampling,
+            const PaintHandle& paintHandle)
+            : OpItem(DrawOpItem::PIXELMAP_WITH_PARM_OPITEM), objectHandle(objectHandle), sampling(sampling),
+              paintHandle(paintHandle) {}
+        ~ConstructorHandle() override = default;
+        OpDataHandle objectHandle;
+        SamplingOptions sampling;
+        PaintHandle paintHandle;
+    };
+    DrawPixelMapWithParmOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    DrawPixelMapWithParmOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap,
+        const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& sampling, const Paint& paint);
+    ~DrawPixelMapWithParmOpItem() override = default;
+
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
+    void Playback(Canvas* canvas, const Rect* rect) override;
+    void SetNodeId(NodeId id) override;
+private:
+    SamplingOptions sampling_;
+    std::shared_ptr<ExtendImageObject> objectHandle_;
+};
+
+class DrawPixelMapRectOpItem : public DrawWithPaintOpItem {
+public:
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle(const OpDataHandle& objectHandle, const SamplingOptions& sampling,
+            const PaintHandle& paintHandle)
+            : OpItem(DrawOpItem::PIXELMAP_RECT_OPITEM), objectHandle(objectHandle), sampling(sampling),
+              paintHandle(paintHandle) {}
+        ~ConstructorHandle() override = default;
+        OpDataHandle objectHandle;
+        SamplingOptions sampling;
+        PaintHandle paintHandle;
+    };
+    DrawPixelMapRectOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    DrawPixelMapRectOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap, const Rect& src, const Rect& dst,
+        const SamplingOptions& sampling, const Paint& paint);
+    ~DrawPixelMapRectOpItem() override = default;
+
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
+    void Playback(Canvas* canvas, const Rect* rect) override;
+    void SetNodeId(NodeId id) override;
+private:
+    SamplingOptions sampling_;
+    std::shared_ptr<ExtendImageBaseObj> objectHandle_;
+};
+
+class DrawFuncOpItem : public DrawOpItem {
+public:
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle(const OpDataHandle& objectHandle)
+            : OpItem(DrawOpItem::DRAW_FUNC_OPITEM), objectHandle(objectHandle) {}
+        ~ConstructorHandle() override = default;
+        OpDataHandle objectHandle;
+    };
+    DrawFuncOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    explicit DrawFuncOpItem(RecordingCanvas::DrawFunc&& drawFunc);
+    ~DrawFuncOpItem() override = default;
+
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
+    void Playback(Canvas* canvas, const Rect* rect) override;
+private:
+    std::shared_ptr<ExtendDrawFuncObj> objectHandle_;
+};
+
+#ifdef ROSEN_OHOS
+class DrawSurfaceBufferOpItem : public DrawWithPaintOpItem {
+public:
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle(uint32_t surfaceBufferId, int offSetX, int offSetY, int width, int height,
+            const PaintHandle& paintHandle)
+            : OpItem(DrawOpItem::SURFACEBUFFER_OPITEM), surfaceBufferId(surfaceBufferId),
+            surfaceBufferInfo(nullptr, offSetX, offSetY, width, height), paintHandle(paintHandle) {}
+        ~ConstructorHandle() override = default;
+        uint32_t surfaceBufferId;
+        DrawingSurfaceBufferInfo surfaceBufferInfo;
+        PaintHandle paintHandle;
+    };
+
+    DrawSurfaceBufferOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    DrawSurfaceBufferOpItem(const DrawingSurfaceBufferInfo& surfaceBufferInfo, const Paint& paint)
+        : DrawWithPaintOpItem(paint, SURFACEBUFFER_OPITEM), surfaceBufferInfo_(surfaceBufferInfo) {}
+    ~DrawSurfaceBufferOpItem();
+
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
+    void Playback(Canvas* canvas, const Rect* rect) override;
+private:
+    mutable DrawingSurfaceBufferInfo surfaceBufferInfo_;
+    void Clear();
+    void Draw(Canvas* canvas);
+    void DrawWithVulkan(Canvas* canvas);
+    void DrawWithGles(Canvas* canvas);
+    bool CreateEglTextureId();
+
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
+#endif
+#ifdef RS_ENABLE_VK
+    mutable std::shared_ptr<Image> image_ = nullptr;
+#endif
+#ifdef RS_ENABLE_GL
+    mutable EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
+    mutable GLuint texId_ = 0;
+#endif
+};
+#endif
+}
 } // namespace Rosen
 } // namespace OHOS
 #endif // USE_ROSEN_DRAWING

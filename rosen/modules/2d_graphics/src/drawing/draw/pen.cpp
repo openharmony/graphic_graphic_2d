@@ -54,9 +54,9 @@ void Pen::SetColor(int c)
     brush_.SetColor(c);
 }
 
-void Pen::SetARGB(int r, int g, int b, int a)
+void Pen::SetARGB(int a, int r, int g, int b)
 {
-    return brush_.SetARGB(r, g, b, a);
+    return brush_.SetARGB(a, r, g, b);
 }
 
 Color4f Pen::GetColor4f()
@@ -77,6 +77,11 @@ void Pen::SetColor(const Color4f& cf, std::shared_ptr<ColorSpace> s)
 uint32_t Pen::GetAlpha() const
 {
     return brush_.GetAlpha();
+}
+
+scalar Pen::GetAlphaF() const
+{
+    return brush_.GetAlphaF();
 }
 
 void Pen::SetAlpha(uint32_t a)
@@ -169,6 +174,11 @@ Filter Pen::GetFilter() const
     return brush_.GetFilter();
 }
 
+bool Pen::HasFilter() const
+{
+    return brush_.HasFilter();
+}
+
 void Pen::SetShaderEffect(std::shared_ptr<ShaderEffect> e)
 {
     brush_.SetShaderEffect(e);
@@ -192,8 +202,7 @@ bool operator==(const Pen& p1, const Pen& p2)
 
 bool operator!=(const Pen& p1, const Pen& p2)
 {
-    return p1.width_ != p2.width_ || p1.miterLimit_ != p2.miterLimit_ || p1.join_ != p2.join_ || p1.cap_ != p2.cap_ ||
-        p1.pathEffect_ != p2.pathEffect_ || p1.brush_ != p2.brush_;
+    return !(p1 == p2);
 }
 } // namespace Drawing
 } // namespace Rosen

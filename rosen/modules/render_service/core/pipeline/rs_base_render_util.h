@@ -41,6 +41,9 @@
 namespace OHOS {
 namespace Rosen {
 class RSTransactionData;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+constexpr float DEFAULT_SCREEN_LIGHT_NITS = 500;
+#endif
 struct BufferDrawParam {
     sptr<OHOS::SurfaceBuffer> buffer;
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
@@ -75,10 +78,15 @@ struct BufferDrawParam {
     GraphicColorGamut targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 
     bool useCPU = false;
+    bool isMirror = false;
     bool setColorFilter = true;
+    bool useBilinearInterpolation = false;
     std::vector<GraphicHDRMetaData> metaDatas = {}; // static meta datas for HDR10
     GraphicHDRMetaDataSet metaDataSet; // dynamic meta datas for HDR10+, HDR VIVID
     uint32_t threadIndex = UNI_MAIN_THREAD_INDEX; // use to decide eglimage unmap thread index
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    float screenBrightnessNits = DEFAULT_SCREEN_LIGHT_NITS;
+#endif
 };
 
 using WriteToPngParam = struct {
@@ -107,7 +115,9 @@ public:
     static bool IsNeedClient(RSRenderNode& node, const ComposeInfo& info);
     static void SetNeedClient(bool flag);
     static bool IsBufferValid(const sptr<SurfaceBuffer>& buffer);
-    static BufferRequestConfig GetFrameBufferRequestConfig(const ScreenInfo& screenInfo, bool isPhysical = true);
+    static BufferRequestConfig GetFrameBufferRequestConfig(const ScreenInfo& screenInfo, bool isPhysical = true,
+        GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB,
+        GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888);
 
 #ifndef USE_ROSEN_DRAWING
     static SkMatrix GetSurfaceTransformMatrix(GraphicTransformType rotationTransform, const RectF& bounds);
@@ -146,6 +156,7 @@ public:
 
     static bool WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& node);
     static bool WriteCacheRenderNodeToPng(const RSRenderNode& node);
+    static bool WriteSurfaceBufferToPng(sptr<SurfaceBuffer>& buffer, uint64_t id = 0);
 
     static bool WritePixelMapToPng(Media::PixelMap& pixelMap);
     static void DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,

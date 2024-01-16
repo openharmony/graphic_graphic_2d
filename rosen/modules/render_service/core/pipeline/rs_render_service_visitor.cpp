@@ -116,11 +116,7 @@ void RSRenderServiceVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
             canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas_.get());
             canvas_->clipRect(SkRect::MakeWH(logicalScreenWidth, logicalScreenHeight));
 #else
-            Drawing::Bitmap bitmapTmp;
-            Drawing::BitmapFormat formatTmp { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-            bitmapTmp.Build(logicalScreenWidth, logicalScreenHeight, formatTmp);
-            drawingCanvas_ = std::make_unique<Drawing::Canvas>();
-            drawingCanvas_->Bind(bitmapTmp);
+            drawingCanvas_ = std::make_unique<Drawing::Canvas>(logicalScreenWidth, logicalScreenHeight);
             canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas_.get());
             Drawing::Rect tmpRect(0, 0, logicalScreenWidth, logicalScreenHeight);
             canvas_->ClipRect(tmpRect, Drawing::ClipOp::INTERSECT, false);
@@ -135,11 +131,7 @@ void RSRenderServiceVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
         canvas_ = std::make_shared<RSPaintFilterCanvas>(skCanvas_.get());
         canvas_->clipRect(SkRect::MakeWH(logicalScreenWidth, logicalScreenHeight));
 #else
-        Drawing::Bitmap bitmap;
-        Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-        bitmap.Build(logicalScreenWidth, logicalScreenHeight, format);
-        drawingCanvas_ = std::make_unique<Drawing::Canvas>();
-        drawingCanvas_->Bind(bitmap);
+        drawingCanvas_ = std::make_unique<Drawing::Canvas>(logicalScreenWidth, logicalScreenHeight);
         canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas_.get());
         Drawing::Rect tmpRect(0, 0, logicalScreenWidth, logicalScreenHeight);
         canvas_->ClipRect(tmpRect, Drawing::ClipOp::INTERSECT, false);
@@ -205,6 +197,12 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     } else {
         ProcessChildren(node);
     }
+    for (auto& [_, funcs] : foregroundSurfaces_) {
+        for (const auto& func : funcs) {
+            func();
+        }
+    }
+    foregroundSurfaces_.clear();
     processor_->PostProcess();
 }
 
@@ -270,9 +268,24 @@ void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         node.ParallelVisitLock();
     }
     ProcessChildren(node);
-    node.SetGlobalZOrder(globalZOrder_);
-    globalZOrder_ = globalZOrder_ + 1;
-    processor_->ProcessSurface(node);
+    auto func = [nodePtr = node.ReinterpretCastTo<RSSurfaceRenderNode>(), this]() {
+        nodePtr->SetGlobalZOrder(globalZOrder_);
+        globalZOrder_ = globalZOrder_ + 1;
+        processor_->ProcessSurface(*nodePtr);
+    };
+    if (node.GetIsForeground()) {
+        auto parent = node.GetParent().lock();
+        foregroundSurfaces_[parent ? parent->GetId() : 0].push_back(func);
+    } else {
+        func();
+    }
+    auto it = foregroundSurfaces_.find(node.GetId());
+    if (it != foregroundSurfaces_.end()) {
+        for (auto f : foregroundSurfaces_[node.GetId()]) {
+            f();
+        }
+        foregroundSurfaces_.erase(it);
+    }
     RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(node);
     if (mParallelEnable) {
         node.ParallelVisitUnlock();

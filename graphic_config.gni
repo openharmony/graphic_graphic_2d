@@ -12,6 +12,9 @@
 # limitations under the License.
 
 declare_args() {
+  graphic_2d_feature_product = "default"
+  graphic_2d_feature_enable_pgo = false
+  graphic_2d_feature_pgo_path = ""
   graphic_2d_feature_bootanimation_enable = true
   graphic_2d_feature_ace_enable_gpu = true
   graphic_2d_feature_color_gamut_enable = false
@@ -23,15 +26,19 @@ declare_args() {
   graphic_2d_feature_freemem_enable = false
   graphic_2d_feature_parallel_render_enable = true
   graphic_2d_feature_enable_vulkan = false
+  graphic_2d_feature_enable_flutter_vulkan = false
+  graphic_2d_feature_enable_opengl = true
   graphic_2d_feature_enable_filter_cache = true
   graphic_2d_feature_parallel_upload_enable = true
   enable_text_gine = true
   use_texgine = true
+  use_video_processing_engine = false
   logger_enable_scope = false
   texgine_enable_debug_log = false
   player_framework_enable = true
   graphic_2d_feature_drivers_interface_display_enable = true
   graphic_2d_feature_tp_switch_enbale = false
+  graphic_2d_feature_enable_recording_dcl = true
 
   if (defined(is_arkui_x) && is_arkui_x) {
     use_new_render_context = false
@@ -42,29 +49,36 @@ declare_args() {
   }
 }
 
+if (graphic_2d_feature_product == "phone") {
+  graphic_2d_feature_enable_vulkan = true
+}
+
 gpu_defines = []
 accessibility_defines = []
 if (enable_text_gine) {
   gpu_defines += [ "USE_GRAPHIC_TEXT_GINE" ]
 }
 if (graphic_2d_feature_ace_enable_gpu) {
+  if (graphic_2d_feature_enable_flutter_vulkan) {
+    gpu_defines += [ "RS_ENABLE_OLD_VK" ]
+  }
   if (graphic_2d_feature_enable_vulkan) {
-    rs_enable_parallel_upload = false
     gpu_defines += [
       "ACE_ENABLE_VK",
       "RS_ENABLE_VK",
     ]
-  } else {
+  }
+  if (graphic_2d_feature_enable_opengl) {
     gpu_defines += [
       "ACE_ENABLE_GL",
       "RS_ENABLE_GL",
     ]
-    if (graphic_2d_feature_parallel_upload_enable) {
-      rs_enable_parallel_upload = true
-      gpu_defines += [ "RS_ENABLE_PARALLEL_UPLOAD" ]
-    } else {
-      rs_enable_parallel_upload = false
-    }
+  }
+  if (graphic_2d_feature_enable_recording_dcl) {
+    rs_enable_recording_dcl = true
+    gpu_defines += [ "ENABLE_RECORDING_DCL" ]
+  } else {
+    rs_enable_recording_dcl = false
   }
   ace_enable_gpu = true
   rs_enable_gpu = true
@@ -79,10 +93,7 @@ if (graphic_2d_feature_ace_enable_gpu) {
 
   libvulkan = []
   if (graphic_2d_feature_enable_vulkan) {
-    libvulkan += [
-      "//third_party/flutter/engine/flutter/vulkan:vulkan_flutter",
-      "//third_party/vulkan-loader/openharmony:vulkan_loader",
-    ]
+    libvulkan += [ "//third_party/vulkan-loader/openharmony:vulkan_loader" ]
   }
 } else {
   gpu_defines = [ "ACE_DISABLE_GL" ]
@@ -93,8 +104,15 @@ if (graphic_2d_feature_ace_enable_gpu) {
   libvulkan = []
 }
 
-if ((graphic_2d_feature_rs_enable_eglimage &&
-     !graphic_2d_feature_enable_vulkan) || current_os == "android") {
+if (graphic_2d_feature_parallel_upload_enable &&
+    graphic_2d_feature_rs_enable_uni_render) {
+  rs_enable_parallel_upload = true
+  gpu_defines += [ "RS_ENABLE_PARALLEL_UPLOAD" ]
+} else {
+  rs_enable_parallel_upload = false
+}
+
+if (graphic_2d_feature_rs_enable_eglimage || current_os == "android") {
   gpu_defines += [
     "RS_ENABLE_EGLIMAGE",
     "RS_ENABLE_EGLQUERYSURFACE",
@@ -117,7 +135,7 @@ if (graphic_2d_feature_rs_enable_uni_render) {
   rs_enable_driven_render = false
 }
 
-if (graphic_2d_feature_enable_afbc && !graphic_2d_feature_enable_vulkan) {
+if (graphic_2d_feature_enable_afbc) {
   gpu_defines += [ "RS_ENABLE_AFBC" ]
 }
 
@@ -144,9 +162,14 @@ check_graphic_ext_file_args = [
   "--filename",
   rebase_path("//foundation/graphic/graphic_2d_ext/ohcore/build/config.gni"),
 ]
+
 check_ddgr_ext_file_args = [
   "--filename",
   rebase_path("//foundation/graphic/graphic_2d_ext/ddgr/ddgr_config.gni"),
+]
+check_delegator_ext_file_args = [
+  "--filename",
+  rebase_path("//foundation/graphic/graphic_2d_ext/delegator/config.gni"),
 ]
 if (exec_script(check_graphic_ext_file_script,
                 check_graphic_ext_file_args,
@@ -155,11 +178,22 @@ if (exec_script(check_graphic_ext_file_script,
     import("//foundation/graphic/graphic_2d_ext/ohcore/build/config.gni")
   }
 }
+
 if (exec_script(check_graphic_ext_file_script,
                 check_ddgr_ext_file_args,
                 "string") == "True") {
   ddgr_ext_configs = {
     import("//foundation/graphic/graphic_2d_ext/ddgr/ddgr_config.gni")
+  }
+}
+
+graphic_2d_delegator_configs = {
+}
+if (exec_script(check_graphic_ext_file_script,
+                check_delegator_ext_file_args,
+                "string") == "True") {
+  graphic_2d_delegator_configs = {
+    import("//foundation/graphic/graphic_2d_ext/delegator/config.gni")
   }
 }
 
@@ -173,6 +207,8 @@ skia_root_new = "//third_party/skia"
 memmgr_root = "//foundation/resourceschedule/memmgr"
 memmgr_plugin_root = "//foundation/resourceschedule/memmgr_plugin"
 fuzz_test_output_path = "graphic_2d/graphic_2d"
+video_processing_engine_root = "//foundation/multimedia/video_processing_engine"
+arkui_root = "//foundation/arkui"
 
 accessibility_enable = false
 if (defined(global_parts_info) &&
@@ -184,6 +220,11 @@ if (defined(global_parts_info) &&
 if (defined(global_parts_info) &&
     !defined(global_parts_info.multimedia_player_framework)) {
   player_framework_enable = false
+}
+
+if (defined(global_parts_info) &&
+    defined(global_parts_info.multimedia_video_processing_engine)) {
+  use_video_processing_engine = true
 }
 
 if (defined(global_parts_info) &&

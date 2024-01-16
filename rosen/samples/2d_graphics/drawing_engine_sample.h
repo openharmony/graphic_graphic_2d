@@ -60,6 +60,7 @@ private:
     std::shared_ptr<HdiOutput> output_ = nullptr;
 
     DrawingProxy* drawingProxy = nullptr;
+    std::shared_ptr<SurfaceBase> surface_ = nullptr;
 
     std::unordered_map<uint64_t, sptr<SurfaceBuffer>> prevBufferMap_;
     std::unordered_map<uint64_t, sptr<SyncFence>> prevFenceMap_;
@@ -73,7 +74,11 @@ private:
     void DoPrepareCompleted(sptr<Surface> surface, const struct PrepareCompleteParam &param);
     void OnBufferAvailable() override;
     SurfaceError DoDraw();
+#ifndef USE_ROSEN_DRAWING
     void ExcuteBenchMark(SkCanvas* canvas);
+#else
+    void ExcuteBenchMark(Drawing::Canvas* canvas);
+#endif
     bool DrawDrawingLayer(std::shared_ptr<HdiLayerInfo> &layer);
     void CreateDrawingSurface();
     void OnHotPlugEvent(const std::shared_ptr<HdiOutput> &output, bool connected);

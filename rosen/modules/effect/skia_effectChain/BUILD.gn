@@ -28,6 +28,8 @@ config("effect_SKeffectChian_config") {
     "-Wno-missing-field-initializers",
     "-Wno-c++11-narrowing",
   ]
+  include_dirs =
+      [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
 }
 
 config("effect_SKeffectChian_public_config") {
@@ -51,11 +53,7 @@ ohos_shared_library("skeffectchain") {
     public_deps += [ "$graphic_2d_root:libgl" ]
   }
 
-  if (defined(use_new_skia) && use_new_skia) {
-    public_deps += [ "//third_party/skia:skia_ohos" ]
-  } else {
-    public_deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
-  }
+  public_deps += [ "//third_party/skia:skia_ohos" ]
 
   external_deps = [
     "c_utils:utils",
@@ -80,6 +78,10 @@ ohos_shared_library("skeffectchain") {
   public_configs = [
     ":effect_SKeffectChian_public_config",
     "//commonlibrary/c_utils/base:utils_config",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
 
   cflags_cc = [ "-std=c++17" ]

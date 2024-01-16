@@ -45,7 +45,7 @@ namespace TextEngine {
 #define MEMORY_USAGE_SCOPE(classname, var) \
     MemoryUsageScope s(std::string(classname) + " " + member); \
     if (needThis) { DoReportMemoryUsage("*this", sizeof(var)); } \
-    [[maybe_unused]] const auto &currentVal = var
+    [[maybe_unused]] const auto &currentVal = (var)
 
 template<class T>
 std::string GetTypeName()

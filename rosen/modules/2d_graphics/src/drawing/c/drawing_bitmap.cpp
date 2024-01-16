@@ -91,24 +91,40 @@ void OH_Drawing_BitmapDestroy(OH_Drawing_Bitmap* cBitmap)
 void OH_Drawing_BitmapBuild(OH_Drawing_Bitmap* cBitmap, const uint32_t width, const uint32_t height,
     const OH_Drawing_BitmapFormat* cBitmapFormat)
 {
+    Bitmap* bitmap = CastToBitmap(cBitmap);
+    if (bitmap == nullptr) {
+        return;
+    }
     ColorType colorType = CColorFormatCastToColorType(cBitmapFormat->colorFormat);
     AlphaType alphaType = CAlphaFormatCastToAlphaType(cBitmapFormat->alphaFormat);
 
     BitmapFormat format { colorType, alphaType };
-    CastToBitmap(cBitmap)->Build(width, height, format);
+    bitmap->Build(width, height, format);
 }
 
 uint32_t OH_Drawing_BitmapGetWidth(OH_Drawing_Bitmap* cBitmap)
 {
-    return CastToBitmap(cBitmap)->GetWidth();
+    Bitmap* bitmap = CastToBitmap(cBitmap);
+    if (bitmap == nullptr) {
+        return 0;
+    }
+    return bitmap->GetWidth();
 }
 
 uint32_t OH_Drawing_BitmapGetHeight(OH_Drawing_Bitmap* cBitmap)
 {
-    return CastToBitmap(cBitmap)->GetHeight();
+    Bitmap* bitmap = CastToBitmap(cBitmap);
+    if (bitmap == nullptr) {
+        return 0;
+    }
+    return bitmap->GetHeight();
 }
 
 void* OH_Drawing_BitmapGetPixels(OH_Drawing_Bitmap* cBitmap)
 {
-    return CastToBitmap(cBitmap)->GetPixels();
+    Bitmap* bitmap = CastToBitmap(cBitmap);
+    if (bitmap == nullptr) {
+        return nullptr;
+    }
+    return bitmap->GetPixels();
 }

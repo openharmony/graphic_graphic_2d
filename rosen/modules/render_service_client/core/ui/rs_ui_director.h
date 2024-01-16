@@ -34,10 +34,11 @@ public:
     static std::shared_ptr<RSUIDirector> Create();
 
     ~RSUIDirector();
-    void GoBackground();
-    void GoForeground();
+    void GoBackground(bool isTextureExport = false);
+    void GoForeground(bool isTextureExport = false);
     void Init(bool shouldCreateRenderThread = true);
-    void Destroy();
+    void StartTextureExport();
+    void Destroy(bool isTextureExport = false);
     void SetRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode);
     void SetAbilityBGAlpha(uint8_t alpha);
     /**
@@ -55,11 +56,18 @@ public:
     void SetTimeStamp(uint64_t timeStamp, const std::string& abilityName);
     void SetCacheDir(const std::string& cacheFilePath);
 
-    bool RunningCustomAnimation(uint64_t timeStamp);
+    bool FlushAnimation(uint64_t timeStamp, int64_t vsyncPeriod = 0);
+    void FlushModifier();
+    bool HasUIAnimation();
 
     void SetAppFreeze(bool isAppFreeze);
 
+    void SetRequestVsyncCallback(const std::function<void()>& callback);
+
     static void PostFrameRateTask(const std::function<void()>& task);
+
+    int32_t GetCurrentRefreshRateMode();
+    int32_t GetAnimateExpectedRate() const;
 
 private:
     void AttachSurface();
@@ -87,6 +95,8 @@ private:
     int surfaceWidth_ = 0;
     int surfaceHeight_ = 0;
     std::string cacheDir_;
+    static std::function<void()> requestVsyncCallback_;
+    bool isHgmConfigChangeCallbackReg_ = false;
 
     friend class RSApplicationAgentImpl;
     friend class RSRenderThread;

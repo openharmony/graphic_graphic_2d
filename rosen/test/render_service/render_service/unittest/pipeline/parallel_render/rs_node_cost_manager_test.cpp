@@ -19,6 +19,7 @@
 #include "limit_number.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_canvas_render_node.h"
+#include "platform/common/rs_system_properties.h"
 using namespace testing;
 using namespace testing::ext;
 
@@ -83,7 +84,7 @@ HWTEST_F(RsNodeCostManagerTest, IsSkipProcessingTest2, TestSize.Level1)
     RSSurfaceRenderNodeConfig config;
     config.id = 10;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
-    rsSurfaceRenderNode->renderProperties_.SetAlpha(0.0f);
+    rsSurfaceRenderNode->GetMutableRenderProperties().SetAlpha(0.0f);
     rsSurfaceRenderNode->shouldPaint_ = false;
     auto result = rsNodeCostManager->IsSkipProcessing(*rsSurfaceRenderNode);
     ASSERT_TRUE(result);
@@ -102,7 +103,7 @@ HWTEST_F(RsNodeCostManagerTest, IsSkipProcessingTest3, TestSize.Level1)
     RSSurfaceRenderNodeConfig config;
     config.id = 10;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
-    rsSurfaceRenderNode->renderProperties_.SetAlpha(2.0f);
+    rsSurfaceRenderNode->GetMutableRenderProperties().SetAlpha(2.0f);
     rsSurfaceRenderNode->SetOcclusionVisible(false);
     rsNodeCostManager->isOcclusionEnabled_ = true;
     auto result = rsNodeCostManager->IsSkipProcessing(*rsSurfaceRenderNode);
@@ -123,7 +124,7 @@ HWTEST_F(RsNodeCostManagerTest, IsSkipProcessingTest4, TestSize.Level1)
     config.nodeType = RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
     config.id = 10;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
-    rsSurfaceRenderNode->renderProperties_.SetAlpha(2.0f);
+    rsSurfaceRenderNode->GetMutableRenderProperties().SetAlpha(2.0f);
     rsSurfaceRenderNode->SetOcclusionVisible(false);
     rsNodeCostManager->isOcclusionEnabled_ = false;
     rsSurfaceRenderNode->dstRect_.Clear();
@@ -146,7 +147,7 @@ HWTEST_F(RsNodeCostManagerTest, IsSkipProcessingTest5, TestSize.Level1)
     config.nodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
     config.id = 10;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
-    rsSurfaceRenderNode->renderProperties_.SetAlpha(2.0f);
+    rsSurfaceRenderNode->GetMutableRenderProperties().SetAlpha(2.0f);
     rsSurfaceRenderNode->SetOcclusionVisible(false);
     rsSurfaceRenderNode->SetSecurityLayer(false);
     rsNodeCostManager->isOcclusionEnabled_ = false;
@@ -176,7 +177,7 @@ HWTEST_F(RsNodeCostManagerTest, IsSkipProcessingTest6, TestSize.Level1)
     config.nodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
     config.id = 10;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
-    rsSurfaceRenderNode->renderProperties_.SetAlpha(2.0f);
+    rsSurfaceRenderNode->GetMutableRenderProperties().SetAlpha(2.0f);
     rsSurfaceRenderNode->SetOcclusionVisible(false);
     rsSurfaceRenderNode->SetSecurityLayer(false);
     rsNodeCostManager->isOcclusionEnabled_ = false;
@@ -204,7 +205,7 @@ HWTEST_F(RsNodeCostManagerTest, IsSkipProcessingTest7, TestSize.Level1)
     config.nodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
     config.id = 10;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
-    rsSurfaceRenderNode->renderProperties_.SetAlpha(2.0f);
+    rsSurfaceRenderNode->GetMutableRenderProperties().SetAlpha(2.0f);
     rsSurfaceRenderNode->SetOcclusionVisible(false);
     rsSurfaceRenderNode->SetSecurityLayer(false);
     rsNodeCostManager->isOcclusionEnabled_ = false;
@@ -225,6 +226,11 @@ HWTEST_F(RsNodeCostManagerTest, IsSkipProcessingTest7, TestSize.Level1)
  */
 HWTEST_F(RsNodeCostManagerTest, CalcBaseRenderNodeCostTest1, TestSize.Level1)
 {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto rsNodeCostManager = std::make_shared<RSNodeCostManager>(1, 1, 1);
     auto rsContext = std::make_shared<RSContext>();
     RSSurfaceRenderNodeConfig config;
@@ -250,6 +256,11 @@ HWTEST_F(RsNodeCostManagerTest, CalcBaseRenderNodeCostTest1, TestSize.Level1)
  */
 HWTEST_F(RsNodeCostManagerTest, CalcBaseRenderNodeCostTest2, TestSize.Level1)
 {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto rsNodeCostManager = std::make_shared<RSNodeCostManager>(1, 1, 1);
     auto rsContext = std::make_shared<RSContext>();
     RSSurfaceRenderNodeConfig config;
@@ -272,10 +283,15 @@ HWTEST_F(RsNodeCostManagerTest, CalcBaseRenderNodeCostTest2, TestSize.Level1)
  */
 HWTEST_F(RsNodeCostManagerTest, CalcBaseRenderNodeCostTest3, TestSize.Level1)
 {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto rsNodeCostManager = std::make_shared<RSNodeCostManager>(1, 1, 1);
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     RSCanvasRenderNode node(nodeId);
-    node.renderProperties_.SetAlpha(0.0f);
+    node.GetMutableRenderProperties().SetAlpha(0.0f);
     rsNodeCostManager->CalcCanvasRenderNodeCost(node);
     auto result = rsNodeCostManager->GetDirtyNodeCost();
     ASSERT_EQ(0, result);
@@ -291,12 +307,17 @@ HWTEST_F(RsNodeCostManagerTest, CalcBaseRenderNodeCostTest3, TestSize.Level1)
  */
 HWTEST_F(RsNodeCostManagerTest, CalcCanvasRenderNodeCostTest1, TestSize.Level1)
 {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto rsNodeCostManager = std::make_shared<RSNodeCostManager>(1, 1, 1);
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     auto rsContext = std::make_shared<RSContext>();
     RSCanvasRenderNode node(nodeId);
-    node.renderProperties_.SetAlpha(0.0f);
-    node.renderProperties_.SetVisible(true);
+    node.GetMutableRenderProperties().SetAlpha(0.0f);
+    node.GetMutableRenderProperties().SetVisible(true);
     rsNodeCostManager->isOpDropped_ = false;
     rsNodeCostManager->costSurfaceNode_ =nullptr;
     node.UpdateChildrenOutOfRectFlag(false);
@@ -316,14 +337,19 @@ HWTEST_F(RsNodeCostManagerTest, CalcCanvasRenderNodeCostTest1, TestSize.Level1)
  */
 HWTEST_F(RsNodeCostManagerTest, CalcCanvasRenderNodeCostTest2, TestSize.Level1)
 {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto rsNodeCostManager = std::make_shared<RSNodeCostManager>(1, 1, 1);
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     auto rsContext = std::make_shared<RSContext>();
     RSSurfaceRenderNodeConfig config;
     config.nodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
     RSCanvasRenderNode node(nodeId);
-    node.renderProperties_.SetAlpha(2.0f);
-    node.renderProperties_.SetVisible(true);
+    node.GetMutableRenderProperties().SetAlpha(2.0f);
+    node.GetMutableRenderProperties().SetVisible(true);
     rsNodeCostManager->isOpDropped_ = true;
     rsNodeCostManager->costSurfaceNode_ = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
     rsNodeCostManager->costSurfaceNode_->dirtyManager_ = std::make_shared<RSDirtyRegionManager>();
@@ -347,12 +373,17 @@ HWTEST_F(RsNodeCostManagerTest, CalcCanvasRenderNodeCostTest2, TestSize.Level1)
  */
 HWTEST_F(RsNodeCostManagerTest, CalcCanvasRenderNodeCostTest3, TestSize.Level1)
 {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto rsNodeCostManager = std::make_shared<RSNodeCostManager>(1, 1, 1);
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     auto rsContext = std::make_shared<RSContext>();
     RSCanvasRenderNode node(nodeId);
-    node.renderProperties_.SetAlpha(2.0f);
-    node.renderProperties_.SetVisible(true);
+    node.GetMutableRenderProperties().SetAlpha(2.0f);
+    node.GetMutableRenderProperties().SetVisible(true);
     rsNodeCostManager->isOpDropped_ = false;
     rsNodeCostManager->costSurfaceNode_ =nullptr;
     node.UpdateChildrenOutOfRectFlag(false);
@@ -371,12 +402,17 @@ HWTEST_F(RsNodeCostManagerTest, CalcCanvasRenderNodeCostTest3, TestSize.Level1)
  */
 HWTEST_F(RsNodeCostManagerTest, CalcCanvasRenderNodeCostTest4, TestSize.Level1)
 {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto rsNodeCostManager = std::make_shared<RSNodeCostManager>(1, 1, 1);
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     auto rsContext = std::make_shared<RSContext>();
     RSCanvasRenderNode node(nodeId);
-    node.renderProperties_.SetAlpha(2.0f);
-    node.renderProperties_.SetVisible(true);
+    node.GetMutableRenderProperties().SetAlpha(2.0f);
+    node.GetMutableRenderProperties().SetVisible(true);
     rsNodeCostManager->isOpDropped_ = false;
     node.UpdateChildrenOutOfRectFlag(true);
     rsNodeCostManager->CalcCanvasRenderNodeCost(node);
@@ -407,12 +443,17 @@ HWTEST_F(RsNodeCostManagerTest, AddNodeCostTest, TestSize.Level1)
  */
 HWTEST_F(RsNodeCostManagerTest, CalcSurfaceRenderNodeCostTest1, TestSize.Level1)
 {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto rsNodeCostManager = std::make_shared<RSNodeCostManager>(1, 1, 1);
     auto rsContext = std::make_shared<RSContext>();
     RSSurfaceRenderNodeConfig config;
     config.id = 10;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
-    rsSurfaceRenderNode->renderProperties_.SetAlpha(0.0f);
+    rsSurfaceRenderNode->GetMutableRenderProperties().SetAlpha(0.0f);
     rsNodeCostManager->CalcSurfaceRenderNodeCost(*rsSurfaceRenderNode);
     auto result = rsNodeCostManager->GetDirtyNodeCost();
     ASSERT_EQ(0, result);
@@ -428,13 +469,18 @@ HWTEST_F(RsNodeCostManagerTest, CalcSurfaceRenderNodeCostTest1, TestSize.Level1)
  */
 HWTEST_F(RsNodeCostManagerTest, CalcSurfaceRenderNodeCostTest2, TestSize.Level1)
 {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto rsNodeCostManager = std::make_shared<RSNodeCostManager>(1, 1, 1);
     auto rsContext = std::make_shared<RSContext>();
     RSSurfaceRenderNodeConfig config;
     config.id = 10;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
-    rsSurfaceRenderNode->renderProperties_.SetAlpha(2.0f);
-    rsSurfaceRenderNode->renderProperties_.visible_ = true;
+    rsSurfaceRenderNode->GetMutableRenderProperties().SetAlpha(2.0f);
+    rsSurfaceRenderNode->GetMutableRenderProperties().visible_ = true;
     rsSurfaceRenderNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
     rsNodeCostManager->isOpDropped_ = false;
     rsNodeCostManager->CalcSurfaceRenderNodeCost(*rsSurfaceRenderNode);
@@ -452,13 +498,18 @@ HWTEST_F(RsNodeCostManagerTest, CalcSurfaceRenderNodeCostTest2, TestSize.Level1)
  */
 HWTEST_F(RsNodeCostManagerTest, CalcSurfaceRenderNodeCostTest3, TestSize.Level1)
 {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto rsNodeCostManager = std::make_shared<RSNodeCostManager>(1, 1, 1);
     auto rsContext = std::make_shared<RSContext>();
     RSSurfaceRenderNodeConfig config;
     config.id = 10;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
-    rsSurfaceRenderNode->renderProperties_.SetAlpha(2.0f);
-    rsSurfaceRenderNode->renderProperties_.visible_ = true;
+    rsSurfaceRenderNode->GetMutableRenderProperties().SetAlpha(2.0f);
+    rsSurfaceRenderNode->GetMutableRenderProperties().visible_ = true;
     rsSurfaceRenderNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     rsNodeCostManager->isOpDropped_ = false;
     rsNodeCostManager->CalcSurfaceRenderNodeCost(*rsSurfaceRenderNode);
@@ -476,13 +527,18 @@ HWTEST_F(RsNodeCostManagerTest, CalcSurfaceRenderNodeCostTest3, TestSize.Level1)
  */
 HWTEST_F(RsNodeCostManagerTest, CalcSurfaceRenderNodeCostTest4, TestSize.Level1)
 {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto rsNodeCostManager = std::make_shared<RSNodeCostManager>(1, 1, 1);
     auto rsContext = std::make_shared<RSContext>();
     RSSurfaceRenderNodeConfig config;
     config.id = 10;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
-    rsSurfaceRenderNode->renderProperties_.SetAlpha(2.0f);
-    rsSurfaceRenderNode->renderProperties_.visible_ = true;
+    rsSurfaceRenderNode->GetMutableRenderProperties().SetAlpha(2.0f);
+    rsSurfaceRenderNode->GetMutableRenderProperties().visible_ = true;
     rsSurfaceRenderNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
     rsNodeCostManager->isOpDropped_ = false;
     rsNodeCostManager->CalcSurfaceRenderNodeCost(*rsSurfaceRenderNode);
@@ -500,13 +556,18 @@ HWTEST_F(RsNodeCostManagerTest, CalcSurfaceRenderNodeCostTest4, TestSize.Level1)
  */
 HWTEST_F(RsNodeCostManagerTest, CalcSurfaceRenderNodeCostTest5, TestSize.Level1)
 {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto rsNodeCostManager = std::make_shared<RSNodeCostManager>(1, 1, 1);
     auto rsContext = std::make_shared<RSContext>();
     RSSurfaceRenderNodeConfig config;
     config.id = 10;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
-    rsSurfaceRenderNode->renderProperties_.SetAlpha(2.0f);
-    rsSurfaceRenderNode->renderProperties_.visible_ = true;
+    rsSurfaceRenderNode->GetMutableRenderProperties().SetAlpha(2.0f);
+    rsSurfaceRenderNode->GetMutableRenderProperties().visible_ = true;
     rsSurfaceRenderNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
     rsNodeCostManager->isOpDropped_ = false;
     rsNodeCostManager->CalcSurfaceRenderNodeCost(*rsSurfaceRenderNode);

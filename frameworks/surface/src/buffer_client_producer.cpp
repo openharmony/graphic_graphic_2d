@@ -15,11 +15,13 @@
 
 #include "buffer_client_producer.h"
 
+#include <iremote_stub.h>
 #include "buffer_log.h"
 #include "buffer_manager.h"
 #include "buffer_utils.h"
 #include "sync_fence.h"
 #include "message_option.h"
+#include "securec.h"
 
 #define DEFINE_MESSAGE_VARIABLES(arg, ret, opt, LOGE) \
     MessageOption opt;                                \
@@ -74,7 +76,11 @@ GSError BufferClientProducer::RequestBuffer(const BufferRequestConfig &config, s
     WriteRequestConfig(arguments, config);
 
     SEND_REQUEST(BUFFER_PRODUCER_REQUEST_BUFFER, arguments, reply, option);
-    CHECK_RETVAL_WITH_SEQ(reply, retval.sequence);
+    int32_t retCode = reply.ReadInt32();
+    if (retCode != GSERROR_OK) {
+        BLOGND("Remote return %{public}d", retCode);
+        return (GSError)retCode;
+    }
 
     GSError ret = ReadSurfaceBufferImpl(reply, retval.sequence, retval.buffer);
     if (ret != GSERROR_OK) {
@@ -90,6 +96,35 @@ GSError BufferClientProducer::RequestBuffer(const BufferRequestConfig &config, s
     retval.fence = SyncFence::ReadFromMessageParcel(reply);
     reply.ReadInt32Vector(&retval.deletingBuffers);
 
+    return GSERROR_OK;
+}
+
+GSError BufferClientProducer::GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer,
+    sptr<SyncFence>& fence, float matrix[16], int32_t matrixSize)
+{
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
+
+    SEND_REQUEST(BUFFER_PRODUCER_GET_LAST_FLUSHED_BUFFER, arguments, reply, option);
+    int32_t retCode = reply.ReadInt32();
+    if (retCode != GSERROR_OK) {
+        BLOGND("Remote return %{public}d", retCode);
+        return (GSError)retCode;
+    }
+    uint32_t sequence;
+    GSError ret = ReadSurfaceBufferImpl(reply, sequence, buffer);
+    if (ret != GSERROR_OK) {
+        BLOGN_FAILURE("Read surface buffer impl failed, return %{public}d", ret);
+        return ret;
+    }
+
+    fence = SyncFence::ReadFromMessageParcel(reply);
+    std::vector<float> readMatrixVector;
+    reply.ReadFloatVector(&readMatrixVector);
+    if (memcpy_s(matrix, matrixSize * sizeof(float),
+        &readMatrixVector, readMatrixVector.size() * sizeof(float)) != EOK) {
+        BLOGN_FAILURE("memcpy_s fail");
+        return GSERROR_API_FAILED;
+    }
     return GSERROR_OK;
 }
 
@@ -125,6 +160,17 @@ GSError BufferClientProducer::FlushBuffer(uint32_t sequence, const sptr<BufferEx
 GSError BufferClientProducer::AttachBuffer(sptr<SurfaceBuffer>& buffer)
 {
     return GSERROR_NOT_SUPPORT;
+}
+
+GSError BufferClientProducer::AttachBuffer(sptr<SurfaceBuffer>& buffer, int32_t timeOut)
+{
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
+    int32_t sequence = buffer->GetSeqNum();
+    WriteSurfaceBufferImpl(arguments, sequence, buffer);
+    arguments.WriteInt32(timeOut);
+    SEND_REQUEST_WITH_SEQ(BUFFER_PRODUCER_ATTACH_BUFFER, arguments, reply, option, sequence);
+    CHECK_RETVAL_WITH_SEQ(reply, sequence);
+    return GSERROR_OK;
 }
 
 GSError BufferClientProducer::DetachBuffer(sptr<SurfaceBuffer>& buffer)
@@ -451,5 +497,20 @@ sptr<NativeSurface> BufferClientProducer::GetNativeSurface()
 {
     BLOGND("BufferClientProducer::GetNativeSurface not support.");
     return nullptr;
+}
+
+GSError BufferClientProducer::SendDeathRecipientObject()
+{
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
+    token_ = new IRemoteStub<IBufferProducerToken>();
+    arguments.WriteRemoteObject(token_->AsObject());
+    SEND_REQUEST(BUFFER_PRODUCER_REGISTER_DEATH_RECIPIENT, arguments, reply, option);
+
+    int32_t ret = reply.ReadInt32();
+    if (ret != GSERROR_OK) {
+        BLOGN_FAILURE("Remote return %{public}d", ret);
+        return static_cast<GSError>(ret);
+    }
+    return GSERROR_OK;
 }
 }; // namespace OHOS

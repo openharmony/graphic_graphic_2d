@@ -18,6 +18,7 @@
 #include <memory>
 #include <vector>
 #include "iconsumer_surface.h"
+#include "platform/common/rs_system_properties.h"
 #include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #if ACE_ENABLE_GL
@@ -60,8 +61,11 @@ bool RSSurfaceOhosFuzzTest(const uint8_t* data, size_t size)
 
     auto rsSurfaceFrameOhosRaster = RSSurfaceFrameOhosRaster(GetData<int32_t>(), GetData<int32_t>());
 #if ACE_ENABLE_GL
-    RenderContext renderContext_;
-    rsSurfaceFrameOhosRaster.SetRenderContext(&renderContext_);
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        RenderContext renderContext_;
+        rsSurfaceFrameOhosRaster.SetRenderContext(&renderContext_);
+    }
 #endif
     (void)rsSurfaceFrameOhosRaster.GetBufferAge();
     rsSurfaceFrameOhosRaster.SetReleaseFence(GetData<int32_t>());

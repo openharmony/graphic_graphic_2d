@@ -29,10 +29,11 @@ ohos_unittest("frame_analyzer_test") {
   ]
   external_deps = [ "hilog:libhilog" ]
 
-  if (defined(use_new_skia) && use_new_skia) {
-    deps += [ "//third_party/skia:skia_ohos" ]
-  } else {
-    deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
+  deps += [ "//third_party/skia:skia_ohos" ]
+
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+    deps += [ "../../../modules/2d_graphics:2d_graphics" ]
   }
 
   cflags = [

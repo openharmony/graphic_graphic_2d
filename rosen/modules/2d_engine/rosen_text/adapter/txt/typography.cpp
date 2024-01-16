@@ -22,54 +22,27 @@
 
 namespace OHOS {
 namespace Rosen {
-#ifndef USE_GRAPHIC_TEXT_GINE
-TextRect::TextRect(Drawing::RectF rect, TextDirection direction)
-#else
 TextRect::TextRect(Drawing::RectF rec, TextDirection dir)
-#endif
 {
-#ifndef USE_GRAPHIC_TEXT_GINE
-    rect_ = rect;
-    direction_ = direction;
-#else
     rect = rec;
     direction = dir;
-#endif
 }
 
-#ifndef USE_GRAPHIC_TEXT_GINE
-IndexAndAffinity::IndexAndAffinity(size_t index, Affinity affinity)
-#else
 IndexAndAffinity::IndexAndAffinity(size_t charIndex, Affinity charAffinity)
-#endif
 {
-#ifndef USE_GRAPHIC_TEXT_GINE
-    index_ = index;
-    affinity_ = affinity;
-#else
     index = charIndex;
     affinity = charAffinity;
-#endif
 }
 
 Boundary::Boundary(size_t left, size_t right)
 {
-#ifndef USE_GRAPHIC_TEXT_GINE
-    leftIndex_ = left;
-    rightIndex_ = right;
-#else
     leftIndex = left;
     rightIndex = right;
-#endif
 }
 
 bool Boundary::operator ==(const Boundary& rhs) const
 {
-#ifndef USE_GRAPHIC_TEXT_GINE
-    return leftIndex_ == rhs.leftIndex_ && rightIndex_ == rhs.rightIndex_;
-#else
     return leftIndex == rhs.leftIndex && rightIndex == rhs.rightIndex;
-#endif
 }
 
 namespace AdapterTxt {
@@ -141,15 +114,21 @@ void Typography::Layout(double width)
 
 void Typography::Paint(SkCanvas *canvas, double x, double y)
 {
+#ifndef USE_ROSEN_DRAWING
     return paragraph_->Paint(canvas, x, y);
+#endif
 }
 
 void Typography::Paint(Drawing::Canvas *drawCanvas, double x, double y)
 {
+#ifndef USE_ROSEN_DRAWING
     std::shared_ptr<Drawing::CoreCanvasImpl> coreCanvas = drawCanvas->GetCanvasData();
     auto drawingCanvas = static_cast<Drawing::SkiaCanvas *>(coreCanvas.get());
     auto canvas = drawingCanvas->ExportSkCanvas();
     paragraph_->Paint(canvas, x, y);
+#else
+    paragraph_->Paint(drawCanvas, x, y);
+#endif
 }
 
 std::vector<TextRect> Typography::GetTextRectsByBoundary(size_t left, size_t right,
@@ -187,6 +166,16 @@ Boundary Typography::GetWordBoundaryByIndex(size_t index)
 {
     auto range = paragraph_->GetWordBoundary(index);
     return Convert(range);
+}
+
+double Typography::GetLineHeight(int lineNumber)
+{
+    return paragraph_->GetLineHeight(lineNumber);
+}
+
+double Typography::GetLineWidth(int lineNumber)
+{
+    return paragraph_->GetLineWidth(lineNumber);
 }
 } // namespace AdapterTxt
 } // namespace Rosen

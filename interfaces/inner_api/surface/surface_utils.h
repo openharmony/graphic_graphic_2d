@@ -31,11 +31,14 @@ public:
     SurfaceError Add(uint64_t uniqueId, const sptr<Surface> &surface);
     // remove surface by uniqueId.
     SurfaceError Remove(uint64_t uniqueId);
+    // Compute transform matrix
+    void ComputeTransformMatrix(float matrix[16], int32_t matrixSize,
+        sptr<SurfaceBuffer>& buffer, GraphicTransformType& transform, Rect& crop);
 
 private:
     SurfaceUtils() = default;
     virtual ~SurfaceUtils();
-
+    std::array<float, 16> MatrixProduct(const std::array<float, 16>& lMat, const std::array<float, 16>& rMat);
     std::unordered_map<uint64_t, sptr<Surface>> surfaceCache_;
     std::mutex mutex_;
 };

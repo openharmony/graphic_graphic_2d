@@ -18,8 +18,6 @@
 
 #include <memory>
 
-#include <include/effects/SkDashPathEffect.h>
-
 #include "texgine_path_effect.h"
 
 namespace OHOS {

@@ -16,6 +16,12 @@
 #ifndef CLIP_H
 #define CLIP_H
 
+#ifdef WINDOWS_PLATFORM
+#ifdef DIFFERENCE
+#undef DIFFERENCE
+#endif
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {

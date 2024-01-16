@@ -31,6 +31,7 @@ struct BufferWrapper;
 
 namespace OHOS {
 class MessageParcel;
+class SyncFence;
 class SurfaceBuffer : public RefBase {
 public:
     virtual BufferHandle *GetBufferHandle() const = 0;
@@ -76,6 +77,12 @@ public:
     virtual GSError FlushCache() = 0;
     virtual GSError InvalidateCache() = 0;
 
+    // metadata
+    virtual GSError SetMetadata(uint32_t key, const std::vector<uint8_t>& value) = 0;
+    virtual GSError GetMetadata(uint32_t key, std::vector<uint8_t>& value) = 0;
+    virtual GSError ListMetadataKeys(std::vector<uint32_t>& keys) = 0;
+    virtual GSError EraseMetadataKey(uint32_t key) = 0;
+
     static SurfaceBuffer* NativeBufferToSurfaceBuffer(OH_NativeBuffer* buffer)
     {
         return reinterpret_cast<SurfaceBuffer *>(buffer);
@@ -99,6 +106,7 @@ protected:
 
 using OnReleaseFunc = std::function<GSError(sptr<SurfaceBuffer> &)>;
 using OnDeleteBufferFunc = std::function<void(int32_t)>;
+using OnReleaseFuncWithFence = std::function<GSError(const sptr<SurfaceBuffer>&, const sptr<SyncFence>&)>;
 } // namespace OHOS
 
 #endif // INTERFACES_INNERKITS_SURFACE_SURFACE_BUFFER_H

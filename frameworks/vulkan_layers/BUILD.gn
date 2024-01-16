@@ -60,6 +60,8 @@ ohos_shared_library("vulkan_swapchain_layer") {
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
+
+  license_file = "//third_party/vulkan-headers/LICENSE.txt"
 }
 
 ## Build libvulkan_swapchain.so }}}

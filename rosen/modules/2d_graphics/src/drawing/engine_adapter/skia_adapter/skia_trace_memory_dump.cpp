@@ -66,6 +66,16 @@ void SkiaTraceMemoryDump::LogTotals(OHOS::Rosen::DfxString& log)
     skiaMemoryTrace_->LogTotals(log);
 }
 
+float SkiaTraceMemoryDump::GetGpuMemorySizeInMB()
+{
+    if (skiaMemoryTrace_ == nullptr) {
+        LOGE("SkiaTraceMemoryDump::GetGpuMemorySizeInMB, skiaMemoryTrace_ is nullptr");
+        return 0.0f;
+    }
+
+    return skiaMemoryTrace_->GetGpuMemorySizeInMB();
+}
+
 float SkiaTraceMemoryDump::GetGLMemorySize()
 {
     if (skiaMemoryTrace_ == nullptr) {

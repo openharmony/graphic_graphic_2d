@@ -32,6 +32,7 @@ namespace Rosen {
 enum BLUR_COLOR_MODE : int {
     PRE_DEFINED = 0,           // use the pre-defined mask color
     AVERAGE     = 1,           // use the average color of the blurred area as mask color
+    FASTAVERAGE = 2,
     DEFAULT     = PRE_DEFINED
 };
 
@@ -42,11 +43,15 @@ public:
 #ifndef USE_ROSEN_DRAWING
         virtual bool InitSurface(GrRecordingContext* grContext);
 #else
-        virtual bool InitSurface(GrContext* grContext);
+        virtual bool InitSurface(Drawing::GPUContext* grContext);
 #endif
         virtual bool Render();
+        virtual bool SaveFilteredImage();
+        virtual void SwapInit();
+        virtual bool SetDone();
     };
     static std::function<void(std::weak_ptr<RSFilter::RSFilterTask>)> postTask;
+    static std::function<void()> clearGpuContext;
 
     virtual ~RSFilter();
     RSFilter(const RSFilter&) = delete;
@@ -58,7 +63,8 @@ public:
     static std::shared_ptr<RSFilter> CreateMaterialFilter(
         int style, float dipScale, BLUR_COLOR_MODE mode = DEFAULT, float ratio = 1.0);
     static std::shared_ptr<RSFilter> CreateMaterialFilter(
-        float radius, float saturation, float brightness, uint32_t colorValue);
+        float radius, float saturation, float brightness, uint32_t colorValue,
+        BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT);
     static std::shared_ptr<RSFilter> CreateLightUpEffectFilter(float lightUpDegree);
 
     enum FilterType {
@@ -66,6 +72,7 @@ public:
         BLUR,
         MATERIAL,
         LIGHT_UP_EFFECT,
+        AIBAR,
     };
     FilterType GetFilterType() const
     {
@@ -81,11 +88,6 @@ public:
         return hash_;
     }
 
-    virtual bool IsPartialValid() const
-    {
-        return true;
-    }
-    
     virtual bool IsNearEqual(
         const std::shared_ptr<RSFilter>& other, float threshold = std::numeric_limits<float>::epsilon()) const
     {

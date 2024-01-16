@@ -18,7 +18,6 @@
 
 #include "hdi_device.h"
 #include "graphic_error.h"
-#include "v1_0/include/idisplay_composer_interface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -74,6 +73,7 @@ public:
     int32_t SetLayerCrop(uint32_t screenId, uint32_t layerId, const GraphicIRect &crop) override;
     int32_t SetLayerZorder(uint32_t screenId, uint32_t layerId, uint32_t zorder) override;
     int32_t SetLayerPreMulti(uint32_t screenId, uint32_t layerId, bool isPreMulti) override;
+    int32_t SetLayerColor(uint32_t screenId, uint32_t layerId, GraphicLayerColor layerColor) override;
     int32_t SetLayerColorTransform(uint32_t screenId, uint32_t layerId, const std::vector<float> &matrix) override;
     int32_t SetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, GraphicColorDataSpace colorSpace) override;
     int32_t GetLayerColorDataSpace(uint32_t screenId, uint32_t layerId, GraphicColorDataSpace &colorSpace) override;

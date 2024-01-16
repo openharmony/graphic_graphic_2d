@@ -17,9 +17,11 @@
 
 #include <algorithm>
 #include <array>
+#include <cstddef>
 #include <openssl/sha.h>
 #include <random>
 #include <thread>
+#include <tuple>
 #include "rs_trace.h"
 #include "utils/log.h"
 
@@ -61,13 +63,13 @@ void ShaderCache::InitShaderCache(const char* identity, const size_t size, bool 
     std::array<uint8_t, SHA256_DIGEST_LENGTH> shaArray;
     auto key = ID_KEY;
 
-    auto loaded = cacheData_->Get(&key, sizeof(key), shaArray.data(), shaArray.size());
+    auto [errorCode, loaded] = cacheData_->Get(&key, sizeof(key), shaArray.data(), shaArray.size());
     if (!(loaded && std::equal(shaArray.begin(), shaArray.end(), idHash_.begin()))) {
         cacheData_->Clear();
-        LOGW("abandon, bad hash value, cleared for future regeneration");
+        LOGD("abandon, bad hash value, cleared for future regeneration");
     }
 
-    LOGI("shadercache initiation success");
+    LOGD("shadercache initiation success");
     initialized_ = true;
 }
 
@@ -111,30 +113,37 @@ std::shared_ptr<Drawing::Data> ShaderCache::Load(const Drawing::Data& key)
         valueBuffer = nullptr;
         return nullptr;
     }
-
+    CacheData::ErrorCode errorCode = CacheData::ErrorCode::NO_ERR;
+    size_t valueSize = 0;
+    std::tuple<CacheData::ErrorCode, size_t> res = {errorCode, valueSize};
 #ifndef USE_ROSEN_DRAWING
-    size_t valueSize = cacheData_->Get(key.data(), keySize, valueBuffer, bufferSize_);
+    res = cacheData_->Get(key.data(), keySize, valueBuffer, bufferSize_);
 #else
-    size_t valueSize = cacheData_->Get(key.GetData(), keySize, valueBuffer, bufferSize_);
+    res = cacheData_->Get(key.GetData(), keySize, valueBuffer, bufferSize_);
 #endif
-    if (!valueSize) {
+    errorCode = std::get<0>(res);
+    valueSize = std::get<1>(res);
+    if (errorCode == CacheData::ErrorCode::VALUE_SIZE_TOO_SAMLL) {
         free(valueBuffer);
         valueBuffer = nullptr;
-        void* newValueBuffer = realloc(valueBuffer, MAX_VALUE_SIZE);
+        void* newValueBuffer = realloc(valueBuffer, valueSize);
         if (!newValueBuffer) {
-            LOGE("load: failed to reallocate maxValueSize");
+            LOGE("load: failed to reallocate valueSize:%zu", valueSize);
             return nullptr;
         }
         valueBuffer = newValueBuffer;
+        // Get key data with updated valueSize
 #ifndef USE_ROSEN_DRAWING
-        valueSize = cacheData_->Get(key.data(), keySize, valueBuffer, bufferSize_);
+        res = cacheData_->Get(key.data(), keySize, valueBuffer, valueSize);
 #else
-        valueSize = cacheData_->Get(key.GetData(), keySize, valueBuffer, bufferSize_);
+        res = cacheData_->Get(key.GetData(), keySize, valueBuffer, valueSize);
 #endif
+        // update res after realloc and Get key
+        errorCode = std::get<0>(res);
     }
 
-    if (!valueSize || valueSize > bufferSize_) {
-        LOGE("load: failed to get the cache value with the given key");
+    if (errorCode != CacheData::ErrorCode::NO_ERR) {
+        LOGD("load: failed to get the cache value with the given key");
         free(valueBuffer);
         valueBuffer = nullptr;
         return nullptr;
@@ -222,6 +231,30 @@ void ShaderCache::Store(const Drawing::Data& key, const Drawing::Data& data)
             cacheDirty_ = false;
         });
         deferredSaveThread.detach();
+    }
+}
+size_t ShaderCache::QuerryShaderSize() const
+{
+    if (!cacheData_) {
+        LOGE("QuerryShaderSize: cachedata has been destructed");
+        return 0;
+    }
+    return cacheData_->GetTotalSize();
+}
+
+size_t ShaderCache::QuerryShaderNum() const
+{
+    if (!cacheData_) {
+        LOGE("QuerryShaderNum: cachedata has been destructed");
+        return 0;
+    }
+    return cacheData_->GetShaderNum();
+}
+
+void ShaderCache::CleanAllShaders() const
+{
+    if (cacheData_) {
+        cacheData_->Clear();
     }
 }
 }   // namespace Rosen

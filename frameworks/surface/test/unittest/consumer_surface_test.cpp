@@ -19,6 +19,9 @@
 #include <consumer_surface.h>
 #include "buffer_consumer_listener.h"
 #include "sync_fence.h"
+#include "producer_surface_delegator.h"
+#include "buffer_queue_consumer.h"
+#include "buffer_queue.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -55,6 +58,9 @@ public:
     static inline std::vector<Rect> damages = {};
     static inline sptr<IConsumerSurface> cs = nullptr;
     static inline sptr<Surface> ps = nullptr;
+    static inline sptr<BufferQueue> bq = nullptr;
+    static inline sptr<ProducerSurfaceDelegator> surfaceDelegator = nullptr;
+    static inline sptr<BufferQueueConsumer> consumer_ = nullptr;
 };
 
 void ConsumerSurfaceTest::SetUpTestCase()
@@ -63,7 +69,9 @@ void ConsumerSurfaceTest::SetUpTestCase()
     sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
     cs->RegisterConsumerListener(listener);
     auto p = cs->GetProducer();
+    bq = new BufferQueue("test");
     ps = Surface::CreateSurfaceAsProducer(p);
+    surfaceDelegator = ProducerSurfaceDelegator::Create();
 }
 
 void ConsumerSurfaceTest::TearDownTestCase()
@@ -862,6 +870,74 @@ HWTEST_F(ConsumerSurfaceTest, ReqCanFluAcqRel005, Function | MediumTest | Level2
     ASSERT_EQ(timestamp, flushConfigWithDamages.timestamp);
     ret = cs->ReleaseBuffer(buffer, -1);
     ASSERT_EQ(ret, OHOS::GSERROR_OK);
+}
+
+/*
+* Function: AttachBuffer001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call AttachBuffer
+*                  2. check ret
+ */
+HWTEST_F(ConsumerSurfaceTest, AttachBuffer001, Function | MediumTest | Level2)
+{
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    ASSERT_NE(buffer, nullptr);
+    GSError ret = cs->AttachBuffer(buffer);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+}
+
+/*
+* Function: AttachBuffer002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call AttachBuffer
+*                  2. check ret
+ */
+HWTEST_F(ConsumerSurfaceTest, AttachBuffer002, Function | MediumTest | Level2)
+{
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    ASSERT_NE(buffer, nullptr);
+    int32_t timeOut = 1;
+    GSError ret = cs->AttachBuffer(buffer, timeOut);
+    ASSERT_NE(ret, OHOS::GSERROR_OK);
+}
+
+/*
+* Function: AttachBuffer003
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call AttachBuffer
+*                  2. check ret
+ */
+HWTEST_F(ConsumerSurfaceTest, AttachBuffer003, Function | MediumTest | Level2)
+{
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    ASSERT_NE(buffer, nullptr);
+    GSError ret = bq->Init();
+    ASSERT_EQ(ret, GSERROR_OK);
+    int32_t timeOut = 1;
+    ret = cs->AttachBuffer(buffer, timeOut);
+    ASSERT_NE(ret, GSERROR_OK);
+}
+
+/*
+* Function: RegisterSurfaceDelegator
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RegisterSurfaceDelegator
+*                  2. check ret
+ */
+HWTEST_F(ConsumerSurfaceTest, RegisterSurfaceDelegator001, Function | MediumTest | Level2)
+{
+    GSError ret = bq->Init();
+    ASSERT_EQ(ret, GSERROR_OK);
+    ret = cs->RegisterSurfaceDelegator(surfaceDelegator->AsObject());
+    ASSERT_EQ(ret, GSERROR_OK);
 }
 
 }

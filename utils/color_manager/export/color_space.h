@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -47,23 +47,49 @@ static const Matrix3x3 BRADFORD_INV = {{
 
 enum ColorSpaceName : uint32_t {
     NONE = 0,
-    ACES,
-    ACESCG,
-    ADOBE_RGB,
-    BT2020,
-    BT709,
-    CIE_LAB,
-    CIE_XYZ,
-    DCI_P3,
-    DISPLAY_P3,
-    EXTENDED_SRGB,
-    LINEAR_EXTENDED_SRGB,
-    LINEAR_SRGB,
-    NTSC_1953,
-    PRO_PHOTO_RGB,
-    SMPTE_C,
-    SRGB,
-    CUSTOM,
+    ADOBE_RGB = 1,
+    DCI_P3 = 2,
+    DISPLAY_P3 = 3,
+    SRGB = 4,
+    BT709 = 6,
+    BT601_EBU = 7,
+    BT601_SMPTE_C = 8,
+    BT2020_HLG = 9,
+    BT2020_PQ = 10,
+    P3_HLG = 11,
+    P3_PQ = 12,
+    ADOBE_RGB_LIMIT = 13,
+    DISPLAY_P3_LIMIT = 14,
+    SRGB_LIMIT = 15,
+    BT709_LIMIT = 16,
+    BT601_EBU_LIMIT = 17,
+    BT601_SMPTE_C_LIMIT = 18,
+    BT2020_HLG_LIMIT = 19,
+    BT2020_PQ_LIMIT = 20,
+    P3_HLG_LIMIT = 21,
+    P3_PQ_LIMIT = 22,
+    LINEAR_P3 = 23,
+    LINEAR_SRGB = 24,
+    LINEAR_BT709 = LINEAR_SRGB,
+    LINEAR_BT2020 = 25,
+    DISPLAY_SRGB = SRGB,
+    DISPLAY_P3_SRGB = DISPLAY_P3,
+    DISPLAY_P3_HLG = P3_HLG,
+    DISPLAY_P3_PQ = P3_PQ,
+    DISPLAY_BT2020_SRGB = 26,
+    DISPLAY_BT2020_HLG = BT2020_HLG,
+    DISPLAY_BT2020_PQ = BT2020_PQ,
+    BT2020 = 27,
+    NTSC_1953 = 28,
+    PRO_PHOTO_RGB = 29,
+    ACES = 30,
+    ACESCG = 31,
+    CIE_LAB = 32,
+    CIE_XYZ = 33,
+    EXTENDED_SRGB = 34,
+    LINEAR_EXTENDED_SRGB = 35,
+    SMPTE_C = 36,
+    CUSTOM = 5,
 };
 
 enum GamutMappingMode : uint32_t {
@@ -180,7 +206,7 @@ public:
 
     Vector3 ToLinear(Vector3 color) const;
     Vector3 ToNonLinear(Vector3 color) const;
-    
+
     // convert OHOS ColorSpce to SKColorSpace
     sk_sp<SkColorSpace> ToSkColorSpace() const;
 

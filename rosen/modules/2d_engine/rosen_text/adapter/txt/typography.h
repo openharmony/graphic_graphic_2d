@@ -19,11 +19,7 @@
 #include "rosen_text/typography.h"
 
 #ifndef USE_GRAPHIC_TEXT_GINE
-#ifdef NEW_SKIA
 #include "third_party/flutter/txt/src/txt/paragraph.h"
-#else
-#include "third_party/flutter/engine/flutter/third_party/txt/src/txt/paragraph.h"
-#endif
 #else
 #include "txt/paragraph.h"
 #endif
@@ -55,6 +51,8 @@ public:
     std::vector<TextRect> GetTextRectsOfPlaceholders() override;
     IndexAndAffinity GetGlyphIndexByCoordinate(double x, double y) override;
     Boundary GetWordBoundaryByIndex(size_t index) override;
+    double GetLineHeight(int lineNumber) override;
+    double GetLineWidth(int lineNumber) override;
 
 private:
     std::unique_ptr<txt::Paragraph> paragraph_ = nullptr;

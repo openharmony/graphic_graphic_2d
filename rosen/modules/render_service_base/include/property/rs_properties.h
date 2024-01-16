@@ -16,6 +16,9 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PROPERTY_RS_PROPERTIES_H
 #define RENDER_SERVICE_CLIENT_CORE_PROPERTY_RS_PROPERTIES_H
 
+#ifdef USE_ROSEN_DRAWING
+#include <bitset>
+#endif
 #include <optional>
 #include <tuple>
 #include <vector>
@@ -26,6 +29,8 @@
 #include "common/rs_vector4.h"
 #include "modifier/rs_modifier_type.h"
 #include "property/rs_properties_def.h"
+#include "property/rs_color_picker_cache_task.h"
+#include "render/rs_aibar_filter.h"
 #include "render/rs_border.h"
 #include "render/rs_filter.h"
 #include "render/rs_gradient_blur_para.h"
@@ -144,9 +149,12 @@ public:
     void SetSublayerTransform(const std::optional<Matrix3f>& sublayerTransform);
     const std::optional<Matrix3f>& GetSublayerTransform() const;
 
+    bool GetUseShadowBatching() const;
+    void SetUseShadowBatching(bool useShadowBatching);
+
     // particle properties
     void SetParticles(const RSRenderParticleVector& particles);
-    RSRenderParticleVector GetParticles() const;
+    const RSRenderParticleVector& GetParticles() const;
 
     // foreground properties
     void SetForegroundColor(Color color);
@@ -167,8 +175,6 @@ public:
     float GetBgImageHeight() const;
     float GetBgImagePositionX() const;
     float GetBgImagePositionY() const;
-    void SetColorBlendMode(int blendmode);
-    int GetColorBlendMode() const;
 
     // border properties
     void SetBorderColor(Vector4<Color> color);
@@ -178,17 +184,32 @@ public:
     Vector4f GetBorderWidth() const;
     Vector4<uint32_t> GetBorderStyle() const;
     const std::shared_ptr<RSBorder>& GetBorder() const;
+    void SetOutlineColor(Vector4<Color> color);
+    void SetOutlineWidth(Vector4f width);
+    void SetOutlineStyle(Vector4<uint32_t> style);
+    void SetOutlineRadius(Vector4f radius);
+    Vector4<Color> GetOutlineColor() const;
+    Vector4f GetOutlineWidth() const;
+    Vector4<uint32_t> GetOutlineStyle() const;
+    Vector4f GetOutlineRadius() const;
+    const std::shared_ptr<RSBorder>& GetOutline() const;
 
     // filter properties
     void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
     void SetDynamicLightUpRate(const std::optional<float>& rate);
     void SetDynamicLightUpDegree(const std::optional<float>& lightUpDegree);
+    void SetGreyCoef1(float greyCoef1);
+    void SetGreyCoef2(float greyCoef2);
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
     const std::shared_ptr<RSFilter>& GetBackgroundFilter() const;
     const std::shared_ptr<RSLinearGradientBlurPara>& GetLinearGradientBlurPara() const;
+    void IfLinearGradientBlurInvalid();
     const std::shared_ptr<RSFilter>& GetFilter() const;
     bool NeedFilter() const;
+    float GetGreyCoef1() const;
+    float GetGreyCoef2() const;
+    bool IsGreyAdjustmentValid() const;
 
     // shadow properties
     void SetShadowColor(Color color);
@@ -200,6 +221,7 @@ public:
     void SetShadowPath(std::shared_ptr<RSPath> shadowPath);
     void SetShadowMask(bool shadowMask);
     void SetShadowIsFilled(bool shadowIsFilled);
+    void SetShadowColorStrategy(int shadowColorStrategy);
     const Color& GetShadowColor() const;
     float GetShadowOffsetX() const;
     float GetShadowOffsetY() const;
@@ -211,6 +233,7 @@ public:
     std::shared_ptr<RSPath> GetShadowPath() const;
     bool GetShadowMask() const;
     bool GetShadowIsFilled() const;
+    int GetShadowColorStrategy() const;
     const std::optional<RSShadow>& GetShadow() const;
     bool IsShadowValid() const;
 
@@ -242,6 +265,10 @@ public:
     const std::optional<Vector4f>& GetPixelStretch() const;
     void SetPixelStretchPercent(const std::optional<Vector4f>& stretchPercent);
     const std::optional<Vector4f>& GetPixelStretchPercent() const;
+    void SetAiInvert(const std::optional<Vector4f>& aiInvert);
+    const std::optional<Vector4f>& GetAiInvert() const;
+    void SetSystemBarEffect(bool systemBarEffect);
+    bool GetSystemBarEffect() const;
     RectI GetPixelStretchDirtyRect() const;
 
     const std::shared_ptr<RSObjAbsGeometry>& GetBoundsGeometry() const;
@@ -291,11 +318,31 @@ public:
     const std::shared_ptr<Drawing::ColorFilter>& GetColorFilter() const;
 #endif
 
+    void SetLightIntensity(float lightIntensity);
+    void SetLightPosition(const Vector4f& lightPosition);
+    void SetIlluminatedBorderWidth(float illuminatedBorderWidth);
+    void SetIlluminatedType(int illuminatedType);
+    void SetBloom(float bloomIntensity);
+    float GetLightIntensity() const;
+    Vector4f GetLightPosition() const;
+    float GetIlluminatedBorderWidth() const;
+    int GetIlluminatedType() const;
+    float GetBloom() const;
+    void CalculateAbsLightPosition();
+    const std::shared_ptr<RSLightSource>& GetLightSource() const;
+    const std::shared_ptr<RSIlluminated>& GetIlluminated() const;
+
     void SetUseEffect(bool useEffect);
     bool GetUseEffect() const;
 
-#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+    void SetColorBlendMode(int colorBlendMode);
+    int GetColorBlendMode() const;
+    void SetColorBlendApplyType(int colorBlendApplyType);
+    int GetColorBlendApplyType() const;
+
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     const std::unique_ptr<RSFilterCacheManager>& GetFilterCacheManager(bool isForeground) const;
+    const std::shared_ptr<RSColorPickerCacheTask>& GetColorPickerCacheTaskShadow() const;
     void ClearFilterCache();
 #endif
 
@@ -303,10 +350,17 @@ public:
     RRect GetInnerRRect() const;
     RectF GetFrameRect() const;
 
+    bool GetHaveEffectRegion() const;
+    void SetHaveEffectRegion(bool hasEffectRegion);
+
     void OnApplyModifiers();
 
 private:
+#ifndef USE_ROSEN_DRAWING
     void ResetProperty(const std::unordered_set<RSModifierType>& dirtyTypes);
+#else
+    void ResetProperty(const std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>& dirtyTypes);
+#endif
     void SetDirty();
     void ResetDirty();
     bool IsDirty() const;
@@ -327,9 +381,14 @@ private:
     bool contentDirty_ = false;
     bool isDrawn_ = false;
     bool alphaNeedApply_ = false;
+    bool systemBarEffect_ = false;
 
     bool hasBounds_ = false;
     bool useEffect_ = false;
+    bool useShadowBatching_ = false;
+
+    int colorBlendMode_ = 0;
+    int colorBlendApplyType_ = 0;
 
     Gravity frameGravity_ = Gravity::DEFAULT;
 
@@ -341,9 +400,13 @@ private:
     std::shared_ptr<RSObjAbsGeometry> boundsGeo_;
     std::shared_ptr<RSObjGeometry> frameGeo_;
 
+    std::shared_ptr<RSLightSource> lightSourcePtr_ = nullptr;
+    std::shared_ptr<RSIlluminated> illuminatedPtr_ = nullptr;
+
     std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
     std::shared_ptr<RSBorder> border_ = nullptr;
+    std::shared_ptr<RSBorder> outline_ = nullptr;
     std::shared_ptr<RSPath> clipPath_ = nullptr;
     std::optional<Vector4f> cornerRadius_;
     std::optional<Decoration> decoration_;
@@ -359,6 +422,7 @@ private:
 
     std::optional<Vector4f> pixelStretch_;
     std::optional<Vector4f> pixelStretchPercent_;
+    std::optional<Vector4f> aiInvert_;
     std::optional<RRect> clipRRect_;
 
     std::optional<float> grayScale_;
@@ -372,6 +436,8 @@ private:
     std::optional<float> dynamicLightUpDegree_;
     std::optional<Color> colorBlend_;
     std::optional<RectI> lastRect_;
+    float greyCoef1_ = 0.f;
+    float greyCoef2_ = 0.f;
 
     // OnApplyModifiers hooks
     void CheckEmptyBounds();
@@ -394,22 +460,24 @@ private:
 #else
     std::shared_ptr<Drawing::ColorFilter> colorFilter_ = nullptr;
 #endif
+    bool haveEffectRegion_ = false;
 
-#if defined(NEW_SKIA) && defined(RS_ENABLE_GL)
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void CreateFilterCacheManagerIfNeed();
+    void CreateColorPickerTaskForShadow();
     std::unique_ptr<RSFilterCacheManager> backgroundFilterCacheManager_;
     std::unique_ptr<RSFilterCacheManager> foregroundFilterCacheManager_;
     static const bool FilterCacheEnabled;
 #endif
 
     std::unique_ptr<Sandbox> sandbox_ = nullptr;
-
-    int blendMode_ = static_cast<int>(RSColorBlendModeType::NONE);
+    std::shared_ptr<RSColorPickerCacheTask> colorPickerTaskShadow_ = nullptr;
 
     friend class RSBackgroundImageDrawable;
     friend class RSCanvasRenderNode;
     friend class RSColorfulShadowDrawable;
     friend class RSEffectDataGenerateDrawable;
+    friend class RSModifierDrawable;
     friend class RSPropertiesPainter;
     friend class RSRenderNode;
 };

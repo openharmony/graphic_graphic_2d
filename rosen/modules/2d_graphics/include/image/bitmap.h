@@ -47,6 +47,10 @@ public:
     int GetRowBytes() const;
     ColorType GetColorType() const;
     AlphaType GetAlphaType() const;
+    bool ExtractSubset(Bitmap& dst, const Rect& subset) const;
+    bool ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
+                    int32_t srcX, int32_t srcY) const;
+    bool PeekPixels(Pixmap& pixmap) const;
 
     /*
      * @brief  Gets the pointer to Bitmap buffer.
@@ -54,20 +58,30 @@ public:
     void* GetPixels() const;
     void SetPixels(void* pixel);
     void CopyPixels(Bitmap& dst, int srcLeft, int srcTop) const;
+    bool InstallPixels(const ImageInfo& info, void* pixels, size_t rowBytes,
+                       ReleaseProc releaseProc = nullptr, void* context = nullptr);
     bool IsImmutable();
     void SetImmutable();
     void ClearWithColor(const ColorQuad& color) const;
     bool IsValid() const;
+    bool IsEmpty() const;
     ColorQuad GetColor(int x, int y) const;
     void Free();
     BitmapFormat GetFormat() const;
+    void SetFormat(const BitmapFormat& format);
+    void SetInfo(const ImageInfo& info);
     ImageInfo GetImageInfo() const;
+    Pixmap GetPixmap() const;
+    bool TryAllocPixels(const ImageInfo& info);
     template<typename T>
-    const std::shared_ptr<T> GetImpl() const
+    T* GetImpl() const
     {
         return bmpImplPtr->DowncastingTo<T>();
     }
 
+    std::shared_ptr<Data> Serialize() const;
+    bool Deserialize(std::shared_ptr<Data> data);
+    
 private:
     std::shared_ptr<BitmapImpl> bmpImplPtr;
     BitmapFormat format_;

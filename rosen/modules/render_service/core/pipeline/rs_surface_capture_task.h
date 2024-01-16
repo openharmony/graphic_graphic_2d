@@ -48,8 +48,11 @@
 
 namespace OHOS {
 namespace Rosen {
+#ifndef USE_ROSEN_DRAWING
 bool CopyDataToPixelMap(sk_sp<SkImage> img, const std::unique_ptr<Media::PixelMap>& pixelmap);
-
+#else
+bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_ptr<Media::PixelMap>& pixelmap);
+#endif
 class RSSurfaceCaptureVisitor : public RSNodeVisitor {
     public:
         RSSurfaceCaptureVisitor(float scaleX, float scaleY, bool isUniRender);
@@ -104,7 +107,17 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
         void CaptureSurfaceInDisplayWithoutUni(RSSurfaceRenderNode& node);
         void DrawWatermarkIfNeed(RSDisplayRenderNode& node);
         void FindHardwareEnabledNodes();
-        void AdjustZOrderAndDrawSurfaceNode();
+        void AdjustZOrderAndDrawSurfaceNode(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& nodes);
+        // Reuse DrawSpherize function in RSUniRenderVisitor.
+        // Since the surfaceCache has been updated by the main screen drawing,
+        // the updated surfaceCache can be reused directly without reupdating.
+        void DrawSpherize(RSRenderNode& node);
+        // Reuse DrawChildRenderNode function partially in RSUniRenderVisitor.
+        void DrawChildRenderNode(RSRenderNode& node);
+        // Reuse UpdateCacheRenderNodeMapWithBlur function partially in RSUniRenderVisitor and rename it.
+        void ProcessCacheFilterRects(RSRenderNode& node);
+        // Reuse DrawBlurInCache function partially in RSUniRenderVisitor.
+        bool DrawBlurInCache(RSRenderNode& node);
         std::unique_ptr<RSPaintFilterCanvas> canvas_ = nullptr;
         bool isDisplayNode_ = false;
         float scaleX_ = 1.0f;
@@ -112,6 +125,7 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
         bool isUniRender_ = false;
         bool hasSecurityOrSkipLayer_ = false;
         bool isUIFirst_ = false;
+        std::unordered_set<NodeId> curCacheFilterRects_ = {};
 
 #ifndef USE_ROSEN_DRAWING
         SkMatrix captureMatrix_ = SkMatrix::I();
@@ -122,6 +136,8 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
         std::shared_ptr<RSBaseRenderEngine> renderEngine_;
 
         std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
+        // vector of hardwareEnabled nodes above displayNodeSurface like pointer window
+        std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTopNodes_;
 };
 
 class RSSurfaceCaptureTask {
@@ -160,21 +176,6 @@ private:
 
     ScreenRotation screenCorrection_ = ScreenRotation::ROTATION_0;
 };
-
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_GL)
-#ifndef USE_ROSEN_DRAWING
-class DmaMem {
-public:
-    sptr<SurfaceBuffer> DmaMemAlloc(SkImageInfo &dstInfo, const std::unique_ptr<Media::PixelMap>& pixelmap);
-    sk_sp<SkSurface> GetSkSurfaceFromSurfaceBuffer(sptr<SurfaceBuffer> surfaceBuffer);
-    void ReleaseGLMemory();
-private:
-    EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
-    GLuint texId_ = 0;
-    OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
-};
-#endif
-#endif
 } // namespace Rosen
 } // namespace OHOS
 

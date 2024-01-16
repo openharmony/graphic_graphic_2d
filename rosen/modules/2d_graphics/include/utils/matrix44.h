@@ -17,8 +17,8 @@
 #define MATRIX44_H
 
 #include "impl_interface/matrix44_impl.h"
-#include "utils/scalar.h"
 #include "utils/drawing_macros.h"
+#include "utils/scalar.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -47,6 +47,13 @@ public:
      */
     void Scale(scalar sx, scalar sy, scalar sz);
 
+    void PreTranslate(scalar dx, scalar dy, scalar dz = 0);
+
+    void PostTranslate(scalar dx, scalar dy, scalar dz = 0);
+
+    void PreScale(scalar sx, scalar sy, scalar sz = 1);
+
+    void SetCol(int column, scalar x, scalar y, scalar z, scalar w);
     /*
      * @brief        Gets new Matrix44 to Matrix44  multiplied by Matrix44 other.
      * @param other  on right side of multiply expression.
@@ -65,14 +72,15 @@ public:
      * @param buffer  a [col][row] array. eg. buffer[0] maps to m00, buffer[1] maps to m10
      */
     using Buffer = std::array<scalar, MATRIX44_SIZE>;
-    void SetMatrix44(const Buffer& buffer);
+    void SetMatrix44ColMajor(const Buffer& buffer);
+    void SetMatrix44RowMajor(const Buffer& buffer);
 
     /*
      * @brief   Get the adaptation layer instance, called in the adaptation layer.
      * @return  Adaptation Layer instance.
      */
     template<typename T>
-    const std::shared_ptr<T> GetImpl() const
+    T* GetImpl() const
     {
         return impl_->DowncastingTo<T>();
     }

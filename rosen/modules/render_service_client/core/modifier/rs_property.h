@@ -19,6 +19,7 @@
 #include <type_traits>
 #include <unistd.h>
 
+#include "animation/rs_animation_callback.h"
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_implicit_animator_map.h"
 #include "animation/rs_motion_path_option.h"
@@ -118,6 +119,8 @@ public:
         return 0.0f;
     }
 
+    virtual void SetValueFromRender(const std::shared_ptr<const RSRenderPropertyBase>& rsRenderPropertyBase) {};
+
 protected:
     virtual void SetIsCustom(bool isCustom) {}
 
@@ -143,6 +146,7 @@ protected:
     float GetThresholdByModifierType() const;
 
     virtual void UpdateOnAllAnimationFinish() {}
+    virtual void UpdateCustomAnimation() {}
 
     virtual void AddPathAnimation() {}
 
@@ -212,23 +216,24 @@ private:
         const std::shared_ptr<const RSPropertyBase>& a, const std::shared_ptr<const RSPropertyBase>& b);
     friend bool operator!=(
         const std::shared_ptr<const RSPropertyBase>& a, const std::shared_ptr<const RSPropertyBase>& b);
-    friend class RSCurveAnimation;
-    friend class RSCustomTransitionEffect;
-    friend class RSExtendedModifier;
-    friend class RSGeometryTransModifier;
-    friend class RSImplicitAnimator;
-    friend class RSImplicitCurveAnimationParam;
-    friend class RSImplicitInterpolatingSpringAnimationParam;
-    friend class RSImplicitKeyframeAnimationParam;
-    friend class RSImplicitSpringAnimationParam;
-    friend class RSImplicitTransitionParam;
-    friend class RSModifier;
+    friend class RSTransition;
+    friend class RSSpringAnimation;
     friend class RSPropertyAnimation;
     friend class RSPathAnimation;
+    friend class RSModifier;
     friend class RSKeyframeAnimation;
-    friend class RSSpringAnimation;
     friend class RSInterpolatingSpringAnimation;
-    friend class RSTransition;
+    friend class RSImplicitTransitionParam;
+    friend class RSImplicitSpringAnimationParam;
+    friend class RSImplicitKeyframeAnimationParam;
+    friend class RSImplicitInterpolatingSpringAnimationParam;
+    friend class RSImplicitCancelAnimationParam;
+    friend class RSImplicitCurveAnimationParam;
+    friend class RSImplicitAnimator;
+    friend class RSGeometryTransModifier;
+    friend class RSExtendedModifier;
+    friend class RSCustomTransitionEffect;
+    friend class RSCurveAnimation;
     template<typename T1>
     friend class RSAnimatableProperty;
     template<uint16_t commandType, uint16_t commandSubType>
@@ -263,7 +268,7 @@ public:
         if (isCustom_) {
             MarkModifierDirty();
         } else {
-            UpdateToRender(stagingValue_, false);
+            UpdateToRender(stagingValue_, UPDATE_TYPE_OVERWRITE);
         }
     }
 
@@ -273,7 +278,7 @@ public:
     }
 
 protected:
-    void UpdateToRender(const T& value, bool isDelta) const
+    void UpdateToRender(const T& value, PropertyUpdateType type) const
     {}
 
     void SetValue(const std::shared_ptr<RSPropertyBase>& value) override
@@ -377,7 +382,20 @@ public:
         if (RSProperty<T>::isCustom_) {
             UpdateExtendedAnimatableProperty(sendValue, hasPropertyAnimation);
         } else {
-            RSProperty<T>::UpdateToRender(sendValue, hasPropertyAnimation);
+            RSProperty<T>::UpdateToRender(
+                sendValue, hasPropertyAnimation ? UPDATE_TYPE_INCREMENTAL : UPDATE_TYPE_OVERWRITE);
+        }
+    }
+
+    void RequestCancelAnimation()
+    {
+        auto node = RSProperty<T>::target_.lock();
+        if (node == nullptr) {
+            return;
+        }
+        auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+        if (implicitAnimator && implicitAnimator->NeedImplicitAnimation()) {
+            implicitAnimator->CancelImplicitAnimation(node, RSProperty<T>::shared_from_this());
         }
     }
 
@@ -410,26 +428,15 @@ public:
             return false;
         }
 
-        // we need to push a synchronous command to cancel animation, cause:
-        // case 1. some new animation have been added, but not flush to render side,
-        // resulting these animation not canceled in task
-        // case 2. the node or modifier has not yet been created on the render side, resulting in task failure
-        auto transactionProxy = RSTransactionProxy::GetInstance();
-        if (transactionProxy == nullptr) {
-            return false;
-        }
+        // We also need to send a command to cancel animation, cause:
+        // case 1. some new animations have been added, but not flushed to render side,
+        // resulting these animations not canceled in task.
+        // case 2. the node or modifier has not yet been created on the render side, resulting in task failure.
+        node->CancelAnimationByProperty(this->id_, !RSProperty<T>::isCustom_);
 
-        std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCancel>(node->GetId(), this->id_);
-        transactionProxy->AddCommand(command, node->IsRenderServiceNode(), node->GetFollowType(), node->GetId());
-        if (node->NeedForcedSendToRemote()) {
-            std::unique_ptr<RSCommand> commandForRemote = std::make_unique<RSAnimationCancel>(node->GetId(), this->id_);
-            transactionProxy->AddCommand(commandForRemote, true, node->GetFollowType(), node->GetId());
-        }
-
-        if (!task->GetResult()) {
+        if (!task->IsSuccess()) {
             // corresponding to case 2, as the new showing value is the same as staging value,
-            // need not to update the value, only need to clear animations in rs node.
-            node->CancelAnimationByProperty(this->id_);
+            // need not to update the value
             return true;
         }
 
@@ -438,8 +445,16 @@ public:
             return false;
         }
         RSProperty<T>::stagingValue_ = renderProperty->Get();
-        node->CancelAnimationByProperty(this->id_);
         return true;
+    }
+
+    void SetValueFromRender(const std::shared_ptr<const RSRenderPropertyBase>& rsRenderPropertyBase) override
+    {
+        auto renderProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<T>>(rsRenderPropertyBase);
+        if (!renderProperty) {
+            return;
+        }
+        RSProperty<T>::stagingValue_ = renderProperty->Get();
     }
 
     void SetUpdateCallback(const std::function<void(T)>& updateCallback)
@@ -447,10 +462,69 @@ public:
         propertyChangeListener_ = updateCallback;
     }
 
+    std::vector<std::shared_ptr<RSAnimation>> AnimateWithInitialVelocity(
+        const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
+        const std::shared_ptr<RSPropertyBase>& targetValue,
+        const std::shared_ptr<RSAnimatableProperty<T>>& velocity = nullptr,
+        const std::function<void()>& finishCallback = nullptr, const std::function<void()>& repeatCallback = nullptr)
+    {
+        auto endValue = std::static_pointer_cast<RSAnimatableProperty<T>>(targetValue);
+        if (!endValue) {
+            return {};
+        }
+
+        auto node = RSProperty<T>::target_.lock();
+        if (!node) {
+            RSProperty<T>::stagingValue_ = endValue->Get();
+            return {};
+        }
+
+        const auto& implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+        if (!implicitAnimator) {
+            RSProperty<T>::stagingValue_ = endValue->Get();
+            return {};
+        }
+
+        std::shared_ptr<AnimationFinishCallback> animationFinishCallback;
+        if (finishCallback) {
+            animationFinishCallback =
+                std::make_shared<AnimationFinishCallback>(finishCallback, timingProtocol.GetFinishCallbackType());
+        }
+
+        std::shared_ptr<AnimationRepeatCallback> animationRepeatCallback;
+        if (repeatCallback) {
+            animationRepeatCallback = std::make_shared<AnimationRepeatCallback>(repeatCallback);
+        }
+
+        implicitAnimator->OpenImplicitAnimation(
+            timingProtocol, timingCurve, std::move(animationFinishCallback), std::move(animationRepeatCallback));
+        auto startValue = std::make_shared<RSAnimatableProperty<T>>(RSProperty<T>::stagingValue_);
+        if (velocity) {
+            implicitAnimator->CreateImplicitAnimationWithInitialVelocity(
+                node, RSProperty<T>::shared_from_this(), startValue, endValue, velocity);
+        } else {
+            implicitAnimator->CreateImplicitAnimation(node, RSProperty<T>::shared_from_this(), startValue, endValue);
+        }
+
+        return implicitAnimator->CloseImplicitAnimation();
+    }
+
+    void SetPropertyUnit(RSPropertyUnit unit)
+    {
+        propertyUnit_ = unit;
+    }
+
 protected:
     void UpdateOnAllAnimationFinish() override
     {
-        RSProperty<T>::UpdateToRender(RSProperty<T>::stagingValue_, false);
+        RSProperty<T>::UpdateToRender(RSProperty<T>::stagingValue_, UPDATE_TYPE_FORCE_OVERWRITE);
+    }
+
+    void UpdateCustomAnimation() override
+    {
+        if (RSProperty<T>::isCustom_) {
+            UpdateExtendedAnimatableProperty(RSProperty<T>::stagingValue_, false);
+        }
     }
 
     void UpdateExtendedAnimatableProperty(const T& value, bool isDelta)
@@ -512,12 +586,12 @@ protected:
     {
         if (!RSProperty<T>::isCustom_) {
             return std::make_shared<RSRenderAnimatableProperty<T>>(
-                RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType());
+                RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType(), propertyUnit_);
         }
 
         if (renderProperty_ == nullptr) {
             renderProperty_ = std::make_shared<RSRenderAnimatableProperty<T>>(
-                RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType());
+                RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType(), propertyUnit_);
             auto weak = RSProperty<T>::weak_from_this();
             renderProperty_->SetUpdateUIPropertyFunc(
                 [weak](const std::shared_ptr<RSRenderPropertyBase>& renderProperty) {
@@ -554,6 +628,7 @@ protected:
     std::shared_ptr<RSMotionPathOption> motionPathOption_ {};
     std::function<void(T)> propertyChangeListener_;
     ThresholdType thresholdType_ { ThresholdType::DEFAULT };
+    RSPropertyUnit propertyUnit_ { RSPropertyUnit::UNKNOWN };
 
 private:
     RSRenderPropertyType GetPropertyType() const override
@@ -601,49 +676,49 @@ private:
 };
 
 template<>
-RSC_EXPORT void RSProperty<bool>::UpdateToRender(const bool& value, bool isDelta) const;
+RSC_EXPORT void RSProperty<bool>::UpdateToRender(const bool& value, PropertyUpdateType type) const;
 template<>
-RSC_EXPORT void RSProperty<float>::UpdateToRender(const float& value, bool isDelta) const;
+RSC_EXPORT void RSProperty<float>::UpdateToRender(const float& value, PropertyUpdateType type) const;
 template<>
-RSC_EXPORT void RSProperty<int>::UpdateToRender(const int& value, bool isDelta) const;
+RSC_EXPORT void RSProperty<int>::UpdateToRender(const int& value, PropertyUpdateType type) const;
 template<>
-RSC_EXPORT void RSProperty<Color>::UpdateToRender(const Color& value, bool isDelta) const;
+RSC_EXPORT void RSProperty<Color>::UpdateToRender(const Color& value, PropertyUpdateType type) const;
 template<>
-RSC_EXPORT void RSProperty<Gravity>::UpdateToRender(const Gravity& value, bool isDelta) const;
+RSC_EXPORT void RSProperty<Gravity>::UpdateToRender(const Gravity& value, PropertyUpdateType type) const;
 template<>
-RSC_EXPORT void RSProperty<Matrix3f>::UpdateToRender(const Matrix3f& value, bool isDelta) const;
+RSC_EXPORT void RSProperty<Matrix3f>::UpdateToRender(const Matrix3f& value, PropertyUpdateType type) const;
 template<>
-RSC_EXPORT void RSProperty<Quaternion>::UpdateToRender(const Quaternion& value, bool isDelta) const;
+RSC_EXPORT void RSProperty<Quaternion>::UpdateToRender(const Quaternion& value, PropertyUpdateType type) const;
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSFilter>>::UpdateToRender(
-    const std::shared_ptr<RSFilter>& value, bool isDelta) const;
+    const std::shared_ptr<RSFilter>& value, PropertyUpdateType type) const;
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSImage>>::UpdateToRender(
-    const std::shared_ptr<RSImage>& value, bool isDelta) const;
+    const std::shared_ptr<RSImage>& value, PropertyUpdateType type) const;
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSMask>>::UpdateToRender(
-    const std::shared_ptr<RSMask>& value, bool isDelta) const;
+    const std::shared_ptr<RSMask>& value, PropertyUpdateType type) const;
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSPath>>::UpdateToRender(
-    const std::shared_ptr<RSPath>& value, bool isDelta) const;
+    const std::shared_ptr<RSPath>& value, PropertyUpdateType type) const;
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSLinearGradientBlurPara>>::UpdateToRender(
-    const std::shared_ptr<RSLinearGradientBlurPara>& value, bool isDelta) const;
+    const std::shared_ptr<RSLinearGradientBlurPara>& value, PropertyUpdateType type) const;
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSShader>>::UpdateToRender(
-    const std::shared_ptr<RSShader>& value, bool isDelta) const;
+    const std::shared_ptr<RSShader>& value, PropertyUpdateType type) const;
 template<>
-RSC_EXPORT void RSProperty<Vector2f>::UpdateToRender(const Vector2f& value, bool isDelta) const;
+RSC_EXPORT void RSProperty<Vector2f>::UpdateToRender(const Vector2f& value, PropertyUpdateType type) const;
 template<>
 RSC_EXPORT void RSProperty<Vector4<uint32_t>>::UpdateToRender(
-    const Vector4<uint32_t>& value, bool isDelta) const;
+    const Vector4<uint32_t>& value, PropertyUpdateType type) const;
 template<>
 RSC_EXPORT void RSProperty<Vector4<Color>>::UpdateToRender(
-    const Vector4<Color>& value, bool isDelta) const;
+    const Vector4<Color>& value, PropertyUpdateType type) const;
 template<>
-RSC_EXPORT void RSProperty<Vector4f>::UpdateToRender(const Vector4f& value, bool isDelta) const;
+RSC_EXPORT void RSProperty<Vector4f>::UpdateToRender(const Vector4f& value, PropertyUpdateType type) const;
 template<>
-RSC_EXPORT void RSProperty<RRect>::UpdateToRender(const RRect& value, bool isDelta) const;
+RSC_EXPORT void RSProperty<RRect>::UpdateToRender(const RRect& value, PropertyUpdateType type) const;
 
 template<>
 RSC_EXPORT bool RSProperty<float>::IsValid(const float& value);

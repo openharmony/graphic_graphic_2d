@@ -15,6 +15,8 @@
 
 #include "draw/brush.h"
 
+#include "static_factory.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -24,6 +26,7 @@ Brush::Brush() noexcept
       filter_(),
       colorSpace_(nullptr),
       shaderEffect_(nullptr),
+      blender_(nullptr),
       antiAlias_(false)
 {}
 
@@ -33,6 +36,7 @@ Brush::Brush(const Color& c) noexcept
       filter_(),
       colorSpace_(nullptr),
       shaderEffect_(nullptr),
+      blender_(nullptr),
       antiAlias_(false)
 {}
 
@@ -42,14 +46,16 @@ Brush::Brush(int rgba) noexcept
       filter_(),
       colorSpace_(nullptr),
       shaderEffect_(nullptr),
+      blender_(nullptr),
       antiAlias_(false)
 {}
 
 Brush::Brush(std::shared_ptr<ShaderEffect> e) noexcept
-    : color_(), blendMode_(BlendMode::SRC_OVER), filter_(), colorSpace_(nullptr), shaderEffect_(e), antiAlias_(false)
+    : color_(), blendMode_(BlendMode::SRC_OVER), filter_(), colorSpace_(nullptr), shaderEffect_(e), blender_(nullptr),
+    antiAlias_(false)
 {}
 
-Color Brush::GetColor() const
+const Color& Brush::GetColor() const
 {
     return color_;
 }
@@ -64,7 +70,7 @@ void Brush::SetColor(int c)
     color_.SetColorQuad(c);
 }
 
-void Brush::SetARGB(int r, int g, int b, int a)
+void Brush::SetARGB(int a, int r, int g, int b)
 {
     color_.SetRgb(r, g, b, a);
 }
@@ -85,11 +91,6 @@ void Brush::SetColor(const Color4f& cf, std::shared_ptr<ColorSpace> s)
     colorSpace_ = s;
 }
 
-uint32_t Brush::GetAlpha() const
-{
-    return color_.GetAlpha();
-}
-
 void Brush::SetAlpha(uint32_t a)
 {
     color_.SetAlpha(a);
@@ -100,12 +101,7 @@ void Brush::SetAlphaF(scalar a)
     color_.SetAlphaF(a);
 }
 
-BlendMode Brush::GetBlendMode() const
-{
-    return blendMode_;
-}
-
-void Brush::SetBlendMode(BlendMode mode)
+void Brush::SetBlendMode(const BlendMode& mode)
 {
     blendMode_ = mode;
 }
@@ -113,9 +109,10 @@ void Brush::SetBlendMode(BlendMode mode)
 void Brush::SetFilter(const Filter& filter)
 {
     filter_ = filter;
+    hasFilter_ = true;
 }
 
-Filter Brush::GetFilter() const
+const Filter& Brush::GetFilter() const
 {
     return filter_;
 }
@@ -130,6 +127,11 @@ std::shared_ptr<ShaderEffect> Brush::GetShaderEffect() const
     return shaderEffect_;
 }
 
+void Brush::SetBlender(std::shared_ptr<Blender> blender)
+{
+    blender_ = blender;
+}
+
 bool Brush::IsAntiAlias() const
 {
     return antiAlias_;
@@ -140,21 +142,36 @@ void Brush::SetAntiAlias(bool aa)
     antiAlias_ = aa;
 }
 
+bool Brush::CanComputeFastBounds()
+{
+    return StaticFactory::CanComputeFastBounds(*this);
+}
+
+const Rect& Brush::ComputeFastBounds(const Rect& orig, Rect* storage)
+{
+    return StaticFactory::ComputeFastBounds(*this, orig, storage);
+}
+
 void Brush::Reset()
 {
     *this = Brush();
 }
 
+bool Brush::AsBlendMode()
+{
+    return StaticFactory::AsBlendMode(*this);
+}
+
 bool operator==(const Brush& b1, const Brush& b2)
 {
     return b1.color_ == b2.color_ && b1.blendMode_ == b2.blendMode_ && b1.shaderEffect_ == b2.shaderEffect_ &&
-        b1.colorSpace_ == b2.colorSpace_ && b1.filter_ == b2.filter_ && b1.antiAlias_ == b2.antiAlias_;
+        b1.blender_ == b2.blender_ && b1.colorSpace_ == b2.colorSpace_ && b1.filter_ == b2.filter_ &&
+        b1.antiAlias_ == b2.antiAlias_;
 }
 
 bool operator!=(const Brush& b1, const Brush& b2)
 {
-    return b1.color_ != b2.color_ || b1.blendMode_ == b2.blendMode_ || b1.shaderEffect_ != b2.shaderEffect_ ||
-        b1.colorSpace_ == b2.colorSpace_ || b1.filter_ != b2.filter_ || b1.antiAlias_ == b2.antiAlias_;
+    return !(b1 == b2);
 }
 } // namespace Drawing
 } // namespace Rosen

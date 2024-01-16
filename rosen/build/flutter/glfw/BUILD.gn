@@ -52,10 +52,7 @@ template("flutter_embedder_with_symbol_prefix") {
     defines += [ "FLUTTER_API_SYMBOL_PREFIX=Embedder" ]
     cflags_cc += invoker.cflags_cc
 
-    public_configs = [
-      "$ace_flutter_engine_root:flutter_config",
-      "$ace_flutter_engine_root/icu:icu_config_$platform",
-    ]
+    public_configs = [ "$ace_flutter_engine_root/icu:icu_config_$platform" ]
 
     sources = [
       # Ability Cross-platform Environment(ACE) override
@@ -112,7 +109,6 @@ template("flutter_platform_glfw") {
     cflags_cc += invoker.cflags_cc
 
     public_configs = [
-      "$ace_flutter_engine_root:flutter_config",
       "$ace_flutter_engine_root/icu:icu_config_$platform",
       ":flutter_glfw_config",
     ]

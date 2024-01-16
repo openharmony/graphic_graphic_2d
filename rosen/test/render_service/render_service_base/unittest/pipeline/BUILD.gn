@@ -13,12 +13,16 @@
 
 import("//build/test.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic/rosen_engine/render_service_base/Pipeline"
 
 ##############################  RSRenderServiceBasePipelineTest  ##################################
 ohos_unittest("RSRenderServiceBasePipelineTest") {
   module_out_path = module_output_path
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
 
   sources = [
     "rs_base_render_node_test.cpp",
@@ -28,15 +32,21 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
     "rs_display_render_node_test.cpp",
     "rs_draw_cmd_list_test.cpp",
     "rs_draw_cmd_test.cpp",
+    "rs_effect_render_node_test.cpp",
     "rs_frame_report_test.cpp",
     "rs_occlusion_config_test.cpp",
     "rs_paint_filter_canvas_test.cpp",
     "rs_proxy_render_node_test.cpp",
     "rs_recording_canvas_test.cpp",
+    "rs_render_display_sync_test.cpp",
+    "rs_render_frame_rate_linker_map_test.cpp",
+    "rs_render_frame_rate_linker_test.cpp",
     "rs_render_node_map_test.cpp",
     "rs_render_node_test.cpp",
+    "rs_root_render_node_test.cpp",
     "rs_surface_render_node_test.cpp",
   ]
+
   cflags = [
     "-Wall",
     "-Werror",
@@ -55,6 +65,8 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core",
     "//foundation/graphic/graphic_2d/rosen/include",
     "//foundation/graphic/graphic_2d/rosen/test/include",
+    "$graphic_2d_root/frameworks/surface/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]
 
   deps = [
@@ -63,11 +75,7 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:render_service_client_src",
     "//third_party/googletest:gtest_main",
   ]
-  if (defined(use_new_skia) && use_new_skia) {
-    deps += [ "//third_party/skia:skia_ohos" ]
-  } else {
-    deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
-  }
+  deps += [ "//third_party/skia:skia_ohos" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",

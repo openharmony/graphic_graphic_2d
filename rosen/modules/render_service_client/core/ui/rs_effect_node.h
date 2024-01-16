@@ -32,10 +32,10 @@ public:
 
     ~RSEffectNode() override = default;
 
-    static SharedPtr Create(bool isRenderServiceNode = false);
+    static SharedPtr Create(bool isRenderServiceNode = false, bool isTextureExportNode = false);
 
 protected:
-    RSEffectNode(bool isRenderServiceNode);
+    RSEffectNode(bool isRenderServiceNode, bool isTextureExportNode = false);
     RSEffectNode(const RSEffectNode&) = delete;
     RSEffectNode(const RSEffectNode&&) = delete;
     RSEffectNode& operator=(const RSEffectNode&) = delete;

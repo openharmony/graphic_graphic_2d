@@ -25,6 +25,7 @@
 #include "rs_surface_factory.h"
 #endif
 #include "parameter.h"
+#include "platform/common/rs_system_properties.h"
 
 using namespace OHOS;
 
@@ -144,6 +145,21 @@ void BootAnimation::Run(Rosen::ScreenId id, int screenWidth, int screenHeight)
 {
     LOGI("Run enter");
     animationConfig_.ParserCustomCfgFile();
+    Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
+    if (animationConfig_.GetRotateScreenId() >= 0) {
+        id = interface.GetActiveScreenId();
+        Rosen::RSScreenModeInfo modeinfo = interface.GetScreenActiveMode(id);
+        screenWidth = modeinfo.GetScreenWidth();
+        screenHeight = modeinfo.GetScreenHeight();
+        if (id > 0) {
+            LOGI("SetScreenPowerStatus POWER_STATUS_OFF_FAKE: 0");
+            interface.SetScreenPowerStatus(0, Rosen::ScreenPowerStatus::POWER_STATUS_OFF_FAKE);
+            LOGI("SetScreenPowerStatus POWER_STATUS_ON: %{public}llu", id);
+            interface.SetScreenPowerStatus(id, Rosen::ScreenPowerStatus::POWER_STATUS_ON);
+        }
+    } else if (interface.GetScreenPowerStatus(id) != Rosen::ScreenPowerStatus::POWER_STATUS_ON) {
+        interface.SetScreenPowerStatus(id, Rosen::ScreenPowerStatus::POWER_STATUS_ON);
+    }
 
     runner_ = AppExecFwk::EventRunner::Create(false);
     mainHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
@@ -160,11 +176,17 @@ void BootAnimation::InitRsSurfaceNode()
 {
     LOGI("Init RsSurfaceNode enter");
     struct Rosen::RSSurfaceNodeConfig rsSurfaceNodeConfig;
+    rsSurfaceNodeConfig.SurfaceNodeName = "BootAnimationNode";
     Rosen::RSSurfaceNodeType rsSurfaceNodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
     rsSurfaceNode_ = Rosen::RSSurfaceNode::Create(rsSurfaceNodeConfig, rsSurfaceNodeType);
     if (!rsSurfaceNode_) {
         LOGE("rsSurfaceNode_ is nullptr");
         return;
+    }
+    int32_t rotateScreenId = animationConfig_.GetRotateScreenId();
+    if (rotateScreenId >= 0 && (Rosen::ScreenId)rotateScreenId == defaultId_) {
+        LOGI("SurfaceNode set rotation degree: %{public}d", animationConfig_.GetRotateDegree());
+        rsSurfaceNode_->SetRotation(animationConfig_.GetRotateDegree());
     }
     rsSurfaceNode_->SetPositionZ(MAX_ZORDER);
     rsSurfaceNode_->SetBounds({0, 0, windowWidth_, windowHeight_});
@@ -201,16 +223,18 @@ void BootAnimation::InitRsSurface()
         return;
     }
 #ifdef ACE_ENABLE_GL
-    rc_ = OHOS::Rosen::RenderContextFactory::GetInstance().CreateEngine();
-    if (rc_ == nullptr) {
-        LOGE("InitilizeEglContext failed");
-        return;
-    } else {
-        LOGI("init egl context");
-        rc_->InitializeEglContext();
-        rsSurface_->SetRenderContext(rc_);
+    if (Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::OPENGL) {
+        rc_ = OHOS::Rosen::RenderContextFactory::GetInstance().CreateEngine();
+        if (rc_ == nullptr) {
+            LOGE("InitilizeEglContext failed");
+            return;
+        } else {
+            LOGI("init egl context");
+            rc_->InitializeEglContext();
+            rsSurface_->SetRenderContext(rc_);
+        }
     }
-#endif
+#endif // ACE_ENABLE_GL
     if (rc_ == nullptr) {
         LOGI("rc is nullptr, use cpu");
     }
@@ -294,8 +318,10 @@ void BootAnimation::PlayVideo()
         .userData_ = this,
         .callback_ = std::bind(&BootAnimation::CloseVideoPlayer, this),
     };
+    LOGI("PlayVideo setVideo screenId:%{public}d", (int32_t)defaultId_);
     bootVideoPlayer_ = std::make_shared<BootVideoPlayer>();
-    bootVideoPlayer_->SetVideoPath(animationConfig_.GetBootVideoPath());
+    bootVideoPlayer_->SetVideoPath(
+        defaultId_ == 0 ? animationConfig_.GetBootVideoPath() : animationConfig_.GetBootExtraVideoPath());
     bootVideoPlayer_->SetPlayerSurface(rsSurfaceNode_ ? rsSurfaceNode_->GetSurface() : nullptr);
     bootVideoPlayer_->SetCallback(&fcb_);
     if (!bootVideoPlayer_->PlayVideo()) {

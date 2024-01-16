@@ -19,6 +19,9 @@ module_output_path = "graphic/rosen_engine/render_service_base/memory"
 ##############################  RSRenderServiceBaseMemoryTest  ##################################
 ohos_unittest("RSRenderServiceBaseMemoryTest") {
   module_out_path = module_output_path
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
 
   sources = [
     "rs_memory_graphic_test.cpp",
@@ -42,11 +45,7 @@ ohos_unittest("RSRenderServiceBaseMemoryTest") {
     "//third_party/googletest:gtest_main",
   ]
 
-  if (defined(use_new_skia) && use_new_skia) {
-    deps += [ "//third_party/skia:skia_ohos" ]
-  } else {
-    deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
-  }
+  deps += [ "//third_party/skia:skia_ohos" ]
 
   external_deps = [
     "c_utils:utils",

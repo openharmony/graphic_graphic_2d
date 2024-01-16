@@ -25,6 +25,9 @@
 
 #include "impl_interface/gpu_context_impl.h"
 #include "image/gpu_context.h"
+#ifdef RS_ENABLE_VK
+#include "include/core/SkExecutor.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -54,8 +57,16 @@ public:
 
     bool BuildFromGL(const GPUContextOptions& options) override;
 
+#ifdef RS_ENABLE_VK
+    static std::unique_ptr<SkExecutor> threadPool;
+    void InitSkExecutor();
+    bool BuildFromVK(const GrVkBackendContext& context) override;
+    bool BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options) override;
+#endif
+
     void Flush() override;
     void FlushAndSubmit(bool syncCpu) override;
+    void Submit() override;
     void PerformDeferredCleanup(std::chrono::milliseconds msNotUsed) override;
 
     void GetResourceCacheLimits(int* maxResource, size_t* maxResourceBytes) const override;
@@ -71,17 +82,21 @@ public:
 
     void PurgeUnlockedResources(bool scratchResourcesOnly) override;
 
-    void PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag tag) override;
+    void PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag &tag) override;
 
     void PurgeUnlockAndSafeCacheGpuResources() override;
 
-    void ReleaseByTag(const GPUResourceTag tag) override;
+    void ReleaseByTag(const GPUResourceTag &tag) override;
 
-    void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag tag) override;
+    void DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) override;
 
     void DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump) override;
 
-    void SetCurrentGpuResourceTag(const GPUResourceTag tag) override;
+    void SetCurrentGpuResourceTag(const GPUResourceTag &tag) override;
+
+#ifdef RS_ENABLE_VK
+    void StoreVkPipelineCacheData() override;
+#endif
 
 #ifdef NEW_SKIA
     sk_sp<GrDirectContext> GetGrContext() const;
@@ -90,6 +105,14 @@ public:
     sk_sp<GrContext> GetGrContext() const;
     void SetGrContext(const sk_sp<GrContext>& grContext);
 #endif
+#ifdef NEW_SKIA
+    const sk_sp<GrDirectContext> ExportSkiaContext() const
+#else
+    const sk_sp<GrContext> ExportSkiaContext() const
+#endif
+    {
+        return grContext_;
+    }
 
 private:
 #ifdef NEW_SKIA

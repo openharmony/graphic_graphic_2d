@@ -30,7 +30,7 @@ namespace Rosen {
 namespace Drawing {
 class TextBlobBuilderImpl;
 
-class TextBlobBuilder {
+class DRAWING_API TextBlobBuilder {
 public:
     TextBlobBuilder();
     TextBlobBuilder(const TextBlobBuilder& other) = delete;

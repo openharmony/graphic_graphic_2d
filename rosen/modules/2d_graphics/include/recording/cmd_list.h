@@ -16,6 +16,7 @@
 #ifndef CMD_LIST_H
 #define CMD_LIST_H
 
+#include <map>
 #include <optional>
 #include <vector>
 
@@ -23,7 +24,11 @@
 #include "recording/op_item.h"
 #include "recording/mem_allocator.h"
 #include "recording/adaptive_image_helper.h"
+#include "recording/recording_handle.h"
 #include "utils/drawing_macros.h"
+#ifdef ROSEN_OHOS
+#include "surface_buffer.h"
+#endif
 
 namespace OHOS {
 namespace Media {
@@ -31,35 +36,29 @@ class PixelMap;
 }
 namespace Rosen {
 namespace Drawing {
-struct ImageHandle {
-    uint32_t offset;
-    size_t size;
-    int32_t width;
-    int32_t height;
-    ColorType colorType;
-    AlphaType alphaType;
-};
-
-struct VerticesHandle {
-    uint32_t offset;
-    size_t size;
-};
-
-struct CmdListHandle {
-    uint32_t type;
-    uint32_t offset;
-    size_t size;
-    uint32_t imageOffset;
-    size_t imageSize;
-};
-
 using CmdListData = std::pair<const void*, size_t>;
+using NodeId = uint64_t;
 
 class DRAWING_API ExtendImageObject {
 public:
     virtual ~ExtendImageObject() = default;
     virtual void Playback(Canvas& canvas, const Rect& rect,
         const SamplingOptions& sampling, bool isBackground = false) = 0;
+    virtual void SetNodeId(NodeId id) {};
+};
+
+class DRAWING_API ExtendImageBaseObj {
+public:
+    virtual ~ExtendImageBaseObj() = default;
+    virtual void Playback(Canvas& canvas, const Rect& rect,
+        const SamplingOptions& sampling) = 0;
+    virtual void SetNodeId(NodeId id) {};
+};
+
+class DRAWING_API ExtendDrawFuncObj {
+public:
+    virtual ~ExtendDrawFuncObj () = default;
+    virtual void Playback(Canvas* canvas, const Rect* rect) = 0;
 };
 
 class DRAWING_API CmdList {
@@ -95,7 +94,7 @@ public:
     template<typename T, typename... Args>
     void AddOp(Args&&... args)
     {
-        std::lock_guard<std::mutex> lock(mutex_);
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
         T* op = opAllocator_.Allocate<T>(std::forward<Args>(args)...);
         if (op == nullptr) {
             return;
@@ -109,6 +108,7 @@ public:
             }
         }
         lastOpItemOffset_.emplace(offset);
+        opCnt_++;
     }
 
     /*
@@ -130,6 +130,14 @@ public:
     uint32_t AddImageData(const void* data, size_t size);
     const void* GetImageData(uint32_t offset) const;
     CmdListData GetAllImageData() const;
+
+    OpDataHandle AddImage(const Image& image);
+    std::shared_ptr<Image> GetImage(const OpDataHandle& imageHandle);
+
+    uint32_t AddBitmapData(const void* data, size_t size);
+    const void* GetBitmapData(uint32_t offset) const;
+    bool SetUpBitmapData(const void* data, size_t size);
+    CmdListData GetAllBitmapData() const;
 
     /*
      * @brief  return pixelmap index, negative is error.
@@ -171,22 +179,97 @@ public:
      */
     uint32_t SetupObject(const std::vector<std::shared_ptr<ExtendImageObject>>& objectList);
 
+     /*
+     * @brief  return imageBaseObj index, negative is error.
+     */
+    uint32_t AddImageBaseObj(const std::shared_ptr<ExtendImageBaseObj>& object);
+
+    /*
+     * @brief  get imageBaseObj by index.
+     */
+    std::shared_ptr<ExtendImageBaseObj> GetImageBaseObj(uint32_t id);
+
+    /*
+     * @brief  return imageBaseObj size, 0 is no imageBaseObj.
+     */
+    uint32_t GetAllBaseObj(std::vector<std::shared_ptr<ExtendImageBaseObj>>& objectList);
+
+    /*
+     * @brief  return real setup imageBaseObj size.
+     */
+    uint32_t SetupBaseObj(const std::vector<std::shared_ptr<ExtendImageBaseObj>>& objectList);
+
+     /*
+     * @brief  return DrawFuncObj index, negative is error.
+     */
+    uint32_t AddDrawFuncOjb(const std::shared_ptr<ExtendDrawFuncObj>& object);
+
+    /*
+     * @brief  get DrawFuncObj by index.
+     */
+    std::shared_ptr<ExtendDrawFuncObj> GetDrawFuncObj(uint32_t id);
+
+    /*
+     * @brief  copy object vec to another CmdList.
+     */
+    void CopyObjectTo(CmdList& other) const;
+
+    /*
+     * @brief  return recording op count.
+     */
+    uint32_t GetOpCnt() const;
+
     CmdList(CmdList&&) = delete;
     CmdList(const CmdList&) = delete;
     CmdList& operator=(CmdList&&) = delete;
     CmdList& operator=(const CmdList&) = delete;
 
+#ifdef ROSEN_OHOS
+    /*
+     * @brief  return surfaceBuffer index, negative is error.
+     */
+    uint32_t AddSurfaceBuffer(const sptr<SurfaceBuffer>& surfaceBuffer);
+
+    /*
+     * @brief  get surfaceBuffer by index.
+     */
+    sptr<SurfaceBuffer> GetSurfaceBuffer(uint32_t id);
+
+    /*
+     * @brief  return surfaceBuffer size, 0 is no surfaceBuffer.
+     */
+    uint32_t GetAllSurfaceBuffer(std::vector<sptr<SurfaceBuffer>>& objectList);
+
+    /*
+     * @brief  return real setup surfaceBuffer size.
+     */
+    uint32_t SetupSurfaceBuffer(const std::vector<sptr<SurfaceBuffer>>& objectList);
+#endif
+
 protected:
     MemAllocator opAllocator_;
     MemAllocator imageAllocator_;
+    MemAllocator bitmapAllocator_;
     std::optional<uint32_t> lastOpItemOffset_ = std::nullopt;
-    std::mutex mutex_;
+    std::recursive_mutex mutex_;
+    std::map<uint32_t, std::shared_ptr<Image>> imageMap_;
+    std::vector<std::pair<uint32_t, OpDataHandle>> imageHandleVec_;
+    uint32_t opCnt_ = 0;
+
 #ifdef SUPPORT_OHOS_PIXMAP
     std::vector<std::shared_ptr<Media::PixelMap>> pixelMapVec_;
     std::mutex pixelMapMutex_;
+#endif
     std::vector<std::shared_ptr<ExtendImageObject>> imageObjectVec_;
     std::mutex imageObjectMutex_;
+    std::vector<std::shared_ptr<ExtendImageBaseObj>> imageBaseObjVec_;
+    std::mutex imageBaseObjMutex_;
+#ifdef ROSEN_OHOS
+    std::vector<sptr<SurfaceBuffer>> surfaceBufferVec_;
+    std::mutex surfaceBufferMutex_;
 #endif
+    std::vector<std::shared_ptr<ExtendDrawFuncObj>> drawFuncObjVec_;
+    std::mutex drawFuncObjMutex_;
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -26,11 +26,7 @@ ohos_fuzztest("RSOverdrawControllerFuzzTest") {
     "//foundation/graphic/graphic_2d/utils/log",
   ]
 
-  if (defined(use_new_skia) && use_new_skia) {
-    include_dirs += [ "//third_party/skia" ]
-  } else {
-    include_dirs += [ "//third_party/flutter/skia" ]
-  }
+  include_dirs += [ "//third_party/skia" ]
 
   deps = [
     "//foundation/graphic/graphic_2d:libsurface",

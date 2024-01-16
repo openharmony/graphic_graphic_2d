@@ -18,7 +18,11 @@
 
 #include <memory>
 
+#ifndef USE_ROSEN_DRAWING
 #include <include/core/SkStream.h>
+#else
+#include "drawing.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -26,12 +30,21 @@ namespace TextEngine {
 class TexgineMemoryStream {
 public:
     TexgineMemoryStream();
+
+#ifndef USE_ROSEN_DRAWING
     explicit TexgineMemoryStream(std::unique_ptr<SkMemoryStream> stream);
+#else
+    explicit TexgineMemoryStream(std::unique_ptr<RSMemoryStream> stream);
+#endif
 
     /*
      * @brief Returns SkMemoryStream that user init or set to TexgineMemoryStream
      */
+#ifndef USE_ROSEN_DRAWING
     std::unique_ptr<SkMemoryStream> GetStream();
+#else
+    std::unique_ptr<RSMemoryStream> GetStream();
+#endif
 
     /*
      * @brief Returns a stream with a copy of the input data.
@@ -39,7 +52,11 @@ public:
     static std::unique_ptr<TexgineMemoryStream> MakeCopy(const void *data, size_t length);
 
 private:
+#ifndef USE_ROSEN_DRAWING
     std::unique_ptr<SkMemoryStream> memoryStream_ = nullptr;
+#else
+    std::unique_ptr<RSMemoryStream> memoryStream_ = nullptr;
+#endif
 };
 } // namespace TextEngine
 } // namespace Rosen

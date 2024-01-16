@@ -18,7 +18,10 @@ module_out_path = "graphic_2d/composer"
 group("systemtest") {
   testonly = true
 
-  deps = [ ":vsync_test" ]
+  deps = [
+    ":vsync_ltpo_test",
+    ":vsync_test",
+  ]
 }
 
 ## SystemTest vsync_test {{{
@@ -55,4 +58,38 @@ ohos_systemtest("vsync_test") {
   ]
   external_deps = [ "c_utils:utils" ]
 }
+
 ## SystemTest vsync_test }}}
+
+## SystemTest vsync_ltpo_test {{{
+ohos_systemtest("vsync_ltpo_test") {
+  module_out_path = module_out_path
+
+  sources = [ "vsync_ltpo_test.cpp" ]
+
+  include_dirs = [
+    "../../../../../../interfaces/inner_api/common",
+    "../../include",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+
+  deps = [
+    "../../../../../../utils:socketpair",
+    "../../../vsync:libvsync",
+    "//third_party/googletest:gtest_main",
+  ]
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
+    "c_utils:utils",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+  ]
+}
+## SystemTest vsync_ltpo_test }}}

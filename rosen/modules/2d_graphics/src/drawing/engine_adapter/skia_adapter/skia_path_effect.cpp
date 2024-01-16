@@ -14,6 +14,7 @@
  */
 
 #include "skia_path_effect.h"
+#include "skia_helper.h"
 
 #include <memory>
 
@@ -25,6 +26,8 @@
 #include "skia_path.h"
 
 #include "effect/path_effect.h"
+#include "utils/data.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -82,6 +85,36 @@ void SkiaPathEffect::SetSkPathEffect(const sk_sp<SkPathEffect>& pathEffect)
 {
     pathEffect_ = pathEffect;
 }
+
+std::shared_ptr<Data> SkiaPathEffect::Serialize() const
+{
+#ifdef ROSEN_OHOS
+    if (pathEffect_ == nullptr) {
+        LOGE("SkiaPathEffect::Serialize, pathEffect_ is nullptr!");
+        return nullptr;
+    }
+
+    return SkiaHelper::FlattenableSerialize(pathEffect_.get());
+#else
+    return nullptr;
+#endif
+}
+
+bool SkiaPathEffect::Deserialize(std::shared_ptr<Data> data)
+{
+#ifdef ROSEN_OHOS
+    if (data == nullptr) {
+        LOGE("SkiaPathEffect::Deserialize, data is invalid!");
+        return false;
+    }
+
+    pathEffect_ = SkiaHelper::FlattenableDeserialize<SkPathEffect>(data);
+    return true;
+#else
+    return false;
+#endif
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -37,7 +37,9 @@
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_director.h"
-
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
 #ifdef OHOS_RSS_CLIENT
 #include "res_sched_client.h"
 #include "res_type.h"
@@ -52,7 +54,6 @@
 #include "frame_collector.h"
 #include "render_frame_trace.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
-
 #ifdef ACCESSIBILITY_ENABLE
 #include "accessibility_config.h"
 #include "platform/common/rs_accessibility.h"
@@ -115,7 +116,6 @@ RSRenderThread::RSRenderThread()
         jankDetector_->CalculateSkippedFrame(renderStartTimeStamp, jankDetector_->GetSysTimeNs());
         RS_TRACE_END();
     };
-
     context_ = std::make_shared<RSContext>();
     jankDetector_ = std::make_shared<RSJankDetector>();
 #ifdef ACCESSIBILITY_ENABLE
@@ -228,16 +228,26 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
     }
 #endif
 #else
-#if defined(RS_ENABLE_GL) && !defined(ROSEN_PREVIEW)
+#if (defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && !defined(ROSEN_PREVIEW)
     if (renderContext_ == nullptr) {
         renderContext_ = new RenderContext();
         ROSEN_LOGD("Create RenderContext");
-        RS_TRACE_NAME("InitializeEglContext");
 #ifdef ROSEN_OHOS
-        renderContext_->InitializeEglContext(); // init egl context on RT
-        if (!cacheDir_.empty()) {
-            renderContext_->SetCacheDir(cacheDir_);
+#ifdef RS_ENABLE_GL
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+            RS_TRACE_NAME("InitializeEglContext");
+            renderContext_->InitializeEglContext(); // init egl context on RT
+            if (!cacheDir_.empty()) {
+                renderContext_->SetCacheDir(cacheDir_);
+            }
         }
+#endif
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        renderContext_->SetUpGpuContext(nullptr);
+    }
+#endif
 #endif
     }
 #endif
@@ -253,7 +263,7 @@ void RSRenderThread::RenderLoop()
     payload["uid"] = std::to_string(getuid());
     payload["pid"] = std::to_string(GetRealPid());
     ResourceSchedule::ResSchedClient::GetInstance().ReportData(
-        ResourceSchedule::ResType::RES_TYPE_REPORT_RENDER_THREAD, gettid(), payload);
+        ResourceSchedule::ResType::RES_TYPE_REPORT_RENDER_THREAD, getproctid(), payload);
 #endif
 #ifdef ROSEN_OHOS
     tid_ = gettid();
@@ -435,7 +445,7 @@ void RSRenderThread::Render()
     }
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::Render");
     if (RsFrameReport::GetInstance().GetEnable()) {
-        RsFrameReport::GetInstance().RenderStart();
+        RsFrameReport::GetInstance().RenderStart(timestamp_);
     }
     std::unique_lock<std::mutex> lock(mutex_);
     const auto& rootNode = context_->GetGlobalRootRenderNode();

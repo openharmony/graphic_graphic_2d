@@ -335,4 +335,74 @@ HWTEST_F(RSOcclusionRegionTest, IntersectArea, Function | MediumTest | Level2)
     Region region6 = region5.And(testRegion);
     ASSERT_TRUE(region5.IntersectArea(testRect) == region6.Area());
 }
+
+/**
+ * @tc.name: ResetSurfaceOpaqueRegionTest1
+ * @tc.desc: test abnormal value of RectI input
+ * @tc.type:FUNC
+ * @tc.require: I8K5SW
+ */
+HWTEST_F(RSOcclusionRegionTest, ResetSurfaceOpaqueRegionTest1, Function | MediumTest | Level2)
+{
+    Rect trans{};
+    Rect opaque{353284384, 2147483647, 1184, 2147483647};
+    Rect screen{0, 0, 1260, 2720};
+    Region transparentRegion{trans};
+    Region opaqueRegion{opaque};
+    Region screenRegion{screen};
+    std::cout << "transparentRegion " << transparentRegion.GetRegionInfo() << std::endl;
+    std::cout << "opaqueRegion " << opaqueRegion.GetRegionInfo() << std::endl;
+    std::cout << "screenRegion " << screenRegion.GetRegionInfo() << std::endl;
+    transparentRegion.AndSelf(screenRegion);
+    opaqueRegion.AndSelf(screenRegion);
+    std::cout << "transparentRegion " << transparentRegion.GetRegionInfo() << std::endl;
+    std::cout << "opaqueRegion " << opaqueRegion.GetRegionInfo() << std::endl;
+}
+
+/**
+ * @tc.name: ResetSurfaceOpaqueRegionTest2
+ * @tc.desc: test abnormal value of RectI input
+ * @tc.type:FUNC
+ * @tc.require: I8K5SW
+ */
+HWTEST_F(RSOcclusionRegionTest, ResetSurfaceOpaqueRegionTest2, Function | MediumTest | Level2)
+{
+    Rect trans{};
+    Rect opaque{1021068672, 2147483647, 1024, 2147483647};
+    Rect screen{0, 0, 1260, 2720};
+    Region transparentRegion{trans};
+    Region opaqueRegion{opaque};
+    Region screenRegion{screen};
+    std::cout << "transparentRegion " << transparentRegion.GetRegionInfo() << std::endl;
+    std::cout << "opaqueRegion " << opaqueRegion.GetRegionInfo() << std::endl;
+    std::cout << "screenRegion " << screenRegion.GetRegionInfo() << std::endl;
+    transparentRegion.AndSelf(screenRegion);
+    opaqueRegion.AndSelf(screenRegion);
+    std::cout << "transparentRegion " << transparentRegion.GetRegionInfo() << std::endl;
+    std::cout << "opaqueRegion " << opaqueRegion.GetRegionInfo() << std::endl;
+}
+
+/**
+ * @tc.name: ResetSurfaceOpaqueRegionTest3
+ * @tc.desc: test abnormal value of RectI input
+ * @tc.type:FUNC
+ * @tc.require: I8K5SW
+ */
+HWTEST_F(RSOcclusionRegionTest, ResetSurfaceOpaqueRegionTest3, Function | MediumTest | Level2)
+{
+    Rect trans{};
+    Rect opaque{2147483647, 2147483647, 24964864, 2147483647};
+    Rect screen{0, 0, 1260, 2720};
+    Region transparentRegion{trans};
+    Region opaqueRegion{opaque};
+    Region screenRegion{screen};
+    std::cout << "transparentRegion " << transparentRegion.GetRegionInfo() << std::endl;
+    std::cout << "opaqueRegion " << opaqueRegion.GetRegionInfo() << std::endl;
+    std::cout << "screenRegion " << screenRegion.GetRegionInfo() << std::endl;
+    transparentRegion.AndSelf(screenRegion);
+    opaqueRegion.AndSelf(screenRegion);
+    std::cout << "transparentRegion " << transparentRegion.GetRegionInfo() << std::endl;
+    std::cout << "opaqueRegion " << opaqueRegion.GetRegionInfo() << std::endl;
+}
+
 } // namespace OHOS::Rosen

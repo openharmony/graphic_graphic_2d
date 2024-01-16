@@ -47,11 +47,7 @@ ohos_static_library("color_manager_test_common") {
     "//foundation/graphic/graphic_2d/utils/color_manager:color_manager",
     "//third_party/googletest:gtest_main",
   ]
-  if (defined(use_new_skia) && use_new_skia) {
-    public_deps += [ "//third_party/skia:skia_ohos" ]
-  } else {
-    public_deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
-  }
+  public_deps += [ "//third_party/skia:skia_ohos" ]
   external_deps = [ "hilog:libhilog" ]
   subsystem_name = "graphic"
   part_name = "graphic_2d"

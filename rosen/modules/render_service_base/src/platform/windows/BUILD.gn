@@ -13,9 +13,16 @@
 
 import("//build/ohos.gni")
 import("//foundation/arkui/ace_engine/ace_config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("../../../config.gni")
 
 ohos_source_set("windows") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = false
+    cfi_cross_dso = false
+    debug = false
+  }
   defines = rs_common_define
 
   sources = [
@@ -31,7 +38,10 @@ ohos_source_set("windows") {
     "rs_vsync_client_windows.cpp",
   ]
 
-  include_dirs = [ "$rosen_root/modules/render_service_base/include" ]
+  include_dirs = [
+    "$rosen_root/modules/render_service_base/include",
+    "$graphic_2d_root/interfaces/inner_api/surface",
+  ]
 
   defines += [ "MODULE_RSB" ]
   if (enable_glfw_window) {

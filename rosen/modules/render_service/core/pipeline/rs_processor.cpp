@@ -18,6 +18,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "platform/common/rs_log.h"
 #include "rs_base_render_util.h"
+#include "rs_main_thread.h"
 #ifdef SOC_PERF_ENABLE
 #include "socperf_client.h"
 #endif
@@ -29,6 +30,7 @@ using namespace FRAME_TRACE;
 
 namespace OHOS {
 namespace Rosen {
+bool RSProcessor::needDisableMultiLayersPerf_ = false;
 namespace {
 constexpr uint32_t PERF_LEVEL_0 = 0;
 constexpr uint32_t PERF_LEVEL_1 = 1;
@@ -38,7 +40,7 @@ constexpr int32_t PERF_LEVEL_2_REQUESTED_CODE = 10014;
 constexpr int32_t PERF_LEVEL_3_REQUESTED_CODE = 10015;
 constexpr int64_t PERF_TIME_OUT = 950;
 constexpr uint32_t PERF_LEVEL_INTERVAL = 10;
-constexpr uint32_t PERF_LAYER_START_NUM = 7;
+constexpr uint32_t PERF_LAYER_START_NUM = 12;
 #ifdef FRAME_AWARE_TRACE
 constexpr uint32_t FRAME_TRACE_LAYER_NUM_1 = 11;
 constexpr uint32_t FRAME_TRACE_LAYER_NUM_2 = 13;
@@ -62,7 +64,7 @@ bool RSProcessor::FrameAwareTraceBoost(size_t layerNum)
         if (ft.RenderFrameTraceIsOpen()) {
             ft.RenderFrameTraceClose();
             PerfRequest(FRAME_TRACE_PERF_REQUESTED_CODE, false);
-            RS_LOGI("RsDebug RSProcessor::Perf: FrameTrace 0");
+            RS_LOGD("RsDebug RSProcessor::Perf: FrameTrace 0");
         }
         return false;
     }
@@ -76,7 +78,7 @@ bool RSProcessor::FrameAwareTraceBoost(size_t layerNum)
             return false;
         }
         PerfRequest(FRAME_TRACE_PERF_REQUESTED_CODE, true);
-        RS_LOGI("RsDebug RSProcessor::Perf: FrameTrace 1");
+        RS_LOGD("RsDebug RSProcessor::Perf: FrameTrace 1");
         lastRequestPerfTime = currentTime;
     }
     return true;
@@ -88,7 +90,7 @@ void RSProcessor::RequestPerf(uint32_t layerLevel, bool onOffTag)
     switch (layerLevel) {
         case PERF_LEVEL_0: {
             // do nothing
-            RS_LOGD("RsDebug RSProcessor::Perf: do nothing");
+            RS_LOGD("RsDebug RSProcessor::Perf: perf do nothing");
             break;
         }
         case PERF_LEVEL_1: {
@@ -177,8 +179,30 @@ void RSProcessor::CalculateMirrorAdaptiveCoefficient(float curWidth, float curHe
     mirrorAdaptiveCoefficient_ = std::min(curWidth / mirroredWidth, curHeight / mirroredHeight);
 }
 
+void RSProcessor::MirrorScenePerf()
+{
+    needDisableMultiLayersPerf_ = true;
+    static std::chrono::steady_clock::time_point lastRequestPerfTime = std::chrono::steady_clock::now();
+    auto currentTime = std::chrono::steady_clock::now();
+    bool isTimeOut = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastRequestPerfTime).
+        count() > PERF_TIME_OUT;
+    if (isTimeOut) {
+        PerfRequest(PERF_LEVEL_3_REQUESTED_CODE, true);
+        lastRequestPerfTime = currentTime;
+    }
+}
+
 void RSProcessor::MultiLayersPerf(size_t layerNum)
 {
+    if (needDisableMultiLayersPerf_) {
+        auto& context = RSMainThread::Instance()->GetContext();
+        std::shared_ptr<RSBaseRenderNode> rootNode = context.GetGlobalRootRenderNode();
+        if (rootNode && rootNode->GetChildrenCount() <= 1) {
+            needDisableMultiLayersPerf_ = false;
+        } else {
+            return;
+        }
+    }
 #ifdef FRAME_AWARE_TRACE
     if (FrameAwareTraceBoost(layerNum)) {
         return;

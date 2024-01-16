@@ -21,6 +21,7 @@ ohos_unittest("RSRenderServiceBasePropertyTest") {
   module_out_path = module_output_path
 
   sources = [
+    "rs_point_light_manager_test.cpp",
     "rs_properties_painter_test.cpp",
     "rs_properties_test.cpp",
     "rs_property_trace_test.cpp",
@@ -43,11 +44,7 @@ ohos_unittest("RSRenderServiceBasePropertyTest") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//third_party/googletest:gtest_main",
   ]
-  if (defined(use_new_skia) && use_new_skia) {
-    deps += [ "//third_party/skia:skia_ohos" ]
-  } else {
-    deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
-  }
+  deps += [ "//third_party/skia:skia_ohos" ]
 
   external_deps = [
     "c_utils:utils",

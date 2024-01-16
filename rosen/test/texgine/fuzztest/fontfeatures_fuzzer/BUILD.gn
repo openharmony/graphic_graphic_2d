@@ -15,7 +15,7 @@
 import("//build/config/features.gni")
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
-module_output_path = "graphic/texgine"
+module_output_path = "graphic_2d/graphic_2d/texgine"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("FontFeaturesFuzzTest") {

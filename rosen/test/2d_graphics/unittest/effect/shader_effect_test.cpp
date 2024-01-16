@@ -247,8 +247,9 @@ HWTEST_F(ShaderEffectTest, CreateTwoPointConical001, TestSize.Level1)
     std::vector<ColorQuad> colors;
     std::vector<scalar> position;
     TileMode tileMode = TileMode::MIRROR;
-    auto newShaderEffect =
-        ShaderEffect::CreateTwoPointConical(startPoint, startRadius, endPoint, endRadius, colors, position, tileMode);
+    Matrix matrix;
+    auto newShaderEffect = ShaderEffect::CreateTwoPointConical(startPoint, startRadius, endPoint, endRadius, colors,
+        position, tileMode, &matrix);
     EXPECT_TRUE(newShaderEffect != nullptr);
 }
 
@@ -268,8 +269,9 @@ HWTEST_F(ShaderEffectTest, CreateTwoPointConical002, TestSize.Level1)
     std::vector<ColorQuad> colors;
     std::vector<scalar> position;
     TileMode tileMode = TileMode::REPEAT;
-    auto newShaderEffect =
-        ShaderEffect::CreateTwoPointConical(startPoint, startRadius, endPoint, endRadius, colors, position, tileMode);
+    Matrix matrix;
+    auto newShaderEffect = ShaderEffect::CreateTwoPointConical(startPoint, startRadius, endPoint, endRadius, colors,
+        position, tileMode, &matrix);
     EXPECT_TRUE(newShaderEffect != nullptr);
 }
 
@@ -289,7 +291,7 @@ HWTEST_F(ShaderEffectTest, CreateSweepGradient001, TestSize.Level1)
     scalar startAngle = 0.2f;
     scalar endAngle = 0.5f;
     auto newShaderEffect =
-        ShaderEffect::CreateSweepGradient(centerPoint, colors, position, tileMode, startAngle, endAngle);
+        ShaderEffect::CreateSweepGradient(centerPoint, colors, position, tileMode, startAngle, endAngle, nullptr);
     EXPECT_TRUE(newShaderEffect != nullptr);
 }
 
@@ -309,7 +311,7 @@ HWTEST_F(ShaderEffectTest, CreateSweepGradient002, TestSize.Level1)
     scalar startAngle = 10.2f;
     scalar endAngle = 10.5f;
     auto newShaderEffect =
-        ShaderEffect::CreateSweepGradient(centerPoint, colors, position, tileMode, startAngle, endAngle);
+        ShaderEffect::CreateSweepGradient(centerPoint, colors, position, tileMode, startAngle, endAngle, nullptr);
     EXPECT_TRUE(newShaderEffect != nullptr);
 }
 
@@ -322,7 +324,7 @@ HWTEST_F(ShaderEffectTest, CreateSweepGradient002, TestSize.Level1)
  */
 HWTEST_F(ShaderEffectTest, ArgsContructor001, TestSize.Level1)
 {
-    auto newShaderEffect = std::make_unique<ShaderEffect>(ShaderEffect::ShaderEffectType::COLOR, 230);
+    auto newShaderEffect = std::make_unique<ShaderEffect>(ShaderEffect::ShaderEffectType::COLOR_EFFECT, 230);
     ASSERT_TRUE(newShaderEffect != nullptr);
 }
 
@@ -509,10 +511,10 @@ HWTEST_F(ShaderEffectTest, ArgsContructor012, TestSize.Level1)
     std::vector<ColorQuad> colors;
     std::vector<scalar> position;
     auto newShaderEffect = std::make_unique<ShaderEffect>(
-        ShaderEffect::ShaderEffectType::COLOR, startPoint, endPoint, colors, position, TileMode::REPEAT);
+        ShaderEffect::ShaderEffectType::COLOR_EFFECT, startPoint, endPoint, colors, position, TileMode::REPEAT);
     ASSERT_TRUE(newShaderEffect != nullptr);
     auto type = newShaderEffect->GetType();
-    EXPECT_EQ(type, ShaderEffect::ShaderEffectType::COLOR);
+    EXPECT_EQ(type, ShaderEffect::ShaderEffectType::COLOR_EFFECT);
 }
 
 /*
@@ -568,8 +570,9 @@ HWTEST_F(ShaderEffectTest, ArgsContructor015, TestSize.Level1)
     scalar endRadius = 0.7f;
     std::vector<ColorQuad> colors;
     std::vector<scalar> position;
-    auto newShaderEffect = std::make_unique<ShaderEffect>(ShaderEffect::ShaderEffectType::COLOR, startPoint,
-        startRadius, endPoint, endRadius, colors, position, TileMode::REPEAT);
+    Matrix matrix;
+    auto newShaderEffect = std::make_unique<ShaderEffect>(ShaderEffect::ShaderEffectType::COLOR_EFFECT, startPoint,
+        startRadius, endPoint, endRadius, colors, position, TileMode::REPEAT, &matrix);
     ASSERT_TRUE(newShaderEffect != nullptr);
 }
 
@@ -588,8 +591,9 @@ HWTEST_F(ShaderEffectTest, ArgsContructor016, TestSize.Level1)
     scalar endRadius = 10.7f;
     std::vector<ColorQuad> colors;
     std::vector<scalar> position;
+    Matrix matrix;
     auto newShaderEffect = std::make_unique<ShaderEffect>(ShaderEffect::ShaderEffectType::LINEAR_GRADIENT, startPoint,
-        startRadius, endPoint, endRadius, colors, position, TileMode::REPEAT);
+        startRadius, endPoint, endRadius, colors, position, TileMode::REPEAT, &matrix);
     ASSERT_TRUE(newShaderEffect != nullptr);
 }
 
@@ -608,7 +612,8 @@ HWTEST_F(ShaderEffectTest, ArgsContructor017, TestSize.Level1)
     std::vector<ColorQuad> colors;
     std::vector<scalar> position;
     auto newShaderEffect = std::make_unique<ShaderEffect>(
-        ShaderEffect::ShaderEffectType::BLEND, centerPoint, colors, position, TileMode::REPEAT, startAngle, endAngle);
+        ShaderEffect::ShaderEffectType::BLEND, centerPoint, colors, position, TileMode::REPEAT, startAngle, endAngle,
+        nullptr);
     ASSERT_TRUE(newShaderEffect != nullptr);
 }
 
@@ -627,7 +632,8 @@ HWTEST_F(ShaderEffectTest, ArgsContructor018, TestSize.Level1)
     std::vector<ColorQuad> colors;
     std::vector<scalar> position;
     auto newShaderEffect = std::make_unique<ShaderEffect>(
-        ShaderEffect::ShaderEffectType::COLOR, centerPoint, colors, position, TileMode::REPEAT, startAngle, endAngle);
+        ShaderEffect::ShaderEffectType::COLOR_EFFECT, centerPoint, colors, position, TileMode::REPEAT, startAngle, endAngle,
+        nullptr);
     ASSERT_TRUE(newShaderEffect != nullptr);
 }
 } // namespace Drawing

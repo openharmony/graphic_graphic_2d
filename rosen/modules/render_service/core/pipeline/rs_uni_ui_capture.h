@@ -27,11 +27,7 @@
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
-#ifndef USE_ROSEN_DRAWING
 #include "pipeline/rs_recording_canvas.h"
-#else
-#include "recording/recording_canvas.h"
-#endif
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "visitor/rs_node_visitor.h"
@@ -41,8 +37,7 @@ namespace Rosen {
 
 class RSUniUICapture {
 public:
-    RSUniUICapture(NodeId nodeId, float scaleX, float scaleY)
-        : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY) {}
+    RSUniUICapture(NodeId nodeId, float scaleX, float scaleY);
     ~RSUniUICapture() = default;
 
     std::shared_ptr<Media::PixelMap> TakeLocalCapture();
@@ -71,8 +66,9 @@ private:
 #ifndef USE_ROSEN_DRAWING
         void SetCanvas(std::shared_ptr<RSRecordingCanvas> canvas);
 #else
-        void SetCanvas(std::shared_ptr<Drawing::RecordingCanvas> canvas);
+        void SetCanvas(std::shared_ptr<ExtendRecordingCanvas> canvas);
 #endif
+        void SetPaintFilterCanvas(std::shared_ptr<RSPaintFilterCanvas> canvas);
 
     private:
         void ProcessSurfaceRenderNodeWithUni(RSSurfaceRenderNode& node);
@@ -92,20 +88,24 @@ private:
     sk_sp<SkSurface> CreateSurface(const std::shared_ptr<Media::PixelMap>& pixelmap) const;
     void PostTaskToRSRecord(std::shared_ptr<RSRecordingCanvas> canvas, std::shared_ptr<RSRenderNode> node,
         std::shared_ptr<RSUniUICaptureVisitor> visitor);
+    bool CopyDataToPixelMap(sk_sp<SkImage> img, std::shared_ptr<Media::PixelMap> pixelmap);
 #else
         Drawing::Matrix captureMatrix_ = Drawing::Matrix();
         bool isUniRender_ = false;
         std::shared_ptr<RSBaseRenderEngine> renderEngine_;
     };
     std::shared_ptr<Drawing::Surface> CreateSurface(const std::shared_ptr<Media::PixelMap>& pixelmap) const;
-    void PostTaskToRSRecord(std::shared_ptr<Drawing::RecordingCanvas> canvas, std::shared_ptr<RSRenderNode> node,
+    void PostTaskToRSRecord(std::shared_ptr<ExtendRecordingCanvas> canvas, std::shared_ptr<RSRenderNode> node,
         std::shared_ptr<RSUniUICaptureVisitor> visitor);
+    bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img,
+        std::shared_ptr<Media::PixelMap> pixelmap);
 #endif
     std::shared_ptr<Media::PixelMap> CreatePixelMapByNode(std::shared_ptr<RSRenderNode> node) const;
 
     NodeId nodeId_;
     float scaleX_;
     float scaleY_;
+    bool isUniRender_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

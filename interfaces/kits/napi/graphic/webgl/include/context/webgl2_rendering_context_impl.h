@@ -138,7 +138,7 @@ public:
     napi_value GetParameter(napi_env env, GLenum pname) override;
     napi_value GetTexParameter(napi_env env, GLenum target, GLenum pname) override;
     napi_value GetFrameBufferAttachmentParameter(napi_env env, GLenum target, GLenum attachment, GLenum pname) override;
-    void DoObjectDelete(int type, WebGLObject *obj) override;
+    void DoObjectDelete(int32_t type, WebGLObject *obj) override;
 private:
     WebGL2RenderingContextImpl(const WebGL2RenderingContextImpl&) = delete;
     WebGL2RenderingContextImpl& operator=(const WebGL2RenderingContextImpl&) = delete;
@@ -168,10 +168,10 @@ private:
 
     // TRANSFORM_FEEDBACK_BUFFER
     std::map<GLint, GLuint> boundIndexedTransformFeedbackBuffers_ {};
-    GLint maxBoundTransformFeedbackBufferIndex_ { 0 };
+    GLuint maxBoundTransformFeedbackBufferIndex_ { 0 };
     // UNIFORM_BUFFER
     std::map<GLint, GLuint> boundIndexedUniformBuffers_ {};
-    GLint maxBoundUniformBufferIndex_ { 0 };
+    GLuint maxBoundUniformBufferIndex_ { 0 };
 
     std::vector<GLuint> samplerUnits_ {};
     GLuint maxSamplerUnit_ {};

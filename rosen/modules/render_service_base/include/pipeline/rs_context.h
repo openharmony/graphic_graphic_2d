@@ -16,11 +16,21 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_PIPELINE_RS_CONTEXT_H
 #define ROSEN_RENDER_SERVICE_BASE_PIPELINE_RS_CONTEXT_H
 
+#include <cstdint>
 #include "common/rs_macros.h"
 #include "pipeline/rs_render_node_map.h"
+#include "pipeline/rs_render_frame_rate_linker_map.h"
 
 namespace OHOS {
 namespace Rosen {
+enum ClearMemoryMoment : uint32_t {
+    FILTER_INVALID = 0,
+    PROCESS_EXIT,
+    COMMON_SURFACE_NODE_HIDE,
+    SCENEBOARD_SURFACE_NODE_HIDE,
+    LOW_MEMORY,
+    NO_CLEAR,
+};
 
 class RSB_EXPORT RSContext : public std::enable_shared_from_this<RSContext> {
 public:
@@ -33,8 +43,8 @@ public:
 
     enum PurgeType {
         NONE,
-        PURGE_UNLOCK,
-        PURGE_UNLOCK_SAFECACHE
+        GENTLY,
+        STRONGLY
     };
 
     RSRenderNodeMap& GetMutableNodeMap()
@@ -45,6 +55,16 @@ public:
     const RSRenderNodeMap& GetNodeMap() const
     {
         return nodeMap;
+    }
+
+    RSRenderFrameRateLinkerMap& GetMutableFrameRateLinkerMap()
+    {
+        return frameRateLinkerMap;
+    }
+
+    const RSRenderFrameRateLinkerMap& GetFrameRateLinkerMap() const
+    {
+        return frameRateLinkerMap;
     }
 
     const std::shared_ptr<RSBaseRenderNode>& GetGlobalRootRenderNode() const
@@ -66,10 +86,18 @@ public:
     }
     // add node info after cmd data process
     void AddActiveNode(const std::shared_ptr<RSRenderNode>& node);
+    bool HasActiveNode(const std::shared_ptr<RSRenderNode>& node);
 
-    void MarkNeedPurge(PurgeType purgeType)
+    void MarkNeedPurge(ClearMemoryMoment moment, PurgeType purgeType);
+
+    void SetVsyncRequestFunc(const std::function<void()>& taskRunner)
     {
-        purgeType_ = purgeType;
+        vsyncRequestFunc_ = taskRunner;
+    }
+
+    void RequestVsync() const
+    {
+        vsyncRequestFunc_();
     }
 
     void SetTaskRunner(const std::function<void(const std::function<void()>&, bool)>& taskRunner)
@@ -85,15 +113,19 @@ public:
 
 private:
     RSRenderNodeMap nodeMap;
+    RSRenderFrameRateLinkerMap frameRateLinkerMap;
     std::shared_ptr<RSBaseRenderNode> globalRootRenderNode_ = std::make_shared<RSRenderNode>(0, true);
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> animatingNodeList_;
     PurgeType purgeType_ = PurgeType::NONE;
+    ClearMemoryMoment clearMoment_ = ClearMemoryMoment::NO_CLEAR;
 
     uint64_t transactionTimestamp_ = 0;
     uint64_t currentTimestamp_ = 0;
     std::function<void(const std::function<void()>&, bool)> taskRunner_;
+    std::function<void()> vsyncRequestFunc_;
     // Collect all active Nodes sorted by root node id in this frame.
-    std::unordered_map<NodeId, std::unordered_map<NodeId, std::shared_ptr<RSRenderNode>>> activeNodesInRoot_;
+    std::unordered_map<NodeId, std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>> activeNodesInRoot_;
+    std::mutex mutex_;
 
     friend class RSRenderThread;
     friend class RSMainThread;

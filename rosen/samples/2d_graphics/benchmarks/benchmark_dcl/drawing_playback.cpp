@@ -19,13 +19,96 @@
 #include <unique_fd.h>
 
 #include "include/core/SkStream.h"
+#include "skia_adapter/skia_canvas.h"
 #include "src/utils/SkMultiPictureDocumentPriv.h"
 #include "src/utils/SkOSPath.h"
 #include "transaction/rs_marshalling_helper.h"
+#include "recording/draw_cmd_list.h"
+#include "platform/common/rs_system_properties.h"
+
+#include <fstream>
+#include <filesystem>
+#include <fcntl.h>
+#include <unistd.h>
+
+namespace {
+bool IsValidFile(const std::string& realPathStr, const std::string& validFile = "/data/")
+{
+    return realPathStr.find(validFile) == 0;
+}
+
+std::string GetRealAndValidPath(const std::string& filePath)
+{
+    std::string realPathStr = std::filesystem::path(filePath).lexically_normal().string();
+    if (IsValidFile(realPathStr)) {
+        return realPathStr;
+    } else {
+        std::cout << "FileUtils: The file path is not valid!" << std::endl;
+        return "";
+    }
+}
+
+bool CreateFile(const std::string& filePath)
+{
+    std::string realPath = GetRealAndValidPath(filePath);
+    if (realPath.empty()) {
+        return false;
+    }
+    std::ofstream outFile(realPath);
+    if (!outFile.is_open()) {
+        std::cout << "FileUtils: file open failed!" << std::endl;
+        return false;
+    }
+    outFile.clear();
+    outFile.close();
+    return true;
+}
+
+bool WriteStringToFilefd(int fd, const std::string& str)
+{
+    const char* p = str.data();
+    ssize_t remaining = static_cast<ssize_t>(str.size());
+    while (remaining > 0) {
+        ssize_t n = write(fd, p, remaining);
+        if (n == -1) {
+            return false;
+        }
+        p += n;
+        remaining -= n;
+    }
+    p = nullptr;
+    return true;
+}
+
+bool WriteStringToFile(const std::string& str, const std::string& filePath)
+{
+    if (!CreateFile(filePath)) {
+        return false;
+    }
+    if (filePath.empty()) {
+        return false;
+    }
+
+    char realPath[PATH_MAX] = {0};
+    if (realpath(filePath.c_str(), realPath) == nullptr) {
+        return false;
+    }
+
+    int fd = open(realPath, O_RDWR | O_CREAT, static_cast<mode_t>(0600));
+    if (fd < 0) {
+        std::cout << "FileUtils: fd open failed!" << std::endl;
+        return false;
+    }
+    bool result = WriteStringToFilefd(fd, str);
+    close(fd);
+    return result;
+}
+};
+
 namespace OHOS {
 namespace Rosen {
 
-MSKPSrc::MSKPSrc(std::string path) : fPath_(path)
+MSKPSrc::MSKPSrc(const std::string& path) : fPath_(path)
 {
     std::unique_ptr<SkStreamAsset> stream = SkStream::MakeFromFile(fPath_.c_str());
 
@@ -77,7 +160,6 @@ DrawingDCL::~DrawingDCL()
 {
     mskpPtr.reset();
     std::cout << "~DrawingDCL" << std::endl;
-    delete dcl_;
 }
 
 void DrawingDCL::PrintDurationTime(const std::string & description,
@@ -141,33 +223,27 @@ void DrawingDCL::ReplaySKP(SkCanvas *skiaCanvas)
     std::cin >> tmp;
 }
 
-bool DrawingDCL::PlayBackByFrame(SkCanvas* skiaCanvas, bool isDumpPictures)
+bool DrawingDCL::PlayBackByFrame(Drawing::Canvas* canvas, bool isDumpPictures)
 {
     //read DrawCmdList from file
-    if (skiaCanvas == nullptr) {
+    if (canvas == nullptr) {
         return false;
     }
     auto start = std::chrono::system_clock::now();
-    static int frame = beginFrame_;
     static int curLoop = 0;
-    std::string dclFile = inputFilePath_ + "frame" + std::to_string(frame) + ".drawing";
+    std::string dclFile = inputFilePath_ + "frame" + std::to_string(curFrameNo_) + ".drawing";
     std::cout << "PlayBackByFrame dclFile:" << dclFile << std::endl;
 
     if (LoadDrawCmdList(dclFile) < 0) {
         std::cout << "failed to loadDrawCmdList" << std::endl;
-        IterateFrame(curLoop, frame);
+        IterateFrame(curLoop, curFrameNo_);
         return false;
     }
     PrintDurationTime("Load DrawCmdList file time is ", start);
-    //std::string tmp;
-    //std::cout << "press any key to draw one frame.(begin)" << std::endl;
-    //std::cin>>tmp;
     start = std::chrono::system_clock::now();
-    dcl_->Playback(*skiaCanvas);
-    //std::cout << "press any key to draw one frame.(end)" << std::endl;
+    dcl_->Playback(*canvas);
     PrintDurationTime("The frame PlayBack time is ", start);
-    //std::cin>>tmp;
-    return IterateFrame(curLoop, frame);
+    return IterateFrame(curLoop, curFrameNo_);
 }
 
 bool DrawingDCL::PlayBackByOpItem(SkCanvas* skiaCanvas, bool isMoreOps)
@@ -187,7 +263,6 @@ bool DrawingDCL::PlayBackByOpItem(SkCanvas* skiaCanvas, bool isMoreOps)
     PrintDurationTime("Load DrawCmdList file time is ", start);
     // Playback
     static double opitemId = 0;
-    double oldOpId = opitemId;
     if (!isMoreOps) {
         opitemId -= opItemStep_;
         if (opitemId < 0) {
@@ -198,14 +273,6 @@ bool DrawingDCL::PlayBackByOpItem(SkCanvas* skiaCanvas, bool isMoreOps)
         opitemId += opItemStep_;
     }
     std::cout << "play back to opitemId = " << static_cast<int>(opitemId) << std::endl;
-    if (opitemId < dcl_->GetSize()) {
-        std::cout << dcl_->PlayBackForRecord(*skiaCanvas, 0, static_cast<int>(opitemId), static_cast<int>(oldOpId))
-            << std::endl;
-    } else {
-        std::cout << dcl_->PlayBackForRecord(*skiaCanvas, 0, dcl_->GetSize(), static_cast<int>(oldOpId)) << std::endl;
-        opitemId = 0;
-        return false;
-    }
     return true;
 }
 
@@ -275,19 +342,24 @@ void DrawingDCL::UpdateParameters(bool notNeeded)
     UpdateParametersFromDCLCommand(dclCommand);
 }
 
-void DrawingDCL::Test(SkCanvas* canvas, int width, int height)
+void DrawingDCL::Test(Drawing::Canvas* canvas, int width, int height)
 {
     std::cout << "DrawingDCL::Test+" << std::endl;
-    if (skiaRecording.GetCaptureEnabled()) {
-        canvas = skiaRecording.BeginCapture(canvas, width, height);
-    }
+#if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
+        std::cout << "DrawingDCL::Test skia" << std::endl;
+        orgSkiaCanvas_ = canvas->GetImpl<Drawing::SkiaCanvas>()->ExportSkCanvas();
+        if (skiaRecording.GetCaptureEnabled()) {
+            std::cout << "DrawingDCL::Test skia begin capture+" << std::endl;
+            skiaCanvas_ = skiaRecording.BeginCapture(orgSkiaCanvas_, width, height);
+            canvas->GetImpl<Drawing::SkiaCanvas>()->ImportSkCanvas(skiaCanvas_);
+        }
+#endif
     auto start = std::chrono::system_clock::now();
     switch (iterateType_) {
         case IterateType::ITERATE_FRAME:
             UpdateParameters(PlayBackByFrame(canvas));
             break;
         case IterateType::ITERATE_OPITEM:
-            UpdateParameters(PlayBackByOpItem(canvas));
             break;
         case IterateType::ITERATE_OPITEM_MANUALLY: {
             static bool isMoreOps = true;
@@ -299,15 +371,25 @@ void DrawingDCL::Test(SkCanvas* canvas, int width, int height)
             do {
                 getline(std::cin, line);
             } while (!GetDirectionAndStep(line, isMoreOps));
-            UpdateParameters(PlayBackByOpItem(canvas, isMoreOps));
             break;
         }
         case IterateType::REPLAY_MSKP:
             std::cout << "replay mskp... " << std::endl;
-            UpdateParameters(ReplayMSKP(canvas) || (beginFrame_ == 1));
+#ifdef RS_ENABLE_VK
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                UpdateParameters(ReplayMSKP(skiaCanvas_) || (beginFrame_ == 1));
+            }
+#endif
             break;
         case IterateType::REPLAY_SKP:
-            ReplaySKP(canvas);
+            std::cout << "replay skp... " << std::endl;
+#ifdef RS_ENABLE_VK
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                ReplaySKP(skiaCanvas_);
+            }
+#endif
             break;
         case IterateType::OTHER:
             std::cout << "Unknown iteratetype, please reenter parameters!" << std::endl;
@@ -317,9 +399,12 @@ void DrawingDCL::Test(SkCanvas* canvas, int width, int height)
             break;
     }
     PrintDurationTime("This frame draw time is: ", start);
+#if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     if (skiaRecording.GetCaptureEnabled()) {
         skiaRecording.EndCapture();
     }
+    canvas->GetImpl<Drawing::SkiaCanvas>()->ImportSkCanvas(orgSkiaCanvas_);
+#endif
     std::cout << "DrawingDCL::Test-" << std::endl;
 }
 
@@ -411,14 +496,16 @@ int DrawingDCL::LoadDrawCmdList(const std::string& dclFile)
     std::cout << "messageParcel GetDataSize() = " << messageParcel.GetDataSize() << std::endl;
 
     RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
-    dcl_ = DrawCmdList::Unmarshalling(messageParcel);
+    RSMarshallingHelper::Unmarshalling(messageParcel, dcl_);
     RSMarshallingHelper::EndNoSharedMem();
     if (dcl_ == nullptr) {
         std::cout << "dcl is nullptr" << std::endl;
         munmap(mapFile, statbuf.st_size);
         return -1;
     }
-    std::cout << "The size of Ops is " << dcl_->GetSize() << std::endl;
+    std::cout << "The size of Ops is " << dcl_->GetOpItemSize() << std::endl;
+    std::string opsFile = inputFilePath_ + "ops_frame" + std::to_string(curFrameNo_) + ".txt";
+    WriteStringToFile(dcl_->GetOpsWithDesc(), opsFile);
         munmap(mapFile, statbuf.st_size);
     return 0;
 }

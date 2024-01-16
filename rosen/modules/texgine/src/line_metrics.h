@@ -23,6 +23,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
+#define MAX_INT_VALUE 0x7FFFFFFF
+
 struct LineMetrics {
     std::vector<VariantSpan> lineSpans;
     double width = 0.0;
@@ -37,6 +39,17 @@ struct LineMetrics {
             allSpanWidth += span.GetWidth();
         }
         return allSpanWidth;
+    }
+
+    double GetMaxHeight() const
+    {
+        double maxHeight = 0.0;
+        for (const auto &span : lineSpans) {
+            if (span.GetHeight() > maxHeight) {
+                maxHeight = span.GetHeight();
+            }
+        }
+        return maxHeight;
     }
 };
 } // namespace TextEngine

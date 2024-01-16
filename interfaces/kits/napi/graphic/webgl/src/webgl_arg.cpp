@@ -83,7 +83,7 @@ bool WebGLArg::GetWebGLArg(napi_value data, WebGLArgValue& arg, const WebGLArgIn
 std::tuple<GLenum, GLintptr> WebGLArg::ToGLintptr(napi_env env, napi_value dataObj)
 {
     int64_t data = 0;
-    bool succ;
+    bool succ = false;
     tie(succ, data) = NVal(env, dataObj).ToInt64();
     if (!succ) {
         return make_tuple(WebGLRenderingContextBase::INVALID_VALUE, 0);
@@ -189,7 +189,7 @@ template<class srcT, class dstT>
 napi_status WebGLReadBufferArg::GetArrayElement(
     napi_value data, dstT defaultValue, napi_status (*getElementValue)(napi_env env_, napi_value element, srcT* value))
 {
-    uint32_t length;
+    uint32_t length = 0;
     napi_status status = napi_get_array_length(env_, data, &length);
     if (status != napi_ok) {
         return status;
@@ -458,5 +458,491 @@ const WebGLFormatMap *WebGLImageSource::GetWebGLFormatMap(GLenum type, GLenum fo
     return nullptr;
 }
 
+WebGLImageSource::~WebGLImageSource()
+{
+    imageData_.clear();
+}
+
+bool WebGLImageSource::HandleImageSourceData(napi_value resultData, napi_valuetype valueType)
+{
+    uint32_t errorCode = 0;
+    bool succ = false;
+    SourceOptions opts;
+    std::unique_ptr<OHOS::Media::ImageSource> imageSource = nullptr;
+    if (valueType == napi_string) { // File Path
+        size_t ignore = 0;
+        std::unique_ptr<char[]> source = nullptr;
+        tie(succ, source, ignore) = NVal(env_, resultData).ToUTF8String();
+        if (!succ) {
+            return false;
+        }
+        LOGD("WebGl ImageSource src: %{public}s", source.get());
+        imageSource = ImageSource::CreateImageSource(source.get(), opts, errorCode);
+    } else if (valueType == napi_number) { // Fd
+        int32_t fd = 0;
+        napi_get_value_int32(env_, resultData, &fd);
+        LOGD("WebGl ImageSource fdIndex is [%{public}d]", fd);
+        imageSource = ImageSource::CreateImageSource(fd, opts, errorCode);
+    } else {
+        LOGE("WebGl ImageSource not support type %{public}u", valueType);
+        return false;
+    }
+    if (imageSource == nullptr) {
+        LOGE("WebGl ImageSource fail to get errorCode %{public}u", errorCode);
+        return false;
+    }
+
+    ImageInfo imageInfo;
+    errorCode = imageSource->GetImageInfo(0, imageInfo);
+    if (errorCode == 0) {
+        errorCode = imageSource->GetImageInfo(imageInfo);
+        LOGD("WebGl ImageSource  [%{public}u %{public}u] pixelFormat %{public}u colorSpace %{public}u"
+            " alphaType  %{public}u", imageInfo.size.width, imageInfo.size.height, imageInfo.pixelFormat,
+            imageInfo.colorSpace, imageInfo.alphaType);
+        imageOption_.width = imageInfo.size.width;
+        imageOption_.height = imageInfo.size.height;
+    } else {
+        return false;
+    }
+    DecodeOptions decodeOpts;
+    pixelMap_ = imageSource->CreatePixelMap(decodeOpts, errorCode);
+    if (pixelMap_ == nullptr) {
+        LOGE("WebGl ImageSource fail to create pixel map");
+        return false;
+    }
+    return true;
+}
+
+void WebGLImageSource::DecodeData(const WebGLFormatMap* formatMap, uint8_t* array)
+{
+    imageData_.clear();
+    for (int32_t i = 0; i < imageOption_.height; ++i) {
+        for (int32_t j = 0; j < imageOption_.width; ++j) {
+            uint8_t *data = array + formatMap->bytesPrePixel * (j + imageOption_.width * i);
+            // 0,1,2,3 -- red,green,blue,alpha
+            imageData_.emplace_back(FromARGB(static_cast<uint8_t>(data[3]),
+                static_cast<uint8_t>(data[0]), static_cast<uint8_t>(data[1]), static_cast<uint8_t>(data[2])).value);
+        }
+    }
+}
+
+void WebGLImageSource::DecodeDataForRGB_UBYTE(const WebGLFormatMap* formatMap, uint8_t* array)
+{
+    imageData_.clear();
+    for (int32_t i = 0; i < imageOption_.height; ++i) {
+        for (int32_t j = 0; j < imageOption_.width; ++j) {
+            uint8_t *data = array + formatMap->bytesPrePixel * (j + imageOption_.width * i);
+            // 0,1,2 -- red,green,blue
+            imageData_.emplace_back(FromRGB(
+                static_cast<uint8_t>(data[0]), static_cast<uint8_t>(data[1]), static_cast<uint8_t>(data[2])).value);
+        }
+    }
+}
+
+void WebGLImageSource::DecodeDataForRGBA_USHORT_4444(const WebGLFormatMap* formatMap, uint8_t* array)
+{
+    imageData_.clear();
+    for (int32_t i = 0; i < imageOption_.height; ++i) {
+        for (int32_t j = 0; j < imageOption_.width; ++j) {
+            uint8_t *data = array + formatMap->bytesPrePixel * (j + imageOption_.width * i);
+            ColorParam_4_4_4_4 param;
+            param.value = *reinterpret_cast<uint16_t *>(data);
+            imageData_.emplace_back(FromARGB(
+                param.rgba.alpha, param.rgba.red, param.rgba.green, param.rgba.blue).value);
+        }
+    }
+}
+
+void WebGLImageSource::DecodeDataForRGBA_USHORT_5551(const WebGLFormatMap* formatMap, uint8_t* array)
+{
+    imageData_.clear();
+    for (int32_t i = 0; i < imageOption_.height; ++i) {
+        for (int32_t j = 0; j < imageOption_.width; ++j) {
+            uint8_t *data = array + formatMap->bytesPrePixel * (j + imageOption_.width * i);
+            ColorParam_5_5_5_1 param;
+            param.value = *reinterpret_cast<uint16_t *>(data);
+            imageData_.emplace_back(FromARGB(
+                param.rgba.alpha, param.rgba.red, param.rgba.green, param.rgba.blue).value);
+        }
+    }
+}
+
+void WebGLImageSource::DecodeDataForRGB_USHORT_565(const WebGLFormatMap* formatMap, uint8_t* array)
+{
+    imageData_.clear();
+    for (int32_t i = 0; i < imageOption_.height; ++i) {
+        for (int32_t j = 0; j < imageOption_.width; ++j) {
+            uint8_t *data = array + formatMap->bytesPrePixel * (j + imageOption_.width * i);
+            ColorParam_5_6_5 param;
+            param.value = *reinterpret_cast<uint16_t *>(data);
+            imageData_.emplace_back(FromRGB(param.rgb.red, param.rgb.green, param.rgb.blue).value);
+        }
+    }
+}
+
+bool WebGLImageSource::DecodeImageData(
+    const WebGLFormatMap* formatMap, const WebGLReadBufferArg* bufferDataArg, GLuint srcOffset)
+{
+    size_t maxSize = bufferDataArg->GetBufferLength() - srcOffset * formatMap->bytesPrePixel;
+    LOGD("GenImageSource element count %{public}zu %{public}u", maxSize, formatMap->bytesPrePixel);
+    if (maxSize < static_cast<size_t>(imageOption_.height * imageOption_.width * formatMap->bytesPrePixel)) {
+        LOGE("Invalid data element");
+        return false;
+    }
+
+    uint8_t *start = bufferDataArg->GetBuffer() + srcOffset;
+    switch (formatMap->decodeFunc) {
+        case DECODE_RGBA_UBYTE:
+            DecodeData(formatMap, start);
+            break;
+        case DECODE_RGB_UBYTE:
+            DecodeDataForRGB_UBYTE(formatMap, start);
+            break;
+        case DECODE_RGBA_USHORT_4444:
+            DecodeDataForRGBA_USHORT_4444(formatMap, start);
+            break;
+        case DECODE_RGBA_USHORT_5551:
+            DecodeDataForRGBA_USHORT_5551(formatMap, start);
+            break;
+        case DECODE_RGB_USHORT_565:
+            DecodeDataForRGB_USHORT_565(formatMap, start);
+            break;
+        default:
+            LOGE("Not support type %{public}u format %{public}u", imageOption_.type, imageOption_.format);
+            return false;
+    }
+
+    LOGD("GenImageSource imageData_ %{public}zu ", imageData_.size());
+    if (imageData_.size() != static_cast<size_t>(imageOption_.height * imageOption_.width)) {
+        return false;
+    }
+    return true;
+}
+
+GLenum WebGLImageSource::GenImageSource(const WebGLImageOption& opt, napi_value pixels, GLuint srcOffset)
+{
+    imageOption_.Assign(opt);
+    imageOption_.Dump();
+    if (readBuffer_ != nullptr) {
+        readBuffer_.reset();
+    }
+    readBuffer_ = std::make_unique<WebGLReadBufferArg>(env_);
+    if (readBuffer_ == nullptr) {
+        return GL_INVALID_OPERATION;
+    }
+    const WebGLFormatMap *formatMap = GetWebGLFormatMap(imageOption_.type, imageOption_.format);
+    if (formatMap == nullptr) {
+        return false;
+    }
+    napi_status status = readBuffer_->GenBufferData(pixels, formatMap->dataType);
+    if (status != napi_ok) {
+        return GL_INVALID_VALUE;
+    }
+    if (readBuffer_->GetBufferDataType() != formatMap->dataType) {
+        return GL_INVALID_OPERATION;
+    }
+    if (!(unpackFlipY_ || unpackPremultiplyAlpha_)) {
+        srcOffset_ = srcOffset;
+        return GL_NO_ERROR;
+    }
+    bool succ = false;
+    if (readBuffer_->GetBufferDataType() == BUFFER_DATA_UINT_8 ||
+        readBuffer_->GetBufferDataType() == BUFFER_DATA_UINT_16) {
+            succ = DecodeImageData(formatMap, readBuffer_.get(), srcOffset);
+    } else {
+        return GL_INVALID_OPERATION;
+    }
+    if (!succ) {
+        return GL_INVALID_OPERATION;
+    }
+
+    Media::InitializationOptions opts;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.size.width = imageOption_.width;
+    opts.size.height = imageOption_.height;
+    opts.editable = true;
+    pixelMap_ = Media::PixelMap::Create(imageData_.data(), imageData_.size(), opts);
+    return pixelMap_ == nullptr ? GL_INVALID_OPERATION : GL_NO_ERROR;
+}
+
+GLenum WebGLImageSource::GenImageSource(const WebGLImageOption& opt, napi_value sourceImage)
+{
+    imageOption_.Assign(opt);
+    bool succ = false;
+    napi_value resultObject = nullptr;
+    napi_status status = napi_coerce_to_object(env_, sourceImage, &resultObject);
+    if (status != napi_ok) {
+        return GL_INVALID_VALUE;
+    }
+
+    // image maybe no width
+    tie(succ, imageOption_.width) = GetObjectIntField<GLsizei>(resultObject, "width");
+    if (!succ) {
+        return GL_INVALID_VALUE;
+    }
+    tie(succ, imageOption_.height) = GetObjectIntField<GLsizei>(resultObject, "height");
+    if (!succ) {
+        return GL_INVALID_VALUE;
+    }
+    LOGD("WebGl GenImageSource size [%{public}d %{public}d]", imageOption_.width, imageOption_.height);
+
+    napi_value resultData = nullptr;
+    status = napi_get_named_property(env_, resultObject, "data", &resultData);
+    if (status != napi_ok || NVal(env_, resultData).IsNull()) {
+        status = napi_get_named_property(env_, resultObject, "src", &resultData);
+    }
+    if (status != napi_ok || NVal(env_, resultData).IsNull()) {
+        LOGE("WebGl GenImageSource status %{public}u", status);
+        return GL_INVALID_VALUE;
+    }
+    napi_valuetype valueType;
+    napi_typeof(env_, resultData, &valueType);
+    if (valueType == napi_object) {
+        return GenImageSource(imageOption_, resultData, 0);
+    }
+    return HandleImageSourceData(resultData, valueType) ? GL_NO_ERROR : GL_INVALID_VALUE;
+}
+
+WebGLReadBufferArg *WebGLImageSource::GetWebGLReadBuffer() const
+{
+    return readBuffer_ == nullptr ? nullptr : readBuffer_.get();
+}
+
+GLvoid* WebGLImageSource::GetImageSourceData() const
+{
+    if (pixelMap_ == nullptr) {
+        return readBuffer_ == nullptr ? nullptr : reinterpret_cast<GLvoid*>(readBuffer_->GetBuffer() + srcOffset_);
+    }
+
+    LOGD("WebGl ImageSource [%{public}u %{public}u] byteCount %{public}u pixelBytes %{public}u rowBytes %{public}u "
+        " flipY %{public}u premultiplyAlpha %{public}u", pixelMap_->GetWidth(), pixelMap_->GetHeight(),
+        pixelMap_->GetByteCount(), pixelMap_->GetPixelBytes(), pixelMap_->GetRowBytes(),
+        unpackFlipY_, unpackPremultiplyAlpha_);
+    if (unpackFlipY_ || unpackPremultiplyAlpha_) {
+        pixelMap_->flip(false, unpackFlipY_);
+    }
+    return reinterpret_cast<GLvoid*>(const_cast<uint8_t*>(pixelMap_->GetPixels()));
+}
+
+uint32_t WebGLArg::GetWebGLDataSize(GLenum type)
+{
+    switch (type) {
+        case GL_BYTE:
+            return sizeof(GLbyte);
+        case GL_UNSIGNED_BYTE:
+            return sizeof(GLubyte);
+        case GL_SHORT:
+            return sizeof(GLshort);
+        case GL_UNSIGNED_SHORT:
+            return sizeof(GLushort);
+        case GL_INT:
+            return sizeof(GLint);
+        case GL_UNSIGNED_INT:
+            return sizeof(GLuint);
+        case GL_FLOAT:
+            return sizeof(GLfloat);
+        default:
+            break;
+    }
+    return sizeof(GLuint);
+}
+
+bool WebGLArg::GetStringList(napi_env env, napi_value array, std::vector<char*>& list)
+{
+    bool succ = false;
+    uint32_t count = 0;
+    napi_status status = napi_get_array_length(env, array, &count);
+    if (status != napi_ok) {
+        return false;
+    }
+    uint32_t i;
+    for (i = 0; i < count; i++) {
+        napi_value element;
+        status = napi_get_element(env, array, i, &element);
+        if (status != napi_ok) {
+            return false;
+        }
+        napi_value result;
+        status = napi_coerce_to_string(env, element, &result);
+        if (status != napi_ok) {
+            return false;
+        }
+        unique_ptr<char[]> name;
+        tie(succ, name, ignore) = NVal(env, result).ToUTF8String();
+        if (!succ) {
+            return false;
+        }
+        LOGD("WebGL2 GetStringList = %{public}s", name.get());
+        list.emplace_back(name.get());
+        name.release();
+    }
+    return true;
+}
+
+void WebGLArg::FreeStringList(std::vector<char*>& list)
+{
+    for (size_t i = 0; i < list.size(); i++) {
+        if (list[i] != nullptr) {
+            delete[] list[i];
+        }
+    }
+    list.clear();
+}
+
+napi_value WebGLArg::GetUint32Parameter(napi_env env, GLenum pname)
+{
+    GLint value = 0;
+    glGetIntegerv(pname, &value);
+    napi_value res = nullptr;
+    napi_create_uint32(env, value, &res);
+    return res;
+}
+
+napi_value WebGLArg::GetBoolParameter(napi_env env, GLenum pname)
+{
+    GLboolean value = 0;
+    glGetBooleanv(pname, &value);
+    napi_value res = nullptr;
+    napi_get_boolean(env, value, &res);
+    return res;
+}
+
+napi_value WebGLArg::GetInt32Parameter(napi_env env, GLenum pname)
+{
+    GLint value = 0;
+    glGetIntegerv(pname, &value);
+    napi_value res = nullptr;
+    napi_create_int32(env, value, &res);
+    return res;
+}
+
+napi_value WebGLArg::GetInt64Parameter(napi_env env, GLenum pname)
+{
+    GLint64 value = 0;
+    glGetInteger64v(pname, &value);
+    napi_value res = nullptr;
+    napi_create_int64(env, value, &res);
+    return res;
+}
+
+napi_value WebGLArg::GetFloatParameter(napi_env env, GLenum pname)
+{
+    float value = 0;
+    glGetFloatv(pname, &value);
+    napi_value res = nullptr;
+    napi_create_double(env, static_cast<double>(value), &res);
+    return res;
+}
+
+void TexImageArg::Dump(const std::string& info) const
+{
+    LOGD("%{public}s target %{public}u %{public}d internalFormat %{public}u format %{public}u %{public}u",
+        info.c_str(), target, level, internalFormat, format, type);
+    LOGD("width %{public}d height %{public}d border %{public}d depth %{public}d", width, height, border, depth);
+}
+
+void TexStorageArg::Dump(const std::string& info) const
+{
+    LOGD("%{public}s target %{public}u %{public}d internalFormat %{public}u ",
+        info.c_str(), target, levels, internalFormat);
+    LOGD("width %{public}d height %{public}d depth %{public}d", width, height, depth);
+}
+
+void TexSubImage2DArg::Dump(const std::string& info) const
+{
+    TexImageArg::Dump(info);
+    LOGD("xOffset %{public}u yOffset %{public}u", xOffset, yOffset);
+}
+
+void TexSubImage3DArg::Dump(const std::string& info) const
+{
+    TexImageArg::Dump(info);
+    LOGD("xOffset %{public}u yOffset %{public}u zOffset %{public}u", xOffset, yOffset, zOffset);
+}
+
+void PixelsArg::Dump(const std::string& info) const
+{
+    LOGD("%{public}s position [%{public}d %{public}d %{public}d %{public}d] format [%{public}u %{public}u]",
+        info.c_str(), x, y, width, height, format, type);
+}
+
+void VertexAttribArg::Dump(const std::string &info) const
+{
+    LOGD("%{public}s vertexAttrib index %{public}u %{public}d type %{public}u %{public}d "
+        "stride [%{public}u %{public}u]",
+        info.c_str(), index, size, type, normalized, stride, offset);
+}
+
+bool UniformExtInfo::GetUniformExtInfo(napi_env env, const NFuncArg& funcArg, int32_t start)
+{
+    bool succ = false;
+    if (start + 1 > static_cast<int32_t>(funcArg.GetMaxArgc())) {
+        LOGE("funcArg.GetMaxArgc : %{public}zu", funcArg.GetMaxArgc());
+        return false;
+    }
+    if (funcArg[start] != nullptr) {
+        tie(succ, srcOffset) = NVal(env, funcArg[start]).ToUint32();
+        if (!succ) {
+            return false;
+        }
+        LOGD("WebGL UniformMatrixInfo srcOffset = %{public}u", srcOffset);
+    }
+    if (funcArg[start + 1] != nullptr) {
+        tie(succ, srcLength) = NVal(env, funcArg[start + 1]).ToUint32();
+        if (!succ) {
+            return false;
+        }
+        LOGD("WebGL UniformMatrixInfo srcLength = %{public}u", srcLength);
+    }
+    return true;
+}
+
+bool BufferExt::GetBufferExt(napi_env env, napi_value offsetArg, napi_value lenArg)
+{
+    int64_t srcByteOffset = 0;
+    bool succ = false;
+    if (!NVal(env, offsetArg).IsNull()) {
+        tie(succ, srcByteOffset) = NVal(env, offsetArg).ToInt64();
+        if (!succ || srcByteOffset < 0) {
+            return false;
+        }
+        offset = static_cast<GLuint>(srcByteOffset);
+    }
+
+    if (!NVal(env, lenArg).IsNull()) {
+        tie(succ, srcByteOffset) = NVal(env, lenArg).ToInt64();
+        if (!succ || srcByteOffset < 0) {
+            return false;
+        }
+        length = static_cast<GLuint>(srcByteOffset);
+    }
+    return true;
+}
+
+bool WebGLArg::CheckString(const std::string& str)
+{
+    for (size_t i = 0; i < str.length(); ++i) {
+        unsigned char c = str[i];
+        // Horizontal tab, line feed, vertical tab, form feed, carriage return are also valid
+        if (c >= 9 && c <= 13) { // Match character: 9 TAB, 10 LF, 11 VT, 12 FF, 13 CR
+            continue;
+        }
+        // Printing characters are valid except " $ ` @ \ ' DEL.
+        if (isprint(c) && c != '"' && c != '$' && c != '`' && c != '@' && c != '\\' && c != '\'') {
+            continue;
+        }
+        return false;
+    }
+    return true;
+}
+
+bool WebGLArg::CheckReservedPrefix(const std::string& name)
+{
+    // 6: 'webgl_' length, 7: '_webgl_' length
+    if (strncmp("webgl_", name.c_str(), 6) == 0 || strncmp("_webgl_", name.c_str(), 7) == 0) {
+        return true;
+    }
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

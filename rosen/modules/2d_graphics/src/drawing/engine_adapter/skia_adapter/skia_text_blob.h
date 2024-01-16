@@ -16,14 +16,13 @@
 #ifndef SKIA_TEXT_BLOB_H
 #define SKIA_TEXT_BLOB_H
 
+#include <cstdint>
 #include <memory>
 
 #include "include/core/SkTextBlob.h"
-#include "include/core/SkSerialProcs.h"
 
 #include "impl_interface/text_blob_impl.h"
 #include "text/text_blob.h"
-#include "utils/data.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -47,9 +46,13 @@ public:
 
     sk_sp<SkTextBlob> GetTextBlob() const;
 
-    std::shared_ptr<Data> Serialize(const SkSerialProcs& procs) const;
+    std::shared_ptr<Data> Serialize() const override;
 
-    static std::shared_ptr<TextBlob> Deserialize(const void* data, size_t size, const SkDeserialProcs& procs);
+    static std::shared_ptr<TextBlob> Deserialize(const void* data, size_t size);
+    static void GetDrawingGlyphIDforTextBlob(const TextBlob* blob, std::vector<uint16_t>& glyphIds);
+    static Path GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* blob);
+
+    std::shared_ptr<Rect> Bounds() const override;
 
 private:
     sk_sp<SkTextBlob> skTextBlob_;

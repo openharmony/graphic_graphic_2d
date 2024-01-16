@@ -58,11 +58,7 @@ ohos_unittest("EffectTest") {
     "//foundation/multimedia/image_framework/interfaces/kits/js/common:image",
   ]
 
-  if (defined(use_new_skia) && use_new_skia) {
-    deps += [ "//third_party/skia:skia_ohos" ]
-  } else {
-    deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
-  }
+  deps += [ "//third_party/skia:skia_ohos" ]
 
   configs = [
     ":effect_test_config",

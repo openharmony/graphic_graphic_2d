@@ -21,6 +21,8 @@
 #include <mutex>
 #include <queue>
 #include <unordered_map>
+#include <unordered_set>
+#include <future>
 
 #include <hdi_backend.h>
 #include <ipc_callbacks/screen_change_callback.h>
@@ -33,6 +35,9 @@
 #include <screen_manager/screen_types.h>
 #include <screen_manager/rs_virtual_screen_resolution.h>
 #include <surface.h>
+#include <surface_type.h>
+#include "sensor_agent.h"
+#include "sensor_agent_type.h"
 
 #include "rs_screen.h"
 
@@ -48,14 +53,20 @@ enum class ScreenState : uint8_t {
 
 struct ScreenInfo {
     ScreenId id = INVALID_SCREEN_ID;
-    uint32_t width = 0;
+    uint32_t width = 0; // render resolution
     uint32_t height = 0;
+    uint32_t phyWidth = 0; // physical screen resolution
+    uint32_t phyHeight = 0;
     ScreenColorGamut colorGamut = ScreenColorGamut::COLOR_GAMUT_SRGB;
     ScreenState state = ScreenState::UNKNOWN;
     ScreenRotation rotation = ScreenRotation::ROTATION_0;
+    std::unordered_set<uint64_t> filteredAppSet = {};
 
     uint32_t skipFrameInterval = DEFAULT_SKIP_FRAME_INTERVAL;  // skip frame interval for change screen refresh rate
 
+    GraphicPixelFormat pixelFormat = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
+    ScreenHDRFormat hdrFormat = ScreenHDRFormat::NOT_SUPPORT_HDR;
+    
     uint32_t GetRotatedWidth() const
     {
         return (rotation == ScreenRotation::ROTATION_0 || rotation == ScreenRotation::ROTATION_180) ? width : height;
@@ -64,6 +75,27 @@ struct ScreenInfo {
     uint32_t GetRotatedHeight() const
     {
         return (rotation == ScreenRotation::ROTATION_0 || rotation == ScreenRotation::ROTATION_180) ? height : width;
+    }
+    uint32_t GetRotatedPhyWidth() const
+    {
+        return (rotation == ScreenRotation::ROTATION_0 ||
+            rotation == ScreenRotation::ROTATION_180) ? phyWidth : phyHeight;
+    }
+
+    uint32_t GetRotatedPhyHeight() const
+    {
+        return (rotation == ScreenRotation::ROTATION_0 ||
+            rotation == ScreenRotation::ROTATION_180) ? phyHeight : phyWidth;
+    }
+
+    float GetRogWidthRatio() const
+    {
+        return (width == 0) ? 1.f : static_cast<float>(phyWidth) / width;
+    }
+
+    float GetRogHeightRatio() const
+    {
+        return (height == 0) ? 1.f : static_cast<float>(phyHeight) / height;
     }
 };
 
@@ -89,7 +121,8 @@ public:
         uint32_t height,
         sptr<Surface> surface,
         ScreenId mirrorId = 0,
-        int flags = 0) = 0;
+        int flags = 0,
+        std::vector<uint64_t> filteredAppVector = {}) = 0;
 
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
 
@@ -97,9 +130,13 @@ public:
 
     virtual void SetScreenActiveMode(ScreenId id, uint32_t modeId) = 0;
 
+    virtual int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
+ 
     virtual int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
 
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
+
+    virtual bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) = 0;
 
     virtual int32_t SetScreenCorrection(ScreenId id, ScreenRotation screenRotation) = 0;
 
@@ -122,6 +159,8 @@ public:
     // Can only be called after QueryScreenState and the state is ScreenState::PRODUCER_SURFACE_ENABLE;
     virtual sptr<Surface> GetProducerSurface(ScreenId id) const = 0;
 
+    virtual bool GetCanvasRotation(ScreenId id) const = 0;
+
     // Can only be called after QueryScreenState and the state is ScreenState::HDI_OUTPUT_ENABLE;
     virtual std::shared_ptr<HdiOutput> GetOutput(ScreenId id) const = 0;
 
@@ -138,6 +177,8 @@ public:
     virtual void FpsDump(std::string& dumpString, std::string& arg) = 0;
 
     virtual void ClearFpsDump(std::string& dumpString, std::string& arg) = 0;
+
+    virtual int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height) = 0;
 
     virtual int32_t GetScreenBacklight(ScreenId id) = 0;
 
@@ -160,9 +201,35 @@ public:
     virtual int32_t GetScreenType(ScreenId id, RSScreenType& type) const = 0;
 
     virtual int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) = 0;
+     
+    virtual int32_t GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat) const = 0;
 
+    virtual int32_t SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat) = 0;
+
+    virtual int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) const = 0;
+
+    virtual int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat) const = 0;
+
+    virtual int32_t SetScreenHDRFormat(ScreenId id, int32_t modeIdx) = 0;
+
+    virtual int32_t GetScreenSupportedColorSpaces(
+        ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces) const = 0;
+
+    virtual int32_t GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace) const = 0;
+
+    virtual uint32_t GetActualScreensNum() const = 0;
+
+    virtual int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) = 0;
+
+    virtual void HandlePostureData(const SensorEvent * const event) = 0;
+
+    virtual ScreenId GetActiveScreenId() = 0;
     /* only used for mock tests */
     virtual void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) = 0;
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    virtual float GetScreenBrightnessNits(ScreenId id) = 0;
+#endif
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -171,6 +238,12 @@ namespace impl {
 struct ScreenHotPlugEvent {
     std::shared_ptr<HdiOutput> output;
     bool connected = false;
+};
+
+enum class FoldState : uint32_t {
+    UNKNOW,
+    FOLDED,
+    EXPAND
 };
 
 class RSScreenManager : public OHOS::Rosen::RSScreenManager {
@@ -200,7 +273,8 @@ public:
         uint32_t height,
         sptr<Surface> surface,
         ScreenId mirrorId,
-        int32_t flags) override;
+        int32_t flags,
+        std::vector<uint64_t> filteredAppVector) override;
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
 
@@ -208,9 +282,13 @@ public:
 
     void SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
 
+    int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
+
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
+
+    bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) override;
 
     void GetVirtualScreenResolution(ScreenId id, RSVirtualScreenResolution& virtualScreenResolution) const override;
 
@@ -230,6 +308,8 @@ public:
 
     sptr<Surface> GetProducerSurface(ScreenId id) const override;
 
+    bool GetCanvasRotation(ScreenId id) const override;
+
     std::shared_ptr<HdiOutput> GetOutput(ScreenId id) const override;
 
     int32_t AddScreenChangeCallback(const sptr<RSIScreenChangeCallback> &callback) override;
@@ -246,6 +326,8 @@ public:
 
     void ClearFpsDump(std::string& dumpString, std::string& arg) override;
 
+    int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height) override;
+
     int32_t GetScreenBacklight(ScreenId id) override;
 
     void SetScreenBacklight(ScreenId id, uint32_t level) override;
@@ -255,6 +337,8 @@ public:
     int32_t GetScreenSupportedMetaDataKeys(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys) const override;
 
     int32_t GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode) const override;
+
+    uint32_t GetActualScreensNum() const override;
 
     int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx) override;
 
@@ -269,6 +353,27 @@ public:
     int32_t GetScreenType(ScreenId id, RSScreenType& type) const override;
 
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) override;
+
+    int32_t GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat) const override;
+
+    int32_t SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat) override;
+
+    int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) const override;
+
+    int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat) const override;
+
+    int32_t SetScreenHDRFormat(ScreenId id, int32_t modeIdx) override;
+
+    int32_t GetScreenSupportedColorSpaces(
+        ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces) const override;
+
+    int32_t GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace) const override;
+
+    int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) override;
+
+    void HandlePostureData(const SensorEvent * const event) override;
+
+    ScreenId GetActiveScreenId() override;
     
     /* only used for mock tests */
     void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) override
@@ -278,6 +383,11 @@ public:
         }
         screens_[rsScreen->Id()] = std::move(rsScreen);
     }
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    float GetScreenBrightnessNits(ScreenId id) override;
+#endif
+
 private:
     RSScreenManager();
     ~RSScreenManager() noexcept override;
@@ -305,8 +415,6 @@ private:
     void RemoveVirtualScreenLocked(ScreenId id);
     ScreenId GenerateVirtualScreenIdLocked();
     void ReuseVirtualScreenIdLocked(ScreenId id);
-    void MirrorChangeDefaultScreenResolution(ScreenId id, uint32_t width, uint32_t height);
-    ScreenId GetMirrorScreenId(ScreenId id);
 
     int32_t GetScreenSupportedColorGamutsLocked(ScreenId id, std::vector<ScreenColorGamut>& mode) const;
     int32_t GetScreenSupportedMetaDataKeysLocked(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys) const;
@@ -318,6 +426,19 @@ private:
     int32_t GetScreenHDRCapabilityLocked(ScreenId id, RSScreenHDRCapability& screenHdrCapability) const;
     int32_t GetScreenTypeLocked(ScreenId id, RSScreenType& type) const;
     int32_t SetScreenSkipFrameIntervalLocked(ScreenId id, uint32_t skipFrameInterval);
+    int32_t GetPixelFormatLocked(ScreenId id, GraphicPixelFormat& pixelFormat) const;
+    int32_t SetPixelFormatLocked(ScreenId id, GraphicPixelFormat pixelFormat);
+    int32_t GetScreenSupportedHDRFormatsLocked(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) const;
+    int32_t GetScreenHDRFormatLocked(ScreenId id, ScreenHDRFormat& hdrFormat) const;
+    int32_t SetScreenHDRFormatLocked(ScreenId id, int32_t modeIdx);
+    int32_t GetScreenSupportedColorSpacesLocked(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces) const;
+    int32_t GetScreenColorSpaceLocked(ScreenId id, GraphicCM_ColorSpaceType& colorSpace) const;
+    int32_t SetScreenColorSpaceLocked(ScreenId id, GraphicCM_ColorSpaceType colorSpace);
+
+    void RegisterSensorCallback();
+    void UnRegisterSensorCallback();
+    void HandleSensorData(float angle);
+    FoldState TransferAngleToScreenState(float angle);
 
     mutable std::mutex mutex_;
     HdiBackend *composer_ = nullptr;
@@ -334,6 +455,16 @@ private:
 
     static std::once_flag createFlag_;
     static sptr<OHOS::Rosen::RSScreenManager> instance_;
+
+    SensorUser user;
+    bool isFoldScreenFlag_ = false;
+    ScreenId innerScreenId_ = 0;
+    ScreenId externalScreenId_ = INVALID_SCREEN_ID;
+    ScreenId activeScreenId_ = 0;
+    bool isFirstTimeToGetActiveScreenId_ = true;
+    bool isPostureSensorDataHandled_ = false;
+    std::condition_variable activeScreenIdAssignedCV_;
+    mutable std::mutex activeScreenIdAssignedMutex_;
 };
 } // namespace impl
 } // namespace Rosen

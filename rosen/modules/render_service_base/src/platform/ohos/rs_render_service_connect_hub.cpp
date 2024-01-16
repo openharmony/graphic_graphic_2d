@@ -74,11 +74,9 @@ sptr<RSIRenderServiceConnection> RSRenderServiceConnectHub::GetRenderService()
 
 sptr<RSIRenderServiceConnection> RSRenderServiceConnectHub::GetRenderServiceConnection()
 {
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (conn_ != nullptr && renderService_ != nullptr) {
-            return conn_;
-        }
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (conn_ != nullptr && renderService_ != nullptr) {
+        return conn_;
     }
 
     if (!Connect()) {
@@ -86,7 +84,6 @@ sptr<RSIRenderServiceConnection> RSRenderServiceConnectHub::GetRenderServiceConn
         return nullptr;
     }
 
-    std::lock_guard<std::mutex> lock(mutex_);
     return conn_;
 }
 
@@ -123,33 +120,27 @@ bool RSRenderServiceConnectHub::Connect()
         ROSEN_LOGE("RSRenderServiceConnectHub::Connect, failed to get render service proxy.");
         return false;
     }
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        wptr<RSRenderServiceConnectHub> rsConnhub = this;
-        deathRecipient_ = new RenderServiceDeathRecipient(rsConnhub);
-        if (!renderService->AsObject()->AddDeathRecipient(deathRecipient_)) {
-            ROSEN_LOGW("RSRenderServiceConnectHub::Connect, failed to AddDeathRecipient of render service.");
-        }
+    wptr<RSRenderServiceConnectHub> rsConnhub = this;
+    deathRecipient_ = new RenderServiceDeathRecipient(rsConnhub);
+    if (!renderService->AsObject()->AddDeathRecipient(deathRecipient_)) {
+        ROSEN_LOGW("RSRenderServiceConnectHub::Connect, failed to AddDeathRecipient of render service.");
     }
 
     if (token_ == nullptr) {
         token_ = new IRemoteStub<RSIConnectionToken>();
     }
-
     sptr<RSIRenderServiceConnection> conn = renderService->CreateConnection(token_);
+
     if (conn == nullptr) {
         ROSEN_LOGE("RSRenderServiceConnectHub::Connect, failed to CreateConnection to render service.");
         return false;
     }
 
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        renderService_ = renderService;
-        conn_ = conn;
-    
-        if (onConnectCallback_) {
-            onConnectCallback_(conn_);
-        }
+    renderService_ = renderService;
+    conn_ = conn;
+
+    if (onConnectCallback_) {
+        onConnectCallback_(conn_);
     }
 
     return true;
@@ -160,6 +151,9 @@ void RSRenderServiceConnectHub::ConnectDied()
     mutex_.lock();
     RS_LOGI("RSRenderServiceConnectHub::ConnectDied lock pid: %{public}d", getpid());
     renderService_ = nullptr;
+    if (conn_) {
+        conn_->RunOnRemoteDiedCallback();
+    }
     conn_ = nullptr;
     deathRecipient_ = nullptr;
     token_ = nullptr;

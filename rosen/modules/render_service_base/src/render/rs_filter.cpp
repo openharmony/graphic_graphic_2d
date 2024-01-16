@@ -29,6 +29,7 @@ RSFilter::RSFilter()
 RSFilter::~RSFilter() {}
 
 std::function<void(std::weak_ptr<RSFilter::RSFilterTask>)> RSFilter::postTask = nullptr;
+std::function<void()> RSFilter::clearGpuContext = nullptr;
 
 std::string RSFilter::GetDescription()
 {
@@ -46,10 +47,13 @@ std::shared_ptr<RSFilter> RSFilter::CreateMaterialFilter(int style, float dipSca
 }
 
 std::shared_ptr<RSFilter> RSFilter::CreateMaterialFilter(float radius, float saturation,
-    float brightness, uint32_t colorValue)
+    float brightness, uint32_t colorValue, BLUR_COLOR_MODE mode)
 {
     MaterialParam materialParam = {radius, saturation, brightness, Color::FromArgbInt(colorValue)};
-    return std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::DEFAULT);
+    if (mode == BLUR_COLOR_MODE::AVERAGE) {
+        mode = BLUR_COLOR_MODE::FASTAVERAGE;
+    }
+    return std::make_shared<RSMaterialFilter>(materialParam, mode);
 }
 
 std::shared_ptr<RSFilter> RSFilter::CreateLightUpEffectFilter(float lightUpDegree)

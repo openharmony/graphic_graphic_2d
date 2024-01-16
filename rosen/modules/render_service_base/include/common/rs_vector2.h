@@ -48,6 +48,7 @@ public:
     Vector2 operator*(const Vector2<T>& other) const;
     Vector2& operator*=(const Vector2<T>& other);
     Vector2& operator+=(const Vector2<T>& other);
+    Vector2& operator-=(const Vector2<T>& other);
     Vector2& operator=(const Vector2& other);
     T operator[](int index) const;
     T& operator[](int index);
@@ -184,6 +185,14 @@ Vector2<T>& Vector2<T>::operator+=(const Vector2<T>& other)
 {
     data_[0] += other.data_[0];
     data_[1] += other.data_[1];
+    return *this;
+}
+
+template<typename T>
+Vector2<T>& Vector2<T>::operator-=(const Vector2<T>& other)
+{
+    data_[0] -= other.data_[0];
+    data_[1] -= other.data_[1];
     return *this;
 }
 

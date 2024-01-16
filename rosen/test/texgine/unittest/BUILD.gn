@@ -43,18 +43,24 @@ config("texgine_test_config") {
 group("common_deps") {
   testonly = true
   public_deps = [
-    "$graphic_2d_root/rosen/build/flutter/icu:rosen_libicu_ohos",
+    "$graphic_2d_root/rosen/build/icu:rosen_libicu_ohos",
     "$graphic_2d_root/rosen/modules/texgine:libtexgine",
     "$graphic_2d_root/rosen/modules/texgine/texgine_drawing:libtexgine_drawing",
     "$graphic_2d_root/utils/test_header:test_header",
     "//third_party/googletest:gmock",
     "//third_party/googletest:gtest",
   ]
+
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    public_deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  }
 }
 
 ohos_unittest("texgine_unittest_part1") {
   module_out_path = module_output_path
-
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
   sources = [
     "bidi_processer_test.cpp",
     "char_groups_test.cpp",
@@ -82,7 +88,9 @@ ohos_unittest("texgine_unittest_part1") {
 
 ohos_unittest("texgine_unittest_part2") {
   module_out_path = module_output_path
-
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
   sources = [
     "dynamic_font_provider_test.cpp",
     "system_font_provider_test.cpp",
@@ -101,7 +109,9 @@ ohos_unittest("texgine_unittest_part2") {
 
 ohos_unittest("texgine_unittest_part3") {
   module_out_path = module_output_path
-
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
   sources = [
     "font_collection_test.cpp",
     "line_breaker_test.cpp",
@@ -136,7 +146,9 @@ ohos_unittest("texgine_unittest_part4") {
 
 ohos_unittest("texgine_unittest_part5") {
   module_out_path = module_output_path
-
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
   sources = [
     "measurer_impl_test.cpp",
     "texgine_canvas_test.cpp",

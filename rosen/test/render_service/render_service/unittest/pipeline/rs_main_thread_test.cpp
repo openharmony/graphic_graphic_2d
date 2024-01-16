@@ -233,48 +233,51 @@ HWTEST_F(RSMainThreadTest, CalcOcclusion, TestSize.Level1)
 }
 
 /**
- * @tc.name: CheckQosVisChanged001
- * @tc.desc: Test RSMainThreadTest.CheckQosVisChanged, pidVisMap is empty
+ * @tc.name: CheckSurfaceVisChanged001
+ * @tc.desc: Test RSMainThreadTest.CheckSurfaceVisChanged, pidVisMap is empty
  * @tc.type: FUNC
  * @tc.require: issueI60QXK
  */
-HWTEST_F(RSMainThreadTest, CheckQosVisChanged001, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, CheckSurfaceVisChanged001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    std::map<uint32_t, bool> pidVisMap;
-    auto isVisibleChanged = mainThread->CheckQosVisChanged(pidVisMap);
+    std::map<uint32_t, RSVisibleLevel> pidVisMap;
+    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+    auto isVisibleChanged = mainThread->CheckSurfaceVisChanged(pidVisMap, curAllSurfaces);
     ASSERT_EQ(false, isVisibleChanged);
 }
 
 /**
- * @tc.name: CheckQosVisChanged002
- * @tc.desc: Test RSMainThreadTest.CheckQosVisChanged, pidVisMap is not empty
+ * @tc.name: CheckSurfaceVisChanged002
+ * @tc.desc: Test RSMainThreadTest.CheckSurfaceVisChanged, pidVisMap is not empty
  * @tc.type: FUNC
  * @tc.require: issueI60QXK
  */
-HWTEST_F(RSMainThreadTest, CheckQosVisChanged002, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, CheckSurfaceVisChanged002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    std::map<uint32_t, bool> pidVisMap;
-    pidVisMap[0] = true;
-    mainThread->lastPidVisMap_[0] = false;
-    auto isVisibleChanged = mainThread->CheckQosVisChanged(pidVisMap);
+    std::map<uint32_t, RSVisibleLevel> pidVisMap;
+    pidVisMap[0] = RSVisibleLevel::RS_ALL_VISIBLE;
+    mainThread->lastPidVisMap_[0] = RSVisibleLevel::RS_INVISIBLE;
+    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+    auto isVisibleChanged = mainThread->CheckSurfaceVisChanged(pidVisMap, curAllSurfaces);
     ASSERT_EQ(true, isVisibleChanged);
 }
 
 /**
- * @tc.name: CheckQosVisChanged003
- * @tc.desc: Test RSMainThreadTest.CheckQosVisChanged, pidVisMap is not empty, lastPidVisMap_ equals to pidVisMap
+ * @tc.name: CheckSurfaceVisChanged003
+ * @tc.desc: Test RSMainThreadTest.CheckSurfaceVisChanged, pidVisMap is not empty, lastPidVisMap_ equals to pidVisMap
  * @tc.type: FUNC
  * @tc.require: issueI60QXK
  */
-HWTEST_F(RSMainThreadTest, CheckQosVisChanged003, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, CheckSurfaceVisChanged003, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    std::map<uint32_t, bool> pidVisMap;
-    pidVisMap[0] = true;
-    mainThread->lastPidVisMap_[0] = true;
-    auto isVisibleChanged = mainThread->CheckQosVisChanged(pidVisMap);
+    std::map<uint32_t, RSVisibleLevel> pidVisMap;
+    pidVisMap[0] = RSVisibleLevel::RS_ALL_VISIBLE;
+    mainThread->lastPidVisMap_[0] = RSVisibleLevel::RS_ALL_VISIBLE;
+    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+    auto isVisibleChanged = mainThread->CheckSurfaceVisChanged(pidVisMap, curAllSurfaces);
     ASSERT_EQ(false, isVisibleChanged);
 }
 
@@ -452,7 +455,7 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData001, TestSize.Level1)
     FollowType followType = FollowType::NONE;
     rsTransactionData->AddCommand(command, nodeId, followType);
     mainThread->ClassifyRSTransactionData(rsTransactionData);
-    ASSERT_EQ(mainThread->pendingEffectiveCommands_.empty(), false);
+    ASSERT_EQ(mainThread->pendingEffectiveCommands_.empty(), true);
 }
 
 /**
@@ -471,7 +474,7 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData002, TestSize.Level1)
     FollowType followType = FollowType::NONE;
     rsTransactionData->AddCommand(command, nodeId, followType);
     mainThread->ClassifyRSTransactionData(rsTransactionData);
-    ASSERT_EQ(mainThread->pendingEffectiveCommands_.empty(), false);
+    ASSERT_EQ(mainThread->pendingEffectiveCommands_.empty(), true);
 }
 
 /**
@@ -490,7 +493,7 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData003, TestSize.Level1)
     FollowType followType = FollowType::FOLLOW_TO_PARENT;
     rsTransactionData->AddCommand(command, nodeId, followType);
     mainThread->ClassifyRSTransactionData(rsTransactionData);
-    ASSERT_EQ(mainThread->cachedCommands_[nodeId].empty(), false);
+    ASSERT_EQ(mainThread->cachedCommands_[nodeId].empty(), true);
 }
 
 /**
@@ -521,7 +524,7 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData004, TestSize.Level1)
     FollowType followType = FollowType::FOLLOW_TO_SELF;
     rsTransactionData->AddCommand(command, nodeId, followType);
     mainThread->ClassifyRSTransactionData(rsTransactionData);
-    ASSERT_EQ(mainThread->cachedCommands_[nodeId].empty(), false);
+    ASSERT_EQ(mainThread->cachedCommands_[nodeId].empty(), true);
 
     mainThread->cachedCommands_.clear();
     rsTransactionData = std::make_unique<RSTransactionData>();
@@ -529,12 +532,12 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData004, TestSize.Level1)
     followType = FollowType::FOLLOW_TO_PARENT;
     rsTransactionData->AddCommand(command, nodeId + 1, followType);
     mainThread->ClassifyRSTransactionData(rsTransactionData);
-    ASSERT_EQ(mainThread->cachedCommands_[nodeId + 1].empty(), false);
+    ASSERT_EQ(mainThread->cachedCommands_[nodeId + 1].empty(), true);
 }
 
 /**
  * @tc.name: AddActiveNode
- * @tc.desc: Test AddActiveNode, add not-on-tree node, check if fails
+ * @tc.desc: Test AddActiveNode, add invalid node id, check if fails
  * @tc.type: FUNC
  * @tc.require: issueI6Q9A2
  */
@@ -542,12 +545,51 @@ HWTEST_F(RSMainThreadTest, AddActiveNode, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     mainThread->context_->activeNodesInRoot_.clear();
-    // invalid pid
-    NodeId id = 0;
-    // not on tree
+    // invalid nodeid
+    NodeId id = INVALID_NODEID;
     auto node = std::make_shared<RSRenderNode>(id, mainThread->context_);
     mainThread->context_->AddActiveNode(node);
     ASSERT_EQ(static_cast<int>(mainThread->context_->activeNodesInRoot_.size()), 0);
+}
+
+/**
+ * @tc.name: CheckAndUpdateInstanceContentStaticStatus01
+ * @tc.desc: Test static instance(no dirty) would be classify as only basic geo transform
+ * @tc.type: FUNC
+ * @tc.require: issueI8IXTX
+ */
+HWTEST_F(RSMainThreadTest, CheckAndUpdateInstanceContentStaticStatus01, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->context_->activeNodesInRoot_.clear();
+    // valid nodeid
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    ASSERT_NE(node, nullptr);
+    mainThread->CheckAndUpdateInstanceContentStaticStatus(node);
+    ASSERT_EQ(node->GetSurfaceCacheContentStatic(), true);
+}
+
+/**
+ * @tc.name: CheckAndUpdateInstanceContentStaticStatus02
+ * @tc.desc: Test new instance would not be classify as only basic geo transform
+ * @tc.type: FUNC
+ * @tc.require: issueI8IXTX
+ */
+HWTEST_F(RSMainThreadTest, CheckAndUpdateInstanceContentStaticStatus02, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->context_->activeNodesInRoot_.clear();
+    // valid nodeid
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    ASSERT_NE(node, nullptr);
+    node->SetIsOnTheTree(true, id, id);
+    node->SetContentDirty();
+    mainThread->context_->AddActiveNode(node);
+    ASSERT_EQ(static_cast<int>(mainThread->context_->activeNodesInRoot_.size()), 1);
+    mainThread->CheckAndUpdateInstanceContentStaticStatus(node);
+    ASSERT_EQ(node->GetSurfaceCacheContentStatic(), false);
 }
 
 /**
@@ -558,7 +600,7 @@ HWTEST_F(RSMainThreadTest, AddActiveNode, TestSize.Level1)
  */
 HWTEST_F(RSMainThreadTest, WaitUtilDrivenRenderFinished, TestSize.Level1)
 {
-#if defined(RS_ENABLE_DRIVEN_RENDER) && defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_DRIVEN_RENDER)
     auto mainThread = RSMainThread::Instance();
     mainThread->NotifyDrivenRenderFinish();
     mainThread->WaitUtilDrivenRenderFinished();
@@ -695,6 +737,20 @@ HWTEST_F(RSMainThreadTest, DoParallelComposition, TestSize.Level1)
 
     auto mainThread = RSMainThread::Instance();
     RSInnovation::_s_createParallelSyncSignal = (void*)RSMainThreadTest::CreateParallelSyncSignal;
-    mainThread->DoParallelComposition(node);
+    if (RSInnovation::GetParallelCompositionEnabled(mainThread->isUniRender_)) {
+        mainThread->DoParallelComposition(node);
+    }
+}
+
+/**
+ * @tc.name: SetIdleTimerExpiredFlag
+ * @tc.desc: SetIdleTimerExpiredFlag test
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, SetIdleTimerExpiredFlag, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->SetIdleTimerExpiredFlag(true);
 }
 } // namespace OHOS::Rosen

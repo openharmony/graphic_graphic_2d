@@ -253,7 +253,7 @@ void AdaptiveImageHelper::DrawImageRepeatRect(Canvas& canvas, const Rect& rect, 
     }
     auto image = std::make_shared<Image>();
     if (!image->BuildFromCompressed(*canvas.GetGPUContext(), data, static_cast<int>(rsImageInfo.width),
-        static_cast<int>(rsImageInfo.height), CompressedType::ASTC)) {
+        static_cast<int>(rsImageInfo.height), CompressedType::ASTC_RGBA8_4x4)) {
         LOGE("AdaptiveImageHelper::DrawImageRepeatRect, image is nullptr.");
         return;
     }
@@ -281,6 +281,8 @@ static ColorType PixelFormatToColorType(Media::PixelFormat pixelFormat)
             return ColorType::COLORTYPE_BGRA_8888;
         case Media::PixelFormat::ALPHA_8:
             return ColorType::COLORTYPE_ALPHA_8;
+        case Media::PixelFormat::RGBA_F16:
+            return ColorType::COLORTYPE_RGBA_F16;
         default:
             return ColorType::COLORTYPE_UNKNOWN;
     }

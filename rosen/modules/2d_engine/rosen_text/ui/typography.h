@@ -54,6 +54,9 @@ public:
         double dy);
     TypographyProperties::Range<size_t> GetWordBoundary(size_t offset);
     size_t GetLineCount();
+    double GetLineHeight(int lineNumber);
+    double GetLineWidth(int lineNumber);
+
 private:
     std::unique_ptr<TypographyBase> typography_;
 };

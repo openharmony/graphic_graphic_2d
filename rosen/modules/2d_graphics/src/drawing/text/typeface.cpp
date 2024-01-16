@@ -23,9 +23,24 @@ namespace Rosen {
 namespace Drawing {
 Typeface::Typeface(std::shared_ptr<TypefaceImpl> typefaceImpl) noexcept : typefaceImpl_(typefaceImpl) {}
 
-std::shared_ptr<Typeface> Typeface::MakeFromFile(const char path[])
+std::shared_ptr<Typeface> Typeface::MakeDefault()
 {
-    return StaticFactory::MakeFromFile(path);
+    return StaticFactory::MakeDefault();
+}
+
+std::shared_ptr<Typeface> Typeface::MakeFromFile(const char path[], int index)
+{
+    return StaticFactory::MakeFromFile(path, index);
+}
+
+std::shared_ptr<Typeface> Typeface::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index)
+{
+    return StaticFactory::MakeFromStream(std::move(memoryStream), index);
+}
+
+std::shared_ptr<Typeface> Typeface::MakeFromName(const char familyName[], FontStyle fontStyle)
+{
+    return StaticFactory::MakeFromName(familyName, fontStyle);
 }
 
 std::string Typeface::GetFamilyName() const
@@ -72,6 +87,14 @@ uint32_t Typeface::GetUniqueID() const
 {
     if (typefaceImpl_) {
         return typefaceImpl_->GetUniqueID();
+    }
+    return 0;
+}
+
+int32_t Typeface::GetUnitsPerEm() const
+{
+    if (typefaceImpl_) {
+        return typefaceImpl_->GetUnitsPerEm();
     }
     return 0;
 }

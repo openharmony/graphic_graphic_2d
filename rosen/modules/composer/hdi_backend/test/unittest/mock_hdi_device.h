@@ -72,6 +72,7 @@ public:
     MOCK_METHOD3(SetLayerCrop, int32_t(uint32_t, uint32_t, const GraphicIRect&));
     MOCK_METHOD3(SetLayerZorder, int32_t(uint32_t, uint32_t, uint32_t));
     MOCK_METHOD3(SetLayerPreMulti, int32_t(uint32_t, uint32_t, bool));
+    MOCK_METHOD3(SetLayerColor, int32_t(uint32_t, uint32_t, GraphicLayerColor));
     MOCK_METHOD3(SetLayerColorTransform, int32_t(uint32_t, uint32_t, const std::vector<float> &matrix));
     MOCK_METHOD3(SetLayerColorDataSpace, int32_t(uint32_t, uint32_t, GraphicColorDataSpace));
     MOCK_METHOD3(GetLayerColorDataSpace, int32_t(uint32_t, uint32_t, GraphicColorDataSpace&));

@@ -150,7 +150,7 @@ namespace OHOS {
         g_data = data;
         g_size = size;
         g_pos = 0;
-
+        int32_t timeOut = 0;
         // get data
         std::string name = GetStringFromData(STR_LEN);
         bool isShared = GetData<bool>();
@@ -176,7 +176,7 @@ namespace OHOS {
         bufferqueue->DoFlushBuffer(sequence, bedata, syncFence, flushConfig);
         bufferqueue->AcquireBuffer(buffer, syncFence, timestamp, damages);
         bufferqueue->ReleaseBuffer(buffer, syncFence);
-        bufferqueue->AttachBuffer(buffer);
+        bufferqueue->AttachBuffer(buffer, timeOut);
         bufferqueue->DetachBuffer(buffer);
 
         BufferQueueFuzzTest2();

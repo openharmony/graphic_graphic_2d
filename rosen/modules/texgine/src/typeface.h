@@ -30,14 +30,19 @@ namespace Rosen {
 namespace TextEngine {
 class Typeface {
 public:
+    static std::shared_ptr<Typeface> MakeDefault();
     static std::unique_ptr<Typeface> MakeFromFile(const std::string &filename);
-
     Typeface(std::shared_ptr<TexgineTypeface> tf);
     ~Typeface();
 
     std::string GetName();
     bool Has(uint32_t ch);
     std::shared_ptr<TexgineTypeface> Get() const { return typeface_; }
+
+    void ComputeFakeryItalic(bool isItalic);
+    bool DetectionItalic();
+    bool DetectionFakeBold();
+    void ComputeFakery(int wantedWeight);
 
 private:
     friend void ReportMemoryUsage(const std::string &member, const Typeface &str, bool needThis);
@@ -49,7 +54,8 @@ private:
     hb_blob_t *hblob_ = nullptr;
     std::shared_ptr<CmapParser> cmapParser_ = nullptr;
     std::unique_ptr<char[]> cmapData_ = nullptr;
-
+    bool isFakeItalic_ = false;
+    bool isFakeBold_ = false;
     static inline std::map<std::string, std::shared_ptr<CmapParser>> cmapCache_;
 };
 } // namespace TextEngine

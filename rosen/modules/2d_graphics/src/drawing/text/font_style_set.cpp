@@ -16,6 +16,7 @@
 #include "text/font_style_set.h"
 
 #include "impl_interface/font_style_set_impl.h"
+#include "static_factory.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -31,12 +32,32 @@ Typeface* FontStyleSet::CreateTypeface(int index)
     return nullptr;
 }
 
+void FontStyleSet::GetStyle(int32_t index, FontStyle* fontStyle, std::string* styleName)
+{
+    if (fontStyleSetImpl_) {
+        fontStyleSetImpl_->GetStyle(index, fontStyle, styleName);
+    }
+}
+
+Typeface* FontStyleSet::MatchStyle(const FontStyle& pattern)
+{
+    if (fontStyleSetImpl_) {
+        return fontStyleSetImpl_->MatchStyle(pattern);
+    }
+    return nullptr;
+}
+
 int FontStyleSet::Count()
 {
     if (fontStyleSetImpl_) {
         return fontStyleSetImpl_->Count();
     }
     return 0;
+}
+
+FontStyleSet* FontStyleSet::CreateEmpty()
+{
+    return StaticFactory::CreateEmpty();
 }
 } // namespace Drawing
 } // namespace Rosen

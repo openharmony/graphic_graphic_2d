@@ -52,8 +52,7 @@ HWTEST_F(RSShowingNodeCommandTest, RSShowingNodeCommandTest001, TestSize.Level1)
     task->Marshalling(parcel);
 
     auto copy = RSNodeGetShowingPropertyAndCancelAnimation::Unmarshalling(parcel);
-    EXPECT_TRUE(copy == nullptr);
-    GTEST_LOG_(INFO) << "RSShowingNodeCommandTest RSShowingNodeCommandTest001 end";
+    EXPECT_TRUE(copy != nullptr);
 
     Parcel parcel1;
     Parcel parcel2;

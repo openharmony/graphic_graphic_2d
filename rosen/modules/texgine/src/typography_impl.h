@@ -22,6 +22,7 @@
 #include "line_metrics.h"
 #include "texgine/typography.h"
 #include "texgine/typography_types.h"
+#include "symbol_animation_config.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -54,22 +55,37 @@ public:
     int GetLineCount() const override;
     void SetIndents(const std::vector<float> &indents) override;
     void Layout(double maxWidth) override;
+
     void Paint(TexgineCanvas &canvas, double offsetX, double offsetY) override;
+
     std::vector<TextRect> GetTextRectsByBoundary(Boundary boundary,
                                                  TextRectHeightStyle heightStyle,
                                                  TextRectWidthStyle widthStyle) const override;
     std::vector<TextRect> GetTextRectsOfPlaceholders() const override;
     IndexAndAffinity GetGlyphIndexByCoordinate(double x, double y) const override;
     Boundary GetWordBoundaryByIndex(size_t index) const override;
+    double GetLineHeight(int lineNumber);
+    double GetLineWidth(int lineNumber);
 
+    void SetAnimation(
+        std::function<bool(
+            const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc) override
+    {
+        if (animationFunc) {
+            animationFunc_ = animationFunc;
+        }
+    }
 private:
+
+    std::function<bool(const std::shared_ptr<SymbolAnimationConfig>&)> animationFunc_ = nullptr;
+
     void ReportMemoryUsage(const std::string &member, bool needThis) const override;
 
     int ComputeStrut();
     void DoLayout();
     int UpdateMetrics();
     int UpdateSpanMetrics(VariantSpan &span, double &coveredAscent);
-    int DoUpdateSpanMetrics(const VariantSpan &span, const TexgineFontMetrics &metrics,
+    int DoUpdateSpanMetrics(const VariantSpan &span, const std::shared_ptr<TexgineFontMetrics> metrics,
         const TextStyle &style, double &coveredAscent);
     void UpadateAnySpanMetrics(std::shared_ptr<AnySpan> &span, double &coveredAscent, double &coveredDescent);
     void ApplyAlignment();
@@ -79,9 +95,10 @@ private:
     void ComputeWordBoundary() const;
     void ComputeSpans(int lineIndex, double baseline, const CalcResult &calcResult,
         std::vector<TextRect> &lineBoxes) const;
-    void ProcessHardBreak();
-    std::vector<TextRect> GenTextRects(std::shared_ptr<TextSpan> &ts, double offsetX, double offsetY) const;
-
+    std::vector<TextRect> GenTextRects(std::shared_ptr<TextSpan> &ts, double offsetX, double offsetY,
+        double spanGapWidth) const;
+    void ComputeRoundRect(VariantSpan& span, int& index, int& preIndex, LineMetrics& metrics,
+        std::vector<VariantSpan>& groupSpans);
     TypographyStyle typographyStyle_;
     std::vector<VariantSpan> spans_;
     std::shared_ptr<FontProviders> fontProviders_;
@@ -96,10 +113,12 @@ private:
     std::vector<double> lineMaxCoveredDescent_;
     double maxWidth_ = 0.0;
     double maxLineWidth_ = 0.0;
+    float descent_ = 0.0;
     double height_ = 0.0;
     std::vector<double> yOffsets_ = {};
     double maxIntrinsicWidth_ = 0.0;
     double minIntrinsicWidth_ = 0.0;
+    std::vector<float> indents_;
 };
 } // namespace TextEngine
 } // namespace Rosen

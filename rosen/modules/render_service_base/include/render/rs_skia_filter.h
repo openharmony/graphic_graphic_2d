@@ -44,6 +44,7 @@ public:
     virtual std::shared_ptr<RSSkiaFilter> Compose(const std::shared_ptr<RSSkiaFilter>& other) const = 0;
     virtual void PreProcess(sk_sp<SkImage> image) {};
     virtual void PostProcess(RSPaintFilterCanvas& canvas) {};
+    virtual void SetGreyCoef(float greyCoef1, float greyCoef2, bool isGreyCoefValid) {};
     virtual bool CanSkipFrame() const { return false; };
 
 protected:
@@ -61,6 +62,7 @@ public:
     virtual std::shared_ptr<RSDrawingFilter> Compose(const std::shared_ptr<RSDrawingFilter>& other) const = 0;
     virtual void PreProcess(std::shared_ptr<Drawing::Image> image) {};
     virtual void PostProcess(RSPaintFilterCanvas& canvas) {};
+    virtual void SetGreyCoef(float greyCoef1, float greyCoef2, bool isGreyCoefValid) {};
     virtual bool CanSkipFrame() const { return false; };
 
 protected:

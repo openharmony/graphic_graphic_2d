@@ -33,12 +33,6 @@ namespace OHOS {
 namespace Rosen {
 namespace Impl {
 using namespace std;
-#define SET_ERROR(error)                             \
-    do {                                             \
-        LOGE("WebGL2 error code %{public}u", error); \
-        SetError(error);                             \
-    } while (0)
-
 napi_value WebGL2RenderingContextImpl::GetParameter(napi_env env, GLenum pname)
 {
     switch (pname) {
@@ -279,6 +273,7 @@ napi_value WebGL2RenderingContextImpl::HandleFrameBufferPname(
             if (!attachmentObject->IsTexture()) {
                 break;
             }
+            [[fallthrough]];
         case GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE:
         case GL_FRAMEBUFFER_ATTACHMENT_GREEN_SIZE:
         case GL_FRAMEBUFFER_ATTACHMENT_BLUE_SIZE:
@@ -294,6 +289,7 @@ napi_value WebGL2RenderingContextImpl::HandleFrameBufferPname(
                 SET_ERROR(GL_INVALID_OPERATION);
                 return NVal::CreateNull(env).val_;
             }
+            [[fallthrough]];
         case GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING: {
             GLint value = 0;
             glGetFramebufferAttachmentParameteriv(target, attachment, pname, &value);
@@ -322,7 +318,8 @@ napi_value WebGL2RenderingContextImpl::GetFrameBufferAttachmentParameter(
     if (attachment == GL_DEPTH_STENCIL_ATTACHMENT) {
         WebGLAttachment* depthAttachment = frameBuffer->GetAttachment(GL_DEPTH_ATTACHMENT);
         WebGLAttachment* stencilAttachment = frameBuffer->GetAttachment(GL_STENCIL_ATTACHMENT);
-        if (depthAttachment->id != stencilAttachment->id) {
+        if (depthAttachment == nullptr || stencilAttachment == nullptr ||
+            depthAttachment->id != stencilAttachment->id) {
             SET_ERROR(GL_INVALID_OPERATION);
             return NVal::CreateNull(env).val_;
         }
@@ -342,7 +339,7 @@ napi_value WebGL2RenderingContextImpl::GetFrameBufferAttachmentParameter(
     return HandleFrameBufferPname(env, target, attachment, pname, attachmentObject);
 }
 
-void WebGL2RenderingContextImpl::DoObjectDelete(int type, WebGLObject *obj)
+void WebGL2RenderingContextImpl::DoObjectDelete(int32_t type, WebGLObject *obj)
 {
     WebGLRenderingContextBaseImpl::DoObjectDelete(type, obj);
     if (type == WebGLObject::WEBGL_OBJECT_BUFFER) {

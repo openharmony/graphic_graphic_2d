@@ -13,7 +13,7 @@
 
 import("//build/test.gni")
 
-module_output_path = "graphic_standard/rosen/modules/2d_graphics/recording"
+module_output_path = "graphic_2d/rosen/modules/2d_graphics/recording"
 
 ohos_unittest("2d_graphics_recording_test") {
   module_out_path = module_output_path
@@ -22,16 +22,7 @@ ohos_unittest("2d_graphics_recording_test") {
     "adaptive_image_helper_test.cpp",
     "cmd_list_helper_test.cpp",
     "draw_cmd_test.cpp",
-    "path_cmd_test.cpp",
     "recording_canvas_test.cpp",
-    "recording_color_filter_test.cpp",
-    "recording_color_space_test.cpp",
-    "recording_image_filter_test.cpp",
-    "recording_mask_filter_test.cpp",
-    "recording_path_effect_test.cpp",
-    "recording_path_test.cpp",
-    "recording_region_test.cpp",
-    "recording_shader_effect_test.cpp",
   ]
 
   defines = [

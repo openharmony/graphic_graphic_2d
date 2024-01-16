@@ -27,34 +27,6 @@ namespace Rosen {
 struct TypographyStyle {
     const static inline std::u16string ELLIPSIS = u"\u2026";
 
-#ifndef USE_GRAPHIC_TEXT_GINE
-    FontWeight fontWeight_ = FontWeight::W400;
-    FontStyle fontStyle_ = FontStyle::NORMAL;
-    std::string fontFamily_ = "";
-    double fontSize_ = 14.0; // default is libtxt text style fonst size
-    double heightScale_ = 1.0;
-    bool heightOnly_ = false;
-    bool useLineStyle_ = false;
-
-    FontWeight lineStyleFontWeight_ = FontWeight::W400;
-    FontStyle lineStyleFontStyle_ = FontStyle::NORMAL;
-    std::vector<std::string> lineStyleFontFamilies_;
-    double lineStyleFontSize_ = 14.0; // default is libtxt text style font size
-    double lineStyleHeightScale_ = 1.0;
-    bool lineStyleHeightOnly_ = false;
-    double lineStyleSpacingScale_ = -1.0;
-    bool lineStyleOnly_ = false;
-
-    TextAlign textAlign_ = TextAlign::START;
-    TextDirection textDirection_ = TextDirection::LTR;
-    size_t maxLines_ = 1e9;
-    std::u16string ellipsis_;
-    std::string locale_;
-
-    BreakStrategy breakStrategy_ = BreakStrategy::GREEDY;
-    WordBreakType wordBreakType_ = WordBreakType::BREAK_WORD;
-    EllipsisModal ellipsisModal_ = EllipsisModal::TAIL;
-#else
     FontWeight fontWeight = FontWeight::W400;
     FontStyle fontStyle = FontStyle::NORMAL;
     std::string fontFamily = "";
@@ -83,7 +55,7 @@ struct TypographyStyle {
     BreakStrategy breakStrategy = BreakStrategy::GREEDY;
     WordBreakType wordBreakType = WordBreakType::BREAK_WORD;
     EllipsisModal ellipsisModal = EllipsisModal::TAIL;
-#endif
+    float textSplitRatio = 0.5f;
 
     TextStyle GetTextStyle() const;
     TextAlign GetEffectiveAlign() const;

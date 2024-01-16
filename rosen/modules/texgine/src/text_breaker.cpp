@@ -36,10 +36,41 @@ namespace TextEngine {
 #define CN_LEFT_QUOTE 0x201C
 #define CN_RIGHT_QUOTE 0x201D
 #define EN_QUOTE 0x22
+#define CUSTOM_MAX_WIDTH_LIMIT 1e9
 
 void TextBreaker::SetWidthLimit(const double widthLimit)
 {
     widthLimit_ = widthLimit;
+}
+
+void TextBreaker::SetIndents(const std::vector<float> &indents)
+{
+    indents_ = indents;
+}
+
+static double GetIndent(const int index, const std::vector<float> &indents)
+{
+    double indent = 0.0;
+    if (indents.size() > 0 && index < static_cast<int>(indents.size())) {
+        indent = indents[index];
+    } else {
+        indent = indents.size() > 0 ? indents.back() : 0.0;
+    }
+
+    return indent;
+}
+
+void TextBreaker::CreateNewBoundary(CharGroups &cgs, std::vector<Boundary> &boundaries,
+    const TypographyStyle &ys, const double& originWidthLimit, int& index)
+{
+    GenNewBoundryByHardBreak(cgs, boundaries);
+    if (ys.wordBreakType != WordBreakType::NORMAL) {
+        GenNewBoundryByWidth(cgs, boundaries, originWidthLimit, index);
+    }
+    GenNewBoundryByTypeface(cgs, boundaries);
+    GenNewBoundryByQuote(cgs, boundaries);
+    preBreak_ = 0;
+    postBreak_ = 0;
 }
 
 int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyle &ys,
@@ -50,21 +81,28 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyl
 #endif
     std::vector<VariantSpan> visitingSpans;
     std::swap(visitingSpans, spans);
+    int index = 0;
+    double widthLimit = widthLimit_;
     for (const auto &vspan : visitingSpans) {
         auto span = vspan.TryToTextSpan();
         if (span == nullptr) {
+            widthLimit_ -= GetIndent(index, indents_);
             spans.push_back(vspan);
             currentWidth_ += vspan.GetWidth();
-            if (currentWidth_ >= widthLimit_) {
-                currentWidth_ = 0;
-            }
+            currentWidth_ = currentWidth_ >= widthLimit_ ? 0 : currentWidth_;
+            widthLimit_ = widthLimit;
             continue;
         }
 
-        if (span->u16vect_.size() == 0) {
+        std::vector<uint16_t> &u16vect = span->u16vect_;
+        if (!u16vect.size()) {
             continue;
         }
-
+        widthLimit_ -= GetIndent(index, indents_);
+        if (ys.ellipsis.length() && ys.maxLines == std::numeric_limits<size_t>::max() &&
+            widthLimit_ != CUSTOM_MAX_WIDTH_LIMIT && widthLimit_ && u16vect.size() > widthLimit_) {
+            u16vect.erase(u16vect.begin()+widthLimit_-1, u16vect.end()); // Textoverflow status
+        }
         auto xs = vspan.GetTextStyle();
         auto fontCollection = GenerateFontCollection(ys, xs, fontProviders);
         if (fontCollection == nullptr) {
@@ -74,24 +112,17 @@ int TextBreaker::WordBreak(std::vector<VariantSpan> &spans, const TypographyStyl
 
         CharGroups cgs;
         std::vector<Boundary> boundaries;
-        auto ret = Measure(xs, span->u16vect_, *fontCollection, cgs, boundaries);
-        if (ret) {
+        if (Measure(xs, u16vect, *fontCollection, cgs, boundaries)) {
             return 1;
         }
 
-        if (ys.wordBreakType != WordBreakType::NORMAL) {
-            GenNewBoundryByWidth(cgs, boundaries);
-        }
-        GenNewBoundryByHardBreak(cgs, boundaries);
-        GenNewBoundryByTypeface(cgs, boundaries);
-        GenNewBoundryByQuote(cgs, boundaries);
-
-        preBreak_ = 0;
-        postBreak_ = 0;
+        CreateNewBoundary(cgs, boundaries, ys, widthLimit, index);
         for (auto &[start, end] : boundaries) {
             const auto &wordcgs = cgs.GetSubFromU16RangeAll(start, end);
             BreakWord(wordcgs, ys, xs, spans);
         }
+        widthLimit_ = widthLimit;
+        index++;
     }
     // WordBreak successed
     return 0;
@@ -159,7 +190,7 @@ void TextBreaker::GenNewBoundryByTypeface(CharGroups cgs, std::vector<Boundary> 
             }
 
             newBoundary.push_back({newStart, newEnd});
-            newStart = newEnd;
+            newStart = newEnd++;
             typeface = cg->typeface;
         }
 
@@ -213,20 +244,23 @@ void TextBreaker::GenNewBoundryByQuote(CharGroups cgs, std::vector<Boundary> &bo
     boundaries = newBoundary;
 }
 
-void TextBreaker::GenNewBoundryByWidth(CharGroups cgs, std::vector<Boundary> &boundaries)
+void TextBreaker::GenNewBoundryByWidth(CharGroups cgs, std::vector<Boundary> &boundaries,
+    const double& originWidthLimit, int& index)
 {
     std::vector<Boundary> newBoundary;
     for (auto &[start, end] : boundaries) {
         size_t newStart = start;
         size_t newEnd = start;
         const auto &wordCgs = cgs.GetSubFromU16RangeAll(start, end);
-        double wordWith = 0;
+        double wordWidth = 0;
         for (auto &cg : wordCgs) {
-            wordWith += cg.GetWidth();
+            wordWidth += cg.GetWidth();
         }
 
-        if (currentWidth_ + wordWith > widthLimit_) {
+        if (currentWidth_ && currentWidth_ + wordWidth > widthLimit_) {
             currentWidth_ = 0;
+            ++index;
+            widthLimit_ = originWidthLimit - GetIndent(index, indents_);
         }
 
         currentWidth_ += wordCgs.begin()->GetWidth();
@@ -237,6 +271,8 @@ void TextBreaker::GenNewBoundryByWidth(CharGroups cgs, std::vector<Boundary> &bo
                 newBoundary.push_back({newStart, newEnd});
                 currentWidth_ = cg->GetWidth();
                 newStart = newEnd;
+                ++index;
+                widthLimit_ = originWidthLimit - GetIndent(index, indents_);
             } else {
                 newEnd += prevCg->chars.size();
                 currentWidth_ += cg->GetWidth();

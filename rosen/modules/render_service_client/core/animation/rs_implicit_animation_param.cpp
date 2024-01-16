@@ -24,11 +24,13 @@
 #include "animation/rs_transition.h"
 #include "modifier/rs_extended_modifier.h"
 #include "platform/common/rs_log.h"
+#include "command/rs_node_showing_command.h"
 
 namespace OHOS {
 namespace Rosen {
-RSImplicitAnimationParam::RSImplicitAnimationParam(const RSAnimationTimingProtocol& timingProtocol)
-    : timingProtocol_(timingProtocol)
+RSImplicitAnimationParam::RSImplicitAnimationParam(
+    const RSAnimationTimingProtocol& timingProtocol, ImplicitAnimationParamType type)
+    : animationType_(type), timingProtocol_(timingProtocol)
 {}
 
 ImplicitAnimationParamType RSImplicitAnimationParam::GetType() const
@@ -51,12 +53,91 @@ void RSImplicitAnimationParam::ApplyTimingProtocol(const std::shared_ptr<RSAnima
     }
 }
 
+RSImplicitCancelAnimationParam::RSImplicitCancelAnimationParam(const RSAnimationTimingProtocol& timingProtocol)
+    : RSImplicitAnimationParam(timingProtocol, ImplicitAnimationParamType::CANCEL)
+{}
+
+void RSImplicitCancelAnimationParam::AddPropertyToPendingSyncList(const std::shared_ptr<RSPropertyBase>& property)
+{
+    pendingSyncList_.emplace_back(property);
+}
+
+void RSImplicitCancelAnimationParam::SyncProperties()
+{
+    if (pendingSyncList_.empty()) {
+        return;
+    }
+
+    // Create sync map
+    RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap RSpropertiesMap;
+    RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap RTpropertiesMap;
+    for (auto& rsProperty : pendingSyncList_) {
+        auto node = rsProperty->target_.lock();
+        if (node == nullptr) {
+            continue;
+        }
+        if (!node->HasPropertyAnimation(rsProperty->GetId()) || rsProperty->GetIsCustom()) {
+            continue;
+        }
+        auto& propertiesMap = node->IsRenderServiceNode() ? RSpropertiesMap : RTpropertiesMap;
+        propertiesMap.emplace(std::make_pair<NodeId, PropertyId>(node->GetId(), rsProperty->GetId()), nullptr);
+    }
+    pendingSyncList_.clear();
+
+    if (!RSpropertiesMap.empty()) {
+        ExecuteSyncPropertiesTask(std::move(RSpropertiesMap), true);
+    }
+    if (!RTpropertiesMap.empty()) {
+        ExecuteSyncPropertiesTask(std::move(RTpropertiesMap), false);
+    }
+}
+
+void RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask(
+    RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap&& propertiesMap, bool isRenderService)
+{
+    // create task and execute it in RS
+    auto task = std::make_shared<RSNodeGetShowingPropertiesAndCancelAnimation>(1e8, std::move(propertiesMap));
+    RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(task, isRenderService);
+
+    // Test if the task is executed successfully
+    if (!task || !task->IsSuccess()) {
+        ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to execute task.");
+        return;
+    }
+
+    // Apply task result
+    for (const auto& [key, value] : task->GetProperties()) {
+        const auto& [nodeId, propertyId] = key;
+        auto node = RSNodeMap::Instance().GetNode(nodeId);
+        if (node == nullptr) {
+            ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to get target node.");
+            continue;
+        }
+        auto modifier = node->GetModifier(propertyId);
+        if (modifier == nullptr) {
+            ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to get target modifier.");
+            continue;
+        }
+        auto property = modifier->GetProperty();
+        if (property == nullptr) {
+            ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to get target property.");
+            continue;
+        }
+        node->CancelAnimationByProperty(propertyId, !property->GetIsCustom());
+        if (value != nullptr) {
+            // successfully canceled RS animation and extract value, update ui value
+            property->SetValueFromRender(value);
+        } else {
+            // property or node is not yet created in RS, just trigger a force update
+            property->UpdateOnAllAnimationFinish();
+        }
+    }
+}
+
 RSImplicitCurveAnimationParam::RSImplicitCurveAnimationParam(
     const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve)
-    : RSImplicitAnimationParam(timingProtocol), timingCurve_(timingCurve)
-{
-    animationType_ = ImplicitAnimationParamType::CURVE;
-}
+    : RSImplicitAnimationParam(timingProtocol, ImplicitAnimationParamType::CURVE), timingCurve_(timingCurve)
+{}
 
 std::shared_ptr<RSAnimation> RSImplicitCurveAnimationParam::CreateAnimation(std::shared_ptr<RSPropertyBase> property,
     const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const
@@ -69,18 +150,23 @@ std::shared_ptr<RSAnimation> RSImplicitCurveAnimationParam::CreateAnimation(std:
 }
 
 RSImplicitKeyframeAnimationParam::RSImplicitKeyframeAnimationParam(
-    const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve, float fraction)
-    : RSImplicitAnimationParam(timingProtocol), timingCurve_(timingCurve), fraction_(fraction)
-{
-    animationType_ = ImplicitAnimationParamType::KEYFRAME;
-}
+    const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
+    float fraction, int duration)
+    : RSImplicitAnimationParam(timingProtocol, ImplicitAnimationParamType::KEYFRAME), timingCurve_(timingCurve),
+      fraction_(fraction), duration_(duration)
+{}
 
 std::shared_ptr<RSAnimation> RSImplicitKeyframeAnimationParam::CreateAnimation(
-    std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& startValue,
-    const std::shared_ptr<RSPropertyBase>& endValue) const
+    std::shared_ptr<RSPropertyBase> property, const bool& isCreateDurationKeyframe, const int& startDuration,
+    const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const
 {
     auto keyFrameAnimation = std::make_shared<RSKeyframeAnimation>(property);
-    keyFrameAnimation->AddKeyFrame(fraction_, endValue, timingCurve_);
+    keyFrameAnimation->SetDurationKeyframe(isCreateDurationKeyframe);
+    if (isCreateDurationKeyframe) {
+        keyFrameAnimation->AddKeyFrame(startDuration, startDuration + duration_, endValue, timingCurve_);
+    } else {
+        keyFrameAnimation->AddKeyFrame(fraction_, endValue, timingCurve_);
+    }
     keyFrameAnimation->SetOriginValue(startValue);
     keyFrameAnimation->SetIsCustom(property->GetIsCustom());
     ApplyTimingProtocol(keyFrameAnimation);
@@ -100,15 +186,27 @@ void RSImplicitKeyframeAnimationParam::AddKeyframe(std::shared_ptr<RSAnimation>&
     }
 }
 
-RSImplicitPathAnimationParam::RSImplicitPathAnimationParam(const RSAnimationTimingProtocol& timingProtocol,
-    const RSAnimationTimingCurve& timingCurve, const std::shared_ptr<RSMotionPathOption>& motionPathOption)
-    : RSImplicitAnimationParam(timingProtocol), timingCurve_(timingCurve), motionPathOption_(motionPathOption)
+void RSImplicitKeyframeAnimationParam::AddKeyframe(std::shared_ptr<RSAnimation>& animation, const int startDuration,
+    const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const
 {
-    animationType_ = ImplicitAnimationParamType::PATH;
+    if (animation == nullptr) {
+        return;
+    }
+
+    auto keyframeAnimation = std::static_pointer_cast<RSKeyframeAnimation>(animation);
+    if (keyframeAnimation != nullptr) {
+        keyframeAnimation->AddKeyFrame(startDuration, startDuration + duration_, endValue, timingCurve_);
+    }
 }
 
+RSImplicitPathAnimationParam::RSImplicitPathAnimationParam(const RSAnimationTimingProtocol& timingProtocol,
+    const RSAnimationTimingCurve& timingCurve, const std::shared_ptr<RSMotionPathOption>& motionPathOption)
+    : RSImplicitAnimationParam(timingProtocol, ImplicitAnimationParamType::PATH), timingCurve_(timingCurve),
+      motionPathOption_(motionPathOption)
+{}
+
 std::shared_ptr<RSAnimation> RSImplicitPathAnimationParam::CreateAnimation(std::shared_ptr<RSPropertyBase> property,
-        const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const
+    const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const
 {
     if (motionPathOption_ == nullptr) {
         ROSEN_LOGE("Failed to create path animation, motion path option is null!");
@@ -128,10 +226,8 @@ std::shared_ptr<RSAnimation> RSImplicitPathAnimationParam::CreateAnimation(std::
 
 RSImplicitSpringAnimationParam::RSImplicitSpringAnimationParam(
     const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve)
-    : RSImplicitAnimationParam(timingProtocol), timingCurve_(timingCurve)
-{
-    animationType_ = ImplicitAnimationParamType::SPRING;
-}
+    : RSImplicitAnimationParam(timingProtocol, ImplicitAnimationParamType::SPRING), timingCurve_(timingCurve)
+{}
 
 std::shared_ptr<RSAnimation> RSImplicitSpringAnimationParam::CreateAnimation(std::shared_ptr<RSPropertyBase> property,
     const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const
@@ -145,10 +241,9 @@ std::shared_ptr<RSAnimation> RSImplicitSpringAnimationParam::CreateAnimation(std
 
 RSImplicitInterpolatingSpringAnimationParam::RSImplicitInterpolatingSpringAnimationParam(
     const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve)
-    : RSImplicitAnimationParam(timingProtocol), timingCurve_(timingCurve)
-{
-    animationType_ = ImplicitAnimationParamType::INTERPOLATING_SPRING;
-}
+    : RSImplicitAnimationParam(timingProtocol, ImplicitAnimationParamType::INTERPOLATING_SPRING),
+      timingCurve_(timingCurve)
+{}
 
 std::shared_ptr<RSAnimation> RSImplicitInterpolatingSpringAnimationParam::CreateAnimation(
     std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& startValue,
@@ -165,11 +260,9 @@ std::shared_ptr<RSAnimation> RSImplicitInterpolatingSpringAnimationParam::Create
 RSImplicitTransitionParam::RSImplicitTransitionParam(const RSAnimationTimingProtocol& timingProtocol,
     const RSAnimationTimingCurve& timingCurve, const std::shared_ptr<const RSTransitionEffect>& effect,
     bool isTransitionIn)
-    : RSImplicitAnimationParam(timingProtocol), timingCurve_(timingCurve),
+    : RSImplicitAnimationParam(timingProtocol, ImplicitAnimationParamType::TRANSITION), timingCurve_(timingCurve),
       isTransitionIn_(isTransitionIn), effect_(effect)
-{
-    animationType_ = ImplicitAnimationParamType::TRANSITION;
-}
+{}
 
 std::shared_ptr<RSAnimation> RSImplicitTransitionParam::CreateAnimation()
 {

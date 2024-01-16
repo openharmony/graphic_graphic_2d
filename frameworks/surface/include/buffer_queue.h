@@ -27,8 +27,8 @@
 #include "surface_type.h"
 #include <buffer_manager.h>
 #include <surface_tunnel_handle.h>
-
 #include "surface_buffer.h"
+#include "consumer_surface_delegator.h"
 
 namespace OHOS {
 enum BufferState {
@@ -76,13 +76,18 @@ public:
     GSError DoFlushBuffer(uint32_t sequence, const sptr<BufferExtraData> &bedata,
                           const sptr<SyncFence>& fence, const BufferFlushConfigWithDamages &config);
 
+    GSError GetLastFlushedBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
+        float matrix[16], int32_t matrixSize);
+
     GSError AcquireBuffer(sptr<SurfaceBuffer>& buffer, sptr<SyncFence>& fence,
                           int64_t &timestamp, std::vector<Rect> &damages);
     GSError ReleaseBuffer(sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& fence);
 
-    GSError AttachBuffer(sptr<SurfaceBuffer>& buffer);
+    GSError AttachBuffer(sptr<SurfaceBuffer>& buffer, int32_t timeOut);
 
     GSError DetachBuffer(sptr<SurfaceBuffer>& buffer);
+
+    GSError RegisterSurfaceDelegator(sptr<IRemoteObject> client, sptr<Surface> cSurface);
 
     bool QueryIfBufferAvailable();
 
@@ -102,8 +107,8 @@ public:
     GSError SetDefaultWidthAndHeight(int32_t width, int32_t height);
     int32_t GetDefaultWidth();
     int32_t GetDefaultHeight();
-    GSError SetDefaultUsage(uint32_t usage);
-    uint32_t GetDefaultUsage();
+    GSError SetDefaultUsage(uint64_t usage);
+    uint64_t GetDefaultUsage();
 
     GSError CleanCache();
     GSError GoBackground();
@@ -144,7 +149,7 @@ private:
     void DumpToFile(uint32_t sequence);
 
     uint32_t GetUsedSize();
-    void DeleteBuffers(int32_t count);
+    void DeleteBuffersLocked(int32_t count);
 
     GSError PopFromFreeList(sptr<SurfaceBuffer>& buffer, const BufferRequestConfig &config);
     GSError PopFromDirtyList(sptr<SurfaceBuffer>& buffer);
@@ -155,12 +160,18 @@ private:
     void ClearLocked();
     bool CheckProducerCacheList();
     GSError SetProducerCacheCleanFlagLocked(bool flag);
+    GSError AttachBufferUpdateStatus(std::unique_lock<std::mutex> &lock, uint32_t sequence, int32_t timeOut);
+    void AttachBufferUpdateBufferInfo(sptr<SurfaceBuffer>& buffer);
+    void ListenerBufferReleasedCb(sptr<SurfaceBuffer> &buffer, const sptr<SyncFence> &fence);
+    GSError CheckBufferQueueCache(uint32_t sequence);
+    GSError ReallocBuffer(const BufferRequestConfig &config, struct IBufferProducer::RequestBufferReturnValue &retval);
 
     int32_t defaultWidth = 0;
     int32_t defaultHeight = 0;
-    uint32_t defaultUsage = 0;
+    uint64_t defaultUsage = 0;
     uint32_t queueSize_ = SURFACE_DEFAULT_QUEUE_SIZE;
     GraphicTransformType transform_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    GraphicTransformType lastFlushedTransform_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     std::string name_;
     std::list<uint32_t> freeList_;
     std::list<uint32_t> dirtyList_;
@@ -174,16 +185,21 @@ private:
     std::mutex producerListenerMutex_;
     const uint64_t uniqueId_;
     sptr<BufferManager> bufferManager_ = nullptr;
-    OnReleaseFunc onBufferRelease = nullptr;
+    OnReleaseFunc onBufferRelease_ = nullptr;
+    std::mutex onBufferReleaseMutex_;
     sptr<IProducerListener> producerListener_ = nullptr;
     OnDeleteBufferFunc onBufferDeleteForRSMainThread_;
     OnDeleteBufferFunc onBufferDeleteForRSHardwareThread_;
     bool isShared_ = false;
     std::condition_variable waitReqCon_;
+    std::condition_variable waitAttachCon_;
     sptr<SurfaceTunnelHandle> tunnelHandle_ = nullptr;
     std::atomic_bool isValidStatus_ = true;
     std::atomic_bool producerCacheClean_ = false;
     const bool isLocalRender_;
+    uint32_t lastFlusedSequence_ = 0;
+    sptr<SyncFence> lastFlusedFence_;
+    wptr<ConsumerSurfaceDelegator> wpCSurfaceDelegator_;
 };
 }; // namespace OHOS
 

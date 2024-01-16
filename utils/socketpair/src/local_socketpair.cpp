@@ -32,6 +32,8 @@ constexpr int32_t SOCKET_PAIR_SIZE = 2;
 constexpr int32_t INVALID_FD = -1;
 constexpr int32_t ERRNO_EAGAIN = -1;
 constexpr int32_t ERRNO_OTHER = -2;
+constexpr int32_t LEAK_FD_CNT = 200;
+static int32_t g_fdCnt = 0;
 }  // namespace
 
 LocalSocketPair::LocalSocketPair()
@@ -43,8 +45,39 @@ LocalSocketPair::~LocalSocketPair()
 {
     HiLog::Debug(LABEL, "%{public}s close socketpair, sendFd : %{public}d, receiveFd : %{public}d",
                  __func__, sendFd_, receiveFd_);
+    if ((sendFd_ != INVALID_FD) || (receiveFd_ != INVALID_FD)) {
+        g_fdCnt--;
+    }
     CloseFd(sendFd_);
     CloseFd(receiveFd_);
+}
+
+int32_t LocalSocketPair::SetSockopt(size_t sendSize, size_t receiveSize, int32_t* socketPair, int32_t socketPairSize)
+{
+    for (int i = 0; i < socketPairSize; ++i) {
+        int32_t ret = setsockopt(socketPair[i], SOL_SOCKET, SO_SNDBUF, &sendSize, sizeof(sendSize));
+        if (ret != 0) {
+            CloseFd(socketPair[0]);
+            CloseFd(socketPair[1]);
+            HiLog::Error(LABEL, "%{public}s setsockopt socketpair %{public}d sendbuffer size failed", __func__, i);
+            return -1;
+        }
+        ret = setsockopt(socketPair[i], SOL_SOCKET, SO_RCVBUF, &receiveSize, sizeof(receiveSize));
+        if (ret != 0) {
+            CloseFd(socketPair[0]);
+            CloseFd(socketPair[1]);
+            HiLog::Error(LABEL, "%{public}s setsockopt socketpair %{public}d receivebuffer size failed", __func__, i);
+            return -1;
+        }
+        ret = fcntl(socketPair[i], F_SETFL, O_NONBLOCK);
+        if (ret != 0) {
+            CloseFd(socketPair[0]);
+            CloseFd(socketPair[1]);
+            HiLog::Error(LABEL, "%{public}s fcntl socketpair %{public}d nonblock failed", __func__, i);
+            return -1;
+        }
+    }
+    return 0;
 }
 
 int32_t LocalSocketPair::CreateChannel(size_t sendSize, size_t receiveSize)
@@ -73,27 +106,18 @@ int32_t LocalSocketPair::CreateChannel(size_t sendSize, size_t receiveSize)
     }
 
     // set socket attr
-    for (int i = 0; i < SOCKET_PAIR_SIZE; ++i) {
-        int32_t ret = setsockopt(socketPair[i], SOL_SOCKET, SO_SNDBUF, &sendSize, sizeof(sendSize));
-        if (ret != 0) {
-            HiLog::Error(LABEL, "%{public}s setsockopt socketpair %{public}d sendbuffer size failed", __func__, i);
-            return -1;
-        }
-        ret = setsockopt(socketPair[i], SOL_SOCKET, SO_RCVBUF, &receiveSize, sizeof(receiveSize));
-        if (ret != 0) {
-            HiLog::Error(LABEL, "%{public}s setsockopt socketpair %{public}d receivebuffer size failed", __func__, i);
-            return -1;
-        }
-        ret = fcntl(socketPair[i], F_SETFL, O_NONBLOCK);
-        if (ret != 0) {
-            HiLog::Error(LABEL, "%{public}s fcntl socketpair %{public}d nonblock failed", __func__, i);
-            return -1;
-        }
+    int32_t ret = SetSockopt(sendSize, receiveSize, socketPair, SOCKET_PAIR_SIZE);
+    if (ret != 0) {
+        return ret;
     }
     sendFd_ = socketPair[0];
     receiveFd_ = socketPair[1];
     HiLog::Debug(LABEL, "%{public}s create socketpair success, receiveFd_ : %{public}d, sendFd_ : %{public}d", __func__,
                  receiveFd_, sendFd_);
+    g_fdCnt++;
+    if (g_fdCnt > LEAK_FD_CNT) {
+        HiLog::Warn(LABEL, "%{public}s fdCnt: %{public}d", __func__, g_fdCnt);
+    }
 
     return 0;
 }

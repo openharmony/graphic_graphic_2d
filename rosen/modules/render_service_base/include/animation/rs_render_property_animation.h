@@ -60,6 +60,10 @@ protected:
 
     void OnRemoveOnCompletion() override;
 
+    void RecordLastAnimateValue() override;
+
+    void UpdateAnimateVelocity(float frameInterval) override;
+
     virtual void InitValueEstimator() {}
 
 protected:
@@ -67,6 +71,7 @@ protected:
     std::shared_ptr<RSRenderPropertyBase> originValue_;
     std::shared_ptr<RSRenderPropertyBase> lastValue_;
     std::shared_ptr<RSRenderPropertyBase> property_;
+    std::shared_ptr<RSRenderPropertyBase> lastAnimateValue_;
     std::shared_ptr<RSValueEstimator> valueEstimator_;
 
 private:

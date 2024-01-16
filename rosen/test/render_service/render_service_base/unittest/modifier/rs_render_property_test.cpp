@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -118,7 +118,7 @@ HWTEST_F(RSRenderPropertyTest, PropertyOp001, TestSize.Level1)
 template<typename T>
 class MockRSRenderProperty : public RSRenderProperty<T> {
 public:
-    MockRSRenderProperty(const RSRenderPropertyType type) : RSRenderProperty<T>(), type_(type) {}
+    explicit MockRSRenderProperty(const RSRenderPropertyType type) : RSRenderProperty<T>(), type_(type) {}
     virtual ~MockRSRenderProperty() = default;
 protected:
     RSRenderPropertyType type_;
@@ -127,8 +127,8 @@ protected:
 template<typename T>
 class MockRSRenderAnimatableProperty : public RSRenderAnimatableProperty<T> {
 public:
-    MockRSRenderAnimatableProperty(const T& value) : RSRenderAnimatableProperty<T>(value) {}
-    MockRSRenderAnimatableProperty(const RSRenderPropertyType type) : RSRenderAnimatableProperty<T>()
+    explicit MockRSRenderAnimatableProperty(const T& value) : RSRenderAnimatableProperty<T>(value) {}
+    explicit MockRSRenderAnimatableProperty(const RSRenderPropertyType type) : RSRenderAnimatableProperty<T>()
     {
         RSRenderAnimatableProperty<T>::SetPropertyType(type);
     }
@@ -193,7 +193,7 @@ HWTEST_F(RSRenderPropertyTest, PropertyIPC001, TestSize.Level1)
     auto intProp = std::make_shared<RSRenderAnimatableProperty<int>>();
     std::shared_ptr<RSRenderPropertyBase> tmpProp;
     ASSERT_FALSE(RSRenderPropertyBase::Marshalling(parcel1, intProp));
-    ASSERT_FALSE(RSRenderPropertyBase::Unmarshalling(parcel1, tmpProp));
+    ASSERT_TRUE(RSRenderPropertyBase::Unmarshalling(parcel1, tmpProp));
 
     MessageParcel parcel2;
     int data = 0;
@@ -229,7 +229,7 @@ HWTEST_F(RSRenderPropertyTest, PropertyIPC002, TestSize.Level1)
     for (auto& prop : props) {
         MessageParcel parcel;
         ASSERT_FALSE(RSRenderPropertyBase::Marshalling(parcel, prop));
-        ASSERT_FALSE(RSRenderPropertyBase::Unmarshalling(parcel, prop));
+        ASSERT_TRUE(RSRenderPropertyBase::Unmarshalling(parcel, prop));
     }
 }
 }

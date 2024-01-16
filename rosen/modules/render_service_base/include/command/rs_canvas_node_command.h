@@ -20,6 +20,7 @@
 #include "command/rs_command_templates.h"
 #include "common/rs_macros.h"
 #include "modifier/rs_modifier_type.h"
+#include "pipeline/rs_canvas_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -40,7 +41,7 @@ class DrawCmdList;
 
 class RSB_EXPORT RSCanvasNodeCommandHelper {
 public:
-    static void Create(RSContext& context, NodeId id);
+    static void Create(RSContext& context, NodeId id, bool isTextureExportNode = false);
 #ifndef USE_ROSEN_DRAWING
     static void UpdateRecording(
         RSContext& context, NodeId id, std::shared_ptr<DrawCmdList> drawCmds, uint16_t modifierType);
@@ -49,9 +50,17 @@ public:
         RSContext& context, NodeId id, std::shared_ptr<Drawing::DrawCmdList> drawCmds, uint16_t modifierType);
 #endif
     static void ClearRecording(RSContext& context, NodeId id);
+private:
+#ifndef USE_ROSEN_DRAWING
+    static bool AddCmdToSingleFrameComposer(std::shared_ptr<RSCanvasRenderNode> node,
+        std::shared_ptr<DrawCmdList> drawCmds, RSModifierType type);
+#else
+    static bool AddCmdToSingleFrameComposer(std::shared_ptr<RSCanvasRenderNode> node,
+        std::shared_ptr<Drawing::DrawCmdList> drawCmds, RSModifierType type);
+#endif
 };
 
-ADD_COMMAND(RSCanvasNodeCreate, ARG(CANVAS_NODE, CANVAS_NODE_CREATE, RSCanvasNodeCommandHelper::Create, NodeId))
+ADD_COMMAND(RSCanvasNodeCreate, ARG(CANVAS_NODE, CANVAS_NODE_CREATE, RSCanvasNodeCommandHelper::Create, NodeId, bool))
 #ifndef USE_ROSEN_DRAWING
 ADD_COMMAND(RSCanvasNodeUpdateRecording,
     ARG(CANVAS_NODE, CANVAS_NODE_UPDATE_RECORDING, RSCanvasNodeCommandHelper::UpdateRecording, NodeId,

@@ -17,10 +17,14 @@
 #include <chrono>
 #include <condition_variable>
 #include <algorithm>
+#include <cstdint>
+#include <mutex>
 #include <sched.h>
 #include <sys/resource.h>
 #include <scoped_bytrace.h>
 #include "vsync_log.h"
+#include "vsync_type.h"
+#include "vsync_generator.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -65,9 +69,11 @@ void VSyncConnection::VSyncConnectionDeathRecipient::OnRemoteDied(const wptr<IRe
 VSyncConnection::VSyncConnection(
     const sptr<VSyncDistributor>& distributor,
     std::string name,
-    const sptr<IRemoteObject>& token)
+    const sptr<IRemoteObject>& token,
+    uint64_t id)
     : rate_(-1),
       info_(name),
+      id_(id),
       vsyncConnDeathRecipient_(new VSyncConnectionDeathRecipient(this)),
       token_(token),
       distributor_(distributor)
@@ -125,12 +131,14 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
     {
         std::unique_lock<std::mutex> locker(mutex_);
         if (isDead_) {
+            ScopedBytrace func("Vsync Client Connection is dead, conn: " + info_.name_);
             VLOGE("%{public}s VSync Client Connection is dead, name:%{public}s.", __func__, info_.name_.c_str());
             return ERRNO_OTHER;
         }
         socketPair = socketPair_;
     }
     if (socketPair == nullptr) {
+        ScopedBytrace func("socketPair is null, conn: " + info_.name_);
         return ERRNO_OTHER;
     }
     ScopedBytrace func("SendVsyncTo conn: " + info_.name_ + ", now:" + std::to_string(now));
@@ -140,7 +148,7 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
     // 1, 2: index of array data.
     data[1] = now + period;
     data[2] = vsyncCount;
-    if (info_.name_ == "rs") {
+    if ((CreateVSyncGenerator()->GetVSyncMode() == VSYNC_MODE_LTPS) && info_.name_ == "rs") {
         // 5000000 is the vsync offset.
         data[1] += period - 5000000;
     }
@@ -232,12 +240,12 @@ VsyncError VSyncDistributor::AddConnection(const sptr<VSyncConnection>& connecti
     }
 
     int32_t proxyPid = connection->proxyPid_;
+    std::lock_guard<std::mutex> locker(mutex_);
     if (connectionCounter_[proxyPid] > VSYNC_CONNECTION_MAX_SIZE) {
         VLOGE("You [%{public}d] have created too many vsync connection, please check!!!", proxyPid);
         return VSYNC_ERROR_API_FAILED;
     }
 
-    std::lock_guard<std::mutex> locker(mutex_);
     auto it = std::find(connections_.begin(), connections_.end(), connection);
     if (it != connections_.end()) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
@@ -245,6 +253,10 @@ VsyncError VSyncDistributor::AddConnection(const sptr<VSyncConnection>& connecti
     ScopedBytrace func("Add VSyncConnection: " + connection->info_.name_);
     connections_.push_back(connection);
     connectionCounter_[proxyPid]++;
+    uint32_t tmpPid;
+    if (QosGetPidByName(connection->info_.name_, tmpPid) == VSYNC_ERROR_OK) {
+        connectionsMap_[tmpPid].push_back(connection);
+    }
     return VSYNC_ERROR_OK;
 }
 
@@ -264,6 +276,18 @@ VsyncError VSyncDistributor::RemoveConnection(const sptr<VSyncConnection>& conne
     connectionCounter_[proxyPid]--;
     if (connectionCounter_[proxyPid] == 0) {
         connectionCounter_.erase(proxyPid);
+    }
+    uint32_t tmpPid;
+    if (QosGetPidByName(connection->info_.name_, tmpPid) == VSYNC_ERROR_OK) {
+        auto iter = connectionsMap_.find(tmpPid);
+        if (iter == connectionsMap_.end()) {
+            return VSYNC_ERROR_OK;
+        }
+        auto connIter = find(iter->second.begin(), iter->second.end(), connection);
+        iter->second.erase(connIter);
+        if (iter->second.empty()) {
+            connectionsMap_.erase(iter);
+        }
     }
     return VSYNC_ERROR_OK;
 }
@@ -286,7 +310,11 @@ void VSyncDistributor::ThreadMain()
             timestamp = event_.timestamp;
             event_.timestamp = 0;
             vsyncCount = event_.vsyncCount;
-            CollectConnections(waitForVSync, timestamp, conns, vsyncCount);
+            if (vsyncMode_ == VSYNC_MODE_LTPO) {
+                CollectConnectionsLTPO(waitForVSync, timestamp, conns, event_.vsyncPulseCount);
+            } else {
+                CollectConnections(waitForVSync, timestamp, conns, vsyncCount);
+            }
             // no vsync signal
             if (timestamp == 0) {
                 // there is some connections request next vsync, enable vsync if vsync disable and
@@ -306,9 +334,12 @@ void VSyncDistributor::ThreadMain()
                         con_.wait(locker);
                     }
                 }
+                ScopedBytrace func(name_ + "_continue: waitForVSync " + std::to_string(waitForVSync) +
+                    ", vsyncEnabled " + std::to_string(vsyncEnabled_));
                 continue;
             } else if ((timestamp > 0) && (waitForVSync == false)) {
                 // if there is a vsync signal but no vaild connections, we should disable vsync
+                ScopedBytrace func(name_ + "_DisableVSync, there is no valid connections");
                 DisableVSync();
                 continue;
             }
@@ -336,13 +367,26 @@ void VSyncDistributor::DisableVSync()
     }
 }
 
-void VSyncDistributor::OnVSyncEvent(int64_t now, int64_t period)
+void VSyncDistributor::OnVSyncEvent(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode)
 {
     std::lock_guard<std::mutex> locker(mutex_);
     event_.timestamp = now;
     event_.vsyncCount++;
     event_.period = period;
+    if (refreshRate > 0) {
+        event_.vsyncPulseCount += static_cast<int64_t>(VSYNC_MAX_REFRESHRATE / refreshRate);
+        generatorRefreshRate_ = refreshRate;
+    }
+    vsyncMode_ = vsyncMode;
+    ChangeConnsRateLocked();
     con_.notify_all();
+}
+
+/* std::pair<id, refresh rate> */
+void VSyncDistributor::OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates)
+{
+    std::lock_guard<std::mutex> locker(changingConnsRefreshRatesMtx_);
+    changingConnsRefreshRates_ = refreshRates;
 }
 
 void VSyncDistributor::CollectConnections(bool &waitForVSync, int64_t timestamp,
@@ -356,6 +400,7 @@ void VSyncDistributor::CollectConnections(bool &waitForVSync, int64_t timestamp,
             if (timestamp > 0) {
                 connections_[i]->rate_ = -1;
                 conns.push_back(connections_[i]);
+                connections_[i]->triggerThisTime_ = false;
             }
         } else if (rate > 0) {
             if (connections_[i]->rate_ == 0) {  // for SetHighPriorityVSyncRate with RequestNextVSync
@@ -363,6 +408,7 @@ void VSyncDistributor::CollectConnections(bool &waitForVSync, int64_t timestamp,
                 if (timestamp > 0 && (vsyncCount % rate == 0)) {
                     connections_[i]->rate_ = -1;
                     conns.push_back(connections_[i]);
+                    connections_[i]->triggerThisTime_ = false;
                 }
             } else if (connections_[i]->rate_ > 0) {  // for SetVSyncRate
                 waitForVSync = true;
@@ -374,17 +420,44 @@ void VSyncDistributor::CollectConnections(bool &waitForVSync, int64_t timestamp,
     }
 }
 
+void VSyncDistributor::CollectConnectionsLTPO(bool &waitForVSync, int64_t timestamp,
+                                              std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount)
+{
+    for (uint32_t i = 0; i < connections_.size(); i++) {
+        if (!connections_[i]->triggerThisTime_ && connections_[i]->rate_ <= 0) {
+            continue;
+        }
+        waitForVSync = true;
+        int64_t vsyncPulseFreq = static_cast<int64_t>(connections_[i]->vsyncPulseFreq_);
+        if (timestamp > 0 &&
+            (vsyncCount - connections_[i]->referencePulseCount_) % vsyncPulseFreq == 0) {
+            conns.push_back(connections_[i]);
+            connections_[i]->triggerThisTime_ = false;
+            if (connections_[i]->rate_ == 0) {
+                connections_[i]->rate_ = -1;
+            }
+        }
+    }
+}
+
 void VSyncDistributor::PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &conns, int64_t timestamp)
 {
     for (uint32_t i = 0; i < conns.size(); i++) {
-        int32_t ret = conns[i]->PostEvent(timestamp, event_.period, event_.vsyncCount);
+        int64_t period = event_.period;
+        if ((generatorRefreshRate_ > 0) && (conns[i]->refreshRate_ > 0) &&
+            (generatorRefreshRate_ % conns[i]->refreshRate_ == 0)) {
+            period = event_.period * static_cast<int64_t>(generatorRefreshRate_ / conns[i]->refreshRate_);
+        }
+        int32_t ret = conns[i]->PostEvent(timestamp, period, event_.vsyncCount);
         VLOGD("Distributor name:%{public}s, connection name:%{public}s, ret:%{public}d",
             name_.c_str(), conns[i]->info_.name_.c_str(), ret);
         if (ret == 0 || ret == ERRNO_OTHER) {
             RemoveConnection(conns[i]);
         } else if (ret == ERRNO_EAGAIN) {
             std::unique_lock<std::mutex> locker(mutex_);
-            // Exclude SetVSyncRate
+            // Trigger VSync Again for LTPO
+            conns[i]->triggerThisTime_ = true;
+            // Exclude SetVSyncRate for LTPS
             if (conns[i]->rate_ < 0) {
                 conns[i]->rate_ = 0;
             }
@@ -407,15 +480,16 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection>& conne
     }
     if (connection->rate_ < 0) {
         connection->rate_ = 0;
-        con_.notify_all();
     }
+    connection->triggerThisTime_ = true;
+    con_.notify_all();
     VLOGD("conn name:%{public}s, rate:%{public}d", connection->info_.name_.c_str(), connection->rate_);
     return VSYNC_ERROR_OK;
 }
 
 VsyncError VSyncDistributor::SetVSyncRate(int32_t rate, const sptr<VSyncConnection>& connection)
 {
-    if (rate <= 0 || connection == nullptr) {
+    if (rate < -1 || connection == nullptr) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     std::lock_guard<std::mutex> locker(mutex_);
@@ -465,7 +539,7 @@ VsyncError VSyncDistributor::GetVSyncConnectionInfos(std::vector<ConnectionInfo>
 
 VsyncError VSyncDistributor::QosGetPidByName(const std::string& name, uint32_t& pid)
 {
-    if (name.find("WM") == std::string::npos) {
+    if (name.find("WM") == std::string::npos && name.find("NWeb") == std::string::npos) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     std::string::size_type pos = name.find("_");
@@ -479,22 +553,27 @@ VsyncError VSyncDistributor::QosGetPidByName(const std::string& name, uint32_t& 
 VsyncError VSyncDistributor::SetQosVSyncRate(uint32_t pid, int32_t rate)
 {
     std::lock_guard<std::mutex> locker(mutex_);
-    for (auto connection : connections_) {
+    auto iter = connectionsMap_.find(pid);
+    if (iter == connectionsMap_.end()) {
+        VLOGD("%{public}s:%{public}d pid[%{public}u] can not found", __func__, __LINE__, pid);
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
+    }
+    bool isNeedNotify = false;
+    for (auto connection : iter->second) {
         uint32_t tmpPid;
-        if (QosGetPidByName(connection->info_.name_, tmpPid) != VSYNC_ERROR_OK) {
+        if (QosGetPidByName(connection->info_.name_, tmpPid) != VSYNC_ERROR_OK || tmpPid != pid) {
             continue;
         }
-
-        if (tmpPid == pid) {
-            if (connection->highPriorityRate_ != rate) {
-                connection->highPriorityRate_ = rate;
-                connection->highPriorityState_ = true;
-                VLOGD("in, conn name:%{public}s, highPriorityRate:%{public}d", connection->info_.name_.c_str(),
-                    connection->highPriorityRate_);
-                con_.notify_all();
-            }
-            break;
+        if (connection->highPriorityRate_ != rate) {
+            connection->highPriorityRate_ = rate;
+            connection->highPriorityState_ = true;
+            VLOGD("in, conn name:%{public}s, highPriorityRate:%{public}d", connection->info_.name_.c_str(),
+                connection->highPriorityRate_);
+            isNeedNotify = true;
         }
+    }
+    if (isNeedNotify) {
+        con_.notify_all();
     }
     return VSYNC_ERROR_OK;
 }
@@ -520,6 +599,29 @@ VsyncError VSyncDistributor::GetVSyncPeriod(int64_t &period)
     std::lock_guard<std::mutex> locker(mutex_);
     period = event_.period;
     return VSYNC_ERROR_OK;
+}
+
+void VSyncDistributor::ChangeConnsRateLocked()
+{
+    std::lock_guard<std::mutex> locker(changingConnsRefreshRatesMtx_);
+    for (auto connRefreshRate : changingConnsRefreshRates_) {
+        for (auto conn : connections_) {
+            if (conn->id_ != connRefreshRate.first) {
+                continue;
+            }
+            uint32_t refreshRate = connRefreshRate.second;
+            if ((generatorRefreshRate_ <= 0) || (refreshRate <= 0) ||
+                (VSYNC_MAX_REFRESHRATE % refreshRate != 0) || (generatorRefreshRate_ % refreshRate != 0)) {
+                conn->refreshRate_ = 0;
+                conn->vsyncPulseFreq_ = 1;
+                continue;
+            }
+            conn->refreshRate_ = refreshRate;
+            conn->vsyncPulseFreq_ = VSYNC_MAX_REFRESHRATE / refreshRate;
+            conn->referencePulseCount_ = event_.vsyncPulseCount;
+        }
+    }
+    changingConnsRefreshRates_.clear();
 }
 }
 }

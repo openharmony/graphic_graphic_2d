@@ -16,6 +16,10 @@
 #include "image/gpu_context.h"
 
 #include "impl_factory.h"
+#ifdef RS_ENABLE_VK
+#include "include/gpu/vk/GrVkBackendContext.h"
+#endif
+#include "utils/system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -26,6 +30,26 @@ bool GPUContext::BuildFromGL(const GPUContextOptions& options)
 {
     return impl_->BuildFromGL(options);
 }
+
+#ifdef RS_ENABLE_VK
+bool GPUContext::BuildFromVK(const GrVkBackendContext& context)
+{
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return false;
+    }
+    return impl_->BuildFromVK(context);
+}
+
+bool GPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options)
+{
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return false;
+    }
+    return impl_->BuildFromVK(context, options);
+}
+#endif
 
 void GPUContext::GetResourceCacheLimits(int* maxResource, size_t* maxResourceBytes) const
 {
@@ -47,6 +71,11 @@ void GPUContext::FlushAndSubmit(bool syncCpu)
     impl_->FlushAndSubmit(syncCpu);
 }
 
+void GPUContext::Submit()
+{
+    impl_->Submit();
+}
+
 void GPUContext::PerformDeferredCleanup(std::chrono::milliseconds msNotUsed)
 {
     impl_->PerformDeferredCleanup(msNotUsed);
@@ -55,6 +84,16 @@ void GPUContext::PerformDeferredCleanup(std::chrono::milliseconds msNotUsed)
 void GPUContextOptions::SetPersistentCache(PersistentCache* persistentCache)
 {
     persistentCache_ = persistentCache;
+}
+
+void GPUContextOptions::SetAllowPathMaskCaching(bool allowPathMaskCaching)
+{
+    allowPathMaskCaching_ = allowPathMaskCaching;
+}
+
+bool GPUContextOptions::GetAllowPathMaskCaching() const
+{
+    return allowPathMaskCaching_;
 }
 
 void GPUContext::GetResourceCacheUsage(int* resourceCount, size_t* resourceBytes) const
@@ -82,7 +121,7 @@ void GPUContext::PurgeUnlockedResources(bool scratchResourcesOnly)
     impl_->PurgeUnlockedResources(scratchResourcesOnly);
 }
 
-void GPUContext::PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag tag)
+void GPUContext::PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag &tag)
 {
     impl_->PurgeUnlockedResourcesByTag(scratchResourcesOnly, tag);
 }
@@ -92,12 +131,12 @@ void GPUContext::PurgeUnlockAndSafeCacheGpuResources()
     impl_->PurgeUnlockAndSafeCacheGpuResources();
 }
 
-void GPUContext::ReleaseByTag(const GPUResourceTag tag)
+void GPUContext::ReleaseByTag(const GPUResourceTag &tag)
 {
     impl_->ReleaseByTag(tag);
 }
 
-void GPUContext::DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag tag) const
+void GPUContext::DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump, GPUResourceTag &tag) const
 {
     impl_->DumpMemoryStatisticsByTag(traceMemoryDump, tag);
 }
@@ -107,10 +146,17 @@ void GPUContext::DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump) const
     impl_->DumpMemoryStatistics(traceMemoryDump);
 }
 
-void GPUContext::SetCurrentGpuResourceTag(const GPUResourceTag tag)
+void GPUContext::SetCurrentGpuResourceTag(const GPUResourceTag &tag)
 {
     impl_->SetCurrentGpuResourceTag(tag);
 }
+
+#ifdef RS_ENABLE_VK
+void GPUContext::StoreVkPipelineCacheData()
+{
+    impl_->StoreVkPipelineCacheData();
+}
+#endif
 
 GPUContextOptions::PersistentCache* GPUContextOptions::GetPersistentCache() const
 {

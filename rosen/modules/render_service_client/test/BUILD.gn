@@ -24,11 +24,7 @@ group("test") {
   ]
 }
 
-if (defined(use_new_skia) && use_new_skia) {
-  public_deps_skia = "//third_party/skia:skia_ohos"
-} else {
-  public_deps_skia = "//third_party/flutter/build/skia:ace_skia_ohos"
-}
+public_deps_skia = "//third_party/skia:skia_ohos"
 
 ohos_executable("render_service_client_rs_demo") {
   sources = [ "render_service_client_rs_demo.cpp" ]
@@ -85,15 +81,13 @@ ohos_executable("render_service_client_app_demo") {
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//foundation/systemabilitymgr/safwk/interfaces/innerkits/safwk:system_ability_fwk",
-    "//foundation/window/window_manager/wm:libwm",
-    "//foundation/window/window_manager/wmserver:libwms",
-    "//third_party/zlib:libz",
   ]
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "window_manager:libwm",
   ]
 
   public_deps = [ "$public_deps_skia" ]
@@ -410,11 +404,7 @@ ohos_executable("render_service_client_watermark_demo") {
 
   deps = [ "../../render_service_client:librender_service_client" ]
 
-  if (defined(use_new_skia) && use_new_skia) {
-    public_deps = [ "//third_party/skia:skia_ohos" ]
-  } else {
-    public_deps = [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
-  }
+  public_deps = [ "//third_party/skia:skia_ohos" ]
 
   external_deps = [
     "c_utils:utils",
@@ -615,6 +605,29 @@ ohos_executable("render_service_client_pointer_window_demo") {
   subsystem_name = "graphic"
 }
 
+ohos_executable("render_service_client_subSurface_demo") {
+  sources = [ "render_service_client_subSurface_demo.cpp" ]
+
+  include_dirs = [ "$window_base_path/interfaces/innerkits" ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  public_deps = [ "$public_deps_skia" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "image_framework:image_native",
+    "window_manager:libdm",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
 ohos_executable("render_service_client_fingerprint_demo") {
   sources = [ "render_service_client_fingerprint_demo.cpp" ]
 
@@ -632,6 +645,29 @@ ohos_executable("render_service_client_fingerprint_demo") {
     "hilog:libhilog",
     "window_manager:libdm",
   ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
+ohos_executable("render_service_client_first_frame_callback_demo") {
+  sources = [ "render_service_client_first_frame_callback_demo.cpp" ]
+
+  include_dirs = [ "$window_base_path/interfaces/innerkits" ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "window_manager:libwm",
+  ]
+
+  public_deps = [ "$public_deps_skia" ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

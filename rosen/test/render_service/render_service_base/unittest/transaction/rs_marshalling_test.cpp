@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#ifndef USE_ROSEN_DRAWING
 #include "include/core/SkCanvas.h"
 #include "include/core/SkData.h"
 #include "include/core/SkDrawable.h"
@@ -30,6 +31,20 @@
 #include "include/core/SkTypeface.h"
 #include "include/core/SkVertices.h"
 #include "include/effects/SkImageFilters.h"
+#else
+#include "draw/canvas.h"
+#include "draw/path.h"
+#include "effect/image_filter.h"
+#include "image/image.h"
+#include "image/image_info.h"
+#include "image/picture.h"
+#include "text/text_blob.h"
+#include "text/typeface.h"
+#include "utils/data.h"
+#include "utils/rect.h"
+#include "utils/region.h"
+#include "utils/vertices.h"
+#endif
 #include "message_parcel.h"
 
 #include "pipeline/rs_draw_cmd.h"
@@ -68,6 +83,7 @@ static void TestNullptrObjectSerialization(T& testObj)
     ASSERT_TRUE(objUnmarshal == nullptr);
 }
 
+#ifndef USE_ROSEN_DRAWING
 static void TestSkDataSerialization(size_t size)
 {
     /**
@@ -95,7 +111,37 @@ static void TestSkDataSerialization(size_t size)
     ASSERT_TRUE(skDataUnmarshal != nullptr);
     ASSERT_EQ(skDataUnmarshal->size(), size);
 }
+#else
+static void TestDrawingDataSerialization(size_t size)
+{
+    /**
+     * @tc.steps: step1. create SkData with size
+     */
+    auto drawingData = std::make_shared<Drawing::Data>();
+    if (size == 0) {
+        drawingData->BuildEmpty();
+    } else {
+        unsigned char originalData[size];
+        drawingData->BuildWithCopy(originalData, size);
+    }
 
+    /**
+     * @tc.steps: step2. serialize SkData
+     */
+    MessageParcel parcel;
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, drawingData));
+
+    /**
+     * @tc.steps: step3. deserialize SkData
+     */
+    std::shared_ptr<Drawing::Data> dataUnmarshal;
+    ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, dataUnmarshal));
+    ASSERT_TRUE(dataUnmarshal != nullptr);
+    ASSERT_EQ(dataUnmarshal->GetSize(), size);
+}
+#endif
+
+#ifndef USE_ROSEN_DRAWING
 static void TestSkDataSerializationWithCopy(size_t size)
 {
     /**
@@ -123,7 +169,37 @@ static void TestSkDataSerializationWithCopy(size_t size)
     ASSERT_TRUE(skDataUnmarshal != nullptr);
     ASSERT_EQ(skDataUnmarshal->size(), size);
 }
+#else
+static void TestDrawingDataSerializationWithCopy(size_t size)
+{
+    /**
+     * @tc.steps: step1. create SkData with size
+     */
+    auto drawingData = std::make_shared<Drawing::Data>();
+    if (size == 0) {
+        drawingData->BuildEmpty();
+    } else {
+        unsigned char originalData[size];
+        drawingData->BuildWithoutCopy(originalData, size);
+    }
 
+    /**
+     * @tc.steps: step2. serialize SkData
+     */
+    MessageParcel parcel;
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, drawingData));
+
+    /**
+     * @tc.steps: step3. deserialize SkData
+     */
+    std::shared_ptr<Drawing::Data> dataUnmarshal;
+    ASSERT_TRUE(RSMarshallingHelper::UnmarshallingWithCopy(parcel, dataUnmarshal));
+    ASSERT_TRUE(dataUnmarshal != nullptr);
+    ASSERT_EQ(dataUnmarshal->GetSize(), size);
+}
+#endif
+
+#ifndef USE_ROSEN_DRAWING
 static sk_sp<SkImage> CreateSkImage()
 {
     const SkImageInfo info = SkImageInfo::MakeN32(200, 200, kOpaque_SkAlphaType);
@@ -135,7 +211,24 @@ static sk_sp<SkImage> CreateSkImage()
     canvas->drawRect(SkRect::MakeXYWH(50, 50, 100, 100), paint);
     return surface->makeImageSnapshot();
 }
+#else
+static std::shared_ptr<Drawing::Image> CreateDrawingImage()
+{
+    const Drawing::ImageInfo info =
+        Drawing::ImageInfo(200, 200, Drawing::COLORTYPE_N32, Drawing::ALPHATYPE_OPAQUE);
+    auto surface(Drawing::Surface::MakeRaster(info));
+    auto canvas = surface->GetCanvas();
+    canvas->Clear(Drawing::Color::COLOR_YELLOW);
+    Drawing::Brush brush;
+    brush.SetColor(Drawing::Color::COLOR_RED);
+    canvas->AttachBrush(brush);
+    canvas->DrawRect(Drawing::Rect(50, 50, 100, 100));
+    canvas->DetachBrush();
+    return surface->GetImageSnapshot();
+}
+#endif
 
+#ifndef USE_ROSEN_DRAWING
 static sk_sp<SkPicture> CreateSkPicture()
 {
     SkPictureRecorder recorder;
@@ -145,7 +238,9 @@ static sk_sp<SkPicture> CreateSkPicture()
     sk_sp<SkPicture> picture(recorder.finishRecordingAsPicture());
     return picture;
 }
+#endif
 
+#ifndef USE_ROSEN_DRAWING
 static sk_sp<SkVertices> CreateSkVertices()
 {
     int vCount = 5;
@@ -166,7 +261,9 @@ static sk_sp<SkVertices> CreateSkVertices()
     sk_sp<SkVertices> vertices = builder.detach();
     return vertices;
 }
+#endif
 
+#ifndef USE_ROSEN_DRAWING
 static SkPath CreateSkPath()
 {
     SkPath path;
@@ -175,6 +272,16 @@ static SkPath CreateSkPath()
     path.quadTo(20, 60, 20, 80);
     return path;
 }
+#else
+static Drawing::Path CreateDrawingPath()
+{
+    Drawing::Path path;
+    path.MoveTo(20, 20);
+    path.QuadTo(20, 60, 80, 50);
+    path.QuadTo(20, 60, 20, 80);
+    return path;
+}
+#endif
 
 /**
  * @tc.name: NullptrObjectSerialization001
@@ -184,6 +291,7 @@ static SkPath CreateSkPath()
  */
 HWTEST_F(RSMarshallingTest, NullptrObjectSerialization001, Function | MediumTest | Level2)
 {
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkData> skData;
     TestNullptrObjectSerialization(skData);
 
@@ -207,6 +315,25 @@ HWTEST_F(RSMarshallingTest, NullptrObjectSerialization001, Function | MediumTest
 
     sk_sp<SkImageFilter> imageFilter;
     TestNullptrObjectSerialization(imageFilter);
+#else
+    std::shared_ptr<Drawing::Data> data;
+    TestNullptrObjectSerialization(data);
+
+    std::shared_ptr<Drawing::TextBlob> textBlob;
+    TestNullptrObjectSerialization(textBlob);
+
+    std::shared_ptr<Drawing::Image> image;
+    TestNullptrObjectSerialization(image);
+
+    std::shared_ptr<Drawing::Picture> picture;
+    TestNullptrObjectSerialization(picture);
+
+    std::shared_ptr<Drawing::Vertices> vertices;
+    TestNullptrObjectSerialization(vertices);
+
+    std::shared_ptr<Drawing::ImageFilter> imageFilter;
+    TestNullptrObjectSerialization(imageFilter);
+#endif
 
     std::shared_ptr<RSShader> rsShader;
     TestNullptrObjectSerialization(rsShader);
@@ -235,7 +362,11 @@ HWTEST_F(RSMarshallingTest, NullptrObjectSerialization001, Function | MediumTest
  */
 HWTEST_F(RSMarshallingTest, SkDataSerialization001, Function | MediumTest | Level2)
 {
+#ifndef USE_ROSEN_DRAWING
     TestSkDataSerialization(0);
+#else
+    TestDrawingDataSerialization(0);
+#endif
 }
 
 /**
@@ -246,7 +377,11 @@ HWTEST_F(RSMarshallingTest, SkDataSerialization001, Function | MediumTest | Leve
  */
 HWTEST_F(RSMarshallingTest, SkDataSerialization002, Function | MediumTest | Level2)
 {
+#ifndef USE_ROSEN_DRAWING
     TestSkDataSerialization(1024 * 2); // 2kb
+#else
+    TestDrawingDataSerialization(1024 * 2); // 2kb
+#endif
 }
 
 /**
@@ -257,7 +392,11 @@ HWTEST_F(RSMarshallingTest, SkDataSerialization002, Function | MediumTest | Leve
  */
 HWTEST_F(RSMarshallingTest, SkDataSerialization003, Function | MediumTest | Level2)
 {
+#ifndef USE_ROSEN_DRAWING
     TestSkDataSerialization(1024 * 9); // 9kb
+#else
+    TestDrawingDataSerialization(1024 * 9); // 9kb
+#endif
 }
 
 /**
@@ -268,7 +407,11 @@ HWTEST_F(RSMarshallingTest, SkDataSerialization003, Function | MediumTest | Leve
  */
 HWTEST_F(RSMarshallingTest, SkDataSerialization004, Function | MediumTest | Level2)
 {
+#ifndef USE_ROSEN_DRAWING
     TestSkDataSerializationWithCopy(0);
+#else
+    TestDrawingDataSerializationWithCopy(0);
+#endif
 }
 
 /**
@@ -279,7 +422,11 @@ HWTEST_F(RSMarshallingTest, SkDataSerialization004, Function | MediumTest | Leve
  */
 HWTEST_F(RSMarshallingTest, SkDataSerialization005, Function | MediumTest | Level2)
 {
+#ifndef USE_ROSEN_DRAWING
     TestSkDataSerializationWithCopy(1024 * 2); // 2kb
+#else
+    TestDrawingDataSerializationWithCopy(1024 * 2); // 2kb
+#endif
 }
 
 /**
@@ -290,7 +437,11 @@ HWTEST_F(RSMarshallingTest, SkDataSerialization005, Function | MediumTest | Leve
  */
 HWTEST_F(RSMarshallingTest, SkDataSerialization006, Function | MediumTest | Level2)
 {
+#ifndef USE_ROSEN_DRAWING
     TestSkDataSerializationWithCopy(1024 * 9); // 9kb
+#else
+    TestDrawingDataSerializationWithCopy(1024 * 9); // 9kb
+#endif
 }
 
 /**
@@ -299,6 +450,7 @@ HWTEST_F(RSMarshallingTest, SkDataSerialization006, Function | MediumTest | Leve
  * @tc.type:FUNC
  * @tc.require: issueI54AGD
  */
+#ifndef USE_ROSEN_DRAWING
 HWTEST_F(RSMarshallingTest, SkTextBlobSerialization001, Function | MediumTest | Level2)
 {
     /**
@@ -324,6 +476,7 @@ HWTEST_F(RSMarshallingTest, SkTextBlobSerialization001, Function | MediumTest | 
     ASSERT_TRUE(textBlobUnmarshal != nullptr);
     ASSERT_EQ(textBlobUnmarshal->bounds(), textBlob->bounds());
 }
+#endif
 
 /**
  * @tc.name: SkPaintSerialization001
@@ -336,20 +489,32 @@ HWTEST_F(RSMarshallingTest, SkPaintSerialization001, Function | MediumTest | Lev
     /**
      * @tc.steps: step1. create SkPaint with params
      */
+#ifndef USE_ROSEN_DRAWING
     SkPaint paint;
     paint.setColor(0x00AABBCC);
     paint.setBlendMode(SkBlendMode::kModulate);
     paint.setStrokeWidth(10);
+#else
+    Drawing::Pen pen;
+    pen.SetColor(0x00AABBCC);
+    pen.SetBlendMode(Drawing::BlendMode::MODULATE);
+    pen.SetWidth(10);
+#endif
 
     /**
      * @tc.steps: step2. serialize SkPaint
      */
     MessageParcel parcel;
+#ifndef USE_ROSEN_DRAWING
     ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, paint));
+#else
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, pen));
+#endif
 
     /**
      * @tc.steps: step3. deserialize SkPaint
      */
+#ifndef USE_ROSEN_DRAWING
     SkPaint paintUnmarshal;
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, paintUnmarshal));
     ASSERT_EQ(paintUnmarshal.getColor(), paint.getColor());
@@ -357,6 +522,15 @@ HWTEST_F(RSMarshallingTest, SkPaintSerialization001, Function | MediumTest | Lev
     ASSERT_EQ(paintUnmarshal.getBlendMode(), paint.getBlendMode());
 #endif
     ASSERT_EQ(paintUnmarshal.getStrokeWidth(), paint.getStrokeWidth());
+#else
+    Drawing::Pen penUnmarshal;
+    ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, penUnmarshal));
+    ASSERT_EQ(penUnmarshal.GetColor(), pen.GetColor());
+#ifndef NEW_SKIA
+    ASSERT_EQ(penUnmarshal.GetBlendMode(), pen.GetBlendMode());
+#endif
+    ASSERT_EQ(penUnmarshal.GetWidth(), pen.GetWidth());
+#endif
 }
 
 /**
@@ -370,20 +544,34 @@ HWTEST_F(RSMarshallingTest, SkImageSerialization001, Function | MediumTest | Lev
     /**
      * @tc.steps: step1. create SkImage
      */
+#ifndef USE_ROSEN_DRAWING
     auto skImage = CreateSkImage();
+#else
+    auto image = CreateDrawingImage();
+#endif
 
     /**
      * @tc.steps: step2. serialize SkImage
      */
     MessageParcel parcel;
+#ifndef USE_ROSEN_DRAWING
     ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, skImage));
+#else
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, image));
+#endif
 
     /**
      * @tc.steps: step3. deserialize SkImage
      */
+#ifndef USE_ROSEN_DRAWING
     sk_sp<SkImage> skImageUnmarshal;
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, skImageUnmarshal));
     ASSERT_TRUE(skImageUnmarshal != nullptr);
+#else
+    std::shared_ptr<Drawing::Image> imageUnmarshal;
+    ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, imageUnmarshal));
+    ASSERT_TRUE(imageUnmarshal != nullptr);
+#endif
 }
 
 /**
@@ -397,10 +585,18 @@ HWTEST_F(RSMarshallingTest, RSImageSerialization001, Function | MediumTest | Lev
     /**
      * @tc.steps: step1. create RSImage
      */
+#ifndef USE_ROSEN_DRAWING
     auto skImage = CreateSkImage();
+#else
+    auto image = CreateDrawingImage();
+#endif
 
     auto rsImage = std::make_shared<RSImage>();
+#ifndef USE_ROSEN_DRAWING
     rsImage->SetImage(skImage);
+#else
+    rsImage->SetImage(image);
+#endif
     /**
      * @tc.steps: step2. serialize RSImage
      */
@@ -421,6 +617,7 @@ HWTEST_F(RSMarshallingTest, RSImageSerialization001, Function | MediumTest | Lev
  * @tc.type:FUNC
  * @tc.require: issueI5Q60U
  */
+#ifndef USE_ROSEN_DRAWING
 HWTEST_F(RSMarshallingTest, RSImageSerialization002, Function | MediumTest | Level2)
 {
     /**
@@ -445,6 +642,7 @@ HWTEST_F(RSMarshallingTest, RSImageSerialization002, Function | MediumTest | Lev
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, rsImageUnmarshal));
     ASSERT_TRUE(rsImageUnmarshal != nullptr);
 }
+#endif
 
 /**
  * @tc.name: SkPictureSerialization001
@@ -452,6 +650,7 @@ HWTEST_F(RSMarshallingTest, RSImageSerialization002, Function | MediumTest | Lev
  * @tc.type:FUNC
  * @tc.require: issueI54AGD
  */
+#ifndef USE_ROSEN_DRAWING
 HWTEST_F(RSMarshallingTest, SkPictureSerialization001, Function | MediumTest | Level2)
 {
     /**
@@ -472,6 +671,7 @@ HWTEST_F(RSMarshallingTest, SkPictureSerialization001, Function | MediumTest | L
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, skPictureUnmarshal));
     ASSERT_TRUE(skPictureUnmarshal != nullptr);
 }
+#endif
 
 /**
  * @tc.name: SkVerticesSerialization001
@@ -479,6 +679,7 @@ HWTEST_F(RSMarshallingTest, SkPictureSerialization001, Function | MediumTest | L
  * @tc.type:FUNC
  * @tc.require: issueI54AGD
  */
+#ifndef USE_ROSEN_DRAWING
 HWTEST_F(RSMarshallingTest, SkVerticesSerialization001, Function | MediumTest | Level2)
 {
     /**
@@ -504,6 +705,7 @@ HWTEST_F(RSMarshallingTest, SkVerticesSerialization001, Function | MediumTest | 
     ASSERT_EQ(verticesUnmarshal->mode(), vertices->mode());
 #endif
 }
+#endif
 
 /**
  * @tc.name: SkRegionSerialization001
@@ -516,9 +718,19 @@ HWTEST_F(RSMarshallingTest, SkRegionSerialization001, Function | MediumTest | Le
     /**
      * @tc.steps: step1. create SkRegion
      */
+#ifndef USE_ROSEN_DRAWING
     SkRegion region;
     region.op(SkIRect::MakeXYWH(0, 0, 10, 10), SkRegion::kUnion_Op);
     region.op(SkIRect::MakeLTRB(5, 10, 20, 20), SkRegion::kUnion_Op);
+#else
+    Drawing::Region region;
+    Drawing::Region tmpRegion1;
+    tmpRegion1.SetRect(Drawing::RectI(0, 0, 10, 10));
+    region.Op(tmpRegion1, Drawing::RegionOp::UNION);
+    Drawing::Region tmpRegion2;
+    tmpRegion2.SetRect(Drawing::RectI(5, 10, 20, 20));
+    region.Op(tmpRegion2, Drawing::RegionOp::UNION);
+#endif
 
     /**
      * @tc.steps: step2. serialize SkVertices
@@ -529,9 +741,15 @@ HWTEST_F(RSMarshallingTest, SkRegionSerialization001, Function | MediumTest | Le
     /**
      * @tc.steps: step3. deserialize SkVertices
      */
+#ifndef USE_ROSEN_DRAWING
     SkRegion regionUnmarshal;
+#else
+    Drawing::Region regionUnmarshal;
+#endif
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, regionUnmarshal));
+#ifndef USE_ROSEN_DRAWING
     ASSERT_TRUE(regionUnmarshal == region);
+#endif
 }
 
 /**
@@ -545,7 +763,11 @@ HWTEST_F(RSMarshallingTest, SkPathSerialization001, Function | MediumTest | Leve
     /**
      * @tc.steps: step1. create SkPath
      */
+#ifndef USE_ROSEN_DRAWING
     SkPath path = CreateSkPath();
+#else
+    Drawing::Path path = CreateDrawingPath();
+#endif
 
     /**
      * @tc.steps: step2. serialize SkPath
@@ -556,9 +778,15 @@ HWTEST_F(RSMarshallingTest, SkPathSerialization001, Function | MediumTest | Leve
     /**
      * @tc.steps: step3. deserialize SkPath
      */
+#ifndef USE_ROSEN_DRAWING
     SkPath pathUnmarshal;
+#else
+    Drawing::Path pathUnmarshal;
+#endif
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, pathUnmarshal));
+#ifndef USE_ROSEN_DRAWING
     ASSERT_TRUE(pathUnmarshal == path);
+#endif
 }
 
 /**
@@ -572,7 +800,11 @@ HWTEST_F(RSMarshallingTest, RSPathSerialization001, Function | MediumTest | Leve
     /**
      * @tc.steps: step1. create RSPath
      */
+#ifndef USE_ROSEN_DRAWING
     SkPath path = CreateSkPath();
+#else
+    Drawing::Path path = CreateDrawingPath();
+#endif
     auto rsPath = RSPath::CreateRSPath(path);
 
     /**
@@ -587,7 +819,9 @@ HWTEST_F(RSMarshallingTest, RSPathSerialization001, Function | MediumTest | Leve
     std::shared_ptr<RSPath> rsPathUnmarshal;
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, rsPathUnmarshal));
     ASSERT_TRUE(rsPathUnmarshal != nullptr);
+#ifndef USE_ROSEN_DRAWING
     ASSERT_EQ(rsPathUnmarshal->GetSkiaPath(), path);
+#endif
 }
 
 /**
@@ -596,6 +830,7 @@ HWTEST_F(RSMarshallingTest, RSPathSerialization001, Function | MediumTest | Leve
  * @tc.type:FUNC
  * @tc.require: issueI54AGD
  */
+#ifndef USE_ROSEN_DRAWING
 HWTEST_F(RSMarshallingTest, SkImageFilterSerialization001, Function | MediumTest | Level2)
 {
     /**
@@ -619,6 +854,7 @@ HWTEST_F(RSMarshallingTest, SkImageFilterSerialization001, Function | MediumTest
     ASSERT_EQ(filterUnmarshal->GetFlattenableType(), filter->GetFlattenableType());
 #endif
 }
+#endif
 
 /**
  * @tc.name: SkShaderSerialization001
@@ -626,6 +862,7 @@ HWTEST_F(RSMarshallingTest, SkImageFilterSerialization001, Function | MediumTest
  * @tc.type:FUNC
  * @tc.require: issueI54AGD
  */
+#ifndef USE_ROSEN_DRAWING
 HWTEST_F(RSMarshallingTest, SkShaderSerialization001, Function | MediumTest | Level2)
 {
     /**
@@ -655,6 +892,7 @@ HWTEST_F(RSMarshallingTest, SkShaderSerialization001, Function | MediumTest | Le
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, shaderUnmarshal));
     ASSERT_TRUE(shaderUnmarshal != nullptr);
 }
+#endif
 
 /**
  * @tc.name: DrawCmdListSerialization001
@@ -662,6 +900,7 @@ HWTEST_F(RSMarshallingTest, SkShaderSerialization001, Function | MediumTest | Le
  * @tc.type:FUNC
  * @tc.require: issueI54AGD
  */
+#ifndef USE_ROSEN_DRAWING
 HWTEST_F(RSMarshallingTest, DrawCmdListSerialization001, Function | MediumTest | Level2)
 {
     /**
@@ -707,6 +946,7 @@ HWTEST_F(RSMarshallingTest, DrawCmdListSerialization001, Function | MediumTest |
     ASSERT_EQ(drawCmdListUnmarshal->GetHeight(), drawCmdList->GetHeight());
     ASSERT_EQ(drawCmdListUnmarshal->GetSize(), drawCmdList->GetSize());
 }
+#endif
 
 /**
  * @tc.name: SkipSkImage001
@@ -717,6 +957,10 @@ HWTEST_F(RSMarshallingTest, DrawCmdListSerialization001, Function | MediumTest |
 HWTEST_F(RSMarshallingTest, SkipSkImage001, Function | MediumTest | Level2)
 {
     Parcel parcel;
+#ifndef USE_ROSEN_DRAWING
     RSMarshallingHelper::SkipSkImage(parcel);
+#else
+    RSMarshallingHelper::SkipImage(parcel);
+#endif
 }
 } // namespace OHOS::Rosen

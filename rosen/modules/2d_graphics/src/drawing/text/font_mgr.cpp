@@ -28,6 +28,28 @@ std::shared_ptr<FontMgr> FontMgr::CreateDefaultFontMgr()
     return std::make_shared<FontMgr>(ImplFactory::CreateDefaultFontMgrImpl());
 }
 
+#ifndef USE_TEXGINE
+std::shared_ptr<FontMgr> FontMgr::CreateDynamicFontMgr()
+{
+    return std::make_shared<FontMgr>(ImplFactory::CreateDynamicFontMgrImpl());
+}
+
+void FontMgr::LoadDynamicFont(const std::string& familyName, const uint8_t* data, size_t dataLength)
+{
+    if (fontMgrImpl_) {
+        fontMgrImpl_->LoadDynamicFont(familyName, data, dataLength);
+    }
+}
+
+void FontMgr::LoadThemeFont(const std::string& familyName, const std::string& themeName,
+    const uint8_t* data, size_t dataLength)
+{
+    if (fontMgrImpl_) {
+        fontMgrImpl_->LoadThemeFont(familyName, themeName, data, dataLength);
+    }
+}
+#endif
+
 Typeface* FontMgr::MatchFamilyStyleCharacter(const char familyName[], const FontStyle& fontStyle,
                                              const char* bcp47[], int bcp47Count,
                                              int32_t character) const
@@ -42,6 +64,14 @@ FontStyleSet* FontMgr::MatchFamily(const char familyName[]) const
 {
     if (fontMgrImpl_) {
         return fontMgrImpl_->MatchFamily(familyName);
+    }
+    return nullptr;
+}
+
+Typeface* FontMgr::MatchFamilyStyle(const char familyName[], const FontStyle& fontStyle) const
+{
+    if (fontMgrImpl_) {
+        return fontMgrImpl_->MatchFamilyStyle(familyName, fontStyle);
     }
     return nullptr;
 }

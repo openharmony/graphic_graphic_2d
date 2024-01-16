@@ -41,11 +41,7 @@ if (!enable_text_gine) {
       defines += invoker.defines
       cflags_cc += invoker.cflags_cc
 
-      public_configs = [
-        "$ace_flutter_engine_root/icu:icu_config_$platform",
-        "$ace_flutter_engine_root:flutter_config",
-        ":rosen_text_config",
-      ]
+      public_configs = [ ":rosen_text_config" ]
 
       sources = [
         "font_collection_txt.cpp",
@@ -57,9 +53,6 @@ if (!enable_text_gine) {
         "typography_txt.cpp",
       ]
 
-      public_deps = [
-        "//third_party/flutter/build/libtxt:thirdparty_lib_txt_$current_os",
-      ]
       part_name = "graphic_2d"
       subsystem_name = "graphic"
     }

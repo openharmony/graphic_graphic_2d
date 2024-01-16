@@ -20,6 +20,7 @@
 
 #include "include/core/SkFontMgr.h"
 
+#include "text/font_style_set.h"
 #include "impl_interface/font_style_set_impl.h"
 
 namespace OHOS {
@@ -29,7 +30,7 @@ class SkiaFontStyleSet : public FontStyleSetImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
 
-    explicit SkiaFontStyleSet(std::shared_ptr<SkFontStyleSet> skFontStyleSet);
+    explicit SkiaFontStyleSet(sk_sp<SkFontStyleSet> skFontStyleSet);
     virtual ~SkiaFontStyleSet() = default;
 
     AdapterType GetType() const override
@@ -39,10 +40,16 @@ public:
 
     Typeface* CreateTypeface(int index) override;
 
+    void GetStyle(int32_t index, FontStyle* fontStyle, std::string* styleName) override;
+
+    Typeface* MatchStyle(const FontStyle& pattern) override;
+
     int Count() override;
 
+    static FontStyleSet* CreateEmpty();
+
 private:
-    std::shared_ptr<SkFontStyleSet> skFontStyleSet_;
+    sk_sp<SkFontStyleSet> skFontStyleSet_;
 };
 } // namespace Drawing
 } // namespace Rosen

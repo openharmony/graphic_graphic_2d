@@ -63,9 +63,7 @@ std::shared_ptr<Drawing::ImageFilter> RSLightUpEffectFilter::CreateLightUpEffect
         0.000000f, 0.000000f, 1.000000f, 0.000000f, normalizedDegree,
         0.000000f, 0.000000f, 0.000000f, 1.000000f, 0.000000f,
     };
-    Drawing::ColorMatrix cm;
-    cm.SetArray(lightUp);
-    std::shared_ptr<Drawing::ColorFilter> lightUpFilter = Drawing::ColorFilter::CreateMatrixColorFilter(cm);
+    std::shared_ptr<Drawing::ColorFilter> lightUpFilter = Drawing::ColorFilter::CreateFloatColorFilter(lightUp);
 
     return Drawing::ImageFilter::CreateColorFilterImageFilter(*lightUpFilter, nullptr);
 }

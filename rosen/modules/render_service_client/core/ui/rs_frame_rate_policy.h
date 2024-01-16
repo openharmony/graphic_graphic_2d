@@ -20,26 +20,29 @@
 
 namespace OHOS {
 namespace Rosen {
+enum class RSPropertyUnit : int16_t;
+
 class RSFrameRatePolicy {
 public:
     static RSFrameRatePolicy* GetInstance();
 
     void RegisterHgmConfigChangeCallback();
 
-    int GetPreferredFps(const std::string& scene, float speed);
+    int32_t GetPreferredFps(const std::string& scene, float speed);
+    int32_t GetRefreshRateMode() const;
+    int32_t GetExpectedFrameRate(const RSPropertyUnit unit, float velocity);
 
 private:
-    RSFrameRatePolicy();
+    RSFrameRatePolicy() = default;
     ~RSFrameRatePolicy();
-    RSFrameRatePolicy(const RSFrameRatePolicy&) = delete;
-    RSFrameRatePolicy(const RSFrameRatePolicy&&) = delete;
-    RSFrameRatePolicy &operator = (const RSFrameRatePolicy&) = delete;
-    RSFrameRatePolicy &operator = (const RSFrameRatePolicy&&) = delete;
 
     void HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData> configData);
+    void HgmRefreshRateModeChangeCallback(int32_t refreshRateMode);
+
     float ppi_ = 1.0f;
     float xDpi_ = 1.0f;
     float yDpi_ = 1.0f;
+    int32_t currentRefreshRateMode_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

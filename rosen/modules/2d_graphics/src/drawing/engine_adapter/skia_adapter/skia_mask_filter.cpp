@@ -12,19 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include "src/core/SkMaskFilterBase.h"
 #include "skia_mask_filter.h"
-
+#include "skia_helper.h"
 #include "effect/mask_filter.h"
+#include "utils/data.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 SkiaMaskFilter::SkiaMaskFilter() noexcept : filter_(nullptr) {}
 
-void SkiaMaskFilter::InitWithBlur(BlurType t, scalar sigma)
+void SkiaMaskFilter::InitWithBlur(BlurType t, scalar sigma, bool respectCTM)
 {
-    filter_ = SkMaskFilter::MakeBlur(static_cast<SkBlurStyle>(t), sigma);
+    filter_ = SkMaskFilter::MakeBlur(static_cast<SkBlurStyle>(t), sigma, respectCTM);
 }
 
 sk_sp<SkMaskFilter> SkiaMaskFilter::GetMaskFilter() const
@@ -36,6 +38,35 @@ void SkiaMaskFilter::SetSkMaskFilter(const sk_sp<SkMaskFilter>& filter)
 {
     filter_ = filter;
 }
+
+std::shared_ptr<Data> SkiaMaskFilter::Serialize() const
+{
+#ifdef ROSEN_OHOS
+    if (filter_ == nullptr) {
+        return nullptr;
+    }
+
+    return SkiaHelper::FlattenableSerialize(filter_.get());
+#else
+    return nullptr;
+#endif
+}
+
+bool SkiaMaskFilter::Deserialize(std::shared_ptr<Data> data)
+{
+#ifdef ROSEN_OHOS
+    if (data == nullptr) {
+        LOGE("SkiaMaskFilter::Deserialize, data is invalid!");
+        return false;
+    }
+
+    filter_ = SkiaHelper::FlattenableDeserialize<SkMaskFilterBase>(data);
+    return true;
+#else
+    return false;
+#endif
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

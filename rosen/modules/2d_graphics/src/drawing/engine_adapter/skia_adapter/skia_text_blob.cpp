@@ -17,10 +17,13 @@
 
 #include "include/core/SkFontTypes.h"
 #include "include/core/SkRSXform.h"
+#include "include/core/SkSerialProcs.h"
 
 #include "skia_adapter/skia_convert_utils.h"
 #include "skia_adapter/skia_data.h"
 #include "skia_adapter/skia_font.h"
+#include "skia_adapter/skia_path.h"
+#include "skia_adapter/skia_typeface.h"
 #include "utils/log.h"
 
 namespace OHOS {
@@ -36,7 +39,7 @@ sk_sp<SkTextBlob> SkiaTextBlob::GetTextBlob() const
 std::shared_ptr<TextBlob> SkiaTextBlob::MakeFromText(const void* text, size_t byteLength,
     const Font& font, TextEncoding encoding)
 {
-    std::shared_ptr<SkiaFont> skiaFont = font.GetImpl<SkiaFont>();
+    auto skiaFont = font.GetImpl<SkiaFont>();
     if (!skiaFont) {
         LOGE("skiaFont nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
@@ -54,7 +57,7 @@ std::shared_ptr<TextBlob> SkiaTextBlob::MakeFromText(const void* text, size_t by
 std::shared_ptr<TextBlob> SkiaTextBlob::MakeFromRSXform(const void* text, size_t byteLength,
     const RSXform xform[], const Font& font, TextEncoding encoding)
 {
-    std::shared_ptr<SkiaFont> skiaFont = font.GetImpl<SkiaFont>();
+    auto skiaFont = font.GetImpl<SkiaFont>();
     if (!skiaFont) {
         LOGE("skiaFont nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
@@ -74,12 +77,14 @@ std::shared_ptr<TextBlob> SkiaTextBlob::MakeFromRSXform(const void* text, size_t
     return std::make_shared<TextBlob>(textBlobImpl);
 }
 
-std::shared_ptr<Data> SkiaTextBlob::Serialize(const SkSerialProcs& procs) const
+std::shared_ptr<Data> SkiaTextBlob::Serialize() const
 {
     if (!skTextBlob_) {
         LOGE("skTextBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
+    SkSerialProcs procs;
+    procs.fTypefaceProc = &SkiaTypeface::SerializeTypeface;
     auto skData = skTextBlob_->serialize(procs);
     auto data = std::make_shared<Data>();
     auto skiaData = data->GetImpl<SkiaData>();
@@ -91,8 +96,10 @@ std::shared_ptr<Data> SkiaTextBlob::Serialize(const SkSerialProcs& procs) const
     return data;
 }
 
-std::shared_ptr<TextBlob> SkiaTextBlob::Deserialize(const void* data, size_t size, const SkDeserialProcs& procs)
+std::shared_ptr<TextBlob> SkiaTextBlob::Deserialize(const void* data, size_t size)
 {
+    SkDeserialProcs procs;
+    procs.fTypefaceProc = &SkiaTypeface::DeserializeTypeface;
     sk_sp<SkTextBlob> skTextBlob = SkTextBlob::Deserialize(data, size, procs);
     if (!skTextBlob) {
         LOGE("skTextBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
@@ -100,6 +107,39 @@ std::shared_ptr<TextBlob> SkiaTextBlob::Deserialize(const void* data, size_t siz
     }
     std::shared_ptr<TextBlobImpl> textBlobImpl = std::make_shared<SkiaTextBlob>(skTextBlob);
     return std::make_shared<TextBlob>(textBlobImpl);
+}
+
+void SkiaTextBlob::GetDrawingGlyphIDforTextBlob(const TextBlob* blob, std::vector<uint16_t>& glyphIds)
+{
+    SkTextBlob* skTextBlob = nullptr;
+    if (blob) {
+        auto skiaBlobImpl = blob->GetImpl<SkiaTextBlob>();
+        if (skiaBlobImpl != nullptr) {
+            skTextBlob = skiaBlobImpl->GetTextBlob().get();
+        }
+    }
+    GetGlyphIDforTextBlob(skTextBlob, glyphIds);
+}
+
+Path SkiaTextBlob::GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* blob)
+{
+    SkTextBlob* skTextBlob = nullptr;
+    if (blob) {
+        skTextBlob = blob->GetImpl<SkiaTextBlob>()->GetTextBlob().get();
+    }
+    SkPath skPath = GetPathforTextBlob(glyphId, skTextBlob);
+    Path path;
+    path.GetImpl<SkiaPath>()->SetPath(skPath);
+    return path;
+}
+
+std::shared_ptr<Rect> SkiaTextBlob::Bounds() const
+{
+    if (skTextBlob_) {
+        auto bounds = skTextBlob_->bounds();
+        return std::make_shared<Rect>(bounds.left(), bounds.top(), bounds.right(), bounds.bottom());
+    }
+    return nullptr;
 }
 } // namespace Drawing
 } // namespace Rosen

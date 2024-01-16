@@ -19,13 +19,14 @@
 #include <memory>
 
 #include "rs_surface_frame.h"
-#ifndef ROSEN_CROSS_PLATFORM
 #include "surface_type.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
 class RenderContext;
+class RSSurfaceExt;
+using RSSurfaceExtPtr = std::shared_ptr<RSSurfaceExt>;
+
 class RSSurface {
 public:
     RSSurface() = default;
@@ -43,16 +44,18 @@ public:
 
     virtual RenderContext* GetRenderContext() = 0;
     virtual void SetRenderContext(RenderContext* context) = 0;
-#ifndef ROSEN_CROSS_PLATFORM
     virtual GraphicColorGamut GetColorSpace() const = 0;
     virtual void SetColorSpace(GraphicColorGamut colorSpace) = 0;
-#endif
     virtual uint32_t GetQueueSize() const = 0;
     virtual void ClearBuffer() = 0; // clear cache only for producer
 
     // clear buffer for both producer and consumer and will receive OnGoBackground callback
     virtual void ClearAllBuffer() = 0;
     virtual void ResetBufferAge() = 0;
+#ifdef USE_SURFACE_TEXTURE
+    virtual RSSurfaceExtPtr CreateSurfaceExt(const RSSurfaceExtConfig& config) = 0;
+    virtual RSSurfaceExtPtr GetSurfaceExt(const RSSurfaceExtConfig& config) = 0;
+#endif
 protected:
 private:
 };

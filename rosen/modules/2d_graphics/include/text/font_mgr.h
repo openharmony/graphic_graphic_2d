@@ -19,6 +19,7 @@
 #include <memory>
 #include <cstdint>
 
+#include "impl_interface/font_mgr_impl.h"
 #include "text/font_style.h"
 #include "text/font_style_set.h"
 #include "text/typeface.h"
@@ -26,9 +27,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class FontMgrImpl;
-
-class FontMgr {
+class DRAWING_API FontMgr {
 public:
     explicit FontMgr(std::shared_ptr<FontMgrImpl> fontMgrImpl) noexcept;
     virtual ~FontMgr() = default;
@@ -38,6 +37,32 @@ public:
      * @return  A shared pointer to default fontMgr.
      */
     static std::shared_ptr<FontMgr> CreateDefaultFontMgr();
+
+#ifndef USE_TEXGINE
+    /*
+     * @brief   Create a dynamic fontMgr.
+     * @return  A shared pointer to dynamic fontMgr.
+     */
+    static std::shared_ptr<FontMgr> CreateDynamicFontMgr();
+
+    /*
+     * @brief             Load dynamic font typeface.
+     * @param familyName  Font family name.
+     * @param data        Font data.
+     * @param dataLength  The size of font data.
+     */
+    void LoadDynamicFont(const std::string& familyName, const uint8_t* data, size_t dataLength);
+
+    /*
+     * @brief             Load theme font typeface.
+     * @param familyName  Font family name.
+     * @param themeName   Theme name.
+     * @param data        Font data.
+     * @param dataLength  The size of font data.
+     */
+    void LoadThemeFont(const std::string& familyName, const std::string& themeName,
+        const uint8_t* data, size_t dataLength);
+#endif
 
     /*
      * @brief             Use the system fallback to find a typeface for the given character.
@@ -58,6 +83,19 @@ public:
      * @return            If find, return fontStyleSet. else, return nullptr.
      */
     FontStyleSet* MatchFamily(const char familyName[]) const;
+
+    template<typename T>
+    T* GetImpl() const
+    {
+        return fontMgrImpl_->DowncastingTo<T>();
+    }
+
+    /* @brief             Find the corresponding font based on the style and font name
+     * @param familyName  The name of the font you want to apply
+     * @param fontStyle   The font style you want to achieve
+     * @return            Returns the corresponding font
+     */
+    Typeface* MatchFamilyStyle(const char familyName[], const FontStyle& fontStyle) const;
 
 private:
     std::shared_ptr<FontMgrImpl> fontMgrImpl_;

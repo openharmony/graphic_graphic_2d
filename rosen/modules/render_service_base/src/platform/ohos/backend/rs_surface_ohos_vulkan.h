@@ -16,8 +16,9 @@
 #ifndef RS_SURFACE_OHOS_VULKAN_H
 #define RS_SURFACE_OHOS_VULKAN_H
 
+#include <cstdint>
 // default enable native buffer
-
+#define ENABLE_NATIVEBUFFER
 
 #ifndef ENABLE_NATIVEBUFFER
 #include <vulkan_window.h>
@@ -26,38 +27,17 @@
 #include <unordered_map>
 #include "native_window.h"
 #include "vulkan/vulkan_core.h"
-#include "rs_vulkan_context.h"
+#include "platform/ohos/backend/rs_vulkan_context.h"
 #include "sync_fence.h"
+#include "native_buffer_utils.h"
 #endif // ENABLE_NATIVEBUFFER
-
-#include <surface.h>
+#include "image/image.h"
 #include "platform/ohos/rs_surface_ohos.h"
 #include "rs_surface_frame_ohos_vulkan.h"
+#include <surface.h>
 
 namespace OHOS {
 namespace Rosen {
-#ifdef ENABLE_NATIVEBUFFER
-struct NativeSurfaceInfo {
-    NativeSurfaceInfo() = default;
-    NativeSurfaceInfo(NativeSurfaceInfo &&) = default;
-    NativeSurfaceInfo &operator=(NativeSurfaceInfo &&) = default;
-    NativeSurfaceInfo(const NativeSurfaceInfo &) = delete;
-    NativeSurfaceInfo &operator=(const NativeSurfaceInfo &) = delete;
-
-    NativeWindow* window = nullptr;
-    NativeWindowBuffer* nativeWindowBuffer = nullptr;
-    VkImage image = VK_NULL_HANDLE; // skia will destroy image
-    std::unique_ptr<SyncFence> fence = nullptr;
-    sk_sp<SkSurface> skSurface = nullptr;
-    uint32_t lastPresentedCount = 0;
-
-    ~NativeSurfaceInfo()
-    {
-        skSurface = nullptr;
-        NativeWindowCancelBuffer(window, nativeWindowBuffer);
-    }
-};
-#endif
 class RSSurfaceOhosVulkan : public RSSurfaceOhos {
 public:
     explicit RSSurfaceOhosVulkan(const sptr<Surface>& producer);
@@ -71,13 +51,18 @@ public:
     std::unique_ptr<RSSurfaceFrame> RequestFrame(
         int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC = true) override;
     bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
+    void SetColorSpace(GraphicColorGamut colorSpace) override;
     void SetSurfaceBufferUsage(uint64_t usage) override;
     void SetSurfacePixelFormat(int32_t pixelFormat) override;
     void ClearBuffer() override;
     void ResetBufferAge() override;
     void SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
 #ifdef ENABLE_NATIVEBUFFER
+#ifndef USE_ROSEN_DRAWING
     void SetSkContext(sk_sp<GrDirectContext> skContext)
+#else
+    void SetSkContext(std::shared_ptr<Drawing::GPUContext> skContext)
+#endif
     {
         mSkContext = skContext;
     }
@@ -86,14 +71,23 @@ private:
     struct NativeWindow* mNativeWindow = nullptr;
     int mWidth = -1;
     int mHeight = -1;
+    void SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC);
 #ifdef ENABLE_NATIVEBUFFER
-    uint32_t mPresentCount = 0;
+    int32_t mPresentCount = 0;
     std::list<NativeWindowBuffer*> mSurfaceList;
-    std::unordered_map<NativeWindowBuffer*, NativeSurfaceInfo> mSurfaceMap;
+    std::unordered_map<NativeWindowBuffer*, NativeBufferUtils::NativeSurfaceInfo> mSurfaceMap;
+#ifndef USE_ROSEN_DRAWING
     sk_sp<GrDirectContext> mSkContext = nullptr;
+#else
+    std::shared_ptr<Drawing::GPUContext> mSkContext = nullptr;
+#endif
+    int32_t RequestNativeWindowBuffer(
+        NativeWindowBuffer** nativeWindowBuffer, int32_t width, int32_t height, int& fenceFd, bool useAFBC);
+    void CreateVkSemaphore(VkSemaphore* semaphore,
+        const RsVulkanContext& vkContext, NativeBufferUtils::NativeSurfaceInfo& nativeSurface);
 #else // ENABLE_NATIVEBUFFER
     vulkan::VulkanWindow* mVulkanWindow = nullptr;
-#endif  // ENABLE_NATIVEBUFFER
+#endif // ENABLE_NATIVEBUFFER
 };
 
 } // namespace Rosen

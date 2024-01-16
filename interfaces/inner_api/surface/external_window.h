@@ -43,7 +43,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+typedef struct OH_NativeBuffer OH_NativeBuffer;
 /**
  * @brief native window.
  * @since 8
@@ -93,7 +93,7 @@ enum NativeWindowOperation {
     /**
      * set native window buffer geometry,
      * variable parameter in function is
-     * [in] int32_t height, [in] int32_t width
+     * [in] int32_t width, [in] int32_t height
      */
     SET_BUFFER_GEOMETRY,
     /**
@@ -268,7 +268,7 @@ typedef struct OHExtDataHandle {
 } OHExtDataHandle;
 
 /**
- * @brief Creates a <b>OHNativeWindow</b> instance. A new <b>OHNativeWindow</b> instance is created each time this function is called.
+ * @brief Creates an <b>OHNativeWindow</b> instance. A new <b>OHNativeWindow</b> instance is created each time this function is called.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
  * @param pSurface Indicates the pointer to a <b>ProduceSurface</b>. The type is a pointer to <b>sptr<OHOS::Surface></b>.
@@ -279,17 +279,19 @@ typedef struct OHExtDataHandle {
 OHNativeWindow* OH_NativeWindow_CreateNativeWindow(void* pSurface);
 
 /**
- * @brief Decreases the reference count of a <b>OHNativeWindow</b> instance by 1, and when the reference count reaches 0, destroys the instance.
+ * @brief Decreases the reference count of an <b>OHNativeWindow</b> instance by 1, and when the reference count \n
+ * reaches 0, destroys the instance.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param window Indicates the pointer to a <b>OHNativeWindow</b> instance.
+ * @param window Indicates the pointer to an <b>OHNativeWindow</b> instance.
  * @since 8
  * @version 1.0
  */
 void OH_NativeWindow_DestroyNativeWindow(OHNativeWindow* window);
 
 /**
- * @brief Creates a <b>OHNativeWindowBuffer</b> instance. A new <b>OHNativeWindowBuffer</b> instance is created each time this function is called.
+ * @brief Creates an <b>OHNativeWindowBuffer</b> instance. A new <b>OHNativeWindowBuffer</b> instance is created \n
+ * each time this function is called.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
  * @param pSurfaceBuffer Indicates the pointer to a produce buffer. The type is <b>sptr<OHOS::SurfaceBuffer></b>.
@@ -300,21 +302,34 @@ void OH_NativeWindow_DestroyNativeWindow(OHNativeWindow* window);
 OHNativeWindowBuffer* OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(void* pSurfaceBuffer);
 
 /**
- * @brief Decreases the reference count of a <b>OHNativeWindowBuffer</b> instance by 1 and, when the reference count reaches 0, destroys the instance.
+ * @brief Creates an <b>OHNativeWindowBuffer</b> instance. A new <b>OHNativeWindowBuffer</b> instance is created \n
+ * each time this function is called.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param buffer Indicates the pointer to a <b>OHNativeWindowBuffer</b> instance.
+ * @param nativeBuffer Indicates the pointer to a native buffer. The type is <b>OH_NativeBuffer*</b>.
+ * @return Returns the pointer to the <b>OHNativeWindowBuffer</b> instance created.
+ * @since 11
+ * @version 1.0
+ */
+OHNativeWindowBuffer* OH_NativeWindow_CreateNativeWindowBufferFromNativeBuffer(OH_NativeBuffer* nativeBuffer);
+
+/**
+ * @brief Decreases the reference count of an <b>OHNativeWindowBuffer</b> instance by 1 and, when the reference \n
+ * count reaches 0, destroys the instance.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
+ * @param buffer Indicates the pointer to an <b>OHNativeWindowBuffer</b> instance.
  * @since 8
  * @version 1.0
  */
 void OH_NativeWindow_DestroyNativeWindowBuffer(OHNativeWindowBuffer* buffer);
 
 /**
- * @brief Requests a <b>OHNativeWindowBuffer</b> through a <b>OHNativeWindow</b> instance for content production.
+ * @brief Requests an <b>OHNativeWindowBuffer</b> through an <b>OHNativeWindow</b> instance for content production.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param window Indicates the pointer to a <b>OHNativeWindow</b> instance.
- * @param buffer Indicates the double pointer to a <b>OHNativeWindowBuffer</b> instance.
+ * @param window Indicates the pointer to an <b>OHNativeWindow</b> instance.
+ * @param buffer Indicates the double pointer to an <b>OHNativeWindowBuffer</b> instance.
  * @param fenceFd Indicates the pointer to a file descriptor handle.
  * @return Returns an error code, 0 is success, otherwise, failed.
  * @since 8
@@ -324,11 +339,12 @@ int32_t OH_NativeWindow_NativeWindowRequestBuffer(OHNativeWindow *window,
     OHNativeWindowBuffer **buffer, int *fenceFd);
 
 /**
- * @brief Flushes the <b>OHNativeWindowBuffer</b> filled with the content to the buffer queue through a <b>OHNativeWindow</b> instance for content consumption.
+ * @brief Flushes the <b>OHNativeWindowBuffer</b> filled with the content to the buffer queue through an \n
+ * <b>OHNativeWindow</b> instance for content consumption.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param window Indicates the pointer to a <b>OHNativeWindow</b> instance.
- * @param buffer Indicates the pointer to a <b>OHNativeWindowBuffer</b> instance.
+ * @param window Indicates the pointer to an <b>OHNativeWindow</b> instance.
+ * @param buffer Indicates the pointer to an <b>OHNativeWindowBuffer</b> instance.
  * @param fenceFd Indicates a file descriptor handle, which is used for timing synchronization.
  * @param region Indicates a dirty region where content is updated.
  * @return Returns an error code, 0 is success, otherwise, failed.
@@ -338,12 +354,28 @@ int32_t OH_NativeWindow_NativeWindowRequestBuffer(OHNativeWindow *window,
 int32_t OH_NativeWindow_NativeWindowFlushBuffer(OHNativeWindow *window, OHNativeWindowBuffer *buffer,
     int fenceFd, Region region);
 
- /**
- * @brief Returns the <b>OHNativeWindowBuffer</b> to the buffer queue through a <b>OHNativeWindow</b> instance, without filling in any content. The <b>OHNativeWindowBuffer</b> can be used for another request.
+/**
+ * @brief Get the last flushed <b>OHNativeWindowBuffer</b> from an <b>OHNativeWindow</b> instance.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param window Indicates the pointer to a <b>OHNativeWindow</b> instance.
- * @param buffer Indicates the pointer to a <b>OHNativeWindowBuffer</b> instance.
+ * @param window Indicates the pointer to an <b>OHNativeWindow</b> instance.
+ * @param buffer Indicates the pointer to an <b>OHNativeWindowBuffer</b> pointer.
+ * @param fenceFd Indicates the pointer to a file descriptor handle.
+ * @param matrix Indicates the retrieved 4*4 transform matrix.
+ * @return Returns an error code, 0 is success, otherwise, failed.
+ * @since 11
+ * @version 1.0
+ */
+int32_t OH_NativeWindow_GetLastFlushedBuffer(OHNativeWindow *window, OHNativeWindowBuffer **buffer,
+    int *fenceFd, float matrix[16]);
+
+ /**
+ * @brief Returns the <b>OHNativeWindowBuffer</b> to the buffer queue through an <b>OHNativeWindow</b> instance, \n
+ * without filling in any content. The <b>OHNativeWindowBuffer</b> can be used for another request.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
+ * @param window Indicates the pointer to an <b>OHNativeWindow</b> instance.
+ * @param buffer Indicates the pointer to an <b>OHNativeWindowBuffer</b> instance.
  * @return Returns an error code, 0 is success, otherwise, failed.
  * @since 8
  * @version 1.0
@@ -354,7 +386,7 @@ int32_t OH_NativeWindow_NativeWindowAbortBuffer(OHNativeWindow *window, OHNative
  * @brief Sets or obtains the attributes of a native window, including the width, height, and content format.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param window Indicates the pointer to a <b>OHNativeWindow</b> instance.
+ * @param window Indicates the pointer to an <b>OHNativeWindow</b> instance.
  * @param code Indicates the operation code, pointer to <b>NativeWindowOperation</b>.
  * @param ... variable parameter, must correspond to code one-to-one.
  * @return Returns an error code, 0 is success, otherwise, failed.
@@ -364,10 +396,10 @@ int32_t OH_NativeWindow_NativeWindowAbortBuffer(OHNativeWindow *window, OHNative
 int32_t OH_NativeWindow_NativeWindowHandleOpt(OHNativeWindow *window, int code, ...);
 
 /**
- * @brief Obtains the pointer to a <b>BufferHandle</b> of a <b>OHNativeWindowBuffer</b> instance.
+ * @brief Obtains the pointer to a <b>BufferHandle</b> of an <b>OHNativeWindowBuffer</b> instance.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param buffer Indicates the pointer to a <b>OHNativeWindowBuffer</b> instance.
+ * @param buffer Indicates the pointer to an <b>OHNativeWindowBuffer</b> instance.
  * @return Returns the pointer to the <b>BufferHandle</b> instance obtained.
  * @since 8
  * @version 1.0
@@ -378,7 +410,7 @@ BufferHandle *OH_NativeWindow_GetBufferHandleFromNative(OHNativeWindowBuffer *bu
  * @brief Adds the reference count of a native object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param obj Indicates the pointer to a <b>OHNativeWindow</b> or <b>OHNativeWindowBuffer</b> instance.
+ * @param obj Indicates the pointer to an <b>OHNativeWindow</b> or <b>OHNativeWindowBuffer</b> instance.
  * @return Returns an error code, 0 is success, otherwise, failed.
  * @since 8
  * @version 1.0
@@ -389,7 +421,7 @@ int32_t OH_NativeWindow_NativeObjectReference(void *obj);
  * @brief Decreases the reference count of a native object and, when the reference count reaches 0, destroys this object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param obj Indicates the pointer to a <b>OHNativeWindow</b> or <b>OHNativeWindowBuffer</b> instance.
+ * @param obj Indicates the pointer to an <b>OHNativeWindow</b> or <b>OHNativeWindowBuffer</b> instance.
  * @return Returns an error code, 0 is success, otherwise, failed.
  * @since 8
  * @version 1.0
@@ -400,7 +432,7 @@ int32_t OH_NativeWindow_NativeObjectUnreference(void *obj);
  * @brief Obtains the magic ID of a native object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param obj Indicates the pointer to a <b>OHNativeWindow</b> or <b>OHNativeWindowBuffer</b> instance.
+ * @param obj Indicates the pointer to an <b>OHNativeWindow</b> or <b>OHNativeWindowBuffer</b> instance.
  * @return Returns the magic ID, which is unique for each native object.
  * @since 8
  * @version 1.0
@@ -411,7 +443,7 @@ int32_t OH_NativeWindow_GetNativeObjectMagic(void *obj);
  * @brief Sets scalingMode of a native window.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param window Indicates the pointer to a <b>OHNativeWindow</b> instance.
+ * @param window Indicates the pointer to an <b>OHNativeWindow</b> instance.
  * @param sequence Indicates the sequence to a produce buffer.
  * @param scalingMode Indicates the enum value to <b>OHScalingMode</b>
  * @return Returns an error code, 0 is success, otherwise, failed.
@@ -426,7 +458,7 @@ int32_t OH_NativeWindow_NativeWindowSetScalingMode(OHNativeWindow *window, uint3
  * @brief Sets metaData of a native window.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param window Indicates the pointer to a <b>OHNativeWindow</b> instance.
+ * @param window Indicates the pointer to an <b>OHNativeWindow</b> instance.
  * @param sequence Indicates the sequence to a produce buffer.
  * @param size Indicates the size of a <b>OHHDRMetaData</b> vector.
  * @param metaDate Indicates the pointer to a <b>OHHDRMetaData</b> vector.
@@ -442,7 +474,7 @@ int32_t OH_NativeWindow_NativeWindowSetMetaData(OHNativeWindow *window, uint32_t
  * @brief Sets metaDataSet of a native window.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param window Indicates the pointer to a <b>OHNativeWindow</b> instance.
+ * @param window Indicates the pointer to an <b>OHNativeWindow</b> instance.
  * @param sequence Indicates the sequence to a produce buffer.
  * @param key Indicates the enum value to <b>OHHDRMetadataKey</b>
  * @param size Indicates the size of a uint8_t vector.
@@ -459,7 +491,7 @@ int32_t OH_NativeWindow_NativeWindowSetMetaDataSet(OHNativeWindow *window, uint3
  * @brief Sets tunnel handle of a native window.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeWindow
- * @param window Indicates the pointer to a <b>OHNativeWindow</b> instance.
+ * @param window Indicates the pointer to an <b>OHNativeWindow</b> instance.
  * @param handle Indicates the pointer to a <b>OHExtDataHandle</b>.
  * @return Returns an error code, 0 is success, otherwise, failed.
  * @since 9

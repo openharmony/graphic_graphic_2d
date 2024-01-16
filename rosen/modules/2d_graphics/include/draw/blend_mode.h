@@ -54,7 +54,7 @@ enum class BlendMode {
     MULTIPLY,
     HUE,
     STATURATION,
-    COLOR,
+    COLOR_MODE,
     LUMINOSITY,
 };
 } // namespace Drawing

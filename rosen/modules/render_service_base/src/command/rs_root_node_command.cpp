@@ -28,9 +28,9 @@
 namespace OHOS {
 namespace Rosen {
 
-void RootNodeCommandHelper::Create(RSContext& context, NodeId id)
+void RootNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextureExportNode)
 {
-    auto node = std::make_shared<RSRootRenderNode>(id, context.weak_from_this());
+    auto node = std::make_shared<RSRootRenderNode>(id, context.weak_from_this(), isTextureExportNode);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 

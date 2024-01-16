@@ -61,9 +61,9 @@ public:
     // particle animation related
     void RegisterParticleAnimation(PropertyId propertyId, AnimationId animId);
     void UnregisterParticleAnimation(PropertyId propertyId, AnimationId animId);
-    std::unordered_map<PropertyId, AnimationId> GetParticleAnimations();
+    const std::unordered_map<PropertyId, AnimationId>& GetParticleAnimations();
 
-    const FrameRateRange& GetFrameRateRangeFromRSAnimations() const;
+    const FrameRateRange& GetFrameRateRange() const;
 
 private:
     void OnAnimationFinished(const std::shared_ptr<RSRenderAnimation>& animation);

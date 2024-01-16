@@ -20,7 +20,7 @@
 
 namespace OHOS {
 namespace Rosen {
-SkCanvas* SoftwareRenderBackend::AcquireCanvas(std::unique_ptr<SurfaceFrame>& frame)
+SkCanvas* SoftwareRenderBackend::AcquireSkCanvas(std::unique_ptr<SurfaceFrame>& frame)
 {
     SurfaceFrameOhosRaster* framePtr = static_cast<SurfaceFrameOhosRaster*>(frame.get());
     sptr<SurfaceBuffer> buffer = framePtr->GetBuffer();

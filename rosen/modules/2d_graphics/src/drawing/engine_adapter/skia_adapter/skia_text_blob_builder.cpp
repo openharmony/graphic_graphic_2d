@@ -35,7 +35,7 @@ std::shared_ptr<TextBlob> SkiaTextBlobBuilder::Make()
 
 const TextBlobBuilder::RunBuffer& SkiaTextBlobBuilder::AllocRunPos(const Font& font, int count, const Rect* bounds)
 {
-    std::shared_ptr<SkiaFont> skiaFont = font.GetImpl<SkiaFont>();
+    auto skiaFont = font.GetImpl<SkiaFont>();
     if (!skiaFont) {
         LOGE("skiaFont nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return drawingRunBuffer_;

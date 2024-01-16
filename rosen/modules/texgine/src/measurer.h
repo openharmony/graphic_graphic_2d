@@ -37,7 +37,7 @@ public:
     void SetFontStyle(const FontStyles &style);
     void SetLocale(const std::string &locale);
     void SetRTL(bool rtl);
-    void SetSize(uint32_t size);
+    void SetSize(double size);
     void SetRange(size_t start, size_t end);
     void SetFontFeatures(const FontFeatures &features);
     void SetSpacing(double letterSpacing, double wordSpacing);
@@ -50,7 +50,7 @@ protected:
     FontStyles style_;
     std::string locale_ = "";
     bool rtl_ = false;
-    uint32_t size_ = 16; // default text_style fontSize_
+    double size_ = 16.0; // default text_style fontSize_
     size_t startIndex_ = 0;
     size_t endIndex_ = 0;
     const FontFeatures *fontFeatures_ = nullptr;

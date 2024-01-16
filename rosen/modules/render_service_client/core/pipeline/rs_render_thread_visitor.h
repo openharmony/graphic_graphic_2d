@@ -85,8 +85,10 @@ private:
 #endif
     // Reset and update children node's info like outOfParent and isRemoveChild
     void ResetAndPrepareChildrenNode(RSRenderNode& node, std::shared_ptr<RSBaseRenderNode> nodeParent);
+    void ProcessSurfaceViewInRT(RSSurfaceRenderNode& node);
 
     bool UpdateAnimatePropertyCacheSurface(RSRenderNode& node);
+    void ProcessShadowFirst(RSRenderNode& node);
 
     std::shared_ptr<RSDirtyRegionManager> curDirtyManager_;
     bool isRenderForced_ = false;
@@ -106,16 +108,21 @@ private:
     std::vector<NodeId> childSurfaceNodeIds_;
 #ifndef USE_ROSEN_DRAWING
     SkMatrix parentSurfaceNodeMatrix_;
-    std::optional<SkPath> effectRegion_ = std::nullopt;
+    std::optional<SkIRect> effectRegion_ = std::nullopt;
+    std::vector<std::shared_ptr<DrawCmdList>> drawCmdListVector_;
 #else
     Drawing::Matrix parentSurfaceNodeMatrix_;
-    std::optional<Drawing::Path> effectRegion_ = std::nullopt;
+    std::optional<Drawing::RectI> effectRegion_ = std::nullopt;
+    std::vector<std::shared_ptr<Drawing::DrawCmdList>> drawCmdListVector_;
 #endif // USE_ROSEN_DRAWING
 
     std::map<NodeId, std::function<void(float, float, float, float)>> surfaceCallbacks_;
 
     static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
     static bool IsValidRootRenderNode(RSRootRenderNode& node);
+private:
+    void ProcessTextureSurfaceRenderNode(RSSurfaceRenderNode& node);
+    void ProcessOtherSurfaceRenderNode(RSSurfaceRenderNode& node);
 };
 } // namespace Rosen
 } // namespace OHOS

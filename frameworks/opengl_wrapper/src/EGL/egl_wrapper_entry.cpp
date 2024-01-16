@@ -1182,6 +1182,23 @@ EGLBoolean EglSetDamageRegionKHRImpl(EGLDisplay dpy, EGLSurface surf,
     return display->SetDamageRegionKHR(surf, rects, nRects);
 }
 
+EGLBoolean EglDupNativeFenceFDANDROIDImpl(EGLDisplay dpy, EGLSyncKHR sync)
+{
+    WLOGD("");
+    EglWrapperDisplay *display = ValidateDisplay(dpy);
+    if (!display) {
+        return EGL_FALSE;
+    }
+    EGLBoolean ret = EGL_FALSE;
+    EglWrapperDispatchTablePtr table = &gWrapperHook;
+    if (table->isLoad && table->egl.eglDupNativeFenceFDANDROID) {
+        ret = table->egl.eglDupNativeFenceFDANDROID(display->GetEglDisplay(), sync);
+    } else {
+        WLOGE("EglDupNativeFenceFDANDROID platform is not found.");
+    }
+    return ret;
+}
+
 static const std::map<std::string, EglWrapperFuncPointer> gEglWrapperMap = {
     /* EGL_VERSION_1_0 */
     { "eglChooseConfig", (EglWrapperFuncPointer)&EglChooseConfigImpl },
@@ -1241,6 +1258,7 @@ static const std::map<std::string, EglWrapperFuncPointer> gEglWrapperMap = {
     /* EGL_EXTENTIONS */
     { "eglLockSurfaceKHR", (EglWrapperFuncPointer)&EglLockSurfaceKHRImpl },
     { "eglUnlockSurfaceKHR", (EglWrapperFuncPointer)&EglUnlockSurfaceKHRImpl },
+    { "eglDupNativeFenceFDANDROID", (EglWrapperFuncPointer)&EglDupNativeFenceFDANDROIDImpl },
 
     { "eglCreateImageKHR", (EglWrapperFuncPointer)&EglCreateImageKHRImpl },
     { "eglDestroyImageKHR", (EglWrapperFuncPointer)&EglDestroyImageKHRImpl },

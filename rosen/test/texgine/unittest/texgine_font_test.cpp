@@ -76,7 +76,7 @@ HWTEST_F(TexgineFontTest, GetMetrics, TestSize.Level1)
     std::shared_ptr<TexgineFontMetrics> tfm = std::make_shared<TexgineFontMetrics>();
     EXPECT_NO_THROW({
         EXPECT_EQ(tf->GetMetrics(nullptr), 0.0);
-        EXPECT_EQ(tf->GetMetrics(tfm.get()), 1.0);
+        EXPECT_EQ(tf->GetMetrics(tfm), 1.0);
     });
 }
 } // namespace TextEngine

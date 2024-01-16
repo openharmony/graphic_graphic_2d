@@ -45,6 +45,7 @@ void RSCPUOverdrawCanvasListenerTest::TearDownTestCase() {}
 void RSCPUOverdrawCanvasListenerTest::SetUp() {}
 void RSCPUOverdrawCanvasListenerTest::TearDown() {}
 
+#ifndef USE_ROSEN_DRAWING
 class MockSkCanvas : public SkCanvas {
 public:
     MOCK_METHOD2(onDrawRegion, void(const SkRegion& region, const SkPaint& paint));
@@ -232,5 +233,55 @@ HWTEST_F(RSCPUOverdrawCanvasListenerTest, onDrawEdgeAAQuad001, TestSize.Level1)
     SkPoint clip[4] = { point };
     listener.onDrawEdgeAAQuad(rect, clip, aaFlags, color, mode);
 }
+
+#else
+class MockDrawingCanvas : public Drawing::Canvas {
+public:
+    MOCK_METHOD1(DrawRegion, void(const Drawing::Region& region));
+};
+
+/*
+ * Function: mock draw 3 regions that do not intersect each other
+ * Type: Function
+ * EnvConditions: N/A
+ * CaseDescription: 1. new mock MockDrawingCanvas
+ *                  2. expect MockDrawingCanvas call DrawRegion once
+ *                  3. new RSCPUOverdrawCanvasListener from MockDrawingCanvas
+ *                  4. call RSCPUOverdrawCanvasListener's onDrawRect 3 times
+ *                      - rect{  0,   0, 100, 100}
+ *                      - rect{200, 200, 100, 100}
+ *                      - rect{400, 400, 100, 100}
+ */
+HWTEST_F(RSCPUOverdrawCanvasListenerTest, NoIntersect, Function | SmallTest | Level2)
+{
+    PART("CaseDescription")
+    {
+        std::unique_ptr<MockDrawingCanvas> mockDrawingCanvas = nullptr;
+        STEP("1. new mock MockDrawingCanvas")
+        {
+            mockDrawingCanvas = std::make_unique<MockDrawingCanvas>();
+        }
+
+        STEP("2. expect MockDrawingCanvas call DrawRegion once")
+        {
+            EXPECT_CALL(*mockDrawingCanvas, DrawRegion(_)).Times(1);
+        }
+
+        std::unique_ptr<RSCPUOverdrawCanvasListener> rsOverdrawCanvasListener = nullptr;
+        STEP("3. new RSCPUOverdrawCanvasListener from MockDrawingCanvas")
+        {
+            rsOverdrawCanvasListener = std::make_unique<RSCPUOverdrawCanvasListener>(*mockDrawingCanvas);
+        }
+
+        STEP("4. call RSCPUOverdrawCanvasListener's onDrawRect 3 times")
+        {
+            rsOverdrawCanvasListener->DrawRect(Drawing::Rect(0, 0, 100, 100));
+            rsOverdrawCanvasListener->DrawRect(Drawing::Rect(200, 200, 300, 300));
+            rsOverdrawCanvasListener->DrawRect(Drawing::Rect(400, 400, 500, 500));
+            rsOverdrawCanvasListener->Draw();
+        }
+    }
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

@@ -17,17 +17,22 @@
 #define ROSEN_JANK_STATS_H
 
 #include <cstdint>
+#include <map>
 #include <mutex>
+#include <queue>
 #include <string>
+#include <utility>
 #include <vector>
 
+#include "nocopyable.h"
 #include "transaction/rs_render_service_client.h"
 
 namespace OHOS {
-
+namespace Rosen {
 namespace {
-using UniqueId = int64_t;
-using TraceId = int32_t;
+constexpr int64_t TIMESTAMP_INITIAL = -1;
+constexpr int32_t TRACE_ID_INITIAL = -1;
+
 struct JankFrames {
     bool isSetReportEventResponse_ = false;
     bool isSetReportEventComplete_ = false;
@@ -36,74 +41,111 @@ struct JankFrames {
     bool isReportEventComplete_ = false;
     bool isReportEventJankFrame_ = false;
     bool isUpdateJankFrame_ = false;
-    int64_t setTime_ = 0;
-    int64_t startTime_ = 0;
+    bool isFirstFrame_ = false;
+    bool isFrameRateRecorded_ = false;
+    bool isAnimationEnded_ = false;
+    bool isDisplayAnimator_ = false;
+    int64_t setTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t startTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t endTimeSteady_ = TIMESTAMP_INITIAL;
     int32_t seqMissedFrames_ = 0;
     int32_t totalFrames_ = 0;
     int32_t totalMissedFrames_ = 0;
-    int64_t maxFrameTime_ = 0;
+    int64_t maxFrameTimeSteady_ = 0;
     int32_t maxSeqMissedFrames_ = 0;
-    int64_t totalFrameTime_ = 0;
+    int64_t totalFrameTimeSteady_ = 0;
+    int32_t traceId_ = TRACE_ID_INITIAL;
     Rosen::DataBaseRs info_;
 };
+
+struct JankFrameRecordStats {
+    const std::string countTraceName_;
+    const int64_t recordThreshold_;
+    bool isRecorded_ = false;
+    JankFrameRecordStats(const std::string& countTraceName, int64_t recordThreshold)
+        : countTraceName_(countTraceName), recordThreshold_(recordThreshold) {}
+};
+
 struct AnimationTraceStats {
     std::string traceName_;
-    int64_t traceCreateTime_ = 0;
+    int64_t traceCreateTimeSteady_ = TIMESTAMP_INITIAL;
+    bool isDisplayAnimator_ = false;
+};
+
+struct TraceIdRemainderStats {
+    int64_t remainder_ = 0;
+    int64_t setTimeSteady_ = TIMESTAMP_INITIAL;
 };
 } // namespace
 
-namespace Rosen {
 class RSJankStats {
 public:
     static RSJankStats& GetInstance();
     void SetStartTime();
     void SetEndTime();
     void ReportJankStats();
-    void SetReportEventResponse(DataBaseRs info);
-    void SetReportEventComplete(DataBaseRs info);
-    void SetReportEventJankFrame(DataBaseRs info);
-    void SetFirstFrame();
-    void SetPid(pid_t pid);
+    void SetReportEventResponse(const DataBaseRs& info);
+    void SetReportEventComplete(const DataBaseRs& info);
+    void SetReportEventJankFrame(const DataBaseRs& info);
+    void SetAppFirstFrame(pid_t appPid);
 
 private:
-    RSJankStats() {};
-    ~RSJankStats() {};
-    RSJankStats(const RSJankStats&) = delete;
-    RSJankStats(const RSJankStats&&) = delete;
-    void operator=(const RSJankStats&) = delete;
-    void operator=(const RSJankStats&&) = delete;
+    RSJankStats() = default;
+    ~RSJankStats() = default;
+    DISALLOW_COPY_AND_MOVE(RSJankStats);
 
-    void SetRSJankStats(int64_t missedFrames);
-    void UpdateJankFrame(int64_t duration, JankFrames& jankFrames);
+    void UpdateEndTime();
+    void SetRSJankStats();
+    void UpdateJankFrame(JankFrames& jankFrames);
     void ReportEventResponse(const JankFrames& jankFrames) const;
     void ReportEventComplete(const JankFrames& jankFrames) const;
     void ReportEventJankFrame(const JankFrames& jankFrames) const;
     void ReportEventFirstFrame();
-    void SetAnimationTraceBegin(TraceId traceId, const JankFrames& jankFrames);
-    void RecordAnimationDynamicFrameRate(TraceId traceId, const JankFrames& jankFrames) const;
-    void SetAnimationTraceEnd(TraceId traceId);
+    void ReportEventFirstFrameByPid(pid_t appPid) const;
+    void HandleImplicitAnimationEndInAdvance(JankFrames& jankFrames);
+    void RecordJankFrameInit();
+    void RecordJankFrame();
+    void RecordJankFrameSingle(int64_t missedFrames, JankFrameRecordStats& recordStats);
+    void RecordAnimationDynamicFrameRate(JankFrames& jankFrames);
+    void SetAnimationTraceBegin(const JankFrames& jankFrames);
+    void SetAnimationTraceEnd(const JankFrames& jankFrames);
     void CheckAnimationTraceTimeout();
     std::string GetSceneDescription(const DataBaseRs& info) const;
+    std::pair<int64_t, std::string> GetAnimationId(const DataBaseRs& info) const;
+    int32_t GetTraceIdInit(const DataBaseRs& info, int64_t setTimeSteady);
     int64_t ConvertTimeToSystime(int64_t time) const;
     int64_t GetCurrentSystimeMs() const;
+    int64_t GetCurrentSteadyTimeMs() const;
 
-    constexpr static uint16_t ANIMATION_TRACE_CHECK_FREQ = 20;
-    constexpr static uint32_t JANK_RANGE_VERSION = 1;
-    constexpr static size_t JANK_STATS_SIZE = 8;
-    constexpr static bool IS_FOLD_DISP = false;
-    bool isfirstSetStart_ = true;
-    bool isNeedReport_ = false;
-    bool isFirstFrame_ = false;
-    int64_t startTime_ = 0;
-    int64_t endTime_ = 0;
-    int64_t lastReportTime_ = 0;
-    int64_t lastJankOverThresholdTime_ = 0;
-    int32_t appPid_ = 0;
+    static constexpr uint16_t ANIMATION_TRACE_CHECK_FREQ = 20;
+    static constexpr uint32_t JANK_RANGE_VERSION = 1;
+    static constexpr size_t JANK_STATS_SIZE = 8;
+    static constexpr int64_t TRACE_ID_SCALE_PARAM = 10;
+    static constexpr bool IS_FOLD_DISP = false;
+    static inline const std::string JANK_FRAME_6F_COUNT_TRACE_NAME = "JANK_FRAME_6F";
+    std::vector<JankFrameRecordStats> jankExplicitAnimatorFrameRecorder_{ {"JANK_EXPLICIT_ANIMATOR_FRAME_2F", 2} };
+    std::vector<JankFrameRecordStats> jankImplicitAnimatorFrameRecorder_{ {"JANK_IMPLICIT_ANIMATOR_FRAME_2F", 2} };
+    bool isFirstSetStart_ = true;
+    bool isFirstSetEnd_ = true;
+    bool isNeedReportJankStats_ = false;
+    int64_t startTime_ = TIMESTAMP_INITIAL;
+    int64_t startTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t endTime_ = TIMESTAMP_INITIAL;
+    int64_t endTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t lastEndTime_ = TIMESTAMP_INITIAL;
+    int64_t lastEndTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t lastReportTime_ = TIMESTAMP_INITIAL;
+    int64_t lastReportTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t lastJankFrame6FreqTimeSteady_ = TIMESTAMP_INITIAL;
+    int32_t explicitAnimationTotal_ = 0;
+    int32_t implicitAnimationTotal_ = 0;
     uint16_t animationTraceCheckCnt_ = 0;
     std::vector<uint16_t> rsJankStats_ = std::vector<uint16_t>(JANK_STATS_SIZE, 0);
-    std::map<TraceId, AnimationTraceStats> animationAsyncTraces_;
-    std::map<UniqueId, JankFrames> animateJankFrames_;
-    std::mutex animateJankFramesMutex_;
+    std::queue<pid_t> firstFrameAppPids_;
+    std::map<int32_t, AnimationTraceStats> animationAsyncTraces_;
+    std::map<int64_t, TraceIdRemainderStats> traceIdRemainder_;
+    std::map<std::pair<int64_t, std::string>, JankFrames> animateJankFrames_;
+    std::mutex mutex_;
 
     enum JankRangeType : size_t {
         JANK_FRAME_6_FREQ = 0,
@@ -120,4 +162,5 @@ private:
 
 } // namespace Rosen
 } // namespace OHOS
-#endif
+
+#endif // ROSEN_JANK_STATS_H

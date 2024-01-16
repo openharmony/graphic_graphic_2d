@@ -41,6 +41,12 @@ bool SkiaData::BuildWithCopy(const void* data, size_t length)
     return skData_ != nullptr;
 }
 
+bool SkiaData::BuildWithProc(const void* ptr, size_t length, DataReleaseProc proc, void* ctx)
+{
+    skData_ = SkData::MakeWithProc(ptr, length, proc, ctx);
+    return skData_ != nullptr;
+}
+
 bool SkiaData::BuildWithoutCopy(const void* data, size_t length)
 {
     skData_ = SkData::MakeWithoutCopy(data, length);
@@ -53,6 +59,12 @@ bool SkiaData::BuildUninitialized(size_t length)
     return skData_ != nullptr;
 }
 
+bool SkiaData::BuildEmpty()
+{
+    skData_ = SkData::MakeEmpty();
+    return skData_ != nullptr;
+}
+
 size_t SkiaData::GetSize() const
 {
     return (skData_ == nullptr) ? 0 : skData_->size();
@@ -61,6 +73,18 @@ size_t SkiaData::GetSize() const
 const void* SkiaData::GetData() const
 {
     return (skData_ == nullptr) ? nullptr : skData_->data();
+}
+
+std::shared_ptr<Data> SkiaData::MakeFromFileName(const char path[])
+{
+    sk_sp<SkData> skData = SkData::MakeFromFileName(path);
+    if (!skData) {
+        LOGE("SkiaData::MakeFromFileName, skData is nullptr!");
+        return nullptr;
+    }
+    std::shared_ptr<Data> data = std::make_shared<Data>();
+    data->GetImpl<SkiaData>()->SetSkData(skData);
+    return data;
 }
 
 void* SkiaData::WritableData()

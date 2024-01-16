@@ -26,14 +26,12 @@
 #include "utils/point.h"
 #include "utils/rect.h"
 
-#ifdef USE_ROSEN_DRAWING
 #ifdef WINDOWS_PLATFORM
 #ifdef DIFFERENCE
 #undef DIFFERENCE
 #endif
 #ifdef WINDING
 #undef WINDING
-#endif
 #endif
 #endif
 
@@ -91,6 +89,7 @@ public:
     virtual void ArcTo(scalar pt1X, scalar pt1Y, scalar pt2X, scalar pt2Y, scalar startAngle, scalar sweepAngle);
     virtual void ArcTo(const Point& pt1, const Point& pt2, scalar startAngle, scalar sweepAngle);
     virtual void ArcTo(scalar rx, scalar ry, scalar angle, PathDirection direction, scalar endX, scalar endY);
+    virtual void ArcTo(scalar x1, scalar y1, scalar x2, scalar y2, scalar radius);
     virtual void CubicTo(
         scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y, scalar endPtX, scalar endPtY);
     virtual void CubicTo(const Point& ctrlPt1, const Point& ctrlPt2, const Point& endPt);
@@ -170,8 +169,11 @@ public:
      */
     bool GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed) const;
 
+    std::shared_ptr<Data> Serialize() const;
+    bool Deserialize(std::shared_ptr<Data> data);
+
     template<typename T>
-    const std::shared_ptr<T> GetImpl() const
+    T* GetImpl() const
     {
         return impl_->DowncastingTo<T>();
     }

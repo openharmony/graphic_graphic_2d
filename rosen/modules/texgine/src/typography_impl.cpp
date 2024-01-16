@@ -37,6 +37,7 @@ namespace TextEngine {
 #define MAXWIDTH 1e9
 #define HALF(a) ((a) / 2)
 #define MINDEV 1e-3
+#define MAX_INT_VALUE 0x7FFFFFFF
 #define SUCCESSED 0
 #define FAILED 1
 
@@ -113,7 +114,7 @@ int TypographyImpl::GetLineCount() const
 
 void TypographyImpl::SetIndents(const std::vector<float> &indents)
 {
-    // to be done: set indents
+    indents_ = indents;
 }
 
 size_t TypographyImpl::FindGlyphTargetLine(double y) const
@@ -148,7 +149,7 @@ size_t TypographyImpl::FindGlyphTargetIndex(size_t line,
     offsetX = 0;
     size_t targetIndex = 0;
     for (const auto &width : widths) {
-        if (x < offsetX + HALF(fabs(width))) {
+        if (x < offsetX + fabs(width) * typographyStyle_.textSplitRatio) {
             break;
         }
 
@@ -205,7 +206,7 @@ IndexAndAffinity TypographyImpl::GetGlyphIndexByCoordinate(double x, double y) c
 
     // calc affinity
     if (targetIndex > 0 && targetIndex < widths.size()) {
-        auto mid = offsetX + HALF(fabs(widths[targetIndex]));
+        auto mid = offsetX + fabs(widths[targetIndex]) * typographyStyle_.textSplitRatio;
         if (x < mid) {
             count--;
             affinity = Affinity::NEXT;
@@ -235,6 +236,9 @@ void TypographyImpl::ComputeWordBoundary() const
             wb.SetLocale(icu::Locale::createFromName(span.GetTextStyle().locale.c_str()));
             wb.SetRange(0, ts->u16vect_.size());
             auto boundaries = wb.GetBoundary(ts->u16vect_, true);
+            if (boundaries.empty()) {
+                continue;
+            }
             for (const auto &[left, right] : boundaries) {
                 boundariesCache_.emplace_back(left + offset, right + offset);
             }
@@ -259,6 +263,24 @@ Boundary TypographyImpl::GetWordBoundaryByIndex(size_t index) const
     return {right, right};
 }
 
+double TypographyImpl::GetLineHeight(int lineNumber)
+{
+    if (lineNumber >= 0 && lineNumber < static_cast<int>(lineMetrics_.size())) {
+        return lineMetrics_[lineNumber].GetMaxHeight();
+    } else {
+        return 0.0;
+    }
+}
+
+double TypographyImpl::GetLineWidth(int lineNumber)
+{
+    if (lineNumber >= 0 && lineNumber < static_cast<int>(lineMetrics_.size())) {
+        return lineMetrics_[lineNumber].width;
+    } else {
+        return 0.0;
+    }
+}
+
 void TypographyImpl::Layout(double maxWidth)
 {
     boundariesCache_ = {};
@@ -267,24 +289,31 @@ void TypographyImpl::Layout(double maxWidth)
         ScopedTrace scope("TypographyImpl::Layout");
 #endif
         LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "TypographyImpl::Layout");
-        LOGEX_FUNC_LINE(INFO) << "Layout maxWidth: " << maxWidth << ", spans.size(): " << spans_.size();
+        LOGEX_FUNC_LINE_DEBUG() << "Layout maxWidth: " << maxWidth << ", spans.size(): " << spans_.size();
         maxWidth_ = floor(maxWidth);
-        if (spans_.empty()) {
+        auto isEmptySpans = spans_.empty();
+        if (isEmptySpans) {
             LOGEX_FUNC_LINE(ERROR) << "Empty spans";
-            return;
+            std::vector<uint16_t> text{u'\n'};
+            VariantSpan vs = TextSpan::MakeFromText(text);
+            vs.SetTextStyle(typographyStyle_.ConvertToTextStyle());
+            spans_.push_back(vs);
         }
 
         Shaper shaper;
+        shaper.SetIndents(indents_);
         lineMetrics_ = shaper.DoShape(spans_, typographyStyle_, fontProviders_, maxWidth_);
+        if (isEmptySpans) {
+            lineMetrics_.pop_back();
+        }
         if (lineMetrics_.size() == 0) {
-            LOGEX_FUNC_LINE(ERROR) << "Shape failed";
+            LOGEX_FUNC_LINE_DEBUG() << "Shape failed";
             return;
         }
 
         didExceedMaxLines_ = shaper.DidExceedMaxLines();
         maxIntrinsicWidth_ = shaper.GetMaxIntrinsicWidth();
         minIntrinsicWidth_ = shaper.GetMinIntrinsicWidth();
-        ProcessHardBreak();
 
         auto ret = ComputeStrut();
         if (ret) {
@@ -305,37 +334,6 @@ void TypographyImpl::Layout(double maxWidth)
     }
 }
 
-void TypographyImpl::ProcessHardBreak()
-{
-    bool isAllHardBreak = false;
-    int lineCount = static_cast<int>(lineMetrics_.size());
-    // If the number of lines equal 1 and the char is hard break, add a new line.
-    if (lineCount == 1 && lineMetrics_.back().lineSpans.back().IsHardBreak()) {
-        isAllHardBreak = true;
-        // When the number of lines more than 1, and the text ending with two hard breaks, add a new line.
-    } else if (lineCount > 1) {
-        // 1 is the last line, 2 is the penultimate line.
-        isAllHardBreak = lineMetrics_[lineCount - 1].lineSpans.front().IsHardBreak() &&
-            lineMetrics_[lineCount - 2].lineSpans.back().IsHardBreak();
-    }
-
-    if (isAllHardBreak) {
-        lineMetrics_.push_back(lineMetrics_.back());
-    }
-
-    for (auto i = 0; i < static_cast<int>(lineMetrics_.size() - 2); i++) {
-        if (!lineMetrics_[i].lineSpans.back().IsHardBreak() &&
-                lineMetrics_[i + 1].lineSpans.front().IsHardBreak()) {
-            lineMetrics_[i].lineSpans.push_back(lineMetrics_[i + 1].lineSpans.front());
-            lineMetrics_[i + 1].lineSpans.erase(lineMetrics_[i + 1].lineSpans.begin());
-        }
-
-        if (lineMetrics_[i + 1].lineSpans.empty()) {
-                lineMetrics_.erase(lineMetrics_.begin() + (i + 1));
-        }
-    }
-}
-
 int TypographyImpl::UpdateMetrics()
 {
     LOGSCOPED(sl, LOGEX_FUNC_LINE_DEBUG(), "UpdateMetrics");
@@ -343,7 +341,9 @@ int TypographyImpl::UpdateMetrics()
     lineMaxAscent_ = {};
     lineMaxCoveredAscent_ = {};
     lineMaxCoveredDescent_ = {};
+    yOffsets_ = {};
     height_ = 0.0;
+    descent_ = 0.0;
     double prevMaxDescent = 0.0;
     double yOffset = 0.0;
 
@@ -366,7 +366,7 @@ int TypographyImpl::UpdateMetrics()
             }
 
             if (auto as = span.TryToAnySpan(); as != nullptr) {
-                span.AdjustOffsetY(-coveredAscent);
+                span.AdjustOffsetY(-ceil(coveredAscent));
             }
         }
 
@@ -399,15 +399,69 @@ void TypographyImpl::DoLayout()
     }
 
     for (auto i = 0; i < static_cast<int>(lineMetrics_.size()); i++) {
+        std::vector<VariantSpan> groupSpans;
         double offsetX = 0;
+        int index = 0;
+        int preIndex = -1; // Init preIndex to -1
         for (auto &vs : lineMetrics_[i].lineSpans) {
             vs.AdjustOffsetY(yOffsets_[i]);
-            vs.AdjustOffsetX(offsetX);
+            vs.AdjustOffsetX(offsetX + HALF(vs.GetTextStyle().letterSpacing));
             offsetX += vs.GetWidth();
-
             lineMetrics_[i].width = offsetX;
+            ComputeRoundRect(vs, index, preIndex, lineMetrics_[i], groupSpans);
         }
         maxLineWidth_ = std::max(maxLineWidth_, lineMetrics_[i].width);
+    }
+}
+
+void TypographyImpl::ComputeRoundRect(VariantSpan& span, int& index, int& preIndex, LineMetrics& metric,
+    std::vector<VariantSpan>& groupSpans)
+{
+    bool leftRound = false;
+    bool rightRound = false;
+    if (span.HasBackgroundRect()) {
+        int lineSpanCount = metric.lineSpans.size();
+        int styleId = span.GetTextStyle().styleId;
+        // index - 1 is previous index, -1 is the invalid styleId
+        int preStyleId = index == 0 ? -1 : metric.lineSpans[index - 1].GetTextStyle().styleId;
+        // lineSpanCount - 1 is the last span index, index + 1 is next span index, -1 is the invalid styleId
+        int nextStyleId = index == lineSpanCount - 1 ? -1 : metric.lineSpans[index + 1].GetTextStyle().styleId;
+        // index - preIndex > 1 means the left span has no background rect
+        leftRound = (preIndex < 0 || index - preIndex > 1 || preStyleId != styleId);
+        // lineSpanCount - 1 is the last span index, index + 1 is next span index
+        rightRound = (index == lineSpanCount - 1 || !metric.lineSpans[index + 1].HasBackgroundRect() ||
+            nextStyleId != styleId);
+        preIndex = index;
+        groupSpans.push_back(span);
+    } else if (!groupSpans.empty()) {
+        groupSpans.erase(groupSpans.begin(), groupSpans.end());
+    }
+    if (leftRound && rightRound) {
+        span.SetRoundRectType(RoundRectType::ALL);
+    } else if (leftRound) {
+        span.SetRoundRectType(RoundRectType::LEFT_ONLY);
+    } else if (rightRound) {
+        span.SetRoundRectType(RoundRectType::RIGHT_ONLY);
+    } else {
+        span.SetRoundRectType(RoundRectType::NONE);
+    }
+    index++;
+
+    if (rightRound && !groupSpans.empty()) {
+        double maxRoundRectRadius = MAX_INT_VALUE;
+        double minTop = MAX_INT_VALUE;
+        double maxBottom = 0;
+        for (auto &gSpan : groupSpans) {
+            maxRoundRectRadius = std::fmin(std::fmin(gSpan.GetWidth(), gSpan.GetHeight()), maxRoundRectRadius);
+            minTop = std::fmin(minTop, gSpan.GetTop());
+            maxBottom = std::fmax(maxBottom, gSpan.GetBottom());
+        }
+        for (auto &gSpan : groupSpans) {
+            gSpan.SetMaxRoundRectRadius(maxRoundRectRadius);
+            gSpan.SetTopInGroup(minTop - gSpan.GetOffsetY());
+            gSpan.SetBottomInGroup(maxBottom - gSpan.GetOffsetY());
+        }
+        groupSpans.erase(groupSpans.begin(), groupSpans.end());
     }
 }
 
@@ -430,32 +484,32 @@ int TypographyImpl::ComputeStrut()
     FontStyles style(typographyStyle_.lineStyle.fontWeight, typographyStyle_.lineStyle.fontStyle);
     auto typeface = fontCollection->GetTypefaceForFontStyles(style, {}, {});
     if (typeface == nullptr) {
-        LOGEX_FUNC_LINE_DEBUG() << "seek typeface failed";
+        LOGEX_FUNC_LINE(ERROR) << "seek typeface failed";
         return FAILED;
     }
 
-    TexgineFontMetrics strutMetrics;
+    std::shared_ptr<TexgineFontMetrics> strutMetrics = std::make_shared<TexgineFontMetrics>();
     TexgineFont font;
     font.SetTypeface(typeface->Get());
     font.SetSize(typographyStyle_.lineStyle.fontSize);
-    font.GetMetrics(&strutMetrics);
+    font.GetMetrics(strutMetrics);
 
     double strutLeading = typographyStyle_.lineStyle.spacingScale.value_or(0) * typographyStyle_.lineStyle.fontSize;
     auto leading = strutLeading;
     if (typographyStyle_.lineStyle.heightOnly) {
-        double metricsHeight = -*strutMetrics.fAscent_ + *strutMetrics.fDescent_;
+        double metricsHeight = -*strutMetrics->fAscent_ + *strutMetrics->fDescent_;
         if (fabs(metricsHeight) < DBL_EPSILON) {
             LOGEX_FUNC_LINE(ERROR) << "strutMetrics is error";
             return FAILED;
         }
 
         double scale = typographyStyle_.lineStyle.heightScale * typographyStyle_.lineStyle.fontSize;
-        strut_.ascent = (-(*strutMetrics.fAscent_) / metricsHeight) * scale;
-        strut_.descent = (*strutMetrics.fDescent_ / metricsHeight) * scale;
+        strut_.ascent = (-(*strutMetrics->fAscent_) / metricsHeight) * scale;
+        strut_.descent = (*strutMetrics->fDescent_ / metricsHeight) * scale;
     } else {
-        strut_.ascent = -(*strutMetrics.fAscent_);
-        strut_.descent = *strutMetrics.fDescent_;
-        leading = fabs(leading) < DBL_EPSILON ? *strutMetrics.fLeading_ : strutLeading;
+        strut_.ascent = -(*strutMetrics->fAscent_);
+        strut_.descent = *strutMetrics->fDescent_;
+        leading = fabs(leading) < DBL_EPSILON ? *strutMetrics->fLeading_ : strutLeading;
     }
     strut_.halfLeading = HALF(leading);
     return SUCCESSED;
@@ -464,10 +518,12 @@ int TypographyImpl::ComputeStrut()
 int TypographyImpl::UpdateSpanMetrics(VariantSpan &span, double &coveredAscent)
 {
     auto style = span.GetTextStyle();
-    TexgineFontMetrics metrics;
+    std::shared_ptr<TexgineFontMetrics> metrics = nullptr;
     if (auto ts = span.TryToTextSpan(); ts != nullptr) {
         metrics = ts->tmetrics_;
+        descent_ = *metrics->fDescent_;
     } else {
+        metrics = std::make_shared<TexgineFontMetrics>();
         auto as = span.TryToAnySpan();
         auto families = style.fontFamilies;
         if (families.empty()) {
@@ -480,6 +536,7 @@ int TypographyImpl::UpdateSpanMetrics(VariantSpan &span, double &coveredAscent)
         }
 
         FontStyles fs(style.fontWeight, style.fontStyle);
+        // 0xFFFC is a placeholder, use it to get typeface when text is empty.
         auto typeface = fontCollection->GetTypefaceForChar(0xFFFC, fs, "Latn", style.locale);
         if (typeface == nullptr) {
             typeface = fontCollection->GetTypefaceForFontStyles(fs, "Latn", style.locale);
@@ -492,9 +549,9 @@ int TypographyImpl::UpdateSpanMetrics(VariantSpan &span, double &coveredAscent)
         TexgineFont font;
         font.SetTypeface(typeface->Get());
         font.SetSize(style.fontSize);
-        font.GetMetrics(&metrics);
+        font.GetMetrics(metrics);
+        descent_ = std::max(*metrics->fDescent_, descent_);
     }
-
     if (DoUpdateSpanMetrics(span, metrics, style, coveredAscent)) {
         LOGEX_FUNC_LINE(ERROR) << "DoUpdateSpanMetrics is error";
         return FAILED;
@@ -503,40 +560,43 @@ int TypographyImpl::UpdateSpanMetrics(VariantSpan &span, double &coveredAscent)
     return SUCCESSED;
 }
 
-int TypographyImpl::DoUpdateSpanMetrics(const VariantSpan &span, const TexgineFontMetrics &metrics,
+int TypographyImpl::DoUpdateSpanMetrics(const VariantSpan &span, const std::shared_ptr<TexgineFontMetrics> metrics,
     const TextStyle &style, double &coveredAscent)
 {
     bool onlyUseStrut = typographyStyle_.useLineStyle;
     onlyUseStrut = onlyUseStrut && (typographyStyle_.lineStyle.fontSize >= 0);
     onlyUseStrut = onlyUseStrut && typographyStyle_.lineStyle.only;
-    double ascent = -*metrics.fAscent_;
+    double ascent = -*metrics->fAscent_;
     if (!onlyUseStrut) {
         double coveredDescent = 0;
         if (style.heightOnly) {
-            double metricsHeight = -*metrics.fAscent_ + *metrics.fDescent_;
+            double metricsHeight = -*metrics->fAscent_ + descent_;
             if (fabs(metricsHeight) < DBL_EPSILON) {
                 LOGEX_FUNC_LINE(ERROR) << "metrics is error";
                 return FAILED;
             }
 
-            coveredAscent = (-*metrics.fAscent_ / metricsHeight) * style.heightScale * style.fontSize;
-            coveredDescent = (*metrics.fDescent_ / metricsHeight) * style.heightScale * style.fontSize;
+            coveredAscent = (-*metrics->fAscent_ / metricsHeight) * style.heightScale * style.fontSize;
+            coveredDescent = (*metrics->fDescent_ / metricsHeight) * style.heightScale * style.fontSize;
         } else {
-            coveredAscent = (-*metrics.fAscent_ + HALF(*metrics.fLeading_));
-            coveredDescent = (*metrics.fDescent_ + HALF(*metrics.fLeading_));
+            coveredAscent = (-*metrics->fAscent_ + HALF(*metrics->fLeading_));
+            coveredDescent = (*metrics->fDescent_ + HALF(*metrics->fLeading_));
         }
         if (auto as = span.TryToAnySpan(); as != nullptr) {
             UpadateAnySpanMetrics(as, coveredAscent, coveredDescent);
             ascent = coveredAscent;
         }
         if (style.halfLeading) {
-            double halfLeading = strut_.halfLeading == 0 ? HALF(style.fontSize) : strut_.halfLeading;
-            double lineHeight = style.heightScale * style.fontSize + halfLeading;
-            coveredAscent = HALF(lineHeight);
-            coveredDescent = HALF(lineHeight - style.fontSize);
+            double height = -*metrics->fAscent_ + *metrics->fDescent_;
+            double blobHeight = style.heightOnly ? style.heightScale * style.fontSize : height + *metrics->fLeading_;
+            double leading = blobHeight - height;
+            double availableVspace = blobHeight - leading;
+            double halfLeading = HALF(leading);
+            coveredAscent = -*metrics->fAscent_ / height * availableVspace + halfLeading;
+            coveredDescent = *metrics->fDescent_ / height * availableVspace + halfLeading;
         }
-        lineMaxCoveredAscent_.back() = std::max(coveredAscent, lineMaxCoveredAscent_.back());
-        lineMaxCoveredDescent_.back() = std::max(coveredDescent, lineMaxCoveredDescent_.back());
+        lineMaxCoveredAscent_.back() = std::max(lineMaxCoveredAscent_.back(), coveredAscent);
+        lineMaxCoveredDescent_.back() = std::max(lineMaxCoveredDescent_.back(), coveredDescent);
     }
     lineMaxAscent_.back() = std::max(lineMaxAscent_.back(), ascent);
     return SUCCESSED;
@@ -573,6 +633,9 @@ void TypographyImpl::Paint(TexgineCanvas &canvas, double offsetX, double offsetY
 {
     for (auto &metric : lineMetrics_) {
         for (auto &span : metric.lineSpans) {
+            if (animationFunc_) {
+                span.SetAnimation(animationFunc_);
+            }
             span.Paint(canvas, offsetX + span.GetOffsetX(), offsetY + span.GetOffsetY());
         }
     }
@@ -582,7 +645,7 @@ std::vector<TextRect> TypographyImpl::GetTextRectsByBoundary(Boundary boundary, 
     TextRectWidthStyle widthStyle) const
 {
     if (boundary.leftIndex > boundary.rightIndex || boundary.leftIndex < 0 || boundary.rightIndex < 0) {
-        LOGEX_FUNC_LINE(ERROR) << "the box range is error";
+        LOGEX_FUNC_LINE_DEBUG() << "the box range is error";
         return {};
     }
     std::vector<TextRect> totalBoxes;
@@ -650,8 +713,17 @@ void TypographyImpl::ComputeSpans(int lineIndex, double baseline, const CalcResu
             spanBoxes.push_back({.rect = rect, .direction = TextDirection::LTR});
         }
 
+        bool isJustify = typographyStyle_.GetEquivalentAlign() == TextAlign::JUSTIFY &&
+            lineIndex != static_cast<int>(lineMetrics_.size() - 1) &&
+            !lineMetrics_[lineIndex].lineSpans.back().IsHardBreak() &&
+            lineMetrics_[lineIndex].lineSpans.size() > 1;
+        double spanGapWidth = 0.0;
+        if (isJustify) {
+            spanGapWidth = (maxWidth_ - lineMetrics_[lineIndex].width) /
+                (lineMetrics_[lineIndex].lineSpans.size() - 1);
+        }
         if (auto ts = span.TryToTextSpan(); ts != nullptr) {
-            std::vector<TextRect> boxes = GenTextRects(ts, offsetX, offsetY);
+            std::vector<TextRect> boxes = GenTextRects(ts, offsetX, offsetY, spanGapWidth);
             spanBoxes.insert(spanBoxes.end(), boxes.begin(), boxes.end());
         }
 
@@ -666,10 +738,11 @@ void TypographyImpl::ComputeSpans(int lineIndex, double baseline, const CalcResu
     }
 }
 
-std::vector<TextRect> TypographyImpl::GenTextRects(std::shared_ptr<TextSpan> &ts, double offsetX, double offsetY) const
+std::vector<TextRect> TypographyImpl::GenTextRects(std::shared_ptr<TextSpan> &ts, double offsetX, double offsetY,
+    double spanGapWidth) const
 {
-    double top = *(ts->tmetrics_.fAscent_);
-    double height = *(ts->tmetrics_.fDescent_) - *(ts->tmetrics_.fAscent_);
+    double top = *(ts->tmetrics_->fAscent_);
+    double height = *(ts->tmetrics_->fDescent_) - *(ts->tmetrics_->fAscent_);
 
     std::vector<TextRect> boxes;
     double width = 0.0;
@@ -677,9 +750,12 @@ std::vector<TextRect> TypographyImpl::GenTextRects(std::shared_ptr<TextSpan> &ts
         auto cg = ts->cgs_.Get(i);
         // If is emoji, don`t need process ligature, so set chars size to 1
         int charsSize = cg.IsEmoji() ? 1 : static_cast<int>(cg.chars.size());
+        double spanWidth = ts->glyphWidths_[i] / charsSize;
+        if (i == static_cast<int>(ts->glyphWidths_.size() - 1)) {
+            spanWidth += spanGapWidth;
+        }
         for (int j = 0; j < charsSize; j++) {
-            auto rect = TexgineRect::MakeXYWH(offsetX + width, offsetY + top,
-                ts->glyphWidths_[i] / charsSize, height);
+            auto rect = TexgineRect::MakeXYWH(offsetX + width, offsetY + top, spanWidth, height);
             boxes.push_back({.rect = rect, .direction = TextDirection::LTR});
             width += ts->glyphWidths_[i] / charsSize;
         }
@@ -694,11 +770,9 @@ std::vector<TextRect> TypographyImpl::MergeRects(const std::vector<TextRect> &bo
         return {};
     }
 
-    if (boundary.leftIndex > boxes.size()) {
-        boundary.leftIndex = boxes.size() - 1;
-    }
-
-    if (boundary.rightIndex > boxes.size()) {
+    if (boundary.leftIndex >= boxes.size()) {
+        return {};
+    } else if (boundary.rightIndex > boxes.size()) {
         boundary.rightIndex = boxes.size();
     }
 
@@ -752,12 +826,16 @@ void TypographyImpl::ApplyAlignment()
     for (auto &line : lineMetrics_) {
         bool isJustify = false;
         double spanGapWidth = 0.0;
-        double typographyOffsetX = 0.0;
+        double typographyOffsetX = line.indent;
         if (TextAlign::RIGHT == align_ || (TextAlign::JUSTIFY == align_ &&
             TextDirection::RTL == typographyStyle_.direction)) {
-            typographyOffsetX = maxWidth_ - line.width;
+            typographyOffsetX = maxWidth_ - line.width - line.indent;
         } else if (TextAlign::CENTER == align_) {
-            typographyOffsetX = HALF(maxWidth_ - line.width);
+            if (typographyStyle_.direction == TextDirection::LTR) {
+                typographyOffsetX = HALF(maxWidth_ - line.width) + line.indent;
+            } else if (typographyStyle_.direction == TextDirection::RTL) {
+                typographyOffsetX = HALF(maxWidth_ - line.width) - line.indent;
+            }
         } else {
             // lineMetrics_.size() - 1 is last line index
             isJustify = align_ == TextAlign::JUSTIFY && lineIndex != lineMetrics_.size() - 1 &&

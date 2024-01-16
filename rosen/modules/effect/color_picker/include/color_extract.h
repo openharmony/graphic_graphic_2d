@@ -62,9 +62,11 @@ public:
     std::shared_ptr<uint32_t> colors_ = nullptr;
 
     static constexpr uint8_t ARGB_MASK = 0xFF;
+    static constexpr uint8_t ARGB_A_SHIFT = 24;
     static constexpr uint8_t ARGB_R_SHIFT = 16;
     static constexpr uint8_t ARGB_G_SHIFT = 8;
     static constexpr uint8_t ARGB_B_SHIFT = 0;
+    static uint8_t GetARGB32ColorA(unsigned int color);
     static uint8_t GetARGB32ColorR(unsigned int color);
     static uint8_t GetARGB32ColorG(unsigned int color);
     static uint8_t GetARGB32ColorB(unsigned int color);

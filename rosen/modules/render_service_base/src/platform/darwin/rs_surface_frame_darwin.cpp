@@ -57,7 +57,11 @@ Drawing::Canvas* RSSurfaceFrameDarwin::GetCanvas()
     if (surface_ == nullptr) {
         CreateSurface();
     }
-    return surface_->GetCanvas().get();
+
+    if (surface_ != nullptr) {
+        return surface_->GetCanvas().get();
+    }
+    return nullptr;
 }
 
 std::shared_ptr<Drawing::Surface> RSSurfaceFrameDarwin::GetSurface()
@@ -85,11 +89,9 @@ void RSSurfaceFrameDarwin::CreateSurface()
     const auto &info = SkImageInfo::Make(width_, height_, kRGBA_8888_SkColorType, kPremul_SkAlphaType);
     surface_ = SkSurface::MakeRasterDirect(info, addr_.get(), width_);
 #else
-    Drawing::Bitmap bitmap;
-    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE};
-    bitmap.Build(width_, height_, format);
-    surface_ = std::make_shared<Drawing::Surface>();
-    surface_->Bind(bitmap);
+    Drawing::ImageInfo info = Drawing::ImageInfo(width_, height_,
+        Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    surface_ = Drawing::Surface::MakeRasterDirect(info, addr_.get(), width_);
 #endif
 }
 } // namespace Rosen

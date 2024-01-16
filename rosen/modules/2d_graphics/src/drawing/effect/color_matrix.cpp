@@ -49,7 +49,7 @@ void ColorMatrix::SetArray(const scalar src[MATRIX_SIZE])
     }
 }
 
-void ColorMatrix::GetArray(scalar dst[MATRIX_SIZE]) const
+void ColorMatrix::GetArray(scalar (&dst)[MATRIX_SIZE]) const
 {
     auto ret = memcpy_s(dst, sizeof(array_), array_, sizeof(array_));
     if (ret != EOK) {

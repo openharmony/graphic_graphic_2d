@@ -24,6 +24,7 @@ ohos_executable("drawing_engine_sample") {
     "-Wno-missing-field-initializers",
     "-Wno-unused-variable",
     "-Werror,-Wreturn-type",
+    "-Wno-error=deprecated-declarations",
   ]
 
   sources = [
@@ -47,7 +48,8 @@ ohos_executable("drawing_engine_sample") {
         "drawing_engine/drawing_surface/surface_ohos_vulkan.cpp",
         "drawing_engine/vulkan_render_backend.cpp",
       ]
-    } else {
+    }
+    if (graphic_2d_feature_enable_opengl) {
       sources += [
         "drawing_engine/drawing_surface/surface_frame_ohos_gl.cpp",
         "drawing_engine/drawing_surface/surface_ohos_gl.cpp",
@@ -57,8 +59,6 @@ ohos_executable("drawing_engine_sample") {
     }
   }
 
-  configs = []
-
   include_dirs = [
     "include",
     "drawing_engine",
@@ -66,6 +66,8 @@ ohos_executable("drawing_engine_sample") {
     "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
     "$graphic_2d_root/utils/sync_fence/export",
     "$graphic_2d_root/rosen/include/common",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/platform/ohos/backend",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
   ]
 
@@ -92,21 +94,17 @@ ohos_executable("drawing_engine_sample") {
     "$graphic_2d_root/utils:sync_fence",
   ]
 
-  if (defined(use_new_skia) && use_new_skia) {
-    deps += [ "//third_party/skia:skia_ohos" ]
-  } else {
-    deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
-  }
+  deps += [ "//third_party/skia:skia_ohos" ]
 
   public_deps = libgl
   defines = gpu_defines
 
-  #defines = [ "USE_CANVASKIT0310_SKIA" ]
-  #defines += gpu_defines
-  deps += [
-    #"//third_party/skia:skia",
-  ]
-  if (graphic_2d_feature_enable_vulkan) {
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+
+    deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  }
+  if (graphic_2d_feature_enable_flutter_vulkan) {
     include_dirs += [ "//third_party/flutter/engine/flutter/vulkan" ]
   }
   public_deps += [

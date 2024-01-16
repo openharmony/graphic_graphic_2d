@@ -23,7 +23,9 @@
 
 #include "texgine_paint.h"
 #include "texgine/typography_types.h"
+#include "symbol_engine/hm_symbol_txt.h"
 
+#include "draw/pen.h"
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
@@ -73,6 +75,43 @@ struct TextShadow {
 };
 
 /*
+ * @brief RectStyle contains parameters that control
+ *        how the text background rect is displayed.
+ */
+struct RectStyle {
+    uint32_t color = 0;
+    double leftTopRadius = 0.0;
+    double rightTopRadius = 0.0;
+    double rightBottomRadius = 0.0;
+    double leftBottomRadius = 0.0;
+
+    bool operator ==(const RectStyle& rhs) const
+    {
+        return color == rhs.color &&
+            leftTopRadius == rhs.leftTopRadius &&
+            rightTopRadius == rhs.rightTopRadius &&
+            rightBottomRadius == rhs.rightBottomRadius &&
+            leftBottomRadius == rhs.leftBottomRadius;
+    }
+
+    bool operator !=(const RectStyle& rhs) const
+    {
+        return color != rhs.color ||
+            leftTopRadius != rhs.leftTopRadius ||
+            rightTopRadius != rhs.rightTopRadius ||
+            rightBottomRadius != rhs.rightBottomRadius ||
+            leftBottomRadius != rhs.leftBottomRadius;
+    }
+};
+
+enum class RoundRectType {
+    NONE,
+    LEFT_ONLY,
+    RIGHT_ONLY,
+    ALL,
+};
+
+/*
  * @brief TextStyle is a collection of parameters that control how text is displayed,
  *        including parameters for fonts, decorations, and text.
  */
@@ -81,7 +120,7 @@ struct TextStyle {
     FontWeight fontWeight = FontWeight::W400;
     FontStyle fontStyle = FontStyle::NORMAL;
     std::vector<std::string> fontFamilies = {};
-    double fontSize = 16.0;
+    double fontSize = 14.0;
     FontFeatures fontFeature;
 
     // Decoration style
@@ -102,9 +141,14 @@ struct TextStyle {
     std::optional<TexginePaint> foreground = std::nullopt;
     std::optional<TexginePaint> background = std::nullopt;
     std::vector<TextShadow> shadows;
-
+    RectStyle backgroundRect = {0, 0.0, 0.0, 0.0, 0.0};
+    int styleId = 0;
     // Implements the equality operator.
     bool operator ==(TextStyle const& rhs) const;
+
+    // symbol glyph
+    bool isSymbolGlyph = false;
+    HMSymbolTxt symbol;
 };
 } // namespace TextEngine
 } // namespace Rosen

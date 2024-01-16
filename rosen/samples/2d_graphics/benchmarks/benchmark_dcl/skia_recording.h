@@ -53,6 +53,7 @@ private:
     std::unique_ptr<SkSharingSerialContext> serialContext_;
     std::unique_ptr<SkFILEWStream> openMultiPicStream_;
     sk_sp<SkDocument> multiPic_;
+    SkCanvas* pictureCanvas_ = nullptr;
 
     std::unique_ptr<SkPictureRecorder> recorder_;
     std::unique_ptr<SkNWayCanvas> nwayCanvas_;

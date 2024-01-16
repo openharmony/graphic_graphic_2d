@@ -17,6 +17,7 @@
 #define IMAGE_INFO_H
 #include "draw/color.h"
 #include "effect/color_space.h"
+#include "utils/rect.h"
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -31,11 +32,12 @@ enum class EncodedImageFormat {
 class ImageInfo {
 public:
     ImageInfo() = default;
-    ImageInfo(int width, int height, ColorType colorType, AlphaType alphaType, std::shared_ptr<ColorSpace> colorSpace = nullptr)
+    ImageInfo(int width, int height, ColorType colorType, AlphaType alphaType,
+	          std::shared_ptr<ColorSpace> colorSpace = nullptr)
         : width_(width), height_(height), colorType_(colorType), alphaType_(alphaType), colorSpace_(colorSpace) {}
     ~ImageInfo() = default;
     
-    static ImageInfo Make(int32_t width, int32_t height)
+    static ImageInfo MakeN32Premul(int32_t width, int32_t height)
     {
         return ImageInfo(width, height, COLORTYPE_N32, ALPHATYPE_PREMUL, nullptr);
     }
@@ -80,6 +82,27 @@ public:
     }
 
     /*
+     * @brief  Returns number of bytes per pixel.
+     */
+    int32_t GetBytesPerPixel() const
+    {
+        // returns the number of bytes per pixel: 1byte, 2bytes, 4bytes
+        switch (colorType_) {
+            case COLORTYPE_ALPHA_8:
+                return 1;
+            case COLORTYPE_RGB_565:
+            case COLORTYPE_ARGB_4444:
+                return 2;
+            case COLORTYPE_RGBA_8888:
+            case COLORTYPE_BGRA_8888:
+            case COLORTYPE_N32:
+                return 4;
+            default:
+                return 0;
+        }
+    }
+
+    /*
      * @brief  Sets the width value of ImageInfo.
      */
     void SetWidth(int width)
@@ -119,9 +142,17 @@ public:
         colorSpace_ = colorSpace;
     }
 
+    /*
+     * @brief  Gets the bounds of ImageInfo.
+     */
+    RectI GetBound() const
+    {
+        return RectI(0, 0, width_, height_);
+    }
+
 private:
     int width_ = 0;
-    int height_ =0;
+    int height_ = 0;
     ColorType colorType_ = COLORTYPE_UNKNOWN;
     AlphaType alphaType_ = ALPHATYPE_UNKNOWN;
     std::shared_ptr<ColorSpace> colorSpace_ = nullptr;

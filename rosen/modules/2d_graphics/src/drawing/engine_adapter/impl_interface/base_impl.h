@@ -38,9 +38,9 @@ public:
     }
 
     template<typename T>
-    std::shared_ptr<T> DowncastingTo()
+    T* DowncastingTo()
     {
-        return (IsInstanceOf<T>()) ? std::static_pointer_cast<T>(shared_from_this()) : nullptr;
+        return (IsInstanceOf<T>()) ? reinterpret_cast<T*>(this) : nullptr;
     }
 };
 } // namespace Drawing

@@ -63,7 +63,11 @@ HWTEST_F(RSUniUiCaptureTest, SetCanvasTest, TestSize.Level1)
     float scaleX = 0.0;
     float scaleY = 0.0;
     RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, scaleX, scaleY);
+#ifndef USE_ROSEN_DRAWING
     std::shared_ptr<RSRecordingCanvas> canvas = nullptr;
+#else
+    std::shared_ptr<ExtendRecordingCanvas> canvas = nullptr;
+#endif
     rsUniUICaptureVisitor.SetCanvas(canvas);
 }
 

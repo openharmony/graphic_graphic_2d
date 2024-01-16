@@ -37,6 +37,9 @@ public:
     virtual bool IsEmpty() const = 0;
     virtual bool IsRect() const = 0;
     virtual bool Op(const Region& region, const RegionOp op) = 0;
+    virtual void Clone(const Region& other) = 0;
+    virtual std::shared_ptr<Data> Serialize() const = 0;
+    virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

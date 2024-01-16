@@ -54,9 +54,9 @@ void RSAnimationManager::RemoveAnimation(AnimationId keyId)
 
 void RSAnimationManager::CancelAnimationByPropertyId(PropertyId id)
 {
-    EraseIf(animations_, [id](const auto& pair) {
+    EraseIf(animations_, [id, this](const auto& pair) {
         if (pair.second && (pair.second->GetPropertyId() == id)) {
-            pair.second->Detach();
+            OnAnimationFinished(pair.second);
             return true;
         }
         return false;
@@ -115,7 +115,7 @@ std::tuple<bool, bool, bool> RSAnimationManager::Animate(int64_t time, bool node
     return { hasRunningAnimation, needRequestNextVsync, isCalculateAnimationValue };
 }
 
-const FrameRateRange& RSAnimationManager::GetFrameRateRangeFromRSAnimations() const
+const FrameRateRange& RSAnimationManager::GetFrameRateRange() const
 {
     return rsRange_;
 }
@@ -198,7 +198,7 @@ void RSAnimationManager::UnregisterParticleAnimation(PropertyId propertyId, Anim
     }
 }
 
-std::unordered_map<PropertyId, AnimationId> RSAnimationManager::GetParticleAnimations()
+const std::unordered_map<PropertyId, AnimationId>& RSAnimationManager::GetParticleAnimations()
 {
     return particleAnimations_;
 }

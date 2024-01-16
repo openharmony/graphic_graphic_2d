@@ -33,10 +33,15 @@ public:
     ~RSRenderServiceConnectionStub() noexcept = default;
 
     int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
+
+    void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) override {};
+    void RunOnRemoteDiedCallback() override {};
+
 private:
     static const RSInterfaceCodeSecurityManager securityManager_;
 
     void ReadDataBaseRs(DataBaseRs& info, MessageParcel& data);
+    void ReadGameStateDataRs(GameStateData& info, MessageParcel& data);
     RSRenderServiceSecurityUtils securityUtils_;
 
 #if defined (ENABLE_DDGR_OPTIMIZE)

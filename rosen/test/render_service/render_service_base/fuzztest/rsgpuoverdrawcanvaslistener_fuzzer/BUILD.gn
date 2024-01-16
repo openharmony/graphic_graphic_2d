@@ -19,6 +19,9 @@ module_output_path = "graphic_2d/graphic_2d"
 ##############################fuzztest##########################################
 ohos_fuzztest("RSGpuOverdrawCanvasListenerFuzzTest") {
   module_out_path = module_output_path
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
   fuzz_config_file = "//foundation/graphic/graphic_2d/rosen/test/render_service/render_service_base/fuzztest/rsgpuoverdrawcanvaslistener_fuzzer"
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
@@ -26,11 +29,7 @@ ohos_fuzztest("RSGpuOverdrawCanvasListenerFuzzTest") {
     "//foundation/graphic/graphic_2d/utils/log",
   ]
 
-  if (defined(use_new_skia) && use_new_skia) {
-    include_dirs += [ "//third_party/skia" ]
-  } else {
-    include_dirs += [ "//third_party/flutter/skia" ]
-  }
+  include_dirs += [ "//third_party/skia" ]
 
   deps = [
     "//foundation/graphic/graphic_2d:libsurface",

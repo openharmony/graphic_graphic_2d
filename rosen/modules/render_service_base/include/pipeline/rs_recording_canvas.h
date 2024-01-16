@@ -18,7 +18,6 @@
 
 #ifndef USE_ROSEN_DRAWING
 
-#include "common/rs_macros.h"
 #include "include/core/SkBitmap.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkCanvasVirtualEnforcer.h"
@@ -27,15 +26,20 @@
 #include "include/core/SkPath.h"
 #include "include/core/SkRect.h"
 #include "include/utils/SkNoDrawCanvas.h"
+
+#include "common/rs_macros.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "property/rs_properties_def.h"
 #include "render/rs_image.h"
+
 #ifdef NEW_SKIA
 #include "src/core/SkVerticesPriv.h"
 #endif
 #ifdef ROSEN_OHOS
 #include "surface_buffer.h"
 #endif
+
+#include "include/core/HMSymbol.h"
 
 namespace OHOS {
 namespace Media {
@@ -104,6 +108,8 @@ public:
         const Rosen::RsImageInfo& rsImageInfo, const SkSamplingOptions& samplingOptions, const SkPaint& paint);
     void DrawImageNine(const std::shared_ptr<Media::PixelMap>& pixelmap, const SkIRect& center,
         const SkRect& dst, SkFilterMode filter, const SkPaint* paint);
+    using DrawFunc  = std::function<void(RSPaintFilterCanvas& canvas, const SkRect*)>;
+    void DrawDrawFunc(DrawFunc && drawFunc);
 #else
     GrContext* getGrContext() override;
     void SetGrContext(GrContext* grContext);
@@ -170,6 +176,7 @@ public:
     void onDrawAnnotation(const SkRect&, const char[], SkData*) override;
 
     void onDrawTextBlob(const SkTextBlob* blob, SkScalar x, SkScalar y, const SkPaint& paint) override;
+    void onDrawSymbol(const HMSymbolData& symbol, SkPoint locate, const SkPaint& paint) override;
 
     void onDrawPatch(const SkPoint[12], const SkColor[4], const SkPoint[4], SkBlendMode, const SkPaint&) override;
     void onDrawPoints(SkCanvas::PointMode mode, size_t count, const SkPoint pts[], const SkPaint& paint) override;
@@ -206,7 +213,7 @@ private:
 
 #else
 #include "recording/recording_canvas.h"
-#include "recording/draw_cmd.h"
+#include "pipeline/rs_draw_cmd.h"
 
 namespace OHOS {
 namespace Media {
@@ -215,14 +222,26 @@ class PixelMap;
 namespace Rosen {
 class RSB_EXPORT ExtendRecordingCanvas : public Drawing::RecordingCanvas {
 public:
-    ExtendRecordingCanvas(int width, int weight);
+    ExtendRecordingCanvas(int width, int weight, bool addDrawOpImmediate = true);
     ~ExtendRecordingCanvas() override = default;
     void DrawImageWithParm(const std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Data>& data,
         const Drawing::AdaptiveImageInfo& rsImageInfo, const Drawing::SamplingOptions& sampling);
-    void DrawExtendPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap,
+    void DrawPixelMapWithParm(const std::shared_ptr<Media::PixelMap>& pixelMap,
         const Drawing::AdaptiveImageInfo& rsImageInfo, const Drawing::SamplingOptions& sampling);
-    void DrawImageNine2(const std::shared_ptr<Media::PixelMap>& pixelmap, const Drawing::RectI& center,
+    void DrawImageNineWithPixelMap(const std::shared_ptr<Media::PixelMap>& pixelmap, const Drawing::RectI& center,
         const Drawing::Rect& dst, Drawing::FilterMode filter, const Drawing::Brush* brush);
+    void DrawPixelMapRect(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::Rect& src,
+        const Drawing::Rect& dst, const Drawing::SamplingOptions& sampling,
+        Drawing::SrcRectConstraint constraint = Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    void DrawDrawFunc(Drawing::RecordingCanvas::DrawFunc&& drawFunc);
+#ifdef ROSEN_OHOS
+    void DrawSurfaceBuffer(const DrawingSurfaceBufferInfo& surfaceBufferInfo);
+#endif
+private:
+    template<typename T, typename... Args>
+    void AddDrawOpImmediate(Args&&... args);
+    template<typename T, typename... Args>
+    void AddDrawOpDeferred(Args&&... args);
 };
 } // namespace Rosen
 } // namespace OHOS

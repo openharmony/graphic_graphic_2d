@@ -20,6 +20,12 @@
 
 #include "surface_frame.h"
 #include "surface_type.h"
+#include "draw/canvas.h"
+#ifdef ENABLE_DDGR_OPTIMIZE
+#include "ddgr/DDGRCanvasInterface.h"
+#include "DDGRCanvasV2.h"
+#include "ddgr/Surface.h"
+#endif
 
 class SkCanvas;
 
@@ -36,9 +42,15 @@ public:
 
     virtual std::unique_ptr<SurfaceFrame> RequestFrame(int32_t width, int32_t height) = 0;
 
+    virtual std::unique_ptr<SurfaceFrame> NativeRequestFrame(int32_t width, int32_t height) = 0;
+
     virtual bool FlushFrame(std::unique_ptr<SurfaceFrame>& frame) = 0;
 
-    virtual SkCanvas* GetCanvas(std::unique_ptr<SurfaceFrame>& frame) = 0;
+    virtual bool NativeFlushFrame(std::unique_ptr<SurfaceFrame>& frame) = 0;
+#ifdef USE_ROSEN_DRAWING
+    virtual Drawing::Canvas* GetCanvas(std::unique_ptr<SurfaceFrame>& frame) = 0;
+#endif
+    virtual SkCanvas* GetSkCanvas(std::unique_ptr<SurfaceFrame>& frame) = 0;
 
     void SetDrawingProxy(DrawingProxy* proxy)
     {

@@ -23,6 +23,7 @@
 
 #include "napi/n_exporter.h"
 #include "securec.h"
+#include "util/log.h"
 #include "webgl_rendering_context_basic_base.h"
 #include "webgl/webgl_active_info.h"
 #include "webgl/webgl_arg.h"
@@ -38,7 +39,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Impl {
-using Image2DFunc = enum : int {
+using Image2DFunc = enum : int32_t {
     IMAGE_TEX_IMAGE_2D,
     IMAGE_TEX_SUB_IMAGE_2D,
     IMAGE_COMPRESSED_TEX_IMAGE_2D,
@@ -92,12 +93,12 @@ enum BoundShaderType : uint32_t {
 
 class WebGLRenderingContextBaseImpl {
 public:
-    inline static const int MAX_COUNT_ATTACHED_SHADER = 128;
+    inline static const int32_t MAX_COUNT_ATTACHED_SHADER = 128;
     inline static const GLuint MAX_LOCATION_LENGTH = 512;
-    static const int PARAMETERS_NUM_1 = 1;
-    static const int PARAMETERS_NUM_2 = 2;
-    static const int PARAMETERS_NUM_3 = 3;
-    static const int PARAMETERS_NUM_4 = 4;
+    static const int32_t PARAMETERS_NUM_1 = 1;
+    static const int32_t PARAMETERS_NUM_2 = 2;
+    static const int32_t PARAMETERS_NUM_3 = 3;
+    static const int32_t PARAMETERS_NUM_4 = 4;
 
     explicit WebGLRenderingContextBaseImpl(int32_t version, WebGLRenderingContextBasicBase *base)
         : version_(version), webGLRenderingContext_(base) {}
@@ -108,7 +109,7 @@ public:
     // common interface
     bool IsHighWebGL()
     {
-        return version_ > WEBGL_1_X;
+        return version_ > WEBGL_1_0;
     }
 
     void SetError(GLenum error)
@@ -208,11 +209,11 @@ public:
     napi_value EnableVertexAttribArray(napi_env env, int64_t index);
     napi_value DisableVertexAttribArray(napi_env env, int64_t index);
     napi_value GetVertexAttribOffset(napi_env env, GLuint index, GLenum pname);
-    napi_value VertexAttribfv(napi_env env, GLuint index, int count, napi_value dataObj);
-    napi_value VertexAttribf(napi_env env, GLuint index, int count, GLfloat* data);
+    napi_value VertexAttribfv(napi_env env, GLuint index, int32_t count, napi_value dataObj);
+    napi_value VertexAttribf(napi_env env, GLuint index, int32_t count, GLfloat* data);
     napi_value GetAttribLocation(napi_env env, napi_value object, const std::string& name);
+    napi_value GetVertexAttrib(napi_env env, GLenum pname, GLuint index, VertexAttribInfo* info);
     napi_value GetVertexAttrib(napi_env env, GLenum pname, GLuint index);
-
     napi_value IsEnabled(napi_env env, GLenum cap);
     napi_value Disable(napi_env env, GLenum cap);
     napi_value Enable(napi_env env, GLenum cap);
@@ -221,14 +222,14 @@ public:
 
     napi_value GenerateMipmap(napi_env env, GLenum target);
 
-    napi_value Uniform_f(napi_env env, napi_value location, uint32_t count, const GLfloat* data);
-    napi_value Uniform_i(napi_env env, napi_value location, uint32_t count, const GLint* data);
-    napi_value Uniform_ui(napi_env env, napi_value locationObj, uint32_t count, const GLuint* data);
+    napi_value UniformF(napi_env env, napi_value location, uint32_t count, const GLfloat* data);
+    napi_value UniformI(napi_env env, napi_value location, uint32_t count, const GLint* data);
+    napi_value UniformUi(napi_env env, napi_value locationObj, uint32_t count, const GLuint* data);
 
-    napi_value Uniform_uiv(napi_env env, napi_value locationObj, napi_value data, const UniformExtInfo* info);
-    napi_value Uniform_fv(napi_env env, napi_value locationObj, napi_value data, const UniformExtInfo* info);
-    napi_value Uniform_iv(napi_env env, napi_value locationObj, napi_value data, const UniformExtInfo* info);
-    napi_value UniformMatrix_fv(
+    napi_value UniformUiv(napi_env env, napi_value locationObj, napi_value data, const UniformExtInfo* info);
+    napi_value UniformFv(napi_env env, napi_value locationObj, napi_value data, const UniformExtInfo* info);
+    napi_value UniformIv(napi_env env, napi_value locationObj, napi_value data, const UniformExtInfo* info);
+    napi_value UniformMatrixFv(
         napi_env env, napi_value locationObj, napi_value data, GLboolean transpose, const UniformExtInfo* info);
 
     napi_value StencilMaskSeparate(napi_env env, GLenum face, GLuint mask);
@@ -255,7 +256,7 @@ public:
     virtual napi_value GetTexParameter(napi_env env, GLenum target, GLenum pname);
     virtual napi_value GetFrameBufferAttachmentParameter(napi_env env, GLenum target, GLenum attachment, GLenum pname);
     virtual napi_value GetParameter(napi_env env, GLenum pname);
-    virtual void DoObjectDelete(int type, WebGLObject *obj) {}
+    virtual void DoObjectDelete(int32_t type, WebGLObject *obj) {}
 
     // object mananger
     template<class T>
@@ -302,7 +303,7 @@ protected:
     bool CheckPixelsType(napi_env env, GLenum type);
     bool CheckReadBufferMode(GLenum mode);
     bool CheckCompressedTexSubDimensions(const TexSubImage2DArg& imgArg, WebGLTexture* texture);
-    bool CheckTexImageInternalFormat(napi_env env, int func, GLenum internalFormat);
+    bool CheckTexImageInternalFormat(napi_env env, int32_t func, GLenum internalFormat);
     bool CheckTexInternalFormatColorBufferCombination(GLenum texInternalFormat, GLenum colorBufferFormat);
     bool CheckStencil(napi_env env);
     bool CheckLocationName(const std::string& name);
@@ -346,7 +347,7 @@ protected:
     const std::vector<GLenum>& GetIntegerParaName();
     const std::vector<GLenum>& GetBoolParaName();
 
-    int version_ = WEBGL_1_X;
+    int32_t version_ = WEBGL_1_0;
     // error process
     GLenum lastError_ = 0;
 
@@ -394,10 +395,21 @@ protected:
 private:
     WebGLRenderingContextBaseImpl(const WebGLRenderingContextBaseImpl&) = delete;
     WebGLRenderingContextBaseImpl& operator=(const WebGLRenderingContextBaseImpl&) = delete;
-    napi_value HandleUniformMatrixInfo(
+    void HandleUniformMatrixInfo(
         GLboolean transpose, const UniformExtInfo* info, GLint location, GLsizei count, GLfloat* srcData);
     napi_value HandleFrameBufferAttachmentPname(
         napi_env env, GLenum target, GLenum attachment, GLenum pname, GLint type);
+#define SET_ERROR(error)                                \
+    do {                                                \
+        LOGE("WebGL set error code %{public}u", error); \
+        SetError(error);                                \
+    } while (0)
+
+#define SET_ERROR_WITH_LOG(error, info, ...)                                \
+    do {                                                                    \
+        LOGE("WebGL set error code %{public}u" info, error, ##__VA_ARGS__); \
+        SetError(error);                                                    \
+    } while (0)
 };
 
 template<class T>
@@ -407,16 +419,16 @@ bool WebGLRenderingContextBaseImpl::AddObject(napi_env env, uint64_t key, napi_v
         return false;
     }
     if (objects_[T::objectType].find(key) != objects_[T::objectType].end()) {
-        LOGE("AddObject exit %{public}u %{public}u", T::objectType, static_cast<uint32_t>(key));
+        LOGE("AddObject exit %{public}u %{public}" PRIu64, T::objectType, key);
         return false;
     }
     napi_ref ref;
     napi_status status = napi_create_reference(env, obj, 1, &ref);
     if (status != napi_ok) {
-        LOGE("AddObject %{public}u status %{public}u", static_cast<uint32_t>(key), status);
+        LOGE("AddObject %{public}" PRIu64 " status %{public}u", key, status);
         return false;
     }
-    LOGI("AddObject %{public}u %{public}p %{public}u ", T::objectType, obj, static_cast<uint32_t>(key));
+    LOGD("AddObject %{public}u %{public}p %{public}" PRIu64, T::objectType, obj, key);
     objects_[T::objectType].insert({ key, ref });
     return true;
 }
@@ -424,17 +436,17 @@ bool WebGLRenderingContextBaseImpl::AddObject(napi_env env, uint64_t key, napi_v
 template<class T>
 napi_value WebGLRenderingContextBaseImpl::GetNapiValue(napi_env env, uint64_t key)
 {
-    if (T::objectType > WebGLObject::WEBGL_OBJECT_MAX) {
+    if (T::objectType < 0 || T::objectType > WebGLObject::WEBGL_OBJECT_MAX) {
         return nullptr;
     }
     auto it = objects_[T::objectType].find(key);
     if (it == objects_[T::objectType].end()) {
-        LOGI("GetObject %{public}u %{public}u", T::objectType, static_cast<uint32_t>(key));
+        LOGD("GetObject %{public}u %{public}" PRIu64, T::objectType, key);
         return nullptr;
     }
     napi_value obj;
     napi_status status = napi_get_reference_value(env, it->second, &obj);
-    LOGI("GetNapiValue %{public}u %{public}p %{public}u ", T::objectType, obj, static_cast<uint32_t>(key));
+    LOGD("GetNapiValue %{public}u %{public}p %{public}" PRIu64, T::objectType, obj, key);
     if (status != napi_ok) {
         return nullptr;
     }
@@ -456,19 +468,19 @@ napi_value WebGLRenderingContextBaseImpl::GetObject(napi_env env, uint64_t key)
 template<class T>
 void WebGLRenderingContextBaseImpl::DeleteObject(napi_env env, uint64_t key)
 {
-    if (T::objectType > WebGLObject::WEBGL_OBJECT_MAX) {
+    if (T::objectType < 0 || T::objectType > WebGLObject::WEBGL_OBJECT_MAX) {
         return;
     }
     auto it = objects_[T::objectType].find(key);
     if (it == objects_[T::objectType].end()) {
-        LOGE("WebGL can not delete %{public}u %{public}u", T::objectType, static_cast<uint32_t>(key));
+        LOGE("WebGL can not delete %{public}u %{public}" PRIu64, T::objectType, key);
         return;
     }
     napi_value obj;
     napi_status status = napi_get_reference_value(env, it->second, &obj);
     objects_[T::objectType].erase(it);
     napi_delete_reference(env, it->second);
-    LOGI("DeleteObject %{public}u %{public}u status %{public}u", T::objectType, static_cast<uint32_t>(key), status);
+    LOGD("DeleteObject %{public}u %{public}" PRIu64 " status %{public}u", T::objectType, key, status);
 }
 
 template<class T>

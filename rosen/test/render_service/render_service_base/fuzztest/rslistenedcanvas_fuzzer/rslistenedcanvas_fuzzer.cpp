@@ -51,7 +51,7 @@ T GetData()
     g_pos += objectSize;
     return object;
 }
-
+#ifndef USE_ROSEN_DRAWING
 void RSListenedCanvasFuzzTest0(RSListenedCanvas& inListener)
 {
     uint32_t inColor1 = GetData<uint32_t>();
@@ -134,6 +134,12 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     RSListenedCanvasFuzzTest1(nowListened);
     return true;
 }
+#else
+bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
+{
+    return true;
+}
+#endif
 } // namespace OHOS
 
 /* Fuzzer entry point */

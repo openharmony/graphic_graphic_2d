@@ -17,6 +17,7 @@
 #ifndef VSYNC_VSYNC_CONTROLLER_H
 #define VSYNC_VSYNC_CONTROLLER_H
 
+#include <cstdint>
 #include <refbase.h>
 #include <mutex>
 #include "vsync_generator.h"
@@ -28,8 +29,10 @@ class VSyncController : public VSyncGenerator::Callback {
 public:
     class Callback {
     public:
-        virtual void OnVSyncEvent(int64_t now, int64_t period) = 0;
+        virtual void OnVSyncEvent(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode) = 0;
         virtual ~Callback() = default;
+        /* std::pair<id, refresh rate> */
+        virtual void OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates) = 0;
     };
 
     VSyncController(const sptr<VSyncGenerator> &geng, int64_t offset);
@@ -45,7 +48,10 @@ public:
 
 private:
 
-    void OnVSyncEvent(int64_t now, int64_t period);
+    void OnVSyncEvent(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode);
+    void OnPhaseOffsetChanged(int64_t phaseOffset);
+    /* std::pair<id, refresh rate> */
+    void OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates);
     wptr<VSyncGenerator> generator_;
     std::mutex callbackMutex_;
     Callback* callback_;

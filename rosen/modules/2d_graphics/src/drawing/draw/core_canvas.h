@@ -50,6 +50,7 @@ enum class QuadAAFlags {
 };
 
 const int DIVES_SIZE = 2;
+#undef TRANSPARENT
 struct Lattice {
     enum RectType : uint8_t {
         DEFAULT = 0,
@@ -64,6 +65,15 @@ struct Lattice {
     RectI fBounds;
     Color fColors;
 };
+
+enum CacheType : uint8_t {
+    UNDEFINED, // do not change current cache status
+    ENABLED,   // explicitly enable cache
+    DISABLED,  // explicitly disable cache
+    OFFSCREEN, // offscreen rendering
+};
+
+class Surface;
 
 /*
  * @brief  Contains the option used to create the layer.
@@ -89,7 +99,8 @@ public:
      * @param imageFilter     Use this to filter the current layer as the new layer background, may be nullptr.
      * @param saveLayerFlags  How to allocate layer.
      */
-    SaveLayerOps(const Rect* bounds, const Brush* brush, const ImageFilter* imageFilter, uint32_t saveLayerFlags = 0)
+    SaveLayerOps(const Rect* bounds, const Brush* brush,
+        const std::shared_ptr<ImageFilter> imageFilter, uint32_t saveLayerFlags = 0)
         : bounds_(bounds), brush_(brush), imageFilter_(imageFilter), saveLayerFlags_(saveLayerFlags) {}
     ~SaveLayerOps() {}
 
@@ -112,7 +123,7 @@ public:
     /*
      * @brief  Gets the image filter of layer, may be nullptr.
      */
-    const ImageFilter* GetImageFilter() const
+    const std::shared_ptr<ImageFilter> GetImageFilter() const
     {
         return imageFilter_;
     }
@@ -128,7 +139,7 @@ public:
 private:
     const Rect* bounds_;
     const Brush* brush_;
-    const ImageFilter* imageFilter_;
+    const std::shared_ptr<ImageFilter> imageFilter_;
     uint32_t saveLayerFlags_;
 };
 
@@ -159,7 +170,7 @@ public:
     virtual Rect GetLocalClipBounds() const;
 
     /*
-     * @brief  Gets bounds of clip in device corrdinates.
+     * @brief  Gets bounds of clip in device coordinates.
      */
     virtual RectI GetDeviceClipBounds() const;
 
@@ -167,7 +178,7 @@ public:
      * @brief  Gets GPU context of the GPU surface associated with Canvas.
      */
 #ifdef ACE_ENABLE_GPU
-    virtual std::shared_ptr<GPUContext> GetGPUContext() const;
+    virtual std::shared_ptr<GPUContext> GetGPUContext();
 #endif
 
     /*
@@ -240,6 +251,9 @@ public:
     // text
     virtual void DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y);
 
+    // symbol
+    virtual void DrawSymbol(const DrawingHMSymbolData& symbol, Point locate);
+
     // clip
     /*
      * @brief              Replace the clipping area with the intersection or difference between the
@@ -268,6 +282,8 @@ public:
      */
     virtual void ClipRoundRect(const RoundRect& roundRect, ClipOp op = ClipOp::INTERSECT, bool doAntiAlias = false);
 
+    virtual void ClipRoundRect(const Rect& rect, std::vector<Point>& pts, bool doAntiAlias = false);
+
     /*
      * @brief              Replace the clipping area with the intersection or difference of the
                            current clipping area and Path, and use a clipping edge that is aliased or anti-aliased.
@@ -289,6 +305,11 @@ public:
      * @brief  Returns true if clip is empty.
      */
     virtual bool IsClipEmpty();
+
+    /*
+     * @brief  Returns true if clip is SkRect and not empty.
+     */
+    virtual bool IsClipRect();
 
     /*
      * @brief  Returns true if clip is emptySkRect rect, transformed by SkMatrix,
@@ -317,7 +338,11 @@ public:
     // state
     virtual void Flush();
     virtual void Clear(ColorQuad color);
-    virtual void Save();
+
+    /*
+     * @brief               Saves Matrix and clipping area, return the number of saved states.
+     */
+    virtual uint32_t Save();
 
     /*
      * @brief               Saves Matrix and clipping area, and allocates Surface for subsequent drawing.
@@ -339,11 +364,21 @@ public:
     // paint
     virtual CoreCanvas& AttachPen(const Pen& pen);
     virtual CoreCanvas& AttachBrush(const Brush& brush);
+    virtual CoreCanvas& AttachPaint(const Paint& paint);
     virtual CoreCanvas& DetachPen();
     virtual CoreCanvas& DetachBrush();
+    virtual CoreCanvas& DetachPaint();
+
+    virtual ColorQuad GetEnvForegroundColor() const;
+    virtual bool isHighContrastEnabled() const;
+    virtual Drawing::CacheType GetCacheType() const;
+    virtual Drawing::Surface* GetSurface() const;
+
+    virtual float GetAlpha() const;
+    virtual int GetAlphaSaveCount() const;
 
     template<typename T>
-    const std::shared_ptr<T> GetImpl() const
+    T* GetImpl() const
     {
         return impl_->DowncastingTo<T>();
     }
@@ -351,9 +386,15 @@ public:
 
 protected:
     CoreCanvas(int32_t width, int32_t height);
+    Paint paintBrush_;
+    Paint paintPen_;
 
 private:
+    void AttachPaint();
     std::shared_ptr<CoreCanvasImpl> impl_;
+#ifdef ACE_ENABLE_GPU
+    std::shared_ptr<GPUContext> gpuContext_;
+#endif
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -17,19 +17,22 @@
 #define ROSEN_TEXT_EXPORT_ROSEN_TEXT_TEXT_STYLE_H
 
 #include <map>
-#ifdef USE_GRAPHIC_TEXT_GINE
 #include <optional>
-#endif
 #include <string>
 #include <vector>
 
-#include "common/rs_macros.h"
-#include "draw/color.h"
-#include "draw/pen.h"
+#ifndef USE_ROSEN_DRAWING
 #include "include/core/SkPaint.h" // SKIA
+#else
+#include "draw/pen.h"
+#include "draw/brush.h"
+#endif
+#include "draw/color.h"
 #include "utils/point.h"
 
+#include "common/rs_macros.h"
 #include "typography_types.h"
+#include "hm_symbol_txt.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -45,49 +48,28 @@ private:
 };
 
 struct RS_EXPORT TextShadow {
-#ifndef USE_GRAPHIC_TEXT_GINE
-    Drawing::Color color_ = Drawing::Color::COLOR_BLACK;
-    Drawing::PointF offset_;
-    double blurRadius_ = 0.0;
-#else
     Drawing::Color color = Drawing::Color::COLOR_BLACK;
-    Drawing::PointF offset;
+    Drawing::Point offset;
     double blurRadius = 0.0;
-#endif
 
     TextShadow();
-#ifndef USE_GRAPHIC_TEXT_GINE
-    TextShadow(Drawing::Color color, Drawing::PointF offset, double blurRadius);
-#else
     TextShadow(Drawing::Color shadowColor, Drawing::Point shadowOffset, double shadowBlurRadius);
-#endif
     bool operator ==(const TextShadow& rhs) const;
     bool operator !=(const TextShadow& rhs) const;
     bool HasShadow() const;
 };
 
+struct RS_EXPORT RectStyle {
+    uint32_t color = 0;
+    double leftTopRadius = 0.0;
+    double rightTopRadius = 0.0;
+    double rightBottomRadius = 0.0;
+    double leftBottomRadius = 0.0;
+    bool operator ==(const RectStyle& rhs) const;
+    bool operator !=(const RectStyle& rhs) const;
+};
+
 struct TextStyle {
-#ifndef USE_GRAPHIC_TEXT_GINE
-    Drawing::Color color_ = Drawing::Color::COLOR_WHITE;
-    TextDecoration decoration_ = TextDecoration::NONE;
-    Drawing::Color decorationColor_ = Drawing::Color::COLOR_TRANSPARENT;
-    TextDecorationStyle decorationStyle_ = TextDecorationStyle::SOLID;
-    double decorationThicknessScale_ = 1.0;
-    FontWeight fontWeight_ = FontWeight::W400;
-    FontStyle fontStyle_ = FontStyle::NORMAL;
-    TextBaseline baseline_ = TextBaseline::ALPHABETIC;
-    std::vector<std::string> fontFamilies_;
-    double fontSize_ = 14.0; // default is libtxt text style font size
-    double letterSpacing_ = 0.0;
-    double wordSpacing_ = 0.0;
-    double heightScale_ = 1.0;
-    bool heightOnly_ = false;
-    std::u16string ellipsis_;
-    EllipsisModal ellipsisModal_ = EllipsisModal::TAIL;
-    std::string locale_;
-    std::optional<SkPaint> background_; // SKIA
-    std::optional<SkPaint> foreground_; // SKIA
-#else
     Drawing::Color color = Drawing::Color::COLOR_WHITE;
     TextDecoration decoration = TextDecoration::NONE;
     Drawing::Color decorationColor = Drawing::Color::COLOR_TRANSPARENT;
@@ -106,23 +88,26 @@ struct TextStyle {
     std::u16string ellipsis;
     EllipsisModal ellipsisModal = EllipsisModal::TAIL;
     std::string locale;
+#ifndef USE_ROSEN_DRAWING
     std::optional<SkPaint> background; // SKIA
     std::optional<SkPaint> foreground; // SKIA
+#else
+    std::optional<Drawing::Brush> foregroundBrush;
+    std::optional<Drawing::Pen> foregroundPen;
+    std::optional<Drawing::Brush> backgroundBrush;
+    std::optional<Drawing::Pen> backgroundPen;
 #endif
     // if Pen and SkPaint are setting, use pen first
-#ifndef USE_GRAPHIC_TEXT_GINE
-    std::optional<Drawing::Pen> backgroundPen_;
-    std::optional<Drawing::Pen> foregroundPen_;
-    std::vector<TextShadow> shadows_;
-    FontFeatures fontFeatures_;
-#else
-    std::optional<Drawing::Pen> backgroundPen;
-    std::optional<Drawing::Pen> foregroundPen;
     std::vector<TextShadow> shadows;
     FontFeatures fontFeatures;
-#endif
+    RectStyle backgroundRect = {0, 0.0, 0.0, 0.0, 0.0};
+    int styleId = 0;
 
     bool operator ==(const TextStyle &rhs) const;
+
+    // symbol glyph
+    bool isSymbolGlyph = false;
+    HMSymbolTxt symbol;
 };
 } // namespace Rosen
 } // namespace OHOS

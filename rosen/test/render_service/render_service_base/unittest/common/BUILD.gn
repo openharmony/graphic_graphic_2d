@@ -47,20 +47,18 @@ ohos_unittest("RSRenderServiceBaseCommonTest") {
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/test/include",
   ]
-
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    public_deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  }
   deps = [
     "../../../../../modules/render_service_base:render_service_base_src",
     "//third_party/googletest:gtest_main",
   ]
-  if (defined(use_new_skia) && use_new_skia) {
-    deps += [ "//third_party/skia:skia_ohos" ]
-    include_dirs += [ "//third_party/skia/src" ]
-  } else {
-    deps += [ "//third_party/flutter/build/skia:ace_skia_ohos" ]
-    include_dirs += [ "//third_party/flutter/skia/src" ]
-  }
+  deps += [ "//third_party/skia:skia_ohos" ]
+  include_dirs += [ "//third_party/skia/src" ]
   external_deps = [
     "c_utils:utils",
+    "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",
   ]

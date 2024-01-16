@@ -21,10 +21,22 @@
 #include <string>
 #include <unistd.h>
 
+#include "hgm_frame_rate_manager.h"
 #include "hgm_log.h"
+#include "vsync_generator.h"
 #include "platform/common/rs_system_properties.h"
+#include "parameters.h"
+#include "frame_rate_report.h"
+#include "sandbox_utils.h"
 
 namespace OHOS::Rosen {
+static std::map<uint32_t, int64_t> IDEAL_PERIOD = {
+    { 120, 8333333 },
+    { 90, 11111111 },
+    { 72, 13888888 },
+    { 60, 16666666 }
+};
+
 HgmCore& HgmCore::Instance()
 {
     static HgmCore instance;
@@ -59,18 +71,24 @@ bool HgmCore::Init()
         return false;
     }
 
+    // ensure that frameRateManager init after XML parsed.
+    hgmFrameRateMgr_ = std::make_unique<HgmFrameRateManager>();
+
     int newRateMode = static_cast<int32_t>(RSSystemProperties::GetHgmRefreshRateModesEnabled());
     if (newRateMode == 0) {
         HGM_LOGI("HgmCore No customer refreshrate mode found, set to xml default");
-        if (mParsedConfigData_ == nullptr) {
+        if (mPolicyConfigData_ == nullptr) {
             HGM_LOGE("HgmCore failed to get parsed data");
         } else {
-            customFrameRateMode_ = static_cast<RefreshRateMode>(std::stoi(mParsedConfigData_->defaultRefreshRateMode_));
+            customFrameRateMode_ = static_cast<RefreshRateMode>(std::stoi(mPolicyConfigData_->defaultRefreshRateMode_));
         }
     } else {
         HGM_LOGI("HgmCore No customer refreshrate mode found: %{public}d", newRateMode);
         customFrameRateMode_ = static_cast<RefreshRateMode>(newRateMode);
     }
+
+    SetLtpoConfig();
+
     isInit_ = true;
     HGM_LOGI("HgmCore initialization success!!!");
     return isInit_;
@@ -78,102 +96,78 @@ bool HgmCore::Init()
 
 int32_t HgmCore::InitXmlConfig()
 {
-    // parse xml configuration to hgm
     HGM_LOGD("HgmCore is parsing xml configuration");
     if (!mParser_) {
         mParser_ = std::make_unique<XMLParser>();
     }
-    if (mParser_->LoadConfiguration(CONFIG_FILE) != EXEC_SUCCESS) {
-        HGM_LOGE("HgmCore failed to load xml configuration file");
-        return XML_FILE_LOAD_FAIL;
+
+    if (mParser_->LoadConfiguration(CONFIG_FILE_PRODUCT) != EXEC_SUCCESS) {
+        HGM_LOGW("HgmCore failed to load prod xml configuration file");
     }
     if (mParser_->Parse() != EXEC_SUCCESS) {
-        HGM_LOGE("HgmCore failed to parse xml configuration");
-        return XML_GET_ROOT_FAIL;
+        HGM_LOGW("HgmCore failed to parse prod xml configuration");
     }
 
-    // parse ccm component
-    if (mParser_->ParseComponentData() != EXEC_SUCCESS) {
-        HGM_LOGE("HgmCore failed to parse xml configuration from ccm");
-    }
-
-    if (!mParsedConfigData_) {
-        mParsedConfigData_ = mParser_->GetParsedData();
+    if (!mPolicyConfigData_) {
+        mPolicyConfigData_ = mParser_->GetParsedData();
     }
 
     return EXEC_SUCCESS;
+}
+
+void HgmCore::SetLtpoConfig()
+{
+    if ((hgmFrameRateMgr_ == nullptr) || (mPolicyConfigData_ == nullptr)) {
+        return;
+    }
+    auto curScreenStrategyId = hgmFrameRateMgr_->GetCurScreenStrategyId();
+    auto curScreenSetting =
+        mPolicyConfigData_->screenConfigs_[curScreenStrategyId][std::to_string(customFrameRateMode_)];
+    if (curScreenSetting.ltpoConfig.find("switch") != curScreenSetting.ltpoConfig.end()) {
+        ltpoEnabled_ = std::stoi(curScreenSetting.ltpoConfig["switch"]);
+    } else {
+        ltpoEnabled_ = 0;
+        HGM_LOGW("HgmCore failed to find switch strategy for LTPO");
+    }
+
+    if (curScreenSetting.ltpoConfig.find("maxTE") != curScreenSetting.ltpoConfig.end()) {
+        maxTE_ = std::stoul(curScreenSetting.ltpoConfig["maxTE"]);
+    } else {
+        maxTE_ = 0;
+        HGM_LOGW("HgmCore failed to find TE strategy for LTPO");
+    }
+
+    if (curScreenSetting.ltpoConfig.find("alignRate") != curScreenSetting.ltpoConfig.end()) {
+        alignRate_ = std::stoul(curScreenSetting.ltpoConfig["alignRate"]);
+    } else {
+        alignRate_ = 0;
+        HGM_LOGW("HgmCore failed to find alignRate strategy for LTPO");
+    }
+
+    if (curScreenSetting.ltpoConfig.find("pipelineOffsetPulseNum") != curScreenSetting.ltpoConfig.end()) {
+        pipelineOffsetPulseNum_ = std::stoi(curScreenSetting.ltpoConfig["pipelineOffsetPulseNum"]);
+        CreateVSyncGenerator()->SetVSyncPhaseByPulseNum(pipelineOffsetPulseNum_);
+    } else {
+        pipelineOffsetPulseNum_ = 0;
+        HGM_LOGW("HgmCore failed to find pipelineOffset strategy for LTPO");
+    }
+
+    HGM_LOGI("HgmCore LTPO strategy ltpoEnabled: %{public}d, maxTE: %{public}d, alignRate: %{public}d, " \
+        "pipelineOffsetPulseNum: %{public}d", ltpoEnabled_, maxTE_, alignRate_, pipelineOffsetPulseNum_);
+}
+
+void HgmCore::RegisterRefreshRateModeChangeCallback(const RefreshRateModeChangeCallback& callback)
+{
+    refreshRateModeChangeCallback_ = callback;
+    if (refreshRateModeChangeCallback_ != nullptr) {
+        refreshRateModeChangeCallback_(customFrameRateMode_);
+    }
 }
 
 int32_t HgmCore::SetCustomRateMode(RefreshRateMode mode)
 {
     customFrameRateMode_ = mode;
     return EXEC_SUCCESS;
-}
-
-int32_t HgmCore::SetModeBySettingConfig()
-{
-    if (!mParsedConfigData_) {
-        HGM_LOGW("HgmCore no parsed xml configuration found, failed to apply refreshrate mode");
-        return HGM_ERROR;
-    }
-
-    std::string settingTag = std::to_string(customFrameRateMode_);
-    auto mapIter = mParsedConfigData_->customerSettingConfig_.find(settingTag);
-    if (mapIter == mParsedConfigData_->customerSettingConfig_.end()) {
-        HGM_LOGW("HgmCore failed to find strategy for customer setting : %{public}d", customFrameRateMode_);
-        return HGM_ERROR;
-    }
-
-    std::string strat = mParsedConfigData_->customerSettingConfig_[settingTag];
-    auto strategy = mParsedConfigData_->detailedStrategies_.find(strat);
-    if (strategy == mParsedConfigData_->detailedStrategies_.end()) {
-        HGM_LOGW("HgmCore failed to find strategy detail for strat : %{public}s", strat.c_str());
-        return HGM_ERROR;
-    }
-    int32_t rateToSwitch = std::stoi(mParsedConfigData_->detailedStrategies_[strat].max);
-    int32_t rateFloor = std::stoi(mParsedConfigData_->detailedStrategies_[strat].min);
-
-    HGM_LOGW("HgmCore switching to rate: %{public}d via refreshrate mode, range min: %{public}d, max: %{public}d",
-        rateToSwitch, rateFloor, rateToSwitch);
-    if (rateToSwitch <= 0 || rateFloor <= 0) {
-        HGM_LOGW("HgmCore get an illegal rate via parsed config data : %{public}d", rateToSwitch);
-        return HGM_ERROR;
-    }
-
-    rateToSwitch = RequestBundlePermission(rateToSwitch);
-    for (auto &screen : screenList_) {
-        int32_t setRange = screen->SetRefreshRateRange(
-            static_cast<uint32_t>(rateFloor), static_cast<uint32_t>(rateToSwitch));
-        if (customFrameRateMode_ == HGM_REFRESHRATE_MODE_AUTO) {
-            rateToSwitch = OLED_60_HZ;
-            HGM_LOGI("HgmCore auto mode, set refreshrate 60HZ");
-        }
-        int32_t setThisScreen = SetScreenRefreshRate(screen->GetId(), 0, rateToSwitch);
-        if (setThisScreen < EXEC_SUCCESS || setRange != EXEC_SUCCESS) {
-            HGM_LOGW("HgmCore failed to apply refreshrate mode to screen : " PUBU64 "", screen->GetId());
-            return HGM_ERROR;
-        }
-    }
-
-    return EXEC_SUCCESS;
-}
-
-int32_t HgmCore::RequestBundlePermission(int32_t rate)
-{
-    if (rate <= OLED_60_HZ) {
-        return rate;
-    }
-
-    // black_list conatrol at 90hz, return 60 if in the list
-    if (customFrameRateMode_ == HGM_REFRESHRATE_MODE_MEDIUM || customFrameRateMode_ == HGM_REFRESHRATE_MODE_HIGH) {
-        auto bundle = mParsedConfigData_->bundle_black_list_.find(currentBundleName_);
-        if (bundle != mParsedConfigData_->bundle_black_list_.end()) {
-            return OLED_60_HZ;
-        }
-        return rate;
-    }
-
-    return rate;
 }
 
 int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
@@ -223,12 +217,21 @@ int32_t HgmCore::SetRefreshRateMode(RefreshRateMode refreshRateMode)
         return HGM_ERROR;
     }
 
-    // apply the refreshrate mode to the screen
-    if (SetModeBySettingConfig() != EXEC_SUCCESS) {
-        return HGM_ERROR;
-    }
+    hgmFrameRateMgr_->HandleRefreshRateMode(refreshRateMode);
 
+    if (refreshRateModeChangeCallback_ != nullptr) {
+        refreshRateModeChangeCallback_(refreshRateMode);
+    }
     return EXEC_SUCCESS;
+}
+
+void HgmCore::NotifyScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
+{
+    hgmFrameRateMgr_->HandleScreenPowerStatus(id, status);
+
+    if (refreshRateModeChangeCallback_ != nullptr) {
+        refreshRateModeChangeCallback_(customFrameRateMode_);
+    }
 }
 
 int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize)
@@ -357,13 +360,13 @@ std::vector<uint32_t> HgmCore::GetScreenSupportedRefreshRates(ScreenId id)
 
 std::vector<int32_t> HgmCore::GetScreenComponentRefreshRates(ScreenId id)
 {
-    if (!mParsedConfigData_) {
+    if (!mPolicyConfigData_) {
         HGM_LOGW("HgmCore no parsed component data, returning default value");
         return std::vector<int32_t>(static_cast<uint32_t>(EXEC_SUCCESS));
     }
 
     std::vector<int32_t> retVec;
-    for (const auto& [rate, _] : mParsedConfigData_->refreshRateForSettings_) {
+    for (const auto& [rate, _] : mPolicyConfigData_->refreshRateForSettings_) {
         retVec.emplace_back(std::stoi(rate));
         HGM_LOGE("HgmCore Adding component rate: %{public}d", std::stoi(rate));
     }
@@ -381,24 +384,6 @@ void HgmCore::SetActiveScreenId(ScreenId id)
     activeScreenId_ = id;
 }
 
-void HgmCore::StartScreenScene(SceneType sceceType)
-{
-    screenSceneSet_.insert(sceceType);
-}
-
-void HgmCore::StopScreenScene(SceneType sceceType)
-{
-    screenSceneSet_.erase(sceceType);
-}
-
-int32_t HgmCore::GetScenePreferred() const
-{
-    if (screenSceneSet_.find(SceneType::SCREEN_RECORD) != screenSceneSet_.end()) {
-        return 60; // 60 means screen record scene preferred
-    }
-    return 0;
-}
-
 sptr<HgmScreen> HgmCore::GetActiveScreen() const
 {
     if (activeScreenId_ == INVALID_SCREEN_ID) {
@@ -406,5 +391,13 @@ sptr<HgmScreen> HgmCore::GetActiveScreen() const
         return nullptr;
     }
     return GetScreen(activeScreenId_);
+}
+
+int64_t HgmCore::GetIdealPeriod(uint32_t rate)
+{
+    if (IDEAL_PERIOD.count(rate)) {
+        return IDEAL_PERIOD[rate];
+    }
+    return 0;
 }
 } // namespace OHOS::Rosen

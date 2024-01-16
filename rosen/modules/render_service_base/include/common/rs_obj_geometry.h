@@ -264,18 +264,8 @@ public:
     }
     void Round()
     {
-        // Round LTRB to floor
-        float right = x_ + width_;
-        float bottom = y_ + height_;
         x_ = std::floor(x_);
         y_ = std::floor(y_);
-        width_ = std::floor(right) - x_;
-        height_ = std::floor(bottom) - y_;
-        if (trans_.has_value()) {
-            // Round translate X/Y to floor
-            trans_->translateX_ = std::floor(trans_->translateX_);
-            trans_->translateY_ = std::floor(trans_->translateY_);
-        }
     }
     RSObjGeometry& operator=(const RSObjGeometry& geo)
     {

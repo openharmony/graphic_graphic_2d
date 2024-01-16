@@ -17,6 +17,7 @@
 
 #include "egl_manager.h"
 #include "drawing_utils.h"
+#include "skia_adapter/skia_surface.h"
 #include "surface_ohos_gl.h"
 #include "iostream"
 
@@ -79,6 +80,24 @@ bool GLESRenderBackend::SetUpGrContext()
     return true;
 }
 
+bool GLESRenderBackend::SetUpDrContext()
+{
+    if (drGPUContext_ != nullptr) {
+        LOGD("Drawing GPUContext has already created!!");
+        return true;
+    }
+
+    Drawing::GPUContextOptions options;
+
+    auto drGPUContext = std::make_shared<Drawing::GPUContext>();
+    if (!drGPUContext->BuildFromGL(options)) {
+        LOGE("SetUpGrContext drGPUContext is null");
+        return false;
+    }
+    drGPUContext_ = std::move(drGPUContext);
+    return true;
+}
+
 void GLESRenderBackend::MakeCurrent()
 {
     if (eglManager_ == nullptr) {
@@ -124,16 +143,16 @@ void GLESRenderBackend::Destroy()
 void GLESRenderBackend::RenderFrame()
 {
     // flush commands
-    if (skSurface_->getCanvas() != nullptr) {
+    if (pSkSurface_->getCanvas() != nullptr) {
         LOGD("RenderFrame: Canvas");
         std::cout << "GLESRenderBackend::RenderFrame flushing" << std::endl;
-        skSurface_->getCanvas()->flush();
+        pSkSurface_->getCanvas()->flush();
     } else {
         LOGW("canvas is nullptr!!!");
     }
 }
 
-SkCanvas* GLESRenderBackend::AcquireCanvas(std::unique_ptr<SurfaceFrame>& frame)
+SkCanvas* GLESRenderBackend::AcquireSkCanvas(std::unique_ptr<SurfaceFrame>& frame)
 {
     if (!SetUpGrContext()) {
         LOGE("GrContext is not ready!!!");
@@ -169,10 +188,48 @@ SkCanvas* GLESRenderBackend::AcquireCanvas(std::unique_ptr<SurfaceFrame>& frame)
         LOGW("skSurface is nullptr");
         return nullptr;
     }
-
+    pSkSurface_ = skSurface_.get();
     LOGI("CreateCanvas successfully!!!");
 
     return skSurface_->getCanvas();
+}
+
+Drawing::Canvas* GLESRenderBackend::AcquireDrCanvas(std::unique_ptr<SurfaceFrame>& frame)
+{
+    if (!SetUpDrContext()) {
+        LOGE("GrContext is not ready!!!");
+        return nullptr;
+    }
+
+    SurfaceFrameOhosGl* framePtr = static_cast<SurfaceFrameOhosGl*>(frame.get());
+
+    int32_t width = framePtr->GetWidth();
+    int32_t height = framePtr->GetHeight();
+
+    std::shared_ptr<Drawing::ColorSpace> colorSpace = nullptr;
+
+    colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB,
+        Drawing::CMSMatrixType::DCIP3);
+
+    struct Drawing::FrameBuffer bufferInfo;
+    bufferInfo.width = width;
+    bufferInfo.height = height;
+    bufferInfo.FBOID = 0;
+    bufferInfo.Format = GL_RGBA8;
+    bufferInfo.colorType = Drawing::COLORTYPE_RGBA_8888;
+    bufferInfo.gpuContext = drGPUContext_;
+    bufferInfo.colorSpace = colorSpace;
+
+    drSurface_ = std::make_shared<Drawing::Surface>();
+    if (!drSurface_->Bind(bufferInfo)) {
+        LOGW("surface_ is nullptr");
+        drSurface_ = nullptr;
+        return nullptr;
+    }
+
+    LOGD("CreateCanvas successfully!!!");
+    pSkSurface_ = drSurface_->GetImpl<Drawing::SkiaSurface>()->GetSkSurface().get();
+    return drSurface_->GetCanvas().get();
 }
 }
 }

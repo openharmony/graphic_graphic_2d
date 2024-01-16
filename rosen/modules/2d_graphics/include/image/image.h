@@ -17,7 +17,11 @@
 #define IMAGE_H
 
 #include "drawing/engine_adapter/impl_interface/image_impl.h"
+#include "include/core/SkImage.h"
 #include "utils/drawing_macros.h"
+#ifdef RS_ENABLE_VK
+#include "vulkan/vulkan.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -28,14 +32,57 @@ enum class BitDepth {
 };
 
 enum class CompressedType {
-    ETC1,
-    ASTC,
+    NoneType,
+    ETC2_RGB8_UNORM, // the same ad ETC1
+    BC1_RGB8_UNORM,
+    BC1_RGBA8_UNORM,
+    ASTC_RGBA8_4x4,
+    ASTC_RGBA8_6x6,
+    ASTC_RGBA8_8x8,
 };
 
 enum class TextureOrigin {
     TOP_LEFT,
     BOTTOM_LEFT,
 };
+
+class Surface;
+
+#ifdef RS_ENABLE_VK
+struct VKAlloc {
+    VkDeviceMemory memory = VK_NULL_HANDLE;
+    VkDeviceSize offset = 0;
+    VkDeviceSize size = 0;
+    uint32_t flags = 0;
+};
+
+struct VKYcbcrConversionInfo {
+    VkFormat format = VK_FORMAT_UNDEFINED;
+    uint64_t externalFormat = 0;
+    VkSamplerYcbcrModelConversion ycbcrModel = VK_SAMPLER_YCBCR_MODEL_CONVERSION_RGB_IDENTITY;
+    VkSamplerYcbcrRange ycbcrRange = VK_SAMPLER_YCBCR_RANGE_ITU_FULL;
+    VkChromaLocation xChromaOffset = VK_CHROMA_LOCATION_COSITED_EVEN;
+    VkChromaLocation yChromaOffset = VK_CHROMA_LOCATION_COSITED_EVEN;
+    VkFilter chromaFilter = VK_FILTER_NEAREST;
+    VkBool32 forceExplicitReconstruction = false;
+    VkFormatFeatureFlags formatFeatures = 0;
+};
+
+struct VKTextureInfo {
+    VkImage vkImage = VK_NULL_HANDLE;
+    VKAlloc vkAlloc;
+    VkImageTiling imageTiling = VK_IMAGE_TILING_OPTIMAL;
+    VkImageLayout imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    VkFormat format = VK_FORMAT_UNDEFINED;
+    VkImageUsageFlags imageUsageFlags = 0;
+    uint32_t sampleCount = 1;
+    uint32_t levelCount = 0;
+    uint32_t currentQueueFamily = VK_QUEUE_FAMILY_IGNORED;
+    bool vkProtected = false;
+    VKYcbcrConversionInfo ycbcrConversionInfo;
+    VkSharingMode sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+};
+#endif
 
 class DRAWING_API TextureInfo {
 public:
@@ -141,6 +188,16 @@ public:
         return format_;
     }
 
+#ifdef RS_ENABLE_VK
+    std::shared_ptr<VKTextureInfo> GetVKTextureInfo() const
+    {
+        return vkTextureInfo_;
+    }
+    void SetVKTextureInfo(std::shared_ptr<VKTextureInfo> vkTextureInfo)
+    {
+        vkTextureInfo_ = vkTextureInfo;
+    }
+#endif
 private:
     int width_ = 0;
     int height_ = 0;
@@ -148,9 +205,12 @@ private:
     unsigned int target_ = 0;
     unsigned int id_ = 0;
     unsigned int format_ = 0;
+#ifdef RS_ENABLE_VK
+    std::shared_ptr<VKTextureInfo> vkTextureInfo_ = nullptr;
+#endif
 };
 
-class BackendTexture {
+class DRAWING_API BackendTexture {
 public:
     BackendTexture() noexcept;
     BackendTexture(bool isValid) noexcept;
@@ -158,16 +218,10 @@ public:
 
     bool IsValid() const;
     void SetTextureInfo(const TextureInfo& textureInfo);
-    const TextureInfo GetTextureInfo() const;
+    const TextureInfo& GetTextureInfo() const;
 
-    template<typename T>
-    const std::shared_ptr<T> GetImpl() const
-    {
-        return imageImplPtr->DowncastingTo<T>();
-    }
 private:
     bool isValid_;
-    std::shared_ptr<ImageImpl> imageImplPtr;
     TextureInfo textureInfo_;
 };
 
@@ -176,11 +230,27 @@ public:
     Image() noexcept;
     // constructor adopt a raw image ptr, using for ArkUI, should remove after enable multi-media image decode.
     explicit Image(void* rawImg) noexcept;
+    explicit Image(std::shared_ptr<ImageImpl> imageImpl);
     virtual ~Image() {};
-    Image* BuildFromBitmap(const Bitmap& bitmap);
-    Image* BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix, const Brush& brush,
+    bool BuildFromBitmap(const Bitmap& bitmap);
+    bool BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix, const Brush& brush,
         BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace);
 
+    /*
+     * @brief                        Create Image from Pixmap.
+     * @param  pixmap                pixmap.
+     * @param  rasterReleaseProc     function called when pixels can be released; or nullptr.
+     * @param  releaseContext        state passed to rasterReleaseProc; or nullptr.
+     * @return                       Image sharing pixmap.
+     */
+    static std::shared_ptr<Image> MakeFromRaster(const Pixmap& pixmap,
+        RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext);
+
+    /*
+     * @brief  Create Image from ImageInfo, sharing pixels.
+     */
+    static std::shared_ptr<Image> MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
+                                                 size_t rowBytes);
 #ifdef ACE_ENABLE_GPU
     /*
      * @brief             Create Image from Bitmap. Image is uploaded to GPU back-end using context.
@@ -215,12 +285,25 @@ public:
      * @return              True if Image is created successed.
      */
     bool BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
+        BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace,
+        void (*deleteFunc)(void*) = nullptr, void* cleanupHelper = nullptr);
+
+    bool BuildFromSurface(GPUContext& gpuContext, Surface& surface, TextureOrigin origin,
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace);
+
+    bool BuildSubset(const std::shared_ptr<Image>& image, const RectI& rect, GPUContext& gpuContext);
 
     BackendTexture GetBackendTexture(bool flushPendingGrContextIO, TextureOrigin* origin) const;
 
     bool IsValid(GPUContext* context) const;
+
+    bool pinAsTexture(GPUContext& context);
 #endif
+
+    /*
+     * @brief  Creates raster Bitmap with same pixels as Image.
+     */
+    bool AsLegacyBitmap(Bitmap& bitmap) const;
 
     /*
      * @brief  Gets the width of Image.
@@ -243,6 +326,11 @@ public:
     AlphaType GetAlphaType() const;
 
     /*
+     * @brief  Gets the color space of Image.
+     */
+    std::shared_ptr<ColorSpace> GetColorSpace() const;
+
+    /*
      * @brief  Gets the unique Id of Image.
      */
     uint32_t GetUniqueID() const;
@@ -261,12 +349,26 @@ public:
      */
     bool ReadPixels(Bitmap& bitmap, int x, int y);
 
+    bool ReadPixels(Pixmap& pixmap, int x, int y);
+
+    bool ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
+                    int32_t srcX, int32_t srcY) const;
+
     bool ScalePixels(const Bitmap& bitmap, const SamplingOptions& sampling,
         bool allowCachingHint = true) const;
 
-    std::shared_ptr<Data> EncodeToData(EncodedImageFormat& encodedImageFormat, int quality) const;
+    std::shared_ptr<Data> EncodeToData(EncodedImageFormat encodedImageFormat, int quality) const;
 
     bool IsLazyGenerated() const;
+
+    /*
+     * @brief  Get Bitmap by image's directContext, can call it if IsLazyGenerated return false.
+     */
+    bool GetROPixels(Bitmap& bitmap) const;
+
+    std::shared_ptr<Image> MakeRasterImage() const;
+
+    bool CanPeekPixels() const;
 
     /*
      * @brief   Returns true the contents of Image was created on or uploaded to GPU memory,
@@ -275,8 +377,10 @@ public:
      */
     bool IsTextureBacked() const;
 
+    bool IsOpaque() const;
+
     template<typename T>
-    const std::shared_ptr<T> GetImpl() const
+    T* GetImpl() const
     {
         return imageImplPtr->DowncastingTo<T>();
     }
@@ -284,6 +388,8 @@ public:
     // using for recording, should to remove after using shared memory
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);
+
+    const sk_sp<SkImage> ExportSkImage();
 
 private:
     std::shared_ptr<ImageImpl> imageImplPtr;

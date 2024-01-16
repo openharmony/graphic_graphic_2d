@@ -216,19 +216,6 @@ HWTEST_F(RSImplicitAnimatorTest, CreateEmptyAnimationTest, Level1)
 }
 
 /**
- * @tc.name: EndImplicitAnimationTest
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSImplicitAnimatorTest, EndImplicitAnimationTest, Level1)
-{
-    int res = 1;
-    RSImplicitAnimator rsImplicitAnimator;
-    rsImplicitAnimator.EndImplicitAnimation();
-    ASSERT_NE(res, 0);
-}
-
-/**
  * @tc.name: ExecuteWithoutAnimationTest
  * @tc.desc:
  * @tc.type:FUNC
@@ -240,4 +227,4 @@ HWTEST_F(RSImplicitAnimatorTest, ExecuteWithoutAnimationTest, Level1)
     rsImplicitAnimator.ExecuteWithoutAnimation(nullptr);
     ASSERT_NE(res, 0);
 }
-}
+} // namespace OHOS::Rosen

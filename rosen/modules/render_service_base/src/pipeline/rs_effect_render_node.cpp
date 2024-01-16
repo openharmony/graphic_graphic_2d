@@ -15,24 +15,30 @@
 
 #include "pipeline/rs_effect_render_node.h"
 
-#include "common/rs_obj_abs_geometry.h"
 #include "memory/rs_memory_track.h"
+
+#include "common/rs_obj_abs_geometry.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
-#include "render/rs_skia_filter.h"
 #include "visitor/rs_node_visitor.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
-RSEffectRenderNode::RSEffectRenderNode(NodeId id, const std::weak_ptr<RSContext>& context) : RSRenderNode(id, context)
+RSEffectRenderNode::RSEffectRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
+    : RSRenderNode(id, context, isTextureExportNode)
 {
-    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
+#ifndef ROSEN_ARKUI_X
+    MemoryInfo info = { sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE };
     MemoryTrack::Instance().AddNodeRecord(id, info);
+#endif
 }
 
 RSEffectRenderNode::~RSEffectRenderNode()
 {
+#ifndef ROSEN_ARKUI_X
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
+#endif
 }
 
 void RSEffectRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
@@ -55,56 +61,104 @@ void RSEffectRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
     RSRenderNode::ProcessTransitionBeforeChildren(canvas);
-#ifndef USE_ROSEN_DRAWING
     auto& properties = GetRenderProperties();
     // Disable effect region if either of the following conditions is met:
-    // 1. Effect region is null or empty
+    // 1. No child with useEffect(true) (needFilter_ == false)
     // 2. Background filter is null
     // 3. Canvas is offscreen
-    if (effectRegion_.has_value() && !effectRegion_->isEmpty() && properties.GetBackgroundFilter() != nullptr &&
-        canvas.GetCacheType() != RSPaintFilterCanvas::CacheType::OFFSCREEN) {
-        RSPropertiesPainter::DrawBackgroundEffect(properties, canvas, effectRegion_->getBounds());
+    if (!properties.GetHaveEffectRegion() || properties.GetBackgroundFilter() == nullptr ||
+        !RSSystemProperties::GetEffectMergeEnabled() ||
+        canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::OFFSCREEN) {
+        canvas.SetEffectData(nullptr);
+        return;
     }
-#endif
+
+    if (properties.GetBgImage() == nullptr) {
+        // EffectRenderNode w/o background image, use snapshot as underlay image
+        RSPropertiesPainter::DrawBackgroundEffect(properties, canvas);
+    } else {
+        // EffectRenderNode w/ background image, use bg image as underlay image
+        RSPropertiesPainter::DrawBackgroundImageAsEffect(properties, canvas);
+    }
 }
 
 RectI RSEffectRenderNode::GetFilterRect() const
 {
-#ifndef USE_ROSEN_DRAWING
-    if (effectRegion_.has_value()) {
-        auto& matrix = GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
-        auto bounds = effectRegion_->makeTransform(matrix).getBounds();
-        return {bounds.x(), bounds.y(), bounds.width(), bounds.height()};
+    if (!GetRenderProperties().GetHaveEffectRegion()) {
+        return {};
     }
-#endif
-    return {};
+    return RSRenderNode::GetFilterRect();
 }
 
 #ifndef USE_ROSEN_DRAWING
-void RSEffectRenderNode::SetEffectRegion(const std::optional<SkPath>& region)
-#else
-void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::Path>& region)
-#endif
+void RSEffectRenderNode::SetEffectRegion(const std::optional<SkIRect>& effectRegion)
 {
-    if (!region.has_value()) {
-        effectRegion_.reset();
+    if (!effectRegion.has_value() || effectRegion->isEmpty()) {
+        ROSEN_LOGD("RSEffectRenderNode::SetEffectRegion: no effect region.");
+        GetMutableRenderProperties().SetHaveEffectRegion(false);
         return;
     }
-    auto matrix = GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
-#ifndef USE_ROSEN_DRAWING
-    SkMatrix revertMatrix;
-    // Map absolute matrix to local matrix
-    if (matrix.invert(&revertMatrix)) {
-        effectRegion_ = region.value().makeTransform(revertMatrix);
+
+    const auto& properties = GetRenderProperties();
+    const auto& absRect = properties.GetBoundsGeometry()->GetAbsRect();
+    if (!SkIRect::Intersects(*effectRegion,
+        SkIRect::MakeLTRB(absRect.GetLeft(), absRect.GetTop(), absRect.GetRight(), absRect.GetBottom()))) {
+        ROSEN_LOGD("RSEffectRenderNode::SetEffectRegion: effect region is not in node.");
+        GetMutableRenderProperties().SetHaveEffectRegion(false);
+        return;
     }
+    GetMutableRenderProperties().SetHaveEffectRegion(true);
+}
 #else
-    Drawing::Matrix revertMatrix;
-    // Map absolute matrix to local matrix
-    if (matrix.Invert(revertMatrix)) {
-        effectRegion_ = region;
-        effectRegion_.value().Transform(revertMatrix);
+void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::RectI>& effectRegion)
+{
+    if (!effectRegion.has_value() || !effectRegion->IsValid()) {
+        ROSEN_LOGD("RSEffectRenderNode::SetEffectRegion: no effect region.");
+        GetMutableRenderProperties().SetHaveEffectRegion(false);
+        return;
     }
+
+    const auto& properties = GetRenderProperties();
+    const auto& absRect = properties.GetBoundsGeometry()->GetAbsRect();
+    Drawing::RectI effectRect = effectRegion.value();
+    if (!effectRect.Intersect(
+        Drawing::RectI(absRect.GetLeft(), absRect.GetTop(), absRect.GetRight(), absRect.GetBottom()))) {
+        ROSEN_LOGD("RSEffectRenderNode::SetEffectRegion: no valid effect region.");
+        GetMutableRenderProperties().SetHaveEffectRegion(false);
+        return;
+    }
+    GetMutableRenderProperties().SetHaveEffectRegion(true);
+}
 #endif
+
+void RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion(
+    RSDirtyRegionManager& dirtyManager, const std::optional<RectI>& clipRect) const
+{
+    // We need to check cache validity by comparing the cached image region with the filter rect
+    // PLANNING: the last != condition should be reconsidered
+    auto& manager = GetRenderProperties().GetFilterCacheManager(false);
+    if (!manager) {
+        return;
+    }
+    if (manager->IsCacheValid() && manager->GetCachedImageRegion() != GetFilterRect()) {
+        // If the cached image region is different from the filter rect, invalidate the cache
+        manager->InvalidateCache();
+    }
+    // If the effectnode filter cache is invalid and there is no visited filter cache for occlusion
+    // Invalid this surface's filter cache occlusion
+    if (!manager->IsCacheValid() && IsVisitedFilterCacheEmpty()) {
+        ROSEN_LOGD("RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion: InvalidateFilterCacheRect.");
+        dirtyManager.InvalidateFilterCacheRect();
+    }
+}
+
+void RSEffectRenderNode::UpdateFilterCacheWithDirty(RSDirtyRegionManager& dirtyManager, bool isForeground) const
+{
+    // No need to invalidate cache if background image is not null
+    if (GetRenderProperties().GetBgImage()) {
+        return;
+    }
+    RSRenderNode::UpdateFilterCacheWithDirty(dirtyManager, isForeground);
 }
 } // namespace Rosen
 } // namespace OHOS

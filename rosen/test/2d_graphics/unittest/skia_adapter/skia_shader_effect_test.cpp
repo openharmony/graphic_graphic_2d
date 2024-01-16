@@ -119,7 +119,9 @@ HWTEST_F(SkiaShaderEffectTest, InitWithTwoPointConical001, TestSize.Level1)
     std::vector<ColorQuad> color { colorQuad };
     std::vector<scalar> pos { 30.0f };
     SkiaShaderEffect skiaShaderEffect;
-    skiaShaderEffect.InitWithTwoPointConical(startPt, startRadius, endPt, endRadius, color, pos, TileMode::CLAMP);
+    Matrix matrix;
+    skiaShaderEffect.InitWithTwoPointConical(startPt, startRadius, endPt, endRadius, color, pos, TileMode::CLAMP,
+        &matrix);
 }
 
 /**
@@ -137,7 +139,7 @@ HWTEST_F(SkiaShaderEffectTest, InitWithSweepGradient001, TestSize.Level1)
     scalar startAngle = 45.0f;
     scalar endAngle = 60.0f;
     SkiaShaderEffect skiaShaderEffect;
-    skiaShaderEffect.InitWithSweepGradient(centerPt, color, pos, TileMode::MIRROR, startAngle, endAngle);
+    skiaShaderEffect.InitWithSweepGradient(centerPt, color, pos, TileMode::MIRROR, startAngle, endAngle, nullptr);
 }
 
 } // namespace Drawing

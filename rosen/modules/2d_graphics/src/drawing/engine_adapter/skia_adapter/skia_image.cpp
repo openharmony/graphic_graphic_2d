@@ -15,27 +15,29 @@
 
 #include "skia_image.h"
 
-#ifdef ACE_ENABLE_GPU
-#include "include/gpu/GrBackendSurface.h"
-#endif
-
-#include "skia_bitmap.h"
-#include "skia_data.h"
-#include "skia_image_info.h"
-
-#ifdef ACE_ENABLE_GPU
-#include "skia_gpu_context.h"
-#endif
-#ifdef ROSEN_OHOS
+#include "src/core/SkAutoMalloc.h"
 #include "src/core/SkReadBuffer.h"
 #include "src/core/SkWriteBuffer.h"
-#endif
+#include "src/image/SkImage_Base.h"
 
+#include "draw/surface.h"
 #include "image/bitmap.h"
 #include "image/image.h"
 #include "image/picture.h"
 #include "utils/data.h"
 #include "utils/log.h"
+
+#include "skia_bitmap.h"
+#include "skia_data.h"
+#include "skia_image_info.h"
+#include "skia_pixmap.h"
+#include "skia_surface.h"
+#include "skia_texture_info.h"
+#include "utils/system_properties.h"
+
+#ifdef ACE_ENABLE_GPU
+#include "skia_gpu_context.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -44,17 +46,50 @@ SkiaImage::SkiaImage() noexcept : skiaImage_(nullptr) {}
 
 SkiaImage::SkiaImage(sk_sp<SkImage> skImg) noexcept : skiaImage_(skImg) {}
 
-void* SkiaImage::BuildFromBitmap(const Bitmap& bitmap)
+std::shared_ptr<Image> SkiaImage::MakeFromRaster(const Pixmap& pixmap,
+    RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext)
+{
+    auto& skPixmap = pixmap.GetImpl<SkiaPixmap>()->ExportSkiaPixmap();
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skPixmap, rasterReleaseProc, releaseContext);
+    if (skImage == nullptr) {
+        LOGE("SkiaImage::MakeFromRaster failed");
+        return nullptr;
+    }
+    std::shared_ptr<ImageImpl> imageImpl = std::make_shared<SkiaImage>(skImage);
+    return std::make_shared<Image>(imageImpl);
+}
+
+std::shared_ptr<Image> SkiaImage::MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
+    size_t rowBytes)
+{
+    if (pixels == nullptr) {
+        LOGE("SkiaImage::MakeRasterData pixels is nullptr");
+        return nullptr;
+    }
+    SkImageInfo skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(info);
+    auto skData = pixels->GetImpl<SkiaData>()->GetSkData();
+
+    sk_sp<SkImage> skImage = SkImage::MakeRasterData(skImageInfo, skData, rowBytes);
+    if (skImage == nullptr) {
+        LOGE("skImage nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    std::shared_ptr<ImageImpl> imageImpl = std::make_shared<SkiaImage>(skImage);
+    return std::make_shared<Image>(imageImpl);
+}
+
+bool SkiaImage::BuildFromBitmap(const Bitmap& bitmap)
 {
     auto skBitmapImpl = bitmap.GetImpl<SkiaBitmap>();
     if (skBitmapImpl != nullptr) {
         const SkBitmap skBitmap = skBitmapImpl->ExportSkiaBitmap();
         skiaImage_ = SkImage::MakeFromBitmap(skBitmap);
+        return skiaImage_ != nullptr;
     }
-    return nullptr;
+    return false;
 }
 
-void* SkiaImage::BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix,
+bool SkiaImage::BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix,
     const Brush& brush, BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace)
 {
     auto skPictureImpl = picture.GetImpl<SkiaPicture>();
@@ -63,14 +98,15 @@ void* SkiaImage::BuildFromPicture(const Picture& picture, const SizeI& dimension
 
     SkISize skISize = SkISize::Make(dimensions.Width(), dimensions.Height());
     SkPaint paint;
-    skiaPaint_.BrushToSkPaint(brush, paint);
+    SkiaPaint::BrushToSkPaint(brush, paint);
     SkImage::BitDepth b = static_cast<SkImage::BitDepth>(bitDepth);
 
     if (skPictureImpl != nullptr && skMatrixImpl != nullptr && skColorSpaceImpl != nullptr) {
         skiaImage_ = SkImage::MakeFromPicture(skPictureImpl->GetPicture(), skISize, &skMatrixImpl->ExportSkiaMatrix(),
             &paint, b, skColorSpaceImpl->GetColorSpace());
+        return skiaImage_ != nullptr;
     }
-    return nullptr;
+    return false;
 }
 
 #ifdef ACE_ENABLE_GPU
@@ -96,6 +132,19 @@ bool SkiaImage::MakeFromEncoded(const std::shared_ptr<Data>& data)
     return (skiaImage_ != nullptr);
 }
 
+bool SkiaImage::BuildSubset(const std::shared_ptr<Image> image, const RectI& rect, GPUContext& gpuContext)
+{
+    if (image == nullptr) {
+        LOGE("SkiaImage::BuildSubset failed, origin Image is invaild");
+        return false;
+    }
+    auto skiaImage = image->GetImpl<SkiaImage>()->GetImage();
+    auto skiaRect = SkIRect::MakeLTRB(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
+    grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
+    skiaImage_ = skiaImage->makeSubset(skiaRect, grContext_.get());
+    return (skiaImage_ != nullptr) ? true : false;
+}
+
 bool SkiaImage::BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
     CompressedType type)
 {
@@ -116,30 +165,67 @@ bool SkiaImage::BuildFromCompressed(GPUContext& gpuContext, const std::shared_pt
     return (skiaImage_ != nullptr) ? true : false;
 }
 
-static GrBackendTexture ConvertToGrBackendTexture(const TextureInfo& info)
-{
-    GrGLTextureInfo grGLTextureInfo = { info.GetTarget(), info.GetID(), info.GetFormat() };
-    GrBackendTexture backendTexture(info.GetWidth(), info.GetHeight(), static_cast<GrMipMapped>(info.GetIsMipMapped()),
-        grGLTextureInfo);
-
-    return backendTexture;
-}
-
-static GrSurfaceOrigin ConvertToGrSurfaceOrigin(const TextureOrigin& origin)
-{
-    switch (origin) {
-        case TextureOrigin::TOP_LEFT:
-            return GrSurfaceOrigin::kTopLeft_GrSurfaceOrigin;
-        case TextureOrigin::BOTTOM_LEFT:
-            return GrSurfaceOrigin::kBottomLeft_GrSurfaceOrigin;
-        default:
-            return GrSurfaceOrigin::kTopLeft_GrSurfaceOrigin;
-    }
-}
-
 bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
+    BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace,
+    void (*deleteFunc)(void*), void* cleanupHelper)
+{
+    grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
+    if (!grContext_) {
+        LOGE("SkiaImage BuildFromTexture grContext_ is null");
+        return false;
+    }
+
+    sk_sp<SkColorSpace> skColorSpace = nullptr;
+    if (colorSpace != nullptr) {
+        skColorSpace = colorSpace->GetImpl<SkiaColorSpace>()->GetColorSpace();
+    } else {
+        skColorSpace = SkColorSpace::MakeSRGB();
+    }
+
+#ifdef RS_ENABLE_VK
+    if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        const auto& backendTexture = SkiaTextureInfo::ConvertToGrBackendTexture(info);
+        if (!backendTexture.isValid()) {
+            LOGE("SkiaImage BuildFromTexture backend texture is not valid!!!!");
+            return false;
+        }
+
+        skiaImage_ = SkImage::MakeFromTexture(grContext_.get(), backendTexture,
+            SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
+            SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
+            SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace, deleteFunc, cleanupHelper);
+    } else {
+        skiaImage_ = SkImage::MakeFromTexture(grContext_.get(),  SkiaTextureInfo::ConvertToGrBackendTexture(info),
+            SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
+            SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
+            SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace);
+    }
+#else
+    skiaImage_ = SkImage::MakeFromTexture(grContext_.get(),  SkiaTextureInfo::ConvertToGrBackendTexture(info),
+        SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin), SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
+        SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace);
+#endif
+
+    return (skiaImage_ != nullptr) ? true : false;
+}
+
+bool SkiaImage::BuildFromSurface(GPUContext& gpuContext, Surface& surface, TextureOrigin origin,
     BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace)
 {
+    auto skSurface = surface.GetImpl<SkiaSurface>()->GetSkSurface();
+    if (!skSurface) {
+        LOGE("SkiaImage::BuildFromSurface skSurface is null");
+        return false;
+    }
+
+    GrBackendTexture grBackendTexture
+            = skSurface->getBackendTexture(SkSurface::BackendHandleAccess::kFlushRead_BackendHandleAccess);
+    if (!grBackendTexture.isValid()) {
+        LOGE("SkiaImage::BuildFromSurface grBackendTexture is invalid");
+        return false;
+    }
+
     grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
 
     sk_sp<SkColorSpace> skColorSpace = nullptr;
@@ -147,26 +233,10 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info
         skColorSpace = colorSpace->GetImpl<SkiaColorSpace>()->GetColorSpace();
     }
 
-    skiaImage_ = SkImage::MakeFromTexture(grContext_.get(), ConvertToGrBackendTexture(info),
-        ConvertToGrSurfaceOrigin(origin), SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
+    skiaImage_ = SkImage::MakeFromTexture(grContext_.get(), grBackendTexture,
+        SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin), SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
         SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace);
-
     return (skiaImage_ != nullptr) ? true : false;
-}
-
-static TextureInfo ConvertToTextureInfo(const GrBackendTexture& grBackendTexture)
-{
-    GrGLTextureInfo* grGLTextureInfo = new GrGLTextureInfo();
-    grBackendTexture.getGLTextureInfo(grGLTextureInfo);
-    TextureInfo textureInfo;
-    textureInfo.SetWidth(grBackendTexture.width());
-    textureInfo.SetHeight(grBackendTexture.height());
-    textureInfo.SetIsMipMapped(static_cast<bool>(grBackendTexture.mipmapped()));
-    textureInfo.SetTarget(grGLTextureInfo->fTarget);
-    textureInfo.SetID(grGLTextureInfo->fID);
-    textureInfo.SetFormat(grGLTextureInfo->fFormat);
-
-    return textureInfo;
 }
 
 void SkiaImage::SetGrBackendTexture(const GrBackendTexture& grBackendTexture)
@@ -185,7 +255,7 @@ BackendTexture SkiaImage::GetBackendTexture(bool flushPendingGrContextIO, Textur
         skBackendTexture =
             skiaImage_->getBackendTexture(flushPendingGrContextIO);
     } else {
-        GrSurfaceOrigin grOrigin = ConvertToGrSurfaceOrigin(*origin);
+        GrSurfaceOrigin grOrigin = SkiaTextureInfo::ConvertToGrSurfaceOrigin(*origin);
         skBackendTexture =
             skiaImage_->getBackendTexture(flushPendingGrContextIO, &grOrigin);
     }
@@ -195,7 +265,18 @@ BackendTexture SkiaImage::GetBackendTexture(bool flushPendingGrContextIO, Textur
     }
     auto backendTexture = BackendTexture(true);
     SetGrBackendTexture(skBackendTexture);
-    backendTexture.SetTextureInfo(ConvertToTextureInfo(skBackendTexture));
+#ifdef RS_ENABLE_VK
+    if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        TextureInfo info;
+        SkiaTextureInfo::ConvertToVKTexture(skBackendTexture, info);
+        backendTexture.SetTextureInfo(info);
+    } else {
+        backendTexture.SetTextureInfo(SkiaTextureInfo::ConvertToTextureInfo(skBackendTexture));
+    }
+#else
+    backendTexture.SetTextureInfo(SkiaTextureInfo::ConvertToTextureInfo(skBackendTexture));
+#endif
     return backendTexture;
 }
 
@@ -211,6 +292,21 @@ bool SkiaImage::IsValid(GPUContext* context) const
     return skiaImage_->isValid(context->GetImpl<SkiaGPUContext>()->GetGrContext().get());
 }
 #endif
+
+bool SkiaImage::AsLegacyBitmap(Bitmap& bitmap) const
+{
+    if (skiaImage_ == nullptr) {
+        LOGE("SkiaImage::IsValid, skiaImage_ is nullptr!");
+        return false;
+    }
+    SkBitmap newBitmap;
+    if (!skiaImage_->asLegacyBitmap(&newBitmap)) {
+        LOGE("SkiaImage::AsLegacyBitmap failed!");
+        return false;
+    }
+    bitmap.GetImpl<SkiaBitmap>()->SetSkBitmap(newBitmap);
+    return true;
+}
 
 int SkiaImage::GetWidth() const
 {
@@ -234,6 +330,20 @@ AlphaType SkiaImage::GetAlphaType() const
                                      SkiaImageInfo::ConvertToAlphaType(skiaImage_->alphaType());
 }
 
+std::shared_ptr<ColorSpace> SkiaImage::GetColorSpace() const
+{
+    if (skiaImage_ == nullptr) {
+        return nullptr;
+    }
+    sk_sp<SkColorSpace> skColorSpace = skiaImage_->refColorSpace();
+    if (skColorSpace == nullptr) {
+        return nullptr;
+    }
+    std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>();
+    colorSpace->GetImpl<SkiaColorSpace>()->SetColorSpace(skColorSpace);
+    return colorSpace;
+}
+
 uint32_t SkiaImage::GetUniqueID() const
 {
     return (skiaImage_ == nullptr) ? 0 : skiaImage_->uniqueID();
@@ -253,6 +363,19 @@ bool SkiaImage::ReadPixels(Bitmap& bitmap, int x, int y)
     const auto& skPixmap = skBitmap.pixmap();
 
     return (skiaImage_ == nullptr) ? false : skiaImage_->readPixels(skPixmap, x, y);
+}
+
+bool SkiaImage::ReadPixels(Pixmap& pixmap, int x, int y)
+{
+    auto& skPixmap = pixmap.GetImpl<SkiaPixmap>()->ExportSkiaPixmap();
+    return (skiaImage_ == nullptr) ? false : skiaImage_->readPixels(skPixmap, x, y);
+}
+
+bool SkiaImage::ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
+    int32_t srcX, int32_t srcY) const
+{
+    SkImageInfo skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(dstInfo);
+    return (skiaImage_ == nullptr) ? false : skiaImage_->readPixels(skImageInfo, dstPixels, dstRowBytes, srcX, srcY);
 }
 
 bool SkiaImage::IsTextureBacked() const
@@ -283,14 +406,18 @@ bool SkiaImage::ScalePixels(const Bitmap& bitmap, const SamplingOptions& samplin
     return (skiaImage_ == nullptr) ? false : skiaImage_->scalePixels(skPixmap, samplingOptions, skCachingHint);
 }
 
-std::shared_ptr<Data> SkiaImage::EncodeToData(EncodedImageFormat& encodedImageFormat, int quality) const
+std::shared_ptr<Data> SkiaImage::EncodeToData(EncodedImageFormat encodedImageFormat, int quality) const
 {
-    SkEncodedImageFormat skEncodedImageFormat = SkiaImageInfo::ConvertToSkEncodedImageFormat(encodedImageFormat);
     if (skiaImage_ == nullptr) {
         LOGE("SkiaImage::EncodeToData, skiaImage_ is null!");
         return nullptr;
     }
+    SkEncodedImageFormat skEncodedImageFormat = SkiaImageInfo::ConvertToSkEncodedImageFormat(encodedImageFormat);
     auto skData = skiaImage_->encodeToData(skEncodedImageFormat, quality);
+    if (skData == nullptr) {
+        LOGE("SkiaImage::EncodeToData, skData null!");
+        return nullptr;
+    }
     std::shared_ptr<Data> data = std::make_shared<Data>();
     data->GetImpl<SkiaData>()->SetSkData(skData);
     return data;
@@ -299,6 +426,50 @@ std::shared_ptr<Data> SkiaImage::EncodeToData(EncodedImageFormat& encodedImageFo
 bool SkiaImage::IsLazyGenerated() const
 {
     return (skiaImage_ == nullptr) ? false : skiaImage_->isLazyGenerated();
+}
+
+bool SkiaImage::GetROPixels(Bitmap& bitmap) const
+{
+    if (skiaImage_ == nullptr) {
+        LOGE("SkiaImage::GetROPixels, skiaImage_ is null!");
+        return false;
+    }
+    auto context = as_IB(skiaImage_.get())->directContext();
+    SkBitmap skiaBitmap;
+    if (!as_IB(skiaImage_.get())->getROPixels(context, &skiaBitmap)) {
+        LOGE("skiaImge getROPixels failed");
+        return false;
+    }
+    bitmap.GetImpl<SkiaBitmap>()->SetSkBitmap(skiaBitmap);
+    return true;
+}
+
+std::shared_ptr<Image> SkiaImage::MakeRasterImage() const
+{
+    if (skiaImage_ == nullptr) {
+        return nullptr;
+    }
+    sk_sp<SkImage> skImage = skiaImage_->makeRasterImage();
+    if (skImage == nullptr) {
+        LOGE("skImage nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    std::shared_ptr<ImageImpl> imageImpl = std::make_shared<SkiaImage>(skImage);
+    return std::make_shared<Image>(imageImpl);
+}
+
+bool SkiaImage::CanPeekPixels() const
+{
+    SkPixmap pixmap;
+    if (skiaImage_ == nullptr || !skiaImage_->peekPixels(&pixmap)) {
+        return false;
+    }
+    return true;
+}
+
+bool SkiaImage::IsOpaque() const
+{
+    return (skiaImage_ == nullptr) ? false : skiaImage_->isOpaque();
 }
 
 const sk_sp<SkImage> SkiaImage::GetImage() const
@@ -324,38 +495,108 @@ sk_sp<GrContext> SkiaImage::GetGrContext() const
 
 std::shared_ptr<Data> SkiaImage::Serialize() const
 {
-#ifdef ROSEN_OHOS
     if (skiaImage_ == nullptr) {
         LOGE("SkiaImage::Serialize, SkImage is nullptr!");
         return nullptr;
     }
 
     SkBinaryWriteBuffer writer;
-    writer.writeImage(skiaImage_.get());
-    size_t length = writer.bytesWritten();
-    std::shared_ptr<Data> data = std::make_shared<Data>();
-    data->BuildUninitialized(length);
-    writer.writeToMemory(data->WritableData());
-    return data;
-#else
-    return nullptr;
-#endif
+    bool type = skiaImage_->isLazyGenerated();
+    writer.writeBool(type);
+    if (type) {
+        writer.writeImage(skiaImage_.get());
+        size_t length = writer.bytesWritten();
+        std::shared_ptr<Data> data = std::make_shared<Data>();
+        data->BuildUninitialized(length);
+        writer.writeToMemory(data->WritableData());
+        return data;
+    } else {
+        SkBitmap bitmap;
+
+        auto context = as_IB(skiaImage_.get())->directContext();
+        if (!as_IB(skiaImage_.get())->getROPixels(context, &bitmap)) {
+            LOGE("SkiaImage::SerializeNoLazyImage SkImage getROPixels failed");
+            return nullptr;
+        }
+        SkPixmap pixmap;
+        if (!bitmap.peekPixels(&pixmap)) {
+            LOGE("SkiaImage::SerializeNoLazyImage SkImage peekPixels failed");
+            return nullptr;
+        }
+        size_t rb = pixmap.rowBytes();
+        int32_t width = pixmap.width();
+        int32_t height = pixmap.height();
+        const void* addr = pixmap.addr();
+        size_t size = rb * static_cast<size_t>(height);
+
+        writer.writeUInt(size);
+        writer.writeByteArray(addr, size);
+        writer.writeUInt(rb);
+        writer.write32(width);
+        writer.write32(height);
+
+        writer.writeUInt(pixmap.colorType());
+        writer.writeUInt(pixmap.alphaType());
+
+        if (pixmap.colorSpace() == nullptr) {
+            writer.writeUInt(0);
+        } else {
+            auto data = pixmap.colorSpace()->serialize();
+            writer.writeUInt(data->size());
+            writer.writeByteArray(data->data(), data->size());
+        }
+        size_t length = writer.bytesWritten();
+        std::shared_ptr<Data> data = std::make_shared<Data>();
+        data->BuildUninitialized(length);
+        writer.writeToMemory(data->WritableData());
+        return data;
+    }
 }
 
 bool SkiaImage::Deserialize(std::shared_ptr<Data> data)
 {
-#ifdef ROSEN_OHOS
     if (data == nullptr) {
         LOGE("SkiaImage::Deserialize, data is invalid!");
         return false;
     }
 
     SkReadBuffer reader(data->GetData(), data->GetSize());
-    skiaImage_ = reader.readImage();
-    return skiaImage_ != nullptr;
-#else
-    return false;
-#endif
+    bool type = reader.readBool();
+
+    if (type) {
+        skiaImage_ = reader.readImage();
+        return skiaImage_ != nullptr;
+    } else {
+        size_t pixmapSize = reader.readUInt();
+        SkAutoMalloc pixBuffer(pixmapSize);
+        if (!reader.readByteArray(pixBuffer.get(), pixmapSize)) {
+            return false;
+        }
+
+        size_t rb = reader.readUInt();
+        int32_t width = reader.read32();
+        int32_t height = reader.read32();
+
+        SkColorType colorType = static_cast<SkColorType>(reader.readUInt());
+        SkAlphaType alphaType = static_cast<SkAlphaType>(reader.readUInt());
+        sk_sp<SkColorSpace> colorSpace;
+
+        size_t size = reader.readUInt();
+        if (size == 0) {
+            colorSpace = nullptr;
+        } else {
+            SkAutoMalloc colorBuffer(size);
+            if (!reader.readByteArray(colorBuffer.get(), size)) {
+                return false;
+            }
+            colorSpace = SkColorSpace::Deserialize(colorBuffer.get(), size);
+        }
+
+        SkImageInfo imageInfo = SkImageInfo::Make(width, height, colorType, alphaType, colorSpace);
+        auto skData = SkData::MakeWithCopy(const_cast<void*>(pixBuffer.get()), pixmapSize);
+        skiaImage_ = SkImage::MakeRasterData(imageInfo, skData, rb);
+        return true;
+    }
 }
 } // namespace Drawing
 } // namespace Rosen

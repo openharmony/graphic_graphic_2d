@@ -5,5 +5,6 @@
     { "name": "OH_NativeBuffer_GetConfig" },
     { "name": "OH_NativeBuffer_Map" },
     { "name": "OH_NativeBuffer_Unmap" },
-    { "name": "OH_NativeBuffer_GetSeqNum" }
+    { "name": "OH_NativeBuffer_GetSeqNum" },
+    { "name": "OH_NativeBuffer_SetColorSpace" }
 ]

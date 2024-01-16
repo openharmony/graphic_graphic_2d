@@ -24,21 +24,22 @@
 
 namespace OHOS {
 namespace Rosen {
-std::shared_ptr<RSNode> RSRootNode::Create(bool isRenderServiceNode)
+std::shared_ptr<RSNode> RSRootNode::Create(bool isRenderServiceNode, bool isTextureExportNode)
 {
-    std::shared_ptr<RSRootNode> node(new RSRootNode(isRenderServiceNode));
+    std::shared_ptr<RSRootNode> node(new RSRootNode(isRenderServiceNode, isTextureExportNode));
     RSNodeMap::MutableInstance().RegisterNode(node);
 
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         return node;
     }
-    std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeCreate>(node->GetId());
+    std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeCreate>(node->GetId(), isTextureExportNode);
     transactionProxy->AddCommand(command, node->IsRenderServiceNode());
     return node;
 }
 
-RSRootNode::RSRootNode(bool isRenderServiceNode) : RSCanvasNode(isRenderServiceNode) {}
+RSRootNode::RSRootNode(bool isRenderServiceNode, bool isSamelayerRender)
+    : RSCanvasNode(isRenderServiceNode, isSamelayerRender) {}
 
 void RSRootNode::AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode) const
 {
@@ -46,7 +47,7 @@ void RSRootNode::AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
     if (transactionProxy == nullptr) {
         return;
     }
-    if (!IsUniRenderEnabled()) {
+    if (!IsUniRenderEnabled() || isTextureExportNode_) {
         std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeAttachRSSurfaceNode>(GetId(),
             surfaceNode->GetId());
         transactionProxy->AddCommand(command, false);
@@ -70,7 +71,7 @@ void RSRootNode::SetEnableRender(bool flag) const
 
 void RSRootNode::OnBoundsSizeChanged() const
 {
-    if (IsUniRenderEnabled()) {
+    if (IsUniRenderEnabled() && !isTextureExportNode_) {
         return;
     }
     // Planning: we should use frame size instead of bounds size to calculate the surface size.

@@ -169,7 +169,6 @@ VsyncError VSyncReceiver::GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_
         timeStamp = listener_->timeStamp_;
     } else {
         if (listener_->periodShared_ == 0 || listener_->timeStampShared_ == 0) {
-            VLOGE("%{public}s Hardware vsync is not available. please try again later!", __func__);
             return VSYNC_ERROR_API_FAILED;
         }
         period = listener_->periodShared_;
@@ -178,6 +177,19 @@ VsyncError VSyncReceiver::GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_
     ScopedBytrace func("VSyncReceiver:period:" + std::to_string(period) + " timeStamp:" + std::to_string(timeStamp) +
         " isThreadShared:" + std::to_string(isThreadShared));
     return VSYNC_ERROR_OK;
+}
+
+void VSyncReceiver::CloseVsyncReceiverFd()
+{
+    if (looper_ != nullptr) {
+        looper_->RemoveFileDescriptorListener(fd_);
+        VLOGI("%{public}s looper remove fd listener, fd=%{public}d", __func__, fd_);
+    }
+
+    if (fd_ > 0) {
+        close(fd_);
+        fd_ = INVALID_FD;
+    }
 }
 
 VsyncError VSyncReceiver::Destroy()

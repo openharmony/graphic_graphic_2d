@@ -15,6 +15,7 @@
 
 #include "skia_matrix44.h"
 
+#include "utils/matrix.h"
 #include "utils/matrix44.h"
 
 namespace OHOS {
@@ -41,6 +42,21 @@ void SkiaMatrix44::Scale(scalar sx, scalar sy, scalar sz)
     skMatrix44_.setScale(sx, sy, sz);
 }
 
+void SkiaMatrix44::PreTranslate(scalar dx, scalar dy, scalar dz)
+{
+    skMatrix44_.preTranslate(dx, dy, dz);
+}
+
+void SkiaMatrix44::PostTranslate(scalar dx, scalar dy, scalar dz)
+{
+    skMatrix44_.postTranslate(dx, dy, dz);
+}
+
+void SkiaMatrix44::PreScale(scalar sx, scalar sy, scalar sz)
+{
+    skMatrix44_.preScale(sx, sy, sz);
+}
+
 void SkiaMatrix44::Multiply(const Matrix44& a, const Matrix44& b)
 {
     auto m1 = a.GetImpl<SkiaMatrix44>();
@@ -48,9 +64,14 @@ void SkiaMatrix44::Multiply(const Matrix44& a, const Matrix44& b)
     skMatrix44_.setConcat(m1->GetSkMatrix44(), m2->GetSkMatrix44());
 }
 
-void SkiaMatrix44::SetMatrix44(const std::array<scalar, Matrix44Impl::MATRIX44_SIZE>& buffer)
+void SkiaMatrix44::SetCol(int column, scalar x, scalar y, scalar z, scalar w)
 {
-#ifdef NEW_SKIA
+    auto skv4 = SkV4 { x, y, z, w };
+    skMatrix44_.setCol(column, skv4);
+}
+
+void SkiaMatrix44::SetMatrix44ColMajor(const std::array<scalar, Matrix44Impl::MATRIX44_SIZE>& buffer)
+{
     SkScalar r[16] = {
         buffer[0], buffer[1], buffer[2], buffer[3],
         buffer[4], buffer[5], buffer[6], buffer[7],
@@ -58,13 +79,17 @@ void SkiaMatrix44::SetMatrix44(const std::array<scalar, Matrix44Impl::MATRIX44_S
         buffer[12], buffer[13], buffer[14], buffer[15]
     };
     skMatrix44_ = SkM44::ColMajor(r);
-#else
-    skMatrix44_.set4x4(
+}
+
+void SkiaMatrix44::SetMatrix44RowMajor(const std::array<scalar, Matrix44Impl::MATRIX44_SIZE>& buffer)
+{
+    SkScalar r[16] = {
         buffer[0], buffer[1], buffer[2], buffer[3],
         buffer[4], buffer[5], buffer[6], buffer[7],
         buffer[8], buffer[9], buffer[10], buffer[11],
-        buffer[12], buffer[13], buffer[14], buffer[15]);
-#endif
+        buffer[12], buffer[13], buffer[14], buffer[15]
+    };
+    skMatrix44_ = SkM44::RowMajor(r);
 }
 
 Matrix SkiaMatrix44::ConvertToMatrix()

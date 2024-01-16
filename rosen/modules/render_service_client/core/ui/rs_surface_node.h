@@ -30,6 +30,7 @@
 #include "rs_render_surface.h"
 #else
 #include "platform/drawing/rs_surface.h"
+#include "platform/common/rs_surface_ext.h"
 #endif
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_node.h"
@@ -43,6 +44,8 @@ namespace Rosen {
 struct RSSurfaceNodeConfig {
     std::string SurfaceNodeName = "SurfaceNode";
     void* additionalData = nullptr;
+    bool isTextureExportNode = false;
+    SurfaceId surfaceId = 0;
 };
 
 class RSC_EXPORT RSSurfaceNode : public RSNode {
@@ -87,7 +90,7 @@ public:
     bool SetBufferAvailableCallback(BufferAvailableCallback callback);
     bool IsBufferAvailable() const;
     using BoundsChangedCallback = std::function<void(const Rosen::Vector4f&)>;
-    void SetBoundsChangedCallback(BoundsChangedCallback callback);
+    void SetBoundsChangedCallback(BoundsChangedCallback callback) override;
     void SetAnimationFinished();
 
     bool Marshalling(Parcel& parcel) const;
@@ -102,16 +105,17 @@ public:
     void SetHardwareEnabled(bool isEnabled);
     void SetBootAnimation(bool isBootAnimation);
     bool GetBootAnimation() const;
+    void SetTextureExport(bool isTextureExportNode);
 
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<OHOS::Surface> GetSurface() const;
-
+#endif
     void SetColorSpace(GraphicColorGamut colorSpace);
     GraphicColorGamut GetColorSpace()
     {
         return colorSpace_;
     }
-#endif
+
     std::string GetName() const
     {
         return name_;
@@ -128,6 +132,13 @@ public:
     void SetWindowId(uint32_t windowId);
 
     void SetFreeze(bool isFreeze) override;
+#ifdef USE_SURFACE_TEXTURE
+    void SetSurfaceTexture(const RSSurfaceExtConfig& config);
+    void MarkUiFrameAvailable(bool available);
+    void SetSurfaceTextureAttachCallBack(const RSSurfaceTextureAttachCallBack& attachCallback);
+    void SetSurfaceTextureUpdateCallBack(const RSSurfaceTextureUpdateCallBack& updateCallback);
+#endif
+    void SetForeground(bool isForeground);
 
 protected:
     bool NeedForcedSendToRemote() const override;
@@ -139,9 +150,16 @@ protected:
     RSSurfaceNode& operator=(const RSSurfaceNode&&) = delete;
 
 private:
+#ifdef USE_SURFACE_TEXTURE
+    void CreateSurfaceExt(const RSSurfaceExtConfig& config);
+#endif
     bool CreateNode(const RSSurfaceRenderNodeConfig& config);
-    bool CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config);
+    bool CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, SurfaceId surfaceId = 0);
     void OnBoundsSizeChanged() const override;
+    // this function is only used in texture export
+    void SetSurfaceIdToRenderNode();
+    void CreateTextExportRenderNodeInRT();
+    void SetIsTextureExportNode(bool isTextureExportNode);
     std::pair<std::string, std::string> SplitSurfaceNodeName(std::string surfaceNodeName);
 #ifdef NEW_RENDER_CONTEXT
     std::shared_ptr<RSRenderSurface> surface_;
@@ -154,9 +172,7 @@ private:
     BufferAvailableCallback callback_;
     bool bufferAvailable_ = false;
     BoundsChangedCallback boundsChangedCallback_;
-#ifndef ROSEN_CROSS_PLATFORM
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-#endif
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
     bool hasFingerprint_ = false;

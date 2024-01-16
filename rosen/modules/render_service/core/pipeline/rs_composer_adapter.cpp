@@ -70,12 +70,12 @@ bool RSComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offsetX, int3
     bool directClientCompEnableStatus = RSSystemProperties::GetDirectClientCompEnableStatus();
     output_->SetDirectClientCompEnableStatus(directClientCompEnableStatus);
 
-#if ((defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)) || (defined RS_ENABLE_VK)
+#if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
     // enable direct GPU composition.
     output_->SetLayerCompCapacity(LAYER_COMPOSITION_CAPACITY);
-#else // (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
+#else
     output_->SetLayerCompCapacity(LAYER_COMPOSITION_CAPACITY_INVALID);
-#endif // (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
+#endif
 
     return true;
 }
@@ -280,11 +280,7 @@ void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, Com
     if (screenRotation == ScreenRotation::ROTATION_90 || screenRotation == ScreenRotation::ROTATION_270) {
         std::swap(screenWidth, screenHeight);
     }
-    Drawing::Bitmap bitmap;
-    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE };
-    bitmap.Build(screenWidth, screenHeight, format);
-    auto canvas = std::make_unique<Rosen::Drawing::Canvas>();
-    canvas->Bind(bitmap);
+    auto canvas = std::make_unique<Rosen::Drawing::Canvas>(screenWidth, screenHeight);
     canvas->ConcatMatrix(translateMatrix);
     Drawing::Rect clipRect;
     Drawing::Rect srcRect(0, 0, frameWidth, frameHeight);

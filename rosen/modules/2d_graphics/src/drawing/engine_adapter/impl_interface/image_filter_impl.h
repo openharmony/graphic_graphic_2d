@@ -17,6 +17,7 @@
 #define IMAGE_FILTER_IMPL_H
 
 #include <memory>
+#include <vector>
 
 #include "base_impl.h"
 
@@ -26,6 +27,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+class Data;
 class ImageFilter;
 class ColorFilter;
 class ImageFilterImpl : public BaseImpl {
@@ -35,10 +37,13 @@ public:
 
     virtual void InitWithBlur(scalar sigmaX, scalar sigmaY, TileMode mode, const std::shared_ptr<ImageFilter> f) = 0;
     virtual void InitWithColor(const ColorFilter& colorFilter, const std::shared_ptr<ImageFilter> f) = 0;
+    virtual void InitWithColorBlur(const ColorFilter& colorFilter, scalar sigmaX, scalar sigmaY) = 0;
     virtual void InitWithOffset(scalar dx, scalar dy, const std::shared_ptr<ImageFilter> f) = 0;
     virtual void InitWithArithmetic(const std::vector<scalar>& coefficients, bool enforcePMColor,
         const std::shared_ptr<ImageFilter> f1, const std::shared_ptr<ImageFilter> f2) = 0;
     virtual void InitWithCompose(const std::shared_ptr<ImageFilter> f1, const std::shared_ptr<ImageFilter> f2) = 0;
+    virtual std::shared_ptr<Data> Serialize() const = 0;
+    virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

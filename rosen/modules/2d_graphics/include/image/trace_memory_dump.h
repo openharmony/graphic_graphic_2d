@@ -35,10 +35,12 @@ public:
 
     void LogTotals(OHOS::Rosen::DfxString& log);
 
+    float GetGpuMemorySizeInMB() const;
+
     float GetGLMemorySize() const;
 
     template<typename T>
-    const std::shared_ptr<T> GetImpl() const
+    T* GetImpl() const
     {
         return impl_->DowncastingTo<T>();
     }

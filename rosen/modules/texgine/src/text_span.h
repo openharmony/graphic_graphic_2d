@@ -24,6 +24,7 @@
 #include "texgine_text_blob.h"
 #include "texgine/typography.h"
 #include "texgine/typography_style.h"
+#include "symbol_animation_config.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -47,8 +48,13 @@ public:
     double GetPostBreak() const;
     double GetPreBreak() const;
     bool IsRTL() const;
-    void Paint(TexgineCanvas &canvas, double offsetX, double offsetY, const TextStyle &xs);
+
+    void PaintDecoration(TexgineCanvas &canvas, double offsetX, double offsetY, const TextStyle &xs);
+    void PaintDecorationStyle(TexgineCanvas &canvas, double left, double right, double y, const TextStyle &xs);
+    void Paint(TexgineCanvas &canvas, double offsetX, double offsetY, const TextStyle &xs, const RoundRectType &rType);
     void PaintShadow(TexgineCanvas &canvas, double offsetX, double offsetY, const std::vector<TextShadow> &shadows);
+    void SymbolAnimation(const TextStyle &xs);
+
     std::shared_ptr<TextSpan> CloneWithCharGroups(CharGroups const &cgs);
 
     void operator+=(TextSpan const &textSpan)
@@ -56,21 +62,35 @@ public:
         u16vect_.insert(u16vect_.end(), textSpan.u16vect_.begin(), textSpan.u16vect_.end());
     }
 
-    TexgineFontMetrics tmetrics_;
+    std::shared_ptr<TexgineFontMetrics> tmetrics_ = std::make_shared<TexgineFontMetrics>();
     bool rtl_ = false;
     std::shared_ptr<Typeface> typeface_ = nullptr;
 
     std::vector<uint16_t> u16vect_;
     std::shared_ptr<TexgineTextBlob> textBlob_ = nullptr;
     std::vector<double> glyphWidths_;
-
     CharGroups cgs_;
 
     double preBreak_ = 0.0;
     double postBreak_ = 0.0;
     double width_ = 0.0;
+    double topInGroup_ = 0.0;
+    double bottomInGroup_ = 0.0;
+    double maxRoundRectRadius_ = 0.0;
 
+    void SetAnimation(
+        std::function<bool(
+            const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>& animationFunc)
+    {
+        if (animationFunc) {
+            animationFunc_ = animationFunc;
+        }
+    }
 private:
+
+    std::function<bool(
+        const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)> animationFunc_ = nullptr;
+
     friend class TextBreaker;
     friend class BidiProcesser;
     friend class ControllerForTest;
@@ -81,9 +101,6 @@ private:
     friend class TextShaper;
     friend class TextReverser;
     friend void ReportMemoryUsage(std::string const &member, TextSpan const &that, bool needThis);
-
-    void PaintDecoration(TexgineCanvas &canvas, double offsetX, double offsetY, const TextStyle &xs);
-    void PaintDecorationStyle(TexgineCanvas &canvas, double left, double right, double y, const TextStyle &xs);
 };
 } // namespace TextEngine
 } // namespace Rosen

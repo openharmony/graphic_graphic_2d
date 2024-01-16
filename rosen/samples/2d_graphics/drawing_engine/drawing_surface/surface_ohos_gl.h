@@ -35,8 +35,13 @@ public:
     }
 
     std::unique_ptr<SurfaceFrame> RequestFrame(int32_t width, int32_t height) override;
+    std::unique_ptr<SurfaceFrame> NativeRequestFrame(int32_t width, int32_t height) override;
     bool FlushFrame(std::unique_ptr<SurfaceFrame>& frame) override;
-    SkCanvas* GetCanvas(std::unique_ptr<SurfaceFrame>& frame) override;
+    bool NativeFlushFrame(std::unique_ptr<SurfaceFrame>& frame) override;
+    SkCanvas* GetSkCanvas(std::unique_ptr<SurfaceFrame>& frame) override;
+#ifdef USE_ROSEN_DRAWING
+    Drawing::Canvas* GetCanvas(std::unique_ptr<SurfaceFrame>& frame) override;
+#endif
 private:
     std::unique_ptr<SurfaceFrameOhosGl> frame_;
 };

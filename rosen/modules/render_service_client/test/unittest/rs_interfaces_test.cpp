@@ -161,6 +161,72 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenResolution001, Function | SmallTest |
 }
 
 /*
+* Function: SetVirtualScreenPixelFormat/GetVirtualScreenPixelFormat
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. Call CreateVirtualScreen, use normal parameters.
+*                  2. Use SetVirtualScreenPixelFormat to set pixelFormat of virtualScreen
+*                  3. Use GetVirtualScreenPixelFormat to get current pixelFormat of virtualScreen
+*                  4. Check current pixelFormat of virtualScreen
+*/
+HWTEST_F(RSInterfacesTest, SetVirtualScreenPixelFormat001, Function | SmallTest | Level2)
+{
+    auto csurface = IConsumerSurface::Create();
+    EXPECT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    uint32_t defaultWidth = 720;
+    uint32_t defaultHeight = 1280;
+    GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_BGRA_8888;
+    EXPECT_NE(psurface, nullptr);
+
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "virtual5", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    GraphicPixelFormat curPixelFormat;
+    int32_t ret = rsInterfaces->GetPixelFormat(virtualScreenId, curPixelFormat);
+    EXPECT_NE(ret, StatusCode::SCREEN_NOT_FOUND);
+    EXPECT_EQ(curPixelFormat, GRAPHIC_PIXEL_FMT_RGBA_8888);
+
+    rsInterfaces->SetPixelFormat(virtualScreenId, pixelFormat);
+
+    ret = rsInterfaces->GetPixelFormat(virtualScreenId, curPixelFormat);
+    EXPECT_NE(ret, StatusCode::SCREEN_NOT_FOUND);
+    EXPECT_EQ(curPixelFormat, GRAPHIC_PIXEL_FMT_BGRA_8888);
+
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
+}
+
+/**
+ * @tc.name: SetVirtualMirrorScreenCanvasRotation
+ * @tc.desc: 1. Call CreateVirtualScreen, use normal parameters.
+ *           2. Use SetVirtualMirrorScreenCanvasRotation to change the width and height of virtualScreen
+ *           3. Use GetVirtualScreenResolution to get current width and height of virtualScreen
+ *           4. Check current width and height of virtualScreen
+ * @tc.type: FUNC
+ * @tc.require: issueI8FPRE
+ */
+HWTEST_F(RSInterfacesTest, SetVirtualMirrorScreenCanvasRotation001, Function | SmallTest | Level2)
+{
+    auto csurface = IConsumerSurface::Create();
+    EXPECT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    uint32_t defaultWidth = 1344;
+    uint32_t defaultHeight = 2772;
+    EXPECT_NE(psurface, nullptr);
+
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "virtual5", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+    EXPECT_EQ(rsInterfaces->SetVirtualMirrorScreenCanvasRotation(virtualScreenId, true), true);
+    EXPECT_EQ(rsInterfaces->SetVirtualMirrorScreenCanvasRotation(virtualScreenId, false), true);
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
+}
+
+/*
 * Function: GetAllScreenIds
 * Type: Function
 * Rank: Important(2)
@@ -298,6 +364,21 @@ HWTEST_F(RSInterfacesTest, CreateVirtualScreen004, Function | SmallTest | Level2
     auto backLight = rsInterfaces->GetScreenBacklight(virtualScreenId);
     EXPECT_EQ(backLight, -1);
     rsInterfaces->RemoveVirtualScreen(virtualScreenId);
+}
+
+/*
+* Function: CreateVirtualScreen
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: call CreateVirtualScreen with filteredAppVector
+*/
+HWTEST_F(RSInterfacesTest, CreateVirtualScreen005, Function | SmallTest | Level2)
+{
+    std::vector<NodeId> filteredAppVector = {};
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "virtual11", 320, 180, nullptr, INVALID_SCREEN_ID, -1, filteredAppVector);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 }
 
 /*
@@ -744,6 +825,95 @@ HWTEST_F(RSInterfacesTest, SetScreenColorGamut002, Function | SmallTest | Level2
 }
 
 /*
+* Function: GetScreenSupportedHDRFormats
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenSupportedHDRFormats with INVALID_SCREEN_ID
+*                  2. check ret
+*/
+HWTEST_F(RSInterfacesTest, GetScreenSupportedHDRFormats002, Function | SmallTest | Level2)
+{
+    std::vector<ScreenHDRFormat> hdrFormats;
+    int ret = rsInterfaces->GetScreenSupportedHDRFormats(INVALID_SCREEN_ID, hdrFormats);
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+* Function: GetScreenHDRFormat
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenHDRFormat with INVALID_SCREEN_ID
+*                  2. check ret
+*/
+HWTEST_F(RSInterfacesTest, GetScreenHDRFormat002, Function | SmallTest | Level2)
+{
+    ScreenHDRFormat hdrFormat = ScreenHDRFormat::NOT_SUPPORT_HDR;
+    int ret = rsInterfaces->GetScreenHDRFormat(INVALID_SCREEN_ID, hdrFormat);
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+* Function: SetScreenHDRFormat
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenHDRFormat with INVALID_SCREEN_ID
+*                  2. check ret
+*/
+HWTEST_F(RSInterfacesTest, SetScreenHDRFormat002, Function | SmallTest | Level2)
+{
+    int ret = rsInterfaces->SetScreenHDRFormat(INVALID_SCREEN_ID, 0);
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+* Function: GetScreenSupportedColorSpaces
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenSupportedColorSpaces with INVALID_SCREEN_ID
+*                  2. check ret
+*/
+HWTEST_F(RSInterfacesTest, GetScreenSupportedColorSpaces002, Function | SmallTest | Level2)
+{
+    std::vector<GraphicCM_ColorSpaceType> colorSpaces;
+    int ret = rsInterfaces->GetScreenSupportedColorSpaces(INVALID_SCREEN_ID, colorSpaces);
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+* Function: GetScreenColorSpace
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetScreenColorSpace with INVALID_SCREEN_ID
+*                  2. check ret
+*/
+HWTEST_F(RSInterfacesTest, GetScreenColorSpace002, Function | SmallTest | Level2)
+{
+    GraphicCM_ColorSpaceType colorSpace = GraphicCM_ColorSpaceType::GRAPHIC_CM_SRGB_FULL;
+    int ret = rsInterfaces->GetScreenColorSpace(INVALID_SCREEN_ID, colorSpace);
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+* Function: SetScreenColorSpace
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenColorSpace with INVALID_SCREEN_ID
+*                  2. check ret
+*/
+HWTEST_F(RSInterfacesTest, SetScreenColorSpace002, Function | SmallTest | Level2)
+{
+    int ret = rsInterfaces->SetScreenColorSpace(
+        INVALID_SCREEN_ID, GraphicCM_ColorSpaceType::GRAPHIC_CM_COLORSPACE_NONE);
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
 * Function: SetScreenGamutMap
 * Type: Function
 * Rank: Important(2)
@@ -1071,6 +1241,79 @@ HWTEST_F(RSInterfacesTest, RegisterHgmConfigChangeCallback_Test, Function | Smal
 }
 
 /*
+ * @tc.name: NotifyLightFactorStatus001
+ * @tc.desc: Notify light factor status to hgm
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, NotifyLightFactorStatus001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    bool isSafe = false;
+    rsInterfaces->NotifyLightFactorStatus(isSafe);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
+ * @tc.name: NotifyPackageEvent001
+ * @tc.desc: Notify current package list to hgm
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, NotifyPackageEvent001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::vector<std::string> packageList;
+    packageList.push_back("NotifyPackageEvent001");
+    packageList.push_back("NotifyPackageEvent002");
+    uint32_t listSize = packageList.size();
+    rsInterfaces->NotifyPackageEvent(listSize, packageList);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
+ * @tc.name: NotifyRefreshRateEvent001
+ * @tc.desc: Notify refreshRate event to hgm to modify screen refreshRate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, NotifyRefreshRateEvent001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    EventInfo eventInfo = { "VOTER_IDLE", true, 1, 1000 };
+    rsInterfaces->NotifyRefreshRateEvent(eventInfo);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
+ * @tc.name: NotifyTouchEvent001
+ * @tc.desc: Notify touch event to hgm
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, NotifyTouchEvent001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    int32_t touchStatus = 0;
+    rsInterfaces->NotifyTouchEvent(touchStatus);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
+ * @tc.name: RegisterHgmRefreshRateModeChangeCallback Test
+ * @tc.desc: RegisterHgmRefreshRateModeChangeCallback Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, RegisterHgmRefreshRateModeChangeCallback_Test, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    HgmRefreshRateModeChangeCallback cb = [](int32_t refreshRateMode){};
+    int32_t ret = rsInterfaces->RegisterHgmRefreshRateModeChangeCallback(cb);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
  * @tc.name: RegisterSurfaceOcclusionChangeCallback001
  * @tc.desc: RegisterOcclusionChangeCallback interface test.
  * @tc.type: FUNC
@@ -1098,6 +1341,34 @@ HWTEST_F(RSInterfacesTest, UnRegisterSurfaceOcclusionChangeCallback001, Function
     NodeId id = 0;
     int32_t ret = rsInterfaces->UnRegisterSurfaceOcclusionChangeCallback(id);
     ASSERT_EQ(ret, 0);
+}
+
+/*
+ * @tc.name: ResizeVirtualScreen001
+ * @tc.desc: ResizeVirtualScreen interface test.
+ * @tc.type: FUNC
+ * @tc.require: issueI8F2HB
+ */
+HWTEST_F(RSInterfacesTest, ResizeVirtualScreen001, Function | SmallTest | Level2)
+{
+    auto csurface = IConsumerSurface::Create();
+    EXPECT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    uint32_t defaultWidth = 720;
+    uint32_t defaultHeight = 1280;
+    uint32_t newWidth = 1920;
+    uint32_t newHeight = 1080;
+    EXPECT_NE(psurface, nullptr);
+
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "virtualScreen0", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    int32_t ret = rsInterfaces->ResizeVirtualScreen(virtualScreenId, newWidth, newHeight);
+    ASSERT_EQ(ret, 0);
+
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 } // namespace Rosen
 } // namespace OHOS

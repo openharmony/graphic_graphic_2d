@@ -23,6 +23,7 @@ void RSContext::RegisterAnimatingRenderNode(const std::shared_ptr<RSRenderNode>&
 {
     NodeId id = nodePtr->GetId();
     animatingNodeList_.emplace(id, nodePtr);
+    nodePtr->ActivateDisplaySync();
     ROSEN_LOGD("RSContext::RegisterAnimatingRenderNode, register node id: %{public}" PRIu64, id);
 }
 
@@ -34,10 +35,27 @@ void RSContext::UnregisterAnimatingRenderNode(NodeId id)
 
 void RSContext::AddActiveNode(const std::shared_ptr<RSRenderNode>& node)
 {
+    std::unique_lock<std::mutex> lock(mutex_);
     if (node == nullptr || node->GetId() == INVALID_NODEID) {
         return;
     }
     auto rootNodeId = node->GetInstanceRootNodeId();
     activeNodesInRoot_[rootNodeId].emplace(node->GetId(), node);
+}
+
+bool RSContext::HasActiveNode(const std::shared_ptr<RSRenderNode>& node)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (node == nullptr || node->GetId() == INVALID_NODEID) {
+        return false;
+    }
+    auto rootNodeId = node->GetInstanceRootNodeId();
+    return activeNodesInRoot_[rootNodeId].count(node->GetId()) > 0;
+}
+
+void RSContext::MarkNeedPurge(ClearMemoryMoment moment, PurgeType purgeType)
+{
+    clearMoment_ = moment;
+    purgeType_ = purgeType;
 }
 } // namespace OHOS::Rosen

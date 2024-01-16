@@ -17,6 +17,7 @@
 #include <memory>
 
 #include "pixel_map.h"
+#include "platform/common/rs_log.h"
 #ifndef USE_ROSEN_DRAWING
 #include "include/core/SkImage.h"
 #else
@@ -26,16 +27,37 @@
 namespace OHOS {
 namespace Rosen {
 using namespace Media;
+namespace {
+    constexpr float HALF_F = 2;
+}
 
 #ifndef USE_ROSEN_DRAWING
-static sk_sp<SkColorSpace> ColorSpaceToSkColorSpace(ColorSpace colorSpace)
+static sk_sp<SkColorSpace> ColorSpaceToSkColorSpace(ColorManager::ColorSpaceName colorSpaceName)
 {
-    switch (colorSpace) {
-        case ColorSpace::LINEAR_SRGB:
+    switch (colorSpaceName) {
+        case ColorManager::ColorSpaceName::DISPLAY_P3:
+            return SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
+        case ColorManager::ColorSpaceName::LINEAR_SRGB:
             return SkColorSpace::MakeSRGBLinear();
-        case ColorSpace::SRGB:
+        case ColorManager::ColorSpaceName::SRGB:
         default:
             return SkColorSpace::MakeSRGB();
+    }
+}
+#else
+static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(ColorManager::ColorSpaceName
+ colorSpaceName)
+{
+    switch (colorSpaceName) {
+        case ColorManager::ColorSpaceName::DISPLAY_P3:
+            return Drawing::ColorSpace::CreateRGB(
+                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
+        case ColorManager::ColorSpaceName::LINEAR_SRGB:
+            return Drawing::ColorSpace::CreateSRGBLinear();
+        case ColorManager::ColorSpaceName::SRGB:
+            return Drawing::ColorSpace::CreateSRGB();
+        default:
+            return Drawing::ColorSpace::CreateSRGB();
     }
 }
 #endif
@@ -77,6 +99,7 @@ static Drawing::ColorType PixelFormatToDrawingColorType(PixelFormat pixelFormat)
         case PixelFormat::ALPHA_8:
             return Drawing::ColorType::COLORTYPE_ALPHA_8;
         case PixelFormat::RGBA_F16:
+            return Drawing::ColorType::COLORTYPE_RGBA_F16;
         case PixelFormat::UNKNOWN:
         case PixelFormat::ARGB_8888:
         case PixelFormat::RGB_888:
@@ -124,19 +147,12 @@ static Drawing::AlphaType AlphaTypeToDrawingAlphaType(AlphaType alphaType)
 #endif
 
 #ifndef USE_ROSEN_DRAWING
-static SkImageInfo MakeSkImageInfo(const ImageInfo& imageInfo)
+static SkImageInfo MakeSkImageInfo(const ImageInfo& imageInfo, std::shared_ptr<Media::PixelMap> pixelMap)
 {
     SkColorType ct = PixelFormatToSkColorType(imageInfo.pixelFormat);
     SkAlphaType at = AlphaTypeToSkAlphaType(imageInfo.alphaType);
-    sk_sp<SkColorSpace> cs = ColorSpaceToSkColorSpace(imageInfo.colorSpace);
+    sk_sp<SkColorSpace> cs = ColorSpaceToSkColorSpace(pixelMap->InnerGetGrColorSpace().GetColorSpaceName());
     return SkImageInfo::Make(imageInfo.size.width, imageInfo.size.height, ct, at, cs);
-}
-#else
-static Drawing::BitmapFormat MakeDrawingBitmapFormat(const ImageInfo& imageInfo)
-{
-    Drawing::ColorType ct = PixelFormatToDrawingColorType(imageInfo.pixelFormat);
-    Drawing::AlphaType at = AlphaTypeToDrawingAlphaType(imageInfo.alphaType);
-    return Drawing::BitmapFormat { ct, at };
 }
 #endif
 
@@ -152,7 +168,6 @@ private:
     std::shared_ptr<PixelMap> pixelMap_;
 };
 
-#ifndef USE_ROSEN_DRAWING
 static void PixelMapReleaseProc(const void* /* pixels */, void* context)
 {
     PixelMapReleaseContext* ctx = static_cast<PixelMapReleaseContext*>(context);
@@ -162,6 +177,7 @@ static void PixelMapReleaseProc(const void* /* pixels */, void* context)
     }
 }
 
+#ifndef USE_ROSEN_DRAWING
 sk_sp<SkImage> RSPixelMapUtil::ExtractSkImage(std::shared_ptr<Media::PixelMap> pixelMap)
 {
     if (!pixelMap) {
@@ -169,9 +185,16 @@ sk_sp<SkImage> RSPixelMapUtil::ExtractSkImage(std::shared_ptr<Media::PixelMap> p
     }
     ImageInfo imageInfo;
     pixelMap->GetImageInfo(imageInfo);
-    auto skImageInfo = MakeSkImageInfo(imageInfo);
-    SkPixmap skPixmap(skImageInfo, reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowBytes());
-    return SkImage::MakeFromRaster(skPixmap, PixelMapReleaseProc, new PixelMapReleaseContext(pixelMap));
+    auto skImageInfo = MakeSkImageInfo(imageInfo, pixelMap);
+    SkPixmap skPixmap(skImageInfo, reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
+    PixelMapReleaseContext* releaseContext = new PixelMapReleaseContext(pixelMap);
+    auto skImage = SkImage::MakeFromRaster(skPixmap, PixelMapReleaseProc, releaseContext);
+    if (!skImage) {
+        RS_LOGE("RSPixelMapUtil::ExtractSkImage fail");
+        delete releaseContext;
+        releaseContext = nullptr;
+    }
+    return skImage;
 }
 #else
 std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
@@ -182,17 +205,123 @@ std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
     }
     ImageInfo imageInfo;
     pixelMap->GetImageInfo(imageInfo);
-
-    Drawing::BitmapFormat format = MakeDrawingBitmapFormat(imageInfo);
-    Drawing::Bitmap bitmap;
-    bitmap.Build(imageInfo.size.width, imageInfo.size.height, format);
-    bitmap.SetPixels(const_cast<void*>(static_cast<const void*>(pixelMap->GetPixels())));
-
-    auto image = std::make_shared<Drawing::Image>();
-    image->BuildFromBitmap(bitmap);
+    Drawing::ImageInfo drawingImageInfo { imageInfo.size.width, imageInfo.size.height,
+        PixelFormatToDrawingColorType(imageInfo.pixelFormat),
+        AlphaTypeToDrawingAlphaType(imageInfo.alphaType),
+        ColorSpaceToDrawingColorSpace(pixelMap->InnerGetGrColorSpace().GetColorSpaceName()) };
+    Drawing::Pixmap imagePixmap(drawingImageInfo, reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
+    PixelMapReleaseContext* releaseContext = new PixelMapReleaseContext(pixelMap);
+    auto image = Drawing::Image::MakeFromRaster(imagePixmap, PixelMapReleaseProc, releaseContext);
+    if (!image) {
+        RS_LOGE("RSPixelMapUtil::ExtractDrawingImage fail");
+        delete releaseContext;
+        releaseContext = nullptr;
+    }
     return image;
 }
 
+#endif
+
+#ifndef USE_ROSEN_DRAWING
+void RSPixelMapUtil::TransformDataSetForAstc(std::shared_ptr<Media::PixelMap> pixelMap,
+                                             SkRect& src, SkRect& dst, RSPaintFilterCanvas& canvas)
+{
+    TransformData transformData;
+    pixelMap->GetTransformData(transformData);
+    Size realSize;
+    pixelMap->GetAstcRealSize(realSize);
+    dst.fLeft -= (realSize.width - src.fRight) / HALF_F;
+    dst.fTop -= (realSize.height - src.fBottom) / HALF_F;
+    dst.fRight += (realSize.width - src.fRight) / HALF_F;
+    dst.fBottom += (realSize.height - src.fBottom) / HALF_F;
+    if (transformData.scaleX != 0 && transformData.scaleY != 0) {
+        src.fRight = src.fRight / abs(transformData.scaleX);
+        src.fBottom = src.fBottom / abs(transformData.scaleY);
+    }
+    SkMatrix matrix;
+    matrix.postScale(transformData.scaleX, transformData.scaleY, dst.fLeft / HALF_F + dst.fRight / HALF_F,
+                     dst.fTop / HALF_F + dst.fBottom / HALF_F);
+    matrix.postRotate(transformData.rotateD, dst.fLeft / HALF_F + dst.fRight / HALF_F,
+                      dst.fTop / HALF_F + dst.fBottom / HALF_F);
+    if (transformData.flipX) {
+        matrix.postScale(-1, 1, dst.fLeft / HALF_F + dst.fRight / HALF_F,
+                         dst.fTop / HALF_F + dst.fBottom / HALF_F);
+    }
+    if (transformData.flipY) {
+        matrix.postScale(1, -1, dst.fLeft / HALF_F + dst.fRight / HALF_F,
+                         dst.fTop / HALF_F + dst.fBottom / HALF_F);
+    }
+    canvas.concat(matrix);
+    if (transformData.cropLeft >= 0 && transformData.cropTop >= 0 && transformData.cropWidth > 0 &&
+        transformData.cropHeight > 0 && transformData.cropLeft + transformData.cropWidth <= realSize.width &&
+        transformData.cropTop + transformData.cropHeight <= realSize.height) {
+        src.fLeft += transformData.cropLeft;
+        src.fTop += transformData.cropTop;
+        src.fRight -= src.fRight - transformData.cropLeft - transformData.cropWidth;
+        src.fBottom -= src.fBottom - transformData.cropTop - transformData.cropHeight;
+        dst.fLeft += (realSize.width - transformData.cropWidth) / HALF_F;
+        dst.fTop += (realSize.height - transformData.cropHeight) / HALF_F;
+        dst.fRight -= (realSize.width - transformData.cropWidth) / HALF_F;
+        dst.fBottom -= (realSize.height - transformData.cropHeight) / HALF_F;
+    }
+    if (transformData.scaleX != 0 && transformData.scaleY != 0) {
+        dst.fLeft += transformData.translateX / HALF_F / abs(transformData.scaleX);
+        dst.fTop += transformData.translateY / HALF_F / abs(transformData.scaleY);
+        dst.fRight += transformData.translateX / HALF_F / abs(transformData.scaleX);
+        dst.fBottom += transformData.translateY / HALF_F / abs(transformData.scaleY);
+    }
+}
+#else
+void RSPixelMapUtil::TransformDataSetForAstc(std::shared_ptr<Media::PixelMap> pixelMap,
+                                             Drawing::Rect& src, Drawing::Rect& dst, Drawing::Canvas& canvas)
+{
+    TransformData transformData;
+    pixelMap->GetTransformData(transformData);
+    Size realSize;
+    pixelMap->GetAstcRealSize(realSize);
+    dst.SetLeft(dst.GetLeft() - (realSize.width - src.GetRight()) / HALF_F);
+    dst.SetTop(dst.GetTop() - (realSize.height - src.GetBottom()) / HALF_F);
+    dst.SetRight(dst.GetRight() + (realSize.width - src.GetRight()) / HALF_F);
+    dst.SetBottom(dst.GetBottom() + (realSize.height - src.GetBottom()) / HALF_F);
+    if (transformData.scaleX != 0 && transformData.scaleY != 0) {
+        src.SetRight(src.GetRight() / abs(transformData.scaleX));
+        src.SetBottom(src.GetBottom() / abs(transformData.scaleY));
+    }
+    Drawing::Matrix matrix;
+    matrix.PostScale(transformData.scaleX, transformData.scaleY, dst.GetLeft() / HALF_F + dst.GetRight() / HALF_F,
+                     dst.GetTop() / HALF_F + dst.GetBottom() / HALF_F);
+    matrix.PostRotate(transformData.rotateD, dst.GetLeft() / HALF_F + dst.GetRight() / HALF_F,
+                      dst.GetTop() / HALF_F + dst.GetBottom() / HALF_F);
+    if (transformData.flipX) {
+        matrix.PostScale(-1, 1, dst.GetLeft() / HALF_F + dst.GetRight() / HALF_F,
+                         dst.GetTop() / HALF_F + dst.GetBottom() / HALF_F);
+    }
+    if (transformData.flipY) {
+        matrix.PostScale(1, -1, dst.GetLeft() / HALF_F + dst.GetRight() / HALF_F,
+                         dst.GetTop() / HALF_F + dst.GetBottom() / HALF_F);
+    }
+    canvas.ConcatMatrix(matrix);
+    if (transformData.cropLeft >= 0 && transformData.cropTop >= 0 && transformData.cropWidth > 0 &&
+        transformData.cropHeight > 0 && transformData.cropLeft + transformData.cropWidth <= realSize.width &&
+        transformData.cropTop + transformData.cropHeight <= realSize.height) {
+        float rightMinus = src.GetRight() - transformData.cropLeft - transformData.cropWidth;
+        float bottomMinus = src.GetBottom() - transformData.cropTop - transformData.cropHeight;
+        src.SetLeft(src.GetLeft() + transformData.cropLeft);
+        src.SetTop(src.GetTop() + transformData.cropTop);
+        src.SetRight(src.GetRight() - rightMinus);
+        src.SetBottom(src.GetBottom() - bottomMinus);
+        dst.SetLeft(dst.GetLeft() + (realSize.width - transformData.cropWidth) / HALF_F);
+        dst.SetTop(dst.GetTop() + (realSize.height - transformData.cropHeight) / HALF_F);
+        dst.SetRight(dst.GetRight() - (realSize.width - transformData.cropWidth) / HALF_F);
+        dst.SetBottom(dst.GetBottom() - (realSize.height - transformData.cropHeight) / HALF_F);
+    }
+    if (transformData.scaleX != 0 && transformData.scaleY != 0) {
+        dst.SetLeft(dst.GetLeft() + transformData.translateX / HALF_F / abs(transformData.scaleX));
+        dst.SetTop(dst.GetTop() + transformData.translateY / HALF_F / abs(transformData.scaleY));
+        dst.SetRight(dst.GetRight() + transformData.translateX / HALF_F / abs(transformData.scaleX));
+        dst.SetBottom(dst.GetBottom() + transformData.translateY / HALF_F / abs(transformData.scaleY));
+    }
+}
 #endif
 } // namespace Rosen
 } // namespace OHOS

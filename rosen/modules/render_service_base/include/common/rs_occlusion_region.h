@@ -22,10 +22,14 @@
 
 #include "rs_rect.h"
 #include "common/rs_macros.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Occlusion {
+
+constexpr int MAX_REGION_VALUE = 1000000;       // normal region value should not exceed 1000000
+constexpr int MIN_REGION_VALUE = -1000000;      // normal region value should not less than -1000000
 class Rect {
 public:
     // assumption: left-top is [0,0]
@@ -37,8 +41,58 @@ public:
     static Rect _s_invalid_rect_;
 
     Rect() : left_(0), top_(0), right_(0), bottom_(0) {}
-    Rect(int l, int t, int r, int b) : left_(l), top_(t), right_(r), bottom_(b) {}
-    Rect(const RectI& r) : left_(r.left_), top_(r.top_), right_(r.GetRight()), bottom_(r.GetBottom()) {}
+    Rect(int l, int t, int r, int b, bool checkValue = true)
+    {
+        left_ = l;
+        top_ = t;
+        right_ = r;
+        bottom_ = b;
+        if (checkValue && (IsEmpty() || CheckIfHasAbnormalValue())) {
+            SetEmpty();
+        }
+    }
+
+    Rect(const RectI& r, bool checkValue = true)
+    {
+        left_ = r.left_;
+        top_ = r.top_;
+        right_ = r.GetRight();
+        bottom_ = r.GetBottom();
+        if (checkValue && (IsEmpty() || CheckIfHasAbnormalValue())) {
+            SetEmpty();
+        }
+    }
+
+    void SetEmpty()
+    {
+        left_ = 0;
+        top_ = 0;
+        right_ = 0;
+        bottom_ = 0;
+    }
+
+    bool CheckIfHasAbnormalValue()
+    {
+        bool hasAbnormalValue = false;
+        if (left_ < MIN_REGION_VALUE || left_ > MAX_REGION_VALUE) {
+            hasAbnormalValue = true;
+        }
+        if (top_ < MIN_REGION_VALUE || top_ > MAX_REGION_VALUE) {
+            hasAbnormalValue = true;
+        }
+        if (right_ < MIN_REGION_VALUE || right_ > MAX_REGION_VALUE) {
+            hasAbnormalValue = true;
+        }
+        if (bottom_ < MIN_REGION_VALUE || bottom_ > MAX_REGION_VALUE) {
+            hasAbnormalValue = true;
+        }
+        if (hasAbnormalValue) {
+            RS_LOGE("Occlusion::Rect initialized with invalid value, [%{public}d, %{public}d, %{public}d, %{public}d], \
+                should in range [%{public}d, %{public}d]",
+                left_, top_, right_, bottom_, MIN_REGION_VALUE, MAX_REGION_VALUE);
+        }
+        return hasAbnormalValue;
+    }
 
     bool IsEmpty() const
     {
@@ -222,18 +276,18 @@ public:
     }
     bool IsEmpty() const
     {
-        return rects_.size() == 0;
+        return rects_.size() == 0 || bound_.IsEmpty();
     }
     std::string GetRegionInfo() const
     {
         std::string info;
-        if (rects_.size() > 0) {
+        if (IsEmpty()) {
+            info = "Region [Empty]";
+        } else {
             info = "Region " + std::to_string(rects_.size()) + ": ";
             for (auto& r : rects_) {
                 info.append(r.GetRectInfo());
             }
-        } else {
-            info = "Region [Empty]";
         }
         return info;
     }

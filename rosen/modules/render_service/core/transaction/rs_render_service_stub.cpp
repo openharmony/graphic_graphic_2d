@@ -32,17 +32,21 @@ private:
 int RSRenderServiceStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
-    if (!securityManager_.IsAccessTimesRestricted(code, securityUtils_.GetCodeAccessCounter(code))) {
-        RS_LOGE("RSRenderServiceStub::OnRemoteRequest no permission to access codeID=%{public}u by "
-                "pid=%{public}d with accessTimes = %{public}d.",
-            code, GetCallingPid(), securityUtils_.GetCodeAccessCounter(code));
+#ifdef ENABLE_IPC_SECURITY_ACCESS_COUNTER
+    auto accessCount = securityUtils_.GetCodeAccessCounter(code);
+    if (!securityManager_.IsAccessTimesRestricted(code, accessCount)) {
+        RS_LOGE("RSRenderServiceStub::OnRemoteRequest This Function[ID=%{public}u] invoke times:%{public}d"
+            "by pid[%{public}d]", code, accessCount, GetCallingPid());
         return ERR_INVALID_STATE;
     }
+#endif
     if (!securityManager_.IsInterfaceCodeAccessible(code)) {
         RS_LOGE("RSRenderServiceStub::OnRemoteRequest no permission to access codeID=%{public}u.", code);
         return ERR_INVALID_STATE;
     }
+#ifdef ENABLE_IPC_SECURITY_ACCESS_COUNTER
     securityUtils_.IncreaseAccessCounter(code);
+#endif
     int ret = ERR_NONE;
     switch (code) {
         case static_cast<uint32_t>(RSIRenderServiceInterfaceCode::CREATE_CONNECTION): {

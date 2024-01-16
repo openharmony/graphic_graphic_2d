@@ -264,6 +264,41 @@ HWTEST_F(NativeBufferTest, OHNativeBufferGetNativeBufferConfig001, Function | Me
 }
 
 /*
+* Function: OH_NativeBuffer_SetColorSpace
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeBuffer_SetColorSpace by abnormal input
+*                  2. check ret
+*/
+HWTEST_F(NativeBufferTest, OHNativeBufferSetColorSpace001, Function | MediumTest | Level2)
+{
+    int32_t ret = OH_NativeBuffer_SetColorSpace(nullptr, OH_COLORSPACE_DISPLAY_BT2020_PQ);
+    ASSERT_NE(ret, GSERROR_OK);
+}
+
+/*
+* Function: OH_NativeBuffer_SetColorSpace
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeBuffer_SetColorSpace
+*                  2. check ret
+*/
+HWTEST_F(NativeBufferTest, OHNativeBufferSetColorSpace002, Function | MediumTest | Level2)
+{
+    if (buffer == nullptr) {
+        buffer = OH_NativeBuffer_Alloc(&config);
+        ASSERT_NE(buffer, nullptr);
+    }
+
+    int32_t ret = OH_NativeBuffer_SetColorSpace(buffer, OH_COLORSPACE_BT709_LIMIT);
+    if (ret != GSERROR_NOT_SUPPORT) { // some device not support set colorspace
+        ASSERT_EQ(ret, GSERROR_OK);
+    }
+}
+
+/*
 * Function: OH_NativeBuffer_Map
 * Type: Function
 * Rank: Important(2)

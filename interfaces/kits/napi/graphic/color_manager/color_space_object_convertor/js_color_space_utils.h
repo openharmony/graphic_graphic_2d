@@ -17,12 +17,13 @@
 #define OHOS_JS_COLOR_SPACE_UTILS_H
 
 #include <map>
+#include <string>
 #include <hilog/log.h>
 
 #include "color_space.h"
 #include "color_manager_common.h"
-#include "native_engine/native_engine.h"
-#include "native_engine/native_value.h"
+#include "napi/native_api.h"
+#include "napi/native_node_api.h"
 
 namespace OHOS {
 namespace ColorManager {
@@ -42,8 +43,33 @@ enum class ApiColorSpaceType : uint32_t {
     DCI_P3 = 2,
     DISPLAY_P3 = 3,
     SRGB = 4,
+    BT709 = 6,
+    BT601_EBU = 7,
+    BT601_SMPTE_C = 8,
+    BT2020_HLG = 9,
+    BT2020_PQ = 10,
+    P3_HLG = 11,
+    P3_PQ = 12,
+    ADOBE_RGB_1998_LIMIT = 13,
+    DISPLAY_P3_LIMIT = 14,
+    SRGB_LIMIT = 15,
+    BT709_LIMIT = 16,
+    BT601_EBU_LIMIT = 17,
+    BT601_SMPTE_C_LIMIT = 18,
+    BT2020_HLG_LIMIT = 19,
+    BT2020_PQ_LIMIT = 20,
+    P3_HLG_LIMIT = 21,
+    P3_PQ_LIMIT = 22,
+    LINEAR_P3 = 23,
+    LINEAR_SRGB = 24,
+    LINEAR_BT709 = LINEAR_SRGB,
+    LINEAR_BT2020 = 25,
+    DISPLAY_SRGB = SRGB,
+    DISPLAY_P3_SRGB = DISPLAY_P3,
+    DISPLAY_P3_HLG = P3_HLG,
+    DISPLAY_P3_PQ = P3_PQ,
     CUSTOM = 5,
-    TYPE_END
+    TYPE_END = 26
 };
 
 const std::map<ColorSpaceName, ApiColorSpaceType> NATIVE_TO_JS_COLOR_SPACE_TYPE_MAP {
@@ -52,6 +78,31 @@ const std::map<ColorSpaceName, ApiColorSpaceType> NATIVE_TO_JS_COLOR_SPACE_TYPE_
     { ColorSpaceName::DCI_P3, ApiColorSpaceType::DCI_P3 },
     { ColorSpaceName::DISPLAY_P3, ApiColorSpaceType::DISPLAY_P3 },
     { ColorSpaceName::SRGB, ApiColorSpaceType::SRGB },
+    { ColorSpaceName::BT709, ApiColorSpaceType::BT709 },
+    { ColorSpaceName::BT601_EBU, ApiColorSpaceType::BT601_EBU },
+    { ColorSpaceName::BT601_SMPTE_C, ApiColorSpaceType::BT601_SMPTE_C },
+    { ColorSpaceName::BT2020_HLG, ApiColorSpaceType::BT2020_HLG },
+    { ColorSpaceName::BT2020_PQ, ApiColorSpaceType::BT2020_PQ },
+    { ColorSpaceName::P3_HLG, ApiColorSpaceType::P3_HLG },
+    { ColorSpaceName::P3_PQ, ApiColorSpaceType::P3_PQ },
+    { ColorSpaceName::ADOBE_RGB_LIMIT, ApiColorSpaceType::ADOBE_RGB_1998_LIMIT },
+    { ColorSpaceName::DISPLAY_P3_LIMIT, ApiColorSpaceType::DISPLAY_P3_LIMIT },
+    { ColorSpaceName::SRGB_LIMIT, ApiColorSpaceType::SRGB_LIMIT },
+    { ColorSpaceName::BT709_LIMIT, ApiColorSpaceType::BT709_LIMIT },
+    { ColorSpaceName::BT601_EBU_LIMIT, ApiColorSpaceType::BT601_EBU_LIMIT },
+    { ColorSpaceName::BT601_SMPTE_C_LIMIT, ApiColorSpaceType::BT601_SMPTE_C_LIMIT },
+    { ColorSpaceName::BT2020_HLG_LIMIT, ApiColorSpaceType::BT2020_HLG_LIMIT },
+    { ColorSpaceName::BT2020_PQ_LIMIT, ApiColorSpaceType::BT2020_PQ_LIMIT },
+    { ColorSpaceName::P3_HLG_LIMIT, ApiColorSpaceType::P3_HLG_LIMIT },
+    { ColorSpaceName::P3_PQ_LIMIT, ApiColorSpaceType::P3_PQ_LIMIT },
+    { ColorSpaceName::LINEAR_P3, ApiColorSpaceType::LINEAR_P3 },
+    { ColorSpaceName::LINEAR_SRGB, ApiColorSpaceType::LINEAR_SRGB },
+    { ColorSpaceName::LINEAR_BT709, ApiColorSpaceType::LINEAR_BT709 },
+    { ColorSpaceName::LINEAR_BT2020, ApiColorSpaceType::LINEAR_BT2020 },
+    { ColorSpaceName::DISPLAY_SRGB, ApiColorSpaceType::DISPLAY_SRGB },
+    { ColorSpaceName::DISPLAY_P3_SRGB, ApiColorSpaceType::DISPLAY_P3_SRGB },
+    { ColorSpaceName::DISPLAY_P3_HLG, ApiColorSpaceType::DISPLAY_P3_HLG },
+    { ColorSpaceName::DISPLAY_P3_PQ, ApiColorSpaceType::DISPLAY_P3_PQ },
     { ColorSpaceName::CUSTOM, ApiColorSpaceType::CUSTOM },
 };
 
@@ -61,7 +112,66 @@ const std::map<ApiColorSpaceType, ColorSpaceName> JS_TO_NATIVE_COLOR_SPACE_NAME_
     { ApiColorSpaceType::DCI_P3, ColorSpaceName::DCI_P3 },
     { ApiColorSpaceType::DISPLAY_P3, ColorSpaceName::DISPLAY_P3 },
     { ApiColorSpaceType::SRGB, ColorSpaceName::SRGB },
+    { ApiColorSpaceType::BT709, ColorSpaceName::BT709 },
+    { ApiColorSpaceType::BT601_EBU, ColorSpaceName::BT601_EBU },
+    { ApiColorSpaceType::BT601_SMPTE_C, ColorSpaceName::BT601_SMPTE_C },
+    { ApiColorSpaceType::BT2020_HLG, ColorSpaceName::BT2020_HLG },
+    { ApiColorSpaceType::BT2020_PQ, ColorSpaceName::BT2020_PQ },
+    { ApiColorSpaceType::P3_HLG, ColorSpaceName::P3_HLG },
+    { ApiColorSpaceType::P3_PQ, ColorSpaceName::P3_PQ },
+    { ApiColorSpaceType::ADOBE_RGB_1998_LIMIT, ColorSpaceName::ADOBE_RGB_LIMIT },
+    { ApiColorSpaceType::DISPLAY_P3_LIMIT, ColorSpaceName::DISPLAY_P3_LIMIT },
+    { ApiColorSpaceType::SRGB_LIMIT, ColorSpaceName::SRGB_LIMIT },
+    { ApiColorSpaceType::BT709_LIMIT, ColorSpaceName::BT709_LIMIT },
+    { ApiColorSpaceType::BT601_EBU_LIMIT, ColorSpaceName::BT601_EBU_LIMIT },
+    { ApiColorSpaceType::BT601_SMPTE_C_LIMIT, ColorSpaceName::BT601_SMPTE_C_LIMIT },
+    { ApiColorSpaceType::BT2020_HLG_LIMIT, ColorSpaceName::BT2020_HLG_LIMIT },
+    { ApiColorSpaceType::BT2020_PQ_LIMIT, ColorSpaceName::BT2020_PQ_LIMIT },
+    { ApiColorSpaceType::P3_HLG_LIMIT, ColorSpaceName::P3_HLG_LIMIT },
+    { ApiColorSpaceType::P3_PQ_LIMIT, ColorSpaceName::P3_PQ_LIMIT },
+    { ApiColorSpaceType::LINEAR_P3, ColorSpaceName::LINEAR_P3 },
+    { ApiColorSpaceType::LINEAR_SRGB, ColorSpaceName::LINEAR_SRGB },
+    { ApiColorSpaceType::LINEAR_BT709, ColorSpaceName::LINEAR_BT709 },
+    { ApiColorSpaceType::LINEAR_BT2020, ColorSpaceName::LINEAR_BT2020 },
+    { ApiColorSpaceType::DISPLAY_SRGB, ColorSpaceName::DISPLAY_SRGB },
+    { ApiColorSpaceType::DISPLAY_P3_SRGB, ColorSpaceName::DISPLAY_P3_SRGB },
+    { ApiColorSpaceType::DISPLAY_P3_HLG, ColorSpaceName::DISPLAY_P3_HLG },
+    { ApiColorSpaceType::DISPLAY_P3_PQ, ColorSpaceName::DISPLAY_P3_PQ },
     { ApiColorSpaceType::CUSTOM, ColorSpaceName::CUSTOM },
+};
+
+const std::map<std::string, ApiColorSpaceType> STRING_TO_JS_MAP = {
+    { "UNKNOWN", ApiColorSpaceType::UNKNOWN },
+    { "ADOBE_RGB_1998", ApiColorSpaceType::ADOBE_RGB_1998 },
+    { "DCI_P3", ApiColorSpaceType::DCI_P3 },
+    { "DISPLAY_P3", ApiColorSpaceType::DISPLAY_P3 },
+    { "SRGB", ApiColorSpaceType::SRGB },
+    { "BT709", ApiColorSpaceType::BT709 },
+    { "BT601_EBU", ApiColorSpaceType::BT601_EBU },
+    { "BT601_SMPTE_C", ApiColorSpaceType::BT601_SMPTE_C },
+    { "BT2020_HLG", ApiColorSpaceType::BT2020_HLG },
+    { "BT2020_PQ", ApiColorSpaceType::BT2020_PQ },
+    { "P3_HLG", ApiColorSpaceType::P3_HLG },
+    { "P3_PQ", ApiColorSpaceType::P3_PQ },
+    { "ADOBE_RGB_1998_LIMIT", ApiColorSpaceType::ADOBE_RGB_1998_LIMIT },
+    { "DISPLAY_P3_LIMIT", ApiColorSpaceType::DISPLAY_P3_LIMIT },
+    { "SRGB_LIMIT", ApiColorSpaceType::SRGB_LIMIT },
+    { "BT709_LIMIT", ApiColorSpaceType::BT709_LIMIT },
+    { "BT601_EBU_LIMIT", ApiColorSpaceType::BT601_EBU_LIMIT },
+    { "BT601_SMPTE_C_LIMIT", ApiColorSpaceType::BT601_SMPTE_C_LIMIT },
+    { "BT2020_HLG_LIMIT", ApiColorSpaceType::BT2020_HLG_LIMIT },
+    { "BT2020_PQ_LIMIT", ApiColorSpaceType::BT2020_PQ_LIMIT },
+    { "P3_HLG_LIMIT", ApiColorSpaceType::P3_HLG_LIMIT },
+    { "P3_PQ_LIMIT", ApiColorSpaceType::P3_PQ_LIMIT },
+    { "LINEAR_P3", ApiColorSpaceType::LINEAR_P3 },
+    { "LINEAR_SRGB", ApiColorSpaceType::LINEAR_SRGB },
+    { "LINEAR_BT709", ApiColorSpaceType::LINEAR_BT709 },
+    { "LINEAR_BT2020", ApiColorSpaceType::LINEAR_BT2020 },
+    { "DISPLAY_SRGB", ApiColorSpaceType::DISPLAY_SRGB },
+    { "DISPLAY_P3_SRGB", ApiColorSpaceType::DISPLAY_P3_SRGB },
+    { "DISPLAY_P3_HLG", ApiColorSpaceType::DISPLAY_P3_HLG },
+    { "DISPLAY_P3_PQ", ApiColorSpaceType::DISPLAY_P3_PQ },
+    { "CUSTOM", ApiColorSpaceType::CUSTOM },
 };
 
 template<class T>

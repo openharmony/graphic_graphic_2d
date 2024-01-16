@@ -62,6 +62,14 @@ Filter::FilterQuality Filter::GetFilterQuality() const
     return filterQuality_;
 }
 
+void Filter::Reset()
+{
+    colorFilter_ = nullptr;
+    imageFilter_ = nullptr;
+    maskFilter_ = nullptr;
+    filterQuality_ = FilterQuality::NONE;
+}
+
 bool operator==(const Filter& f1, const Filter& f2)
 {
     return f1.colorFilter_ == f2.colorFilter_ && f1.imageFilter_ == f2.imageFilter_ &&

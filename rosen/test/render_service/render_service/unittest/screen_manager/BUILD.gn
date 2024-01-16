@@ -52,6 +52,9 @@ ohos_unittest("RSScreenManagerTest") {
     "hilog:libhilog",
     "init:libbegetutil",
   ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
 
   subsystem_name = "graphic"
 }

@@ -23,14 +23,25 @@ config("render_service_client_config") {
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/interfaces/inner_api/surface",
     "$graphic_2d_root/interfaces/inner_api/composer",
+    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text/",
+
     "//drivers/peripheral/display/interfaces/include",
     "//drivers/peripheral/base",
+    "$graphic_2d_root/frameworks/surface/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics",
   ]
   defines = rs_common_define
 }
 
 template("render_service_client_source_set") {
   ohos_source_set(target_name) {
+    branch_protector_ret = "pac_ret"
+    sanitize = {
+      cfi = false
+      cfi_cross_dso = false
+      debug = false
+      blocklist = "./rs_client_blocklist.txt"
+    }
     defines = []
     defines += gpu_defines
     defines += [ "MODULE_RSC" ]
@@ -39,6 +50,7 @@ template("render_service_client_source_set") {
       "$graphic_2d_root/rosen/modules/2d_graphics/src",
       "$graphic_2d_root/rosen/modules/render_frame_trace/include",
       "$graphic_2d_root/rosen/modules/render_service_base/src",
+      "$graphic_2d_root/utils/color_manager/export",
       "$graphic_2d_root/utils/log",
       "$graphic_2d_root/utils/sandbox",
     ]
@@ -58,6 +70,7 @@ template("render_service_client_source_set") {
       "core/animation/rs_path_animation.cpp",
       "core/animation/rs_property_animation.cpp",
       "core/animation/rs_spring_animation.cpp",
+      "core/animation/rs_symbol_animation.cpp",
       "core/animation/rs_transition.cpp",
       "core/animation/rs_transition_effect.cpp",
 
@@ -92,15 +105,22 @@ template("render_service_client_source_set") {
       "core/ui/rs_canvas_node.cpp",
       "core/ui/rs_display_node.cpp",
       "core/ui/rs_effect_node.cpp",
+      "core/ui/rs_frame_rate_linker.cpp",
       "core/ui/rs_frame_rate_policy.cpp",
       "core/ui/rs_node.cpp",
       "core/ui/rs_proxy_node.cpp",
       "core/ui/rs_root_node.cpp",
       "core/ui/rs_surface_extractor.cpp",
       "core/ui/rs_surface_node.cpp",
+      "core/ui/rs_texture_export.cpp",
       "core/ui/rs_ui_director.cpp",
       "core/ui/rs_ui_share_context.cpp",
     ]
+
+    if (is_cross_platform) {
+      #ui
+      sources -= [ "core/ui/rs_display_node.cpp" ]
+    }
 
     if (defined(graphic_2d_ext_configs.vendor_root)) {
       sources += graphic_2d_ext_configs.librender_service_client_ext_sources
@@ -148,8 +168,11 @@ template("render_service_client_source_set") {
       }
     }
     if (rosen_is_ohos) {
-      public_deps +=
-          [ "$graphic_2d_root/rosen/modules/frame_analyzer:libframe_analyzer" ]
+      public_deps += [
+        "$graphic_2d_root:libsurface",
+        "$graphic_2d_root/rosen/modules/frame_analyzer:libframe_analyzer",
+        "$graphic_2d_root/utils/color_manager:color_manager",
+      ]
       external_deps = [
         "c_utils:utils",
         "hisysevent:libhisysevent",
@@ -215,23 +238,31 @@ render_service_client_source_set("render_service_client_src_static") {
   is_static_lib = true
 }
 
+config("render_service_client_link_config") {
+  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
+    ldflags = [
+      "-Wl,--lto-O2",
+      "-Wl,-mllvm",
+      "-Wl,-wholeprogramdevirt-check=fallback",
+      "-Wl,-Bsymbolic",
+    ]
+  }
+}
+
 ohos_shared_library("librender_service_client") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = false
+    cfi_cross_dso = false
+    debug = false
+    blocklist = "./rs_client_blocklist.txt"
+  }
   public_deps = [ ":render_service_client_src" ]
   external_deps = [ "hilog:libhilog" ]
   innerapi_tags = [ "platformsdk" ]
 
-  ldflags = []
-
-  if (is_ohos && enhanced_opt) {
-    ldflags += [ "-Wl,-Bsymbolic" ]
-  }
-
-  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64") &&
-      enhanced_opt) {
-    ldflags += [
-      "-Wl,-mllvm",
-      "-Wl,-wholeprogramdevirt-check=fallback",
-    ]
+  if (enhanced_opt) {
+    configs = [ ":render_service_client_link_config" ]
   }
 
   part_name = "graphic_2d"
@@ -239,6 +270,13 @@ ohos_shared_library("librender_service_client") {
 }
 
 ohos_source_set("librender_service_client_static") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = false
+    cfi_cross_dso = false
+    debug = false
+    blocklist = "./rs_client_blocklist.txt"
+  }
   public_deps = [ ":render_service_client_src_static" ]
   deps = [ "$rosen_root/modules/platform:eventhandler" ]
   part_name = "graphic_2d"

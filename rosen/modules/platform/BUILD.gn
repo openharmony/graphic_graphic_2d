@@ -16,11 +16,7 @@ import("//foundation/graphic/graphic_2d/rosen/modules/platform/config.gni")
 
 # ace_skia {{{
 group("ace_skia") {
-  if (defined(use_new_skia) && use_new_skia) {
-    public_deps = [ "//third_party/skia:skia_$platform" ]
-  } else {
-    public_deps = [ "//third_party/flutter/build/skia:ace_skia_$platform" ]
-  }
+  public_deps = [ "//third_party/skia:skia_$platform" ]
 }
 
 # ace_skia }}}
@@ -97,6 +93,7 @@ ohos_source_set("mock_image_native") {
   public_configs = [ ":image_native_config" ]
   sources = [ "image_native/pixel_map.cpp" ]
   deps = [ ":utils" ]
+  cflags = [ "-DIMAGE_COLORSPACE_FLAG" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

@@ -22,6 +22,7 @@
 #include "include/gpu/gl/GrGLInterface.h"
 #include "rs_trace.h"
 #include "sk_image_chain.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {

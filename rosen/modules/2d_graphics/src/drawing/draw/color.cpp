@@ -148,11 +148,6 @@ void Color::SetColorQuad(uint32_t c)
     blue_ = Color::ColorQuadGetB(c);
 }
 
-ColorQuad Color::CastToColorQuad() const
-{
-    return Color::ColorQuadSetARGB(red_, green_, blue_, alpha_);
-}
-
 bool operator==(const Color& c1, const Color& c2)
 {
     return c1.alpha_ == c2.alpha_ && c1.red_ == c2.red_ && c1.green_ == c2.green_ && c1.blue_ == c2.blue_;

@@ -18,6 +18,9 @@
 #include <codecvt>
 #include <iomanip>
 #include <securec.h>
+#ifdef BUILD_NON_SDK_VER
+#include <iconv.h>
+#endif
 
 #include "font_config.h"
 #include "texgine/utils/exlog.h"
@@ -65,25 +68,41 @@ void FontParser::GetStringFromNameId(FontParser::NameId nameId, const std::strin
     switch (nameId) {
         case FontParser::NameId::FONT_FAMILY: {
             if (fontDescriptor.fontFamily.size() == 0) {
+#ifdef BUILD_NON_SDK_VER
+                fontDescriptor.fontFamily = GbkToUtf8(nameString);
+#else
                 fontDescriptor.fontFamily = nameString;
+#endif
             }
             break;
         }
         case FontParser::NameId::FONT_SUBFAMILY: {
             if (fontDescriptor.fontSubfamily.size() == 0) {
+#ifdef BUILD_NON_SDK_VER
+                fontDescriptor.fontSubfamily = GbkToUtf8(nameString);
+#else
                 fontDescriptor.fontSubfamily = nameString;
+#endif
             }
             break;
         }
         case FontParser::NameId::FULL_NAME: {
             if (fontDescriptor.fullName.size() == 0) {
+#ifdef BUILD_NON_SDK_VER
+                fontDescriptor.fullName = GbkToUtf8(nameString);
+#else
                 fontDescriptor.fullName = nameString;
+#endif
             }
             break;
         }
         case FontParser::NameId::POSTSCRIPT_NAME: {
             if (fontDescriptor.postScriptName.size() == 0) {
+#ifdef BUILD_NON_SDK_VER
+                fontDescriptor.postScriptName = GbkToUtf8(nameString);
+#else
                 fontDescriptor.postScriptName = nameString;
+#endif
             }
             break;
         }
@@ -152,17 +171,17 @@ void FontParser::ProcessPostTable(const struct PostTable* postTable, FontParser:
     }
 }
 
-int FontParser::ParseCmapTable(sk_sp<SkTypeface> typeface, FontParser::FontDescriptor& fontDescriptor)
+int FontParser::ParseCmapTable(std::shared_ptr<TexgineTypeface> typeface, FontParser::FontDescriptor& fontDescriptor)
 {
     auto tag = HB_TAG('c', 'm', 'a', 'p');
-    auto size = typeface->getTableSize(tag);
+    auto size = typeface->GetTableSize(tag);
     if (size <= 0) {
         LOGSO_FUNC_LINE(ERROR) << "haven't cmap";
         return FAILED;
     }
     std::unique_ptr<char[]> tableData = nullptr;
     tableData = std::make_unique<char[]>(size);
-    auto retTableData = typeface->getTableData(tag, 0, size, tableData.get());
+    auto retTableData = typeface->GetTableData(tag, 0, size, tableData.get());
     if (size != retTableData) {
         LOGSO_FUNC_LINE(ERROR) <<"get table data failed size: " << size << ", ret: " << retTableData;
         return FAILED;
@@ -183,17 +202,17 @@ int FontParser::ParseCmapTable(sk_sp<SkTypeface> typeface, FontParser::FontDescr
     return SUCCESSED;
 }
 
-int FontParser::ParseNameTable(sk_sp<SkTypeface> typeface, FontParser::FontDescriptor& fontDescriptor)
+int FontParser::ParseNameTable(std::shared_ptr<TexgineTypeface> typeface, FontParser::FontDescriptor& fontDescriptor)
 {
     auto tag = HB_TAG('n', 'a', 'm', 'e');
-    auto size = typeface->getTableSize(tag);
+    auto size = typeface->GetTableSize(tag);
     if (size <= 0) {
         LOGSO_FUNC_LINE(ERROR) << "haven't name";
         return FAILED;
     }
     std::unique_ptr<char[]> tableData = nullptr;
     tableData = std::make_unique<char[]>(size);
-    auto retTableData = typeface->getTableData(tag, 0, size, tableData.get());
+    auto retTableData = typeface->GetTableData(tag, 0, size, tableData.get());
     if (size != retTableData) {
         LOGSO_FUNC_LINE(ERROR) <<"get table data failed size: " << size << ", ret: " << retTableData;
         return FAILED;
@@ -218,17 +237,17 @@ int FontParser::ParseNameTable(sk_sp<SkTypeface> typeface, FontParser::FontDescr
     return SUCCESSED;
 }
 
-int FontParser::ParsePostTable(sk_sp<SkTypeface> typeface, FontParser::FontDescriptor& fontDescriptor)
+int FontParser::ParsePostTable(std::shared_ptr<TexgineTypeface> typeface, FontParser::FontDescriptor& fontDescriptor)
 {
     auto tag = HB_TAG('p', 'o', 's', 't');
-    auto size = typeface->getTableSize(tag);
+    auto size = typeface->GetTableSize(tag);
     if (size <= 0) {
         LOGSO_FUNC_LINE(ERROR) << "haven't post";
         return FAILED;
     }
     std::unique_ptr<char[]> tableData = nullptr;
     tableData = std::make_unique<char[]>(size);
-    auto retTableData = typeface->getTableData(tag, 0, size, tableData.get());
+    auto retTableData = typeface->GetTableData(tag, 0, size, tableData.get());
     if (size != retTableData) {
         LOGSO_FUNC_LINE(ERROR) <<"get table data failed size: " << size << ", ret: " << retTableData;
         return FAILED;
@@ -249,7 +268,7 @@ int FontParser::ParsePostTable(sk_sp<SkTypeface> typeface, FontParser::FontDescr
     return SUCCESSED;
 }
 
-int FontParser::ParseTable(sk_sp<SkTypeface> typeface, FontParser::FontDescriptor& fontDescriptor)
+int FontParser::ParseTable(std::shared_ptr<TexgineTypeface> typeface, FontParser::FontDescriptor& fontDescriptor)
 {
     if (ParseCmapTable(typeface, fontDescriptor) != SUCCESSED) {
         LOGSO_FUNC_LINE(ERROR) << "parse cmap failed";
@@ -273,14 +292,18 @@ int FontParser::SetFontDescriptor()
         FontParser::FontDescriptor fontDescriptor;
         fontDescriptor.path = fontSet_[i];
         const char* path = fontSet_[i].c_str();
-        auto typeface = SkTypeface::MakeFromFile(path);
+        auto typeface = TexgineTypeface::MakeFromFile(path);
         if (typeface == nullptr) {
             LOGSO_FUNC_LINE(ERROR) << "typeface is nullptr, can not parse: " << fontDescriptor.path;
             continue;
         }
-        auto fontStyle = typeface->fontStyle();
-        fontDescriptor.weight = fontStyle.weight();
-        fontDescriptor.width = fontStyle.width();
+        auto fontStyle = typeface->GetFontStyle();
+        if (fontStyle == nullptr) {
+            LOGSO_FUNC_LINE(ERROR) << "fontStyle is nullptr, can not parse: " << fontDescriptor.path;
+            continue;
+        }
+        fontDescriptor.weight = fontStyle->GetWeight();
+        fontDescriptor.width = fontStyle->GetWidth();
         if (ParseTable(typeface, fontDescriptor) !=  SUCCESSED) {
             LOGSO_FUNC_LINE(ERROR) << "parse table failed";
             return FAILED;
@@ -290,6 +313,30 @@ int FontParser::SetFontDescriptor()
 
     return SUCCESSED;
 }
+
+#ifdef BUILD_NON_SDK_VER
+std::string FontParser::GbkToUtf8(const std::string& gbkStr)
+{
+    std::string utf8Str;
+    // UTF-8 and GBK is encoding format of string
+    iconv_t conv = iconv_open("UTF-8", "GBK");
+    if (conv == (iconv_t)-1) {
+        return utf8Str;
+    }
+    char* inBuf = const_cast<char*>(gbkStr.c_str());
+    size_t inBytesLeft = gbkStr.length();
+    size_t outBytesLeft = inBytesLeft * 2;
+    char* outBuf = new char[outBytesLeft];
+    char* outBufStart = outBuf;
+    size_t res = iconv(conv, &inBuf, &inBytesLeft, &outBuf, &outBytesLeft);
+    if (res != (size_t)-1) {
+        utf8Str.assign(outBufStart, outBuf - outBufStart);
+    }
+    delete[] outBufStart;
+    iconv_close(conv);
+    return utf8Str;
+}
+#endif
 
 std::vector<FontParser::FontDescriptor> FontParser::GetVisibilityFonts()
 {

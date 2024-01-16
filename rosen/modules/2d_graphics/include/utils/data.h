@@ -44,6 +44,17 @@ public:
     bool BuildWithCopy(const void* data, size_t length);
 
     /*
+     * @brief         Create a new dataref, taking the ptr as is,
+                      and using the releaseproc to free it. The proc may be NULL.
+     * @param ptr     A pointer to data. It must not be nullptr.
+     * @param length  Length of data.
+     * @param proc    release callback func.
+     * @param ctx     context, usually nullptr.
+     * @return        If create Data successed, return true.
+     */
+    bool BuildWithProc(const void* ptr, size_t length, DataReleaseProc proc, void* ctx);
+
+    /*
      * @brief         Create a new Data. When Data is destroyed, data isn't released.
      * @param data    A pointer to data.
      * @param length  Length of data.
@@ -57,6 +68,8 @@ public:
      * @return        If create Data successed, return true.
      */
     bool BuildUninitialized(size_t length);
+
+    bool BuildEmpty();
 
     /*
      * @brief   Gets a writable pointer to Data buffer.
@@ -76,12 +89,19 @@ public:
      */
     const void* GetData() const;
 
+    /**
+     * @brief         Create a new data with the specified path.
+     * @param length  The specified path.
+     * @return        A shared pointer to Data.
+     */
+    static std::shared_ptr<Data> MakeFromFileName(const char path[]);
+
     /*
      * @brief   Get the adaptation layer instance, called in the adaptation layer.
      * @return  Adaptation Layer instance.
      */
     template<typename T>
-    const std::shared_ptr<T> GetImpl() const
+    T* GetImpl() const
     {
         return impl_->DowncastingTo<T>();
     }
