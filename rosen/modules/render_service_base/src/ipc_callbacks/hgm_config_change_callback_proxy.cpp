@@ -42,7 +42,7 @@ void RSHgmConfigChangeCallbackProxy::OnHgmConfigChanged(std::shared_ptr<RSHgmCon
     uint32_t code = static_cast<uint32_t>(RSIHgmConfigChangeCallbackInterfaceCode::ON_HGM_CONFIG_CHANGED);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSHgmConfigChangeCallbackProxy::OnHgmConfigChanged error = %d", err);
+        ROSEN_LOGE("RSHgmConfigChangeCallbackProxy::OnHgmConfigChanged error = %{public}d", err);
     }
 }
 
@@ -62,7 +62,7 @@ void RSHgmConfigChangeCallbackProxy::OnHgmRefreshRateModeChanged(int32_t refresh
         static_cast<uint32_t>(RSIHgmConfigChangeCallbackInterfaceCode::ON_HGM_REFRESH_RATE_MODE_CHANGED);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSHgmRefreshRateModeChangeCallbackProxy::OnHgmRefreshRateModeChanged error = %d", err);
+        ROSEN_LOGE("RSHgmRefreshRateModeChangeCallbackProxy::OnHgmRefreshRateModeChanged error = %{public}d", err);
     }
 }
 } // namespace Rosen

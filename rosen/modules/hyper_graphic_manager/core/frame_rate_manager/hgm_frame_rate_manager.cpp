@@ -90,12 +90,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
             CreateVSyncGenerator()->SetVSyncMode(VSYNC_MODE_LTPS);
         }
 
-        auto callbacks = HgmConfigCallbackManager::GetInstance()->GetRefreshRateModeCallbacks();
-        for (const auto [_, callback] : callbacks) {
-            if (callback) {
-                callback->OnHgmRefreshRateModeChanged(mode);
-            }
-        }
+        HgmConfigCallbackManager::GetInstance()->SyncRefreshRateModeChangeCallback(mode);
     });
     controller_ = std::make_shared<HgmVSyncGeneratorController>(rsController, appController, vsyncGenerator);
 }
