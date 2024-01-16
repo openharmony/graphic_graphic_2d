@@ -35,7 +35,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr size_t MAX_DATA_SIZE_FOR_UNMARSHALLING_IN_PLACE = 1024 * 30; // 30kB
+constexpr size_t MAX_DATA_SIZE_FOR_UNMARSHALLING_IN_PLACE = 1024 * 15; // 15kB
 constexpr size_t FILE_DESCRIPTOR_LIMIT = 15;
 constexpr size_t MAX_OBJECTNUM = INT_MAX;
 constexpr size_t MAX_DATA_SIZE = INT_MAX;
