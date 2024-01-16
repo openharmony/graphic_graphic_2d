@@ -73,7 +73,7 @@ void OH_Drawing_PointDestroy(OH_Drawing_Point*);
  * @param y Indicates the y-axis coordinates of the point.
  * @param z Indicates the z-axis coordinates of the point.
  * @return Returns the pointer to the <b>OH_Drawing_Point3</b> object created.
- * @since 11
+ * @since 12
  * @version 1.0
  */
 OH_Drawing_Point3* OH_Drawing_Point3Create(float x, float y, float z);
@@ -83,7 +83,7 @@ OH_Drawing_Point3* OH_Drawing_Point3Create(float x, float y, float z);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Point3 Indicates the pointer to an <b>OH_Drawing_Point3</b> object.
- * @since 11
+ * @since 12
  * @version 1.0
  */
 void OH_Drawing_Point3Destroy(OH_Drawing_Point3*);

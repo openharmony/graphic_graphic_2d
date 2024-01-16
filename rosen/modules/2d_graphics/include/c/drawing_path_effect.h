@@ -24,7 +24,7 @@
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  *
- * @since 11
+ * @since 12
  * @version 1.0
  */
 
@@ -33,7 +33,7 @@
  *
  * @brief Declares functions related to the <b>pathEffect</b> object in the drawing module.
  *
- * @since 11
+ * @since 12
  * @version 1.0
  */
 
@@ -51,7 +51,7 @@ extern "C" {
  * @param count Indicates the number of elements of the intervals array.
  * @param phase Indicates the offset into the intervals array.
  * @return Returns the pointer to the <b>OH_Drawing_PathEffect</b> object created.
- * @since 11
+ * @since 12
  * @version 1.0
  */
 OH_Drawing_PathEffect* OH_Drawing_CreateDashPathEffect(float* intervals, int count, float phase);
@@ -61,7 +61,7 @@ OH_Drawing_PathEffect* OH_Drawing_CreateDashPathEffect(float* intervals, int cou
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_PathEffect Indicates the pointer to an <b>OH_Drawing_PathEffect</b> object.
- * @since 11
+ * @since 12
  * @version 1.0
  */
 void OH_Drawing_PathEffectDestroy(OH_Drawing_PathEffect*);

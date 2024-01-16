@@ -14,8 +14,8 @@
  */
 
 #include "c/drawing_path_effect.h"
-#include <unordered_map>
 
+#include <unordered_map>
 #include "effect/path_effect.h"
 
 using namespace OHOS;

@@ -368,7 +368,7 @@ void OH_Drawing_CanvasClear(OH_Drawing_Canvas*, uint32_t color);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
- * @since 11
+ * @since 12
  * @version 1.0
  */
 int32_t OH_Drawing_CanvasGetWidth(OH_Drawing_Canvas*);
@@ -378,7 +378,7 @@ int32_t OH_Drawing_CanvasGetWidth(OH_Drawing_Canvas*);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
- * @since 11
+ * @since 12
  * @version 1.0
  */
 int32_t OH_Drawing_CanvasGetHeight(OH_Drawing_Canvas*);
@@ -390,7 +390,7 @@ int32_t OH_Drawing_CanvasGetHeight(OH_Drawing_Canvas*);
  * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
  * @return The pointer to an <b>OH_Drawing_Rect</b> object, represents the boundar of clip,
  * transformed by inverse of matrix.
- * @since 11
+ * @since 12
  * @version 1.0
  */
 OH_Drawing_Rect* OH_Drawing_CanvasGetLocalClipBounds(OH_Drawing_Canvas*);
@@ -402,7 +402,7 @@ OH_Drawing_Rect* OH_Drawing_CanvasGetLocalClipBounds(OH_Drawing_Canvas*);
  * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
  * @return The pointer to an <b>OH_Drawing_Matrix</b> object,
  * represents the transform form local coordinates to device
- * @since 11
+ * @since 12
  * @version 1.0
  */
 OH_Drawing_Matrix* OH_Drawing_CanvasGetLocalToDevice(OH_Drawing_Canvas*);
@@ -414,7 +414,7 @@ OH_Drawing_Matrix* OH_Drawing_CanvasGetLocalToDevice(OH_Drawing_Canvas*);
  * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
  * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object,
  * represents the matrix which is passed.
- * @since 11
+ * @since 12
  * @version 1.0
  */
 void OH_Drawing_CanvasConcatMatrix(OH_Drawing_Canvas*, OH_Drawing_Matrix*);
@@ -422,26 +422,26 @@ void OH_Drawing_CanvasConcatMatrix(OH_Drawing_Canvas*, OH_Drawing_Matrix*);
 /**
  * @brief Enumerates clip op.
  *
- * @since 11
+ * @since 12
  * @version 1.0
  */
 typedef enum {
     /**
      * Use no shadow flags.
      */
-    NONE,
+    SHADOW_FLAGS_NONE,
     /**
      * The occluding object is transparent.
      */
-    TRANSPARENT_OCCLUDER,
+    SHADOW_FLAGS_TRANSPARENT_OCCLUDER,
     /**
      * No need to analyze shadows.
      */
-    GEOMETRIC_ONLY,
+    SHADOW_FLAGS_GEOMETRIC_ONLY,
     /**
      * Use all shadow falgs.
      */
-    ALL,
+    SHADOW_FLAGS_ALL,
 } OH_Drawing_CanvasShadowFlags;
 
 /**
@@ -459,7 +459,7 @@ typedef enum {
  * @param ambientColor The color of the ambient shadow.
  * @param spotColor The color of the spot shadow.
  * @param flag Indicates the flag to control opaque occluder, shadow, and light position.
- * @since 11
+ * @since 12
  * @version 1.0
  */
 void OH_Drawing_CanvasDrawShadow(OH_Drawing_Canvas*, OH_Drawing_Path*, OH_Drawing_Point3*,

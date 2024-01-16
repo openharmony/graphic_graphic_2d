@@ -415,16 +415,16 @@ static ShadowFlags CClipOpCastToClipOp(OH_Drawing_CanvasShadowFlags cFlag)
     ShadowFlags shadowFlags = ShadowFlags::NONE;
     switch (cFlag)
     {
-    case OH_Drawing_CanvasShadowFlags::NONE:
+    case OH_Drawing_CanvasShadowFlags::SHADOW_FLAGS_NONE:
         shadowFlags = ShadowFlags::NONE;
         break;
-    case OH_Drawing_CanvasShadowFlags::TRANSPARENT_OCCLUDER:
+    case OH_Drawing_CanvasShadowFlags::SHADOW_FLAGS_TRANSPARENT_OCCLUDER:
         shadowFlags = ShadowFlags::TRANSPARENT_OCCLUDER;
         break;
-    case OH_Drawing_CanvasShadowFlags::GEOMETRIC_ONLY:
+    case OH_Drawing_CanvasShadowFlags::SHADOW_FLAGS_GEOMETRIC_ONLY:
         shadowFlags = ShadowFlags::GEOMETRIC_ONLY;
         break;
-    case OH_Drawing_CanvasShadowFlags::ALL:
+    case OH_Drawing_CanvasShadowFlags::SHADOW_FLAGS_ALL:
         shadowFlags = ShadowFlags::ALL;
         break;
     default:
