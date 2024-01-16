@@ -632,10 +632,16 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateSwapchainKHR(VkDevice device, const VkSwapc
         return VK_ERROR_NATIVE_WINDOW_IN_USE_KHR;
     }
 
-    int32_t numImages = static_cast<int32_t>(MIN_BUFFER_SIZE);
+    int32_t numImages = static_cast<int32_t>(surface.window->surface->GetQueueSize());
     VkResult result = SetSwapchainCreateInfo(device, createInfo, &numImages);
     if (result != VK_SUCCESS) {
         return result;
+    }
+
+    if (numImages < createInfo->minImageCount) {
+        SWLOGE("swapchain init minImageCount[%{public}d] can not be more than maxBufferCount[%{public}d]",
+            createInfo->minImageCount, numImages);
+        return VK_ERROR_INITIALIZATION_FAILED;
     }
 
     if (allocator == nullptr) {
@@ -1027,15 +1033,16 @@ VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceSurfaceCapabilitiesKHR(
 {
     int width = 0;
     int height = 0;
-    uint32_t maxBufferCount = 10;
+    uint32_t maxBufferCount = MAX_BUFFER_SIZE;
     if (surface != VK_NULL_HANDLE) {
         NativeWindow* window = SurfaceFromHandle(surface)->window;
         int err = NativeWindowHandleOpt(window, GET_BUFFER_GEOMETRY, &height, &width);
         if (err != OHOS::GSERROR_OK) {
-            SWLOGE("NATIVE_WINDOW_DEFAULT_WIDTH query failed: (%{public}d)", err);
+            SWLOGE("NATIVE_WINDOW GET_BUFFER_GEOMETRY failed: (%{public}d)", err);
             return VK_ERROR_SURFACE_LOST_KHR;
         }
         maxBufferCount = window->surface->GetQueueSize();
+        SWLOGD("queue size : (%{public}d)", maxBufferCount);
     }
 
     capabilities->minImageCount = std::min(maxBufferCount, MIN_BUFFER_SIZE);
@@ -1574,7 +1581,7 @@ VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL GetInstanceProcAddr(VkInstance instance
     }
 
     if (instance == VK_NULL_HANDLE) {
-        SWLOGE("libvulkan_swapchain GetInstanceProcAddr instance is null");
+        SWLOGE("libvulkan_swapchain GetInstanceProcAddr(func name %{public}s) instance is null", funcName);
         return nullptr;
     }
 
