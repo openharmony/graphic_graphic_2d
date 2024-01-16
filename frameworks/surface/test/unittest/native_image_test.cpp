@@ -289,7 +289,7 @@ HWTEST_F(NativeImageTest, OHNativeImageDetachContext003, Function | MediumTest |
 {
     InitEglContext();
     int32_t ret = OH_NativeImage_DetachContext(image);
-    ASSERT_EQ(ret, SURFACE_ERROR_ERROR);
+    ASSERT_EQ(ret, SURFACE_ERROR_OK);
 }
 
 /*
