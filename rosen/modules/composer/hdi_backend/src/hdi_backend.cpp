@@ -105,6 +105,9 @@ int32_t HdiBackend::PrepareCompleteIfNeed(const OutputPtr &output, bool needFlus
     const std::unordered_map<uint32_t, LayerPtr> &layersMap = output->GetLayers();
     for (auto iter = layersMap.begin(); iter != layersMap.end(); ++iter) {
         const LayerPtr &layer = iter->second;
+        if (layer == nullptr) {
+            continue;
+        }
         newLayerInfos.emplace_back(layer->GetLayerInfo());
         if (layer->GetLayerInfo()->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT ||
             layer->GetLayerInfo()->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT_CLEAR ||
