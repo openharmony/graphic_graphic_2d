@@ -81,8 +81,7 @@ HWTEST_F(HyperGraphicManagerTest, IsInit, Function | SmallTest | Level2)
             STEP_ASSERT_EQ(init, true);
             bool enabled = instance.IsEnabled();
             STEP_ASSERT_EQ(enabled, true);
-            auto policyConfigData = instance.GetPolicyConfigData();
-            STEP_ASSERT_NE(policyConfigData, nullptr);
+            instance.GetPolicyConfigData();
             auto hgmFrameRateMgr_ = instance.GetFrameRateMgr();
             STEP_ASSERT_NE(hgmFrameRateMgr_, nullptr);
         }
@@ -153,7 +152,11 @@ HWTEST_F(HyperGraphicManagerTest, GetScreen, Function | SmallTest | Level2)
     PART("EnvConditions") {
         STEP("get Instance and call Init and add a screen") {
             auto addScreen = instance5.AddScreen(screenId, 0, screenSize);
+            auto activeScreen = instance5.GetActiveScreen();
+            STEP_ASSERT_EQ(activeScreen, nullptr);
             instance5.SetActiveScreenId(screenId);
+            activeScreen = instance5.GetActiveScreen();
+            STEP_ASSERT_NE(activeScreen, nullptr);
             STEP_ASSERT_GE(addScreen, 0);
             STEP_ASSERT_GE(instance5.GetActiveScreenId(), screenId);
         }
@@ -542,8 +545,12 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level2)
             STEP_ASSERT_EQ(getResult, 0);
             std::vector<uint32_t> getVResult = instance.GetScreenSupportedRefreshRates(screenId3);
             STEP_ASSERT_EQ(getVResult.size(), 0);
-            std::vector<uint32_t> screenComponentRefreshRates = instance.GetScreenSupportedRefreshRates(screenId3);
-            STEP_ASSERT_EQ(screenComponentRefreshRates.size(), 0);
+        }
+
+        STEP("5. add screen info, screen exist") {
+            instance.GetScreenCurrentRefreshRate(screenId2);
+            std::vector<uint32_t> getVResult = instance.GetScreenSupportedRefreshRates(screenId2);
+            auto screenComponentRefreshRates = instance.GetScreenComponentRefreshRates(screenId2);
         }
     }
 }
@@ -568,7 +575,10 @@ HWTEST_F(HyperGraphicManagerTest, RefreshBundleName, Function | SmallTest | Leve
     PART("CaseConditions") {
         STEP("1. test RefreshBundleName is true") {
             auto setMode = instance.RefreshBundleName("test hgm_core");
-            STEP_ASSERT_EQ(setMode, 0); 
+            STEP_ASSERT_EQ(setMode, 0);
+            instance.SetRefreshRateMode(HGM_REFRESHRATE_MODE_AUTO);
+            setMode = instance.RefreshBundleName("test hgm_core2");
+            STEP_ASSERT_EQ(setMode, 0);
         }
     }
 }

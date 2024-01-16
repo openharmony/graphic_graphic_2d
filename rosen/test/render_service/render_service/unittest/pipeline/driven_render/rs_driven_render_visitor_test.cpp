@@ -40,6 +40,62 @@ void RSDrivenRenderVisitorTest::SetUp() {}
 void RSDrivenRenderVisitorTest::TearDown() {}
 
 /**
+ * @tc.name: SetInfo
+ * @tc.desc: Test RSDrivenRenderVisitorTest.SetInfo
+ * @tc.type: FUNC
+ * @tc.require: issueI6J4IL
+ */
+HWTEST_F(RSDrivenRenderVisitorTest, SetInfo, TestSize.Level1)
+{
+    auto rsDrivenRenderVisitor = std::make_shared<RSDrivenRenderVisitor>();
+    rsDrivenRenderVisitor->SetDirtyInfo(true, true, true);
+    RectI screenRect = {0, 0, 100, 100};
+    rsDrivenRenderVisitor->SetScreenRect(screenRect);
+    rsDrivenRenderVisitor->SetUniProcessor(nullptr);
+    rsDrivenRenderVisitor->SetUniColorSpace(GRAPHIC_COLOR_GAMUT_NATIVE);
+    rsDrivenRenderVisitor->SetUniGlobalZOrder(0.0f);
+}
+
+/**
+ * @tc.name: RSDrivenSurfaceRenderNode
+ * @tc.desc: Test RSDrivenRenderVisitorTest.RSDrivenSurfaceRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueI6J4IL
+ */
+HWTEST_F(RSDrivenRenderVisitorTest, RSDrivenSurfaceRenderNode, TestSize.Level1)
+{
+    std::shared_ptr<RSDrivenSurfaceRenderNode> contentSurfaceNode =
+        std::make_shared<RSDrivenSurfaceRenderNode>(0, DrivenSurfaceType::CONTENT);
+    contentSurfaceNode->Reset();
+    contentSurfaceNode->ResetCurrFrameState();
+    contentSurfaceNode->DisabledRenderMode();
+    contentSurfaceNode->GetSrcRect();
+    contentSurfaceNode->GetDstRect();
+    contentSurfaceNode->GetDrivenCanvasNode();
+    contentSurfaceNode->IsSurfaceCreated();
+    contentSurfaceNode->GetRSSurface();
+    contentSurfaceNode->GetConsumerListener();
+    contentSurfaceNode->GetBufferRequestConfig();
+    contentSurfaceNode->ClearBufferCache();
+    RectF bounds = {0, 0, 100, 100};
+    RectF viewPort = {0, 0, 100, 100};
+    RectI contentAbsRect = {0, 0, 100, 100};
+    contentSurfaceNode->SetCurrFrameBounds(bounds, viewPort, contentAbsRect);
+    RectI dstRect2 = {0, 0, 100, 100};
+    contentSurfaceNode->UpdateActivateFrameState(dstRect2, false, false, false);
+    ASSERT_EQ(false, contentSurfaceNode->IsExpandedMode());
+    ASSERT_EQ(false, contentSurfaceNode->IsReusableMode());
+    ASSERT_EQ(true, contentSurfaceNode->IsDisabledMode());
+    ASSERT_EQ(false, contentSurfaceNode->IsBackgroundSurface());
+    ASSERT_EQ(true, contentSurfaceNode->IsContentSurface());
+    ASSERT_EQ(false, contentSurfaceNode->IsInvalidSurface());
+    ASSERT_EQ(0.0f, contentSurfaceNode->GetSurfaceWidth());
+    ASSERT_EQ(0.0f, contentSurfaceNode->GetSurfaceHeight());
+    ASSERT_EQ(0.0f, contentSurfaceNode->GetFrameOffsetX());
+    ASSERT_EQ(0.0f, contentSurfaceNode->GetFrameOffsetY());
+}
+
+/**
  * @tc.name: ProcessChildren
  * @tc.desc: Test RSDrivenRenderVisitorTest.ProcessChildren
  * @tc.type: FUNC
@@ -62,6 +118,7 @@ HWTEST_F(RSDrivenRenderVisitorTest, ProcessChildren, TestSize.Level1)
     drivenContentNode->SetIsMarkDriven(true);
     contentSurfaceNode->SetDrivenCanvasNode(drivenContentNode);
     rsDrivenRenderVisitor->PrepareDrivenSurfaceRenderNode(*contentSurfaceNode);
+    rsDrivenRenderVisitor->ProcessDrivenSurfaceRenderNode(*contentSurfaceNode);
 
     // firstItemNode id = 3
     auto firstItemNode = std::make_shared<RSCanvasRenderNode>(3, rsContext->weak_from_this());
@@ -70,9 +127,12 @@ HWTEST_F(RSDrivenRenderVisitorTest, ProcessChildren, TestSize.Level1)
     // secondItemNode id = 4
     auto secondItemNode = std::make_shared<RSCanvasRenderNode>(4, rsContext->weak_from_this());
     secondItemNode->SetItemIndex(1);
+    rsDrivenRenderVisitor->ProcessDrivenCanvasRenderNode(*secondItemNode);
     drivenContentNode->AddChild(secondItemNode, -1);
     drivenBackgroundNode->AddChild(drivenContentNode, -1);
+    rsDrivenRenderVisitor->PrepareChildren(*drivenBackgroundNode);
     rsDrivenRenderVisitor->ProcessChildren(*drivenBackgroundNode);
+    rsDrivenRenderVisitor->PrepareCanvasRenderNode(*drivenBackgroundNode);
     rsDrivenRenderVisitor->ProcessCanvasRenderNode(*drivenBackgroundNode);
 }
 

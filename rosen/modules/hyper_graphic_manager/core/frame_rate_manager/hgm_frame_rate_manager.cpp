@@ -138,7 +138,7 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
     CalcRefreshRate(curScreenId_, finalRange);
 
     bool frameRateChanged = CollectFrameRateChange(finalRange, rsFrameRateLinker, appFrameRateLinkers);
-    if (hgmCore.GetLtpoEnabled() & frameRateChanged) {
+    if (hgmCore.GetLtpoEnabled() && frameRateChanged) {
         HandleFrameRateChangeForLTPO(timestamp);
     } else {
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
@@ -166,7 +166,7 @@ void HgmFrameRateManager::UniProcessDataForLtps(bool idleTimerExpired)
     // max used here
     finalRange = {voteResult.second, voteResult.second, voteResult.second};
     CalcRefreshRate(curScreenId_, finalRange);
-    if ((currRefreshRate_ < lastPendingRate) & !isReduceAllowed_) {
+    if ((currRefreshRate_ < lastPendingRate) && !isReduceAllowed_) {
         // Can't reduce the refreshRate in ltps mode
         RS_TRACE_NAME_FMT("Can't reduce to [%d], keep [%d] please", currRefreshRate_, lastPendingRate);
         currRefreshRate_ = lastPendingRate;
@@ -657,7 +657,7 @@ void HgmFrameRateManager::DeliverRefreshRateVote(pid_t pid, std::string eventNam
 
     std::lock_guard<std::mutex> lock(voteMutex_);
     auto& vec = voteRecord_[eventName];
-    if ((pid == 0) & (eventStatus == REMOVE_VOTE)) {
+    if ((pid == 0) && (eventStatus == REMOVE_VOTE)) {
         if (!vec.empty()) {
             vec.clear();
             MarkVoteChange();
@@ -775,9 +775,9 @@ void HgmFrameRateManager::UpdateVoteRule()
         return;
     }
     auto curSceneConfig = curScreenSceneList[lastScene];
-    uint32_t scenePriority = std::stoi(curSceneConfig.priority);
-    uint32_t min = configData->strategyConfigs_[curSceneConfig.strategy].min;
-    uint32_t max = configData->strategyConfigs_[curSceneConfig.strategy].max;
+    uint32_t scenePriority = static_cast<uint32_t>(std::stoi(curSceneConfig.priority));
+    uint32_t min = static_cast<uint32_t>(configData->strategyConfigs_[curSceneConfig.strategy].min);
+    uint32_t max = static_cast<uint32_t>(configData->strategyConfigs_[curSceneConfig.strategy].max);
     HGM_LOGI("UpdateVoteRule: SceneName:%{public}s", lastScene.c_str());
     DeliverRefreshRateVote((*scenePos).second, "VOTER_SCENE", ADD_VOTE, min, max);
 
