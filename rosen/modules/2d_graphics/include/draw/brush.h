@@ -38,7 +38,7 @@ public:
     ~Brush() {}
     const Color& GetColor() const;
     void SetColor(const Color& c);
-    void SetColor(int c);
+    void SetColor(uint32_t c);
     void SetARGB(int a, int r, int g, int b);
 
     Color4f GetColor4f();
