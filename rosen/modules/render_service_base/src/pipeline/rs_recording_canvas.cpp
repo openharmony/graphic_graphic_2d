@@ -548,7 +548,7 @@ void ExtendRecordingCanvas::AddOp(Args&&... args)
     }
 }
 
-void ExtendRecordingCanvas::DrawImageNine2(const std::shared_ptr<Media::PixelMap>& pixelmap,
+void ExtendRecordingCanvas::DrawImageNineWithPixelMap(const std::shared_ptr<Media::PixelMap>& pixelmap,
     const Drawing::RectI& center, const Drawing::Rect& dst, Drawing::FilterMode filter, const Drawing::Brush* brush)
 {
     auto image = RSPixelMapUtil::ExtractDrawingImage(pixelmap);
