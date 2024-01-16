@@ -42,12 +42,12 @@ bool RSRenderPropertyBase::Marshalling(Parcel& parcel, const std::shared_ptr<RSR
         parcel.WriteUint16(static_cast<int16_t>(RSModifierType::INVALID));
         return true;
     }
-    RSPropertyUnit unit = val->GetPropertyUnit();
-    if (!(parcel.WriteInt16(static_cast<int16_t>(unit)))) {
-        return false;
-    }
     RSRenderPropertyType type = val->GetPropertyType();
     if (!(parcel.WriteInt16(static_cast<int16_t>(type)))) {
+        return false;
+    }
+    RSPropertyUnit unit = val->GetPropertyUnit();
+    if (!(parcel.WriteInt16(static_cast<int16_t>(unit)))) {
         return false;
     }
     switch (type) {
@@ -123,11 +123,6 @@ bool RSRenderPropertyBase::Marshalling(Parcel& parcel, const std::shared_ptr<RSR
 
 bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val)
 {
-    int16_t unitId = 0;
-    if (!parcel.ReadInt16(unitId)) {
-        return false;
-    }
-    RSPropertyUnit unit = static_cast<RSPropertyUnit>(unitId);
     int16_t typeId = 0;
     if (!parcel.ReadInt16(typeId)) {
         return false;
@@ -137,6 +132,11 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
         val.reset();
         return true;
     }
+    int16_t unitId = 0;
+    if (!parcel.ReadInt16(unitId)) {
+        return false;
+    }
+    RSPropertyUnit unit = static_cast<RSPropertyUnit>(unitId);
     PropertyId id = 0;
     if (!parcel.ReadUint64(id)) {
         return false;
