@@ -267,6 +267,8 @@ public:
     const std::optional<Vector4f>& GetPixelStretchPercent() const;
     void SetAiInvert(const std::optional<Vector4f>& aiInvert);
     const std::optional<Vector4f>& GetAiInvert() const;
+    void SetSystemBarEffect(bool systemBarEffect);
+    bool GetSystemBarEffect() const;
     RectI GetPixelStretchDirtyRect() const;
 
     const std::shared_ptr<RSObjAbsGeometry>& GetBoundsGeometry() const;
@@ -379,6 +381,7 @@ private:
     bool contentDirty_ = false;
     bool isDrawn_ = false;
     bool alphaNeedApply_ = false;
+    bool systemBarEffect_ = false;
 
     bool hasBounds_ = false;
     bool useEffect_ = false;

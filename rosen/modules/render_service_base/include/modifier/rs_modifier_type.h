@@ -90,33 +90,34 @@ enum class RSModifierType : int16_t {
     SEPIA,                         // 63
     INVERT,                        // 64
     AIINVERT,                      // 65
-    HUE_ROTATE,                    // 66
-    COLOR_BLEND,                   // 67
-    PARTICLE,                      // 68
-    SHADOW_IS_FILLED,              // 69
-    OUTLINE_COLOR,                 // 70
-    OUTLINE_WIDTH,                 // 71
-    OUTLINE_STYLE,                 // 72
-    OUTLINE_RADIUS,                // 73
-    USE_SHADOW_BATCHING,           // 74
-    GREY_COEF1,                    // 75
-    GREY_COEF2,                    // 76
-    LIGHT_INTENSITY,               // 77
-    LIGHT_POSITION,                // 78
-    ILLUMINATED_BORDER_WIDTH,      // 79
-    ILLUMINATED_TYPE,              // 80
-    BLOOM,                         // 81
-    CUSTOM,                        // 82
-    EXTENDED,                      // 83
-    TRANSITION,                    // 84
-    BACKGROUND_STYLE,              // 85
-    CONTENT_STYLE,                 // 86
-    FOREGROUND_STYLE,              // 87
-    OVERLAY_STYLE,                 // 88
-    NODE_MODIFIER,                 // 89
-    ENV_FOREGROUND_COLOR,          // 90
-    ENV_FOREGROUND_COLOR_STRATEGY, // 91
-    GEOMETRYTRANS,                 // 92
+    SYSTEMBAREFFECT,               // 66
+    HUE_ROTATE,                    // 67
+    COLOR_BLEND,                   // 68
+    PARTICLE,                      // 69
+    SHADOW_IS_FILLED,              // 70
+    OUTLINE_COLOR,                 // 71
+    OUTLINE_WIDTH,                 // 72
+    OUTLINE_STYLE,                 // 73
+    OUTLINE_RADIUS,                // 74
+    USE_SHADOW_BATCHING,           // 75
+    GREY_COEF1,                    // 76
+    GREY_COEF2,                    // 77
+    LIGHT_INTENSITY,               // 78
+    LIGHT_POSITION,                // 79
+    ILLUMINATED_BORDER_WIDTH,      // 80
+    ILLUMINATED_TYPE,              // 81
+    BLOOM,                         // 82
+    CUSTOM,                        // 83
+    EXTENDED,                      // 84
+    TRANSITION,                    // 85
+    BACKGROUND_STYLE,              // 86
+    CONTENT_STYLE,                 // 87
+    FOREGROUND_STYLE,              // 88
+    OVERLAY_STYLE,                 // 89
+    NODE_MODIFIER,                 // 90
+    ENV_FOREGROUND_COLOR,          // 91
+    ENV_FOREGROUND_COLOR_STRATEGY, // 92
+    GEOMETRYTRANS,                 // 93
 #ifdef USE_ROSEN_DRAWING
     MAX_RS_MODIFIER_TYPE,
 #endif
