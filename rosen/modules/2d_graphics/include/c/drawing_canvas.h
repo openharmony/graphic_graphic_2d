@@ -396,12 +396,11 @@ int32_t OH_Drawing_CanvasGetHeight(OH_Drawing_Canvas*);
 OH_Drawing_Rect* OH_Drawing_CanvasGetLocalClipBounds(OH_Drawing_Canvas*);
 
 /**
- * @brief Return current transform from local coordinates to the 'device'
+ * @brief Get a 3x3 matrix of the transform from local coordinates to 'device'
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
- * @return The pointer to an <b>OH_Drawing_Matrix</b> object,
- * represents the transform form local coordinates to device
+ * @return The pointer to an <b>OH_Drawing_Matrix</b> object.
  * @since 12
  * @version 1.0
  */
@@ -445,19 +444,18 @@ typedef enum {
 } OH_Drawing_CanvasShadowFlags;
 
 /**
- * @brief Use disc light to draw an offset spot shadow and outlining ambient shadow for the given path.
+ * @brief Use circular light to draw an offset spot shadow and outlining ambient shadow for the given path.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
- * @param OH_Drawing_Path Indicates the pointer to an <b>OH_Drawing_Path</b> object,
- * represents the occluder used to generate the shadows.
+ * @param OH_Drawing_Path Indicates the pointer to an <b>OH_Drawing_Path</b> object, use to generate shadows.
  * @param OH_Drawing_Point3 Indicates the pointer to an <b>OH_Drawing_Point3</b> object.
- * represents the value of the function which returns Z offset of the occluder from the canvas based on x and y values.
+ * represents the value of the function which returns Z offset of the occluder from the canvas based on x and y.
  * @param OH_Drawing_Point3 Indicates the pointer to an <b>OH_Drawing_Point3</b> object.
  * represents the position of the light relative to the canvas.
- * @param lightRadius The radius of the disc light.
- * @param ambientColor The color of the ambient shadow.
- * @param spotColor The color of the spot shadow.
+ * @param lightRadius The radius of the circular light.
+ * @param ambientColor Ambient shadow's color.
+ * @param spotColor Spot shadow's color.
  * @param flag Indicates the flag to control opaque occluder, shadow, and light position.
  * @since 12
  * @version 1.0

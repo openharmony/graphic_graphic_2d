@@ -49,7 +49,7 @@ extern "C" {
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param intervals Indicates a array which contain an even number of entries.
  * @param count Indicates the number of elements of the intervals array.
- * @param phase Indicates the offset into the intervals array.
+ * @param phase Indicates the offset into intervals array.
  * @return Returns the pointer to the <b>OH_Drawing_PathEffect</b> object created.
  * @since 12
  * @version 1.0
