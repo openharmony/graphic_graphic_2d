@@ -101,7 +101,7 @@ public:
     void SetAnimation(std::function<bool(
         const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>& animationFunc)
     {
-        if (animationFunc) {
+        if (animationFunc != nullptr && ts_ != nullptr) {
             ts_->SetAnimation(animationFunc);
         }
     }

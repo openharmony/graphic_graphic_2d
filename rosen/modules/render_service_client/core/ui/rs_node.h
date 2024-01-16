@@ -374,6 +374,8 @@ public:
     {
         return isTextureExportNode_;
     }
+    std::list<SharedPtr> canvasNodesList;
+
 protected:
     explicit RSNode(bool isRenderServiceNode, bool isTextureExportNode = false);
     explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false);

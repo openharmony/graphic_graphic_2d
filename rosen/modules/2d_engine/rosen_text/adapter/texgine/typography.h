@@ -62,7 +62,7 @@ public:
     void SetAnimation(
         std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc) override
     {
-        if (animationFunc) {
+        if (animationFunc != nullptr && typography_ != nullptr) {
             typography_->SetAnimation(animationFunc);
         }
     }

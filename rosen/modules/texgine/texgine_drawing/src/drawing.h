@@ -74,5 +74,9 @@ using RSHmSymbolConfig_OHOS = RSDrawing::HmSymbolConfigOhos;
 using RSAnimationSetting = RSDrawing::DrawingAnimationSetting;
 using RSAnimationType = RSDrawing::DrawingAnimationType;
 using RSAnimationSubType = RSDrawing::DrawingAnimationSubType;
+using RSGroupInfo = RSDrawing::DrawingGroupInfo;
+using RSPathOp = RSDrawing::PathOp;
+using RSHMSymbol = RSDrawing::DrawingHMSymbol;
+using RSGroupSetting = RSDrawing::DrawingGroupSetting;
 
 #endif // ROSEN_MODULES_TEXGINE_SRC_TEXGINE_DRAWING_DRAWING_H
