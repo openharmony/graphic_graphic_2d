@@ -224,7 +224,7 @@ public:
         const Drawing::AdaptiveImageInfo& rsImageInfo, const Drawing::SamplingOptions& sampling);
     void DrawPixelMapWithParm(const std::shared_ptr<Media::PixelMap>& pixelMap,
         const Drawing::AdaptiveImageInfo& rsImageInfo, const Drawing::SamplingOptions& sampling);
-    void DrawImageNine2(const std::shared_ptr<Media::PixelMap>& pixelmap, const Drawing::RectI& center,
+    void DrawImageNineWithPixelMap(const std::shared_ptr<Media::PixelMap>& pixelmap, const Drawing::RectI& center,
         const Drawing::Rect& dst, Drawing::FilterMode filter, const Drawing::Brush* brush);
     void DrawPixelMapRect(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::Rect& src,
         const Drawing::Rect& dst, const Drawing::SamplingOptions& sampling,
