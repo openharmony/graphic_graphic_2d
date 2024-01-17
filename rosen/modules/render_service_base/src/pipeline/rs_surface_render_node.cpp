@@ -1792,20 +1792,25 @@ bool RSSurfaceRenderNode::GetNodeIsSingleFrameComposer() const
 
 bool RSSurfaceRenderNode::QuerySubAssignable(bool isRotation)
 {
-    bool hasTransparentSurface = false;
+    hasTransparentSurface_ = false;
     if (IsLeashWindow()) {
         for (auto &child : GetSortedChildren()) {
             auto childSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
             if (childSurfaceNode && childSurfaceNode->IsTransparent()) {
-                hasTransparentSurface = true;
+                hasTransparentSurface_ = true;
                 break;
             }
         }
     } else {
-        hasTransparentSurface = IsTransparent();
+        hasTransparentSurface_ = IsTransparent();
     }
-    return !(hasTransparentSurface && ChildHasFilter()) && !HasFilter() &&
+    return !(hasTransparentSurface_ && ChildHasFilter()) && !HasFilter() &&
         !HasAbilityComponent() && !isRotation && QueryIfAllHwcChildrenForceDisabledByFilter();
+}
+
+bool RSSurfaceRenderNode::GetHasTransparentSurface() const
+{
+    return hasTransparentSurface_;
 }
 
 bool RSSurfaceRenderNode::GetHasSharedTransitionNode() const

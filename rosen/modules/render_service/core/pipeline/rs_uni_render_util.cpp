@@ -602,7 +602,6 @@ void RSUniRenderUtil::AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRe
         ROSEN_LOGW("RSUniRenderUtil::AssignMainThreadNode node is nullptr");
         return;
     }
-    RS_TRACE_NAME_FMT("AssignMainThread: %s", node->GetName().c_str());
     mainThreadNodes.emplace_back(node);
     bool changeThread = !node->IsMainThreadNode();
     node->SetIsMainThreadNode(true);
@@ -614,6 +613,13 @@ void RSUniRenderUtil::AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRe
         ClearCacheSurface(*node, UNI_MAIN_THREAD_INDEX);
         node->SetIsMainThreadNode(true);
         node->SetTextureValidFlag(false);
+    }
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
+        RS_TRACE_NAME_FMT("AssignMainThread: name: %s, id: %lu, [HasTransparentSurface: %d, ChildHasFilter: %d,"
+            "HasFilter: %d, HasAbilityComponent: %d, QueryIfAllHwcChildrenForceDisabledByFilter: %d]",
+            node->GetName().c_str(), node->GetId(), node->GetHasTransparentSurface(),
+            node->ChildHasFilter(), node->HasFilter(), node->HasAbilityComponent(),
+            node->QueryIfAllHwcChildrenForceDisabledByFilter());
     }
 }
 
