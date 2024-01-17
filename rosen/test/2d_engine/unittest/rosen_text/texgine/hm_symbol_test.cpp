@@ -90,5 +90,35 @@ HWTEST_F(OHHmSymbolTest, OHHmSymbolTest003, TestSize.Level1)
     SymbolLayers symbolInfo = TextEngine::HMSymbolRun::GetSymbolLayers(glyphId, textStyle.symbol);
 }
 
+/*
+ * @tc.name: OHHmSymbolTest004
+ * @tc.desc: test for symbol GetSymbolLayers
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTest, OHHmSymbolTest004, TestSize.Level1)
+{
+#ifndef USE_ROSEN_DRAWING
+    SkGlyphID glyphId = 3; // this 3 is glyphID of symbol
+#else
+    uint16_t glyohId = 3; // this 3 is glyphID of symbol
+#endif
+    HMSymbolTxt symbol = HMSymbolTxt();
+    Drawing::Color color1 = Drawing::Color::COLOR_BLUE;
+    Drawing::Color color2 = Drawing::Color::COLOR_GREEN;
+    Drawing::Color color3 = Drawing::Color::COLOR_RED;
+    std::vector<Drawing::Color> colors = {color1, color2, color3};
+    symbol.SetRenderColor(colors);
+    symbol.SetRenderMode(1); // this 1 is MULTIPLE_COLOR of render mode
+    symbol.SetSymbolEffect(1); // this 1 is EFFECT_SCALE of effect strategy
+
+    TextEngine::TextStyle textStyle;
+    textStyle.isSymbolGlyph = true;
+    textStyle.symbol.SetRenderColor(symbol.GetRenderColor());
+    textStyle.symbol.SetRenderMode(symbol.GetRenderMode());
+    textStyle.symbol.SetSymbolEffect(symbol.GetEffectStrategy());
+    SymbolLayers symbolInfo = TextEngine::HMSymbolRun::GetSymbolLayers(glyphId, textStyle.symbol);
+    symbol.HMSymbolTxt::~HMSymbolTxt();
+}
+
 } // namespace Rosen
 } // namespace OHOS
