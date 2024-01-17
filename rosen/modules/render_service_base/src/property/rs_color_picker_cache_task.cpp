@@ -80,7 +80,7 @@ bool RSColorPickerCacheTask::InitTask(const std::shared_ptr<Drawing::Image> imag
     RS_TRACE_NAME("RSColorPickerCacheTask InitTask");
     #ifdef IS_OHOS
         auto runner = AppExecFwk::EventRunner::Current();
-        mainHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+        initHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
     #endif
     if (imageSnapshot == nullptr) {
         ROSEN_LOGE("RSColorPickerCacheTask imageSnapshot is null");
@@ -425,6 +425,12 @@ void RSColorPickerCacheTask::ResetGrContext()
 }
 
 std::function<void(std::weak_ptr<RSColorPickerCacheTask>)> RSColorPickerCacheTask::postColorPickerTask = nullptr;
+#ifdef IS_OHOS
+    std::function<void(std::shared_ptr<Drawing::Image> &&,
+        std::shared_ptr<Drawing::Surface> &&,
+        std::shared_ptr<OHOS::AppExecFwk::EventHandler> &&,
+        std::shared_ptr<OHOS::AppExecFwk::EventHandler> &&)> RSColorPickerCacheTask::saveImgAndSurToRelease = nullptr;
+#endif
 
 #ifndef USE_ROSEN_DRAWING
 bool RSColorPickerCacheTask::PostPartialColorPickerTask(std::shared_ptr<RSColorPickerCacheTask> colorPickerTask,
@@ -453,7 +459,14 @@ bool RSColorPickerCacheTask::PostPartialColorPickerTask(std::shared_ptr<RSColorP
         return false;
     } else if (colorPickerTask->GetStatus() == CacheProcessStatus::DONE) {
         ROSEN_LOGD("PostPartialColorPickerTask, done");
-        colorPickerTask->Reset();
+        #ifdef IS_OHOS
+        auto initHandler = colorPickerTask->GetInitHandler();
+            if (initHandler != nullptr) {
+                auto task = colorPickerTask;
+                initHandler->PostTask(
+                    [task]() { task->Reset(); }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+            }
+        #endif
         return true;
     } else {
         ROSEN_LOGD("PostPartialColorPickerTask, doing");

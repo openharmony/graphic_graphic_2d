@@ -1529,6 +1529,7 @@ void RSRenderNode::UpdateShouldPaint()
     if (!shouldPaint_) {
         // clear filter cache when node is not visible
         GetMutableRenderProperties().ClearFilterCache();
+        GetMutableRenderProperties().ReleaseColorPickerTaskShadow();
     }
 #endif
 }
@@ -2262,6 +2263,7 @@ void RSRenderNode::OnTreeStateChanged()
     if (!isOnTheTree_) {
         // clear filter cache when node is removed from tree
         GetMutableRenderProperties().ClearFilterCache();
+        GetMutableRenderProperties().ReleaseColorPickerTaskShadow();
     }
 #endif
 }
