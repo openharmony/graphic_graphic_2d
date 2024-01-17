@@ -964,7 +964,7 @@ bool RSRenderServiceConnection::GetPixelmap(NodeId id, const std::shared_ptr<Med
         node->ClearOp();
     }
     if (tid == UINT32_MAX) {
-        if (!mainThread_->IsIdle() && mainThread_->GetContext().HasActiveNode(node)) {
+        if (!mainThread_->IsIdle()) {
             return false;
         }
         mainThread_->PostSyncTask(getPixelmapTask);
