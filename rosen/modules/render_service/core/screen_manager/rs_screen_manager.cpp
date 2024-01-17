@@ -1012,6 +1012,10 @@ ScreenInfo RSScreenManager::QueryScreenInfo(ScreenId id) const
     }
 
     const auto &screen = screens_.at(id);
+    if (!screen) {
+        RS_LOGE("RSScreenManager::QueryScreenInfo screen %{public}" PRIu64 " has no info.", id);
+        return info;
+    }
     info.id = id;
     info.width = screen->Width();
     info.height = screen->Height();
