@@ -613,7 +613,8 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                 externalTextureInfo.SetIsMipMapped(false);
                 externalTextureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
                 externalTextureInfo.SetID(eglTextureId);
-                externalTextureInfo.SetFormat(GL_RGBA8);
+                auto glType = (params.buffer->GetFormat() == GRAPHIC_PIXEL_FMT_BGRA_8888) ? GR_GL_BGRA8 : GR_GL_RGBA8;
+                externalTextureInfo.SetFormat(glType);
 
                 image = std::make_shared<Drawing::Image>();
                 if (!image->BuildFromTexture(*canvas->GetGPUContext(), externalTextureInfo,
