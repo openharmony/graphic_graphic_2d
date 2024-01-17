@@ -88,6 +88,7 @@ void RSModifierDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanva
     if (itr == drawCmdModifiers.end() || itr->second.empty()) {
         return;
     }
+    RSAutoCanvasRestore acr(&canvas, RSPaintFilterCanvas::kCanvas);
     // temporary fix, will refactor RSRenderModifier::Apply to workaround this issue
     RSModifierContext context = { const_cast<RSRenderContent&>(content).renderProperties_, &canvas };
     if (RSSystemProperties::GetSingleFrameComposerEnabled()) {
