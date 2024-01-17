@@ -115,7 +115,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
     if (implicitAnimationParams_.top()->GetType() == ImplicitAnimationParamType::CANCEL) {
         std::static_pointer_cast<RSImplicitCancelAnimationParam>(implicitAnimationParams_.top())->SyncProperties();
         if (finishCallback.use_count() == 1) {
-            ROSEN_LOGW("RSImplicitAnimator::CloseImplicitAnimation Should not use finish callback when CANCELLING "
+            ROSEN_LOGD("RSImplicitAnimator::CloseImplicitAnimation Should not use finish callback when CANCELLING "
                 "animation, timing cannot be guaranteed.");
             RSUIDirector::PostTask([finishCallback]() { finishCallback->Execute(); });
         }
