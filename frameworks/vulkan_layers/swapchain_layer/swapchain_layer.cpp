@@ -1499,15 +1499,6 @@ static inline PFN_vkVoidFunction LayerInterceptInstanceProc(
     if (name == nullptr) {
         return nullptr;
     }
-    if (strcmp("vkDestroyInstance", name) == 0) {
-        return reinterpret_cast<PFN_vkVoidFunction>(DestroyInstance);
-    }
-    if (strcmp("vkCreateDevice", name) == 0) {
-        return reinterpret_cast<PFN_vkVoidFunction>(CreateDevice);
-    }
-    if (strcmp("vkEnumerateDeviceExtensionProperties", name) == 0) {
-        return reinterpret_cast<PFN_vkVoidFunction>(EnumerateDeviceExtensionProperties);
-    }
     if (enabledExtensions.test(Extension::OHOS_SURFACE)) {
         if (strcmp("vkCreateSurfaceOHOS", name) == 0) {
             return reinterpret_cast<PFN_vkVoidFunction>(CreateSurfaceOHOS);
@@ -1578,6 +1569,15 @@ VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL GetInstanceProcAddr(VkInstance instance
     }
     if (strcmp("vkEnumerateInstanceLayerProperties", funcName) == 0) {
         return reinterpret_cast<PFN_vkVoidFunction>(EnumerateInstanceLayerProperties);
+    }
+    if (strcmp("vkDestroyInstance", funcName) == 0) {
+        return reinterpret_cast<PFN_vkVoidFunction>(DestroyInstance);
+    }
+    if (strcmp("vkCreateDevice", funcName) == 0) {
+        return reinterpret_cast<PFN_vkVoidFunction>(CreateDevice);
+    }
+    if (strcmp("vkEnumerateDeviceExtensionProperties", funcName) == 0) {
+        return reinterpret_cast<PFN_vkVoidFunction>(EnumerateDeviceExtensionProperties);
     }
 
     if (instance == VK_NULL_HANDLE) {
