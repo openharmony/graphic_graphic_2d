@@ -17,7 +17,9 @@
 #define RECORDING_HANDLE_H
 
 #include "draw/paint.h"
+#include "draw/pen.h"
 #include "effect/filter.h"
+#include "utils/scalar.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -102,6 +104,15 @@ struct BrushHandle {
     FlattenableHandle colorFilterHandle;
     FlattenableHandle imageFilterHandle;
     FlattenableHandle maskFilterHandle;
+};
+
+struct PenHandle {
+    scalar width;
+    scalar miterLimit;
+    Pen::CapStyle capStyle;
+    Pen::JoinStyle joinStyle;
+    FlattenableHandle pathEffectHandle;
+    Color color;
 };
 } // namespace Drawing
 } // namespace Rosen

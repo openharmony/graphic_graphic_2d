@@ -56,14 +56,41 @@ bool MaskCmdList::Playback(std::shared_ptr<Path>& path, Brush& brush) const
     return true;
 }
 
+bool MaskCmdList::Playback(std::shared_ptr<Path>& path, Pen& pen, Brush& brush) const
+{
+    uint32_t offset = 0;
+    MaskPlayer player(path, brush, pen, *this);
+    do {
+        void* itemPtr = opAllocator_.OffsetToAddr(offset);
+        OpItem* curOpItemPtr = static_cast<OpItem*>(itemPtr);
+        if (curOpItemPtr != nullptr) {
+            if (!player.Playback(curOpItemPtr->GetType(), itemPtr)) {
+                LOGE("MaskCmdList::Playback failed!");
+                break;
+            }
+
+            offset = curOpItemPtr->GetNextOpItemOffset();
+        } else {
+            LOGE("MaskCmdList::Playback failed, opItem is nullptr");
+            break;
+        }
+    } while (offset != 0);
+
+    return true;
+}
+
 /* OpItem */
 std::unordered_map<uint32_t, MaskPlayer::MaskPlaybackFunc> MaskPlayer::opPlaybackFuncLUT_ = {
     { MaskOpItem::MASK_BRUSH_OPITEM,          MaskBrushOpItem::Playback },
     { MaskOpItem::MASK_PATH_OPITEM,           MaskPathOpItem::Playback },
+    { MaskOpItem::MASK_PEN_OPITEM,           MaskPenOpItem::Playback },
 };
 
 MaskPlayer::MaskPlayer(std::shared_ptr<Path>& path, Brush& brush, const CmdList& cmdList)
     : path_(path), brush_(brush), cmdList_(cmdList) {}
+
+MaskPlayer::MaskPlayer(std::shared_ptr<Path>& path, Brush& brush, Pen& pen, const CmdList& cmdList)
+    : path_(path), brush_(brush), pen_(pen), cmdList_(cmdList) {}
 
 bool MaskPlayer::Playback(uint32_t type, const void* opItem)
 {
@@ -137,6 +164,29 @@ void MaskPathOpItem::Playback(std::shared_ptr<Path>& path, const CmdList& cmdLis
 {
     auto readPath = CmdListHelper::GetPathFromCmdList(cmdList, pathHandle_);
     path = readPath;
+}
+
+MaskPenOpItem::MaskPenOpItem(const PenHandle& penHandle)
+    : MaskOpItem(MASK_PEN_OPITEM), penHandle_(penHandle) {}
+
+void MaskPenOpItem::Playback(MaskPlayer &player, const void *opItem)
+{
+    if (opItem != nullptr) {
+        const auto* op = static_cast<const MaskPenOpItem*>(opItem);
+        op->Playback(player.pen_, player.cmdList_);
+    }
+}
+
+void MaskPenOpItem::Playback(Pen& pen, const CmdList& cmdList) const
+{
+    pen.SetWidth(penHandle_.width);
+    pen.SetMiterLimit(penHandle_.miterLimit);
+    pen.SetJoinStyle(penHandle_.joinStyle);
+    pen.SetCapStyle(penHandle_.capStyle);
+
+    auto pathEffect = CmdListHelper::GetPathEffectFromCmdList(cmdList, penHandle_.pathEffectHandle);
+    pen.SetPathEffect(pathEffect);
+    pen.SetColor(penHandle_.color);
 }
 } // namespace Drawing
 } // namespace Rosen

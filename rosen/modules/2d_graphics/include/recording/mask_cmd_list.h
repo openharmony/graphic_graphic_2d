@@ -18,6 +18,7 @@
 
 #include "recording/cmd_list.h"
 #include "draw_cmd.h"
+#include "recording/recording_handle.h"
 #include "draw/path.h"
 #include "draw/brush.h"
 
@@ -44,6 +45,8 @@ public:
      * @brief  Calls the corresponding operations of all opitems in MaskCmdList to the mask.
      */
     bool Playback(std::shared_ptr<Path>& path, Brush& brush) const;
+
+    bool Playback(std::shared_ptr<Path>& path, Pen& pen, Brush& brush) const;
 };
 
 /* OpItem */
@@ -54,6 +57,7 @@ public:
 class MaskPlayer {
 public:
     MaskPlayer(std::shared_ptr<Path>& path, Brush& brush, const CmdList& cmdList);
+    MaskPlayer(std::shared_ptr<Path>& path, Brush& brush, Pen& pen, const CmdList& cmdList);
     ~MaskPlayer() = default;
 
     /*
@@ -64,6 +68,7 @@ public:
 
     std::shared_ptr<Path>& path_;
     Brush& brush_;
+    Pen pen_;
     const CmdList& cmdList_;
 
     using MaskPlaybackFunc = void(*)(MaskPlayer& palyer, const void* opItem);
@@ -80,6 +85,7 @@ public:
         OPITEM_HEAD,
         MASK_BRUSH_OPITEM,
         MASK_PATH_OPITEM,
+        MASK_PEN_OPITEM
     };
 };
 
@@ -93,6 +99,18 @@ public:
     void Playback(Brush& brush, const CmdList& cmdList) const;
 private:
     BrushHandle brushHandle_;
+};
+
+class MaskPenOpItem : public MaskOpItem {
+public:
+    explicit MaskPenOpItem(const PenHandle& penHandle);
+    ~MaskPenOpItem() = default;
+
+    static void Playback(MaskPlayer& player, const void* opItem);
+
+    void Playback(Pen& pen, const CmdList& cmdList) const;
+private:
+    PenHandle penHandle_;
 };
 
 class MaskPathOpItem : public MaskOpItem {

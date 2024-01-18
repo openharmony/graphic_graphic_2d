@@ -16,6 +16,8 @@
 #include "render/rs_mask.h"
 
 #include "include/core/SkPictureRecorder.h"
+#include "recording/recording_handle.h"
+#include "draw/pen.h"
 
 #ifdef USE_ROSEN_DRAWING
 #include "recording/mask_cmd_list.h"
@@ -58,6 +60,19 @@ std::shared_ptr<RSMask> RSMask::CreatePathMask(const Drawing::Path& maskPath, co
 #else
         mask->SetMaskBrush(maskBrush);
 #endif
+        mask->SetMaskType(MaskType::PATH);
+    }
+    return mask;
+}
+
+std::shared_ptr<RSMask> RSMask::CreatePathMask(
+    const Drawing::Path& maskPath, const Drawing::Pen& maskPen, const Drawing::Brush& maskBrush)
+{
+    auto mask = std::make_shared<RSMask>();
+    if (mask) {
+        mask->SetMaskPath(maskPath);
+        mask->SetMaskPen(maskPen);
+        mask->SetMaskBrush(maskBrush);
         mask->SetMaskType(MaskType::PATH);
     }
     return mask;
@@ -161,6 +176,16 @@ SkPaint RSMask::GetMaskPaint() const
     return maskPaint_;
 }
 #else
+void RSMask::SetMaskPen(const Drawing::Pen& pen)
+{
+    maskPen_ = pen;
+}
+
+Drawing::Pen RSMask::GetMaskPen() const
+{
+    return maskPen_;
+}
+
 void RSMask::SetMaskBrush(const Drawing::Brush& brush)
 {
     maskBrush_ = brush;
@@ -274,6 +299,17 @@ bool RSMask::MarshallingPathAndBrush(Parcel& parcel) const
     };
     maskCmdList->AddOp<Drawing::MaskBrushOpItem>(brushHandle);
 
+    Drawing::PenHandle penHandle = {
+        maskPen_.GetWidth(),
+        maskPen_.GetMiterLimit(),
+        maskPen_.GetCapStyle(),
+        maskPen_.GetJoinStyle(),
+        Drawing::CmdListHelper::AddPathEffectToCmdList(*maskCmdList,
+            maskPen_.GetPathEffect()),
+        maskPen_.GetColor(),
+    };
+    maskCmdList->AddOp<Drawing::MaskPenOpItem>(penHandle);
+
     auto pathHandle = Drawing::CmdListHelper::AddPathToCmdList(*maskCmdList, *maskPath_);
     maskCmdList->AddOp<Drawing::MaskPathOpItem>(pathHandle);
 
@@ -310,7 +346,7 @@ RSMask* RSMask::Unmarshalling(Parcel& parcel)
         return nullptr;
     }
     if (maskCmdList) {
-        maskCmdList->Playback(rsMask->maskPath_, rsMask->maskBrush_);
+        maskCmdList->Playback(rsMask->maskPath_, rsMask->maskPen_, rsMask->maskBrush_);
     }
 #endif
 

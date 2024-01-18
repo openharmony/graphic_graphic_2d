@@ -2369,8 +2369,10 @@ void RSPropertiesPainter::DrawMask(const RSProperties& properties, Drawing::Canv
         Drawing::AutoCanvasRestore maskSave(canvas, true);
         canvas.Translate(maskBounds.GetLeft(), maskBounds.GetTop());
         canvas.AttachBrush(mask->GetMaskBrush());
+        canvas.AttachPen(mask->GetMaskPen());
         canvas.DrawPath(*mask->GetMaskPath());
         canvas.DetachBrush();
+        canvas.DetachPen();
     }
 
     // back to mask layer
