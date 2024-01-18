@@ -68,8 +68,8 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         .id = node->GetId(),
         .name = node->name_,
         .bundleName = node->bundleName_,
-        .isTextureExportNode = surfaceNodeConfig.isTextureExportNode,
         .additionalData = surfaceNodeConfig.additionalData,
+        .isTextureExportNode = surfaceNodeConfig.isTextureExportNode,
     };
     config.nodeType = type;
 
