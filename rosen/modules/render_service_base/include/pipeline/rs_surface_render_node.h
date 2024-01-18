@@ -877,6 +877,16 @@ public:
         hasSkipLayer_ = hasSkipLayer;
     }
 
+    bool GetHwcDelayDirtyFlag() const noexcept
+    {
+        return hwcDelayDirtyFlag_;
+    }
+
+    void SetHwcDelayDirtyFlag(bool hwcDelayDirtyFlag)
+    {
+        hwcDelayDirtyFlag_ = hwcDelayDirtyFlag;
+    }
+
     bool GetSurfaceCacheContentStatic()
     {
         return surfaceCacheContentStatic_;
@@ -1154,6 +1164,9 @@ private:
     bool hasSkipLayer_ = false;
 
     uint32_t processZOrder_ = -1;
+
+    // mark if this self-drawing node do not consume buffer when gpu -> hwc
+    bool hwcDelayDirtyFlag_ = false;
 
     // UIFirst
     uint32_t submittedSubThreadIndex_ = INT_MAX;
