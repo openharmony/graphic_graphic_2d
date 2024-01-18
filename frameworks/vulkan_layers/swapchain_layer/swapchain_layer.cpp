@@ -466,7 +466,7 @@ GraphicPixelFormat GetPixelFormat(VkFormat format)
     return nativeFormat;
 }
 
-VKAPI_ATTR VkResult SetWindowInfo(VkDevice device, const VkSwapchainCreateInfoKHR* createInfo, int32_t* numImages)
+VKAPI_ATTR VkResult SetWindowInfo(VkDevice device, const VkSwapchainCreateInfoKHR* createInfo, uint32_t* numImages)
 {
     GraphicPixelFormat pixelFormat = GetPixelFormat(createInfo->imageFormat);
     Surface &surface = *SurfaceFromHandle(createInfo->surface);
@@ -496,7 +496,7 @@ VKAPI_ATTR VkResult SetWindowInfo(VkDevice device, const VkSwapchainCreateInfoKH
 }
 
 VkResult SetSwapchainCreateInfo(VkDevice device, const VkSwapchainCreateInfoKHR* createInfo,
-    int32_t* numImages)
+    uint32_t* numImages)
 {
     GraphicColorDataSpace colorDataSpace = GetColorDataspace(createInfo->imageColorSpace);
     if (colorDataSpace == GRAPHIC_COLOR_DATA_SPACE_UNKNOWN) {
@@ -551,7 +551,7 @@ void InitImageCreateInfo(const VkSwapchainCreateInfoKHR* createInfo, VkImageCrea
     imageCreate->pQueueFamilyIndices = createInfo->pQueueFamilyIndices;
 }
 
-VKAPI_ATTR VkResult CreateImages(int32_t &numImages, Swapchain* swapchain, const VkSwapchainCreateInfoKHR* createInfo,
+VKAPI_ATTR VkResult CreateImages(uint32_t &numImages, Swapchain* swapchain, const VkSwapchainCreateInfoKHR* createInfo,
     VkImageCreateInfo &imageCreate, VkDevice device)
 {
     VkLayerDispatchTable* pDisp =
@@ -563,7 +563,7 @@ VKAPI_ATTR VkResult CreateImages(int32_t &numImages, Swapchain* swapchain, const
         window->surface->CleanCache();
     }
     VkResult result = VK_SUCCESS;
-    for (int32_t i = 0; i < numImages; i++) {
+    for (uint32_t i = 0; i < numImages; i++) {
         Swapchain::Image &img = swapchain->images[i];
         NativeWindowBuffer* buffer = nullptr;
         int err = NativeWindowRequestBuffer(window, &buffer, &img.requestFence);
@@ -586,7 +586,7 @@ VKAPI_ATTR VkResult CreateImages(int32_t &numImages, Swapchain* swapchain, const
     }
 
     SWLOGD("swapchain init shared %{public}d", swapchain->shared);
-    for (int32_t i = 0; i < numImages; i++) {
+    for (uint32_t i = 0; i < numImages; i++) {
         Swapchain::Image &img = swapchain->images[i];
         if (img.requested) {
             if (!swapchain->shared) {
@@ -632,14 +632,14 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateSwapchainKHR(VkDevice device, const VkSwapc
         return VK_ERROR_NATIVE_WINDOW_IN_USE_KHR;
     }
 
-    int32_t numImages = static_cast<int32_t>(surface.window->surface->GetQueueSize());
+    uint32_t numImages = surface.window->surface->GetQueueSize();
     VkResult result = SetSwapchainCreateInfo(device, createInfo, &numImages);
     if (result != VK_SUCCESS) {
         return result;
     }
 
     if (numImages < createInfo->minImageCount) {
-        SWLOGE("swapchain init minImageCount[%{public}d] can not be more than maxBufferCount[%{public}d]",
+        SWLOGE("swapchain init minImageCount[%{public}u] can not be more than maxBufferCount[%{public}u]",
             createInfo->minImageCount, numImages);
         return VK_ERROR_INITIALIZATION_FAILED;
     }
@@ -736,13 +736,12 @@ VKAPI_ATTR VkResult VKAPI_CALL AcquireNextImageKHR(VkDevice device, VkSwapchainK
     }
 
     uint32_t index = 0;
-    while (index < swapchain.numImages) {
+    for (; index < swapchain.numImages; index++) {
         if (swapchain.images[index].buffer->sfbuffer == nativeWindowBuffer->sfbuffer) {
             swapchain.images[index].requested = true;
             swapchain.images[index].requestFence = fence;
             break;
         }
-        index++;
     }
 
     if (index == swapchain.numImages) {
