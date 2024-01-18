@@ -318,8 +318,8 @@ int FontParser::SetFontDescriptor()
 std::string FontParser::GbkToUtf8(const std::string& gbkStr)
 {
     std::string utf8Str;
-    // UTF-8 and GBK is encoding format of string
-    iconv_t conv = iconv_open("UTF-8", "GBK");
+    // UTF-8 and GB2312 is encoding format of string
+    iconv_t conv = iconv_open("UTF-8", "GB2312");
     if (conv == (iconv_t)-1) {
         return utf8Str;
     }
