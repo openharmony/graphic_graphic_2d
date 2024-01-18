@@ -97,20 +97,6 @@ public:
     std::shared_ptr<Data> Serialize() const override;
     bool Deserialize(std::shared_ptr<Data> data) override;
 private:
-    class SkPathSvgCacheManager {
-    public:
-        static SkPathSvgCacheManager& GetInstance();
-        ~SkPathSvgCacheManager() = default;
-        SkPathSvgCacheManager(SkPathSvgCacheManager&&) = delete;
-        SkPathSvgCacheManager(SkPathSvgCacheManager&) = delete;
-        SkPathSvgCacheManager& operator=(SkPathSvgCacheManager&&) = delete;
-        SkPathSvgCacheManager& operator=(SkPathSvgCacheManager&) = delete;
-
-        bool GetPathWithSvgString(const std::string& svgString, SkPath& path);
-    private:
-        SkPathSvgCacheManager() = default;
-        std::unordered_map<std::size_t, SkPath> pathCache_;
-    };
     SkPath path_;
 };
 } // namespace Drawing
