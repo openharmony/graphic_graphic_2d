@@ -209,6 +209,13 @@ bool ConvertFromJsValue(napi_env env, napi_value jsValue, T& value)
     return false;
 }
 
+inline bool ConvertClampFromJsValue(napi_env env, napi_value jsValue, int32_t& value, int32_t lo, int32_t hi)
+{
+    bool ret = napi_get_value_int32(env, jsValue, &value) == napi_ok;
+    value = std::clamp(value, lo, hi);
+    return ret;
+}
+
 inline napi_value GetDoubleAndConvertToJsValue(napi_env env, double d)
 {
     napi_value value = nullptr;

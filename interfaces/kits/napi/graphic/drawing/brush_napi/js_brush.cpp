@@ -120,18 +120,18 @@ napi_value JsBrush::SetColor(napi_env env, napi_callback_info info)
     }
 
     napi_value tempValue = nullptr;
-    uint32_t alpha = 0;
-    uint32_t red = 0;
-    uint32_t green = 0;
-    uint32_t blue = 0;
+    int32_t alpha = 0;
+    int32_t red = 0;
+    int32_t green = 0;
+    int32_t blue = 0;
     napi_get_named_property(env, argv[0], "alpha", &tempValue);
-    napi_get_value_uint32(env, tempValue, &alpha);
+    ConvertClampFromJsValue(env, tempValue, alpha, 0, Color::RGB_MAX);
     napi_get_named_property(env, argv[0], "red", &tempValue);
-    napi_get_value_uint32(env, tempValue, &red);
+    ConvertClampFromJsValue(env, tempValue, red, 0, Color::RGB_MAX);
     napi_get_named_property(env, argv[0], "green", &tempValue);
-    napi_get_value_uint32(env, tempValue, &green);
+    ConvertClampFromJsValue(env, tempValue, green, 0, Color::RGB_MAX);
     napi_get_named_property(env, argv[0], "blue", &tempValue);
-    napi_get_value_uint32(env, tempValue, &blue);
+    ConvertClampFromJsValue(env, tempValue, blue, 0, Color::RGB_MAX);
 
     Color color(Color::ColorQuadSetARGB(alpha, red, green, blue));
     brush->SetColor(color);
@@ -190,8 +190,8 @@ napi_value JsBrush::SetAlpha(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
     }
 
-    uint32_t alpha = 0;
-    ConvertFromJsNumber(env, argv[0], alpha);
+    int32_t alpha = 0;
+    ConvertClampFromJsValue(env, argv[0], alpha, 0, Color::RGB_MAX);
     brush->SetAlpha(alpha);
     return NapiGetUndefined(env);
 }
