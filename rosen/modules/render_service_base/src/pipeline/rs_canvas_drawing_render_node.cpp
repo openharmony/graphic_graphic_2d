@@ -644,9 +644,6 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType type)
 #else
     dirtyTypes_.set(static_cast<int>(type), true);
 #endif
-    if (!IsOnTheTree()) {
-        ClearOp();
-    }
     for (auto& drawCmdModifier : GetDrawCmdModifiers()) {
         if (drawCmdModifier.second.empty()) {
             continue;
