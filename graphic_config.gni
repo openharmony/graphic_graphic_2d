@@ -32,6 +32,7 @@ declare_args() {
   graphic_2d_feature_parallel_upload_enable = true
   enable_text_gine = true
   use_texgine = true
+  use_skia_txt = false
   use_video_processing_engine = false
   logger_enable_scope = false
   texgine_enable_debug_log = false

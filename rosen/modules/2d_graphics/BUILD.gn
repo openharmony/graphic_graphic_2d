@@ -330,6 +330,10 @@ template("graphics2d_source_set") {
     if (enable_text_gine) {
       deps += [ "$rosen_root/modules/2d_engine/rosen_text:rosen_text_inner" ]
       defines += [ "USE_GRAPHIC_TEXT_GINE" ]
+      if (use_skia_txt) {
+        include_dirs +=
+            [ "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/skia_txt" ]
+      }
     }
     if (rosen_is_ohos) {
       defines += gpu_defines
