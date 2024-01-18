@@ -49,6 +49,7 @@ using SymbolAnimationConfig = struct SymbolAnimationConfig {
     std::vector<SymbolNode> SymbolNodes;
     uint32_t numNodes = 0;
     SymbolAnimationEffectStrategy effectStrategy = SymbolAnimationEffectStrategy::SYMBOL_NONE;
+    uint64_t symbolSpanId = 0;
 };
 #else
 using SymbolNode = struct SymbolNode {
@@ -62,6 +63,7 @@ using SymbolAnimationConfig = struct SymbolAnimationConfig {
     std::vector<SymbolNode> SymbolNodes;
     uint32_t numNodes = 0;
     SymbolAnimationEffectStrategy effectStrategy = SymbolAnimationEffectStrategy::SYMBOL_NONE;
+    uint64_t symbolSpanId = 0;
 };
 #endif
 }

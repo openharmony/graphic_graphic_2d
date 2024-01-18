@@ -39,8 +39,8 @@ bool RSSymbolAnimation::SetSymbolAnimation(
         return false;
     }
 
-    if (!rsNode_->canvasNodesList.empty()) {
-        rsNode_->canvasNodesList.clear();
+    if (rsNode_->canvasNodesListMap.count(symbolAnimationConfig->symbolSpanId) > 0) {
+        rsNode_->canvasNodesListMap.erase(symbolAnimationConfig->symbolSpanId);
     }
 
     if (symbolAnimationConfig->effectStrategy == TextEngine::SymbolAnimationEffectStrategy::SYMBOL_SCALE) {
@@ -107,9 +107,13 @@ bool RSSymbolAnimation::SetScaleUnitAnimation(const std::shared_ptr<TextEngine::
     if (nodeNum <= 0) {
         return false;
     }
-
+    auto symbolSpanId = symbolAnimationConfig->symbolSpanId;
     auto canvasNode = RSCanvasNode::Create();
-    rsNode_->canvasNodesList.emplace_back(canvasNode);
+    if (rsNode_->canvasNodesListMap.count(symbolSpanId) > 0) {
+        rsNode_->canvasNodesListMap[symbolSpanId].emplace_back(canvasNode);
+    } else {
+        rsNode_->canvasNodesListMap[symbolSpanId] = {canvasNode};
+    }
     Vector4f bounds = rsNode_->GetStagingProperties().GetBounds();
     SetSymbolGeometry(canvasNode, Vector4f(0.0f, 0.0f, bounds[2], bounds[3])); // index 2 width 3 height
     const Vector2f scaleValueBegin = {1.0f, 1.0f}; // 1.0 scale

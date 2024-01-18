@@ -195,6 +195,7 @@ void HMSymbolRun::DrawSymbol(TexgineCanvas &canvas, const std::shared_ptr<Texgin
             path = blob->GetPathbyGlyphID(symbolData.symbolInfo_.symbolGlyphId);
         }
         symbolData.path_ = path;
+        symbolData.symbolId = symbolId_; // symbolspan Id in paragraph
         SkPoint offsetLocal = SkPoint::Make(offset.first, offset.second);
         EffectStrategy symbolEffect = style.symbol.GetEffectStrategy();
         uint32_t symbolId = static_cast<uint32_t>(glyphId);
@@ -234,6 +235,7 @@ void HMSymbolRun::DrawSymbol(TexgineCanvas &canvas, const std::shared_ptr<Texgin
             path = blob->GetPathbyGlyphID(symbolData.symbolInfo_.symbolGlyphId);
         }
         symbolData.path_ = path;
+        symbolData.symbolId = symbolId_; // symbolspan Id in paragraph
         RSPoint offsetLocal = RSPoint{ offset.first, offset.second };
         RSEffectStrategy symbolEffect = style.symbol.GetEffectStrategy();
         uint32_t symbolId = static_cast<uint32_t>(glyphId);
@@ -283,6 +285,7 @@ bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData symbol, const uint32_t gl
     }
     SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSetting, symbol, effectMode, offset);
     symbolNode.SetAnimation(animationFunc_);
+    symbolNode.SetSymbolId(symbolId_);
     if (!symbolNode.DecomposeSymbolAndDraw()) {
         return false;
     }

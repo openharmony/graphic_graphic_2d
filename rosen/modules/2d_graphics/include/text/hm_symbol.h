@@ -128,6 +128,7 @@ struct DrawingHMSymbolData {
 public:
     DrawingSymbolLayers symbolInfo_;
     Path path_;
+    uint64_t symbolId = 0; // span id in paragraph
 };
 
 class DRAWING_API DrawingHMSymbol {

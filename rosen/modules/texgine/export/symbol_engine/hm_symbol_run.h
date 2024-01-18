@@ -83,9 +83,16 @@ public:
         }
     }
 
+    void SetSymbolId(const uint64_t& symbolId)
+    {
+        symbolId_ = symbolId;
+    }
+
 private:
     std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
         animationFunc_ = nullptr;
+
+    uint64_t symbolId_;
 };
 } // namespace TextEngine
 } // namespace Rosen

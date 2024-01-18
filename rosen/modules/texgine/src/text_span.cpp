@@ -217,6 +217,7 @@ void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, cons
         std::pair<double, double> offset(offsetX, offsetY);
         HMSymbolRun hmSymbolRun = HMSymbolRun();
         hmSymbolRun.SetAnimation(animationFunc_);
+        hmSymbolRun.SetSymbolId(symbolId_);
         hmSymbolRun.DrawSymbol(canvas, textBlob_, offset, paint, xs);
     } else {
         canvas.DrawTextBlob(textBlob_, offsetX, offsetY, paint);

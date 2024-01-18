@@ -65,6 +65,11 @@ public:
         animationFunc_ = animationFunc;
     }
 
+    void SetSymbolId(const uint64_t& symbolSpanId)
+    {
+        symblSpanId_ = symbolSpanId;
+    }
+
 private:
 #ifndef USE_ROSEN_DRAWING
     AnimationSetting animationSetting_;
@@ -80,6 +85,7 @@ private:
 
     std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
         animationFunc_ = nullptr;
+    uint64_t symblSpanId_ = 0;
 };
 }
 }
