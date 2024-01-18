@@ -194,7 +194,7 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
     VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_SAMPLED_BIT;
     if (nbFormatProps.format != VK_FORMAT_UNDEFINED) {
         usageFlags = usageFlags | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT
-            | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+            | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
     }
 
     VkImage image;
@@ -255,10 +255,11 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
         colorType = Drawing::ColorType::COLORTYPE_RGBA_1010102;
     }
 
-    nativeSurface.drawingSurface = Drawing::Surface::MakeFromBackendRenderTarget(
+    nativeSurface.drawingSurface = Drawing::Surface::MakeFromBackendTexture(
         skContext.get(),
         texture_info,
         Drawing::TextureOrigin::TOP_LEFT,
+        1,
         colorType,
         nullptr,
         DeleteVkImage,
