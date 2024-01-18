@@ -121,15 +121,11 @@ public:
         return id_;
     }
 
-    inline const std::list<WeakPtr> &GetChildren() const noexcept
-    {
-        return children_;
-    }
-
-    inline const std::map<NodeId, std::vector<WeakPtr>> &GetSubSurfaceNodes() const
+    inline const std::map<NodeId, std::vector<WeakPtr>>& GetSubSurfaceNodes() const
     {
         return subSurfaceNodes_;
     }
+
     bool IsFirstLevelSurfaceNode();
     bool SubSurfaceNodeNeedDraw(PartialRenderType opDropType);
     void AddSubSurfaceNode(SharedPtr child, SharedPtr parent);
@@ -144,12 +140,13 @@ public:
 
     bool GetIsTextureExportNode() const;
 
+    using ChildrenListSharedPtr = std::shared_ptr<const std::list<std::shared_ptr<RSRenderNode>>>;
     // return children and disappeared children, not guaranteed to be sorted by z-index
-    const std::list<SharedPtr>& GetChildren(bool inSubThread = false);
+    ChildrenListSharedPtr GetChildren();
     // return children and disappeared children, sorted by z-index
-    const std::list<SharedPtr>& GetSortedChildren(bool inSubThread = false);
+    ChildrenListSharedPtr GetSortedChildren();
     uint32_t GetChildrenCount() const;
-    void ClearFullChildrenListIfNeeded(bool inSubThread = false);
+    std::shared_ptr<RSRenderNode> GetFirstChild() const;
 
     void DumpTree(int32_t depth, std::string& ou) const;
     void DumpNodeInfo(DfxString& log);
@@ -542,7 +539,6 @@ protected:
 #else
     std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)> dirtyTypes_;
 #endif
-    bool isFullChildrenListValid_ = false;
     bool isBootAnimation_ = false;
     inline void DrawPropertyDrawable(RSPropertyDrawableSlot slot, RSPaintFilterCanvas& canvas)
     {
@@ -567,10 +563,13 @@ private:
     std::list<WeakPtr> children_;
     std::list<std::pair<SharedPtr, uint32_t>> disappearingChildren_;
 
-    std::list<SharedPtr> fullChildrenList_;
+    ChildrenListSharedPtr fullChildrenList_;
+    bool isFullChildrenListValid_ = false;
     bool isChildrenSorted_ = false;
-    void GenerateFullChildrenList(bool inSubThread);
-    void SortChildren(bool inSubThread);
+    std::mutex fullChildrenListMutex_;
+
+    void GenerateFullChildrenList();
+    void ResortChildren();
 
     const std::weak_ptr<RSContext> context_;
     NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
@@ -652,7 +651,6 @@ private:
     uint32_t subSurfaceCnt_ = 0;
 
     mutable std::recursive_mutex surfaceMutex_;
-    std::mutex mutex_;
     ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;
     uint32_t cacheSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
     uint32_t completedSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;

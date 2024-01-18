@@ -373,7 +373,7 @@ void RSParallelSubThread::Render()
             displayNode_->AddCrossParentChild(node);
         }
         displayNode_->Process(visitor_);
-        for (auto& child : displayNode_->GetChildren()) {
+        for (auto& child : *displayNode_->GetChildren()) {
             displayNode_->RemoveCrossParentChild(child, physicalDisplayNode);
         }
     }
