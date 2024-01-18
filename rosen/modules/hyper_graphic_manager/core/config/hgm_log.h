@@ -33,7 +33,7 @@ namespace OHOS {
 #define HGM_EFUNC OHOS::HiviewDFX::HiLog::Error
 
 #define HGM_CPRINTF(func, fmt, ...) \
-    func( {LOG_CORE, 0xD001400, "graphic_2d_hgm"}, "<%{public}d>%{public}s: " fmt, \
+    func( {LOG_CORE, 0xD001407, "graphic_2d_hgm"}, "<%{public}d>%{public}s: " fmt, \
         __LINE__, __func__, ##__VA_ARGS__)
 
 #define HGM_LOGD(fmt, ...) HGM_CPRINTF(HGM_DFUNC, fmt, ##__VA_ARGS__)
