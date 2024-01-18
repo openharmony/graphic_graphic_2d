@@ -175,6 +175,11 @@ void Path::AddPath(const Path& src, const Matrix& matrix)
     impl_->AddPathWithMatrix(src, matrix);
 }
 
+bool Path::Contains(scalar x, scalar y) const
+{
+    return impl_->Contains(x, y);
+}
+
 void Path::ReverseAddPath(const Path& src)
 {
     impl_->ReverseAddPath(src);

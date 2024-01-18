@@ -139,6 +139,29 @@ void OH_Drawing_CanvasSave(OH_Drawing_Canvas* cCanvas)
     canvas->Save();
 }
 
+void OH_Drawing_CanvasSaveLayer(OH_Drawing_Canvas* cCanvas,
+    const OH_Drawing_Rect* cRect, const OH_Drawing_Brush* cBrush)
+{
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return;
+    }
+
+    std::unique_ptr<Rect> bounds = nullptr;
+    std::unique_ptr<Brush> brush = nullptr;
+    if (cRect != nullptr) {
+        bounds = std::make_unique<Rect>();
+        *bounds = CastToRect(*cRect);
+    }
+    if (cBrush != nullptr) {
+        brush = std::make_unique<Brush>();
+        *brush = CastToBrush(*cBrush);
+    }
+
+    SaveLayerOps slr = SaveLayerOps(bounds.get(), brush.get());
+    canvas->SaveLayer(slr);
+}
+
 void OH_Drawing_CanvasRestore(OH_Drawing_Canvas* cCanvas)
 {
     Canvas* canvas = CastToCanvas(cCanvas);

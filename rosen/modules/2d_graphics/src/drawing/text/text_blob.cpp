@@ -32,6 +32,12 @@ std::shared_ptr<TextBlob> TextBlob::MakeFromText(const void* text, size_t byteLe
     return StaticFactory::MakeFromText(text, byteLength, font, encoding);
 }
 
+std::shared_ptr<TextBlob> TextBlob::MakeFromPosText(const void* text, size_t byteLength,
+    const Point pos[], const Font& font, TextEncoding encoding)
+{
+    return StaticFactory::MakeFromPosText(text, byteLength, pos, font, encoding);
+}
+
 std::shared_ptr<TextBlob> TextBlob::MakeFromString(const char* str, const Font& font, TextEncoding encoding)
 {
     if (!str) {

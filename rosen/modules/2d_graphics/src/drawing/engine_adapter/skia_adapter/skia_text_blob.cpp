@@ -54,6 +54,31 @@ std::shared_ptr<TextBlob> SkiaTextBlob::MakeFromText(const void* text, size_t by
     return std::make_shared<TextBlob>(textBlobImpl);
 }
 
+std::shared_ptr<TextBlob> SkiaTextBlob::MakeFromPosText(const void* text, size_t byteLength,
+    const Point pos[], const Font& font, TextEncoding encoding)
+{
+    auto skiaFont = font.GetImpl<SkiaFont>();
+    if (!skiaFont) {
+        LOGE("skiaFont nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+
+    SkTextEncoding skEncoding = static_cast<SkTextEncoding>(encoding);
+    auto skFont = skiaFont->GetFont();
+    const int count = skFont.countText(text, byteLength, skEncoding);
+    SkPoint skPts[count];
+    for (size_t i = 0; i < count; ++i) {
+        skPts[i] = {pos[i].GetX(), pos[i].GetY()};
+    }
+    sk_sp<SkTextBlob> skTextBlob = SkTextBlob::MakeFromPosText(text, byteLength, skPts, skFont, skEncoding);
+    if (!skTextBlob) {
+        LOGE("skTextBlob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    std::shared_ptr<TextBlobImpl> textBlobImpl = std::make_shared<SkiaTextBlob>(skTextBlob);
+    return std::make_shared<TextBlob>(textBlobImpl);
+}
+
 std::shared_ptr<TextBlob> SkiaTextBlob::MakeFromRSXform(const void* text, size_t byteLength,
     const RSXform xform[], const Font& font, TextEncoding encoding)
 {

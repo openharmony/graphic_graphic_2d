@@ -36,6 +36,8 @@ public:
 
     static std::shared_ptr<TextBlob> MakeFromText(const void* text, size_t byteLength,
         const Font& font, TextEncoding encoding = TextEncoding::UTF8);
+    static std::shared_ptr<TextBlob> MakeFromPosText(const void* text, size_t byteLength,
+        const Point pos[], const Font& font, TextEncoding encoding = TextEncoding::UTF8);
     static std::shared_ptr<TextBlob> MakeFromString(const char* str,
         const Font& font, TextEncoding encoding = TextEncoding::UTF8);
     static std::shared_ptr<TextBlob> MakeFromRSXform(const void* text, size_t byteLength,

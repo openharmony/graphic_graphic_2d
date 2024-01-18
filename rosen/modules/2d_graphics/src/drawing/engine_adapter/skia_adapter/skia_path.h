@@ -72,6 +72,7 @@ public:
 
     void AddPath(const Path& src, scalar dx, scalar dy) override;
     void AddPath(const Path& src) override;
+    bool Contains(scalar x, scalar y) const override;
     void AddPathWithMatrix(const Path& src, const Matrix& matrix) override;
     void ReverseAddPath(const Path& src) override;
 

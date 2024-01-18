@@ -54,6 +54,49 @@ extern "C" {
 OH_Drawing_Matrix* OH_Drawing_MatrixCreate(void);
 
 /**
+ * @brief Creates an <b>OH_Drawing_Matrix</b> object with rotation. Sets matrix to
+ * rotate by degrees about a pivot point at (px, py).
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param deg  angle of axes relative to upright axes
+ * @param x  pivot on x-axis.
+ * @param y  pivot on y-axis.
+ * @since 12
+ * @version 1.0
+ */
+OH_Drawing_Matrix* OH_Drawing_MatrixCreateRotation(float deg, float x, float y);
+
+/**
+ * @brief Creates an <b>OH_Drawing_Matrix</b> object with scale. Sets matrix to scale
+ * by sx and sy, about a pivot point at (px, py).
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param sx  horizontal scale factor.
+ * @param sy  vertical scale factor.
+ * @param px  pivot on x-axis.
+ * @param py  pivot on y-axis.
+ * @return Returns the pointer to the <b>OH_Drawing_Matrix</b> object created.
+ * @since 12
+ * @version 1.0
+ */
+OH_Drawing_Matrix* OH_Drawing_MatrixCreateScale(float sx, float sy, float px, float py);
+
+/**
+ * @brief Creates an <b>OH_Drawing_Matrix</b> object with translation.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param dx  horizontal translation.
+ * @param dy  vertical translation.
+ * @return Returns the pointer to the <b>OH_Drawing_Matrix</b> object created.
+ * @since 12
+ * @version 1.0
+ */
+OH_Drawing_Matrix* OH_Drawing_MatrixCreateTranslation(float dx, float dy);
+
+/**
  * @brief Sets the params for a matrix.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -72,6 +115,102 @@ OH_Drawing_Matrix* OH_Drawing_MatrixCreate(void);
  */
 void OH_Drawing_MatrixSetMatrix(OH_Drawing_Matrix*, float scaleX, float skewX, float transX,
     float skewY, float scaleY, float transY, float persp0, float persp1, float persp2);
+
+/**
+ * @brief Sets matrix to matrix multiplied by matrix other.
+ *       Given:
+ *                    | A B C |          | J K L |
+ *           Matrix = | D E F |, other = | M N O |
+ *                    | G H I |          | P Q R |
+ *       sets Matrix to:
+ *                            | A B C |   | J K L |   | AJ+BM+CP AK+BN+CQ AL+BO+CR |
+ *           Matrix * other = | D E F | * | M N O | = | DJ+EM+FP DK+EN+FQ DL+EO+FR |
+ *                            | G H I |   | P Q R |   | GJ+HM+IP GK+HN+IQ GL+HO+IR |
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param other Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_MatrixPreConcat(OH_Drawing_Matrix*, OH_Drawing_Matrix* other);
+
+/**
+ * @brief Sets matrix to rotate by degrees about a pivot point at (px, py). The pivot point is unchanged
+ * when mapped with matrix. Positive degrees rotates clockwise.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param degree Indicates the angle of axes relative to upright axes.
+ * @param px Indicates the pivot on x-axis.
+ * @param py Indicates the pivot on y-axis.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_MatrixRotate(OH_Drawing_Matrix*, float degree, float px, float py);
+
+/**
+ * @brief Sets matrix to translate by (dx, dy)
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param dx Indicates the horizontal translation.
+ * @param dy Indicates the vertical translation.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_MatrixTranslate(OH_Drawing_Matrix*, float dx, float dy);
+
+/**
+ * @brief Sets matrix to scale by sx and sy, about a pivot point at (px, py).
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param sx Indicates the horizontal scale factor.
+ * @param sy Indicates the vertical scale factor.
+ * @param px Indicates the pivot on x-axis.
+ * @param py Indicates the pivot on y-axis.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_MatrixScale(OH_Drawing_Matrix*, float sx, float sy, float px, float py);
+
+/**
+ * @brief Sets inverse to reciprocal matrix, returning true if matrix can be inverted.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param inverse Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @return Returns true if matrix can be inverted, or flase.
+ * @since 12
+ * @version 1.0
+ */
+bool OH_Drawing_MatrixInvert(OH_Drawing_Matrix*, OH_Drawing_Matrix* inverse);
+
+/**
+ * @brief Returns true if the first matrix equals the second matrix.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param other Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @return Returns true if the two matrices are equal, or flase.
+ * @since 12
+ * @version 1.0
+ */
+bool OH_Drawing_MatrixIsEqual(OH_Drawing_Matrix*, OH_Drawing_Matrix* other);
+
+/**
+ * @brief Returns true if matrix is identity.
+ * Identity matrix is :  | 1 0 0 |
+ *                       | 0 1 0 |
+ *                       | 0 0 1 |
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @return Returns true if matrix is identity, or flase.
+ * @since 12
+ * @version 1.0
+ */
+bool OH_Drawing_MatrixIsIdentity(OH_Drawing_Matrix*);
 
 /**
  * @brief Destroys an <b>OH_Drawing_Matrix</b> object and reclaims the memory occupied by the object.

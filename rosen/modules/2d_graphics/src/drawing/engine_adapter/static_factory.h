@@ -36,6 +36,8 @@ class StaticFactory {
 public:
     static std::shared_ptr<TextBlob> MakeFromText(const void* text, size_t byteLength,
         const Font& font, TextEncoding encoding);
+    static std::shared_ptr<TextBlob> MakeFromPosText(const void* text, size_t byteLength,
+        const Point pos[], const Font& font, TextEncoding encoding);
     static std::shared_ptr<TextBlob> MakeFromRSXform(const void* text, size_t byteLength,
         const RSXform xform[], const Font& font, TextEncoding encoding);
     static std::shared_ptr<Typeface> MakeDefault();

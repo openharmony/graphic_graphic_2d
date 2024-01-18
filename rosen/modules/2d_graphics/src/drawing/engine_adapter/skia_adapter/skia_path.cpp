@@ -257,6 +257,11 @@ void SkiaPath::AddPath(const Path& src)
     }
 }
 
+bool SkiaPath::Contains(scalar x, scalar y) const
+{
+    return path_.contains(x, y);
+}
+
 void SkiaPath::ReverseAddPath(const Path& src)
 {
     path_.reverseAddPath(src.GetImpl<SkiaPath>()->GetPath());

@@ -130,6 +130,19 @@ void OH_Drawing_CanvasDetachBrush(OH_Drawing_Canvas*);
 void OH_Drawing_CanvasSave(OH_Drawing_Canvas*);
 
 /**
+ * @brief Saves matrix and clip, and allocates a bitmap for subsequent drawing.
+ * Calling restore discards changes to matrix and clip, and draws the bitmap.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param OH_Drawing_Rect Indicates the pointer to an <b>OH_Drawing_Rect</b> object.
+ * @param OH_Drawing_Brush Indicates the pointer to an <b>OH_Drawing_Brush</b> object.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_CanvasSaveLayer(OH_Drawing_Canvas*, const OH_Drawing_Rect*, const OH_Drawing_Brush*);
+
+/**
  * @brief Restores the canvas status (canvas matrix) saved on the top of the stack.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing

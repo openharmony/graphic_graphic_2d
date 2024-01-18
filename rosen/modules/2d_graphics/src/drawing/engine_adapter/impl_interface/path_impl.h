@@ -72,6 +72,7 @@ public:
 
     virtual void AddPath(const Path& src, scalar dx, scalar dy) = 0;
     virtual void AddPath(const Path& src) = 0;
+    virtual bool Contains(scalar x, scalar y) const = 0;
     virtual void AddPathWithMatrix(const Path& src, const Matrix& matrix) = 0;
     virtual void ReverseAddPath(const Path& src) = 0;
 

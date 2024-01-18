@@ -29,6 +29,12 @@ std::shared_ptr<TextBlob> StaticFactory::MakeFromText(const void* text, size_t b
     return EngineStaticFactory::MakeFromText(text, byteLength, font, encoding);
 }
 
+std::shared_ptr<TextBlob> StaticFactory::MakeFromPosText(const void* text, size_t byteLength,
+    const Point pos[], const Font& font, TextEncoding encoding)
+{
+    return EngineStaticFactory::MakeFromPosText(text, byteLength, pos, font, encoding);
+}
+
 std::shared_ptr<TextBlob> StaticFactory::MakeFromRSXform(const void* text, size_t byteLength,
     const RSXform xform[], const Font& font, TextEncoding encoding)
 {

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "c/drawing_point.h"
 #include "c/drawing_path.h"
 
 #include "draw/path.h"
@@ -26,9 +27,33 @@ static Path* CastToPath(OH_Drawing_Path* cPath)
     return reinterpret_cast<Path*>(cPath);
 }
 
+static const Matrix* CastToMatrix(const OH_Drawing_Matrix* cMatrix)
+{
+    return reinterpret_cast<const Matrix*>(cMatrix);
+}
+
+static const Rect& CastToRect(const OH_Drawing_Rect& cRect)
+{
+    return reinterpret_cast<const Rect&>(cRect);
+}
+
+static const RoundRect& CastToRoundRect(const OH_Drawing_RoundRect& cRoundRect)
+{
+    return reinterpret_cast<const RoundRect&>(cRoundRect);
+}
+
 OH_Drawing_Path* OH_Drawing_PathCreate()
 {
     return (OH_Drawing_Path*)new Path;
+}
+
+OH_Drawing_Path* OH_Drawing_PathCopy(OH_Drawing_Path* cPath)
+{
+    Path* path = CastToPath(cPath);
+    if (path == nullptr) {
+        return nullptr;
+    }
+    return (OH_Drawing_Path*)new Path(*path);
 }
 
 void OH_Drawing_PathDestroy(OH_Drawing_Path* cPath)
@@ -81,6 +106,86 @@ void OH_Drawing_PathCubicTo(
         return;
     }
     path->CubicTo(ctrlX1, ctrlY1, ctrlX2, ctrlY2, endX, endY);
+}
+
+void OH_Drawing_PathAddRect(OH_Drawing_Path* cPath, float left,
+    float top, float right, float bottom, OH_Drawing_PathDirection dir)
+{
+    Path* path = CastToPath(cPath);
+    if (path == nullptr) {
+        return;
+    }
+    path->AddRect(left, top, right, bottom, static_cast<PathDirection>(dir));
+}
+
+void OH_Drawing_PathAddRoundRect(OH_Drawing_Path* cPath,
+    const OH_Drawing_RoundRect* roundRect, OH_Drawing_PathDirection dir)
+{
+    if (roundRect == nullptr) {
+        return;
+    }
+    Path* path = CastToPath(cPath);
+    if (path == nullptr) {
+        return;
+    }
+    path->AddRoundRect(CastToRoundRect(*roundRect), static_cast<PathDirection>(dir));
+}
+
+void OH_Drawing_PathAddArc(OH_Drawing_Path* cPath,
+    const OH_Drawing_Rect* oval, float startAngle, float sweepAngle)
+{
+    if (oval == nullptr) {
+        return;
+    }
+    Path* path = CastToPath(cPath);
+    if (path == nullptr) {
+        return;
+    }
+    path->AddArc(CastToRect(*oval), startAngle, sweepAngle);
+}
+
+void OH_Drawing_PathAddPath(OH_Drawing_Path* cPath,
+    const OH_Drawing_Path* src, const OH_Drawing_Matrix* matrix)
+{
+    if (src == nullptr || matrix == nullptr) {
+        return;
+    }
+    Path* path = CastToPath(cPath);
+    if (path == nullptr) {
+        return;
+    }
+    Path* srcPath = CastToPath(const_cast<OH_Drawing_Path*>(src));
+    path->AddPath(*srcPath, *CastToMatrix(matrix));
+}
+
+bool OH_Drawing_PathContains(OH_Drawing_Path* cPath, float x, float y)
+{
+    Path* path = CastToPath(cPath);
+    if (path == nullptr) {
+        return false ;
+    }
+    return path->Contains(x, y);
+}
+
+void OH_Drawing_PathTransform(OH_Drawing_Path* cPath, const OH_Drawing_Matrix* matrix)
+{
+    if (matrix == nullptr) {
+        return;
+    }
+    Path* path = CastToPath(cPath);
+    if (path == nullptr) {
+        return;
+    }
+    path->Transform(*CastToMatrix(matrix));
+}
+
+void OH_Drawing_SetFillStyle(OH_Drawing_Path* cPath, OH_Drawing_PathFillType fillstyle)
+{
+    Path* path = CastToPath(cPath);
+    if (path == nullptr) {
+        return;
+    }
+    path->SetFillStyle(static_cast<PathFillType>(fillstyle));
 }
 
 void OH_Drawing_PathClose(OH_Drawing_Path* cPath)
