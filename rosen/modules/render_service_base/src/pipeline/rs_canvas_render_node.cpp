@@ -171,7 +171,7 @@ void RSCanvasRenderNode::PropertyDrawableRender(RSPaintFilterCanvas& canvas)
         DrawPropertyDrawableRange(
             RSPropertyDrawableSlot::TRANSITION, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR, canvas);
         DrawPropertyDrawableRange(
-            RSPropertyDrawableSlot::BLEND_MODE, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
+            RSPropertyDrawableSlot::BG_SAVE_BOUNDS, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
     } else {
         DrawPropertyDrawableRange(RSPropertyDrawableSlot::TRANSITION, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
     }
