@@ -944,6 +944,7 @@ public:
     bool GetHasSharedTransitionNode() const;
     void SetHasSharedTransitionNode(bool hasSharedTransitionNode);
     Vector2f GetGravityTranslate(float imgWidth, float imgHeight);
+    bool GetHasTransparentSurface() const;
 
     bool HasWindowCorner()
     {
@@ -1172,6 +1173,7 @@ private:
 
     std::atomic<bool> hasUnSubmittedOccludedDirtyRegion_ = false;
     RectI historyUnSubmittedOccludedDirtyRegion_;
+    bool hasTransparentSurface_ = false;
 
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;
