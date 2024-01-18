@@ -155,7 +155,7 @@ ohos_shared_library("GLESv2") {
 
   output_name = "GLESv2"
   output_extension = "so"
-
+  innerapi_tags = [ "ndk" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
