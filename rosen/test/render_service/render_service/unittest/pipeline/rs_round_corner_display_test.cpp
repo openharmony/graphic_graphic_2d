@@ -21,6 +21,7 @@
 #include "pipeline/round_corner_display/rs_round_corner_display.h"
 #include "pipeline/round_corner_display/rs_round_corner_config.h"
 #include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
+#include "pipeline/round_corner_display/rs_rcd_render_visitor.h"
 #include "pipeline/rs_display_render_node.h"
 #include "rs_test_util.h"
 
@@ -232,6 +233,210 @@ HWTEST_F(RSRoundCornerDisplayTest, RunHardwareTask, TestSize.Level1)
 }
 
 /*
+ * @tc.name: ProcessRcdSurfaceRenderNode1
+ * @tc.desc: Test ProcessRcdSurfaceRenderNode1
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode1, TestSize.Level1)
+{
+    // prepare test
+#ifndef USE_ROSEN_DRAWING
+    sk_sp<SkImage> imgBottomPortrait;
+    SkBitmap bitmapBottomPortrait;
+#else
+    std::shared_ptr<Drawing::Image> imgBottomPortrait;
+    Drawing::Bitmap bitmapBottomPortrait;
+#endif
+    const char* path = "port_down.png";
+
+    auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
+    rcdInstance.Init();
+    rcdInstance.LoadImg(path, imgBottomPortrait);
+    ASSERT_NE(imgBottomPortrait, nullptr);
+    rcdInstance.DecodeBitmap(imgBottomPortrait, bitmapBottomPortrait);
+
+    auto& rcdCfg = RSSingleton<rs_rcd::RCDConfig>::GetInstance();
+    rcdCfg.Load(rs_rcd::PATH_CONFIG_FILE);
+    rs_rcd::LCDModel* lcdModel = rcdCfg.GetLcdModel(rs_rcd::ATTR_DEFAULT);
+    ASSERT_NE(lcdModel, nullptr);
+    int widthMate40 = 1344;
+    int heightMate40 = 2772;
+    int widthMate60 = 1260;
+    int heightMate60 = 2720;
+    int width = widthMate40;
+    int height = heightMate40;
+    rs_rcd::ROGSetting* rog = lcdModel->GetRog(width, height);
+    if (rog == nullptr) {
+        rog = lcdModel->GetRog(widthMate60, heightMate60);
+        width = widthMate60;
+        height = heightMate60;
+    }
+    ASSERT_NE(rog, nullptr);
+
+    rs_rcd::RoundCornerHardware hardInfo;
+    hardInfo.bottomLayer = &rog->portraitMap[rs_rcd::NODE_PORTRAIT].layerDown;
+    ASSERT_NE(hardInfo.bottomLayer, nullptr);
+    hardInfo.bottomLayer->layerWidth = width;
+    hardInfo.bottomLayer->layerHeight = height;
+    hardInfo.bottomLayer->curBitmap = &bitmapBottomPortrait;
+
+    std::shared_ptr<RSRcdSurfaceRenderNode> bottomSurfaceNode =
+        std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::BOTTOM);
+    ASSERT_NE(bottomSurfaceNode, nullptr);
+    auto visitor = std::make_shared<RSRcdRenderVisitor>();
+    ASSERT_NE(visitor, nullptr);
+
+    // test
+    visitor->ProcessRcdSurfaceRenderNode(*bottomSurfaceNode, hardInfo.bottomLayer, true);
+}
+
+
+/*
+ * @tc.name: ProcessRcdSurfaceRenderNode2
+ * @tc.desc: Test ProcessRcdSurfaceRenderNode2
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode2, TestSize.Level1)
+{
+    // prepare test
+#ifndef USE_ROSEN_DRAWING
+    sk_sp<SkImage> imgBottomPortrait;
+    SkBitmap bitmapBottomPortrait;
+#else
+    std::shared_ptr<Drawing::Image> imgBottomPortrait;
+    Drawing::Bitmap bitmapBottomPortrait;
+#endif
+    const char* path = "port_down.png";
+
+    auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
+    rcdInstance.Init();
+    rcdInstance.LoadImg(path, imgBottomPortrait);
+    ASSERT_NE(imgBottomPortrait, nullptr);
+    rcdInstance.DecodeBitmap(imgBottomPortrait, bitmapBottomPortrait);
+
+    auto& rcdCfg = RSSingleton<rs_rcd::RCDConfig>::GetInstance();
+    rcdCfg.Load(rs_rcd::PATH_CONFIG_FILE);
+    rs_rcd::LCDModel* lcdModel = rcdCfg.GetLcdModel(rs_rcd::ATTR_DEFAULT);
+    ASSERT_NE(lcdModel, nullptr);
+    int widthMate40 = 1344;
+    int heightMate40 = 2772;
+    int widthMate60 = 1260;
+    int heightMate60 = 2720;
+    int width = widthMate40;
+    int height = heightMate40;
+    rs_rcd::ROGSetting* rog = lcdModel->GetRog(width, height);
+    if (rog == nullptr) {
+        rog = lcdModel->GetRog(widthMate60, heightMate60);
+        width = widthMate60;
+        height = heightMate60;
+    }
+    ASSERT_NE(rog, nullptr);
+
+    rs_rcd::RoundCornerHardware hardInfo;
+    hardInfo.bottomLayer = &rog->portraitMap[rs_rcd::NODE_PORTRAIT].layerDown;
+    ASSERT_NE(hardInfo.bottomLayer, nullptr);
+    hardInfo.bottomLayer->layerWidth = width;
+    hardInfo.bottomLayer->layerHeight = height;
+    hardInfo.bottomLayer->curBitmap = &bitmapBottomPortrait;
+
+    std::shared_ptr<RSRcdSurfaceRenderNode> bottomSurfaceNode =
+        std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::BOTTOM);
+    ASSERT_NE(bottomSurfaceNode, nullptr);
+    auto visitor = std::make_shared<RSRcdRenderVisitor>();
+    ASSERT_NE(visitor, nullptr);
+
+    // test
+    visitor->ProcessRcdSurfaceRenderNode(*bottomSurfaceNode, hardInfo.bottomLayer, false);
+}
+
+
+/*
+ * @tc.name: ConsumeAndUpdateBufferTest
+ * @tc.desc: Test RSRoundCornerDisplayTest.ConsumeAndUpdateBufferTest
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, ConsumeAndUpdateBufferTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRcdSurfaceRenderNode> topSurfaceNode =
+        std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
+    ASSERT_NE(topSurfaceNode, nullptr);
+    auto visitor = std::make_shared<RSRcdRenderVisitor>();
+    ASSERT_EQ(true, visitor->ConsumeAndUpdateBuffer(*topSurfaceNode));
+}
+
+struct TestMsgBus {
+    template<typename T>
+    void TestFunc1(T a)
+    {
+        std::cout << "TestMsg Bus Func1:" << sizeof(T) << "," << &a << std::endl;
+    }
+
+    template<typename T1, typename T2>
+    void TestFunc2(T1 a, T2 b)
+    {
+        std::cout << "TestMsg Bus Func2:" <<
+            sizeof(T1) << "," << &a << std::endl <<
+            sizeof(T2) << "," << &b << std::endl;
+    }
+
+    template<typename T1, typename T2, typename T3>
+    void TestFunc3(T1 a, T2 b, T3 c)
+    {
+        std::cout << "TestMsg Bus Func3:" <<
+            sizeof(T1) << "," << &a << std::endl <<
+            sizeof(T2) << "," << &b << std::endl <<
+            sizeof(T3) << "," << &c << std::endl;
+    }
+};
+
+template<typename T1, typename T2, typename T3>
+void TestMsgBusFunc()
+{
+    std::string topic = "TEST_TOPIC";
+    auto& msgBus = RSSingleton<RsMessageBus>::GetInstance();
+    TestMsgBus obj;
+    int num1 = 1;
+    int num2 = 2;
+    int num3 = 3;
+    msgBus.RegisterTopic<T1>(topic, &obj, &TestMsgBus::TestFunc1<T1>);
+    msgBus.SendMsg(topic, static_cast<T1>(num1));
+    msgBus.RemoveTopic<T1>(topic);
+    msgBus.RegisterTopic<T1, T2>(topic, &obj, &TestMsgBus::TestFunc2<T1, T2>);
+    msgBus.SendMsg(topic, static_cast<T1>(num1), static_cast<T2>(num2));
+    msgBus.RemoveTopic<T1, T2>(topic);
+    msgBus.RegisterTopic<T1, T2, T3>(topic, &obj, &TestMsgBus::TestFunc3<T1, T2, T3>);
+    msgBus.SendMsg(topic, static_cast<T1>(num1), static_cast<T2>(num2), static_cast<T3>(num3));
+    msgBus.RemoveTopic<T1, T2, T3>(topic);
+}
+
+template<typename T1, typename T2>
+void TestMsgBusFunc3()
+{
+    TestMsgBusFunc<T1, T2, uint8_t>();
+    TestMsgBusFunc<T1, T2, uint16_t>();
+    TestMsgBusFunc<T1, T2, uint32_t>();
+    TestMsgBusFunc<T1, T2, uint64_t>();
+    TestMsgBusFunc<T1, T2, int>();
+    TestMsgBusFunc<T1, T2, float>();
+    TestMsgBusFunc<T1, T2, double>();
+}
+
+template<typename T1>
+void TestMsgBusFunc2()
+{
+    TestMsgBusFunc3<T1, uint8_t>();
+    TestMsgBusFunc3<T1, uint16_t>();
+    TestMsgBusFunc3<T1, uint32_t>();
+    TestMsgBusFunc3<T1, uint64_t>();
+    TestMsgBusFunc3<T1, int>();
+    TestMsgBusFunc3<T1, float>();
+    TestMsgBusFunc3<T1, double>();
+}
+
+/*
  * @tc.name: MessageBus
  * @tc.desc: Test RSRoundCornerDisplayTest.MessageBus
  * @tc.type: FUNC
@@ -239,31 +444,15 @@ HWTEST_F(RSRoundCornerDisplayTest, RunHardwareTask, TestSize.Level1)
  */
 HWTEST_F(RSRoundCornerDisplayTest, MessageBus, TestSize.Level1)
 {
-    auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
     auto& msgBus = RSSingleton<RsMessageBus>::GetInstance();
-    msgBus.RegisterTopic<uint32_t, uint32_t>(
-        TOPIC_RCD_DISPLAY_SIZE, &rcdInstance,
-        &RoundCornerDisplay::UpdateDisplayParameter);
-    msgBus.RegisterTopic<ScreenRotation>(
-        TOPIC_RCD_DISPLAY_ROTATION, &rcdInstance,
-        &RoundCornerDisplay::UpdateOrientationStatus);
-    msgBus.RegisterTopic<int>(
-        TOPIC_RCD_DISPLAY_NOTCH, &rcdInstance,
-        &RoundCornerDisplay::UpdateNotchStatus);
-
-    msgBus.SendMsg(TOPIC_RCD_DISPLAY_SIZE, 0, 0);
-
-    msgBus.SendMsg(TOPIC_RCD_DISPLAY_ROTATION, static_cast<ScreenRotation>(0));
-
-    msgBus.SendMsg(TOPIC_RCD_DISPLAY_NOTCH, static_cast<int>(0));
-
-    msgBus.RemoveTopic(TOPIC_RCD_DISPLAY_SIZE);
-
-    msgBus.RemoveTopic(TOPIC_RCD_DISPLAY_ROTATION);
-
-    msgBus.RemoveTopic(TOPIC_RCD_DISPLAY_NOTCH);
-
     msgBus.RemoveTopic("NG_TOPIC");
+    TestMsgBusFunc2<uint8_t>();
+    TestMsgBusFunc2<uint16_t>();
+    TestMsgBusFunc2<uint32_t>();
+    TestMsgBusFunc2<uint64_t>();
+    TestMsgBusFunc2<int>();
+    TestMsgBusFunc2<float>();
+    TestMsgBusFunc2<double>();
 }
 
 /*
