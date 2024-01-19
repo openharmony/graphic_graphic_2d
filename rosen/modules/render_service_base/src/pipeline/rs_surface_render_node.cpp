@@ -1491,7 +1491,7 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStatic(
             continue;
         }
         // classify active nodes except instance surface itself
-        if (node->IsContentDirty()) {
+        if (node->IsContentDirty() && !node->IsNewOnTree() && !node->GetRenderProperties().IsGeoDirty()) {
             dirtyContentNodeNum_++;
         } else {
             dirtyGeoNodeNum_++;
@@ -1748,7 +1748,6 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, N
             firstLevelNodeId = parentNode->GetId();
         }
     }
-    isNewOnTree_ = flag && !isOnTheTree_;
     // if node is marked as cacheRoot, update subtree status when update surface
     // in case prepare stage upper cacheRoot cannot specify dirty subnode
     RSBaseRenderNode::SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId);

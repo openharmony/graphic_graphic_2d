@@ -335,6 +335,7 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
     if (flag == isOnTheTree_) {
         return;
     }
+    isNewOnTree_ = flag && !isOnTheTree_;
     instanceRootNodeId_ = instanceRootNodeId;
     firstLevelNodeId_ = firstLevelNodeId;
     isOnTheTree_ = flag;
@@ -738,6 +739,7 @@ void RSRenderNode::SetDirty()
 
 void RSRenderNode::SetClean()
 {
+    isNewOnTree_ = false;
     isContentDirty_ = false;
     dirtyStatus_ = NodeDirty::CLEAN;
 }

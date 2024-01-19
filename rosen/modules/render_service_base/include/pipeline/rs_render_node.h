@@ -142,6 +142,11 @@ public:
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID);
     bool IsOnTheTree() const;
 
+    bool IsNewOnTree() const
+    {
+        return isNewOnTree_;
+    }
+
     bool GetIsTextureExportNode() const;
 
     // return children and disappeared children, not guaranteed to be sorted by z-index
@@ -575,6 +580,7 @@ private:
     const std::weak_ptr<RSContext> context_;
     NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
     bool isContentDirty_ = false;
+    bool isNewOnTree_ = false;
     bool isOnlyBasicGeoTransform_ = true;
     friend class RSRenderPropertyBase;
     friend class RSRenderTransition;
