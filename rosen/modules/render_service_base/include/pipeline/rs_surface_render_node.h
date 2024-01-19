@@ -401,6 +401,11 @@ public:
         return transparentRegion_;
     }
 
+    const Occlusion::Region& GetOpaqueRegion() const
+    {
+        return opaqueRegion_;
+    }
+
     Occlusion::Region& GetOpaqueRegion()
     {
         return opaqueRegion_;

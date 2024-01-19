@@ -1405,14 +1405,15 @@ void RSUniRenderVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
                                  static_cast<int>(std::ceil(cornerRadius.y_)),
                                  static_cast<int>(std::ceil(cornerRadius.z_)),
                                  static_cast<int>(std::ceil(cornerRadius.w_)));
+    auto parent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetParent().lock());
+    auto isFocused = node.IsFocusedNode(currentFocusedNodeId_) ||
+        (parent && parent->IsLeashWindow() && parent->IsFocusedNode(focusedLeashWindowId_));
     if (!node.CheckOpaqueRegionBaseInfo(
-        screenRect, geoPtr->GetAbsRect(), screenRotation, node.IsFocusedNode(currentFocusedNodeId_), dstCornerRadius)
+        screenRect, geoPtr->GetAbsRect(), screenRotation, isFocused, dstCornerRadius)
         && node.GetSurfaceNodeType() != RSSurfaceNodeType::SELF_DRAWING_NODE) {
-        node.ResetSurfaceOpaqueRegion(screenRect, geoPtr->GetAbsRect(),
-            screenRotation, node.IsFocusedNode(currentFocusedNodeId_), dstCornerRadius);
+        node.ResetSurfaceOpaqueRegion(screenRect, geoPtr->GetAbsRect(), screenRotation, isFocused, dstCornerRadius);
     }
-    node.SetOpaqueRegionBaseInfo(
-        screenRect, geoPtr->GetAbsRect(), screenRotation, node.IsFocusedNode(currentFocusedNodeId_), dstCornerRadius);
+    node.SetOpaqueRegionBaseInfo(screenRect, geoPtr->GetAbsRect(), screenRotation, isFocused, dstCornerRadius);
     if (node.IsMainWindowType()) {
         // Attention: curSurface info would be reset as upper surfaceParent if it has
         ResetCurSurfaceInfoAsUpperSurfaceParent(node);
