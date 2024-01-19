@@ -39,7 +39,7 @@ SkFontStyleSet* TypefaceFontAssetProvider::MatchFamily(const std::string& family
     if (found == registeredFamilies_.end()) {
         return nullptr;
     }
-    return (SkFontStyleSet*)(found->second.get());
+    return SkRef(found->second.get());
 }
 
 void TypefaceFontAssetProvider::RegisterTypeface(sk_sp<SkTypeface> typeface)
@@ -101,7 +101,7 @@ void TypefaceFontStyleSet::getStyle(int index, SkFontStyle* style, SkString* nam
 SkTypeface* TypefaceFontStyleSet::createTypeface(int index)
 {
     if (index < typefaces_.size()) {
-        return (SkTypeface*)(typefaces_[index].get());
+        return SkRef(typefaces_[index].get());
     }
     return nullptr;
 }
