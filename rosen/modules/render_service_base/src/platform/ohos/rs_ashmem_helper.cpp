@@ -28,6 +28,9 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr size_t LARGE_MALLOC = 200000000;
+}
 std::unique_ptr<AshmemAllocator> AshmemAllocator::CreateAshmemAllocator(size_t size, int mapType)
 {
     static pid_t pid_ = GetRealPid();
@@ -113,6 +116,9 @@ void* AshmemAllocator::CopyFromAshmem(size_t size)
 {
     if (size_ < size) {
         return nullptr;
+    }
+    if (size > LARGE_MALLOC) {
+        ROSEN_LOGW("AshmemAllocator::CopyFromAshmem this time malloc large memory, size:%{public}zu", size);
     }
     void* base = malloc(size);
     if (base == nullptr) {
