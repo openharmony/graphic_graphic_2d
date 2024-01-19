@@ -441,7 +441,7 @@ bool RSColorPickerCacheTask::PostPartialColorPickerTask(std::shared_ptr<RSColorP
 #endif
 {
     if (RSColorPickerCacheTask::postColorPickerTask == nullptr) {
-        ROSEN_LOGE("PostPartialColorPickerTask::postColorPickerTask is null\n");
+        ROSEN_LOGD("PostPartialColorPickerTask::postColorPickerTask is null\n");
         return false;
     }
 

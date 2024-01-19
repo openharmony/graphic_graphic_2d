@@ -203,7 +203,7 @@ void RSJankStats::ReportJankStats()
     int64_t reportTime = GetCurrentSystimeMs();
     int64_t reportTimeSteady = GetCurrentSteadyTimeMs();
     if (!isNeedReportJankStats_) {
-        ROSEN_LOGW("RSJankStats::ReportJankStats Nothing need to report");
+        ROSEN_LOGD("RSJankStats::ReportJankStats Nothing need to report");
         lastReportTime_ = reportTime;
         lastReportTimeSteady_ = reportTimeSteady;
         lastJankFrame6FreqTimeSteady_ = TIMESTAMP_INITIAL;
@@ -264,7 +264,7 @@ void RSJankStats::SetReportEventComplete(const DataBaseRs& info)
     int64_t setTimeSteady = GetCurrentSteadyTimeMs();
     const auto animationId = GetAnimationId(info);
     if (animateJankFrames_.find(animationId) == animateJankFrames_.end()) {
-        ROSEN_LOGW("RSJankStats::SetReportEventComplete Not find exited animationId");
+        ROSEN_LOGD("RSJankStats::SetReportEventComplete Not find exited animationId");
         JankFrames jankFrames;
         jankFrames.info_ = info;
         jankFrames.isSetReportEventComplete_ = true;
@@ -288,7 +288,7 @@ void RSJankStats::SetReportEventJankFrame(const DataBaseRs& info)
     RS_TRACE_NAME("RSJankStats::SetReportEventJankFrame receive notification: " + GetSceneDescription(info));
     const auto animationId = GetAnimationId(info);
     if (animateJankFrames_.find(animationId) == animateJankFrames_.end()) {
-        ROSEN_LOGW("RSJankStats::SetReportEventJankFrame Not find exited animationId");
+        ROSEN_LOGD("RSJankStats::SetReportEventJankFrame Not find exited animationId");
     } else {
         animateJankFrames_[animationId].info_ = info;
         animateJankFrames_[animationId].isSetReportEventJankFrame_ = true;
@@ -366,7 +366,7 @@ void RSJankStats::ReportEventComplete(const JankFrames& jankFrames) const
 void RSJankStats::ReportEventJankFrame(const JankFrames& jankFrames) const
 {
     if (jankFrames.totalFrames_ <= 0) {
-        ROSEN_LOGW("RSJankStats::ReportEventJankFrame totalFrames is zero, nothing need to report");
+        ROSEN_LOGD("RSJankStats::ReportEventJankFrame totalFrames is zero, nothing need to report");
         return;
     }
     auto reportName = "INTERACTION_RENDER_JANK";

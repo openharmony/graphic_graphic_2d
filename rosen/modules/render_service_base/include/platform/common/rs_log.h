@@ -41,7 +41,7 @@ void RSB_EXPORT RSLogOutput(RSLog::Tag tag, RSLog::Level level, const char* form
 } // namespace OHOS
 
 #undef LOG_DOMAIN
-#define LOG_DOMAIN 0xD001400
+#define LOG_DOMAIN 0xD001406
 
 #undef LOG_TAG
 #define LOG_TAG "OHOS::RS"

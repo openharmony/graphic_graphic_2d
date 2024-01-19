@@ -478,7 +478,7 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas, const std::
     // Take a screenshot.
     auto snapshot = skSurface->makeImageSnapshot(snapshotIBounds);
     if (snapshot == nullptr) {
-        ROSEN_LOGE("RSFilterCacheManager::TakeSnapshot failed to make an image snapshot.");
+        ROSEN_LOGD("RSFilterCacheManager::TakeSnapshot failed to make an image snapshot.");
         return;
     }
     if (RSSystemProperties::GetImageGpuResourceCacheEnable(snapshot->width(), snapshot->height())) {
@@ -527,7 +527,7 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas, const std::
     // Take a screenshot.
     auto snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds);
     if (snapshot == nullptr) {
-        ROSEN_LOGE("RSFilterCacheManager::TakeSnapshot failed to make an image snapshot.");
+        ROSEN_LOGD("RSFilterCacheManager::TakeSnapshot failed to make an image snapshot.");
         return;
     }
     if (RSSystemProperties::GetImageGpuResourceCacheEnable(snapshot->GetWidth(), snapshot->GetHeight())) {

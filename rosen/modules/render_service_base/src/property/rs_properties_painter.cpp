@@ -2001,7 +2001,7 @@ void RSPropertiesPainter::ApplyBackgroundEffectFallback(const RSProperties& prop
     }
     auto& filter = parentNode->GetRenderProperties().GetBackgroundFilter();
     if (filter == nullptr || !filter->IsValid()) {
-        ROSEN_LOGE("RSPropertiesPainter::ApplyBackgroundEffectFallback: parent EffectRenderNode has no filter, "
+        ROSEN_LOGD("RSPropertiesPainter::ApplyBackgroundEffectFallback: parent EffectRenderNode has no filter, "
                    "draw filter failed.");
         return;
     }

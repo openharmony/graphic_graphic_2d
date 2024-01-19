@@ -210,7 +210,7 @@ void RSImplicitAnimator::EndImplicitKeyFrameAnimation()
 {
     if (implicitAnimationParams_.empty() ||
         implicitAnimationParams_.top()->GetType() != ImplicitAnimationParamType::KEYFRAME) {
-        ROSEN_LOGE("Failed to end keyframe implicit animation, need to begin keyframe implicit animation firstly!");
+        ROSEN_LOGD("Failed to end keyframe implicit animation, need to begin keyframe implicit animation firstly!");
         return;
     }
 

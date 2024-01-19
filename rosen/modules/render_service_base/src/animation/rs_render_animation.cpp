@@ -155,7 +155,7 @@ void RSRenderAnimation::Start()
 void RSRenderAnimation::Finish()
 {
     if (!IsPaused() && !IsRunning()) {
-        ROSEN_LOGE("Failed to finish animation, animation is not running!");
+        ROSEN_LOGD("Failed to finish animation, animation is not running!");
         return;
     }
 
@@ -166,7 +166,7 @@ void RSRenderAnimation::Finish()
 void RSRenderAnimation::FinishOnCurrentPosition()
 {
     if (!IsPaused() && !IsRunning()) {
-        ROSEN_LOGE("Failed to finish animation, animation is not running!");
+        ROSEN_LOGD("Failed to finish animation, animation is not running!");
         return;
     }
 

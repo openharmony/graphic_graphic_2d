@@ -879,7 +879,7 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
             mainThread->RequestNextVSync();
         }
 
-        RS_LOGI("RSScreenManager %{public}s: Set system power on, request a frame", __func__);
+        RS_LOGD("RSScreenManager %{public}s: Set system power on, request a frame", __func__);
     }
     screenPowerStatus_[id] = status;
 }

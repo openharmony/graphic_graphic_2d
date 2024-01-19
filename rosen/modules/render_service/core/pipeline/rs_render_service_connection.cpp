@@ -205,7 +205,7 @@ void RSRenderServiceConnection::RSApplicationRenderThreadDeathRecipient::OnRemot
         return;
     }
 
-    RS_LOGI("RSApplicationRenderThreadDeathRecipient::OnRemoteDied: Unregister.");
+    RS_LOGD("RSApplicationRenderThreadDeathRecipient::OnRemoteDied: Unregister.");
     auto app = iface_cast<IApplicationAgent>(tokenSptr);
     rsConn->UnRegisterApplicationAgent(app);
 }
@@ -270,7 +270,7 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
         return nullptr;
     }
     const std::string& surfaceName = surface->GetName();
-    RS_LOGI("RsDebug RSRenderService::CreateNodeAndSurface node" \
+    RS_LOGD("RsDebug RSRenderService::CreateNodeAndSurface node" \
         "id:%{public}" PRIu64 " name:%{public}s bundleName:%{public}s surface id:%{public}" PRIu64 " name:%{public}s",
         node->GetId(), node->GetName().c_str(), node->GetBundleName().c_str(),
         surface->GetUniqueId(), surfaceName.c_str());
@@ -707,7 +707,7 @@ void RSRenderServiceConnection::RegisterBufferAvailableListener(
         return false;
     };
     if (!registerBufferAvailableListener()) {
-        RS_LOGI("RegisterBufferAvailableListener: node not found, post task to retry");
+        RS_LOGD("RegisterBufferAvailableListener: node not found, post task to retry");
         mainThread_->PostTask(registerBufferAvailableListener);
     }
 }

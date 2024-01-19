@@ -88,7 +88,7 @@ void RSOffscreenRenderThread::CleanGrResource()
 #else
         grContext->FreeGpuResources();
 #endif
-        RS_LOGI("RSOffscreenRenderThread::CleanGrResource() finished");
+        RS_LOGD("RSOffscreenRenderThread::CleanGrResource() finished");
     });
 }
 #endif
