@@ -14,7 +14,7 @@
 */
 
 #include "memory_handler.h"
-#include "utils/log.h"
+#include "renser_context_log.h"
 #include <set>
 #include <cmath>
 
@@ -72,7 +72,7 @@ std::string MemoryHandler::QuerryShader()
 {
     const auto& cache = ShaderCache::Instance();
     if (!cache.IfInitialized()) {
-        LOGW("ShaderCache is not intialized.");
+        LOGD("ShaderCache is not intialized.");
     }
     size_t shaderRam = cache.QuerryShaderSize();
     size_t shaderNum = cache.QuerryShaderNum();
@@ -84,7 +84,7 @@ std::string MemoryHandler::QuerryShader()
 std::string MemoryHandler::ClearShader()
 {
     const auto& cache = ShaderCache::Instance();
-    LOGW("All shaders are cleaned");
+    LOGD("All shaders are cleaned");
     cache.CleanAllShaders();
     return "All shaders are cleaned, RAM freed: 0";
 }

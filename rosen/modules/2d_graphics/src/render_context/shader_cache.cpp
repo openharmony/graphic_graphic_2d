@@ -23,7 +23,7 @@
 #include <thread>
 #include <tuple>
 #include "rs_trace.h"
-#include "utils/log.h"
+#include "renser_context_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -35,7 +35,7 @@ ShaderCache& ShaderCache::Instance()
 
 ShaderCache::~ShaderCache()
 {
-    LOGE("ShaderCache: destroying Shadercache");
+    LOGD("ShaderCache: destroying Shadercache");
 }
 
 void ShaderCache::InitShaderCache(const char* identity, const size_t size, bool isUni)
@@ -43,7 +43,7 @@ void ShaderCache::InitShaderCache(const char* identity, const size_t size, bool 
     std::lock_guard<std::mutex> lock(mutex_);
 
     if (filePath_.length() <= 0) {
-        LOGE("abandon, illegal cacheDir length");
+        LOGD("abandon, illegal cacheDir length");
         return;
     }
     cacheData_.reset();
@@ -51,7 +51,7 @@ void ShaderCache::InitShaderCache(const char* identity, const size_t size, bool 
     cacheData_ = std::make_unique<CacheData>(MAX_KEY_SIZE, MAX_VALUE_SIZE, totalSize, filePath_);
     cacheData_->ReadFromFile();
     if (identity == nullptr || size == 0) {
-        LOGE("abandon, illegal cacheDir length");
+        LOGD("abandon, illegal cacheDir length");
         cacheData_->Clear();
     }
 
@@ -76,7 +76,7 @@ void ShaderCache::InitShaderCache(const char* identity, const size_t size, bool 
 void ShaderCache::SetFilePath(const std::string& filename)
 {
     if (filename.size() == 0) {
-        LOGE("abandon, empty filename");
+        LOGD("abandon, empty filename");
         return;
     }
     std::lock_guard<std::mutex> lock(mutex_);
@@ -98,17 +98,17 @@ std::shared_ptr<Drawing::Data> ShaderCache::Load(const Drawing::Data& key)
 #endif
     std::lock_guard<std::mutex> lock(mutex_);
     if (!initialized_) {
-        LOGW("load: failed because ShaderCache is not initialized");
+        LOGD("load: failed because ShaderCache is not initialized");
         return nullptr;
     }
 
     void* valueBuffer = malloc(bufferSize_);
     if (!valueBuffer) {
-        LOGE("load: failed because unable to map memory");
+        LOGD("load: failed because unable to map memory");
         return nullptr;
     }
     if (!cacheData_) {
-        LOGE("load: cachedata has been destructed");
+        LOGD("load: cachedata has been destructed");
         free(valueBuffer);
         valueBuffer = nullptr;
         return nullptr;
@@ -128,7 +128,7 @@ std::shared_ptr<Drawing::Data> ShaderCache::Load(const Drawing::Data& key)
         valueBuffer = nullptr;
         void* newValueBuffer = realloc(valueBuffer, valueSize);
         if (!newValueBuffer) {
-            LOGE("load: failed to reallocate valueSize:%zu", valueSize);
+            LOGD("load: failed to reallocate valueSize:%zu", valueSize);
             return nullptr;
         }
         valueBuffer = newValueBuffer;
@@ -153,7 +153,7 @@ std::shared_ptr<Drawing::Data> ShaderCache::Load(const Drawing::Data& key)
 #else
     auto data = std::make_shared<Drawing::Data>();
     if (!data->BuildFromMalloc(valueBuffer, valueSize)) {
-        LOGE("load: failed to build drawing data");
+        LOGD("load: failed to build drawing data");
         free(valueBuffer);
         valueBuffer = nullptr;
         return nullptr;
@@ -165,11 +165,11 @@ std::shared_ptr<Drawing::Data> ShaderCache::Load(const Drawing::Data& key)
 void ShaderCache::WriteToDisk()
 {
     if (!(initialized_ && cacheData_ && savePending_)) {
-        LOGE("abandon: failed to check prerequisites");
+        LOGD("abandon: failed to check prerequisites");
         return;
     }
     if (!idHash_.size()) {
-        LOGE("abandon: illegal hash size");
+        LOGD("abandon: illegal hash size");
         return;
     }
     auto key = ID_KEY;
@@ -190,7 +190,7 @@ void ShaderCache::Store(const Drawing::Data& key, const Drawing::Data& data)
     std::lock_guard<std::mutex> lock(mutex_);
 
     if (!initialized_) {
-        LOGW("stored: failed because ShaderCache is not initialized");
+        LOGD("stored: failed because ShaderCache is not initialized");
         return;
     }
 
@@ -202,7 +202,7 @@ void ShaderCache::Store(const Drawing::Data& key, const Drawing::Data& data)
     size_t keySize = key.GetSize();
 #endif
     if (keySize == 0 || valueSize == 0 || valueSize >= MAX_VALUE_SIZE) {
-        LOGE("store: failed because of illegal cache sizes");
+        LOGD("store: failed because of illegal cache sizes");
         return;
     }
 
@@ -213,7 +213,7 @@ void ShaderCache::Store(const Drawing::Data& key, const Drawing::Data& data)
 #endif
     cacheDirty_ = true;
     if (!cacheData_) {
-        LOGE("store: cachedata has been destructed");
+        LOGD("store: cachedata has been destructed");
         return;
     }
 #ifndef USE_ROSEN_DRAWING
@@ -236,7 +236,7 @@ void ShaderCache::Store(const Drawing::Data& key, const Drawing::Data& data)
 size_t ShaderCache::QuerryShaderSize() const
 {
     if (!cacheData_) {
-        LOGE("QuerryShaderSize: cachedata has been destructed");
+        LOGD("QuerryShaderSize: cachedata has been destructed");
         return 0;
     }
     return cacheData_->GetTotalSize();
@@ -245,7 +245,7 @@ size_t ShaderCache::QuerryShaderSize() const
 size_t ShaderCache::QuerryShaderNum() const
 {
     if (!cacheData_) {
-        LOGE("QuerryShaderNum: cachedata has been destructed");
+        LOGD("QuerryShaderNum: cachedata has been destructed");
         return 0;
     }
     return cacheData_->GetShaderNum();

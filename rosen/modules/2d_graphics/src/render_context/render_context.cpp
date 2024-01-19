@@ -31,7 +31,7 @@
 
 #include "memory/rs_tag_tracker.h"
 
-#include "utils/log.h"
+#include "renser_context_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -674,7 +674,7 @@ std::string RenderContext::GetShaderCacheSize() const
         }
     }
 #endif
-    LOGE("GetShaderCacheSize no shader cache");
+    LOGD("GetShaderCacheSize no shader cache");
     return "";
 }
 
@@ -694,7 +694,7 @@ std::string RenderContext::CleanAllShaderCache() const
         }
     }
 #endif
-    LOGE("CleanAllShaderCache no shader cache");
+    LOGD("CleanAllShaderCache no shader cache");
     return "";
 }
 #endif
