@@ -23,7 +23,7 @@
 #include <thread>
 #include <tuple>
 #include "rs_trace.h"
-#include "renser_context_log.h"
+#include "render_context_log.h"
 
 namespace OHOS {
 namespace Rosen {

@@ -31,7 +31,7 @@
 
 #include "memory/rs_tag_tracker.h"
 
-#include "renser_context_log.h"
+#include "render_context_log.h"
 
 namespace OHOS {
 namespace Rosen {

@@ -20,7 +20,7 @@
 #include <sys/stat.h>
 #include <cstring>
 #include <securec.h>
-#include "renser_context_log.h"
+#include "render_context_log.h"
 
 namespace OHOS {
 namespace Rosen {
