@@ -49,7 +49,7 @@ SurfaceImage::SurfaceImage(uint32_t textureId, uint32_t textureTarget)
       updateSurfaceImage_(false),
       eglDisplay_(EGL_NO_DISPLAY),
       eglContext_(EGL_NO_CONTEXT),
-      currentSurfaceImage_(0),
+      currentSurfaceImage_(UINT_MAX),
       currentSurfaceBuffer_(nullptr),
       currentTimeStamp_(0)
 {
