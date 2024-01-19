@@ -48,12 +48,18 @@ struct JankFrames {
     int64_t setTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t startTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t endTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t lastEndTimeSteady_ = TIMESTAMP_INITIAL;
     int32_t seqMissedFrames_ = 0;
     int32_t totalFrames_ = 0;
+    int32_t lastTotalFrames_ = 0;
     int32_t totalMissedFrames_ = 0;
+    int32_t lastTotalMissedFrames_ = 0;
     int64_t maxFrameTimeSteady_ = 0;
+    int64_t lastMaxFrameTimeSteady_ = 0;
     int32_t maxSeqMissedFrames_ = 0;
+    int32_t lastMaxSeqMissedFrames_ = 0;
     int64_t totalFrameTimeSteady_ = 0;
+    int64_t lastTotalFrameTimeSteady_ = 0;
     int32_t traceId_ = TRACE_ID_INITIAL;
     Rosen::DataBaseRs info_;
 };
@@ -86,8 +92,9 @@ public:
     void ReportJankStats();
     void SetReportEventResponse(const DataBaseRs& info);
     void SetReportEventComplete(const DataBaseRs& info);
-    void SetReportEventJankFrame(const DataBaseRs& info);
+    void SetReportEventJankFrame(const DataBaseRs& info, bool isReportTaskDelayed);
     void SetAppFirstFrame(pid_t appPid);
+    void SetSkipDisplayNode();
 
 private:
     RSJankStats() = default;
@@ -99,14 +106,14 @@ private:
     void UpdateJankFrame(JankFrames& jankFrames);
     void ReportEventResponse(const JankFrames& jankFrames) const;
     void ReportEventComplete(const JankFrames& jankFrames) const;
-    void ReportEventJankFrame(const JankFrames& jankFrames) const;
+    void ReportEventJankFrame(const JankFrames& jankFrames, bool isReportTaskDelayed) const;
     void ReportEventFirstFrame();
     void ReportEventFirstFrameByPid(pid_t appPid) const;
-    void HandleImplicitAnimationEndInAdvance(JankFrames& jankFrames);
+    void HandleImplicitAnimationEndInAdvance(JankFrames& jankFrames, bool isReportTaskDelayed);
     void RecordJankFrameInit();
     void RecordJankFrame();
     void RecordJankFrameSingle(int64_t missedFrames, JankFrameRecordStats& recordStats);
-    void RecordAnimationDynamicFrameRate(JankFrames& jankFrames);
+    void RecordAnimationDynamicFrameRate(JankFrames& jankFrames, bool isReportTaskDelayed);
     void SetAnimationTraceBegin(const JankFrames& jankFrames);
     void SetAnimationTraceEnd(const JankFrames& jankFrames);
     void CheckAnimationTraceTimeout();
@@ -128,6 +135,7 @@ private:
     bool isFirstSetStart_ = true;
     bool isFirstSetEnd_ = true;
     bool isNeedReportJankStats_ = false;
+    bool isSkipDisplayNode_ = false;
     int64_t startTime_ = TIMESTAMP_INITIAL;
     int64_t startTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t endTime_ = TIMESTAMP_INITIAL;

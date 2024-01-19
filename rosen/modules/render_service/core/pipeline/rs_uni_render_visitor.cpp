@@ -54,6 +54,7 @@
 #include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_properties_painter.h"
 #include "property/rs_point_light_manager.h"
 #include "render/rs_skia_filter.h"
@@ -2721,6 +2722,9 @@ void RSUniRenderVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
             && !curDisplayDirtyManager_->IsCurrentFrameDirty()) {
             RS_LOGD("DisplayNode skip");
             RS_TRACE_NAME("DisplayNode skip");
+#ifdef OHOS_PLATFORM
+            RSJankStats::GetInstance().SetSkipDisplayNode();
+#endif
             resetRotate_ = CheckIfNeedResetRotate();
             if (!IsHardwareComposerEnabled()) {
                 return;

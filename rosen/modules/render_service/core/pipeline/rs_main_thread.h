@@ -253,6 +253,11 @@ public:
         context_->clearMoment_ = moment;
     }
 
+    bool IsMainLooping() const
+    {
+        return mainLooping_.load();
+    }
+
     void SubscribeAppState();
     void HandleOnTrim(Memory::SystemMemoryLevel level);
     const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetSelfDrawingNodes() const;
@@ -516,6 +521,8 @@ private:
     int32_t subscribeFailCount_ = 0;
     SystemAnimatedScenes systemAnimatedScenes_ = SystemAnimatedScenes::OTHERS;
     uint32_t LeashWindowCount_ = 0;
+
+    std::atomic_bool mainLooping_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

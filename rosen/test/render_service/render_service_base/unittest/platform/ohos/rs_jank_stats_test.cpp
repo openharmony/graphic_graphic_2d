@@ -56,6 +56,7 @@ HWTEST_F(RSJankStatsTest, SetEndTimeTest, TestSize.Level1)
     pid_t appPid = 1;
     rsJankStats.SetAppFirstFrame(appPid);
     rsJankStats.SetEndTime();
+    rsJankStats.SetSkipDisplayNode();
 }
 
 /**
@@ -121,9 +122,9 @@ HWTEST_F(RSJankStatsTest, SetReportEventJankFrameTest, TestSize.Level1)
     auto& rsJankStats = RSJankStats::GetInstance();
     DataBaseRs info1;
     info1.uniqueId = 1;
-    rsJankStats.SetReportEventJankFrame(info1);
+    rsJankStats.SetReportEventJankFrame(info1, false);
     info1.uniqueId = 4;
-    rsJankStats.SetReportEventJankFrame(info1);
+    rsJankStats.SetReportEventJankFrame(info1, true);
     rsJankStats.SetStartTime();
     rsJankStats.SetEndTime();
 }

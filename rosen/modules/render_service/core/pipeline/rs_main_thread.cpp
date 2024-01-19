@@ -255,6 +255,7 @@ RSMainThread::~RSMainThread() noexcept
 void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
+        mainLooping_.store(true);
         RenderFrameStart(timestamp_);
         PerfMultiWindow();
         SetRSEventDetectorLoopStartTag();
@@ -283,6 +284,7 @@ void RSMainThread::Init()
 #ifdef RS_ENABLE_PARALLEL_UPLOAD
         RSUploadResourceThread::Instance().OnRenderEnd();
 #endif
+        mainLooping_.store(false);
     };
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();

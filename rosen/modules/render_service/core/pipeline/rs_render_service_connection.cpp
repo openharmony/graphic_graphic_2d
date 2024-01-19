@@ -1128,8 +1128,9 @@ void RSRenderServiceConnection::ReportEventComplete(DataBaseRs info)
 
 void RSRenderServiceConnection::ReportEventJankFrame(DataBaseRs info)
 {
-    auto task = [this, info]() -> void {
-        RSJankStats::GetInstance().SetReportEventJankFrame(info);
+    bool isReportTaskDelayed = mainThread_->IsMainLooping();
+    auto task = [this, info, isReportTaskDelayed]() -> void {
+        RSJankStats::GetInstance().SetReportEventJankFrame(info, isReportTaskDelayed);
     };
     mainThread_->PostTask(task);
 }
