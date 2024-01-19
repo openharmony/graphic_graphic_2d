@@ -199,6 +199,8 @@ public:
     bool ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
         int srcX, int srcY);
 
+    bool ReadPixels(const Bitmap& dstBitmap, int srcX, int srcY);
+
     // shapes
     virtual void DrawPoint(const Point& point);
     virtual void DrawPoints(PointMode mode, size_t count, const Point pts[]);

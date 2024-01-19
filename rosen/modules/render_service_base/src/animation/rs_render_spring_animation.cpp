@@ -227,7 +227,7 @@ void RSRenderSpringAnimation::OnDetach()
 {
     auto target = GetTarget();
     if (target == nullptr) {
-        ROSEN_LOGE("RSRenderSpringAnimation::OnDetach, target is nullptr");
+        ROSEN_LOGD("RSRenderSpringAnimation::OnDetach, target is nullptr");
         return;
     }
     auto propertyId = GetPropertyId();
@@ -303,7 +303,7 @@ bool RSRenderSpringAnimation::InheritSpringStatus(const RSRenderSpringAnimation*
 
     auto [lastValue, endValue, velocity] = from->GetSpringStatus();
     if (startValue_ == nullptr || lastValue == nullptr || endValue == nullptr || velocity == nullptr) {
-        ROSEN_LOGE("RSRenderSpringAnimation::InheritSpringStatus, unexpected null pointer!");
+        ROSEN_LOGD("RSRenderSpringAnimation::InheritSpringStatus, unexpected null pointer!");
         return false;
     }
     if (!startValue_->IsEqual(endValue) && !(from == this)) {

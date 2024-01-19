@@ -41,7 +41,7 @@ FrameRateLinkerId RSFrameRateLinker::GenerateId()
 std::shared_ptr<RSFrameRateLinker> RSFrameRateLinker::Create()
 {
     auto linker = std::make_shared<RSFrameRateLinker>();
-    ROSEN_LOGI("RSFrameRateLinker Create %{public}" PRIu64, linker->GetId());
+    ROSEN_LOGD("RSFrameRateLinker Create %{public}" PRIu64, linker->GetId());
     return linker;
 }
 
@@ -100,7 +100,7 @@ void RSFrameRateLinker::InitUniRenderEnabled()
     if (!inited) {
         inited = true;
         g_isUniRenderEnabled = RSSystemProperties::GetUniRenderEnabled();
-        ROSEN_LOGE("RSFrameRateLinker::InitUniRenderEnabled:%{public}d", g_isUniRenderEnabled);
+        ROSEN_LOGD("RSFrameRateLinker::InitUniRenderEnabled:%{public}d", g_isUniRenderEnabled);
     }
 }
 } // namespace Rosen

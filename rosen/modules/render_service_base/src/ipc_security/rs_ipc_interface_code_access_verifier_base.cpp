@@ -94,7 +94,7 @@ bool RSInterfaceCodeAccessVerifierBase::CheckPermission(CodeUnderlyingType code)
                 break;
         }
         if (!hasPermission) {
-            RS_LOGE("%{public}d ipc interface code access denied: HAS NO PERMISSION", code);
+            RS_LOGD("%{public}d ipc interface code access denied: HAS NO PERMISSION", code);
             return false;
         }
     }

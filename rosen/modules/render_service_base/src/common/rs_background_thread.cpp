@@ -139,7 +139,7 @@ void RSBackgroundThread::CleanGrResource()
             return;
         }
         grContext_->freeGpuResources();
-        RS_LOGI("RSBackgroundThread::CleanGrResource() finished");
+        RS_LOGD("RSBackgroundThread::CleanGrResource() finished");
     });
 }
 #else
@@ -205,7 +205,7 @@ void RSBackgroundThread::CleanGrResource()
             return;
         }
         gpuContext_->FreeGpuResources();
-        RS_LOGI("RSBackgroundThread::CleanGrResource() finished");
+        RS_LOGD("RSBackgroundThread::CleanGrResource() finished");
     });
 }
 #endif

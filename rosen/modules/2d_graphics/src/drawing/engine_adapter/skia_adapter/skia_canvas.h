@@ -72,6 +72,7 @@ public:
     ImageInfo GetImageInfo() override;
     bool ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
         int srcX, int srcY) override;
+    bool ReadPixels(const Bitmap& dstBitmap, int srcX, int srcY) override;
 
     // shapes
     void DrawPoint(const Point& point) override;

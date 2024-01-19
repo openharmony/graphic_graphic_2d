@@ -33,7 +33,7 @@ void RSRenderServiceListener::OnBufferAvailable()
 {
     auto node = surfaceRenderNode_.lock();
     if (node == nullptr) {
-        RS_LOGE("RSRenderServiceListener::OnBufferAvailable node is nullptr");
+        RS_LOGD("RSRenderServiceListener::OnBufferAvailable node is nullptr");
         return;
     }
     RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%{public}" PRIu64, node->GetId());
@@ -80,7 +80,7 @@ void RSRenderServiceListener::OnCleanCache()
 {
     auto node = surfaceRenderNode_.lock();
     if (node == nullptr) {
-        RS_LOGW("RSRenderServiceListener::OnBufferAvailable node is nullptr");
+        RS_LOGD("RSRenderServiceListener::OnBufferAvailable node is nullptr");
         return;
     }
     RS_LOGD("RsDebug RSRenderServiceListener::OnCleanCache node id:%{public}" PRIu64, node->GetId());
@@ -93,7 +93,7 @@ void RSRenderServiceListener::OnGoBackground()
     RSMainThread::Instance()->PostTask([surfaceNode]() {
         auto node = surfaceNode.lock();
         if (node == nullptr) {
-            RS_LOGW("RSRenderServiceListener::OnBufferAvailable node is nullptr");
+            RS_LOGD("RSRenderServiceListener::OnBufferAvailable node is nullptr");
             return;
         }
         RS_LOGD("RsDebug RSRenderServiceListener::OnGoBackground node id:%{public}" PRIu64, node->GetId());

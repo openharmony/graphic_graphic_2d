@@ -113,7 +113,7 @@ bool RSAnimation::IsFinished() const
 void RSAnimation::Start(const std::shared_ptr<RSNode>& target)
 {
     if (state_ != AnimationState::INITIALIZED) {
-        ROSEN_LOGE("State error, animation is in [%{public}d] when start.", state_);
+        ROSEN_LOGD("State error, animation is in [%{public}d] when start.", state_);
         return;
     }
 
@@ -151,7 +151,7 @@ const std::weak_ptr<RSNode> RSAnimation::GetTarget() const
 void RSAnimation::Pause()
 {
     if (state_ != AnimationState::RUNNING) {
-        ROSEN_LOGE("State error, animation is in [%{public}d] when pause", state_);
+        ROSEN_LOGD("State error, animation is in [%{public}d] when pause", state_);
         return;
     }
 
@@ -193,7 +193,7 @@ void RSAnimation::OnPause()
 void RSAnimation::Resume()
 {
     if (state_ != AnimationState::PAUSED) {
-        ROSEN_LOGE("State error, animation is in [%{public}d] when Resume", state_);
+        ROSEN_LOGD("State error, animation is in [%{public}d] when Resume", state_);
         return;
     }
 
@@ -277,7 +277,7 @@ void RSAnimation::OnFinish()
 void RSAnimation::Reverse()
 {
     if (state_ != AnimationState::RUNNING && state_ != AnimationState::PAUSED) {
-        ROSEN_LOGE("State error, animation is in [%{public}d] when Reverse", state_);
+        ROSEN_LOGD("State error, animation is in [%{public}d] when Reverse", state_);
         return;
     }
 
@@ -325,7 +325,7 @@ void RSAnimation::SetFraction(float fraction)
     }
 
     if (state_ != AnimationState::PAUSED) {
-        ROSEN_LOGE("State error, animation is in [%{public}d] when SetFraction", state_);
+        ROSEN_LOGD("State error, animation is in [%{public}d] when SetFraction", state_);
         return;
     }
 

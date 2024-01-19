@@ -54,6 +54,8 @@
     { "name": "OH_Drawing_PathEffectDestroy" },
     { "name": "OH_Drawing_CanvasSetMatrix" },
     { "name": "OH_Drawing_CanvasDrawImageRect" },
+    { "name": "OH_Drawing_CanvasReadPixels" },
+    { "name": "OH_Drawing_CanvasReadPixelsToBitmap" },
     { "name": "OH_Drawing_ColorFilterCreateBlendMode" },
     { "name": "OH_Drawing_ColorFilterCreateCompose" },
     { "name": "OH_Drawing_ColorFilterCreateLinearToSrgbGamma" },

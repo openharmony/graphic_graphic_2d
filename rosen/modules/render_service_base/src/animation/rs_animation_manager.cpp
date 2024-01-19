@@ -124,7 +124,7 @@ const std::shared_ptr<RSRenderAnimation> RSAnimationManager::GetAnimation(Animat
 {
     auto animationItr = animations_.find(id);
     if (animationItr == animations_.end()) {
-        ROSEN_LOGE("RSAnimationManager::GetAnimation, animation [%{public}" PRIu64 "] not found", id);
+        ROSEN_LOGD("RSAnimationManager::GetAnimation, animation [%{public}" PRIu64 "] not found", id);
         return nullptr;
     }
     return animationItr->second;

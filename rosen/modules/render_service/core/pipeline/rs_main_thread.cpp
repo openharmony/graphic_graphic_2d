@@ -1178,7 +1178,7 @@ void RSMainThread::ReleaseAllNodesBuffer()
                             fence = preBuffer.releaseFence]() mutable {
                             auto ret = consumer->ReleaseBuffer(buffer, fence);
                             if (ret != OHOS::SURFACE_ERROR_OK) {
-                                RS_LOGW("surfaceHandler ReleaseBuffer failed(ret: %{public}d)!", ret);
+                                RS_LOGD("surfaceHandler ReleaseBuffer failed(ret: %{public}d)!", ret);
                             }
                         };
                         preBuffer.Reset();
@@ -1438,7 +1438,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             RequestNextVSync();
             return;
         } else {
-            RS_LOGI("RSMainThread::Render nothing to update");
+            RS_LOGD("RSMainThread::Render nothing to update");
             for (auto& node: hardwareEnabledNodes_) {
                 if (!node->IsHardwareForcedDisabled()) {
                     node->MarkCurrentFrameHardwareEnabled();

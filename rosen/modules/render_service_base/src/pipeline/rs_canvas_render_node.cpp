@@ -269,8 +269,6 @@ void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas
         RSPropertiesPainter::DrawLightUpEffect(GetRenderProperties(), canvas);
     }
     RSPropertiesPainter::DrawFilter(GetRenderProperties(), canvas, FilterType::FOREGROUND_FILTER);
-    auto para = GetRenderProperties().GetLinearGradientBlurPara();
-    RSPropertiesPainter::DrawLinearGradientBlurFilter(GetRenderProperties(), canvas);
 
     auto illuminatedPtr_ = GetRenderProperties().GetIlluminated();
     if (illuminatedPtr_ && illuminatedPtr_->IsIlluminated()) {

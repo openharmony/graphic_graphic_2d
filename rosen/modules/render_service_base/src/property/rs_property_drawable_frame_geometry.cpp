@@ -48,7 +48,7 @@ void RSColorFilterDrawable::Draw(const RSRenderContent& content, RSPaintFilterCa
     auto clipBounds = canvas.getDeviceClipBounds();
     auto imageSnapshot = skSurface->makeImageSnapshot(clipBounds);
     if (imageSnapshot == nullptr) {
-        ROSEN_LOGE("RSColorFilterDrawable::Draw image is null");
+        ROSEN_LOGD("RSColorFilterDrawable::Draw image is null");
         return;
     }
     as_IB(imageSnapshot)->hintCacheGpuResource();
@@ -66,7 +66,7 @@ void RSColorFilterDrawable::Draw(const RSRenderContent& content, RSPaintFilterCa
     auto clipBounds = canvas.GetDeviceClipBounds();
     auto imageSnapshot = drSurface->GetImageSnapshot(clipBounds);
     if (imageSnapshot == nullptr) {
-        ROSEN_LOGE("RSColorFilterDrawable::Draw image is null");
+        ROSEN_LOGD("RSColorFilterDrawable::Draw image is null");
         return;
     }
     as_IB(imageSnapshot->ExportSkImage().get())->hintCacheGpuResource();

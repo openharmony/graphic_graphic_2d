@@ -61,7 +61,7 @@ void RSCommandFactory::Register(uint16_t type, uint16_t subtype, UnmarshallingFu
 {
     auto result = unmarshallingFuncLUT_.try_emplace(MakeKey(type, subtype), func);
     if (!result.second) {
-        ROSEN_LOGE("RSCommandFactory::Register, Duplicate command & sub_command detected!"
+        ROSEN_LOGD("RSCommandFactory::Register, Duplicate command & sub_command detected!"
             " type: %{public}d subtype: %{public}d", type, subtype);
     }
 }

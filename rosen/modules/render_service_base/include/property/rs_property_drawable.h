@@ -73,7 +73,6 @@ enum class RSPropertyDrawableSlot : uint8_t {
     COLOR_FILTER,
     LIGHT_UP_EFFECT,
     FOREGROUND_FILTER,
-    LINEAR_GRADIENT_BLUR_FILTER,
     FOREGROUND_COLOR,
     FG_RESTORE_BOUNDS,
 

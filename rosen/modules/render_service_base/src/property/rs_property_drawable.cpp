@@ -91,7 +91,7 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::BORDER_STYLE, RSPropertyDrawableSlot::BORDER },
     { RSModifierType::FILTER, RSPropertyDrawableSlot::FOREGROUND_FILTER },
     { RSModifierType::BACKGROUND_FILTER, RSPropertyDrawableSlot::BACKGROUND_FILTER },
-    { RSModifierType::LINEAR_GRADIENT_BLUR_PARA, RSPropertyDrawableSlot::LINEAR_GRADIENT_BLUR_FILTER },
+    { RSModifierType::LINEAR_GRADIENT_BLUR_PARA, RSPropertyDrawableSlot::FOREGROUND_FILTER },
     { RSModifierType::DYNAMIC_LIGHT_UP_RATE, RSPropertyDrawableSlot::DYNAMIC_LIGHT_UP },
     { RSModifierType::DYNAMIC_LIGHT_UP_DEGREE, RSPropertyDrawableSlot::DYNAMIC_LIGHT_UP },
     { RSModifierType::FRAME_GRAVITY, RSPropertyDrawableSlot::FRAME_OFFSET },
@@ -195,7 +195,6 @@ static const std::array<RSPropertyDrawable::DrawableGenerator, LUT_SIZE> g_drawa
     RSColorFilterDrawable::Generate,              // COLOR_FILTER
     RSLightUpEffectDrawable::Generate,            // LIGHT_UP_EFFECT
     RSForegroundFilterDrawable::Generate,         // FOREGROUND_FILTER
-    RSLinearGradientBlurFilterDrawable::Generate, // LINEAR_GRADIENT_BLUR_FILTER
     RSForegroundColorDrawable::Generate,          // FOREGROUND_COLOR
     nullptr,                                      // FG_RESTORE_BOUNDS
 

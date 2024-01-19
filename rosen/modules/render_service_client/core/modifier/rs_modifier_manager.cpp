@@ -165,7 +165,7 @@ std::shared_ptr<RSRenderAnimation> RSModifierManager::QuerySpringAnimation(Prope
 {
     auto it = springAnimations_.find(propertyId);
     if (it == springAnimations_.end() || it->second == 0) {
-        ROSEN_LOGI("RSModifierManager::QuerySpringAnimation: there is no spring animation on the current property.");
+        ROSEN_LOGD("RSModifierManager::QuerySpringAnimation: there is no spring animation on the current property.");
         return nullptr;
     }
     return GetAnimation(it->second);
@@ -175,7 +175,7 @@ const std::shared_ptr<RSRenderAnimation> RSModifierManager::GetAnimation(Animati
 {
     auto animationItr = animations_.find(id);
     if (animationItr == animations_.end()) {
-        ROSEN_LOGE("RSModifierManager::GetAnimation, animation [%{public}" PRIu64 "] not found", id);
+        ROSEN_LOGD("RSModifierManager::GetAnimation, animation [%{public}" PRIu64 "] not found", id);
         return nullptr;
     }
     return animationItr->second.lock();

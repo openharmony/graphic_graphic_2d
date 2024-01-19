@@ -18,6 +18,7 @@
 #include <array>
 #include "common/rs_macros.h"
 #include "platform/common/rs_system_properties.h"
+#include "render/rs_filter.h"
 
 namespace OHOS {
 namespace Rosen {

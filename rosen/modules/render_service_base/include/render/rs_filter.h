@@ -73,6 +73,7 @@ public:
         MATERIAL,
         LIGHT_UP_EFFECT,
         AIBAR,
+        LINEAR_GRADIENT_BLUR,
     };
     FilterType GetFilterType() const
     {

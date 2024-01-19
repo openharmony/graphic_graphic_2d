@@ -106,7 +106,7 @@ bool RSRenderServiceConnectHub::Connect()
         if (samgr == nullptr) {
             continue;
         }
-        auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+        auto remoteObject = samgr->CheckSystemAbility(RENDER_SERVICE);
         if (remoteObject == nullptr || !remoteObject->IsProxyObject()) {
             continue;
         }

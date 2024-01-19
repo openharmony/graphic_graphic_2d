@@ -76,7 +76,7 @@ void RSAnimationGroup::RemoveAnimation(const std::shared_ptr<RSAnimation>& anima
 void RSAnimationGroup::OnStart()
 {
     if (animations_.empty()) {
-        ROSEN_LOGE("Failed to start animations, animations is empty!");
+        ROSEN_LOGD("Failed to start animations, animations is empty!");
         return;
     }
 
