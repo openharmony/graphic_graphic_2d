@@ -4278,6 +4278,9 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeNeedProcess(RSSurfaceRenderNode
     if (isSubThread_) {
         return true;
     }
+    if (RSMainThread::Instance()->GetCacheCmdSkippedNodes().count(node.GetId()) != 0) {
+        return true;
+    }
     if (isSecurityDisplay_ && node.GetSkipLayer()) {
         RS_PROCESS_TRACE(isPhone_, false, node.GetName() + " SkipLayer Skip");
         return false;
