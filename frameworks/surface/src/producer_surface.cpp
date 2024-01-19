@@ -450,12 +450,18 @@ uint64_t ProducerSurface::GetUniqueId() const
 
 GSError ProducerSurface::SetTransform(GraphicTransformType transform)
 {
-    return producer_->SetTransform(transform);
+    GSError ret = producer_->SetTransform(transform);
+    if (ret == GSERROR_OK) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        transform_ = transform;
+    }
+    return ret;
 }
 
 GraphicTransformType ProducerSurface::GetTransform() const
 {
-    return GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+    std::lock_guard<std::mutex> lock(mutex_);
+    return transform_;
 }
 
 GSError ProducerSurface::IsSupportedAlloc(const std::vector<BufferVerifyAllocInfo> &infos,
