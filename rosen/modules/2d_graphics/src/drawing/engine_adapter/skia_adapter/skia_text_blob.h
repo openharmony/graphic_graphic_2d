@@ -27,7 +27,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class SkiaTextBlob : public TextBlobImpl {
+class DRAWING_API SkiaTextBlob : public TextBlobImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
 
