@@ -77,7 +77,7 @@ public:
     virtual ImageInfo GetImageInfo() = 0;
     virtual bool ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t dstRowBytes,
         int srcX, int srcY) = 0;
-
+    virtual bool ReadPixels(const Bitmap& dstBitmap, int srcX, int srcY) = 0;
     // shapes
     virtual void DrawPoint(const Point& point) = 0;
     virtual void DrawPoints(PointMode mode, size_t count, const Point pts[]) = 0;

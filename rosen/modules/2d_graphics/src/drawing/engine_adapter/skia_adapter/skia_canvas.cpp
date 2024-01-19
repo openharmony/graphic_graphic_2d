@@ -166,6 +166,16 @@ bool SkiaCanvas::ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t ds
     return skCanvas_->readPixels(info, dstPixels, dstRowBytes, srcX, srcY);
 }
 
+bool SkiaCanvas::ReadPixels(const Bitmap& dstBitmap, int srcX, int srcY)
+{
+    if (!skCanvas_) {
+        LOGE("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return false;
+    }
+    const SkBitmap& skBitmap = dstBitmap.GetImpl<SkiaBitmap>()->ExportSkiaBitmap();
+    return skCanvas_->readPixels(skBitmap, srcX, srcY);
+}
+
 void SkiaCanvas::DrawPoint(const Point& point)
 {
     if (!skCanvas_) {

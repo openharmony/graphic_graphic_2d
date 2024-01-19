@@ -483,11 +483,32 @@ void OH_Drawing_CanvasSetMatrix(OH_Drawing_Canvas* cCanvas, OH_Drawing_Matrix* m
 }
 
 void OH_Drawing_CanvasDrawImageRect(OH_Drawing_Canvas* cCanvas, OH_Drawing_Image* cImage, OH_Drawing_Rect* dst,
-                                    OH_Drawing_SamplingOptions* cSampingOptions)
+    OH_Drawing_SamplingOptions* cSampingOptions)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr || cImage == nullptr || dst == nullptr || cSampingOptions == nullptr) {
         return;
     }
     canvas->DrawImageRect(CastToImage(*cImage), CastToRect(*dst), CastToSamplingOptions(*cSampingOptions));
+}
+
+bool OH_Drawing_CanvasReadPixels(OH_Drawing_Canvas* cCanvas, OH_Drawing_Image_Info* cImageInfo,
+    void* dstPixels, uint32_t dstRowBytes, int32_t srcX, int32_t srcY)
+{
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr || cImageInfo == nullptr || dstPixels == nullptr) {
+        return false;
+    }
+    ImageInfo imageInfo(cImageInfo->width, cImageInfo->height,
+        static_cast<ColorType>(cImageInfo->colorType), static_cast<AlphaType>(cImageInfo->alphaType));
+    return canvas->ReadPixels(imageInfo, dstPixels, dstRowBytes, srcX, srcY);
+}
+
+bool OH_Drawing_CanvasReadPixelsToBitmap(OH_Drawing_Canvas* cCanvas, OH_Drawing_Bitmap* cBitmap, int32_t srcX, int32_t srcY)
+{
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr || cBitmap == nullptr) {
+        return false;
+    }
+    return canvas->ReadPixels(CastToBitmap(*cBitmap), srcX, srcY);
 }

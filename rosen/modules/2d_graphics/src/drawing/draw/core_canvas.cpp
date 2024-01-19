@@ -78,6 +78,11 @@ bool CoreCanvas::ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t ds
     return impl_->ReadPixels(dstInfo, dstPixels, dstRowBytes, srcX, srcY);
 }
 
+bool CoreCanvas::ReadPixels(const Bitmap& dstBitmap, int srcX, int srcY)
+{
+    return impl_->ReadPixels(dstBitmap, srcX, srcY);
+}
+
 void CoreCanvas::DrawPoint(const Point& point)
 {
     AttachPaint();
