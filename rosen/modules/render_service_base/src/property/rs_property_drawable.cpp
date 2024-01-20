@@ -165,6 +165,7 @@ static const std::array<RSPropertyDrawable::DrawableGenerator, LUT_SIZE> g_drawa
     CustomModifierAdapter<RSModifierType::TRANSITION>,           // TRANSITION
     CustomModifierAdapter<RSModifierType::ENV_FOREGROUND_COLOR>, // ENV_FOREGROUND_COLOR
     RSShadowDrawable::Generate,                                  // SHADOW
+    RSOutlineDrawable::Generate,                                 // OUTLINE
 
     // BG properties in Bounds Clip
     nullptr,                                                              // BG_SAVE_BOUNDS
@@ -201,7 +202,6 @@ static const std::array<RSPropertyDrawable::DrawableGenerator, LUT_SIZE> g_drawa
     // No clip (unless ClipToBounds is set)
     RSPointLightDrawable::Generate,                       // POINT_LIGHT
     RSBorderDrawable::Generate,                           // BORDER
-    RSOutlineDrawable::Generate,                          // OUTLINE
     CustomModifierAdapter<RSModifierType::OVERLAY_STYLE>, // OVERLAY
     RSParticleDrawable::Generate,                         // PARTICLE_EFFECT
     RSPixelStretchDrawable::Generate,                     // PIXEL_STRETCH

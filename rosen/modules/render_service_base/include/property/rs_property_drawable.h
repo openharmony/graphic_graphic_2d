@@ -43,6 +43,7 @@ enum class RSPropertyDrawableSlot : uint8_t {
     TRANSITION,
     ENV_FOREGROUND_COLOR,
     SHADOW,
+    OUTLINE,
 
     // BG properties in Bounds Clip
     BG_SAVE_BOUNDS,
@@ -79,7 +80,6 @@ enum class RSPropertyDrawableSlot : uint8_t {
     // No clip (unless ClipToBounds is set)
     POINT_LIGHT,
     BORDER,
-    OUTLINE,
     OVERLAY,
     PARTICLE_EFFECT,
     PIXEL_STRETCH,
