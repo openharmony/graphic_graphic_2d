@@ -2726,6 +2726,14 @@ void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect&
 {
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     std::shared_ptr<Media::PixelMap> pixelmap = rsImage_->GetPixelMap();
+    if (canvas.GetRecordingCanvas()) {
+        image_ = RSPixelMapUtil::ExtractDrawingImage(pixelmap);
+        if (image_) {
+            rsImage_->SetDmaImage(image_);
+        }
+        rsImage_->CanvasDrawImage(canvas, rect, sampling, isBackground);
+        return;
+    }
     if (pixelmap != nullptr && pixelmap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
 #if defined(RS_ENABLE_GL)
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
