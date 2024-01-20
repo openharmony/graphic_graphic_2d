@@ -169,6 +169,7 @@ bool SymbolNodeBuild::DecomposeSymbolAndDraw()
         AddHierarchicalAnimation(symbolData_, nodeBounds, animationSetting_.groupSettings, symbolAnimationConfig);
         symbolAnimationConfig->effectStrategy = SymbolAnimationEffectStrategy::SYMBOL_HIERARCHICAL;
     }
+    symbolAnimationConfig->symbolSpanId = symblSpanId_;
     animationFunc_(symbolAnimationConfig);
     return true;
 }

@@ -303,6 +303,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SymbolLayersGroups& val)
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const HMSymbolData& val)
 {
+    if (!Marshalling(parcel, val.symbolId_)) {
+        RS_LOGE("[%{public}s] failed HMSymbolData symbolId_", __func__);
+        return false;
+    }
     if (!Marshalling(parcel, val.symbolInfo_)) {
         RS_LOGE("[%{public}s] failed HMSymbolData symbolInfo_", __func__);
         return false;
@@ -316,6 +320,10 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const HMSymbolData& val)
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, HMSymbolData& val)
 {
+    if (!Unmarshalling(parcel, val.symbolId_)) {
+        RS_LOGE("[%{public}s] failed HMSymbolData symbolId_", __func__);
+        return false;
+    }
     if (!Unmarshalling(parcel, val.symbolInfo_)) {
         RS_LOGE("[%{public}s] failed HMSymbolData symbolInfo_", __func__);
         return false;

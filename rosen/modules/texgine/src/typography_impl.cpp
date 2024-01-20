@@ -631,9 +631,12 @@ void TypographyImpl::UpadateAnySpanMetrics(std::shared_ptr<AnySpan> &span, doubl
 
 void TypographyImpl::Paint(TexgineCanvas &canvas, double offsetX, double offsetY)
 {
+    uint64_t symbolId = 0;
     for (auto &metric : lineMetrics_) {
         for (auto &span : metric.lineSpans) {
             if (animationFunc_) {
+                symbolId++;
+                span.SetSymbolId(symbolId);
                 span.SetAnimation(animationFunc_);
             }
             span.Paint(canvas, offsetX + span.GetOffsetX(), offsetY + span.GetOffsetY());
