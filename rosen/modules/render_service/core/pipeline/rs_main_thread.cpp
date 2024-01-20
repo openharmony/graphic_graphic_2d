@@ -1044,7 +1044,6 @@ void RSMainThread::CollectInfoForHardwareComposer()
             auto appNodeId = surfaceNode->GetInstanceRootNodeId();
             if (surfaceNode->IsNewOnTree()) {
                 context_->AddActiveNode(nodeMap.GetRenderNode(appNodeId));
-                surfaceNode->ResetIsNewOnTree();
             }
 
             if (surfaceNode->GetBuffer() != nullptr) {
