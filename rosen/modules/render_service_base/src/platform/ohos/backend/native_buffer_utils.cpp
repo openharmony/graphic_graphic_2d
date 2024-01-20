@@ -16,7 +16,7 @@
 #include "memory/rs_tag_tracker.h"
 #include "native_buffer_utils.h"
 #include "platform/common/rs_log.h"
-
+#include "render_context/render_context.h"
 namespace OHOS::Rosen {
 namespace NativeBufferUtils {
 void DeleteVkImage(void* context)
@@ -211,6 +211,7 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
         return false;
     }
 
+    auto skColorSpace = RenderContext::ConvertColorGamutToSkColorSpace(nativeSurface.graphicColorGamut);
 #ifndef USE_ROSEN_DRAWING
     GrVkImageInfo image_info;
     image_info.fImage = image;
@@ -234,7 +235,7 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
 
     nativeSurface.skSurface = SkSurface::MakeFromBackendRenderTarget(
         skContext.get(), backend_render_target, kTopLeft_GrSurfaceOrigin, colorType,
-        SkColorSpace::MakeSRGB(), &props, DeleteVkImage, new VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+        skColorSpace, &props, DeleteVkImage, new VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
         image, memory));
 #else
     Drawing::TextureInfo texture_info;
@@ -249,19 +250,22 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
     vkTextureInfo->sampleCount = 1;
     vkTextureInfo->levelCount = 1;
     texture_info.SetVKTextureInfo(vkTextureInfo);
-    
+
     Drawing::ColorType colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
     if (nbFormatProps.format == VK_FORMAT_A2B10G10R10_UNORM_PACK32) {
         colorType = Drawing::ColorType::COLORTYPE_RGBA_1010102;
     }
 
+    auto skiaColorSpace = std::make_shared<Drawing::SkiaColorSpace>();
+    skiaColorSpace->SetColorSpace(skColorSpace);
+    auto colorSpace = Drawing::ColorSpace::CreateFromImpl(skiaColorSpace);
     nativeSurface.drawingSurface = Drawing::Surface::MakeFromBackendTexture(
         skContext.get(),
         texture_info,
         Drawing::TextureOrigin::TOP_LEFT,
         1,
         colorType,
-        nullptr,
+        colorSpace,
         DeleteVkImage,
         new VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
             image, memory));

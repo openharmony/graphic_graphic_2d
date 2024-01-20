@@ -177,6 +177,7 @@ public:
     bool UpdateStorageSizeIfNecessary();
     bool ResourceMakeCurrent();
 #endif
+    static sk_sp<SkColorSpace> ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut);
 
 private:
 #ifndef USE_ROSEN_DRAWING
@@ -219,7 +220,6 @@ private:
     std::shared_ptr<MemoryHandler> mHandler_;
     std::mutex shareContextMutex_;
 
-    static sk_sp<SkColorSpace> ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut);
 #ifndef USE_ROSEN_DRAWING
 #ifdef RS_ENABLE_GL
     void InitGrContextOptions(GrContextOptions &options);

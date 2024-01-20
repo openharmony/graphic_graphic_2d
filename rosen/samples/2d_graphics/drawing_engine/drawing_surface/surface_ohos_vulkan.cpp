@@ -197,6 +197,7 @@ std::unique_ptr<SurfaceFrame> SurfaceOhosVulkan::NativeRequestFrame(int32_t widt
     if (nativeSurface.drawingSurface == nullptr) {
 #endif
         nativeSurface.window = mNativeWindow_;
+        nativeSurface.graphicColorGamut = colorSpace_;
         if (!NativeBufferUtils::MakeFromNativeWindowBuffer(
             drContext_, nativeWindowBuffer, nativeSurface, width, height)) {
             LOGE("RSSurfaceOhosVulkan: MakeFromeNativeWindow failed");
