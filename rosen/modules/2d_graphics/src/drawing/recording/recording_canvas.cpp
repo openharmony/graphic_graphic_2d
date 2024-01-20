@@ -324,7 +324,6 @@ void RecordingCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const s
         LOGE("blob nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return;
     }
-
 #ifdef ROSEN_OHOS
     if (IsCustomTextType()) {
         LOGD("RecordingCanvas::DrawTextBlob replace drawOpItem with cached one");
@@ -538,6 +537,7 @@ uint32_t RecordingCanvas::Save()
 void RecordingCanvas::SaveLayer(const SaveLayerOps& saveLayerOps)
 {
     Canvas::SaveLayer(saveLayerOps);
+    saveOpStateStack_.push(RealSaveOp);
     if (!addDrawOpImmediate_) {
         cmdList_->AddDrawOp(std::make_shared<SaveLayerOpItem>(saveLayerOps));
         return;
@@ -560,7 +560,6 @@ void RecordingCanvas::SaveLayer(const SaveLayerOps& saveLayerOps)
 
     cmdList_->AddDrawOp<SaveLayerOpItem::ConstructorHandle>(rect, hasBrush, brushHandle,
         imageFilterHandle, saveLayerOps.GetSaveLayerFlags());
-    saveOpStateStack_.push(RealSaveOp);
 }
 
 void RecordingCanvas::Restore()
