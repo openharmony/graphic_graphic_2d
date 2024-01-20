@@ -536,11 +536,13 @@ ohos_unittest("RSMainThreadTest") {
     "hilog:libhilog",
     "init:libbegetutil",
   ]
-  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps += [ "sensor:sensor_interface_native" ]
-  }
   defines = []
   defines += gpu_defines
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+    external_deps += [ "accessibility:accessibilityconfig" ]
+    defines += [ "ACCESSIBILITY_ENABLE" ]
+  }
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
     include_dirs = []
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]

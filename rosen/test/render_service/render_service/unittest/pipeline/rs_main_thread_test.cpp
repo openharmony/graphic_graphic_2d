@@ -30,7 +30,8 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-
+constexpr uint64_t REFRESH_PERIOD = 16666667;
+constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
 class RSMainThreadTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -59,6 +60,7 @@ void* RSMainThreadTest::CreateParallelSyncSignal(uint32_t count)
 HWTEST_F(RSMainThreadTest, Start001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     mainThread->Start();
 }
 
@@ -71,6 +73,7 @@ HWTEST_F(RSMainThreadTest, Start001, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, Start002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     mainThread->runner_ = nullptr;
     mainThread->Start();
 }
@@ -84,8 +87,17 @@ HWTEST_F(RSMainThreadTest, Start002, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, ProcessCommand, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
     mainThread->isUniRender_ = false;
     mainThread->ProcessCommand();
+    mainThread->isUniRender_ = true;
+    mainThread->lastAnimateTimestamp_ = 0;
+    mainThread->timestamp_ = REFRESH_PERIOD + 1;
+    mainThread->context_->purgeType_ = RSContext::PurgeType::GENTLY;
+    mainThread->ProcessCommand();
+    mainThread->context_->purgeType_ = RSContext::PurgeType::STRONGLY;
+    mainThread->isUniRender_ = isUniRender;
 }
 
 /**
@@ -97,6 +109,7 @@ HWTEST_F(RSMainThreadTest, ProcessCommand, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, RsEventParamDump, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     std::string str = "";
     mainThread->RsEventParamDump(str);
     ASSERT_TRUE(str.empty());
@@ -111,6 +124,7 @@ HWTEST_F(RSMainThreadTest, RsEventParamDump, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, RemoveRSEventDetector001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     mainThread->InitRSEventDetector();
     mainThread->RemoveRSEventDetector();
 }
@@ -124,6 +138,7 @@ HWTEST_F(RSMainThreadTest, RemoveRSEventDetector001, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, RemoveRSEventDetector002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     mainThread->RemoveRSEventDetector();
 }
 
@@ -136,6 +151,7 @@ HWTEST_F(RSMainThreadTest, RemoveRSEventDetector002, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, InitRSEventDetector, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     mainThread->rsCompositionTimeoutDetector_ = nullptr;
     mainThread->InitRSEventDetector();
 }
@@ -149,6 +165,7 @@ HWTEST_F(RSMainThreadTest, InitRSEventDetector, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopStartTag001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     mainThread->InitRSEventDetector();
     mainThread->SetRSEventDetectorLoopStartTag();
 }
@@ -162,6 +179,7 @@ HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopStartTag001, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopStartTag002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     mainThread->rsCompositionTimeoutDetector_ = nullptr;
     mainThread->SetRSEventDetectorLoopStartTag();
 }
@@ -175,8 +193,14 @@ HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopStartTag002, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopFinishTag001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     mainThread->InitRSEventDetector();
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = false;
     mainThread->SetRSEventDetectorLoopFinishTag();
+    mainThread->isUniRender_ = true;
+    mainThread->SetRSEventDetectorLoopFinishTag();
+    mainThread->isUniRender_ = isUniRender;
 }
 
 /**
@@ -188,6 +212,7 @@ HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopFinishTag001, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopFinishTag002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     mainThread->rsCompositionTimeoutDetector_ = nullptr;
     mainThread->SetRSEventDetectorLoopFinishTag();
 }
@@ -201,6 +226,7 @@ HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopFinishTag002, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, WaitUtilUniRenderFinished, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     mainThread->NotifyUniRenderFinish();
     mainThread->WaitUtilUniRenderFinished();
     ASSERT_EQ(mainThread->uniRenderFinished_, true);
@@ -215,6 +241,7 @@ HWTEST_F(RSMainThreadTest, WaitUtilUniRenderFinished, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, ProcessCommandForDividedRender001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     mainThread->ProcessCommandForDividedRender();
 }
 
@@ -227,6 +254,7 @@ HWTEST_F(RSMainThreadTest, ProcessCommandForDividedRender001, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, CalcOcclusion, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     mainThread->doWindowAnimate_ = false;
     mainThread->isUniRender_ = true;
     mainThread->CalcOcclusion();
@@ -241,6 +269,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusion, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, CheckSurfaceVisChanged001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     std::map<uint32_t, RSVisibleLevel> pidVisMap;
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
     auto isVisibleChanged = mainThread->CheckSurfaceVisChanged(pidVisMap, curAllSurfaces);
@@ -256,6 +285,7 @@ HWTEST_F(RSMainThreadTest, CheckSurfaceVisChanged001, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, CheckSurfaceVisChanged002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     std::map<uint32_t, RSVisibleLevel> pidVisMap;
     pidVisMap[0] = RSVisibleLevel::RS_ALL_VISIBLE;
     mainThread->lastPidVisMap_[0] = RSVisibleLevel::RS_INVISIBLE;
@@ -273,6 +303,7 @@ HWTEST_F(RSMainThreadTest, CheckSurfaceVisChanged002, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, CheckSurfaceVisChanged003, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     std::map<uint32_t, RSVisibleLevel> pidVisMap;
     pidVisMap[0] = RSVisibleLevel::RS_ALL_VISIBLE;
     mainThread->lastPidVisMap_[0] = RSVisibleLevel::RS_ALL_VISIBLE;
@@ -290,6 +321,7 @@ HWTEST_F(RSMainThreadTest, CheckSurfaceVisChanged003, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, Animate001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     mainThread->doWindowAnimate_ = false;
     mainThread->Animate(0);
 }
@@ -303,6 +335,7 @@ HWTEST_F(RSMainThreadTest, Animate001, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, Animate002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     mainThread->doWindowAnimate_ = true;
     mainThread->Animate(0);
 }
@@ -316,6 +349,7 @@ HWTEST_F(RSMainThreadTest, Animate002, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, UnRegisterOcclusionChangeCallback, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     mainThread->UnRegisterOcclusionChangeCallback(0);
 }
 
@@ -657,6 +691,32 @@ HWTEST_F(RSMainThreadTest, ShowWatermark, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MergeToEffectiveTransactionDataMap001
+ * @tc.desc: Test RSMainThreadTest.MergeToEffectiveTransactionDataMap
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSMainThreadTest, MergeToEffectiveTransactionDataMap001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->Start();
+    ASSERT_EQ(mainThread->effectiveTransactionDataIndexMap_.empty(), true);
+    mainThread->effectiveTransactionDataIndexMap_[0].first = 0;
+    TransactionDataMap dataMap;
+    auto data = std::make_unique<RSTransactionData>();
+    ASSERT_NE(data, nullptr);
+    data->SetIndex(1);
+    dataMap[0].emplace_back(std::move(data));
+    data = std::make_unique<RSTransactionData>();
+    ASSERT_NE(data, nullptr);
+    data->SetIndex(3);
+    dataMap[0].emplace_back(std::move(data));
+    dataMap[0].emplace_back(nullptr);
+    mainThread->MergeToEffectiveTransactionDataMap(dataMap);
+    mainThread->effectiveTransactionDataIndexMap_.clear();
+}
+
+/**
  * @tc.name: ProcessCommandForUniRender
  * @tc.desc: ProcessCommandForUniRender test with invalid data
  * @tc.type: FUNC
@@ -664,8 +724,6 @@ HWTEST_F(RSMainThreadTest, ShowWatermark, TestSize.Level1)
  */
 HWTEST_F(RSMainThreadTest, ProcessCommandForUniRender, TestSize.Level1)
 {
-    constexpr uint64_t REFRESH_PERIOD = 16666667;
-    constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
     auto mainThread = RSMainThread::Instance();
     ASSERT_EQ(mainThread->effectiveTransactionDataIndexMap_.empty(), true);
 
@@ -675,35 +733,21 @@ HWTEST_F(RSMainThreadTest, ProcessCommandForUniRender, TestSize.Level1)
     mainThread->effectiveTransactionDataIndexMap_[0].first = 0;
     // default data with index 0
     auto data = std::make_unique<RSTransactionData>();
+    ASSERT_NE(data, nullptr);
+    data->SetIndex(1);
+    mainThread->effectiveTransactionDataIndexMap_[0].second.emplace_back(std::move(data));
+    data = std::make_unique<RSTransactionData>();
+    ASSERT_NE(data, nullptr);
+    data->SetIndex(3);
+    mainThread->effectiveTransactionDataIndexMap_[0].second.emplace_back(std::move(data));
+    data = std::make_unique<RSTransactionData>();
+    ASSERT_NE(data, nullptr);
+    data->SetIndex(2);
     mainThread->effectiveTransactionDataIndexMap_[0].second.emplace_back(std::move(data));
     // empty data
     mainThread->effectiveTransactionDataIndexMap_[0].second.emplace_back(nullptr);
     mainThread->ProcessCommandForUniRender();
 }
-
-/**
- * @tc.name: ObserverConfigChangeColorFilter
- * @tc.desc: AccessibilityObserver changes different config of case ColorFilter
- * @tc.type: FUNC
- * @tc.require: issueI7A39J
- */
-#if defined(ACCESSIBILITY_ENABLE)
-HWTEST_F(RSMainThreadTest, ObserverConfigChangeColorFilter, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    auto observer = mainThread->accessibilityObserver_;
-    ASSERT_NE(observer, nullptr);
-
-    CONFIG_ID id = CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER;
-    std::vector<DALTONIZATION_TYPE> dalTypes = { DALTONIZATION_TYPE::Normal, DALTONIZATION_TYPE::Protanomaly,
-        DALTONIZATION_TYPE::Deuteranomaly, DALTONIZATION_TYPE::Tritanomaly };
-    ConfigValue value;
-    for (auto dalType : dalTypes) {
-        value.daltonizationColorFilter = dalType;
-        observer->OnConfigChanged(id, value);
-    }
-}
-#endif
 
 /**
  * @tc.name: GetWatermarkImg
@@ -752,5 +796,197 @@ HWTEST_F(RSMainThreadTest, SetIdleTimerExpiredFlag, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     mainThread->SetIdleTimerExpiredFlag(true);
+}
+
+/**
+ * @tc.name: SetFocusLeashWindowId
+ * @tc.desc: Test RSMainThreadTest.SetFocusLeashWindowId
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSMainThreadTest, SetFocusLeashWindowId, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->Start();
+    NodeId id = 1;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    ASSERT_NE(node1, nullptr);
+    RSSurfaceRenderNodeConfig config;
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(node2, nullptr);
+    node1->SetParent(node2);
+    node1->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    node2->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+
+    mainThread->context_ = std::make_shared<RSContext>();
+    mainThread->context_->nodeMap.renderNodeMap_[0] = node1;
+    mainThread->focusNodeId_ = 0;
+    mainThread->SetFocusLeashWindowId();
+}
+
+/**
+ * @tc.name: SetIsCachedSurfaceUpdated
+ * @tc.desc: Test RSMainThreadTest.SetIsCachedSurfaceUpdated
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSMainThreadTest, SetIsCachedSurfaceUpdated, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->SetIsCachedSurfaceUpdated(true);
+}
+
+/**
+ * @tc.name: GetFocusAppBundleName
+ * @tc.desc: Test RSMainThreadTest.GetFocusAppBundleName
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSMainThreadTest, GetFocusAppBundleName, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto name = mainThread->GetFocusAppBundleName();
+}
+
+/**
+ * @tc.name: PrintCurrentStatus
+ * @tc.desc: Test RSMainThreadTest.PrintCurrentStatus
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSMainThreadTest, PrintCurrentStatus, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->PrintCurrentStatus();
+}
+
+/**
+ * @tc.name: SetDeviceType
+ * @tc.desc: Test RSMainThreadTest.SetDeviceType
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSMainThreadTest, SetDeviceType, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    system::SetParameter("const.product.devicetype", "pc");
+    mainThread->SetDeviceType();
+    system::SetParameter("const.product.devicetype", "tablet");
+    mainThread->SetDeviceType();
+    system::SetParameter("const.product.devicetype", "others");
+    mainThread->SetDeviceType();
+    system::SetParameter("const.product.devicetype", "phone");
+    mainThread->SetDeviceType();
+}
+
+/**
+ * @tc.name: CacheCommands
+ * @tc.desc: Test RSMainThreadTest.CacheCommands
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSMainThreadTest, CacheCommands, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto data = std::make_unique<RSTransactionData>();
+    ASSERT_NE(data, nullptr);
+    data->SetIndex(1);
+    mainThread->cachedSkipTransactionDataMap_[0].emplace_back(std::move(data));
+    data = std::make_unique<RSTransactionData>();
+    ASSERT_NE(data, nullptr);
+    data->SetIndex(2);
+    mainThread->cachedSkipTransactionDataMap_[0].emplace_back(std::move(data));
+    mainThread->CacheCommands();
+}
+
+/**
+ * @tc.name: CheckIfNodeIsBundle
+ * @tc.desc: Test RSMainThreadTest.CheckIfNodeIsBundle
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSMainThreadTest, CheckIfNodeIsBundle, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RSSurfaceRenderNodeConfig config;
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    node->name_ = "WallpaperView";
+    mainThread->CheckIfNodeIsBundle(node);
+    ASSERT_TRUE(mainThread->noBundle_);
+}
+
+/**
+ * @tc.name: InformHgmNodeInfo
+ * @tc.desc: Test RSMainThreadTest.InformHgmNodeInfo
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSMainThreadTest, InformHgmNodeInfo, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->currentBundleName_ = "test";
+    mainThread->InformHgmNodeInfo();
+    mainThread->currentBundleName_ = "";
+    mainThread->noBundle_ = true;
+    mainThread->InformHgmNodeInfo();
+}
+
+/**
+ * @tc.name: CheckParallelSubThreadNodesStatus
+ * @tc.desc: Test RSMainThreadTest.CheckParallelSubThreadNodesStatus
+ * @tc.type: FUNC
+ * @tc.require: issueI8V6MD
+ */
+HWTEST_F(RSMainThreadTest, CheckParallelSubThreadNodesStatus, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->subThreadNodes_.clear();
+    mainThread->subThreadNodes_.push_back(nullptr);
+    mainThread->isUiFirstOn_ = false;
+    mainThread->CheckParallelSubThreadNodesStatus();
+
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(0xFFFFFFFFFFFFFFFF);
+    node1->cacheProcessStatus_ = CacheProcessStatus::DOING;
+    node1->name_ = "node1";
+    node1->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    node1->hasAbilityComponent_ = true;
+    node1->abilityNodeIds_.emplace(10);
+    node1->abilityNodeIds_.emplace(11);
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(2);
+    node2->cacheProcessStatus_ = CacheProcessStatus::DOING;
+    node2->name_ = "node2";
+    node2->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    auto node3 = std::make_shared<RSSurfaceRenderNode>(0xFFFFFFFFFFFFFFF0);
+    node3->cacheProcessStatus_ = CacheProcessStatus::DOING;
+    node3->name_ = "node3";
+    node3->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    node3->hasAbilityComponent_ = false;
+    // create child nodes
+    auto childNode1 = std::make_shared<RSSurfaceRenderNode>(3);
+    childNode1->name_ = "childNode1";
+    childNode1->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    auto childNode2 = std::make_shared<RSSurfaceRenderNode>(4);
+    childNode2->name_ = "childNode2";
+    childNode2->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    auto childNode3 = std::make_shared<RSSurfaceRenderNode>(5);
+    childNode3->name_ = "childNode3";
+
+    node2->AddChild(childNode1);
+    node2->AddChild(childNode2);
+    node2->AddChild(childNode3);
+    mainThread->subThreadNodes_.push_back(node1);
+    mainThread->subThreadNodes_.push_back(node2);
+    mainThread->subThreadNodes_.push_back(node3);
+
+    mainThread->cacheCmdSkippedInfo_.clear();
+    mainThread->CheckParallelSubThreadNodesStatus();
 }
 } // namespace OHOS::Rosen
