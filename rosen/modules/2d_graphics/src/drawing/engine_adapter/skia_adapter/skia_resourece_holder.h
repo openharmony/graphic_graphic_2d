@@ -38,6 +38,9 @@ public:
     void HoldResource(const std::shared_ptr<Image>& img) override
     {
         const sk_sp<SkImage> skImage = img->GetImpl<SkiaImage>()->GetImage();
+        if (!skImage) {
+            return;
+        }
         uint32_t id = skImage->uniqueID();
         if (skImages_.find(id) != skImages_.end()) {
             return;

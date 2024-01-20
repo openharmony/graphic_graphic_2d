@@ -316,6 +316,7 @@ void DrawCmdList::GenerateCache(Canvas* canvas, const Rect* rect)
         return;
     }
 
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (mode_ == DrawCmdList::UnmarshalMode::IMMEDIATE) {
         GenerateCacheByBuffer(canvas, rect);
     }

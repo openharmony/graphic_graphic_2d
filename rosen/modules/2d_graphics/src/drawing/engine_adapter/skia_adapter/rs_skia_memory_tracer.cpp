@@ -64,6 +64,8 @@ void SkiaMemoryTracer::ProcessElement()
             type = typeResult->second.units;
         } else if (itemizeType_) {
             type = "Other";
+        } else {
+            type = "";
         }
 
         // compute the type if we are itemizing or use the default "size" if we are not
