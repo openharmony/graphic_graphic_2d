@@ -1548,15 +1548,18 @@ void RSMainThread::Render()
 void RSMainThread::CheckSystemSceneStatus()
 {
     std::lock_guard<std::mutex> lock(systemAnimatedScenesMutex_);
+    uint64_t curTime = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
     while (!systemAnimatedScenesList_.empty()) {
-        if (timestamp_ - systemAnimatedScenesList_.front().second > MAX_SYSTEM_SCENE_STATUS_TIME) {
+        if (curTime - systemAnimatedScenesList_.front().second > MAX_SYSTEM_SCENE_STATUS_TIME) {
             systemAnimatedScenesList_.pop_front();
         } else {
             break;
         }
     }
     while (!threeFingerScenesList_.empty()) {
-        if (timestamp_ - threeFingerScenesList_.front().second > MAX_SYSTEM_SCENE_STATUS_TIME) {
+        if (curTime - threeFingerScenesList_.front().second > MAX_SYSTEM_SCENE_STATUS_TIME) {
             threeFingerScenesList_.pop_front();
         } else {
             break;
@@ -2722,14 +2725,17 @@ bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedSc
                 systemAnimatedScenesList_.pop_front();
             }
         } else {
+            uint64_t curTime = static_cast<uint64_t>(
+                std::chrono::duration_cast<std::chrono::nanoseconds>(
+                    std::chrono::steady_clock::now().time_since_epoch()).count());
             if (systemAnimatedScenes == SystemAnimatedScenes::ENTER_TFS_WINDOW ||
                 systemAnimatedScenes == SystemAnimatedScenes::EXIT_TFU_WINDOW ||
                 systemAnimatedScenes == SystemAnimatedScenes::ENTER_WIND_CLEAR ||
                 systemAnimatedScenes == SystemAnimatedScenes::ENTER_WIND_RECOVER) {
-                threeFingerScenesList_.push_back(std::make_pair(systemAnimatedScenes, timestamp_));
+                threeFingerScenesList_.push_back(std::make_pair(systemAnimatedScenes, curTime));
             }
             if (systemAnimatedScenes != SystemAnimatedScenes::APPEAR_MISSION_CENTER) {
-                systemAnimatedScenesList_.push_back(std::make_pair(systemAnimatedScenes, timestamp_));
+                systemAnimatedScenesList_.push_back(std::make_pair(systemAnimatedScenes, curTime));
             }
         }
     }
