@@ -59,6 +59,10 @@
     } while (0)
 
 namespace OHOS {
+namespace {
+    int32_t g_CancelBufferConsecutiveFailedCount  = 0;
+    constexpr int32_t MAX_COUNT = 2;
+}
 BufferClientProducer::BufferClientProducer(const sptr<IRemoteObject>& impl)
     : IRemoteProxy<IBufferProducer>(impl)
 {
@@ -136,8 +140,15 @@ GSError BufferClientProducer::CancelBuffer(uint32_t sequence, const sptr<BufferE
     bedata->WriteToParcel(arguments);
 
     SEND_REQUEST_WITH_SEQ(BUFFER_PRODUCER_CANCEL_BUFFER, arguments, reply, option, sequence);
-    CHECK_RETVAL_WITH_SEQ(reply, sequence);
-
+    int32_t ret = reply.ReadInt32();
+    if (ret != GSERROR_OK) {
+        g_CancelBufferConsecutiveFailedCount++;
+        if (g_CancelBufferConsecutiveFailedCount < MAX_COUNT) {
+            BLOGN_FAILURE_ID(sequence, "Remote return %{public}d", ret);
+        }
+        return (GSError)ret;
+    }
+    g_CancelBufferConsecutiveFailedCount = 0;
     return GSERROR_OK;
 }
 

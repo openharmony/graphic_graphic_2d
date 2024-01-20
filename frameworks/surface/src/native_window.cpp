@@ -199,7 +199,7 @@ int32_t GetLastFlushedBuffer(OHNativeWindow *window, OHNativeWindowBuffer **buff
 int32_t NativeWindowCancelBuffer(OHNativeWindow *window, OHNativeWindowBuffer *buffer)
 {
     if (window == nullptr || buffer == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+        BLOGD("parameter error, please check input parameter");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
     BLOGE_CHECK_AND_RETURN_RET(window->surface != nullptr, SURFACE_ERROR_ERROR, "window surface is null");
@@ -332,7 +332,7 @@ static int32_t InternalHandleNativeWindowOpt(OHNativeWindow *window, int code, v
 int32_t NativeWindowHandleOpt(OHNativeWindow *window, int code, ...)
 {
     if (window == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+        BLOGD("parameter error, please check input parameter");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
     va_list args;
@@ -364,7 +364,7 @@ int32_t GetNativeObjectMagic(void *obj)
 int32_t NativeObjectReference(void *obj)
 {
     if (obj == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+        BLOGD("parameter error, please check input parameter");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
     switch (GetNativeObjectMagic(obj)) {
@@ -382,7 +382,7 @@ int32_t NativeObjectReference(void *obj)
 int32_t NativeObjectUnreference(void *obj)
 {
     if (obj == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+        BLOGD("parameter error, please check input parameter");
         return OHOS::GSERROR_INVALID_ARGUMENTS;
     }
     switch (GetNativeObjectMagic(obj)) {

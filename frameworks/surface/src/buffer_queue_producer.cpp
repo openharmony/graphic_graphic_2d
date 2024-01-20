@@ -756,12 +756,12 @@ void BufferQueueProducer::ProducerSurfaceDeathRecipient::OnRemoteDied(const wptr
 
     auto producer = producer_.promote();
     if (producer == nullptr) {
-        BLOGNW("BufferQueueProducer was dead, do nothing.");
+        BLOGND("BufferQueueProducer was dead, do nothing.");
         return;
     }
 
     if (producer->token_ != remoteToken) {
-        BLOGNI("token doesn't match, ignore it.");
+        BLOGND("token doesn't match, ignore it.");
         return;
     }
     BLOGND("remote object died.");
