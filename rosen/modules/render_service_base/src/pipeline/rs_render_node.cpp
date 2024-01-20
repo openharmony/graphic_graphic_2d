@@ -1150,7 +1150,7 @@ void RSRenderNode::ApplyBoundsGeometry(RSPaintFilterCanvas& canvas)
     renderNodeSaveCount_ = canvas.SaveAllStatus();
 #endif
     auto boundsGeo = (GetRenderProperties().GetBoundsGeometry());
-    if (boundsGeo && !boundsGeo->IsEmpty()) {
+    if (boundsGeo && (!boundsGeo->IsEmpty() || boundsGeo->IsValidOffset())) {
 #ifndef USE_ROSEN_DRAWING
         canvas.concat(boundsGeo->GetMatrix());
 #else
