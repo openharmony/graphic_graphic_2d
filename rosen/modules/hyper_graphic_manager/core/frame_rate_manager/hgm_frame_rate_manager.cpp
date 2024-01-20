@@ -628,7 +628,7 @@ void HgmFrameRateManager::SyncAppVote()
 
     isTouchEnable_ = (configData->strategyConfigs_[curXmlStrategy].dynamicMode != 0);
     touchFps_ = configData->strategyConfigs_[curXmlStrategy].max;
-    idleFps_ = std::min(configData->strategyConfigs_[curXmlStrategy].min, static_cast<int32_t>(OLED_60_HZ));
+    idleFps_ = std::max(configData->strategyConfigs_[curXmlStrategy].min, static_cast<int32_t>(OLED_60_HZ));
 }
 
 void HgmFrameRateManager::MarkVoteChange()
