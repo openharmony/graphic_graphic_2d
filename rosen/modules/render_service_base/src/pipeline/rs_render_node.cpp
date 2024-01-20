@@ -336,10 +336,16 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
         return;
     }
     isNewOnTree_ = flag && !isOnTheTree_;
-    instanceRootNodeId_ = instanceRootNodeId;
-    firstLevelNodeId_ = firstLevelNodeId;
     isOnTheTree_ = flag;
-    OnTreeStateChanged();
+    if (isOnTheTree_) {
+        instanceRootNodeId_ = instanceRootNodeId;
+        firstLevelNodeId_ = firstLevelNodeId;
+        OnTreeStateChanged();
+    } else {
+        OnTreeStateChanged();
+        instanceRootNodeId_ = instanceRootNodeId;
+        firstLevelNodeId_ = firstLevelNodeId;
+    }
     // if node is marked as cacheRoot, update subtree status when update surface
     // in case prepare stage upper cacheRoot cannot specify dirty subnode
     if (cacheNodeId != INVALID_NODEID) {
