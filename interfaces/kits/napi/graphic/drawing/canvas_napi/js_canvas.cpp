@@ -472,7 +472,7 @@ napi_value JsCanvas::OnDrawColor(napi_env env, napi_callback_info info)
     size_t argc = ARGC_TWO;
     napi_value argv[ARGC_TWO] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (status != napi_ok || argc < ARGC_TWO) {
+    if (status != napi_ok || argc < ARGC_ONE || argc > ARGC_TWO) {
         ROSEN_LOGE("Drawing_napi: OnDrawColor Argc is invalid: %{public}zu", argc);
         return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
     }
@@ -490,11 +490,15 @@ napi_value JsCanvas::OnDrawColor(napi_env env, napi_callback_info info)
     napi_get_value_uint32(env, tempValue, &green);
     napi_get_named_property(env, argv[0], "blue", &tempValue);
     napi_get_value_uint32(env, tempValue, &blue);
-    uint32_t jsMode;
-    ConvertFromJsValue(env, argv[1], jsMode);
-
     auto color = Color::ColorQuadSetARGB(alpha, red, green, blue);
-    m_canvas->DrawColor(color, BlendMode(jsMode));
+
+    if (argc == ARGC_ONE) {
+        m_canvas->DrawColor(color);
+    } else {
+        uint32_t jsMode;
+        ConvertFromJsValue(env, argv[1], jsMode);
+        m_canvas->DrawColor(color, BlendMode(jsMode));
+    }
     return NapiGetUndefined(env);
 }
 

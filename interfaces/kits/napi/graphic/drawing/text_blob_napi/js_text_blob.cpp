@@ -101,40 +101,38 @@ napi_value JsTextBlob::MakeFromRunBuffer(napi_env env, napi_callback_info info)
     size_t argc = ARGC_THREE;
     napi_value argv[ARGC_THREE] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (status != napi_ok || argc < ARGC_THREE) {
+    if (status != napi_ok || argc < ARGC_TWO || argc > ARGC_THREE) {
         ROSEN_LOGE("[NAPI]Argc is invalid: %{public}zu", argc);
         return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
     }
-    std::shared_ptr<TextBlobBuilder> textBlobBuilder = std::make_shared<TextBlobBuilder>();
 
     napi_value array = argv[0];
-    if (array == nullptr) {
-        ROSEN_LOGE("JsTextBlob MakeFromRunBuffer argv[0] is invalid");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
-    }
     uint32_t size = 0;
     napi_get_array_length(env, array, &size);
 
-    napi_value jsFontObj = argv[1];
-    if (jsFontObj == nullptr) {
-        ROSEN_LOGE("JsTextBlob MakeFromRunBuffer argv[1] is invalid, jsFontObj is nullptr");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
-    }
-
     void* pointerResult = nullptr;
-    napi_unwrap(env, jsFontObj, &pointerResult);
+    napi_unwrap(env, argv[1], &pointerResult);
     auto jsFont = static_cast<JsFont*>(pointerResult);
-    if (jsFont == nullptr || jsFont->GetFont() == nullptr) {
-        ROSEN_LOGE("JsTextBlob MakeFromRunBuffer argv[1] is invalid, jsFont/fontPtr is nullptr");
+    if (jsFont == nullptr) {
+        ROSEN_LOGE("[NAPI]Failed to get font from js object");
+        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+    }
+    std::shared_ptr<Font> fontPtr = jsFont->GetFont();
+    if (fontPtr == nullptr) {
+        ROSEN_LOGE("[NAPI]fontPtr is nullptr");
         return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
     }
 
-    Rect drawingRect;
-    napi_valuetype isRectNullptr;
-    OnMakeDrawingRect(env, argv[ARGC_TWO], drawingRect, isRectNullptr);
-    
-    TextBlobBuilder::RunBuffer runBuffer = textBlobBuilder->AllocRunPos(*jsFont->GetFont(), size,
-        isRectNullptr == napi_null ? nullptr : &drawingRect);
+    TextBlobBuilder::RunBuffer runBuffer;
+    std::shared_ptr<TextBlobBuilder> textBlobBuilder = std::make_shared<TextBlobBuilder>();
+    if (argc == ARGC_TWO) {
+        runBuffer = textBlobBuilder->AllocRunPos(*fontPtr, size);
+    } else {
+        Rect drawingRect;
+        napi_valuetype isRectNullptr;
+        OnMakeDrawingRect(env, argv[ARGC_TWO], drawingRect, isRectNullptr);
+        runBuffer = textBlobBuilder->AllocRunPos(*fontPtr, size, isRectNullptr == napi_null ? nullptr : &drawingRect);
+    }
     OnMakeRunBuffer(env, runBuffer, size, array);
 
     std::shared_ptr<TextBlob> textBlob = textBlobBuilder->Make();
@@ -200,42 +198,35 @@ napi_value JsTextBlob::MakeFromString(napi_env env, napi_callback_info info)
     size_t argc = ARGC_THREE;
     napi_value argv[ARGC_THREE] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (status != napi_ok || argc < ARGC_THREE) {
+    if (status != napi_ok || argc < ARGC_TWO || argc > ARGC_THREE) {
         ROSEN_LOGE("[NAPI]Argc is invalid: %{public}zu", argc);
         return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
     }
 
     std::string text = "";
-    if (!ConvertFromJsValue(env, argv[0], text)) {
-        ROSEN_LOGE("[NAPI]Failed to convert parameter to string");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
-    }
+    ConvertFromJsValue(env, argv[0], text);
 
-    std::shared_ptr<Font> fontPtr = nullptr;
-    napi_value jsFontObj = argv[1];
-    if (jsFontObj == nullptr) {
-        ROSEN_LOGE("[NAPI]jsFontObj is null");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
-    }
     void* pointerResult = nullptr;
-    napi_unwrap(env, jsFontObj, &pointerResult);
+    napi_unwrap(env, argv[1], &pointerResult);
     auto jsFont = static_cast<JsFont*>(pointerResult);
     if (jsFont == nullptr) {
         ROSEN_LOGE("[NAPI]Failed to get font from js object");
         return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
     }
-    fontPtr = jsFont->GetFont();
+    std::shared_ptr<Font> fontPtr = jsFont->GetFont();
     if (fontPtr == nullptr) {
         ROSEN_LOGE("[NAPI]fontPtr is nullptr");
         return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
     }
 
-    TextEncoding TextEncoding = TextEncoding::UTF8;
-    if (!ConvertFromJsTextEncoding(env, TextEncoding, argv[ARGC_TWO])) {
-        ROSEN_LOGE("[NAPI]ConvertFromJsTextEncoding failed");
-        return NapiThrowError(env, DrawingError::DRAWING_ERROR_INVALID_PARAM);
+    std::shared_ptr<TextBlob> textBlob;
+    if (argc == ARGC_TWO) {
+        textBlob = TextBlob::MakeFromString(text.c_str(), *fontPtr);
+    } else {
+        TextEncoding TextEncoding = TextEncoding::UTF8;
+        ConvertFromJsTextEncoding(env, TextEncoding, argv[ARGC_TWO]);
+        textBlob = TextBlob::MakeFromString(text.c_str(), *fontPtr, TextEncoding);
     }
-    std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromString(text.c_str(), *fontPtr, TextEncoding);
 
     if (textBlob == nullptr) {
         ROSEN_LOGE("ConvertFromJsTextEncoding failed");
