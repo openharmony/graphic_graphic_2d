@@ -21,6 +21,9 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+namespace {
+Pen defaultPen;
+}
 
 std::shared_ptr<MaskCmdList> MaskCmdList::CreateFromData(const CmdListData& data, bool isCopy)
 {
@@ -87,7 +90,7 @@ std::unordered_map<uint32_t, MaskPlayer::MaskPlaybackFunc> MaskPlayer::opPlaybac
 };
 
 MaskPlayer::MaskPlayer(std::shared_ptr<Path>& path, Brush& brush, const CmdList& cmdList)
-    : path_(path), brush_(brush), cmdList_(cmdList) {}
+    : path_(path), brush_(brush), pen_(defaultPen), cmdList_(cmdList) {}
 
 MaskPlayer::MaskPlayer(std::shared_ptr<Path>& path, Brush& brush, Pen& pen, const CmdList& cmdList)
     : path_(path), brush_(brush), pen_(pen), cmdList_(cmdList) {}

@@ -608,8 +608,10 @@ void RSPathMaskDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanva
         Drawing::AutoCanvasRestore acr(canvas, true);
         canvas.Translate(bounds.GetLeft(), bounds.GetTop());
         canvas.AttachBrush(mask_->GetMaskBrush());
+        canvas.AttachPen(mask_->GetMaskPen());
         canvas.DrawPath(*mask_->GetMaskPath());
         canvas.DetachBrush();
+        canvas.DetachPen();
     }
     canvas.RestoreToCount(tmpLayer);
     Drawing::SaveLayerOps slrContent(&bounds, &maskBrush_);

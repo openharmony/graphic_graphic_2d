@@ -68,7 +68,7 @@ public:
 
     std::shared_ptr<Path>& path_;
     Brush& brush_;
-    Pen pen_;
+    Pen& pen_;
     const CmdList& cmdList_;
 
     using MaskPlaybackFunc = void(*)(MaskPlayer& palyer, const void* opItem);
