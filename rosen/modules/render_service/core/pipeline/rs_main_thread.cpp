@@ -266,8 +266,8 @@ void RSMainThread::Init()
         ProcessCommand();
         Animate(timestamp_);
         ApplyModifiers();
-        ProcessHgmFrameRate(timestamp_);
         CollectInfoForHardwareComposer();
+        ProcessHgmFrameRate(timestamp_);
 #if defined(RS_ENABLE_DRIVEN_RENDER)
         CollectInfoForDrivenRender();
 #endif
@@ -1039,6 +1039,11 @@ void RSMainThread::CollectInfoForHardwareComposer()
             }
             if (!surfaceNode->IsHardwareEnabledType()) {
                 return;
+            }
+
+            if (surfaceNode->GetName().find("RosenWeb") != std::string::npos) {
+                RS_TRACE_NAME_FMT("find RosenWeb");
+                rsCurrRange_ = {OLED_120_HZ, OLED_120_HZ, OLED_120_HZ};
             }
 
             // if hwc node is set on the tree this frame, mark its parent app node to be prepared
