@@ -13,21 +13,21 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_MODULES_SPTEXT_PARAGRAPH_BUILDER_SKIA_H
-#define ROSEN_MODULES_SPTEXT_PARAGRAPH_BUILDER_SKIA_H
+#ifndef ROSEN_MODULES_SPTEXT_PARAGRAPH_BUILDER_IMPL_H
+#define ROSEN_MODULES_SPTEXT_PARAGRAPH_BUILDER_IMPL_H
 
 #include "modules/skparagraph/include/ParagraphBuilder.h"
-#include "paragraph_skia.h"
+#include "paragraph_impl.h"
 #include "txt/paragraph_builder.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
-class ParagraphBuilderSkia : public ParagraphBuilder {
+class ParagraphBuilderImpl : public ParagraphBuilder {
 public:
-    ParagraphBuilderSkia(const ParagraphStyle& style, std::shared_ptr<txt::FontCollection> fontCollection);
+    ParagraphBuilderImpl(const ParagraphStyle& style, std::shared_ptr<txt::FontCollection> fontCollection);
 
-    virtual ~ParagraphBuilderSkia();
+    virtual ~ParagraphBuilderImpl();
 
     void PushStyle(const TextStyle& style) override;
     void Pop() override;
@@ -37,9 +37,9 @@ public:
     std::unique_ptr<Paragraph> Build() override;
 
 private:
-    skia::textlayout::ParagraphPainter::PaintID CreatePaintID(const PaintRecord& paint);
-    skia::textlayout::ParagraphStyle TxtToSkia(const ParagraphStyle& txt);
-    skia::textlayout::TextStyle TxtToSkia(const TextStyle& txt);
+    skia::textlayout::ParagraphPainter::PaintID AllocPaintID(const PaintRecord& paint);
+    skia::textlayout::ParagraphStyle TextStyleToSkStyle(const ParagraphStyle& txt);
+    skia::textlayout::TextStyle TextStyleToSkStyle(const TextStyle& txt);
 
     std::shared_ptr<skia::textlayout::ParagraphBuilder> builder_;
     TextStyle baseStyle_;
@@ -51,4 +51,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // ROSEN_MODULES_SPTEXT_PARAGRAPH_BUILDER_SKIA_H
+#endif // ROSEN_MODULES_SPTEXT_PARAGRAPH_BUILDER_IMPL_H

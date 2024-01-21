@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "paragraph_skia.h"
+#include "paragraph_impl.h"
 
 #include <algorithm>
 #include <numeric>
@@ -53,78 +53,78 @@ std::vector<TextBox> GetTxtTextBoxes(const std::vector<skt::TextBox>& skiaBoxes)
 }
 } // anonymous namespace
 
-ParagraphSkia::ParagraphSkia(std::unique_ptr<skt::Paragraph> paragraph, std::vector<PaintRecord>&& paints)
+ParagraphImpl::ParagraphImpl(std::unique_ptr<skt::Paragraph> paragraph, std::vector<PaintRecord>&& paints)
     : paragraph_(std::move(paragraph)), paints_(paints)
 {}
 
-double ParagraphSkia::GetMaxWidth()
+double ParagraphImpl::GetMaxWidth()
 {
     return paragraph_->getMaxWidth();
 }
 
-double ParagraphSkia::GetHeight()
+double ParagraphImpl::GetHeight()
 {
     return paragraph_->getHeight();
 }
 
-double ParagraphSkia::GetLongestLine()
+double ParagraphImpl::GetLongestLine()
 {
     return paragraph_->getLongestLine();
 }
 
-double ParagraphSkia::GetMinIntrinsicWidth()
+double ParagraphImpl::GetMinIntrinsicWidth()
 {
     return paragraph_->getMinIntrinsicWidth();
 }
 
-double ParagraphSkia::GetMaxIntrinsicWidth()
+double ParagraphImpl::GetMaxIntrinsicWidth()
 {
     return paragraph_->getMaxIntrinsicWidth();
 }
 
-double ParagraphSkia::GetAlphabeticBaseline()
+double ParagraphImpl::GetAlphabeticBaseline()
 {
     return paragraph_->getAlphabeticBaseline();
 }
 
-double ParagraphSkia::GetIdeographicBaseline()
+double ParagraphImpl::GetIdeographicBaseline()
 {
     return paragraph_->getIdeographicBaseline();
 }
 
-bool ParagraphSkia::DidExceedMaxLines()
+bool ParagraphImpl::DidExceedMaxLines()
 {
     return paragraph_->didExceedMaxLines();
 }
 
-size_t ParagraphSkia::GetNumberOfLines() const
+size_t ParagraphImpl::GetLineCount() const
 {
     return paragraph_->lineNumber();
 }
 
-void ParagraphSkia::SetIndents(const std::vector<float>& indents)
+void ParagraphImpl::SetIndents(const std::vector<float>& indents)
 {
 }
 
-void ParagraphSkia::Layout(double width)
+void ParagraphImpl::Layout(double width)
 {
     lineMetrics_.reset();
     lineMetricsStyles_.clear();
     paragraph_->layout(width);
 }
 
-void ParagraphSkia::Paint(SkCanvas* canvas, double x, double y)
+void ParagraphImpl::Paint(SkCanvas* canvas, double x, double y)
 {
     paragraph_->paint(canvas, x, y);
 }
 
-void ParagraphSkia::Paint(Drawing::Canvas* canvas, double x, double y)
+void ParagraphImpl::Paint(Drawing::Canvas* canvas, double x, double y)
 {
     RSCanvasParagraphPainter painter(canvas, paints_);
     paragraph_->paint(&painter, x, y);
 }
 
-std::vector<TextBox> ParagraphSkia::GetRectsForRange(size_t start, size_t end,
+std::vector<TextBox> ParagraphImpl::GetRectsForRange(size_t start, size_t end,
     RectHeightStyle rectHeightStyle, RectWidthStyle rectWidthStyle)
 {
     std::vector<skt::TextBox> boxes =
@@ -133,24 +133,24 @@ std::vector<TextBox> ParagraphSkia::GetRectsForRange(size_t start, size_t end,
     return GetTxtTextBoxes(boxes);
 }
 
-std::vector<TextBox> ParagraphSkia::GetRectsForPlaceholders()
+std::vector<TextBox> ParagraphImpl::GetRectsForPlaceholders()
 {
     return GetTxtTextBoxes(paragraph_->getRectsForPlaceholders());
 }
 
-PositionWithAffinity ParagraphSkia::GetGlyphPositionAtCoordinate(double dx, double dy)
+PositionWithAffinity ParagraphImpl::GetGlyphPositionAtCoordinate(double dx, double dy)
 {
     skt::PositionWithAffinity pos = paragraph_->getGlyphPositionAtCoordinate(dx, dy);
     return PositionWithAffinity(pos.position, static_cast<Affinity>(pos.affinity));
 }
 
-Range<size_t> ParagraphSkia::GetWordBoundary(size_t offset)
+Range<size_t> ParagraphImpl::GetWordBoundary(size_t offset)
 {
     skt::SkRange<size_t> range = paragraph_->getWordBoundary(offset);
     return Range<size_t>(range.start, range.end);
 }
 
-std::vector<LineMetrics>& ParagraphSkia::GetLineMetrics()
+std::vector<LineMetrics>& ParagraphImpl::GetLineMetrics()
 {
     if (!lineMetrics_) {
         std::vector<skt::LineMetrics> metrics;
@@ -161,8 +161,11 @@ std::vector<LineMetrics>& ParagraphSkia::GetLineMetrics()
             [](const int a, const skt::LineMetrics& b) { return a + b.fLineMetrics.size(); }));
 
         for (const skt::LineMetrics& skm : metrics) {
-            LineMetrics& txtm = lineMetrics_->emplace_back(skm.fStartIndex, skm.fEndIndex,
-                skm.fEndExcludingWhitespaces, skm.fEndIncludingNewline, skm.fHardBreak);
+            LineMetrics& txtm = lineMetrics_->emplace_back();
+            txtm.startIndex = skm.fStartIndex;
+            txtm.endExcludingWhitespace = skm.fEndExcludingWhitespaces;
+            txtm.endIncludingNewline = skm.fEndIncludingNewline;
+            txtm.hardBreak = skm.fHardBreak;
             txtm.ascent = skm.fAscent;
             txtm.descent = skm.fDescent;
             txtm.unscaledAscent = skm.fUnscaledAscent;
@@ -172,10 +175,9 @@ std::vector<LineMetrics>& ParagraphSkia::GetLineMetrics()
             txtm.baseline = skm.fBaseline;
             txtm.lineNumber = skm.fLineNumber;
 
-            for (const auto& iter : skm.fLineMetrics) {
-                const skt::StyleMetrics& styleMtrics = iter.second;
-                lineMetricsStyles_.push_back(SkiaToTxt(*styleMtrics.text_style));
-                txtm.runMetrics.emplace(std::piecewise_construct, std::forward_as_tuple(iter.first),
+            for (const auto& [index, styleMtrics] : skm.fLineMetrics) {
+                lineMetricsStyles_.push_back(SkStyleToTextStyle(*styleMtrics.text_style));
+                txtm.runMetrics.emplace(std::piecewise_construct, std::forward_as_tuple(index),
                     std::forward_as_tuple(&lineMetricsStyles_.back(), styleMtrics.font_metrics));
             }
         }
@@ -184,12 +186,12 @@ std::vector<LineMetrics>& ParagraphSkia::GetLineMetrics()
     return lineMetrics_.value();
 }
 
-bool ParagraphSkia::GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetrics) const
+bool ParagraphImpl::GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetrics) const
 {
     return paragraph_->getLineMetricsAt(lineNumber, lineMetrics);
 }
 
-TextStyle ParagraphSkia::SkiaToTxt(const skt::TextStyle& skStyle)
+TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
 {
     TextStyle txt;
 

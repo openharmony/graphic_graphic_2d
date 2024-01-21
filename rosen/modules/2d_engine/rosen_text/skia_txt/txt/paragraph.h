@@ -118,7 +118,7 @@ public:
     virtual bool DidExceedMaxLines() = 0;
 
     // Returns the total number of visible lines in the paragraph.
-    virtual size_t GetNumberOfLines() const = 0;
+    virtual size_t GetLineCount() const = 0;
 
     // Set the text indent.
     // indents  The indents for multi-line text.

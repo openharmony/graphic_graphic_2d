@@ -29,12 +29,9 @@ public:
     TextStyle ConvertToTextStyle() const;
     TextAlign GetEquivalentAlign() const;
 
-    bool UnlimitedLines() const;
-    bool Ellipsized() const;
-
     FontWeight fontWeight = FontWeight::W400;
     FontStyle fontStyle = FontStyle::NORMAL;
-    std::string fontFamily = "";
+    std::string fontFamily;
     double fontSize = 16;
     double height = 1;
     bool heightOverride = false;

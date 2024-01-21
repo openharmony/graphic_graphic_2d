@@ -16,7 +16,7 @@
 #include "typography.h"
 
 #include "skia_adapter/skia_canvas.h"
-#include "skia/paragraph_skia.h"
+#include "impl/paragraph_impl.h"
 
 #include "convert.h"
 
@@ -92,7 +92,7 @@ bool Typography::DidExceedMaxLines() const
 
 int Typography::GetLineCount() const
 {
-    return paragraph_->GetNumberOfLines();
+    return paragraph_->GetLineCount();
 }
 
 void Typography::SetIndents(const std::vector<float>& indents)

@@ -36,21 +36,6 @@ public:
 
 class LineMetrics {
 public:
-    LineMetrics();
-
-    LineMetrics(
-        size_t start,
-        size_t end,
-        size_t endExcludingWhitespace,
-        size_t endIncludingNewline,
-        bool hardBreak
-    ) : startIndex(start),
-        endIndex(end),
-        endExcludingWhitespace(endExcludingWhitespace),
-        endIncludingNewline(endIncludingNewline),
-        hardBreak(hardBreak)
-    {}
-
     size_t startIndex = 0;
     size_t endIndex = 0;
     size_t endExcludingWhitespace = 0;

@@ -16,8 +16,7 @@
 #include "paragraph_builder.h"
 
 #include "paragraph_style.h"
-#include "skia/paragraph_builder_skia.h"
-#include "third_party/icu/icu4c/source/common/unicode/unistr.h"
+#include "impl/paragraph_builder_impl.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -25,7 +24,7 @@ namespace SPText {
 std::unique_ptr<ParagraphBuilder> ParagraphBuilder::Create(const ParagraphStyle& style,
     std::shared_ptr<txt::FontCollection> fontCollection)
 {
-    return std::make_unique<ParagraphBuilderSkia>(style, fontCollection);
+    return std::make_unique<ParagraphBuilderImpl>(style, fontCollection);
 }
 } // namespace SPText
 } // namespace Rosen

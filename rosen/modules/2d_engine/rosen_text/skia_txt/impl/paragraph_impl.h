@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_MODULES_SPTEXT_PARAGRAPH_SKIA_H
-#define ROSEN_MODULES_SPTEXT_PARAGRAPH_SKIA_H
+#ifndef ROSEN_MODULES_SPTEXT_PARAGRAPH_IMPL_H
+#define ROSEN_MODULES_SPTEXT_PARAGRAPH_IMPL_H
 
 #include <optional>
 
@@ -25,12 +25,12 @@
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
-class ParagraphSkia : public Paragraph {
+class ParagraphImpl : public Paragraph {
 public:
-    ParagraphSkia(std::unique_ptr<skia::textlayout::Paragraph> paragraph,
+    ParagraphImpl(std::unique_ptr<skia::textlayout::Paragraph> paragraph,
         std::vector<PaintRecord>&& paints);
 
-    virtual ~ParagraphSkia() = default;
+    virtual ~ParagraphImpl() = default;
 
     double GetMaxWidth() override;
 
@@ -48,7 +48,7 @@ public:
 
     bool DidExceedMaxLines() override;
 
-    size_t GetNumberOfLines() const override;
+    size_t GetLineCount() const override;
 
     void SetIndents(const std::vector<float>& indents) override;
 
@@ -72,7 +72,7 @@ public:
     bool GetLineMetricsAt(int lineNumber, skia::textlayout::LineMetrics* lineMetrics) const override;
 
 private:
-    TextStyle SkiaToTxt(const skia::textlayout::TextStyle& skia);
+    TextStyle SkStyleToTextStyle(const skia::textlayout::TextStyle& skia);
 
     std::unique_ptr<skia::textlayout::Paragraph> paragraph_;
     std::vector<PaintRecord> paints_;
@@ -83,4 +83,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // ROSEN_MODULES_SPTEXT_PARAGRAPH_SKIA_H
+#endif // ROSEN_MODULES_SPTEXT_PARAGRAPH_IMPL_H

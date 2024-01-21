@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-#include "paragraph_builder_skia.h"
+#include "paragraph_builder_impl.h"
 
 #include "modules/skparagraph/include/ParagraphStyle.h"
 #include "modules/skparagraph/include/TextStyle.h"
-#include "paragraph_skia.h"
+#include "paragraph_impl.h"
 #include "txt/paragraph_style.h"
 
 namespace skt = skia::textlayout;
@@ -28,7 +28,7 @@ namespace SPText {
 namespace {
 constexpr size_t axisLen = 4;
 
-SkFontStyle::Weight GetSkFontStyleWeight(FontWeight fontWeight)
+SkFontStyle::Weight ConvertToSkFontWeight(FontWeight fontWeight)
 {
     constexpr int weightBase = 100;
     return static_cast<SkFontStyle::Weight>(static_cast<int>(fontWeight) * weightBase + weightBase);
@@ -36,74 +36,75 @@ SkFontStyle::Weight GetSkFontStyleWeight(FontWeight fontWeight)
 
 SkFontStyle MakeSkFontStyle(FontWeight fontWeight, FontStyle fontStyle)
 {
-    return SkFontStyle(GetSkFontStyleWeight(fontWeight), SkFontStyle::Width::kNormal_Width,
-        fontStyle == FontStyle::NORMAL ?
-            SkFontStyle::Slant::kUpright_Slant : SkFontStyle::Slant::kItalic_Slant);
+    auto weight = ConvertToSkFontWeight(fontWeight);
+    auto slant = fontStyle == FontStyle::NORMAL ?
+        SkFontStyle::Slant::kUpright_Slant : SkFontStyle::Slant::kItalic_Slant;
+    return SkFontStyle(weight, SkFontStyle::Width::kNormal_Width, slant);
 }
 } // anonymous namespace
 
-ParagraphBuilderSkia::ParagraphBuilderSkia(
+ParagraphBuilderImpl::ParagraphBuilderImpl(
     const ParagraphStyle& style, std::shared_ptr<txt::FontCollection> fontCollection)
     : baseStyle_(style.ConvertToTextStyle())
 {
-    builder_ = skt::ParagraphBuilder::make(TxtToSkia(style), fontCollection->CreateSktFontCollection());
+    builder_ = skt::ParagraphBuilder::make(TextStyleToSkStyle(style), fontCollection->CreateSktFontCollection());
 }
 
-ParagraphBuilderSkia::~ParagraphBuilderSkia() = default;
+ParagraphBuilderImpl::~ParagraphBuilderImpl() = default;
 
-void ParagraphBuilderSkia::PushStyle(const TextStyle& style)
+void ParagraphBuilderImpl::PushStyle(const TextStyle& style)
 {
-    builder_->pushStyle(TxtToSkia(style));
+    builder_->pushStyle(TextStyleToSkStyle(style));
     styleStack_.push(style);
 }
 
-void ParagraphBuilderSkia::Pop()
+void ParagraphBuilderImpl::Pop()
 {
     builder_->pop();
     styleStack_.pop();
 }
 
-const TextStyle& ParagraphBuilderSkia::PeekStyle()
+const TextStyle& ParagraphBuilderImpl::PeekStyle()
 {
     return styleStack_.empty() ? baseStyle_ : styleStack_.top();
 }
 
-void ParagraphBuilderSkia::AddText(const std::u16string& text)
+void ParagraphBuilderImpl::AddText(const std::u16string& text)
 {
     builder_->addText(text);
 }
 
-void ParagraphBuilderSkia::AddPlaceholder(PlaceholderRun& span)
+void ParagraphBuilderImpl::AddPlaceholder(PlaceholderRun& run)
 {
     skt::PlaceholderStyle placeholderStyle;
-    placeholderStyle.fHeight = span.height;
-    placeholderStyle.fWidth = span.width;
-    placeholderStyle.fBaseline = static_cast<skt::TextBaseline>(span.baseline);
-    placeholderStyle.fBaselineOffset = span.baselineOffset;
-    placeholderStyle.fAlignment = static_cast<skt::PlaceholderAlignment>(span.alignment);
+    placeholderStyle.fHeight = run.height;
+    placeholderStyle.fWidth = run.width;
+    placeholderStyle.fBaseline = static_cast<skt::TextBaseline>(run.baseline);
+    placeholderStyle.fBaselineOffset = run.baselineOffset;
+    placeholderStyle.fAlignment = static_cast<skt::PlaceholderAlignment>(run.alignment);
 
     builder_->addPlaceholder(placeholderStyle);
 }
 
-std::unique_ptr<Paragraph> ParagraphBuilderSkia::Build()
+std::unique_ptr<Paragraph> ParagraphBuilderImpl::Build()
 {
-    return std::make_unique<ParagraphSkia>(builder_->Build(), std::move(paints_));
+    return std::make_unique<ParagraphImpl>(builder_->Build(), std::move(paints_));
 }
 
-skt::ParagraphPainter::PaintID ParagraphBuilderSkia::CreatePaintID(const PaintRecord& paint)
+skt::ParagraphPainter::PaintID ParagraphBuilderImpl::AllocPaintID(const PaintRecord& paint)
 {
     paints_.push_back(paint);
     return paints_.size() - 1;
 }
 
-skt::ParagraphStyle ParagraphBuilderSkia::TxtToSkia(const ParagraphStyle& txt)
+skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyle& txt)
 {
     skt::ParagraphStyle skStyle;
     skt::TextStyle textStyle;
 
     PaintRecord paint;
     paint.SetColor(textStyle.getColor());
-    textStyle.setForegroundPaintID(CreatePaintID(paint));
+    textStyle.setForegroundPaintID(AllocPaintID(paint));
 
     textStyle.setFontStyle(MakeSkFontStyle(txt.fontWeight, txt.fontStyle));
     textStyle.setFontSize(SkDoubleToScalar(txt.fontSize));
@@ -140,7 +141,7 @@ skt::ParagraphStyle ParagraphBuilderSkia::TxtToSkia(const ParagraphStyle& txt)
     return skStyle;
 }
 
-skt::TextStyle ParagraphBuilderSkia::TxtToSkia(const TextStyle& txt)
+skt::TextStyle ParagraphBuilderImpl::TextStyleToSkStyle(const TextStyle& txt)
 {
     skt::TextStyle skStyle;
 
@@ -166,14 +167,14 @@ skt::TextStyle ParagraphBuilderSkia::TxtToSkia(const TextStyle& txt)
 
     skStyle.setLocale(SkString(txt.locale.c_str()));
     if (txt.background.has_value()) {
-        skStyle.setBackgroundPaintID(CreatePaintID(txt.background.value()));
+        skStyle.setBackgroundPaintID(AllocPaintID(txt.background.value()));
     }
     if (txt.foreground.has_value()) {
-        skStyle.setForegroundPaintID(CreatePaintID(txt.foreground.value()));
+        skStyle.setForegroundPaintID(AllocPaintID(txt.foreground.value()));
     } else {
         PaintRecord paint;
         paint.SetColor(txt.color);
-        skStyle.setForegroundPaintID(CreatePaintID(paint));
+        skStyle.setForegroundPaintID(AllocPaintID(paint));
     }
 
     skStyle.resetFontFeatures();
@@ -183,15 +184,13 @@ skt::TextStyle ParagraphBuilderSkia::TxtToSkia(const TextStyle& txt)
 
     if (!txt.fontVariations.GetAxisValues().empty()) {
         std::vector<SkFontArguments::VariationPosition::Coordinate> coordinates;
-        for (const auto& it : txt.fontVariations.GetAxisValues()) {
-            const std::string& axis = it.first;
-            if (axis.length() != axisLen) {
-                continue;
+        for (const auto& [axis, value] : txt.fontVariations.GetAxisValues()) {
+            if (axis.length() == axisLen) {
+                coordinates.push_back({
+                    SkSetFourByteTag(axis[0], axis[1], axis[2], axis[3]),
+                    value,
+                });
             }
-            coordinates.push_back({
-                SkSetFourByteTag(axis[0], axis[1], axis[2], axis[3]),
-                it.second,
-            });
         }
         SkFontArguments::VariationPosition position = { coordinates.data(), static_cast<int>(coordinates.size()) };
         skStyle.setFontArguments(SkFontArguments().setVariationDesignPosition(position));

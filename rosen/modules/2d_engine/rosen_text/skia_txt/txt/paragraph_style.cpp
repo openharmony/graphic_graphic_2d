@@ -35,16 +35,6 @@ TextStyle ParagraphStyle::ConvertToTextStyle() const
     return result;
 }
 
-bool ParagraphStyle::UnlimitedLines() const
-{
-    return maxLines == std::numeric_limits<size_t>::max();
-};
-
-bool ParagraphStyle::Ellipsized() const
-{
-    return !ellipsis.empty();
-}
-
 TextAlign ParagraphStyle::GetEquivalentAlign() const
 {
     if (textAlign == TextAlign::START) {
