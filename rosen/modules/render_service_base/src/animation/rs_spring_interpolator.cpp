@@ -30,10 +30,21 @@ RSSpringInterpolator::RSSpringInterpolator(float response, float dampingRatio, f
     estimatedDuration_ = EstimateDuration();
 }
 
+RSSpringInterpolator::RSSpringInterpolator(uint64_t id, float response, float dampingRatio, float initialVelocity)
+    // initialOffset: 1, minimumAmplitude: 0.0001
+    : RSSpringModel<float>(response, dampingRatio, -1, initialVelocity, 0.0001), RSInterpolator(id)
+{
+    estimatedDuration_ = EstimateDuration();
+}
+
 bool RSSpringInterpolator::Marshalling(Parcel& parcel) const
 {
     if (!parcel.WriteUint16(InterpolatorType::SPRING)) {
         ROSEN_LOGE("RSSpringInterpolator::Marshalling, Write type failed");
+        return false;
+    }
+    if (!parcel.WriteUint64(id_)) {
+        ROSEN_LOGE("RSSpringInterpolator::Marshalling, Write id failed");
         return false;
     }
     if (!(parcel.WriteFloat(response_) && parcel.WriteFloat(dampingRatio_) && parcel.WriteFloat(initialVelocity_))) {
@@ -45,16 +56,17 @@ bool RSSpringInterpolator::Marshalling(Parcel& parcel) const
 
 RSSpringInterpolator* RSSpringInterpolator::Unmarshalling(Parcel& parcel)
 {
+    uint64_t id = parcel.ReadUint64();
     float response, dampingRatio, initialVelocity;
     if (!(parcel.ReadFloat(response) && parcel.ReadFloat(dampingRatio) && parcel.ReadFloat(initialVelocity))) {
         ROSEN_LOGE("RSSpringInterpolator::Unmarshalling, SpringInterpolator failed");
         return nullptr;
     }
-    auto ret = new RSSpringInterpolator(response, dampingRatio, initialVelocity);
+    auto ret = new RSSpringInterpolator(id, response, dampingRatio, initialVelocity);
     return ret;
 }
 
-float RSSpringInterpolator::Interpolate(float fraction) const
+float RSSpringInterpolator::InterpolateImpl(float fraction) const
 {
     if (fraction <= 0) {
         return 0;
