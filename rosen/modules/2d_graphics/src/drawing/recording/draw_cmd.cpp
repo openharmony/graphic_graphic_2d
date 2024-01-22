@@ -868,6 +868,17 @@ void DrawImageRectOpItem::Playback(Canvas* canvas, const Rect* rect)
         return;
     }
     canvas->AttachPaint(paint_);
+    // if TextBlobOP generate cache before uifirst enable, uifirst's subthread can not use cache result;
+    // rebind the cached image to the current thread;
+    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+    auto texture = image_->GetBackendTexture(true, &origin);
+    auto newImage = std::make_shared<Drawing::Image>();
+    Drawing::BitmapFormat info = Drawing::BitmapFormat {Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL};
+    bool ret = newImage->BuildFromTexture(*canvas->GetGPUContext(), texture.GetTextureInfo(), origin, info, nullptr);
+    if (ret) {
+        canvas->DrawImageRect(*newImage, src_, dst_, sampling_, constraint_);
+        return;
+    }
     canvas->DrawImageRect(*image_, src_, dst_, sampling_, constraint_);
 }
 
