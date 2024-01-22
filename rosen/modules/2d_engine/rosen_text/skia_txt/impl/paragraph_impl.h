@@ -71,6 +71,15 @@ public:
 
     bool GetLineMetricsAt(int lineNumber, skia::textlayout::LineMetrics* lineMetrics) const override;
 
+    void SetAnimation(
+        std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc
+    ) override
+    {
+        if (animationFunc != nullptr) {
+            animationFunc_ = animationFunc;
+        }
+    }
+
 private:
     TextStyle SkStyleToTextStyle(const skia::textlayout::TextStyle& skia);
 
@@ -78,6 +87,8 @@ private:
     std::vector<PaintRecord> paints_;
     std::optional<std::vector<LineMetrics>> lineMetrics_;
     std::vector<TextStyle> lineMetricsStyles_;
+    std::function<bool(
+        const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)> animationFunc_ = nullptr;
 };
 } // namespace SPText
 } // namespace Rosen

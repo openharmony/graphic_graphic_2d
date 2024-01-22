@@ -174,6 +174,10 @@ skt::TextStyle ParagraphBuilderImpl::TextStyleToSkStyle(const TextStyle& txt)
     } else {
         PaintRecord paint;
         paint.SetColor(txt.color);
+        paint.isSymbolGlyph = txt.isSymbolGlyph;
+        paint.symbol.SetRenderColor(txt.symbol.GetRenderColor());
+        paint.symbol.SetRenderMode(txt.symbol.GetRenderMode());
+        paint.symbol.SetSymbolEffect(txt.symbol.GetEffectStrategy());
         skStyle.setForegroundPaintID(AllocPaintID(paint));
     }
 

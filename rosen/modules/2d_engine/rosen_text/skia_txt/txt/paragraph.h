@@ -22,6 +22,8 @@
 #include "paragraph_style.h"
 #include "line_metrics.h"
 
+#include "rosen_text/symbol_animation_config.h"
+
 class SkCanvas;
 
 namespace OHOS {
@@ -154,6 +156,9 @@ public:
     virtual std::vector<LineMetrics>& GetLineMetrics() = 0;
 
     virtual bool GetLineMetricsAt(int lineNumber, skia::textlayout::LineMetrics* lineMetrics) const = 0;
+
+    virtual void SetAnimation(
+        std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc) = 0;
 };
 } // namespace SPText
 } // namespace Rosen

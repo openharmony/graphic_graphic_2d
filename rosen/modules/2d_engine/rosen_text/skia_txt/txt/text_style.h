@@ -25,6 +25,7 @@
 #include "include/core/SkPoint.h"
 #include "paint_record.h"
 #include "text_types.h"
+#include "symbol_engine/hm_symbol_txt.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -107,6 +108,10 @@ public:
     std::vector<TextShadow> textShadows;
     FontFeatures fontFeatures;
     FontVariations fontVariations;
+
+    // symbol glyph
+    bool isSymbolGlyph = false;
+    HMSymbolTxt symbol;
 };
 
 } // namespace SPText

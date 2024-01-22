@@ -25,6 +25,15 @@
 #include "skia_adapter/skia_path.h"
 #include "skia_adapter/skia_text_blob.h"
 
+#ifdef HM_SYMBOL_TXT_ENABLE
+#include <parameters.h>
+
+const bool G_IS_HM_SYMBOL_TXT_ENABLE =
+    (std::atoi(OHOS::system::GetParameter("persist.sys.graphic.hmsymboltxt.enable", "1").c_str()) != 0);
+#else
+const bool G_IS_HM_SYMBOL_TXT_ENABLE = true;
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
@@ -53,6 +62,32 @@ RSCanvasParagraphPainter::RSCanvasParagraphPainter(Drawing::Canvas* canvas, cons
     : canvas_(canvas), paints_(paints)
 {}
 
+void RSCanvasParagraphPainter::drawSymbolSkiaTxt(RSTextBlob* blob, const RSPoint& offset,
+    const PaintRecord &pr)
+{
+    if (pr.pen.has_value() && pr.brush.has_value()) {
+        canvas_->AttachBrush(pr.brush.value());
+        canvas_->AttachPen(pr.pen.value());
+        HMSymbolRun::DrawSymbol(canvas_, blob, offset, pr.symbol);
+        canvas_->DetachPen();
+        canvas_->DetachBrush();
+    } else if (pr.pen.has_value() && !pr.brush.has_value()) {
+        canvas_->AttachPen(pr.pen.value());
+        HMSymbolRun::DrawSymbol(canvas_, blob, offset,  pr.symbol);
+        canvas_->DetachPen();
+    } else if (!pr.pen.has_value() && pr.brush.has_value()) {
+        canvas_->AttachBrush(pr.brush.value());
+        HMSymbolRun::DrawSymbol(canvas_, blob, offset,  pr.symbol);
+        canvas_->DetachBrush();
+    } else {
+        Drawing::Brush brush;
+        brush.SetColor(pr.color);
+        canvas_->AttachBrush(brush);
+        HMSymbolRun::DrawSymbol(canvas_, blob, offset,  pr.symbol);
+        canvas_->DetachBrush();
+    }
+}
+
 void RSCanvasParagraphPainter::drawTextBlob(
     const sk_sp<SkTextBlob>& blob, SkScalar x, SkScalar y, const SkPaintOrID& paint)
 {
@@ -62,7 +97,11 @@ void RSCanvasParagraphPainter::drawTextBlob(
     auto textBlobImpl = std::make_shared<Drawing::SkiaTextBlob>(blob);
     auto textBlob = std::make_shared<Drawing::TextBlob>(textBlobImpl);
 
-    if (pr.pen.has_value() && pr.brush.has_value()) {
+    if (pr.isSymbolGlyph && G_IS_HM_SYMBOL_TXT_ENABLE) {
+        SymbolAnimation(pr);
+        RSPoint offset = RSPoint{ x, y};
+        drawSymbolSkiaTxt(textBlob.get(), offset, pr);
+    } else if (pr.pen.has_value() && pr.brush.has_value()) {
         canvas_->AttachPen(pr.pen.value());
         canvas_->DrawTextBlob(textBlob.get(), x, y);
         canvas_->DetachPen();
@@ -83,6 +122,20 @@ void RSCanvasParagraphPainter::drawTextBlob(
         canvas_->AttachBrush(brush);
         canvas_->DrawTextBlob(textBlob.get(), x, y);
         canvas_->DetachBrush();
+    }
+}
+
+void RSCanvasParagraphPainter::SymbolAnimation(const PaintRecord &pr)
+{
+    auto painterSymbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
+    if (painterSymbolAnimationConfig == nullptr) {
+        return;
+    }
+
+    painterSymbolAnimationConfig->effectStrategy = TextEngine::SymbolAnimationEffectStrategy(
+        pr.symbol.GetEffectStrategy());
+    if (animationFunc_ != nullptr) {
+        animationFunc_(painterSymbolAnimationConfig);
     }
 }
 
