@@ -24,6 +24,7 @@
 #include "include/core/SkPaint.h"
 #include "include/core/SkRRect.h"
 #endif
+#include "common/rs_common_tools.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
@@ -93,6 +94,9 @@ void RSImage::CanvasDrawImage(RSPaintFilterCanvas& canvas, const SkRect& rect, c
 void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect,
     const Drawing::SamplingOptions& samplingOptions, bool isBackground)
 {
+    if (canvas.GetRecordingState() && RSSystemProperties::GetDumpUICaptureEnabled() && pixelMap_) {
+        CommonTools::SavePixelmapToFile(pixelMap_, "/data/rsImage_");
+    }
     if (!isDrawn_ || rect != lastRect_) {
         UpdateNodeIdToPicture(nodeId_);
         Drawing::AutoCanvasRestore acr(canvas, HasRadius());

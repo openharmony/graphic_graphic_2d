@@ -188,6 +188,9 @@ public:
     static bool GetParallelUploadTexture();
     static bool GetEffectMergeEnabled();
 
+    static bool GetDumpUICaptureEnabled();
+    static bool GetDumpUIPixelmapEnabled();
+
     static inline GpuApiType GetGpuApiType()
     {
         return RSSystemProperties::systemGpuApiType_;

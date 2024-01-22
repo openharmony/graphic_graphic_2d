@@ -122,6 +122,7 @@ ohos_source_set("render_service_base_src") {
     "src/common/rs_background_thread.cpp",
     "src/common/rs_color.cpp",
     "src/common/rs_common_def.cpp",
+    "src/common/rs_common_tools.cpp",
     "src/common/rs_obj_abs_geometry.cpp",
     "src/common/rs_occlusion_region.cpp",
     "src/common/rs_occlusion_region_helper.cpp",
