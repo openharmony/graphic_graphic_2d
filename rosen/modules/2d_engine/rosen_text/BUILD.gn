@@ -104,7 +104,6 @@ if (enable_text_gine) {
     include_dirs = [
       "$flutter_root/engine",
       "$rosen_root/modules/render_service_base/include",
-
     ]
 
     defines += [
@@ -186,6 +185,7 @@ if (enable_text_gine) {
       "$skia_root_new:skia_$platform",
       "./skia_txt:skia_libtxt_$platform",
     ]
+
     external_deps = [
       "hilog:libhilog",
     ]
