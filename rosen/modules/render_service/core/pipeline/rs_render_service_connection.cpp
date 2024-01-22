@@ -122,18 +122,10 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
         }).wait();
     mainThread_->ScheduleTask(
         [this]() {
-            RS_TRACE_NAME_FMT("CleanNodes %d", remotePid_);
+            RS_TRACE_NAME_FMT("CleanRenderNodes %d", remotePid_);
             CleanRenderNodes();
             CleanFrameRateLinkers();
         }).wait();
-    RSBackgroundThread::Instance().PostTask(
-        [this]() {
-            RS_TRACE_NAME_FMT("CleanRenderNodes %d", remotePid_);
-            auto& context = RSMainThread::Instance()->GetContext();
-            auto& nodeMap = context.GetMutableNodeMap();
-
-            nodeMap.FilterRenderNodeByPid(remotePid_);
-        });
     mainThread_->ScheduleTask(
         [this]() {
             RS_TRACE_NAME_FMT("ClearTransactionDataPidInfo %d", remotePid_);

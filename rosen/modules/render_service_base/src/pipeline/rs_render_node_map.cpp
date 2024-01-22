@@ -20,7 +20,6 @@
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
-#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -89,7 +88,6 @@ bool RSRenderNodeMap::IsResidentProcessNode(NodeId id) const
 
 bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr)
 {
-    std::lock_guard<std::mutex> lock(renderNodeMapMut_);
     NodeId id = nodePtr->GetId();
     if (renderNodeMap_.count(id)) {
         return false;
@@ -110,7 +108,6 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
 
 bool RSRenderNodeMap::RegisterDisplayRenderNode(const std::shared_ptr<RSDisplayRenderNode>& nodePtr)
 {
-    std::lock_guard<std::mutex> lock(renderNodeMapMut_);
     NodeId id = nodePtr->GetId();
     if (renderNodeMap_.count(id)) {
         return false;
@@ -122,7 +119,6 @@ bool RSRenderNodeMap::RegisterDisplayRenderNode(const std::shared_ptr<RSDisplayR
 
 void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
 {
-    std::lock_guard<std::mutex> lock(renderNodeMapMut_);
     renderNodeMap_.erase(id);
     surfaceNodeMap_.erase(id);
     drivenRenderNodeMap_.erase(id);
@@ -144,34 +140,21 @@ void RSRenderNodeMap::RemoveDrivenRenderNode(NodeId id)
     drivenRenderNodeMap_.erase(id);
 }
 
-void RSRenderNodeMap::FilterRenderNodeByPid(pid_t pid)
-{
-    {
-        std::lock_guard<std::mutex> lock(renderNodeMapMut_);
-        std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>::iterator iter = renderNodeMap_.begin();
-        for (; iter != renderNodeMap_.end();) {
-            if (ExtractPid(iter->first) != pid) {
-                ++iter;
-                continue;
-            }
-            // update node flag to avoid animation fallback
-            iter->second->fallbackAnimationOnDestroy_ = false;
-            // remove node from tree
-            iter->second->RemoveFromTree(false);
-            renderNodeMapMove_.emplace(iter->first, iter->second);
-            iter = renderNodeMap_.erase(iter);
-        }
-    }
-    std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>::iterator iter = renderNodeMapMove_.begin();
-    for (; iter != renderNodeMapMove_.end();) {
-        iter = renderNodeMapMove_.erase(iter);
-    }
-}
 void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
 {
     ROSEN_LOGD("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %{public}llu",
         (unsigned long long)pid);
     // remove all nodes belong to given pid (by matching higher 32 bits of node id)
+    EraseIf(renderNodeMap_, [pid](const auto& pair) -> bool {
+        if (ExtractPid(pair.first) != pid) {
+            return false;
+        }
+        // update node flag to avoid animation fallback
+        pair.second->fallbackAnimationOnDestroy_ = false;
+        // remove node from tree
+        pair.second->RemoveFromTree(false);
+        return true;
+    });
 
     EraseIf(surfaceNodeMap_, [pid](const auto& pair) -> bool {
         return ExtractPid(pair.first) == pid;
@@ -202,7 +185,6 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
 
 void RSRenderNodeMap::TraversalNodes(std::function<void (const std::shared_ptr<RSBaseRenderNode>&)> func) const
 {
-    std::lock_guard<std::mutex> lock(renderNodeMapMut_);
     for (const auto& [_, node] : renderNodeMap_) {
         func(node);
     }
@@ -243,7 +225,6 @@ std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> RSRenderNodeMap
 template<>
 const std::shared_ptr<RSBaseRenderNode> RSRenderNodeMap::GetRenderNode(NodeId id) const
 {
-    std::lock_guard<std::mutex> lock(renderNodeMapMut_);
     auto itr = renderNodeMap_.find(id);
     if (itr == renderNodeMap_.end()) {
         return nullptr;
@@ -253,7 +234,6 @@ const std::shared_ptr<RSBaseRenderNode> RSRenderNodeMap::GetRenderNode(NodeId id
 
 const std::shared_ptr<RSRenderNode> RSRenderNodeMap::GetAnimationFallbackNode() const
 {
-    std::lock_guard<std::mutex> lock(renderNodeMapMut_);
     auto itr = renderNodeMap_.find(0);
     if (itr == renderNodeMap_.end()) {
         return nullptr;
