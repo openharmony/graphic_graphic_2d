@@ -42,6 +42,32 @@ using namespace std;
 
 namespace OHOS {
 namespace Rosen {
+static napi_value ExportWebGlObj(napi_env env, napi_value exports)
+{
+    std::vector<unique_ptr<NExporter>> products;
+    products.emplace_back(make_unique<WebGLActiveInfo>(env, exports));
+    products.emplace_back(make_unique<WebGLBuffer>(env, exports));
+    products.emplace_back(make_unique<WebGLFramebuffer>(env, exports));
+    products.emplace_back(make_unique<WebGLProgram>(env, exports));
+    products.emplace_back(make_unique<WebGLQuery>(env, exports));
+    products.emplace_back(make_unique<WebGLRenderbuffer>(env, exports));
+    products.emplace_back(make_unique<WebGLSampler>(env, exports));
+    products.emplace_back(make_unique<WebGLSync>(env, exports));
+    products.emplace_back(make_unique<WebGLShader>(env, exports));
+    products.emplace_back(make_unique<WebGLTexture>(env, exports));
+    products.emplace_back(make_unique<WebGLTransformFeedback>(env, exports));
+    products.emplace_back(make_unique<WebGLUniformLocation>(env, exports));
+    products.emplace_back(make_unique<WebGLVertexArrayObject>(env, exports));
+    products.emplace_back(make_unique<WebGLShaderPrecisionFormat>(env, exports));
+
+    for (auto &&product : products) {
+        if (!product->Export(env, exports)) {
+            return nullptr;
+        }
+    }
+    return exports;
+}
+
 static napi_value Export(napi_env env, napi_value exports)
 {
     string idStr;
@@ -88,28 +114,7 @@ static napi_value Export(napi_env env, napi_value exports)
         return nullptr;
     }
 
-    std::vector<unique_ptr<NExporter>> products;
-    products.emplace_back(make_unique<WebGLActiveInfo>(env, exports));
-    products.emplace_back(make_unique<WebGLBuffer>(env, exports));
-    products.emplace_back(make_unique<WebGLFramebuffer>(env, exports));
-    products.emplace_back(make_unique<WebGLProgram>(env, exports));
-    products.emplace_back(make_unique<WebGLQuery>(env, exports));
-    products.emplace_back(make_unique<WebGLRenderbuffer>(env, exports));
-    products.emplace_back(make_unique<WebGLSampler>(env, exports));
-    products.emplace_back(make_unique<WebGLSync>(env, exports));
-    products.emplace_back(make_unique<WebGLShader>(env, exports));
-    products.emplace_back(make_unique<WebGLTexture>(env, exports));
-    products.emplace_back(make_unique<WebGLTransformFeedback>(env, exports));
-    products.emplace_back(make_unique<WebGLUniformLocation>(env, exports));
-    products.emplace_back(make_unique<WebGLVertexArrayObject>(env, exports));
-    products.emplace_back(make_unique<WebGLShaderPrecisionFormat>(env, exports));
-
-    for (auto &&product : products) {
-        if (!product->Export(env, exports)) {
-            return nullptr;
-        }
-    }
-    return exports;
+    return ExportWebGlObj(env, exports);
 }
 
 NAPI_MODULE(libwebglnapi, Export)
