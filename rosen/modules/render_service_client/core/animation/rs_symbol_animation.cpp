@@ -43,6 +43,10 @@ bool RSSymbolAnimation::SetSymbolAnimation(
         rsNode_->canvasNodesListMap.erase(symbolAnimationConfig->symbolSpanId);
     }
 
+    if (symbolAnimationConfig->effectStrategy == TextEngine::SymbolAnimationEffectStrategy::SYMBOL_NONE) {
+        return true; // pre code already clear nodes.
+    }
+
     if (symbolAnimationConfig->effectStrategy == TextEngine::SymbolAnimationEffectStrategy::SYMBOL_SCALE) {
         return SetScaleUnitAnimation(symbolAnimationConfig);
     } else if (symbolAnimationConfig->effectStrategy ==

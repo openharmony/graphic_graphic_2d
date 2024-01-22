@@ -55,6 +55,8 @@ public:
     bool SymbolAnimation(const HMSymbolData symbol, const uint32_t glyohId,
         const std::pair<double, double> offset, const EffectStrategy effectMode);
 
+    void ClearSymbolAnimation(const HMSymbolData symbol, const uint32_t glyohId,
+        const std::pair<double, double> offset);
 #else
     RSSymbolLayers GetSymbolLayers(const uint16_t& glyphId, const HMSymbolTxt& symbolText);
 
@@ -70,6 +72,8 @@ public:
     bool SymbolAnimation(const RSHMSymbolData symbol, const uint32_t glyohId,
         const std::pair<double, double> offset, const RSEffectStrategy effectMode);
 
+    void ClearSymbolAnimation(const RSHMSymbolData symbol, const uint32_t glyohId,
+        const std::pair<double, double> offset);
 #endif
 
     void DrawSymbol(TexgineCanvas &canvas, const std::shared_ptr<TexgineTextBlob> &blob,

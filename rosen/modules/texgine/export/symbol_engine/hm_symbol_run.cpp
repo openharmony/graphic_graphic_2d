@@ -210,6 +210,7 @@ void HMSymbolRun::DrawSymbol(TexgineCanvas &canvas, const std::shared_ptr<Texgin
                 canvas.DrawSymbol(symbolData, offsetLocal, paint);
                 break;
             default:
+                ClearSymbolAnimation(symbolData, symbolId, offset);
                 canvas.DrawSymbol(symbolData, offsetLocal, paint);
                 break;
         }
@@ -250,6 +251,7 @@ void HMSymbolRun::DrawSymbol(TexgineCanvas &canvas, const std::shared_ptr<Texgin
                 canvas.DrawSymbol(symbolData, offsetLocal, paint);
                 break;
             default:
+                ClearSymbolAnimation(symbolData, symbolId, offset);
                 canvas.DrawSymbol(symbolData, offsetLocal, paint);
                 break;
         }
@@ -291,6 +293,32 @@ bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData symbol, const uint32_t gl
     }
     return true;
 }
+
+#ifndef USE_ROSEN_DRAWING
+void HMSymbolRun::ClearSymbolAnimation(const HMSymbolData symbol, const uint32_t glyohId,
+    const std::pair<double, double> offset)
+{
+    auto effectMode = EffectStrategy::NONE;
+    AnimationSetting animationSetting;
+
+    SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSetting, symbol, effectMode, offset);
+    symbolNode.SetAnimation(animationFunc_);
+    symbolNode.SetSymbolId(symbolId_);
+    symbolNode.ClearAnimation();
+}
+#else
+void HMSymbolRun::ClearSymbolAnimation(const RSHMSymbolData symbol, const uint32_t glyohId,
+        const std::pair<double, double> offset)
+{
+    auto effectMode = RSEffectStrategy::NONE;
+    RSAnimationSetting animationSetting;
+
+    SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSetting, symbol, effectMode, offset);
+    symbolNode.SetAnimation(animationFunc_);
+    symbolNode.SetSymbolId(symbolId_);
+    symbolNode.ClearAnimation();
+}
+#endif
 
 #ifndef USE_ROSEN_DRAWING
 bool HMSymbolRun::GetAnimationGroups(const uint32_t glyohId, const EffectStrategy effectStrategy,

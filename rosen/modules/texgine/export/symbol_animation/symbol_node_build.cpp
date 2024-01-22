@@ -133,6 +133,17 @@ void SymbolNodeBuild::AddHierarchicalAnimation(RSHMSymbolData &symbolData, const
     symbolAnimationConfig->numNodes = symbolAnimationConfig->SymbolNodes.size();
 }
 
+void SymbolNodeBuild::ClearAnimation()
+{
+    if (animationFunc_ == nullptr) {
+        return;
+    }
+    auto symbolAnimationConfig = std::make_shared<SymbolAnimationConfig>();
+    symbolAnimationConfig->effectStrategy = SymbolAnimationEffectStrategy::SYMBOL_NONE;
+    symbolAnimationConfig->symbolSpanId = symblSpanId_;
+    animationFunc_(symbolAnimationConfig);
+}
+
 bool SymbolNodeBuild::DecomposeSymbolAndDraw()
 {
     if (symbolData_.symbolInfo_.renderGroups.size() <= 0) {
