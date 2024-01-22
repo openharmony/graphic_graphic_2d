@@ -109,20 +109,12 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
         return {};
     }
 
-    const auto& finishCallback = std::get<const std::shared_ptr<AnimationFinishCallback>>(globalImplicitParams_.top());
-
     // Special case: if implicit animation param type is CANCEL, we need to cancel all implicit animations
     if (implicitAnimationParams_.top()->GetType() == ImplicitAnimationParamType::CANCEL) {
         std::static_pointer_cast<RSImplicitCancelAnimationParam>(implicitAnimationParams_.top())->SyncProperties();
-        if (finishCallback.use_count() == 1) {
-            ROSEN_LOGD("RSImplicitAnimator::CloseImplicitAnimation Should not use finish callback when CANCELLING "
-                "animation, timing cannot be guaranteed.");
-            RSUIDirector::PostTask([finishCallback]() { finishCallback->Execute(); });
-        }
-        CloseImplicitAnimationInner();
-        return {};
     }
 
+    const auto& finishCallback = std::get<const std::shared_ptr<AnimationFinishCallback>>(globalImplicitParams_.top());
     auto& currentAnimations = implicitAnimations_.top();
     auto& currentKeyframeAnimations = keyframeAnimations_.top();
     // if no implicit animation created by current implicit animation param, we need to take care of finish callback
@@ -536,8 +528,14 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
             return;
         }
         case ImplicitAnimationParamType::CANCEL: {
-            // Create animation with CANCEL type will cancel all running animations of the given property and target.
+            // CreateEmptyAnimation
+            if (property->id_ == 0) {
+                auto curveImplicitParam = static_cast<RSImplicitCancelAnimationParam*>(params.get());
+                animation = curveImplicitParam->CreateEmptyAnimation(property, startValue, endValue);
+                break;
+            }
 
+            // Create animation with CANCEL type will cancel all running animations of the given property and target.
             // Note: We are currently in the process of refactoring and accidentally changed the order of animation
             // callbacks. Originally, the order was OnChange before OnFinish, but we mistakenly changed it to OnFinish
             // before OnChange. This change has caused some issues, and we need to revert it back to the original order.

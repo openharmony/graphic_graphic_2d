@@ -65,6 +65,9 @@ public:
     void AddPropertyToPendingSyncList(const std::shared_ptr<RSPropertyBase>& property);
     void SyncProperties();
 
+    std::shared_ptr<RSAnimation> CreateEmptyAnimation(std::shared_ptr<RSPropertyBase> property,
+        const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const;
+
 private:
     void ExecuteSyncPropertiesTask(
         RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap&& propertiesMap, bool isRenderService);
