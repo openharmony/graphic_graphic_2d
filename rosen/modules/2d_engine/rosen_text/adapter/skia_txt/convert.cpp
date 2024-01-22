@@ -57,6 +57,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
     return {
         .fontWeight = static_cast<SPText::FontWeight>(style.fontWeight),
         .fontStyle = static_cast<SPText::FontStyle>(style.fontStyle),
+        .wordBreakType = static_cast<SPText::WordBreakType>(style.wordBreakType),
         .fontFamily = style.fontFamily,
         .fontSize = style.fontSize,
         .height = style.heightScale,

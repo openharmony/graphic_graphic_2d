@@ -24,6 +24,13 @@
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
+
+enum class WordBreakType {
+    NORMAL,     // to be done.
+    BREAK_ALL,  // break occur after any characters.
+    BREAK_WORD, // break only occur after word.
+};
+
 class ParagraphStyle {
 public:
     TextStyle ConvertToTextStyle() const;
@@ -31,6 +38,7 @@ public:
 
     FontWeight fontWeight = FontWeight::W400;
     FontStyle fontStyle = FontStyle::NORMAL;
+    WordBreakType wordBreakType = WordBreakType::NORMAL;
     std::string fontFamily;
     double fontSize = 16;
     double height = 1;
