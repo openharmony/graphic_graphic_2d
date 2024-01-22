@@ -78,8 +78,6 @@ public:
     double bottomInGroup_ = 0.0;
     double maxRoundRectRadius_ = 0.0;
 
-    uint64_t symbolId_ = 0; // 0: text_span, > 0: symbol
-
     void SetAnimation(
         std::function<bool(
             const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>& animationFunc)
@@ -87,11 +85,6 @@ public:
         if (animationFunc) {
             animationFunc_ = animationFunc;
         }
-    }
-
-    void SetSymbolId(const uint64_t& symbolId)
-    {
-        symbolId_ = symbolId;
     }
 private:
 

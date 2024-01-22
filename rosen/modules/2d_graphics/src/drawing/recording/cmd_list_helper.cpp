@@ -290,7 +290,7 @@ SymbolOpHandle CmdListHelper::AddSymbolToCmdList(CmdList& cmdList, const Drawing
 {
     auto symbolLayersHandle = AddSymbolLayersToCmdList(cmdList, symbol.symbolInfo_);
     auto pathHandle = AddPathToCmdList(cmdList, symbol.path_);
-    return {symbolLayersHandle, pathHandle, symbol.symbolId};
+    return { symbolLayersHandle, pathHandle };
 }
 
 DrawingHMSymbolData CmdListHelper::GetSymbolFromCmdList(const CmdList& cmdList,
@@ -304,7 +304,7 @@ DrawingHMSymbolData CmdListHelper::GetSymbolFromCmdList(const CmdList& cmdList,
     if (path != nullptr) {
         symbol.path_ = *path;
     }
-    symbol.symbolId = symbolHandle.symbolId;
+
     return symbol;
 }
 

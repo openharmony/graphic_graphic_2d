@@ -21,7 +21,6 @@
 #else
 #include "drawing.h"
 #endif
-#include "symbol_animation/symbol_node_build.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -67,6 +66,7 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(const uint16_t& glyphId, const HMSym
         symbolInfo.renderGroups = symbolInfoOrign->renderModeGroups[renderMode];
         symbolInfo.symbolGlyphId = symbolInfoOrign->symbolGlyphId;
     }
+    symbolInfo.effect = effectMode;
 
 #ifndef USE_ROSEN_DRAWING
     std::vector<SColor> colorList = symbolText.GetRenderColor();
@@ -78,23 +78,21 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(const uint16_t& glyphId, const HMSym
     }
 
 #ifndef USE_ROSEN_DRAWING
-    if (effectMode == EffectStrategy::HIERARCHICAL &&
-        SetGroupsByEffect(glyphId, effectMode, symbolInfo.renderGroups)) {
+    if (effectMode == EffectStrategy::HIERARCHICAL) {
 #else
-    if (effectMode == RSEffectStrategy::HIERARCHICAL &&
-        SetGroupsByEffect(glyphId, effectMode, symbolInfo.renderGroups)) {
+    if (effectMode == RSEffectStrategy::HIERARCHICAL) {
 #endif
         symbolInfo.symbolGlyphId = symbolInfoOrign->symbolGlyphId;
-        symbolInfo.effect = effectMode;
+        SetGroupsByEffect(glyphId, effectMode, symbolInfo.renderGroups);
     }
     return symbolInfo;
 }
 
 #ifndef USE_ROSEN_DRAWING
-bool HMSymbolRun::SetGroupsByEffect(const uint32_t glyphId, const EffectStrategy effectStrategy,
+void HMSymbolRun::SetGroupsByEffect(const uint32_t glyphId, const EffectStrategy effectStrategy,
     std::vector<RenderGroup>& renderGroups)
 #else
-bool HMSymbolRun::SetGroupsByEffect(const uint32_t glyphId, const RSEffectStrategy effectStrategy,
+void HMSymbolRun::SetGroupsByEffect(const uint32_t glyphId, const RSEffectStrategy effectStrategy,
     std::vector<RSRenderGroup>& renderGroups)
 #endif
 {
@@ -121,10 +119,8 @@ bool HMSymbolRun::SetGroupsByEffect(const uint32_t glyphId, const RSEffectStrate
         }
         if (!newRenderGroups.empty()) {
             renderGroups = newRenderGroups;
-            return true;
         }
     }
-    return false;
 }
 
 #ifndef USE_ROSEN_DRAWING
@@ -177,148 +173,44 @@ void HMSymbolRun::SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMo
     }
 }
 
-#ifndef USE_ROSEN_DRAWING
 void HMSymbolRun::DrawSymbol(TexgineCanvas &canvas, const std::shared_ptr<TexgineTextBlob> &blob,
     const std::pair<double, double>& offset, const TexginePaint &paint, const TextStyle &style)
 {
     if (blob == nullptr) {
         return;
     }
+
+#ifndef USE_ROSEN_DRAWING
     std::vector<SkGlyphID> glyphIds;
+#else
+    std::vector<uint16_t> glyphIds;
+#endif
     blob->GetGlyphIDs(glyphIds);
     if (glyphIds.size() == 1) {
+#ifndef USE_ROSEN_DRAWING
         SkGlyphID glyphId = glyphIds[0];
         SkPath path = blob->GetPathbyGlyphID(glyphId);
         HMSymbolData symbolData;
-        symbolData.symbolInfo_ = GetSymbolLayers(glyphId, style.symbol);
-        if (symbolData.symbolInfo_.symbolGlyphId != glyphId) {
-            path = blob->GetPathbyGlyphID(symbolData.symbolInfo_.symbolGlyphId);
-        }
-        symbolData.path_ = path;
-        symbolData.symbolId = symbolId_; // symbolspan Id in paragraph
-        SkPoint offsetLocal = SkPoint::Make(offset.first, offset.second);
-        EffectStrategy symbolEffect = style.symbol.GetEffectStrategy();
-        uint32_t symbolId = static_cast<uint32_t>(glyphId);
-        switch (symbolEffect) {
-            case EffectStrategy::SCALE:
-                if (!SymbolAnimation(symbolData, symbolId, offset, style.symbol.GetEffectStrategy())) {
-                    canvas.DrawSymbol(symbolData, offsetLocal, paint);
-                }
-                break;
-            case EffectStrategy::HIERARCHICAL:
-                SymbolAnimation(symbolData, symbolId, offset, style.symbol.GetEffectStrategy());
-                canvas.DrawSymbol(symbolData, offsetLocal, paint);
-                break;
-            default:
-                ClearSymbolAnimation(symbolData, symbolId, offset);
-                canvas.DrawSymbol(symbolData, offsetLocal, paint);
-                break;
-        }
-    } else {
-        canvas.DrawTextBlob(blob, offset.first, offset.second, paint);
-    }
-}
 #else
-void HMSymbolRun::DrawSymbol(TexgineCanvas &canvas, const std::shared_ptr<TexgineTextBlob> &blob,
-    const std::pair<double, double>& offset, const TexginePaint &paint, const TextStyle &style)
-{
-    if (blob == nullptr) {
-        return;
-    }
-    std::vector<uint16_t> glyphIds;
-    blob->GetGlyphIDs(glyphIds);
-    if (glyphIds.size() == 1) {
         uint16_t glyphId = glyphIds[0];
         RSPath path = blob->GetPathbyGlyphID(glyphId);
         RSHMSymbolData symbolData;
+#endif
         symbolData.symbolInfo_ = GetSymbolLayers(glyphId, style.symbol);
         if (symbolData.symbolInfo_.symbolGlyphId != glyphId) {
             path = blob->GetPathbyGlyphID(symbolData.symbolInfo_.symbolGlyphId);
         }
         symbolData.path_ = path;
-        symbolData.symbolId = symbolId_; // symbolspan Id in paragraph
+#ifndef USE_ROSEN_DRAWING
+        SkPoint offsetLocal = SkPoint::Make(offset.first, offset.second);
+#else
         RSPoint offsetLocal = RSPoint{ offset.first, offset.second };
-        RSEffectStrategy symbolEffect = style.symbol.GetEffectStrategy();
-        uint32_t symbolId = static_cast<uint32_t>(glyphId);
-        switch (symbolEffect) {
-            case RSEffectStrategy::SCALE:
-                if (!SymbolAnimation(symbolData, symbolId, offset, style.symbol.GetEffectStrategy())) {
-                    canvas.DrawSymbol(symbolData, offsetLocal, paint);
-                }
-                break;
-            case RSEffectStrategy::HIERARCHICAL:
-                SymbolAnimation(symbolData, symbolId, offset, style.symbol.GetEffectStrategy());
-                canvas.DrawSymbol(symbolData, offsetLocal, paint);
-                break;
-            default:
-                ClearSymbolAnimation(symbolData, symbolId, offset);
-                canvas.DrawSymbol(symbolData, offsetLocal, paint);
-                break;
-        }
+#endif
+        canvas.DrawSymbol(symbolData, offsetLocal, paint);
     } else {
         canvas.DrawTextBlob(blob, offset.first, offset.second, paint);
     }
 }
-#endif
-
-#ifndef USE_ROSEN_DRAWING
-bool HMSymbolRun::SymbolAnimation(const HMSymbolData symbol, const uint32_t glyohId,
-    const std::pair<double, double> offset, const EffectStrategy effectMode)
-#else
-bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData symbol, const uint32_t glyohId,
-        const std::pair<double, double> offset, const RSEffectStrategy effectMode)
-#endif
-{
-#ifndef USE_ROSEN_DRAWING
-    if (effectMode == EffectStrategy::NONE) {
-        return false;
-    }
-    AnimationSetting animationSetting;
-#else
-    if (effectMode == RSEffectStrategy::NONE) {
-        return false;
-    }
-    RSAnimationSetting animationSetting;
-#endif
-
-    bool check = GetAnimationGroups(glyohId, effectMode, animationSetting);
-    if (!check) {
-        return check;
-    }
-    SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSetting, symbol, effectMode, offset);
-    symbolNode.SetAnimation(animationFunc_);
-    symbolNode.SetSymbolId(symbolId_);
-    if (!symbolNode.DecomposeSymbolAndDraw()) {
-        return false;
-    }
-    return true;
-}
-
-#ifndef USE_ROSEN_DRAWING
-void HMSymbolRun::ClearSymbolAnimation(const HMSymbolData symbol, const uint32_t glyohId,
-    const std::pair<double, double> offset)
-{
-    auto effectMode = EffectStrategy::NONE;
-    AnimationSetting animationSetting;
-
-    SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSetting, symbol, effectMode, offset);
-    symbolNode.SetAnimation(animationFunc_);
-    symbolNode.SetSymbolId(symbolId_);
-    symbolNode.ClearAnimation();
-}
-#else
-void HMSymbolRun::ClearSymbolAnimation(const RSHMSymbolData symbol, const uint32_t glyohId,
-        const std::pair<double, double> offset)
-{
-    auto effectMode = RSEffectStrategy::NONE;
-    RSAnimationSetting animationSetting;
-
-    SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSetting, symbol, effectMode, offset);
-    symbolNode.SetAnimation(animationFunc_);
-    symbolNode.SetSymbolId(symbolId_);
-    symbolNode.ClearAnimation();
-}
-#endif
 
 #ifndef USE_ROSEN_DRAWING
 bool HMSymbolRun::GetAnimationGroups(const uint32_t glyohId, const EffectStrategy effectStrategy,
@@ -333,7 +225,6 @@ bool HMSymbolRun::GetAnimationGroups(const uint32_t glyohId, const EffectStrateg
     if (effectStrategy == EffectStrategy::SCALE) {
         animationType = AnimationType::SCALE_EFFECT;
         animationSubType = AnimationSubType::UNIT;
-        return true;
     }
 
     if (effectStrategy == EffectStrategy::HIERARCHICAL) {
@@ -363,7 +254,6 @@ bool HMSymbolRun::GetAnimationGroups(const uint32_t glyohId, const RSEffectStrat
     if (effectStrategy == RSEffectStrategy::SCALE) {
         animationType = RSAnimationType::SCALE_EFFECT;
         animationSubType = RSAnimationSubType::UNIT;
-        return true;
     }
 
     if (effectStrategy == RSEffectStrategy::HIERARCHICAL) {
