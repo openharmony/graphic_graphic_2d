@@ -87,7 +87,8 @@ HWTEST_F(OHHmSymbolTest, OHHmSymbolTest003, TestSize.Level1)
     uint16_t glyohId = 0;
 #endif
     TextEngine::TextStyle textStyle;
-    SymbolLayers symbolInfo = TextEngine::HMSymbolRun::GetSymbolLayers(glyphId, textStyle.symbol);
+    TextEngine::HMSymbolRun hmSymbolRun = TextEngine::HMSymbolRun();
+    SymbolLayers symbolInfo = hmSymbolRun.GetSymbolLayers(glyphId, textStyle.symbol);
 }
 
 /*
@@ -116,9 +117,9 @@ HWTEST_F(OHHmSymbolTest, OHHmSymbolTest004, TestSize.Level1)
     textStyle.symbol.SetRenderColor(symbol.GetRenderColor());
     textStyle.symbol.SetRenderMode(symbol.GetRenderMode());
     textStyle.symbol.SetSymbolEffect(symbol.GetEffectStrategy());
-    SymbolLayers symbolInfo = TextEngine::HMSymbolRun::GetSymbolLayers(glyphId, textStyle.symbol);
+    TextEngine::HMSymbolRun hmSymbolRun = TextEngine::HMSymbolRun();
+    SymbolLayers symbolInfo = hmSymbolRun.GetSymbolLayers(glyphId, textStyle.symbol);
     symbol.HMSymbolTxt::~HMSymbolTxt();
 }
-
 } // namespace Rosen
 } // namespace OHOS

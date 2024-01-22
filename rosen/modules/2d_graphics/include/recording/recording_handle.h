@@ -72,6 +72,7 @@ struct SymbolLayersHandle {
 struct SymbolOpHandle {
     SymbolLayersHandle symbolLayerHandle;
     OpDataHandle pathHandle;
+    uint64_t symbolId = 0;
 };
 
 struct PaintHandle {

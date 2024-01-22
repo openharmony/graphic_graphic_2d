@@ -214,22 +214,26 @@ void TextSpan::Paint(TexgineCanvas &canvas, double offsetX, double offsetY, cons
 
     PaintShadow(canvas, offsetX, offsetY, xs.shadows);
     if (xs.isSymbolGlyph && G_IS_HMSYMBOL_ENABLE) {
-        SymbolAnimation(xs);
         std::pair<double, double> offset(offsetX, offsetY);
-        HMSymbolRun::DrawSymbol(canvas, textBlob_, offset, paint, xs);
+        HMSymbolRun hmSymbolRun = HMSymbolRun();
+        hmSymbolRun.SetAnimation(animationFunc_);
+        hmSymbolRun.SetSymbolId(symbolId_);
+        hmSymbolRun.DrawSymbol(canvas, textBlob_, offset, paint, xs);
     } else {
         canvas.DrawTextBlob(textBlob_, offsetX, offsetY, paint);
     }
-
     PaintDecoration(canvas, offsetX, offsetY, xs);
 }
 
+
 void TextSpan::SymbolAnimation(const TextStyle &xs)
 {
+    if (animationFunc_ == nullptr) {
+        return;
+    }
     auto spanSymbolAnimationConfig = std::make_shared<SymbolAnimationConfig>();
-    spanSymbolAnimationConfig->effectStrategy = SymbolAnimationEffectStrategy(
-        xs.symbol.GetEffectStrategy());
-    if (animationFunc_) {
+    spanSymbolAnimationConfig->effectStrategy = SymbolAnimationEffectStrategy(xs.symbol.GetEffectStrategy());
+    if (spanSymbolAnimationConfig->effectStrategy == SymbolAnimationEffectStrategy::SYMBOL_HIERARCHICAL) {
         animationFunc_(spanSymbolAnimationConfig);
     }
 }

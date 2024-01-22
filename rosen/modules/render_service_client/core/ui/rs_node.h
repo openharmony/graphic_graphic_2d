@@ -374,6 +374,9 @@ public:
     {
         return isTextureExportNode_;
     }
+
+    // key: symbolSpanID, value:symbol animation node list
+    std::unordered_map<uint64_t, std::list<SharedPtr>> canvasNodesListMap;
 protected:
     explicit RSNode(bool isRenderServiceNode, bool isTextureExportNode = false);
     explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false);

@@ -42,8 +42,9 @@ public:
     RSSymbolAnimation();
     virtual ~RSSymbolAnimation();
 
-    bool SetScaleUnitAnimation(const std::shared_ptr<RSNode>& rsNode);
+    bool SetScaleUnitAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
     bool SetNoneAnimation(const std::shared_ptr<RSNode>& rsNode);
+    void SetSymbolGeometry(const std::shared_ptr<RSNode>& rsNode, const Vector4f& bounds);
 
     // set symbol animation manager
     bool SetSymbolAnimation(
