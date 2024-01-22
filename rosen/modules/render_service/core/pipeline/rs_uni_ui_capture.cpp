@@ -64,6 +64,8 @@ std::shared_ptr<Media::PixelMap> RSUniUICapture::TakeLocalCapture()
 #else
     auto recordingCanvas = std::make_shared<ExtendRecordingCanvas>(FAKE_WIDTH, FAKE_HEIGHT, false);
 #endif
+    PostTaskToRSRecord(recordingCanvas, node, visitor);
+    auto drawCallList = recordingCanvas->GetDrawCmdList();
     std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMapByNode(node);
     if (pixelmap == nullptr) {
         RS_LOGE("RSUniUICapture::TakeLocalCapture: pixelmap == nullptr!");
@@ -85,9 +87,7 @@ std::shared_ptr<Media::PixelMap> RSUniUICapture::TakeLocalCapture()
     }
     auto canvas = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
 #endif
-    PostTaskToRSRecord(recordingCanvas, node, visitor);
-    auto drawCallList = recordingCanvas->GetDrawCmdList();
-    RS_LOGD("RSUniUICapture::TakeLocalCapture: drawCallList size is %{public}d", drawCallList->GetOpCnt());
+    RS_LOGD("RSUniUICapture::TakeLocalCapture: drawCallList size is %{public}zu", drawCallList->GetOpItemSize());
     drawCallList->Playback(*canvas);
     if (!isUniRender_) {
         return pixelmap;

@@ -453,7 +453,7 @@ bool WriteSkImageToPixelmap(std::shared_ptr<Drawing::Image> image, Drawing::Imag
     std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect)
 {
     return image->ReadPixels(
-        info, pixelmap->GetWritablePixels(), pixelmap->GetRowBytes(), rect->GetLeft(), rect->GetTop());
+        info, pixelmap->GetWritablePixels(), pixelmap->GetRowStride(), rect->GetLeft(), rect->GetTop());
 }
 
 #ifndef USE_ROSEN_DRAWING
