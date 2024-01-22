@@ -92,6 +92,8 @@ public:
     virtual GSError SendDeathRecipientObject() = 0;
     virtual GSError AttachBuffer(sptr<SurfaceBuffer>& buffer, int32_t timeOut) = 0;
 
+    virtual GSError GetTransform(GraphicTransformType &transform) = 0;
+
     DECLARE_INTERFACE_DESCRIPTOR(u"surf.IBufferProducer");
 
 protected:
@@ -123,6 +125,7 @@ protected:
         BUFFER_PRODUCER_UNREGISTER_RELEASE_LISTENER = 24,
         BUFFER_PRODUCER_GET_LAST_FLUSHED_BUFFER = 25,
         BUFFER_PRODUCER_REGISTER_DEATH_RECIPIENT = 26,
+        BUFFER_PRODUCER_GET_TRANSFORM = 27,
     };
 };
 } // namespace OHOS

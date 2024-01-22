@@ -67,6 +67,7 @@ BufferQueueProducer::BufferQueueProducer(sptr<BufferQueue>& bufferQueue)
         &BufferQueueProducer::UnRegisterReleaseListenerRemote;
     memberFuncMap_[BUFFER_PRODUCER_GET_LAST_FLUSHED_BUFFER] = &BufferQueueProducer::GetLastFlushedBufferRemote;
     memberFuncMap_[BUFFER_PRODUCER_REGISTER_DEATH_RECIPIENT] = &BufferQueueProducer::RegisterDeathRecipient;
+    memberFuncMap_[BUFFER_PRODUCER_GET_TRANSFORM] = &BufferQueueProducer::GetTransformRemote;
 }
 
 BufferQueueProducer::~BufferQueueProducer()
@@ -432,6 +433,22 @@ int32_t BufferQueueProducer::RegisterDeathRecipient(MessageParcel &arguments, Me
     return 0;
 }
 
+int32_t BufferQueueProducer::GetTransformRemote(
+    MessageParcel &arguments, MessageParcel &reply, MessageOption &option)
+{
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+    auto ret = GetTransform(transform);
+    if (ret != GSERROR_OK) {
+        reply.WriteInt32(static_cast<int32_t>(ret));
+        return -1;
+    }
+
+    reply.WriteInt32(GSERROR_OK);
+    reply.WriteUint32(static_cast<uint32_t>(transform));
+
+    return 0;
+}
+
 GSError BufferQueueProducer::RequestBuffer(const BufferRequestConfig &config, sptr<BufferExtraData> &bedata,
                                            RequestBufferReturnValue &retval)
 {
@@ -612,6 +629,17 @@ GSError BufferQueueProducer::SetTransform(GraphicTransformType transform)
         return GSERROR_INVALID_ARGUMENTS;
     }
     return bufferQueue_->SetTransform(transform);
+}
+
+GSError BufferQueueProducer::GetTransform(GraphicTransformType &transform)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (bufferQueue_ == nullptr) {
+        transform = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+        return GSERROR_INVALID_ARGUMENTS;
+    }
+    transform = bufferQueue_->GetTransform();
+    return GSERROR_OK;
 }
 
 GSError BufferQueueProducer::IsSupportedAlloc(const std::vector<BufferVerifyAllocInfo> &infos,

@@ -141,7 +141,6 @@ private:
     sptr<IProducerListener> listener_;
     wptr<NativeWindow> wpNativeWindow_ = nullptr;
     wptr<ProducerSurfaceDelegator> wpPSurfaceDelegator_ = nullptr;
-    GraphicTransformType transform_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
 };
 } // namespace OHOS
 

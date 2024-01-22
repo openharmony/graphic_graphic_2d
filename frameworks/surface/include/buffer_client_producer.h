@@ -78,6 +78,8 @@ public:
 
     GSError SendDeathRecipientObject() override;
 
+    GSError GetTransform(GraphicTransformType &transform) override;
+
 private:
     static inline BrokerDelegator<BufferClientProducer> delegator_;
     std::string name_ = "not init";

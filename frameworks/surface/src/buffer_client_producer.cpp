@@ -524,4 +524,18 @@ GSError BufferClientProducer::SendDeathRecipientObject()
     }
     return GSERROR_OK;
 }
+
+GSError BufferClientProducer::GetTransform(GraphicTransformType &transform)
+{
+    DEFINE_MESSAGE_VARIABLES(arguments, reply, option, BLOGE);
+    SEND_REQUEST(BUFFER_PRODUCER_GET_TRANSFORM, arguments, reply, option);
+
+    auto ret = static_cast<GSError>(reply.ReadInt32());
+    if (ret != GSERROR_OK) {
+        BLOGN_FAILURE("Remote return %{public}d", static_cast<int>(ret));
+        return ret;
+    }
+    transform = static_cast<GraphicTransformType>(reply.ReadUint32());
+    return GSERROR_OK;
+}
 }; // namespace OHOS
