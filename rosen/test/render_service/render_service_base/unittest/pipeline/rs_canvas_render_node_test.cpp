@@ -198,7 +198,7 @@ HWTEST_F(RSCanvasRenderNodeTest, ColorBlendModeTest, TestSize.Level1)
     Drawing::BlendMode drawingBlendMode = convertToBlendMode();
     Drawing::Brush maskBrush;
     maskBrush.SetBlendMode(drawingBlendMode);
-    Drawing::SaveLayerOps maskLayerRec(nullptr, &maskBrush, nullptr, 0);
+    Drawing::SaveLayerOps maskLayerRec(nullptr, &maskBrush, 0);
     canvas_->SaveLayer(maskLayerRec);
 
     canvas_->Restore();

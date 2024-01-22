@@ -1280,7 +1280,7 @@ void RSBlendSaveLayerDrawable::Draw(const RSRenderContent& content, RSPaintFilte
     canvas.SetMatrix(matrix);
     auto brush = blendBrush_;
     brush.SetAlphaF(canvas.GetAlpha());
-    Drawing::SaveLayerOps maskLayerRec(nullptr, &brush, nullptr, 0);
+    Drawing::SaveLayerOps maskLayerRec(nullptr, &brush, 0);
     canvas.SaveLayer(maskLayerRec);
 #endif
     canvas.SaveBlendMode();

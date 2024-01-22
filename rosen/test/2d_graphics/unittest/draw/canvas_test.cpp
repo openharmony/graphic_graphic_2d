@@ -721,8 +721,7 @@ HWTEST_F(CanvasTest, GetBounds001, TestSize.Level1)
     Rect rect(0.0f, 0.0f, 10.0f, 20.0f);
     Brush brush;
     uint32_t saveLayerFlags = 0;
-    auto imageFilter = std::make_shared<ImageFilter>(ImageFilter::FilterType::BLUR, 10.0f, 10.0f, nullptr);
-    SaveLayerOps saveLayerRec(&rect, &brush, imageFilter, saveLayerFlags);
+    SaveLayerOps saveLayerRec(&rect, &brush, saveLayerFlags);
     auto ret = saveLayerRec.GetBounds();
     EXPECT_EQ(ret->GetLeft(), 0.0f);
     EXPECT_EQ(ret->GetBottom(), 20.0f);
@@ -739,26 +738,8 @@ HWTEST_F(CanvasTest, GetBrush001, TestSize.Level1)
     Rect rect(0.0f, 0.0f, 10.0f, 20.0f);
     Brush brush;
     uint32_t saveLayerFlags = 0;
-    auto imageFilter = std::make_shared<ImageFilter>(ImageFilter::FilterType::BLUR, 10.0f, 10.0f, nullptr);
-    SaveLayerOps saveLayerRec(&rect, &brush, imageFilter, saveLayerFlags);
+    SaveLayerOps saveLayerRec(&rect, &brush, saveLayerFlags);
     auto ret = saveLayerRec.GetBrush();
-    EXPECT_TRUE(ret != nullptr);
-}
-
-/**
- * @tc.name: GetImageFilter001
- * @tc.desc: Test for geting the image filter of layer.
- * @tc.type: FUNC
- * @tc.require: I719U5
- */
-HWTEST_F(CanvasTest, GetImageFilter001, TestSize.Level1)
-{
-    Rect rect(0.0f, 0.0f, 10.0f, 20.0f);
-    Brush brush;
-    uint32_t saveLayerFlags = 0;
-    auto imageFilter = std::make_shared<ImageFilter>(ImageFilter::FilterType::BLUR, 10.0f, 10.0f, nullptr);
-    SaveLayerOps saveLayerRec(&rect, &brush, imageFilter, saveLayerFlags);
-    auto ret = saveLayerRec.GetImageFilter();
     EXPECT_TRUE(ret != nullptr);
 }
 
@@ -773,8 +754,7 @@ HWTEST_F(CanvasTest, GetSaveLayerFlags001, TestSize.Level1)
     Rect rect(0.0f, 0.0f, 10.0f, 20.0f);
     Brush brush;
     uint32_t saveLayerFlags = 0;
-    auto imageFilter = std::make_shared<ImageFilter>(ImageFilter::FilterType::BLUR, 10.0f, 10.0f, nullptr);
-    SaveLayerOps saveLayerRec(&rect, &brush, imageFilter, saveLayerFlags);
+    SaveLayerOps saveLayerRec(&rect, &brush, saveLayerFlags);
     auto ret = saveLayerRec.GetSaveLayerFlags();
     EXPECT_EQ(ret, 0);
 }

@@ -89,26 +89,6 @@ bool SkiaImage::BuildFromBitmap(const Bitmap& bitmap)
     return false;
 }
 
-bool SkiaImage::BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix,
-    const Brush& brush, BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace)
-{
-    auto skPictureImpl = picture.GetImpl<SkiaPicture>();
-    auto skMatrixImpl = matrix.GetImpl<SkiaMatrix>();
-    auto skColorSpaceImpl = colorSpace->GetImpl<SkiaColorSpace>();
-
-    SkISize skISize = SkISize::Make(dimensions.Width(), dimensions.Height());
-    SkPaint paint;
-    SkiaPaint::BrushToSkPaint(brush, paint);
-    SkImage::BitDepth b = static_cast<SkImage::BitDepth>(bitDepth);
-
-    if (skPictureImpl != nullptr && skMatrixImpl != nullptr && skColorSpaceImpl != nullptr) {
-        skiaImage_ = SkImage::MakeFromPicture(skPictureImpl->GetPicture(), skISize, &skMatrixImpl->ExportSkiaMatrix(),
-            &paint, b, skColorSpaceImpl->GetColorSpace());
-        return skiaImage_ != nullptr;
-    }
-    return false;
-}
-
 #ifdef ACE_ENABLE_GPU
 bool SkiaImage::BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap)
 {

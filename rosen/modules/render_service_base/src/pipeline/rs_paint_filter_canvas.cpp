@@ -307,22 +307,6 @@ void RSPaintFilterCanvasBase::DrawPatch(const Drawing::Point cubics[12], const D
 #endif
 }
 
-void RSPaintFilterCanvasBase::DrawEdgeAAQuad(const Drawing::Rect& rect, const Drawing::Point clip[4],
-    Drawing::QuadAAFlags aaFlags, Drawing::ColorQuad color, Drawing::BlendMode mode)
-{
-#ifdef ENABLE_RECORDING_DCL
-    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
-        if ((*iter) != nullptr && OnFilter()) {
-            (*iter)->DrawEdgeAAQuad(rect, clip, aaFlags, color, mode);
-        }
-    }
-#else
-    if (canvas_ != nullptr && OnFilter()) {
-        canvas_->DrawEdgeAAQuad(rect, clip, aaFlags, color, mode);
-    }
-#endif
-}
-
 void RSPaintFilterCanvasBase::DrawVertices(const Drawing::Vertices& vertices, Drawing::BlendMode mode)
 {
 #ifdef ENABLE_RECORDING_DCL
@@ -365,21 +349,6 @@ void RSPaintFilterCanvasBase::DrawImageNine(const Drawing::Image* image, const D
 #else
     if (canvas_ != nullptr && OnFilter()) {
         canvas_->DrawImageNine(image, center, dst, filter, brush);
-    }
-#endif
-}
-
-void RSPaintFilterCanvasBase::DrawAnnotation(const Drawing::Rect& rect, const char* key, const Drawing::Data* data)
-{
-#ifdef ENABLE_RECORDING_DCL
-    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
-        if ((*iter) != nullptr && OnFilter()) {
-            (*iter)->DrawAnnotation(rect, key, data);
-        }
-    }
-#else
-    if (canvas_ != nullptr && OnFilter()) {
-        canvas_->DrawAnnotation(rect, key, data);
     }
 #endif
 }
@@ -750,8 +719,7 @@ void RSPaintFilterCanvasBase::SaveLayer(const SaveLayerOps& saveLayerRec)
         brush = *saveLayerRec.GetBrush();
         OnFilterWithBrush(brush);
     }
-    SaveLayerOps slo(saveLayerRec.GetBounds(), &brush,
-        saveLayerRec.GetImageFilter(), saveLayerRec.GetSaveLayerFlags());
+    SaveLayerOps slo(saveLayerRec.GetBounds(), &brush, saveLayerRec.GetSaveLayerFlags());
 #ifdef ENABLE_RECORDING_DCL
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {

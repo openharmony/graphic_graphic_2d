@@ -1100,15 +1100,13 @@ public:
 class SaveLayerOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const Rect& rect, bool hasBrush, const BrushHandle& brushHandle,
-            const FlattenableHandle& imageFilter, uint32_t saveLayerFlags) : OpItem(DrawOpItem::SAVE_LAYER_OPITEM),
-            rect(rect), hasBrush(hasBrush), brushHandle(brushHandle), imageFilter(imageFilter),
-            saveLayerFlags(saveLayerFlags) {}
+        ConstructorHandle(const Rect& rect, bool hasBrush, const BrushHandle& brushHandle, uint32_t saveLayerFlags)
+            : OpItem(DrawOpItem::SAVE_LAYER_OPITEM), rect(rect), hasBrush(hasBrush), brushHandle(brushHandle),
+              saveLayerFlags(saveLayerFlags) {}
         ~ConstructorHandle() override = default;
         Rect rect;
         bool hasBrush;
         BrushHandle brushHandle;
-        FlattenableHandle imageFilter;
         uint32_t saveLayerFlags;
     };
     SaveLayerOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
@@ -1123,7 +1121,6 @@ public:
             hasBrush_ = true;
             brush_ = *brush;
         }
-        imageFilter_ = saveLayerOps.GetImageFilter();
     }
     ~SaveLayerOpItem() override = default;
 
@@ -1135,7 +1132,6 @@ private:
     Rect rect_;
     bool hasBrush_ = false;
     Brush brush_;
-    std::shared_ptr<ImageFilter> imageFilter_;
 };
 
 class RestoreOpItem : public DrawOpItem {

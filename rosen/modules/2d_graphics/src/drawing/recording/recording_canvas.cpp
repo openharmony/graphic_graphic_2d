@@ -194,12 +194,6 @@ void RecordingCanvas::DrawPatch(const Point cubics[12], const ColorQuad colors[4
     LOGE("RecordingCanvas::DrawPatch not support yet");
 }
 
-void RecordingCanvas::DrawEdgeAAQuad(const Rect& rect, const Point clip[4],
-    QuadAAFlags aaFlags, ColorQuad color, BlendMode mode)
-{
-    LOGE("RecordingCanvas::DrawEdgeAAQuad not support yet");
-}
-
 void RecordingCanvas::DrawVertices(const Vertices& vertices, BlendMode mode)
 {
     if (!addDrawOpImmediate_) {
@@ -228,11 +222,6 @@ void RecordingCanvas::DrawImageNine(const Image* image, const RectI& center, con
 
     cmdList_->AddDrawOp<DrawImageNineOpItem::ConstructorHandle>(
         imageHandle, center, dst, filterMode, brushHandle, hasBrush);
-}
-
-void RecordingCanvas::DrawAnnotation(const Rect& rect, const char* key, const Data* data)
-{
-    LOGE("RecordingCanvas::DrawAnnotation not support yet");
 }
 
 void RecordingCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
@@ -555,11 +544,9 @@ void RecordingCanvas::SaveLayer(const SaveLayerOps& saveLayerOps)
         hasBrush = true;
         DrawOpItem::BrushToBrushHandle(*brush, *cmdList_, brushHandle);
     }
-    FlattenableHandle imageFilterHandle = CmdListHelper::AddImageFilterToCmdList(
-        *cmdList_, saveLayerOps.GetImageFilter());
 
     cmdList_->AddDrawOp<SaveLayerOpItem::ConstructorHandle>(rect, hasBrush, brushHandle,
-        imageFilterHandle, saveLayerOps.GetSaveLayerFlags());
+        saveLayerOps.GetSaveLayerFlags());
 }
 
 void RecordingCanvas::Restore()

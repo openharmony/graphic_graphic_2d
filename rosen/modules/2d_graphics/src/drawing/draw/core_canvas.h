@@ -89,19 +89,15 @@ public:
         INIT_WITH_PREVIOUS = 1 << 1,    // create with previous contents
     };
 
-    SaveLayerOps() : bounds_(nullptr), brush_(nullptr), imageFilter_(nullptr), saveLayerFlags_(0) {}
-    SaveLayerOps(const Rect* bounds, const Brush* brush, uint32_t saveLayerFlags = 0)
-        : SaveLayerOps(bounds, brush, nullptr, saveLayerFlags) {}
+    SaveLayerOps() : bounds_(nullptr), brush_(nullptr), saveLayerFlags_(0) {}
 
     /*
      * @param bounds          The bounds of layer, may be nullptr.
      * @param brush           When restoring the current layer, attach this brush, may be nullptr.
-     * @param imageFilter     Use this to filter the current layer as the new layer background, may be nullptr.
      * @param saveLayerFlags  How to allocate layer.
      */
-    SaveLayerOps(const Rect* bounds, const Brush* brush,
-        const std::shared_ptr<ImageFilter> imageFilter, uint32_t saveLayerFlags = 0)
-        : bounds_(bounds), brush_(brush), imageFilter_(imageFilter), saveLayerFlags_(saveLayerFlags) {}
+    SaveLayerOps(const Rect* bounds, const Brush* brush, uint32_t saveLayerFlags = 0)
+        : bounds_(bounds), brush_(brush), saveLayerFlags_(saveLayerFlags) {}
     ~SaveLayerOps() {}
 
     /*
@@ -121,14 +117,6 @@ public:
     }
 
     /*
-     * @brief  Gets the image filter of layer, may be nullptr.
-     */
-    const std::shared_ptr<ImageFilter> GetImageFilter() const
-    {
-        return imageFilter_;
-    }
-
-    /*
      * @brief  Gets the options to modify layer.
      */
     uint32_t GetSaveLayerFlags() const
@@ -139,7 +127,6 @@ public:
 private:
     const Rect* bounds_;
     const Brush* brush_;
-    const std::shared_ptr<ImageFilter> imageFilter_;
     uint32_t saveLayerFlags_;
 };
 
@@ -228,13 +215,10 @@ public:
 
     virtual void DrawPatch(const Point cubics[12], const ColorQuad colors[4],
         const Point texCoords[4], BlendMode mode);
-    virtual void DrawEdgeAAQuad(const Rect& rect, const Point clip[4],
-        QuadAAFlags aaFlags, ColorQuad color, BlendMode mode);
     virtual void DrawVertices(const Vertices& vertices, BlendMode mode);
 
     virtual void DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
         FilterMode filter, const Brush* brush = nullptr);
-    virtual void DrawAnnotation(const Rect& rect, const char* key, const Data* data);
     virtual void DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
         FilterMode filter, const Brush* brush = nullptr);
 

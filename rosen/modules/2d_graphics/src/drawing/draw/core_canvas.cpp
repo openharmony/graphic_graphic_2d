@@ -177,12 +177,6 @@ void CoreCanvas::DrawPatch(const Point cubics[12], const ColorQuad colors[4], co
     impl_->DrawPatch(cubics, colors, texCoords, mode);
 }
 
-void CoreCanvas::DrawEdgeAAQuad(const Rect& rect, const Point clip[4],
-    QuadAAFlags aaFlags, ColorQuad color, BlendMode mode)
-{
-    impl_->DrawEdgeAAQuad(rect, clip, aaFlags, color, mode);
-}
-
 void CoreCanvas::DrawVertices(const Vertices& vertices, BlendMode mode)
 {
     AttachPaint();
@@ -199,11 +193,6 @@ void CoreCanvas::DrawImageNine(const Image* image, const RectI& center, const Re
     FilterMode filter, const Brush* brush)
 {
     impl_->DrawImageNine(image, center, dst, filter, brush);
-}
-
-void CoreCanvas::DrawAnnotation(const Rect& rect, const char* key, const Data* data)
-{
-    impl_->DrawAnnotation(rect, key, data);
 }
 
 void CoreCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
