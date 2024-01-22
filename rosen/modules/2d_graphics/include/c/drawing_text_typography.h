@@ -1001,6 +1001,19 @@ double OH_Drawing_TypographyGetLineHeight(OH_Drawing_Typography*, int);
  */
 double OH_Drawing_TypographyGetLineWidth(OH_Drawing_Typography*, int);
 
+/**
+ * @brief get line text range.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
+ * @param int Indicates the line number.
+ * @param bool Indicates whether spaces are contained.
+ * @return Returns line text range.
+ * @since 12
+ * @version 1.0
+ */
+OH_Drawing_Range* OH_Drawing_TypographyGetLineTextRange(OH_Drawing_Typography*, int, bool);
+
 #ifdef __cplusplus
 }
 #endif

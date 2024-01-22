@@ -1059,3 +1059,16 @@ double OH_Drawing_TypographyGetLineWidth(OH_Drawing_Typography* typography, int 
     Typography* typographyInner = ConvertToOriginalText<Typography>(typography);
     return typographyInner->GetLineWidth(lineNumber);
 }
+
+OH_Drawing_Range* OH_Drawing_TypographyGetLineTextRange(OH_Drawing_Typography* typography,
+    int lineNumber, bool includeSpaces)
+{
+#ifndef USE_GRAPHIC_TEXT_GINE
+    TypographyProperties::Range<size_t>* originalRange = new TypographyProperties::Range<size_t>;
+    *originalRange = ConvertToOriginalText<Typography>(typography)->GetActualTextRange(lineNumber, includeSpaces);
+#else
+    Boundary* originalRange = new Boundary(0, 0);
+    *originalRange = ConvertToOriginalText<Typography>(typography)->GetActualTextRange(lineNumber, includeSpaces);
+#endif
+    return (OH_Drawing_Range*)originalRange;
+}

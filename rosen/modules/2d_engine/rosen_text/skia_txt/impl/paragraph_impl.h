@@ -67,6 +67,8 @@ public:
 
     Range<size_t> GetWordBoundary(size_t offset) override;
 
+    Range<size_t> GetActualTextRange(int lineNumber, bool includeSpaces) override;
+
     std::vector<LineMetrics>& GetLineMetrics() override;
 
     bool GetLineMetricsAt(int lineNumber, skia::textlayout::LineMetrics* lineMetrics) const override;

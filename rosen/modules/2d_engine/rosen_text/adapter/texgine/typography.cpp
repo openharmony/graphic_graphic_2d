@@ -197,6 +197,12 @@ Boundary Typography::GetWordBoundaryByIndex(size_t index)
     auto range = typography_->GetWordBoundaryByIndex(index);
     return Convert(range);
 }
+
+Boundary Typography::GetActualTextRange(int lineNumber, bool includeSpaces)
+{
+    auto range = typography_->GetActualTextRange(lineNumber, includeSpaces);
+    return Convert(range);
+}
 } // namespace AdapterTextEngine
 } // namespace Rosen
 } // namespace OHOS
