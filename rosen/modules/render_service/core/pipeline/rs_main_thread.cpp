@@ -277,7 +277,10 @@ void RSMainThread::Init()
         auto subThreadManager = RSSubThreadManager::Instance();
         subThreadManager->SubmitFilterSubThreadTask();
         SendCommands();
-        context_->activeNodesInRoot_.clear();
+        {
+            std::lock_guard<std::mutex> lock(context_->activeNodesInRootmutex_);
+            context_->activeNodesInRoot_.clear();
+        }
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         SetRSEventDetectorLoopFinishTag();
         rsEventManager_.UpdateParam();
@@ -2759,6 +2762,7 @@ bool RSMainThread::CheckNodeHasToBePreparedByPid(NodeId nodeId, bool isClassifyB
         return std::any_of(context_->activeNodesInRoot_.begin(), context_->activeNodesInRoot_.end(),
             [pid](const auto& iter) { return ExtractPid(iter.first) == pid; });
     } else {
+        std::lock_guard<std::mutex> lock(context_->activeNodesInRootmutex_);
         return context_->activeNodesInRoot_.count(nodeId);
     }
 }
@@ -2816,6 +2820,7 @@ FrameRateRange RSMainThread::CalcAnimateFrameRateRange(std::shared_ptr<RSRenderN
 void RSMainThread::ApplyModifiers()
 {
     rsCurrRange_.Reset();
+    std::lock_guard<std::mutex> lock(context_->activeNodesInRootmutex_);
     if (context_->activeNodesInRoot_.empty()) {
         return;
     }

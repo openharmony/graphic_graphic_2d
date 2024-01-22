@@ -35,7 +35,7 @@ void RSContext::UnregisterAnimatingRenderNode(NodeId id)
 
 void RSContext::AddActiveNode(const std::shared_ptr<RSRenderNode>& node)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<std::mutex> lock(activeNodesInRootmutex_);
     if (node == nullptr || node->GetId() == INVALID_NODEID) {
         return;
     }
@@ -45,7 +45,7 @@ void RSContext::AddActiveNode(const std::shared_ptr<RSRenderNode>& node)
 
 bool RSContext::HasActiveNode(const std::shared_ptr<RSRenderNode>& node)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<std::mutex> lock(activeNodesInRootmutex_);
     if (node == nullptr || node->GetId() == INVALID_NODEID) {
         return false;
     }
