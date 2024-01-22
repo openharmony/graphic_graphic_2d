@@ -170,6 +170,11 @@ enum class RSSurfaceNodeType : uint8_t {
     SCB_SCREEN_NODE,          // surfacenode created as sceneboard
 };
 
+enum class SelfDrawingNodeType : uint8_t {
+    DEFAULT,
+    VIDEO,
+};
+
 struct RSSurfaceRenderNodeConfig {
     NodeId id = 0;
     std::string name = "SurfaceNode";

@@ -286,7 +286,7 @@ public:
 
     void ReportGameStateData(GameStateData info);
 
-    void SetHardwareEnabled(NodeId id, bool isEnabled);
+    void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType);
 
     void SetCacheEnabledForRotation(bool isEnabled);
 

@@ -1215,7 +1215,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             auto id = data.ReadUint64();
             auto isEnabled = data.ReadBool();
-            SetHardwareEnabled(id, isEnabled);
+            auto selfDrawingType = static_cast<SelfDrawingNodeType>(data.ReadUint8());
+            SetHardwareEnabled(id, isEnabled, selfDrawingType);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_LIGHT_FACTOR_STATUS) : {

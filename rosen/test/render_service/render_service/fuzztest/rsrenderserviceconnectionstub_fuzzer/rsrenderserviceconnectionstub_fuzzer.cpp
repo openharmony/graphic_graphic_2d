@@ -668,7 +668,7 @@ bool DoSetHardwareEnabled(const uint8_t* data, size_t size)
     pos = 0;
 
     auto isEnabled = GetData<bool>();
-    rsClient->SetHardwareEnabled(0, isEnabled);
+    rsClient->SetHardwareEnabled(0, isEnabled, SelfDrawingNodeType::DEFAULT);
     return true;
 }
 

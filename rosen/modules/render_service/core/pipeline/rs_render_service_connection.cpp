@@ -1140,13 +1140,13 @@ void RSRenderServiceConnection::ReportGameStateData(GameStateData info)
     }
 }
 
-void RSRenderServiceConnection::SetHardwareEnabled(NodeId id, bool isEnabled)
+void RSRenderServiceConnection::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType)
 {
-    auto task = [this, id, isEnabled]() -> void {
+    auto task = [this, id, isEnabled, selfDrawingType]() -> void {
         auto& context = mainThread_->GetContext();
         auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
         if (node) {
-            node->SetHardwareEnabled(isEnabled);
+            node->SetHardwareEnabled(isEnabled, selfDrawingType);
         }
     };
     mainThread_->PostTask(task);
