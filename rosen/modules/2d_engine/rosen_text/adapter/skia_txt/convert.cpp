@@ -114,7 +114,13 @@ SPText::TextStyle Convert(const TextStyle& style)
     textStyle.height = style.heightScale;
     textStyle.heightOverride = style.heightOnly;
     textStyle.locale = style.locale;
+    textStyle.isSymbolGlyph = style.isSymbolGlyph;
 
+    if (style.isSymbolGlyph) {
+        textStyle.symbol.SetRenderColor(style.symbol.GetRenderColor());
+        textStyle.symbol.SetRenderMode(style.symbol.GetRenderMode());
+        textStyle.symbol.SetSymbolEffect(style.symbol.GetEffectStrategy());
+    }
     if (style.backgroundBrush.has_value() || style.backgroundPen.has_value()) {
         textStyle.background = SPText::PaintRecord(style.backgroundBrush, style.backgroundPen);
     }

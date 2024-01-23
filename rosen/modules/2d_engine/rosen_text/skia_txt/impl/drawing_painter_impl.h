@@ -20,6 +20,8 @@
 #include "txt/paint_record.h"
 
 #include "draw/canvas.h"
+#include "rosen_text/symbol_animation_config.h"
+#include "symbol_engine/hm_symbol_run.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -37,6 +39,8 @@ public:
     void drawFilledRect(const SkRect& rect, const DecorationStyle& decorStyle) override;
     void drawPath(const SkPath& path, const DecorationStyle& decorStyle) override;
     void drawLine(SkScalar x0, SkScalar y0, SkScalar x1, SkScalar y1, const DecorationStyle& decorStyle) override;
+    void SymbolAnimation(const PaintRecord &pr);
+    void DrawSymbolSkiaTxt(RSTextBlob* blob, const RSPoint& offset, const PaintRecord &pr);
 
     void clipRect(const SkRect& rect) override;
     void translate(SkScalar dx, SkScalar dy) override;
@@ -44,9 +48,20 @@ public:
     void save() override;
     void restore() override;
 
+    void SetAnimation(
+        std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>& animationFunc
+    )
+    {
+        if (animationFunc != nullptr) {
+            animationFunc_ = animationFunc;
+        }
+    }
+
 private:
     Drawing::Canvas* canvas_;
     const std::vector<PaintRecord>& paints_;
+    std::function<bool(
+        const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)> animationFunc_ = nullptr;
 };
 } // namespace SPText
 } // namespace Rosen
