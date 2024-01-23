@@ -159,6 +159,12 @@ Boundary Typography::GetWordBoundaryByIndex(size_t index)
     return Convert(range);
 }
 
+Boundary Typography::GetActualTextRange(int lineNumber, bool includeSpaces)
+{
+    auto range = paragraph_->GetActualTextRange(lineNumber, includeSpaces);
+    return Convert(range);
+}
+
 double Typography::GetLineHeight(int lineNumber)
 {
     const auto &lines = paragraph_->GetLineMetrics();

@@ -53,6 +53,7 @@ public:
     TypographyProperties::PositionAndAffinity GetGlyphPositionAtCoordinateWithCluster(double dx,
         double dy);
     TypographyProperties::Range<size_t> GetWordBoundary(size_t offset);
+    TypographyProperties::Range<size_t> GetActualTextRange(int lineNumber, bool includeSpaces);
     size_t GetLineCount();
     double GetLineHeight(int lineNumber);
     double GetLineWidth(int lineNumber);

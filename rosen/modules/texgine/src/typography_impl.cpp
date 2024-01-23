@@ -263,6 +263,11 @@ Boundary TypographyImpl::GetWordBoundaryByIndex(size_t index) const
     return {right, right};
 }
 
+Boundary TypographyImpl::GetActualTextRange(int lineNumber, bool includeSpaces) const
+{
+    return {0, 0};
+}
+
 double TypographyImpl::GetLineHeight(int lineNumber)
 {
     if (lineNumber >= 0 && lineNumber < static_cast<int>(lineMetrics_.size())) {

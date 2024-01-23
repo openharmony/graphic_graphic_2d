@@ -153,6 +153,8 @@ public:
     // Returns the word range of a given glyph in a paragraph.
     virtual Range<size_t> GetWordBoundary(size_t offset) = 0;
 
+    virtual Range<size_t> GetActualTextRange(int lineNumber, bool includeSpaces) = 0;
+
     virtual std::vector<LineMetrics>& GetLineMetrics() = 0;
 
     virtual bool GetLineMetricsAt(int lineNumber, skia::textlayout::LineMetrics* lineMetrics) const = 0;
