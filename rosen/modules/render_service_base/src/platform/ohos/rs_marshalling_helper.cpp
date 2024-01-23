@@ -1450,7 +1450,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSSh
     std::shared_ptr<Drawing::Data> data = shaderEffect->Serialize();
     if (!data) {
         ROSEN_LOGE("unirender: RSMarshallingHelper::Marshalling RSShader, data is nullptr");
-        return false;
+        return parcel.WriteInt32(-1);
     }
     return parcel.WriteInt32(type) && Marshalling(parcel, data);
 }

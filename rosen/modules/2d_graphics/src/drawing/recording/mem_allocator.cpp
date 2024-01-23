@@ -114,7 +114,7 @@ void* MemAllocator::Add(const void* data, size_t size)
         return nullptr;
     }
 
-    if (capacity_ - size_ < size) {
+    if (capacity_ == 0 || capacity_ - size_ < size) {
         // The capacity is not enough, expand the capacity
         if (Resize((capacity_ + size) * MEMORY_EXPANSION_FACTOR) == false) {
             return nullptr;
