@@ -343,7 +343,6 @@ private:
 
     void SetFocusLeashWindowId();
     void ProcessHgmFrameRate(uint64_t timestamp);
-    FrameRateRange CalcAnimateFrameRateRange(std::shared_ptr<RSRenderNode> node);
     bool IsLastFrameUIFirstEnabled(NodeId appNodeId) const;
     RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& curRegion,
         const Occlusion::Region& visibleRegion);

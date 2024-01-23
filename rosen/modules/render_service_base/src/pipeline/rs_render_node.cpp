@@ -211,14 +211,6 @@ const std::set<RSModifierType> CACHEABLE_ANIMATION_TYPE = {
     RSModifierType::BOUNDS,
     RSModifierType::FRAME,
 };
-const std::unordered_set<RSModifierType> ANIMATION_MODIFIER_TYPE  = {
-    RSModifierType::TRANSLATE,
-    RSModifierType::SCALE,
-    RSModifierType::ROTATION_X,
-    RSModifierType::ROTATION_Y,
-    RSModifierType::ROTATION,
-    RSModifierType::FRAME,
-};
 const std::set<RSModifierType> BASIC_GEOTRANSFORM_ANIMATION_TYPE = {
     RSModifierType::TRANSLATE,
     RSModifierType::SCALE,
@@ -864,32 +856,21 @@ void RSRenderNode::InActivateDisplaySync()
     displaySync_ = nullptr;
 }
 
-FrameRateRange RSRenderNode::CalcExpectedFrameRateRange(int32_t preferredFps)
+void RSRenderNode::UpdateDisplaySyncRange()
 {
-    FrameRateRange nodeRange;
-    if (displaySync_ != nullptr) {
-        if (preferredFps > 0) {
-            nodeRange = {0, RANGE_MAX_REFRESHRATE, preferredFps};
-        }
-        auto animationRange = animationManager_.GetFrameRateRange();
-        if (animationRange.IsValid()) {
-            displaySync_->SetExpectedFrameRateRange(animationRange);
-            nodeRange.Merge(animationRange);
-        }
+    if (!displaySync_) {
+        return;
     }
-    return nodeRange;
+    auto animationRange = animationManager_.GetFrameRateRange();
+    if (animationRange.IsValid()) {
+        displaySync_->SetExpectedFrameRateRange(animationRange);
+    }
 }
 
 std::tuple<bool, bool, bool> RSRenderNode::Animate(int64_t timestamp, int64_t period, bool isDisplaySyncEnabled)
 {
     if (displaySync_ && displaySync_->OnFrameSkip(timestamp, period, isDisplaySyncEnabled)) {
         return displaySync_->GetAnimateResult();
-    }
-    if (lastTimestamp_ < 0) {
-        lastTimestamp_ = timestamp;
-    } else {
-        timeDelta_ = (static_cast<float>(timestamp - lastTimestamp_)) / NS_TO_S;
-        lastTimestamp_ = timestamp;
     }
     auto animateResult = animationManager_.Animate(timestamp, IsOnTheTree());
     if (displaySync_) {
@@ -1295,67 +1276,6 @@ void RSRenderNode::DumpNodeInfo(DfxString& log)
 #endif
 }
 
-void RSRenderNode::AddModifierProfile(const std::shared_ptr<RSRenderModifier>& modifier, float width, float height)
-{
-    if (timeDelta_ < 0 || ROSEN_EQ(timeDelta_, 0.f) || lastApplyTimestamp_ == lastTimestamp_) {
-        return;
-    }
-    auto propertyId = modifier->GetPropertyId();
-    auto oldPropertyValue = propertyValueMap_.find(propertyId);
-    auto newProperty = modifier->GetProperty();
-    switch (modifier->GetType()) {
-        case RSModifierType::TRANSLATE: {
-            auto newPosition = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(newProperty)->Get();
-            if (oldPropertyValue != propertyValueMap_.end()) {
-                auto oldPosition = std::get<Vector2f>(oldPropertyValue->second);
-                auto xSpeed = (newPosition[0] - oldPosition[0]) / timeDelta_;
-                auto ySpeed = (newPosition[1] - oldPosition[1]) / timeDelta_;
-                HgmModifierProfile hgmModifierProfile = {xSpeed, ySpeed, HgmModifierType::TRANSLATE};
-                hgmModifierProfileList_.emplace_back(std::move(hgmModifierProfile));
-            }
-            propertyValueMap_[propertyId] = newPosition;
-            break;
-        }
-        case RSModifierType::SCALE: {
-            auto newPosition = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(newProperty)->Get();
-            if (oldPropertyValue != propertyValueMap_.end()) {
-                auto oldPosition = std::get<Vector2f>(oldPropertyValue->second);
-                auto xSpeed = (newPosition[0] - oldPosition[0]) * width / timeDelta_;
-                auto ySpeed = (newPosition[1] - oldPosition[1]) * height / timeDelta_;
-                HgmModifierProfile hgmModifierProfile = {xSpeed, ySpeed, HgmModifierType::SCALE};
-                hgmModifierProfileList_.emplace_back(std::move(hgmModifierProfile));
-            }
-            propertyValueMap_[propertyId] = newPosition;
-            break;
-        }
-        case RSModifierType::ROTATION_X:
-        case RSModifierType::ROTATION_Y:
-        case RSModifierType::ROTATION: {
-            HgmModifierProfile hgmModifierProfile = {0, 0, HgmModifierType::ROTATION};
-            hgmModifierProfileList_.emplace_back(hgmModifierProfile);
-            break;
-        }
-        case RSModifierType::FRAME: {
-            auto newPosition = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(newProperty)->Get();
-            if (oldPropertyValue != propertyValueMap_.end()) {
-                auto oldPosition = std::get<Vector4f>(oldPropertyValue->second);
-                auto xPositionSpeed = (newPosition[0] - oldPosition[0]) / timeDelta_;
-                auto yPositionSpeed = (newPosition[1] - oldPosition[1]) / timeDelta_;
-                auto widthSpeed = (newPosition[2] - oldPosition[2]) / timeDelta_;
-                auto heightSpeed = (newPosition[3] - oldPosition[3]) / timeDelta_;
-                HgmModifierProfile translateProfile = {xPositionSpeed, yPositionSpeed, HgmModifierType::TRANSLATE};
-                hgmModifierProfileList_.emplace_back(std::move(translateProfile));
-                HgmModifierProfile scaleProfile = {widthSpeed, heightSpeed, HgmModifierType::SCALE};
-                hgmModifierProfileList_.emplace_back(std::move(scaleProfile));
-            }
-            propertyValueMap_[propertyId] = newPosition;
-            break;
-        }
-        default:
-            break;
-    }
-}
-
 bool RSRenderNode::ApplyModifiers()
 {
     // quick reject test
@@ -1366,12 +1286,10 @@ bool RSRenderNode::ApplyModifiers()
 #endif
         return false;
     }
-    hgmModifierProfileList_.clear();
     const auto prevPositionZ = GetRenderProperties().GetPositionZ();
 
     // Reset and re-apply all modifiers
     RSModifierContext context = { GetMutableRenderProperties() };
-    std::vector<std::shared_ptr<RSRenderModifier>> animationModifiers;
 
     // Reset before apply modifiers
     GetMutableRenderProperties().ResetProperty(dirtyTypes_);
@@ -1386,16 +1304,9 @@ bool RSRenderNode::ApplyModifiers()
             continue;
         }
         modifier->Apply(context);
-        if (isCalcPreferredFps_ && HasAnimation() && ANIMATION_MODIFIER_TYPE.count(modifier->GetType())) {
-            animationModifiers.push_back(modifier);
-        }
         if (!BASIC_GEOTRANSFORM_ANIMATION_TYPE.count(modifier->GetType())) {
             isOnlyBasicGeoTransform_ = false;
         }
-    }
-
-    for (auto &modifier : animationModifiers) {
-        AddModifierProfile(modifier, context.properties_.GetBoundsWidth(), context.properties_.GetBoundsHeight());
     }
     // execute hooks
     GetMutableRenderProperties().OnApplyModifiers();
@@ -1428,8 +1339,11 @@ bool RSRenderNode::ApplyModifiers()
 #else
     dirtyTypes_.reset();
 #endif
-    lastApplyTimestamp_ = lastTimestamp_;
     UpdateShouldPaint();
+
+    // update rate decider scale reference size.
+    animationManager_.SetRateDeciderScaleSize(GetRenderProperties().GetBoundsWidth(),
+        GetRenderProperties().GetBoundsHeight());
 
     // return true if positionZ changed
     return GetRenderProperties().GetPositionZ() != prevPositionZ;
@@ -2805,10 +2719,6 @@ RSRenderNode::NodeGroupType RSRenderNode::GetNodeGroupType()
 void RSRenderNode::MarkNonGeometryChanged()
 {
     geometryChangeNotPerceived_ = true;
-}
-const std::vector<HgmModifierProfile>& RSRenderNode::GetHgmModifierProfileList()
-{
-    return hgmModifierProfileList_;
 }
 
 inline void RSRenderNode::AddActiveNode()

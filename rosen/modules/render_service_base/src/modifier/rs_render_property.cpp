@@ -36,6 +36,27 @@ void RSRenderPropertyBase::OnChange() const
     }
 }
 
+void RSRenderPropertyBase::UpdatePropertyUnit(RSModifierType type)
+{
+    switch (type) {
+        case RSModifierType::FRAME:
+        case RSModifierType::TRANSLATE:
+            SetPropertyUnit(RSPropertyUnit::PIXEL_POSITION);
+            break;
+        case RSModifierType::SCALE:
+            SetPropertyUnit(RSPropertyUnit::RATIO_SCALE);
+            break;
+        case RSModifierType::ROTATION_X:
+        case RSModifierType::ROTATION_Y:
+        case RSModifierType::ROTATION:
+            SetPropertyUnit(RSPropertyUnit::ANGLE_ROTATION);
+            break;
+        default:
+            SetPropertyUnit(RSPropertyUnit::UNKNOWN);
+            break;
+    }
+}
+
 bool RSRenderPropertyBase::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val)
 {
     if (val == nullptr) {

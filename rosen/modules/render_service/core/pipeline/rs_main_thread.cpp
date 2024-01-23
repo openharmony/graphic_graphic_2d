@@ -2006,6 +2006,7 @@ void RSMainThread::Animate(uint64_t timestamp)
 {
     RS_TRACE_FUNC();
     lastAnimateTimestamp_ = timestamp;
+    rsCurrRange_.Reset();
 
     if (context_->animatingNodeList_.empty()) {
         if (doWindowAnimate_ && RSInnovation::UpdateQosVsyncEnabled()) {
@@ -2020,7 +2021,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     bool needRequestNextVsync = false;
     // isCalculateAnimationValue is embedded modify for stat animate frame drop
     bool isCalculateAnimationValue = false;
-    bool isCalcPreferredFps = context_->animatingNodeList_.size() > CAL_NODE_PREFERRED_FPS_LIMIT ? false : true;
+    bool isRateDeciderEnabled = (context_->animatingNodeList_.size() <= CAL_NODE_PREFERRED_FPS_LIMIT);
     bool isDisplaySyncEnabled =
         HgmCore::Instance().GetCurrentRefreshRateMode() == HGM_REFRESHRATE_MODE_AUTO ? true : false;
     int64_t period = 0;
@@ -2029,23 +2030,29 @@ void RSMainThread::Animate(uint64_t timestamp)
     }
     // iterate and animate all animating nodes, remove if animation finished
     EraseIf(context_->animatingNodeList_,
-        [this, timestamp, period, isDisplaySyncEnabled, isCalcPreferredFps,
+        [this, timestamp, period, isDisplaySyncEnabled, isRateDeciderEnabled,
         &curWinAnim, &needRequestNextVsync, &isCalculateAnimationValue](const auto& iter) -> bool {
         auto node = iter.second.lock();
         if (node == nullptr) {
             RS_LOGD("RSMainThread::Animate removing expired animating node");
             return true;
         }
-        node->SetIsCalcPreferredFps(isCalcPreferredFps);
         if (cacheCmdSkippedInfo_.count(ExtractPid(node->GetId())) > 0) {
             RS_LOGD("RSMainThread::Animate skip the cached node");
             return false;
         }
+        auto frameRateGetFunc = [this](const RSPropertyUnit unit, float velocity) -> int32_t {
+            return frameRateMgr_->GetExpectedFrameRate(unit, velocity);
+        };
+        node->animationManager_.SetRateDeciderEnable(isRateDeciderEnabled, frameRateGetFunc);
         auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] =
             node->Animate(timestamp, period, isDisplaySyncEnabled);
         if (!hasRunningAnimation) {
             node->InActivateDisplaySync();
             RS_LOGD("RSMainThread::Animate removing finished animating node %{public}" PRIu64, node->GetId());
+        } else {
+            node->UpdateDisplaySyncRange();
+            rsCurrRange_.Merge(node->animationManager_.GetDecideFrameRateRange());
         }
         // request vsync if: 1. node has running animation, or 2. transition animation just ended
         needRequestNextVsync = needRequestNextVsync || nodeNeedRequestNextVsync || (node.use_count() == 1);
@@ -2807,23 +2814,8 @@ void RSMainThread::CheckAndUpdateInstanceContentStaticStatus(std::shared_ptr<RSS
     }
 }
 
-FrameRateRange RSMainThread::CalcAnimateFrameRateRange(std::shared_ptr<RSRenderNode> node)
-{
-    int32_t preferredFps = 0;
-    if (node->IsCalcPreferredFps()) {
-        for (auto &profile : node->GetHgmModifierProfileList()) {
-            auto modifierPreferred = frameRateMgr_->CalModifierPreferred(profile);
-            preferredFps = std::max(preferredFps, modifierPreferred);
-        }
-    } else {
-        preferredFps = OLED_120_HZ;
-    }
-    return node->CalcExpectedFrameRateRange(preferredFps);
-}
-
 void RSMainThread::ApplyModifiers()
 {
-    rsCurrRange_.Reset();
     std::lock_guard<std::mutex> lock(context_->activeNodesInRootmutex_);
     if (context_->activeNodesInRoot_.empty()) {
         return;
@@ -2837,7 +2829,6 @@ void RSMainThread::ApplyModifiers()
                 continue;
             }
             bool isZOrderChanged = ptr->ApplyModifiers();
-            rsCurrRange_.Merge(CalcAnimateFrameRateRange(ptr));
             if (!isZOrderChanged) {
                 continue;
             }

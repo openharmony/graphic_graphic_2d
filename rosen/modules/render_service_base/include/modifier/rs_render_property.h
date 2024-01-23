@@ -58,6 +58,7 @@ public:
     void SetModifierType(RSModifierType type)
     {
         modifierType_ = type;
+        UpdatePropertyUnit(type);
     }
 
     static bool Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val);
@@ -65,6 +66,8 @@ public:
 
 protected:
     void OnChange() const;
+
+    void UpdatePropertyUnit(RSModifierType type);
 
     virtual const std::shared_ptr<RSRenderPropertyBase> Clone() const
     {

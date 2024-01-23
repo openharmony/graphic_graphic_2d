@@ -25,7 +25,6 @@
 #include <unistd.h>
 
 #include "common/rs_macros.h"
-#include "modifier/rs_modifier_type.h"
 
 namespace OHOS {
 class Surface;

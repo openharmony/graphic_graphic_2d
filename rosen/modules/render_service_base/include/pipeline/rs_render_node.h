@@ -477,10 +477,9 @@ public:
 
     void ActivateDisplaySync();
     void InActivateDisplaySync();
-    FrameRateRange CalcExpectedFrameRateRange(int32_t preferredFps);
+    void UpdateDisplaySyncRange();
 
     void MarkNonGeometryChanged();
-    const std::vector<HgmModifierProfile>& GetHgmModifierProfileList();
     bool ApplyModifiers();
 
     virtual RectI GetFilterRect() const;
@@ -489,15 +488,6 @@ public:
 
     void SetLastIsNeedAssignToSubThread(bool lastIsNeedAssignToSubThread);
     bool GetLastIsNeedAssignToSubThread() const;
-
-    bool IsCalcPreferredFps() const
-    {
-        return isCalcPreferredFps_;
-    }
-    void SetIsCalcPreferredFps(bool isCalcPreferredFps)
-    {
-        isCalcPreferredFps_ = isCalcPreferredFps;
-    }
 
     void SetIsTextureExportNode(bool isTextureExportNode)
     {
@@ -595,7 +585,6 @@ private:
     inline void AddActiveNode();
 
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, std::optional<RectI> clipRect);
-    void AddModifierProfile(const std::shared_ptr<RSRenderModifier>& modifier, float width, float height);
     void UpdateFullScreenFilterCacheRect(RSDirtyRegionManager& dirtyManager, bool isForeground) const;
 
     void UpdateShouldPaint(); // update node should paint state in apply modifier stage
@@ -697,16 +686,10 @@ private:
     std::atomic_bool isUsedBySubThread_ = false;
     bool lastIsNeedAssignToSubThread_ = false;
 
-    int64_t lastTimestamp_ = -1;
-    int64_t lastApplyTimestamp_ = -1;
-    float timeDelta_ = -1;
-    std::unordered_map<PropertyId, std::variant<float, Vector2f, Vector4f>> propertyValueMap_;
-    std::vector<HgmModifierProfile> hgmModifierProfileList_;
     std::shared_ptr<RSRenderDisplaySync> displaySync_ = nullptr;
 
     uint8_t drawableVecStatus_ = 0;
     void UpdateDrawableVec();
-    bool isCalcPreferredFps_ = true;
 
     std::map<NodeId, std::vector<WeakPtr>> subSurfaceNodes_;
     pid_t appPid_ = 0;

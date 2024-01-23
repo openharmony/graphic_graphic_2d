@@ -23,6 +23,7 @@
 
 #include "animation/rs_frame_rate_range.h"
 #include "common/rs_common_def.h"
+#include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_render_frame_rate_linker.h"
 #include "screen_manager/screen_types.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
@@ -70,7 +71,7 @@ public:
         const FrameRateLinkerMap& appFrameRateLinkers, bool idleTimerExpired);
     void UniProcessDataForLtps(bool idleTimerExpired);
 
-    int32_t CalModifierPreferred(const HgmModifierProfile &hgmModifierProfile);
+    int32_t GetExpectedFrameRate(const RSPropertyUnit unit, float velocity) const;
     std::shared_ptr<HgmOneShotTimer> GetScreenTimer(ScreenId screenId) const;
     void ResetScreenTimer(ScreenId screenId) const;
     void StartScreenTimer(ScreenId screenId, int32_t interval,
@@ -93,8 +94,8 @@ private:
     void FrameRateReport();
     void CalcRefreshRate(const ScreenId id, const FrameRateRange& range);
     uint32_t GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range);
-    std::pair<float, float> applyDimension(
-        SpeedTransType speedTransType, float xSpeed, float ySpeed, sptr<HgmScreen> hgmScreen);
+    int32_t GetPreferredFps(const std::string& type, float velocity) const;
+    float PixelToMM(float velocity) const;
 
     void HandleIdleEvent(bool isIdle);
     void HandleSceneEvent(pid_t pid, EventInfo eventInfo);
