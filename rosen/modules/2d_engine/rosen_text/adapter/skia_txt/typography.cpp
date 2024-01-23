@@ -181,7 +181,7 @@ void Typography::SetAnimation(
     std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>& animationFunc
 )
 {
-    if (animationFunc != nullptr) {
+    if (animationFunc != nullptr && paragraph_ != nullptr) {
         paragraph_->SetAnimation(animationFunc);
     }
 }
