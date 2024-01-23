@@ -2780,4 +2780,80 @@ HWTEST_F(RSUniRenderVisitorTest, SwitchColorFilterDrawing001, TestSize.Level2)
     rsUniRenderVisitor->SwitchColorFilterDrawing(0);
 }
 
+/**
+ * @tc.name: DrawEffectRenderNodeForDFX001
+ * @tc.desc: Test RSUniRenderVisitorTest.DrawEffectRenderNodeForDFX while
+ *           rect map is empty.
+ * @tc.type: FUNC
+ * @tc.require: issueI8WJXC
+ */
+HWTEST_F(RSUniRenderVisitorTest, DrawEffectRenderNodeForDFX001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->DrawEffectRenderNodeForDFX();
+}
+ 
+/**
+ * @tc.name: DrawEffectRenderNodeForDFX002
+ * @tc.desc: Test RSUniRenderVisitorTest.DrawEffectRenderNodeForDFX while
+ *           rect map is not empty.
+ * @tc.type: FUNC
+ * @tc.require: issueI8WJXC
+ */
+HWTEST_F(RSUniRenderVisitorTest, DrawEffectRenderNodeForDFX002, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+ 
+    NodeId nodeId = 0;
+    std::weak_ptr<RSContext> context;
+    RSEffectRenderNode rsEffectRenderNode(nodeId, context);
+ 
+    RectI rect1(0, 0, 1, 1);
+    rsUniRenderVisitor->nodesUseEffectForDfx_.emplace_back(rect1);
+    RectI rect2(2, 2, 3, 3);
+    rsUniRenderVisitor->nodesUseEffectFallbackForDfx_.emplace_back(rect2);
+ 
+    rsUniRenderVisitor->effectNodeMapForDfx_[nodeId].first = rsUniRenderVisitor->nodesUseEffectForDfx_;
+    rsUniRenderVisitor->effectNodeMapForDfx_[nodeId].second = rsUniRenderVisitor->nodesUseEffectFallbackForDfx_;
+ 
+    rsUniRenderVisitor->DrawEffectRenderNodeForDFX();
+}
+ 
+/**
+ * @tc.name: ProcessShadowFirst001
+ * @tc.desc: Test RSUniRenderVisitorTest.ProcessShadowFirst while SetUseShadowBatching true.
+ * @tc.type:FUNC
+ * @tc.require:issueI8WJXC
+ */
+HWTEST_F(RSUniRenderVisitorTest, ProcessShadowFirst001, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    NodeId id = 0;
+    auto node = std::make_shared<RSCanvasRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    NodeId id1 = 1;
+    auto child1 = std::make_shared<RSCanvasRenderNode>(id1);
+    ASSERT_NE(child1, nullptr);
+    NodeId id2 = 2;
+    auto child2 = std::make_shared<RSCanvasRenderNode>(id2);
+    ASSERT_NE(child2, nullptr);
+    node->AddChild(child1);
+    node->AddChild(child2);
+
+    auto& prop1 = child1->GetMutableRenderProperties();
+    prop1.SetShadowRadius(100.0);
+
+    auto& prop2 = child2->GetMutableRenderProperties();
+    prop2.SetShadowRadius(100.0);
+
+    auto& property = node->GetMutableRenderProperties();
+    property.SetUseShadowBatching(true);
+    const auto& prop =  node->GetRenderProperties();
+    ASSERT_TRUE(prop.GetUseShadowBatching());
+    rsUniRenderVisitor->ProcessShadowFirst(*node, true);
+}
+
 } // OHOS::Rosen

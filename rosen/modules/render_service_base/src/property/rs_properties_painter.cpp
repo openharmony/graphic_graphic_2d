@@ -1243,26 +1243,17 @@ void RSPropertiesPainter::DrawBackgroundEffect(
         return;
     }
 
-    auto& matrix = properties.GetBoundsGeometry()->GetAbsMatrix();
 #ifndef USE_ROSEN_DRAWING
-    SkIRect bounds;
-    if (properties.GetClipBounds() != nullptr) {
-        bounds = matrix.mapRect(properties.GetClipBounds()->GetSkiaPath().getBounds()).roundOut();
-    } else {
-        auto absRect = properties.GetBoundsGeometry()->GetAbsRect();
-        bounds = SkIRect::MakeLTRB(absRect.GetLeft(), absRect.GetTop(), absRect.GetRight(), absRect.GetBottom());
-    }
+    canvas.save();
+    canvas.clipRect(Rect2SkRect(properties.GetBoundsRect()));
+    auto bounds = canvas.getDeviceClipBounds();
+    canvas.restore();
     auto filter = std::static_pointer_cast<RSSkiaFilter>(RSFilter);
 #else
-    Drawing::RectI bounds;
-    if (properties.GetClipBounds() != nullptr) {
-        Drawing::Rect absRect;
-        matrix.MapRect(absRect, properties.GetClipBounds()->GetDrawingPath().GetBounds());
-        bounds = absRect.RoundOut();
-    } else {
-        auto absRect = properties.GetBoundsGeometry()->GetAbsRect();
-        bounds = Drawing::RectI(absRect.GetLeft(), absRect.GetTop(), absRect.GetRight(), absRect.GetBottom());
-    }
+    canvas.Save();
+    canvas.ClipRect(Rect2DrawingRect(properties.GetBoundsRect()));
+    auto bounds = canvas.GetDeviceClipBounds();
+    canvas.Restore();
     auto filter = std::static_pointer_cast<RSDrawingFilter>(RSFilter);
 #endif
 
