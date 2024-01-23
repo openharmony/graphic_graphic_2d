@@ -64,7 +64,7 @@ double ParagraphImpl::GetMaxWidth()
 
 double ParagraphImpl::GetHeight()
 {
-    return paragraph_->getHeight();
+    return paragraph_->lineNumber() == 0 ? 0 : paragraph_->getHeight();
 }
 
 double ParagraphImpl::GetLongestLine()
