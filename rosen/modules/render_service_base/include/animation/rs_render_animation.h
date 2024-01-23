@@ -146,6 +146,11 @@ public:
         return calculateAnimationValue_;
     }
 
+    bool GetNeedUpdateStartTime() const
+    {
+        return needUpdateStartTime_;
+    }
+
     void Attach(RSRenderNode* renderNode);
     void Detach(bool forceDetach = false);
     RSRenderNode* GetTarget() const;
@@ -219,6 +224,7 @@ private:
     RSRenderNode* target_ { nullptr };
 
     friend class RSAnimation;
+    friend class RSModifierManager;
 };
 } // namespace Rosen
 } // namespace OHOS
