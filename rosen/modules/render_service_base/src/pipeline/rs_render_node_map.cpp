@@ -140,21 +140,29 @@ void RSRenderNodeMap::RemoveDrivenRenderNode(NodeId id)
     drivenRenderNodeMap_.erase(id);
 }
 
+void RSRenderNodeMap::MoveRenderNodeMap(
+    std::shared_ptr<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>> subRenderNodeMap, pid_t pid)
+{
+    std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>::iterator iter = renderNodeMap_.begin();
+    for (; iter != renderNodeMap_.end();) {
+        if (ExtractPid(iter->first) != pid) {
+            ++iter;
+            continue;
+        }
+        // update node flag to avoid animation fallback
+        iter->second->fallbackAnimationOnDestroy_ = false;
+        // remove node from tree
+        iter->second->RemoveFromTree(false);
+        subRenderNodeMap->emplace(iter->first, iter->second);
+        iter = renderNodeMap_.erase(iter);
+    }
+}
+
 void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
 {
     ROSEN_LOGD("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %{public}llu",
         (unsigned long long)pid);
     // remove all nodes belong to given pid (by matching higher 32 bits of node id)
-    EraseIf(renderNodeMap_, [pid](const auto& pair) -> bool {
-        if (ExtractPid(pair.first) != pid) {
-            return false;
-        }
-        // update node flag to avoid animation fallback
-        pair.second->fallbackAnimationOnDestroy_ = false;
-        // remove node from tree
-        pair.second->RemoveFromTree(false);
-        return true;
-    });
 
     EraseIf(surfaceNodeMap_, [pid](const auto& pair) -> bool {
         return ExtractPid(pair.first) == pid;

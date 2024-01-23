@@ -98,6 +98,34 @@ void RSRenderServiceConnection::CleanRenderNodes() noexcept
     nodeMap.FilterNodeByPid(remotePid_);
 }
 
+void RSRenderServiceConnection::MoveRenderNodeMap(
+    std::shared_ptr<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>> subRenderNodeMap) noexcept
+{
+    auto& context = mainThread_->GetContext();
+    auto& nodeMap = context.GetMutableNodeMap();
+
+    nodeMap.MoveRenderNodeMap(subRenderNodeMap, remotePid_);
+}
+
+void RSRenderServiceConnection::RemoveRenderNodeMap(
+    std::shared_ptr<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>> subRenderNodeMap) noexcept
+{
+    auto iter = subRenderNodeMap->begin();
+    for (; iter != subRenderNodeMap->end();) {
+        iter = subRenderNodeMap->erase(iter);
+    }
+}
+
+void RSRenderServiceConnection::CleanRenderNodeMap() noexcept
+{
+    auto subRenderNodeMap = std::make_shared<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>>();
+    MoveRenderNodeMap(subRenderNodeMap);
+    RSBackgroundThread::Instance().PostTask(
+        [this, subRenderNodeMap]() {
+            RSRenderServiceConnection::RemoveRenderNodeMap(subRenderNodeMap);
+        });
+}
+
 void RSRenderServiceConnection::CleanFrameRateLinkers() noexcept
 {
     auto& context = mainThread_->GetContext();
@@ -125,6 +153,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             RS_TRACE_NAME_FMT("CleanRenderNodes %d", remotePid_);
             CleanRenderNodes();
             CleanFrameRateLinkers();
+            CleanRenderNodeMap();
         }).wait();
     mainThread_->ScheduleTask(
         [this]() {
