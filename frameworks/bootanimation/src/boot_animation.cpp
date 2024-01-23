@@ -177,6 +177,7 @@ void BootAnimation::InitRsSurfaceNode()
     LOGI("Init RsSurfaceNode enter");
     struct Rosen::RSSurfaceNodeConfig rsSurfaceNodeConfig;
     rsSurfaceNodeConfig.SurfaceNodeName = "BootAnimationNode";
+    rsSurfaceNodeConfig.isSync = false;
     Rosen::RSSurfaceNodeType rsSurfaceNodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
     rsSurfaceNode_ = Rosen::RSSurfaceNode::Create(rsSurfaceNodeConfig, rsSurfaceNodeType);
     if (!rsSurfaceNode_) {

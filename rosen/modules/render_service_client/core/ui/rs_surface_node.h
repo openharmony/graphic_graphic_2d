@@ -46,6 +46,7 @@ struct RSSurfaceNodeConfig {
     void* additionalData = nullptr;
     bool isTextureExportNode = false;
     SurfaceId surfaceId = 0;
+    bool isSync = false;
 };
 
 class RSC_EXPORT RSSurfaceNode : public RSNode {

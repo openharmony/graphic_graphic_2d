@@ -307,7 +307,11 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
     std::function<void()> registerNode = [node, this]() -> void {
         this->mainThread_->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
     };
-    mainThread_->PostTask(registerNode);
+    if (config.isSync) {
+        mainThread_->PostSyncTask(registerNode);
+    } else {
+        mainThread_->PostTask(registerNode);
+    }
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(node);
     sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode);
     SurfaceError ret = surface->RegisterConsumerListener(listener);

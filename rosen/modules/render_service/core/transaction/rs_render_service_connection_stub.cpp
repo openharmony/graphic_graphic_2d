@@ -184,9 +184,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             auto type = static_cast<RSSurfaceNodeType>(data.ReadUint8());
             auto bundleName = data.ReadString();
             bool isTextureExportNode = data.ReadBool();
+            bool isSync = data.ReadBool();
             RSSurfaceRenderNodeConfig config = {
                 .id = nodeId, .name = surfaceName, .bundleName = bundleName, .nodeType = type,
-                .isTextureExportNode = isTextureExportNode};
+                .isTextureExportNode = isTextureExportNode, .isSync = isSync};
             sptr<Surface> surface = CreateNodeAndSurface(config);
             if (surface == nullptr) {
                 ret = ERR_NULL_OBJECT;
