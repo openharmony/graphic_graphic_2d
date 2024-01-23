@@ -36,9 +36,10 @@
 #include <screen_manager/rs_virtual_screen_resolution.h>
 #include <surface.h>
 #include <surface_type.h>
+#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
 #include "sensor_agent.h"
 #include "sensor_agent_type.h"
-
+#endif
 #include "rs_screen.h"
 
 namespace OHOS {
@@ -221,9 +222,11 @@ public:
 
     virtual int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) = 0;
 
+#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     virtual void HandlePostureData(const SensorEvent * const event) = 0;
 
     virtual ScreenId GetActiveScreenId() = 0;
+#endif
     /* only used for mock tests */
     virtual void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) = 0;
 
@@ -371,9 +374,11 @@ public:
 
     int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) override;
 
+#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     void HandlePostureData(const SensorEvent * const event) override;
 
     ScreenId GetActiveScreenId() override;
+#endif
     
     /* only used for mock tests */
     void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) override
@@ -435,10 +440,12 @@ private:
     int32_t GetScreenColorSpaceLocked(ScreenId id, GraphicCM_ColorSpaceType& colorSpace) const;
     int32_t SetScreenColorSpaceLocked(ScreenId id, GraphicCM_ColorSpaceType colorSpace);
 
+#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     void RegisterSensorCallback();
     void UnRegisterSensorCallback();
     void HandleSensorData(float angle);
     FoldState TransferAngleToScreenState(float angle);
+#endif
 
     mutable std::mutex mutex_;
     HdiBackend *composer_ = nullptr;
@@ -456,6 +463,7 @@ private:
     static std::once_flag createFlag_;
     static sptr<OHOS::Rosen::RSScreenManager> instance_;
 
+#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     SensorUser user;
     bool isFoldScreenFlag_ = false;
     ScreenId innerScreenId_ = 0;
@@ -465,6 +473,7 @@ private:
     bool isPostureSensorDataHandled_ = false;
     std::condition_variable activeScreenIdAssignedCV_;
     mutable std::mutex activeScreenIdAssignedMutex_;
+#endif
 };
 } // namespace impl
 } // namespace Rosen
