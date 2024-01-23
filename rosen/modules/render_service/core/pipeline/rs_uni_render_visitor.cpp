@@ -2172,7 +2172,7 @@ void RSUniRenderVisitor::CheckSkipRepeatShadow(RSRenderNode& node, const bool re
 
 void RSUniRenderVisitor::ProcessChildren(RSRenderNode& node)
 {
-    if (DrawBlurInCache(node) || node.GetChildrenCount() == 0) {
+    if (DrawBlurInCache(node)) {
         return;
     }
 
