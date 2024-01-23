@@ -402,7 +402,7 @@ void RSUniRenderVisitor::PrepareChildren(RSRenderNode& node)
             dirtyFlag_ = true;
         }
         for (auto& child : *children) {
-            if (UNLIKELY(child->GetSharedTransitionParam().has_value())) {
+            if (child && UNLIKELY(child->GetSharedTransitionParam().has_value())) {
                 firstVisitedCache_ = INVALID_NODEID;
                 PrepareSharedTransitionNode(*child);
             }
