@@ -51,25 +51,6 @@ HWTEST_F(SkiaImageTest, BuildFromBitmap001, TestSize.Level1)
     EXPECT_EQ(image, false);
 }
 
-/**
- * @tc.name: BuildFromPicture001
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.author:
- */
-HWTEST_F(SkiaImageTest, BuildFromPicture001, TestSize.Level1)
-{
-    Picture picture;
-    SizeI dimensions;
-    Matrix matrix;
-    Brush brush;
-    BitDepth bitDepth = BitDepth::KF16;
-    std::shared_ptr<ColorSpace> colorSpace = ColorSpace::CreateSRGB();
-    std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
-    auto image = skiaImage->BuildFromPicture(picture, dimensions, matrix, brush, bitDepth, colorSpace);
-    EXPECT_EQ(image, false);
-}
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

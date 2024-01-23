@@ -233,8 +233,6 @@ public:
     explicit Image(std::shared_ptr<ImageImpl> imageImpl);
     virtual ~Image() {};
     bool BuildFromBitmap(const Bitmap& bitmap);
-    bool BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix, const Brush& brush,
-        BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace);
 
     /*
      * @brief                        Create Image from Pixmap.

@@ -59,8 +59,6 @@ public:
     ~ImageImpl() override {}
 
     virtual bool BuildFromBitmap(const Bitmap& bitmap) = 0;
-    virtual bool BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix,
-        const Brush& brush, BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace) = 0;
 #ifdef ACE_ENABLE_GPU
     virtual bool BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap) = 0;
     virtual bool MakeFromEncoded(const std::shared_ptr<Data>& data) = 0;

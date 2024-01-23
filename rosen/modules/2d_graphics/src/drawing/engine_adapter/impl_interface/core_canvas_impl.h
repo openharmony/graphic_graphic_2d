@@ -96,13 +96,10 @@ public:
     virtual void DrawRegion(const Region& region) = 0;
     virtual void DrawPatch(const Point cubics[12], const ColorQuad colors[4],
         const Point texCoords[4], BlendMode mode) = 0;
-    virtual void DrawEdgeAAQuad(const Rect& rect, const Point clip[4],
-        QuadAAFlags aaFlags, ColorQuad color, BlendMode mode) = 0;
     virtual void DrawVertices(const Vertices& vertices, BlendMode mode) = 0;
 
     virtual void DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
         FilterMode filter, const Brush* brush = nullptr) = 0;
-    virtual void DrawAnnotation(const Rect& rect, const char* key, const Data* data) = 0;
     virtual void DrawImageLattice(const Image* image, const Lattice& lattice, const Rect& dst,
         FilterMode filter, const Brush* brush = nullptr) = 0;
 

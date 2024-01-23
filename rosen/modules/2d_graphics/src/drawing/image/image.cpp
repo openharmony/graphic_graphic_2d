@@ -59,12 +59,6 @@ bool Image::BuildFromBitmap(const Bitmap& bitmap)
     return imageImplPtr->BuildFromBitmap(bitmap);
 }
 
-bool Image::BuildFromPicture(const Picture& picture, const SizeI& dimensions, const Matrix& matrix,
-    const Brush& brush, BitDepth bitDepth, std::shared_ptr<ColorSpace> colorSpace)
-{
-    return imageImplPtr->BuildFromPicture(picture, dimensions, matrix, brush, bitDepth, colorSpace);
-}
-
 std::shared_ptr<Image> Image::MakeFromRaster(const Pixmap& pixmap,
     RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext)
 {
