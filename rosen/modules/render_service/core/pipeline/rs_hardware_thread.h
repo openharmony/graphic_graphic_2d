@@ -47,6 +47,7 @@ public:
     uint32_t GetunExcuteTaskNum();
     void RefreshRateCounts(std::string& dumpString);
     void ClearRefreshRateCounts(std::string& dumpString);
+    int GetHardwareTid() const;
     GSError ClearFrameBuffers(OutputPtr output);
 private:
     RSHardwareThread() = default;
@@ -75,6 +76,7 @@ private:
     UniFallbackCallback redrawCb_;
     std::mutex mutex_;
     std::atomic<uint32_t> unExcuteTaskNum_ = 0;
+    int hardwareTid_ = -1;
 
     HgmRefreshRates hgmRefreshRates_;
 

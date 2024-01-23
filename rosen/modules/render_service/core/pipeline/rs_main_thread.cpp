@@ -136,6 +136,7 @@ constexpr int32_t INVISBLE_WINDOW_RATE = INT32_MAX;
 constexpr int32_t SYSTEM_ANIMATED_SECNES_RATE = 2;
 constexpr uint32_t WAIT_FOR_MEM_MGR_SERVICE = 100;
 constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
+constexpr uint32_t EVENT_SET_HARDWARE_UTIL = 100004;
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* MEM_MGR = "MemMgr";
@@ -2702,6 +2703,11 @@ void RSMainThread::RenderFrameStart(uint64_t timestamp)
         RsFrameReport::GetInstance().RenderStart(timestamp);
     }
     RenderFrameTrace::GetInstance().RenderStartFrameTrace(RS_INTERVAL_NAME);
+    int hardwareTid = RSHardwareThread::Instance().GetHardwareTid();
+    if (hardwareTid_ != hardwareTid) {
+        hardwareTid_ = hardwareTid;
+        RsFrameReport::GetInstance().SetFrameParam(EVENT_SET_HARDWARE_UTIL, 0, 0, hardwareTid_);
+    }
 }
 
 void RSMainThread::SetAppWindowNum(uint32_t num)

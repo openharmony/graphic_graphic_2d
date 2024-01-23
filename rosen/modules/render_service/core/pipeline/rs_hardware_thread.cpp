@@ -15,6 +15,7 @@
 
 #include "pipeline/rs_hardware_thread.h"
 #include <memory>
+#include <unistd.h>
 
 #ifdef RS_ENABLE_EGLIMAGE
 #include "src/gpu/gl/GrGLDefines.h"
@@ -95,6 +96,7 @@ void RSHardwareThread::Start()
                 }
                 uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
                 uniRenderEngine_->Init(true);
+                hardwareTid_ = gettid();
             }).wait();
     }
     auto onPrepareCompleteFunc = [this](auto& surface, const auto& param, void* data) {
@@ -103,6 +105,11 @@ void RSHardwareThread::Start()
     if (hdiBackend_ != nullptr) {
         hdiBackend_->RegPrepareComplete(onPrepareCompleteFunc, this);
     }
+}
+
+int RSHardwareThread::GetHardwareTid() const
+{
+    return hardwareTid_;
 }
 
 void RSHardwareThread::PostTask(const std::function<void()>& task)
