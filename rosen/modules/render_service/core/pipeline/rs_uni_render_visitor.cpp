@@ -476,7 +476,8 @@ bool RSUniRenderVisitor::UpdateCacheChangeStatus(RSRenderNode& node)
         return true;
     }
     node.CheckDrawingCacheType();
-    if (!node.ShouldPaint() || isScreenRotationAnimating_) {
+    if (node.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE && !node.IsStaticCached() &&
+        (!node.ShouldPaint() || isScreenRotationAnimating_)) {
         node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     }
     // skip status check if there is no upper cache mark
@@ -515,6 +516,9 @@ bool RSUniRenderVisitor::UpdateCacheChangeStatus(RSRenderNode& node)
 
 void RSUniRenderVisitor::DisableNodeCacheInSetting(RSRenderNode& node)
 {
+    if (node.IsStaticCached()) {
+        return;
+    }
     // Attention: filter node should be marked. Only enable lowest suggested cached node
     if (node.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE) {
         // if target cached is reused, keep enable -- prepareskip
@@ -526,6 +530,8 @@ void RSUniRenderVisitor::DisableNodeCacheInSetting(RSRenderNode& node)
             allCacheFilterRects_[firstVisitedCache_].insert(allCacheFilterRects_[node.GetId()].begin(),
                 allCacheFilterRects_[node.GetId()].end());
             allCacheFilterRects_.erase(node.GetId());
+            RS_OPTIONAL_TRACE_NAME_FMT("Disable cache %llu: outofparent %d, firstVisitedCache_ %llu & cacheforce %d",
+                node.GetId(), node.HasChildrenOutOfRect(), firstVisitedCache_, IsFirstVisitedCacheForced());
         }
     }
     if (firstVisitedCache_ == INVALID_NODEID) {
@@ -630,11 +636,15 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node)
     }
     bool isDrawingCacheChanged = isDrawingCacheChanged_.empty() ? true : isDrawingCacheChanged_.top();
     RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVisitor::SetNodeCacheChangeStatus: node %" PRIu64 " drawingtype %d, "
-        "cacheChange %d, childHasFilter: %d, outofparent: %d, visitedCacheNodeIds num: %lu",
-        node.GetId(), static_cast<int>(node.GetDrawingCacheType()),
+        "staticCache %d, cacheChange %d, childHasFilter: %d, outofparent: %d, visitedCacheNodeIds num: %lu",
+        node.GetId(), static_cast<int>(node.GetDrawingCacheType()), node.IsStaticCached(),
         static_cast<int>(isDrawingCacheChanged), static_cast<int>(node.ChildHasFilter()),
         static_cast<int>(node.HasChildrenOutOfRect()), visitedCacheNodeIds_.size());
-    node.SetDrawingCacheChanged(isDrawingCacheChanged);
+    if (node.IsStaticCached()) {
+        node.SetDrawingCacheChanged(false);
+    } else {
+        node.SetDrawingCacheChanged(isDrawingCacheChanged);
+    }
     // reset counter after executing the very first marked node
     if (firstVisitedCache_ == node.GetId()) {
         std::stack<bool>().swap(isDrawingCacheChanged_);
@@ -4796,7 +4806,7 @@ bool RSUniRenderVisitor::InitNodeCache(RSRenderNode& node)
             std::lock_guard<std::mutex> lock(cacheRenderNodeMapMutex);
             cacheRenderNodeMapCnt = cacheRenderNodeMap.count(node.GetId());
         }
-        if (cacheRenderNodeMapCnt == 0 || node.NeedInitCacheCompletedSurface()) {
+        if (cacheRenderNodeMapCnt == 0 || (!node.IsStaticCached() && node.NeedInitCacheCompletedSurface())) {
             RenderParam val { node.shared_from_this(), canvas_->GetCanvasStatus() };
             curGroupedNodes_.push(val);
             {
