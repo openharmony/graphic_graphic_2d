@@ -21,6 +21,7 @@
 #else
 #include "draw/path.h"
 #endif
+#include "hm_symbol_node_build.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -50,12 +51,10 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(const uint16_t& glyphId, const HMSym
 
 #ifndef USE_ROSEN_DRAWING
     SymbolRenderingStrategy renderMode = symbolText.GetRenderMode();
-    EffectStrategy effectMode = symbolText.GetEffectStrategy();
     if (symbolInfoOrign->renderModeGroups.find(renderMode) == symbolInfoOrign->renderModeGroups.end()) {
         renderMode = SymbolRenderingStrategy::SINGLE;
 #else
     RSSymbolRenderingStrategy renderMode = symbolText.GetRenderMode();
-    RSEffectStrategy effectMode = symbolText.GetEffectStrategy();
     if (symbolInfoOrign->renderModeGroups.find(renderMode) == symbolInfoOrign->renderModeGroups.end()) {
         renderMode = RSSymbolRenderingStrategy::SINGLE;
 #endif
@@ -74,17 +73,6 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(const uint16_t& glyphId, const HMSym
 #endif
     if (!colorList.empty()) {
         SetSymbolRenderColor(renderMode, colorList, symbolInfo);
-    }
-
-#ifndef USE_ROSEN_DRAWING
-    if (effectMode == EffectStrategy::HIERARCHICAL &&
-        SetGroupsByEffect(glyphId, effectMode, symbolInfo.renderGroups)) {
-#else
-    if (effectMode == RSEffectStrategy::HIERARCHICAL &&
-        SetGroupsByEffect(glyphId, effectMode, symbolInfo.renderGroups)) {
-#endif
-        symbolInfo.symbolGlyphId = symbolInfoOrign->symbolGlyphId;
-        symbolInfo.effect = effectMode;
     }
     return symbolInfo;
 }
@@ -196,7 +184,18 @@ void HMSymbolRun::DrawSymbol(SkCanvas* canvas, SkTextBlob* blob, const SkPoint& 
             path = GetPathforTextBlob(symbolData.symbolInfo_.symbolGlyphId, blob);
         }
         symbolData.path_ = path;
-        canvas->drawSymbol(symbolData, offset, paint);
+        symbolData.symbolId = symbolId_; // symbolspan Id in paragraph
+        EffectStrategy symbolEffect = symbolTxt.GetEffectStrategy();
+        uint32_t symbolId = static_cast<uint32_t>(glyphId);
+        std::pair<double, double> offsetXY(offset.x(), offset.y());
+        if (symbolEffect > 1) { // 1 > has animation
+            if (!SymbolAnimation(symbolData, symbolId, offsetXY, symbolTxt.GetEffectStrategy())) {
+                canvas->drawSymbol(symbolData, offset, paint);
+            }
+        } else {
+            ClearSymbolAnimation(symbolData, symbolId, offsetXY);
+            canvas->drawSymbol(symbolData, offset, paint);
+        }
     } else {
         canvas->drawTextBlob(blob, offset.x(), offset.y(), paint);
     }
@@ -220,7 +219,18 @@ void HMSymbolRun::DrawSymbol(RSCanvas* canvas, RSTextBlob* blob, const RSPoint& 
             path = RSTextBlob::GetDrawingPathforTextBlob(symbolData.symbolInfo_.symbolGlyphId, blob);
         }
         symbolData.path_ = path;
-        canvas->DrawSymbol(symbolData, offset);
+        symbolData.symbolId = symbolId_; // symbolspan Id in paragraph
+        RSEffectStrategy symbolEffect = symbolTxt.GetEffectStrategy();
+        uint32_t symbolId = static_cast<uint32_t>(glyphId);
+        std::pair<double, double> offsetXY(offset.GetX(), offset.GetY());
+        if (symbolEffect > 1) { // 1 > has animation
+            if (!SymbolAnimation(symbolData, symbolId, offsetXY, symbolTxt.GetEffectStrategy())) {
+                canvas->DrawSymbol(symbolData, offset);
+            }
+        } else {
+            ClearSymbolAnimation(symbolData, symbolId, offsetXY);
+            canvas->DrawSymbol(symbolData, offset);
+        }
     } else {
         canvas->DrawTextBlob(blob, offset.GetX(), offset.GetY());
     }
@@ -228,10 +238,69 @@ void HMSymbolRun::DrawSymbol(RSCanvas* canvas, RSTextBlob* blob, const RSPoint& 
 #endif
 
 #ifndef USE_ROSEN_DRAWING
-bool HMSymbolRun::GetAnimationGroups(const uint32_t glyohId, const EffectStrategy effectStrategy,
+bool HMSymbolRun::SymbolAnimation(const HMSymbolData symbol, const uint32_t glyphid,
+    const std::pair<double, double> offset, const EffectStrategy effectMode)
+#else
+bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData symbol, const uint32_t glyphid,
+        const std::pair<double, double> offset, const RSEffectStrategy effectMode)
+#endif
+{
+#ifndef USE_ROSEN_DRAWING
+    if (effectMode == EffectStrategy::NONE) {
+        return false;
+    }
+    AnimationSetting animationSetting;
+#else
+    if (effectMode == RSEffectStrategy::NONE) {
+        return false;
+    }
+    RSAnimationSetting animationSetting;
+#endif
+
+    bool check = GetAnimationGroups(glyphid, effectMode, animationSetting);
+    if (!check) {
+        return check;
+    }
+    SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSetting, symbol, effectMode, offset);
+    symbolNode.SetAnimation(animationFunc_);
+    symbolNode.SetSymbolId(symbolId_);
+    if (!symbolNode.DecomposeSymbolAndDraw()) {
+        return false;
+    }
+    return true;
+}
+
+#ifndef USE_ROSEN_DRAWING
+void HMSymbolRun::ClearSymbolAnimation(const HMSymbolData symbol, const uint32_t glyphid,
+    const std::pair<double, double> offset)
+{
+    auto effectMode = EffectStrategy::NONE;
+    AnimationSetting animationSetting;
+
+    SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSetting, symbol, effectMode, offset);
+    symbolNode.SetAnimation(animationFunc_);
+    symbolNode.SetSymbolId(symbolId_);
+    symbolNode.ClearAnimation();
+}
+#else
+void HMSymbolRun::ClearSymbolAnimation(const RSHMSymbolData symbol, const uint32_t glyphid,
+        const std::pair<double, double> offset)
+{
+    auto effectMode = RSEffectStrategy::NONE;
+    RSAnimationSetting animationSetting;
+
+    SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSetting, symbol, effectMode, offset);
+    symbolNode.SetAnimation(animationFunc_);
+    symbolNode.SetSymbolId(symbolId_);
+    symbolNode.ClearAnimation();
+}
+#endif
+
+#ifndef USE_ROSEN_DRAWING
+bool HMSymbolRun::GetAnimationGroups(const uint32_t glyphid, const EffectStrategy effectStrategy,
     AnimationSetting& animationOut)
 {
-    SymbolLayersGroups* symbolInfoOrigin = HmSymbolConfig_OHOS::getInstance()->getSymbolLayersGroups(glyohId);
+    SymbolLayersGroups* symbolInfoOrigin = HmSymbolConfig_OHOS::getInstance()->getSymbolLayersGroups(glyphid);
     std::vector<AnimationSetting> animationSettings = symbolInfoOrigin->animationSettings;
 
     AnimationType animationType = AnimationType::INVALID_ANIMATION_TYPE;
@@ -240,6 +309,7 @@ bool HMSymbolRun::GetAnimationGroups(const uint32_t glyohId, const EffectStrateg
     if (effectStrategy == EffectStrategy::SCALE) {
         animationType = AnimationType::SCALE_EFFECT;
         animationSubType = AnimationSubType::UNIT;
+        return true;
     }
 
     if (effectStrategy == EffectStrategy::HIERARCHICAL) {
@@ -257,10 +327,10 @@ bool HMSymbolRun::GetAnimationGroups(const uint32_t glyohId, const EffectStrateg
     return false;
 }
 #else
-bool HMSymbolRun::GetAnimationGroups(const uint32_t glyohId, const RSEffectStrategy effectStrategy,
+bool HMSymbolRun::GetAnimationGroups(const uint32_t glyphid, const RSEffectStrategy effectStrategy,
     RSAnimationSetting& animationOut)
 {
-    auto symbolInfoOrigin = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(glyohId);
+    auto symbolInfoOrigin = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(glyphid);
     std::vector<RSAnimationSetting> animationSettings = symbolInfoOrigin->animationSettings;
 
     RSAnimationType animationType = RSAnimationType::INVALID_ANIMATION_TYPE;
@@ -269,6 +339,7 @@ bool HMSymbolRun::GetAnimationGroups(const uint32_t glyohId, const RSEffectStrat
     if (effectStrategy == RSEffectStrategy::SCALE) {
         animationType = RSAnimationType::SCALE_EFFECT;
         animationSubType = RSAnimationSubType::UNIT;
+        return true;
     }
 
     if (effectStrategy == RSEffectStrategy::HIERARCHICAL) {

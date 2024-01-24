@@ -65,25 +65,29 @@ RSCanvasParagraphPainter::RSCanvasParagraphPainter(Drawing::Canvas* canvas, cons
 void RSCanvasParagraphPainter::DrawSymbolSkiaTxt(RSTextBlob* blob, const RSPoint& offset,
     const PaintRecord &pr)
 {
+    HMSymbolRun hmSymbolRun = HMSymbolRun();
+    symbolCount_++;
+    hmSymbolRun.SetAnimation(animationFunc_);
+    hmSymbolRun.SetSymbolId(symbolCount_);
     if (pr.pen.has_value() && pr.brush.has_value()) {
         canvas_->AttachBrush(pr.brush.value());
         canvas_->AttachPen(pr.pen.value());
-        HMSymbolRun::DrawSymbol(canvas_, blob, offset, pr.symbol);
+        hmSymbolRun.DrawSymbol(canvas_, blob, offset, pr.symbol);
         canvas_->DetachPen();
         canvas_->DetachBrush();
     } else if (pr.pen.has_value() && !pr.brush.has_value()) {
         canvas_->AttachPen(pr.pen.value());
-        HMSymbolRun::DrawSymbol(canvas_, blob, offset,  pr.symbol);
+        hmSymbolRun.DrawSymbol(canvas_, blob, offset,  pr.symbol);
         canvas_->DetachPen();
     } else if (!pr.pen.has_value() && pr.brush.has_value()) {
         canvas_->AttachBrush(pr.brush.value());
-        HMSymbolRun::DrawSymbol(canvas_, blob, offset,  pr.symbol);
+        hmSymbolRun.DrawSymbol(canvas_, blob, offset,  pr.symbol);
         canvas_->DetachBrush();
     } else {
         Drawing::Brush brush;
         brush.SetColor(pr.color);
         canvas_->AttachBrush(brush);
-        HMSymbolRun::DrawSymbol(canvas_, blob, offset,  pr.symbol);
+        hmSymbolRun.DrawSymbol(canvas_, blob, offset,  pr.symbol);
         canvas_->DetachBrush();
     }
 }
@@ -106,7 +110,6 @@ void RSCanvasParagraphPainter::drawTextBlob(
         } else {
             offset = RSPoint{ x, y };
         }
-        SymbolAnimation(pr);
         DrawSymbolSkiaTxt(textBlob.get(), offset, pr);
     } else if (pr.pen.has_value() && pr.brush.has_value()) {
         canvas_->AttachPen(pr.pen.value());
@@ -138,7 +141,6 @@ void RSCanvasParagraphPainter::SymbolAnimation(const PaintRecord &pr)
     if (painterSymbolAnimationConfig == nullptr) {
         return;
     }
-
     painterSymbolAnimationConfig->effectStrategy = TextEngine::SymbolAnimationEffectStrategy(
         pr.symbol.GetEffectStrategy());
     if (animationFunc_ != nullptr) {

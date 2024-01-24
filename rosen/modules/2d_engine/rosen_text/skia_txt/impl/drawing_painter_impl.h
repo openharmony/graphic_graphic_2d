@@ -62,6 +62,7 @@ private:
     const std::vector<PaintRecord>& paints_;
     std::function<bool(
         const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)> animationFunc_ = nullptr;
+    uint64_t symbolCount_ = 0;
 };
 } // namespace SPText
 } // namespace Rosen
