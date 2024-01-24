@@ -104,6 +104,7 @@ size_t ParagraphImpl::GetLineCount() const
 
 void ParagraphImpl::SetIndents(const std::vector<float>& indents)
 {
+    paragraph_->setIndents(indents);
 }
 
 void ParagraphImpl::Layout(double width)
