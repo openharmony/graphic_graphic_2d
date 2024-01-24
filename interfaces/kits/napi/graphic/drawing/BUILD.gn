@@ -84,15 +84,19 @@ ohos_shared_library("drawing_napi_impl") {
     ]
     deps += [ "../../../../../utils:libgraphic_utils" ]
     defines += [ "ROSEN_OHOS" ]
+    cflags = [ "-fstack-protector-strong" ]
+    cflags_cc = [
+      "-fstack-protector-strong",
+      "-std=c++17",
+    ]
   } else {
     defines += [ "MODULE_DRAWING" ]
+    cflags_cc = [ "-std=c++17" ]
   }
 
   if (current_os == "mingw") {
     defines += [ "WINDOWS_PLATFORM" ]
   }
-
-  cflags_cc = [ "-std=c++17" ]
 
   innerapi_tags = [ "platformsdk" ]
   part_name = "graphic_2d"
