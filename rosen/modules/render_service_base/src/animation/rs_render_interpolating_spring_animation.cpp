@@ -38,6 +38,11 @@ RSRenderInterpolatingSpringAnimation::RSRenderInterpolatingSpringAnimation(Anima
     // spring model is not initialized, so we can't calculate estimated duration
 }
 
+void RSRenderInterpolatingSpringAnimation::DumpAnimationType(std::string& out) const
+{
+    out += "Type:RSRenderInterpolatingSpringAnimation";
+}
+
 void RSRenderInterpolatingSpringAnimation::SetSpringParameters(
     float response, float dampingRatio, float normalizedInitialVelocity, float minimumAmplitudeRatio)
 {

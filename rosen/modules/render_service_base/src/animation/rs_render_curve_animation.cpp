@@ -27,6 +27,11 @@ RSRenderCurveAnimation::RSRenderCurveAnimation(AnimationId id, const PropertyId&
     startValue_(startValue), endValue_(endValue)
 {}
 
+void RSRenderCurveAnimation::DumpAnimationType(std::string& out) const
+{
+    out += "Type:RSRenderCurveAnimation";
+}
+
 void RSRenderCurveAnimation::SetInterpolator(const std::shared_ptr<RSInterpolator>& interpolator)
 {
     interpolator_ = interpolator;

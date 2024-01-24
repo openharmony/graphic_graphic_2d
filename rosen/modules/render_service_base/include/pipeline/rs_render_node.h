@@ -516,6 +516,9 @@ protected:
 
     void DumpNodeType(std::string& out) const;
 
+    void DumpSubClassNode(std::string& out) const;
+    void DumpDrawCmdModifiers(std::string& out) const;
+
     const std::weak_ptr<RSContext> GetContext() const
     {
         return context_;

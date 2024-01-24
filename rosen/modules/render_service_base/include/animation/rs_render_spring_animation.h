@@ -30,6 +30,7 @@ public:
         const std::shared_ptr<RSRenderPropertyBase>& startValue,
         const std::shared_ptr<RSRenderPropertyBase>& endValue);
 
+    void DumpAnimationType(std::string& out) const override;
     void SetSpringParameters(float response, float dampingRatio, float blendDuration = 0.0f);
     void SetZeroThreshold(float zeroThreshold);
     void SetInitialVelocity(const std::shared_ptr<RSRenderPropertyBase>& velocity);

@@ -42,6 +42,7 @@ public:
     RSAnimationManager& operator=(const RSAnimationManager&&) = delete;
     ~RSAnimationManager() = default;
 
+    void DumpAnimations(std::string& out) const;
     void AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
     void RemoveAnimation(AnimationId keyId);
     void CancelAnimationByPropertyId(PropertyId id);

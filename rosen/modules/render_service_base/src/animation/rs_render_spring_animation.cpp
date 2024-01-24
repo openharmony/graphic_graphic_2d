@@ -42,6 +42,11 @@ RSRenderSpringAnimation::RSRenderSpringAnimation(AnimationId id, const PropertyI
     // spring model is not initialized, so we can't calculate estimated duration
 }
 
+void RSRenderSpringAnimation::DumpAnimationType(std::string& out) const
+{
+    out += "Type:RSRenderSpringAnimation";
+}
+
 void RSRenderSpringAnimation::SetSpringParameters(float response, float dampingRatio, float blendDuration)
 {
     response_ = response;

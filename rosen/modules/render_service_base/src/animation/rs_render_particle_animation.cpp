@@ -30,6 +30,11 @@ RSRenderParticleAnimation::RSRenderParticleAnimation(AnimationId id, const Prope
       particleSystem_(std::make_shared<RSRenderParticleSystem>(particlesRenderParams_))
 {}
 
+void RSRenderParticleAnimation::DumpAnimationType(std::string& out) const
+{
+    out += "Type:RSRenderParticleAnimation";
+}
+
 bool RSRenderParticleAnimation::Animate(int64_t time)
 {
     int64_t deltaTime = time - animationFraction_.GetLastFrameTime();

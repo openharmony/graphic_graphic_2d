@@ -24,6 +24,7 @@
 #include "rs_trace.h"
 #include "animation/rs_render_animation.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "benchmarks/file_utils.h"
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_display_render_node.h"
@@ -630,38 +631,15 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     if (IsSuggestedDrawInGroup()) {
         out += ", [node group]";
     }
-    if (GetType() == RSRenderNodeType::SURFACE_NODE) {
-        auto surfaceNode = (static_cast<const RSSurfaceRenderNode*>(this));
-        auto p = parent_.lock();
-        out += ", Parent [" + (p != nullptr ? std::to_string(p->GetId()) : "null") + "]";
-        out += ", Name [" + surfaceNode->GetName() + "]";
-        const RSSurfaceHandler& surfaceHandler = static_cast<const RSSurfaceHandler&>(*surfaceNode);
-        out += ", hasConsumer: " + std::to_string(surfaceHandler.HasConsumer());
-        std::string contextAlpha = std::to_string(surfaceNode->contextAlpha_);
-        std::string propertyAlpha = std::to_string(surfaceNode->GetRenderProperties().GetAlpha());
-        out += ", Alpha: " + propertyAlpha + " (include ContextAlpha: " + contextAlpha + ")";
-        out += ", Visible: " + std::to_string(surfaceNode->GetRenderProperties().GetVisible());
-        out += ", Visible " + surfaceNode->GetVisibleRegion().GetRegionInfo();
-        out += ", Opaque " + surfaceNode->GetOpaqueRegion().GetRegionInfo();
-        out += ", OcclusionBg: " + std::to_string(surfaceNode->GetAbilityBgAlpha());
-        out += ", SecurityLayer: " + std::to_string(surfaceNode->GetSecurityLayer());
-        out += ", skipLayer: " + std::to_string(surfaceNode->GetSkipLayer());
-    }
-    if (GetType() == RSRenderNodeType::ROOT_NODE) {
-        auto rootNode = static_cast<const RSRootRenderNode*>(this);
-        out += ", Visible: " + std::to_string(rootNode->GetRenderProperties().GetVisible());
-        out += ", Size: [" + std::to_string(rootNode->GetRenderProperties().GetFrameWidth()) + ", " +
-            std::to_string(rootNode->GetRenderProperties().GetFrameHeight()) + "]";
-        out += ", EnableRender: " + std::to_string(rootNode->GetEnableRender());
-    }
-
-    if (GetType() == RSRenderNodeType::DISPLAY_NODE) {
-        auto displayNode = static_cast<const RSDisplayRenderNode*>(this);
-        out += ", skipLayer: " + std::to_string(displayNode->GetSecurityDisplay());
-    }
+    DumpSubClassNode(out);
     out += ", Properties: " + GetRenderProperties().Dump();
     out += ", GetBootAnimation: " + std::to_string(GetBootAnimation());
     out += ", isContainBootAnimation_: " + std::to_string(isContainBootAnimation_);
+    out += ", isNodeDirty: " + std::to_string(static_cast<int>(dirtyStatus_));
+    out += ", isPropertyDirty: " + std::to_string(GetRenderProperties().IsDirty());
+    out += ", IsPureContainer: " + std::to_string(IsPureContainer());
+    DumpDrawCmdModifiers(out);
+    animationManager_.DumpAnimations(out);
     out += "\n";
 
     for (auto& child : children_) {
@@ -671,6 +649,15 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     }
     for (auto& [child, pos] : disappearingChildren_) {
         child->DumpTree(depth + 1, out);
+    }
+    if (id_ == 0 && RSSystemProperties::GetDumpRSTreeCount()) {
+        uint64_t curTime = static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chorno::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count());
+        std::string dumpFilePath = "/data/RSTree/rsTree_" + std::to_string(curTime) + ".txt";
+        RS_LOGE("lkx:dumpTree: count: %{public}d, path:%{public}s",
+            RSSystemProperties::GetDumpRSTreeCount(),dumpFilePath.c_str());
+        OHOS::Rosen::Benchmarks::WriteStringToFile(out, dumpFilePath);
     }
 }
 
@@ -710,6 +697,81 @@ void RSRenderNode::DumpNodeType(std::string& out) const
             break;
         }
     }
+}
+
+void RSRenderNode::DumpSubClassNode(std::string& out) const
+{
+    if (GetType() == RSRenderNodeType::SURFACE_NODE) {
+        auto surfaceNode = (static_cast<const RSSurfaceRenderNode*>(this));
+        auto p = parent_.lock();
+        out += ", Parent [" + (p != nullptr ? std::to_string(p->GetId()) : "null") + "]";
+        out += ", Name [" + surfaceNode->GetName() + "]";
+        const RSSurfaceHandler& surfaceHandler = static_cast<const RSSurfaceHandler&>(*surfaceNode);
+        out += ", hasConsumer: " + std::to_string(surfaceHandler.HasConsumer());
+        std::string contextAlpha = std::to_string(surfaceNode->contextAlpha_);
+        std::string propertyAlpha = std::to_string(surfaceNode->GetRenderProperties().GetAlpha());
+        out += ", Alpha: " + propertyAlpha + " (include ContextAlpha: " + contextAlpha + ")";
+        out += ", Visible: " + std::to_string(surfaceNode->GetRenderProperties().GetVisible());
+        out += ", " + surfaceNode->GetVisibleRegion().GetRegionInfo();
+        out += ", OcclusionBg: " + std::to_string(surfaceNode->GetAbilityBgAlpha());
+        out += ", SecurityLayer: " + std::to_string(surfaceNode->GetSecurityLayer());
+        out += ", skipLayer: " + std::to_string(surfaceNode->GetSkipLayer());
+    } else if (GetType() == RSRenderNodeType::ROOT_NODE) {
+        auto rootNode = static_cast<const RSRootRenderNode*>(this);
+        out += ", Visible: " + std::to_string(rootNode->GetRenderProperties().GetVisible());
+        out += ", Size: [" + std::to_string(rootNode->GetRenderProperties().GetFrameWidth()) + ", " +
+            std::to_string(rootNode->GetRenderProperties().GetFrameHeight()) + "]";
+        out += ", EnableRender: " + std::to_string(rootNode->GetEnableRender());
+    } else if (GetType() == RSRenderNodeType::DISPLAY_NODE) {
+        auto displayNode = static_cast<const RSDisplayRenderNode*>(this);
+        out += ", skipLayer: " + std::to_string(displayNode->GetSecurityDisplay());
+    }
+}
+
+void RSRenderNode::DumpDrawCmdModifiers(std::string& out) const
+{
+    if (renderContent_->drawCmdModifiers_.empty()) {
+        return;
+    }
+    std::string splitStr = ", ";
+    std::string modifierDesc = ", DrawCmdModifiers:[";
+    for (auto& [type, modifiers] : renderContent_->drawCmdModifiers_) {
+        modifierDesc += "type:" + std::to_string(static_cast<int>(type)) + ", modifiers: ";
+        std::string propertyDesc = "Property_";
+        for (auto& modifer : modifiers) {
+            if (type < RSModifierType::ENV_FOREGROUND_COLOR) {
+                propertyDesc += "drawCmdList:[";
+                auto propertyValue = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>
+                    (modifier->GetProperty())->Get();
+                propertyDesc += propertyValue->GetOpsWithDesc();
+                std::string::size_type pos = 0;
+                while((pos = propertyDesc.find("\n", pos)) != std::string::npos) {
+                    propertyDesc.replace(pos, 1, ",");
+                }
+                propertyDesc.pop_back();
+            } else if (type == RSModifierType::ENV_FOREGROUND_COLOR) {
+                propertyDesc += "ENV_FOREGROUND_COLOR:[Rgba-";
+                auto propertyValue = std::static_pointer_cast<RSRenderAnimatableProperty<color>>
+                    (modifier->GetProperty())->Get();
+                propertyDesc += std::to_string(propertyValue.AsRgbaint());
+            } else if (type == RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY) {
+                propertyDesc += "ENV_FOREGROUND_COLOR_STRATEGY:[";
+                auto propertyValue = std::static_pointer_cast<RSRenderProperty<ForegroundColorStrategyType>>
+                    (modifier->GetProperty())->Get();
+                propertyDesc += std::to_string(static_cast<int>(propertyValue));
+            } else if (type == RSModifierType::GEOMETRYTRANS) {
+                propertyDesc += "GEOMETRYTRANS:[";
+                auto propertyValue = std::static_pointer_cast<RSRenderProperty<AkMatrix>>
+                    (modifier->GetProperty())->Get();
+                propertyValue.dump(propertyDesc, 0);
+            }
+            propertyDesc += "], ";
+        }
+        modifierDesc += propertyDesc.substr(0, propertyDesc.length() - splitStr.length());
+        modifierDesc += spliterStr;
+    }
+    out += modifierDesc.substr(0, modifierDesc.length() - splitStr.length());
+    out += "]";
 }
 
 void RSRenderNode::ResetIsOnlyBasicGeoTransform()

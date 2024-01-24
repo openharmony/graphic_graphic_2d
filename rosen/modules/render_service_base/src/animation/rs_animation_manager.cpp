@@ -30,6 +30,23 @@ namespace OHOS {
 namespace Rosen {
 class RSRootRenderNode;
 
+void RSAnimationManager::DumpAnimations(std::string& out) const
+{
+    if (animations_.empty()) {
+        return;
+    }
+    out += ", RSAmnimationManager:[";
+    for (auto[id, animation]: animations_) {
+        if (!animation) {
+            continue;
+        }
+        animation->DumpAnimation(out);
+        out += ",";
+    }
+    out = out.substr(0, out.length() - 2);
+    out += "]";
+}
+
 void RSAnimationManager::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
 {
     AnimationId key = animation->GetAnimationId();
