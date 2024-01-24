@@ -768,13 +768,13 @@ std::vector<TextRect> TypographyImpl::MergeRects(const std::vector<TextRect> &bo
             std::fabs(*pre->rect.fRight_ - *rect.rect.fLeft_) < MINDEV) {
             *pre->rect.fRight_ = *rect.rect.fRight_;
         } else {
-            rects.push_back(pre.value());
+            rects.push_back(pre.__get());
             pre = rect;
         }
     }
 
     if (pre.has_value()) {
-        rects.push_back(pre.value());
+        rects.push_back(pre.__get());
     }
 
     return rects;

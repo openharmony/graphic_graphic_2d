@@ -42,7 +42,7 @@ namespace {
 __attribute__((constructor)) void init()
 {
 #ifndef _WIN32
-    u_setDataDirectory("/system/usr/ohos_icu");
+    u_setDataDirectory(".");
 #else
     u_setDataDirectory(".");
 #endif

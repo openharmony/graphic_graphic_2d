@@ -38,6 +38,10 @@ if (rosen_cross_platform) {
   }
 }
 
+if (use_rosen_drawing) {
+  rs_common_define += [ "USE_ROSEN_DRAWING" ]
+}
+
 if (is_emulator) {
   rs_common_define += [ "ROSEN_EMULATOR" ]
 }
