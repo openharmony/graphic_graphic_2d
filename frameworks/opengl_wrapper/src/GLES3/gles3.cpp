@@ -17,10 +17,29 @@
 #include "../thread_private_data_ctl.h"
 #include "../wrapper_log.h"
 
+#include <string>
+#include <dlfcn.h>
+
+using GetGlHookTableFunc = OHOS::GlHookTable* (*)();
+template<typename Func = void*>
+Func GetEglApi(const char* procname)
+{
+    static const char* libegl = "/system/lib64/libEGL.so";
+    void* dlEglHandle = dlopen(libegl, RTLD_NOW | RTLD_GLOBAL);
+
+    void* func = dlsym(dlEglHandle, procname);
+    if (func) {
+        return reinterpret_cast<Func>(func);
+    };
+
+    return nullptr;
+}
+GetGlHookTableFunc g_pfnGetGlHookTable = GetEglApi<GetGlHookTableFunc>("GetHookTable");
+
 #undef CALL_HOOK_API
 #define CALL_HOOK_API(api, ...)                                                         \
     do {                                                                                \
-        OHOS::GlHookTable const *table = OHOS::ThreadPrivateDataCtl::GetGlHookTable();  \
+        OHOS::GlHookTable *table = g_pfnGetGlHookTable();                               \
         if (table && table->table3.api) {                                               \
             table->table3.api(__VA_ARGS__);                                             \
         } else {                                                                        \
@@ -31,7 +50,7 @@
 
 #undef CALL_HOOK_API_RET
 #define CALL_HOOK_API_RET(api, ...) do {                                                \
-        OHOS::GlHookTable const *table = OHOS::ThreadPrivateDataCtl::GetGlHookTable();  \
+        OHOS::GlHookTable *table = g_pfnGetGlHookTable();                               \
         if (table && table->table3.api) {                                               \
             return table->table3.api(__VA_ARGS__);                                      \
         } else {                                                                        \
