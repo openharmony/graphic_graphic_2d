@@ -650,15 +650,6 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     for (auto& [child, pos] : disappearingChildren_) {
         child->DumpTree(depth + 1, out);
     }
-    if (id_ == 0 && RSSystemProperties::GetDumpRSTreeCount()) {
-        uint64_t curTime = static_cast<uint64_t>(
-            std::chrono::duration_cast<std::chorno::nanoseconds>(
-                std::chrono::steady_clock::now().time_since_epoch()).count());
-        std::string dumpFilePath = "/data/RSTree/rsTree_" + std::to_string(curTime) + ".txt";
-        RS_LOGE("lkx:dumpTree: count: %{public}d, path:%{public}s",
-            RSSystemProperties::GetDumpRSTreeCount(),dumpFilePath.c_str());
-        OHOS::Rosen::Benchmarks::WriteStringToFile(out, dumpFilePath);
-    }
 }
 
 void RSRenderNode::DumpNodeType(std::string& out) const
@@ -738,20 +729,20 @@ void RSRenderNode::DumpDrawCmdModifiers(std::string& out) const
     for (auto& [type, modifiers] : renderContent_->drawCmdModifiers_) {
         modifierDesc += "type:" + std::to_string(static_cast<int>(type)) + ", modifiers: ";
         std::string propertyDesc = "Property_";
-        for (auto& modifer : modifiers) {
+        for (auto& modifier : modifiers) {
             if (type < RSModifierType::ENV_FOREGROUND_COLOR) {
                 propertyDesc += "drawCmdList:[";
                 auto propertyValue = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>
                     (modifier->GetProperty())->Get();
                 propertyDesc += propertyValue->GetOpsWithDesc();
                 std::string::size_type pos = 0;
-                while((pos = propertyDesc.find("\n", pos)) != std::string::npos) {
+                while ((pos = propertyDesc.find("\n", pos)) != std::string::npos) {
                     propertyDesc.replace(pos, 1, ",");
                 }
                 propertyDesc.pop_back();
             } else if (type == RSModifierType::ENV_FOREGROUND_COLOR) {
                 propertyDesc += "ENV_FOREGROUND_COLOR:[Rgba-";
-                auto propertyValue = std::static_pointer_cast<RSRenderAnimatableProperty<color>>
+                auto propertyValue = std::static_pointer_cast<RSRenderAnimatableProperty<Color>>
                     (modifier->GetProperty())->Get();
                 propertyDesc += std::to_string(propertyValue.AsRgbaint());
             } else if (type == RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY) {
@@ -761,14 +752,14 @@ void RSRenderNode::DumpDrawCmdModifiers(std::string& out) const
                 propertyDesc += std::to_string(static_cast<int>(propertyValue));
             } else if (type == RSModifierType::GEOMETRYTRANS) {
                 propertyDesc += "GEOMETRYTRANS:[";
-                auto propertyValue = std::static_pointer_cast<RSRenderProperty<AkMatrix>>
+                auto propertyValue = std::static_pointer_cast<RSRenderProperty<SkMatrix>>
                     (modifier->GetProperty())->Get();
                 propertyValue.dump(propertyDesc, 0);
             }
             propertyDesc += "], ";
         }
         modifierDesc += propertyDesc.substr(0, propertyDesc.length() - splitStr.length());
-        modifierDesc += spliterStr;
+        modifierDesc += splitStr;
     }
     out += modifierDesc.substr(0, modifierDesc.length() - splitStr.length());
     out += "]";

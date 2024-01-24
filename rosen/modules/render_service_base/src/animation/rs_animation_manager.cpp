@@ -35,13 +35,13 @@ void RSAnimationManager::DumpAnimations(std::string& out) const
     if (animations_.empty()) {
         return;
     }
-    out += ", RSAmnimationManager:[";
+    out += ", RSAnimationManager:[";
     for (auto[id, animation]: animations_) {
         if (!animation) {
             continue;
         }
         animation->DumpAnimation(out);
-        out += ",";
+        out += ", ";
     }
     out = out.substr(0, out.length() - 2);
     out += "]";

@@ -32,7 +32,7 @@ RSRenderKeyframeAnimation::RSRenderKeyframeAnimation(AnimationId id, const Prope
 
 void RSRenderKeyframeAnimation::DumpAnimationType(std::string& out) const
 {
-    ouy += "Type:RSRenderKeyframeAnimation";
+    out += "Type:RSRenderKeyframeAnimation";
 }
 
 void RSRenderKeyframeAnimation::AddKeyframe(float fraction, const std::shared_ptr<RSRenderPropertyBase>& value,

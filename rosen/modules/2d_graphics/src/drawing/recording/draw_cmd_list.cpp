@@ -81,7 +81,7 @@ std::unordered_map<uint32_t, std::string> typeOpDes = {
     { DrawOpItem::VERTICES_OPITEM,          "VERTICES_OPITEM" },
     { DrawOpItem::IMAGE_SNAPSHOT_OPITEM,    "IMAGE_SNAPSHOT_OPITEM" },
     { DrawOpItem::SURFACEBUFFER_OPITEM,     "SURFACEBUFFER_OPITEM"},
-    { DrawOpItem::DRAW_FUNC_OPTIEM,         "DRAW_FUNC_OPTIEM"},
+    { DrawOpItem::DRAW_FUNC_OPITEM,         "DRAW_FUNC_OPITEM"},
 };
 
 std::shared_ptr<DrawCmdList> DrawCmdList::CreateFromData(const CmdListData& data, bool isCopy)

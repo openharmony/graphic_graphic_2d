@@ -324,8 +324,8 @@ int RSSystemProperties::GetDumpRSTreeCount()
 {
     static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.dumpRSTreeCount", "0");
     int changed = 0;
-    const char *num = CachedParameterGetChanged(g_Handle, &&changed);
-    return ConverToInt(num, 0);
+    const char *num = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(num, 0);
 }
 
 void RSSystemProperties::SetDumpRSTreeCount(int count)
