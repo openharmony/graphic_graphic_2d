@@ -69,6 +69,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 static bool g_isUniRenderEnabled = false;
+std::once_flag flag_;
 bool IsPathAnimatableModifier(const RSModifierType& type)
 {
     if (type == RSModifierType::BOUNDS || type == RSModifierType::FRAME || type == RSModifierType::TRANSLATE) {
@@ -83,6 +84,15 @@ RSNode::RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode)
     id_(id), stagingPropertiesExtractor_(id), showingPropertiesFreezer_(id)
 {
     InitUniRenderEnabled();
+    if (g_isUniRenderEnabled && isTextureExportNode) {
+        std::call_once(flag_, []() {
+            auto renderThreadClient = RSIRenderClient::CreateRenderThreadClient();
+            auto transactionProxy = RSTransactionProxy::GetInstance();
+            if (transactionProxy != nullptr) {
+                transactionProxy->SetRenderThreadClient(renderThreadClient);
+            }
+        });
+    }
     UpdateImplicitAnimator();
 }
 
