@@ -93,7 +93,7 @@ public:
 
         uint32_t offset = opAllocator_.AddrToOffset(op);
         if (lastOpItemOffset_.has_value()) {
-            auto* lastOpItem = static_cast<OpItem*>(opAllocator_.OffsetToAddr(lastOpItemOffset_.value()));
+            auto* lastOpItem = static_cast<OpItem*>(opAllocator_.OffsetToAddr(lastOpItemOffset_.__get()));
             if (lastOpItem != nullptr) {
                 lastOpItem->SetNextOpItemOffset(offset);
             }

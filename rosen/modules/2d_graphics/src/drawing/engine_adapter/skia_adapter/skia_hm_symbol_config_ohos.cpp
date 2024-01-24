@@ -15,7 +15,6 @@
 
 #include "skia_hm_symbol_config_ohos.h"
 
-#include "src/ports/skia_ohos/HmSymbolConfig_ohos.h"
 #include "utils/log.h"
 namespace OHOS {
 namespace Rosen {
@@ -23,38 +22,7 @@ namespace Drawing {
 
 std::shared_ptr<DrawingSymbolLayersGroups> SkiaHmSymbolConfigOhos::GetSymbolLayersGroups(uint32_t glyphId)
 {
-    SymbolLayersGroups* groups = HmSymbolConfig_OHOS::getInstance()->getSymbolLayersGroups(glyphId);
-    if (!groups) {
-        return nullptr;
-    }
-
-    std::shared_ptr<DrawingSymbolLayersGroups> drawingGroups = std::make_shared<DrawingSymbolLayersGroups>();
-    drawingGroups->symbolGlyphId = groups->symbolGlyphId;
-    drawingGroups->layers = groups->layers;
-    std::vector<DrawingAnimationSetting> drawingSettings;
-    auto settings = groups->animationSettings;
-    std::map<DrawingSymbolRenderingStrategy, std::vector<DrawingRenderGroup>> drawingRenderModeGroups;
-    auto renderModeGroups = groups->renderModeGroups;
-    for (size_t i = 0; i < settings.size(); i++) {
-        drawingSettings.push_back(ConvertToDrawingAnimationSetting(settings.at(i)));
-    }
-
-    auto iter = renderModeGroups.begin();
-    while (iter != renderModeGroups.end()) {
-        auto renderGroups = iter->second;
-        std::vector<DrawingRenderGroup> drawingRenderGroups;
-        for (size_t j = 0; j < renderGroups.size(); j++) {
-            drawingRenderGroups.push_back(ConvertToDrawingRenderGroup(renderGroups.at(j)));
-        }
-        auto key = static_cast<DrawingSymbolRenderingStrategy>(iter->first);
-        drawingRenderModeGroups[key] = drawingRenderGroups;
-        iter++;
-    }
-
-    drawingGroups->animationSettings = drawingSettings;
-    drawingGroups->renderModeGroups = drawingRenderModeGroups;
-
-    return drawingGroups;
+    return nullptr;
 }
 
 DrawingAnimationSetting SkiaHmSymbolConfigOhos::ConvertToDrawingAnimationSetting(AnimationSetting setting)

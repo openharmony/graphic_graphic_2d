@@ -191,20 +191,7 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 
 void RSRenderThreadVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
 {
-    if (!node.ShouldPaint() || curDirtyManager_ == nullptr) {
-        return;
-    }
-    auto effectRegion = effectRegion_;
 
-    effectRegion_ = node.InitializeEffectRegion();
-    bool dirtyFlag = dirtyFlag_;
-    auto nodeParent = node.GetParent().lock();
-    dirtyFlag_ = node.Update(*curDirtyManager_, nodeParent, dirtyFlag_);
-    ResetAndPrepareChildrenNode(node, nodeParent);
-    node.SetEffectRegion(effectRegion_);
-
-    effectRegion_ = effectRegion;
-    dirtyFlag_ = dirtyFlag;
 }
 
 #ifndef USE_ROSEN_DRAWING
@@ -1059,10 +1046,18 @@ void RSRenderThreadVisitor::ProcessTextureSurfaceRenderNode(RSSurfaceRenderNode&
     } else {
         auto backgroundColor = node.GetRenderProperties().GetBackgroundColor();
         if (backgroundColor != RgbPalette::Transparent()) {
+#ifndef USE_ROSEN_DRAWING
             canvas_->clear(backgroundColor.AsArgbInt());
+#else
+            canvas_->Clear(backgroundColor.AsArgbInt());
+#endif
         }
     }
+#ifndef USE_ROSEN_DRAWING
     canvas_->restore();
+#else
+    canvas_->Restore();
+#endif
 }
 #endif
 
