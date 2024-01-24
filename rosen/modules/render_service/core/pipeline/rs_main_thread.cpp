@@ -139,7 +139,7 @@ constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* MEM_MGR = "MemMgr";
-constexpr const char* DESKTOP_NAME_FOR_ROTATION = "SCBDesktop2";
+constexpr const char* DESKTOP_NAME_FOR_ROTATION = "SCBDesktop";
 #ifdef RS_ENABLE_GL
 constexpr size_t DEFAULT_SKIA_CACHE_SIZE        = 96 * (1 << 20);
 constexpr int DEFAULT_SKIA_CACHE_COUNT          = 2 * (1 << 12);
@@ -1528,7 +1528,7 @@ void RSMainThread::Render()
     if (RSSystemProperties::GetRenderNodeTraceEnabled()) {
         RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
     }
-    if (focusAppBundleName_ == DESKTOP_NAME_FOR_ROTATION) {
+    if (focusAppBundleName_.find(DESKTOP_NAME_FOR_ROTATION) != std::string::npos) {
         desktopPidForRotationScene_ = focusAppPid_;
     }
 
