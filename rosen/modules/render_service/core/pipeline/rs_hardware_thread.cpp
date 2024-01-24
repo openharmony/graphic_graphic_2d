@@ -124,27 +124,6 @@ uint32_t RSHardwareThread::GetunExcuteTaskNum()
     return unExcuteTaskNum_;
 }
 
-void RSHardwareThread::ReleaseBuffer(sptr<SurfaceBuffer> buffer, sptr<SyncFence> releaseFence,
-    sptr<IConsumerSurface> cSurface)
-{
-    if (cSurface == nullptr) {
-        RS_LOGE("RsDebug RSHardwareThread:: ReleaseBuffer failed, no consumer!");
-        return;
-    }
-
-    if (buffer != nullptr) {
-        RS_TRACE_NAME("RSHardwareThread::ReleaseBuffer");
-        auto ret = cSurface->ReleaseBuffer(buffer, releaseFence);
-        if (ret != OHOS::SURFACE_ERROR_OK) {
-            return;
-        }
-        // reset prevBuffer if we release it successfully,
-        // to avoid releasing the same buffer next frame in some situations.
-        buffer = nullptr;
-        releaseFence = SyncFence::INVALID_FENCE;
-    }
-}
-
 void RSHardwareThread::RefreshRateCounts(std::string& dumpString)
 {
     if (refreshRateCounts_.empty()) {
@@ -166,48 +145,6 @@ void RSHardwareThread::ClearRefreshRateCounts(std::string& dumpString)
     refreshRateCounts_.clear();
     dumpString.append("The refresh rate counts info is cleared successfully!\n");
     RS_LOGD("RSHardwareThread::RefreshRateCounts refresh rate counts info is cleared");
-}
-
-void RSHardwareThread::ReleaseLayers(OutputPtr output, const std::unordered_map<uint32_t, LayerPtr>& layerMap)
-{
-    // get present timestamp from and set present timestamp to surface
-    for (const auto& [id, layer] : layerMap) {
-        if (layer == nullptr || layer->GetLayerInfo()->GetSurface() == nullptr) {
-            RS_LOGW("RSHardwareThread::ReleaseLayers: layer or layer's cSurface is nullptr");
-            continue;
-        }
-        LayerPresentTimestamp(layer->GetLayerInfo(), layer->GetLayerInfo()->GetSurface());
-    }
-
-    // set all layers' releaseFence.
-    if (output == nullptr) {
-        RS_LOGE("RSHardwareThread::ReleaseLayers: output is nullptr");
-        return;
-    }
-    const auto layersReleaseFence = output->GetLayersReleaseFence();
-    if (layersReleaseFence.size() == 0) {
-        // When release fence's size is 0, the output may invalid, release all buffer
-        // This situation may happen when killing composer_host
-        for (const auto& [id, layer] : layerMap) {
-            if (layer == nullptr || layer->GetLayerInfo()->GetSurface() == nullptr) {
-                RS_LOGW("RSHardwareThread::ReleaseLayers: layer or layer's cSurface is nullptr");
-                continue;
-            }
-            auto preBuffer = layer->GetLayerInfo()->GetPreBuffer();
-            auto consumer = layer->GetLayerInfo()->GetSurface();
-            ReleaseBuffer(preBuffer, SyncFence::INVALID_FENCE, consumer);
-        }
-        RS_LOGE("RSHardwareThread::ReleaseLayers: no layer needs to release");
-    }
-    for (const auto& [layer, fence] : layersReleaseFence) {
-        if (layer == nullptr) {
-            continue;
-        }
-        auto preBuffer = layer->GetPreBuffer();
-        auto consumer = layer->GetSurface();
-        ReleaseBuffer(preBuffer, fence, consumer);
-    }
-    RSMainThread::Instance()->NotifyDisplayNodeBufferReleased();
 }
 
 void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vector<LayerInfoPtr>& layers)
@@ -238,8 +175,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         if (output->IsDeviceValid()) {
             hdiBackend_->Repaint(output);
         }
-        auto layerMap = output->GetLayers();
-        ReleaseLayers(output, layerMap);
+        output->ReleaseLayers();
+        RSMainThread::Instance()->NotifyDisplayNodeBufferReleased();
 
         if (FrameReport::GetInstance().IsGameScene()) {
             endTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -728,21 +665,6 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #endif
 #endif
     RS_LOGD("RsDebug RSHardwareThread::Redraw flush frame buffer end");
-}
-
-// private func, guarantee the layer and surface are valid
-void RSHardwareThread::LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<IConsumerSurface>& surface) const
-{
-    if (!layer->IsSupportedPresentTimestamp()) {
-        return;
-    }
-    const auto& buffer = layer->GetBuffer();
-    if (buffer == nullptr) {
-        return;
-    }
-    if (surface->SetPresentTimestamp(buffer->GetSeqNum(), layer->GetPresentTimestamp()) != GSERROR_OK) {
-        RS_LOGD("RsDebug RSUniRenderComposerAdapter::LayerPresentTimestamp: SetPresentTimestamp failed");
-    }
 }
 
 void RSHardwareThread::AddRefreshRateCount()

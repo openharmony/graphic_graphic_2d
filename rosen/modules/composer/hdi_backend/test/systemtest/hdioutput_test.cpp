@@ -193,11 +193,7 @@ HWTEST_F(HdiOutputSysTest, SetHdiOutputDevice001, Function | MediumTest| Level3)
 HWTEST_F(HdiOutputSysTest, FlushScreen002, Function | MediumTest| Level1)
 {
     std::vector<LayerPtr> compClientLayers;
-    const std::unordered_map<uint32_t, LayerPtr> &layersMap = HdiOutputSysTest::hdiOutput_->GetLayers();
-    for (auto iter = layersMap.begin(); iter != layersMap.end(); ++iter) {
-        const LayerPtr &layer = iter->second;
-        compClientLayers.emplace_back(layer);
-    }
+    HdiOutputSysTest::hdiOutput_->GetComposeClientLayers(compClientLayers);
     // frame buffer is nullptr
     ASSERT_EQ(HdiOutputSysTest::hdiOutput_->FlushScreen(compClientLayers), -1);
 

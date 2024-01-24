@@ -192,7 +192,6 @@ HWTEST_F(RSHardwareThreadTest, Start003, TestSize.Level1)
  */
 HWTEST_F(RSHardwareThreadTest, Start004, TestSize.Level1)
 {
-    auto& hardwareThread = RSHardwareThread::Instance();
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
     const auto& surfaceConsumer = rsSurfaceRenderNode->GetConsumer();
     auto producer = surfaceConsumer->GetProducer();
@@ -211,8 +210,6 @@ HWTEST_F(RSHardwareThreadTest, Start004, TestSize.Level1)
     int64_t timestamp = 0;
     ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
     ASSERT_EQ(ret, GSERROR_OK);
-    sptr<SyncFence> releaseFence = SyncFence::INVALID_FENCE;
-    hardwareThread.ReleaseBuffer(buffer, releaseFence, surfaceConsumer);
 }
 
 /**

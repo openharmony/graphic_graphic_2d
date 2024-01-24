@@ -101,20 +101,9 @@ void HdiBackend::SetPendingMode(const OutputPtr &output, int64_t period, int64_t
 int32_t HdiBackend::PrepareCompleteIfNeed(const OutputPtr &output, bool needFlush)
 {
     std::vector<LayerPtr> compClientLayers;
+    output->GetComposeClientLayers(compClientLayers);
     std::vector<LayerInfoPtr> newLayerInfos;
-    const std::unordered_map<uint32_t, LayerPtr> &layersMap = output->GetLayers();
-    for (auto iter = layersMap.begin(); iter != layersMap.end(); ++iter) {
-        const LayerPtr &layer = iter->second;
-        if (layer == nullptr) {
-            continue;
-        }
-        newLayerInfos.emplace_back(layer->GetLayerInfo());
-        if (layer->GetLayerInfo()->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT ||
-            layer->GetLayerInfo()->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT_CLEAR ||
-            layer->GetLayerInfo()->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_TUNNEL) {
-            compClientLayers.emplace_back(layer);
-        }
-    }
+    output->GetLayerInfos(newLayerInfos);
 
     if (compClientLayers.size() > 0) {
         needFlush = true;

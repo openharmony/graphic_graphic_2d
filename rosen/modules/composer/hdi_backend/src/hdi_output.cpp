@@ -15,6 +15,7 @@
 
 #include <cstdint>
 #include <scoped_bytrace.h>
+#include "rs_trace.h"
 #include "hdi_output.h"
 #include "metadata_helper.h"
 #include "vsync_generator.h"
@@ -147,6 +148,7 @@ void HdiOutput::DeletePrevLayers()
         }
     }
 
+    std::unique_lock<std::mutex> lock(layerMutex_);
     auto layerIter = layerIdMap_.begin();
     while (layerIter != layerIdMap_.end()) {
         const LayerPtr &layer = layerIter->second;
@@ -160,6 +162,7 @@ void HdiOutput::DeletePrevLayers()
 
 void HdiOutput::ResetLayerStatus()
 {
+    std::unique_lock<std::mutex> lock(layerMutex_);
     for (auto iter = layerIdMap_.begin(); iter != layerIdMap_.end(); ++iter) {
         iter->second->SetLayerStatus(false);
     }
@@ -175,7 +178,10 @@ int32_t HdiOutput::CreateLayer(uint64_t surfaceId, const LayerInfoPtr &layerInfo
 
     layer->UpdateLayerInfo(layerInfo);
     uint32_t layerId = layer->GetLayerId();
-    layerIdMap_[layerId] = layer;
+    {
+        std::unique_lock<std::mutex> lock(layerMutex_);
+        layerIdMap_[layerId] = layer;
+    }
     surfaceIdMap_[surfaceId] = layer;
 
     return GRAPHIC_DISPLAY_SUCCESS;
@@ -191,13 +197,34 @@ const std::vector<GraphicIRect>& HdiOutput::GetOutputDamages()
     return outputDamages_;
 }
 
-const std::unordered_map<uint32_t, std::shared_ptr<HdiLayer>>& HdiOutput::GetLayers()
+void HdiOutput::GetComposeClientLayers(std::vector<LayerPtr>& clientLayers)
 {
-    return layerIdMap_;
+    std::unique_lock<std::mutex> lock(layerMutex_);
+    for (const auto &[first, layer] : layerIdMap_) {
+        if (layer == nullptr) {
+            continue;
+        }
+        if (layer->GetLayerInfo()->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT ||
+            layer->GetLayerInfo()->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT_CLEAR ||
+            layer->GetLayerInfo()->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_TUNNEL) {
+            clientLayers.emplace_back(layer);
+        }
+    }
+}
+
+void HdiOutput::GetLayerInfos(std::vector<LayerInfoPtr>& layerInfos)
+{
+    std::unique_lock<std::mutex> lock(layerMutex_);
+    for (const auto &it : layerIdMap_) {
+        if (it.second != nullptr) {
+            layerInfos.emplace_back(it.second->GetLayerInfo());
+        }
+    }
 }
 
 void HdiOutput::UpdatePrevLayerInfo()
 {
+    std::unique_lock<std::mutex> lock(layerMutex_);
     for (auto iter = layerIdMap_.begin(); iter != layerIdMap_.end(); iter++) {
         LayerPtr layer = iter->second;
         layer->SavePrevLayerInfo();
@@ -265,30 +292,34 @@ bool HdiOutput::GetDirectClientCompEnableStatus() const
 
 int32_t HdiOutput::PreProcessLayersComp(bool &needFlush)
 {
-    if (layerIdMap_.empty()) {
-        HLOGI("layer map is empty, drop this frame");
-        return GRAPHIC_DISPLAY_PARAM_ERR;
-    }
-
-    uint32_t layersNum = layerIdMap_.size();
-    // If doClientCompositionDirectly is true then layer->SetHdiLayerInfo and UpdateLayerCompType is no need to run.
-    bool doClientCompositionDirectly = ((layerCompCapacity_ != LAYER_COMPOSITION_CAPACITY_INVALID) &&
-                                        (layersNum > layerCompCapacity_));
-    if (!directClientCompositionEnabled_) {
-        doClientCompositionDirectly = false;
-    }
-
     int32_t ret;
-    for (auto iter = layerIdMap_.begin(); iter != layerIdMap_.end(); ++iter) {
-        const LayerPtr &layer = iter->second;
-        if (doClientCompositionDirectly) {
-            layer->UpdateCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
-            continue;
+    bool doClientCompositionDirectly;
+    {
+        std::unique_lock<std::mutex> lock(layerMutex_);
+        if (layerIdMap_.empty()) {
+            HLOGI("layer map is empty, drop this frame");
+            return GRAPHIC_DISPLAY_PARAM_ERR;
         }
-        ret = layer->SetHdiLayerInfo();
-        if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-            HLOGE("Set hdi layer[id:%{public}d] info failed, ret %{public}d.", layer->GetLayerId(), ret);
-            return GRAPHIC_DISPLAY_FAILURE;
+
+        uint32_t layersNum = layerIdMap_.size();
+        // If doClientCompositionDirectly is true then layer->SetHdiLayerInfo and UpdateLayerCompType is no need to run.
+        doClientCompositionDirectly = ((layerCompCapacity_ != LAYER_COMPOSITION_CAPACITY_INVALID) &&
+                                            (layersNum > layerCompCapacity_));
+        if (!directClientCompositionEnabled_) {
+            doClientCompositionDirectly = false;
+        }
+
+        for (auto iter = layerIdMap_.begin(); iter != layerIdMap_.end(); ++iter) {
+            const LayerPtr &layer = iter->second;
+            if (doClientCompositionDirectly) {
+                layer->UpdateCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+                continue;
+            }
+            ret = layer->SetHdiLayerInfo();
+            if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+                HLOGE("Set hdi layer[id:%{public}d] info failed, ret %{public}d.", layer->GetLayerId(), ret);
+                return GRAPHIC_DISPLAY_FAILURE;
+            }
         }
     }
 
@@ -319,6 +350,7 @@ int32_t HdiOutput::UpdateLayerCompType()
         return ret;
     }
 
+    std::unique_lock<std::mutex> lock(layerMutex_);
     size_t layerNum = layersId.size();
     for (size_t i = 0; i < layerNum; i++) {
         auto iter = layerIdMap_.find(layersId[i]);
@@ -461,6 +493,7 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
     if (timestamp != SyncFence::FENCE_PENDING_TIMESTAMP) {
         startSample = sampler_->AddPresentFenceTime(timestamp);
         RecordCompositionTime(timestamp);
+        std::unique_lock<std::mutex> lock(layerMutex_);
         for (auto iter = layerIdMap_.begin(); iter != layerIdMap_.end(); ++iter) {
             const LayerPtr &layer = iter->second;
             layer->RecordPresentTime(timestamp);
@@ -495,6 +528,79 @@ int32_t HdiOutput::ReleaseFramebuffer(const sptr<SyncFence>& releaseFence)
     return ret;
 }
 
+void HdiOutput::ReleaseSurfaceBuffer()
+{
+    auto releaseBuffer = [](sptr<SurfaceBuffer> buffer, sptr<SyncFence> releaseFence,
+        sptr<IConsumerSurface> cSurface) -> void {
+        if (cSurface == nullptr) {
+            HLOGE("HdiOutput:: ReleaseBuffer failed, no consumer!");
+            return;
+        }
+        if (buffer == nullptr) {
+            return;
+        }
+        RS_TRACE_NAME("HdiOutput::ReleaseBuffer");
+        auto ret = cSurface->ReleaseBuffer(buffer, releaseFence);
+        if (ret == OHOS::SURFACE_ERROR_OK) {
+            // reset prevBuffer if we release it successfully,
+            // to avoid releasing the same buffer next frame in some situations.
+            buffer = nullptr;
+            releaseFence = SyncFence::INVALID_FENCE;
+        }
+    };
+    const auto layersReleaseFence = GetLayersReleaseFence();
+    if (layersReleaseFence.size() == 0) {
+        // When release fence's size is 0, the output may invalid, release all buffer
+        // This situation may happen when killing composer_host
+        std::unique_lock<std::mutex> lock(layerMutex_);
+        for (const auto& [id, layer] : layerIdMap_) {
+            if (layer == nullptr || layer->GetLayerInfo()->GetSurface() == nullptr) {
+                HLOGW("HdiOutput::ReleaseLayers: layer or layer's cSurface is nullptr");
+                continue;
+            }
+            auto preBuffer = layer->GetLayerInfo()->GetPreBuffer();
+            auto consumer = layer->GetLayerInfo()->GetSurface();
+            releaseBuffer(preBuffer, SyncFence::INVALID_FENCE, consumer);
+        }
+        HLOGD("HdiOutput::ReleaseLayers: no layer needs to release");
+    }
+    for (const auto& [layer, fence] : layersReleaseFence) {
+        if (layer != nullptr) {
+            auto preBuffer = layer->GetPreBuffer();
+            auto consumer = layer->GetSurface();
+            releaseBuffer(preBuffer, fence, consumer);
+        }
+    }
+}
+
+void HdiOutput::ReleaseLayers()
+{
+    auto layerPresentTimestamp = [](const LayerInfoPtr& layer, const sptr<IConsumerSurface>& cSurface) -> void {
+        if (!layer->IsSupportedPresentTimestamp()) {
+            return;
+        }
+        const auto& buffer = layer->GetBuffer();
+        if (buffer == nullptr) {
+            return;
+        }
+        if (cSurface->SetPresentTimestamp(buffer->GetSeqNum(), layer->GetPresentTimestamp()) != GSERROR_OK) {
+            HLOGD("LayerPresentTimestamp: SetPresentTimestamp failed");
+        }
+    };
+    {
+        // get present timestamp from and set present timestamp to cSurface
+        std::unique_lock<std::mutex> lock(layerMutex_);
+        for (const auto& [id, layer] : layerIdMap_) {
+            if (layer == nullptr || layer->GetLayerInfo()->GetSurface() == nullptr) {
+                HLOGW("HdiOutput::ReleaseLayers: layer or layer's cSurface is nullptr");
+                continue;
+            }
+            layerPresentTimestamp(layer->GetLayerInfo(), layer->GetLayerInfo()->GetSurface());
+        }
+    }
+    ReleaseSurfaceBuffer();
+}
+
 std::map<LayerInfoPtr, sptr<SyncFence>> HdiOutput::GetLayersReleaseFence()
 {
     if (device_ == nullptr) {
@@ -510,6 +616,7 @@ std::map<LayerInfoPtr, sptr<SyncFence>> HdiOutput::GetLayersReleaseFence()
     }
 
     std::map<LayerInfoPtr, sptr<SyncFence>> res;
+    std::unique_lock<std::mutex> lock(layerMutex_);
     size_t layerNum = layersId.size();
     for (size_t i = 0; i < layerNum; i++) {
         auto iter = layerIdMap_.find(layersId[i]);
