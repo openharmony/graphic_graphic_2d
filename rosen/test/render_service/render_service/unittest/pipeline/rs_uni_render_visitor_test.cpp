@@ -2663,6 +2663,7 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessChildrenForScreenRecordingOptimization00
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->ProcessChildrenForScreenRecordingOptimization(*rsDisplayRenderNode, id);
+    ASSERT_EQ(rsDisplayRenderNode->GetIsUsedBySubThread(), false);
 }
 
 /**
