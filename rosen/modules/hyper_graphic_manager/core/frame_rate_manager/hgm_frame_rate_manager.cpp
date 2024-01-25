@@ -446,12 +446,6 @@ void HgmFrameRateManager::HandlePackageEvent(uint32_t listSize, const std::vecto
 {
     // the focus app agreed at the front of packageList
     std::lock_guard<std::mutex> locker(pkgSceneMutex_);
-    if (listSize > 1) {
-        // hgm warning: strategy for multi app
-        DeliverRefreshRateVote(0, "VOTER_MULTI_APP", ADD_VOTE, OLED_60_HZ, OLED_60_HZ);
-    } else {
-        DeliverRefreshRateVote(0, "VOTER_MULTI_APP", REMOVE_VOTE);
-    }
 
     std::string curPkgName = packageList.front();
     HGM_LOGI("HandlePackageEvent curPkg:[%{public}s] pkgNum:[%{public}d]", curPkgName.c_str(), listSize);
@@ -649,6 +643,8 @@ void HgmFrameRateManager::DeliverRefreshRateVote(pid_t pid, std::string eventNam
 
     std::lock_guard<std::mutex> lock(voteMutex_);
     auto& vec = voteRecord_[eventName];
+
+    // clear
     if ((pid == 0) && (eventStatus == REMOVE_VOTE)) {
         if (!vec.empty()) {
             vec.clear();
@@ -663,18 +659,22 @@ void HgmFrameRateManager::DeliverRefreshRateVote(pid_t pid, std::string eventNam
         }
 
         if (eventStatus == REMOVE_VOTE) {
+            // remove
             it = vec.erase(it);
             MarkVoteChange();
             return;
         } else {
             if ((*it).second.first != min || (*it).second.second != max) {
-                (*it).second = std::make_pair(min, max);
+                // modify
+                vec.erase(it);
+                vec.push_back(std::make_pair(pid, std::make_pair(min, max)));
                 MarkVoteChange();
             }
             return;
         }
     }
 
+    // add
     if (eventStatus == ADD_VOTE) {
         pidRecord_.insert(pid);
         vec.push_back(std::make_pair(pid, std::make_pair(min, max)));

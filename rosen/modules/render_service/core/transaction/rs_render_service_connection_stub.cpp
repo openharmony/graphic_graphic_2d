@@ -1237,6 +1237,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             auto listSize = data.ReadUint32();
+            const uint32_t MAX_LIST_SIZE = 30;
+            if (listSize > MAX_LIST_SIZE) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
             std::vector<std::string> packageList;
             for (auto i = 0; i < listSize; i++) {
                 packageList.push_back(data.ReadString());
