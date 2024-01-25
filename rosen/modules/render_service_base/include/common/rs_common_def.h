@@ -181,6 +181,7 @@ struct RSSurfaceRenderNodeConfig {
     RSSurfaceNodeType nodeType = RSSurfaceNodeType::DEFAULT;
     void* additionalData = nullptr;
     bool isTextureExportNode = false;
+    bool isSync = false;
 };
 
 // types for RSSurfaceExt
